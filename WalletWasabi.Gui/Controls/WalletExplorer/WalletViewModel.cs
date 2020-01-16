@@ -70,7 +70,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			var advancedAction = new WalletAdvancedViewModel(this);
 			WalletInfoViewModel infoTab = new WalletInfoViewModel(this);
-			SendTabViewModel buildTab = new SendTabViewModel(this, isTransactionBuilder: true);
+			BuildTabViewModel buildTab = new BuildTabViewModel(this);
 
 			Actions.Add(receiveTab);
 			Actions.Add(coinjoinTab);

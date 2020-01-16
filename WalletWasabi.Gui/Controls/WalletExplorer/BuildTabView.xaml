@@ -6,7 +6,7 @@
              xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
              xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
              xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui"
-             x:Class="WalletWasabi.Gui.Controls.WalletExplorer.SendTabView">
+             x:Class="WalletWasabi.Gui.Controls.WalletExplorer.BuildTabView">
   <UserControl.Resources>
     <converters:AmountForegroundConverter x:Key="AmountForegroundConverter" />
     <converters:BooleanStringConverter x:Key="BooleanStringConverter" />
@@ -97,14 +97,14 @@
           <StackPanel Spacing="10" Orientation="Horizontal">
             <controls:TogglePasswordBox Text="{Binding Password}" IsVisible="{Binding !IsWatchOnly}" MaxWidth = "600">
               <i:Interaction.Behaviors>
-                <behaviors:CommandOnEnterBehavior Command="{Binding SendTransactionCommand}" />
+                <behaviors:CommandOnEnterBehavior Command="{Binding BuildTransactionCommand}" />
               </i:Interaction.Behaviors>
             </controls:TogglePasswordBox>
             <DockPanel VerticalAlignment="Top" LastChildFill="True">
-              <Button Command="{Binding SendTransactionCommand}" DockPanel.Dock="Right">
+              <Button Command="{Binding BuildTransactionCommand}" DockPanel.Dock="Right">
                 <StackPanel Orientation="Horizontal">
                   <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsBusy}" Margin="0 0 8 0" />
-                  <TextBlock Text="{Binding SendTransactionButtonText}" />
+                  <TextBlock Text="{Binding BuildTransactionButtonText}" />
                 </StackPanel>
               </Button>
               <Grid></Grid>
