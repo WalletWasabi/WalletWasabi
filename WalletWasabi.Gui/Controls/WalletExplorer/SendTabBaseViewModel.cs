@@ -39,7 +39,7 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class SendTabBaseViewModel : WalletActionViewModel
+	public abstract class SendTabBaseViewModel : WalletActionViewModel
 	{
 		private CompositeDisposable Disposables { get; set; }
 
@@ -69,11 +69,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _isHardwareBusy;
 		private bool _isCustomFee;
 
-		private const string SendTransactionButtonTextString = "Send Transaction";
 		private const string WaitingForHardwareWalletButtonTextString = "Waiting for Hardware Wallet...";
-		private const string SendingTransactionButtonTextString = "Sending Transaction...";
-		private const string BuildTransactionButtonTextString = "Build Transaction";
-		private const string BuildingTransactionButtonTextString = "Building Transaction...";
 
 		private FeeDisplayFormat _feeDisplayFormat;
 		private bool _isSliderFeeUsed = true;
@@ -100,13 +96,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			AmountText = "0.0";
 		}
 
-		public SendTabBaseViewModel(WalletViewModel walletViewModel, bool isTransactionBuilder = false)
-			: base(isTransactionBuilder ? "Build Transaction" : "Send", walletViewModel)
+		public abstract string DoButtonText { get; }
+		public abstract string DoingButtonText { get; }
+
+		public SendTabBaseViewModel(WalletViewModel walletViewModel, string title)
+			: base(title, walletViewModel)
 		{
 			Global = Locator.Current.GetService<Global>();
 			LabelSuggestion = new SuggestLabelViewModel();
-			IsTransactionBuilder = isTransactionBuilder;
-			BuildTransactionButtonText = IsTransactionBuilder ? BuildTransactionButtonTextString : SendTransactionButtonTextString;
+			IsTransactionBuilder = false;
+			BuildTransactionButtonText = DoButtonText;
 
 			ResetUi();
 			SetAmountWatermark(Money.Zero);
@@ -177,13 +176,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			});
 
-			this.WhenAnyValue(x => x.IsBusy)
+			this.WhenAnyValue(x => x.IsBusy, x => x.IsHardwareBusy)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => SetSendText());
-
-			this.WhenAnyValue(x => x.IsHardwareBusy)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => SetSendText());
+				.Subscribe(_ =>
+				{
+					BuildTransactionButtonText = IsHardwareBusy
+						? WaitingForHardwareWalletButtonTextString
+						: IsBusy
+							? DoingButtonText
+							: DoButtonText;
+				});
 
 			this.WhenAnyValue(x => x.FeeTarget)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -467,21 +469,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public SuggestLabelViewModel LabelSuggestion { get; }
-
-		private void SetSendText()
-		{
-			if (IsTransactionBuilder)
-			{
-				BuildTransactionButtonText = IsBusy ? BuildingTransactionButtonTextString : BuildTransactionButtonTextString;
-				return;
-			}
-
-			BuildTransactionButtonText = IsHardwareBusy
-				? WaitingForHardwareWalletButtonTextString
-				: IsBusy
-					? SendingTransactionButtonTextString
-					: SendTransactionButtonTextString;
-		}
 
 		private void SetAmountWatermark(Money amount)
 		{
