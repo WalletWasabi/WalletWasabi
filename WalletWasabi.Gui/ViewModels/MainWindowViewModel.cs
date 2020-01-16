@@ -121,10 +121,6 @@ namespace WalletWasabi.Gui.ViewModels
 					{
 						CheckLockScreenType(uiConfig.LockScreenPinHash);
 					}
-					else
-					{
-						LockScreen = null;
-					}
 				});
 				
 		}
