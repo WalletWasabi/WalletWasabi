@@ -2,11 +2,11 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Gui.Controls
+namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class SendTabBase : UserControl
+	public class SendTabBaseView : UserControl
 	{
-		public SendTabBase()
+		public SendTabBaseView()
 		{
 			this.InitializeComponent();
 		}

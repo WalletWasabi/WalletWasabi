@@ -99,7 +99,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public abstract string DoButtonText { get; }
 		public abstract string DoingButtonText { get; }
 
-		public SendTabBaseViewModel(WalletViewModel walletViewModel, string title)
+		protected SendTabBaseViewModel(WalletViewModel walletViewModel, string title)
 			: base(title, walletViewModel)
 		{
 			Global = Locator.Current.GetService<Global>();
