@@ -55,5 +55,4 @@ __Fact__: code review is the top rated code improvement tool.
 - Implement feature.
 - Always fix CI.
 - Set Reviewers.
-- Merge PR if there are at least 2 code maintainer Approvals (nopara, lontrivero, molnard, dan).
 - If it is UX related always ask Jumar or Dan to review.
