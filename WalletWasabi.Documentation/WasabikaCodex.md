@@ -35,7 +35,7 @@ https://github.com/zkSNACKs/WalletWasabi/projects/8
 - Do not review code longer than 60 minutes or more than 400 lines. Take a 10 minute pause at that point.
 - Check for code smells. Give constructive feedback that helps (Not hurts).
   - Easy to read.
-  - Maintainability.
+  - Maintainable.
 - Checkout PR and test it if required.
 - Request changes if needed.
 - Approve if you are done.
