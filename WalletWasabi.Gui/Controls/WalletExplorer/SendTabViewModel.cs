@@ -9,7 +9,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public override string DoButtonText => "Send Transaction";
 		public override string DoingButtonText => "Sending Transaction...";
 
-		public SendTabViewModel(WalletViewModel walletViewModel, bool isTransactionBuilder = false) : base(walletViewModel, "Send")
+		public SendTabViewModel(WalletViewModel walletViewModel) : base(walletViewModel, "Send")
 		{
 		}
 	}
