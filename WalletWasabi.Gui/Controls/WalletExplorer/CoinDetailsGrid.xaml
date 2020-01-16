@@ -5,7 +5,6 @@
   xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
   xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui" x:Class="WalletWasabi.Gui.Controls.WalletExplorer.CoinDetailsGrid" x:Name="PART_DetailRoot">
   <DockPanel LastChildFill="True">
-    <Button Command="{Binding Owner.ToggleDetails}" DockPanel.Dock="Top" Content="{Binding Owner.ExpandedDetailsCaption}" HorizontalAlignment="Stretch" />
     <Grid Margin="10">
       <Grid HorizontalAlignment="Left" ColumnDefinitions="150, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
         <TextBlock Classes="monospaceFont" Text="Transaction Id:" Grid.Row="0" />
