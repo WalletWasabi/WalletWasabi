@@ -43,7 +43,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private CompositeDisposable Disposables { get; set; }
 
-		private Global Global { get; }
+		protected Global Global { get; }
 
 		private string _buildTransactionButtonText;
 		private bool _isMax;
@@ -85,7 +85,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private void ResetUi()
+		protected void ResetUi()
 		{
 			LabelSuggestion.Reset();
 			Address = "";
@@ -104,7 +104,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Global = Locator.Current.GetService<Global>();
 			LabelSuggestion = new SuggestLabelViewModel();
-			IsTransactionBuilder = false;
 			BuildTransactionButtonText = DoButtonText;
 
 			ResetUi();
@@ -346,65 +345,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					BuildTransactionResult result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, intent, feeStrategy, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
 
-					if (IsTransactionBuilder)
-					{
-						var txviewer = IoC.Get<IShell>().Documents?.OfType<TransactionViewerViewModel>()?.FirstOrDefault(x => x.Wallet.Id == Wallet.Id);
-						if (txviewer is null)
-						{
-							txviewer = new TransactionViewerViewModel(Wallet);
-							IoC.Get<IShell>().AddDocument(txviewer);
-						}
-						IoC.Get<IShell>().Select(txviewer);
-
-						txviewer.Update(result);
-
-						ResetUi();
-
-						NotificationHelpers.Success("Transaction is successfully built!", "");
-
-						return;
-					}
-
-					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.SigningTransaction);
-					SmartTransaction signedTransaction = result.Transaction;
-
-					if (IsHardwareWallet && !result.Signed) // If hardware but still has a privkey then it's password, then meh.
-					{
-						try
-						{
-							IsHardwareBusy = true;
-							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.AcquiringSignatureFromHardwareWallet);
-							var client = new HwiClient(Global.Network);
-
-							using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-							PSBT signedPsbt = null;
-							try
-							{
-								signedPsbt = await client.SignTxAsync(KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
-							}
-							catch (HwiException)
-							{
-								await PinPadViewModel.UnlockAsync();
-								signedPsbt = await client.SignTxAsync(KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
-							}
-							signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction);
-						}
-						catch (Exception ex)
-						{
-							NotificationHelpers.Error(ex.ToTypeMessageString());
-							return;
-						}
-						finally
-						{
-							MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusType.AcquiringSignatureFromHardwareWallet);
-							IsHardwareBusy = false;
-						}
-					}
-
-					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.BroadcastingTransaction);
-					await Task.Run(async () => await Global.TransactionBroadcaster.SendTransactionAsync(signedTransaction));
-
-					ResetUi();
+					await DoAfterBuildTransaction(result);
 				}
 				catch (InsufficientBalanceException ex)
 				{
@@ -427,7 +368,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					IsBusy = false;
 				}
 			},
-			this.WhenAny(x => x.IsMax, x => x.AmountText, x => x.Address, x => x.IsBusy,
+			(this).WhenAny(x => x.IsMax, x => x.AmountText, x => x.Address, x => x.IsBusy,
 				(isMax, amount, address, busy) => (isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy)
 				.ObserveOn(RxApp.MainThreadScheduler));
 
@@ -906,8 +847,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public ReactiveCommand<KeyEventArgs, Unit> AmountKeyUpCommand { get; }
 
-		public bool IsTransactionBuilder { get; }
-
 		public override void OnOpen()
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
@@ -953,6 +892,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			base.OnOpen();
 		}
+
+		protected abstract Task DoAfterBuildTransaction(BuildTransactionResult result);
 
 		public override bool OnClose()
 		{
