@@ -204,10 +204,10 @@ namespace WalletWasabi.Gui
 				#region ProcessKillSubscription
 
 				AppDomain.CurrentDomain.ProcessExit += async (s, e) => await TryDesperateDequeueAllCoinsAsync();
-				Console.CancelKeyPress += async (s, e) => 
-				{ 
-					e.Cancel = true; 
-					await StopAndExitAsync(); 
+				Console.CancelKeyPress += async (s, e) =>
+				{
+					e.Cancel = true;
+					await StopAndExitAsync();
 				};
 
 				#endregion ProcessKillSubscription
@@ -834,8 +834,8 @@ namespace WalletWasabi.Gui
 
 				await DisposeInWalletDependentServicesAsync();
 
-				var rpcServer = RpcServer; 
-				if (rpcServer is {})
+				var rpcServer = RpcServer;
+				if (rpcServer is { })
 				{
 					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
 					await rpcServer.StopAsync(cts.Token);
