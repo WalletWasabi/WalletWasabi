@@ -72,6 +72,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReadOnlyObservableCollection<CoinViewModel> Coins => _coinViewModels;
 
 		public bool DisplayCommonOwnershipWarning { get; set; } = false;
+		public bool CanDequeueCoins { get; set; } = false;
 		
 		private SortExpressionComparer<CoinViewModel> MyComparer
 		{
@@ -435,7 +436,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 						RootList.RemoveMany(coinToRemove.Select(kp => kp.Value));
 
-						var newCoinViewModels = coinToAdd.Select(c => new CoinViewModel(this, c)).ToArray();
+						var newCoinViewModels = coinToAdd.Select(c => new CoinViewModel(this, c, CanDequeueCoins)).ToArray();
 						foreach (var cvm in newCoinViewModels)
 						{
 							SubscribeToCoinEvents(cvm);
