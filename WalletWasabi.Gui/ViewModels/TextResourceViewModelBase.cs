@@ -42,7 +42,7 @@ namespace WalletWasabi.Gui.ViewModels
 			return await reader.ReadToEndAsync();
 		}
 
-		private async Task<string> LoadDocumentAsync(string path)
+		private static async Task<string> LoadDocumentAsync(string path)
 		{
 			using var stream = File.OpenRead(path);
 			using var reader = new StreamReader(stream);
