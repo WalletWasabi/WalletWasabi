@@ -1,12 +1,18 @@
 ﻿<lockscreen:PinLockScreenView xmlns="https://github.com/avaloniaui"
                           xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                          xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"             
+                          xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
                           xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
                           xmlns:lockscreen="clr-namespace:WalletWasabi.Gui.Controls.LockScreen;assembly=WalletWasabi.Gui"
                           x:Class="WalletWasabi.Gui.Controls.LockScreen.PinLockScreenView">
   <Grid Background="{DynamicResource ThemeBackgroundBrush}">
     <controls:GroupBox VerticalAlignment="Center" HorizontalAlignment="Center" TextBlock.FontSize="25" Padding="20" Margin="10">
       <DockPanel LastChildFill="True">
-        <controls:TogglePasswordBox x:Name="InputField" Text="{Binding PinInput}" Width="300" DockPanel.Dock="Top" Margin="4 0 4 20" Watermark="PIN" />
+        <controls:TogglePasswordBox x:Name="InputField" Text="{Binding PinInput}" Width="300" DockPanel.Dock="Top" Margin="4 0 4 20" Watermark="PIN">
+          <i:Interaction.Behaviors>
+            <behaviors:FocusOnAttachedBehavior />
+          </i:Interaction.Behaviors>
+        </controls:TogglePasswordBox>
         <Grid RowDefinitions="*,*,*,*" ColumnDefinitions="*,*,*">
           <Grid.Styles>
             <Style Selector="Button">
