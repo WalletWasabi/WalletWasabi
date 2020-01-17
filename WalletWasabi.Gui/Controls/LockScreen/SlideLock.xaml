@@ -1,0 +1,18 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.LockScreen">
+  <Style Selector="local|SlideLock">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Grid Background="Red" Name="PART_Container">
+          <Thumb Name="PART_Thumb">
+            <Thumb.Template>
+              <ControlTemplate>
+                <Border Background="Transparent" />
+              </ControlTemplate>
+            </Thumb.Template>
+          </Thumb>
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+</Styles>

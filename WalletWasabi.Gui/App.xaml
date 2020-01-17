@@ -22,6 +22,7 @@
     <StyleInclude Source="avares://WalletWasabi.Gui/Styles/Styles.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Gui/Icons/Icons.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Gui/Controls/BusyIndicator.xaml" />
+    <StyleInclude Source="avares://WalletWasabi.Gui/Controls/LockScreen/SlideLock.xaml" />
   </Application.Styles>
   <Application.DataTemplates>
     <DataTemplate DataType="Views:MainView">
