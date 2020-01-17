@@ -84,7 +84,7 @@
                         <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource CoinListView_More}" />
                       </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem IsVisible="{Binding InCoinJoinContainer}"  Header="Dequeue from CoinJoin" Command="{Binding DequeueCoin}">
+                    <MenuItem Header="Dequeue from CoinJoin" Command="{Binding DequeueCoin}">
                       <MenuItem.Icon>
                         <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource CoinListView_DequeueCoin}" />
                       </MenuItem.Icon>
