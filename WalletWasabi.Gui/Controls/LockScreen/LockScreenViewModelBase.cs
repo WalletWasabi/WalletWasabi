@@ -49,7 +49,6 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 		protected virtual void OnInitialise(CompositeDisposable disposables)
 		{
-
 		}
 
 		#region IDisposable Support

@@ -32,7 +32,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			_closeAnimation = new Animation
 			{
 				Duration = TimeSpan.FromSeconds(1),
-				Easing = new QuarticEaseInOut (),
+				Easing = new QuarticEaseInOut(),
 				FillMode = FillMode.Both,
 				Children =
 				{

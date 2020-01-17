@@ -91,7 +91,7 @@ namespace WalletWasabi.Gui.ViewModels
 				WindowState = WindowState.Maximized;
 			}
 
-			InitialiseLockScreen(global.UiConfig);
+			InitializeLockScreen(global.UiConfig);
 
 			StatusBar = new StatusBarViewModel();
 
@@ -110,7 +110,7 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		private void InitialiseLockScreen (UiConfig uiConfig)
+		private void InitializeLockScreen (UiConfig uiConfig)
 		{
 			uiConfig
 				.WhenAnyValue(x => x.LockScreenActive)
@@ -122,7 +122,6 @@ namespace WalletWasabi.Gui.ViewModels
 						CheckLockScreenType(uiConfig.LockScreenPinHash);
 					}
 				});
-				
 		}
 
 		private void CheckLockScreenType(string currentHash)
