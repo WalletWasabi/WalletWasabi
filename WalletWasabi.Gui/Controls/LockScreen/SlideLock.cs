@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Animation;
+using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Styling;
@@ -15,6 +16,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		private Grid _container;
 		private bool _isLocked;
 		private Animation _closeAnimation;
+		private Animation _openAnimation;
 
 		// Threshold
 
@@ -42,14 +44,14 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 		public SlideLock()
 		{
-			Value = 100;
-
 			this.GetObservable(ValueProperty)
 				.Subscribe(x => Opacity = x / 100);
 
 			_closeAnimation = new Animation
 			{
-				Duration = TimeSpan.FromSeconds(2),
+				Duration = TimeSpan.FromSeconds(2.0),
+				Easing = new BounceEaseOut(),
+				FillMode = FillMode.Both,				
 				Children =
 				{
 					new KeyFrame
@@ -59,7 +61,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 							new Setter
 							{
 								Property = SlideLock.ValueProperty,
-								Value = 0
+								Value = 0d
 							}
 						},
 						Cue = new Cue(0d)
@@ -71,7 +73,29 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 							new Setter
 							{
 								Property = SlideLock.ValueProperty,
-								Value = 100
+								Value = 100d
+							}
+						},
+						Cue = new Cue(1d)
+					}
+				}
+			};
+
+			_openAnimation = new Animation
+			{
+				Duration = TimeSpan.FromSeconds(2.0),
+				Easing = new QuadraticEaseInOut(),
+				FillMode = FillMode.Both,
+				Children =
+				{
+					new KeyFrame
+					{
+						Setters =
+						{
+							new Setter
+							{
+								Property = SlideLock.ValueProperty,
+								Value = 0d
 							}
 						},
 						Cue = new Cue(1d)
@@ -103,9 +127,17 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 			_thumb.DragDelta += OnThumb_DragDelta;
 
-			await Task.Delay(1000);
+			_thumb.DragCompleted += OnThumb_DragCompleted;
 
 			await _closeAnimation.RunAsync(this);
+		}
+
+		private void OnThumb_DragCompleted(object sender, Avalonia.Input.VectorEventArgs e)
+		{
+			if(Value <= 75)
+			{
+				_openAnimation.RunAsync(this);
+			}
 		}
 
 		private double DistanceToValue (double distance)
