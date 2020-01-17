@@ -37,13 +37,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public bool CanBeDequeued { get; }
 		public ReactiveCommand<Unit, Unit> DequeueCoin { get; }
 
-		public CoinViewModel(CoinListViewModel owner, SmartCoin model, bool canBeDequeued)
+		public CoinViewModel(CoinListViewModel owner, SmartCoin model)
 		{
 			Global = Locator.Current.GetService<Global>();
 
 			Model = model;
 			Owner = owner;
-			CanBeDequeued = canBeDequeued;
+			CanBeDequeued = owner.CanDequeueCoins;
 
 			RefreshSmartCoinStatus();
 

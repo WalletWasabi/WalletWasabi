@@ -436,7 +436,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 						RootList.RemoveMany(coinToRemove.Select(kp => kp.Value));
 
-						var newCoinViewModels = coinToAdd.Select(c => new CoinViewModel(this, c, CanDequeueCoins)).ToArray();
+						var newCoinViewModels = coinToAdd.Select(c => new CoinViewModel(this, c)).ToArray();
 						foreach (var cvm in newCoinViewModels)
 						{
 							SubscribeToCoinEvents(cvm);
