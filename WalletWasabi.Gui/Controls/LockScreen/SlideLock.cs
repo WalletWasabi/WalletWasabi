@@ -1,7 +1,10 @@
 using System;
+using System.Threading.Tasks;
 using Avalonia;
+using Avalonia.Animation;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Styling;
 using Avalonia.Utilities;
 
 namespace WalletWasabi.Gui.Controls.LockScreen
@@ -10,8 +13,8 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 	{
 		private Thumb _thumb;
 		private Grid _container;
-		private double _value;
 		private bool _isLocked;
+		private Animation _closeAnimation;
 
 		// Threshold
 
@@ -28,13 +31,13 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			set => SetAndRaise(IsLockedProperty, ref _isLocked, value);
 		}
 
-		public static readonly DirectProperty<SlideLock, double> ValueProperty =
-			RangeBase.ValueProperty.AddOwner<SlideLock>(o => o.Value, (o, v) => o.Value = v);
+		public static readonly StyledProperty<double> ValueProperty =
+			AvaloniaProperty.Register<SlideLock, double>(nameof(Value));
 
 		public double Value
 		{
-			get { return _value; }
-			set { SetAndRaise(ValueProperty, ref _value, value); }
+			get => GetValue(ValueProperty);
+			set => SetValue(ValueProperty, value);
 		}
 
 		public SlideLock()
@@ -43,6 +46,38 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 			this.GetObservable(ValueProperty)
 				.Subscribe(x => Opacity = x / 100);
+
+			_closeAnimation = new Animation
+			{
+				Duration = TimeSpan.FromSeconds(2),
+				Children =
+				{
+					new KeyFrame
+					{
+						Setters =
+						{
+							new Setter
+							{
+								Property = SlideLock.ValueProperty,
+								Value = 0
+							}
+						},
+						Cue = new Cue(0d)
+					},
+					new KeyFrame
+					{
+						Setters =
+						{
+							new Setter
+							{
+								Property = SlideLock.ValueProperty,
+								Value = 100
+							}
+						},
+						Cue = new Cue(1d)
+					}
+				}
+			};
 		}
 
 		static SlideLock()
@@ -59,7 +94,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			return result;
 		}
 
-		protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
+		protected override async void OnTemplateApplied(TemplateAppliedEventArgs e)
 		{
 			base.OnTemplateApplied(e);
 
@@ -67,6 +102,10 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			_container = e.NameScope.Find<Grid>("PART_Container");
 
 			_thumb.DragDelta += OnThumb_DragDelta;
+
+			await Task.Delay(1000);
+
+			await _closeAnimation.RunAsync(this);
 		}
 
 		private double DistanceToValue (double distance)
