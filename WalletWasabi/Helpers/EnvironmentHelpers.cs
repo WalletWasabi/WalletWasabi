@@ -5,6 +5,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Helpers
@@ -164,7 +166,7 @@ namespace WalletWasabi.Helpers
 		/// https://stackoverflow.com/a/47918132/2061103
 		/// </summary>
 		/// <param name="cmd"></param>
-		public static void ShellExec(string cmd, bool waitForExit = true)
+		public static async Task ShellExecAsync(string cmd, bool waitForExit = true)
 		{
 			var escapedArgs = cmd.Replace("\"", "\\\"");
 
@@ -181,10 +183,11 @@ namespace WalletWasabi.Helpers
 			);
 			if (waitForExit)
 			{
-				process.WaitForExit();
-				if (process.ExitCode != 0)
+				await process.WaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
+				var exitCode = process.ExitCode;
+				if (exitCode != 0)
 				{
-					Logger.LogError($"{nameof(ShellExec)} command: {cmd} exited with exit code: {process.ExitCode}, instead of 0.");
+					Logger.LogError($"{nameof(ShellExecAsync)} command: {cmd} exited with exit code: {exitCode}, instead of 0.");
 				}
 			}
 		}

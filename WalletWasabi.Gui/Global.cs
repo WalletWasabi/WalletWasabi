@@ -13,7 +13,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
@@ -27,7 +26,6 @@ using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.CoinJoin.Client;
 using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
-using WalletWasabi.CoinJoin.Client.Rounds;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
@@ -89,9 +87,24 @@ namespace WalletWasabi.Gui
 			HostedServices = new HostedServices();
 		}
 
-		public void InitializeUiConfig(UiConfig uiConfig)
+		public async Task<bool> InitializeUiConfigAsync()
 		{
-			UiConfig = Guard.NotNull(nameof(uiConfig), uiConfig);
+			try
+			{
+				var uiConfigFilePath = Path.Combine(DataDir, "UiConfig.json");
+				var uiConfig = new UiConfig(uiConfigFilePath);
+				await uiConfig.LoadOrCreateDefaultFileAsync().ConfigureAwait(false);
+
+				UiConfig = uiConfig;
+
+				return true;
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+			}
+
+			return false;
 		}
 
 		private int _isDesperateDequeuing = 0;
@@ -190,21 +203,10 @@ namespace WalletWasabi.Gui
 				#region ProcessKillSubscription
 
 				AppDomain.CurrentDomain.ProcessExit += async (s, e) => await TryDesperateDequeueAllCoinsAsync();
-				Console.CancelKeyPress += async (s, e) =>
-				{
-					e.Cancel = true;
-					Logger.LogWarning("Process was signaled for killing.");
-
-					KillRequested = true;
-					await TryDesperateDequeueAllCoinsAsync();
-					Dispatcher.UIThread.PostLogException(() =>
-					{
-						var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
-						window?.Close();
-					});
-					await DisposeAsync();
-
-					Logger.LogSoftwareStopped("Wasabi");
+				Console.CancelKeyPress += async (s, e) => 
+				{ 
+					e.Cancel = true; 
+					await StopAndExitAsync(); 
 				};
 
 				#endregion ProcessKillSubscription
@@ -389,6 +391,22 @@ namespace WalletWasabi.Gui
 			{
 				InitializationCompleted = true;
 			}
+		}
+
+		internal async Task StopAndExitAsync()
+		{
+			Logger.LogWarning("Process was signaled for killing.", nameof(Global));
+
+			KillRequested = true;
+			await TryDesperateDequeueAllCoinsAsync();
+			Dispatcher.UIThread.PostLogException(() =>
+			{
+				var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
+				window?.Close();
+			});
+			await DisposeAsync();
+
+			Logger.LogSoftwareStopped("Wasabi");
 		}
 
 		private async Task<AddressManagerBehavior> InitializeAddressManagerBehaviorAsync()
@@ -656,7 +674,7 @@ namespace WalletWasabi.Gui
 		{
 			message = Guard.Correct(message);
 			title = Guard.Correct(title);
-			NotificationHelpers.Notify(message, title, notificationType, () => FileHelpers.OpenFileInTextEditor(Logger.FilePath));
+			NotificationHelpers.Notify(message, title, notificationType, async () => await FileHelpers.OpenFileInTextEditorAsync(Logger.FilePath));
 			Logger.LogInfo($"Transaction Notification ({notificationType}): {title} - {message} - {e.Transaction.GetHash()}");
 		}
 

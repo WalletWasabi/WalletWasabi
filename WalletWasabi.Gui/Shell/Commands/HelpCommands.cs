@@ -31,11 +31,11 @@ namespace WalletWasabi.Gui.Shell.Commands
 			CustomerSupportCommand = new CommandDefinition(
 				"Customer Support",
 				commandIconService.GetCompletionKindImage("CustomerSupport"),
-				ReactiveCommand.Create(() =>
+				ReactiveCommand.CreateFromTask(async () =>
 					{
 						try
 						{
-							IoHelpers.OpenBrowser("https://www.reddit.com/r/WasabiWallet/");
+							await IoHelpers.OpenBrowserAsync("https://www.reddit.com/r/WasabiWallet/");
 						}
 						catch (Exception ex)
 						{
@@ -47,11 +47,11 @@ namespace WalletWasabi.Gui.Shell.Commands
 			ReportBugCommand = new CommandDefinition(
 				"Report Bug",
 				commandIconService.GetCompletionKindImage("ReportBug"),
-				ReactiveCommand.Create(() =>
+				ReactiveCommand.CreateFromTask(async () =>
 					{
 						try
 						{
-							IoHelpers.OpenBrowser("https://github.com/zkSNACKs/WalletWasabi/issues");
+							await IoHelpers.OpenBrowserAsync("https://github.com/zkSNACKs/WalletWasabi/issues");
 						}
 						catch (Exception ex)
 						{
@@ -63,11 +63,11 @@ namespace WalletWasabi.Gui.Shell.Commands
 			DocsCommand = new CommandDefinition(
 				"Documentation",
 				commandIconService.GetCompletionKindImage("Documentation"),
-				ReactiveCommand.Create(() =>
+				ReactiveCommand.CreateFromTask(async () =>
 					{
 						try
 						{
-							IoHelpers.OpenBrowser("https://docs.wasabiwallet.io/");
+							await IoHelpers.OpenBrowserAsync("https://docs.wasabiwallet.io/");
 						}
 						catch (Exception ex)
 						{
