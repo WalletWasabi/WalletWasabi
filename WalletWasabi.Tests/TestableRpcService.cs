@@ -18,7 +18,7 @@ namespace WalletWasabi.Tests
 		public int Substract(int minuend, int subtrahend) => minuend - subtrahend;
 
 		[JsonRpcMethod("substractasync")]
-		public async Task<int> SubstractAsync(int minuend, int subtrahend) => await Task.FromResult(minuend - subtrahend);
+		public async Task<int> SubstractAsync(int minuend, int subtrahend) => await Task.FromResult(minuend - subtrahend).ConfigureAwait(false);
 
 		[JsonRpcMethod("writelog")]
 		public void Log(string logEntry)
@@ -34,7 +34,7 @@ namespace WalletWasabi.Tests
 		{
 			Unused(unit);
 			Unused(ct);
-			await Task.FromResult((JsonRpcResponse)null);
+			await Task.FromResult((JsonRpcResponse)null).ConfigureAwait(false);
 		}
 
 #pragma warning disable IDE0060 // unused parameter

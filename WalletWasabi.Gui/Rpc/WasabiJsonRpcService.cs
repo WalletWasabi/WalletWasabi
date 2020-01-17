@@ -127,10 +127,10 @@ namespace WalletWasabi.Gui.Rpc
 				.ToArray();
 			if (toDequeue.Any())
 			{
-				await Global.ChaumianClient.DequeueCoinsFromMixAsync(toDequeue, DequeueReason.TransactionBuilding);
+				await Global.ChaumianClient.DequeueCoinsFromMixAsync(toDequeue, DequeueReason.TransactionBuilding).ConfigureAwait(false);
 			}
 
-			await Global.TransactionBroadcaster.SendTransactionAsync(smartTx);
+			await Global.TransactionBroadcaster.SendTransactionAsync(smartTx).ConfigureAwait(false);
 			return new
 			{
 				txid = smartTx.Transaction.GetHash(),
@@ -178,7 +178,7 @@ namespace WalletWasabi.Gui.Rpc
 
 			AssertWalletIsLoaded();
 			var coinsToMix = Global.WalletService.Coins.Where(x => coins.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index));
-			await Global.WalletService.ChaumianClient.QueueCoinsToMixAsync(coinsToMix.ToArray());
+			await Global.WalletService.ChaumianClient.QueueCoinsToMixAsync(coinsToMix.ToArray()).ConfigureAwait(false);
 		}
 
 		[JsonRpcMethod("dequeue")]
@@ -188,13 +188,13 @@ namespace WalletWasabi.Gui.Rpc
 
 			AssertWalletIsLoaded();
 			var coinsToDequeue = Global.WalletService.Coins.Where(x => coins.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index));
-			await Global.WalletService.ChaumianClient.DequeueCoinsFromMixAsync(coinsToDequeue, DequeueReason.UserRequested);
+			await Global.WalletService.ChaumianClient.DequeueCoinsFromMixAsync(coinsToDequeue, DequeueReason.UserRequested).ConfigureAwait(false);
 		}
 
 		[JsonRpcMethod("stop")]
 		public async Task StopAsync()
 		{
-			await Global.StopAndExitAsync();
+			await Global.StopAndExitAsync().ConfigureAwait(false);
 		}
 
 		private void AssertWalletIsLoaded()

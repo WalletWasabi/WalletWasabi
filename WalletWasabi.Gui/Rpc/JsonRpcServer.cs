@@ -34,12 +34,12 @@ namespace WalletWasabi.Gui.Rpc
 		public override async Task StartAsync(CancellationToken cancellationToken)
 		{
 			Listener.Start();
-			await base.StartAsync(cancellationToken);
+			await base.StartAsync(cancellationToken).ConfigureAwait(false);
 		}
 
 		public override async Task StopAsync(CancellationToken cancellationToken)
 		{
-			await base.StopAsync(cancellationToken);
+			await base.StopAsync(cancellationToken).ConfigureAwait(false);
 			Listener.Stop();
 		}
 
@@ -51,7 +51,7 @@ namespace WalletWasabi.Gui.Rpc
 			{
 				try
 				{
-					var context = await GetHttpContextAsync(stoppingToken);
+					var context = await GetHttpContextAsync(stoppingToken).ConfigureAwait(false);
 					var request = context.Request;
 					var response = context.Response;
 
@@ -71,8 +71,8 @@ namespace WalletWasabi.Gui.Rpc
 								response.ContentType = "application/json-rpc";
 								var output = response.OutputStream;
 								var buffer = Encoding.UTF8.GetBytes(result);
-								await output.WriteAsync(buffer, 0, buffer.Length, stoppingToken);
-								await output.FlushAsync(stoppingToken);
+								await output.WriteAsync(buffer, 0, buffer.Length, stoppingToken).ConfigureAwait(false);
+								await output.FlushAsync(stoppingToken).ConfigureAwait(false);
 							}
 						}
 						else
@@ -109,7 +109,7 @@ namespace WalletWasabi.Gui.Rpc
 					cancellationToken.ThrowIfCancellationRequested();
 				}
 			}
-			return await getHttpContextTask;
+			return await getHttpContextTask.ConfigureAwait(false);
 		}
 
 		private bool CheckValidCredentials(HttpListenerBasicIdentity identity)

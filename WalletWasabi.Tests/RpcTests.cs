@@ -16,7 +16,7 @@ namespace WalletWasabi.Tests
 		{
 			var handler = new JsonRpcRequestHandler<TestableRpcService>(new TestableRpcService());
 
-			var response = await handler.HandleAsync(request, CancellationToken.None);
+			var response = await handler.HandleAsync(request, CancellationToken.None).ConfigureAwait(false);
 			Assert.Equal(expectedResponse, response);
 		}
 

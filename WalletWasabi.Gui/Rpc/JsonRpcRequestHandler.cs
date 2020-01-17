@@ -111,12 +111,12 @@ namespace WalletWasabi.Gui.Rpc
 				{
 					if (!prodecureMetadata.MethodInfo.ReturnType.IsGenericType)
 					{
-						await (Task)result;
+						await ((Task)result).ConfigureAwait(false);
 						response = JsonRpcResponse.CreateResultResponse(jsonRpcRequest.Id, null);
 					}
 					else
 					{
-						var ret = await (dynamic)result;
+						var ret = await ((dynamic)result).ConfigureAwait(false);
 						response = JsonRpcResponse.CreateResultResponse(jsonRpcRequest.Id, ret);
 					}
 				}
