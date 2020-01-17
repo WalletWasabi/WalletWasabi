@@ -12,8 +12,6 @@ namespace WalletWasabi.Gui.Rpc
 {
 	public class JsonRpcServer : BackgroundService
 	{
-		private CancellationTokenSource Cancellation { get; }
-
 		private HttpListener Listener { get; }
 		private WasabiJsonRpcService Service { get; }
 		private JsonRpcServerConfiguration Config { get; }
@@ -27,7 +25,6 @@ namespace WalletWasabi.Gui.Rpc
 			{
 				Listener.Prefixes.Add(prefix);
 			}
-			Cancellation = new CancellationTokenSource();
 			Service = new WasabiJsonRpcService(global);
 		}
 
