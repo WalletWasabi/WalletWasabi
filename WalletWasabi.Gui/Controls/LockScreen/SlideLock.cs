@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
@@ -7,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Styling;
 using Avalonia.Utilities;
+using System;
 
 namespace WalletWasabi.Gui.Controls.LockScreen
 {
@@ -17,29 +16,12 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		private bool _isLocked;
 		private Animation _closeAnimation;
 		private Animation _openAnimation;
+		private bool _canSlide;
+		private double _threshold;
 
-		// Threshold
-
-		// Trigger animations to slide up and down		
-
-		// enable or disable mouse control
-
-		public static readonly DirectProperty<SlideLockScreenView, bool> IsLockedProperty =
-		AvaloniaProperty.RegisterDirect<SlideLockScreenView, bool>(nameof(IsLocked), o => o.IsLocked, (o, v) => o.IsLocked = v);
-
-		public bool IsLocked
+		static SlideLock()
 		{
-			get => _isLocked;
-			set => SetAndRaise(IsLockedProperty, ref _isLocked, value);
-		}
-
-		public static readonly StyledProperty<double> ValueProperty =
-			AvaloniaProperty.Register<SlideLock, double>(nameof(Value));
-
-		public double Value
-		{
-			get => GetValue(ValueProperty);
-			set => SetValue(ValueProperty, value);
+			AffectsArrange<SlideLock>(ValueProperty);
 		}
 
 		public SlideLock()
@@ -49,23 +31,11 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 			_closeAnimation = new Animation
 			{
-				Duration = TimeSpan.FromSeconds(2.0),
+				Duration = TimeSpan.FromSeconds(1),
 				Easing = new BounceEaseOut(),
-				FillMode = FillMode.Both,				
+				FillMode = FillMode.Both,
 				Children =
 				{
-					new KeyFrame
-					{
-						Setters =
-						{
-							new Setter
-							{
-								Property = SlideLock.ValueProperty,
-								Value = 0d
-							}
-						},
-						Cue = new Cue(0d)
-					},
 					new KeyFrame
 					{
 						Setters =
@@ -83,7 +53,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 			_openAnimation = new Animation
 			{
-				Duration = TimeSpan.FromSeconds(2.0),
+				Duration = TimeSpan.FromSeconds(1),
 				Easing = new QuadraticEaseInOut(),
 				FillMode = FillMode.Both,
 				Children =
@@ -102,11 +72,55 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 					}
 				}
 			};
+
+			this.GetObservable(IsLockedProperty)
+				.Subscribe(async x =>
+				{
+					if (x)
+					{
+						await _closeAnimation.RunAsync(this);
+					}
+					else
+					{
+						await _openAnimation.RunAsync(this);
+					}
+				});
 		}
 
-		static SlideLock()
+		public static readonly DirectProperty<SlideLock, bool> CanSlideProperty =
+			AvaloniaProperty.RegisterDirect<SlideLock, bool>(nameof(CanSlide), o => o.CanSlide, (o, v) => o.CanSlide = v);
+
+		public bool CanSlide
 		{
-			AffectsArrange<SlideLock>(ValueProperty);
+			get => _canSlide;
+			set => SetAndRaise(CanSlideProperty, ref _canSlide, value);
+		}
+
+		public static readonly DirectProperty<SlideLock, double> ThresholdProperty =
+			AvaloniaProperty.RegisterDirect<SlideLock, double>(nameof(Threshold), o => o.Threshold, (o,v)=> o.Threshold = v);
+
+		public double  Threshold
+		{
+			get => _threshold;
+			set => SetAndRaise(ThresholdProperty, ref _threshold, value);
+		}
+
+		public static readonly DirectProperty<SlideLock, bool> IsLockedProperty =
+		AvaloniaProperty.RegisterDirect<SlideLock, bool>(nameof(IsLocked), o => o.IsLocked, (o, v) => o.IsLocked = v);
+
+		public bool IsLocked
+		{
+			get => _isLocked;
+			set => SetAndRaise(IsLockedProperty, ref _isLocked, value);
+		}
+
+		public static readonly StyledProperty<double> ValueProperty =
+			AvaloniaProperty.Register<SlideLock, double>(nameof(Value));
+
+		public double Value
+		{
+			get => GetValue(ValueProperty);
+			set => SetValue(ValueProperty, value);
 		}
 
 		protected override Size ArrangeOverride(Size finalSize)
@@ -118,43 +132,58 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			return result;
 		}
 
-		protected override async void OnTemplateApplied(TemplateAppliedEventArgs e)
+		protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
 		{
 			base.OnTemplateApplied(e);
 
 			_thumb = e.NameScope.Find<Thumb>("PART_Thumb");
 			_container = e.NameScope.Find<Grid>("PART_Container");
 
+			this.GetObservable(CanSlideProperty)
+				.Subscribe(x =>
+				{
+					_thumb.IsHitTestVisible = x;
+				});
+
 			_thumb.DragDelta += OnThumb_DragDelta;
 
 			_thumb.DragCompleted += OnThumb_DragCompleted;
-
-			await _closeAnimation.RunAsync(this);
 		}
 
 		private void OnThumb_DragCompleted(object sender, Avalonia.Input.VectorEventArgs e)
 		{
-			if(Value <= 75)
+			if (CanSlide)
 			{
-				_openAnimation.RunAsync(this);
+				if (Value <= Threshold)
+				{
+					IsLocked = false;
+					_openAnimation.RunAsync(this);
+				}
+				else
+				{
+					_closeAnimation.RunAsync(this);
+				}
 			}
 		}
 
-		private double DistanceToValue (double distance)
+		private double DistanceToValue(double distance)
 		{
 			return (distance * 100) / Bounds.Height;
 		}
 
-		private double ValueToDistance (double value)
+		private double ValueToDistance(double value)
 		{
 			return (Bounds.Height / 100) * value;
 		}
 
 		private void OnThumb_DragDelta(object sender, Avalonia.Input.VectorEventArgs e)
 		{
-			var deltaValue = DistanceToValue(e.Vector.Y);
+			if (CanSlide)
+			{
+				var deltaValue = DistanceToValue(e.Vector.Y);
 
-			Value = MathUtilities.Clamp(Value + deltaValue, 0, 100);
+				Value = MathUtilities.Clamp(Value + deltaValue, 0, 100);
+			}
 		}
 	}
 }

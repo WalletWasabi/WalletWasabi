@@ -1,16 +1,16 @@
-using System;
 using ReactiveUI;
+using Splat;
 using System.Reactive.Disposables;
-using WalletWasabi.Helpers;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.ViewModels;
-using Splat;
 
 namespace WalletWasabi.Gui.Controls.LockScreen
 {
 	public abstract class LockScreenViewModelBase : ViewModelBase
 	{
 		private bool _isLocked;
+		private bool _canSlide;
+
 		private CompositeDisposable Disposables { get; }
 
 		public LockScreenViewModelBase()
@@ -34,13 +34,22 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 			OnInitialise(Disposables);
 		}
-		
+
+		public bool CanSlide
+		{
+			get { return _canSlide; }
+			set { this.RaiseAndSetIfChanged(ref _canSlide, value); }
+		}
+
 		public bool IsLocked
 		{
 			get => _isLocked;
 			set => this.RaiseAndSetIfChanged(ref _isLocked, value);
 		}
 
-		protected abstract void OnInitialise(CompositeDisposable disposables);
+		protected virtual void OnInitialise(CompositeDisposable disposables)
+		{
+
+		}
 	}
 }

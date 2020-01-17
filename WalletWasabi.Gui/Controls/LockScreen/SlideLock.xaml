@@ -1,9 +1,19 @@
 ﻿<Styles xmlns="https://github.com/avaloniaui"
         xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.LockScreen">
   <Style Selector="local|SlideLock">
+    <Setter Property="Threshold" Value="75" />
     <Setter Property="Template">
       <ControlTemplate>
-        <Grid Background="Red" Name="PART_Container">
+        <Grid Name="PART_Container">
+          <ContentPresenter Name="PART_ContentPresenter"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        ContentTemplate="{TemplateBinding ContentTemplate}"
+                        Content="{TemplateBinding Content}"
+                        Padding="{TemplateBinding Padding}"
+                        VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                        HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"/>
           <Thumb Name="PART_Thumb">
             <Thumb.Template>
               <ControlTemplate>

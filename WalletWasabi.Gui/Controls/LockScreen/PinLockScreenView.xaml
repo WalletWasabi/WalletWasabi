@@ -2,67 +2,32 @@
                           xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                           xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
                           xmlns:lockscreen="clr-namespace:WalletWasabi.Gui.Controls.LockScreen;assembly=WalletWasabi.Gui"
-                          x:Class="WalletWasabi.Gui.Controls.LockScreen.PinLockScreenView"
-                          IsLocked="{Binding IsLocked}">
-  <lockscreen:PinLockScreenView.Styles>
-    <Style Selector="lockscreen|PinLockScreenView[IsLocked=true] Grid.Shade">
-      <Style.Animations>
-        <Animation FillMode="Both" Duration="0:0:1.5" Easing="QuarticEaseInOut">
-          <KeyFrame Cue="0%">
-            <Setter Property="IsVisible" Value="True" />
-            <Setter Property="TranslateTransform.Y" Value="-100" />
-            <Setter Property="Opacity" Value="0" />
-          </KeyFrame>
-          <KeyFrame Cue="100%">
-            <Setter Property="Opacity" Value="1" />
-            <Setter Property="TranslateTransform.Y" Value="0" />
-            <Setter Property="IsVisible" Value="True" />
-          </KeyFrame>
-        </Animation>
-      </Style.Animations>
-    </Style>
-    <Style Selector="lockscreen|PinLockScreenView[IsLocked=false] Grid.Shade">
-      <Style.Animations>
-        <Animation FillMode="Both" Duration="0:0:1.5" Easing="QuarticEaseInOut">
-          <KeyFrame Cue="99%">
-            <Setter Property="IsVisible" Value="True" />
-          </KeyFrame>
-          <KeyFrame Cue="100%">
-            <Setter Property="IsVisible" Value="False" />
-            <Setter Property="Opacity" Value="0" />
-            <Setter Property="TranslateTransform.Y" Value="-100" />
-          </KeyFrame>
-        </Animation>
-      </Style.Animations>
-    </Style>
-  </lockscreen:PinLockScreenView.Styles>
-  <Grid>
-    <Grid Classes="Shade" Background="{DynamicResource ThemeBackgroundBrush}">
-      <controls:GroupBox VerticalAlignment="Center" HorizontalAlignment="Center" TextBlock.FontSize="25" Padding="20" Margin="10">
-        <DockPanel LastChildFill="True">
-          <controls:TogglePasswordBox x:Name="InputField" Text="{Binding PinInput}" Width="300" DockPanel.Dock="Top" Margin="4 0 4 20" Watermark="PIN" />
-          <Grid RowDefinitions="*,*,*,*" ColumnDefinitions="*,*,*">
-            <Grid.Styles>
-              <Style Selector="Button">
-                <Setter Property="Margin" Value="4" />
-                <Setter Property="Focusable" Value="False" />
-              </Style>
-            </Grid.Styles>
-            <Button Grid.Row="0" Grid.Column="0" Content="7" Command="{Binding KeyPadCommand}" CommandParameter="7" />
-            <Button Grid.Row="0" Grid.Column="1" Content="8" Command="{Binding KeyPadCommand}" CommandParameter="8" />
-            <Button Grid.Row="0" Grid.Column="2" Content="9" Command="{Binding KeyPadCommand}" CommandParameter="9" />
-            <Button Grid.Row="1" Grid.Column="0" Content="4" Command="{Binding KeyPadCommand}" CommandParameter="4" />
-            <Button Grid.Row="1" Grid.Column="1" Content="5" Command="{Binding KeyPadCommand}" CommandParameter="5" />
-            <Button Grid.Row="1" Grid.Column="2" Content="6" Command="{Binding KeyPadCommand}" CommandParameter="6" />
-            <Button Grid.Row="2" Grid.Column="0" Content="1" Command="{Binding KeyPadCommand}" CommandParameter="1" />
-            <Button Grid.Row="2" Grid.Column="1" Content="2" Command="{Binding KeyPadCommand}" CommandParameter="2" />
-            <Button Grid.Row="2" Grid.Column="2" Content="3" Command="{Binding KeyPadCommand}" CommandParameter="3" />
-            <Button Grid.Row="3" Grid.Column="0" Content="CLEAR" Command="{Binding KeyPadCommand}" CommandParameter="CLEAR" />
-            <Button Grid.Row="3" Grid.Column="1" Content="0" Command="{Binding KeyPadCommand}" CommandParameter="0" />
-            <Button Grid.Row="3" Grid.Column="2" Content="BACK" Command="{Binding KeyPadCommand}" CommandParameter="BACK" />
-          </Grid>
-        </DockPanel>
-      </controls:GroupBox>
-    </Grid>
+                          x:Class="WalletWasabi.Gui.Controls.LockScreen.PinLockScreenView">
+  <Grid Background="{DynamicResource ThemeBackgroundBrush}">
+    <controls:GroupBox VerticalAlignment="Center" HorizontalAlignment="Center" TextBlock.FontSize="25" Padding="20" Margin="10">
+      <DockPanel LastChildFill="True">
+        <controls:TogglePasswordBox x:Name="InputField" Text="{Binding PinInput}" Width="300" DockPanel.Dock="Top" Margin="4 0 4 20" Watermark="PIN" />
+        <Grid RowDefinitions="*,*,*,*" ColumnDefinitions="*,*,*">
+          <Grid.Styles>
+            <Style Selector="Button">
+              <Setter Property="Margin" Value="4" />
+              <Setter Property="Focusable" Value="False" />
+            </Style>
+          </Grid.Styles>
+          <Button Grid.Row="0" Grid.Column="0" Content="7" Command="{Binding KeyPadCommand}" CommandParameter="7" />
+          <Button Grid.Row="0" Grid.Column="1" Content="8" Command="{Binding KeyPadCommand}" CommandParameter="8" />
+          <Button Grid.Row="0" Grid.Column="2" Content="9" Command="{Binding KeyPadCommand}" CommandParameter="9" />
+          <Button Grid.Row="1" Grid.Column="0" Content="4" Command="{Binding KeyPadCommand}" CommandParameter="4" />
+          <Button Grid.Row="1" Grid.Column="1" Content="5" Command="{Binding KeyPadCommand}" CommandParameter="5" />
+          <Button Grid.Row="1" Grid.Column="2" Content="6" Command="{Binding KeyPadCommand}" CommandParameter="6" />
+          <Button Grid.Row="2" Grid.Column="0" Content="1" Command="{Binding KeyPadCommand}" CommandParameter="1" />
+          <Button Grid.Row="2" Grid.Column="1" Content="2" Command="{Binding KeyPadCommand}" CommandParameter="2" />
+          <Button Grid.Row="2" Grid.Column="2" Content="3" Command="{Binding KeyPadCommand}" CommandParameter="3" />
+          <Button Grid.Row="3" Grid.Column="0" Content="CLEAR" Command="{Binding KeyPadCommand}" CommandParameter="CLEAR" />
+          <Button Grid.Row="3" Grid.Column="1" Content="0" Command="{Binding KeyPadCommand}" CommandParameter="0" />
+          <Button Grid.Row="3" Grid.Column="2" Content="BACK" Command="{Binding KeyPadCommand}" CommandParameter="BACK" />
+        </Grid>
+      </DockPanel>
+    </controls:GroupBox>
   </Grid>
 </lockscreen:PinLockScreenView>

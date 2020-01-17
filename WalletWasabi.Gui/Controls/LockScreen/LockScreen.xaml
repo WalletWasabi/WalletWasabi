@@ -1,6 +1,9 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:cont="clr-namespace:WalletWasabi.Gui.Controls.LockScreen"
+             xmlns:shell="clr-namespace:AvalonStudio.Controls;assembly=AvalonStudio.Shell.Extensibility"
              x:Class="WalletWasabi.Gui.Controls.LockScreen.LockScreen">
-  <cont:SlideLock />
+  <cont:SlideLock IsLocked="{Binding IsLocked, Mode=TwoWay}" CanSlide="{Binding CanSlide}">
+    <shell:ViewModelViewHost />
+  </cont:SlideLock>
 </UserControl>

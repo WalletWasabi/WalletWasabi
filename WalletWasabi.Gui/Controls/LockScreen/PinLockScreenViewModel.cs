@@ -1,19 +1,17 @@
-using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Helpers;
+using ReactiveUI;
+using Splat;
 using System;
 using System.Reactive;
-using ReactiveUI;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using Splat;
 
 namespace WalletWasabi.Gui.Controls.LockScreen
 {
 	public class PinLockScreenViewModel : LockScreenViewModelBase
 	{
-		private string _pinInput;		
+		private string _pinInput;
 
 		public PinLockScreenViewModel()
 		{
@@ -73,11 +71,6 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				.Where(x => !x)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => PinInput = string.Empty);
-		}
-
-		protected override void OnInitialise(CompositeDisposable disposables)
-		{
-			var global = Locator.Current.GetService<Global>();
 		}
 
 		public string PinInput
