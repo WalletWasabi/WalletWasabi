@@ -32,7 +32,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			_closeAnimation = new Animation
 			{
 				Duration = TimeSpan.FromSeconds(1),
-				Easing = new BounceEaseOut(),
+				Easing = new QuarticEaseInOut (),
 				FillMode = FillMode.Both,
 				Children =
 				{
@@ -54,7 +54,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			_openAnimation = new Animation
 			{
 				Duration = TimeSpan.FromSeconds(1),
-				Easing = new QuadraticEaseInOut(),
+				Easing = new QuarticEaseInOut(),
 				FillMode = FillMode.Both,
 				Children =
 				{
