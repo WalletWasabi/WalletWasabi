@@ -51,7 +51,7 @@ namespace WalletWasabi.Gui.Rpc
 			{
 				try
 				{
-					var context = await GetHttpContext(stoppingToken);
+					var context = await GetHttpContextAsync(stoppingToken);
 					var request = context.Request;
 					var response = context.Response;
 
@@ -86,18 +86,18 @@ namespace WalletWasabi.Gui.Rpc
 					}
 					response.Close();
 				}
-				catch(OperationCanceledException)
+				catch (OperationCanceledException)
 				{
 					break;
 				}
-				catch(Exception ex)
+				catch (Exception ex)
 				{
 					Logger.LogError(ex);
 				}
 			}
 		}
 
-		private async Task<HttpListenerContext> GetHttpContext(CancellationToken cancellationToken)
+		private async Task<HttpListenerContext> GetHttpContextAsync(CancellationToken cancellationToken)
 		{
 			var getHttpContextTask = Listener.GetContextAsync();
 			var tcs = new TaskCompletionSource<bool>();
