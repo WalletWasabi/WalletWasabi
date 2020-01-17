@@ -111,8 +111,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ResetUi();
 			SetAmountWatermark(Money.Zero);
 
-			CoinList = new CoinListViewModel(){
-				DisplayWarningAboutCommonOwnership = true
+			CoinList = new CoinListViewModel()
+			{
+				DisplayCommonOwnershipWarning = true
 			};
 
 			Observable.FromEventPattern(CoinList, nameof(CoinList.SelectionChanged))

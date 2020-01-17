@@ -71,7 +71,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public ReadOnlyObservableCollection<CoinViewModel> Coins => _coinViewModels;
 
-		public bool DisplayWarningAboutCommonOwnership { get; set; } = false;
+		public bool DisplayCommonOwnershipWarning { get; set; } = false;
 		
 		private SortExpressionComparer<CoinViewModel> MyComparer
 		{
@@ -499,7 +499,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						SelectedAmount = selectedCoins.Sum(x => x.Amount);
 						IsAnyCoinSelected = selectedCoins.Any();
 
-						LabelExposeCommonOwnershipWarning = !DisplayWarningAboutCommonOwnership
+						LabelExposeCommonOwnershipWarning = !DisplayCommonOwnershipWarning
 							? false
 							: selectedCoins
 								.Where(c => c.AnonymitySet == 1)
