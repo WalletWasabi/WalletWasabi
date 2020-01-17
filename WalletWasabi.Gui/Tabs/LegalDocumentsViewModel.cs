@@ -41,7 +41,7 @@ namespace WalletWasabi.Gui.Tabs
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
 				{
-					NotificationHelpers.Error(ex.ToTypeMessageString());
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
 					Logging.Logger.LogError(ex);
 				});
 		}
