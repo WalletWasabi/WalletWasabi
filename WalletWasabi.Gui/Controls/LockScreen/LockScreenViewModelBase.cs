@@ -51,5 +51,29 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		{
 
 		}
+
+		#region IDisposable Support
+
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{					
+					Disposables?.Dispose();
+				}
+
+				_disposedValue = true;
+			}
+		}
+
+		public void Dispose()
+		{
+			Dispose(true);
+		}
+
+		#endregion IDisposable Support
 	}
 }

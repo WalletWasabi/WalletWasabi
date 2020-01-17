@@ -127,6 +127,8 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private void CheckLockScreenType(string currentHash)
 		{
+			LockScreen?.Dispose();		
+
 			if (currentHash.Length != 0)
 			{
 				LockScreen = new PinLockScreenViewModel();
