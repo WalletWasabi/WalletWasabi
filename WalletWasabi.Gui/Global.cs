@@ -27,6 +27,8 @@ using WalletWasabi.CoinJoin.Client;
 using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Gui.Models;
+using WalletWasabi.Gui.Rpc;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
@@ -70,6 +72,8 @@ namespace WalletWasabi.Gui
 		public UiConfig UiConfig { get; private set; }
 
 		public Network Network => Config.Network;
+
+		public static JsonRpcServer RpcServer { get; private set; }
 
 		public Global()
 		{
@@ -200,10 +204,10 @@ namespace WalletWasabi.Gui
 				#region ProcessKillSubscription
 
 				AppDomain.CurrentDomain.ProcessExit += async (s, e) => await TryDesperateDequeueAllCoinsAsync();
-				Console.CancelKeyPress += async (s, e) => 
-				{ 
-					e.Cancel = true; 
-					await StopAndExitAsync(); 
+				Console.CancelKeyPress += async (s, e) =>
+				{
+					e.Cancel = true;
+					await StopAndExitAsync();
 				};
 
 				#endregion ProcessKillSubscription
@@ -376,6 +380,17 @@ namespace WalletWasabi.Gui
 
 				TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, Synchronizer, Nodes, BitcoinCoreNode?.RpcClient);
 				CoinJoinProcessor = new CoinJoinProcessor(Synchronizer, BitcoinCoreNode?.RpcClient);
+
+				#region JsonRpcServerInitialization
+
+				var jsonRpcServerConfig = new JsonRpcServerConfiguration(Config);
+				if (jsonRpcServerConfig.IsEnabled)
+				{
+					RpcServer = new JsonRpcServer(this, jsonRpcServerConfig);
+					await RpcServer.StartAsync(cancel).ConfigureAwait(false);
+				}
+
+				#endregion JsonRpcServerInitialization
 			}
 			catch (Exception ex)
 			{
@@ -818,6 +833,14 @@ namespace WalletWasabi.Gui
 				}
 
 				await DisposeInWalletDependentServicesAsync();
+
+				var rpcServer = RpcServer;
+				if (rpcServer is { })
+				{
+					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
+					await rpcServer.StopAsync(cts.Token);
+					Logger.LogInfo($"{nameof(RpcServer)} is stopped.", nameof(Global));
+				}
 
 				var feeProviders = FeeProviders;
 				if (feeProviders is { })
