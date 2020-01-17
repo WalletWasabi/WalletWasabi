@@ -100,8 +100,8 @@ namespace WalletWasabi.Gui
 
 		[JsonProperty(PropertyName = "JsonRpcServerPrefixes")]
 		public string[] JsonRpcServerPrefixes { get; internal set; } = new[] {
-			"http://127.0.0.1:18099/",
-			"http://localhost:18099/"
+			"http://127.0.0.1:37128/",
+			"http://localhost:37128/"
 		};
 
 		[DefaultValue(DefaultMixUntilAnonymitySet)]
