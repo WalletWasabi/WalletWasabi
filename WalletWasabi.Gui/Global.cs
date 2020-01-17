@@ -180,7 +180,7 @@ namespace WalletWasabi.Gui
 
 				BitcoinStore = new BitcoinStore();
 				var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), Network);
-				LegalDocuments = LegalDocuments.TryLoadAgreed(DataDir);
+				LegalDocuments = await LegalDocuments.TryLoadAgreedAsync(DataDir).ConfigureAwait(false);
 				var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
 
 				AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
@@ -203,10 +203,10 @@ namespace WalletWasabi.Gui
 				#region ProcessKillSubscription
 
 				AppDomain.CurrentDomain.ProcessExit += async (s, e) => await TryDesperateDequeueAllCoinsAsync();
-				Console.CancelKeyPress += async (s, e) => 
-				{ 
-					e.Cancel = true; 
-					await StopAndExitAsync(); 
+				Console.CancelKeyPress += async (s, e) =>
+				{
+					e.Cancel = true;
+					await StopAndExitAsync();
 				};
 
 				#endregion ProcessKillSubscription

@@ -55,21 +55,6 @@ namespace System.IO
 			// depending on your use case, consider throwing an exception here
 		}
 
-		public static void CleanDirectory(string dir)
-		{
-			EnsureDirectoryExists(dir);
-
-			var di = new DirectoryInfo(dir);
-			foreach (FileInfo file in di.EnumerateFiles())
-			{
-				file.Delete();
-			}
-			foreach (DirectoryInfo d in di.EnumerateDirectories())
-			{
-				d.Delete(true);
-			}
-		}
-
 		public static async Task BetterExtractZipToDirectoryAsync(string src, string dest)
 		{
 			try

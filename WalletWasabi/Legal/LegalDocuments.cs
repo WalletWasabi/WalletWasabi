@@ -20,7 +20,7 @@ namespace WalletWasabi.Legal
 		public string FilePath { get; }
 		public Version Version { get; }
 
-		public static LegalDocuments TryLoadAgreed(string dataDir)
+		public static async Task<LegalDocuments> TryLoadAgreedAsync(string dataDir)
 		{
 			var legalFolderPath = Path.Combine(dataDir, LegalFolderName);
 			IoHelpers.EnsureDirectoryExists(legalFolderPath);
@@ -29,7 +29,8 @@ namespace WalletWasabi.Legal
 			// If more than one file found, then something strange happened, delete the dir and start from zero.
 			if (filePaths.Count() > 1)
 			{
-				IoHelpers.CleanDirectory(legalFolderPath);
+				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(legalFolderPath).ConfigureAwait(false);
+				IoHelpers.EnsureDirectoryExists(legalFolderPath);
 				filePaths = Enumerable.Empty<string>();
 			}
 
@@ -69,7 +70,8 @@ namespace WalletWasabi.Legal
 		public async Task ToFileAsync(string legal)
 		{
 			var legalFolderPath = Path.GetDirectoryName(FilePath);
-			IoHelpers.CleanDirectory(legalFolderPath);
+			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(legalFolderPath).ConfigureAwait(false);
+			IoHelpers.EnsureDirectoryExists(legalFolderPath);
 			await File.WriteAllTextAsync(FilePath, legal).ConfigureAwait(false);
 		}
 
