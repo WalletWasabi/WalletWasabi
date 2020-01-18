@@ -37,6 +37,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ReadOnlyObservableCollection<CoinViewModel> _coinViewModels;
 		private SortExpressionComparer<CoinViewModel> _myComparer;
 		private ObservableAsPropertyHelper<string> _expandedDetailsCaption;
+		private ObservableAsPropertyHelper<bool> _isAnyCoinSelectedVisually;
 
 		private CoinViewModel _selectedCoin;
 		private bool? _selectAllCheckBoxState;
@@ -82,6 +83,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public string ExpandedDetailsCaption => _expandedDetailsCaption?.Value ?? string.Empty;
+		public bool IsAnyCoinSelectedVisually => _isAnyCoinSelectedVisually?.Value ?? false;
 
 		public CoinViewModel SelectedCoin
 		{
@@ -399,6 +401,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Select(x => (x ? "Hide " : "Show ") + "Details")
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.ToProperty(this, x => x.ExpandedDetailsCaption);
+
+			_isAnyCoinSelectedVisually = this.WhenAnyValue(x => x.SelectedCoin)
+				.Select(x => x != null)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.ToProperty(this, x => x.IsAnyCoinSelectedVisually);
+
+			this.WhenAnyValue(x => x.SelectedCoin)
+				.Where(x => x is null)
+				.Do(x => IsDetailsExpanded = false) 
+				.Subscribe();
 
 			Observable
 				.Merge(InitList.ThrownExceptions)
