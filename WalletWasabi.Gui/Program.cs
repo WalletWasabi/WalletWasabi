@@ -34,7 +34,7 @@ namespace WalletWasabi.Gui
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
 				runGui = CommandInterpreter.ExecuteCommandsAsync(Global, args).GetAwaiter().GetResult();
-				
+
 				if (!runGui)
 				{
 					return;
@@ -49,7 +49,7 @@ namespace WalletWasabi.Gui
 					Logger.LogError($"Failed to initialize {nameof(Global.UiConfig)}.");
 					return;
 				}
-				
+
 				Logger.LogSoftwareStarted("Wasabi GUI");
 
 				BuildAvaloniaApp().StartShellApp("Wasabi Wallet", AppMainAsync, args);
