@@ -40,8 +40,6 @@ namespace WalletWasabi.BitcoinCore.Configuration
 
 		public string TryGetRpcCookieFile() => TryGetValue("rpccookiefile");
 
-		public string TryGetRpcHost() => TryGetValue("rpchost");
-
 		public ushort? TryGetRpcPort()
 		{
 			var stringValue = TryGetValue("rpcport");
