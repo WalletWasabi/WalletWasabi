@@ -76,7 +76,7 @@
         <walexp:CoinDetailsGrid DataContext="{Binding SelectedCoin}" />
       </DockPanel>
       <DockPanel x:Name="ShieldToolbar" DockPanel.Dock="Bottom">
-        <CheckBox IsThreeState="True" IsChecked="{Binding SelectPrivateCheckBoxState}" IsVisible="{Binding SelectAllPrivateVisible}" Command="{Binding SelectPrivateCheckBoxCommand}">
+        <CheckBox IsThreeState="True" Margin="0" IsChecked="{Binding SelectPrivateCheckBoxState}" IsVisible="{Binding SelectAllPrivateVisible}" Command="{Binding SelectPrivateCheckBoxCommand}">
           <StackPanel Spacing="5" Orientation="Horizontal" ToolTip.Tip="Coins that have acquired the anonymity set target.">
             <TextBlock Text="Select" />
             <controls:Shields ShieldState="{Binding SelectAllPrivateShieldState}" />
@@ -98,7 +98,7 @@
           <TextBlock Text="BTC" />
           <TextBlock Text="Merging unmixed coins with mixed ones undoes the mixes." Classes="warningMessage" IsVisible="{Binding LabelExposeCommonOwnershipWarning}" />
         </StackPanel>
-        <Button DockPanel.Dock="Right" Command="{Binding ToggleDetails}" Content="{Binding ExpandedDetailsCaption}" HorizontalAlignment="Right" />
+        <Button DockPanel.Dock="Right" Command="{Binding ToggleDetails}" IsVisible="{Binding IsAnyCoinSelectedVisually}" Content="{Binding ExpandedDetailsCaption}" HorizontalAlignment="Right" />
       </DockPanel>
       <controls:BusyIndicator IsBusy="{Binding IsCoinListLoading}" Text="Loading...">
         <controls:ExtendedListBox Items="{Binding Coins}" VirtualizationMode="None" SelectedItem="{Binding Path=SelectedCoin, Mode=TwoWay}">
