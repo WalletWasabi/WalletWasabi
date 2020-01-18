@@ -13,7 +13,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private bool _isExpanded;
 
-		public ReactiveCommand<Unit, Unit> ExpandItCommand { get; }
+		public ReactiveCommand<Unit, bool> ExpandItCommand { get; }
 
 		public bool IsExpanded
 		{
@@ -25,9 +25,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Items = new ObservableCollection<WalletActionViewModel>();
 
-#pragma warning disable IDE0053 // Use expression body for lambda expressions
-			ExpandItCommand = ReactiveCommand.Create(() => { IsExpanded = !IsExpanded; });
-#pragma warning restore IDE0053 // Use expression body for lambda expressions
+			ExpandItCommand = ReactiveCommand.Create(() => IsExpanded = !IsExpanded);
 
 			ExpandItCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
