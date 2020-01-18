@@ -25,7 +25,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Items = new ObservableCollection<WalletActionViewModel>();
 
+#pragma warning disable IDE0053 // Use expression body for lambda expressions
 			ExpandItCommand = ReactiveCommand.Create(() => { IsExpanded = !IsExpanded; });
+#pragma warning restore IDE0053 // Use expression body for lambda expressions
 
 			ExpandItCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
