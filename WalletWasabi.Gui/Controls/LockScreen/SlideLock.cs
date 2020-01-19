@@ -177,7 +177,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			return (Bounds.Height / 100) * value;
 		}
 
-		private void OnThumb_DragDelta(object sender, Avalonia.Input.VectorEventArgs e)
+		private void OnThumb_DragDelta(object sender, VectorEventArgs e)
 		{
 			if (CanSlide)
 			{
