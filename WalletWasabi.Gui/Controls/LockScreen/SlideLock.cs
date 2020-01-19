@@ -75,16 +75,9 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			};
 
 			this.GetObservable(IsLockedProperty)
-				.Subscribe(async x =>
+				.Subscribe(async isLocked =>
 				{
-					if (x)
-					{
-						await _closeAnimation.RunAsync(this);
-					}
-					else
-					{
-						await _openAnimation.RunAsync(this);
-					}
+					await (isLocked ? _closeAnimation.RunAsync(this) : _openAnimation.RunAsync(this));
 				});
 		}
 
@@ -128,7 +121,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		{
 			var result = base.ArrangeOverride(finalSize);
 
-			_container.Arrange(new Rect(0, -(Bounds.Height - ValueToDistance(Value)), finalSize.Width, finalSize.Height));
+			_container.Arrange(new Rect(0, ValueToDistance(Value) - Bounds.Height, finalSize.Width, finalSize.Height));
 
 			return result;
 		}
@@ -176,7 +169,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 		private void OnThumb_DragDelta(object sender, VectorEventArgs e)
 		{
-			if (CanSlide)
+			if (CanSlide && Bounds.Height > 0)
 			{
 				var deltaValue = DistanceToValue(e.Vector.Y);
 
