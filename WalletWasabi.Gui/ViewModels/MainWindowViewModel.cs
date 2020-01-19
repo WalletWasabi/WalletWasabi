@@ -107,7 +107,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 			if (global.Network != Network.Main)
 			{
-				MainWindowViewModel.Instance.Title += $" - {global.Network}";
+				Instance.Title += $" - {global.Network}";
 			}
 		}
 
