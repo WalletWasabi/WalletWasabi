@@ -110,7 +110,7 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		private void InitializeLockScreen (UiConfig uiConfig)
+		private void InitializeLockScreen(UiConfig uiConfig)
 		{
 			uiConfig
 				.WhenAnyValue(x => x.LockScreenActive)
@@ -126,7 +126,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private void CheckLockScreenType(string currentHash)
 		{
-			LockScreen?.Dispose();		
+			LockScreen?.Dispose();
 
 			if (currentHash.Length != 0)
 			{
