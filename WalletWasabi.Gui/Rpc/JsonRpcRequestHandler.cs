@@ -20,7 +20,8 @@ namespace WalletWasabi.Gui.Rpc
 		{
 			NullValueHandling = NullValueHandling.Ignore,
 			ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-			Converters = new JsonConverter[] {
+			Converters = new JsonConverter[]
+			{
 				new Uint256JsonConverter(),
 				new OutPointJsonConverter(),
 				new BitcoinAddressJsonConverter()

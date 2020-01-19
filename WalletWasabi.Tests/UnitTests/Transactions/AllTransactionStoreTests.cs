@@ -39,7 +39,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.False(txStore.TryGetTransaction(txHash, out _));
 
 			var mempoolFile = Path.Combine(dir, "Mempool", "Transactions.dat");
-			var txFile = Path.Combine(dir, "ConfirmedTransactions", WalletWasabi.Helpers.Constants.ConfirmedTransactionsVersion, "Transactions.dat");
+			var txFile = Path.Combine(dir, "ConfirmedTransactions", Constants.ConfirmedTransactionsVersion, "Transactions.dat");
 			var mempoolContent = await File.ReadAllBytesAsync(mempoolFile);
 			var txContent = await File.ReadAllBytesAsync(txFile);
 
@@ -55,7 +55,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			string dir = PrepareWorkDir();
 			var network = Network.TestNet;
 			var mempoolFile = Path.Combine(dir, "Mempool", "Transactions.dat");
-			var txFile = Path.Combine(dir, "ConfirmedTransactions", WalletWasabi.Helpers.Constants.ConfirmedTransactionsVersion, "Transactions.dat");
+			var txFile = Path.Combine(dir, "ConfirmedTransactions", Constants.ConfirmedTransactionsVersion, "Transactions.dat");
 			IoHelpers.EnsureContainingDirectoryExists(mempoolFile);
 			IoHelpers.EnsureContainingDirectoryExists(txFile);
 
@@ -226,7 +226,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			string dir = PrepareWorkDir();
 			var network = Network.TestNet;
 			var mempoolFile = Path.Combine(dir, "Mempool", "Transactions.dat");
-			var txFile = Path.Combine(dir, "ConfirmedTransactions", WalletWasabi.Helpers.Constants.ConfirmedTransactionsVersion, "Transactions.dat");
+			var txFile = Path.Combine(dir, "ConfirmedTransactions", Constants.ConfirmedTransactionsVersion, "Transactions.dat");
 			IoHelpers.EnsureContainingDirectoryExists(mempoolFile);
 			IoHelpers.EnsureContainingDirectoryExists(txFile);
 
@@ -443,7 +443,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			dir = PrepareWorkDir(EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName);
 			network = Network.TestNet;
 			mempoolFile = Path.Combine(dir, "Mempool", "Transactions.dat");
-			txFile = Path.Combine(dir, "ConfirmedTransactions", WalletWasabi.Helpers.Constants.ConfirmedTransactionsVersion, "Transactions.dat");
+			txFile = Path.Combine(dir, "ConfirmedTransactions", Constants.ConfirmedTransactionsVersion, "Transactions.dat");
 			IoHelpers.EnsureContainingDirectoryExists(mempoolFile);
 			IoHelpers.EnsureContainingDirectoryExists(txFile);
 
