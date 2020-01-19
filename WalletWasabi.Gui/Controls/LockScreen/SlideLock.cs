@@ -3,6 +3,7 @@ using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Input;
 using Avalonia.Styling;
 using Avalonia.Utilities;
 using System;
@@ -42,7 +43,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 						{
 							new Setter
 							{
-								Property = SlideLock.ValueProperty,
+								Property = ValueProperty,
 								Value = 100d
 							}
 						},
@@ -64,7 +65,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 						{
 							new Setter
 							{
-								Property = SlideLock.ValueProperty,
+								Property = ValueProperty,
 								Value = 0d
 							}
 						},
@@ -97,9 +98,9 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		}
 
 		public static readonly DirectProperty<SlideLock, double> ThresholdProperty =
-			AvaloniaProperty.RegisterDirect<SlideLock, double>(nameof(Threshold), o => o.Threshold, (o,v)=> o.Threshold = v);
+			AvaloniaProperty.RegisterDirect<SlideLock, double>(nameof(Threshold), o => o.Threshold, (o, v) => o.Threshold = v);
 
-		public double  Threshold
+		public double Threshold
 		{
 			get => _threshold;
 			set => SetAndRaise(ThresholdProperty, ref _threshold, value);
@@ -150,7 +151,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			_thumb.DragCompleted += OnThumb_DragCompleted;
 		}
 
-		private void OnThumb_DragCompleted(object sender, Avalonia.Input.VectorEventArgs e)
+		private void OnThumb_DragCompleted(object sender, VectorEventArgs e)
 		{
 			if (CanSlide)
 			{

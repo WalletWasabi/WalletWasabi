@@ -37,8 +37,8 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 		public bool CanSlide
 		{
-			get { return _canSlide; }
-			set { this.RaiseAndSetIfChanged(ref _canSlide, value); }
+			get => _canSlide;
+			set => this.RaiseAndSetIfChanged(ref _canSlide, value);
 		}
 
 		public bool IsLocked
