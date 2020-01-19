@@ -60,7 +60,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			if (!_disposedValue)
 			{
 				if (disposing)
-				{					
+				{
 					Disposables?.Dispose();
 				}
 

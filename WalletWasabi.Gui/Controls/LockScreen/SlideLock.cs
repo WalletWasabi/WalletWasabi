@@ -141,10 +141,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			_container = e.NameScope.Find<Grid>("PART_Container");
 
 			this.GetObservable(CanSlideProperty)
-				.Subscribe(x =>
-				{
-					_thumb.IsHitTestVisible = x;
-				});
+				.Subscribe(x => _thumb.IsHitTestVisible = x);
 
 			_thumb.DragDelta += OnThumb_DragDelta;
 
