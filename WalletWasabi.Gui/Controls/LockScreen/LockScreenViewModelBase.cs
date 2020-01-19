@@ -32,7 +32,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 			IsLocked = global.UiConfig.LockScreenActive;
 
-			OnInitialise(Disposables);
+			OnInitialize(Disposables);
 		}
 
 		public bool CanSlide
@@ -47,7 +47,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			set => this.RaiseAndSetIfChanged(ref _isLocked, value);
 		}
 
-		protected virtual void OnInitialise(CompositeDisposable disposables)
+		protected virtual void OnInitialize(CompositeDisposable disposables)
 		{
 		}
 
