@@ -41,7 +41,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				{
 					if (PinInput.Length > 0)
 					{
-						PinInput = PinInput.Substring(0, PinInput.Length - 1);
+						PinInput = PinInput[0..^1];
 					}
 				}
 				else if (arg == "CLEAR")
