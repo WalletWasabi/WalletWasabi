@@ -116,21 +116,19 @@ namespace WalletWasabi.Gui.ViewModels
 				.WhenAnyValue(x => x.LockScreenActive)
 				.Where(x => x)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => CheckLockScreenType(uiConfig.LockScreenPinHash));
-		}
+				.Subscribe(_ =>
+				{
+					LockScreen?.Dispose();
 
-		private void CheckLockScreenType(string currentHash)
-		{
-			LockScreen?.Dispose();
-
-			if (currentHash.Length == 0)
-			{
-				LockScreen = new SlideLockScreenViewModel();
-			}
-			else
-			{
-				LockScreen = new PinLockScreenViewModel();
-			}
+					if (uiConfig.LockScreenPinHash.Length == 0)
+					{
+						LockScreen = new SlideLockScreenViewModel();
+					}
+					else
+					{
+						LockScreen = new PinLockScreenViewModel();
+					}
+				});
 		}
 
 		private void DisplayWalletManager()
