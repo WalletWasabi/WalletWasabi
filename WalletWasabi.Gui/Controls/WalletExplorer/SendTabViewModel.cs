@@ -336,6 +336,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						catch (Exception ex)
 						{
 							NotificationHelpers.Error(ex.ToTypeMessageString());
+							Logger.LogError(ex);
 							return;
 						}
 					}
@@ -388,6 +389,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						catch (Exception ex)
 						{
 							NotificationHelpers.Error(ex.ToTypeMessageString());
+							Logger.LogError(ex);
 							return;
 						}
 						finally
@@ -457,7 +459,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
 				{
-					NotificationHelpers.Warning(ex.ToTypeMessageString());
+					NotificationHelpers.Error(ex.ToTypeMessageString());
 					Logger.LogError(ex);
 				});
 		}
