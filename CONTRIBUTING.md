@@ -147,3 +147,25 @@ public class RepositoryViewModel : ReactiveObject
 ## No code in Code-behind files (.xaml.cs)
 
 All the logic should go into `ViewModels` or `Behaviors`.
+
+## Main MUST be Synchronous
+
+For Avalonia applications the Main method must be synchronous. No async-await here! If you await inside Main before Avalonia has initialised its renderloop / UIThread, then OSX will stop working. Why? Because OSX applications (and some of Unixes) assume that the very first thread created in a program is the UIThread. Cocoa apis check this and crash if they are not called from Thread 0. Awaiting means that Avalonia may not be able to capture Thread 0 for the UIThread.
+
+## Avoid Binding expressions with SubProperties
+If you have a `Binding` expression i.e. `{Binding MyProperty.ChildProperty}` then most likely the UI design is flawed and you have broken the MVVM pattern.
+
+This kind of Binding demonstrates that your View is dependent not on just 1 ViewModel, but multiple Viewmodels and a very specific relationship between them.
+
+If you find yourself having to do this, please re-think the UI design. To follow the MVVM pattern correctly to ensure the UI remains maintainable and testable then we should have a 1-1 view, viewmodel relationship. That means every view should only depend on a single viewmodel.
+
+## Familiarise yourself with MVVM Pattern
+It is very important for us to follow the MVVM pattern in UI code. Whenever difficulties arise in refactoring the UI or adding new UI features its usually where we have ventured from this path.
+
+Some pointers on how to recognise if we are breaking MVVM:
+
+* Putting code in .xaml.cs (code-behind files)
+* Putting buisness logic inside control code
+* Views that depend on more than 1 viewmodel class.
+
+If it seems not possible to implement something without breaking some of this advice please consult with @danwalmsley.
