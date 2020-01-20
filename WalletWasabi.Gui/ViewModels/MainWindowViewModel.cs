@@ -120,14 +120,9 @@ namespace WalletWasabi.Gui.ViewModels
 				{
 					LockScreen?.Dispose();
 
-					if (uiConfig.LockScreenPinHash.Length == 0)
-					{
-						LockScreen = new SlideLockScreenViewModel();
-					}
-					else
-					{
-						LockScreen = new PinLockScreenViewModel();
-					}
+					LockScreen = uiConfig.LockScreenPinHash.Length == 0 ?
+						(LockScreenViewModelBase)new SlideLockScreenViewModel() :
+						new PinLockScreenViewModel();
 				});
 		}
 
