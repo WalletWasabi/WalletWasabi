@@ -1,19 +1,14 @@
 using Avalonia;
 using Avalonia.Dialogs;
-using Avalonia.Rendering;
 using Avalonia.Threading;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Extensibility.Platforms;
-using NBitcoin;
-using ReactiveUI;
 using Splat;
 using System;
 using System.IO;
-using System.Reactive.Concurrency;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.CommandLine;
-using WalletWasabi.Gui.Controls.LockScreen;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 
@@ -21,12 +16,11 @@ namespace WalletWasabi.Gui
 {
 	internal class Program
 	{
-		private static StatusBarViewModel StatusBar = null;
 		private static Global Global;
-#pragma warning disable IDE1006 // Naming Styles
 
-		private static async Task Main(string[] args)
-#pragma warning restore IDE1006 // Naming Styles
+		/// Warning! In Avalonia applications Main must not be async. Otherwise application may not run on OSX.
+		/// see https://github.com/AvaloniaUI/Avalonia/wiki/Unresolved-platform-support-issues
+		private static void Main(string[] args)
 		{
 			bool runGui = false;
 			try
@@ -39,11 +33,23 @@ namespace WalletWasabi.Gui
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-				runGui = await CommandInterpreter.ExecuteCommandsAsync(Global, args);
+				runGui = CommandInterpreter.ExecuteCommandsAsync(Global, args).GetAwaiter().GetResult();
+
 				if (!runGui)
 				{
 					return;
 				}
+
+				if (Global.InitializeUiConfigAsync().GetAwaiter().GetResult())
+				{
+					Logger.LogInfo($"{nameof(Global.UiConfig)} is successfully initialized.");
+				}
+				else
+				{
+					Logger.LogError($"Failed to initialize {nameof(Global.UiConfig)}.");
+					return;
+				}
+
 				Logger.LogSoftwareStarted("Wasabi GUI");
 
 				BuildAvaloniaApp().StartShellApp("Wasabi Wallet", AppMainAsync, args);
@@ -55,8 +61,8 @@ namespace WalletWasabi.Gui
 			}
 			finally
 			{
-				StatusBar?.Dispose();
-				await Global.DisposeAsync().ConfigureAwait(false);
+				MainWindowViewModel.Instance?.Dispose();
+				Global.DisposeAsync().GetAwaiter().GetResult();
 				AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
 
@@ -71,18 +77,10 @@ namespace WalletWasabi.Gui
 		{
 			AvalonStudio.Extensibility.Theme.ColorTheme.LoadTheme(AvalonStudio.Extensibility.Theme.ColorTheme.VisualStudioDark);
 			MainWindowViewModel.Instance = new MainWindowViewModel();
-			StatusBar = new StatusBarViewModel();
-			MainWindowViewModel.Instance.StatusBar = StatusBar;
-			MainWindowViewModel.Instance.LockScreen = new LockScreenViewModel();
 
 			await Global.InitializeNoWalletAsync();
 
-			StatusBar.Initialize(Global.Nodes.ConnectedNodes, Global.Synchronizer);
-
-			if (Global.Network != Network.Main)
-			{
-				MainWindowViewModel.Instance.Title += $" - {Global.Network}";
-			}
+			MainWindowViewModel.Instance.Initialize();
 
 			Dispatcher.UIThread.Post(GC.Collect);
 		}

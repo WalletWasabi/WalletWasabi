@@ -187,6 +187,35 @@ ul {
     display: block;
 }
 
+/** get wasabi button **/
+
+#get-wasabi{
+  border-radius: 10px;
+  background:  rgb(116, 182, 74);
+  transition: background-color 0.5s;
+}
+
+#get-wasabi a.nav-link{
+  color: #000000;
+  padding-right: 1.2rem;
+  padding-left: 1.2rem;
+  transition: color 0.3s;
+}
+
+#get-wasabi:hover{
+  background:  rgb(246, 146, 30);
+  transition: background-color 0.5s;
+}
+
+#get-wasabi:hover a.nav-link{
+  transition: color 0.3s;
+  color: #ffffff;
+  padding-right: 1.2rem;
+  padding-left: 1.2rem;
+}
+
+/** get wasabi button end **/
+
 header {
   position: relative;
 }
@@ -195,7 +224,7 @@ header .navbar {
   max-width: 900px;
   -webkit-box-shadow: 0 2px 30px rgba(90, 80, 90, 0.5);
           box-shadow: 0 2px 30px rgba(90, 80, 90, 0.5);
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 50%;
   -webkit-transform: translateX(-50%);
@@ -396,6 +425,11 @@ section .shader {
 }
 
 /* Download Section */
+
+.download{
+  padding-top: 110px;
+}
+
 .download .screenshot {
   width: 200%;
 }
@@ -412,6 +446,11 @@ section .shader {
 }
 
 /* FAQ section */
+
+.faq{
+  padding-top: 110px;
+}
+
 .faq .shader {
   width: 70vw;
   height: 70vw;
@@ -462,6 +501,12 @@ section .shader {
   h1, h2 {
     font-size: 3rem !important;
   }
+}
+
+/** hamburger menu elements inline **/
+
+.navbar-dark .navbar-nav .nav-link {
+	padding-left: 1.2rem;
 }
 
 /* For mobile devices */
