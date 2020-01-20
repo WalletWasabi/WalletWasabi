@@ -101,7 +101,7 @@
           <TextBlock Text="BTC" />
           <TextBlock Text="Merging unmixed coins with mixed ones undoes the mixes." Classes="warningMessage" IsVisible="{Binding LabelExposeCommonOwnershipWarning}" />
         </StackPanel>
-        <Button Classes="NoMargins" ToolTip="Show/Hide Details of the Selected Coin." DockPanel.Dock="Right" Height="30" Width="30" Command="{Binding ToggleDetails}" IsEnabled="{Binding IsAnyCoinSelectedVisually}" HorizontalAlignment="Right">
+        <Button Classes="NoMargins" ToolTip.Tip="Show/Hide Details of the Selected Coin." DockPanel.Dock="Right" Height="30" Width="30" Command="{Binding ToggleDetails}" IsEnabled="{Binding IsAnyCoinSelectedVisually}" HorizontalAlignment="Right">
           <DrawingPresenter Height="24" Width="24" Stretch="Fill" Drawing="{StaticResource CoinDetailsView_Icon}" />
         </Button>
       </DockPanel>
