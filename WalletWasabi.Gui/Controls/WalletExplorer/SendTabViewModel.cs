@@ -385,9 +385,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							}
 							signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction);
 						}
-						catch (Exception ex)
+						catch (Exception)
 						{
-							NotificationHelpers.Error(ex.ToTypeMessageString());
+							NotificationHelpers.Error("Could not find the device. Make sure it is connected.");
 							return;
 						}
 						finally
