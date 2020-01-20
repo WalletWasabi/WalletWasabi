@@ -36,7 +36,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private ReadOnlyObservableCollection<CoinViewModel> _coinViewModels;
 		private SortExpressionComparer<CoinViewModel> _myComparer;
-		private ObservableAsPropertyHelper<string> _expandedDetailsCaption;
 		private ObservableAsPropertyHelper<bool> _isAnyCoinSelectedVisually;
 
 		private CoinViewModel _selectedCoin;
@@ -82,7 +81,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _myComparer, value);
 		}
 
-		public string ExpandedDetailsCaption => _expandedDetailsCaption?.Value ?? string.Empty;
 		public bool IsAnyCoinSelectedVisually => _isAnyCoinSelectedVisually?.Value ?? false;
 
 		public CoinViewModel SelectedCoin
@@ -396,11 +394,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			});
 
 			ToggleDetails = ReactiveCommand.Create(() => IsDetailsExpanded = !IsDetailsExpanded);
-
-			_expandedDetailsCaption = this.WhenAnyValue(x => x.IsDetailsExpanded)
-				.Select(x => (x ? "Hide " : "Show ") + "Details")
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.ToProperty(this, x => x.ExpandedDetailsCaption);
 
 			_isAnyCoinSelectedVisually = this.WhenAnyValue(x => x.SelectedCoin)
 				.Select(x => x != null)

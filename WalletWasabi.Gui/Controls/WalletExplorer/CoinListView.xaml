@@ -1,10 +1,10 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
-             xmlns:walexp="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui"
-             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
-             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui" x:Class="WalletWasabi.Gui.Controls.WalletExplorer.CoinListView">
+﻿<UserControl xmlns="https://github.com/avaloniaui" 
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
+  xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui" 
+  xmlns:walexp="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui" 
+  xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui" 
+  xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity" 
+  xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui" x:Class="WalletWasabi.Gui.Controls.WalletExplorer.CoinListView">
   <UserControl.Resources>
     <converters:PrivacyLevelValueConverter x:Key="PrivacyLevelValueConverter" />
     <converters:CoinStatusStringConverter x:Key="CoinStatusStringConverter" />
@@ -33,9 +33,12 @@
       <Setter Property="Height" Value="25" />
     </Style>
     <Style Selector="DockPanel#ShieldToolbar > :is(Control)">
-      <Setter Property="Margin" Value="10 0 0 0" />
+      <Setter Property="Margin" Value="0 0 10 0" />
       <Setter Property="DockPanel.Dock" Value="Left" />
       <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="DockPanel#ShieldToolbar > :is(Control).NoMargins">
+      <Setter Property="Margin" Value="0" />
     </Style>
     <Style Selector="Grid.CoinItemGrid">
       <Setter Property="Background" Value="Transparent" />
@@ -71,10 +74,10 @@
         <controls:SortingArrow Grid.Column="4" Text="Privacy" Command="{Binding SortCommand}" SortDirection="{Binding PrivacySortDirection}" />
         <controls:SortingArrow Grid.Column="5" Text="Observers" Command="{Binding SortCommand}" SortDirection="{Binding ObserversSortDirection}" />
       </Grid>
-      <DockPanel LastChildFill="True" IsVisible="{Binding IsDetailsExpanded}" DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Margin="0,3">
-        <Border Classes="Separator" DockPanel.Dock="Top" />
+      <Grid IsVisible="{Binding IsDetailsExpanded}" DockPanel.Dock="Bottom" HorizontalAlignment="Stretch">
         <walexp:CoinDetailsGrid DataContext="{Binding SelectedCoin}" />
-      </DockPanel>
+      </Grid>
+      <Border Classes="Separator" DockPanel.Dock="Bottom" Margin="0,10" />
       <DockPanel x:Name="ShieldToolbar" DockPanel.Dock="Bottom">
         <CheckBox IsThreeState="True" Margin="0" IsChecked="{Binding SelectPrivateCheckBoxState}" IsVisible="{Binding SelectAllPrivateVisible}" Command="{Binding SelectPrivateCheckBoxCommand}">
           <StackPanel Spacing="5" Orientation="Horizontal" ToolTip.Tip="Coins that have acquired the anonymity set target.">
@@ -98,7 +101,9 @@
           <TextBlock Text="BTC" />
           <TextBlock Text="Merging unmixed coins with mixed ones undoes the mixes." Classes="warningMessage" IsVisible="{Binding LabelExposeCommonOwnershipWarning}" />
         </StackPanel>
-        <Button DockPanel.Dock="Right" Command="{Binding ToggleDetails}" IsVisible="{Binding IsAnyCoinSelectedVisually}" Content="{Binding ExpandedDetailsCaption}" HorizontalAlignment="Right" />
+        <Button Classes="NoMargins" ToolTip="Show/Hide Details of the Selected Coin." DockPanel.Dock="Right" Height="30" Width="30" Command="{Binding ToggleDetails}" IsEnabled="{Binding IsAnyCoinSelectedVisually}" HorizontalAlignment="Right">
+          <DrawingPresenter Height="24" Width="24" Stretch="Fill" Drawing="{StaticResource CoinDetailsView_Icon}" />
+        </Button>
       </DockPanel>
       <controls:BusyIndicator IsBusy="{Binding IsCoinListLoading}" Text="Loading...">
         <controls:ExtendedListBox Items="{Binding Coins}" VirtualizationMode="None" SelectedItem="{Binding Path=SelectedCoin, Mode=TwoWay}">
@@ -136,8 +141,7 @@
                 <Border Background="Transparent" IsVisible="{Binding Confirmed}" Grid.Column="1" ToolTip.Tip="{Binding Confirmations, StringFormat=\{0\} Confirmations}">
                   <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource ConfirmationIcon}" />
                 </Border>
-                <Border ToolTip.Tip="{Binding ToolTip}" Padding="1" Grid.Column="2" Background="{Binding Status, Converter={StaticResource CoinStatusColorConverter}}"
-                BorderBrush="{Binding Status, Converter={StaticResource CoinStatusBorderBrushConverter}}" HorizontalAlignment="Left" BorderThickness="1" CornerRadius="0,6,6,0">
+                <Border ToolTip.Tip="{Binding ToolTip}" Padding="1" Grid.Column="2" Background="{Binding Status, Converter={StaticResource CoinStatusColorConverter}}" BorderBrush="{Binding Status, Converter={StaticResource CoinStatusBorderBrushConverter}}" HorizontalAlignment="Left" BorderThickness="1" CornerRadius="0,6,6,0">
                   <TextBlock Text="{Binding Status, Converter={StaticResource CoinStatusStringConverter}, Mode=OneWay}" Foreground="{Binding Status, Converter={StaticResource CoinStatusForegroundConverter}}" />
                 </Border>
                 <TextBlock Grid.Column="3" Text="{Binding AmountBtc, ConverterParameter=8, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" />
