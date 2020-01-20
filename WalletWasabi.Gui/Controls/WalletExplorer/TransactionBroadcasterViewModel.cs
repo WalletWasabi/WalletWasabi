@@ -220,6 +220,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			catch (PSBTException ex)
 			{
 				NotificationHelpers.Error($"The PSBT cannot be finalized: {ex.Errors.FirstOrDefault()}");
+				Logger.LogError(ex);
 			}
 			finally
 			{

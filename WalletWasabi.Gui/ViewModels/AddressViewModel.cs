@@ -133,7 +133,7 @@ namespace WalletWasabi.Gui.ViewModels
 				.Subscribe(ex =>
 				{
 					NotificationHelpers.Error(ex.ToTypeMessageString());
-					Logger.LogWarning(ex);
+					Logger.LogError(ex);
 				});
 		}
 

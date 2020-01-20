@@ -45,7 +45,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(ex =>
 				{
 					NotificationHelpers.Error(ex.ToTypeMessageString());
-					Logger.LogWarning(ex);
+					Logger.LogError(ex);
 				});
 
 			_ = TryRewriteTableAsync();

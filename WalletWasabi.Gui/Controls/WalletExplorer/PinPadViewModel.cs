@@ -17,6 +17,7 @@ using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Models;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -58,7 +59,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(ex =>
 				{
 					NotificationHelpers.Error(ex.ToTypeMessageString());
-					Logging.Logger.LogError(ex);
+					Logger.LogError(ex);
 				});
 		}
 
