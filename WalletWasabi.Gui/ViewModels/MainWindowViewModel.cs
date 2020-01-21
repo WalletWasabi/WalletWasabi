@@ -9,6 +9,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Controls.LockScreen;
@@ -61,9 +62,9 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _statusBar, value);
 		}
 
-		private LockScreenViewModel _lockScreen;
+		private LockScreenViewModelBase _lockScreen;
 
-		public LockScreenViewModel LockScreen
+		public LockScreenViewModelBase LockScreen
 		{
 			get => _lockScreen;
 			set => this.RaiseAndSetIfChanged(ref _lockScreen, value);
@@ -90,11 +91,9 @@ namespace WalletWasabi.Gui.ViewModels
 				WindowState = WindowState.Maximized;
 			}
 
+			InitializeLockScreen(global.UiConfig);
+
 			StatusBar = new StatusBarViewModel();
-
-			LockScreen = new LockScreenViewModel();
-
-			LockScreen.Initialize();
 
 			DisplayWalletManager();
 		}
@@ -109,6 +108,22 @@ namespace WalletWasabi.Gui.ViewModels
 			{
 				Instance.Title += $" - {global.Network}";
 			}
+		}
+
+		private void InitializeLockScreen(UiConfig uiConfig)
+		{
+			uiConfig
+				.WhenAnyValue(x => x.LockScreenActive)
+				.Where(x => x)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+				{
+					LockScreen?.Dispose();
+
+					LockScreen = uiConfig.LockScreenPinHash.Length == 0 ?
+						(LockScreenViewModelBase)new SlideLockScreenViewModel() :
+						new PinLockScreenViewModel();
+				});
 		}
 
 		private void DisplayWalletManager()
