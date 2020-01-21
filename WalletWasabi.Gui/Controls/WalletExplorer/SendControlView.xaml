@@ -6,7 +6,7 @@
              xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
              xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
              xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui"
-             x:Class="WalletWasabi.Gui.Controls.WalletExplorer.SendTabView">
+             x:Class="WalletWasabi.Gui.Controls.WalletExplorer.SendControlView">
   <UserControl.Resources>
     <converters:AmountForegroundConverter x:Key="AmountForegroundConverter" />
     <converters:BooleanStringConverter x:Key="BooleanStringConverter" />

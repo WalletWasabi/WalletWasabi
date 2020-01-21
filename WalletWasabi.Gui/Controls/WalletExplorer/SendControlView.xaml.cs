@@ -4,9 +4,9 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class SendTabView : UserControl
+	public class SendControlView : UserControl
 	{
-		public SendTabView()
+		public SendControlView()
 		{
 			InitializeComponent();
 		}

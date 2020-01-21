@@ -39,7 +39,7 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class SendTabViewModel : WalletActionViewModel
+	public class SendControlViewModel : WalletActionViewModel
 	{
 		private CompositeDisposable Disposables { get; set; }
 
@@ -100,7 +100,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			AmountText = "0.0";
 		}
 
-		public SendTabViewModel(WalletViewModel walletViewModel, bool isTransactionBuilder = false)
+		public SendControlViewModel(WalletViewModel walletViewModel, bool isTransactionBuilder = false)
 			: base(isTransactionBuilder ? "Build Transaction" : "Send", walletViewModel)
 		{
 			Global = Locator.Current.GetService<Global>();
