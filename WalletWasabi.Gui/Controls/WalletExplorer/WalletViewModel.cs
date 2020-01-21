@@ -69,7 +69,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			var historyTab = new HistoryTabViewModel(this);
 
 			var advancedAction = new WalletAdvancedViewModel(this);
-			WalletInfoViewModel infoTab = new WalletInfoViewModel(this);
+			var infoTab = new WalletInfoViewModel(this);
 			var buildTab = new BuildTabViewModel(this);
 
 			Actions.Add(receiveTab);
