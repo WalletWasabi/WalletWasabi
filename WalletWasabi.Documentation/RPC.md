@@ -22,7 +22,7 @@ The RPC server can be configured to allow `Anonymous` access or `Basic  authenti
 * JsonRpcUser: [the username]  (default: empty)
 * JsonRpcPassword: [the password]  (default: empty)
 
-By default both `JsonRpcUser` and `JsonRpcPassword` are empty (`""`) that that means that `Anonymous` requests are allowd. On the other hand, if `JsonRpcUser` and `JsonRpcPassword` setting are not empty it means that the requester has to provide the right credential, otherwise it will get a http statuc code 401 (Unauthorized).
+By default both `JsonRpcUser` and `JsonRpcPassword` are empty (`""`) that means that `Anonymous` requests are allowed. On the other hand, if `JsonRpcUser` and `JsonRpcPassword` setting are not empty it means that the requester has to provide the right credential, otherwise it will get a http status code 401 (Unauthorized).
 
 
 #
