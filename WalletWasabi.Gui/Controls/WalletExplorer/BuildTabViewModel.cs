@@ -10,7 +10,7 @@ using WalletWasabi.Gui.Helpers;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class BuildTabViewModel : SendTabBaseViewModel
+	public class BuildTabViewModel : SendControlViewModel
 	{
 		public override string DoButtonText => "Build Transaction";
 		public override string DoingButtonText => "Building Transaction...";

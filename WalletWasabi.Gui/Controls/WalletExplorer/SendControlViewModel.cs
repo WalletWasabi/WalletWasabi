@@ -39,11 +39,11 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class SendControlViewModel : WalletActionViewModel
+	public abstract class SendControlViewModel : WalletActionViewModel
 	{
 		private CompositeDisposable Disposables { get; set; }
 
-		private Global Global { get; }
+		protected Global Global { get; }
 
 		private string _buildTransactionButtonText;
 		private bool _isMax;
@@ -89,7 +89,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private void ResetUi()
+		public abstract string DoButtonText { get; }
+		public abstract string DoingButtonText { get; }
+
+		protected void ResetUi()
 		{
 			LabelSuggestion.Reset();
 			Address = "";
@@ -100,13 +103,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			AmountText = "0.0";
 		}
 
-		public SendControlViewModel(WalletViewModel walletViewModel, bool isTransactionBuilder = false)
-			: base(isTransactionBuilder ? "Build Transaction" : "Send", walletViewModel)
+		protected SendControlViewModel(WalletViewModel walletViewModel, string title)
+			: base(title, walletViewModel)
 		{
 			Global = Locator.Current.GetService<Global>();
 			LabelSuggestion = new SuggestLabelViewModel();
-			IsTransactionBuilder = isTransactionBuilder;
-			BuildTransactionButtonText = IsTransactionBuilder ? BuildTransactionButtonTextString : SendTransactionButtonTextString;
+			BuildTransactionButtonText = DoButtonText;
 
 			ResetUi();
 			SetAmountWatermark(Money.Zero);
@@ -177,13 +179,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			});
 
-			this.WhenAnyValue(x => x.IsBusy)
+			this.WhenAnyValue(x => x.IsBusy, x => x.IsHardwareBusy)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => SetSendText());
-
-			this.WhenAnyValue(x => x.IsHardwareBusy)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => SetSendText());
+				.Subscribe(_ =>
+				{
+					BuildTransactionButtonText = IsHardwareBusy
+						? WaitingForHardwareWalletButtonTextString
+						: IsBusy
+							? DoingButtonText
+							: DoButtonText;
+				});
 
 			this.WhenAnyValue(x => x.FeeTarget)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -343,24 +348,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					BuildTransactionResult result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, intent, feeStrategy, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
 
-					if (IsTransactionBuilder)
-					{
-						var txviewer = IoC.Get<IShell>().Documents?.OfType<TransactionViewerViewModel>()?.FirstOrDefault(x => x.Wallet.Id == Wallet.Id);
-						if (txviewer is null)
-						{
-							txviewer = new TransactionViewerViewModel(Wallet);
-							IoC.Get<IShell>().AddDocument(txviewer);
-						}
-						IoC.Get<IShell>().Select(txviewer);
-
-						txviewer.Update(result);
-
-						ResetUi();
-
-						NotificationHelpers.Success("Transaction is successfully built!", "");
-
-						return;
-					}
+					await DoAfterBuildTransaction(result);
 
 					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.SigningTransaction);
 					SmartTransaction signedTransaction = result.Transaction;
@@ -465,21 +453,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public SuggestLabelViewModel LabelSuggestion { get; }
-
-		private void SetSendText()
-		{
-			if (IsTransactionBuilder)
-			{
-				BuildTransactionButtonText = IsBusy ? BuildingTransactionButtonTextString : BuildTransactionButtonTextString;
-				return;
-			}
-
-			BuildTransactionButtonText = IsHardwareBusy
-				? WaitingForHardwareWalletButtonTextString
-				: IsBusy
-					? SendingTransactionButtonTextString
-					: SendTransactionButtonTextString;
-		}
 
 		private void SetAmountWatermark(Money amount)
 		{
@@ -917,8 +890,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public ReactiveCommand<KeyEventArgs, Unit> AmountKeyUpCommand { get; }
 
-		public bool IsTransactionBuilder { get; }
-
 		public override void OnOpen()
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
@@ -964,6 +935,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			base.OnOpen();
 		}
+
+		protected abstract Task DoAfterBuildTransaction(BuildTransactionResult result);
 
 		public override bool OnClose()
 		{

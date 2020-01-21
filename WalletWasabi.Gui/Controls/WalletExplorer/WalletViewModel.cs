@@ -64,13 +64,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				Actions.Add(sendTab);
 			}
 
-			ReceiveTabViewModel receiveTab = new ReceiveTabViewModel(this);
-			CoinJoinTabViewModel coinjoinTab = new CoinJoinTabViewModel(this);
-			HistoryTabViewModel historyTab = new HistoryTabViewModel(this);
+			var receiveTab = new ReceiveTabViewModel(this);
+			var coinjoinTab = new CoinJoinTabViewModel(this);
+			var historyTab = new HistoryTabViewModel(this);
 
 			var advancedAction = new WalletAdvancedViewModel(this);
 			WalletInfoViewModel infoTab = new WalletInfoViewModel(this);
-			SendTabViewModel buildTab = new SendTabViewModel(this, isTransactionBuilder: true);
+			var buildTab = new BuildTabViewModel(this);
 
 			Actions.Add(receiveTab);
 			Actions.Add(coinjoinTab);
