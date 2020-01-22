@@ -13,11 +13,10 @@ namespace Gma.QrCodeNet.Encoding.Terminate
 		/// </summary>
 		/// <remarks>ISO/IEC 18004:2006 P. 32 33.
 		/// Terminator / Bit stream to codeword conversion</remarks>
-		/// <param name="baseList">Method will add terminator bits at end of baseList</param>
+		/// <param name="baseList">Method will add terminator bits (Terminator, padding and padcodewords) at end of baseList</param>
 		/// <param name="dataCount">Num of bits for datacodewords without terminator</param>
 		/// <param name="numTotalDataCodewords">Total number of datacodewords for specific version.
 		/// Receive it under Version/VersionTable</param>
-		/// <returns>Bitlist that contains Terminator, padding and padcodewords</returns>
 		internal static void TerminateBites(this BitList baseList, int dataCount, int numTotalDataCodewords)
 		{
 			int numTotalDataBits = numTotalDataCodewords << 3;
