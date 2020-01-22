@@ -76,7 +76,7 @@
         </Rule>
         <Rule Name="FieldNamesMustNotUseHungarianNotation">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="FieldNamesMustBeginWithLowerCaseLetter">
