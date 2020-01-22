@@ -7,6 +7,8 @@ namespace WalletWasabi.Backend.Models
 	/// </summary>
 	public class FeeEstimationPair
 	{
+		private static readonly int testStaticReadonlyField;
+
 		[Required]
 		public long Economical { get; set; }
 
