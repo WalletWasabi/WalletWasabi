@@ -159,8 +159,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
 				{
-					NotificationHelpers.Error(ex.ToTypeMessageString());
 					Logger.LogError(ex);
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
 				});
 
 			SetLoadButtonText();
@@ -544,7 +544,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				}
 
 				// Initialization failed.
-				NotificationHelpers.Error(ex.ToTypeMessageString());
+				NotificationHelpers.Error(ex.ToUserFriendlyString());
 				Logger.LogError(ex);
 
 				return null;
@@ -648,7 +648,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				catch (Exception ex)
 				{
 					// Initialization failed.
-					NotificationHelpers.Error(ex.ToTypeMessageString());
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
 					if (!(ex is OperationCanceledException))
 					{
 						Logger.LogError(ex);
