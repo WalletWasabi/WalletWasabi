@@ -37,7 +37,7 @@ namespace WalletWasabi.Gui.Behaviors
 			{
 				return "";
 			}
-			return text.Substring(start, end - start);
+			return text[start..end];
 		}
 
 		protected override void OnAttached()

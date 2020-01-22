@@ -35,7 +35,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 			LockScreenCommand = new CommandDefinition(
 				"Lock Screen",
 				commandIconService.GetCompletionKindImage("Lock"),
-				ReactiveCommand.Create(() => { global.UiConfig.LockScreenActive = true; }));
+				ReactiveCommand.Create(() => global.UiConfig.LockScreenActive = true));
 
 			Observable
 				.Merge(ExitCommand.GetReactiveCommand().ThrownExceptions)

@@ -10,7 +10,7 @@ namespace System.Reflection
 
 			var attrib = (AsyncStateMachineAttribute)mi.GetCustomAttribute(attType);
 
-			return attrib is {};
+			return attrib is { };
 		}
 	}
 }
