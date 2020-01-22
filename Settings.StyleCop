@@ -181,7 +181,7 @@
         </Rule>
         <Rule Name="VoidReturnValueMustNotBeDocumented">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="GenericTypeParametersMustBeDocumented">
