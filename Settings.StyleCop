@@ -221,7 +221,7 @@
         </Rule>
         <Rule Name="ElementDocumentationMustNotBeCopiedAndPasted">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="SingleLineCommentsMustNotUseDocumentationStyleSlashes">
