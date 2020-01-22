@@ -231,7 +231,7 @@
         </Rule>
         <Rule Name="DocumentationTextMustNotBeEmpty">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="DocumentationTextMustContainWhitespace">
