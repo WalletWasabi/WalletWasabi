@@ -114,7 +114,6 @@ namespace Nito.AsyncEx
 		/// So to ensure that the mutex is created and released on the same thread we have created
 		/// a separate thread and control it from outside.
 		/// </summary>
-		/// <param name="cancellationTokenObj"></param>
 		private void HoldLock(object cancellationTokenObj)
 		{
 			CancellationToken ct = cancellationTokenObj is CancellationToken token
@@ -210,10 +209,6 @@ namespace Nito.AsyncEx
 		/// <summary>
 		/// Standard procedure to send command to the mutex thread.
 		/// </summary>
-		/// <param name="command"></param>
-		/// <param name="cancellationToken"></param>
-		/// <param name="pollInterval"></param>
-		/// <returns></returns>
 		private async Task SetCommandAsync(int command, CancellationToken cancellationToken, int pollInterval)
 		{
 			if (!IsAlive)
@@ -268,7 +263,6 @@ namespace Nito.AsyncEx
 		/// The Lock mechanism designed for standard using blocks. This lock is thread and interprocess safe.
 		/// You can create and use it from anywhere.
 		/// </summary>
-		/// <param name="cancellationToken"></param>
 		/// <param name="pollInterval">The frequency of polling the termination of the mutex-thread.</param>
 		/// <returns>The IDisposable await-able Task.</returns>
 		public async Task<IDisposable> LockAsync(CancellationToken cancellationToken = default, int pollInterval = 100)

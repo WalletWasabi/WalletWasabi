@@ -11,8 +11,6 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		/// <summary>
 		/// Returns the bit representation of input data.
 		/// </summary>
-		/// <param name="content"></param>
-		/// <returns></returns>
 		internal abstract BitList GetDataBits(string content);
 
 		/// <summary>
