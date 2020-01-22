@@ -326,7 +326,7 @@
         </Rule>
         <Rule Name="ElementsMustBeSeparatedByBlankLine">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="ClosingCurlyBracketMustBeFollowedByBlankLine">
