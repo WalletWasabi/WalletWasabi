@@ -71,7 +71,7 @@
         </Rule>
         <Rule Name="InterfaceNamesMustBeginWithI">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="FieldNamesMustNotUseHungarianNotation">
