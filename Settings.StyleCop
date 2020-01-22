@@ -366,7 +366,7 @@
         </Rule>
         <Rule Name="AllAccessorsMustBeMultiLineOrSingleLine">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
       </Rules>
