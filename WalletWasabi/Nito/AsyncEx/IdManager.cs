@@ -39,7 +39,8 @@ namespace Nito.AsyncEx
 			do
 			{
 				newId = Interlocked.Increment(ref LastId);
-			} while (newId == 0);
+			}
+			while (newId == 0);
 
 			// Update the Id unless another thread already updated it.
 			Interlocked.CompareExchange(ref id, newId, 0);
