@@ -236,12 +236,12 @@
         </Rule>
         <Rule Name="DocumentationTextMustContainWhitespace">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">True</BooleanProperty>
+            <BooleanProperty Name="Enabled">False</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="DocumentationMustMeetCharacterPercentage">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="ConstructorSummaryDocumentationMustBeginWithStandardText">
