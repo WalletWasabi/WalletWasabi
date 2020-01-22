@@ -226,7 +226,7 @@
         </Rule>
         <Rule Name="SingleLineCommentsMustNotUseDocumentationStyleSlashes">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="DocumentationTextMustNotBeEmpty">
