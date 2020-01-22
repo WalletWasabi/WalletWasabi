@@ -176,7 +176,7 @@
         </Rule>
         <Rule Name="ElementReturnValueDocumentationMustHaveText">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="VoidReturnValueMustNotBeDocumented">
