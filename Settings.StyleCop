@@ -61,7 +61,7 @@
         </Rule>
         <Rule Name="ElementMustBeginWithUpperCaseLetter">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="ElementMustBeginWithLowerCaseLetter">
