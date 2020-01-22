@@ -199,30 +199,40 @@ namespace WalletWasabi.Blockchain.Keys
 		public void ToFile()
 		{
 			lock (HdPubKeysLock)
+			{
 				lock (BlockchainStateLock)
+				{
 					lock (ToFileLock)
 					{
 						ToFileNoLock();
 					}
+				}
+			}
 		}
 
 		private void ToFileNoBlockchainStateLock()
 		{
 			lock (HdPubKeysLock)
+			{
 				lock (ToFileLock)
 				{
 					ToFileNoLock();
 				}
+			}
 		}
 
 		public void ToFile(string filePath)
 		{
 			lock (HdPubKeysLock)
+			{
 				lock (BlockchainStateLock)
+				{
 					lock (ToFileLock)
 					{
 						ToFileNoLock(filePath);
 					}
+				}
+			}
 		}
 
 		private void ToFileNoLock()
