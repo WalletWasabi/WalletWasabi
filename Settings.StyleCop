@@ -266,12 +266,12 @@
         </Rule>
         <Rule Name="IncludeNodeDoesNotContainValidFileAndPath">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="InheritDocMustBeUsedWithInheritingClass">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="ElementDocumentationMustBeSpelledCorrectly">
