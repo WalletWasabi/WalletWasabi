@@ -82,7 +82,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			BroadcastTransactionCommand = ReactiveCommand.CreateFromTask(
 				async () => await OnDoTransactionBroadcastAsync(),
-				this.WhenAny(x => x.TransactionString, (transactionString) => (!string.IsNullOrWhiteSpace(transactionString.Value)))
+				this.WhenAny(x => x.TransactionString, (transactionString) => !string.IsNullOrWhiteSpace(transactionString.Value))
 					.ObserveOn(RxApp.MainThreadScheduler));
 
 			ImportTransactionCommand = ReactiveCommand.CreateFromTask(async () =>
