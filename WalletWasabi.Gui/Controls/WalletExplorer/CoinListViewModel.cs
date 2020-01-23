@@ -248,14 +248,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		public CoinListViewModel()
+		public CoinListViewModel(bool canDequeueCoins = false, bool displayCommonOwnershipWarning = false)
 		{
 			Global = Locator.Current.GetService<Global>();
 
 			AmountSortDirection = SortOrder.Decreasing;
 
 			CoinJoinStatusWidth = new GridLength(0);
-
+			CanDequeueCoins = canDequeueCoins;
+			DisplayCommonOwnershipWarning = displayCommonOwnershipWarning;
+			
 			RefreshOrdering();
 
 			// Otherwise they're all selected as null on load.
