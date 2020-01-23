@@ -75,10 +75,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			};
 
 			this.GetObservable(IsLockedProperty)
-				.Subscribe(async isLocked =>
-				{
-					await (isLocked ? _closeAnimation.RunAsync(this) : _openAnimation.RunAsync(this));
-				});
+				.Subscribe(async isLocked => await (isLocked ? _closeAnimation.RunAsync(this) : _openAnimation.RunAsync(this)));
 		}
 
 		public static readonly DirectProperty<SlideLock, bool> CanSlideProperty =
