@@ -245,7 +245,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			extPubKey = null;
 			string command = "getxpub";
 			if (arguments.Contains(command, StringComparison.Ordinal)
-				&& (arguments.Contains("--device-path", StringComparison.Ordinal) && arguments.Contains("--device-type", StringComparison.Ordinal)
+				&& ((arguments.Contains("--device-path", StringComparison.Ordinal) && arguments.Contains("--device-type", StringComparison.Ordinal))
 					|| arguments.Contains("--fingerprint")))
 			{
 				// The +1 is the space.
