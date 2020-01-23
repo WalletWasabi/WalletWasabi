@@ -61,7 +61,7 @@ namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
 			{
 				null,
 				System.Array.Empty<byte>(),
-				new byte[] { 6, 18},
+				new byte[] { 6, 18 },
 				new byte[] { 6, 22 },
 				new byte[] { 6, 26 },
 				new byte[] { 6, 30 },
