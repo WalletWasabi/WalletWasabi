@@ -26,7 +26,7 @@ namespace Gma.QrCodeNet.Encoding.Terminate
 			int numBitsNeedForLastByte = numFillerBits & 0x7;
 			int numFillerBytes = numFillerBits >> 3;
 
-			//BitList result = new BitList();
+			// BitList result = new BitList();
 			if (numBitsNeedForLastByte >= QRCodeConstantVariable.TerminatorLength)
 			{
 				baseList.TerminatorPadding(numBitsNeedForLastByte);

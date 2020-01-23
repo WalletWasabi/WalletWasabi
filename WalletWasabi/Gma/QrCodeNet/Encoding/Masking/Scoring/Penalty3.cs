@@ -77,7 +77,7 @@ namespace Gma.QrCodeNet.Encoding.Masking.Scoring
 					return 0;
 				}
 			}
-			//Check for left side and right side x ( xoxxxox ).
+			// Check for left side and right side x ( xoxxxox ).
 			if ((j - 1) < 0 || (j + 1) >= matrix.Width)
 			{
 				return 0;

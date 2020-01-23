@@ -18,7 +18,7 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 
 			while (x > 0)
 			{
-				//Skip vertical timing pattern
+				// Skip vertical timing pattern
 				if (x == 6)
 				{
 					x -= 1;

@@ -57,8 +57,8 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		internal BitList GetDataBitsByByteArray(byte[] encodeContent, string encodingName)
 		{
 			var dataBits = new BitList();
-			//Current plan for UTF8 support is put Byte order Mark in front of content byte.
-			//Also include ECI header before encoding header. Which will be add with encoding header.
+			// Current plan for UTF8 support is put Byte order Mark in front of content byte.
+			// Also include ECI header before encoding header. Which will be add with encoding header.
 			if (encodingName == "utf-8")
 			{
 				byte[] utf8BOM = QRCodeConstantVariable.UTF8ByteOrderMark;

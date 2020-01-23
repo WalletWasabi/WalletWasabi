@@ -63,7 +63,7 @@ namespace WalletWasabi.CoinJoin.Common.Models
 			}
 
 			return baseMinimum + FeePerInputs;
-			//return baseMinimum + (FeePerInputs * MaximumInputCountPerPeer);
+			// return baseMinimum + (FeePerInputs * MaximumInputCountPerPeer);
 		}
 
 		public bool HaveEnoughQueued(IEnumerable<Money> queuedCoinAmounts)

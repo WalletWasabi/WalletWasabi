@@ -63,12 +63,12 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 					throw new InvalidOperationException($"There is no such {nameof(AppendOption)}.");
 			}
 
-			//ECI table. Source 01 URL: http://strokescribe.com/en/ECI.html
-			//ECI table. Source 02 URL: http://lab.must.or.kr/Extended-Channel-Interpretations-ECI-Encoding.ashx
-			//ToDo. Fill up remaining missing table.
+			// ECI table. Source 01 URL: http://strokescribe.com/en/ECI.html
+			// ECI table. Source 02 URL: http://lab.must.or.kr/Extended-Channel-Interpretations-ECI-Encoding.ashx
+			// ToDo. Fill up remaining missing table.
 			AppendECI("iso-8859-1", 1, option);
 			AppendECI("IBM437", 2, option);
-			//AppendECI("iso-8859-1", 3, option);	//ECI value 1 is default encoding.
+			// AppendECI("iso-8859-1", 3, option);	//ECI value 1 is default encoding.
 			AppendECI("iso-8859-2", 4, option);
 			AppendECI("iso-8859-3", 5, option);
 			AppendECI("iso-8859-4", 6, option);
@@ -209,25 +209,25 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			};
 
 			int eciAssignmentByte = NumOfCodewords(eciValue);
-			//Number of bits = Num codewords indicator + codeword value = Number of codewords * 8
-			//Chapter 6.4.2.1 ECI Designator ISOIEC 18004:2006 Page 24
+			// Number of bits = Num codewords indicator + codeword value = Number of codewords * 8
+			// Chapter 6.4.2.1 ECI Designator ISOIEC 18004:2006 Page 24
 			int eciAssignmentBits;
 			switch (eciAssignmentByte)
 			{
 				case 1:
-					//Indicator = 0. Page 24. Chapter 6.4.2.1
+					// Indicator = 0. Page 24. Chapter 6.4.2.1
 					dataBits.Add((int)ECICodewordsLength.One, 1);
 					eciAssignmentBits = (eciAssignmentByte * 8) - 1;
 					break;
 
 				case 2:
-					//Indicator = 10. Page 24. Chapter 6.4.2.1
+					// Indicator = 10. Page 24. Chapter 6.4.2.1
 					dataBits.Add((int)ECICodewordsLength.Two, 2);
 					eciAssignmentBits = (eciAssignmentByte * 8) - 2;
 					break;
 
 				case 3:
-					//Indicator = 110. Page 24. Chapter 6.4.2.1
+					// Indicator = 110. Page 24. Chapter 6.4.2.1
 					dataBits.Add((int)ECICodewordsLength.Three, 3);
 					eciAssignmentBits = (eciAssignmentByte * 8) - 3;
 					break;

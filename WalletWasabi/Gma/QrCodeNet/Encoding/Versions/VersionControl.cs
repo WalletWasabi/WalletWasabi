@@ -32,7 +32,7 @@ namespace Gma.QrCodeNet.Encoding.Versions
 				containECI = true;
 			}
 
-			//Determine which version group it belong to
+			// Determine which version group it belong to
 			int searchGroup = DynamicSearchIndicator(totalDataBits, level);
 
 			int[] charCountIndicator = CharCountIndicatorTable.GetCharCountIndicatorSet();
@@ -42,7 +42,7 @@ namespace Gma.QrCodeNet.Encoding.Versions
 			int lowerSearchBoundary = searchGroup == 0 ? 1 : (VERSION_GROUP[searchGroup - 1] + 1);
 			int higherSearchBoundary = VERSION_GROUP[searchGroup];
 
-			//Binary search to find proper version
+			// Binary search to find proper version
 			int versionNum = BinarySearch(totalDataBits, level, lowerSearchBoundary, higherSearchBoundary);
 
 			VersionControlStruct vcStruct = FillVCStruct(versionNum, level);
