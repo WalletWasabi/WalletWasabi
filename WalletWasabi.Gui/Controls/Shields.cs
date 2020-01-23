@@ -83,8 +83,7 @@ namespace WalletWasabi.Gui.Controls
 					IsPrivacyFineVisible = st.IsPrivacyFineVisible;
 					IsPrivacyStrongVisible = st.IsPrivacyStrongVisible;
 					IsPrivacySaiyanVisible = st.IsPrivacySaiyanVisible;
-				}
-			);
+				});
 		}
 	}
 }
