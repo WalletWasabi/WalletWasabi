@@ -132,8 +132,8 @@ namespace WalletWasabi.Gui.ViewModels
 				.Merge(DisplayAddressOnHw.ThrownExceptions)
 				.Subscribe(ex =>
 				{
-					NotificationHelpers.Error(ex.ToTypeMessageString());
-					Logger.LogWarning(ex);
+					Logger.LogError(ex);
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
 				});
 		}
 
