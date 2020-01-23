@@ -396,7 +396,7 @@
         </Rule>
         <Rule Name="StaticReadonlyElementsMustAppearBeforeStaticNonReadonlyElements">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="InstanceReadonlyElementsMustAppearBeforeInstanceNonReadonlyElements">
