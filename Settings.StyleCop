@@ -586,12 +586,12 @@
         </Rule>
         <Rule Name="OpeningParenthesisMustBeSpacedCorrectly">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="ClosingParenthesisMustBeSpacedCorrectly">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="CodeMustNotContainMultipleWhitespaceInARow">
