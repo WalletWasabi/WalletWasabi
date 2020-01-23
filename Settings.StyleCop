@@ -726,7 +726,7 @@
         </Rule>
         <Rule Name="StatementMustNotUseUnnecessaryParenthesis">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">True</BooleanProperty>
+            <BooleanProperty Name="Enabled">False</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="RemoveDelegateParenthesisWhenPossible">
