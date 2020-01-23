@@ -601,7 +601,7 @@
         </Rule>
         <Rule Name="KeywordsMustBeSpacedCorrectly">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="CommasMustBeSpacedCorrectly">
