@@ -521,7 +521,7 @@
         </Rule>
         <Rule Name="CommentsMustContainText">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="ParameterListMustFollowDeclaration">
