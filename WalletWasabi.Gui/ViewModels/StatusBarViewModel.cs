@@ -20,6 +20,7 @@ using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Gui.Converters;
 using WalletWasabi.Gui.Dialogs;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models.StatusBarStatuses;
 using WalletWasabi.Gui.Models.TextResourcing;
 using WalletWasabi.Gui.Tabs;
@@ -273,6 +274,11 @@ namespace WalletWasabi.Gui.ViewModels
 
 							IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel(legalResp.content, legalResp.legalDocuments));
 						}
+					}
+					catch (Exception ex)
+					{
+						Logger.LogError(ex);
+						NotificationHelpers.Error("Could not get Legal Documents!");
 					}
 					finally
 					{
