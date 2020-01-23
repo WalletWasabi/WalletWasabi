@@ -721,12 +721,12 @@
         </Rule>
         <Rule Name="FieldsMustBePrivate">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">True</BooleanProperty>
+            <BooleanProperty Name="Enabled">False</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="StatementMustNotUseUnnecessaryParenthesis">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="RemoveDelegateParenthesisWhenPossible">
