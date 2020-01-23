@@ -511,7 +511,7 @@
         </Rule>
         <Rule Name="OpeningParenthesisMustBeOnDeclarationLine">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="ClosingParenthesisMustBeOnLineOfLastParameter">
