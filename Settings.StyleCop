@@ -599,6 +599,11 @@
             <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
+        <Rule Name="CodeMustNotContainEmptyStatements">
+          <RuleSettings>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
+          </RuleSettings>
+        </Rule>
         <Rule Name="UseStringEmptyForEmptyStrings">
           <RuleSettings>
             <BooleanProperty Name="Enabled">False</BooleanProperty>
