@@ -49,24 +49,24 @@ namespace Nito.AsyncEx
 	public sealed class AsyncLock
 	{
 		/// <summary>
-		/// Whether the lock is taken by a task.
-		/// </summary>
-		private bool _taken;
-
-		/// <summary>
 		/// The queue of TCSs that other tasks are awaiting to acquire the lock.
 		/// </summary>
 		private readonly IAsyncWaitQueue<IDisposable> Queue;
 
 		/// <summary>
-		/// The semi-unique identifier for this instance. This is 0 if the id has not yet been created.
-		/// </summary>
-		private int _id;
-
-		/// <summary>
 		/// The object used for mutual exclusion.
 		/// </summary>
 		private readonly object Mutex;
+
+		/// <summary>
+		/// Whether the lock is taken by a task.
+		/// </summary>
+		private bool _taken;
+
+		/// <summary>
+		/// The semi-unique identifier for this instance. This is 0 if the id has not yet been created.
+		/// </summary>
+		private int _id;
 
 		/// <summary>
 		/// Creates a new async-compatible mutual exclusion lock.
