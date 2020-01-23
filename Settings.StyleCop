@@ -621,7 +621,7 @@
         </Rule>
         <Rule Name="OperatorKeywordMustBeFollowedBySpace">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="OpeningSquareBracketsMustBeSpacedCorrectly">
