@@ -586,7 +586,7 @@
         </Rule>
         <Rule Name="OpeningParenthesisMustBeSpacedCorrectly">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">True</BooleanProperty>
+            <BooleanProperty Name="Enabled">False</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="ClosingParenthesisMustBeSpacedCorrectly">
