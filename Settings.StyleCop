@@ -604,6 +604,11 @@
             <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
+        <Rule Name="CodeMustNotContainMultipleStatementsOnOneLine">
+          <RuleSettings>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
+          </RuleSettings>
+        </Rule>
         <Rule Name="UseStringEmptyForEmptyStrings">
           <RuleSettings>
             <BooleanProperty Name="Enabled">False</BooleanProperty>
