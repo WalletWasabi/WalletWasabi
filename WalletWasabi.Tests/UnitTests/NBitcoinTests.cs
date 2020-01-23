@@ -36,13 +36,12 @@ namespace WalletWasabi.Tests.UnitTests
 			var (tx0, c0) = CreateTransaction();
 			var (tx1, c1) = CreateTransaction();
 			var (tx2, c2) = CreateTransaction();
-
-			var (tx3, c3) = CreateTransaction(c0[0], c0[1], c1[0]);
+			var (tx3, _) = CreateTransaction(c0[0], c0[1], c1[0]);
 			var (tx4, c4) = CreateTransaction(c0[2], c1[2]);
 			var (tx5, c5) = CreateTransaction(c4[1], c4[2]);
 
 			var (tx6, c6) = CreateTransaction(c5[0]);
-			var (tx7, c7) = CreateTransaction(c6[2], c2[0]);
+			var (tx7, _) = CreateTransaction(c6[2], c2[0]);
 
 			var graph = new[] { tx0, tx1, tx2, tx7, tx5, tx3, tx4, tx6 }.ToDependencyGraph();
 
