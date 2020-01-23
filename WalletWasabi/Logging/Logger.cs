@@ -14,6 +14,8 @@ namespace WalletWasabi.Logging
 	{
 		#region PropertiesAndMembers
 
+		private static readonly object Lock = new object();
+
 		private static long On = 1;
 
 		public static LogLevel MinimumLevel { get; private set; } = LogLevel.Critical;
@@ -31,8 +33,6 @@ namespace WalletWasabi.Logging
 		public static Guid InstanceGuid { get; } = Guid.NewGuid();
 
 		private static int LoggingFailedCount = 0;
-
-		private static readonly object Lock = new object();
 
 		/// <summary>
 		/// KB
