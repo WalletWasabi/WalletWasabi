@@ -716,7 +716,7 @@
       <Rules>
         <Rule Name="AccessModifierMustBeDeclared">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="FieldsMustBePrivate">
