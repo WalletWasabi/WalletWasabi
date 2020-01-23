@@ -177,14 +177,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.IsBusy, x => x.IsHardwareBusy)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					BuildTransactionButtonText = IsHardwareBusy
+				.Subscribe(_ => BuildTransactionButtonText = IsHardwareBusy
 						? WaitingForHardwareWalletButtonTextString
 						: IsBusy
 							? DoingButtonText
-							: DoButtonText;
-				});
+							: DoButtonText);
 
 			this.WhenAnyValue(x => x.FeeTarget)
 				.ObserveOn(RxApp.MainThreadScheduler)
