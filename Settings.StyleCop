@@ -404,6 +404,11 @@
             <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
+        <Rule Name="CodeMustNotContainMultipleBlankLinesInARow">
+          <RuleSettings>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
+          </RuleSettings>
+        </Rule>
         <Rule Name="StatementMustNotBeOnSingleLine">
           <RuleSettings>
             <BooleanProperty Name="Enabled">True</BooleanProperty>
