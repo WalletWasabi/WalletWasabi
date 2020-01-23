@@ -541,12 +541,12 @@
         </Rule>
         <Rule Name="BlockStatementsMustNotContainEmbeddedRegions">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="UseShorthandForNullableTypes">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="BlockStatementsMustNotContainEmbeddedComments">
