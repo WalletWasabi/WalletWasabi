@@ -80,19 +80,32 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			advancedAction.Items.Add(infoTab);
 			advancedAction.Items.Add(buildTab);
 
-			// Open and select tabs.
+			// Open tabs.
 			sendTab?.DisplayActionTab();
-			if (receiveDominant)
+			receiveTab.DisplayActionTab();
+			coinjoinTab.DisplayActionTab();
+			historyTab.DisplayActionTab();
+
+			// Select tab
+			if (receiveDominant || global.UiConfig.LastActiveTab == receiveTab.GetType().Name)
 			{
-				coinjoinTab.DisplayActionTab();
-				historyTab.DisplayActionTab();
 				receiveTab.DisplayActionTab(); // So receive should be shown to the user.
+			}
+			else if (global.UiConfig.LastActiveTab == sendTab?.GetType().Name)
+			{
+				sendTab.DisplayActionTab(); // So send should be shown to the user.
+			}
+			else if (global.UiConfig.LastActiveTab == buildTab.GetType().Name)
+			{
+				buildTab.DisplayActionTab(); // So build should be shown to the user.
+			}
+			else if (global.UiConfig.LastActiveTab == historyTab.GetType().Name)
+			{
+				historyTab.DisplayActionTab(); // So history should be shown to the user.
 			}
 			else
 			{
-				receiveTab.DisplayActionTab();
-				coinjoinTab.DisplayActionTab();
-				historyTab.DisplayActionTab(); // So history should be shown to the user.
+				coinjoinTab.DisplayActionTab(); // So coinjoin should be shown to the user.
 			}
 
 			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
