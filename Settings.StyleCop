@@ -431,12 +431,12 @@
         </Rule>
         <Rule Name="ProtectedMustComeBeforeInternal">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="PartialElementsMustDeclareAccess">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="PropertyAccessorsMustFollowOrder">
