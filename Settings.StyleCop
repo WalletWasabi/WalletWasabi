@@ -486,12 +486,12 @@
         </Rule>
         <Rule Name="QueryClauseMustBeginOnNewLineWhenPreviousClauseSpansMultipleLines">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="QueryClausesSpanningMultipleLinesMustBeginOnOwnLine">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="UseStringEmptyForEmptyStrings">
