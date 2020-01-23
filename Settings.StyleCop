@@ -616,7 +616,7 @@
         </Rule>
         <Rule Name="PreprocessorKeywordsMustNotBePrecededBySpace">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="OperatorKeywordMustBeFollowedBySpace">
