@@ -184,6 +184,11 @@
             <BooleanProperty Name="Enabled">False</BooleanProperty>
           </RuleSettings>
         </Rule>
+        <Rule Name="ElementReturnValueDocumentationMustHaveValue">
+          <RuleSettings>
+            <BooleanProperty Name="Enabled">False</BooleanProperty>
+          </RuleSettings>
+        </Rule>
         <Rule Name="ElementReturnValueDocumentationMustHaveText">
           <RuleSettings>
             <BooleanProperty Name="Enabled">True</BooleanProperty>
@@ -242,6 +247,11 @@
         <Rule Name="DocumentationTextMustNotBeEmpty">
           <RuleSettings>
             <BooleanProperty Name="Enabled">False</BooleanProperty>
+          </RuleSettings>
+        </Rule>
+        <Rule Name="DocumentationTextMustBeginWithACapitalLetter">
+          <RuleSettings>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="DocumentationTextMustContainWhitespace">
