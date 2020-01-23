@@ -531,7 +531,7 @@
         </Rule>
         <Rule Name="ParameterMustNotSpanMultipleLines">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="DoNotPlaceRegionsWithinElements">
