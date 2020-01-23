@@ -833,15 +833,14 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Equal("A, B, C, D", newPaymentCoin.Clusters.Labels);
 		}
 
-
 		[Fact]
 		public async Task SameScriptClusterAfterSpendingAsync()
 		{
 			// If there are two coins with the same scriptPubKey after we spend one of them,
-			// both have to share the same cluster. 
+			// both have to share the same cluster.
 			//
 			// --tx0---> (A) -->
-			//                 
+			//
 			// --tx1---> (A) ---tx2---> (B - cluster (B, A))
 			var transactionProcessor = await CreateTransactionProcessorAsync();
 			var key = transactionProcessor.NewKey("A");
@@ -859,7 +858,6 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Equal(coins.First().Clusters, coins.Last().Clusters);
 			Assert.Equal("A, B", coins.First().Clusters.Labels.ToString());
 		}
-
 
 		[Fact]
 		public async Task SameClusterAfterReplacedByFeeAsync()
@@ -1092,14 +1090,6 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		private static OutPoint GetRandomOutPoint()
 		{
 			return new OutPoint(RandomUtils.GetUInt256(), 0);
-		}
-	}
-
-	internal static class TransactionProcessorExtensions
-	{
-		public static HdPubKey NewKey(this TransactionProcessor me, string label)
-		{
-			return me.KeyManager.GenerateNewKey(label, KeyState.Clean, true);
 		}
 	}
 }
