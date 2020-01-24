@@ -221,6 +221,9 @@ dotnet_style_prefer_auto_properties = true:error
 # IDE0057: Use range operator
 csharp_style_prefer_range_operator = true:error
 
+# IDE0059: Unnecessary assignment of a value
+csharp_style_unused_value_assignment_preference = discard_variable:error
+
 [*.xaml]
 indent_style = space
 indent_size = 2
