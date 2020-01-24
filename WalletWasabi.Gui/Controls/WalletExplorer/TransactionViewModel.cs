@@ -33,8 +33,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
 				{
-					NotificationHelpers.Error(ex.ToTypeMessageString());
-					Logger.LogWarning(ex);
+					Logger.LogError(ex);
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
 				});
 		}
 

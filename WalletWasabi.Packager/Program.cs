@@ -575,7 +575,7 @@ namespace WalletWasabi.Packager
 						process.WaitForExit();
 					}
 
-					var daemonExePath = newExecutablePath.Substring(0, newExecutablePath.Length - 4) + "d.exe";
+					var daemonExePath = newExecutablePath[0..^4] + "d.exe";
 					File.Copy(newExecutablePath, daemonExePath);
 
 					// Do not open console.

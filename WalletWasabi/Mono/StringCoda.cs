@@ -206,7 +206,7 @@ namespace Mono.Options
 					--end;
 					continuation = "-";
 				}
-				string line = self.Substring(start, end - start) + continuation;
+				string line = self[start..end] + continuation;
 				yield return line;
 				start = end;
 				if (char.IsWhiteSpace(c))

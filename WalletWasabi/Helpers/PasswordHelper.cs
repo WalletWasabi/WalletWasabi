@@ -31,7 +31,7 @@ namespace WalletWasabi.Helpers
 			{
 				originalPassword,
 				buggyClipboard, // Should be here for every OP system. If I create a buggy wallet on OSX and transfer it to other system, it should also work.
-				$"{buggyClipboard.Substring(0,buggyClipboard.Length-1)}\ufffd" // Later I tested the functionality and experienced that the last character replaced by invalid character.
+				$"{buggyClipboard[0..^1]}\ufffd" // Later I tested the functionality and experienced that the last character replaced by invalid character.
 			};
 
 			return possiblePasswords.ToArray();

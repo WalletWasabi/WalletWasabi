@@ -659,7 +659,7 @@ namespace Mono.Options
 			Option p;
 			string rn;
 			if (n.Length >= 1 && (n[^1] == '+' || n[^1] == '-') &&
-					Contains((rn = n.Substring(0, n.Length - 1))))
+					Contains((rn = n[0..^1])))
 			{
 				p = this[rn];
 				string v = n[^1] == '+' ? option : null;
@@ -968,7 +968,7 @@ namespace Mono.Options
 						}
 						else
 						{
-							sb.Append(description.Substring(start, i - start));
+							sb.Append(description[start..i]);
 							start = -1;
 						}
 						break;

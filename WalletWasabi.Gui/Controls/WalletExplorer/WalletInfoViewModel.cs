@@ -12,6 +12,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Services;
 using WalletWasabi.Models;
 using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Logging;
 using System.Reactive.Linq;
 using Splat;
 
@@ -64,8 +65,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
 				{
-					Logging.Logger.LogError(ex);
 					NotificationHelpers.Error(ex.ToUserFriendlyString());
+					Logger.LogError(ex);
 				});
 		}
 

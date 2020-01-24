@@ -132,8 +132,8 @@ namespace WalletWasabi.Gui.ViewModels
 				.Merge(DisplayAddressOnHw.ThrownExceptions)
 				.Subscribe(ex =>
 				{
+					Logger.LogError(ex);
 					NotificationHelpers.Error("Could not find the device. Make sure it is connected.");
-					Logger.LogWarning(ex);
 				});
 		}
 
