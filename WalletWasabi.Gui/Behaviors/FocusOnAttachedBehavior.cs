@@ -10,10 +10,7 @@ namespace WalletWasabi.Gui.Behaviors
 		{
 			base.OnAttached();
 
-			Dispatcher.UIThread.Post(() =>
-			{
-				AssociatedObject.Focus();
-			}, DispatcherPriority.Layout);
+			Dispatcher.UIThread.Post(() => AssociatedObject.Focus(), DispatcherPriority.Layout);
 		}
 	}
 }

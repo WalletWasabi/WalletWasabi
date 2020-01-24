@@ -69,11 +69,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _isHardwareBusy;
 		private bool _isCustomFee;
 
-		private const string SendTransactionButtonTextString = "Send Transaction";
 		private const string WaitingForHardwareWalletButtonTextString = "Waiting for Hardware Wallet...";
-		private const string SendingTransactionButtonTextString = "Sending Transaction...";
-		private const string BuildTransactionButtonTextString = "Build Transaction";
-		private const string BuildingTransactionButtonTextString = "Building Transaction...";
 
 		private FeeDisplayFormat _feeDisplayFormat;
 		private bool _isSliderFeeUsed = true;
@@ -181,14 +177,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.IsBusy, x => x.IsHardwareBusy)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					BuildTransactionButtonText = IsHardwareBusy
+				.Subscribe(_ => BuildTransactionButtonText = IsHardwareBusy
 						? WaitingForHardwareWalletButtonTextString
 						: IsBusy
 							? DoingButtonText
-							: DoButtonText;
-				});
+							: DoButtonText);
 
 			this.WhenAnyValue(x => x.FeeTarget)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -340,8 +333,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 						catch (Exception ex)
 						{
-							NotificationHelpers.Error(ex.ToTypeMessageString());
 							Logger.LogError(ex);
+							NotificationHelpers.Error(ex.ToUserFriendlyString());
 							return;
 						}
 					}
@@ -376,7 +369,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 						catch (Exception ex)
 						{
-							NotificationHelpers.Error(ex.ToTypeMessageString());
+							NotificationHelpers.Error(ex.ToUserFriendlyString());
 							Logger.LogError(ex);
 							return;
 						}
@@ -404,7 +397,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				catch (Exception ex)
 				{
-					NotificationHelpers.Error(ex.ToTypeMessageString());
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
 					Logger.LogError(ex);
 				}
 				finally
@@ -447,7 +440,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
 				{
-					NotificationHelpers.Error(ex.ToTypeMessageString());
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
 					Logger.LogError(ex);
 				});
 		}
@@ -588,7 +581,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				else
 				{
 					// This should not happen. Never.
-					// If SatoshiPerByteFeeRate is null we will have problems when building the tx.
+					// If FeeRate is null we will have problems when building the tx.
 					EstimatedBtcFee = Money.Zero;
 				}
 
