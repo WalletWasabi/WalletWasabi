@@ -39,8 +39,6 @@ namespace WalletWasabi.Gui.ViewModels
 		private WasabiSynchronizer Synchronizer { get; set; }
 		private SmartHeaderChain HashChain { get; set; }
 
-		private bool InLegalTrouble { get; set; } = false;
-
 		private bool UseTor { get; set; }
 
 		private RpcStatus _bitcoinCoreStatus;
@@ -259,15 +257,8 @@ namespace WalletWasabi.Gui.ViewModels
 					UpdateAvailable = !x.ClientUpToDate;
 					CriticalUpdateAvailable = !x.BackendCompatible;
 
-					// No locking should be fine as it's happening on the same thread.
-					if (InLegalTrouble)
-					{
-						return;
-					}
-
 					try
 					{
-						InLegalTrouble = true;
 						if (Global.LegalDocuments is null || Global.LegalDocuments.Version != x.LegalDocumentsVersion)
 						{
 							var legalResp = await LegalDocuments.FetchLatestAsync(Global.DataDir, () => Global.Config.GetCurrentBackendUri(), Global.Config.TorSocks5EndPoint, CancellationToken.None);
@@ -279,10 +270,6 @@ namespace WalletWasabi.Gui.ViewModels
 					{
 						Logger.LogError(ex);
 						NotificationHelpers.Error("Could not get Legal Documents!");
-					}
-					finally
-					{
-						InLegalTrouble = false;
 					}
 				});
 
