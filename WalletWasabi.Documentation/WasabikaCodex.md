@@ -3,7 +3,7 @@
 
 *if you have https://github.com/notifications/beta use it instead of the links mentioned below.*
 
-1. [Check code review requests waiting for you]https://github.com/zkSNACKs/WalletWasabi/pulls/review-requested/@me).
+1. [Check code review requests waiting for you](https://github.com/zkSNACKs/WalletWasabi/pulls/review-requested/@me).
 2. Check [priority issues and PRs!](https://github.com/zkSNACKs/WalletWasabi/labels/priority). Take it or set Assignees and Labels if you can.
 3. Check your [own PRs](https://github.com/zkSNACKs/WalletWasabi/pulls/@me) and answer if necessary.
    - If you need help use __@mention__.
