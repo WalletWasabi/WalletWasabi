@@ -342,48 +342,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					BuildTransactionResult result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, intent, feeStrategy, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
 
 					await DoAfterBuildTransaction(result);
-
-					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.SigningTransaction);
-					SmartTransaction signedTransaction = result.Transaction;
-
-					if (IsHardwareWallet && !result.Signed) // If hardware but still has a privkey then it's password, then meh.
-					{
-						try
-						{
-							IsHardwareBusy = true;
-							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.AcquiringSignatureFromHardwareWallet);
-							var client = new HwiClient(Global.Network);
-
-							using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-							PSBT signedPsbt = null;
-							try
-							{
-								signedPsbt = await client.SignTxAsync(KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
-							}
-							catch (HwiException)
-							{
-								await PinPadViewModel.UnlockAsync();
-								signedPsbt = await client.SignTxAsync(KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
-							}
-							signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction);
-						}
-						catch (Exception ex)
-						{
-							NotificationHelpers.Error(ex.ToUserFriendlyString());
-							Logger.LogError(ex);
-							return;
-						}
-						finally
-						{
-							MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusType.AcquiringSignatureFromHardwareWallet);
-							IsHardwareBusy = false;
-						}
-					}
-
-					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.BroadcastingTransaction);
-					await Task.Run(async () => await Global.TransactionBroadcaster.SendTransactionAsync(signedTransaction));
-
-					ResetUi();
 				}
 				catch (InsufficientBalanceException ex)
 				{
