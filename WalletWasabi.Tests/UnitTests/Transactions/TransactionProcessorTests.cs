@@ -1092,12 +1092,4 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			return new OutPoint(RandomUtils.GetUInt256(), 0);
 		}
 	}
-
-	internal static class TransactionProcessorExtensions
-	{
-		public static HdPubKey NewKey(this TransactionProcessor me, string label)
-		{
-			return me.KeyManager.GenerateNewKey(label, KeyState.Clean, true);
-		}
-	}
 }
