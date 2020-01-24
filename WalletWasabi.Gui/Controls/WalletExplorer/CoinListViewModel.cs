@@ -545,15 +545,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					!isCriticalPrivate,
 					!isSomePrivate,
 					!isFinePrivate,
-					!isStrongPrivate
-					);
+					!isStrongPrivate);
 
 			SelectAllPrivateShieldState = new ShieldState(
 					isCriticalPrivate,
 					isSomePrivate,
 					isFinePrivate,
-					isStrongPrivate
-					);
+					isStrongPrivate);
 		}
 
 		public void OnClose()

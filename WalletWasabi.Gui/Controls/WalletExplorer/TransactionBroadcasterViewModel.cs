@@ -80,10 +80,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				TransactionString = textToPaste;
 			});
 
+			IObservable<bool> broadcastTransactionCanExecute = this
+				.WhenAny(x => x.TransactionString, (transactionString) => !string.IsNullOrWhiteSpace(transactionString.Value))
+				.ObserveOn(RxApp.MainThreadScheduler);
+
 			BroadcastTransactionCommand = ReactiveCommand.CreateFromTask(
 				async () => await OnDoTransactionBroadcastAsync(),
-				this.WhenAny(x => x.TransactionString, (transactionString) => (!string.IsNullOrWhiteSpace(transactionString.Value)))
-					.ObserveOn(RxApp.MainThreadScheduler));
+				broadcastTransactionCanExecute);
 
 			ImportTransactionCommand = ReactiveCommand.CreateFromTask(async () =>
 			{

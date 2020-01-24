@@ -4,9 +4,9 @@ using System.Reflection;
 
 namespace WalletWasabi.Gui.Rpc
 {
-	///<summary>
+	/// <summary>
 	/// Represents the collection of metadata needed to execute the remote procedure.
-	///</summary>
+	/// </summary>
 	public class JsonRpcMethodMetadata
 	{
 		// The name of the remote procedure. This is NOT the name of the method to be invoked.

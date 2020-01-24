@@ -112,7 +112,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 					{
 						if (SpentCoins.Remove(toRemove))
 						{
-							//Clusters.Remove(toRemove);
+							// Clusters.Remove(toRemove);
 						}
 					}
 				}
