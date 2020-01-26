@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Legal
@@ -24,17 +25,19 @@ namespace WalletWasabi.Legal
 		{
 			var legalFolderPath = Path.Combine(dataDir, LegalFolderName);
 			IoHelpers.EnsureDirectoryExists(legalFolderPath);
-			var filePaths = Directory.EnumerateFiles(legalFolderPath, "*.txt", SearchOption.TopDirectoryOnly);
 
+			int fileCount = Directory.EnumerateFileSystemEntries(legalFolderPath).Count();
 			// If more than one file found, then something strange happened, delete the dir and start from zero.
-			if (filePaths.Count() > 1)
+			if (fileCount > 1)
 			{
+				Logger.LogInfo("Multiple legal docs detected. Recovering empty legal directory...");
 				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(legalFolderPath).ConfigureAwait(false);
 				IoHelpers.EnsureDirectoryExists(legalFolderPath);
-				filePaths = Enumerable.Empty<string>();
 			}
 
-			var existingFilePath = filePaths.FirstOrDefault();
+			await TryEnsureBackwardsCompatibilityAsync(dataDir).ConfigureAwait(false);
+
+			var existingFilePath = Directory.EnumerateFiles(legalFolderPath, "*.txt", SearchOption.TopDirectoryOnly).FirstOrDefault();
 			if (existingFilePath is { })
 			{
 				var verString = Path.GetFileNameWithoutExtension(existingFilePath);
@@ -52,28 +55,57 @@ namespace WalletWasabi.Legal
 			return null;
 		}
 
+		private static async Task TryEnsureBackwardsCompatibilityAsync(string dataDir)
+		{
+			var legalFolderPath = Path.Combine(dataDir, LegalFolderName);
+			IoHelpers.EnsureDirectoryExists(legalFolderPath);
+
+			int fileCount = Directory.EnumerateFileSystemEntries(legalFolderPath).Count();
+			// If no file found then to ensure backwards compatibility we can check if a wallet file already exists.
+			// If a wallet file already exist, that means the user already accepted 1.0 at one point with the old system.
+			if (fileCount == 0)
+			{
+				var walletFolderPath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), "Wallets");
+				var hasWallet = Directory.Exists(walletFolderPath) && Directory.EnumerateFileSystemEntries(walletFolderPath).Any();
+				if (hasWallet)
+				{
+					Logger.LogInfo("Wallets folder is not empty. Assuming Legal docs 1.0 acceptance.");
+					var text = await File.ReadAllTextAsync(EmbeddedFilePath).ConfigureAwait(false);
+					var onePointOfilePath = BuildFilePath(new Version(1, 0), dataDir);
+					await ToFileAsync(onePointOfilePath, text).ConfigureAwait(false);
+				}
+			}
+		}
+
 		public static async Task<(LegalDocuments legalDocuments, string content)> FetchLatestAsync(string dataDir, Func<Uri> destAction, EndPoint torSocks, CancellationToken cancel)
 		{
 			string filePath;
 			Version version;
 
-			var legalFolderPath = Path.Combine(dataDir, LegalFolderName);
 			using var client = new WasabiClient(destAction, torSocks);
 			var versions = await client.GetVersionsAsync(cancel).ConfigureAwait(false);
 			version = versions.LegalDocumentsVersion;
-			filePath = Path.Combine(legalFolderPath, $"{version}.txt");
+			filePath = BuildFilePath(version, dataDir);
 			var legal = await client.GetLegalDocumentsAsync(cancel).ConfigureAwait(false);
 
 			return (new LegalDocuments(version, filePath), legal);
 		}
 
-		public async Task ToFileAsync(string legal)
+		private static string BuildFilePath(Version version, string dataDir)
 		{
-			var legalFolderPath = Path.GetDirectoryName(FilePath);
+			var legalFolderPath = Path.Combine(dataDir, LegalFolderName);
+			return Path.Combine(legalFolderPath, $"{version}.txt");
+		}
+
+		public async static Task ToFileAsync(string filePath, string legal)
+		{
+			var legalFolderPath = Path.GetDirectoryName(filePath);
 			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(legalFolderPath).ConfigureAwait(false);
 			IoHelpers.EnsureDirectoryExists(legalFolderPath);
-			await File.WriteAllTextAsync(FilePath, legal).ConfigureAwait(false);
+			await File.WriteAllTextAsync(filePath, legal).ConfigureAwait(false);
 		}
+
+		public async Task ToFileAsync(string legal) => await ToFileAsync(FilePath, legal).ConfigureAwait(false);
 
 		public LegalDocuments(Version version, string filePath)
 		{
