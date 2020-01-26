@@ -140,8 +140,7 @@ namespace WalletWasabi.Gui.Behaviors
 								}
 								break;
 						}
-					})
-			);
+					}));
 
 			Disposables.Add(
 				AssociatedObject.GetObservable(InputElement.PointerEnterEvent).Subscribe(async pointerEnter =>
@@ -172,8 +171,7 @@ namespace WalletWasabi.Gui.Behaviors
 						{
 							MyTextBoxState = TextBoxState.SelectAll;
 						}
-					})
-			);
+					}));
 
 			base.OnAttached();
 		}

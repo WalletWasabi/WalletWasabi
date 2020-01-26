@@ -112,7 +112,8 @@ namespace WalletWasabi.Gui.CommandLine
 					}
 
 					mixing = anyCoinsQueued || keepMixAlive;
-				} while (mixing);
+				}
+				while (mixing);
 
 				if (!Global.KillRequested) // This only has to run if it finishes by itself. Otherwise the Ctrl+c runs it.
 				{

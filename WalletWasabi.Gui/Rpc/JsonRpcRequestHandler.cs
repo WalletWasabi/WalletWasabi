@@ -9,11 +9,11 @@ using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.Gui.Rpc
 {
-	///<summary>
+	/// <summary>
 	/// This class coordinates all the major steps in processing the RPC call.
 	/// It parses the json request, parses the parameters, invokes the service
 	/// methods and handles the errors.
-	///</summary>
+	/// </summary>
 	public class JsonRpcRequestHandler<TService>
 	{
 		private static readonly JsonSerializerSettings DefaultSettings = new JsonSerializerSettings

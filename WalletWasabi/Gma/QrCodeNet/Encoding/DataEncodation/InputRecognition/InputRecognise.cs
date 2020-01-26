@@ -22,12 +22,12 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 
 			Dictionary<string, int> eciSet = eciSets.GetECITable();
 
-			//we will not check for utf8 encoding.
+			// we will not check for utf8 encoding.
 			eciSet.Remove(QRCodeConstantVariable.UTF8Encoding);
 			eciSet.Remove(QRCodeConstantVariable.DefaultEncoding);
 
 			int scanPos = startPos;
-			//default encoding as priority
+			// default encoding as priority
 			scanPos = ModeEncodeCheck.TryEncodeEightBitByte(content, QRCodeConstantVariable.DefaultEncoding, scanPos, contentLength);
 			if (scanPos == -1)
 			{

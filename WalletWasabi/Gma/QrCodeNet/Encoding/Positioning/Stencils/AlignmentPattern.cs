@@ -55,13 +55,13 @@ namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
 			return AlignmentPatternCoordinatesByVersion[version];
 		}
 
-		//Table E.1 — Row/column coordinates of center module of Alignment Patterns
+		// Table E.1 — Row/column coordinates of center module of Alignment Patterns
 		private static byte[][] AlignmentPatternCoordinatesByVersion { get; } =
 			new[]
 			{
 				null,
 				System.Array.Empty<byte>(),
-				new byte[] { 6, 18},
+				new byte[] { 6, 18 },
 				new byte[] { 6, 22 },
 				new byte[] { 6, 26 },
 				new byte[] { 6, 30 },

@@ -75,8 +75,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				}
 				catch (Exception ex)
 				{
-					NotificationHelpers.Error(ex.ToTypeMessageString());
 					Logger.LogError(ex);
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
 				}
 			}
 		}

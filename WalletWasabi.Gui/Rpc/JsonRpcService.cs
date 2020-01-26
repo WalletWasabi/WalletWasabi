@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace WalletWasabi.Gui.Rpc
 {
-	///<summary>
+	/// <summary>
 	/// Base class for service classes.
 	///
 	/// Provides two methods for responding to the clients with a **result** for valid
@@ -13,7 +13,7 @@ namespace WalletWasabi.Gui.Rpc
 	/// Also, it loads and serves information about the service. It discovers
 	/// (using reflection) the methods that have to be invoked and the parameters it
 	/// receives.
-	///</summary>
+	/// </summary>
 	public class JsonRpcServiceMetadataProvider
 	{
 		// Keeps the directory of procedures' metadata
