@@ -248,6 +248,13 @@ namespace WalletWasabi.WebClients.Wasabi
 
 			using HttpContent content = response.Content;
 			var resp = await content.ReadAsJsonAsync<VersionsResponse>();
+
+			// ToDo: This should be removed after it's deployed to the backend.
+			if (resp.LegalDocumentsVersion is null)
+			{
+				resp.LegalDocumentsVersion = "1.0";
+			}
+
 			return (Version.Parse(resp.ClientVersion), int.Parse(resp.BackendMajorVersion), Version.Parse(resp.LegalDocumentsVersion));
 		}
 

@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -261,9 +262,16 @@ namespace WalletWasabi.Gui.ViewModels
 					{
 						if (Global.LegalDocuments is null || Global.LegalDocuments.Version != x.LegalDocumentsVersion)
 						{
-							var legalResp = await LegalDocuments.FetchLatestAsync(Global.DataDir, () => Global.Config.GetCurrentBackendUri(), Global.Config.TorSocks5EndPoint, CancellationToken.None);
+							try
+							{
+								var legalResp = await LegalDocuments.FetchLatestAsync(Global.DataDir, () => Global.Config.GetCurrentBackendUri(), Global.Config.TorSocks5EndPoint, CancellationToken.None);
 
-							IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel(legalResp.content, legalResp.legalDocuments));
+								IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel(legalResp.content, legalResp.legalDocuments));
+							}
+							catch (HttpRequestException ex) when (ex.Message == "Not Found")
+							{
+								// ToDo: The try-catch should be removed after it's deployed to the backend.
+							}
 						}
 					}
 					catch (Exception ex)
