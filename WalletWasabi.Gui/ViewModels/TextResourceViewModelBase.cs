@@ -67,38 +67,31 @@ namespace WalletWasabi.Gui.ViewModels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(text => EmptyContent = string.IsNullOrEmpty(text));
 
-			try
+			if (TextResource.HasContent)
 			{
-				if (TextResource.HasContent)
-				{
-					Text = TextResource.Content;
-				}
-				else if (TextResource.HasAvaloniaTarget)
-				{
-					LoadDocumentAsync(TextResource.AvaloniaTarget)
-						.ToObservable(RxApp.TaskpoolScheduler)
-						.Take(1)
-						.ObserveOn(RxApp.MainThreadScheduler)
-						.Subscribe(
-							x => Text = x,
-							onError: ex => Logger.LogError(ex))
-						.DisposeWith(Disposables);
-				}
-				else if (TextResource.HasFilePath)
-				{
-					LoadDocumentAsync(TextResource.FilePath)
-						.ToObservable(RxApp.TaskpoolScheduler)
-						.Take(1)
-						.ObserveOn(RxApp.MainThreadScheduler)
-						.Subscribe(
-							x => Text = x,
-							onError: ex => Logger.LogError(ex))
-						.DisposeWith(Disposables);
-				}
+				Text = TextResource.Content;
 			}
-			catch (Exception ex)
+			else if (TextResource.HasAvaloniaTarget)
 			{
-				Logger.LogError(ex);
+				LoadDocumentAsync(TextResource.AvaloniaTarget)
+					.ToObservable(RxApp.TaskpoolScheduler)
+					.Take(1)
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.Subscribe(
+						x => Text = x,
+						onError: ex => Logger.LogError(ex))
+					.DisposeWith(Disposables);
+			}
+			else if (TextResource.HasFilePath)
+			{
+				LoadDocumentAsync(TextResource.FilePath)
+					.ToObservable(RxApp.TaskpoolScheduler)
+					.Take(1)
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.Subscribe(
+						x => Text = x,
+						onError: ex => Logger.LogError(ex))
+					.DisposeWith(Disposables);
 			}
 		}
 
