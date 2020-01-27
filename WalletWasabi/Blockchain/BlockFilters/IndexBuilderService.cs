@@ -57,6 +57,8 @@ namespace WalletWasabi.Blockchain.BlockFilters
 			IndexFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(indexFilePath), indexFilePath);
 			Bech32UtxoSetFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(bech32UtxoSetFilePath), bech32UtxoSetFilePath);
 
+			TempLogger.InitializeDefaults(Path.Combine(Path.GetDirectoryName(IndexFilePath), "TempLog.txt"));
+
 			Bech32UtxoSet = new Dictionary<OutPoint, UtxoEntry>();
 			Bech32UtxoSetHistory = new List<ActionHistoryHelper>(capacity: 100);
 			Index = new List<FilterModel>();
@@ -113,34 +115,46 @@ namespace WalletWasabi.Blockchain.BlockFilters
 
 		public void Synchronize()
 		{
+			TempLogger.Log("Synchronize()");
 			Task.Run(async () =>
 			{
+				TempLogger.Log("Task.Run(async () =>");
 				try
 				{
 					if (Interlocked.Read(ref _runner) >= 2)
 					{
+						TempLogger.Log("if (Interlocked.Read(ref _runner) >= 2) evaluated to true");
+						TempLogger.Log("RETURN");
 						return;
 					}
+					TempLogger.Log("if (Interlocked.Read(ref _runner) >= 2) evaluated to false");
 
 					Interlocked.Increment(ref _runner);
 					while (Interlocked.Read(ref _runner) != 1)
 					{
+						TempLogger.Log("while (Interlocked.Read(ref _runner) != 1) evaluated to true");
 						await Task.Delay(100);
 					}
+					TempLogger.Log("while (Interlocked.Read(ref _runner) != 1) evaluated to false");
 
 					if (Interlocked.Read(ref _running) >= 2)
 					{
+						TempLogger.Log("if (Interlocked.Read(ref _running) >= 2) evaluated to true");
+						TempLogger.Log("RETURN");
 						return;
 					}
+					TempLogger.Log("if (Interlocked.Read(ref _running) >= 2) evaluated to false");
 
 					try
 					{
 						Interlocked.Exchange(ref _running, 1);
+						TempLogger.Log("Interlocked.Exchange(ref _running, 1);");
 
 						var isImmature = false; // The last 100 blocks are reorgable. (Assume it is mature at first.)
 						SyncInfo syncInfo = null;
 						while (IsRunning)
 						{
+							TempLogger.Log("while (IsRunning) evaluated to true");
 							try
 							{
 								// If we did not yet initialized syncInfo, do so.
@@ -176,10 +190,14 @@ namespace WalletWasabi.Blockchain.BlockFilters
 										// Double it to make sure not to accidentally miss any notification.
 										if (syncInfo.IsCoreSynchornized && syncInfo.BlockCount == heightToRequest - 1)
 										{
+											TempLogger.Log("if (syncInfo.IsCoreSynchornized && syncInfo.BlockCount == heightToRequest - 1) evaluated to true");
 											// Mark the process notstarted, so it can be started again and finally block can mark it is stopped.
 											Interlocked.Exchange(ref _running, 0);
+											TempLogger.Log("Interlocked.Exchange(ref _running, 0);");
+											TempLogger.Log("RETURN");
 											return;
 										}
+										TempLogger.Log("if (syncInfo.IsCoreSynchornized && syncInfo.BlockCount == heightToRequest - 1) evaluated to false");
 									}
 
 									// Mark the synchronizing process is working with immature blocks from now on.
@@ -191,6 +209,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 								// Reorg check, except if we're requesting the starting height, because then the "currentHash" wouldn't exist.
 								if (heightToRequest != StartingHeight && currentHash != block.Header.HashPrevBlock)
 								{
+									TempLogger.Log("if (heightToRequest != StartingHeight && currentHash != block.Header.HashPrevBlock) evaluated to true");
 									// Reorg can happen only when immature. (If it'd not be immature, that'd be a huge issue.)
 									if (isImmature)
 									{
@@ -202,8 +221,10 @@ namespace WalletWasabi.Blockchain.BlockFilters
 									}
 
 									// Skip the current block.
+									TempLogger.Log("CONTINUE");
 									continue;
 								}
+								TempLogger.Log("if (heightToRequest != StartingHeight && currentHash != block.Header.HashPrevBlock) evaluated to false");
 
 								if (isImmature)
 								{
@@ -219,6 +240,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 									// It does not need to be accessed with a thread safe fashion with Interlocked through IsRunning, this may have some performance benefit
 									if (_running != 1)
 									{
+										TempLogger.Log("RETURN");
 										return;
 									}
 
@@ -298,12 +320,15 @@ namespace WalletWasabi.Blockchain.BlockFilters
 								{
 									Logger.LogDebug($"Created filter for block: {heightToRequest}.");
 								}
+								TempLogger.Log($"Created filter for block: {heightToRequest}.");
 							}
 							catch (Exception ex)
 							{
+								TempLogger.Log(ex);
 								Logger.LogDebug(ex);
 							}
 						}
+						TempLogger.Log("while (IsRunning) evaluated to false");
 					}
 					finally
 					{
@@ -313,9 +338,11 @@ namespace WalletWasabi.Blockchain.BlockFilters
 				}
 				catch (Exception ex)
 				{
+					TempLogger.Log(ex);
 					Logger.LogError($"Synchronization attempt failed to start: {ex}");
 				}
 			});
+			TempLogger.Log("RETURN");
 		}
 
 		private async Task<SyncInfo> GetSyncInfoAsync()
