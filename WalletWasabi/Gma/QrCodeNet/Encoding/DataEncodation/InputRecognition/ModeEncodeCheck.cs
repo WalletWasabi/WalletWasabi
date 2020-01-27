@@ -28,7 +28,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 		/// <param name="content">Input string</param>
 		/// <param name="encodingName">Encoding name. Check ECI table</param>
 		/// <param name="startPos">Starting position</param>
-		/// <returns>-1 If from starting position to end encoding success. Else return fail position</returns>
+		/// <returns>Return -1 if from starting position to end encoding success. Else return fail position</returns>
 		internal static int TryEncodeEightBitByte(string content, string encodingName, int startPos, int contentLength)
 		{
 			if (string.IsNullOrEmpty(content))
