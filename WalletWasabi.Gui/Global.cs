@@ -164,6 +164,7 @@ namespace WalletWasabi.Gui
 
 			try
 			{
+				throw new Exception("Uh oh!");
 				WalletService = null;
 				ChaumianClient = null;
 				AddressManager = null;
@@ -391,13 +392,6 @@ namespace WalletWasabi.Gui
 				}
 
 				#endregion JsonRpcServerInitialization
-			}
-			catch (Exception ex)
-			{
-				Logger.LogCritical(ex);
-				InitializationCompleted = true;
-				await DisposeAsync().ConfigureAwait(false);
-				Environment.Exit(1);
 			}
 			finally
 			{

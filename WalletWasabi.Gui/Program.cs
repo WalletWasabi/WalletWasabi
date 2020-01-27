@@ -75,6 +75,7 @@ namespace WalletWasabi.Gui
 
 		private static async void AppMainAsync(string[] args)
 		{
+			//throw new Exception("Test Exception");
 			AvalonStudio.Extensibility.Theme.ColorTheme.LoadTheme(AvalonStudio.Extensibility.Theme.ColorTheme.VisualStudioDark);
 			MainWindowViewModel.Instance = new MainWindowViewModel();
 
