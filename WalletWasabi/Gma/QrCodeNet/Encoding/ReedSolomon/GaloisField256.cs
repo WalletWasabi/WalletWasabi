@@ -47,7 +47,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		internal int Exponent(int powersOfa) => AntiLogTable[powersOfa];
 
 		/// <returns>
-		/// log ( power of a) in GF table. Where a = 2
+		/// Log ( power of a) in GF table. Where a = 2
 		/// </returns>
 		internal int Log(int gfValue)
 		{

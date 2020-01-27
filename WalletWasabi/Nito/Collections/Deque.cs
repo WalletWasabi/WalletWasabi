@@ -175,7 +175,7 @@ namespace Nito.Collections
 		/// </summary>
 		/// <param name="item">The object to locate in this list.</param>
 		/// <returns>
-		/// true if <paramref name="item"/> is found in this list; otherwise, false.
+		/// True if <paramref name="item"/> is found in this list; otherwise, false.
 		/// </returns>
 		bool ICollection<T>.Contains(T item)
 		{
@@ -249,7 +249,7 @@ namespace Nito.Collections
 		/// </summary>
 		/// <param name="item">The object to remove from this list.</param>
 		/// <returns>
-		/// true if <paramref name="item"/> was successfully removed from this list; otherwise, false. This method also returns false if <paramref name="item"/> is not found in this list.
+		/// True if <paramref name="item"/> was successfully removed from this list; otherwise, false. This method also returns false if <paramref name="item"/> is not found in this list.
 		/// </returns>
 		/// <exception cref="T:System.NotSupportedException">
 		/// This list is read-only.

@@ -49,7 +49,7 @@ namespace System
 		}
 
 		/// <summary>
-		/// utf8 encoding
+		/// Utf8 encoding
 		/// </summary>
 		public override string ToString()
 		{

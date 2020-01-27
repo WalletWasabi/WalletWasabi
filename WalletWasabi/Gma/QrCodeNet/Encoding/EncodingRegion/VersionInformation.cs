@@ -16,7 +16,7 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 		/// Only for version greater than or equal to 7
 		/// </summary>
 		/// <param name="tsMatrix">Matrix</param>
-		/// <param name="version">version number</param>
+		/// <param name="version">Version number</param>
 		internal static void EmbedVersionInformation(this TriStateMatrix tsMatrix, int version)
 		{
 			if (version < 7)

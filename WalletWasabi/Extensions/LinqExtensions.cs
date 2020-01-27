@@ -184,7 +184,7 @@ namespace System.Linq
 				.Select(x => x.ToLine());
 
 		/// <summary>
-		/// https://stackoverflow.com/a/24087164/2061103
+		/// Https://stackoverflow.com/a/24087164/2061103
 		/// </summary>
 		public static IEnumerable<IEnumerable<T>> ChunkBy<T>(this IEnumerable<T> source, int chunkSize)
 		{

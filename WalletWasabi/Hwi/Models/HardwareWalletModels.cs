@@ -5,7 +5,7 @@ using System.Text;
 namespace WalletWasabi.Hwi.Models
 {
 	/// <summary>
-	/// https://github.com/bitcoin-core/HWI/pull/228
+	/// Https://github.com/bitcoin-core/HWI/pull/228
 	/// </summary>
 	public enum HardwareWalletModels
 	{

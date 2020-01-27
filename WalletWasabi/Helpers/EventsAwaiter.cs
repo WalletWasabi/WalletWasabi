@@ -9,7 +9,7 @@ using WalletWasabi.Helpers;
 namespace System
 {
 	/// <summary>
-	/// https://stackoverflow.com/a/42117130/2061103
+	/// Https://stackoverflow.com/a/42117130/2061103
 	/// </summary>
 	public class EventsAwaiter<TEventArgs>
 	{

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace System
 {
 	/// <summary>
-	/// https://stackoverflow.com/a/42117130/2061103
+	/// Https://stackoverflow.com/a/42117130/2061103
 	/// </summary>
 	public class EventAwaiter<TEventArgs> : EventsAwaiter<TEventArgs>
 	{
