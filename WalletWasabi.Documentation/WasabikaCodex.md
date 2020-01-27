@@ -24,7 +24,7 @@
 
 ## Yearly routine
 
-- Working holiday with every colleagues.
+- Working holiday with all colleagues.
 
 ## Roadmap
 
