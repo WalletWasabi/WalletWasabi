@@ -5,10 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
 using WalletWasabi.Helpers;
 using WalletWasabi.Io;
-using WalletWasabi.Services;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests

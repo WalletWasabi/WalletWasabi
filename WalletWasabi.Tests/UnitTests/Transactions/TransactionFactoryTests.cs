@@ -545,7 +545,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var lockTimeZero = uint.MaxValue;
 			var samplingSize = 10_000;
 
-			var dict = Enumerable.Range(-99, 101).ToDictionary(x=>(uint)x, x=>0);
+			var dict = Enumerable.Range(-99, 101).ToDictionary(x => (uint)x, x => 0);
 			dict[lockTimeZero] = 0;
 
 			var curTip = 100_000u;
@@ -560,8 +560,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.InRange(dict[0], samplingSize * 0.070, samplingSize * 0.080); // around 7.5%
 			Assert.InRange(dict[1], samplingSize * 0.003, samplingSize * 0.009); // around 0.65%
 
-			var rest = dict.Where(x=>x.Key < 0).Select(X=>X.Value);
-			Assert.DoesNotContain(rest, x=>x > samplingSize * 0.001);
+			var rest = dict.Where(x => x.Key < 0).Select(x => x.Value);
+			Assert.DoesNotContain(rest, x => x > samplingSize * 0.001);
 		}
 
 		private TransactionFactory CreateTransactionFactory(
