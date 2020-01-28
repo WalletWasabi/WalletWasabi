@@ -184,7 +184,8 @@ namespace System.Linq
 				.Select(x => x.ToLine());
 
 		/// <summary>
-		/// Https://stackoverflow.com/a/24087164/2061103
+		/// Chunks the source list to sub-lists by the specified chunk size.
+		/// Source: https://stackoverflow.com/a/24087164/2061103
 		/// </summary>
 		public static IEnumerable<IEnumerable<T>> ChunkBy<T>(this IEnumerable<T> source, int chunkSize)
 		{

@@ -5,7 +5,7 @@ using System.Text;
 namespace WalletWasabi.Hwi.Exceptions
 {
 	/// <summary>
-	/// Https://github.com/bitcoin-core/HWI/blob/master/hwilib/errors.py
+	/// Source: https://github.com/bitcoin-core/HWI/blob/master/hwilib/errors.py
 	/// </summary>
 	public enum HwiErrorCode
 	{

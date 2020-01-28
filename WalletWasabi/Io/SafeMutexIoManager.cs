@@ -85,7 +85,7 @@ namespace WalletWasabi.Io
 		}
 
 		/// <summary>
-		/// Https://stackoverflow.com/questions/7957544/how-to-ensure-that-data-doesnt-get-corrupted-when-saving-to-file/7957634#7957634
+		/// Source: https://stackoverflow.com/questions/7957544/how-to-ensure-that-data-doesnt-get-corrupted-when-saving-to-file/7957634#7957634
 		/// </summary>
 		private bool TryGetSafestFileVersion(out string safestFilePath)
 		{
