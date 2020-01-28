@@ -59,8 +59,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		{
 			var transactionFactory = CreateTransactionFactory(new[]
 			{
-				("", 0, 0.08m, confirmed: true, anonymitySet:  50),
-				("", 1, 0.16m, confirmed: true, anonymitySet: 200)
+				("", 0, 0.08m, confirmed: true, anonymitySet: 50),
+				("", 1, 0.16m, confirmed: true, anonymitySet:200)
 			});
 
 			// There is a 0.08 coin with AS=50. However it selects the most private one with AS= 200
@@ -87,7 +87,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		{
 			var transactionFactory = CreateTransactionFactory(new[]
 			{
-				("Maria",  0, 0.08m, confirmed: true, anonymitySet:  50),
+				("Maria",  0, 0.08m, confirmed: true, anonymitySet: 50),
 				("Joseph", 1, 0.16m, confirmed: true, anonymitySet: 200)
 			});
 
@@ -190,7 +190,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				Coin("Eve",    NewKey(), 0.9m),
 				Coin("Julio",  NewKey(), 0.9m),
 				Coin("Donald, Jean, Lee, Onur", NewKey(), 0.9m),
-				Coin("Satoshi",NewKey(), 0.9m)
+				Coin("Satoshi", NewKey(), 0.9m)
 			};
 			var coinsByLabel = scoins.ToDictionary(x => x.Label);
 
@@ -390,7 +390,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var destination = new Key().ScriptPubKey;
 			var payment = new PaymentIntent(new[]
 			{
-				new DestinationRequest(destination, MoneyRequest.CreateAllRemaining(subtractFee:true))
+				new DestinationRequest(destination, MoneyRequest.CreateAllRemaining(subtractFee: true))
 			});
 			var feeRate = new FeeRate(2m);
 			var result = transactionFactory.BuildTransaction(payment, feeRate);
