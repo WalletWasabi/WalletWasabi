@@ -7,6 +7,7 @@ using WalletWasabi.Coins;
 using WalletWasabi.Exceptions;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Models;
+using WalletWasabi.Services;
 using WalletWasabi.Transactions;
 using WalletWasabi.Transactions.TransactionBuilding;
 using Xunit;
@@ -536,6 +537,31 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var result = transactionFactory.BuildTransaction(payment, new FeeRate(44.25m));
 			Assert.Single(result.OuterWalletOutputs);
 			Assert.False(result.Signed);
+		}
+
+		[Fact]
+		public void SelectLockTimeForTransaction()
+		{
+			var lockTimeZero = int.MaxValue;
+			var samplingSize = 10_000;
+
+			var dict = Enumerable.Range(-99, 101).ToDictionary(x=>x, x=>0);
+			dict[lockTimeZero] = 0;
+
+			var curTip = 100_000;
+			foreach (var i in Enumerable.Range(0, samplingSize))
+			{
+				var lt = WalletService.InternalSelectLockTimeForTransaction(curTip).Height;
+				var diff = lt == 0 ? lockTimeZero : lt - curTip;
+				dict[diff]++;
+			}
+
+			Assert.InRange(dict[lockTimeZero], samplingSize * 0.85, samplingSize * 0.95); // around 90%
+			Assert.InRange(dict[0], samplingSize * 0.070, samplingSize * 0.080); // around 7.5%
+			Assert.InRange(dict[1], samplingSize * 0.003, samplingSize * 0.009); // around 0.65%
+
+			var rest = dict.Where(x=>x.Key < 0).Select(X=>X.Value);
+			Assert.DoesNotContain(rest, x=>x > samplingSize * 0.001);
 		}
 
 		private TransactionFactory CreateTransactionFactory(
