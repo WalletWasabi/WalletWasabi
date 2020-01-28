@@ -5,14 +5,41 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
 using WalletWasabi.Helpers;
 using WalletWasabi.Io;
+using WalletWasabi.Services;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests
 {
 	public class IoTests
 	{
+		[Fact]
+		public void X()
+		{
+			var lockTimeZero = int.MaxValue;
+			var samplingSize = 10_000;
+
+			var dict = Enumerable.Range(-99, 101).ToDictionary(x=>x, x=>0);
+			dict[lockTimeZero] = 0;
+
+			var curTip = 100_000;
+			foreach (var i in Enumerable.Range(0, samplingSize))
+			{
+				var lt = WalletService.InternalSelectLockTimeForTransaction(curTip).Height;
+				var diff = lt == 0 ? lockTimeZero : lt - curTip;
+				dict[diff]++;
+			}
+
+			Assert.InRange(dict[lockTimeZero], samplingSize * 0.85, samplingSize * 0.95); // around 90%
+			Assert.InRange(dict[0], samplingSize * 0.070, samplingSize * 0.080); // around 7.5%
+			Assert.InRange(dict[1], samplingSize * 0.003, samplingSize * 0.009); // around 0.65%
+
+			var rest = dict.Where(x=>x.Key < 0).Select(X=>X.Value);
+			Assert.DoesNotContain(rest, x=>x > samplingSize * 0.001);
+		}
+
 		[Fact]
 		public async Task IoManagerTestsAsync()
 		{
