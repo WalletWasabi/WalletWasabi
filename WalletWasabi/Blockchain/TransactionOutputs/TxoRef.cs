@@ -39,7 +39,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => obj is TxoRef txoRef && this == txoRef;
+		public override bool Equals(object obj) => Equals(obj as TxoRef);
 
 		public bool Equals(TxoRef other) => this == other;
 

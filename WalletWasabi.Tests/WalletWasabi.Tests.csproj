@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <IsPackable>false</IsPackable>
     <LangVersion>latest</LangVersion>
     <NoWarn>1701;1702;1705;1591;CA1031</NoWarn>
@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AltCover" Version="6.5.739" />
+    <PackageReference Include="AltCover" Version="6.7.750" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1">
@@ -23,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\WalletWasabi.Gui\WalletWasabi.Gui.csproj" />
     <ProjectReference Include="..\WalletWasabi.Backend\WalletWasabi.Backend.csproj" />
     <ProjectReference Include="..\WalletWasabi.Gui\WalletWasabi.Gui.csproj" />
     <ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />

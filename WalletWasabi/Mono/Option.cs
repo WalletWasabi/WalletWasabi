@@ -370,7 +370,7 @@ namespace Mono.Options
 								nameof(Prototype));
 						}
 
-						seps.Add(name.Substring(start, i - start));
+						seps.Add(name[start..i]);
 						start = -1;
 						break;
 

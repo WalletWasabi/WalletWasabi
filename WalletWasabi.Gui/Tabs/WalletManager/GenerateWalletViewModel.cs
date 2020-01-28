@@ -2,6 +2,7 @@ using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using NBitcoin;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -24,10 +25,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private string _walletName;
 		private bool _termsAccepted;
 		public WalletManagerViewModel Owner { get; }
-		public Global Global => Owner.Global;
+
+		private Global Global { get; }
 
 		public GenerateWalletViewModel(WalletManagerViewModel owner) : base("Generate Wallet")
 		{
+			Global = Locator.Current.GetService<Global>();
 			Owner = owner;
 
 			IObservable<bool> canGenerate = Observable.CombineLatest(
@@ -35,14 +38,14 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				this.WhenAnyValue(x => x.Password).Select(pw => !ValidatePassword().HasErrors),
 				(terms, pw) => terms && pw);
 
-			GenerateCommand = ReactiveCommand.Create(DoGenerateCommand, canGenerate);
+			NextCommand = ReactiveCommand.Create(DoNextCommand, canGenerate);
 
-			GenerateCommand.ThrownExceptions
+			NextCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 		}
 
-		private void DoGenerateCommand()
+		private void DoNextCommand()
 		{
 			WalletName = Guard.Correct(WalletName);
 
@@ -72,16 +75,16 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					PasswordHelper.Guard(Password); // Here we are not letting anything that will be autocorrected later. We need to generate the wallet exactly with the entered password bacause of compatibility.
 
-					KeyManager.CreateNew(out Mnemonic mnemonic, Password, walletFilePath);
-
-					NotificationHelpers.Success("Wallet is successfully generated!");
-
-					Owner.CurrentView = new GenerateWalletSuccessViewModel(Owner, mnemonic);
+					var km = KeyManager.CreateNew(out Mnemonic mnemonic, Password);
+					km.SetNetwork(Global.Network);
+					km.SetBestHeight(new Height(Global.BitcoinStore.SmartHeaderChain.TipHeight));
+					km.SetFilePath(walletFilePath);
+					Owner.CurrentView = new GenerateWalletSuccessViewModel(Owner, km, mnemonic);
 				}
 				catch (Exception ex)
 				{
-					NotificationHelpers.Error(ex.ToTypeMessageString());
 					Logger.LogError(ex);
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
 				}
 			}
 		}
@@ -139,21 +142,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set => this.RaiseAndSetIfChanged(ref _termsAccepted, value);
 		}
 
-		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
-
-		public void OnTermsClicked()
-		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new TermsAndConditionsViewModel(Global));
-		}
-
-		public void OnPrivacyClicked()
-		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new PrivacyPolicyViewModel(Global));
-		}
+		public ReactiveCommand<Unit, Unit> NextCommand { get; }
 
 		public void OnLegalClicked()
 		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new LegalIssuesViewModel(Global));
+			IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel());
 		}
 
 		public override void OnCategorySelected()

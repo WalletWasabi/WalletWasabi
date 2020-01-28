@@ -10,7 +10,6 @@
     <converters:ShowCursorConverter x:Key="ShowCursorConverter" />
     <converters:ShouldDisplayValueConverter x:Key="ShouldDisplayValueConverter" />
     <converters:PascalToPhraseConverter x:Key="PascalToPhraseConverter" />
-    <converters:StatusBarStatusStringConverter x:Key="StatusBarStatusStringConverter" />
     <converters:RpcStatusStringConverter x:Key="RpcStatusStringConverter" />
   </UserControl.Resources>
   <Grid Cursor="{Binding UpdateAvailable, Converter={StaticResource ShowCursorConverter}}"
@@ -18,8 +17,8 @@
     <i:Interaction.Behaviors>
       <behaviors:CommandOnClickBehavior Command="{Binding UpdateCommand}" />
     </i:Interaction.Behaviors>
-  
-    <Grid Background="IndianRed" IsVisible="{Binding CriticalUpdateAvailable}"/>
+
+    <Grid Background="IndianRed" IsVisible="{Binding CriticalUpdateAvailable}" />
 
     <DockPanel LastChildFill="True" Margin="10 0" VerticalAlignment="Center">
       <StackPanel Orientation="Horizontal" Spacing="20" DockPanel.Dock="Right" IsVisible="{Binding !CriticalUpdateAvailable}">
@@ -75,17 +74,17 @@
           <TextBlock Text="{Binding BtcPrice}" />
         </StackPanel>
       </StackPanel>
-      
+
       <StackPanel Orientation="Horizontal" Spacing="4">
         <Grid IsVisible="{Binding !CriticalUpdateAvailable}">
           <Grid Height="10" Width="10" IsVisible="{Binding UpdateAvailable}">
-            <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource StatusBar_GreenFlag}"/>
+            <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource StatusBar_GreenFlag}" />
           </Grid>
         </Grid>
         <Grid Height="10" Width="10" IsVisible="{Binding CriticalUpdateAvailable}">
-            <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource StatusBar_YellowFlag}"/>
+          <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource StatusBar_YellowFlag}" />
         </Grid>
-        <TextBlock Text="{Binding Status, Converter={StaticResource StatusBarStatusStringConverter}}" />
+        <TextBlock Text="{Binding Status}" />
       </StackPanel>
     </DockPanel>
   </Grid>

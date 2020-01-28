@@ -8,10 +8,10 @@ namespace WalletWasabi.Helpers
 {
 	public static class Constants
 	{
-		public static readonly Version ClientVersion = new Version(1, 1, 9, 3);
+		public static readonly Version ClientVersion = new Version(1, 1, 10, 2);
 		public const string BackendMajorVersion = "3";
 		public static readonly Version HwiVersion = new Version("1.0.3");
-		public static readonly Version BitcoinCoreVersion = new Version("0.18.1");
+		public static readonly Version BitcoinCoreVersion = new Version("0.19.0.1");
 
 		/// <summary>
 		/// By changing this, we can force to start over the transactions file, so old incorrect transactions would be cleared.
@@ -108,5 +108,7 @@ namespace WalletWasabi.Helpers
 		public const double TransactionRBFSignalRate = 0.02; // 2% RBF transactions
 
 		public const decimal DefaultDustThreshold = 0.00005m;
+
+		public const long MaxSatoshisSupply = 2_100_000_000_000_000L;
 	}
 }

@@ -1,3 +1,4 @@
+using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,32 +39,6 @@ namespace WalletWasabi.BitcoinCore.Configuration
 
 		public override string ToString() => $"{Guard.Correct(string.Join(Environment.NewLine, Lines))}{Environment.NewLine}"; // Good practice to end with a newline.
 
-		/// <summary>
-		/// TryAdd and AddOrUpdate are sisters. TryAdd always considers the first occurrence of a key as valid, while AddOrUpdate considers the last occurrence of it.
-		/// </summary>
-		public void TryAdd(string configString)
-		{
-			foreach (var line in ParseConfigLines(configString))
-			{
-				if (line.HasKeyValuePair)
-				{
-					var foundLine = Lines.FirstOrDefault(x => x.Key == line.Key);
-					if (foundLine is null)
-					{
-						Lines.Add(line);
-					}
-				}
-				else
-				{
-					Lines.Add(line);
-				}
-				RemoveFirstEmptyDuplication();
-			}
-		}
-
-		/// <summary>
-		/// TryAdd and AddOrUpdate are sisters. TryAdd always considers the first occurrence of a key as valid, while AddOrUpdate considers the last occurrence of it.
-		/// </summary>
 		public bool AddOrUpdate(string configString)
 		{
 			var ret = false;
@@ -71,7 +46,11 @@ namespace WalletWasabi.BitcoinCore.Configuration
 			{
 				if (line.HasKeyValuePair)
 				{
-					var foundLine = Lines.FirstOrDefault(x => x.Key == line.Key);
+					var foundLine = Lines.FirstOrDefault(x =>
+							x.Key == line.Key
+							|| line.Key == $"main.{x.Key}"
+							|| x.Key == $"main.{line.Key}");
+
 					if (foundLine is null)
 					{
 						Lines.Add(line);
@@ -89,9 +68,20 @@ namespace WalletWasabi.BitcoinCore.Configuration
 					Lines.Add(line);
 					ret = true;
 				}
-				ret = ret || RemoveFirstEmptyDuplication();
 			}
 
+			ret = RemoveEmptyDuplications() || ret;
+
+			return ret;
+		}
+
+		private bool RemoveEmptyDuplications()
+		{
+			var ret = false;
+			while (RemoveFirstEmptyDuplication())
+			{
+				ret = true;
+			}
 			return ret;
 		}
 

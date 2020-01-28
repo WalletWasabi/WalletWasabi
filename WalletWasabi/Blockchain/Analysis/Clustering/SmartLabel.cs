@@ -56,7 +56,7 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 
 		#region Equality
 
-		public override bool Equals(object obj) => obj is SmartLabel slabel && this == slabel || obj is string label && this == label;
+		public override bool Equals(object obj) => Equals(obj as SmartLabel) || Equals(obj as string);
 
 		public bool Equals(SmartLabel other) => this == other;
 

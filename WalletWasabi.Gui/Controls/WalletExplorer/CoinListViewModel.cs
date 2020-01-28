@@ -18,6 +18,7 @@ using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
+using Splat;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -55,18 +56,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _isCoinListLoading;
 		private object SelectionChangedLock { get; } = new object();
 		private object StateChangedLock { get; } = new object();
-
-		public Global Global { get; }
+		private Global Global { get; }
 		public CoinListContainerType CoinListContainerType { get; }
-		public ReactiveCommand<Unit, Unit> EnqueueCoin { get; }
-		public ReactiveCommand<Unit, Unit> DequeueCoin { get; }
 		public ReactiveCommand<Unit, Unit> SelectAllCheckBoxCommand { get; }
 		public ReactiveCommand<Unit, Unit> SelectPrivateCheckBoxCommand { get; }
 		public ReactiveCommand<Unit, Unit> SelectNonPrivateCheckBoxCommand { get; }
 		public ReactiveCommand<Unit, Unit> SortCommand { get; }
 		public ReactiveCommand<Unit, Unit> InitList { get; }
 
-		public event EventHandler DequeueCoinsPressed;
+		public event EventHandler<SmartCoin> DequeueCoinsPressed;
 
 		public event EventHandler CoinListShown;
 
@@ -83,14 +81,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public CoinViewModel SelectedCoin
 		{
 			get => _selectedCoin;
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _selectedCoin, value);
-				this.RaisePropertyChanged(nameof(CanDeqeue));
-			}
+			set => this.RaiseAndSetIfChanged(ref _selectedCoin, value);
 		}
-
-		public bool CanDeqeue => SelectedCoin?.CoinJoinInProgress ?? false;
 
 		public bool? SelectAllCheckBoxState
 		{
@@ -108,6 +100,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _statusSortDirection;
 			set => this.RaiseAndSetIfChanged(ref _statusSortDirection, value);
+		}
+
+		public void PressDequeue(SmartCoin coin)
+		{
+			DequeueCoinsPressed?.Invoke(this, coin);
 		}
 
 		public SortOrder AmountSortDirection
@@ -249,9 +246,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		public CoinListViewModel(Global global, CoinListContainerType coinListContainerType)
+		public CoinListViewModel(CoinListContainerType coinListContainerType)
 		{
-			Global = global;
+			Global = Locator.Current.GetService<Global>();
+
 			CoinListContainerType = coinListContainerType;
 			AmountSortDirection = SortOrder.Decreasing;
 
@@ -327,17 +325,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				});
 
-			DequeueCoin = ReactiveCommand.Create(() =>
-				{
-					if (SelectedCoin is null)
-					{
-						return;
-					}
-
-					DequeueCoinsPressed?.Invoke(this, EventArgs.Empty);
-				},
-				this.WhenAnyValue(x => x.CanDeqeue));
-
 			SelectAllCheckBoxCommand = ReactiveCommand.Create(() =>
 				{
 					switch (SelectAllCheckBoxState)
@@ -400,7 +387,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(SelectNonPrivateCheckBoxCommand.ThrownExceptions)
 				.Merge(SelectPrivateCheckBoxCommand.ThrownExceptions)
 				.Merge(SelectAllCheckBoxCommand.ThrownExceptions)
-				.Merge(DequeueCoin.ThrownExceptions)
 				.Merge(SortCommand.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
@@ -449,7 +435,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 						RootList.RemoveMany(coinToRemove.Select(kp => kp.Value));
 
-						var newCoinViewModels = coinToAdd.Select(c => new CoinViewModel(Global, c)).ToArray();
+						var newCoinViewModels = coinToAdd.Select(c => new CoinViewModel(this, c)).ToArray();
 						foreach (var cvm in newCoinViewModels)
 						{
 							SubscribeToCoinEvents(cvm);
@@ -559,15 +545,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					!isCriticalPrivate,
 					!isSomePrivate,
 					!isFinePrivate,
-					!isStrongPrivate
-					);
+					!isStrongPrivate);
 
 			SelectAllPrivateShieldState = new ShieldState(
 					isCriticalPrivate,
 					isSomePrivate,
 					isFinePrivate,
-					isStrongPrivate
-					);
+					isStrongPrivate);
 		}
 
 		public void OnClose()

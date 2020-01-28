@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -17,7 +18,8 @@ namespace WalletWasabi.Gui.Converters
 			{
 				throw new ArgumentException($"Unknown '{parameter}' value");
 			}
-			var global = Application.Current.Resources[Global.GlobalResourceKey] as Global;
+
+			var global = Locator.Current.GetService<Global>();
 			var phaseError = global.ChaumianClient.State.IsInErrorState;
 
 			return (RoundPhase)p <= (RoundPhase)value

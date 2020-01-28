@@ -2,9 +2,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -144,65 +141,13 @@ namespace System.IO
 			}
 		}
 
-		public static void OpenFileInTextEditor(string filePath)
-		{
-			if (File.Exists(filePath))
-			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-				{
-					// If no associated application/json MimeType is found xdg-open opens retrun error
-					// but it tries to open it anyway using the console editor (nano, vim, other..)
-					EnvironmentHelpers.ShellExec($"gedit {filePath} || xdg-open {filePath}", waitForExit: false);
-				}
-				else
-				{
-					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-					{
-						bool openWithNotepad = true; // If there is an exception with the registry read we use notepad.
-
-						try
-						{
-							openWithNotepad = !EnvironmentHelpers.IsFileTypeAssociated("json");
-						}
-						catch (Exception ex)
-						{
-							Logger.LogError(ex);
-						}
-
-						if (openWithNotepad)
-						{
-							// Open file using Notepad.
-							using Process process = Process.Start(new ProcessStartInfo
-							{
-								FileName = "notepad.exe",
-								Arguments = filePath,
-								CreateNoWindow = true,
-								UseShellExecute = false
-							});
-							return; // Opened with notepad, return.
-						}
-					}
-
-					// Open file wtih the default editor.
-					using (Process process = Process.Start(new ProcessStartInfo
-					{
-						FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? filePath : "open",
-						Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e {filePath}" : "",
-						CreateNoWindow = true,
-						UseShellExecute = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-					}))
-					{ }
-				}
-			}
-		}
-
-		public static void OpenBrowser(string url)
+		public static async Task OpenBrowserAsync(string url)
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
 				// If no associated application/json MimeType is found xdg-open opens retrun error
 				// but it tries to open it anyway using the console editor (nano, vim, other..)
-				EnvironmentHelpers.ShellExec($"xdg-open {url}", waitForExit: false);
+				await EnvironmentHelpers.ShellExecAsync($"xdg-open {url}", waitForExit: false).ConfigureAwait(false);
 			}
 			else
 			{

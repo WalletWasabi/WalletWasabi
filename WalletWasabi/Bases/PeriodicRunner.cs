@@ -43,6 +43,7 @@ namespace WalletWasabi.Bases
 
 		protected abstract Task ActionAsync(CancellationToken cancel);
 
+		/// <inheritdoc />
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 		{
 			while (!stoppingToken.IsCancellationRequested)

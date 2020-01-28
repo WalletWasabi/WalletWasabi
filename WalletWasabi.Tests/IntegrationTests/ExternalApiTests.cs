@@ -6,8 +6,13 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Backend.Models;
 using WalletWasabi.Logging;
 using WalletWasabi.Tests.XunitConfiguration;
+using WalletWasabi.WebClients.BlockchainInfo;
+using WalletWasabi.WebClients.Coinbase;
+using WalletWasabi.WebClients.Gemini;
+using WalletWasabi.WebClients.ItBit;
 using WalletWasabi.WebClients.SmartBit;
 using WalletWasabi.WebClients.SmartBit.Models;
 using Xunit;
@@ -19,42 +24,50 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[Theory]
 		[InlineData("test")]
 		[InlineData("main")]
-		public async Task SmartBitTestsAsync(string networkString)
+		public async Task SmartBitExchangeRateProviderTestAsync(string networkString)
 		{
-			if (!await TestAsync("https://api.smartbit.com.au/v1/blockchain/stats"))
-			{
-				return; // If website does not work, do not bother failing.
-			}
-
 			var network = Network.GetNetwork(networkString);
 			using var client = new SmartBitClient(network);
-			IEnumerable<SmartBitExchangeRate> rates = rates = await client.GetExchangeRatesAsync(CancellationToken.None);
+			var rateProvider = new SmartBitExchangeRateProvider(client);
+			IEnumerable<ExchangeRate> rates = await rateProvider.GetExchangeRateAsync();
 
-			Assert.Contains("AUD", rates.Select(x => x.Code));
-			Assert.Contains("USD", rates.Select(x => x.Code));
-
-			Logger.TurnOff();
-			await Assert.ThrowsAsync<HttpRequestException>(async () => await client.PushTransactionAsync(network.Consensus.ConsensusFactory.CreateTransaction(), CancellationToken.None));
-			Logger.TurnOn();
+			Assert.Contains("USD", rates.Select(x => x.Ticker));
 		}
 
-		private async Task<bool> TestAsync(string uri)
+		[Fact]
+		public async Task CoinbaseExchangeRateProviderTestsAsync()
 		{
-			try
-			{
-				using var client = new HttpClient();
-				using var res = await client.GetAsync(uri);
-				if (res.StatusCode == HttpStatusCode.OK)
-				{
-					return true;
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.LogDebug($"Uri was not reachable: {uri}");
-				Logger.LogDebug(ex);
-			}
-			return false;
+			var client = new CoinbaseExchangeRateProvider();
+			IEnumerable<ExchangeRate> rates = await client.GetExchangeRateAsync();
+
+			Assert.Contains("USD", rates.Select(x => x.Ticker));
+		}
+
+		[Fact]
+		public async Task BlockchainInfoExchangeRateProviderTestsAsync()
+		{
+			var client = new BlockchainInfoExchangeRateProvider();
+			IEnumerable<ExchangeRate> rates = await client.GetExchangeRateAsync();
+
+			Assert.Contains("USD", rates.Select(x => x.Ticker));
+		}
+
+		[Fact]
+		public async Task GeminiExchangeRateProviderTestsAsync()
+		{
+			var client = new GeminiExchangeRateProvider();
+			IEnumerable<ExchangeRate> rates = await client.GetExchangeRateAsync();
+
+			Assert.Contains("USD", rates.Select(x => x.Ticker));
+		}
+
+		[Fact]
+		public async Task ItBitExchangeRateProviderTestsAsync()
+		{
+			var client = new ItBitExchangeRateProvider();
+			IEnumerable<ExchangeRate> rates = await client.GetExchangeRateAsync();
+
+			Assert.Contains("USD", rates.Select(x => x.Ticker));
 		}
 	}
 }

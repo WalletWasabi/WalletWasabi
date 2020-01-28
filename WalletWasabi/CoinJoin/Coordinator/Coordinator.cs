@@ -295,13 +295,13 @@ namespace WalletWasabi.CoinJoin.Coordinator
 				{
 					using (await CoinJoinsLock.LockAsync().ConfigureAwait(false))
 					{
-						uint256 coinJoinHash = round.SignedCoinJoin.GetHash();
+						uint256 coinJoinHash = round.CoinJoin.GetHash();
 						CoinJoins.Add(coinJoinHash);
 						UnconfirmedCoinJoins.Add(coinJoinHash);
 						await File.AppendAllLinesAsync(CoinJoinsFilePath, new[] { coinJoinHash.ToString() }).ConfigureAwait(false);
 
 						// When a round succeeded, adjust the denomination as to users still be able to register with the latest round's active output amount.
-						IEnumerable<(Money value, int count)> outputs = round.SignedCoinJoin.GetIndistinguishableOutputs(includeSingle: true);
+						IEnumerable<(Money value, int count)> outputs = round.CoinJoin.GetIndistinguishableOutputs(includeSingle: true);
 						var bestOutput = outputs.OrderByDescending(x => x.count).FirstOrDefault();
 						if (bestOutput != default)
 						{

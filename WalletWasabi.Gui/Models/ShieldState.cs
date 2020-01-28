@@ -38,7 +38,7 @@ namespace WalletWasabi.Gui.Models
 				IsPrivacySomeVisible,
 				IsPrivacyFineVisible,
 				IsPrivacyStrongVisible,
-				IsPrivacySaiyanVisible,
+				IsPrivacySaiyanVisible
 			};
 
 			uint result = 0;
@@ -49,14 +49,8 @@ namespace WalletWasabi.Gui.Models
 			return result.GetHashCode();
 		}
 
-		public static bool operator ==(ShieldState left, ShieldState right)
-		{
-			return left.Equals(right);
-		}
+		public static bool operator ==(ShieldState left, ShieldState right) => left.Equals(right);
 
-		public static bool operator !=(ShieldState left, ShieldState right)
-		{
-			return !(left == right);
-		}
+		public static bool operator !=(ShieldState left, ShieldState right) => !(left == right);
 	}
 }

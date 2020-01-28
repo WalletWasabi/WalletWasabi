@@ -20,7 +20,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public bool IsHardwareWallet => KeyManager.IsHardwareWallet;
 
 		public WalletActionViewModel(string title, WalletViewModel walletViewModel)
-			: base(walletViewModel.Global, title)
+			: base(title)
 		{
 			Wallet = walletViewModel;
 		}

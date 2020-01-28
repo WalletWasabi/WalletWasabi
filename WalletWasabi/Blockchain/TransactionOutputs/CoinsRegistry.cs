@@ -90,6 +90,10 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 						{
 							coin.Clusters = cluster;
 						}
+						else
+						{
+							ClustersByScriptPubKey.Add(coin.ScriptPubKey, coin.Clusters);
+						}
 						InvalidateSnapshot = true;
 					}
 				}
@@ -108,7 +112,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 					{
 						if (SpentCoins.Remove(toRemove))
 						{
-							//Clusters.Remove(toRemove);
+							// Clusters.Remove(toRemove);
 						}
 					}
 				}

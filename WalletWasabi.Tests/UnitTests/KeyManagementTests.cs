@@ -1,6 +1,7 @@
 using NBitcoin;
 using System;
 using System.IO;
+using System.Linq;
 using System.Security;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
@@ -86,6 +87,19 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
+		public void CanHandleGap()
+		{
+			string password = "password";
+			var manager = KeyManager.CreateNew(out _, password);
+
+			manager.AssertCleanKeysIndexed();
+			var lastKey = manager.GetKeys(KeyState.Clean, isInternal: false).Last();
+			lastKey.SetKeyState(KeyState.Used);
+			var newKeys = manager.AssertCleanKeysIndexed();
+			Assert.Equal(manager.MinGapLimit, newKeys.Count());
+		}
+
+		[Fact]
 		public void CanSerialize()
 		{
 			string password = "password";
@@ -151,6 +165,35 @@ namespace WalletWasabi.Tests.UnitTests
 				Assert.Equal(keyState, generatedKey.KeyState);
 				Assert.StartsWith(KeyManager.DefaultAccountKeyPath.ToString(), generatedKey.FullKeyPath.ToString());
 			}
+		}
+
+		[Fact]
+		public void GapCountingTests()
+		{
+			var km = KeyManager.CreateNew(out _, "");
+			Assert.Equal(0, km.CountConsecutiveCleanKeys(true));
+			Assert.Equal(0, km.CountConsecutiveCleanKeys(false));
+
+			var k = km.GenerateNewKey("", KeyState.Clean, true);
+			Assert.Equal(1, km.CountConsecutiveCleanKeys(true));
+
+			km.GenerateNewKey("", KeyState.Locked, true);
+			Assert.Equal(1, km.CountConsecutiveCleanKeys(true));
+
+			k.SetKeyState(KeyState.Used);
+			Assert.Equal(0, km.CountConsecutiveCleanKeys(true));
+
+			for (int i = 0; i < 100; i++)
+			{
+				var k2 = km.GenerateNewKey("", KeyState.Clean, true);
+				if (i == 50)
+				{
+					k = k2;
+				}
+			}
+			Assert.Equal(100, km.CountConsecutiveCleanKeys(true));
+			k.SetKeyState(KeyState.Locked);
+			Assert.Equal(50, km.CountConsecutiveCleanKeys(true));
 		}
 
 		private static void DeleteFileAndDirectoryIfExists(string filePath)

@@ -52,7 +52,7 @@ namespace WalletWasabi.Backend
 
 			try
 			{
-				WebsiteTorifier.CloneAndUpdateOnionIndexHtml();
+				await WebsiteTorifier.CloneAndUpdateOnionIndexHtmlAsync();
 			}
 			catch (Exception ex)
 			{

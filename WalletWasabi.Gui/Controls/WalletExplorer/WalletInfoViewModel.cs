@@ -12,7 +12,9 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Services;
 using WalletWasabi.Models;
 using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Logging;
 using System.Reactive.Linq;
+using Splat;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -27,8 +29,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _extendedAccountPrivateKey;
 		private string _extendedAccountZprv;
 
+		private Global Global { get; }
+
 		public WalletInfoViewModel(WalletViewModel walletViewModel) : base(walletViewModel.Name, walletViewModel)
 		{
+			Global = Locator.Current.GetService<Global>();
+
 			ClearSensitiveData(true);
 
 			ToggleSensitiveKeysCommand = ReactiveCommand.Create(() =>
@@ -59,8 +65,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
 				{
-					Logging.Logger.LogError(ex);
-					NotificationHelpers.Error(ex.ToTypeMessageString());
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
+					Logger.LogError(ex);
 				});
 		}
 
@@ -78,7 +84,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		public CancellationTokenSource Closing { private set; get; }
+		public CancellationTokenSource Closing { get; private set; }
 
 		public string ExtendedAccountPublicKey => KeyManager.ExtPubKey.ToString(Global.Network);
 		public string ExtendedAccountZpub => KeyManager.ExtPubKey.ToZpub(Global.Network);

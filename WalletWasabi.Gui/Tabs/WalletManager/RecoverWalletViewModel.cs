@@ -2,6 +2,7 @@ using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using NBitcoin;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -29,11 +30,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private string _accountKeyPath;
 		private int _minGapLimit;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
-		public Global Global { get; }
 
 		public RecoverWalletViewModel(WalletManagerViewModel owner) : base("Recover Wallet")
 		{
-			Global = owner.Global;
+			Global = Locator.Current.GetService<Global>();
+
 			MnemonicWords = "";
 
 			RecoverCommand = ReactiveCommand.Create(() =>
@@ -77,7 +78,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					try
 					{
 						var mnemonic = new Mnemonic(MnemonicWords);
-						KeyManager.Recover(mnemonic, Password, walletFilePath, keyPath, MinGapLimit);
+						var km = KeyManager.Recover(mnemonic, Password, filePath: null, keyPath, MinGapLimit);
+						km.SetNetwork(Global.Network);
+						km.SetFilePath(walletFilePath);
+						km.ToFile();
 
 						NotificationHelpers.Success("Wallet is successfully recovered!");
 
@@ -85,8 +89,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					}
 					catch (Exception ex)
 					{
-						NotificationHelpers.Error(ex.ToTypeMessageString());
 						Logger.LogError(ex);
+						NotificationHelpers.Error(ex.ToUserFriendlyString());
 					}
 				}
 			});
@@ -99,6 +103,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 		}
+
+		private Global Global { get; }
 
 		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
 
@@ -152,21 +158,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		}
 
 		public ReactiveCommand<Unit, Unit> RecoverCommand { get; }
-
-		public void OnTermsClicked()
-		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new TermsAndConditionsViewModel(Global));
-		}
-
-		public void OnPrivacyClicked()
-		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new PrivacyPolicyViewModel(Global));
-		}
-
-		public void OnLegalClicked()
-		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new LegalIssuesViewModel(Global));
-		}
 
 		public override void OnCategorySelected()
 		{
