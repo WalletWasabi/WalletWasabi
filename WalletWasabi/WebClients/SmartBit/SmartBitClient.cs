@@ -14,27 +14,23 @@ using WalletWasabi.WebClients.SmartBit.Models;
 
 namespace WalletWasabi.WebClients.SmartBit
 {
-	public class SmartBitClient : IDisposable
+	public class SmartBitClient
 	{
 		public Network Network { get; }
-		private HttpClient HttpClient { get; }
-		public Uri BaseAddress => HttpClient.BaseAddress;
+		public Uri BaseAddress { get; }
 		private AsyncLock AsyncLock { get; } = new AsyncLock();
 
-		public SmartBitClient(Network network, HttpMessageHandler handler = null, bool disposeHandler = false)
+		public SmartBitClient(Network network)
 		{
 			Network = network ?? throw new ArgumentNullException(nameof(network));
-			HttpClient = handler != null
-				? new HttpClient(handler, disposeHandler)
-				: new HttpClient();
 
 			if (network == Network.Main)
 			{
-				HttpClient.BaseAddress = new Uri("https://api.smartbit.com.au/v1/");
+				BaseAddress = new Uri("https://api.smartbit.com.au/v1/");
 			}
 			else if (network == Network.TestNet)
 			{
-				HttpClient.BaseAddress = new Uri("https://testnet-api.smartbit.com.au/v1/");
+				BaseAddress = new Uri("https://testnet-api.smartbit.com.au/v1/");
 			}
 			else
 			{
@@ -46,20 +42,23 @@ namespace WalletWasabi.WebClients.SmartBit
 		{
 			using (await AsyncLock.LockAsync(cancel))
 			{
-				var content = new StringContent(
+				using var httpClient = CreateHttpClient();
+				
+				using var content = new StringContent(
 					new JObject(new JProperty("hex", transaction.ToHex())).ToString(),
 					Encoding.UTF8,
 					"application/json");
 
-				HttpResponseMessage response =
-						await HttpClient.PostAsync("blockchain/pushtx", content, cancel);
+				using HttpResponseMessage response =
+						await httpClient.PostAsync("blockchain/pushtx", content, cancel);
 
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
 					throw new HttpRequestException(response.StatusCode.ToString());
 				}
 
-				string responseString = await response.Content.ReadAsStringAsync();
+				using var responseContent = response.Content;
+				string responseString = await responseContent.ReadAsStringAsync();
 				AssertSuccess(responseString);
 			}
 		}
@@ -67,15 +66,17 @@ namespace WalletWasabi.WebClients.SmartBit
 		public async Task<IEnumerable<SmartBitExchangeRate>> GetExchangeRatesAsync(CancellationToken cancel)
 		{
 			using (await AsyncLock.LockAsync(cancel))
-			using (HttpResponseMessage response =
-					await HttpClient.GetAsync("exchange-rates", HttpCompletionOption.ResponseContentRead, cancel))
 			{
+				using var httpClient = CreateHttpClient();
+
+				using var response = await httpClient.GetAsync("exchange-rates", HttpCompletionOption.ResponseContentRead, cancel);
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
 					throw new HttpRequestException(response.StatusCode.ToString());
 				}
 
-				string responseString = await response.Content.ReadAsStringAsync();
+				using var content = response.Content;
+				string responseString = await content.ReadAsStringAsync();
 				AssertSuccess(responseString);
 
 				var exchangeRates = JObject.Parse(responseString).Value<JArray>("exchange_rates");
@@ -97,36 +98,12 @@ namespace WalletWasabi.WebClients.SmartBit
 			}
 		}
 
-		#region IDisposable Support
-
-		private bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
+		private HttpClient CreateHttpClient()
 		{
-			if (!_disposedValue)
+			return new HttpClient()
 			{
-				if (disposing)
-				{
-					// dispose managed state (managed objects).
-					HttpClient?.Dispose();
-				}
-
-				// free unmanaged resources (unmanaged objects) and override a finalizer below.
-				// set large fields to null.
-
-				_disposedValue = true;
-			}
+				BaseAddress = BaseAddress
+			};
 		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-			// uncomment the following line if the finalizer is overridden above.
-			// GC.SuppressFinalize(this);
-		}
-
-		#endregion IDisposable Support
 	}
 }
