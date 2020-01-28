@@ -22,7 +22,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 		public bool IsAccurate { get; private set; }
 
 		/// <summary>
-		/// Int: fee target, decimal: satoshi/vByte
+		/// Int: fee target, int: satoshi/vByte
 		/// </summary>
 		[JsonProperty]
 		public Dictionary<int, int> Estimations { get; private set; }
