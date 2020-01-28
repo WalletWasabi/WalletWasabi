@@ -109,7 +109,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ResetUi();
 			SetAmountWatermark(Money.Zero);
 
-			CoinList = new CoinListViewModel(CoinListContainerType.SendTabViewModel);
+			CoinList = new CoinListViewModel(displayCommonOwnershipWarning: true);
 
 			Observable.FromEventPattern(CoinList, nameof(CoinList.SelectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
