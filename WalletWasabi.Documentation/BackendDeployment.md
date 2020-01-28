@@ -56,11 +56,10 @@ usermod -aG sudo user
 
 ### Increase the number of files limit
 
-By default a process can keep open up to 4096 files. Increase that limit for the `user` user as follow:
+By default a process can keep open up to 4096 files. Increase that limit for the `user` user as follows:
 
 ```sh
 sudo pico /etc/security/limits.conf
-
 ```
 
 ```
