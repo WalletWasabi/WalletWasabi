@@ -5,23 +5,44 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using WalletWasabi.Models;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Converters
 {
 	public class ErrorDescriptorToBorderColorConverter : IValueConverter
 	{
+		private ErrorDescriptor UndefinedExceptionToErrorDescriptor(Exception ex)
+		{
+			var newErrDescMessage = ExceptionExtensions.ToTypeMessageString(ex);
+			return new ErrorDescriptor(ErrorSeverity.Warning, newErrDescMessage);
+		}
+
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (value is ErrorDescriptors descriptors)
+			var descriptors = new ErrorDescriptors();
+
+			if (value is IEnumerable<object> rawObj)
 			{
-				return GetColorFromDescriptors(descriptors);
+				foreach (var error in rawObj.OfType<ErrorDescriptor>())
+				{
+					descriptors.Add(error);
+				}
+
+				foreach (var ex in rawObj.OfType<Exception>())
+				{
+					descriptors.Add(UndefinedExceptionToErrorDescriptor(ex));
+				}
 			}
-			else if (value is IEnumerable<Exception> exList)
+			else if (value is Exception ex)
 			{
-				return GetColorFromDescriptors(ErrorDescriptorsJsonConverter.ExceptionListToErrorDescriptor(exList));
+				descriptors.Add(UndefinedExceptionToErrorDescriptor(ex));
+			}
+			else
+			{
+				return null;
 			}
 
-			return null;
+			return GetColorFromDescriptors(descriptors);
 		}
 
 		private SolidColorBrush GetColorFromDescriptors(ErrorDescriptors descriptors)

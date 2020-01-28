@@ -60,7 +60,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		{
 			//eg: x^2 + x + 1. degree 1, reverse position = degree + 1 = 2.
 			//Pos = 3 - 2 = 1
-			return Coefficients[Coefficients.Length - (degree + 1)];
+			return Coefficients[^(degree + 1)];
 		}
 
 		/// <summary>

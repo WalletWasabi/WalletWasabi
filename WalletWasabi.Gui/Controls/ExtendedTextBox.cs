@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
@@ -11,6 +12,7 @@ using AvalonStudio.Extensibility.Theme;
 using ReactiveUI;
 using System;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
@@ -20,7 +22,9 @@ namespace WalletWasabi.Gui.Controls
 {
 	public class ExtendedTextBox : TextBox, IStyleable
 	{
+		private TextPresenter _presenter;
 		private MenuItem _pasteItem = null;
+		private CompositeDisposable Disposables { get; }
 
 		private Subject<string> _textPasted;
 
@@ -28,9 +32,11 @@ namespace WalletWasabi.Gui.Controls
 
 		public ExtendedTextBox()
 		{
+			Disposables = new CompositeDisposable();
+
 			_textPasted = new Subject<string>();
 
-			CopyCommand = ReactiveCommand.CreateFromTask(async () => await CopyAsync());
+			CopyCommand = ReactiveCommand.CreateFromTask(CopyAsync);
 
 			PasteCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -46,8 +52,11 @@ namespace WalletWasabi.Gui.Controls
 				}
 			});
 
-			CopyCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
-			PasteCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning(ex));
+			Observable
+				.Merge(CopyCommand.ThrownExceptions)
+				.Merge(PasteCommand.ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogWarning(ex));
 
 			this.GetObservable(IsReadOnlyProperty).Subscribe(isReadOnly =>
 				{
@@ -112,10 +121,10 @@ namespace WalletWasabi.Gui.Controls
 
 			if (start == end || (Text?.Length ?? 0) < end)
 			{
-				return "";
+				return string.Empty;
 			}
 
-			return text.Substring(start, end - start);
+			return text[start..end];
 		}
 
 		protected virtual async Task CopyAsync()
@@ -174,11 +183,18 @@ namespace WalletWasabi.Gui.Controls
 		{
 			base.OnTemplateApplied(e);
 
+			_presenter = e.NameScope.Get<TextPresenter>("PART_TextPresenter");
+
 			ContextMenu = new ContextMenu
 			{
 				DataContext = this,
 				Items = new Avalonia.Controls.Controls()
 			};
+
+			Observable.FromEventPattern(ContextMenu, nameof(ContextMenu.MenuClosed))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => Focus())
+				.DisposeWith(Disposables);
 
 			var menuItems = (ContextMenu.Items as Avalonia.Controls.Controls);
 			if (IsCopyEnabled)
@@ -193,15 +209,21 @@ namespace WalletWasabi.Gui.Controls
 			}
 		}
 
+		protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+		{
+			base.OnDetachedFromVisualTree(e);
+
+			Disposables?.Dispose();
+		}
+
 		protected override void OnLostFocus(RoutedEventArgs e)
 		{
 			// Dispatch so that if there is a context menu, it can open before the selection gets cleared.
-			// This is a workaround, fix inside avalonia to come in next release.
 			Dispatcher.UIThread.PostLogException(() =>
 			{
 				if (ContextMenu != null && ContextMenu.IsOpen)
 				{
-					// Do not call base method, as this will clear selection.
+					_presenter?.HideCaret();
 				}
 				else
 				{

@@ -3,9 +3,9 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
-using WalletWasabi.KeyManagement;
 
 namespace WalletWasabi.CoinJoin.Common.Models
 {

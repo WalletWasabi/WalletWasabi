@@ -13,12 +13,16 @@ using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
-using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Models;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.CoinJoin.Client.Rounds;
+using WalletWasabi.Gui.Helpers;
+using System.Security;
+using WalletWasabi.CoinJoin.Client.Clients.Queuing;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using Splat;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -50,18 +54,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
 			: base("CoinJoin", walletViewModel)
 		{
+			Global = Locator.Current.GetService<Global>();
+
 			Password = "";
 			TimeLeftTillRoundTimeout = TimeSpan.Zero;
 
-			CoinsList = new CoinListViewModel(Global, CoinListContainerType.CoinJoinTabViewModel);
+			CoinsList = new CoinListViewModel(canDequeueCoins: true);
 
-			Observable.FromEventPattern(CoinsList, nameof(CoinsList.DequeueCoinsPressed)).Subscribe(_ => OnCoinsListDequeueCoinsPressedAsync());
+			Observable
+				.FromEventPattern<SmartCoin>(CoinsList, nameof(CoinsList.DequeueCoinsPressed))
+				.Subscribe(async x => await DoDequeueAsync(x.EventArgs));
 
 			AmountQueued = Money.Zero; // Global.ChaumianClient.State.SumAllQueuedCoinAmounts();
 
-			EnqueueCommand = ReactiveCommand.CreateFromTask(async () => await DoEnqueueAsync(CoinsList.Coins.Where(c => c.IsSelected)));
+			EnqueueCommand = ReactiveCommand.CreateFromTask(async () => await DoEnqueueAsync(CoinsList.Coins.Where(c => c.IsSelected).Select(c => c.Model)));
 
-			DequeueCommand = ReactiveCommand.CreateFromTask(async () => await DoDequeueAsync(CoinsList.Coins.Where(c => c.IsSelected)));
+			DequeueCommand = ReactiveCommand.CreateFromTask(async () => await DoDequeueAsync(CoinsList.Coins.Where(c => c.IsSelected).Select(x => x.Model)));
 
 			PrivacySomeCommand = ReactiveCommand.Create(() => TargetPrivacy = TargetPrivacy.Some);
 
@@ -111,7 +119,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					TimeSpan left = x - DateTimeOffset.UtcNow;
 					TimeLeftTillRoundTimeout = left > TimeSpan.Zero ? left : TimeSpan.Zero; // Make sure cannot be less than zero.
 				});
+
+			Observable
+				.Merge(EnqueueCommand.ThrownExceptions)
+				.Merge(DequeueCommand.ThrownExceptions)
+				.Merge(PrivacySomeCommand.ThrownExceptions)
+				.Merge(PrivacyFineCommand.ThrownExceptions)
+				.Merge(PrivacyStrongCommand.ThrownExceptions)
+				.Merge(TargetButtonCommand.ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
+
+		private Global Global { get; }
 
 		public override void OnOpen()
 		{
@@ -128,7 +148,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			CoordinatorFeePercent = registrableRound?.State?.CoordinatorFeePercent.ToString() ?? "0.003";
 
 			Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.CoinQueued))
-				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.CoinDequeued)))
+				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.OnDequeue)))
 				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.StateUpdated)))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => UpdateStates())
@@ -178,36 +198,30 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			return base.OnClose();
 		}
 
-		private async Task DoDequeueAsync(IEnumerable<CoinViewModel> selectedCoins)
+		private async Task DoDequeueAsync(params SmartCoin[] coins)
+			=> await DoDequeueAsync(coins as IEnumerable<SmartCoin>);
+
+		private async Task DoDequeueAsync(IEnumerable<SmartCoin> coins)
 		{
 			IsDequeueBusy = true;
 			try
 			{
-				SetWarningMessage("");
-
-				if (!selectedCoins.Any())
+				if (!coins.Any())
 				{
-					SetWarningMessage("No coins are selected to dequeue.");
+					NotificationHelpers.Warning("No coins are selected.", "");
 					return;
 				}
 
 				try
 				{
-					await Global.ChaumianClient.DequeueCoinsFromMixAsync(selectedCoins.Select(c => c.Model).ToArray(), "Dequeued by the user.");
+					await Global.ChaumianClient.DequeueCoinsFromMixAsync(coins.ToArray(), DequeueReason.UserRequested);
 				}
 				catch (Exception ex)
 				{
 					Logger.LogWarning(ex);
-					var builder = new StringBuilder(ex.ToTypeMessageString());
-					if (ex is AggregateException aggex)
-					{
-						foreach (var iex in aggex.InnerExceptions)
-						{
-							builder.Append(Environment.NewLine + iex.ToTypeMessageString());
-						}
-					}
-					SetWarningMessage(builder.ToString());
 				}
+
+				Password = string.Empty;
 			}
 			finally
 			{
@@ -215,16 +229,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private async Task DoEnqueueAsync(IEnumerable<CoinViewModel> selectedCoins)
+		private async Task DoEnqueueAsync(IEnumerable<SmartCoin> coins)
 		{
 			IsEnqueueBusy = true;
 			try
 			{
-				SetWarningMessage("");
-
-				if (!selectedCoins.Any())
+				if (!coins.Any())
 				{
-					SetWarningMessage("No coins are selected to enqueue.");
+					NotificationHelpers.Warning("No coins are selected.", "");
 					return;
 				}
 				try
@@ -234,14 +246,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					if (compatiblityPassword != null)
 					{
 						Password = compatiblityPassword;
-						SetWarningMessage(PasswordHelper.CompatibilityPasswordWarnMessage);
+						NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
 					}
 
-					await Global.ChaumianClient.QueueCoinsToMixAsync(Password, selectedCoins.Select(c => c.Model).ToArray());
+					await Global.ChaumianClient.QueueCoinsToMixAsync(Password, coins.ToArray());
+				}
+				catch (SecurityException ex)
+				{
+					NotificationHelpers.Error(ex.Message, "");
 				}
 				catch (Exception ex)
 				{
-					Logger.LogWarning(ex);
 					var builder = new StringBuilder(ex.ToTypeMessageString());
 					if (ex is AggregateException aggex)
 					{
@@ -250,7 +265,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							builder.Append(Environment.NewLine + iex.ToTypeMessageString());
 						}
 					}
-					SetWarningMessage(builder.ToString());
+					NotificationHelpers.Error(builder.ToString());
+					Logger.LogError(ex);
 				}
 
 				Password = string.Empty;
@@ -346,24 +362,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public CoinListViewModel CoinsList { get; }
-
-		private async void OnCoinsListDequeueCoinsPressedAsync()
-		{
-			try
-			{
-				var selectedCoin = CoinsList.SelectedCoin;
-				if (selectedCoin is null)
-				{
-					return;
-				}
-
-				await DoDequeueAsync(new[] { selectedCoin });
-			}
-			catch (Exception ex)
-			{
-				Logger.LogWarning(ex);
-			}
-		}
 
 		public Money AmountQueued
 		{

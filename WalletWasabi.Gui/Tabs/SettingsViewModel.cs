@@ -13,10 +13,14 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Text.RegularExpressions;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
+using WalletWasabi.Logging;
+using System.Threading.Tasks;
+using Splat;
 
 namespace WalletWasabi.Gui.Tabs
 {
@@ -27,20 +31,25 @@ namespace WalletWasabi.Gui.Tabs
 		private Network _network;
 		private string _torSocks5EndPoint;
 		private string _bitcoinP2pEndPoint;
+		private string _localBitcoinCoreDataDir;
 		private bool _autocopy;
 		private bool _customFee;
 		private bool _useTor;
+		private bool _startLocalBitcoinCoreOnStartup;
+		private bool _stopLocalBitcoinCoreOnShutdown;
 		private bool _isModified;
 		private string _somePrivacyLevel;
 		private string _finePrivacyLevel;
 		private string _strongPrivacyLevel;
 		private string _dustThreshold;
 		private string _pinBoxText;
-		private string _pinWarningMessage;
+		private bool TabOpened { get; set; }
 
 		private ObservableAsPropertyHelper<bool> _isPinSet;
 
 		public bool IsPinSet => _isPinSet?.Value ?? false;
+
+		private Global Global { get; }
 		private AsyncLock ConfigLock { get; } = new AsyncLock();
 
 		public ReactiveCommand<Unit, Unit> OpenConfigFileCommand { get; }
@@ -48,8 +57,10 @@ namespace WalletWasabi.Gui.Tabs
 		public ReactiveCommand<Unit, Unit> SetClearPinCommand { get; }
 		public ReactiveCommand<Unit, Unit> TextBoxLostFocusCommand { get; }
 
-		public SettingsViewModel(Global global) : base(global, "Settings")
+		public SettingsViewModel() : base("Settings")
 		{
+			Global = Locator.Current.GetService<Global>();
+
 			Autocopy = Global.UiConfig?.Autocopy is true;
 			CustomFee = Global.UiConfig?.IsCustomFee is true;
 
@@ -58,16 +69,21 @@ namespace WalletWasabi.Gui.Tabs
 			Network = globalConfig.Network;
 			TorSocks5EndPoint = globalConfig.TorSocks5EndPoint.ToString(-1);
 			UseTor = globalConfig.UseTor;
+			StartLocalBitcoinCoreOnStartup = globalConfig.StartLocalBitcoinCoreOnStartup;
+			StopLocalBitcoinCoreOnShutdown = globalConfig.StopLocalBitcoinCoreOnShutdown;
 			SomePrivacyLevel = globalConfig.PrivacyLevelSome.ToString();
 			FinePrivacyLevel = globalConfig.PrivacyLevelFine.ToString();
 			StrongPrivacyLevel = globalConfig.PrivacyLevelStrong.ToString();
 			DustThreshold = globalConfig.DustThreshold.ToString();
 			BitcoinP2pEndPoint = globalConfig.GetP2PEndpoint().ToString(defaultPort: -1);
+			LocalBitcoinCoreDataDir = globalConfig.LocalBitcoinCoreDataDir;
 			IsModified = false;
 
 			this.WhenAnyValue(
 				x => x.Network,
-				x => x.UseTor)
+				x => x.UseTor,
+				x => x.StartLocalBitcoinCoreOnStartup,
+				x => x.StopLocalBitcoinCoreOnShutdown)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(_ => Save());
 
@@ -79,7 +95,7 @@ namespace WalletWasabi.Gui.Tabs
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(x => Global.UiConfig.IsCustomFee = x);
 
-			OpenConfigFileCommand = ReactiveCommand.Create(OpenConfigFile);
+			OpenConfigFileCommand = ReactiveCommand.CreateFromTask(OpenConfigFileAsync);
 
 			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
 				{
@@ -89,102 +105,128 @@ namespace WalletWasabi.Gui.Tabs
 
 			SetClearPinCommand = ReactiveCommand.Create(() =>
 				{
-					var pinBoxText = PinBoxText?.Trim();
-					if (string.IsNullOrWhiteSpace(pinBoxText))
+					var pinBoxText = PinBoxText;
+					if (string.IsNullOrEmpty(pinBoxText))
 					{
-						PinWarningMessage = "Please provide PIN.";
+						NotificationHelpers.Error("Please provide a PIN.");
 						return;
 					}
 
-					if (pinBoxText.Length > 10)
+					var trimmedPinBoxText = pinBoxText?.Trim();
+					if (string.IsNullOrEmpty(trimmedPinBoxText)
+						|| trimmedPinBoxText.Any(x => !char.IsDigit(x)))
 					{
-						PinWarningMessage = "PIN too long.";
+						NotificationHelpers.Error("Invalid PIN.");
 						return;
 					}
 
-					if (pinBoxText.Any(x => !char.IsDigit(x)))
+					if (trimmedPinBoxText.Length > 10)
 					{
-						PinWarningMessage = "Invalid PIN.";
+						NotificationHelpers.Error("PIN is too long.");
 						return;
 					}
 
 					var uiConfigPinHash = Global.UiConfig.LockScreenPinHash;
-					var enteredPinHash = HashHelpers.GenerateSha256Hash(pinBoxText);
+					var enteredPinHash = HashHelpers.GenerateSha256Hash(trimmedPinBoxText);
 
 					if (IsPinSet)
 					{
 						if (uiConfigPinHash != enteredPinHash)
 						{
-							PinWarningMessage = "Wrong PIN.";
+							NotificationHelpers.Error("PIN is incorrect!");
 							PinBoxText = string.Empty;
 							return;
 						}
 
 						Global.UiConfig.LockScreenPinHash = string.Empty;
+						NotificationHelpers.Success("PIN cleared successfully.");
 					}
 					else
 					{
 						Global.UiConfig.LockScreenPinHash = enteredPinHash;
+						NotificationHelpers.Success("PIN changed successfully.");
 					}
 
 					PinBoxText = string.Empty;
-					PinWarningMessage = string.Empty;
 				});
 
 			TextBoxLostFocusCommand = ReactiveCommand.Create(Save);
+
+			Observable
+				.Merge(OpenConfigFileCommand.ThrownExceptions)
+				.Merge(LurkingWifeModeCommand.ThrownExceptions)
+				.Merge(SetClearPinCommand.ThrownExceptions)
+				.Merge(TextBoxLostFocusCommand.ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		public override void OnOpen()
 		{
-			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
+			try
+			{
+				Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			Config.LoadOrCreateDefaultFileAsync(Global.Config.FilePath)
-				.ToObservable(RxApp.TaskpoolScheduler)
-				.Take(1)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				{
-					Network = x.Network;
-					TorSocks5EndPoint = x.TorSocks5EndPoint.ToString(-1);
-					UseTor = x.UseTor;
+				Config.LoadOrCreateDefaultFileAsync(Global.Config.FilePath)
+					.ToObservable(RxApp.TaskpoolScheduler)
+					.Take(1)
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.Subscribe(x =>
+					{
+						Network = x.Network;
+						TorSocks5EndPoint = x.TorSocks5EndPoint.ToString(-1);
+						UseTor = x.UseTor;
+						StartLocalBitcoinCoreOnStartup = x.StartLocalBitcoinCoreOnStartup;
+						StopLocalBitcoinCoreOnShutdown = x.StopLocalBitcoinCoreOnShutdown;
 
-					SomePrivacyLevel = x.PrivacyLevelSome.ToString();
-					FinePrivacyLevel = x.PrivacyLevelFine.ToString();
-					StrongPrivacyLevel = x.PrivacyLevelStrong.ToString();
+						SomePrivacyLevel = x.PrivacyLevelSome.ToString();
+						FinePrivacyLevel = x.PrivacyLevelFine.ToString();
+						StrongPrivacyLevel = x.PrivacyLevelStrong.ToString();
 
-					DustThreshold = x.DustThreshold.ToString();
+						DustThreshold = x.DustThreshold.ToString();
 
-					BitcoinP2pEndPoint = x.GetP2PEndpoint().ToString(defaultPort: -1);
+						BitcoinP2pEndPoint = x.GetP2PEndpoint().ToString(defaultPort: -1);
+						LocalBitcoinCoreDataDir = x.LocalBitcoinCoreDataDir;
 
-					IsModified = !Global.Config.AreDeepEqual(x);
-				})
-				.DisposeWith(Disposables);
+						IsModified = !Global.Config.AreDeepEqual(x);
+					})
+					.DisposeWith(Disposables);
 
-			Global.UiConfig
-				.WhenAnyValue(x => x.LurkingWifeMode)
-				.Subscribe(_ => this.RaisePropertyChanged(nameof(LurkingWifeMode)))
-				.DisposeWith(Disposables);
+				Global.UiConfig
+					.WhenAnyValue(x => x.LurkingWifeMode)
+					.Subscribe(_ => this.RaisePropertyChanged(nameof(LurkingWifeMode)))
+					.DisposeWith(Disposables);
 
-			_isPinSet = Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => !string.IsNullOrWhiteSpace(x))
-				.ToProperty(this, x => x.IsPinSet, scheduler: RxApp.MainThreadScheduler)
-				.DisposeWith(Disposables);
+				_isPinSet = Global.UiConfig
+					.WhenAnyValue(x => x.LockScreenPinHash, x => !string.IsNullOrWhiteSpace(x))
+					.ToProperty(this, x => x.IsPinSet, scheduler: RxApp.MainThreadScheduler)
+					.DisposeWith(Disposables);
+				this.RaisePropertyChanged(nameof(IsPinSet)); // Fire now otherwise the button won't update for restart.
 
-			Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => x.Autocopy, x => x.IsCustomFee)
-				.Throttle(TimeSpan.FromSeconds(1))
-				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(async _ => await Global.UiConfig.ToFileAsync())
-				.DisposeWith(Disposables);
+				Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => x.Autocopy, x => x.IsCustomFee)
+					.Throttle(TimeSpan.FromSeconds(1))
+					.ObserveOn(RxApp.TaskpoolScheduler)
+					.Subscribe(async _ => await Global.UiConfig.ToFileAsync())
+					.DisposeWith(Disposables);
 
-			base.OnOpen();
+				base.OnOpen();
+			}
+			finally
+			{
+				TabOpened = true;
+			}
 		}
 
 		public override bool OnClose()
 		{
+			TabOpened = false;
 			Disposables?.Dispose();
 			Disposables = null;
 
 			return base.OnClose();
 		}
+
+		public Version BitcoinCoreVersion => Constants.BitcoinCoreVersion;
 
 		public IEnumerable<Network> Networks => new[]
 		{
@@ -213,6 +255,12 @@ namespace WalletWasabi.Gui.Tabs
 			set => this.RaiseAndSetIfChanged(ref _bitcoinP2pEndPoint, value);
 		}
 
+		public string LocalBitcoinCoreDataDir
+		{
+			get => _localBitcoinCoreDataDir;
+			set => this.RaiseAndSetIfChanged(ref _localBitcoinCoreDataDir, value);
+		}
+
 		public bool IsModified
 		{
 			get => _isModified;
@@ -229,6 +277,18 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			get => _customFee;
 			set => this.RaiseAndSetIfChanged(ref _customFee, value);
+		}
+
+		public bool StartLocalBitcoinCoreOnStartup
+		{
+			get => _startLocalBitcoinCoreOnStartup;
+			set => this.RaiseAndSetIfChanged(ref _startLocalBitcoinCoreOnStartup, value);
+		}
+
+		public bool StopLocalBitcoinCoreOnShutdown
+		{
+			get => _stopLocalBitcoinCoreOnShutdown;
+			set => this.RaiseAndSetIfChanged(ref _stopLocalBitcoinCoreOnShutdown, value);
 		}
 
 		public bool UseTor
@@ -273,14 +333,15 @@ namespace WalletWasabi.Gui.Tabs
 			set => this.RaiseAndSetIfChanged(ref _pinBoxText, value);
 		}
 
-		public string PinWarningMessage
-		{
-			get => _pinWarningMessage;
-			set => this.RaiseAndSetIfChanged(ref _pinWarningMessage, value);
-		}
-
 		private void Save()
 		{
+			// While the Tab is opening we are setting properties with loading and also LostFocus command called by Avalonia
+			// Those would trigger the Save function before we load the config.
+			if (!TabOpened)
+			{
+				return;
+			}
+
 			var network = Network;
 			if (network is null)
 			{
@@ -318,6 +379,9 @@ namespace WalletWasabi.Gui.Tabs
 							config.SetP2PEndpoint(p2pEp);
 						}
 						config.UseTor = UseTor;
+						config.StartLocalBitcoinCoreOnStartup = StartLocalBitcoinCoreOnStartup;
+						config.StopLocalBitcoinCoreOnShutdown = StopLocalBitcoinCoreOnShutdown;
+						config.LocalBitcoinCoreDataDir = Guard.Correct(LocalBitcoinCoreDataDir);
 						config.DustThreshold = decimal.TryParse(DustThreshold, out var threshold) ? Money.Coins(threshold) : Config.DefaultDustThreshold;
 						config.PrivacyLevelSome = int.TryParse(SomePrivacyLevel, out int level) ? level : Config.DefaultPrivacyLevelSome;
 						config.PrivacyLevelStrong = int.TryParse(StrongPrivacyLevel, out level) ? level : Config.DefaultPrivacyLevelStrong;
@@ -334,9 +398,9 @@ namespace WalletWasabi.Gui.Tabs
 			});
 		}
 
-		private void OpenConfigFile()
+		private async Task OpenConfigFileAsync()
 		{
-			IoHelpers.OpenFileInTextEditor(Global.Config.FilePath);
+			await FileHelpers.OpenFileInTextEditorAsync(Global.Config.FilePath);
 		}
 
 		#region Validation

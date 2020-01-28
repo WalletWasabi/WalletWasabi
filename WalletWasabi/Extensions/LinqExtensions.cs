@@ -1,7 +1,7 @@
 using NBitcoin;
 using System.Collections.Generic;
-using WalletWasabi.Coins;
-using WalletWasabi.Transactions;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Transactions;
 
 namespace System.Linq
 {
@@ -56,6 +56,18 @@ namespace System.Linq
 			foreach (TKey item in itemsToRemove)
 			{
 				me.Remove(item);
+			}
+		}
+
+		public static void AddToValueList<TKey, TValue, Telem>(this Dictionary<TKey, TValue> myDic, TKey key, Telem elem) where TValue : List<Telem>
+		{
+			if (myDic.ContainsKey(key))
+			{
+				myDic[key].Add(elem);
+			}
+			else
+			{
+				myDic.Add(key, new List<Telem>() { elem } as TValue);
 			}
 		}
 
@@ -170,5 +182,16 @@ namespace System.Linq
 			=> me
 				.OrderByBlockchain()
 				.Select(x => x.ToLine());
+
+		/// <summary>
+		/// https://stackoverflow.com/a/24087164/2061103
+		/// </summary>
+		public static IEnumerable<IEnumerable<T>> ChunkBy<T>(this IEnumerable<T> source, int chunkSize)
+		{
+			return source
+				.Select((x, i) => new { Index = i, Value = x })
+				.GroupBy(x => x.Index / chunkSize)
+				.Select(x => x.Select(v => v.Value));
+		}
 	}
 }

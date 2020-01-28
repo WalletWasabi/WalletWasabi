@@ -1,3 +1,33 @@
+/* inconsolata-regular - latin_vietnamese_latin-ext */
+@font-face {
+  font-family: 'Inconsolata';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Inconsolata Regular'), local('Inconsolata-Regular'),
+       url('../fonts/inconsolata-v18-latin_vietnamese_latin-ext-regular.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+       url('../fonts/inconsolata-v18-latin_vietnamese_latin-ext-regular.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
+/* inconsolata-700 - latin_vietnamese_latin-ext */
+@font-face {
+  font-family: 'Inconsolata';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Inconsolata Bold'), local('Inconsolata-Bold'),
+       url('../fonts/inconsolata-v18-latin_vietnamese_latin-ext-700.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+       url('../fonts/inconsolata-v18-latin_vietnamese_latin-ext-700.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
+/* playfair-display-700 - latin_vietnamese_latin-ext_cyrillic */
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Playfair Display Bold'), local('PlayfairDisplay-Bold'),
+       url('../fonts/playfair-display-v15-latin_vietnamese_latin-ext_cyrillic-700.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+       url('../fonts/playfair-display-v15-latin_vietnamese_latin-ext_cyrillic-700.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
 body {
   overflow-x: hidden;
 }
@@ -157,6 +187,35 @@ ul {
     display: block;
 }
 
+/** get wasabi button **/
+
+#get-wasabi{
+  border-radius: 10px;
+  background:  rgb(116, 182, 74);
+  transition: background-color 0.5s;
+}
+
+#get-wasabi a.nav-link{
+  color: #000000;
+  padding-right: 1.2rem;
+  padding-left: 1.2rem;
+  transition: color 0.3s;
+}
+
+#get-wasabi:hover{
+  background:  rgb(246, 146, 30);
+  transition: background-color 0.5s;
+}
+
+#get-wasabi:hover a.nav-link{
+  transition: color 0.3s;
+  color: #ffffff;
+  padding-right: 1.2rem;
+  padding-left: 1.2rem;
+}
+
+/** get wasabi button end **/
+
 header {
   position: relative;
 }
@@ -165,7 +224,7 @@ header .navbar {
   max-width: 900px;
   -webkit-box-shadow: 0 2px 30px rgba(90, 80, 90, 0.5);
           box-shadow: 0 2px 30px rgba(90, 80, 90, 0.5);
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 50%;
   -webkit-transform: translateX(-50%);
@@ -366,6 +425,11 @@ section .shader {
 }
 
 /* Download Section */
+
+.download{
+  padding-top: 110px;
+}
+
 .download .screenshot {
   width: 200%;
 }
@@ -382,6 +446,11 @@ section .shader {
 }
 
 /* FAQ section */
+
+.faq{
+  padding-top: 110px;
+}
+
 .faq .shader {
   width: 70vw;
   height: 70vw;
@@ -432,6 +501,12 @@ section .shader {
   h1, h2 {
     font-size: 3rem !important;
   }
+}
+
+/** hamburger menu elements inline **/
+
+.navbar-dark .navbar-nav .nav-link {
+	padding-left: 1.2rem;
 }
 
 /* For mobile devices */

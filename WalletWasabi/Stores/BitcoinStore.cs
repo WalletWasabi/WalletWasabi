@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Blocks;
+using WalletWasabi.Blockchain.Mempool;
+using WalletWasabi.Blockchain.P2p;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Mempool;
-using WalletWasabi.Transactions;
 
 namespace WalletWasabi.Stores
 {
@@ -19,18 +21,18 @@ namespace WalletWasabi.Stores
 	{
 		public bool IsInitialized { get; private set; }
 		private string WorkFolderPath { get; set; }
-		private Network Network { get; set; }
+		public Network Network { get; private set; }
 
 		public IndexStore IndexStore { get; private set; }
 		public AllTransactionStore TransactionStore { get; private set; }
-		public HashChain HashChain { get; private set; }
+		public SmartHeaderChain SmartHeaderChain { get; private set; }
 		public MempoolService MempoolService { get; private set; }
 
 		/// <summary>
 		/// This should not be a property, but a creator function, because it'll be cloned left and right by NBitcoin later.
 		/// So it should not be assumed it's some singleton.
 		/// </summary>
-		public MempoolBehavior CreateMempoolBehavior() => new MempoolBehavior(MempoolService);
+		public UntrustedP2pBehavior CreateUntrustedP2pBehavior() => new UntrustedP2pBehavior(MempoolService);
 
 		public async Task InitializeAsync(string workFolderPath, Network network)
 		{
@@ -45,12 +47,12 @@ namespace WalletWasabi.Stores
 				TransactionStore = new AllTransactionStore();
 				var networkWorkFolderPath = Path.Combine(WorkFolderPath, Network.ToString());
 				var indexStoreFolderPath = Path.Combine(networkWorkFolderPath, "IndexStore");
-				HashChain = new HashChain();
+				SmartHeaderChain = new SmartHeaderChain();
 				MempoolService = new MempoolService();
 
 				var initTasks = new[]
 				{
-					IndexStore.InitializeAsync(indexStoreFolderPath, Network, HashChain),
+					IndexStore.InitializeAsync(indexStoreFolderPath, Network, SmartHeaderChain),
 					TransactionStore.InitializeAsync(networkWorkFolderPath, Network)
 				};
 

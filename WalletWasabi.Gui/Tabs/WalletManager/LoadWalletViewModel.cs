@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
@@ -8,6 +9,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Nito.AsyncEx;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -19,15 +21,17 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.Dialogs;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
+using WalletWasabi.Gui.Models.StatusBarStatuses;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Models;
-using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
@@ -42,9 +46,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private bool _isWalletOpened;
 		private bool _canLoadWallet;
 		private bool _canTestPassword;
-		private string _warningMessage;
-		private string _validationMessage;
-		private string _successMessage;
 		private bool _isBusy;
 		private bool _isHardwareBusy;
 		private string _loadButtonText;
@@ -53,7 +54,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		public bool IsLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 
 		private WalletManagerViewModel Owner { get; }
-		public Global Global => Owner.Global;
+
+		private Global Global { get; }
+
 		public LoadWalletType LoadWalletType { get; }
 
 		public bool IsPasswordRequired => LoadWalletType == LoadWalletType.Password;
@@ -63,6 +66,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		public LoadWalletViewModel(WalletManagerViewModel owner, LoadWalletType loadWalletType)
 			: base(loadWalletType == LoadWalletType.Password ? "Test Password" : (loadWalletType == LoadWalletType.Desktop ? "Load Wallet" : "Hardware Wallet"))
 		{
+			Global = Locator.Current.GetService<Global>();
+
 			Owner = owner;
 			Password = "";
 			LoadWalletType = loadWalletType;
@@ -89,12 +94,17 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					Title = "Import Coldcard"
 				};
 
-				if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 				{
-					ofd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+					ofd.Directory = Path.Combine("/media", Environment.UserName);
+				}
+				else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+				{
+					ofd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 				}
 
-				var selected = await ofd.ShowAsync(Application.Current.MainWindow, fallBack: true);
+				var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
+				var selected = await ofd.ShowAsync(window, fallBack: true);
 				if (selected != null && selected.Any())
 				{
 					var path = selected.First();
@@ -121,8 +131,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 							reverseByteOrder = true;
 						}
 					}
-					HDFingerprint mfp = NBitcoinHelpers.BetterParseHDFingerprint(mfpString, reverseByteOrder: reverseByteOrder);
+
+					var bytes = ByteHelpers.FromHex(Guard.NotNullOrEmptyOrWhitespace(nameof(mfpString), mfpString, trim: true));
+					HDFingerprint mfp = reverseByteOrder ? new HDFingerprint(bytes.Reverse().ToArray()) : new HDFingerprint(bytes);
+
 					ExtPubKey extPubKey = NBitcoinHelpers.BetterParseExtPubKey(xpubString);
+
 					Logger.LogInfo("Creating a new wallet file.");
 					var walletName = Global.GetNextHardwareWalletName(customPrefix: "Coldcard");
 					var walletFullPath = Global.GetWalletFullPath(walletName);
@@ -133,18 +147,20 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			EnumerateHardwareWalletsCommand = ReactiveCommand.CreateFromTask(async () => await EnumerateHardwareWalletsAsync());
 
-			OpenBrowserCommand = ReactiveCommand.Create<string>(x => IoHelpers.OpenBrowser(x));
+			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 
-			Observable.Merge(OpenBrowserCommand.ThrownExceptions)
+			Observable
+				.Merge(OpenBrowserCommand.ThrownExceptions)
 				.Merge(LoadCommand.ThrownExceptions)
 				.Merge(TestPasswordCommand.ThrownExceptions)
 				.Merge(OpenFolderCommand.ThrownExceptions)
 				.Merge(ImportColdcardCommand.ThrownExceptions)
 				.Merge(EnumerateHardwareWalletsCommand.ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
 				{
-					SetWarningMessage(ex.ToTypeMessageString());
 					Logger.LogError(ex);
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
 				});
 
 			SetLoadButtonText();
@@ -189,38 +205,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			get => _isWalletOpened;
 			set => this.RaiseAndSetIfChanged(ref _isWalletOpened, value);
-		}
-
-		public string WarningMessage
-		{
-			get => _warningMessage;
-			set => this.RaiseAndSetIfChanged(ref _warningMessage, value);
-		}
-
-		public string ValidationMessage
-		{
-			get => _validationMessage;
-			set => this.RaiseAndSetIfChanged(ref _validationMessage, value);
-		}
-
-		public string SuccessMessage
-		{
-			get => _successMessage;
-			set => this.RaiseAndSetIfChanged(ref _successMessage, value);
-		}
-
-		public void SetWarningMessage(string message)
-		{
-			WarningMessage = message;
-			ValidationMessage = "";
-			SuccessMessage = "";
-		}
-
-		public void SetValidationMessage(string message)
-		{
-			WarningMessage = "";
-			ValidationMessage = message;
-			SuccessMessage = "";
 		}
 
 		public void SetLoadButtonText()
@@ -307,7 +291,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			Wallets.Clear();
 			Password = "";
-			SetValidationMessage("");
 
 			var directoryInfo = new DirectoryInfo(Global.WalletsDir);
 			var walletFiles = directoryInfo.GetFiles("*.json", SearchOption.TopDirectoryOnly).OrderByDescending(t => t.LastAccessTimeUtc);
@@ -328,6 +311,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 
 			TrySetWalletStates();
+
+			if (!CanLoadWallet && Wallets.Count > 0)
+			{
+				NotificationHelpers.Warning("There is already an open wallet. Restart the application in order to open a different one.");
+			}
 		}
 
 		private bool TrySetWalletStates()
@@ -355,7 +343,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					IsWalletOpened = true;
 					CanLoadWallet = false;
-					SetWarningMessage("There is already an open wallet. Restart the application in order to open a different one.");
 				}
 
 				SetLoadButtonText();
@@ -379,7 +366,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			try
 			{
-				SetValidationMessage("");
 				CanTestPassword = false;
 				var password = Guard.Correct(Password); // Do not let whitespaces to the beginning and to the end.
 				Password = ""; // Clear password field.
@@ -387,7 +373,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				var selectedWallet = SelectedWallet;
 				if (selectedWallet is null)
 				{
-					SetValidationMessage("No wallet selected.");
+					NotificationHelpers.Warning("No wallet selected.");
 					return null;
 				}
 
@@ -398,7 +384,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 					if (selectedWallet.HardwareWalletInfo is null)
 					{
-						SetValidationMessage("No hardware wallet detected.");
+						NotificationHelpers.Warning("No hardware wallet detected.");
 						return null;
 					}
 
@@ -407,7 +393,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						try
 						{
 							IsHardwareBusy = true;
-							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.SettingUpHardwareWallet);
+							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.SettingUpHardwareWallet);
 
 							// Setup may take a while for users to write down stuff.
 							using (var ctsSetup = new CancellationTokenSource(TimeSpan.FromMinutes(21)))
@@ -424,20 +410,20 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 								}
 							}
 
-							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.ConnectingToHardwareWallet);
+							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.ConnectingToHardwareWallet);
 							await EnumerateHardwareWalletsAsync();
 						}
 						finally
 						{
 							IsHardwareBusy = false;
-							MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.SettingUpHardwareWallet, StatusBarStatus.ConnectingToHardwareWallet);
+							MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusType.SettingUpHardwareWallet, StatusType.ConnectingToHardwareWallet);
 						}
 
 						return await LoadKeyManagerAsync(requirePassword, isHardwareWallet);
 					}
 					else if (selectedWallet.HardwareWalletInfo.NeedsPinSent is true)
 					{
-						await PinPadViewModel.UnlockAsync(Global, selectedWallet.HardwareWalletInfo);
+						await PinPadViewModel.UnlockAsync(selectedWallet.HardwareWalletInfo);
 
 						var p = selectedWallet.HardwareWalletInfo.Path;
 						var t = selectedWallet.HardwareWalletInfo.Model;
@@ -445,7 +431,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						selectedWallet = Wallets.FirstOrDefault(x => x.HardwareWalletInfo.Model == t && x.HardwareWalletInfo.Path == p);
 						if (selectedWallet is null)
 						{
-							SetValidationMessage("Could not find the hardware wallet. Did you disconnect it?");
+							NotificationHelpers.Warning("Could not find the hardware wallet. Did you disconnect it?");
 							return null;
 						}
 						else
@@ -455,13 +441,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 						if (!selectedWallet.HardwareWalletInfo.IsInitialized())
 						{
-							SetValidationMessage("Hardware wallet is not initialized.");
+							NotificationHelpers.Warning("Hardware wallet is not initialized.");
 							return null;
 						}
 
 						if (selectedWallet.HardwareWalletInfo.NeedsPinSent is true)
 						{
-							SetValidationMessage("Hardware wallet needs a PIN to be sent.");
+							NotificationHelpers.Warning("Hardware wallet needs a PIN to be sent.");
 							return null;
 						}
 					}
@@ -470,13 +456,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 					try
 					{
-						MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.AcquiringXpubFromHardwareWallet);
+						MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.AcquiringXpubFromHardwareWallet);
 						extPubKey = await client.GetXpubAsync(selectedWallet.HardwareWalletInfo.Model, selectedWallet.HardwareWalletInfo.Path, KeyManager.DefaultAccountKeyPath, cts.Token);
 					}
 					finally
 					{
 						cts?.Dispose();
-						MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.AcquiringXpubFromHardwareWallet);
+						MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusType.AcquiringXpubFromHardwareWallet);
 					}
 
 					Logger.LogInfo("Hardware wallet was not used previously on this computer. Creating a new wallet file.");
@@ -496,6 +482,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 							await EnumerateHardwareWalletsAsync();
 							selectedWallet = Wallets.FirstOrDefault(x => x.HardwareWalletInfo.Model == selectedWallet.HardwareWalletInfo.Model && x.HardwareWalletInfo.Path == selectedWallet.HardwareWalletInfo.Path);
 						}
+						if (!selectedWallet.HardwareWalletInfo.Fingerprint.HasValue)
+						{
+							throw new InvalidOperationException("Hardware wallet did not provide fingerprint.");
+						}
 						KeyManager.CreateNewHardwareWalletWatchOnly(selectedWallet.HardwareWalletInfo.Fingerprint.Value, extPubKey, path);
 					}
 				}
@@ -506,7 +496,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					// The selected wallet is not available any more (someone deleted it?).
 					OnCategorySelected();
-					SetValidationMessage("The selected wallet and its backup do not exist, did you delete them?");
+					NotificationHelpers.Warning("The selected wallet and its backup do not exist, did you delete them?");
 					return null;
 				}
 
@@ -517,18 +507,17 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					if (PasswordHelper.TryPassword(keyManager, password, out string compatibilityPasswordUsed))
 					{
-						SuccessMessage = "Correct password.";
+						NotificationHelpers.Success("Correct password.");
 						if (compatibilityPasswordUsed != null)
 						{
-							WarningMessage = PasswordHelper.CompatibilityPasswordWarnMessage;
-							ValidationMessage = "";
+							NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
 						}
 
 						keyManager.SetPasswordVerified();
 					}
 					else
 					{
-						SetValidationMessage("Wrong password.");
+						NotificationHelpers.Error("Wrong password.");
 						return null;
 					}
 				}
@@ -555,7 +544,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				}
 
 				// Initialization failed.
-				SetValidationMessage(ex.ToTypeMessageString());
+				NotificationHelpers.Error(ex.ToUserFriendlyString());
 				Logger.LogError(ex);
 
 				return null;
@@ -570,7 +559,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 			IsHwWalletSearchTextVisible = true;
-			SetWarningMessage("");
 			try
 			{
 				var client = new HwiClient(Global.Network);
@@ -634,8 +622,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			try
 			{
 				IsBusy = true;
-				SetValidationMessage("");
-				MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusBarStatus.Loading);
 
 				var keyManager = await LoadKeyManagerAsync(IsPasswordRequired, IsHardwareWallet);
 				if (keyManager is null)
@@ -651,7 +637,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					// Open Wallet Explorer tabs
 					if (Global.WalletService.Coins.Any())
 					{
-						// If already have coins then open with History tab first.
+						// If already have coins then open the last active tab first.
 						IoC.Get<WalletExplorerViewModel>().OpenWallet(Global.WalletService, receiveDominant: false);
 					}
 					else // Else open with Receive tab first.
@@ -662,7 +648,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				catch (Exception ex)
 				{
 					// Initialization failed.
-					SetValidationMessage(ex.ToTypeMessageString());
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
 					if (!(ex is OperationCanceledException))
 					{
 						Logger.LogError(ex);
@@ -672,7 +658,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 			finally
 			{
-				MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.Loading);
 				IsBusy = false;
 			}
 		}

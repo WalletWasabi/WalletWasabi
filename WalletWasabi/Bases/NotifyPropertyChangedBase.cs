@@ -6,7 +6,7 @@ using System.Text;
 
 namespace WalletWasabi.Bases
 {
-	public class NotifyPropertyChangedBase : INotifyPropertyChanged
+	public abstract class NotifyPropertyChangedBase : INotifyPropertyChanged
 	{
 		#region Events
 

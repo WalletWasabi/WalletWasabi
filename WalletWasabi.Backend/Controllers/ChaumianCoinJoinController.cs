@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using NBitcoin.BouncyCastle.Math;
 using NBitcoin.Crypto;
@@ -14,12 +15,12 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.CoinJoin.Coordinator;
 using WalletWasabi.CoinJoin.Coordinator.MixingLevels;
 using WalletWasabi.CoinJoin.Coordinator.Participants;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
-using WalletWasabi.Coins;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -34,13 +35,15 @@ namespace WalletWasabi.Backend.Controllers
 	[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
 	public class ChaumianCoinJoinController : Controller
 	{
+		private IMemoryCache Cache { get; }
 		public Global Global { get; }
 		private RPCClient RpcClient => Global.RpcClient;
 		private Network Network => Global.Config.Network;
 		private Coordinator Coordinator => Global.Coordinator;
 
-		public ChaumianCoinJoinController(Global global)
+		public ChaumianCoinJoinController(IMemoryCache memoryCache, Global global)
 		{
+			Cache = memoryCache;
 			Global = global;
 		}
 
@@ -217,7 +220,7 @@ namespace WalletWasabi.Backend.Controllers
 						if (getTxOutResponse.Confirmations <= 0)
 						{
 							// If it spends a CJ then it may be acceptable to register.
-							if (!await Coordinator.ContainsCoinJoinAsync(inputProof.Input.TransactionId))
+							if (!await Coordinator.ContainsUnconfirmedCoinJoinAsync(inputProof.Input.TransactionId))
 							{
 								return BadRequest("Provided input is neither confirmed, nor is from an unconfirmed coinjoin.");
 							}
@@ -615,7 +618,15 @@ namespace WalletWasabi.Backend.Controllers
 			{
 				case RoundPhase.Signing:
 					{
-						return Ok(round.GetUnsignedCoinJoinHex());
+						var hex = round.UnsignedCoinJoinHex;
+						if (hex is { })
+						{
+							return Ok(hex);
+						}
+						else
+						{
+							return NotFound("Hex not found. This is impossible.");
+						}
 					}
 				default:
 					{
@@ -686,21 +697,21 @@ namespace WalletWasabi.Backend.Controllers
 								{
 									return BadRequest($"Malformed witness is provided. Details: {ex.Message}");
 								}
-								int maxIndex = round.UnsignedCoinJoin.Inputs.Count - 1;
+								int maxIndex = round.CoinJoin.Inputs.Count - 1;
 								if (maxIndex < index)
 								{
 									return BadRequest($"Index out of range. Maximum value: {maxIndex}. Provided value: {index}");
 								}
 
 								// Check duplicates.
-								if (round.SignedCoinJoin.Inputs[index].HasWitScript())
+								if (round.CoinJoin.Inputs[index].HasWitScript())
 								{
 									return BadRequest("Input is already signed.");
 								}
 
 								// Verify witness.
 								// 1. Copy UnsignedCoinJoin.
-								Transaction cjCopy = Transaction.Parse(round.UnsignedCoinJoin.ToHex(), Network);
+								Transaction cjCopy = Transaction.Parse(round.CoinJoin.ToHex(), Network);
 								// 2. Sign the copy.
 								cjCopy.Inputs[index].WitScript = witness;
 								// 3. Convert the current input to IndexedTxIn.
@@ -714,7 +725,7 @@ namespace WalletWasabi.Backend.Controllers
 								}
 
 								// Finally add it to our CJ.
-								round.SignedCoinJoin.Inputs[index].WitScript = witness;
+								round.CoinJoin.Inputs[index].WitScript = witness;
 							}
 
 							alice.State = AliceState.SignedCoinJoin;
@@ -730,6 +741,25 @@ namespace WalletWasabi.Backend.Controllers
 						return Conflict($"CoinJoin can only be requested from Signing phase. Current phase: {phase}.");
 					}
 			}
+		}
+
+		/// <summary>
+		/// Gets the list of unconfirmed CoinJoin transaction Ids.
+		/// </summary>
+		/// <returns>The list of CoinJoin transactions in the mempool.</returns>
+		/// <response code="200">An array of transaction Ids</response>
+		[HttpGet("unconfirmed-coinjoins")]
+		[ProducesResponseType(200)]
+		public async Task<IActionResult> GetUnconfirmedCoinjoinsAsync()
+		{
+			IEnumerable<string> unconfirmedCoinJoinString = (await GetUnconfirmedCoinJoinCollectionAsync()).Select(x => x.ToString());
+			return Ok(unconfirmedCoinJoinString);
+		}
+
+		internal async Task<IEnumerable<uint256>> GetUnconfirmedCoinJoinCollectionAsync()
+		{
+			var unconfirmedCoinJoins = await Global.Coordinator.GetUnconfirmedCoinJoinsAsync();
+			return unconfirmedCoinJoins;
 		}
 
 		private Guid GetGuidOrFailureResponse(string uniqueId, out IActionResult returnFailureResponse)

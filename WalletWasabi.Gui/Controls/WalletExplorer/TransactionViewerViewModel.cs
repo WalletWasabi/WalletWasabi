@@ -1,7 +1,11 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using AvalonStudio.Extensibility;
+using AvalonStudio.Shell;
 using NBitcoin;
 using ReactiveUI;
+using Splat;
 using System;
 using System.IO;
 using System.Linq;
@@ -10,22 +14,25 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Transactions.TransactionBuilding;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class TransactionViewerViewModel : WalletActionViewModel
 	{
 		private CompositeDisposable Disposables { get; set; }
+		private Global Global { get; }
 
 		private string _txId;
 		private string _psbtJsonText;
 		private string _psbtHexText;
 		private string _psbtBase64Text;
 		private byte[] _psbtBytes;
-		public ReactiveCommand<Unit, Unit> ExportBinaryPsbtCommand { get; set; }
+		public ReactiveCommand<Unit, Unit> ExportBinaryPsbt { get; set; }
+		public ReactiveCommand<Unit, Unit> OpenTransactionBroadcaster { get; set; }
 
 		public bool? IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode;
 
@@ -61,46 +68,55 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public TransactionViewerViewModel(WalletViewModel walletViewModel) : base("Transaction", walletViewModel)
 		{
-			ExportBinaryPsbtCommand = ReactiveCommand.CreateFromTask(async () =>
+			Global = Locator.Current.GetService<Global>();
+
+			OpenTransactionBroadcaster = ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new TransactionBroadcasterViewModel()));
+			ExportBinaryPsbt = ReactiveCommand.CreateFromTask(async () =>
 			{
-				try
+				var psbtExtension = "psbt";
+				var sfd = new SaveFileDialog
 				{
-					var psbtExtension = "psbt";
-					var sfd = new SaveFileDialog
-					{
-						DefaultExtension = psbtExtension,
-						InitialFileName = TxId,
-						Title = "Export Binary PSBT"
-					};
+					DefaultExtension = psbtExtension,
+					InitialFileName = TxId.Substring(0, 7),
+					Title = "Export Binary PSBT"
+				};
 
-					if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+				{
+					var initialDirectory = Path.Combine("/media", Environment.UserName);
+					if (!Directory.Exists(initialDirectory))
 					{
-						sfd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+						initialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 					}
-
-					string fileFullName = await sfd.ShowAsync(Application.Current.MainWindow, fallBack: true);
-					if (!string.IsNullOrWhiteSpace(fileFullName))
-					{
-						var ext = Path.GetExtension(fileFullName);
-						if (string.IsNullOrWhiteSpace(ext))
-						{
-							fileFullName = $"{fileFullName}.{psbtExtension}";
-						}
-						await File.WriteAllBytesAsync(fileFullName, PsbtBytes);
-					}
+					sfd.Directory = initialDirectory;
 				}
-				catch (Exception ex)
+				else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 				{
-					SetWarningMessage(ex.ToTypeMessageString());
+					sfd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+				}
+
+				var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
+				string fileFullName = await sfd.ShowAsync(window, fallBack: true);
+				if (!string.IsNullOrWhiteSpace(fileFullName))
+				{
+					var ext = Path.GetExtension(fileFullName);
+					if (string.IsNullOrWhiteSpace(ext))
+					{
+						fileFullName = $"{fileFullName}.{psbtExtension}";
+					}
+					await File.WriteAllBytesAsync(fileFullName, PsbtBytes);
+				}
+			});
+
+			Observable
+				.Merge(ExportBinaryPsbt.ThrownExceptions)
+				.Merge(OpenTransactionBroadcaster.ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex =>
+				{
 					Logger.LogError(ex);
-				}
-			},
-			outputScheduler: RxApp.MainThreadScheduler);
-		}
-
-		private void OnException(Exception ex)
-		{
-			SetWarningMessage(ex.ToTypeMessageString());
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
+				});
 		}
 
 		public override void OnOpen()
@@ -141,7 +157,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			catch (Exception ex)
 			{
-				OnException(ex);
+				NotificationHelpers.Error(ex.ToUserFriendlyString());
+				Logger.LogError(ex);
 			}
 		}
 	}

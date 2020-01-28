@@ -18,7 +18,7 @@ namespace WalletWasabi.Gui.Helpers
 					return true;
 				}
 			}
-			catch (Exception)
+			catch
 			{
 				// do nothing
 			}

@@ -2,16 +2,19 @@ using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using NBitcoin;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
-using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
@@ -23,75 +26,85 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private string _password;
 		private string _mnemonicWords;
 		private string _walletName;
-		private string _validationMessage;
 		private bool _showAdvancedOptions;
 		private string _accountKeyPath;
 		private int _minGapLimit;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
-		public Global Global { get; }
 
 		public RecoverWalletViewModel(WalletManagerViewModel owner) : base("Recover Wallet")
 		{
-			Global = owner.Global;
+			Global = Locator.Current.GetService<Global>();
+
 			MnemonicWords = "";
 
 			RecoverCommand = ReactiveCommand.Create(() =>
+			{
+				WalletName = Guard.Correct(WalletName);
+				MnemonicWords = Guard.Correct(MnemonicWords);
+				Password = Guard.Correct(Password); // Do not let whitespaces to the beginning and to the end.
+
+				string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
+
+				if (string.IsNullOrWhiteSpace(WalletName))
 				{
-					WalletName = Guard.Correct(WalletName);
-					MnemonicWords = Guard.Correct(MnemonicWords);
-					Password = Guard.Correct(Password); // Do not let whitespaces to the beginning and to the end.
+					NotificationHelpers.Error("Invalid wallet name.");
+				}
+				else if (File.Exists(walletFilePath))
+				{
+					NotificationHelpers.Error("Wallet name is already taken.");
+				}
+				else if (string.IsNullOrWhiteSpace(MnemonicWords))
+				{
+					NotificationHelpers.Error("Recovery Words were not supplied.");
+				}
+				else if (string.IsNullOrWhiteSpace(AccountKeyPath))
+				{
+					NotificationHelpers.Error("The account key path is not valid.");
+				}
+				else if (MinGapLimit < KeyManager.AbsoluteMinGapLimit)
+				{
+					NotificationHelpers.Error($"Min Gap Limit cannot be smaller than {KeyManager.AbsoluteMinGapLimit}.");
+				}
+				else if (MinGapLimit > 1_000_000)
+				{
+					NotificationHelpers.Error($"Min Gap Limit cannot be larger than {1_000_000}.");
+				}
+				else if (!KeyPath.TryParse(AccountKeyPath, out KeyPath keyPath))
+				{
+					NotificationHelpers.Error("The account key path is not a valid derivation path.");
+				}
+				else
+				{
+					try
+					{
+						var mnemonic = new Mnemonic(MnemonicWords);
+						var km = KeyManager.Recover(mnemonic, Password, filePath: null, keyPath, MinGapLimit);
+						km.SetNetwork(Global.Network);
+						km.SetFilePath(walletFilePath);
+						km.ToFile();
 
-					string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
+						NotificationHelpers.Success("Wallet is successfully recovered!");
 
-					if (string.IsNullOrWhiteSpace(WalletName))
-					{
-						ValidationMessage = $"The name {WalletName} is not valid.";
+						owner.SelectLoadWallet();
 					}
-					else if (File.Exists(walletFilePath))
+					catch (Exception ex)
 					{
-						ValidationMessage = $"The name {WalletName} is already taken.";
+						Logger.LogError(ex);
+						NotificationHelpers.Error(ex.ToUserFriendlyString());
 					}
-					else if (string.IsNullOrWhiteSpace(MnemonicWords))
-					{
-						ValidationMessage = "Recovery Words were not supplied.";
-					}
-					else if (string.IsNullOrWhiteSpace(AccountKeyPath))
-					{
-						ValidationMessage = "The account key path is not valid.";
-					}
-					else if (MinGapLimit < KeyManager.AbsoluteMinGapLimit)
-					{
-						ValidationMessage = $"Min Gap Limit cannot be smaller than {KeyManager.AbsoluteMinGapLimit}.";
-					}
-					else if (MinGapLimit > 1_000_000)
-					{
-						ValidationMessage = $"Min Gap Limit cannot be larger than {1_000_000}.";
-					}
-					else if (!KeyPath.TryParse(AccountKeyPath, out KeyPath keyPath))
-					{
-						ValidationMessage = "The account key path is not a valid derivation path.";
-					}
-					else
-					{
-						try
-						{
-							var mnemonic = new Mnemonic(MnemonicWords);
-							KeyManager.Recover(mnemonic, Password, walletFilePath, keyPath, MinGapLimit);
-
-							owner.SelectLoadWallet();
-						}
-						catch (Exception ex)
-						{
-							ValidationMessage = ex.ToTypeMessageString();
-							Logger.LogError(ex);
-						}
-					}
-				});
+				}
+			});
 
 			this.WhenAnyValue(x => x.MnemonicWords).Subscribe(UpdateSuggestions);
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
+
+			RecoverCommand.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
+
+		private Global Global { get; }
 
 		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
 
@@ -120,12 +133,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set => this.RaiseAndSetIfChanged(ref _walletName, value);
 		}
 
-		public string ValidationMessage
-		{
-			get => _validationMessage;
-			set => this.RaiseAndSetIfChanged(ref _validationMessage, value);
-		}
-
 		public int CaretIndex
 		{
 			get => _caretIndex;
@@ -152,21 +159,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public ReactiveCommand<Unit, Unit> RecoverCommand { get; }
 
-		public void OnTermsClicked()
-		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new TermsAndConditionsViewModel(Global));
-		}
-
-		public void OnPrivacyClicked()
-		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new PrivacyPolicyViewModel(Global));
-		}
-
-		public void OnLegalClicked()
-		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new LegalIssuesViewModel(Global));
-		}
-
 		public override void OnCategorySelected()
 		{
 			base.OnCategorySelected();
@@ -176,7 +168,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			WalletName = Global.GetNextWalletName();
 
-			ValidationMessage = null;
 			ShowAdvancedOptions = false;
 			AccountKeyPath = $"m/{KeyManager.DefaultAccountKeyPath}";
 			MinGapLimit = KeyManager.AbsoluteMinGapLimit * 3;
@@ -216,7 +207,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 			else
 			{
-				words[words.Length - 1] = word;
+				words[^1] = word;
 				MnemonicWords = string.Join(' ', words) + " ";
 			}
 

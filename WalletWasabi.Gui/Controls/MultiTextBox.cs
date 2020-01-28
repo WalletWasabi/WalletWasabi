@@ -7,6 +7,7 @@ using Avalonia.Input;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -91,6 +92,10 @@ namespace WalletWasabi.Gui.Controls
 			Disposables = new CompositeDisposable();
 
 			CopyToClipboardCommand = ReactiveCommand.CreateFromTask(async () => await TryCopyToClipboardAsync());
+
+			CopyToClipboardCommand.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
@@ -162,10 +167,6 @@ namespace WalletWasabi.Gui.Controls
 			{
 				Logger.LogTrace(ex);
 			}
-			catch (Exception ex)
-			{
-				Logger.LogWarning(ex);
-			}
 			finally
 			{
 				CancelClipboardNotification?.Dispose();
@@ -191,8 +192,8 @@ namespace WalletWasabi.Gui.Controls
 			try
 			{
 				var eventArgs = eventPattern?.EventArgs as PointerPressedEventArgs;
-				var uiConfig = Application.Current.Resources[Global.UiConfigResourceKey] as UiConfig;
-				if (uiConfig?.Autocopy is true && eventArgs?.MouseButton == MouseButton.Left)
+				var uiConfig = Locator.Current.GetService<Global>().UiConfig;
+				if (uiConfig?.Autocopy is true && eventArgs?.GetCurrentPoint(this).Properties.IsLeftButtonPressed == true)
 				{
 					if (CopyOnClick)
 					{

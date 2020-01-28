@@ -1,9 +1,11 @@
+using NBitcoin;
 using NBitcoin.RPC;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using WalletWasabi.Models;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Blockchain.Blocks;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests
@@ -19,7 +21,7 @@ namespace WalletWasabi.Tests.UnitTests
 				{ 3, 20 },
 				{ 19, 1 }
 			};
-			var allFee = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations);
+			var allFee = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations, true);
 			var serialized = JsonConvert.SerializeObject(allFee);
 			var deserialized = JsonConvert.DeserializeObject<AllFeeEstimate>(serialized);
 

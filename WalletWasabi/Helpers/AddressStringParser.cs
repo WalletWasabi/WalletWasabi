@@ -28,7 +28,7 @@ namespace WalletWasabi.Helpers
 			try
 			{
 				var bitcoinAddress = BitcoinAddress.Create(text, expectedNetwork);
-				url = new BitcoinUrlBuilder($"bitcoin:{bitcoinAddress}");
+				url = new BitcoinUrlBuilder($"bitcoin:{bitcoinAddress}", expectedNetwork);
 				return true;
 			}
 			catch (FormatException)
@@ -60,7 +60,7 @@ namespace WalletWasabi.Helpers
 					return false;
 				}
 
-				var bitcoinUrl = new BitcoinUrlBuilder(text);
+				var bitcoinUrl = new BitcoinUrlBuilder(text, expectedNetwork);
 				if (bitcoinUrl?.Address.Network == expectedNetwork)
 				{
 					url = bitcoinUrl;

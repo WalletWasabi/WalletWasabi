@@ -2,14 +2,14 @@ using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using WalletWasabi.BlockchainAnalysis;
-using WalletWasabi.Coins;
+using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
-using WalletWasabi.KeyManagement;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
-using WalletWasabi.Transactions;
-using WalletWasabi.Transactions.TransactionBuilding;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions
@@ -542,16 +542,16 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void SelectLockTimeForTransaction()
 		{
-			var lockTimeZero = int.MaxValue;
+			var lockTimeZero = uint.MaxValue;
 			var samplingSize = 10_000;
 
-			var dict = Enumerable.Range(-99, 101).ToDictionary(x=>x, x=>0);
+			var dict = Enumerable.Range(-99, 101).ToDictionary(x=>(uint)x, x=>0);
 			dict[lockTimeZero] = 0;
 
-			var curTip = 100_000;
+			var curTip = 100_000u;
 			foreach (var i in Enumerable.Range(0, samplingSize))
 			{
-				var lt = WalletService.InternalSelectLockTimeForTransaction(curTip).Height;
+				var lt = (uint)WalletService.InternalSelectLockTimeForTransaction(curTip).Height;
 				var diff = lt == 0 ? lockTimeZero : lt - curTip;
 				dict[diff]++;
 			}

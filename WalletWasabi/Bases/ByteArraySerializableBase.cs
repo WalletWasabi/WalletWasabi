@@ -54,7 +54,7 @@ namespace WalletWasabi.Bases
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => obj is ByteArraySerializableBase serializableBase && this == serializableBase;
+		public override bool Equals(object obj) => Equals(obj as ByteArraySerializableBase);
 
 		public bool Equals(ByteArraySerializableBase other) => this == other;
 

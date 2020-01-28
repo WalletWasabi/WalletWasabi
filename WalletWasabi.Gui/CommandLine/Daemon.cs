@@ -4,8 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Helpers;
-using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.CommandLine
@@ -111,11 +112,12 @@ namespace WalletWasabi.Gui.CommandLine
 					}
 
 					mixing = anyCoinsQueued || keepMixAlive;
-				} while (mixing);
+				}
+				while (mixing);
 
 				if (!Global.KillRequested) // This only has to run if it finishes by itself. Otherwise the Ctrl+c runs it.
 				{
-					await Global.ChaumianClient?.DequeueAllCoinsFromMixAsync("Stopping Wasabi.");
+					await Global.ChaumianClient?.DequeueAllCoinsFromMixAsync(DequeueReason.ApplicationExit);
 				}
 			}
 			catch

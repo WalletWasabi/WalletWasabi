@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.CoinJoin.Coordinator.Banning;
 using WalletWasabi.CoinJoin.Coordinator.Participants;
@@ -28,6 +29,8 @@ namespace WalletWasabi.CoinJoin.Coordinator
 		public string CoinJoinsFilePath => Path.Combine(FolderPath, $"CoinJoins{Network}.txt");
 		private AsyncLock CoinJoinsLock { get; }
 
+		private List<uint256> UnconfirmedCoinJoins { get; }
+
 		public event EventHandler<Transaction> CoinJoinBroadcasted;
 
 		public RPCClient RpcClient { get; }
@@ -36,16 +39,16 @@ namespace WalletWasabi.CoinJoin.Coordinator
 
 		public Network Network { get; }
 
-		public TrustedNodeNotifyingBehavior TrustedNodeNotifyingBehavior { get; }
+		public BlockNotifier BlockNotifier { get; }
 
 		public string FolderPath { get; }
 
 		public UtxoReferee UtxoReferee { get; }
 
-		public Coordinator(Network network, TrustedNodeNotifyingBehavior trustedNodeNotifyingBehavior, string folderPath, RPCClient rpc, CoordinatorRoundConfig roundConfig)
+		public Coordinator(Network network, BlockNotifier blockNotifier, string folderPath, RPCClient rpc, CoordinatorRoundConfig roundConfig)
 		{
 			Network = Guard.NotNull(nameof(network), network);
-			TrustedNodeNotifyingBehavior = Guard.NotNull(nameof(trustedNodeNotifyingBehavior), trustedNodeNotifyingBehavior);
+			BlockNotifier = Guard.NotNull(nameof(blockNotifier), blockNotifier);
 			FolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(folderPath), folderPath, trim: true);
 			RpcClient = Guard.NotNull(nameof(rpc), rpc);
 			RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
@@ -54,6 +57,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 			RoundsListLock = new AsyncLock();
 
 			CoinJoins = new List<uint256>();
+			UnconfirmedCoinJoins = new List<uint256>();
 			CoinJoinsLock = new AsyncLock();
 
 			Directory.CreateDirectory(FolderPath);
@@ -119,6 +123,9 @@ namespace WalletWasabi.CoinJoin.Coordinator
 					Logger.LogWarning($"CoinJoins file got corrupted. Deleting {CoinJoinsFilePath}. {ex.GetType()}: {ex.Message}");
 					File.Delete(CoinJoinsFilePath);
 				}
+
+				uint256[] mempoolHashes = RpcClient.GetRawMempoolAsync().GetAwaiter().GetResult();
+				UnconfirmedCoinJoins.AddRange(CoinJoins.Intersect(mempoolHashes));
 			}
 
 			try
@@ -142,16 +149,19 @@ namespace WalletWasabi.CoinJoin.Coordinator
 				Logger.LogDebug(ex);
 			}
 
-			TrustedNodeNotifyingBehavior.Block += TrustedNodeNotifyingBehavior_BlockAsync;
+			BlockNotifier.OnBlock += BlockNotifier_OnBlockAsync;
 		}
 
-		private async void TrustedNodeNotifyingBehavior_BlockAsync(object sender, Block block)
+		private async void BlockNotifier_OnBlockAsync(object sender, Block block)
 		{
 			try
 			{
-				foreach (Transaction tx in block.Transactions)
+				using (await CoinJoinsLock.LockAsync())
 				{
-					await ProcessTransactionAsync(tx).ConfigureAwait(false);
+					foreach (Transaction tx in block.Transactions)
+					{
+						await ProcessConfirmedTransactionAsync(tx).ConfigureAwait(false);
+					}
 				}
 			}
 			catch (Exception ex)
@@ -160,7 +170,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 			}
 		}
 
-		public async Task ProcessTransactionAsync(Transaction tx)
+		public async Task ProcessConfirmedTransactionAsync(Transaction tx)
 		{
 			// This should not be needed until we would only accept unconfirmed CJ outputs an no other unconf outs. But it'll be more bulletproof for future extensions.
 			// Turns out you shouldn't accept RBF at all never. (See below.)
@@ -168,6 +178,9 @@ namespace WalletWasabi.CoinJoin.Coordinator
 			// https://github.com/zkSNACKs/WalletWasabi/issues/145
 			// if it spends a banned output AND it's not CJ output
 			// ban all the outputs of the transaction
+			tx.PrecomputeHash(false, true);
+
+			UnconfirmedCoinJoins.Remove(tx.GetHash()); // Locked outside.
 
 			if (RoundConfig.DosSeverity <= 1)
 			{
@@ -238,18 +251,17 @@ namespace WalletWasabi.CoinJoin.Coordinator
 		{
 			try
 			{
-				uint256[] mempoolHashes = await RpcClient.GetRawMempoolAsync().ConfigureAwait(false);
 				int unconfirmedCoinJoinsCount = 0;
 				if (lockCoinJoins)
 				{
 					using (await CoinJoinsLock.LockAsync().ConfigureAwait(false))
 					{
-						unconfirmedCoinJoinsCount = CoinJoins.Intersect(mempoolHashes).Count();
+						unconfirmedCoinJoinsCount = UnconfirmedCoinJoins.Count;
 					}
 				}
 				else
 				{
-					unconfirmedCoinJoinsCount = CoinJoins.Intersect(mempoolHashes).Count();
+					unconfirmedCoinJoinsCount = UnconfirmedCoinJoins.Count;
 				}
 
 				int confirmationTarget = CoordinatorRound.AdjustConfirmationTarget(unconfirmedCoinJoinsCount, RoundConfig.ConfirmationTarget, RoundConfig.ConfirmationTargetReductionRate);
@@ -283,12 +295,13 @@ namespace WalletWasabi.CoinJoin.Coordinator
 				{
 					using (await CoinJoinsLock.LockAsync().ConfigureAwait(false))
 					{
-						uint256 coinJoinHash = round.SignedCoinJoin.GetHash();
+						uint256 coinJoinHash = round.CoinJoin.GetHash();
 						CoinJoins.Add(coinJoinHash);
+						UnconfirmedCoinJoins.Add(coinJoinHash);
 						await File.AppendAllLinesAsync(CoinJoinsFilePath, new[] { coinJoinHash.ToString() }).ConfigureAwait(false);
 
 						// When a round succeeded, adjust the denomination as to users still be able to register with the latest round's active output amount.
-						IEnumerable<(Money value, int count)> outputs = round.SignedCoinJoin.GetIndistinguishableOutputs(includeSingle: true);
+						IEnumerable<(Money value, int count)> outputs = round.CoinJoin.GetIndistinguishableOutputs(includeSingle: true);
 						var bestOutput = outputs.OrderByDescending(x => x.count).FirstOrDefault();
 						if (bestOutput != default)
 						{
@@ -424,17 +437,25 @@ namespace WalletWasabi.CoinJoin.Coordinator
 			}
 		}
 
-		public async Task<bool> ContainsCoinJoinAsync(uint256 hash)
+		public async Task<bool> ContainsUnconfirmedCoinJoinAsync(uint256 hash)
 		{
 			using (await CoinJoinsLock.LockAsync().ConfigureAwait(false))
 			{
-				return CoinJoins.Contains(hash);
+				return UnconfirmedCoinJoins.Contains(hash);
 			}
 		}
 
 		public int GetCoinJoinCount()
 		{
 			return CoinJoins.Count;
+		}
+
+		public async Task<IEnumerable<uint256>> GetUnconfirmedCoinJoinsAsync()
+		{
+			using (await CoinJoinsLock.LockAsync())
+			{
+				return UnconfirmedCoinJoins.ToArray();
+			}
 		}
 
 		#region IDisposable Support
@@ -449,9 +470,9 @@ namespace WalletWasabi.CoinJoin.Coordinator
 				{
 					using (RoundsListLock.Lock())
 					{
-						if (TrustedNodeNotifyingBehavior != null)
+						if (BlockNotifier != null)
 						{
-							TrustedNodeNotifyingBehavior.Block -= TrustedNodeNotifyingBehavior_BlockAsync;
+							BlockNotifier.OnBlock -= BlockNotifier_OnBlockAsync;
 						}
 
 						foreach (CoordinatorRound round in Rounds)

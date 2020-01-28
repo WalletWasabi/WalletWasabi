@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using WalletWasabi.KeyManagement;
 using NBitcoin;
 using System.Security;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Blockchain.Keys;
 
 namespace WalletWasabi.Helpers
 {
@@ -31,7 +31,7 @@ namespace WalletWasabi.Helpers
 			{
 				originalPassword,
 				buggyClipboard, // Should be here for every OP system. If I create a buggy wallet on OSX and transfer it to other system, it should also work.
-				$"{buggyClipboard.Substring(0,buggyClipboard.Length-1)}\ufffd" // Later I tested the functionality and experienced that the last character replaced by invalid character.
+				$"{buggyClipboard[0..^1]}\ufffd" // Later I tested the functionality and experienced that the last character replaced by invalid character.
 			};
 
 			return possiblePasswords.ToArray();
@@ -95,7 +95,7 @@ namespace WalletWasabi.Helpers
 			{
 				GetMasterExtKey(keyManager, password, out compatibilityPasswordUsed);
 			}
-			catch (Exception)
+			catch
 			{
 				return false;
 			}

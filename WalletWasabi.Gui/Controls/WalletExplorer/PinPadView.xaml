@@ -10,8 +10,6 @@
       <controls:TogglePasswordBox DockPanel.Dock="Top" Margin="4 0 4 20" Text="{Binding MaskedPin}" Watermark="PIN" />
       <StackPanel DockPanel.Dock="Bottom">
         <Button Margin="4 20" Content="Send PIN to Device" Command="{Binding SendPinCommand}" />
-        <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
-        <TextBlock Text="{Binding SuccessMessage}" Classes="validationMessage" Foreground="Green" />
       </StackPanel>
       <Grid>
         <Grid.Styles>

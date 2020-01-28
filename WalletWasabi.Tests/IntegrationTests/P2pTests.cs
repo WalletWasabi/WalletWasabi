@@ -7,21 +7,21 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.Crypto;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
-using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
-using WalletWasabi.Mempool;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
-using WalletWasabi.Transactions;
 using Xunit;
 
 namespace WalletWasabi.Tests.IntegrationTests
@@ -52,13 +52,14 @@ namespace WalletWasabi.Tests.IntegrationTests
 			{
 				throw new NotSupportedNetworkException(network);
 			}
+			var dataDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName());
 
 			BitcoinStore bitcoinStore = new BitcoinStore();
-			await bitcoinStore.InitializeAsync(Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetMethodName()), network);
+			await bitcoinStore.InitializeAsync(Path.Combine(dataDir, EnvironmentHelpers.GetMethodName()), network);
 
-			var addressManagerFolderPath = Path.Combine(Global.Instance.DataDir, "AddressManager");
+			var addressManagerFolderPath = Path.Combine(dataDir, "AddressManager");
 			var addressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{network}.dat");
-			var blocksFolderPath = Path.Combine(Global.Instance.DataDir, "Blocks", network.ToString());
+			var blocksFolderPath = Path.Combine(dataDir, "Blocks", network.ToString());
 			var connectionParameters = new NodeConnectionParameters();
 			AddressManager addressManager = null;
 			try
@@ -86,7 +87,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			}
 
 			connectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(addressManager));
-			connectionParameters.TemplateBehaviors.Add(bitcoinStore.CreateMempoolBehavior());
+			connectionParameters.TemplateBehaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 			using var nodes = new NodesGroup(network, connectionParameters, requirements: Constants.NodeRequirements);
 
@@ -98,8 +99,9 @@ namespace WalletWasabi.Tests.IntegrationTests
 				syncer,
 				new CoinJoinClient(syncer, network, keyManager, new Uri("http://localhost:12345"), Global.Instance.TorSocks5Endpoint),
 				nodes,
-				Global.Instance.DataDir,
-				new ServiceConfiguration(50, 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold)));
+				dataDir,
+				new ServiceConfiguration(50, 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold)),
+				syncer);
 			Assert.True(Directory.Exists(blocksFolderPath));
 
 			try
@@ -142,10 +144,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				{
 					await walletService?.DeleteBlockAsync(hash);
 				}
-				if (walletService != null)
-				{
-					await walletService.StopAsync();
-				}
+				walletService?.Dispose();
 
 				if (Directory.Exists(blocksFolderPath))
 				{

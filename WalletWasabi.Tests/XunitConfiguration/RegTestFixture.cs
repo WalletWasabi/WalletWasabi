@@ -1,12 +1,14 @@
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend;
@@ -14,6 +16,7 @@ using WalletWasabi.BitcoinCore;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Services;
 using WalletWasabi.Tests.Helpers;
 
 namespace WalletWasabi.Tests.XunitConfiguration
@@ -21,15 +24,18 @@ namespace WalletWasabi.Tests.XunitConfiguration
 	public class RegTestFixture : IDisposable
 	{
 		public string BackendEndPoint { get; internal set; }
-		public IWebHost BackendHost { get; internal set; }
+		public IHost BackendHost { get; internal set; }
 		public CoreNode BackendRegTestNode { get; internal set; }
 		public Backend.Global Global { get; }
 
 		public RegTestFixture()
 		{
-			BackendRegTestNode = TestNodeBuilder.CreateAsync(callerMemberName: "RegTests").GetAwaiter().GetResult();
+			RuntimeParams.SetDataDir(Path.Combine(Tests.Global.Instance.DataDir, "RegTests", "Backend"));
+			RuntimeParams.LoadAsync().GetAwaiter().GetResult();
+			var hostedServices = new HostedServices();
+			BackendRegTestNode = TestNodeBuilder.CreateAsync(hostedServices, callerFilePath: "RegTests", callerMemberName: "BitcoinCoreData").GetAwaiter().GetResult();
 
-			var testnetBackendDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Tests", "Backend"));
+			var testnetBackendDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Tests", "RegTests", "Backend"));
 			IoHelpers.DeleteRecursivelyWithMagicDustAsync(testnetBackendDir).GetAwaiter().GetResult();
 			Thread.Sleep(100);
 			Directory.CreateDirectory(testnetBackendDir);
@@ -55,13 +61,17 @@ namespace WalletWasabi.Tests.XunitConfiguration
 				.AddInMemoryCollection(new[] { new KeyValuePair<string, string>("datadir", testnetBackendDir) })
 				.Build();
 			BackendEndPoint = $"http://localhost:{new Random().Next(37130, 38000)}/";
-			BackendHost = WebHost.CreateDefaultBuilder()
-					.UseStartup<Startup>()
-					.UseConfiguration(conf)
-					.UseWebRoot("../../../../WalletWasabi.Backend/wwwroot")
-					.UseUrls(BackendEndPoint)
+
+			BackendHost = Host.CreateDefaultBuilder()
+					.ConfigureWebHostDefaults(webBuilder => webBuilder
+							.UseStartup<Startup>()
+							.UseConfiguration(conf)
+							.UseWebRoot("../../../../WalletWasabi.Backend/wwwroot")
+							.UseUrls(BackendEndPoint))
 					.Build();
+
 			Global = (Backend.Global)BackendHost.Services.GetService(typeof(Backend.Global));
+			Global.HostedServices = hostedServices;
 			var hostInitializationTask = BackendHost.RunWithTasksAsync();
 			Logger.LogInfo($"Started Backend webhost: {BackendEndPoint}");
 
@@ -69,19 +79,20 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			Task.WaitAny(delayTask, hostInitializationTask); // Wait for server to initialize (Without this OSX CI will fail)
 		}
 
-		public static CoordinatorRoundConfig CreateRoundConfig(Money denomination,
-												int confirmationTarget,
-												double confirmationTargetReductionRate,
-												decimal coordinatorFeePercent,
-												int anonymitySet,
-												long inputRegistrationTimeout,
-												long connectionConfirmationTimeout,
-												long outputRegistrationTimeout,
-												long signingTimeout,
-												int dosSeverity,
-												long dosDurationHours,
-												bool dosNoteBeforeBan,
-												int maximumMixingLevelCount)
+		public static CoordinatorRoundConfig CreateRoundConfig(
+			Money denomination,
+			int confirmationTarget,
+			double confirmationTargetReductionRate,
+			decimal coordinatorFeePercent,
+			int anonymitySet,
+			long inputRegistrationTimeout,
+			long connectionConfirmationTimeout,
+			long outputRegistrationTimeout,
+			long signingTimeout,
+			int dosSeverity,
+			long dosDurationHours,
+			bool dosNoteBeforeBan,
+			int maximumMixingLevelCount)
 		{
 			return new CoordinatorRoundConfig
 			{
@@ -113,7 +124,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 				{
 					BackendHost?.StopAsync().GetAwaiter().GetResult();
 					BackendHost?.Dispose();
-					BackendRegTestNode?.StopAsync().GetAwaiter().GetResult();
+					BackendRegTestNode?.TryStopAsync().GetAwaiter().GetResult();
 				}
 
 				_disposedValue = true;

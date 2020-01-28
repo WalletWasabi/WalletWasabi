@@ -4,10 +4,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Transactions;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Tests
 {

@@ -27,12 +27,12 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 
 		#region Group
 
-		[ExportMainMenuDefaultGroup("Tools", "Managers")]
+		[ExportMainMenuDefaultGroup("Tools", "Utilities")]
 		[DefaultOrder(0)]
-		public object ManagersGroup => null;
+		public object UtilitiesGroup => null;
 
 		[ExportMainMenuDefaultGroup("Tools", "Settings")]
-		[DefaultOrder(1)]
+		[DefaultOrder(10)]
 		public object SettingsGroup => null;
 
 		#endregion Group
@@ -40,21 +40,25 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		#region MenuItem
 
 		[ExportMainMenuItem("Tools", "Wallet Manager")]
-		[DefaultOrder(0)]
-		[DefaultGroup("Managers")]
+		[DefaultOrder(1)]
+		[DefaultGroup("Utilities")]
 		public IMenuItem WalletManager => MenuItemFactory.CreateCommandMenuItem("Tools.WalletManager");
 
 #if DEBUG
 
 		[ExportMainMenuItem("Tools", "Dev Tools")]
-		[DefaultOrder(1)]
-		[DefaultGroup("Managers")]
+		[DefaultOrder(10)]
+		[DefaultGroup("Utilities")]
 		public IMenuItem DevTools => MenuItemFactory.CreateCommandMenuItem("Tools.DevTools");
-
 #endif
 
-		[ExportMainMenuItem("Tools", "Settings")]
+		[ExportMainMenuItem("Tools", "Transaction Broadcaster")]
 		[DefaultOrder(2)]
+		[DefaultGroup("Utilities")]
+		public IMenuItem BroadcastTransaction => MenuItemFactory.CreateCommandMenuItem("Tools.BroadcastTransaction");
+
+		[ExportMainMenuItem("Tools", "Settings")]
+		[DefaultOrder(20)]
 		[DefaultGroup("Settings")]
 		public IMenuItem Settings => MenuItemFactory.CreateCommandMenuItem("Tools.Settings");
 

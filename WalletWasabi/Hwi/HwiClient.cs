@@ -15,7 +15,6 @@ using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Hwi.Parsers;
 using WalletWasabi.Hwi.ProcessBridge;
-using WalletWasabi.KeyManagement;
 using WalletWasabi.Microservices;
 
 namespace WalletWasabi.Hwi

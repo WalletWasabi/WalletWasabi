@@ -6,9 +6,10 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using WalletWasabi.BlockchainAnalysis;
+using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
-using WalletWasabi.Transactions;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions
@@ -20,7 +21,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		public async Task CanInitializeEmptyAsync(Network network)
 		{
 			var txStore = new AllTransactionStore();
-			await txStore.InitializeAsync(PrepareWorkDir(), network, ensureBackwardsCompatibility: false);
+			var dir = PrepareWorkDir();
+			await txStore.InitializeAsync(dir, network, ensureBackwardsCompatibility: false);
 
 			Assert.NotNull(txStore.ConfirmedStore);
 			Assert.NotNull(txStore.MempoolStore);
@@ -36,9 +38,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.True(txStore.IsEmpty());
 			Assert.False(txStore.TryGetTransaction(txHash, out _));
 
-			var dir = GetWorkDir();
 			var mempoolFile = Path.Combine(dir, "Mempool", "Transactions.dat");
-			var txFile = Path.Combine(dir, "ConfirmedTransactions", "Transactions.dat");
+			var txFile = Path.Combine(dir, "ConfirmedTransactions", Constants.ConfirmedTransactionsVersion, "Transactions.dat");
 			var mempoolContent = await File.ReadAllBytesAsync(mempoolFile);
 			var txContent = await File.ReadAllBytesAsync(txFile);
 
@@ -54,7 +55,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			string dir = PrepareWorkDir();
 			var network = Network.TestNet;
 			var mempoolFile = Path.Combine(dir, "Mempool", "Transactions.dat");
-			var txFile = Path.Combine(dir, "ConfirmedTransactions", "Transactions.dat");
+			var txFile = Path.Combine(dir, "ConfirmedTransactions", Constants.ConfirmedTransactionsVersion, "Transactions.dat");
 			IoHelpers.EnsureContainingDirectoryExists(mempoolFile);
 			IoHelpers.EnsureContainingDirectoryExists(txFile);
 
@@ -225,7 +226,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			string dir = PrepareWorkDir();
 			var network = Network.TestNet;
 			var mempoolFile = Path.Combine(dir, "Mempool", "Transactions.dat");
-			var txFile = Path.Combine(dir, "ConfirmedTransactions", "Transactions.dat");
+			var txFile = Path.Combine(dir, "ConfirmedTransactions", Constants.ConfirmedTransactionsVersion, "Transactions.dat");
 			IoHelpers.EnsureContainingDirectoryExists(mempoolFile);
 			IoHelpers.EnsureContainingDirectoryExists(txFile);
 
@@ -314,14 +315,135 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.False(txStore.TryGetTransaction(txHash, out _));
 		}
 
+		[Fact]
+		public async Task ReorgAsync()
+		{
+			PrepareTestEnv(out string dir,
+				out Network network,
+				out string mempoolFile,
+				out string txFile,
+				out SmartTransaction uTx1,
+				out SmartTransaction uTx2,
+				out SmartTransaction uTx3,
+				out SmartTransaction _,
+				out SmartTransaction cTx2,
+				out SmartTransaction cTx3);
+
+			// Duplication is resolved with labels merged.
+			var mempoolFileContent = new[]
+			{
+				uTx1.ToLine(),
+				uTx2.ToLine(),
+				uTx3.ToLine(),
+			};
+			var txFileContent = new[]
+			{
+				cTx2.ToLine(),
+				cTx3.ToLine()
+			};
+			await File.WriteAllLinesAsync(mempoolFile, mempoolFileContent);
+			await File.WriteAllLinesAsync(txFile, txFileContent);
+
+			var txStore = new AllTransactionStore();
+			await txStore.InitializeAsync(dir, network, ensureBackwardsCompatibility: false);
+
+			// Two transactions are in the mempool store and unconfirmed.
+			Assert.True(txStore.MempoolStore.TryGetTransaction(uTx1.GetHash(), out SmartTransaction myUnconfirmedTx1));
+			Assert.False(myUnconfirmedTx1.Confirmed);
+			Assert.True(txStore.MempoolStore.TryGetTransaction(uTx2.GetHash(), out SmartTransaction myUnconfirmedTx2));
+			Assert.False(myUnconfirmedTx2.Confirmed);
+
+			// Create the same transaction but now with a Height to make it confirmed.
+			const int reorgedBlockHeight = 34532;
+			uint256 reorgedBlockHash = new uint256(5);
+
+			var tx1Confirmed = new SmartTransaction(uTx1.Transaction, new Height(reorgedBlockHeight), blockHash: reorgedBlockHash, label: "buz, qux");
+			var tx2Confirmed = new SmartTransaction(uTx2.Transaction, new Height(reorgedBlockHeight), blockHash: reorgedBlockHash, label: "buz, qux");
+			Assert.True(txStore.TryUpdate(tx1Confirmed));
+			Assert.True(txStore.TryUpdate(tx2Confirmed));
+
+			// Two transactions are in the ConfirmedStore store and confirmed.
+			Assert.True(txStore.ConfirmedStore.TryGetTransaction(uTx1.GetHash(), out SmartTransaction mytx1));
+			Assert.False(txStore.MempoolStore.TryGetTransaction(uTx1.GetHash(), out _));
+			Assert.True(mytx1.Confirmed);
+			Assert.True(txStore.ConfirmedStore.TryGetTransaction(uTx2.GetHash(), out SmartTransaction mytx2));
+			Assert.False(txStore.MempoolStore.TryGetTransaction(uTx2.GetHash(), out _));
+			Assert.True(mytx2.Confirmed);
+
+			// Now reorg.
+			txStore.ReleaseToMempoolFromBlock(reorgedBlockHash);
+
+			// Two transactions are in the mempool store and unconfirmed.
+			Assert.True(txStore.MempoolStore.TryGetTransaction(uTx1.GetHash(), out SmartTransaction myReorgedTx1));
+			Assert.False(txStore.ConfirmedStore.TryGetTransaction(uTx1.GetHash(), out _));
+			Assert.False(myReorgedTx1.Confirmed);
+			Assert.True(txStore.MempoolStore.TryGetTransaction(uTx2.GetHash(), out SmartTransaction myReorgedTx2));
+			Assert.False(txStore.ConfirmedStore.TryGetTransaction(uTx2.GetHash(), out _));
+			Assert.False(myReorgedTx2.Confirmed);
+		}
+
+		[Fact]
+		public async Task ReorgSameBlockAgainAsync()
+		{
+			int blocks = 300;
+			int transactionsPerBlock = 3;
+			string dir = PrepareWorkDir();
+
+			var txStore = new AllTransactionStore();
+			var network = Network.Main;
+			await txStore.InitializeAsync(dir, network, ensureBackwardsCompatibility: false);
+
+			foreach (var height in Enumerable.Range(1, blocks))
+			{
+				var blockHash = RandomUtils.GetUInt256();
+				foreach (var n in Enumerable.Range(0, transactionsPerBlock))
+				{
+					txStore.AddOrUpdate(CreateTransaction(height, blockHash));
+				}
+			}
+			var storedTxs = txStore.GetTransactions();
+			Assert.Equal(blocks * transactionsPerBlock, storedTxs.Count());
+			var newestConfirmedTx = storedTxs.Last();
+			var tipHeight = blocks;
+			var tipHash = newestConfirmedTx.BlockHash;
+			Assert.Equal(tipHeight, newestConfirmedTx.Height.Value);
+
+			// reorgs non-existing block
+			var reorgedTxs = txStore.ReleaseToMempoolFromBlock(RandomUtils.GetUInt256());
+			Assert.Empty(reorgedTxs);
+
+			// reorgs most recent block
+			reorgedTxs = txStore.ReleaseToMempoolFromBlock(newestConfirmedTx.BlockHash);
+			Assert.Equal(3, reorgedTxs.Count());
+			Assert.All(reorgedTxs, tx => Assert.False(tx.Confirmed));
+			Assert.All(reorgedTxs, tx => Assert.True(txStore.TryGetTransaction(tx.GetHash(), out _)));
+
+			Assert.False(txStore.TryGetTransaction(tipHash, out _));
+			Assert.DoesNotContain(tipHash, txStore.GetTransactionHashes());
+
+			// reorgs the same block again
+			reorgedTxs = txStore.ReleaseToMempoolFromBlock(newestConfirmedTx.BlockHash);
+			Assert.Empty(reorgedTxs);
+			Assert.False(txStore.TryGetTransaction(tipHash, out _));
+			Assert.DoesNotContain(tipHash, txStore.GetTransactionHashes());
+
+			// reorgs deep block
+			var oldestConfirmedTx = storedTxs.First();
+			var firstBlockHash = oldestConfirmedTx.BlockHash;
+
+			// What to do here
+			reorgedTxs = txStore.ReleaseToMempoolFromBlock(firstBlockHash);
+			Assert.NotEmpty(reorgedTxs);
+		}
+
 		#region Helpers
 
-		private void PrepareTestEnv(out string dir, out Network network, out string mempoolFile, out string txFile, out SmartTransaction uTx1, out SmartTransaction uTx2, out SmartTransaction uTx3, out SmartTransaction cTx1, out SmartTransaction cTx2, out SmartTransaction cTx3, [CallerMemberName] string caller = null)
+		private void PrepareTestEnv(out string dir, out Network network, out string mempoolFile, out string txFile, out SmartTransaction uTx1, out SmartTransaction uTx2, out SmartTransaction uTx3, out SmartTransaction cTx1, out SmartTransaction cTx2, out SmartTransaction cTx3, [CallerFilePath]string callerFilePath = null, [CallerMemberName] string callerMemberName = null)
 		{
-			dir = PrepareWorkDir(caller);
+			dir = PrepareWorkDir(EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName);
 			network = Network.TestNet;
 			mempoolFile = Path.Combine(dir, "Mempool", "Transactions.dat");
-			txFile = Path.Combine(dir, "ConfirmedTransactions", "Transactions.dat");
+			txFile = Path.Combine(dir, "ConfirmedTransactions", Constants.ConfirmedTransactionsVersion, "Transactions.dat");
 			IoHelpers.EnsureContainingDirectoryExists(mempoolFile);
 			IoHelpers.EnsureContainingDirectoryExists(txFile);
 
@@ -333,21 +455,15 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			cTx3 = SmartTransaction.FromLine("ebcef423f6b03ef89dce076b53e624c966381f76e5d8b2b5034d3615ae950b2f:01000000000101296d58df626f1e250c661bd45497d159647526eb8166aec86852eb37104c37950100000000ffffffff01facb100300000000160014d5461e0e7077d62c4cf9c18a4e9ba10efd4930340247304402206d2c5b2b182474531ed07587e44ea22b136a37d5ddbd35aa2d984da7be5f7e5202202abd8435d9856e3d0892dbd54e9c05f2a20d9d5f333247314b925947a480a2eb01210321dd0574c773a35d4a7ebf17bf8f974b5665c0183598f1db53153e74c876768500000000:1580673:0000000017b09a77b815f3df513ff698d1f3b0e8c5e16ac0d6558e2d831f3bf9:130::1570462988:False", network);
 		}
 
-		private string PrepareWorkDir([CallerMemberName] string caller = null)
+		private string PrepareWorkDir([CallerFilePath]string callerFilePath = null, [CallerMemberName] string callerMemberName = null)
 		{
-			string dir = GetWorkDir(caller);
+			string dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName);
 			if (Directory.Exists(dir))
 			{
 				Directory.Delete(dir, true);
 			}
 
 			return dir;
-		}
-
-		private static string GetWorkDir([CallerMemberName] string caller = null)
-		{
-			// Make sure starts with clear state.
-			return Path.Combine(Global.Instance.DataDir, nameof(AllTransactionStoreTests), caller);
 		}
 
 		public static IEnumerable<object[]> GetDifferentNetworkValues()
@@ -363,6 +479,16 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			{
 				yield return new object[] { network };
 			}
+		}
+
+		private static SmartTransaction CreateTransaction(int height, uint256 blockHash)
+		{
+			var tx = Network.RegTest.CreateTransaction();
+			tx.Version = 1;
+			tx.LockTime = LockTime.Zero;
+			tx.Inputs.Add(new OutPoint(RandomUtils.GetUInt256(), 0), new Script(OpcodeType.OP_0, OpcodeType.OP_0), sequence: Sequence.Final);
+			tx.Outputs.Add(Money.Coins(1), Script.Empty);
+			return new SmartTransaction(tx, new Height(height), blockHash);
 		}
 
 		#endregion Helpers

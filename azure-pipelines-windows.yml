@@ -7,13 +7,9 @@ jobs:
     vmImage: 'vs2017-win2016'
   steps:
   - task: UseDotNet@2
-    displayName: 'Install .NET Core 2'
-    inputs:
-      version: 2.x
-  - task: UseDotNet@2
     displayName: 'Install .NET Core 3'
     inputs:
-      version: 3.0.x
+      version: 3.1.x
   - task: DotNetCoreCLI@2
     displayName: 'Build Debug'
     inputs:

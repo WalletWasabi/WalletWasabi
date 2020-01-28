@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,18 +11,23 @@ namespace System.Diagnostics
 {
 	public static class ProcessExtensions
 	{
-		private static Dictionary<int, TaskCompletionSource<bool>> AwaitingTaskCompletitionSources { get; } = new Dictionary<int, TaskCompletionSource<bool>>();
-		private static object AwaitingTaskCompletitionSourcesLock { get; } = new object();
+		private static Dictionary<int, TaskCompletionSource<bool>> AwaitingTaskCompletionSources { get; } = new Dictionary<int, TaskCompletionSource<bool>>();
+		private static object AwaitingTaskCompletionSourcesLock { get; } = new object();
 
 		public static async Task WaitForExitAsync(this Process process, CancellationToken cancel)
 		{
+			if (process.HasExited)
+			{
+				return;
+			}
+
 			// https://stackoverflow.com/a/12858633
 			var tcs = new TaskCompletionSource<bool>();
 			try
 			{
-				lock (AwaitingTaskCompletitionSourcesLock)
+				lock (AwaitingTaskCompletionSourcesLock)
 				{
-					AwaitingTaskCompletitionSources.Add(process.Id, tcs);
+					AwaitingTaskCompletionSources.Add(process.Id, tcs);
 					process.EnableRaisingEvents = true;
 					process.Exited += Process_Exited;
 				}
@@ -41,10 +47,10 @@ namespace System.Diagnostics
 			}
 			finally
 			{
-				lock (AwaitingTaskCompletitionSourcesLock)
+				lock (AwaitingTaskCompletionSourcesLock)
 				{
 					process.Exited -= Process_Exited;
-					AwaitingTaskCompletitionSources.Remove(process.Id);
+					AwaitingTaskCompletionSources.Remove(process.Id);
 				}
 			}
 		}
@@ -53,10 +59,10 @@ namespace System.Diagnostics
 		{
 			try
 			{
-				lock (AwaitingTaskCompletitionSourcesLock)
+				lock (AwaitingTaskCompletionSourcesLock)
 				{
 					var proc = sender as Process;
-					TaskCompletionSource<bool> tcs = AwaitingTaskCompletitionSources[proc.Id];
+					TaskCompletionSource<bool> tcs = AwaitingTaskCompletionSources[proc.Id];
 					tcs.SetResult(true);
 				}
 			}

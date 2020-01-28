@@ -5,8 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using WalletWasabi.BlockchainAnalysis;
-using WalletWasabi.Transactions;
+using WalletWasabi.Blockchain.Transactions;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions

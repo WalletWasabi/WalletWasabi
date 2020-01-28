@@ -104,7 +104,7 @@ csharp_prefer_braces = true:error
 dotnet_style_readonly_field = false:error
 
 # use expression body for lambdas
-csharp_style_expression_bodied_lambdas = true:error
+csharp_style_expression_bodied_lambdas = true:suggestion
 
 # IDE0066: Convert switch statement to expression
 csharp_style_prefer_switch_expression = true:error
@@ -211,6 +211,15 @@ dotnet_naming_symbols.type_parameters_symbols.applicable_kinds = type_parameter
 dotnet_naming_style.T_pascal_case_style.required_prefix = T
 dotnet_naming_style.T_pascal_case_style.capitalization = pascal_case
 
+
+# IDE0056: Use index operator
+csharp_style_prefer_index_operator = true:error
+
+# IDE0032: Use auto property
+dotnet_style_prefer_auto_properties = true:error
+
+# IDE0057: Use range operator
+csharp_style_prefer_range_operator = true:error
 
 [*.xaml]
 indent_style = space

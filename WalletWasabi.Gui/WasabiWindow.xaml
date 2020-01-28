@@ -1,0 +1,11 @@
+<cont:MetroWindow xmlns="https://github.com/avaloniaui"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                  xmlns:cont="clr-namespace:AvalonStudio.Shell.Controls;assembly=AvalonStudio.Shell"                  
+                  x:Class="WalletWasabi.Gui.WasabiWindow"
+                  Icon="avares://WalletWasabi.Gui/Assets/WasabiLogo256.png"
+                  Title="{Binding Title}"                  
+                  FontFamily="{DynamicResource UiFont}" FontSize="14"
+                  Foreground="{DynamicResource ThemeForegroundBrush}"                  
+                  UseLayoutRounding="True"
+                  RenderOptions.BitmapInterpolationMode="HighQuality" />
+

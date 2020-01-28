@@ -26,11 +26,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			_wallets = new ObservableCollection<WalletViewModel>();
 		}
 
-		[Import]
-		public AvaloniaGlobalComponent GlobalComponent { get; set; }
-
-		public Global Global => GlobalComponent?.Global;
-
 		private ObservableCollection<WalletViewModel> _wallets;
 
 		public ObservableCollection<WalletViewModel> Wallets
@@ -55,7 +50,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return;
 			}
 
-			WalletViewModel walletViewModel = new WalletViewModel(Global, receiveDominant);
+			WalletViewModel walletViewModel = new WalletViewModel(receiveDominant);
 			_wallets.Add(walletViewModel);
 			walletViewModel.OnWalletOpened();
 

@@ -16,17 +16,23 @@ namespace WalletWasabi.JsonConverters
 		/// <inheritdoc />
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
-			var value = Guard.Correct((string)reader.Value);
-
-			return string.IsNullOrWhiteSpace(value) ? default : Network.Parse<BitcoinAddress>(value);
+			var bitcoinAddressString = reader.Value as string;
+			if (string.IsNullOrWhiteSpace(bitcoinAddressString))
+			{
+				return default;
+			}
+			else
+			{
+				return NBitcoinHelpers.BetterParseBitcoinAddress(bitcoinAddressString);
+			}
 		}
 
 		/// <inheritdoc />
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
-			var address = (BitcoinAddress)value;
+			var bitcoinAddress = value as BitcoinAddress;
 
-			writer.WriteValue(address.ToString());
+			writer.WriteValue(bitcoinAddress.ToString());
 		}
 	}
 }

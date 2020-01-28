@@ -4,9 +4,9 @@ using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
 using WalletWasabi.Helpers;
-using WalletWasabi.KeyManagement;
 using Xunit;
 using WalletWasabi.Logging;
+using WalletWasabi.Blockchain.Keys;
 
 namespace WalletWasabi.Tests.UnitTests
 {

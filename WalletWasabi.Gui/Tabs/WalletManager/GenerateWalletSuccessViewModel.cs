@@ -2,6 +2,13 @@ using NBitcoin;
 using ReactiveUI;
 using System.Reactive;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Logging;
+using System;
+using System.Reactive.Linq;
+using WalletWasabi.Helpers;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Models;
+using WalletWasabi.Gui.Helpers;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
@@ -9,11 +16,20 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 	{
 		private string _mnemonicWords;
 
-		public GenerateWalletSuccessViewModel(WalletManagerViewModel owner, Mnemonic mnemonic) : base("Wallet Generated Successfully!")
+		public GenerateWalletSuccessViewModel(WalletManagerViewModel owner, KeyManager keyManager, Mnemonic mnemonic) : base("Wallet Generated Successfully!")
 		{
 			_mnemonicWords = mnemonic.ToString();
 
-			ConfirmCommand = ReactiveCommand.Create(owner.SelectTestPassword);
+			ConfirmCommand = ReactiveCommand.Create(() =>
+			{
+				keyManager.ToFile();
+				NotificationHelpers.Success("Wallet is successfully generated!");
+				owner.SelectTestPassword();
+			});
+
+			ConfirmCommand.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		public string MnemonicWords

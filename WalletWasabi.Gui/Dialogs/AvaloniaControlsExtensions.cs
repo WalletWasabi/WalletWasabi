@@ -56,11 +56,11 @@ namespace Avalonia.Controls
 						: @"/path/to/the/file";
 
 					string defaultTextInput = me is OpenFileDialog
-						? Path.Combine(me.InitialDirectory ?? "", me.InitialFileName ?? "")
+						? Path.Combine(me.Directory ?? "", me.InitialFileName ?? "")
 						: me is SaveFileDialog sfd
 							? Path.ChangeExtension(
 								Path.Combine(
-									string.IsNullOrEmpty(me.InitialDirectory) ? Path.GetDirectoryName(exampleFilePath) : me.InitialDirectory,
+									string.IsNullOrEmpty(me.Directory) ? Path.GetDirectoryName(exampleFilePath) : me.Directory,
 									string.IsNullOrEmpty(me.InitialFileName) ? Path.GetFileName(exampleFilePath) : me.InitialFileName),
 								string.IsNullOrEmpty(sfd.DefaultExtension) ? "ext" : sfd.DefaultExtension)
 							: throw new NotImplementedException();
