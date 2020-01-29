@@ -3,13 +3,5 @@ jobs:
   pool:
     vmImage: 'ubuntu-latest'
   steps:
-  - task: UseDotNet@2
-    displayName: 'Install .NET Core 3'
-    inputs:
-      version: 3.1.x
-  - task: DotNetCoreCLI@2
-    displayName: 'Quality Gate'
-    inputs:
-      command: test
-      projects: 'WalletWasabi.QualityGate/WalletWasabi.QualityGate.csproj'
-      arguments: --configuration Release
+  - script: "foo=$(for x in $(git diff --numstat master); do echo $x; done | awk '/^[0-9]+$/' | paste -s -d+ -)"
+  - script: "echo $(( $foo ))"
