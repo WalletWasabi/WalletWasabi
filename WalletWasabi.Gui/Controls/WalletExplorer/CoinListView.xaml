@@ -26,6 +26,13 @@
     <Style Selector="TextBox.Transparent">
       <Setter Property="Background" Value="Transparent" />
     </Style>
+    <Style Selector="Grid.CoinItemGrid">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Height" Value="24" />
+    </Style>
+    <Style Selector="Grid.CoinItemGrid > :is(Control)">
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
   </UserControl.Styles>
   <i:Interaction.Behaviors>
     <behaviors:ClearPropertyOnLostFocusBehavior TargetProperty="{Binding SelectedCoin}" />
@@ -35,8 +42,8 @@
     <DockPanel LastChildFill="True">
       <Grid DockPanel.Dock="Top">
         <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="30" />
-          <ColumnDefinition Width="30" />
+          <ColumnDefinition Width="40" />
+          <ColumnDefinition Width="40" />
           <ColumnDefinition SharedSizeGroup="A" Width="{Binding CoinJoinStatusWidth, Mode=OneWay}" />
           <ColumnDefinition Width="150" />
           <ColumnDefinition Width="80" />
@@ -96,8 +103,8 @@
                   </ContextMenu>
                 </Grid.ContextMenu>
                 <Grid.ColumnDefinitions>
-                  <ColumnDefinition Width="30" />
-                  <ColumnDefinition Width="30" />
+                  <ColumnDefinition Width="40" />
+                  <ColumnDefinition Width="40" />
                   <ColumnDefinition SharedSizeGroup="A" />
                   <ColumnDefinition Width="150" />
                   <ColumnDefinition Width="80" />
