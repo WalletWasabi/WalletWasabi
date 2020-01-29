@@ -32,7 +32,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WalletWasabi.Packager", "Wa
 EndProject
 Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "WalletWasabi.WindowsInstaller", "WalletWasabi.WindowsInstaller\WalletWasabi.WindowsInstaller.wixproj", "{54654468-4F58-4253-84BD-6F53A8D3D2C4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WalletWasabi.QualityGate", "WalletWasabi.QualityGate\WalletWasabi.QualityGate.csproj", "{A38BF902-5F18-4A83-A14B-ED8B41D8E699}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WalletWasabi.QualityGate", "WalletWasabi.QualityGate\WalletWasabi.QualityGate.csproj", "{A9098C93-016A-42AE-AF74-F3211F793987}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -87,14 +87,14 @@ Global
 		{54654468-4F58-4253-84BD-6F53A8D3D2C4}.Release|Any CPU.ActiveCfg = Release|x64
 		{54654468-4F58-4253-84BD-6F53A8D3D2C4}.Release|x64.ActiveCfg = Release|x64
 		{54654468-4F58-4253-84BD-6F53A8D3D2C4}.Release|x64.Build.0 = Debug|x64
-		{A38BF902-5F18-4A83-A14B-ED8B41D8E699}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A38BF902-5F18-4A83-A14B-ED8B41D8E699}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A38BF902-5F18-4A83-A14B-ED8B41D8E699}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{A38BF902-5F18-4A83-A14B-ED8B41D8E699}.Debug|x64.Build.0 = Debug|Any CPU
-		{A38BF902-5F18-4A83-A14B-ED8B41D8E699}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A38BF902-5F18-4A83-A14B-ED8B41D8E699}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A38BF902-5F18-4A83-A14B-ED8B41D8E699}.Release|x64.ActiveCfg = Release|Any CPU
-		{A38BF902-5F18-4A83-A14B-ED8B41D8E699}.Release|x64.Build.0 = Release|Any CPU
+		{A9098C93-016A-42AE-AF74-F3211F793987}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9098C93-016A-42AE-AF74-F3211F793987}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9098C93-016A-42AE-AF74-F3211F793987}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A9098C93-016A-42AE-AF74-F3211F793987}.Debug|x64.Build.0 = Debug|Any CPU
+		{A9098C93-016A-42AE-AF74-F3211F793987}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9098C93-016A-42AE-AF74-F3211F793987}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9098C93-016A-42AE-AF74-F3211F793987}.Release|x64.ActiveCfg = Release|Any CPU
+		{A9098C93-016A-42AE-AF74-F3211F793987}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
