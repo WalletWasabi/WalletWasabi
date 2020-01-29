@@ -41,7 +41,6 @@ namespace WalletWasabi.Packager
 			var appNotarizeFilePath = Path.Combine(workingDir, $"Wasabi-{versionPrefix}.zip");
 			var contentsPath = Path.GetFullPath(Path.Combine(Program.PackagerProjectDirectory.Replace("\\", "//"), "Content", "Osx"));
 			var entitlementsPath = Path.Combine(contentsPath, "entitlements.plist");
-			var entitlementsSandBoxPath = Path.Combine(contentsPath, "entitlements_sandbox.plist");
 			var torZipDirPath = Path.Combine(binPath, "TorDaemons", "tor-osx64");
 			var torZipPath = $"{torZipDirPath}.zip";
 			var desktopDmgFilePath = Path.Combine(desktopPath, dmgFileName);
@@ -108,7 +107,7 @@ namespace WalletWasabi.Packager
 				process.WaitForExit();
 			}
 
-			var filesToCheck = new[] { entitlementsPath, entitlementsSandBoxPath, torZipPath };
+			var filesToCheck = new[] { entitlementsPath, torZipPath };
 
 			foreach (var file in filesToCheck)
 			{
@@ -153,9 +152,7 @@ namespace WalletWasabi.Packager
 					process.WaitForExit();
 				}
 
-				var entitlementArgs = isExecutable ? entitlementsSandBoxPath : entitlementsPath;
-
-				Sign($"{signArguments} --entitlements \"{entitlementArgs}\" \"{file}\"", dmgPath);
+				Sign($"{signArguments} --entitlements \"{entitlementsPath}\" \"{file}\"", dmgPath);
 
 			}
 
