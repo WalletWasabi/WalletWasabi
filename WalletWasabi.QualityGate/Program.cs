@@ -9,6 +9,7 @@ namespace WalletWasabi.QualityGate
 		{
 			if (args[0] == "foo")
 			{
+				// bump ci
 				Console.WriteLine("Failing gate.");
 				throw new Exception("foo");
 			}
