@@ -476,7 +476,7 @@
         </Rule>
         <Rule Name="ElementsMustAppearInTheCorrectOrder">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="ElementsMustBeOrderedByAccess">
