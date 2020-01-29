@@ -17,8 +17,10 @@ namespace WalletWasabi.QualityGate.Git.Processes
 		public async Task<int> GetNumberOfLinesChangedAsync()
 		{
 			var res = await SendCommandAsync("diff --numstat master", false, default).ConfigureAwait(false);
-			Console.WriteLine(res.response);
-			Console.WriteLine(res.exitCode);
+			if (res.exitCode != 0)
+			{
+				throw new GitException($"Git did not exit cleanly. Exit code: {res.exitCode}.");
+			}
 			var changes = res.response.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
 			var totalChanges = 0;
