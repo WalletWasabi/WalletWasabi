@@ -27,6 +27,7 @@ namespace WalletWasabi.QualityGate.Git.Processes
 
 		public async Task<int> GetNumberOfLinesChangedAsync()
 		{
+			await SendCommandAsync("fetch origin master").ConfigureAwait(false);
 			var res = await SendCommandAsync("diff --numstat master").ConfigureAwait(false);
 			var changes = res.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
