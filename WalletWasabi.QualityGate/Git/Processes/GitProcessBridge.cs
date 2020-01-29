@@ -9,7 +9,7 @@ namespace WalletWasabi.QualityGate.Git.Processes
 {
 	public class GitProcessBridge : ProcessBridge
 	{
-		public GitProcessBridge() : base(MicroserviceHelpers.GetBinaryPath("git"))
+		public GitProcessBridge() : base(new BridgeConfiguration(processPath: null, processName: "git"))
 		{
 		}
 	}

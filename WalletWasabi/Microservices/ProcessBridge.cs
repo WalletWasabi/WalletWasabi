@@ -13,15 +13,28 @@ namespace WalletWasabi.Microservices
 {
 	public class ProcessBridge : IProcessBridge
 	{
-		public string ProcessPath { get; }
+		public string ProcessPathOrName { get; }
 
 		public ProcessBridge(string processPath)
+			: this(new BridgeConfiguration(processPath: processPath, processName: null))
 		{
-			ProcessPath = Guard.NotNullOrEmptyOrWhitespace(nameof(processPath), processPath);
-			if (!File.Exists(ProcessPath))
+		}
+
+		public ProcessBridge(BridgeConfiguration configuration)
+		{
+			var processName = configuration.ProcessName;
+			if (processName is { })
 			{
-				var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(ProcessPath);
-				throw new FileNotFoundException($"{fileNameWithoutExtension} is not found.", ProcessPath);
+				ProcessPathOrName = processName;
+			}
+			else
+			{
+				ProcessPathOrName = configuration.ProcessPath;
+				if (!File.Exists(ProcessPathOrName))
+				{
+					var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(ProcessPathOrName);
+					throw new FileNotFoundException($"{fileNameWithoutExtension} is not found.", ProcessPathOrName);
+				}
 			}
 		}
 
@@ -52,7 +65,7 @@ namespace WalletWasabi.Microservices
 
 			ProcessStartInfo startInfo = new ProcessStartInfo
 			{
-				FileName = ProcessPath,
+				FileName = ProcessPathOrName,
 				Arguments = finalArguments,
 				RedirectStandardOutput = redirectStandardOutput,
 				UseShellExecute = useShellExecute,
