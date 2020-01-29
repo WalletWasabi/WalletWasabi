@@ -16,27 +16,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class WalletViewModel : ViewModelBase
 	{
-		private CompositeDisposable Disposables { get; set; }
-
 		private ObservableCollection<WalletActionViewModel> _actions;
-
 		private bool _isExpanded;
-
 		private string _title;
-
-		public Guid Id { get; set; } = Guid.NewGuid();
-
-		public bool IsExpanded
-		{
-			get => _isExpanded;
-			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
-		}
-
-		public string Title
-		{
-			get => _title;
-			set => this.RaiseAndSetIfChanged(ref _title, value);
-		}
 
 		public WalletViewModel(bool receiveDominant)
 		{
@@ -116,6 +98,32 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(ex => Logger.LogError(ex));
 		}
 
+		public Guid Id { get; set; } = Guid.NewGuid();
+
+		public bool IsExpanded
+		{
+			get => _isExpanded;
+			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
+		}
+
+		public string Title
+		{
+			get => _title;
+			set => this.RaiseAndSetIfChanged(ref _title, value);
+		}
+
+		public string Name { get; }
+		public WalletService WalletService { get; }
+		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
+
+		public ObservableCollection<WalletActionViewModel> Actions
+		{
+			get => _actions;
+			set => this.RaiseAndSetIfChanged(ref _actions, value);
+		}
+
+		private CompositeDisposable Disposables { get; set; }
+
 		public void OnWalletOpened()
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
@@ -147,18 +155,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public void OnWalletClosed()
 		{
 			Disposables?.Dispose();
-		}
-
-		public string Name { get; }
-
-		public WalletService WalletService { get; }
-
-		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
-
-		public ObservableCollection<WalletActionViewModel> Actions
-		{
-			get => _actions;
-			set => this.RaiseAndSetIfChanged(ref _actions, value);
 		}
 	}
 }

@@ -20,7 +20,7 @@ namespace WalletWasabi.Gui
 {
 	public class MainWindow : MetroWindow
 	{
-		public bool IsQuitPending { get; private set; }
+		private int _closingState;
 
 		public MainWindow()
 		{
@@ -43,14 +43,13 @@ namespace WalletWasabi.Gui
 			Closing += MainWindow_ClosingAsync;
 		}
 
+		public bool IsQuitPending { get; private set; }
 		private Global Global { get; }
 
 		private void InitializeComponent()
 		{
 			AvaloniaXamlLoader.Load(this);
 		}
-
-		private int _closingState;
 
 		private async void MainWindow_ClosingAsync(object sender, CancelEventArgs e)
 		{

@@ -27,6 +27,14 @@ namespace WalletWasabi.Gui
 		private bool _isCustomFee;
 		private bool _autocopy;
 
+		public UiConfig() : base()
+		{
+		}
+
+		public UiConfig(string filePath) : base(filePath)
+		{
+		}
+
 		[JsonProperty(PropertyName = "WindowState")]
 		[JsonConverter(typeof(WindowStateAfterStartJsonConverter))]
 		public WindowState WindowState { get; internal set; } = WindowState.Maximized;
@@ -89,14 +97,6 @@ namespace WalletWasabi.Gui
 		{
 			get => _lockScreenPinHash;
 			set => RaiseAndSetIfChanged(ref _lockScreenPinHash, value);
-		}
-
-		public UiConfig() : base()
-		{
-		}
-
-		public UiConfig(string filePath) : base(filePath)
-		{
 		}
 	}
 }
