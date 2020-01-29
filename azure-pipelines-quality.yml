@@ -1,0 +1,15 @@
+jobs:
+- job: Linux
+  pool:
+    vmImage: 'ubuntu-latest'
+  steps:
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core 3'
+    inputs:
+      version: 3.1.x
+  - task: DotNetCoreCLI@2
+    displayName: 'Test Quality'
+    inputs:
+      command: test
+      projects: 'WalletWasabi.QualityGate/WalletWasabi.QualityGate.csproj'
+      arguments: --configuration Release -- bar
