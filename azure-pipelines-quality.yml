@@ -12,4 +12,4 @@ jobs:
     inputs:
       command: run
       projects: 'WalletWasabi.QualityGate/WalletWasabi.QualityGate.csproj'
-      arguments: --configuration Release -- foo
+      arguments: --configuration Release -- bar
