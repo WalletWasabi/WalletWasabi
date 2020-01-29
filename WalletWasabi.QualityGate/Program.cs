@@ -7,16 +7,10 @@ namespace WalletWasabi.QualityGate
 	{
 		private static void Main(string[] args)
 		{
-			if (args[0] == "foo")
+			var command = args[0];
+			if (command == "prtoolarge")
 			{
-				// bump ci
-				Console.WriteLine("Failing gate.");
-				throw new Exception("foo");
-			}
-			else
-			{
-				Console.WriteLine("Passing gate.");
-				return;
+				throw new Exception("The pull request is too large. Please break it down to smaller pull requests.");
 			}
 		}
 	}
