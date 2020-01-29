@@ -47,7 +47,7 @@
         <controls:SortingArrow Grid.Column="4" Text="Privacy" Command="{Binding SortCommand}" SortDirection="{Binding PrivacySortDirection}" />
         <controls:SortingArrow Grid.Column="5" Text="Observers" Command="{Binding SortCommand}" SortDirection="{Binding ObserversSortDirection}" />
       </Grid>
-      <StackPanel Spacing="10" DockPanel.Dock="Bottom">
+      <StackPanel Spacing="10" DockPanel.Dock="Bottom" Orientation="Horizontal">
         <CheckBox IsThreeState="True" Margin="0" IsChecked="{Binding SelectPrivateCheckBoxState}" IsVisible="{Binding SelectAllPrivateVisible}" Command="{Binding SelectPrivateCheckBoxCommand}">
           <StackPanel Spacing="5" Orientation="Horizontal" ToolTip.Tip="Coins that have acquired the anonymity set target.">
             <TextBlock Text="Select" />
