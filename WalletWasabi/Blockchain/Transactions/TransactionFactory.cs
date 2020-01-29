@@ -39,7 +39,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			PaymentIntent payments,
 			FeeRate feeRate,
 			IEnumerable<TxoRef> allowedInputs = null)
-			=> BuildTransaction(payments, () => feeRate, allowedInputs, ()=> LockTime.Zero);
+			=> BuildTransaction(payments, () => feeRate, allowedInputs, () => LockTime.Zero);
 
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>

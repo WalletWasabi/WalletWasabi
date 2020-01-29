@@ -746,7 +746,7 @@ namespace WalletWasabi.Services
 					_ => (uint)(tipHeight - randomGenerator.Next(1, 100))
 				};
 			}
-			catch(Exception)
+			catch
 			{
 				return LockTime.Zero;
 			}
