@@ -31,6 +31,7 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WalletWasabi.Packager", "WalletWasabi.Packager\WalletWasabi.Packager.csproj", "{8BE916A0-1F3F-4757-BAD9-BFBAB8EAC3C2}"
 EndProject
 Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "WalletWasabi.WindowsInstaller", "WalletWasabi.WindowsInstaller\WalletWasabi.WindowsInstaller.wixproj", "{54654468-4F58-4253-84BD-6F53A8D3D2C4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
