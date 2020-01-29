@@ -8,8 +8,8 @@ jobs:
     inputs:
       version: 3.1.x
   - task: DotNetCoreCLI@2
-    displayName: 'Pull Request Too Large'
+    displayName: 'Quality Gate'
     inputs:
-      command: run
+      command: test
       projects: 'WalletWasabi.QualityGate/WalletWasabi.QualityGate.csproj'
-      arguments: --configuration Release -- prtoolarge
+      arguments: --configuration Release
