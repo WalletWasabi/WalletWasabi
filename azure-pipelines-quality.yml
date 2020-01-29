@@ -10,6 +10,6 @@ jobs:
   - task: DotNetCoreCLI@2
     displayName: 'Test Quality'
     inputs:
-      command: test
+      command: run
       projects: 'WalletWasabi.QualityGate/WalletWasabi.QualityGate.csproj'
       arguments: --configuration Release -- foo
