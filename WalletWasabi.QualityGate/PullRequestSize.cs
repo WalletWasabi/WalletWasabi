@@ -1,4 +1,6 @@
 using System;
+using System.Threading.Tasks;
+using WalletWasabi.QualityGate.Git.Processes;
 using Xunit;
 
 namespace WalletWasabi.QualityGate
@@ -6,9 +8,11 @@ namespace WalletWasabi.QualityGate
 	public class PullRequestSize
 	{
 		[Fact]
-		public void PrTooLarge()
+		public async Task PrTooLargeAsync()
 		{
-			// Do checks here.
+			var gitProcess = new GitProcessBridge();
+			var res = await gitProcess.SendCommandAsync("status", false, default);
+			Assert.NotNull(res.response);
 		}
 	}
 }
