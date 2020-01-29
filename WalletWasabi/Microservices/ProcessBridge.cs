@@ -14,6 +14,7 @@ namespace WalletWasabi.Microservices
 	public class ProcessBridge : IProcessBridge
 	{
 		public string ProcessPathOrName { get; }
+		protected string WorkingDirectory { get; set; }
 
 		public ProcessBridge(string processPath)
 			: this(new BridgeConfiguration(processPath: processPath, processName: null))
@@ -72,6 +73,11 @@ namespace WalletWasabi.Microservices
 				CreateNoWindow = createNoWindow,
 				WindowStyle = windowStyle
 			};
+
+			if (WorkingDirectory is { })
+			{
+				startInfo.WorkingDirectory = WorkingDirectory;
+			}
 
 			try
 			{

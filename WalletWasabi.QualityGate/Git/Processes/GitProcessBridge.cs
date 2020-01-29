@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Microservices;
 
 namespace WalletWasabi.QualityGate.Git.Processes
@@ -16,6 +17,7 @@ namespace WalletWasabi.QualityGate.Git.Processes
 
 		private async Task<string> SendCommandAsync(string command)
 		{
+			WorkingDirectory = EnvironmentHelpers.GetFullBaseDirectory();
 			var res = await SendCommandAsync(command, false, default).ConfigureAwait(false);
 			if (res.exitCode != 0)
 			{
