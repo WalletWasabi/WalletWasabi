@@ -3,7 +3,7 @@ jobs:
   pool:
     vmImage: 'ubuntu-latest'
   steps:
-  - checkout: self
+  - script: git fetch origin master
   - task: UseDotNet@2
     displayName: 'Install .NET Core 3'
     inputs:
