@@ -14,17 +14,21 @@ namespace WalletWasabi.QualityGate.Git.Processes
 		{
 		}
 
-		public async Task<int> GetNumberOfLinesChangedAsync()
+		private async Task<string> SendCommandAsync(string command)
 		{
-			var sr = await SendCommandAsync("git rev-parse --verify master", false, default).ConfigureAwait(false);
-			Console.WriteLine(sr.response);
-			Console.WriteLine(sr.exitCode);
-			var res = await SendCommandAsync("diff --numstat master", false, default).ConfigureAwait(false);
+			var res = await SendCommandAsync(command, false, default).ConfigureAwait(false);
 			if (res.exitCode != 0)
 			{
-				throw new GitException($"Git did not exit cleanly. Exit code: {res.exitCode}.");
+				throw new GitException($"git {command} did not exit cleanly. Exit code: {res.exitCode}.");
 			}
-			var changes = res.response.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+			return res.response;
+		}
+
+		public async Task<int> GetNumberOfLinesChangedAsync()
+		{
+			var res = await SendCommandAsync("diff --numstat master").ConfigureAwait(false);
+			var changes = res.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
 			var totalChanges = 0;
 			foreach (var change in changes)
@@ -36,6 +40,11 @@ namespace WalletWasabi.QualityGate.Git.Processes
 			}
 
 			return totalChanges;
+		}
+
+		public async Task<string> GetCurrentCommitAsync()
+		{
+			return await SendCommandAsync("rev-parse HEAD").ConfigureAwait(false);
 		}
 	}
 }

@@ -10,8 +10,8 @@ namespace WalletWasabi.QualityGate
 		[Fact]
 		public async Task PrTooLargeAsync()
 		{
-			var gitProcess = new GitProcessBridge();
-			var numberOfLinesChanged = await gitProcess.GetNumberOfLinesChangedAsync();
+			var git = new GitProcessBridge();
+			var numberOfLinesChanged = await git.GetNumberOfLinesChangedAsync();
 			Assert.InRange(numberOfLinesChanged, 0, 500);
 		}
 	}
