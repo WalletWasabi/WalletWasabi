@@ -38,6 +38,7 @@ namespace WalletWasabi.Packager
 			var infoFilePath = Path.Combine(appPath, "Contents", "Info.plist");
 			var dmgFileName = $"Wasabi-{versionPrefix}.dmg";
 			var dmgFilePath = Path.Combine(workingDir, dmgFileName);
+			var dmgUnzippedFilePath = Path.Combine(workingDir, $"Wasabi.tmp.dmg");
 			var appNotarizeFilePath = Path.Combine(workingDir, $"Wasabi-{versionPrefix}.zip");
 			var contentsPath = Path.GetFullPath(Path.Combine(Program.PackagerProjectDirectory.Replace("\\", "//"), "Content", "Osx"));
 			var entitlementsPath = Path.Combine(contentsPath, "entitlements.plist");
@@ -186,22 +187,6 @@ namespace WalletWasabi.Packager
 				File.Delete(dmgFilePath);
 			}
 
-			var dmgArguments = string.Join(" ", new string[]
-			{
-				"--volname \"Wallet Wasabi\"",
-				$"--volicon \"{Path.Combine(resPath, "WasabiLogo.icns")}\"",
-				$"--background \"{Path.Combine(contentsPath, "Logo_with_text_small.png")}\"",
-				"--window-pos 200 120",
-				"--window-size 600 450",
-				"--icon-size 100",
-				"--icon \"Wasabi Wallet.app\" 100 150",
-				"--hide-extension \"Wasabi Wallet.app\"",
-				"--app-drop-link 500 150",
-				"--no-internet-enable",
-				$"\"{dmgFilePath}\"",
-				$"\"{appPath}\""
-			});
-
 			Console.WriteLine("Phase: creating dmg.");
 
 			IoHelpers.CopyFilesRecursively(new DirectoryInfo(dmgContentsDir), new DirectoryInfo(dmgPath));
@@ -224,7 +209,7 @@ namespace WalletWasabi.Packager
 			var hdutilCreateArgs = string.Join(" ", new string[]
 			{
 				"create",
-				$"\"{dmgFilePath}\"",
+				$"\"{dmgUnzippedFilePath}\"",
 				"-ov",
 				$"-volname \"Wasabi Wallet\"",
 				"-fs HFS+",
@@ -235,6 +220,24 @@ namespace WalletWasabi.Packager
 			{
 				FileName = "hdiutil",
 				Arguments = hdutilCreateArgs,
+				WorkingDirectory = dmgPath
+			}))
+			{
+				process.WaitForExit();
+			}
+
+			var hdutilConvertArgs = string.Join(" ", new string[]
+			{
+				"convert",
+				$"\"{dmgUnzippedFilePath}\"",
+				"-format UDZO",
+				$"-o \"{dmgFilePath}\""
+			});
+
+			using (var process = Process.Start(new ProcessStartInfo
+			{
+				FileName = "hdiutil",
+				Arguments = hdutilConvertArgs,
 				WorkingDirectory = dmgPath
 			}))
 			{
@@ -327,9 +330,10 @@ namespace WalletWasabi.Packager
 					FileName = "xcrun",
 					Arguments = $"altool --notarization-info \"{uploadId}\" -u \"{appleId}\" -p \"{password}\"",
 					RedirectStandardError = true,
+					RedirectStandardOutput = true,
 				});
 				process.WaitForExit();
-				string result = process.StandardError.ReadToEnd();
+				string result = $"{process.StandardError.ReadToEnd()} {process.StandardOutput.ReadToEnd()}";
 				if (result.Contains("Status Message: Package Approved"))
 				{
 					break;
