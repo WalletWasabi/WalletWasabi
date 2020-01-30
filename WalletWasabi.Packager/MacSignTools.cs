@@ -267,7 +267,7 @@ namespace WalletWasabi.Packager
 			Console.WriteLine("Phase: finish.");
 		}
 
-		public static bool IsMacSignMode()
+		public static bool IsMacSignMode(string[] args)
 		{
 			return RuntimeInformation.IsOSPlatform(OSPlatform.OSX); // For now this is enough. If you run it on macOS you want to sign.
 		}
