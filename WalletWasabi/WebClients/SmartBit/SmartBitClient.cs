@@ -14,23 +14,27 @@ using WalletWasabi.WebClients.SmartBit.Models;
 
 namespace WalletWasabi.WebClients.SmartBit
 {
-	public class SmartBitClient
+	public class SmartBitClient : IDisposable
 	{
-		public Network Network { get; }
-		public Uri BaseAddress { get; }
 		private AsyncLock AsyncLock { get; } = new AsyncLock();
+		private HttpClient HttpClient { get; }
+		public Network Network { get; }
+		public Uri BaseAddress => HttpClient.BaseAddress;
 
-		public SmartBitClient(Network network)
+		public SmartBitClient(Network network, HttpMessageHandler handler = null, bool disposeHandler = false)
 		{
 			Network = network ?? throw new ArgumentNullException(nameof(network));
+			HttpClient = handler != null
+				? new HttpClient(handler, disposeHandler)
+				: new HttpClient();
 
 			if (network == Network.Main)
 			{
-				BaseAddress = new Uri("https://api.smartbit.com.au/v1/");
+				HttpClient.BaseAddress = new Uri("https://api.smartbit.com.au/v1/");
 			}
 			else if (network == Network.TestNet)
 			{
-				BaseAddress = new Uri("https://testnet-api.smartbit.com.au/v1/");
+				HttpClient.BaseAddress = new Uri("https://testnet-api.smartbit.com.au/v1/");
 			}
 			else
 			{
@@ -42,15 +46,13 @@ namespace WalletWasabi.WebClients.SmartBit
 		{
 			using (await AsyncLock.LockAsync(cancel))
 			{
-				using var httpClient = CreateHttpClient();
-				
 				using var content = new StringContent(
 					new JObject(new JProperty("hex", transaction.ToHex())).ToString(),
 					Encoding.UTF8,
 					"application/json");
 
 				using HttpResponseMessage response =
-						await httpClient.PostAsync("blockchain/pushtx", content, cancel);
+						await HttpClient.PostAsync("blockchain/pushtx", content, cancel);
 
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
@@ -67,16 +69,15 @@ namespace WalletWasabi.WebClients.SmartBit
 		{
 			using (await AsyncLock.LockAsync(cancel))
 			{
-				using var httpClient = CreateHttpClient();
-
-				using var response = await httpClient.GetAsync("exchange-rates", HttpCompletionOption.ResponseContentRead, cancel);
+				using HttpResponseMessage response =
+						await HttpClient.GetAsync("exchange-rates", HttpCompletionOption.ResponseContentRead, cancel);
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
 					throw new HttpRequestException(response.StatusCode.ToString());
 				}
 
-				using var content = response.Content;
-				string responseString = await content.ReadAsStringAsync();
+				using var responseContent = response.Content;
+				string responseString = await responseContent.ReadAsStringAsync();
 				AssertSuccess(responseString);
 
 				var exchangeRates = JObject.Parse(responseString).Value<JArray>("exchange_rates");
@@ -98,12 +99,36 @@ namespace WalletWasabi.WebClients.SmartBit
 			}
 		}
 
-		private HttpClient CreateHttpClient()
+		#region IDisposable Support
+
+		private bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
 		{
-			return new HttpClient()
+			if (!_disposedValue)
 			{
-				BaseAddress = BaseAddress
-			};
+				if (disposing)
+				{
+					// dispose managed state (managed objects).
+					HttpClient?.Dispose();
+				}
+
+				// free unmanaged resources (unmanaged objects) and override a finalizer below.
+				// set large fields to null.
+
+				_disposedValue = true;
+			}
 		}
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose()
+		{
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(true);
+			// uncomment the following line if the finalizer is overridden above.
+			// GC.SuppressFinalize(this);
+		}
+
+		#endregion IDisposable Support
 	}
 }
