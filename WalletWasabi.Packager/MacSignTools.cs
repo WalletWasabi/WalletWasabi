@@ -41,6 +41,7 @@ namespace WalletWasabi.Packager
 			var appNotarizeFilePath = Path.Combine(workingDir, $"Wasabi-{versionPrefix}.zip");
 			var contentsPath = Path.GetFullPath(Path.Combine(Program.PackagerProjectDirectory.Replace("\\", "//"), "Content", "Osx"));
 			var entitlementsPath = Path.Combine(contentsPath, "entitlements.plist");
+			var dmgContentsDir = Path.Combine(contentsPath, "Dmg");
 			var torZipDirPath = Path.Combine(binPath, "TorDaemons", "tor-osx64");
 			var torZipPath = $"{torZipDirPath}.zip";
 			var desktopDmgFilePath = Path.Combine(desktopPath, dmgFileName);
@@ -172,11 +173,11 @@ namespace WalletWasabi.Packager
 			//	process.WaitForExit();
 			//}
 
-			Console.WriteLine("Phase: notarize the app.");
+			//Console.WriteLine("Phase: notarize the app.");
 
-			ZipFile.CreateFromDirectory(appPath, appNotarizeFilePath);
-			Notarize(appleId, password, appNotarizeFilePath, bundleIdentifier);
-			Staple(appPath);
+			//ZipFile.CreateFromDirectory(appPath, appNotarizeFilePath);
+			//Notarize(appleId, password, appNotarizeFilePath, bundleIdentifier);
+			//Staple(appPath);
 
 			Console.WriteLine("Phase: creating the dmg.");
 
@@ -203,10 +204,37 @@ namespace WalletWasabi.Packager
 
 			Console.WriteLine("Phase: creating dmg.");
 
+			IoHelpers.CopyFilesRecursively(new DirectoryInfo(dmgContentsDir), new DirectoryInfo(dmgPath));
+
+			File.Copy(Path.Combine(contentsPath, "WasabiLogo.icns"), Path.Combine(dmgPath, ".VolumeIcon.icns"),true);
+
+			var temp = Path.Combine(dmgPath, ".DS_Store.dat");
+			File.Move(temp, Path.Combine(dmgPath, ".DS_Store"), true);
+
 			using (var process = Process.Start(new ProcessStartInfo
 			{
-				FileName = "create-dmg",
-				Arguments = dmgArguments,
+				FileName = "ln",
+				Arguments = "-s /Applications",
+				WorkingDirectory = dmgPath
+			}))
+			{
+				process.WaitForExit();
+			}
+
+			var hdutilCreateArgs = string.Join(" ", new string[]
+			{
+				"create",
+				$"\"{dmgFilePath}\"",
+				"-ov",
+				$"-volname \"Wasabi Wallet\"",
+				"-fs HFS+",
+				$"-srcfolder \"{dmgPath}\""
+			});
+
+			using (var process = Process.Start(new ProcessStartInfo
+			{
+				FileName = "hdiutil",
+				Arguments = hdutilCreateArgs,
 				WorkingDirectory = dmgPath
 			}))
 			{
