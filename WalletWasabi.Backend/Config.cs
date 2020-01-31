@@ -52,14 +52,6 @@ namespace WalletWasabi.Backend
 		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultRegTestBitcoinCoreRpcPort)]
 		public EndPoint RegTestBitcoinCoreRpcEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultRegTestBitcoinCoreRpcPort);
 
-		[JsonProperty(PropertyName = "CoordinatorExtPubKey")]
-		[JsonConverter(typeof(ExtPubKeyJsonConverter))]
-		public ExtPubKey CoordinatorExtPubKey { get; private set; } = Constants.FallBackCoordinatorExtPubKey;
-
-		[DefaultValue(0)]
-		[JsonProperty(PropertyName = "CoordinatorExtPubKeyCurrentDepth", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public int CoordinatorExtPubKeyCurrentDepth { get; private set; }
-
 		public EndPoint GetBitcoinP2pEndPoint()
 		{
 			if (Network == Network.Main)

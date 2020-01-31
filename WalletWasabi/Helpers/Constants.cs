@@ -58,32 +58,6 @@ namespace WalletWasabi.Helpers
 		// There are a maximum of 2,099,999,997,690,000 Bitcoin elements (called satoshis), which are currently most commonly measured in units of 100,000,000 known as BTC. Stated another way, no more than 21 million BTC can ever be created.
 		public const long MaximumNumberOfSatoshis = 2099999997690000;
 
-		private static readonly BitcoinWitPubKeyAddress MainNetCoordinatorAddress = new BitcoinWitPubKeyAddress("bc1qa24tsgchvuxsaccp8vrnkfd85hrcpafg20kmjw", Network.Main);
-		private static readonly BitcoinWitPubKeyAddress TestNetCoordinatorAddress = new BitcoinWitPubKeyAddress("tb1qecaheev3hjzs9a3w9x33wr8n0ptu7txp359exs", Network.TestNet);
-		private static readonly BitcoinWitPubKeyAddress RegTestCoordinatorAddress = new BitcoinWitPubKeyAddress("bcrt1qangxrwyej05x9mnztkakk29s4yfdv4n586gs8l", Network.RegTest);
-
-		public static BitcoinWitPubKeyAddress GetCoordinatorAddress(Network network)
-		{
-			Guard.NotNull(nameof(network), network);
-
-			if (network == Network.Main)
-			{
-				return MainNetCoordinatorAddress;
-			}
-			else if (network == Network.TestNet)
-			{
-				return TestNetCoordinatorAddress;
-			}
-			else if (network == Network.RegTest)
-			{
-				return RegTestCoordinatorAddress;
-			}
-			else
-			{
-				throw new NotSupportedNetworkException(network);
-			}
-		}
-
 		public const int TwentyMinutesConfirmationTarget = 2;
 		public const int OneDayConfirmationTarget = 144;
 		public const int SevenDaysConfirmationTarget = 1008;
@@ -111,7 +85,6 @@ namespace WalletWasabi.Helpers
 
 		public const long MaxSatoshisSupply = 2_100_000_000_000_000L;
 
-		public const string FallBackCoordinatorExtPubKeyString = "xpub6D2PqhWBAbF3xgfaAUW73KnaCXUroArcgMTzNkNzfVX7ykkSzQGbqaXZeaNyxKbZojAAqDwsne6B7NcVhiTrXbGYrQNq1yF76NkgdonGrEa";
-		public static readonly ExtPubKey FallBackCoordinatorExtPubKey = NBitcoinHelpers.BetterParseExtPubKey(FallBackCoordinatorExtPubKeyString);
+		public static readonly ExtPubKey FallBackCoordinatorExtPubKey = NBitcoinHelpers.BetterParseExtPubKey("xpub6D2PqhWBAbF3xgfaAUW73KnaCXUroArcgMTzNkNzfVX7ykkSzQGbqaXZeaNyxKbZojAAqDwsne6B7NcVhiTrXbGYrQNq1yF76NkgdonGrEa");
 	}
 }
