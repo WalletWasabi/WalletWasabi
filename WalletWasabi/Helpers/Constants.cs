@@ -110,5 +110,7 @@ namespace WalletWasabi.Helpers
 		public const decimal DefaultDustThreshold = 0.00005m;
 
 		public const long MaxSatoshisSupply = 2_100_000_000_000_000L;
+
+		public const string FallBackCoordinatorExtPubKey = "xpub6D2PqhWBAbF3xgfaAUW73KnaCXUroArcgMTzNkNzfVX7ykkSzQGbqaXZeaNyxKbZojAAqDwsne6B7NcVhiTrXbGYrQNq1yF76NkgdonGrEa";
 	}
 }
