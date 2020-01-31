@@ -50,13 +50,6 @@ namespace WalletWasabi.Gui.ViewModels
 			return await reader.ReadToEndAsync();
 		}
 
-		private static async Task<string> LoadDocumentAsync(string path)
-		{
-			using var stream = File.OpenRead(path);
-			using var reader = new StreamReader(stream);
-			return await reader.ReadToEndAsync();
-		}
-
 		public override void OnOpen()
 		{
 			base.OnOpen();
@@ -84,7 +77,7 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 			else if (TextResource.HasFilePath)
 			{
-				LoadDocumentAsync(TextResource.FilePath)
+				File.ReadAllTextAsync(TextResource.FilePath)
 					.ToObservable(RxApp.TaskpoolScheduler)
 					.Take(1)
 					.ObserveOn(RxApp.MainThreadScheduler)
