@@ -264,7 +264,15 @@ namespace WalletWasabi.Gui.ViewModels
 						{
 							try
 							{
-								var legalResp = await LegalDocuments.FetchLatestAsync(Global.DataDir, () => Global.Config.GetCurrentBackendUri(), Global.Config.TorSocks5EndPoint, CancellationToken.None);
+								(LegalDocuments legalDocuments, string content) legalResp;
+								if (Global.Config.UseTor)
+								{
+									legalResp = await LegalDocuments.FetchLatestAsync(Global.DataDir, () => Global.Config.GetCurrentBackendUri(), Global.Config.TorSocks5EndPoint, CancellationToken.None);
+								}
+								else
+								{
+									legalResp = await LegalDocuments.FetchLatestAsync(Global.DataDir, () => Global.Config.GetFallbackBackendUri(), null, CancellationToken.None);
+								}
 
 								IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel(legalResp.content, legalResp.legalDocuments));
 							}
