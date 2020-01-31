@@ -18,11 +18,6 @@ namespace WalletWasabi.Gui.Tabs
 {
 	public class LegalDocumentsViewModel : TextResourceViewModelBase
 	{
-		public ReactiveCommand<Unit, Unit> AgreeClicked { get; }
-		public LegalDocuments LegalDoc { get; }
-
-		public bool IsAgreed { get; set; }
-
 		public LegalDocumentsViewModel(string content = null, LegalDocuments legalDoc = null)
 			: base("Legal Documents", new TextResource() { FilePath = legalDoc?.FilePath, Content = content })
 		{
@@ -46,6 +41,11 @@ namespace WalletWasabi.Gui.Tabs
 					NotificationHelpers.Error(ex.ToUserFriendlyString());
 				});
 		}
+
+		public ReactiveCommand<Unit, Unit> AgreeClicked { get; }
+		public LegalDocuments LegalDoc { get; }
+
+		public bool IsAgreed { get; set; }
 
 		public override bool OnClose()
 		{
