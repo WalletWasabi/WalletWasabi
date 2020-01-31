@@ -26,7 +26,7 @@ namespace WalletWasabi.Backend.Controllers
 		public async Task<IActionResult> GetLegalDocumentsAsync()
 		{
 			var content = await System.IO.File.ReadAllBytesAsync(LegalDocuments.EmbeddedFilePath);
-			return File(content, "text/html");
+			return File(content, "text/plain");
 		}
 	}
 }
