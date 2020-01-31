@@ -77,14 +77,12 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 		[JsonProperty(PropertyName = "CoordinatorExtPubKeyCurrentDepth", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public int CoordinatorExtPubKeyCurrentDepth { get; private set; }
 
-		public async Task<Script> GetNewCoordinatorScriptAsync()
-		{
-			var ret = CoordinatorExtPubKey.Derive(0, false).Derive(CoordinatorExtPubKeyCurrentDepth, false).PubKey.WitHash.ScriptPubKey;
+		public Script GetNextCleanCoordinatorScript() => CoordinatorExtPubKey.Derive(0, false).Derive(CoordinatorExtPubKeyCurrentDepth, false).PubKey.WitHash.ScriptPubKey;
 
+		public async Task MakeNextCoordinatorScriptDirtyAsync()
+		{
 			CoordinatorExtPubKeyCurrentDepth++;
 			await ToFileAsync().ConfigureAwait(false);
-
-			return ret;
 		}
 
 		public CoordinatorRoundConfig() : base()

@@ -298,7 +298,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 							}
 						}
 
-						var coordinatorScript = await RoundConfig.GetNewCoordinatorScriptAsync();
+						var coordinatorScript = RoundConfig.GetNextCleanCoordinatorScript();
 						// 3. If there are less Bobs than Alices, then add our own address. The malicious Alice, who will refuse to sign.
 						for (int i = 0; i < MixingLevels.Count(); i++)
 						{
@@ -401,6 +401,11 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 						transaction.Inputs.SortByAmount(spentCoins);
 						transaction.Outputs.SortByAmount();
 						//Note: We shuffle then sort because inputs and outputs could have equal values
+
+						if (transaction.Outputs.Any(x => x.ScriptPubKey == coordinatorScript))
+						{
+							await RoundConfig.MakeNextCoordinatorScriptDirtyAsync();
+						}
 
 						CoinJoin = transaction;
 						UnsignedCoinJoinHex = transaction.ToHex();
