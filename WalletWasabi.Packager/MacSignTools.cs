@@ -31,10 +31,12 @@ namespace WalletWasabi.Packager
 			var versionPrefix = zipPath.Split('-').Last().TrimEnd(".zip", StringComparison.InvariantCultureIgnoreCase); // Example: "/Users/user/Desktop/Wasabi-unsigned-1.1.10.2.zip".
 			var workingDir = Path.Combine(desktopPath, "wasabiTemp");
 			var dmgPath = Path.Combine(workingDir, "dmg");
+			var unzippedPath = Path.Combine(workingDir, "unzipped");
 			var appName = "Wasabi Wallet.app";
 			var appPath = Path.Combine(dmgPath, appName);
-			var binPath = Path.Combine(appPath, "Contents", "MacOS");
-			var resPath = Path.Combine(appPath, "Contents", "Resources");
+			var appMacOsPath = Path.Combine(appPath, "Contents", "MacOS");
+			var appResPath = Path.Combine(appPath, "Contents", "Resources");
+			var appFrameworksPath = Path.Combine(appPath, "Contents", "Frameworks");
 			var infoFilePath = Path.Combine(appPath, "Contents", "Info.plist");
 			var dmgFileName = $"Wasabi-{versionPrefix}.dmg";
 			var dmgFilePath = Path.Combine(workingDir, dmgFileName);
@@ -43,7 +45,7 @@ namespace WalletWasabi.Packager
 			var contentsPath = Path.GetFullPath(Path.Combine(Program.PackagerProjectDirectory.Replace("\\", "//"), "Content", "Osx"));
 			var entitlementsPath = Path.Combine(contentsPath, "entitlements.plist");
 			var dmgContentsDir = Path.Combine(contentsPath, "Dmg");
-			var torZipDirPath = Path.Combine(binPath, "TorDaemons", "tor-osx64");
+			var torZipDirPath = Path.Combine(appMacOsPath, "TorDaemons", "tor-osx64");
 			var torZipPath = $"{torZipDirPath}.zip";
 			var desktopDmgFilePath = Path.Combine(desktopPath, dmgFileName);
 
@@ -68,8 +70,56 @@ namespace WalletWasabi.Packager
 
 			Console.WriteLine("Phase: creating the app.");
 
-			IoHelpers.EnsureDirectoryExists(binPath);
-			ZipFile.ExtractToDirectory(zipPath, binPath); // Copy the binaries.
+			ZipFile.ExtractToDirectory(zipPath, unzippedPath); // Copy the binaries.
+
+			IoHelpers.EnsureDirectoryExists(appResPath);
+			IoHelpers.EnsureDirectoryExists(appMacOsPath);
+			IoHelpers.EnsureDirectoryExists(appFrameworksPath);
+			
+
+			// Wassabee has to be signed at the end. Otherwise codesing witt throw a submodule not signed error.
+			foreach (var filePath in Directory.GetFiles(unzippedPath, "*.*", SearchOption.AllDirectories))
+			{
+				var file = new FileInfo(filePath);
+				var symlinkSrc = filePath.TrimStart(unzippedPath,StringComparison.Ordinal).Trim('/');
+				string symlinkDst = null;
+				string copyTo = null;
+				switch (file.Extension.ToLower())
+				{
+					case "":
+						{
+							copyTo = Path.Combine(appMacOsPath, symlinkSrc);
+						}
+						break;
+					case ".dylib":
+						{
+							symlinkDst = Path.Combine("../Frameworks", $"\"{symlinkSrc}\"");
+							copyTo = Path.Combine(appFrameworksPath, symlinkSrc);
+						}
+						break;
+					default:
+						{
+							symlinkDst = Path.Combine("../Resources", $"\"{symlinkSrc}\"");
+							copyTo = Path.Combine(appResPath, symlinkSrc);
+						}
+						break;
+				}
+
+				IoHelpers.EnsureContainingDirectoryExists(copyTo);
+				File.Copy(filePath, copyTo);
+
+				if (symlinkDst is { })
+				{
+					IoHelpers.EnsureContainingDirectoryExists(Path.Combine(appMacOsPath, symlinkSrc));
+					using var process = Process.Start(new ProcessStartInfo
+					{
+						FileName = "ln",
+						Arguments = $"-s \"{symlinkDst}\" \"{symlinkSrc}\"",
+						WorkingDirectory = appMacOsPath
+					});
+					process.WaitForExit();
+				}
+			}
 
 			IoHelpers.CopyFilesRecursively(new DirectoryInfo(Path.Combine(contentsPath, "App")), new DirectoryInfo(appPath));
 
