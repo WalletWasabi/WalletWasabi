@@ -56,6 +56,10 @@ namespace WalletWasabi.Backend
 		[JsonConverter(typeof(ExtPubKeyJsonConverter))]
 		public ExtPubKey CoordinatorExtPubKey { get; private set; } = Constants.FallBackCoordinatorExtPubKey;
 
+		[DefaultValue(0)]
+		[JsonProperty(PropertyName = "CoordinatorExtPubKeyCurrentDepth", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public int CoordinatorExtPubKeyCurrentDepth { get; private set; }
+
 		public EndPoint GetBitcoinP2pEndPoint()
 		{
 			if (Network == Network.Main)
