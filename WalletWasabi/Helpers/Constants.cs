@@ -111,6 +111,7 @@ namespace WalletWasabi.Helpers
 
 		public const long MaxSatoshisSupply = 2_100_000_000_000_000L;
 
-		public const string FallBackCoordinatorExtPubKey = "xpub6D2PqhWBAbF3xgfaAUW73KnaCXUroArcgMTzNkNzfVX7ykkSzQGbqaXZeaNyxKbZojAAqDwsne6B7NcVhiTrXbGYrQNq1yF76NkgdonGrEa";
+		public const string FallBackCoordinatorExtPubKeyString = "xpub6D2PqhWBAbF3xgfaAUW73KnaCXUroArcgMTzNkNzfVX7ykkSzQGbqaXZeaNyxKbZojAAqDwsne6B7NcVhiTrXbGYrQNq1yF76NkgdonGrEa";
+		public static readonly ExtPubKey FallBackCoordinatorExtPubKey = NBitcoinHelpers.BetterParseExtPubKey(FallBackCoordinatorExtPubKeyString);
 	}
 }
