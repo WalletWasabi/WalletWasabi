@@ -37,6 +37,7 @@ namespace WalletWasabi.Services
 		public static event EventHandler<bool> DownloadingBlockChanged;
 
 		public static event EventHandler<bool> InitializingChanged;
+		private static Random Random { get; } = new Random();
 
 		public BitcoinStore BitcoinStore { get; }
 		public KeyManager KeyManager { get; }
@@ -706,7 +707,8 @@ namespace WalletWasabi.Services
 						throw new NotSupportedException(feeStrategy.Type.ToString());
 					}
 				},
-				allowedInputs);
+				allowedInputs,
+				SelectLockTimeForTransaction);
 		}
 
 		public void RenameLabel(SmartCoin coin, SmartLabel newLabel)
@@ -717,6 +719,44 @@ namespace WalletWasabi.Services
 			{
 				key.SetLabel(coin.Label, KeyManager);
 			}
+		}
+
+		internal static LockTime InternalSelectLockTimeForTransaction(uint tipHeight)
+		{
+			try
+			{
+				// We use the timelock distribution observed in the bitcoin network
+				// in order to reduce the wasabi wallet transactions fingerprinting
+				// chances.
+				// 
+				// Network observations:
+				// 90.0% uses locktime = 0
+				//  7.5% uses locktime = current tip
+				//  0.65% uses locktime = next tip (current tip + 1)
+				//  1.85% uses up to 5 blocks in the future (we don't do this)
+				//  0.65% uses an uniform random from -1 to -99
+
+				// sometimes pick locktime a bit further back, to help privacy.
+				var randomValue = Random.NextDouble();
+				return randomValue switch
+				{
+					var r when r < (0.9) => LockTime.Zero,
+					var r when r < (0.9 + 0.075) => tipHeight,
+					var r when r < (0.9 + 0.075 + 0.0065) => (uint)(tipHeight + 1),
+					_ => (uint)(tipHeight - Random.Next(1, 100))
+				};
+			}
+			catch
+			{
+				return LockTime.Zero;
+			}
+		}
+
+		private LockTime SelectLockTimeForTransaction()
+		{
+			var currentTipHeight = Synchronizer.BitcoinStore.SmartHeaderChain.TipHeight;
+
+			return InternalSelectLockTimeForTransaction(currentTipHeight);
 		}
 
 		public ISet<string> GetLabels() => TransactionProcessor.Coins.AsAllCoinsView()
