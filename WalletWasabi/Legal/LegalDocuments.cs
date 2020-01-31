@@ -66,10 +66,10 @@ namespace WalletWasabi.Legal
 			var legalFolderPath = Path.Combine(dataDir, LegalFolderName);
 			IoHelpers.EnsureDirectoryExists(legalFolderPath);
 
-			int fileCount = Directory.EnumerateFileSystemEntries(legalFolderPath).Count();
+			bool isLegalFolderEmpty = !Directory.EnumerateFileSystemEntries(legalFolderPath).Any();
 			// If no file found then to ensure backwards compatibility we can check if a wallet file already exists.
 			// If a wallet file already exist, that means the user already accepted 1.0 at one point with the old system.
-			if (fileCount == 0)
+			if (isLegalFolderEmpty)
 			{
 				var walletFolderPath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), "Wallets");
 				var hasWallet = Directory.Exists(walletFolderPath) && Directory.EnumerateFileSystemEntries(walletFolderPath).Any();
