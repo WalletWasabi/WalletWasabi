@@ -174,11 +174,11 @@ namespace WalletWasabi.Packager
 			//	process.WaitForExit();
 			//}
 
-			//Console.WriteLine("Phase: notarize the app.");
+			Console.WriteLine("Phase: notarize the app.");
 
-			//ZipFile.CreateFromDirectory(appPath, appNotarizeFilePath);
-			//Notarize(appleId, password, appNotarizeFilePath, bundleIdentifier);
-			//Staple(appPath);
+			ZipFile.CreateFromDirectory(appPath, appNotarizeFilePath);
+			Notarize(appleId, password, appNotarizeFilePath, bundleIdentifier);
+			Staple(appPath);
 
 			Console.WriteLine("Phase: creating the dmg.");
 
