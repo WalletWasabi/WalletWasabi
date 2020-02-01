@@ -5,17 +5,14 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class AdvancedDetailTabViewModel<TViewModel> : WasabiDocumentTabViewModel
-									   where TViewModel : ViewModelBase
+	public class AdvancedDetailTabViewModel : WasabiDocumentTabViewModel
 	{
 		private CompositeDisposable Disposables { get; set; }
 		private Global Global { get; }
-		private TViewModel TargetVM { get; }
 
-		public AdvancedDetailTabViewModel(string Title, TViewModel targetVM) : base(Title)
+		public AdvancedDetailTabViewModel(string Title) : base(Title)
 		{
 			Global = Locator.Current.GetService<Global>();
-			TargetVM = targetVM;
 		}
 
 		public override void OnOpen()
