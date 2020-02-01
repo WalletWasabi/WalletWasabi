@@ -119,7 +119,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			OpenAdvancedDetail = ReactiveCommand.Create(() =>
 			{
-				var title = $"Details for {TransactionId[0..10]}";
+				var title = $"{TransactionId[0..10]}'s Details";
 				var advancedDetail = AdvancedDetailTabHelper.GenerateAdvancedDetailTab(title, this);
 				IoC.Get<IShell>().AddOrSelectDocument(advancedDetail);
 			});
