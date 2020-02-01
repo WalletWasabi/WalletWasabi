@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Reactive.Disposables;
+using System.Reflection;
 using Splat;
 using WalletWasabi.Gui.ViewModels;
 
@@ -10,7 +12,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private CompositeDisposable Disposables { get; set; }
 		private Global Global { get; }
 
-		public AdvancedDetailTabViewModel(string Title) : base(Title)
+		public AdvancedDetailTabViewModel(string Title, IEnumerable<(PropertyInfo, AdvancedDetailAttribute)> getAttr) : base(Title)
 		{
 			Global = Locator.Current.GetService<Global>();
 		}
