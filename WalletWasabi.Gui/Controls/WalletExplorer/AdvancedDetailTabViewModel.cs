@@ -26,10 +26,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override bool OnClose()
 		{
-			// Do not dispose the RootList here. It will be reused next time when you open CoinJoinTab or SendTab.
 			Disposables?.Dispose();
 			Disposables = null;
-			return true;
+			return base.OnClose();
 		}
 	}
 }
