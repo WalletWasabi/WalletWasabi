@@ -1,21 +1,18 @@
-using System; 
+using System;
 using System.Reactive.Disposables;
 using Splat;
-using WalletWasabi.Gui.ViewModels; 
+using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class AdvancedDetailTabViewModel<TViewModel> : WasabiDocumentTabViewModel 
+	public class AdvancedDetailTabViewModel<TViewModel> : WasabiDocumentTabViewModel
 									   where TViewModel : ViewModelBase
 	{
 		private CompositeDisposable Disposables { get; set; }
 		private Global Global { get; }
 		private TViewModel TargetVM { get; }
 
-		public static AdvancedDetailTabViewModel<T> GenerateAdvancedDetailTab<T>(T targetVM) where T : ViewModelBase
-		{
-			return null;
-		}
+
 
 		public AdvancedDetailTabViewModel(string Title, TViewModel targetVM) : base(Title)
 		{
