@@ -1,51 +1,41 @@
-using Avalonia.Controls;
-using Avalonia.Threading;
-using DynamicData;
-using DynamicData.Binding;
-using NBitcoin;
-using ReactiveUI;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.Linq;
-using System.Reactive;
+using System; 
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
-using System.Threading.Tasks;
-using WalletWasabi.Gui.Models;
-using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Logging;
-using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Blockchain.TransactionProcessing;
 using Splat;
+using WalletWasabi.Gui.ViewModels; 
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class AdvancedDetailTabViewModel : ViewModelBase
+	public class AdvancedDetailTabViewModel<TViewModel> : WasabiDocumentTabViewModel 
+									   where TViewModel : ViewModelBase
 	{
 		private CompositeDisposable Disposables { get; set; }
 		private Global Global { get; }
-		private ViewModelBase TargetVM { get; }
+		private TViewModel TargetVM { get; }
 
-		public AdvancedDetailTabViewModel(ViewModelBase targetVM)
+		public static AdvancedDetailTabViewModel<T> GenerateAdvancedDetailTab<T>(T targetVM) where T : ViewModelBase
+		{
+			return null;
+		}
+
+		public AdvancedDetailTabViewModel(string Title, TViewModel targetVM) : base(Title)
 		{
 			Global = Locator.Current.GetService<Global>();
 			TargetVM = targetVM;
 		}
 
-		private void OnOpen()
+		public override void OnOpen()
 		{
 			Disposables = Disposables is null ?
 				new CompositeDisposable() :
 				throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 		}
 
-		public void OnClose()
+		public override bool OnClose()
 		{
 			// Do not dispose the RootList here. It will be reused next time when you open CoinJoinTab or SendTab.
 			Disposables?.Dispose();
 			Disposables = null;
+			return true;
 		}
 	}
 }

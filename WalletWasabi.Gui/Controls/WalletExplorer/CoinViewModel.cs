@@ -15,6 +15,8 @@ using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
 using WalletWasabi.Logging;
+using AvalonStudio.Extensibility;
+using AvalonStudio.Shell;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -32,6 +34,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableAsPropertyHelper<string> _expandMenuCaption;
 		private bool _isExpanded;
 		public ReactiveCommand<Unit, bool> ToggleDetails { get; }
+		public ReactiveCommand<Unit, Unit> OpenAdvancedDetail { get; }
 
 		public CoinListViewModel Owner { get; }
 		private Global Global { get; }
@@ -113,6 +116,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.DisposeWith(Disposables);
 
 			ToggleDetails = ReactiveCommand.Create(() => IsExpanded = !IsExpanded);
+
+			OpenAdvancedDetail = ReactiveCommand.Create(() =>
+			{
+				var advancedDetail = AdvancedDetailTabViewModel.GenerateAdvancedDetailTab(this);
+				IoC.Get<IShell>().AddOrSelectDocument(advancedDetail);
+			});
 
 			ToggleDetails.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)

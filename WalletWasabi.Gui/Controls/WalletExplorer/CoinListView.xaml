@@ -82,6 +82,9 @@
           <controls:ExtendedListBox.ItemTemplate>
             <DataTemplate>
               <Grid Classes="CoinItemGrid">
+                <i:Interaction.Behaviors>
+                  <behaviors:CommandOnDoubleClickBehavior Command="{Binding OpenAdvancedDetail}" />
+                </i:Interaction.Behaviors>
                 <Grid.ContextMenu>
                   <ContextMenu>
                     <MenuItem IsVisible="{Binding CanBeDequeued}"  Header="Dequeue from CoinJoin" Command="{Binding DequeueCoin}">
