@@ -27,7 +27,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		public async Task SmartBitExchangeRateProviderTestAsync(string networkString)
 		{
 			var network = Network.GetNetwork(networkString);
-			using var client = new SmartBitClient(network);
+			var client = new SmartBitClient(network);
 			var rateProvider = new SmartBitExchangeRateProvider(client);
 			IEnumerable<ExchangeRate> rates = await rateProvider.GetExchangeRateAsync();
 

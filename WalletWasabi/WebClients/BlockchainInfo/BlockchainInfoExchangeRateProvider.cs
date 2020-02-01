@@ -25,8 +25,9 @@ namespace WalletWasabi.WebClients.BlockchainInfo
 		{
 			using var httpClient = new HttpClient();
 			httpClient.BaseAddress = new Uri("https://blockchain.info");
-			var response = await httpClient.GetAsync("/ticker");
-			var rates = await response.Content.ReadAsJsonAsync<BlockchainInfoExchangeRates>();
+			using var response = await httpClient.GetAsync("/ticker");
+			using var content = response.Content;
+			var rates = await content.ReadAsJsonAsync<BlockchainInfoExchangeRates>();
 
 			var exchangeRates = new List<ExchangeRate>
 				{

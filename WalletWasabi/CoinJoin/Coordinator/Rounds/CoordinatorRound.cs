@@ -144,6 +144,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 		public TimeSpan SigningTimeout { get; }
 
 		public UtxoReferee UtxoReferee { get; }
+		public CoordinatorRoundConfig RoundConfig { get; }
 
 		public CoordinatorRound(RPCClient rpc, UtxoReferee utxoReferee, CoordinatorRoundConfig config, int adjustedConfirmationTarget, int configuredConfirmationTarget, double configuredConfirmationTargetReductionRate)
 		{
@@ -153,7 +154,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 				RpcClient = Guard.NotNull(nameof(rpc), rpc);
 				UtxoReferee = Guard.NotNull(nameof(utxoReferee), utxoReferee);
-				Guard.NotNull(nameof(config), config);
+				RoundConfig = Guard.NotNull(nameof(config), config);
 
 				AdjustedConfirmationTarget = adjustedConfirmationTarget;
 				ConfiguredConfirmationTarget = configuredConfirmationTarget;
@@ -297,7 +298,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 							}
 						}
 
-						BitcoinWitPubKeyAddress coordinatorAddress = Constants.GetCoordinatorAddress(Network);
+						var coordinatorScript = RoundConfig.GetNextCleanCoordinatorScript();
 						// 3. If there are less Bobs than Alices, then add our own address. The malicious Alice, who will refuse to sign.
 						for (int i = 0; i < MixingLevels.Count(); i++)
 						{
@@ -306,7 +307,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 							for (int j = 0; j < missingBobCount; j++)
 							{
 								var denomination = MixingLevels.GetLevel(i).Denomination;
-								transaction.Outputs.AddWithOptimize(denomination, coordinatorAddress);
+								transaction.Outputs.AddWithOptimize(denomination, coordinatorScript);
 							}
 						}
 
@@ -386,7 +387,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 						// 6. Add Coordinator fee only if > about $3, else just let it to be miner fee.
 						if (coordinatorFee > Money.Coins(0.0003m))
 						{
-							transaction.Outputs.AddWithOptimize(coordinatorFee, coordinatorAddress);
+							transaction.Outputs.AddWithOptimize(coordinatorFee, coordinatorScript);
 						}
 
 						// 7. Try optimize fees.
@@ -400,6 +401,11 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 						transaction.Inputs.SortByAmount(spentCoins);
 						transaction.Outputs.SortByAmount();
 						//Note: We shuffle then sort because inputs and outputs could have equal values
+
+						if (transaction.Outputs.Any(x => x.ScriptPubKey == coordinatorScript))
+						{
+							await RoundConfig.MakeNextCoordinatorScriptDirtyAsync();
+						}
 
 						CoinJoin = transaction;
 						UnsignedCoinJoinHex = transaction.ToHex();
@@ -1073,7 +1079,6 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 						Coin[] spentCoins = Alices.SelectMany(x => x.Inputs).ToArray();
 						Money networkFee = CoinJoin.GetFee(spentCoins);
 						Logger.LogInfo($"Round ({RoundId}): Network Fee: {networkFee.ToString(false, false)} BTC.");
-						Logger.LogInfo($"Round ({RoundId}): Coordinator Fee: {CoinJoin.Outputs.SingleOrDefault(x => x.ScriptPubKey == Constants.GetCoordinatorAddress(Network).ScriptPubKey)?.Value?.ToString(false, false) ?? "0"} BTC.");
 						FeeRate feeRate = CoinJoin.GetFeeRate(spentCoins);
 						Logger.LogInfo($"Round ({RoundId}): Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} sat/vByte.");
 						Logger.LogInfo($"Round ({RoundId}): Number of inputs: {CoinJoin.Inputs.Count}.");
