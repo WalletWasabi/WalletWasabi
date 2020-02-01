@@ -148,6 +148,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public bool Unspent => _unspent?.Value ?? false;
 
+		[AdvancedDetail("Address")]
 		public string Address => Model.ScriptPubKey.GetDestinationAddress(Global.Network).ToString();
 
 		public bool IsExpanded
@@ -155,7 +156,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _isExpanded;
 			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
 		}
-
+		
+		[AdvancedDetail("Confirmations")]
 		public int Confirmations => Model.Height.Type == HeightType.Chain
 			? (int)Global.BitcoinStore.SmartHeaderChain.TipHeight - Model.Height.Value + 1
 			: 0;
@@ -186,19 +188,24 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public string AmountBtc => Model.Amount.ToString(false, true);
 
 		public int Height => Model.Height;
-	
+		
+		[AdvancedDetail("Transaction ID")]
 		public string TransactionId => Model.TransactionId.ToString();
 
+		[AdvancedDetail("Output Index")]
 		public uint OutputIndex => Model.Index;
 
+		[AdvancedDetail("Anonymity Set")]
 		public int AnonymitySet => Model.AnonymitySet;
 
 		public string InCoinJoin => Model.CoinJoinInProgress ? "Yes" : "No";
 
 		public string Clusters => _cluster?.Value ?? "";
-
+		
+		[AdvancedDetail("Public Key")]
 		public string PubKey => Model.HdPubKey?.PubKey?.ToString() ?? "";
 
+		[AdvancedDetail("Key Path")]
 		public string KeyPath => Model.HdPubKey?.FullKeyPath?.ToString() ?? "";
 
 		public SmartCoinStatus Status
