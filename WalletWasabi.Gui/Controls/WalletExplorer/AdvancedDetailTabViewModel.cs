@@ -12,8 +12,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private Global Global { get; }
 		private TViewModel TargetVM { get; }
 
-
-
 		public AdvancedDetailTabViewModel(string Title, TViewModel targetVM) : base(Title)
 		{
 			Global = Locator.Current.GetService<Global>();
