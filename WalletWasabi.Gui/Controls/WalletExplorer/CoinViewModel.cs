@@ -119,7 +119,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			OpenAdvancedDetail = ReactiveCommand.Create(() =>
 			{
-				var advancedDetail = AdvancedDetailTabHelper.GenerateAdvancedDetailTab(this);
+				var title = $"Details for {TransactionId[0..10]}";
+				var advancedDetail = AdvancedDetailTabHelper.GenerateAdvancedDetailTab(title, this);
 				IoC.Get<IShell>().AddOrSelectDocument(advancedDetail);
 			});
 
@@ -131,9 +132,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					NotificationHelpers.Error(ex.ToUserFriendlyString());
 				});
 
-			DequeueCoin.ThrownExceptions
-				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(ex => Logger.LogError(ex)); // Don't notify about it. Dequeue failure (and success) is notified by other mechanism.
+			Observable.Merge(DequeueCoin.ThrownExceptions)
+					  .Merge(OpenAdvancedDetail.ThrownExceptions)
+					  .ObserveOn(RxApp.TaskpoolScheduler)
+					  .Subscribe(ex => Logger.LogError(ex)); // Don't notify about it. Dequeue failure (and success) is notified by other mechanism.
 		}
 
 		public SmartCoin Model { get; }
@@ -184,7 +186,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public string AmountBtc => Model.Amount.ToString(false, true);
 
 		public int Height => Model.Height;
-
+	
 		public string TransactionId => Model.TransactionId.ToString();
 
 		public uint OutputIndex => Model.Index;
