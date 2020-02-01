@@ -9,13 +9,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class AdvancedDetailTabViewModel : WasabiDocumentTabViewModel
 	{
-		private CompositeDisposable Disposables { get; set; }
-		private Global Global { get; }
-
 		public AdvancedDetailTabViewModel(string Title, IEnumerable<(PropertyInfo, AdvancedDetailAttribute)> getAttr) : base(Title)
 		{
 			Global = Locator.Current.GetService<Global>();
 		}
+
+		private CompositeDisposable Disposables { get; set; }
+		private Global Global { get; }
 
 		public override void OnOpen()
 		{
