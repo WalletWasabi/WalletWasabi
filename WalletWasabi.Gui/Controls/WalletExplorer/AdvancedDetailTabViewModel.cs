@@ -9,11 +9,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class AdvancedDetailTabViewModel : WasabiDocumentTabViewModel
 	{
-		public AdvancedDetailTabViewModel(string Title, IEnumerable<(PropertyInfo, AdvancedDetailAttribute)> getAttr) : base(Title)
+		public AdvancedDetailTabViewModel(string title, object targetVM, IEnumerable<AdvancedDetailPair> bindingPairs) : base(title)
 		{
 			Global = Locator.Current.GetService<Global>();
+			BindingPairs = bindingPairs;
+			TargetVM = targetVM;
 		}
-
+		
+		public object TargetVM { get; }
+		public IEnumerable<AdvancedDetailPair> BindingPairs { get; }
 		private CompositeDisposable Disposables { get; set; }
 		private Global Global { get; }
 
