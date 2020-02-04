@@ -158,18 +158,6 @@ namespace WalletWasabi.Packager
 
 			Verify(appPath);
 
-			// Building a package - this is not required now. This code will be useful later - do not delete!
-			//var pkgPath = Path.Combine(workingDir, $"Wasabi-{versionPrefix}.pkg");
-			//using (var process = Process.Start(new ProcessStartInfo
-			//{
-			//	FileName = "productbuild",
-			//	Arguments = $"--component \"{appPath}\" /Applications \"{pkgPath}\" --sign \"L233B2JQ68\"",
-			//	WorkingDirectory = dmgPath
-			//}))
-			//{
-			//	process.WaitForExit();
-			//}
-
 			Console.WriteLine("Phase: notarize the app.");
 
 			// Source: https://blog.frostwire.com/2019/08/27/apple-notarization-the-signature-of-the-binary-is-invalid-one-other-reason-not-explained-in-apple-developer-documentation/
