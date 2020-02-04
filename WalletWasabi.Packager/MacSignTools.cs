@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 
 namespace WalletWasabi.Packager
@@ -34,10 +35,11 @@ namespace WalletWasabi.Packager
 			var unzippedPath = Path.Combine(workingDir, "unzipped");
 			var appName = "Wasabi Wallet.app";
 			var appPath = Path.Combine(dmgPath, appName);
-			var appMacOsPath = Path.Combine(appPath, "Contents", "MacOS");
-			var appResPath = Path.Combine(appPath, "Contents", "Resources");
-			var appFrameworksPath = Path.Combine(appPath, "Contents", "Frameworks");
-			var infoFilePath = Path.Combine(appPath, "Contents", "Info.plist");
+			var appContentsPath = Path.Combine(appPath, "Contents");
+			var appMacOsPath = Path.Combine(appContentsPath, "MacOS");
+			var appResPath = Path.Combine(appContentsPath, "Resources");
+			var appFrameworksPath = Path.Combine(appContentsPath, "Frameworks");
+			var infoFilePath = Path.Combine(appContentsPath, "Info.plist");
 			var dmgFileName = $"Wasabi-{versionPrefix}.dmg";
 			var dmgFilePath = Path.Combine(workingDir, dmgFileName);
 			var dmgUnzippedFilePath = Path.Combine(workingDir, $"Wasabi.tmp.dmg");
@@ -49,7 +51,7 @@ namespace WalletWasabi.Packager
 			var torZipPath = $"{torZipDirPath}.zip";
 			var desktopDmgFilePath = Path.Combine(desktopPath, dmgFileName);
 
-			var signArguments = $"--sign \"L233B2JQ68\" --verbose --options runtime --timestamp";
+			var signArguments = $"--sign \"L233B2JQ68\" --verbose --force --options runtime --timestamp";
 
 			Console.WriteLine("Phase: creating the working directory.");
 
@@ -77,11 +79,12 @@ namespace WalletWasabi.Packager
 			IoHelpers.EnsureDirectoryExists(appFrameworksPath);
 			
 
-			// Wassabee has to be signed at the end. Otherwise codesing witt throw a submodule not signed error.
+			// Wassabee has to be signed at the end. Otherwise codesing will throw a submodule not signed error.
 			foreach (var filePath in Directory.GetFiles(unzippedPath, "*.*", SearchOption.AllDirectories))
 			{
 				var file = new FileInfo(filePath);
-				var symlinkSrc = filePath.TrimStart(unzippedPath,StringComparison.Ordinal).Trim('/');
+				var symlinkSrc = filePath.TrimStart(unzippedPath,StringComparison.Ordinal).Trim(new char[] { '/', '\\'});
+				var symlinkDirPath = Path.GetDirectoryName(Path.Combine(appMacOsPath, symlinkSrc));
 				string symlinkDst = null;
 				string copyTo = null;
 				switch (file.Extension.ToLower())
@@ -93,13 +96,14 @@ namespace WalletWasabi.Packager
 						break;
 					case ".dylib":
 						{
-							symlinkDst = Path.Combine("../Frameworks", $"\"{symlinkSrc}\"");
-							copyTo = Path.Combine(appFrameworksPath, symlinkSrc);
+							//symlinkDst = GetRelativePath(symlinkSrc, "Frameworks");
+							//copyTo = Path.Combine(appFrameworksPath, symlinkSrc);
+							copyTo = Path.Combine(appMacOsPath, symlinkSrc);
 						}
 						break;
 					default:
 						{
-							symlinkDst = Path.Combine("../Resources", $"\"{symlinkSrc}\"");
+							symlinkDst = GetRelativePath(symlinkSrc, "Resources");
 							copyTo = Path.Combine(appResPath, symlinkSrc);
 						}
 						break;
@@ -114,10 +118,17 @@ namespace WalletWasabi.Packager
 					using var process = Process.Start(new ProcessStartInfo
 					{
 						FileName = "ln",
-						Arguments = $"-s \"{symlinkDst}\" \"{symlinkSrc}\"",
-						WorkingDirectory = appMacOsPath
+						Arguments = $"\"{symlinkDst}\" \"{file.Name}\"",
+						WorkingDirectory = symlinkDirPath,
+						RedirectStandardError = true
 					});
 					process.WaitForExit();
+					string result = process.StandardError.ReadToEnd();
+					if (string.IsNullOrEmpty(result))
+					{
+						continue;
+					}
+					throw new InvalidOperationException(result);
 				}
 			}
 
@@ -159,39 +170,12 @@ namespace WalletWasabi.Packager
 				process.WaitForExit();
 			}
 
-			var filesToCheck = new[] { entitlementsPath, torZipPath };
-
-			foreach (var file in filesToCheck)
-			{
-				if (!File.Exists(file))
-				{
-					throw new FileNotFoundException($"File missing: {file}");
-				}
-			}
-
-			// Tor already signed by: The Tor Project, Inc (MADPSAYN6T)
-
 			// Can be automated: find -H YourAppBundle -print0 | xargs -0 file | grep "Mach-O .*executable"
-			var exacutableFileNames = new[] { "wassabee","bitcoind","hwi"};
-
-			Console.WriteLine("Signing the files in app.");
-
-			UnlockKeychain();
-
-			// Wassabee has to be signed at the end. Otherwise codesing witt throw a submodule not signed error.
-			foreach (var file in Directory.GetFiles(appPath, "*.*", SearchOption.AllDirectories).OrderBy(file => new FileInfo(file).Name == "wassabee").ToList())
+			var exacutableFileNames = new[] { "wassabee", "bitcoind", "hwi", "tor" };
+			foreach (var file in Directory.GetFiles(appMacOsPath, "*.", SearchOption.AllDirectories))
 			{
-				
 				var fileName = new FileInfo(file).Name;
-
-				if (fileName == ".DS_Store")
-				{
-					File.Delete(file);
-					continue;
-				}
-
 				var isExecutable = exacutableFileNames.Contains(fileName);
-
 				if (isExecutable)
 				{
 					using var process = Process.Start(new ProcessStartInfo
@@ -203,10 +187,31 @@ namespace WalletWasabi.Packager
 					});
 					process.WaitForExit();
 				}
-
-				Sign($"{signArguments} --entitlements \"{entitlementsPath}\" \"{file}\"", dmgPath);
-
 			}
+
+			var filesToCheck = new[] { entitlementsPath, torZipPath };
+
+			foreach (var file in filesToCheck)
+			{
+				if (!File.Exists(file))
+				{
+					throw new FileNotFoundException($"File missing: {file}");
+				}
+			}
+
+			Console.WriteLine("Signing the files in app.");
+
+			UnlockKeychain();
+
+			IoHelpers.EnsureDirectoryExists(appResPath);
+			IoHelpers.EnsureDirectoryExists(appMacOsPath);
+			IoHelpers.EnsureDirectoryExists(appFrameworksPath);
+
+			SignDirectory(Directory.GetFiles(appResPath, "*.*", SearchOption.AllDirectories), workingDir, signArguments, entitlementsPath);
+			SignDirectory(Directory.GetFiles(appFrameworksPath, "*.*", SearchOption.AllDirectories), workingDir, signArguments, entitlementsPath);
+			SignDirectory(Directory.GetFiles(appMacOsPath, "*.dylib", SearchOption.AllDirectories), workingDir, signArguments, entitlementsPath);
+			SignDirectory(Directory.GetFiles(appMacOsPath, "*.", SearchOption.AllDirectories).OrderBy(file => new FileInfo(file).Name == "wassabee").ToArray(), workingDir, signArguments, entitlementsPath);
+			SignDirectory(Directory.GetFiles(appPath, "*.*", SearchOption.TopDirectoryOnly), workingDir, signArguments, entitlementsPath);
 
 			Console.WriteLine("Phase: verifying the signature.");
 
@@ -226,9 +231,36 @@ namespace WalletWasabi.Packager
 
 			Console.WriteLine("Phase: notarize the app.");
 
-			ZipFile.CreateFromDirectory(appPath, appNotarizeFilePath);
+			// Source: https://blog.frostwire.com/2019/08/27/apple-notarization-the-signature-of-the-binary-is-invalid-one-other-reason-not-explained-in-apple-developer-documentation/
+			using (var process = Process.Start(new ProcessStartInfo
+			{
+				FileName = "ditto",
+				Arguments = $"-c -k --keepParent \"{appPath}\" \"{appNotarizeFilePath}\"",
+				WorkingDirectory = workingDir
+			}))
+			{
+				process.WaitForExit();
+			}
+
 			Notarize(appleId, password, appNotarizeFilePath, bundleIdentifier);
 			Staple(appPath);
+
+
+			using (var process = Process.Start(new ProcessStartInfo
+			{
+				FileName = "spctl",
+				Arguments = $"-a -t exec -vv \"{appPath}\"",
+				WorkingDirectory = workingDir,
+				RedirectStandardError = true
+			}))
+			{ 
+				process.WaitForExit();
+				string result = process.StandardError.ReadToEnd();
+				if (!result.Contains(": accepted"))
+				{
+					throw new InvalidOperationException(result);
+				}
+			}
 
 			Console.WriteLine("Phase: creating the dmg.");
 
@@ -298,7 +330,7 @@ namespace WalletWasabi.Packager
 
 			UnlockKeychain();
 
-			Sign($"{signArguments} --entitlements \"{entitlementsPath}\" \"{dmgFilePath}\"", dmgPath);
+			SignFile($"{signArguments} --entitlements \"{entitlementsPath}\" \"{dmgFilePath}\"", dmgPath);
 
 			Console.WriteLine("Phase: verifying the signature.");
 
@@ -437,7 +469,7 @@ namespace WalletWasabi.Packager
 			process.WaitForExit();
 		}
 
-		private static void Sign(string arguments,string workingDir)
+		private static void SignFile(string arguments,string workingDir)
 		{
 			using var process = Process.Start(new ProcessStartInfo
 			{
@@ -469,6 +501,38 @@ namespace WalletWasabi.Packager
 			{
 				throw new InvalidOperationException(result);
 			}
+		}
+
+		private static void SignDirectory(string[] files, string workingDir, string signArguments, string entitlementsPath)
+		{
+			// Tor already signed by: The Tor Project, Inc (MADPSAYN6T)
+
+			// Wassabee has to be signed at the end. Otherwise codesing will throw a submodule not signed error.
+			foreach (var file in files)
+			{
+
+				var fileName = new FileInfo(file).Name;
+
+				if (fileName == ".DS_Store")
+				{
+					File.Delete(file);
+					continue;
+				}
+
+				SignFile($"{signArguments} --entitlements \"{entitlementsPath}\" \"{file}\"", workingDir);
+
+			}
+		}
+
+		private static string GetRelativePath(string sourceFile,string dstDirectory)
+		{
+			var dirCount = sourceFile.Count(c => c == '/');
+			var relativeDirectory = new StringBuilder("../");
+			for (int i = 0; i < dirCount; i++)
+			{
+				relativeDirectory.Append("../");
+			}
+			return Path.Combine($"{relativeDirectory.ToString()}{dstDirectory}", $"{sourceFile}");
 		}
 	}
 }
