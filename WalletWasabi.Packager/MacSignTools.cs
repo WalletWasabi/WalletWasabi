@@ -72,65 +72,11 @@ namespace WalletWasabi.Packager
 
 			Console.WriteLine("Phase: creating the app.");
 
-			ZipFile.ExtractToDirectory(zipPath, unzippedPath); // Copy the binaries.
-
 			IoHelpers.EnsureDirectoryExists(appResPath);
 			IoHelpers.EnsureDirectoryExists(appMacOsPath);
-			IoHelpers.EnsureDirectoryExists(appFrameworksPath);
-			
 
-			// Wassabee has to be signed at the end. Otherwise codesing will throw a submodule not signed error.
-			foreach (var filePath in Directory.GetFiles(unzippedPath, "*.*", SearchOption.AllDirectories))
-			{
-				var file = new FileInfo(filePath);
-				var symlinkSrc = filePath.TrimStart(unzippedPath,StringComparison.Ordinal).Trim(new char[] { '/', '\\'});
-				var symlinkDirPath = Path.GetDirectoryName(Path.Combine(appMacOsPath, symlinkSrc));
-				string symlinkDst = null;
-				string copyTo = null;
-				switch (file.Extension.ToLower())
-				{
-					case "":
-						{
-							copyTo = Path.Combine(appMacOsPath, symlinkSrc);
-						}
-						break;
-					case ".dylib":
-						{
-							//symlinkDst = GetRelativePath(symlinkSrc, "Frameworks");
-							//copyTo = Path.Combine(appFrameworksPath, symlinkSrc);
-							copyTo = Path.Combine(appMacOsPath, symlinkSrc);
-						}
-						break;
-					default:
-						{
-							symlinkDst = GetRelativePath(symlinkSrc, "Resources");
-							copyTo = Path.Combine(appResPath, symlinkSrc);
-						}
-						break;
-				}
+			ZipFile.ExtractToDirectory(zipPath, appMacOsPath); // Copy the binaries.
 
-				IoHelpers.EnsureContainingDirectoryExists(copyTo);
-				File.Copy(filePath, copyTo);
-
-				if (symlinkDst is { })
-				{
-					IoHelpers.EnsureContainingDirectoryExists(Path.Combine(appMacOsPath, symlinkSrc));
-					using var process = Process.Start(new ProcessStartInfo
-					{
-						FileName = "ln",
-						Arguments = $"\"{symlinkDst}\" \"{file.Name}\"",
-						WorkingDirectory = symlinkDirPath,
-						RedirectStandardError = true
-					});
-					process.WaitForExit();
-					string result = process.StandardError.ReadToEnd();
-					if (string.IsNullOrEmpty(result))
-					{
-						continue;
-					}
-					throw new InvalidOperationException(result);
-				}
-			}
 
 			IoHelpers.CopyFilesRecursively(new DirectoryInfo(Path.Combine(contentsPath, "App")), new DirectoryInfo(appPath));
 
@@ -170,25 +116,6 @@ namespace WalletWasabi.Packager
 				process.WaitForExit();
 			}
 
-			// Can be automated: find -H YourAppBundle -print0 | xargs -0 file | grep "Mach-O .*executable"
-			var exacutableFileNames = new[] { "wassabee", "bitcoind", "hwi", "tor" };
-			foreach (var file in Directory.GetFiles(appMacOsPath, "*.", SearchOption.AllDirectories))
-			{
-				var fileName = new FileInfo(file).Name;
-				var isExecutable = exacutableFileNames.Contains(fileName);
-				if (isExecutable)
-				{
-					using var process = Process.Start(new ProcessStartInfo
-					{
-						FileName = "chmod",
-						Arguments = $"u+x \"{file}\"",
-						WorkingDirectory = workingDir
-
-					});
-					process.WaitForExit();
-				}
-			}
-
 			var filesToCheck = new[] { entitlementsPath, torZipPath };
 
 			foreach (var file in filesToCheck)
@@ -205,13 +132,27 @@ namespace WalletWasabi.Packager
 
 			IoHelpers.EnsureDirectoryExists(appResPath);
 			IoHelpers.EnsureDirectoryExists(appMacOsPath);
-			IoHelpers.EnsureDirectoryExists(appFrameworksPath);
 
-			SignDirectory(Directory.GetFiles(appResPath, "*.*", SearchOption.AllDirectories), workingDir, signArguments, entitlementsPath);
-			SignDirectory(Directory.GetFiles(appFrameworksPath, "*.*", SearchOption.AllDirectories), workingDir, signArguments, entitlementsPath);
-			SignDirectory(Directory.GetFiles(appMacOsPath, "*.dylib", SearchOption.AllDirectories), workingDir, signArguments, entitlementsPath);
-			SignDirectory(Directory.GetFiles(appMacOsPath, "*.", SearchOption.AllDirectories).OrderBy(file => new FileInfo(file).Name == "wassabee").ToArray(), workingDir, signArguments, entitlementsPath);
-			SignDirectory(Directory.GetFiles(appPath, "*.*", SearchOption.TopDirectoryOnly), workingDir, signArguments, entitlementsPath);
+			var executables = GetExecutables(appPath);
+			var filesToSignInOrder = Directory.GetFiles(appPath, "*.*", SearchOption.AllDirectories)
+				.OrderBy(file => executables.Contains(file))
+				.OrderBy(file => new FileInfo(file).Name == "wassabee")
+				.ToArray();
+
+
+			foreach (var file in executables)
+			{
+				using var process = Process.Start(new ProcessStartInfo
+				{
+					FileName = "chmod",
+					Arguments = $"u+x \"{file}\"",
+					WorkingDirectory = workingDir
+
+				});
+				process.WaitForExit();			
+			}
+
+			SignDirectory(filesToSignInOrder, workingDir, signArguments, entitlementsPath);
 
 			Console.WriteLine("Phase: verifying the signature.");
 
@@ -342,9 +283,24 @@ namespace WalletWasabi.Packager
 			Console.WriteLine("Phase: staple dmp");
 			Staple(dmgFilePath);
 
+			using (var process = Process.Start(new ProcessStartInfo
+			{
+				FileName = "spctl",
+				Arguments = $"-a -t open --context context:primary-signature -v \"{dmgFilePath}\"",
+				WorkingDirectory = workingDir,
+				RedirectStandardError = true
+			}))
+			{
+				process.WaitForExit();
+				string result = process.StandardError.ReadToEnd();
+				if (!result.Contains(": accepted"))
+				{
+					throw new InvalidOperationException(result);
+				}
+			}
+
 			File.Move(dmgFilePath, desktopDmgFilePath);
 			DeleteWithChmod(workingDir);
-			File.Delete(zipPath);
 
 			Console.WriteLine("Phase: finish.");
 		}
@@ -524,15 +480,12 @@ namespace WalletWasabi.Packager
 			}
 		}
 
-		private static string GetRelativePath(string sourceFile,string dstDirectory)
+		private static string[] GetExecutables(string workingDir)
 		{
-			var dirCount = sourceFile.Count(c => c == '/');
-			var relativeDirectory = new StringBuilder("../");
-			for (int i = 0; i < dirCount; i++)
-			{
-				relativeDirectory.Append("../");
-			}
-			return Path.Combine($"{relativeDirectory.ToString()}{dstDirectory}", $"{sourceFile}");
+			// Can be implemented as: find -H YourAppBundle -print0 | xargs -0 file | grep "Mach-O .*executable"
+
+			return Directory.GetFiles(workingDir, "*.", SearchOption.AllDirectories);
 		}
+
 	}
 }
