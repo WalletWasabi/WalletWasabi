@@ -39,6 +39,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 {
 	internal class LoadWalletViewModel : CategoryViewModel
 	{
+		// dummy comment
 		private ObservableCollection<LoadWalletEntry> _wallets;
 		private string _password;
 		private LoadWalletEntry _selectedWallet;
