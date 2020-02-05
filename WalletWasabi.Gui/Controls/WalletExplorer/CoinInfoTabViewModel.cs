@@ -7,9 +7,9 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class AdvancedDetailTabViewModel : WasabiDocumentTabViewModel
+	public class CoinInfoTabViewModel : WasabiDocumentTabViewModel
 	{
-		public AdvancedDetailTabViewModel(string title, object targetVM, IEnumerable<AdvancedDetailPair> bindingPairs) : base(title)
+		public CoinInfoTabViewModel(string title, object targetVM, IEnumerable<AdvancedDetailPair> bindingPairs) : base(title)
 		{
 			Global = Locator.Current.GetService<Global>();
 			BindingPairs = bindingPairs;

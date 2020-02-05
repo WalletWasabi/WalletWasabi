@@ -7,9 +7,9 @@ using System.Reactive.Linq;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class AdvancedDetailTabView : UserControl
+	public class CoinInfoTabView : UserControl
 	{
-		public AdvancedDetailTabView()
+		public CoinInfoTabView()
 		{
 			InitializeComponent();
 		}

@@ -5,7 +5,7 @@ using WalletWasabi.Gui.ViewModels.Validation;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public static class AdvancedDetailTabHelper
+	public static class CoinInfoTabHelper
 	{
 		private static IEnumerable<AdvancedDetailPair> PropertiesWithAdvancedDetailAttribute(object instance)
 		{
@@ -19,10 +19,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		public static AdvancedDetailTabViewModel GenerateAdvancedDetailTab<T>(string Title, T targetVM) where T : ViewModelBase
+		public static CoinInfoTabViewModel GenerateCoinInfoTab<T>(string Title, T targetVM) where T : ViewModelBase
 		{
 			var getAttr = PropertiesWithAdvancedDetailAttribute(targetVM);
-			return new AdvancedDetailTabViewModel(Title, targetVM, getAttr);
+			return new CoinInfoTabViewModel(Title, targetVM, getAttr);
 		}
 	}
 }
