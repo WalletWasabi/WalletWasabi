@@ -41,7 +41,9 @@ namespace WalletWasabi.Packager
 			var appFrameworksPath = Path.Combine(appContentsPath, "Frameworks");
 			var infoFilePath = Path.Combine(appContentsPath, "Info.plist");
 			var dmgFileName = $"Wasabi-{versionPrefix}.dmg";
+			var pkgFileName = $"Wasabi-{versionPrefix}.pkg";
 			var dmgFilePath = Path.Combine(workingDir, dmgFileName);
+			var pkgFilePath = Path.Combine(workingDir, pkgFileName);
 			var dmgUnzippedFilePath = Path.Combine(workingDir, $"Wasabi.tmp.dmg");
 			var appNotarizeFilePath = Path.Combine(workingDir, $"Wasabi-{versionPrefix}.zip");
 			var contentsPath = Path.GetFullPath(Path.Combine(Program.PackagerProjectDirectory.Replace("\\", "//"), "Content", "Osx"));
@@ -50,6 +52,7 @@ namespace WalletWasabi.Packager
 			var torZipDirPath = Path.Combine(appMacOsPath, "TorDaemons", "tor-osx64");
 			var torZipPath = $"{torZipDirPath}.zip";
 			var desktopDmgFilePath = Path.Combine(desktopPath, dmgFileName);
+			var desktoppkgFilePath = Path.Combine(desktopPath, pkgFileName);
 
 			var signArguments = $"--sign \"L233B2JQ68\" --verbose --force --options runtime --timestamp";
 
@@ -103,8 +106,28 @@ namespace WalletWasabi.Packager
 					bundleIdentifier = lines[i + 1].Trim().Replace("<string>", "").Replace("</string>", "");
 				}
 			}
-			IoHelpers.DeleteRecursivelyWithMagicDustAsync(infoFilePath).GetAwaiter().GetResult();
+
+			File.Delete(infoFilePath);
+
 			File.WriteAllLines(infoFilePath, lines);
+
+			var libuvFilePath = Path.Combine(appMacOsPath, "libuv.dylib");
+
+			using (var process = Process.Start(new ProcessStartInfo
+			{
+				FileName = $"lipo",
+				Arguments = $"\"{libuvFilePath}\" -remove i386 -output \"{libuvFilePath}\" ",
+				WorkingDirectory = workingDir,
+				RedirectStandardError = true
+			}))
+			{
+				process.WaitForExit();
+				string result = process.StandardError.ReadToEnd();
+				if (!string.IsNullOrEmpty(result))
+				{
+					throw new InvalidOperationException(result);
+				}
+			}
 
 			using (var process = Process.Start(new ProcessStartInfo
 			{
@@ -183,6 +206,51 @@ namespace WalletWasabi.Packager
 				RedirectStandardError = true
 			}))
 			{ 
+				process.WaitForExit();
+				string result = process.StandardError.ReadToEnd();
+				if (!result.Contains(": accepted"))
+				{
+					throw new InvalidOperationException(result);
+				}
+			}
+
+			Console.WriteLine("Phase: creating the pkg.");
+
+			using (var process = Process.Start(new ProcessStartInfo
+			{
+				FileName = "productbuild",
+				Arguments = $"--component \"{appPath}\" /Applications --sign \"L233B2JQ68\" \"{pkgFilePath}\"",
+				WorkingDirectory = workingDir,
+				RedirectStandardError = true
+			}))
+			{
+				process.WaitForExit();
+			}
+
+			Console.WriteLine("Phase: signing the pkg file.");
+
+			UnlockKeychain();
+
+			SignFile($"{signArguments} --entitlements \"{entitlementsPath}\" \"{pkgFilePath}\"", workingDir);
+
+			Console.WriteLine("Phase: verifying the signature.");
+
+			Verify(pkgFilePath);
+
+			Console.WriteLine("Phase: notarize pkg");
+			Notarize(appleId, password, pkgFilePath, bundleIdentifier);
+
+			Console.WriteLine("Phase: staple pkg");
+			Staple(pkgFilePath);
+
+			using (var process = Process.Start(new ProcessStartInfo
+			{
+				FileName = "spctl",
+				Arguments = $"-a -t install -v \"{pkgFilePath}\"",
+				WorkingDirectory = workingDir,
+				RedirectStandardError = true
+			}))
+			{
 				process.WaitForExit();
 				string result = process.StandardError.ReadToEnd();
 				if (!result.Contains(": accepted"))
