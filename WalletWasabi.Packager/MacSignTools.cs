@@ -103,7 +103,9 @@ namespace WalletWasabi.Packager
 					bundleIdentifier = lines[i + 1].Trim().Replace("<string>", "").Replace("</string>", "");
 				}
 			}
-			IoHelpers.DeleteRecursivelyWithMagicDustAsync(infoFilePath).GetAwaiter().GetResult();
+
+			File.Delete(infoFilePath);
+
 			File.WriteAllLines(infoFilePath, lines);
 
 			using (var process = Process.Start(new ProcessStartInfo
