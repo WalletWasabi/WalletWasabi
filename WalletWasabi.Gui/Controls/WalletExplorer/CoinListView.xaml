@@ -83,7 +83,7 @@
             <DataTemplate>
               <Grid Classes="CoinItemGrid">
                 <i:Interaction.Behaviors>
-                  <behaviors:CommandOnDoubleClickBehavior Command="{Binding OpenAdvancedDetail}" />
+                  <behaviors:CommandOnDoubleClickBehavior Command="{Binding OpenCoinInfo}" />
                 </i:Interaction.Behaviors>
                 <Grid.ContextMenu>
                   <ContextMenu>

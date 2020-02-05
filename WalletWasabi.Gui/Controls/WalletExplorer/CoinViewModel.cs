@@ -15,6 +15,8 @@ using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
 using WalletWasabi.Logging;
+using AvalonStudio.Extensibility;
+using AvalonStudio.Shell;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -31,12 +33,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableAsPropertyHelper<string> _cluster;
 		private ObservableAsPropertyHelper<string> _expandMenuCaption;
 		private bool _isExpanded;
-		public ReactiveCommand<Unit, bool> ToggleDetails { get; }
 
 		public CoinListViewModel Owner { get; }
 		private Global Global { get; }
 		public bool CanBeDequeued => Owner.CanDequeueCoins;
+		public ReactiveCommand<Unit, bool> ToggleDetails { get; }
 		public ReactiveCommand<Unit, Unit> DequeueCoin { get; }
+		public ReactiveCommand<Unit, Unit> OpenCoinInfo { get; }
 
 		public CoinViewModel(CoinListViewModel owner, SmartCoin model)
 		{
@@ -113,6 +116,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.DisposeWith(Disposables);
 
 			ToggleDetails = ReactiveCommand.Create(() => IsExpanded = !IsExpanded);
+			
+			OpenCoinInfo = ReactiveCommand.Create(() =>
+			{
+				var title = $"{TransactionId[0..10]}'s Details";
+				var advancedDetail = new CoinInfoTabViewModel(title, this);
+				IoC.Get<IShell>().AddOrSelectDocument(advancedDetail);
+			});
 
 			ToggleDetails.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -122,9 +132,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					NotificationHelpers.Error(ex.ToUserFriendlyString());
 				});
 
-			DequeueCoin.ThrownExceptions
-				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(ex => Logger.LogError(ex)); // Don't notify about it. Dequeue failure (and success) is notified by other mechanism.
+			Observable.Merge(DequeueCoin.ThrownExceptions)
+					  .Merge(OpenCoinInfo.ThrownExceptions)
+					  .ObserveOn(RxApp.TaskpoolScheduler)
+				      .Subscribe(ex => Logger.LogError(ex)); // Don't notify about it. Dequeue failure (and success) is notified by other mechanism.
 		}
 
 		public SmartCoin Model { get; }

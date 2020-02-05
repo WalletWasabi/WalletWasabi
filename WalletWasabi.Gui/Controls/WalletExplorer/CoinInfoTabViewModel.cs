@@ -9,15 +9,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class CoinInfoTabViewModel : WasabiDocumentTabViewModel
 	{
-		public CoinInfoTabViewModel(string title, object targetVM, IEnumerable<AdvancedDetailPair> bindingPairs) : base(title)
+		public CoinInfoTabViewModel(string title, CoinViewModel targetVM) : base(title)
 		{
 			Global = Locator.Current.GetService<Global>();
-			BindingPairs = bindingPairs;
 			TargetVM = targetVM;
 		}
 		
 		public object TargetVM { get; }
-		public IEnumerable<AdvancedDetailPair> BindingPairs { get; }
 		private CompositeDisposable Disposables { get; set; }
 		private Global Global { get; }
 

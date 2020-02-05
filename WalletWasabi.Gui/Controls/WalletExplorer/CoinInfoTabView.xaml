@@ -22,14 +22,6 @@
     </Style>
   </UserControl.Styles>
   <Grid>
-    <!-- <StackPanel>
-      <ContentControl.ItemTemplate>
-        <DataTemplate>
-          <Grid>
-
-          </Grid>
-        </DataTemplate>
-      </StackPanel.ItemTemplate>
-    </StackPanel> -->
+    
   </Grid>
 </UserControl>
