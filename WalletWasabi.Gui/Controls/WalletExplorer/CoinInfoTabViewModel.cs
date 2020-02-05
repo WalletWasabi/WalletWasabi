@@ -11,11 +11,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		public CoinInfoTabViewModel(string title, CoinViewModel coin) : base(title)
 		{
-			Global = Locator.Current.GetService<Global>();
 			Coin = coin;
 		}
 		
 		public CoinViewModel Coin { get; }
-		private Global Global { get; }
 	}
 }
