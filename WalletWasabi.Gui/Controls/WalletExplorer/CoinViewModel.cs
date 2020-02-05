@@ -15,8 +15,6 @@ using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
 using WalletWasabi.Logging;
-using AvalonStudio.Extensibility;
-using AvalonStudio.Shell;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -34,7 +32,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableAsPropertyHelper<string> _expandMenuCaption;
 		private bool _isExpanded;
 		public ReactiveCommand<Unit, bool> ToggleDetails { get; }
-		public ReactiveCommand<Unit, Unit> OpenAdvancedDetail { get; }
 
 		public CoinListViewModel Owner { get; }
 		private Global Global { get; }
@@ -117,13 +114,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			ToggleDetails = ReactiveCommand.Create(() => IsExpanded = !IsExpanded);
 
-			OpenAdvancedDetail = ReactiveCommand.Create(() =>
-			{
-				var title = $"{TransactionId[0..10]}'s Details";
-				var advancedDetail = AdvancedDetailTabHelper.GenerateAdvancedDetailTab(title, this);
-				IoC.Get<IShell>().AddOrSelectDocument(advancedDetail);
-			});
-
 			ToggleDetails.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
@@ -132,10 +122,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					NotificationHelpers.Error(ex.ToUserFriendlyString());
 				});
 
-			Observable.Merge(DequeueCoin.ThrownExceptions)
-					  .Merge(OpenAdvancedDetail.ThrownExceptions)
-					  .ObserveOn(RxApp.TaskpoolScheduler)
-					  .Subscribe(ex => Logger.LogError(ex)); // Don't notify about it. Dequeue failure (and success) is notified by other mechanism.
+			DequeueCoin.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex)); // Don't notify about it. Dequeue failure (and success) is notified by other mechanism.
 		}
 
 		public SmartCoin Model { get; }
@@ -148,7 +137,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public bool Unspent => _unspent?.Value ?? false;
 
-		[AdvancedDetail("Address")]
 		public string Address => Model.ScriptPubKey.GetDestinationAddress(Global.Network).ToString();
 
 		public bool IsExpanded
@@ -156,8 +144,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _isExpanded;
 			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
 		}
-		
-		[AdvancedDetail("Confirmations")]
+
 		public int Confirmations => Model.Height.Type == HeightType.Chain
 			? (int)Global.BitcoinStore.SmartHeaderChain.TipHeight - Model.Height.Value + 1
 			: 0;
@@ -188,24 +175,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public string AmountBtc => Model.Amount.ToString(false, true);
 
 		public int Height => Model.Height;
-		
-		[AdvancedDetail("Transaction ID")]
+
 		public string TransactionId => Model.TransactionId.ToString();
 
-		[AdvancedDetail("Output Index")]
 		public uint OutputIndex => Model.Index;
 
-		[AdvancedDetail("Anonymity Set")]
 		public int AnonymitySet => Model.AnonymitySet;
 
 		public string InCoinJoin => Model.CoinJoinInProgress ? "Yes" : "No";
 
 		public string Clusters => _cluster?.Value ?? "";
-		
-		[AdvancedDetail("Public Key")]
+
 		public string PubKey => Model.HdPubKey?.PubKey?.ToString() ?? "";
 
-		[AdvancedDetail("Key Path")]
 		public string KeyPath => Model.HdPubKey?.FullKeyPath?.ToString() ?? "";
 
 		public SmartCoinStatus Status
