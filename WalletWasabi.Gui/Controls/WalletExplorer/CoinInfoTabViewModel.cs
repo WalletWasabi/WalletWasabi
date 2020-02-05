@@ -9,28 +9,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class CoinInfoTabViewModel : WasabiDocumentTabViewModel
 	{
-		public CoinInfoTabViewModel(string title, CoinViewModel targetVM) : base(title)
+		public CoinInfoTabViewModel(string title, CoinViewModel coin) : base(title)
 		{
 			Global = Locator.Current.GetService<Global>();
-			TargetVM = targetVM;
+			Coin = coin;
 		}
 		
-		public object TargetVM { get; }
-		private CompositeDisposable Disposables { get; set; }
+		public CoinViewModel Coin { get; }
 		private Global Global { get; }
-
-		public override void OnOpen()
-		{
-			Disposables = Disposables is null ?
-				new CompositeDisposable() :
-				throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
-		}
-
-		public override bool OnClose()
-		{
-			Disposables?.Dispose();
-			Disposables = null;
-			return base.OnClose();
-		}
 	}
 }
