@@ -28,5 +28,9 @@
 	<string>public.app-category.finance</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
+	<key>CFBundleSupportedPlatforms</key>
+	<array>
+    	<string>MacOSX</string>
+	</array>
 </dict>
 </plist>
