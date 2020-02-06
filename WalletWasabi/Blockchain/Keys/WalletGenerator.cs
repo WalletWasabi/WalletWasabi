@@ -9,16 +9,24 @@ namespace WalletWasabi.Blockchain.Keys
 {
 	public class WalletGenerator
 	{
-		public string WalletsDir { get; private set; }
-		public Network Network { get; private set; }
-		public bool TermsAccepted { get; set; }
-		public uint TipHeight  { get; set; }
+		private static readonly string[] ReservedFileNames = new string[]
+		{
+			"CON", "PRN", "AUX", "NUL",
+			"COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+			"LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
+		};
 
 		public WalletGenerator(string walletsDir, Network network)
 		{
 			WalletsDir = walletsDir;
 			Network = network;
 		}
+
+		public string WalletsDir { get; private set; }
+		public Network Network { get; private set; }
+		public bool TermsAccepted { get; set; }
+		public uint TipHeight { get; set; }
+
 
 		public (KeyManager, Mnemonic) GenerateWallet(string walletName, string password)
 		{
@@ -46,13 +54,6 @@ namespace WalletWasabi.Blockchain.Keys
 			km.SetFilePath(walletFilePath);
 			return (km, mnemonic);
 		}
-
-		private static readonly string[] ReservedFileNames = new string[]
-		{
-			"CON", "PRN", "AUX", "NUL",
-			"COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
-			"LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
-		};
 
 		private bool ValidateWalletName(string walletName)
 		{

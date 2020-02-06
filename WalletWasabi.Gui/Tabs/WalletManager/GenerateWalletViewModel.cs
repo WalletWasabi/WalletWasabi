@@ -16,7 +16,6 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
-
 	internal class GenerateWalletViewModel : CategoryViewModel
 	{
 		private string _password;
@@ -53,7 +52,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				var (km, mnemonic) = walletGenerator.GenerateWallet(WalletName, Password);
 				Owner.CurrentView = new GenerateWalletSuccessViewModel(Owner, km, mnemonic);
 			}
-			catch(Exception ex)
+			catch (Exception ex)
 			{
 				Logger.LogError(ex);
 				NotificationHelpers.Error(ex.ToUserFriendlyString());
