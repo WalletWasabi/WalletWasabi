@@ -27,7 +27,6 @@ namespace WalletWasabi.Blockchain.Keys
 		public bool TermsAccepted { get; set; }
 		public uint TipHeight { get; set; }
 
-
 		public (KeyManager, Mnemonic) GenerateWallet(string walletName, string password)
 		{
 			if (!ValidateWalletName(walletName))
