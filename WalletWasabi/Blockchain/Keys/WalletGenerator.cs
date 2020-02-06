@@ -7,7 +7,7 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.Keys
 {
-	internal class WalletGenerator
+	public class WalletGenerator
 	{
 		public string WalletsDir { get; private set; }
 		public Network Network { get; private set; }
