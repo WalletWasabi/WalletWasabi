@@ -213,7 +213,7 @@ namespace WalletWasabi.Services
 					{
 						return;
 					}
-					// Make sure fully synced and this filter is the lastest filter.
+					// Make sure fully synced and this filter is the latest filter.
 					if (BitcoinStore.SmartHeaderChain.HashesLeft != 0 || BitcoinStore.SmartHeaderChain.TipHash != filterModel.Header.BlockHash)
 					{
 						return;

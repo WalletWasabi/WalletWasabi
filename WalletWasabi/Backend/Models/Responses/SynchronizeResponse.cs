@@ -13,7 +13,7 @@ namespace WalletWasabi.Backend.Models.Responses
 	{
 		public FiltersResponseState FiltersResponseState { get; set; }
 
-		[JsonProperty(ItemConverterType = typeof(FilterModelJsonConverter))] // Do not use the deafult jsonifyer, because that's too much data.
+		[JsonProperty(ItemConverterType = typeof(FilterModelJsonConverter))] // Do not use the default jsonifyer, because that's too much data.
 		public IEnumerable<FilterModel> Filters { get; set; }
 
 		public int BestHeight { get; set; }
