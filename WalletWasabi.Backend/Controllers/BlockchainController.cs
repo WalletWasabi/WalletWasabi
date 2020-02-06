@@ -422,10 +422,16 @@ namespace WalletWasabi.Backend.Controllers
 
 		[HttpGet("status")]
 		[ProducesResponseType(typeof(StatusResponse), 200)]
-		[ResponseCache(Duration = 10, Location = ResponseCacheLocation.Client)]
 		public async Task<StatusResponse> GetStatusAsync()
 		{
-			var result = new StatusResponse();
+			var cacheKey = $"{nameof(GetStatusAsync)}";
+
+			if (Cache.TryGetValue(cacheKey, out StatusResponse status))
+			{
+				return status;
+			}
+
+			status = new StatusResponse();
 
 			try
 			{
@@ -438,14 +444,19 @@ namespace WalletWasabi.Backend.Controllers
 
 				if (bestHash == lastFilterHash || prevHash == lastFilterHash)
 				{
-					result.FilterCreationActive = true;
+					status.FilterCreationActive = true;
 				}
+
+				var cacheEntryOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(30));
+
+				Cache.Set(cacheKey, status, cacheEntryOptions);
 			}
 			catch (Exception ex)
 			{
 				Logger.LogDebug(ex);
 			}
-			return result;
+
+			return status;
 		}
 	}
 }
