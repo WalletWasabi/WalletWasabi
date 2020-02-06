@@ -17,22 +17,22 @@
       <Setter Property="Background" Value="Transparent" />
     </Style>
   </UserControl.Styles>
-  <controls:GroupBox Title="{Binding Title}" Padding="20" Margin="10">
+  <controls:GroupBox Title="{Binding Title}" DataContext="{Binding Coin}" Padding="20" Margin="10">
     <Grid HorizontalAlignment="Left" ColumnDefinitions="150, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
       <TextBlock Classes="monospaceFont" Text="Transaction Id:" Grid.Row="0" />
-      <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Coin.TransactionId}" Background="Transparent" Grid.Column="1" Grid.Row="0" />
+      <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding TransactionId}" Background="Transparent" Grid.Column="1" Grid.Row="0" />
       <TextBlock Classes="monospaceFont" Text="Output Index:" Grid.Row="1" />
-      <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Coin.OutputIndex}" Grid.Column="1" Grid.Row="1" />
+      <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding OutputIndex}" Grid.Column="1" Grid.Row="1" />
       <TextBlock Classes="monospaceFont" Text="Address:" Grid.Row="2" />
-      <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Coin.Address}" Grid.Column="1" Grid.Row="2" />
+      <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Address}" Grid.Column="1" Grid.Row="2" />
       <TextBlock Classes="monospaceFont" Text="Confirmations:" Grid.Row="3" />
-      <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Coin.Confirmations}" Grid.Column="1" Grid.Row="3" />
+      <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Confirmations}" Grid.Column="1" Grid.Row="3" />
       <TextBlock Classes="monospaceFont" Text="Anonymity Set:" Grid.Row="4" />
-      <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Coin.AnonymitySet}" Grid.Column="1" Grid.Row="4" />
+      <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding AnonymitySet}" Grid.Column="1" Grid.Row="4" />
       <TextBlock Classes="monospaceFont" Text="Key Path:" Grid.Row="5" />
-      <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Coin.KeyPath}" Grid.Column="1" Grid.Row="5" />
+      <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding KeyPath}" Grid.Column="1" Grid.Row="5" />
       <TextBlock Classes="monospaceFont" Text="Public Key:" Grid.Row="6" />
-      <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Coin.PubKey}" Grid.Column="1" Grid.Row="6" />
+      <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding PubKey}" Grid.Column="1" Grid.Row="6" />
     </Grid>
   </controls:GroupBox>
 </UserControl>

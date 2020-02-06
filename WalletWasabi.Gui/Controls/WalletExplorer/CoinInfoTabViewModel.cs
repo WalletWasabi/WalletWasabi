@@ -1,19 +1,15 @@
-using System;
-using System.Collections.Generic;
-using System.Reactive.Disposables;
-using System.Reflection;
-using Splat;
 using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class CoinInfoTabViewModel : WasabiDocumentTabViewModel
 	{
-		public CoinInfoTabViewModel(string title, CoinViewModel coin) : base(title)
+		public CoinInfoTabViewModel(CoinViewModel coin) : base(string.Empty)
 		{
 			Coin = coin;
+			Title = $"{coin.TransactionId[0..10]}'s Details";
 		}
-		
+
 		public CoinViewModel Coin { get; }
 	}
 }
