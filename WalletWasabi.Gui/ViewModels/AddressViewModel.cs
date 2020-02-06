@@ -133,7 +133,7 @@ namespace WalletWasabi.Gui.ViewModels
 				.Subscribe(ex =>
 				{
 					Logger.LogError(ex);
-					NotificationHelpers.Error("Could not find the device. Make sure it is connected.");
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
 				});
 		}
 
