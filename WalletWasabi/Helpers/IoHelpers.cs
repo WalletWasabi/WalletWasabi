@@ -13,8 +13,8 @@ namespace System.IO
 		// http://stackoverflow.com/a/14933880/2061103
 		public static async Task DeleteRecursivelyWithMagicDustAsync(string destinationDir)
 		{
-			const int magicDust = 10;
-			for (var gnomes = 1; gnomes <= magicDust; gnomes++)
+			const int MagicDust = 10;
+			for (var gnomes = 1; gnomes <= MagicDust; gnomes++)
 			{
 				try
 				{
@@ -26,7 +26,7 @@ namespace System.IO
 				}
 				catch (IOException)
 				{
-					if (gnomes == magicDust)
+					if (gnomes == MagicDust)
 					{
 						throw;
 					}
@@ -39,7 +39,7 @@ namespace System.IO
 				}
 				catch (UnauthorizedAccessException)
 				{
-					if (gnomes == magicDust)
+					if (gnomes == MagicDust)
 					{
 						throw;
 					}

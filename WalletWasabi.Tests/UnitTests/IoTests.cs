@@ -230,11 +230,11 @@ namespace WalletWasabi.Tests.UnitTests
 				}
 			};
 
-			const int iterations = 200;
+			const int Iterations = 200;
 
 			var t1 = new Thread(() =>
 			{
-				for (var i = 0; i < iterations; i++)
+				for (var i = 0; i < Iterations; i++)
 				{
 					/* We have to block the Thread.
 					 * If we use async/await pattern then Join() function at the end will indicate that the Thread is finished -
@@ -246,14 +246,14 @@ namespace WalletWasabi.Tests.UnitTests
 			});
 			var t2 = new Thread(() =>
 			{
-				for (var i = 0; i < iterations; i++)
+				for (var i = 0; i < Iterations; i++)
 				{
 					WriteNextLineAsync().Wait();
 				}
 			});
 			var t3 = new Thread(() =>
 			{
-				for (var i = 0; i < iterations; i++)
+				for (var i = 0; i < Iterations; i++)
 				{
 					WriteNextLineAsync().Wait();
 				}
