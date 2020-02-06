@@ -411,7 +411,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 		{
 			using (IndexLock.Lock())
 			{
-				return Index.Last();
+				return Index[^1];
 			}
 		}
 

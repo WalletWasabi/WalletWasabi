@@ -424,20 +424,19 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(typeof(StatusResponse), 200)]
 		public async Task<StatusResponse> GetStatusAsync()
 		{
-			var cacheKey = $"{nameof(GetStatusAsync)}";
-
-			if (Cache.TryGetValue(cacheKey, out StatusResponse status))
-			{
-				return status;
-			}
-
-			status = new StatusResponse();
-
 			try
 			{
 				var lastFilter = Global.IndexBuilderService.GetLastFilter();
-				var lastFilterHash = lastFilter.Header.BlockHash;
 
+				var cacheKey = $"{nameof(GetStatusAsync)}:{lastFilter.Header.BlockHash}";
+				if (Cache.TryGetValue(cacheKey, out StatusResponse status))
+				{
+					return status;
+				}
+
+				status = new StatusResponse();
+
+				var lastFilterHash = lastFilter.Header.BlockHash;
 				var bestHash = await RpcClient.GetBestBlockHashAsync();
 				var lastBlock = await RpcClient.GetBlockAsync(bestHash);
 				var prevHash = lastBlock.Header.HashPrevBlock;
@@ -450,13 +449,13 @@ namespace WalletWasabi.Backend.Controllers
 				var cacheEntryOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(30));
 
 				Cache.Set(cacheKey, status, cacheEntryOptions);
+				return status;
 			}
 			catch (Exception ex)
 			{
 				Logger.LogDebug(ex);
+				throw ex;
 			}
-
-			return status;
 		}
 	}
 }
