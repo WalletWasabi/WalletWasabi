@@ -407,6 +407,14 @@ namespace WalletWasabi.Blockchain.BlockFilters
 			}
 		}
 
+		public FilterModel GetLastFilter()
+		{
+			using (IndexLock.Lock())
+			{
+				return Index.Last();
+			}
+		}
+
 		public async Task StopAsync()
 		{
 			if (BlockNotifier != null)

@@ -419,5 +419,33 @@ namespace WalletWasabi.Backend.Controllers
 
 			return feeResponse;
 		}
+
+		[HttpGet("status")]
+		[ProducesResponseType(typeof(StatusResponse), 200)]
+		[ResponseCache(Duration = 10, Location = ResponseCacheLocation.Client)]
+		public async Task<StatusResponse> GetStatusAsync()
+		{
+			var result = new StatusResponse();
+
+			try
+			{
+				var lastFilter = Global.IndexBuilderService.GetLastFilter();
+				var lastFilterHash = lastFilter.Header.BlockHash;
+
+				var bestHash = await RpcClient.GetBestBlockHashAsync();
+				var lastBlock = await RpcClient.GetBlockAsync(bestHash);
+				var prevHash = lastBlock.Header.HashPrevBlock;
+
+				if (bestHash == lastFilterHash || prevHash == lastFilterHash)
+				{
+					result.FilterCreationActive = true;
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogDebug(ex);
+			}
+			return result;
+		}
 	}
 }
