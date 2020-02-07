@@ -725,7 +725,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			createdCoin = transactionProcessor.Coins.First();
 			Assert.Equal("A, B", createdCoin.Clusters.Labels);
 
-			// Spend the received coin to mylself else C
+			// Spend the received coin to myself else C
 			var myselfScript = transactionProcessor.NewKey("C").P2wpkhScript;
 			var changeScript2 = transactionProcessor.NewKey("").P2wpkhScript;
 			var tx2 = CreateSpendingTransaction(new[] { createdCoin.GetCoin() }, myselfScript, changeScript2);
