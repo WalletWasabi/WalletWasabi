@@ -59,7 +59,7 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 			ULen.FromByte(bytes[1]);
 
 			UName = new UNameField();
-			UName.FromBytes(bytes.Skip(2).Take(ULen.Value).ToArray());
+			UName.FromBytes(bytes[2..(2 + ULen.Value)]);
 
 			PLen = new PLenField();
 			PLen.FromByte(bytes[1 + ULen.Value]);
@@ -68,7 +68,7 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 			{
 				throw new FormatException($"{nameof(PLen)}.{nameof(PLen.Value)} must be {nameof(bytes)}.{nameof(bytes.Length)} - 3 + {nameof(ULen)}.{nameof(ULen.Value)} = {expectedPlenValue}. Actual: {PLen.Value}.");
 			}
-			Passwd.FromBytes(bytes.Skip(3 + ULen.Value).ToArray());
+			Passwd.FromBytes(bytes[(3 + ULen.Value)..]);
 		}
 
 		public override byte[] ToBytes() => ByteHelpers.Combine(new byte[] { Ver.ToByte(), ULen.ToByte() }, UName.ToBytes(), new byte[] { PLen.ToByte() }, Passwd.ToBytes());
