@@ -64,10 +64,10 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 			Atyp.FromByte(bytes[3]);
 
 			BndAddr = new AddrField();
-			BndAddr.FromBytes(bytes.Skip(4).Take(bytes.Length - 4 - 2).ToArray());
+			BndAddr.FromBytes(bytes[4..^2]);
 
 			BndPort = new PortField();
-			BndPort.FromBytes(bytes.Skip(bytes.Length - 2).ToArray());
+			BndPort.FromBytes(bytes[^2..]);
 		}
 
 		public override byte[] ToBytes() => ByteHelpers.Combine(new byte[] { Ver.ToByte(), Rep.ToByte(), Rsv.ToByte(), Atyp.ToByte() }, BndAddr.ToBytes(), BndPort.ToBytes());
