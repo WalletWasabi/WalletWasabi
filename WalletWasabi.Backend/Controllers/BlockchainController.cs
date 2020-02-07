@@ -23,7 +23,7 @@ namespace WalletWasabi.Backend.Controllers
 	[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
 	public class BlockchainController : Controller
 	{
-		private IMemoryCache Cache { get; }
+		public IMemoryCache Cache { get; }
 		public Global Global { get; }
 		private RPCClient RpcClient => Global.RpcClient;
 
@@ -426,29 +426,28 @@ namespace WalletWasabi.Backend.Controllers
 		{
 			try
 			{
-				var lastFilter = Global.IndexBuilderService.GetLastFilter();
+				var cacheKey = $"{nameof(GetStatusAsync)}";
 
-				var cacheKey = $"{nameof(GetStatusAsync)}:{lastFilter.Header.BlockHash}";
-				if (Cache.TryGetValue(cacheKey, out StatusResponse status))
+				if (!Cache.TryGetValue(cacheKey, out StatusResponse status))
 				{
-					return status;
+					status = new StatusResponse();
+
+					var lastFilter = Global.IndexBuilderService.GetLastFilter();
+					var lastFilterHash = lastFilter.Header.BlockHash;
+					var bestHash = await RpcClient.GetBestBlockHashAsync();
+					var lastBlock = await RpcClient.GetBlockAsync(bestHash);
+					var prevHash = lastBlock.Header.HashPrevBlock;
+
+					if (bestHash == lastFilterHash || prevHash == lastFilterHash)
+					{
+						status.FilterCreationActive = true;
+					}
+
+					var cacheEntryOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(30));
+
+					Cache.Set(cacheKey, status, cacheEntryOptions);
 				}
 
-				status = new StatusResponse();
-
-				var lastFilterHash = lastFilter.Header.BlockHash;
-				var bestHash = await RpcClient.GetBestBlockHashAsync();
-				var lastBlock = await RpcClient.GetBlockAsync(bestHash);
-				var prevHash = lastBlock.Header.HashPrevBlock;
-
-				if (bestHash == lastFilterHash || prevHash == lastFilterHash)
-				{
-					status.FilterCreationActive = true;
-				}
-
-				var cacheEntryOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(30));
-
-				Cache.Set(cacheKey, status, cacheEntryOptions);
 				return status;
 			}
 			catch (Exception ex)

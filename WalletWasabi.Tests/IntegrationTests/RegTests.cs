@@ -18,6 +18,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend;
+using WalletWasabi.Backend.Controllers;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -283,6 +284,9 @@ namespace WalletWasabi.Tests.IntegrationTests
 				}
 
 				await rpc.GenerateAsync(1);
+
+				var blockchainController = (BlockchainController)RegTestFixture.BackendHost.Services.GetService(typeof(BlockchainController));
+				blockchainController.Cache.Remove($"{nameof(BlockchainController.GetStatusAsync)}");
 
 				response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, request);
 				using (HttpContent content = response.Content)
