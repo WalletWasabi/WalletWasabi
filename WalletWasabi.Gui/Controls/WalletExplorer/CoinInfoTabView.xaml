@@ -40,6 +40,10 @@
           <TextBlock Classes="monospaceFont" Text="Public Key:" />
           <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding PubKey}" />
         </Grid>
+        <Grid ColumnDefinitions="150, *">
+          <TextBlock Classes="monospaceFont" Text="Clusters:" />
+          <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Clusters}" />
+        </Grid>
       </StackPanel>
     </controls:GroupBox>
   </controls:GroupBox>
