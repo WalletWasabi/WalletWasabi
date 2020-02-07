@@ -121,7 +121,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{ 
 				var shell = IoC.Get<IShell>();
 
-				var coinInfo = shell.Documents?.OfType<CoinInfoTabViewModel>()?.FirstOrDefault(x => x.Coin?.TransactionId == TransactionId);
+				var coinInfo = shell.Documents?.OfType<CoinInfoTabViewModel>()?.FirstOrDefault(x => x.Coin?.Model == Model);
 
 				if (coinInfo is null)
 				{
