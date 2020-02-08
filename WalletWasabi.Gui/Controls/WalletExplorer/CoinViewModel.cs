@@ -17,6 +17,7 @@ using WalletWasabi.Models;
 using WalletWasabi.Logging;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
+using Avalonia;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -40,6 +41,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, bool> ToggleDetails { get; }
 		public ReactiveCommand<Unit, Unit> DequeueCoin { get; }
 		public ReactiveCommand<Unit, Unit> OpenCoinInfo { get; }
+		public ReactiveCommand<Unit, Unit> CopyClusters { get; }
 
 		public CoinViewModel(CoinListViewModel owner, SmartCoin model)
 		{
@@ -132,6 +134,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				shell.Select(coinInfo);
 			});
 
+			CopyClusters = ReactiveCommand.CreateFromTask(async () =>
+			{
+				await Application.Current.Clipboard.SetTextAsync(Clusters);
+			});
+
 			ToggleDetails
 				.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -144,6 +151,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Observable
 				.Merge(DequeueCoin.ThrownExceptions) // Don't notify about it. Dequeue failure (and success) is notified by other mechanism.
 				.Merge(OpenCoinInfo.ThrownExceptions)
+				.Merge(CopyClusters.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 		}

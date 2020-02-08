@@ -92,6 +92,11 @@
                         <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource Add}" />
                       </MenuItem.Icon>
                     </MenuItem>
+                    <MenuItem Header="Copy Clusters" Command="{Binding CopyClusters}">
+                      <MenuItem.Icon>
+                        <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource CopyIcon}" />
+                      </MenuItem.Icon>
+                    </MenuItem>
                     <MenuItem IsVisible="{Binding CanBeDequeued}"  Header="Dequeue from CoinJoin" Command="{Binding DequeueCoin}">
                       <MenuItem.Icon>
                         <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource CoinListView_DequeueCoin}" />
@@ -120,7 +125,7 @@
                 <Panel Grid.Column="4" VerticalAlignment="Center" HorizontalAlignment="Center" Background="Transparent" DataContext="{Binding AnonymitySet, Converter={StaticResource PrivacyLevelValueConverter}}" ToolTip.Tip="{Binding ToolTip}">
                   <DrawingPresenter Drawing="{Binding Icon}" Height="16" Width="16" Margin="0 0 15 0" />
                 </Panel>
-                <controls:ExtendedTextBox Grid.Column="5" Classes="selectableTextBlock" Background="Transparent" Text="{Binding Clusters, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" />
+                <TextBlock Grid.Column="5" Text="{Binding Clusters, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" />
               </Grid>
             </DataTemplate>
           </controls:ExtendedListBox.ItemTemplate>
