@@ -232,7 +232,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			}
 			finally
 			{
-				if (indexBuilderService != null)
+				if (indexBuilderService is { })
 				{
 					await indexBuilderService.StopAsync();
 				}
