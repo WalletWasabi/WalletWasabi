@@ -435,8 +435,8 @@ namespace WalletWasabi.Backend.Controllers
 					var lastFilter = Global.IndexBuilderService.GetLastFilter();
 					var lastFilterHash = lastFilter.Header.BlockHash;
 					var bestHash = await RpcClient.GetBestBlockHashAsync();
-					var lastBlock = await RpcClient.GetBlockAsync(bestHash);
-					var prevHash = lastBlock.Header.HashPrevBlock;
+					var lastBlockHeader = await RpcClient.GetBlockHeaderAsync(bestHash);
+					var prevHash = lastBlockHeader.HashPrevBlock;
 
 					if (bestHash == lastFilterHash || prevHash == lastFilterHash)
 					{
