@@ -132,7 +132,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				shell.Select(coinInfo);
 			});
 
-			ToggleDetails.ThrownExceptions
+			ToggleDetails
+				.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
 				{
@@ -140,10 +141,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					NotificationHelpers.Error(ex.ToUserFriendlyString());
 				});
 
-			Observable.Merge(DequeueCoin.ThrownExceptions) // Don't notify about it. Dequeue failure (and success) is notified by other mechanism.
-					  .Merge(OpenCoinInfo.ThrownExceptions)
-					  .ObserveOn(RxApp.TaskpoolScheduler)
-					  .Subscribe(ex => Logger.LogError(ex));
+			Observable
+				.Merge(DequeueCoin.ThrownExceptions) // Don't notify about it. Dequeue failure (and success) is notified by other mechanism.
+				.Merge(OpenCoinInfo.ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		public SmartCoin Model { get; }
