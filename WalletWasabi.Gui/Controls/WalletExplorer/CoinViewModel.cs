@@ -116,9 +116,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.DisposeWith(Disposables);
 
 			ToggleDetails = ReactiveCommand.Create(() => IsExpanded = !IsExpanded);
-			
+
 			OpenCoinInfo = ReactiveCommand.Create(() =>
-			{ 
+			{
 				var shell = IoC.Get<IShell>();
 
 				var coinInfo = shell.Documents?.OfType<CoinInfoTabViewModel>()?.FirstOrDefault(x => x.Coin?.Model == Model);
@@ -128,7 +128,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					coinInfo = new CoinInfoTabViewModel(this);
 					shell.AddDocument(coinInfo);
 				}
-				
+
 				shell.Select(coinInfo);
 			});
 
@@ -143,7 +143,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Observable.Merge(DequeueCoin.ThrownExceptions) // Don't notify about it. Dequeue failure (and success) is notified by other mechanism.
 					  .Merge(OpenCoinInfo.ThrownExceptions)
 					  .ObserveOn(RxApp.TaskpoolScheduler)
-				      .Subscribe(ex => Logger.LogError(ex)); 
+					  .Subscribe(ex => Logger.LogError(ex));
 		}
 
 		public SmartCoin Model { get; }
