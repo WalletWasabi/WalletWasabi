@@ -44,19 +44,6 @@ namespace WalletWasabi.Packager
 			}
 		}
 
-		////public static void RemoveSosDocsUnix(string pathToSearch)
-		////{
-		////	// ToDo ?: Must remove from the ui.deps.json, too otherwise binary will fail.
-		////	// Leave it to not do anything for now.
-		////	string[] files = Directory.GetFiles(pathToSearch, "sosdocsunix.txt", SearchOption.AllDirectories);
-		////	if (files is null) return;
-
-		////	foreach (var sosDocsUnixFilePath in files)
-		////	{
-		////		File.Delete(sosDocsUnixFilePath);
-		////	}
-		////}
-
 		public static string LinuxPathCombine(params string[] paths)
 		{
 			return LinuxPath(Path.Combine(paths));
