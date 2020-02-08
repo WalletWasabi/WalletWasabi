@@ -87,7 +87,7 @@
                 </i:Interaction.Behaviors>
                 <Grid.ContextMenu>
                   <ContextMenu>
-                    <MenuItem Header="Open details in a new tab." Command="{Binding OpenCoinInfo}">
+                    <MenuItem Header="Open Details" Command="{Binding OpenCoinInfo}">
                       <MenuItem.Icon>
                         <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource WalletExplorerView_Info}" />
                       </MenuItem.Icon>
