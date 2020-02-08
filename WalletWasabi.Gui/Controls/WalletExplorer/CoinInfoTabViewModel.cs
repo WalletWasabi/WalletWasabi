@@ -7,7 +7,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public CoinInfoTabViewModel(CoinViewModel coin) : base(string.Empty)
 		{
 			Coin = coin;
-			Title = $"{coin.TransactionId[0..7]}'s Details";
+			Title = $"Details of {coin.OutputIndex}:{coin.TransactionId[0..7]}";
 		}
 
 		public CoinViewModel Coin { get; }
