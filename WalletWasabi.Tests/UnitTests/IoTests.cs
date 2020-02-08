@@ -95,7 +95,7 @@ namespace WalletWasabi.Tests.UnitTests
 			/* The next test is commented out because on mac and on linux File.Open does not lock the file
 			 * it can be still written by the ioman1.WriteAllLinesAsync(). Tried with FileShare.None FileShare.Delete
 			 * FileStream.Lock none of them are working or caused not supported on this platform exception.
-			 * So there is no OP system way to garantee that the file won't be written during another write operation.
+			 * So there is no OP system way to guarantee that the file won't be written during another write operation.
 			 * For example git is using lock files to solve this problem. We are using system wide mutexes.
 			 * For now there is no other way to do this. Some useful links :
 			 * https://stackoverflow.com/questions/2751734/how-do-filesystems-handle-concurrent-read-write
@@ -238,7 +238,7 @@ namespace WalletWasabi.Tests.UnitTests
 				{
 					/* We have to block the Thread.
 					 * If we use async/await pattern then Join() function at the end will indicate that the Thread is finished -
-					 * which is not true bacause the WriteNextLineAsync() is not yet finished. The reason is that await will return execution
+					 * which is not true because the WriteNextLineAsync() is not yet finished. The reason is that await will return execution
 					 * the to the calling thread it is detected as the thread is done. t1 and t2 and t3 will still run in parallel!
 					 */
 					WriteNextLineAsync().Wait();

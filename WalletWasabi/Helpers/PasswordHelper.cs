@@ -42,7 +42,7 @@ namespace WalletWasabi.Helpers
 			// On OSX Avalonia gets the string from the Clipboard as byte[] and size.
 			// The size was mistakenly taken from the size of the original string which is not correct because of the UTF8 encoding.
 			byte[] bytes = Encoding.UTF8.GetBytes(text);
-			var myString = Encoding.UTF8.GetString(bytes.Take(text.Length).ToArray());
+			var myString = Encoding.UTF8.GetString(bytes[..text.Length]);
 			return text.Substring(0, myString.Length);
 		}
 
