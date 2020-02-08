@@ -219,7 +219,7 @@ namespace Nito.Collections
 		}
 
 		/// <summary>
-		/// Copies the deque elemens into an array. The resulting array always has all the deque elements contiguously.
+		/// Copies the deque elements into an array. The resulting array always has all the deque elements contiguously.
 		/// </summary>
 		/// <param name="array">The destination array.</param>
 		/// <param name="arrayIndex">The optional index in the destination array at which to begin writing.</param>

@@ -119,7 +119,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		}
 
 		/// <summary>
-		/// Multiply current Polynomial to anotherone.
+		/// Multiply current Polynomial to another one.
 		/// </summary>
 		/// <returns>Result polynomial after multiply</returns>
 		internal Polynomial Multiply(Polynomial other)
