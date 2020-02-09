@@ -35,7 +35,7 @@
                     <ContextMenu>
                       <MenuItem Header="Copy Transaction ID" Command="{Binding CopyTransactionId}">
                         <MenuItem.Icon>
-                          <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource ReceiveTabView_CopyIcon}" />
+                          <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource CopyIcon}" />
                         </MenuItem.Icon>
                       </MenuItem>
                     </ContextMenu>
