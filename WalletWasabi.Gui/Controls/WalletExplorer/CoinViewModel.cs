@@ -122,11 +122,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				shell.Select(coinInfo);
 			});
 
-			CopyClusters = ReactiveCommand.CreateFromTask(async () =>
-			{
-				await Application.Current.Clipboard.SetTextAsync(Clusters);
-			});
-			
+			CopyClusters = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(Clusters));
+
 			Observable
 				.Merge(DequeueCoin.ThrownExceptions) // Don't notify about it. Dequeue failure (and success) is notified by other mechanism.
 				.Merge(OpenCoinInfo.ThrownExceptions)
