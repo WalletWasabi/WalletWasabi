@@ -67,9 +67,6 @@ namespace NSubsys
 		/// Reads in a block from a file and converts it to the struct
 		/// type specified by the template parameter
 		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="reader"></param>
-		/// <returns></returns>
 		public static T FromBinaryReader<T>(BinaryReader reader)
 		{
 			// Read in a byte array

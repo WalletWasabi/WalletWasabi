@@ -84,7 +84,7 @@ namespace Gma.QrCodeNet.Encoding.Versions
 		/// <summary>
 		/// Decide which version group it belong to
 		/// </summary>
-		/// <param name="numBits">number of bits for bitlist where it contain DataBits encode from input content and ECI header</param>
+		/// <param name="numBits">Number of bits for bitlist where it contain DataBits encode from input content and ECI header</param>
 		/// <param name="level">Error correction level</param>
 		/// <returns>Version group index for VERSION_GROUP</returns>
 		private static int DynamicSearchIndicator(int numBits, ErrorCorrectionLevel level)
