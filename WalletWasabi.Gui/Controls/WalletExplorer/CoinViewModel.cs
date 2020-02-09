@@ -32,13 +32,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableAsPropertyHelper<bool> _confirmed;
 		private ObservableAsPropertyHelper<bool> _unavailable;
 		private ObservableAsPropertyHelper<string> _cluster;
-		private ObservableAsPropertyHelper<string> _expandMenuCaption;
-		private bool _isExpanded;
 
 		public CoinListViewModel Owner { get; }
 		private Global Global { get; }
 		public bool CanBeDequeued => Owner.CanDequeueCoins;
-		public ReactiveCommand<Unit, bool> ToggleDetails { get; }
 		public ReactiveCommand<Unit, Unit> DequeueCoin { get; }
 		public ReactiveCommand<Unit, Unit> OpenCoinInfo { get; }
 		public ReactiveCommand<Unit, Unit> CopyClusters { get; }
@@ -110,15 +107,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			DequeueCoin = ReactiveCommand.Create(() => Owner.PressDequeue(Model), this.WhenAnyValue(x => x.CoinJoinInProgress));
 
-			_expandMenuCaption = this
-				.WhenAnyValue(x => x.IsExpanded)
-				.Select(x => (x ? "Hide " : "Show ") + "Details")
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.ToProperty(this, x => x.ExpandMenuCaption)
-				.DisposeWith(Disposables);
-
-			ToggleDetails = ReactiveCommand.Create(() => IsExpanded = !IsExpanded);
-
 			OpenCoinInfo = ReactiveCommand.Create(() =>
 			{
 				var shell = IoC.Get<IShell>();
@@ -138,16 +126,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				await Application.Current.Clipboard.SetTextAsync(Clusters);
 			});
-
-			ToggleDetails
-				.ThrownExceptions
-				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(ex =>
-				{
-					Logger.LogError(ex);
-					NotificationHelpers.Error(ex.ToUserFriendlyString());
-				});
-
+			
 			Observable
 				.Merge(DequeueCoin.ThrownExceptions) // Don't notify about it. Dequeue failure (and success) is notified by other mechanism.
 				.Merge(OpenCoinInfo.ThrownExceptions)
@@ -167,12 +146,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public bool Unspent => _unspent?.Value ?? false;
 
 		public string Address => Model.ScriptPubKey.GetDestinationAddress(Global.Network).ToString();
-
-		public bool IsExpanded
-		{
-			get => _isExpanded;
-			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
-		}
 
 		public int Confirmations => Model.Height.Type == HeightType.Chain
 			? (int)Global.BitcoinStore.SmartHeaderChain.TipHeight - Model.Height.Value + 1
@@ -224,8 +197,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _status;
 			set => this.RaiseAndSetIfChanged(ref _status, value);
 		}
-
-		public string ExpandMenuCaption => _expandMenuCaption?.Value ?? string.Empty;
 
 		private void RefreshSmartCoinStatus()
 		{
