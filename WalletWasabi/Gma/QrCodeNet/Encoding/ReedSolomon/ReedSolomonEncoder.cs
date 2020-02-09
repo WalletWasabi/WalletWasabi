@@ -45,8 +45,8 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		/// <summary>
 		/// Convert data codewords to int array. And add error correction space at end of that array
 		/// </summary>
-		/// <param name="dataBytes">data codewords array</param>
-		/// <param name="dataLength">data codewords length</param>
+		/// <param name="dataBytes">Data codewords array</param>
+		/// <param name="dataLength">Data codewords length</param>
 		/// <param name="numECBytes">Num of error correction bytes</param>
 		/// <returns>Int array for data codewords array follow by error correction space</returns>
 		private static int[] ConvertToIntArray(byte[] dataBytes, int dataLength, int numECBytes)
