@@ -164,7 +164,6 @@ namespace WalletWasabi.Gui
 
 			try
 			{
-				throw new Exception("Uh oh!");
 				WalletService = null;
 				ChaumianClient = null;
 				AddressManager = null;
