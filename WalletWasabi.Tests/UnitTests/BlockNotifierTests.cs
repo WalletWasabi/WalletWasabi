@@ -271,21 +271,6 @@ namespace WalletWasabi.Tests.UnitTests
 
 		public RPCCredentialString CredentialString => new RPCCredentialString();
 
-		public Task AbandonTransactionAsync(uint256 txid)
-		{
-			throw new NotImplementedException();
-		}
-
-		public Task<BumpResponse> BumpFeeAsync(uint256 txid)
-		{
-			throw new NotImplementedException();
-		}
-
-		public Task<uint256[]> GenerateAsync(int blockCount)
-		{
-			throw new NotImplementedException();
-		}
-
 		public Task<uint256> GetBestBlockHashAsync()
 		{
 			return OnGetBestBlockHashAsync();
@@ -296,17 +281,7 @@ namespace WalletWasabi.Tests.UnitTests
 			return OnGetBlockAsync(blockId);
 		}
 
-		public Task<BlockchainInfo> GetBlockchainInfoAsync()
-		{
-			throw new NotImplementedException();
-		}
-
-		public Task<int> GetBlockCountAsync()
-		{
-			throw new NotImplementedException();
-		}
-
-		public Task<uint256> GetBlockHashAsync(int height)
+		public Task<Block> GetBlockAsync(uint height)
 		{
 			throw new NotImplementedException();
 		}
@@ -332,6 +307,36 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		public Task<uint256[]> GetRawMempoolAsync()
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task<BlockchainInfo> GetBlockchainInfoAsync()
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task<int> GetBlockCountAsync()
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task<uint256> GetBlockHashAsync(int height)
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task AbandonTransactionAsync(uint256 txid)
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task<BumpResponse> BumpFeeAsync(uint256 txid)
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task<uint256[]> GenerateAsync(int blockCount)
 		{
 			throw new NotImplementedException();
 		}

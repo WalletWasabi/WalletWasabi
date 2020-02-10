@@ -33,6 +33,11 @@ namespace WalletWasabi.BitcoinCore
 			return await Rpc.GetBlockAsync(blockHash).ConfigureAwait(false);
 		}
 
+		public virtual async Task<Block> GetBlockAsync(uint blockHeight)
+		{
+			return await Rpc.GetBlockAsync(blockHeight).ConfigureAwait(false);
+		}
+
 		public virtual async Task<BlockHeader> GetBlockHeaderAsync(uint256 blockHash)
 		{
 			return await Rpc.GetBlockHeaderAsync(blockHash).ConfigureAwait(false);
@@ -58,7 +63,7 @@ namespace WalletWasabi.BitcoinCore
 			return await Rpc.GetRawMempoolAsync().ConfigureAwait(false);
 		}
 
-		public GetTxOutResponse GetTxOut(uint256 txid, int index, bool includeMempool = true)
+		public virtual GetTxOutResponse GetTxOut(uint256 txid, int index, bool includeMempool = true)
 		{
 			return Rpc.GetTxOut(txid, index, includeMempool);
 		}

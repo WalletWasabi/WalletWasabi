@@ -14,6 +14,8 @@ namespace WalletWasabi.BitcoinCore
 
 		Task<Block> GetBlockAsync(uint256 blockId);
 
+		Task<Block> GetBlockAsync(uint height);
+
 		Task<BlockHeader> GetBlockHeaderAsync(uint256 blockHash);
 
 		Task<uint256[]> GenerateAsync(int blockCount);

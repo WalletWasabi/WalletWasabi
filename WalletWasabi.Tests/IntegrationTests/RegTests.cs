@@ -1474,7 +1474,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				}
 				var srtxwwreq = new SignRawTransactionRequest();
 				srtxwwreq.Transaction = overwriteTx;
-				var srtxwwres = await ((RPCClient)rpc).SignRawTransactionWithWalletAsync(srtxwwreq);
+				var srtxwwres = await rpc.SignRawTransactionWithWalletAsync(srtxwwreq);
 
 				var eventAwaiter = new EventAwaiter<ProcessedResult>(
 					h => wallet.TransactionProcessor.WalletRelevantTransactionProcessed += h,
