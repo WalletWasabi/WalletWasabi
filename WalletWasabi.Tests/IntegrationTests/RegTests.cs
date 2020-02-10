@@ -2357,7 +2357,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				Assert.Contains(outputAddress1.ScriptPubKey, unsignedCoinJoin.Outputs.Select(x => x.ScriptPubKey));
 				Assert.Contains(outputAddress2.ScriptPubKey, unsignedCoinJoin.Outputs.Select(x => x.ScriptPubKey));
-				Assert.True(2 == unsignedCoinJoin.Outputs.Count); // Because the two input is equal, so change addresses won't be used, nor coordinator fee will be taken.
+				Assert.True(2 == unsignedCoinJoin.Outputs.Count); // Because the two inputs are equal, so change addresses won't be used, nor coordinator fee will be taken.
 				Assert.Contains(input1, unsignedCoinJoin.Inputs.Select(x => x.PrevOut));
 				Assert.Contains(input2, unsignedCoinJoin.Inputs.Select(x => x.PrevOut));
 				Assert.True(2 == unsignedCoinJoin.Inputs.Count);

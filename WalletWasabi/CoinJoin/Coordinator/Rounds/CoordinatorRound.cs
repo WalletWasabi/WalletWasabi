@@ -1003,7 +1003,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 		public void StartAliceTimeout(Guid uniqueId)
 		{
-			// 1. Find Alice and set its LastSeen propery.
+			// 1. Find Alice and set its LastSeen property.
 			var foundAlice = false;
 			var started = DateTimeOffset.UtcNow;
 			using (RoundSynchronizerLock.Lock())
