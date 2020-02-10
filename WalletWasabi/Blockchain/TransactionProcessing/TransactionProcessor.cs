@@ -133,7 +133,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 						{
 							// if the received transaction is spending at least one input already
 							// spent by a previous unconfirmed transaction signaling RBF then it is not a double
-							// spanding transaction but a replacement transaction.
+							// spending transaction but a replacement transaction.
 							var isReplacemenetTx = doubleSpends.Any(x => x.IsReplaceable && !x.Confirmed);
 							if (isReplacemenetTx)
 							{

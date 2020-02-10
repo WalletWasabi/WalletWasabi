@@ -483,7 +483,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		{
 			try
 			{
-				// Select the most suitable coins to regiter.
+				// Select the most suitable coins to register.
 				List<TxoRef> registrableCoins = State.GetRegistrableCoins(
 					inputRegistrableRound.State.MaximumInputCountPerPeer,
 					inputRegistrableRound.State.Denomination,

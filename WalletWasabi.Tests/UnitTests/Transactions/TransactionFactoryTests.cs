@@ -122,7 +122,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				("Joseph", 4, 0.16m, confirmed: true, anonymitySet: 200)
 			});
 
-			// It has to select the most private coins regarless of the amounts
+			// It has to select the most private coins regardless of the amounts
 			var payment = new PaymentIntent(new Key().ScriptPubKey, Money.Coins(0.17m));
 			var feeRate = new FeeRate(2m);
 			var result = transactionFactory.BuildTransaction(payment, feeRate);
