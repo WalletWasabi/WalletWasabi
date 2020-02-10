@@ -214,7 +214,7 @@ namespace NBitcoin.RPC
 			return newEstimations;
 		}
 
-		/// <returns>(allowed, reject-reason)</returns>
+		/// <returns>Returns (allowed, reject-reason)</returns>
 		public static async Task<(bool accept, string rejectReason)> TestMempoolAcceptAsync(this IRPCClient rpc, IEnumerable<Coin> coins)
 		{
 			// Check if mempool would accept a fake transaction created with the registered inputs.

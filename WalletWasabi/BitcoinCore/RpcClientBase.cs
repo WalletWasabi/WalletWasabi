@@ -11,13 +11,13 @@ namespace WalletWasabi.BitcoinCore
 	{
 		private MemoryCache _cache;
 
-		private RPCClient Rpc { get; }
-
 		public RpcClientBase(RPCClient rpc)
 		{
 			_cache = new MemoryCache(new MemoryCacheOptions());
 			Rpc = Guard.NotNull(nameof(rpc), rpc);
 		}
+
+		private RPCClient Rpc { get; }
 
 		public Network Network => Rpc.Network;
 

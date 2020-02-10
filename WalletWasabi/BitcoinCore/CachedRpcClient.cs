@@ -94,7 +94,7 @@ namespace WalletWasabi.BitcoinCore
 			string cacheKey = nameof(GetBlockchainInfoAsync);
 			if (!_cache.TryGetValue(cacheKey, out blockchainInfo))
 			{
-				blockchainInfo = await  base.GetBlockchainInfoAsync().ConfigureAwait(false);
+				blockchainInfo = await base.GetBlockchainInfoAsync().ConfigureAwait(false);
 
 				var cacheEntryOptions = new MemoryCacheEntryOptions()
 					// The blockchain info does not change frequently.
