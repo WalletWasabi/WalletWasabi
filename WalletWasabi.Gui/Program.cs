@@ -57,7 +57,6 @@ namespace WalletWasabi.Gui
 			catch (Exception ex)
 			{
 				Logger.LogCritical(ex);
-				throw;
 			}
 			finally
 			{
