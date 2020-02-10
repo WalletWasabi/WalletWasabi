@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
+using WalletWasabi.BitcoinCore;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
@@ -25,10 +26,10 @@ namespace WalletWasabi.CoinJoin.Client
 		public Dictionary<WalletService, HashSet<uint256>> WalletServices { get; }
 		public IEnumerable<KeyValuePair<WalletService, HashSet<uint256>>> AliveWalletServices => WalletServices.Where(x => x.Key is { IsDisposed: var isDisposed } && !isDisposed);
 		public object WalletServicesLock { get; }
-		public RPCClient RpcClient { get; private set; }
+		public IRPCClient RpcClient { get; private set; }
 		private AsyncLock ProcessLock { get; }
 
-		public CoinJoinProcessor(WasabiSynchronizer synchronizer, RPCClient rpc)
+		public CoinJoinProcessor(WasabiSynchronizer synchronizer, IRPCClient rpc)
 		{
 			Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
 			WalletServices = new Dictionary<WalletService, HashSet<uint256>>();

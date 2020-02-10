@@ -30,9 +30,9 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 			}
 		}
 
-		public RPCClient RpcClient { get; set; }
+		public IRPCClient RpcClient { get; set; }
 
-		public RpcFeeProvider(TimeSpan period, RPCClient rpcClient) : base(period)
+		public RpcFeeProvider(TimeSpan period, IRPCClient rpcClient) : base(period)
 		{
 			RpcClient = Guard.NotNull(nameof(rpcClient), rpcClient);
 		}
