@@ -23,7 +23,7 @@ namespace WalletWasabi.Packager
 			string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 
 			var srcZipFileNamePattern = "Wasabi-osx-*.zip";
-			var files = Directory.GetFiles(desktopPath, srcZipFileNamePattern); //Example: Wasabi-osx-1.1.10.2.zip
+			var files = Directory.GetFiles(desktopPath, srcZipFileNamePattern); // Example: Wasabi-osx-1.1.10.2.zip
 			if (files.Length != 1)
 			{
 				throw new InvalidDataException($"{srcZipFileNamePattern} file missing or there are more on Desktop! There must be exactly one!");
@@ -76,7 +76,6 @@ namespace WalletWasabi.Packager
 			IoHelpers.EnsureDirectoryExists(appMacOsPath);
 
 			ZipFile.ExtractToDirectory(zipPath, appMacOsPath); // Copy the binaries.
-
 
 			IoHelpers.CopyFilesRecursively(new DirectoryInfo(Path.Combine(contentsPath, "App")), new DirectoryInfo(appPath));
 
@@ -141,7 +140,6 @@ namespace WalletWasabi.Packager
 				.OrderBy(file => new FileInfo(file).Name == "wassabee")
 				.ToArray();
 
-
 			foreach (var file in executables)
 			{
 				using var process = Process.Start(new ProcessStartInfo
@@ -149,9 +147,8 @@ namespace WalletWasabi.Packager
 					FileName = "chmod",
 					Arguments = $"u+x \"{file}\"",
 					WorkingDirectory = workingDir
-
 				});
-				process.WaitForExit();			
+				process.WaitForExit();
 			}
 
 			SignDirectory(filesToSignInOrder, workingDir, signArguments, entitlementsPath);
@@ -176,7 +173,6 @@ namespace WalletWasabi.Packager
 			Notarize(appleId, password, appNotarizeFilePath, bundleIdentifier);
 			Staple(appPath);
 
-
 			using (var process = Process.Start(new ProcessStartInfo
 			{
 				FileName = "spctl",
@@ -184,7 +180,7 @@ namespace WalletWasabi.Packager
 				WorkingDirectory = workingDir,
 				RedirectStandardError = true
 			}))
-			{ 
+			{
 				process.WaitForExit();
 				string result = process.StandardError.ReadToEnd();
 				if (!result.Contains(": accepted"))
@@ -204,7 +200,7 @@ namespace WalletWasabi.Packager
 
 			IoHelpers.CopyFilesRecursively(new DirectoryInfo(dmgContentsDir), new DirectoryInfo(dmgPath));
 
-			File.Copy(Path.Combine(contentsPath, "WasabiLogo.icns"), Path.Combine(dmgPath, ".VolumeIcon.icns"),true);
+			File.Copy(Path.Combine(contentsPath, "WasabiLogo.icns"), Path.Combine(dmgPath, ".VolumeIcon.icns"), true);
 
 			var temp = Path.Combine(dmgPath, ".DS_Store.dat");
 			File.Move(temp, Path.Combine(dmgPath, ".DS_Store"), true);
@@ -415,7 +411,7 @@ namespace WalletWasabi.Packager
 			process.WaitForExit();
 		}
 
-		private static void SignFile(string arguments,string workingDir)
+		private static void SignFile(string arguments, string workingDir)
 		{
 			using var process = Process.Start(new ProcessStartInfo
 			{
@@ -456,7 +452,6 @@ namespace WalletWasabi.Packager
 			// Wassabee has to be signed at the end. Otherwise codesing will throw a submodule not signed error.
 			foreach (var file in files)
 			{
-
 				var fileName = new FileInfo(file).Name;
 
 				if (fileName == ".DS_Store")
@@ -466,7 +461,6 @@ namespace WalletWasabi.Packager
 				}
 
 				SignFile($"{signArguments} --entitlements \"{entitlementsPath}\" \"{file}\"", workingDir);
-
 			}
 		}
 
@@ -476,6 +470,5 @@ namespace WalletWasabi.Packager
 
 			return Directory.GetFiles(workingDir, "*.", SearchOption.AllDirectories);
 		}
-
 	}
 }
