@@ -29,7 +29,7 @@ namespace WalletWasabi.Packager
 				throw new InvalidDataException($"{srcZipFileNamePattern} file missing or there are more on Desktop! There must be exactly one!");
 			}
 			var zipPath = files[0];
-			var versionPrefix = zipPath.Split('-').Last().TrimEnd(".zip", StringComparison.InvariantCultureIgnoreCase); // Example: "/Users/user/Desktop/Wasabi-unsigned-1.1.10.2.zip".
+			var versionPrefix = zipPath.Split('-')[^1].TrimEnd(".zip", StringComparison.InvariantCultureIgnoreCase); // Example: "/Users/user/Desktop/Wasabi-unsigned-1.1.10.2.zip".
 			var workingDir = Path.Combine(desktopPath, "wasabiTemp");
 			var dmgPath = Path.Combine(workingDir, "dmg");
 			var unzippedPath = Path.Combine(workingDir, "unzipped");
@@ -315,7 +315,7 @@ namespace WalletWasabi.Packager
 				if (result.Contains("The software asset has already been uploaded. The upload ID is"))
 				{
 					// Example: The software asset has already been uploaded. The upload ID is 7689dc08-d6c8-4783-8d28-33e575f5c967
-					uploadId = result.Split('"').First(line => line.Contains("The software asset has already been uploaded.")).Split("The upload ID is").Last().Trim();
+					uploadId = result.Split('"').First(line => line.Contains("The software asset has already been uploaded.")).Split("The upload ID is")[^1].Trim();
 				}
 				else if (result.Contains("No errors uploading"))
 				{
