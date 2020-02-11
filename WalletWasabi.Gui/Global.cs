@@ -392,6 +392,12 @@ namespace WalletWasabi.Gui
 
 				#endregion JsonRpcServerInitialization
 			}
+			catch(Exception ex)
+			{
+				Logger.LogCritical(ex);
+				InitializationCompleted = true;
+				await DisposeAsync().ConfigureAwait(false);
+			}
 			finally
 			{
 				InitializationCompleted = true;
