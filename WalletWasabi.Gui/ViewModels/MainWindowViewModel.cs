@@ -21,61 +21,15 @@ namespace WalletWasabi.Gui.ViewModels
 	{
 		private ModalDialogViewModelBase _modalDialog;
 		private bool _canClose = true;
-
 		private string _title = "Wasabi Wallet";
-
-		public string Title
-		{
-			get => _title;
-			internal set => this.RaiseAndSetIfChanged(ref _title, value);
-		}
-
 		private double _height;
-
-		public double Height
-		{
-			get => _height;
-			set => this.RaiseAndSetIfChanged(ref _height, value);
-		}
-
 		private double _width;
-
-		public double Width
-		{
-			get => _width;
-			set => this.RaiseAndSetIfChanged(ref _width, value);
-		}
-
 		private WindowState _windowState;
-
-		public WindowState WindowState
-		{
-			get => _windowState;
-			set => this.RaiseAndSetIfChanged(ref _windowState, value);
-		}
-
 		private StatusBarViewModel _statusBar;
-
-		public StatusBarViewModel StatusBar
-		{
-			get => _statusBar;
-			set => this.RaiseAndSetIfChanged(ref _statusBar, value);
-		}
-
 		private LockScreenViewModelBase _lockScreen;
-
-		public LockScreenViewModelBase LockScreen
-		{
-			get => _lockScreen;
-			set => this.RaiseAndSetIfChanged(ref _lockScreen, value);
-		}
-
-		public ReactiveCommand<Unit, Unit> LockScreenCommand { get; }
 
 		public MainWindowViewModel()
 		{
-			Shell = IoC.Get<IShell>();
-
 			var global = Locator.Current.GetService<Global>();
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -97,6 +51,46 @@ namespace WalletWasabi.Gui.ViewModels
 
 			DisplayWalletManager();
 		}
+
+		public string Title
+		{
+			get => _title;
+			internal set => this.RaiseAndSetIfChanged(ref _title, value);
+		}
+
+		public double Height
+		{
+			get => _height;
+			set => this.RaiseAndSetIfChanged(ref _height, value);
+		}
+
+		public double Width
+		{
+			get => _width;
+			set => this.RaiseAndSetIfChanged(ref _width, value);
+		}
+
+		public WindowState WindowState
+		{
+			get => _windowState;
+			set => this.RaiseAndSetIfChanged(ref _windowState, value);
+		}
+
+		public StatusBarViewModel StatusBar
+		{
+			get => _statusBar;
+			set => this.RaiseAndSetIfChanged(ref _statusBar, value);
+		}
+
+		public LockScreenViewModelBase LockScreen
+		{
+			get => _lockScreen;
+			set => this.RaiseAndSetIfChanged(ref _lockScreen, value);
+		}
+
+		public static MainWindowViewModel Instance { get; internal set; }
+
+		public ReactiveCommand<Unit, Unit> LockScreenCommand { get; }
 
 		public void Initialize()
 		{
@@ -147,10 +141,6 @@ namespace WalletWasabi.Gui.ViewModels
 				walletManagerViewModel.SelectGenerateWallet();
 			}
 		}
-
-		public IShell Shell { get; }
-
-		public static MainWindowViewModel Instance { get; internal set; }
 
 		public async Task<bool> ShowDialogAsync(ModalDialogViewModelBase dialog)
 		{
