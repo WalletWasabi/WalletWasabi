@@ -155,7 +155,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 								{
 									if (Index.Count != 0)
 									{
-										var lastIndex = Index.Last();
+										var lastIndex = Index[^1];
 										heightToRequest = lastIndex.Header.Height + 1;
 										currentHash = lastIndex.Header.BlockHash;
 									}
@@ -343,7 +343,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 			// 1. Rollback index
 			using (await IndexLock.LockAsync())
 			{
-				Logger.LogInfo($"REORG invalid block: {Index.Last().Header.BlockHash}");
+				Logger.LogInfo($"REORG invalid block: {Index[^1].Header.BlockHash}");
 				Index.RemoveLast();
 			}
 
@@ -402,8 +402,16 @@ namespace WalletWasabi.Blockchain.BlockFilters
 				}
 				else
 				{
-					return ((int)Index.Last().Header.Height, filters);
+					return ((int)Index[^1].Header.Height, filters);
 				}
+			}
+		}
+
+		public FilterModel GetLastFilter()
+		{
+			using (IndexLock.Lock())
+			{
+				return Index[^1];
 			}
 		}
 

@@ -18,6 +18,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend;
+using WalletWasabi.Backend.Controllers;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -227,6 +228,71 @@ namespace WalletWasabi.Tests.IntegrationTests
 					var expectedHash = await rpc.GetBlockHashAsync(i + 1);
 					var filterModel = filters[i];
 					Assert.Equal(expectedHash, filterModel.Header.BlockHash);
+				}
+			}
+			finally
+			{
+				if (indexBuilderService is { })
+				{
+					await indexBuilderService.StopAsync();
+				}
+			}
+		}
+
+		[Fact]
+		public async Task StatusRequestTestAsync()
+		{
+			const string request = "/api/v3/btc/Blockchain/status";
+			(string password, RPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await InitializeTestEnvironmentAsync(1);
+
+			var indexBuilderService = global.IndexBuilderService;
+			try
+			{
+				indexBuilderService.Synchronize();
+				// Test initial synchronization.
+				var times = 0;
+				uint256 firstHash = await rpc.GetBlockHashAsync(0);
+				while (indexBuilderService.GetFilterLinesExcluding(firstHash, 101, out _).filters.Count() != 101)
+				{
+					if (times > 500) // 30 sec
+					{
+						throw new TimeoutException($"{nameof(IndexBuilderService)} test timed out.");
+					}
+					await Task.Delay(100);
+					times++;
+				}
+
+				using var client = new WasabiClient(new Uri(RegTestFixture.BackendEndPoint), null);
+				var response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, request);
+				using (HttpContent content = response.Content)
+				{
+					var resp = await content.ReadAsJsonAsync<StatusResponse>();
+					Assert.True(resp.FilterCreationActive);
+				}
+
+				// Simulate an unintended stop
+				await indexBuilderService.StopAsync();
+				indexBuilderService = null;
+
+				await rpc.GenerateAsync(1);
+
+				response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, request);
+				using (HttpContent content = response.Content)
+				{
+					var resp = await content.ReadAsJsonAsync<StatusResponse>();
+					Assert.True(resp.FilterCreationActive);
+				}
+
+				await rpc.GenerateAsync(1);
+
+				var blockchainController = (BlockchainController)RegTestFixture.BackendHost.Services.GetService(typeof(BlockchainController));
+				blockchainController.Cache.Remove($"{nameof(BlockchainController.GetStatusAsync)}");
+
+				response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, request);
+				using (HttpContent content = response.Content)
+				{
+					var resp = await content.ReadAsJsonAsync<StatusResponse>();
+					Assert.False(resp.FilterCreationActive);
 				}
 			}
 			finally
