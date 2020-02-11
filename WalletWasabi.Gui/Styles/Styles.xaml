@@ -270,7 +270,7 @@
     <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
   </Style>
 
-  <!-- Dock doesnt have feature to disable resizing. Make the Splitters that allow resize
+  <!-- Dock doesn't have feature to disable resizing. Make the Splitters that allow resize
        not visible to hit testing, in order to disable them.-->
   <Style Selector="dock|ProportionalStackPanelSplitter">
     <Setter Property="IsHitTestVisible" Value="False" />

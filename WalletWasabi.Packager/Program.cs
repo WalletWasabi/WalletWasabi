@@ -525,7 +525,6 @@ namespace WalletWasabi.Packager
 				}
 
 				Tools.ClearSha512Tags(currentBinDistDirectory);
-				//Tools.RemoveSosDocsUnix(currentBinDistDirectory);
 
 				// Remove Tor binaries that are not relevant to the platform.
 				var torFolder = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "TorDaemons"));

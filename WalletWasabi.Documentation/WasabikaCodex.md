@@ -3,13 +3,13 @@
 
 *if you have https://github.com/notifications/beta use it instead of the links mentioned below.*
 
-1. [Check code review requests waiting for you](https://github.com/zkSNACKs/WalletWasabi/pulls/review-requested/@me).
-2. Check [priority issues and PRs!](https://github.com/zkSNACKs/WalletWasabi/labels/priority). Take it or set Assignees and Labels if you can.
-3. Check your [own PRs](https://github.com/zkSNACKs/WalletWasabi/pulls/@me) and answer if necessary.
+1. Check [open code review requests waiting for you](https://github.com/zkSNACKs/WalletWasabi/pulls/review-requested/@me).
+2. Check [open priority issues and PRs](https://github.com/zkSNACKs/WalletWasabi/labels/priority). Take it or set Assignees and Labels if you can.
+3. Check your [open PRs](https://github.com/zkSNACKs/WalletWasabi/pulls/@me) and answer if necessary.
    - If you need help use __@mention__.
    - If you need review set __Reviewers__.
-4. Check [assigned issues](https://github.com/zkSNACKs/WalletWasabi/issues/assigned/@me).
-5. Check [mentions](https://github.com/zkSNACKs/WalletWasabi/issues?utf8=%E2%9C%93&q=is%3Aopen+mentions%3A%40me+).
+4. Check [open issues assigned to you](https://github.com/zkSNACKs/WalletWasabi/issues/assigned/@me).
+5. Check [open issues and PRs where you are mentioned](https://github.com/zkSNACKs/WalletWasabi/issues?utf8=%E2%9C%93&q=is%3Aopen+mentions%3A%40me+).
 6. Check the [notifications](https://github.com/notifications).
 7. Work on anything you want - assign it to yourself.
 

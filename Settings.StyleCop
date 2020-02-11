@@ -251,7 +251,7 @@
         </Rule>
         <Rule Name="DocumentationTextMustBeginWithACapitalLetter">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="DocumentationTextMustEndWithAPeriod">

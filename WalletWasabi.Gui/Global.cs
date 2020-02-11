@@ -442,7 +442,7 @@ namespace WalletWasabi.Gui
 					// 200 and only one user reported he/she was not able to connect (there could be many others,
 					// of course).
 					// On the other side, increasing this number forces users that do not need to discover more peers
-					// to spend resources (CPU/bandwith) to discover new peers.
+					// to spend resources (CPU/bandwidth) to discover new peers.
 					needsToDiscoverPeers = Config.UseTor is true || AddressManager.Count < 500;
 					Logger.LogInfo($"Loaded {nameof(AddressManager)} from `{AddressManagerFilePath}`.");
 				}

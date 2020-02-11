@@ -15,13 +15,11 @@ namespace WalletWasabi.Models
 		/// <summary>
 		/// Gets a new Height instance for mempool
 		/// </summary>
-		/// <returns></returns>
 		public static Height Mempool { get; } = new Height(HeightType.Mempool);
 
 		/// <summary>
 		/// Gets a new Height instance for unknown (no chain, no mempool)
 		/// </summary>
-		/// <returns></returns>
 		public static Height Unknown { get; } = new Height(HeightType.Unknown);
 
 		public Height(uint height) : this((int)height)

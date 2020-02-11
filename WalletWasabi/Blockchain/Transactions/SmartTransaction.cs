@@ -208,7 +208,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 			try
 			{
-				// First is redundand txhash serialization.
+				// First is redundant txhash serialization.
 				var heightString = parts[2];
 				var blockHashString = parts[3];
 				var blockIndexString = parts[4];
