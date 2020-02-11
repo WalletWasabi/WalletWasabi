@@ -36,9 +36,12 @@
 3. Retest every PR since last release on Windows, macOS and Linux.
 4. Dump client version. (WalletWasabi/Helpers/Constants.cs)
 5. Run packager in publish mode.
-6. Create `.msi`
-7. Run packager in sign mode. (Set back to publish mode.)
-8. Final `.msi` test on own computer.
+6. [mac sign] Copy Wasabi-osx-version.zip to [macOS release environment](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/Guides/MacOsSigning.md) desktop.
+7. [mac sign] Run the packager on macOS.
+8. [mac sign] Copy the final dmg back to dist folder on windows.
+9. Create `.msi`
+10. Run packager in sign mode. (Set back to publish mode.)
+11. Final `.msi` test on own computer.
 
 # 4. GitHub Release
 
