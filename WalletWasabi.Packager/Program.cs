@@ -17,7 +17,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Packager
 {
-	public class Program
+	public static class Program
 	{
 #pragma warning disable CS0162 // Unreachable code detected
 		// 0. Dump Client version (or else wrong .msi will be created) - Helpers.Constants.ClientVersion
@@ -60,6 +60,12 @@ namespace WalletWasabi.Packager
 
 		private static void Main(string[] args)
 		{
+			if (MacSignTools.IsMacSignMode())
+			{
+				MacSignTools.Sign();
+				return;
+			}
+
 			// If I want a list of up to date onions run it with '--getonions'.
 			if (IsGetOnionsMode(args))
 			{
@@ -90,10 +96,8 @@ namespace WalletWasabi.Packager
 			if (DoPublish || OnlyBinaries)
 			{
 				Publish();
-				if (OnlyBinaries)
-				{
-					IoHelpers.OpenFolderInFileExplorer(BinDistDirectory);
-				}
+
+				IoHelpers.OpenFolderInFileExplorer(BinDistDirectory);
 			}
 
 			if (!OnlyBinaries)
@@ -381,6 +385,19 @@ namespace WalletWasabi.Packager
 					IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter().GetResult();
 					Console.WriteLine($"Deleted {publishedFolder}");
 				}
+				else if (target.StartsWith("osx", StringComparison.OrdinalIgnoreCase))
+				{
+					string dmgFilePath = Path.Combine(BinDistDirectory, $"Wasabi-{VersionPrefix}.dmg");
+					if (!File.Exists(dmgFilePath))
+					{
+						throw new Exception(".dmg does not exist.");
+					}
+					string zipFilePath = Path.Combine(BinDistDirectory, $"Wasabi-osx-{VersionPrefix}.zip");
+					if (File.Exists(zipFilePath))
+					{
+						File.Delete(zipFilePath);
+					}
+				}
 			}
 
 			Console.WriteLine("Signing final files...");
@@ -597,133 +614,10 @@ namespace WalletWasabi.Packager
 						continue;
 					}
 
-					var tempName = Path.Combine(BinDistDirectory, $"temp-{target}");
-					Directory.Move(currentBinDistDirectory, tempName);
-					currentBinDistDirectory = tempName;
+					ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(BinDistDirectory, $"Wasabi-osx-{VersionPrefix}.zip"));
 
-					string macWasabiAppDir = Path.Combine(publishedFolder, "Wasabi Wallet.App"); // This should be lowercase .app, but MAC will prevent people from upgrading if we change it.
-					string macContentsDir = Path.Combine(macWasabiAppDir, "Contents");
-					string newName = Path.GetFullPath(Path.Combine(macContentsDir, "MacOS"));
-					Directory.CreateDirectory(macContentsDir);
-					Directory.Move(currentBinDistDirectory, newName);
-					currentBinDistDirectory = newName;
-
-					string resourcesDir = Path.Combine(macContentsDir, "Resources");
-					string infoFilePath = Path.Combine(macContentsDir, "Info.plist");
-
-					Directory.CreateDirectory(resourcesDir);
-					var iconPath = Path.Combine(GuiProjectDirectory, "Assets", "WasabiLogo.icns");
-					File.Copy(iconPath, Path.Combine(resourcesDir, "WasabiLogo.icns"));
-
-					string infoContent = $@"<?xml version=""1.0"" encoding=""UTF-8""?>
-<!DOCTYPE plist PUBLIC ""-//Apple//DTD PLIST 1.0//EN"" ""http://www.apple.com/DTDs/PropertyList-1.0.dtd"">
-<plist version = ""1.0"">
-<dict>
-	<key>LSMinimumSystemVersion</key>
-	<string>10.12</string>
-
-	<key>LSArchitecturePriority</key>
-	<array>
-		<string>x86_64</string>
-	</array>
-
-	<key>CFBundleIconFile</key>
-	<string>WasabiLogo.icns</string>
-
-	<key>CFBundlePackageType</key>
-	<string>APPL</string>
-
-	<key>CFBundleShortVersionString</key>
-	<string>{VersionPrefix}</string>
-
-	<key>CFBundleVersion</key>
-	<string>{VersionPrefix}</string>
-
-	<key>CFBundleExecutable</key>
-	<string>{ExecutableName}</string>
-
-	<key>CFBundleName</key>
-	<string>Wasabi Wallet</string>
-
-	<key>CFBundleIdentifier</key>
-	<string>zksnacks.wasabiwallet</string>
-
-	<key>NSHighResolutionCapable</key>
-	<true/>
-
-	<key>NSAppleScriptEnabled</key>
-	<true/>
-
-	<key>LSApplicationCategoryType</key>
-	<string>public.app-category.finance</string>
-
-	<key>CFBundleInfoDictionaryVersion</key>
-	<string>6.0</string>
-</dict>
-</plist>
-";
-					File.WriteAllText(infoFilePath, infoContent);
-
-					using (var process = Process.Start(new ProcessStartInfo
-					{
-						FileName = "cmd",
-						RedirectStandardInput = true,
-						WorkingDirectory = publishedFolder
-					}))
-					{
-						process.StandardInput.WriteLine($"wsl ln -s /Applications && exit");
-						process.WaitForExit();
-					}
-
-					//how to generate .DS_Store file - https://github.com/zkSNACKs/WalletWasabi/pull/928/commits/e38ed672dee25f6e45a3eb16584887cc6d48c4e6
-					var dmgContentDir = Path.Combine(PackagerProjectDirectory, "Content", "Osx");
-					IoHelpers.CopyFilesRecursively(new DirectoryInfo(dmgContentDir), new DirectoryInfo(publishedFolder));
-
-					string uncompressedDmgFileName = $"Wasabi-uncompressed.dmg";
-					string uncompressedDmgFilePath = Path.Combine(BinDistDirectory, uncompressedDmgFileName);
-					string dmgFileName = $"Wasabi-{VersionPrefix}.dmg";
-					using (var process = Process.Start(new ProcessStartInfo
-					{
-						FileName = "cmd",
-						RedirectStandardInput = true,
-						WorkingDirectory = BinDistDirectory
-					}))
-					{
-						// http://www.nathancoulson.com/proj_cross_tools.php
-						// -D: Do not use deep directory relocation, and instead just pack them in the way we see them
-						// -V: Volume Label
-						// -no-pad: Do not pad the end by 150 sectors (300kb). As it is not a cd image, not required
-						// -apple -r: Creates a .dmg image
-						process.StandardInput.WriteLine($"wsl genisoimage -D -V \"Wasabi Wallet\" -no-pad -apple -r -dir-mode 755 -o \"{uncompressedDmgFileName}\" \"{new DirectoryInfo(publishedFolder).Name}\" && exit");
-						process.WaitForExit();
-					}
-					// cd ~
-					// git clone https://github.com/planetbeing/libdmg-hfsplus.git && cd libdmg-hfsplus
-					// https://github.com/planetbeing/libdmg-hfsplus/issues/14
-					// mkdir build && cd build
-					// sudo apt-get install zlib1g-dev
-					// cmake ..
-					// cd build
-					// sudo apt-get install libssl1.0-dev
-					// cmake ..
-					// cd ~/libdmg-hfsplus/build/
-					// make
-					using (var process = Process.Start(new ProcessStartInfo
-					{
-						FileName = "cmd",
-						RedirectStandardInput = true,
-						WorkingDirectory = BinDistDirectory
-					}))
-					{
-						process.StandardInput.WriteLine($"wsl ~/libdmg-hfsplus/build/dmg/./dmg dmg \"{uncompressedDmgFileName}\" \"{dmgFileName}\" && exit");
-						process.WaitForExit();
-					}
-
-					IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter().GetResult();
-					File.Delete(uncompressedDmgFilePath);
-
-					IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter().GetResult();
-					Console.WriteLine($"Deleted {publishedFolder}");
+					IoHelpers.DeleteRecursivelyWithMagicDustAsync(currentBinDistDirectory).GetAwaiter().GetResult();
+					Console.WriteLine($"Deleted {currentBinDistDirectory}");
 				}
 				else if (target.StartsWith("linux"))
 				{
