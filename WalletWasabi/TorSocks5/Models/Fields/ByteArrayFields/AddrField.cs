@@ -46,7 +46,7 @@ namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 		{
 		}
 
-		/// <param name="dstAddr">domain or IPv4</param>
+		/// <param name="dstAddr">Domain or IPv4</param>
 		public AddrField(string dstAddr)
 		{
 			dstAddr = Guard.NotNullOrEmptyOrWhitespace(nameof(dstAddr), dstAddr, true);

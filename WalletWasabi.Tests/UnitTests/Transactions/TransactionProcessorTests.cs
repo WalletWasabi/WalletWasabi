@@ -667,7 +667,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var coin = Assert.Single(transactionProcessor.Coins);
 			Assert.Equal(4, coin.AnonymitySet);
 			Assert.Equal(amount, coin.Amount);
-			Assert.False(coin.IsLikelyCoinJoinOutput);  // It is a coinjoin however we are reveiving but not spending.
+			Assert.False(coin.IsLikelyCoinJoinOutput);  // It is a coinjoin however we are receiving but not spending.
 		}
 
 		[Fact]
@@ -698,7 +698,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var coin = Assert.Single(transactionProcessor.Coins, c => c.AnonymitySet > 1);
 			Assert.Equal(5, coin.AnonymitySet);
 			Assert.Equal(amount, coin.Amount);
-			Assert.True(coin.IsLikelyCoinJoinOutput);  // because we are spanding and receiving almost the same amount
+			Assert.True(coin.IsLikelyCoinJoinOutput);  // because we are spending and receiving almost the same amount
 		}
 
 		[Fact]
@@ -725,7 +725,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			createdCoin = transactionProcessor.Coins.First();
 			Assert.Equal("A, B", createdCoin.Clusters.Labels);
 
-			// Spend the received coin to mylself else C
+			// Spend the received coin to myself else C
 			var myselfScript = transactionProcessor.NewKey("C").P2wpkhScript;
 			var changeScript2 = transactionProcessor.NewKey("").P2wpkhScript;
 			var tx2 = CreateSpendingTransaction(new[] { createdCoin.GetCoin() }, myselfScript, changeScript2);

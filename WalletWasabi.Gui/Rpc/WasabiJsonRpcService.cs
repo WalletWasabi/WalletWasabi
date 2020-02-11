@@ -111,8 +111,8 @@ namespace WalletWasabi.Gui.Rpc
 			};
 		}
 
-		[JsonRpcMethod("send")]
-		public async Task<object> SendTransactionAsync(PaymentInfo[] payments, TxoRef[] coins, int feeTarget, string password = null)
+		[JsonRpcMethod("build")]
+		public string BuildTransaction(PaymentInfo[] payments, TxoRef[] coins, int feeTarget, string password = null)
 		{
 			Guard.NotNull(nameof(payments), payments);
 			Guard.NotNull(nameof(coins), coins);
@@ -132,6 +132,15 @@ namespace WalletWasabi.Gui.Rpc
 				allowedInputs: coins);
 			var smartTx = result.Transaction;
 
+			return smartTx.Transaction.ToHex();
+		}
+
+		[JsonRpcMethod("send")]
+		public async Task<object> SendTransactionAsync(PaymentInfo[] payments, TxoRef[] coins, int feeTarget, string password = null)
+		{
+			var txHex = BuildTransaction(payments, coins, feeTarget, password);
+			var smartTx = new SmartTransaction(Transaction.Parse(txHex, Global.Network), Height.Mempool);
+
 			// dequeue the coins we are going to spend
 			var toDequeue = Global.WalletService.Coins
 				.Where(x => x.CoinJoinInProgress && coins.Contains(x.GetTxoRef()))
@@ -145,7 +154,7 @@ namespace WalletWasabi.Gui.Rpc
 			return new
 			{
 				txid = smartTx.Transaction.GetHash(),
-				tx = smartTx.Transaction.ToHex()
+				tx = txHex
 			};
 		}
 

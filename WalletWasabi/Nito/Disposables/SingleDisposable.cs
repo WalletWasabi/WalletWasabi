@@ -45,7 +45,7 @@ namespace Nito.Disposables
 		public bool IsDisposing => IsDisposeStarted && !IsDisposed;
 
 		/// <summary>
-		/// The actul disposal method, called only once from <see cref="Dispose()"/>.
+		/// The actual disposal method, called only once from <see cref="Dispose()"/>.
 		/// </summary>
 		/// <param name="context">The context for the disposal operation.</param>
 		protected abstract void Dispose(T context);

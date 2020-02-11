@@ -361,12 +361,12 @@ namespace WalletWasabi.TorSocks5
 					// if we could fit everything into our buffer, then return it
 					if (!stream.DataAvailable)
 					{
-						return receiveBuffer.Take(receiveCount).ToArray();
+						return receiveBuffer[..receiveCount];
 					}
 
 					// while we have data available, start building a bytearray
 					var builder = new ByteArrayBuilder();
-					builder.Append(receiveBuffer.Take(receiveCount).ToArray());
+					builder.Append(receiveBuffer[..receiveCount]);
 					while (stream.DataAvailable)
 					{
 						Array.Clear(receiveBuffer, 0, receiveBuffer.Length);
@@ -375,7 +375,7 @@ namespace WalletWasabi.TorSocks5
 						{
 							throw new ConnectionException($"Not connected to Tor SOCKS5 proxy: {TorSocks5EndPoint}.");
 						}
-						builder.Append(receiveBuffer.Take(receiveCount).ToArray());
+						builder.Append(receiveBuffer[..receiveCount]);
 					}
 
 					return builder.ToArray();

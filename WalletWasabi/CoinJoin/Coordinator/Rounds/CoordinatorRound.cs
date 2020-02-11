@@ -267,7 +267,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 						}
 
 						// Build CoinJoin:
-
+						// 1. Set new denomination: minor optimization.
 						Money newDenomination = CalculateNewDenomination();
 						var transaction = Network.Consensus.ConsensusFactory.CreateTransaction();
 
@@ -277,8 +277,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 							transaction.Outputs.AddWithOptimize(newDenomination, bob.ActiveOutputAddress.ScriptPubKey);
 						}
 
-						// 2.1 newDenomination may differs from the Denomination at registration, so we may not be able to tinker with
-						// additional outputs.
+						// 2.1 newDenomination may differ from the Denomination at registration, so we may not be able to tinker with additional outputs.
 						bool tinkerWithAdditionalMixingLevels = CanUseAdditionalOutputs(newDenomination);
 
 						if (tinkerWithAdditionalMixingLevels)
@@ -400,7 +399,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 						// 9. Sort inputs and outputs by amount so the coinjoin looks better in a block explorer.
 						transaction.Inputs.SortByAmount(spentCoins);
 						transaction.Outputs.SortByAmount();
-						//Note: We shuffle then sort because inputs and outputs could have equal values
+						// Note: We shuffle then sort because inputs and outputs could have equal values
 
 						if (transaction.Outputs.Any(x => x.ScriptPubKey == coordinatorScript))
 						{
@@ -561,7 +560,6 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 		private Money CalculateNewDenomination()
 		{
-			// 1. Set new denomination: minor optimization.
 			return Alices.Min(x => x.InputSum - x.NetworkFeeToPayAfterBaseDenomination);
 		}
 
@@ -707,7 +705,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			{
 				await TryOptimizeConfirmationTargetAsync(spentCoins.Select(x => x.Outpoint.Hash).ToHashSet()).ConfigureAwait(false);
 
-				// 8.1. Estimate the current FeeRate. Note, there are no signatures yet!
+				// 7.1. Estimate the current FeeRate. Note, there are no signatures yet!
 				int estimatedSigSizeBytes = transaction.Inputs.Count * Constants.P2wpkhInputSizeInBytes;
 				int estimatedFinalTxSize = transaction.GetSerializedSize() + estimatedSigSizeBytes;
 				Money fee = transaction.GetFee(spentCoins.ToArray());
@@ -727,7 +725,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 					currentFeeRate = new FeeRate(fee, estimatedFinalTxSize);
 				}
 
-				// 8.2. Get the most optimal FeeRate.
+				// 7.2. Get the most optimal FeeRate.
 				EstimateSmartFeeResponse estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(AdjustedConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true).ConfigureAwait(false);
 				if (estimateSmartFeeResponse is null)
 				{
@@ -742,20 +740,20 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 					optimalFeeRate = optimalFeeRate < sanityFeeRate ? sanityFeeRate : optimalFeeRate;
 					if (optimalFeeRate < currentFeeRate)
 					{
-						// 8.2 If the fee can be lowered, lower it.
-						// 8.2.1. How much fee can we save?
+						// 7.2 If the fee can be lowered, lower it.
+						// 7.2.1. How much fee can we save?
 						Money feeShouldBePaid = Money.Satoshis(estimatedFinalTxSize * (int)optimalFeeRate.SatoshiPerByte);
 						Money toSave = fee - feeShouldBePaid;
 
-						// 8.2.2. Get the outputs to divide the savings between.
+						// 7.2.2. Get the outputs to divide the savings between.
 						int maxMixCount = transaction.GetIndistinguishableOutputs(includeSingle: true).Max(x => x.count);
 						Money bestMixAmount = transaction.GetIndistinguishableOutputs(includeSingle: true).Where(x => x.count == maxMixCount).Max(x => x.value);
 						int bestMixCount = transaction.GetIndistinguishableOutputs(includeSingle: true).First(x => x.value == bestMixAmount).count;
 
-						// 8.2.3. Get the savings per best mix outputs.
+						// 7.2.3. Get the savings per best mix outputs.
 						long toSavePerBestMixOutputs = toSave.Satoshi / bestMixCount;
 
-						// 8.2.4. Modify the best mix outputs in the transaction.
+						// 7.2.4. Modify the best mix outputs in the transaction.
 						if (toSavePerBestMixOutputs > 0)
 						{
 							foreach (TxOut output in transaction.Outputs.Where(x => x.Value == bestMixAmount))
@@ -1005,7 +1003,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 		public void StartAliceTimeout(Guid uniqueId)
 		{
-			// 1. Find Alice and set its LastSeen propery.
+			// 1. Find Alice and set its LastSeen property.
 			var foundAlice = false;
 			var started = DateTimeOffset.UtcNow;
 			using (RoundSynchronizerLock.Lock())

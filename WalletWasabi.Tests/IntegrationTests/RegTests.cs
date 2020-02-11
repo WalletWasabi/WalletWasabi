@@ -18,6 +18,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend;
+using WalletWasabi.Backend.Controllers;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -90,7 +91,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		private async Task<(string password, RPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global)> InitializeTestEnvironmentAsync(int numberOfBlocksToGenerate, [CallerFilePath]string callerFilePath = null, [CallerMemberName] string callerMemberName = null)
 		{
 			var global = RegTestFixture.Global;
-			await AssertFiltersInitializedAsync(global); // Make sure fitlers are created on the server side.
+			await AssertFiltersInitializedAsync(global); // Make sure filters are created on the server side.
 			if (numberOfBlocksToGenerate != 0)
 			{
 				await global.RpcClient.GenerateAsync(numberOfBlocksToGenerate); // Make sure everything is confirmed.
@@ -227,6 +228,71 @@ namespace WalletWasabi.Tests.IntegrationTests
 					var expectedHash = await rpc.GetBlockHashAsync(i + 1);
 					var filterModel = filters[i];
 					Assert.Equal(expectedHash, filterModel.Header.BlockHash);
+				}
+			}
+			finally
+			{
+				if (indexBuilderService is { })
+				{
+					await indexBuilderService.StopAsync();
+				}
+			}
+		}
+
+		[Fact]
+		public async Task StatusRequestTestAsync()
+		{
+			const string request = "/api/v3/btc/Blockchain/status";
+			(string password, RPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await InitializeTestEnvironmentAsync(1);
+
+			var indexBuilderService = global.IndexBuilderService;
+			try
+			{
+				indexBuilderService.Synchronize();
+				// Test initial synchronization.
+				var times = 0;
+				uint256 firstHash = await rpc.GetBlockHashAsync(0);
+				while (indexBuilderService.GetFilterLinesExcluding(firstHash, 101, out _).filters.Count() != 101)
+				{
+					if (times > 500) // 30 sec
+					{
+						throw new TimeoutException($"{nameof(IndexBuilderService)} test timed out.");
+					}
+					await Task.Delay(100);
+					times++;
+				}
+
+				using var client = new WasabiClient(new Uri(RegTestFixture.BackendEndPoint), null);
+				var response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, request);
+				using (HttpContent content = response.Content)
+				{
+					var resp = await content.ReadAsJsonAsync<StatusResponse>();
+					Assert.True(resp.FilterCreationActive);
+				}
+
+				// Simulate an unintended stop
+				await indexBuilderService.StopAsync();
+				indexBuilderService = null;
+
+				await rpc.GenerateAsync(1);
+
+				response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, request);
+				using (HttpContent content = response.Content)
+				{
+					var resp = await content.ReadAsJsonAsync<StatusResponse>();
+					Assert.True(resp.FilterCreationActive);
+				}
+
+				await rpc.GenerateAsync(1);
+
+				var blockchainController = (BlockchainController)RegTestFixture.BackendHost.Services.GetService(typeof(BlockchainController));
+				blockchainController.Cache.Remove($"{nameof(BlockchainController.GetStatusAsync)}");
+
+				response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, request);
+				using (HttpContent content = response.Content)
+				{
+					var resp = await content.ReadAsJsonAsync<StatusResponse>();
+					Assert.False(resp.FilterCreationActive);
 				}
 			}
 			finally
@@ -1504,7 +1570,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				}
 
 				// Get some money, make it confirm.
-				// this is necesary because we are in a fork now.
+				// this is necessary because we are in a fork now.
 				eventAwaiter = new EventAwaiter<ProcessedResult>(
 								h => wallet.TransactionProcessor.WalletRelevantTransactionProcessed += h,
 								h => wallet.TransactionProcessor.WalletRelevantTransactionProcessed -= h);
@@ -1596,7 +1662,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.Empty(wallet.Coins);
 
 				// Get some money, make it confirm.
-				// this is necesary because we are in a fork now.
+				// this is necessary because we are in a fork now.
 				var eventAwaiter = new EventAwaiter<ProcessedResult>(
 					h => wallet.TransactionProcessor.WalletRelevantTransactionProcessed += h,
 					h => wallet.TransactionProcessor.WalletRelevantTransactionProcessed -= h);
@@ -2357,7 +2423,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				Assert.Contains(outputAddress1.ScriptPubKey, unsignedCoinJoin.Outputs.Select(x => x.ScriptPubKey));
 				Assert.Contains(outputAddress2.ScriptPubKey, unsignedCoinJoin.Outputs.Select(x => x.ScriptPubKey));
-				Assert.True(2 == unsignedCoinJoin.Outputs.Count); // Because the two input is equal, so change addresses won't be used, nor coordinator fee will be taken.
+				Assert.True(2 == unsignedCoinJoin.Outputs.Count); // Because the two inputs are equal, so change addresses won't be used, nor coordinator fee will be taken.
 				Assert.Contains(input1, unsignedCoinJoin.Inputs.Select(x => x.PrevOut));
 				Assert.Contains(input2, unsignedCoinJoin.Inputs.Select(x => x.PrevOut));
 				Assert.True(2 == unsignedCoinJoin.Inputs.Count);
@@ -2437,7 +2503,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 										 List<(Requester requester, BitcoinWitPubKeyAddress outputAddress, uint256 blindedScript)> outouts,
 										 List<(TxoRef input, byte[] proof, Coin coin, Key key)> inputs)>();
 
-			// INPUS REGISTRATION PHASE --
+			// INPUTS REGISTRATION PHASE --
 			for (var anosetIdx = 0; anosetIdx < anonymitySet; anosetIdx++)
 			{
 				// Create as many outputs as mixin levels (even when we do not have funds enough)

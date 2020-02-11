@@ -50,6 +50,11 @@ namespace System
 			}
 			else
 			{
+				if (ex is HwiException hwiEx && hwiEx.ErrorCode == HwiErrorCode.DeviceConnError)
+				{
+					return "Could not find the hardware wallet.\nMake sure it is connected.";
+				}
+
 				foreach (KeyValuePair<string, string> pair in Translations)
 				{
 					if (trimmed.Contains(pair.Key, StringComparison.InvariantCultureIgnoreCase))

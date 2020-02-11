@@ -165,7 +165,6 @@ namespace WalletWasabi.Helpers
 		/// Executes a command with bash.
 		/// https://stackoverflow.com/a/47918132/2061103
 		/// </summary>
-		/// <param name="cmd"></param>
 		public static async Task ShellExecAsync(string cmd, bool waitForExit = true)
 		{
 			var escapedArgs = cmd.Replace("\"", "\\\"");
