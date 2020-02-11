@@ -19,6 +19,7 @@ namespace WalletWasabi.Gui.ViewModels
 {
 	public class MainWindowViewModel : ViewModelBase, IDisposable
 	{
+		private volatile bool _disposedValue = false;
 		private ModalDialogViewModelBase _modalDialog;
 		private bool _canClose = true;
 		private string _title = "Wasabi Wallet";
@@ -88,6 +89,18 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _lockScreen, value);
 		}
 
+		public ModalDialogViewModelBase ModalDialog
+		{
+			get => _modalDialog;
+			private set => this.RaiseAndSetIfChanged(ref _modalDialog, value);
+		}
+
+		public bool CanClose
+		{
+			get => _canClose;
+			set => this.RaiseAndSetIfChanged(ref _canClose, value);
+		}
+
 		public static MainWindowViewModel Instance { get; internal set; }
 
 		public ReactiveCommand<Unit, Unit> LockScreenCommand { get; }
@@ -96,7 +109,7 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			var global = Locator.Current.GetService<Global>();
 
-			if(global.Nodes != null)
+			if (global.Nodes != null)
 			{
 				StatusBar.Initialize(global.Nodes.ConnectedNodes, global.Synchronizer);
 			}
@@ -153,21 +166,7 @@ namespace WalletWasabi.Gui.ViewModels
 			return res;
 		}
 
-		public ModalDialogViewModelBase ModalDialog
-		{
-			get => _modalDialog;
-			private set => this.RaiseAndSetIfChanged(ref _modalDialog, value);
-		}
-
-		public bool CanClose
-		{
-			get => _canClose;
-			set => this.RaiseAndSetIfChanged(ref _canClose, value);
-		}
-
 		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
 
 		protected virtual void Dispose(bool disposing)
 		{
