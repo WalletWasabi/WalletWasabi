@@ -17,7 +17,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Packager
 {
-	public class Program
+	public static class Program
 	{
 #pragma warning disable CS0162 // Unreachable code detected
 		// 0. Dump Client version (or else wrong .msi will be created) - Helpers.Constants.ClientVersion
