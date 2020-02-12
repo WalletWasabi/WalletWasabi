@@ -90,70 +90,72 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var key = transactionProcessor.KeyManager.GetKeys().First();
 
 			var tx1 = CreateCreditingTransaction(key.PubKey.WitHash.ScriptPubKey, Money.Coins(1.0m));
-			var res = transactionProcessor.Process(tx1);
-			Assert.False(res.IsLikelyOwnCoinJoin);
-			Assert.Empty(res.NewlyConfirmedReceivedCoins);
-			Assert.Empty(res.NewlyConfirmedSpentCoins);
-			Assert.Single(res.NewlyReceivedCoins);
-			Assert.Empty(res.NewlySpentCoins);
-			Assert.Single(res.ReceivedCoins);
-			Assert.Empty(res.SpentCoins);
-			Assert.Empty(res.ReceivedDusts);
-			Assert.Empty(res.ReplacedCoins);
-			Assert.Empty(res.RestoredCoins);
-			Assert.Empty(res.SuccessfullyDoubleSpentCoins);
-			Assert.True(res.IsNews);
-			Assert.NotNull(res.Transaction);
-
 			var blockHeight = new Height(77551);
-			tx1 = new SmartTransaction(tx1.Transaction, blockHeight);
-			res = transactionProcessor.Process(tx1);
-			Assert.False(res.IsLikelyOwnCoinJoin);
-			Assert.Single(res.NewlyConfirmedReceivedCoins);
-			Assert.Empty(res.NewlyConfirmedSpentCoins);
-			Assert.Empty(res.NewlyReceivedCoins);
-			Assert.Empty(res.NewlySpentCoins);
-			Assert.Single(res.ReceivedCoins);
-			Assert.Empty(res.SpentCoins);
-			Assert.Empty(res.ReceivedDusts);
-			Assert.Empty(res.ReplacedCoins);
-			Assert.Empty(res.RestoredCoins);
-			Assert.Empty(res.SuccessfullyDoubleSpentCoins);
-			Assert.True(res.IsNews);
-			Assert.NotNull(res.Transaction);
+			var tx2 = new SmartTransaction(tx1.Transaction, blockHeight);
+			var tx3 = CreateSpendingTransaction(tx2.Transaction.Outputs.AsCoins().First(), new Key().PubKey.WitHash.ScriptPubKey);
+			var blockHeight2 = new Height(77552);
+			var tx4 = new SmartTransaction(tx3.Transaction, blockHeight2);
+			var results = transactionProcessor.Process(tx1, tx2, tx3, tx4).ToArray();
+			var res1 = results[0];
+			var res2 = results[1];
+			var res3 = results[2];
+			var res4 = results[3];
 
-			var tx2 = CreateSpendingTransaction(tx1.Transaction.Outputs.AsCoins().First(), new Key().PubKey.WitHash.ScriptPubKey);
-			res = transactionProcessor.Process(tx2);
-			Assert.False(res.IsLikelyOwnCoinJoin);
-			Assert.Empty(res.NewlyConfirmedReceivedCoins);
-			Assert.Empty(res.NewlyConfirmedSpentCoins);
-			Assert.Empty(res.NewlyReceivedCoins);
-			Assert.Single(res.NewlySpentCoins);
-			Assert.Empty(res.ReceivedCoins);
-			Assert.Single(res.SpentCoins);
-			Assert.Empty(res.ReceivedDusts);
-			Assert.Empty(res.ReplacedCoins);
-			Assert.Empty(res.RestoredCoins);
-			Assert.Empty(res.SuccessfullyDoubleSpentCoins);
-			Assert.True(res.IsNews);
-			Assert.NotNull(res.Transaction);
+			Assert.False(res1.IsLikelyOwnCoinJoin);
+			Assert.Empty(res1.NewlyConfirmedReceivedCoins);
+			Assert.Empty(res1.NewlyConfirmedSpentCoins);
+			Assert.Single(res1.NewlyReceivedCoins);
+			Assert.Empty(res1.NewlySpentCoins);
+			Assert.Single(res1.ReceivedCoins);
+			Assert.Empty(res1.SpentCoins);
+			Assert.Empty(res1.ReceivedDusts);
+			Assert.Empty(res1.ReplacedCoins);
+			Assert.Empty(res1.RestoredCoins);
+			Assert.Empty(res1.SuccessfullyDoubleSpentCoins);
+			Assert.True(res1.IsNews);
+			Assert.NotNull(res1.Transaction);
 
-			blockHeight = new Height(77552);
-			tx2 = new SmartTransaction(tx2.Transaction, blockHeight);
-			res = transactionProcessor.Process(tx2);
-			Assert.False(res.IsLikelyOwnCoinJoin);
-			Assert.Empty(res.NewlyConfirmedReceivedCoins);
-			Assert.Single(res.NewlyConfirmedSpentCoins);
-			Assert.Empty(res.NewlyReceivedCoins);
-			Assert.Empty(res.NewlySpentCoins);
-			Assert.Empty(res.ReceivedCoins);
-			Assert.Single(res.SpentCoins);
-			Assert.Empty(res.ReceivedDusts);
-			Assert.Empty(res.ReplacedCoins);
-			Assert.Empty(res.RestoredCoins);
-			Assert.Empty(res.SuccessfullyDoubleSpentCoins);
-			Assert.True(res.IsNews);
-			Assert.NotNull(res.Transaction);
+			Assert.False(res2.IsLikelyOwnCoinJoin);
+			Assert.Single(res2.NewlyConfirmedReceivedCoins);
+			Assert.Empty(res2.NewlyConfirmedSpentCoins);
+			Assert.Empty(res2.NewlyReceivedCoins);
+			Assert.Empty(res2.NewlySpentCoins);
+			Assert.Single(res2.ReceivedCoins);
+			Assert.Empty(res2.SpentCoins);
+			Assert.Empty(res2.ReceivedDusts);
+			Assert.Empty(res2.ReplacedCoins);
+			Assert.Empty(res2.RestoredCoins);
+			Assert.Empty(res2.SuccessfullyDoubleSpentCoins);
+			Assert.True(res2.IsNews);
+			Assert.NotNull(res2.Transaction);
+
+			Assert.False(res3.IsLikelyOwnCoinJoin);
+			Assert.Empty(res3.NewlyConfirmedReceivedCoins);
+			Assert.Empty(res3.NewlyConfirmedSpentCoins);
+			Assert.Empty(res3.NewlyReceivedCoins);
+			Assert.Single(res3.NewlySpentCoins);
+			Assert.Empty(res3.ReceivedCoins);
+			Assert.Single(res3.SpentCoins);
+			Assert.Empty(res3.ReceivedDusts);
+			Assert.Empty(res3.ReplacedCoins);
+			Assert.Empty(res3.RestoredCoins);
+			Assert.Empty(res3.SuccessfullyDoubleSpentCoins);
+			Assert.True(res3.IsNews);
+			Assert.NotNull(res3.Transaction);
+
+			Assert.False(res4.IsLikelyOwnCoinJoin);
+			Assert.Empty(res4.NewlyConfirmedReceivedCoins);
+			Assert.Single(res4.NewlyConfirmedSpentCoins);
+			Assert.Empty(res4.NewlyReceivedCoins);
+			Assert.Empty(res4.NewlySpentCoins);
+			Assert.Empty(res4.ReceivedCoins);
+			Assert.Single(res4.SpentCoins);
+			Assert.Empty(res4.ReceivedDusts);
+			Assert.Empty(res4.ReplacedCoins);
+			Assert.Empty(res4.RestoredCoins);
+			Assert.Empty(res4.SuccessfullyDoubleSpentCoins);
+			Assert.True(res4.IsNews);
+			Assert.NotNull(res4.Transaction);
 		}
 
 		[Fact]
@@ -262,17 +264,15 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// An unconfirmed segwit transaction for us
 			var tx0 = CreateCreditingTransaction(keys[0].PubKey.WitHash.ScriptPubKey, Money.Coins(1.0m), height: 54321);
-			transactionProcessor.Process(tx0);
 
 			var createdCoin = tx0.Transaction.Outputs.AsCoins().First();
 			// Spend the received coin
 			var tx1 = CreateSpendingTransaction(createdCoin, keys[1].PubKey.WitHash.ScriptPubKey);
-			transactionProcessor.Process(tx1);
 
 			Assert.Equal(0, doubleSpendReceived);
 			// Spend it coin
 			var tx2 = CreateSpendingTransaction(createdCoin, keys[2].PubKey.WitHash.ScriptPubKey, height: 54321);
-			var relevant = transactionProcessor.Process(tx2);
+			var relevant = transactionProcessor.Process(tx0, tx1, tx2).Last();
 			Assert.Equal(1, doubleSpendReceived);
 
 			Assert.True(relevant.IsNews);
@@ -321,7 +321,6 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// A confirmed segwit transaction for us
 			var tx0 = CreateCreditingTransaction(transactionProcessor.NewKey("A").P2wpkhScript, Money.Coins(1.0m), height: 54321);
-			transactionProcessor.Process(tx0);
 
 			var createdCoin = tx0.Transaction.Outputs.AsCoins().First();
 			// Spend the received coin
@@ -329,8 +328,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			tx1.Transaction.Inputs[0].Sequence = Sequence.OptInRBF;
 			tx1.Transaction.Outputs[0].Value = Money.Coins(0.95m);
 			tx1.Transaction.Outputs.Add(Money.Coins(0.1m), transactionProcessor.NewKey("C").P2wpkhScript);
-			var relevant = transactionProcessor.Process(tx1);
-			Assert.True(relevant.IsNews);
+			var relevant1 = transactionProcessor.Process(tx0, tx1).Last();
+			Assert.True(relevant1.IsNews);
 			Assert.Equal(0, replaceTransactionReceivedCalled);
 
 			var unconfirmedCoin1 = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Label == "B");
@@ -341,16 +340,16 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// Spend the received coin
 			var tx2 = CreateSpendingTransaction(unconfirmedCoin1.GetCoin(), transactionProcessor.NewKey("D").P2wpkhScript);
 			tx2.Transaction.Outputs[0].Value = Money.Coins(0.7m);
-			relevant = transactionProcessor.Process(tx2);
-			Assert.True(relevant.IsNews);
+			var relevant2 = transactionProcessor.Process(tx2);
+			Assert.True(relevant2.IsNews);
 			Assert.Equal(0, replaceTransactionReceivedCalled);
 
 			// Spend it coin
 			var tx3 = CreateSpendingTransaction(createdCoin, transactionProcessor.NewKey("E").P2wpkhScript);
 			tx3.Transaction.Outputs[0].Value = Money.Coins(0.9m);
-			relevant = transactionProcessor.Process(tx3);
+			var relevant3 = transactionProcessor.Process(tx3);
 
-			Assert.True(relevant.IsNews);
+			Assert.True(relevant3.IsNews);
 			Assert.Equal(1, replaceTransactionReceivedCalled);
 			var finalCoin = Assert.Single(transactionProcessor.Coins);
 			Assert.True(finalCoin.IsReplaceable);
@@ -389,22 +388,28 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// A confirmed segwit transaction for us
 			var tx1 = CreateCreditingTransaction(keys[0].PubKey.WitHash.ScriptPubKey, Money.Coins(1.0m));
-			var res = transactionProcessor.Process(tx1);
-			Assert.True(res.IsNews);
-			Assert.Single(res.NewlyReceivedCoins);
-			Assert.Single(res.ReceivedCoins);
-			Assert.Empty(res.NewlyConfirmedReceivedCoins);
-			Assert.Empty(res.ReceivedDusts);
-
+			var results = transactionProcessor.Process(tx1, tx1).ToArray();
+			var res1 = results[0];
+			var res2a = results[1];
 			// Process it again.
-			res = transactionProcessor.Process(tx1);
-			Assert.False(res.IsNews);
-			Assert.Empty(res.ReplacedCoins);
-			Assert.Empty(res.RestoredCoins);
-			Assert.Empty(res.SuccessfullyDoubleSpentCoins);
-			Assert.Single(res.ReceivedCoins);
-			Assert.Empty(res.NewlyConfirmedReceivedCoins);
-			Assert.Empty(res.ReceivedDusts);
+			var res2b = transactionProcessor.Process(tx1);
+
+			Assert.True(res1.IsNews);
+			Assert.Single(res1.NewlyReceivedCoins);
+			Assert.Single(res1.ReceivedCoins);
+			Assert.Empty(res1.NewlyConfirmedReceivedCoins);
+			Assert.Empty(res1.ReceivedDusts);
+
+			foreach (var res2 in new[] { res2a, res2b })
+			{
+				Assert.False(res2.IsNews);
+				Assert.Empty(res2.ReplacedCoins);
+				Assert.Empty(res2.RestoredCoins);
+				Assert.Empty(res2.SuccessfullyDoubleSpentCoins);
+				Assert.Single(res2.ReceivedCoins);
+				Assert.Empty(res2.NewlyConfirmedReceivedCoins);
+				Assert.Empty(res2.ReceivedDusts);
+			}
 
 			var coin = Assert.Single(transactionProcessor.Coins);
 			Assert.False(coin.Confirmed);
@@ -412,14 +417,14 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var tx2 = new SmartTransaction(tx1.Transaction.Clone(), new Height(54321));
 
 			Assert.Equal(tx1.GetHash(), tx2.GetHash());
-			res = transactionProcessor.Process(tx2);
-			Assert.True(res.IsNews);
-			Assert.Empty(res.ReplacedCoins);
-			Assert.Empty(res.RestoredCoins);
-			Assert.Empty(res.SuccessfullyDoubleSpentCoins);
-			Assert.Single(res.ReceivedCoins);
-			Assert.Single(res.NewlyConfirmedReceivedCoins);
-			Assert.Empty(res.ReceivedDusts);
+			var res3 = transactionProcessor.Process(tx2);
+			Assert.True(res3.IsNews);
+			Assert.Empty(res3.ReplacedCoins);
+			Assert.Empty(res3.RestoredCoins);
+			Assert.Empty(res3.SuccessfullyDoubleSpentCoins);
+			Assert.Single(res3.ReceivedCoins);
+			Assert.Single(res3.NewlyConfirmedReceivedCoins);
+			Assert.Empty(res3.ReceivedDusts);
 			Assert.True(coin.Confirmed);
 
 			Assert.Equal(0, confirmed);
@@ -452,11 +457,10 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// A confirmed segwit transaction for us
 			var tx0 = CreateCreditingTransaction(NewScript("A"), Money.Coins(1.0m), height: 54321);
-			transactionProcessor.Process(tx0);
 
 			// Another confirmed segwit transaction for us
 			var tx1 = CreateCreditingTransaction(NewScript("B"), Money.Coins(1.0m), height: 54321);
-			transactionProcessor.Process(tx1);
+			transactionProcessor.Process(tx0, tx1);
 
 			var createdCoins = transactionProcessor.Coins.Select(x => x.GetCoin()).ToArray(); // 2 coins of 1.0 btc each
 
@@ -465,23 +469,22 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var changeScript = NewScript("Change myself");
 			var tx2 = CreateSpendingTransaction(createdCoins, destinationScript, changeScript); // spends 1.2btc
 			tx2.Transaction.Inputs[0].Sequence = Sequence.OptInRBF;
-			var relevant = transactionProcessor.Process(tx2);
-			Assert.True(relevant.IsNews);
-
 			// Another confirmed segwit transaction for us
 			var tx3 = CreateCreditingTransaction(NewScript("C"), Money.Coins(1.0m), height: 54322);
-			transactionProcessor.Process(tx3);
+
+			var relevant1 = transactionProcessor.Process(tx2, tx3).First();
+			Assert.True(relevant1.IsNews);
 
 			// At this moment we have one 1.2btc and one 0.8btc replaceable coins and one 1.0btc final coin
 			var latestCreatedCoin = Assert.Single(transactionProcessor.Coins.CreatedBy(tx3.Transaction.GetHash()));
 			var coinsToSpend = createdCoins.Concat(new[] { latestCreatedCoin.GetCoin() }).ToArray();
 
 			// Spend them again with a different amount
-			destinationScript = new Key().PubKey.WitHash.ScriptPubKey;  // spend to someone else
-			var tx4 = CreateSpendingTransaction(coinsToSpend, destinationScript, changeScript);
-			relevant = transactionProcessor.Process(tx4);
+			var destinationScript2 = new Key().PubKey.WitHash.ScriptPubKey;  // spend to someone else
+			var tx4 = CreateSpendingTransaction(coinsToSpend, destinationScript2, changeScript);
+			var relevant2 = transactionProcessor.Process(tx4);
 
-			Assert.True(relevant.IsNews);
+			Assert.True(relevant2.IsNews);
 			var coin = Assert.Single(transactionProcessor.Coins);
 			Assert.True(coin.IsReplaceable);
 
