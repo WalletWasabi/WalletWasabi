@@ -8,6 +8,7 @@ namespace WalletWasabi.CoinJoin.Common.Models
 	public class InputProofModel
 	{
 		[Required]
+		[JsonConverter(typeof(OutPointJsonConverter))]
 		public OutPoint Input { get; set; }
 
 		[Required]
