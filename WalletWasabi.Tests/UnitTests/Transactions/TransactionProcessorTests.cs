@@ -264,17 +264,15 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// An unconfirmed segwit transaction for us
 			var tx0 = CreateCreditingTransaction(keys[0].PubKey.WitHash.ScriptPubKey, Money.Coins(1.0m), height: 54321);
-			transactionProcessor.Process(tx0);
 
 			var createdCoin = tx0.Transaction.Outputs.AsCoins().First();
 			// Spend the received coin
 			var tx1 = CreateSpendingTransaction(createdCoin, keys[1].PubKey.WitHash.ScriptPubKey);
-			transactionProcessor.Process(tx1);
 
 			Assert.Equal(0, doubleSpendReceived);
 			// Spend it coin
 			var tx2 = CreateSpendingTransaction(createdCoin, keys[2].PubKey.WitHash.ScriptPubKey, height: 54321);
-			var relevant = transactionProcessor.Process(tx2);
+			var relevant = transactionProcessor.Process(tx0, tx1, tx2).Last();
 			Assert.Equal(1, doubleSpendReceived);
 
 			Assert.True(relevant.IsNews);
