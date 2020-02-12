@@ -321,7 +321,6 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// A confirmed segwit transaction for us
 			var tx0 = CreateCreditingTransaction(transactionProcessor.NewKey("A").P2wpkhScript, Money.Coins(1.0m), height: 54321);
-			transactionProcessor.Process(tx0);
 
 			var createdCoin = tx0.Transaction.Outputs.AsCoins().First();
 			// Spend the received coin
@@ -329,8 +328,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			tx1.Transaction.Inputs[0].Sequence = Sequence.OptInRBF;
 			tx1.Transaction.Outputs[0].Value = Money.Coins(0.95m);
 			tx1.Transaction.Outputs.Add(Money.Coins(0.1m), transactionProcessor.NewKey("C").P2wpkhScript);
-			var relevant = transactionProcessor.Process(tx1);
-			Assert.True(relevant.IsNews);
+			var relevant1 = transactionProcessor.Process(tx0, tx1).Last();
+			Assert.True(relevant1.IsNews);
 			Assert.Equal(0, replaceTransactionReceivedCalled);
 
 			var unconfirmedCoin1 = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Label == "B");
@@ -341,16 +340,16 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// Spend the received coin
 			var tx2 = CreateSpendingTransaction(unconfirmedCoin1.GetCoin(), transactionProcessor.NewKey("D").P2wpkhScript);
 			tx2.Transaction.Outputs[0].Value = Money.Coins(0.7m);
-			relevant = transactionProcessor.Process(tx2);
-			Assert.True(relevant.IsNews);
+			var relevant2 = transactionProcessor.Process(tx2);
+			Assert.True(relevant2.IsNews);
 			Assert.Equal(0, replaceTransactionReceivedCalled);
 
 			// Spend it coin
 			var tx3 = CreateSpendingTransaction(createdCoin, transactionProcessor.NewKey("E").P2wpkhScript);
 			tx3.Transaction.Outputs[0].Value = Money.Coins(0.9m);
-			relevant = transactionProcessor.Process(tx3);
+			var relevant3 = transactionProcessor.Process(tx3);
 
-			Assert.True(relevant.IsNews);
+			Assert.True(relevant3.IsNews);
 			Assert.Equal(1, replaceTransactionReceivedCalled);
 			var finalCoin = Assert.Single(transactionProcessor.Coins);
 			Assert.True(finalCoin.IsReplaceable);
