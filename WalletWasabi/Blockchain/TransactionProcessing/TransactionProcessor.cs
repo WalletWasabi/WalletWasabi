@@ -50,9 +50,10 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 				try
 				{
 					QueuedTxCount = txs.Count();
+					var smartCoinsBySpentOutputs = GetSmartCoinsBySpentOutputs();
 					foreach (var tx in txs)
 					{
-						rets.Add(ProcessNoLock(tx));
+						rets.Add(ProcessNoLock(tx, smartCoinsBySpentOutputs));
 						QueuedProcessedTxCount++;
 					}
 				}
@@ -79,7 +80,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 				try
 				{
 					QueuedTxCount = 1;
-					ret = ProcessNoLock(tx);
+					ret = ProcessNoLock(tx, GetSmartCoinsBySpentOutputs());
 				}
 				finally
 				{
@@ -93,7 +94,18 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 			return ret;
 		}
 
-		private ProcessedResult ProcessNoLock(SmartTransaction tx)
+		private Dictionary<OutPoint, SmartCoin> GetSmartCoinsBySpentOutputs()
+		{
+			Dictionary<OutPoint, SmartCoin> result = new Dictionary<OutPoint, SmartCoin>();
+			foreach (var tuple in Coins.AsAllCoinsView()
+				.SelectMany(smartCoin => smartCoin.SpentOutputs.Select(s => (s.ToOutPoint(), smartCoin))))
+			{
+				result.TryAdd(tuple.Item1, tuple.smartCoin);
+			}
+			return result;
+		}
+
+		private ProcessedResult ProcessNoLock(SmartTransaction tx, Dictionary<OutPoint, SmartCoin> smartCoinsBySpentOutputs)
 		{
 			var result = new ProcessedResult(tx);
 
@@ -106,27 +118,13 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 				if (!tx.Transaction.IsCoinBase && !Coins.AsAllCoinsView().CreatedBy(txId).Any()) // Transactions we already have and processed would be "double spends" but they shouldn't.
 				{
 					var doubleSpends = new List<SmartCoin>();
-					foreach (SmartCoin coin in Coins.AsAllCoinsView())
+					foreach (TxIn txIn in tx.Transaction.Inputs)
 					{
-						var spent = false;
-						foreach (TxoRef spentOutput in coin.SpentOutputs)
+						if (smartCoinsBySpentOutputs.TryGetValue(txIn.PrevOut, out var coin))
 						{
-							foreach (TxIn txIn in tx.Transaction.Inputs)
-							{
-								if (spentOutput.TransactionId == txIn.PrevOut.Hash && spentOutput.Index == txIn.PrevOut.N) // Do not do (spentOutput == txIn.PrevOut), it's faster this way, because it won't check for null.
-								{
-									doubleSpends.Add(coin);
-									spent = true;
-									break;
-								}
-							}
-							if (spent)
-							{
-								break;
-							}
+							doubleSpends.Add(coin);
 						}
 					}
-
 					if (doubleSpends.Any())
 					{
 						if (tx.Height == Height.Mempool)
