@@ -247,7 +247,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 
 					var selectedCoinViewModels = CoinList.Coins.Where(cvm => cvm.IsSelected);
-					var selectedCoinReferences = selectedCoinViewModels.Select(cvm => new TxoRef(cvm.Model.TransactionId, cvm.Model.Index)).ToList();
+					var selectedCoinReferences = selectedCoinViewModels.Select(cvm => cvm.Model.GetOutPoint()).ToList();
 
 					if (!selectedCoinReferences.Any())
 					{
@@ -299,7 +299,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					try
 					{
 						MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.DequeuingSelectedCoins);
-						TxoRef[] toDequeue = selectedCoinViewModels.Where(x => x.CoinJoinInProgress).Select(x => x.Model.GetTxoRef()).ToArray();
+						OutPoint[] toDequeue = selectedCoinViewModels.Where(x => x.CoinJoinInProgress).Select(x => x.Model.GetOutPoint()).ToArray();
 						if (toDequeue != null && toDequeue.Any())
 						{
 							await Global.ChaumianClient.DequeueCoinsFromMixAsync(toDequeue, DequeueReason.TransactionBuilding);
