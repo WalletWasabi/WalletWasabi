@@ -9,7 +9,7 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 {
 	public class Cluster : NotifyPropertyChangedBase, IEquatable<Cluster>
 	{
-		private List<SmartCoin> Coins { get; set; }
+		public List<SmartCoin> Coins { get; private set; }
 
 		private SmartLabel _labels;
 
