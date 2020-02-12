@@ -72,6 +72,9 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 			return rets;
 		}
 
+		public IEnumerable<ProcessedResult> Process(params SmartTransaction[] txs)
+			=> Process(txs as IEnumerable<SmartTransaction>);
+
 		public ProcessedResult Process(SmartTransaction tx)
 		{
 			ProcessedResult ret;
