@@ -457,11 +457,10 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// A confirmed segwit transaction for us
 			var tx0 = CreateCreditingTransaction(NewScript("A"), Money.Coins(1.0m), height: 54321);
-			transactionProcessor.Process(tx0);
 
 			// Another confirmed segwit transaction for us
 			var tx1 = CreateCreditingTransaction(NewScript("B"), Money.Coins(1.0m), height: 54321);
-			transactionProcessor.Process(tx1);
+			transactionProcessor.Process(tx0, tx1);
 
 			var createdCoins = transactionProcessor.Coins.Select(x => x.GetCoin()).ToArray(); // 2 coins of 1.0 btc each
 
@@ -470,23 +469,22 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var changeScript = NewScript("Change myself");
 			var tx2 = CreateSpendingTransaction(createdCoins, destinationScript, changeScript); // spends 1.2btc
 			tx2.Transaction.Inputs[0].Sequence = Sequence.OptInRBF;
-			var relevant = transactionProcessor.Process(tx2);
-			Assert.True(relevant.IsNews);
-
 			// Another confirmed segwit transaction for us
 			var tx3 = CreateCreditingTransaction(NewScript("C"), Money.Coins(1.0m), height: 54322);
-			transactionProcessor.Process(tx3);
+
+			var relevant1 = transactionProcessor.Process(tx2, tx3).First();
+			Assert.True(relevant1.IsNews);
 
 			// At this moment we have one 1.2btc and one 0.8btc replaceable coins and one 1.0btc final coin
 			var latestCreatedCoin = Assert.Single(transactionProcessor.Coins.CreatedBy(tx3.Transaction.GetHash()));
 			var coinsToSpend = createdCoins.Concat(new[] { latestCreatedCoin.GetCoin() }).ToArray();
 
 			// Spend them again with a different amount
-			destinationScript = new Key().PubKey.WitHash.ScriptPubKey;  // spend to someone else
-			var tx4 = CreateSpendingTransaction(coinsToSpend, destinationScript, changeScript);
-			relevant = transactionProcessor.Process(tx4);
+			var destinationScript2 = new Key().PubKey.WitHash.ScriptPubKey;  // spend to someone else
+			var tx4 = CreateSpendingTransaction(coinsToSpend, destinationScript2, changeScript);
+			var relevant2 = transactionProcessor.Process(tx4);
 
-			Assert.True(relevant.IsNews);
+			Assert.True(relevant2.IsNews);
 			var coin = Assert.Single(transactionProcessor.Coins);
 			Assert.True(coin.IsReplaceable);
 
