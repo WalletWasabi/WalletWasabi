@@ -46,8 +46,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			try
 			{
+				if (!TermsAccepted)
+				{
+					throw new InvalidOperationException("Terms are not accepted.");
+				}
+				
 				var walletGenerator = new WalletGenerator(Global.WalletsDir, Global.Network);
-				walletGenerator.TermsAccepted = TermsAccepted;
 				walletGenerator.TipHeight = Global.BitcoinStore.SmartHeaderChain.TipHeight;
 				var (km, mnemonic) = walletGenerator.GenerateWallet(WalletName, Password);
 				Owner.CurrentView = new GenerateWalletSuccessViewModel(Owner, km, mnemonic);

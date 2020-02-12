@@ -24,7 +24,6 @@ namespace WalletWasabi.Blockchain.Keys
 
 		public string WalletsDir { get; private set; }
 		public Network Network { get; private set; }
-		public bool TermsAccepted { get; set; }
 		public uint TipHeight { get; set; }
 
 		public (KeyManager, Mnemonic) GenerateWallet(string walletName, string password)
@@ -32,11 +31,6 @@ namespace WalletWasabi.Blockchain.Keys
 			if (!ValidateWalletName(walletName))
 			{
 				throw new ArgumentException("Invalid wallet name.");
-			}
-
-			if (!TermsAccepted)
-			{
-				throw new InvalidOperationException("Terms are not accepted.");
 			}
 
 			string walletFilePath = Path.Combine(WalletsDir, $"{walletName}.json");

@@ -43,7 +43,6 @@ namespace WalletWasabi.Gui.Rpc
 		public object CreateWallet(string walletName, string password)
 		{
 			var walletGenerator = new WalletGenerator(Global.WalletsDir, Global.Network);
-			walletGenerator.TermsAccepted = true;   // Global.WalletService is {};
 			walletGenerator.TipHeight = Global.BitcoinStore.SmartHeaderChain.TipHeight;
 			var (keyManager, mnemonic) = walletGenerator.GenerateWallet(walletName, password);
 			keyManager.ToFile();
