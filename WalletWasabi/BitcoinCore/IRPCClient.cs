@@ -25,7 +25,6 @@ namespace WalletWasabi.BitcoinCore
 		Task<BlockchainInfo> GetBlockchainInfoAsync();
 
 		Task<PeerInfo[]> GetPeersInfoAsync();
-		
 		Task<TimeSpan> UptimeAsync();
 
 		Task<uint256> SendRawTransactionAsync(Transaction transaction);

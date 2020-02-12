@@ -80,7 +80,7 @@ namespace WalletWasabi.BitcoinCore
 
 		public virtual async Task<uint256[]> GenerateAsync(int blockCount)
 		{
-			return await Rpc.GenerateAsync(blockCount).ConfigureAwait(false); 
+			return await Rpc.GenerateAsync(blockCount).ConfigureAwait(false);
 		}
 
 		public virtual async Task<TimeSpan> UptimeAsync()
@@ -160,6 +160,6 @@ namespace WalletWasabi.BitcoinCore
 			await Rpc.SendBatchAsync().ConfigureAwait(false);
 		}
 
-		#endregion
+		#endregion For Testing Only
 	}
 }
