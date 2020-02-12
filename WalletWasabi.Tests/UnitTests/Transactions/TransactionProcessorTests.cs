@@ -388,22 +388,28 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// A confirmed segwit transaction for us
 			var tx1 = CreateCreditingTransaction(keys[0].PubKey.WitHash.ScriptPubKey, Money.Coins(1.0m));
-			var res = transactionProcessor.Process(tx1);
-			Assert.True(res.IsNews);
-			Assert.Single(res.NewlyReceivedCoins);
-			Assert.Single(res.ReceivedCoins);
-			Assert.Empty(res.NewlyConfirmedReceivedCoins);
-			Assert.Empty(res.ReceivedDusts);
-
+			var results = transactionProcessor.Process(tx1, tx1).ToArray();
+			var res1 = results[0];
+			var res2a = results[1];
 			// Process it again.
-			res = transactionProcessor.Process(tx1);
-			Assert.False(res.IsNews);
-			Assert.Empty(res.ReplacedCoins);
-			Assert.Empty(res.RestoredCoins);
-			Assert.Empty(res.SuccessfullyDoubleSpentCoins);
-			Assert.Single(res.ReceivedCoins);
-			Assert.Empty(res.NewlyConfirmedReceivedCoins);
-			Assert.Empty(res.ReceivedDusts);
+			var res2b = transactionProcessor.Process(tx1);
+
+			Assert.True(res1.IsNews);
+			Assert.Single(res1.NewlyReceivedCoins);
+			Assert.Single(res1.ReceivedCoins);
+			Assert.Empty(res1.NewlyConfirmedReceivedCoins);
+			Assert.Empty(res1.ReceivedDusts);
+
+			foreach (var res2 in new[] { res2a, res2b })
+			{
+				Assert.False(res2.IsNews);
+				Assert.Empty(res2.ReplacedCoins);
+				Assert.Empty(res2.RestoredCoins);
+				Assert.Empty(res2.SuccessfullyDoubleSpentCoins);
+				Assert.Single(res2.ReceivedCoins);
+				Assert.Empty(res2.NewlyConfirmedReceivedCoins);
+				Assert.Empty(res2.ReceivedDusts);
+			}
 
 			var coin = Assert.Single(transactionProcessor.Coins);
 			Assert.False(coin.Confirmed);
@@ -411,14 +417,14 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var tx2 = new SmartTransaction(tx1.Transaction.Clone(), new Height(54321));
 
 			Assert.Equal(tx1.GetHash(), tx2.GetHash());
-			res = transactionProcessor.Process(tx2);
-			Assert.True(res.IsNews);
-			Assert.Empty(res.ReplacedCoins);
-			Assert.Empty(res.RestoredCoins);
-			Assert.Empty(res.SuccessfullyDoubleSpentCoins);
-			Assert.Single(res.ReceivedCoins);
-			Assert.Single(res.NewlyConfirmedReceivedCoins);
-			Assert.Empty(res.ReceivedDusts);
+			var res3 = transactionProcessor.Process(tx2);
+			Assert.True(res3.IsNews);
+			Assert.Empty(res3.ReplacedCoins);
+			Assert.Empty(res3.RestoredCoins);
+			Assert.Empty(res3.SuccessfullyDoubleSpentCoins);
+			Assert.Single(res3.ReceivedCoins);
+			Assert.Single(res3.NewlyConfirmedReceivedCoins);
+			Assert.Empty(res3.ReceivedDusts);
 			Assert.True(coin.Confirmed);
 
 			Assert.Equal(0, confirmed);
