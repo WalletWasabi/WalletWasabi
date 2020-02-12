@@ -199,38 +199,6 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// An unconfirmed segwit transaction for us
 			var tx0 = CreateCreditingTransaction(keys[0].PubKey.WitHash.ScriptPubKey, Money.Coins(1.0m));
-			transactionProcessor.Process(tx0);
-
-			var createdCoin = tx0.Transaction.Outputs.AsCoins().First();
-			// Spend the received coin
-			var tx1 = CreateSpendingTransaction(createdCoin, keys[1].PubKey.WitHash.ScriptPubKey);
-			transactionProcessor.Process(tx1);
-
-			// Spend the same coin again
-			var tx2 = CreateSpendingTransaction(createdCoin, keys[2].PubKey.WitHash.ScriptPubKey);
-			var relevant = transactionProcessor.Process(tx2);
-
-			Assert.False(relevant.IsNews);
-			Assert.Single(transactionProcessor.Coins, coin => coin.Unspent);
-			Assert.Single(transactionProcessor.Coins.AsAllCoinsView(), coin => !coin.Unspent);
-
-			// Transaction store assertions
-			Assert.True(transactionProcessor.TransactionStore.ConfirmedStore.IsEmpty());
-			var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
-			Assert.Equal(2, mempool.Count());
-			Assert.Equal(tx0, mempool.First());
-			Assert.Equal(tx1, mempool.Last());
-		}
-
-		[Fact]
-		public async Task IgnoreDoubleSpendMultiTxAsync()
-		{
-			var transactionProcessor = await CreateTransactionProcessorAsync();
-
-			var keys = transactionProcessor.KeyManager.GetKeys().ToArray();
-
-			// An unconfirmed segwit transaction for us
-			var tx0 = CreateCreditingTransaction(keys[0].PubKey.WitHash.ScriptPubKey, Money.Coins(1.0m));
 
 			var createdCoin = tx0.Transaction.Outputs.AsCoins().First();
 			// Spend the received coin
