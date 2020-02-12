@@ -279,11 +279,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							return;
 						}
 
-						if (amount == selectedCoinViewModels.Sum(x => x.Amount))
-						{
-							NotificationHelpers.Warning("Looks like you want to spend whole coins. Try Max button instead.", "");
-							return;
-						}
 						moneyRequest = MoneyRequest.Create(amount);
 					}
 
