@@ -54,9 +54,13 @@ namespace WalletWasabi.Gui
 		public string AddressManagerFilePath { get; private set; }
 		public AddressManager AddressManager { get; private set; }
 
-		public WalletService WalletService { get; private set; }
+		/// <summary>
+		/// The first Wallet that was opened. This is only to support RPC code until
+		/// RPC is able to support multiple wallets.
+		/// </summary>
+		public WalletService DefaultWalletService { get; private set; }
 
-		public CoinJoinClient ChaumianClient { get; private set; }
+		public CoinJoinClient DefaultChaumianClient { get; private set; }
 
 		public NodesGroup Nodes { get; private set; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
@@ -550,16 +554,15 @@ namespace WalletWasabi.Gui
 
 				walletService.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
 				client.OnDequeue += ChaumianClient_OnDequeued;
-
-				Logger.LogWarning("Remove Hack!");
-				if (ChaumianClient is null)
+				
+				if (DefaultChaumianClient is null)
 				{
-					ChaumianClient = client;
+					DefaultChaumianClient = client;
 				}
 
-				if (WalletService is null)
+				if (DefaultWalletService is null)
 				{
-					WalletService = walletService;
+					DefaultWalletService = walletService;
 				}
 
 				result = walletService;

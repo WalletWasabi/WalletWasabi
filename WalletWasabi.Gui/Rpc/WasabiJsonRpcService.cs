@@ -26,7 +26,7 @@ namespace WalletWasabi.Gui.Rpc
 		public object[] GetUnspentCoinList()
 		{
 			AssertWalletIsLoaded();
-			return Global.WalletService.Coins.Where(x => x.Unspent).Select(x => new
+			return Global.DefaultWalletService.Coins.Where(x => x.Unspent).Select(x => new
 			{
 				txid = x.TransactionId.ToString(),
 				index = x.Index,
@@ -43,15 +43,15 @@ namespace WalletWasabi.Gui.Rpc
 		public object WalletInfo()
 		{
 			AssertWalletIsLoaded();
-			var km = Global.WalletService.KeyManager;
+			var km = Global.DefaultWalletService.KeyManager;
 			return new
 			{
-				walletFile = Global.WalletService.KeyManager.FilePath,
+				walletFile = Global.DefaultWalletService.KeyManager.FilePath,
 				extendedAccountPublicKey = km.ExtPubKey.ToString(Global.Network),
 				extendedAccountZpub = km.ExtPubKey.ToZpub(Global.Network),
 				accountKeyPath = $"m/{km.AccountKeyPath.ToString()}",
 				masterKeyFingerprint = km.MasterFingerprint?.ToString() ?? "",
-				balance = Global.WalletService.Coins
+				balance = Global.DefaultWalletService.Coins
 							.Where(c => c.Unspent && !c.SpentAccordingToBackend)
 							.Sum(c => c.Amount.Satoshi)
 			};
@@ -63,7 +63,7 @@ namespace WalletWasabi.Gui.Rpc
 			AssertWalletIsLoaded();
 			label = Guard.NotNullOrEmptyOrWhitespace(nameof(label), label, true);
 
-			var hdkey = Global.WalletService.KeyManager
+			var hdkey = Global.DefaultWalletService.KeyManager
 				.GenerateNewKey(new SmartLabel(label), KeyState.Clean, isInternal: false);
 			return new
 			{
@@ -113,7 +113,7 @@ namespace WalletWasabi.Gui.Rpc
 			var payment = new PaymentIntent(payments.Select(p =>
 				new DestinationRequest(p.Sendto.ScriptPubKey, MoneyRequest.Create(p.Amount, p.SubtractFee), new SmartLabel(p.Label))));
 			var feeStrategy = FeeStrategy.CreateFromConfirmationTarget(feeTarget);
-			var result = Global.WalletService.BuildTransaction(
+			var result = Global.DefaultWalletService.BuildTransaction(
 				password,
 				payment,
 				feeStrategy,
@@ -131,12 +131,12 @@ namespace WalletWasabi.Gui.Rpc
 			var smartTx = new SmartTransaction(Transaction.Parse(txHex, Global.Network), Height.Mempool);
 
 			// dequeue the coins we are going to spend
-			var toDequeue = Global.WalletService.Coins
+			var toDequeue = Global.DefaultWalletService.Coins
 				.Where(x => x.CoinJoinInProgress && coins.Contains(x.GetTxoRef()))
 				.ToArray();
 			if (toDequeue.Any())
 			{
-				await Global.ChaumianClient.DequeueCoinsFromMixAsync(toDequeue, DequeueReason.TransactionBuilding).ConfigureAwait(false);
+				await Global.DefaultChaumianClient.DequeueCoinsFromMixAsync(toDequeue, DequeueReason.TransactionBuilding).ConfigureAwait(false);
 			}
 
 			await Global.TransactionBroadcaster.SendTransactionAsync(smartTx).ConfigureAwait(false);
@@ -151,7 +151,7 @@ namespace WalletWasabi.Gui.Rpc
 		public object[] GetHistory()
 		{
 			AssertWalletIsLoaded();
-			var txHistoryBuilder = new TransactionHistoryBuilder(Global.WalletService);
+			var txHistoryBuilder = new TransactionHistoryBuilder(Global.DefaultWalletService);
 			var summary = txHistoryBuilder.BuildHistorySummary();
 			return summary.Select(x => new
 			{
@@ -167,7 +167,7 @@ namespace WalletWasabi.Gui.Rpc
 		public object[] GetAllKeys()
 		{
 			AssertWalletIsLoaded();
-			var keys = Global.WalletService.KeyManager.GetKeys(null);
+			var keys = Global.DefaultWalletService.KeyManager.GetKeys(null);
 			return keys.Select(x => new
 			{
 				fullKeyPath = x.FullKeyPath.ToString(),
@@ -186,8 +186,8 @@ namespace WalletWasabi.Gui.Rpc
 			Guard.NotNull(nameof(coins), coins);
 
 			AssertWalletIsLoaded();
-			var coinsToMix = Global.WalletService.Coins.Where(x => coins.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index));
-			await Global.WalletService.ChaumianClient.QueueCoinsToMixAsync(coinsToMix.ToArray()).ConfigureAwait(false);
+			var coinsToMix = Global.DefaultWalletService.Coins.Where(x => coins.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index));
+			await Global.DefaultWalletService.ChaumianClient.QueueCoinsToMixAsync(coinsToMix.ToArray()).ConfigureAwait(false);
 		}
 
 		[JsonRpcMethod("dequeue")]
@@ -196,8 +196,8 @@ namespace WalletWasabi.Gui.Rpc
 			Guard.NotNull(nameof(coins), coins);
 
 			AssertWalletIsLoaded();
-			var coinsToDequeue = Global.WalletService.Coins.Where(x => coins.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index));
-			await Global.WalletService.ChaumianClient.DequeueCoinsFromMixAsync(coinsToDequeue, DequeueReason.UserRequested).ConfigureAwait(false);
+			var coinsToDequeue = Global.DefaultWalletService.Coins.Where(x => coins.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index));
+			await Global.DefaultWalletService.ChaumianClient.DequeueCoinsFromMixAsync(coinsToDequeue, DequeueReason.UserRequested).ConfigureAwait(false);
 		}
 
 		[JsonRpcMethod("stop")]
@@ -208,7 +208,7 @@ namespace WalletWasabi.Gui.Rpc
 
 		private void AssertWalletIsLoaded()
 		{
-			if (Global.WalletService is null)
+			if (Global.DefaultWalletService is null)
 			{
 				throw new InvalidOperationException("There is no wallet loaded.");
 			}
