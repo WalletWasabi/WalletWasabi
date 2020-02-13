@@ -8,11 +8,19 @@
         <Style Selector="TreeViewItem">
           <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
         </Style>
-        <Style Selector="TreeViewItem:selected /template/ Border#SelectionBorder">
-          <Setter Property="Background" Value="Transparent" />
-        </Style>
       </TreeView.Styles>
       <TreeView.DataTemplates>
+        <TreeDataTemplate DataType="ViewModels:ClosedWalletViewModel" ItemsSource="{Binding Actions}">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <StackPanel.ContextMenu>
+              <ContextMenu>
+                <MenuItem Header="Open Wallet" Command="{Binding OpenWalletCommand}" />
+              </ContextMenu>
+            </StackPanel.ContextMenu>
+            <DrawingPresenter Width="20" Height="20" Drawing="{DynamicResource WalletExplorerView_OpenFolder}" />
+            <TextBlock Text="{Binding Title}" Height="19" VerticalAlignment="Center" />
+          </StackPanel>
+        </TreeDataTemplate>
         <TreeDataTemplate DataType="ViewModels:WalletViewModel" ItemsSource="{Binding Actions}">
           <StackPanel Orientation="Horizontal" Spacing="6">
             <DrawingPresenter Width="20" Height="20" Drawing="{DynamicResource WalletExplorerView_OpenFolder}" />

@@ -7,36 +7,19 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Services;
 using WalletWasabi.Logging;
 using Splat;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class WalletViewModel : ViewModelBase
+	public class WalletViewModel : WalletViewModelBase
 	{
 		private CompositeDisposable Disposables { get; set; }
 
 		private ObservableCollection<WalletActionViewModel> _actions;
 
-		private bool _isExpanded;
-
-		private string _title;
-
 		public Guid Id { get; set; } = Guid.NewGuid();
-
-		public bool IsExpanded
-		{
-			get => _isExpanded;
-			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
-		}
-
-		public string Title
-		{
-			get => _title;
-			set => this.RaiseAndSetIfChanged(ref _title, value);
-		}
 
 		public WalletViewModel(bool receiveDominant)
 		{
