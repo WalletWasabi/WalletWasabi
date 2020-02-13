@@ -57,8 +57,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.NewBlockProcessed))
-				.Merge(Observable.FromEventPattern(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.WalletRelevantTransactionProcessed)))
+			Observable.FromEventPattern(Wallet.Wallet.WalletService, nameof(Wallet.Wallet.WalletService.NewBlockProcessed))
+				.Merge(Observable.FromEventPattern(Wallet.Wallet.WalletService.TransactionProcessor, nameof(Wallet.Wallet.WalletService.TransactionProcessor.WalletRelevantTransactionProcessed)))
 				.Throttle(TimeSpan.FromSeconds(3))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(async _ => await TryRewriteTableAsync())
@@ -85,7 +85,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			try
 			{
-				var historyBuilder = new TransactionHistoryBuilder(Global.WalletService);
+				var historyBuilder = new TransactionHistoryBuilder(Wallet.Wallet.WalletService);
 				var txRecordList = await Task.Run(historyBuilder.BuildHistorySummary);
 
 				var rememberSelectedTransactionId = SelectedTransaction?.TransactionId;

@@ -137,39 +137,40 @@ namespace WalletWasabi.Gui.Dialogs
 
 					try
 					{
-						if (Global.WalletService is null || Global.ChaumianClient is null)
-						{
-							return;
-						}
+						Logger.LogWarning("Warning! Unimplemented functionality.");
+						//if (Global.WalletService is null || Global.ChaumianClient is null)
+						//{
+						//	return;
+						//}
 
-						SmartCoin[] enqueuedCoins = Global.WalletService.Coins.CoinJoinInProcess().ToArray();
-						Exception latestException = null;
-						foreach (var coin in enqueuedCoins)
-						{
-							try
-							{
-								if (CancelTokenSource.IsCancellationRequested)
-								{
-									break;
-								}
+						//SmartCoin[] enqueuedCoins = Global.WalletService.Coins.CoinJoinInProcess().ToArray();
+						//Exception latestException = null;
+						//foreach (var coin in enqueuedCoins)
+						//{
+						//	try
+						//	{
+						//		if (CancelTokenSource.IsCancellationRequested)
+						//		{
+						//			break;
+						//		}
 
-								await Global.ChaumianClient.DequeueCoinsFromMixAsync(new SmartCoin[] { coin }, DequeueReason.ApplicationExit); // Dequeue coins one-by-one to check cancel flag more frequently.
-							}
-							catch (Exception ex)
-							{
-								latestException = ex;
+						//		await Global.ChaumianClient.DequeueCoinsFromMixAsync(new SmartCoin[] { coin }, DequeueReason.ApplicationExit); // Dequeue coins one-by-one to check cancel flag more frequently.
+						//	}
+						//	catch (Exception ex)
+						//	{
+						//		latestException = ex;
 
-								if (last) // if this is the last iteration and we are still failing then we throw the exception
-								{
-									throw ex;
-								}
-							}
-						}
+						//		if (last) // if this is the last iteration and we are still failing then we throw the exception
+						//		{
+						//			throw ex;
+						//		}
+						//	}
+						//}
 
-						if (latestException is null) // no exceptions were thrown during the for-each so we are done with dequeuing
-						{
-							last = true;
-						}
+						//if (latestException is null) // no exceptions were thrown during the for-each so we are done with dequeuing
+						//{
+						//	last = true;
+						//}
 					}
 					catch (Exception ex)
 					{

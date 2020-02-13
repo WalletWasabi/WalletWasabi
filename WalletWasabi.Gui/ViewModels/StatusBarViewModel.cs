@@ -117,33 +117,35 @@ namespace WalletWasabi.Gui.ViewModels
 							   .ObserveOn(RxApp.MainThreadScheduler)
 							   .Subscribe(_ =>
 							   {
-								   var global = Global;
-								   var walletService = global?.WalletService;
-								   if (walletService is { })
-								   {
-									   var segwitActivationHeight = SmartHeader.GetStartingHeader(walletService.Network).Height;
-									   if (walletService.LastProcessedFilter?.Header?.Height is uint lastProcessedFilterHeight
-											&& lastProcessedFilterHeight > segwitActivationHeight
-											&& global?.BitcoinStore?.SmartHeaderChain?.TipHeight is uint tipHeight
-											&& tipHeight > segwitActivationHeight)
-									   {
-										   var allFilters = tipHeight - segwitActivationHeight;
-										   var processedFilters = lastProcessedFilterHeight - segwitActivationHeight;
-										   var perc = allFilters == 0 ?
-												100
-												: ((decimal)processedFilters / allFilters * 100);
-										   TryAddStatus(StatusType.WalletProcessingFilters, (ushort)perc);
-									   }
+								   Logger.LogWarning("Unimplemented functionality");
+								   // move this code to wallet or walletviewmodel class.
+								   //var global = Global;
+								   //var walletService = global?.WalletService;
+								   //if (walletService is { })
+								   //{
+									  // var segwitActivationHeight = SmartHeader.GetStartingHeader(walletService.Network).Height;
+									  // if (walletService.LastProcessedFilter?.Header?.Height is uint lastProcessedFilterHeight
+											//&& lastProcessedFilterHeight > segwitActivationHeight
+											//&& global?.BitcoinStore?.SmartHeaderChain?.TipHeight is uint tipHeight
+											//&& tipHeight > segwitActivationHeight)
+									  // {
+										 //  var allFilters = tipHeight - segwitActivationHeight;
+										 //  var processedFilters = lastProcessedFilterHeight - segwitActivationHeight;
+										 //  var perc = allFilters == 0 ?
+											//	100
+											//	: ((decimal)processedFilters / allFilters * 100);
+										 //  TryAddStatus(StatusType.WalletProcessingFilters, (ushort)perc);
+									  // }
 
-									   var txProcessor = walletService.TransactionProcessor;
-									   if (txProcessor is { })
-									   {
-										   var perc = txProcessor.QueuedTxCount == 0 ?
-												100
-												: ((decimal)txProcessor.QueuedProcessedTxCount / txProcessor.QueuedTxCount * 100);
-										   TryAddStatus(StatusType.WalletProcessingTransactions, (ushort)perc);
-									   }
-								   }
+									  // var txProcessor = walletService.TransactionProcessor;
+									  // if (txProcessor is { })
+									  // {
+										 //  var perc = txProcessor.QueuedTxCount == 0 ?
+											//	100
+											//	: ((decimal)txProcessor.QueuedProcessedTxCount / txProcessor.QueuedTxCount * 100);
+										 //  TryAddStatus(StatusType.WalletProcessingTransactions, (ushort)perc);
+									  // }
+								   //}
 							   }).DisposeWith(Disposables);
 						}
 					}

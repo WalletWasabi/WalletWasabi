@@ -15,9 +15,11 @@ namespace WalletWasabi.Gui.Controls
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 		private int _caretIndex;
 		private string _label;
+		private Wallet _wallet;
 
-		public SuggestLabelViewModel()
+		public SuggestLabelViewModel(Wallet wallet)
 		{
+			_wallet = wallet;
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
 
 			this.WhenAnyValue(x => x.Label)
@@ -68,9 +70,7 @@ namespace WalletWasabi.Gui.Controls
 				return;
 			}
 
-			var global = Locator.Current.GetService<Global>();
-
-			var labels = global.WalletService.GetLabels();
+			var labels = _wallet.WalletService.GetLabels();
 			IEnumerable<string> suggestedWords = labels.Where(w => w.StartsWith(lastWord, StringComparison.InvariantCultureIgnoreCase))
 				.Union(labels.Where(w => w.Contains(lastWord, StringComparison.InvariantCultureIgnoreCase)))
 				.Except(enteredWordList)

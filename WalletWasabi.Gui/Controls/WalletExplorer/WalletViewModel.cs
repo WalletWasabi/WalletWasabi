@@ -23,25 +23,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public WalletViewModel(Wallet wallet, bool receiveDominant) : base(wallet)
 		{
-			var global = Locator.Current.GetService<Global>();
-
-			Title = Path.GetFileNameWithoutExtension(global.WalletService.KeyManager.FilePath);
-
-			WalletService = global.WalletService;
-			var keyManager = WalletService.KeyManager;
-			Name = Path.GetFileNameWithoutExtension(keyManager.FilePath);
+			Title = Path.GetFileNameWithoutExtension(wallet.KeyManager.FilePath);								
 
 			Actions = new ObservableCollection<WalletActionViewModel>();
 
 			SendTabViewModel sendTab = null;
 			// If hardware wallet then we need the Send tab.
-			if (WalletService?.KeyManager?.IsHardwareWallet is true)
+			if (wallet?.KeyManager?.IsHardwareWallet is true)
 			{
 				sendTab = new SendTabViewModel(this);
 				Actions.Add(sendTab);
 			}
 			// If not hardware wallet, but neither watch only then we also need the send tab.
-			else if (WalletService?.KeyManager?.IsWatchOnly is false)
+			else if (wallet?.KeyManager?.IsWatchOnly is false)
 			{
 				sendTab = new SendTabViewModel(this);
 				Actions.Add(sendTab);
@@ -76,6 +70,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			else
 			{
+				var global = Locator.Current.GetService<Global>();
+
 				WalletActionViewModel tabToOpen = global.UiConfig.LastActiveTab switch
 				{
 					nameof(SendTabViewModel) => sendTab,
@@ -90,6 +86,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
+				var global = Locator.Current.GetService<Global>();
+
 				global.UiConfig.LurkingWifeMode = !global.UiConfig.LurkingWifeMode;
 				await global.UiConfig.ToFileAsync();
 			});
@@ -106,7 +104,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			var global = Locator.Current.GetService<Global>();
 
 			Observable.Merge(
-				Observable.FromEventPattern(global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default))
+				Observable.FromEventPattern(Wallet.WalletService.TransactionProcessor, nameof(Wallet.WalletService.TransactionProcessor.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default))
 				.Throttle(TimeSpan.FromSeconds(0.1))
 				.Merge(global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Select(_ => Unit.Default))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -114,7 +112,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					try
 					{
-						Money balance = WalletService.Coins.TotalAmount();
+						Money balance = Wallet.WalletService.Coins.TotalAmount();
 						Title = $"{Name} ({(global.UiConfig.LurkingWifeMode ? "#########" : balance.ToString(false, true))} BTC)";
 					}
 					catch (Exception ex)
@@ -132,9 +130,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Disposables?.Dispose();
 		}
 
-		public string Name { get; }
-
-		public WalletService WalletService { get; }
+		public string Name => Title; // TODO remove
 
 		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
 

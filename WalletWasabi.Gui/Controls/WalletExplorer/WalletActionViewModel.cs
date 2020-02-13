@@ -14,7 +14,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		public WalletViewModel Wallet { get; }
 
-		public WalletService WalletService => Wallet.WalletService;
+		public WalletService WalletService => Wallet.Wallet.WalletService;
 		public KeyManager KeyManager => WalletService.KeyManager;
 		public bool IsWatchOnly => KeyManager.IsWatchOnly;
 		public bool IsHardwareWallet => KeyManager.IsHardwareWallet;

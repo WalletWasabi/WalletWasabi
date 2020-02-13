@@ -8,12 +8,15 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.CommandLine
 {
 	public class Daemon
 	{
 		public Global Global { get; }
+
+		private WalletService _walletService;
 
 		public Daemon(Global global)
 		{
@@ -78,7 +81,7 @@ namespace WalletWasabi.Gui.CommandLine
 					return;
 				}
 
-				await Global.CreateWalletServiceAsync(keyManager);
+				_walletService = await Global.CreateWalletServiceAsync(keyManager);
 				if (Global.KillRequested)
 				{
 					return;
@@ -100,7 +103,7 @@ namespace WalletWasabi.Gui.CommandLine
 						break;
 					}
 
-					bool anyCoinsQueued = Global.ChaumianClient.State.AnyCoinsQueued();
+					bool anyCoinsQueued = _walletService.ChaumianClient.State.AnyCoinsQueued();
 					if (!anyCoinsQueued && keepMixAlive) // If no coins queued and mixing is asked to be kept alive then try to queue coins.
 					{
 						await TryQueueCoinsToMixAsync(mixAll, password);
@@ -117,7 +120,7 @@ namespace WalletWasabi.Gui.CommandLine
 
 				if (!Global.KillRequested) // This only has to run if it finishes by itself. Otherwise the Ctrl+c runs it.
 				{
-					await Global.ChaumianClient?.DequeueAllCoinsFromMixAsync(DequeueReason.ApplicationExit);
+					await _walletService.ChaumianClient?.DequeueAllCoinsFromMixAsync(DequeueReason.ApplicationExit);
 				}
 			}
 			catch
@@ -178,13 +181,13 @@ namespace WalletWasabi.Gui.CommandLine
 		{
 			try
 			{
-				var coinsView = Global.WalletService.Coins;
+				var coinsView = _walletService.Coins;
 				var coinsToMix = coinsView.Available();
 				if (!mixAll)
 				{
-					coinsToMix = coinsToMix.FilterBy(x => x.AnonymitySet < Global.WalletService.ServiceConfiguration.MixUntilAnonymitySet);
+					coinsToMix = coinsToMix.FilterBy(x => x.AnonymitySet < _walletService.ServiceConfiguration.MixUntilAnonymitySet);
 				}
-				await Global.ChaumianClient.QueueCoinsToMixAsync(password, coinsToMix.ToArray());
+				await _walletService.ChaumianClient.QueueCoinsToMixAsync(password, coinsToMix.ToArray());
 			}
 			catch (Exception ex)
 			{
