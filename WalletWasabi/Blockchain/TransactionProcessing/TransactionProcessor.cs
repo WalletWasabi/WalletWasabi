@@ -109,24 +109,11 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 				if (!tx.Transaction.IsCoinBase && !Coins.CreatedBy(txId).Any()) // Transactions we already have and processed would be "double spends" but they shouldn't.
 				{
 					var doubleSpends = new List<SmartCoin>();
-					foreach (SmartCoin coin in Coins.AsAllCoinsView())
+					foreach (var txin in tx.Transaction.Inputs)
 					{
-						var spent = false;
-						foreach (TxoRef spentOutput in coin.SpentOutputs)
+						if (Coins.TryGetSpentSmartCoinsByOutput(txin.PrevOut, out var coin))
 						{
-							foreach (TxIn txIn in tx.Transaction.Inputs)
-							{
-								if (spentOutput.TransactionId == txIn.PrevOut.Hash && spentOutput.Index == txIn.PrevOut.N) // Do not do (spentOutput == txIn.PrevOut), it's faster this way, because it won't check for null.
-								{
-									doubleSpends.Add(coin);
-									spent = true;
-									break;
-								}
-							}
-							if (spent)
-							{
-								break;
-							}
+							doubleSpends.Add(coin);
 						}
 					}
 

@@ -19,6 +19,8 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		private Dictionary<Script, Cluster> ClustersByScriptPubKey { get; }
 		private Dictionary<uint256, List<SmartCoin>> CoinsCreatedByTransaction { get; }
 		private Dictionary<uint256, List<SmartCoin>> CoinsDestroyedByTransaction { get; }
+		private Dictionary<OutPoint, SmartCoin> CoinsByOutPoint { get; }
+
 		private int PrivacyLevelThreshold { get; }
 
 		public CoinsRegistry(int privacyLevelThreshold)
@@ -31,6 +33,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			ClustersByScriptPubKey = new Dictionary<Script, Cluster>();
 			CoinsCreatedByTransaction = new Dictionary<uint256, List<SmartCoin>>();
 			CoinsDestroyedByTransaction = new Dictionary<uint256, List<SmartCoin>>();
+			CoinsByOutPoint = new Dictionary<OutPoint, SmartCoin>();
 			PrivacyLevelThreshold = privacyLevelThreshold;
 			Lock = new object();
 		}
@@ -112,6 +115,11 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 						{
 							CoinsCreatedByTransaction[coin.TransactionId] = new List<SmartCoin>{ coin };
 						}
+
+						foreach (var spentOutPoint in coin.SpentOutputs)
+						{
+							CoinsByOutPoint.AddOrReplace(spentOutPoint.ToOutPoint(), coin);
+						}
 						InvalidateSnapshot = true;
 					}
 				}
@@ -129,6 +137,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 					if (!Coins.Remove(toRemove))
 					{
 						SpentCoins.Remove(toRemove);
+//						CoinsByOutPoint.Remove(toRemove.GetOutPoint());
 
 						CoinsCreatedByTransaction[toRemove.TransactionId].Remove(toRemove);
 						if (toRemove.SpenderTransactionId is { })
@@ -223,6 +232,20 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 				InvalidateSnapshot = true;
 				return (new CoinsView(toRemove), new CoinsView(toAdd));
+			}
+		}
+
+		public bool TryGetSpentSmartCoinsByOutput(OutPoint outPoint, out SmartCoin coin)
+		{
+			lock(Lock)
+			{
+				if (CoinsByOutPoint.ContainsKey(outPoint))
+				{
+					coin = CoinsByOutPoint[outPoint];
+					return true;
+				}
+				coin = null;
+				return false;
 			}
 		}
 
