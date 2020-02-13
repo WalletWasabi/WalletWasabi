@@ -21,7 +21,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public Guid Id { get; set; } = Guid.NewGuid();
 
-		public WalletViewModel(bool receiveDominant)
+		public WalletViewModel(Wallet wallet, bool receiveDominant) : base(wallet)
 		{
 			var global = Locator.Current.GetService<Global>();
 

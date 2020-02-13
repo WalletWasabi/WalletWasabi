@@ -3,12 +3,17 @@ using AvalonStudio.MVVM;
 using AvalonStudio.Shell;
 using ReactiveUI;
 using Splat;
+using System;
 using System.Collections.ObjectModel;
 using System.Composition;
 using System.IO;
 using System.Linq;
+using System.Reactive;
+using System.Reactive.Linq;
+using WalletWasabi.Gui.Extensions;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Services;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -26,6 +31,26 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Title = "Wallet Explorer";
 
 			_wallets = new ObservableCollection<WalletViewModelBase>();
+
+			CollapseAllCommand = ReactiveCommand.Create(() =>
+			{
+				foreach (var wallet in Wallets)
+				{
+					wallet.IsExpanded = false;
+				}
+			});
+
+			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				var global = Locator.Current.GetService<Global>();
+
+				global.UiConfig.LurkingWifeMode = !global.UiConfig.LurkingWifeMode;
+				await global.UiConfig.ToFileAsync();
+			});
+
+			LurkingWifeModeCommand.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		public override Location DefaultLocation => Location.Right;
@@ -42,16 +67,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _selectedItem, value);
 		}
 
-		internal void OpenWallet(WalletService walletService, bool receiveDominant)
-		{
-			var walletName = Path.GetFileNameWithoutExtension(walletService.KeyManager.FilePath);
-			if (_wallets.Any(x => x.Title == walletName))
-			{
-				return;
-			}
+		public ReactiveCommand<Unit, Unit> CollapseAllCommand { get; }
 
-			WalletViewModel walletViewModel = new WalletViewModel(receiveDominant);
-			_wallets.Add(walletViewModel);
+		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
+
+		internal void RemoveWallet (WalletViewModelBase wallet)
+		{
+			Wallets.Remove(wallet);
+		}
+
+		internal void OpenWallet(Wallet wallet, bool receiveDominant)
+		{
+			WalletViewModel walletViewModel = new WalletViewModel(wallet, receiveDominant);
+			Wallets.InsertSorted(walletViewModel);
 			walletViewModel.OnWalletOpened();
 
 			// TODO if we ever implement closing a wallet OnWalletClosed needs to be called
@@ -68,9 +96,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			var walletFiles = directoryInfo.GetFiles("*.json", SearchOption.TopDirectoryOnly).OrderByDescending(t => t.LastAccessTimeUtc);
 			foreach (var file in walletFiles)
 			{
-				var wallet = new ClosedWalletViewModel(Path.GetFileNameWithoutExtension(file.FullName));
+				var wallet = new ClosedWalletViewModel(file.FullName);
 
-				Wallets.Add(wallet);
+				Wallets.InsertSorted(wallet);
 			}
 		}
 
