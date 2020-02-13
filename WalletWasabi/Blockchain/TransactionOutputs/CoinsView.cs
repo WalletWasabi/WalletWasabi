@@ -29,7 +29,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		public ICoinsView AtBlockHeight(Height height) => new CoinsView(Coins.Where(x => x.Height == height));
 
-		public ICoinsView ChildrenOf(SmartCoin coin) => new CoinsView(coin.Links.Where(l => l.LinkType == LinkType.SpentBy).Select(l=>l.TargetCoin));
+		public ICoinsView ChildrenOf(SmartCoin coin) => new CoinsView(coin.Links.Where(l => l.LinkType == LinkType.SpentBy).Select( l=> l.TargetCoin));
 
 		public ICoinsView DescendantOf(SmartCoin coin)
 		{
