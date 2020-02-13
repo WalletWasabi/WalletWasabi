@@ -510,7 +510,7 @@ namespace WalletWasabi.Gui
 
 		private CancellationTokenSource _cancelWalletServiceInitialization = null;
 
-		public async Task InitializeWalletServiceAsync(KeyManager keyManager)
+		public async Task<WalletService> CreateWalletServiceAsync(KeyManager keyManager)
 		{
 			using (_cancelWalletServiceInitialization = new CancellationTokenSource())
 			{
@@ -529,24 +529,28 @@ namespace WalletWasabi.Gui
 					ChaumianClient = new CoinJoinClient(Synchronizer, Network, keyManager, Config.GetFallbackBackendUri(), null);
 				}
 
-				WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
+				var walletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
 
 				ChaumianClient.Start();
 				Logger.LogInfo("Start Chaumian CoinJoin service...");
 
-				Logger.LogInfo($"Starting {nameof(WalletService)}...");
-				await WalletService.InitializeAsync(token);
-				Logger.LogInfo($"{nameof(WalletService)} started.");
+				Logger.LogInfo($"Starting {nameof(walletService)}...");
+				await walletService.InitializeAsync(token);
+				Logger.LogInfo($"{nameof(walletService)} started.");
 
 				token.ThrowIfCancellationRequested();
 
-				TransactionBroadcaster.AddWalletService(WalletService);
-				CoinJoinProcessor.AddWalletService(WalletService);
+				TransactionBroadcaster.AddWalletService(walletService);
+				CoinJoinProcessor.AddWalletService(walletService);
 
-				WalletService.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
+				walletService.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
 				ChaumianClient.OnDequeue += ChaumianClient_OnDequeued;
+
+				WalletService = walletService;
 			}
 			_cancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
+			
+			return WalletService;
 		}
 
 		private void ChaumianClient_OnDequeued(object sender, DequeueResult e)
