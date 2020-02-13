@@ -17,6 +17,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		private HashSet<SmartCoin> SpentCoins { get; }
 		private HashSet<SmartCoin> LatestSpentCoinsSnapshot { get; set; }
 		private Dictionary<Script, Cluster> ClustersByScriptPubKey { get; }
+		private Dictionary<OutPoint, SmartCoin> CoinsByOutPoint { get; }
 		private int PrivacyLevelThreshold { get; }
 
 		public CoinsRegistry(int privacyLevelThreshold)
@@ -27,6 +28,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			LatestSpentCoinsSnapshot = new HashSet<SmartCoin>();
 			InvalidateSnapshot = false;
 			ClustersByScriptPubKey = new Dictionary<Script, Cluster>();
+			CoinsByOutPoint = new Dictionary<OutPoint, SmartCoin>();
 			PrivacyLevelThreshold = privacyLevelThreshold;
 			Lock = new object();
 		}
@@ -94,6 +96,11 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 						{
 							ClustersByScriptPubKey.Add(coin.ScriptPubKey, coin.Clusters);
 						}
+
+						foreach (var spentOutPoint in coin.SpentOutputs)
+						{
+							CoinsByOutPoint.AddOrReplace(spentOutPoint.ToOutPoint(), coin);
+						}
 						InvalidateSnapshot = true;
 					}
 				}
@@ -110,10 +117,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 				{
 					if (!Coins.Remove(toRemove))
 					{
-						if (SpentCoins.Remove(toRemove))
-						{
-							// Clusters.Remove(toRemove);
-						}
+						SpentCoins.Remove(toRemove);
 					}
 				}
 				InvalidateSnapshot = true;
@@ -158,6 +162,19 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			}
 		}
 
+		public bool TryGetSpenderSmartCoinByOutput(OutPoint outPoint, out SmartCoin coin)
+		{
+			lock(Lock)
+			{
+				if (CoinsByOutPoint.ContainsKey(outPoint))
+				{
+					coin = CoinsByOutPoint[outPoint];
+					return true;
+				}
+				coin = null;
+				return false;
+			}
+		}
 		internal (ICoinsView toRemove, ICoinsView toAdd) Undo(uint256 txId)
 		{
 			lock (Lock)
@@ -170,6 +187,17 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 				foreach (SmartCoin createdCoin in allCoins.CreatedBy(txId))
 				{
 					toRemove.AddRange(Remove(createdCoin));
+					foreach(var removedCoin in toRemove)
+					{
+						var removedCoinOutPoint = removedCoin.GetOutPoint();
+						if (TryGetSpenderSmartCoinByOutput(removedCoinOutPoint, out var coinByOutPoint))
+						{
+							if (coinByOutPoint == removedCoin)
+							{
+								CoinsByOutPoint.Remove(removedCoinOutPoint);
+							}
+						}
+					}
 				}
 				// destroyed (spent) coins are now (unspent)
 				foreach (SmartCoin destroyedCoin in allCoins.SpentBy(txId))
