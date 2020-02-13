@@ -271,9 +271,20 @@ namespace WalletWasabi.Backend.Controllers
 				{
 					await batchingRpc.SendBatchAsync();
 
+					string lastExceptionMessage = null;
 					foreach (var txTask in tasks)
 					{
-						var tx = await txTask;
+						Transaction tx;
+						try
+						{
+							tx = await txTask;
+						}
+						catch (Exception ex)
+						{
+							Logger.LogDebug(ex);
+							lastExceptionMessage = ex.Message;
+							continue;
+						}
 						string hex = tx.ToHex();
 						hexes.Add(tx.GetHash(), hex);
 
@@ -284,6 +295,11 @@ namespace WalletWasabi.Backend.Controllers
 								TransactionHexCache.Remove(TransactionHexCache.Keys.First());
 							}
 						}
+					}
+
+					if (lastExceptionMessage is { })
+					{
+						return BadRequest(lastExceptionMessage);
 					}
 				}
 
