@@ -110,9 +110,9 @@ namespace WalletWasabi.Gui.Extensions
 		///     already, i.e. populated only with this method. The template type for the collection must
 		///     implement IComparable.
 		/// </summary>
-		/// <typeparam name="T">is the type of items in the collection.</typeparam>
-		/// <param name="myself">is "this" reference.</param>
-		/// <param name="item">is the item to insert.</param>
+		/// <typeparam name="T">The type of items in the collection.</typeparam>
+		/// <param name="myself">The "this" reference.</param>
+		/// <param name="item">The item to insert.</param>
 		public static void InsertSorted<T>(this IList<T> myself, T item, bool exclusive = true) where T : IComparable<T>
 		{
 			var index = myself.BinarySearchIndexOf(item);
@@ -132,9 +132,9 @@ namespace WalletWasabi.Gui.Extensions
 		///     already, i.e. populated only with this method. The template type for the collection must
 		///     implement IComparable.
 		/// </summary>
-		/// <typeparam name="T">is the type of items in the collection.</typeparam>
-		/// <param name="myself">is "this" reference.</param>
-		/// <param name="item">is the item to insert.</param>
+		/// <typeparam name="T">The type of items in the collection.</typeparam>
+		/// <param name="myself">The "this" reference.</param>
+		/// <param name="item">The item to insert.</param>
 		public static T InsertSortedExclusive<T>(this IList<T> myself, T item) where T : IComparable<T>
 		{
 			var index = myself.BinarySearchIndexOf(item);
