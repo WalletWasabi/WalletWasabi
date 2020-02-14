@@ -111,7 +111,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					var doubleSpends = new List<SmartCoin>();
 					foreach (var txin in tx.Transaction.Inputs)
 					{
-						if (Coins.TryGetSpenderSmartCoinByOutput(txin.PrevOut, out var coin))
+						if (Coins.TryGetSpenderSmartCoinByOutPoint(txin.PrevOut, out var coin))
 						{
 							doubleSpends.Add(coin);
 						}

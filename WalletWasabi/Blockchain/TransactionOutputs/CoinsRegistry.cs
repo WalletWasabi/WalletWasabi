@@ -162,19 +162,14 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			}
 		}
 
-		public bool TryGetSpenderSmartCoinByOutput(OutPoint outPoint, out SmartCoin coin)
+		public bool TryGetSpenderSmartCoinByOutPoint(OutPoint outPoint, out SmartCoin coin)
 		{
-			lock(Lock)
+			lock (Lock)
 			{
-				if (CoinsByOutPoint.ContainsKey(outPoint))
-				{
-					coin = CoinsByOutPoint[outPoint];
-					return true;
-				}
-				coin = null;
-				return false;
+				return CoinsByOutPoint.TryGetValue(outPoint, out coin);
 			}
 		}
+
 		internal (ICoinsView toRemove, ICoinsView toAdd) Undo(uint256 txId)
 		{
 			lock (Lock)
@@ -187,10 +182,10 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 				foreach (SmartCoin createdCoin in allCoins.CreatedBy(txId))
 				{
 					toRemove.AddRange(Remove(createdCoin));
-					foreach(var removedCoin in toRemove)
+					foreach (var removedCoin in toRemove)
 					{
 						var removedCoinOutPoint = removedCoin.GetOutPoint();
-						if (TryGetSpenderSmartCoinByOutput(removedCoinOutPoint, out var coinByOutPoint))
+						if (TryGetSpenderSmartCoinByOutPoint(removedCoinOutPoint, out var coinByOutPoint))
 						{
 							if (coinByOutPoint == removedCoin)
 							{
