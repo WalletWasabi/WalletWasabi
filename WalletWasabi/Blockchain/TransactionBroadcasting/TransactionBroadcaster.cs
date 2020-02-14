@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
@@ -29,9 +30,9 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 		public List<WalletService> WalletServices { get; }
 		public IEnumerable<WalletService> AliveWalletServices => WalletServices.Where(x => x != null && !x.IsDisposed);
 		public object WalletServicesLock { get; }
-		public RPCClient RpcClient { get; private set; }
+		public IRPCClient RpcClient { get; private set; }
 
-		public TransactionBroadcaster(Network network, BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, NodesGroup nodes, RPCClient rpc)
+		public TransactionBroadcaster(Network network, BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, NodesGroup nodes, IRPCClient rpc)
 		{
 			Nodes = Guard.NotNull(nameof(nodes), nodes);
 			Network = Guard.NotNull(nameof(network), network);

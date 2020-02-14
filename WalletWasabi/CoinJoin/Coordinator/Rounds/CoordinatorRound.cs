@@ -10,6 +10,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.CoinJoin.Coordinator.Banning;
 using WalletWasabi.CoinJoin.Coordinator.MixingLevels;
@@ -25,7 +26,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 		public static long RoundCount;
 		public long RoundId { get; }
 
-		public RPCClient RpcClient { get; }
+		public IRPCClient RpcClient { get; }
 		public Network Network => RpcClient.Network;
 
 		/// <summary>
@@ -146,7 +147,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 		public UtxoReferee UtxoReferee { get; }
 		public CoordinatorRoundConfig RoundConfig { get; }
 
-		public CoordinatorRound(RPCClient rpc, UtxoReferee utxoReferee, CoordinatorRoundConfig config, int adjustedConfirmationTarget, int configuredConfirmationTarget, double configuredConfirmationTargetReductionRate)
+		public CoordinatorRound(IRPCClient rpc, UtxoReferee utxoReferee, CoordinatorRoundConfig config, int adjustedConfirmationTarget, int configuredConfirmationTarget, double configuredConfirmationTargetReductionRate)
 		{
 			try
 			{
@@ -798,7 +799,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			}
 		}
 
-		public static async Task<(Money feePerInputs, Money feePerOutputs)> CalculateFeesAsync(RPCClient rpc, int confirmationTarget)
+		public static async Task<(Money feePerInputs, Money feePerOutputs)> CalculateFeesAsync(IRPCClient rpc, int confirmationTarget)
 		{
 			Guard.NotNull(nameof(rpc), rpc);
 			Guard.NotNull(nameof(confirmationTarget), confirmationTarget);
