@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using NBitcoin.RPC;
@@ -19,10 +20,12 @@ namespace WalletWasabi.Backend
 	{
 		public WebsiteTorifier WebsiteTorifier { get; }
 		public Global Global { get; }
+		public IMemoryCache Cache { get; }
 
-		public InitConfigStartupTask(Global global, IWebHostEnvironment hostingEnvironment)
+		public InitConfigStartupTask(Global global, IMemoryCache cache, IWebHostEnvironment hostingEnvironment)
 		{
 			Global = global;
+			Cache = cache;
 			WebsiteTorifier = new WebsiteTorifier(hostingEnvironment.WebRootPath);
 		}
 
@@ -49,7 +52,8 @@ namespace WalletWasabi.Backend
 					hostOrUri: host,
 					network: config.Network));
 
-			await Global.InitializeAsync(config, roundConfig, rpc, cancellationToken);
+			var cachedRpc = new CachedRpcClient(rpc, Cache);
+			await Global.InitializeAsync(config, roundConfig, cachedRpc, cancellationToken);
 
 			try
 			{

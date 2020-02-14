@@ -9,13 +9,18 @@ namespace WalletWasabi.BitcoinCore
 	public class RpcClientBase : IRPCClient
 	{
 		public RpcClientBase(RPCClient rpc)
+			: this(new RpcClientBase(rpc))
+		{
+		}
+
+		public RpcClientBase(IRPCClient rpc)
 		{
 			Rpc = Guard.NotNull(nameof(rpc), rpc);
 		}
 
 		public Network Network => Rpc.Network;
 
-		private RPCClient Rpc { get; }
+		private IRPCClient Rpc { get; }
 
 		public RPCCredentialString CredentialString => Rpc.CredentialString;
 
@@ -59,7 +64,7 @@ namespace WalletWasabi.BitcoinCore
 			return await Rpc.GetRawMempoolAsync().ConfigureAwait(false);
 		}
 
-		public GetTxOutResponse GetTxOut(uint256 txid, int index, bool includeMempool = true)
+		public virtual GetTxOutResponse GetTxOut(uint256 txid, int index, bool includeMempool = true)
 		{
 			return Rpc.GetTxOut(txid, index, includeMempool);
 		}
