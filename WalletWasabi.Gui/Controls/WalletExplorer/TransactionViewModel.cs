@@ -78,6 +78,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string Label => Model.Label;
 
+		public int BlockHeight => Model.BlockHeight;
+
 		public string TransactionId => Model.TransactionId;
 
 		public bool ClipboardNotificationVisible

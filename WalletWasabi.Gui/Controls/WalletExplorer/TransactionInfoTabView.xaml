@@ -25,6 +25,10 @@
           <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding DateTime}" />
         </Grid>
         <Grid ColumnDefinitions="170, *">
+          <TextBlock Classes="monospaceFont" Text="Block Height:" />
+          <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding BlockHeight}" />
+        </Grid>
+        <Grid ColumnDefinitions="170, *">
           <TextBlock Classes="monospaceFont" Text="Confirmed:" />
           <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Confirmed, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Yes:No, Mode=OneWay}" />
         </Grid>
