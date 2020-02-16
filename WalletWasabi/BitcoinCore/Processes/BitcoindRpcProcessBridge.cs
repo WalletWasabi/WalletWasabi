@@ -19,13 +19,13 @@ namespace WalletWasabi.BitcoinCore.Processes
 	public class BitcoindRpcProcessBridge : BitcoindProcessBridge
 	{
 		public Network Network { get; }
-		public IRPCClient RpcClient { get; set; }
+		public RPCClient RpcClient { get; set; }
 		public string DataDir { get; }
 		public bool PrintToConsole { get; }
 		public PidFile PidFile { get; }
 		private int? CachedPid { get; set; }
 
-		public BitcoindRpcProcessBridge(IRPCClient rpc, string dataDir, bool printToConsole) : base()
+		public BitcoindRpcProcessBridge(RPCClient rpc, string dataDir, bool printToConsole) : base()
 		{
 			RpcClient = Guard.NotNull(nameof(rpc), rpc);
 			Network = RpcClient.Network;

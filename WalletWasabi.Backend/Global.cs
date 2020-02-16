@@ -23,7 +23,7 @@ namespace WalletWasabi.Backend
 	{
 		public string DataDir { get; }
 
-		public IRPCClient RpcClient { get; private set; }
+		public RPCClient RpcClient { get; private set; }
 
 		public P2pNode P2pNode { get; private set; }
 
@@ -47,7 +47,7 @@ namespace WalletWasabi.Backend
 		{
 		}
 
-		public async Task InitializeAsync(Config config, CoordinatorRoundConfig roundConfig, IRPCClient rpc, CancellationToken cancel)
+		public async Task InitializeAsync(Config config, CoordinatorRoundConfig roundConfig, RPCClient rpc, CancellationToken cancel)
 		{
 			Config = Guard.NotNull(nameof(config), config);
 			RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
@@ -103,7 +103,7 @@ namespace WalletWasabi.Backend
 			// We have to find it, because it's cloned by the node and not perfectly cloned (event handlers cannot be cloned.)
 			P2pNode = new P2pNode(network, endPoint, new MempoolService(), $"/WasabiCoordinator:{Constants.BackendMajorVersion.ToString()}/");
 			await P2pNode.ConnectAsync(cancel).ConfigureAwait(false);
-			HostedServices.Register(new BlockNotifier(TimeSpan.FromSeconds(7), RpcClient, P2pNode), "Block Notifier");
+			HostedServices.Register(new BlockNotifier(TimeSpan.FromSeconds(7), new RpcWrappedClient(RpcClient), P2pNode), "Block Notifier");
 		}
 
 		private async Task AssertRpcNodeFullyInitializedAsync()
