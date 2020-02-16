@@ -271,9 +271,8 @@ namespace WalletWasabi.Backend.Controllers
 				{
 					await batchingRpc.SendBatchAsync();
 
-					foreach (var txTask in tasks)
+					foreach (var tx in await Task.WhenAll(tasks))
 					{
-						var tx = await txTask;
 						string hex = tx.ToHex();
 						hexes.Add(tx.GetHash(), hex);
 
