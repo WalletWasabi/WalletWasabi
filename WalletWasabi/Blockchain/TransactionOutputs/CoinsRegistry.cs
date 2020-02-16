@@ -130,33 +130,38 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		{
 			lock (Lock)
 			{
-				var coinsToRemove = DescendantOfAndSelfNoLock(coin);
-				foreach (var toRemove in coinsToRemove)
+				return RemoveNoLock(coin);
+			}
+		}
+
+		private ICoinsView RemoveNoLock(SmartCoin coin)
+		{
+			var coinsToRemove = DescendantOfAndSelfNoLock(coin);
+			foreach (var toRemove in coinsToRemove)
+			{
+				if (!Coins.Remove(toRemove))
 				{
-					if (!Coins.Remove(toRemove))
-					{
-						SpentCoins.Remove(toRemove);
-					}
+					SpentCoins.Remove(toRemove);
+				}
 
-					var removedCoinOutPoint = toRemove.GetOutPoint();
+				var removedCoinOutPoint = toRemove.GetOutPoint();
 
-					// If we can find it in our outpoint to coins cache.
-					if (TryGetSpenderSmartCoinsByOutPointNoLock(removedCoinOutPoint, out var coinsByOutPoint))
+				// If we can find it in our outpoint to coins cache.
+				if (TryGetSpenderSmartCoinsByOutPointNoLock(removedCoinOutPoint, out var coinsByOutPoint))
+				{
+					// Go through all the coins of that cache where the coin is the coin we are wishing to remove.
+					foreach (var coinByOutPoint in coinsByOutPoint.Where(x => x == toRemove))
 					{
-						// Go through all the coins of that cache where the coin is the coin we are wishing to remove.
-						foreach (var coinByOutPoint in coinsByOutPoint.Where(x => x == toRemove))
+						// Remove the coin from the set, and if the set becaumes empty as a consequence remove the key too.
+						if (CoinsByOutPoint[removedCoinOutPoint].Remove(coinByOutPoint) && !CoinsByOutPoint[removedCoinOutPoint].Any())
 						{
-							// Remove the coin from the set, and if the set becaumes empty as a consequence remove the key too.
-							if (CoinsByOutPoint[removedCoinOutPoint].Remove(coinByOutPoint) && !CoinsByOutPoint[removedCoinOutPoint].Any())
-							{
-								CoinsByOutPoint.Remove(removedCoinOutPoint);
-							}
+							CoinsByOutPoint.Remove(removedCoinOutPoint);
 						}
 					}
 				}
-				InvalidateSnapshot = true;
-				return coinsToRemove;
 			}
+			InvalidateSnapshot = true;
+			return coinsToRemove;
 		}
 
 		public void Spend(SmartCoin spentCoin)
@@ -220,7 +225,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 				// remove recursively the coins created by the transaction
 				foreach (SmartCoin createdCoin in allCoins.CreatedBy(txId))
 				{
-					toRemove.AddRange(Remove(createdCoin));
+					toRemove.AddRange(RemoveNoLock(createdCoin));
 				}
 				// destroyed (spent) coins are now (unspent)
 				foreach (SmartCoin destroyedCoin in allCoins.SpentBy(txId))
