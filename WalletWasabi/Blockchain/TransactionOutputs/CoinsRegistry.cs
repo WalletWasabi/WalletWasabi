@@ -180,15 +180,15 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			}
 		}
 
-		public bool TryGetSpenderSmartCoinByOutPoint(OutPoint outPoint, out HashSet<SmartCoin> coins)
+		public bool TryGetSpenderSmartCoinsByOutPoint(OutPoint outPoint, out HashSet<SmartCoin> coins)
 		{
 			lock (Lock)
 			{
-				return TryGetSpenderSmartCoinByOutPointNoLock(outPoint, out coins);
+				return TryGetSpenderSmartCoinsByOutPointNoLock(outPoint, out coins);
 			}
 		}
 
-		private bool TryGetSpenderSmartCoinByOutPointNoLock(OutPoint outPoint, out HashSet<SmartCoin> coins)
+		private bool TryGetSpenderSmartCoinsByOutPointNoLock(OutPoint outPoint, out HashSet<SmartCoin> coins)
 		{
 			return CoinsByOutPoint.TryGetValue(outPoint, out coins);
 		}
@@ -212,7 +212,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 						var removedCoinOutPoint = removedCoin.GetOutPoint();
 
 						// If we can find it in our outpoint to coins cache.
-						if (TryGetSpenderSmartCoinByOutPointNoLock(removedCoinOutPoint, out var coinsByOutPoint))
+						if (TryGetSpenderSmartCoinsByOutPointNoLock(removedCoinOutPoint, out var coinsByOutPoint))
 						{
 							// Go through all the coins of that cache where the coin is the coin we are wishing to remove.
 							foreach (var coinByOutPoint in coinsByOutPoint.Where(x => x == removedCoin))
