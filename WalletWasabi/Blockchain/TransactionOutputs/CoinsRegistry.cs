@@ -73,10 +73,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		public bool IsEmpty => !AsCoinsView().Any();
 
-		public SmartCoin GetByOutPoint(OutPoint outpoint)
-		{
-			return AsCoinsView().GetByOutPoint(outpoint);
-		}
+		public SmartCoin GetByOutPoint(OutPoint outpoint) => AsCoinsView().GetByOutPoint(outpoint);
 
 		public bool TryAdd(SmartCoin coin)
 		{
@@ -190,7 +187,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		{
 			lock (Lock)
 			{
-				foreach (var coin in AsCoinsView().AtBlockHeight(blockHeight))
+				foreach (var coin in AsCoinsViewNoLock().AtBlockHeight(blockHeight))
 				{
 					var descendantCoins = DescendantOfAndSelf(coin);
 					foreach (var toSwitch in descendantCoins)
