@@ -137,6 +137,22 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 					{
 						SpentCoins.Remove(toRemove);
 					}
+
+					var removedCoinOutPoint = toRemove.GetOutPoint();
+
+					// If we can find it in our outpoint to coins cache.
+					if (TryGetSpenderSmartCoinsByOutPointNoLock(removedCoinOutPoint, out var coinsByOutPoint))
+					{
+						// Go through all the coins of that cache where the coin is the coin we are wishing to remove.
+						foreach (var coinByOutPoint in coinsByOutPoint.Where(x => x == toRemove))
+						{
+							// Remove the coin from the set, and if the set becaumes empty as a consequence remove the key too.
+							if (CoinsByOutPoint[removedCoinOutPoint].Remove(coinByOutPoint) && !CoinsByOutPoint[removedCoinOutPoint].Any())
+							{
+								CoinsByOutPoint.Remove(removedCoinOutPoint);
+							}
+						}
+					}
 				}
 				InvalidateSnapshot = true;
 				return coinsToRemove;
@@ -205,26 +221,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 				foreach (SmartCoin createdCoin in allCoins.CreatedBy(txId))
 				{
 					toRemove.AddRange(Remove(createdCoin));
-
-					// Go through all the coins that we are wishing to remove.
-					foreach (var removedCoin in toRemove)
-					{
-						var removedCoinOutPoint = removedCoin.GetOutPoint();
-
-						// If we can find it in our outpoint to coins cache.
-						if (TryGetSpenderSmartCoinsByOutPointNoLock(removedCoinOutPoint, out var coinsByOutPoint))
-						{
-							// Go through all the coins of that cache where the coin is the coin we are wishing to remove.
-							foreach (var coinByOutPoint in coinsByOutPoint.Where(x => x == removedCoin))
-							{
-								// Remove the coin from the set, and if the set becaumes empty as a consequence remove the key too.
-								if (CoinsByOutPoint[removedCoinOutPoint].Remove(coinByOutPoint) && !CoinsByOutPoint[removedCoinOutPoint].Any())
-								{
-									CoinsByOutPoint.Remove(removedCoinOutPoint);
-								}
-							}
-						}
-					}
 				}
 				// destroyed (spent) coins are now (unspent)
 				foreach (SmartCoin destroyedCoin in allCoins.SpentBy(txId))
