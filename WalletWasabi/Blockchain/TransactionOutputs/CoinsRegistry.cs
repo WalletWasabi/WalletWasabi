@@ -149,7 +149,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 					// Go through all the coins of that cache where the coin is the coin we are wishing to remove.
 					foreach (var coinByOutPoint in coinsByOutPoint.Where(x => x == toRemove))
 					{
-						// Remove the coin from the set, and if the set becaumes empty as a consequence remove the key too.
+						// Remove the coin from the set, and if the set becomes empty as a consequence remove the key too.
 						if (CoinsByOutPoint[removedCoinOutPoint].Remove(coinByOutPoint) && !CoinsByOutPoint[removedCoinOutPoint].Any())
 						{
 							CoinsByOutPoint.Remove(removedCoinOutPoint);
