@@ -35,7 +35,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				ResetUi();
 
-				NotificationHelpers.Success("Transaction was built!");
+				NotificationHelpers.Success("Transaction was built.");
 			}
 			catch (Exception ex)
 			{
