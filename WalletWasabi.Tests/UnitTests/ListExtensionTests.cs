@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests
@@ -54,7 +53,8 @@ namespace WalletWasabi.Tests.UnitTests
 			actual.InsertSorted(new ReverseComparable(3));
 			actual.InsertSorted(new ReverseComparable(4));
 
-			var expected = new List<ReverseComparable> { 
+			var expected = new List<ReverseComparable> 
+			{ 
 				new ReverseComparable(4), 
 				new ReverseComparable(3),
 				new ReverseComparable(2), 
@@ -65,7 +65,7 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal(expected, actual);
 		}
 
-		class ReverseComparable : IComparable<ReverseComparable>
+		private class ReverseComparable : IComparable<ReverseComparable>
 		{
 			public ReverseComparable(int value)
 			{
