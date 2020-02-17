@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
-using WalletWasabi.BitcoinCore;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -26,7 +25,7 @@ namespace WalletWasabi.Backend.Controllers
 	{
 		public IMemoryCache Cache { get; }
 		public Global Global { get; }
-		private IRPCClient RpcClient => Global.RpcClient;
+		private RPCClient RpcClient => Global.RpcClient;
 
 		private Network Network => Global.Config.Network;
 
@@ -245,7 +244,7 @@ namespace WalletWasabi.Backend.Controllers
 			{
 				var hexes = new Dictionary<uint256, string>();
 				var queryRpc = false;
-				IRPCClient batchingRpc = null;
+				RPCClient batchingRpc = null;
 				List<Task<Transaction>> tasks = null;
 				lock (TransactionHexCacheLock)
 				{
@@ -272,9 +271,8 @@ namespace WalletWasabi.Backend.Controllers
 				{
 					await batchingRpc.SendBatchAsync();
 
-					foreach (var txTask in tasks)
+					foreach (var tx in await Task.WhenAll(tasks))
 					{
-						var tx = await txTask;
 						string hex = tx.ToHex();
 						hexes.Add(tx.GetHash(), hex);
 

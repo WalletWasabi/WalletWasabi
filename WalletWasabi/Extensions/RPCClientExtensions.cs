@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.BitcoinCore;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Helpers;
@@ -39,7 +38,7 @@ namespace NBitcoin.RPC
 			return (int.Parse(resp.Result["height"].ToString()), uint256.Parse(resp.Result["hash"].ToString()));
 		}
 
-		public static async Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(this IRPCClient rpc, int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false, bool tryOtherFeeRates = true)
+		public static async Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(this RPCClient rpc, int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false, bool tryOtherFeeRates = true)
 		{
 			if (simulateIfRegTest && rpc.Network == Network.RegTest)
 			{
@@ -74,7 +73,7 @@ namespace NBitcoin.RPC
 			return await rpc.EstimateSmartFeeAsync(confirmationTarget, estimateMode);
 		}
 
-		public static async Task<EstimateSmartFeeResponse> TryEstimateSmartFeeAsync(this IRPCClient rpc, int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false, bool tryOtherFeeRates = false)
+		public static async Task<EstimateSmartFeeResponse> TryEstimateSmartFeeAsync(this RPCClient rpc, int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false, bool tryOtherFeeRates = false)
 		{
 			if (simulateIfRegTest && rpc.Network == Network.RegTest)
 			{
@@ -121,7 +120,7 @@ namespace NBitcoin.RPC
 		/// <summary>
 		/// If null is returned, no exception is thrown, so the test was successful.
 		/// </summary>
-		public static async Task<Exception> TestAsync(this IRPCClient rpc)
+		public static async Task<Exception> TestAsync(this RPCClient rpc)
 		{
 			try
 			{
@@ -135,7 +134,7 @@ namespace NBitcoin.RPC
 			return null;
 		}
 
-		public static async Task<AllFeeEstimate> EstimateAllFeeAsync(this IRPCClient rpc, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false, bool tolerateBitcoinCoreBrainfuck = true)
+		public static async Task<AllFeeEstimate> EstimateAllFeeAsync(this RPCClient rpc, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false, bool tolerateBitcoinCoreBrainfuck = true)
 		{
 			var rpcStatus = await rpc.GetRpcStatusAsync(CancellationToken.None).ConfigureAwait(false);
 			var estimations = await rpc.EstimateHalfFeesAsync(new Dictionary<int, int>(), 2, 0, Constants.SevenDaysConfirmationTarget, 0, estimateMode, simulateIfRegTest, tolerateBitcoinCoreBrainfuck).ConfigureAwait(false);
@@ -143,7 +142,7 @@ namespace NBitcoin.RPC
 			return allFeeEstimate;
 		}
 
-		public static async Task<RpcStatus> GetRpcStatusAsync(this IRPCClient rpc, CancellationToken cancel)
+		public static async Task<RpcStatus> GetRpcStatusAsync(this RPCClient rpc, CancellationToken cancel)
 		{
 			try
 			{
@@ -160,7 +159,7 @@ namespace NBitcoin.RPC
 			}
 		}
 
-		private static async Task<Dictionary<int, int>> EstimateHalfFeesAsync(this IRPCClient rpc, IDictionary<int, int> estimations, int smallTarget, int smallFee, int largeTarget, int largeFee, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false, bool tolerateBitcoinCoreBrainfuck = true)
+		private static async Task<Dictionary<int, int>> EstimateHalfFeesAsync(this RPCClient rpc, IDictionary<int, int> estimations, int smallTarget, int smallFee, int largeTarget, int largeFee, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false, bool tolerateBitcoinCoreBrainfuck = true)
 		{
 			var newEstimations = new Dictionary<int, int>();
 			foreach (var est in estimations)
@@ -214,8 +213,7 @@ namespace NBitcoin.RPC
 			return newEstimations;
 		}
 
-		/// <returns>Returns (allowed, reject-reason)</returns>
-		public static async Task<(bool accept, string rejectReason)> TestMempoolAcceptAsync(this IRPCClient rpc, IEnumerable<Coin> coins)
+		public static async Task<(bool accept, string rejectReason)> TestMempoolAcceptAsync(this RPCClient rpc, IEnumerable<Coin> coins)
 		{
 			// Check if mempool would accept a fake transaction created with the registered inputs.
 			// This will catch ascendant/descendant count and size limits for example.
@@ -242,7 +240,7 @@ namespace NBitcoin.RPC
 		/// Gets the transactions that are unconfirmed using getrawmempool.
 		/// This is efficient when many transaction ids are provided.
 		/// </summary>
-		public static async Task<IEnumerable<uint256>> GetUnconfirmedAsync(this IRPCClient rpc, IEnumerable<uint256> transactionHashes)
+		public static async Task<IEnumerable<uint256>> GetUnconfirmedAsync(this RPCClient rpc, IEnumerable<uint256> transactionHashes)
 		{
 			uint256[] unconfirmedTransactionHashes = await rpc.GetRawMempoolAsync();
 			// If there are common elements, then there's unconfirmed.
@@ -256,7 +254,7 @@ namespace NBitcoin.RPC
 		/// <param name="includingProvided">Should it include in the result the unconfirmed ones from the provided transactionHashes.</param>
 		/// <param name="likelyProvidedManyConfirmedOnes">If many provided transactionHashes are not confirmed then it optimizes by doing a check in the beginning of which ones are unconfirmed.</param>
 		/// <returns>All the dependents of the provided transactionHashes.</returns>
-		public static async Task<ISet<uint256>> GetAllDependentsAsync(this IRPCClient rpc, IEnumerable<uint256> transactionHashes, bool includingProvided, bool likelyProvidedManyConfirmedOnes)
+		public static async Task<ISet<uint256>> GetAllDependentsAsync(this RPCClient rpc, IEnumerable<uint256> transactionHashes, bool includingProvided, bool likelyProvidedManyConfirmedOnes)
 		{
 			IEnumerable<uint256> workingTxHashes = likelyProvidedManyConfirmedOnes // If confirmed txIds are provided, then do a big check first.
 				? await rpc.GetUnconfirmedAsync(transactionHashes)
