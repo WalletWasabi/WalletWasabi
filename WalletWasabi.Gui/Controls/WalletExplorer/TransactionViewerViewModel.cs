@@ -106,7 +106,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					await File.WriteAllBytesAsync(fileFullName, PsbtBytes);
 				}
-				NotificationHelpers.Success("PSBT file is successfully exported!");
+				NotificationHelpers.Success("PSBT file was exported!");
 			});
 
 			Observable
