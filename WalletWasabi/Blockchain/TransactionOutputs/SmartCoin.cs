@@ -323,7 +323,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		public bool Equals(SmartCoin other) => this == other;
 
-		public override int GetHashCode() => TransactionId.GetHashCode() ^ (int)Index;
+		public override int GetHashCode() => (TransactionId, Index).GetHashCode();
 
 		public static bool operator ==(SmartCoin x, SmartCoin y) => y?.TransactionId == x?.TransactionId && y?.Index == x?.Index;
 
