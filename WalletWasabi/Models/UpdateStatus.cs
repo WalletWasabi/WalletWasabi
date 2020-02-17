@@ -21,7 +21,7 @@ namespace WalletWasabi.Models
 
 		public bool Equals(UpdateStatus other) => this == other;
 
-		public override int GetHashCode() => ClientUpToDate.GetHashCode() ^ BackendCompatible.GetHashCode();
+		public override int GetHashCode() => (ClientUpToDate, BackendCompatible).GetHashCode();
 
 		public static bool operator ==(UpdateStatus x, UpdateStatus y) => y?.ClientUpToDate == x?.ClientUpToDate && y?.BackendCompatible == x?.BackendCompatible;
 

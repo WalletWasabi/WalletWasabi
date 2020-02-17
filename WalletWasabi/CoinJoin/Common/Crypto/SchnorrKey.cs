@@ -34,7 +34,7 @@ namespace WalletWasabi.CoinJoin.Common.Crypto
 
 		public bool Equals(SchnorrKey other) => this == other;
 
-		public override int GetHashCode() => SignerKey.GetHashCode() ^ Rkey.GetHashCode();
+		public override int GetHashCode() => (SignerKey, Rkey).GetHashCode();
 
 		public static bool operator ==(SchnorrKey x, SchnorrKey y) => y?.SignerKey == x?.SignerKey && y?.Rkey == x?.Rkey;
 
