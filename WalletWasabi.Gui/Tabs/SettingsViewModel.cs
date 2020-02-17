@@ -133,7 +133,7 @@ namespace WalletWasabi.Gui.Tabs
 					{
 						if (uiConfigPinHash != enteredPinHash)
 						{
-							NotificationHelpers.Error("PIN is incorrect!");
+							NotificationHelpers.Error("PIN is incorrect.");
 							PinBoxText = string.Empty;
 							return;
 						}

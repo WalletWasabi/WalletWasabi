@@ -48,7 +48,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 					if (global.UiConfig.LockScreenPinHash != HashHelpers.GenerateSha256Hash(x))
 					{
-						NotificationHelpers.Error("PIN is incorrect!");
+						NotificationHelpers.Error("PIN is incorrect.");
 					}
 				});
 
