@@ -57,8 +57,8 @@ namespace WalletWasabi.Gui
 		public NodesGroup Nodes { get; private set; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
 		public FeeProviders FeeProviders { get; private set; }
-		public CoinJoinClient ChaumianClient { get; private set; }
-		public WalletService WalletService { get; private set; }
+		public CoinJoinClient DefaultChaumianClient { get; private set; }
+		public WalletService DefaultWalletService { get; private set; }
 		public TransactionBroadcaster TransactionBroadcaster { get; set; }
 		public CoinJoinProcessor CoinJoinProcessor { get; set; }
 		public Node RegTestMempoolServingNode { get; private set; }
@@ -139,16 +139,16 @@ namespace WalletWasabi.Gui
 
 		public async Task DesperateDequeueAllCoinsAsync()
 		{
-			if (WalletService is null || ChaumianClient is null)
+			if (DefaultWalletService is null || DefaultChaumianClient is null)
 			{
 				return;
 			}
 
-			SmartCoin[] enqueuedCoins = WalletService.Coins.CoinJoinInProcess().ToArray();
+			SmartCoin[] enqueuedCoins = DefaultWalletService.Coins.CoinJoinInProcess().ToArray();
 			if (enqueuedCoins.Any())
 			{
 				Logger.LogWarning("Unregistering coins in CoinJoin process.");
-				await ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins, DequeueReason.ApplicationExit);
+				await DefaultChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins, DequeueReason.ApplicationExit);
 			}
 		}
 
@@ -164,8 +164,8 @@ namespace WalletWasabi.Gui
 
 			try
 			{
-				WalletService = null;
-				ChaumianClient = null;
+				DefaultWalletService = null;
+				DefaultChaumianClient = null;
 				AddressManager = null;
 				TorManager = null;
 				var cancel = StoppingCts.Token;
@@ -510,8 +510,10 @@ namespace WalletWasabi.Gui
 
 		private CancellationTokenSource _cancelWalletServiceInitialization = null;
 
-		public async Task InitializeWalletServiceAsync(KeyManager keyManager)
+		public async Task<WalletService> CreateWalletServiceAsync(KeyManager keyManager)
 		{
+			WalletService walletService;
+
 			using (_cancelWalletServiceInitialization = new CancellationTokenSource())
 			{
 				var token = _cancelWalletServiceInitialization.Token;
@@ -520,33 +522,47 @@ namespace WalletWasabi.Gui
 					await Task.Delay(100, token);
 				}
 
+				CoinJoinClient chaumianClient;
+
 				if (Config.UseTor)
 				{
-					ChaumianClient = new CoinJoinClient(Synchronizer, Network, keyManager, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint);
+					chaumianClient = new CoinJoinClient(Synchronizer, Network, keyManager, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint);
 				}
 				else
 				{
-					ChaumianClient = new CoinJoinClient(Synchronizer, Network, keyManager, Config.GetFallbackBackendUri(), null);
+					chaumianClient = new CoinJoinClient(Synchronizer, Network, keyManager, Config.GetFallbackBackendUri(), null);
 				}
 
-				WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
+				walletService = new WalletService(BitcoinStore, keyManager, Synchronizer, chaumianClient, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
 
-				ChaumianClient.Start();
+				chaumianClient.Start();
 				Logger.LogInfo("Start Chaumian CoinJoin service...");
 
-				Logger.LogInfo($"Starting {nameof(WalletService)}...");
-				await WalletService.InitializeAsync(token);
-				Logger.LogInfo($"{nameof(WalletService)} started.");
+				Logger.LogInfo($"Starting {nameof(DefaultWalletService)}...");
+				await walletService.InitializeAsync(token);
+				Logger.LogInfo($"{nameof(DefaultWalletService)} started.");
 
 				token.ThrowIfCancellationRequested();
 
-				TransactionBroadcaster.AddWalletService(WalletService);
-				CoinJoinProcessor.AddWalletService(WalletService);
+				TransactionBroadcaster.AddWalletService(walletService);
+				CoinJoinProcessor.AddWalletService(walletService);
 
-				WalletService.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
-				ChaumianClient.OnDequeue += ChaumianClient_OnDequeued;
+				walletService.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
+				chaumianClient.OnDequeue += ChaumianClient_OnDequeued;
+
+				if (DefaultChaumianClient is null)
+				{
+					DefaultChaumianClient = chaumianClient;
+				}
+
+				if (DefaultWalletService is null)
+				{
+					DefaultWalletService = walletService;
+				}
 			}
 			_cancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
+
+			return walletService;
 		}
 
 		private void ChaumianClient_OnDequeued(object sender, DequeueResult e)
@@ -754,11 +770,11 @@ namespace WalletWasabi.Gui
 
 		public async Task DisposeInWalletDependentServicesAsync()
 		{
-			var walletService = WalletService;
+			var walletService = DefaultWalletService;
 			if (walletService is { })
 			{
-				WalletService.TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
-				ChaumianClient.OnDequeue -= ChaumianClient_OnDequeued;
+				DefaultWalletService.TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
+				DefaultChaumianClient.OnDequeue -= ChaumianClient_OnDequeued;
 			}
 
 			try
@@ -771,7 +787,7 @@ namespace WalletWasabi.Gui
 			}
 			_cancelWalletServiceInitialization = null;
 
-			walletService = WalletService;
+			walletService = DefaultWalletService;
 			if (walletService is { })
 			{
 				var keyManager = walletService.KeyManager;
@@ -782,16 +798,16 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo($"{nameof(walletService.KeyManager)} backup saved to `{backupWalletFilePath}`.");
 				}
 				walletService.Dispose();
-				WalletService = null;
-				Logger.LogInfo($"{nameof(WalletService)} is stopped.");
+				DefaultWalletService = null;
+				Logger.LogInfo($"{nameof(DefaultWalletService)} is stopped.");
 			}
 
-			var chaumianClient = ChaumianClient;
+			var chaumianClient = DefaultChaumianClient;
 			if (chaumianClient is { })
 			{
 				await chaumianClient.StopAsync();
-				ChaumianClient = null;
-				Logger.LogInfo($"{nameof(ChaumianClient)} is stopped.");
+				DefaultChaumianClient = null;
+				Logger.LogInfo($"{nameof(DefaultChaumianClient)} is stopped.");
 			}
 		}
 

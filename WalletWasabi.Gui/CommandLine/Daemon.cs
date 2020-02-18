@@ -78,7 +78,7 @@ namespace WalletWasabi.Gui.CommandLine
 					return;
 				}
 
-				await Global.InitializeWalletServiceAsync(keyManager);
+				await Global.CreateWalletServiceAsync(keyManager);
 				if (Global.KillRequested)
 				{
 					return;
@@ -100,7 +100,7 @@ namespace WalletWasabi.Gui.CommandLine
 						break;
 					}
 
-					bool anyCoinsQueued = Global.ChaumianClient.State.AnyCoinsQueued();
+					bool anyCoinsQueued = Global.DefaultChaumianClient.State.AnyCoinsQueued();
 					if (!anyCoinsQueued && keepMixAlive) // If no coins queued and mixing is asked to be kept alive then try to queue coins.
 					{
 						await TryQueueCoinsToMixAsync(mixAll, password);
@@ -117,7 +117,7 @@ namespace WalletWasabi.Gui.CommandLine
 
 				if (!Global.KillRequested) // This only has to run if it finishes by itself. Otherwise the Ctrl+c runs it.
 				{
-					await Global.ChaumianClient?.DequeueAllCoinsFromMixAsync(DequeueReason.ApplicationExit);
+					await Global.DefaultChaumianClient?.DequeueAllCoinsFromMixAsync(DequeueReason.ApplicationExit);
 				}
 			}
 			catch
@@ -178,13 +178,13 @@ namespace WalletWasabi.Gui.CommandLine
 		{
 			try
 			{
-				var coinsView = Global.WalletService.Coins;
+				var coinsView = Global.DefaultWalletService.Coins;
 				var coinsToMix = coinsView.Available();
 				if (!mixAll)
 				{
-					coinsToMix = coinsToMix.FilterBy(x => x.AnonymitySet < Global.WalletService.ServiceConfiguration.MixUntilAnonymitySet);
+					coinsToMix = coinsToMix.FilterBy(x => x.AnonymitySet < Global.DefaultWalletService.ServiceConfiguration.MixUntilAnonymitySet);
 				}
-				await Global.ChaumianClient.QueueCoinsToMixAsync(password, coinsToMix.ToArray());
+				await Global.DefaultChaumianClient.QueueCoinsToMixAsync(password, coinsToMix.ToArray());
 			}
 			catch (Exception ex)
 			{

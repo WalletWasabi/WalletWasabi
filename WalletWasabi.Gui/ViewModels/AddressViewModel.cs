@@ -81,7 +81,7 @@ namespace WalletWasabi.Gui.ViewModels
 				{
 					if (InEditMode)
 					{
-						KeyManager keyManager = Global.WalletService.KeyManager;
+						KeyManager keyManager = Global.DefaultWalletService.KeyManager;
 						HdPubKey hdPubKey = keyManager.GetKeys(x => Model == x).FirstOrDefault();
 
 						if (hdPubKey != default)

@@ -70,7 +70,7 @@ namespace WalletWasabi.Gui.Controls
 
 			var global = Locator.Current.GetService<Global>();
 
-			var labels = global.WalletService.GetLabels();
+			var labels = global.DefaultWalletService.GetLabels();
 			IEnumerable<string> suggestedWords = labels.Where(w => w.StartsWith(lastWord, StringComparison.InvariantCultureIgnoreCase))
 				.Union(labels.Where(w => w.Contains(lastWord, StringComparison.InvariantCultureIgnoreCase)))
 				.Except(enteredWordList)

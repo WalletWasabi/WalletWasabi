@@ -141,20 +141,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			TargetPrivacy = Global.Config.GetTargetPrivacy();
 
-			var registrableRound = Global.ChaumianClient.State.GetRegistrableRoundOrDefault();
+			var registrableRound = Global.DefaultChaumianClient.State.GetRegistrableRoundOrDefault();
 
 			UpdateRequiredBtcLabel(registrableRound);
 
 			CoordinatorFeePercent = registrableRound?.State?.CoordinatorFeePercent.ToString() ?? "0.003";
 
-			Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.CoinQueued))
-				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.OnDequeue)))
-				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.StateUpdated)))
+			Observable.FromEventPattern(Global.DefaultChaumianClient, nameof(Global.DefaultChaumianClient.CoinQueued))
+				.Merge(Observable.FromEventPattern(Global.DefaultChaumianClient, nameof(Global.DefaultChaumianClient.OnDequeue)))
+				.Merge(Observable.FromEventPattern(Global.DefaultChaumianClient, nameof(Global.DefaultChaumianClient.StateUpdated)))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => UpdateStates())
 				.DisposeWith(Disposables);
 
-			ClientRound mostAdvancedRound = Global.ChaumianClient?.State?.GetMostAdvancedRoundOrDefault();
+			ClientRound mostAdvancedRound = Global.DefaultChaumianClient?.State?.GetMostAdvancedRoundOrDefault();
 
 			if (mostAdvancedRound != default)
 			{
@@ -214,7 +214,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				try
 				{
-					await Global.ChaumianClient.DequeueCoinsFromMixAsync(coins.ToArray(), DequeueReason.UserRequested);
+					await Global.DefaultChaumianClient.DequeueCoinsFromMixAsync(coins.ToArray(), DequeueReason.UserRequested);
 				}
 				catch (Exception ex)
 				{
@@ -249,7 +249,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
 					}
 
-					await Global.ChaumianClient.QueueCoinsToMixAsync(Password, coins.ToArray());
+					await Global.DefaultChaumianClient.QueueCoinsToMixAsync(Password, coins.ToArray());
 				}
 				catch (SecurityException ex)
 				{
@@ -279,7 +279,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void UpdateStates()
 		{
-			var chaumianClient = Global?.ChaumianClient;
+			var chaumianClient = Global?.DefaultChaumianClient;
 			if (chaumianClient is null)
 			{
 				return;
@@ -312,7 +312,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void UpdateRequiredBtcLabel(ClientRound registrableRound)
 		{
-			if (Global.WalletService is null)
+			if (Global.DefaultWalletService is null)
 			{
 				return; // Otherwise NullReferenceException at shutdown.
 			}
@@ -326,11 +326,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			else
 			{
-				var coins = Global.WalletService.Coins;
+				var coins = Global.DefaultWalletService.Coins;
 				var queued = coins.CoinJoinInProcess();
 				if (queued.Any())
 				{
-					RequiredBTC = registrableRound.State.CalculateRequiredAmount(Global.ChaumianClient.State.GetAllQueuedCoinAmounts().ToArray());
+					RequiredBTC = registrableRound.State.CalculateRequiredAmount(Global.DefaultChaumianClient.State.GetAllQueuedCoinAmounts().ToArray());
 				}
 				else
 				{
@@ -344,12 +344,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override void OnSelected()
 		{
-			Global.ChaumianClient.ActivateFrequentStatusProcessing();
+			Global.DefaultChaumianClient.ActivateFrequentStatusProcessing();
 		}
 
 		public override void OnDeselected()
 		{
-			Global.ChaumianClient.DeactivateFrequentStatusProcessingIfNotMixing();
+			Global.DefaultChaumianClient.DeactivateFrequentStatusProcessingIfNotMixing();
 		}
 
 		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);

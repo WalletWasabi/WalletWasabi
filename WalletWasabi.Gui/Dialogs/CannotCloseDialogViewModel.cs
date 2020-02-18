@@ -137,12 +137,12 @@ namespace WalletWasabi.Gui.Dialogs
 
 					try
 					{
-						if (Global.WalletService is null || Global.ChaumianClient is null)
+						if (Global.DefaultWalletService is null || Global.DefaultChaumianClient is null)
 						{
 							return;
 						}
 
-						SmartCoin[] enqueuedCoins = Global.WalletService.Coins.CoinJoinInProcess().ToArray();
+						SmartCoin[] enqueuedCoins = Global.DefaultWalletService.Coins.CoinJoinInProcess().ToArray();
 						Exception latestException = null;
 						foreach (var coin in enqueuedCoins)
 						{
@@ -153,7 +153,7 @@ namespace WalletWasabi.Gui.Dialogs
 									break;
 								}
 
-								await Global.ChaumianClient.DequeueCoinsFromMixAsync(new SmartCoin[] { coin }, DequeueReason.ApplicationExit); // Dequeue coins one-by-one to check cancel flag more frequently.
+								await Global.DefaultChaumianClient.DequeueCoinsFromMixAsync(new SmartCoin[] { coin }, DequeueReason.ApplicationExit); // Dequeue coins one-by-one to check cancel flag more frequently.
 							}
 							catch (Exception ex)
 							{

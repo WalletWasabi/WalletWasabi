@@ -42,9 +42,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			var global = Locator.Current.GetService<Global>();
 
-			Title = Path.GetFileNameWithoutExtension(global.WalletService.KeyManager.FilePath);
+			Title = Path.GetFileNameWithoutExtension(global.DefaultWalletService.KeyManager.FilePath);
 
-			WalletService = global.WalletService;
+			WalletService = global.DefaultWalletService;
 			var keyManager = WalletService.KeyManager;
 			Name = Path.GetFileNameWithoutExtension(keyManager.FilePath);
 
@@ -123,7 +123,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			var global = Locator.Current.GetService<Global>();
 
 			Observable.Merge(
-				Observable.FromEventPattern(global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default))
+				Observable.FromEventPattern(global.DefaultWalletService.TransactionProcessor, nameof(Global.DefaultWalletService.TransactionProcessor.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default))
 				.Throttle(TimeSpan.FromSeconds(0.1))
 				.Merge(global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Select(_ => Unit.Default))
 				.ObserveOn(RxApp.MainThreadScheduler)

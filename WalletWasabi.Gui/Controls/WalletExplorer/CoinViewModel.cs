@@ -83,7 +83,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Observable
 				.Merge(Model.WhenAnyValue(x => x.IsBanned, x => x.SpentAccordingToBackend, x => x.Confirmed, x => x.CoinJoinInProgress).Select(_ => Unit.Default))
-				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.StateUpdated)).Select(_ => Unit.Default))
+				.Merge(Observable.FromEventPattern(Global.DefaultChaumianClient, nameof(Global.DefaultChaumianClient.StateUpdated)).Select(_ => Unit.Default))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => RefreshSmartCoinStatus())
 				.DisposeWith(Disposables);
@@ -208,9 +208,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return SmartCoinStatus.MixingBanned;
 			}
 
-			if (Model.CoinJoinInProgress && Global.ChaumianClient != null)
+			if (Model.CoinJoinInProgress && Global.DefaultChaumianClient != null)
 			{
-				ClientState clientState = Global.ChaumianClient.State;
+				ClientState clientState = Global.DefaultChaumianClient.State;
 				foreach (var round in clientState.GetAllMixingRounds())
 				{
 					if (round.CoinsRegistered.Contains(Model))
