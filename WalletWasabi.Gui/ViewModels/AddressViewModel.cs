@@ -36,6 +36,7 @@ namespace WalletWasabi.Gui.ViewModels
 		public ReactiveCommand<Unit, Unit> CopyLabel { get; }
 		public ReactiveCommand<Unit, bool> ChangeLabel { get; }
 		public ReactiveCommand<Unit, Unit> DisplayAddressOnHw { get; }
+		public ReactiveCommand<Unit, Unit> LockAddress { get; }
 
 		public HdPubKey Model { get; }
 		private Global Global { get; }
@@ -123,6 +124,12 @@ namespace WalletWasabi.Gui.ViewModels
 				}
 			});
 
+			LockAddress = ReactiveCommand.Create(() =>
+			{
+				var key = km.GetKeys(x => x.PubKey.ToString() == PubKey).FirstOrDefault();
+				key.SetKeyState(KeyState.Locked, km);
+			});
+
 			Observable
 				.Merge(ToggleQrCode.ThrownExceptions)
 				.Merge(SaveQRCode.ThrownExceptions)
@@ -130,6 +137,7 @@ namespace WalletWasabi.Gui.ViewModels
 				.Merge(CopyLabel.ThrownExceptions)
 				.Merge(ChangeLabel.ThrownExceptions)
 				.Merge(DisplayAddressOnHw.ThrownExceptions)
+				.Merge(LockAddress.ThrownExceptions)
 				.Subscribe(ex =>
 				{
 					Logger.LogError(ex);
