@@ -721,7 +721,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		internal static LockTime InternalSelectLockTimeForTransaction(uint tipHeight)
+		internal static LockTime InternalSelectLockTimeForTransaction(uint tipHeight, Random rnd)
 		{
 			try
 			{
@@ -737,13 +737,13 @@ namespace WalletWasabi.Services
 				//  0.65% uses an uniform random from -1 to -99
 
 				// sometimes pick locktime a bit further back, to help privacy.
-				var randomValue = Random.NextDouble();
+				var randomValue = rnd.NextDouble();
 				return randomValue switch
 				{
 					var r when r < (0.9) => LockTime.Zero,
 					var r when r < (0.9 + 0.075) => tipHeight,
 					var r when r < (0.9 + 0.075 + 0.0065) => (uint)(tipHeight + 1),
-					_ => (uint)(tipHeight - Random.Next(1, 100))
+					_ => (uint)(tipHeight - rnd.Next(1, 100))
 				};
 			}
 			catch
@@ -756,7 +756,7 @@ namespace WalletWasabi.Services
 		{
 			var currentTipHeight = Synchronizer.BitcoinStore.SmartHeaderChain.TipHeight;
 
-			return InternalSelectLockTimeForTransaction(currentTipHeight);
+			return InternalSelectLockTimeForTransaction(currentTipHeight, Random);
 		}
 
 		public ISet<string> GetLabels() => TransactionProcessor.Coins.AsAllCoinsView()

@@ -78,7 +78,7 @@
         </StackPanel>
       </StackPanel>
       <controls:BusyIndicator IsBusy="{Binding IsCoinListLoading}" Text="Loading...">
-        <controls:ExtendedListBox Items="{Binding Coins}" VirtualizationMode="None" SelectedItem="{Binding Path=SelectedCoin, Mode=TwoWay}">
+        <controls:ExtendedListBox Items="{Binding Coins}" SelectedItem="{Binding Path=SelectedCoin, Mode=TwoWay}">
           <controls:ExtendedListBox.ItemTemplate>
             <DataTemplate>
               <Grid Classes="CoinItemGrid">

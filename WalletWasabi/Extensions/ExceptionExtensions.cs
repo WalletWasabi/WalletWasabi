@@ -36,7 +36,9 @@ namespace System
 			["bad-txns-nonfinal"] = "The transaction is not final and cannot be broadcasted.",
 			["bad-txns-oversize"] = "The transaction is too big.",
 
-			["invalid password"] = "Wrong password."
+			["invalid password"] = "Wrong password.",
+			["Invalid wallet name"] = "Invalid wallet name.",
+			["Wallet name is already taken"] = "Wallet name is already taken." 
 		};
 
 		public static string ToUserFriendlyString(this Exception ex)

@@ -1,11 +1,8 @@
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
-using NBitcoin;
 using ReactiveUI;
 using Splat;
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -47,61 +44,23 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		private void DoNextCommand()
 		{
-			WalletName = Guard.Correct(WalletName);
-
-			if (!ValidateWalletName(WalletName))
+			try
 			{
-				NotificationHelpers.Error("Invalid wallet name.");
-				return;
-			}
-
-			string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
-
-			if (!TermsAccepted)
-			{
-				NotificationHelpers.Error("Terms are not accepted.");
-			}
-			else if (string.IsNullOrWhiteSpace(WalletName))
-			{
-				NotificationHelpers.Error("Invalid wallet name.");
-			}
-			else if (File.Exists(walletFilePath))
-			{
-				NotificationHelpers.Error("Wallet name is already taken.");
-			}
-			else
-			{
-				try
+				if (!TermsAccepted)
 				{
-					PasswordHelper.Guard(Password); // Here we are not letting anything that will be autocorrected later. We need to generate the wallet exactly with the entered password because of compatibility.
-
-					var km = KeyManager.CreateNew(out Mnemonic mnemonic, Password);
-					km.SetNetwork(Global.Network);
-					km.SetBestHeight(new Height(Global.BitcoinStore.SmartHeaderChain.TipHeight));
-					km.SetFilePath(walletFilePath);
-					Owner.CurrentView = new GenerateWalletSuccessViewModel(Owner, km, mnemonic);
+					throw new InvalidOperationException("Terms are not accepted.");
 				}
-				catch (Exception ex)
-				{
-					Logger.LogError(ex);
-					NotificationHelpers.Error(ex.ToUserFriendlyString());
-				}
+				
+				var walletGenerator = new WalletGenerator(Global.WalletsDir, Global.Network);
+				walletGenerator.TipHeight = Global.BitcoinStore.SmartHeaderChain.TipHeight;
+				var (km, mnemonic) = walletGenerator.GenerateWallet(WalletName, Password);
+				Owner.CurrentView = new GenerateWalletSuccessViewModel(Owner, km, mnemonic);
 			}
-		}
-
-		private static readonly string[] ReservedFileNames = new string[]
-		{
-			"CON", "PRN", "AUX", "NUL",
-			"COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
-			"LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
-		};
-
-		private bool ValidateWalletName(string walletName)
-		{
-			var invalidChars = Path.GetInvalidFileNameChars();
-			var isValid = !walletName.Any(c => invalidChars.Contains(c)) && !walletName.EndsWith(".");
-			var isReserved = ReservedFileNames.Any(w => walletName.ToUpper() == w || walletName.ToUpper().StartsWith(w + "."));
-			return isValid && !isReserved;
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+				NotificationHelpers.Error(ex.ToUserFriendlyString());
+			}
 		}
 
 		public ErrorDescriptors ValidatePassword()
