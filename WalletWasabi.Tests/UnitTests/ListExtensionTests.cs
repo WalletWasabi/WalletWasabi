@@ -8,7 +8,7 @@ namespace WalletWasabi.Tests.UnitTests
 	public class ListExtensionTests
 	{
 		[Fact]
-		public void InsertSorted_Orders_Items_Correctly ()
+		public void InsertSorted_Orders_Items_Correctly()
 		{
 			var actual = new List<int>();
 
