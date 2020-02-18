@@ -59,9 +59,9 @@ namespace WalletWasabi.Blockchain.Keys
 
 		private object HdPubKeyScriptBytesLock { get; }
 
-		private Dictionary<Script, HdPubKey> ScriptHdPubKeyMap { get; }
+		private Dictionary<Script, HdPubKey> P2wpkhScriptHdPubKeyMap { get; }
 
-		private object ScriptHdPubKeyMapLock { get; }
+		private object P2wpkhScriptHdPubKeyMapLock { get; }
 
 		// BIP84-ish derivation scheme
 		// m / purpose' / coin_type' / account' / change / address_index
@@ -81,10 +81,10 @@ namespace WalletWasabi.Blockchain.Keys
 		{
 			HdPubKeys = new List<HdPubKey>();
 			HdPubKeyScriptBytes = new List<byte[]>();
-			ScriptHdPubKeyMap = new Dictionary<Script, HdPubKey>();
+			P2wpkhScriptHdPubKeyMap = new Dictionary<Script, HdPubKey>();
 			HdPubKeysLock = new object();
 			HdPubKeyScriptBytesLock = new object();
-			ScriptHdPubKeyMapLock = new object();
+			P2wpkhScriptHdPubKeyMapLock = new object();
 			BlockchainStateLock = new object();
 
 			EncryptedSecret = encryptedSecret;
@@ -107,10 +107,10 @@ namespace WalletWasabi.Blockchain.Keys
 		{
 			HdPubKeys = new List<HdPubKey>();
 			HdPubKeyScriptBytes = new List<byte[]>();
-			ScriptHdPubKeyMap = new Dictionary<Script, HdPubKey>();
+			P2wpkhScriptHdPubKeyMap = new Dictionary<Script, HdPubKey>();
 			HdPubKeysLock = new object();
 			HdPubKeyScriptBytesLock = new object();
-			ScriptHdPubKeyMapLock = new object();
+			P2wpkhScriptHdPubKeyMapLock = new object();
 			BlockchainState = new BlockchainState();
 			BlockchainStateLock = new object();
 
@@ -280,11 +280,11 @@ namespace WalletWasabi.Blockchain.Keys
 				km.HdPubKeyScriptBytes.AddRange(km.GetKeys(x => true).Select(x => x.P2wpkhScript.ToCompressedBytes()));
 			}
 
-			lock (km.ScriptHdPubKeyMapLock)
+			lock (km.P2wpkhScriptHdPubKeyMapLock)
 			{
 				foreach (var key in km.GetKeys())
 				{
-					km.ScriptHdPubKeyMap.Add(key.P2wpkhScript, key);
+					km.P2wpkhScriptHdPubKeyMap.Add(key.P2wpkhScript, key);
 				}
 			}
 
@@ -448,9 +448,9 @@ namespace WalletWasabi.Blockchain.Keys
 					HdPubKeyScriptBytes.Add(hdPubKey.P2wpkhScript.ToCompressedBytes());
 				}
 
-				lock (ScriptHdPubKeyMapLock)
+				lock (P2wpkhScriptHdPubKeyMapLock)
 				{
-					ScriptHdPubKeyMap.Add(hdPubKey.P2wpkhScript, hdPubKey);
+					P2wpkhScriptHdPubKeyMap.Add(hdPubKey.P2wpkhScript, hdPubKey);
 				}
 
 				if (toFile)
@@ -577,14 +577,33 @@ namespace WalletWasabi.Blockchain.Keys
 
 		public HdPubKey GetKeyForScriptPubKey(Script scriptPubKey)
 		{
-			lock (ScriptHdPubKeyMapLock)
+			lock (P2wpkhScriptHdPubKeyMapLock)
 			{
-				if (ScriptHdPubKeyMap.TryGetValue(scriptPubKey, out var key))
+				if (P2wpkhScriptHdPubKeyMap.TryGetValue(scriptPubKey, out var key))
 				{
 					return key;
 				}
 
 				return default;
+			}
+		}
+
+		public IEnumerable<HdPubKey> GetKeysForScriptPubKeys(IEnumerable<Script> scriptPubKeys, bool? isInternal = null)
+		{
+			lock (P2wpkhScriptHdPubKeyMapLock)
+			{
+				var found = new List<HdPubKey>();
+				foreach (var scriptPubKey in scriptPubKeys.Distinct())
+				{
+					if (P2wpkhScriptHdPubKeyMap.TryGetValue(scriptPubKey, out var key))
+					{
+						if (isInternal is null || key.IsInternal == isInternal)
+						{
+							found.Add(key);
+						}
+					}
+				}
+				return found;
 			}
 		}
 

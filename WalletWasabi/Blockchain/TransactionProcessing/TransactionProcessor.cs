@@ -167,13 +167,15 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 				bool hasEqualOutputs = tx.Transaction.HasIndistinguishableOutputs();
 				if (hasEqualOutputs)
 				{
-					var receiveKeys = KeyManager.GetKeys(x => tx.Transaction.Outputs.Any(y => y.ScriptPubKey == x.P2wpkhScript));
-					bool allReceivedInternal = receiveKeys.All(x => x.IsInternal);
-					if (allReceivedInternal)
+					var internalReceiveScripts = KeyManager
+						.GetKeysForScriptPubKeys(tx.Transaction.Outputs.Select(x => x.ScriptPubKey), isInternal: true)
+						.Select(x => x.P2wpkhScript)
+						.ToHashSet();
+					if (internalReceiveScripts.Any())
 					{
 						// It is likely a coinjoin if the diff between receive and sent amount is small and have at least 2 equal outputs.
-						Money spentAmount = Coins.AsAllCoinsView().OutPoints(tx.Transaction.Inputs.ToTxoRefs()).TotalAmount();
-						Money receivedAmount = tx.Transaction.Outputs.Where(x => receiveKeys.Any(y => y.P2wpkhScript == x.ScriptPubKey)).Sum(x => x.Value);
+						Money spentAmount = Coins.AsAllCoinsView().OutPoints(tx.Transaction.Inputs.ToOutpoints()).TotalAmount();
+						Money receivedAmount = tx.Transaction.Outputs.Where(x => internalReceiveScripts.Contains(x.ScriptPubKey)).Sum(x => x.Value);
 						bool receivedAlmostAsMuchAsSpent = spentAmount.Almost(receivedAmount, Money.Coins(0.005m));
 
 						if (receivedAlmostAsMuchAsSpent)
@@ -198,7 +200,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 						}
 
 						foundKey.SetKeyState(KeyState.Used, KeyManager);
-						spentOwnCoins ??= Coins.OutPoints(tx.Transaction.Inputs.ToTxoRefs()).ToList();
+						spentOwnCoins ??= Coins.OutPoints(tx.Transaction.Inputs.ToOutpoints()).ToList();
 						var anonset = tx.Transaction.GetAnonymitySet(i);
 						if (spentOwnCoins.Count != 0)
 						{

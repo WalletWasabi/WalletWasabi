@@ -268,7 +268,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		public IEnumerator<SmartCoin> GetEnumerator() => AsCoinsView().GetEnumerator();
 
-		public ICoinsView OutPoints(IEnumerable<TxoRef> outPoints) => AsCoinsView().OutPoints(outPoints);
+		public ICoinsView OutPoints(IEnumerable<OutPoint> outPoints) => AsCoinsView().OutPoints(outPoints);
 
 		public ICoinsView CreatedBy(uint256 txid) => AsCoinsView().CreatedBy(txid);
 

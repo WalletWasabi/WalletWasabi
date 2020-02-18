@@ -55,12 +55,10 @@ namespace NBitcoin
 		public static TxoRef ToTxoRef(this OutPoint me) => new TxoRef(me);
 
 		public static IEnumerable<TxoRef> ToTxoRefs(this TxInList me)
-		{
-			foreach (var input in me)
-			{
-				yield return input.PrevOut.ToTxoRef();
-			}
-		}
+			=> me.Select(x => x.PrevOut.ToTxoRef());
+
+		public static IEnumerable<OutPoint> ToOutpoints(this TxInList me)
+			=> me.Select(x => x.PrevOut);
 
 		public static IEnumerable<Coin> GetCoins(this TxOutList me, Script script)
 		{
