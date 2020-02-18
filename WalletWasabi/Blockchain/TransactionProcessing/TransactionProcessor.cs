@@ -164,75 +164,64 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					}
 				}
 
-				bool hasEqualOutputs = tx.Transaction.HasIndistinguishableOutputs();
-				if (hasEqualOutputs)
+				if (tx.Transaction.Inputs.Count > 1 // The tx must have more than one input in order to be a coinjoin.
+					&& tx.Transaction.HasIndistinguishableOutputs() // The tx must have more than one equal output in order to be a coinjoin.
+					&& Coins.AsAllCoinsView().OutPoints(tx.Transaction.Inputs.ToOutpoints()).Any()) // If the input is any of our coins, then it's our CJ.
 				{
-					var internalReceiveScripts = KeyManager
-						.GetKeysForScriptPubKeys(tx.Transaction.Outputs.Select(x => x.ScriptPubKey), isInternal: true)
-						.Select(x => x.P2wpkhScript)
-						.ToHashSet();
-					if (internalReceiveScripts.Any())
-					{
-						// It is likely a coinjoin if the diff between receive and sent amount is small and have at least 2 equal outputs.
-						Money spentAmount = Coins.AsAllCoinsView().OutPoints(tx.Transaction.Inputs.ToOutpoints()).TotalAmount();
-						Money receivedAmount = tx.Transaction.Outputs.Where(x => internalReceiveScripts.Contains(x.ScriptPubKey)).Sum(x => x.Value);
-						bool receivedAlmostAsMuchAsSpent = spentAmount.Almost(receivedAmount, Money.Coins(0.005m));
-
-						if (receivedAlmostAsMuchAsSpent)
-						{
-							result.IsLikelyOwnCoinJoin = true;
-						}
-					}
+					result.IsLikelyOwnCoinJoin = true;
 				}
 
 				List<SmartCoin> spentOwnCoins = null;
-				for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
+				var scripts = tx.Transaction.Outputs.Select(x => x.ScriptPubKey);
+				foreach (var key in KeyManager.GetKeysForScriptPubKeys(scripts))
 				{
-					// If transaction received to any of the wallet keys:
-					var output = tx.Transaction.Outputs[i];
-					HdPubKey foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
-					if (foundKey != default)
+					for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 					{
-						if (output.Value <= DustThreshold)
+						// If transaction received to any of the wallet keys:
+						var output = tx.Transaction.Outputs[i];
+						if (key.P2wpkhScript == output.ScriptPubKey)
 						{
-							result.ReceivedDusts.Add(output);
-							continue;
-						}
-
-						foundKey.SetKeyState(KeyState.Used, KeyManager);
-						spentOwnCoins ??= Coins.OutPoints(tx.Transaction.Inputs.ToOutpoints()).ToList();
-						var anonset = tx.Transaction.GetAnonymitySet(i);
-						if (spentOwnCoins.Count != 0)
-						{
-							anonset += spentOwnCoins.Min(x => x.AnonymitySet) - 1; // Minus 1, because do not count own.
-						}
-
-						SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, result.IsLikelyOwnCoinJoin, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
-
-						result.ReceivedCoins.Add(newCoin);
-						// If we did not have it.
-						if (Coins.TryAdd(newCoin))
-						{
-							result.NewlyReceivedCoins.Add(newCoin);
-
-							// Make sure there's always 21 clean keys generated and indexed.
-							KeyManager.AssertCleanKeysIndexed(isInternal: foundKey.IsInternal);
-
-							if (foundKey.IsInternal)
+							if (output.Value <= DustThreshold)
 							{
-								// Make sure there's always 14 internal locked keys generated and indexed.
-								KeyManager.AssertLockedInternalKeysIndexed(14);
+								result.ReceivedDusts.Add(output);
+								continue;
 							}
-						}
-						else // If we had this coin already.
-						{
-							if (newCoin.Height != Height.Mempool) // Update the height of this old coin we already had.
+
+							key.SetKeyState(KeyState.Used, KeyManager);
+							spentOwnCoins ??= Coins.OutPoints(tx.Transaction.Inputs.ToOutpoints()).ToList();
+							var anonset = tx.Transaction.GetAnonymitySet(i);
+							if (spentOwnCoins.Count != 0)
 							{
-								SmartCoin oldCoin = Coins.AsAllCoinsView().GetByOutPoint(new OutPoint(txId, i));
-								if (oldCoin is { }) // Just to be sure, it is a concurrent collection.
+								anonset += spentOwnCoins.Min(x => x.AnonymitySet) - 1; // Minus 1, because do not count own.
+							}
+
+							SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, result.IsLikelyOwnCoinJoin, key.Label, spenderTransactionId: null, false, pubKey: key); // Do not inherit locked status from key, that's different.
+
+							result.ReceivedCoins.Add(newCoin);
+							// If we did not have it.
+							if (Coins.TryAdd(newCoin))
+							{
+								result.NewlyReceivedCoins.Add(newCoin);
+
+								// Make sure there's always 21 clean keys generated and indexed.
+								KeyManager.AssertCleanKeysIndexed(isInternal: key.IsInternal);
+
+								if (key.IsInternal)
 								{
-									result.NewlyConfirmedReceivedCoins.Add(newCoin);
-									oldCoin.Height = newCoin.Height;
+									// Make sure there's always 14 internal locked keys generated and indexed.
+									KeyManager.AssertLockedInternalKeysIndexed(14);
+								}
+							}
+							else // If we had this coin already.
+							{
+								if (newCoin.Height != Height.Mempool) // Update the height of this old coin we already had.
+								{
+									SmartCoin oldCoin = Coins.AsAllCoinsView().GetByOutPoint(new OutPoint(txId, i));
+									if (oldCoin is { }) // Just to be sure, it is a concurrent collection.
+									{
+										result.NewlyConfirmedReceivedCoins.Add(newCoin);
+										oldCoin.Height = newCoin.Height;
+									}
 								}
 							}
 						}
@@ -240,26 +229,26 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 				}
 
 				// If spends any of our coin
-				for (var i = 0; i < tx.Transaction.Inputs.Count; i++)
+				foreach (var coin in Coins.AsAllCoinsView())
 				{
-					var input = tx.Transaction.Inputs[i];
-
-					var foundCoin = Coins.AsAllCoinsView().GetByOutPoint(input.PrevOut);
-					if (foundCoin != null)
+					foreach (var input in tx.Transaction.Inputs.Select(x => x.PrevOut))
 					{
-						var alreadyKnown = foundCoin.SpenderTransactionId == txId;
-						foundCoin.SpenderTransactionId = txId;
-						result.SpentCoins.Add(foundCoin);
-
-						if (!alreadyKnown)
+						if (input == coin.GetOutPoint())
 						{
-							Coins.Spend(foundCoin);
-							result.NewlySpentCoins.Add(foundCoin);
-						}
+							var alreadyKnown = coin.SpenderTransactionId == txId;
+							coin.SpenderTransactionId = txId;
+							result.SpentCoins.Add(coin);
 
-						if (tx.Confirmed)
-						{
-							result.NewlyConfirmedSpentCoins.Add(foundCoin);
+							if (!alreadyKnown)
+							{
+								Coins.Spend(coin);
+								result.NewlySpentCoins.Add(coin);
+							}
+
+							if (tx.Confirmed)
+							{
+								result.NewlyConfirmedSpentCoins.Add(coin);
+							}
 						}
 					}
 				}
