@@ -139,12 +139,12 @@ namespace WalletWasabi.Gui.Tabs
 						}
 
 						Global.UiConfig.LockScreenPinHash = string.Empty;
-						NotificationHelpers.Success("PIN cleared successfully.");
+						NotificationHelpers.Success("PIN was cleared.");
 					}
 					else
 					{
 						Global.UiConfig.LockScreenPinHash = enteredPinHash;
-						NotificationHelpers.Success("PIN changed successfully.");
+						NotificationHelpers.Success("PIN was changed.");
 					}
 
 					PinBoxText = string.Empty;
