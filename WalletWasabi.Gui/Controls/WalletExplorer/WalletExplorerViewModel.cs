@@ -4,15 +4,14 @@ using AvalonStudio.Shell;
 using ReactiveUI;
 using Splat;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using WalletWasabi.Gui.Extensions;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Services;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
