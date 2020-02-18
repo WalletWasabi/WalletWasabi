@@ -18,14 +18,14 @@
 [Wasabi Wallet](https://wasabiwallet.io) is an open-source, non-custodial, privacy-focused Bitcoin wallet for desktop, that implements [Chaumian CoinJoin](https://github.com/nopara73/ZeroLink/#ii-chaumian-coinjoin).
 
 The main privacy features on the network level:
-- Tor-only by default.
-- BIP 158 block filters for private light client.
-- Opt-in connection to user full node.
+- Tor-only by default
+- BIP 158 block filters for private light client
+- Opt-in connection to user full node
 
 and on the blockchain level:
-- Intuitive ZeroLink CoinJoin integration.
-- Superb coin selection and labeling.
-- Dust attack protections.
+- Intuitive ZeroLink CoinJoin integration
+- Superb coin selection and labeling
+- Dust attack protections
 
 For more information, please check out the [Wasabi Documentation](https://docs.wasabiwallet.io), an archive of knowledge about the nuances of Bitcoin privacy and how to properly use Wasabi.
 
