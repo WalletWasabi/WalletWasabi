@@ -164,13 +164,6 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					}
 				}
 
-				if (tx.Transaction.Inputs.Count > 1 // The tx must have more than one input in order to be a coinjoin.
-					&& tx.Transaction.HasIndistinguishableOutputs() // The tx must have more than one equal output in order to be a coinjoin.
-					&& Coins.AsAllCoinsView().OutPoints(tx.Transaction.Inputs.ToOutpoints()).Any()) // If the input is any of our coins, then it's our CJ.
-				{
-					result.IsLikelyOwnCoinJoin = true;
-				}
-
 				List<SmartCoin> spentOwnCoins = null;
 				var scripts = tx.Transaction.Outputs.Select(x => x.ScriptPubKey);
 				foreach (var key in KeyManager.GetKeysForScriptPubKeys(scripts))
@@ -228,6 +221,13 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					}
 				}
 
+				var isLikelyCj = false;
+				if (tx.Transaction.Inputs.Count > 1 // The tx must have more than one input in order to be a coinjoin.
+					&& tx.Transaction.HasIndistinguishableOutputs()) // The tx must have more than one equal output in order to be a coinjoin.
+				{
+					isLikelyCj = true;
+				}
+
 				// If spends any of our coin
 				foreach (var coin in Coins.AsAllCoinsView())
 				{
@@ -249,7 +249,21 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 							{
 								result.NewlyConfirmedSpentCoins.Add(coin);
 							}
+
+							if (isLikelyCj)
+							{
+								result.IsLikelyOwnCoinJoin = true;
+							}
 						}
+					}
+				}
+
+				if (result.IsLikelyOwnCoinJoin)
+				{
+					foreach (var coin in result.ReceivedCoins)
+					{
+						// May be too late to set it at this point. It'd be better to set at the constructor, but couldn't find a way without ruining performance.
+						coin.IsLikelyCoinJoinOutput = true;
 					}
 				}
 

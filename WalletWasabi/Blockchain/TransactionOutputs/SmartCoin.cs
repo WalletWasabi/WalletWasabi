@@ -167,7 +167,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			private set => RaiseAndSetIfChanged(ref _hdPubKey, value);
 		}
 
-		public bool IsLikelyCoinJoinOutput { get; private set; }
+		public bool IsLikelyCoinJoinOutput { get; set; }
 
 		/// <summary>
 		/// It's a secret, so it's usually going to be null. Do not use it.
