@@ -531,13 +531,13 @@ namespace WalletWasabi.Tests.IntegrationTests
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync();
 			node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
-			// 3. Create wasabi synchronizer service.
+			// 2. Create wasabi synchronizer service.
 			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
 
-			// 4. Create key manager service.
+			// 3. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
 
-			// 5. Create wallet service.
+			// 4. Create wallet service.
 			var workDir = GetWorkDir();
 			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
@@ -747,7 +747,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
 
-			// 6. Create wallet service.
+			// 5. Create wallet service.
 			var workDir = GetWorkDir();
 			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
@@ -1222,7 +1222,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
 
-			// 6. Create wallet service.
+			// 5. Create wallet service.
 			var workDir = GetWorkDir();
 			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
@@ -1378,7 +1378,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
 
-			// 6. Create wallet service.
+			// 5. Create wallet service.
 			var workDir = GetWorkDir();
 			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
@@ -1593,7 +1593,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
 
-			// 6. Create wallet service.
+			// 5. Create wallet service.
 			var workDir = GetWorkDir();
 			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
@@ -1764,7 +1764,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
 
-			// 6. Create wallet service.
+			// 5. Create wallet service.
 			var workDir = GetWorkDir();
 			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
@@ -3368,7 +3368,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 			var keyManager2 = KeyManager.CreateNew(out _, password);
 
-			// 6. Create wallet service.
+			// 5. Create wallet service.
 			var workDir = GetWorkDir();
 			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
