@@ -164,23 +164,11 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					}
 				}
 
-				bool hasEqualOutputs = tx.Transaction.HasIndistinguishableOutputs();
-				if (hasEqualOutputs)
+				if (tx.Transaction.Inputs.Count > 1 // The tx must have more than one input in order to be a coinjoin.
+					&& tx.Transaction.HasIndistinguishableOutputs() // The tx must have more than one equal output in order to be a coinjoin.
+					&& Coins.AsAllCoinsView().OutPoints(tx.Transaction.Inputs.ToTxoRefs()).Any()) // If the input is any of our coins, then it's our CJ.
 				{
-					var receiveKeys = KeyManager.GetKeys(x => tx.Transaction.Outputs.Any(y => y.ScriptPubKey == x.P2wpkhScript));
-					bool allReceivedInternal = receiveKeys.All(x => x.IsInternal);
-					if (allReceivedInternal)
-					{
-						// It is likely a coinjoin if the diff between receive and sent amount is small and have at least 2 equal outputs.
-						Money spentAmount = Coins.AsAllCoinsView().OutPoints(tx.Transaction.Inputs.ToTxoRefs()).TotalAmount();
-						Money receivedAmount = tx.Transaction.Outputs.Where(x => receiveKeys.Any(y => y.P2wpkhScript == x.ScriptPubKey)).Sum(x => x.Value);
-						bool receivedAlmostAsMuchAsSpent = spentAmount.Almost(receivedAmount, Money.Coins(0.005m));
-
-						if (receivedAlmostAsMuchAsSpent)
-						{
-							result.IsLikelyOwnCoinJoin = true;
-						}
-					}
+					result.IsLikelyOwnCoinJoin = true;
 				}
 
 				List<SmartCoin> spentOwnCoins = null;
