@@ -237,27 +237,25 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					}
 				}
 
-				// If spends any of our coin
-				for (var i = 0; i < tx.Transaction.Inputs.Count; i++)
+				var prevOutArray = tx.Transaction.Inputs.Select(x => x.PrevOut).ToArray();
+				foreach (var coin in Coins.AsAllCoinsView())
 				{
-					var input = tx.Transaction.Inputs[i];
-
-					var foundCoin = Coins.AsAllCoinsView().GetByOutPoint(input.PrevOut);
-					if (foundCoin != null)
+					// If spends any of our coin
+					foreach (var input in prevOutArray.Where(x => x == coin.GetOutPoint()))
 					{
-						var alreadyKnown = foundCoin.SpenderTransactionId == txId;
-						foundCoin.SpenderTransactionId = txId;
-						result.SpentCoins.Add(foundCoin);
+						var alreadyKnown = coin.SpenderTransactionId == txId;
+						coin.SpenderTransactionId = txId;
+						result.SpentCoins.Add(coin);
 
 						if (!alreadyKnown)
 						{
-							Coins.Spend(foundCoin);
-							result.NewlySpentCoins.Add(foundCoin);
+							Coins.Spend(coin);
+							result.NewlySpentCoins.Add(coin);
 						}
 
 						if (tx.Confirmed)
 						{
-							result.NewlyConfirmedSpentCoins.Add(foundCoin);
+							result.NewlyConfirmedSpentCoins.Add(coin);
 						}
 					}
 				}
