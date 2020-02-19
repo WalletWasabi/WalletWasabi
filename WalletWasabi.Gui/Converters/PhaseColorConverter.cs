@@ -20,7 +20,7 @@ namespace WalletWasabi.Gui.Converters
 			}
 
 			var global = Locator.Current.GetService<Global>();
-			var phaseError = global.ChaumianClient.State.IsInErrorState;
+			var phaseError = global.WalletService.ChaumianClient.State.IsInErrorState;
 
 			return (RoundPhase)p <= (RoundPhase)value
 				? phaseError
