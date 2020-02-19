@@ -74,8 +74,8 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		{
 			Network = Guard.NotNull(nameof(network), network);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
-			CcjHostUriAction = Synchronizer.WasabiClient.TorClient.DestinationUriAction;
 			Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
+			CcjHostUriAction = Synchronizer.WasabiClient.TorClient.DestinationUriAction;
 			TorSocks5EndPoint = Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint;
 			CoordinatorFeepercentToCheck = null;
 
