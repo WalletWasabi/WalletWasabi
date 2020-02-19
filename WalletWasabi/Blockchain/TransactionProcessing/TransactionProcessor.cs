@@ -164,13 +164,6 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					}
 				}
 
-				if (tx.Transaction.Inputs.Count > 1 // The tx must have more than one input in order to be a coinjoin.
-					&& tx.Transaction.HasIndistinguishableOutputs() // The tx must have more than one equal output in order to be a coinjoin.
-					&& Coins.AsAllCoinsView().OutPoints(tx.Transaction.Inputs.ToTxoRefs()).Any()) // If the input is any of our coins, then it's our CJ.
-				{
-					result.IsLikelyOwnCoinJoin = true;
-				}
-
 				List<SmartCoin> spentOwnCoins = null;
 				for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 				{
@@ -193,7 +186,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 							anonset += spentOwnCoins.Min(x => x.AnonymitySet) - 1; // Minus 1, because do not count own.
 						}
 
-						SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, result.IsLikelyOwnCoinJoin, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
+						SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
 
 						result.ReceivedCoins.Add(newCoin);
 						// If we did not have it.
@@ -225,6 +218,13 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					}
 				}
 
+				var isLikelyCj = false;
+				if (tx.Transaction.Inputs.Count > 1 // The tx must have more than one input in order to be a coinjoin.
+					&& tx.Transaction.HasIndistinguishableOutputs()) // The tx must have more than one equal output in order to be a coinjoin.
+				{
+					isLikelyCj = true;
+				}
+
 				foreach (var coin in Coins.AsAllCoinsView())
 				{
 					// If spends any of our coin
@@ -245,7 +245,18 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 						{
 							result.NewlyConfirmedSpentCoins.Add(coin);
 						}
+
+						if (isLikelyCj)
+						{
+							result.IsLikelyOwnCoinJoin = true;
+						}
 					}
+				}
+
+				foreach (var coin in result.ReceivedCoins)
+				{
+					// May be too late to set it at this point. It'd be better to set at the constructor, but couldn't find a way without ruining performance.
+					coin.IsLikelyCoinJoinOutput = result.IsLikelyOwnCoinJoin;
 				}
 
 				if (result.IsNews)
