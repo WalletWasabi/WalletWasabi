@@ -126,7 +126,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 			LockAddress = ReactiveCommand.Create(() =>
 			{
-				var key = km.GetKeys(x => x.PubKey.ToString() == PubKey).FirstOrDefault();
+				var key = km.GetKeys(x => x == Model).FirstOrDefault();
 				key.SetKeyState(KeyState.Locked, km);
 			});
 
