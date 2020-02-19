@@ -18,6 +18,7 @@ using WalletWasabi.Logging;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using Avalonia;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -25,6 +26,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private CompositeDisposable Disposables { get; set; }
 
+		private WalletService _walletService;
 		private bool _isSelected;
 		private SmartCoinStatus _status;
 		private ObservableAsPropertyHelper<bool> _coinJoinInProgress;
@@ -40,9 +42,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> OpenCoinInfo { get; }
 		public ReactiveCommand<Unit, Unit> CopyClusters { get; }
 
-		public CoinViewModel(CoinListViewModel owner, SmartCoin model)
+		public CoinViewModel(WalletService walletService, CoinListViewModel owner, SmartCoin model)
 		{
 			Global = Locator.Current.GetService<Global>();
+			_walletService = walletService;
 
 			Model = model;
 			Owner = owner;
@@ -83,7 +86,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Observable
 				.Merge(Model.WhenAnyValue(x => x.IsBanned, x => x.SpentAccordingToBackend, x => x.Confirmed, x => x.CoinJoinInProgress).Select(_ => Unit.Default))
-				.Merge(Observable.FromEventPattern(Global.WalletService.ChaumianClient, nameof(Global.WalletService.ChaumianClient.StateUpdated)).Select(_ => Unit.Default))
+				.Merge(Observable.FromEventPattern(_walletService.ChaumianClient, nameof(_walletService.ChaumianClient.StateUpdated)).Select(_ => Unit.Default))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => RefreshSmartCoinStatus())
 				.DisposeWith(Disposables);
@@ -208,9 +211,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return SmartCoinStatus.MixingBanned;
 			}
 
-			if (Model.CoinJoinInProgress && Global.WalletService.ChaumianClient != null)
+			if (Model.CoinJoinInProgress && _walletService.ChaumianClient != null)
 			{
-				ClientState clientState = Global.WalletService.ChaumianClient.State;
+				ClientState clientState = _walletService.ChaumianClient.State;
 				foreach (var round in clientState.GetAllMixingRounds())
 				{
 					if (round.CoinsRegistered.Contains(Model))

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls
 {
@@ -15,8 +16,9 @@ namespace WalletWasabi.Gui.Controls
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 		private int _caretIndex;
 		private string _label;
+		private WalletService _walletService;
 
-		public SuggestLabelViewModel()
+		public SuggestLabelViewModel(WalletService walletService)
 		{
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
 
@@ -68,9 +70,7 @@ namespace WalletWasabi.Gui.Controls
 				return;
 			}
 
-			var global = Locator.Current.GetService<Global>();
-
-			var labels = global.WalletService.GetLabels();
+			var labels = _walletService.GetLabels();
 			IEnumerable<string> suggestedWords = labels.Where(w => w.StartsWith(lastWord, StringComparison.InvariantCultureIgnoreCase))
 				.Union(labels.Where(w => w.Contains(lastWord, StringComparison.InvariantCultureIgnoreCase)))
 				.Except(enteredWordList)

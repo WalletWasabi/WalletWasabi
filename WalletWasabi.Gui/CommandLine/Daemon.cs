@@ -13,7 +13,9 @@ namespace WalletWasabi.Gui.CommandLine
 {
 	public class Daemon
 	{
-		public Global Global { get; }
+		private Wallet _wallet;
+
+		private Global Global { get; }
 
 		public Daemon(Global global)
 		{
@@ -78,7 +80,8 @@ namespace WalletWasabi.Gui.CommandLine
 					return;
 				}
 
-				await Global.InitializeWalletServiceAsync(keyManager);
+				_wallet = await Wallet.CreateWalletAsync(keyManager);
+
 				if (Global.KillRequested)
 				{
 					return;
@@ -100,7 +103,7 @@ namespace WalletWasabi.Gui.CommandLine
 						break;
 					}
 
-					bool anyCoinsQueued = Global.WalletService.ChaumianClient.State.AnyCoinsQueued();
+					bool anyCoinsQueued = _wallet.WalletService.ChaumianClient.State.AnyCoinsQueued();
 					if (!anyCoinsQueued && keepMixAlive) // If no coins queued and mixing is asked to be kept alive then try to queue coins.
 					{
 						await TryQueueCoinsToMixAsync(mixAll, password);
@@ -117,7 +120,7 @@ namespace WalletWasabi.Gui.CommandLine
 
 				if (!Global.KillRequested) // This only has to run if it finishes by itself. Otherwise the Ctrl+c runs it.
 				{
-					await Global.WalletService.ChaumianClient?.DequeueAllCoinsFromMixAsync(DequeueReason.ApplicationExit);
+					await _wallet.WalletService.ChaumianClient?.DequeueAllCoinsFromMixAsync(DequeueReason.ApplicationExit);
 				}
 			}
 			catch
@@ -178,13 +181,13 @@ namespace WalletWasabi.Gui.CommandLine
 		{
 			try
 			{
-				var coinsView = Global.WalletService.Coins;
+				var coinsView = _wallet.WalletService.Coins;
 				var coinsToMix = coinsView.Available();
 				if (!mixAll)
 				{
-					coinsToMix = coinsToMix.FilterBy(x => x.AnonymitySet < Global.WalletService.ServiceConfiguration.MixUntilAnonymitySet);
+					coinsToMix = coinsToMix.FilterBy(x => x.AnonymitySet < _wallet.WalletService.ServiceConfiguration.MixUntilAnonymitySet);
 				}
-				await Global.WalletService.ChaumianClient.QueueCoinsToMixAsync(password, coinsToMix.ToArray());
+				await _wallet.WalletService.ChaumianClient.QueueCoinsToMixAsync(password, coinsToMix.ToArray());
 			}
 			catch (Exception ex)
 			{

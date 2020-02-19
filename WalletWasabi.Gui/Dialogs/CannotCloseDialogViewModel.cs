@@ -137,38 +137,36 @@ namespace WalletWasabi.Gui.Dialogs
 
 					try
 					{
-						if (Global.WalletService is null || Global.WalletService.ChaumianClient is null)
+						foreach (var wallet in Global.Wallets)
 						{
-							return;
-						}
-
-						SmartCoin[] enqueuedCoins = Global.WalletService.Coins.CoinJoinInProcess().ToArray();
-						Exception latestException = null;
-						foreach (var coin in enqueuedCoins)
-						{
-							try
+							SmartCoin[] enqueuedCoins = wallet.WalletService.Coins.CoinJoinInProcess().ToArray();
+							Exception latestException = null;
+							foreach (var coin in enqueuedCoins)
 							{
-								if (CancelTokenSource.IsCancellationRequested)
+								try
 								{
-									break;
+									if (CancelTokenSource.IsCancellationRequested)
+									{
+										break;
+									}
+
+									await wallet.WalletService.ChaumianClient.DequeueCoinsFromMixAsync(new SmartCoin[] { coin }, DequeueReason.ApplicationExit); // Dequeue coins one-by-one to check cancel flag more frequently.
 								}
-
-								await Global.WalletService.ChaumianClient.DequeueCoinsFromMixAsync(new SmartCoin[] { coin }, DequeueReason.ApplicationExit); // Dequeue coins one-by-one to check cancel flag more frequently.
-							}
-							catch (Exception ex)
-							{
-								latestException = ex;
-
-								if (last) // if this is the last iteration and we are still failing then we throw the exception
+								catch (Exception ex)
 								{
-									throw ex;
+									latestException = ex;
+
+									if (last) // if this is the last iteration and we are still failing then we throw the exception
+									{
+										throw ex;
+									}
 								}
 							}
-						}
 
-						if (latestException is null) // no exceptions were thrown during the for-each so we are done with dequeuing
-						{
-							last = true;
+							if (latestException is null) // no exceptions were thrown during the for-each so we are done with dequeuing
+							{
+								last = true;
+							}
 						}
 					}
 					catch (Exception ex)

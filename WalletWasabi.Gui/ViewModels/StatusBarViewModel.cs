@@ -118,7 +118,7 @@ namespace WalletWasabi.Gui.ViewModels
 							   .Subscribe(_ =>
 							   {
 								   var global = Global;
-								   var walletService = global?.WalletService;
+								   var walletService = global?.GetDefaultWallet().WalletService;
 								   if (walletService is { })
 								   {
 									   var segwitActivationHeight = SmartHeader.GetStartingHeader(walletService.Network).Height;

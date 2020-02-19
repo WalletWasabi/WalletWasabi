@@ -50,6 +50,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private bool _isHardwareBusy;
 		private string _loadButtonText;
 		private bool _isHwWalletSearchTextVisible;
+		private Wallet _loadedWallet;
 
 		public bool IsLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 
@@ -330,7 +331,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				IsWalletSelected = SelectedWallet != null;
 				CanTestPassword = IsWalletSelected;
 
-				if (Global.WalletService is null)
+				if (_loadedWallet is null)
 				{
 					IsWalletOpened = false;
 
@@ -631,18 +632,18 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 				try
 				{
-					await Task.Run(async () => await Global.InitializeWalletServiceAsync(keyManager));
+					_loadedWallet = await Task.Run(async () => await Wallet.CreateWalletAsync(keyManager));
 					// Successfully initialized.
 					Owner.OnClose();
 					// Open Wallet Explorer tabs
-					if (Global.WalletService.Coins.Any())
+					if (_loadedWallet.WalletService.Coins.Any())
 					{
 						// If already have coins then open the last active tab first.
-						IoC.Get<WalletExplorerViewModel>().OpenWallet(Global.WalletService, receiveDominant: false);
+						IoC.Get<WalletExplorerViewModel>().OpenWallet(_loadedWallet.WalletService, receiveDominant: false);
 					}
 					else // Else open with Receive tab first.
 					{
-						IoC.Get<WalletExplorerViewModel>().OpenWallet(Global.WalletService, receiveDominant: true);
+						IoC.Get<WalletExplorerViewModel>().OpenWallet(_loadedWallet.WalletService, receiveDominant: true);
 					}
 				}
 				catch (Exception ex)
@@ -653,7 +654,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					{
 						Logger.LogError(ex);
 					}
-					await Global.DisposeInWalletDependentServicesAsync();
+					await _loadedWallet.DisposeInWalletDependentServicesAsync();
 				}
 			}
 			finally
