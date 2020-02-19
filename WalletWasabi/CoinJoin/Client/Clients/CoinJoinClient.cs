@@ -70,30 +70,13 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		public CoinJoinClient(
 			WasabiSynchronizer synchronizer,
 			Network network,
-			KeyManager keyManager,
-			Func<Uri> ccjHostUriAction,
-			EndPoint torSocks5EndPoint)
-		{
-			Create(synchronizer, network, keyManager, ccjHostUriAction, torSocks5EndPoint);
-		}
-
-		public CoinJoinClient(
-			WasabiSynchronizer synchronizer,
-			Network network,
-			KeyManager keyManager,
-			Uri ccjHostUri,
-			EndPoint torSocks5EndPoint)
-		{
-			Create(synchronizer, network, keyManager, () => ccjHostUri, torSocks5EndPoint);
-		}
-
-		private void Create(WasabiSynchronizer synchronizer, Network network, KeyManager keyManager, Func<Uri> ccjHostUriAction, EndPoint torSocks5EndPoint)
+			KeyManager keyManager)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
-			CcjHostUriAction = Guard.NotNull(nameof(ccjHostUriAction), ccjHostUriAction);
 			Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
-			TorSocks5EndPoint = torSocks5EndPoint;
+			CcjHostUriAction = Synchronizer.WasabiClient.TorClient.DestinationUriAction;
+			TorSocks5EndPoint = Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint;
 			CoordinatorFeepercentToCheck = null;
 
 			ExposedLinks = new ConcurrentDictionary<TxoRef, IEnumerable<HdPubKeyBlindedPair>>();
@@ -1029,7 +1012,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			}
 		}
 
-		public async Task StopAsync()
+		public async Task StopAsync(CancellationToken cancel)
 		{
 			Synchronizer.ResponseArrived -= Synchronizer_ResponseArrivedAsync;
 
@@ -1037,13 +1020,13 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			Cancel?.Cancel();
 			while (Interlocked.CompareExchange(ref _running, 3, 0) == 2)
 			{
-				await Task.Delay(50).ConfigureAwait(false);
+				await Task.Delay(50, cancel).ConfigureAwait(false);
 			}
 
 			Cancel?.Dispose();
 			Cancel = null;
 
-			using (await MixLock.LockAsync().ConfigureAwait(false))
+			using (await MixLock.LockAsync(cancel).ConfigureAwait(false))
 			{
 				await DequeueSpentCoinsFromMixNoLockAsync().ConfigureAwait(false);
 

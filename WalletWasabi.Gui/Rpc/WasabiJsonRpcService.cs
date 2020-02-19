@@ -146,7 +146,7 @@ namespace WalletWasabi.Gui.Rpc
 				.ToArray();
 			if (toDequeue.Any())
 			{
-				await Global.ChaumianClient.DequeueCoinsFromMixAsync(toDequeue, DequeueReason.TransactionBuilding).ConfigureAwait(false);
+				await Global.WalletService.ChaumianClient.DequeueCoinsFromMixAsync(toDequeue, DequeueReason.TransactionBuilding).ConfigureAwait(false);
 			}
 
 			await Global.TransactionBroadcaster.SendTransactionAsync(smartTx).ConfigureAwait(false);
