@@ -2051,7 +2051,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				// Test DelayedClientRoundRegistration logic.
 				ClientRoundRegistration first = null;
 				var second = new ClientRoundRegistration(aliceClient,
-					new[] { new SmartCoin(uint256.One, 1, Script.Empty, Money.Zero, new[] { new TxoRef(uint256.One, 1) }, Height.Unknown, true, 2, isLikelyCoinJoinOutput: false) },
+					new[] { new SmartCoin(uint256.One, 1, Script.Empty, Money.Zero, new[] { new TxoRef(uint256.One, 1) }, Height.Unknown, true, 2) },
 					BitcoinAddress.Create("12Rty3c8j3QiZSwLVaBtch6XUMZaja3RC7", Network.Main));
 				first = second;
 				second = null;
@@ -3113,7 +3113,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 				var height = await rpc.GetBlockCountAsync();
 				var bechCoin = tx.Outputs.GetCoins(bech.ScriptPubKey).Single();
 
-				var smartCoin = new SmartCoin(bechCoin, tx.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height + 1, replaceable: false, anonymitySet: tx.GetAnonymitySet(bechCoin.Outpoint.N), isLikelyCoinJoinOutput: false);
+				var smartCoin = new SmartCoin(bechCoin, tx.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height + 1, replaceable: false, anonymitySet: tx.GetAnonymitySet(bechCoin.Outpoint.N));
+
 				var chaumianClient = new CoinJoinClient(synchronizer, rpc.Network, keyManager);
 
 				participants.Add((smartCoin, chaumianClient));
@@ -3219,10 +3220,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 			var bech3Coin = tx3.Outputs.GetCoins(bech3.ScriptPubKey).Single();
 			var bech4Coin = tx4.Outputs.GetCoins(bech4.ScriptPubKey).Single();
 
-			var smartCoin1 = new SmartCoin(bech1Coin, tx1.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, replaceable: false, anonymitySet: tx1.GetAnonymitySet(bech1Coin.Outpoint.N), isLikelyCoinJoinOutput: false);
-			var smartCoin2 = new SmartCoin(bech2Coin, tx2.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, replaceable: false, anonymitySet: tx2.GetAnonymitySet(bech2Coin.Outpoint.N), isLikelyCoinJoinOutput: false);
-			var smartCoin3 = new SmartCoin(bech3Coin, tx3.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, replaceable: false, anonymitySet: tx3.GetAnonymitySet(bech3Coin.Outpoint.N), isLikelyCoinJoinOutput: false);
-			var smartCoin4 = new SmartCoin(bech4Coin, tx4.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, replaceable: false, anonymitySet: tx4.GetAnonymitySet(bech4Coin.Outpoint.N), isLikelyCoinJoinOutput: false);
+			var smartCoin1 = new SmartCoin(bech1Coin, tx1.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, replaceable: false, anonymitySet: tx1.GetAnonymitySet(bech1Coin.Outpoint.N));
+			var smartCoin2 = new SmartCoin(bech2Coin, tx2.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, replaceable: false, anonymitySet: tx2.GetAnonymitySet(bech2Coin.Outpoint.N));
+			var smartCoin3 = new SmartCoin(bech3Coin, tx3.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, replaceable: false, anonymitySet: tx3.GetAnonymitySet(bech3Coin.Outpoint.N));
+			var smartCoin4 = new SmartCoin(bech4Coin, tx4.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, replaceable: false, anonymitySet: tx4.GetAnonymitySet(bech4Coin.Outpoint.N));
 
 			var chaumianClient1 = new CoinJoinClient(synchronizer, rpc.Network, keyManager);
 			var chaumianClient2 = new CoinJoinClient(synchronizer, rpc.Network, keyManager);
@@ -3245,7 +3246,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.True(smartCoin2.CoinJoinInProgress);
 
 				// Make sure it does not throw.
-				await chaumianClient1.DequeueCoinsFromMixAsync(new SmartCoin((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 1, new Script(), Money.Parse("3"), new TxoRef[] { new TxoRef((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 0) }, Height.Mempool, replaceable: false, anonymitySet: 1, isLikelyCoinJoinOutput: false), DequeueReason.UserRequested);
+				await chaumianClient1.DequeueCoinsFromMixAsync(new SmartCoin((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 1, new Script(), Money.Parse("3"), new TxoRef[] { new TxoRef((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 0) }, Height.Mempool, replaceable: false, anonymitySet: 1), DequeueReason.UserRequested);
 
 				Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
 				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1, DequeueReason.UserRequested);

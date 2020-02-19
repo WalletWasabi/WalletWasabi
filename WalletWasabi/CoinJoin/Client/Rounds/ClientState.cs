@@ -198,7 +198,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 			Func<SmartCoin, bool> confirmationPredicate;
 			if (allowUnconfirmedZeroLink)
 			{
-				confirmationPredicate = x => x.Confirmed || x.IsLikelyCoinJoinOutput;
+				confirmationPredicate = x => x.Confirmed || x.IsLikelyCoinJoinOutput is true;
 			}
 			else
 			{

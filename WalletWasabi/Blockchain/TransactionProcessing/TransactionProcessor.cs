@@ -164,13 +164,6 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					}
 				}
 
-				if (tx.Transaction.Inputs.Count > 1 // The tx must have more than one input in order to be a coinjoin.
-					&& tx.Transaction.HasIndistinguishableOutputs() // The tx must have more than one equal output in order to be a coinjoin.
-					&& Coins.AsAllCoinsView().OutPoints(tx.Transaction.Inputs.ToTxoRefs()).Any()) // If the input is any of our coins, then it's our CJ.
-				{
-					result.IsLikelyOwnCoinJoin = true;
-				}
-
 				List<SmartCoin> spentOwnCoins = null;
 				for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 				{
@@ -193,7 +186,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 							anonset += spentOwnCoins.Min(x => x.AnonymitySet) - 1; // Minus 1, because do not count own.
 						}
 
-						SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, result.IsLikelyOwnCoinJoin, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
+						SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
 
 						result.ReceivedCoins.Add(newCoin);
 						// If we did not have it.
@@ -225,29 +218,45 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					}
 				}
 
-				// If spends any of our coin
-				for (var i = 0; i < tx.Transaction.Inputs.Count; i++)
+				var isLikelyCj = false;
+				if (tx.Transaction.Inputs.Count > 1 // The tx must have more than one input in order to be a coinjoin.
+					&& tx.Transaction.HasIndistinguishableOutputs()) // The tx must have more than one equal output in order to be a coinjoin.
 				{
-					var input = tx.Transaction.Inputs[i];
+					isLikelyCj = true;
+				}
 
-					var foundCoin = Coins.AsAllCoinsView().GetByOutPoint(input.PrevOut);
-					if (foundCoin != null)
+				foreach (var coin in Coins.AsAllCoinsView())
+				{
+					// If spends any of our coin
+					var input = tx.Transaction.Inputs.Select(x => x.PrevOut).FirstOrDefault(x => x == coin.GetOutPoint());
+					if (input is { })
 					{
-						var alreadyKnown = foundCoin.SpenderTransactionId == txId;
-						foundCoin.SpenderTransactionId = txId;
-						result.SpentCoins.Add(foundCoin);
+						var alreadyKnown = coin.SpenderTransactionId == txId;
+						coin.SpenderTransactionId = txId;
+						result.SpentCoins.Add(coin);
 
 						if (!alreadyKnown)
 						{
-							Coins.Spend(foundCoin);
-							result.NewlySpentCoins.Add(foundCoin);
+							Coins.Spend(coin);
+							result.NewlySpentCoins.Add(coin);
 						}
 
 						if (tx.Confirmed)
 						{
-							result.NewlyConfirmedSpentCoins.Add(foundCoin);
+							result.NewlyConfirmedSpentCoins.Add(coin);
+						}
+
+						if (isLikelyCj)
+						{
+							result.IsLikelyOwnCoinJoin = true;
 						}
 					}
+				}
+
+				foreach (var coin in result.ReceivedCoins)
+				{
+					// May be too late to set it at this point. It'd be better to set at the constructor, but couldn't find a way without ruining performance.
+					coin.IsLikelyCoinJoinOutput = result.IsLikelyOwnCoinJoin;
 				}
 
 				if (result.IsNews)
