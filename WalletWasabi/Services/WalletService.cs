@@ -88,7 +88,6 @@ namespace WalletWasabi.Services
 			CoreNode = coreNode;
 
 			ChaumianClient = new CoinJoinClient(Synchronizer, Network, keyManager);
-
 			HandleFiltersLock = new AsyncLock();
 
 			BlocksFolderPath = Path.Combine(workFolderDir, "Blocks", Network.ToString());
