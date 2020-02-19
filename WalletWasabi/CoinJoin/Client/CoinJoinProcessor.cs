@@ -23,7 +23,7 @@ namespace WalletWasabi.CoinJoin.Client
 	{
 		public WasabiSynchronizer Synchronizer { get; }
 		public Dictionary<WalletService, HashSet<uint256>> WalletServices { get; }
-		public IEnumerable<KeyValuePair<WalletService, HashSet<uint256>>> AliveWalletServices => WalletServices.Where(x => x.Key is { IsDisposed: var isDisposed } && !isDisposed);
+		public IEnumerable<KeyValuePair<WalletService, HashSet<uint256>>> AliveWalletServices => WalletServices.Where(x => x.Key is { IsStoppingOrStopped: var isDisposed } && !isDisposed);
 		public object WalletServicesLock { get; }
 		public RPCClient RpcClient { get; private set; }
 		private AsyncLock ProcessLock { get; }

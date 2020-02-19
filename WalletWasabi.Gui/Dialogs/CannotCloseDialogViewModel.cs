@@ -137,7 +137,7 @@ namespace WalletWasabi.Gui.Dialogs
 
 					try
 					{
-						if (Global.WalletService is null || Global.ChaumianClient is null)
+						if (Global.WalletService is null || Global.WalletService.ChaumianClient is null)
 						{
 							return;
 						}
@@ -153,7 +153,7 @@ namespace WalletWasabi.Gui.Dialogs
 									break;
 								}
 
-								await Global.ChaumianClient.DequeueCoinsFromMixAsync(new SmartCoin[] { coin }, DequeueReason.ApplicationExit); // Dequeue coins one-by-one to check cancel flag more frequently.
+								await Global.WalletService.ChaumianClient.DequeueCoinsFromMixAsync(new SmartCoin[] { coin }, DequeueReason.ApplicationExit); // Dequeue coins one-by-one to check cancel flag more frequently.
 							}
 							catch (Exception ex)
 							{

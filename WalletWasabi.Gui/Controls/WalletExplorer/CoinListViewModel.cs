@@ -73,7 +73,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public bool DisplayCommonOwnershipWarning { get; set; } = false;
 		public bool CanDequeueCoins { get; set; } = false;
-		
+
 		private SortExpressionComparer<CoinViewModel> MyComparer
 		{
 			get => _myComparer;
@@ -257,7 +257,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			CoinJoinStatusWidth = new GridLength(0);
 			CanDequeueCoins = canDequeueCoins;
 			DisplayCommonOwnershipWarning = displayCommonOwnershipWarning;
-			
+
 			RefreshOrdering();
 
 			// Otherwise they're all selected as null on load.
@@ -519,7 +519,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Observable
 				.Merge(cvm.Model.WhenAnyValue(x => x.IsBanned, x => x.SpentAccordingToBackend, x => x.Confirmed, x => x.CoinJoinInProgress).Select(_ => Unit.Default))
-				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.StateUpdated)).Select(_ => Unit.Default))
+				.Merge(Observable.FromEventPattern(Global.WalletService.ChaumianClient, nameof(Global.WalletService.ChaumianClient.StateUpdated)).Select(_ => Unit.Default))
 				.Synchronize(StateChangedLock) // Use the same lock to ensure thread safety.
 				.Throttle(TimeSpan.FromSeconds(1))
 				.ObserveOn(RxApp.MainThreadScheduler)
