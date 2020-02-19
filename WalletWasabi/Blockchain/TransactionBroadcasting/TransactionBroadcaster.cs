@@ -27,7 +27,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 		public Network Network { get; }
 		public NodesGroup Nodes { get; }
 		public List<WalletService> WalletServices { get; }
-		public IEnumerable<WalletService> AliveWalletServices => WalletServices.Where(x => x != null && !x.IsDisposed);
+		public IEnumerable<WalletService> AliveWalletServices => WalletServices.Where(x => x != null && !x.IsStoppingOrStopped);
 		public object WalletServicesLock { get; }
 		public RPCClient RpcClient { get; private set; }
 
