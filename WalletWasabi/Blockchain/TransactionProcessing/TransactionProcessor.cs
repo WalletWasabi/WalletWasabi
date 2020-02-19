@@ -237,11 +237,11 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					}
 				}
 
-				var prevOutArray = tx.Transaction.Inputs.Select(x => x.PrevOut).ToArray();
 				foreach (var coin in Coins.AsAllCoinsView())
 				{
 					// If spends any of our coin
-					foreach (var input in prevOutArray.Where(x => x == coin.GetOutPoint()))
+					var input = tx.Transaction.Inputs.Select(x => x.PrevOut).FirstOrDefault(x => x == coin.GetOutPoint());
+					if (input is { })
 					{
 						var alreadyKnown = coin.SpenderTransactionId == txId;
 						coin.SpenderTransactionId = txId;
