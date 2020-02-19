@@ -44,7 +44,7 @@ namespace WalletWasabi.Hwi.Models
 
 		public bool Equals(HwiOption other) => this == other;
 
-		public override int GetHashCode() => Type.GetHashCode() ^ Arguments.GetHashCode();
+		public override int GetHashCode() => (Type, Arguments).GetHashCode();
 
 		public static bool operator ==(HwiOption x, HwiOption y) => x?.Type == y?.Type && x?.Arguments == y?.Arguments;
 

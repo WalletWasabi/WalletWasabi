@@ -23,7 +23,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			ConfirmCommand = ReactiveCommand.Create(() =>
 			{
 				keyManager.ToFile();
-				NotificationHelpers.Success("Wallet is successfully generated!");
+				NotificationHelpers.Success("Wallet was generated.");
 				owner.SelectTestPassword();
 			});
 
