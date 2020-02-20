@@ -149,7 +149,7 @@ namespace WalletWasabi.Gui
 
 					foreach (var wallet in Global.Wallets)
 					{
-						if (wallet.WalletService?.ChaumianClient != null)
+						if (wallet.WalletService?.ChaumianClient is { })
 						{
 							wallet.WalletService.ChaumianClient.IsQuitPending = false; //re-enable enqueuing coins
 						}
