@@ -124,11 +124,7 @@ namespace WalletWasabi.Gui.ViewModels
 				}
 			});
 
-			LockAddress = ReactiveCommand.Create(() =>
-			{
-				var key = km.GetKeys(x => !x.IsInternal && x == Model).FirstOrDefault();
-				key.SetKeyState(KeyState.Locked, km);
-			});
+			LockAddress = ReactiveCommand.Create(() => Model.SetKeyState(KeyState.Locked, km));
 
 			Observable
 				.Merge(ToggleQrCode.ThrownExceptions)
