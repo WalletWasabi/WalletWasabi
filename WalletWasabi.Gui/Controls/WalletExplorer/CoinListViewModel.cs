@@ -19,6 +19,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using Splat;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -72,6 +73,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReadOnlyObservableCollection<CoinViewModel> Coins => _coinViewModels;
 
 		public bool DisplayCommonOwnershipWarning { get; set; } = false;
+		public WalletService WalletService { get; }
 		public bool CanDequeueCoins { get; set; } = false;
 
 		private SortExpressionComparer<CoinViewModel> MyComparer
@@ -248,13 +250,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		public CoinListViewModel(bool canDequeueCoins = false, bool displayCommonOwnershipWarning = false)
+		public CoinListViewModel(WalletService walletService, bool canDequeueCoins = false, bool displayCommonOwnershipWarning = false)
 		{
 			Global = Locator.Current.GetService<Global>();
 
 			AmountSortDirection = SortOrder.Decreasing;
 
 			CoinJoinStatusWidth = new GridLength(0);
+			WalletService = walletService;
 			CanDequeueCoins = canDequeueCoins;
 			DisplayCommonOwnershipWarning = displayCommonOwnershipWarning;
 
@@ -422,7 +425,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.DisposeWith(Disposables);
 
 			Observable
-				.Merge(Observable.FromEventPattern<ProcessedResult>(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default))
+				.Merge(Observable.FromEventPattern<ProcessedResult>(WalletService.TransactionProcessor, nameof(WalletService.TransactionProcessor.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default))
 				.Throttle(TimeSpan.FromSeconds(1)) // Throttle TransactionProcessor events adds/removes.
 				.Merge(Observable.FromEventPattern(this, nameof(CoinListShown), RxApp.MainThreadScheduler).Select(_ => Unit.Default)) // Load the list immediately.
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -430,7 +433,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					try
 					{
-						var actual = Global.WalletService.TransactionProcessor.Coins.ToHashSet();
+						var actual = WalletService.TransactionProcessor.Coins.ToHashSet();
 						var old = RootList.Items.ToDictionary(c => c.Model, c => c);
 
 						var coinToRemove = old.Where(c => !actual.Contains(c.Key)).ToArray();
@@ -438,7 +441,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 						RootList.RemoveMany(coinToRemove.Select(kp => kp.Value));
 
-						var newCoinViewModels = coinToAdd.Select(c => new CoinViewModel(this, c)).ToArray();
+						var newCoinViewModels = coinToAdd.Select(c => new CoinViewModel(WalletService, this, c)).ToArray();
 						foreach (var cvm in newCoinViewModels)
 						{
 							SubscribeToCoinEvents(cvm);
@@ -519,7 +522,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Observable
 				.Merge(cvm.Model.WhenAnyValue(x => x.IsBanned, x => x.SpentAccordingToBackend, x => x.Confirmed, x => x.CoinJoinInProgress).Select(_ => Unit.Default))
-				.Merge(Observable.FromEventPattern(Global.WalletService.ChaumianClient, nameof(Global.WalletService.ChaumianClient.StateUpdated)).Select(_ => Unit.Default))
+				.Merge(Observable.FromEventPattern(WalletService.ChaumianClient, nameof(WalletService.ChaumianClient.StateUpdated)).Select(_ => Unit.Default))
 				.Synchronize(StateChangedLock) // Use the same lock to ensure thread safety.
 				.Throttle(TimeSpan.FromSeconds(1))
 				.ObserveOn(RxApp.MainThreadScheduler)
