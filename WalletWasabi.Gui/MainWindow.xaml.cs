@@ -85,7 +85,7 @@ namespace WalletWasabi.Gui
 			{
 				foreach (var wallet in Global.Wallets)
 				{
-					if (wallet.WalletService?.ChaumianClient != null)
+					if (wallet.WalletService?.ChaumianClient is { })
 					{
 						wallet.WalletService.ChaumianClient.IsQuitPending = true; // indicate -> do not add any more alices to the coinjoin
 					}
