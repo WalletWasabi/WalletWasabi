@@ -83,7 +83,7 @@ namespace WalletWasabi.Gui
 			bool closeApplication = false;
 			try
 			{
-				foreach(var wallet in Global.Wallets)
+				foreach (var wallet in Global.Wallets)
 				{
 					if (wallet.WalletService?.ChaumianClient != null)
 					{

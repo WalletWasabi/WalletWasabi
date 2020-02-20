@@ -25,16 +25,16 @@ namespace WalletWasabi.Gui
 		{
 		}
 
-		private async Task InitaliseAsync (KeyManager keyManager)
+		private async Task InitaliseAsync(KeyManager keyManager)
 		{
 			WalletService = await CreateWalletServiceAsync(keyManager);
 
 			AppDomain.CurrentDomain.ProcessExit += async (s, e) => await TryDesperateDequeueAllCoinsAsync();
 		}
 
-        public WalletService WalletService { get; private set; }
+		public WalletService WalletService { get; private set; }
 
-		public static async Task<Wallet> CreateWalletAsync (KeyManager keyManager)
+		public static async Task<Wallet> CreateWalletAsync(KeyManager keyManager)
 		{
 			var result = new Wallet();
 
@@ -135,7 +135,7 @@ namespace WalletWasabi.Gui
 				Logger.LogWarning($"{nameof(_cancelWalletServiceInitialization)} is disposed. This can occur due to an error while processing the wallet.");
 			}
 			_cancelWalletServiceInitialization = null;
-			
+
 			if (WalletService is { })
 			{
 				var keyManager = WalletService.KeyManager;

@@ -26,9 +26,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public Guid Id { get; set; } = Guid.NewGuid();
 
-        public WalletService WalletService { get; }
+		public WalletService WalletService { get; }
 
-        public bool IsExpanded
+		public bool IsExpanded
 		{
 			get => _isExpanded;
 			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
