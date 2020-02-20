@@ -2,6 +2,7 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using System.Linq;
+using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
@@ -9,8 +10,10 @@ using WalletWasabi.JsonConverters;
 namespace WalletWasabi.Blockchain.Keys
 {
 	[JsonObject(MemberSerialization.OptIn)]
-	public class HdPubKey : IEquatable<HdPubKey>
+	public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 	{
+		private KeyState _keyState;
+
 		[JsonProperty(Order = 1)]
 		[JsonConverter(typeof(PubKeyJsonConverter))]
 		public PubKey PubKey { get; }
@@ -24,7 +27,11 @@ namespace WalletWasabi.Blockchain.Keys
 		public SmartLabel Label { get; private set; }
 
 		[JsonProperty(Order = 4)]
-		public KeyState KeyState { get; private set; }
+		public KeyState KeyState
+		{
+			get => _keyState;
+			private set => RaiseAndSetIfChanged(ref _keyState, value);
+		}
 
 		public HdPubKey(PubKey pubKey, KeyPath fullKeyPath, SmartLabel label, KeyState keyState)
 		{

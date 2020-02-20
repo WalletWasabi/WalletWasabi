@@ -2,8 +2,10 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Security;
 using System.Text;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -76,6 +78,8 @@ namespace WalletWasabi.Blockchain.Keys
 
 		public const int AbsoluteMinGapLimit = 21;
 
+		public event EventHandler<HdPubKey> KeyStateChanged;
+
 		[JsonConstructor]
 		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, HDFingerprint? masterFingerprint, ExtPubKey extPubKey, bool? passwordVerified, int? minGapLimit, BlockchainState blockchainState, string filePath = null, KeyPath accountKeyPath = null)
 		{
@@ -132,6 +136,15 @@ namespace WalletWasabi.Blockchain.Keys
 			SetFilePath(filePath);
 			ToFileLock = new object();
 			ToFile();
+		}
+
+		[OnDeserialized]
+		internal void OnDeserializedMethod(StreamingContext context)
+		{
+			foreach (var keys in HdPubKeys)
+			{
+				keys.PropertyChanged += HdPubKey_PropertyChanged;
+			}
 		}
 
 		public static KeyManager CreateNew(out Mnemonic mnemonic, string password, string filePath = null)
@@ -442,6 +455,7 @@ namespace WalletWasabi.Blockchain.Keys
 				var pubKey = ExtPubKey.Derive(path).PubKey;
 
 				var hdPubKey = new HdPubKey(pubKey, fullPath, label, keyState);
+				hdPubKey.PropertyChanged += HdPubKey_PropertyChanged;
 				HdPubKeys.Add(hdPubKey);
 				lock (HdPubKeyScriptBytesLock)
 				{
@@ -459,6 +473,15 @@ namespace WalletWasabi.Blockchain.Keys
 				}
 
 				return hdPubKey;
+			}
+		}
+
+		private void HdPubKey_PropertyChanged(object sender, PropertyChangedEventArgs e)
+		{
+			if (e.PropertyName == nameof(HdPubKey.KeyState))
+			{
+				var handler = KeyStateChanged;
+				handler?.Invoke(this, sender as HdPubKey);
 			}
 		}
 
