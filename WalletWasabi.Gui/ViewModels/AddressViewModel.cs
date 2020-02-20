@@ -41,12 +41,14 @@ namespace WalletWasabi.Gui.ViewModels
 		public HdPubKey Model { get; }
 		private Global Global { get; }
 		public KeyManager KeyManager { get; }
+		public ReceiveTabViewModel Owner { get; }
 		public bool IsHardwareWallet { get; }
 
-		public AddressViewModel(HdPubKey model, KeyManager km)
+		public AddressViewModel(HdPubKey model, KeyManager km, ReceiveTabViewModel owner)
 		{
 			Global = Locator.Current.GetService<Global>();
 			KeyManager = km;
+			Owner = owner;
 			IsHardwareWallet = km.IsHardwareWallet;
 			Model = model;
 			ClipboardNotificationVisible = false;
@@ -124,7 +126,11 @@ namespace WalletWasabi.Gui.ViewModels
 				}
 			});
 
-			LockAddress = ReactiveCommand.Create(() => Model.SetKeyState(KeyState.Locked, km));
+			LockAddress = ReactiveCommand.Create(() =>
+			{
+				Model.SetKeyState(KeyState.Locked, km);
+				owner.InitializeAddresses();
+			});
 
 			Observable
 				.Merge(ToggleQrCode.ThrownExceptions)
