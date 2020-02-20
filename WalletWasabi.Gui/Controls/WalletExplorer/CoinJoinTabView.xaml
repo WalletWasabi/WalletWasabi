@@ -64,17 +64,17 @@
             <Grid ColumnDefinitions="210, *" RowDefinitions="50, 20, 20">
               <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Spacing="4" Margin="0 12">
                 <Canvas Height="20" Width="200">
-                  <Ellipse Width="20" Height="20" StrokeThickness="4" Stroke="{Binding Phase, ConverterParameter=InputRegistration, Converter={StaticResource PhaseColorConverter}}" Canvas.Left="0" />
-                  <Ellipse Width="20" Height="20" StrokeThickness="4" Stroke="{Binding Phase, ConverterParameter=ConnectionConfirmation, Converter={StaticResource PhaseColorConverter}}" Canvas.Left="50" />
-                  <Ellipse Width="20" Height="20" StrokeThickness="4" Stroke="{Binding Phase, ConverterParameter=OutputRegistration, Converter={StaticResource PhaseColorConverter}}" Canvas.Left="100" />
-                  <Ellipse Width="20" Height="20" StrokeThickness="4" Stroke="{Binding Phase, ConverterParameter=Signing, Converter={StaticResource PhaseColorConverter}}" Canvas.Left="150" />
-                  <Line StartPoint="20,10" EndPoint="50,10" StrokeThickness="4" Stroke="{Binding Phase, ConverterParameter=InputRegistration, Converter={StaticResource PhaseColorConverter}}" />
-                  <Line StartPoint="70,10" EndPoint="100,10" StrokeThickness="4" Stroke="{Binding Phase, ConverterParameter=ConnectionConfirmation, Converter={StaticResource PhaseColorConverter}}" />
-                  <Line StartPoint="120,10" EndPoint="150,10" StrokeThickness="4" Stroke="{Binding Phase, ConverterParameter=OutputRegistration, Converter={StaticResource PhaseColorConverter}}" />
+                  <Ellipse Width="20" Height="20" StrokeThickness="4" Stroke="{Binding PhaseState, ConverterParameter=InputRegistration, Converter={StaticResource PhaseColorConverter}}" Canvas.Left="0" />
+                  <Ellipse Width="20" Height="20" StrokeThickness="4" Stroke="{Binding PhaseState, ConverterParameter=ConnectionConfirmation, Converter={StaticResource PhaseColorConverter}}" Canvas.Left="50" />
+                  <Ellipse Width="20" Height="20" StrokeThickness="4" Stroke="{Binding PhaseState, ConverterParameter=OutputRegistration, Converter={StaticResource PhaseColorConverter}}" Canvas.Left="100" />
+                  <Ellipse Width="20" Height="20" StrokeThickness="4" Stroke="{Binding PhaseState, ConverterParameter=Signing, Converter={StaticResource PhaseColorConverter}}" Canvas.Left="150" />
+                  <Line StartPoint="20,10" EndPoint="50,10" StrokeThickness="4" Stroke="{Binding PhaseState, ConverterParameter=InputRegistration, Converter={StaticResource PhaseColorConverter}}" />
+                  <Line StartPoint="70,10" EndPoint="100,10" StrokeThickness="4" Stroke="{Binding PhaseState, ConverterParameter=ConnectionConfirmation, Converter={StaticResource PhaseColorConverter}}" />
+                  <Line StartPoint="120,10" EndPoint="150,10" StrokeThickness="4" Stroke="{Binding PhaseState, ConverterParameter=OutputRegistration, Converter={StaticResource PhaseColorConverter}}" />
                 </Canvas>
               </StackPanel>
               <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="4" Margin="0 12">
-                <TextBlock VerticalAlignment="Center" Foreground="YellowGreen" Text="{Binding Phase, Converter={StaticResource PhaseStringConverter}}" />
+                <TextBlock VerticalAlignment="Center" Foreground="YellowGreen" Text="{Binding PhaseState, Converter={StaticResource PhaseStringConverter}}" />
               </StackPanel>
               <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" Spacing="4" IsVisible="{Binding TimeLeftTillRoundTimeout, Converter={StaticResource TimeSpanVisibilityConverter}}">
                 <TextBlock Text="Registration Ends In:" />

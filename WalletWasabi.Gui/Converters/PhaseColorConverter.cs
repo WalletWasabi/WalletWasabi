@@ -1,12 +1,9 @@
-using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
-using Splat;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
 using WalletWasabi.CoinJoin.Common.Models;
+using WalletWasabi.Gui.Controls.WalletExplorer;
 
 namespace WalletWasabi.Gui.Converters
 {
@@ -19,11 +16,10 @@ namespace WalletWasabi.Gui.Converters
 				throw new ArgumentException($"Unknown '{parameter}' value");
 			}
 
-			var global = Locator.Current.GetService<Global>();
-			var phaseError = global.WalletService.ChaumianClient.State.IsInErrorState;
+			var phaseState = (PhaseState)value;
 
-			return (RoundPhase)p <= (RoundPhase)value
-				? phaseError
+			return (RoundPhase)p <= phaseState.Phase
+				? phaseState.Error
 					? Brushes.IndianRed
 					: Brushes.Green
 				: Brushes.Gray;
