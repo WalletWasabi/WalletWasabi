@@ -33,8 +33,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableAsPropertyHelper<bool> _confirmed;
 		private ObservableAsPropertyHelper<bool> _unavailable;
 		private ObservableAsPropertyHelper<string> _cluster;
-
-		public WalletService WalletService { get; }
+		private WalletService WalletService { get; }
 		public CoinListViewModel Owner { get; }
 		private Global Global { get; }
 		public bool CanBeDequeued => Owner.CanDequeueCoins;

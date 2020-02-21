@@ -58,6 +58,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private object SelectionChangedLock { get; } = new object();
 		private object StateChangedLock { get; } = new object();
 		private Global Global { get; }
+		private WalletService WalletService { get; }
 		public ReactiveCommand<Unit, Unit> SelectAllCheckBoxCommand { get; }
 		public ReactiveCommand<Unit, Unit> SelectPrivateCheckBoxCommand { get; }
 		public ReactiveCommand<Unit, Unit> SelectNonPrivateCheckBoxCommand { get; }
@@ -73,7 +74,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReadOnlyObservableCollection<CoinViewModel> Coins => _coinViewModels;
 
 		public bool DisplayCommonOwnershipWarning { get; set; } = false;
-		public WalletService WalletService { get; }
+
 		public bool CanDequeueCoins { get; set; } = false;
 
 		private SortExpressionComparer<CoinViewModel> MyComparer

@@ -16,6 +16,7 @@ namespace WalletWasabi.Gui.Controls
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 		private int _caretIndex;
 		private string _label;
+		private WalletService WalletService { get; }
 
 		public SuggestLabelViewModel(WalletService walletService)
 		{
@@ -52,8 +53,6 @@ namespace WalletWasabi.Gui.Controls
 			get => _suggestions;
 			set => this.RaiseAndSetIfChanged(ref _suggestions, value);
 		}
-
-		public WalletService WalletService { get; }
 
 		private void UpdateSuggestions(string words)
 		{
