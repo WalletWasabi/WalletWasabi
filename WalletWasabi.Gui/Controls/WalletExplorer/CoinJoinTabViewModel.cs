@@ -31,7 +31,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private CompositeDisposable Disposables { get; set; }
 
 		private long _roundId;
-		private RoundPhaseState _phase;
+		private RoundPhaseState _phaseState;
 		private DateTimeOffset _roundTimesout;
 		private TimeSpan _timeLeftTillRoundTimeout;
 		private Money _requiredBTC;
@@ -382,8 +382,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public RoundPhaseState PhaseState
 		{
-			get => _phase;
-			set => this.RaiseAndSetIfChanged(ref _phase, value);
+			get => _phaseState;
+			set => this.RaiseAndSetIfChanged(ref _phaseState, value);
 		}
 
 		public DateTimeOffset RoundTimesout
