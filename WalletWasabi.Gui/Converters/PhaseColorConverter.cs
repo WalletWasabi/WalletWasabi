@@ -3,7 +3,7 @@ using Avalonia.Media;
 using System;
 using System.Globalization;
 using WalletWasabi.CoinJoin.Common.Models;
-using WalletWasabi.Gui.Controls.WalletExplorer;
+using WalletWasabi.Gui.Models;
 
 namespace WalletWasabi.Gui.Converters
 {

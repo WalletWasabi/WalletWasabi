@@ -1,6 +1,6 @@
-﻿using WalletWasabi.CoinJoin.Common.Models;
+using WalletWasabi.CoinJoin.Common.Models;
 
-namespace WalletWasabi.Gui.Controls.WalletExplorer
+namespace WalletWasabi.Gui.Models
 {
 	public struct RoundPhaseState
 	{
