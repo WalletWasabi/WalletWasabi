@@ -40,7 +40,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				if (transactionInfo is null)
 				{
-					transactionInfo = new TransactionInfoTabViewModel(this);
+					transactionInfo = new TransactionInfoTabViewModel(Model);
 					shell.AddDocument(transactionInfo);
 				}
 
