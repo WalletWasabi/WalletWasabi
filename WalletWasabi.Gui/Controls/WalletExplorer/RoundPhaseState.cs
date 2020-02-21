@@ -2,9 +2,9 @@
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public struct PhaseState
+	public struct RoundPhaseState
 	{
-		public PhaseState(RoundPhase phase, bool error)
+		public RoundPhaseState(RoundPhase phase, bool error)
 		{
 			Phase = phase;
 			Error = error;

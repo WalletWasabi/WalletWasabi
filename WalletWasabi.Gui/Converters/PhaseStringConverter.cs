@@ -13,7 +13,7 @@ namespace WalletWasabi.Gui.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (value is PhaseState phase)
+			if (value is RoundPhaseState phase)
 			{
 				return phase.Phase switch
 				{
@@ -36,19 +36,19 @@ namespace WalletWasabi.Gui.Converters
 
 			if (s.Equals("Registration", StringComparison.OrdinalIgnoreCase) || s.Equals(RoundPhase.InputRegistration.ToString(), StringComparison.OrdinalIgnoreCase))
 			{
-				return new PhaseState(RoundPhase.InputRegistration, false);
+				return new RoundPhaseState(RoundPhase.InputRegistration, false);
 			}
 			else if (s.Equals("Connection Confirmation", StringComparison.OrdinalIgnoreCase) || s.Equals(RoundPhase.ConnectionConfirmation.ToString(), StringComparison.OrdinalIgnoreCase))
 			{
-				return new PhaseState(RoundPhase.ConnectionConfirmation, false);
+				return new RoundPhaseState(RoundPhase.ConnectionConfirmation, false);
 			}
 			else if (s.Equals("Output Registration", StringComparison.OrdinalIgnoreCase) || s.Equals(RoundPhase.OutputRegistration.ToString(), StringComparison.OrdinalIgnoreCase))
 			{
-				return new PhaseState(RoundPhase.OutputRegistration, false);
+				return new RoundPhaseState(RoundPhase.OutputRegistration, false);
 			}
 			else if (s.Equals("Signing", StringComparison.OrdinalIgnoreCase) || s.Equals(RoundPhase.Signing.ToString(), StringComparison.OrdinalIgnoreCase))
 			{
-				return new PhaseState(RoundPhase.Signing, false);
+				return new RoundPhaseState(RoundPhase.Signing, false);
 			}
 
 			throw new InvalidOperationException();

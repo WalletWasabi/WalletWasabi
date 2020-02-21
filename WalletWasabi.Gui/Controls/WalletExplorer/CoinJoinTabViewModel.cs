@@ -31,7 +31,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private CompositeDisposable Disposables { get; set; }
 
 		private long _roundId;
-		private PhaseState _phase;
+		private RoundPhaseState _phase;
 		private DateTimeOffset _roundTimesout;
 		private TimeSpan _timeLeftTillRoundTimeout;
 		private Money _requiredBTC;
@@ -159,7 +159,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			if (mostAdvancedRound != default)
 			{
 				RoundId = mostAdvancedRound.State.RoundId;
-				PhaseState = new PhaseState(mostAdvancedRound.State.Phase, Global.WalletService.ChaumianClient?.State.IsInErrorState ?? false);
+				PhaseState = new RoundPhaseState(mostAdvancedRound.State.Phase, Global.WalletService.ChaumianClient?.State.IsInErrorState ?? false);
 				RoundTimesout = mostAdvancedRound.State.Phase == RoundPhase.InputRegistration ? mostAdvancedRound.State.InputRegistrationTimesout : DateTimeOffset.UtcNow;
 				PeersRegistered = mostAdvancedRound.State.RegisteredPeerCount;
 				PeersNeeded = mostAdvancedRound.State.RequiredPeerCount;
@@ -167,7 +167,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			else
 			{
 				RoundId = -1;
-				PhaseState = new PhaseState(RoundPhase.InputRegistration, false);
+				PhaseState = new RoundPhaseState(RoundPhase.InputRegistration, false);
 				RoundTimesout = DateTimeOffset.UtcNow;
 				PeersRegistered = 0;
 				PeersNeeded = 100;
@@ -300,12 +300,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				RoundId = mostAdvancedRound.State.RoundId;
 				if (!chaumianClient.State.IsInErrorState)
 				{
-					PhaseState = new PhaseState(mostAdvancedRound.State.Phase, false);
+					PhaseState = new RoundPhaseState(mostAdvancedRound.State.Phase, false);
 					RoundTimesout = mostAdvancedRound.State.Phase == RoundPhase.InputRegistration ? mostAdvancedRound.State.InputRegistrationTimesout : DateTimeOffset.UtcNow;
 				}
 				else
 				{
-					PhaseState = new PhaseState(PhaseState.Phase, true);
+					PhaseState = new RoundPhaseState(PhaseState.Phase, true);
 				}
 
 				this.RaisePropertyChanged(nameof(PhaseState));
@@ -380,7 +380,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _roundId, value);
 		}
 
-		public PhaseState PhaseState
+		public RoundPhaseState PhaseState
 		{
 			get => _phase;
 			set => this.RaiseAndSetIfChanged(ref _phase, value);

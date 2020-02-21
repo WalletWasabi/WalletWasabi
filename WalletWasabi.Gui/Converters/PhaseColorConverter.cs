@@ -16,7 +16,7 @@ namespace WalletWasabi.Gui.Converters
 				throw new ArgumentException($"Unknown '{parameter}' value");
 			}
 
-			var phaseState = (PhaseState)value;
+			var phaseState = (RoundPhaseState)value;
 
 			return (RoundPhase)p <= phaseState.Phase
 				? phaseState.Error
