@@ -1,28 +1,24 @@
+trigger:
+  batch: true
+
 variables:
-  testConfiguration: 'Debug'
+  solution: '**/*.sln'
+  buildPlatform: 'x64'
+  buildConfiguration: 'Release'
 
 jobs:
 - job: Windows
   pool:
     vmImage: 'vs2017-win2016'
   steps:
-  - task: UseDotNet@2
-    displayName: 'Install .NET Core 3'
+  - task: VSBuild@1
+    displayName: 'Build'
     inputs:
-      version: 3.1.x
-  - task: DotNetCoreCLI@2
-    displayName: 'Build Debug'
+      solution: '$(solution)'
+      platform: '$(buildPlatform)'
+      configuration: '$(buildConfiguration)'
+  - task: VSTest@2
     inputs:
-      command: build
-      arguments: --configuration Debug
-  - task: DotNetCoreCLI@2
-    displayName: 'Build Release'
-    inputs:
-      command: build
-      arguments: --configuration Release
-  - task: DotNetCoreCLI@2
-    displayName: 'Test Debug'
-    inputs:
-      command: test
-      projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
-      arguments: --configuration $(testConfiguration) --filter "UnitTests"
+      platform: '$(buildPlatform)'
+      configuration: '$(buildConfiguration)'
+      testFiltercriteria: Name=UnitTests
