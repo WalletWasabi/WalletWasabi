@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using NBitcoin.DataEncoders;
 using NBitcoin.Protocol;
@@ -32,11 +33,12 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
 {
-	public class WalletService : IDisposable
+	public class WalletService : IHostedService
 	{
 		public static event EventHandler<bool> DownloadingBlockChanged;
 
 		public static event EventHandler<bool> InitializingChanged;
+
 		private static Random Random { get; } = new Random();
 
 		public BitcoinStore BitcoinStore { get; }
@@ -71,7 +73,6 @@ namespace WalletWasabi.Services
 			BitcoinStore bitcoinStore,
 			KeyManager keyManager,
 			WasabiSynchronizer syncer,
-			CoinJoinClient chaumianClient,
 			NodesGroup nodes,
 			string workFolderDir,
 			ServiceConfiguration serviceConfiguration,
@@ -82,11 +83,11 @@ namespace WalletWasabi.Services
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			Nodes = Guard.NotNull(nameof(nodes), nodes);
 			Synchronizer = Guard.NotNull(nameof(syncer), syncer);
-			ChaumianClient = Guard.NotNull(nameof(chaumianClient), chaumianClient);
 			ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 			FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
 			CoreNode = coreNode;
 
+			ChaumianClient = new CoinJoinClient(Synchronizer, Network, keyManager);
 			HandleFiltersLock = new AsyncLock();
 
 			BlocksFolderPath = Path.Combine(workFolderDir, "Blocks", Network.ToString());
@@ -228,7 +229,8 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public async Task InitializeAsync(CancellationToken cancel)
+		/// <inheritdoc/>
+		public async Task StartAsync(CancellationToken cancel)
 		{
 			try
 			{
@@ -247,6 +249,8 @@ namespace WalletWasabi.Services
 				}
 
 				await RuntimeParams.LoadAsync();
+
+				ChaumianClient.Start();
 
 				using (await HandleFiltersLock.LockAsync())
 				{
@@ -728,7 +732,7 @@ namespace WalletWasabi.Services
 				// We use the timelock distribution observed in the bitcoin network
 				// in order to reduce the wasabi wallet transactions fingerprinting
 				// chances.
-				// 
+				//
 				// Network observations:
 				// 90.0% uses locktime = 0
 				//  7.5% uses locktime = current tip
@@ -815,40 +819,25 @@ namespace WalletWasabi.Services
 			Logger.LogInfo($"Current timeout value used on block download is: {timeout} seconds.");
 		}
 
-		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		public bool IsDisposed => _disposedValue;
+		public bool IsStoppingOrStopped { get; private set; }
 
 		public CoreNode CoreNode { get; }
 		public FilterModel LastProcessedFilter { get; private set; }
 
-		protected virtual void Dispose(bool disposing)
+		/// <inheritdoc/>
+		public async Task StopAsync(CancellationToken cancel)
 		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					BitcoinStore.IndexStore.NewFilter -= IndexDownloader_NewFilterAsync;
-					BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
-					BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
-					TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessedAsync;
+			IsStoppingOrStopped = true;
 
-					DisconnectDisposeNullLocalBitcoinCoreNode();
-				}
+			BitcoinStore.IndexStore.NewFilter -= IndexDownloader_NewFilterAsync;
+			BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
+			BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
+			TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessedAsync;
 
-				_disposedValue = true;
-			}
+			DisconnectDisposeNullLocalBitcoinCoreNode();
+
+			await ChaumianClient.StopAsync(cancel).ConfigureAwait(false);
+			Logger.LogInfo($"{nameof(ChaumianClient)} is stopped.");
 		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-		}
-
-		#endregion IDisposable Support
 	}
 }
