@@ -11,6 +11,10 @@ jobs:
   pool:
     vmImage: 'vs2017-win2016'
   steps:
+  - task: NuGetToolInstaller@1
+  - task: NuGetCommand@2
+    inputs:
+    restoreSolution: '$(solution)'
   - task: VSBuild@1
     displayName: 'Build'
     inputs:
