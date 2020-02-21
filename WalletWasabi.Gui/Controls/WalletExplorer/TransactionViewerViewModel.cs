@@ -67,7 +67,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _psbtBytes;
 			set => this.RaiseAndSetIfChanged(ref _psbtBytes, value);
-		}		
+		}
 
 		public TransactionViewerViewModel(Guid walletId) : base("Transaction")
 		{
