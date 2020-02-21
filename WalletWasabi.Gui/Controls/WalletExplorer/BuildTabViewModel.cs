@@ -15,22 +15,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		public override string DoButtonText => "Build Transaction";
 		public override string DoingButtonText => "Building Transaction...";
+		
+		private WalletService WalletService { get; }
 
-		private Guid _walletId;
-
-		public BuildTabViewModel(WalletService walletService, Guid walletId) : base(walletService, "Build Transaction")
+		public BuildTabViewModel(WalletService walletService) : base(walletService, "Build Transaction")
 		{
-			_walletId = walletId;
+			WalletService = walletService;
 		}
 
 		protected override Task DoAfterBuildTransaction(BuildTransactionResult result)
 		{
 			try
 			{
-				var txviewer = IoC.Get<IShell>().Documents?.OfType<TransactionViewerViewModel>()?.FirstOrDefault(x => x.Id == _walletId);
+				var txviewer = IoC.Get<IShell>().Documents?.OfType<TransactionViewerViewModel>()?.FirstOrDefault(x => x.WalletService.CompareTo(WalletService) == 0);
 				if (txviewer is null)
 				{
-					txviewer = new TransactionViewerViewModel(_walletId);
+					txviewer = new TransactionViewerViewModel(WalletService);
 					IoC.Get<IShell>().AddDocument(txviewer);
 				}
 				IoC.Get<IShell>().Select(txviewer);

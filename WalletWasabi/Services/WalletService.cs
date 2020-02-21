@@ -8,6 +8,7 @@ using Nito.AsyncEx;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -33,7 +34,7 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
 {
-	public class WalletService : IHostedService
+	public class WalletService : IHostedService, IComparable<WalletService>
 	{
 		public static event EventHandler<bool> DownloadingBlockChanged;
 
@@ -838,6 +839,18 @@ namespace WalletWasabi.Services
 
 			await ChaumianClient.StopAsync(cancel).ConfigureAwait(false);
 			Logger.LogInfo($"{nameof(ChaumianClient)} is stopped.");
+		}
+
+		public int CompareTo([AllowNull] WalletService other)
+		{
+			if(other is null)
+			{
+				return -1;
+			}
+			else
+			{
+				return KeyManager.FilePath.CompareTo(other.KeyManager.FilePath);
+			}
 		}
 	}
 }
