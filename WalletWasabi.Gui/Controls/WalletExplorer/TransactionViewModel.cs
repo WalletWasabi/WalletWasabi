@@ -1,8 +1,8 @@
 using Avalonia;
-using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
 using System;
+using System.Linq;
 using System.Globalization;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
+using AvalonStudio.Extensibility;
+using AvalonStudio.Shell;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -20,6 +22,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _clipboardNotificationVisible;
 		private double _clipboardNotificationOpacity;
 		public ReactiveCommand<Unit, Unit> CopyTransactionId { get; }
+		public ReactiveCommand<Unit, Unit> OpenTransactionInfo { get; }
 
 		public TransactionViewModel(TransactionInfo model)
 		{
@@ -28,8 +31,25 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ClipboardNotificationOpacity = 0;
 
 			CopyTransactionId = ReactiveCommand.CreateFromTask(TryCopyTxIdToClipboardAsync);
+			
+			OpenTransactionInfo = ReactiveCommand.Create(() =>
+			{
+				var shell = IoC.Get<IShell>();
 
-			CopyTransactionId.ThrownExceptions
+				var transactionInfo = shell.Documents?.OfType<TransactionInfoTabViewModel>()?.FirstOrDefault(x => x.Transaction?.TransactionId == TransactionId);
+
+				if (transactionInfo is null)
+				{
+					transactionInfo = new TransactionInfoTabViewModel(Model);
+					shell.AddDocument(transactionInfo);
+				}
+
+				shell.Select(transactionInfo);
+			});
+
+			Observable
+				.Merge(CopyTransactionId.ThrownExceptions)
+				.Merge(OpenTransactionInfo.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
 				{
@@ -56,6 +76,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public Money Amount => Money.TryParse(Model.AmountBtc, out Money money) ? money : Money.Zero;
 
 		public string Label => Model.Label;
+
+		public int BlockHeight => Model.BlockHeight;
 
 		public string TransactionId => Model.TransactionId;
 

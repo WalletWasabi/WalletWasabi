@@ -43,7 +43,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public WalletViewModel(WalletService walletService, bool receiveDominant)
 		{
 			var global = Locator.Current.GetService<Global>();
-
 			WalletService = walletService;
 
 			Title = Path.GetFileNameWithoutExtension(WalletService.KeyManager.FilePath);

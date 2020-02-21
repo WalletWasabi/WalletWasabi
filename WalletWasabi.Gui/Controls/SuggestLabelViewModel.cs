@@ -16,7 +16,7 @@ namespace WalletWasabi.Gui.Controls
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 		private int _caretIndex;
 		private string _label;
-		private WalletService _walletService;
+		private WalletService WalletService { get; }
 
 		public SuggestLabelViewModel(WalletService walletService)
 		{
@@ -26,6 +26,7 @@ namespace WalletWasabi.Gui.Controls
 				.Throttle(TimeSpan.FromMilliseconds(100))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(UpdateSuggestions);
+			WalletService = walletService;
 		}
 
 		public void Reset()
@@ -70,7 +71,7 @@ namespace WalletWasabi.Gui.Controls
 				return;
 			}
 
-			var labels = _walletService.GetLabels();
+			var labels = WalletService.GetLabels();
 			IEnumerable<string> suggestedWords = labels.Where(w => w.StartsWith(lastWord, StringComparison.InvariantCultureIgnoreCase))
 				.Union(labels.Where(w => w.Contains(lastWord, StringComparison.InvariantCultureIgnoreCase)))
 				.Except(enteredWordList)
