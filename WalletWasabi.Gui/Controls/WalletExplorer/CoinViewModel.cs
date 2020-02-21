@@ -26,7 +26,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private CompositeDisposable Disposables { get; set; }
 
-		private WalletService _walletService;
 		private bool _isSelected;
 		private SmartCoinStatus _status;
 		private ObservableAsPropertyHelper<bool> _coinJoinInProgress;
@@ -45,10 +44,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public CoinViewModel(WalletService walletService, CoinListViewModel owner, SmartCoin model)
 		{
 			Global = Locator.Current.GetService<Global>();
-			_walletService = walletService;
-
-			Model = model;
 			WalletService = walletService;
+
+			Model = model;			
 			Owner = owner;
 
 			RefreshSmartCoinStatus();

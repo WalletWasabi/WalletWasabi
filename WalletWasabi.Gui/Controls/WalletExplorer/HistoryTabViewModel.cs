@@ -13,6 +13,7 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -25,15 +26,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private SortOrder _dateSortDirection;
 		private SortOrder _amountSortDirection;
 		private SortOrder _transactionSortDirection;
+		
+		private WalletService WalletService { get; }
 
 		private Global Global { get; }
 
 		public ReactiveCommand<Unit, Unit> SortCommand { get; }
 
-		public HistoryTabViewModel(WalletViewModel walletViewModel)
-			: base("History", walletViewModel)
+		public HistoryTabViewModel(WalletService walletService)
+			: base("History")
 		{
 			Global = Locator.Current.GetService<Global>();
+			WalletService = walletService;
 
 			Transactions = new ObservableCollection<TransactionViewModel>();
 

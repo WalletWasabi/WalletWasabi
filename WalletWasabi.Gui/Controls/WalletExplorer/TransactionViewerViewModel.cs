@@ -31,6 +31,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _psbtHexText;
 		private string _psbtBase64Text;
 		private byte[] _psbtBytes;
+
+		public Guid Id { get; }
+
 		public ReactiveCommand<Unit, Unit> ExportBinaryPsbt { get; set; }
 		public ReactiveCommand<Unit, Unit> OpenTransactionBroadcaster { get; set; }
 
@@ -64,11 +67,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _psbtBytes;
 			set => this.RaiseAndSetIfChanged(ref _psbtBytes, value);
-		}
+		}		
 
-		public TransactionViewerViewModel(WalletViewModel walletViewModel) : base("Transaction", walletViewModel)
+		public TransactionViewerViewModel(Guid walletId) : base("Transaction")
 		{
 			Global = Locator.Current.GetService<Global>();
+
+			Id = walletId;
 
 			OpenTransactionBroadcaster = ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new TransactionBroadcasterViewModel()));
 			ExportBinaryPsbt = ReactiveCommand.CreateFromTask(async () =>

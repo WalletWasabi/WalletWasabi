@@ -19,6 +19,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Exceptions;
 using Splat;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -29,14 +30,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableCollection<AddressViewModel> _addresses;
 		private AddressViewModel _selectedAddress;
 
+		private WalletService WalletService { get; }
+
 		private Global Global { get; }
 
 		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
 
-		public ReceiveTabViewModel(WalletViewModel walletViewModel)
-			: base("Receive", walletViewModel)
+		public ReceiveTabViewModel(WalletService walletService)
+			: base("Receive")
 		{
 			Global = Locator.Current.GetService<Global>();
+			WalletService = walletService;
+
 			LabelSuggestion = new SuggestLabelViewModel(WalletService);
 			_addresses = new ObservableCollection<AddressViewModel>();
 			LabelSuggestion.Label = "";
@@ -55,15 +60,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					AvaloniaThreadingExtensions.PostLogException(Dispatcher.UIThread, () =>
 					 {
-						 var newKey = KeyManager.GetNextReceiveKey(label, out bool minGapLimitIncreased);
+						 var newKey = WalletService.KeyManager.GetNextReceiveKey(label, out bool minGapLimitIncreased);
 						 if (minGapLimitIncreased)
 						 {
-							 int minGapLimit = KeyManager.MinGapLimit.Value;
+							 int minGapLimit = WalletService.KeyManager.MinGapLimit.Value;
 							 int prevMinGapLimit = minGapLimit - 1;
 							 NotificationHelpers.Warning($"{nameof(KeyManager.MinGapLimit)} increased from {prevMinGapLimit} to {minGapLimit}.");
 						 }
 
-						 var newAddress = new AddressViewModel(newKey, KeyManager);
+						 var newAddress = new AddressViewModel(newKey, WalletService.KeyManager);
 						 Addresses.Insert(0, newAddress);
 						 SelectedAddress = newAddress;
 						 LabelSuggestion.Label = "";
@@ -121,10 +126,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				_addresses?.Clear();
 
-				IEnumerable<HdPubKey> keys = KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Reverse();
+				IEnumerable<HdPubKey> keys = WalletService.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Reverse();
 				foreach (HdPubKey key in keys)
 				{
-					_addresses.Add(new AddressViewModel(key, KeyManager));
+					_addresses.Add(new AddressViewModel(key, WalletService.KeyManager));
 				}
 			}
 			catch (Exception ex)
