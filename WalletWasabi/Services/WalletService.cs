@@ -843,7 +843,7 @@ namespace WalletWasabi.Services
 
 		public int CompareTo([AllowNull] WalletService other)
 		{
-			if(other is null)
+			if (other is null)
 			{
 				return -1;
 			}
