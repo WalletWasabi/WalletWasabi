@@ -616,11 +616,11 @@ namespace WalletWasabi.Gui
 					{
 						if (e.Transaction.IsRBF && e.Transaction.IsReplacement)
 						{
-							NotifyAndLog($"{amountString} BTC", "Received Replacable Replacement Transaction", NotificationType.Information, e);
+							NotifyAndLog($"{amountString} BTC", "Received Replaceable Replacement Transaction", NotificationType.Information, e);
 						}
 						else if (e.Transaction.IsRBF)
 						{
-							NotifyAndLog($"{amountString} BTC", "Received Replacable Transaction", NotificationType.Success, e);
+							NotifyAndLog($"{amountString} BTC", "Received Replaceable Transaction", NotificationType.Success, e);
 						}
 						else if (e.Transaction.IsReplacement)
 						{
