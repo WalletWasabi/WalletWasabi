@@ -57,17 +57,9 @@ namespace WalletWasabi.Bases
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => Equals(obj as OctetSerializableBase);
-
-		public bool Equals(OctetSerializableBase other) => this == other;
-
-		public override int GetHashCode() => ByteValue;
-
 		public static bool operator ==(OctetSerializableBase x, OctetSerializableBase y) => x?.ByteValue == y?.ByteValue;
 
 		public static bool operator !=(OctetSerializableBase x, OctetSerializableBase y) => !(x == y);
-
-		public bool Equals(byte other) => ByteValue == other;
 
 		public static bool operator ==(byte x, OctetSerializableBase y) => x == y?.ByteValue;
 
@@ -76,6 +68,14 @@ namespace WalletWasabi.Bases
 		public static bool operator !=(byte x, OctetSerializableBase y) => !(x == y);
 
 		public static bool operator !=(OctetSerializableBase x, byte y) => !(x == y);
+
+		public override bool Equals(object obj) => Equals(obj as OctetSerializableBase);
+
+		public bool Equals(OctetSerializableBase other) => this == other;
+
+		public override int GetHashCode() => ByteValue;
+
+		public bool Equals(byte other) => ByteValue == other;
 
 		#endregion EqualityAndComparison
 	}
