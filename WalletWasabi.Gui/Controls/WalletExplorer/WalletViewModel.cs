@@ -24,8 +24,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private string _title;
 
-		public Guid Id { get; set; } = Guid.NewGuid();
-
 		private WalletService WalletService { get; }
 
 		public bool IsExpanded
@@ -72,7 +70,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			var advancedAction = new WalletAdvancedViewModel(Name);
 			var infoTab = new WalletInfoViewModel(walletService, Name);
-			var buildTab = new BuildTabViewModel(walletService, Id);
+			var buildTab = new BuildTabViewModel(walletService);
 
 			Actions.Add(receiveTab);
 			Actions.Add(coinjoinTab);
