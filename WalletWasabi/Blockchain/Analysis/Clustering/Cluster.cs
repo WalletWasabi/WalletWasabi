@@ -90,16 +90,13 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 
 		public static bool operator ==(Cluster x, Cluster y)
 		{
-			if (x is null)
+			if (ReferenceEquals(x, y))
 			{
-				if (y is null)
-				{
-					return true;
-				}
-				else
-				{
-					return false;
-				}
+				return true;
+			}
+			else if (x is null)
+			{
+				return false;
 			}
 			else
 			{
@@ -111,7 +108,10 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 				{
 					lock (x.Lock)
 					{
-						return x.Coins.SequenceEqual(y.Coins);
+						lock (y.Lock)
+						{
+							return x.Coins.SequenceEqual(y.Coins);
+						}
 					}
 				}
 			}
