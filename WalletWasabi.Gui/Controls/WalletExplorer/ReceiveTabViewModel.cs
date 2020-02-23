@@ -37,7 +37,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			: base("Receive", walletViewModel)
 		{
 			Global = Locator.Current.GetService<Global>();
-			LabelSuggestion = new SuggestLabelViewModel();
+			LabelSuggestion = new SuggestLabelViewModel(WalletService);
 			_addresses = new ObservableCollection<AddressViewModel>();
 			LabelSuggestion.Label = "";
 
@@ -100,7 +100,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			Observable
-				.Merge(Observable.FromEventPattern(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.WalletRelevantTransactionProcessed)))
+				.Merge(Observable.FromEventPattern(WalletService.TransactionProcessor, nameof(WalletService.TransactionProcessor.WalletRelevantTransactionProcessed)))
 				.Merge(Observable.FromEventPattern(KeyManager, nameof(KeyManager.KeyStateChanged)))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => InitializeAddresses())
