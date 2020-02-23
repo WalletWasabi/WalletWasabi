@@ -321,21 +321,14 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			{
 				return true;
 			}
-			else if (x is null)
+			else if (x is null || y is null)
 			{
 				return false;
 			}
 			else
 			{
-				if (y is null)
-				{
-					return false;
-				}
-				else
-				{
-					var hashEquals = x.HashCode == y.HashCode;
-					return hashEquals && y?.TransactionId == x?.TransactionId && y?.Index == x?.Index;
-				}
+				var hashEquals = x.HashCode == y.HashCode;
+				return hashEquals && y?.TransactionId == x?.TransactionId && y?.Index == x?.Index;
 			}
 		}
 

@@ -94,26 +94,19 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 			{
 				return true;
 			}
-			else if (x is null)
+			else if (x is null || y is null)
 			{
 				return false;
 			}
 			else
 			{
-				if (y is null)
+				lock (x.Lock)
 				{
-					return false;
-				}
-				else
-				{
-					lock (x.Lock)
+					lock (y.Lock)
 					{
-						lock (y.Lock)
-						{
-							// We lose the order here, which isn't great and may cause problems,
-							// but this is also a significant perfomance gain.
-							return x.CoinsSet.SetEquals(y.CoinsSet);
-						}
+						// We lose the order here, which isn't great and may cause problems,
+						// but this is also a significant perfomance gain.
+						return x.CoinsSet.SetEquals(y.CoinsSet);
 					}
 				}
 			}
