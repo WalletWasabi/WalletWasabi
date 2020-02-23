@@ -28,54 +28,13 @@ namespace WalletWasabi.Gui.Rpc
 		{
 			Global = global;
 		}
-		
-		public KeyManager TryGetKeyManagerFromWalletName(string walletName)
-		{
-			try
-			{
-				KeyManager keyManager = null;
-				if (walletName != null)
-				{
-					var walletFullPath = Global.GetWalletFullPath(walletName);
-					var walletBackupFullPath = Global.GetWalletBackupFullPath(walletName);
-					if (!File.Exists(walletFullPath) && !File.Exists(walletBackupFullPath))
-					{
-						throw new Exception("NO wallet by that name");
-					}
-
-					try
-					{
-						keyManager = Global.LoadKeyManager(walletFullPath, walletBackupFullPath);
-					}
-					catch (Exception ex)
-					{
-						throw new Exception("Error getting wallet.", ex);
-					}
-				}
-
-				if (keyManager is null)
-				{
-					throw new Exception("Error getting wallet 2.");
-				}
-
-				return keyManager;
-			}
-			catch (Exception ex)
-			{
-				return null;
-			}
-		}
 
 		[JsonRpcMethod(("loadwallet"))]
 		public object LoadWallet(string walletName, string password)
 		{
-			//Global.WalletService.
-			//Global.WalletService.CoreNode.
-			var wm = IoC.Get<IShell>().Documents?.OfType<WalletManagerViewModel>().FirstOrDefault();
 			var lwvm = (wm.Categories
 				.Where(x => (x as LoadWalletViewModel) != null && (x as LoadWalletViewModel).IsDesktopWallet)
 				.FirstOrDefault() as LoadWalletViewModel);
-			//Dispatcher.UIThread.InvokeAsync(lwvm.LoadWalletAsync).Wait();
 			Dispatcher.UIThread.InvokeAsync(new Action(() =>
 			{
 				lwvm.SelectedWallet = new LoadWalletEntry(walletName);
@@ -84,23 +43,6 @@ namespace WalletWasabi.Gui.Rpc
 				Task.Run(async () => await Global.InitializeWalletServiceAsync(keyManager)).Wait();
 			})).Wait();
 			
-			//wm.SelectLoadWallet();
-			/*
-			var keyManager = TryGetKeyManagerFromWalletName(walletName);
-			Global.InitializeNoWalletAsync();
-			if (Global.KillRequested)
-			{
-				throw new Exception("Kil requested 1");
-			}
-
-			Global.InitializeWalletServiceAsync(keyManager);
-			if (Global.KillRequested)
-			{
-				throw new Exception("Kil requested 2");
-			}
-			WalletViewModel walletViewModel = new WalletViewModel(Global.WalletService, true); // No idea what is true or false
-			walletViewModel.OnWalletOpened();
-			*/
 			return "IT WORKS!?";
 		}
 
