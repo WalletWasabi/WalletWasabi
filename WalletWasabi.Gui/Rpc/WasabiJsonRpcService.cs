@@ -1,13 +1,20 @@
 using System;
 using System.Linq;
+using System.IO;
 using System.Threading.Tasks;
+using Avalonia.Threading;
 using NBitcoin;
+using AvalonStudio.Extensibility;
+using AvalonStudio.Shell;
+using WalletWasabi.Gui.Tabs.WalletManager;
+using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
+using WalletWasabi.Gui.Models;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 
@@ -21,6 +28,82 @@ namespace WalletWasabi.Gui.Rpc
 		{
 			Global = global;
 		}
+		
+		public KeyManager TryGetKeyManagerFromWalletName(string walletName)
+		{
+			try
+			{
+				KeyManager keyManager = null;
+				if (walletName != null)
+				{
+					var walletFullPath = Global.GetWalletFullPath(walletName);
+					var walletBackupFullPath = Global.GetWalletBackupFullPath(walletName);
+					if (!File.Exists(walletFullPath) && !File.Exists(walletBackupFullPath))
+					{
+						throw new Exception("NO wallet by that name");
+					}
+
+					try
+					{
+						keyManager = Global.LoadKeyManager(walletFullPath, walletBackupFullPath);
+					}
+					catch (Exception ex)
+					{
+						throw new Exception("Error getting wallet.", ex);
+					}
+				}
+
+				if (keyManager is null)
+				{
+					throw new Exception("Error getting wallet 2.");
+				}
+
+				return keyManager;
+			}
+			catch (Exception ex)
+			{
+				return null;
+			}
+		}
+
+		[JsonRpcMethod(("loadwallet"))]
+		public object LoadWallet(string walletName, string password)
+		{
+			//Global.WalletService.
+			//Global.WalletService.CoreNode.
+			var wm = IoC.Get<IShell>().Documents?.OfType<WalletManagerViewModel>().FirstOrDefault();
+			var lwvm = (wm.Categories
+				.Where(x => (x as LoadWalletViewModel) != null && (x as LoadWalletViewModel).IsDesktopWallet)
+				.FirstOrDefault() as LoadWalletViewModel);
+			//Dispatcher.UIThread.InvokeAsync(lwvm.LoadWalletAsync).Wait();
+			Dispatcher.UIThread.InvokeAsync(new Action(() =>
+			{
+				lwvm.SelectedWallet = new LoadWalletEntry(walletName);
+				lwvm.SelectedWallet.WalletName = walletName;
+				var keyManager = lwvm.LoadKeyManagerAsync(false, false).Result;
+				Task.Run(async () => await Global.InitializeWalletServiceAsync(keyManager)).Wait();
+			})).Wait();
+			
+			//wm.SelectLoadWallet();
+			/*
+			var keyManager = TryGetKeyManagerFromWalletName(walletName);
+			Global.InitializeNoWalletAsync();
+			if (Global.KillRequested)
+			{
+				throw new Exception("Kil requested 1");
+			}
+
+			Global.InitializeWalletServiceAsync(keyManager);
+			if (Global.KillRequested)
+			{
+				throw new Exception("Kil requested 2");
+			}
+			WalletViewModel walletViewModel = new WalletViewModel(Global.WalletService, true); // No idea what is true or false
+			walletViewModel.OnWalletOpened();
+			*/
+			return "IT WORKS!?";
+		}
+
 
 		[JsonRpcMethod("listunspentcoins")]
 		public object[] GetUnspentCoinList()

@@ -523,11 +523,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				}
 				else
 				{
+					/* NOTE: There is no way to do this from the Rpc call....
 					if (keyManager.PasswordVerified == false)
 					{
 						Owner.SelectTestPassword();
 						return null;
 					}
+					*/
 				}
 
 				return keyManager;
