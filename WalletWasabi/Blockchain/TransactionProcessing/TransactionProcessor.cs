@@ -225,11 +225,11 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					isLikelyCj = true;
 				}
 
+				var prevOutSet = tx.Transaction.Inputs.Select(x => x.PrevOut).ToHashSet();
 				foreach (var coin in Coins.AsAllCoinsView())
 				{
 					// If spends any of our coin
-					var input = tx.Transaction.Inputs.Select(x => x.PrevOut).FirstOrDefault(x => x == coin.GetOutPoint());
-					if (input is { })
+					if (prevOutSet.TryGetValue(coin.GetOutPoint(), out OutPoint input))
 					{
 						var alreadyKnown = coin.SpenderTransactionId == txId;
 						coin.SpenderTransactionId = txId;
