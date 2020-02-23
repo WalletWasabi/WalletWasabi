@@ -47,6 +47,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		public uint256 TransactionId { get; private set; }
 
 		public uint Index { get; private set; }
+		private int HashCode { get; set; }
 
 		public OutPoint OutPoint { get; private set; }
 
@@ -262,6 +263,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		{
 			TransactionId = Guard.NotNull(nameof(transactionId), transactionId);
 			Index = Guard.NotNull(nameof(index), index);
+			HashCode = (TransactionId, Index).GetHashCode();
 			OutPoint = new OutPoint(TransactionId, Index);
 			ScriptPubKey = Guard.NotNull(nameof(scriptPubKey), scriptPubKey);
 			Amount = Guard.NotNull(nameof(amount), amount);
@@ -311,9 +313,31 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		public bool Equals(SmartCoin other) => this == other;
 
-		public override int GetHashCode() => (TransactionId, Index).GetHashCode();
+		public override int GetHashCode() => HashCode;
 
-		public static bool operator ==(SmartCoin x, SmartCoin y) => y?.TransactionId == x?.TransactionId && y?.Index == x?.Index;
+		public static bool operator ==(SmartCoin x, SmartCoin y)
+		{
+			if (ReferenceEquals(x, y))
+			{
+				return true;
+			}
+			else if (x is null)
+			{
+				return false;
+			}
+			else
+			{
+				if (y is null)
+				{
+					return false;
+				}
+				else
+				{
+					var hashEquals = x.HashCode == y.HashCode;
+					return hashEquals && y?.TransactionId == x?.TransactionId && y?.Index == x?.Index;
+				}
+			}
+		}
 
 		public static bool operator !=(SmartCoin x, SmartCoin y) => !(x == y);
 
