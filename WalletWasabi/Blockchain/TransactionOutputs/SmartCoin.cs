@@ -18,8 +18,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 	{
 		#region Fields
 
-		private uint256 _transactionId;
-		private uint _index;
 		private Script _scriptPubKey;
 		private Money _amount;
 		private Height _height;
@@ -46,17 +44,11 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		#region Properties
 
-		public uint256 TransactionId
-		{
-			get => _transactionId;
-			private set => RaiseAndSetIfChanged(ref _transactionId, value);
-		}
+		public uint256 TransactionId { get; private set; }
 
-		public uint Index
-		{
-			get => _index;
-			private set => RaiseAndSetIfChanged(ref _index, value);
-		}
+		public uint Index { get; private set; }
+
+		public OutPoint OutPoint { get; private set; }
 
 		public Script ScriptPubKey
 		{
@@ -270,6 +262,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		{
 			TransactionId = Guard.NotNull(nameof(transactionId), transactionId);
 			Index = Guard.NotNull(nameof(index), index);
+			OutPoint = new OutPoint(TransactionId, Index);
 			ScriptPubKey = Guard.NotNull(nameof(scriptPubKey), scriptPubKey);
 			Amount = Guard.NotNull(nameof(amount), amount);
 			Height = height;
@@ -303,11 +296,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		public Coin GetCoin()
 		{
 			return new Coin(TransactionId, Index, Amount, ScriptPubKey);
-		}
-
-		public OutPoint GetOutPoint()
-		{
-			return new OutPoint(TransactionId, Index);
 		}
 
 		public TxoRef GetTxoRef()

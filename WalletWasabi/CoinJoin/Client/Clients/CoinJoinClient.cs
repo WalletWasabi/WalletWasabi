@@ -388,7 +388,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			for (int i = 0; i < signedCoinJoin.Inputs.Count; i++)
 			{
 				var input = signedCoinJoin.Inputs[i];
-				if (ongoingRound.CoinsRegistered.Select(x => x.GetOutPoint()).Contains(input.PrevOut))
+				if (ongoingRound.CoinsRegistered.Select(x => x.OutPoint).Contains(input.PrevOut))
 				{
 					myDic.Add(i, signedCoinJoin.Inputs[i].WitScript);
 				}

@@ -179,7 +179,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 						}
 
 						foundKey.SetKeyState(KeyState.Used, KeyManager);
-						spentOwnCoins ??= Coins.OutPoints(tx.Transaction.Inputs.ToTxoRefs()).ToList();
+						spentOwnCoins ??= Coins.OutPoints(tx.Transaction.Inputs).ToList();
 						var anonset = tx.Transaction.GetAnonymitySet(i);
 						if (spentOwnCoins.Count != 0)
 						{
@@ -229,7 +229,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 				foreach (var coin in Coins.AsAllCoinsView())
 				{
 					// If spends any of our coin
-					if (prevOutSet.TryGetValue(coin.GetOutPoint(), out OutPoint input))
+					if (prevOutSet.TryGetValue(coin.OutPoint, out OutPoint input))
 					{
 						var alreadyKnown = coin.SpenderTransactionId == txId;
 						coin.SpenderTransactionId = txId;
