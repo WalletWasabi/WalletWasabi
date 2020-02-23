@@ -110,7 +110,9 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 					{
 						lock (y.Lock)
 						{
-							return x.Coins.SequenceEqual(y.Coins);
+							// We lose the order here, which isn't great and may cause problems,
+							// but this is also a significant perfomance gain.
+							return x.CoinsSet.SetEquals(y.CoinsSet);
 						}
 					}
 				}
