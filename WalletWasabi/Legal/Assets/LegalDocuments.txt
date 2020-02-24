@@ -1,4 +1,5 @@
-Last updated: XXX
+Last updated: 2020-04-05
+
 WASABI WALLET LEGAL DOCUMENTS
 
 The WASABI team is committed to be fully transparent to its users, from its source code to the legal aspects of its services. The purpose of Wasabi Wallet is to provide privacy for its users’ Bitcoin transactions. This means that with the use of the wallet we would like to enable the users to make Bitcoin payments in a way that their spending history, wallet balances, etc. are not visible for the receiver party. This does not necessarily mean that the user stays anonymous, since the receiver party might have to identify the sending party.
