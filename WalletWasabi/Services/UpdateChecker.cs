@@ -17,6 +17,12 @@ namespace WalletWasabi.Services
 
 		public event EventHandler<UpdateStatus> UpdateStatusChanged;
 
+		public UpdateChecker(TimeSpan period, WasabiClient client) : base(period)
+		{
+			WasabiClient = Guard.NotNull(nameof(client), client);
+			UpdateStatus = new UpdateStatus(true, true);
+		}
+
 		public WasabiClient WasabiClient { get; }
 
 		public UpdateStatus UpdateStatus
@@ -30,12 +36,6 @@ namespace WalletWasabi.Services
 					UpdateStatusChanged?.Invoke(this, value);
 				}
 			}
-		}
-
-		public UpdateChecker(TimeSpan period, WasabiClient client) : base(period)
-		{
-			WasabiClient = Guard.NotNull(nameof(client), client);
-			UpdateStatus = new UpdateStatus(true, true);
 		}
 
 		protected override async Task ActionAsync(CancellationToken cancel)
