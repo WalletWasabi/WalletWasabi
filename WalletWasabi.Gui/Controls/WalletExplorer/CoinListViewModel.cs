@@ -31,7 +31,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SmartCoinStatus.Unconfirmed
 		};
 
-		private WalletService _walletService;
 		private ReadOnlyObservableCollection<CoinViewModel> _coinViewModels;
 		private SortExpressionComparer<CoinViewModel> _myComparer;
 

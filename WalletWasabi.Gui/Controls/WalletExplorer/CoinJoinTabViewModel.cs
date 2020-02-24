@@ -50,19 +50,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private const string DequeuingButtonTextString = "Dequeuing coins...";
 		private int _coinJoinUntilAnonymitySet;
 		private TargetPrivacy _targetPrivacy;
-		private WalletService _walletService;
 
 		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
 			: base("CoinJoin", walletViewModel)
 		{
 			Global = Locator.Current.GetService<Global>();
 
-			_walletService = walletViewModel.WalletService;
-
 			Password = "";
 			TimeLeftTillRoundTimeout = TimeSpan.Zero;
 
-			CoinsList = new CoinListViewModel(WalletService, canDequeueCoins: true);
+			CoinsList = new CoinListViewModel(base.WalletService, canDequeueCoins: true);
 
 			Observable
 				.FromEventPattern<SmartCoin>(CoinsList, nameof(CoinsList.DequeueCoinsPressed))
@@ -144,25 +141,25 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			TargetPrivacy = Global.Config.GetTargetPrivacy();
 
-			var registrableRound = _walletService.ChaumianClient.State.GetRegistrableRoundOrDefault();
+			var registrableRound = WalletService.ChaumianClient.State.GetRegistrableRoundOrDefault();
 
 			UpdateRequiredBtcLabel(registrableRound);
 
 			CoordinatorFeePercent = registrableRound?.State?.CoordinatorFeePercent.ToString() ?? "0.003";
 
-			Observable.FromEventPattern(_walletService.ChaumianClient, nameof(_walletService.ChaumianClient.CoinQueued))
-				.Merge(Observable.FromEventPattern(_walletService.ChaumianClient, nameof(_walletService.ChaumianClient.OnDequeue)))
-				.Merge(Observable.FromEventPattern(_walletService.ChaumianClient, nameof(_walletService.ChaumianClient.StateUpdated)))
+			Observable.FromEventPattern(WalletService.ChaumianClient, nameof(WalletService.ChaumianClient.CoinQueued))
+				.Merge(Observable.FromEventPattern(WalletService.ChaumianClient, nameof(WalletService.ChaumianClient.OnDequeue)))
+				.Merge(Observable.FromEventPattern(WalletService.ChaumianClient, nameof(WalletService.ChaumianClient.StateUpdated)))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => UpdateStates())
 				.DisposeWith(Disposables);
 
-			ClientRound mostAdvancedRound = _walletService.ChaumianClient?.State?.GetMostAdvancedRoundOrDefault();
+			ClientRound mostAdvancedRound = WalletService.ChaumianClient?.State?.GetMostAdvancedRoundOrDefault();
 
 			if (mostAdvancedRound != default)
 			{
 				RoundId = mostAdvancedRound.State.RoundId;
-				RoundPhaseState = new RoundPhaseState(mostAdvancedRound.State.Phase, WalletService.ChaumianClient?.State.IsInErrorState ?? false);
+				RoundPhaseState = new RoundPhaseState(mostAdvancedRound.State.Phase, base.WalletService.ChaumianClient?.State.IsInErrorState ?? false);
 				RoundTimesout = mostAdvancedRound.State.Phase == RoundPhase.InputRegistration ? mostAdvancedRound.State.InputRegistrationTimesout : DateTimeOffset.UtcNow;
 				PeersRegistered = mostAdvancedRound.State.RegisteredPeerCount;
 				PeersNeeded = mostAdvancedRound.State.RequiredPeerCount;
@@ -217,7 +214,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				try
 				{
-					await _walletService.ChaumianClient.DequeueCoinsFromMixAsync(coins.ToArray(), DequeueReason.UserRequested);
+					await WalletService.ChaumianClient.DequeueCoinsFromMixAsync(coins.ToArray(), DequeueReason.UserRequested);
 				}
 				catch (Exception ex)
 				{
@@ -252,7 +249,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
 					}
 
-					await _walletService.ChaumianClient.QueueCoinsToMixAsync(Password, coins.ToArray());
+					await WalletService.ChaumianClient.QueueCoinsToMixAsync(Password, coins.ToArray());
 				}
 				catch (SecurityException ex)
 				{
@@ -282,7 +279,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void UpdateStates()
 		{
-			var chaumianClient = _walletService.ChaumianClient;
+			var chaumianClient = WalletService.ChaumianClient;
 			if (chaumianClient is null)
 			{
 				return;
@@ -320,7 +317,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void UpdateRequiredBtcLabel(ClientRound registrableRound)
 		{
-			if (_walletService is null)
+			if (WalletService is null)
 			{
 				return; // Otherwise NullReferenceException at shutdown.
 			}
@@ -334,11 +331,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			else
 			{
-				var coins = _walletService.Coins;
+				var coins = WalletService.Coins;
 				var queued = coins.CoinJoinInProcess();
 				if (queued.Any())
 				{
-					RequiredBTC = registrableRound.State.CalculateRequiredAmount(_walletService.ChaumianClient.State.GetAllQueuedCoinAmounts().ToArray());
+					RequiredBTC = registrableRound.State.CalculateRequiredAmount(WalletService.ChaumianClient.State.GetAllQueuedCoinAmounts().ToArray());
 				}
 				else
 				{
@@ -352,12 +349,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override void OnSelected()
 		{
-			_walletService.ChaumianClient.ActivateFrequentStatusProcessing();
+			WalletService.ChaumianClient.ActivateFrequentStatusProcessing();
 		}
 
 		public override void OnDeselected()
 		{
-			_walletService.ChaumianClient.DeactivateFrequentStatusProcessingIfNotMixing();
+			WalletService.ChaumianClient.DeactivateFrequentStatusProcessingIfNotMixing();
 		}
 
 		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
