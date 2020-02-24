@@ -53,67 +53,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ShieldState _selectAllNonPrivateShieldState;
 		private bool _isCoinListLoading;
 
-		private void RefreshOrdering()
-		{
-			var sortExpression = new SortExpressionComparer<CoinViewModel>();
-			if (AmountSortDirection != SortOrder.None)
-			{
-				MyComparer = AmountSortDirection == SortOrder.Increasing
-					? sortExpression.ThenByAscending(cvm => cvm.Amount)
-					: sortExpression.ThenByDescending(cvm => cvm.Amount);
-			}
-			else if (PrivacySortDirection != SortOrder.None)
-			{
-				MyComparer = PrivacySortDirection == SortOrder.Increasing
-					? sortExpression.ThenByAscending(cvm => cvm.AnonymitySet)
-					: sortExpression.ThenByDescending(cvm => cvm.AnonymitySet);
-			}
-			else if (ClustersSortDirection != SortOrder.None)
-			{
-				MyComparer = ClustersSortDirection == SortOrder.Increasing
-					? sortExpression.ThenByAscending(cvm => cvm.Clusters)
-					: sortExpression.ThenByDescending(cvm => cvm.Clusters);
-			}
-			else if (StatusSortDirection != SortOrder.None)
-			{
-				MyComparer = StatusSortDirection == SortOrder.Increasing
-					? sortExpression.ThenByAscending(cvm => cvm.Status)
-					: sortExpression.ThenByDescending(cvm => cvm.Status);
-			}
-		}
-
-		private bool? GetCheckBoxesSelectedState(CoinViewModel[] allCoins, Func<CoinViewModel, bool> coinFilterPredicate)
-		{
-			var coins = allCoins.Where(coinFilterPredicate).ToArray();
-
-			bool isAllSelected = coins.All(coin => coin.IsSelected);
-			bool isAllDeselected = coins.All(coin => !coin.IsSelected);
-
-			if (isAllDeselected)
-			{
-				return false;
-			}
-
-			if (isAllSelected)
-			{
-				if (coins.Length != allCoins.Count(coin => coin.IsSelected))
-				{
-					return null;
-				}
-				return true;
-			}
-
-			return null;
-		}
-
-		private void SelectCoins(Func<CoinViewModel, bool> coinFilterPredicate)
-		{
-			foreach (var c in Coins.ToArray())
-			{
-				c.IsSelected = coinFilterPredicate(c);
-			}
-		}
-
 		public CoinListViewModel(WalletService walletService, bool canDequeueCoins = false, bool displayCommonOwnershipWarning = false)
 		{
 			_walletService = walletService;
@@ -399,6 +338,67 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _isCoinListLoading;
 			set => this.RaiseAndSetIfChanged(ref _isCoinListLoading, value);
+		}
+
+		private void RefreshOrdering()
+		{
+			var sortExpression = new SortExpressionComparer<CoinViewModel>();
+			if (AmountSortDirection != SortOrder.None)
+			{
+				MyComparer = AmountSortDirection == SortOrder.Increasing
+					? sortExpression.ThenByAscending(cvm => cvm.Amount)
+					: sortExpression.ThenByDescending(cvm => cvm.Amount);
+			}
+			else if (PrivacySortDirection != SortOrder.None)
+			{
+				MyComparer = PrivacySortDirection == SortOrder.Increasing
+					? sortExpression.ThenByAscending(cvm => cvm.AnonymitySet)
+					: sortExpression.ThenByDescending(cvm => cvm.AnonymitySet);
+			}
+			else if (ClustersSortDirection != SortOrder.None)
+			{
+				MyComparer = ClustersSortDirection == SortOrder.Increasing
+					? sortExpression.ThenByAscending(cvm => cvm.Clusters)
+					: sortExpression.ThenByDescending(cvm => cvm.Clusters);
+			}
+			else if (StatusSortDirection != SortOrder.None)
+			{
+				MyComparer = StatusSortDirection == SortOrder.Increasing
+					? sortExpression.ThenByAscending(cvm => cvm.Status)
+					: sortExpression.ThenByDescending(cvm => cvm.Status);
+			}
+		}
+
+		private bool? GetCheckBoxesSelectedState(CoinViewModel[] allCoins, Func<CoinViewModel, bool> coinFilterPredicate)
+		{
+			var coins = allCoins.Where(coinFilterPredicate).ToArray();
+
+			bool isAllSelected = coins.All(coin => coin.IsSelected);
+			bool isAllDeselected = coins.All(coin => !coin.IsSelected);
+
+			if (isAllDeselected)
+			{
+				return false;
+			}
+
+			if (isAllSelected)
+			{
+				if (coins.Length != allCoins.Count(coin => coin.IsSelected))
+				{
+					return null;
+				}
+				return true;
+			}
+
+			return null;
+		}
+
+		private void SelectCoins(Func<CoinViewModel, bool> coinFilterPredicate)
+		{
+			foreach (var c in Coins.ToArray())
+			{
+				c.IsSelected = coinFilterPredicate(c);
+			}
 		}
 
 		private void RefreshSelectionCheckBoxes(CoinViewModel[] coins)
