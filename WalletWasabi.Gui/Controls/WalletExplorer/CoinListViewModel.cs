@@ -31,10 +31,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SmartCoinStatus.Unconfirmed
 		};
 
-		private CompositeDisposable Disposables { get; set; }
-
-		public SourceList<CoinViewModel> RootList { get; private set; }
-
 		private WalletService _walletService;
 		private ReadOnlyObservableCollection<CoinViewModel> _coinViewModels;
 		private SortExpressionComparer<CoinViewModel> _myComparer;
@@ -56,98 +52,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ShieldState _selectAllPrivateShieldState;
 		private ShieldState _selectAllNonPrivateShieldState;
 		private bool _isCoinListLoading;
-		private object SelectionChangedLock { get; } = new object();
-		private object StateChangedLock { get; } = new object();
-		private Global Global { get; }
-		private WalletService WalletService { get; }
-		public ReactiveCommand<Unit, Unit> SelectAllCheckBoxCommand { get; }
-		public ReactiveCommand<Unit, Unit> SelectPrivateCheckBoxCommand { get; }
-		public ReactiveCommand<Unit, Unit> SelectNonPrivateCheckBoxCommand { get; }
-		public ReactiveCommand<Unit, Unit> SortCommand { get; }
-		public ReactiveCommand<Unit, Unit> InitList { get; }
-
-		public event EventHandler<SmartCoin> DequeueCoinsPressed;
-
-		public event EventHandler CoinListShown;
-
-		public event EventHandler SelectionChanged;
-
-		public ReadOnlyObservableCollection<CoinViewModel> Coins => _coinViewModels;
-
-		public bool DisplayCommonOwnershipWarning { get; set; } = false;
-
-		public bool CanDequeueCoins { get; set; } = false;
-
-		private SortExpressionComparer<CoinViewModel> MyComparer
-		{
-			get => _myComparer;
-			set => this.RaiseAndSetIfChanged(ref _myComparer, value);
-		}
-
-		public CoinViewModel SelectedCoin
-		{
-			get => _selectedCoin;
-			set => this.RaiseAndSetIfChanged(ref _selectedCoin, value);
-		}
-
-		public bool? SelectAllCheckBoxState
-		{
-			get => _selectAllCheckBoxState;
-			set => this.RaiseAndSetIfChanged(ref _selectAllCheckBoxState, value);
-		}
-
-		public bool? SelectPrivateCheckBoxState
-		{
-			get => _selectPrivateCheckBoxState;
-			set => this.RaiseAndSetIfChanged(ref _selectPrivateCheckBoxState, value);
-		}
-
-		public SortOrder StatusSortDirection
-		{
-			get => _statusSortDirection;
-			set => this.RaiseAndSetIfChanged(ref _statusSortDirection, value);
-		}
-
-		public void PressDequeue(SmartCoin coin)
-		{
-			DequeueCoinsPressed?.Invoke(this, coin);
-		}
-
-		public SortOrder AmountSortDirection
-		{
-			get => _amountSortDirection;
-			set => this.RaiseAndSetIfChanged(ref _amountSortDirection, value);
-		}
-
-		public SortOrder PrivacySortDirection
-		{
-			get => _privacySortDirection;
-			set => this.RaiseAndSetIfChanged(ref _privacySortDirection, value);
-		}
-
-		public SortOrder ClustersSortDirection
-		{
-			get => _clustersSortDirection;
-			set => this.RaiseAndSetIfChanged(ref _clustersSortDirection, value);
-		}
-
-		public Money SelectedAmount
-		{
-			get => _selectedAmount;
-			set => this.RaiseAndSetIfChanged(ref _selectedAmount, value);
-		}
-
-		public bool IsAnyCoinSelected
-		{
-			get => _isAnyCoinSelected;
-			set => this.RaiseAndSetIfChanged(ref _isAnyCoinSelected, value);
-		}
-
-		public bool LabelExposeCommonOwnershipWarning
-		{
-			get => _labelExposeCommonOwnershipWarning;
-			set => this.RaiseAndSetIfChanged(ref _labelExposeCommonOwnershipWarning, value);
-		}
 
 		private void RefreshOrdering()
 		{
@@ -176,48 +80,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					? sortExpression.ThenByAscending(cvm => cvm.Status)
 					: sortExpression.ThenByDescending(cvm => cvm.Status);
 			}
-		}
-
-		public bool? SelectNonPrivateCheckBoxState
-		{
-			get => _selectNonPrivateCheckBoxState;
-			set => this.RaiseAndSetIfChanged(ref _selectNonPrivateCheckBoxState, value);
-		}
-
-		public GridLength CoinJoinStatusWidth
-		{
-			get => _coinJoinStatusWidth;
-			set => this.RaiseAndSetIfChanged(ref _coinJoinStatusWidth, value);
-		}
-
-		public bool SelectAllNonPrivateVisible
-		{
-			get => _selectAllNonPrivateVisible;
-			set => this.RaiseAndSetIfChanged(ref _selectAllNonPrivateVisible, value);
-		}
-
-		public bool SelectAllPrivateVisible
-		{
-			get => _selectAllPrivateVisible;
-			set => this.RaiseAndSetIfChanged(ref _selectAllPrivateVisible, value);
-		}
-
-		public ShieldState SelectAllPrivateShieldState
-		{
-			get => _selectAllPrivateShieldState;
-			set => this.RaiseAndSetIfChanged(ref _selectAllPrivateShieldState, value);
-		}
-
-		public ShieldState SelectAllNonPrivateShieldState
-		{
-			get => _selectAllNonPrivateShieldState;
-			set => this.RaiseAndSetIfChanged(ref _selectAllNonPrivateShieldState, value);
-		}
-
-		public bool IsCoinListLoading
-		{
-			get => _isCoinListLoading;
-			set => this.RaiseAndSetIfChanged(ref _isCoinListLoading, value);
 		}
 
 		private bool? GetCheckBoxesSelectedState(CoinViewModel[] allCoins, Func<CoinViewModel, bool> coinFilterPredicate)
@@ -399,6 +261,144 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(SortCommand.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
+		}
+
+		private CompositeDisposable Disposables { get; set; }
+
+		public SourceList<CoinViewModel> RootList { get; private set; }
+		private object SelectionChangedLock { get; } = new object();
+		private object StateChangedLock { get; } = new object();
+		private Global Global { get; }
+		private WalletService WalletService { get; }
+		public ReactiveCommand<Unit, Unit> SelectAllCheckBoxCommand { get; }
+		public ReactiveCommand<Unit, Unit> SelectPrivateCheckBoxCommand { get; }
+		public ReactiveCommand<Unit, Unit> SelectNonPrivateCheckBoxCommand { get; }
+		public ReactiveCommand<Unit, Unit> SortCommand { get; }
+		public ReactiveCommand<Unit, Unit> InitList { get; }
+
+		public event EventHandler<SmartCoin> DequeueCoinsPressed;
+
+		public event EventHandler CoinListShown;
+
+		public event EventHandler SelectionChanged;
+
+		public ReadOnlyObservableCollection<CoinViewModel> Coins => _coinViewModels;
+
+		public bool DisplayCommonOwnershipWarning { get; set; } = false;
+
+		public bool CanDequeueCoins { get; set; } = false;
+
+		private SortExpressionComparer<CoinViewModel> MyComparer
+		{
+			get => _myComparer;
+			set => this.RaiseAndSetIfChanged(ref _myComparer, value);
+		}
+
+		public CoinViewModel SelectedCoin
+		{
+			get => _selectedCoin;
+			set => this.RaiseAndSetIfChanged(ref _selectedCoin, value);
+		}
+
+		public bool? SelectAllCheckBoxState
+		{
+			get => _selectAllCheckBoxState;
+			set => this.RaiseAndSetIfChanged(ref _selectAllCheckBoxState, value);
+		}
+
+		public bool? SelectPrivateCheckBoxState
+		{
+			get => _selectPrivateCheckBoxState;
+			set => this.RaiseAndSetIfChanged(ref _selectPrivateCheckBoxState, value);
+		}
+
+		public SortOrder StatusSortDirection
+		{
+			get => _statusSortDirection;
+			set => this.RaiseAndSetIfChanged(ref _statusSortDirection, value);
+		}
+
+		public void PressDequeue(SmartCoin coin)
+		{
+			DequeueCoinsPressed?.Invoke(this, coin);
+		}
+
+		public SortOrder AmountSortDirection
+		{
+			get => _amountSortDirection;
+			set => this.RaiseAndSetIfChanged(ref _amountSortDirection, value);
+		}
+
+		public SortOrder PrivacySortDirection
+		{
+			get => _privacySortDirection;
+			set => this.RaiseAndSetIfChanged(ref _privacySortDirection, value);
+		}
+
+		public SortOrder ClustersSortDirection
+		{
+			get => _clustersSortDirection;
+			set => this.RaiseAndSetIfChanged(ref _clustersSortDirection, value);
+		}
+
+		public Money SelectedAmount
+		{
+			get => _selectedAmount;
+			set => this.RaiseAndSetIfChanged(ref _selectedAmount, value);
+		}
+
+		public bool IsAnyCoinSelected
+		{
+			get => _isAnyCoinSelected;
+			set => this.RaiseAndSetIfChanged(ref _isAnyCoinSelected, value);
+		}
+
+		public bool LabelExposeCommonOwnershipWarning
+		{
+			get => _labelExposeCommonOwnershipWarning;
+			set => this.RaiseAndSetIfChanged(ref _labelExposeCommonOwnershipWarning, value);
+		}
+
+		public bool? SelectNonPrivateCheckBoxState
+		{
+			get => _selectNonPrivateCheckBoxState;
+			set => this.RaiseAndSetIfChanged(ref _selectNonPrivateCheckBoxState, value);
+		}
+
+		public GridLength CoinJoinStatusWidth
+		{
+			get => _coinJoinStatusWidth;
+			set => this.RaiseAndSetIfChanged(ref _coinJoinStatusWidth, value);
+		}
+
+		public bool SelectAllNonPrivateVisible
+		{
+			get => _selectAllNonPrivateVisible;
+			set => this.RaiseAndSetIfChanged(ref _selectAllNonPrivateVisible, value);
+		}
+
+		public bool SelectAllPrivateVisible
+		{
+			get => _selectAllPrivateVisible;
+			set => this.RaiseAndSetIfChanged(ref _selectAllPrivateVisible, value);
+		}
+
+		public ShieldState SelectAllPrivateShieldState
+		{
+			get => _selectAllPrivateShieldState;
+			set => this.RaiseAndSetIfChanged(ref _selectAllPrivateShieldState, value);
+		}
+
+		public ShieldState SelectAllNonPrivateShieldState
+		{
+			get => _selectAllNonPrivateShieldState;
+			set => this.RaiseAndSetIfChanged(ref _selectAllNonPrivateShieldState, value);
+		}
+
+		public bool IsCoinListLoading
+		{
+			get => _isCoinListLoading;
+			set => this.RaiseAndSetIfChanged(ref _isCoinListLoading, value);
 		}
 
 		private void RefreshSelectionCheckBoxes(CoinViewModel[] coins)
