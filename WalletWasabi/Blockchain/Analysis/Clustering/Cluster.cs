@@ -9,7 +9,9 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 {
 	public class Cluster : NotifyPropertyChangedBase, IEquatable<Cluster>
 	{
+		private object Lock { get; }
 		private List<SmartCoin> Coins { get; set; }
+		private HashSet<SmartCoin> CoinsSet { get; set; }
 
 		private SmartLabel _labels;
 
@@ -28,7 +30,9 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 
 		public Cluster(IEnumerable<SmartCoin> coins)
 		{
+			Lock = new object();
 			Coins = coins.ToList();
+			CoinsSet = Coins.ToHashSet();
 			Labels = SmartLabel.Merge(Coins.Select(x => x.Label));
 		}
 
@@ -36,18 +40,29 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 
 		public void Merge(IEnumerable<SmartCoin> coins)
 		{
-			var insertPosition = 0;
-			foreach (var coin in coins.ToList())
+			lock (Lock)
 			{
-				if (!Coins.Contains(coin))
+				var insertPosition = 0;
+				foreach (var coin in coins.ToList())
 				{
-					Coins.Insert(insertPosition++, coin);
+					if (CoinsSet.Add(coin))
+					{
+						Coins.Insert(insertPosition++, coin);
+					}
+					coin.Clusters = this;
 				}
-				coin.Clusters = this;
+				if (insertPosition > 0) // at least one element was inserted
+				{
+					Labels = SmartLabel.Merge(Coins.Select(x => x.Label));
+				}
 			}
-			if (insertPosition > 0) // at least one element was inserted
+		}
+
+		public IEnumerable<SmartCoin> GetCoins()
+		{
+			lock (Lock)
 			{
-				Labels = SmartLabel.Merge(Coins.Select(x => x.Label));
+				return Coins.ToList();
 			}
 		}
 
@@ -59,39 +74,40 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 
 		public override int GetHashCode()
 		{
-			int hash = 0;
-			if (Coins != null)
+			lock (Lock)
 			{
-				foreach (var coin in Coins)
+				int hash = 0;
+				if (Coins is { })
 				{
-					hash ^= coin.GetHashCode();
+					foreach (var coin in Coins)
+					{
+						hash ^= coin.GetHashCode();
+					}
 				}
+				return hash;
 			}
-			return hash;
 		}
 
 		public static bool operator ==(Cluster x, Cluster y)
 		{
-			if (x is null)
+			if (ReferenceEquals(x, y))
 			{
-				if (y is null)
-				{
-					return true;
-				}
-				else
-				{
-					return false;
-				}
+				return true;
+			}
+			else if (x is null || y is null)
+			{
+				return false;
 			}
 			else
 			{
-				if (y is null)
+				lock (x.Lock)
 				{
-					return false;
-				}
-				else
-				{
-					return x.Coins.SequenceEqual(y.Coins);
+					lock (y.Lock)
+					{
+						// We lose the order here, which isn't great and may cause problems,
+						// but this is also a significant perfomance gain.
+						return x.CoinsSet.SetEquals(y.CoinsSet);
+					}
 				}
 			}
 		}

@@ -21,64 +21,12 @@ namespace WalletWasabi.Blockchain.Keys
 	[JsonObject(MemberSerialization.OptIn)]
 	public class KeyManager
 	{
-		[JsonProperty(Order = 1)]
-		[JsonConverter(typeof(BitcoinEncryptedSecretNoECJsonConverter))]
-		public BitcoinEncryptedSecretNoEC EncryptedSecret { get; }
-
-		[JsonProperty(Order = 2)]
-		[JsonConverter(typeof(ByteArrayJsonConverter))]
-		public byte[] ChainCode { get; }
-
-		[JsonProperty(Order = 3)]
-		[JsonConverter(typeof(HDFingerprintJsonConverter))]
-		public HDFingerprint? MasterFingerprint { get; private set; }
-
-		[JsonProperty(Order = 4)]
-		[JsonConverter(typeof(ExtPubKeyJsonConverter))]
-		public ExtPubKey ExtPubKey { get; }
-
-		[JsonProperty(Order = 5)]
-		public bool? PasswordVerified { get; private set; }
-
-		[JsonProperty(Order = 6)]
-		public int? MinGapLimit { get; private set; }
-
-		[JsonProperty(Order = 7)]
-		[JsonConverter(typeof(KeyPathJsonConverter))]
-		public KeyPath AccountKeyPath { get; private set; }
-
-		[JsonProperty(Order = 8)]
-		private BlockchainState BlockchainState { get; }
-
-		private object BlockchainStateLock { get; }
-
-		[JsonProperty(Order = 9)]
-		private List<HdPubKey> HdPubKeys { get; }
-
-		private object HdPubKeysLock { get; }
-
-		private List<byte[]> HdPubKeyScriptBytes { get; }
-
-		private object HdPubKeyScriptBytesLock { get; }
-
-		private Dictionary<Script, HdPubKey> ScriptHdPubKeyMap { get; }
-
-		private object ScriptHdPubKeyMapLock { get; }
+		public const int AbsoluteMinGapLimit = 21;
 
 		// BIP84-ish derivation scheme
 		// m / purpose' / coin_type' / account' / change / address_index
 		// https://github.com/bitcoin/bips/blob/master/bip-0084.mediawiki
 		public static readonly KeyPath DefaultAccountKeyPath = new KeyPath("m/84h/0h/0h");
-
-		public string FilePath { get; private set; }
-		private object ToFileLock { get; }
-
-		public bool IsWatchOnly => EncryptedSecret is null;
-		public bool IsHardwareWallet => EncryptedSecret is null && MasterFingerprint != null;
-
-		public const int AbsoluteMinGapLimit = 21;
-
-		public event EventHandler<HdPubKey> KeyStateChanged;
 
 		[JsonConstructor]
 		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, HDFingerprint? masterFingerprint, ExtPubKey extPubKey, bool? passwordVerified, int? minGapLimit, BlockchainState blockchainState, string filePath = null, KeyPath accountKeyPath = null)
@@ -137,6 +85,59 @@ namespace WalletWasabi.Blockchain.Keys
 			ToFileLock = new object();
 			ToFile();
 		}
+
+		public event EventHandler<HdPubKey> KeyStateChanged;
+
+		[JsonProperty(Order = 1)]
+		[JsonConverter(typeof(BitcoinEncryptedSecretNoECJsonConverter))]
+		public BitcoinEncryptedSecretNoEC EncryptedSecret { get; }
+
+		[JsonProperty(Order = 2)]
+		[JsonConverter(typeof(ByteArrayJsonConverter))]
+		public byte[] ChainCode { get; }
+
+		[JsonProperty(Order = 3)]
+		[JsonConverter(typeof(HDFingerprintJsonConverter))]
+		public HDFingerprint? MasterFingerprint { get; private set; }
+
+		[JsonProperty(Order = 4)]
+		[JsonConverter(typeof(ExtPubKeyJsonConverter))]
+		public ExtPubKey ExtPubKey { get; }
+
+		[JsonProperty(Order = 5)]
+		public bool? PasswordVerified { get; private set; }
+
+		[JsonProperty(Order = 6)]
+		public int? MinGapLimit { get; private set; }
+
+		[JsonProperty(Order = 7)]
+		[JsonConverter(typeof(KeyPathJsonConverter))]
+		public KeyPath AccountKeyPath { get; private set; }
+
+		[JsonProperty(Order = 8)]
+		private BlockchainState BlockchainState { get; }
+
+		[JsonProperty(Order = 9)]
+		private List<HdPubKey> HdPubKeys { get; }
+
+		public string FilePath { get; private set; }
+
+		public bool IsWatchOnly => EncryptedSecret is null;
+
+		public bool IsHardwareWallet => EncryptedSecret is null && MasterFingerprint != null;
+
+		private object BlockchainStateLock { get; }
+
+		private object HdPubKeysLock { get; }
+
+		private List<byte[]> HdPubKeyScriptBytes { get; }
+
+		private object HdPubKeyScriptBytesLock { get; }
+
+		private Dictionary<Script, HdPubKey> ScriptHdPubKeyMap { get; }
+
+		private object ScriptHdPubKeyMapLock { get; }
+		private object ToFileLock { get; }
 
 		[OnDeserialized]
 		internal void OnDeserializedMethod(StreamingContext context)

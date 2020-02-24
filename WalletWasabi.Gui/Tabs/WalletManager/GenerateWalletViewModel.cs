@@ -21,9 +21,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private string _password;
 		private string _walletName;
 		private bool _termsAccepted;
-		public WalletManagerViewModel Owner { get; }
-
-		private Global Global { get; }
 
 		public GenerateWalletViewModel(WalletManagerViewModel owner) : base("Generate Wallet")
 		{
@@ -42,6 +39,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				.Subscribe(ex => Logger.LogError(ex));
 		}
 
+		public WalletManagerViewModel Owner { get; }
+
+		private Global Global { get; }
+
 		private void DoNextCommand()
 		{
 			try
@@ -50,7 +51,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					throw new InvalidOperationException("Terms are not accepted.");
 				}
-				
+
 				var walletGenerator = new WalletGenerator(Global.WalletsDir, Global.Network);
 				walletGenerator.TipHeight = Global.BitcoinStore.SmartHeaderChain.TipHeight;
 				var (km, mnemonic) = walletGenerator.GenerateWallet(WalletName, Password);

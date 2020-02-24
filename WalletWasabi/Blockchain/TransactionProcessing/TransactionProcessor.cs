@@ -179,7 +179,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 						}
 
 						foundKey.SetKeyState(KeyState.Used, KeyManager);
-						spentOwnCoins ??= Coins.OutPoints(tx.Transaction.Inputs.ToTxoRefs()).ToList();
+						spentOwnCoins ??= Coins.OutPoints(tx.Transaction.Inputs).ToList();
 						var anonset = tx.Transaction.GetAnonymitySet(i);
 						if (spentOwnCoins.Count != 0)
 						{
@@ -225,11 +225,11 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					isLikelyCj = true;
 				}
 
+				var prevOutSet = tx.Transaction.Inputs.Select(x => x.PrevOut).ToHashSet();
 				foreach (var coin in Coins.AsAllCoinsView())
 				{
 					// If spends any of our coin
-					var input = tx.Transaction.Inputs.Select(x => x.PrevOut).FirstOrDefault(x => x == coin.GetOutPoint());
-					if (input is { })
+					if (prevOutSet.TryGetValue(coin.OutPoint, out OutPoint input))
 					{
 						var alreadyKnown = coin.SpenderTransactionId == txId;
 						coin.SpenderTransactionId = txId;
