@@ -15,6 +15,8 @@ namespace WalletWasabi.Services
 	{
 		private UpdateStatus _updateStatus;
 
+		public event EventHandler<UpdateStatus> UpdateStatusChanged;
+
 		public WasabiClient WasabiClient { get; }
 
 		public UpdateStatus UpdateStatus
@@ -29,8 +31,6 @@ namespace WalletWasabi.Services
 				}
 			}
 		}
-
-		public event EventHandler<UpdateStatus> UpdateStatusChanged;
 
 		public UpdateChecker(TimeSpan period, WasabiClient client) : base(period)
 		{
