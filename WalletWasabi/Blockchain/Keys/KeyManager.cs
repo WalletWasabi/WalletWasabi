@@ -542,7 +542,9 @@ namespace WalletWasabi.Blockchain.Keys
 
 		public int CountConsecutiveCleanKeys(bool isInternal)
 		{
-			var keyIndexes = GetKeys(KeyState.Clean, isInternal).Select(x => x.Index).ToArray();
+			var cleankKeyIndexes = GetKeys(KeyState.Clean, isInternal).Select(x => x.Index);
+			var lockedKeyIndexes = GetKeys(KeyState.Locked, false).Select(x => x.Index);
+			var keyIndexes = cleankKeyIndexes.Concat(lockedKeyIndexes).ToArray();
 
 			var hs = keyIndexes.ToHashSet();
 			int largerConsecutiveSequence = 0;
