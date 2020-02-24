@@ -44,9 +44,9 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		#region Properties
 
-		public uint256 TransactionId { get; private set; }
+		public uint256 TransactionId => OutPoint.Hash;
 
-		public uint Index { get; private set; }
+		public uint Index => OutPoint.N;
 		private int HashCode { get; set; }
 
 		public OutPoint OutPoint { get; private set; }
@@ -261,10 +261,10 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		private void Create(uint256 transactionId, uint index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, bool replaceable, int anonymitySet, SmartLabel label, uint256 spenderTransactionId, bool coinJoinInProgress, DateTimeOffset? bannedUntilUtc, bool spentAccordingToBackend, HdPubKey pubKey)
 		{
-			TransactionId = Guard.NotNull(nameof(transactionId), transactionId);
-			Index = Guard.NotNull(nameof(index), index);
+			Guard.NotNull(nameof(transactionId), transactionId);
+			Guard.NotNull(nameof(index), index);
+			OutPoint = new OutPoint(transactionId, index);
 			HashCode = (TransactionId, Index).GetHashCode();
-			OutPoint = new OutPoint(TransactionId, Index);
 			ScriptPubKey = Guard.NotNull(nameof(scriptPubKey), scriptPubKey);
 			Amount = Guard.NotNull(nameof(amount), amount);
 			Height = height;
@@ -328,7 +328,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			else
 			{
 				var hashEquals = x.HashCode == y.HashCode;
-				return hashEquals && y?.TransactionId == x?.TransactionId && y?.Index == x?.Index;
+				return hashEquals && y.TransactionId == x.TransactionId && y.Index == x.Index;
 			}
 		}
 
