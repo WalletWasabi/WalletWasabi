@@ -26,8 +26,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public Guid Id { get; set; } = Guid.NewGuid();
 
-		public WalletService WalletService { get; }
-
 		public bool IsExpanded
 		{
 			get => _isExpanded;
@@ -152,6 +150,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public string Name { get; }
+
+		public WalletService WalletService { get; }
 
 		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
 
