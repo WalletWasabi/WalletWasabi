@@ -1,5 +1,4 @@
 using Mono.Options;
-using Splat;
 using System;
 using System.IO;
 using System.Linq;
