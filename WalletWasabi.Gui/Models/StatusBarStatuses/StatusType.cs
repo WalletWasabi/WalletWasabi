@@ -5,7 +5,7 @@ using System.Text;
 namespace WalletWasabi.Gui.Models.StatusBarStatuses
 {
 	/// <summary>
-	/// Order: piority the lower.
+	/// Order: priority the lower.
 	/// </summary>
 	public enum StatusType
 	{

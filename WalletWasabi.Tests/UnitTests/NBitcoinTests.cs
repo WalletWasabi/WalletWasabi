@@ -23,15 +23,15 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public void DependencyTransactionsGraph()
 		{
-			//  tx0 -----+
-			//           |
-			//           +----+---> tx3
-			//           |    |
-			//  tx1 -----+    +---> tx4 ---> tx5 ---> tx6 ----+
-			//                                                |
-			//                                                +---> tx7
-			//                                                |
-			//  tx2 ------------------------------------------+
+			// tx0 -----+
+			//          |
+			//          +----+---> tx3
+			//          |    |
+			// tx1 -----+    +---> tx4 ---> tx5 ---> tx6 ----+
+			//                                               |
+			//                                               +---> tx7
+			//                                               |
+			// tx2 ------------------------------------------+
 
 			var (tx0, c0) = CreateTransaction();
 			var (tx1, c1) = CreateTransaction();

@@ -112,8 +112,6 @@ namespace WalletWasabi.Gui.Helpers
 		/// <summary>
 		/// Attempts to locate the full path to a script
 		/// </summary>
-		/// <param name="fileName"></param>
-		/// <returns></returns>
 		public static string ResolveFullExecutablePath(string fileName, bool returnNullOnFailure = true, params string[] extraPaths)
 		{
 			if (File.Exists(fileName))

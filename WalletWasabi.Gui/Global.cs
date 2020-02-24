@@ -59,7 +59,6 @@ namespace WalletWasabi.Gui
 		public NodesGroup Nodes { get; private set; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
 		public FeeProviders FeeProviders { get; private set; }
-		public CoinJoinClient ChaumianClient { get; private set; }
 		public WalletService WalletService { get; private set; }
 		public TransactionBroadcaster TransactionBroadcaster { get; set; }
 		public CoinJoinProcessor CoinJoinProcessor { get; set; }
@@ -141,7 +140,7 @@ namespace WalletWasabi.Gui
 
 		public async Task DesperateDequeueAllCoinsAsync()
 		{
-			if (WalletService is null || ChaumianClient is null)
+			if (WalletService is null || WalletService.ChaumianClient is null)
 			{
 				return;
 			}
@@ -150,7 +149,7 @@ namespace WalletWasabi.Gui
 			if (enqueuedCoins.Any())
 			{
 				Logger.LogWarning("Unregistering coins in CoinJoin process.");
-				await ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins, DequeueReason.ApplicationExit);
+				await WalletService.ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins, DequeueReason.ApplicationExit);
 			}
 		}
 
@@ -167,7 +166,6 @@ namespace WalletWasabi.Gui
 			try
 			{
 				WalletService = null;
-				ChaumianClient = null;
 				AddressManager = null;
 				TorManager = null;
 				var cancel = StoppingCts.Token;
@@ -445,7 +443,7 @@ namespace WalletWasabi.Gui
 					// 200 and only one user reported he/she was not able to connect (there could be many others,
 					// of course).
 					// On the other side, increasing this number forces users that do not need to discover more peers
-					// to spend resources (CPU/bandwith) to discover new peers.
+					// to spend resources (CPU/bandwidth) to discover new peers.
 					needsToDiscoverPeers = Config.UseTor is true || AddressManager.Count < 500;
 					Logger.LogInfo($"Loaded {nameof(AddressManager)} from `{AddressManagerFilePath}`.");
 				}
@@ -523,22 +521,10 @@ namespace WalletWasabi.Gui
 					await Task.Delay(100, token);
 				}
 
-				if (Config.UseTor)
-				{
-					ChaumianClient = new CoinJoinClient(Synchronizer, Network, keyManager, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint);
-				}
-				else
-				{
-					ChaumianClient = new CoinJoinClient(Synchronizer, Network, keyManager, Config.GetFallbackBackendUri(), null);
-				}
-
-				WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, ChaumianClient, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
-
-				ChaumianClient.Start();
-				Logger.LogInfo("Start Chaumian CoinJoin service...");
+				WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
 
 				Logger.LogInfo($"Starting {nameof(WalletService)}...");
-				await WalletService.InitializeAsync(token);
+				await WalletService.StartAsync(token);
 				Logger.LogInfo($"{nameof(WalletService)} started.");
 
 				token.ThrowIfCancellationRequested();
@@ -547,7 +533,7 @@ namespace WalletWasabi.Gui
 				CoinJoinProcessor.AddWalletService(WalletService);
 
 				WalletService.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
-				ChaumianClient.OnDequeue += ChaumianClient_OnDequeued;
+				WalletService.ChaumianClient.OnDequeue += ChaumianClient_OnDequeued;
 			}
 			_cancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
 		}
@@ -633,11 +619,11 @@ namespace WalletWasabi.Gui
 					{
 						if (e.Transaction.IsRBF && e.Transaction.IsReplacement)
 						{
-							NotifyAndLog($"{amountString} BTC", "Received Replacable Replacement Transaction", NotificationType.Information, e);
+							NotifyAndLog($"{amountString} BTC", "Received Replaceable Replacement Transaction", NotificationType.Information, e);
 						}
 						else if (e.Transaction.IsRBF)
 						{
-							NotifyAndLog($"{amountString} BTC", "Received Replacable Transaction", NotificationType.Success, e);
+							NotifyAndLog($"{amountString} BTC", "Received Replaceable Transaction", NotificationType.Success, e);
 						}
 						else if (e.Transaction.IsReplacement)
 						{
@@ -761,7 +747,7 @@ namespace WalletWasabi.Gui
 			if (walletService is { })
 			{
 				WalletService.TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
-				ChaumianClient.OnDequeue -= ChaumianClient_OnDequeued;
+				WalletService.ChaumianClient.OnDequeue -= ChaumianClient_OnDequeued;
 			}
 
 			try
@@ -784,17 +770,9 @@ namespace WalletWasabi.Gui
 					keyManager.ToFile(backupWalletFilePath);
 					Logger.LogInfo($"{nameof(walletService.KeyManager)} backup saved to `{backupWalletFilePath}`.");
 				}
-				walletService.Dispose();
+				await walletService.StopAsync(CancellationToken.None).ConfigureAwait(false);
 				WalletService = null;
 				Logger.LogInfo($"{nameof(WalletService)} is stopped.");
-			}
-
-			var chaumianClient = ChaumianClient;
-			if (chaumianClient is { })
-			{
-				await chaumianClient.StopAsync();
-				ChaumianClient = null;
-				Logger.LogInfo($"{nameof(ChaumianClient)} is stopped.");
 			}
 		}
 

@@ -15,6 +15,10 @@ using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
 using WalletWasabi.Logging;
+using AvalonStudio.Extensibility;
+using AvalonStudio.Shell;
+using Avalonia;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -29,20 +33,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableAsPropertyHelper<bool> _confirmed;
 		private ObservableAsPropertyHelper<bool> _unavailable;
 		private ObservableAsPropertyHelper<string> _cluster;
-		private ObservableAsPropertyHelper<string> _expandMenuCaption;
-		private bool _isExpanded;
-		public ReactiveCommand<Unit, bool> ToggleDetails { get; }
-
+		private WalletService WalletService { get; }
 		public CoinListViewModel Owner { get; }
 		private Global Global { get; }
 		public bool CanBeDequeued => Owner.CanDequeueCoins;
 		public ReactiveCommand<Unit, Unit> DequeueCoin { get; }
+		public ReactiveCommand<Unit, Unit> OpenCoinInfo { get; }
+		public ReactiveCommand<Unit, Unit> CopyClusters { get; }
 
-		public CoinViewModel(CoinListViewModel owner, SmartCoin model)
+		public CoinViewModel(WalletService walletService, CoinListViewModel owner, SmartCoin model)
 		{
 			Global = Locator.Current.GetService<Global>();
 
 			Model = model;
+			WalletService = walletService;
 			Owner = owner;
 
 			RefreshSmartCoinStatus();
@@ -81,7 +85,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Observable
 				.Merge(Model.WhenAnyValue(x => x.IsBanned, x => x.SpentAccordingToBackend, x => x.Confirmed, x => x.CoinJoinInProgress).Select(_ => Unit.Default))
-				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.StateUpdated)).Select(_ => Unit.Default))
+				.Merge(Observable.FromEventPattern(WalletService.ChaumianClient, nameof(WalletService.ChaumianClient.StateUpdated)).Select(_ => Unit.Default))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => RefreshSmartCoinStatus())
 				.DisposeWith(Disposables);
@@ -105,26 +109,29 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			DequeueCoin = ReactiveCommand.Create(() => Owner.PressDequeue(Model), this.WhenAnyValue(x => x.CoinJoinInProgress));
 
-			_expandMenuCaption = this
-				.WhenAnyValue(x => x.IsExpanded)
-				.Select(x => (x ? "Hide " : "Show ") + "Details")
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.ToProperty(this, x => x.ExpandMenuCaption)
-				.DisposeWith(Disposables);
+			OpenCoinInfo = ReactiveCommand.Create(() =>
+			{
+				var shell = IoC.Get<IShell>();
 
-			ToggleDetails = ReactiveCommand.Create(() => IsExpanded = !IsExpanded);
+				var coinInfo = shell.Documents?.OfType<CoinInfoTabViewModel>()?.FirstOrDefault(x => x.Coin?.Model == Model);
 
-			ToggleDetails.ThrownExceptions
-				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(ex =>
+				if (coinInfo is null)
 				{
-					Logger.LogError(ex);
-					NotificationHelpers.Error(ex.ToUserFriendlyString());
-				});
+					coinInfo = new CoinInfoTabViewModel(this);
+					shell.AddDocument(coinInfo);
+				}
 
-			DequeueCoin.ThrownExceptions
+				shell.Select(coinInfo);
+			});
+
+			CopyClusters = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(Clusters));
+
+			Observable
+				.Merge(DequeueCoin.ThrownExceptions) // Don't notify about it. Dequeue failure (and success) is notified by other mechanism.
+				.Merge(OpenCoinInfo.ThrownExceptions)
+				.Merge(CopyClusters.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(ex => Logger.LogError(ex)); // Don't notify about it. Dequeue failure (and success) is notified by other mechanism.
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		public SmartCoin Model { get; }
@@ -138,12 +145,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public bool Unspent => _unspent?.Value ?? false;
 
 		public string Address => Model.ScriptPubKey.GetDestinationAddress(Global.Network).ToString();
-
-		public bool IsExpanded
-		{
-			get => _isExpanded;
-			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
-		}
 
 		public int Confirmations => Model.Height.Type == HeightType.Chain
 			? (int)Global.BitcoinStore.SmartHeaderChain.TipHeight - Model.Height.Value + 1
@@ -196,8 +197,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _status, value);
 		}
 
-		public string ExpandMenuCaption => _expandMenuCaption?.Value ?? string.Empty;
-
 		private void RefreshSmartCoinStatus()
 		{
 			Status = GetSmartCoinStatus();
@@ -211,9 +210,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return SmartCoinStatus.MixingBanned;
 			}
 
-			if (Model.CoinJoinInProgress && Global.ChaumianClient != null)
+			if (Model.CoinJoinInProgress && WalletService.ChaumianClient != null)
 			{
-				ClientState clientState = Global.ChaumianClient.State;
+				ClientState clientState = WalletService.ChaumianClient.State;
 				foreach (var round in clientState.GetAllMixingRounds())
 				{
 					if (round.CoinsRegistered.Contains(Model))

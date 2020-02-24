@@ -356,7 +356,7 @@ namespace WalletWasabi.Backend.Controllers
 		/// <param name="uniqueId">Unique identifier, obtained previously.</param>
 		/// <param name="roundId">Round identifier, obtained previously.</param>
 		/// <returns>Current phase and blinded output sinatures if Alice is found.</returns>
-		/// <response code="200">Current phase and blinded output sinatures if Alice is found.</response>
+		/// <response code="200">Current phase and blinded output signatures if Alice is found.</response>
 		/// <response code="400">The provided uniqueId or roundId was malformed.</response>
 		/// <response code="404">If Alice or the round is not found.</response>
 		/// <response code="410">Participation can be only confirmed from a Running round's InputRegistration or ConnectionConfirmation phase.</response>
@@ -399,8 +399,8 @@ namespace WalletWasabi.Backend.Controllers
 
 						int takeBlindCount = round.EstimateBestMixingLevel(alice);
 
-						alice.BlindedOutputScripts = alice.BlindedOutputScripts.Take(takeBlindCount).ToArray();
-						alice.BlindedOutputSignatures = alice.BlindedOutputSignatures.Take(takeBlindCount).ToArray();
+						alice.BlindedOutputScripts = alice.BlindedOutputScripts[..takeBlindCount];
+						alice.BlindedOutputSignatures = alice.BlindedOutputSignatures[..takeBlindCount];
 						resp.BlindedOutputSignatures = alice.BlindedOutputSignatures; // Do not give back more mixing levels than we'll use.
 
 						// Progress round if needed.
@@ -427,7 +427,7 @@ namespace WalletWasabi.Backend.Controllers
 		/// <param name="uniqueId">Unique identifier, obtained previously.</param>
 		/// <param name="roundId">Round identifier, obtained previously.</param>
 		/// <response code="200">Alice or the round was not found.</response>
-		/// <response code="204">Alice sucessfully uncofirmed her participation.</response>
+		/// <response code="204">Alice sucessfully unconfirmed her participation.</response>
 		/// <response code="400">The provided uniqueId or roundId was malformed.</response>
 		/// <response code="410">Participation can be only unconfirmed from a Running round's InputRegistration phase.</response>
 		[HttpPost("unconfirmation")]
@@ -534,11 +534,6 @@ namespace WalletWasabi.Backend.Controllers
 				{
 					return BadRequest($"Invalid OutputAddress Network.");
 				}
-			}
-
-			if (request.OutputAddress == Constants.GetCoordinatorAddress(Network))
-			{
-				Logger.LogWarning($"Bob is registering the coordinator's address. Address: {request.OutputAddress}, Level: {request.Level}, Signature: {request.UnblindedSignature}.");
 			}
 
 			if (request.Level > round.MixingLevels.GetMaxLevel())
