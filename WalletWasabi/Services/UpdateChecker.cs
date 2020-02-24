@@ -15,13 +15,13 @@ namespace WalletWasabi.Services
 	{
 		private UpdateStatus _updateStatus;
 
-		public event EventHandler<UpdateStatus> UpdateStatusChanged;
-
 		public UpdateChecker(TimeSpan period, WasabiClient client) : base(period)
 		{
 			WasabiClient = Guard.NotNull(nameof(client), client);
 			UpdateStatus = new UpdateStatus(true, true);
 		}
+
+		public event EventHandler<UpdateStatus> UpdateStatusChanged;
 
 		public WasabiClient WasabiClient { get; }
 
