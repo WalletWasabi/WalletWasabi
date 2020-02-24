@@ -13,7 +13,7 @@ namespace WalletWasabi.Gui.CommandLine
 {
 	public class Daemon
 	{
-		private Wallet _wallet;
+		private Wallet Wallet { get; set; }
 
 		private Global Global { get; }
 
@@ -80,7 +80,7 @@ namespace WalletWasabi.Gui.CommandLine
 					return;
 				}
 
-				_wallet = await Wallet.CreateWalletAsync(keyManager);
+				Wallet = await Wallet.CreateWalletAsync(keyManager);
 
 				if (Global.KillRequested)
 				{
@@ -103,7 +103,7 @@ namespace WalletWasabi.Gui.CommandLine
 						break;
 					}
 
-					bool anyCoinsQueued = _wallet.WalletService.ChaumianClient.State.AnyCoinsQueued();
+					bool anyCoinsQueued = Wallet.WalletService.ChaumianClient.State.AnyCoinsQueued();
 					if (!anyCoinsQueued && keepMixAlive) // If no coins queued and mixing is asked to be kept alive then try to queue coins.
 					{
 						await TryQueueCoinsToMixAsync(mixAll, password);
@@ -120,7 +120,7 @@ namespace WalletWasabi.Gui.CommandLine
 
 				if (!Global.KillRequested) // This only has to run if it finishes by itself. Otherwise the Ctrl+c runs it.
 				{
-					await _wallet.WalletService.ChaumianClient?.DequeueAllCoinsFromMixAsync(DequeueReason.ApplicationExit);
+					await Wallet.WalletService.ChaumianClient?.DequeueAllCoinsFromMixAsync(DequeueReason.ApplicationExit);
 				}
 			}
 			catch
@@ -181,13 +181,13 @@ namespace WalletWasabi.Gui.CommandLine
 		{
 			try
 			{
-				var coinsView = _wallet.WalletService.Coins;
+				var coinsView = Wallet.WalletService.Coins;
 				var coinsToMix = coinsView.Available();
 				if (!mixAll)
 				{
-					coinsToMix = coinsToMix.FilterBy(x => x.AnonymitySet < _wallet.WalletService.ServiceConfiguration.MixUntilAnonymitySet);
+					coinsToMix = coinsToMix.FilterBy(x => x.AnonymitySet < Wallet.WalletService.ServiceConfiguration.MixUntilAnonymitySet);
 				}
-				await _wallet.WalletService.ChaumianClient.QueueCoinsToMixAsync(password, coinsToMix.ToArray());
+				await Wallet.WalletService.ChaumianClient.QueueCoinsToMixAsync(password, coinsToMix.ToArray());
 			}
 			catch (Exception ex)
 			{
