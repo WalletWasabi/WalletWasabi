@@ -169,7 +169,7 @@ pico ~/.bitcoin/bitcoin.conf
 ```sh
 testnet=[0/1]
 
-[main/test].rpcworkqueue=64
+[main/test].rpcworkqueue=128
 
 [main/test].txindex=1
 
@@ -346,6 +346,15 @@ tail -f ~/.bitcoin/debug.log
 tail -10000 .walletwasabi/backend/Logs.txt
 du -bsh .walletwasabi/backend/IndexBuilderService/*
 ```
+# Specify Your ExtPubKey
+
+Take your ExtPubKey from Wasabi. Never receive money to that wallet's external keypath.
+
+```sh
+pico ~/.walletwasabi/backend/CcjRoundConfig.json
+```
+
+Add your extpub to the `CoordinatorExtPubKey`.
 
 # Additional (optional) Settings
 

@@ -60,7 +60,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var transactionFactory = CreateTransactionFactory(new[]
 			{
 				("", 0, 0.08m, confirmed: true, anonymitySet: 50),
-				("", 1, 0.16m, confirmed: true, anonymitySet:200)
+				("", 1, 0.16m, confirmed: true, anonymitySet: 200)
 			});
 
 			// There is a 0.08 coin with AS=50. However it selects the most private one with AS= 200
@@ -122,7 +122,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				("Joseph", 4, 0.16m, confirmed: true, anonymitySet: 200)
 			});
 
-			// It has to select the most private coins regarless of the amounts
+			// It has to select the most private coins regardless of the amounts
 			var payment = new PaymentIntent(new Key().ScriptPubKey, Money.Coins(0.17m));
 			var feeRate = new FeeRate(2m);
 			var result = transactionFactory.BuildTransaction(payment, feeRate);
@@ -549,9 +549,10 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			dict[lockTimeZero] = 0;
 
 			var curTip = 100_000u;
+			var rnd = new Random(123456);
 			foreach (var i in Enumerable.Range(0, samplingSize))
 			{
-				var lt = (uint)WalletService.InternalSelectLockTimeForTransaction(curTip).Height;
+				var lt = (uint)WalletService.InternalSelectLockTimeForTransaction(curTip, rnd).Height;
 				var diff = lt == 0 ? lockTimeZero : lt - curTip;
 				dict[diff]++;
 			}
@@ -609,7 +610,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			};
 			pubKey.SetLabel(slabel);
 			pubKey.SetKeyState(KeyState.Used);
-			return new SmartCoin(RandomUtils.GetUInt256(), (uint)randomIndex(), pubKey.P2wpkhScript, Money.Coins(amount), spentOutput, height, false, anonymitySet, false, slabel, pubKey: pubKey);
+			return new SmartCoin(RandomUtils.GetUInt256(), (uint)randomIndex(), pubKey.P2wpkhScript, Money.Coins(amount), spentOutput, height, false, anonymitySet, slabel, pubKey: pubKey);
 		}
 	}
 }

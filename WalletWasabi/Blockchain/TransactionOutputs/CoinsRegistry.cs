@@ -17,6 +17,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		private HashSet<SmartCoin> SpentCoins { get; }
 		private HashSet<SmartCoin> LatestSpentCoinsSnapshot { get; set; }
 		private Dictionary<Script, Cluster> ClustersByScriptPubKey { get; }
+		private Dictionary<OutPoint, HashSet<SmartCoin>> CoinsByOutPoint { get; }
 		private int PrivacyLevelThreshold { get; }
 
 		public CoinsRegistry(int privacyLevelThreshold)
@@ -27,6 +28,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			LatestSpentCoinsSnapshot = new HashSet<SmartCoin>();
 			InvalidateSnapshot = false;
 			ClustersByScriptPubKey = new Dictionary<Script, Cluster>();
+			CoinsByOutPoint = new Dictionary<OutPoint, HashSet<SmartCoin>>();
 			PrivacyLevelThreshold = privacyLevelThreshold;
 			Lock = new object();
 		}
@@ -71,10 +73,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		public bool IsEmpty => !AsCoinsView().Any();
 
-		public SmartCoin GetByOutPoint(OutPoint outpoint)
-		{
-			return AsCoinsView().GetByOutPoint(outpoint);
-		}
+		public SmartCoin GetByOutPoint(OutPoint outpoint) => AsCoinsView().GetByOutPoint(outpoint);
 
 		public bool TryAdd(SmartCoin coin)
 		{
@@ -94,6 +93,29 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 						{
 							ClustersByScriptPubKey.Add(coin.ScriptPubKey, coin.Clusters);
 						}
+
+						foreach (var spentOutPoint in coin.SpentOutputs)
+						{
+							var outPoint = spentOutPoint.ToOutPoint();
+							var newCoinSet = new HashSet<SmartCoin> { coin };
+
+							// If we don't succeed to add a new entry to the dictionary.
+							if (!CoinsByOutPoint.TryAdd(outPoint, newCoinSet))
+							{
+								var previousCoinTxId = CoinsByOutPoint[outPoint].First().TransactionId;
+								// Then check if we're in the same transaction as the previous coins in the dictionary are.
+								if (coin.TransactionId == previousCoinTxId)
+								{
+									// If we are in the same transaction, then just add it to value set.
+									CoinsByOutPoint[outPoint].Add(coin);
+								}
+								else
+								{
+									// If we aren't in the same transaction, then it's a conflict, so replace the old set with the new one.
+									CoinsByOutPoint[outPoint] = newCoinSet;
+								}
+							}
+						}
 						InvalidateSnapshot = true;
 					}
 				}
@@ -105,20 +127,38 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		{
 			lock (Lock)
 			{
-				var coinsToRemove = DescendantOfAndSelfNoLock(coin);
-				foreach (var toRemove in coinsToRemove)
+				return RemoveNoLock(coin);
+			}
+		}
+
+		private ICoinsView RemoveNoLock(SmartCoin coin)
+		{
+			var coinsToRemove = DescendantOfAndSelfNoLock(coin);
+			foreach (var toRemove in coinsToRemove)
+			{
+				if (!Coins.Remove(toRemove))
 				{
-					if (!Coins.Remove(toRemove))
+					SpentCoins.Remove(toRemove);
+				}
+
+				var removedCoinOutPoint = toRemove.GetOutPoint();
+
+				// If we can find it in our outpoint to coins cache.
+				if (TryGetSpenderSmartCoinsByOutPointNoLock(removedCoinOutPoint, out var coinsByOutPoint))
+				{
+					// Go through all the coins of that cache where the coin is the coin we are wishing to remove.
+					foreach (var coinByOutPoint in coinsByOutPoint.Where(x => x == toRemove))
 					{
-						if (SpentCoins.Remove(toRemove))
+						// Remove the coin from the set, and if the set becomes empty as a consequence remove the key too.
+						if (CoinsByOutPoint[removedCoinOutPoint].Remove(coinByOutPoint) && !CoinsByOutPoint[removedCoinOutPoint].Any())
 						{
-							// Clusters.Remove(toRemove);
+							CoinsByOutPoint.Remove(removedCoinOutPoint);
 						}
 					}
 				}
-				InvalidateSnapshot = true;
-				return coinsToRemove;
 			}
+			InvalidateSnapshot = true;
+			return coinsToRemove;
 		}
 
 		public void Spend(SmartCoin spentCoin)
@@ -147,7 +187,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		{
 			lock (Lock)
 			{
-				foreach (var coin in AsCoinsView().AtBlockHeight(blockHeight))
+				foreach (var coin in AsCoinsViewNoLock().AtBlockHeight(blockHeight))
 				{
 					var descendantCoins = DescendantOfAndSelf(coin);
 					foreach (var toSwitch in descendantCoins)
@@ -156,6 +196,19 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 					}
 				}
 			}
+		}
+
+		public bool TryGetSpenderSmartCoinsByOutPoint(OutPoint outPoint, out HashSet<SmartCoin> coins)
+		{
+			lock (Lock)
+			{
+				return TryGetSpenderSmartCoinsByOutPointNoLock(outPoint, out coins);
+			}
+		}
+
+		private bool TryGetSpenderSmartCoinsByOutPointNoLock(OutPoint outPoint, out HashSet<SmartCoin> coins)
+		{
+			return CoinsByOutPoint.TryGetValue(outPoint, out coins);
 		}
 
 		internal (ICoinsView toRemove, ICoinsView toAdd) Undo(uint256 txId)
@@ -169,7 +222,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 				// remove recursively the coins created by the transaction
 				foreach (SmartCoin createdCoin in allCoins.CreatedBy(txId))
 				{
-					toRemove.AddRange(Remove(createdCoin));
+					toRemove.AddRange(RemoveNoLock(createdCoin));
 				}
 				// destroyed (spent) coins are now (unspent)
 				foreach (SmartCoin destroyedCoin in allCoins.SpentBy(txId))

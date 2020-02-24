@@ -119,7 +119,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		}
 
 		/// <summary>
-		/// Multiply current Polynomial to anotherone.
+		/// Multiply current Polynomial to another one.
 		/// </summary>
 		/// <returns>Result polynomial after multiply</returns>
 		internal Polynomial Multiply(Polynomial other)
@@ -155,7 +155,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		/// <summary>
 		/// Multiplay scalar to current polynomial
 		/// </summary>
-		/// <returns>result of polynomial after multiply scalar</returns>
+		/// <returns>Result of polynomial after multiply scalar</returns>
 		internal Polynomial MultiplyScalar(int scalar)
 		{
 			if (scalar == 0)

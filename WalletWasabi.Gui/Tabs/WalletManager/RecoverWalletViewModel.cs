@@ -83,7 +83,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						km.SetFilePath(walletFilePath);
 						km.ToFile();
 
-						NotificationHelpers.Success("Wallet is successfully recovered!");
+						NotificationHelpers.Success("Wallet was recovered.");
 
 						owner.SelectLoadWallet();
 					}

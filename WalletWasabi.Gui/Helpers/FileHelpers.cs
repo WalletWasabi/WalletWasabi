@@ -49,7 +49,7 @@ namespace WalletWasabi.Gui.Helpers
 						}
 					}
 
-					// Open file wtih the default editor.
+					// Open file with the default editor.
 					using Process defaultEditorProcess = Process.Start(new ProcessStartInfo
 					{
 						FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? filePath : "open",

@@ -31,7 +31,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private CompositeDisposable Disposables { get; set; }
 
 		private long _roundId;
-		private RoundPhase _phase;
+		private RoundPhaseState _roundPhaseState;
 		private DateTimeOffset _roundTimesout;
 		private TimeSpan _timeLeftTillRoundTimeout;
 		private Money _requiredBTC;
@@ -59,7 +59,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Password = "";
 			TimeLeftTillRoundTimeout = TimeSpan.Zero;
 
-			CoinsList = new CoinListViewModel(canDequeueCoins: true);
+			CoinsList = new CoinListViewModel(WalletService, canDequeueCoins: true);
 
 			Observable
 				.FromEventPattern<SmartCoin>(CoinsList, nameof(CoinsList.DequeueCoinsPressed))
@@ -141,25 +141,25 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			TargetPrivacy = Global.Config.GetTargetPrivacy();
 
-			var registrableRound = Global.ChaumianClient.State.GetRegistrableRoundOrDefault();
+			var registrableRound = Global.WalletService.ChaumianClient.State.GetRegistrableRoundOrDefault();
 
 			UpdateRequiredBtcLabel(registrableRound);
 
 			CoordinatorFeePercent = registrableRound?.State?.CoordinatorFeePercent.ToString() ?? "0.003";
 
-			Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.CoinQueued))
-				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.OnDequeue)))
-				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.StateUpdated)))
+			Observable.FromEventPattern(Global.WalletService.ChaumianClient, nameof(Global.WalletService.ChaumianClient.CoinQueued))
+				.Merge(Observable.FromEventPattern(Global.WalletService.ChaumianClient, nameof(Global.WalletService.ChaumianClient.OnDequeue)))
+				.Merge(Observable.FromEventPattern(Global.WalletService.ChaumianClient, nameof(Global.WalletService.ChaumianClient.StateUpdated)))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => UpdateStates())
 				.DisposeWith(Disposables);
 
-			ClientRound mostAdvancedRound = Global.ChaumianClient?.State?.GetMostAdvancedRoundOrDefault();
+			ClientRound mostAdvancedRound = Global.WalletService.ChaumianClient?.State?.GetMostAdvancedRoundOrDefault();
 
 			if (mostAdvancedRound != default)
 			{
 				RoundId = mostAdvancedRound.State.RoundId;
-				Phase = mostAdvancedRound.State.Phase;
+				RoundPhaseState = new RoundPhaseState(mostAdvancedRound.State.Phase, Global.WalletService.ChaumianClient?.State.IsInErrorState ?? false);
 				RoundTimesout = mostAdvancedRound.State.Phase == RoundPhase.InputRegistration ? mostAdvancedRound.State.InputRegistrationTimesout : DateTimeOffset.UtcNow;
 				PeersRegistered = mostAdvancedRound.State.RegisteredPeerCount;
 				PeersNeeded = mostAdvancedRound.State.RequiredPeerCount;
@@ -167,7 +167,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			else
 			{
 				RoundId = -1;
-				Phase = RoundPhase.InputRegistration;
+				RoundPhaseState = new RoundPhaseState(RoundPhase.InputRegistration, false);
 				RoundTimesout = DateTimeOffset.UtcNow;
 				PeersRegistered = 0;
 				PeersNeeded = 100;
@@ -214,7 +214,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				try
 				{
-					await Global.ChaumianClient.DequeueCoinsFromMixAsync(coins.ToArray(), DequeueReason.UserRequested);
+					await Global.WalletService.ChaumianClient.DequeueCoinsFromMixAsync(coins.ToArray(), DequeueReason.UserRequested);
 				}
 				catch (Exception ex)
 				{
@@ -249,7 +249,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
 					}
 
-					await Global.ChaumianClient.QueueCoinsToMixAsync(Password, coins.ToArray());
+					await Global.WalletService.ChaumianClient.QueueCoinsToMixAsync(Password, coins.ToArray());
 				}
 				catch (SecurityException ex)
 				{
@@ -279,7 +279,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void UpdateStates()
 		{
-			var chaumianClient = Global?.ChaumianClient;
+			var chaumianClient = Global?.WalletService?.ChaumianClient;
 			if (chaumianClient is null)
 			{
 				return;
@@ -300,10 +300,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				RoundId = mostAdvancedRound.State.RoundId;
 				if (!chaumianClient.State.IsInErrorState)
 				{
-					Phase = mostAdvancedRound.State.Phase;
+					RoundPhaseState = new RoundPhaseState(mostAdvancedRound.State.Phase, false);
 					RoundTimesout = mostAdvancedRound.State.Phase == RoundPhase.InputRegistration ? mostAdvancedRound.State.InputRegistrationTimesout : DateTimeOffset.UtcNow;
 				}
-				this.RaisePropertyChanged(nameof(Phase));
+				else
+				{
+					RoundPhaseState = new RoundPhaseState(RoundPhaseState.Phase, true);
+				}
+
+				this.RaisePropertyChanged(nameof(RoundPhaseState));
 				this.RaisePropertyChanged(nameof(RoundTimesout));
 				PeersRegistered = mostAdvancedRound.State.RegisteredPeerCount;
 				PeersNeeded = mostAdvancedRound.State.RequiredPeerCount;
@@ -330,7 +335,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				var queued = coins.CoinJoinInProcess();
 				if (queued.Any())
 				{
-					RequiredBTC = registrableRound.State.CalculateRequiredAmount(Global.ChaumianClient.State.GetAllQueuedCoinAmounts().ToArray());
+					RequiredBTC = registrableRound.State.CalculateRequiredAmount(Global.WalletService.ChaumianClient.State.GetAllQueuedCoinAmounts().ToArray());
 				}
 				else
 				{
@@ -344,12 +349,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override void OnSelected()
 		{
-			Global.ChaumianClient.ActivateFrequentStatusProcessing();
+			Global.WalletService.ChaumianClient.ActivateFrequentStatusProcessing();
 		}
 
 		public override void OnDeselected()
 		{
-			Global.ChaumianClient.DeactivateFrequentStatusProcessingIfNotMixing();
+			Global.WalletService.ChaumianClient.DeactivateFrequentStatusProcessingIfNotMixing();
 		}
 
 		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
@@ -375,10 +380,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _roundId, value);
 		}
 
-		public RoundPhase Phase
+		public RoundPhaseState RoundPhaseState
 		{
-			get => _phase;
-			set => this.RaiseAndSetIfChanged(ref _phase, value);
+			get => _roundPhaseState;
+			set => this.RaiseAndSetIfChanged(ref _roundPhaseState, value);
 		}
 
 		public DateTimeOffset RoundTimesout

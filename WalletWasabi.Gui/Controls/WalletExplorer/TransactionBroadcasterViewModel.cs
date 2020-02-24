@@ -217,7 +217,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.BroadcastingTransaction);
 				await Task.Run(async () => await Global.TransactionBroadcaster.SendTransactionAsync(transaction));
 
-				NotificationHelpers.Success("Transaction is successfully broadcasted!", "");
+				NotificationHelpers.Success("Transaction was broadcast.");
 				TransactionString = "";
 			}
 			catch (PSBTException ex)
