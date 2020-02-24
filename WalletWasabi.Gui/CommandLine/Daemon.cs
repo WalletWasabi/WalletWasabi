@@ -13,14 +13,14 @@ namespace WalletWasabi.Gui.CommandLine
 {
 	public class Daemon
 	{
-		private Wallet Wallet { get; set; }
-
-		private Global Global { get; }
-
 		public Daemon(Global global)
 		{
 			Global = global;
 		}
+
+		private Wallet Wallet { get; set; }
+
+		private Global Global { get; }
 
 		internal async Task RunAsync(string walletName, bool mixAll, bool keepMixAlive)
 		{
