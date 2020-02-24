@@ -141,7 +141,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 					SpentCoins.Remove(toRemove);
 				}
 
-				var removedCoinOutPoint = toRemove.GetOutPoint();
+				var removedCoinOutPoint = toRemove.OutPoint;
 
 				// If we can find it in our outpoint to coins cache.
 				if (TryGetSpenderSmartCoinsByOutPointNoLock(removedCoinOutPoint, out var coinsByOutPoint))
@@ -269,6 +269,8 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		public IEnumerator<SmartCoin> GetEnumerator() => AsCoinsView().GetEnumerator();
 
 		public ICoinsView OutPoints(IEnumerable<TxoRef> outPoints) => AsCoinsView().OutPoints(outPoints);
+
+		public ICoinsView OutPoints(TxInList txIns) => AsCoinsView().OutPoints(txIns);
 
 		public ICoinsView CreatedBy(uint256 txid) => AsCoinsView().CreatedBy(txid);
 
