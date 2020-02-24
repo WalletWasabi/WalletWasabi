@@ -30,10 +30,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			Global = Locator.Current.GetService<Global>();
 			Owner = owner;
 
-			IObservable<bool> canGenerate = Observable.CombineLatest(
-				this.WhenAnyValue(x => x.TermsAccepted),
-				this.WhenAnyValue(x => x.Password).Select(pw => !ValidatePassword().HasErrors),
-				(terms, pw) => terms && pw);
+			IObservable<bool> canGenerate = this.WhenAnyValue(x => x.Password).Select(pw => !ValidatePassword().HasErrors);
 
 			NextCommand = ReactiveCommand.Create(DoNextCommand, canGenerate);
 
@@ -44,22 +41,40 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		private void DoNextCommand()
 		{
-			try
+			WalletName = Guard.Correct(WalletName);
+
+			if (!ValidateWalletName(WalletName))
 			{
-				if (!TermsAccepted)
-				{
-					throw new InvalidOperationException("Terms are not accepted.");
-				}
-				
-				var walletGenerator = new WalletGenerator(Global.WalletsDir, Global.Network);
-				walletGenerator.TipHeight = Global.BitcoinStore.SmartHeaderChain.TipHeight;
-				var (km, mnemonic) = walletGenerator.GenerateWallet(WalletName, Password);
-				Owner.CurrentView = new GenerateWalletSuccessViewModel(Owner, km, mnemonic);
+				NotificationHelpers.Error("Invalid wallet name.");
+				return;
 			}
-			catch (Exception ex)
+
+			string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
+			if (string.IsNullOrWhiteSpace(WalletName))
 			{
-				Logger.LogError(ex);
-				NotificationHelpers.Error(ex.ToUserFriendlyString());
+				NotificationHelpers.Error("Invalid wallet name.");
+			}
+			else if (File.Exists(walletFilePath))
+			{
+				NotificationHelpers.Error("Wallet name is already taken.");
+			}
+			else
+			{
+				try
+				{
+					PasswordHelper.Guard(Password); // Here we are not letting anything that will be autocorrected later. We need to generate the wallet exactly with the entered password bacause of compatibility.
+
+					var km = KeyManager.CreateNew(out Mnemonic mnemonic, Password);
+					km.SetNetwork(Global.Network);
+					km.SetBestHeight(new Height(Global.BitcoinStore.SmartHeaderChain.TipHeight));
+					km.SetFilePath(walletFilePath);
+					Owner.CurrentView = new GenerateWalletSuccessViewModel(Owner, km, mnemonic);
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError(ex);
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
+				}
 			}
 		}
 
@@ -95,18 +110,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set => this.RaiseAndSetIfChanged(ref _walletName, value);
 		}
 
-		public bool TermsAccepted
-		{
-			get => _termsAccepted;
-			set => this.RaiseAndSetIfChanged(ref _termsAccepted, value);
-		}
-
 		public ReactiveCommand<Unit, Unit> NextCommand { get; }
-
-		public void OnLegalClicked()
-		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel());
-		}
 
 		public override void OnCategorySelected()
 		{
@@ -114,7 +118,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			Password = "";
 			WalletName = Global.GetNextWalletName();
-			TermsAccepted = false;
 		}
 	}
 }

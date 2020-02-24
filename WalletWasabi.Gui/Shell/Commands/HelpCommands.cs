@@ -5,11 +5,14 @@ using AvalonStudio.Commands;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
+using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Gui.Models.TextResourcing;
 using WalletWasabi.Gui.Tabs;
 using WalletWasabi.Logging;
 
@@ -76,7 +79,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 			LegalDocumentsCommand = new CommandDefinition(
 				"Legal Documents",
 				commandIconService.GetCompletionKindImage("LegalDocuments"),
-				ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel())));
+				ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel(legalDoc: Locator.Current.GetService<Global>()?.LegalDocuments))));
 
 			Observable
 				.Merge(AboutCommand.GetReactiveCommand().ThrownExceptions)
@@ -85,7 +88,11 @@ namespace WalletWasabi.Gui.Shell.Commands
 				.Merge(DocsCommand.GetReactiveCommand().ThrownExceptions)
 				.Merge(LegalDocumentsCommand.GetReactiveCommand().ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(ex => Logger.LogError(ex));
+				.Subscribe(ex =>
+				{
+					Logger.LogError(ex);
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
+				});
 		}
 
 		[ExportCommandDefinition("Help.About")]

@@ -31,6 +31,7 @@ using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Rpc;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
+using WalletWasabi.Legal;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
@@ -49,6 +50,7 @@ namespace WalletWasabi.Gui
 		public string WalletBackupsDir { get; }
 
 		public BitcoinStore BitcoinStore { get; private set; }
+		public LegalDocuments LegalDocuments { get; set; }
 		public Config Config { get; private set; }
 
 		public string AddressManagerFilePath { get; private set; }
@@ -180,6 +182,7 @@ namespace WalletWasabi.Gui
 
 				BitcoinStore = new BitcoinStore();
 				var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), Network);
+				LegalDocuments = await LegalDocuments.TryLoadAgreedAsync(DataDir).ConfigureAwait(false);
 				var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
 
 				AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");

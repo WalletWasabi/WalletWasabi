@@ -237,14 +237,9 @@ namespace WalletWasabi.WebClients.Wasabi
 
 		#region software
 
-		public async Task<(Version ClientVersion, int BackendMajorVersion)> GetVersionsAsync(CancellationToken cancel)
+		public async Task<(Version ClientVersion, int BackendMajorVersion, Version LegalDocumentsVersion)> GetVersionsAsync(CancellationToken cancel)
 		{
 			using var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, "/api/software/versions", cancel: cancel);
-			if (response.StatusCode == HttpStatusCode.NotFound)
-			{
-				// Meaning this things was not just yet implemented on the running server.
-				return (new Version(0, 7), 1);
-			}
 
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
@@ -253,7 +248,14 @@ namespace WalletWasabi.WebClients.Wasabi
 
 			using HttpContent content = response.Content;
 			var resp = await content.ReadAsJsonAsync<VersionsResponse>();
-			return (Version.Parse(resp.ClientVersion), int.Parse(resp.BackendMajorVersion));
+
+			// ToDo: This should be removed after it's deployed to the backend.
+			if (resp.LegalDocumentsVersion is null)
+			{
+				resp.LegalDocumentsVersion = "1.0";
+			}
+
+			return (Version.Parse(resp.ClientVersion), int.Parse(resp.BackendMajorVersion), Version.Parse(resp.LegalDocumentsVersion));
 		}
 
 		public async Task<UpdateStatus> CheckUpdatesAsync(CancellationToken cancel)
@@ -262,9 +264,30 @@ namespace WalletWasabi.WebClients.Wasabi
 			var clientUpToDate = Constants.ClientVersion >= versions.ClientVersion; // If the client version locally is greater than or equal to the backend's reported client version, then good.
 			var backendCompatible = int.Parse(Constants.BackendMajorVersion) == versions.BackendMajorVersion; // If the backend major and the client major are equal, then our software is compatible.
 
-			return new UpdateStatus(backendCompatible, clientUpToDate);
+			return new UpdateStatus(backendCompatible, clientUpToDate, versions.LegalDocumentsVersion);
 		}
 
 		#endregion software
+
+		#region wasabi
+
+		public async Task<string> GetLegalDocumentsAsync(CancellationToken cancel)
+		{
+			using var response = await TorClient.SendAndRetryAsync(
+				HttpMethod.Get,
+				HttpStatusCode.OK,
+				$"/api/v{Constants.BackendMajorVersion}/wasabi/legaldocuments",
+				cancel: cancel).ConfigureAwait(false);
+			if (response.StatusCode != HttpStatusCode.OK)
+			{
+				await response.ThrowRequestExceptionFromContentAsync();
+			}
+
+			using HttpContent content = response.Content;
+			var ret = await content.ReadAsStringAsync().ConfigureAwait(false);
+			return ret;
+		}
+
+		#endregion wasabi
 	}
 }
