@@ -54,7 +54,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public CoinListViewModel(WalletService walletService, bool canDequeueCoins = false, bool displayCommonOwnershipWarning = false)
 		{
-			_walletService = walletService;
 			Global = Locator.Current.GetService<Global>();
 
 			AmountSortDirection = SortOrder.Decreasing;
