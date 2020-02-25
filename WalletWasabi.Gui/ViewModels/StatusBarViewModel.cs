@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -20,9 +21,11 @@ using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Gui.Converters;
 using WalletWasabi.Gui.Dialogs;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models.StatusBarStatuses;
 using WalletWasabi.Gui.Tabs;
 using WalletWasabi.Helpers;
+using WalletWasabi.Legal;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
@@ -231,7 +234,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 			this.WhenAnyValue(x => x.UpdateStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
+				.Subscribe(async x =>
 				{
 					if (x.BackendCompatible)
 					{
@@ -253,6 +256,36 @@ namespace WalletWasabi.Gui.ViewModels
 
 					UpdateAvailable = !x.ClientUpToDate;
 					CriticalUpdateAvailable = !x.BackendCompatible;
+
+					try
+					{
+						if (Global.LegalDocuments is null || Global.LegalDocuments.Version != x.LegalDocumentsVersion)
+						{
+							try
+							{
+								(LegalDocuments legalDocuments, string content) legalResp;
+								if (Global.Config.UseTor)
+								{
+									legalResp = await LegalDocuments.FetchLatestAsync(Global.DataDir, () => Global.Config.GetCurrentBackendUri(), Global.Config.TorSocks5EndPoint, CancellationToken.None);
+								}
+								else
+								{
+									legalResp = await LegalDocuments.FetchLatestAsync(Global.DataDir, () => Global.Config.GetFallbackBackendUri(), null, CancellationToken.None);
+								}
+
+								IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel(legalResp.content, legalResp.legalDocuments));
+							}
+							catch (HttpRequestException ex) when (ex.Message == "Not Found")
+							{
+								// ToDo: The try-catch should be removed after it's deployed to the backend.
+							}
+						}
+					}
+					catch (Exception ex)
+					{
+						Logger.LogError(ex);
+						NotificationHelpers.Error("Could not get Legal Documents!");
+					}
 				});
 
 			UpdateCommand = ReactiveCommand.CreateFromTask(async () =>
