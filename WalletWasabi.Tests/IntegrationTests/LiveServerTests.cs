@@ -104,5 +104,22 @@ namespace WalletWasabi.Tests.IntegrationTests
 		}
 
 		#endregion Offchain
+
+		#region Software
+
+		[Theory]
+		[InlineData(NetworkType.Mainnet)]
+		[InlineData(NetworkType.Testnet)]
+		public async Task GetVersionsTestsAsync(NetworkType networkType)
+		{
+			using var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType], Global.Instance.TorSocks5Endpoint);
+
+			var versions = await client.GetVersionsAsync(CancellationToken.None);
+			Assert.InRange(versions.ClientVersion, new Version(1, 1, 10), new Version(1, 2));
+			Assert.Equal(3, versions.BackendMajorVersion);
+			Assert.Equal(new Version(2, 0), versions.LegalDocumentsVersion);
+		}
+
+		#endregion Software
 	}
 }
