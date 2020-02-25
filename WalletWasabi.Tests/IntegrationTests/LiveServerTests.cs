@@ -142,5 +142,24 @@ namespace WalletWasabi.Tests.IntegrationTests
 		}
 
 		#endregion Software
+
+		#region Wasabi
+
+		[Theory]
+		[InlineData(NetworkType.Mainnet)]
+		[InlineData(NetworkType.Testnet)]
+		public async Task GetLegalDocumentsTestsAsync(NetworkType networkType)
+		{
+			using var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType], Global.Instance.TorSocks5Endpoint);
+
+			var content = await client.GetLegalDocumentsAsync(CancellationToken.None);
+
+			var lines = content.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+			Assert.Equal("Last Updated: 2020-04-05", lines[0]);
+			var lineCount = lines.Length;
+			Assert.InRange(lineCount, 100, 1000);
+		}
+
+		#endregion Wasabi
 	}
 }
