@@ -13,17 +13,17 @@ namespace WalletWasabi.Bases
 {
 	public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 	{
-		/// <inheritdoc />
-		public string FilePath { get; private set; } = null;
+		protected ConfigBase()
+		{
+		}
 
 		protected ConfigBase(string filePath)
 		{
 			SetFilePath(filePath);
 		}
 
-		protected ConfigBase()
-		{
-		}
+		/// <inheritdoc />
+		public string FilePath { get; private set; } = null;
 
 		/// <inheritdoc />
 		public void AssertFilePathSet()
