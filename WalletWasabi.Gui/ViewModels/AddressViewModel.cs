@@ -128,6 +128,7 @@ namespace WalletWasabi.Gui.ViewModels
 			{
 				var key = km.GetKeys(x => !x.IsInternal && x == Model).FirstOrDefault();
 				key.SetKeyState(KeyState.Locked, km);
+				Application.Current.Clipboard.ClearAsync();
 			});
 
 			Observable
