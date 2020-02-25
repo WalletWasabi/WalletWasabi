@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.CoinJoin.Client.Clients;
+using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.TorSocks5;
@@ -116,8 +117,28 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 			var versions = await client.GetVersionsAsync(CancellationToken.None);
 			Assert.InRange(versions.ClientVersion, new Version(1, 1, 10), new Version(1, 2));
+			Assert.InRange(versions.ClientVersion, new Version(1, 1, 10), WalletWasabi.Helpers.Constants.ClientVersion);
 			Assert.Equal(3, versions.BackendMajorVersion);
 			Assert.Equal(new Version(2, 0), versions.LegalDocumentsVersion);
+		}
+
+		[Theory]
+		[InlineData(NetworkType.Mainnet)]
+		[InlineData(NetworkType.Testnet)]
+		public async Task CheckUpdatesTestsAsync(NetworkType networkType)
+		{
+			using var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType], Global.Instance.TorSocks5Endpoint);
+
+			var updateStatus = await client.CheckUpdatesAsync(CancellationToken.None);
+
+			var expectedVersion = new Version(2, 0);
+			Assert.Equal(new UpdateStatus(true, true, expectedVersion), updateStatus);
+			Assert.True(updateStatus.BackendCompatible);
+			Assert.True(updateStatus.ClientUpToDate);
+			Assert.Equal(expectedVersion, updateStatus.LegalDocumentsVersion);
+
+			var versions = await client.GetVersionsAsync(CancellationToken.None);
+			Assert.Equal(versions.LegalDocumentsVersion, updateStatus.LegalDocumentsVersion);
 		}
 
 		#endregion Software
