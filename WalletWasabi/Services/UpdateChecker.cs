@@ -18,7 +18,7 @@ namespace WalletWasabi.Services
 		public UpdateChecker(TimeSpan period, WasabiClient client) : base(period)
 		{
 			WasabiClient = Guard.NotNull(nameof(client), client);
-			UpdateStatus = new UpdateStatus(true, true);
+			UpdateStatus = new UpdateStatus(true, true, new Version());
 		}
 
 		public event EventHandler<UpdateStatus> UpdateStatusChanged;
