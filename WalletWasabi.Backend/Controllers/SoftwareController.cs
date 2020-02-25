@@ -14,7 +14,8 @@ namespace WalletWasabi.Backend.Controllers
 		private readonly VersionsResponse VersionsResponse = new VersionsResponse
 		{
 			ClientVersion = Constants.ClientVersion.ToString(3),
-			BackendMajorVersion = Constants.BackendMajorVersion
+			BackendMajorVersion = Constants.BackendMajorVersion,
+			LegalDocumentsVersion = Constants.LegalDocumentsVersion.ToString()
 		};
 
 		/// <summary>
