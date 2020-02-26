@@ -178,10 +178,10 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal(1, km.CountConsecutiveUnusedKeys(true));
 
 			km.GenerateNewKey("", KeyState.Locked, true);
-			Assert.Equal(1, km.CountConsecutiveUnusedKeys(true));
+			Assert.Equal(2, km.CountConsecutiveUnusedKeys(true));
 
 			k.SetKeyState(KeyState.Used);
-			Assert.Equal(0, km.CountConsecutiveUnusedKeys(true));
+			Assert.Equal(1, km.CountConsecutiveUnusedKeys(true));
 
 			for (int i = 0; i < 100; i++)
 			{
@@ -191,9 +191,11 @@ namespace WalletWasabi.Tests.UnitTests
 					k = k2;
 				}
 			}
-			Assert.Equal(100, km.CountConsecutiveUnusedKeys(true));
+			Assert.Equal(101, km.CountConsecutiveUnusedKeys(true));
 			k.SetKeyState(KeyState.Locked);
-			Assert.Equal(50, km.CountConsecutiveUnusedKeys(true));
+			Assert.Equal(101, km.CountConsecutiveUnusedKeys(true));
+			k.SetKeyState(KeyState.Used);
+			Assert.Equal(51, km.CountConsecutiveUnusedKeys(true));
 		}
 
 		private static void DeleteFileAndDirectoryIfExists(string filePath)
