@@ -87,7 +87,7 @@ Linux: "/Home/.walletwasabi/backend"
 
 Todo:
 
-1. Go to WalletWasabi\WalletWasabi.Gui folder.
+1. Go to `WalletWasabi\WalletWasabi.Gui` folder.
 2. Open the command line and run the Wasabi Client with:
 `dotnet build`
 `dotnet run --no-build`
