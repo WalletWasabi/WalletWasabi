@@ -24,8 +24,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private string _title;
 
-		public Guid Id { get; set; } = Guid.NewGuid();
-
 		public bool IsExpanded
 		{
 			get => _isExpanded;
