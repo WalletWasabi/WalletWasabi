@@ -49,7 +49,7 @@ regtest.rpcpassword = 309bc9961d01f388aed28b630ae834379296a8c8e3
 Here you will have to build from source, follow [these instructions here](https://github.com/zkSNACKs/WalletWasabi#build-from-source-code).
 
 Todo:
-1. Go to WalletWasabi\WalletWasabi.Backend folder.
+1. Go to `WalletWasabi\WalletWasabi.Backend` folder.
 2. Open the command line and enter:
 `dotnet run`
 3. You will get some errors but the data directory created. Stop the backend if it is still running with CTRL-C.
