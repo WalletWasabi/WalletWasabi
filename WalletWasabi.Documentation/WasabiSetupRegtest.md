@@ -72,7 +72,7 @@ Linux: "/Home/.walletwasabi/backend"
   "RegTestBitcoinCoreRpcEndPoint": "127.0.0.1:18443"
 }
 ```
-6. Edit one line in CcjRoundConfig.json file. With this the Coordinator waits only 2 participants for CoinJoin.
+6. Edit one line in `CcjRoundConfig.json` file. With this the Coordinator waits only 2 participants for CoinJoin.
 ```
 "AnonymitySet": 2,
 ```
