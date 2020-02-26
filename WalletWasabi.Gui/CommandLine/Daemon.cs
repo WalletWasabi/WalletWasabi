@@ -11,7 +11,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.CommandLine
 {
-	public class Daemon
+	public class Daemon 
 	{
 		public Daemon(Global global)
 		{
