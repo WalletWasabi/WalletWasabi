@@ -25,7 +25,7 @@ macOS: $HOME/Library/Application Support/Bitcoin/
 Linux: $HOME/.bitcoin/
 ```
 4. Edit bitcoin.conf file and add these lines there:
-```
+```json
 regtest.server = 1
 regtest.listen = 1
 regtest.whitebind = 127.0.0.1:18444
@@ -106,4 +106,3 @@ Todo:
 13. If you see Waiting for confirmation in the Wasabi CoinList you can generate a block in Bitcoin Core to continue coinjoining.
 
 Happy CoinJoin!
-
