@@ -52,7 +52,7 @@ Todo:
 1. Go to `WalletWasabi\WalletWasabi.Backend` folder.
 2. Open the command line and enter:
 `dotnet run`
-3. You will get some errors but the data directory created. Stop the backend if it is still running with CTRL-C.
+3. You will get some errors, but the data directory will be created. Stop the backend if it is still running with CTRL-C.
 4. Go to the Backend folder:
 ```
 Windows: "C:\Users\{your username}\AppData\Roaming\WalletWasabi\Backend"
