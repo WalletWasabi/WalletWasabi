@@ -77,11 +77,12 @@ Linux: "/Home/.walletwasabi/backend"
 "AnonymitySet": 2,
 ```
 7. Start Bitcoin Core in RegTest.
-8. Go to WalletWasabi\WalletWasabi.Backend folder.
-9. Open the command line and enter:
+8. Go to WalletWasabi folder
+9. Open the command line and enter. This will build all the projects under this directory. 
 `dotnet build`
+10. Go to WalletWasabi\WalletWasabi.Backend folder.
 `dotnet run --no-build`
-10. Now the Backend is generating the filters and it is running. (You can quit with CTRL-C any time)
+11. Now the Backend is generating the filters and it is running. (You can quit with CTRL-C any time)
 
 ## Setup Wasabi Client
 
@@ -89,7 +90,6 @@ Todo:
 
 1. Go to `WalletWasabi\WalletWasabi.Gui` folder.
 2. Open the command line and run the Wasabi Client with:
-`dotnet build`
 `dotnet run --no-build`
 3. Go to Tools/Settings and set the network to RegTest
 4. Close Wasabi and restart it with:
