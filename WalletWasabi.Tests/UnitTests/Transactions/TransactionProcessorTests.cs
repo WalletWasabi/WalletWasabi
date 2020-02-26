@@ -1026,7 +1026,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			{
 				cjtx.Outputs.Add(Money.Coins(0.1m), Script.Empty);
 			}
-			cjtx.Inputs.Add(receivedCoin.GetOutPoint(), Script.Empty, WitScript.Empty);
+			cjtx.Inputs.Add(receivedCoin.OutPoint, Script.Empty, WitScript.Empty);
 			cjtx.Outputs.Add(Money.Coins(0.1m), transactionProcessor.NewKey("").P2wpkhScript);
 			cjtx.Outputs.Add(Money.Coins(0.9m), transactionProcessor.NewKey("").P2wpkhScript);
 			var tx1 = new SmartTransaction(cjtx, Height.Mempool);

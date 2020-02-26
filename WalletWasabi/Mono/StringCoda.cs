@@ -224,11 +224,11 @@ namespace Mono.Options
 			{
 				curWidth = (eValid = eWidths.MoveNext()).Value ? eWidths.Current : curWidth;
 				// '.' is any character, - is for a continuation
-				const string minWidth = ".-";
-				if (curWidth < minWidth.Length)
+				const string MinWidth = ".-";
+				if (curWidth < MinWidth.Length)
 				{
 					throw new ArgumentOutOfRangeException("widths",
-						$"Element must be greater than or equal to {minWidth.Length}, was {curWidth}.");
+						$"Element must be greater than or equal to {MinWidth.Length}, was {curWidth}.");
 				}
 
 				return curWidth;
