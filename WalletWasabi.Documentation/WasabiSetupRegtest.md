@@ -59,7 +59,7 @@ Windows: "C:\Users\{your username}\AppData\Roaming\WalletWasabi\Backend"
 macOS: "/Users/{your username}/.walletwasabi/backend"
 Linux: "/Home/.walletwasabi/backend"
 ```
-5. Edit Config.json file by replacing everything with:
+5. Edit `Config.json` file by replacing everything with:
 ```json
 {
   "Network": "RegTest",
