@@ -35,7 +35,7 @@ regtest.rpcuser = 7c9b6473600fbc9be1120ae79f1622f42c32e5c78d
 regtest.rpcpassword = 309bc9961d01f388aed28b630ae834379296a8c8e3
 ```
 5. Start Bitcoin Core with: bitcoin-qt.exe -regtest.
-6. Do not worry about "Syncing Headers" just press the Hide button.
+6. Do not worry about "Syncing Headers" just press the Hide button. Because you run on Regtest, no Mainnet blocks will be downloaded.
 7. Go to MainMenu / Window / Console.
 8. Generate a new address with:
 `getnewaddress`
