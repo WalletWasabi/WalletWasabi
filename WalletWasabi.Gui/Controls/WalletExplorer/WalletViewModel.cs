@@ -65,7 +65,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			var receiveTab = new ReceiveTabViewModel(this);
-			var coinjoinTab = new CoinJoinTabViewModel(this);
+			var coinjoinTab = new CoinJoinTabViewModel(WalletService, this);
 			var historyTab = new HistoryTabViewModel(this);
 
 			var advancedAction = new WalletAdvancedViewModel(this);
