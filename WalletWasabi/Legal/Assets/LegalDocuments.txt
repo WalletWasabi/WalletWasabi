@@ -6,7 +6,7 @@ SUMMARY
 =========================================
 
     The WASABI team is committed to be fully transparent to its users, from its source code to the legal aspects of its services. The purpose of Wasabi Wallet is to provide privacy for its users’ Bitcoin transactions. This means that with the use of the wallet we would like to enable the users to make Bitcoin payments in such a way that their spending history, wallet balances, etc. are not visible to the receiving party. This does not necessarily mean that the user stays anonymous, since the receiving party might have to identify the sending party.
-    Our goal is to minimize the unintentional leaking or disclosure of private financial information to third parties and to the receiver of any transaction resulting from the use of the wasabi wallet. The protection of your privacy and the protection of your (personal) data is our highest priority, which also defines the essence of our services.
+    Our goal is to minimize the unintentional leaking or disclosure of private financial information to third parties and to the receiver of any transaction resulting from the use of the Wasabi Wallet. The protection of your privacy and the protection of your (personal) data is our highest priority, which also defines the essence of our services.
     One instance of the Wasabi Wallet CoinJoin coordinating server is operated by a legal entity, zkSNACKs Ltd. Thus, in order to legally provide our services to our clients, we have defined the framework and the rules that both parties must follow in order to protect each other.
 
     The most important parts of the document below is summarized in the following points:
