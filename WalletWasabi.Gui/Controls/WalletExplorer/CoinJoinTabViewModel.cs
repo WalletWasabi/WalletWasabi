@@ -281,7 +281,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void UpdateStates()
 		{
-			var chaumianClient = Global?.WalletService?.ChaumianClient;
+			var chaumianClient = WalletService?.ChaumianClient;
 			if (chaumianClient is null)
 			{
 				return;
