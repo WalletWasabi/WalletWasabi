@@ -8,6 +8,7 @@ trigger:
 
 jobs:
 - job: 'UnitTest'
+  displayName: 'UnitTest'
   strategy:
     matrix:
       linux:
