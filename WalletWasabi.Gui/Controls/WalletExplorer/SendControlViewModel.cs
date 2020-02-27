@@ -36,14 +36,16 @@ using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public abstract class SendControlViewModel : WalletActionViewModel
+	public abstract class SendControlViewModel : WasabiDocumentTabViewModel
 	{
 		private CompositeDisposable Disposables { get; set; }
 
 		protected Global Global { get; }
+		private WalletService WalletService { get; }
 
 		private string _buildTransactionButtonText;
 		private bool _isMax;
@@ -99,10 +101,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			AmountText = "0.0";
 		}
 
-		protected SendControlViewModel(WalletViewModel walletViewModel, string title)
-			: base(title, walletViewModel)
+		protected SendControlViewModel(WalletService walletService, string title)
+			: base(title)
 		{
 			Global = Locator.Current.GetService<Global>();
+			WalletService = walletService;
+
 			LabelSuggestion = new SuggestLabelViewModel(WalletService);
 			BuildTransactionButtonText = DoButtonText;
 
@@ -315,11 +319,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusType.DequeuingSelectedCoins);
 					}
 
-					if (!KeyManager.IsWatchOnly)
+					if (!WalletService.KeyManager.IsWatchOnly)
 					{
 						try
 						{
-							PasswordHelper.GetMasterExtKey(KeyManager, Password, out string compatiblityPasswordUsed); // We could use TryPassword but we need the exception.
+							PasswordHelper.GetMasterExtKey(WalletService.KeyManager, Password, out string compatiblityPasswordUsed); // We could use TryPassword but we need the exception.
 							if (compatiblityPasswordUsed != null)
 							{
 								Password = compatiblityPasswordUsed; // Overwrite the password for BuildTransaction function.

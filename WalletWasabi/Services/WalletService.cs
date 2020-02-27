@@ -56,6 +56,8 @@ namespace WalletWasabi.Services
 
 		public ServiceConfiguration ServiceConfiguration { get; }
 
+		public string Name => Path.GetFileNameWithoutExtension(KeyManager.FilePath);
+
 		/// <summary>
 		/// Unspent Transaction Outputs
 		/// </summary>
