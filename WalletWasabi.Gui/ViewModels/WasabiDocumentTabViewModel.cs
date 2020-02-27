@@ -20,7 +20,7 @@ namespace WalletWasabi.Gui.ViewModels
 		private string _title;
 		private bool _isSelected;
 		private bool _isClosed;
-		private object _dialogResult;		
+		private object _dialogResult;
 
 		protected WasabiDocumentTabViewModel(string title)
 		{
