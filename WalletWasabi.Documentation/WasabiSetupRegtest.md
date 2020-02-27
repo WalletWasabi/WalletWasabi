@@ -7,7 +7,7 @@ You do not need to download the blockchain for this setup!
 
 ## Setup Bitcoin Core with RegTest
 
-Follow [this guide](https://bitcoin.org/en/developer-examples#regtest-mode).
+Follow [this guide](https://bitcoin.org/en/developer-examples).
 
 Todo:
 
@@ -57,7 +57,7 @@ Todo:
 ```
 Windows: "C:\Users\{your username}\AppData\Roaming\WalletWasabi\Backend"
 macOS: "/Users/{your username}/.walletwasabi/backend"
-Linux: "/Home/.walletwasabi/backend"
+Linux: "/home/{your username}/.walletwasabi/backend"
 ```
 5. Edit `Config.json` file by replacing everything with:
 ```json
