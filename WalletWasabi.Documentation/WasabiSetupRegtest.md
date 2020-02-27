@@ -18,14 +18,14 @@ Windows: "C:\Program Files\Bitcoin\bitcoin-qt.exe" -regtest
 macOS: "/Applications/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" -regtest
 Linux:
 ```
-3. Go to Bitcoin Core settings directory. If the directory is missing run core bitcoin-qt, then quit immediately. In this way the data directory and the config files will be generated.
+3. Go to Bitcoin Core data directory. If the directory is missing run core bitcoin-qt, then quit immediately. In this way the data directory and the config files will be generated.
 ```
 Windows: %APPDATA%\Bitcoin\
 macOS: $HOME/Library/Application Support/Bitcoin/
 Linux: $HOME/.bitcoin/
 ```
 4. Edit bitcoin.conf file and add these lines there:
-```json
+```C#
 regtest.server = 1
 regtest.listen = 1
 regtest.whitebind = 127.0.0.1:18444
