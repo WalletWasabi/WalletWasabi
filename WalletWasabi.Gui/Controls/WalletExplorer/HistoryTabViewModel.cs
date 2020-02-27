@@ -11,12 +11,14 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class HistoryTabViewModel : WalletActionViewModel
+	public class HistoryTabViewModel : WasabiDocumentTabViewModel
 	{
 		private CompositeDisposable Disposables { get; set; }
 
@@ -27,13 +29,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private SortOrder _transactionSortDirection;
 
 		private Global Global { get; }
+		
+		private WalletService WalletService { get; }
 
 		public ReactiveCommand<Unit, Unit> SortCommand { get; }
 
-		public HistoryTabViewModel(WalletViewModel walletViewModel)
-			: base("History", walletViewModel)
+		public HistoryTabViewModel(WalletService walletService)
+			: base("History")
 		{
 			Global = Locator.Current.GetService<Global>();
+			WalletService = walletService;
 
 			Transactions = new ObservableCollection<TransactionViewModel>();
 

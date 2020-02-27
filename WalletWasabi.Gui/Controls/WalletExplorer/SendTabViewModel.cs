@@ -9,6 +9,7 @@ using WalletWasabi.Gui.Models.StatusBarStatuses;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Exceptions;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -17,16 +18,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public override string DoButtonText => "Send Transaction";
 		public override string DoingButtonText => "Sending Transaction...";
 
-		public SendTabViewModel(WalletViewModel walletViewModel) : base(walletViewModel, "Send")
+		public SendTabViewModel(WalletService walletService) : base(walletService, "Send")
 		{
+			WalletService = walletService;
 		}
+
+		private WalletService WalletService { get; }
 
 		protected override async Task DoAfterBuildTransaction(BuildTransactionResult result)
 		{
 			MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.SigningTransaction);
 			SmartTransaction signedTransaction = result.Transaction;
 
-			if (IsHardwareWallet && !result.Signed) // If hardware but still has a privkey then it's password, then meh.
+			if (WalletService.KeyManager.IsHardwareWallet && !result.Signed) // If hardware but still has a privkey then it's password, then meh.
 			{
 				try
 				{
@@ -38,12 +42,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					PSBT signedPsbt = null;
 					try
 					{
-						signedPsbt = await client.SignTxAsync(KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
+						signedPsbt = await client.SignTxAsync(WalletService.KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
 					}
 					catch (HwiException)
 					{
 						await PinPadViewModel.UnlockAsync();
-						signedPsbt = await client.SignTxAsync(KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
+						signedPsbt = await client.SignTxAsync(WalletService.KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
 					}
 					signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction);
 				}

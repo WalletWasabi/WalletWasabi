@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -15,7 +16,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public override string DoButtonText => "Build Transaction";
 		public override string DoingButtonText => "Building Transaction...";
 
-		public BuildTabViewModel(WalletViewModel walletViewModel) : base(walletViewModel, "Build Transaction")
+		public BuildTabViewModel(WalletService walletService) : base(walletService, "Build Transaction")
 		{
 		}
 
@@ -23,7 +24,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			try
 			{
-				var txviewer = new TransactionViewerViewModel(Wallet);
+				var txviewer = new TransactionViewerViewModel();
 				IoC.Get<IShell>().AddDocument(txviewer);
 				IoC.Get<IShell>().Select(txviewer);
 
