@@ -1,3 +1,5 @@
+name: 'UnitTest'
+
 trigger:
   batch: true
 
@@ -15,6 +17,7 @@ strategy:
   maxParallel: 3
 pool:
   vmImage: $(imageName)
+
 steps:
 - task: UseDotNet@2
   displayName: 'Install .NET Core 3'
