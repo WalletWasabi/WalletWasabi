@@ -1,13 +1,25 @@
 trigger:
   batch: true
 
+strategy:
+  matrix:
+    linux:
+      imageName: 'ubuntu-16.04'
+      jobName: 'Linux'
+    mac:
+      imageName: 'macos-10.14'
+      jobName: 'macOS'
+    windows:
+      imageName: 'vs2017-win2016'
+      jobName: 'Windows'
+
 variables:
   testConfiguration: 'Debug'
 
 jobs:
-- job: Windows
+- job: $(jobName)
   pool:
-    vmImage: 'vs2017-win2016'
+    vmImage: $(imageName)
   steps:
   - task: UseDotNet@2
     displayName: 'Install .NET Core 3'
