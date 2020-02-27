@@ -1,5 +1,3 @@
-name: 'UnitTest'
-
 variables:
   testConfiguration: 'Debug'
 
