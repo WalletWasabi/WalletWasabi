@@ -3,7 +3,9 @@ using NBitcoin.Protocol;
 using NBitcoin.RPC;
 using Nito.AsyncEx;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -42,6 +44,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 		public uint StartingHeight { get; }
 		private Dictionary<OutPoint, UtxoEntry> Bech32UtxoSet { get; }
 		private List<ActionHistoryHelper> Bech32UtxoSetHistory { get; }
+		private ConcurrentDictionary<uint, Block> PrefetchCache { get; }
 
 		/// <summary>
 		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
@@ -59,6 +62,8 @@ namespace WalletWasabi.Blockchain.BlockFilters
 
 			Bech32UtxoSet = new Dictionary<OutPoint, UtxoEntry>();
 			Bech32UtxoSetHistory = new List<ActionHistoryHelper>(capacity: 100);
+			PrefetchCache = new ConcurrentDictionary<uint, Block>();
+
 			Index = new List<FilterModel>();
 			IndexLock = new AsyncLock();
 
@@ -139,8 +144,13 @@ namespace WalletWasabi.Blockchain.BlockFilters
 
 						var isImmature = false; // The last 100 blocks are reorgable. (Assume it is mature at first.)
 						SyncInfo syncInfo = null;
+						PrefetchCache.Clear();
+
 						while (IsRunning)
 						{
+							Stopwatch stp = new Stopwatch();
+							stp.Start();
+
 							try
 							{
 								// If we did not yet initialized syncInfo, do so.
@@ -186,7 +196,16 @@ namespace WalletWasabi.Blockchain.BlockFilters
 									isImmature = true;
 								}
 
-								Block block = await RpcClient.GetBlockAsync(heightToRequest);
+								if (PrefetchCache.TryGetValue(heightToRequest, out Block block))
+								{
+									PrefetchCache.TryRemove(heightToRequest, out _);
+								}
+								else
+								{
+									block = await RpcClient.GetBlockAsync(heightToRequest);
+								}
+
+								PrefetchBlocks(heightToRequest + 10);
 
 								// Reorg check, except if we're requesting the starting height, because then the "currentHash" wouldn't exist.
 								if (heightToRequest != StartingHeight && currentHash != block.Header.HashPrevBlock)
@@ -201,10 +220,11 @@ namespace WalletWasabi.Blockchain.BlockFilters
 										Logger.LogCritical("This is something serious! Over 100 block reorg is noticed! We cannot handle that!");
 									}
 
+									PrefetchCache.Clear();
+
 									// Skip the current block.
 									continue;
 								}
-
 								if (isImmature)
 								{
 									PrepareBech32UtxoSetHistory();
@@ -270,33 +290,29 @@ namespace WalletWasabi.Blockchain.BlockFilters
 									// And this must be fixed in a backwards compatible way, so we create a fake filter with a random scp instead.
 									filter = CreateDummyEmptyFilter(block.GetHash());
 								}
-
 								var smartHeader = new SmartHeader(block.GetHash(), block.Header.HashPrevBlock, heightToRequest, block.Header.BlockTime);
 								var filterModel = new FilterModel(smartHeader, filter);
-
 								await File.AppendAllLinesAsync(IndexFilePath, new[] { filterModel.ToLine() });
 								using (await IndexLock.LockAsync())
 								{
 									Index.Add(filterModel);
 								}
-								if (File.Exists(Bech32UtxoSetFilePath))
+
+								if (heightToRequest % 100 == 0)
 								{
-									File.Delete(Bech32UtxoSetFilePath);
+									SaveUTXOSetToDisk();
 								}
-								var bech32UtxoSetLines = Bech32UtxoSet.Select(entry => entry.Value.Line);
 
-								// Keep it sync unless you fix the performance issue with async.
-								File.WriteAllLines(Bech32UtxoSetFilePath, bech32UtxoSetLines);
-
+								stp.Stop();
 								// If not close to the tip, just log debug.
 								// Use height.Value instead of simply height, because it cannot be negative height.
 								if (syncInfo.BlockCount - heightToRequest <= 3 || heightToRequest % 100 == 0)
 								{
-									Logger.LogInfo($"Created filter for block: {heightToRequest}.");
+									Logger.LogInfo($"Created filter for block: {heightToRequest}. execution time = " + stp.ElapsedMilliseconds);
 								}
 								else
 								{
-									Logger.LogDebug($"Created filter for block: {heightToRequest}.");
+									Logger.LogDebug($"Created filter for block: {heightToRequest}. execution time = " + stp.ElapsedMilliseconds);
 								}
 							}
 							catch (Exception ex)
@@ -304,6 +320,8 @@ namespace WalletWasabi.Blockchain.BlockFilters
 								Logger.LogDebug(ex);
 							}
 						}
+
+						SaveUTXOSetToDisk();
 					}
 					finally
 					{
@@ -316,6 +334,28 @@ namespace WalletWasabi.Blockchain.BlockFilters
 					Logger.LogError($"Synchronization attempt failed to start: {ex}");
 				}
 			});
+		}
+
+		private void PrefetchBlocks(uint heightToRequest)
+		{
+			Task.Run(async () =>
+			{
+				var blk = await RpcClient.GetBlockAsync(heightToRequest);
+				PrefetchCache.TryAdd(heightToRequest, blk);
+			});
+		}
+
+		private void SaveUTXOSetToDisk()
+		{
+			if (File.Exists(Bech32UtxoSetFilePath))
+			{
+				File.Delete(Bech32UtxoSetFilePath);
+			}
+
+			var bech32UtxoSetLines1 = Bech32UtxoSet.Select(entry => entry.Value.Line);
+
+			// Keep it sync unless you fix the performance issue with async.
+			File.WriteAllLines(Bech32UtxoSetFilePath, bech32UtxoSetLines1);
 		}
 
 		private async Task<SyncInfo> GetSyncInfoAsync()
