@@ -508,8 +508,10 @@ namespace WalletWasabi.Gui
 
 		private CancellationTokenSource _cancelWalletServiceInitialization = null;
 
-		public async Task InitializeWalletServiceAsync(KeyManager keyManager)
+		public async Task<WalletService> CreateWalletServiceAsync(KeyManager keyManager)
 		{
+			WalletService walletService;
+
 			using (_cancelWalletServiceInitialization = new CancellationTokenSource())
 			{
 				var token = _cancelWalletServiceInitialization.Token;
@@ -518,21 +520,29 @@ namespace WalletWasabi.Gui
 					await Task.Delay(100, token);
 				}
 
-				WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
+				walletService = new WalletService(BitcoinStore, keyManager, Synchronizer, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
 
 				Logger.LogInfo($"Starting {nameof(WalletService)}...");
-				await WalletService.StartAsync(token);
+				await walletService.StartAsync(token);
 				Logger.LogInfo($"{nameof(WalletService)} started.");
 
 				token.ThrowIfCancellationRequested();
 
-				TransactionBroadcaster.AddWalletService(WalletService);
-				CoinJoinProcessor.AddWalletService(WalletService);
+				TransactionBroadcaster.AddWalletService(walletService);
+				CoinJoinProcessor.AddWalletService(walletService);
 
-				WalletService.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
-				WalletService.ChaumianClient.OnDequeue += ChaumianClient_OnDequeued;
+				walletService.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
+				walletService.ChaumianClient.OnDequeue += ChaumianClient_OnDequeued;
+
+				if(WalletService is  null)
+				{
+					WalletService = walletService;
+				}				
 			}
+
 			_cancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
+
+			return walletService;
 		}
 
 		private void ChaumianClient_OnDequeued(object sender, DequeueResult e)
