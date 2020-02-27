@@ -104,7 +104,6 @@ namespace WalletWasabi.Gui.ViewModels
 		}
 
 		public ReactiveCommand<Unit, Unit> DoItCommand { get; }
-		
 		public void Select()
 		{
 			IoC.Get<IShell>().Select(this);
