@@ -4,7 +4,6 @@ trigger:
 variables:
   testConfiguration: 'Debug'
 
-
 strategy:
   matrix:
     linux:
@@ -14,34 +13,36 @@ strategy:
     windows:
       imageName: 'vs2017-win2016'
   maxParallel: 3
+  
 pool:
   vmImage: $(imageName)
+
 steps:
-  - task: UseDotNet@2
-      displayName: 'Install .NET Core 3'
-      inputs:
-        version: 3.1.x
-  - task: DotNetCoreCLI@2
-      displayName: 'Build Debug'
-      inputs:
-        command: build
-        arguments: --configuration Debug
-      env:
-        DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
-        DOTNET_CLI_TELEMETRY_OPTOUT: 1
-        DOTNET_MULTILEVEL_LOOKUP: 0
-  - task: DotNetCoreCLI@2
-      displayName: 'Build Release'
-      inputs:
-        command: build
-        arguments: --configuration Release
-      env:
-        DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
-        DOTNET_CLI_TELEMETRY_OPTOUT: 1
-        DOTNET_MULTILEVEL_LOOKUP: 0
-  - task: DotNetCoreCLI@2
-      displayName: 'Test Debug'
-      inputs:
-        command: test
-        projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
-        arguments: --configuration $(testConfiguration) --filter "UnitTests"
+- task: UseDotNet@2
+    displayName: 'Install .NET Core 3'
+    inputs:
+      version: 3.1.x
+- task: DotNetCoreCLI@2
+    displayName: 'Build Debug'
+    inputs:
+      command: build
+      arguments: --configuration Debug
+    env:
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      DOTNET_MULTILEVEL_LOOKUP: 0
+- task: DotNetCoreCLI@2
+    displayName: 'Build Release'
+    inputs:
+      command: build
+      arguments: --configuration Release
+    env:
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      DOTNET_MULTILEVEL_LOOKUP: 0
+- task: DotNetCoreCLI@2
+    displayName: 'Test Debug'
+    inputs:
+      command: test
+      projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
+      arguments: --configuration $(testConfiguration) --filter "UnitTests"
