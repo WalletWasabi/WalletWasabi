@@ -298,7 +298,15 @@ namespace WalletWasabi.Blockchain.BlockFilters
 									Index.Add(filterModel);
 								}
 
-								SaveUTXOSetToDisk();
+								if (File.Exists(Bech32UtxoSetFilePath))
+								{
+									File.Delete(Bech32UtxoSetFilePath);
+								}
+
+								var bech32UtxoSetLines1 = Bech32UtxoSet.Select(entry => entry.Value.Line);
+
+								// Keep it sync unless you fix the performance issue with async.
+								File.WriteAllLines(Bech32UtxoSetFilePath, bech32UtxoSetLines1);
 
 								stp.Stop();
 								// If not close to the tip, just log debug.
@@ -338,19 +346,6 @@ namespace WalletWasabi.Blockchain.BlockFilters
 				var blk = await RpcClient.GetBlockAsync(heightToRequest);
 				PrefetchCache.TryAdd(heightToRequest, blk);
 			});
-		}
-
-		private void SaveUTXOSetToDisk()
-		{
-			if (File.Exists(Bech32UtxoSetFilePath))
-			{
-				File.Delete(Bech32UtxoSetFilePath);
-			}
-
-			var bech32UtxoSetLines1 = Bech32UtxoSet.Select(entry => entry.Value.Line);
-
-			// Keep it sync unless you fix the performance issue with async.
-			File.WriteAllLines(Bech32UtxoSetFilePath, bech32UtxoSetLines1);
 		}
 
 		private async Task<SyncInfo> GetSyncInfoAsync()
