@@ -5,7 +5,7 @@ variables:
   testConfiguration: 'Debug'
 
 jobs:
-- job: $(jobName)
+- job: Test
   strategy:
     matrix:
       linux:
