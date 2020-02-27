@@ -50,11 +50,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _coinJoinUntilAnonymitySet;
 		private TargetPrivacy _targetPrivacy;
 
-		public CoinJoinTabViewModel(WalletService walletService, WalletViewModel walletViewModel)
+		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
 			: base("CoinJoin", walletViewModel)
 		{
 			Global = Locator.Current.GetService<Global>();
-			WalletService = walletService;
 
 			Password = "";
 			TimeLeftTillRoundTimeout = TimeSpan.Zero;
@@ -132,8 +131,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		private Global Global { get; }
-
-		private WalletService WalletService { get; }
 
 		public override void OnOpen()
 		{
