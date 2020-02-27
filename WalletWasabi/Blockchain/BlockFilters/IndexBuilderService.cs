@@ -297,16 +297,15 @@ namespace WalletWasabi.Blockchain.BlockFilters
 								{
 									Index.Add(filterModel);
 								}
-
 								if (File.Exists(Bech32UtxoSetFilePath))
 								{
 									File.Delete(Bech32UtxoSetFilePath);
 								}
 
-								var bech32UtxoSetLines1 = Bech32UtxoSet.Select(entry => entry.Value.Line);
+								var bech32UtxoSetLines = Bech32UtxoSet.Select(entry => entry.Value.Line);
 
 								// Keep it sync unless you fix the performance issue with async.
-								File.WriteAllLines(Bech32UtxoSetFilePath, bech32UtxoSetLines1);
+								File.WriteAllLines(Bech32UtxoSetFilePath, bech32UtxoSetLines);
 
 								stp.Stop();
 								// If not close to the tip, just log debug.
