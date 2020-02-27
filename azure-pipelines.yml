@@ -5,8 +5,7 @@ trigger:
   batch: true
 
 jobs:
-- job: 'UnitTest'
-  displayName: 'UnitTest'
+- job:
   strategy:
     matrix:
       linux:
