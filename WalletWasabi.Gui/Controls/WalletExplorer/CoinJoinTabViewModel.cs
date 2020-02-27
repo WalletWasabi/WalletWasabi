@@ -1,28 +1,27 @@
-using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Security;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.CoinJoin.Client.Clients.Queuing;
+using WalletWasabi.CoinJoin.Client.Rounds;
+using WalletWasabi.CoinJoin.Common.Models;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Services;
 using WalletWasabi.Models;
-using WalletWasabi.CoinJoin.Common.Models;
-using WalletWasabi.CoinJoin.Client.Rounds;
-using WalletWasabi.Gui.Helpers;
-using System.Security;
-using WalletWasabi.CoinJoin.Client.Clients.Queuing;
-using WalletWasabi.Blockchain.TransactionOutputs;
-using Splat;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -141,25 +140,25 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			TargetPrivacy = Global.Config.GetTargetPrivacy();
 
-			var registrableRound = Global.WalletService.ChaumianClient.State.GetRegistrableRoundOrDefault();
+			var registrableRound = WalletService.ChaumianClient.State.GetRegistrableRoundOrDefault();
 
 			UpdateRequiredBtcLabel(registrableRound);
 
 			CoordinatorFeePercent = registrableRound?.State?.CoordinatorFeePercent.ToString() ?? "0.003";
 
-			Observable.FromEventPattern(Global.WalletService.ChaumianClient, nameof(Global.WalletService.ChaumianClient.CoinQueued))
-				.Merge(Observable.FromEventPattern(Global.WalletService.ChaumianClient, nameof(Global.WalletService.ChaumianClient.OnDequeue)))
-				.Merge(Observable.FromEventPattern(Global.WalletService.ChaumianClient, nameof(Global.WalletService.ChaumianClient.StateUpdated)))
+			Observable.FromEventPattern(WalletService.ChaumianClient, nameof(WalletService.ChaumianClient.CoinQueued))
+				.Merge(Observable.FromEventPattern(WalletService.ChaumianClient, nameof(WalletService.ChaumianClient.OnDequeue)))
+				.Merge(Observable.FromEventPattern(WalletService.ChaumianClient, nameof(WalletService.ChaumianClient.StateUpdated)))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => UpdateStates())
 				.DisposeWith(Disposables);
 
-			ClientRound mostAdvancedRound = Global.WalletService.ChaumianClient?.State?.GetMostAdvancedRoundOrDefault();
+			ClientRound mostAdvancedRound = WalletService.ChaumianClient?.State?.GetMostAdvancedRoundOrDefault();
 
 			if (mostAdvancedRound != default)
 			{
 				RoundId = mostAdvancedRound.State.RoundId;
-				RoundPhaseState = new RoundPhaseState(mostAdvancedRound.State.Phase, Global.WalletService.ChaumianClient?.State.IsInErrorState ?? false);
+				RoundPhaseState = new RoundPhaseState(mostAdvancedRound.State.Phase, WalletService.ChaumianClient?.State.IsInErrorState ?? false);
 				RoundTimesout = mostAdvancedRound.State.Phase == RoundPhase.InputRegistration ? mostAdvancedRound.State.InputRegistrationTimesout : DateTimeOffset.UtcNow;
 				PeersRegistered = mostAdvancedRound.State.RegisteredPeerCount;
 				PeersNeeded = mostAdvancedRound.State.RequiredPeerCount;
@@ -214,7 +213,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				try
 				{
-					await Global.WalletService.ChaumianClient.DequeueCoinsFromMixAsync(coins.ToArray(), DequeueReason.UserRequested);
+					await WalletService.ChaumianClient.DequeueCoinsFromMixAsync(coins.ToArray(), DequeueReason.UserRequested);
 				}
 				catch (Exception ex)
 				{
@@ -249,7 +248,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
 					}
 
-					await Global.WalletService.ChaumianClient.QueueCoinsToMixAsync(Password, coins.ToArray());
+					await WalletService.ChaumianClient.QueueCoinsToMixAsync(Password, coins.ToArray());
 				}
 				catch (SecurityException ex)
 				{
@@ -317,7 +316,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void UpdateRequiredBtcLabel(ClientRound registrableRound)
 		{
-			if (Global.WalletService is null)
+			if (WalletService is null)
 			{
 				return; // Otherwise NullReferenceException at shutdown.
 			}
@@ -331,11 +330,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			else
 			{
-				var coins = Global.WalletService.Coins;
+				var coins = WalletService.Coins;
 				var queued = coins.CoinJoinInProcess();
 				if (queued.Any())
 				{
-					RequiredBTC = registrableRound.State.CalculateRequiredAmount(Global.WalletService.ChaumianClient.State.GetAllQueuedCoinAmounts().ToArray());
+					RequiredBTC = registrableRound.State.CalculateRequiredAmount(WalletService.ChaumianClient.State.GetAllQueuedCoinAmounts().ToArray());
 				}
 				else
 				{
@@ -349,12 +348,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override void OnSelected()
 		{
-			Global.WalletService.ChaumianClient.ActivateFrequentStatusProcessing();
+			WalletService.ChaumianClient.ActivateFrequentStatusProcessing();
 		}
 
 		public override void OnDeselected()
 		{
-			Global.WalletService.ChaumianClient.DeactivateFrequentStatusProcessingIfNotMixing();
+			WalletService.ChaumianClient.DeactivateFrequentStatusProcessingIfNotMixing();
 		}
 
 		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
