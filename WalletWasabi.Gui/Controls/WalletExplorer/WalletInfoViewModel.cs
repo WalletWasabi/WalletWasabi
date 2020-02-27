@@ -33,7 +33,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private Global Global { get; }
 
-		public WalletInfoViewModel(WalletService walletService) : base(Path.GetFileNameWithoutExtension(walletService.KeyManager.FilePath))
+		public WalletInfoViewModel(WalletService walletService) : base(walletService.Name)
 		{
 			Global = Locator.Current.GetService<Global>();
 			WalletService = walletService;

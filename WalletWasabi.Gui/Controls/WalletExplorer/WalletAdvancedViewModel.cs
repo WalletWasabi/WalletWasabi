@@ -24,7 +24,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
 		}
 
-		public WalletAdvancedViewModel(WalletService walletService) : base(Path.GetFileNameWithoutExtension(walletService.KeyManager.FilePath))
+		public WalletAdvancedViewModel(WalletService walletService) : base(walletService.Name)
 		{
 			Items = new ObservableCollection<WasabiDocumentTabViewModel>();
 
