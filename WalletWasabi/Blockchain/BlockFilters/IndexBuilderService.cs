@@ -298,10 +298,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 									Index.Add(filterModel);
 								}
 
-								if (heightToRequest % 100 == 0)
-								{
-									SaveUTXOSetToDisk();
-								}
+								SaveUTXOSetToDisk();
 
 								stp.Stop();
 								// If not close to the tip, just log debug.
@@ -320,8 +317,6 @@ namespace WalletWasabi.Blockchain.BlockFilters
 								Logger.LogDebug(ex);
 							}
 						}
-
-						SaveUTXOSetToDisk();
 					}
 					finally
 					{
