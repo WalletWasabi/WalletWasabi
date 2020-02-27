@@ -27,8 +27,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class CoinJoinTabViewModel : WalletActionViewModel
 	{
-		private CompositeDisposable Disposables { get; set; }
-
 		private long _roundId;
 		private RoundPhaseState _roundPhaseState;
 		private DateTimeOffset _roundTimesout;
@@ -50,10 +48,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _coinJoinUntilAnonymitySet;
 		private TargetPrivacy _targetPrivacy;
 
-		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
-			: base("CoinJoin", walletViewModel)
+		public CoinJoinTabViewModel(WalletService walletService)
+			: base("CoinJoin")
 		{
 			Global = Locator.Current.GetService<Global>();
+			WalletService = walletService;
 
 			Password = "";
 			TimeLeftTillRoundTimeout = TimeSpan.Zero;
@@ -131,6 +130,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		private Global Global { get; }
+
+		private WalletService WalletService { get; }
+
+		private CompositeDisposable Disposables { get; set; }
 
 		public override void OnOpen()
 		{
@@ -240,7 +243,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				try
 				{
-					PasswordHelper.GetMasterExtKey(KeyManager, Password, out string compatiblityPassword); // If the password is not correct we throw.
+					PasswordHelper.GetMasterExtKey(WalletService.KeyManager, Password, out string compatiblityPassword); // If the password is not correct we throw.
 
 					if (compatiblityPassword != null)
 					{

@@ -29,7 +29,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _psbtBase64Text;
 		private byte[] _psbtBytes;
 
-		public TransactionViewerViewModel(WalletViewModel walletViewModel) : base("Transaction", walletViewModel)
+		public TransactionViewerViewModel() : base("Transaction")
 		{
 			Global = Locator.Current.GetService<Global>();
 
