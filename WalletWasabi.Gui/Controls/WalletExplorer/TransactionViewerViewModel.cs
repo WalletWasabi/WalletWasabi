@@ -23,48 +23,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class TransactionViewerViewModel : WalletActionViewModel
 	{
-		private CompositeDisposable Disposables { get; set; }
-		private Global Global { get; }
-
 		private string _txId;
 		private string _psbtJsonText;
 		private string _psbtHexText;
 		private string _psbtBase64Text;
 		private byte[] _psbtBytes;
-		public ReactiveCommand<Unit, Unit> ExportBinaryPsbt { get; set; }
-		public ReactiveCommand<Unit, Unit> OpenTransactionBroadcaster { get; set; }
-
-		public bool? IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode;
-
-		public string TxId
-		{
-			get => _txId;
-			set => this.RaiseAndSetIfChanged(ref _txId, value);
-		}
-
-		public string PsbtJsonText
-		{
-			get => _psbtJsonText;
-			set => this.RaiseAndSetIfChanged(ref _psbtJsonText, value);
-		}
-
-		public string TransactionHexText
-		{
-			get => _psbtHexText;
-			set => this.RaiseAndSetIfChanged(ref _psbtHexText, value);
-		}
-
-		public string PsbtBase64Text
-		{
-			get => _psbtBase64Text;
-			set => this.RaiseAndSetIfChanged(ref _psbtBase64Text, value);
-		}
-
-		public byte[] PsbtBytes
-		{
-			get => _psbtBytes;
-			set => this.RaiseAndSetIfChanged(ref _psbtBytes, value);
-		}
 
 		public TransactionViewerViewModel(WalletViewModel walletViewModel) : base("Transaction", walletViewModel)
 		{
@@ -118,6 +81,43 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					Logger.LogError(ex);
 					NotificationHelpers.Error(ex.ToUserFriendlyString());
 				});
+		}
+
+		private CompositeDisposable Disposables { get; set; }
+		private Global Global { get; }
+		public ReactiveCommand<Unit, Unit> ExportBinaryPsbt { get; set; }
+		public ReactiveCommand<Unit, Unit> OpenTransactionBroadcaster { get; set; }
+
+		public bool? IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode;
+
+		public string TxId
+		{
+			get => _txId;
+			set => this.RaiseAndSetIfChanged(ref _txId, value);
+		}
+
+		public string PsbtJsonText
+		{
+			get => _psbtJsonText;
+			set => this.RaiseAndSetIfChanged(ref _psbtJsonText, value);
+		}
+
+		public string TransactionHexText
+		{
+			get => _psbtHexText;
+			set => this.RaiseAndSetIfChanged(ref _psbtHexText, value);
+		}
+
+		public string PsbtBase64Text
+		{
+			get => _psbtBase64Text;
+			set => this.RaiseAndSetIfChanged(ref _psbtBase64Text, value);
+		}
+
+		public byte[] PsbtBytes
+		{
+			get => _psbtBytes;
+			set => this.RaiseAndSetIfChanged(ref _psbtBytes, value);
 		}
 
 		public override void OnOpen()
