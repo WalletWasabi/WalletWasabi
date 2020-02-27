@@ -18,7 +18,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private CompositeDisposable Disposables { get; set; }
 
-		private ObservableCollection<WalletActionViewModel> _actions;
+		private ObservableCollection<WasabiDocumentTabViewModel> _actions;
 
 		private bool _isExpanded;
 
@@ -46,7 +46,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			var keyManager = WalletService.KeyManager;
 			Name = Path.GetFileNameWithoutExtension(keyManager.FilePath);
 
-			Actions = new ObservableCollection<WalletActionViewModel>();
+			Actions = new ObservableCollection<WasabiDocumentTabViewModel>();
 
 			SendTabViewModel sendTab = null;
 			// If hardware wallet then we need the Send tab.
@@ -91,7 +91,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			else
 			{
-				WalletActionViewModel tabToOpen = global.UiConfig.LastActiveTab switch
+				WasabiDocumentTabViewModel tabToOpen = global.UiConfig.LastActiveTab switch
 				{
 					nameof(SendTabViewModel) => sendTab,
 					nameof(ReceiveTabViewModel) => receiveTab,
@@ -153,7 +153,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
 
-		public ObservableCollection<WalletActionViewModel> Actions
+		public ObservableCollection<WasabiDocumentTabViewModel> Actions
 		{
 			get => _actions;
 			set => this.RaiseAndSetIfChanged(ref _actions, value);

@@ -16,12 +16,13 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class TransactionViewerViewModel : WalletActionViewModel
+	public class TransactionViewerViewModel : WasabiDocumentTabViewModel
 	{
 		private string _txId;
 		private string _psbtJsonText;

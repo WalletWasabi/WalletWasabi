@@ -40,7 +40,7 @@ using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public abstract class SendControlViewModel : WalletActionViewModel
+	public abstract class SendControlViewModel : WasabiDocumentTabViewModel
 	{
 		private CompositeDisposable Disposables { get; set; }
 

@@ -16,10 +16,11 @@ using WalletWasabi.Logging;
 using System.Reactive.Linq;
 using Splat;
 using System.IO;
+using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class WalletInfoViewModel : WalletActionViewModel
+	public class WalletInfoViewModel : WasabiDocumentTabViewModel
 	{
 		private CompositeDisposable Disposables { get; set; }
 

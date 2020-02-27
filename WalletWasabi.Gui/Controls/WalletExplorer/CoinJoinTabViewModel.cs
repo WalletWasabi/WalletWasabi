@@ -25,7 +25,7 @@ using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class CoinJoinTabViewModel : WalletActionViewModel
+	public class CoinJoinTabViewModel : WasabiDocumentTabViewModel
 	{
 		private long _roundId;
 		private RoundPhaseState _roundPhaseState;
