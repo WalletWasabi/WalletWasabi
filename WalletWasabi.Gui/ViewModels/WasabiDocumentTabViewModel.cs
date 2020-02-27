@@ -1,11 +1,13 @@
 using Avalonia.Threading;
 using AvalonStudio.Documents;
 using AvalonStudio.Extensibility;
+using AvalonStudio.MVVM;
 using AvalonStudio.Shell;
 using Dock.Model;
 using ReactiveUI;
 using System;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
@@ -18,7 +20,7 @@ namespace WalletWasabi.Gui.ViewModels
 		private string _title;
 		private bool _isSelected;
 		private bool _isClosed;
-		private object _dialogResult;
+		private object _dialogResult;		
 
 		protected WasabiDocumentTabViewModel(string title)
 		{
@@ -29,6 +31,8 @@ namespace WalletWasabi.Gui.ViewModels
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 		}
+
+		private CompositeDisposable Disposables { get; set; }
 
 		public object Context { get; set; }
 		public double Width { get; set; }
@@ -71,13 +75,23 @@ namespace WalletWasabi.Gui.ViewModels
 			IsSelected = false;
 		}
 
-		public virtual void OnOpen()
+		void IDockableViewModel.OnOpen()
 		{
+			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
+
+			OnOpen(Disposables);
+		}
+
+		public virtual void OnOpen(CompositeDisposable disposables)
+		{			
 			IsClosed = false;
 		}
 
 		public virtual bool OnClose()
 		{
+			Disposables.Dispose();
+			Disposables = null;
+
 			IsSelected = false;
 			IoC.Get<IShell>().RemoveDocument(this);
 			IsClosed = true;
@@ -90,7 +104,7 @@ namespace WalletWasabi.Gui.ViewModels
 		}
 
 		public ReactiveCommand<Unit, Unit> DoItCommand { get; }
-
+		
 		public void Select()
 		{
 			IoC.Get<IShell>().Select(this);

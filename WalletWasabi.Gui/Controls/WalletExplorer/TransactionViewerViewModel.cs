@@ -84,7 +84,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				});
 		}
 
-		private CompositeDisposable Disposables { get; set; }
 		private Global Global { get; }
 		public ReactiveCommand<Unit, Unit> ExportBinaryPsbt { get; set; }
 		public ReactiveCommand<Unit, Unit> OpenTransactionBroadcaster { get; set; }
@@ -121,11 +120,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _psbtBytes, value);
 		}
 
-		public override void OnOpen()
+		public override void OnOpen(CompositeDisposable disposables)
 		{
-			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
-
-			base.OnOpen();
+			base.OnOpen(disposables);
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -136,15 +133,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					this.RaisePropertyChanged(nameof(PsbtJsonText));
 					this.RaisePropertyChanged(nameof(TransactionHexText));
 					this.RaisePropertyChanged(nameof(PsbtBase64Text));
-				}).DisposeWith(Disposables);
-		}
-
-		public override bool OnClose()
-		{
-			Disposables?.Dispose();
-			Disposables = null;
-
-			return base.OnClose();
+				}).DisposeWith(disposables);
 		}
 
 		public void Update(BuildTransactionResult result)
