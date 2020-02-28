@@ -508,6 +508,13 @@ namespace WalletWasabi.Gui
 
 		private CancellationTokenSource _cancelWalletServiceInitialization = null;
 
+		public async Task InitializeWalletServiceAsync(KeyManager keyManager)
+		{
+			var walletService = await CreateWalletServiceAsync(keyManager);
+
+			WalletService = walletService;
+		}
+
 		public async Task<WalletService> CreateWalletServiceAsync(KeyManager keyManager)
 		{
 			WalletService walletService;
@@ -533,11 +540,6 @@ namespace WalletWasabi.Gui
 
 				walletService.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
 				walletService.ChaumianClient.OnDequeue += ChaumianClient_OnDequeued;
-
-				if (WalletService is null)
-				{
-					WalletService = walletService;
-				}
 			}
 
 			_cancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
