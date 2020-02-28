@@ -80,11 +80,12 @@ namespace WalletWasabi.Gui.ViewModels
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			OnOpen(Disposables);
+
+			IsClosed = false;
 		}
 
 		public virtual void OnOpen(CompositeDisposable disposables)
-		{			
-			IsClosed = false;
+		{
 		}
 
 		public virtual bool OnClose()
