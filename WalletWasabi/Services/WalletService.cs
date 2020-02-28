@@ -232,35 +232,38 @@ namespace WalletWasabi.Services
 		/// <inheritdoc/>
 		public async Task StartAsync(CancellationToken cancel)
 		{
-			try
+			using (BenchmarkLogger.Measure())
 			{
-				InitializingChanged?.Invoke(null, true);
-
-				if (!Synchronizer.IsRunning)
+				try
 				{
-					throw new NotSupportedException($"{nameof(Synchronizer)} is not running.");
-				}
+					InitializingChanged?.Invoke(null, true);
 
-				while (!BitcoinStore.IsInitialized)
+					if (!Synchronizer.IsRunning)
+					{
+						throw new NotSupportedException($"{nameof(Synchronizer)} is not running.");
+					}
+
+					while (!BitcoinStore.IsInitialized)
+					{
+						await Task.Delay(100).ConfigureAwait(false);
+
+						cancel.ThrowIfCancellationRequested();
+					}
+
+					await RuntimeParams.LoadAsync();
+
+					ChaumianClient.Start();
+
+					using (await HandleFiltersLock.LockAsync())
+					{
+						await LoadWalletStateAsync(cancel);
+						await LoadDummyMempoolAsync();
+					}
+				}
+				finally
 				{
-					await Task.Delay(100).ConfigureAwait(false);
-
-					cancel.ThrowIfCancellationRequested();
+					InitializingChanged?.Invoke(null, false);
 				}
-
-				await RuntimeParams.LoadAsync();
-
-				ChaumianClient.Start();
-
-				using (await HandleFiltersLock.LockAsync())
-				{
-					await LoadWalletStateAsync(cancel);
-					await LoadDummyMempoolAsync();
-				}
-			}
-			finally
-			{
-				InitializingChanged?.Invoke(null, false);
 			}
 		}
 
