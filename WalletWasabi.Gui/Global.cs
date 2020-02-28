@@ -534,10 +534,10 @@ namespace WalletWasabi.Gui
 				walletService.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
 				walletService.ChaumianClient.OnDequeue += ChaumianClient_OnDequeued;
 
-				if(WalletService is  null)
+				if (WalletService is null)
 				{
 					WalletService = walletService;
-				}				
+				}
 			}
 
 			_cancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
