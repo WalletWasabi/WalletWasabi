@@ -133,6 +133,116 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private WalletService WalletService { get; }
 
+		[ValidateMethod(nameof(ValidatePassword))]
+		public string Password
+		{
+			get => _password;
+			set => this.RaiseAndSetIfChanged(ref _password, value);
+		}
+
+		public CoinListViewModel CoinsList { get; }
+
+		public Money AmountQueued
+		{
+			get => _amountQueued;
+			set => this.RaiseAndSetIfChanged(ref _amountQueued, value);
+		}
+
+		public long RoundId
+		{
+			get => _roundId;
+			set => this.RaiseAndSetIfChanged(ref _roundId, value);
+		}
+
+		public RoundPhaseState RoundPhaseState
+		{
+			get => _roundPhaseState;
+			set => this.RaiseAndSetIfChanged(ref _roundPhaseState, value);
+		}
+
+		public DateTimeOffset RoundTimesout
+		{
+			get => _roundTimesout;
+			set => this.RaiseAndSetIfChanged(ref _roundTimesout, value);
+		}
+
+		public TimeSpan TimeLeftTillRoundTimeout
+		{
+			get => _timeLeftTillRoundTimeout;
+			set => this.RaiseAndSetIfChanged(ref _timeLeftTillRoundTimeout, value);
+		}
+
+		public Money RequiredBTC
+		{
+			get => _requiredBTC;
+			set => this.RaiseAndSetIfChanged(ref _requiredBTC, value);
+		}
+
+		public string CoordinatorFeePercent
+		{
+			get => _coordinatorFeePercent;
+			set => this.RaiseAndSetIfChanged(ref _coordinatorFeePercent, value);
+		}
+
+		public int PeersRegistered
+		{
+			get => _peersRegistered;
+			set => this.RaiseAndSetIfChanged(ref _peersRegistered, value);
+		}
+
+		public int PeersNeeded
+		{
+			get => _peersNeeded;
+			set => this.RaiseAndSetIfChanged(ref _peersNeeded, value);
+		}
+
+		public bool IsEnqueueBusy
+		{
+			get => _isEnqueueBusy;
+			set => this.RaiseAndSetIfChanged(ref _isEnqueueBusy, value);
+		}
+
+		public bool IsDequeueBusy
+		{
+			get => _isDequeueBusy;
+			set => this.RaiseAndSetIfChanged(ref _isDequeueBusy, value);
+		}
+
+		public string EnqueueButtonText
+		{
+			get => _enqueueButtonText;
+			set => this.RaiseAndSetIfChanged(ref _enqueueButtonText, value);
+		}
+
+		public string DequeueButtonText
+		{
+			get => _dequeueButtonText;
+			set => this.RaiseAndSetIfChanged(ref _dequeueButtonText, value);
+		}
+
+		public int CoinJoinUntilAnonymitySet
+		{
+			get => _coinJoinUntilAnonymitySet;
+			set => this.RaiseAndSetIfChanged(ref _coinJoinUntilAnonymitySet, value);
+		}
+
+		private TargetPrivacy TargetPrivacy
+		{
+			get => _targetPrivacy;
+			set => this.RaiseAndSetIfChanged(ref _targetPrivacy, value);
+		}
+
+		public bool IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
+
+		public ReactiveCommand<Unit, Unit> EnqueueCommand { get; }
+
+		public ReactiveCommand<Unit, Unit> DequeueCommand { get; }
+
+		public ReactiveCommand<Unit, TargetPrivacy> PrivacySomeCommand { get; }
+		public ReactiveCommand<Unit, TargetPrivacy> PrivacyFineCommand { get; }
+		public ReactiveCommand<Unit, TargetPrivacy> PrivacyStrongCommand { get; }
+		public ReactiveCommand<Unit, Unit> TargetButtonCommand { get; }
+
 		public override void OnOpen(CompositeDisposable disposables)
 		{
 			base.OnOpen(disposables);
@@ -172,10 +282,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
-				{
-					this.RaisePropertyChanged(nameof(AmountQueued));
-					this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
-				}).DisposeWith(disposables);
+			{
+				this.RaisePropertyChanged(nameof(AmountQueued));
+				this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
+			}).DisposeWith(disposables);
 
 			Observable.Interval(TimeSpan.FromSeconds(1))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -353,115 +463,5 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
-
-		[ValidateMethod(nameof(ValidatePassword))]
-		public string Password
-		{
-			get => _password;
-			set => this.RaiseAndSetIfChanged(ref _password, value);
-		}
-
-		public CoinListViewModel CoinsList { get; }
-
-		public Money AmountQueued
-		{
-			get => _amountQueued;
-			set => this.RaiseAndSetIfChanged(ref _amountQueued, value);
-		}
-
-		public long RoundId
-		{
-			get => _roundId;
-			set => this.RaiseAndSetIfChanged(ref _roundId, value);
-		}
-
-		public RoundPhaseState RoundPhaseState
-		{
-			get => _roundPhaseState;
-			set => this.RaiseAndSetIfChanged(ref _roundPhaseState, value);
-		}
-
-		public DateTimeOffset RoundTimesout
-		{
-			get => _roundTimesout;
-			set => this.RaiseAndSetIfChanged(ref _roundTimesout, value);
-		}
-
-		public TimeSpan TimeLeftTillRoundTimeout
-		{
-			get => _timeLeftTillRoundTimeout;
-			set => this.RaiseAndSetIfChanged(ref _timeLeftTillRoundTimeout, value);
-		}
-
-		public Money RequiredBTC
-		{
-			get => _requiredBTC;
-			set => this.RaiseAndSetIfChanged(ref _requiredBTC, value);
-		}
-
-		public string CoordinatorFeePercent
-		{
-			get => _coordinatorFeePercent;
-			set => this.RaiseAndSetIfChanged(ref _coordinatorFeePercent, value);
-		}
-
-		public int PeersRegistered
-		{
-			get => _peersRegistered;
-			set => this.RaiseAndSetIfChanged(ref _peersRegistered, value);
-		}
-
-		public int PeersNeeded
-		{
-			get => _peersNeeded;
-			set => this.RaiseAndSetIfChanged(ref _peersNeeded, value);
-		}
-
-		public bool IsEnqueueBusy
-		{
-			get => _isEnqueueBusy;
-			set => this.RaiseAndSetIfChanged(ref _isEnqueueBusy, value);
-		}
-
-		public bool IsDequeueBusy
-		{
-			get => _isDequeueBusy;
-			set => this.RaiseAndSetIfChanged(ref _isDequeueBusy, value);
-		}
-
-		public string EnqueueButtonText
-		{
-			get => _enqueueButtonText;
-			set => this.RaiseAndSetIfChanged(ref _enqueueButtonText, value);
-		}
-
-		public string DequeueButtonText
-		{
-			get => _dequeueButtonText;
-			set => this.RaiseAndSetIfChanged(ref _dequeueButtonText, value);
-		}
-
-		public int CoinJoinUntilAnonymitySet
-		{
-			get => _coinJoinUntilAnonymitySet;
-			set => this.RaiseAndSetIfChanged(ref _coinJoinUntilAnonymitySet, value);
-		}
-
-		private TargetPrivacy TargetPrivacy
-		{
-			get => _targetPrivacy;
-			set => this.RaiseAndSetIfChanged(ref _targetPrivacy, value);
-		}
-
-		public bool IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
-
-		public ReactiveCommand<Unit, Unit> EnqueueCommand { get; }
-
-		public ReactiveCommand<Unit, Unit> DequeueCommand { get; }
-
-		public ReactiveCommand<Unit, TargetPrivacy> PrivacySomeCommand { get; }
-		public ReactiveCommand<Unit, TargetPrivacy> PrivacyFineCommand { get; }
-		public ReactiveCommand<Unit, TargetPrivacy> PrivacyStrongCommand { get; }
-		public ReactiveCommand<Unit, Unit> TargetButtonCommand { get; }
 	}
 }
