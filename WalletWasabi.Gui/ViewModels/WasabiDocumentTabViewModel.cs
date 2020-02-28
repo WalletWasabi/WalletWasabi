@@ -20,7 +20,7 @@ namespace WalletWasabi.Gui.ViewModels
 		private string _title;
 		private bool _isSelected;
 		private bool _isClosed;
-		private object _dialogResult;		
+		private object _dialogResult;
 
 		protected WasabiDocumentTabViewModel(string title)
 		{
@@ -75,18 +75,28 @@ namespace WalletWasabi.Gui.ViewModels
 			IsSelected = false;
 		}
 
+		// This interface member is called explicitly from Avalonia after the Tab was opened.
 		void IDockableViewModel.OnOpen()
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
+			IsClosed = false;
+
 			OnOpen(Disposables);
 		}
 
+		/// <summary>
+		/// Called when a tab is opened in the dock for the fist time.
+		/// </summary>
+		/// <param name="disposables">Disposables add IDisposables to this where Dispose will be called when tab is closed.</param>
 		public virtual void OnOpen(CompositeDisposable disposables)
-		{			
-			IsClosed = false;
+		{
 		}
 
+		/// <summary>
+		/// Called when the close button on the tab is clicked.
+		/// </summary>
+		/// <returns>true to confirm close, false to cancel.</returns>
 		public virtual bool OnClose()
 		{
 			Disposables.Dispose();
@@ -104,7 +114,7 @@ namespace WalletWasabi.Gui.ViewModels
 		}
 
 		public ReactiveCommand<Unit, Unit> DoItCommand { get; }
-		
+
 		public void Select()
 		{
 			IoC.Get<IShell>().Select(this);
