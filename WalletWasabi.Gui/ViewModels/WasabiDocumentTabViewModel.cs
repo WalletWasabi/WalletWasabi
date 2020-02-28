@@ -79,9 +79,9 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			OnOpen(Disposables);
-
 			IsClosed = false;
+
+			OnOpen(Disposables);
 		}
 
 		/// <summary>
@@ -113,6 +113,7 @@ namespace WalletWasabi.Gui.ViewModels
 		}
 
 		public ReactiveCommand<Unit, Unit> DoItCommand { get; }
+
 		public void Select()
 		{
 			IoC.Get<IShell>().Select(this);
