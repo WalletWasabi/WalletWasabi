@@ -22,8 +22,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class WalletInfoViewModel : WasabiDocumentTabViewModel
 	{
-		private CompositeDisposable Disposables { get; set; }
-
 		private bool _showSensitiveKeys;
 		private string _password;
 		private string _extendedMasterPrivateKey;
@@ -161,21 +159,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				});
 		}
 
-		public override void OnOpen()
+		public override void OnOpen(CompositeDisposable disposables)
 		{
-			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
-
 			Closing = new CancellationTokenSource();
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
 				{
 					this.RaisePropertyChanged(nameof(ExtendedAccountPublicKey));
 					this.RaisePropertyChanged(nameof(ExtendedAccountZpub));
-				}).DisposeWith(Disposables);
+				}).DisposeWith(disposables);
 
-			Closing.DisposeWith(Disposables);
+			Closing.DisposeWith(disposables);
 
-			base.OnOpen();
+			base.OnOpen(disposables);
 		}
 
 		public override void OnDeselected()
@@ -193,8 +189,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public override bool OnClose()
 		{
 			Closing.Cancel();
-			Disposables?.Dispose();
-			Disposables = null;
 
 			ClearSensitiveData(true);
 			return base.OnClose();

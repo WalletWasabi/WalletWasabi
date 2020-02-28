@@ -25,8 +25,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class ReceiveTabViewModel : WasabiDocumentTabViewModel
 	{
-		private CompositeDisposable Disposables { get; set; }
-
 		private ObservableCollection<AddressViewModel> _addresses;
 		private AddressViewModel _selectedAddress;
 
@@ -98,26 +96,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public SuggestLabelViewModel LabelSuggestion { get; }
 
-		public override void OnOpen()
+		public override void OnOpen(CompositeDisposable disposables)
 		{
-			base.OnOpen();
-
-			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
+			base.OnOpen(disposables);			
 
 			Observable
 				.FromEventPattern(WalletService.TransactionProcessor, nameof(WalletService.TransactionProcessor.WalletRelevantTransactionProcessed))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => InitializeAddresses())
-				.DisposeWith(Disposables);
-		}
-
-		public override bool OnClose()
-		{
-			Disposables.Dispose();
-
-			Disposables = null;
-
-			return base.OnClose();
+				.DisposeWith(disposables);
 		}
 
 		private void InitializeAddresses()
