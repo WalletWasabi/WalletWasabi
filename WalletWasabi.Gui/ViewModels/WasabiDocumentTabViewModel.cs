@@ -75,7 +75,7 @@ namespace WalletWasabi.Gui.ViewModels
 			IsSelected = false;
 		}
 
-		void IDockableViewModel.OnOpen()
+		void IDockableViewModel.OnOpen() // This interface member is implemented Explicitly so that it is hidden as we dont want users of this class to know about it.
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
@@ -84,10 +84,18 @@ namespace WalletWasabi.Gui.ViewModels
 			IsClosed = false;
 		}
 
+		/// <summary>
+		/// Called when a tab is opened in the dock for the fist time.
+		/// </summary>
+		/// <param name="disposables">Disposables add IDisposables to this where Dispose will be called when tab is closed.</param>
 		public virtual void OnOpen(CompositeDisposable disposables)
 		{
 		}
 
+		/// <summary>
+		/// Called when the close button on the tab is clicked.
+		/// </summary>
+		/// <returns>true to confirm close, false to cancel.</returns>
 		public virtual bool OnClose()
 		{
 			Disposables.Dispose();
