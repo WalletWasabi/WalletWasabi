@@ -75,7 +75,8 @@ namespace WalletWasabi.Gui.ViewModels
 			IsSelected = false;
 		}
 
-		void IDockableViewModel.OnOpen() // This interface member is called explicitly from Avalonia after the Tab was opened.
+		// This interface member is called explicitly from Avalonia after the Tab was opened.
+		void IDockableViewModel.OnOpen()
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
