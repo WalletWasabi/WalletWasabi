@@ -232,24 +232,24 @@ namespace WalletWasabi.Services
 		/// <inheritdoc/>
 		public async Task StartAsync(CancellationToken cancel)
 		{
-			using (BenchmarkLogger.Measure())
+			try
 			{
-				try
+				InitializingChanged?.Invoke(null, true);
+
+				if (!Synchronizer.IsRunning)
 				{
-					InitializingChanged?.Invoke(null, true);
+					throw new NotSupportedException($"{nameof(Synchronizer)} is not running.");
+				}
 
-					if (!Synchronizer.IsRunning)
-					{
-						throw new NotSupportedException($"{nameof(Synchronizer)} is not running.");
-					}
+				while (!BitcoinStore.IsInitialized)
+				{
+					await Task.Delay(100).ConfigureAwait(false);
 
-					while (!BitcoinStore.IsInitialized)
-					{
-						await Task.Delay(100).ConfigureAwait(false);
+					cancel.ThrowIfCancellationRequested();
+				}
 
-						cancel.ThrowIfCancellationRequested();
-					}
-
+				using (BenchmarkLogger.Measure())
+				{
 					await RuntimeParams.LoadAsync();
 
 					ChaumianClient.Start();
@@ -260,10 +260,10 @@ namespace WalletWasabi.Services
 						await LoadDummyMempoolAsync();
 					}
 				}
-				finally
-				{
-					InitializingChanged?.Invoke(null, false);
-				}
+			}
+			finally
+			{
+				InitializingChanged?.Invoke(null, false);
 			}
 		}
 
