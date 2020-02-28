@@ -1,8 +1,6 @@
-using NBitcoin;
 using ReactiveUI;
 using Splat;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
@@ -26,12 +24,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private SortOrder _amountSortDirection;
 		private SortOrder _transactionSortDirection;
 
-		private Global Global { get; }
-		
-		private WalletService WalletService { get; }
-
-		public ReactiveCommand<Unit, Unit> SortCommand { get; }
-
 		public HistoryTabViewModel(WalletService walletService)
 			: base("History")
 		{
@@ -53,6 +45,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			_ = TryRewriteTableAsync();
 		}
+
+		private Global Global { get; }
+
+		private WalletService WalletService { get; }
+
+		public ReactiveCommand<Unit, Unit> SortCommand { get; }
 
 		public override void OnOpen(CompositeDisposable disposables)
 		{

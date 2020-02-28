@@ -28,10 +28,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableCollection<AddressViewModel> _addresses;
 		private AddressViewModel _selectedAddress;
 
-		private Global Global { get; }
-
-		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
-
 		public ReceiveTabViewModel(WalletService walletService)
 			: base("Receive")
 		{
@@ -45,31 +41,31 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			InitializeAddresses();
 
 			GenerateCommand = ReactiveCommand.Create(() =>
+			{
+				var label = new SmartLabel(LabelSuggestion.Label);
+				LabelSuggestion.Label = label;
+				if (label.IsEmpty)
 				{
-					var label = new SmartLabel(LabelSuggestion.Label);
-					LabelSuggestion.Label = label;
-					if (label.IsEmpty)
+					NotificationHelpers.Warning("Observers are required.");
+					return;
+				}
+
+				AvaloniaThreadingExtensions.PostLogException(Dispatcher.UIThread, () =>
+				{
+					var newKey = WalletService.KeyManager.GetNextReceiveKey(label, out bool minGapLimitIncreased);
+					if (minGapLimitIncreased)
 					{
-						NotificationHelpers.Warning("Observers are required.");
-						return;
+						int minGapLimit = WalletService.KeyManager.MinGapLimit.Value;
+						int prevMinGapLimit = minGapLimit - 1;
+						NotificationHelpers.Warning($"{nameof(KeyManager.MinGapLimit)} increased from {prevMinGapLimit} to {minGapLimit}.");
 					}
 
-					AvaloniaThreadingExtensions.PostLogException(Dispatcher.UIThread, () =>
-					 {
-						 var newKey = WalletService.KeyManager.GetNextReceiveKey(label, out bool minGapLimitIncreased);
-						 if (minGapLimitIncreased)
-						 {
-							 int minGapLimit = WalletService.KeyManager.MinGapLimit.Value;
-							 int prevMinGapLimit = minGapLimit - 1;
-							 NotificationHelpers.Warning($"{nameof(KeyManager.MinGapLimit)} increased from {prevMinGapLimit} to {minGapLimit}.");
-						 }
-
-						 var newAddress = new AddressViewModel(newKey, WalletService.KeyManager);
-						 Addresses.Insert(0, newAddress);
-						 SelectedAddress = newAddress;
-						 LabelSuggestion.Label = "";
-					 });
+					var newAddress = new AddressViewModel(newKey, WalletService.KeyManager);
+					Addresses.Insert(0, newAddress);
+					SelectedAddress = newAddress;
+					LabelSuggestion.Label = "";
 				});
+			});
 
 			this.WhenAnyValue(x => x.SelectedAddress)
 				.Subscribe(async address =>
@@ -92,6 +88,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				});
 		}
 
+		private Global Global { get; }
+
+		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }		
+
 		private WalletService WalletService { get; }
 
 		public SuggestLabelViewModel LabelSuggestion { get; }
@@ -105,6 +105,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => InitializeAddresses())
 				.DisposeWith(disposables);
+		}
+
+		public ObservableCollection<AddressViewModel> Addresses
+		{
+			get => _addresses;
+			set => this.RaiseAndSetIfChanged(ref _addresses, value);
+		}
+
+		public AddressViewModel SelectedAddress
+		{
+			get => _selectedAddress;
+			set => this.RaiseAndSetIfChanged(ref _selectedAddress, value);
 		}
 
 		private void InitializeAddresses()
@@ -123,18 +135,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				Logger.LogError(ex);
 			}
-		}
-
-		public ObservableCollection<AddressViewModel> Addresses
-		{
-			get => _addresses;
-			set => this.RaiseAndSetIfChanged(ref _addresses, value);
-		}
-
-		public AddressViewModel SelectedAddress
-		{
-			get => _selectedAddress;
-			set => this.RaiseAndSetIfChanged(ref _selectedAddress, value);
 		}
 	}
 }

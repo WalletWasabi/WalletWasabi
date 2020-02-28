@@ -1,22 +1,20 @@
 using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
+using Splat;
 using System;
-using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
-using WalletWasabi.Services;
-using WalletWasabi.Models;
-using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Logging;
-using System.Reactive.Linq;
-using Splat;
-using System.IO;
-using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Models;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -28,8 +26,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _extendedMasterZprv;
 		private string _extendedAccountPrivateKey;
 		private string _extendedAccountZprv;
-
-		private Global Global { get; }
 
 		public WalletInfoViewModel(WalletService walletService) : base(walletService.Name)
 		{
@@ -71,21 +67,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				});
 		}
 
+		private Global Global { get; }
+
 		private WalletService WalletService { get; }
-
-		private void ClearSensitiveData(bool passwordToo)
-		{
-			ExtendedMasterPrivateKey = "";
-			ExtendedMasterZprv = "";
-			ExtendedAccountPrivateKey = "";
-			ExtendedAccountZprv = "";
-			ShowSensitiveKeys = false;
-
-			if (passwordToo)
-			{
-				Password = "";
-			}
-		}
 
 		public CancellationTokenSource Closing { get; private set; }
 
@@ -132,6 +116,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _extendedAccountZprv;
 			set => this.RaiseAndSetIfChanged(ref _extendedAccountZprv, value);
+		}
+
+		private void ClearSensitiveData(bool passwordToo)
+		{
+			ExtendedMasterPrivateKey = "";
+			ExtendedMasterZprv = "";
+			ExtendedAccountPrivateKey = "";
+			ExtendedAccountZprv = "";
+			ShowSensitiveKeys = false;
+
+			if (passwordToo)
+			{
+				Password = "";
+			}
 		}
 
 		private void SetSensitiveData(string extendedMasterPrivateKey, string extendedAccountPrivateKey, string extendedMasterZprv, string extendedAccountZprv)

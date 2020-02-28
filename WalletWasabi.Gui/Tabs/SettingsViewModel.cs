@@ -2,25 +2,22 @@ using Avalonia.Threading;
 using NBitcoin;
 using Nito.AsyncEx;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Sockets;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
-using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
-using WalletWasabi.Models;
 using WalletWasabi.Logging;
-using System.Threading.Tasks;
-using Splat;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Tabs
 {
@@ -41,19 +38,7 @@ namespace WalletWasabi.Gui.Tabs
 		private string _strongPrivacyLevel;
 		private string _dustThreshold;
 		private string _pinBoxText;
-		private bool TabOpened { get; set; }
-
 		private ObservableAsPropertyHelper<bool> _isPinSet;
-
-		public bool IsPinSet => _isPinSet?.Value ?? false;
-
-		private Global Global { get; }
-		private AsyncLock ConfigLock { get; } = new AsyncLock();
-
-		public ReactiveCommand<Unit, Unit> OpenConfigFileCommand { get; }
-		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
-		public ReactiveCommand<Unit, Unit> SetClearPinCommand { get; }
-		public ReactiveCommand<Unit, Unit> TextBoxLostFocusCommand { get; }
 
 		public SettingsViewModel() : base("Settings")
 		{
@@ -96,57 +81,57 @@ namespace WalletWasabi.Gui.Tabs
 			OpenConfigFileCommand = ReactiveCommand.CreateFromTask(OpenConfigFileAsync);
 
 			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
-				{
-					Global.UiConfig.LurkingWifeMode = !LurkingWifeMode;
-					await Global.UiConfig.ToFileAsync();
-				});
+			{
+				Global.UiConfig.LurkingWifeMode = !LurkingWifeMode;
+				await Global.UiConfig.ToFileAsync();
+			});
 
 			SetClearPinCommand = ReactiveCommand.Create(() =>
+			{
+				var pinBoxText = PinBoxText;
+				if (string.IsNullOrEmpty(pinBoxText))
 				{
-					var pinBoxText = PinBoxText;
-					if (string.IsNullOrEmpty(pinBoxText))
+					NotificationHelpers.Error("Please provide a PIN.");
+					return;
+				}
+
+				var trimmedPinBoxText = pinBoxText?.Trim();
+				if (string.IsNullOrEmpty(trimmedPinBoxText)
+					|| trimmedPinBoxText.Any(x => !char.IsDigit(x)))
+				{
+					NotificationHelpers.Error("Invalid PIN.");
+					return;
+				}
+
+				if (trimmedPinBoxText.Length > 10)
+				{
+					NotificationHelpers.Error("PIN is too long.");
+					return;
+				}
+
+				var uiConfigPinHash = Global.UiConfig.LockScreenPinHash;
+				var enteredPinHash = HashHelpers.GenerateSha256Hash(trimmedPinBoxText);
+
+				if (IsPinSet)
+				{
+					if (uiConfigPinHash != enteredPinHash)
 					{
-						NotificationHelpers.Error("Please provide a PIN.");
+						NotificationHelpers.Error("PIN is incorrect.");
+						PinBoxText = string.Empty;
 						return;
 					}
 
-					var trimmedPinBoxText = pinBoxText?.Trim();
-					if (string.IsNullOrEmpty(trimmedPinBoxText)
-						|| trimmedPinBoxText.Any(x => !char.IsDigit(x)))
-					{
-						NotificationHelpers.Error("Invalid PIN.");
-						return;
-					}
+					Global.UiConfig.LockScreenPinHash = string.Empty;
+					NotificationHelpers.Success("PIN was cleared.");
+				}
+				else
+				{
+					Global.UiConfig.LockScreenPinHash = enteredPinHash;
+					NotificationHelpers.Success("PIN was changed.");
+				}
 
-					if (trimmedPinBoxText.Length > 10)
-					{
-						NotificationHelpers.Error("PIN is too long.");
-						return;
-					}
-
-					var uiConfigPinHash = Global.UiConfig.LockScreenPinHash;
-					var enteredPinHash = HashHelpers.GenerateSha256Hash(trimmedPinBoxText);
-
-					if (IsPinSet)
-					{
-						if (uiConfigPinHash != enteredPinHash)
-						{
-							NotificationHelpers.Error("PIN is incorrect.");
-							PinBoxText = string.Empty;
-							return;
-						}
-
-						Global.UiConfig.LockScreenPinHash = string.Empty;
-						NotificationHelpers.Success("PIN was cleared.");
-					}
-					else
-					{
-						Global.UiConfig.LockScreenPinHash = enteredPinHash;
-						NotificationHelpers.Success("PIN was changed.");
-					}
-
-					PinBoxText = string.Empty;
-				});
+				PinBoxText = string.Empty;
+			});
 
 			TextBoxLostFocusCommand = ReactiveCommand.Create(Save);
 
@@ -158,6 +143,18 @@ namespace WalletWasabi.Gui.Tabs
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 		}
+
+		private bool TabOpened { get; set; }
+
+		public bool IsPinSet => _isPinSet?.Value ?? false;
+
+		private Global Global { get; }
+		private AsyncLock ConfigLock { get; } = new AsyncLock();
+
+		public ReactiveCommand<Unit, Unit> OpenConfigFileCommand { get; }
+		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
+		public ReactiveCommand<Unit, Unit> SetClearPinCommand { get; }
+		public ReactiveCommand<Unit, Unit> TextBoxLostFocusCommand { get; }
 
 		public override void OnOpen(CompositeDisposable disposables)
 		{
@@ -216,7 +213,7 @@ namespace WalletWasabi.Gui.Tabs
 		public override bool OnClose()
 		{
 			TabOpened = false;
-			
+
 			return base.OnClose();
 		}
 
