@@ -250,14 +250,17 @@ namespace WalletWasabi.Services
 					cancel.ThrowIfCancellationRequested();
 				}
 
-				await RuntimeParams.LoadAsync();
-
-				ChaumianClient.Start();
-
-				using (await HandleFiltersLock.LockAsync())
+				using (BenchmarkLogger.Measure())
 				{
-					await LoadWalletStateAsync(cancel);
-					await LoadDummyMempoolAsync();
+					await RuntimeParams.LoadAsync();
+
+					ChaumianClient.Start();
+
+					using (await HandleFiltersLock.LockAsync())
+					{
+						await LoadWalletStateAsync(cancel);
+						await LoadDummyMempoolAsync();
+					}
 				}
 			}
 			finally

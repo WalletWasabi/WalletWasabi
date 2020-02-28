@@ -31,8 +31,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _buttonText;
 		private int _caretIndex;
 
-		private CompositeDisposable Disposables { get; set; }
-
 		private Global Global { get; }
 
 		public ReactiveCommand<Unit, Unit> PasteCommand { get; set; }
@@ -174,18 +172,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				});
 		}
 
-		public override void OnOpen()
-		{
-			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
-
-			base.OnOpen();
-		}
-
 		public override bool OnClose()
 		{
-			Disposables?.Dispose();
-			Disposables = null;
-
 			TransactionString = "";
 
 			return base.OnClose();

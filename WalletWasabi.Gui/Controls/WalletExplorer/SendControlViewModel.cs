@@ -42,8 +42,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public abstract class SendControlViewModel : WasabiDocumentTabViewModel
 	{
-		private CompositeDisposable Disposables { get; set; }
-
 		protected Global Global { get; }
 		private WalletService WalletService { get; }
 
@@ -845,10 +843,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public ReactiveCommand<KeyEventArgs, Unit> AmountKeyUpCommand { get; }
 
-		public override void OnOpen()
-		{
-			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
-
+		public override void OnOpen(CompositeDisposable disposables)
+		{	
 			Observable
 				.FromEventPattern<AllFeeEstimate>(Global.FeeProviders, nameof(Global.FeeProviders.AllFeeEstimateChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -867,12 +863,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					SetFeesAndTexts();
 				})
-				.DisposeWith(Disposables);
+				.DisposeWith(disposables);
 
 			_usdExchangeRate = Global.Synchronizer
 				.WhenAnyValue(x => x.UsdExchangeRate)
 				.ToProperty(this, x => x.UsdExchangeRate, scheduler: RxApp.MainThreadScheduler)
-				.DisposeWith(Disposables);
+				.DisposeWith(disposables);
 
 			this.WhenAnyValue(x => x.UsdExchangeRate)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -881,24 +877,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global.UiConfig.WhenAnyValue(x => x.IsCustomFee)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => IsCustomFee = x)
-				.DisposeWith(Disposables);
+				.DisposeWith(disposables);
 
 			this.WhenAnyValue(x => x.IsCustomFee)
 				.Where(x => !x)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => IsSliderFeeUsed = true);
 
-			base.OnOpen();
+			base.OnOpen(disposables);
 		}
 
 		protected abstract Task DoAfterBuildTransaction(BuildTransactionResult result);
 
 		public override bool OnClose()
 		{
-			Disposables.Dispose();
-
-			Disposables = null;
-
 			CoinList.OnClose();
 
 			return base.OnClose();

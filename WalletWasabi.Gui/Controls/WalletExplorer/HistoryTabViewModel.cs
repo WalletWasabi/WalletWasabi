@@ -20,8 +20,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class HistoryTabViewModel : WasabiDocumentTabViewModel
 	{
-		private CompositeDisposable Disposables { get; set; }
-
 		private ObservableCollection<TransactionViewModel> _transactions;
 		private TransactionViewModel _selectedTransaction;
 		private SortOrder _dateSortDirection;
@@ -56,18 +54,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			_ = TryRewriteTableAsync();
 		}
 
-		public override void OnOpen()
+		public override void OnOpen(CompositeDisposable disposables)
 		{
-			base.OnOpen();
-
-			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
+			base.OnOpen(disposables);
 
 			Observable.FromEventPattern(WalletService, nameof(WalletService.NewBlockProcessed))
 				.Merge(Observable.FromEventPattern(WalletService.TransactionProcessor, nameof(WalletService.TransactionProcessor.WalletRelevantTransactionProcessed)))
 				.Throttle(TimeSpan.FromSeconds(3))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(async _ => await TryRewriteTableAsync())
-				.DisposeWith(Disposables);
+				.DisposeWith(disposables);
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 				{
@@ -75,15 +71,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						transaction.Refresh();
 					}
-				}).DisposeWith(Disposables);
-		}
-
-		public override bool OnClose()
-		{
-			Disposables.Dispose();
-			Disposables = null;
-
-			return base.OnClose();
+				}).DisposeWith(disposables);
 		}
 
 		private async Task TryRewriteTableAsync()

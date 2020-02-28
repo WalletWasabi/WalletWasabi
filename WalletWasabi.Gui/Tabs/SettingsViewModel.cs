@@ -26,8 +26,6 @@ namespace WalletWasabi.Gui.Tabs
 {
 	internal class SettingsViewModel : WasabiDocumentTabViewModel
 	{
-		private CompositeDisposable Disposables { get; set; }
-
 		private Network _network;
 		private string _torSocks5EndPoint;
 		private string _bitcoinP2pEndPoint;
@@ -161,12 +159,10 @@ namespace WalletWasabi.Gui.Tabs
 				.Subscribe(ex => Logger.LogError(ex));
 		}
 
-		public override void OnOpen()
+		public override void OnOpen(CompositeDisposable disposables)
 		{
 			try
 			{
-				Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
-
 				Config.LoadOrCreateDefaultFileAsync(Global.Config.FilePath)
 					.ToObservable(RxApp.TaskpoolScheduler)
 					.Take(1)
@@ -190,26 +186,26 @@ namespace WalletWasabi.Gui.Tabs
 
 						IsModified = !Global.Config.AreDeepEqual(x);
 					})
-					.DisposeWith(Disposables);
+					.DisposeWith(disposables);
 
 				Global.UiConfig
 					.WhenAnyValue(x => x.LurkingWifeMode)
 					.Subscribe(_ => this.RaisePropertyChanged(nameof(LurkingWifeMode)))
-					.DisposeWith(Disposables);
+					.DisposeWith(disposables);
 
 				_isPinSet = Global.UiConfig
 					.WhenAnyValue(x => x.LockScreenPinHash, x => !string.IsNullOrWhiteSpace(x))
 					.ToProperty(this, x => x.IsPinSet, scheduler: RxApp.MainThreadScheduler)
-					.DisposeWith(Disposables);
+					.DisposeWith(disposables);
 				this.RaisePropertyChanged(nameof(IsPinSet)); // Fire now otherwise the button won't update for restart.
 
 				Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => x.Autocopy, x => x.IsCustomFee)
 					.Throttle(TimeSpan.FromSeconds(1))
 					.ObserveOn(RxApp.TaskpoolScheduler)
 					.Subscribe(async _ => await Global.UiConfig.ToFileAsync())
-					.DisposeWith(Disposables);
+					.DisposeWith(disposables);
 
-				base.OnOpen();
+				base.OnOpen(disposables);
 			}
 			finally
 			{
@@ -220,9 +216,7 @@ namespace WalletWasabi.Gui.Tabs
 		public override bool OnClose()
 		{
 			TabOpened = false;
-			Disposables?.Dispose();
-			Disposables = null;
-
+			
 			return base.OnClose();
 		}
 

@@ -133,13 +133,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private WalletService WalletService { get; }
 
-		private CompositeDisposable Disposables { get; set; }
-
-		public override void OnOpen()
+		public override void OnOpen(CompositeDisposable disposables)
 		{
-			base.OnOpen();
-
-			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
+			base.OnOpen(disposables);
 
 			TargetPrivacy = Global.Config.GetTargetPrivacy();
 
@@ -154,7 +150,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(Observable.FromEventPattern(WalletService.ChaumianClient, nameof(WalletService.ChaumianClient.StateUpdated)))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => UpdateStates())
-				.DisposeWith(Disposables);
+				.DisposeWith(disposables);
 
 			ClientRound mostAdvancedRound = WalletService.ChaumianClient?.State?.GetMostAdvancedRoundOrDefault();
 
@@ -179,7 +175,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					this.RaisePropertyChanged(nameof(AmountQueued));
 					this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
-				}).DisposeWith(Disposables);
+				}).DisposeWith(disposables);
 
 			Observable.Interval(TimeSpan.FromSeconds(1))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -187,15 +183,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					TimeSpan left = RoundTimesout - DateTimeOffset.UtcNow;
 					TimeLeftTillRoundTimeout = left > TimeSpan.Zero ? left : TimeSpan.Zero; // Make sure cannot be less than zero.
-				}).DisposeWith(Disposables);
+				}).DisposeWith(disposables);
 		}
 
 		public override bool OnClose()
 		{
 			CoinsList.OnClose();
-
-			Disposables?.Dispose();
-			Disposables = null;
 
 			return base.OnClose();
 		}
