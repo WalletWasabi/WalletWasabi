@@ -8,11 +8,6 @@ namespace WalletWasabi.BitcoinCore.Configuration
 {
 	public class CoreConfigLine
 	{
-		public string Line { get; }
-		public string Key { get; } = string.Empty;
-		public string Value { get; } = string.Empty;
-		public bool HasKeyValuePair => !string.IsNullOrWhiteSpace(Key) && !string.IsNullOrWhiteSpace(Value);
-
 		public CoreConfigLine(string key, string value)
 			: this($"{Guard.NotNullOrEmptyOrWhitespace(key, value, true)} = {Guard.NotNullOrEmptyOrWhitespace(key, value, true)}")
 		{
@@ -38,6 +33,11 @@ namespace WalletWasabi.BitcoinCore.Configuration
 			Value = parts[1];
 			Line = $"{Key} = {Value}";
 		}
+
+		public string Line { get; }
+		public string Key { get; } = string.Empty;
+		public string Value { get; } = string.Empty;
+		public bool HasKeyValuePair => !string.IsNullOrWhiteSpace(Key) && !string.IsNullOrWhiteSpace(Value);
 
 		public override string ToString() => Line;
 	}

@@ -11,13 +11,6 @@ namespace WalletWasabi.Bases
 {
 	public abstract class PeriodicRunner : BackgroundService
 	{
-		private CancellationTokenSource TriggeringCts { get; set; }
-		private object TriggerLock { get; }
-		public TimeSpan Period { get; }
-		public Exception LastException { get; set; }
-		public long LastExceptionCount { get; set; }
-		public DateTimeOffset LastExceptionFirstAppeared { get; set; }
-
 		protected PeriodicRunner(TimeSpan period)
 		{
 			TriggeringCts = new CancellationTokenSource();
@@ -25,6 +18,13 @@ namespace WalletWasabi.Bases
 			Period = period;
 			ResetLastException();
 		}
+
+		private CancellationTokenSource TriggeringCts { get; set; }
+		private object TriggerLock { get; }
+		public TimeSpan Period { get; }
+		public Exception LastException { get; set; }
+		public long LastExceptionCount { get; set; }
+		public DateTimeOffset LastExceptionFirstAppeared { get; set; }
 
 		private void ResetLastException()
 		{

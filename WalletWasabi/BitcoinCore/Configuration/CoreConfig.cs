@@ -9,10 +9,6 @@ namespace WalletWasabi.BitcoinCore.Configuration
 {
 	public class CoreConfig
 	{
-		private List<CoreConfigLine> Lines { get; }
-
-		public int Count => Lines.Count;
-
 		public CoreConfig(CoreConfig coreConfig)
 		{
 			Lines = coreConfig.Lines.ToList();
@@ -22,6 +18,10 @@ namespace WalletWasabi.BitcoinCore.Configuration
 		{
 			Lines = new List<CoreConfigLine>();
 		}
+
+		private List<CoreConfigLine> Lines { get; }
+
+		public int Count => Lines.Count;
 
 		public IDictionary<string, string> ToDictionary()
 		{

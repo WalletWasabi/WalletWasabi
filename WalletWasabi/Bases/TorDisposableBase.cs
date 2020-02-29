@@ -6,7 +6,7 @@ namespace WalletWasabi.Bases
 {
 	public abstract class TorDisposableBase : IDisposable
 	{
-		public ITorHttpClient TorClient { get; }
+		private volatile bool _disposedValue = false; // To detect redundant calls
 
 		/// <param name="torSocks5EndPoint">If null, then localhost:9050</param>
 		protected TorDisposableBase(Uri baseUri, EndPoint torSocks5EndPoint)
@@ -25,9 +25,9 @@ namespace WalletWasabi.Bases
 			TorClient = torClient;
 		}
 
-		#region IDisposable Support
+		public ITorHttpClient TorClient { get; }
 
-		private volatile bool _disposedValue = false; // To detect redundant calls
+		#region IDisposable Support
 
 		protected virtual void Dispose(bool disposing)
 		{
