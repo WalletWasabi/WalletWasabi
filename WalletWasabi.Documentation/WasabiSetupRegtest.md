@@ -41,7 +41,7 @@ regtest.rpcpassword = 309bc9961d01f388aed28b630ae834379296a8c8e3
 `getnewaddress`
 9. Generate the first 101 blocks with:
 `generatetoaddress 101 <replace_new_address_here>`
-10. Now you have your own Bitcoin blockchain and you are good to go. You can create transactions with the Send button and confirm with:
+10. Now you have your own Bitcoin blockchain and you are a God there - try to resist the insurmountable temptation to start your own shit coin, remember there is only one true coin. You can create transactions with the Send button and confirm with:
 `generatetoaddress 1 <replace_new_address_here>`
 
 ## Setup Wasabi Backend
