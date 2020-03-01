@@ -15,12 +15,6 @@ namespace WalletWasabi.Wallet
 {
 	public class WalletManager
 	{
-		private object WalletServicesLock { get; }
-		private List<WalletService> WalletServices { get; }
-		public TransactionBroadcaster TransactionBroadcaster { get; private set; }
-		public CoinJoinProcessor CoinJoinProcessor { get; private set; }
-		public string WalletBackupsDir { get; }
-
 		public event EventHandler<ProcessedResult> WalletRelevantTransactionProcessed;
 
 		public event EventHandler<DequeueResult> CoinsDequeued;
@@ -33,6 +27,12 @@ namespace WalletWasabi.Wallet
 			WalletBackupsDir = walletBackupsDir;
 			WalletServicesLock = new object();
 		}
+
+		private object WalletServicesLock { get; }
+		private List<WalletService> WalletServices { get; }
+		public TransactionBroadcaster TransactionBroadcaster { get; private set; }
+		public CoinJoinProcessor CoinJoinProcessor { get; private set; }
+		public string WalletBackupsDir { get; }
 
 		public IEnumerable<WalletService> GetWalletServices()
 		{
