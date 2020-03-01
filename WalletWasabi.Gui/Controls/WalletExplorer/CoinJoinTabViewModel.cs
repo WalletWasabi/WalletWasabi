@@ -232,6 +232,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _targetPrivacy, value);
 		}
 
+		public bool IsWatchOnly => WalletService.KeyManager.IsWatchOnly;
+		public bool IsHardwareWallet => WalletService.KeyManager.IsHardwareWallet;
+
 		public bool IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
 
 		public ReactiveCommand<Unit, Unit> EnqueueCommand { get; }
