@@ -4,7 +4,7 @@ variables:
 jobs:
 - job: macOS
   pool:
-    vmImage: 'macOS-10.13'
+    vmImage: 'macOS-10.14'
   steps:
   - task: UseDotNet@2
     displayName: 'Install .NET Core 3'
