@@ -35,6 +35,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.TorSocks5;
+using WalletWasabi.Wallet;
 
 namespace WalletWasabi.Gui
 {
@@ -57,7 +58,8 @@ namespace WalletWasabi.Gui
 		public NodesGroup Nodes { get; private set; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
 		public FeeProviders FeeProviders { get; private set; }
-		public WalletService WalletService { get; private set; }
+		public WalletManager WalletManager { get; private set; }
+		public WalletService WalletService => WalletManager?.GetWalletServices().FirstOrDefault();
 		public TransactionBroadcaster TransactionBroadcaster { get; set; }
 		public CoinJoinProcessor CoinJoinProcessor { get; set; }
 		public Node RegTestMempoolServingNode { get; private set; }
@@ -163,7 +165,9 @@ namespace WalletWasabi.Gui
 
 			try
 			{
-				WalletService = null;
+				WalletManager = new WalletManager(WalletBackupsDir);
+				WalletManager.WalletRelevantTransactionProcessed += WalletRelevantTransactionProcessed;
+				WalletManager.CoinsDequeued += OnDequeued;
 				AddressManager = null;
 				TorManager = null;
 				var cancel = StoppingCts.Token;
@@ -378,6 +382,7 @@ namespace WalletWasabi.Gui
 
 				TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, Synchronizer, Nodes, BitcoinCoreNode?.RpcClient);
 				CoinJoinProcessor = new CoinJoinProcessor(Synchronizer, BitcoinCoreNode?.RpcClient);
+				WalletManager.Init(TransactionBroadcaster, CoinJoinProcessor);
 
 				#region JsonRpcServerInitialization
 
@@ -517,25 +522,14 @@ namespace WalletWasabi.Gui
 				{
 					await Task.Delay(100, token);
 				}
-
-				WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
-
-				Logger.LogInfo($"Starting {nameof(WalletService)}...");
-				await WalletService.StartAsync(token);
-				Logger.LogInfo($"{nameof(WalletService)} started.");
-
-				token.ThrowIfCancellationRequested();
-
-				TransactionBroadcaster.AddWalletService(WalletService);
-				CoinJoinProcessor.AddWalletService(WalletService);
-
-				WalletService.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
-				WalletService.ChaumianClient.OnDequeue += ChaumianClient_OnDequeued;
+				var walletService = new WalletService(BitcoinStore, keyManager, Synchronizer, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
+				WalletManager.Add(walletService);
+				await WalletManager.StartAsync(walletService, token);
 			}
 			_cancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
 		}
 
-		private void ChaumianClient_OnDequeued(object sender, DequeueResult e)
+		private void OnDequeued(object sender, DequeueResult e)
 		{
 			try
 			{
@@ -571,7 +565,7 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private void TransactionProcessor_WalletRelevantTransactionProcessed(object sender, ProcessedResult e)
+		private void WalletRelevantTransactionProcessed(object sender, ProcessedResult e)
 		{
 			try
 			{
@@ -740,13 +734,6 @@ namespace WalletWasabi.Gui
 
 		public async Task DisposeInWalletDependentServicesAsync()
 		{
-			var walletService = WalletService;
-			if (walletService is { })
-			{
-				WalletService.TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
-				WalletService.ChaumianClient.OnDequeue -= ChaumianClient_OnDequeued;
-			}
-
 			try
 			{
 				_cancelWalletServiceInitialization?.Cancel();
@@ -757,19 +744,9 @@ namespace WalletWasabi.Gui
 			}
 			_cancelWalletServiceInitialization = null;
 
-			walletService = WalletService;
-			if (walletService is { })
+			foreach (var wallet in WalletManager.GetWalletServices())
 			{
-				var keyManager = walletService.KeyManager;
-				if (keyManager is { }) // This should never happen.
-				{
-					string backupWalletFilePath = Path.Combine(WalletBackupsDir, Path.GetFileName(keyManager.FilePath));
-					keyManager.ToFile(backupWalletFilePath);
-					Logger.LogInfo($"{nameof(walletService.KeyManager)} backup saved to `{backupWalletFilePath}`.");
-				}
-				await walletService.StopAsync(CancellationToken.None).ConfigureAwait(false);
-				WalletService = null;
-				Logger.LogInfo($"{nameof(WalletService)} is stopped.");
+				await WalletManager.StopAsync(wallet, CancellationToken.None);
 			}
 		}
 
