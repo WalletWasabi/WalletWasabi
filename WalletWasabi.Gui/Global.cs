@@ -165,9 +165,6 @@ namespace WalletWasabi.Gui
 
 			try
 			{
-				WalletManager = new WalletManager(WalletBackupsDir);
-				WalletManager.WalletRelevantTransactionProcessed += WalletRelevantTransactionProcessed;
-				WalletManager.CoinsDequeued += OnDequeued;
 				AddressManager = null;
 				TorManager = null;
 				var cancel = StoppingCts.Token;
@@ -382,7 +379,9 @@ namespace WalletWasabi.Gui
 
 				TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, Synchronizer, Nodes, BitcoinCoreNode?.RpcClient);
 				CoinJoinProcessor = new CoinJoinProcessor(Synchronizer, BitcoinCoreNode?.RpcClient);
-				WalletManager.Init(TransactionBroadcaster, CoinJoinProcessor);
+				WalletManager = new WalletManager(WalletBackupsDir, TransactionBroadcaster, CoinJoinProcessor);
+				WalletManager.WalletRelevantTransactionProcessed += WalletRelevantTransactionProcessed;
+				WalletManager.CoinsDequeued += OnDequeued;
 
 				#region JsonRpcServerInitialization
 
