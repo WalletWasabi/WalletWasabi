@@ -11,14 +11,14 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 {
 	public class P2pReconnector : PeriodicRunner
 	{
-		public P2pNode P2pNode { get; set; }
-		private TaskCompletionSource<object> Success { get; }
-
 		public P2pReconnector(TimeSpan period, P2pNode p2pNode) : base(period)
 		{
 			P2pNode = Guard.NotNull(nameof(p2pNode), p2pNode);
 			Success = new TaskCompletionSource<object>();
 		}
+
+		public P2pNode P2pNode { get; set; }
+		private TaskCompletionSource<object> Success { get; }
 
 		protected override async Task ActionAsync(CancellationToken cancel)
 		{
