@@ -16,6 +16,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
+using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Blockchain.TransactionBroadcasting
@@ -26,29 +27,17 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 		public WasabiSynchronizer Synchronizer { get; }
 		public Network Network { get; }
 		public NodesGroup Nodes { get; }
-		public List<WalletService> WalletServices { get; }
-		public IEnumerable<WalletService> AliveWalletServices => WalletServices.Where(x => x != null && !x.IsStoppingOrStopped);
-		public object WalletServicesLock { get; }
 		public RPCClient RpcClient { get; private set; }
+		public WalletManager WalletManager { get; }
 
-		public TransactionBroadcaster(Network network, BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, NodesGroup nodes, RPCClient rpc)
+		public TransactionBroadcaster(Network network, BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, NodesGroup nodes, WalletManager walletManager, RPCClient rpc)
 		{
 			Nodes = Guard.NotNull(nameof(nodes), nodes);
 			Network = Guard.NotNull(nameof(network), network);
 			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
 			Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
-			WalletServices = new List<WalletService>();
-			WalletServicesLock = new object();
+			WalletManager = Guard.NotNull(nameof(walletManager), walletManager);
 			RpcClient = rpc;
-		}
-
-		public void AddWalletService(WalletService walletService)
-		{
-			Guard.NotNull(nameof(walletService), walletService);
-			lock (WalletServicesLock)
-			{
-				WalletServices.Add(walletService);
-			}
 		}
 
 		private async Task BroadcastTransactionToNetworkNodeAsync(SmartTransaction transaction, Node node)
@@ -113,16 +102,9 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 					if (transaction.Transaction.Inputs.Count == 1) // If we tried to only spend one coin, then we can mark it as spent. If there were more coins, then we do not know.
 					{
 						OutPoint input = transaction.Transaction.Inputs.First().PrevOut;
-						lock (WalletServicesLock)
+						foreach (var coin in WalletManager.CoinsByOutPoint(input))
 						{
-							foreach (var walletService in AliveWalletServices)
-							{
-								SmartCoin coin = walletService.Coins.GetByOutPoint(input);
-								if (coin != default)
-								{
-									coin.SpentAccordingToBackend = true;
-								}
-							}
+							coin.SpentAccordingToBackend = true;
 						}
 					}
 
@@ -142,13 +124,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 				transaction.SetUnconfirmed();
 			}
 
-			lock (WalletServicesLock)
-			{
-				foreach (var walletService in AliveWalletServices)
-				{
-					walletService.TransactionProcessor.Process(transaction);
-				}
-			}
+			WalletManager.Process(transaction);
 		}
 
 		public async Task SendTransactionAsync(SmartTransaction transaction)
