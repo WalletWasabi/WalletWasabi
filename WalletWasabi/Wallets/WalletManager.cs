@@ -101,7 +101,7 @@ namespace WalletWasabi.Wallets
 					}
 
 					var keyManager = walletService.KeyManager;
-					if (keyManager is { } && WalletBackupsDir is { })
+					if (keyManager is { } && !string.IsNullOrWhiteSpace(WalletBackupsDir))
 					{
 						string backupWalletFilePath = Path.Combine(WalletBackupsDir, Path.GetFileName(keyManager.FilePath));
 						keyManager.ToFile(backupWalletFilePath);
