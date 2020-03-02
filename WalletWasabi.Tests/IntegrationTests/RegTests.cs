@@ -45,6 +45,7 @@ using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.TorSocks5;
+using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 using static NBitcoin.Crypto.SchnorrBlinding;
@@ -242,7 +243,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[Fact]
 		public async Task StatusRequestTestAsync()
 		{
-			const string request = "/api/v3/btc/Blockchain/status";
+			const string Request = "/api/v3/btc/Blockchain/status";
 			(string password, RPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await InitializeTestEnvironmentAsync(1);
 
 			var indexBuilderService = global.IndexBuilderService;
@@ -263,7 +264,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				}
 
 				using var client = new WasabiClient(new Uri(RegTestFixture.BackendEndPoint), null);
-				var response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, request);
+				var response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, Request);
 				using (HttpContent content = response.Content)
 				{
 					var resp = await content.ReadAsJsonAsync<StatusResponse>();
@@ -276,7 +277,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				await rpc.GenerateAsync(1);
 
-				response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, request);
+				response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, Request);
 				using (HttpContent content = response.Content)
 				{
 					var resp = await content.ReadAsJsonAsync<StatusResponse>();
@@ -288,7 +289,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				var blockchainController = (BlockchainController)RegTestFixture.BackendHost.Services.GetService(typeof(BlockchainController));
 				blockchainController.Cache.Remove($"{nameof(BlockchainController.GetStatusAsync)}");
 
-				response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, request);
+				response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, Request);
 				using (HttpContent content = response.Content)
 				{
 					var resp = await content.ReadAsJsonAsync<StatusResponse>();
@@ -752,6 +753,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
+			var walletManager = new WalletManager(null);
+
 			// Get some money, make it confirm.
 			var key = keyManager.GetNextReceiveKey("foo label", out _);
 			var key2 = keyManager.GetNextReceiveKey("foo label", out _);
@@ -775,10 +778,9 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
 				{
-					await wallet.StartAsync(cts.Token); // Initialize wallet service.
+					await walletManager.AddAndStartAsync(wallet, cts.Token);
 				}
-				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, rpc);
-				broadcaster.AddWalletService(wallet);
+				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, walletManager, rpc);
 
 				var waitCount = 0;
 				while (wallet.Coins.Sum(x => x.Amount) == Money.Zero)
@@ -1191,7 +1193,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			finally
 			{
 				wallet.NewFilterProcessed -= Wallet_NewFilterProcessed;
-				await wallet.StopAsync(CancellationToken.None);
+				await walletManager.RemoveAndStopAllAsync();
 				// Dispose wasabi synchronizer service.
 				await synchronizer?.StopAsync();
 				// Dispose connection service.
@@ -1383,6 +1385,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
+			var walletManager = new WalletManager(null);
+
 			Assert.Empty(wallet.Coins);
 			var baseTip = await rpc.GetBestBlockHashAsync();
 
@@ -1408,12 +1412,12 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
 				{
-					await wallet.StartAsync(cts.Token); // Initialize wallet service.
+					await walletManager.AddAndStartAsync(wallet, cts.Token);
 				}
+
 				var coin = Assert.Single(wallet.Coins);
 				Assert.True(coin.Confirmed);
-				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, rpc);
-				broadcaster.AddWalletService(wallet);
+				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, walletManager, rpc);
 
 				// Send money before reorg.
 				var operations = new PaymentIntent(scp, Money.Coins(0.011m));
@@ -1562,7 +1566,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			}
 			finally
 			{
-				await wallet.StopAsync(CancellationToken.None);
+				await walletManager.RemoveAndStopAllAsync();
 				// Dispose wasabi synchronizer service.
 				await synchronizer?.StopAsync();
 				// Dispose connection service.
@@ -1598,6 +1602,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
+			var walletManager = new WalletManager(null);
+
 			Assert.Empty(wallet.Coins);
 
 			// Get some money, make it confirm.
@@ -1615,7 +1621,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
 				{
-					await wallet.StartAsync(cts.Token); // Initialize wallet service.
+					await walletManager.AddAndStartAsync(wallet, cts.Token);
 				}
 
 				Assert.Empty(wallet.Coins);
@@ -1633,8 +1639,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.Equal(tx0Id, eventArgs.NewlyReceivedCoins.Single().TransactionId);
 				Assert.Single(wallet.Coins);
 
-				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, rpc);
-				broadcaster.AddWalletService(wallet);
+				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, walletManager, rpc);
 
 				var operations = new PaymentIntent(
 					new DestinationRequest(key.P2wpkhScript, Money.Coins(0.01m)),
@@ -1733,7 +1738,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			}
 			finally
 			{
-				await wallet.StopAsync(CancellationToken.None);
+				await walletManager.RemoveAndStopAllAsync();
 				// Dispose wasabi synchronizer service.
 				await synchronizer?.StopAsync();
 				// Dispose connection service.
