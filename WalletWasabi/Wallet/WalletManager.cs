@@ -19,10 +19,9 @@ namespace WalletWasabi.Wallet
 
 		public event EventHandler<DequeueResult> CoinsDequeued;
 
-		public WalletManager(string walletBackupsDir, TransactionBroadcaster transactionBroadcaster, CoinJoinProcessor coinJoinProcessor)
+		public WalletManager(string walletBackupsDir, CoinJoinProcessor coinJoinProcessor)
 		{
 			WalletServices = new List<WalletService>();
-			TransactionBroadcaster = transactionBroadcaster;
 			CoinJoinProcessor = coinJoinProcessor;
 			WalletBackupsDir = walletBackupsDir;
 			WalletServicesLock = new object();
@@ -30,7 +29,6 @@ namespace WalletWasabi.Wallet
 
 		private object WalletServicesLock { get; }
 		private List<WalletService> WalletServices { get; }
-		public TransactionBroadcaster TransactionBroadcaster { get; private set; }
 		public CoinJoinProcessor CoinJoinProcessor { get; private set; }
 		public string WalletBackupsDir { get; }
 
@@ -57,7 +55,6 @@ namespace WalletWasabi.Wallet
 			Logger.LogInfo($"{nameof(WalletService)} started.");
 
 			token.ThrowIfCancellationRequested();
-			TransactionBroadcaster.AddWalletService(walletService);
 			CoinJoinProcessor.AddWalletService(walletService);
 
 			walletService.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;

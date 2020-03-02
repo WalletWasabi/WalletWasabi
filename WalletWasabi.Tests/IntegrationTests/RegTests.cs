@@ -45,6 +45,7 @@ using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.TorSocks5;
+using WalletWasabi.Wallet;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 using static NBitcoin.Crypto.SchnorrBlinding;
@@ -750,6 +751,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 			// 5. Create wallet service.
 			var workDir = GetWorkDir();
 			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer);
+			var walletManager = new WalletManager(null, null);
+			walletManager.Add(wallet);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			// Get some money, make it confirm.
@@ -777,8 +780,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				{
 					await wallet.StartAsync(cts.Token); // Initialize wallet service.
 				}
-				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, rpc);
-				broadcaster.AddWalletService(wallet);
+				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, rpc, walletManager);
 
 				var waitCount = 0;
 				while (wallet.Coins.Sum(x => x.Amount) == Money.Zero)
@@ -1381,6 +1383,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 			// 5. Create wallet service.
 			var workDir = GetWorkDir();
 			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer);
+			var walletManager = new WalletManager(null, null);
+			walletManager.Add(wallet);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			Assert.Empty(wallet.Coins);
@@ -1412,8 +1416,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				}
 				var coin = Assert.Single(wallet.Coins);
 				Assert.True(coin.Confirmed);
-				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, rpc);
-				broadcaster.AddWalletService(wallet);
+				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, rpc, walletManager);
 
 				// Send money before reorg.
 				var operations = new PaymentIntent(scp, Money.Coins(0.011m));
@@ -1596,6 +1599,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 			// 5. Create wallet service.
 			var workDir = GetWorkDir();
 			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer);
+			var walletManager = new WalletManager(null, null);
+			walletManager.Add(wallet);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			Assert.Empty(wallet.Coins);
@@ -1633,8 +1638,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Assert.Equal(tx0Id, eventArgs.NewlyReceivedCoins.Single().TransactionId);
 				Assert.Single(wallet.Coins);
 
-				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, rpc);
-				broadcaster.AddWalletService(wallet);
+				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, rpc, walletManager);
 
 				var operations = new PaymentIntent(
 					new DestinationRequest(key.P2wpkhScript, Money.Coins(0.01m)),

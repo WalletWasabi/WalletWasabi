@@ -377,9 +377,9 @@ namespace WalletWasabi.Gui
 
 				cancel.ThrowIfCancellationRequested();
 
-				TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, Synchronizer, Nodes, BitcoinCoreNode?.RpcClient);
 				CoinJoinProcessor = new CoinJoinProcessor(Synchronizer, BitcoinCoreNode?.RpcClient);
-				WalletManager = new WalletManager(WalletBackupsDir, TransactionBroadcaster, CoinJoinProcessor);
+				WalletManager = new WalletManager(WalletBackupsDir, CoinJoinProcessor);
+				TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, Synchronizer, Nodes, BitcoinCoreNode?.RpcClient, WalletManager);
 				WalletManager.WalletRelevantTransactionProcessed += WalletRelevantTransactionProcessed;
 				WalletManager.CoinsDequeued += OnDequeued;
 
