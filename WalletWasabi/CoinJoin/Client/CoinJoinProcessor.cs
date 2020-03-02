@@ -39,7 +39,7 @@ namespace WalletWasabi.CoinJoin.Client
 			WalletManager = walletManager;
 			ProcessLock = new AsyncLock();
 			Synchronizer.ResponseArrived += Synchronizer_ResponseArrivedAsync;
-			walletManager.WalletAdded += WalletManager_WalletAdded;
+			WalletManager.WalletAdded += WalletManager_WalletAdded;
 			foreach (var wallet in walletManager.GetWalletServices())
 			{
 				AddWalletService(wallet);
