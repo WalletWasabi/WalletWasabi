@@ -543,7 +543,7 @@ namespace WalletWasabi.Blockchain.Keys
 
 		public int CountConsecutiveUnusedKeys(bool isInternal)
 		{
-			var keyIndexes = GetKeys(x => x.IsInternal == isInternal && x.KeyState != KeyState.Used).OrderBy(x => x.Index).Select(x => x.Index).ToArray();
+			var keyIndexes = GetKeys(x => x.IsInternal == isInternal && x.KeyState != KeyState.Used).Select(x => x.Index).OrderBy(x => x).ToArray();
 
 			var hs = keyIndexes.ToHashSet();
 			int largerConsecutiveSequence = 0;
