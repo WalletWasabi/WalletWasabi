@@ -101,14 +101,11 @@ namespace WalletWasabi.Wallets
 					}
 
 					var keyManager = walletService.KeyManager;
-					if (keyManager is { }) // This should never happen.
+					if (keyManager is { } && WalletBackupsDir is { })
 					{
-						if (WalletBackupsDir is { })
-						{
-							string backupWalletFilePath = Path.Combine(WalletBackupsDir, Path.GetFileName(keyManager.FilePath));
-							keyManager.ToFile(backupWalletFilePath);
-							Logger.LogInfo($"{nameof(walletService.KeyManager)} backup saved to `{backupWalletFilePath}`.");
-						}
+						string backupWalletFilePath = Path.Combine(WalletBackupsDir, Path.GetFileName(keyManager.FilePath));
+						keyManager.ToFile(backupWalletFilePath);
+						Logger.LogInfo($"{nameof(walletService.KeyManager)} backup saved to `{backupWalletFilePath}`.");
 					}
 					await walletService.StopAsync(CancellationToken.None).ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(WalletService)} is stopped.");
