@@ -371,7 +371,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 			}
 			finally
 			{
-				await synchronizer?.StopAsync();
+				if (synchronizer is { })
+				{
+					await synchronizer.StopAsync();
+				}
 			}
 		}
 
@@ -495,7 +498,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 			}
 			finally
 			{
-				await synchronizer?.StopAsync();
+				if (synchronizer is { })
+				{
+					await synchronizer.StopAsync();
+				}
 			}
 		}
 
@@ -696,7 +702,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 				wallet.NewFilterProcessed -= Wallet_NewFilterProcessed;
 				await wallet.StopAsync(CancellationToken.None);
 				// Dispose wasabi synchronizer service.
-				await synchronizer?.StopAsync();
+				if (synchronizer is { })
+				{
+					await synchronizer.StopAsync();
+				}
 
 				// Dispose connection service.
 				nodes?.Dispose();
@@ -1195,7 +1204,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 				wallet.NewFilterProcessed -= Wallet_NewFilterProcessed;
 				await walletManager.RemoveAndStopAllAsync();
 				// Dispose wasabi synchronizer service.
-				await synchronizer?.StopAsync();
+				if (synchronizer is { })
+				{
+					await synchronizer.StopAsync();
+				}
 				// Dispose connection service.
 				nodes?.Dispose();
 				// Dispose mempool serving node.
@@ -1351,7 +1363,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 			{
 				await wallet.StopAsync(CancellationToken.None);
 				// Dispose wasabi synchronizer service.
-				await synchronizer?.StopAsync();
+				if (synchronizer is { })
+				{
+					await synchronizer.StopAsync();
+				}
 				// Dispose connection service.
 				nodes?.Dispose();
 				// Dispose mempool serving node.
@@ -1568,7 +1583,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 			{
 				await walletManager.RemoveAndStopAllAsync();
 				// Dispose wasabi synchronizer service.
-				await synchronizer?.StopAsync();
+				if (synchronizer is { })
+				{
+					await synchronizer.StopAsync();
+				}
 				// Dispose connection service.
 				nodes?.Dispose();
 				// Dispose mempool serving node.
@@ -1740,7 +1758,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 			{
 				await walletManager.RemoveAndStopAllAsync();
 				// Dispose wasabi synchronizer service.
-				await synchronizer?.StopAsync();
+				if (synchronizer is { })
+				{
+					await synchronizer.StopAsync();
+				}
 				// Dispose connection service.
 				nodes?.Dispose();
 				// Dispose mempool serving node.
@@ -1837,7 +1858,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 			{
 				await wallet.StopAsync(CancellationToken.None);
 				// Dispose wasabi synchronizer service.
-				await synchronizer?.StopAsync();
+				if (synchronizer is { })
+				{
+					await synchronizer.StopAsync();
+				}
 				// Dispose connection service.
 				nodes?.Dispose();
 				// Dispose mempool serving node.
@@ -3504,7 +3528,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 				node?.Disconnect();
 				await wallet2.StopAsync(CancellationToken.None);
 				// Dispose wasabi synchronizer service.
-				await synchronizer?.StopAsync();
+				if (synchronizer is { })
+				{
+					await synchronizer.StopAsync();
+				}
 				// Dispose connection service.
 				nodes2?.Dispose();
 			}
