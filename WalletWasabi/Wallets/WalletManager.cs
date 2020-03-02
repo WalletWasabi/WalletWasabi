@@ -31,12 +31,12 @@ namespace WalletWasabi.Wallets
 
 		public event EventHandler<DequeueResult> OnDequeue;
 
-		public Dictionary<WalletService, HashSet<uint256>> Wallets { get; }
-		public object Lock { get; }
-		public AsyncLock AddRemoveLock { get; }
-		public string WalletBackupsDir { get; }
+		private Dictionary<WalletService, HashSet<uint256>> Wallets { get; }
+		private object Lock { get; }
+		private AsyncLock AddRemoveLock { get; }
+		private string WalletBackupsDir { get; }
 
-		public IEnumerable<KeyValuePair<WalletService, HashSet<uint256>>> AliveWalletsNoLock => Wallets.Where(x => x.Key is { IsStoppingOrStopped: var isDisposed } && !isDisposed);
+		private IEnumerable<KeyValuePair<WalletService, HashSet<uint256>>> AliveWalletsNoLock => Wallets.Where(x => x.Key is { IsStoppingOrStopped: var isDisposed } && !isDisposed);
 
 		public WalletService GetFirstOrDefaultWallet()
 		{
