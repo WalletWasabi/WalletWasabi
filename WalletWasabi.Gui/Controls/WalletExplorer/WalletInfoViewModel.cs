@@ -78,6 +78,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public string AccountKeyPath => $"m/{WalletService.KeyManager.AccountKeyPath}";
 		public string MasterKeyFingerprint => WalletService.KeyManager.MasterFingerprint.ToString();
 		public ReactiveCommand<Unit, Unit> ToggleSensitiveKeysCommand { get; }
+		public bool IsWatchOnly => WalletService.KeyManager.IsWatchOnly;
 
 		public bool ShowSensitiveKeys
 		{

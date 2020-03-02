@@ -755,6 +755,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _allSelectedAmount, value);
 		}
 
+		public bool IsWatchOnly => WalletService.KeyManager.IsWatchOnly;
+
 		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
 
 		[ValidateMethod(nameof(ValidatePassword))]
@@ -844,7 +846,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<KeyEventArgs, Unit> AmountKeyUpCommand { get; }
 
 		public override void OnOpen(CompositeDisposable disposables)
-		{	
+		{
 			Observable
 				.FromEventPattern<AllFeeEstimate>(Global.FeeProviders, nameof(Global.FeeProviders.AllFeeEstimateChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)

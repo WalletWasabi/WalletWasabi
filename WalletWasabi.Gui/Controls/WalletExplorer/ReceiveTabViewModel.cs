@@ -90,15 +90,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private Global Global { get; }
 
-		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }		
+		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
 
 		private WalletService WalletService { get; }
 
 		public SuggestLabelViewModel LabelSuggestion { get; }
 
+		public bool IsHardwareWallet => WalletService.KeyManager.IsHardwareWallet;
+
 		public override void OnOpen(CompositeDisposable disposables)
 		{
-			base.OnOpen(disposables);			
+			base.OnOpen(disposables);
 
 			Observable
 				.FromEventPattern(WalletService.TransactionProcessor, nameof(WalletService.TransactionProcessor.WalletRelevantTransactionProcessed))
