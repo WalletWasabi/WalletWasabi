@@ -145,6 +145,7 @@ namespace WalletWasabi.CoinJoin.Client
 				if (disposing)
 				{
 					Synchronizer.ResponseArrived -= Synchronizer_ResponseArrivedAsync;
+					WalletManager.WalletAdded -= WalletManager_WalletAdded;
 				}
 
 				_disposedValue = true;
