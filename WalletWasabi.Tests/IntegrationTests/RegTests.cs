@@ -751,7 +751,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			// 5. Create wallet service.
 			var workDir = GetWorkDir();
 			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer);
-			var walletManager = new WalletManager(null, null);
+			var walletManager = new WalletManager(null);
 			walletManager.Add(wallet);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
@@ -1383,7 +1383,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			// 5. Create wallet service.
 			var workDir = GetWorkDir();
 			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer);
-			var walletManager = new WalletManager(null, null);
+			var walletManager = new WalletManager(null);
 			walletManager.Add(wallet);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
@@ -1599,7 +1599,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			// 5. Create wallet service.
 			var workDir = GetWorkDir();
 			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer);
-			var walletManager = new WalletManager(null, null);
+			var walletManager = new WalletManager(null);
 			walletManager.Add(wallet);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 

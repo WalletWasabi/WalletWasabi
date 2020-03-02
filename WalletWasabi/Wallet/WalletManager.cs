@@ -19,17 +19,17 @@ namespace WalletWasabi.Wallet
 
 		public event EventHandler<DequeueResult> CoinsDequeued;
 
-		public WalletManager(string walletBackupsDir, CoinJoinProcessor coinJoinProcessor)
+		public event EventHandler<WalletService> WalletAdded;
+
+		public WalletManager(string walletBackupsDir)
 		{
 			WalletServices = new List<WalletService>();
-			CoinJoinProcessor = coinJoinProcessor;
 			WalletBackupsDir = walletBackupsDir;
 			WalletServicesLock = new object();
 		}
 
 		private object WalletServicesLock { get; }
 		private List<WalletService> WalletServices { get; }
-		public CoinJoinProcessor CoinJoinProcessor { get; private set; }
 		public string WalletBackupsDir { get; }
 
 		public IEnumerable<WalletService> GetWalletServices()
@@ -46,6 +46,8 @@ namespace WalletWasabi.Wallet
 			{
 				WalletServices.Add(walletService);
 			}
+			var handler = WalletAdded;
+			handler?.Invoke(this, walletService);
 		}
 
 		public async Task StartAsync(WalletService walletService, CancellationToken token)
@@ -55,7 +57,6 @@ namespace WalletWasabi.Wallet
 			Logger.LogInfo($"{nameof(WalletService)} started.");
 
 			token.ThrowIfCancellationRequested();
-			CoinJoinProcessor.AddWalletService(walletService);
 
 			walletService.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
 			walletService.ChaumianClient.OnDequeue += ChaumianClient_OnDequeue;

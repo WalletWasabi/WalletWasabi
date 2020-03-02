@@ -15,6 +15,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
+using WalletWasabi.Wallet;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.CoinJoin.Client
@@ -26,16 +27,23 @@ namespace WalletWasabi.CoinJoin.Client
 		public IEnumerable<KeyValuePair<WalletService, HashSet<uint256>>> AliveWalletServices => WalletServices.Where(x => x.Key is { IsStoppingOrStopped: var isDisposed } && !isDisposed);
 		public object WalletServicesLock { get; }
 		public RPCClient RpcClient { get; private set; }
+		public WalletManager WalletManager { get; }
 		private AsyncLock ProcessLock { get; }
 
-		public CoinJoinProcessor(WasabiSynchronizer synchronizer, RPCClient rpc)
+		public CoinJoinProcessor(WasabiSynchronizer synchronizer, RPCClient rpc, WalletManager walletManager)
 		{
 			Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
 			WalletServices = new Dictionary<WalletService, HashSet<uint256>>();
 			WalletServicesLock = new object();
 			RpcClient = rpc;
+			WalletManager = walletManager;
 			ProcessLock = new AsyncLock();
 			Synchronizer.ResponseArrived += Synchronizer_ResponseArrivedAsync;
+			walletManager.WalletAdded += WalletManager_WalletAdded;
+			foreach (var wallet in walletManager.GetWalletServices())
+			{
+				AddWalletService(wallet);
+			}
 		}
 
 		private async void Synchronizer_ResponseArrivedAsync(object sender, SynchronizeResponse response)
@@ -84,7 +92,12 @@ namespace WalletWasabi.CoinJoin.Client
 			}
 		}
 
-		public void AddWalletService(WalletService walletService)
+		private void WalletManager_WalletAdded(object sender, WalletService walletService)
+		{
+			AddWalletService(walletService);
+		}
+
+		private void AddWalletService(WalletService walletService)
 		{
 			Guard.NotNull(nameof(walletService), walletService);
 			lock (WalletServicesLock)
