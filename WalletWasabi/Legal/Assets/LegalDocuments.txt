@@ -1,21 +1,21 @@
-﻿
+
 Last Updated: 2020-04-05
 
 =========================================
 SUMMARY
 =========================================
 
-    The WASABI team is committed to be fully transparent to its users, from its source code to the legal aspects of its services. The purpose of Wasabi Wallet is to provide privacy for its users’ Bitcoin transactions. This means that with the use of the wallet we would like to enable the users to make Bitcoin payments in a way that their spending history, wallet balances, etc. are not visible for the receiver party. This does not necessarily mean that the user stays anonymous, since the receiver party might have to identify the sending party.
-    Our goal is to minimize the unintentionally leaked financial private information to third parties and to the receiver itself. The protection of your privacy and the protection of your (personal) data is our highest priority, which also defines the essence of our services. 
-    One instance of the Wasabi Wallet CoinJoin coordinating server is operated by a legal entity zkSNACKs Ltd. thus, in order to legally provide our services to our clients, we have defined the framework and the rules that both parties must follow in order to protect each other.
+    The WASABI team is committed to be fully transparent to its users, from its source code to the legal aspects of its services. The purpose of Wasabi Wallet is to provide privacy for its users’ Bitcoin transactions. This means that with the use of the wallet we would like to enable the users to make Bitcoin payments in such a way that their spending history, wallet balances, etc. are not visible to the receiving party. This does not necessarily mean that the user stays anonymous, since the receiving party might have to identify the sending party.
+    Our goal is to minimize the unintentional leaking or disclosure of private financial information to third parties and to the receiver of any transaction resulting from the use of the Wasabi Wallet. The protection of your privacy and the protection of your (personal) data is our highest priority, which also defines the essence of our services.
+    One instance of the Wasabi Wallet CoinJoin coordinating server is operated by a legal entity, zkSNACKs Ltd. Thus, in order to legally provide our services to our clients, we have defined the framework and the rules that both parties must follow in order to protect each other.
 
-    The most important parts of the below document is summarized in the following points:
-     - The service is open source under the MIT license.
-     - The service is provided on a non-custodial basis, safekeeping of keys are the sole responsibility of the user.
-     - The user is solely responsible to act according to local laws and regulations.
-     - We do not store any personally identifiable information. Moreover our trustless software architecture prevents us from gathering this information in the first place.
-     - Transaction fee is only charged by the service provider for CoinJoin transactions.
-     - We only provide written support and NEVER ask for recovery words, passwords or similar security critical information.
+    The most important parts of the document below is summarized in the following points:
+     - The service is open-source under the MIT license.
+     - The service is provided on a non-custodial basis. Safekeeping of keys are the sole responsibility of the user.
+     - The user is solely responsible to act according to their local laws and regulations.
+     - We do not store any personally identifiable information. Moreover, our trustless software architecture prevents us from gathering this information in the first place.
+     - A transaction fee is only charged by the service provider for CoinJoin transactions.
+     - We only provide written support, and NEVER ask for recovery words, passwords or similar security critical information.
 
     The services are provided between remote parties and therefore these terms and conditions cannot be individually negotiated with clients. This document will help each of our clients to understand exactly the terms and conditions under which we can provide our services. We recommend you to first learn the basics of Bitcoin before starting to use our services.
 
@@ -31,14 +31,14 @@ I. TERMS AND CONDITIONS
 =====================
 
 1.1 SCOPE
-    This binding Agreement is between 
-     - zkSNACKs Ltd. (“Service Provider” or “we”, which includes our subsidiaries, partners, affiliates, agents, employees, licensors, service providers or subcontractors (if any)) and 
+    This binding Agreement is between
+     - zkSNACKs Ltd. (“Service Provider” or “we”, which includes our subsidiaries, partners, affiliates, agents, employees, licensors, service providers or subcontractors (if any)) and
      - the person, persons, or entity (“You” or “Your”) using the Services (as defined below).
 
     These Terms apply to the download of the Client Application (as defined below), any access and use of the Client Application , our website at https://wasabiwallet.io or its onion mirror at http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion (*) and our CoinJoin Coordinator Services (as defined below), and any of our other Services related to or utilizing any of the foregoing, which we refer to in these Terms and Conditions documents (“Terms” or “Terms of Use”), collectively, as our “Services”.
 
 1.2 ELIGIBILITY AND AGREEMENT
-    If You use the Services these Terms apply. You will be liable for any damage or consequences arising from use without the full acceptance of the rules, the Service Provider shall not be liable under any circumstances in this case.
+    If You use the Services these Terms apply. You will be solely liable for any damage or consequences arising from use without the full acceptance of the rules. The Service Provider shall not be liable under any circumstances in this case.
     You can use our Services only if You can lawfully enter into an agreement pursuant to these Terms under applicable law. You acknowledge that Your use of this Software is at Your own discretion and in compliance with all applicable laws and regulations.
     Due to the nature of the Service, we cannot guarantee the full compliance of user transactions, therefore it is Your own responsibility to ensure that the use of Wasabi Wallet complies with Your local laws and jurisdiction.
 
@@ -47,10 +47,10 @@ I. TERMS AND CONDITIONS
 
     THE SERVICE PROVIDER EXPRESSLY DECLARES THAT IT DOES NOT STORE, HAVE ACCESS TO, OR HAVE ANY WAY OR MEANS OF RECOVERING YOUR BACKUP.
 
-    It is Your responsibility to keep your wallet backups, your wallet files and your passwords secure. You should not provide it to anyone, including any Service Provider representative. Encrypted private key information is stored locally on Your computer in a wallet file. Private keys can be accessed with a password, You have given at the generation of the wallet.
-    If You permanently forget or lose Your backup, You will NEVER be able to recover any bitcoin in Your wallet, and You will suffer a complete, irrecoverable loss of all bitcoin in Your wallet. In the event of such loss, we shall not be liable for any lack of access to the wallet and shall not be obliged to make the access or the keys required for that purpose available.
+    It is Your responsibility to keep your wallet backups, your wallet files, and your passwords secure. You should not provide this information to anyone, including any Service Provider representative. Encrypted private key information is stored locally on Your computer in a wallet file. Private keys can be accessed with the password, which You created at the generation of the wallet.
+    If You permanently forget or lose Your backup, You will NEVER be able to recover any bitcoin in Your wallet, and You will suffer a complete, irrecoverable loss of all bitcoin in Your wallet. In the event of such loss, we shall not be liable for any lack of access to the wallet and we shall not be obliged to make wallet access, or the keys required for that purpose available.
     The Service Provider has no responsibility and will not be liable for any loss or damage You suffer from the loss or misappropriation of Your backup.
-    From the point of downloading we do not store or manage any data, we do not even have knowledge about neither the installation, nor the use of the wallet.
+    From the point of downloading we do not store or manage any data, we have no knowledge or information about either the installation, or the use of the wallet.
 
 1.4 OUR PRIVACY POLICY
     Our Privacy Policy is located at Chapter II. Our Privacy Policy is expressly incorporated into these Terms and should be read carefully as it contains important information about handling personal data.
@@ -64,19 +64,19 @@ I. TERMS AND CONDITIONS
 2.1 DESCRIPTION OF SERVICES
     This Software consists of the Client Application and the CoinJoin Coordinator (both as defined below) and functions as a free, open-source, non-custodial desktop Bitcoin wallet. The Software does not constitute an account where we or other third parties serve as financial intermediaries or custodians of Your bitcoins. The Software and our Services are therefore not a bank, a custodian, an exchange, a financial intermediary or a regulated financial institution and is exempt from the authority of the Gibraltar Financial Services Commission or any other financial institutions.
 
-    The client application (“Client Application”) is a software, with the sole purpose to grant You access to the Bitcoin network and our Services (as defined below) without the need or requirement to create or maintain a user account. The application itself is an ordinary Bitcoin desktop wallet with ordinary features. Wasabi Wallet does not store, send or receive bitcoins. This is because bitcoins exist only by virtue of the ownership record maintained in the Bitcoin network. Any transfer of title in bitcoins occurs within the decentralized Bitcoin network, and not in the Wasabi Wallet.
-    The CoinJoin Coordinator Service is an online service that implements trustless CoinJoin to prevent third parties to spy on the Blockchain. Throughout the process, the Service does not initiate or process any standalone transactions whatsoever towards third parties (i.e. non-users of the Service) and therefore does not store or transmit value belonging to others. For further information on how it works please visit our GitHub page: https://github.com/zkSNACKs
+    The client application (“Client Application”) is software, with the sole purpose of allowing You access to the Bitcoin network and our Services (as defined below), without the need or requirement to create or maintain a user account. The application itself is an ordinary Bitcoin desktop wallet with ordinary features. Wasabi Wallet does not store, send or receive bitcoins. This is because bitcoins exist only by virtue of the ownership record maintained in the Bitcoin network. Any transfer of title in bitcoins occurs within the decentralized Bitcoin network, and not in the Wasabi Wallet.
+    The CoinJoin Coordinator Service is an online service that implements trustless CoinJoin to prevent third parties from spying on the Blockchain. Throughout the process, the Service does not initiate or process any standalone transactions whatsoever towards third parties (i.e. non-users of the Service) and therefore does not store or transmit value belonging to others. For further information on how it works please visit our GitHub page: https://github.com/zkSNACKs
 
 2.2 FEES
     Subject to the other provisions of these Terms, including, but not limited to Section 3 on Prohibited Activities, You may freely download and use the Client Application without any charge or fee imposed on You by the Service Provider.
-    The Service Provider does not charge You transaction fees of normal Bitcoin transactions, however You are still subject to transaction fees, charged by the Bitcoin network.
-    Both the Service Provider and the Bitcoin network charge You transaction fees for CoinJoin Bitcoin transactions. 
+    The Service Provider does not charge You transaction fees for normal Bitcoin transactions, however You are still subject to transaction fees, charged by the Bitcoin network.
+    Both the Service Provider and the Bitcoin network charge You transaction fees for CoinJoin Bitcoin transactions.
 
     The transaction fee, charged by the Service Provider is 0.003% multiplied by the number of users in each round of transaction You initiate, except if:
      - You are providing the unspent transaction outputs with the smallest accumulated value to the round. In this case You are not being charged with any fees by the Service Provider.
-     - You are providing unspent transaction outputs, in a way that the final CoinJoin transaction would result in a change output back to You that is smaller than or equal to 1% of the denomination of the CoinJoin round. In this rare case, change output will not be generated, to gain an edge on privacy, rather the value of the change output will be added to the fees charged by the Service Provider after the round.
+     - You are providing unspent transaction outputs, in a way that the final CoinJoin transaction would result in a change output back to You that is smaller than or equal to 1% of the denomination of the CoinJoin round. In this rare case, a change output will not be generated, to gain an edge on privacy. Instead, the value of the change output will be added to the fees charged by the Service Provider after the round.
 
-    BY ACCEPTING THESE TERMS AND CONDITIONS PURSUANT TO SECTION 1.1 YOU EXPRESSLY ACKNOWLEDGE AND AGREE THAT OUR COORDINATOR AUTOMATICALLY DEDUCTS THE TRANSACTION FEES FROM THE TRANSACTION YOU SUBMITTED FOR THE SERVICES IN LINE WITH THE PREVIOUS PARAGRAPHS. 
+    BY ACCEPTING THESE TERMS AND CONDITIONS PURSUANT TO SECTION 1.1 YOU EXPRESSLY ACKNOWLEDGE AND AGREE THAT OUR COORDINATOR AUTOMATICALLY DEDUCTS THE TRANSACTION FEES FROM THE TRANSACTION YOU SUBMITTED FOR THE SERVICES IN LINE WITH THE PREVIOUS PARAGRAPHS.
 
     The Service Provider reserves the right to charge additional fees or to change the amount of fees, and we will provide You at least 30 days advance notice of any such change. The Service Provider reserves the right to waive and/or reduce any fee at any time, with or without notice.
 
@@ -84,7 +84,7 @@ I. TERMS AND CONDITIONS
 =======================
 
     You agree that You will not use the Services to perform any type of illegal activity of any sort or to take any action that adversely affects the performance of or the provision by the Service Provider of the Services. Furthermore, You agree that You will not use the Services on Bitcoin that is created, received or given in exchange for, or as a result of, any type of illegal activity.
-    Use of the Services in a manner contrary to local law is generally prohibited. 
+    Use of the Services in a manner contrary to local law is generally prohibited.
 
     The prohibition of this paragraph includes, but is not limited to, the following prohibited activities:
      - sales of narcotics, research chemicals or any controlled substances;
@@ -114,11 +114,11 @@ I. TERMS AND CONDITIONS
 5 OWNERSHIP OF INTELLECTUAL PROPERTY RIGHTS
 ===========================================
 
-    Our trademarks, service marks, designs, logos, URLs, and trade names that are displayed on our Services we refer to in these Terms collectively as the “Materials”. We hereby grant You a limited, non-exclusive, revocable, royalty-free, non-transferable and non-sublicensable licence to access and use the Materials for Your Services use. This license is not intended to be broadly construed, and we reserve all rights not expressly granted herein. 
+    Our trademarks, service marks, designs, logos, URLs, and trade names that are displayed on our Services are referred to in these Terms collectively as the “Materials”. We hereby grant You a limited, non-exclusive, revocable, royalty-free, non-transferable and non-sublicensable licence to access and use the Materials for Your Services use. This license is not intended to be broadly construed, and we reserve all rights not expressly granted herein.
 
-    Any feedback (or similar content/document, feature suggestion) you submit is non-confidential and will become the sole property of the Service Provider. We will be entitled to the unrestricted use and dissemination of such feedback for any purpose, commercial or otherwise, without acknowledgment or compensation to You. 
+    Any feedback (or similar content/document, feature suggestion) you submit is non-confidential and will become the sole property of the Service Provider. We will be entitled to the unrestricted use and dissemination of such feedback for any purpose, commercial or otherwise, without acknowledgment or compensation to You.
 
-    The software included with the Service is open source under the MIT license and includes the following:
+    The software included with the Service is open-source under the MIT license and includes the following:
     Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
     The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
     The warranty issues covered by the MIT license will be addressed in the following section.
@@ -126,11 +126,11 @@ I. TERMS AND CONDITIONS
 6 DISCLAIMER OF WARRANTIES
 ==========================
 
-    Our Services are provided “as is” with no warranty of any kind. Your use of our Services is at Your sole risk, subject to the terms and conditions of liability contained in Sections 1.2 and 3. of these Terms and Conditions. 
+    Our Services are provided “as is” with no warranty of any kind. Your use of our Services is at Your sole risk, subject to the terms and conditions of liability contained in Sections 1.2 and 3. of these Terms and Conditions.
 
-    EXCEPT AS EXPRESSLY STATED IN THESE TERMS, WE DISCLAIM (TO THE FULLEST EXTENT PERMITTED BY APPLICABLE LAW) ALL WARRANTIES, REPRESENTATIONS AND CONDITIONS, WHETHER EXPRESS OR IMPLIED AND WHETHER IMPOSED BY STATUTE OR OTHERWISE, INCLUDING WITHOUT LIMITATION ANY IMPLIED WARRANTIES RELATING TO TITLE, NON-INFRINGEMENT, MERCHANTABILITY, AND FITNESS FOR A PARTICULAR PURPOSE. YOU ACKNOWLEDGE THAT YOU HAVE NOT ENTERED INTO THIS AGREEMENT IN RELIANCE UPON ANY STATEMENT, WARRANTY OR REPRESENTATION EXCEPT THOSE EXPRESSLY AND SPECIFICALLY SET FORTH IN THESE TERMS AND THAT YOU SHALL HAVE NO REMEDIES IN RESPECT OF ANY STATEMENT, WARRANTY, REPRESENTATION OR CONDITION THAT IS NOT EXPRESSLY AND SPECIFICALLY SET FORTH IN THESE TERMS. 
+    EXCEPT AS EXPRESSLY STATED IN THESE TERMS, WE DISCLAIM (TO THE FULLEST EXTENT PERMITTED BY APPLICABLE LAW) ALL WARRANTIES, REPRESENTATIONS AND CONDITIONS, WHETHER EXPRESSED OR IMPLIED AND WHETHER IMPOSED BY STATUTE OR OTHERWISE, INCLUDING AND WITHOUT LIMITATION ANY IMPLIED WARRANTIES RELATING TO TITLE, NON-INFRINGEMENT, MERCHANTABILITY, AND FITNESS FOR A PARTICULAR PURPOSE. YOU ACKNOWLEDGE THAT YOU HAVE NOT ENTERED INTO THIS AGREEMENT IN RELIANCE UPON ANY STATEMENT, WARRANTY OR REPRESENTATION EXCEPT THOSE EXPRESSLY AND SPECIFICALLY SET FORTH IN THESE TERMS AND THAT YOU SHALL HAVE NO REMEDIES IN RESPECT OF ANY STATEMENT, WARRANTY, REPRESENTATION OR CONDITION THAT IS NOT EXPRESSLY AND SPECIFICALLY SET FORTH IN THESE TERMS.
 
-    Some jurisdiction does not allow the disclaimer of implied terms in contracts with consumers, so some or all of the disclaimers in this section may not apply to You. However, in this case, it is Your responsibility to verify the content of these Terms and Conditions applicable to You under the applicable law and to use our Services accordingly.
+    Some jurisdictions do not allow the disclaimer of implied terms in contracts with consumers, so some or all of the disclaimers in this section may not apply to You. However, in this case, it is Your responsibility to verify the content of these Terms and Conditions applicable to You under the applicable law and to use our Services accordingly.
 
 7 WAY OF SUPPORT
 ================
@@ -140,10 +140,10 @@ I. TERMS AND CONDITIONS
 8 LIMITATION OF LIABILITY
 =========================
 
-    The limitation of liability reflects the allocation of risk between the parties. 
+    The limitation of liability reflects the allocation of risk between the parties.
     In no event will we be liable for any indirect, special, incidental, punitive or consequential damages in the cases of exclusion under the MIT license referred to above.
-    Notwithstanding the foregoing provision, in no event shall the aggregate liability of the Service Provider, our subsidiaries, partners, affiliates, agents, employees, licensors, service providers, or subcontractors (if any) for any loss or damage that arises as a result of, or in connection with, any of the occurrences described above exceed the greater of $100 or the service fees that You paid to us for the Service we provide through the Services during the month in which the incident occurred.
-    Some jurisdiction does not allow certain warranty disclaimers or limitations on liability. Only disclaimers or limitations that are lawful in the applicable jurisdiction will apply to You and our liability will be limited to the maximum extent permitted by law. However, in this case, it is Your responsibility to verify the content of the General Terms and Conditions applicable to You under the applicable law and to use our services accordingly.
+    Notwithstanding the foregoing provision, in no event shall the aggregate liability of the Service Provider, our subsidiaries, partners, affiliates, agents, employees, licensors, service providers, or subcontractors (if any) for any loss or damage that arises as a result of, or in connection with, any of the occurrences described above which exceed the greater of $100 or the service fees that You paid to us for the Service we provide through the Services during the month in which the incident occurred.
+    Some jurisdictions do not allow certain warranty disclaimers or limitations on liability. Only the disclaimers or limitations that are lawful in the applicable jurisdiction will apply to You and our liability will be limited to the maximum extent permitted by law. However, in this case, it is Your responsibility to verify the content of the General Terms and Conditions applicable to You under the applicable law and to use our services accordingly.
 
 9 MISCELLANEOUS PROVISIONS
 ==========================
@@ -152,7 +152,7 @@ I. TERMS AND CONDITIONS
     If for any reason a court of competent jurisdiction finds any provision of these Terms to be invalid or unenforceable, that provision will be enforced to the maximum extent permissible and the other provisions of these Terms will remain in full force and effect.
 
 9.2 ARBITRATION
-    You and the Service Provider agree to arbitrate any dispute arising under or in connection with these Terms or Your use of our Services, except for disputes in which either party seeks equitable and other relief for any alleged infringement or unlawful use of copyrights, trademarks, trade names, logos, trade secrets, patents or other intellectual property rights. Arbitration prevents You from suing in court or from having a jury trial. You and the Service Provider agree to notify each other in writing of any dispute within thirty (30) days of when it arises. Notice to the Service Provider shall be sent to legal@zksnacks.com. 
+    You and the Service Provider agree to arbitrate any dispute arising under or in connection with these Terms or Your use of our Services, except for disputes in which either party seeks equitable and other relief for any alleged infringement or unlawful use of copyrights, trademarks, trade names, logos, trade secrets, patents or other intellectual property rights. Arbitration prevents You from suing in court or from having a jury trial. You and the Service Provider agree to notify each other in writing of any dispute within thirty (30) days of when it arises. Notice to the Service Provider shall be sent to legal@zksnacks.com.
 
     You and the Service Provider further agree:
      - to attempt informal resolution prior to any demand for arbitration;
@@ -161,7 +161,7 @@ I. TERMS AND CONDITIONS
      - the arbitration shall be conducted in accordance with the rules of International Chamber of Commerce; and
      - that the courts in Gibraltar will have exclusive jurisdiction over any appeals of an arbitration award.
     Other than class procedures and remedies discussed below, the arbitrator has the authority to grant any remedy that would otherwise be available in court.
-    Whether the dispute is heard in arbitration or in court, You and the Service Provider will not commence against the other a class action, class arbitration or representative action or proceeding.
+    Whether the dispute is heard in arbitration or in court, You and the Service Provider will not commence against the other any class action, class arbitration or representative action or proceeding.
 
 9.3 GOVERNING LAW AND JURISDICTION
     These Terms and any dispute or claim between You and the Service Provider arising out of or in connection with these Terms or any terms incorporated into these Terms by reference or their subject matter or formation (including non-contractual disputes or claims) will be governed by and construed in accordance with the laws of Gibraltar, without giving effect to any conflict of laws principles that may provide for the application of the law of another jurisdiction. Subject to the “Arbitration” section above, the courts of Gibraltar shall have exclusive jurisdiction to settle any dispute or claim between You and the Service Provider arising out of or in connection with these Terms or any terms incorporated into these Terms by reference or their subject matter or formation (including non-contractual disputes or claims).
@@ -177,7 +177,7 @@ I. TERMS AND CONDITIONS
     These Terms, together with any other terms incorporated into these Terms by reference and any other terms and conditions that apply to You, constitute the entire and exclusive agreement between us and You regarding its subject matter, and supersede and replace any previous or contemporaneous written or oral contract, warranty, representation or understanding regarding its subject matter. You acknowledge and agree that You shall have no remedies in respect of any statement, representation, assurance or warranty that is not set out in these Terms (or any other terms that are incorporated herein by reference).
 
 9.7 FORCE MAJEURE
-    Neither You nor we will be liable for delays in processing or other non-performance caused by such events as fires, telecommunications, utility, or power failures, equipment failures, labor strike, riots, war, nonperformance of our vendors or suppliers, acts of God, or other causes over which the respective party has no reasonable control; provided that the party has procedures reasonably suited to avoid the effects of such acts. The damages and consequences arising from these shall be borne by each party individually.
+    Neither You nor we will be liable for delays in processing or other non-performance caused by such events as fires, telecommunications, utility, or power failures, equipment failures, labor strike, riots, war, nonperformance of our vendors or suppliers, acts of God, or other causes over which the respective party has no reasonable control; provided that the party has procedures reasonably suited to avoid the effects of such events. The damages and consequences arising from these shall be borne by each party individually.
 
 9.8 SURVIVING CLAUSES
     The provisions of Sections 3-6, 9.2 and 9.3 shall survive the termination of these Terms.
@@ -197,8 +197,8 @@ Personally Identifiable Information
 Handling Information
 ====================
 
-    Since we are working on privacy, our mission is to regain personal privacy, our Services are designed to be used without indication of any personal data. For this reason we do not have any kind of data collecting solutions built into our products. There may only be one personal data processing in our Service, for customer support in case of technical problems: visitors may, indicate their email addresses voluntarily to get notifications in case of any potential technical problems or other enquiries. These e-mail addresses are solely used to answer users’ questions and are erased after 100 days. In this case, the processing of the data is based on a freely given consent to Article 6 (1) (a) of the GDPR and is aimed at the effective handling of the complaint.
-    As the main platform for users’ technical questions and issues we use Reddit to answer all questions, and we do not retain any data that can be subsequently identified / associated with the user.
+    Since we are working on privacy, and our mission is to regain personal privacy, our Services are designed to be used without indication of any personal data. For this reason we do not have any kind of data collecting solutions built into our products. There may only be one personal data processing in our Service, for customer support in case of technical problems: visitors may, indicate their email addresses voluntarily to get notifications in case of any potential technical problems or other inquiries. These e-mail addresses are solely used to answer users’ questions and are erased after 100 days. In this case, the processing of the data is based on a freely given consent to Article 6 (1) (a) of the GDPR and is aimed at the effective handling of the complaint.
+    We use Reddit as the main platform for users’ technical questions and issues, and we do not retain any data that can be subsequently identified / associated with the user.
     We expressly declare that we do not manage or store any other personally identifiable information.
     By visiting the Website and using our Services, You agree with this policy, in accordance with Section 1.2 of the Terms and Conditions
 
@@ -218,7 +218,7 @@ Use of Cookies
 External links, Social media plugins
 ====================================
 
-    As far as the Website contains external links, we hereby indicate that these third-party websites are not subject to the influence and control of zkSNACKs. We disclaim all liability for losses or obligations related to the use of these third-party websites. We are not responsible for the contents, availability, correctness, or accuracy of these websites, nor for their offerings, links, or advertisements.
+    In so far as the Website contains external links, we hereby indicate that these third-party websites are not subject to the influence and control of zkSNACKs. We disclaim all liability for losses or obligations related to the use of these third-party websites. We are not responsible for the contents, availability, correctness, or accuracy of these websites, nor for their offerings, links, or advertisements.
     For the social media sites’ Privacy Policy please visit their own websites and research their corresponding policies.
 
 Changes to this policy
@@ -236,19 +236,19 @@ Contact details regarding this declaration
 III. LEGAL STATEMENT OF WASABI WALLET
 =========================================
 
-    zkSNAKCs Ltd., the creator of Wasabi Wallet and owner of the brand only supports behaviour that is legally acceptable by Gibraltarian and international legal standards, and strictly rejects all kinds of illegal activities. 
+    zkSNACKs Ltd., the creator of Wasabi Wallet and owner of the brand only supports behaviour that is legally acceptable by Gibraltarian and international legal standards, and strictly rejects all kinds of illegal activities.
 
 INFORMATION PROVIDED
 ====================
 
-    Service Provider provides information and material of a general nature. You are neither authorized nor should You rely on the Service Provider for legal advice, investment advice, or advice of any kind. You act at Your own risk in reliance on the contents provided. In no way are the owners of, or contributors to, the Service responsible for the actions, decisions, or other behaviour taken or not taken by You in reliance upon the Website or the use of Wasabi Wallet.
+    Service Provider provides information and material of a general nature. You are neither authorized to nor should You rely on the Service Provider for legal advice, investment advice, or advice of any kind. You act at Your own risk in any reliance on the contents provided. In no way are the owners of, or contributors to, the Service responsible for the actions, decisions, or other behaviour taken or not taken by You in reliance upon the Website or the use of Wasabi Wallet.
     Any exchange prices displayed are provided by 3rd party services and are not indicative of the Bitcoin being backed by any commodity or other form of money or having any other tangible value at all. The Service Provider makes no guarantees that Bitcoins can be exchanged or sold at the price displayed.
     We have no control over the value of bitcoin, or the operation of the underlying software protocols which govern the operation of Bitcoin supported on our platform. We assume no responsibility for the operation of the underlying protocols and we are not able to guarantee their functionality, security or availability.
 
 INVESTMENT RISKS
 ================
 
-    The investment in bitcoin can lead to loss of money over shorter or even longer periods of time. The investors in bitcoin should expect prices to have large range fluctuations. 
+    The investment in bitcoin can lead to loss of money over shorter or even longer periods of time. The investors in bitcoin should expect prices to have large range fluctuations.
 
 COMPLIANCE WITH TAX OBLIGATIONS
 ===============================
