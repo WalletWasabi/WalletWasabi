@@ -457,12 +457,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override void OnSelected()
 		{
+			base.OnSelected();
 			WalletService.ChaumianClient.ActivateFrequentStatusProcessing();
 		}
 
 		public override void OnDeselected()
 		{
 			WalletService.ChaumianClient.DeactivateFrequentStatusProcessingIfNotMixing();
+			base.OnDeselected();
 		}
 
 		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
