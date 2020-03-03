@@ -9,6 +9,8 @@ using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Gui.Models;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.ViewModels
 {
@@ -16,10 +18,12 @@ namespace WalletWasabi.Gui.ViewModels
 	{
 		private string _text;
 
-		protected TextResourceViewModelBase(string title, Uri target) : base(title)
+		private bool _emptyContent;
+
+		protected TextResourceViewModelBase(string title, TextResource textResource) : base(title)
 		{
 			Text = "";
-			Target = target;
+			TextResource = Guard.NotNull(nameof(textResource), textResource);
 		}
 
 		public string Text
@@ -28,7 +32,13 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _text, value);
 		}
 
-		public Uri Target { get; }
+		public bool EmptyContent
+		{
+			get => _emptyContent;
+			set => this.RaiseAndSetIfChanged(ref _emptyContent, value);
+		}
+
+		public TextResource TextResource { get; }
 
 		private async Task<string> LoadDocumentAsync(Uri target)
 		{
@@ -42,13 +52,37 @@ namespace WalletWasabi.Gui.ViewModels
 		public override void OnOpen(CompositeDisposable disposables)
 		{
 			base.OnOpen(disposables);
-			
-			LoadDocumentAsync(Target)
-				.ToObservable(RxApp.TaskpoolScheduler)
-				.Take(1)
+
+			this.WhenAnyValue(x => x.Text)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => Text = x)
-				.DisposeWith(disposables);
+				.Subscribe(text => EmptyContent = string.IsNullOrEmpty(text));
+
+			if (TextResource.HasContent)
+			{
+				Text = TextResource.Content;
+			}
+			else if (TextResource.HasAvaloniaTarget)
+			{
+				LoadDocumentAsync(TextResource.AvaloniaTarget)
+					.ToObservable(RxApp.TaskpoolScheduler)
+					.Take(1)
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.Subscribe(
+						x => Text = x,
+						onError: ex => Logging.Logger.LogError(ex))
+					.DisposeWith(disposables);
+			}
+			else if (TextResource.HasFilePath)
+			{
+				File.ReadAllTextAsync(TextResource.FilePath)
+					.ToObservable(RxApp.TaskpoolScheduler)
+					.Take(1)
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.Subscribe(
+						x => Text = x,
+						onError: ex => Logging.Logger.LogError(ex))
+					.DisposeWith(disposables);
+			}
 		}
 	}
 }

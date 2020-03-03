@@ -20,17 +20,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 	{
 		private string _password;
 		private string _walletName;
-		private bool _termsAccepted;
 
 		public GenerateWalletViewModel(WalletManagerViewModel owner) : base("Generate Wallet")
 		{
 			Global = Locator.Current.GetService<Global>();
 			Owner = owner;
 
-			IObservable<bool> canGenerate = Observable.CombineLatest(
-				this.WhenAnyValue(x => x.TermsAccepted),
-				this.WhenAnyValue(x => x.Password).Select(pw => !ValidatePassword().HasErrors),
-				(terms, pw) => terms && pw);
+			IObservable<bool> canGenerate = this.WhenAnyValue(x => x.Password).Select(pw => !ValidatePassword().HasErrors);
 
 			NextCommand = ReactiveCommand.Create(DoNextCommand, canGenerate);
 
@@ -47,11 +43,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			try
 			{
-				if (!TermsAccepted)
-				{
-					throw new InvalidOperationException("Terms are not accepted.");
-				}
-
 				var walletGenerator = new WalletGenerator(Global.WalletsDir, Global.Network);
 				walletGenerator.TipHeight = Global.BitcoinStore.SmartHeaderChain.TipHeight;
 				var (km, mnemonic) = walletGenerator.GenerateWallet(WalletName, Password);
@@ -96,12 +87,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set => this.RaiseAndSetIfChanged(ref _walletName, value);
 		}
 
-		public bool TermsAccepted
-		{
-			get => _termsAccepted;
-			set => this.RaiseAndSetIfChanged(ref _termsAccepted, value);
-		}
-
 		public ReactiveCommand<Unit, Unit> NextCommand { get; }
 
 		public void OnLegalClicked()
@@ -115,7 +100,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			Password = "";
 			WalletName = Global.GetNextWalletName();
-			TermsAccepted = false;
 		}
 	}
 }
