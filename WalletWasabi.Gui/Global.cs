@@ -513,8 +513,10 @@ namespace WalletWasabi.Gui
 
 		private CancellationTokenSource _cancelWalletServiceInitialization = null;
 
-		public async Task InitializeWalletServiceAsync(KeyManager keyManager)
+		public async Task<WalletService> CreateWalletServiceAsync(KeyManager keyManager)
 		{
+			WalletService walletService;
+
 			using (_cancelWalletServiceInitialization = new CancellationTokenSource())
 			{
 				var token = _cancelWalletServiceInitialization.Token;
@@ -523,10 +525,13 @@ namespace WalletWasabi.Gui
 					await Task.Delay(100, token);
 				}
 
-				var walletService = new WalletService(BitcoinStore, keyManager, Synchronizer, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
+				walletService = new WalletService(BitcoinStore, keyManager, Synchronizer, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
 				await WalletManager.AddAndStartAsync(walletService, token).ConfigureAwait(false);
 			}
+
 			_cancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
+
+			return walletService;
 		}
 
 		private void WalletManager_OnDequeue(object sender, DequeueResult e)
