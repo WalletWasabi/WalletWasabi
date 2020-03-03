@@ -262,7 +262,7 @@ namespace WalletWasabi.Gui.ViewModels
 					{
 						if (Global.LegalDocuments is null || Global.LegalDocuments.Version != x.LegalDocumentsVersion)
 						{
-							using var client = new WasabiClient(() => Global.Config.GetCurrentBackendUri(), Global.Config.UseTor ? Global.Config.TorSocks5EndPoint : null);
+							using var client = new WasabiClient(() => Global.Config.UseTor ? Global.Config.GetCurrentBackendUri() : Global.Config.GetFallbackBackendUri(), Global.Config.UseTor ? Global.Config.TorSocks5EndPoint : null);
 							var versions = await client.GetVersionsAsync(CancellationToken.None);
 							var version = versions.LegalDocumentsVersion;
 							var legalFolderPath = Path.Combine(Global.DataDir, LegalDocuments.LegalFolderName);
