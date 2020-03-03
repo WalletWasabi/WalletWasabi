@@ -7,10 +7,10 @@
     <TextBlock IsVisible="{Binding EmptyContent}" Text="Text document is missing!" />
 
     <DockPanel LastChildFill="True" IsVisible="{Binding !EmptyContent}">
-      <Button Command="{Binding AgreeClicked}" IsVisible="{Binding !IsAgreed}" DockPanel.Dock="Top" Margin="0 30" >I Agree</Button>
+      <Button Command="{Binding AgreeClicked}" IsVisible="{Binding !IsAgreed}" DockPanel.Dock="Top" Margin="15 30 15 10" >I Agree</Button>
       <controls:GroupBox DockPanel.Dock="Bottom" BorderThickness="0" Classes="docTabContainer" Margin="0">
         <Grid Classes="content">
-          <controls:ExtendedTextBox Text="{Binding Text}" Classes="selectableTextBlock" TextWrapping="Wrap" AcceptsReturn="True" />
+          <controls:MultiTextBox IsReadOnly="True" IsSelectable="False" Text="{Binding Text}" Margin="10 0" TextWrapping="Wrap" AcceptsReturn="True" />
         </Grid>
       </controls:GroupBox>
     </DockPanel>
