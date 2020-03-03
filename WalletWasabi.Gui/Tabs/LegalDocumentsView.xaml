@@ -3,7 +3,9 @@
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
              x:Class="WalletWasabi.Gui.Tabs.LegalDocumentsView">
-  <StackPanel>
+  <DockPanel LastChildFill="True">
+    <TextBlock IsVisible="{Binding EmptyContent}" Text="Text document is missing!" />
+
     <DockPanel LastChildFill="True" IsVisible="{Binding !EmptyContent}">
       <Button Command="{Binding AgreeClicked}" IsVisible="{Binding !IsAgreed}" DockPanel.Dock="Top" Margin="0 30" >I Agree</Button>
       <controls:GroupBox DockPanel.Dock="Bottom" BorderThickness="0" Classes="docTabContainer" Margin="0">
@@ -12,7 +14,5 @@
         </Grid>
       </controls:GroupBox>
     </DockPanel>
-
-    <TextBlock IsVisible="{Binding EmptyContent}" Text="Text document is missing!" />
-  </StackPanel>
+  </DockPanel>
 </UserControl>
