@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.CoinJoin.Client.Clients;
+using WalletWasabi.Legal;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Tests.XunitConfiguration;
