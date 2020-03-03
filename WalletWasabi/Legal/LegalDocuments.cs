@@ -56,16 +56,6 @@ namespace WalletWasabi.Legal
 				.Where(x => Version.TryParse(Path.GetFileNameWithoutExtension(x), out _));
 		}
 
-		public async static Task ToFileAsync(string filePath, string content)
-		{
-			// Throw exception if filepath is incorrectly formatted.
-			Version.Parse(Path.GetFileNameWithoutExtension(filePath));
-
-			var legalFolderPath = Path.GetDirectoryName(filePath);
-			RemoveCandidates(legalFolderPath);
-			await File.WriteAllTextAsync(filePath, content).ConfigureAwait(false);
-		}
-
 		private static void RemoveCandidates(string legalFolderPath)
 		{
 			IoHelpers.EnsureDirectoryExists(legalFolderPath);
@@ -76,6 +66,11 @@ namespace WalletWasabi.Legal
 			}
 		}
 
-		public async Task ToFileAsync(string content) => await ToFileAsync(FilePath, content).ConfigureAwait(false);
+		public async Task ToFileAsync(string content)
+		{
+			var legalFolderPath = Path.GetDirectoryName(FilePath);
+			RemoveCandidates(legalFolderPath);
+			await File.WriteAllTextAsync(FilePath, content).ConfigureAwait(false);
+		}
 	}
 }

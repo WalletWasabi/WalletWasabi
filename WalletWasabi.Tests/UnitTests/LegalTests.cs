@@ -150,20 +150,6 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public async Task LegalDocFileNameMustBeProperlyFormattedAsync()
-		{
-			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName());
-			if (Directory.Exists(dir))
-			{
-				Directory.Delete(dir, true);
-			}
-
-			await Assert.ThrowsAsync<ArgumentException>(async () => await LegalDocuments.ToFileAsync(Path.Combine("foo"), "bar"));
-			await Assert.ThrowsAsync<ArgumentException>(async () => await LegalDocuments.ToFileAsync(Path.Combine("foo.txt"), "bar"));
-			await Assert.ThrowsAsync<ArgumentException>(async () => await LegalDocuments.ToFileAsync(Path.Combine("1.txt"), "bar"));
-		}
-
-		[Fact]
 		public async Task CanSerializeFileAsync()
 		{
 			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName());
