@@ -22,8 +22,7 @@ namespace WalletWasabi.Legal
 		{
 			FilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath, trim: true);
 			var verString = Path.GetFileNameWithoutExtension(FilePath);
-			var version = Version.Parse(verString);
-			Version = Guard.NotNull(nameof(version), version);
+			Version = Version.Parse(verString);
 		}
 
 		public string FilePath { get; }
