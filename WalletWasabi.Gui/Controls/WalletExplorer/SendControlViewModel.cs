@@ -71,6 +71,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _isHardwareBusy;
 		private bool _isCustomFee;
 		private bool _isCustomChangeAddress;
+		private string _bip79;
 
 		private const string WaitingForHardwareWalletButtonTextString = "Waiting for Hardware Wallet...";
 
@@ -244,6 +245,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					AmountText = url.Amount.ToString(false, true);
 				}
+
+				if (url.UnknowParameters.ContainsKey("bpu"))
+				{
+					BIP79Url = url.UnknowParameters["bpu"];
+				}
+				else
+				{
+					BIP79Url = "";
+				}
 			});
 
 			BuildTransactionCommand = ReactiveCommand.CreateFromTask(async () =>
@@ -380,7 +390,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 					}
 
-					BuildTransactionResult result = await Task.Run(() => Wallet.BuildTransaction(Password, intent, feeStrategy, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
+					BuildTransactionResult result = await Task.Run(() => Wallet.BuildTransaction(Password, intent, feeStrategy, allowUnconfirmed: true, allowedInputs: selectedCoinReferences, BIP79Url));
 
 					await DoAfterBuildTransaction(result);
 				}
@@ -829,6 +839,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid address."));
 		}
+		
+		public ErrorDescriptors ValidateBIP79Url()
+		{
+			if (string.IsNullOrEmpty(BIP79Url))
+			{
+				return ErrorDescriptors.Empty;
+			}
+			if (Uri.TryCreate(BIP79Url, UriKind.Absolute, out _))
+			{
+				return ErrorDescriptors.Empty;
+			}
+			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid url."));
+		}
 
 		public ErrorDescriptors ValidateCustomChangeAddress()
 		{
@@ -867,6 +890,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _customChangeAddress;
 			set => this.RaiseAndSetIfChanged(ref _customChangeAddress, value?.Trim());
+		}
+		
+		[ValidateMethod(nameof(ValidateBIP79Url))]
+		public string BIP79Url
+		{
+			get => _bip79;
+			set => this.RaiseAndSetIfChanged(ref _bip79, value);
 		}
 
 		public string LabelToolTip

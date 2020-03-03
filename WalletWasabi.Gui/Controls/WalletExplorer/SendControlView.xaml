@@ -43,6 +43,12 @@
           </controls:ExtendedTextBox>
 
           <suggestions:SuggestLabelView DataContext="{Binding LabelSuggestion}" />
+          <controls:ExtendedTextBox Classes="monospaceFont" Text="{Binding BIP79Url}" Watermark="Payjoin endpoint" UseFloatingWatermark="True">
+            <i:Interaction.Behaviors>
+              <behaviors:PasteAddressOnClickBehavior Command="{Binding OnAddressPasteCommand}" />
+            </i:Interaction.Behaviors>
+          </controls:ExtendedTextBox>
+          <controls:SuggestLabelView DataContext="{Binding LabelSuggestion}" />
 
           <StackPanel Orientation="Horizontal" Spacing="10">
             <Button Content="{Binding IsMax, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Clear:Max}" Command="{Binding MaxCommand}" VerticalAlignment="Top" Height="40" />

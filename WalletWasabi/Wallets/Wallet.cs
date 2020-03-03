@@ -289,7 +289,8 @@ namespace WalletWasabi.Wallets
 			PaymentIntent payments,
 			FeeStrategy feeStrategy,
 			bool allowUnconfirmed = false,
-			IEnumerable<OutPoint> allowedInputs = null)
+			IEnumerable<OutPoint> allowedInputs = null,
+			string bip79 = null)
 		{
 			var builder = new TransactionFactory(Network, KeyManager, Coins, password, allowUnconfirmed);
 			return builder.BuildTransaction(
@@ -310,7 +311,9 @@ namespace WalletWasabi.Wallets
 					}
 				},
 				allowedInputs,
-				SelectLockTimeForTransaction);
+				SelectLockTimeForTransaction,
+				Synchronizer.WasabiClient.TorClient, 
+				bip79);
 		}
 
 		public void RenameLabel(SmartCoin coin, SmartLabel newLabel)

@@ -3,6 +3,8 @@ using NBitcoin.Policy;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Text;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -11,6 +13,7 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.TorSocks5;
 
 namespace WalletWasabi.Blockchain.Transactions
 {
@@ -48,7 +51,9 @@ namespace WalletWasabi.Blockchain.Transactions
 			PaymentIntent payments,
 			Func<FeeRate> feeRateFetcher,
 			IEnumerable<OutPoint> allowedInputs = null,
-			Func<LockTime> lockTimeSelector = null)
+			Func<LockTime> lockTimeSelector = null,
+			ITorHttpClient httpClient = null,
+			string  uri= null)
 		{
 			payments = Guard.NotNull(nameof(payments), payments);
 			lockTimeSelector ??= () => LockTime.Zero;
@@ -222,6 +227,43 @@ namespace WalletWasabi.Blockchain.Transactions
 				builder.SetLockTime(lockTimeSelector());
 				builder.SignPSBT(psbt);
 				psbt.Finalize();
+				if (uri != null && httpClient!= null)
+				{
+					var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri)
+					{
+						Content = new StringContent(psbt.ToBase64(), Encoding.UTF8, "text/plain")
+					};
+					var response = httpClient.SendAsync(httpRequestMessage).Result;
+					if (response.IsSuccessStatusCode && PSBT.TryParse( response.Content.ReadAsStringAsync().Result, Network, out var payjoinPSBT))
+					{
+						bool valid = false;
+						var existingInputs = psbt.Inputs.Select(input => input.PrevOut).ToList();
+						foreach (var input in payjoinPSBT.Inputs)
+						{
+							var existingInput = existingInputs.SingleOrDefault(point => point == input.PrevOut);
+							if (existingInput != null)
+							{
+								existingInputs.Remove(existingInput);
+								continue;
+							}
+
+							if (!input.TryFinalizeInput(out _))
+							{
+								valid = false;
+								break;
+							}
+							// a new signed input was provided
+							valid = true;
+						}
+
+						if (valid && !existingInputs.Any())
+						{
+							builder.SignPSBT(payjoinPSBT);
+							payjoinPSBT.Finalize();
+							psbt = payjoinPSBT;
+						}
+					}
+				}
 				tx = psbt.ExtractTransaction();
 
 				var checkResults = builder.Check(tx).ToList();
