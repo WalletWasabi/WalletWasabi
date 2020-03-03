@@ -89,11 +89,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public ReactiveCommand<Unit, Unit> NextCommand { get; }
 
-		public void OnLegalClicked()
-		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel());
-		}
-
 		public override void OnCategorySelected()
 		{
 			base.OnCategorySelected();
