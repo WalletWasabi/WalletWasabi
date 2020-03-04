@@ -62,7 +62,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private Money _allSelectedAmount;
 		private string _password;
 		private string _address;
-		private string _customChangeaddress;
+		private string _customChangeAddress;
 		private string _labelToolTip;
 		private string _feeToolTip;
 		private string _amountWaterMarkText;
@@ -821,8 +821,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		[ValidateMethod(nameof(ValidateAddress))]
 		public string CustomChangeAddress
 		{
-			get => _customChangeaddress;
-			set => this.RaiseAndSetIfChanged(ref _customChangeaddress, value);
+			get => _customChangeAddress;
+			set => this.RaiseAndSetIfChanged(ref _customChangeAddress, value);
 		}
 
 		public string LabelToolTip
