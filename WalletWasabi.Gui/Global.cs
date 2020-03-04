@@ -268,6 +268,7 @@ namespace WalletWasabi.Gui
 									EndPointStrategy.Default(Network, EndPointType.P2p),
 									EndPointStrategy.Default(Network, EndPointType.Rpc),
 									txIndex: null,
+									blockFilterIndex: "basic",
 									prune: null,
 									userAgent: $"/WasabiClient:{Constants.ClientVersion.ToString()}/"),
 								cancel)

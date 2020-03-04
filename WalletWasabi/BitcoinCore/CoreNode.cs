@@ -127,6 +127,11 @@ namespace WalletWasabi.BitcoinCore
 					desiredConfigLines.Add($"{configPrefix}.txindex = {coreNodeParams.TxIndex}");
 				}
 
+				if (coreNodeParams.BlockFilterIndex is { })
+				{
+					desiredConfigLines.Add($"{configPrefix}.blockfilterindex = {coreNodeParams.BlockFilterIndex}");
+				}
+
 				if (coreNodeParams.Prune is { })
 				{
 					desiredConfigLines.Add($"{configPrefix}.prune = {coreNodeParams.Prune}");
