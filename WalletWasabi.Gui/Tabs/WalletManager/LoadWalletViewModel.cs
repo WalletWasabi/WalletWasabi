@@ -631,10 +631,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 				try
 				{
-					await Task.Run(async () => await Global.InitializeWalletServiceAsync(keyManager));
-
-					var walletService = Global.WalletService;
-
+					var walletService = await Task.Run(async () => await Global.CreateWalletServiceAsync(keyManager));
 					// Successfully initialized.
 					Owner.OnClose();
 					// Open Wallet Explorer tabs
