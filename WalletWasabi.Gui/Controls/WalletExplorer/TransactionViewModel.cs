@@ -18,11 +18,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class TransactionViewModel : ViewModelBase
 	{
-		private TransactionInfo Model { get; }
 		private bool _clipboardNotificationVisible;
 		private double _clipboardNotificationOpacity;
-		public ReactiveCommand<Unit, Unit> CopyTransactionId { get; }
-		public ReactiveCommand<Unit, Unit> OpenTransactionInfo { get; }
 
 		public TransactionViewModel(TransactionInfo model)
 		{
@@ -31,7 +28,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ClipboardNotificationOpacity = 0;
 
 			CopyTransactionId = ReactiveCommand.CreateFromTask(TryCopyTxIdToClipboardAsync);
-			
+
 			OpenTransactionInfo = ReactiveCommand.Create(() =>
 			{
 				var shell = IoC.Get<IShell>();
@@ -58,12 +55,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				});
 		}
 
-		public void Refresh()
-		{
-			this.RaisePropertyChanged(nameof(AmountBtc));
-			this.RaisePropertyChanged(nameof(TransactionId));
-			this.RaisePropertyChanged(nameof(DateTime));
-		}
+		private TransactionInfo Model { get; }
+
+		public ReactiveCommand<Unit, Unit> CopyTransactionId { get; }
+
+		public ReactiveCommand<Unit, Unit> OpenTransactionInfo { get; }
 
 		public string DateTime => Model.DateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
 
@@ -94,6 +90,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public CancellationTokenSource CancelClipboardNotification { get; set; }
+
+		public void Refresh()
+		{
+			this.RaisePropertyChanged(nameof(AmountBtc));
+			this.RaisePropertyChanged(nameof(TransactionId));
+			this.RaisePropertyChanged(nameof(DateTime));
+		}
 
 		public async Task TryCopyTxIdToClipboardAsync()
 		{

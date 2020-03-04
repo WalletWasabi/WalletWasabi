@@ -31,13 +31,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SmartCoinStatus.Unconfirmed
 		};
 
-		private CompositeDisposable Disposables { get; set; }
-
-		public SourceList<CoinViewModel> RootList { get; private set; }
-
 		private ReadOnlyObservableCollection<CoinViewModel> _coinViewModels;
 		private SortExpressionComparer<CoinViewModel> _myComparer;
-
 		private CoinViewModel _selectedCoin;
 		private bool? _selectAllCheckBoxState;
 		private SortOrder _statusSortDirection;
@@ -55,6 +50,159 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ShieldState _selectAllPrivateShieldState;
 		private ShieldState _selectAllNonPrivateShieldState;
 		private bool _isCoinListLoading;
+
+		public CoinListViewModel(WalletService walletService, bool canDequeueCoins = false, bool displayCommonOwnershipWarning = false)
+		{
+			Global = Locator.Current.GetService<Global>();
+
+			AmountSortDirection = SortOrder.Decreasing;
+
+			CoinJoinStatusWidth = new GridLength(0);
+			WalletService = walletService;
+			CanDequeueCoins = canDequeueCoins;
+			DisplayCommonOwnershipWarning = displayCommonOwnershipWarning;
+
+			RefreshOrdering();
+
+			// Otherwise they're all selected as null on load.
+			SelectAllCheckBoxState = false;
+			SelectPrivateCheckBoxState = false;
+			SelectNonPrivateCheckBoxState = false;
+
+			var sortChanged = this
+				.WhenAnyValue(x => x.MyComparer)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Select(_ => MyComparer);
+
+			RootList = new SourceList<CoinViewModel>();
+			RootList
+				.Connect()
+				.Sort(MyComparer, comparerChanged: sortChanged, resetThreshold: 5)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Bind(out _coinViewModels)
+				.Subscribe();
+
+			SortCommand = ReactiveCommand.Create(RefreshOrdering);
+
+			this.WhenAnyValue(x => x.AmountSortDirection)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					if (x != SortOrder.None)
+					{
+						PrivacySortDirection = SortOrder.None;
+						StatusSortDirection = SortOrder.None;
+						ClustersSortDirection = SortOrder.None;
+					}
+				});
+
+			this.WhenAnyValue(x => x.ClustersSortDirection)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					if (x != SortOrder.None)
+					{
+						AmountSortDirection = SortOrder.None;
+						StatusSortDirection = SortOrder.None;
+						PrivacySortDirection = SortOrder.None;
+					}
+				});
+
+			this.WhenAnyValue(x => x.StatusSortDirection)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					if (x != SortOrder.None)
+					{
+						AmountSortDirection = SortOrder.None;
+						PrivacySortDirection = SortOrder.None;
+						ClustersSortDirection = SortOrder.None;
+					}
+				});
+
+			this.WhenAnyValue(x => x.PrivacySortDirection)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					if (x != SortOrder.None)
+					{
+						AmountSortDirection = SortOrder.None;
+						StatusSortDirection = SortOrder.None;
+						ClustersSortDirection = SortOrder.None;
+					}
+				});
+
+			SelectAllCheckBoxCommand = ReactiveCommand.Create(() =>
+			{
+				switch (SelectAllCheckBoxState)
+				{
+					case true:
+						SelectCoins(x => true);
+						break;
+
+					case null:
+					case false:
+						SelectCoins(x => false);
+						SelectAllCheckBoxState = false;
+						break;
+				}
+			});
+
+			SelectPrivateCheckBoxCommand = ReactiveCommand.Create(() =>
+			{
+				switch (SelectPrivateCheckBoxState)
+				{
+					case true:
+						SelectCoins(x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
+						break;
+
+					case null:
+					case false:
+						SelectCoins(x => false);
+						SelectPrivateCheckBoxState = false;
+						break;
+				}
+			});
+
+			SelectNonPrivateCheckBoxCommand = ReactiveCommand.Create(() =>
+			{
+				switch (SelectNonPrivateCheckBoxState)
+				{
+					case true:
+						SelectCoins(x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
+						break;
+
+					case false:
+					case null:
+						SelectCoins(x => false);
+						SelectNonPrivateCheckBoxState = false;
+						break;
+				}
+			});
+
+			// This will be triggered after the Tab becomes visible for the user.
+			InitList = ReactiveCommand.CreateFromTask(async () =>
+			{
+				IsCoinListLoading = true; // Set the Loading animation.
+				await Task.Delay(800); // Let the UI to be rendered to the user.
+				OnOpen();
+				CoinListShown?.Invoke(this, null); // Trigger this event to refresh the list.
+			});
+
+			Observable
+				.Merge(InitList.ThrownExceptions)
+				.Merge(SelectNonPrivateCheckBoxCommand.ThrownExceptions)
+				.Merge(SelectPrivateCheckBoxCommand.ThrownExceptions)
+				.Merge(SelectAllCheckBoxCommand.ThrownExceptions)
+				.Merge(SortCommand.ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
+		}
+
+		private CompositeDisposable Disposables { get; set; }
+
+		public SourceList<CoinViewModel> RootList { get; private set; }
+
 		private object SelectionChangedLock { get; } = new object();
 		private object StateChangedLock { get; } = new object();
 		private Global Global { get; }
@@ -249,155 +397,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				c.IsSelected = coinFilterPredicate(c);
 			}
-		}
-
-		public CoinListViewModel(WalletService walletService, bool canDequeueCoins = false, bool displayCommonOwnershipWarning = false)
-		{
-			Global = Locator.Current.GetService<Global>();
-
-			AmountSortDirection = SortOrder.Decreasing;
-
-			CoinJoinStatusWidth = new GridLength(0);
-			WalletService = walletService;
-			CanDequeueCoins = canDequeueCoins;
-			DisplayCommonOwnershipWarning = displayCommonOwnershipWarning;
-
-			RefreshOrdering();
-
-			// Otherwise they're all selected as null on load.
-			SelectAllCheckBoxState = false;
-			SelectPrivateCheckBoxState = false;
-			SelectNonPrivateCheckBoxState = false;
-
-			var sortChanged = this
-				.WhenAnyValue(x => x.MyComparer)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Select(_ => MyComparer);
-
-			RootList = new SourceList<CoinViewModel>();
-			RootList
-				.Connect()
-				.Sort(MyComparer, comparerChanged: sortChanged, resetThreshold: 5)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Bind(out _coinViewModels)
-				.Subscribe();
-
-			SortCommand = ReactiveCommand.Create(RefreshOrdering);
-
-			this.WhenAnyValue(x => x.AmountSortDirection)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				{
-					if (x != SortOrder.None)
-					{
-						PrivacySortDirection = SortOrder.None;
-						StatusSortDirection = SortOrder.None;
-						ClustersSortDirection = SortOrder.None;
-					}
-				});
-
-			this.WhenAnyValue(x => x.ClustersSortDirection)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				{
-					if (x != SortOrder.None)
-					{
-						AmountSortDirection = SortOrder.None;
-						StatusSortDirection = SortOrder.None;
-						PrivacySortDirection = SortOrder.None;
-					}
-				});
-
-			this.WhenAnyValue(x => x.StatusSortDirection)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				{
-					if (x != SortOrder.None)
-					{
-						AmountSortDirection = SortOrder.None;
-						PrivacySortDirection = SortOrder.None;
-						ClustersSortDirection = SortOrder.None;
-					}
-				});
-
-			this.WhenAnyValue(x => x.PrivacySortDirection)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				{
-					if (x != SortOrder.None)
-					{
-						AmountSortDirection = SortOrder.None;
-						StatusSortDirection = SortOrder.None;
-						ClustersSortDirection = SortOrder.None;
-					}
-				});
-
-			SelectAllCheckBoxCommand = ReactiveCommand.Create(() =>
-				{
-					switch (SelectAllCheckBoxState)
-					{
-						case true:
-							SelectCoins(x => true);
-							break;
-
-						case null:
-						case false:
-							SelectCoins(x => false);
-							SelectAllCheckBoxState = false;
-							break;
-					}
-				});
-
-			SelectPrivateCheckBoxCommand = ReactiveCommand.Create(() =>
-				{
-					switch (SelectPrivateCheckBoxState)
-					{
-						case true:
-							SelectCoins(x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
-							break;
-
-						case null:
-						case false:
-							SelectCoins(x => false);
-							SelectPrivateCheckBoxState = false;
-							break;
-					}
-				});
-
-			SelectNonPrivateCheckBoxCommand = ReactiveCommand.Create(() =>
-				{
-					switch (SelectNonPrivateCheckBoxState)
-					{
-						case true:
-							SelectCoins(x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
-							break;
-
-						case false:
-						case null:
-							SelectCoins(x => false);
-							SelectNonPrivateCheckBoxState = false;
-							break;
-					}
-				});
-
-			// This will be triggered after the Tab becomes visible for the user.
-			InitList = ReactiveCommand.CreateFromTask(async () =>
-			{
-				IsCoinListLoading = true; // Set the Loading animation.
-				await Task.Delay(800); // Let the UI to be rendered to the user.
-				OnOpen();
-				CoinListShown?.Invoke(this, null); // Trigger this event to refresh the list.
-			});
-
-			Observable
-				.Merge(InitList.ThrownExceptions)
-				.Merge(SelectNonPrivateCheckBoxCommand.ThrownExceptions)
-				.Merge(SelectPrivateCheckBoxCommand.ThrownExceptions)
-				.Merge(SelectAllCheckBoxCommand.ThrownExceptions)
-				.Merge(SortCommand.ThrownExceptions)
-				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(ex => Logger.LogError(ex));
-		}
+		}		
 
 		private void RefreshSelectionCheckBoxes(CoinViewModel[] coins)
 		{

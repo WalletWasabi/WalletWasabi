@@ -354,11 +354,11 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.False(myUnconfirmedTx2.Confirmed);
 
 			// Create the same transaction but now with a Height to make it confirmed.
-			const int reorgedBlockHeight = 34532;
+			const int ReorgedBlockHeight = 34532;
 			uint256 reorgedBlockHash = new uint256(5);
 
-			var tx1Confirmed = new SmartTransaction(uTx1.Transaction, new Height(reorgedBlockHeight), blockHash: reorgedBlockHash, label: "buz, qux");
-			var tx2Confirmed = new SmartTransaction(uTx2.Transaction, new Height(reorgedBlockHeight), blockHash: reorgedBlockHash, label: "buz, qux");
+			var tx1Confirmed = new SmartTransaction(uTx1.Transaction, new Height(ReorgedBlockHeight), blockHash: reorgedBlockHash, label: "buz, qux");
+			var tx2Confirmed = new SmartTransaction(uTx2.Transaction, new Height(ReorgedBlockHeight), blockHash: reorgedBlockHash, label: "buz, qux");
 			Assert.True(txStore.TryUpdate(tx1Confirmed));
 			Assert.True(txStore.TryUpdate(tx2Confirmed));
 

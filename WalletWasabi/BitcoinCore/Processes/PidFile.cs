@@ -12,6 +12,8 @@ namespace WalletWasabi.BitcoinCore.Processes
 {
 	public class PidFile
 	{
+		public const string FileName = "bitcoin.pid";
+
 		public PidFile(string dataDir, Network network)
 		{
 			DataDir = Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
@@ -21,7 +23,6 @@ namespace WalletWasabi.BitcoinCore.Processes
 
 		public string DataDir { get; }
 		public Network Network { get; }
-		public const string FileName = "bitcoin.pid";
 		public string FilePath { get; }
 
 		public bool Exists => File.Exists(FilePath);

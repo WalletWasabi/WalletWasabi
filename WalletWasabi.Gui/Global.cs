@@ -31,10 +31,12 @@ using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Rpc;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
+using WalletWasabi.Legal;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.TorSocks5;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui
 {
@@ -49,6 +51,7 @@ namespace WalletWasabi.Gui
 		public string WalletBackupsDir { get; }
 
 		public BitcoinStore BitcoinStore { get; private set; }
+		public LegalDocuments LegalDocuments { get; set; }
 		public Config Config { get; private set; }
 
 		public string AddressManagerFilePath { get; private set; }
@@ -57,7 +60,8 @@ namespace WalletWasabi.Gui
 		public NodesGroup Nodes { get; private set; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
 		public FeeProviders FeeProviders { get; private set; }
-		public WalletService WalletService { get; private set; }
+		public WalletManager WalletManager { get; }
+		public WalletService WalletService => WalletManager?.GetFirstOrDefaultWallet();
 		public TransactionBroadcaster TransactionBroadcaster { get; set; }
 		public CoinJoinProcessor CoinJoinProcessor { get; set; }
 		public Node RegTestMempoolServingNode { get; private set; }
@@ -86,6 +90,12 @@ namespace WalletWasabi.Gui
 			Directory.CreateDirectory(WalletBackupsDir);
 
 			HostedServices = new HostedServices();
+			WalletManager = new WalletManager(WalletBackupsDir);
+
+			LegalDocuments = LegalDocuments.TryLoadAgreed(DataDir);
+
+			WalletManager.OnDequeue += WalletManager_OnDequeue;
+			WalletManager.WalletRelevantTransactionProcessed += WalletManager_WalletRelevantTransactionProcessed;
 		}
 
 		public async Task<bool> InitializeUiConfigAsync()
@@ -163,7 +173,6 @@ namespace WalletWasabi.Gui
 
 			try
 			{
-				WalletService = null;
 				AddressManager = null;
 				TorManager = null;
 				var cancel = StoppingCts.Token;
@@ -376,8 +385,8 @@ namespace WalletWasabi.Gui
 
 				cancel.ThrowIfCancellationRequested();
 
-				TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, Synchronizer, Nodes, BitcoinCoreNode?.RpcClient);
-				CoinJoinProcessor = new CoinJoinProcessor(Synchronizer, BitcoinCoreNode?.RpcClient);
+				TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, Synchronizer, Nodes, WalletManager, BitcoinCoreNode?.RpcClient);
+				CoinJoinProcessor = new CoinJoinProcessor(Synchronizer, WalletManager, BitcoinCoreNode?.RpcClient);
 
 				#region JsonRpcServerInitialization
 
@@ -508,8 +517,10 @@ namespace WalletWasabi.Gui
 
 		private CancellationTokenSource _cancelWalletServiceInitialization = null;
 
-		public async Task InitializeWalletServiceAsync(KeyManager keyManager)
+		public async Task<WalletService> CreateWalletServiceAsync(KeyManager keyManager)
 		{
+			WalletService walletService;
+
 			using (_cancelWalletServiceInitialization = new CancellationTokenSource())
 			{
 				var token = _cancelWalletServiceInitialization.Token;
@@ -518,24 +529,16 @@ namespace WalletWasabi.Gui
 					await Task.Delay(100, token);
 				}
 
-				WalletService = new WalletService(BitcoinStore, keyManager, Synchronizer, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
-
-				Logger.LogInfo($"Starting {nameof(WalletService)}...");
-				await WalletService.StartAsync(token);
-				Logger.LogInfo($"{nameof(WalletService)} started.");
-
-				token.ThrowIfCancellationRequested();
-
-				TransactionBroadcaster.AddWalletService(WalletService);
-				CoinJoinProcessor.AddWalletService(WalletService);
-
-				WalletService.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
-				WalletService.ChaumianClient.OnDequeue += ChaumianClient_OnDequeued;
+				walletService = new WalletService(BitcoinStore, keyManager, Synchronizer, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
+				await WalletManager.AddAndStartAsync(walletService, token).ConfigureAwait(false);
 			}
+
 			_cancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
+
+			return walletService;
 		}
 
-		private void ChaumianClient_OnDequeued(object sender, DequeueResult e)
+		private void WalletManager_OnDequeue(object sender, DequeueResult e)
 		{
 			try
 			{
@@ -571,7 +574,7 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private void TransactionProcessor_WalletRelevantTransactionProcessed(object sender, ProcessedResult e)
+		private void WalletManager_WalletRelevantTransactionProcessed(object sender, ProcessedResult e)
 		{
 			try
 			{
@@ -740,13 +743,6 @@ namespace WalletWasabi.Gui
 
 		public async Task DisposeInWalletDependentServicesAsync()
 		{
-			var walletService = WalletService;
-			if (walletService is { })
-			{
-				WalletService.TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
-				WalletService.ChaumianClient.OnDequeue -= ChaumianClient_OnDequeued;
-			}
-
 			try
 			{
 				_cancelWalletServiceInitialization?.Cancel();
@@ -757,20 +753,7 @@ namespace WalletWasabi.Gui
 			}
 			_cancelWalletServiceInitialization = null;
 
-			walletService = WalletService;
-			if (walletService is { })
-			{
-				var keyManager = walletService.KeyManager;
-				if (keyManager is { }) // This should never happen.
-				{
-					string backupWalletFilePath = Path.Combine(WalletBackupsDir, Path.GetFileName(keyManager.FilePath));
-					keyManager.ToFile(backupWalletFilePath);
-					Logger.LogInfo($"{nameof(walletService.KeyManager)} backup saved to `{backupWalletFilePath}`.");
-				}
-				await walletService.StopAsync(CancellationToken.None).ConfigureAwait(false);
-				WalletService = null;
-				Logger.LogInfo($"{nameof(WalletService)} is stopped.");
-			}
+			await WalletManager.RemoveAndStopAllAsync().ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -811,6 +794,9 @@ namespace WalletWasabi.Gui
 				}
 
 				await DisposeInWalletDependentServicesAsync();
+
+				WalletManager.OnDequeue -= WalletManager_OnDequeue;
+				WalletManager.WalletRelevantTransactionProcessed -= WalletManager_WalletRelevantTransactionProcessed;
 
 				var rpcServer = RpcServer;
 				if (rpcServer is { })

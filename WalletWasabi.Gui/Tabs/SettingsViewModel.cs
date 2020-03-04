@@ -2,32 +2,27 @@ using Avalonia.Threading;
 using NBitcoin;
 using Nito.AsyncEx;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Sockets;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
-using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
-using WalletWasabi.Models;
 using WalletWasabi.Logging;
-using System.Threading.Tasks;
-using Splat;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Tabs
 {
 	internal class SettingsViewModel : WasabiDocumentTabViewModel
 	{
-		private CompositeDisposable Disposables { get; set; }
-
 		private Network _network;
 		private string _torSocks5EndPoint;
 		private string _bitcoinP2pEndPoint;
@@ -43,19 +38,7 @@ namespace WalletWasabi.Gui.Tabs
 		private string _strongPrivacyLevel;
 		private string _dustThreshold;
 		private string _pinBoxText;
-		private bool TabOpened { get; set; }
-
 		private ObservableAsPropertyHelper<bool> _isPinSet;
-
-		public bool IsPinSet => _isPinSet?.Value ?? false;
-
-		private Global Global { get; }
-		private AsyncLock ConfigLock { get; } = new AsyncLock();
-
-		public ReactiveCommand<Unit, Unit> OpenConfigFileCommand { get; }
-		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
-		public ReactiveCommand<Unit, Unit> SetClearPinCommand { get; }
-		public ReactiveCommand<Unit, Unit> TextBoxLostFocusCommand { get; }
 
 		public SettingsViewModel() : base("Settings")
 		{
@@ -98,57 +81,57 @@ namespace WalletWasabi.Gui.Tabs
 			OpenConfigFileCommand = ReactiveCommand.CreateFromTask(OpenConfigFileAsync);
 
 			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
-				{
-					Global.UiConfig.LurkingWifeMode = !LurkingWifeMode;
-					await Global.UiConfig.ToFileAsync();
-				});
+			{
+				Global.UiConfig.LurkingWifeMode = !LurkingWifeMode;
+				await Global.UiConfig.ToFileAsync();
+			});
 
 			SetClearPinCommand = ReactiveCommand.Create(() =>
+			{
+				var pinBoxText = PinBoxText;
+				if (string.IsNullOrEmpty(pinBoxText))
 				{
-					var pinBoxText = PinBoxText;
-					if (string.IsNullOrEmpty(pinBoxText))
+					NotificationHelpers.Error("Please provide a PIN.");
+					return;
+				}
+
+				var trimmedPinBoxText = pinBoxText?.Trim();
+				if (string.IsNullOrEmpty(trimmedPinBoxText)
+					|| trimmedPinBoxText.Any(x => !char.IsDigit(x)))
+				{
+					NotificationHelpers.Error("Invalid PIN.");
+					return;
+				}
+
+				if (trimmedPinBoxText.Length > 10)
+				{
+					NotificationHelpers.Error("PIN is too long.");
+					return;
+				}
+
+				var uiConfigPinHash = Global.UiConfig.LockScreenPinHash;
+				var enteredPinHash = HashHelpers.GenerateSha256Hash(trimmedPinBoxText);
+
+				if (IsPinSet)
+				{
+					if (uiConfigPinHash != enteredPinHash)
 					{
-						NotificationHelpers.Error("Please provide a PIN.");
+						NotificationHelpers.Error("PIN is incorrect.");
+						PinBoxText = string.Empty;
 						return;
 					}
 
-					var trimmedPinBoxText = pinBoxText?.Trim();
-					if (string.IsNullOrEmpty(trimmedPinBoxText)
-						|| trimmedPinBoxText.Any(x => !char.IsDigit(x)))
-					{
-						NotificationHelpers.Error("Invalid PIN.");
-						return;
-					}
+					Global.UiConfig.LockScreenPinHash = string.Empty;
+					NotificationHelpers.Success("PIN was cleared.");
+				}
+				else
+				{
+					Global.UiConfig.LockScreenPinHash = enteredPinHash;
+					NotificationHelpers.Success("PIN was changed.");
+				}
 
-					if (trimmedPinBoxText.Length > 10)
-					{
-						NotificationHelpers.Error("PIN is too long.");
-						return;
-					}
-
-					var uiConfigPinHash = Global.UiConfig.LockScreenPinHash;
-					var enteredPinHash = HashHelpers.GenerateSha256Hash(trimmedPinBoxText);
-
-					if (IsPinSet)
-					{
-						if (uiConfigPinHash != enteredPinHash)
-						{
-							NotificationHelpers.Error("PIN is incorrect.");
-							PinBoxText = string.Empty;
-							return;
-						}
-
-						Global.UiConfig.LockScreenPinHash = string.Empty;
-						NotificationHelpers.Success("PIN was cleared.");
-					}
-					else
-					{
-						Global.UiConfig.LockScreenPinHash = enteredPinHash;
-						NotificationHelpers.Success("PIN was changed.");
-					}
-
-					PinBoxText = string.Empty;
-				});
+				PinBoxText = string.Empty;
+			});
 
 			TextBoxLostFocusCommand = ReactiveCommand.Create(Save);
 
@@ -161,12 +144,22 @@ namespace WalletWasabi.Gui.Tabs
 				.Subscribe(ex => Logger.LogError(ex));
 		}
 
-		public override void OnOpen()
+		private bool TabOpened { get; set; }
+
+		public bool IsPinSet => _isPinSet?.Value ?? false;
+
+		private Global Global { get; }
+		private AsyncLock ConfigLock { get; } = new AsyncLock();
+
+		public ReactiveCommand<Unit, Unit> OpenConfigFileCommand { get; }
+		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
+		public ReactiveCommand<Unit, Unit> SetClearPinCommand { get; }
+		public ReactiveCommand<Unit, Unit> TextBoxLostFocusCommand { get; }
+
+		public override void OnOpen(CompositeDisposable disposables)
 		{
 			try
 			{
-				Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
-
 				Config.LoadOrCreateDefaultFileAsync(Global.Config.FilePath)
 					.ToObservable(RxApp.TaskpoolScheduler)
 					.Take(1)
@@ -190,26 +183,26 @@ namespace WalletWasabi.Gui.Tabs
 
 						IsModified = !Global.Config.AreDeepEqual(x);
 					})
-					.DisposeWith(Disposables);
+					.DisposeWith(disposables);
 
 				Global.UiConfig
 					.WhenAnyValue(x => x.LurkingWifeMode)
 					.Subscribe(_ => this.RaisePropertyChanged(nameof(LurkingWifeMode)))
-					.DisposeWith(Disposables);
+					.DisposeWith(disposables);
 
 				_isPinSet = Global.UiConfig
 					.WhenAnyValue(x => x.LockScreenPinHash, x => !string.IsNullOrWhiteSpace(x))
 					.ToProperty(this, x => x.IsPinSet, scheduler: RxApp.MainThreadScheduler)
-					.DisposeWith(Disposables);
+					.DisposeWith(disposables);
 				this.RaisePropertyChanged(nameof(IsPinSet)); // Fire now otherwise the button won't update for restart.
 
 				Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => x.Autocopy, x => x.IsCustomFee)
 					.Throttle(TimeSpan.FromSeconds(1))
 					.ObserveOn(RxApp.TaskpoolScheduler)
 					.Subscribe(async _ => await Global.UiConfig.ToFileAsync())
-					.DisposeWith(Disposables);
+					.DisposeWith(disposables);
 
-				base.OnOpen();
+				base.OnOpen(disposables);
 			}
 			finally
 			{
@@ -220,8 +213,6 @@ namespace WalletWasabi.Gui.Tabs
 		public override bool OnClose()
 		{
 			TabOpened = false;
-			Disposables?.Dispose();
-			Disposables = null;
 
 			return base.OnClose();
 		}

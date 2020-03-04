@@ -1,8 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using AvalonStudio.Documents;
-using AvalonStudio.Extensibility;
 using NBitcoin;
 using ReactiveUI;
 using Splat;
@@ -10,7 +8,6 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reactive;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -18,8 +15,6 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models.StatusBarStatuses;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Gui.ViewModels.Validation;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
@@ -30,38 +25,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _isBusy;
 		private string _buttonText;
 		private int _caretIndex;
-
-		private CompositeDisposable Disposables { get; set; }
-
-		private Global Global { get; }
-
-		public ReactiveCommand<Unit, Unit> PasteCommand { get; set; }
-		public ReactiveCommand<Unit, Unit> BroadcastTransactionCommand { get; set; }
-		public ReactiveCommand<Unit, Unit> ImportTransactionCommand { get; set; }
-
-		public string TransactionString
-		{
-			get => _transactionString;
-			set => this.RaiseAndSetIfChanged(ref _transactionString, value);
-		}
-
-		public bool IsBusy
-		{
-			get => _isBusy;
-			set => this.RaiseAndSetIfChanged(ref _isBusy, value);
-		}
-
-		public string ButtonText
-		{
-			get => _buttonText;
-			set => this.RaiseAndSetIfChanged(ref _buttonText, value);
-		}
-
-		public int CaretIndex
-		{
-			get => _caretIndex;
-			set => this.RaiseAndSetIfChanged(ref _caretIndex, value);
-		}
 
 		public TransactionBroadcasterViewModel() : base("Transaction Broadcaster")
 		{
@@ -174,18 +137,38 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				});
 		}
 
-		public override void OnOpen()
-		{
-			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
+		private Global Global { get; }
 
-			base.OnOpen();
+		public ReactiveCommand<Unit, Unit> PasteCommand { get; set; }
+		public ReactiveCommand<Unit, Unit> BroadcastTransactionCommand { get; set; }
+		public ReactiveCommand<Unit, Unit> ImportTransactionCommand { get; set; }
+
+		public string TransactionString
+		{
+			get => _transactionString;
+			set => this.RaiseAndSetIfChanged(ref _transactionString, value);
+		}
+
+		public bool IsBusy
+		{
+			get => _isBusy;
+			set => this.RaiseAndSetIfChanged(ref _isBusy, value);
+		}
+
+		public string ButtonText
+		{
+			get => _buttonText;
+			set => this.RaiseAndSetIfChanged(ref _buttonText, value);
+		}
+
+		public int CaretIndex
+		{
+			get => _caretIndex;
+			set => this.RaiseAndSetIfChanged(ref _caretIndex, value);
 		}
 
 		public override bool OnClose()
 		{
-			Disposables?.Dispose();
-			Disposables = null;
-
 			TransactionString = "";
 
 			return base.OnClose();

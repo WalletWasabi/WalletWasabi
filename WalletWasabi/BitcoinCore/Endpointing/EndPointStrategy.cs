@@ -9,6 +9,15 @@ namespace WalletWasabi.BitcoinCore.Endpointing
 {
 	public class EndPointStrategy
 	{
+		private EndPointStrategy(EndPointStrategyType endPointStrategyType, EndPoint endPoint)
+		{
+			EndPointStrategyType = endPointStrategyType;
+			EndPoint = Guard.NotNull(nameof(endPoint), endPoint);
+		}
+
+		public EndPointStrategyType EndPointStrategyType { get; }
+		public EndPoint EndPoint { get; }
+
 		public static EndPointStrategy Random
 			=> new EndPointStrategy(EndPointStrategyType.Random, new IPEndPoint(IPAddress.Loopback, PortFinder.GetRandomPorts(1)[0]));
 
@@ -20,14 +29,5 @@ namespace WalletWasabi.BitcoinCore.Endpointing
 			var port = endPointType == EndPointType.Rpc ? network.RPCPort : network.DefaultPort;
 			return new EndPointStrategy(EndPointStrategyType.Default, new IPEndPoint(IPAddress.Loopback, port));
 		}
-
-		private EndPointStrategy(EndPointStrategyType endPointStrategyType, EndPoint endPoint)
-		{
-			EndPointStrategyType = endPointStrategyType;
-			EndPoint = Guard.NotNull(nameof(endPoint), endPoint);
-		}
-
-		public EndPointStrategyType EndPointStrategyType { get; }
-		public EndPoint EndPoint { get; }
 	}
 }

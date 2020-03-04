@@ -7,14 +7,13 @@ namespace WalletWasabi.BitcoinCore
 {
 	public class RpcWrappedClient : IRPCClient
 	{
-		private RPCClient Rpc { get; }
-
 		public RpcWrappedClient(RPCClient rpc)
 		{
 			Rpc = Guard.NotNull(nameof(rpc), rpc);
 		}
 
 		public Network Network => Rpc.Network;
+		private RPCClient Rpc { get; }
 
 		public async Task<uint256> GetBestBlockHashAsync()
 		{

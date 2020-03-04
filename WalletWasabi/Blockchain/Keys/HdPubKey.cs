@@ -14,25 +14,6 @@ namespace WalletWasabi.Blockchain.Keys
 	{
 		private KeyState _keyState;
 
-		[JsonProperty(Order = 1)]
-		[JsonConverter(typeof(PubKeyJsonConverter))]
-		public PubKey PubKey { get; }
-
-		[JsonProperty(Order = 2)]
-		[JsonConverter(typeof(KeyPathJsonConverter))]
-		public KeyPath FullKeyPath { get; }
-
-		[JsonProperty(Order = 3)]
-		[JsonConverter(typeof(SmartLabelJsonConverter))]
-		public SmartLabel Label { get; private set; }
-
-		[JsonProperty(Order = 4)]
-		public KeyState KeyState
-		{
-			get => _keyState;
-			private set => RaiseAndSetIfChanged(ref _keyState, value);
-		}
-
 		public HdPubKey(PubKey pubKey, KeyPath fullKeyPath, SmartLabel label, KeyState keyState)
 		{
 			PubKey = Guard.NotNull(nameof(pubKey), pubKey);
@@ -66,6 +47,38 @@ namespace WalletWasabi.Blockchain.Keys
 			}
 		}
 
+		[JsonProperty(Order = 1)]
+		[JsonConverter(typeof(PubKeyJsonConverter))]
+		public PubKey PubKey { get; }
+
+		[JsonProperty(Order = 2)]
+		[JsonConverter(typeof(KeyPathJsonConverter))]
+		public KeyPath FullKeyPath { get; }
+
+		[JsonProperty(Order = 3)]
+		[JsonConverter(typeof(SmartLabelJsonConverter))]
+		public SmartLabel Label { get; private set; }
+
+		[JsonProperty(Order = 4)]
+		public KeyState KeyState
+		{
+			get => _keyState;
+			private set => RaiseAndSetIfChanged(ref _keyState, value);
+		}
+
+		public Script P2pkScript { get; }
+		public Script P2pkhScript { get; }
+		public Script P2wpkhScript { get; }
+		public Script P2shOverP2wpkhScript { get; }
+
+		public KeyId PubKeyHash { get; }
+
+		public int Index { get; }
+		public KeyPath NonHardenedKeyPath { get; }
+		public bool IsInternal { get; }
+
+		private int HashCode { get; }
+
 		public void SetLabel(SmartLabel label, KeyManager kmToFile = null)
 		{
 			label ??= SmartLabel.Empty;
@@ -92,17 +105,6 @@ namespace WalletWasabi.Blockchain.Keys
 			kmToFile?.ToFile();
 		}
 
-		public Script P2pkScript { get; }
-		public Script P2pkhScript { get; }
-		public Script P2wpkhScript { get; }
-		public Script P2shOverP2wpkhScript { get; }
-
-		public KeyId PubKeyHash { get; }
-
-		public int Index { get; }
-		public KeyPath NonHardenedKeyPath { get; }
-		public bool IsInternal { get; }
-
 		public BitcoinPubKeyAddress GetP2pkhAddress(Network network) => (BitcoinPubKeyAddress)PubKey.GetAddress(ScriptPubKeyType.Legacy, network);
 
 		public BitcoinWitPubKeyAddress GetP2wpkhAddress(Network network) => PubKey.GetSegwitAddress(network);
@@ -127,8 +129,6 @@ namespace WalletWasabi.Blockchain.Keys
 		public override bool Equals(object obj) => Equals(obj as HdPubKey);
 
 		public bool Equals(HdPubKey other) => this == other;
-
-		private int HashCode { get; }
 
 		public override int GetHashCode() => HashCode;
 

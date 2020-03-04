@@ -1,8 +1,6 @@
-using NBitcoin;
 using ReactiveUI;
 using Splat;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
@@ -11,29 +9,26 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class HistoryTabViewModel : WalletActionViewModel
+	public class HistoryTabViewModel : WasabiDocumentTabViewModel
 	{
-		private CompositeDisposable Disposables { get; set; }
-
 		private ObservableCollection<TransactionViewModel> _transactions;
 		private TransactionViewModel _selectedTransaction;
 		private SortOrder _dateSortDirection;
 		private SortOrder _amountSortDirection;
 		private SortOrder _transactionSortDirection;
 
-		private Global Global { get; }
-
-		public ReactiveCommand<Unit, Unit> SortCommand { get; }
-
-		public HistoryTabViewModel(WalletViewModel walletViewModel)
-			: base("History", walletViewModel)
+		public HistoryTabViewModel(WalletService walletService)
+			: base("History")
 		{
 			Global = Locator.Current.GetService<Global>();
+			WalletService = walletService;
 
 			Transactions = new ObservableCollection<TransactionViewModel>();
 
@@ -51,18 +46,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			_ = TryRewriteTableAsync();
 		}
 
-		public override void OnOpen()
-		{
-			base.OnOpen();
+		private Global Global { get; }
 
-			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
+		private WalletService WalletService { get; }
+
+		public ReactiveCommand<Unit, Unit> SortCommand { get; }
+
+		public override void OnOpen(CompositeDisposable disposables)
+		{
+			base.OnOpen(disposables);
 
 			Observable.FromEventPattern(WalletService, nameof(WalletService.NewBlockProcessed))
 				.Merge(Observable.FromEventPattern(WalletService.TransactionProcessor, nameof(WalletService.TransactionProcessor.WalletRelevantTransactionProcessed)))
 				.Throttle(TimeSpan.FromSeconds(3))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(async _ => await TryRewriteTableAsync())
-				.DisposeWith(Disposables);
+				.DisposeWith(disposables);
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 				{
@@ -70,15 +69,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						transaction.Refresh();
 					}
-				}).DisposeWith(Disposables);
-		}
-
-		public override bool OnClose()
-		{
-			Disposables.Dispose();
-			Disposables = null;
-
-			return base.OnClose();
+				}).DisposeWith(disposables);
 		}
 
 		private async Task TryRewriteTableAsync()

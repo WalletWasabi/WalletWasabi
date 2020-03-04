@@ -9,14 +9,14 @@ namespace WalletWasabi.BitcoinCore.Configuration
 {
 	public class CoreConfigTranslator
 	{
-		public CoreConfig Config { get; }
-		public Network Network { get; }
-
 		public CoreConfigTranslator(CoreConfig config, Network network)
 		{
 			Config = Guard.NotNull(nameof(config), config);
 			Network = Guard.NotNull(nameof(network), network);
 		}
+
+		public CoreConfig Config { get; }
+		public Network Network { get; }
 
 		public string TryGetValue(string key)
 		{

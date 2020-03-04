@@ -36,14 +36,14 @@ using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public abstract class SendControlViewModel : WalletActionViewModel
+	public abstract class SendControlViewModel : WasabiDocumentTabViewModel
 	{
-		private CompositeDisposable Disposables { get; set; }
-
 		protected Global Global { get; }
+		private WalletService WalletService { get; }
 
 		private string _buildTransactionButtonText;
 		private bool _isMax;
@@ -99,10 +99,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			AmountText = "0.0";
 		}
 
-		protected SendControlViewModel(WalletViewModel walletViewModel, string title)
-			: base(title, walletViewModel)
+		protected SendControlViewModel(WalletService walletService, string title)
+			: base(title)
 		{
 			Global = Locator.Current.GetService<Global>();
+			WalletService = walletService;
+
 			LabelSuggestion = new SuggestLabelViewModel(WalletService);
 			BuildTransactionButtonText = DoButtonText;
 
@@ -315,11 +317,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusType.DequeuingSelectedCoins);
 					}
 
-					if (!KeyManager.IsWatchOnly)
+					if (!WalletService.KeyManager.IsWatchOnly)
 					{
 						try
 						{
-							PasswordHelper.GetMasterExtKey(KeyManager, Password, out string compatiblityPasswordUsed); // We could use TryPassword but we need the exception.
+							PasswordHelper.GetMasterExtKey(WalletService.KeyManager, Password, out string compatiblityPasswordUsed); // We could use TryPassword but we need the exception.
 							if (compatiblityPasswordUsed != null)
 							{
 								Password = compatiblityPasswordUsed; // Overwrite the password for BuildTransaction function.
@@ -753,6 +755,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _allSelectedAmount, value);
 		}
 
+		public bool IsWatchOnly => WalletService.KeyManager.IsWatchOnly;
+
 		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
 
 		[ValidateMethod(nameof(ValidatePassword))]
@@ -841,10 +845,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public ReactiveCommand<KeyEventArgs, Unit> AmountKeyUpCommand { get; }
 
-		public override void OnOpen()
+		public override void OnOpen(CompositeDisposable disposables)
 		{
-			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
-
 			Observable
 				.FromEventPattern<AllFeeEstimate>(Global.FeeProviders, nameof(Global.FeeProviders.AllFeeEstimateChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -863,12 +865,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					SetFeesAndTexts();
 				})
-				.DisposeWith(Disposables);
+				.DisposeWith(disposables);
 
 			_usdExchangeRate = Global.Synchronizer
 				.WhenAnyValue(x => x.UsdExchangeRate)
 				.ToProperty(this, x => x.UsdExchangeRate, scheduler: RxApp.MainThreadScheduler)
-				.DisposeWith(Disposables);
+				.DisposeWith(disposables);
 
 			this.WhenAnyValue(x => x.UsdExchangeRate)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -877,24 +879,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global.UiConfig.WhenAnyValue(x => x.IsCustomFee)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => IsCustomFee = x)
-				.DisposeWith(Disposables);
+				.DisposeWith(disposables);
 
 			this.WhenAnyValue(x => x.IsCustomFee)
 				.Where(x => !x)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => IsSliderFeeUsed = true);
 
-			base.OnOpen();
+			base.OnOpen(disposables);
 		}
 
 		protected abstract Task DoAfterBuildTransaction(BuildTransactionResult result);
 
 		public override bool OnClose()
 		{
-			Disposables.Dispose();
-
-			Disposables = null;
-
 			CoinList.OnClose();
 
 			return base.OnClose();

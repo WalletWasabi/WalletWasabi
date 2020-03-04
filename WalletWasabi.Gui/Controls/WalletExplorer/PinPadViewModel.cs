@@ -23,7 +23,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	internal class PinPadViewModel : WasabiDocumentTabViewModel
 	{
-		private CompositeDisposable Disposables { get; set; }
 		private string _maskedPin;
 
 		public ReactiveCommand<Unit, Unit> SendPinCommand { get; }
@@ -61,21 +60,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					Logger.LogError(ex);
 					NotificationHelpers.Error(ex.ToUserFriendlyString());
 				});
-		}
-
-		public override void OnOpen()
-		{
-			base.OnOpen();
-
-			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
-		}
-
-		public override bool OnClose()
-		{
-			Disposables.Dispose();
-			Disposables = null;
-
-			return base.OnClose();
 		}
 
 		public static async Task UnlockAsync()

@@ -19,19 +19,6 @@ namespace WalletWasabi.BitcoinCore
 {
 	public class P2pNode
 	{
-		private Node Node { get; set; }
-		private TrustedP2pBehavior TrustedP2pBehavior { get; set; }
-		public Network Network { get; }
-		public EndPoint EndPoint { get; }
-		public MempoolService MempoolService { get; }
-
-		public event EventHandler<uint256> BlockInv;
-
-		private bool NodeEventsSubscribed { get; set; }
-		private object SubscriptionLock { get; }
-		public AsyncLock ReconnectorLock { get; }
-		private CancellationTokenSource Stop { get; set; }
-
 		public P2pNode(Network network, EndPoint endPoint, MempoolService mempoolService, string userAgent)
 		{
 			Network = Guard.NotNull(nameof(network), network);
@@ -44,6 +31,21 @@ namespace WalletWasabi.BitcoinCore
 			SubscriptionLock = new object();
 			ReconnectorLock = new AsyncLock();
 		}
+
+		public event EventHandler<uint256> BlockInv;
+
+		private Node Node { get; set; }
+		private TrustedP2pBehavior TrustedP2pBehavior { get; set; }
+		public Network Network { get; }
+		public EndPoint EndPoint { get; }
+		public MempoolService MempoolService { get; }
+		public string UserAgent { get; }
+
+		private bool NodeEventsSubscribed { get; set; }
+		private object SubscriptionLock { get; }
+		public AsyncLock ReconnectorLock { get; }
+		private CancellationTokenSource Stop { get; set; }
+		private Task ReconnectorTask { get; set; } = Task.CompletedTask;
 
 		public async Task ConnectAsync(CancellationToken cancel)
 		{
@@ -91,8 +93,6 @@ namespace WalletWasabi.BitcoinCore
 			Logger.LogInfo($"Node {sender.Peer.Endpoint} failed with exception: {ex}");
 		}
 
-		private Task ReconnectorTask { get; set; } = Task.CompletedTask;
-
 		private async void Node_DisconnectedAsync(Node node)
 		{
 			try
@@ -118,8 +118,6 @@ namespace WalletWasabi.BitcoinCore
 		{
 			BlockInv?.Invoke(this, e);
 		}
-
-		public string UserAgent { get; }
 
 		private void P2pNode_StateChanged(Node node, NodeState oldState)
 		{
