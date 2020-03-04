@@ -104,7 +104,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Observable
 				.Merge(Observable.FromEventPattern(WalletService.TransactionProcessor, nameof(WalletService.TransactionProcessor.WalletRelevantTransactionProcessed)))
-				.Merge(Observable.FromEventPattern(KeyManager, nameof(KeyManager.KeyStateChanged)))
+				.Merge(Observable.FromEventPattern(WalletService.KeyManager, nameof(KeyManager.KeyStateChanged)))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => InitializeAddresses())
 				.DisposeWith(disposables);
