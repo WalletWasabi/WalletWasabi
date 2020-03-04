@@ -260,7 +260,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 					try
 					{
-						if (Global.LegalDocuments is null || Global.LegalDocuments.Version != x.LegalDocumentsVersion)
+						if (Global.LegalDocuments is null || Global.LegalDocuments.Version < x.LegalDocumentsVersion)
 						{
 							using var client = new WasabiClient(() => Global.Config.UseTor ? Global.Config.GetCurrentBackendUri() : Global.Config.GetFallbackBackendUri(), Global.Config.UseTor ? Global.Config.TorSocks5EndPoint : null);
 							var versions = await client.GetVersionsAsync(CancellationToken.None);
