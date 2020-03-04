@@ -10,11 +10,6 @@ namespace WalletWasabi.Blockchain.Blocks
 {
 	public class SmartHeader
 	{
-		public uint256 BlockHash { get; }
-		public uint256 PrevHash { get; }
-		public uint Height { get; }
-		public DateTimeOffset BlockTime { get; }
-
 		public SmartHeader(uint256 blockHash, uint256 prevHash, uint height, DateTimeOffset blockTime)
 		{
 			BlockHash = Guard.NotNull(nameof(blockHash), blockHash);
@@ -27,6 +22,11 @@ namespace WalletWasabi.Blockchain.Blocks
 			Height = height;
 			BlockTime = blockTime;
 		}
+
+		public uint256 BlockHash { get; }
+		public uint256 PrevHash { get; }
+		public uint Height { get; }
+		public DateTimeOffset BlockTime { get; }
 
 		#region SpecialHeaders
 
