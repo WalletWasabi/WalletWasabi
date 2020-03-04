@@ -62,12 +62,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private Money _allSelectedAmount;
 		private string _password;
 		private string _address;
+		private string _customChangeaddress;
 		private string _labelToolTip;
 		private string _feeToolTip;
 		private string _amountWaterMarkText;
 		private bool _isBusy;
 		private bool _isHardwareBusy;
 		private bool _isCustomFee;
+		private bool _isCustomChangeAddress;
 
 		private const string WaitingForHardwareWalletButtonTextString = "Waiting for Hardware Wallet...";
 
@@ -92,6 +94,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			LabelSuggestion.Reset();
 			Address = "";
+			CustomChangeAddress = "";
 			Password = "";
 			AllSelectedAmount = Money.Zero;
 			IsMax = false;
@@ -268,6 +271,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						return;
 					}
 
+					BitcoinAddress customChangeAddress = null;
+					if (!string.IsNullOrWhiteSpace(CustomChangeAddress))
+					{
+						try
+						{
+							customChangeAddress = BitcoinAddress.Create(CustomChangeAddress.Trim(), Global.Network);
+						}
+						catch (FormatException)
+						{
+							NotificationHelpers.Warning("Invalid custom change address.", "");
+							return;
+						}
+					}
+
 					MoneyRequest moneyRequest;
 					if (IsMax)
 					{
@@ -297,7 +314,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					var feeStrategy = FeeStrategy.CreateFromFeeRate(FeeRate);
 
-					var intent = new PaymentIntent(address, moneyRequest, label);
+					var activeDestinationRequest = new DestinationRequest(address, moneyRequest, label);
+					var requests = new List<DestinationRequest>() { activeDestinationRequest };
+
+					if (customChangeAddress is { })
+					{
+						requests.Add(new DestinationRequest(customChangeAddress, MoneyRequest.CreateChange(true), label));
+					}
+
+					var intent = new PaymentIntent(requests);
 					try
 					{
 						MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.DequeuingSelectedCoins);
@@ -793,6 +818,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _address, value);
 		}
 
+		[ValidateMethod(nameof(ValidateAddress))]
+		public string CustomChangeAddress
+		{
+			get => _customChangeaddress;
+			set => this.RaiseAndSetIfChanged(ref _customChangeaddress, value);
+		}
+
 		public string LabelToolTip
 		{
 			get => _labelToolTip;
@@ -827,6 +859,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _isCustomFee;
 			private set => this.RaiseAndSetIfChanged(ref _isCustomFee, value);
+		}
+
+		public bool IsCustomChangeAddress
+		{
+			get => _isCustomChangeAddress;
+			private set => this.RaiseAndSetIfChanged(ref _isCustomChangeAddress, value);
 		}
 
 		public ReactiveCommand<Unit, Unit> BuildTransactionCommand { get; }
@@ -879,6 +917,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global.UiConfig.WhenAnyValue(x => x.IsCustomFee)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => IsCustomFee = x)
+				.DisposeWith(disposables);
+
+			Global.UiConfig.WhenAnyValue(x => x.IsCustomChangeAddress)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x => IsCustomChangeAddress = x)
 				.DisposeWith(disposables);
 
 			this.WhenAnyValue(x => x.IsCustomFee)

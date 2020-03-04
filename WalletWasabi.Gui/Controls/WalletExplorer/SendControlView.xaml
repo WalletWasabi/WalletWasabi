@@ -35,6 +35,8 @@
             </i:Interaction.Behaviors>
           </controls:ExtendedTextBox>
 
+          <controls:ExtendedTextBox IsVisible="{Binding IsCustomChangeAddress}" Classes="monospaceFont" Text="{Binding CustomChangeAddress}" Watermark="Custom Change Address" UseFloatingWatermark="True" />
+
           <controls:SuggestLabelView DataContext="{Binding LabelSuggestion}" />
 
           <StackPanel Orientation="Horizontal" Spacing="10">
