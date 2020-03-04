@@ -17,7 +17,7 @@ namespace WalletWasabi.Tests.Helpers
 {
 	public static class TestNodeBuilder
 	{
-		public static async Task<CoreNode> CreateAsync(HostedServices hostedServices, [CallerFilePath]string callerFilePath = null, [CallerMemberName]string callerMemberName = null, string additionalFolder = null, MempoolService mempoolService = null)
+		public static async Task<CoreNode> CreateAsync(HostedServices hostedServices, [CallerFilePath]string callerFilePath = null, [CallerMemberName]string callerMemberName = null, string additionalFolder = null, MempoolService mempoolService = null, string blockFilterIndex = null)
 		{
 			var network = Network.RegTest;
 			return await CoreNode.CreateAsync(
@@ -31,6 +31,7 @@ namespace WalletWasabi.Tests.Helpers
 					EndPointStrategy.Random,
 					EndPointStrategy.Random,
 					txIndex: 1,
+					blockFilterIndex: blockFilterIndex,
 					prune: 0,
 					userAgent: $"/WasabiClient:{Constants.ClientVersion.ToString()}/"),
 				CancellationToken.None);

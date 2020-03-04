@@ -1,12 +1,8 @@
 using NBitcoin;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using WalletWasabi.BitcoinCore.Endpointing;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Helpers;
 using WalletWasabi.Services;
-using WalletWasabi.Stores;
 
 namespace WalletWasabi.BitcoinCore
 {
@@ -22,6 +18,7 @@ namespace WalletWasabi.BitcoinCore
 			EndPointStrategy p2pEndPointStrategy,
 			EndPointStrategy rpcEndPointStrategy,
 			int? txIndex,
+			string blockFilterIndex,
 			int? prune,
 			string userAgent)
 		{
@@ -34,6 +31,7 @@ namespace WalletWasabi.BitcoinCore
 			P2pEndPointStrategy = Guard.NotNull(nameof(p2pEndPointStrategy), p2pEndPointStrategy);
 			RpcEndPointStrategy = Guard.NotNull(nameof(rpcEndPointStrategy), rpcEndPointStrategy);
 			TxIndex = txIndex;
+			BlockFilterIndex = blockFilterIndex;
 			Prune = prune;
 			UserAgent = Guard.NotNullOrEmptyOrWhitespace(nameof(userAgent), userAgent, trim: true);
 		}
@@ -45,6 +43,7 @@ namespace WalletWasabi.BitcoinCore
 		public bool TryRestart { get; }
 		public bool TryDeleteDataDir { get; }
 		public int? TxIndex { get; }
+		public string BlockFilterIndex { get; }
 		public int? Prune { get; }
 		public string UserAgent { get; }
 		public EndPointStrategy P2pEndPointStrategy { get; }
