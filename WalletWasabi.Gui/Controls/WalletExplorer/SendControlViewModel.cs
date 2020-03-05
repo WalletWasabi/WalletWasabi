@@ -791,19 +791,23 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _password, value);
 		}
 
-		public ErrorDescriptors ValidateAddress()
+		public ErrorDescriptors ValidateAddress() => ValidateAddress(Address);
+
+		public ErrorDescriptors ValidateCustomChangeAddress() => ValidateAddress(CustomChangeAddress);
+
+		private ErrorDescriptors ValidateAddress(string address)
 		{
-			if (string.IsNullOrWhiteSpace(Address))
+			if (string.IsNullOrWhiteSpace(address))
 			{
 				return ErrorDescriptors.Empty;
 			}
 
-			if (AddressStringParser.TryParseBitcoinAddress(Address, Global.Network, out _))
+			if (AddressStringParser.TryParseBitcoinAddress(address, Global.Network, out _))
 			{
 				return ErrorDescriptors.Empty;
 			}
 
-			if (AddressStringParser.TryParseBitcoinUrl(Address, Global.Network, out _))
+			if (AddressStringParser.TryParseBitcoinUrl(address, Global.Network, out _))
 			{
 				return ErrorDescriptors.Empty;
 			}
@@ -818,7 +822,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _address, value);
 		}
 
-		[ValidateMethod(nameof(ValidateAddress))]
+		[ValidateMethod(nameof(ValidateCustomChangeAddress))]
 		public string CustomChangeAddress
 		{
 			get => _customChangeAddress;
