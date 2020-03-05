@@ -13,14 +13,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 	[JsonObject(MemberSerialization.OptIn)]
 	public class TxoRef : IEquatable<TxoRef>, IEquatable<OutPoint>
 	{
-		[Required]
-		[JsonProperty(Order = 1)]
-		[JsonConverter(typeof(Uint256JsonConverter))]
-		public uint256 TransactionId { get; }
-
-		[JsonProperty(Order = 2)]
-		public uint Index { get; }
-
 		[JsonConstructor]
 		public TxoRef(uint256 transactionId, uint index)
 		{
@@ -34,6 +26,14 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			TransactionId = outPoint.Hash;
 			Index = outPoint.N;
 		}
+
+		[Required]
+		[JsonProperty(Order = 1)]
+		[JsonConverter(typeof(Uint256JsonConverter))]
+		public uint256 TransactionId { get; }
+
+		[JsonProperty(Order = 2)]
+		public uint Index { get; }
 
 		public OutPoint ToOutPoint() => new OutPoint(TransactionId, Index);
 

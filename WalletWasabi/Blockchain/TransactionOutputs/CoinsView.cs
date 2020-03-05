@@ -10,12 +10,12 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 {
 	public class CoinsView : ICoinsView
 	{
-		private IEnumerable<SmartCoin> Coins { get; }
-
 		public CoinsView(IEnumerable<SmartCoin> coins)
 		{
 			Coins = Guard.NotNull(nameof(coins), coins);
 		}
+
+		private IEnumerable<SmartCoin> Coins { get; }
 
 		public ICoinsView Unspent() => new CoinsView(Coins.Where(x => x.Unspent && !x.SpentAccordingToBackend));
 
