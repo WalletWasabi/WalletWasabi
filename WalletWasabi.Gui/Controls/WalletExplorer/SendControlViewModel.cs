@@ -791,23 +791,24 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _password, value);
 		}
 
-		public ErrorDescriptors ValidateAddress() => ValidateAddress(Address);
-
-		public ErrorDescriptors ValidateCustomChangeAddress() => ValidateAddress(CustomChangeAddress);
-
-		private ErrorDescriptors ValidateAddress(string address)
+		public ErrorDescriptors ValidateActiveAddress()
 		{
-			if (string.IsNullOrWhiteSpace(address))
+			if (string.IsNullOrWhiteSpace(Address))
 			{
 				return ErrorDescriptors.Empty;
 			}
 
-			if (AddressStringParser.TryParseBitcoinAddress(address, Global.Network, out _))
+			if (Address.Trim() == CustomChangeAddress?.Trim())
+			{
+				return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Active and change addresses cannot be the same."));
+			}
+
+			if (AddressStringParser.TryParseBitcoinAddress(Address, Global.Network, out _))
 			{
 				return ErrorDescriptors.Empty;
 			}
 
-			if (AddressStringParser.TryParseBitcoinUrl(address, Global.Network, out _))
+			if (AddressStringParser.TryParseBitcoinUrl(Address, Global.Network, out _))
 			{
 				return ErrorDescriptors.Empty;
 			}
@@ -815,7 +816,27 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid address."));
 		}
 
-		[ValidateMethod(nameof(ValidateAddress))]
+		public ErrorDescriptors ValidateCustomChangeAddress()
+		{
+			if (string.IsNullOrWhiteSpace(CustomChangeAddress))
+			{
+				return ErrorDescriptors.Empty;
+			}
+
+			if (Address?.Trim() == CustomChangeAddress.Trim())
+			{
+				return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Active and change addresses cannot be the same."));
+			}
+
+			if (AddressStringParser.TryParseBitcoinAddress(CustomChangeAddress, Global.Network, out _))
+			{
+				return ErrorDescriptors.Empty;
+			}
+
+			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid change address."));
+		}
+
+		[ValidateMethod(nameof(ValidateActiveAddress))]
 		public string Address
 		{
 			get => _address;

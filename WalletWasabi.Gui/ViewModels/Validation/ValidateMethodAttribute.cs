@@ -4,7 +4,7 @@ using System.Text;
 
 namespace WalletWasabi.Gui.ViewModels.Validation
 {
-	[AttributeUsage(AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
+	[AttributeUsage(AttributeTargets.Property, Inherited = false, AllowMultiple = true)]
 	public sealed class ValidateMethodAttribute : Attribute
 	{
 		public ValidateMethodAttribute(string methodName)
