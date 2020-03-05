@@ -1,27 +1,32 @@
 using NBitcoin;
+using NBitcoin.Protocol;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 using WalletWasabi.Services;
+using WalletWasabi.Stores;
 
 namespace WalletWasabi.Wallets
 {
 	public class WalletManager
 	{
-		public WalletManager(string walletBackupsDir)
+		public WalletManager(string walletBackupsDir, string dataDir)
 		{
 			WalletBackupsDir = walletBackupsDir;
+			DataDir = dataDir;
 			Wallets = new Dictionary<WalletService, HashSet<uint256>>();
 			Lock = new object();
 			AddRemoveLock = new AsyncLock();
@@ -35,6 +40,15 @@ namespace WalletWasabi.Wallets
 		private object Lock { get; }
 		private AsyncLock AddRemoveLock { get; }
 		private string WalletBackupsDir { get; }
+		private BitcoinStore BitcoinStore { get; set; }
+		private WasabiSynchronizer Synchronizer { get; set; }
+		private NodesGroup Nodes { get; set; }
+		private string DataDir { get; }
+		private ServiceConfiguration ServiceConfiguration { get; set; }
+		private IFeeProvider FeeProvider { get; set; }
+		private CoreNode CoreNode { get; set; }
+		private bool WalletCreationEnabled { get; set; }
+		private CancellationTokenSource StoppingCts { get; set; } = new CancellationTokenSource();
 
 		private IEnumerable<KeyValuePair<WalletService, HashSet<uint256>>> AliveWalletsNoLock => Wallets.Where(x => x.Key is { IsStoppingOrStopped: var isDisposed } && !isDisposed);
 
@@ -46,8 +60,17 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-		public async Task AddAndStartAsync(WalletService walletService, CancellationToken cancel)
+		public async Task<WalletService> CreateAddStartWalletServiceAsync(KeyManager keyManager, CancellationToken cancel)
 		{
+			WalletService walletService;
+
+			while (!WalletCreationEnabled)
+			{
+				await Task.Delay(100, StoppingCts.Token).ConfigureAwait(false);
+			}
+
+			walletService = new WalletService(BitcoinStore, keyManager, Synchronizer, Nodes, DataDir, ServiceConfiguration, FeeProvider, CoreNode);
+
 			using (await AddRemoveLock.LockAsync().ConfigureAwait(false))
 			{
 				lock (Lock)
@@ -64,6 +87,7 @@ namespace WalletWasabi.Wallets
 				walletService.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
 				walletService.ChaumianClient.OnDequeue += ChaumianClient_OnDequeue;
 			}
+			return walletService;
 		}
 
 		private void ChaumianClient_OnDequeue(object sender, DequeueResult e)
@@ -78,8 +102,26 @@ namespace WalletWasabi.Wallets
 			handler?.Invoke(sender, e);
 		}
 
+		public void Init(BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, NodesGroup nodes, ServiceConfiguration serviceConfiguration, IFeeProvider feeProviders, CoreNode coreNode = null)
+		{
+			BitcoinStore = bitcoinStore;
+			Synchronizer = synchronizer;
+			Nodes = nodes;
+			ServiceConfiguration = serviceConfiguration;
+			FeeProvider = feeProviders;
+			CoreNode = coreNode;
+
+			WalletCreationEnabled = true;
+		}
+
 		public async Task RemoveAndStopAllAsync()
 		{
+			if (StoppingCts is { } && !StoppingCts.IsCancellationRequested)
+			{
+				StoppingCts.Cancel();
+				StoppingCts.Dispose();
+			}
+
 			using (await AddRemoveLock.LockAsync().ConfigureAwait(false))
 			{
 				List<WalletService> walletsListClone;

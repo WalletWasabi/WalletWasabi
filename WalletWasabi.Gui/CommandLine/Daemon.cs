@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
@@ -78,7 +79,7 @@ namespace WalletWasabi.Gui.CommandLine
 					return;
 				}
 
-				WalletService = await Global.CreateWalletServiceAsync(keyManager);
+				WalletService = await Global.WalletManager.CreateAddStartWalletServiceAsync(keyManager, CancellationToken.None);
 				if (Global.KillRequested)
 				{
 					return;

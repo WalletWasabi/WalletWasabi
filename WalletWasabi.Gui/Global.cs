@@ -90,7 +90,7 @@ namespace WalletWasabi.Gui
 			Directory.CreateDirectory(WalletBackupsDir);
 
 			HostedServices = new HostedServices();
-			WalletManager = new WalletManager(WalletBackupsDir);
+			WalletManager = new WalletManager(WalletBackupsDir, DataDir);
 
 			LegalDocuments = LegalDocuments.TryLoadAgreed(DataDir);
 
@@ -398,6 +398,8 @@ namespace WalletWasabi.Gui
 				}
 
 				#endregion JsonRpcServerInitialization
+
+				WalletManager.Init(BitcoinStore, Synchronizer, Nodes, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
 			}
 			catch (Exception ex)
 			{
@@ -513,29 +515,6 @@ namespace WalletWasabi.Gui
 					await addressManager.AddAsync(endpoint);
 				}
 			}
-		}
-
-		private CancellationTokenSource _cancelWalletServiceInitialization = null;
-
-		public async Task<WalletService> CreateWalletServiceAsync(KeyManager keyManager)
-		{
-			WalletService walletService;
-
-			using (_cancelWalletServiceInitialization = new CancellationTokenSource())
-			{
-				var token = _cancelWalletServiceInitialization.Token;
-				while (!InitializationCompleted)
-				{
-					await Task.Delay(100, token);
-				}
-
-				walletService = new WalletService(BitcoinStore, keyManager, Synchronizer, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
-				await WalletManager.AddAndStartAsync(walletService, token).ConfigureAwait(false);
-			}
-
-			_cancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
-
-			return walletService;
 		}
 
 		private void WalletManager_OnDequeue(object sender, DequeueResult e)
@@ -743,16 +722,6 @@ namespace WalletWasabi.Gui
 
 		public async Task DisposeInWalletDependentServicesAsync()
 		{
-			try
-			{
-				_cancelWalletServiceInitialization?.Cancel();
-			}
-			catch (ObjectDisposedException)
-			{
-				Logger.LogWarning($"{nameof(_cancelWalletServiceInitialization)} is disposed. This can occur due to an error while processing the wallet.");
-			}
-			_cancelWalletServiceInitialization = null;
-
 			await WalletManager.RemoveAndStopAllAsync().ConfigureAwait(false);
 		}
 
