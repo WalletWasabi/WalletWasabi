@@ -273,12 +273,21 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						return;
 					}
 
-					BitcoinAddress customChangeAddress = null;
+					var requests = new List<DestinationRequest>();
+
 					if (Global.UiConfig?.IsCustomChangeAddress is true && !string.IsNullOrWhiteSpace(CustomChangeAddress))
 					{
 						try
 						{
-							customChangeAddress = BitcoinAddress.Create(CustomChangeAddress.Trim(), Global.Network);
+							var customChangeAddress = BitcoinAddress.Create(CustomChangeAddress.Trim(), Global.Network);
+
+							if (customChangeAddress == address)
+							{
+								NotificationHelpers.Warning("The active address and the change addresses cannot be the same.", "");
+								return;
+							}
+
+							requests.Add(new DestinationRequest(customChangeAddress, MoneyRequest.CreateChange(subtractFee: true), label));
 						}
 						catch (FormatException)
 						{
@@ -287,16 +296,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 					}
 
-					if (customChangeAddress == address)
-					{
-						NotificationHelpers.Warning("The active address and the change addresses cannot be the same.", "");
-						return;
-					}
-
 					MoneyRequest moneyRequest;
 					if (IsMax)
 					{
-						moneyRequest = MoneyRequest.CreateAllRemaining();
+						moneyRequest = MoneyRequest.CreateAllRemaining(subtractFee: true);
 					}
 					else
 					{
@@ -311,7 +314,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							NotificationHelpers.Warning("Looks like you want to spend whole coins. Try Max button instead.", "");
 							return;
 						}
-						moneyRequest = MoneyRequest.Create(amount);
+						moneyRequest = MoneyRequest.Create(amount, subtractFee: false);
 					}
 
 					if (FeeRate is null || FeeRate.SatoshiPerByte < 1)
@@ -323,12 +326,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					var feeStrategy = FeeStrategy.CreateFromFeeRate(FeeRate);
 
 					var activeDestinationRequest = new DestinationRequest(address, moneyRequest, label);
-					var requests = new List<DestinationRequest>() { activeDestinationRequest };
-
-					if (customChangeAddress is { })
-					{
-						requests.Add(new DestinationRequest(customChangeAddress, MoneyRequest.CreateChange(true), label));
-					}
+					requests.Add(activeDestinationRequest);
 
 					var intent = new PaymentIntent(requests);
 					try
