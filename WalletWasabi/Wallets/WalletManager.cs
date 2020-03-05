@@ -85,6 +85,14 @@ namespace WalletWasabi.Wallets
 		{
 			using (await AddRemoveLock.LockAsync().ConfigureAwait(false))
 			{
+				lock (Lock)
+				{
+					if (!Wallets.ContainsKey(walletService))
+					{
+						throw new InvalidOperationException("Add wallet first.");
+					}
+				}
+
 				Logger.LogInfo($"Starting {nameof(WalletService)}...");
 				await walletService.StartAsync(cancel).ConfigureAwait(false);
 				Logger.LogInfo($"{nameof(WalletService)} started.");
