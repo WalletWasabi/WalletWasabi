@@ -79,7 +79,10 @@ namespace WalletWasabi.Gui.CommandLine
 					return;
 				}
 
-				WalletService = await Global.WalletManager.CreateAddStartWalletServiceAsync(keyManager, CancellationToken.None);
+				var walletManager = Global.WalletManager;
+				WalletService = await walletManager.AddWalletServiceAsync(keyManager);
+				await walletManager.StartWalletServiceAsync(WalletService, CancellationToken.None);
+
 				if (Global.KillRequested)
 				{
 					return;

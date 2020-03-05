@@ -60,7 +60,7 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-		public async Task<WalletService> CreateAddStartWalletServiceAsync(KeyManager keyManager, CancellationToken cancel)
+		public async Task<WalletService> AddWalletServiceAsync(KeyManager keyManager)
 		{
 			WalletService walletService;
 
@@ -77,7 +77,14 @@ namespace WalletWasabi.Wallets
 				{
 					Wallets.Add(walletService, new HashSet<uint256>());
 				}
+			}
+			return walletService;
+		}
 
+		public async Task StartWalletServiceAsync(WalletService walletService, CancellationToken cancel)
+		{
+			using (await AddRemoveLock.LockAsync().ConfigureAwait(false))
+			{
 				Logger.LogInfo($"Starting {nameof(WalletService)}...");
 				await walletService.StartAsync(cancel).ConfigureAwait(false);
 				Logger.LogInfo($"{nameof(WalletService)} started.");
@@ -87,7 +94,6 @@ namespace WalletWasabi.Wallets
 				walletService.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
 				walletService.ChaumianClient.OnDequeue += ChaumianClient_OnDequeue;
 			}
-			return walletService;
 		}
 
 		private void ChaumianClient_OnDequeue(object sender, DequeueResult e)

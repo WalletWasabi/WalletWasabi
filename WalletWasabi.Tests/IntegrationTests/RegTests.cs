@@ -761,7 +761,9 @@ namespace WalletWasabi.Tests.IntegrationTests
 			var workDir = GetWorkDir();
 
 			var walletManager = new WalletManager(null, workDir);
-			WalletService wallet = null;
+			walletManager.Init(bitcoinStore, synchronizer, nodes, serviceConfiguration, synchronizer);
+			WalletService wallet = await walletManager.AddWalletServiceAsync(keyManager);
+			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			// Get some money, make it confirm.
 			var key = keyManager.GetNextReceiveKey("foo label", out _);
@@ -774,12 +776,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 			await rpc.GenerateAsync(1);
 			try
 			{
-				walletManager.Init(bitcoinStore, synchronizer, nodes, serviceConfiguration, synchronizer);
-				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
-				{
-					wallet = await walletManager.CreateAddStartWalletServiceAsync(keyManager, cts.Token);
-					wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
-				}
 				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				nodes.Connect(); // Start connection service.
 				node.VersionHandshake(); // Start mempool service.
@@ -788,7 +784,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 				// Wait until the filter our previous transaction is present.
 				var blockCount = await rpc.GetBlockCountAsync();
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
-
+				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
+				{
+					await walletManager.StartWalletServiceAsync(wallet, cts.Token);
+				}
 				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, walletManager, rpc);
 
 				var waitCount = 0;
@@ -1398,8 +1397,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 			// 5. Create wallet service.
 			var workDir = GetWorkDir();
 
-			var walletManager = new WalletManager(null, null);
-			WalletService wallet = null;
+			var walletManager = new WalletManager(null, workDir);
+			walletManager.Init(bitcoinStore, synchronizer, nodes, serviceConfiguration, synchronizer);
+			WalletService wallet = await walletManager.AddWalletServiceAsync(keyManager);
+			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			Assert.Empty(wallet.Coins);
 			var baseTip = await rpc.GetBestBlockHashAsync();
@@ -1423,11 +1424,9 @@ namespace WalletWasabi.Tests.IntegrationTests
 				// Wait until the filter our previous transaction is present.
 				var blockCount = await rpc.GetBlockCountAsync();
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
-				walletManager.Init(bitcoinStore, synchronizer, nodes, serviceConfiguration, synchronizer);
 				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
 				{
-					wallet = await walletManager.CreateAddStartWalletServiceAsync(keyManager, cts.Token);
-					wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
+					await walletManager.StartWalletServiceAsync(wallet, cts.Token);
 				}
 				var coin = Assert.Single(wallet.Coins);
 				Assert.True(coin.Confirmed);
@@ -1616,8 +1615,11 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 			// 5. Create wallet service.
 			var workDir = GetWorkDir();
-			var walletManager = new WalletManager(null, null);
-			WalletService wallet = null;
+
+			var walletManager = new WalletManager(null, workDir);
+			walletManager.Init(bitcoinStore, synchronizer, nodes, serviceConfiguration, synchronizer);
+			WalletService wallet = await walletManager.AddWalletServiceAsync(keyManager);
+			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			Assert.Empty(wallet.Coins);
 
@@ -1633,11 +1635,9 @@ namespace WalletWasabi.Tests.IntegrationTests
 				// Wait until the filter our previous transaction is present.
 				var blockCount = await rpc.GetBlockCountAsync();
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
-				walletManager.Init(bitcoinStore, synchronizer, nodes, serviceConfiguration, synchronizer);
 				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
 				{
-					wallet = await walletManager.CreateAddStartWalletServiceAsync(keyManager, cts.Token);
-					wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
+					await walletManager.StartWalletServiceAsync(wallet, cts.Token);
 				}
 				Assert.Empty(wallet.Coins);
 
