@@ -272,7 +272,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 
 					BitcoinAddress customChangeAddress = null;
-					if (!string.IsNullOrWhiteSpace(CustomChangeAddress))
+					if (Global.UiConfig?.IsCustomChangeAddress is true && !string.IsNullOrWhiteSpace(CustomChangeAddress))
 					{
 						try
 						{
