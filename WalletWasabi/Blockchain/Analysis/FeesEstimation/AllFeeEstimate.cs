@@ -12,6 +12,17 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 	[JsonObject(MemberSerialization.OptIn)]
 	public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 	{
+		[JsonConstructor]
+		public AllFeeEstimate(EstimateSmartFeeMode type, IDictionary<int, int> estimations, bool isAccurate)
+		{
+			Create(type, estimations, isAccurate);
+		}
+
+		public AllFeeEstimate(AllFeeEstimate other, bool isAccurate)
+		{
+			Create(other.Type, other.Estimations, isAccurate);
+		}
+
 		[JsonProperty]
 		public EstimateSmartFeeMode Type { get; private set; }
 
@@ -26,17 +37,6 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 		/// </summary>
 		[JsonProperty]
 		public Dictionary<int, int> Estimations { get; private set; }
-
-		[JsonConstructor]
-		public AllFeeEstimate(EstimateSmartFeeMode type, IDictionary<int, int> estimations, bool isAccurate)
-		{
-			Create(type, estimations, isAccurate);
-		}
-
-		public AllFeeEstimate(AllFeeEstimate other, bool isAccurate)
-		{
-			Create(other.Type, other.Estimations, isAccurate);
-		}
 
 		private void Create(EstimateSmartFeeMode type, IDictionary<int, int> estimations, bool isAccurate)
 		{

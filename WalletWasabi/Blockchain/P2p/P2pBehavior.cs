@@ -19,12 +19,12 @@ namespace WalletWasabi.Blockchain.P2p
 	{
 		private const int MaxInvSize = 50000;
 
-		public MempoolService MempoolService { get; }
-
 		protected P2pBehavior(MempoolService mempoolService)
 		{
 			MempoolService = Guard.NotNull(nameof(mempoolService), mempoolService);
 		}
+
+		public MempoolService MempoolService { get; }
 
 		protected override void AttachCore()
 		{

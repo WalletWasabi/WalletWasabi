@@ -23,13 +23,6 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 {
 	public class TransactionBroadcaster
 	{
-		public BitcoinStore BitcoinStore { get; }
-		public WasabiSynchronizer Synchronizer { get; }
-		public Network Network { get; }
-		public NodesGroup Nodes { get; }
-		public RPCClient RpcClient { get; private set; }
-		public WalletManager WalletManager { get; }
-
 		public TransactionBroadcaster(Network network, BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, NodesGroup nodes, WalletManager walletManager, RPCClient rpc)
 		{
 			Nodes = Guard.NotNull(nameof(nodes), nodes);
@@ -39,6 +32,13 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 			WalletManager = Guard.NotNull(nameof(walletManager), walletManager);
 			RpcClient = rpc;
 		}
+
+		public BitcoinStore BitcoinStore { get; }
+		public WasabiSynchronizer Synchronizer { get; }
+		public Network Network { get; }
+		public NodesGroup Nodes { get; }
+		public RPCClient RpcClient { get; private set; }
+		public WalletManager WalletManager { get; }
 
 		private async Task BroadcastTransactionToNetworkNodeAsync(SmartTransaction transaction, Node node)
 		{

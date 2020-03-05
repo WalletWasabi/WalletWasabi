@@ -31,6 +31,7 @@ using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Rpc;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
+using WalletWasabi.Legal;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
@@ -50,6 +51,7 @@ namespace WalletWasabi.Gui
 		public string WalletBackupsDir { get; }
 
 		public BitcoinStore BitcoinStore { get; private set; }
+		public LegalDocuments LegalDocuments { get; set; }
 		public Config Config { get; private set; }
 
 		public string AddressManagerFilePath { get; private set; }
@@ -89,6 +91,8 @@ namespace WalletWasabi.Gui
 
 			HostedServices = new HostedServices();
 			WalletManager = new WalletManager(WalletBackupsDir);
+
+			LegalDocuments = LegalDocuments.TryLoadAgreed(DataDir);
 
 			WalletManager.OnDequeue += WalletManager_OnDequeue;
 			WalletManager.WalletRelevantTransactionProcessed += WalletManager_WalletRelevantTransactionProcessed;
