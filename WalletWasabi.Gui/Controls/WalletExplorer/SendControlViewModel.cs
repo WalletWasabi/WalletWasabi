@@ -838,7 +838,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (Address?.Trim() == CustomChangeAddress.Trim())
 			{
-				return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "The active address and the change addresses cannot be the same."));
+				return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "The active address and the change address cannot be the same."));
 			}
 
 			if (AddressStringParser.TryParseBitcoinAddress(CustomChangeAddress, Global.Network, out _))
