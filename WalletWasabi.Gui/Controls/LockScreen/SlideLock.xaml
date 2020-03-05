@@ -13,7 +13,7 @@
                         Content="{TemplateBinding Content}"
                         Padding="{TemplateBinding Padding}"
                         VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                        HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+                        HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
           <Thumb Name="PART_Thumb">
             <Thumb.Template>
               <ControlTemplate>

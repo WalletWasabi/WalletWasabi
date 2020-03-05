@@ -14,12 +14,12 @@
       <SolidColorBrush x:Key="WarningMessageForeground">#FFDD00</SolidColorBrush>
       <SolidColorBrush x:Key="GreenBrush">#00DD10</SolidColorBrush>
 
-      <SolidColorBrush x:Key="NotificationCardBackgroundBrush" Color="#444444" Opacity="0.75"/>
-      <SolidColorBrush x:Key="NotificationCardInformationBackgroundBrush" Color="#007ACC" Opacity="0.75"/>
-      <SolidColorBrush x:Key="NotificationCardSuccessBackgroundBrush" Color="#1F9E45" Opacity="0.75"/>
-      <SolidColorBrush x:Key="NotificationCardWarningBackgroundBrush" Color="#FDB328" Opacity="0.75"/>
-      <SolidColorBrush x:Key="NotificationCardErrorBackgroundBrush" Color="#BD202C" Opacity="0.75"/>
-      
+      <SolidColorBrush x:Key="NotificationCardBackgroundBrush" Color="#444444" Opacity="0.75" />
+      <SolidColorBrush x:Key="NotificationCardInformationBackgroundBrush" Color="#007ACC" Opacity="0.75" />
+      <SolidColorBrush x:Key="NotificationCardSuccessBackgroundBrush" Color="#1F9E45" Opacity="0.75" />
+      <SolidColorBrush x:Key="NotificationCardWarningBackgroundBrush" Color="#FDB328" Opacity="0.75" />
+      <SolidColorBrush x:Key="NotificationCardErrorBackgroundBrush" Color="#BD202C" Opacity="0.75" />
+
       <sys:Double x:Key="FontSizeSmall">12</sys:Double>
       <sys:Double x:Key="FontSizeNormal">14</sys:Double>
       <sys:Double x:Key="FontSizeLarge">16</sys:Double>
@@ -30,13 +30,13 @@
   </Style>
 
   <Style Selector="shellext|DocumentTabControl /template/ TabStripItem">
-    <Setter Property="VerticalContentAlignment" Value="Center"/>
+    <Setter Property="VerticalContentAlignment" Value="Center" />
   </Style>
-  
+
   <Style Selector="NotificationCard/template/ ContentControl#PART_Content">
     <Setter Property="MinHeight" Value="50" />
   </Style>
-  
+
   <Style Selector="shell|MetroWindow /template/ Button#minimiseButton">
     <Setter Property="Content">
       <Template>
@@ -191,8 +191,8 @@
     <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderMidBrush}" />
     <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderThickness}" />
-    <Setter Property="SelectionBrush" Value="{DynamicResource HighlightBrush}"/>
-    <Setter Property="SelectionForegroundBrush" Value="{DynamicResource HighlightForegroundBrush}"/>
+    <Setter Property="SelectionBrush" Value="{DynamicResource HighlightBrush}" />
+    <Setter Property="SelectionForegroundBrush" Value="{DynamicResource HighlightForegroundBrush}" />
     <Setter Property="Padding" Value="4" />
     <Setter Property="Template">
       <ControlTemplate>
@@ -236,7 +236,7 @@
                     PasswordChar="{TemplateBinding PasswordChar}"
                     SelectionBrush="{TemplateBinding SelectionBrush}"
                     SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
-                    CaretBrush="{TemplateBinding CaretBrush}"/>
+                    CaretBrush="{TemplateBinding CaretBrush}" />
                 </Panel>
               </ScrollViewer>
             </DockPanel>
