@@ -1,4 +1,6 @@
 using Avalonia;
+using AvalonStudio.Extensibility;
+using AvalonStudio.Shell;
 using Gma.QrCodeNet.Encoding;
 using ReactiveUI;
 using Splat;
@@ -36,6 +38,7 @@ namespace WalletWasabi.Gui.ViewModels
 		public ReactiveCommand<Unit, Unit> CopyLabel { get; }
 		public ReactiveCommand<Unit, bool> ChangeLabel { get; }
 		public ReactiveCommand<Unit, Unit> DisplayAddressOnHw { get; }
+		public ReactiveCommand<Unit, Unit> LockAddress { get; }
 
 		public HdPubKey Model { get; }
 		private Global Global { get; }
@@ -123,6 +126,18 @@ namespace WalletWasabi.Gui.ViewModels
 				}
 			});
 
+			LockAddress = ReactiveCommand.CreateFromTask(async () =>
+			{
+				Model.SetKeyState(KeyState.Locked, km);
+				IoC.Get<IShell>().Documents?.OfType<ReceiveTabViewModel>()?.FirstOrDefault(x => x.WalletService.KeyManager == KeyManager).InitializeAddresses();
+
+				bool isAddressCopied = await Application.Current.Clipboard.GetTextAsync() == Address;
+				if (isAddressCopied)
+				{
+					await Application.Current.Clipboard.ClearAsync();
+				}
+			});
+
 			Observable
 				.Merge(ToggleQrCode.ThrownExceptions)
 				.Merge(SaveQRCode.ThrownExceptions)
@@ -130,6 +145,7 @@ namespace WalletWasabi.Gui.ViewModels
 				.Merge(CopyLabel.ThrownExceptions)
 				.Merge(ChangeLabel.ThrownExceptions)
 				.Merge(DisplayAddressOnHw.ThrownExceptions)
+				.Merge(LockAddress.ThrownExceptions)
 				.Subscribe(ex =>
 				{
 					Logger.LogError(ex);

@@ -92,7 +92,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
 
-		private WalletService WalletService { get; }
+		public WalletService WalletService { get; }
 
 		public SuggestLabelViewModel LabelSuggestion { get; }
 
@@ -121,7 +121,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _selectedAddress, value);
 		}
 
-		private void InitializeAddresses()
+		public void InitializeAddresses()
 		{
 			try
 			{
