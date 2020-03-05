@@ -279,6 +279,7 @@ namespace WalletWasabi.Blockchain.Keys
 			lock (km.HdPubKeyScriptBytesLock)
 			{
 				km.HdPubKeyScriptBytes.AddRange(km.GetKeys(x => true).Select(x => x.P2wpkhScript.ToCompressedBytes()));
+				km.HdPubKeyScriptBytes.AddRange(km.GetKeys(x => true).Select(x => x.P2wpkhScript.ToBytes()));
 			}
 
 			lock (km.ScriptHdPubKeyMapLock)

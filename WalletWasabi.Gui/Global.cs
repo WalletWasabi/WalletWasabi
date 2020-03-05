@@ -273,6 +273,8 @@ namespace WalletWasabi.Gui
 									userAgent: $"/WasabiClient:{Constants.ClientVersion.ToString()}/"),
 								cancel)
 							.ConfigureAwait(false);
+
+						Synchronizer.CoreNode = BitcoinCoreNode;
 					}
 				}
 				catch (Exception ex)

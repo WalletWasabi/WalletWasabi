@@ -14,7 +14,9 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Bases;
+using WalletWasabi.BitcoinCore;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -33,6 +35,8 @@ namespace WalletWasabi.Services
 		public WasabiClient WasabiClient { get; private set; }
 
 		public Network Network { get; private set; }
+
+		public CoreNode CoreNode { get; set; }
 
 		private decimal _usdExchangeRate;
 
@@ -177,11 +181,63 @@ namespace WalletWasabi.Services
 									return;
 								}
 
-								response = await WasabiClient.GetSynchronizeAsync(hashChain.TipHash, maxFiltersToSyncAtInitialization, estimateMode, Cancel.Token).WithAwaitCancellationAsync(Cancel.Token, 300);
+								int requestFilterCount = maxFiltersToSyncAtInitialization;
+								List<FilterModel> filters = null;
+								if (CoreNode?.RpcClient != null)
+								{
+									// If bitcoin client is runnig we try to fetch filters from there.
+									filters = new List<FilterModel>();
+
+									try
+									{
+										uint256 bestBlock = await CoreNode.RpcClient.GetBestBlockHashAsync();
+										if (bestBlock != hashChain.Tip.BlockHash)
+										{
+											var tipHeight = hashChain.Tip.Height;
+											for (uint nextHeight = tipHeight + 1; nextHeight < tipHeight + maxFiltersToSyncAtInitialization + 1; nextHeight++)
+											{
+												uint256 nextBlock = await CoreNode.RpcClient.GetBlockHashAsync(nextHeight);
+
+												BlockHeader blockHeader = await CoreNode.RpcClient.GetBlockHeaderAsync(nextBlock);
+												BlockFilter blockFilter = await CoreNode.RpcClient.GetBlockFilterAsync(nextBlock);
+												SmartHeader smartHeader = new SmartHeader(nextBlock, blockHeader.HashPrevBlock, nextHeight, blockHeader.BlockTime);
+												filters.Add(new FilterModel(smartHeader, blockFilter.Filter));
+
+												if (nextBlock == bestBlock)
+												{
+													break;
+												}
+											}
+
+											if (filters.Any())
+											{
+												// We fetched filters form bitcoin core no need to ask filters fomr the server.
+												requestFilterCount = 0;
+											}
+										}
+									}
+									catch (Exception ex)
+									{
+										Logger.LogWarning($"Failed to connect to fullnode: {ex.Message}.");
+									}
+								}
+
+								response = await WasabiClient.GetSynchronizeAsync(hashChain.TipHash, requestFilterCount, estimateMode, Cancel.Token).WithAwaitCancellationAsync(Cancel.Token, 300);
 								// NOT GenSocksServErr
 								BackendStatus = BackendStatus.Connected;
 								TorStatus = TorStatus.Running;
 								DoNotGenSocksServFail();
+
+								if (filters != null && filters.Any())
+								{
+									if (response.Filters.Count() == 1)
+									{
+										if (response.Filters.First().Header.BlockHash == filters.First().Header.BlockHash)
+										{
+											response.Filters = filters;
+										}
+									}
+								}
 							}
 							catch (ConnectionException ex)
 							{
