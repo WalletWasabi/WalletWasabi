@@ -211,6 +211,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						SetAmountIfMax();
 
 						LabelToolTip = "Spending whole coins does not generate change, thus labeling is unnecessary.";
+
+						CustomChangeAddress = "";
 					}
 					else
 					{
@@ -827,6 +829,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			if (string.IsNullOrWhiteSpace(CustomChangeAddress))
 			{
 				return ErrorDescriptors.Empty;
+			}
+
+			if (IsMax)
+			{
+				return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Spending whole coins does not generate change."));
 			}
 
 			if (Address?.Trim() == CustomChangeAddress.Trim())
