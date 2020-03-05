@@ -13,6 +13,9 @@ namespace WalletWasabi.BitcoinCore
 		}
 
 		public Network Network => Rpc.Network;
+
+		public RPCCredentialString CredentialString => Rpc.CredentialString;
+
 		private RPCClient Rpc { get; }
 
 		public async Task<uint256> GetBestBlockHashAsync()
@@ -28,6 +31,11 @@ namespace WalletWasabi.BitcoinCore
 		public async Task<BlockHeader> GetBlockHeaderAsync(uint256 blockHash)
 		{
 			return await Rpc.GetBlockHeaderAsync(blockHash).ConfigureAwait(false);
+		}
+
+		public IRPCClient PrepareBatch()
+		{
+			throw new System.NotImplementedException();
 		}
 	}
 }

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
+using NBitcoin.RPC;
 using WalletWasabi.BitcoinCore;
 using WalletWasabi.Blockchain.Blocks;
 using Xunit;
@@ -268,6 +269,8 @@ namespace WalletWasabi.Tests.UnitTests
 
 		public Network Network => Network.RegTest;
 
+		public RPCCredentialString CredentialString => new RPCCredentialString();
+
 		public Task<uint256> GetBestBlockHashAsync()
 		{
 			return OnGetBestBlockHashAsync();
@@ -281,6 +284,11 @@ namespace WalletWasabi.Tests.UnitTests
 		public Task<BlockHeader> GetBlockHeaderAsync(uint256 blockHash)
 		{
 			return OnGetBlockHeaderAsync(blockHash);
+		}
+
+		public IRPCClient PrepareBatch()
+		{
+			throw new NotImplementedException();
 		}
 	}
 }
