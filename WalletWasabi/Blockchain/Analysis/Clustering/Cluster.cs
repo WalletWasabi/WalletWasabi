@@ -9,19 +9,7 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 {
 	public class Cluster : NotifyPropertyChangedBase, IEquatable<Cluster>
 	{
-		private object Lock { get; }
-		private List<SmartCoin> Coins { get; set; }
-		private HashSet<SmartCoin> CoinsSet { get; set; }
-
 		private SmartLabel _labels;
-
-		public SmartLabel Labels
-		{
-			get => _labels;
-			private set => RaiseAndSetIfChanged(ref _labels, value);
-		}
-
-		public int Size => Coins.Count;
 
 		public Cluster(params SmartCoin[] coins)
 			: this(coins as IEnumerable<SmartCoin>)
@@ -35,6 +23,18 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 			CoinsSet = Coins.ToHashSet();
 			Labels = SmartLabel.Merge(Coins.Select(x => x.Label));
 		}
+
+		public SmartLabel Labels
+		{
+			get => _labels;
+			private set => RaiseAndSetIfChanged(ref _labels, value);
+		}
+
+		public int Size => Coins.Count;
+
+		private object Lock { get; }
+		private List<SmartCoin> Coins { get; set; }
+		private HashSet<SmartCoin> CoinsSet { get; set; }
 
 		public void Merge(Cluster clusters) => Merge(clusters.Coins);
 
