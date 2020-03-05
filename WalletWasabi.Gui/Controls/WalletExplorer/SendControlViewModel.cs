@@ -289,7 +289,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					if (customChangeAddress == address)
 					{
-						NotificationHelpers.Warning("The active address and the change addresses cannot be the same.", "");
+						NotificationHelpers.Warning("The active address and the change address cannot be the same.", "");
 						return;
 					}
 
