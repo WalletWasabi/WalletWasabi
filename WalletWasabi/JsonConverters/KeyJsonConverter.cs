@@ -17,7 +17,18 @@ namespace WalletWasabi.JsonConverters
 		/// <inheritdoc />
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
-			return Key.Parse(((string)reader.Value).Trim());
+			var serializedKey = ((string)reader.Value).Trim();
+			foreach (var network in Network.GetNetworks())
+			{
+				try
+				{
+					return Key.Parse(serializedKey, network);
+				}
+				catch (FormatException)
+				{
+				}
+			}
+			return null;
 		}
 
 		/// <inheritdoc />
