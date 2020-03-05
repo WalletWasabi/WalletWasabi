@@ -285,6 +285,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 					}
 
+					if (customChangeAddress == address)
+					{
+						NotificationHelpers.Warning("The active address and the change addresses cannot be the same.", "");
+						return;
+					}
+
 					MoneyRequest moneyRequest;
 					if (IsMax)
 					{
@@ -800,7 +806,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (Address.Trim() == CustomChangeAddress?.Trim())
 			{
-				return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Active and change addresses cannot be the same."));
+				return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "The active address and the change addresses cannot be the same."));
 			}
 
 			if (AddressStringParser.TryParseBitcoinAddress(Address, Global.Network, out _))
@@ -825,7 +831,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (Address?.Trim() == CustomChangeAddress.Trim())
 			{
-				return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Active and change addresses cannot be the same."));
+				return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "The active address and the change addresses cannot be the same."));
 			}
 
 			if (AddressStringParser.TryParseBitcoinAddress(CustomChangeAddress, Global.Network, out _))
