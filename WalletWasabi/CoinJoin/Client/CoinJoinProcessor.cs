@@ -15,6 +15,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
+using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.CoinJoin.Client
@@ -22,17 +23,14 @@ namespace WalletWasabi.CoinJoin.Client
 	public class CoinJoinProcessor : IDisposable
 	{
 		public WasabiSynchronizer Synchronizer { get; }
-		public Dictionary<WalletService, HashSet<uint256>> WalletServices { get; }
-		public IEnumerable<KeyValuePair<WalletService, HashSet<uint256>>> AliveWalletServices => WalletServices.Where(x => x.Key is { IsDisposed: var isDisposed } && !isDisposed);
-		public object WalletServicesLock { get; }
+		public WalletManager WalletManager { get; }
 		public RPCClient RpcClient { get; private set; }
 		private AsyncLock ProcessLock { get; }
 
-		public CoinJoinProcessor(WasabiSynchronizer synchronizer, RPCClient rpc)
+		public CoinJoinProcessor(WasabiSynchronizer synchronizer, WalletManager walletManager, RPCClient rpc)
 		{
 			Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
-			WalletServices = new Dictionary<WalletService, HashSet<uint256>>();
-			WalletServicesLock = new object();
+			WalletManager = Guard.NotNull(nameof(walletManager), walletManager);
 			RpcClient = rpc;
 			ProcessLock = new AsyncLock();
 			Synchronizer.ResponseArrived += Synchronizer_ResponseArrivedAsync;
@@ -50,18 +48,7 @@ namespace WalletWasabi.CoinJoin.Client
 						return;
 					}
 
-					var txsNotKnownByAWalletService = new HashSet<uint256>();
-					lock (WalletServicesLock)
-					{
-						foreach (var pair in AliveWalletServices)
-						{
-							// If a wallet service doesn't know about the tx, then we add it for processing.
-							foreach (var tx in unconfirmedCoinJoinHashes.Where(x => !pair.Value.Contains(x)))
-							{
-								txsNotKnownByAWalletService.Add(tx);
-							}
-						}
-					}
+					var txsNotKnownByAWalletService = WalletManager.FilterUnknownCoinjoins(unconfirmedCoinJoinHashes);
 
 					using var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint);
 
@@ -73,7 +60,7 @@ namespace WalletWasabi.CoinJoin.Client
 							|| await TryBroadcastTransactionWithRpcAsync(tx).ConfigureAwait(false)
 							|| (await RpcClient.TestAsync().ConfigureAwait(false)) is { }) // If the test throws exception then I believe it, because RPC is down and the backend is the god.
 						{
-							BelieveTransaction(tx);
+							WalletManager.ProcessCoinJoin(tx);
 						}
 					}
 				}
@@ -81,28 +68,6 @@ namespace WalletWasabi.CoinJoin.Client
 			catch (Exception ex)
 			{
 				Logger.LogError(ex);
-			}
-		}
-
-		public void AddWalletService(WalletService walletService)
-		{
-			Guard.NotNull(nameof(walletService), walletService);
-			lock (WalletServicesLock)
-			{
-				WalletServices.Add(walletService, new HashSet<uint256>());
-			}
-		}
-
-		private void BelieveTransaction(SmartTransaction transaction)
-		{
-			lock (WalletServicesLock)
-			{
-				foreach (var pair in AliveWalletServices.Where(x => !x.Value.Contains(transaction.GetHash())))
-				{
-					var walletService = pair.Key;
-					pair.Value.Add(transaction.GetHash());
-					walletService.TransactionProcessor.Process(transaction);
-				}
 			}
 		}
 

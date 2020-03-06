@@ -4,11 +4,13 @@ using AvalonStudio.Shell;
 using NBitcoin.Protocol;
 using Nito.AsyncEx;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -19,12 +21,15 @@ using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Gui.Converters;
 using WalletWasabi.Gui.Dialogs;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models.StatusBarStatuses;
 using WalletWasabi.Gui.Tabs;
 using WalletWasabi.Helpers;
+using WalletWasabi.Legal;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
+using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Gui.ViewModels
 {
@@ -50,12 +55,12 @@ namespace WalletWasabi.Gui.ViewModels
 		private string _btcPrice;
 		private ObservableAsPropertyHelper<string> _status;
 		private bool _downloadingBlock;
-		public Global Global { get; }
+		private Global Global { get; }
 		private StatusSet ActiveStatuses { get; }
 
-		public StatusBarViewModel(Global global)
+		public StatusBarViewModel()
 		{
-			Global = global;
+			Global = Locator.Current.GetService<Global>();
 			Backend = BackendStatus.NotConnected;
 			UseTor = false;
 			Tor = TorStatus.NotRunning;
@@ -230,7 +235,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 			this.WhenAnyValue(x => x.UpdateStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
+				.Subscribe(async x =>
 				{
 					if (x.BackendCompatible)
 					{
@@ -252,18 +257,39 @@ namespace WalletWasabi.Gui.ViewModels
 
 					UpdateAvailable = !x.ClientUpToDate;
 					CriticalUpdateAvailable = !x.BackendCompatible;
+
+					try
+					{
+						if (Global.LegalDocuments is null || Global.LegalDocuments.Version < x.LegalDocumentsVersion)
+						{
+							using var client = new WasabiClient(() => Global.Config.UseTor ? Global.Config.GetCurrentBackendUri() : Global.Config.GetFallbackBackendUri(), Global.Config.UseTor ? Global.Config.TorSocks5EndPoint : null);
+							var versions = await client.GetVersionsAsync(CancellationToken.None);
+							var version = versions.LegalDocumentsVersion;
+							var legalFolderPath = Path.Combine(Global.DataDir, LegalDocuments.LegalFolderName);
+							var filePath = Path.Combine(legalFolderPath, $"{version}.txt");
+							var legalContent = await client.GetLegalDocumentsAsync(CancellationToken.None);
+
+							IoC.Get<IShell>().Documents.OfType<LegalDocumentsViewModel>()?.FirstOrDefault()?.OnClose();
+							IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel(legalContent, new LegalDocuments(filePath)));
+						}
+					}
+					catch (Exception ex)
+					{
+						Logger.LogError(ex);
+						NotificationHelpers.Error("Could not get Legal Documents!");
+					}
 				});
 
-			UpdateCommand = ReactiveCommand.Create(() =>
+			UpdateCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				try
 				{
-					IoHelpers.OpenBrowser("https://wasabiwallet.io/#download");
+					await IoHelpers.OpenBrowserAsync("https://wasabiwallet.io/#download");
 				}
 				catch (Exception ex)
 				{
 					Logger.LogWarning(ex);
-					IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel(Global));
+					IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
 				}
 			}, this.WhenAnyValue(x => x.UpdateAvailable, x => x.CriticalUpdateAvailable, (x, y) => x || y));
 

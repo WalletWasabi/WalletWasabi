@@ -138,11 +138,11 @@ namespace WalletWasabi.Gui.Controls
 					break;
 
 				case SortOrder.Increasing:
-					IconPath.Data = DownArrow;
+					IconPath.Data = UpArrow;
 					break;
 
 				case SortOrder.Decreasing:
-					IconPath.Data = UpArrow;
+					IconPath.Data = DownArrow;
 					break;
 			}
 		}

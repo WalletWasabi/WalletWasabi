@@ -40,11 +40,11 @@ namespace WalletWasabi.Hwi.Models
 
 		#region Equality
 
-		public override bool Equals(object obj) => obj is HwiOption pubKey && this == pubKey;
+		public override bool Equals(object obj) => Equals(obj as HwiOption);
 
 		public bool Equals(HwiOption other) => this == other;
 
-		public override int GetHashCode() => Type.GetHashCode() ^ Arguments.GetHashCode();
+		public override int GetHashCode() => (Type, Arguments).GetHashCode();
 
 		public static bool operator ==(HwiOption x, HwiOption y) => x?.Type == y?.Type && x?.Arguments == y?.Arguments;
 

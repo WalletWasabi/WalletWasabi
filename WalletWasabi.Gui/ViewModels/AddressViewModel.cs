@@ -1,6 +1,7 @@
 using Avalonia;
 using Gma.QrCodeNet.Encoding;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Linq;
 using System.Reactive;
@@ -10,6 +11,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Gui.Controls.WalletExplorer;
+using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Hwi;
+using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.ViewModels
@@ -25,13 +30,23 @@ namespace WalletWasabi.Gui.ViewModels
 		private string _label;
 		private bool _inEditMode;
 		private ObservableAsPropertyHelper<string> _expandMenuCaption;
+		public ReactiveCommand<Unit, bool> ToggleQrCode { get; }
+		public ReactiveCommand<Unit, Unit> SaveQRCode { get; }
+		public ReactiveCommand<Unit, Unit> CopyAddress { get; }
+		public ReactiveCommand<Unit, Unit> CopyLabel { get; }
+		public ReactiveCommand<Unit, bool> ChangeLabel { get; }
+		public ReactiveCommand<Unit, Unit> DisplayAddressOnHw { get; }
 
 		public HdPubKey Model { get; }
-		public Global Global { get; }
+		private Global Global { get; }
+		public KeyManager KeyManager { get; }
+		public bool IsHardwareWallet { get; }
 
-		public AddressViewModel(HdPubKey model, Global global)
+		public AddressViewModel(HdPubKey model, KeyManager km)
 		{
-			Global = global;
+			Global = Locator.Current.GetService<Global>();
+			KeyManager = km;
+			IsHardwareWallet = km.IsHardwareWallet;
 			Model = model;
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;
@@ -66,7 +81,7 @@ namespace WalletWasabi.Gui.ViewModels
 				{
 					if (InEditMode)
 					{
-						KeyManager keyManager = Global.WalletService.KeyManager;
+						KeyManager keyManager = KeyManager;
 						HdPubKey hdPubKey = keyManager.GetKeys(x => Model == x).FirstOrDefault();
 
 						if (hdPubKey != default)
@@ -82,6 +97,44 @@ namespace WalletWasabi.Gui.ViewModels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.ToProperty(this, x => x.ExpandMenuCaption)
 				.DisposeWith(Disposables);
+
+			ToggleQrCode = ReactiveCommand.Create(() => IsExpanded = !IsExpanded);
+
+			SaveQRCode = ReactiveCommand.CreateFromTask(SaveQRCodeAsync);
+
+			CopyAddress = ReactiveCommand.CreateFromTask(TryCopyToClipboardAsync);
+
+			CopyLabel = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(Label ?? string.Empty));
+
+			ChangeLabel = ReactiveCommand.Create(() => InEditMode = true);
+
+			DisplayAddressOnHw = ReactiveCommand.CreateFromTask(async () =>
+			{
+				var client = new HwiClient(Global.Network);
+				using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+				try
+				{
+					await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, Model.FullKeyPath, cts.Token);
+				}
+				catch (HwiException)
+				{
+					await PinPadViewModel.UnlockAsync();
+					await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, Model.FullKeyPath, cts.Token);
+				}
+			});
+
+			Observable
+				.Merge(ToggleQrCode.ThrownExceptions)
+				.Merge(SaveQRCode.ThrownExceptions)
+				.Merge(CopyAddress.ThrownExceptions)
+				.Merge(CopyLabel.ThrownExceptions)
+				.Merge(ChangeLabel.ThrownExceptions)
+				.Merge(DisplayAddressOnHw.ThrownExceptions)
+				.Subscribe(ex =>
+				{
+					Logger.LogError(ex);
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
+				});
 		}
 
 		public bool IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;

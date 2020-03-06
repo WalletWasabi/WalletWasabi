@@ -208,7 +208,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 			try
 			{
-				// First is redundand txhash serialization.
+				// First is redundant txhash serialization.
 				var heightString = parts[2];
 				var blockHashString = parts[3];
 				var blockIndexString = parts[4];
@@ -252,7 +252,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => obj is SmartTransaction tx && this == tx;
+		public override bool Equals(object obj) => Equals(obj as SmartTransaction);
 
 		public bool Equals(SmartTransaction other) => this == other;
 

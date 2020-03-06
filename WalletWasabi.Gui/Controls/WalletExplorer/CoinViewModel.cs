@@ -1,5 +1,6 @@
 using NBitcoin;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Globalization;
 using System.Linq;
@@ -9,9 +10,15 @@ using System.Reactive.Linq;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.CoinJoin.Client.Rounds;
 using WalletWasabi.CoinJoin.Common.Models;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
+using WalletWasabi.Logging;
+using AvalonStudio.Extensibility;
+using AvalonStudio.Shell;
+using Avalonia;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -25,12 +32,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableAsPropertyHelper<bool> _unspent;
 		private ObservableAsPropertyHelper<bool> _confirmed;
 		private ObservableAsPropertyHelper<bool> _unavailable;
-		public Global Global { get; set; }
+		private ObservableAsPropertyHelper<string> _cluster;
+		private WalletService WalletService { get; }
+		public CoinListViewModel Owner { get; }
+		private Global Global { get; }
+		public bool CanBeDequeued => Owner.CanDequeueCoins;
+		public ReactiveCommand<Unit, Unit> DequeueCoin { get; }
+		public ReactiveCommand<Unit, Unit> OpenCoinInfo { get; }
+		public ReactiveCommand<Unit, Unit> CopyClusters { get; }
 
-		public CoinViewModel(Global global, SmartCoin model)
+		public CoinViewModel(WalletService walletService, CoinListViewModel owner, SmartCoin model)
 		{
+			Global = Locator.Current.GetService<Global>();
+
 			Model = model;
-			Global = global;
+			WalletService = walletService;
+			Owner = owner;
 
 			RefreshSmartCoinStatus();
 
@@ -51,6 +68,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ToProperty(this, x => x.Confirmed, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
 
+			_cluster = Model
+				.WhenAnyValue(x => x.Clusters, x => x.Clusters.Labels)
+				.Select(x => x.Item2.ToString())
+				.ToProperty(this, x => x.Clusters, scheduler: RxApp.MainThreadScheduler)
+				.DisposeWith(Disposables);
+
 			_unavailable = Model
 				.WhenAnyValue(x => x.Unavailable)
 				.ToProperty(this, x => x.Unavailable, scheduler: RxApp.MainThreadScheduler)
@@ -62,7 +85,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Observable
 				.Merge(Model.WhenAnyValue(x => x.IsBanned, x => x.SpentAccordingToBackend, x => x.Confirmed, x => x.CoinJoinInProgress).Select(_ => Unit.Default))
-				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.StateUpdated)).Select(_ => Unit.Default))
+				.Merge(Observable.FromEventPattern(WalletService.ChaumianClient, nameof(WalletService.ChaumianClient.StateUpdated)).Select(_ => Unit.Default))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => RefreshSmartCoinStatus())
 				.DisposeWith(Disposables);
@@ -83,6 +106,32 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					this.RaisePropertyChanged(nameof(AmountBtc));
 					this.RaisePropertyChanged(nameof(Clusters));
 				}).DisposeWith(Disposables);
+
+			DequeueCoin = ReactiveCommand.Create(() => Owner.PressDequeue(Model), this.WhenAnyValue(x => x.CoinJoinInProgress));
+
+			OpenCoinInfo = ReactiveCommand.Create(() =>
+			{
+				var shell = IoC.Get<IShell>();
+
+				var coinInfo = shell.Documents?.OfType<CoinInfoTabViewModel>()?.FirstOrDefault(x => x.Coin?.Model == Model);
+
+				if (coinInfo is null)
+				{
+					coinInfo = new CoinInfoTabViewModel(this);
+					shell.AddDocument(coinInfo);
+				}
+
+				shell.Select(coinInfo);
+			});
+
+			CopyClusters = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(Clusters));
+
+			Observable
+				.Merge(DequeueCoin.ThrownExceptions) // Don't notify about it. Dequeue failure (and success) is notified by other mechanism.
+				.Merge(OpenCoinInfo.ThrownExceptions)
+				.Merge(CopyClusters.ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		public SmartCoin Model { get; }
@@ -126,8 +175,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string AmountBtc => Model.Amount.ToString(false, true);
 
-		public string Label => Model.Label;
-
 		public int Height => Model.Height;
 
 		public string TransactionId => Model.TransactionId.ToString();
@@ -138,7 +185,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string InCoinJoin => Model.CoinJoinInProgress ? "Yes" : "No";
 
-		public string Clusters => Model.Clusters.Labels; // If the value is null the bind do not update the view. It shows the previous state for example: ##### even if PrivMode false.
+		public string Clusters => _cluster?.Value ?? "";
 
 		public string PubKey => Model.HdPubKey?.PubKey?.ToString() ?? "";
 
@@ -163,9 +210,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return SmartCoinStatus.MixingBanned;
 			}
 
-			if (Model.CoinJoinInProgress && Global.ChaumianClient != null)
+			if (Model.CoinJoinInProgress && WalletService.ChaumianClient != null)
 			{
-				ClientState clientState = Global.ChaumianClient.State;
+				ClientState clientState = WalletService.ChaumianClient.State;
 				foreach (var round in clientState.GetAllMixingRounds())
 				{
 					if (round.CoinsRegistered.Contains(Model))

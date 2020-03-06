@@ -20,35 +20,12 @@ namespace WalletWasabi.Blockchain.BlockFilters
 {
 	public class IndexBuilderService
 	{
-		public static byte[][] DummyScript { get; } = new byte[][] { ByteHelpers.FromHex("0009BBE4C2D17185643765C265819BF5261755247D") };
-
-		public static GolombRiceFilter CreateDummyEmptyFilter(uint256 blockHash)
-		{
-			return new GolombRiceFilterBuilder()
-				.SetKey(blockHash)
-				.SetP(20)
-				.SetM(1 << 20)
-				.AddEntries(DummyScript)
-				.Build();
-		}
-
-		public RPCClient RpcClient { get; }
-		public BlockNotifier BlockNotifier { get; }
-		public string IndexFilePath { get; }
-		public string Bech32UtxoSetFilePath { get; }
-
-		private List<FilterModel> Index { get; }
-		private AsyncLock IndexLock { get; }
-		public uint StartingHeight { get; }
-		private Dictionary<OutPoint, UtxoEntry> Bech32UtxoSet { get; }
-		private List<ActionHistoryHelper> Bech32UtxoSetHistory { get; }
-
 		/// <summary>
 		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
 		/// </summary>
 		private long _running;
 
-		public bool IsRunning => Interlocked.Read(ref _running) == 1;
+		private long _runner;
 
 		public IndexBuilderService(RPCClient rpc, BlockNotifier blockNotifier, string indexFilePath, string bech32UtxoSetFilePath)
 		{
@@ -109,7 +86,30 @@ namespace WalletWasabi.Blockchain.BlockFilters
 			BlockNotifier.OnBlock += BlockNotifier_OnBlock;
 		}
 
-		private long _runner;
+		public static byte[][] DummyScript { get; } = new byte[][] { ByteHelpers.FromHex("0009BBE4C2D17185643765C265819BF5261755247D") };
+
+		public RPCClient RpcClient { get; }
+		public BlockNotifier BlockNotifier { get; }
+		public string IndexFilePath { get; }
+		public string Bech32UtxoSetFilePath { get; }
+
+		private List<FilterModel> Index { get; }
+		private AsyncLock IndexLock { get; }
+		public uint StartingHeight { get; }
+		private Dictionary<OutPoint, UtxoEntry> Bech32UtxoSet { get; }
+		private List<ActionHistoryHelper> Bech32UtxoSetHistory { get; }
+
+		public bool IsRunning => Interlocked.Read(ref _running) == 1;
+
+		public static GolombRiceFilter CreateDummyEmptyFilter(uint256 blockHash)
+		{
+			return new GolombRiceFilterBuilder()
+				.SetKey(blockHash)
+				.SetP(20)
+				.SetM(1 << 20)
+				.AddEntries(DummyScript)
+				.Build();
+		}
 
 		public void Synchronize()
 		{
@@ -155,14 +155,14 @@ namespace WalletWasabi.Blockchain.BlockFilters
 								{
 									if (Index.Count != 0)
 									{
-										var lastIndex = Index.Last();
+										var lastIndex = Index[^1];
 										heightToRequest = lastIndex.Header.Height + 1;
 										currentHash = lastIndex.Header.BlockHash;
 									}
 								}
 
 								// If not synchronized or already 5 min passed since last update, get the latest blockchain info.
-								if (!syncInfo.IsCoreSynchornized || syncInfo.BlockchainInfoUpdated - DateTimeOffset.UtcNow > TimeSpan.FromMinutes(5))
+								if (!syncInfo.IsCoreSynchornized || DateTimeOffset.UtcNow - syncInfo.BlockchainInfoUpdated > TimeSpan.FromMinutes(5))
 								{
 									syncInfo = await GetSyncInfoAsync();
 								}
@@ -343,7 +343,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 			// 1. Rollback index
 			using (await IndexLock.LockAsync())
 			{
-				Logger.LogInfo($"REORG invalid block: {Index.Last().Header.BlockHash}");
+				Logger.LogInfo($"REORG invalid block: {Index[^1].Header.BlockHash}");
 				Index.RemoveLast();
 			}
 
@@ -402,8 +402,16 @@ namespace WalletWasabi.Blockchain.BlockFilters
 				}
 				else
 				{
-					return ((int)Index.Last().Header.Height, filters);
+					return ((int)Index[^1].Header.Height, filters);
 				}
+			}
+		}
+
+		public FilterModel GetLastFilter()
+		{
+			using (IndexLock.Lock())
+			{
+				return Index[^1];
 			}
 		}
 

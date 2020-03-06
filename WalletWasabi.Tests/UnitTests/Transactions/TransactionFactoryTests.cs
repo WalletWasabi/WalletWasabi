@@ -9,6 +9,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Models;
+using WalletWasabi.Services;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions
@@ -58,7 +59,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		{
 			var transactionFactory = CreateTransactionFactory(new[]
 			{
-				("", 0, 0.08m, confirmed: true, anonymitySet:  50),
+				("", 0, 0.08m, confirmed: true, anonymitySet: 50),
 				("", 1, 0.16m, confirmed: true, anonymitySet: 200)
 			});
 
@@ -86,7 +87,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		{
 			var transactionFactory = CreateTransactionFactory(new[]
 			{
-				("Maria",  0, 0.08m, confirmed: true, anonymitySet:  50),
+				("Maria",  0, 0.08m, confirmed: true, anonymitySet: 50),
 				("Joseph", 1, 0.16m, confirmed: true, anonymitySet: 200)
 			});
 
@@ -121,7 +122,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				("Joseph", 4, 0.16m, confirmed: true, anonymitySet: 200)
 			});
 
-			// It has to select the most private coins regarless of the amounts
+			// It has to select the most private coins regardless of the amounts
 			var payment = new PaymentIntent(new Key().ScriptPubKey, Money.Coins(0.17m));
 			var feeRate = new FeeRate(2m);
 			var result = transactionFactory.BuildTransaction(payment, feeRate);
@@ -189,7 +190,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				Coin("Eve",    NewKey(), 0.9m),
 				Coin("Julio",  NewKey(), 0.9m),
 				Coin("Donald, Jean, Lee, Onur", NewKey(), 0.9m),
-				Coin("Satoshi",NewKey(), 0.9m)
+				Coin("Satoshi", NewKey(), 0.9m)
 			};
 			var coinsByLabel = scoins.ToDictionary(x => x.Label);
 
@@ -389,7 +390,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var destination = new Key().ScriptPubKey;
 			var payment = new PaymentIntent(new[]
 			{
-				new DestinationRequest(destination, MoneyRequest.CreateAllRemaining(subtractFee:true))
+				new DestinationRequest(destination, MoneyRequest.CreateAllRemaining(subtractFee: true))
 			});
 			var feeRate = new FeeRate(2m);
 			var result = transactionFactory.BuildTransaction(payment, feeRate);
@@ -538,6 +539,32 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.False(result.Signed);
 		}
 
+		[Fact]
+		public void SelectLockTimeForTransaction()
+		{
+			var lockTimeZero = uint.MaxValue;
+			var samplingSize = 10_000;
+
+			var dict = Enumerable.Range(-99, 101).ToDictionary(x => (uint)x, x => 0);
+			dict[lockTimeZero] = 0;
+
+			var curTip = 100_000u;
+			var rnd = new Random(123456);
+			foreach (var i in Enumerable.Range(0, samplingSize))
+			{
+				var lt = (uint)WalletService.InternalSelectLockTimeForTransaction(curTip, rnd).Height;
+				var diff = lt == 0 ? lockTimeZero : lt - curTip;
+				dict[diff]++;
+			}
+
+			Assert.InRange(dict[lockTimeZero], samplingSize * 0.85, samplingSize * 0.95); // around 90%
+			Assert.InRange(dict[0], samplingSize * 0.070, samplingSize * 0.080); // around 7.5%
+			Assert.InRange(dict[1], samplingSize * 0.003, samplingSize * 0.009); // around 0.65%
+
+			var rest = dict.Where(x => x.Key < 0).Select(x => x.Value);
+			Assert.DoesNotContain(rest, x => x > samplingSize * 0.001);
+		}
+
 		private TransactionFactory CreateTransactionFactory(
 			IEnumerable<(string Label, int KeyIndex, decimal Amount, bool Confirmed, int AnonymitySet)> coins,
 			bool allowUnconfirmed = true,
@@ -583,7 +610,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			};
 			pubKey.SetLabel(slabel);
 			pubKey.SetKeyState(KeyState.Used);
-			return new SmartCoin(RandomUtils.GetUInt256(), (uint)randomIndex(), pubKey.P2wpkhScript, Money.Coins(amount), spentOutput, height, false, anonymitySet, false, slabel, pubKey: pubKey);
+			return new SmartCoin(RandomUtils.GetUInt256(), (uint)randomIndex(), pubKey.P2wpkhScript, Money.Coins(amount), spentOutput, height, false, anonymitySet, slabel, pubKey: pubKey);
 		}
 	}
 }

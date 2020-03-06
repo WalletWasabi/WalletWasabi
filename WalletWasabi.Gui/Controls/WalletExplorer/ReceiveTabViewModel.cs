@@ -18,62 +18,57 @@ using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Exceptions;
+using Splat;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class ReceiveTabViewModel : WalletActionViewModel
+	public class ReceiveTabViewModel : WasabiDocumentTabViewModel
 	{
-		private CompositeDisposable Disposables { get; set; }
-
 		private ObservableCollection<AddressViewModel> _addresses;
 		private AddressViewModel _selectedAddress;
-		private SuggestLabelViewModel _labelSuggestion;
 
-		public ReactiveCommand<Unit, Unit> CopyAddress { get; }
-		public ReactiveCommand<Unit, Unit> CopyLabel { get; }
-		public ReactiveCommand<Unit, Unit> ToggleQrCode { get; }
-		public ReactiveCommand<Unit, Unit> ChangeLabelCommand { get; }
-		public ReactiveCommand<Unit, Unit> DisplayAddressOnHwCommand { get; }
-		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
-		public ReactiveCommand<Unit, Unit> SaveQRCodeCommand { get; }
-
-		public ReceiveTabViewModel(WalletViewModel walletViewModel)
-			: base("Receive", walletViewModel)
+		public ReceiveTabViewModel(WalletService walletService)
+			: base("Receive")
 		{
-			_labelSuggestion = new SuggestLabelViewModel(Global);
+			Global = Locator.Current.GetService<Global>();
+			WalletService = walletService;
+
+			LabelSuggestion = new SuggestLabelViewModel(WalletService);
 			_addresses = new ObservableCollection<AddressViewModel>();
-			_labelSuggestion.Label = "";
+			LabelSuggestion.Label = "";
 
 			InitializeAddresses();
 
 			GenerateCommand = ReactiveCommand.Create(() =>
+			{
+				var label = new SmartLabel(LabelSuggestion.Label);
+				LabelSuggestion.Label = label;
+				if (label.IsEmpty)
 				{
-					var label = new SmartLabel(_labelSuggestion.Label);
-					_labelSuggestion.Label = label;
-					if (label.IsEmpty)
+					NotificationHelpers.Warning("Observers are required.");
+					return;
+				}
+
+				AvaloniaThreadingExtensions.PostLogException(Dispatcher.UIThread, () =>
+				{
+					var newKey = WalletService.KeyManager.GetNextReceiveKey(label, out bool minGapLimitIncreased);
+					if (minGapLimitIncreased)
 					{
-						NotificationHelpers.Warning("Label is required.");
-						return;
+						int minGapLimit = WalletService.KeyManager.MinGapLimit.Value;
+						int prevMinGapLimit = minGapLimit - 1;
+						NotificationHelpers.Warning($"{nameof(KeyManager.MinGapLimit)} increased from {prevMinGapLimit} to {minGapLimit}.");
 					}
 
-					AvaloniaThreadingExtensions.PostLogException(Dispatcher.UIThread, () =>
-					 {
-						 var newKey = KeyManager.GetNextReceiveKey(label, out bool minGapLimitIncreased);
-						 if (minGapLimitIncreased)
-						 {
-							 int minGapLimit = KeyManager.MinGapLimit.Value;
-							 int prevMinGapLimit = minGapLimit - 1;
-							 NotificationHelpers.Warning($"{nameof(KeyManager.MinGapLimit)} increased from {prevMinGapLimit} to {minGapLimit}.");
-						 }
-
-						 var newAddress = new AddressViewModel(newKey, Global);
-						 Addresses.Insert(0, newAddress);
-						 SelectedAddress = newAddress;
-						 _labelSuggestion.Label = "";
-					 });
+					var newAddress = new AddressViewModel(newKey, WalletService.KeyManager);
+					Addresses.Insert(0, newAddress);
+					SelectedAddress = newAddress;
+					LabelSuggestion.Label = "";
 				});
+			});
 
-			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(async address =>
+			this.WhenAnyValue(x => x.SelectedAddress)
+				.Subscribe(async address =>
 				{
 					if (Global.UiConfig?.Autocopy is false || address is null)
 					{
@@ -83,117 +78,35 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					await address.TryCopyToClipboardAsync();
 				});
 
-			var isCoinListItemSelected = this.WhenAnyValue(x => x.SelectedAddress).Select(coin => coin is { });
-
-			CopyAddress = ReactiveCommand.CreateFromTask(async () =>
-			{
-				if (SelectedAddress is null)
-				{
-					return;
-				}
-
-				await SelectedAddress.TryCopyToClipboardAsync();
-			},
-			isCoinListItemSelected);
-
-			CopyLabel = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(SelectedAddress.Label ?? string.Empty), isCoinListItemSelected);
-
-			ToggleQrCode = ReactiveCommand.Create(() => ToggleSelectedAddress(), isCoinListItemSelected);
-
-#pragma warning disable IDE0053 // Use expression body for lambda expressions
-			ChangeLabelCommand = ReactiveCommand.Create(() => { SelectedAddress.InEditMode = true; });
-#pragma warning restore IDE0053 // Use expression body for lambda expressions
-
-			DisplayAddressOnHwCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				var client = new HwiClient(Global.Network);
-				using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
-				try
-				{
-					await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, SelectedAddress.Model.FullKeyPath, cts.Token);
-				}
-				catch (HwiException)
-				{
-					await PinPadViewModel.UnlockAsync(Global);
-					await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, SelectedAddress.Model.FullKeyPath, cts.Token);
-				}
-			});
-
-			SaveQRCodeCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				if (SelectedAddress is { })
-				{
-					await SelectedAddress.SaveQRCodeAsync();
-				}
-			});
-
 			Observable
-				.Merge(DisplayAddressOnHwCommand.ThrownExceptions)
-				.Merge(ChangeLabelCommand.ThrownExceptions)
-				.Merge(ToggleQrCode.ThrownExceptions)
-				.Merge(CopyAddress.ThrownExceptions)
-				.Merge(CopyLabel.ThrownExceptions)
 				.Merge(GenerateCommand.ThrownExceptions)
-				.Merge(SaveQRCodeCommand.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
 				{
-					NotificationHelpers.Error(ex.ToTypeMessageString());
-					Logger.LogWarning(ex);
+					Logger.LogError(ex);
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
 				});
 		}
 
-		public SuggestLabelViewModel LabelSuggestion => _labelSuggestion;
+		private Global Global { get; }
 
-		private void ToggleSelectedAddress()
+		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
+
+		private WalletService WalletService { get; }
+
+		public SuggestLabelViewModel LabelSuggestion { get; }
+
+		public bool IsHardwareWallet => WalletService.KeyManager.IsHardwareWallet;
+
+		public override void OnOpen(CompositeDisposable disposables)
 		{
-			SelectedAddress.IsExpanded = !SelectedAddress.IsExpanded;
-		}
-
-		public override void OnOpen()
-		{
-			base.OnOpen();
-
-			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
+			base.OnOpen(disposables);
 
 			Observable
-				.FromEventPattern(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.WalletRelevantTransactionProcessed))
+				.FromEventPattern(WalletService.TransactionProcessor, nameof(WalletService.TransactionProcessor.WalletRelevantTransactionProcessed))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => InitializeAddresses())
-				.DisposeWith(Disposables);
-		}
-
-		public override bool OnClose()
-		{
-			Disposables.Dispose();
-
-			Disposables = null;
-
-			return base.OnClose();
-		}
-
-		private void InitializeAddresses()
-		{
-			try
-			{
-				_addresses?.Clear();
-				var walletService = Global.WalletService;
-
-				if (walletService is null)
-				{
-					return;
-				}
-
-				IEnumerable<HdPubKey> keys = walletService.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Reverse();
-				foreach (HdPubKey key in keys)
-				{
-					_addresses.Add(new AddressViewModel(key, Global));
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-			}
+				.DisposeWith(disposables);
 		}
 
 		public ObservableCollection<AddressViewModel> Addresses
@@ -206,6 +119,24 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _selectedAddress;
 			set => this.RaiseAndSetIfChanged(ref _selectedAddress, value);
+		}
+
+		private void InitializeAddresses()
+		{
+			try
+			{
+				_addresses?.Clear();
+
+				IEnumerable<HdPubKey> keys = WalletService.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Reverse();
+				foreach (HdPubKey key in keys)
+				{
+					_addresses.Add(new AddressViewModel(key, WalletService.KeyManager));
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+			}
 		}
 	}
 }

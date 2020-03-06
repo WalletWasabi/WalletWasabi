@@ -1,15 +1,13 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using AvalonStudio.Documents;
-using AvalonStudio.Extensibility;
 using NBitcoin;
 using ReactiveUI;
+using Splat;
 using System;
 using System.IO;
 using System.Linq;
 using System.Reactive;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -17,7 +15,6 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models.StatusBarStatuses;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
@@ -29,37 +26,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _buttonText;
 		private int _caretIndex;
 
-		private CompositeDisposable Disposables { get; set; }
-		public ReactiveCommand<Unit, Unit> PasteCommand { get; set; }
-		public ReactiveCommand<Unit, Unit> BroadcastTransactionCommand { get; set; }
-		public ReactiveCommand<Unit, Unit> ImportTransactionCommand { get; set; }
-
-		public string TransactionString
+		public TransactionBroadcasterViewModel() : base("Transaction Broadcaster")
 		{
-			get => _transactionString;
-			set => this.RaiseAndSetIfChanged(ref _transactionString, value);
-		}
+			Global = Locator.Current.GetService<Global>();
 
-		public bool IsBusy
-		{
-			get => _isBusy;
-			set => this.RaiseAndSetIfChanged(ref _isBusy, value);
-		}
-
-		public string ButtonText
-		{
-			get => _buttonText;
-			set => this.RaiseAndSetIfChanged(ref _buttonText, value);
-		}
-
-		public int CaretIndex
-		{
-			get => _caretIndex;
-			set => this.RaiseAndSetIfChanged(ref _caretIndex, value);
-		}
-
-		public TransactionBroadcasterViewModel(Global global) : base(global, "Transaction Broadcaster")
-		{
 			ButtonText = "Broadcast Transaction";
 
 			PasteCommand = ReactiveCommand.CreateFromTask(async () =>
@@ -73,7 +43,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				TransactionString = textToPaste;
 			});
 
-			BroadcastTransactionCommand = ReactiveCommand.CreateFromTask(async () => await OnDoTransactionBroadcastAsync());
+			IObservable<bool> broadcastTransactionCanExecute = this
+				.WhenAny(x => x.TransactionString, (transactionString) => !string.IsNullOrWhiteSpace(transactionString.Value))
+				.ObserveOn(RxApp.MainThreadScheduler);
+
+			BroadcastTransactionCommand = ReactiveCommand.CreateFromTask(
+				async () => await OnDoTransactionBroadcastAsync(),
+				broadcastTransactionCanExecute);
 
 			ImportTransactionCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -143,8 +119,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				catch (Exception ex)
 				{
-					NotificationHelpers.Error(ex.ToTypeMessageString());
 					Logger.LogError(ex);
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
 				}
 			},
 			outputScheduler: RxApp.MainThreadScheduler);
@@ -156,23 +132,43 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
 				{
-					NotificationHelpers.Error(ex.ToTypeMessageString());
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
 					Logger.LogError(ex);
 				});
 		}
 
-		public override void OnOpen()
-		{
-			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
+		private Global Global { get; }
 
-			base.OnOpen();
+		public ReactiveCommand<Unit, Unit> PasteCommand { get; set; }
+		public ReactiveCommand<Unit, Unit> BroadcastTransactionCommand { get; set; }
+		public ReactiveCommand<Unit, Unit> ImportTransactionCommand { get; set; }
+
+		public string TransactionString
+		{
+			get => _transactionString;
+			set => this.RaiseAndSetIfChanged(ref _transactionString, value);
+		}
+
+		public bool IsBusy
+		{
+			get => _isBusy;
+			set => this.RaiseAndSetIfChanged(ref _isBusy, value);
+		}
+
+		public string ButtonText
+		{
+			get => _buttonText;
+			set => this.RaiseAndSetIfChanged(ref _buttonText, value);
+		}
+
+		public int CaretIndex
+		{
+			get => _caretIndex;
+			set => this.RaiseAndSetIfChanged(ref _caretIndex, value);
 		}
 
 		public override bool OnClose()
 		{
-			Disposables?.Dispose();
-			Disposables = null;
-
 			TransactionString = "";
 
 			return base.OnClose();
@@ -204,12 +200,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.BroadcastingTransaction);
 				await Task.Run(async () => await Global.TransactionBroadcaster.SendTransactionAsync(transaction));
 
-				NotificationHelpers.Success("Transaction is successfully sent!");
+				NotificationHelpers.Success("Transaction was broadcast.");
 				TransactionString = "";
 			}
 			catch (PSBTException ex)
 			{
 				NotificationHelpers.Error($"The PSBT cannot be finalized: {ex.Errors.FirstOrDefault()}");
+				Logger.LogError(ex);
 			}
 			finally
 			{

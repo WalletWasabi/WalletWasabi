@@ -8,7 +8,7 @@ namespace WalletWasabi.Gui.Controls
 	{
 		public SuggestLabelView()
 		{
-			this.InitializeComponent();
+			InitializeComponent();
 		}
 
 		private void InitializeComponent()

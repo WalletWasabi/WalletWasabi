@@ -24,18 +24,18 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 				VersionControl.InitialSetup(encodeContentLength, ecLevel, recognitionResult.EncodingName);
 
 			BitList dataCodewords = new BitList();
-			//Eci header
+			// Eci header
 			if (vcStruct.IsContainECI && !(vcStruct.ECIHeader is null))
 			{
 				dataCodewords.Add(vcStruct.ECIHeader);
 			}
-			//Header
+			// Header
 			dataCodewords.Add(encoderBase.GetModeIndicator());
 			int numLetter = encodeContentLength >> 3;
 			dataCodewords.Add(encoderBase.GetCharCountIndicator(numLetter, vcStruct.VersionDetail.Version));
-			//Data
+			// Data
 			dataCodewords.Add(encodeContent);
-			//Terminator Padding
+			// Terminator Padding
 			dataCodewords.TerminateBites(dataCodewords.Count, vcStruct.VersionDetail.NumDataBytes);
 
 			int dataCodewordsCount = dataCodewords.Count;

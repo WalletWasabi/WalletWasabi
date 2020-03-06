@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using NBitcoin.DataEncoders;
 using NBitcoin.Protocol;
@@ -32,11 +33,13 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
 {
-	public class WalletService : IDisposable
+	public class WalletService : IHostedService
 	{
 		public static event EventHandler<bool> DownloadingBlockChanged;
 
 		public static event EventHandler<bool> InitializingChanged;
+
+		private static Random Random { get; } = new Random();
 
 		public BitcoinStore BitcoinStore { get; }
 		public KeyManager KeyManager { get; }
@@ -52,6 +55,8 @@ namespace WalletWasabi.Services
 		private int NodeTimeouts { get; set; }
 
 		public ServiceConfiguration ServiceConfiguration { get; }
+
+		public string Name => Path.GetFileNameWithoutExtension(KeyManager.FilePath);
 
 		/// <summary>
 		/// Unspent Transaction Outputs
@@ -70,7 +75,6 @@ namespace WalletWasabi.Services
 			BitcoinStore bitcoinStore,
 			KeyManager keyManager,
 			WasabiSynchronizer syncer,
-			CoinJoinClient chaumianClient,
 			NodesGroup nodes,
 			string workFolderDir,
 			ServiceConfiguration serviceConfiguration,
@@ -81,11 +85,11 @@ namespace WalletWasabi.Services
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			Nodes = Guard.NotNull(nameof(nodes), nodes);
 			Synchronizer = Guard.NotNull(nameof(syncer), syncer);
-			ChaumianClient = Guard.NotNull(nameof(chaumianClient), chaumianClient);
 			ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 			FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
 			CoreNode = coreNode;
 
+			ChaumianClient = new CoinJoinClient(Synchronizer, Network, keyManager);
 			HandleFiltersLock = new AsyncLock();
 
 			BlocksFolderPath = Path.Combine(workFolderDir, "Blocks", Network.ToString());
@@ -112,12 +116,6 @@ namespace WalletWasabi.Services
 			else
 			{
 				Directory.CreateDirectory(BlocksFolderPath);
-			}
-
-			var walletName = "UnnamedWallet";
-			if (!string.IsNullOrWhiteSpace(KeyManager.FilePath))
-			{
-				walletName = Path.GetFileNameWithoutExtension(KeyManager.FilePath);
 			}
 
 			BitcoinStore.IndexStore.NewFilter += IndexDownloader_NewFilterAsync;
@@ -218,7 +216,7 @@ namespace WalletWasabi.Services
 					{
 						return;
 					}
-					// Make sure fully synced and this filter is the lastest filter.
+					// Make sure fully synced and this filter is the latest filter.
 					if (BitcoinStore.SmartHeaderChain.HashesLeft != 0 || BitcoinStore.SmartHeaderChain.TipHash != filterModel.Header.BlockHash)
 					{
 						return;
@@ -233,7 +231,8 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public async Task InitializeAsync(CancellationToken cancel)
+		/// <inheritdoc/>
+		public async Task StartAsync(CancellationToken cancel)
 		{
 			try
 			{
@@ -251,12 +250,17 @@ namespace WalletWasabi.Services
 					cancel.ThrowIfCancellationRequested();
 				}
 
-				await RuntimeParams.LoadAsync();
-
-				using (await HandleFiltersLock.LockAsync())
+				using (BenchmarkLogger.Measure())
 				{
-					await LoadWalletStateAsync(cancel);
-					await LoadDummyMempoolAsync();
+					await RuntimeParams.LoadAsync();
+
+					ChaumianClient.Start();
+
+					using (await HandleFiltersLock.LockAsync())
+					{
+						await LoadWalletStateAsync(cancel);
+						await LoadDummyMempoolAsync();
+					}
 				}
 			}
 			finally
@@ -290,36 +294,44 @@ namespace WalletWasabi.Services
 				return;
 			}
 
-			try
+			// Only clean the mempool if we're fully synchronized.
+			if (BitcoinStore.SmartHeaderChain.HashesLeft == 0)
 			{
-				using var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint);
-				var compactness = 10;
-
-				var mempoolHashes = await client.GetMempoolHashesAsync(compactness);
-
-				var txsToProcess = new List<SmartTransaction>();
-				foreach (var tx in BitcoinStore.TransactionStore.MempoolStore.GetTransactions())
+				try
 				{
-					uint256 hash = tx.GetHash();
-					if (mempoolHashes.Contains(hash.ToString().Substring(0, compactness)))
+					using var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint);
+					var compactness = 10;
+
+					var mempoolHashes = await client.GetMempoolHashesAsync(compactness);
+
+					var txsToProcess = new List<SmartTransaction>();
+					foreach (var tx in BitcoinStore.TransactionStore.MempoolStore.GetTransactions())
 					{
-						txsToProcess.Add(tx);
-						Logger.LogInfo($"Transaction was successfully tested against the backend's mempool hashes: {hash}.");
+						uint256 hash = tx.GetHash();
+						if (mempoolHashes.Contains(hash.ToString().Substring(0, compactness)))
+						{
+							txsToProcess.Add(tx);
+							Logger.LogInfo($"Transaction was successfully tested against the backend's mempool hashes: {hash}.");
+						}
+						else
+						{
+							BitcoinStore.TransactionStore.MempoolStore.TryRemove(tx.GetHash(), out _);
+						}
 					}
-					else
-					{
-						BitcoinStore.TransactionStore.MempoolStore.TryRemove(tx.GetHash(), out _);
-					}
+
+					TransactionProcessor.Process(txsToProcess);
 				}
+				catch (Exception ex)
+				{
+					// When there's a connection failure do not clean the transactions, add them to processing.
+					TransactionProcessor.Process(BitcoinStore.TransactionStore.MempoolStore.GetTransactions());
 
-				TransactionProcessor.Process(txsToProcess);
+					Logger.LogWarning(ex);
+				}
 			}
-			catch (Exception ex)
+			else
 			{
-				// When there's a connection failure do not clean the transactions, add them to processing.
 				TransactionProcessor.Process(BitcoinStore.TransactionStore.MempoolStore.GetTransactions());
-
-				Logger.LogWarning(ex);
 			}
 		}
 
@@ -704,7 +716,8 @@ namespace WalletWasabi.Services
 						throw new NotSupportedException(feeStrategy.Type.ToString());
 					}
 				},
-				allowedInputs);
+				allowedInputs,
+				SelectLockTimeForTransaction);
 		}
 
 		public void RenameLabel(SmartCoin coin, SmartLabel newLabel)
@@ -715,6 +728,44 @@ namespace WalletWasabi.Services
 			{
 				key.SetLabel(coin.Label, KeyManager);
 			}
+		}
+
+		internal static LockTime InternalSelectLockTimeForTransaction(uint tipHeight, Random rnd)
+		{
+			try
+			{
+				// We use the timelock distribution observed in the bitcoin network
+				// in order to reduce the wasabi wallet transactions fingerprinting
+				// chances.
+				//
+				// Network observations:
+				// 90.0% uses locktime = 0
+				//  7.5% uses locktime = current tip
+				//  0.65% uses locktime = next tip (current tip + 1)
+				//  1.85% uses up to 5 blocks in the future (we don't do this)
+				//  0.65% uses an uniform random from -1 to -99
+
+				// sometimes pick locktime a bit further back, to help privacy.
+				var randomValue = rnd.NextDouble();
+				return randomValue switch
+				{
+					var r when r < (0.9) => LockTime.Zero,
+					var r when r < (0.9 + 0.075) => tipHeight,
+					var r when r < (0.9 + 0.075 + 0.0065) => (uint)(tipHeight + 1),
+					_ => (uint)(tipHeight - rnd.Next(1, 100))
+				};
+			}
+			catch
+			{
+				return LockTime.Zero;
+			}
+		}
+
+		private LockTime SelectLockTimeForTransaction()
+		{
+			var currentTipHeight = Synchronizer.BitcoinStore.SmartHeaderChain.TipHeight;
+
+			return InternalSelectLockTimeForTransaction(currentTipHeight, Random);
 		}
 
 		public ISet<string> GetLabels() => TransactionProcessor.Coins.AsAllCoinsView()
@@ -773,40 +824,25 @@ namespace WalletWasabi.Services
 			Logger.LogInfo($"Current timeout value used on block download is: {timeout} seconds.");
 		}
 
-		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		public bool IsDisposed => _disposedValue;
+		public bool IsStoppingOrStopped { get; private set; }
 
 		public CoreNode CoreNode { get; }
 		public FilterModel LastProcessedFilter { get; private set; }
 
-		protected virtual void Dispose(bool disposing)
+		/// <inheritdoc/>
+		public async Task StopAsync(CancellationToken cancel)
 		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					BitcoinStore.IndexStore.NewFilter -= IndexDownloader_NewFilterAsync;
-					BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
-					BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
-					TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessedAsync;
+			IsStoppingOrStopped = true;
 
-					DisconnectDisposeNullLocalBitcoinCoreNode();
-				}
+			BitcoinStore.IndexStore.NewFilter -= IndexDownloader_NewFilterAsync;
+			BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
+			BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
+			TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessedAsync;
 
-				_disposedValue = true;
-			}
+			DisconnectDisposeNullLocalBitcoinCoreNode();
+
+			await ChaumianClient.StopAsync(cancel).ConfigureAwait(false);
+			Logger.LogInfo($"{nameof(ChaumianClient)} is stopped.");
 		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-		}
-
-		#endregion IDisposable Support
 	}
 }

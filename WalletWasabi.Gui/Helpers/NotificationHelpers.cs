@@ -43,7 +43,7 @@ namespace WalletWasabi.Gui.Helpers
 				.Show(new Notification(title, message, NotificationType.Warning, TimeSpan.FromSeconds(7))));
 		}
 
-		public static void Error(string message, string title = "Error")
+		public static void Error(string message, string title = "Error!")
 		{
 			RxApp.MainThreadScheduler
 				.Schedule(() => GetNotificationManager()

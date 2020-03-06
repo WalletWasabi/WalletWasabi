@@ -70,30 +70,13 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		public CoinJoinClient(
 			WasabiSynchronizer synchronizer,
 			Network network,
-			KeyManager keyManager,
-			Func<Uri> ccjHostUriAction,
-			EndPoint torSocks5EndPoint)
-		{
-			Create(synchronizer, network, keyManager, ccjHostUriAction, torSocks5EndPoint);
-		}
-
-		public CoinJoinClient(
-			WasabiSynchronizer synchronizer,
-			Network network,
-			KeyManager keyManager,
-			Uri ccjHostUri,
-			EndPoint torSocks5EndPoint)
-		{
-			Create(synchronizer, network, keyManager, () => ccjHostUri, torSocks5EndPoint);
-		}
-
-		private void Create(WasabiSynchronizer synchronizer, Network network, KeyManager keyManager, Func<Uri> ccjHostUriAction, EndPoint torSocks5EndPoint)
+			KeyManager keyManager)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
-			CcjHostUriAction = Guard.NotNull(nameof(ccjHostUriAction), ccjHostUriAction);
 			Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
-			TorSocks5EndPoint = torSocks5EndPoint;
+			CcjHostUriAction = Synchronizer.WasabiClient.TorClient.DestinationUriAction;
+			TorSocks5EndPoint = Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint;
 			CoordinatorFeepercentToCheck = null;
 
 			ExposedLinks = new ConcurrentDictionary<TxoRef, IEnumerable<HdPubKeyBlindedPair>>();
@@ -405,7 +388,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			for (int i = 0; i < signedCoinJoin.Inputs.Count; i++)
 			{
 				var input = signedCoinJoin.Inputs[i];
-				if (ongoingRound.CoinsRegistered.Select(x => x.GetOutPoint()).Contains(input.PrevOut))
+				if (ongoingRound.CoinsRegistered.Select(x => x.OutPoint).Contains(input.PrevOut))
 				{
 					myDic.Add(i, signedCoinJoin.Inputs[i].WitScript);
 				}
@@ -483,7 +466,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		{
 			try
 			{
-				// Select the most suitable coins to regiter.
+				// Select the most suitable coins to register.
 				List<TxoRef> registrableCoins = State.GetRegistrableCoins(
 					inputRegistrableRound.State.MaximumInputCountPerPeer,
 					inputRegistrableRound.State.Denomination,
@@ -949,7 +932,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					}
 					else
 					{
-						// If coin is unspent we're cannot dequeue.
+						// If coin is unspent we cannot dequeue.
 						if (coinToDequeue.Unspent)
 						{
 							exception = new NotSupportedException($"Cannot deque coin in {round.State.Phase} phase. Coin: {coinToDequeue.Index}:{coinToDequeue.TransactionId}.");
@@ -1029,7 +1012,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			}
 		}
 
-		public async Task StopAsync()
+		public async Task StopAsync(CancellationToken cancel)
 		{
 			Synchronizer.ResponseArrived -= Synchronizer_ResponseArrivedAsync;
 
@@ -1037,13 +1020,13 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			Cancel?.Cancel();
 			while (Interlocked.CompareExchange(ref _running, 3, 0) == 2)
 			{
-				await Task.Delay(50).ConfigureAwait(false);
+				await Task.Delay(50, cancel).ConfigureAwait(false);
 			}
 
 			Cancel?.Dispose();
 			Cancel = null;
 
-			using (await MixLock.LockAsync().ConfigureAwait(false))
+			using (await MixLock.LockAsync(cancel).ConfigureAwait(false))
 			{
 				await DequeueSpentCoinsFromMixNoLockAsync().ConfigureAwait(false);
 

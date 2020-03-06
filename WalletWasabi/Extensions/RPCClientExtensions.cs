@@ -18,7 +18,7 @@ namespace NBitcoin.RPC
 		/// <summary>
 		/// Waits for a specific new block and returns useful info about it.
 		/// </summary>
-		/// <param name="timeout">(int, optional, default=0) Time in milliseconds to wait for a response. 0 indicates no timeout.</param>
+		/// <param name="timeout">Time in milliseconds to wait for a response. 0 indicates no timeout.</param>
 		/// <returns>Returns the current block on timeout or exit</returns>
 		public static async Task<(Height height, uint256 hash)> WaitForNewBlockAsync(this RPCClient rpc, long timeout = 0)
 		{
@@ -30,7 +30,7 @@ namespace NBitcoin.RPC
 		/// Waits for a specific new block and returns useful info about it.
 		/// </summary>
 		/// <param name="blockHash">Block hash to wait for</param>
-		/// <param name="timeout">(int, optional, default=0) Time in milliseconds to wait for a response. 0 indicates no timeout.</param>
+		/// <param name="timeout">Time in milliseconds to wait for a response. 0 indicates no timeout.</param>
 		/// <returns>Returns the current block on timeout or exit</returns>
 		public static async Task<(Height height, uint256 hash)> WaitForBlockAsync(this RPCClient rpc, uint256 blockHash, long timeout = 0)
 		{
@@ -51,7 +51,7 @@ namespace NBitcoin.RPC
 				{
 					return await rpc.EstimateSmartFeeAsync(confirmationTarget, estimateMode);
 				}
-				catch (RPCException ex)
+				catch (Exception ex) when (ex is RPCException || ex is NoEstimationException)
 				{
 					Logger.LogTrace(ex);
 					// Hopefully Bitcoin Core brainfart: https://github.com/bitcoin/bitcoin/issues/14431
@@ -61,7 +61,7 @@ namespace NBitcoin.RPC
 						{
 							return await rpc.EstimateSmartFeeAsync(i, estimateMode);
 						}
-						catch (RPCException ex2)
+						catch (Exception ex2) when (ex2 is RPCException || ex2 is NoEstimationException)
 						{
 							Logger.LogTrace(ex2);
 						}
@@ -124,7 +124,7 @@ namespace NBitcoin.RPC
 		{
 			try
 			{
-				await rpc.GetBlockchainInfoAsync().ConfigureAwait(false);
+				await rpc.UptimeAsync().ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
@@ -213,7 +213,6 @@ namespace NBitcoin.RPC
 			return newEstimations;
 		}
 
-		/// <returns>(allowed, reject-reason)</returns>
 		public static async Task<(bool accept, string rejectReason)> TestMempoolAcceptAsync(this RPCClient rpc, IEnumerable<Coin> coins)
 		{
 			// Check if mempool would accept a fake transaction created with the registered inputs.

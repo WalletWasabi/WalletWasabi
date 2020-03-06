@@ -97,7 +97,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 				bitcoinStore,
 				keyManager,
 				syncer,
-				new CoinJoinClient(syncer, network, keyManager, new Uri("http://localhost:12345"), Global.Instance.TorSocks5Endpoint),
 				nodes,
 				dataDir,
 				new ServiceConfiguration(50, 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold)),
@@ -144,7 +143,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 				{
 					await walletService?.DeleteBlockAsync(hash);
 				}
-				walletService?.Dispose();
+				if (walletService is { })
+				{
+					await walletService.StopAsync(CancellationToken.None);
+				}
 
 				if (Directory.Exists(blocksFolderPath))
 				{

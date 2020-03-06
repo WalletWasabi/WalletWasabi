@@ -39,11 +39,11 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => obj is TxoRef txoRef && this == txoRef;
+		public override bool Equals(object obj) => Equals(obj as TxoRef);
 
 		public bool Equals(TxoRef other) => this == other;
 
-		public override int GetHashCode() => TransactionId.GetHashCode() ^ (int)Index;
+		public override int GetHashCode() => (TransactionId, Index).GetHashCode();
 
 		public static bool operator ==(TxoRef x, TxoRef y) => y?.TransactionId == x?.TransactionId && y?.Index == x?.Index;
 

@@ -46,7 +46,7 @@ namespace WalletWasabi.Services
 			{
 				if (y.Exception is null)
 				{
-					Logger.LogInfo($"Stared {x.FriendlyName}.");
+					Logger.LogInfo($"Started {x.FriendlyName}.");
 				}
 				else
 				{

@@ -25,11 +25,10 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 		/// Use given encoding to check input string from starting position. If encoding table is suitable solution.
 		/// it will return -1. Else it will return failed encoding position.
 		/// </summary>
-		/// <param name="content">input string</param>
-		/// <param name="encodingName">encoding name. Check ECI table</param>
-		/// <param name="startPos">starting position</param>
-		/// <returns>-1 if from starting position to end encoding success. Else return fail position</returns>
-		internal static int TryEncodeEightBitByte(string content, string encodingName, int startPos, int contentLength)
+		/// <param name="content">Input string</param>
+		/// <param name="encodingName">Encoding name. Check ECI table</param>
+		/// <returns>Returns -1 if from starting position to end encoding success. Else returns fail position</returns>
+		internal static int TryEncodeEightBitByte(string content, string encodingName, int startingPosition, int contentLength)
 		{
 			if (string.IsNullOrEmpty(content))
 			{
@@ -43,13 +42,13 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 			}
 			catch (ArgumentException)
 			{
-				return startPos;
+				return startingPosition;
 			}
 
 			char[] currentChar = new char[1];
 			byte[] bytes;
 
-			for (int index = startPos; index < contentLength; index++)
+			for (int index = startingPosition; index < contentLength; index++)
 			{
 				currentChar[0] = content[index];
 				bytes = encoding.GetBytes(currentChar);
@@ -64,7 +63,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 				}
 			}
 
-			for (int index = 0; index < startPos; index++)
+			for (int index = 0; index < startingPosition; index++)
 			{
 				currentChar[0] = content[index];
 				bytes = encoding.GetBytes(currentChar);

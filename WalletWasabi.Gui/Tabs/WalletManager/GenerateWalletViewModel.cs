@@ -1,10 +1,8 @@
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
-using NBitcoin;
 using ReactiveUI;
+using Splat;
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -22,83 +20,39 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 	{
 		private string _password;
 		private string _walletName;
-		private bool _termsAccepted;
-		public WalletManagerViewModel Owner { get; }
-		public Global Global => Owner.Global;
 
 		public GenerateWalletViewModel(WalletManagerViewModel owner) : base("Generate Wallet")
 		{
+			Global = Locator.Current.GetService<Global>();
 			Owner = owner;
 
-			IObservable<bool> canGenerate = Observable.CombineLatest(
-				this.WhenAnyValue(x => x.TermsAccepted),
-				this.WhenAnyValue(x => x.Password).Select(pw => !ValidatePassword().HasErrors),
-				(terms, pw) => terms && pw);
+			IObservable<bool> canGenerate = this.WhenAnyValue(x => x.Password).Select(pw => !ValidatePassword().HasErrors);
 
-			GenerateCommand = ReactiveCommand.Create(DoGenerateCommand, canGenerate);
+			NextCommand = ReactiveCommand.Create(DoNextCommand, canGenerate);
 
-			GenerateCommand.ThrownExceptions
+			NextCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 		}
 
-		private void DoGenerateCommand()
+		public WalletManagerViewModel Owner { get; }
+
+		private Global Global { get; }
+
+		private void DoNextCommand()
 		{
-			WalletName = Guard.Correct(WalletName);
-
-			if (!ValidateWalletName(WalletName))
+			try
 			{
-				NotificationHelpers.Error("Invalid wallet name.");
-				return;
+				var walletGenerator = new WalletGenerator(Global.WalletsDir, Global.Network);
+				walletGenerator.TipHeight = Global.BitcoinStore.SmartHeaderChain.TipHeight;
+				var (km, mnemonic) = walletGenerator.GenerateWallet(WalletName, Password);
+				Owner.CurrentView = new GenerateWalletSuccessViewModel(Owner, km, mnemonic);
 			}
-
-			string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
-
-			if (!TermsAccepted)
+			catch (Exception ex)
 			{
-				NotificationHelpers.Error("Terms are not accepted.");
+				Logger.LogError(ex);
+				NotificationHelpers.Error(ex.ToUserFriendlyString());
 			}
-			else if (string.IsNullOrWhiteSpace(WalletName))
-			{
-				NotificationHelpers.Error("Invalid wallet name.");
-			}
-			else if (File.Exists(walletFilePath))
-			{
-				NotificationHelpers.Error("Wallet name is already taken.");
-			}
-			else
-			{
-				try
-				{
-					PasswordHelper.Guard(Password); // Here we are not letting anything that will be autocorrected later. We need to generate the wallet exactly with the entered password bacause of compatibility.
-
-					KeyManager.CreateNew(out Mnemonic mnemonic, Password, walletFilePath);
-
-					NotificationHelpers.Success("Wallet is successfully generated!");
-
-					Owner.CurrentView = new GenerateWalletSuccessViewModel(Owner, mnemonic);
-				}
-				catch (Exception ex)
-				{
-					NotificationHelpers.Error(ex.ToTypeMessageString());
-					Logger.LogError(ex);
-				}
-			}
-		}
-
-		private static readonly string[] ReservedFileNames = new string[]
-		{
-			"CON", "PRN", "AUX", "NUL",
-			"COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
-			"LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
-		};
-
-		private bool ValidateWalletName(string walletName)
-		{
-			var invalidChars = Path.GetInvalidFileNameChars();
-			var isValid = !walletName.Any(c => invalidChars.Contains(c)) && !walletName.EndsWith(".");
-			var isReserved = ReservedFileNames.Any(w => walletName.ToUpper() == w || walletName.ToUpper().StartsWith(w + "."));
-			return isValid && !isReserved;
 		}
 
 		public ErrorDescriptors ValidatePassword()
@@ -133,28 +87,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set => this.RaiseAndSetIfChanged(ref _walletName, value);
 		}
 
-		public bool TermsAccepted
-		{
-			get => _termsAccepted;
-			set => this.RaiseAndSetIfChanged(ref _termsAccepted, value);
-		}
-
-		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
-
-		public void OnTermsClicked()
-		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new TermsAndConditionsViewModel(Global));
-		}
-
-		public void OnPrivacyClicked()
-		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new PrivacyPolicyViewModel(Global));
-		}
-
-		public void OnLegalClicked()
-		{
-			IoC.Get<IShell>().AddOrSelectDocument(() => new LegalIssuesViewModel(Global));
-		}
+		public ReactiveCommand<Unit, Unit> NextCommand { get; }
 
 		public override void OnCategorySelected()
 		{
@@ -162,7 +95,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			Password = "";
 			WalletName = Global.GetNextWalletName();
-			TermsAccepted = false;
 		}
 	}
 }

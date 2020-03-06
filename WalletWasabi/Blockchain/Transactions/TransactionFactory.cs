@@ -39,7 +39,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			PaymentIntent payments,
 			FeeRate feeRate,
 			IEnumerable<TxoRef> allowedInputs = null)
-			=> BuildTransaction(payments, () => feeRate, allowedInputs);
+			=> BuildTransaction(payments, () => feeRate, allowedInputs, () => LockTime.Zero);
 
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
@@ -47,9 +47,11 @@ namespace WalletWasabi.Blockchain.Transactions
 		public BuildTransactionResult BuildTransaction(
 			PaymentIntent payments,
 			Func<FeeRate> feeRateFetcher,
-			IEnumerable<TxoRef> allowedInputs = null)
+			IEnumerable<TxoRef> allowedInputs = null,
+			Func<LockTime> lockTimeSelector = null)
 		{
 			payments = Guard.NotNull(nameof(payments), payments);
+			lockTimeSelector ??= () => LockTime.Zero;
 
 			long totalAmount = payments.TotalAmount.Satoshi;
 			if (totalAmount < 0 || totalAmount > Constants.MaximumNumberOfSatoshis)
@@ -148,7 +150,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 			var psbt = builder.BuildPSBT(false);
 
-			var spentCoins = psbt.Inputs.Select(txin => allowedSmartCoinInputs.First(y => y.GetOutPoint() == txin.PrevOut)).ToArray();
+			var spentCoins = psbt.Inputs.Select(txin => allowedSmartCoinInputs.First(y => y.OutPoint == txin.PrevOut)).ToArray();
 
 			var realToSend = payments.Requests
 				.Select(t =>
@@ -217,6 +219,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			{
 				IEnumerable<ExtKey> signingKeys = KeyManager.GetSecrets(Password, spentCoins.Select(x => x.ScriptPubKey).ToArray());
 				builder = builder.AddKeys(signingKeys.ToArray());
+				builder.SetLockTime(lockTimeSelector());
 				builder.SignPSBT(psbt);
 				psbt.Finalize();
 				tx = psbt.ExtractTransaction();
@@ -258,7 +261,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				TxOut output = tx.Outputs[i];
 				var anonset = tx.GetAnonymitySet(i) + spentCoins.Min(x => x.AnonymitySet) - 1; // Minus 1, because count own only once.
 				var foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
-				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToTxoRefs().ToArray(), Height.Unknown, tx.RBF, anonset, isLikelyCoinJoinOutput: false, pubKey: foundKey);
+				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToTxoRefs().ToArray(), Height.Unknown, tx.RBF, anonset, pubKey: foundKey);
 				label = SmartLabel.Merge(label, coin.Label); // foundKey's label is already added to the coinlabel.
 
 				if (foundKey is null)

@@ -54,7 +54,19 @@ namespace WalletWasabi.Bases
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => obj is ByteArraySerializableBase serializableBase && this == serializableBase;
+		public static bool operator ==(ByteArraySerializableBase x, ByteArraySerializableBase y) => ByteHelpers.CompareFastUnsafe(x?.ToBytes(), y?.ToBytes());
+
+		public static bool operator !=(ByteArraySerializableBase x, ByteArraySerializableBase y) => !(x == y);
+
+		public static bool operator ==(byte[] x, ByteArraySerializableBase y) => ByteHelpers.CompareFastUnsafe(x, y?.ToBytes());
+
+		public static bool operator ==(ByteArraySerializableBase x, byte[] y) => ByteHelpers.CompareFastUnsafe(x?.ToBytes(), y);
+
+		public static bool operator !=(byte[] x, ByteArraySerializableBase y) => !(x == y);
+
+		public static bool operator !=(ByteArraySerializableBase x, byte[] y) => !(x == y);
+
+		public override bool Equals(object obj) => Equals(obj as ByteArraySerializableBase);
 
 		public bool Equals(ByteArraySerializableBase other) => this == other;
 
@@ -79,19 +91,7 @@ namespace WalletWasabi.Bases
 			return hash;
 		}
 
-		public static bool operator ==(ByteArraySerializableBase x, ByteArraySerializableBase y) => ByteHelpers.CompareFastUnsafe(x?.ToBytes(), y?.ToBytes());
-
-		public static bool operator !=(ByteArraySerializableBase x, ByteArraySerializableBase y) => !(x == y);
-
 		public bool Equals(byte[] other) => ByteHelpers.CompareFastUnsafe(ToBytes(), other);
-
-		public static bool operator ==(byte[] x, ByteArraySerializableBase y) => ByteHelpers.CompareFastUnsafe(x, y?.ToBytes());
-
-		public static bool operator ==(ByteArraySerializableBase x, byte[] y) => ByteHelpers.CompareFastUnsafe(x?.ToBytes(), y);
-
-		public static bool operator !=(byte[] x, ByteArraySerializableBase y) => !(x == y);
-
-		public static bool operator !=(ByteArraySerializableBase x, byte[] y) => !(x == y);
 
 		#endregion EqualityAndComparison
 	}

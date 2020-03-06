@@ -13,17 +13,17 @@ namespace WalletWasabi.Bases
 {
 	public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 	{
-		/// <inheritdoc />
-		public string FilePath { get; private set; } = null;
+		protected ConfigBase()
+		{
+		}
 
 		protected ConfigBase(string filePath)
 		{
 			SetFilePath(filePath);
 		}
 
-		protected ConfigBase()
-		{
-		}
+		/// <inheritdoc />
+		public string FilePath { get; private set; } = null;
 
 		/// <inheritdoc />
 		public void AssertFilePathSet()
@@ -64,7 +64,14 @@ namespace WalletWasabi.Bases
 			}
 			else
 			{
-				await LoadFileAsync();
+				try
+				{
+					await LoadFileAsync();
+				}
+				catch (JsonException)
+				{
+					Logger.LogInfo($"{GetType().Name} file has been deleted because it was corrupted. Recreated default version at path: `{FilePath}`.");
+				}
 			}
 
 			await ToFileAsync();

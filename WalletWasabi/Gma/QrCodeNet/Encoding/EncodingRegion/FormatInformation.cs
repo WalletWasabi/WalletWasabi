@@ -91,7 +91,7 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 		}
 
 		//According Table 25 — Error correction level indicators
-		//Using this bits as enum values would destroy thir order which currently correspond to error correction strength.
+		//Using these bits as enum values would destroy their order which currently corresponds to error correction strength.
 		internal static int GetErrorCorrectionIndicatorBits(ErrorCorrectionLevel errorLevel)
 		{
 			//L 01

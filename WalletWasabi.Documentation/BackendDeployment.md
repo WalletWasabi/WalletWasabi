@@ -54,6 +54,22 @@ adduser user
 usermod -aG sudo user
 ```
 
+### Increase the number of files limit
+
+By default a process can keep open up to 4096 files. Increase that limit for the `user` user as follows:
+
+```sh
+sudo pico /etc/security/limits.conf
+```
+
+```
+# Wasabi backend
+# Wasabi runs with the user called user 
+user    soft nofile 16384
+user    hard nofile 16384
+# End of Wasabi backend
+```
+
 # Setup Firewall
 
 https://www.digitalocean.com/community/tutorials/how-to-set-up-a-firewall-with-ufw-on-ubuntu-14-04
@@ -153,7 +169,7 @@ pico ~/.bitcoin/bitcoin.conf
 ```sh
 testnet=[0/1]
 
-[main/test].rpcworkqueue=64
+[main/test].rpcworkqueue=128
 
 [main/test].txindex=1
 
@@ -185,12 +201,12 @@ cd WalletWasabi
 dotnet restore
 dotnet build
 dotnet publish WalletWasabi.Backend --configuration Release --self-contained false
-dotnet WalletWasabi.Backend/bin/Release/netcoreapp3.0/publish/WalletWasabi.Backend.dll
+dotnet WalletWasabi.Backend/bin/Release/netcoreapp3.1/publish/WalletWasabi.Backend.dll
 cd ..
 cat .walletwasabi/backend/Logs.txt
 pico .walletwasabi/backend/Config.json
 pico .walletwasabi/backend/CcjRoundConfig.json
-dotnet WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp3.0/publish/WalletWasabi.Backend.dll
+dotnet WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp3.1/publish/WalletWasabi.Backend.dll
 cat .walletwasabi/backend/Logs.txt
 ```
 
@@ -209,8 +225,8 @@ sudo pico /etc/systemd/system/walletwasabi.service
 Description=WalletWasabi Backend API
 
 [Service]
-WorkingDirectory=/home/user/WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp3.0/publish
-ExecStart=/usr/bin/dotnet /home/user/WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp3.0/publish/WalletWasabi.Backend.dll
+WorkingDirectory=/home/user/WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp3.1/publish
+ExecStart=/usr/bin/dotnet /home/user/WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp3.1/publish/WalletWasabi.Backend.dll
 Restart=always
 RestartSec=10  # Restart service after 10 seconds if dotnet service crashes
 SyslogIdentifier=walletwasabi-backend
@@ -330,6 +346,15 @@ tail -f ~/.bitcoin/debug.log
 tail -10000 .walletwasabi/backend/Logs.txt
 du -bsh .walletwasabi/backend/IndexBuilderService/*
 ```
+# Specify Your ExtPubKey
+
+Take your ExtPubKey from Wasabi. Never receive money to that wallet's external keypath.
+
+```sh
+pico ~/.walletwasabi/backend/CcjRoundConfig.json
+```
+
+Add your extpub to the `CoordinatorExtPubKey`.
 
 # Additional (optional) Settings
 

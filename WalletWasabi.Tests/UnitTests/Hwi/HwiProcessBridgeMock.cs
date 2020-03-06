@@ -57,7 +57,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			string path = HwiParser.NormalizeRawDevicePath(rawPath);
 			string devicePathAndTypeArgumentString = $"--device-path \"{path}\" --device-type \"{model}\"";
 
-			const string successTrueResponse = "{\"success\": true}\r\n";
+			const string SuccessTrueResponse = "{\"success\": true}\r\n";
 
 			string response = null;
 			int code = 0;
@@ -85,7 +85,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			{
 				if (Model == HardwareWalletModels.Trezor_T || Model == HardwareWalletModels.Trezor_1)
 				{
-					response = successTrueResponse;
+					response = SuccessTrueResponse;
 				}
 				else if (Model == HardwareWalletModels.Coldcard)
 				{
@@ -115,7 +115,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			{
 				if (Model == HardwareWalletModels.Trezor_T || Model == HardwareWalletModels.Trezor_1)
 				{
-					response = successTrueResponse;
+					response = SuccessTrueResponse;
 				}
 				else if (Model == HardwareWalletModels.Coldcard)
 				{
@@ -130,7 +130,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			{
 				if (Model == HardwareWalletModels.Trezor_T || Model == HardwareWalletModels.Trezor_1)
 				{
-					response = successTrueResponse;
+					response = SuccessTrueResponse;
 				}
 				else if (Model == HardwareWalletModels.Coldcard)
 				{
@@ -245,7 +245,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			extPubKey = null;
 			string command = "getxpub";
 			if (arguments.Contains(command, StringComparison.Ordinal)
-				&& (arguments.Contains("--device-path", StringComparison.Ordinal) && arguments.Contains("--device-type", StringComparison.Ordinal)
+				&& ((arguments.Contains("--device-path", StringComparison.Ordinal) && arguments.Contains("--device-type", StringComparison.Ordinal))
 					|| arguments.Contains("--fingerprint")))
 			{
 				// The +1 is the space.

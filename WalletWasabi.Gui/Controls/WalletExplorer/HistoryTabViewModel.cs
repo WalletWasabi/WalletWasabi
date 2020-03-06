@@ -1,7 +1,6 @@
-using NBitcoin;
 using ReactiveUI;
+using Splat;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
@@ -9,59 +8,60 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class HistoryTabViewModel : WalletActionViewModel
+	public class HistoryTabViewModel : WasabiDocumentTabViewModel
 	{
-		private CompositeDisposable Disposables { get; set; }
-
 		private ObservableCollection<TransactionViewModel> _transactions;
 		private TransactionViewModel _selectedTransaction;
 		private SortOrder _dateSortDirection;
 		private SortOrder _amountSortDirection;
 		private SortOrder _transactionSortDirection;
-		public ReactiveCommand<Unit, Unit> SortCommand { get; }
 
-		public HistoryTabViewModel(WalletViewModel walletViewModel)
-			: base("History", walletViewModel)
+		public HistoryTabViewModel(WalletService walletService)
+			: base("History")
 		{
+			Global = Locator.Current.GetService<Global>();
+			WalletService = walletService;
+
 			Transactions = new ObservableCollection<TransactionViewModel>();
 
-			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(async transaction =>
-				{
-					if (Global.UiConfig?.Autocopy is false || transaction is null)
-					{
-						return;
-					}
-
-					await transaction.TryCopyTxIdToClipboardAsync();
-				});
-
 			SortCommand = ReactiveCommand.Create(RefreshOrdering);
+			DateSortDirection = SortOrder.Decreasing;
+
 			SortCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(ex => Logger.LogError(ex));
-
-			DateSortDirection = SortOrder.Decreasing;
+				.Subscribe(ex =>
+				{
+					Logger.LogError(ex);
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
+				});
 
 			_ = TryRewriteTableAsync();
 		}
 
-		public override void OnOpen()
+		private Global Global { get; }
+
+		private WalletService WalletService { get; }
+
+		public ReactiveCommand<Unit, Unit> SortCommand { get; }
+
+		public override void OnOpen(CompositeDisposable disposables)
 		{
-			base.OnOpen();
+			base.OnOpen(disposables);
 
-			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
-
-			Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.NewBlockProcessed))
-				.Merge(Observable.FromEventPattern(Global.WalletService.TransactionProcessor, nameof(Global.WalletService.TransactionProcessor.WalletRelevantTransactionProcessed)))
+			Observable.FromEventPattern(WalletService, nameof(WalletService.NewBlockProcessed))
+				.Merge(Observable.FromEventPattern(WalletService.TransactionProcessor, nameof(WalletService.TransactionProcessor.WalletRelevantTransactionProcessed)))
 				.Throttle(TimeSpan.FromSeconds(3))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(async _ => await TryRewriteTableAsync())
-				.DisposeWith(Disposables);
+				.DisposeWith(disposables);
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 				{
@@ -69,22 +69,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						transaction.Refresh();
 					}
-				}).DisposeWith(Disposables);
-		}
-
-		public override bool OnClose()
-		{
-			Disposables.Dispose();
-			Disposables = null;
-
-			return base.OnClose();
+				}).DisposeWith(disposables);
 		}
 
 		private async Task TryRewriteTableAsync()
 		{
 			try
 			{
-				var historyBuilder = new TransactionHistoryBuilder(Global.WalletService);
+				var historyBuilder = new TransactionHistoryBuilder(WalletService);
 				var txRecordList = await Task.Run(historyBuilder.BuildHistorySummary);
 
 				var rememberSelectedTransactionId = SelectedTransaction?.TransactionId;
@@ -97,6 +89,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					Confirmations = txr.Height.Type == HeightType.Chain ? (int)Global.BitcoinStore.SmartHeaderChain.TipHeight - txr.Height.Value + 1 : 0,
 					AmountBtc = $"{txr.Amount.ToString(fplus: true, trimExcessZero: true)}",
 					Label = txr.Label,
+					BlockHeight = txr.Height.Type == HeightType.Chain ? txr.Height.Value : 0,
 					TransactionId = txr.TransactionId.ToString()
 				}).Select(ti => new TransactionViewModel(ti));
 

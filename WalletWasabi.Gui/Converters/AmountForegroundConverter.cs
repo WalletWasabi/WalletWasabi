@@ -18,6 +18,7 @@ namespace WalletWasabi.Gui.Converters
 				return amount.StartsWith("~")
 					? Brushes.ForestGreen
 					: amount.Equals("No Coins Selected", StringComparison.OrdinalIgnoreCase)
+					  || amount.Equals("Too high fee", StringComparison.OrdinalIgnoreCase)
 						? Brushes.IndianRed
 						: Brushes.White;
 			}

@@ -12,14 +12,6 @@ namespace WalletWasabi.Blockchain.Keys
 	[JsonObject(MemberSerialization.OptIn)]
 	public class BlockchainState
 	{
-		[JsonProperty]
-		[JsonConverter(typeof(NetworkJsonConverter))]
-		public Network Network { get; set; }
-
-		[JsonProperty]
-		[JsonConverter(typeof(HeightJsonConverter))]
-		public Height Height { get; set; }
-
 		[JsonConstructor]
 		public BlockchainState(Network network, Height height)
 		{
@@ -32,5 +24,13 @@ namespace WalletWasabi.Blockchain.Keys
 			Network = Network.Main;
 			Height = 0;
 		}
+
+		[JsonProperty]
+		[JsonConverter(typeof(NetworkJsonConverter))]
+		public Network Network { get; set; }
+
+		[JsonProperty]
+		[JsonConverter(typeof(HeightJsonConverter))]
+		public Height Height { get; set; }
 	}
 }

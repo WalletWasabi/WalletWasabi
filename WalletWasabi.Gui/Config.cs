@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,6 +28,7 @@ namespace WalletWasabi.Gui
 		public const int DefaultPrivacyLevelStrong = 50;
 		public const int DefaultMixUntilAnonymitySet = 50;
 		public const int DefaultTorSock5Port = 9050;
+		public const int DefaultJsonRpcServerPort = 37128;
 		public static readonly Money DefaultDustThreshold = Money.Coins(Constants.DefaultDustThreshold);
 
 		[JsonProperty(PropertyName = "Network")]
@@ -83,6 +85,25 @@ namespace WalletWasabi.Gui
 		[JsonProperty(PropertyName = "RegTestBitcoinP2pEndPoint")]
 		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultRegTestBitcoinP2pPort)]
 		public EndPoint RegTestBitcoinP2pEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultRegTestBitcoinP2pPort);
+
+		[DefaultValue(false)]
+		[JsonProperty(PropertyName = "JsonRpcServerEnabled", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool JsonRpcServerEnabled { get; internal set; }
+
+		[DefaultValue("")]
+		[JsonProperty(PropertyName = "JsonRpcUser", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public string JsonRpcUser { get; internal set; }
+
+		[DefaultValue("")]
+		[JsonProperty(PropertyName = "JsonRpcPassword", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public string JsonRpcPassword { get; internal set; }
+
+		[JsonProperty(PropertyName = "JsonRpcServerPrefixes")]
+		public string[] JsonRpcServerPrefixes { get; internal set; } = new[]
+		{
+			"http://127.0.0.1:37128/",
+			"http://localhost:37128/"
+		};
 
 		[DefaultValue(DefaultMixUntilAnonymitySet)]
 		[JsonProperty(PropertyName = "MixUntilAnonymitySet", DefaultValueHandling = DefaultValueHandling.Populate)]

@@ -1,4 +1,5 @@
 using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -6,26 +7,26 @@ using System.Linq;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls
 {
 	public class SuggestLabelViewModel : ViewModelBase
 	{
 		private ObservableCollection<SuggestionViewModel> _suggestions;
-		private Global _global;
 		private int _caretIndex;
 		private string _label;
+		private WalletService WalletService { get; }
 
-		public SuggestLabelViewModel(Global global)
+		public SuggestLabelViewModel(WalletService walletService)
 		{
-			_global = global;
-
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
 
 			this.WhenAnyValue(x => x.Label)
 				.Throttle(TimeSpan.FromMilliseconds(100))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(UpdateSuggestions);
+			WalletService = walletService;
 		}
 
 		public void Reset()
@@ -70,7 +71,7 @@ namespace WalletWasabi.Gui.Controls
 				return;
 			}
 
-			var labels = _global.WalletService.GetLabels();
+			var labels = WalletService.GetLabels();
 			IEnumerable<string> suggestedWords = labels.Where(w => w.StartsWith(lastWord, StringComparison.InvariantCultureIgnoreCase))
 				.Union(labels.Where(w => w.Contains(lastWord, StringComparison.InvariantCultureIgnoreCase)))
 				.Except(enteredWordList)

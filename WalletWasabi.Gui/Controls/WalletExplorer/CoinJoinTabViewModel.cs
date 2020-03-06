@@ -1,35 +1,34 @@
-using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Security;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.CoinJoin.Client.Clients.Queuing;
+using WalletWasabi.CoinJoin.Client.Rounds;
+using WalletWasabi.CoinJoin.Common.Models;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Services;
 using WalletWasabi.Models;
-using WalletWasabi.CoinJoin.Common.Models;
-using WalletWasabi.CoinJoin.Client.Rounds;
-using WalletWasabi.Gui.Helpers;
-using System.Security;
-using WalletWasabi.CoinJoin.Client.Clients.Queuing;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class CoinJoinTabViewModel : WalletActionViewModel
+	public class CoinJoinTabViewModel : WasabiDocumentTabViewModel
 	{
-		private CompositeDisposable Disposables { get; set; }
-
 		private long _roundId;
-		private RoundPhase _phase;
+		private RoundPhaseState _roundPhaseState;
 		private DateTimeOffset _roundTimesout;
 		private TimeSpan _timeLeftTillRoundTimeout;
 		private Money _requiredBTC;
@@ -49,21 +48,26 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _coinJoinUntilAnonymitySet;
 		private TargetPrivacy _targetPrivacy;
 
-		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
-			: base("CoinJoin", walletViewModel)
+		public CoinJoinTabViewModel(WalletService walletService)
+			: base("CoinJoin")
 		{
+			Global = Locator.Current.GetService<Global>();
+			WalletService = walletService;
+
 			Password = "";
 			TimeLeftTillRoundTimeout = TimeSpan.Zero;
 
-			CoinsList = new CoinListViewModel(Global, CoinListContainerType.CoinJoinTabViewModel);
+			CoinsList = new CoinListViewModel(WalletService, canDequeueCoins: true);
 
-			Observable.FromEventPattern(CoinsList, nameof(CoinsList.DequeueCoinsPressed)).Subscribe(_ => OnCoinsListDequeueCoinsPressedAsync());
+			Observable
+				.FromEventPattern<SmartCoin>(CoinsList, nameof(CoinsList.DequeueCoinsPressed))
+				.Subscribe(async x => await DoDequeueAsync(x.EventArgs));
 
 			AmountQueued = Money.Zero; // Global.ChaumianClient.State.SumAllQueuedCoinAmounts();
 
-			EnqueueCommand = ReactiveCommand.CreateFromTask(async () => await DoEnqueueAsync(CoinsList.Coins.Where(c => c.IsSelected)));
+			EnqueueCommand = ReactiveCommand.CreateFromTask(async () => await DoEnqueueAsync(CoinsList.Coins.Where(c => c.IsSelected).Select(c => c.Model)));
 
-			DequeueCommand = ReactiveCommand.CreateFromTask(async () => await DoDequeueAsync(CoinsList.Coins.Where(c => c.IsSelected)));
+			DequeueCommand = ReactiveCommand.CreateFromTask(async () => await DoDequeueAsync(CoinsList.Coins.Where(c => c.IsSelected).Select(x => x.Model)));
 
 			PrivacySomeCommand = ReactiveCommand.Create(() => TargetPrivacy = TargetPrivacy.Some);
 
@@ -125,221 +129,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(ex => Logger.LogError(ex));
 		}
 
-		public override void OnOpen()
-		{
-			base.OnOpen();
+		private Global Global { get; }
 
-			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
-
-			TargetPrivacy = Global.Config.GetTargetPrivacy();
-
-			var registrableRound = Global.ChaumianClient.State.GetRegistrableRoundOrDefault();
-
-			UpdateRequiredBtcLabel(registrableRound);
-
-			CoordinatorFeePercent = registrableRound?.State?.CoordinatorFeePercent.ToString() ?? "0.003";
-
-			Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.CoinQueued))
-				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.OnDequeue)))
-				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.StateUpdated)))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => UpdateStates())
-				.DisposeWith(Disposables);
-
-			ClientRound mostAdvancedRound = Global.ChaumianClient?.State?.GetMostAdvancedRoundOrDefault();
-
-			if (mostAdvancedRound != default)
-			{
-				RoundId = mostAdvancedRound.State.RoundId;
-				Phase = mostAdvancedRound.State.Phase;
-				RoundTimesout = mostAdvancedRound.State.Phase == RoundPhase.InputRegistration ? mostAdvancedRound.State.InputRegistrationTimesout : DateTimeOffset.UtcNow;
-				PeersRegistered = mostAdvancedRound.State.RegisteredPeerCount;
-				PeersNeeded = mostAdvancedRound.State.RequiredPeerCount;
-			}
-			else
-			{
-				RoundId = -1;
-				Phase = RoundPhase.InputRegistration;
-				RoundTimesout = DateTimeOffset.UtcNow;
-				PeersRegistered = 0;
-				PeersNeeded = 100;
-			}
-
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
-				{
-					this.RaisePropertyChanged(nameof(AmountQueued));
-					this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
-				}).DisposeWith(Disposables);
-
-			Observable.Interval(TimeSpan.FromSeconds(1))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					TimeSpan left = RoundTimesout - DateTimeOffset.UtcNow;
-					TimeLeftTillRoundTimeout = left > TimeSpan.Zero ? left : TimeSpan.Zero; // Make sure cannot be less than zero.
-				}).DisposeWith(Disposables);
-		}
-
-		public override bool OnClose()
-		{
-			CoinsList.OnClose();
-
-			Disposables?.Dispose();
-			Disposables = null;
-
-			return base.OnClose();
-		}
-
-		private async Task DoDequeueAsync(IEnumerable<CoinViewModel> selectedCoins)
-		{
-			IsDequeueBusy = true;
-			try
-			{
-				if (!selectedCoins.Any())
-				{
-					NotificationHelpers.Warning("No coins are selected.", "");
-					return;
-				}
-
-				try
-				{
-					await Global.ChaumianClient.DequeueCoinsFromMixAsync(selectedCoins.Select(c => c.Model).ToArray(), DequeueReason.UserRequested);
-				}
-				catch (Exception ex)
-				{
-					Logger.LogWarning(ex);
-				}
-			}
-			finally
-			{
-				IsDequeueBusy = false;
-			}
-		}
-
-		private async Task DoEnqueueAsync(IEnumerable<CoinViewModel> selectedCoins)
-		{
-			IsEnqueueBusy = true;
-			try
-			{
-				if (!selectedCoins.Any())
-				{
-					NotificationHelpers.Warning("No coins are selected.", "");
-					return;
-				}
-				try
-				{
-					PasswordHelper.GetMasterExtKey(KeyManager, Password, out string compatiblityPassword); // If the password is not correct we throw.
-
-					if (compatiblityPassword != null)
-					{
-						Password = compatiblityPassword;
-						NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
-					}
-
-					await Global.ChaumianClient.QueueCoinsToMixAsync(Password, selectedCoins.Select(c => c.Model).ToArray());
-				}
-				catch (SecurityException ex)
-				{
-					NotificationHelpers.Error(ex.Message, "");
-				}
-				catch (Exception ex)
-				{
-					Logger.LogWarning(ex);
-					var builder = new StringBuilder(ex.ToTypeMessageString());
-					if (ex is AggregateException aggex)
-					{
-						foreach (var iex in aggex.InnerExceptions)
-						{
-							builder.Append(Environment.NewLine + iex.ToTypeMessageString());
-						}
-					}
-					NotificationHelpers.Error(builder.ToString());
-				}
-
-				Password = string.Empty;
-			}
-			finally
-			{
-				IsEnqueueBusy = false;
-			}
-		}
-
-		private void UpdateStates()
-		{
-			var chaumianClient = Global?.ChaumianClient;
-			if (chaumianClient is null)
-			{
-				return;
-			}
-
-			AmountQueued = chaumianClient.State.SumAllQueuedCoinAmounts();
-			MainWindowViewModel.Instance.CanClose = AmountQueued == Money.Zero;
-
-			var registrableRound = chaumianClient.State.GetRegistrableRoundOrDefault();
-			if (registrableRound != default)
-			{
-				CoordinatorFeePercent = registrableRound.State.CoordinatorFeePercent.ToString();
-				UpdateRequiredBtcLabel(registrableRound);
-			}
-			var mostAdvancedRound = chaumianClient.State.GetMostAdvancedRoundOrDefault();
-			if (mostAdvancedRound != default)
-			{
-				RoundId = mostAdvancedRound.State.RoundId;
-				if (!chaumianClient.State.IsInErrorState)
-				{
-					Phase = mostAdvancedRound.State.Phase;
-					RoundTimesout = mostAdvancedRound.State.Phase == RoundPhase.InputRegistration ? mostAdvancedRound.State.InputRegistrationTimesout : DateTimeOffset.UtcNow;
-				}
-				this.RaisePropertyChanged(nameof(Phase));
-				this.RaisePropertyChanged(nameof(RoundTimesout));
-				PeersRegistered = mostAdvancedRound.State.RegisteredPeerCount;
-				PeersNeeded = mostAdvancedRound.State.RequiredPeerCount;
-			}
-		}
-
-		private void UpdateRequiredBtcLabel(ClientRound registrableRound)
-		{
-			if (Global.WalletService is null)
-			{
-				return; // Otherwise NullReferenceException at shutdown.
-			}
-
-			if (registrableRound == default)
-			{
-				if (RequiredBTC == default)
-				{
-					RequiredBTC = Money.Zero;
-				}
-			}
-			else
-			{
-				var coins = Global.WalletService.Coins;
-				var queued = coins.CoinJoinInProcess();
-				if (queued.Any())
-				{
-					RequiredBTC = registrableRound.State.CalculateRequiredAmount(Global.ChaumianClient.State.GetAllQueuedCoinAmounts().ToArray());
-				}
-				else
-				{
-					var available = coins.Confirmed().Available();
-					RequiredBTC = available.Any()
-						? registrableRound.State.CalculateRequiredAmount(available.Where(x => x.AnonymitySet < Global.Config.PrivacyLevelStrong).Select(x => x.Amount).ToArray())
-						: registrableRound.State.CalculateRequiredAmount();
-				}
-			}
-		}
-
-		public override void OnSelected()
-		{
-			Global.ChaumianClient.ActivateFrequentStatusProcessing();
-		}
-
-		public override void OnDeselected()
-		{
-			Global.ChaumianClient.DeactivateFrequentStatusProcessingIfNotMixing();
-		}
-
-		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
+		private WalletService WalletService { get; }
 
 		[ValidateMethod(nameof(ValidatePassword))]
 		public string Password
@@ -349,24 +141,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public CoinListViewModel CoinsList { get; }
-
-		private async void OnCoinsListDequeueCoinsPressedAsync()
-		{
-			try
-			{
-				var selectedCoin = CoinsList.SelectedCoin;
-				if (selectedCoin is null)
-				{
-					return;
-				}
-
-				await DoDequeueAsync(new[] { selectedCoin });
-			}
-			catch (Exception ex)
-			{
-				Logger.LogWarning(ex);
-			}
-		}
 
 		public Money AmountQueued
 		{
@@ -380,10 +154,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _roundId, value);
 		}
 
-		public RoundPhase Phase
+		public RoundPhaseState RoundPhaseState
 		{
-			get => _phase;
-			set => this.RaiseAndSetIfChanged(ref _phase, value);
+			get => _roundPhaseState;
+			set => this.RaiseAndSetIfChanged(ref _roundPhaseState, value);
 		}
 
 		public DateTimeOffset RoundTimesout
@@ -458,6 +232,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _targetPrivacy, value);
 		}
 
+		public bool IsWatchOnly => WalletService.KeyManager.IsWatchOnly;
+		public bool IsHardwareWallet => WalletService.KeyManager.IsHardwareWallet;
+
 		public bool IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
 
 		public ReactiveCommand<Unit, Unit> EnqueueCommand { get; }
@@ -468,5 +245,228 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, TargetPrivacy> PrivacyFineCommand { get; }
 		public ReactiveCommand<Unit, TargetPrivacy> PrivacyStrongCommand { get; }
 		public ReactiveCommand<Unit, Unit> TargetButtonCommand { get; }
+
+		public override void OnOpen(CompositeDisposable disposables)
+		{
+			base.OnOpen(disposables);
+
+			TargetPrivacy = Global.Config.GetTargetPrivacy();
+
+			var registrableRound = WalletService.ChaumianClient.State.GetRegistrableRoundOrDefault();
+
+			UpdateRequiredBtcLabel(registrableRound);
+
+			CoordinatorFeePercent = registrableRound?.State?.CoordinatorFeePercent.ToString() ?? "0.003";
+
+			Observable.FromEventPattern(WalletService.ChaumianClient, nameof(WalletService.ChaumianClient.CoinQueued))
+				.Merge(Observable.FromEventPattern(WalletService.ChaumianClient, nameof(WalletService.ChaumianClient.OnDequeue)))
+				.Merge(Observable.FromEventPattern(WalletService.ChaumianClient, nameof(WalletService.ChaumianClient.StateUpdated)))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => UpdateStates())
+				.DisposeWith(disposables);
+
+			ClientRound mostAdvancedRound = WalletService.ChaumianClient?.State?.GetMostAdvancedRoundOrDefault();
+
+			if (mostAdvancedRound != default)
+			{
+				RoundId = mostAdvancedRound.State.RoundId;
+				RoundPhaseState = new RoundPhaseState(mostAdvancedRound.State.Phase, WalletService.ChaumianClient?.State.IsInErrorState ?? false);
+				RoundTimesout = mostAdvancedRound.State.Phase == RoundPhase.InputRegistration ? mostAdvancedRound.State.InputRegistrationTimesout : DateTimeOffset.UtcNow;
+				PeersRegistered = mostAdvancedRound.State.RegisteredPeerCount;
+				PeersNeeded = mostAdvancedRound.State.RequiredPeerCount;
+			}
+			else
+			{
+				RoundId = -1;
+				RoundPhaseState = new RoundPhaseState(RoundPhase.InputRegistration, false);
+				RoundTimesout = DateTimeOffset.UtcNow;
+				PeersRegistered = 0;
+				PeersNeeded = 100;
+			}
+
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+			{
+				this.RaisePropertyChanged(nameof(AmountQueued));
+				this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
+			}).DisposeWith(disposables);
+
+			Observable.Interval(TimeSpan.FromSeconds(1))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+				{
+					TimeSpan left = RoundTimesout - DateTimeOffset.UtcNow;
+					TimeLeftTillRoundTimeout = left > TimeSpan.Zero ? left : TimeSpan.Zero; // Make sure cannot be less than zero.
+				}).DisposeWith(disposables);
+		}
+
+		public override bool OnClose()
+		{
+			CoinsList.OnClose();
+
+			return base.OnClose();
+		}
+
+		private async Task DoDequeueAsync(params SmartCoin[] coins)
+			=> await DoDequeueAsync(coins as IEnumerable<SmartCoin>);
+
+		private async Task DoDequeueAsync(IEnumerable<SmartCoin> coins)
+		{
+			IsDequeueBusy = true;
+			try
+			{
+				if (!coins.Any())
+				{
+					NotificationHelpers.Warning("No coins are selected.", "");
+					return;
+				}
+
+				try
+				{
+					await WalletService.ChaumianClient.DequeueCoinsFromMixAsync(coins.ToArray(), DequeueReason.UserRequested);
+				}
+				catch (Exception ex)
+				{
+					Logger.LogWarning(ex);
+				}
+
+				Password = string.Empty;
+			}
+			finally
+			{
+				IsDequeueBusy = false;
+			}
+		}
+
+		private async Task DoEnqueueAsync(IEnumerable<SmartCoin> coins)
+		{
+			IsEnqueueBusy = true;
+			try
+			{
+				if (!coins.Any())
+				{
+					NotificationHelpers.Warning("No coins are selected.", "");
+					return;
+				}
+				try
+				{
+					PasswordHelper.GetMasterExtKey(WalletService.KeyManager, Password, out string compatiblityPassword); // If the password is not correct we throw.
+
+					if (compatiblityPassword != null)
+					{
+						Password = compatiblityPassword;
+						NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
+					}
+
+					await WalletService.ChaumianClient.QueueCoinsToMixAsync(Password, coins.ToArray());
+				}
+				catch (SecurityException ex)
+				{
+					NotificationHelpers.Error(ex.Message, "");
+				}
+				catch (Exception ex)
+				{
+					var builder = new StringBuilder(ex.ToTypeMessageString());
+					if (ex is AggregateException aggex)
+					{
+						foreach (var iex in aggex.InnerExceptions)
+						{
+							builder.Append(Environment.NewLine + iex.ToTypeMessageString());
+						}
+					}
+					NotificationHelpers.Error(builder.ToString());
+					Logger.LogError(ex);
+				}
+
+				Password = string.Empty;
+			}
+			finally
+			{
+				IsEnqueueBusy = false;
+			}
+		}
+
+		private void UpdateStates()
+		{
+			var chaumianClient = WalletService?.ChaumianClient;
+			if (chaumianClient is null)
+			{
+				return;
+			}
+
+			AmountQueued = chaumianClient.State.SumAllQueuedCoinAmounts();
+			MainWindowViewModel.Instance.CanClose = AmountQueued == Money.Zero;
+
+			var registrableRound = chaumianClient.State.GetRegistrableRoundOrDefault();
+			if (registrableRound != default)
+			{
+				CoordinatorFeePercent = registrableRound.State.CoordinatorFeePercent.ToString();
+				UpdateRequiredBtcLabel(registrableRound);
+			}
+			var mostAdvancedRound = chaumianClient.State.GetMostAdvancedRoundOrDefault();
+			if (mostAdvancedRound != default)
+			{
+				RoundId = mostAdvancedRound.State.RoundId;
+				if (!chaumianClient.State.IsInErrorState)
+				{
+					RoundPhaseState = new RoundPhaseState(mostAdvancedRound.State.Phase, false);
+					RoundTimesout = mostAdvancedRound.State.Phase == RoundPhase.InputRegistration ? mostAdvancedRound.State.InputRegistrationTimesout : DateTimeOffset.UtcNow;
+				}
+				else
+				{
+					RoundPhaseState = new RoundPhaseState(RoundPhaseState.Phase, true);
+				}
+
+				this.RaisePropertyChanged(nameof(RoundPhaseState));
+				this.RaisePropertyChanged(nameof(RoundTimesout));
+				PeersRegistered = mostAdvancedRound.State.RegisteredPeerCount;
+				PeersNeeded = mostAdvancedRound.State.RequiredPeerCount;
+			}
+		}
+
+		private void UpdateRequiredBtcLabel(ClientRound registrableRound)
+		{
+			if (WalletService is null)
+			{
+				return; // Otherwise NullReferenceException at shutdown.
+			}
+
+			if (registrableRound == default)
+			{
+				if (RequiredBTC == default)
+				{
+					RequiredBTC = Money.Zero;
+				}
+			}
+			else
+			{
+				var coins = WalletService.Coins;
+				var queued = coins.CoinJoinInProcess();
+				if (queued.Any())
+				{
+					RequiredBTC = registrableRound.State.CalculateRequiredAmount(WalletService.ChaumianClient.State.GetAllQueuedCoinAmounts().ToArray());
+				}
+				else
+				{
+					var available = coins.Confirmed().Available();
+					RequiredBTC = available.Any()
+						? registrableRound.State.CalculateRequiredAmount(available.Where(x => x.AnonymitySet < Global.Config.PrivacyLevelStrong).Select(x => x.Amount).ToArray())
+						: registrableRound.State.CalculateRequiredAmount();
+				}
+			}
+		}
+
+		public override void OnSelected()
+		{
+			base.OnSelected();
+			WalletService.ChaumianClient.ActivateFrequentStatusProcessing();
+		}
+
+		public override void OnDeselected()
+		{
+			WalletService.ChaumianClient.DeactivateFrequentStatusProcessingIfNotMixing();
+			base.OnDeselected();
+		}
+
+		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
 	}
 }

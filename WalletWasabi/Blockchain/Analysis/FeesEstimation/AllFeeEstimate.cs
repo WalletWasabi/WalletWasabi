@@ -12,21 +12,6 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 	[JsonObject(MemberSerialization.OptIn)]
 	public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 	{
-		[JsonProperty]
-		public EstimateSmartFeeMode Type { get; private set; }
-
-		/// <summary>
-		/// If it's been fetched from a fully synced node.
-		/// </summary>
-		[JsonProperty]
-		public bool IsAccurate { get; private set; }
-
-		/// <summary>
-		/// int: fee target, decimal: satoshi/vByte
-		/// </summary>
-		[JsonProperty]
-		public Dictionary<int, int> Estimations { get; private set; }
-
 		[JsonConstructor]
 		public AllFeeEstimate(EstimateSmartFeeMode type, IDictionary<int, int> estimations, bool isAccurate)
 		{
@@ -37,6 +22,21 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 		{
 			Create(other.Type, other.Estimations, isAccurate);
 		}
+
+		[JsonProperty]
+		public EstimateSmartFeeMode Type { get; private set; }
+
+		/// <summary>
+		/// If it's been fetched from a fully synced node.
+		/// </summary>
+		[JsonProperty]
+		public bool IsAccurate { get; private set; }
+
+		/// <summary>
+		/// Dictionary: int: fee target, int: satoshi/vByte
+		/// </summary>
+		[JsonProperty]
+		public Dictionary<int, int> Estimations { get; private set; }
 
 		private void Create(EstimateSmartFeeMode type, IDictionary<int, int> estimations, bool isAccurate)
 		{
@@ -67,7 +67,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 
 		#region Equality
 
-		public override bool Equals(object obj) => obj is AllFeeEstimate feeEstimate && this == feeEstimate;
+		public override bool Equals(object obj) => Equals(obj as AllFeeEstimate);
 
 		public bool Equals(AllFeeEstimate other) => this == other;
 
