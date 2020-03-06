@@ -265,7 +265,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					BitcoinAddress address;
 					try
 					{
-						address = BitcoinAddress.Create(Address.Trim(), Global.Network);
+						address = BitcoinAddress.Create(Address, Global.Network);
 					}
 					catch (FormatException)
 					{
@@ -279,7 +279,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						try
 						{
-							var customChangeAddress = BitcoinAddress.Create(CustomChangeAddress.Trim(), Global.Network);
+							var customChangeAddress = BitcoinAddress.Create(CustomChangeAddress, Global.Network);
 
 							if (customChangeAddress == address)
 							{
@@ -804,7 +804,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return ErrorDescriptors.Empty;
 			}
 
-			if (Address.Trim() == CustomChangeAddress?.Trim())
+			if (Address == CustomChangeAddress)
 			{
 				return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "The active address and the change address cannot be the same."));
 			}
@@ -834,7 +834,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Spending whole coins does not generate change."));
 			}
 
-			if (Address?.Trim() == CustomChangeAddress.Trim())
+			if (Address == CustomChangeAddress)
 			{
 				return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "The active address and the change address cannot be the same."));
 			}
@@ -851,14 +851,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public string Address
 		{
 			get => _address;
-			set => this.RaiseAndSetIfChanged(ref _address, value);
+			set => this.RaiseAndSetIfChanged(ref _address, value?.Trim());
 		}
 
 		[ValidateMethod(nameof(ValidateCustomChangeAddress))]
 		public string CustomChangeAddress
 		{
 			get => _customChangeAddress;
-			set => this.RaiseAndSetIfChanged(ref _customChangeAddress, value);
+			set => this.RaiseAndSetIfChanged(ref _customChangeAddress, value?.Trim());
 		}
 
 		public string LabelToolTip
