@@ -762,7 +762,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 			var walletManager = new WalletManager(null, workDir);
 			walletManager.Init(bitcoinStore, synchronizer, nodes, serviceConfiguration, synchronizer);
-			WalletService wallet = await walletManager.AddWalletServiceAsync(keyManager);
+			WalletService wallet = await walletManager.CreateWalletServiceAsync(keyManager);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			// Get some money, make it confirm.
@@ -1399,7 +1399,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 			var walletManager = new WalletManager(null, workDir);
 			walletManager.Init(bitcoinStore, synchronizer, nodes, serviceConfiguration, synchronizer);
-			WalletService wallet = await walletManager.AddWalletServiceAsync(keyManager);
+			WalletService wallet = await walletManager.CreateWalletServiceAsync(keyManager);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			Assert.Empty(wallet.Coins);
@@ -1618,7 +1618,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 			var walletManager = new WalletManager(null, workDir);
 			walletManager.Init(bitcoinStore, synchronizer, nodes, serviceConfiguration, synchronizer);
-			WalletService wallet = await walletManager.AddWalletServiceAsync(keyManager);
+			WalletService wallet = await walletManager.CreateWalletServiceAsync(keyManager);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			Assert.Empty(wallet.Coins);

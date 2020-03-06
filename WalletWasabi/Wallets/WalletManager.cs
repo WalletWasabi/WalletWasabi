@@ -59,7 +59,7 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-		public async Task<WalletService> AddWalletServiceAsync(KeyManager keyManager)
+		public async Task<WalletService> CreateWalletServiceAsync(KeyManager keyManager)
 		{
 			WalletService walletService;
 
