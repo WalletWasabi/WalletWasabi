@@ -189,7 +189,10 @@ namespace WalletWasabi.BitcoinCore
 				throw new BitcoindException($"'bitcoind {arguments}' exited with incorrect exit code: {exitCode}.");
 			}
 			var firstLine = responseString.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).First();
-			string versionString = firstLine.Split("version v", StringSplitOptions.RemoveEmptyEntries).Last();
+			string versionString = firstLine
+				.Split("version v", StringSplitOptions.RemoveEmptyEntries)
+				.Last()
+				.Split(".knots", StringSplitOptions.RemoveEmptyEntries).First();
 			var version = new Version(versionString);
 			return version;
 		}
