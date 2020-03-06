@@ -1,6 +1,4 @@
 using Avalonia;
-using AvalonStudio.Extensibility;
-using AvalonStudio.Shell;
 using Gma.QrCodeNet.Encoding;
 using ReactiveUI;
 using Splat;
@@ -43,12 +41,14 @@ namespace WalletWasabi.Gui.ViewModels
 		public HdPubKey Model { get; }
 		private Global Global { get; }
 		public KeyManager KeyManager { get; }
+		public ReceiveTabViewModel Owner { get; }
 		public bool IsHardwareWallet { get; }
 
-		public AddressViewModel(HdPubKey model, KeyManager km)
+		public AddressViewModel(HdPubKey model, KeyManager km, ReceiveTabViewModel owner)
 		{
 			Global = Locator.Current.GetService<Global>();
 			KeyManager = km;
+			Owner = owner;
 			IsHardwareWallet = km.IsHardwareWallet;
 			Model = model;
 			ClipboardNotificationVisible = false;
@@ -129,7 +129,7 @@ namespace WalletWasabi.Gui.ViewModels
 			LockAddress = ReactiveCommand.CreateFromTask(async () =>
 			{
 				Model.SetKeyState(KeyState.Locked, km);
-				IoC.Get<IShell>().Documents?.OfType<ReceiveTabViewModel>()?.FirstOrDefault(x => x.WalletService.KeyManager == KeyManager).InitializeAddresses();
+				owner.InitializeAddresses();
 
 				bool isAddressCopied = await Application.Current.Clipboard.GetTextAsync() == Address;
 				if (isAddressCopied)
