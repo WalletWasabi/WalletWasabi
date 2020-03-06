@@ -7,12 +7,12 @@ namespace WalletWasabi.Blockchain.BlockFilters.History
 {
 	public class ActionHistoryHelper
 	{
-		private List<ActionItem> ActionHistory { get; }
-
 		public ActionHistoryHelper()
 		{
 			ActionHistory = new List<ActionItem>();
 		}
+
+		private List<ActionItem> ActionHistory { get; }
 
 		public void StoreAction(ActionItem actionItem)
 		{
