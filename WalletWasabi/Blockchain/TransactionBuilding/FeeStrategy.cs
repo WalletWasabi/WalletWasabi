@@ -11,6 +11,37 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 		private int _target;
 		private FeeRate _rate;
 
+		private FeeStrategy(FeeStrategyType type, int? confirmationTarget, FeeRate feeRate)
+		{
+			Type = type;
+			if (type == FeeStrategyType.Rate)
+			{
+				if (confirmationTarget != null)
+				{
+					throw new ArgumentException($"{nameof(confirmationTarget)} must be null.");
+				}
+				Guard.NotNull(nameof(feeRate), feeRate);
+				if (feeRate < new FeeRate(1m))
+				{
+					throw new ArgumentOutOfRangeException(nameof(feeRate), feeRate, "Cannot be less than 1 sat/vByte.");
+				}
+				_rate = feeRate;
+			}
+			else if (type == FeeStrategyType.Target)
+			{
+				if (feeRate != null)
+				{
+					throw new ArgumentException($"{nameof(feeRate)} must be null.");
+				}
+				Guard.NotNull(nameof(confirmationTarget), confirmationTarget);
+				_target = Guard.InRangeAndNotNull(nameof(confirmationTarget), confirmationTarget.Value, Constants.TwentyMinutesConfirmationTarget, Constants.SevenDaysConfirmationTarget);
+			}
+			else
+			{
+				throw new NotSupportedException(type.ToString());
+			}
+		}
+
 		public FeeStrategyType Type { get; }
 
 		public int Target
@@ -44,36 +75,5 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 		public static FeeStrategy CreateFromConfirmationTarget(int confirmationTarget) => new FeeStrategy(FeeStrategyType.Target, confirmationTarget: confirmationTarget, feeRate: null);
 
 		public static FeeStrategy CreateFromFeeRate(FeeRate feeRate) => new FeeStrategy(FeeStrategyType.Rate, confirmationTarget: null, feeRate: feeRate);
-
-		private FeeStrategy(FeeStrategyType type, int? confirmationTarget, FeeRate feeRate)
-		{
-			Type = type;
-			if (type == FeeStrategyType.Rate)
-			{
-				if (confirmationTarget != null)
-				{
-					throw new ArgumentException($"{nameof(confirmationTarget)} must be null.");
-				}
-				Guard.NotNull(nameof(feeRate), feeRate);
-				if (feeRate < new FeeRate(1m))
-				{
-					throw new ArgumentOutOfRangeException(nameof(feeRate), feeRate, "Cannot be less than 1 sat/vByte.");
-				}
-				_rate = feeRate;
-			}
-			else if (type == FeeStrategyType.Target)
-			{
-				if (feeRate != null)
-				{
-					throw new ArgumentException($"{nameof(feeRate)} must be null.");
-				}
-				Guard.NotNull(nameof(confirmationTarget), confirmationTarget);
-				_target = Guard.InRangeAndNotNull(nameof(confirmationTarget), confirmationTarget.Value, Constants.TwentyMinutesConfirmationTarget, Constants.SevenDaysConfirmationTarget);
-			}
-			else
-			{
-				throw new NotSupportedException(type.ToString());
-			}
-		}
 	}
 }
