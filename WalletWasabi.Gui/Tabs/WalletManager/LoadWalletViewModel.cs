@@ -631,6 +631,15 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 				try
 				{
+					while (!Global.InitializationCompleted)
+					{
+						if (Global.StoppingCts.IsCancellationRequested)
+						{
+							return;
+						}
+						await Task.Delay(100);
+					}
+
 					var walletService = await Task.Run(async () => await Global.CreateWalletServiceAsync(keyManager));
 					// Successfully initialized.
 					Owner.OnClose();

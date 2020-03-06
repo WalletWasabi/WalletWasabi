@@ -161,11 +161,11 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private bool InitializationCompleted { get; set; } = false;
+		public bool InitializationCompleted { get; set; } = false;
 
 		private bool InitializationStarted { get; set; } = false;
 
-		private CancellationTokenSource StoppingCts { get; set; } = new CancellationTokenSource();
+		public CancellationTokenSource StoppingCts { get; set; } = new CancellationTokenSource();
 
 		public async Task InitializeNoWalletAsync()
 		{
@@ -523,14 +523,8 @@ namespace WalletWasabi.Gui
 
 			using (_cancelWalletServiceInitialization = new CancellationTokenSource())
 			{
-				var token = _cancelWalletServiceInitialization.Token;
-				while (!InitializationCompleted)
-				{
-					await Task.Delay(100, token);
-				}
-
 				walletService = new WalletService(BitcoinStore, keyManager, Synchronizer, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
-				await WalletManager.AddAndStartAsync(walletService, token).ConfigureAwait(false);
+				await WalletManager.AddAndStartAsync(walletService, _cancelWalletServiceInitialization.Token).ConfigureAwait(false);
 			}
 
 			_cancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
