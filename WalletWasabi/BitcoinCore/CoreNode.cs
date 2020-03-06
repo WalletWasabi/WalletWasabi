@@ -67,7 +67,7 @@ namespace WalletWasabi.BitcoinCore
 				string rpcUser = configTranslator.TryGetRpcUser();
 				string rpcPassword = configTranslator.TryGetRpcPassword();
 				string rpcCookieFilePath = configTranslator.TryGetRpcCookieFile();
-				string rpcHost = IPAddress.Loopback.ToString();
+				string rpcHost = configTranslator.TryGetRpcBind();
 				int? rpcPort = configTranslator.TryGetRpcPort();
 				WhiteBind whiteBind = configTranslator.TryGetWhiteBind();
 
@@ -113,6 +113,8 @@ namespace WalletWasabi.BitcoinCore
 					$"{configPrefix}.server			= 1",
 					$"{configPrefix}.listen			= 1",
 					$"{configPrefix}.whitebind		= {whiteBindPermissionsPart}{coreNode.P2pEndPoint.ToString(coreNode.Network.DefaultPort)}",
+					$"{configPrefix}.rpcbind		= {coreNode.RpcEndPoint.GetHostOrDefault()}",
+					$"{configPrefix}.rpcallowip		= {IPAddress.Loopback}",
 					$"{configPrefix}.rpcport		= {coreNode.RpcEndPoint.GetPortOrDefault()}"
 				};
 
