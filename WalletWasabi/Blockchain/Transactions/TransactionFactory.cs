@@ -198,7 +198,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			}
 			if (feePc > 100)
 			{
-				throw new InvalidOperationException($"The transaction fee is more than twice the transaction amount: {feePc:0.#}%.");
+				throw new InvalidOperationException($"The transaction fee is more than twice the transaction amount: {feePc:0.#}%. Consider spending whole coins instead.");
 			}
 
 			if (spentCoins.Any(u => !u.Confirmed))
