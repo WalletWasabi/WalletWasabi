@@ -154,12 +154,12 @@ sudo ufw allow 80
 
 **Backup the generated private key!**
 
-# 5. Install, Configure and Synchronize bitcoind
+# 5. Install, Configure and Synchronize bitcoind (Bitcoin Knots)
 
-https://bitcoin.org/en/download
+https://bitcoinknots.org/
 
 ```sh
-sudo add-apt-repository ppa:bitcoin/bitcoin
+sudo add-apt-repository ppa:luke-jr/bitcoinknots
 sudo apt-get update
 sudo apt-get install bitcoind
 mkdir ~/.bitcoin
@@ -358,7 +358,7 @@ Add your extpub to the `CoordinatorExtPubKey`.
 
 # Additional (optional) Settings
 
-## Rolling Bitcoin Core node debug logs
+## Rolling Bitcoin Knots node debug logs
 
 The following command line adds a configuration file to let logrotate service know
 how to rotate the bitcoin debug logs.
