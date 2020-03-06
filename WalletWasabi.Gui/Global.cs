@@ -720,11 +720,6 @@ namespace WalletWasabi.Gui
 			return keyManager;
 		}
 
-		public async Task DisposeInWalletDependentServicesAsync()
-		{
-			await WalletManager.RemoveAndStopAllAsync().ConfigureAwait(false);
-		}
-
 		/// <summary>
 		/// 0: nobody called
 		/// 1: somebody called
@@ -762,7 +757,7 @@ namespace WalletWasabi.Gui
 					await Task.Delay(100);
 				}
 
-				await DisposeInWalletDependentServicesAsync();
+				await WalletManager.RemoveAndStopAllAsync();
 
 				WalletManager.OnDequeue -= WalletManager_OnDequeue;
 				WalletManager.WalletRelevantTransactionProcessed -= WalletManager_WalletRelevantTransactionProcessed;

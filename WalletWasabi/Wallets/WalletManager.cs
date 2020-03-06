@@ -49,7 +49,6 @@ namespace WalletWasabi.Wallets
 		private CoreNode CoreNode { get; set; }
 		private bool WalletCreationEnabled { get; set; }
 		private CancellationTokenSource StoppingCts { get; set; } = new CancellationTokenSource();
-
 		private IEnumerable<KeyValuePair<WalletService, HashSet<uint256>>> AliveWalletsNoLock => Wallets.Where(x => x.Key is { IsStoppingOrStopped: var isDisposed } && !isDisposed);
 
 		public WalletService GetFirstOrDefaultWallet()
@@ -130,6 +129,7 @@ namespace WalletWasabi.Wallets
 
 		public async Task RemoveAndStopAllAsync()
 		{
+			// Cancel the for WalletCreationEnabled.
 			if (StoppingCts is { } && !StoppingCts.IsCancellationRequested)
 			{
 				StoppingCts.Cancel();
@@ -145,27 +145,37 @@ namespace WalletWasabi.Wallets
 				}
 				foreach (var walletService in walletsListClone)
 				{
-					walletService.TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
-					walletService.ChaumianClient.OnDequeue -= ChaumianClient_OnDequeue;
-
-					lock (Lock)
-					{
-						if (!Wallets.Remove(walletService))
-						{
-							throw new InvalidOperationException("Wallet service doesn't exist.");
-						}
-					}
-
-					var keyManager = walletService.KeyManager;
-					if (keyManager is { } && !string.IsNullOrWhiteSpace(WalletBackupsDir))
-					{
-						string backupWalletFilePath = Path.Combine(WalletBackupsDir, Path.GetFileName(keyManager.FilePath));
-						keyManager.ToFile(backupWalletFilePath);
-						Logger.LogInfo($"{nameof(walletService.KeyManager)} backup saved to `{backupWalletFilePath}`.");
-					}
-					await walletService.StopAsync(CancellationToken.None).ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(WalletService)} is stopped.");
+					await RemoveAndStopAsyncNoLockAsync(walletService);
 				}
+			}
+		}
+
+		private async Task RemoveAndStopAsyncNoLockAsync(WalletService walletService)
+		{
+			walletService.TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
+			walletService.ChaumianClient.OnDequeue -= ChaumianClient_OnDequeue;
+
+			lock (Lock)
+			{
+				Wallets.Remove(walletService);
+			}
+
+			var keyManager = walletService.KeyManager;
+			if (keyManager is { } && !string.IsNullOrWhiteSpace(WalletBackupsDir))
+			{
+				string backupWalletFilePath = Path.Combine(WalletBackupsDir, Path.GetFileName(keyManager.FilePath));
+				keyManager.ToFile(backupWalletFilePath);
+				Logger.LogInfo($"{nameof(walletService.KeyManager)} backup saved to `{backupWalletFilePath}`.");
+			}
+			await walletService.StopAsync(CancellationToken.None).ConfigureAwait(false);
+			Logger.LogInfo($"{nameof(WalletService)} is stopped.");
+		}
+
+		public async Task RemoveAndStopAsync(WalletService walletService)
+		{
+			using (await AddRemoveLock.LockAsync().ConfigureAwait(false))
+			{
+				await RemoveAndStopAsyncNoLockAsync(walletService);
 			}
 		}
 
