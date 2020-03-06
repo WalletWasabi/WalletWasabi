@@ -78,7 +78,9 @@ namespace WalletWasabi.Gui.CommandLine
 					return;
 				}
 
-				WalletService = await Global.CreateWalletServiceAsync(keyManager);
+				var wallet = await Global.CreateWalletServiceAsync(keyManager);
+				WalletService = wallet.WalletService;
+
 				if (Global.KillRequested)
 				{
 					return;

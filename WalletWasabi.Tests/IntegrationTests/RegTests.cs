@@ -787,7 +787,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
 				{
-					await walletManager.AddAndStartAsync(wallet, cts.Token);
+					await walletManager.AddAndStartAsync(new Wallet(wallet), cts.Token);
 				}
 				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, walletManager, rpc);
 
@@ -1427,7 +1427,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
 				{
-					await walletManager.AddAndStartAsync(wallet, cts.Token);
+					await walletManager.AddAndStartAsync(new Wallet(wallet), cts.Token);
 				}
 
 				var coin = Assert.Single(wallet.Coins);
@@ -1639,7 +1639,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
 				{
-					await walletManager.AddAndStartAsync(wallet, cts.Token);
+					await walletManager.AddAndStartAsync(new Wallet(wallet), cts.Token);
 				}
 
 				Assert.Empty(wallet.Coins);

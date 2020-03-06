@@ -34,6 +34,7 @@ using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
@@ -629,9 +630,14 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					return;
 				}
 
+				Wallet wallet = null;
+
 				try
 				{
-					var walletService = await Task.Run(async () => await Global.CreateWalletServiceAsync(keyManager));
+					wallet = await Task.Run(async () => await Global.CreateWalletServiceAsync(keyManager));
+
+					var walletService = wallet.WalletService;
+
 					// Successfully initialized.
 					Owner.OnClose();
 					// Open Wallet Explorer tabs
@@ -653,7 +659,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					{
 						Logger.LogError(ex);
 					}
-					await Global.DisposeInWalletDependentServicesAsync();
+					await wallet?.DisposeInWalletDependentServicesAsync(Global.WalletManager);
 				}
 			}
 			finally

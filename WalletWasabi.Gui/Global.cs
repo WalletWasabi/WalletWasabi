@@ -515,27 +515,13 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private CancellationTokenSource _cancelWalletServiceInitialization = null;
-
-		public async Task<WalletService> CreateWalletServiceAsync(KeyManager keyManager)
+		public async Task<Wallet> CreateWalletServiceAsync(KeyManager keyManager)
 		{
-			WalletService walletService;
+			var wallet = new Wallet();
 
-			using (_cancelWalletServiceInitialization = new CancellationTokenSource())
-			{
-				var token = _cancelWalletServiceInitialization.Token;
-				while (!InitializationCompleted)
-				{
-					await Task.Delay(100, token);
-				}
+			await wallet.InitializeWalletServiceAsync(WalletManager, BitcoinStore, keyManager, Synchronizer, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
 
-				walletService = new WalletService(BitcoinStore, keyManager, Synchronizer, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
-				await WalletManager.AddAndStartAsync(walletService, token).ConfigureAwait(false);
-			}
-
-			_cancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
-
-			return walletService;
+			return wallet;
 		}
 
 		private void WalletManager_OnDequeue(object sender, DequeueResult e)
@@ -741,21 +727,6 @@ namespace WalletWasabi.Gui
 			return keyManager;
 		}
 
-		public async Task DisposeInWalletDependentServicesAsync()
-		{
-			try
-			{
-				_cancelWalletServiceInitialization?.Cancel();
-			}
-			catch (ObjectDisposedException)
-			{
-				Logger.LogWarning($"{nameof(_cancelWalletServiceInitialization)} is disposed. This can occur due to an error while processing the wallet.");
-			}
-			_cancelWalletServiceInitialization = null;
-
-			await WalletManager.RemoveAndStopAllAsync().ConfigureAwait(false);
-		}
-
 		/// <summary>
 		/// 0: nobody called
 		/// 1: somebody called
@@ -792,8 +763,8 @@ namespace WalletWasabi.Gui
 				{
 					await Task.Delay(100);
 				}
-
-				await DisposeInWalletDependentServicesAsync();
+				
+				await WalletManager.DisposeAllInWalletDependentServicesAsync();
 
 				WalletManager.OnDequeue -= WalletManager_OnDequeue;
 				WalletManager.WalletRelevantTransactionProcessed -= WalletManager_WalletRelevantTransactionProcessed;
