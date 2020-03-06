@@ -741,6 +741,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		{
 			(string password, RPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await InitializeTestEnvironmentAsync(1);
 
+			bitcoinStore.IndexStore.NewFilter += Wallet_NewFilterProcessed;
 			// Create the services.
 			// 1. Create connection service.
 			var nodes = new NodesGroup(global.Config.Network, requirements: Constants.NodeRequirements);
@@ -784,7 +785,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
 
 				var wallet = await walletManager.CreateAndStartWalletServiceAsync(keyManager);
-				wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, walletManager, rpc);
 
 				var waitCount = 0;
@@ -1374,6 +1374,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		{
 			(string password, RPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await InitializeTestEnvironmentAsync(1);
 
+			bitcoinStore.IndexStore.NewFilter += Wallet_NewFilterProcessed;
 			// Create the services.
 			// 1. Create connection service.
 			var nodes = new NodesGroup(global.Config.Network, requirements: Constants.NodeRequirements);
@@ -1419,7 +1420,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
 
 				var wallet = await walletManager.CreateAndStartWalletServiceAsync(keyManager);
-				wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 				var coin = Assert.Single(wallet.Coins);
 				Assert.True(coin.Confirmed);
@@ -1590,6 +1590,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		{
 			(string password, RPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await InitializeTestEnvironmentAsync(1);
 
+			bitcoinStore.IndexStore.NewFilter += Wallet_NewFilterProcessed;
 			// Create the services.
 			// 1. Create connection service.
 			var nodes = new NodesGroup(global.Config.Network, requirements: Constants.NodeRequirements);
@@ -1626,7 +1627,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
 
 				var wallet = await walletManager.CreateAndStartWalletServiceAsync(keyManager);
-				wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 				Assert.Empty(wallet.Coins);
 
