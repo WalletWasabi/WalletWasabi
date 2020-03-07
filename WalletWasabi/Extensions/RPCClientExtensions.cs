@@ -302,12 +302,14 @@ namespace NBitcoin.RPC
 				tx.Id = uint256.Parse(txJson.Value<string>("txid"));
 				foreach (var txinJson in txJson["vin"])
 				{
-					if (txinJson["coinbase"] != null) continue;
+					if (txinJson["coinbase"] != null)
+					{ 
+						continue;
+					}
 					var input = new VerboseInputInfo();
 					input.OutPoint = new OutPoint(
 						uint256.Parse(txinJson.Value<string>("txid")),
-						txinJson.Value<uint>("vout")
-					);
+						txinJson.Value<uint>("vout"));
 					input.PrevOutput = new VerboseOutputInfo();
 					input.PrevOutput.Value = Money.Coins(txinJson["prevout"].Value<decimal>("value"));
 					input.PrevOutput.ScriptPubKey = Script.FromHex(txinJson["prevout"]["scriptPubKey"].Value<string>("hex"));
