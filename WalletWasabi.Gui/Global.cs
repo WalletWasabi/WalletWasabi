@@ -161,7 +161,7 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		public bool InitializationCompleted { get; set; } = false;
+		public bool InitializationCompleted { get; private set; } = false;
 
 		private bool InitializationStarted { get; set; } = false;
 
