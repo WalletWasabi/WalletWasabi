@@ -43,6 +43,7 @@ namespace WalletWasabi.Wallets
 		{
 			WalletBackupsDir = walletBackupsDir;
 			Wallets = new Dictionary<WalletState, HashSet<uint256>>();
+			WalletStates = new Dictionary<WalletService, WalletState>();
 			Lock = new object();
 			AddRemoveLock = new AsyncLock();
 		}
@@ -52,6 +53,9 @@ namespace WalletWasabi.Wallets
 		public event EventHandler<DequeueResult> OnDequeue;
 
 		private Dictionary<WalletState, HashSet<uint256>> Wallets { get; }
+
+		private Dictionary<WalletService, WalletState> WalletStates { get; }
+
 		private object Lock { get; }
 		private AsyncLock AddRemoveLock { get; }
 		private string WalletBackupsDir { get; }
@@ -86,6 +90,7 @@ namespace WalletWasabi.Wallets
 				lock (Lock)
 				{
 					Wallets.Add(walletState, new HashSet<uint256>());
+					WalletStates.Add(walletState.WalletService, walletState);
 				}
 
 
@@ -118,14 +123,13 @@ namespace WalletWasabi.Wallets
 
 		public async Task RemoveAndStopAsync(WalletService service)
 		{
+			WalletState walletState;
 			List<WalletState> walletsListClone;
 			lock (Lock)
 			{
 				walletsListClone = Wallets.Keys.ToList();
+				walletState = WalletStates[service];
 			}
-
-			// TODO make WalletService the key for the dictionary...
-			var walletState = walletsListClone.FirstOrDefault(x => x.WalletService == service);
 
 			try
 			{
@@ -149,6 +153,8 @@ namespace WalletWasabi.Wallets
 					{
 						throw new InvalidOperationException("Wallet service doesn't exist.");
 					}
+
+					WalletStates.Remove(walletState.WalletService);
 				}
 
 				var keyManager = walletService.KeyManager;
