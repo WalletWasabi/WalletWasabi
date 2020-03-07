@@ -1,4 +1,5 @@
 using NBitcoin;
+using NBitcoin.RPC;
 using System.Threading.Tasks;
 
 namespace WalletWasabi.BitcoinCore
@@ -12,5 +13,7 @@ namespace WalletWasabi.BitcoinCore
 		Task<Block> GetBlockAsync(uint256 blockId);
 
 		Task<BlockHeader> GetBlockHeaderAsync(uint256 blockHash);
+
+		Task<RPCResponse> SendCommandAsync(RPCOperations operation, params object[] p);
 	}
 }
