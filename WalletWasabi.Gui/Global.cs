@@ -659,12 +659,7 @@ namespace WalletWasabi.Gui
 				await Task.Delay(100).ConfigureAwait(false);
 			}
 
-			if (StoppingCts.IsCancellationRequested)
-			{
-				return false;
-			}
-
-			return true;
+			return !StoppingCts.IsCancellationRequested;
 		}
 
 		private static void NotifyAndLog(string message, string title, NotificationType notificationType, ProcessedResult e)
