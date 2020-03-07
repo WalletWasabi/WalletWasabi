@@ -80,6 +80,7 @@ namespace WalletWasabi.Gui
 
 		public Global()
 		{
+			StoppingCts = new CancellationTokenSource();
 			DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
 			TorLogsFile = Path.Combine(DataDir, "TorLogs.txt");
 			WalletsDir = Path.Combine(DataDir, "Wallets");
@@ -161,11 +162,11 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		public bool InitializationCompleted { get; private set; } = false;
+		private bool InitializationCompleted { get; set; } = false;
 
 		private bool InitializationStarted { get; set; } = false;
 
-		public CancellationTokenSource StoppingCts { get; set; } = new CancellationTokenSource();
+		private CancellationTokenSource StoppingCts { get; }
 
 		public async Task InitializeNoWalletAsync()
 		{
@@ -650,6 +651,22 @@ namespace WalletWasabi.Gui
 			}
 		}
 
+		/// <returns>If initialization is successful, otherwise it was interrupted which means stopping was requested.</returns>
+		public async Task<bool> WaitForInitializationCompletedAsync()
+		{
+			while (!InitializationCompleted)
+			{
+				await Task.Delay(100).ConfigureAwait(false);
+			}
+
+			if (StoppingCts.IsCancellationRequested)
+			{
+				return false;
+			}
+
+			return true;
+		}
+
 		private static void NotifyAndLog(string message, string title, NotificationType notificationType, ProcessedResult e)
 		{
 			message = Guard.Correct(message);
@@ -752,10 +769,7 @@ namespace WalletWasabi.Gui
 					return;
 				}
 
-				while (!InitializationCompleted)
-				{
-					await Task.Delay(100);
-				}
+				await WaitForInitializationCompletedAsync().ConfigureAwait(false);
 
 				await WalletManager.RemoveAndStopAllAsync().ConfigureAwait(false);
 
@@ -869,7 +883,6 @@ namespace WalletWasabi.Gui
 			finally
 			{
 				StoppingCts?.Dispose();
-				StoppingCts = null;
 				Interlocked.Exchange(ref _dispose, 2);
 			}
 		}
