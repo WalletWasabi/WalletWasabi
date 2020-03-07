@@ -87,18 +87,19 @@ namespace WalletWasabi.Wallets
 				{
 					Wallets.Add(walletState, new HashSet<uint256>());
 				}
+
+
+				Logger.LogInfo($"Starting {nameof(WalletService)}...");
+				await walletService.StartAsync(cancel).ConfigureAwait(false);
+				Logger.LogInfo($"{nameof(WalletService)} started.");
+
+				cancel.ThrowIfCancellationRequested();
+
+				walletService.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
+				walletService.ChaumianClient.OnDequeue += ChaumianClient_OnDequeue;
+
+				walletState.CancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
 			}
-
-			Logger.LogInfo($"Starting {nameof(WalletService)}...");
-			await walletService.StartAsync(cancel).ConfigureAwait(false);
-			Logger.LogInfo($"{nameof(WalletService)} started.");
-
-			cancel.ThrowIfCancellationRequested();
-
-			walletService.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
-			walletService.ChaumianClient.OnDequeue += ChaumianClient_OnDequeue;
-
-			walletState.CancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
 
 			return walletService;
 		}
@@ -117,27 +118,27 @@ namespace WalletWasabi.Wallets
 
 		public async Task RemoveAndStopAsync(WalletService service)
 		{
+			List<WalletState> walletsListClone;
+			lock (Lock)
+			{
+				walletsListClone = Wallets.Keys.ToList();
+			}
+
+			// TODO make WalletService the key for the dictionary...
+			var walletState = walletsListClone.FirstOrDefault(x => x.WalletService == service);
+
+			try
+			{
+				walletState.CancelWalletServiceInitialization?.Cancel();
+			}
+			catch (ObjectDisposedException)
+			{
+				Logger.LogWarning($"{nameof(walletState.CancelWalletServiceInitialization)} is disposed. This can occur due to an error while processing the wallet.");
+			}
+			walletState.CancelWalletServiceInitialization = null;
+
 			using (await AddRemoveLock.LockAsync().ConfigureAwait(false))
 			{
-				List<WalletState> walletsListClone;
-				lock (Lock)
-				{
-					walletsListClone = Wallets.Keys.ToList();
-				}
-
-				// TODO make WalletService the key for the dictionary...
-				var walletState = walletsListClone.FirstOrDefault(x => x.WalletService == service);
-
-				try
-				{
-					walletState.CancelWalletServiceInitialization?.Cancel();
-				}
-				catch (ObjectDisposedException)
-				{
-					Logger.LogWarning($"{nameof(walletState.CancelWalletServiceInitialization)} is disposed. This can occur due to an error while processing the wallet.");
-				}
-				walletState.CancelWalletServiceInitialization = null;
-
 				var walletService = walletState.WalletService;
 				walletService.TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
 				walletService.ChaumianClient.OnDequeue -= ChaumianClient_OnDequeue;
