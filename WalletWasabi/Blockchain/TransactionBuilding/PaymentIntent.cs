@@ -10,11 +10,6 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 {
 	public class PaymentIntent
 	{
-		public IEnumerable<DestinationRequest> Requests { get; }
-		public ChangeStrategy ChangeStrategy { get; }
-		public Money TotalAmount { get; }
-		public int Count => Requests.Count();
-
 		public PaymentIntent(Script scriptPubKey, Money amount, bool subtractFee = false, SmartLabel label = null) : this(scriptPubKey, MoneyRequest.Create(amount, subtractFee), label)
 		{
 		}
@@ -86,6 +81,11 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 
 			TotalAmount = requests.Where(x => x.Amount.Type == MoneyRequestType.Value).Sum(x => x.Amount.Amount);
 		}
+
+		public IEnumerable<DestinationRequest> Requests { get; }
+		public ChangeStrategy ChangeStrategy { get; }
+		public Money TotalAmount { get; }
+		public int Count => Requests.Count();
 
 		public bool TryGetCustomRequest(out DestinationRequest request)
 		{
