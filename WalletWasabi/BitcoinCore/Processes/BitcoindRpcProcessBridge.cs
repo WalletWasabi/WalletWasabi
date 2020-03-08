@@ -60,7 +60,7 @@ namespace WalletWasabi.BitcoinCore.Processes
 
 				if (process is null || process.HasExited)
 				{
-					throw new Exception($"Failed to start daemon, location: '{process?.StartInfo.FileName} {process?.StartInfo.Arguments}'", ex);
+					throw new BitcoindException($"Failed to start daemon, location: '{process?.StartInfo.FileName} {process?.StartInfo.Arguments}'", ex);
 				}
 
 				if (cancel.IsCancellationRequested)
