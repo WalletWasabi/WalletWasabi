@@ -11,12 +11,12 @@ namespace WalletWasabi.Blockchain.Transactions
 {
 	public class TransactionHistoryBuilder
 	{
-		public WalletService WalletService { get; }
-
 		public TransactionHistoryBuilder(WalletService walletService)
 		{
 			WalletService = walletService;
 		}
+
+		public WalletService WalletService { get; }
 
 		public List<TransactionSummary> BuildHistorySummary()
 		{

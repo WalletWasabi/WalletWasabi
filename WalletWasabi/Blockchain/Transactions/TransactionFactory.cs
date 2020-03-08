@@ -16,12 +16,6 @@ namespace WalletWasabi.Blockchain.Transactions
 {
 	public class TransactionFactory
 	{
-		public Network Network { get; }
-		public KeyManager KeyManager { get; }
-		public ICoinsView Coins { get; }
-		public string Password { get; }
-		public bool AllowUnconfirmed { get; }
-
 		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
 		public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, string password = "", bool allowUnconfirmed = false)
 		{
@@ -31,6 +25,12 @@ namespace WalletWasabi.Blockchain.Transactions
 			Password = password;
 			AllowUnconfirmed = allowUnconfirmed;
 		}
+
+		public Network Network { get; }
+		public KeyManager KeyManager { get; }
+		public ICoinsView Coins { get; }
+		public string Password { get; }
+		public bool AllowUnconfirmed { get; }
 
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
