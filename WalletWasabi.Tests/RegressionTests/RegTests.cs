@@ -50,7 +50,7 @@ using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 using static NBitcoin.Crypto.SchnorrBlinding;
 
-namespace WalletWasabi.Tests.IntegrationTests
+namespace WalletWasabi.Tests.RegressionTests
 {
 	[Collection("RegTest collection")]
 	public class RegTests
