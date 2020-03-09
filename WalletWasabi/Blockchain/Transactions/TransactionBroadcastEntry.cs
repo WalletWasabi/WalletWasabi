@@ -8,15 +8,6 @@ namespace WalletWasabi.Blockchain.Transactions
 {
 	public class TransactionBroadcastEntry
 	{
-		public Transaction Transaction { get; }
-		public uint256 TransactionId { get; }
-		public string NodeRemoteSocketEndpoint { get; }
-
-		private bool Broadcasted { get; set; }
-		private int PropagationConfirmations { get; set; }
-
-		private object Lock { get; }
-
 		public TransactionBroadcastEntry(Transaction transaction, string nodeRemoteSocketEndpoint)
 		{
 			Lock = new object();
@@ -26,6 +17,15 @@ namespace WalletWasabi.Blockchain.Transactions
 			PropagationConfirmations = 0;
 			NodeRemoteSocketEndpoint = nodeRemoteSocketEndpoint;
 		}
+
+		public Transaction Transaction { get; }
+		public uint256 TransactionId { get; }
+		public string NodeRemoteSocketEndpoint { get; }
+
+		private bool Broadcasted { get; set; }
+		private int PropagationConfirmations { get; set; }
+
+		private object Lock { get; }
 
 		public void MakeBroadcasted()
 		{

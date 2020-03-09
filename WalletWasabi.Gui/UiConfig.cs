@@ -25,6 +25,7 @@ namespace WalletWasabi.Gui
 		private bool _lockScreenActive;
 		private string _lockScreenPinHash;
 		private bool _isCustomFee;
+		private bool _isCustomChangeAddress;
 		private bool _autocopy;
 
 		[JsonProperty(PropertyName = "WindowState")]
@@ -65,6 +66,14 @@ namespace WalletWasabi.Gui
 		{
 			get => _isCustomFee;
 			set => RaiseAndSetIfChanged(ref _isCustomFee, value);
+		}
+
+		[DefaultValue(false)]
+		[JsonProperty(PropertyName = "IsCustomChangeAddress", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool IsCustomChangeAddress
+		{
+			get => _isCustomChangeAddress;
+			set => RaiseAndSetIfChanged(ref _isCustomChangeAddress, value);
 		}
 
 		[DefaultValue(false)]
