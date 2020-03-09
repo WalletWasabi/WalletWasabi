@@ -199,7 +199,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		public async Task BuildTransactionReorgsTestAsync()
 		{
 			(string password, RPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
-
+			bitcoinStore.IndexStore.NewFilter += Common.Wallet_NewFilterProcessed;
 			// Create the services.
 			// 1. Create connection service.
 			var nodes = new NodesGroup(global.Config.Network, requirements: Constants.NodeRequirements);
@@ -218,12 +218,9 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			// 5. Create wallet service.
 			var workDir = Common.GetWorkDir();
-			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer);
-			wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;
-
 			var walletManager = new WalletManager(null);
+			walletManager.Initialize(bitcoinStore, synchronizer, nodes, workDir, serviceConfiguration, synchronizer, null);
 
-			Assert.Empty(wallet.Coins);
 			var baseTip = await rpc.GetBestBlockHashAsync();
 
 			// Generate script
@@ -245,12 +242,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				// Wait until the filter our previous transaction is present.
 				var blockCount = await rpc.GetBlockCountAsync();
 				await Common.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
-
-				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
-				{
-					await walletManager.AddAndStartAsync(wallet, cts.Token);
-				}
-
+				var wallet = await walletManager.CreateAndStartWalletServiceAsync(keyManager);
 				var coin = Assert.Single(wallet.Coins);
 				Assert.True(coin.Confirmed);
 				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, walletManager, rpc);
@@ -402,6 +394,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			}
 			finally
 			{
+				bitcoinStore.IndexStore.NewFilter -= Common.Wallet_NewFilterProcessed;
 				await walletManager.RemoveAndStopAllAsync();
 				// Dispose wasabi synchronizer service.
 				if (synchronizer is { })

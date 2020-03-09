@@ -80,6 +80,7 @@ namespace WalletWasabi.Gui
 
 		public Global()
 		{
+			StoppingCts = new CancellationTokenSource();
 			DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
 			TorLogsFile = Path.Combine(DataDir, "TorLogs.txt");
 			WalletsDir = Path.Combine(DataDir, "Wallets");
@@ -165,7 +166,7 @@ namespace WalletWasabi.Gui
 
 		private bool InitializationStarted { get; set; } = false;
 
-		private CancellationTokenSource StoppingCts { get; set; } = new CancellationTokenSource();
+		private CancellationTokenSource StoppingCts { get; }
 
 		public async Task InitializeNoWalletAsync()
 		{
@@ -398,6 +399,8 @@ namespace WalletWasabi.Gui
 				}
 
 				#endregion JsonRpcServerInitialization
+
+				WalletManager.Initialize(BitcoinStore, Synchronizer, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
 			}
 			catch (Exception ex)
 			{
@@ -513,29 +516,6 @@ namespace WalletWasabi.Gui
 					await addressManager.AddAsync(endpoint);
 				}
 			}
-		}
-
-		private CancellationTokenSource _cancelWalletServiceInitialization = null;
-
-		public async Task<WalletService> CreateWalletServiceAsync(KeyManager keyManager)
-		{
-			WalletService walletService;
-
-			using (_cancelWalletServiceInitialization = new CancellationTokenSource())
-			{
-				var token = _cancelWalletServiceInitialization.Token;
-				while (!InitializationCompleted)
-				{
-					await Task.Delay(100, token);
-				}
-
-				walletService = new WalletService(BitcoinStore, keyManager, Synchronizer, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
-				await WalletManager.AddAndStartAsync(walletService, token).ConfigureAwait(false);
-			}
-
-			_cancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
-
-			return walletService;
 		}
 
 		private void WalletManager_OnDequeue(object sender, DequeueResult e)
@@ -671,6 +651,17 @@ namespace WalletWasabi.Gui
 			}
 		}
 
+		/// <returns>If initialization is successful, otherwise it was interrupted which means stopping was requested.</returns>
+		public async Task<bool> WaitForInitializationCompletedAsync()
+		{
+			while (!InitializationCompleted)
+			{
+				await Task.Delay(100).ConfigureAwait(false);
+			}
+
+			return !StoppingCts.IsCancellationRequested;
+		}
+
 		private static void NotifyAndLog(string message, string title, NotificationType notificationType, ProcessedResult e)
 		{
 			message = Guard.Correct(message);
@@ -741,21 +732,6 @@ namespace WalletWasabi.Gui
 			return keyManager;
 		}
 
-		public async Task DisposeInWalletDependentServicesAsync()
-		{
-			try
-			{
-				_cancelWalletServiceInitialization?.Cancel();
-			}
-			catch (ObjectDisposedException)
-			{
-				Logger.LogWarning($"{nameof(_cancelWalletServiceInitialization)} is disposed. This can occur due to an error while processing the wallet.");
-			}
-			_cancelWalletServiceInitialization = null;
-
-			await WalletManager.RemoveAndStopAllAsync().ConfigureAwait(false);
-		}
-
 		/// <summary>
 		/// 0: nobody called
 		/// 1: somebody called
@@ -788,12 +764,9 @@ namespace WalletWasabi.Gui
 					return;
 				}
 
-				while (!InitializationCompleted)
-				{
-					await Task.Delay(100);
-				}
+				await WaitForInitializationCompletedAsync().ConfigureAwait(false);
 
-				await DisposeInWalletDependentServicesAsync();
+				await WalletManager.RemoveAndStopAllAsync().ConfigureAwait(false);
 
 				WalletManager.OnDequeue -= WalletManager_OnDequeue;
 				WalletManager.WalletRelevantTransactionProcessed -= WalletManager_WalletRelevantTransactionProcessed;
@@ -905,7 +878,6 @@ namespace WalletWasabi.Gui
 			finally
 			{
 				StoppingCts?.Dispose();
-				StoppingCts = null;
 				Interlocked.Exchange(ref _dispose, 2);
 			}
 		}

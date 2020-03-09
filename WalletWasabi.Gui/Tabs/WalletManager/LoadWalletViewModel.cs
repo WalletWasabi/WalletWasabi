@@ -631,7 +631,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 				try
 				{
-					var walletService = await Task.Run(async () => await Global.CreateWalletServiceAsync(keyManager));
+					bool isSuccessful = await Global.WaitForInitializationCompletedAsync();
+					if (!isSuccessful)
+					{
+						return;
+					}
+
+					var walletService = await Task.Run(async () => await Global.WalletManager.CreateAndStartWalletServiceAsync(keyManager));
 					// Successfully initialized.
 					Owner.OnClose();
 					// Open Wallet Explorer tabs
@@ -653,7 +659,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					{
 						Logger.LogError(ex);
 					}
-					await Global.DisposeInWalletDependentServicesAsync();
 				}
 			}
 			finally
