@@ -22,10 +22,7 @@ namespace WalletWasabi.CoinJoin.Client
 {
 	public class CoinJoinProcessor : IDisposable
 	{
-		public WasabiSynchronizer Synchronizer { get; }
-		public WalletManager WalletManager { get; }
-		public RPCClient RpcClient { get; private set; }
-		private AsyncLock ProcessLock { get; }
+		private volatile bool _disposedValue = false; // To detect redundant calls
 
 		public CoinJoinProcessor(WasabiSynchronizer synchronizer, WalletManager walletManager, RPCClient rpc)
 		{
@@ -35,6 +32,11 @@ namespace WalletWasabi.CoinJoin.Client
 			ProcessLock = new AsyncLock();
 			Synchronizer.ResponseArrived += Synchronizer_ResponseArrivedAsync;
 		}
+
+		public WasabiSynchronizer Synchronizer { get; }
+		public WalletManager WalletManager { get; }
+		public RPCClient RpcClient { get; private set; }
+		private AsyncLock ProcessLock { get; }
 
 		private async void Synchronizer_ResponseArrivedAsync(object sender, SynchronizeResponse response)
 		{
@@ -87,8 +89,6 @@ namespace WalletWasabi.CoinJoin.Client
 		}
 
 		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
 
 		protected virtual void Dispose(bool disposing)
 		{
