@@ -65,7 +65,7 @@ namespace WalletWasabi.Wallets
 
 		public async Task<WalletService> CreateAndStartWalletServiceAsync(KeyManager keyManager)
 		{
-			using (await AddRemoveLock.LockAsync().ConfigureAwait(false))
+			using (await AddRemoveLock.LockAsync(CancelAllInitialization.Token).ConfigureAwait(false))
 			{
 				WalletService walletService = null;
 				try
