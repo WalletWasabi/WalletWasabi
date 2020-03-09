@@ -9,10 +9,6 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 {
 	public class DestinationRequest
 	{
-		public IDestination Destination { get; }
-		public MoneyRequest Amount { get; }
-		public SmartLabel Label { get; }
-
 		public DestinationRequest(Script scriptPubKey, Money amount, bool subtractFee = false, SmartLabel label = null) : this(scriptPubKey, MoneyRequest.Create(amount, subtractFee), label)
 		{
 		}
@@ -31,5 +27,9 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 			Amount = Guard.NotNull(nameof(amount), amount);
 			Label = label ?? SmartLabel.Empty;
 		}
+
+		public IDestination Destination { get; }
+		public MoneyRequest Amount { get; }
+		public SmartLabel Label { get; }
 	}
 }

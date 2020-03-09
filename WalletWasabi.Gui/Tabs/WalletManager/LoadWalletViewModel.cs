@@ -631,18 +631,24 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 				try
 				{
-					await Task.Run(async () => await Global.InitializeWalletServiceAsync(keyManager));
+					bool isSuccessful = await Global.WaitForInitializationCompletedAsync();
+					if (!isSuccessful)
+					{
+						return;
+					}
+
+					var walletService = await Task.Run(async () => await Global.WalletManager.CreateAndStartWalletServiceAsync(keyManager));
 					// Successfully initialized.
 					Owner.OnClose();
 					// Open Wallet Explorer tabs
-					if (Global.WalletService.Coins.Any())
+					if (walletService.Coins.Any())
 					{
 						// If already have coins then open the last active tab first.
-						IoC.Get<WalletExplorerViewModel>().OpenWallet(Global.WalletService, receiveDominant: false);
+						IoC.Get<WalletExplorerViewModel>().OpenWallet(walletService, receiveDominant: false);
 					}
 					else // Else open with Receive tab first.
 					{
-						IoC.Get<WalletExplorerViewModel>().OpenWallet(Global.WalletService, receiveDominant: true);
+						IoC.Get<WalletExplorerViewModel>().OpenWallet(walletService, receiveDominant: true);
 					}
 				}
 				catch (Exception ex)
@@ -653,7 +659,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					{
 						Logger.LogError(ex);
 					}
-					await Global.DisposeInWalletDependentServicesAsync();
 				}
 			}
 			finally

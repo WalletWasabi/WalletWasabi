@@ -243,5 +243,7 @@ namespace WalletWasabi.Gui.Controls
 			Disposables?.Dispose();
 			Disposables = null;
 		}
+
+		protected override bool IsCopyEnabled => IsSelectable;
 	}
 }

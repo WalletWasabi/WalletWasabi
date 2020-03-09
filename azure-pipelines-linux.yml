@@ -1,3 +1,6 @@
+trigger:
+  batch: true
+
 variables:
   testConfiguration: 'Debug'
 

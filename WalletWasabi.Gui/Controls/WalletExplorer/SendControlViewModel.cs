@@ -62,12 +62,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private Money _allSelectedAmount;
 		private string _password;
 		private string _address;
+		private string _customChangeAddress;
 		private string _labelToolTip;
 		private string _feeToolTip;
 		private string _amountWaterMarkText;
 		private bool _isBusy;
 		private bool _isHardwareBusy;
 		private bool _isCustomFee;
+		private bool _isCustomChangeAddress;
 
 		private const string WaitingForHardwareWalletButtonTextString = "Waiting for Hardware Wallet...";
 
@@ -92,6 +94,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			LabelSuggestion.Reset();
 			Address = "";
+			CustomChangeAddress = "";
 			Password = "";
 			AllSelectedAmount = Money.Zero;
 			IsMax = false;
@@ -260,7 +263,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					BitcoinAddress address;
 					try
 					{
-						address = BitcoinAddress.Create(Address.Trim(), Global.Network);
+						address = BitcoinAddress.Create(Address, Global.Network);
 					}
 					catch (FormatException)
 					{
@@ -268,10 +271,33 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						return;
 					}
 
+					var requests = new List<DestinationRequest>();
+
+					if (Global.UiConfig?.IsCustomChangeAddress is true && !IsMax && !string.IsNullOrWhiteSpace(CustomChangeAddress))
+					{
+						try
+						{
+							var customChangeAddress = BitcoinAddress.Create(CustomChangeAddress, Global.Network);
+
+							if (customChangeAddress == address)
+							{
+								NotificationHelpers.Warning("The active address and the change address cannot be the same.", "");
+								return;
+							}
+
+							requests.Add(new DestinationRequest(customChangeAddress, MoneyRequest.CreateChange(subtractFee: true), label));
+						}
+						catch (FormatException)
+						{
+							NotificationHelpers.Warning("Invalid custom change address.", "");
+							return;
+						}
+					}
+
 					MoneyRequest moneyRequest;
 					if (IsMax)
 					{
-						moneyRequest = MoneyRequest.CreateAllRemaining();
+						moneyRequest = MoneyRequest.CreateAllRemaining(subtractFee: true);
 					}
 					else
 					{
@@ -286,7 +312,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							NotificationHelpers.Warning("Looks like you want to spend whole coins. Try Max button instead.", "");
 							return;
 						}
-						moneyRequest = MoneyRequest.Create(amount);
+						moneyRequest = MoneyRequest.Create(amount, subtractFee: false);
 					}
 
 					if (FeeRate is null || FeeRate.SatoshiPerByte < 1)
@@ -297,7 +323,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					var feeStrategy = FeeStrategy.CreateFromFeeRate(FeeRate);
 
-					var intent = new PaymentIntent(address, moneyRequest, label);
+					var activeDestinationRequest = new DestinationRequest(address, moneyRequest, label);
+					requests.Add(activeDestinationRequest);
+
+					var intent = new PaymentIntent(requests);
 					try
 					{
 						MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.DequeuingSelectedCoins);
@@ -755,6 +784,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _allSelectedAmount, value);
 		}
 
+		public bool IsWatchOnly => WalletService.KeyManager.IsWatchOnly;
+
 		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
 
 		[ValidateMethod(nameof(ValidatePassword))]
@@ -764,11 +795,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _password, value);
 		}
 
-		public ErrorDescriptors ValidateAddress()
+		public ErrorDescriptors ValidateActiveAddress()
 		{
 			if (string.IsNullOrWhiteSpace(Address))
 			{
 				return ErrorDescriptors.Empty;
+			}
+
+			if (Address == CustomChangeAddress)
+			{
+				return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "The active address and the change address cannot be the same."));
 			}
 
 			if (AddressStringParser.TryParseBitcoinAddress(Address, Global.Network, out _))
@@ -784,11 +820,43 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid address."));
 		}
 
-		[ValidateMethod(nameof(ValidateAddress))]
+		public ErrorDescriptors ValidateCustomChangeAddress()
+		{
+			if (string.IsNullOrWhiteSpace(CustomChangeAddress))
+			{
+				return ErrorDescriptors.Empty;
+			}
+
+			if (IsMax)
+			{
+				return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Spending whole coins does not generate change."));
+			}
+
+			if (Address == CustomChangeAddress)
+			{
+				return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "The active address and the change address cannot be the same."));
+			}
+
+			if (AddressStringParser.TryParseBitcoinAddress(CustomChangeAddress, Global.Network, out _))
+			{
+				return ErrorDescriptors.Empty;
+			}
+
+			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid change address."));
+		}
+
+		[ValidateMethod(nameof(ValidateActiveAddress))]
 		public string Address
 		{
 			get => _address;
-			set => this.RaiseAndSetIfChanged(ref _address, value);
+			set => this.RaiseAndSetIfChanged(ref _address, value?.Trim());
+		}
+
+		[ValidateMethod(nameof(ValidateCustomChangeAddress))]
+		public string CustomChangeAddress
+		{
+			get => _customChangeAddress;
+			set => this.RaiseAndSetIfChanged(ref _customChangeAddress, value?.Trim());
 		}
 
 		public string LabelToolTip
@@ -827,6 +895,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			private set => this.RaiseAndSetIfChanged(ref _isCustomFee, value);
 		}
 
+		public bool IsCustomChangeAddress
+		{
+			get => _isCustomChangeAddress;
+			private set => this.RaiseAndSetIfChanged(ref _isCustomChangeAddress, value);
+		}
+
 		public ReactiveCommand<Unit, Unit> BuildTransactionCommand { get; }
 
 		public ReactiveCommand<Unit, bool> MaxCommand { get; }
@@ -844,7 +918,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<KeyEventArgs, Unit> AmountKeyUpCommand { get; }
 
 		public override void OnOpen(CompositeDisposable disposables)
-		{	
+		{
 			Observable
 				.FromEventPattern<AllFeeEstimate>(Global.FeeProviders, nameof(Global.FeeProviders.AllFeeEstimateChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -877,6 +951,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global.UiConfig.WhenAnyValue(x => x.IsCustomFee)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => IsCustomFee = x)
+				.DisposeWith(disposables);
+
+			Global.UiConfig.WhenAnyValue(x => x.IsCustomChangeAddress)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x => IsCustomChangeAddress = x)
 				.DisposeWith(disposables);
 
 			this.WhenAnyValue(x => x.IsCustomFee)

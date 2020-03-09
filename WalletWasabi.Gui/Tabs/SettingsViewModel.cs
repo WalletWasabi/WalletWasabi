@@ -29,6 +29,7 @@ namespace WalletWasabi.Gui.Tabs
 		private string _localBitcoinCoreDataDir;
 		private bool _autocopy;
 		private bool _customFee;
+		private bool _customChangeAddress;
 		private bool _useTor;
 		private bool _startLocalBitcoinCoreOnStartup;
 		private bool _stopLocalBitcoinCoreOnShutdown;
@@ -46,6 +47,7 @@ namespace WalletWasabi.Gui.Tabs
 
 			Autocopy = Global.UiConfig?.Autocopy is true;
 			CustomFee = Global.UiConfig?.IsCustomFee is true;
+			CustomChangeAddress = Global.UiConfig?.IsCustomChangeAddress is true;
 
 			// Use global config's data as default filler until the real data is filled out by the loading of the config onopen.
 			var globalConfig = Global.Config;
@@ -77,6 +79,10 @@ namespace WalletWasabi.Gui.Tabs
 			this.WhenAnyValue(x => x.CustomFee)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(x => Global.UiConfig.IsCustomFee = x);
+
+			this.WhenAnyValue(x => x.CustomChangeAddress)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(x => Global.UiConfig.IsCustomChangeAddress = x);
 
 			OpenConfigFileCommand = ReactiveCommand.CreateFromTask(OpenConfigFileAsync);
 
@@ -196,7 +202,7 @@ namespace WalletWasabi.Gui.Tabs
 					.DisposeWith(disposables);
 				this.RaisePropertyChanged(nameof(IsPinSet)); // Fire now otherwise the button won't update for restart.
 
-				Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => x.Autocopy, x => x.IsCustomFee)
+				Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => x.Autocopy, x => x.IsCustomFee, x => x.IsCustomChangeAddress)
 					.Throttle(TimeSpan.FromSeconds(1))
 					.ObserveOn(RxApp.TaskpoolScheduler)
 					.Subscribe(async _ => await Global.UiConfig.ToFileAsync())
@@ -268,6 +274,12 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			get => _customFee;
 			set => this.RaiseAndSetIfChanged(ref _customFee, value);
+		}
+
+		public bool CustomChangeAddress
+		{
+			get => _customChangeAddress;
+			set => this.RaiseAndSetIfChanged(ref _customChangeAddress, value);
 		}
 
 		public bool StartLocalBitcoinCoreOnStartup

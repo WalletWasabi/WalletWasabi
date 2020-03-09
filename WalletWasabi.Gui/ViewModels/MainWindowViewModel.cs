@@ -119,9 +119,9 @@ namespace WalletWasabi.Gui.ViewModels
 				{
 					LockScreen?.Dispose();
 
-					LockScreen = uiConfig.LockScreenPinHash.Length == 0 ?
-						(LockScreenViewModelBase)new SlideLockScreenViewModel() :
-						new PinLockScreenViewModel();
+					LockScreen = uiConfig.LockScreenPinHash.Length == 0
+						? (LockScreenViewModelBase)new SlideLockScreenViewModel()
+						: new PinLockScreenViewModel();
 				});
 		}
 
@@ -168,6 +168,7 @@ namespace WalletWasabi.Gui.ViewModels
 		}
 
 		#region IDisposable Support
+
 		protected virtual void Dispose(bool disposing)
 		{
 			if (!_disposedValue)

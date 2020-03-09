@@ -9,5 +9,9 @@ namespace WalletWasabi.BitcoinCore.Processes
 		public BitcoindException(string message) : base(message)
 		{
 		}
+
+		public BitcoindException(string message, Exception innerException) : base(message, innerException)
+		{
+		}
 	}
 }

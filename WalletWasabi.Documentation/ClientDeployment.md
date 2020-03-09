@@ -1,9 +1,9 @@
 # 1. Final tests
 
 1. Go to https://github.com/zkSNACKs/WalletWasabi/releases.
-2. Check the exact **date** of the of the last release and the **name** of the last PR.
+2. Check the exact **date** of the last release and the **name** of the last PR.
 3. List the PR-s in order, open the [link and (adjust date!)](https://github.com/zkSNACKs/WalletWasabi/pulls?q=is%3Apr+merged%3A%3E%3D2019-07-07+sort%3Aupdated-asc).
-4. Go trough all PR, create the Release Notes document and the Final Test issue. Create test cases according to PR-s and write a list.  [Release Notes format](https://github.com/zkSNACKs/WalletWasabi/releases/tag/v1.1.6) and [Final Test format](https://github.com/zkSNACKs/WalletWasabi/issues/2227).
+4. Go trough all PR, create the Release Notes document and the Final Test issue. Create test cases according to PR-s and write a list. [Release Notes format](https://github.com/zkSNACKs/WalletWasabi/releases/tag/v1.1.6) and [Final Test format](https://github.com/zkSNACKs/WalletWasabi/issues/2227).
 5. Go trough all issues and pick the [important ones (adjust date!)](https://github.com/zkSNACKs/WalletWasabi/issues?utf8=%E2%9C%93&q=is%3Aissue+closed%3A%3E%3D2019-07-07+sort%3Aupdated-asc+) and add to Release Notes or to Final Tests if required.
 6. At the end there will be a Final Test document and a Release Notes document.
 
@@ -12,7 +12,7 @@
 1. Go to https://github.com/zkSNACKs/WalletWasabi/releases and press Draft a new release.
 2. Tag version: add `pre` postfix e.g: v1.1.7pre.
 3. Set release title e.g: `Wasabi v1.1.7pre: Community Edition - PRERELEASE`.
-4. Set description use [previous releases](https://github.com/zkSNACKs/WalletWasabi/releases/tag/1.1.7pre) as a template. 
+4. Set description use [previous releases](https://github.com/zkSNACKs/WalletWasabi/releases/tag/1.1.7pre) as a template.
 5. Add the Release Notes.
 6. Make sure local .NET Core version is up to date.
 7. Update the onion seed list to the most reliable ones: in packager run `dotnet run -- --reduceonions`.
@@ -63,11 +63,11 @@
 
 # 7. Backporting
 
-Backport is a branch. It is used for creating silent releases (hotfixes, small improvements) on top of the last released version. For this reason it has to be maintained with special care. 
+Backport is a branch. It is used for creating silent releases (hotfixes, small improvements) on top of the last released version. For this reason it has to be maintained with special care.
 
 ## Merge PR into backport
 
-1. There is a PR which is merged to master and selected to backport. 
+1. There is a PR which is merged to master and selected to backport.
 2. Checkout the current backport branch to a new local branch like bp_whatever: `git checkout -b bp_whatever upstream/backport`
 3. Go to the merged PR / Commits and copy the hash of the commit.
 4. Cherry pick: 
@@ -79,7 +79,7 @@ Notes:
 - In Backport the index.html does not need to be maintained.
 
 ## Create squash commit
-Squash commit makes cherry-picking easier as you only need to do that for one commit. Squash commit "merge" together multiple commits. GitHub has an easy solution to do this. 
+Squash commit makes cherry-picking easier as you only need to do that for one commit. Squash commit "merge" together multiple commits. GitHub has an easy solution to do this.
 
 1. Merge the PR into the master as usually.
 2. Revert the merge.

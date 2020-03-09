@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.JsonConverters
 {
@@ -17,7 +18,15 @@ namespace WalletWasabi.JsonConverters
 		/// <inheritdoc />
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
-			return Key.Parse(((string)reader.Value).Trim());
+			var keyString = reader.Value as string;
+			if (string.IsNullOrWhiteSpace(keyString))
+			{
+				return default;
+			}
+			else
+			{
+				return NBitcoinHelpers.BetterParseKey(keyString);
+			}
 		}
 
 		/// <inheritdoc />
