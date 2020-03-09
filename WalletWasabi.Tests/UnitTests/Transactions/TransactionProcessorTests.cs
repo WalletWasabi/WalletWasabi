@@ -646,6 +646,38 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		}
 
 		[Fact]
+		public async Task ReceiveTransactionWithDustFromSameWalletAsync()
+		{
+			var transactionProcessor = await CreateTransactionProcessorAsync();
+			var keys = transactionProcessor.KeyManager.GetKeys().ToArray();
+			var tx0 = CreateCreditingTransaction(keys[0].P2wpkhScript, Money.Coins(0.01m));
+			var result = transactionProcessor.Process(tx0);
+
+			transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
+			{
+				Assert.Empty(e.ReceivedDusts);
+				Assert.NotEmpty(e.ReceivedCoins);
+				Assert.NotEmpty(e.NewlyReceivedCoins);
+				Assert.Empty(e.NewlyConfirmedReceivedCoins);
+			};
+
+			var coinsToSpend = new [] { result.ReceivedCoins[0].GetCoin() };
+			var tx1 = CreateSpendingTransaction(coinsToSpend, keys[1].P2wpkhScript, keys[2].P2wpkhScript, coinPercentage: 0.9999m);
+			result = transactionProcessor.Process(tx1);
+
+			// It is relevant even when all the coins can be dust.
+			Assert.True(result.IsNews);
+			Assert.Equal(2, transactionProcessor.Coins.Count());
+
+			// Transaction store assertions
+			var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
+			Assert.Equal(2, mempool.Count());  // The crediting and spending transactions are saved
+
+			var matureTxs = transactionProcessor.TransactionStore.ConfirmedStore.GetTransactions().ToArray();
+			Assert.Empty(matureTxs);
+		}
+
+		[Fact]
 		public async Task ReceiveCoinJoinTransactionAsync()
 		{
 			var transactionProcessor = await CreateTransactionProcessorAsync();
@@ -1063,7 +1095,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			return new SmartTransaction(tx, height == 0 ? Height.Mempool : new Height(height));
 		}
 
-		private static SmartTransaction CreateSpendingTransaction(IEnumerable<Coin> coins, Script scriptPubKey, Script scriptPubKeyChange, bool replaceable = false, int height = 0)
+		private static SmartTransaction CreateSpendingTransaction(IEnumerable<Coin> coins, Script scriptPubKey, Script scriptPubKeyChange, bool replaceable = false, int height = 0, decimal coinPercentage=0.6m)
 		{
 			var tx = Network.RegTest.CreateTransaction();
 			var amount = Money.Zero;
@@ -1072,8 +1104,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				tx.Inputs.Add(coin.Outpoint, Script.Empty, WitScript.Empty, replaceable ? Sequence.MAX_BIP125_RBF_SEQUENCE : Sequence.SEQUENCE_FINAL);
 				amount += coin.Amount;
 			}
-			tx.Outputs.Add(amount.Percentage(60), scriptPubKey ?? Script.Empty);
-			tx.Outputs.Add(amount.Percentage(40), scriptPubKeyChange);
+			tx.Outputs.Add(Money.Satoshis(amount.Satoshi * coinPercentage), scriptPubKey ?? Script.Empty);
+			tx.Outputs.Add(Money.Satoshis(amount.Satoshi * (1.0m - coinPercentage)), scriptPubKeyChange);
 			return new SmartTransaction(tx, height == 0 ? Height.Mempool : new Height(height));
 		}
 
