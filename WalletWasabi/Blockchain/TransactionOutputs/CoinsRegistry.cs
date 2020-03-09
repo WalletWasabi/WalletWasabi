@@ -10,16 +10,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 {
 	public class CoinsRegistry : ICoinsView
 	{
-		private HashSet<SmartCoin> Coins { get; }
-		private HashSet<SmartCoin> LatestCoinsSnapshot { get; set; }
-		private bool InvalidateSnapshot { get; set; }
-		private object Lock { get; set; }
-		private HashSet<SmartCoin> SpentCoins { get; }
-		private HashSet<SmartCoin> LatestSpentCoinsSnapshot { get; set; }
-		private Dictionary<Script, Cluster> ClustersByScriptPubKey { get; }
-		private Dictionary<OutPoint, HashSet<SmartCoin>> CoinsByOutPoint { get; }
-		private int PrivacyLevelThreshold { get; }
-
 		public CoinsRegistry(int privacyLevelThreshold)
 		{
 			Coins = new HashSet<SmartCoin>();
@@ -32,6 +22,18 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			PrivacyLevelThreshold = privacyLevelThreshold;
 			Lock = new object();
 		}
+
+		private HashSet<SmartCoin> Coins { get; }
+		private HashSet<SmartCoin> LatestCoinsSnapshot { get; set; }
+		private bool InvalidateSnapshot { get; set; }
+		private object Lock { get; set; }
+		private HashSet<SmartCoin> SpentCoins { get; }
+		private HashSet<SmartCoin> LatestSpentCoinsSnapshot { get; set; }
+		private Dictionary<Script, Cluster> ClustersByScriptPubKey { get; }
+		private Dictionary<OutPoint, HashSet<SmartCoin>> CoinsByOutPoint { get; }
+		private int PrivacyLevelThreshold { get; }
+
+		public bool IsEmpty => !AsCoinsView().Any();
 
 		private CoinsView AsCoinsViewNoLock()
 		{
@@ -70,8 +72,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 				return AsSpentCoinsViewNoLock();
 			}
 		}
-
-		public bool IsEmpty => !AsCoinsView().Any();
 
 		public SmartCoin GetByOutPoint(OutPoint outpoint) => AsCoinsView().GetByOutPoint(outpoint);
 
