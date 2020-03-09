@@ -18,6 +18,7 @@ using WalletWasabi.Backend.Models;
 using WalletWasabi.BitcoinCore;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -123,6 +124,8 @@ namespace WalletWasabi.Services
 			BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;
 		}
 
+		public bool IsStarting { get; private set; }
+
 		private async void TransactionProcessor_WalletRelevantTransactionProcessedAsync(object sender, ProcessedResult e)
 		{
 			try
@@ -163,6 +166,25 @@ namespace WalletWasabi.Services
 			{
 				Logger.LogError(ex);
 			}
+		}
+
+		public ushort GetProcessedFilterPercent()
+		{
+			var segwitActivationHeight = SmartHeader.GetStartingHeader(Network).Height;
+
+			if (LastProcessedFilter?.Header?.Height is uint lastProcessedFilterHeight
+				 && lastProcessedFilterHeight > segwitActivationHeight
+				 && BitcoinStore?.SmartHeaderChain?.TipHeight is uint tipHeight
+				 && tipHeight > segwitActivationHeight)
+			{
+				var allFilters = tipHeight - segwitActivationHeight;
+				var processedFilters = lastProcessedFilterHeight - segwitActivationHeight;
+				var perc = allFilters == 0 ?
+					 100
+					 : ((decimal)processedFilters / allFilters * 100);
+				return (ushort)perc;
+			}
+			return 0;
 		}
 
 		private void Mempool_TransactionReceived(object sender, SmartTransaction tx)
@@ -236,6 +258,7 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
+				IsStarting = true;
 				InitializingChanged?.Invoke(null, true);
 
 				if (!Synchronizer.IsRunning)
@@ -266,6 +289,7 @@ namespace WalletWasabi.Services
 			finally
 			{
 				InitializingChanged?.Invoke(null, false);
+				IsStarting = false;
 			}
 		}
 

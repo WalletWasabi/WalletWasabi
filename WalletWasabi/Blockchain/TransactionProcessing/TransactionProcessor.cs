@@ -268,6 +268,14 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 			return result;
 		}
 
+		public ushort GetProcessedTransactionPercent()
+		{
+			var perc = QueuedTxCount == 0 ?
+				100 :
+				((decimal)QueuedProcessedTxCount / QueuedTxCount * 100);
+			return (ushort)perc;
+		}
+
 		public void UndoBlock(Height blockHeight)
 		{
 			Coins.SwitchToUnconfirmFromBlock(blockHeight);

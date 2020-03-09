@@ -71,6 +71,14 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
+		public WalletService[] GetWallets()
+		{
+			lock (Lock)
+			{
+				return Wallets.Keys.ToArray();
+			}
+		}
+
 		public async Task<WalletService> CreateAndStartWalletServiceAsync(KeyManager keyManager)
 		{
 			using (await AddRemoveLock.LockAsync(CancelAllInitialization.Token).ConfigureAwait(false))
@@ -258,6 +266,24 @@ namespace WalletWasabi.Wallets
 			ServiceConfiguration = serviceConfiguration;
 			FeeProvider = feeProvider;
 			BitcoinCoreNode = bitcoinCoreNode;
+		}
+
+		public ushort? ProcessedFilterPercent
+		{
+			get
+			{
+				var wallet = GetWallets().FirstOrDefault(w => w.IsStarting);
+				return wallet?.GetProcessedFilterPercent();
+			}
+		}
+
+		public ushort? ProcessedTransactionPercent
+		{
+			get
+			{
+				var wallet = GetWallets().FirstOrDefault(w => w.IsStarting);
+				return wallet?.TransactionProcessor?.GetProcessedTransactionPercent();
+			}
 		}
 	}
 }

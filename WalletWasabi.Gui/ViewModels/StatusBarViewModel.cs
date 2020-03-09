@@ -122,31 +122,16 @@ namespace WalletWasabi.Gui.ViewModels
 							   .Subscribe(_ =>
 							   {
 								   var global = Global;
-								   var walletService = global?.WalletService;
-								   if (walletService is { })
+								   var segwitActivationHeight = SmartHeader.GetStartingHeader(Global.Network).Height;
+								   var walletManager = Global.WalletManager;
+								   if (walletManager.ProcessedFilterPercent is ushort filterPercent)
 								   {
-									   var segwitActivationHeight = SmartHeader.GetStartingHeader(walletService.Network).Height;
-									   if (walletService.LastProcessedFilter?.Header?.Height is uint lastProcessedFilterHeight
-											&& lastProcessedFilterHeight > segwitActivationHeight
-											&& global?.BitcoinStore?.SmartHeaderChain?.TipHeight is uint tipHeight
-											&& tipHeight > segwitActivationHeight)
-									   {
-										   var allFilters = tipHeight - segwitActivationHeight;
-										   var processedFilters = lastProcessedFilterHeight - segwitActivationHeight;
-										   var perc = allFilters == 0 ?
-												100
-												: ((decimal)processedFilters / allFilters * 100);
-										   TryAddStatus(StatusType.WalletProcessingFilters, (ushort)perc);
-									   }
+									   TryAddStatus(StatusType.WalletProcessingFilters, filterPercent);
+								   }
 
-									   var txProcessor = walletService.TransactionProcessor;
-									   if (txProcessor is { })
-									   {
-										   var perc = txProcessor.QueuedTxCount == 0 ?
-												100
-												: ((decimal)txProcessor.QueuedProcessedTxCount / txProcessor.QueuedTxCount * 100);
-										   TryAddStatus(StatusType.WalletProcessingTransactions, (ushort)perc);
-									   }
+								   if (walletManager.ProcessedTransactionPercent is ushort txPercent)
+								   {
+									   TryAddStatus(StatusType.WalletProcessingTransactions, txPercent);
 								   }
 							   }).DisposeWith(Disposables);
 						}
