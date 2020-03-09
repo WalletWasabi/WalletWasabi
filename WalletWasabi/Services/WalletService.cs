@@ -71,6 +71,8 @@ namespace WalletWasabi.Services
 
 		public TransactionProcessor TransactionProcessor { get; }
 
+		public CancellationTokenSource CancelWalletServiceInitialization { get; set; }
+
 		public WalletService(
 			BitcoinStore bitcoinStore,
 			KeyManager keyManager,
@@ -81,6 +83,7 @@ namespace WalletWasabi.Services
 			IFeeProvider feeProvider,
 			CoreNode coreNode = null)
 		{
+			CancelWalletServiceInitialization = new CancellationTokenSource();
 			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			Nodes = Guard.NotNull(nameof(nodes), nodes);
@@ -265,6 +268,7 @@ namespace WalletWasabi.Services
 			}
 			finally
 			{
+				CancelWalletServiceInitialization = null;
 				InitializingChanged?.Invoke(null, false);
 			}
 		}
