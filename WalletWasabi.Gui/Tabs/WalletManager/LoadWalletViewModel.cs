@@ -330,7 +330,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				IsWalletSelected = SelectedWallet != null;
 				CanTestPassword = IsWalletSelected;
 
-				if (Global.WalletService is null)
+				if (Global.WalletManager.AnyWallet())
+				{
+					IsWalletOpened = true;
+					CanLoadWallet = false;
+				}
+				else
 				{
 					IsWalletOpened = false;
 
@@ -338,11 +343,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					// And wallet is selected.
 					// And no wallet is opened.
 					CanLoadWallet = !IsBusy && IsWalletSelected;
-				}
-				else
-				{
-					IsWalletOpened = true;
-					CanLoadWallet = false;
 				}
 
 				SetLoadButtonText();
