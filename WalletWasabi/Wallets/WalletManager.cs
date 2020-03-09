@@ -63,6 +63,14 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
+		public bool AnyWallet()
+		{
+			lock (Lock)
+			{
+				return Wallets.Keys.Any();
+			}
+		}
+
 		public async Task<WalletService> CreateAndStartWalletServiceAsync(KeyManager keyManager)
 		{
 			using (await AddRemoveLock.LockAsync(CancelAllInitialization.Token).ConfigureAwait(false))
