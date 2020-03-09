@@ -11,6 +11,11 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 {
 	public class ProcessedResult
 	{
+		public ProcessedResult(SmartTransaction transaction)
+		{
+			Transaction = Guard.NotNull(nameof(transaction), transaction);
+		}
+
 		public SmartTransaction Transaction { get; }
 
 		public bool IsNews =>
@@ -77,10 +82,5 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 		/// Coins those were made unspent again by this double spend transaction.
 		/// </summary>
 		public List<SmartCoin> RestoredCoins { get; } = new List<SmartCoin>();
-
-		public ProcessedResult(SmartTransaction transaction)
-		{
-			Transaction = Guard.NotNull(nameof(transaction), transaction);
-		}
 	}
 }

@@ -14,14 +14,15 @@ namespace WalletWasabi.Blockchain.Transactions
 {
 	public class TransactionStore
 	{
-		#region Initializers
-
 		public string WorkFolderPath { get; private set; }
 		public Network Network { get; private set; }
 
 		private Dictionary<uint256, SmartTransaction> Transactions { get; set; }
 		private object TransactionsLock { get; set; }
 		private MutexIoManager TransactionsFileManager { get; set; }
+
+		private List<ITxStoreOperation> Operations { get; } = new List<ITxStoreOperation>();
+		private object OperationsLock { get; } = new object();
 
 		public async Task InitializeAsync(string workFolderPath, Network network, string operationName)
 		{
@@ -97,8 +98,6 @@ namespace WalletWasabi.Blockchain.Transactions
 				throw;
 			}
 		}
-
-		#endregion Initializers
 
 		#region Modifiers
 
@@ -266,9 +265,6 @@ namespace WalletWasabi.Blockchain.Transactions
 
 		private async Task TryUpdateFileAsync(IEnumerable<SmartTransaction> transactions)
 			=> await TryCommitToFileAsync(new Update(transactions)).ConfigureAwait(false);
-
-		private List<ITxStoreOperation> Operations { get; } = new List<ITxStoreOperation>();
-		private object OperationsLock { get; } = new object();
 
 		private async Task TryCommitToFileAsync(ITxStoreOperation operation)
 		{

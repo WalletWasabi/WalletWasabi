@@ -12,23 +12,6 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 {
 	public class TransactionProcessor
 	{
-		private static object Lock { get; } = new object();
-		public AllTransactionStore TransactionStore { get; }
-
-		public KeyManager KeyManager { get; }
-
-		public CoinsRegistry Coins { get; }
-		public Money DustThreshold { get; }
-
-		public event EventHandler<ProcessedResult> WalletRelevantTransactionProcessed;
-
-		#region Progress
-
-		public int QueuedTxCount { get; private set; }
-		public int QueuedProcessedTxCount { get; private set; }
-
-		#endregion Progress
-
 		public TransactionProcessor(
 			AllTransactionStore transactionStore,
 			KeyManager keyManager,
@@ -40,6 +23,23 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 			DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
 			Coins = new CoinsRegistry(privacyLevelThreshold);
 		}
+
+		public event EventHandler<ProcessedResult> WalletRelevantTransactionProcessed;
+
+		private static object Lock { get; } = new object();
+		public AllTransactionStore TransactionStore { get; }
+
+		public KeyManager KeyManager { get; }
+
+		public CoinsRegistry Coins { get; }
+		public Money DustThreshold { get; }
+
+		#region Progress
+
+		public int QueuedTxCount { get; private set; }
+		public int QueuedProcessedTxCount { get; private set; }
+
+		#endregion Progress
 
 		public IEnumerable<ProcessedResult> Process(IEnumerable<SmartTransaction> txs)
 		{
