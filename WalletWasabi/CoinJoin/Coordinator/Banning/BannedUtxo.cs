@@ -9,13 +9,6 @@ namespace WalletWasabi.CoinJoin.Coordinator.Banning
 {
 	public class BannedUtxo
 	{
-		public OutPoint Utxo { get; }
-		public int Severity { get; }
-		public DateTimeOffset TimeOfBan { get; }
-		public bool IsNoted { get; }
-		public long BannedForRound { get; }
-		public TimeSpan BannedRemaining => DateTimeOffset.UtcNow - TimeOfBan;
-
 		public BannedUtxo(OutPoint utxo, int severity, DateTimeOffset timeOfBan, bool isNoted, long bannedForRound)
 		{
 			Utxo = Guard.NotNull(nameof(utxo), utxo);
@@ -24,6 +17,13 @@ namespace WalletWasabi.CoinJoin.Coordinator.Banning
 			IsNoted = isNoted;
 			BannedForRound = bannedForRound;
 		}
+
+		public OutPoint Utxo { get; }
+		public int Severity { get; }
+		public DateTimeOffset TimeOfBan { get; }
+		public bool IsNoted { get; }
+		public long BannedForRound { get; }
+		public TimeSpan BannedRemaining => DateTimeOffset.UtcNow - TimeOfBan;
 
 		/// <summary>
 		/// Deserializes an instance from its text representation.

@@ -15,17 +15,6 @@ namespace WalletWasabi.CoinJoin.Coordinator.Banning
 {
 	public class UtxoReferee
 	{
-		private ConcurrentDictionary<OutPoint, BannedUtxo> BannedUtxos { get; }
-
-		public string BannedUtxosFilePath => Path.Combine(FolderPath, $"BannedUtxos{Network}.txt");
-
-		public RPCClient RpcClient { get; }
-		public Network Network { get; }
-
-		public CoordinatorRoundConfig RoundConfig { get; }
-
-		public string FolderPath { get; }
-
 		public UtxoReferee(Network network, string folderPath, RPCClient rpc, CoordinatorRoundConfig roundConfig)
 		{
 			Network = Guard.NotNull(nameof(network), network);
@@ -79,6 +68,17 @@ namespace WalletWasabi.CoinJoin.Coordinator.Banning
 				Logger.LogInfo($"No banned UTXOs are loaded from {BannedUtxosFilePath}.");
 			}
 		}
+
+		private ConcurrentDictionary<OutPoint, BannedUtxo> BannedUtxos { get; }
+
+		public string BannedUtxosFilePath => Path.Combine(FolderPath, $"BannedUtxos{Network}.txt");
+
+		public RPCClient RpcClient { get; }
+		public Network Network { get; }
+
+		public CoordinatorRoundConfig RoundConfig { get; }
+
+		public string FolderPath { get; }
 
 		public async Task BanUtxosAsync(int severity, DateTimeOffset timeOfBan, bool forceNoted, long bannedForRound, params OutPoint[] toBan)
 		{
