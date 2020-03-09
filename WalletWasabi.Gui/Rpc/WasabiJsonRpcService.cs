@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -213,7 +214,7 @@ namespace WalletWasabi.Gui.Rpc
 		[JsonRpcMethod("stop")]
 		public async Task StopAsync()
 		{
-			await Global.StopAndExitAsync().ConfigureAwait(false);
+			await Global.DisposeAsync().ConfigureAwait(false);
 		}
 
 		private void AssertWalletIsLoaded()

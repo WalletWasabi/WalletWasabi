@@ -832,11 +832,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			}
 		}
 
-		public async Task DequeueCoinsFromMixAsync(TxoRef coin, DequeueReason reason)
-		{
-			await DequeueCoinsFromMixAsync(new[] { coin }, reason).ConfigureAwait(false);
-		}
-
 		public async Task DequeueCoinsFromMixAsync(TxoRef[] coins, DequeueReason reason)
 		{
 			if (coins is null || !coins.Any())
@@ -1028,7 +1023,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 			using (await MixLock.LockAsync(cancel).ConfigureAwait(false))
 			{
-				await DequeueSpentCoinsFromMixNoLockAsync().ConfigureAwait(false);
+				await DequeueAllCoinsFromMixGracefullyAsync(DequeueReason.ApplicationExit, cancel).ConfigureAwait(false);
 
 				State.DisposeAllAliceClients();
 
@@ -1059,6 +1054,24 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 							Logger.LogError(ex);
 						}
 					}
+				}
+			}
+		}
+
+		public async Task DequeueAllCoinsFromMixGracefullyAsync(DequeueReason reason, CancellationToken cancel)
+		{
+			while (true)
+			{
+				cancel.ThrowIfCancellationRequested();
+
+				try
+				{
+					await DequeueAllCoinsFromMixAsync(reason).ConfigureAwait(false);
+					break;
+				}
+				catch
+				{
+					await Task.Delay(1000, cancel).ConfigureAwait(false); // wait, maybe the situation will change
 				}
 			}
 		}

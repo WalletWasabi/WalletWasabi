@@ -70,7 +70,7 @@ namespace WalletWasabi.Gui
 
 		public HostedServices HostedServices { get; }
 
-		public bool KillRequested { get; private set; } = false;
+		public bool KillRequested => Interlocked.Read(ref _dispose) > 0;
 
 		public UiConfig UiConfig { get; private set; }
 
@@ -119,49 +119,6 @@ namespace WalletWasabi.Gui
 			return false;
 		}
 
-		private int _isDesperateDequeuing = 0;
-
-		public async Task TryDesperateDequeueAllCoinsAsync()
-		{
-			// If already desperate dequeuing then return.
-			// If not desperate dequeuing then make sure we're doing that.
-			if (Interlocked.CompareExchange(ref _isDesperateDequeuing, 1, 0) == 1)
-			{
-				return;
-			}
-			try
-			{
-				await DesperateDequeueAllCoinsAsync();
-			}
-			catch (NotSupportedException ex)
-			{
-				Logger.LogWarning(ex.Message);
-			}
-			catch (Exception ex)
-			{
-				Logger.LogWarning(ex);
-			}
-			finally
-			{
-				Interlocked.Exchange(ref _isDesperateDequeuing, 0);
-			}
-		}
-
-		public async Task DesperateDequeueAllCoinsAsync()
-		{
-			if (WalletService is null || WalletService.ChaumianClient is null)
-			{
-				return;
-			}
-
-			SmartCoin[] enqueuedCoins = WalletService.Coins.CoinJoinInProcess().ToArray();
-			if (enqueuedCoins.Any())
-			{
-				Logger.LogWarning("Unregistering coins in CoinJoin process.");
-				await WalletService.ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins, DequeueReason.ApplicationExit);
-			}
-		}
-
 		private bool InitializationCompleted { get; set; } = false;
 
 		private bool InitializationStarted { get; set; } = false;
@@ -171,13 +128,12 @@ namespace WalletWasabi.Gui
 		public async Task InitializeNoWalletAsync()
 		{
 			InitializationStarted = true;
+			AddressManager = null;
+			TorManager = null;
+			var cancel = StoppingCts.Token;
 
 			try
 			{
-				AddressManager = null;
-				TorManager = null;
-				var cancel = StoppingCts.Token;
-
 				#region ConfigInitialization
 
 				Config = new Config(Path.Combine(DataDir, "Config.json"));
@@ -211,11 +167,12 @@ namespace WalletWasabi.Gui
 
 				#region ProcessKillSubscription
 
-				AppDomain.CurrentDomain.ProcessExit += async (s, e) => await TryDesperateDequeueAllCoinsAsync();
+				AppDomain.CurrentDomain.ProcessExit += async (s, e) => await DisposeAsync().ConfigureAwait(false);
 				Console.CancelKeyPress += async (s, e) =>
 				{
 					e.Cancel = true;
-					await StopAndExitAsync();
+					Logger.LogWarning("Process was signaled for killing.", nameof(Global));
+					await DisposeAsync().ConfigureAwait(false);
 				};
 
 				#endregion ProcessKillSubscription
@@ -404,7 +361,11 @@ namespace WalletWasabi.Gui
 			}
 			catch (Exception ex)
 			{
-				Logger.LogCritical(ex);
+				if (!cancel.IsCancellationRequested)
+				{
+					Logger.LogCritical(ex);
+				}
+
 				InitializationCompleted = true;
 				await DisposeAsync().ConfigureAwait(false);
 				Environment.Exit(1);
@@ -413,22 +374,6 @@ namespace WalletWasabi.Gui
 			{
 				InitializationCompleted = true;
 			}
-		}
-
-		internal async Task StopAndExitAsync()
-		{
-			Logger.LogWarning("Process was signaled for killing.", nameof(Global));
-
-			KillRequested = true;
-			await TryDesperateDequeueAllCoinsAsync();
-			Dispatcher.UIThread.PostLogException(() =>
-			{
-				var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
-				window?.Close();
-			});
-			await DisposeAsync();
-
-			Logger.LogSoftwareStopped("Wasabi");
 		}
 
 		private async Task<AddressManagerBehavior> InitializeAddressManagerBehaviorAsync()
@@ -754,6 +699,7 @@ namespace WalletWasabi.Gui
 			{
 				return;
 			}
+			Logger.LogWarning("Process is exiting.", nameof(Global));
 
 			try
 			{
@@ -766,7 +712,14 @@ namespace WalletWasabi.Gui
 
 				await WaitForInitializationCompletedAsync().ConfigureAwait(false);
 
-				await WalletManager.RemoveAndStopAllAsync().ConfigureAwait(false);
+				using var dequeueCts = new CancellationTokenSource(TimeSpan.FromMinutes(6));
+				await WalletManager.RemoveAndStopAllAsync(dequeueCts.Token).ConfigureAwait(false);
+
+				Dispatcher.UIThread.PostLogException(() =>
+				{
+					var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
+					window?.Close();
+				});
 
 				WalletManager.OnDequeue -= WalletManager_OnDequeue;
 				WalletManager.WalletRelevantTransactionProcessed -= WalletManager_WalletRelevantTransactionProcessed;
@@ -879,6 +832,7 @@ namespace WalletWasabi.Gui
 			{
 				StoppingCts?.Dispose();
 				Interlocked.Exchange(ref _dispose, 2);
+				Logger.LogSoftwareStopped("Wasabi");
 			}
 		}
 
