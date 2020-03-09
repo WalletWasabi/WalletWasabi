@@ -288,7 +288,7 @@ namespace NBitcoin.RPC
 
 		public static async Task<VerboseBlockInfo> GetVerboseBlockAsync(this IRPCClient rpc, uint256 blockId)
 		{
-			var resp = await rpc.SendCommandAsync(RPCOperations.getblock, blockId, 3, false).ConfigureAwait(false);
+			var resp = await rpc.SendCommandAsync(RPCOperations.getblock, blockId, 3).ConfigureAwait(false);
 			var blockInfoStr = resp.Result.ToString();
 			var blockInfoJson = JObject.Parse(blockInfoStr);
 			var blockInfo = new VerboseBlockInfo();
@@ -302,7 +302,7 @@ namespace NBitcoin.RPC
 				tx.Id = uint256.Parse(txJson.Value<string>("txid"));
 				foreach (var txinJson in txJson["vin"])
 				{
-					if (txinJson["coinbase"] != null)
+					if (txinJson["coinbase"] is { })
 					{ 
 						continue;
 					}

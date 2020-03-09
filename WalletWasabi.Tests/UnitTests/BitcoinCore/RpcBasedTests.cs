@@ -54,7 +54,8 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		public async Task VerboseBlockInfoAsync()
 		{
 			var rpc = new MockRpcClient();
-			rpc.OnSendCommandAsync = (op, p) => {
+			rpc.OnSendCommandAsync = (op, p) =>
+			{
 				#region Mocked RPC response
 				var rpcOutput = @"
 {
@@ -198,7 +199,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			};
 			var blockInfo = await rpc.GetVerboseBlockAsync(uint256.One);
 			Assert.Equal(2, blockInfo.Transactions.Count());
-			Assert.Equal(1, blockInfo.Transactions[1].Inputs.Count());
+			Assert.Single(blockInfo.Transactions[1].Inputs);
 			Assert.Equal(2, blockInfo.Transactions[1].Outputs.Count());
 		}
 	}
