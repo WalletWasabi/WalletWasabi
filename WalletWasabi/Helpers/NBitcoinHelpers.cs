@@ -115,6 +115,30 @@ namespace WalletWasabi.Helpers
 			return ba;
 		}
 
+		public static Key BetterParseKey(string keyString)
+		{
+			keyString = Guard.NotNullOrEmptyOrWhitespace(nameof(keyString), keyString, trim: true);
+
+			Key k;
+			try
+			{
+				k = Key.Parse(keyString, Network.Main);
+			}
+			catch
+			{
+				try
+				{
+					k = Key.Parse(keyString, Network.TestNet);
+				}
+				catch
+				{
+					k = Key.Parse(keyString, Network.RegTest);
+				}
+			}
+
+			return k;
+		}
+
 		public static async Task<AddressManager> LoadAddressManagerFromPeerFileAsync(string filePath, Network expectedNetwork = null)
 		{
 			byte[] data, hash;
