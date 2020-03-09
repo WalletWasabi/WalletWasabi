@@ -662,7 +662,8 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 		{
 			lock (RegisteredUnblindedSignaturesLock)
 			{
-				return RegisteredUnblindedSignatures.Any(x => x.C.Equals(unblindedSignature.C) && x.S.Equals(unblindedSignature.S));
+				var unblindedSignatureBytes = unblindedSignature.ToBytes();
+				return RegisteredUnblindedSignatures.Any(x => ByteHelpers.CompareFastUnsafe(x.ToBytes(), unblindedSignatureBytes));
 			}
 		}
 

@@ -23,16 +23,16 @@ namespace WalletWasabi.JsonConverters
 			string c = arr[0].Value<string>();
 			string s = arr[1].Value<string>();
 
-			return new UnblindedSignature(new BigInteger(c), new BigInteger(s));
+			return UnblindedSignature.Parse($"{c}{s}");
 		}
 
 		/// <inheritdoc />
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
-			UnblindedSignature signature = (UnblindedSignature)value;
+			var signature = ((UnblindedSignature)value).ToString();
 			writer.WriteStartArray();
-			writer.WriteValue(signature.C.ToString());
-			writer.WriteValue(signature.S.ToString());
+			writer.WriteValue(signature[..64]);
+			writer.WriteValue(signature[64..]);
 			writer.WriteEndArray();
 		}
 	}
