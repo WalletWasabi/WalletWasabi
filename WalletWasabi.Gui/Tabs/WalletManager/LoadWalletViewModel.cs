@@ -659,8 +659,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					{
 						Logger.LogError(ex);
 					}
-
-					await Global.WalletManager.RemoveAndStopAllAsync().ConfigureAwait(false);
 				}
 			}
 			finally

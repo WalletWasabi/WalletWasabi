@@ -31,9 +31,10 @@ namespace WalletWasabi.Wallets
 			Wallets = new Dictionary<WalletService, HashSet<uint256>>();
 			Lock = new object();
 			AddRemoveLock = new AsyncLock();
+			CancelAllInitialization = new CancellationTokenSource();
 		}
 
-		private CancellationTokenSource CancelWalletServiceInitialization { get; set; } = null;
+		private CancellationTokenSource CancelAllInitialization { get; }
 
 		public event EventHandler<ProcessedResult> WalletRelevantTransactionProcessed;
 
@@ -64,29 +65,45 @@ namespace WalletWasabi.Wallets
 
 		public async Task<WalletService> CreateAndStartWalletServiceAsync(KeyManager keyManager)
 		{
-			WalletService walletService = new WalletService(BitcoinStore, keyManager, Synchronizer, Nodes, DataDir, ServiceConfiguration, FeeProvider, BitcoinCoreNode);
-			using (CancelWalletServiceInitialization = new CancellationTokenSource())
 			using (await AddRemoveLock.LockAsync().ConfigureAwait(false))
 			{
-				var cancel = CancelWalletServiceInitialization.Token;
-				lock (Lock)
+				WalletService walletService = null;
+				try
 				{
-					Wallets.Add(walletService, new HashSet<uint256>());
+					walletService = new WalletService(BitcoinStore, keyManager, Synchronizer, Nodes, DataDir, ServiceConfiguration, FeeProvider, BitcoinCoreNode);
+
+					var cancel = CancelAllInitialization.Token;
+					lock (Lock)
+					{
+						Wallets.Add(walletService, new HashSet<uint256>());
+					}
+
+					Logger.LogInfo($"Starting {nameof(WalletService)}...");
+					await walletService.StartAsync(cancel).ConfigureAwait(false);
+					Logger.LogInfo($"{nameof(WalletService)} started.");
+
+					cancel.ThrowIfCancellationRequested();
+
+					walletService.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
+					walletService.ChaumianClient.OnDequeue += ChaumianClient_OnDequeue;
+
+					return walletService;
 				}
-
-				Logger.LogInfo($"Starting {nameof(WalletService)}...");
-				await walletService.StartAsync(cancel).ConfigureAwait(false);
-				Logger.LogInfo($"{nameof(WalletService)} started.");
-
-				cancel.ThrowIfCancellationRequested();
-
-				walletService.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
-				walletService.ChaumianClient.OnDequeue += ChaumianClient_OnDequeue;
+				catch (Exception)
+				{
+					if (walletService is { })
+					{
+						walletService.TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
+						walletService.ChaumianClient.OnDequeue -= ChaumianClient_OnDequeue;
+						lock (Lock)
+						{
+							Wallets.Remove(walletService);
+						}
+						await walletService.StopAsync(CancellationToken.None).ConfigureAwait(false);
+					}
+					throw;
+				}
 			}
-
-			CancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
-
-			return walletService;
 		}
 
 		private void ChaumianClient_OnDequeue(object sender, DequeueResult e)
@@ -105,13 +122,13 @@ namespace WalletWasabi.Wallets
 		{
 			try
 			{
-				CancelWalletServiceInitialization?.Cancel();
+				CancelAllInitialization?.Cancel();
+				CancelAllInitialization?.Dispose();
 			}
 			catch (ObjectDisposedException)
 			{
-				Logger.LogWarning($"{nameof(CancelWalletServiceInitialization)} is disposed. This can occur due to an error while processing the wallet.");
+				Logger.LogWarning($"{nameof(CancelAllInitialization)} is disposed. This can occur due to an error while processing the wallet.");
 			}
-			CancelWalletServiceInitialization = null;
 
 			using (await AddRemoveLock.LockAsync().ConfigureAwait(false))
 			{
