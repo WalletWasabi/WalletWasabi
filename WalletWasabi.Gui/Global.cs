@@ -91,7 +91,7 @@ namespace WalletWasabi.Gui
 			Directory.CreateDirectory(WalletBackupsDir);
 
 			HostedServices = new HostedServices();
-			WalletManager = new WalletManager(WalletBackupsDir);
+			WalletManager = new WalletManager(WalletBackupsDir, WalletsDir);
 
 			LegalDocuments = LegalDocuments.TryLoadAgreed(DataDir);
 

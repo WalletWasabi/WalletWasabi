@@ -291,15 +291,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			Wallets.Clear();
 			Password = "";
-
-			var directoryInfo = new DirectoryInfo(Global.WalletsDir);
-			var walletFiles = directoryInfo.GetFiles("*.json", SearchOption.TopDirectoryOnly).OrderByDescending(t => t.LastAccessTimeUtc);
-			foreach (var file in walletFiles)
+			
+			foreach (var file in Global.WalletManager.EnumerateWalletFiles())
 			{
-				var wallet = new LoadWalletEntry(Path.GetFileNameWithoutExtension(file.FullName));
+				var wallet = new LoadWalletEntry(Path.GetFileNameWithoutExtension(file));
 				if (IsPasswordRequired)
 				{
-					if (KeyManager.TryGetEncryptedSecretFromFile(file.FullName, out _))
+					if (KeyManager.TryGetEncryptedSecretFromFile(file, out _))
 					{
 						Wallets.Add(wallet);
 					}

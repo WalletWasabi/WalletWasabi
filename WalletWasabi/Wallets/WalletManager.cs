@@ -25,9 +25,10 @@ namespace WalletWasabi.Wallets
 {
 	public class WalletManager
 	{
-		public WalletManager(string walletBackupsDir)
+		public WalletManager(string walletBackupsDir, string walletsDir)
 		{
 			WalletBackupsDir = walletBackupsDir;
+			WalletsDir = walletsDir;
 			Wallets = new Dictionary<WalletService, HashSet<uint256>>();
 			Lock = new object();
 			AddRemoveLock = new AsyncLock();
@@ -43,6 +44,9 @@ namespace WalletWasabi.Wallets
 		private Dictionary<WalletService, HashSet<uint256>> Wallets { get; }
 		private object Lock { get; }
 		private AsyncLock AddRemoveLock { get; }
+
+		private string WalletsDir { get; }
+
 		private string WalletBackupsDir { get; }
 
 		private IEnumerable<KeyValuePair<WalletService, HashSet<uint256>>> AliveWalletsNoLock => Wallets.Where(x => x.Key is { IsStoppingOrStopped: var isDisposed } && !isDisposed);
@@ -69,6 +73,12 @@ namespace WalletWasabi.Wallets
 			{
 				return Wallets.Keys.Any();
 			}
+		}
+
+		public IEnumerable<string> EnumerateWalletFiles ()
+		{
+			var directoryInfo = new DirectoryInfo(WalletsDir);
+			return directoryInfo.GetFiles("*.json", SearchOption.TopDirectoryOnly).OrderByDescending(t => t.LastAccessTimeUtc).Select(x => x.FullName);
 		}
 
 		public async Task<WalletService> CreateAndStartWalletServiceAsync(KeyManager keyManager)
