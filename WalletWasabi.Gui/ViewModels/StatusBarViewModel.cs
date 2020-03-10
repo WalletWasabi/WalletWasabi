@@ -117,12 +117,12 @@ namespace WalletWasabi.Gui.ViewModels
 
 						if (walletCheckingInterval is null)
 						{
+							var walletService = x.Sender as WalletService;
 							walletCheckingInterval = Observable.Interval(TimeSpan.FromSeconds(1))
 							   .ObserveOn(RxApp.MainThreadScheduler)
 							   .Subscribe(_ =>
 							   {
 								   var global = Global;
-								   var walletService = global?.WalletService;
 								   if (walletService is { })
 								   {
 									   var segwitActivationHeight = SmartHeader.GetStartingHeader(walletService.Network).Height;
