@@ -431,6 +431,7 @@ namespace WalletWasabi.Backend.Controllers
 				{
 					status = new StatusResponse();
 
+					// Updating the status of the filters.
 					var lastFilter = Global.IndexBuilderService.GetLastFilter();
 					var lastFilterHash = lastFilter.Header.BlockHash;
 					var bestHash = await RpcClient.GetBestBlockHashAsync();
@@ -442,6 +443,11 @@ namespace WalletWasabi.Backend.Controllers
 						status.FilterCreationActive = true;
 					}
 
+					// Updating the status of CoinJoin
+					if (DateTimeOffset.UtcNow - Global.Coordinator.LastSuccessfulCoinJoinTime < TimeSpan.FromHours(3))
+					{
+						status.CoinJoinCreationActive = true;
+					}
 					var cacheEntryOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(30));
 
 					Cache.Set(cacheKey, status, cacheEntryOptions);
