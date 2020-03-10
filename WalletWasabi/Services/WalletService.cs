@@ -236,7 +236,7 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
-				InitializingChanged?.Invoke(null, true);
+				InitializingChanged?.Invoke(this, true);
 
 				if (!Synchronizer.IsRunning)
 				{
@@ -265,7 +265,7 @@ namespace WalletWasabi.Services
 			}
 			finally
 			{
-				InitializingChanged?.Invoke(null, false);
+				InitializingChanged?.Invoke(this, false);
 			}
 		}
 
