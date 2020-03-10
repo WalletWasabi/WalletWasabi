@@ -22,28 +22,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 {
 	public class Coordinator : IDisposable
 	{
-		private List<CoordinatorRound> Rounds { get; }
-		private AsyncLock RoundsListLock { get; }
-
-		private List<uint256> CoinJoins { get; }
-		public string CoinJoinsFilePath => Path.Combine(FolderPath, $"CoinJoins{Network}.txt");
-		private AsyncLock CoinJoinsLock { get; }
-
-		private List<uint256> UnconfirmedCoinJoins { get; }
-
-		public event EventHandler<Transaction> CoinJoinBroadcasted;
-
-		public RPCClient RpcClient { get; }
-
-		public CoordinatorRoundConfig RoundConfig { get; private set; }
-
-		public Network Network { get; }
-
-		public BlockNotifier BlockNotifier { get; }
-
-		public string FolderPath { get; }
-
-		public UtxoReferee UtxoReferee { get; }
+		private volatile bool _disposedValue = false; // To detect redundant calls
 
 		public Coordinator(Network network, BlockNotifier blockNotifier, string folderPath, RPCClient rpc, CoordinatorRoundConfig roundConfig)
 		{
@@ -151,6 +130,29 @@ namespace WalletWasabi.CoinJoin.Coordinator
 
 			BlockNotifier.OnBlock += BlockNotifier_OnBlockAsync;
 		}
+
+		public event EventHandler<Transaction> CoinJoinBroadcasted;
+
+		private List<CoordinatorRound> Rounds { get; }
+		private AsyncLock RoundsListLock { get; }
+
+		private List<uint256> CoinJoins { get; }
+		public string CoinJoinsFilePath => Path.Combine(FolderPath, $"CoinJoins{Network}.txt");
+		private AsyncLock CoinJoinsLock { get; }
+
+		private List<uint256> UnconfirmedCoinJoins { get; }
+
+		public RPCClient RpcClient { get; }
+
+		public CoordinatorRoundConfig RoundConfig { get; private set; }
+
+		public Network Network { get; }
+
+		public BlockNotifier BlockNotifier { get; }
+
+		public string FolderPath { get; }
+
+		public UtxoReferee UtxoReferee { get; }
 
 		private async void BlockNotifier_OnBlockAsync(object sender, Block block)
 		{
@@ -459,8 +461,6 @@ namespace WalletWasabi.CoinJoin.Coordinator
 		}
 
 		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
 
 		protected virtual void Dispose(bool disposing)
 		{
