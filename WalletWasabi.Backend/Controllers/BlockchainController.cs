@@ -444,7 +444,12 @@ namespace WalletWasabi.Backend.Controllers
 					}
 
 					// Updating the status of CoinJoin
-					if (DateTimeOffset.UtcNow - Global.Coordinator.LastSuccessfulCoinJoinTime < TimeSpan.FromHours(3))
+					var validInterval = TimeSpan.FromSeconds(Global.Coordinator.RoundConfig.InputRegistrationTimeout * 2);
+					if (validInterval < TimeSpan.FromHours(1))
+					{
+						validInterval = TimeSpan.FromHours(1);
+					}
+					if (DateTimeOffset.UtcNow - Global.Coordinator.LastSuccessfulCoinJoinTime < validInterval)
 					{
 						status.CoinJoinCreationActive = true;
 					}
