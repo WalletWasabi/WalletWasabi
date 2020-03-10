@@ -36,16 +36,19 @@ namespace WalletWasabi.Gui.ViewModels
 		public ReactiveCommand<Unit, Unit> CopyLabel { get; }
 		public ReactiveCommand<Unit, bool> ChangeLabel { get; }
 		public ReactiveCommand<Unit, Unit> DisplayAddressOnHw { get; }
+		public ReactiveCommand<Unit, Unit> LockAddress { get; }
 
 		public HdPubKey Model { get; }
 		private Global Global { get; }
 		public KeyManager KeyManager { get; }
+		public ReceiveTabViewModel Owner { get; }
 		public bool IsHardwareWallet { get; }
 
-		public AddressViewModel(HdPubKey model, KeyManager km)
+		public AddressViewModel(HdPubKey model, KeyManager km, ReceiveTabViewModel owner)
 		{
 			Global = Locator.Current.GetService<Global>();
 			KeyManager = km;
+			Owner = owner;
 			IsHardwareWallet = km.IsHardwareWallet;
 			Model = model;
 			ClipboardNotificationVisible = false;
@@ -123,6 +126,18 @@ namespace WalletWasabi.Gui.ViewModels
 				}
 			});
 
+			LockAddress = ReactiveCommand.CreateFromTask(async () =>
+			{
+				Model.SetKeyState(KeyState.Locked, km);
+				owner.InitializeAddresses();
+
+				bool isAddressCopied = await Application.Current.Clipboard.GetTextAsync() == Address;
+				if (isAddressCopied)
+				{
+					await Application.Current.Clipboard.ClearAsync();
+				}
+			});
+
 			Observable
 				.Merge(ToggleQrCode.ThrownExceptions)
 				.Merge(SaveQRCode.ThrownExceptions)
@@ -130,6 +145,7 @@ namespace WalletWasabi.Gui.ViewModels
 				.Merge(CopyLabel.ThrownExceptions)
 				.Merge(ChangeLabel.ThrownExceptions)
 				.Merge(DisplayAddressOnHw.ThrownExceptions)
+				.Merge(LockAddress.ThrownExceptions)
 				.Subscribe(ex =>
 				{
 					Logger.LogError(ex);
