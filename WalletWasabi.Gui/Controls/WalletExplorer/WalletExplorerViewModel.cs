@@ -21,7 +21,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	public class WalletExplorerViewModel : ToolViewModel, IActivatableExtension
 	{
 		private ObservableCollection<WalletViewModelBase> _wallets;
-		private WasabiDocumentTabViewModel _selectedItem;
+		private ViewModelBase _selectedItem;
 
 		public WalletExplorerViewModel()
 		{
@@ -42,10 +42,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _wallets, value);
 		}
 
-		public WasabiDocumentTabViewModel SelectedItem
+		public ViewModelBase SelectedItem
 		{
 			get => _selectedItem;
 			set => this.RaiseAndSetIfChanged(ref _selectedItem, value);
+		}
+
+		internal void RemoveWallet(WalletViewModelBase wallet)
+		{
+			Wallets.Remove(wallet);
 		}
 
 		internal void OpenWallet(WalletService walletService, bool receiveDominant)
@@ -57,7 +62,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			WalletViewModel walletViewModel = new WalletViewModel(walletService, receiveDominant);
-			_wallets.Add(walletViewModel);
+			Wallets.InsertSorted(walletViewModel);
 			walletViewModel.OnWalletOpened();
 
 			// TODO if we ever implement closing a wallet OnWalletClosed needs to be called
