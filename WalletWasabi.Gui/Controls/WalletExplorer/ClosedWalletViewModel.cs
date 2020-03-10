@@ -9,7 +9,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class ClosedWalletViewModel : WalletViewModelBase
 	{
-		public ClosedWalletViewModel(string path) : base (Path.GetFileNameWithoutExtension(path))
+		public ClosedWalletViewModel(string path) : base(Path.GetFileNameWithoutExtension(path))
 		{
 			OpenWalletCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -37,21 +37,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				var walletService = await walletManager.CreateAndStartWalletServiceAsync(keyManager);
 
-
 				var walletExplorer = IoC.Get<WalletExplorerViewModel>();
 
 				var select = walletExplorer.SelectedItem == this;
-				
+
 				walletExplorer.RemoveWallet(this);
 
 				if (walletService.Coins.Any())
 				{
 					// If already have coins then open the last active tab first.
-					IoC.Get<WalletExplorerViewModel>().OpenWallet(walletService, receiveDominant: false, select: select);
+					walletExplorer.OpenWallet(walletService, receiveDominant: false, select: select);
 				}
 				else // Else open with Receive tab first.
 				{
-					IoC.Get<WalletExplorerViewModel>().OpenWallet(walletService, receiveDominant: true, select: select);
+					walletExplorer.OpenWallet(walletService, receiveDominant: true, select: select);
 				}
 
 				IsBusy = false;

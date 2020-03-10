@@ -64,7 +64,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			WalletViewModel walletViewModel = new WalletViewModel(walletService, receiveDominant);
 			Wallets.InsertSorted(walletViewModel);
 
-			if(select)
+			if (select)
 			{
 				SelectedItem = walletViewModel;
 			}
@@ -75,7 +75,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			// to prevent memory leaks.
 		}
 
-		private void LoadWallets ()
+		private void LoadWallets()
 		{
 			foreach (var walletPath in WalletManager.EnumerateWalletFiles())
 			{
