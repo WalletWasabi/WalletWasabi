@@ -21,15 +21,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 {
 	public class AliceClient : TorDisposableBase
 	{
-		public Guid UniqueId { get; private set; }
-
-		public long RoundId { get; }
-		public Network Network { get; }
-
-		public BitcoinAddress[] RegisteredAddresses { get; }
-		public SchnorrPubKey[] SchnorrPubKeys { get; }
-		public Requester[] Requesters { get; }
-
 		/// <inheritdoc/>
 		private AliceClient(
 			long roundId,
@@ -46,6 +37,15 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			Requesters = requesters.ToArray();
 			Network = network;
 		}
+
+		public Guid UniqueId { get; private set; }
+
+		public long RoundId { get; }
+		public Network Network { get; }
+
+		public BitcoinAddress[] RegisteredAddresses { get; }
+		public SchnorrPubKey[] SchnorrPubKeys { get; }
+		public Requester[] Requesters { get; }
 
 		public static async Task<AliceClient> CreateNewAsync(
 			long roundId,
