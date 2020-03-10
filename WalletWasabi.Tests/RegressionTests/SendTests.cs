@@ -57,7 +57,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			// 5. Create wallet service.
 			var workDir = Common.GetWorkDir();
-			var walletManager = new WalletManager(null);
+			var walletManager = new WalletManager(null, null);
 			walletManager.Initialize(bitcoinStore, synchronizer, nodes, workDir, serviceConfiguration, synchronizer, null);
 
 			// Get some money, make it confirm.
@@ -531,7 +531,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			// 5. Create wallet service.
 			var workDir = Common.GetWorkDir();
-			var walletManager = new WalletManager(null);
+			var walletManager = new WalletManager(null, null);
 			walletManager.Initialize(bitcoinStore, synchronizer, nodes, workDir, serviceConfiguration, synchronizer, null);
 
 			// Get some money, make it confirm.
