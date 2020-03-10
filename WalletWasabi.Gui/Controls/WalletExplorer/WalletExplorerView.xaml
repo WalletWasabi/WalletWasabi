@@ -37,7 +37,7 @@
         </TreeDataTemplate>
         <TreeDataTemplate DataType="ViewModels:WalletViewModel" ItemsSource="{Binding Actions}">
           <StackPanel Orientation="Horizontal" Spacing="6">
-            <DrawingPresenter Width="20" Height="20" Drawing="{DynamicResource WalletExplorerView_OpenFolder}" />
+            <DrawingPresenter Width="20" Height="20" Drawing="{DynamicResource WalletExplorer_OpenWallet}" />
             <Button Content="{Binding Title}" Command="{Binding LurkingWifeModeCommand}" Height="19" VerticalAlignment="Center" BorderThickness="0" Margin="0" Padding="0" Background="Transparent" />
           </StackPanel>
         </TreeDataTemplate>
