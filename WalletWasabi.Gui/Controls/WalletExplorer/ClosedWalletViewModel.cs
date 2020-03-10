@@ -37,16 +37,21 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				var walletService = await walletManager.CreateAndStartWalletServiceAsync(keyManager);
 
-				IoC.Get<WalletExplorerViewModel>().RemoveWallet(this);
+
+				var walletExplorer = IoC.Get<WalletExplorerViewModel>();
+
+				var select = walletExplorer.SelectedItem == this;
+				
+				walletExplorer.RemoveWallet(this);
 
 				if (walletService.Coins.Any())
 				{
 					// If already have coins then open the last active tab first.
-					IoC.Get<WalletExplorerViewModel>().OpenWallet(walletService, receiveDominant: false);
+					IoC.Get<WalletExplorerViewModel>().OpenWallet(walletService, receiveDominant: false, select: select);
 				}
 				else // Else open with Receive tab first.
 				{
-					IoC.Get<WalletExplorerViewModel>().OpenWallet(walletService, receiveDominant: true);
+					IoC.Get<WalletExplorerViewModel>().OpenWallet(walletService, receiveDominant: true, select: select);
 				}
 
 				IsBusy = false;

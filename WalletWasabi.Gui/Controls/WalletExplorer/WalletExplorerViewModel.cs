@@ -53,7 +53,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Wallets.Remove(wallet);
 		}
 
-		internal void OpenWallet(WalletService walletService, bool receiveDominant)
+		internal void OpenWallet(WalletService walletService, bool receiveDominant, bool select)
 		{
 			var walletName = Path.GetFileNameWithoutExtension(walletService.KeyManager.FilePath);
 			if (_wallets.Any(x => x.Title == walletName))
@@ -63,6 +63,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			WalletViewModel walletViewModel = new WalletViewModel(walletService, receiveDominant);
 			Wallets.InsertSorted(walletViewModel);
+
+			if(select)
+			{
+				SelectedItem = walletViewModel;
+			}
+
 			walletViewModel.OnWalletOpened();
 
 			// TODO if we ever implement closing a wallet OnWalletClosed needs to be called
