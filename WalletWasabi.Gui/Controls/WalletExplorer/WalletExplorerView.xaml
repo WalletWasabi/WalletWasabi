@@ -2,6 +2,17 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ViewModels="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui"
              x:Class="WalletWasabi.Gui.Controls.WalletExplorer.WalletExplorerView">
+  <UserControl.Styles>
+    <Style Selector="DrawingPresenter#PART_Spinner">
+      <Style.Animations>
+        <Animation Duration="0:0:2.5" IterationCount="Infinite">
+          <KeyFrame Cue="100%">
+            <Setter Property="RotateTransform.Angle" Value="360" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+  </UserControl.Styles>
   <Grid>
     <TreeView BorderThickness="0" Items="{Binding Wallets}" SelectedItem="{Binding SelectedItem}">
       <TreeView.Styles>
@@ -13,6 +24,20 @@
         </Style>
       </TreeView.Styles>
       <TreeView.DataTemplates>
+        <TreeDataTemplate DataType="ViewModels:ClosedWalletViewModel" ItemsSource="{Binding Actions}">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <StackPanel.ContextMenu>
+              <ContextMenu>
+                <MenuItem Header="Open Wallet" Command="{Binding OpenWalletCommand}" />
+              </ContextMenu>
+            </StackPanel.ContextMenu>
+            <DrawingPresenter Width="20" Height="20" Drawing="{DynamicResource WalletExplorer_ClosedWallet}" />
+            <TextBlock Text="{Binding Title}" Height="19" VerticalAlignment="Center" />
+            <DrawingPresenter Name="PART_Spinner" Width="16" Height="16" IsVisible="{Binding IsBusy}">
+              <GeometryDrawing Brush="{DynamicResource ThemeAccentBrush}" Geometry="M304 48c0 26.51-21.49 48-48 48s-48-21.49-48-48 21.49-48 48-48 48 21.49 48 48zm-48 368c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48zm208-208c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48zM96 256c0-26.51-21.49-48-48-48S0 229.49 0 256s21.49 48 48 48 48-21.49 48-48zm12.922 99.078c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48c0-26.509-21.491-48-48-48zm294.156 0c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48c0-26.509-21.49-48-48-48zM108.922 60.922c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.491-48-48-48z"   />
+            </DrawingPresenter>
+          </StackPanel>
+        </TreeDataTemplate>
         <TreeDataTemplate DataType="ViewModels:WalletViewModel" ItemsSource="{Binding Actions}">
           <StackPanel Orientation="Horizontal" Spacing="6">
             <DrawingPresenter Width="20" Height="20" Drawing="{DynamicResource WalletExplorerView_OpenFolder}" />
