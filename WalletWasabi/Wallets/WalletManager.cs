@@ -116,6 +116,10 @@ namespace WalletWasabi.Wallets
 
 		public async Task DequeueAllCoinsGracefullyAsync(DequeueReason reason, CancellationToken token)
 		{
+			if (Synchronizer.BackendStatus == BackendStatus.NotConnected)
+			{
+				return;
+			}
 			IEnumerable<Task> tasks = null;
 			lock (Lock)
 			{
