@@ -13,6 +13,8 @@ namespace WalletWasabi.CoinJoin.Coordinator.MixingLevels
 	[JsonObject(MemberSerialization.OptIn)]
 	public class MixingLevelCollection
 	{
+		private IEnumerable<SchnorrPubKey> _schnorrPubKeys;
+
 		[JsonConstructor]
 		public MixingLevelCollection(IEnumerable<MixingLevel> levels)
 		{
@@ -29,13 +31,26 @@ namespace WalletWasabi.CoinJoin.Coordinator.MixingLevels
 			Create(new List<MixingLevel> { new MixingLevel(baseDenomination, signer) });
 		}
 
+		[JsonProperty]
+		public List<MixingLevel> Levels { get; private set; }
+
+		public IEnumerable<SchnorrPubKey> SchnorrPubKeys
+		{
+			get
+			{
+				if (_schnorrPubKeys?.Count() != Levels?.Count) // Signing keys do not change, but more levels may be added. (Although even that's unlikely.)
+				{
+					_schnorrPubKeys = Levels.Select(x => x.Signer.GetSchnorrPubKey());
+				}
+				return _schnorrPubKeys;
+			}
+			set => _schnorrPubKeys = value;
+		}
+
 		private void Create(IEnumerable<MixingLevel> levels)
 		{
 			Levels = Guard.NotNullOrEmpty(nameof(levels), levels).ToList();
 		}
-
-		[JsonProperty]
-		public List<MixingLevel> Levels { get; private set; }
 
 		public void AddNewLevel()
 		{
@@ -70,21 +85,6 @@ namespace WalletWasabi.CoinJoin.Coordinator.MixingLevels
 		public IEnumerable<MixingLevel> GetAllLevels() => Levels.ToList();
 
 		public IEnumerable<MixingLevel> GetLevelsExceptBase() => Levels.Skip(1).ToList();
-
-		private IEnumerable<SchnorrPubKey> _schnorrPubKeys;
-
-		public IEnumerable<SchnorrPubKey> SchnorrPubKeys
-		{
-			get
-			{
-				if (_schnorrPubKeys?.Count() != Levels?.Count) // Signing keys do not change, but more levels may be added. (Although even that's unlikely.)
-				{
-					_schnorrPubKeys = Levels.Select(x => x.Signer.GetSchnorrPubKey());
-				}
-				return _schnorrPubKeys;
-			}
-			set => _schnorrPubKeys = value;
-		}
 
 		public int GetMaxLevel() => Levels.Count - 1;
 	}
