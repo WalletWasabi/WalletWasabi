@@ -52,6 +52,18 @@ namespace WalletWasabi.Wallets
 		private NodesGroup Nodes { get; set; }
 		private string DataDir { get; set; }
 		private ServiceConfiguration ServiceConfiguration { get; set; }
+
+		public void SignalQuitPending(bool isQuitPending)
+		{
+			lock (Lock)
+			{
+				foreach (var client in Wallets.Keys.Select(x => x.ChaumianClient))
+				{
+					client.IsQuitPending = isQuitPending;
+				}
+			}
+		}
+
 		private IFeeProvider FeeProvider { get; set; }
 		private CoreNode BitcoinCoreNode { get; set; }
 
