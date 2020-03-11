@@ -87,7 +87,7 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-		public IEnumerable<string> EnumerateWalletFiles ()
+		public IEnumerable<string> EnumerateWalletFiles()
 		{
 			var directoryInfo = new DirectoryInfo(WalletsDir);
 			return directoryInfo.GetFiles("*.json", SearchOption.TopDirectoryOnly).OrderByDescending(t => t.LastAccessTimeUtc).Select(x => x.FullName);
