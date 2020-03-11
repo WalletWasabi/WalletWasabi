@@ -4,6 +4,7 @@ using Splat;
 using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Threading;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -17,7 +18,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				var global = Locator.Current.GetService<Global>();
 
-				if (!await global.WaitForInitializationCompletedAsync())
+				if (!await global.WaitForInitializationCompletedAsync(CancellationToken.None))
 				{
 					return;
 				}
