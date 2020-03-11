@@ -23,7 +23,7 @@ namespace WalletWasabi.Gui.CommandLine
 				"usage: mix --wallet:WalletName --mixall --keepalive",
 				"",
 				"Start mixing without the GUI with the specified wallet.",
-				"eg: ./wassabee mix --wallet:MyWalletName --mixall --keepalive --loglevel:info",
+				"eg: ./wassabee mix --wallet:MyWalletName --mixall --keepalive",
 				{ "h|help", "Displays help page and exit.", x => ShowHelp = x != null },
 				{ "w|wallet=", "The name of the wallet file.", x => WalletName = x },
 				{ "mixall", "Mix once even if the coin reached the target anonymity set specified in the config file.", x => MixAll = x != null },
