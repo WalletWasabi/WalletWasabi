@@ -87,13 +87,19 @@ namespace WalletWasabi.Gui.CommandLine
 				}
 
 				KeyManager destinationKeyManager = TryGetKeyManagerFromWalletName(destinationWalletName);
-				if (keyManager.ExtPubKey != destinationKeyManager.ExtPubKey)
+				bool isDestinationSpecified = keyManager.ExtPubKey != destinationKeyManager.ExtPubKey;
+				if (isDestinationSpecified)
 				{
 					await Global.WalletManager.CreateAndStartWalletServiceAsync(destinationKeyManager);
 				}
 
 				// Enqueue coins up to the anonset target, except if mixall, because then enqueue all coins.
-				await TryQueueCoinsToMixAsync(password, maxAnonset: mixAll ? int.MaxValue : WalletService.ServiceConfiguration.MixUntilAnonymitySet - 1);
+				// However if destination is specified, then disregard this initial enqueue.
+				// This way mixall will have no effect. Or more specifically the output wallet specification will mix on top of mixed coins, so the result is the same.
+				if (!isDestinationSpecified)
+				{
+					await TryQueueCoinsToMixAsync(password, maxAnonset: mixAll ? int.MaxValue : WalletService.ServiceConfiguration.MixUntilAnonymitySet - 1);
+				}
 
 				do
 				{
@@ -110,7 +116,7 @@ namespace WalletWasabi.Gui.CommandLine
 					}
 
 					// If no coins enqueued then enqueue the large anonset coins and mix to another wallet.
-					if (!AnyCoinsQueued())
+					if (isDestinationSpecified && !AnyCoinsQueued())
 					{
 						WalletService.ChaumianClient.DestinationKeyManager = destinationKeyManager;
 						await TryQueueCoinsToMixAsync(password, minAnonset: WalletService.ServiceConfiguration.MixUntilAnonymitySet);
