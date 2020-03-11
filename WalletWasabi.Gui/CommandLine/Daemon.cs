@@ -127,10 +127,7 @@ namespace WalletWasabi.Gui.CommandLine
 				// Keep this loop alive as long as a coin is queued or keepalive was specified.
 				while (keepMixAlive || AnyCoinsQueued());
 
-				if (!Global.KillRequested) // This only has to run if it finishes by itself. Otherwise the Ctrl+c runs it.
-				{
-					await WalletService.ChaumianClient?.DequeueAllCoinsFromMixAsync(DequeueReason.ApplicationExit);
-				}
+				await Global.DisposeAsync();
 			}
 			catch
 			{
