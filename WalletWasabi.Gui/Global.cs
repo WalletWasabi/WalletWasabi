@@ -717,7 +717,7 @@ namespace WalletWasabi.Gui
 				}
 				catch (Exception ex)
 				{
-					Logger.LogError(ex);
+					Logger.LogError($"Error during {nameof(WaitForInitializationCompletedAsync)}: {ex}");
 				}
 
 				try
@@ -727,7 +727,7 @@ namespace WalletWasabi.Gui
 				}
 				catch (Exception ex)
 				{
-					Logger.LogError(ex);
+					Logger.LogError($"Error during {nameof(WalletManager.RemoveAndStopAllAsync)}: {ex}");
 				}
 
 				Dispatcher.UIThread.PostLogException(() =>
