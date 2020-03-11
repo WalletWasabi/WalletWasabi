@@ -1,6 +1,4 @@
 using NBitcoin;
-using NBitcoin.BouncyCastle.Math;
-using NBitcoin.Crypto;
 using System;
 using System.Security.Cryptography;
 using System.Text;
@@ -8,7 +6,7 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Logging;
 using WalletWasabi.Tests.XunitConfiguration;
 using Xunit;
-using static NBitcoin.Crypto.SchnorrBlinding;
+using static WalletWasabi.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.Tests.UnitTests
 {
@@ -90,7 +88,7 @@ namespace WalletWasabi.Tests.UnitTests
 			PubKey keyPubKey = key.PubKey;
 
 			byte[] message = Encoding.UTF8.GetBytes("áéóúősing me please~!@#$%^&*())_+");
-			byte[] hashBytes = Hashes.SHA256(message);
+			byte[] hashBytes = NBitcoin.Crypto.Hashes.SHA256(message);
 			uint256 hash = new uint256(hashBytes);
 			uint256 blindedMessageHash = requester.BlindMessage(hash, rPubKey, keyPubKey);
 
@@ -111,7 +109,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var key = new Key();
 			var r = new Key();
 			byte[] message = Encoding.UTF8.GetBytes("áéóúősing me please~!@#$%^&*())_+");
-			var hash = new uint256(Hashes.SHA256(message));
+			var hash = new uint256(NBitcoin.Crypto.Hashes.SHA256(message));
 			var requester = new Requester();
 			uint256 blindedHash = requester.BlindMessage(hash, r.PubKey, key.PubKey);
 			string encoded = blindedHash.ToString();
