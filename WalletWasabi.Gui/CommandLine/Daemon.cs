@@ -103,7 +103,8 @@ namespace WalletWasabi.Gui.CommandLine
 					bool anyCoinsQueued = WalletService.ChaumianClient.State.AnyCoinsQueued();
 					if (!anyCoinsQueued && keepMixAlive) // If no coins queued and mixing is asked to be kept alive then try to queue coins.
 					{
-						await TryQueueCoinsToMixAsync(mixAll, password);
+						// Don't do mixall here, the mixall says all the coins has to be mixed all once, not all the time.
+						await TryQueueCoinsToMixAsync(mixAll: false, password);
 					}
 
 					if (Global.KillRequested)
