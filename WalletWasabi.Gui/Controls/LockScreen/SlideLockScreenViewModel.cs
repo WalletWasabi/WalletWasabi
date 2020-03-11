@@ -1,6 +1,6 @@
 namespace WalletWasabi.Gui.Controls.LockScreen
 {
-	public class SlideLockScreenViewModel : LockScreenViewModelBase
+	public class SlideLockScreenViewModel : WasabiLockScreenViewModelBase
 	{
 		public readonly double ThresholdPercent = 1 / 6d;
 

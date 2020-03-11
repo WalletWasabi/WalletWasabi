@@ -1,5 +1,5 @@
+﻿using System;
 using ReactiveUI;
-using Splat;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.ViewModels;
@@ -11,29 +11,20 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		private bool _isLocked;
 		private bool _canSlide;
 
-		private CompositeDisposable Disposables { get; }
-
 		public LockScreenViewModelBase()
 		{
 			Disposables = new CompositeDisposable();
 
-			var global = Locator.Current.GetService<Global>();
-
-			global.UiConfig
-				.WhenAnyValue(x => x.LockScreenActive)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.BindTo(this, y => y.IsLocked)
-				.DisposeWith(Disposables);
-
 			this.WhenAnyValue(x => x.IsLocked)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.BindTo(global.UiConfig, y => y.LockScreenActive)
-				.DisposeWith(Disposables);
-
-			IsLocked = global.UiConfig.LockScreenActive;
-
-			OnInitialize(Disposables);
+				.Where(x => x)
+				.Take(1)
+				.Subscribe(x =>
+				{
+					OnInitialize(Disposables);
+				});
 		}
+
+		protected CompositeDisposable Disposables { get; }
 
 		public bool CanSlide
 		{

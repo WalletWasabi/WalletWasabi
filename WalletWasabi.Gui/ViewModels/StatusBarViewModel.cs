@@ -269,8 +269,8 @@ namespace WalletWasabi.Gui.ViewModels
 							var filePath = Path.Combine(legalFolderPath, $"{version}.txt");
 							var legalContent = await client.GetLegalDocumentsAsync(CancellationToken.None);
 
-							IoC.Get<IShell>().Documents.OfType<LegalDocumentsViewModel>()?.FirstOrDefault()?.OnClose();
-							IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel(legalContent, new LegalDocuments(filePath)));
+							MainWindowViewModel.Instance.LockScreen = new LegalDocumentsViewModel(legalContent, new LegalDocuments(filePath));
+							MainWindowViewModel.Instance.LockScreen.IsLocked = true;
 						}
 					}
 					catch (Exception ex)

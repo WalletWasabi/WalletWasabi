@@ -91,8 +91,6 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _lockScreen, value);
 		}
 
-		public ReactiveCommand<Unit, Unit> LockScreenCommand { get; }
-
 		public IShell Shell { get; }
 
 		public static MainWindowViewModel Instance { get; internal set; }
@@ -120,7 +118,7 @@ namespace WalletWasabi.Gui.ViewModels
 					LockScreen?.Dispose();
 
 					LockScreen = uiConfig.LockScreenPinHash.Length == 0
-						? (LockScreenViewModelBase)new SlideLockScreenViewModel()
+						? (WasabiLockScreenViewModelBase)new SlideLockScreenViewModel()
 						: new PinLockScreenViewModel();
 				});
 		}

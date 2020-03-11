@@ -9,7 +9,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Controls.LockScreen
 {
-	public class PinLockScreenViewModel : LockScreenViewModelBase
+	public class PinLockScreenViewModel : WasabiLockScreenViewModelBase
 	{
 		private string _pinInput;
 
