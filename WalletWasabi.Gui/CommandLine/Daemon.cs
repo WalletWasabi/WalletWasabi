@@ -1,5 +1,7 @@
+using NBitcoin;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
@@ -20,7 +22,7 @@ namespace WalletWasabi.Gui.CommandLine
 
 		private WalletService WalletService { get; set; }
 
-		internal async Task RunAsync(string walletName, bool mixAll, bool keepMixAlive)
+		internal async Task RunAsync(string walletName, string destinationWalletName, bool mixAll, bool keepMixAlive)
 		{
 			try
 			{
@@ -84,9 +86,15 @@ namespace WalletWasabi.Gui.CommandLine
 					return;
 				}
 
-				await TryQueueCoinsToMixAsync(mixAll, password);
+				KeyManager destinationKeyManager = TryGetKeyManagerFromWalletName(destinationWalletName);
+				if (keyManager.ExtPubKey != destinationKeyManager.ExtPubKey)
+				{
+					await Global.WalletManager.CreateAndStartWalletServiceAsync(destinationKeyManager);
+				}
 
-				bool mixing;
+				// Enqueue coins up to the anonset target, except if mixall, because then enqueue all coins.
+				await TryQueueCoinsToMixAsync(password, maxAnonset: mixAll ? int.MaxValue : WalletService.ServiceConfiguration.MixUntilAnonymitySet - 1);
+
 				do
 				{
 					if (Global.KillRequested)
@@ -95,26 +103,29 @@ namespace WalletWasabi.Gui.CommandLine
 					}
 
 					await Task.Delay(3000);
+
 					if (Global.KillRequested)
 					{
 						break;
 					}
 
-					bool anyCoinsQueued = WalletService.ChaumianClient.State.AnyCoinsQueued();
-					if (!anyCoinsQueued && keepMixAlive) // If no coins queued and mixing is asked to be kept alive then try to queue coins.
+					// If no coins enqueued then enqueue the large anonset coins and mix to another wallet.
+					if (!AnyCoinsQueued())
+					{
+						WalletService.ChaumianClient.DestinationKeyManager = destinationKeyManager;
+						await TryQueueCoinsToMixAsync(password, minAnonset: WalletService.ServiceConfiguration.MixUntilAnonymitySet);
+					}
+
+					// If no coins were queued then try to queue coins those have less anonset and mix it into the same wallet.
+					if (!AnyCoinsQueued())
 					{
 						// Don't do mixall here, the mixall says all the coins has to be mixed once, it doesn't says it has to be requeued all the time.
-						await TryQueueCoinsToMixAsync(mixAll: false, password);
+						WalletService.ChaumianClient.DestinationKeyManager = WalletService.ChaumianClient.KeyManager;
+						await TryQueueCoinsToMixAsync(password, maxAnonset: WalletService.ServiceConfiguration.MixUntilAnonymitySet - 1);
 					}
-
-					if (Global.KillRequested)
-					{
-						break;
-					}
-
-					mixing = anyCoinsQueued || keepMixAlive;
 				}
-				while (mixing);
+				// Keep this loop alive as long as a coin is queued or keepalive was specified.
+				while (keepMixAlive || AnyCoinsQueued());
 
 				if (!Global.KillRequested) // This only has to run if it finishes by itself. Otherwise the Ctrl+c runs it.
 				{
@@ -132,6 +143,11 @@ namespace WalletWasabi.Gui.CommandLine
 			{
 				Logger.LogInfo($"{nameof(Daemon)} stopped.");
 			}
+		}
+
+		private bool AnyCoinsQueued()
+		{
+			return WalletService.ChaumianClient.State.AnyCoinsQueued();
 		}
 
 		public KeyManager TryGetKeyManagerFromWalletName(string walletName)
@@ -175,17 +191,18 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 		}
 
-		private async Task TryQueueCoinsToMixAsync(bool mixAll, string password)
+		private async Task TryQueueCoinsToMixAsync(string password, int minAnonset = int.MinValue, int maxAnonset = int.MaxValue)
 		{
 			try
 			{
-				var coinsView = WalletService.Coins;
-				var coinsToMix = coinsView.Available();
-				if (!mixAll)
+				var coinsToMix = WalletService.Coins.Available().FilterBy(x => x.AnonymitySet <= maxAnonset && minAnonset <= x.AnonymitySet);
+
+				var enqueuedCoins = await WalletService.ChaumianClient.QueueCoinsToMixAsync(password, coinsToMix.ToArray());
+
+				if (enqueuedCoins.Any())
 				{
-					coinsToMix = coinsToMix.FilterBy(x => x.AnonymitySet < WalletService.ServiceConfiguration.MixUntilAnonymitySet);
+					Logger.LogInfo($"Enqueued {Money.Satoshis(enqueuedCoins.Sum(x => x.Amount)).ToString(false, true)} BTC, {enqueuedCoins.Count()} coins with smalles anonset {enqueuedCoins.Min(x => x.AnonymitySet)} and largest anonset {enqueuedCoins.Max(x => x.AnonymitySet)}.");
 				}
-				await WalletService.ChaumianClient.QueueCoinsToMixAsync(password, coinsToMix.ToArray());
 			}
 			catch (Exception ex)
 			{
