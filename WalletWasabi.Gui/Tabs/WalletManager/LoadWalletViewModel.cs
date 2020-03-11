@@ -629,7 +629,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 				try
 				{
-					bool isSuccessful = await Global.WaitForInitializationCompletedAsync();
+					bool isSuccessful = await Global.WaitForInitializationCompletedAsync(CancellationToken.None);
 					if (!isSuccessful)
 					{
 						return;
