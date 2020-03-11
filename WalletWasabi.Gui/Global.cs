@@ -597,11 +597,11 @@ namespace WalletWasabi.Gui
 		}
 
 		/// <returns>If initialization is successful, otherwise it was interrupted which means stopping was requested.</returns>
-		public async Task<bool> WaitForInitializationCompletedAsync()
+		public async Task<bool> WaitForInitializationCompletedAsync(CancellationToken cancellationToken)
 		{
 			while (!InitializationCompleted)
 			{
-				await Task.Delay(100).ConfigureAwait(false);
+				await Task.Delay(100, cancellationToken).ConfigureAwait(false);
 			}
 
 			return !StoppingCts.IsCancellationRequested;
@@ -710,10 +710,25 @@ namespace WalletWasabi.Gui
 					return;
 				}
 
-				await WaitForInitializationCompletedAsync().ConfigureAwait(false);
+				try
+				{
+					using var initCts = new CancellationTokenSource(TimeSpan.FromMinutes(6));
+					await WaitForInitializationCompletedAsync(initCts.Token).ConfigureAwait(false);
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError(ex);
+				}
 
-				using var dequeueCts = new CancellationTokenSource(TimeSpan.FromMinutes(6));
-				await WalletManager.RemoveAndStopAllAsync(dequeueCts.Token).ConfigureAwait(false);
+				try
+				{
+					using var dequeueCts = new CancellationTokenSource(TimeSpan.FromMinutes(6));
+					await WalletManager.RemoveAndStopAllAsync(dequeueCts.Token).ConfigureAwait(false);
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError(ex);
+				}
 
 				Dispatcher.UIThread.PostLogException(() =>
 				{
