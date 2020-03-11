@@ -23,6 +23,7 @@ using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 using WalletWasabi.Services;
 using static NBitcoin.Crypto.SchnorrBlinding;
 
@@ -865,6 +866,10 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		public async Task DequeueAllCoinsFromMixAsync(DequeueReason reason)
 		{
+			if (reason == DequeueReason.ApplicationExit && Synchronizer.BackendStatus == BackendStatus.NotConnected)
+			{
+				return;
+			}
 			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
 			try
 			{
