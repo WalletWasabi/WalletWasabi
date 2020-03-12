@@ -220,6 +220,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				});
 
+			this.WhenAnyValue(x => x.Address, x => x.CustomChangeAddress)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+				{
+					this.RaisePropertyChanged(nameof(Address));
+					this.RaisePropertyChanged(nameof(CustomChangeAddress));
+				});
+
 			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay, outputScheduler: RxApp.MainThreadScheduler);
 
 			OnAddressPasteCommand = ReactiveCommand.Create((BitcoinUrlBuilder url) =>
