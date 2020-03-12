@@ -112,7 +112,7 @@ namespace WalletWasabi.Gui.CommandLine
 						break;
 					}
 
-					// If no coins were queued then try to queue coins those have less anonset and mix it into the same wallet.
+					// If no coins were enqueued then try to enqueue coins those have less anonset and mix into the same wallet.
 					if (!AnyCoinsQueued())
 					{
 						WalletService.ChaumianClient.DestinationKeyManager = WalletService.ChaumianClient.KeyManager;
