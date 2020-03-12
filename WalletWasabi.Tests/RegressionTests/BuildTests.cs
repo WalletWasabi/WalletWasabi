@@ -395,7 +395,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			finally
 			{
 				bitcoinStore.IndexStore.NewFilter -= Common.Wallet_NewFilterProcessed;
-				await walletManager.RemoveAndStopAllAsync();
+				await walletManager.RemoveAndStopAllAsync(CancellationToken.None);
 				// Dispose wasabi synchronizer service.
 				if (synchronizer is { })
 				{

@@ -14,6 +14,17 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 {
 	public class ClientRoundRegistration : IDisposable
 	{
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		public ClientRoundRegistration(AliceClient aliceClient, IEnumerable<SmartCoin> coinsRegistereds, BitcoinAddress changeAddress)
+		{
+			AliceClient = Guard.NotNull(nameof(aliceClient), aliceClient);
+			CoinsRegistered = Guard.NotNullOrEmpty(nameof(coinsRegistereds), coinsRegistereds);
+			ChangeAddress = Guard.NotNull(nameof(changeAddress), changeAddress);
+
+			ActiveOutputs = Enumerable.Empty<ActiveOutput>();
+		}
+
 		/// <summary>
 		/// Completed all the necessary actions in the phase.
 		/// </summary>
@@ -27,15 +38,6 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 
 		public AliceClient AliceClient { get; }
 
-		public ClientRoundRegistration(AliceClient aliceClient, IEnumerable<SmartCoin> coinsRegistereds, BitcoinAddress changeAddress)
-		{
-			AliceClient = Guard.NotNull(nameof(aliceClient), aliceClient);
-			CoinsRegistered = Guard.NotNullOrEmpty(nameof(coinsRegistereds), coinsRegistereds);
-			ChangeAddress = Guard.NotNull(nameof(changeAddress), changeAddress);
-
-			ActiveOutputs = Enumerable.Empty<ActiveOutput>();
-		}
-
 		public bool IsPhaseActionsComleted(RoundPhase phase) => CompletedPhase >= phase;
 
 		public void SetPhaseCompleted(RoundPhase phase)
@@ -47,8 +49,6 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 		}
 
 		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
 
 		protected virtual void Dispose(bool disposing)
 		{

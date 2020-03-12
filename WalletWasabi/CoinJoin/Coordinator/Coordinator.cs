@@ -45,6 +45,8 @@ namespace WalletWasabi.CoinJoin.Coordinator
 
 		public UtxoReferee UtxoReferee { get; }
 
+		public DateTimeOffset LastSuccessfulCoinJoinTime { get; private set; }
+
 		public Coordinator(Network network, BlockNotifier blockNotifier, string folderPath, RPCClient rpc, CoordinatorRoundConfig roundConfig)
 		{
 			Network = Guard.NotNull(nameof(network), network);
@@ -59,6 +61,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 			CoinJoins = new List<uint256>();
 			UnconfirmedCoinJoins = new List<uint256>();
 			CoinJoinsLock = new AsyncLock();
+			LastSuccessfulCoinJoinTime = DateTimeOffset.UtcNow;
 
 			Directory.CreateDirectory(FolderPath);
 
@@ -298,6 +301,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 						uint256 coinJoinHash = round.CoinJoin.GetHash();
 						CoinJoins.Add(coinJoinHash);
 						UnconfirmedCoinJoins.Add(coinJoinHash);
+						LastSuccessfulCoinJoinTime = DateTimeOffset.UtcNow;
 						await File.AppendAllLinesAsync(CoinJoinsFilePath, new[] { coinJoinHash.ToString() }).ConfigureAwait(false);
 
 						// When a round succeeded, adjust the denomination as to users still be able to register with the latest round's active output amount.

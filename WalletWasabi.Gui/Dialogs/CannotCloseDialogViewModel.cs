@@ -96,7 +96,7 @@ namespace WalletWasabi.Gui.Dialogs
 
 			CancelTokenSource = new CancellationTokenSource().DisposeWith(Disposables);
 
-			Initialization = StartDequeueAsync(CancelTokenSource.Token);
+			Initialization = StartDequeueAsync();
 
 			base.OnOpen();
 		}
@@ -108,7 +108,7 @@ namespace WalletWasabi.Gui.Dialogs
 			base.OnClose();
 		}
 
-		private async Task StartDequeueAsync(CancellationToken token)
+		private async Task StartDequeueAsync()
 		{
 			IsBusy = true;
 			try
@@ -125,62 +125,10 @@ namespace WalletWasabi.Gui.Dialogs
 					}
 				}
 
-				start = DateTime.Now;
-				bool last = false;
-				while (!last)
-				{
-					last = DateTime.Now - start > TimeSpan.FromMinutes(2);
-					if (CancelTokenSource.IsCancellationRequested)
-					{
-						break;
-					}
+				using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(6));
+				using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, CancelTokenSource.Token);
+				await Global.WalletManager.DequeueAllCoinsGracefullyAsync(DequeueReason.ApplicationExit, linkedCts.Token);
 
-					try
-					{
-						if (Global.WalletService is null || Global.WalletService.ChaumianClient is null)
-						{
-							return;
-						}
-
-						SmartCoin[] enqueuedCoins = Global.WalletService.Coins.CoinJoinInProcess().ToArray();
-						Exception latestException = null;
-						foreach (var coin in enqueuedCoins)
-						{
-							try
-							{
-								if (CancelTokenSource.IsCancellationRequested)
-								{
-									break;
-								}
-
-								await Global.WalletService.ChaumianClient.DequeueCoinsFromMixAsync(new SmartCoin[] { coin }, DequeueReason.ApplicationExit); // Dequeue coins one-by-one to check cancel flag more frequently.
-							}
-							catch (Exception ex)
-							{
-								latestException = ex;
-
-								if (last) // if this is the last iteration and we are still failing then we throw the exception
-								{
-									throw ex;
-								}
-							}
-						}
-
-						if (latestException is null) // no exceptions were thrown during the for-each so we are done with dequeuing
-						{
-							last = true;
-						}
-					}
-					catch (Exception ex)
-					{
-						if (last)
-						{
-							throw ex;
-						}
-
-						await Task.Delay(5000, token); // wait, maybe the situation will change
-					}
-				}
 				if (!CancelTokenSource.IsCancellationRequested)
 				{
 					CancelTokenSource.Cancel();
@@ -189,7 +137,7 @@ namespace WalletWasabi.Gui.Dialogs
 			}
 			catch (Exception ex)
 			{
-				SetWarningMessage(ex.Message, token);
+				SetWarningMessage(ex.Message, CancelTokenSource.Token);
 			}
 			finally
 			{

@@ -52,6 +52,18 @@ namespace WalletWasabi.Wallets
 		private NodesGroup Nodes { get; set; }
 		private string DataDir { get; set; }
 		private ServiceConfiguration ServiceConfiguration { get; set; }
+
+		public void SignalQuitPending(bool isQuitPending)
+		{
+			lock (Lock)
+			{
+				foreach (var client in Wallets.Keys.Select(x => x.ChaumianClient))
+				{
+					client.IsQuitPending = isQuitPending;
+				}
+			}
+		}
+
 		private IFeeProvider FeeProvider { get; set; }
 		private CoreNode BitcoinCoreNode { get; set; }
 
@@ -60,6 +72,14 @@ namespace WalletWasabi.Wallets
 			lock (Lock)
 			{
 				return Wallets.Keys.FirstOrDefault();
+			}
+		}
+
+		public bool AnyWallet()
+		{
+			lock (Lock)
+			{
+				return Wallets.Keys.Any();
 			}
 		}
 
@@ -106,6 +126,16 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
+		public async Task DequeueAllCoinsGracefullyAsync(DequeueReason reason, CancellationToken token)
+		{
+			IEnumerable<Task> tasks = null;
+			lock (Lock)
+			{
+				tasks = Wallets.Keys.Select(x => x.ChaumianClient.DequeueAllCoinsFromMixGracefullyAsync(reason, token)).ToArray();
+			}
+			await Task.WhenAll(tasks).ConfigureAwait(false);
+		}
+
 		private void ChaumianClient_OnDequeue(object sender, DequeueResult e)
 		{
 			var handler = OnDequeue;
@@ -118,7 +148,7 @@ namespace WalletWasabi.Wallets
 			handler?.Invoke(sender, e);
 		}
 
-		public async Task RemoveAndStopAllAsync()
+		public async Task RemoveAndStopAllAsync(CancellationToken cancel)
 		{
 			try
 			{
@@ -130,7 +160,7 @@ namespace WalletWasabi.Wallets
 				Logger.LogWarning($"{nameof(CancelAllInitialization)} is disposed. This can occur due to an error while processing the wallet.");
 			}
 
-			using (await AddRemoveLock.LockAsync().ConfigureAwait(false))
+			using (await AddRemoveLock.LockAsync(cancel).ConfigureAwait(false))
 			{
 				List<WalletService> walletsListClone;
 				lock (Lock)
@@ -139,6 +169,11 @@ namespace WalletWasabi.Wallets
 				}
 				foreach (var walletService in walletsListClone)
 				{
+					if (cancel.IsCancellationRequested)
+					{
+						return;
+					}
+
 					walletService.TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
 					walletService.ChaumianClient.OnDequeue -= ChaumianClient_OnDequeue;
 
@@ -150,15 +185,22 @@ namespace WalletWasabi.Wallets
 						}
 					}
 
-					var keyManager = walletService.KeyManager;
-					if (keyManager is { } && !string.IsNullOrWhiteSpace(WalletBackupsDir))
+					try
 					{
-						string backupWalletFilePath = Path.Combine(WalletBackupsDir, Path.GetFileName(keyManager.FilePath));
-						keyManager.ToFile(backupWalletFilePath);
-						Logger.LogInfo($"{nameof(walletService.KeyManager)} backup saved to `{backupWalletFilePath}`.");
+						var keyManager = walletService.KeyManager;
+						if (keyManager is { } && !string.IsNullOrWhiteSpace(WalletBackupsDir))
+						{
+							string backupWalletFilePath = Path.Combine(WalletBackupsDir, Path.GetFileName(keyManager.FilePath));
+							keyManager.ToFile(backupWalletFilePath);
+							Logger.LogInfo($"{nameof(walletService.KeyManager)} backup saved to `{backupWalletFilePath}`.");
+						}
+						await walletService.StopAsync(cancel).ConfigureAwait(false);
+						Logger.LogInfo($"{nameof(WalletService)} is stopped.");
 					}
-					await walletService.StopAsync(CancellationToken.None).ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(WalletService)} is stopped.");
+					catch (Exception ex)
+					{
+						Logger.LogError(ex);
+					}
 				}
 			}
 		}

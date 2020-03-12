@@ -12,6 +12,13 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 {
 	public class ClientState
 	{
+		public ClientState()
+		{
+			StateLock = new object();
+			WaitingList = new Dictionary<SmartCoin, DateTimeOffset>();
+			Rounds = new List<ClientRound>();
+		}
+
 		private object StateLock { get; }
 
 		/// <summary>
@@ -21,12 +28,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 
 		private List<ClientRound> Rounds { get; }
 
-		public ClientState()
-		{
-			StateLock = new object();
-			WaitingList = new Dictionary<SmartCoin, DateTimeOffset>();
-			Rounds = new List<ClientRound>();
-		}
+		public bool IsInErrorState { get; private set; }
 
 		public void AddCoinToWaitingList(SmartCoin coin)
 		{
@@ -470,8 +472,6 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 				}
 			}
 		}
-
-		public bool IsInErrorState { get; private set; }
 
 		public void AddOrReplaceRound(ClientRound round)
 		{
