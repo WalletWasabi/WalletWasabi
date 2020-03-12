@@ -1018,6 +1018,8 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		public async Task StopAsync(CancellationToken cancel)
 		{
+			await DequeueAllCoinsFromMixGracefullyAsync(DequeueReason.ApplicationExit, cancel).ConfigureAwait(false);
+
 			Synchronizer.ResponseArrived -= Synchronizer_ResponseArrivedAsync;
 
 			Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
@@ -1032,8 +1034,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 			using (await MixLock.LockAsync(cancel).ConfigureAwait(false))
 			{
-				await DequeueAllCoinsFromMixGracefullyAsync(DequeueReason.ApplicationExit, cancel).ConfigureAwait(false);
-
 				State.DisposeAllAliceClients();
 
 				IEnumerable<TxoRef> allCoins = State.GetAllQueuedCoins();
