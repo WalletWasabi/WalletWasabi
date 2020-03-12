@@ -56,10 +56,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		internal void OpenWallet(WalletService walletService, bool receiveDominant, bool select)
 		{
 			var walletName = Path.GetFileNameWithoutExtension(walletService.KeyManager.FilePath);
-			if (_wallets.Any(x => x.Title == walletName))
+
+			var closedWalletViewModel = Wallets.FirstOrDefault(x => x.Title == walletName);
+			if (closedWalletViewModel is null)
 			{
 				return;
 			}
+
+			RemoveWallet(closedWalletViewModel);
 
 			WalletViewModel walletViewModel = new WalletViewModel(walletService, receiveDominant);
 			Wallets.InsertSorted(walletViewModel);

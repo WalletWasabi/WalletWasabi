@@ -271,6 +271,14 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
+		public WalletService GetWalletService(string name)
+		{
+			lock (Lock)
+			{
+				return Wallets.Keys.FirstOrDefault(w => w.Name == name);
+			}
+		}
+
 		public void Initialize(BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, NodesGroup nodes, string dataDir, ServiceConfiguration serviceConfiguration, IFeeProvider feeProvider, CoreNode bitcoinCoreNode)
 		{
 			BitcoinStore = bitcoinStore;

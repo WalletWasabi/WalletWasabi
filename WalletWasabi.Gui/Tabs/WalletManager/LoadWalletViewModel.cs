@@ -83,7 +83,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			this.WhenAnyValue(x => x.IsBusy)
 				.Subscribe(_ => TrySetWalletStates());
 
-			LoadCommand = ReactiveCommand.CreateFromTask(async () => await LoadWalletAsync(), this.WhenAnyValue(x => x.CanLoadWallet));
+			LoadCommand = ReactiveCommand.CreateFromTask(async () => await LoadWalletAsync());
 			TestPasswordCommand = ReactiveCommand.CreateFromTask(async () => await LoadKeyManagerAsync(requirePassword: true, isHardwareWallet: false), this.WhenAnyValue(x => x.CanTestPassword));
 			OpenFolderCommand = ReactiveCommand.Create(OpenWalletsFolder);
 			ImportColdcardCommand = ReactiveCommand.CreateFromTask(async () =>
@@ -246,12 +246,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set => this.RaiseAndSetIfChanged(ref _loadButtonText, value);
 		}
 
-		public bool CanLoadWallet
-		{
-			get => _canLoadWallet;
-			set => this.RaiseAndSetIfChanged(ref _canLoadWallet, value);
-		}
-
 		public bool CanTestPassword
 		{
 			get => _canTestPassword;
@@ -291,7 +285,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			Wallets.Clear();
 			Password = "";
-			
+
 			foreach (var file in Global.WalletManager.EnumerateWalletFiles())
 			{
 				var wallet = new LoadWalletEntry(Path.GetFileNameWithoutExtension(file));
@@ -309,11 +303,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 
 			TrySetWalletStates();
-
-			if (!CanLoadWallet && Wallets.Count > 0)
-			{
-				NotificationHelpers.Warning("There is already an open wallet. Restart the application in order to open a different one.");
-			}
 		}
 
 		private bool TrySetWalletStates()
@@ -327,21 +316,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 				IsWalletSelected = SelectedWallet != null;
 				CanTestPassword = IsWalletSelected;
-
-				if (Global.WalletManager.AnyWallet())
-				{
-					IsWalletOpened = true;
-					CanLoadWallet = false;
-				}
-				else
-				{
-					IsWalletOpened = false;
-
-					// If not busy loading.
-					// And wallet is selected.
-					// And no wallet is opened.
-					CanLoadWallet = !IsBusy && IsWalletSelected;
-				}
 
 				SetLoadButtonText();
 				return true;
@@ -617,9 +591,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public async Task LoadWalletAsync()
 		{
+			WalletViewModelBase walletViewModel = null;
 			try
 			{
 				IsBusy = true;
+				walletViewModel = IoC.Get<WalletExplorerViewModel>()?.Wallets.FirstOrDefault(w => w.Title == SelectedWallet.WalletName);
+				walletViewModel.IsBusy = true;
 
 				var keyManager = await LoadKeyManagerAsync(IsPasswordRequired, IsHardwareWallet);
 				if (keyManager is null)
@@ -662,6 +639,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			finally
 			{
 				IsBusy = false;
+				walletViewModel.IsBusy = false;
 			}
 		}
 
@@ -671,6 +649,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			var path = Global.WalletsDir;
 			IoHelpers.OpenFolderInFileExplorer(path);
+		}
+
+		public async Task LoadAsync(string walletName)
+		{
+			var loadWalletEntry = Wallets.FirstOrDefault(w => w.WalletName == walletName);
+			SelectedWallet = loadWalletEntry;
+			await LoadCommand.Execute();
 		}
 	}
 }
