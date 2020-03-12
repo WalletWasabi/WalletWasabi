@@ -126,7 +126,7 @@ namespace WalletWasabi.Gui.CommandLine
 
 					await Task.Delay(3000);
 				}
-				// Keep this loop alive as long as a coin is queued or keepalive was specified.
+				// Keep this loop alive as long as a coin is enqueued or keepalive was specified.
 				while (keepMixAlive || AnyCoinsQueued());
 
 				await Global.DisposeAsync();
