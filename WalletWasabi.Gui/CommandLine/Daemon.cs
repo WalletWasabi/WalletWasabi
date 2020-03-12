@@ -100,7 +100,7 @@ namespace WalletWasabi.Gui.CommandLine
 						break;
 					}
 
-					// If no coins enqueued then enqueue the large anonset coins and mix to another wallet.
+					// If no coins enqueued then try to enqueue the large anonset coins and mix to another wallet.
 					if (isDifferentDestinationSpecified && !AnyCoinsQueued())
 					{
 						WalletService.ChaumianClient.DestinationKeyManager = destinationKeyManager;
