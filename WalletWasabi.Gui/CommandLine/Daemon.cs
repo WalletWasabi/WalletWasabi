@@ -87,8 +87,8 @@ namespace WalletWasabi.Gui.CommandLine
 				}
 
 				KeyManager destinationKeyManager = TryGetKeyManagerFromWalletName(destinationWalletName);
-				bool isDestinationSpecified = keyManager.ExtPubKey != destinationKeyManager.ExtPubKey;
-				if (isDestinationSpecified)
+				bool isDifferentDestinationSpecified = keyManager.ExtPubKey != destinationKeyManager.ExtPubKey;
+				if (isDifferentDestinationSpecified)
 				{
 					await Global.WalletManager.CreateAndStartWalletServiceAsync(destinationKeyManager);
 				}
@@ -100,18 +100,16 @@ namespace WalletWasabi.Gui.CommandLine
 						break;
 					}
 
-					await Task.Delay(3000);
+					// If no coins enqueued then enqueue the large anonset coins and mix to another wallet.
+					if (isDifferentDestinationSpecified && !AnyCoinsQueued())
+					{
+						WalletService.ChaumianClient.DestinationKeyManager = destinationKeyManager;
+						await TryQueueCoinsToMixAsync(password, minAnonset: WalletService.ServiceConfiguration.MixUntilAnonymitySet);
+					}
 
 					if (Global.KillRequested)
 					{
 						break;
-					}
-
-					// If no coins enqueued then enqueue the large anonset coins and mix to another wallet.
-					if (isDestinationSpecified && !AnyCoinsQueued())
-					{
-						WalletService.ChaumianClient.DestinationKeyManager = destinationKeyManager;
-						await TryQueueCoinsToMixAsync(password, minAnonset: WalletService.ServiceConfiguration.MixUntilAnonymitySet);
 					}
 
 					// If no coins were queued then try to queue coins those have less anonset and mix it into the same wallet.
@@ -120,6 +118,13 @@ namespace WalletWasabi.Gui.CommandLine
 						WalletService.ChaumianClient.DestinationKeyManager = WalletService.ChaumianClient.KeyManager;
 						await TryQueueCoinsToMixAsync(password, maxAnonset: WalletService.ServiceConfiguration.MixUntilAnonymitySet - 1);
 					}
+
+					if (Global.KillRequested)
+					{
+						break;
+					}
+
+					await Task.Delay(3000);
 				}
 				// Keep this loop alive as long as a coin is queued or keepalive was specified.
 				while (keepMixAlive || AnyCoinsQueued());
