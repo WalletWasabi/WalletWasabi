@@ -10,7 +10,6 @@ namespace WalletWasabi.Gui.CommandLine
 	{
 		public string WalletName { get; set; }
 		public string DestinationWalletName { get; set; }
-		public bool MixAll { get; set; }
 		public bool KeepMixAlive { get; set; }
 		public bool ShowHelp { get; set; }
 		public Daemon Daemon { get; }
@@ -21,14 +20,13 @@ namespace WalletWasabi.Gui.CommandLine
 			Daemon = daemon;
 			Options = new OptionSet()
 			{
-				"usage: mix --wallet:WalletName --mixall --keepalive",
+				"usage: mix --wallet:WalletName --keepalive",
 				"",
 				"Start mixing without the GUI with the specified wallet.",
-				"eg: ./wassabee mix --wallet:MyWalletName --mixall --keepalive",
+				"eg: ./wassabee mix --wallet:MyWalletName --keepalive",
 				{ "h|help", "Displays help page and exit.", x => ShowHelp = x != null },
 				{ "w|wallet:", "The name of the wallet file.", x => WalletName = x },
 				{ "destination:", "The name of the destination wallet file.", x => DestinationWalletName = x },
-				{ "mixall", "Mix once even if the coin reached the target anonymity set specified in the config file.", x => MixAll = x != null },
 				{ "keepalive", "Do not exit the software after mixing has been finished, rather keep mixing when new money arrives.", x => KeepMixAlive = x != null }
 			};
 		}
@@ -46,7 +44,7 @@ namespace WalletWasabi.Gui.CommandLine
 
 				if (!error && !ShowHelp)
 				{
-					await Daemon.RunAsync(WalletName, DestinationWalletName ?? WalletName, MixAll, KeepMixAlive);
+					await Daemon.RunAsync(WalletName, DestinationWalletName ?? WalletName, KeepMixAlive);
 				}
 			}
 			catch (Exception ex)

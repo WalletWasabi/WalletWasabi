@@ -22,7 +22,7 @@ namespace WalletWasabi.Gui.CommandLine
 
 		private WalletService WalletService { get; set; }
 
-		internal async Task RunAsync(string walletName, string destinationWalletName, bool mixAll, bool keepMixAlive)
+		internal async Task RunAsync(string walletName, string destinationWalletName, bool keepMixAlive)
 		{
 			try
 			{
@@ -93,14 +93,6 @@ namespace WalletWasabi.Gui.CommandLine
 					await Global.WalletManager.CreateAndStartWalletServiceAsync(destinationKeyManager);
 				}
 
-				// Enqueue coins up to the anonset target, except if mixall, because then enqueue all coins.
-				// However if destination is specified, then disregard this initial enqueue.
-				// This way mixall will have no effect. Or more specifically the output wallet specification will mix on top of mixed coins, so the result is the same.
-				if (!isDestinationSpecified)
-				{
-					await TryQueueCoinsToMixAsync(password, maxAnonset: mixAll ? int.MaxValue : WalletService.ServiceConfiguration.MixUntilAnonymitySet - 1);
-				}
-
 				do
 				{
 					if (Global.KillRequested)
@@ -125,7 +117,6 @@ namespace WalletWasabi.Gui.CommandLine
 					// If no coins were queued then try to queue coins those have less anonset and mix it into the same wallet.
 					if (!AnyCoinsQueued())
 					{
-						// Don't do mixall here, the mixall says all the coins has to be mixed once, it doesn't says it has to be requeued all the time.
 						WalletService.ChaumianClient.DestinationKeyManager = WalletService.ChaumianClient.KeyManager;
 						await TryQueueCoinsToMixAsync(password, maxAnonset: WalletService.ServiceConfiguration.MixUntilAnonymitySet - 1);
 					}
