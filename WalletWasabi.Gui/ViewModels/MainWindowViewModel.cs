@@ -95,7 +95,7 @@ namespace WalletWasabi.Gui.ViewModels
 			private set => this.RaiseAndSetIfChanged(ref _lockScreen, value);
 		}
 
-		public void PushLockScreen (LockScreenViewModelBase lockScreen)
+		public void PushLockScreen(LockScreenViewModelBase lockScreen)
 		{
 			if (LockScreen != null)
 			{
@@ -108,11 +108,11 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public void CloseLockScreen(LockScreenViewModelBase lockScreen)
 		{
-			if(lockScreen == LockScreen)
+			if (lockScreen == LockScreen)
 			{
 				LockScreen?.Dispose();
 
-				if(_lockScreens.Count > 0)
+				if (_lockScreens.Count > 0)
 				{
 					LockScreen = _lockScreens.Pop();
 				}

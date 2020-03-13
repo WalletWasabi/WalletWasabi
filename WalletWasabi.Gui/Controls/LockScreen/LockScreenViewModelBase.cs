@@ -1,7 +1,5 @@
-using System;
 using ReactiveUI;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.Controls.LockScreen
@@ -10,6 +8,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 	{
 		private bool _isLocked;
 		private bool _canSlide;
+		private volatile bool _disposedValue = false; // To detect redundant calls
 
 		public LockScreenViewModelBase()
 		{
@@ -32,13 +31,13 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			private set => this.RaiseAndSetIfChanged(ref _isLocked, value);
 		}
 
-		protected void Close ()
+		protected void Close()
 		{
 			IsLocked = false;
 			MainWindowViewModel.Instance?.CloseLockScreen(this);
 		}
 
-		public void Initialize ()
+		public void Initialize()
 		{
 			OnInitialize(Disposables);
 		}
@@ -48,8 +47,6 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		}
 
 		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
 
 		protected virtual void Dispose(bool disposing)
 		{
