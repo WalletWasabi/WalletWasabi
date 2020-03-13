@@ -47,9 +47,6 @@ namespace WalletWasabi.Gui
 
 		public string DataDir { get; }
 		public string TorLogsFile { get; }
-		public string WalletsDir { get; }
-		public string WalletBackupsDir { get; }
-
 		public BitcoinStore BitcoinStore { get; private set; }
 		public LegalDocuments LegalDocuments { get; set; }
 		public Config Config { get; private set; }
@@ -83,15 +80,11 @@ namespace WalletWasabi.Gui
 			StoppingCts = new CancellationTokenSource();
 			DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
 			TorLogsFile = Path.Combine(DataDir, "TorLogs.txt");
-			WalletsDir = Path.Combine(DataDir, "Wallets");
-			WalletBackupsDir = Path.Combine(DataDir, "WalletBackups");
 
 			Directory.CreateDirectory(DataDir);
-			Directory.CreateDirectory(WalletsDir);
-			Directory.CreateDirectory(WalletBackupsDir);
 
 			HostedServices = new HostedServices();
-			WalletManager = new WalletManager(WalletBackupsDir);
+			WalletManager = new WalletManager(new WalletDirectories(DataDir));
 
 			LegalDocuments = LegalDocuments.TryLoadAgreed(DataDir);
 
@@ -615,23 +608,13 @@ namespace WalletWasabi.Gui
 			Logger.LogInfo($"Transaction Notification ({notificationType}): {title} - {message} - {e.Transaction.GetHash()}");
 		}
 
-		public string GetWalletFullPath(string walletName)
+		public KeyManager LoadKeyManager(string walletName)
 		{
-			walletName = walletName.TrimEnd(".json", StringComparison.OrdinalIgnoreCase);
-			return Path.Combine(WalletsDir, walletName + ".json");
-		}
+			(string walletFullPath, string walletBackupFullPath) = WalletManager.WalletDirectories.GetWalletFilePaths(walletName);
 
-		public string GetWalletBackupFullPath(string walletName)
-		{
-			walletName = walletName.TrimEnd(".json", StringComparison.OrdinalIgnoreCase);
-			return Path.Combine(WalletBackupsDir, walletName + ".json");
-		}
-
-		public KeyManager LoadKeyManager(string walletFullPath, string walletBackupFullPath)
-		{
 			try
 			{
-				return LoadKeyManager(walletFullPath);
+				return LoadKeyManagerFromFile(walletFullPath);
 			}
 			catch (Exception ex)
 			{
@@ -647,7 +630,7 @@ namespace WalletWasabi.Gui
 					$"Exception: {ex}");
 				if (File.Exists(walletFullPath))
 				{
-					string corruptedWalletBackupPath = Path.Combine(WalletBackupsDir, $"{Path.GetFileName(walletFullPath)}_CorruptedBackup");
+					string corruptedWalletBackupPath = $"{walletBackupFullPath}_CorruptedBackup";
 					if (File.Exists(corruptedWalletBackupPath))
 					{
 						File.Delete(corruptedWalletBackupPath);
@@ -658,11 +641,11 @@ namespace WalletWasabi.Gui
 				}
 				File.Copy(walletBackupFullPath, walletFullPath);
 
-				return LoadKeyManager(walletFullPath);
+				return LoadKeyManagerFromFile(walletFullPath);
 			}
 		}
 
-		public KeyManager LoadKeyManager(string walletFullPath)
+		public KeyManager LoadKeyManagerFromFile(string walletFullPath)
 		{
 			KeyManager keyManager;
 
@@ -849,39 +832,6 @@ namespace WalletWasabi.Gui
 				Interlocked.Exchange(ref _dispose, 2);
 				Logger.LogSoftwareStopped("Wasabi");
 			}
-		}
-
-		public string GetNextWalletName()
-		{
-			for (int i = 0; i < int.MaxValue; i++)
-			{
-				if (!File.Exists(Path.Combine(WalletsDir, $"Wallet{i}.json")))
-				{
-					return $"Wallet{i}";
-				}
-			}
-
-			throw new NotSupportedException("This is impossible.");
-		}
-
-		public string GetNextHardwareWalletName(HwiEnumerateEntry hwi = null, string customPrefix = null)
-		{
-			var prefix = customPrefix is null
-				? hwi is null
-					? "HardwareWallet"
-					: hwi.Model.ToString()
-				: customPrefix;
-
-			for (int i = 0; i < int.MaxValue; i++)
-			{
-				var name = $"{prefix}{i}";
-				if (!File.Exists(Path.Combine(WalletsDir, $"{name}.json")))
-				{
-					return name;
-				}
-			}
-
-			throw new NotSupportedException("This is impossible.");
 		}
 	}
 }

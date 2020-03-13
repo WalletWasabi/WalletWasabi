@@ -44,7 +44,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 				MnemonicWords = Guard.Correct(MnemonicWords);
 				Password = Guard.Correct(Password); // Do not let whitespaces to the beginning and to the end.
 
-				string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
+				string walletFilePath = Global.WalletManager.WalletDirectories.GetWalletFilePaths(WalletName).walletFilePath;
 
 				if (string.IsNullOrWhiteSpace(WalletName))
 				{
@@ -167,7 +167,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 			Password = null;
 			MnemonicWords = "";
 
-			WalletName = Global.GetNextWalletName();
+			WalletName = Global.WalletManager.WalletDirectories.GetNextWalletName();
 
 			ShowAdvancedOptions = false;
 			AccountKeyPath = $"m/{KeyManager.DefaultAccountKeyPath}";
