@@ -34,15 +34,37 @@ namespace WalletWasabi.Wallets
 			return (Path.Combine(WalletsDir, walletName), Path.Combine(WalletsBackupDir, walletName));
 		}
 
-		public IEnumerable<FileInfo> EnumerateWalletFiles()
+		public IEnumerable<FileInfo> EnumerateWalletFiles(bool includeBackupDir = false)
 		{
-			if (!Directory.Exists(WalletsDir))
+			var walletsDirInfo = new DirectoryInfo(WalletsDir);
+			var walletsDirExists = walletsDirInfo.Exists;
+			var searchPattern = $"*.{WalletFileExtension}";
+			var searchOption = SearchOption.TopDirectoryOnly;
+			IEnumerable<FileInfo> result = null;
+
+			if (includeBackupDir)
 			{
-				return Enumerable.Empty<FileInfo>();
+				var backupsDirInfo = new DirectoryInfo(WalletsBackupDir);
+				if (!walletsDirExists && !backupsDirInfo.Exists)
+				{
+					return Enumerable.Empty<FileInfo>();
+				}
+
+				result = walletsDirInfo
+					.EnumerateFiles(searchPattern, searchOption)
+					.Concat(backupsDirInfo.EnumerateFiles(searchPattern, searchOption));
+			}
+			else
+			{
+				if (!walletsDirExists)
+				{
+					return Enumerable.Empty<FileInfo>();
+				}
+
+				result = walletsDirInfo.EnumerateFiles(searchPattern, searchOption);
 			}
 
-			var directoryInfo = new DirectoryInfo(WalletsDir);
-			return directoryInfo.GetFiles($"*.{WalletFileExtension}", SearchOption.TopDirectoryOnly).OrderByDescending(t => t.LastAccessTimeUtc);
+			return result.OrderByDescending(t => t.LastAccessTimeUtc);
 		}
 	}
 }

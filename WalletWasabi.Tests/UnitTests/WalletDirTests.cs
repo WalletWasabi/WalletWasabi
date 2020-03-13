@@ -91,19 +91,25 @@ namespace WalletWasabi.Tests.UnitTests
 
 			var walletDirectories = new WalletDirectories(baseDir);
 
-			List<string> wallets = new List<string>();
+			var wallets = new List<string>();
+			var walletBackups = new List<string>();
 			const int NumberOfWallets = 4;
 			for (int i = 0; i < NumberOfWallets; i++)
 			{
 				var walletFile = Path.Combine(walletDirectories.WalletsDir, $"FooWallet{i}.json");
 				var dummyFile = Path.Combine(walletDirectories.WalletsDir, $"FooWallet{i}.dummy");
-				wallets.Add(walletFile);
+				var backupFile = Path.Combine(walletDirectories.WalletsBackupDir, $"FooWallet{i}.json");
+
 				File.Create(walletFile);
 				File.Create(dummyFile);
-				File.Create(Path.Combine(walletDirectories.WalletsBackupDir, $"FooWallet{i}.json"));
+				File.Create(backupFile);
+
+				wallets.Add(walletFile);
+				walletBackups.Add(backupFile);
 			}
 
 			Assert.True(wallets.ToHashSet().SetEquals(walletDirectories.EnumerateWalletFiles().Select(x => x.FullName).ToHashSet()));
+			Assert.True(wallets.Concat(walletBackups).ToHashSet().SetEquals(walletDirectories.EnumerateWalletFiles(true).Select(x => x.FullName).ToHashSet()));
 		}
 
 		[Fact]

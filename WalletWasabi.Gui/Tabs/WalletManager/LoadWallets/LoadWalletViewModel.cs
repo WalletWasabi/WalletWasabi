@@ -562,11 +562,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			}
 		}
 
-		public void OpenWalletsFolder()
-		{
-			var path = Global.WalletsDir;
-			IoHelpers.OpenFolderInFileExplorer(path);
-		}
+		public void OpenWalletsFolder() => IoHelpers.OpenFolderInFileExplorer(Global.WalletManager.WalletDirectories.WalletsDir);
 
 		private bool TrySetWalletStates()
 		{
@@ -632,40 +628,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 
 		private bool TryFindWalletByExtPubKey(ExtPubKey extPubKey, out string walletName)
 		{
-			// Start searching for the real wallet name.
-			walletName = null;
+			walletName = Global.WalletManager.WalletDirectories
+				.EnumerateWalletFiles(includeBackupDir: true)
+				.FirstOrDefault(fi => KeyManager.TryGetExtPubKeyFromFile(fi.FullName, out ExtPubKey epk) && epk == extPubKey)
+				?.Name;
 
-			var walletFiles = new DirectoryInfo(Global.WalletsDir);
-			var walletBackupFiles = new DirectoryInfo(Global.WalletBackupsDir);
-
-			List<FileInfo> walletFileNames = new List<FileInfo>();
-
-			if (walletFiles.Exists)
-			{
-				walletFileNames.AddRange(walletFiles.EnumerateFiles());
-			}
-
-			if (walletBackupFiles.Exists)
-			{
-				walletFileNames.AddRange(walletFiles.EnumerateFiles());
-			}
-
-			walletFileNames = walletFileNames.OrderByDescending(x => x.LastAccessTimeUtc).ToList();
-
-			foreach (FileInfo walletFile in walletFileNames)
-			{
-				if (walletFile?.Extension?.Equals(".json", StringComparison.OrdinalIgnoreCase) is true
-					&& KeyManager.TryGetExtPubKeyFromFile(walletFile.FullName, out ExtPubKey epk))
-				{
-					if (epk == extPubKey) // We already had it.
-					{
-						walletName = walletFile.Name;
-						return true;
-					}
-				}
-			}
-
-			return false;
+			return walletName is { };
 		}
 	}
 }
