@@ -22,7 +22,7 @@ namespace WalletWasabi.Tests.UnitTests.JsonConverters
 			var key = new Key();
 			var signer = new SchnorrBlinding.Signer(key, r);
 
-			foreach (var i in Enumerable.Range(0, 1_000))
+			foreach (var i in Enumerable.Range(0, 100))
 			{
 				var requester = new SchnorrBlinding.Requester();
 
@@ -38,7 +38,6 @@ namespace WalletWasabi.Tests.UnitTests.JsonConverters
 
 				using var reader = new JsonTextReader(new StringReader(sb.ToString()));
 				var convertedUnblindedSignature = (UnblindedSignature)converter.ReadJson(reader, null, null, null);
-
 				Assert.Equal(unblindedSignature.C, convertedUnblindedSignature.C);
 				Assert.Equal(unblindedSignature.S, convertedUnblindedSignature.S);
 			}
