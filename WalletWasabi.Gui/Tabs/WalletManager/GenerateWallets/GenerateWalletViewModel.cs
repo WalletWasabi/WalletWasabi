@@ -43,7 +43,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 		{
 			try
 			{
-				var walletGenerator = new WalletGenerator(Global.WalletsDir, Global.Network);
+				var walletGenerator = new WalletGenerator(Global.WalletManager.WalletDirectories.WalletsDir, Global.Network);
 				walletGenerator.TipHeight = Global.BitcoinStore.SmartHeaderChain.TipHeight;
 				var (km, mnemonic) = walletGenerator.GenerateWallet(WalletName, Password);
 				Owner.CurrentView = new GenerateWalletSuccessViewModel(Owner, km, mnemonic);
