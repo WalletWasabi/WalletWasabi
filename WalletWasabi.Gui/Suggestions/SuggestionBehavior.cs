@@ -13,8 +13,6 @@ namespace WalletWasabi.Gui.Suggestions
 {
 	public class SuggestionBehavior : Behavior<TextBox>
 	{
-		private CompositeDisposable Disposables { get; set; }
-
 		public static readonly AvaloniaProperty<IEnumerable<SuggestionViewModel>> SuggestionItemsProperty =
 			AvaloniaProperty.Register<SuggestionBehavior, IEnumerable<SuggestionViewModel>>(nameof(SuggestionItems), defaultBindingMode: BindingMode.TwoWay);
 
@@ -23,6 +21,8 @@ namespace WalletWasabi.Gui.Suggestions
 			get => GetValue(SuggestionItemsProperty);
 			set => SetValue(SuggestionItemsProperty, value);
 		}
+
+		private CompositeDisposable Disposables { get; set; }
 
 		protected override void OnAttached()
 		{

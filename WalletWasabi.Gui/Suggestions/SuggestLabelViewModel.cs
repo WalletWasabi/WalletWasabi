@@ -15,7 +15,6 @@ namespace WalletWasabi.Gui.Suggestions
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 		private int _caretIndex;
 		private string _label;
-		private WalletService WalletService { get; }
 
 		public SuggestLabelViewModel(WalletService walletService)
 		{
@@ -26,13 +25,6 @@ namespace WalletWasabi.Gui.Suggestions
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(UpdateSuggestions);
 			WalletService = walletService;
-		}
-
-		public void Reset()
-		{
-			Suggestions = new ObservableCollection<SuggestionViewModel>();
-
-			Label = "";
 		}
 
 		public int CaretIndex
@@ -51,6 +43,33 @@ namespace WalletWasabi.Gui.Suggestions
 		{
 			get => _suggestions;
 			set => this.RaiseAndSetIfChanged(ref _suggestions, value);
+		}
+
+		private WalletService WalletService { get; }
+
+		public void Reset()
+		{
+			Suggestions = new ObservableCollection<SuggestionViewModel>();
+
+			Label = "";
+		}
+
+		public void OnAddWord(string word)
+		{
+			var words = Label.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToArray();
+			if (words.Length == 0)
+			{
+				Label = word + ", ";
+			}
+			else
+			{
+				words[^1] = word;
+				Label = string.Join(", ", words) + ", ";
+			}
+
+			CaretIndex = Label.Length;
+
+			Suggestions.Clear();
 		}
 
 		private void UpdateSuggestions(string words)
@@ -81,24 +100,6 @@ namespace WalletWasabi.Gui.Suggestions
 			{
 				Suggestions.Add(new SuggestionViewModel(suggestion, OnAddWord));
 			}
-		}
-
-		public void OnAddWord(string word)
-		{
-			var words = Label.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToArray();
-			if (words.Length == 0)
-			{
-				Label = word + ", ";
-			}
-			else
-			{
-				words[^1] = word;
-				Label = string.Join(", ", words) + ", ";
-			}
-
-			CaretIndex = Label.Length;
-
-			Suggestions.Clear();
 		}
 	}
 }
