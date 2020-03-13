@@ -628,7 +628,7 @@ namespace WalletWasabi.Gui
 					$"Exception: {ex}");
 				if (File.Exists(walletFullPath))
 				{
-					string corruptedWalletBackupPath = Path.Combine(WalletBackupsDir, $"{Path.GetFileName(walletFullPath)}_CorruptedBackup");
+					string corruptedWalletBackupPath = $"{walletBackupFullPath}_CorruptedBackup";
 					if (File.Exists(corruptedWalletBackupPath))
 					{
 						File.Delete(corruptedWalletBackupPath);
