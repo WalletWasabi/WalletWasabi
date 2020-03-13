@@ -127,7 +127,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 
 					Logger.LogInfo("Creating a new wallet file.");
 					var walletName = Global.GetNextHardwareWalletName(customPrefix: "Coldcard");
-					var walletFullPath = Global.GetWalletFullPath(walletName);
+					var walletFullPath = Global.WalletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
 					KeyManager.CreateNewHardwareWalletWatchOnly(mfp, extPubKey, walletFullPath);
 					owner.SelectLoadWallet();
 				}
@@ -432,7 +432,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 					else
 					{
 						walletName = Global.GetNextHardwareWalletName(selectedWallet.HardwareWalletInfo);
-						var path = Global.GetWalletFullPath(walletName);
+						var path = Global.WalletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
 
 						// Get xpub should had triggered passphrase request, so the fingerprint should be available here.
 						if (!selectedWallet.HardwareWalletInfo.Fingerprint.HasValue)
@@ -448,8 +448,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 					}
 				}
 
-				var walletFullPath = Global.GetWalletFullPath(walletName);
-				var walletBackupFullPath = Global.GetWalletBackupFullPath(walletName);
+				(string walletFullPath, string walletBackupFullPath) = Global.WalletManager.WalletDirectories.GetWalletFilePaths(walletName);
 				if (!File.Exists(walletFullPath) && !File.Exists(walletBackupFullPath))
 				{
 					// The selected wallet is not available any more (someone deleted it?).

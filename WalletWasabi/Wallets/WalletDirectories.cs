@@ -25,23 +25,13 @@ namespace WalletWasabi.Wallets
 		public string WalletsDir => Path.Combine(WorkDir, WalletsDirName);
 		public string WalletsBackupDir => Path.Combine(WorkDir, WalletsBackupDirName);
 
-		private static string GetWalltFilePath(string dir, string walletName)
+		public (string walletFilePath, string walletBackupFilePath) GetWalletFilePaths(string walletName)
 		{
-			if (!walletName.ToLowerInvariant().EndsWith($".{WalletFileExtension}"))
+			if (!walletName.EndsWith($".{WalletFileExtension}", StringComparison.OrdinalIgnoreCase))
 			{
 				walletName = $"{walletName}.{WalletFileExtension}";
 			}
-			return Path.Combine(dir, walletName);
-		}
-
-		public string GetWalletPath(string walletName)
-		{
-			return GetWalltFilePath(WalletsDir, walletName);
-		}
-
-		public string GetWalletBackupPath(string walletName)
-		{
-			return GetWalltFilePath(WalletsBackupDir, walletName);
+			return (Path.Combine(WalletsDir, walletName), Path.Combine(WalletsBackupDir, walletName));
 		}
 
 		public IEnumerable<FileInfo> EnumerateWalletFiles()

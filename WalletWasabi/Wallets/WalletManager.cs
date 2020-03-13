@@ -190,7 +190,7 @@ namespace WalletWasabi.Wallets
 						var keyManager = walletService.KeyManager;
 						if (keyManager is { } && WalletDirectories is { })
 						{
-							string backupWalletFilePath = WalletDirectories.GetWalletBackupPath(Path.GetFileName(keyManager.FilePath));
+							string backupWalletFilePath = WalletDirectories.GetWalletFilePaths(Path.GetFileName(keyManager.FilePath)).walletBackupFilePath;
 							keyManager.ToFile(backupWalletFilePath);
 							Logger.LogInfo($"{nameof(walletService.KeyManager)} backup saved to `{backupWalletFilePath}`.");
 						}

@@ -608,18 +608,6 @@ namespace WalletWasabi.Gui
 			Logger.LogInfo($"Transaction Notification ({notificationType}): {title} - {message} - {e.Transaction.GetHash()}");
 		}
 
-		public string GetWalletFullPath(string walletName)
-		{
-			walletName = walletName.TrimEnd(".json", StringComparison.OrdinalIgnoreCase);
-			return Path.Combine(WalletsDir, walletName + ".json");
-		}
-
-		public string GetWalletBackupFullPath(string walletName)
-		{
-			walletName = walletName.TrimEnd(".json", StringComparison.OrdinalIgnoreCase);
-			return Path.Combine(WalletBackupsDir, walletName + ".json");
-		}
-
 		public KeyManager LoadKeyManager(string walletFullPath, string walletBackupFullPath)
 		{
 			try

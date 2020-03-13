@@ -141,8 +141,7 @@ namespace WalletWasabi.Gui.CommandLine
 				KeyManager keyManager = null;
 				if (walletName != null)
 				{
-					var walletFullPath = Global.GetWalletFullPath(walletName);
-					var walletBackupFullPath = Global.GetWalletBackupFullPath(walletName);
+					(var walletFullPath, var walletBackupFullPath) = Global.WalletManager.WalletDirectories.GetWalletFilePaths(walletName);
 					if (!File.Exists(walletFullPath) && !File.Exists(walletBackupFullPath))
 					{
 						// The selected wallet is not available any more (someone deleted it?).

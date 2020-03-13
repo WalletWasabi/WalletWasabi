@@ -61,8 +61,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var walletDirectories = new WalletDirectories(baseDir);
 			string walletName = "FooWallet.json";
 
-			var walletPath = walletDirectories.GetWalletPath(walletName);
-			var walletBackupPath = walletDirectories.GetWalletBackupPath(walletName);
+			(string walletPath, string walletBackupPath) = walletDirectories.GetWalletFilePaths(walletName);
 
 			Assert.Equal(Path.Combine(walletDirectories.WalletsDir, walletName), walletPath);
 			Assert.Equal(Path.Combine(walletDirectories.WalletsBackupDir, walletName), walletBackupPath);
@@ -78,8 +77,7 @@ namespace WalletWasabi.Tests.UnitTests
 			string walletName = "FooWallet";
 			string walletFileName = $"{walletName}.json";
 
-			var walletPath = walletDirectories.GetWalletPath(walletName);
-			var walletBackupPath = walletDirectories.GetWalletBackupPath(walletName);
+			(string walletPath, string walletBackupPath) = walletDirectories.GetWalletFilePaths(walletName);
 
 			Assert.Equal(Path.Combine(walletDirectories.WalletsDir, walletFileName), walletPath);
 			Assert.Equal(Path.Combine(walletDirectories.WalletsBackupDir, walletFileName), walletBackupPath);
