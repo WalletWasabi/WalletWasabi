@@ -12,13 +12,14 @@ using System.Reactive;
 using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Gui.Suggestions;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Gui.Tabs.WalletManager
+namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 {
 	internal class RecoverWalletViewModel : CategoryViewModel
 	{
