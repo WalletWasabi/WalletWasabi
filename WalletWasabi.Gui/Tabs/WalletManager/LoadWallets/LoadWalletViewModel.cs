@@ -72,7 +72,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 				.Subscribe(_ => TrySetWalletStates());
 
 			LoadCommand = ReactiveCommand.CreateFromTask(async () => await LoadWalletAsync(), this.WhenAnyValue(x => x.CanLoadWallet));
-			TestPasswordCommand = ReactiveCommand.CreateFromTask(async () => await LoadKeyManagerAsync(requirePassword: true), this.WhenAnyValue(x => x.CanTestPassword));
+			TestPasswordCommand = ReactiveCommand.CreateFromTask(async () => await LoadKeyManagerAsync(), this.WhenAnyValue(x => x.CanTestPassword));
 			OpenFolderCommand = ReactiveCommand.Create(OpenWalletsFolder);
 			ImportColdcardCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -320,7 +320,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			}
 		}
 
-		public async Task<KeyManager> LoadKeyManagerAsync(bool requirePassword)
+		public async Task<KeyManager> LoadKeyManagerAsync()
 		{
 			try
 			{
@@ -377,7 +377,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 							MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusType.SettingUpHardwareWallet, StatusType.ConnectingToHardwareWallet);
 						}
 
-						return await LoadKeyManagerAsync(requirePassword);
+						return await LoadKeyManagerAsync();
 					}
 					else if (selectedWallet.HardwareWalletInfo.NeedsPinSent is true)
 					{
@@ -464,7 +464,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 				}
 
 				// Only check requirepassword here, because the above checks are applicable to loadwallet, too and we are using this function from load wallet.
-				if (requirePassword)
+				if (IsPasswordRequired)
 				{
 					if (PasswordHelper.TryPassword(keyManager, password, out string compatibilityPasswordUsed))
 					{
@@ -522,7 +522,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			{
 				IsBusy = true;
 
-				var keyManager = await LoadKeyManagerAsync(IsPasswordRequired);
+				var keyManager = await LoadKeyManagerAsync();
 				if (keyManager is null)
 				{
 					return;
