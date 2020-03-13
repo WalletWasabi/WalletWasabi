@@ -133,7 +133,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 				}
 			});
 
-			EnumerateHardwareWalletsCommand = ReactiveCommand.CreateFromTask(async () => await EnumerateHardwareWalletsAsync());
+			EnumerateHardwareWalletsCommand = ReactiveCommand.CreateFromTask(async () => await EnumerateIfHardwareWalletsAsync());
 
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 
@@ -369,7 +369,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 							}
 
 							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.ConnectingToHardwareWallet);
-							await EnumerateHardwareWalletsAsync();
+							await EnumerateIfHardwareWalletsAsync();
 						}
 						finally
 						{
@@ -385,7 +385,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 
 						var p = selectedWallet.HardwareWalletInfo.Path;
 						var t = selectedWallet.HardwareWalletInfo.Model;
-						await EnumerateHardwareWalletsAsync();
+						await EnumerateIfHardwareWalletsAsync();
 						selectedWallet = Wallets.FirstOrDefault(x => x.HardwareWalletInfo.Model == t && x.HardwareWalletInfo.Path == p);
 						if (selectedWallet is null)
 						{
@@ -439,7 +439,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 						// Get xpub should had triggered passphrase request, so the fingerprint should be available here.
 						if (!selectedWallet.HardwareWalletInfo.Fingerprint.HasValue)
 						{
-							await EnumerateHardwareWalletsAsync();
+							await EnumerateIfHardwareWalletsAsync();
 							selectedWallet = Wallets.FirstOrDefault(x => x.HardwareWalletInfo.Model == selectedWallet.HardwareWalletInfo.Model && x.HardwareWalletInfo.Path == selectedWallet.HardwareWalletInfo.Path);
 						}
 						if (!selectedWallet.HardwareWalletInfo.Fingerprint.HasValue)
@@ -450,16 +450,18 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 					}
 				}
 
-				(string walletFullPath, string walletBackupFullPath) = Global.WalletManager.WalletDirectories.GetWalletFilePaths(walletName);
-				if (!File.Exists(walletFullPath) && !File.Exists(walletBackupFullPath))
+				KeyManager keyManager;
+				try
+				{
+					keyManager = Global.LoadKeyManager(walletName);
+				}
+				catch (FileNotFoundException)
 				{
 					// The selected wallet is not available any more (someone deleted it?).
 					OnCategorySelected();
 					NotificationHelpers.Warning("The selected wallet and its backup do not exist, did you delete them?");
 					return null;
 				}
-
-				KeyManager keyManager = Global.LoadKeyManager(walletFullPath, walletBackupFullPath);
 
 				// Only check requirepassword here, because the above checks are applicable to loadwallet, too and we are using this function from load wallet.
 				if (requirePassword)
@@ -495,7 +497,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			{
 				try
 				{
-					await EnumerateHardwareWalletsAsync();
+					await EnumerateIfHardwareWalletsAsync();
 				}
 				catch (Exception ex2)
 				{
@@ -604,8 +606,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			return false;
 		}
 
-		private async Task EnumerateHardwareWalletsAsync()
+		private async Task EnumerateIfHardwareWalletsAsync()
 		{
+			if (!IsHardwareWallet)
+			{
+				return;
+			}
 			var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 			IsHwWalletSearchTextVisible = true;
 			try

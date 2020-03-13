@@ -608,11 +608,13 @@ namespace WalletWasabi.Gui
 			Logger.LogInfo($"Transaction Notification ({notificationType}): {title} - {message} - {e.Transaction.GetHash()}");
 		}
 
-		public KeyManager LoadKeyManager(string walletFullPath, string walletBackupFullPath)
+		public KeyManager LoadKeyManager(string walletName)
 		{
+			(string walletFullPath, string walletBackupFullPath) = WalletManager.WalletDirectories.GetWalletFilePaths(walletName);
+
 			try
 			{
-				return LoadKeyManager(walletFullPath);
+				return LoadKeyManagerFromFile(walletFullPath);
 			}
 			catch (Exception ex)
 			{
@@ -639,11 +641,11 @@ namespace WalletWasabi.Gui
 				}
 				File.Copy(walletBackupFullPath, walletFullPath);
 
-				return LoadKeyManager(walletFullPath);
+				return LoadKeyManagerFromFile(walletFullPath);
 			}
 		}
 
-		public KeyManager LoadKeyManager(string walletFullPath)
+		public KeyManager LoadKeyManagerFromFile(string walletFullPath)
 		{
 			KeyManager keyManager;
 
