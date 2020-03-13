@@ -72,7 +72,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 				.Subscribe(_ => TrySetWalletStates());
 
 			LoadCommand = ReactiveCommand.CreateFromTask(async () => await LoadWalletAsync(), this.WhenAnyValue(x => x.CanLoadWallet));
-			TestPasswordCommand = ReactiveCommand.CreateFromTask(async () => await LoadKeyManagerAsync(requirePassword: true, isHardwareWallet: false), this.WhenAnyValue(x => x.CanTestPassword));
+			TestPasswordCommand = ReactiveCommand.CreateFromTask(async () => await LoadKeyManagerAsync(requirePassword: true), this.WhenAnyValue(x => x.CanTestPassword));
 			OpenFolderCommand = ReactiveCommand.Create(OpenWalletsFolder);
 			ImportColdcardCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -320,7 +320,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			}
 		}
 
-		public async Task<KeyManager> LoadKeyManagerAsync(bool requirePassword, bool isHardwareWallet)
+		public async Task<KeyManager> LoadKeyManagerAsync(bool requirePassword)
 		{
 			try
 			{
@@ -336,7 +336,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 				}
 
 				var walletName = selectedWallet.WalletName;
-				if (isHardwareWallet)
+				if (IsHardwareWallet)
 				{
 					var client = new HwiClient(Global.Network);
 
@@ -377,7 +377,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 							MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusType.SettingUpHardwareWallet, StatusType.ConnectingToHardwareWallet);
 						}
 
-						return await LoadKeyManagerAsync(requirePassword, isHardwareWallet);
+						return await LoadKeyManagerAsync(requirePassword);
 					}
 					else if (selectedWallet.HardwareWalletInfo.NeedsPinSent is true)
 					{
@@ -522,7 +522,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			{
 				IsBusy = true;
 
-				var keyManager = await LoadKeyManagerAsync(IsPasswordRequired, IsHardwareWallet);
+				var keyManager = await LoadKeyManagerAsync(IsPasswordRequired);
 				if (keyManager is null)
 				{
 					return;
