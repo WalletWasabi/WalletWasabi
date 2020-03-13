@@ -7,20 +7,21 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 {
 	public abstract class WasabiLockScreenViewModelBase : LockScreenViewModelBase
 	{
-		public WasabiLockScreenViewModelBase()
+		protected override void OnInitialize(CompositeDisposable disposables)
 		{
+			base.OnInitialize(disposables);
+
 			var global = Locator.Current.GetService<Global>();
 
-			global.UiConfig
-				.WhenAnyValue(x => x.LockScreenActive)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.BindTo(this, y => y.IsLocked)
-				.DisposeWith(Disposables);
+			global.UiConfig.LockScreenActive = true;
 
-			this.WhenAnyValue(x => x.IsLocked)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.BindTo(global.UiConfig, y => y.LockScreenActive)
-				.DisposeWith(Disposables);
+			Disposable.Create(() =>
+			{
+				var global = Locator.Current.GetService<Global>();
+
+				global.UiConfig.LockScreenActive = false;
+			})
+			.DisposeWith(disposables);
 		}
 	}
 }

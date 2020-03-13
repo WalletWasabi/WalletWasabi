@@ -30,6 +30,7 @@ namespace WalletWasabi.Gui.ViewModels
 		private LockScreenViewModelBase _lockScreen;
 		private volatile bool _disposedValue = false; // To detect redundant calls
 		private Stack<LockScreenViewModelBase> _lockScreens;
+		private bool _menuVisible;
 
 		public MainWindowViewModel()
 		{
@@ -38,6 +39,8 @@ namespace WalletWasabi.Gui.ViewModels
 			var global = Locator.Current.GetService<Global>();
 
 			_lockScreens = new Stack<LockScreenViewModelBase>();
+
+			_menuVisible = true;
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
@@ -95,6 +98,12 @@ namespace WalletWasabi.Gui.ViewModels
 			private set => this.RaiseAndSetIfChanged(ref _lockScreen, value);
 		}
 
+		public bool MenuVisible
+		{
+			get { return _menuVisible; }
+			set { this.RaiseAndSetIfChanged(ref _menuVisible, value); }
+		}
+
 		public void PushLockScreen(LockScreenViewModelBase lockScreen)
 		{
 			if (LockScreen != null)
@@ -102,6 +111,7 @@ namespace WalletWasabi.Gui.ViewModels
 				_lockScreens.Push(LockScreen);
 			}
 
+			MenuVisible = false;
 			lockScreen.Initialize();
 			LockScreen = lockScreen;
 		}
@@ -119,6 +129,7 @@ namespace WalletWasabi.Gui.ViewModels
 				else
 				{
 					LockScreen = null;
+					MenuVisible = true;
 				}
 			}
 		}
