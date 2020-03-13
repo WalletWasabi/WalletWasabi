@@ -47,9 +47,6 @@ namespace WalletWasabi.Gui
 
 		public string DataDir { get; }
 		public string TorLogsFile { get; }
-		public string WalletsDir { get; }
-		public string WalletBackupsDir { get; }
-
 		public BitcoinStore BitcoinStore { get; private set; }
 		public LegalDocuments LegalDocuments { get; set; }
 		public Config Config { get; private set; }
@@ -83,15 +80,11 @@ namespace WalletWasabi.Gui
 			StoppingCts = new CancellationTokenSource();
 			DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
 			TorLogsFile = Path.Combine(DataDir, "TorLogs.txt");
-			WalletsDir = Path.Combine(DataDir, "Wallets");
-			WalletBackupsDir = Path.Combine(DataDir, "WalletBackups");
 
 			Directory.CreateDirectory(DataDir);
-			Directory.CreateDirectory(WalletsDir);
-			Directory.CreateDirectory(WalletBackupsDir);
 
 			HostedServices = new HostedServices();
-			WalletManager = new WalletManager(WalletBackupsDir);
+			WalletManager = new WalletManager(new WalletDirectories(DataDir));
 
 			LegalDocuments = LegalDocuments.TryLoadAgreed(DataDir);
 

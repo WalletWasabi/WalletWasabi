@@ -296,9 +296,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			Wallets.Clear();
 			Password = "";
 
-			var directoryInfo = new DirectoryInfo(Global.WalletsDir);
-			var walletFiles = directoryInfo.GetFiles("*.json", SearchOption.TopDirectoryOnly).OrderByDescending(t => t.LastAccessTimeUtc);
-			foreach (var file in walletFiles)
+			foreach (var file in Global.WalletManager.WalletDirectories.EnumerateWalletFiles())
 			{
 				var wallet = new LoadWalletEntry(Path.GetFileNameWithoutExtension(file.FullName));
 				if (IsPasswordRequired)
