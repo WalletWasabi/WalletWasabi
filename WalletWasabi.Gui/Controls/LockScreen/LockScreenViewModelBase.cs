@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ReactiveUI;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -13,15 +13,9 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 		public LockScreenViewModelBase()
 		{
-			Disposables = new CompositeDisposable();
+			_isLocked = true;
 
-			this.WhenAnyValue(x => x.IsLocked)
-				.Where(x => x)
-				.Take(1)
-				.Subscribe(x =>
-				{
-					OnInitialize(Disposables);
-				});
+			Disposables = new CompositeDisposable();
 		}
 
 		protected CompositeDisposable Disposables { get; }
@@ -35,7 +29,18 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		public bool IsLocked
 		{
 			get => _isLocked;
-			set => this.RaiseAndSetIfChanged(ref _isLocked, value);
+			private set => this.RaiseAndSetIfChanged(ref _isLocked, value);
+		}
+
+		protected void Close ()
+		{
+			IsLocked = false;
+			MainWindowViewModel.Instance?.CloseLockScreen(this);
+		}
+
+		public void Initialize ()
+		{
+			OnInitialize(Disposables);
 		}
 
 		protected virtual void OnInitialize(CompositeDisposable disposables)

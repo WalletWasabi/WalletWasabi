@@ -34,7 +34,7 @@ namespace WalletWasabi.Gui.Tabs
 				IsAgreed = true;
 				await LegalDoc.ToFileAsync(Content);
 				Locator.Current.GetService<Global>().LegalDocuments = LegalDoc;
-				base.IsLocked = false;
+				Close();
 			});
 
 			AgreeClicked

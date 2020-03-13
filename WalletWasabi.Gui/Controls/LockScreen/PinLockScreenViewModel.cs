@@ -62,7 +62,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 					if (global.UiConfig.LockScreenPinHash == HashHelpers.GenerateSha256Hash(x))
 					{
-						IsLocked = false;
+						Close();
 						PinInput = string.Empty;
 					}
 				});
