@@ -58,6 +58,8 @@ namespace WalletWasabi.Gui.ViewModels
 		private Global Global { get; }
 		private StatusSet ActiveStatuses { get; }
 
+		private bool _legalDocsLoading;
+
 		public StatusBarViewModel()
 		{
 			Global = Locator.Current.GetService<Global>();
@@ -258,25 +260,33 @@ namespace WalletWasabi.Gui.ViewModels
 					UpdateAvailable = !x.ClientUpToDate;
 					CriticalUpdateAvailable = !x.BackendCompatible;
 
-					try
+					if (!_legalDocsLoading)
 					{
-						if (Global.LegalDocuments is null || Global.LegalDocuments.Version < x.LegalDocumentsVersion)
-						{
-							using var client = new WasabiClient(() => Global.Config.UseTor ? Global.Config.GetCurrentBackendUri() : Global.Config.GetFallbackBackendUri(), Global.Config.UseTor ? Global.Config.TorSocks5EndPoint : null);
-							var versions = await client.GetVersionsAsync(CancellationToken.None);
-							var version = versions.LegalDocumentsVersion;
-							var legalFolderPath = Path.Combine(Global.DataDir, LegalDocuments.LegalFolderName);
-							var filePath = Path.Combine(legalFolderPath, $"{version}.txt");
-							var legalContent = await client.GetLegalDocumentsAsync(CancellationToken.None);
+						_legalDocsLoading = true;
 
-							MainWindowViewModel.Instance.LockScreen = new LegalDocumentsViewModel(legalContent, new LegalDocuments(filePath));
-							MainWindowViewModel.Instance.LockScreen.IsLocked = true;
+						try
+						{
+							if (Global.LegalDocuments is null || Global.LegalDocuments.Version < x.LegalDocumentsVersion)
+							{
+								using var client = new WasabiClient(() => Global.Config.UseTor ? Global.Config.GetCurrentBackendUri() : Global.Config.GetFallbackBackendUri(), Global.Config.UseTor ? Global.Config.TorSocks5EndPoint : null);
+								var versions = await client.GetVersionsAsync(CancellationToken.None);
+								var version = versions.LegalDocumentsVersion;
+								var legalFolderPath = Path.Combine(Global.DataDir, LegalDocuments.LegalFolderName);
+								var filePath = Path.Combine(legalFolderPath, $"{version}.txt");
+								var legalContent = await client.GetLegalDocumentsAsync(CancellationToken.None);
+
+								MainWindowViewModel.Instance.PushLockScreen(new LegalDocumentsViewModel(legalContent, new LegalDocuments(filePath)));
+							}
 						}
-					}
-					catch (Exception ex)
-					{
-						Logger.LogError(ex);
-						NotificationHelpers.Error("Could not get Legal Documents!");
+						catch (Exception ex)
+						{
+							Logger.LogError(ex);
+							NotificationHelpers.Error("Could not get Legal Documents!");
+						}
+						finally
+						{
+							_legalDocsLoading = false;
+						}
 					}
 				});
 
