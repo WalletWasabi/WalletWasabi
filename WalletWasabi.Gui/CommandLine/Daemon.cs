@@ -100,7 +100,7 @@ namespace WalletWasabi.Gui.CommandLine
 						break;
 					}
 
-					// If no coins enqueued then enqueue the large anonset coins and mix to another wallet.
+					// If no coins enqueued then try to enqueue the large anonset coins and mix to another wallet.
 					if (isDifferentDestinationSpecified && !AnyCoinsQueued())
 					{
 						WalletService.ChaumianClient.DestinationKeyManager = destinationKeyManager;
@@ -112,7 +112,7 @@ namespace WalletWasabi.Gui.CommandLine
 						break;
 					}
 
-					// If no coins were queued then try to queue coins those have less anonset and mix it into the same wallet.
+					// If no coins were enqueued then try to enqueue coins those have less anonset and mix into the same wallet.
 					if (!AnyCoinsQueued())
 					{
 						WalletService.ChaumianClient.DestinationKeyManager = WalletService.ChaumianClient.KeyManager;
@@ -126,7 +126,7 @@ namespace WalletWasabi.Gui.CommandLine
 
 					await Task.Delay(3000);
 				}
-				// Keep this loop alive as long as a coin is queued or keepalive was specified.
+				// Keep this loop alive as long as a coin is enqueued or keepalive was specified.
 				while (keepMixAlive || AnyCoinsQueued());
 
 				await Global.DisposeAsync();
