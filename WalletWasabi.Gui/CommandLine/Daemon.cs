@@ -156,18 +156,14 @@ namespace WalletWasabi.Gui.CommandLine
 				KeyManager keyManager = null;
 				if (walletName != null)
 				{
-					var walletFullPath = Global.GetWalletFullPath(walletName);
-					var walletBackupFullPath = Global.GetWalletBackupFullPath(walletName);
-					if (!File.Exists(walletFullPath) && !File.Exists(walletBackupFullPath))
-					{
-						// The selected wallet is not available any more (someone deleted it?).
-						Logger.LogCritical("The selected wallet does not exist, did you delete it?");
-						return null;
-					}
-
 					try
 					{
-						keyManager = Global.LoadKeyManager(walletFullPath, walletBackupFullPath);
+						keyManager = Global.LoadKeyManager(walletName);
+					}
+					catch (FileNotFoundException)
+					{
+						Logger.LogCritical("The selected wallet does not exist, did you delete it?");
+						return null;
 					}
 					catch (Exception ex)
 					{
