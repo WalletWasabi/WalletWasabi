@@ -71,8 +71,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			this.WhenAnyValue(x => x.IsBusy)
 				.Subscribe(_ => TrySetWalletStates());
 
-			LoadCommand = ReactiveCommand.CreateFromTask(async () => await LoadWalletAsync(), this.WhenAnyValue(x => x.CanLoadWallet));
-			TestPasswordCommand = ReactiveCommand.CreateFromTask(async () => await LoadKeyManagerAsync(), this.WhenAnyValue(x => x.CanTestPassword));
+			LoadCommand = ReactiveCommand.CreateFromTask(LoadWalletAsync, this.WhenAnyValue(x => x.CanLoadWallet));
+			TestPasswordCommand = ReactiveCommand.CreateFromTask(LoadKeyManagerAsync, this.WhenAnyValue(x => x.CanTestPassword));
 			OpenFolderCommand = ReactiveCommand.Create(OpenWalletsFolder);
 			ImportColdcardCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
