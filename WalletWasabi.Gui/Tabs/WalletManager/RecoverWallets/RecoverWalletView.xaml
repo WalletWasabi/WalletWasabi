@@ -3,7 +3,8 @@
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
-             x:Class="WalletWasabi.Gui.Tabs.WalletManager.RecoverWalletView">
+             xmlns:suggestions="clr-namespace:WalletWasabi.Gui.Suggestions;assembly=WalletWasabi.Gui"
+             x:Class="WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets.RecoverWalletView">
   <StackPanel Margin="10" Spacing="10">
     <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="30">
       <Grid Classes="content">
@@ -20,7 +21,7 @@
           </controls:TogglePasswordBox>
           <controls:ExtendedTextBox Text="{Binding MnemonicWords}" Watermark="Recovery Words" UseFloatingWatermark="True" CaretIndex="{Binding CaretIndex}">
             <i:Interaction.Behaviors>
-              <behaviors:SuggestionBehavior SuggestionItems="{Binding Suggestions}" />
+              <suggestions:SuggestionBehavior SuggestionItems="{Binding Suggestions}" />
             </i:Interaction.Behaviors>
           </controls:ExtendedTextBox>
           <ItemsControl Items="{Binding Suggestions}">

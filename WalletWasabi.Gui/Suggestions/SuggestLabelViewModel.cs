@@ -5,11 +5,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
-using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Services;
 
-namespace WalletWasabi.Gui.Controls
+namespace WalletWasabi.Gui.Suggestions
 {
 	public class SuggestLabelViewModel : ViewModelBase
 	{

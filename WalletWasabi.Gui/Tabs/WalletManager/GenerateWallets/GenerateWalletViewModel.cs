@@ -14,7 +14,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Gui.Tabs.WalletManager
+namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 {
 	internal class GenerateWalletViewModel : CategoryViewModel
 	{

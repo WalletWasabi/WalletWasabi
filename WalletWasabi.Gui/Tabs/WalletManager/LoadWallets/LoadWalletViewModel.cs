@@ -35,7 +35,7 @@ using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Gui.Tabs.WalletManager
+namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 {
 	internal class LoadWalletViewModel : CategoryViewModel
 	{
@@ -64,7 +64,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		public bool IsDesktopWallet => LoadWalletType == LoadWalletType.Desktop;
 
 		public LoadWalletViewModel(WalletManagerViewModel owner, LoadWalletType loadWalletType)
-			: base(loadWalletType == LoadWalletType.Password ? "Test Password" : (loadWalletType == LoadWalletType.Desktop ? "Load Wallet" : "Hardware Wallet"))
+			: base(loadWalletType == LoadWalletType.Password ? "Test Password" : loadWalletType == LoadWalletType.Desktop ? "Load Wallet" : "Hardware Wallet")
 		{
 			Global = Locator.Current.GetService<Global>();
 

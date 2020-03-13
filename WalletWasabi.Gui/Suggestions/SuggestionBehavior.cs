@@ -8,9 +8,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using WalletWasabi.Gui.Tabs.WalletManager;
 
-namespace WalletWasabi.Gui.Behaviors
+namespace WalletWasabi.Gui.Suggestions
 {
 	public class SuggestionBehavior : Behavior<TextBox>
 	{
