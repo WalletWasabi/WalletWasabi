@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using WalletWasabi.Helpers;
+using WalletWasabi.Hwi.Models;
 
 namespace WalletWasabi.Wallets
 {
@@ -65,6 +66,21 @@ namespace WalletWasabi.Wallets
 			}
 
 			return result.OrderByDescending(t => t.LastAccessTimeUtc);
+		}
+
+		public string GetNextWalletName(string prefix = "Wallet")
+		{
+			int i = 0;
+			while (true)
+			{
+				var walletName = $"{prefix}{i}";
+				if (!File.Exists(GetWalletFilePaths(walletName).walletFilePath))
+				{
+					return walletName;
+				}
+
+				i++;
+			}
 		}
 	}
 }

@@ -167,7 +167,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 			Password = null;
 			MnemonicWords = "";
 
-			WalletName = Global.GetNextWalletName();
+			WalletName = Global.WalletManager.WalletDirectories.GetNextWalletName();
 
 			ShowAdvancedOptions = false;
 			AccountKeyPath = $"m/{KeyManager.DefaultAccountKeyPath}";

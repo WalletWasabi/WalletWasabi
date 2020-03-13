@@ -831,38 +831,5 @@ namespace WalletWasabi.Gui
 				Logger.LogSoftwareStopped("Wasabi");
 			}
 		}
-
-		public string GetNextWalletName()
-		{
-			for (int i = 0; i < int.MaxValue; i++)
-			{
-				if (!File.Exists(Path.Combine(WalletsDir, $"Wallet{i}.json")))
-				{
-					return $"Wallet{i}";
-				}
-			}
-
-			throw new NotSupportedException("This is impossible.");
-		}
-
-		public string GetNextHardwareWalletName(HwiEnumerateEntry hwi = null, string customPrefix = null)
-		{
-			var prefix = customPrefix is null
-				? hwi is null
-					? "HardwareWallet"
-					: hwi.Model.ToString()
-				: customPrefix;
-
-			for (int i = 0; i < int.MaxValue; i++)
-			{
-				var name = $"{prefix}{i}";
-				if (!File.Exists(Path.Combine(WalletsDir, $"{name}.json")))
-				{
-					return name;
-				}
-			}
-
-			throw new NotSupportedException("This is impossible.");
-		}
 	}
 }

@@ -126,7 +126,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 					ExtPubKey extPubKey = NBitcoinHelpers.BetterParseExtPubKey(xpubString);
 
 					Logger.LogInfo("Creating a new wallet file.");
-					var walletName = Global.GetNextHardwareWalletName(customPrefix: "Coldcard");
+					var walletName = Global.WalletManager.WalletDirectories.GetNextWalletName("Coldcard");
 					var walletFullPath = Global.WalletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
 					KeyManager.CreateNewHardwareWalletWatchOnly(mfp, extPubKey, walletFullPath);
 					owner.SelectLoadWallet();
@@ -431,7 +431,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 					}
 					else
 					{
-						walletName = Global.GetNextHardwareWalletName(selectedWallet.HardwareWalletInfo);
+						var prefix = selectedWallet.HardwareWalletInfo is null ? "HardwareWallet" : selectedWallet.HardwareWalletInfo.Model.ToString();
+
+						walletName = Global.WalletManager.WalletDirectories.GetNextWalletName(prefix);
 						var path = Global.WalletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
 
 						// Get xpub should had triggered passphrase request, so the fingerprint should be available here.

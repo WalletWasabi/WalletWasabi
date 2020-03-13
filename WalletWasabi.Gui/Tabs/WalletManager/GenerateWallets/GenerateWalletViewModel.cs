@@ -94,7 +94,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 			base.OnCategorySelected();
 
 			Password = "";
-			WalletName = Global.GetNextWalletName();
+			WalletName = Global.WalletManager.WalletDirectories.GetNextWalletName();
 		}
 	}
 }

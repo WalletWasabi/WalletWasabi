@@ -45,8 +45,6 @@ namespace WalletWasabi.Tests.UnitTests
 			(string walletsPath, string walletsBackupPath) = await CleanupWalletDirectoriesAsync(baseDir);
 
 			var walletDirectories = new WalletDirectories($" {baseDir} ");
-			Assert.False(Directory.Exists(walletsPath));
-			Assert.False(Directory.Exists(walletsBackupPath));
 			Assert.Equal(baseDir, walletDirectories.WorkDir);
 			Assert.Equal(walletsPath, walletDirectories.WalletsDir);
 			Assert.Equal(walletsBackupPath, walletDirectories.WalletsBackupDir);
@@ -100,9 +98,9 @@ namespace WalletWasabi.Tests.UnitTests
 				var dummyFile = Path.Combine(walletDirectories.WalletsDir, $"FooWallet{i}.dummy");
 				var backupFile = Path.Combine(walletDirectories.WalletsBackupDir, $"FooWallet{i}.json");
 
-				File.Create(walletFile);
-				File.Create(dummyFile);
-				File.Create(backupFile);
+				await File.Create(walletFile).DisposeAsync();
+				await File.Create(dummyFile).DisposeAsync();
+				await File.Create(backupFile).DisposeAsync();
 
 				wallets.Add(walletFile);
 				walletBackups.Add(backupFile);
@@ -121,11 +119,17 @@ namespace WalletWasabi.Tests.UnitTests
 			var walletDirectories = new WalletDirectories(baseDir);
 
 			var walletFile1 = Path.Combine(walletDirectories.WalletsDir, $"FooWallet1.json");
+			await File.Create(walletFile1).DisposeAsync();
 			File.SetLastAccessTimeUtc(walletFile1, new DateTime(2005, 1, 1, 1, 1, 1, DateTimeKind.Utc));
+
 			var walletFile2 = Path.Combine(walletDirectories.WalletsDir, $"FooWallet2.json");
+			await File.Create(walletFile2).DisposeAsync();
 			File.SetLastAccessTimeUtc(walletFile2, new DateTime(2000, 1, 1, 1, 1, 1, DateTimeKind.Utc));
+
 			var walletFile3 = Path.Combine(walletDirectories.WalletsDir, $"FooWallet3.json");
-			File.SetLastAccessTimeUtc(walletFile1, new DateTime(2010, 1, 1, 1, 1, 1, DateTimeKind.Utc));
+			await File.Create(walletFile3).DisposeAsync();
+			File.SetLastAccessTimeUtc(walletFile3, new DateTime(2010, 1, 1, 1, 1, 1, DateTimeKind.Utc));
+
 			var orderedWallets = new[] { walletFile3, walletFile1, walletFile2 };
 
 			Assert.Equal(orderedWallets, walletDirectories.EnumerateWalletFiles().Select(x => x.FullName));
@@ -146,6 +150,28 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Empty(walletDirectories.EnumerateWalletFiles());
 			Directory.Delete(baseDir);
 			Assert.Empty(walletDirectories.EnumerateWalletFiles());
+		}
+
+		[Fact]
+		public async Task GetNextWalletTestAsync()
+		{
+			var baseDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName(), EnvironmentHelpers.GetMethodName());
+			await CleanupWalletDirectoriesAsync(baseDir);
+
+			var walletDirectories = new WalletDirectories(baseDir);
+
+			Assert.Equal("Wallet0", walletDirectories.GetNextWalletName());
+
+			await File.Create(Path.Combine(walletDirectories.WalletsDir, $"Wallet0.json")).DisposeAsync();
+			await File.Create(Path.Combine(walletDirectories.WalletsDir, $"Wallet1.json")).DisposeAsync();
+			await File.Create(Path.Combine(walletDirectories.WalletsDir, $"Wallet3.json")).DisposeAsync();
+
+			// This should not matter.
+			await File.Create(Path.Combine(walletDirectories.WalletsBackupDir, $"Wallet2.json")).DisposeAsync();
+
+			Assert.Equal("Wallet2", walletDirectories.GetNextWalletName());
+
+			Assert.Equal("Foo0", walletDirectories.GetNextWalletName("Foo"));
 		}
 	}
 }
