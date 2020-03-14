@@ -53,7 +53,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 			OpenConfigFileCommand = new CommandDefinition(
 				"Config File",
-				commandIconService.GetCompletionKindImage("Settings"),
+				commandIconService.GetCompletionKindImage("SettingsFile"),
 				onOpenConfigFile);
 		}
 
