@@ -227,7 +227,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				builder.SetLockTime(lockTimeSelector());
 				builder.SignPSBT(psbt);
 				psbt.Finalize();
-				if (uri != null && httpClient != null)
+				if (uri is { } && httpClient is { })
 				{
 					using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri)
 					{
@@ -241,7 +241,7 @@ namespace WalletWasabi.Blockchain.Transactions
 						foreach (var input in payjoinPSBT.Inputs)
 						{
 							var existingInput = existingInputs.SingleOrDefault(point => point == input.PrevOut);
-							if (existingInput != null)
+							if (existingInput is { })
 							{
 								existingInputs.Remove(existingInput);
 								continue;
