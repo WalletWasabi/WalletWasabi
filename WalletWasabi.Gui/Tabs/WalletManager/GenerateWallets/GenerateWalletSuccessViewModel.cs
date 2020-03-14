@@ -10,7 +10,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Models;
 using WalletWasabi.Gui.Helpers;
 
-namespace WalletWasabi.Gui.Tabs.WalletManager
+namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 {
 	internal class GenerateWalletSuccessViewModel : CategoryViewModel
 	{

@@ -103,7 +103,8 @@ namespace WalletWasabi.Gui.CommandLine
 					bool anyCoinsQueued = WalletService.ChaumianClient.State.AnyCoinsQueued();
 					if (!anyCoinsQueued && keepMixAlive) // If no coins queued and mixing is asked to be kept alive then try to queue coins.
 					{
-						await TryQueueCoinsToMixAsync(mixAll, password);
+						// Don't do mixall here, the mixall says all the coins has to be mixed once, it doesn't says it has to be requeued all the time.
+						await TryQueueCoinsToMixAsync(mixAll: false, password);
 					}
 
 					if (Global.KillRequested)
@@ -140,18 +141,14 @@ namespace WalletWasabi.Gui.CommandLine
 				KeyManager keyManager = null;
 				if (walletName != null)
 				{
-					var walletFullPath = Global.GetWalletFullPath(walletName);
-					var walletBackupFullPath = Global.GetWalletBackupFullPath(walletName);
-					if (!File.Exists(walletFullPath) && !File.Exists(walletBackupFullPath))
-					{
-						// The selected wallet is not available any more (someone deleted it?).
-						Logger.LogCritical("The selected wallet does not exist, did you delete it?");
-						return null;
-					}
-
 					try
 					{
-						keyManager = Global.LoadKeyManager(walletFullPath, walletBackupFullPath);
+						keyManager = Global.LoadKeyManager(walletName);
+					}
+					catch (FileNotFoundException)
+					{
+						Logger.LogCritical("The selected wallet does not exist, did you delete it?");
+						return null;
 					}
 					catch (Exception ex)
 					{

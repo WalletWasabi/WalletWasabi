@@ -8,14 +8,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using WalletWasabi.Gui.Tabs.WalletManager;
 
-namespace WalletWasabi.Gui.Behaviors
+namespace WalletWasabi.Gui.Suggestions
 {
 	public class SuggestionBehavior : Behavior<TextBox>
 	{
-		private CompositeDisposable Disposables { get; set; }
-
 		public static readonly AvaloniaProperty<IEnumerable<SuggestionViewModel>> SuggestionItemsProperty =
 			AvaloniaProperty.Register<SuggestionBehavior, IEnumerable<SuggestionViewModel>>(nameof(SuggestionItems), defaultBindingMode: BindingMode.TwoWay);
 
@@ -24,6 +21,8 @@ namespace WalletWasabi.Gui.Behaviors
 			get => GetValue(SuggestionItemsProperty);
 			set => SetValue(SuggestionItemsProperty, value);
 		}
+
+		private CompositeDisposable Disposables { get; set; }
 
 		protected override void OnAttached()
 		{

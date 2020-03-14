@@ -132,7 +132,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 			var global = Locator.Current.GetService<Global>();
 
-			var isAnyDesktopWalletAvailable = Directory.Exists(global.WalletsDir) && Directory.EnumerateFiles(global.WalletsDir).Any();
+			var isAnyDesktopWalletAvailable = global.WalletManager.WalletDirectories.EnumerateWalletFiles().Any();
 
 			if (isAnyDesktopWalletAvailable)
 			{

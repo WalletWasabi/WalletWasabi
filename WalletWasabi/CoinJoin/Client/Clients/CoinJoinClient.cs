@@ -21,6 +21,7 @@ using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 using WalletWasabi.Services;
 using static WalletWasabi.Crypto.SchnorrBlinding;
 
@@ -28,30 +29,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 {
 	public class CoinJoinClient
 	{
-		public Network Network { get; private set; }
-		public KeyManager KeyManager { get; private set; }
-		public bool IsQuitPending { get; set; }
-
-		private ClientRoundRegistration DelayedRoundRegistration { get; set; }
-
-		public Func<Uri> CcjHostUriAction { get; private set; }
-		public WasabiSynchronizer Synchronizer { get; private set; }
-		private EndPoint TorSocks5EndPoint { get; set; }
-
-		private decimal? CoordinatorFeepercentToCheck { get; set; }
-
-		public ConcurrentDictionary<TxoRef, IEnumerable<HdPubKeyBlindedPair>> ExposedLinks { get; set; }
-
-		private AsyncLock MixLock { get; set; }
-
-		public ClientState State { get; private set; }
-
-		public event EventHandler StateUpdated;
-
-		public event EventHandler<SmartCoin> CoinQueued;
-
-		public event EventHandler<DequeueResult> OnDequeue;
-
 		private long _frequentStatusProcessingIfNotMixing;
 
 		/// <summary>
@@ -59,11 +36,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		/// </summary>
 		private long _running;
 
-		public bool IsRunning => Interlocked.Read(ref _running) == 1;
-
 		private long _statusProcessing;
-
-		private CancellationTokenSource Cancel { get; set; }
 
 		public CoinJoinClient(
 			WasabiSynchronizer synchronizer,
@@ -94,6 +67,40 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				_ = TryProcessStatusAsync(Synchronizer.LastResponse.CcjRoundStates);
 			}
 		}
+
+		public event EventHandler StateUpdated;
+
+		public event EventHandler<SmartCoin> CoinQueued;
+
+		public event EventHandler<DequeueResult> OnDequeue;
+
+		public Network Network { get; private set; }
+		public KeyManager KeyManager { get; private set; }
+		public bool IsQuitPending { get; set; }
+
+		private ClientRoundRegistration DelayedRoundRegistration { get; set; }
+
+		public Func<Uri> CcjHostUriAction { get; private set; }
+		public WasabiSynchronizer Synchronizer { get; private set; }
+		private EndPoint TorSocks5EndPoint { get; set; }
+
+		private decimal? CoordinatorFeepercentToCheck { get; set; }
+
+		public ConcurrentDictionary<TxoRef, IEnumerable<HdPubKeyBlindedPair>> ExposedLinks { get; set; }
+
+		private AsyncLock MixLock { get; set; }
+
+		public ClientState State { get; private set; }
+
+		public bool IsRunning => Interlocked.Read(ref _running) == 1;
+
+		private CancellationTokenSource Cancel { get; set; }
+
+		private string Salt { get; set; } = null;
+		private string Soup { get; set; } = null;
+		private object RefrigeratorLock { get; } = new object();
+
+		public bool HasIngredients => Salt != null && Soup != null;
 
 		private async void Synchronizer_ResponseArrivedAsync(object sender, SynchronizeResponse e)
 		{
@@ -735,10 +742,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			Interlocked.Exchange(ref _frequentStatusProcessingIfNotMixing, 0);
 		}
 
-		private string Salt { get; set; } = null;
-		private string Soup { get; set; } = null;
-		private object RefrigeratorLock { get; } = new object();
-
 		public async Task<IEnumerable<SmartCoin>> QueueCoinsToMixAsync(string password, params SmartCoin[] coins)
 			=> await QueueCoinsToMixAsync(password, coins as IEnumerable<SmartCoin>).ConfigureAwait(false);
 
@@ -857,6 +860,10 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		public async Task DequeueAllCoinsFromMixAsync(DequeueReason reason)
 		{
+			if (reason == DequeueReason.ApplicationExit && Synchronizer.BackendStatus == BackendStatus.NotConnected)
+			{
+				return;
+			}
 			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
 			try
 			{
@@ -973,8 +980,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			}
 			return result;
 		}
-
-		public bool HasIngredients => Salt != null && Soup != null;
 
 		private string SaltSoup()
 		{

@@ -17,6 +17,14 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 	[JsonObject(MemberSerialization.OptIn)]
 	public class CoordinatorRoundConfig : ConfigBase
 	{
+		public CoordinatorRoundConfig() : base()
+		{
+		}
+
+		public CoordinatorRoundConfig(string filePath) : base(filePath)
+		{
+		}
+
 		[JsonProperty(PropertyName = "Denomination")]
 		[JsonConverter(typeof(MoneyBtcJsonConverter))]
 		public Money Denomination { get; internal set; } = Money.Coins(0.1m);
@@ -83,14 +91,6 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 		{
 			CoordinatorExtPubKeyCurrentDepth++;
 			await ToFileAsync().ConfigureAwait(false);
-		}
-
-		public CoordinatorRoundConfig() : base()
-		{
-		}
-
-		public CoordinatorRoundConfig(string filePath) : base(filePath)
-		{
 		}
 
 		public async Task UpdateOrDefaultAsync(CoordinatorRoundConfig config, bool toFile)

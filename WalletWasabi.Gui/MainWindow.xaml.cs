@@ -83,10 +83,8 @@ namespace WalletWasabi.Gui
 			bool closeApplication = false;
 			try
 			{
-				if (Global.WalletService?.ChaumianClient != null)
-				{
-					Global.WalletService.ChaumianClient.IsQuitPending = true; // indicate -> do not add any more alices to the coinjoin
-				}
+				// Indicate -> do not add any more alices to the coinjoin.
+				Global.WalletManager.SignalQuitPending(true);
 
 				if (!MainWindowViewModel.Instance.CanClose)
 				{
@@ -143,10 +141,8 @@ namespace WalletWasabi.Gui
 				if (!closeApplication) //we are not closing the application for some reason
 				{
 					Interlocked.Exchange(ref _closingState, 0);
-					if (Global.WalletService?.ChaumianClient != null)
-					{
-						Global.WalletService.ChaumianClient.IsQuitPending = false; //re-enable enqueuing coins
-					}
+					// Re-enable enqueuing coins.
+					Global.WalletManager.SignalQuitPending(false);
 				}
 			}
 		}
