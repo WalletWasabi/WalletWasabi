@@ -106,7 +106,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public void PushLockScreen(LockScreenViewModelBase lockScreen)
 		{
-			if (LockScreen != null)
+			if (LockScreen is { })
 			{
 				_lockScreens.Push(LockScreen);
 			}
