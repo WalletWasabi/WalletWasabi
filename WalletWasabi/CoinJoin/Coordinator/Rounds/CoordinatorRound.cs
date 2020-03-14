@@ -1,5 +1,4 @@
 using NBitcoin;
-using NBitcoin.Crypto;
 using NBitcoin.RPC;
 using Newtonsoft.Json.Linq;
 using Nito.AsyncEx;
@@ -14,9 +13,10 @@ using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.CoinJoin.Coordinator.Banning;
 using WalletWasabi.CoinJoin.Coordinator.MixingLevels;
 using WalletWasabi.CoinJoin.Coordinator.Participants;
+using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using static NBitcoin.Crypto.SchnorrBlinding;
+using static WalletWasabi.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 {

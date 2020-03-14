@@ -1,9 +1,9 @@
-using NBitcoin;
-using NBitcoin.BouncyCastle.Math;
-using NBitcoin.Crypto;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Linq;
+using System.Numerics;
+using WalletWasabi.Crypto;
 
 namespace WalletWasabi.JsonConverters
 {
@@ -20,19 +20,30 @@ namespace WalletWasabi.JsonConverters
 		{
 			JArray arr = JArray.Load(reader);
 
-			string c = arr[0].Value<string>();
-			string s = arr[1].Value<string>();
+			var cs = BigInteger.Parse(arr[0].Value<string>());
+			var ss = BigInteger.Parse(arr[1].Value<string>());
 
-			return UnblindedSignature.Parse($"{c}{s}");
+			var carr = cs.ToByteArray(true, true);
+			var sarr = ss.ToByteArray(true, true);
+
+			carr = new byte[32 - carr.Length].Concat(carr).ToArray();
+			sarr = new byte[32 - sarr.Length].Concat(sarr).ToArray();
+			var signatureBytes = carr.Concat(sarr).ToArray();
+			var signature = ByteHelpers.ToHex(signatureBytes);
+
+			var sig = UnblindedSignature.Parse(signature);
+			return sig;
 		}
 
 		/// <inheritdoc />
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
-			var signature = ((UnblindedSignature)value).ToString();
+			var signature = (UnblindedSignature)value;
+			var c = new BigInteger(signature.C.ToBytes(), isUnsigned: true, isBigEndian: true);
+			var s = new BigInteger(signature.S.ToBytes(), isUnsigned: true, isBigEndian: true);
 			writer.WriteStartArray();
-			writer.WriteValue(signature[..64]);
-			writer.WriteValue(signature[64..]);
+			writer.WriteValue(c.ToString());
+			writer.WriteValue(s.ToString());
 			writer.WriteEndArray();
 		}
 	}

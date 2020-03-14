@@ -13,7 +13,7 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
-using static NBitcoin.Crypto.SchnorrBlinding;
+using static WalletWasabi.Crypto.SchnorrBlinding;
 
 namespace NBitcoin
 {
@@ -164,23 +164,6 @@ namespace NBitcoin
 		{
 			PubKey pubKey = PubKey.RecoverCompact(messageHash, signature);
 			return pubKey.WitHash == address.Hash;
-		}
-
-		public static bool VerifyUnblindedSignature(this Signer signer, UnblindedSignature signature, byte[] data)
-		{
-			uint256 hash = new uint256(Hashes.SHA256(data));
-			return VerifySignature(hash, signature, signer.Key.PubKey);
-		}
-
-		public static bool VerifyUnblindedSignature(this Signer signer, UnblindedSignature signature, uint256 dataHash)
-		{
-			return VerifySignature(dataHash, signature, signer.Key.PubKey);
-		}
-
-		public static uint256 BlindScript(this Requester requester, PubKey signerPubKey, PubKey rPubKey, Script script)
-		{
-			var msg = new uint256(Hashes.SHA256(script.ToBytes()));
-			return requester.BlindMessage(msg, rPubKey, signerPubKey);
 		}
 
 		public static Signer CreateSigner(this SchnorrKey schnorrKey)

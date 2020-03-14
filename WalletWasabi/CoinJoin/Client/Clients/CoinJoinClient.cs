@@ -1,6 +1,4 @@
 using NBitcoin;
-using NBitcoin.BouncyCastle.Math;
-using NBitcoin.Crypto;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Concurrent;
@@ -24,7 +22,7 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
-using static NBitcoin.Crypto.SchnorrBlinding;
+using static WalletWasabi.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.CoinJoin.Client.Clients
 {
@@ -496,7 +494,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					BitcoinAddress address = outputAddresses.actives.Select(x => x.GetP2wpkhAddress(Network)).ElementAt(i);
 
 					SchnorrPubKey schnorrPubKey = schnorrPubKeys[i];
-					var outputScriptHash = new uint256(Hashes.SHA256(address.ScriptPubKey.ToBytes()));
+					var outputScriptHash = new uint256(NBitcoin.Crypto.Hashes.SHA256(address.ScriptPubKey.ToBytes()));
 					var requester = new Requester();
 					uint256 blindedOutputScriptHash = requester.BlindMessage(outputScriptHash, schnorrPubKey);
 					requesters.Add(requester);
@@ -505,7 +503,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				}
 
 				byte[] blindedOutputScriptHashesByte = ByteHelpers.Combine(blindedOutputScriptHashes.Select(x => x.ToBytes()));
-				uint256 blindedOutputScriptsHash = new uint256(Hashes.SHA256(blindedOutputScriptHashesByte));
+				uint256 blindedOutputScriptsHash = new uint256(NBitcoin.Crypto.Hashes.SHA256(blindedOutputScriptHashesByte));
 
 				var inputProofs = new List<InputProofModel>();
 				foreach (TxoRef coinReference in registrableCoins)

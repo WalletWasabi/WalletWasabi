@@ -1,5 +1,4 @@
 using NBitcoin;
-using NBitcoin.BouncyCastle.Math;
 using NBitcoin.DataEncoders;
 using Newtonsoft.Json;
 using System;

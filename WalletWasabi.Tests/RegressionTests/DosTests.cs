@@ -1,5 +1,4 @@
 using NBitcoin;
-using NBitcoin.BouncyCastle.Math;
 using NBitcoin.Crypto;
 using NBitcoin.Protocol;
 using NBitcoin.RPC;
@@ -48,7 +47,8 @@ using WalletWasabi.TorSocks5;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
-using static NBitcoin.Crypto.SchnorrBlinding;
+using static WalletWasabi.Crypto.SchnorrBlinding;
+using UnblindedSignature = WalletWasabi.Crypto.UnblindedSignature;
 
 namespace WalletWasabi.Tests.RegressionTests
 {
