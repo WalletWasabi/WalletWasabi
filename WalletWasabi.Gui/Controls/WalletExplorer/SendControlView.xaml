@@ -48,7 +48,7 @@
               <behaviors:PasteAddressOnClickBehavior Command="{Binding OnAddressPasteCommand}" />
             </i:Interaction.Behaviors>
           </controls:ExtendedTextBox>
-          <controls:SuggestLabelView DataContext="{Binding LabelSuggestion}" />
+          <suggestions:SuggestLabelView DataContext="{Binding LabelSuggestion}" />
 
           <StackPanel Orientation="Horizontal" Spacing="10">
             <Button Content="{Binding IsMax, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Clear:Max}" Command="{Binding MaxCommand}" VerticalAlignment="Top" Height="40" />
