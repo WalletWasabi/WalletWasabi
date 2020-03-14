@@ -53,7 +53,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			IEnumerable<OutPoint> allowedInputs = null,
 			Func<LockTime> lockTimeSelector = null,
 			ITorHttpClient httpClient = null,
-			string  uri= null)
+			string uri = null)
 		{
 			payments = Guard.NotNull(nameof(payments), payments);
 			lockTimeSelector ??= () => LockTime.Zero;
@@ -227,14 +227,14 @@ namespace WalletWasabi.Blockchain.Transactions
 				builder.SetLockTime(lockTimeSelector());
 				builder.SignPSBT(psbt);
 				psbt.Finalize();
-				if (uri != null && httpClient!= null)
+				if (uri != null && httpClient != null)
 				{
-					var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri)
+					using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri)
 					{
 						Content = new StringContent(psbt.ToBase64(), Encoding.UTF8, "text/plain")
 					};
-					var response = httpClient.SendAsync(httpRequestMessage).Result;
-					if (response.IsSuccessStatusCode && PSBT.TryParse( response.Content.ReadAsStringAsync().Result, Network, out var payjoinPSBT))
+					using var response = httpClient.SendAsync(httpRequestMessage).Result;
+					if (response.IsSuccessStatusCode && PSBT.TryParse(response.Content.ReadAsStringAsync().Result, Network, out var payjoinPSBT))
 					{
 						bool valid = false;
 						var existingInputs = psbt.Inputs.Select(input => input.PrevOut).ToList();
