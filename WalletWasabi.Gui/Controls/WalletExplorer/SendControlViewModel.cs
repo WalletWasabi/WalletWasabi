@@ -839,10 +839,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid address."));
 		}
-		
+
 		public ErrorDescriptors ValidateBIP79Url()
 		{
-			if (string.IsNullOrEmpty(BIP79Url))
+			if (string.IsNullOrWhiteSpace(BIP79Url))
 			{
 				return ErrorDescriptors.Empty;
 			}
@@ -891,7 +891,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _customChangeAddress;
 			set => this.RaiseAndSetIfChanged(ref _customChangeAddress, value?.Trim());
 		}
-		
+
 		[ValidateMethod(nameof(ValidateBIP79Url))]
 		public string BIP79Url
 		{
