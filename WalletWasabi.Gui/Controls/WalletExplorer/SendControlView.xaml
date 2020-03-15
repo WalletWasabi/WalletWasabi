@@ -42,7 +42,6 @@
             </i:Interaction.Behaviors>
           </controls:ExtendedTextBox>
 
-          <suggestions:SuggestLabelView DataContext="{Binding LabelSuggestion}" />
           <controls:ExtendedTextBox Classes="monospaceFont" Text="{Binding BIP79Url}" Watermark="Payjoin endpoint" UseFloatingWatermark="True">
             <i:Interaction.Behaviors>
               <behaviors:PasteAddressOnClickBehavior Command="{Binding OnAddressPasteCommand}" />
