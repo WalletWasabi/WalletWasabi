@@ -248,11 +248,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				if (url.UnknowParameters.ContainsKey("bpu"))
 				{
-					BIP79Url = url.UnknowParameters["bpu"];
+					Bip79Url = url.UnknowParameters["bpu"];
 				}
 				else
 				{
-					BIP79Url = "";
+					Bip79Url = "";
 				}
 			});
 
@@ -390,7 +390,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 					}
 
-					BuildTransactionResult result = await Task.Run(() => Wallet.BuildTransaction(Password, intent, feeStrategy, allowUnconfirmed: true, allowedInputs: selectedCoinReferences, BIP79Url));
+					BuildTransactionResult result = await Task.Run(() => Wallet.BuildTransaction(Password, intent, feeStrategy, allowUnconfirmed: true, allowedInputs: selectedCoinReferences, Bip79Url));
 
 					await DoAfterBuildTransaction(result);
 				}
@@ -840,13 +840,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid address."));
 		}
 
-		public ErrorDescriptors ValidateBIP79Url()
+		public ErrorDescriptors ValidateBip79Url()
 		{
-			if (string.IsNullOrWhiteSpace(BIP79Url))
+			if (string.IsNullOrWhiteSpace(Bip79Url))
 			{
 				return ErrorDescriptors.Empty;
 			}
-			if (Uri.TryCreate(BIP79Url, UriKind.Absolute, out _))
+			if (Uri.TryCreate(Bip79Url, UriKind.Absolute, out _))
 			{
 				return ErrorDescriptors.Empty;
 			}
@@ -892,8 +892,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _customChangeAddress, value?.Trim());
 		}
 
-		[ValidateMethod(nameof(ValidateBIP79Url))]
-		public string BIP79Url
+		[ValidateMethod(nameof(ValidateBip79Url))]
+		public string Bip79Url
 		{
 			get => _bip79;
 			set => this.RaiseAndSetIfChanged(ref _bip79, value);

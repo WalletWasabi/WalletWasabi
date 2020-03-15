@@ -42,7 +42,7 @@
             </i:Interaction.Behaviors>
           </controls:ExtendedTextBox>
 
-          <controls:ExtendedTextBox Classes="monospaceFont" Text="{Binding BIP79Url}" Watermark="Payjoin endpoint" UseFloatingWatermark="True">
+          <controls:ExtendedTextBox Classes="monospaceFont" Text="{Binding Bip79Url}" Watermark="Payjoin endpoint" UseFloatingWatermark="True">
             <i:Interaction.Behaviors>
               <behaviors:PasteAddressOnClickBehavior Command="{Binding OnAddressPasteCommand}" />
             </i:Interaction.Behaviors>
