@@ -220,12 +220,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				});
 
-			this.WhenAnyValue(x => x.Address, x => x.CustomChangeAddress)
+			// Triggering the detection of same address values.
+			this.WhenAnyValue(x => x.Address)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+				{
+					this.RaisePropertyChanged(nameof(CustomChangeAddress));
+				});
+
+			this.WhenAnyValue(x => x.CustomChangeAddress)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
 					this.RaisePropertyChanged(nameof(Address));
-					this.RaisePropertyChanged(nameof(CustomChangeAddress));
 				});
 
 			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay, outputScheduler: RxApp.MainThreadScheduler);
