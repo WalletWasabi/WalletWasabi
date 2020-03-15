@@ -30,7 +30,7 @@
       <DockPanel LastChildFill="True" Margin="20">
         <StackPanel DockPanel.Dock="Bottom" Margin="0 10" Spacing="10" HorizontalAlignment="Left">
           <TextBlock>Select coins you want to spend.</TextBlock>
-          <controls:ExtendedTextBox Classes="monospaceFont" Text="{Binding Address}" Watermark="Address" UseFloatingWatermark="True">
+          <controls:ExtendedTextBox Classes="monospaceFont" Text="{Binding Address}" Watermark="Destination" UseFloatingWatermark="True">
             <i:Interaction.Behaviors>
               <behaviors:PasteAddressOnClickBehavior Command="{Binding OnAddressPasteCommand}" />
             </i:Interaction.Behaviors>
