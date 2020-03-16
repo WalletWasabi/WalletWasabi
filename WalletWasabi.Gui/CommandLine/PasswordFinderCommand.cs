@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.CommandLine
 {
@@ -12,16 +13,16 @@ namespace WalletWasabi.Gui.CommandLine
 	{
 		public string WalletName { get; set; }
 		public string EncryptedSecret { get; set; }
-		public Daemon Daemon { get; }
+		public WalletManager WalletManager { get; }
 		public string Language { get; set; }
 		public bool UseNumbers { get; set; }
 		public bool UseSymbols { get; set; }
 		public bool ShowHelp { get; set; }
 
-		public PasswordFinderCommand(Daemon daemon)
+		public PasswordFinderCommand(WalletManager walletManager)
 			: base("findpassword", "Try to find typos in provided password.")
 		{
-			Daemon = daemon;
+			WalletManager = Guard.NotNull(nameof(walletManager), walletManager);
 			Language = "en";
 
 			Options = new OptionSet()
@@ -64,11 +65,7 @@ namespace WalletWasabi.Gui.CommandLine
 				}
 				else if (!string.IsNullOrWhiteSpace(WalletName))
 				{
-					KeyManager km = Daemon.TryGetKeyManagerFromWalletName(WalletName);
-					if (km is null)
-					{
-						error = true;
-					}
+					KeyManager km = WalletManager.GetSmartWalletByName(WalletName).KeyManager;
 					PasswordFinder.Find(km.EncryptedSecret.ToWif(), Language, UseNumbers, UseSymbols);
 				}
 				else if (!string.IsNullOrWhiteSpace(EncryptedSecret))

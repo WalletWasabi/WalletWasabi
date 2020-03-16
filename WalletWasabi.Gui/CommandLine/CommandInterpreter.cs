@@ -35,7 +35,7 @@ namespace WalletWasabi.Gui.CommandLine
 				"Available commands are:",
 				"",
 				new MixerCommand(daemon),
-				new PasswordFinderCommand(daemon)
+				new PasswordFinderCommand(global.WalletManager)
 			};
 
 			EnsureBackwardCompatibilityWithOldParameters(ref args);

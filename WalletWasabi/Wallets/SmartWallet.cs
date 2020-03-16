@@ -49,22 +49,28 @@ namespace WalletWasabi.Wallets
 		}
 
 		/// <inheritdoc />
-		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+		public override async Task StartAsync(CancellationToken cancellationToken)
 		{
-			await Wallet.StartAsync(stoppingToken).ConfigureAwait(false);
+			await Wallet.StartAsync(cancellationToken).ConfigureAwait(false);
 			Wallet.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
 			Wallet.ChaumianClient.OnDequeue += ChaumianClient_OnDequeue;
+			await base.StartAsync(cancellationToken).ConfigureAwait(false);
+		}
+
+		/// <inheritdoc />
+		protected override Task ExecuteAsync(CancellationToken stoppingToken)
+		{
+			IsAlive = true;
 
 			if (KeyManager.FilePath is { })
 			{
 				// Set the LastAccessTime.
-				var fi = new FileInfo(KeyManager.FilePath)
+				new FileInfo(KeyManager.FilePath)
 				{
 					LastAccessTime = DateTime.Now
 				};
 			}
-
-			IsAlive = true;
+			return Task.CompletedTask;
 		}
 
 		private void ChaumianClient_OnDequeue(object sender, DequeueResult e)

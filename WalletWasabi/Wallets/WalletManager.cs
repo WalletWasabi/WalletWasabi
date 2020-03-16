@@ -88,6 +88,13 @@ namespace WalletWasabi.Wallets
 				wallet = new SmartWallet(walletFullPath);
 			}
 
+			AddSmartWallet(wallet);
+
+			return wallet;
+		}
+
+		public void AddSmartWallet(SmartWallet wallet)
+		{
 			lock (Lock)
 			{
 				Wallets.Add(wallet, new HashSet<uint256>());
@@ -95,8 +102,6 @@ namespace WalletWasabi.Wallets
 
 			wallet.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
 			wallet.OnDequeue += ChaumianClient_OnDequeue;
-
-			return wallet;
 		}
 
 		private CancellationTokenSource CancelAllInitialization { get; }
@@ -164,11 +169,25 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-		public async Task<SmartWallet> CreateAndStartWalletServiceAsync(KeyManager keyManager)
+		public async Task<SmartWallet> CreateAndStartWalletServiceAsync(string walletName)
+		{
+			KeyManager keyManager;
+			lock (Lock)
+			{
+				keyManager = Wallets.Single(x => x.Key.KeyManager.GetName() == walletName).Key.KeyManager;
+			}
+			return await CreateAndStartWalletServiceAsync(keyManager).ConfigureAwait(false);
+		}
+
+		public async Task<SmartWallet> CreateAndStartWalletServiceAsync(KeyManager keyManagerToFindByReference)
 		{
 			using (await AddRemoveLock.LockAsync(CancelAllInitialization.Token).ConfigureAwait(false))
 			{
-				var wallet = Wallets.Single(x => x.Key.KeyManager == keyManager).Key;
+				SmartWallet wallet;
+				lock (Lock)
+				{
+					wallet = Wallets.Single(x => x.Key.KeyManager == keyManagerToFindByReference).Key;
+				}
 				if (wallet.IsAlive)
 				{
 					return wallet;
