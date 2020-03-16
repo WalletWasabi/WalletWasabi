@@ -71,8 +71,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			this.WhenAnyValue(x => x.IsBusy)
 				.Subscribe(_ => TrySetWalletStates());
 
-			LoadCommand = ReactiveCommand.CreateFromTask(async () => await LoadWalletAsync(), this.WhenAnyValue(x => x.CanLoadWallet));
-			TestPasswordCommand = ReactiveCommand.CreateFromTask(async () => await LoadKeyManagerAsync(requirePassword: true, isHardwareWallet: false), this.WhenAnyValue(x => x.CanTestPassword));
+			LoadCommand = ReactiveCommand.CreateFromTask(LoadWalletAsync, this.WhenAnyValue(x => x.CanLoadWallet));
+			TestPasswordCommand = ReactiveCommand.CreateFromTask(LoadKeyManagerAsync, this.WhenAnyValue(x => x.CanTestPassword));
 			OpenFolderCommand = ReactiveCommand.Create(OpenWalletsFolder);
 			ImportColdcardCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -126,14 +126,14 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 					ExtPubKey extPubKey = NBitcoinHelpers.BetterParseExtPubKey(xpubString);
 
 					Logger.LogInfo("Creating a new wallet file.");
-					var walletName = Global.GetNextHardwareWalletName(customPrefix: "Coldcard");
-					var walletFullPath = Global.GetWalletFullPath(walletName);
+					var walletName = Global.WalletManager.WalletDirectories.GetNextWalletName("Coldcard");
+					var walletFullPath = Global.WalletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
 					KeyManager.CreateNewHardwareWalletWatchOnly(mfp, extPubKey, walletFullPath);
 					owner.SelectLoadWallet();
 				}
 			});
 
-			EnumerateHardwareWalletsCommand = ReactiveCommand.CreateFromTask(async () => await EnumerateHardwareWalletsAsync());
+			EnumerateHardwareWalletsCommand = ReactiveCommand.CreateFromTask(async () => await EnumerateIfHardwareWalletsAsync());
 
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 
@@ -296,9 +296,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			Wallets.Clear();
 			Password = "";
 
-			var directoryInfo = new DirectoryInfo(Global.WalletsDir);
-			var walletFiles = directoryInfo.GetFiles("*.json", SearchOption.TopDirectoryOnly).OrderByDescending(t => t.LastAccessTimeUtc);
-			foreach (var file in walletFiles)
+			foreach (var file in Global.WalletManager.WalletDirectories.EnumerateWalletFiles())
 			{
 				var wallet = new LoadWalletEntry(Path.GetFileNameWithoutExtension(file.FullName));
 				if (IsPasswordRequired)
@@ -322,7 +320,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			}
 		}
 
-		public async Task<KeyManager> LoadKeyManagerAsync(bool requirePassword, bool isHardwareWallet)
+		public async Task<KeyManager> LoadKeyManagerAsync()
 		{
 			try
 			{
@@ -338,7 +336,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 				}
 
 				var walletName = selectedWallet.WalletName;
-				if (isHardwareWallet)
+				if (IsHardwareWallet)
 				{
 					var client = new HwiClient(Global.Network);
 
@@ -371,7 +369,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 							}
 
 							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.ConnectingToHardwareWallet);
-							await EnumerateHardwareWalletsAsync();
+							await EnumerateIfHardwareWalletsAsync();
 						}
 						finally
 						{
@@ -379,7 +377,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 							MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusType.SettingUpHardwareWallet, StatusType.ConnectingToHardwareWallet);
 						}
 
-						return await LoadKeyManagerAsync(requirePassword, isHardwareWallet);
+						return await LoadKeyManagerAsync();
 					}
 					else if (selectedWallet.HardwareWalletInfo.NeedsPinSent is true)
 					{
@@ -387,7 +385,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 
 						var p = selectedWallet.HardwareWalletInfo.Path;
 						var t = selectedWallet.HardwareWalletInfo.Model;
-						await EnumerateHardwareWalletsAsync();
+						await EnumerateIfHardwareWalletsAsync();
 						selectedWallet = Wallets.FirstOrDefault(x => x.HardwareWalletInfo.Model == t && x.HardwareWalletInfo.Path == p);
 						if (selectedWallet is null)
 						{
@@ -433,13 +431,15 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 					}
 					else
 					{
-						walletName = Global.GetNextHardwareWalletName(selectedWallet.HardwareWalletInfo);
-						var path = Global.GetWalletFullPath(walletName);
+						var prefix = selectedWallet.HardwareWalletInfo is null ? "HardwareWallet" : selectedWallet.HardwareWalletInfo.Model.ToString();
+
+						walletName = Global.WalletManager.WalletDirectories.GetNextWalletName(prefix);
+						var path = Global.WalletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
 
 						// Get xpub should had triggered passphrase request, so the fingerprint should be available here.
 						if (!selectedWallet.HardwareWalletInfo.Fingerprint.HasValue)
 						{
-							await EnumerateHardwareWalletsAsync();
+							await EnumerateIfHardwareWalletsAsync();
 							selectedWallet = Wallets.FirstOrDefault(x => x.HardwareWalletInfo.Model == selectedWallet.HardwareWalletInfo.Model && x.HardwareWalletInfo.Path == selectedWallet.HardwareWalletInfo.Path);
 						}
 						if (!selectedWallet.HardwareWalletInfo.Fingerprint.HasValue)
@@ -450,9 +450,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 					}
 				}
 
-				var walletFullPath = Global.GetWalletFullPath(walletName);
-				var walletBackupFullPath = Global.GetWalletBackupFullPath(walletName);
-				if (!File.Exists(walletFullPath) && !File.Exists(walletBackupFullPath))
+				KeyManager keyManager;
+				try
+				{
+					keyManager = Global.LoadKeyManager(walletName);
+				}
+				catch (FileNotFoundException)
 				{
 					// The selected wallet is not available any more (someone deleted it?).
 					OnCategorySelected();
@@ -460,10 +463,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 					return null;
 				}
 
-				KeyManager keyManager = Global.LoadKeyManager(walletFullPath, walletBackupFullPath);
-
 				// Only check requirepassword here, because the above checks are applicable to loadwallet, too and we are using this function from load wallet.
-				if (requirePassword)
+				if (IsPasswordRequired)
 				{
 					if (PasswordHelper.TryPassword(keyManager, password, out string compatibilityPasswordUsed))
 					{
@@ -496,7 +497,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			{
 				try
 				{
-					await EnumerateHardwareWalletsAsync();
+					await EnumerateIfHardwareWalletsAsync();
 				}
 				catch (Exception ex2)
 				{
@@ -521,7 +522,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			{
 				IsBusy = true;
 
-				var keyManager = await LoadKeyManagerAsync(IsPasswordRequired, IsHardwareWallet);
+				var keyManager = await LoadKeyManagerAsync();
 				if (keyManager is null)
 				{
 					return;
@@ -565,11 +566,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			}
 		}
 
-		public void OpenWalletsFolder()
-		{
-			var path = Global.WalletsDir;
-			IoHelpers.OpenFolderInFileExplorer(path);
-		}
+		public void OpenWalletsFolder() => IoHelpers.OpenFolderInFileExplorer(Global.WalletManager.WalletDirectories.WalletsDir);
 
 		private bool TrySetWalletStates()
 		{
@@ -609,8 +606,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			return false;
 		}
 
-		private async Task EnumerateHardwareWalletsAsync()
+		private async Task EnumerateIfHardwareWalletsAsync()
 		{
+			if (!IsHardwareWallet)
+			{
+				return;
+			}
 			var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 			IsHwWalletSearchTextVisible = true;
 			try
@@ -635,40 +636,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 
 		private bool TryFindWalletByExtPubKey(ExtPubKey extPubKey, out string walletName)
 		{
-			// Start searching for the real wallet name.
-			walletName = null;
+			walletName = Global.WalletManager.WalletDirectories
+				.EnumerateWalletFiles(includeBackupDir: true)
+				.FirstOrDefault(fi => KeyManager.TryGetExtPubKeyFromFile(fi.FullName, out ExtPubKey epk) && epk == extPubKey)
+				?.Name;
 
-			var walletFiles = new DirectoryInfo(Global.WalletsDir);
-			var walletBackupFiles = new DirectoryInfo(Global.WalletBackupsDir);
-
-			List<FileInfo> walletFileNames = new List<FileInfo>();
-
-			if (walletFiles.Exists)
-			{
-				walletFileNames.AddRange(walletFiles.EnumerateFiles());
-			}
-
-			if (walletBackupFiles.Exists)
-			{
-				walletFileNames.AddRange(walletFiles.EnumerateFiles());
-			}
-
-			walletFileNames = walletFileNames.OrderByDescending(x => x.LastAccessTimeUtc).ToList();
-
-			foreach (FileInfo walletFile in walletFileNames)
-			{
-				if (walletFile?.Extension?.Equals(".json", StringComparison.OrdinalIgnoreCase) is true
-					&& KeyManager.TryGetExtPubKeyFromFile(walletFile.FullName, out ExtPubKey epk))
-				{
-					if (epk == extPubKey) // We already had it.
-					{
-						walletName = walletFile.Name;
-						return true;
-					}
-				}
-			}
-
-			return false;
+			return walletName is { };
 		}
 	}
 }
