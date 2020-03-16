@@ -7,6 +7,7 @@ using Avalonia.Input;
 using Avalonia.Styling;
 using Avalonia.Utilities;
 using System;
+using System.Threading.Tasks;
 
 namespace WalletWasabi.Gui.Controls.LockScreen
 {
@@ -15,6 +16,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		private Thumb _thumb;
 		private Grid _container;
 		private bool _isLocked;
+		private bool _isAnimating;
 		private Animation _closeAnimation;
 		private Animation _openAnimation;
 		private bool _canSlide;
@@ -75,7 +77,21 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			};
 
 			this.GetObservable(IsLockedProperty)
-				.Subscribe(async isLocked => await (isLocked ? _closeAnimation.RunAsync(this) : _openAnimation.RunAsync(this)));
+				.Subscribe(async isLocked => await (isLocked ? RunCloseAnimationAsync() : RunOpenAnimationAsync()));			
+		}
+
+		public async Task RunCloseAnimationAsync ()
+		{
+			IsAnimating = true;
+			await _closeAnimation.RunAsync(this);
+			IsAnimating = false;
+		}
+
+		public async Task RunOpenAnimationAsync()
+		{
+			IsAnimating = true;
+			await _openAnimation.RunAsync(this);
+			IsAnimating = false;
 		}
 
 		public static readonly DirectProperty<SlideLock, bool> CanSlideProperty =
@@ -103,6 +119,15 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		{
 			get => _isLocked;
 			set => SetAndRaise(IsLockedProperty, ref _isLocked, value);
+		}
+
+		public static readonly DirectProperty<SlideLock, bool> IsAnimatingProperty =
+		AvaloniaProperty.RegisterDirect<SlideLock, bool>(nameof(IsAnimating), o => o.IsAnimating, (o, v) => o.IsAnimating = v);
+
+		public bool IsAnimating
+		{
+			get => _isAnimating;
+			set => SetAndRaise(IsAnimatingProperty, ref _isAnimating, value);
 		}
 
 		public static readonly StyledProperty<double> ValueProperty =
@@ -138,18 +163,18 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			_thumb.DragCompleted += OnThumb_DragCompleted;
 		}
 
-		private void OnThumb_DragCompleted(object sender, VectorEventArgs e)
+		private async void OnThumb_DragCompleted(object sender, VectorEventArgs e)
 		{
 			if (CanSlide)
 			{
 				if (Value <= Threshold)
 				{
 					IsLocked = false;
-					_openAnimation.RunAsync(this);
+					await RunOpenAnimationAsync();
 				}
 				else
 				{
-					_closeAnimation.RunAsync(this);
+					await RunCloseAnimationAsync();
 				}
 			}
 		}

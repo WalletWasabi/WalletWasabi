@@ -8,6 +8,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 {
 	public abstract class LockScreenViewModelBase : ViewModelBase
 	{
+		private bool _isAnimating;
 		private bool _isLocked;
 		private bool _canSlide;
 		private volatile bool _disposedValue = false; // To detect redundant calls
@@ -17,11 +18,6 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			_isLocked = true;
 
 			Disposables = new CompositeDisposable();
-
-			this.WhenAnyValue(x => x.IsLocked)
-				.Where(x => !x)
-				.Take(1)
-				.Subscribe(x => Close());
 		}
 
 		protected CompositeDisposable Disposables { get; }
@@ -38,10 +34,10 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			set => this.RaiseAndSetIfChanged(ref _isLocked, value);
 		}
 
-		protected void Close()
+		public bool IsAnimating
 		{
-			IsLocked = false;
-			MainWindowViewModel.Instance?.CloseLockScreen(this);
+			get { return _isAnimating; }
+			set { this.RaiseAndSetIfChanged(ref _isAnimating, value); }
 		}
 
 		public void Initialize()
@@ -51,6 +47,16 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 		protected virtual void OnInitialize(CompositeDisposable disposables)
 		{
+		}
+
+		protected void Close()
+		{
+			IsLocked = false;
+
+			this.WhenAnyValue(x => x.IsAnimating)
+				.Where(x => !x)
+				.Take(1)
+				.Subscribe(x => MainWindowViewModel.Instance?.CloseLockScreen(this));
 		}
 
 		#region IDisposable Support

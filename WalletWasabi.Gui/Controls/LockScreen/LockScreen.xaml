@@ -3,7 +3,7 @@
              xmlns:cont="clr-namespace:WalletWasabi.Gui.Controls.LockScreen"
              xmlns:shell="clr-namespace:AvalonStudio.Controls;assembly=AvalonStudio.Shell.Extensibility"
              x:Class="WalletWasabi.Gui.Controls.LockScreen.LockScreen">
-  <cont:SlideLock IsLocked="{Binding IsLocked, Mode=TwoWay}" CanSlide="{Binding CanSlide}">
+  <cont:SlideLock IsAnimating="{Binding IsAnimating, Mode=TwoWay}" IsLocked="{Binding IsLocked, Mode=TwoWay}" CanSlide="{Binding CanSlide}">
     <shell:ViewModelViewHost />
   </cont:SlideLock>
 </UserControl>
