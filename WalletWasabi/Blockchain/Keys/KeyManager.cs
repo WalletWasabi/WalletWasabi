@@ -110,19 +110,17 @@ namespace WalletWasabi.Blockchain.Keys
 		[JsonConverter(typeof(KeyPathJsonConverter))]
 		public KeyPath AccountKeyPath { get; private set; }
 
-		[JsonProperty(Order = 8)]
-		private BlockchainState BlockchainState { get; }
-
-		[JsonProperty(Order = 9)]
-		private List<HdPubKey> HdPubKeys { get; }
-
 		public string FilePath { get; private set; }
 
 		public bool IsWatchOnly => EncryptedSecret is null;
 
 		public bool IsHardwareWallet => EncryptedSecret is null && MasterFingerprint != null;
 
-		public string GetName() => FilePath is null ? "" : Path.GetFileNameWithoutExtension(FilePath);
+		[JsonProperty(Order = 8)]
+		private BlockchainState BlockchainState { get; }
+
+		[JsonProperty(Order = 9)]
+		private List<HdPubKey> HdPubKeys { get; }
 
 		private object BlockchainStateLock { get; }
 
@@ -135,6 +133,7 @@ namespace WalletWasabi.Blockchain.Keys
 		private Dictionary<Script, HdPubKey> ScriptHdPubKeyMap { get; }
 
 		private object ScriptHdPubKeyMapLock { get; }
+
 		private object ToFileLock { get; }
 
 		public static KeyManager CreateNew(out Mnemonic mnemonic, string password, string filePath = null)
@@ -180,89 +179,6 @@ namespace WalletWasabi.Blockchain.Keys
 			KeyPath keyPath = accountKeyPath ?? DefaultAccountKeyPath;
 			ExtPubKey extPubKey = extKey.Derive(keyPath).Neuter();
 			return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, extPubKey, true, minGapLimit, new BlockchainState(), filePath, keyPath);
-		}
-
-		private void SetMinGapLimit(int? minGapLimit)
-		{
-			MinGapLimit = minGapLimit is int val ? Math.Max(AbsoluteMinGapLimit, val) : AbsoluteMinGapLimit;
-			// AssertCleanKeysIndexed(); Do not do this. Wallet file is null yet.
-		}
-
-		public void SetFilePath(string filePath)
-		{
-			FilePath = string.IsNullOrWhiteSpace(filePath) ? null : filePath;
-			if (FilePath is null)
-			{
-				return;
-			}
-
-			IoHelpers.EnsureContainingDirectoryExists(FilePath);
-		}
-
-		public void ToFile()
-		{
-			lock (HdPubKeysLock)
-			{
-				lock (BlockchainStateLock)
-				{
-					lock (ToFileLock)
-					{
-						ToFileNoLock();
-					}
-				}
-			}
-		}
-
-		private void ToFileNoBlockchainStateLock()
-		{
-			lock (HdPubKeysLock)
-			{
-				lock (ToFileLock)
-				{
-					ToFileNoLock();
-				}
-			}
-		}
-
-		public void ToFile(string filePath)
-		{
-			lock (HdPubKeysLock)
-			{
-				lock (BlockchainStateLock)
-				{
-					lock (ToFileLock)
-					{
-						ToFileNoLock(filePath);
-					}
-				}
-			}
-		}
-
-		private void ToFileNoLock()
-		{
-			if (FilePath is null)
-			{
-				return;
-			}
-
-			ToFileNoLock(FilePath);
-		}
-
-		private void ToFileNoLock(string filePath)
-		{
-			IoHelpers.EnsureContainingDirectoryExists(filePath);
-			// Remove the last 100 blocks to ensure verification on the next run. This is needed of reorg.
-			int maturity = 101;
-			Height prevHeight = BlockchainState.Height;
-			int matureHeight = Math.Max(0, prevHeight.Value - maturity);
-
-			BlockchainState.Height = new Height(matureHeight);
-
-			string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
-			File.WriteAllText(filePath, jsonString, Encoding.UTF8);
-
-			// Re-add removed items for further operations.
-			BlockchainState.Height = prevHeight;
 		}
 
 		public static KeyManager FromFile(string filePath)
@@ -407,6 +323,47 @@ namespace WalletWasabi.Blockchain.Keys
 			var mfp = new HDFingerprint(ByteHelpers.FromHex(hex));
 			masterFingerprint = mfp;
 			return true;
+		}
+
+		public string GetName() => FilePath is null ? "" : Path.GetFileNameWithoutExtension(FilePath);
+
+		public void SetFilePath(string filePath)
+		{
+			FilePath = string.IsNullOrWhiteSpace(filePath) ? null : filePath;
+			if (FilePath is null)
+			{
+				return;
+			}
+
+			IoHelpers.EnsureContainingDirectoryExists(FilePath);
+		}
+
+		public void ToFile()
+		{
+			lock (HdPubKeysLock)
+			{
+				lock (BlockchainStateLock)
+				{
+					lock (ToFileLock)
+					{
+						ToFileNoLock();
+					}
+				}
+			}
+		}
+
+		public void ToFile(string filePath)
+		{
+			lock (HdPubKeysLock)
+			{
+				lock (BlockchainStateLock)
+				{
+					lock (ToFileLock)
+					{
+						ToFileNoLock(filePath);
+					}
+				}
+			}
 		}
 
 		public HdPubKey GenerateNewKey(SmartLabel label, KeyState keyState, bool isInternal, bool toFile = true)
@@ -701,6 +658,50 @@ namespace WalletWasabi.Blockchain.Keys
 			}
 
 			return generated;
+		}
+
+		private void SetMinGapLimit(int? minGapLimit)
+		{
+			MinGapLimit = minGapLimit is int val ? Math.Max(AbsoluteMinGapLimit, val) : AbsoluteMinGapLimit;
+			// AssertCleanKeysIndexed(); Do not do this. Wallet file is null yet.
+		}
+
+		private void ToFileNoBlockchainStateLock()
+		{
+			lock (HdPubKeysLock)
+			{
+				lock (ToFileLock)
+				{
+					ToFileNoLock();
+				}
+			}
+		}
+
+		private void ToFileNoLock()
+		{
+			if (FilePath is null)
+			{
+				return;
+			}
+
+			ToFileNoLock(FilePath);
+		}
+
+		private void ToFileNoLock(string filePath)
+		{
+			IoHelpers.EnsureContainingDirectoryExists(filePath);
+			// Remove the last 100 blocks to ensure verification on the next run. This is needed of reorg.
+			int maturity = 101;
+			Height prevHeight = BlockchainState.Height;
+			int matureHeight = Math.Max(0, prevHeight.Value - maturity);
+
+			BlockchainState.Height = new Height(matureHeight);
+
+			string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
+			File.WriteAllText(filePath, jsonString, Encoding.UTF8);
+
+			// Re-add removed items for further operations.
+			BlockchainState.Height = prevHeight;
 		}
 
 		#region BlockchainState
