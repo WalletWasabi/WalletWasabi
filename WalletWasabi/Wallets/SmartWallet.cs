@@ -2,6 +2,7 @@ using Microsoft.Extensions.Hosting;
 using NBitcoin.Protocol;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -53,6 +54,16 @@ namespace WalletWasabi.Wallets
 			await Wallet.StartAsync(stoppingToken).ConfigureAwait(false);
 			Wallet.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
 			Wallet.ChaumianClient.OnDequeue += ChaumianClient_OnDequeue;
+
+			if (KeyManager.FilePath is { })
+			{
+				// Set the LastAccessTime.
+				var fi = new FileInfo(KeyManager.FilePath)
+				{
+					LastAccessTime = DateTime.Now
+				};
+			}
+
 			IsAlive = true;
 		}
 
