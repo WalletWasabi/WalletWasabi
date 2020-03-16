@@ -221,6 +221,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				});
 
+			// Triggering the detection of same address values.
+			this.WhenAnyValue(x => x.Address)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => this.RaisePropertyChanged(nameof(CustomChangeAddress)));
+
+			this.WhenAnyValue(x => x.CustomChangeAddress)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => this.RaisePropertyChanged(nameof(Address)));
+
 			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay, outputScheduler: RxApp.MainThreadScheduler);
 
 			OnAddressPasteCommand = ReactiveCommand.Create((BitcoinUrlBuilder url) =>
