@@ -27,11 +27,33 @@ namespace WalletWasabi.Wallets
 	{
 		public WalletManager(WalletDirectories walletDirectories)
 		{
-			Wallets = new Dictionary<WalletService, HashSet<uint256>>();
-			Lock = new object();
-			AddRemoveLock = new AsyncLock();
-			CancelAllInitialization = new CancellationTokenSource();
-			WalletDirectories = walletDirectories;
+			using (BenchmarkLogger.Measure())
+			{
+				Wallets = new Dictionary<SmartWallet, HashSet<uint256>>();
+				Lock = new object();
+				AddRemoveLock = new AsyncLock();
+				CancelAllInitialization = new CancellationTokenSource();
+				WalletDirectories = walletDirectories;
+
+				if (WalletDirectories is { })
+				{
+					foreach (var walletFile in WalletDirectories.EnumerateWalletFiles())
+					{
+						try
+						{
+							SmartWallet wallet = new SmartWallet(walletFile.FullName);
+							Wallets.Add(wallet, new HashSet<uint256>());
+
+							wallet.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
+							wallet.OnDequeue += ChaumianClient_OnDequeue;
+						}
+						catch (Exception ex)
+						{
+							Logger.LogWarning(ex);
+						}
+					}
+				}
+			}
 		}
 
 		private CancellationTokenSource CancelAllInitialization { get; }
@@ -40,11 +62,9 @@ namespace WalletWasabi.Wallets
 
 		public event EventHandler<DequeueResult> OnDequeue;
 
-		private Dictionary<WalletService, HashSet<uint256>> Wallets { get; }
+		private Dictionary<SmartWallet, HashSet<uint256>> Wallets { get; }
 		private object Lock { get; }
 		private AsyncLock AddRemoveLock { get; }
-
-		private IEnumerable<KeyValuePair<WalletService, HashSet<uint256>>> AliveWalletsNoLock => Wallets.Where(x => x.Key is { IsStoppingOrStopped: var isDisposed } && !isDisposed);
 
 		private BitcoinStore BitcoinStore { get; set; }
 		private WasabiSynchronizer Synchronizer { get; set; }
@@ -56,7 +76,7 @@ namespace WalletWasabi.Wallets
 		{
 			lock (Lock)
 			{
-				foreach (var client in Wallets.Keys.Select(x => x.ChaumianClient))
+				foreach (var client in Wallets.Keys.Where(x => x.Wallet is { }).Select(x => x.Wallet.ChaumianClient))
 				{
 					client.IsQuitPending = isQuitPending;
 				}
@@ -71,7 +91,7 @@ namespace WalletWasabi.Wallets
 		{
 			lock (Lock)
 			{
-				return Wallets.Keys.FirstOrDefault();
+				return Wallets.Keys.FirstOrDefault(x => x.Wallet is { })?.Wallet;
 			}
 		}
 
@@ -79,48 +99,37 @@ namespace WalletWasabi.Wallets
 		{
 			lock (Lock)
 			{
-				return Wallets.Keys.Any();
+				return Wallets.Keys.Any(x => x.Wallet is { });
 			}
 		}
 
-		public async Task<WalletService> CreateAndStartWalletServiceAsync(KeyManager keyManager)
+		public async Task<SmartWallet> CreateAndStartWalletServiceAsync(KeyManager keyManager)
 		{
 			using (await AddRemoveLock.LockAsync(CancelAllInitialization.Token).ConfigureAwait(false))
 			{
-				WalletService walletService = null;
+				var wallet = Wallets.Single(x => x.Key.KeyManager == keyManager).Key;
+				if (wallet.IsAlive)
+				{
+					return wallet;
+				}
+
 				try
 				{
-					walletService = new WalletService(BitcoinStore, keyManager, Synchronizer, Nodes, DataDir, ServiceConfiguration, FeeProvider, BitcoinCoreNode);
+					wallet.InitializeWalletService(BitcoinStore, Synchronizer, Nodes, DataDir, ServiceConfiguration, FeeProvider, BitcoinCoreNode);
 
 					var cancel = CancelAllInitialization.Token;
-					lock (Lock)
-					{
-						Wallets.Add(walletService, new HashSet<uint256>());
-					}
 
 					Logger.LogInfo($"Starting {nameof(WalletService)}...");
-					await walletService.StartAsync(cancel).ConfigureAwait(false);
+					await wallet.StartAsync(cancel).ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(WalletService)} started.");
 
 					cancel.ThrowIfCancellationRequested();
 
-					walletService.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
-					walletService.ChaumianClient.OnDequeue += ChaumianClient_OnDequeue;
-
-					return walletService;
+					return wallet;
 				}
-				catch (Exception)
+				catch
 				{
-					if (walletService is { })
-					{
-						walletService.TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
-						walletService.ChaumianClient.OnDequeue -= ChaumianClient_OnDequeue;
-						lock (Lock)
-						{
-							Wallets.Remove(walletService);
-						}
-						await walletService.StopAsync(CancellationToken.None).ConfigureAwait(false);
-					}
+					await wallet.StopAsync(CancellationToken.None).ConfigureAwait(false);
 					throw;
 				}
 			}
@@ -131,7 +140,7 @@ namespace WalletWasabi.Wallets
 			IEnumerable<Task> tasks = null;
 			lock (Lock)
 			{
-				tasks = Wallets.Keys.Select(x => x.ChaumianClient.DequeueAllCoinsFromMixGracefullyAsync(reason, token)).ToArray();
+				tasks = Wallets.Keys.Where(x => x.Wallet is { }).Select(x => x.Wallet.ChaumianClient.DequeueAllCoinsFromMixGracefullyAsync(reason, token)).ToArray();
 			}
 			await Task.WhenAll(tasks).ConfigureAwait(false);
 		}
@@ -162,24 +171,24 @@ namespace WalletWasabi.Wallets
 
 			using (await AddRemoveLock.LockAsync(cancel).ConfigureAwait(false))
 			{
-				List<WalletService> walletsListClone;
+				List<SmartWallet> walletsListClone;
 				lock (Lock)
 				{
 					walletsListClone = Wallets.Keys.ToList();
 				}
-				foreach (var walletService in walletsListClone)
+				foreach (var wallet in walletsListClone)
 				{
 					if (cancel.IsCancellationRequested)
 					{
 						return;
 					}
 
-					walletService.TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
-					walletService.ChaumianClient.OnDequeue -= ChaumianClient_OnDequeue;
+					wallet.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
+					wallet.OnDequeue -= ChaumianClient_OnDequeue;
 
 					lock (Lock)
 					{
-						if (!Wallets.Remove(walletService))
+						if (!Wallets.Remove(wallet))
 						{
 							throw new InvalidOperationException("Wallet service doesn't exist.");
 						}
@@ -187,14 +196,15 @@ namespace WalletWasabi.Wallets
 
 					try
 					{
-						var keyManager = walletService.KeyManager;
+						var keyManager = wallet.KeyManager;
 						if (keyManager is { } && WalletDirectories is { })
 						{
 							string backupWalletFilePath = WalletDirectories.GetWalletFilePaths(Path.GetFileName(keyManager.FilePath)).walletBackupFilePath;
 							keyManager.ToFile(backupWalletFilePath);
-							Logger.LogInfo($"{nameof(walletService.KeyManager)} backup saved to `{backupWalletFilePath}`.");
+							Logger.LogInfo($"{nameof(wallet.KeyManager)} backup saved to `{backupWalletFilePath}`.");
 						}
-						await walletService.StopAsync(cancel).ConfigureAwait(false);
+						await wallet.StopAsync(cancel).ConfigureAwait(false);
+						wallet?.Dispose();
 						Logger.LogInfo($"{nameof(WalletService)} is stopped.");
 					}
 					catch (Exception ex)
@@ -209,11 +219,11 @@ namespace WalletWasabi.Wallets
 		{
 			lock (Lock)
 			{
-				foreach (var pair in AliveWalletsNoLock.Where(x => !x.Value.Contains(tx.GetHash())))
+				foreach (var pair in Wallets.Where(x => x.Key.IsAlive && !x.Value.Contains(tx.GetHash())))
 				{
-					var walletService = pair.Key;
+					var wallet = pair.Key;
 					pair.Value.Add(tx.GetHash());
-					walletService.TransactionProcessor.Process(tx);
+					wallet.Wallet.TransactionProcessor.Process(tx);
 				}
 			}
 		}
@@ -222,9 +232,9 @@ namespace WalletWasabi.Wallets
 		{
 			lock (Lock)
 			{
-				foreach (var wallet in AliveWalletsNoLock)
+				foreach (var wallet in Wallets.Where(x => x.Key.IsAlive))
 				{
-					wallet.Key.TransactionProcessor.Process(transaction);
+					wallet.Key.Wallet.TransactionProcessor.Process(transaction);
 				}
 			}
 		}
@@ -234,9 +244,9 @@ namespace WalletWasabi.Wallets
 			lock (Lock)
 			{
 				var res = new List<SmartCoin>();
-				foreach (var walletService in AliveWalletsNoLock)
+				foreach (var walletService in Wallets.Where(x => x.Key.IsAlive))
 				{
-					SmartCoin coin = walletService.Key.Coins.GetByOutPoint(input);
+					SmartCoin coin = walletService.Key.Wallet.Coins.GetByOutPoint(input);
 					res.Add(coin);
 				}
 
@@ -249,7 +259,7 @@ namespace WalletWasabi.Wallets
 			lock (Lock)
 			{
 				var unknowns = new HashSet<uint256>();
-				foreach (var pair in AliveWalletsNoLock)
+				foreach (var pair in Wallets.Where(x => x.Key.IsAlive))
 				{
 					// If a wallet service doesn't know about the tx, then we add it for processing.
 					foreach (var tx in cjs.Where(x => !pair.Value.Contains(x)))

@@ -58,7 +58,7 @@ namespace WalletWasabi.Gui
 		public WasabiSynchronizer Synchronizer { get; private set; }
 		public FeeProviders FeeProviders { get; private set; }
 		public WalletManager WalletManager { get; }
-		public WalletService WalletService => WalletManager?.GetFirstOrDefaultWallet();
+		public SmartWallet WalletService => WalletManager?.GetFirstOrDefaultWallet();
 		public TransactionBroadcaster TransactionBroadcaster { get; set; }
 		public CoinJoinProcessor CoinJoinProcessor { get; set; }
 		public Node RegTestMempoolServingNode { get; private set; }
