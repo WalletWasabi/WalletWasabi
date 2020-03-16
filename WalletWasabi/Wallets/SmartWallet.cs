@@ -41,6 +41,7 @@ namespace WalletWasabi.Wallets
 			await Wallet.StartAsync(stoppingToken).ConfigureAwait(false);
 		}
 
+		/// <inheritdoc />
 		public override async Task StopAsync(CancellationToken cancellationToken)
 		{
 			await base.StopAsync(cancellationToken).ConfigureAwait(false);
