@@ -122,6 +122,8 @@ namespace WalletWasabi.Blockchain.Keys
 
 		public bool IsHardwareWallet => EncryptedSecret is null && MasterFingerprint != null;
 
+		public string GetName() => FilePath is null ? "" : Path.GetFileNameWithoutExtension(FilePath);
+
 		private object BlockchainStateLock { get; }
 
 		private object HdPubKeysLock { get; }

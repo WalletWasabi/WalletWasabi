@@ -37,15 +37,11 @@ namespace WalletWasabi.Wallets
 
 				if (WalletDirectories is { })
 				{
-					foreach (var walletFile in WalletDirectories.EnumerateWalletFiles())
+					foreach (var fileInfo in WalletDirectories.EnumerateWalletFiles())
 					{
 						try
 						{
-							SmartWallet wallet = new SmartWallet(walletFile.FullName);
-							Wallets.Add(wallet, new HashSet<uint256>());
-
-							wallet.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
-							wallet.OnDequeue += ChaumianClient_OnDequeue;
+							CreateAndAddSmartWallet(fileInfo.Name);
 						}
 						catch (Exception ex)
 						{
@@ -54,6 +50,53 @@ namespace WalletWasabi.Wallets
 					}
 				}
 			}
+		}
+
+		private SmartWallet CreateAndAddSmartWallet(string walletName)
+		{
+			(string walletFullPath, string walletBackupFullPath) = WalletDirectories.GetWalletFilePaths(walletName);
+			SmartWallet wallet = null;
+			try
+			{
+				wallet = new SmartWallet(walletFullPath);
+			}
+			catch (Exception ex)
+			{
+				if (!File.Exists(walletBackupFullPath))
+				{
+					throw;
+				}
+
+				Logger.LogWarning($"Wallet got corrupted.\n" +
+					$"Wallet file path: {walletFullPath}\n" +
+					$"Trying to recover it from backup.\n" +
+					$"Backup path: {walletBackupFullPath}\n" +
+					$"Exception: {ex}");
+				if (File.Exists(walletFullPath))
+				{
+					string corruptedWalletBackupPath = $"{walletBackupFullPath}_CorruptedBackup";
+					if (File.Exists(corruptedWalletBackupPath))
+					{
+						File.Delete(corruptedWalletBackupPath);
+						Logger.LogInfo($"Deleted previous corrupted wallet file backup from `{corruptedWalletBackupPath}`.");
+					}
+					File.Move(walletFullPath, corruptedWalletBackupPath);
+					Logger.LogInfo($"Backed up corrupted wallet file to `{corruptedWalletBackupPath}`.");
+				}
+				File.Copy(walletBackupFullPath, walletFullPath);
+
+				wallet = new SmartWallet(walletFullPath);
+			}
+
+			lock (Lock)
+			{
+				Wallets.Add(wallet, new HashSet<uint256>());
+			}
+
+			wallet.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
+			wallet.OnDequeue += ChaumianClient_OnDequeue;
+
+			return wallet;
 		}
 
 		private CancellationTokenSource CancelAllInitialization { get; }
@@ -92,6 +135,24 @@ namespace WalletWasabi.Wallets
 			lock (Lock)
 			{
 				return Wallets.Keys.FirstOrDefault(x => x.Wallet is { })?.Wallet;
+			}
+		}
+
+		public SmartWallet GetSmartWalletByName(string walletName)
+		{
+			SmartWallet wallet = GetSmartWalletByNameOrDefault(walletName);
+			if (wallet is null)
+			{
+				return CreateAndAddSmartWallet(walletName);
+			}
+			return wallet;
+		}
+
+		public SmartWallet GetSmartWalletByNameOrDefault(string walletName)
+		{
+			lock (Lock)
+			{
+				return Wallets.Keys.FirstOrDefault(x => x.KeyManager.GetName() == walletName);
 			}
 		}
 

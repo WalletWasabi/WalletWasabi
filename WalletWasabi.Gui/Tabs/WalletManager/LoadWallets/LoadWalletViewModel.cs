@@ -453,7 +453,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 				KeyManager keyManager;
 				try
 				{
-					keyManager = Global.LoadKeyManager(walletName);
+					keyManager = Global.WalletManager.GetSmartWalletByName(walletName).KeyManager;
 				}
 				catch (FileNotFoundException)
 				{

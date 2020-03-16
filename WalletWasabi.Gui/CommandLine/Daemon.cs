@@ -158,7 +158,7 @@ namespace WalletWasabi.Gui.CommandLine
 				{
 					try
 					{
-						keyManager = Global.LoadKeyManager(walletName);
+						keyManager = Global.WalletManager.GetSmartWalletByName(walletName).KeyManager;
 					}
 					catch (FileNotFoundException)
 					{
