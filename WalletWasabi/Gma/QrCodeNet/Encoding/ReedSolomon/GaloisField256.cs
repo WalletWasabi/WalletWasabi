@@ -7,11 +7,6 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 	/// </summary>
 	internal sealed class GaloisField256
 	{
-		private int[] AntiLogTable { get; }
-		private int[] LogTable { get; }
-
-		internal int Primitive { get; }
-
 		internal GaloisField256(int primitive)
 		{
 			AntiLogTable = new int[256];
@@ -38,6 +33,11 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 				}
 			}
 		}
+
+		private int[] AntiLogTable { get; }
+		private int[] LogTable { get; }
+
+		internal int Primitive { get; }
 
 		internal static GaloisField256 QRCodeGaloisField => new GaloisField256(QRCodeConstantVariable.QRCodePrimitive);
 
