@@ -21,6 +21,10 @@ namespace Gma.QrCodeNet.Encoding
 
 		internal List<byte> List { get; }
 
+		internal int Count { get; private set; }
+
+		internal int SizeInByte => (Count + 7) >> 3;
+
 		internal bool this[int index]
 		{
 			get
@@ -121,9 +125,5 @@ namespace Gma.QrCodeNet.Encoding
 			List.Add(item);
 			Count += 8;
 		}
-
-		internal int Count { get; private set; }
-
-		internal int SizeInByte => (Count + 7) >> 3;
 	}
 }
