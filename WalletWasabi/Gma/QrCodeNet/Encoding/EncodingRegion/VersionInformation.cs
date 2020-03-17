@@ -11,6 +11,10 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 		private const int VIRectangleHeight = 3;
 		private const int VIRectangleWidth = 6;
 
+		private const int LengthDataBits = 6;
+		private const int LengthECBits = 12;
+		private const int VersionBCHPoly = 0x1f25;
+
 		/// <summary>
 		/// Embed version information to Matrix
 		/// Only for version greater than or equal to 7
@@ -43,10 +47,6 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 				}
 			}
 		}
-
-		private const int LengthDataBits = 6;
-		private const int LengthECBits = 12;
-		private const int VersionBCHPoly = 0x1f25;
 
 		private static BitList VersionInfoBitList(int version)
 		{

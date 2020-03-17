@@ -4,12 +4,12 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 {
 	internal struct EncodationStruct
 	{
-		internal VersionDetail VersionDetail { get; set; }
-		internal BitList DataCodewords { get; set; }
-
 		internal EncodationStruct(VersionControlStruct vcStruct) : this()
 		{
 			VersionDetail = vcStruct.VersionDetail;
 		}
+
+		internal VersionDetail VersionDetail { get; set; }
+		internal BitList DataCodewords { get; set; }
 	}
 }
