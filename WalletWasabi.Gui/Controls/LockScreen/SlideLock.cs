@@ -80,7 +80,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				.Subscribe(async isLocked => await (isLocked ? RunCloseAnimationAsync() : RunOpenAnimationAsync()));			
 		}
 
-		public async Task RunCloseAnimationAsync ()
+		public async Task RunCloseAnimationAsync()
 		{
 			IsAnimating = true;
 			await _closeAnimation.RunAsync(this);
@@ -122,7 +122,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		}
 
 		public static readonly DirectProperty<SlideLock, bool> IsAnimatingProperty =
-		AvaloniaProperty.RegisterDirect<SlideLock, bool>(nameof(IsAnimating), o => o.IsAnimating, (o, v) => o.IsAnimating = v);
+			AvaloniaProperty.RegisterDirect<SlideLock, bool>(nameof(IsAnimating), o => o.IsAnimating, (o, v) => o.IsAnimating = v);
 
 		public bool IsAnimating
 		{
