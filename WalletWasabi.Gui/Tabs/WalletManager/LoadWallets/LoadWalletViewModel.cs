@@ -35,7 +35,7 @@ using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Gui.Tabs.WalletManager
+namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 {
 	internal class LoadWalletViewModel : CategoryViewModel
 	{
@@ -51,20 +51,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private string _loadButtonText;
 		private bool _isHwWalletSearchTextVisible;
 
-		public bool IsLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
-
-		private WalletManagerViewModel Owner { get; }
-
-		private Global Global { get; }
-
-		public LoadWalletType LoadWalletType { get; }
-
-		public bool IsPasswordRequired => LoadWalletType == LoadWalletType.Password;
-		public bool IsHardwareWallet => LoadWalletType == LoadWalletType.Hardware;
-		public bool IsDesktopWallet => LoadWalletType == LoadWalletType.Desktop;
-
 		public LoadWalletViewModel(WalletManagerViewModel owner, LoadWalletType loadWalletType)
-			: base(loadWalletType == LoadWalletType.Password ? "Test Password" : (loadWalletType == LoadWalletType.Desktop ? "Load Wallet" : "Hardware Wallet"))
+			: base(loadWalletType == LoadWalletType.Password ? "Test Password" : loadWalletType == LoadWalletType.Desktop ? "Load Wallet" : "Hardware Wallet")
 		{
 			Global = Locator.Current.GetService<Global>();
 
@@ -83,8 +71,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			this.WhenAnyValue(x => x.IsBusy)
 				.Subscribe(_ => TrySetWalletStates());
 
-			LoadCommand = ReactiveCommand.CreateFromTask(async () => await LoadWalletAsync(), this.WhenAnyValue(x => x.CanLoadWallet));
-			TestPasswordCommand = ReactiveCommand.CreateFromTask(async () => await LoadKeyManagerAsync(requirePassword: true, isHardwareWallet: false), this.WhenAnyValue(x => x.CanTestPassword));
+			LoadCommand = ReactiveCommand.CreateFromTask(LoadWalletAsync, this.WhenAnyValue(x => x.CanLoadWallet));
+			TestPasswordCommand = ReactiveCommand.CreateFromTask(LoadKeyManagerAsync, this.WhenAnyValue(x => x.CanTestPassword));
 			OpenFolderCommand = ReactiveCommand.Create(OpenWalletsFolder);
 			ImportColdcardCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -138,14 +126,14 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					ExtPubKey extPubKey = NBitcoinHelpers.BetterParseExtPubKey(xpubString);
 
 					Logger.LogInfo("Creating a new wallet file.");
-					var walletName = Global.GetNextHardwareWalletName(customPrefix: "Coldcard");
-					var walletFullPath = Global.GetWalletFullPath(walletName);
+					var walletName = Global.WalletManager.WalletDirectories.GetNextWalletName("Coldcard");
+					var walletFullPath = Global.WalletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
 					KeyManager.CreateNewHardwareWalletWatchOnly(mfp, extPubKey, walletFullPath);
 					owner.SelectLoadWallet();
 				}
 			});
 
-			EnumerateHardwareWalletsCommand = ReactiveCommand.CreateFromTask(async () => await EnumerateHardwareWalletsAsync());
+			EnumerateHardwareWalletsCommand = ReactiveCommand.CreateFromTask(async () => await EnumerateIfHardwareWalletsAsync());
 
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 
@@ -166,6 +154,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			SetLoadButtonText();
 		}
 
+		public bool IsLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+
+		public LoadWalletType LoadWalletType { get; }
+		public bool IsPasswordRequired => LoadWalletType == LoadWalletType.Password;
+		public bool IsHardwareWallet => LoadWalletType == LoadWalletType.Hardware;
+		public bool IsDesktopWallet => LoadWalletType == LoadWalletType.Desktop;
 		public string UDevRulesLink => "https://github.com/bitcoin-core/HWI/tree/master/hwilib/udev";
 
 		public bool IsHwWalletSearchTextVisible
@@ -179,8 +173,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			get => _wallets;
 			set => this.RaiseAndSetIfChanged(ref _wallets, value);
 		}
-
-		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
 
 		[ValidateMethod(nameof(ValidatePassword))]
 		public string Password
@@ -205,39 +197,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			get => _isWalletOpened;
 			set => this.RaiseAndSetIfChanged(ref _isWalletOpened, value);
-		}
-
-		public void SetLoadButtonText()
-		{
-			var text = "Load Wallet";
-			if (IsHardwareBusy)
-			{
-				text = "Waiting for Hardware Wallet...";
-			}
-			else if (IsBusy)
-			{
-				text = "Loading...";
-			}
-			else
-			{
-				// If the hardware wallet was not initialized, then make the button say Setup, not Load.
-				// If pin is needed, then make the button say Send Pin instead.
-
-				if (SelectedWallet?.HardwareWalletInfo != null)
-				{
-					if (!SelectedWallet.HardwareWalletInfo.IsInitialized())
-					{
-						text = "Setup Wallet";
-					}
-
-					if (SelectedWallet.HardwareWalletInfo.NeedsPinSent is true)
-					{
-						text = "Send PIN";
-					}
-				}
-			}
-
-			LoadButtonText = text;
 		}
 
 		public string LoadButtonText
@@ -282,6 +241,51 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 		}
 
+		public ReactiveCommand<Unit, Unit> LoadCommand { get; }
+		public ReactiveCommand<Unit, KeyManager> TestPasswordCommand { get; }
+		public ReactiveCommand<Unit, Unit> ImportColdcardCommand { get; set; }
+		public ReactiveCommand<Unit, Unit> EnumerateHardwareWalletsCommand { get; set; }
+		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
+		public ReactiveCommand<Unit, Unit> OpenFolderCommand { get; }
+		private WalletManagerViewModel Owner { get; }
+
+		private Global Global { get; }
+
+		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
+
+		public void SetLoadButtonText()
+		{
+			var text = "Load Wallet";
+			if (IsHardwareBusy)
+			{
+				text = "Waiting for Hardware Wallet...";
+			}
+			else if (IsBusy)
+			{
+				text = "Loading...";
+			}
+			else
+			{
+				// If the hardware wallet was not initialized, then make the button say Setup, not Load.
+				// If pin is needed, then make the button say Send Pin instead.
+
+				if (SelectedWallet?.HardwareWalletInfo != null)
+				{
+					if (!SelectedWallet.HardwareWalletInfo.IsInitialized())
+					{
+						text = "Setup Wallet";
+					}
+
+					if (SelectedWallet.HardwareWalletInfo.NeedsPinSent is true)
+					{
+						text = "Send PIN";
+					}
+				}
+			}
+
+			LoadButtonText = text;
+		}
+
 		public override void OnCategorySelected()
 		{
 			if (IsHardwareWallet)
@@ -292,9 +296,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			Wallets.Clear();
 			Password = "";
 
-			var directoryInfo = new DirectoryInfo(Global.WalletsDir);
-			var walletFiles = directoryInfo.GetFiles("*.json", SearchOption.TopDirectoryOnly).OrderByDescending(t => t.LastAccessTimeUtc);
-			foreach (var file in walletFiles)
+			foreach (var file in Global.WalletManager.WalletDirectories.EnumerateWalletFiles())
 			{
 				var wallet = new LoadWalletEntry(Path.GetFileNameWithoutExtension(file.FullName));
 				if (IsPasswordRequired)
@@ -318,51 +320,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 		}
 
-		private bool TrySetWalletStates()
-		{
-			try
-			{
-				if (SelectedWallet is null)
-				{
-					SelectedWallet = Wallets.FirstOrDefault();
-				}
-
-				IsWalletSelected = SelectedWallet != null;
-				CanTestPassword = IsWalletSelected;
-
-				if (Global.WalletManager.AnyWallet())
-				{
-					IsWalletOpened = true;
-					CanLoadWallet = false;
-				}
-				else
-				{
-					IsWalletOpened = false;
-
-					// If not busy loading.
-					// And wallet is selected.
-					// And no wallet is opened.
-					CanLoadWallet = !IsBusy && IsWalletSelected;
-				}
-
-				SetLoadButtonText();
-				return true;
-			}
-			catch (Exception ex)
-			{
-				Logger.LogWarning(ex);
-			}
-
-			return false;
-		}
-
-		public ReactiveCommand<Unit, Unit> LoadCommand { get; }
-		public ReactiveCommand<Unit, KeyManager> TestPasswordCommand { get; }
-		public ReactiveCommand<Unit, Unit> ImportColdcardCommand { get; set; }
-		public ReactiveCommand<Unit, Unit> EnumerateHardwareWalletsCommand { get; set; }
-		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
-
-		public async Task<KeyManager> LoadKeyManagerAsync(bool requirePassword, bool isHardwareWallet)
+		public async Task<KeyManager> LoadKeyManagerAsync()
 		{
 			try
 			{
@@ -378,7 +336,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				}
 
 				var walletName = selectedWallet.WalletName;
-				if (isHardwareWallet)
+				if (IsHardwareWallet)
 				{
 					var client = new HwiClient(Global.Network);
 
@@ -411,7 +369,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 							}
 
 							MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.ConnectingToHardwareWallet);
-							await EnumerateHardwareWalletsAsync();
+							await EnumerateIfHardwareWalletsAsync();
 						}
 						finally
 						{
@@ -419,7 +377,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 							MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusType.SettingUpHardwareWallet, StatusType.ConnectingToHardwareWallet);
 						}
 
-						return await LoadKeyManagerAsync(requirePassword, isHardwareWallet);
+						return await LoadKeyManagerAsync();
 					}
 					else if (selectedWallet.HardwareWalletInfo.NeedsPinSent is true)
 					{
@@ -427,7 +385,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 						var p = selectedWallet.HardwareWalletInfo.Path;
 						var t = selectedWallet.HardwareWalletInfo.Model;
-						await EnumerateHardwareWalletsAsync();
+						await EnumerateIfHardwareWalletsAsync();
 						selectedWallet = Wallets.FirstOrDefault(x => x.HardwareWalletInfo.Model == t && x.HardwareWalletInfo.Path == p);
 						if (selectedWallet is null)
 						{
@@ -473,13 +431,15 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					}
 					else
 					{
-						walletName = Global.GetNextHardwareWalletName(selectedWallet.HardwareWalletInfo);
-						var path = Global.GetWalletFullPath(walletName);
+						var prefix = selectedWallet.HardwareWalletInfo is null ? "HardwareWallet" : selectedWallet.HardwareWalletInfo.Model.ToString();
+
+						walletName = Global.WalletManager.WalletDirectories.GetNextWalletName(prefix);
+						var path = Global.WalletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
 
 						// Get xpub should had triggered passphrase request, so the fingerprint should be available here.
 						if (!selectedWallet.HardwareWalletInfo.Fingerprint.HasValue)
 						{
-							await EnumerateHardwareWalletsAsync();
+							await EnumerateIfHardwareWalletsAsync();
 							selectedWallet = Wallets.FirstOrDefault(x => x.HardwareWalletInfo.Model == selectedWallet.HardwareWalletInfo.Model && x.HardwareWalletInfo.Path == selectedWallet.HardwareWalletInfo.Path);
 						}
 						if (!selectedWallet.HardwareWalletInfo.Fingerprint.HasValue)
@@ -490,9 +450,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					}
 				}
 
-				var walletFullPath = Global.GetWalletFullPath(walletName);
-				var walletBackupFullPath = Global.GetWalletBackupFullPath(walletName);
-				if (!File.Exists(walletFullPath) && !File.Exists(walletBackupFullPath))
+				KeyManager keyManager;
+				try
+				{
+					keyManager = Global.LoadKeyManager(walletName);
+				}
+				catch (FileNotFoundException)
 				{
 					// The selected wallet is not available any more (someone deleted it?).
 					OnCategorySelected();
@@ -500,10 +463,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					return null;
 				}
 
-				KeyManager keyManager = Global.LoadKeyManager(walletFullPath, walletBackupFullPath);
-
 				// Only check requirepassword here, because the above checks are applicable to loadwallet, too and we are using this function from load wallet.
-				if (requirePassword)
+				if (IsPasswordRequired)
 				{
 					if (PasswordHelper.TryPassword(keyManager, password, out string compatibilityPasswordUsed))
 					{
@@ -536,7 +497,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				try
 				{
-					await EnumerateHardwareWalletsAsync();
+					await EnumerateIfHardwareWalletsAsync();
 				}
 				catch (Exception ex2)
 				{
@@ -555,75 +516,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 		}
 
-		private async Task EnumerateHardwareWalletsAsync()
-		{
-			var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-			IsHwWalletSearchTextVisible = true;
-			try
-			{
-				var client = new HwiClient(Global.Network);
-				var devices = await client.EnumerateAsync(cts.Token);
-
-				Wallets.Clear();
-				foreach (var dev in devices)
-				{
-					var walletEntry = new LoadWalletEntry(dev);
-					Wallets.Add(walletEntry);
-				}
-				TrySetWalletStates();
-			}
-			finally
-			{
-				IsHwWalletSearchTextVisible = false;
-				cts.Dispose();
-			}
-		}
-
-		private bool TryFindWalletByExtPubKey(ExtPubKey extPubKey, out string walletName)
-		{
-			// Start searching for the real wallet name.
-			walletName = null;
-
-			var walletFiles = new DirectoryInfo(Global.WalletsDir);
-			var walletBackupFiles = new DirectoryInfo(Global.WalletBackupsDir);
-
-			List<FileInfo> walletFileNames = new List<FileInfo>();
-
-			if (walletFiles.Exists)
-			{
-				walletFileNames.AddRange(walletFiles.EnumerateFiles());
-			}
-
-			if (walletBackupFiles.Exists)
-			{
-				walletFileNames.AddRange(walletFiles.EnumerateFiles());
-			}
-
-			walletFileNames = walletFileNames.OrderByDescending(x => x.LastAccessTimeUtc).ToList();
-
-			foreach (FileInfo walletFile in walletFileNames)
-			{
-				if (walletFile?.Extension?.Equals(".json", StringComparison.OrdinalIgnoreCase) is true
-					&& KeyManager.TryGetExtPubKeyFromFile(walletFile.FullName, out ExtPubKey epk))
-				{
-					if (epk == extPubKey) // We already had it.
-					{
-						walletName = walletFile.Name;
-						return true;
-					}
-				}
-			}
-
-			return false;
-		}
-
 		public async Task LoadWalletAsync()
 		{
 			try
 			{
 				IsBusy = true;
 
-				var keyManager = await LoadKeyManagerAsync(IsPasswordRequired, IsHardwareWallet);
+				var keyManager = await LoadKeyManagerAsync();
 				if (keyManager is null)
 				{
 					return;
@@ -667,12 +566,82 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 		}
 
-		public ReactiveCommand<Unit, Unit> OpenFolderCommand { get; }
+		public void OpenWalletsFolder() => IoHelpers.OpenFolderInFileExplorer(Global.WalletManager.WalletDirectories.WalletsDir);
 
-		public void OpenWalletsFolder()
+		private bool TrySetWalletStates()
 		{
-			var path = Global.WalletsDir;
-			IoHelpers.OpenFolderInFileExplorer(path);
+			try
+			{
+				if (SelectedWallet is null)
+				{
+					SelectedWallet = Wallets.FirstOrDefault();
+				}
+
+				IsWalletSelected = SelectedWallet != null;
+				CanTestPassword = IsWalletSelected;
+
+				if (Global.WalletManager.AnyWallet())
+				{
+					IsWalletOpened = true;
+					CanLoadWallet = false;
+				}
+				else
+				{
+					IsWalletOpened = false;
+
+					// If not busy loading.
+					// And wallet is selected.
+					// And no wallet is opened.
+					CanLoadWallet = !IsBusy && IsWalletSelected;
+				}
+
+				SetLoadButtonText();
+				return true;
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning(ex);
+			}
+
+			return false;
+		}
+
+		private async Task EnumerateIfHardwareWalletsAsync()
+		{
+			if (!IsHardwareWallet)
+			{
+				return;
+			}
+			var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+			IsHwWalletSearchTextVisible = true;
+			try
+			{
+				var client = new HwiClient(Global.Network);
+				var devices = await client.EnumerateAsync(cts.Token);
+
+				Wallets.Clear();
+				foreach (var dev in devices)
+				{
+					var walletEntry = new LoadWalletEntry(dev);
+					Wallets.Add(walletEntry);
+				}
+				TrySetWalletStates();
+			}
+			finally
+			{
+				IsHwWalletSearchTextVisible = false;
+				cts.Dispose();
+			}
+		}
+
+		private bool TryFindWalletByExtPubKey(ExtPubKey extPubKey, out string walletName)
+		{
+			walletName = Global.WalletManager.WalletDirectories
+				.EnumerateWalletFiles(includeBackupDir: true)
+				.FirstOrDefault(fi => KeyManager.TryGetExtPubKeyFromFile(fi.FullName, out ExtPubKey epk) && epk == extPubKey)
+				?.Name;
+
+			return walletName is { };
 		}
 	}
 }

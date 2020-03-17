@@ -12,13 +12,14 @@ using System.Reactive;
 using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Gui.Suggestions;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Gui.Tabs.WalletManager
+namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 {
 	internal class RecoverWalletViewModel : CategoryViewModel
 	{
@@ -43,7 +44,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				MnemonicWords = Guard.Correct(MnemonicWords);
 				Password = Guard.Correct(Password); // Do not let whitespaces to the beginning and to the end.
 
-				string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
+				string walletFilePath = Global.WalletManager.WalletDirectories.GetWalletFilePaths(WalletName).walletFilePath;
 
 				if (string.IsNullOrWhiteSpace(WalletName))
 				{
@@ -166,7 +167,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			Password = null;
 			MnemonicWords = "";
 
-			WalletName = Global.GetNextWalletName();
+			WalletName = Global.WalletManager.WalletDirectories.GetNextWalletName();
 
 			ShowAdvancedOptions = false;
 			AccountKeyPath = $"m/{KeyManager.DefaultAccountKeyPath}";

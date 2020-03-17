@@ -68,7 +68,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 		{
 			var global = Locator.Current.GetService<Global>();
 
-			IoHelpers.OpenFolderInFileExplorer(global.WalletsDir);
+			IoHelpers.OpenFolderInFileExplorer(global.WalletManager.WalletDirectories.WalletsDir);
 		}
 
 		private async Task OnOpenLogFileAsync()

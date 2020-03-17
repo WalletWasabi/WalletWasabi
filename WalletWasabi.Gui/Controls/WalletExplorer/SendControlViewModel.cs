@@ -28,6 +28,7 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Models.StatusBarStatuses;
+using WalletWasabi.Gui.Suggestions;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
@@ -219,6 +220,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						LabelToolTip = "Who can link this transaction to you? E.g.: \"Max, BitPay\"";
 					}
 				});
+
+			// Triggering the detection of same address values.
+			this.WhenAnyValue(x => x.Address)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => this.RaisePropertyChanged(nameof(CustomChangeAddress)));
+
+			this.WhenAnyValue(x => x.CustomChangeAddress)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => this.RaisePropertyChanged(nameof(Address)));
 
 			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay, outputScheduler: RxApp.MainThreadScheduler);
 

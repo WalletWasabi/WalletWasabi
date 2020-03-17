@@ -1,12 +1,11 @@
-﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Gui.Controls
+namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 {
-	public class SuggestLabelView : UserControl
+	internal class GenerateWalletView : UserControl
 	{
-		public SuggestLabelView()
+		public GenerateWalletView()
 		{
 			InitializeComponent();
 		}
