@@ -606,7 +606,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			SmartLabel slabel = label;
 			var spentOutput = new[]
 			{
-				new TxoRef(RandomUtils.GetUInt256(), (uint)randomIndex())
+				new OutPoint(RandomUtils.GetUInt256(), (uint)randomIndex())
 			};
 			pubKey.SetLabel(slabel);
 			pubKey.SetKeyState(KeyState.Used);

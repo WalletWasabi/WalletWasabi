@@ -20,7 +20,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var output = tx.Outputs[0];
 			var scriptPubKey = output.ScriptPubKey;
 			var amount = output.Value;
-			var spentOutputs = tx.Inputs.ToTxoRefs().ToArray();
+			var spentOutputs = tx.Inputs.ToOutPoints().ToArray();
 
 			var height = Height.Mempool;
 			var label = "foo";
@@ -31,7 +31,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var differentOutput = tx.Outputs[1];
 			var differentSpentOutputs = new[]
 			{
-				new TxoRef(txId, 0)
+				new OutPoint(txId, 0)
 			};
 
 			// If the txId and the index are the same, equality should think it's the same coin.

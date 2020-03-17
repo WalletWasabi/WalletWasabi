@@ -96,7 +96,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 						foreach (var spentOutPoint in coin.SpentOutputs)
 						{
-							var outPoint = spentOutPoint.ToOutPoint();
+							var outPoint = spentOutPoint;
 							var newCoinSet = new HashSet<SmartCoin> { coin };
 
 							// If we don't succeed to add a new entry to the dictionary.
