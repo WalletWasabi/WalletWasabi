@@ -25,13 +25,13 @@ namespace WalletWasabi.Wallets
 {
 	public class WalletManager
 	{
-		public WalletManager(string walletBackupsDir)
+		public WalletManager(WalletDirectories walletDirectories)
 		{
-			WalletBackupsDir = walletBackupsDir;
 			Wallets = new Dictionary<WalletService, HashSet<uint256>>();
 			Lock = new object();
 			AddRemoveLock = new AsyncLock();
 			CancelAllInitialization = new CancellationTokenSource();
+			WalletDirectories = walletDirectories;
 		}
 
 		private CancellationTokenSource CancelAllInitialization { get; }
@@ -43,7 +43,6 @@ namespace WalletWasabi.Wallets
 		private Dictionary<WalletService, HashSet<uint256>> Wallets { get; }
 		private object Lock { get; }
 		private AsyncLock AddRemoveLock { get; }
-		private string WalletBackupsDir { get; }
 
 		private IEnumerable<KeyValuePair<WalletService, HashSet<uint256>>> AliveWalletsNoLock => Wallets.Where(x => x.Key is { IsStoppingOrStopped: var isDisposed } && !isDisposed);
 
@@ -52,8 +51,21 @@ namespace WalletWasabi.Wallets
 		private NodesGroup Nodes { get; set; }
 		private string DataDir { get; set; }
 		private ServiceConfiguration ServiceConfiguration { get; set; }
+
+		public void SignalQuitPending(bool isQuitPending)
+		{
+			lock (Lock)
+			{
+				foreach (var client in Wallets.Keys.Select(x => x.ChaumianClient))
+				{
+					client.IsQuitPending = isQuitPending;
+				}
+			}
+		}
+
 		private IFeeProvider FeeProvider { get; set; }
 		private CoreNode BitcoinCoreNode { get; set; }
+		public WalletDirectories WalletDirectories { get; }
 
 		public WalletService GetFirstOrDefaultWallet()
 		{
@@ -176,9 +188,9 @@ namespace WalletWasabi.Wallets
 					try
 					{
 						var keyManager = walletService.KeyManager;
-						if (keyManager is { } && !string.IsNullOrWhiteSpace(WalletBackupsDir))
+						if (keyManager is { } && WalletDirectories is { })
 						{
-							string backupWalletFilePath = Path.Combine(WalletBackupsDir, Path.GetFileName(keyManager.FilePath));
+							string backupWalletFilePath = WalletDirectories.GetWalletFilePaths(Path.GetFileName(keyManager.FilePath)).walletBackupFilePath;
 							keyManager.ToFile(backupWalletFilePath);
 							Logger.LogInfo($"{nameof(walletService.KeyManager)} backup saved to `{backupWalletFilePath}`.");
 						}

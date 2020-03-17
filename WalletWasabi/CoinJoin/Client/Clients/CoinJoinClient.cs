@@ -21,6 +21,7 @@ using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 using WalletWasabi.Services;
 using static WalletWasabi.Crypto.SchnorrBlinding;
 
@@ -28,30 +29,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 {
 	public class CoinJoinClient
 	{
-		public Network Network { get; private set; }
-		public KeyManager KeyManager { get; private set; }
-		public bool IsQuitPending { get; set; }
-
-		private ClientRoundRegistration DelayedRoundRegistration { get; set; }
-
-		public Func<Uri> CcjHostUriAction { get; private set; }
-		public WasabiSynchronizer Synchronizer { get; private set; }
-		private EndPoint TorSocks5EndPoint { get; set; }
-
-		private decimal? CoordinatorFeepercentToCheck { get; set; }
-
-		public ConcurrentDictionary<TxoRef, IEnumerable<HdPubKeyBlindedPair>> ExposedLinks { get; set; }
-
-		private AsyncLock MixLock { get; set; }
-
-		public ClientState State { get; private set; }
-
-		public event EventHandler StateUpdated;
-
-		public event EventHandler<SmartCoin> CoinQueued;
-
-		public event EventHandler<DequeueResult> OnDequeue;
-
 		private long _frequentStatusProcessingIfNotMixing;
 
 		/// <summary>
@@ -59,11 +36,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		/// </summary>
 		private long _running;
 
-		public bool IsRunning => Interlocked.Read(ref _running) == 1;
-
 		private long _statusProcessing;
-
-		private CancellationTokenSource Cancel { get; set; }
 
 		public CoinJoinClient(
 			WasabiSynchronizer synchronizer,
@@ -72,6 +45,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		{
 			Network = Guard.NotNull(nameof(network), network);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
+			DestinationKeyManager = KeyManager;
 			Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
 			CcjHostUriAction = Synchronizer.WasabiClient.TorClient.DestinationUriAction;
 			TorSocks5EndPoint = Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint;
@@ -94,6 +68,43 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				_ = TryProcessStatusAsync(Synchronizer.LastResponse.CcjRoundStates);
 			}
 		}
+
+		public event EventHandler StateUpdated;
+
+		public event EventHandler<SmartCoin> CoinQueued;
+
+		public event EventHandler<DequeueResult> OnDequeue;
+
+		public Network Network { get; private set; }
+		public KeyManager KeyManager { get; }
+		public KeyManager DestinationKeyManager { get; set; }
+		public bool IsQuitPending { get; set; }
+
+		private ClientRoundRegistration DelayedRoundRegistration { get; set; }
+
+		public Func<Uri> CcjHostUriAction { get; private set; }
+		public WasabiSynchronizer Synchronizer { get; private set; }
+		private EndPoint TorSocks5EndPoint { get; set; }
+
+		private decimal? CoordinatorFeepercentToCheck { get; set; }
+
+		public ConcurrentDictionary<TxoRef, IEnumerable<HdPubKeyBlindedPair>> ExposedLinks { get; set; }
+
+		private AsyncLock MixLock { get; set; }
+
+		public ClientState State { get; private set; }
+
+		public bool IsRunning => Interlocked.Read(ref _running) == 1;
+
+		private CancellationTokenSource Cancel { get; set; }
+
+		private string Salt { get; set; } = null;
+		private string Soup { get; set; } = null;
+		private object RefrigeratorLock { get; } = new object();
+
+		public bool HasIngredients => Salt != null && Soup != null;
+
+		public bool IsDestinationSame => KeyManager.ExtPubKey == DestinationKeyManager.ExtPubKey;
 
 		private async void Synchronizer_ResponseArrivedAsync(object sender, SynchronizeResponse e)
 		{
@@ -423,7 +434,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 						else
 						{
 							// Should never happen, but oh well we can autocorrect it so why not.
-							ExposedLinks[input] = ExposedLinks[input].Append(new HdPubKeyBlindedPair(KeyManager.GetKeyForScriptPubKey(activeOutput.Address.ScriptPubKey), false));
+							ExposedLinks[input] = ExposedLinks[input].Append(new HdPubKeyBlindedPair(DestinationKeyManager.GetKeyForScriptPubKey(activeOutput.Address.ScriptPubKey) ?? KeyManager.GetKeyForScriptPubKey(activeOutput.Address.ScriptPubKey), false));
 						}
 					}
 				}
@@ -644,8 +655,8 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			var keysTryNotToRegister = ExposedLinks.SelectMany(x => x.Value).Select(x => x.Key).Except(keysToSurelyRegister).ToArray();
 
 			// Get all locked internal keys we have and assert we have enough.
-			KeyManager.AssertLockedInternalKeysIndexed(howMany: maximumMixingLevelCount + 1);
-			IEnumerable<HdPubKey> allLockedInternalKeys = KeyManager.GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked && !keysTryNotToRegister.Contains(x));
+			DestinationKeyManager.AssertLockedInternalKeysIndexed(howMany: maximumMixingLevelCount + 1);
+			IEnumerable<HdPubKey> allLockedInternalKeys = DestinationKeyManager.GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked && !keysTryNotToRegister.Contains(x));
 
 			// If any of our inputs have exposed address relationship then prefer that.
 			allLockedInternalKeys = keysToSurelyRegister.Concat(allLockedInternalKeys).Distinct();
@@ -659,7 +670,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			var newKeys = new List<HdPubKey>();
 			for (int i = allLockedInternalKeys.Count(); i <= maximumMixingLevelCount + 1; i++)
 			{
-				HdPubKey k = KeyManager.GenerateNewKey(SmartLabel.Empty, KeyState.Locked, isInternal: true, toFile: false);
+				HdPubKey k = DestinationKeyManager.GenerateNewKey(SmartLabel.Empty, KeyState.Locked, isInternal: true, toFile: false);
 				newKeys.Add(k);
 			}
 			allLockedInternalKeys = allLockedInternalKeys.Concat(newKeys);
@@ -713,7 +724,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			}
 
 			// Save our modifications in the keymanager before we give back the selected keys.
-			KeyManager.ToFile();
+			DestinationKeyManager.ToFile();
 			return (change, actives);
 		}
 
@@ -734,10 +745,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		{
 			Interlocked.Exchange(ref _frequentStatusProcessingIfNotMixing, 0);
 		}
-
-		private string Salt { get; set; } = null;
-		private string Soup { get; set; } = null;
-		private object RefrigeratorLock { get; } = new object();
 
 		public async Task<IEnumerable<SmartCoin>> QueueCoinsToMixAsync(string password, params SmartCoin[] coins)
 			=> await QueueCoinsToMixAsync(password, coins as IEnumerable<SmartCoin>).ConfigureAwait(false);
@@ -857,6 +864,10 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		public async Task DequeueAllCoinsFromMixAsync(DequeueReason reason)
 		{
+			if (reason == DequeueReason.ApplicationExit && Synchronizer.BackendStatus == BackendStatus.NotConnected)
+			{
+				return;
+			}
 			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
 			try
 			{
@@ -974,8 +985,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			return result;
 		}
 
-		public bool HasIngredients => Salt != null && Soup != null;
-
 		private string SaltSoup()
 		{
 			if (!HasIngredients)
@@ -1007,6 +1016,8 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		public async Task StopAsync(CancellationToken cancel)
 		{
+			await DequeueAllCoinsFromMixGracefullyAsync(DequeueReason.ApplicationExit, cancel).ConfigureAwait(false);
+
 			Synchronizer.ResponseArrived -= Synchronizer_ResponseArrivedAsync;
 
 			Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
@@ -1021,8 +1032,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 			using (await MixLock.LockAsync(cancel).ConfigureAwait(false))
 			{
-				await DequeueAllCoinsFromMixGracefullyAsync(DequeueReason.ApplicationExit, cancel).ConfigureAwait(false);
-
 				State.DisposeAllAliceClients();
 
 				IEnumerable<TxoRef> allCoins = State.GetAllQueuedCoins();

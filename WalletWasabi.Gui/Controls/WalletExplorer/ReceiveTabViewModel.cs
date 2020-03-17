@@ -20,6 +20,7 @@ using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Exceptions;
 using Splat;
 using WalletWasabi.Services;
+using WalletWasabi.Gui.Suggestions;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -60,7 +61,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						NotificationHelpers.Warning($"{nameof(KeyManager.MinGapLimit)} increased from {prevMinGapLimit} to {minGapLimit}.");
 					}
 
-					var newAddress = new AddressViewModel(newKey, WalletService.KeyManager);
+					var newAddress = new AddressViewModel(newKey, WalletService.KeyManager, this);
 					Addresses.Insert(0, newAddress);
 					SelectedAddress = newAddress;
 					LabelSuggestion.Label = "";
@@ -121,7 +122,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _selectedAddress, value);
 		}
 
-		private void InitializeAddresses()
+		public void InitializeAddresses()
 		{
 			try
 			{
@@ -130,7 +131,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				IEnumerable<HdPubKey> keys = WalletService.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Reverse();
 				foreach (HdPubKey key in keys)
 				{
-					_addresses.Add(new AddressViewModel(key, WalletService.KeyManager));
+					_addresses.Add(new AddressViewModel(key, WalletService.KeyManager, this));
 				}
 			}
 			catch (Exception ex)

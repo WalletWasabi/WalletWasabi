@@ -23,128 +23,8 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 	public class CoordinatorRound
 	{
 		public static long RoundCount;
-		public long RoundId { get; }
-
-		public RPCClient RpcClient { get; }
-		public Network Network => RpcClient.Network;
-
-		/// <summary>
-		/// The confirmation target that will be used and possibly modified before final build.
-		/// </summary>
-		public int AdjustedConfirmationTarget { get; private set; }
-
-		/// <summary>
-		/// The confirmation target that is present in the config file.
-		/// </summary>
-		public int ConfiguredConfirmationTarget { get; }
-
-		/// <summary>
-		/// The rate of confirmation target reduction rate that is present in the config file.
-		/// </summary>
-		public double ConfiguredConfirmationTargetReductionRate { get; }
-
-		public decimal CoordinatorFeePercent { get; }
-		public int AnonymitySet { get; private set; }
-
-		public Money FeePerInputs { get; private set; }
-		public Money FeePerOutputs { get; private set; }
-
-		public string UnsignedCoinJoinHex { get; private set; }
-
-		public MixingLevelCollection MixingLevels { get; }
-
-		public Transaction CoinJoin { get; private set; }
-
-		private List<Alice> Alices { get; }
-		private List<Bob> Bobs { get; } // Do not make it a hashset or do not make Bob IEquitable!!!
-
-		private List<UnblindedSignature> RegisteredUnblindedSignatures { get; }
-		private object RegisteredUnblindedSignaturesLock { get; }
-
-		private static AsyncLock RoundSynchronizerLock { get; } = new AsyncLock();
-
 		private RoundPhase _phase;
-		private object PhaseLock { get; }
-
-		public RoundPhase Phase
-		{
-			get
-			{
-				lock (PhaseLock)
-				{
-					return _phase;
-				}
-			}
-
-			private set
-			{
-				var invoke = false;
-				lock (PhaseLock)
-				{
-					if (_phase != value)
-					{
-						_phase = value;
-						invoke = true;
-					}
-				}
-				if (invoke)
-				{
-					PhaseChanged?.Invoke(this, value);
-				}
-			}
-		}
-
-		public event EventHandler<RoundPhase> PhaseChanged;
-
 		private CoordinatorRoundStatus _status;
-
-		private object StatusLock { get; }
-
-		public CoordinatorRoundStatus Status
-		{
-			get
-			{
-				lock (StatusLock)
-				{
-					return _status;
-				}
-			}
-
-			private set
-			{
-				var invoke = false;
-				lock (StatusLock)
-				{
-					if (_status != value)
-					{
-						_status = value;
-						invoke = true;
-					}
-				}
-				if (invoke)
-				{
-					StatusChanged?.Invoke(this, value);
-				}
-			}
-		}
-
-		public event EventHandler<CoordinatorRoundStatus> StatusChanged;
-
-		public event EventHandler<Transaction> CoinJoinBroadcasted;
-
-		public TimeSpan AliceRegistrationTimeout => ConnectionConfirmationTimeout;
-
-		public TimeSpan InputRegistrationTimeout { get; }
-		public DateTimeOffset InputRegistrationTimesout { get; set; }
-
-		public TimeSpan ConnectionConfirmationTimeout { get; }
-
-		public TimeSpan OutputRegistrationTimeout { get; }
-
-		public TimeSpan SigningTimeout { get; }
-
-		public UtxoReferee UtxoReferee { get; }
-		public CoordinatorRoundConfig RoundConfig { get; }
 
 		public CoordinatorRound(RPCClient rpc, UtxoReferee utxoReferee, CoordinatorRoundConfig config, int adjustedConfirmationTarget, int configuredConfirmationTarget, double configuredConfirmationTargetReductionRate)
 		{
@@ -200,12 +80,132 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			}
 		}
 
+		public event EventHandler<RoundPhase> PhaseChanged;
+
+		public event EventHandler<CoordinatorRoundStatus> StatusChanged;
+
+		public event EventHandler<Transaction> CoinJoinBroadcasted;
+
+		public long RoundId { get; }
+
+		public RPCClient RpcClient { get; }
+		public Network Network => RpcClient.Network;
+
+		/// <summary>
+		/// The confirmation target that will be used and possibly modified before final build.
+		/// </summary>
+		public int AdjustedConfirmationTarget { get; private set; }
+
+		/// <summary>
+		/// The confirmation target that is present in the config file.
+		/// </summary>
+		public int ConfiguredConfirmationTarget { get; }
+
+		/// <summary>
+		/// The rate of confirmation target reduction rate that is present in the config file.
+		/// </summary>
+		public double ConfiguredConfirmationTargetReductionRate { get; }
+
+		public decimal CoordinatorFeePercent { get; }
+		public int AnonymitySet { get; private set; }
+
+		public Money FeePerInputs { get; private set; }
+		public Money FeePerOutputs { get; private set; }
+
+		public string UnsignedCoinJoinHex { get; private set; }
+
+		public MixingLevelCollection MixingLevels { get; }
+
+		public Transaction CoinJoin { get; private set; }
+
+		private List<Alice> Alices { get; }
+		private List<Bob> Bobs { get; } // Do not make it a hashset or do not make Bob IEquitable!!!
+
+		private List<UnblindedSignature> RegisteredUnblindedSignatures { get; }
+		private object RegisteredUnblindedSignaturesLock { get; }
+
+		private static AsyncLock RoundSynchronizerLock { get; } = new AsyncLock();
+
+		private object PhaseLock { get; }
+
+		public RoundPhase Phase
+		{
+			get
+			{
+				lock (PhaseLock)
+				{
+					return _phase;
+				}
+			}
+
+			private set
+			{
+				var invoke = false;
+				lock (PhaseLock)
+				{
+					if (_phase != value)
+					{
+						_phase = value;
+						invoke = true;
+					}
+				}
+				if (invoke)
+				{
+					PhaseChanged?.Invoke(this, value);
+				}
+			}
+		}
+
+		private object StatusLock { get; }
+
+		public CoordinatorRoundStatus Status
+		{
+			get
+			{
+				lock (StatusLock)
+				{
+					return _status;
+				}
+			}
+
+			private set
+			{
+				var invoke = false;
+				lock (StatusLock)
+				{
+					if (_status != value)
+					{
+						_status = value;
+						invoke = true;
+					}
+				}
+				if (invoke)
+				{
+					StatusChanged?.Invoke(this, value);
+				}
+			}
+		}
+
+		public TimeSpan AliceRegistrationTimeout => ConnectionConfirmationTimeout;
+
+		public TimeSpan InputRegistrationTimeout { get; }
+		public DateTimeOffset InputRegistrationTimesout { get; set; }
+
+		public TimeSpan ConnectionConfirmationTimeout { get; }
+
+		public TimeSpan OutputRegistrationTimeout { get; }
+
+		public TimeSpan SigningTimeout { get; }
+
+		public UtxoReferee UtxoReferee { get; }
+		public CoordinatorRoundConfig RoundConfig { get; }
+
+		public static ConcurrentDictionary<(long roundId, RoundPhase phase), DateTimeOffset> PhaseTimeoutLog { get; } = new ConcurrentDictionary<(long roundId, RoundPhase phase), DateTimeOffset>();
+
 		private void SetInputRegistrationTimesout()
 		{
 			InputRegistrationTimesout = DateTimeOffset.UtcNow + InputRegistrationTimeout;
 		}
-
-		public static ConcurrentDictionary<(long roundId, RoundPhase phase), DateTimeOffset> PhaseTimeoutLog { get; } = new ConcurrentDictionary<(long roundId, RoundPhase phase), DateTimeOffset>();
 
 		public async Task ExecuteNextPhaseAsync(RoundPhase expectedPhase, Money feePerInputs = null, Money feePerOutputs = null)
 		{
