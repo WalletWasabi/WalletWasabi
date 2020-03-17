@@ -23,11 +23,9 @@ namespace WalletWasabi.JsonConverters
 			var cs = BigInteger.Parse(arr[0].Value<string>());
 			var ss = BigInteger.Parse(arr[1].Value<string>());
 
-			var carr = cs.ToByteArray(true, true);
-			var sarr = ss.ToByteArray(true, true);
+			var carr = ToFixedLengthByteArray(cs);
+			var sarr = ToFixedLengthByteArray(ss);
 
-			carr = new byte[32 - carr.Length].Concat(carr).ToArray();
-			sarr = new byte[32 - sarr.Length].Concat(sarr).ToArray();
 			var signatureBytes = carr.Concat(sarr).ToArray();
 			var signature = ByteHelpers.ToHex(signatureBytes);
 
@@ -45,6 +43,21 @@ namespace WalletWasabi.JsonConverters
 			writer.WriteValue(c.ToString());
 			writer.WriteValue(s.ToString());
 			writer.WriteEndArray();
+		}
+
+		private static byte[] ToFixedLengthByteArray(BigInteger bi)
+		{
+			var arr = bi.ToByteArray(true, true);
+
+			if (arr.Length > 32)
+			{
+				throw new FormatException("UnblindedSignature components C or S are longer than 32 bytes.");
+			}
+			if (arr.Length < 32)
+			{
+				arr = new byte[32 - arr.Length].Concat(arr).ToArray();
+			}
+			return arr;
 		}
 	}
 }

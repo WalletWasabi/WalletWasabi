@@ -42,5 +42,17 @@ namespace WalletWasabi.Tests.UnitTests.JsonConverters
 				Assert.Equal(unblindedSignature.S, convertedUnblindedSignature.S);
 			}
 		}
+
+		[Fact]
+		public void DetectInvalidSerializedMessage()
+		{
+			var json = "[ '999999999999999999999999999999999999999999999999999999999999999999999999999999'," + // 33 bytes (INVALID)
+			            " '999999999999999999999999999']";
+
+			using var reader = new JsonTextReader(new StringReader(json));
+			var converter = new UnblindedSignatureJsonConverter();
+			var ex = Assert.Throws<FormatException>(() => converter.ReadJson(reader, null, null, null));
+			Assert.Contains("longer than 32 bytes", ex.Message);
+		}
 	}
 }
