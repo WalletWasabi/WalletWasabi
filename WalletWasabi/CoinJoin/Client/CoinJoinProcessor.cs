@@ -50,11 +50,11 @@ namespace WalletWasabi.CoinJoin.Client
 						return;
 					}
 
-					var txsNotKnownByAWalletService = WalletManager.FilterUnknownCoinjoins(unconfirmedCoinJoinHashes);
+					var txsNotKnownByAWallet = WalletManager.FilterUnknownCoinjoins(unconfirmedCoinJoinHashes);
 
 					using var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint);
 
-					var unconfirmedCoinJoins = await client.GetTransactionsAsync(Synchronizer.Network, txsNotKnownByAWalletService, CancellationToken.None).ConfigureAwait(false);
+					var unconfirmedCoinJoins = await client.GetTransactionsAsync(Synchronizer.Network, txsNotKnownByAWallet, CancellationToken.None).ConfigureAwait(false);
 
 					foreach (var tx in unconfirmedCoinJoins.Select(x => new SmartTransaction(x, Height.Mempool)))
 					{

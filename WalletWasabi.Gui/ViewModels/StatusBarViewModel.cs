@@ -104,13 +104,13 @@ namespace WalletWasabi.Gui.ViewModels
 
 			Peers = Tor == TorStatus.NotRunning ? 0 : Nodes.Count;
 
-			Observable.FromEventPattern<bool>(typeof(WalletService), nameof(WalletService.DownloadingBlockChanged))
+			Observable.FromEventPattern<bool>(typeof(Wallet), nameof(Wallet.DownloadingBlockChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => DownloadingBlock = x.EventArgs)
 				.DisposeWith(Disposables);
 
 			IDisposable walletCheckingInterval = null;
-			Observable.FromEventPattern<bool>(typeof(WalletService), nameof(WalletService.InitializingChanged))
+			Observable.FromEventPattern<bool>(typeof(Wallet), nameof(Wallet.InitializingChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
@@ -120,16 +120,16 @@ namespace WalletWasabi.Gui.ViewModels
 
 						if (walletCheckingInterval is null)
 						{
-							var walletService = x.Sender as WalletService;
+							var wallet = x.Sender as Wallet;
 							walletCheckingInterval = Observable.Interval(TimeSpan.FromSeconds(1))
 							   .ObserveOn(RxApp.MainThreadScheduler)
 							   .Subscribe(_ =>
 							   {
 								   var global = Global;
-								   if (walletService is { })
+								   if (wallet is { })
 								   {
-									   var segwitActivationHeight = SmartHeader.GetStartingHeader(walletService.Network).Height;
-									   if (walletService.LastProcessedFilter?.Header?.Height is uint lastProcessedFilterHeight
+									   var segwitActivationHeight = SmartHeader.GetStartingHeader(wallet.Network).Height;
+									   if (wallet.LastProcessedFilter?.Header?.Height is uint lastProcessedFilterHeight
 											&& lastProcessedFilterHeight > segwitActivationHeight
 											&& global?.BitcoinStore?.SmartHeaderChain?.TipHeight is uint tipHeight
 											&& tipHeight > segwitActivationHeight)
@@ -142,7 +142,7 @@ namespace WalletWasabi.Gui.ViewModels
 										   TryAddStatus(StatusType.WalletProcessingFilters, (ushort)perc);
 									   }
 
-									   var txProcessor = walletService.TransactionProcessor;
+									   var txProcessor = wallet.TransactionProcessor;
 									   if (txProcessor is { })
 									   {
 										   var perc = txProcessor.QueuedTxCount == 0 ?
