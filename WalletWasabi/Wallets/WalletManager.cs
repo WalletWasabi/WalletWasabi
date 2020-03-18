@@ -231,14 +231,12 @@ namespace WalletWasabi.Wallets
 
 		private void ChaumianClient_OnDequeue(object sender, DequeueResult e)
 		{
-			var handler = OnDequeue;
-			handler?.Invoke(sender, e);
+			OnDequeue?.Invoke(sender, e);
 		}
 
 		private void TransactionProcessor_WalletRelevantTransactionProcessed(object sender, ProcessedResult e)
 		{
-			var handler = WalletRelevantTransactionProcessed;
-			handler?.Invoke(sender, e);
+			WalletRelevantTransactionProcessed?.Invoke(sender, e);
 		}
 
 		public async Task RemoveAndStopAllAsync(CancellationToken cancel)
