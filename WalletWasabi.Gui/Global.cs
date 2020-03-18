@@ -85,7 +85,7 @@ namespace WalletWasabi.Gui
 			Logger.InitializeDefaults(Path.Combine(DataDir, "Logs.txt"));
 
 			HostedServices = new HostedServices();
-			WalletManager = new WalletManager(new WalletDirectories(DataDir));
+			WalletManager = new WalletManager(DataDir, new WalletDirectories(DataDir));
 
 			LegalDocuments = LegalDocuments.TryLoadAgreed(DataDir);
 
@@ -351,7 +351,7 @@ namespace WalletWasabi.Gui
 
 				#endregion JsonRpcServerInitialization
 
-				WalletManager.Initialize(BitcoinStore, Synchronizer, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
+				WalletManager.Initialize(BitcoinStore, Synchronizer, Nodes, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
 			}
 			catch (Exception ex)
 			{
@@ -607,58 +607,6 @@ namespace WalletWasabi.Gui
 			title = Guard.Correct(title);
 			NotificationHelpers.Notify(message, title, notificationType, async () => await FileHelpers.OpenFileInTextEditorAsync(Logger.FilePath));
 			Logger.LogInfo($"Transaction Notification ({notificationType}): {title} - {message} - {e.Transaction.GetHash()}");
-		}
-
-		public KeyManager LoadKeyManager(string walletName)
-		{
-			(string walletFullPath, string walletBackupFullPath) = WalletManager.WalletDirectories.GetWalletFilePaths(walletName);
-
-			try
-			{
-				return LoadKeyManagerFromFile(walletFullPath);
-			}
-			catch (Exception ex)
-			{
-				if (!File.Exists(walletBackupFullPath))
-				{
-					throw;
-				}
-
-				Logger.LogWarning($"Wallet got corrupted.\n" +
-					$"Wallet Filepath: {walletFullPath}\n" +
-					$"Trying to recover it from backup.\n" +
-					$"Backup path: {walletBackupFullPath}\n" +
-					$"Exception: {ex}");
-				if (File.Exists(walletFullPath))
-				{
-					string corruptedWalletBackupPath = $"{walletBackupFullPath}_CorruptedBackup";
-					if (File.Exists(corruptedWalletBackupPath))
-					{
-						File.Delete(corruptedWalletBackupPath);
-						Logger.LogInfo($"Deleted previous corrupted wallet file backup from `{corruptedWalletBackupPath}`.");
-					}
-					File.Move(walletFullPath, corruptedWalletBackupPath);
-					Logger.LogInfo($"Backed up corrupted wallet file to `{corruptedWalletBackupPath}`.");
-				}
-				File.Copy(walletBackupFullPath, walletFullPath);
-
-				return LoadKeyManagerFromFile(walletFullPath);
-			}
-		}
-
-		public KeyManager LoadKeyManagerFromFile(string walletFullPath)
-		{
-			KeyManager keyManager;
-
-			// Set the LastAccessTime.
-			new FileInfo(walletFullPath)
-			{
-				LastAccessTime = DateTime.Now
-			};
-
-			keyManager = KeyManager.FromFile(walletFullPath);
-			Logger.LogInfo($"Wallet loaded: {Path.GetFileNameWithoutExtension(keyManager.FilePath)}.");
-			return keyManager;
 		}
 
 		/// <summary>

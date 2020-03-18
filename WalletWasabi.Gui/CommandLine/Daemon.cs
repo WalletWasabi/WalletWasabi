@@ -28,11 +28,7 @@ namespace WalletWasabi.Gui.CommandLine
 			{
 				Logger.LogSoftwareStarted("Wasabi Daemon");
 
-				KeyManager keyManager = TryGetKeyManagerFromWalletName(walletName);
-				if (keyManager is null)
-				{
-					return;
-				}
+				KeyManager keyManager = Global.WalletManager.GetWalletByName(walletName).KeyManager;
 
 				string password = null;
 				var count = 3;
@@ -80,18 +76,14 @@ namespace WalletWasabi.Gui.CommandLine
 					return;
 				}
 
-				Wallet = await Global.WalletManager.CreateAndStartWalletAsync(keyManager);
+				Wallet = await Global.WalletManager.CreateAndStartWalletAsync(walletName);
 				if (Global.KillRequested)
 				{
 					return;
 				}
 
-				KeyManager destinationKeyManager = TryGetKeyManagerFromWalletName(destinationWalletName);
+				KeyManager destinationKeyManager = (await Global.WalletManager.CreateAndStartWalletAsync(destinationWalletName)).KeyManager;
 				bool isDifferentDestinationSpecified = keyManager.ExtPubKey != destinationKeyManager.ExtPubKey;
-				if (isDifferentDestinationSpecified)
-				{
-					await Global.WalletManager.CreateAndStartWalletAsync(destinationKeyManager);
-				}
 
 				do
 				{
@@ -147,43 +139,6 @@ namespace WalletWasabi.Gui.CommandLine
 		private bool AnyCoinsQueued()
 		{
 			return Wallet.ChaumianClient.State.AnyCoinsQueued();
-		}
-
-		public KeyManager TryGetKeyManagerFromWalletName(string walletName)
-		{
-			try
-			{
-				KeyManager keyManager = null;
-				if (walletName != null)
-				{
-					try
-					{
-						keyManager = Global.LoadKeyManager(walletName);
-					}
-					catch (FileNotFoundException)
-					{
-						Logger.LogCritical("The selected wallet does not exist, did you delete it?");
-						return null;
-					}
-					catch (Exception ex)
-					{
-						Logger.LogCritical(ex);
-						return null;
-					}
-				}
-
-				if (keyManager is null)
-				{
-					Logger.LogCritical("Wallet was not supplied. Add --wallet:WalletName");
-				}
-
-				return keyManager;
-			}
-			catch (Exception ex)
-			{
-				Logger.LogCritical(ex);
-				return null;
-			}
 		}
 
 		private async Task TryQueueCoinsToMixAsync(string password, int minAnonset = int.MinValue, int maxAnonset = int.MaxValue)

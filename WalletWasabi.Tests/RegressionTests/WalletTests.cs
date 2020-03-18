@@ -296,7 +296,8 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			// 4. Create wallet service.
 			var workDir = Common.GetWorkDir();
-			var wallet = new Wallet(bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer);
+			var wallet = new Wallet(workDir, keyManager);
+			wallet.RegisterServices(bitcoinStore, synchronizer, nodes, serviceConfiguration, synchronizer, null);
 			wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;
 
 			// Get some money, make it confirm.
