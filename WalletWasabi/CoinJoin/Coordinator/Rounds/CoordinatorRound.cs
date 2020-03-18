@@ -443,18 +443,12 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 							PhaseTimeoutLog.TryAdd((RoundId, Phase), DateTimeOffset.UtcNow);
 							string timedOutLogString = $"Round ({RoundId}): {expectedPhase.ToString()} timed out after {timeout.TotalSeconds} seconds.";
 
-							if (expectedPhase == RoundPhase.ConnectionConfirmation)
+							Logger.LogInfo(expectedPhase switch
 							{
-								Logger.LogInfo(timedOutLogString);
-							}
-							else if (expectedPhase == RoundPhase.OutputRegistration)
-							{
-								Logger.LogInfo($"{timedOutLogString} Progressing to signing phase to blame...");
-							}
-							else
-							{
-								Logger.LogInfo($"{timedOutLogString} Aborting...");
-							}
+								RoundPhase.ConnectionConfirmation => timedOutLogString,
+								RoundPhase.OutputRegistration => $"{timedOutLogString} Progressing to signing phase to blame...",
+								_ => $"{timedOutLogString} Aborting..."
+							});
 
 							// This will happen outside the lock.
 							_ = Task.Run(async () =>
