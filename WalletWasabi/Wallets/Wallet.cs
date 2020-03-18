@@ -145,6 +145,7 @@ namespace WalletWasabi.Wallets
 		/// <inheritdoc/>
 		public override async Task StartAsync(CancellationToken cancel)
 		{
+			State = WalletState.Starting;
 			try
 			{
 				InitializingChanged?.Invoke(this, true);
