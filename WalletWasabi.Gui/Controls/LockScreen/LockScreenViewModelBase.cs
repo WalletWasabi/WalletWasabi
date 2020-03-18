@@ -8,7 +8,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 {
 	public abstract class LockScreenViewModelBase : ViewModelBase
 	{
-		private bool _isAnimating;
+		private bool _isAnimationRunning;
 		private bool _isLocked = true;
 		private bool _canSlide;
 		private volatile bool _disposedValue = false; // To detect redundant calls
@@ -27,10 +27,10 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			set => this.RaiseAndSetIfChanged(ref _isLocked, value);
 		}
 
-		public bool IsAnimating
+		public bool IsAnimationRunning
 		{
-			get => _isAnimating;
-			set => this.RaiseAndSetIfChanged(ref _isAnimating, value);
+			get => _isAnimationRunning;
+			set => this.RaiseAndSetIfChanged(ref _isAnimationRunning, value);
 		}
 
 		public void Initialize()
@@ -46,7 +46,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		{
 			IsLocked = false;
 
-			this.WhenAnyValue(x => x.IsAnimating)
+			this.WhenAnyValue(x => x.IsAnimationRunning)
 				.Where(x => !x)
 				.Take(1)
 				.Subscribe(x => MainWindowViewModel.Instance?.CloseLockScreen(this));

@@ -22,8 +22,8 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		public static readonly DirectProperty<SlideLock, bool> IsLockedProperty =
 		AvaloniaProperty.RegisterDirect<SlideLock, bool>(nameof(IsLocked), o => o.IsLocked, (o, v) => o.IsLocked = v);
 
-		public static readonly DirectProperty<SlideLock, bool> IsAnimatingProperty =
-			AvaloniaProperty.RegisterDirect<SlideLock, bool>(nameof(IsAnimating), o => o.IsAnimating, (o, v) => o.IsAnimating = v);
+		public static readonly DirectProperty<SlideLock, bool> IsAnimationRunningProperty =
+			AvaloniaProperty.RegisterDirect<SlideLock, bool>(nameof(IsAnimationRunning), o => o.IsAnimationRunning, (o, v) => o.IsAnimationRunning = v);
 
 		public static readonly StyledProperty<double> ValueProperty =
 			AvaloniaProperty.Register<SlideLock, double>(nameof(Value));
@@ -31,7 +31,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		private Thumb _thumb;
 		private Grid _container;
 		private bool _isLocked;
-		private bool _isAnimating;
+		private bool _isAnimationRunning;
 		private Animation _closeAnimation;
 		private Animation _openAnimation;
 		private bool _canSlide;
@@ -113,10 +113,10 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			set => SetAndRaise(IsLockedProperty, ref _isLocked, value);
 		}
 
-		public bool IsAnimating
+		public bool IsAnimationRunning
 		{
-			get => _isAnimating;
-			set => SetAndRaise(IsAnimatingProperty, ref _isAnimating, value);
+			get => _isAnimationRunning;
+			set => SetAndRaise(IsAnimationRunningProperty, ref _isAnimationRunning, value);
 		}
 
 		public double Value
@@ -127,16 +127,16 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 		public async Task RunCloseAnimationAsync()
 		{
-			IsAnimating = true;
+			IsAnimationRunning = true;
 			await _closeAnimation.RunAsync(this);
-			IsAnimating = false;
+			IsAnimationRunning = false;
 		}
 
 		public async Task RunOpenAnimationAsync()
 		{
-			IsAnimating = true;
+			IsAnimationRunning = true;
 			await _openAnimation.RunAsync(this);
-			IsAnimating = false;
+			IsAnimationRunning = false;
 		}
 
 		protected override Size ArrangeOverride(Size finalSize)
