@@ -160,10 +160,10 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 			_thumb.DragDelta += OnThumb_DragDelta;
 
-			_thumb.DragCompleted += OnThumb_DragCompleted;
+			_thumb.DragCompleted += OnThumb_DragCompletedAsync;
 		}
 
-		private async void OnThumb_DragCompleted(object sender, VectorEventArgs e)
+		private async void OnThumb_DragCompletedAsync(object sender, VectorEventArgs e)
 		{
 			if (CanSlide)
 			{
