@@ -36,41 +36,7 @@ namespace WalletWasabi.Wallets
 {
 	public class Wallet : IHostedService
 	{
-		public static event EventHandler<bool> DownloadingBlockChanged;
-
-		public static event EventHandler<bool> InitializingChanged;
-
-		private static Random Random { get; } = new Random();
-
-		public BitcoinStore BitcoinStore { get; }
-		public KeyManager KeyManager { get; }
-		public WasabiSynchronizer Synchronizer { get; }
-		public CoinJoinClient ChaumianClient { get; }
-		public NodesGroup Nodes { get; }
-		public string BlocksFolderPath { get; }
-
-		private AsyncLock HandleFiltersLock { get; }
-
-		private AsyncLock BlockFolderLock { get; }
-
-		private int NodeTimeouts { get; set; }
-
-		public ServiceConfiguration ServiceConfiguration { get; }
-
-		public string Name => Path.GetFileNameWithoutExtension(KeyManager.FilePath);
-
-		/// <summary>
-		/// Unspent Transaction Outputs
-		/// </summary>
-		public ICoinsView Coins { get; }
-
-		public event EventHandler<FilterModel> NewFilterProcessed;
-
-		public event EventHandler<Block> NewBlockProcessed;
-
-		public Network Network => Synchronizer.Network;
-
-		public TransactionProcessor TransactionProcessor { get; }
+		private Node _localBitcoinCoreNode = null;
 
 		public Wallet(
 			BitcoinStore bitcoinStore,
@@ -122,6 +88,237 @@ namespace WalletWasabi.Wallets
 			BitcoinStore.IndexStore.NewFilter += IndexDownloader_NewFilterAsync;
 			BitcoinStore.IndexStore.Reorged += IndexDownloader_ReorgedAsync;
 			BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;
+		}
+
+		public static event EventHandler<bool> DownloadingBlockChanged;
+
+		public static event EventHandler<bool> InitializingChanged;
+
+		public event EventHandler<FilterModel> NewFilterProcessed;
+
+		public event EventHandler<Block> NewBlockProcessed;
+
+		public BitcoinStore BitcoinStore { get; }
+		public KeyManager KeyManager { get; }
+		public WasabiSynchronizer Synchronizer { get; }
+		public CoinJoinClient ChaumianClient { get; }
+		public NodesGroup Nodes { get; }
+		public string BlocksFolderPath { get; }
+		public ServiceConfiguration ServiceConfiguration { get; }
+		public string Name => Path.GetFileNameWithoutExtension(KeyManager.FilePath);
+
+		/// <summary>
+		/// Unspent Transaction Outputs
+		/// </summary>
+		public ICoinsView Coins { get; }
+
+		public Network Network => Synchronizer.Network;
+		public TransactionProcessor TransactionProcessor { get; }
+
+		public Node LocalBitcoinCoreNode
+		{
+			get
+			{
+				if (Network == Network.RegTest)
+				{
+					return Nodes.ConnectedNodes.First();
+				}
+
+				return _localBitcoinCoreNode;
+			}
+			private set => _localBitcoinCoreNode = value;
+		}
+
+		public IFeeProvider FeeProvider { get; }
+		public bool IsStoppingOrStopped { get; private set; }
+		public CoreNode CoreNode { get; }
+		public FilterModel LastProcessedFilter { get; private set; }
+		private static Random Random { get; } = new Random();
+		private AsyncLock HandleFiltersLock { get; }
+
+		private AsyncLock BlockFolderLock { get; }
+
+		private int NodeTimeouts { get; set; }
+
+		/// <inheritdoc/>
+		public async Task StartAsync(CancellationToken cancel)
+		{
+			try
+			{
+				InitializingChanged?.Invoke(this, true);
+
+				if (!Synchronizer.IsRunning)
+				{
+					throw new NotSupportedException($"{nameof(Synchronizer)} is not running.");
+				}
+
+				while (!BitcoinStore.IsInitialized)
+				{
+					await Task.Delay(100).ConfigureAwait(false);
+
+					cancel.ThrowIfCancellationRequested();
+				}
+
+				using (BenchmarkLogger.Measure())
+				{
+					await RuntimeParams.LoadAsync();
+
+					ChaumianClient.Start();
+
+					using (await HandleFiltersLock.LockAsync())
+					{
+						await LoadWalletStateAsync(cancel);
+						await LoadDummyMempoolAsync();
+					}
+				}
+			}
+			finally
+			{
+				InitializingChanged?.Invoke(this, false);
+			}
+		}
+
+		/// <param name="hash">Block hash of the desired block, represented as a 256 bit integer.</param>
+		/// <exception cref="OperationCanceledException"></exception>
+		public async Task<Block> FetchBlockAsync(uint256 hash, CancellationToken cancel)
+		{
+			Block block = await TryGetBlockFromFileAsync(hash, cancel);
+			if (block is null)
+			{
+				block = await DownloadBlockAsync(hash, cancel);
+			}
+			return block;
+		}
+
+		/// <remarks>
+		/// Use it at reorgs.
+		/// </remarks>
+		public async Task DeleteBlockAsync(uint256 hash)
+		{
+			try
+			{
+				using (await BlockFolderLock.LockAsync())
+				{
+					var filePaths = Directory.EnumerateFiles(BlocksFolderPath);
+					var fileNames = filePaths.Select(Path.GetFileName);
+					var hashes = fileNames.Select(x => new uint256(x));
+
+					if (hashes.Contains(hash))
+					{
+						File.Delete(Path.Combine(BlocksFolderPath, hash.ToString()));
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning(ex);
+			}
+		}
+
+		public async Task<int> CountBlocksAsync()
+		{
+			using (await BlockFolderLock.LockAsync())
+			{
+				return Directory.EnumerateFiles(BlocksFolderPath).Count();
+			}
+		}
+
+		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
+		/// <param name="allowedInputs">Only these inputs allowed to be used to build the transaction. The wallet must know the corresponding private keys.</param>
+		/// <exception cref="ArgumentException"></exception>
+		/// <exception cref="ArgumentNullException"></exception>
+		/// <exception cref="ArgumentOutOfRangeException"></exception>
+		public BuildTransactionResult BuildTransaction(
+			string password,
+			PaymentIntent payments,
+			FeeStrategy feeStrategy,
+			bool allowUnconfirmed = false,
+			IEnumerable<TxoRef> allowedInputs = null)
+		{
+			var builder = new TransactionFactory(Network, KeyManager, Coins, password, allowUnconfirmed);
+			return builder.BuildTransaction(
+				payments,
+				() =>
+				{
+					if (feeStrategy.Type == FeeStrategyType.Target)
+					{
+						return FeeProvider.AllFeeEstimate?.GetFeeRate(feeStrategy.Target) ?? throw new InvalidOperationException("Cannot get fee estimations.");
+					}
+					else if (feeStrategy.Type == FeeStrategyType.Rate)
+					{
+						return feeStrategy.Rate;
+					}
+					else
+					{
+						throw new NotSupportedException(feeStrategy.Type.ToString());
+					}
+				},
+				allowedInputs,
+				SelectLockTimeForTransaction);
+		}
+
+		public void RenameLabel(SmartCoin coin, SmartLabel newLabel)
+		{
+			coin.Label = newLabel ?? SmartLabel.Empty;
+			var key = KeyManager.GetKeys(x => x.P2wpkhScript == coin.ScriptPubKey).SingleOrDefault();
+			if (key != null)
+			{
+				key.SetLabel(coin.Label, KeyManager);
+			}
+		}
+
+		public ISet<string> GetLabels() => TransactionProcessor.Coins.AsAllCoinsView()
+			.SelectMany(x => x.Label.Labels)
+			.Concat(KeyManager
+				.GetKeys()
+				.SelectMany(x => x.Label.Labels))
+			.ToHashSet();
+
+		/// <inheritdoc/>
+		public async Task StopAsync(CancellationToken cancel)
+		{
+			IsStoppingOrStopped = true;
+
+			BitcoinStore.IndexStore.NewFilter -= IndexDownloader_NewFilterAsync;
+			BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
+			BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
+			TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessedAsync;
+
+			DisconnectDisposeNullLocalBitcoinCoreNode();
+
+			await ChaumianClient.StopAsync(cancel).ConfigureAwait(false);
+			Logger.LogInfo($"{nameof(ChaumianClient)} is stopped.");
+		}
+
+		internal static LockTime InternalSelectLockTimeForTransaction(uint tipHeight, Random rnd)
+		{
+			try
+			{
+				// We use the timelock distribution observed in the bitcoin network
+				// in order to reduce the wasabi wallet transactions fingerprinting
+				// chances.
+				//
+				// Network observations:
+				// 90.0% uses locktime = 0
+				//  7.5% uses locktime = current tip
+				//  0.65% uses locktime = next tip (current tip + 1)
+				//  1.85% uses up to 5 blocks in the future (we don't do this)
+				//  0.65% uses an uniform random from -1 to -99
+
+				// sometimes pick locktime a bit further back, to help privacy.
+				var randomValue = rnd.NextDouble();
+				return randomValue switch
+				{
+					var r when r < (0.9) => LockTime.Zero,
+					var r when r < (0.9 + 0.075) => tipHeight,
+					var r when r < (0.9 + 0.075 + 0.0065) => (uint)(tipHeight + 1),
+					_ => (uint)(tipHeight - rnd.Next(1, 100))
+				};
+			}
+			catch
+			{
+				return LockTime.Zero;
+			}
 		}
 
 		private async void TransactionProcessor_WalletRelevantTransactionProcessedAsync(object sender, ProcessedResult e)
@@ -232,44 +429,6 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-		/// <inheritdoc/>
-		public async Task StartAsync(CancellationToken cancel)
-		{
-			try
-			{
-				InitializingChanged?.Invoke(this, true);
-
-				if (!Synchronizer.IsRunning)
-				{
-					throw new NotSupportedException($"{nameof(Synchronizer)} is not running.");
-				}
-
-				while (!BitcoinStore.IsInitialized)
-				{
-					await Task.Delay(100).ConfigureAwait(false);
-
-					cancel.ThrowIfCancellationRequested();
-				}
-
-				using (BenchmarkLogger.Measure())
-				{
-					await RuntimeParams.LoadAsync();
-
-					ChaumianClient.Start();
-
-					using (await HandleFiltersLock.LockAsync())
-					{
-						await LoadWalletStateAsync(cancel);
-						await LoadDummyMempoolAsync();
-					}
-				}
-			}
-			finally
-			{
-				InitializingChanged?.Invoke(this, false);
-			}
-		}
-
 		private async Task LoadWalletStateAsync(CancellationToken cancel)
 		{
 			KeyManager.AssertNetworkOrClearBlockState(Network);
@@ -357,36 +516,6 @@ namespace WalletWasabi.Wallets
 			}
 
 			LastProcessedFilter = filterModel;
-		}
-
-		private Node _localBitcoinCoreNode = null;
-
-		public Node LocalBitcoinCoreNode
-		{
-			get
-			{
-				if (Network == Network.RegTest)
-				{
-					return Nodes.ConnectedNodes.First();
-				}
-
-				return _localBitcoinCoreNode;
-			}
-			private set => _localBitcoinCoreNode = value;
-		}
-
-		public IFeeProvider FeeProvider { get; }
-
-		/// <param name="hash">Block hash of the desired block, represented as a 256 bit integer.</param>
-		/// <exception cref="OperationCanceledException"></exception>
-		public async Task<Block> FetchBlockAsync(uint256 hash, CancellationToken cancel)
-		{
-			Block block = await TryGetBlockFromFileAsync(hash, cancel);
-			if (block is null)
-			{
-				block = await DownloadBlockAsync(hash, cancel);
-			}
-			return block;
 		}
 
 		/// <param name="hash">Block hash of the desired block, represented as a 256 bit integer.</param>
@@ -654,127 +783,12 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-		/// <remarks>
-		/// Use it at reorgs.
-		/// </remarks>
-		public async Task DeleteBlockAsync(uint256 hash)
-		{
-			try
-			{
-				using (await BlockFolderLock.LockAsync())
-				{
-					var filePaths = Directory.EnumerateFiles(BlocksFolderPath);
-					var fileNames = filePaths.Select(Path.GetFileName);
-					var hashes = fileNames.Select(x => new uint256(x));
-
-					if (hashes.Contains(hash))
-					{
-						File.Delete(Path.Combine(BlocksFolderPath, hash.ToString()));
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.LogWarning(ex);
-			}
-		}
-
-		public async Task<int> CountBlocksAsync()
-		{
-			using (await BlockFolderLock.LockAsync())
-			{
-				return Directory.EnumerateFiles(BlocksFolderPath).Count();
-			}
-		}
-
-		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
-		/// <param name="allowedInputs">Only these inputs allowed to be used to build the transaction. The wallet must know the corresponding private keys.</param>
-		/// <exception cref="ArgumentException"></exception>
-		/// <exception cref="ArgumentNullException"></exception>
-		/// <exception cref="ArgumentOutOfRangeException"></exception>
-		public BuildTransactionResult BuildTransaction(
-			string password,
-			PaymentIntent payments,
-			FeeStrategy feeStrategy,
-			bool allowUnconfirmed = false,
-			IEnumerable<TxoRef> allowedInputs = null)
-		{
-			var builder = new TransactionFactory(Network, KeyManager, Coins, password, allowUnconfirmed);
-			return builder.BuildTransaction(
-				payments,
-				() =>
-				{
-					if (feeStrategy.Type == FeeStrategyType.Target)
-					{
-						return FeeProvider.AllFeeEstimate?.GetFeeRate(feeStrategy.Target) ?? throw new InvalidOperationException("Cannot get fee estimations.");
-					}
-					else if (feeStrategy.Type == FeeStrategyType.Rate)
-					{
-						return feeStrategy.Rate;
-					}
-					else
-					{
-						throw new NotSupportedException(feeStrategy.Type.ToString());
-					}
-				},
-				allowedInputs,
-				SelectLockTimeForTransaction);
-		}
-
-		public void RenameLabel(SmartCoin coin, SmartLabel newLabel)
-		{
-			coin.Label = newLabel ?? SmartLabel.Empty;
-			var key = KeyManager.GetKeys(x => x.P2wpkhScript == coin.ScriptPubKey).SingleOrDefault();
-			if (key != null)
-			{
-				key.SetLabel(coin.Label, KeyManager);
-			}
-		}
-
-		internal static LockTime InternalSelectLockTimeForTransaction(uint tipHeight, Random rnd)
-		{
-			try
-			{
-				// We use the timelock distribution observed in the bitcoin network
-				// in order to reduce the wasabi wallet transactions fingerprinting
-				// chances.
-				//
-				// Network observations:
-				// 90.0% uses locktime = 0
-				//  7.5% uses locktime = current tip
-				//  0.65% uses locktime = next tip (current tip + 1)
-				//  1.85% uses up to 5 blocks in the future (we don't do this)
-				//  0.65% uses an uniform random from -1 to -99
-
-				// sometimes pick locktime a bit further back, to help privacy.
-				var randomValue = rnd.NextDouble();
-				return randomValue switch
-				{
-					var r when r < (0.9) => LockTime.Zero,
-					var r when r < (0.9 + 0.075) => tipHeight,
-					var r when r < (0.9 + 0.075 + 0.0065) => (uint)(tipHeight + 1),
-					_ => (uint)(tipHeight - rnd.Next(1, 100))
-				};
-			}
-			catch
-			{
-				return LockTime.Zero;
-			}
-		}
-
 		private LockTime SelectLockTimeForTransaction()
 		{
 			var currentTipHeight = Synchronizer.BitcoinStore.SmartHeaderChain.TipHeight;
 
 			return InternalSelectLockTimeForTransaction(currentTipHeight, Random);
 		}
-
-		public ISet<string> GetLabels() => TransactionProcessor.Coins.AsAllCoinsView()
-			.SelectMany(x => x.Label.Labels)
-			.Concat(KeyManager
-				.GetKeys()
-				.SelectMany(x => x.Label.Labels))
-			.ToHashSet();
 
 		/// <summary>
 		/// Current timeout used when downloading a block from the remote node. It is defined in seconds.
@@ -823,27 +837,6 @@ namespace WalletWasabi.Wallets
 			await RuntimeParams.Instance.SaveAsync();
 
 			Logger.LogInfo($"Current timeout value used on block download is: {timeout} seconds.");
-		}
-
-		public bool IsStoppingOrStopped { get; private set; }
-
-		public CoreNode CoreNode { get; }
-		public FilterModel LastProcessedFilter { get; private set; }
-
-		/// <inheritdoc/>
-		public async Task StopAsync(CancellationToken cancel)
-		{
-			IsStoppingOrStopped = true;
-
-			BitcoinStore.IndexStore.NewFilter -= IndexDownloader_NewFilterAsync;
-			BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
-			BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
-			TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessedAsync;
-
-			DisconnectDisposeNullLocalBitcoinCoreNode();
-
-			await ChaumianClient.StopAsync(cancel).ConfigureAwait(false);
-			Logger.LogInfo($"{nameof(ChaumianClient)} is stopped.");
 		}
 	}
 }
