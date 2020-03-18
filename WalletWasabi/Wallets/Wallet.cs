@@ -62,10 +62,6 @@ namespace WalletWasabi.Wallets
 
 		public event EventHandler<DequeueResult> OnDequeue;
 
-		public event EventHandler<ProcessedResult> WalletRelevantTransactionProcessed;
-
-		public event EventHandler<DequeueResult> OnDequeue;
-
 		public static event EventHandler<bool> DownloadingBlockChanged;
 
 		public static event EventHandler<bool> InitializingChanged;
@@ -417,11 +413,6 @@ namespace WalletWasabi.Wallets
 			}
 
 			WalletRelevantTransactionProcessed?.Invoke(sender, e);
-		}
-
-		private void ChaumianClient_OnDequeue(object sender, DequeueResult e)
-		{
-			OnDequeue?.Invoke(sender, e);
 		}
 
 		private void ChaumianClient_OnDequeue(object sender, DequeueResult e)
