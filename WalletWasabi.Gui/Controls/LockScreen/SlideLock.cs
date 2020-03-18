@@ -13,6 +13,21 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 {
 	public class SlideLock : ContentControl
 	{
+		public static readonly DirectProperty<SlideLock, bool> CanSlideProperty =
+			AvaloniaProperty.RegisterDirect<SlideLock, bool>(nameof(CanSlide), o => o.CanSlide, (o, v) => o.CanSlide = v);
+
+		public static readonly DirectProperty<SlideLock, double> ThresholdProperty =
+			AvaloniaProperty.RegisterDirect<SlideLock, double>(nameof(Threshold), o => o.Threshold, (o, v) => o.Threshold = v);
+
+		public static readonly DirectProperty<SlideLock, bool> IsLockedProperty =
+		AvaloniaProperty.RegisterDirect<SlideLock, bool>(nameof(IsLocked), o => o.IsLocked, (o, v) => o.IsLocked = v);
+
+		public static readonly DirectProperty<SlideLock, bool> IsAnimatingProperty =
+			AvaloniaProperty.RegisterDirect<SlideLock, bool>(nameof(IsAnimating), o => o.IsAnimating, (o, v) => o.IsAnimating = v);
+
+		public static readonly StyledProperty<double> ValueProperty =
+			AvaloniaProperty.Register<SlideLock, double>(nameof(Value));
+
 		private Thumb _thumb;
 		private Grid _container;
 		private bool _isLocked;
@@ -77,7 +92,37 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			};
 
 			this.GetObservable(IsLockedProperty)
-				.Subscribe(async isLocked => await (isLocked ? RunCloseAnimationAsync() : RunOpenAnimationAsync()));			
+				.Subscribe(async isLocked => await (isLocked ? RunCloseAnimationAsync() : RunOpenAnimationAsync()));
+		}
+
+		public bool CanSlide
+		{
+			get => _canSlide;
+			set => SetAndRaise(CanSlideProperty, ref _canSlide, value);
+		}
+
+		public double Threshold
+		{
+			get => _threshold;
+			set => SetAndRaise(ThresholdProperty, ref _threshold, value);
+		}
+
+		public bool IsLocked
+		{
+			get => _isLocked;
+			set => SetAndRaise(IsLockedProperty, ref _isLocked, value);
+		}
+
+		public bool IsAnimating
+		{
+			get => _isAnimating;
+			set => SetAndRaise(IsAnimatingProperty, ref _isAnimating, value);
+		}
+
+		public double Value
+		{
+			get => GetValue(ValueProperty);
+			set => SetValue(ValueProperty, value);
 		}
 
 		public async Task RunCloseAnimationAsync()
@@ -92,51 +137,6 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			IsAnimating = true;
 			await _openAnimation.RunAsync(this);
 			IsAnimating = false;
-		}
-
-		public static readonly DirectProperty<SlideLock, bool> CanSlideProperty =
-			AvaloniaProperty.RegisterDirect<SlideLock, bool>(nameof(CanSlide), o => o.CanSlide, (o, v) => o.CanSlide = v);
-
-		public bool CanSlide
-		{
-			get => _canSlide;
-			set => SetAndRaise(CanSlideProperty, ref _canSlide, value);
-		}
-
-		public static readonly DirectProperty<SlideLock, double> ThresholdProperty =
-			AvaloniaProperty.RegisterDirect<SlideLock, double>(nameof(Threshold), o => o.Threshold, (o, v) => o.Threshold = v);
-
-		public double Threshold
-		{
-			get => _threshold;
-			set => SetAndRaise(ThresholdProperty, ref _threshold, value);
-		}
-
-		public static readonly DirectProperty<SlideLock, bool> IsLockedProperty =
-		AvaloniaProperty.RegisterDirect<SlideLock, bool>(nameof(IsLocked), o => o.IsLocked, (o, v) => o.IsLocked = v);
-
-		public bool IsLocked
-		{
-			get => _isLocked;
-			set => SetAndRaise(IsLockedProperty, ref _isLocked, value);
-		}
-
-		public static readonly DirectProperty<SlideLock, bool> IsAnimatingProperty =
-			AvaloniaProperty.RegisterDirect<SlideLock, bool>(nameof(IsAnimating), o => o.IsAnimating, (o, v) => o.IsAnimating = v);
-
-		public bool IsAnimating
-		{
-			get => _isAnimating;
-			set => SetAndRaise(IsAnimatingProperty, ref _isAnimating, value);
-		}
-
-		public static readonly StyledProperty<double> ValueProperty =
-			AvaloniaProperty.Register<SlideLock, double>(nameof(Value));
-
-		public double Value
-		{
-			get => GetValue(ValueProperty);
-			set => SetValue(ValueProperty, value);
 		}
 
 		protected override Size ArrangeOverride(Size finalSize)
