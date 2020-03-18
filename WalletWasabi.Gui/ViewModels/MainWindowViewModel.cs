@@ -6,6 +6,7 @@ using NBitcoin;
 using ReactiveUI;
 using Splat;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reactive;
@@ -28,12 +29,18 @@ namespace WalletWasabi.Gui.ViewModels
 		private StatusBarViewModel _statusBar;
 		private LockScreenViewModelBase _lockScreen;
 		private volatile bool _disposedValue = false; // To detect redundant calls
+		private Stack<LockScreenViewModelBase> _lockScreens;
+		private bool _menuVisible;
 
 		public MainWindowViewModel()
 		{
 			Shell = IoC.Get<IShell>();
 
 			var global = Locator.Current.GetService<Global>();
+
+			_lockScreens = new Stack<LockScreenViewModelBase>();
+
+			_menuVisible = true;
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
@@ -88,10 +95,44 @@ namespace WalletWasabi.Gui.ViewModels
 		public LockScreenViewModelBase LockScreen
 		{
 			get => _lockScreen;
-			set => this.RaiseAndSetIfChanged(ref _lockScreen, value);
+			private set => this.RaiseAndSetIfChanged(ref _lockScreen, value);
 		}
 
-		public ReactiveCommand<Unit, Unit> LockScreenCommand { get; }
+		public bool MenuVisible
+		{
+			get { return _menuVisible; }
+			set { this.RaiseAndSetIfChanged(ref _menuVisible, value); }
+		}
+
+		public void PushLockScreen(LockScreenViewModelBase lockScreen)
+		{
+			if (LockScreen is { })
+			{
+				_lockScreens.Push(LockScreen);
+			}
+
+			MenuVisible = false;
+			lockScreen.Initialize();
+			LockScreen = lockScreen;
+		}
+
+		public void CloseLockScreen(LockScreenViewModelBase lockScreen)
+		{
+			if (lockScreen == LockScreen)
+			{
+				LockScreen?.Dispose();
+
+				if (_lockScreens.Count > 0)
+				{
+					LockScreen = _lockScreens.Pop();
+				}
+				else
+				{
+					LockScreen = null;
+					MenuVisible = true;
+				}
+			}
+		}
 
 		public IShell Shell { get; }
 
@@ -117,11 +158,9 @@ namespace WalletWasabi.Gui.ViewModels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
-					LockScreen?.Dispose();
-
-					LockScreen = uiConfig.LockScreenPinHash.Length == 0
-						? (LockScreenViewModelBase)new SlideLockScreenViewModel()
-						: new PinLockScreenViewModel();
+					PushLockScreen(uiConfig.LockScreenPinHash.Length == 0
+						? (WasabiLockScreenViewModelBase)new SlideLockScreenViewModel()
+						: new PinLockScreenViewModel());
 				});
 		}
 

@@ -22,7 +22,7 @@
                   UseLayoutRounding="True"
                   RenderOptions.BitmapInterpolationMode="HighQuality">
   <cont:MetroWindow.TitleBarContent>
-    <StackPanel Orientation="Horizontal" IsVisible="{Binding !LockScreen.IsLocked}">
+    <StackPanel Orientation="Horizontal" IsVisible="{Binding MenuVisible}">
       <menu:MainMenuView DataContext="{Binding Shell.MainMenu}" Margin="4 0 0 0" Foreground="{DynamicResource ThemeForegroundBrush}" VerticalAlignment="Stretch" FontSize="13" />      
     </StackPanel>
   </cont:MetroWindow.TitleBarContent>

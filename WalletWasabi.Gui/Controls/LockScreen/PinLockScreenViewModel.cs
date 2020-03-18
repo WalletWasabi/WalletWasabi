@@ -9,11 +9,11 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Controls.LockScreen
 {
-	public class PinLockScreenViewModel : LockScreenViewModelBase
+	public class PinLockScreenViewModel : WasabiLockScreenViewModelBase
 	{
 		private string _pinInput;
 
-		public PinLockScreenViewModel()
+		public PinLockScreenViewModel() : base()
 		{
 			KeyPadCommand = ReactiveCommand.Create<string>((arg) =>
 			{
@@ -62,7 +62,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 					if (global.UiConfig.LockScreenPinHash == HashHelpers.GenerateSha256Hash(x))
 					{
-						IsLocked = false;
+						Close();
 						PinInput = string.Empty;
 					}
 				});

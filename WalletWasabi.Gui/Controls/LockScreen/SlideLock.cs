@@ -7,14 +7,31 @@ using Avalonia.Input;
 using Avalonia.Styling;
 using Avalonia.Utilities;
 using System;
+using System.Threading.Tasks;
 
 namespace WalletWasabi.Gui.Controls.LockScreen
 {
 	public class SlideLock : ContentControl
 	{
+		public static readonly DirectProperty<SlideLock, bool> CanSlideProperty =
+			AvaloniaProperty.RegisterDirect<SlideLock, bool>(nameof(CanSlide), o => o.CanSlide, (o, v) => o.CanSlide = v);
+
+		public static readonly DirectProperty<SlideLock, double> ThresholdProperty =
+			AvaloniaProperty.RegisterDirect<SlideLock, double>(nameof(Threshold), o => o.Threshold, (o, v) => o.Threshold = v);
+
+		public static readonly DirectProperty<SlideLock, bool> IsLockedProperty =
+		AvaloniaProperty.RegisterDirect<SlideLock, bool>(nameof(IsLocked), o => o.IsLocked, (o, v) => o.IsLocked = v);
+
+		public static readonly DirectProperty<SlideLock, bool> IsAnimationRunningProperty =
+			AvaloniaProperty.RegisterDirect<SlideLock, bool>(nameof(IsAnimationRunning), o => o.IsAnimationRunning, (o, v) => o.IsAnimationRunning = v);
+
+		public static readonly StyledProperty<double> ValueProperty =
+			AvaloniaProperty.Register<SlideLock, double>(nameof(Value));
+
 		private Thumb _thumb;
 		private Grid _container;
 		private bool _isLocked;
+		private bool _isAnimationRunning;
 		private Animation _closeAnimation;
 		private Animation _openAnimation;
 		private bool _canSlide;
@@ -75,11 +92,8 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			};
 
 			this.GetObservable(IsLockedProperty)
-				.Subscribe(async isLocked => await (isLocked ? _closeAnimation.RunAsync(this) : _openAnimation.RunAsync(this)));
+				.Subscribe(async isLocked => await (isLocked ? RunCloseAnimationAsync() : RunOpenAnimationAsync()));
 		}
-
-		public static readonly DirectProperty<SlideLock, bool> CanSlideProperty =
-			AvaloniaProperty.RegisterDirect<SlideLock, bool>(nameof(CanSlide), o => o.CanSlide, (o, v) => o.CanSlide = v);
 
 		public bool CanSlide
 		{
@@ -87,17 +101,11 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			set => SetAndRaise(CanSlideProperty, ref _canSlide, value);
 		}
 
-		public static readonly DirectProperty<SlideLock, double> ThresholdProperty =
-			AvaloniaProperty.RegisterDirect<SlideLock, double>(nameof(Threshold), o => o.Threshold, (o, v) => o.Threshold = v);
-
 		public double Threshold
 		{
 			get => _threshold;
 			set => SetAndRaise(ThresholdProperty, ref _threshold, value);
 		}
-
-		public static readonly DirectProperty<SlideLock, bool> IsLockedProperty =
-		AvaloniaProperty.RegisterDirect<SlideLock, bool>(nameof(IsLocked), o => o.IsLocked, (o, v) => o.IsLocked = v);
 
 		public bool IsLocked
 		{
@@ -105,13 +113,30 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			set => SetAndRaise(IsLockedProperty, ref _isLocked, value);
 		}
 
-		public static readonly StyledProperty<double> ValueProperty =
-			AvaloniaProperty.Register<SlideLock, double>(nameof(Value));
+		public bool IsAnimationRunning
+		{
+			get => _isAnimationRunning;
+			set => SetAndRaise(IsAnimationRunningProperty, ref _isAnimationRunning, value);
+		}
 
 		public double Value
 		{
 			get => GetValue(ValueProperty);
 			set => SetValue(ValueProperty, value);
+		}
+
+		public async Task RunCloseAnimationAsync()
+		{
+			IsAnimationRunning = true;
+			await _closeAnimation.RunAsync(this);
+			IsAnimationRunning = false;
+		}
+
+		public async Task RunOpenAnimationAsync()
+		{
+			IsAnimationRunning = true;
+			await _openAnimation.RunAsync(this);
+			IsAnimationRunning = false;
 		}
 
 		protected override Size ArrangeOverride(Size finalSize)
@@ -135,21 +160,21 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 			_thumb.DragDelta += OnThumb_DragDelta;
 
-			_thumb.DragCompleted += OnThumb_DragCompleted;
+			_thumb.DragCompleted += OnThumb_DragCompletedAsync;
 		}
 
-		private void OnThumb_DragCompleted(object sender, VectorEventArgs e)
+		private async void OnThumb_DragCompletedAsync(object sender, VectorEventArgs e)
 		{
 			if (CanSlide)
 			{
 				if (Value <= Threshold)
 				{
 					IsLocked = false;
-					_openAnimation.RunAsync(this);
+					await RunOpenAnimationAsync();
 				}
 				else
 				{
-					_closeAnimation.RunAsync(this);
+					await RunCloseAnimationAsync();
 				}
 			}
 		}
