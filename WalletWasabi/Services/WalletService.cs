@@ -129,7 +129,7 @@ namespace WalletWasabi.Services
 			{
 				foreach (var coin in e.NewlySpentCoins.Concat(e.ReplacedCoins).Concat(e.SuccessfullyDoubleSpentCoins).Distinct())
 				{
-					ChaumianClient.ExposedLinks.TryRemove(coin.GetTxoRef(), out _);
+					ChaumianClient.ExposedLinks.TryRemove(coin.OutPoint, out _);
 				}
 			}
 			catch (Exception ex)
