@@ -19,7 +19,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using Splat;
-using WalletWasabi.Services;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {

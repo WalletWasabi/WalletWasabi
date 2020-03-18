@@ -14,7 +14,7 @@ using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Services;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {

@@ -9,7 +9,7 @@ using WalletWasabi.Gui.Models.StatusBarStatuses;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Exceptions;
-using WalletWasabi.Services;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
