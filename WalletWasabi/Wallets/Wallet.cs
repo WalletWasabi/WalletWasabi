@@ -34,43 +34,30 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Wallets
 {
-	public class Wallet : IHostedService
+	public class Wallet : BackgroundService
 	{
 		private Node _localBitcoinCoreNode = null;
 
-		public Wallet(
-			BitcoinStore bitcoinStore,
-			KeyManager keyManager,
-			WasabiSynchronizer syncer,
-			NodesGroup nodes,
-			string workFolderDir,
-			ServiceConfiguration serviceConfiguration,
-			IFeeProvider feeProvider,
-			CoreNode coreNode = null)
+		public Wallet(string dataDir, Network network, string filePath)
+			: this(dataDir, network, KeyManager.FromFile(filePath))
 		{
-			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
-			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
-			Nodes = Guard.NotNull(nameof(nodes), nodes);
-			Synchronizer = Guard.NotNull(nameof(syncer), syncer);
-			ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
-			FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
-			CoreNode = coreNode;
+		}
 
-			ChaumianClient = new CoinJoinClient(Synchronizer, Network, keyManager);
+		public Wallet(string dataDir, Network network, KeyManager keyManager)
+		{
+			Network = network;
+			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
+
+			ChaumianClient = new CoinJoinClient(Synchronizer, Network, KeyManager);
 			HandleFiltersLock = new AsyncLock();
 
-			BlocksFolderPath = Path.Combine(workFolderDir, "Blocks", Network.ToString());
-			RuntimeParams.SetDataDir(workFolderDir);
+			BlocksFolderPath = Path.Combine(dataDir, "Blocks", Network.ToString());
+			RuntimeParams.SetDataDir(dataDir);
 
 			BlockFolderLock = new AsyncLock();
 
 			KeyManager.AssertCleanKeysIndexed();
 			KeyManager.AssertLockedInternalKeysIndexed(14);
-
-			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold, ServiceConfiguration.PrivacyLevelStrong);
-			Coins = TransactionProcessor.Coins;
-
-			TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessedAsync;
 
 			if (Directory.Exists(BlocksFolderPath))
 			{
@@ -84,10 +71,6 @@ namespace WalletWasabi.Wallets
 			{
 				Directory.CreateDirectory(BlocksFolderPath);
 			}
-
-			BitcoinStore.IndexStore.NewFilter += IndexDownloader_NewFilterAsync;
-			BitcoinStore.IndexStore.Reorged += IndexDownloader_ReorgedAsync;
-			BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;
 		}
 
 		public static event EventHandler<bool> DownloadingBlockChanged;
@@ -98,22 +81,28 @@ namespace WalletWasabi.Wallets
 
 		public event EventHandler<Block> NewBlockProcessed;
 
-		public BitcoinStore BitcoinStore { get; }
+		public BitcoinStore BitcoinStore { get; private set; }
 		public KeyManager KeyManager { get; }
-		public WasabiSynchronizer Synchronizer { get; }
-		public CoinJoinClient ChaumianClient { get; }
-		public NodesGroup Nodes { get; }
+		public WasabiSynchronizer Synchronizer { get; private set; }
+		public CoinJoinClient ChaumianClient { get; private set; }
+		public NodesGroup Nodes { get; private set; }
 		public string BlocksFolderPath { get; }
-		public ServiceConfiguration ServiceConfiguration { get; }
+		public ServiceConfiguration ServiceConfiguration { get; private set; }
+
+		/// <summary>
+		/// If the wallet is fully initialized and stopping wasn't requested.
+		/// </summary>
+		public bool IsAlive { get; private set; } = false;
+
 		public string Name => Path.GetFileNameWithoutExtension(KeyManager.FilePath);
 
 		/// <summary>
 		/// Unspent Transaction Outputs
 		/// </summary>
-		public ICoinsView Coins { get; }
+		public ICoinsView Coins { get; private set; }
 
-		public Network Network => Synchronizer.Network;
-		public TransactionProcessor TransactionProcessor { get; }
+		public Network Network { get; }
+		public TransactionProcessor TransactionProcessor { get; private set; }
 
 		public Node LocalBitcoinCoreNode
 		{
@@ -129,9 +118,8 @@ namespace WalletWasabi.Wallets
 			private set => _localBitcoinCoreNode = value;
 		}
 
-		public IFeeProvider FeeProvider { get; }
-		public bool IsStoppingOrStopped { get; private set; }
-		public CoreNode CoreNode { get; }
+		public IFeeProvider FeeProvider { get; private set; }
+		public CoreNode CoreNode { get; private set; }
 		public FilterModel LastProcessedFilter { get; private set; }
 		private static Random Random { get; } = new Random();
 		private AsyncLock HandleFiltersLock { get; }
@@ -140,8 +128,27 @@ namespace WalletWasabi.Wallets
 
 		private int NodeTimeouts { get; set; }
 
+		public void RegisterServices(BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, NodesGroup nodes, ServiceConfiguration serviceConfiguration, IFeeProvider feeProvider, CoreNode bitcoinCoreNode)
+		{
+			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
+			Nodes = Guard.NotNull(nameof(nodes), nodes);
+			Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
+			ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
+			FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
+			CoreNode = bitcoinCoreNode;
+
+			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold, ServiceConfiguration.PrivacyLevelStrong);
+			Coins = TransactionProcessor.Coins;
+
+			TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessedAsync;
+
+			BitcoinStore.IndexStore.NewFilter += IndexDownloader_NewFilterAsync;
+			BitcoinStore.IndexStore.Reorged += IndexDownloader_ReorgedAsync;
+			BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;
+		}
+
 		/// <inheritdoc/>
-		public async Task StartAsync(CancellationToken cancel)
+		public override async Task StartAsync(CancellationToken cancel)
 		{
 			try
 			{
@@ -161,21 +168,39 @@ namespace WalletWasabi.Wallets
 
 				using (BenchmarkLogger.Measure())
 				{
-					await RuntimeParams.LoadAsync();
+					await RuntimeParams.LoadAsync().ConfigureAwait(false);
 
 					ChaumianClient.Start();
 
-					using (await HandleFiltersLock.LockAsync())
+					using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
 					{
-						await LoadWalletStateAsync(cancel);
-						await LoadDummyMempoolAsync();
+						await LoadWalletStateAsync(cancel).ConfigureAwait(false);
+						await LoadDummyMempoolAsync().ConfigureAwait(false);
 					}
 				}
+
+				await base.StartAsync(cancel).ConfigureAwait(false);
 			}
 			finally
 			{
 				InitializingChanged?.Invoke(this, false);
 			}
+		}
+
+		/// <inheritdoc />
+		protected override Task ExecuteAsync(CancellationToken stoppingToken)
+		{
+			IsAlive = true;
+
+			if (KeyManager.FilePath is { })
+			{
+				// Set the LastAccessTime.
+				new FileInfo(KeyManager.FilePath)
+				{
+					LastAccessTime = DateTime.Now
+				};
+			}
+			return Task.CompletedTask;
 		}
 
 		/// <param name="hash">Block hash of the desired block, represented as a 256 bit integer.</param>
@@ -275,9 +300,11 @@ namespace WalletWasabi.Wallets
 			.ToHashSet();
 
 		/// <inheritdoc/>
-		public async Task StopAsync(CancellationToken cancel)
+		public override async Task StopAsync(CancellationToken cancel)
 		{
-			IsStoppingOrStopped = true;
+			IsAlive = false;
+
+			await base.StopAsync(cancel).ConfigureAwait(false);
 
 			BitcoinStore.IndexStore.NewFilter -= IndexDownloader_NewFilterAsync;
 			BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
