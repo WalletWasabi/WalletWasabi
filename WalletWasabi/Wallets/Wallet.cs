@@ -24,6 +24,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client.Clients;
+using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -71,6 +72,7 @@ namespace WalletWasabi.Wallets
 			Coins = TransactionProcessor.Coins;
 
 			TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessedAsync;
+			ChaumianClient.OnDequeue += ChaumianClient_OnDequeue;
 
 			if (Directory.Exists(BlocksFolderPath))
 			{
@@ -91,6 +93,10 @@ namespace WalletWasabi.Wallets
 
 			State = WalletState.Initialized;
 		}
+
+		public event EventHandler<ProcessedResult> WalletRelevantTransactionProcessed;
+
+		public event EventHandler<DequeueResult> OnDequeue;
 
 		public static event EventHandler<bool> DownloadingBlockChanged;
 
@@ -306,6 +312,7 @@ namespace WalletWasabi.Wallets
 					BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
 					BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
 					TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessedAsync;
+					ChaumianClient.OnDequeue -= ChaumianClient_OnDequeue;
 				}
 
 				DisconnectDisposeNullLocalBitcoinCoreNode();
@@ -385,11 +392,18 @@ namespace WalletWasabi.Wallets
 						await ChaumianClient.QueueCoinsToMixAsync(coinsToQueue).ConfigureAwait(false);
 					}
 				}
+
+				WalletRelevantTransactionProcessed?.Invoke(sender, e);
 			}
 			catch (Exception ex)
 			{
 				Logger.LogError(ex);
 			}
+		}
+
+		private void ChaumianClient_OnDequeue(object sender, DequeueResult e)
+		{
+			OnDequeue?.Invoke(sender, e);
 		}
 
 		private void Mempool_TransactionReceived(object sender, SmartTransaction tx)

@@ -102,8 +102,8 @@ namespace WalletWasabi.Wallets
 
 					cancel.ThrowIfCancellationRequested();
 
-					wallet.TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
-					wallet.ChaumianClient.OnDequeue += ChaumianClient_OnDequeue;
+					wallet.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
+					wallet.OnDequeue += ChaumianClient_OnDequeue;
 
 					return wallet;
 				}
@@ -111,8 +111,8 @@ namespace WalletWasabi.Wallets
 				{
 					if (wallet is { })
 					{
-						wallet.TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
-						wallet.ChaumianClient.OnDequeue -= ChaumianClient_OnDequeue;
+						wallet.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
+						wallet.OnDequeue -= ChaumianClient_OnDequeue;
 						lock (Lock)
 						{
 							Wallets.Remove(wallet);
@@ -136,14 +136,12 @@ namespace WalletWasabi.Wallets
 
 		private void ChaumianClient_OnDequeue(object sender, DequeueResult e)
 		{
-			var handler = OnDequeue;
-			handler?.Invoke(sender, e);
+			OnDequeue?.Invoke(sender, e);
 		}
 
 		private void TransactionProcessor_WalletRelevantTransactionProcessed(object sender, ProcessedResult e)
 		{
-			var handler = WalletRelevantTransactionProcessed;
-			handler?.Invoke(sender, e);
+			WalletRelevantTransactionProcessed?.Invoke(sender, e);
 		}
 
 		public async Task RemoveAndStopAllAsync(CancellationToken cancel)
@@ -172,8 +170,8 @@ namespace WalletWasabi.Wallets
 						return;
 					}
 
-					wallet.TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
-					wallet.ChaumianClient.OnDequeue -= ChaumianClient_OnDequeue;
+					wallet.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
+					wallet.OnDequeue -= ChaumianClient_OnDequeue;
 
 					lock (Lock)
 					{
