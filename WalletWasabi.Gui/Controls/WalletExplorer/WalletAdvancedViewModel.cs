@@ -5,8 +5,8 @@ using System.Reactive.Linq;
 using WalletWasabi.Logging;
 using System;
 using System.IO;
-using WalletWasabi.Services;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {

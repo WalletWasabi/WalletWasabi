@@ -19,8 +19,8 @@ using WalletWasabi.Logging;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Exceptions;
 using Splat;
-using WalletWasabi.Services;
 using WalletWasabi.Gui.Suggestions;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {

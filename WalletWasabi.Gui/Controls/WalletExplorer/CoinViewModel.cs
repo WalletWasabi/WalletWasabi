@@ -18,7 +18,7 @@ using WalletWasabi.Logging;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using Avalonia;
-using WalletWasabi.Services;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {

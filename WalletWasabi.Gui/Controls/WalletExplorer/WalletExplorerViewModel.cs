@@ -7,7 +7,7 @@ using System.Composition;
 using System.IO;
 using System.Linq;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Services;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {

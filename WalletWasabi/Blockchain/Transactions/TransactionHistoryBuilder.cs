@@ -5,7 +5,7 @@ using System.Linq;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Models;
-using WalletWasabi.Services;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Blockchain.Transactions
 {

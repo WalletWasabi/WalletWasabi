@@ -11,9 +11,9 @@ using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.CoinJoin.Coordinator;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
-using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
+using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
