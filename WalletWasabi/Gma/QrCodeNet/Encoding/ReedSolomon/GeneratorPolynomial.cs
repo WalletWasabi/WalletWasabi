@@ -7,10 +7,6 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 	/// </summary>
 	internal sealed class GeneratorPolynomial
 	{
-		private GaloisField256 Gfield { get; }
-
-		private List<Polynomial> CacheGenerator { get; }
-
 		/// <summary>
 		/// After create GeneratorPolynomial. Keep it as long as possible.
 		/// Unless QRCode encode is done or no more QRCode need to generate.
@@ -23,6 +19,10 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 				new Polynomial(Gfield, new int[] { 1 })
 			};
 		}
+
+		private GaloisField256 Gfield { get; }
+
+		private List<Polynomial> CacheGenerator { get; }
 
 		/// <summary>
 		/// Get generator by degree. (Largest degree for that generator)

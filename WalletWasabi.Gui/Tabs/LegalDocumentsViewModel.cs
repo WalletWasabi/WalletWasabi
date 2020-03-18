@@ -1,31 +1,27 @@
-using System;
-using System.IO;
-using System.Reactive;
-using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
 using Avalonia;
-using Avalonia.Logging;
-using Avalonia.Platform;
+using AvalonStudio.Documents;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using ReactiveUI;
 using Splat;
-using WalletWasabi.Gui.Models;
-using WalletWasabi.Gui.Helpers;
-using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Legal;
+using System;
+using System.IO;
+using System.Reactive;
 using System.Reactive.Disposables;
-using System.Threading.Tasks;
+using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
+using WalletWasabi.Gui.Controls.LockScreen;
+using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Legal;
 
 namespace WalletWasabi.Gui.Tabs
 {
-	public class LegalDocumentsViewModel : WasabiDocumentTabViewModel
+	public class LegalDocumentsViewModel : LockScreenViewModelBase, IDocumentTabViewModel
 	{
 		private string _text;
 		private bool _emptyContent;
 
-		public LegalDocumentsViewModel(string content = null, LegalDocuments legalDoc = null)
-			: base("Legal Documents")
+		public LegalDocumentsViewModel(string content = null, LegalDocuments legalDoc = null) : base()
 		{
 			FilePath = legalDoc?.FilePath;
 			Content = content;
@@ -38,7 +34,7 @@ namespace WalletWasabi.Gui.Tabs
 				IsAgreed = true;
 				await LegalDoc.ToFileAsync(Content);
 				Locator.Current.GetService<Global>().LegalDocuments = LegalDoc;
-				OnClose();
+				Close();
 			});
 
 			AgreeClicked
@@ -75,10 +71,33 @@ namespace WalletWasabi.Gui.Tabs
 		public LegalDocuments LegalDoc { get; }
 
 		public bool IsAgreed { get; set; }
+		public bool IsDirty { get; set; }
 
-		public override void OnOpen(CompositeDisposable disposables)
+		public string Title => "Legal Documents";
+
+		public bool OnClose()
 		{
-			base.OnOpen(disposables);
+			Disposables?.Dispose();
+			IoC.Get<IShell>().RemoveDocument(this);
+			return true;
+		}
+
+		public void OnDeselected()
+		{
+		}
+
+		public void OnOpen()
+		{
+			OnInitialize(Disposables);
+		}
+
+		public void OnSelected()
+		{
+		}
+
+		protected override void OnInitialize(CompositeDisposable disposables)
+		{
+			base.OnInitialize(disposables);
 
 			if (!string.IsNullOrWhiteSpace(Content))
 			{
@@ -95,15 +114,6 @@ namespace WalletWasabi.Gui.Tabs
 						onError: ex => Logging.Logger.LogError(ex))
 					.DisposeWith(disposables);
 			}
-		}
-
-		public override bool OnClose()
-		{
-			if (!IsAgreed)
-			{
-				return false;
-			}
-			return base.OnClose();
 		}
 	}
 }

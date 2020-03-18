@@ -80,7 +80,6 @@ namespace WalletWasabi.Gui
 			StoppingCts = new CancellationTokenSource();
 			DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
 			TorLogsFile = Path.Combine(DataDir, "TorLogs.txt");
-
 			Directory.CreateDirectory(DataDir);
 
 			Logger.InitializeDefaults(Path.Combine(DataDir, "Logs.txt"));
