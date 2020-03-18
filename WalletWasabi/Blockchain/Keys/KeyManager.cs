@@ -133,6 +133,7 @@ namespace WalletWasabi.Blockchain.Keys
 		private Dictionary<Script, HdPubKey> ScriptHdPubKeyMap { get; }
 
 		private object ScriptHdPubKeyMapLock { get; }
+
 		private object ToFileLock { get; }
 
 		public static KeyManager CreateNew(out Mnemonic mnemonic, string password, string filePath = null)
@@ -323,6 +324,8 @@ namespace WalletWasabi.Blockchain.Keys
 			masterFingerprint = mfp;
 			return true;
 		}
+
+		public string GetName() => FilePath is null ? "" : Path.GetFileNameWithoutExtension(FilePath);
 
 		public void SetFilePath(string filePath)
 		{

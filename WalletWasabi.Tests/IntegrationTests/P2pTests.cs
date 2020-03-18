@@ -94,14 +94,14 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 			KeyManager keyManager = KeyManager.CreateNew(out _, "password");
 			WasabiSynchronizer syncer = new WasabiSynchronizer(network, bitcoinStore, new Uri("http://localhost:12345"), Global.Instance.TorSocks5Endpoint);
-			Wallet wallet = new Wallet(
+			Wallet wallet = new Wallet(dataDir, keyManager);
+			wallet.RegisterServices(
 				bitcoinStore,
-				keyManager,
 				syncer,
 				nodes,
-				dataDir,
 				new ServiceConfiguration(50, 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold)),
-				syncer);
+				syncer,
+				null);
 			Assert.True(Directory.Exists(blocksFolderPath));
 
 			try
