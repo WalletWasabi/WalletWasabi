@@ -8,6 +8,16 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		private Dictionary<string, int> _nameToValue;
 		private Dictionary<int, string> _valueToName;
 
+		/// <summary>
+		/// Initialize ECI Set.
+		/// </summary>
+		/// <param name="option">AppendOption is enum under ECISet
+		/// Use NameToValue during Encode. ValueToName during Decode</param>
+		internal ECISet(AppendOption option)
+		{
+			Initialize(option);
+		}
+
 		public enum AppendOption { NameToValue, ValueToName, Both }
 
 		private void AppendECI(string name, int value, AppendOption option)
@@ -30,16 +40,6 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 				default:
 					throw new InvalidOperationException($"There is no such {nameof(AppendOption)}.");
 			}
-		}
-
-		/// <summary>
-		/// Initialize ECI Set.
-		/// </summary>
-		/// <param name="option">AppendOption is enum under ECISet
-		/// Use NameToValue during Encode. ValueToName during Decode</param>
-		internal ECISet(AppendOption option)
-		{
-			Initialize(option);
 		}
 
 		private void Initialize(AppendOption option)
