@@ -44,7 +44,7 @@ namespace WalletWasabi.Wallets
 		private object Lock { get; }
 		private AsyncLock AddRemoveLock { get; }
 
-		private IEnumerable<KeyValuePair<Wallet, HashSet<uint256>>> AliveWalletsNoLock => Wallets.Where(x => x.Key is { IsStoppingOrStopped: var isDisposed } && !isDisposed);
+		private IEnumerable<KeyValuePair<Wallet, HashSet<uint256>>> AliveWalletsNoLock => Wallets.Where(x => x.Key is { State: var state } && state < WalletState.Stopping);
 
 		private BitcoinStore BitcoinStore { get; set; }
 		private WasabiSynchronizer Synchronizer { get; set; }
@@ -195,6 +195,7 @@ namespace WalletWasabi.Wallets
 							Logger.LogInfo($"{nameof(wallet.KeyManager)} backup saved to `{backupWalletFilePath}`.");
 						}
 						await wallet.StopAsync(cancel).ConfigureAwait(false);
+						wallet?.Dispose();
 						Logger.LogInfo($"{nameof(Wallet)} is stopped.");
 					}
 					catch (Exception ex)

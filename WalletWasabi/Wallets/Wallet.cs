@@ -34,7 +34,7 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Wallets
 {
-	public class Wallet : IHostedService
+	public class Wallet : BackgroundService
 	{
 		private Node _localBitcoinCoreNode = null;
 
@@ -88,6 +88,8 @@ namespace WalletWasabi.Wallets
 			BitcoinStore.IndexStore.NewFilter += IndexDownloader_NewFilterAsync;
 			BitcoinStore.IndexStore.Reorged += IndexDownloader_ReorgedAsync;
 			BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;
+
+			State = WalletState.Initialized;
 		}
 
 		public static event EventHandler<bool> DownloadingBlockChanged;
@@ -98,6 +100,7 @@ namespace WalletWasabi.Wallets
 
 		public event EventHandler<Block> NewBlockProcessed;
 
+		public WalletState State { get; private set; }
 		public BitcoinStore BitcoinStore { get; }
 		public KeyManager KeyManager { get; }
 		public WasabiSynchronizer Synchronizer { get; }
@@ -130,7 +133,6 @@ namespace WalletWasabi.Wallets
 		}
 
 		public IFeeProvider FeeProvider { get; }
-		public bool IsStoppingOrStopped { get; private set; }
 		public CoreNode CoreNode { get; }
 		public FilterModel LastProcessedFilter { get; private set; }
 		private static Random Random { get; } = new Random();
@@ -141,7 +143,7 @@ namespace WalletWasabi.Wallets
 		private int NodeTimeouts { get; set; }
 
 		/// <inheritdoc/>
-		public async Task StartAsync(CancellationToken cancel)
+		public override async Task StartAsync(CancellationToken cancel)
 		{
 			try
 			{
@@ -161,22 +163,34 @@ namespace WalletWasabi.Wallets
 
 				using (BenchmarkLogger.Measure())
 				{
-					await RuntimeParams.LoadAsync();
+					await RuntimeParams.LoadAsync().ConfigureAwait(false);
 
 					ChaumianClient.Start();
 
-					using (await HandleFiltersLock.LockAsync())
+					using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
 					{
-						await LoadWalletStateAsync(cancel);
-						await LoadDummyMempoolAsync();
+						await LoadWalletStateAsync(cancel).ConfigureAwait(false);
+						await LoadDummyMempoolAsync().ConfigureAwait(false);
 					}
 				}
+
+				await base.StartAsync(cancel).ConfigureAwait(false);
+
+				State = WalletState.Started;
+			}
+			catch
+			{
+				State = WalletState.Initialized;
+				throw;
 			}
 			finally
 			{
 				InitializingChanged?.Invoke(this, false);
 			}
 		}
+
+		/// <inheritdoc />
+		protected override Task ExecuteAsync(CancellationToken stoppingToken) => Task.CompletedTask;
 
 		/// <param name="hash">Block hash of the desired block, represented as a 256 bit integer.</param>
 		/// <exception cref="OperationCanceledException"></exception>
@@ -275,19 +289,32 @@ namespace WalletWasabi.Wallets
 			.ToHashSet();
 
 		/// <inheritdoc/>
-		public async Task StopAsync(CancellationToken cancel)
+		public async override Task StopAsync(CancellationToken cancel)
 		{
-			IsStoppingOrStopped = true;
+			try
+			{
+				var prevState = State;
+				State = WalletState.Stopping;
 
-			BitcoinStore.IndexStore.NewFilter -= IndexDownloader_NewFilterAsync;
-			BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
-			BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
-			TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessedAsync;
+				await base.StopAsync(cancel).ConfigureAwait(false);
 
-			DisconnectDisposeNullLocalBitcoinCoreNode();
+				if (prevState >= WalletState.Initialized)
+				{
+					BitcoinStore.IndexStore.NewFilter -= IndexDownloader_NewFilterAsync;
+					BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
+					BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
+					TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessedAsync;
+				}
 
-			await ChaumianClient.StopAsync(cancel).ConfigureAwait(false);
-			Logger.LogInfo($"{nameof(ChaumianClient)} is stopped.");
+				DisconnectDisposeNullLocalBitcoinCoreNode();
+
+				await ChaumianClient.StopAsync(cancel).ConfigureAwait(false);
+				Logger.LogInfo($"{nameof(ChaumianClient)} is stopped.");
+			}
+			finally
+			{
+				State = WalletState.Stopped;
+			}
 		}
 
 		internal static LockTime InternalSelectLockTimeForTransaction(uint tipHeight, Random rnd)
