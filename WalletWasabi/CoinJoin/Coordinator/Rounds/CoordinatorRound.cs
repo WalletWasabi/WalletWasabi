@@ -189,208 +189,197 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				{
 					Logger.LogInfo($"Round ({RoundId}): Phase change requested: {expectedPhase.ToString()}.");
 
-					if (Status == CoordinatorRoundStatus.NotStarted) // So start the input registration phase
+					async Task<(RoundPhase nextPhase, bool ok)> StartAsync()
 					{
-						if (expectedPhase != RoundPhase.InputRegistration)
+						var ret = Expect(RoundPhase.InputRegistration); 
+						if (ret.ok)
 						{
-							return;
-						}
-
-						// Calculate fees.
-						if (feePerInputs is null || feePerOutputs is null)
-						{
-							(Money feePerInputs, Money feePerOutputs) fees = await CalculateFeesAsync(RpcClient, AdjustedConfirmationTarget).ConfigureAwait(false);
-							FeePerInputs = feePerInputs ?? fees.feePerInputs;
-							FeePerOutputs = feePerOutputs ?? fees.feePerOutputs;
-						}
-						else
-						{
-							FeePerInputs = feePerInputs;
-							FeePerOutputs = feePerOutputs;
-						}
-
-						Status = CoordinatorRoundStatus.Running;
-					}
-					else if (Status != CoordinatorRoundStatus.Running) // Aborted or succeeded, swallow
-					{
-						return;
-					}
-					else if (Phase == RoundPhase.InputRegistration)
-					{
-						if (expectedPhase != RoundPhase.ConnectionConfirmation)
-						{
-							return;
-						}
-
-						Phase = RoundPhase.ConnectionConfirmation;
-					}
-					else if (Phase == RoundPhase.ConnectionConfirmation)
-					{
-						if (expectedPhase != RoundPhase.OutputRegistration)
-						{
-							return;
-						}
-
-						Phase = RoundPhase.OutputRegistration;
-					}
-					else if (Phase == RoundPhase.OutputRegistration)
-					{
-						if (expectedPhase != RoundPhase.Signing)
-						{
-							return;
-						}
-
-						// Build CoinJoin:
-						// 1. Set new denomination: minor optimization.
-						Money newDenomination = CalculateNewDenomination();
-						var transaction = Network.Consensus.ConsensusFactory.CreateTransaction();
-
-						// 2. Add Bob outputs.
-						foreach (Bob bob in Bobs.Where(x => x.Level == MixingLevels.GetBaseLevel()))
-						{
-							transaction.Outputs.AddWithOptimize(newDenomination, bob.ActiveOutputAddress.ScriptPubKey);
-						}
-
-						// 2.1 newDenomination may differ from the Denomination at registration, so we may not be able to tinker with additional outputs.
-						bool tinkerWithAdditionalMixingLevels = CanUseAdditionalOutputs(newDenomination);
-
-						if (tinkerWithAdditionalMixingLevels)
-						{
-							foreach (MixingLevel level in MixingLevels.GetLevelsExceptBase())
+							if (feePerInputs is null || feePerOutputs is null)
 							{
-								IEnumerable<Bob> bobsOnThisLevel = Bobs.Where(x => x.Level == level);
-								if (bobsOnThisLevel.Count() <= 1)
-								{
-									break;
-								}
-
-								foreach (Bob bob in bobsOnThisLevel)
-								{
-									transaction.Outputs.AddWithOptimize(level.Denomination, bob.ActiveOutputAddress.ScriptPubKey);
-								}
+								(Money feePerInputs, Money feePerOutputs) fees = await CalculateFeesAsync(RpcClient, AdjustedConfirmationTarget).ConfigureAwait(false);
+								FeePerInputs = feePerInputs ?? fees.feePerInputs;
+								FeePerOutputs = feePerOutputs ?? fees.feePerOutputs;
 							}
-						}
-
-						var coordinatorScript = RoundConfig.GetNextCleanCoordinatorScript();
-						// 3. If there are less Bobs than Alices, then add our own address. The malicious Alice, who will refuse to sign.
-						for (int i = 0; i < MixingLevels.Count(); i++)
-						{
-							var aliceCountInLevel = Alices.Count(x => i < x.BlindedOutputScripts.Length);
-							var missingBobCount = aliceCountInLevel - Bobs.Count(x => x.Level == MixingLevels.GetLevel(i));
-							for (int j = 0; j < missingBobCount; j++)
+							else
 							{
-								var denomination = MixingLevels.GetLevel(i).Denomination;
-								transaction.Outputs.AddWithOptimize(denomination, coordinatorScript);
+								FeePerInputs = feePerInputs;
+								FeePerOutputs = feePerOutputs;
 							}
+							Status = CoordinatorRoundStatus.Running;
 						}
+						return ret;
+					};
 
-						// 4. Start building Coordinator fee.
-						var baseDenominationOutputCount = transaction.Outputs.Count(x => x.Value == newDenomination);
-						Money coordinatorBaseFeePerAlice = newDenomination.Percentage(RoundConfig.CoordinatorFeePercent * baseDenominationOutputCount);
-						Money coordinatorFee = baseDenominationOutputCount * coordinatorBaseFeePerAlice;
 
-						if (tinkerWithAdditionalMixingLevels)
+					async Task<(RoundPhase nextPhase, bool ok)> BuildCoinJoinAsync()
+					{
+						var ret = Expect(RoundPhase.Signing); 
+						if (ret.ok)
 						{
-							foreach (MixingLevel level in MixingLevels.GetLevelsExceptBase())
-							{
-								var denominationOutputCount = transaction.Outputs.Count(x => x.Value == level.Denomination);
-								if (denominationOutputCount <= 1)
-								{
-									break;
-								}
+							// 1. Set new denomination: minor optimization.
+							Money newDenomination = CalculateNewDenomination();
+							var transaction = Network.Consensus.ConsensusFactory.CreateTransaction();
 
-								Money coordinatorLevelFeePerAlice = level.Denomination.Percentage(RoundConfig.CoordinatorFeePercent * denominationOutputCount);
-								coordinatorFee += coordinatorLevelFeePerAlice * denominationOutputCount;
-							}
-						}
-
-						// 5. Add the inputs and the changes of Alices.
-						var spentCoins = new List<Coin>();
-						foreach (Alice alice in Alices)
-						{
-							foreach (var input in alice.Inputs)
+							// 2. Add Bob outputs.
+							foreach (Bob bob in Bobs.Where(x => x.Level == MixingLevels.GetBaseLevel()))
 							{
-								transaction.Inputs.Add(new TxIn(input.Outpoint));
-								spentCoins.Add(input);
+								transaction.Outputs.AddWithOptimize(newDenomination, bob.ActiveOutputAddress.ScriptPubKey);
 							}
 
-							Money changeAmount = alice.InputSum;
-							changeAmount -= alice.NetworkFeeToPayAfterBaseDenomination;
-							changeAmount -= newDenomination;
-							changeAmount -= coordinatorBaseFeePerAlice;
+							// 2.1 newDenomination may differ from the Denomination at registration, so we may not be able to tinker with additional outputs.
+							bool tinkerWithAdditionalMixingLevels = CanUseAdditionalOutputs(newDenomination);
 
 							if (tinkerWithAdditionalMixingLevels)
 							{
-								for (int i = 1; i < alice.BlindedOutputScripts.Length; i++)
+								foreach (MixingLevel level in MixingLevels.GetLevelsExceptBase())
 								{
-									MixingLevel level = MixingLevels.GetLevel(i);
+									IEnumerable<Bob> bobsOnThisLevel = Bobs.Where(x => x.Level == level);
+									if (bobsOnThisLevel.Count() <= 1)
+									{
+										break;
+									}
+
+									foreach (Bob bob in bobsOnThisLevel)
+									{
+										transaction.Outputs.AddWithOptimize(level.Denomination, bob.ActiveOutputAddress.ScriptPubKey);
+									}
+								}
+							}
+
+							var coordinatorScript = RoundConfig.GetNextCleanCoordinatorScript();
+							// 3. If there are less Bobs than Alices, then add our own address. The malicious Alice, who will refuse to sign.
+							for (int i = 0; i < MixingLevels.Count(); i++)
+							{
+								var aliceCountInLevel = Alices.Count(x => i < x.BlindedOutputScripts.Length);
+								var missingBobCount = aliceCountInLevel - Bobs.Count(x => x.Level == MixingLevels.GetLevel(i));
+								for (int j = 0; j < missingBobCount; j++)
+								{
+									var denomination = MixingLevels.GetLevel(i).Denomination;
+									transaction.Outputs.AddWithOptimize(denomination, coordinatorScript);
+								}
+							}
+
+							// 4. Start building Coordinator fee.
+							var baseDenominationOutputCount = transaction.Outputs.Count(x => x.Value == newDenomination);
+							Money coordinatorBaseFeePerAlice = newDenomination.Percentage(RoundConfig.CoordinatorFeePercent * baseDenominationOutputCount);
+							Money coordinatorFee = baseDenominationOutputCount * coordinatorBaseFeePerAlice;
+
+							if (tinkerWithAdditionalMixingLevels)
+							{
+								foreach (MixingLevel level in MixingLevels.GetLevelsExceptBase())
+								{
 									var denominationOutputCount = transaction.Outputs.Count(x => x.Value == level.Denomination);
 									if (denominationOutputCount <= 1)
 									{
 										break;
 									}
 
-									changeAmount -= FeePerOutputs;
-									changeAmount -= level.Denomination;
-									changeAmount -= level.Denomination.Percentage(RoundConfig.CoordinatorFeePercent * denominationOutputCount);
+									Money coordinatorLevelFeePerAlice = level.Denomination.Percentage(RoundConfig.CoordinatorFeePercent * denominationOutputCount);
+									coordinatorFee += coordinatorLevelFeePerAlice * denominationOutputCount;
 								}
 							}
 
-							if (changeAmount > Money.Zero) // If the coordinator fee would make change amount to be negative or zero then no need to pay it.
+							// 5. Add the inputs and the changes of Alices.
+							var spentCoins = new List<Coin>();
+							foreach (Alice alice in Alices)
 							{
-								Money minimumOutputAmount = Money.Coins(0.0001m); // If the change would be less than about $1 then add it to the coordinator.
-								Money somePercentOfDenomination = newDenomination.Percentage(0.7m); // If the change is less than about 0.7% of the newDenomination then add it to the coordinator fee.
-								Money minimumChangeAmount = Math.Max(minimumOutputAmount, somePercentOfDenomination);
-								if (changeAmount < minimumChangeAmount)
+								foreach (var input in alice.Inputs)
 								{
-									coordinatorFee += changeAmount;
+									transaction.Inputs.Add(new TxIn(input.Outpoint));
+									spentCoins.Add(input);
+								}
+
+								Money changeAmount = alice.InputSum;
+								changeAmount -= alice.NetworkFeeToPayAfterBaseDenomination;
+								changeAmount -= newDenomination;
+								changeAmount -= coordinatorBaseFeePerAlice;
+
+								if (tinkerWithAdditionalMixingLevels)
+								{
+									for (int i = 1; i < alice.BlindedOutputScripts.Length; i++)
+									{
+										MixingLevel level = MixingLevels.GetLevel(i);
+										var denominationOutputCount = transaction.Outputs.Count(x => x.Value == level.Denomination);
+										if (denominationOutputCount <= 1)
+										{
+											break;
+										}
+
+										changeAmount -= FeePerOutputs;
+										changeAmount -= level.Denomination;
+										changeAmount -= level.Denomination.Percentage(RoundConfig.CoordinatorFeePercent * denominationOutputCount);
+									}
+								}
+
+								if (changeAmount > Money.Zero) // If the coordinator fee would make change amount to be negative or zero then no need to pay it.
+								{
+									Money minimumOutputAmount = Money.Coins(0.0001m); // If the change would be less than about $1 then add it to the coordinator.
+									Money somePercentOfDenomination = newDenomination.Percentage(0.7m); // If the change is less than about 0.7% of the newDenomination then add it to the coordinator fee.
+									Money minimumChangeAmount = Math.Max(minimumOutputAmount, somePercentOfDenomination);
+									if (changeAmount < minimumChangeAmount)
+									{
+										coordinatorFee += changeAmount;
+									}
+									else
+									{
+										transaction.Outputs.AddWithOptimize(changeAmount, alice.ChangeOutputAddress.ScriptPubKey);
+									}
 								}
 								else
 								{
-									transaction.Outputs.AddWithOptimize(changeAmount, alice.ChangeOutputAddress.ScriptPubKey);
+									// Alice has no money enough to pay the coordinator fee then allow her to pay what she can.
+									coordinatorFee += changeAmount;
 								}
 							}
-							else
+
+							// 6. Add Coordinator fee only if > about $3, else just let it to be miner fee.
+							if (coordinatorFee > Money.Coins(0.0003m))
 							{
-								// Alice has no money enough to pay the coordinator fee then allow her to pay what she can.
-								coordinatorFee += changeAmount;
+								transaction.Outputs.AddWithOptimize(coordinatorFee, coordinatorScript);
 							}
+
+							// 7. Try optimize fees.
+							await TryOptimizeFeesAsync(transaction, spentCoins).ConfigureAwait(false);
+
+							// 8. Shuffle.
+							transaction.Inputs.Shuffle();
+							transaction.Outputs.Shuffle();
+
+							// 9. Sort inputs and outputs by amount so the coinjoin looks better in a block explorer.
+							transaction.Inputs.SortByAmount(spentCoins);
+							transaction.Outputs.SortByAmount();
+							// Note: We shuffle then sort because inputs and outputs could have equal values
+
+							if (transaction.Outputs.Any(x => x.ScriptPubKey == coordinatorScript))
+							{
+								await RoundConfig.MakeNextCoordinatorScriptDirtyAsync();
+							}
+
+							CoinJoin = transaction;
+							UnsignedCoinJoinHex = transaction.ToHex();
 						}
+						return ret;
+					};
 
-						// 6. Add Coordinator fee only if > about $3, else just let it to be miner fee.
-						if (coordinatorFee > Money.Coins(0.0003m))
-						{
-							transaction.Outputs.AddWithOptimize(coordinatorFee, coordinatorScript);
-						}
 
-						// 7. Try optimize fees.
-						await TryOptimizeFeesAsync(transaction, spentCoins).ConfigureAwait(false);
+					(RoundPhase nextPhase, bool ok) Expect(RoundPhase expected) =>
+						(expected, expectedPhase == expected);
 
-						// 8. Shuffle.
-						transaction.Inputs.Shuffle();
-						transaction.Outputs.Shuffle();
-
-						// 9. Sort inputs and outputs by amount so the coinjoin looks better in a block explorer.
-						transaction.Inputs.SortByAmount(spentCoins);
-						transaction.Outputs.SortByAmount();
-						// Note: We shuffle then sort because inputs and outputs could have equal values
-
-						if (transaction.Outputs.Any(x => x.ScriptPubKey == coordinatorScript))
-						{
-							await RoundConfig.MakeNextCoordinatorScriptDirtyAsync();
-						}
-
-						CoinJoin = transaction;
-						UnsignedCoinJoinHex = transaction.ToHex();
-
-						Phase = RoundPhase.Signing;
-					}
-					else // Phase == RoundPhase.Signing
+					var (nextPhase, ok) = (Status, Phase, expectedPhase) switch
 					{
-						return;
-					}
+						(CoordinatorRoundStatus.NotStarted, _,  RoundPhase.InputRegistration) => await StartAsync(), 
+						(CoordinatorRoundStatus.Running, RoundPhase.InputRegistration, RoundPhase.ConnectionConfirmation) => Expect(RoundPhase.ConnectionConfirmation), 
+						(CoordinatorRoundStatus.Running, RoundPhase.ConnectionConfirmation, RoundPhase.OutputRegistration) => Expect(RoundPhase.OutputRegistration), 
+						(CoordinatorRoundStatus.Running, RoundPhase.OutputRegistration, RoundPhase.Signing) => await BuildCoinJoinAsync(),
+						_ => (Phase, false),
+					};
 
-					Logger.LogInfo($"Round ({RoundId}): Phase initialized: {expectedPhase.ToString()}.");
+					if (ok)
+					{
+						Phase = nextPhase;
+
+						Logger.LogInfo($"Round ({RoundId}): Phase initialized: {expectedPhase.ToString()}.");
+					}
 				}
 				catch (Exception ex)
 				{
@@ -404,31 +393,19 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				{
 					try
 					{
-						TimeSpan timeout;
-						switch (expectedPhase)
+						if (expectedPhase == RoundPhase.InputRegistration)
 						{
-							case RoundPhase.InputRegistration:
-								{
-									SetInputRegistrationTimesout(); // Update it, it's going to be slightly more accurate.
-									timeout = RoundConfig.InputRegistrationTimeout;
-								}
-								break;
-
-							case RoundPhase.ConnectionConfirmation:
-								timeout = RoundConfig.ConnectionConfirmationTimeout;
-								break;
-
-							case RoundPhase.OutputRegistration:
-								timeout = RoundConfig.OutputRegistrationTimeout;
-								break;
-
-							case RoundPhase.Signing:
-								timeout = RoundConfig.SigningTimeout;
-								break;
-
-							default:
-								throw new InvalidOperationException("This is impossible.");
+							SetInputRegistrationTimesout(); // Update it, it's going to be slightly more accurate.
 						}
+
+						TimeSpan timeout = expectedPhase switch
+						{
+							RoundPhase.InputRegistration => RoundConfig.InputRegistrationTimeout,
+							RoundPhase.ConnectionConfirmation => RoundConfig.ConnectionConfirmationTimeout,
+							RoundPhase.OutputRegistration => RoundConfig.OutputRegistrationTimeout,
+							RoundPhase.Signing => RoundConfig.SigningTimeout,
+							_ => throw new InvalidOperationException("This is impossible.")
+						};
 
 						// Delay asynchronously to the requested timeout.
 						await Task.Delay(timeout).ConfigureAwait(false);
