@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Gui.Helpers;
-using WalletWasabi.Services;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {

@@ -8,9 +8,9 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Services;
 using WalletWasabi.Logging;
 using Splat;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {

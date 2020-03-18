@@ -7,7 +7,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Services;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.CommandLine
 {

@@ -28,10 +28,11 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.WebClients.Wasabi;
 
-namespace WalletWasabi.Services
+namespace WalletWasabi.Wallets
 {
 	public class WalletService : IHostedService
 	{
