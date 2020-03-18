@@ -2,10 +2,6 @@ namespace Gma.QrCodeNet.Encoding
 {
 	public abstract class BitMatrixBase : BitMatrix
 	{
-		public override bool[,] InternalArray { get; }
-
-		public override int Width { get; }
-
 		protected BitMatrixBase(int width, bool[,] internalArray)
 		{
 			Width = width;
@@ -18,6 +14,10 @@ namespace Gma.QrCodeNet.Encoding
 			int width = internalArray.GetLength(0);
 			Width = width;
 		}
+
+		public override bool[,] InternalArray { get; }
+
+		public override int Width { get; }
 
 		public static bool CanCreate(bool[,] internalArray)
 		{

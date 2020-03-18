@@ -4,29 +4,17 @@ namespace Gma.QrCodeNet.Encoding
 {
 	public class TriStateMatrix : BitMatrixBase
 	{
-		private StateMatrix StateMatrix { get; }
-
 		public TriStateMatrix(int width) : base(width, new bool[width, width])
 		{
 			StateMatrix = new StateMatrix(width);
-		}
-
-		public static bool CreateTriStateMatrix(bool[,] internalArray, out TriStateMatrix triStateMatrix)
-		{
-			triStateMatrix = null;
-			if (CanCreate(internalArray))
-			{
-				triStateMatrix = new TriStateMatrix(internalArray);
-				return true;
-			}
-
-			return false;
 		}
 
 		internal TriStateMatrix(bool[,] internalArray) : base(internalArray)
 		{
 			StateMatrix = new StateMatrix(internalArray.GetLength(0));
 		}
+
+		private StateMatrix StateMatrix { get; }
 
 		public override bool this[int i, int j]
 		{
@@ -50,12 +38,24 @@ namespace Gma.QrCodeNet.Encoding
 			}
 		}
 
-		internal MatrixStatus MStatus(int i, int j) => StateMatrix[i, j];
-
-		internal MatrixStatus MStatus(MatrixPoint point) => MStatus(point.X, point.Y);
-
 		public override int Height => Width;
 
 		public override int Width => base.Width;
+
+		public static bool CreateTriStateMatrix(bool[,] internalArray, out TriStateMatrix triStateMatrix)
+		{
+			triStateMatrix = null;
+			if (CanCreate(internalArray))
+			{
+				triStateMatrix = new TriStateMatrix(internalArray);
+				return true;
+			}
+
+			return false;
+		}
+
+		internal MatrixStatus MStatus(int i, int j) => StateMatrix[i, j];
+
+		internal MatrixStatus MStatus(MatrixPoint point) => MStatus(point.X, point.Y);
 	}
 }

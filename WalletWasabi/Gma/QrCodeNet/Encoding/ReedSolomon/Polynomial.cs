@@ -4,16 +4,6 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 {
 	internal sealed class Polynomial
 	{
-		internal int[] Coefficients { get; }
-
-		internal GaloisField256 GField { get; }
-
-		internal int Degree => Coefficients.Length - 1;
-
-		internal int Primitive { get; }
-
-		internal bool IsMonomialZero => Coefficients[0] == 0;
-
 		internal Polynomial(GaloisField256 gfield, int[] coefficients)
 		{
 			int coefficientsLength = coefficients.Length;
@@ -52,6 +42,16 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 				Array.Copy(coefficients, Coefficients, coefficientsLength);
 			}
 		}
+
+		internal int[] Coefficients { get; }
+
+		internal GaloisField256 GField { get; }
+
+		internal int Degree => Coefficients.Length - 1;
+
+		internal int Primitive { get; }
+
+		internal bool IsMonomialZero => Coefficients[0] == 0;
 
 		/// <returns>
 		/// coefficient position. where (coefficient)x^degree
@@ -234,8 +234,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 					}
 				}
 
-				return new PolyDivideStruct(new Polynomial(GField, qCoefficients),
-											new Polynomial(GField, aCoefficients));
+				return new PolyDivideStruct(new Polynomial(GField, qCoefficients), new Polynomial(GField, aCoefficients));
 			}
 		}
 	}

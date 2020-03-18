@@ -21,6 +21,24 @@ namespace Gma.QrCodeNet.Encoding
 
 		internal List<byte> List { get; }
 
+		internal int Count { get; private set; }
+
+		internal int SizeInByte => (Count + 7) >> 3;
+
+		internal bool this[int index]
+		{
+			get
+			{
+				if (index < 0 || index >= Count)
+				{
+					throw new ArgumentOutOfRangeException(nameof(index), "Index out of range");
+				}
+
+				int value_Renamed = List[index >> 3] & 0xff;
+				return ((value_Renamed >> (7 - (index & 0x7))) & 1) == 1;
+			}
+		}
+
 		public IEnumerator<bool> GetEnumerator()
 		{
 			int numBytes = Count >> 3;
@@ -47,20 +65,6 @@ namespace Gma.QrCodeNet.Encoding
 		IEnumerator IEnumerable.GetEnumerator()
 		{
 			return GetEnumerator();
-		}
-
-		internal bool this[int index]
-		{
-			get
-			{
-				if (index < 0 || index >= Count)
-				{
-					throw new ArgumentOutOfRangeException(nameof(index), "Index out of range");
-				}
-
-				int value_Renamed = List[index >> 3] & 0xff;
-				return ((value_Renamed >> (7 - (index & 0x7))) & 1) == 1;
-			}
 		}
 
 		private int ToBit(bool item)
@@ -121,9 +125,5 @@ namespace Gma.QrCodeNet.Encoding
 			List.Add(item);
 			Count += 8;
 		}
-
-		internal int Count { get; private set; }
-
-		internal int SizeInByte => (Count + 7) >> 3;
 	}
 }
