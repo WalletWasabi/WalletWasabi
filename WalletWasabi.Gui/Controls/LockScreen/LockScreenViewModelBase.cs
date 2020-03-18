@@ -15,7 +15,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 		public LockScreenViewModelBase()
 		{
-			_isLocked = true;
+			IsLocked = true;
 
 			Disposables = new CompositeDisposable();
 		}
