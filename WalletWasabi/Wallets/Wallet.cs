@@ -34,7 +34,7 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Wallets
 {
-	public class WalletService : IHostedService
+	public class Wallet : IHostedService
 	{
 		public static event EventHandler<bool> DownloadingBlockChanged;
 
@@ -72,7 +72,7 @@ namespace WalletWasabi.Wallets
 
 		public TransactionProcessor TransactionProcessor { get; }
 
-		public WalletService(
+		public Wallet(
 			BitcoinStore bitcoinStore,
 			KeyManager keyManager,
 			WasabiSynchronizer syncer,

@@ -36,39 +36,39 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _title, value);
 		}
 
-		public WalletViewModel(WalletService walletService, bool receiveDominant)
+		public WalletViewModel(Wallet wallet, bool receiveDominant)
 		{
 			var global = Locator.Current.GetService<Global>();
-			WalletService = walletService;
+			Wallet = wallet;
 
-			Title = Path.GetFileNameWithoutExtension(WalletService.KeyManager.FilePath);
+			Title = Path.GetFileNameWithoutExtension(Wallet.KeyManager.FilePath);
 
-			var keyManager = WalletService.KeyManager;
+			var keyManager = Wallet.KeyManager;
 			Name = Path.GetFileNameWithoutExtension(keyManager.FilePath);
 
 			Actions = new ObservableCollection<WasabiDocumentTabViewModel>();
 
 			SendTabViewModel sendTab = null;
 			// If hardware wallet then we need the Send tab.
-			if (WalletService?.KeyManager?.IsHardwareWallet is true)
+			if (Wallet?.KeyManager?.IsHardwareWallet is true)
 			{
-				sendTab = new SendTabViewModel(WalletService);
+				sendTab = new SendTabViewModel(Wallet);
 				Actions.Add(sendTab);
 			}
 			// If not hardware wallet, but neither watch only then we also need the send tab.
-			else if (WalletService?.KeyManager?.IsWatchOnly is false)
+			else if (Wallet?.KeyManager?.IsWatchOnly is false)
 			{
-				sendTab = new SendTabViewModel(WalletService);
+				sendTab = new SendTabViewModel(Wallet);
 				Actions.Add(sendTab);
 			}
 
-			var receiveTab = new ReceiveTabViewModel(WalletService);
-			var coinjoinTab = new CoinJoinTabViewModel(WalletService);
-			var historyTab = new HistoryTabViewModel(WalletService);
+			var receiveTab = new ReceiveTabViewModel(Wallet);
+			var coinjoinTab = new CoinJoinTabViewModel(Wallet);
+			var historyTab = new HistoryTabViewModel(Wallet);
 
-			var advancedAction = new WalletAdvancedViewModel(WalletService);
-			var infoTab = new WalletInfoViewModel(WalletService);
-			var buildTab = new BuildTabViewModel(WalletService);
+			var advancedAction = new WalletAdvancedViewModel(Wallet);
+			var infoTab = new WalletInfoViewModel(Wallet);
+			var buildTab = new BuildTabViewModel(Wallet);
 
 			Actions.Add(receiveTab);
 			Actions.Add(coinjoinTab);
@@ -121,7 +121,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			var global = Locator.Current.GetService<Global>();
 
 			Observable.Merge(
-				Observable.FromEventPattern(WalletService.TransactionProcessor, nameof(WalletService.TransactionProcessor.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default))
+				Observable.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default))
 				.Throttle(TimeSpan.FromSeconds(0.1))
 				.Merge(global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Select(_ => Unit.Default))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -129,7 +129,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					try
 					{
-						Money balance = WalletService.Coins.TotalAmount();
+						Money balance = Wallet.Coins.TotalAmount();
 						Title = $"{Name} ({(global.UiConfig.LurkingWifeMode ? "#########" : balance.ToString(false, true))} BTC)";
 					}
 					catch (Exception ex)
@@ -149,7 +149,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string Name { get; }
 
-		public WalletService WalletService { get; }
+		public Wallet Wallet { get; }
 
 		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
 

@@ -11,28 +11,28 @@ namespace WalletWasabi.Blockchain.Transactions
 {
 	public class TransactionHistoryBuilder
 	{
-		public TransactionHistoryBuilder(WalletService walletService)
+		public TransactionHistoryBuilder(Wallet wallet)
 		{
-			WalletService = walletService;
+			Wallet = wallet;
 		}
 
-		public WalletService WalletService { get; }
+		public Wallet Wallet { get; }
 
 		public List<TransactionSummary> BuildHistorySummary()
 		{
-			var walletService = WalletService;
+			var wallet = Wallet;
 
 			var txRecordList = new List<TransactionSummary>();
-			if (walletService is null)
+			if (wallet is null)
 			{
 				return txRecordList;
 			}
 
-			var allCoins = ((CoinsRegistry)walletService.Coins).AsAllCoinsView();
+			var allCoins = ((CoinsRegistry)wallet.Coins).AsAllCoinsView();
 			foreach (SmartCoin coin in allCoins)
 			{
 				var txId = coin.TransactionId;
-				if (txId is null || !walletService.BitcoinStore.TransactionStore.TryGetTransaction(txId, out SmartTransaction foundTransaction))
+				if (txId is null || !wallet.BitcoinStore.TransactionStore.TryGetTransaction(txId, out SmartTransaction foundTransaction))
 				{
 					continue;
 				}
@@ -40,7 +40,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				DateTimeOffset dateTime;
 				if (foundTransaction.Height.Type == HeightType.Chain)
 				{
-					if (walletService.BitcoinStore.SmartHeaderChain.TryGetHeader((uint)foundTransaction.Height.Value, out SmartHeader header))
+					if (wallet.BitcoinStore.SmartHeaderChain.TryGetHeader((uint)foundTransaction.Height.Value, out SmartHeader header))
 					{
 						dateTime = header.BlockTime;
 					}
@@ -77,14 +77,14 @@ namespace WalletWasabi.Blockchain.Transactions
 
 				if (!coin.Unspent)
 				{
-					if (!walletService.BitcoinStore.TransactionStore.TryGetTransaction(coin.SpenderTransactionId, out SmartTransaction foundSpenderTransaction))
+					if (!wallet.BitcoinStore.TransactionStore.TryGetTransaction(coin.SpenderTransactionId, out SmartTransaction foundSpenderTransaction))
 					{
 						throw new InvalidOperationException($"Transaction {coin.SpenderTransactionId} not found.");
 					}
 
 					if (foundSpenderTransaction.Height.Type == HeightType.Chain)
 					{
-						if (walletService.BitcoinStore.SmartHeaderChain.TryGetHeader((uint)foundSpenderTransaction.Height.Value, out SmartHeader header))
+						if (wallet.BitcoinStore.SmartHeaderChain.TryGetHeader((uint)foundSpenderTransaction.Height.Value, out SmartHeader header))
 						{
 							dateTime = header.BlockTime;
 						}

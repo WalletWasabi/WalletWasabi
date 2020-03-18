@@ -20,7 +20,7 @@ namespace WalletWasabi.Gui.CommandLine
 
 		private Global Global { get; }
 
-		private WalletService WalletService { get; set; }
+		private Wallet Wallet { get; set; }
 
 		internal async Task RunAsync(string walletName, string destinationWalletName, bool keepMixAlive)
 		{
@@ -80,7 +80,7 @@ namespace WalletWasabi.Gui.CommandLine
 					return;
 				}
 
-				WalletService = await Global.WalletManager.CreateAndStartWalletServiceAsync(keyManager);
+				Wallet = await Global.WalletManager.CreateAndStartWalletAsync(keyManager);
 				if (Global.KillRequested)
 				{
 					return;
@@ -90,7 +90,7 @@ namespace WalletWasabi.Gui.CommandLine
 				bool isDifferentDestinationSpecified = keyManager.ExtPubKey != destinationKeyManager.ExtPubKey;
 				if (isDifferentDestinationSpecified)
 				{
-					await Global.WalletManager.CreateAndStartWalletServiceAsync(destinationKeyManager);
+					await Global.WalletManager.CreateAndStartWalletAsync(destinationKeyManager);
 				}
 
 				do
@@ -103,8 +103,8 @@ namespace WalletWasabi.Gui.CommandLine
 					// If no coins enqueued then try to enqueue the large anonset coins and mix to another wallet.
 					if (isDifferentDestinationSpecified && !AnyCoinsQueued())
 					{
-						WalletService.ChaumianClient.DestinationKeyManager = destinationKeyManager;
-						await TryQueueCoinsToMixAsync(password, minAnonset: WalletService.ServiceConfiguration.MixUntilAnonymitySet);
+						Wallet.ChaumianClient.DestinationKeyManager = destinationKeyManager;
+						await TryQueueCoinsToMixAsync(password, minAnonset: Wallet.ServiceConfiguration.MixUntilAnonymitySet);
 					}
 
 					if (Global.KillRequested)
@@ -115,8 +115,8 @@ namespace WalletWasabi.Gui.CommandLine
 					// If no coins were enqueued then try to enqueue coins those have less anonset and mix into the same wallet.
 					if (!AnyCoinsQueued())
 					{
-						WalletService.ChaumianClient.DestinationKeyManager = WalletService.ChaumianClient.KeyManager;
-						await TryQueueCoinsToMixAsync(password, maxAnonset: WalletService.ServiceConfiguration.MixUntilAnonymitySet - 1);
+						Wallet.ChaumianClient.DestinationKeyManager = Wallet.ChaumianClient.KeyManager;
+						await TryQueueCoinsToMixAsync(password, maxAnonset: Wallet.ServiceConfiguration.MixUntilAnonymitySet - 1);
 					}
 
 					if (Global.KillRequested)
@@ -146,7 +146,7 @@ namespace WalletWasabi.Gui.CommandLine
 
 		private bool AnyCoinsQueued()
 		{
-			return WalletService.ChaumianClient.State.AnyCoinsQueued();
+			return Wallet.ChaumianClient.State.AnyCoinsQueued();
 		}
 
 		public KeyManager TryGetKeyManagerFromWalletName(string walletName)
@@ -190,9 +190,9 @@ namespace WalletWasabi.Gui.CommandLine
 		{
 			try
 			{
-				var coinsToMix = WalletService.Coins.Available().FilterBy(x => x.AnonymitySet <= maxAnonset && minAnonset <= x.AnonymitySet);
+				var coinsToMix = Wallet.Coins.Available().FilterBy(x => x.AnonymitySet <= maxAnonset && minAnonset <= x.AnonymitySet);
 
-				var enqueuedCoins = await WalletService.ChaumianClient.QueueCoinsToMixAsync(password, coinsToMix.ToArray());
+				var enqueuedCoins = await Wallet.ChaumianClient.QueueCoinsToMixAsync(password, coinsToMix.ToArray());
 
 				if (enqueuedCoins.Any())
 				{

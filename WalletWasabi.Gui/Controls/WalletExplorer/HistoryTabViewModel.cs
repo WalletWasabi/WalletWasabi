@@ -24,11 +24,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private SortOrder _amountSortDirection;
 		private SortOrder _transactionSortDirection;
 
-		public HistoryTabViewModel(WalletService walletService)
+		public HistoryTabViewModel(Wallet wallet)
 			: base("History")
 		{
 			Global = Locator.Current.GetService<Global>();
-			WalletService = walletService;
+			Wallet = wallet;
 
 			Transactions = new ObservableCollection<TransactionViewModel>();
 
@@ -48,7 +48,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private Global Global { get; }
 
-		private WalletService WalletService { get; }
+		private Wallet Wallet { get; }
 
 		public ReactiveCommand<Unit, Unit> SortCommand { get; }
 
@@ -56,8 +56,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			base.OnOpen(disposables);
 
-			Observable.FromEventPattern(WalletService, nameof(WalletService.NewBlockProcessed))
-				.Merge(Observable.FromEventPattern(WalletService.TransactionProcessor, nameof(WalletService.TransactionProcessor.WalletRelevantTransactionProcessed)))
+			Observable.FromEventPattern(Wallet, nameof(Wallet.NewBlockProcessed))
+				.Merge(Observable.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)))
 				.Throttle(TimeSpan.FromSeconds(3))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(async _ => await TryRewriteTableAsync())
@@ -76,7 +76,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			try
 			{
-				var historyBuilder = new TransactionHistoryBuilder(WalletService);
+				var historyBuilder = new TransactionHistoryBuilder(Wallet);
 				var txRecordList = await Task.Run(historyBuilder.BuildHistorySummary);
 
 				var rememberSelectedTransactionId = SelectedTransaction?.TransactionId;
