@@ -42,15 +42,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _selectedItem, value);
 		}
 
-		internal void OpenWallet(WalletService walletService, bool receiveDominant)
+		internal void OpenWallet(Wallet wallet, bool receiveDominant)
 		{
-			var walletName = Path.GetFileNameWithoutExtension(walletService.KeyManager.FilePath);
+			var walletName = Path.GetFileNameWithoutExtension(wallet.KeyManager.FilePath);
 			if (_wallets.Any(x => x.Title == walletName))
 			{
 				return;
 			}
 
-			WalletViewModel walletViewModel = new WalletViewModel(walletService, receiveDominant);
+			WalletViewModel walletViewModel = new WalletViewModel(wallet, receiveDominant);
 			_wallets.Add(walletViewModel);
 			walletViewModel.OnWalletOpened();
 

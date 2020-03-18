@@ -16,7 +16,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public override string DoButtonText => "Build Transaction";
 		public override string DoingButtonText => "Building Transaction...";
 
-		public BuildTabViewModel(WalletService walletService) : base(walletService, "Build Transaction")
+		public BuildTabViewModel(Wallet wallet) : base(wallet, "Build Transaction")
 		{
 		}
 

@@ -536,18 +536,18 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 						return;
 					}
 
-					var walletService = await Task.Run(async () => await Global.WalletManager.CreateAndStartWalletServiceAsync(keyManager));
+					var wallet = await Task.Run(async () => await Global.WalletManager.CreateAndStartWalletAsync(keyManager));
 					// Successfully initialized.
 					Owner.OnClose();
 					// Open Wallet Explorer tabs
-					if (walletService.Coins.Any())
+					if (wallet.Coins.Any())
 					{
 						// If already have coins then open the last active tab first.
-						IoC.Get<WalletExplorerViewModel>().OpenWallet(walletService, receiveDominant: false);
+						IoC.Get<WalletExplorerViewModel>().OpenWallet(wallet, receiveDominant: false);
 					}
 					else // Else open with Receive tab first.
 					{
-						IoC.Get<WalletExplorerViewModel>().OpenWallet(walletService, receiveDominant: true);
+						IoC.Get<WalletExplorerViewModel>().OpenWallet(wallet, receiveDominant: true);
 					}
 				}
 				catch (Exception ex)
