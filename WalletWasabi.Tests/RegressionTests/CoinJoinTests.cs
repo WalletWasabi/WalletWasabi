@@ -254,7 +254,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			Assert.StartsWith($"{HttpStatusCode.BadRequest.ToReasonString()}\nNot enough inputs are provided. Fee to pay:", httpRequestException.Message);
 
 			roundConfig.Denomination = Money.Coins(0.008m); // one satoshi less than our output
-			roundConfig.ConnectionConfirmationTimeout = 7;
+			roundConfig.ConnectionConfirmationTimeout = TimeSpan.FromSeconds(7);
 			await coordinator.RoundConfig.UpdateOrDefaultAsync(roundConfig, toFile: true);
 			coordinator.AbortAllRoundsInInputRegistration("");
 			round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
@@ -380,7 +380,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				var inputRegistrableRoundState = await satoshiClient.GetRegistrableRoundStateAsync();
 				Assert.Equal(0, inputRegistrableRoundState.RegisteredPeerCount);
 
-				roundConfig.ConnectionConfirmationTimeout = 1; // One second.
+				roundConfig.ConnectionConfirmationTimeout = TimeSpan.FromSeconds(1);
 				await coordinator.RoundConfig.UpdateOrDefaultAsync(roundConfig, toFile: true);
 				coordinator.AbortAllRoundsInInputRegistration("");
 				round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
@@ -470,7 +470,7 @@ namespace WalletWasabi.Tests.RegressionTests
 					Assert.Null(await response.Content.ReadAsJsonAsync<string>());
 				}
 
-				roundConfig.ConnectionConfirmationTimeout = 60;
+				roundConfig.ConnectionConfirmationTimeout = TimeSpan.FromSeconds(60);
 				await coordinator.RoundConfig.UpdateOrDefaultAsync(roundConfig, toFile: true);
 				coordinator.AbortAllRoundsInInputRegistration("");
 				round = coordinator.GetCurrentInputRegisterableRoundOrDefault();

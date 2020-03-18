@@ -225,13 +225,13 @@ namespace WalletWasabi.CoinJoin.Coordinator
 
 				if (runningRoundCount == 0)
 				{
-					var round = new CoordinatorRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget, RoundConfig.ConfirmationTargetReductionRate);
+					var round = new CoordinatorRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget);
 					round.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
 					round.StatusChanged += Round_StatusChangedAsync;
 					await round.ExecuteNextPhaseAsync(RoundPhase.InputRegistration, feePerInputs, feePerOutputs).ConfigureAwait(false);
 					Rounds.Add(round);
 
-					var round2 = new CoordinatorRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget, RoundConfig.ConfirmationTargetReductionRate);
+					var round2 = new CoordinatorRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget);
 					round2.StatusChanged += Round_StatusChangedAsync;
 					round2.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
 					await round2.ExecuteNextPhaseAsync(RoundPhase.InputRegistration, feePerInputs, feePerOutputs).ConfigureAwait(false);
@@ -239,7 +239,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 				}
 				else if (runningRoundCount == 1)
 				{
-					var round = new CoordinatorRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget, RoundConfig.ConfirmationTargetReductionRate);
+					var round = new CoordinatorRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget);
 					round.StatusChanged += Round_StatusChangedAsync;
 					round.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
 					await round.ExecuteNextPhaseAsync(RoundPhase.InputRegistration, feePerInputs, feePerOutputs).ConfigureAwait(false);

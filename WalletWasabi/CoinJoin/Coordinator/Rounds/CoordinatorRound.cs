@@ -1,7 +1,6 @@
 using NBitcoin;
 using NBitcoin.Crypto;
 using NBitcoin.RPC;
-using Newtonsoft.Json.Linq;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Concurrent;
@@ -26,7 +25,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 		private RoundPhase _phase;
 		private CoordinatorRoundStatus _status;
 
-		public CoordinatorRound(RPCClient rpc, UtxoReferee utxoReferee, CoordinatorRoundConfig config, int adjustedConfirmationTarget, int configuredConfirmationTarget, double configuredConfirmationTargetReductionRate)
+		public CoordinatorRound(RPCClient rpc, UtxoReferee utxoReferee, CoordinatorRoundConfig config, int adjustedConfirmationTarget)
 		{
 			try
 			{
@@ -37,15 +36,8 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				RoundConfig = Guard.NotNull(nameof(config), config);
 
 				AdjustedConfirmationTarget = adjustedConfirmationTarget;
-				ConfiguredConfirmationTarget = configuredConfirmationTarget;
-				ConfiguredConfirmationTargetReductionRate = configuredConfirmationTargetReductionRate;
-				CoordinatorFeePercent = config.CoordinatorFeePercent;
 				AnonymitySet = config.AnonymitySet;
-				InputRegistrationTimeout = TimeSpan.FromSeconds(config.InputRegistrationTimeout);
 				SetInputRegistrationTimesout();
-				ConnectionConfirmationTimeout = TimeSpan.FromSeconds(config.ConnectionConfirmationTimeout);
-				OutputRegistrationTimeout = TimeSpan.FromSeconds(config.OutputRegistrationTimeout);
-				SigningTimeout = TimeSpan.FromSeconds(config.SigningTimeout);
 
 				PhaseLock = new object();
 				Phase = RoundPhase.InputRegistration;
@@ -69,7 +61,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				Logger.LogInfo($"New round ({RoundId}) is created.\n\t" +
 					$"BaseDenomination: {MixingLevels.GetBaseDenomination().ToString(false, true)} BTC.\n\t" +
 					$"{nameof(AdjustedConfirmationTarget)}: {AdjustedConfirmationTarget}.\n\t" +
-					$"{nameof(CoordinatorFeePercent)}: {CoordinatorFeePercent}%.\n\t" +
+					$"{nameof(RoundConfig.CoordinatorFeePercent)}: {RoundConfig.CoordinatorFeePercent}%.\n\t" +
 					$"{nameof(AnonymitySet)}: {AnonymitySet}.");
 			}
 			catch (Exception ex)
@@ -96,17 +88,6 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 		/// </summary>
 		public int AdjustedConfirmationTarget { get; private set; }
 
-		/// <summary>
-		/// The confirmation target that is present in the config file.
-		/// </summary>
-		public int ConfiguredConfirmationTarget { get; }
-
-		/// <summary>
-		/// The rate of confirmation target reduction rate that is present in the config file.
-		/// </summary>
-		public double ConfiguredConfirmationTargetReductionRate { get; }
-
-		public decimal CoordinatorFeePercent { get; }
 		public int AnonymitySet { get; private set; }
 
 		public Money FeePerInputs { get; private set; }
@@ -186,16 +167,9 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			}
 		}
 
-		public TimeSpan AliceRegistrationTimeout => ConnectionConfirmationTimeout;
+		public TimeSpan AliceRegistrationTimeout => RoundConfig.ConnectionConfirmationTimeout;
 
-		public TimeSpan InputRegistrationTimeout { get; }
 		public DateTimeOffset InputRegistrationTimesout { get; set; }
-
-		public TimeSpan ConnectionConfirmationTimeout { get; }
-
-		public TimeSpan OutputRegistrationTimeout { get; }
-
-		public TimeSpan SigningTimeout { get; }
 
 		public UtxoReferee UtxoReferee { get; }
 		public CoordinatorRoundConfig RoundConfig { get; }
@@ -204,7 +178,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 		private void SetInputRegistrationTimesout()
 		{
-			InputRegistrationTimesout = DateTimeOffset.UtcNow + InputRegistrationTimeout;
+			InputRegistrationTimesout = DateTimeOffset.UtcNow + RoundConfig.InputRegistrationTimeout;
 		}
 
 		public async Task ExecuteNextPhaseAsync(RoundPhase expectedPhase, Money feePerInputs = null, Money feePerOutputs = null)
@@ -312,7 +286,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 						// 4. Start building Coordinator fee.
 						var baseDenominationOutputCount = transaction.Outputs.Count(x => x.Value == newDenomination);
-						Money coordinatorBaseFeePerAlice = newDenomination.Percentage(CoordinatorFeePercent * baseDenominationOutputCount);
+						Money coordinatorBaseFeePerAlice = newDenomination.Percentage(RoundConfig.CoordinatorFeePercent * baseDenominationOutputCount);
 						Money coordinatorFee = baseDenominationOutputCount * coordinatorBaseFeePerAlice;
 
 						if (tinkerWithAdditionalMixingLevels)
@@ -325,7 +299,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 									break;
 								}
 
-								Money coordinatorLevelFeePerAlice = level.Denomination.Percentage(CoordinatorFeePercent * denominationOutputCount);
+								Money coordinatorLevelFeePerAlice = level.Denomination.Percentage(RoundConfig.CoordinatorFeePercent * denominationOutputCount);
 								coordinatorFee += coordinatorLevelFeePerAlice * denominationOutputCount;
 							}
 						}
@@ -358,7 +332,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 									changeAmount -= FeePerOutputs;
 									changeAmount -= level.Denomination;
-									changeAmount -= level.Denomination.Percentage(CoordinatorFeePercent * denominationOutputCount);
+									changeAmount -= level.Denomination.Percentage(RoundConfig.CoordinatorFeePercent * denominationOutputCount);
 								}
 							}
 
@@ -436,20 +410,20 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 							case RoundPhase.InputRegistration:
 								{
 									SetInputRegistrationTimesout(); // Update it, it's going to be slightly more accurate.
-									timeout = InputRegistrationTimeout;
+									timeout = RoundConfig.InputRegistrationTimeout;
 								}
 								break;
 
 							case RoundPhase.ConnectionConfirmation:
-								timeout = ConnectionConfirmationTimeout;
+								timeout = RoundConfig.ConnectionConfirmationTimeout;
 								break;
 
 							case RoundPhase.OutputRegistration:
-								timeout = OutputRegistrationTimeout;
+								timeout = RoundConfig.OutputRegistrationTimeout;
 								break;
 
 							case RoundPhase.Signing:
-								timeout = SigningTimeout;
+								timeout = RoundConfig.SigningTimeout;
 								break;
 
 							default:
@@ -632,7 +606,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 						break;
 					}
 
-					changeAmount -= level.Denomination + FeePerOutputs + level.Denomination.Percentage(CoordinatorFeePercent * bobsOnThisLevel);
+					changeAmount -= level.Denomination + FeePerOutputs + level.Denomination.Percentage(RoundConfig.CoordinatorFeePercent * bobsOnThisLevel);
 
 					if (changeAmount < Money.Zero)
 					{
@@ -686,7 +660,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 					break;
 				}
 
-				changeAmount -= level.Denomination + FeePerOutputs + level.Denomination.Percentage(CoordinatorFeePercent * potentialAlicesOnThisLevel);
+				changeAmount -= level.Denomination + FeePerOutputs + level.Denomination.Percentage(RoundConfig.CoordinatorFeePercent * potentialAlicesOnThisLevel);
 
 				if (changeAmount < Money.Zero)
 				{
@@ -784,7 +758,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 				// Note that only dependents matter, spenders do not matter much or at all, they just allow this transaction to be confirmed faster.
 				var dependents = await RpcClient.GetAllDependentsAsync(transactionHashes, includingProvided: true, likelyProvidedManyConfirmedOnes: true).ConfigureAwait(false);
-				AdjustedConfirmationTarget = AdjustConfirmationTarget(dependents.Count, ConfiguredConfirmationTarget, ConfiguredConfirmationTargetReductionRate);
+				AdjustedConfirmationTarget = AdjustConfirmationTarget(dependents.Count, RoundConfig.ConfirmationTarget, RoundConfig.ConfirmationTargetReductionRate);
 
 				if (originalConfirmationTarget != AdjustedConfirmationTarget)
 				{

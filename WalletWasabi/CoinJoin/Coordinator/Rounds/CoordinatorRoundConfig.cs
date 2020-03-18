@@ -1,16 +1,11 @@
 using NBitcoin;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.ComponentModel;
-using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
-using WalletWasabi.Interfaces;
 using WalletWasabi.JsonConverters;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 {
@@ -45,21 +40,21 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 		[JsonProperty(PropertyName = "AnonymitySet", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public int AnonymitySet { get; internal set; }
 
-		[DefaultValue(604800)] // One week
 		[JsonProperty(PropertyName = "InputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public long InputRegistrationTimeout { get; internal set; }
+		[JsonConverter(typeof(TimeSpanSecondsConverter))]
+		public TimeSpan InputRegistrationTimeout { get; internal set; } = TimeSpan.FromDays(7);
 
-		[DefaultValue(60)]
 		[JsonProperty(PropertyName = "ConnectionConfirmationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public long ConnectionConfirmationTimeout { get; internal set; }
+		[JsonConverter(typeof(TimeSpanSecondsConverter))]
+		public TimeSpan ConnectionConfirmationTimeout { get; internal set; } = TimeSpan.FromMinutes(1);
 
-		[DefaultValue(60)]
 		[JsonProperty(PropertyName = "OutputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public long OutputRegistrationTimeout { get; internal set; }
+		[JsonConverter(typeof(TimeSpanSecondsConverter))]
+		public TimeSpan OutputRegistrationTimeout { get; internal set; } = TimeSpan.FromMinutes(1);
 
-		[DefaultValue(60)]
 		[JsonProperty(PropertyName = "SigningTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public long SigningTimeout { get; internal set; }
+		[JsonConverter(typeof(TimeSpanSecondsConverter))]
+		public TimeSpan SigningTimeout { get; internal set; } = TimeSpan.FromMinutes(1);
 
 		[DefaultValue(1)]
 		[JsonProperty(PropertyName = "DosSeverity", DefaultValueHandling = DefaultValueHandling.Populate)]

@@ -444,7 +444,7 @@ namespace WalletWasabi.Backend.Controllers
 					}
 
 					// Updating the status of CoinJoin
-					var validInterval = TimeSpan.FromSeconds(Global.Coordinator.RoundConfig.InputRegistrationTimeout * 2);
+					var validInterval = Global.Coordinator.RoundConfig.InputRegistrationTimeout * 2;
 					if (validInterval < TimeSpan.FromHours(1))
 					{
 						validInterval = TimeSpan.FromHours(1);

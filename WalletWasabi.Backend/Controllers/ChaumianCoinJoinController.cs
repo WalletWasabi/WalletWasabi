@@ -79,7 +79,7 @@ namespace WalletWasabi.Backend.Controllers
 					RegistrationTimeout = (int)round.AliceRegistrationTimeout.TotalSeconds,
 					FeePerInputs = round.FeePerInputs,
 					FeePerOutputs = round.FeePerOutputs,
-					CoordinatorFeePercent = round.CoordinatorFeePercent,
+					CoordinatorFeePercent = round.RoundConfig.CoordinatorFeePercent,
 					RoundId = round.RoundId,
 					SuccessfulRoundCount = Coordinator.GetCoinJoinCount() // This is round independent, it is only here because of backward compatibility.
 				};
@@ -286,7 +286,7 @@ namespace WalletWasabi.Backend.Controllers
 							break;
 						}
 
-						Money coordinatorFee = denomination.Percentage(round.CoordinatorFeePercent * round.AnonymitySet); // It should be the number of bobs, but we must make sure they'd have money to pay all.
+						Money coordinatorFee = denomination.Percentage(round.RoundConfig.CoordinatorFeePercent * round.AnonymitySet); // It should be the number of bobs, but we must make sure they'd have money to pay all.
 						changeAmount -= (denomination + round.FeePerOutputs + coordinatorFee);
 						networkFeeToPay += round.FeePerOutputs;
 
