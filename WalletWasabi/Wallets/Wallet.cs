@@ -154,9 +154,10 @@ namespace WalletWasabi.Wallets
 		/// <inheritdoc/>
 		public override async Task StartAsync(CancellationToken cancel)
 		{
-			State = WalletState.Starting;
+			var prevState = State;
 			try
 			{
+				State = WalletState.Starting;
 				InitializingChanged?.Invoke(this, true);
 
 				if (!Synchronizer.IsRunning)
@@ -199,7 +200,7 @@ namespace WalletWasabi.Wallets
 			}
 			catch
 			{
-				State = WalletState.Initialized;
+				State = prevState;
 				throw;
 			}
 			finally
