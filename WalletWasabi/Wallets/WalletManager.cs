@@ -44,8 +44,6 @@ namespace WalletWasabi.Wallets
 		private object Lock { get; }
 		private AsyncLock AddRemoveLock { get; }
 
-		private IEnumerable<KeyValuePair<Wallet, HashSet<uint256>>> AliveWalletsNoLock => Wallets.Where(x => x.Key is { State: var state } && state < WalletState.Stopping);
-
 		private BitcoinStore BitcoinStore { get; set; }
 		private WasabiSynchronizer Synchronizer { get; set; }
 		private NodesGroup Nodes { get; set; }
@@ -210,7 +208,7 @@ namespace WalletWasabi.Wallets
 		{
 			lock (Lock)
 			{
-				foreach (var pair in AliveWalletsNoLock.Where(x => !x.Value.Contains(tx.GetHash())))
+				foreach (var pair in Wallets.Where(x => x.Key.State == WalletState.Started && !x.Value.Contains(tx.GetHash())))
 				{
 					var wallet = pair.Key;
 					pair.Value.Add(tx.GetHash());
@@ -223,7 +221,7 @@ namespace WalletWasabi.Wallets
 		{
 			lock (Lock)
 			{
-				foreach (var wallet in AliveWalletsNoLock)
+				foreach (var wallet in Wallets.Where(x => x.Key.State == WalletState.Started))
 				{
 					wallet.Key.TransactionProcessor.Process(transaction);
 				}
@@ -235,7 +233,7 @@ namespace WalletWasabi.Wallets
 			lock (Lock)
 			{
 				var res = new List<SmartCoin>();
-				foreach (var wallet in AliveWalletsNoLock)
+				foreach (var wallet in Wallets.Where(x => x.Key.State == WalletState.Started))
 				{
 					SmartCoin coin = wallet.Key.Coins.GetByOutPoint(input);
 					res.Add(coin);
@@ -250,7 +248,7 @@ namespace WalletWasabi.Wallets
 			lock (Lock)
 			{
 				var unknowns = new HashSet<uint256>();
-				foreach (var pair in AliveWalletsNoLock)
+				foreach (var pair in Wallets.Where(x => x.Key.State == WalletState.Started))
 				{
 					// If a wallet service doesn't know about the tx, then we add it for processing.
 					foreach (var tx in cjs.Where(x => !pair.Value.Contains(x)))
