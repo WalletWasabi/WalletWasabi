@@ -21,7 +21,7 @@ namespace WalletWasabi.Gui.Tabs
 		private string _text;
 		private bool _emptyContent;
 
-		public LegalDocumentsViewModel(string content = null, LegalDocuments legalDoc = null)
+		public LegalDocumentsViewModel(string content = null, LegalDocuments legalDoc = null) : base()
 		{
 			FilePath = legalDoc?.FilePath;
 			Content = content;
@@ -77,8 +77,8 @@ namespace WalletWasabi.Gui.Tabs
 
 		public bool OnClose()
 		{
-			Disposables?.Dispose();						
-			IoC.Get<IShell>().RemoveDocument(this);			
+			Disposables?.Dispose();
+			IoC.Get<IShell>().RemoveDocument(this);
 			return true;
 		}
 

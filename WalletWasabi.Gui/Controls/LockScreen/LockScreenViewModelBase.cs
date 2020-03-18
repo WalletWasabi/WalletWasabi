@@ -9,18 +9,11 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 	public abstract class LockScreenViewModelBase : ViewModelBase
 	{
 		private bool _isAnimating;
-		private bool _isLocked;
+		private bool _isLocked = true;
 		private bool _canSlide;
 		private volatile bool _disposedValue = false; // To detect redundant calls
 
-		public LockScreenViewModelBase()
-		{
-			Disposables = new CompositeDisposable();
-
-			IsLocked = true;
-		}
-
-		protected CompositeDisposable Disposables { get; }
+		protected CompositeDisposable Disposables { get; } = new CompositeDisposable();
 
 		public bool CanSlide
 		{

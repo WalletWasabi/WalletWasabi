@@ -13,7 +13,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 	{
 		private string _pinInput;
 
-		public PinLockScreenViewModel()
+		public PinLockScreenViewModel() : base()
 		{
 			KeyPadCommand = ReactiveCommand.Create<string>((arg) =>
 			{
