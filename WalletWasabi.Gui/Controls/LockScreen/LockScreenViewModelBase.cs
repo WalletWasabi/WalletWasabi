@@ -36,8 +36,8 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 		public bool IsAnimating
 		{
-			get { return _isAnimating; }
-			set { this.RaiseAndSetIfChanged(ref _isAnimating, value); }
+			get => _isAnimating;
+			set => this.RaiseAndSetIfChanged(ref _isAnimating, value);
 		}
 
 		public void Initialize()
