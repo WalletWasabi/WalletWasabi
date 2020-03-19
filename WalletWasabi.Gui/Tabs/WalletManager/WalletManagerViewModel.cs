@@ -36,7 +36,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				new RecoverWalletViewModel(this),
 				LoadWalletViewModelDesktop,
 				new LoadWalletViewModel(this, LoadWalletType.Password),
-				new HardwareWalletViewModel()
+				new ConnectHardwareWalletViewModel()
 		};
 
 			SelectedCategory = Categories.FirstOrDefault();

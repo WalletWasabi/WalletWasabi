@@ -4,9 +4,9 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 {
-	public class HardwareWalletView : UserControl
+	public class ConnectHardwareWalletView : UserControl
 	{
-		public HardwareWalletView()
+		public ConnectHardwareWalletView()
 		{
 			InitializeComponent();
 		}
