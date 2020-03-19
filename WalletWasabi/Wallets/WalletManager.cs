@@ -352,6 +352,14 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
+		public IEnumerable<Wallet> GetWallets()
+		{
+			lock (Lock)
+			{
+				return Wallets.Keys.ToArray();
+			}
+		}
+
 		public void RegisterServices(BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, NodesGroup nodes, ServiceConfiguration serviceConfiguration, IFeeProvider feeProvider, CoreNode bitcoinCoreNode)
 		{
 			BitcoinStore = bitcoinStore;
