@@ -29,5 +29,10 @@ namespace WalletWasabi.BitcoinCore
 		{
 			return await Rpc.GetBlockHeaderAsync(blockHash).ConfigureAwait(false);
 		}
+
+		public Task<RPCResponse> SendCommandAsync(RPCOperations operation, params object[] p)
+		{
+			throw new System.NotImplementedException("This is a low level call only for testing purposes.");
+		}
 	}
 }
