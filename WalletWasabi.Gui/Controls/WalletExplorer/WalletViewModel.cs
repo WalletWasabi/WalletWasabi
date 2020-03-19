@@ -1,35 +1,31 @@
 using NBitcoin;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Logging;
-using Splat;
-using WalletWasabi.Wallets;
-using WalletWasabi.Helpers;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class WalletViewModel : ViewModelBase
+	public class WalletViewModel : WalletViewModelBase
 	{
 		private ObservableCollection<WasabiDocumentTabViewModel> _actions;
-		private bool _isExpanded;
-		private string _title;
 
-		public WalletViewModel(Wallet wallet)
+		public WalletViewModel(Wallet wallet) : base(wallet.WalletName)
 		{
 			Wallet = Guard.NotNull(nameof(wallet), wallet);
 
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 			Actions = new ObservableCollection<WasabiDocumentTabViewModel>();
 			Global = Locator.Current.GetService<Global>();
-			Title = WalletName;
 
 			LurkingWifeModeCommand = ReactiveCommand.Create(() =>
 			{
@@ -62,18 +58,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public Global Global { get; }
-
-		public bool IsExpanded
-		{
-			get => _isExpanded;
-			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
-		}
-
-		public string Title
-		{
-			get => _title;
-			set => this.RaiseAndSetIfChanged(ref _title, value);
-		}
 
 		public string WalletName => Wallet.WalletName;
 		public KeyManager KeyManager => Wallet.KeyManager;
