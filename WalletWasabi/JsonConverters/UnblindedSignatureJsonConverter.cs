@@ -20,17 +20,28 @@ namespace WalletWasabi.JsonConverters
 		{
 			JArray arr = JArray.Load(reader);
 
-			var cs = BigInteger.Parse(arr[0].Value<string>());
-			var ss = BigInteger.Parse(arr[1].Value<string>());
-
-			var carr = ToFixedLengthByteArray(cs);
-			var sarr = ToFixedLengthByteArray(ss);
+			var carr = ToFixedLengthByteArray(StringToBigInteger(arr[0].Value<string>()));
+			var sarr = ToFixedLengthByteArray(StringToBigInteger(arr[1].Value<string>()));
 
 			var signatureBytes = carr.Concat(sarr).ToArray();
 			var signature = ByteHelpers.ToHex(signatureBytes);
 
 			var sig = UnblindedSignature.Parse(signature);
 			return sig;
+		}
+
+		private BigInteger StringToBigInteger(string num)
+		{
+			if (string.IsNullOrWhiteSpace(num) || num.Length > 78)
+			{
+				throw new FormatException("UnblindedSignature components C or S are not valid.");
+			}
+			var bi = BigInteger.Parse(num);
+			if (bi.IsZero || bi < BigInteger.Zero)
+			{
+				throw new FormatException("UnblindedSignature components C or S are zero or negative.");
+			}
+			return bi;
 		}
 
 		/// <inheritdoc />
