@@ -23,10 +23,10 @@
         </Grid>
       </controls:GroupBox>
       <DockPanel LastChildFill="True" Margin="20 10">
-        <Button Command="{Binding ConnectCommand}" DockPanel.Dock="Right">
+        <Button Command="{Binding LoadCommand}" DockPanel.Dock="Right">
           <StackPanel Orientation="Horizontal">
             <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsBusy}" Margin="0 0 8 0" />
-            <TextBlock Text="Connect" />
+            <TextBlock Text="{Binding LoadButtonText}" />
           </StackPanel>
         </Button>
         <Button Content="Search Hardware Wallets" Command="{Binding EnumerateHardwareWalletsCommand}" DockPanel.Dock="Right" Margin="0 0 10 0" />
@@ -56,7 +56,7 @@
               <DataTemplate>
                 <TextBlock Text="{Binding WalletName}">
                   <i:Interaction.Behaviors>
-                    <behaviors:CommandOnDoubleClickBehavior Command="{Binding RelativeSource={RelativeSource AncestorType=ListBox}, Path=DataContext.ConnectCommand}" />
+                    <behaviors:CommandOnDoubleClickBehavior Command="{Binding RelativeSource={RelativeSource AncestorType=ListBox}, Path=DataContext.LoadCommand}" />
                   </i:Interaction.Behaviors>
                 </TextBlock>
               </DataTemplate>

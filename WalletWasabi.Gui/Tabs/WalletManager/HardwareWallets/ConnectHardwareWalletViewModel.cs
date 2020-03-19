@@ -23,9 +23,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 	{
 		internal ConnectHardwareWalletViewModel(WalletManagerViewModel owner) : base(owner, LoadWalletType.Hardware)
 		{
-			ConnectCommand = LoadCommand;
 		}
-
-		public ReactiveCommand<Unit, Unit> ConnectCommand { get; }
 	}
 }
