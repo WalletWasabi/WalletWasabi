@@ -64,11 +64,11 @@ namespace WalletWasabi.Backend
 				HostedServices.Register(new ConfigWatcher(
 					TimeSpan.FromSeconds(10), // Every 10 seconds check the config
 					RoundConfig,
-					async () =>
+					() =>
 					{
 						try
 						{
-							await Coordinator.RoundConfig.UpdateOrDefaultAsync(RoundConfig, toFile: false);
+							Coordinator.RoundConfig.UpdateOrDefault(RoundConfig, toFile: false);
 
 							Coordinator.AbortAllRoundsInInputRegistration($"{nameof(RoundConfig)} has changed.");
 						}

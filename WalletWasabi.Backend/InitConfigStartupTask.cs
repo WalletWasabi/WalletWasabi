@@ -34,12 +34,12 @@ namespace WalletWasabi.Backend
 			TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 			var configFilePath = Path.Combine(Global.DataDir, "Config.json");
 			var config = new Config(configFilePath);
-			await config.LoadOrCreateDefaultFileAsync();
+			config.LoadOrCreateDefaultFile();
 			Logger.LogInfo("Config is successfully initialized.");
 
 			var roundConfigFilePath = Path.Combine(Global.DataDir, "CcjRoundConfig.json");
 			var roundConfig = new CoordinatorRoundConfig(roundConfigFilePath);
-			await roundConfig.LoadOrCreateDefaultFileAsync();
+			roundConfig.LoadOrCreateDefaultFile();
 			Logger.LogInfo("RoundConfig is successfully initialized.");
 
 			string host = config.GetBitcoinCoreRpcEndPoint().ToString(config.Network.RPCPort);

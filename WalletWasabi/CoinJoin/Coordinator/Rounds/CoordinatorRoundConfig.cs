@@ -87,13 +87,13 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 		public Script GetNextCleanCoordinatorScript() => CoordinatorExtPubKey.Derive(0, false).Derive(CoordinatorExtPubKeyCurrentDepth, false).PubKey.WitHash.ScriptPubKey;
 
-		public async Task MakeNextCoordinatorScriptDirtyAsync()
+		public void MakeNextCoordinatorScriptDirty()
 		{
 			CoordinatorExtPubKeyCurrentDepth++;
-			await ToFileAsync().ConfigureAwait(false);
+			ToFile();
 		}
 
-		public async Task UpdateOrDefaultAsync(CoordinatorRoundConfig config, bool toFile)
+		public void UpdateOrDefault(CoordinatorRoundConfig config, bool toFile)
 		{
 			Denomination = config.Denomination ?? Denomination;
 			var configSerialized = JsonConvert.SerializeObject(config);
@@ -101,7 +101,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 			if (toFile)
 			{
-				await ToFileAsync().ConfigureAwait(false);
+				ToFile();
 			}
 		}
 	}

@@ -49,7 +49,7 @@ namespace WalletWasabi.Gui
 		public string TorLogsFile { get; }
 		public BitcoinStore BitcoinStore { get; private set; }
 		public LegalDocuments LegalDocuments { get; set; }
-		public Config Config { get; private set; }
+		public Config Config { get; }
 
 		public string AddressManagerFilePath { get; private set; }
 		public AddressManager AddressManager { get; private set; }
@@ -69,7 +69,7 @@ namespace WalletWasabi.Gui
 
 		public bool KillRequested => Interlocked.Read(ref _dispose) > 0;
 
-		public UiConfig UiConfig { get; private set; }
+		public UiConfig UiConfig { get; }
 
 		public Network Network => Config.Network;
 
@@ -77,40 +77,28 @@ namespace WalletWasabi.Gui
 
 		public Global()
 		{
-			StoppingCts = new CancellationTokenSource();
-			DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
-			TorLogsFile = Path.Combine(DataDir, "TorLogs.txt");
-			Directory.CreateDirectory(DataDir);
-
-			Logger.InitializeDefaults(Path.Combine(DataDir, "Logs.txt"));
-
-			HostedServices = new HostedServices();
-			WalletManager = new WalletManager(new WalletDirectories(DataDir));
-
-			LegalDocuments = LegalDocuments.TryLoadAgreed(DataDir);
-
-			WalletManager.OnDequeue += WalletManager_OnDequeue;
-			WalletManager.WalletRelevantTransactionProcessed += WalletManager_WalletRelevantTransactionProcessed;
-		}
-
-		public async Task<bool> InitializeUiConfigAsync()
-		{
-			try
+			using (BenchmarkLogger.Measure())
 			{
-				var uiConfigFilePath = Path.Combine(DataDir, "UiConfig.json");
-				var uiConfig = new UiConfig(uiConfigFilePath);
-				await uiConfig.LoadOrCreateDefaultFileAsync().ConfigureAwait(false);
+				StoppingCts = new CancellationTokenSource();
+				DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
+				TorLogsFile = Path.Combine(DataDir, "TorLogs.txt");
+				Directory.CreateDirectory(DataDir);
 
-				UiConfig = uiConfig;
+				Logger.InitializeDefaults(Path.Combine(DataDir, "Logs.txt"));
 
-				return true;
+				UiConfig = new UiConfig(Path.Combine(DataDir, "UiConfig.json"));
+				UiConfig.LoadOrCreateDefaultFile();
+				Config = new Config(Path.Combine(DataDir, "Config.json"));
+				Config.LoadOrCreateDefaultFile();
+
+				HostedServices = new HostedServices();
+				WalletManager = new WalletManager(new WalletDirectories(DataDir));
+
+				LegalDocuments = LegalDocuments.TryLoadAgreed(DataDir);
+
+				WalletManager.OnDequeue += WalletManager_OnDequeue;
+				WalletManager.WalletRelevantTransactionProcessed += WalletManager_WalletRelevantTransactionProcessed;
 			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-			}
-
-			return false;
 		}
 
 		private bool InitializationCompleted { get; set; } = false;
@@ -128,16 +116,6 @@ namespace WalletWasabi.Gui
 
 			try
 			{
-				#region ConfigInitialization
-
-				Config = new Config(Path.Combine(DataDir, "Config.json"));
-				await Config.LoadOrCreateDefaultFileAsync();
-				Logger.LogInfo($"{nameof(Config)} is successfully initialized.");
-
-				#endregion ConfigInitialization
-
-				cancel.ThrowIfCancellationRequested();
-
 				BitcoinStore = new BitcoinStore();
 				var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), Network);
 				var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
@@ -461,7 +439,7 @@ namespace WalletWasabi.Gui
 		{
 			try
 			{
-				if (UiConfig?.LurkingWifeMode is true)
+				if (UiConfig.LurkingWifeMode is true)
 				{
 					return;
 				}
@@ -499,7 +477,7 @@ namespace WalletWasabi.Gui
 			{
 				// In lurking wife mode no notification is raised.
 				// If there are no news, then don't bother too.
-				if (UiConfig?.LurkingWifeMode is true || !e.IsNews)
+				if (UiConfig.LurkingWifeMode is true || !e.IsNews)
 				{
 					return;
 				}
