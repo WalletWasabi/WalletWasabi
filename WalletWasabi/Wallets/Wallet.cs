@@ -157,6 +157,8 @@ namespace WalletWasabi.Wallets
 				State = WalletState.Starting;
 				InitializingChanged?.Invoke(this, true);
 
+				KeyManager.SetLastAccessTimeForNow();
+
 				if (!Synchronizer.IsRunning)
 				{
 					throw new NotSupportedException($"{nameof(Synchronizer)} is not running.");

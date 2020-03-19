@@ -626,15 +626,7 @@ namespace WalletWasabi.Gui
 
 		public KeyManager LoadKeyManagerFromFile(string walletFullPath)
 		{
-			KeyManager keyManager;
-
-			// Set the LastAccessTime.
-			new FileInfo(walletFullPath)
-			{
-				LastAccessTime = DateTime.Now
-			};
-
-			keyManager = KeyManager.FromFile(walletFullPath);
+			KeyManager keyManager = KeyManager.FromFile(walletFullPath);
 			Logger.LogInfo($"Wallet loaded: {Path.GetFileNameWithoutExtension(keyManager.FilePath)}.");
 			return keyManager;
 		}
