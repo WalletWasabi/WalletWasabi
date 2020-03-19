@@ -141,6 +141,22 @@ namespace WalletWasabi.Gui.Tabs
 					PinBoxText = string.Empty;
 				});
 
+			this.WhenAnyValue(x => x.SomePrivacyLevel)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => this.RaisePropertyChanged(nameof(FinePrivacyLevel)));
+
+			this.WhenAnyValue(x => x.FinePrivacyLevel)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+				{
+					this.RaisePropertyChanged(nameof(SomePrivacyLevel));
+					this.RaisePropertyChanged(nameof(StrongPrivacyLevel));
+				});
+
+			this.WhenAnyValue(x => x.StrongPrivacyLevel)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => this.RaisePropertyChanged(nameof(FinePrivacyLevel)));
+
 			TextBoxLostFocusCommand = ReactiveCommand.Create(Save);
 
 			Observable
