@@ -593,7 +593,7 @@ namespace WalletWasabi.Gui
 
 			try
 			{
-				return LoadKeyManagerFromFile(walletFullPath);
+				return KeyManager.FromFile(walletFullPath);
 			}
 			catch (Exception ex)
 			{
@@ -620,15 +620,8 @@ namespace WalletWasabi.Gui
 				}
 				File.Copy(walletBackupFullPath, walletFullPath);
 
-				return LoadKeyManagerFromFile(walletFullPath);
+				return KeyManager.FromFile(walletFullPath);
 			}
-		}
-
-		public KeyManager LoadKeyManagerFromFile(string walletFullPath)
-		{
-			KeyManager keyManager = KeyManager.FromFile(walletFullPath);
-			Logger.LogInfo($"Wallet loaded: {Path.GetFileNameWithoutExtension(keyManager.FilePath)}.");
-			return keyManager;
 		}
 
 		/// <summary>
