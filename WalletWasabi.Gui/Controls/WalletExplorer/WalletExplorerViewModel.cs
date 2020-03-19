@@ -49,8 +49,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		internal void OpenWallet(Wallet wallet, bool receiveDominant, bool select)
 		{
-			var walletName = Path.GetFileNameWithoutExtension(wallet.KeyManager.FilePath);
-			if (_wallets.Any(x => x.Title == walletName))
+			if (_wallets.OfType<WalletViewModel>().Any(x => x.Title == wallet.WalletName))
 			{
 				return;
 			}
