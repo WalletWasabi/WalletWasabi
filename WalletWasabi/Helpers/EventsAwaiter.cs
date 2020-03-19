@@ -13,11 +13,6 @@ namespace System
 	/// </summary>
 	public class EventsAwaiter<TEventArgs>
 	{
-		protected IEnumerable<TaskCompletionSource<TEventArgs>> EventsArrived { get; }
-
-		private Action<EventHandler<TEventArgs>> Unsubscribe { get; }
-		private object Lock { get; }
-
 		public EventsAwaiter(Action<EventHandler<TEventArgs>> subscribe, Action<EventHandler<TEventArgs>> unsubscribe, int count)
 		{
 			Guard.MinimumAndNotNull(nameof(count), count, 0);
@@ -31,6 +26,11 @@ namespace System
 			subscribe(Subscription);
 			Unsubscribe = unsubscribe;
 		}
+
+		protected IEnumerable<TaskCompletionSource<TEventArgs>> EventsArrived { get; }
+
+		private Action<EventHandler<TEventArgs>> Unsubscribe { get; }
+		private object Lock { get; }
 
 		protected IEnumerable<Task<TEventArgs>> Tasks => EventsArrived.Select(x => x.Task);
 

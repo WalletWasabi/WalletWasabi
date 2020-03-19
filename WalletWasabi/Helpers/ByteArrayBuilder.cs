@@ -5,13 +5,14 @@ namespace System
 	public class ByteArrayBuilder
 	{
 		private byte[] _buffer;
-		public int Length { get; set; }
 
 		public ByteArrayBuilder()
 		{
 			_buffer = new byte[4096];
 			Length = 0;
 		}
+
+		public int Length { get; set; }
 
 		public ByteArrayBuilder Append(byte b)
 		{
