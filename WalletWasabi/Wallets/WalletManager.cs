@@ -107,7 +107,7 @@ namespace WalletWasabi.Wallets
 
 					return wallet;
 				}
-				catch (Exception)
+				catch
 				{
 					if (wallet is { })
 					{
