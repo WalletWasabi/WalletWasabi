@@ -50,12 +50,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return;
 			}
 
-			WalletViewModel walletViewModel = new WalletViewModel(wallet, receiveDominant);
+			WalletViewModel walletViewModel = new WalletViewModel(wallet);
 			_wallets.Add(walletViewModel);
-			walletViewModel.OnWalletOpened();
-
-			// TODO if we ever implement closing a wallet OnWalletClosed needs to be called
-			// to prevent memory leaks.
+			walletViewModel.OpenWallet(receiveDominant);
 		}
 
 		public void BeforeActivation()

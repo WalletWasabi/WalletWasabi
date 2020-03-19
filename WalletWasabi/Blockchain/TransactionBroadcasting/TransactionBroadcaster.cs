@@ -141,7 +141,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 				}
 
 				Node node = Nodes.ConnectedNodes.RandomElement();
-				while (node == default(Node) || !node.IsConnected || Nodes.ConnectedNodes.Count < 5)
+				while (node is null || !node.IsConnected || Nodes.ConnectedNodes.Count < 5)
 				{
 					// As long as we are connected to at least 4 nodes, we can always try again.
 					// 3 should be enough, but make it 5 so 2 nodes could disconnect in the meantime.

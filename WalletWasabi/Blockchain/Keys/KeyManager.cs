@@ -134,6 +134,7 @@ namespace WalletWasabi.Blockchain.Keys
 
 		private object ScriptHdPubKeyMapLock { get; }
 		private object ToFileLock { get; }
+		public string WalletName => string.IsNullOrWhiteSpace(FilePath) ? "" : Path.GetFileNameWithoutExtension(FilePath);
 
 		public static KeyManager CreateNew(out Mnemonic mnemonic, string password, string filePath = null)
 		{
@@ -150,6 +151,18 @@ namespace WalletWasabi.Blockchain.Keys
 			KeyPath keyPath = DefaultAccountKeyPath;
 			ExtPubKey extPubKey = extKey.Derive(keyPath).Neuter();
 			return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, extPubKey, false, AbsoluteMinGapLimit, new BlockchainState(), filePath, keyPath);
+		}
+
+		public void SetLastAccessTimeForNow()
+		{
+			if (FilePath is { })
+			{
+				// Set the LastAccessTime.
+				new FileInfo(FilePath)
+				{
+					LastAccessTime = DateTime.Now
+				};
+			}
 		}
 
 		public static KeyManager CreateNewWatchOnly(ExtPubKey extPubKey, string filePath = null)

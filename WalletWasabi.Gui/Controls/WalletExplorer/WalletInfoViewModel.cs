@@ -27,7 +27,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _extendedAccountPrivateKey;
 		private string _extendedAccountZprv;
 
-		public WalletInfoViewModel(Wallet wallet) : base(wallet.Name)
+		public WalletInfoViewModel(Wallet wallet) : base(wallet.WalletName)
 		{
 			Global = Locator.Current.GetService<Global>();
 			Wallet = wallet;
