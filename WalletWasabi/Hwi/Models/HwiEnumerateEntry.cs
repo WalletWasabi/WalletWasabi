@@ -9,22 +9,6 @@ namespace WalletWasabi.Hwi.Models
 {
 	public class HwiEnumerateEntry
 	{
-		public HardwareWalletModels Model { get; }
-		public string Path { get; }
-		public string SerialNumber { get; }
-		public HDFingerprint? Fingerprint { get; }
-		public bool? NeedsPinSent { get; }
-		public bool? NeedsPassphraseSent { get; }
-		public string Error { get; }
-		public HwiErrorCode? Code { get; }
-
-		public bool IsInitialized()
-		{
-			// Check for error message, too, not only code, because the currently released version doesn't have error code. This can be removed if HWI > 1.0.1 version is updated.
-			var notInitialized = (Code != null && Code == HwiErrorCode.DeviceNotInitialized) || (Error?.Contains("Not initialized", StringComparison.OrdinalIgnoreCase) is true);
-			return !notInitialized;
-		}
-
 		public HwiEnumerateEntry(
 			HardwareWalletModels model,
 			string path,
@@ -43,6 +27,22 @@ namespace WalletWasabi.Hwi.Models
 			NeedsPassphraseSent = needsPassphraseSent;
 			Error = error;
 			Code = code;
+		}
+
+		public HardwareWalletModels Model { get; }
+		public string Path { get; }
+		public string SerialNumber { get; }
+		public HDFingerprint? Fingerprint { get; }
+		public bool? NeedsPinSent { get; }
+		public bool? NeedsPassphraseSent { get; }
+		public string Error { get; }
+		public HwiErrorCode? Code { get; }
+
+		public bool IsInitialized()
+		{
+			// Check for error message, too, not only code, because the currently released version doesn't have error code. This can be removed if HWI > 1.0.1 version is updated.
+			var notInitialized = (Code != null && Code == HwiErrorCode.DeviceNotInitialized) || (Error?.Contains("Not initialized", StringComparison.OrdinalIgnoreCase) is true);
+			return !notInitialized;
 		}
 	}
 }
