@@ -57,8 +57,8 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			// 5. Create wallet service.
 			var workDir = Common.GetWorkDir();
-			var walletManager = new WalletManager(null);
-			walletManager.Initialize(bitcoinStore, synchronizer, nodes, workDir, serviceConfiguration, synchronizer, null);
+			var walletManager = new WalletManager(network, new WalletDirectories(workDir));
+			walletManager.RegisterServices(bitcoinStore, synchronizer, nodes, serviceConfiguration, synchronizer, null);
 
 			// Get some money, make it confirm.
 			var key = keyManager.GetNextReceiveKey("foo label", out _);
@@ -531,8 +531,8 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			// 5. Create wallet service.
 			var workDir = Common.GetWorkDir();
-			var walletManager = new WalletManager(null);
-			walletManager.Initialize(bitcoinStore, synchronizer, nodes, workDir, serviceConfiguration, synchronizer, null);
+			var walletManager = new WalletManager(network, new WalletDirectories(workDir));
+			walletManager.RegisterServices(bitcoinStore, synchronizer, nodes, serviceConfiguration, synchronizer, null);
 
 			// Get some money, make it confirm.
 			var key = keyManager.GetNextReceiveKey("foo label", out _);
@@ -699,7 +699,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			// 5. Create wallet service.
 			var workDir = Common.GetWorkDir();
-			using var wallet = new Wallet(bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer);
+			using var wallet = new Wallet(workDir, network, keyManager, bitcoinStore, synchronizer, nodes, serviceConfiguration, synchronizer, null);
 			wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;
 
 			Assert.Empty(wallet.Coins);
