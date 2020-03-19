@@ -329,7 +329,7 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		public static Config LoadOrCreateDefaultFileAsync(string path)
+		public static Config LoadOrCreateDefaultFile(string path)
 		{
 			var config = new Config(path);
 			config.LoadOrCreateDefaultFile();

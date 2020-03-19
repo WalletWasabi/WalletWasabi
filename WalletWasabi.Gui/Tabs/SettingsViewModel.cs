@@ -49,7 +49,7 @@ namespace WalletWasabi.Gui.Tabs
 			CustomFee = Global.UiConfig.IsCustomFee is true;
 			CustomChangeAddress = Global.UiConfig.IsCustomChangeAddress is true;
 
-			var config = Config.LoadOrCreateDefaultFileAsync(Global.Config.FilePath);
+			var config = Config.LoadOrCreateDefaultFile(Global.Config.FilePath);
 
 			Network = config.Network;
 			TorSocks5EndPoint = config.TorSocks5EndPoint.ToString(-1);
