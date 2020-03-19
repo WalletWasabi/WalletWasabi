@@ -49,7 +49,7 @@ namespace WalletWasabi.Gui
 		public string TorLogsFile { get; }
 		public BitcoinStore BitcoinStore { get; private set; }
 		public LegalDocuments LegalDocuments { get; set; }
-		public Config Config { get; private set; }
+		public Config Config { get; }
 
 		public string AddressManagerFilePath { get; private set; }
 		public AddressManager AddressManager { get; private set; }
@@ -69,7 +69,7 @@ namespace WalletWasabi.Gui
 
 		public bool KillRequested => Interlocked.Read(ref _dispose) > 0;
 
-		public UiConfig UiConfig { get; private set; }
+		public UiConfig UiConfig { get; }
 
 		public Network Network => Config.Network;
 
@@ -88,6 +88,8 @@ namespace WalletWasabi.Gui
 
 				UiConfig = new UiConfig(Path.Combine(DataDir, "UiConfig.json"));
 				UiConfig.LoadOrCreateDefaultFile();
+				Config = new Config(Path.Combine(DataDir, "Config.json"));
+				Config.LoadOrCreateDefaultFile();
 
 				HostedServices = new HostedServices();
 				WalletManager = new WalletManager(new WalletDirectories(DataDir));
@@ -114,16 +116,6 @@ namespace WalletWasabi.Gui
 
 			try
 			{
-				#region ConfigInitialization
-
-				Config = new Config(Path.Combine(DataDir, "Config.json"));
-				Config.LoadOrCreateDefaultFile();
-				Logger.LogInfo($"{nameof(Config)} is successfully initialized.");
-
-				#endregion ConfigInitialization
-
-				cancel.ThrowIfCancellationRequested();
-
 				BitcoinStore = new BitcoinStore();
 				var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), Network);
 				var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
