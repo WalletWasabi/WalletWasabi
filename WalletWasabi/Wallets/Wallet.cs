@@ -625,7 +625,7 @@ namespace WalletWasabi.Wallets
 
 						// Select a random node we are connected to.
 						Node node = Nodes.ConnectedNodes.RandomElement();
-						if (node == default(Node) && !node.IsConnected && Network == Network.RegTest)
+						if (node is null || !node.IsConnected)
 						{
 							await Task.Delay(100);
 							continue;
