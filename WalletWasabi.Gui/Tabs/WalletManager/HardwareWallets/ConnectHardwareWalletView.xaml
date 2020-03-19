@@ -23,7 +23,12 @@
         </Grid>
       </controls:GroupBox>
       <DockPanel LastChildFill="True" Margin="20 10">
-        <Button Content="Connect" Command="{Binding ConnectCommand}" DockPanel.Dock="Right" />
+        <Button Command="{Binding ConnectCommand}" DockPanel.Dock="Right">
+          <StackPanel Orientation="Horizontal">
+            <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsBusy}" Margin="0 0 8 0" />
+            <TextBlock Text="Connect" />
+          </StackPanel>
+        </Button>
         <Button Content="Search Hardware Wallets" Command="{Binding EnumerateHardwareWalletsCommand}" DockPanel.Dock="Right" Margin="0 0 10 0" />
         <Button Content="Import Coldcard" Command="{Binding ImportColdcardCommand}" DockPanel.Dock="Right" Margin="0 0 10 0" />
         <Grid></Grid>
