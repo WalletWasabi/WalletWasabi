@@ -107,7 +107,7 @@ namespace WalletWasabi.Wallets
 
 		public ServiceConfiguration ServiceConfiguration { get; private set; }
 
-		public string Name => Path.GetFileNameWithoutExtension(KeyManager.FilePath);
+		public string Name => KeyManager.GetName();
 
 		/// <summary>
 		/// Unspent Transaction Outputs

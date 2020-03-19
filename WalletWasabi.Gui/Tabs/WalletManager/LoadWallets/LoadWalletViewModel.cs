@@ -296,20 +296,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			Wallets.Clear();
 			Password = "";
 
-			foreach (var file in Global.WalletManager.WalletDirectories.EnumerateWalletFiles())
+			foreach (var wallet in Global.WalletManager
+				.GetWallets()
+				.Select(x => x.KeyManager)
+				.Where(x => !IsPasswordRequired || !x.IsWatchOnly) // If password isn't required then add the wallet, otherwise add only not watchonly wallets.
+				.Select(x => new LoadWalletEntry(x.GetName())))
 			{
-				var wallet = new LoadWalletEntry(Path.GetFileNameWithoutExtension(file.FullName));
-				if (IsPasswordRequired)
-				{
-					if (KeyManager.TryGetEncryptedSecretFromFile(file.FullName, out _))
-					{
-						Wallets.Add(wallet);
-					}
-				}
-				else
-				{
-					Wallets.Add(wallet);
-				}
+				Wallets.Add(wallet);
 			}
 
 			TrySetWalletStates();
