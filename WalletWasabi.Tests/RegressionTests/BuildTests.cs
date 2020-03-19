@@ -102,7 +102,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				FeeStrategy.TwentyMinutesConfirmationTargetStrategy));
 
 			// allowedInputs cannot be empty
-			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, validIntent, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowedInputs: Array.Empty<TxoRef>()));
+			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, validIntent, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowedInputs: Array.Empty<OutPoint>()));
 
 			// "Only one element can contain the AllRemaining flag.
 			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(

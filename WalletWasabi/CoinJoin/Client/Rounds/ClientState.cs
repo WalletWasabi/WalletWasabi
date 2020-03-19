@@ -70,15 +70,15 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 			}
 		}
 
-		public bool Contains(IEnumerable<TxoRef> txos)
+		public bool Contains(IEnumerable<OutPoint> outpoints)
 		{
 			lock (StateLock)
 			{
-				foreach (TxoRef txo in txos)
+				foreach (OutPoint txo in outpoints)
 				{
 					if (WaitingList.Keys
 						.Concat(Rounds.SelectMany(x => x.CoinsRegistered))
-						.Any(x => x.GetTxoRef() == txo))
+						.Any(x => x.OutPoint == txo))
 					{
 						return true;
 					}
@@ -152,19 +152,19 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 			}
 		}
 
-		public IEnumerable<TxoRef> GetAllWaitingCoins()
+		public IEnumerable<OutPoint> GetAllWaitingCoins()
 		{
 			lock (StateLock)
 			{
-				return WaitingList.Keys.Select(x => x.GetTxoRef()).ToArray();
+				return WaitingList.Keys.Select(x => x.OutPoint).ToArray();
 			}
 		}
 
-		public IEnumerable<TxoRef> GetAllRegisteredCoins()
+		public IEnumerable<OutPoint> GetAllRegisteredCoins()
 		{
 			lock (StateLock)
 			{
-				return Rounds.SelectMany(x => x.CoinsRegistered).Select(x => x.GetTxoRef()).ToArray();
+				return Rounds.SelectMany(x => x.CoinsRegistered).Select(x => x.OutPoint).ToArray();
 			}
 		}
 

@@ -262,7 +262,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 
 					var selectedCoinViewModels = CoinList.Coins.Where(cvm => cvm.IsSelected);
-					var selectedCoinReferences = selectedCoinViewModels.Select(cvm => new TxoRef(cvm.Model.TransactionId, cvm.Model.Index)).ToList();
+					var selectedCoinReferences = selectedCoinViewModels.Select(cvm => cvm.Model.OutPoint).ToList();
 
 					if (!selectedCoinReferences.Any())
 					{
