@@ -279,9 +279,9 @@ namespace WalletWasabi.Gui
 		}
 
 		/// <inheritdoc />
-		public override async Task LoadFileAsync()
+		public override void LoadFile()
 		{
-			await base.LoadFileAsync();
+			base.LoadFile();
 
 			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet, PrivacyLevelSome, PrivacyLevelFine, PrivacyLevelStrong, GetBitcoinP2pEndPoint(), DustThreshold);
 
@@ -329,10 +329,10 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		public static async Task<Config> LoadOrCreateDefaultFileAsync(string path)
+		public static Config LoadOrCreateDefaultFileAsync(string path)
 		{
 			var config = new Config(path);
-			await config.LoadOrCreateDefaultFileAsync();
+			config.LoadOrCreateDefaultFile();
 
 			// MixUntilAnonymitySet sanity check.
 			if (config.MixUntilAnonymitySet != config.PrivacyLevelFine &&

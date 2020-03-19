@@ -88,7 +88,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			int anonymitySet = 3;
 			int connectionConfirmationTimeout = 120;
 			var roundConfig = RegTestFixture.CreateRoundConfig(denomination, 140, 0.7, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 1, 1, 1, 24, true, 11);
-			await coordinator.RoundConfig.UpdateOrDefaultAsync(roundConfig, toFile: true);
+			coordinator.RoundConfig.UpdateOrDefault(roundConfig, toFile: true);
 			coordinator.AbortAllRoundsInInputRegistration("");
 
 			await rpc.GenerateAsync(3); // So to make sure we have enough money.
@@ -291,7 +291,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			int connectionConfirmationTimeout = 1;
 			bool doesNoteBeforeBan = true;
 			CoordinatorRoundConfig roundConfig = RegTestFixture.CreateRoundConfig(denomination, 140, 0.7, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 1, 1, 1, 24, doesNoteBeforeBan, 11);
-			await coordinator.RoundConfig.UpdateOrDefaultAsync(roundConfig, toFile: true);
+			coordinator.RoundConfig.UpdateOrDefault(roundConfig, toFile: true);
 			coordinator.AbortAllRoundsInInputRegistration("");
 
 			Uri baseUri = new Uri(RegTestFixture.BackendEndPoint);

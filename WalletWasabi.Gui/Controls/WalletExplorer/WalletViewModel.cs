@@ -103,11 +103,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				tabToOpen?.DisplayActionTab();
 			}
 
-			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				global.UiConfig.LurkingWifeMode = !global.UiConfig.LurkingWifeMode;
-				await global.UiConfig.ToFileAsync();
-			});
+			LurkingWifeModeCommand = ReactiveCommand.Create(() =>
+		   {
+			   global.UiConfig.LurkingWifeMode = !global.UiConfig.LurkingWifeMode;
+			   global.UiConfig.ToFile();
+		   });
 
 			LurkingWifeModeCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)

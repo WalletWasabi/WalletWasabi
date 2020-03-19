@@ -324,7 +324,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 								if (newDenominationToGetInWithactiveOutputs > Money.Coins(0.01m))
 								{
 									RoundConfig.Denomination = newDenominationToGetInWithactiveOutputs;
-									await RoundConfig.ToFileAsync().ConfigureAwait(false);
+									RoundConfig.ToFile();
 								}
 							}
 						}

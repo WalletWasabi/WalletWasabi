@@ -49,20 +49,24 @@ namespace WalletWasabi.Gui.Tabs
 			CustomFee = Global.UiConfig?.IsCustomFee is true;
 			CustomChangeAddress = Global.UiConfig?.IsCustomChangeAddress is true;
 
-			// Use global config's data as default filler until the real data is filled out by the loading of the config onopen.
-			var globalConfig = Global.Config;
-			Network = globalConfig.Network;
-			TorSocks5EndPoint = globalConfig.TorSocks5EndPoint.ToString(-1);
-			UseTor = globalConfig.UseTor;
-			StartLocalBitcoinCoreOnStartup = globalConfig.StartLocalBitcoinCoreOnStartup;
-			StopLocalBitcoinCoreOnShutdown = globalConfig.StopLocalBitcoinCoreOnShutdown;
-			SomePrivacyLevel = globalConfig.PrivacyLevelSome.ToString();
-			FinePrivacyLevel = globalConfig.PrivacyLevelFine.ToString();
-			StrongPrivacyLevel = globalConfig.PrivacyLevelStrong.ToString();
-			DustThreshold = globalConfig.DustThreshold.ToString();
-			BitcoinP2pEndPoint = globalConfig.GetP2PEndpoint().ToString(defaultPort: -1);
-			LocalBitcoinCoreDataDir = globalConfig.LocalBitcoinCoreDataDir;
-			IsModified = false;
+			var config = Config.LoadOrCreateDefaultFileAsync(Global.Config.FilePath);
+
+			Network = config.Network;
+			TorSocks5EndPoint = config.TorSocks5EndPoint.ToString(-1);
+			UseTor = config.UseTor;
+			StartLocalBitcoinCoreOnStartup = config.StartLocalBitcoinCoreOnStartup;
+			StopLocalBitcoinCoreOnShutdown = config.StopLocalBitcoinCoreOnShutdown;
+
+			SomePrivacyLevel = config.PrivacyLevelSome.ToString();
+			FinePrivacyLevel = config.PrivacyLevelFine.ToString();
+			StrongPrivacyLevel = config.PrivacyLevelStrong.ToString();
+
+			DustThreshold = config.DustThreshold.ToString();
+
+			BitcoinP2pEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
+			LocalBitcoinCoreDataDir = config.LocalBitcoinCoreDataDir;
+
+			IsModified = !Global.Config.AreDeepEqual(config);
 
 			this.WhenAnyValue(
 				x => x.Network,
@@ -86,10 +90,10 @@ namespace WalletWasabi.Gui.Tabs
 
 			OpenConfigFileCommand = ReactiveCommand.CreateFromTask(OpenConfigFileAsync);
 
-			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
+			LurkingWifeModeCommand = ReactiveCommand.Create(() =>
 			{
 				Global.UiConfig.LurkingWifeMode = !LurkingWifeMode;
-				await Global.UiConfig.ToFileAsync();
+				Global.UiConfig.ToFile();
 			});
 
 			SetClearPinCommand = ReactiveCommand.Create(() =>
@@ -155,7 +159,7 @@ namespace WalletWasabi.Gui.Tabs
 		public bool IsPinSet => _isPinSet?.Value ?? false;
 
 		private Global Global { get; }
-		private AsyncLock ConfigLock { get; } = new AsyncLock();
+		private object ConfigLock { get; } = new object();
 
 		public ReactiveCommand<Unit, Unit> OpenConfigFileCommand { get; }
 		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
@@ -166,31 +170,6 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			try
 			{
-				Config.LoadOrCreateDefaultFileAsync(Global.Config.FilePath)
-					.ToObservable(RxApp.TaskpoolScheduler)
-					.Take(1)
-					.ObserveOn(RxApp.MainThreadScheduler)
-					.Subscribe(x =>
-					{
-						Network = x.Network;
-						TorSocks5EndPoint = x.TorSocks5EndPoint.ToString(-1);
-						UseTor = x.UseTor;
-						StartLocalBitcoinCoreOnStartup = x.StartLocalBitcoinCoreOnStartup;
-						StopLocalBitcoinCoreOnShutdown = x.StopLocalBitcoinCoreOnShutdown;
-
-						SomePrivacyLevel = x.PrivacyLevelSome.ToString();
-						FinePrivacyLevel = x.PrivacyLevelFine.ToString();
-						StrongPrivacyLevel = x.PrivacyLevelStrong.ToString();
-
-						DustThreshold = x.DustThreshold.ToString();
-
-						BitcoinP2pEndPoint = x.GetP2PEndpoint().ToString(defaultPort: -1);
-						LocalBitcoinCoreDataDir = x.LocalBitcoinCoreDataDir;
-
-						IsModified = !Global.Config.AreDeepEqual(x);
-					})
-					.DisposeWith(disposables);
-
 				Global.UiConfig
 					.WhenAnyValue(x => x.LurkingWifeMode)
 					.Subscribe(_ => this.RaisePropertyChanged(nameof(LurkingWifeMode)))
@@ -205,7 +184,7 @@ namespace WalletWasabi.Gui.Tabs
 				Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => x.Autocopy, x => x.IsCustomFee, x => x.IsCustomChangeAddress)
 					.Throttle(TimeSpan.FromSeconds(1))
 					.ObserveOn(RxApp.TaskpoolScheduler)
-					.Subscribe(async _ => await Global.UiConfig.ToFileAsync())
+					.Subscribe(_ => Global.UiConfig.ToFile())
 					.DisposeWith(disposables);
 
 				base.OnOpen(disposables);
@@ -366,11 +345,11 @@ namespace WalletWasabi.Gui.Tabs
 
 			var config = new Config(Global.Config.FilePath);
 
-			Dispatcher.UIThread.PostLogException(async () =>
+			Dispatcher.UIThread.PostLogException(() =>
 			{
-				using (await ConfigLock.LockAsync())
+				lock (ConfigLock)
 				{
-					await config.LoadFileAsync();
+					config.LoadFile();
 					if (Network == config.Network)
 					{
 						if (EndPointParser.TryParse(TorSocks5EndPoint, Constants.DefaultTorSocksPort, out EndPoint torEp))
@@ -395,7 +374,7 @@ namespace WalletWasabi.Gui.Tabs
 						config.Network = Network;
 						BitcoinP2pEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
 					}
-					await config.ToFileAsync();
+					config.ToFile();
 					IsModified = !Global.Config.AreDeepEqual(config);
 				}
 			});

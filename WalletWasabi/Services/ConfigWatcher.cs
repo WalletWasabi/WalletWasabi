@@ -11,24 +11,25 @@ namespace WalletWasabi.Services
 	public class ConfigWatcher : PeriodicRunner
 	{
 		public IConfig Config { get; }
-		public Func<Task> ExecuteWhenChangedAsync { get; }
+		public Action ExecuteWhenChanged { get; }
 
-		public ConfigWatcher(TimeSpan period, IConfig config, Func<Task> executeWhenChangedAsync) : base(period)
+		public ConfigWatcher(TimeSpan period, IConfig config, Action executeWhenChanged) : base(period)
 		{
 			Config = Guard.NotNull(nameof(config), config);
-			ExecuteWhenChangedAsync = Guard.NotNull(nameof(executeWhenChangedAsync), executeWhenChangedAsync);
+			ExecuteWhenChanged = Guard.NotNull(nameof(executeWhenChanged), executeWhenChanged);
 			config.AssertFilePathSet();
 		}
 
-		protected override async Task ActionAsync(CancellationToken cancel)
+		protected override Task ActionAsync(CancellationToken cancel)
 		{
-			if (await Config.CheckFileChangeAsync().ConfigureAwait(false))
+			if (Config.CheckFileChange())
 			{
 				cancel.ThrowIfCancellationRequested();
-				await Config.LoadOrCreateDefaultFileAsync().ConfigureAwait(false);
+				Config.LoadOrCreateDefaultFile();
 
-				await ExecuteWhenChangedAsync?.Invoke();
+				ExecuteWhenChanged();
 			}
+			return Task.CompletedTask;
 		}
 	}
 }

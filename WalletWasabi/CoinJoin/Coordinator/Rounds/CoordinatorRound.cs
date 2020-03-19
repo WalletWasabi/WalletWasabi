@@ -403,7 +403,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 						if (transaction.Outputs.Any(x => x.ScriptPubKey == coordinatorScript))
 						{
-							await RoundConfig.MakeNextCoordinatorScriptDirtyAsync();
+							RoundConfig.MakeNextCoordinatorScriptDirty();
 						}
 
 						CoinJoin = transaction;

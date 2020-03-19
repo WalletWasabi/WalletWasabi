@@ -93,13 +93,13 @@ namespace WalletWasabi.Gui
 			WalletManager.WalletRelevantTransactionProcessed += WalletManager_WalletRelevantTransactionProcessed;
 		}
 
-		public async Task<bool> InitializeUiConfigAsync()
+		public bool InitializeUiConfig()
 		{
 			try
 			{
 				var uiConfigFilePath = Path.Combine(DataDir, "UiConfig.json");
 				var uiConfig = new UiConfig(uiConfigFilePath);
-				await uiConfig.LoadOrCreateDefaultFileAsync().ConfigureAwait(false);
+				uiConfig.LoadOrCreateDefaultFile();
 
 				UiConfig = uiConfig;
 
@@ -131,7 +131,7 @@ namespace WalletWasabi.Gui
 				#region ConfigInitialization
 
 				Config = new Config(Path.Combine(DataDir, "Config.json"));
-				await Config.LoadOrCreateDefaultFileAsync();
+				Config.LoadOrCreateDefaultFile();
 				Logger.LogInfo($"{nameof(Config)} is successfully initialized.");
 
 				#endregion ConfigInitialization
