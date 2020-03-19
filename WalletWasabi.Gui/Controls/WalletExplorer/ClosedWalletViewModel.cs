@@ -4,6 +4,7 @@ using Splat;
 using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
 using System.Threading;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
@@ -52,7 +53,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 
 				IsBusy = false;
-			});
+			}, this.WhenAnyValue(x=>x.IsBusy).Select(x=>!x));
 		}
 
 		public ReactiveCommand<Unit, Unit> OpenWalletCommand { get; }
