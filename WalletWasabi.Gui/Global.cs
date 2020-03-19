@@ -77,40 +77,26 @@ namespace WalletWasabi.Gui
 
 		public Global()
 		{
-			StoppingCts = new CancellationTokenSource();
-			DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
-			TorLogsFile = Path.Combine(DataDir, "TorLogs.txt");
-			Directory.CreateDirectory(DataDir);
-
-			Logger.InitializeDefaults(Path.Combine(DataDir, "Logs.txt"));
-
-			HostedServices = new HostedServices();
-			WalletManager = new WalletManager(new WalletDirectories(DataDir));
-
-			LegalDocuments = LegalDocuments.TryLoadAgreed(DataDir);
-
-			WalletManager.OnDequeue += WalletManager_OnDequeue;
-			WalletManager.WalletRelevantTransactionProcessed += WalletManager_WalletRelevantTransactionProcessed;
-		}
-
-		public bool InitializeUiConfig()
-		{
-			try
+			using (BenchmarkLogger.Measure())
 			{
-				var uiConfigFilePath = Path.Combine(DataDir, "UiConfig.json");
-				var uiConfig = new UiConfig(uiConfigFilePath);
-				uiConfig.LoadOrCreateDefaultFile();
+				StoppingCts = new CancellationTokenSource();
+				DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
+				TorLogsFile = Path.Combine(DataDir, "TorLogs.txt");
+				Directory.CreateDirectory(DataDir);
 
-				UiConfig = uiConfig;
+				Logger.InitializeDefaults(Path.Combine(DataDir, "Logs.txt"));
 
-				return true;
+				UiConfig = new UiConfig(Path.Combine(DataDir, "UiConfig.json"));
+				UiConfig.LoadOrCreateDefaultFile();
+
+				HostedServices = new HostedServices();
+				WalletManager = new WalletManager(new WalletDirectories(DataDir));
+
+				LegalDocuments = LegalDocuments.TryLoadAgreed(DataDir);
+
+				WalletManager.OnDequeue += WalletManager_OnDequeue;
+				WalletManager.WalletRelevantTransactionProcessed += WalletManager_WalletRelevantTransactionProcessed;
 			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-			}
-
-			return false;
 		}
 
 		private bool InitializationCompleted { get; set; } = false;

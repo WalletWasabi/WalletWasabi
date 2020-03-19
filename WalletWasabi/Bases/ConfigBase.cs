@@ -67,9 +67,10 @@ namespace WalletWasabi.Bases
 				{
 					LoadFile();
 				}
-				catch (JsonException)
+				catch (Exception ex)
 				{
 					Logger.LogInfo($"{GetType().Name} file has been deleted because it was corrupted. Recreated default version at path: `{FilePath}`.");
+					Logger.LogWarning(ex);
 				}
 			}
 
