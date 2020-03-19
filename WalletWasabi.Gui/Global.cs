@@ -477,7 +477,7 @@ namespace WalletWasabi.Gui
 			{
 				// In lurking wife mode no notification is raised.
 				// If there are no news, then don't bother too.
-				if (UiConfig.LurkingWifeMode is true || !e.IsNews)
+				if (UiConfig.LurkingWifeMode is true || !e.IsNews || (sender as Wallet).State != WalletState.Started)
 				{
 					return;
 				}

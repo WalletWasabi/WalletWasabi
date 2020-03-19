@@ -426,7 +426,7 @@ namespace WalletWasabi.Wallets
 					}
 				}
 
-				WalletRelevantTransactionProcessed?.Invoke(sender, e);
+				WalletRelevantTransactionProcessed?.Invoke(this, e);
 			}
 			catch (Exception ex)
 			{
@@ -436,7 +436,7 @@ namespace WalletWasabi.Wallets
 
 		private void ChaumianClient_OnDequeue(object sender, DequeueResult e)
 		{
-			OnDequeue?.Invoke(sender, e);
+			OnDequeue?.Invoke(this, e);
 		}
 
 		private void Mempool_TransactionReceived(object sender, SmartTransaction tx)
