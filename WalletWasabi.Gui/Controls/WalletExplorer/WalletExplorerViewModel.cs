@@ -80,7 +80,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-
 		public void BeforeActivation()
 		{
 		}
