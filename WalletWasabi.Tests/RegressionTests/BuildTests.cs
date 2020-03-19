@@ -219,7 +219,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			// 5. Create wallet service.
 			var workDir = Common.GetWorkDir();
 			var walletManager = new WalletManager(null);
-			walletManager.Initialize(bitcoinStore, synchronizer, nodes, workDir, serviceConfiguration, synchronizer, null);
+			walletManager.RegisterServices(bitcoinStore, synchronizer, nodes, workDir, serviceConfiguration, synchronizer, null);
 
 			var baseTip = await rpc.GetBestBlockHashAsync();
 
