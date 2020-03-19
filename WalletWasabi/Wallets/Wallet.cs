@@ -342,11 +342,12 @@ namespace WalletWasabi.Wallets
 					BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
 					TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessedAsync;
 					ChaumianClient.OnDequeue -= ChaumianClient_OnDequeue;
+
+					await ChaumianClient.StopAsync(cancel).ConfigureAwait(false);
 				}
 
 				DisconnectDisposeNullLocalBitcoinCoreNode();
 
-				await ChaumianClient.StopAsync(cancel).ConfigureAwait(false);
 				Logger.LogInfo($"{nameof(ChaumianClient)} is stopped.");
 			}
 			finally
