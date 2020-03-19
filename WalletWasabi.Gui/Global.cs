@@ -92,7 +92,7 @@ namespace WalletWasabi.Gui
 				Config.LoadOrCreateDefaultFile();
 
 				HostedServices = new HostedServices();
-				WalletManager = new WalletManager(new WalletDirectories(DataDir));
+				WalletManager = new WalletManager(Network, new WalletDirectories(DataDir));
 
 				LegalDocuments = LegalDocuments.TryLoadAgreed(DataDir);
 
@@ -329,7 +329,7 @@ namespace WalletWasabi.Gui
 
 				#endregion JsonRpcServerInitialization
 
-				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
+				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Nodes, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
 			}
 			catch (Exception ex)
 			{
@@ -477,7 +477,7 @@ namespace WalletWasabi.Gui
 			{
 				// In lurking wife mode no notification is raised.
 				// If there are no news, then don't bother too.
-				if (UiConfig.LurkingWifeMode is true || !e.IsNews)
+				if (UiConfig.LurkingWifeMode is true || !e.IsNews || (sender as Wallet).State != WalletState.Started)
 				{
 					return;
 				}

@@ -25,13 +25,17 @@ namespace WalletWasabi.Wallets
 {
 	public class WalletManager
 	{
-		public WalletManager(WalletDirectories walletDirectories)
+		public WalletManager(Network network, WalletDirectories walletDirectories)
 		{
-			Wallets = new Dictionary<Wallet, HashSet<uint256>>();
-			Lock = new object();
-			AddRemoveLock = new AsyncLock();
-			CancelAllInitialization = new CancellationTokenSource();
-			WalletDirectories = walletDirectories;
+			using (BenchmarkLogger.Measure())
+			{
+				Network = Guard.NotNull(nameof(network), network);
+				WalletDirectories = Guard.NotNull(nameof(walletDirectories), walletDirectories);
+				Wallets = new Dictionary<Wallet, HashSet<uint256>>();
+				Lock = new object();
+				AddRemoveLock = new AsyncLock();
+				CancelAllInitialization = new CancellationTokenSource();
+			}
 		}
 
 		private CancellationTokenSource CancelAllInitialization { get; }
@@ -47,14 +51,13 @@ namespace WalletWasabi.Wallets
 		private BitcoinStore BitcoinStore { get; set; }
 		private WasabiSynchronizer Synchronizer { get; set; }
 		private NodesGroup Nodes { get; set; }
-		private string DataDir { get; set; }
 		private ServiceConfiguration ServiceConfiguration { get; set; }
 
 		public void SignalQuitPending(bool isQuitPending)
 		{
 			lock (Lock)
 			{
-				foreach (var client in Wallets.Keys.Select(x => x.ChaumianClient))
+				foreach (var client in Wallets.Keys.Where(x => x.ChaumianClient is { }).Select(x => x.ChaumianClient))
 				{
 					client.IsQuitPending = isQuitPending;
 				}
@@ -63,13 +66,14 @@ namespace WalletWasabi.Wallets
 
 		private IFeeProvider FeeProvider { get; set; }
 		private CoreNode BitcoinCoreNode { get; set; }
+		public Network Network { get; }
 		public WalletDirectories WalletDirectories { get; }
 
 		public Wallet GetFirstOrDefaultWallet()
 		{
 			lock (Lock)
 			{
-				return Wallets.Keys.FirstOrDefault();
+				return Wallets.Keys.FirstOrDefault(x => x.State == WalletState.Started);
 			}
 		}
 
@@ -77,7 +81,7 @@ namespace WalletWasabi.Wallets
 		{
 			lock (Lock)
 			{
-				return Wallets.Keys.Any();
+				return Wallets.Keys.Any(x => x.State >= WalletState.Starting);
 			}
 		}
 
@@ -88,7 +92,7 @@ namespace WalletWasabi.Wallets
 				Wallet wallet = null;
 				try
 				{
-					wallet = new Wallet(BitcoinStore, keyManager, Synchronizer, Nodes, DataDir, ServiceConfiguration, FeeProvider, BitcoinCoreNode);
+					wallet = new Wallet(Network, BitcoinStore, keyManager, Synchronizer, Nodes, WalletDirectories.WorkDir, ServiceConfiguration, FeeProvider, BitcoinCoreNode);
 
 					var cancel = CancelAllInitialization.Token;
 					lock (Lock)
@@ -129,7 +133,7 @@ namespace WalletWasabi.Wallets
 			IEnumerable<Task> tasks = null;
 			lock (Lock)
 			{
-				tasks = Wallets.Keys.Select(x => x.ChaumianClient.DequeueAllCoinsFromMixGracefullyAsync(reason, token)).ToArray();
+				tasks = Wallets.Keys.Where(x => x.ChaumianClient is { }).Select(x => x.ChaumianClient.DequeueAllCoinsFromMixGracefullyAsync(reason, token)).ToArray();
 			}
 			await Task.WhenAll(tasks).ConfigureAwait(false);
 		}
@@ -258,12 +262,11 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-		public void RegisterServices(BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, NodesGroup nodes, string dataDir, ServiceConfiguration serviceConfiguration, IFeeProvider feeProvider, CoreNode bitcoinCoreNode)
+		public void RegisterServices(BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, NodesGroup nodes, ServiceConfiguration serviceConfiguration, IFeeProvider feeProvider, CoreNode bitcoinCoreNode)
 		{
 			BitcoinStore = bitcoinStore;
 			Synchronizer = synchronizer;
 			Nodes = nodes;
-			DataDir = dataDir;
 			ServiceConfiguration = serviceConfiguration;
 			FeeProvider = feeProvider;
 			BitcoinCoreNode = bitcoinCoreNode;

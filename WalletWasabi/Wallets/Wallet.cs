@@ -40,6 +40,7 @@ namespace WalletWasabi.Wallets
 		private Node _localBitcoinCoreNode = null;
 
 		public Wallet(
+			Network network,
 			BitcoinStore bitcoinStore,
 			KeyManager keyManager,
 			WasabiSynchronizer syncer,
@@ -49,6 +50,7 @@ namespace WalletWasabi.Wallets
 			IFeeProvider feeProvider,
 			CoreNode coreNode = null)
 		{
+			Network = Guard.NotNull(nameof(network), network);
 			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			Nodes = Guard.NotNull(nameof(nodes), nodes);
@@ -76,7 +78,7 @@ namespace WalletWasabi.Wallets
 
 			if (Directory.Exists(BlocksFolderPath))
 			{
-				if (Synchronizer.Network == Network.RegTest)
+				if (Network == Network.RegTest)
 				{
 					Directory.Delete(BlocksFolderPath, true);
 					Directory.CreateDirectory(BlocksFolderPath);
@@ -121,7 +123,7 @@ namespace WalletWasabi.Wallets
 		/// </summary>
 		public ICoinsView Coins { get; }
 
-		public Network Network => Synchronizer.Network;
+		public Network Network { get; }
 		public TransactionProcessor TransactionProcessor { get; }
 
 		public Node LocalBitcoinCoreNode
@@ -315,12 +317,12 @@ namespace WalletWasabi.Wallets
 					BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
 					TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessedAsync;
 					ChaumianClient.OnDequeue -= ChaumianClient_OnDequeue;
+
+					await ChaumianClient.StopAsync(cancel).ConfigureAwait(false);
+					Logger.LogInfo($"{nameof(ChaumianClient)} is stopped.");
 				}
 
 				DisconnectDisposeNullLocalBitcoinCoreNode();
-
-				await ChaumianClient.StopAsync(cancel).ConfigureAwait(false);
-				Logger.LogInfo($"{nameof(ChaumianClient)} is stopped.");
 			}
 			finally
 			{
@@ -395,7 +397,7 @@ namespace WalletWasabi.Wallets
 					}
 				}
 
-				WalletRelevantTransactionProcessed?.Invoke(sender, e);
+				WalletRelevantTransactionProcessed?.Invoke(this, e);
 			}
 			catch (Exception ex)
 			{
@@ -405,7 +407,7 @@ namespace WalletWasabi.Wallets
 
 		private void ChaumianClient_OnDequeue(object sender, DequeueResult e)
 		{
-			OnDequeue?.Invoke(sender, e);
+			OnDequeue?.Invoke(this, e);
 		}
 
 		private void Mempool_TransactionReceived(object sender, SmartTransaction tx)
@@ -578,7 +580,7 @@ namespace WalletWasabi.Wallets
 					try
 					{
 						var blockBytes = await File.ReadAllBytesAsync(filePath, cancel);
-						block = Block.Load(blockBytes, Synchronizer.Network);
+						block = Block.Load(blockBytes, Network);
 					}
 					catch
 					{
@@ -623,7 +625,7 @@ namespace WalletWasabi.Wallets
 
 						// Select a random node we are connected to.
 						Node node = Nodes.ConnectedNodes.RandomElement();
-						if (node == default(Node) && !node.IsConnected && Synchronizer.Network == Network.RegTest)
+						if (node == default(Node) && !node.IsConnected && Network == Network.RegTest)
 						{
 							await Task.Delay(100);
 							continue;

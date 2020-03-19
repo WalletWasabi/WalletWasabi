@@ -59,7 +59,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			// 5. Create wallet service.
 			var workDir = Common.GetWorkDir();
-			using var wallet = new Wallet(bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer);
+			using var wallet = new Wallet(network, bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer);
 			wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;
 
 			var scp = new Key().ScriptPubKey;
@@ -218,8 +218,8 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			// 5. Create wallet service.
 			var workDir = Common.GetWorkDir();
-			var walletManager = new WalletManager(null);
-			walletManager.RegisterServices(bitcoinStore, synchronizer, nodes, workDir, serviceConfiguration, synchronizer, null);
+			var walletManager = new WalletManager(network, new WalletDirectories(workDir));
+			walletManager.RegisterServices(bitcoinStore, synchronizer, nodes, serviceConfiguration, synchronizer, null);
 
 			var baseTip = await rpc.GetBestBlockHashAsync();
 
