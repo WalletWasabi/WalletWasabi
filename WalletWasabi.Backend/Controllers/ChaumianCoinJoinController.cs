@@ -155,14 +155,15 @@ namespace WalletWasabi.Backend.Controllers
 						}
 					}
 
-					var uniqueInputs = new HashSet<TxoRef>();
+					var uniqueInputs = new HashSet<OutPoint>();
 					foreach (InputProofModel inputProof in request.Inputs)
 					{
-						if (uniqueInputs.Contains(inputProof.Input))
+						var outpoint = inputProof.Input.ToOutPoint();
+						if (uniqueInputs.Contains(outpoint))
 						{
 							return BadRequest("Cannot register an input twice.");
 						}
-						uniqueInputs.Add(inputProof.Input);
+						uniqueInputs.Add(outpoint);
 					}
 
 					var alicesToRemove = new HashSet<Guid>();
