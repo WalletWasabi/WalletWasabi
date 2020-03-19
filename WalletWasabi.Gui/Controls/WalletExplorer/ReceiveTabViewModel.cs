@@ -71,7 +71,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			this.WhenAnyValue(x => x.SelectedAddress)
 				.Subscribe(async address =>
 				{
-					if (Global.UiConfig?.Autocopy is false || address is null)
+					if (Global.UiConfig.Autocopy is false || address is null)
 					{
 						return;
 					}

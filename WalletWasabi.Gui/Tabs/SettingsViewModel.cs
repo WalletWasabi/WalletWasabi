@@ -45,9 +45,9 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			Global = Locator.Current.GetService<Global>();
 
-			Autocopy = Global.UiConfig?.Autocopy is true;
-			CustomFee = Global.UiConfig?.IsCustomFee is true;
-			CustomChangeAddress = Global.UiConfig?.IsCustomChangeAddress is true;
+			Autocopy = Global.UiConfig.Autocopy is true;
+			CustomFee = Global.UiConfig.IsCustomFee is true;
+			CustomChangeAddress = Global.UiConfig.IsCustomChangeAddress is true;
 
 			var config = Config.LoadOrCreateDefaultFileAsync(Global.Config.FilePath);
 
