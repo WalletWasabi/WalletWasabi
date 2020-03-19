@@ -134,6 +134,7 @@ namespace WalletWasabi.Blockchain.Keys
 
 		private object ScriptHdPubKeyMapLock { get; }
 		private object ToFileLock { get; }
+		public string WalletName => string.IsNullOrWhiteSpace(FilePath) ? "" : Path.GetFileNameWithoutExtension(FilePath);
 
 		public static KeyManager CreateNew(out Mnemonic mnemonic, string password, string filePath = null)
 		{

@@ -29,7 +29,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 			Actions = new ObservableCollection<WasabiDocumentTabViewModel>();
 			Global = Locator.Current.GetService<Global>();
-			Title = Name;
+			Title = WalletName;
 
 			LurkingWifeModeCommand = ReactiveCommand.Create(() =>
 			{
@@ -51,7 +51,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					try
 					{
 						Money balance = Wallet.Coins.TotalAmount();
-						Title = $"{Name} ({(Global.UiConfig.LurkingWifeMode ? "#########" : balance.ToString(false, true))} BTC)";
+						Title = $"{WalletName} ({(Global.UiConfig.LurkingWifeMode ? "#########" : balance.ToString(false, true))} BTC)";
 					}
 					catch (Exception ex)
 					{
@@ -75,7 +75,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _title, value);
 		}
 
-		public string Name => Wallet.Name;
+		public string WalletName => Wallet.WalletName;
 		public KeyManager KeyManager => Wallet.KeyManager;
 		public Wallet Wallet { get; }
 		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }

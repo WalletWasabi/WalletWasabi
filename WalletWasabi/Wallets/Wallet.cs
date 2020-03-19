@@ -114,7 +114,7 @@ namespace WalletWasabi.Wallets
 		public NodesGroup Nodes { get; }
 		public string BlocksFolderPath { get; }
 		public ServiceConfiguration ServiceConfiguration { get; }
-		public string Name => Path.GetFileNameWithoutExtension(KeyManager.FilePath);
+		public string WalletName => KeyManager.WalletName;
 
 		/// <summary>
 		/// Unspent Transaction Outputs
