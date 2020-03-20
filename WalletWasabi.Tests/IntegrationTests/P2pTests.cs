@@ -94,15 +94,21 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 			KeyManager keyManager = KeyManager.CreateNew(out _, "password");
 			WasabiSynchronizer syncer = new WasabiSynchronizer(network, bitcoinStore, new Uri("http://localhost:12345"), Global.Instance.TorSocks5Endpoint);
+			ServiceConfiguration serviceConfig = new ServiceConfiguration(50, 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
+
+			CachedBlocksProvider blocksProvider = new CachedBlocksProvider(
+				new P2pBlocksProvider(nodes, null, syncer, serviceConfig, network), 
+				new FileSystemBlocksRepository(blocksFolderPath, network));
+
 			using Wallet wallet = new Wallet(
 				network,
 				bitcoinStore,
 				keyManager,
 				syncer,
-				nodes,
 				dataDir,
-				new ServiceConfiguration(50, 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold)),
-				syncer);
+				serviceConfig,
+				syncer, 
+				blocksProvider);
 			Assert.True(Directory.Exists(blocksFolderPath));
 
 			try
@@ -123,7 +129,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(4));
 				foreach (var hash in blocksToDownload)
 				{
-					downloadTasks.Add(wallet.FetchBlockAsync(hash, cts.Token));
+					downloadTasks.Add(blocksProvider.GetBlockAsync(hash, cts.Token));
 				}
 
 				await nodeConnectionAwaiter.WaitAsync(TimeSpan.FromMinutes(3));
@@ -143,7 +149,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				// So next test will download the block.
 				foreach (var hash in blocksToDownload)
 				{
-					await wallet?.DeleteBlockAsync(hash);
+					await blocksProvider.BlocksRepository.RemoveAsync(hash, CancellationToken.None);
 				}
 				if (wallet is { })
 				{

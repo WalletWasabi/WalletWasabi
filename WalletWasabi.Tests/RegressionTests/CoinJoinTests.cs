@@ -1292,7 +1292,6 @@ namespace WalletWasabi.Tests.RegressionTests
 			nodes2.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync());
 
 			// 2. Create mempool service.
-
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync();
 			node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
@@ -1312,11 +1311,21 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			// 5. Create wallet service.
 			var workDir = Common.GetWorkDir();
-			using var wallet = new Wallet(network, bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer);
+			var blocksFolderPath = Path.Combine(workDir, "Blocks", network.ToString());
+
+			CachedBlocksProvider blocksProvider = new CachedBlocksProvider(
+				new P2pBlocksProvider(nodes, null, synchronizer, serviceConfiguration, network), 
+				new FileSystemBlocksRepository(blocksFolderPath, network));
+
+			CachedBlocksProvider blocksProvider2 = new CachedBlocksProvider(
+				new P2pBlocksProvider(nodes2, null, synchronizer, serviceConfiguration, network), 
+				new FileSystemBlocksRepository(blocksFolderPath, network));
+
+			using var wallet = new Wallet(network, bitcoinStore, keyManager, synchronizer, workDir, serviceConfiguration, synchronizer, blocksProvider);
 			wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;
 
 			var workDir2 = Path.Combine(Common.GetWorkDir(), "2");
-			using var wallet2 = new Wallet(network, bitcoinStore, keyManager2, synchronizer2, nodes2, workDir2, serviceConfiguration, synchronizer2);
+			using var wallet2 = new Wallet(network, bitcoinStore, keyManager2, synchronizer2, workDir2, serviceConfiguration, synchronizer2, blocksProvider2);
 
 			// Get some money, make it confirm.
 			var key = keyManager.GetNextReceiveKey("fundZeroLink", out _);
