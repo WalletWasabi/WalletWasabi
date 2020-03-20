@@ -112,7 +112,7 @@ namespace WalletWasabi.Gui.Rpc
 		}
 
 		[JsonRpcMethod("build")]
-		public string BuildTransaction(PaymentInfo[] payments, TxoRef[] coins, int feeTarget, string password = null)
+		public string BuildTransaction(PaymentInfo[] payments, OutPoint[] coins, int feeTarget, string password = null)
 		{
 			Guard.NotNull(nameof(payments), payments);
 			Guard.NotNull(nameof(coins), coins);
@@ -136,14 +136,14 @@ namespace WalletWasabi.Gui.Rpc
 		}
 
 		[JsonRpcMethod("send")]
-		public async Task<object> SendTransactionAsync(PaymentInfo[] payments, TxoRef[] coins, int feeTarget, string password = null)
+		public async Task<object> SendTransactionAsync(PaymentInfo[] payments, OutPoint[] coins, int feeTarget, string password = null)
 		{
 			var txHex = BuildTransaction(payments, coins, feeTarget, password);
 			var smartTx = new SmartTransaction(Transaction.Parse(txHex, Global.Network), Height.Mempool);
 
 			// dequeue the coins we are going to spend
 			var toDequeue = Global.Wallet.Coins
-				.Where(x => x.CoinJoinInProgress && coins.Contains(x.GetTxoRef()))
+				.Where(x => x.CoinJoinInProgress && coins.Contains(x.OutPoint))
 				.ToArray();
 			if (toDequeue.Any())
 			{
@@ -192,22 +192,22 @@ namespace WalletWasabi.Gui.Rpc
 		}
 
 		[JsonRpcMethod("enqueue")]
-		public async Task EnqueueForCoinJoinAsync(TxoRef[] coins)
+		public async Task EnqueueForCoinJoinAsync(OutPoint[] coins)
 		{
 			Guard.NotNull(nameof(coins), coins);
 
 			AssertWalletIsLoaded();
-			var coinsToMix = Global.Wallet.Coins.Where(x => coins.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index));
+			var coinsToMix = Global.Wallet.Coins.Where(x => coins.Any(y => y == x.OutPoint));
 			await Global.Wallet.ChaumianClient.QueueCoinsToMixAsync(coinsToMix.ToArray()).ConfigureAwait(false);
 		}
 
 		[JsonRpcMethod("dequeue")]
-		public async Task DequeueForCoinJoinAsync(TxoRef[] coins)
+		public async Task DequeueForCoinJoinAsync(OutPoint[] coins)
 		{
 			Guard.NotNull(nameof(coins), coins);
 
 			AssertWalletIsLoaded();
-			var coinsToDequeue = Global.Wallet.Coins.Where(x => coins.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index));
+			var coinsToDequeue = Global.Wallet.Coins.Where(x => coins.Any(y => y == x.OutPoint));
 			await Global.Wallet.ChaumianClient.DequeueCoinsFromMixAsync(coinsToDequeue, DequeueReason.UserRequested).ConfigureAwait(false);
 		}
 

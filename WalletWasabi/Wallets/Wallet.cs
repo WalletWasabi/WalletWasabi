@@ -259,7 +259,7 @@ namespace WalletWasabi.Wallets
 			PaymentIntent payments,
 			FeeStrategy feeStrategy,
 			bool allowUnconfirmed = false,
-			IEnumerable<TxoRef> allowedInputs = null)
+			IEnumerable<OutPoint> allowedInputs = null)
 		{
 			var builder = new TransactionFactory(Network, KeyManager, Coins, password, allowUnconfirmed);
 			return builder.BuildTransaction(
@@ -380,7 +380,7 @@ namespace WalletWasabi.Wallets
 				IEnumerable<SmartCoin> newCoins = e.NewlyReceivedCoins.Concat(e.RestoredCoins).Distinct();
 				if (newCoins.Any())
 				{
-					if (ChaumianClient.State.Contains(e.Transaction.Transaction.Inputs.Select(x => x.PrevOut.ToTxoRef())))
+					if (ChaumianClient.State.Contains(e.Transaction.Transaction.Inputs.Select(x => x.PrevOut)))
 					{
 						var coinsToQueue = new HashSet<SmartCoin>();
 						foreach (var newCoin in newCoins)
