@@ -82,50 +82,9 @@ namespace Nito.Collections
 		/// <returns>true if this list is read-only; otherwise, false.</returns>
 		bool ICollection<T>.IsReadOnly => false;
 
-		/// <summary>
-		/// Gets or sets the item at the specified index.
-		/// </summary>
-		/// <param name="index">The index of the item to get or set.</param>
-		/// <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="index"/> is not a valid index in this list.</exception>
-		/// <exception cref="T:System.NotSupportedException">This property is set and the list is read-only.</exception>
-		public T this[int index]
-		{
-			get
-			{
-				CheckExistingIndexArgument(Count, index);
-				return DoGetItem(index);
-			}
-
-			set
-			{
-				CheckExistingIndexArgument(Count, index);
-				DoSetItem(index, value);
-			}
-		}
-
 		bool IList.IsFixedSize => false;
 
 		bool IList.IsReadOnly => false;
-
-		object IList.this[int index]
-		{
-			get => this[index];
-
-			set
-			{
-				if (value is null && default(T) != null)
-				{
-					throw new ArgumentNullException(nameof(value), $"{nameof(value)} cannot be null.");
-				}
-
-				if (!IsT(value))
-				{
-					throw new ArgumentException($"{nameof(value)} is of incorrect type.", nameof(value));
-				}
-
-				this[index] = (T)value;
-			}
-		}
 
 		bool ICollection.IsSynchronized => false;
 
@@ -183,6 +142,47 @@ namespace Nito.Collections
 		/// </summary>
 		/// <returns>The number of elements contained in this deque.</returns>
 		public int Count { get; private set; }
+
+		/// <summary>
+		/// Gets or sets the item at the specified index.
+		/// </summary>
+		/// <param name="index">The index of the item to get or set.</param>
+		/// <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="index"/> is not a valid index in this list.</exception>
+		/// <exception cref="T:System.NotSupportedException">This property is set and the list is read-only.</exception>
+		public T this[int index]
+		{
+			get
+			{
+				CheckExistingIndexArgument(Count, index);
+				return DoGetItem(index);
+			}
+
+			set
+			{
+				CheckExistingIndexArgument(Count, index);
+				DoSetItem(index, value);
+			}
+		}
+
+		object IList.this[int index]
+		{
+			get => this[index];
+
+			set
+			{
+				if (value is null && default(T) != null)
+				{
+					throw new ArgumentNullException(nameof(value), $"{nameof(value)} cannot be null.");
+				}
+
+				if (!IsT(value))
+				{
+					throw new ArgumentException($"{nameof(value)} is of incorrect type.", nameof(value));
+				}
+
+				this[index] = (T)value;
+			}
+		}
 
 		/// <summary>
 		/// Inserts an item to this list at the specified index.
