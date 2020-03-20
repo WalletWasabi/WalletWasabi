@@ -4,10 +4,6 @@ namespace WalletWasabi.Models
 {
 	public class ErrorDescriptors : List<ErrorDescriptor>
 	{
-		public bool HasErrors => Count > 0;
-
-		public static ErrorDescriptors Empty = new ErrorDescriptors();
-
 		public ErrorDescriptors() : base()
 		{
 		}
@@ -16,5 +12,9 @@ namespace WalletWasabi.Models
 		{
 			AddRange(errors);
 		}
+
+		public bool HasErrors => Count > 0;
+
+		public static ErrorDescriptors Empty = new ErrorDescriptors();
 	}
 }

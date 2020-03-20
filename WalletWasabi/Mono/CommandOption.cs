@@ -163,9 +163,6 @@ namespace Mono.Options
 {
 	public class CommandOption : Option
 	{
-		public Command Command { get; }
-		public string CommandName { get; }
-
 		// Prototype starts with '=' because this is an invalid prototype
 		// (see Option.ParsePrototype(), and thus it'll prevent Category
 		// instances from being accidentally used as normal options.
@@ -175,6 +172,9 @@ namespace Mono.Options
 			Command = command ?? throw new ArgumentNullException(nameof(command));
 			CommandName = commandName ?? command.Name;
 		}
+
+		public Command Command { get; }
+		public string CommandName { get; }
 
 		protected override void OnParseComplete(OptionContext c)
 		{
