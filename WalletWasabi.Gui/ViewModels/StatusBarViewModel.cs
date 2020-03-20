@@ -104,7 +104,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 			Peers = Tor == TorStatus.NotRunning ? 0 : Nodes.Count;
 
-			Observable.FromEventPattern<bool>(typeof(Wallet), nameof(Wallet.DownloadingBlockChanged))
+			Observable.FromEventPattern<bool>(typeof(P2pBlocksProvider), nameof(P2pBlocksProvider.DownloadingBlockChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => DownloadingBlock = x.EventArgs)
 				.DisposeWith(Disposables);

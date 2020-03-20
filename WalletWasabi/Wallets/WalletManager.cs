@@ -53,6 +53,8 @@ namespace WalletWasabi.Wallets
 		private NodesGroup Nodes { get; set; }
 		private ServiceConfiguration ServiceConfiguration { get; set; }
 
+		private IBlocksProvider BlocksProvider { get; set; }
+
 		public void SignalQuitPending(bool isQuitPending)
 		{
 			lock (Lock)
@@ -92,7 +94,7 @@ namespace WalletWasabi.Wallets
 				Wallet wallet = null;
 				try
 				{
-					wallet = new Wallet(Network, BitcoinStore, keyManager, Synchronizer, Nodes, WalletDirectories.WorkDir, ServiceConfiguration, FeeProvider, BitcoinCoreNode);
+					wallet = new Wallet(Network, BitcoinStore, keyManager, Synchronizer, WalletDirectories.WorkDir, ServiceConfiguration, FeeProvider, BlocksProvider);
 
 					var cancel = CancelAllInitialization.Token;
 					lock (Lock)
@@ -262,7 +264,7 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-		public void RegisterServices(BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, NodesGroup nodes, ServiceConfiguration serviceConfiguration, IFeeProvider feeProvider, CoreNode bitcoinCoreNode)
+		public void RegisterServices(BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, NodesGroup nodes, ServiceConfiguration serviceConfiguration, IFeeProvider feeProvider, CoreNode bitcoinCoreNode, IBlocksProvider blocksProvider)
 		{
 			BitcoinStore = bitcoinStore;
 			Synchronizer = synchronizer;
@@ -270,6 +272,7 @@ namespace WalletWasabi.Wallets
 			ServiceConfiguration = serviceConfiguration;
 			FeeProvider = feeProvider;
 			BitcoinCoreNode = bitcoinCoreNode;
+			BlocksProvider = blocksProvider;
 		}
 	}
 }
