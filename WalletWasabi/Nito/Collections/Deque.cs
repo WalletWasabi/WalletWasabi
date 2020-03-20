@@ -300,6 +300,10 @@ namespace Nito.Collections
 
 		bool IList.IsReadOnly => false;
 
+		bool ICollection.IsSynchronized => false;
+
+		object ICollection.SyncRoot => this;
+
 		object IList.this[int index]
 		{
 			get => this[index];
@@ -319,10 +323,6 @@ namespace Nito.Collections
 				this[index] = (T)value;
 			}
 		}
-
-		bool ICollection.IsSynchronized => false;
-
-		object ICollection.SyncRoot => this;
 
 		private static bool IsT(object value)
 		{
