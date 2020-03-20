@@ -286,7 +286,7 @@ namespace NBitcoin.RPC
 			return hashSet;
 		}
 
-		public static async Task<VerboseBlockInfo> GetVerboseBlockAsync(this IRPCClient rpc, uint256 blockId)
+		public static async Task<VerboseBlockInfo> GetVerboseBlockAsync(this RPCClient rpc, uint256 blockId)
 		{
 			var resp = await rpc.SendCommandAsync(RPCOperations.getblock, blockId, 3).ConfigureAwait(false);
 			var blockInfoStr = resp.Result.ToString();
@@ -296,6 +296,7 @@ namespace NBitcoin.RPC
 			blockInfo.PrevBlockHash = uint256.Parse(blockInfoJson.Value<string>("previousblockhash"));
 			blockInfo.Confirmations = blockInfoJson.Value<ulong>("confirmations");
 			blockInfo.Height = blockInfoJson.Value<ulong>("height");
+			blockInfo.BlockTime = Utils.UnixTimeToDateTime(blockInfoJson.Value<uint>("time"));
 			foreach (var txJson in blockInfoJson["tx"])
 			{
 				var tx = new VerboseTransactionInfo();
@@ -303,7 +304,7 @@ namespace NBitcoin.RPC
 				foreach (var txinJson in txJson["vin"])
 				{
 					if (txinJson["coinbase"] is { })
-					{ 
+					{
 						continue;
 					}
 					var input = new VerboseInputInfo();

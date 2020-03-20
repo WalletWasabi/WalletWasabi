@@ -12,6 +12,8 @@ namespace WalletWasabi.Tests.UnitTests
 		public Func<uint256, Task<Block>> OnGetBlockAsync { get; set; }
 		public Func<uint256, Task<BlockHeader>> OnGetBlockHeaderAsync { get; set; }
 
+		public Func<Task<BlockchainInfo>> OnGetBlockchainInfoAsync { get; set; }
+
 		public Func<RPCOperations, object[], Task<RPCResponse>> OnSendCommandAsync { get; set; }
 
 		public Network Network => Network.RegTest;
@@ -29,6 +31,11 @@ namespace WalletWasabi.Tests.UnitTests
 		public Task<BlockHeader> GetBlockHeaderAsync(uint256 blockHash)
 		{
 			return OnGetBlockHeaderAsync(blockHash);
+		}
+
+		public Task<BlockchainInfo> GetBlockchainInfoAsync()
+		{
+			return OnGetBlockchainInfoAsync();
 		}
 
 		public Task<RPCResponse> SendCommandAsync(RPCOperations operation, params object[] p)
