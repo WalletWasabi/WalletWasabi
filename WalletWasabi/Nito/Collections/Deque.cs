@@ -296,6 +296,34 @@ namespace Nito.Collections
 
 		#region ObjectListImplementations
 
+		bool IList.IsFixedSize => false;
+
+		bool IList.IsReadOnly => false;
+
+		object IList.this[int index]
+		{
+			get => this[index];
+
+			set
+			{
+				if (value is null && default(T) != null)
+				{
+					throw new ArgumentNullException(nameof(value), $"{nameof(value)} cannot be null.");
+				}
+
+				if (!IsT(value))
+				{
+					throw new ArgumentException($"{nameof(value)} is of incorrect type.", nameof(value));
+				}
+
+				this[index] = (T)value;
+			}
+		}
+
+		bool ICollection.IsSynchronized => false;
+
+		object ICollection.SyncRoot => this;
+
 		private static bool IsT(object value)
 		{
 			if (value is T)
@@ -352,35 +380,11 @@ namespace Nito.Collections
 			Insert(index, (T)value);
 		}
 
-		bool IList.IsFixedSize => false;
-
-		bool IList.IsReadOnly => false;
-
 		void IList.Remove(object value)
 		{
 			if (IsT(value))
 			{
 				Remove((T)value);
-			}
-		}
-
-		object IList.this[int index]
-		{
-			get => this[index];
-
-			set
-			{
-				if (value is null && default(T) != null)
-				{
-					throw new ArgumentNullException(nameof(value), $"{nameof(value)} cannot be null.");
-				}
-
-				if (!IsT(value))
-				{
-					throw new ArgumentException($"{nameof(value)} is of incorrect type.", nameof(value));
-				}
-
-				this[index] = (T)value;
 			}
 		}
 
@@ -406,10 +410,6 @@ namespace Nito.Collections
 				throw new ArgumentException("Destination array must be single dimensional.", nameof(array), ex);
 			}
 		}
-
-		bool ICollection.IsSynchronized => false;
-
-		object ICollection.SyncRoot => this;
 
 		#endregion ObjectListImplementations
 
