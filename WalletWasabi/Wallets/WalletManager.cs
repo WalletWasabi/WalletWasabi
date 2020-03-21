@@ -131,6 +131,17 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
+		public Task<Wallet> StartWalletAsync(KeyManager keyManagerToFindByReference)
+		{
+			Wallet wallet;
+			lock (Lock)
+			{
+				wallet = Wallets.Single(x => x.Key.KeyManager == keyManagerToFindByReference).Key;
+			}
+
+			return StartWalletAsync(wallet);
+		}
+
 		public Wallet AddWallet(KeyManager keyManager)
 		{
 			lock (Lock)
@@ -339,6 +350,14 @@ namespace WalletWasabi.Wallets
 			ServiceConfiguration = serviceConfiguration;
 			FeeProvider = feeProvider;
 			BitcoinCoreNode = bitcoinCoreNode;
+		}
+
+		public Wallet GetWalletByName(string walletName)
+		{
+			lock (Lock)
+			{
+				return Wallets.Keys.FirstOrDefault(x => x.KeyManager.WalletName == walletName);
+			}
 		}
 	}
 }
