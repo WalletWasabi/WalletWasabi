@@ -626,7 +626,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 						case FeeDisplayFormat.USD:
 							FeeText = $"(~ ${UsdFee.ToString("0.##")})";
-							FeeToolTip = $"Estimated total fees in USD. Exchange Rate: {(long)UsdExchangeRate} BTC/USD.";
+							FeeToolTip = $"Estimated total fees in USD. Exchange Rate: {(long)UsdExchangeRate} USD/BTC.";
 							break;
 
 						case FeeDisplayFormat.BTC:
