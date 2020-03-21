@@ -12,17 +12,6 @@ namespace WalletWasabi.Helpers
 {
 	public static class NBitcoinHelpers
 	{
-		public static string HashOutpoints(IEnumerable<OutPoint> outPoints)
-		{
-			var sb = new StringBuilder();
-			foreach (OutPoint input in outPoints.OrderBy(x => x.Hash.ToString()).ThenBy(x => x.N))
-			{
-				sb.Append(ByteHelpers.ToHex(input.ToBytes()));
-			}
-
-			return HashHelpers.GenerateSha256Hash(sb.ToString());
-		}
-
 		private static readonly Money[] ReasonableFees = new[]
 		{
 			Money.Coins(0.002m),
@@ -34,6 +23,17 @@ namespace WalletWasabi.Helpers
 			Money.Coins(0.00002m),
 			Money.Coins(0.00001m)
 		};
+
+		public static string HashOutpoints(IEnumerable<OutPoint> outPoints)
+		{
+			var sb = new StringBuilder();
+			foreach (OutPoint input in outPoints.OrderBy(x => x.Hash.ToString()).ThenBy(x => x.N))
+			{
+				sb.Append(ByteHelpers.ToHex(input.ToBytes()));
+			}
+
+			return HashHelpers.GenerateSha256Hash(sb.ToString());
+		}
 
 		public static Money TakeAReasonableFee(Money inputValue)
 		{
