@@ -53,7 +53,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 
 				var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
 				var selected = await ofd.ShowAsync(window, fallBack: true);
-				if (selected != null && selected.Any())
+				if (selected is { } && selected.Any())
 				{
 					var path = selected.First();
 					var jsonString = await File.ReadAllTextAsync(path);
