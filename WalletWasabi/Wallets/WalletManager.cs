@@ -33,7 +33,7 @@ namespace WalletWasabi.Wallets
 				WalletDirectories = Guard.NotNull(nameof(walletDirectories), walletDirectories);
 				Wallets = new Dictionary<Wallet, HashSet<uint256>>();
 				Lock = new object();
-				AddRemoveLock = new AsyncLock();
+				StartStopWalletLock = new AsyncLock();
 				CancelAllInitialization = new CancellationTokenSource();
 
 				if (WalletDirectories is { })
@@ -61,7 +61,7 @@ namespace WalletWasabi.Wallets
 
 		private Dictionary<Wallet, HashSet<uint256>> Wallets { get; }
 		private object Lock { get; }
-		private AsyncLock AddRemoveLock { get; }
+		private AsyncLock StartStopWalletLock { get; }
 
 		private BitcoinStore BitcoinStore { get; set; }
 		private WasabiSynchronizer Synchronizer { get; set; }
@@ -104,13 +104,13 @@ namespace WalletWasabi.Wallets
 		{
 			Guard.NotNull(nameof(wallet), wallet);
 
-			using (await AddRemoveLock.LockAsync(CancelAllInitialization.Token).ConfigureAwait(false))
+			if (wallet.State == WalletState.Starting)
 			{
-				if (wallet.State == WalletState.Starting)
-				{
-					return wallet;
-				}
+				return wallet;
+			}
 
+			using (await StartStopWalletLock.LockAsync(CancelAllInitialization.Token).ConfigureAwait(false))
+			{
 				try
 				{
 					wallet.RegisterServices(BitcoinStore, Synchronizer, Nodes, ServiceConfiguration, FeeProvider, BitcoinCoreNode);
@@ -229,7 +229,7 @@ namespace WalletWasabi.Wallets
 				Logger.LogWarning($"{nameof(CancelAllInitialization)} is disposed. This can occur due to an error while processing the wallet.");
 			}
 
-			using (await AddRemoveLock.LockAsync(cancel).ConfigureAwait(false))
+			using (await StartStopWalletLock.LockAsync(cancel).ConfigureAwait(false))
 			{
 				List<Wallet> walletsListClone;
 				lock (Lock)
