@@ -354,10 +354,16 @@ namespace WalletWasabi.Wallets
 
 		public Wallet GetWalletByName(string walletName)
 		{
+			Wallet wallet = null;
 			lock (Lock)
 			{
-				return Wallets.Keys.FirstOrDefault(x => x.KeyManager.WalletName == walletName);
+				wallet = Wallets.Keys.FirstOrDefault(x => x.KeyManager.WalletName == walletName);
 			}
+			if (wallet is null)
+			{
+				throw new InvalidOperationException($"Wallet name:{wallet} not found.");
+			}
+			return wallet;
 		}
 	}
 }

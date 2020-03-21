@@ -453,9 +453,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 				KeyManager keyManager;
 				try
 				{
-					keyManager = Global.LoadKeyManager(walletName);
+					keyManager = Global.WalletManager.GetWalletByName(walletName).KeyManager;
 				}
-				catch (FileNotFoundException)
+				catch (InvalidOperationException)
 				{
 					// The selected wallet is not available any more (someone deleted it?).
 					OnCategorySelected();
@@ -536,7 +536,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 						return;
 					}
 
-					var wallet = await Task.Run(async () => await Global.WalletManager.CreateAndStartWalletAsync(keyManager));
+					var wallet = await Task.Run(async () => await Global.WalletManager.StartWalletAsync(keyManager));
 					// Successfully initialized.
 					Owner.OnClose();
 					// Open Wallet Explorer tabs
