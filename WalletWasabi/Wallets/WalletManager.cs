@@ -35,6 +35,21 @@ namespace WalletWasabi.Wallets
 				Lock = new object();
 				AddRemoveLock = new AsyncLock();
 				CancelAllInitialization = new CancellationTokenSource();
+
+				if (WalletDirectories is { })
+				{
+					foreach (var fileInfo in WalletDirectories.EnumerateWalletFiles())
+					{
+						try
+						{
+							AddWallet(fileInfo.Name);
+						}
+						catch (Exception ex)
+						{
+							Logger.LogWarning(ex);
+						}
+					}
+				}
 			}
 		}
 
@@ -85,47 +100,101 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-		public async Task<Wallet> CreateAndStartWalletAsync(KeyManager keyManager)
+		public async Task<Wallet> StartWalletAsync(Wallet wallet)
 		{
+			Guard.NotNull(nameof(wallet), wallet);
+
 			using (await AddRemoveLock.LockAsync(CancelAllInitialization.Token).ConfigureAwait(false))
 			{
-				Wallet wallet = null;
+				if (wallet.State == WalletState.Starting)
+				{
+					return wallet;
+				}
+
 				try
 				{
-					wallet = new Wallet(Network, BitcoinStore, keyManager, Synchronizer, Nodes, WalletDirectories.WorkDir, ServiceConfiguration, FeeProvider, BitcoinCoreNode);
+					wallet.RegisterServices(BitcoinStore, Synchronizer, Nodes, ServiceConfiguration, FeeProvider, BitcoinCoreNode);
 
 					var cancel = CancelAllInitialization.Token;
-					lock (Lock)
-					{
-						Wallets.Add(wallet, new HashSet<uint256>());
-					}
-
 					Logger.LogInfo($"Starting {nameof(Wallet)}...");
 					await wallet.StartAsync(cancel).ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(Wallet)} started.");
-
 					cancel.ThrowIfCancellationRequested();
-
-					wallet.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
-					wallet.OnDequeue += ChaumianClient_OnDequeue;
 
 					return wallet;
 				}
 				catch
 				{
-					if (wallet is { })
-					{
-						wallet.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
-						wallet.OnDequeue -= ChaumianClient_OnDequeue;
-						lock (Lock)
-						{
-							Wallets.Remove(wallet);
-						}
-						await wallet.StopAsync(CancellationToken.None).ConfigureAwait(false);
-					}
+					await wallet.StopAsync(CancellationToken.None).ConfigureAwait(false);
 					throw;
 				}
 			}
+		}
+
+		public Wallet AddWallet(KeyManager keyManager)
+		{
+			lock (Lock)
+			{
+				if (Wallets.Any(w => w.Key.KeyManager == keyManager))
+				{
+					throw new InvalidOperationException($"Wallet already added: {keyManager.FilePath}.");
+				}
+			}
+
+			Wallet wallet = new Wallet(WalletDirectories.WorkDir, Network, keyManager);
+			AddWallet(wallet);
+			return wallet;
+		}
+
+		public Wallet AddWallet(string walletName)
+		{
+			(string walletFullPath, string walletBackupFullPath) = WalletDirectories.GetWalletFilePaths(walletName);
+			Wallet wallet;
+			try
+			{
+				wallet = new Wallet(WalletDirectories.WorkDir, Network, walletFullPath);
+			}
+			catch (Exception ex)
+			{
+				if (!File.Exists(walletBackupFullPath))
+				{
+					throw;
+				}
+
+				Logger.LogWarning($"Wallet got corrupted.\n" +
+					$"Wallet Filepath: {walletFullPath}\n" +
+					$"Trying to recover it from backup.\n" +
+					$"Backup path: {walletBackupFullPath}\n" +
+					$"Exception: {ex}");
+				if (File.Exists(walletFullPath))
+				{
+					string corruptedWalletBackupPath = $"{walletBackupFullPath}_CorruptedBackup";
+					if (File.Exists(corruptedWalletBackupPath))
+					{
+						File.Delete(corruptedWalletBackupPath);
+						Logger.LogInfo($"Deleted previous corrupted wallet file backup from `{corruptedWalletBackupPath}`.");
+					}
+					File.Move(walletFullPath, corruptedWalletBackupPath);
+					Logger.LogInfo($"Backed up corrupted wallet file to `{corruptedWalletBackupPath}`.");
+				}
+				File.Copy(walletBackupFullPath, walletFullPath);
+
+				wallet = new Wallet(WalletDirectories.WorkDir, Network, walletFullPath);
+			}
+
+			AddWallet(wallet);
+			return wallet;
+		}
+
+		private void AddWallet(Wallet wallet)
+		{
+			lock (Lock)
+			{
+				Wallets.Add(wallet, new HashSet<uint256>());
+			}
+
+			wallet.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
+			wallet.OnDequeue += ChaumianClient_OnDequeue;
 		}
 
 		public async Task DequeueAllCoinsGracefullyAsync(DequeueReason reason, CancellationToken token)
