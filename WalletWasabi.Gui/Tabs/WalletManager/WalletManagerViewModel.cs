@@ -19,7 +19,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 {
 	[Export]
 	[Shared]
-	internal class WalletManagerViewModel : WasabiDocumentTabViewModel
+	public class WalletManagerViewModel : WasabiDocumentTabViewModel
 	{
 		private ObservableCollection<CategoryViewModel> _categories;
 		private CategoryViewModel _selectedCategory;
