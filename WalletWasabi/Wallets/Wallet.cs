@@ -898,5 +898,12 @@ namespace WalletWasabi.Wallets
 
 			Logger.LogInfo($"Current timeout value used on block download is: {timeout} seconds.");
 		}
+
+		public static Wallet CreateAndRegisterServices(Network network, BitcoinStore bitcoinStore, KeyManager keyManager, WasabiSynchronizer synchronizer, NodesGroup nodes, string dataDir, ServiceConfiguration serviceConfiguration, IFeeProvider feeProvider, CoreNode bitcoinCoreNode = null)
+		{
+			var wallet = new Wallet(dataDir, network, keyManager);
+			wallet.RegisterServices(bitcoinStore, synchronizer, nodes, serviceConfiguration, feeProvider, bitcoinCoreNode);
+			return wallet;
+		}
 	}
 }
