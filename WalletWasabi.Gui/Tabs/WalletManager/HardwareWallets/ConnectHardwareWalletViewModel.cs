@@ -86,8 +86,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 					ExtPubKey extPubKey = NBitcoinHelpers.BetterParseExtPubKey(xpubString);
 
 					Logger.LogInfo("Creating a new wallet file.");
-					var walletName = Global.WalletDirectories.GetNextWalletName("Coldcard");
-					var walletFullPath = Global.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
+					var walletName = Global.WalletManager.WalletDirectories.GetNextWalletName("Coldcard");
+					var walletFullPath = Global.WalletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
 					KeyManager.CreateNewHardwareWalletWatchOnly(mfp, extPubKey, walletFullPath);
 					owner.SelectLoadWallet();
 				}
