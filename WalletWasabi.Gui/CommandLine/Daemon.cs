@@ -80,7 +80,7 @@ namespace WalletWasabi.Gui.CommandLine
 					return;
 				}
 
-				Wallet = await Global.WalletManager.AddAndStartWalletAsync(keyManager);
+				Wallet = await Global.WalletManager.StartWalletAsync(keyManager);
 				if (Global.KillRequested)
 				{
 					return;
@@ -90,7 +90,7 @@ namespace WalletWasabi.Gui.CommandLine
 				bool isDifferentDestinationSpecified = keyManager.ExtPubKey != destinationKeyManager.ExtPubKey;
 				if (isDifferentDestinationSpecified)
 				{
-					await Global.WalletManager.AddAndStartWalletAsync(destinationKeyManager);
+					await Global.WalletManager.StartWalletAsync(destinationKeyManager);
 				}
 
 				do
