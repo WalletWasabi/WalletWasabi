@@ -76,7 +76,7 @@ namespace WalletWasabi.Wallets
 						// Try to get block information from local running Core node first.
 						block = await TryDownloadBlockFromLocalNodeAsync(hash, cancellationToken);
 
-						if (block is {})
+						if (block is { })
 						{
 							break;
 						}
