@@ -142,6 +142,12 @@ namespace WalletWasabi.Wallets
 			return StartWalletAsync(wallet);
 		}
 
+		public Task<Wallet> AddAndStartWalletAsync(KeyManager keyManager)
+		{
+			var wallet = AddWallet(keyManager);
+			return StartWalletAsync(wallet);
+		}
+
 		public Wallet AddWallet(KeyManager keyManager)
 		{
 			lock (Lock)
