@@ -15,7 +15,7 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 	{
 		private AllFeeEstimate _allFeeEstimate;
 
-		public RpcFeeProvider(TimeSpan period, RPCClient rpcClient) : base(period)
+		public RpcFeeProvider(TimeSpan period, IRPCClient rpcClient) : base(period)
 		{
 			RpcClient = Guard.NotNull(nameof(rpcClient), rpcClient);
 		}
@@ -35,7 +35,7 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 			}
 		}
 
-		public RPCClient RpcClient { get; set; }
+		public IRPCClient RpcClient { get; set; }
 
 		protected override async Task ActionAsync(CancellationToken cancel)
 		{

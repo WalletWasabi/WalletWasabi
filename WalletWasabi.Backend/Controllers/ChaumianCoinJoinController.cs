@@ -15,6 +15,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.CoinJoin.Coordinator;
@@ -37,7 +38,7 @@ namespace WalletWasabi.Backend.Controllers
 	{
 		private IMemoryCache Cache { get; }
 		public Global Global { get; }
-		private RPCClient RpcClient => Global.RpcClient;
+		private IRPCClient RpcClient => Global.RpcClient;
 		private Network Network => Global.Config.Network;
 		private Coordinator Coordinator => Global.Coordinator;
 

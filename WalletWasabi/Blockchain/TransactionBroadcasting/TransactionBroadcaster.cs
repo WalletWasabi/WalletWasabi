@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
@@ -23,7 +24,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 {
 	public class TransactionBroadcaster
 	{
-		public TransactionBroadcaster(Network network, BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, NodesGroup nodes, WalletManager walletManager, RPCClient rpc)
+		public TransactionBroadcaster(Network network, BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, NodesGroup nodes, WalletManager walletManager, IRPCClient rpc)
 		{
 			Nodes = Guard.NotNull(nameof(nodes), nodes);
 			Network = Guard.NotNull(nameof(network), network);
@@ -37,7 +38,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 		public WasabiSynchronizer Synchronizer { get; }
 		public Network Network { get; }
 		public NodesGroup Nodes { get; }
-		public RPCClient RpcClient { get; private set; }
+		public IRPCClient RpcClient { get; private set; }
 		public WalletManager WalletManager { get; }
 
 		private async Task BroadcastTransactionToNetworkNodeAsync(SmartTransaction transaction, Node node)
