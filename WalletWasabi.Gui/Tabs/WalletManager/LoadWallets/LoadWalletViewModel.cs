@@ -455,7 +455,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 				{
 					keyManager = Global.WalletManager.GetWalletByName(walletName).KeyManager;
 				}
-				catch (InvalidOperationException)
+				catch (FileNotFoundException)
 				{
 					// The selected wallet is not available any more (someone deleted it?).
 					OnCategorySelected();

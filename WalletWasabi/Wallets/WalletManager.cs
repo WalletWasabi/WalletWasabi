@@ -367,7 +367,7 @@ namespace WalletWasabi.Wallets
 			}
 			if (wallet is null)
 			{
-				throw new InvalidOperationException($"Wallet name:{wallet} not found.");
+				throw new FileNotFoundException($"Wallet name:{wallet} not found.");
 			}
 			return wallet;
 		}
