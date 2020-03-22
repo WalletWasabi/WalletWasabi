@@ -100,7 +100,7 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-		public async Task<Wallet> StartWalletAsync(Wallet wallet)
+		private async Task<Wallet> StartWalletAsync(Wallet wallet)
 		{
 			Guard.NotNull(nameof(wallet), wallet);
 
@@ -148,7 +148,7 @@ namespace WalletWasabi.Wallets
 			return StartWalletAsync(wallet);
 		}
 
-		public Wallet AddWallet(KeyManager keyManager)
+		private Wallet AddWallet(KeyManager keyManager)
 		{
 			lock (Lock)
 			{
@@ -163,7 +163,7 @@ namespace WalletWasabi.Wallets
 			return wallet;
 		}
 
-		public Wallet AddWallet(string walletName)
+		private Wallet AddWallet(string walletName)
 		{
 			(string walletFullPath, string walletBackupFullPath) = WalletDirectories.GetWalletFilePaths(walletName);
 			Wallet wallet;
