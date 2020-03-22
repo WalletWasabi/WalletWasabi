@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
+using WalletWasabi.BitcoinCore;
 using WalletWasabi.CoinJoin.Coordinator;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
@@ -68,7 +69,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			}
 		}
 
-		public static async Task<(string password, RPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global)> InitializeTestEnvironmentAsync(
+		public static async Task<(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global)> InitializeTestEnvironmentAsync(
 			RegTestFixture regTestFixture,
 			int numberOfBlocksToGenerate,
 			[CallerFilePath]string callerFilePath = null,
