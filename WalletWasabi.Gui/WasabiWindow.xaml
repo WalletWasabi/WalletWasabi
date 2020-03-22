@@ -6,6 +6,6 @@
                   Title="{Binding Title}"                  
                   FontFamily="{DynamicResource UiFont}" FontSize="14"
                   Foreground="{DynamicResource ThemeForegroundBrush}"                  
-                  UseLayoutRounding="True"
+                  UseLayoutRounding="False"
                   RenderOptions.BitmapInterpolationMode="HighQuality" />
 
