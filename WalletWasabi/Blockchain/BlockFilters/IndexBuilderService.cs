@@ -18,14 +18,19 @@ namespace WalletWasabi.Blockchain.BlockFilters
 {
 	public class IndexBuilderService
 	{
+		private const long NotStarted = 0;
+		private const long Running = 1;
+		private const long Stopping = 2;
+		private const long Stopped = 3;
+
 		/// <summary>
 		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
 		/// </summary>
-		private long _running;
+		private long _serviceStatus;
 
-		private long _runner;
+		private long _workerCount;
 
-		public IndexBuilderService(RPCClient rpc, BlockNotifier blockNotifier, string indexFilePath)
+		public IndexBuilderService(IRPCClient rpc, BlockNotifier blockNotifier, string indexFilePath)
 		{
 			RpcClient = Guard.NotNull(nameof(rpc), rpc);
 			BlockNotifier = Guard.NotNull(nameof(blockNotifier), blockNotifier);
@@ -36,7 +41,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 
 			StartingHeight = SmartHeader.GetStartingHeader(RpcClient.Network).Height;
 
-			_running = 0;
+			_serviceStatus = NotStarted;
 
 			IoHelpers.EnsureContainingDirectoryExists(IndexFilePath);
 			if (File.Exists(IndexFilePath))
@@ -60,13 +65,13 @@ namespace WalletWasabi.Blockchain.BlockFilters
 
 		public static byte[][] DummyScript { get; } = new byte[][] { ByteHelpers.FromHex("0009BBE4C2D17185643765C265819BF5261755247D") };
 
-		public RPCClient RpcClient { get; }
+		public IRPCClient RpcClient { get; }
 		public BlockNotifier BlockNotifier { get; }
 		public string IndexFilePath { get; }
 		private List<FilterModel> Index { get; }
 		private AsyncLock IndexLock { get; }
 		public uint StartingHeight { get; }
-		public bool IsRunning => Interlocked.Read(ref _running) == 1;
+		public bool IsRunning => Interlocked.Read(ref _serviceStatus) == Running;
 
 		public static GolombRiceFilter CreateDummyEmptyFilter(uint256 blockHash)
 		{
@@ -84,25 +89,25 @@ namespace WalletWasabi.Blockchain.BlockFilters
 			{
 				try
 				{
-					if (Interlocked.Read(ref _runner) >= 2)
+					if (Interlocked.Read(ref _workerCount) >= 2)
 					{
 						return;
 					}
 
-					Interlocked.Increment(ref _runner);
-					while (Interlocked.Read(ref _runner) != 1)
+					Interlocked.Increment(ref _workerCount);
+					while (Interlocked.Read(ref _workerCount) != 1)
 					{
 						await Task.Delay(100);
 					}
 
-					if (Interlocked.Read(ref _running) >= 2)
+					if (Interlocked.Read(ref _serviceStatus) >= Stopping)
 					{
 						return;
 					}
 
 					try
 					{
-						Interlocked.Exchange(ref _running, 1);
+						Interlocked.Exchange(ref _serviceStatus, Running);
 
 						SyncInfo syncInfo = null;
 						while (IsRunning)
@@ -110,100 +115,72 @@ namespace WalletWasabi.Blockchain.BlockFilters
 							try
 							{
 								// If we did not yet initialized syncInfo, do so.
-								if (syncInfo is null)
+								if (syncInfo == null)
 								{
 									syncInfo = await GetSyncInfoAsync();
 								}
 
-								uint heightToRequest = StartingHeight;
+								uint currentHeight = 0;
 								uint256 currentHash = null;
 								using (await IndexLock.LockAsync())
 								{
 									if (Index.Count != 0)
 									{
 										var lastIndex = Index[^1];
-										heightToRequest = lastIndex.Header.Height + 1;
+										currentHeight = lastIndex.Header.Height;
 										currentHash = lastIndex.Header.BlockHash;
+									}
+									else
+									{
+										currentHash = await RpcClient.GetBlockHashAsync(StartingHeight);
+										currentHeight = StartingHeight;
 									}
 								}
 
-								// If not synchronized or already 5 min passed since last update, get the latest blockchain info.
-								if (!syncInfo.IsCoreSynchornized || DateTimeOffset.UtcNow - syncInfo.BlockchainInfoUpdated > TimeSpan.FromMinutes(5))
+								var coreNotSynced = !syncInfo.IsCoreSynchornized;
+								var tipReached = syncInfo.BlockCount == currentHeight;
+								var refresh = DateTimeOffset.UtcNow - syncInfo.BlockchainInfoUpdated > TimeSpan.FromMinutes(5);
+								if (coreNotSynced || tipReached || refresh)
 								{
 									syncInfo = await GetSyncInfoAsync();
 								}
 
-								//if (syncInfo.BlockCount - heightToRequest <= 100)
-								//{
-								//	// Both Wasabi and our Core node is in sync. Start doing stuff through P2P from now on.
-								//	if (syncInfo.IsCoreSynchornized && syncInfo.BlockCount == heightToRequest - 1)
-								//	{
-								//		syncInfo = await GetSyncInfoAsync();
-								//		// Double it to make sure not to accidentally miss any notification.
-								//		if (syncInfo.IsCoreSynchornized && syncInfo.BlockCount == heightToRequest - 1)
-								//		{
-								//			// Mark the process notstarted, so it can be started again and finally block can mark it is stopped.
-								//			Interlocked.Exchange(ref _running, 0);
-								//			return;
-								//		}
-								//	}
+								// If wasabi filter height is the same as core we may be done.
+								if (syncInfo.BlockCount == currentHeight)
+								{
+									// Check that core is fully synced
+									if (syncInfo.IsCoreSynchornized && !syncInfo.InitialBlockDownload)
+									{
+										// Mark the process notstarted, so it can be started again
+										// and finally block can mark it as stopped.
+										Interlocked.Exchange(ref _serviceStatus, NotStarted);
+										return;
+									}
+									else
+									{
+										// Core is catching up give it a few milliseconds
+										await Task.Delay(100);
+										continue;
+									}
+								}
 
-								//	// Mark the synchronizing process is working with immature blocks from now on.
-								//	isImmature = true;
-								//}
-
-								uint256 blockHash = await RpcClient.GetBlockHashAsync(heightToRequest);
+								uint nextHeight = currentHeight + 1;
+								uint256 blockHash = await RpcClient.GetBlockHashAsync(nextHeight);
 								VerboseBlockInfo block = await RpcClient.GetVerboseBlockAsync(blockHash);
 
-								// Reorg check, except if we're requesting the starting height, because then the "currentHash" wouldn't exist.
-								if (heightToRequest != StartingHeight && currentHash != block.PrevBlockHash)
+								// Check if we are still on the best chain,
+								// if not rewind filters til we find the fork.
+								if (currentHash != block.PrevBlockHash)
 								{
 									Logger.LogWarning("Reorg observed on the network");
 
-									// Reorg can happen only when immature. (If it'd not be immature, that'd be a huge issue.)
-									//if (isImmature)
-									//{
-									//	await ReorgOneAsync();
-									//}
-									//else
-									//{
-									//	Logger.LogCritical("This is something serious! Over 100 block reorg is noticed! We cannot handle that!");
-									//}
+									await ReorgOneAsync();
 
 									// Skip the current block.
 									continue;
 								}
 
-								var scripts = new HashSet<Script>();
-
-								foreach (var tx in block.Transactions)
-								{
-									// If stop was requested return.
-									// Because this tx iteration can take even minutes
-									// It does not need to be accessed with a thread safe fashion with Interlocked through IsRunning, this may have some performance benefit
-									if (_running != 1)
-									{
-										return;
-									}
-
-									for (int i = 0; i < tx.Outputs.Count; i++)
-									{
-										var scriptPubKey = tx.Outputs[i].ScriptPubKey;
-										if (scriptPubKey.IsScriptType(ScriptType.P2WPKH))
-										{
-											scripts.Add(scriptPubKey);
-										}
-									}
-
-									foreach (var input in tx.Inputs)
-									{
-										Script spentScriptPubKey = input.PrevOutput.ScriptPubKey;
-										if (spentScriptPubKey.IsScriptType(ScriptType.P2WPKH))
-										{
-											scripts.Add(spentScriptPubKey);
-										}
-									}
-								}
+								var scripts = FetchScripts(block);
 
 								GolombRiceFilter filter;
 								if (scripts.Any())
@@ -222,7 +199,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 									filter = CreateDummyEmptyFilter(block.Hash);
 								}
 
-								var smartHeader = new SmartHeader(block.Hash, block.PrevBlockHash, heightToRequest, block.BlockTime);
+								var smartHeader = new SmartHeader(block.Hash, block.PrevBlockHash, nextHeight, block.BlockTime);
 								var filterModel = new FilterModel(smartHeader, filter);
 
 								await File.AppendAllLinesAsync(IndexFilePath, new[] { filterModel.ToLine() });
@@ -233,14 +210,13 @@ namespace WalletWasabi.Blockchain.BlockFilters
 								}
 
 								// If not close to the tip, just log debug.
-								// Use height.Value instead of simply height, because it cannot be negative height.
-								if (syncInfo.BlockCount - heightToRequest <= 3 || heightToRequest % 100 == 0)
+								if (syncInfo.BlockCount - nextHeight <= 3 || nextHeight % 100 == 0)
 								{
-									Logger.LogInfo($"Created filter for block: {heightToRequest}.");
+									Logger.LogInfo($"Created filter for block: {nextHeight}.");
 								}
 								else
 								{
-									Logger.LogDebug($"Created filter for block: {heightToRequest}.");
+									Logger.LogDebug($"Created filter for block: {nextHeight}.");
 								}
 							}
 							catch (Exception ex)
@@ -251,8 +227,8 @@ namespace WalletWasabi.Blockchain.BlockFilters
 					}
 					finally
 					{
-						Interlocked.CompareExchange(ref _running, 3, 2); // If IsStopping, make it stopped.
-						Interlocked.Decrement(ref _runner);
+						Interlocked.CompareExchange(ref _serviceStatus, Stopped, Stopping); // If IsStopping, make it stopped.
+						Interlocked.Decrement(ref _workerCount);
 					}
 				}
 				catch (Exception ex)
@@ -260,6 +236,48 @@ namespace WalletWasabi.Blockchain.BlockFilters
 					Logger.LogError($"Synchronization attempt failed to start: {ex}");
 				}
 			});
+		}
+
+		private HashSet<Script> FetchScripts(VerboseBlockInfo block)
+		{
+			var scripts = new HashSet<Script>();
+
+			foreach (var tx in block.Transactions)
+			{
+				for (int i = 0; i < tx.Outputs.Count; i++)
+				{
+					var scriptPubKey = tx.Outputs[i].ScriptPubKey;
+					if (scriptPubKey.IsScriptType(ScriptType.P2WPKH))
+					{
+						scripts.Add(scriptPubKey);
+					}
+				}
+
+				foreach (var input in tx.Inputs)
+				{
+					Script spentScriptPubKey = input.PrevOutput.ScriptPubKey;
+					if (spentScriptPubKey.IsScriptType(ScriptType.P2WPKH))
+					{
+						scripts.Add(spentScriptPubKey);
+					}
+				}
+			}
+
+			return scripts;
+		}
+
+		private async Task ReorgOneAsync()
+		{
+			// 1. Rollback index
+			using (await IndexLock.LockAsync())
+			{
+				Logger.LogInfo($"REORG invalid block: {Index[^1].Header.BlockHash}");
+				Index.RemoveLast();
+			}
+
+			// 2. Serialize Index. (Remove last line.)
+			var lines = await File.ReadAllLinesAsync(IndexFilePath);
+			await File.WriteAllLinesAsync(IndexFilePath, lines.Take(lines.Length - 1).ToArray());
 		}
 
 		private async Task<SyncInfo> GetSyncInfoAsync()
@@ -333,9 +351,9 @@ namespace WalletWasabi.Blockchain.BlockFilters
 				BlockNotifier.OnBlock -= BlockNotifier_OnBlock;
 			}
 
-			Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
+			Interlocked.CompareExchange(ref _serviceStatus, Stopping, Running); // If running, make it stopping.
 
-			while (Interlocked.CompareExchange(ref _running, 3, 0) == 2)
+			while (Interlocked.CompareExchange(ref _serviceStatus, Stopped, NotStarted) == 2)
 			{
 				await Task.Delay(50);
 			}

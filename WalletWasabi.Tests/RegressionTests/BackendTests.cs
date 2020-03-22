@@ -136,7 +136,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var indexBuilderServiceDir = Common.GetWorkDir();
 			var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{rpc.Network}.dat");
 
-			var indexBuilderService = new IndexBuilderService(rpc, global.HostedServices.FirstOrDefault<BlockNotifier>(), indexFilePath);
+			var indexBuilderService = new IndexBuilderService(new RpcWrappedClient(rpc), global.HostedServices.FirstOrDefault<BlockNotifier>(), indexFilePath);
 			try
 			{
 				indexBuilderService.Synchronize();

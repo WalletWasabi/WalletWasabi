@@ -286,7 +286,7 @@ namespace NBitcoin.RPC
 			return hashSet;
 		}
 
-		public static async Task<VerboseBlockInfo> GetVerboseBlockAsync(this RPCClient rpc, uint256 blockId)
+		public static async Task<VerboseBlockInfo> GetVerboseBlockAsync(this IRPCClient rpc, uint256 blockId)
 		{
 			var resp = await rpc.SendCommandAsync(RPCOperations.getblock, blockId, 3).ConfigureAwait(false);
 			var blockInfoStr = resp.Result.ToString();

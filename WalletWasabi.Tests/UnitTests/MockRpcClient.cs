@@ -33,6 +33,11 @@ namespace WalletWasabi.Tests.UnitTests
 			return OnGetBlockHeaderAsync(blockHash);
 		}
 
+		public Task<uint256> GetBlockHashAsync(uint height)
+		{
+			throw new NotImplementedException();
+		}
+
 		public Task<BlockchainInfo> GetBlockchainInfoAsync()
 		{
 			return OnGetBlockchainInfoAsync();

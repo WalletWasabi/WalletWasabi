@@ -14,6 +14,10 @@ namespace WalletWasabi.BitcoinCore
 
 		Task<BlockHeader> GetBlockHeaderAsync(uint256 blockHash);
 
+		Task<uint256> GetBlockHashAsync(uint height);
+
+		Task<BlockchainInfo> GetBlockchainInfoAsync();
+
 		Task<RPCResponse> SendCommandAsync(RPCOperations operation, params object[] p);
 	}
 }
