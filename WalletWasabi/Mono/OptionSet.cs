@@ -169,6 +169,15 @@ namespace Mono.Options
 {
 	public class OptionSet : KeyedCollection<string, Option>
 	{
+		private readonly Regex ValueOption = new Regex(@"^(?<flag>--|-|/)(?<name>[^:=]+)((?<sep>[:=])(?<value>.*))?$");
+
+		private const int OptionWidth = 29;
+		private const int DescriptionFirstWidth = 140 - OptionWidth;
+		private const int DescriptionRemWidth = 140 - OptionWidth - 2;
+
+		private static readonly string CommandHelpIndentStart = new string(' ', OptionWidth);
+		private static readonly string CommandHelpIndentRemaining = new string(' ', OptionWidth + 2);
+
 		public OptionSet()
 			: this(null)
 		{
@@ -556,9 +565,6 @@ namespace Mono.Options
 			return false;
 		}
 
-		private readonly Regex ValueOption = new Regex(
-			@"^(?<flag>--|-|/)(?<name>[^:=]+)((?<sep>[:=])(?<value>.*))?$");
-
 		protected bool GetOptionParts(string argument, out string flag, out string name, out string sep, out string value)
 		{
 			if (argument is null)
@@ -724,13 +730,6 @@ namespace Mono.Options
 			c.OptionValues.Add(value);
 			option.Invoke(c);
 		}
-
-		private const int OptionWidth = 29;
-		private const int DescriptionFirstWidth = 140 - OptionWidth;
-		private const int DescriptionRemWidth = 140 - OptionWidth - 2;
-
-		private static readonly string CommandHelpIndentStart = new string(' ', OptionWidth);
-		private static readonly string CommandHelpIndentRemaining = new string(' ', OptionWidth + 2);
 
 		public void WriteOptionDescriptions(TextWriter o)
 		{
