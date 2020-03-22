@@ -54,18 +54,18 @@ namespace WalletWasabi.Wallets
 			HandleFiltersLock = new AsyncLock();
 
 			BlockFolderLock = new AsyncLock();
-			BlocksFolderPath = Path.Combine(dataDir, "Blocks", Network.ToString());
-			if (Directory.Exists(BlocksFolderPath))
+			BlockFolderPath = Path.Combine(dataDir, "Blocks", Network.ToString());
+			if (Directory.Exists(BlockFolderPath))
 			{
 				if (Network == Network.RegTest)
 				{
-					Directory.Delete(BlocksFolderPath, true);
-					Directory.CreateDirectory(BlocksFolderPath);
+					Directory.Delete(BlockFolderPath, true);
+					Directory.CreateDirectory(BlockFolderPath);
 				}
 			}
 			else
 			{
-				Directory.CreateDirectory(BlocksFolderPath);
+				Directory.CreateDirectory(BlockFolderPath);
 			}
 			KeyManager.AssertCleanKeysIndexed();
 			KeyManager.AssertLockedInternalKeysIndexed(14);
@@ -120,7 +120,7 @@ namespace WalletWasabi.Wallets
 		public WasabiSynchronizer Synchronizer { get; private set; }
 		public CoinJoinClient ChaumianClient { get; private set; }
 		public NodesGroup Nodes { get; private set; }
-		public string BlocksFolderPath { get; }
+		public string BlockFolderPath { get; }
 		public ServiceConfiguration ServiceConfiguration { get; private set; }
 		public string WalletName => KeyManager.WalletName;
 
@@ -238,13 +238,13 @@ namespace WalletWasabi.Wallets
 			{
 				using (await BlockFolderLock.LockAsync())
 				{
-					var filePaths = Directory.EnumerateFiles(BlocksFolderPath);
+					var filePaths = Directory.EnumerateFiles(BlockFolderPath);
 					var fileNames = filePaths.Select(Path.GetFileName);
 					var hashes = fileNames.Select(x => new uint256(x));
 
 					if (hashes.Contains(hash))
 					{
-						File.Delete(Path.Combine(BlocksFolderPath, hash.ToString()));
+						File.Delete(Path.Combine(BlockFolderPath, hash.ToString()));
 					}
 				}
 			}
@@ -258,7 +258,7 @@ namespace WalletWasabi.Wallets
 		{
 			using (await BlockFolderLock.LockAsync())
 			{
-				return Directory.EnumerateFiles(BlocksFolderPath).Count();
+				return Directory.EnumerateFiles(BlockFolderPath).Count();
 			}
 		}
 
@@ -587,7 +587,7 @@ namespace WalletWasabi.Wallets
 			using (await BlockFolderLock.LockAsync())
 			{
 				var encoder = new HexEncoder();
-				var filePath = Path.Combine(BlocksFolderPath, hash.ToString());
+				var filePath = Path.Combine(BlockFolderPath, hash.ToString());
 				if (File.Exists(filePath))
 				{
 					try
@@ -696,7 +696,7 @@ namespace WalletWasabi.Wallets
 				// Save the block
 				using (await BlockFolderLock.LockAsync())
 				{
-					var path = Path.Combine(BlocksFolderPath, hash.ToString());
+					var path = Path.Combine(BlockFolderPath, hash.ToString());
 					await File.WriteAllBytesAsync(path, block.ToBytes());
 				}
 			}
