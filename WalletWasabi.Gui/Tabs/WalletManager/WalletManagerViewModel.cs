@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets;
+using WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets;
 using WalletWasabi.Gui.Tabs.WalletManager.LoadWallets;
 using WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets;
 using WalletWasabi.Gui.ViewModels;
@@ -18,18 +19,16 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 {
 	[Export]
 	[Shared]
-	internal class WalletManagerViewModel : WasabiDocumentTabViewModel
+	public class WalletManagerViewModel : WasabiDocumentTabViewModel
 	{
 		private ObservableCollection<CategoryViewModel> _categories;
 		private CategoryViewModel _selectedCategory;
 		private ViewModelBase _currentView;
 		private LoadWalletViewModel LoadWalletViewModelDesktop { get; }
-		private LoadWalletViewModel LoadWalletViewModelHardware { get; }
 
 		public WalletManagerViewModel() : base("Wallet Manager")
 		{
 			LoadWalletViewModelDesktop = new LoadWalletViewModel(this, LoadWalletType.Desktop);
-			LoadWalletViewModelHardware = new LoadWalletViewModel(this, LoadWalletType.Hardware);
 
 			Categories = new ObservableCollection<CategoryViewModel>
 			{
@@ -37,7 +36,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				new RecoverWalletViewModel(this),
 				LoadWalletViewModelDesktop,
 				new LoadWalletViewModel(this, LoadWalletType.Password),
-				LoadWalletViewModelHardware
+				new ConnectHardwareWalletViewModel(this)
 			};
 
 			SelectedCategory = Categories.FirstOrDefault();
