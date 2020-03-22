@@ -128,7 +128,7 @@ namespace WalletWasabi.Tests.RegressionTests
 					var coin = transaction.Outputs.GetCoins(inputAddress.ScriptPubKey).Single();
 
 					OutPoint input = coin.Outpoint;
-					var inputProof = new InputProofModel { Input = input.ToTxoRef(), Proof = key.SignCompact(blindedOutputScriptsHash) };
+					var inputProof = new InputProofModel { Input = input, Proof = key.SignCompact(blindedOutputScriptsHash) };
 					inputProofModels.Add(inputProof);
 
 					GetTxOutResponse getTxOutResponse = await rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true);
@@ -316,7 +316,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				Coin coin = transaction.Outputs.GetCoins(inputAddress.ScriptPubKey).Single();
 				OutPoint input = coin.Outpoint;
 
-				InputProofModel inputProof = new InputProofModel { Input = input.ToTxoRef(), Proof = inputKey.SignCompact(blindedOutputScriptsHash) };
+				InputProofModel inputProof = new InputProofModel { Input = input, Proof = inputKey.SignCompact(blindedOutputScriptsHash) };
 				InputProofModel[] inputsProofs = new InputProofModel[] { inputProof };
 				registerRequests.Add((changeOutputAddress, blinded, inputsProofs));
 				aliceClientBackup = await AliceClient.CreateNewAsync(round.RoundId, new[] { activeOutputAddress }, new[] { round.MixingLevels.GetBaseLevel().SchnorrKey.SchnorrPubKey }, new[] { requester }, network, changeOutputAddress, new[] { blinded }, inputsProofs, baseUri, null);
