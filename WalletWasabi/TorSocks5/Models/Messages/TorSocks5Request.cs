@@ -10,23 +10,7 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 {
 	public class TorSocks5Request : ByteArraySerializableBase
 	{
-		#region PropertiesAndMembers
-
-		public VerField Ver { get; set; }
-
-		public CmdField Cmd { get; set; }
-
-		public RsvField Rsv { get; set; }
-
-		public AtypField Atyp { get; set; }
-
-		public AddrField DstAddr { get; set; }
-
-		public PortField DstPort { get; set; }
-
-		#endregion PropertiesAndMembers
-
-		#region ConstructorsAndInitializers
+		#region Constructors
 
 		public TorSocks5Request()
 		{
@@ -42,7 +26,23 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 			Atyp = dstAddr.Atyp;
 		}
 
-		#endregion ConstructorsAndInitializers
+		#endregion Constructors
+
+		#region PropertiesAndMembers
+
+		public VerField Ver { get; set; }
+
+		public CmdField Cmd { get; set; }
+
+		public RsvField Rsv { get; set; }
+
+		public AtypField Atyp { get; set; }
+
+		public AddrField DstAddr { get; set; }
+
+		public PortField DstPort { get; set; }
+
+		#endregion PropertiesAndMembers
 
 		#region Serialization
 

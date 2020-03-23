@@ -6,15 +6,7 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 {
 	public class UsernamePasswordResponse : ByteArraySerializableBase
 	{
-		#region PropertiesAndMembers
-
-		public AuthVerField Ver { get; set; }
-
-		public AuthStatusField Status { get; set; }
-
-		#endregion PropertiesAndMembers
-
-		#region ConstructorsAndInitializers
+		#region Constructors
 
 		public UsernamePasswordResponse()
 		{
@@ -26,7 +18,15 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 			Ver = AuthVerField.Version1;
 		}
 
-		#endregion ConstructorsAndInitializers
+		#endregion Constructors
+
+		#region PropertiesAndMembers
+
+		public AuthVerField Ver { get; set; }
+
+		public AuthStatusField Status { get; set; }
+
+		#endregion PropertiesAndMembers
 
 		#region Serialization
 
