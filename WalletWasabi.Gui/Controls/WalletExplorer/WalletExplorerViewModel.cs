@@ -73,9 +73,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void LoadWallets()
 		{
-			foreach (var walletPath in WalletManager.WalletDirectories.EnumerateWalletFiles())
+			foreach (var wallet in WalletManager
+				.GetKeyManagers()
+				.Where(x => !x.IsWatchOnly)) // If password isn't required then add the wallet, otherwise add only not watchonly wallets.				
+				
 			{
-				Wallets.InsertSorted(new ClosedWalletViewModel(walletPath.FullName));
+				Wallets.InsertSorted(new ClosedWalletViewModel(WalletManager.GetWalletByName(wallet.WalletName)));
 			}
 		}
 

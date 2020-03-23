@@ -19,7 +19,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private ObservableCollection<WasabiDocumentTabViewModel> _actions;
 
-		public WalletViewModel(Wallet wallet) : base(wallet.WalletName)
+		public WalletViewModel(Wallet wallet) : base(wallet)
 		{
 			Wallet = Guard.NotNull(nameof(wallet), wallet);
 
@@ -47,7 +47,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					try
 					{
 						Money balance = Wallet.Coins.TotalAmount();
-						Title = $"{WalletName} ({(Global.UiConfig.LurkingWifeMode ? "#########" : balance.ToString(false, true))} BTC)";
+						//Title = $"{WalletName} ({(Global.UiConfig.LurkingWifeMode ? "#########" : balance.ToString(false, true))} BTC)";
 					}
 					catch (Exception ex)
 					{

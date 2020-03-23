@@ -9,12 +9,13 @@ using System.Reactive.Linq;
 using System.Threading;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class ClosedWalletViewModel : WalletViewModelBase
 	{
-		public ClosedWalletViewModel(string path) : base(Path.GetFileNameWithoutExtension(path))
+		public ClosedWalletViewModel(Wallet wallet) : base(wallet)
 		{
 			OpenWalletCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -29,16 +30,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						return;
 					}
 
-					var walletManager = global.WalletManager;
-
-					var keyManager = global.LoadKeyManager(Title);
-
-					if (keyManager is null)
-					{
-						return;
-					}
-
-					var wallet = await walletManager.CreateAndStartWalletAsync(keyManager);
+					await global.WalletManager.StartWalletAsync(wallet.KeyManager);
 
 					var walletExplorer = IoC.Get<WalletExplorerViewModel>();
 

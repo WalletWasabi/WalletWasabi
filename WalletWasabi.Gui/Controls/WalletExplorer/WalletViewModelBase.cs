@@ -1,32 +1,30 @@
-﻿using ReactiveUI;
+using ReactiveUI;
 using System;
 using WalletWasabi.Gui.ViewModels;
 using System.Diagnostics.CodeAnalysis;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class WalletViewModelBase : ViewModelBase, IComparable<WalletViewModelBase>
 	{
 		private bool _isExpanded;
-		private string _title;
 		private bool _isBusy;
 
-		public WalletViewModelBase(string title)
+		public WalletViewModelBase(Wallet wallet)
 		{
-			Title = title;
+			Wallet = wallet;
 		}
 
-		public bool IsExpanded
+        protected Wallet Wallet { get; }
+
+        public bool IsExpanded
 		{
 			get => _isExpanded;
 			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
 		}
 
-		public string Title
-		{
-			get => _title;
-			set => this.RaiseAndSetIfChanged(ref _title, value);
-		}
+		public string Title => Wallet.WalletName;
 
 		public bool IsBusy
 		{
