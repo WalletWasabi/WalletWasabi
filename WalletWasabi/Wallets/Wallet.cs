@@ -79,6 +79,11 @@ namespace WalletWasabi.Wallets
 			IFeeProvider feeProvider,
 			CoreNode coreNode = null)
 		{
+			if (State != WalletState.Uninitialized)
+			{
+				throw new InvalidOperationException($"{nameof(State)} must be {WalletState.Uninitialized}. Current state: {State}.");
+			}
+
 			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
 			Nodes = Guard.NotNull(nameof(nodes), nodes);
 			Synchronizer = Guard.NotNull(nameof(syncer), syncer);
@@ -159,7 +164,11 @@ namespace WalletWasabi.Wallets
 		/// <inheritdoc/>
 		public override async Task StartAsync(CancellationToken cancel)
 		{
-			var prevState = State;
+			if (State != WalletState.Initialized)
+			{
+				throw new InvalidOperationException($"{nameof(State)} must be {WalletState.Initialized}. Current state: {State}.");
+			}
+
 			try
 			{
 				State = WalletState.Starting;
@@ -198,7 +207,7 @@ namespace WalletWasabi.Wallets
 			}
 			catch
 			{
-				State = prevState;
+				State = WalletState.Initialized;
 				throw;
 			}
 			finally

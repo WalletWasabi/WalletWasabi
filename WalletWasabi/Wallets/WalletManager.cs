@@ -146,11 +146,6 @@ namespace WalletWasabi.Wallets
 		{
 			Guard.NotNull(nameof(wallet), wallet);
 
-			if (wallet.State == WalletState.Starting)
-			{
-				return wallet;
-			}
-
 			using (await StartStopWalletLock.LockAsync(CancelAllInitialization.Token).ConfigureAwait(false))
 			{
 				try
