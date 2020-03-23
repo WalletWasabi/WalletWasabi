@@ -1313,11 +1313,11 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			// 5. Create wallet service.
 			var workDir = Common.GetWorkDir();
-			using var wallet = new Wallet(network, bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer);
+			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer);
 			wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;
 
 			var workDir2 = Path.Combine(Common.GetWorkDir(), "2");
-			using var wallet2 = new Wallet(network, bitcoinStore, keyManager2, synchronizer2, nodes2, workDir2, serviceConfiguration, synchronizer2);
+			using var wallet2 = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager2, synchronizer2, nodes2, workDir2, serviceConfiguration, synchronizer2);
 
 			// Get some money, make it confirm.
 			var key = keyManager.GetNextReceiveKey("fundZeroLink", out _);
