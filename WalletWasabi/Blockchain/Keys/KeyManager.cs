@@ -571,6 +571,8 @@ namespace WalletWasabi.Blockchain.Keys
 			return extKeysAndPubs;
 		}
 
+		public IEnumerable<SmartLabel> GetLabels() => GetKeys().Select(x => x.Label);
+
 		public ExtKey GetMasterExtKey(string password)
 		{
 			if (password is null)

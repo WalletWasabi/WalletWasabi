@@ -109,7 +109,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global = Locator.Current.GetService<Global>();
 			Wallet = wallet;
 
-			LabelSuggestion = new SuggestLabelViewModel(Wallet);
+			LabelSuggestion = new SuggestLabelViewModel();
 			BuildTransactionButtonText = DoButtonText;
 
 			ResetUi();

@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -76,6 +77,37 @@ namespace WalletWasabi.Wallets
 				{
 					client.IsQuitPending = isQuitPending;
 				}
+			}
+		}
+
+		public IEnumerable<SmartLabel> GetLabels()
+		{
+			var keyManagers = new List<KeyManager>();
+			lock (Lock)
+			{
+				keyManagers = Wallets.Keys
+					.Where(x => x.KeyManager is { })
+					.Select(x => x.KeyManager)
+					.ToList();
+			}
+
+			var labels = keyManagers
+				.SelectMany(x => x.GetLabels());
+
+			var txStore = BitcoinStore?.TransactionStore;
+			if (txStore is { })
+			{
+				labels = labels.Concat(txStore.GetLabels());
+			}
+
+			return labels;
+		}
+
+		public IEnumerable<SmartLabel> GetAllKeyLabels()
+		{
+			lock (Lock)
+			{
+				return Wallets.Keys.Where(x => x.KeyManager is { }).SelectMany(x => x.KeyManager.GetLabels());
 			}
 		}
 

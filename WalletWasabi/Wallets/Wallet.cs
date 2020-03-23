@@ -306,13 +306,6 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-		public ISet<string> GetLabels() => TransactionProcessor.Coins.AsAllCoinsView()
-			.SelectMany(x => x.Label.Labels)
-			.Concat(KeyManager
-				.GetKeys()
-				.SelectMany(x => x.Label.Labels))
-			.ToHashSet();
-
 		/// <inheritdoc/>
 		public async override Task StopAsync(CancellationToken cancel)
 		{
