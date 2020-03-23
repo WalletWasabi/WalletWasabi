@@ -60,7 +60,7 @@ namespace WalletWasabi.Gui.Rpc
 				walletFile = Global.Wallet.KeyManager.FilePath,
 				extendedAccountPublicKey = km.ExtPubKey.ToString(Global.Network),
 				extendedAccountZpub = km.ExtPubKey.ToZpub(Global.Network),
-				accountKeyPath = $"m/{km.AccountKeyPath.ToString()}",
+				accountKeyPath = $"m/{km.AccountKeyPath}",
 				masterKeyFingerprint = km.MasterFingerprint?.ToString() ?? "",
 				balance = Global.Wallet.Coins
 							.Where(c => c.Unspent && !c.SpentAccordingToBackend)
