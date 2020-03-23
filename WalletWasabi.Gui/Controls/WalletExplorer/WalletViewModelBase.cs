@@ -3,6 +3,7 @@ using System;
 using WalletWasabi.Gui.ViewModels;
 using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Wallets;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
