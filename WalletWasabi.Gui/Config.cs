@@ -372,6 +372,7 @@ namespace WalletWasabi.Gui
 			{
 				return TargetPrivacy.Strong;
 			}
+
 			//the levels changed in the config file, adjust
 			if (MixUntilAnonymitySet < PrivacyLevelSome)
 			{
@@ -388,12 +389,7 @@ namespace WalletWasabi.Gui
 				return TargetPrivacy.Fine;
 			}
 
-			if (MixUntilAnonymitySet > PrivacyLevelFine)
-			{
-				return TargetPrivacy.Strong;
-			}
-
-			return TargetPrivacy.None;
+			return TargetPrivacy.Strong;
 		}
 
 		public int GetTargetLevel(TargetPrivacy target)
