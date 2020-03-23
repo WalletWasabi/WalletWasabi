@@ -11,11 +11,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private bool _isExpanded;
 		private bool _isBusy;
+		private string _title;
 
 		public WalletViewModelBase(Wallet wallet)
 		{
 			Wallet = Guard.NotNull(nameof(wallet), wallet);
 			Wallet = wallet;
+			Title = WalletName;
 		}
 
         protected Wallet Wallet { get; }
@@ -26,7 +28,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
 		}
 
-		public string Title => Wallet.WalletName;
+		public string Title
+		{
+			get { return _title; }
+			set { this.RaiseAndSetIfChanged(ref _title, value); }
+		}
+
+		public string WalletName => Wallet.WalletName;
 
 		public bool IsBusy
 		{

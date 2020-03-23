@@ -45,7 +45,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					try
 					{
 						Money balance = Wallet.Coins.TotalAmount();
-						//Title = $"{WalletName} ({(Global.UiConfig.LurkingWifeMode ? "#########" : balance.ToString(false, true))} BTC)";
+						Title = $"{WalletName} ({(Global.UiConfig.LurkingWifeMode ? "#########" : balance.ToString(false, true))} BTC)";
 					}
 					catch (Exception ex)
 					{
@@ -56,8 +56,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public Global Global { get; }
-
-		public string WalletName => Wallet.WalletName;
 		public KeyManager KeyManager => Wallet.KeyManager;		
 		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
 
