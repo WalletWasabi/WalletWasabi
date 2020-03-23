@@ -360,16 +360,20 @@ namespace WalletWasabi.Wallets
 
 		public Wallet GetWalletByName(string walletName)
 		{
-			Wallet wallet = null;
+			Wallet wallet;
 			lock (Lock)
 			{
 				wallet = Wallets.Keys.FirstOrDefault(x => x.KeyManager.WalletName == walletName);
 			}
+
 			if (wallet is null)
 			{
-				throw new FileNotFoundException($"Wallet name:{wallet} not found.");
+				throw new FileNotFoundException($"Wallet name:{wallet.WalletName} not found.");
 			}
-			return wallet;
+			else
+			{
+				return wallet;
+			}
 		}
 	}
 }
