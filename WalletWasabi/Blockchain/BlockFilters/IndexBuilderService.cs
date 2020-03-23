@@ -132,8 +132,9 @@ namespace WalletWasabi.Blockchain.BlockFilters
 									}
 									else
 									{
-										currentHash = await RpcClient.GetBlockHashAsync(StartingHeight);
-										currentHeight = StartingHeight;
+										currentHash = StartingHeight == 0 ? uint256.Zero :
+											await RpcClient.GetBlockHashAsync(StartingHeight);
+										currentHeight = StartingHeight - 1;
 									}
 								}
 
