@@ -141,9 +141,15 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-		private async Task<Wallet> StartWalletAsync(Wallet wallet)
+		public async Task<Wallet> StartWalletAsync(Wallet wallet)
 		{
 			Guard.NotNull(nameof(wallet), wallet);
+
+			lock (Lock)
+			{
+				// Throw an exception if the wallet was not added to the WalletManager.
+				Wallets.Single(x => x.Key == wallet);
+			}
 
 			using (await StartStopWalletLock.LockAsync(CancelAllInitialization.Token).ConfigureAwait(false))
 			{
