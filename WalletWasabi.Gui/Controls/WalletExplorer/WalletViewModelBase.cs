@@ -13,6 +13,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public WalletViewModelBase(Wallet wallet)
 		{
+			Wallet = Guard.NotNull(nameof(wallet), wallet);
 			Wallet = wallet;
 		}
 

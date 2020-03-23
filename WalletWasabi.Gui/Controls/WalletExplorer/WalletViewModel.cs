@@ -21,8 +21,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public WalletViewModel(Wallet wallet) : base(wallet)
 		{
-			Wallet = Guard.NotNull(nameof(wallet), wallet);
-
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 			Actions = new ObservableCollection<WasabiDocumentTabViewModel>();
 			Global = Locator.Current.GetService<Global>();
@@ -60,8 +58,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public Global Global { get; }
 
 		public string WalletName => Wallet.WalletName;
-		public KeyManager KeyManager => Wallet.KeyManager;
-		public Wallet Wallet { get; }
+		public KeyManager KeyManager => Wallet.KeyManager;		
 		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
 
 		public ObservableCollection<WasabiDocumentTabViewModel> Actions
