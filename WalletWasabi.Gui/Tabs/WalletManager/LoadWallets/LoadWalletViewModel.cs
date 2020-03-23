@@ -235,7 +235,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			foreach (var wallet in Global.WalletManager
 				.GetKeyManagers()
 				.Where(x => !IsPasswordRequired || !x.IsWatchOnly) // If password isn't required then add the wallet, otherwise add only not watchonly wallets.
-				.OrderByDescending(x => x.GetLastAccessTime())
+				.OrderByDescending(x => x.GetLastAccessTimeUtc())
 				.Select(x => new LoadWalletEntry(x.WalletName)))
 			{
 				Wallets.Add(wallet);

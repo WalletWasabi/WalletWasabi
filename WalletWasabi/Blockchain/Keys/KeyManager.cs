@@ -716,12 +716,12 @@ namespace WalletWasabi.Blockchain.Keys
 			}
 		}
 
-		public DateTime GetLastAccessTime()
+		public DateTime GetLastAccessTimeUtc()
 		{
 			if (FilePath is { })
 			{
 				// Set the LastAccessTime.
-				return new FileInfo(FilePath).LastAccessTime;
+				return new FileInfo(FilePath).LastAccessTimeUtc;
 			}
 			else
 			{
