@@ -32,8 +32,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 {
 	public class ConnectHardwareWalletViewModel : CategoryViewModel
 	{
-		private ObservableCollection<HardwareWalletViewModel> _hardwareWallets;
-		private HardwareWalletViewModel _selectedHardwareWallet;
+		private ObservableCollection<HardwareWalletViewModel> _wallets;
+		private HardwareWalletViewModel _selectedWallet;
 		private bool _isHwWalletSearchTextVisible;
 		private bool _isHardwareBusy;
 		private string _loadButtonText;
@@ -44,9 +44,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 		{
 			Global = Locator.Current.GetService<Global>();
 			Owner = owner;
-			HardwareWallets = new ObservableCollection<HardwareWalletViewModel>();
+			Wallets = new ObservableCollection<HardwareWalletViewModel>();
 
-			this.WhenAnyValue(x => x.SelectedHardwareWallet)
+			this.WhenAnyValue(x => x.SelectedWallet)
 				.Subscribe(_ => TrySetWalletStates());
 
 			this.WhenAnyValue(x => x.IsBusy)
@@ -144,16 +144,16 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 		private Global Global { get; }
 		private WalletManagerViewModel Owner { get; }
 
-		public ObservableCollection<HardwareWalletViewModel> HardwareWallets
+		public ObservableCollection<HardwareWalletViewModel> Wallets
 		{
-			get => _hardwareWallets;
-			set => this.RaiseAndSetIfChanged(ref _hardwareWallets, value);
+			get => _wallets;
+			set => this.RaiseAndSetIfChanged(ref _wallets, value);
 		}
 
-		public HardwareWalletViewModel SelectedHardwareWallet
+		public HardwareWalletViewModel SelectedWallet
 		{
-			get => _selectedHardwareWallet;
-			set => this.RaiseAndSetIfChanged(ref _selectedHardwareWallet, value);
+			get => _selectedWallet;
+			set => this.RaiseAndSetIfChanged(ref _selectedWallet, value);
 		}
 
 		public bool IsHardwareBusy
@@ -201,11 +201,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 				var client = new HwiClient(Global.Network);
 				var devices = await client.EnumerateAsync(cts.Token);
 
-				HardwareWallets.Clear();
+				Wallets.Clear();
 				foreach (var dev in devices)
 				{
 					var walletEntry = new HardwareWalletViewModel(dev);
-					HardwareWallets.Add(walletEntry);
+					Wallets.Add(walletEntry);
 				}
 				TrySetWalletStates();
 			}
@@ -220,12 +220,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 		{
 			try
 			{
-				if (SelectedHardwareWallet is null)
+				if (SelectedWallet is null)
 				{
-					SelectedHardwareWallet = HardwareWallets.FirstOrDefault();
+					SelectedWallet = Wallets.FirstOrDefault();
 				}
 
-				var isWalletSelected = SelectedHardwareWallet != null;
+				var isWalletSelected = SelectedWallet != null;
 
 				if (Global.WalletManager.AnyWallet())
 				{
@@ -270,7 +270,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 						return;
 					}
 
-					var wallet = await Task.Run(async () => await Global.WalletManager.CreateAndStartWalletAsync(keyManager));
+					var wallet = await Task.Run(async () => await Global.WalletManager.StartWalletAsync(keyManager));
 					// Successfully initialized.
 					Owner.OnClose();
 					// Open Wallet Explorer tabs
@@ -304,7 +304,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 		{
 			try
 			{
-				var selectedWallet = SelectedHardwareWallet;
+				var selectedWallet = SelectedWallet;
 				if (selectedWallet is null)
 				{
 					NotificationHelpers.Warning("No wallet selected.");
@@ -361,7 +361,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 					var p = selectedWallet.HardwareWalletInfo.Path;
 					var t = selectedWallet.HardwareWalletInfo.Model;
 					await EnumerateIfHardwareWalletsAsync();
-					selectedWallet = HardwareWallets.FirstOrDefault(x => x.HardwareWalletInfo.Model == t && x.HardwareWalletInfo.Path == p);
+					selectedWallet = Wallets.FirstOrDefault(x => x.HardwareWalletInfo.Model == t && x.HardwareWalletInfo.Path == p);
 					if (selectedWallet is null)
 					{
 						NotificationHelpers.Warning("Could not find the hardware wallet. Did you disconnect it?");
@@ -369,7 +369,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 					}
 					else
 					{
-						SelectedHardwareWallet = selectedWallet;
+						SelectedWallet = selectedWallet;
 					}
 
 					if (!selectedWallet.HardwareWalletInfo.IsInitialized())
@@ -415,7 +415,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 					if (!selectedWallet.HardwareWalletInfo.Fingerprint.HasValue)
 					{
 						await EnumerateIfHardwareWalletsAsync();
-						selectedWallet = HardwareWallets.FirstOrDefault(x => x.HardwareWalletInfo.Model == selectedWallet.HardwareWalletInfo.Model && x.HardwareWalletInfo.Path == selectedWallet.HardwareWalletInfo.Path);
+						selectedWallet = Wallets.FirstOrDefault(x => x.HardwareWalletInfo.Model == selectedWallet.HardwareWalletInfo.Model && x.HardwareWalletInfo.Path == selectedWallet.HardwareWalletInfo.Path);
 					}
 					if (!selectedWallet.HardwareWalletInfo.Fingerprint.HasValue)
 					{
@@ -424,18 +424,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 					KeyManager.CreateNewHardwareWalletWatchOnly(selectedWallet.HardwareWalletInfo.Fingerprint.Value, extPubKey, path);
 				}
 
-				KeyManager keyManager;
-				try
-				{
-					keyManager = Global.LoadKeyManager(walletName);
-				}
-				catch (FileNotFoundException)
-				{
-					// The selected wallet is not available any more (someone deleted it?).
-					OnCategorySelected();
-					NotificationHelpers.Warning("The selected wallet and its backup do not exist, did you delete them?");
-					return null;
-				}
+				KeyManager keyManager = Global.WalletManager.GetWalletByName(walletName).KeyManager;
 
 				return keyManager;
 			}
@@ -480,14 +469,14 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 				// If the hardware wallet was not initialized, then make the button say Setup, not Load.
 				// If pin is needed, then make the button say Send Pin instead.
 
-				if (SelectedHardwareWallet?.HardwareWalletInfo != null)
+				if (SelectedWallet?.HardwareWalletInfo != null)
 				{
-					if (!SelectedHardwareWallet.HardwareWalletInfo.IsInitialized())
+					if (!SelectedWallet.HardwareWalletInfo.IsInitialized())
 					{
 						text = "Setup Wallet";
 					}
 
-					if (SelectedHardwareWallet.HardwareWalletInfo.NeedsPinSent is true)
+					if (SelectedWallet.HardwareWalletInfo.NeedsPinSent is true)
 					{
 						text = "Send PIN";
 					}

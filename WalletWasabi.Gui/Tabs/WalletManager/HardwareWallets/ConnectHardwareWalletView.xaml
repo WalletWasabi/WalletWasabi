@@ -51,7 +51,7 @@
           </StackPanel>
         </Grid>
         <Grid Classes="content">
-          <controls:ExtendedListBox Items="{Binding HardwareWallets}" SelectedItem="{Binding SelectedHardwareWallet, Mode=TwoWay}">
+          <controls:ExtendedListBox Items="{Binding Wallets}" SelectedItem="{Binding SelectedWallet, Mode=TwoWay}">
             <controls:ExtendedListBox.ItemTemplate>
               <DataTemplate>
                 <TextBlock Text="{Binding WalletName}">
