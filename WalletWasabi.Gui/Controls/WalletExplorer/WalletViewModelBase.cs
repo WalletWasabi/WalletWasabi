@@ -1,23 +1,63 @@
 using ReactiveUI;
 using System;
-using WalletWasabi.Gui.ViewModels;
 using System.Diagnostics.CodeAnalysis;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
+using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Helpers;
 using WalletWasabi.Wallets;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class WalletViewModelBase : ViewModelBase, IComparable<WalletViewModelBase>
+	public class WalletViewModelBase : ViewModelBase, IComparable<WalletViewModelBase>, IDisposable
 	{
 		private bool _isExpanded;
 		private bool _isBusy;
 		private string _title;
+		private WalletState _walletState;
+		private CompositeDisposable _disposables;
+		private volatile bool _disposedValue = false;
 
 		public WalletViewModelBase(Wallet wallet)
 		{
 			Wallet = Guard.NotNull(nameof(wallet), wallet);
+
 			Wallet = wallet;
 			Title = WalletName;
+
+			_disposables = new CompositeDisposable();
+
+			Observable.FromEventPattern<WalletState>(wallet, nameof(wallet.StateChanged))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x => WalletState = x.EventArgs)
+				.DisposeWith(_disposables);
+
+			WalletState = wallet.State;
+
+			this.WhenAnyValue(x => x.WalletState)
+				.Subscribe(x =>
+				{
+					switch (x)
+					{
+						case WalletState.Initialized:
+						case WalletState.Started:
+						case WalletState.Stopped:
+						case WalletState.Uninitialized:
+							IsBusy = false;
+							break;
+
+						default:
+							IsBusy = true;
+							break;
+					}
+				});
+		}
+
+		public WalletState WalletState
+		{
+			get { return _walletState; }
+			set { this.RaiseAndSetIfChanged(ref _walletState, value); }
 		}
 
 		protected Wallet Wallet { get; }
@@ -46,5 +86,26 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			return Title.CompareTo(other.Title);
 		}
+
+		#region IDisposable Support
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					_disposables?.Dispose();
+				}
+
+				_disposables = null;
+				_disposedValue = true;
+			}
+		}
+
+		public void Dispose()
+		{
+			Dispose(true);
+		}
+		#endregion IDisposable Support
 	}
 }
