@@ -81,7 +81,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				// Wait until the filter our previous transaction is present.
 				var blockCount = await rpc.GetBlockCountAsync();
 				await Common.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
-				var wallet = await walletManager.CreateAndStartWalletAsync(keyManager);
+				var wallet = await walletManager.AddAndStartWalletAsync(keyManager);
 
 				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, walletManager, rpc);
 
@@ -548,7 +548,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				var blockCount = await rpc.GetBlockCountAsync();
 				await Common.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
 
-				var wallet = await walletManager.CreateAndStartWalletAsync(keyManager);
+				var wallet = await walletManager.AddAndStartWalletAsync(keyManager);
 				Assert.Empty(wallet.Coins);
 
 				// Get some money, make it confirm.
@@ -700,7 +700,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			// 5. Create wallet service.
 			var workDir = Common.GetWorkDir();
-			using var wallet = new Wallet(network, bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer);
+			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer);
 			wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;
 
 			Assert.Empty(wallet.Coins);
