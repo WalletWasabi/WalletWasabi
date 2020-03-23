@@ -9,18 +9,13 @@ namespace WalletWasabi.BitcoinCore
 	public class RpcClientBase : IRPCClient
 	{
 		public RpcClientBase(RPCClient rpc)
-			: this(new RpcClientBase(rpc))
-		{
-		}
-
-		public RpcClientBase(IRPCClient rpc)
 		{
 			Rpc = Guard.NotNull(nameof(rpc), rpc);
 		}
 
 		public Network Network => Rpc.Network;
 
-		private IRPCClient Rpc { get; }
+		private RPCClient Rpc { get; }
 
 		public RPCCredentialString CredentialString => Rpc.CredentialString;
 
