@@ -461,11 +461,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 					if (wallet.Coins.Any())
 					{
 						// If already have coins then open the last active tab first.
-						IoC.Get<WalletExplorerViewModel>().OpenWallet(wallet, receiveDominant: false, true);
+						IoC.Get<WalletExplorerViewModel>().OpenWallet(wallet, receiveDominant: false);
 					}
 					else // Else open with Receive tab first.
 					{
-						IoC.Get<WalletExplorerViewModel>().OpenWallet(wallet, receiveDominant: true, true);
+						IoC.Get<WalletExplorerViewModel>().OpenWallet(wallet, receiveDominant: true);
 					}
 				}
 				catch (Exception ex)

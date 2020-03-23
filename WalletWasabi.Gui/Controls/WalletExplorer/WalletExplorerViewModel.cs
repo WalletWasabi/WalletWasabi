@@ -47,7 +47,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _selectedItem, value);
 		}
 
-		internal void OpenWallet(Wallet wallet, bool receiveDominant, bool select)
+		internal void OpenWallet(Wallet wallet, bool receiveDominant, bool select = true)
 		{
 			if (_wallets.OfType<WalletViewModel>().Any(x => x.Title == wallet.WalletName))
 			{
