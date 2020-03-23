@@ -40,6 +40,26 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
+		public event EventHandler<ProcessedResult> WalletRelevantTransactionProcessed;
+
+		public event EventHandler<DequeueResult> OnDequeue;
+
+		private CancellationTokenSource CancelAllInitialization { get; }
+
+		private Dictionary<Wallet, HashSet<uint256>> Wallets { get; }
+		private object Lock { get; }
+		private AsyncLock StartStopWalletLock { get; }
+
+		private BitcoinStore BitcoinStore { get; set; }
+		private WasabiSynchronizer Synchronizer { get; set; }
+		private NodesGroup Nodes { get; set; }
+		private ServiceConfiguration ServiceConfiguration { get; set; }
+
+		private IFeeProvider FeeProvider { get; set; }
+		private CoreNode BitcoinCoreNode { get; set; }
+		public Network Network { get; }
+		public WalletDirectories WalletDirectories { get; }
+
 		private void RefreshWalletList()
 		{
 			foreach (var fileInfo in WalletDirectories.EnumerateWalletFiles())
@@ -62,21 +82,6 @@ namespace WalletWasabi.Wallets
 				}
 			}
 		}
-
-		private CancellationTokenSource CancelAllInitialization { get; }
-
-		public event EventHandler<ProcessedResult> WalletRelevantTransactionProcessed;
-
-		public event EventHandler<DequeueResult> OnDequeue;
-
-		private Dictionary<Wallet, HashSet<uint256>> Wallets { get; }
-		private object Lock { get; }
-		private AsyncLock StartStopWalletLock { get; }
-
-		private BitcoinStore BitcoinStore { get; set; }
-		private WasabiSynchronizer Synchronizer { get; set; }
-		private NodesGroup Nodes { get; set; }
-		private ServiceConfiguration ServiceConfiguration { get; set; }
 
 		public void SignalQuitPending(bool isQuitPending)
 		{
@@ -119,11 +124,6 @@ namespace WalletWasabi.Wallets
 
 			return labels;
 		}
-
-		private IFeeProvider FeeProvider { get; set; }
-		private CoreNode BitcoinCoreNode { get; set; }
-		public Network Network { get; }
-		public WalletDirectories WalletDirectories { get; }
 
 		public Wallet GetFirstOrDefaultWallet()
 		{
