@@ -711,7 +711,7 @@ namespace WalletWasabi.Blockchain.Keys
 				// Set the LastAccessTime.
 				new FileInfo(FilePath)
 				{
-					LastAccessTime = DateTime.Now
+					LastAccessTimeUtc = DateTime.UtcNow
 				};
 			}
 		}
@@ -721,11 +721,11 @@ namespace WalletWasabi.Blockchain.Keys
 			if (FilePath is { })
 			{
 				// Set the LastAccessTime.
-				return new FileInfo(FilePath).LastAccessTime;
+				return new FileInfo(FilePath).LastAccessTimeUtc;
 			}
 			else
 			{
-				return DateTime.Now;
+				return DateTime.UtcNow;
 			}
 		}
 
