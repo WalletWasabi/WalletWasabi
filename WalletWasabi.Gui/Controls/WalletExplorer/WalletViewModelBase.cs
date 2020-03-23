@@ -84,6 +84,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public int CompareTo([AllowNull] WalletViewModelBase other)
 		{
+			if(WalletState != other.WalletState)
+			{
+				if (WalletState == WalletState.Started || other.WalletState == WalletState.Started)
+				{
+					return other.WalletState.CompareTo(WalletState);
+				}
+			}
+
 			return Title.CompareTo(other.Title);
 		}
 
