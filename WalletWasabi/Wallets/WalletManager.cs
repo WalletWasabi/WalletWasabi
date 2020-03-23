@@ -80,18 +80,20 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-		public IEnumerable<SmartLabel> GetLabels()
+		public IEnumerable<KeyManager> GetKeyManagers()
 		{
-			var keyManagers = new List<KeyManager>();
 			lock (Lock)
 			{
-				keyManagers = Wallets.Keys
+				return Wallets.Keys
 					.Where(x => x.KeyManager is { })
 					.Select(x => x.KeyManager)
 					.ToList();
 			}
+		}
 
-			var labels = keyManagers
+		public IEnumerable<SmartLabel> GetLabels()
+		{
+			var labels = GetKeyManagers()
 				.SelectMany(x => x.GetLabels());
 
 			var txStore = BitcoinStore?.TransactionStore;
