@@ -18,6 +18,8 @@ namespace WalletWasabi.Logging
 
 		private static long On = 1;
 
+		private static int LoggingFailedCount = 0;
+
 		public static LogLevel MinimumLevel { get; private set; } = LogLevel.Critical;
 
 		public static HashSet<LogMode> Modes { get; } = new HashSet<LogMode>();
@@ -31,8 +33,6 @@ namespace WalletWasabi.Logging
 		/// It gets created automatically, but you have to use it manually.
 		/// </summary>
 		public static Guid InstanceGuid { get; } = Guid.NewGuid();
-
-		private static int LoggingFailedCount = 0;
 
 		/// <summary>
 		/// KB

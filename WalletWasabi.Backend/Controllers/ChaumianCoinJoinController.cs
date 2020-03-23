@@ -15,6 +15,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.CoinJoin.Coordinator;
@@ -37,7 +38,7 @@ namespace WalletWasabi.Backend.Controllers
 	{
 		private IMemoryCache Cache { get; }
 		public Global Global { get; }
-		private RPCClient RpcClient => Global.RpcClient;
+		private IRPCClient RpcClient => Global.RpcClient;
 		private Network Network => Global.Config.Network;
 		private Coordinator Coordinator => Global.Coordinator;
 
@@ -158,7 +159,7 @@ namespace WalletWasabi.Backend.Controllers
 					var uniqueInputs = new HashSet<OutPoint>();
 					foreach (InputProofModel inputProof in request.Inputs)
 					{
-						var outpoint = inputProof.Input.ToOutPoint();
+						var outpoint = inputProof.Input;
 						if (uniqueInputs.Contains(outpoint))
 						{
 							return BadRequest("Cannot register an input twice.");
@@ -173,11 +174,11 @@ namespace WalletWasabi.Backend.Controllers
 
 					foreach (InputProofModel inputProof in request.Inputs)
 					{
-						if (round.ContainsInput(inputProof.Input.ToOutPoint(), out List<Alice> tr))
+						if (round.ContainsInput(inputProof.Input, out List<Alice> tr))
 						{
 							alicesToRemove.UnionWith(tr.Select(x => x.UniqueId)); // Input is already registered by this alice, remove it later if all the checks are completed fine.
 						}
-						if (Coordinator.AnyRunningRoundContainsInput(inputProof.Input.ToOutPoint(), out List<Alice> tnr))
+						if (Coordinator.AnyRunningRoundContainsInput(inputProof.Input, out List<Alice> tnr))
 						{
 							if (tr.Union(tnr).Count() > tr.Count)
 							{
@@ -185,14 +186,14 @@ namespace WalletWasabi.Backend.Controllers
 							}
 						}
 
-						OutPoint outpoint = inputProof.Input.ToOutPoint();
+						OutPoint outpoint = inputProof.Input;
 						var bannedElem = await Coordinator.UtxoReferee.TryGetBannedAsync(outpoint, notedToo: false);
 						if (bannedElem != null)
 						{
-							return BadRequest($"Input is banned from participation for {(int)bannedElem.BannedRemaining.TotalMinutes} minutes: {inputProof.Input.Index}:{inputProof.Input.TransactionId}.");
+							return BadRequest($"Input is banned from participation for {(int)bannedElem.BannedRemaining.TotalMinutes} minutes: {inputProof.Input.N}:{inputProof.Input.Hash}.");
 						}
 
-						var txOutResponseTask = batch.GetTxOutAsync(inputProof.Input.TransactionId, (int)inputProof.Input.Index, includeMempool: true);
+						var txOutResponseTask = batch.GetTxOutAsync(inputProof.Input.Hash, (int)inputProof.Input.N, includeMempool: true);
 						getTxOutResponses.Add((inputProof, txOutResponseTask));
 					}
 
@@ -214,21 +215,21 @@ namespace WalletWasabi.Backend.Controllers
 						// Check if inputs are unspent.
 						if (getTxOutResponse is null)
 						{
-							return BadRequest($"Provided input is not unspent: {inputProof.Input.Index}:{inputProof.Input.TransactionId}.");
+							return BadRequest($"Provided input is not unspent: {inputProof.Input.N}:{inputProof.Input.Hash}.");
 						}
 
 						// Check if unconfirmed.
 						if (getTxOutResponse.Confirmations <= 0)
 						{
 							// If it spends a CJ then it may be acceptable to register.
-							if (!await Coordinator.ContainsUnconfirmedCoinJoinAsync(inputProof.Input.TransactionId))
+							if (!await Coordinator.ContainsUnconfirmedCoinJoinAsync(inputProof.Input.Hash))
 							{
 								return BadRequest("Provided input is neither confirmed, nor is from an unconfirmed coinjoin.");
 							}
 
 							// Check if mempool would accept a fake transaction created with the registered inputs.
 							// This will catch ascendant/descendant count and size limits for example.
-							var result = await RpcClient.TestMempoolAcceptAsync(new[] { new Coin(inputProof.Input.ToOutPoint(), getTxOutResponse.TxOut) });
+							var result = await RpcClient.TestMempoolAcceptAsync(new[] { new Coin(inputProof.Input, getTxOutResponse.TxOut) });
 							if (!result.accept)
 							{
 								return BadRequest($"Provided input is from an unconfirmed coinjoin, but a limit is reached: {result.rejectReason}");
@@ -259,7 +260,7 @@ namespace WalletWasabi.Backend.Controllers
 							return BadRequest("Provided proof is invalid.");
 						}
 
-						inputs.Add(new Coin(inputProof.Input.ToOutPoint(), txOut));
+						inputs.Add(new Coin(inputProof.Input, txOut));
 					}
 
 					var acceptedBlindedOutputScripts = new List<uint256>();

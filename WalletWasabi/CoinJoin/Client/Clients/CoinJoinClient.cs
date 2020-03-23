@@ -530,7 +530,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					coin.Secret ??= KeyManager.GetSecrets(SaltSoup(), coin.ScriptPubKey).Single();
 					var inputProof = new InputProofModel
 					{
-						Input = coin.GetTxoRef(),
+						Input = coin.OutPoint,
 						Proof = coin.Secret.PrivateKey.SignCompact(blindedOutputScriptsHash)
 					};
 					inputProofs.Add(inputProof);

@@ -153,6 +153,18 @@ namespace WalletWasabi.Blockchain.Keys
 			return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, extPubKey, false, AbsoluteMinGapLimit, new BlockchainState(), filePath, keyPath);
 		}
 
+		public void SetLastAccessTimeForNow()
+		{
+			if (FilePath is { })
+			{
+				// Set the LastAccessTime.
+				new FileInfo(FilePath)
+				{
+					LastAccessTime = DateTime.Now
+				};
+			}
+		}
+
 		public static KeyManager CreateNewWatchOnly(ExtPubKey extPubKey, string filePath = null)
 		{
 			return new KeyManager(null, null, null, extPubKey, null, AbsoluteMinGapLimit, new BlockchainState(), filePath);

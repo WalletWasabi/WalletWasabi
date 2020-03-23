@@ -164,13 +164,13 @@ namespace Mono.Options
 {
 	public class CommandOptionSet : OptionSet
 	{
-		public CommandSet Commands { get; set; }
-
 		public CommandOptionSet(CommandSet commands, MessageLocalizerConverter localizer)
 			: base(localizer)
 		{
 			Commands = commands;
 		}
+
+		public CommandSet Commands { get; set; }
 
 		protected override void SetItem(int index, Option item)
 		{
