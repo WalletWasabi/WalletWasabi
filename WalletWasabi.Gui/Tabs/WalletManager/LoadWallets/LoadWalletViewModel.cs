@@ -89,13 +89,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			SetLoadButtonText();
 		}
 
-		public bool IsLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
-
 		public LoadWalletType LoadWalletType { get; }
 		public bool IsPasswordRequired => LoadWalletType == LoadWalletType.Password;
 		public bool IsHardwareWallet => LoadWalletType == LoadWalletType.Hardware;
 		public bool IsDesktopWallet => LoadWalletType == LoadWalletType.Desktop;
-		public string UDevRulesLink => "https://github.com/bitcoin-core/HWI/tree/master/hwilib/udev";
 
 		public bool IsHwWalletSearchTextVisible
 		{

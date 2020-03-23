@@ -111,6 +111,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 		public ReactiveCommand<Unit, Unit> ImportColdcardCommand { get; set; }
 		public ReactiveCommand<Unit, Unit> EnumerateHardwareWalletsCommand { get; set; }
 		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
+		public string UDevRulesLink => "https://github.com/bitcoin-core/HWI/tree/master/hwilib/udev";
+		public bool IsLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 		private Global Global { get; }
 		private WalletManagerViewModel Owner { get; }
 	}
