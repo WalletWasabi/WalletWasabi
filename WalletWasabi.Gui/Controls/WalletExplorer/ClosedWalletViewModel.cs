@@ -30,7 +30,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						return;
 					}
 
-					await global.WalletManager.StartWalletAsync(wallet.KeyManager);
+					await global.WalletManager.StartWalletAsync(wallet);
 
 					var walletExplorer = IoC.Get<WalletExplorerViewModel>();
 
