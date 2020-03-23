@@ -38,7 +38,7 @@ namespace WalletWasabi.Blockchain.Transactions
 		public BuildTransactionResult BuildTransaction(
 			PaymentIntent payments,
 			FeeRate feeRate,
-			IEnumerable<TxoRef> allowedInputs = null)
+			IEnumerable<OutPoint> allowedInputs = null)
 			=> BuildTransaction(payments, () => feeRate, allowedInputs, () => LockTime.Zero);
 
 		/// <exception cref="ArgumentException"></exception>
@@ -47,7 +47,7 @@ namespace WalletWasabi.Blockchain.Transactions
 		public BuildTransactionResult BuildTransaction(
 			PaymentIntent payments,
 			Func<FeeRate> feeRateFetcher,
-			IEnumerable<TxoRef> allowedInputs = null,
+			IEnumerable<OutPoint> allowedInputs = null,
 			Func<LockTime> lockTimeSelector = null)
 		{
 			payments = Guard.NotNull(nameof(payments), payments);
@@ -72,7 +72,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				}
 
 				allowedSmartCoinInputs = allowedSmartCoinInputs
-					.Where(x => allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index))
+					.Where(x => allowedInputs.Any(y => y.Hash == x.TransactionId && y.N == x.Index))
 					.ToList();
 
 				// Add those that have the same script, because common ownership is already exposed.

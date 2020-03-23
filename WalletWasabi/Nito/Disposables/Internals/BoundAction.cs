@@ -22,6 +22,17 @@ namespace Nito.Disposables.Internals
 		}
 
 		/// <summary>
+		/// An action delegate bound with its context.
+		/// </summary>
+		public interface IBoundAction
+		{
+			/// <summary>
+			/// Executes the action. This should only be done after the bound action is retrieved from a field by <see cref="TryGetAndUnset"/>.
+			/// </summary>
+			void Invoke();
+		}
+
+		/// <summary>
 		/// Whether the field is empty.
 		/// </summary>
 		public bool IsEmpty => Interlocked.CompareExchange(ref _field, null, null) is null;
@@ -55,17 +66,6 @@ namespace Nito.Disposables.Internals
 					return true;
 				}
 			}
-		}
-
-		/// <summary>
-		/// An action delegate bound with its context.
-		/// </summary>
-		public interface IBoundAction
-		{
-			/// <summary>
-			/// Executes the action. This should only be done after the bound action is retrieved from a field by <see cref="TryGetAndUnset"/>.
-			/// </summary>
-			void Invoke();
 		}
 
 		private sealed class BoundAction : IBoundAction

@@ -422,7 +422,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				coins.Single(x => x.Label == "Maria"),
 				coins.Single(x => x.Label == "Suyin")
 			}.ToArray();
-			var result = transactionFactory.BuildTransaction(payment, feeRate, allowedCoins.Select(x => x.GetTxoRef()));
+			var result = transactionFactory.BuildTransaction(payment, feeRate, allowedCoins.Select(x => x.OutPoint));
 
 			Assert.True(result.Signed);
 			Assert.Equal(Money.Coins(0.12m), result.SpentCoins.Select(x => x.Amount).Sum());
@@ -452,7 +452,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				coins.Single(x => x.Label == "Maria"),
 				coins.Single(x => x.Label == "Suyin")
 			}.ToArray();
-			var result = transactionFactory.BuildTransaction(payment, feeRate, allowedCoins.Select(x => x.GetTxoRef()));
+			var result = transactionFactory.BuildTransaction(payment, feeRate, allowedCoins.Select(x => x.OutPoint));
 
 			Assert.True(result.Signed);
 			Assert.Equal(Money.Coins(0.13m), result.SpentCoins.Select(x => x.Amount).Sum());
@@ -485,7 +485,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var payment = new PaymentIntent(new Key().ScriptPubKey, amount);
 
 			var ex = Assert.Throws<InsufficientBalanceException>(() =>
-				transactionFactory.BuildTransaction(payment, new FeeRate(2m), allowedCoins.Select(x => x.GetTxoRef())));
+				transactionFactory.BuildTransaction(payment, new FeeRate(2m), allowedCoins.Select(x => x.OutPoint)));
 
 			Assert.Equal(ex.Minimum, amount);
 			Assert.Equal(ex.Actual, allowedCoins[0].Amount);
@@ -511,8 +511,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// one unselected coins. That unselected coin has to be spent too.
 			var allowedInputs = new[]
 			{
-				coins.Single(x => x.Amount == Money.Coins(0.08m)).GetTxoRef(),
-				coins.Single(x => x.Amount == Money.Coins(0.02m)).GetTxoRef()
+				coins.Single(x => x.Amount == Money.Coins(0.08m)).OutPoint,
+				coins.Single(x => x.Amount == Money.Coins(0.02m)).OutPoint
 			}.ToArray();
 			var result = transactionFactory.BuildTransaction(payment, feeRate, allowedInputs);
 

@@ -10,12 +10,12 @@ namespace WalletWasabi.Http.Models
 {
 	public abstract class StartLine
 	{
-		public HttpProtocol Protocol { get; }
-
 		protected StartLine(HttpProtocol protocol)
 		{
 			Protocol = protocol;
 		}
+
+		public HttpProtocol Protocol { get; }
 
 		public static string[] GetParts(string startLineString)
 		{

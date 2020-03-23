@@ -11,12 +11,17 @@ namespace WalletWasabi.Helpers
 {
 	public class RuntimeParams
 	{
+		private static RuntimeParams InternalInstance = null;
+		private static string FileDir;
+
+		private RuntimeParams()
+		{
+		}
+
 		[JsonProperty(PropertyName = "NetworkNodeTimeout")]
 		public int NetworkNodeTimeout { get; set; } = 64;
 
 		#region Business logic
-
-		private static RuntimeParams InternalInstance = null;
 
 		public static RuntimeParams Instance
 		{
@@ -37,12 +42,7 @@ namespace WalletWasabi.Helpers
 		}
 
 		private AsyncLock AsyncLock { get; } = new AsyncLock();
-		private static string FileDir;
 		private static string FilePath => Path.Combine(FileDir, "RuntimeParams.json");
-
-		private RuntimeParams()
-		{
-		}
 
 		public static void SetDataDir(string dataDir)
 		{

@@ -12,6 +12,8 @@ namespace WalletWasabi.Services
 {
 	public class HostedServices : IDisposable
 	{
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
 		private List<HostedService> Services { get; } = new List<HostedService>();
 
 		private object ServicesLock { get; } = new object();
@@ -113,8 +115,6 @@ namespace WalletWasabi.Services
 		}
 
 		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
 
 		protected virtual void Dispose(bool disposing)
 		{

@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Logging;
 
@@ -43,10 +44,10 @@ namespace WalletWasabi.Backend
 			Logger.LogInfo("RoundConfig is successfully initialized.");
 
 			string host = config.GetBitcoinCoreRpcEndPoint().ToString(config.Network.RPCPort);
-			var rpc = new RPCClient(
+			var rpc = new RpcClientBase(new RPCClient(
 					authenticationString: config.BitcoinRpcConnectionString,
 					hostOrUri: host,
-					network: config.Network);
+					network: config.Network));
 
 			await Global.InitializeAsync(config, roundConfig, rpc, cancellationToken);
 

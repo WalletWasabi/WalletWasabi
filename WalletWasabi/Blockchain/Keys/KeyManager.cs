@@ -153,18 +153,6 @@ namespace WalletWasabi.Blockchain.Keys
 			return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, extPubKey, false, AbsoluteMinGapLimit, new BlockchainState(), filePath, keyPath);
 		}
 
-		public void SetLastAccessTimeForNow()
-		{
-			if (FilePath is { })
-			{
-				// Set the LastAccessTime.
-				new FileInfo(FilePath)
-				{
-					LastAccessTime = DateTime.Now
-				};
-			}
-		}
-
 		public static KeyManager CreateNewWatchOnly(ExtPubKey extPubKey, string filePath = null)
 		{
 			return new KeyManager(null, null, null, extPubKey, null, AbsoluteMinGapLimit, new BlockchainState(), filePath);
@@ -583,6 +571,8 @@ namespace WalletWasabi.Blockchain.Keys
 			return extKeysAndPubs;
 		}
 
+		public IEnumerable<SmartLabel> GetLabels() => GetKeys().Select(x => x.Label);
+
 		public ExtKey GetMasterExtKey(string password)
 		{
 			if (password is null)
@@ -712,6 +702,31 @@ namespace WalletWasabi.Blockchain.Keys
 
 			// Re-add removed items for further operations.
 			BlockchainState.Height = prevHeight;
+		}
+
+		public void SetLastAccessTimeForNow()
+		{
+			if (FilePath is { })
+			{
+				// Set the LastAccessTime.
+				new FileInfo(FilePath)
+				{
+					LastAccessTime = DateTime.Now
+				};
+			}
+		}
+
+		public DateTime GetLastAccessTime()
+		{
+			if (FilePath is { })
+			{
+				// Set the LastAccessTime.
+				return new FileInfo(FilePath).LastAccessTime;
+			}
+			else
+			{
+				return DateTime.Now;
+			}
 		}
 
 		#region BlockchainState

@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.BitcoinCore;
 using WalletWasabi.Blockchain.BlockFilters.History;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
@@ -27,7 +28,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 
 		private long _runner;
 
-		public IndexBuilderService(RPCClient rpc, BlockNotifier blockNotifier, string indexFilePath, string bech32UtxoSetFilePath)
+		public IndexBuilderService(IRPCClient rpc, BlockNotifier blockNotifier, string indexFilePath, string bech32UtxoSetFilePath)
 		{
 			RpcClient = Guard.NotNull(nameof(rpc), rpc);
 			BlockNotifier = Guard.NotNull(nameof(blockNotifier), blockNotifier);
@@ -88,7 +89,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 
 		public static byte[][] DummyScript { get; } = new byte[][] { ByteHelpers.FromHex("0009BBE4C2D17185643765C265819BF5261755247D") };
 
-		public RPCClient RpcClient { get; }
+		public IRPCClient RpcClient { get; }
 		public BlockNotifier BlockNotifier { get; }
 		public string IndexFilePath { get; }
 		public string Bech32UtxoSetFilePath { get; }

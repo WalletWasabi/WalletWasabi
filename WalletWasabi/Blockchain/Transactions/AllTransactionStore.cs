@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
@@ -252,6 +253,8 @@ namespace WalletWasabi.Blockchain.Transactions
 				return reorgedTxs;
 			}
 		}
+
+		public IEnumerable<SmartLabel> GetLabels() => GetTransactions().Select(x => x.Label);
 
 		#endregion Accessors
 	}

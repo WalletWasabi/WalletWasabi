@@ -26,84 +26,20 @@ namespace WalletWasabi.Services
 {
 	public class WasabiSynchronizer : NotifyPropertyChangedBase, IFeeProvider
 	{
-		#region MembersPropertiesEvents
-
-		public SynchronizeResponse LastResponse { get; private set; }
-
-		public WasabiClient WasabiClient { get; private set; }
-
-		public Network Network { get; private set; }
-
 		private decimal _usdExchangeRate;
-
-		/// <summary>
-		/// The Bitcoin price in USD.
-		/// </summary>
-		public decimal UsdExchangeRate
-		{
-			get => _usdExchangeRate;
-			private set => RaiseAndSetIfChanged(ref _usdExchangeRate, value);
-		}
-
-		public event EventHandler<AllFeeEstimate> AllFeeEstimateChanged;
 
 		private AllFeeEstimate _allFeeEstimate;
 
-		public AllFeeEstimate AllFeeEstimate
-		{
-			get => _allFeeEstimate;
-			private set
-			{
-				if (RaiseAndSetIfChanged(ref _allFeeEstimate, value))
-				{
-					AllFeeEstimateChanged?.Invoke(this, value);
-				}
-			}
-		}
-
 		private TorStatus _torStatus;
 
-		public TorStatus TorStatus
-		{
-			get => _torStatus;
-			private set => RaiseAndSetIfChanged(ref _torStatus, value);
-		}
-
 		private BackendStatus _backendStatus;
-
-		public BackendStatus BackendStatus
-		{
-			get => _backendStatus;
-			private set => RaiseAndSetIfChanged(ref _backendStatus, value);
-		}
-
-		public TimeSpan MaxRequestIntervalForMixing { get; set; }
-		private long _blockRequests; // There are priority requests in queue.
-
-		public bool AreRequestsBlocked() => Interlocked.Read(ref _blockRequests) == 1;
-
-		public void BlockRequests() => Interlocked.Exchange(ref _blockRequests, 1);
-
-		public void EnableRequests() => Interlocked.Exchange(ref _blockRequests, 0);
-
-		public BitcoinStore BitcoinStore { get; private set; }
-
-		public event EventHandler<bool> ResponseArrivedIsGenSocksServFail;
-
-		public event EventHandler<SynchronizeResponse> ResponseArrived;
 
 		/// <summary>
 		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
 		/// </summary>
 		private long _running;
 
-		public bool IsRunning => Interlocked.Read(ref _running) == 1;
-
-		private CancellationTokenSource Cancel { get; set; }
-
-		#endregion MembersPropertiesEvents
-
-		#region ConstructorsAndInitializers
+		private long _blockRequests; // There are priority requests in queue.
 
 		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, WasabiClient client)
 		{
@@ -121,6 +57,71 @@ namespace WalletWasabi.Services
 			var client = new WasabiClient(baseUri, torSocks5EndPoint);
 			CreateNew(network, bitcoinStore, client);
 		}
+
+		#region EventsPropertiesMembers
+
+		public event EventHandler<AllFeeEstimate> AllFeeEstimateChanged;
+
+		public event EventHandler<bool> ResponseArrivedIsGenSocksServFail;
+
+		public event EventHandler<SynchronizeResponse> ResponseArrived;
+
+		public SynchronizeResponse LastResponse { get; private set; }
+
+		public WasabiClient WasabiClient { get; private set; }
+
+		public Network Network { get; private set; }
+
+		/// <summary>
+		/// The Bitcoin price in USD.
+		/// </summary>
+		public decimal UsdExchangeRate
+		{
+			get => _usdExchangeRate;
+			private set => RaiseAndSetIfChanged(ref _usdExchangeRate, value);
+		}
+
+		public AllFeeEstimate AllFeeEstimate
+		{
+			get => _allFeeEstimate;
+			private set
+			{
+				if (RaiseAndSetIfChanged(ref _allFeeEstimate, value))
+				{
+					AllFeeEstimateChanged?.Invoke(this, value);
+				}
+			}
+		}
+
+		public TorStatus TorStatus
+		{
+			get => _torStatus;
+			private set => RaiseAndSetIfChanged(ref _torStatus, value);
+		}
+
+		public BackendStatus BackendStatus
+		{
+			get => _backendStatus;
+			private set => RaiseAndSetIfChanged(ref _backendStatus, value);
+		}
+
+		public TimeSpan MaxRequestIntervalForMixing { get; set; }
+
+		public BitcoinStore BitcoinStore { get; private set; }
+
+		public bool IsRunning => Interlocked.Read(ref _running) == 1;
+
+		private CancellationTokenSource Cancel { get; set; }
+
+		public bool AreRequestsBlocked() => Interlocked.Read(ref _blockRequests) == 1;
+
+		public void BlockRequests() => Interlocked.Exchange(ref _blockRequests, 1);
+
+		public void EnableRequests() => Interlocked.Exchange(ref _blockRequests, 0);
+
+		#endregion EventsPropertiesMembers
+
+		#region Initializers
 
 		private void CreateNew(Network network, BitcoinStore bitcoinStore, WasabiClient client)
 		{
@@ -328,7 +329,7 @@ namespace WalletWasabi.Services
 			});
 		}
 
-		#endregion ConstructorsAndInitializers
+		#endregion Initializers
 
 		#region Methods
 

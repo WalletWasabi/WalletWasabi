@@ -8,9 +8,6 @@ namespace WalletWasabi.Http.Models
 {
 	public class HeaderField
 	{
-		public string Name { get; private set; }
-		public string Value { get; private set; }
-
 		public HeaderField(string name, string value)
 		{
 			Name = name;
@@ -18,6 +15,9 @@ namespace WalletWasabi.Http.Models
 			value = CorrectObsFolding(value);
 			Value = value;
 		}
+
+		public string Name { get; private set; }
+		public string Value { get; private set; }
 
 		public static string CorrectObsFolding(string text)
 		{

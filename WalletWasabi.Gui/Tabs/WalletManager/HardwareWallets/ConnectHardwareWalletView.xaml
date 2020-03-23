@@ -1,24 +1,14 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
-             x:Class="WalletWasabi.Gui.Tabs.WalletManager.LoadWallets.LoadWalletView">
+             x:Class="WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets.ConnectHardwareWalletView">
   <DockPanel LastChildFill="True">
     <StackPanel DockPanel.Dock="Bottom" Spacing="10">
-      <controls:GroupBox IsVisible="{Binding !IsDesktopWallet}" TextBlock.FontSize="30" Padding="30" Margin="20 0">
+      <controls:GroupBox TextBlock.FontSize="30" Padding="30" Margin="20 0">
         <Grid Classes="content">
-          <StackPanel IsVisible="{Binding IsPasswordRequired}" Spacing="8">
-            <StackPanel>
-              <TextBlock Text="Select a wallet to test its password!" FontWeight="Bold" />
-            </StackPanel>
-            <controls:TogglePasswordBox Text="{Binding Password}">
-              <i:Interaction.Behaviors>
-                <behaviors:CommandOnEnterBehavior Command="{Binding LoadCommand}" />
-              </i:Interaction.Behaviors>
-            </controls:TogglePasswordBox>
-          </StackPanel>
-          <StackPanel IsVisible="{Binding IsHardwareWallet}" Spacing="8">
+          <StackPanel Spacing="8">
             <StackPanel>
               <TextBlock Text="Limitations?" FontWeight="Bold" />
               <TextBlock Text="- Currently all hardware wallets are incompatible with coinjoins." />
@@ -33,19 +23,14 @@
         </Grid>
       </controls:GroupBox>
       <DockPanel LastChildFill="True" Margin="20 10">
-        <Button IsVisible="{Binding IsPasswordRequired}" Content="Test Password" Command="{Binding TestPasswordCommand}" DockPanel.Dock="Right" Margin="10 0 0 0" />
         <Button Command="{Binding LoadCommand}" DockPanel.Dock="Right">
           <StackPanel Orientation="Horizontal">
             <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsBusy}" Margin="0 0 8 0" />
             <TextBlock Text="{Binding LoadButtonText}" />
           </StackPanel>
         </Button>
-        <Button IsVisible="{Binding IsDesktopWallet}" Command="{Binding OpenFolderCommand}" DockPanel.Dock="Right" Margin="0 0 10 0">
-          <StackPanel Orientation="Horizontal" Spacing="8">
-            <DrawingPresenter Width="28" Drawing="{DynamicResource LoadWallet_Folder}" />
-            <TextBlock Text="Open Wallets Folder" />
-          </StackPanel>
-        </Button>
+        <Button Content="Search Hardware Wallets" Command="{Binding EnumerateHardwareWalletsCommand}" DockPanel.Dock="Right" Margin="0 0 10 0" />
+        <Button Content="Import Coldcard" Command="{Binding ImportColdcardCommand}" DockPanel.Dock="Right" Margin="0 0 10 0" />
         <Grid></Grid>
       </DockPanel>
     </StackPanel>
