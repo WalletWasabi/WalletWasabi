@@ -704,6 +704,31 @@ namespace WalletWasabi.Blockchain.Keys
 			BlockchainState.Height = prevHeight;
 		}
 
+		public void SetLastAccessTimeForNow()
+		{
+			if (FilePath is { })
+			{
+				// Set the LastAccessTime.
+				new FileInfo(FilePath)
+				{
+					LastAccessTime = DateTime.Now
+				};
+			}
+		}
+
+		public DateTime GetLastAccessTime()
+		{
+			if (FilePath is { })
+			{
+				// Set the LastAccessTime.
+				return new FileInfo(FilePath).LastAccessTime;
+			}
+			else
+			{
+				return DateTime.Now;
+			}
+		}
+
 		#region BlockchainState
 
 		public Height GetBestHeight()

@@ -165,6 +165,8 @@ namespace WalletWasabi.Wallets
 				State = WalletState.Starting;
 				InitializingChanged?.Invoke(this, true);
 
+				KeyManager.SetLastAccessTimeForNow();
+
 				if (!Synchronizer.IsRunning)
 				{
 					throw new NotSupportedException($"{nameof(Synchronizer)} is not running.");
@@ -187,15 +189,6 @@ namespace WalletWasabi.Wallets
 					{
 						await LoadWalletStateAsync(cancel).ConfigureAwait(false);
 						await LoadDummyMempoolAsync().ConfigureAwait(false);
-					}
-
-					if (KeyManager.FilePath is { })
-					{
-						// Set the LastAccessTime.
-						new FileInfo(KeyManager.FilePath)
-						{
-							LastAccessTime = DateTime.Now
-						};
 					}
 				}
 
@@ -325,10 +318,10 @@ namespace WalletWasabi.Wallets
 					ChaumianClient.OnDequeue -= ChaumianClient_OnDequeue;
 
 					await ChaumianClient.StopAsync(cancel).ConfigureAwait(false);
+					Logger.LogInfo($"{nameof(ChaumianClient)} is stopped.");
 				}
 
 				DisconnectDisposeNullLocalBitcoinCoreNode();
-				Logger.LogInfo($"{nameof(ChaumianClient)} is stopped.");
 			}
 			finally
 			{

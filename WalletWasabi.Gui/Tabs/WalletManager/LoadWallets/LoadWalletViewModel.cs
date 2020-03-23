@@ -299,6 +299,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			foreach (var wallet in Global.WalletManager
 				.GetKeyManagers()
 				.Where(x => !IsPasswordRequired || !x.IsWatchOnly) // If password isn't required then add the wallet, otherwise add only not watchonly wallets.
+				.OrderByDescending(x => x.GetLastAccessTime())
 				.Select(x => new LoadWalletEntry(x.WalletName)))
 			{
 				Wallets.Add(wallet);
@@ -442,18 +443,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 					}
 				}
 
-				KeyManager keyManager;
-				try
-				{
-					keyManager = Global.WalletManager.GetWalletByName(walletName).KeyManager;
-				}
-				catch (FileNotFoundException)
-				{
-					// The selected wallet is not available any more (someone deleted it?).
-					OnCategorySelected();
-					NotificationHelpers.Warning("The selected wallet and its backup do not exist, did you delete them?");
-					return null;
-				}
+				KeyManager keyManager = Global.WalletManager.GetWalletByName(walletName).KeyManager;
 
 				// Only check requirepassword here, because the above checks are applicable to loadwallet, too and we are using this function from load wallet.
 				if (IsPasswordRequired)

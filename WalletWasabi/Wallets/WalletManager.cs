@@ -36,20 +36,29 @@ namespace WalletWasabi.Wallets
 				Lock = new object();
 				StartStopWalletLock = new AsyncLock();
 				CancelAllInitialization = new CancellationTokenSource();
+				RefreshWalletList();
+			}
+		}
 
-				if (WalletDirectories is { })
+		private void RefreshWalletList()
+		{
+			foreach (var fileInfo in WalletDirectories.EnumerateWalletFiles())
+			{
+				try
 				{
-					foreach (var fileInfo in WalletDirectories.EnumerateWalletFiles())
+					string walletName = Path.GetFileNameWithoutExtension(fileInfo.FullName);
+					lock (Lock)
 					{
-						try
+						if (Wallets.Any(w => w.Key.WalletName == walletName))
 						{
-							AddWallet(fileInfo.Name);
-						}
-						catch (Exception ex)
-						{
-							Logger.LogWarning(ex);
+							continue;
 						}
 					}
+					AddWallet(walletName);
+				}
+				catch (Exception ex)
+				{
+					Logger.LogWarning(ex);
 				}
 			}
 		}
@@ -80,8 +89,14 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-		public IEnumerable<KeyManager> GetKeyManagers()
+		/// <param name="refreshWalletList">Refreshes wallet list from files.</param>
+		public IEnumerable<KeyManager> GetKeyManagers(bool refreshWalletList = true)
 		{
+			if (refreshWalletList)
+			{
+				RefreshWalletList();
+			}
+
 			lock (Lock)
 			{
 				return Wallets.Keys
@@ -93,7 +108,8 @@ namespace WalletWasabi.Wallets
 
 		public IEnumerable<SmartLabel> GetLabels()
 		{
-			var labels = GetKeyManagers()
+			// Don't refresh wallet list as it may be slow.
+			var labels = GetKeyManagers(refreshWalletList: false)
 				.SelectMany(x => x.GetLabels());
 
 			var txStore = BitcoinStore?.TransactionStore;
@@ -103,14 +119,6 @@ namespace WalletWasabi.Wallets
 			}
 
 			return labels;
-		}
-
-		public IEnumerable<SmartLabel> GetAllKeyLabels()
-		{
-			lock (Lock)
-			{
-				return Wallets.Keys.Where(x => x.KeyManager is { }).SelectMany(x => x.KeyManager.GetLabels());
-			}
 		}
 
 		private IFeeProvider FeeProvider { get; set; }
@@ -184,14 +192,6 @@ namespace WalletWasabi.Wallets
 
 		private Wallet AddWallet(KeyManager keyManager)
 		{
-			lock (Lock)
-			{
-				if (Wallets.Any(w => w.Key.KeyManager == keyManager))
-				{
-					throw new InvalidOperationException($"Wallet already added: {keyManager.FilePath}.");
-				}
-			}
-
 			Wallet wallet = new Wallet(WalletDirectories.WorkDir, Network, keyManager);
 			AddWallet(wallet);
 			return wallet;
@@ -241,6 +241,10 @@ namespace WalletWasabi.Wallets
 		{
 			lock (Lock)
 			{
+				if (Wallets.Any(w => w.Key.WalletName == wallet.WalletName))
+				{
+					throw new InvalidOperationException($"Wallet with the same name was already added: {wallet.WalletName}.");
+				}
 				Wallets.Add(wallet, new HashSet<uint256>());
 			}
 
@@ -308,7 +312,7 @@ namespace WalletWasabi.Wallets
 					try
 					{
 						var keyManager = wallet.KeyManager;
-						if (keyManager is { } && WalletDirectories is { })
+						if (keyManager is { })
 						{
 							string backupWalletFilePath = WalletDirectories.GetWalletFilePaths(Path.GetFileName(keyManager.FilePath)).walletBackupFilePath;
 							keyManager.ToFile(backupWalletFilePath);
@@ -392,21 +396,16 @@ namespace WalletWasabi.Wallets
 			BitcoinCoreNode = bitcoinCoreNode;
 		}
 
-		public Wallet GetWalletByName(string walletName)
+		/// <param name="refreshWalletList">Refreshes wallet list from files.</param>
+		public Wallet GetWalletByName(string walletName, bool refreshWalletList = true)
 		{
-			Wallet wallet;
+			if (refreshWalletList)
+			{
+				RefreshWalletList();
+			}
 			lock (Lock)
 			{
-				wallet = Wallets.Keys.FirstOrDefault(x => x.KeyManager.WalletName == walletName);
-			}
-
-			if (wallet is null)
-			{
-				throw new FileNotFoundException($"Wallet name:{wallet.WalletName} not found.");
-			}
-			else
-			{
-				return wallet;
+				return Wallets.Keys.Single(x => x.KeyManager.WalletName == walletName);
 			}
 		}
 	}
