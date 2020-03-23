@@ -100,7 +100,6 @@ namespace WalletWasabi.Wallets
 			lock (Lock)
 			{
 				return Wallets.Keys
-					.Where(x => x.KeyManager is { })
 					.Select(x => x.KeyManager)
 					.ToList();
 			}
@@ -307,12 +306,9 @@ namespace WalletWasabi.Wallets
 					try
 					{
 						var keyManager = wallet.KeyManager;
-						if (keyManager is { })
-						{
-							string backupWalletFilePath = WalletDirectories.GetWalletFilePaths(Path.GetFileName(keyManager.FilePath)).walletBackupFilePath;
-							keyManager.ToFile(backupWalletFilePath);
-							Logger.LogInfo($"{nameof(wallet.KeyManager)} backup saved to `{backupWalletFilePath}`.");
-						}
+						string backupWalletFilePath = WalletDirectories.GetWalletFilePaths(Path.GetFileName(keyManager.FilePath)).walletBackupFilePath;
+						keyManager.ToFile(backupWalletFilePath);
+						Logger.LogInfo($"{nameof(wallet.KeyManager)} backup saved to `{backupWalletFilePath}`.");
 						await wallet.StopAsync(cancel).ConfigureAwait(false);
 						wallet?.Dispose();
 						Logger.LogInfo($"{nameof(Wallet)} is stopped.");
