@@ -38,6 +38,7 @@ namespace WalletWasabi.Wallets
 	public class Wallet : BackgroundService
 	{
 		private Node _localBitcoinCoreNode = null;
+		private WalletState _state;
 
 		public Wallet(string dataDir, Network network, string filePath) : this(dataDir, network, KeyManager.FromFile(filePath))
 		{
@@ -45,7 +46,6 @@ namespace WalletWasabi.Wallets
 
 		public Wallet(string dataDir, Network network, KeyManager keyManager)
 		{
-			State = WalletState.Uninitialized;
 			DataDir = Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
 			Network = Guard.NotNull(nameof(network), network);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
@@ -118,7 +118,22 @@ namespace WalletWasabi.Wallets
 
 		public event EventHandler<Block> NewBlockProcessed;
 
-		public WalletState State { get; private set; }
+		public event EventHandler<WalletState> StateChanged;
+
+		public WalletState State
+		{
+			get => _state;
+			private set
+			{
+				if (_state == value)
+				{
+					return;
+				}
+				_state = value;
+				StateChanged?.Invoke(this, _state);
+			}
+		}
+
 		public string DataDir { get; }
 		public BitcoinStore BitcoinStore { get; private set; }
 		public KeyManager KeyManager { get; }
