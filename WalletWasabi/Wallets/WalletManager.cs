@@ -161,13 +161,12 @@ namespace WalletWasabi.Wallets
 				// Throw an exception if the wallet was not added to the WalletManager.
 				Wallets.Single(x => x.Key == wallet);
 			}
-
-			using (await StartStopWalletLock.LockAsync(CancelAllInitialization.Token).ConfigureAwait(false))
+			try
 			{
-				try
-				{
-					wallet.RegisterServices(BitcoinStore, Synchronizer, Nodes, ServiceConfiguration, FeeProvider, BitcoinCoreNode);
+				wallet.RegisterServices(BitcoinStore, Synchronizer, Nodes, ServiceConfiguration, FeeProvider, BitcoinCoreNode);
 
+				using (await StartStopWalletLock.LockAsync(CancelAllInitialization.Token).ConfigureAwait(false))
+				{
 					var cancel = CancelAllInitialization.Token;
 					Logger.LogInfo($"Starting {nameof(Wallet)}...");
 					await wallet.StartAsync(cancel).ConfigureAwait(false);
@@ -176,11 +175,11 @@ namespace WalletWasabi.Wallets
 
 					return wallet;
 				}
-				catch
-				{
-					await wallet.StopAsync(CancellationToken.None).ConfigureAwait(false);
-					throw;
-				}
+			}
+			catch
+			{
+				await wallet.StopAsync(CancellationToken.None).ConfigureAwait(false);
+				throw;
 			}
 		}
 
