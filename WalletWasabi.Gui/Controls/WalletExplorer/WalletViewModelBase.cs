@@ -6,7 +6,6 @@ using System.Reactive.Linq;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Wallets;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -84,7 +83,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public int CompareTo([AllowNull] WalletViewModelBase other)
 		{
-			if(WalletState != other.WalletState)
+			if (WalletState != other.WalletState)
 			{
 				if (WalletState == WalletState.Started || other.WalletState == WalletState.Started)
 				{
