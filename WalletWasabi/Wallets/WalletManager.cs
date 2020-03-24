@@ -41,17 +41,17 @@ namespace WalletWasabi.Wallets
 		}
 
 		/// <summary>
-		/// Triggered if any of the Wallets processes a transaction. The sender argumentum of the event will be the Wallet.
+		/// Triggered if any of the Wallets processes a transaction. The sender of the event will be the Wallet.
 		/// </summary>
 		public event EventHandler<ProcessedResult> WalletRelevantTransactionProcessed;
 
 		/// <summary>
-		/// Triggered if any of the Wallets dequeues one or more coins. The sender argumentum of the event will be the Wallet.
+		/// Triggered if any of the Wallets dequeues one or more coins. The sender of the event will be the Wallet.
 		/// </summary>
 		public event EventHandler<DequeueResult> OnDequeue;
 
 		/// <summary>
-		/// Triggered if any of the Wallets changes its state. The sender argumentum of the event will be the Wallet.
+		/// Triggered if any of the Wallets changes its state. The sender of the event will be the Wallet.
 		/// </summary>
 		public event EventHandler<WalletState> WalletStateChanged;
 
