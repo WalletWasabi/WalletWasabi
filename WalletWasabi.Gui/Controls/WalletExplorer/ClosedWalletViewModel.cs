@@ -35,20 +35,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					Logger.LogError(e.Message);
 				}
 			}, this.WhenAnyValue(x => x.IsBusy).Select(x => !x));
-
-			this.WhenAnyValue(x => x.WalletState)
-				.Where(x => x == WalletState.Started)
-				.Take(1)
-				.Subscribe(x =>
-				{
-					var walletExplorer = IoC.Get<WalletExplorerViewModel>();
-
-					var select = walletExplorer.SelectedItem == this;
-
-					walletExplorer.RemoveWallet(this);
-
-					walletExplorer.OpenClosedWallet(this);
-				});
 		}
 
 		public ReactiveCommand<Unit, Unit> OpenWalletCommand { get; }

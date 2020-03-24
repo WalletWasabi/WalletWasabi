@@ -44,8 +44,29 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					if (wallet is { } && _walletDictionary.ContainsKey(wallet))
 					{
-						_walletDictionary[wallet].WalletState = x.EventArgs;
+						if (_walletDictionary[wallet] is ClosedWalletViewModel cwvm && x.EventArgs == WalletState.Started)
+						{
+							OpenClosedWallet(cwvm);
+						}
 					}
+				});
+
+			var shell = IoC.Get<IShell>();
+
+			shell.WhenAnyValue(x => x.SelectedDocument)
+				.Subscribe(x =>
+				{
+					if (x is ViewModelBase vmb)
+					{
+						SelectedItem = vmb;
+					}
+				});
+
+			this.WhenAnyValue(x => x.SelectedItem)
+				.OfType<WasabiDocumentTabViewModel>()
+				.Subscribe(x =>
+				{
+					shell.AddOrSelectDocument(x);
 				});
 		}
 
@@ -82,9 +103,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		internal void OpenClosedWallet(ClosedWalletViewModel closedWalletViewModel)
+		private void OpenClosedWallet(ClosedWalletViewModel closedWalletViewModel)
 		{
 			var select = SelectedItem == closedWalletViewModel;
+
+			RemoveWallet(closedWalletViewModel);
 
 			var walletViewModel = OpenWallet(closedWalletViewModel.Wallet);
 
@@ -112,6 +135,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		internal void RemoveWallet(WalletViewModelBase walletVM)
 		{
+			walletVM.Dispose();
+
 			Wallets.Remove(walletVM);
 			_walletDictionary.Remove(walletVM.Wallet);
 		}
