@@ -161,6 +161,11 @@ namespace WalletWasabi.BitcoinCore
 			await Rpc.SendBatchAsync().ConfigureAwait(false);
 		}
 
+		public Task<EstimateSmartFeeResponse> TryEstimateSmartFeeAsync(int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative)
+		{
+			return Rpc.TryEstimateSmartFeeAsync(confirmationTarget, estimateMode: estimateMode);
+		}
+
 		#endregion For Testing Only
 	}
 }
