@@ -16,21 +16,21 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 				var diff = headers - blocks;
 				if (peersCount == 0)
 				{
-					Status = "Bitcoin Core is connecting...";
+					Status = "Bitcoin Knots is connecting...";
 				}
 				else if (diff == 0)
 				{
 					Synchronized = true;
-					Status = "Bitcoin Core is synchronized";
+					Status = "Bitcoin Knots is synchronized";
 				}
 				else
 				{
-					Status = $"Bitcoin Core is downloading {diff} blocks...";
+					Status = $"Bitcoin Knots is downloading {diff} blocks...";
 				}
 			}
 			else
 			{
-				Status = "Bitcoin Core is unresponsive";
+				Status = "Bitcoin Knots is unresponsive";
 			}
 
 			Success = success;
