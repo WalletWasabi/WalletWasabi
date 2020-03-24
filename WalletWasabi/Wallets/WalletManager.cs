@@ -40,9 +40,20 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
+		/// <summary>
+		/// Triggered if any of the Wallets processes a transaction. The sender argumentum of the event will be the Wallet.
+		/// </summary>
 		public event EventHandler<ProcessedResult> WalletRelevantTransactionProcessed;
 
+		/// <summary>
+		/// Triggered if any of the Wallets dequeues one or more coins. The sender argumentum of the event will be the Wallet.
+		/// </summary>
 		public event EventHandler<DequeueResult> OnDequeue;
+
+		/// <summary>
+		/// Triggered if any of the Wallets changes its state. The sender argumentum of the event will be the Wallet.
+		/// </summary>
+		public event EventHandler<WalletState> WalletStateChanged;
 
 		private CancellationTokenSource CancelAllInitialization { get; }
 
@@ -250,6 +261,7 @@ namespace WalletWasabi.Wallets
 
 			wallet.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
 			wallet.OnDequeue += ChaumianClient_OnDequeue;
+			wallet.StateChanged += Wallet_StateChanged;
 		}
 
 		public async Task DequeueAllCoinsGracefullyAsync(DequeueReason reason, CancellationToken token)
@@ -270,6 +282,11 @@ namespace WalletWasabi.Wallets
 		private void TransactionProcessor_WalletRelevantTransactionProcessed(object sender, ProcessedResult e)
 		{
 			WalletRelevantTransactionProcessed?.Invoke(sender, e);
+		}
+
+		private void Wallet_StateChanged(object sender, WalletState e)
+		{
+			WalletStateChanged?.Invoke(sender, e);
 		}
 
 		public async Task RemoveAndStopAllAsync(CancellationToken cancel)
@@ -300,6 +317,7 @@ namespace WalletWasabi.Wallets
 
 					wallet.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
 					wallet.OnDequeue -= ChaumianClient_OnDequeue;
+					wallet.StateChanged -= Wallet_StateChanged;
 
 					lock (Lock)
 					{
