@@ -47,8 +47,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					walletExplorer.RemoveWallet(this);
 
-					Dispose();
-
 					walletExplorer.OpenClosedWallet(this);
 				});
 		}

@@ -1,3 +1,4 @@
+using System;
 using AvalonStudio.Extensibility;
 using AvalonStudio.MVVM;
 using AvalonStudio.Shell;
@@ -7,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Composition;
 using System.Linq;
+using System.Reactive.Linq;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Wallets;
 
@@ -20,6 +22,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private ObservableCollection<WalletViewModelBase> _wallets;
 		private ViewModelBase _selectedItem;
+		private Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
 
 		public override Location DefaultLocation => Location.Right;
 
@@ -29,7 +32,21 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			_wallets = new ObservableCollection<WalletViewModelBase>();
 
+			_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
+
 			WalletManager = Locator.Current.GetService<Global>().WalletManager;
+
+			Observable.FromEventPattern<WalletState>(WalletManager, nameof(WalletManager.WalletStateChanged))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					var wallet = x.Sender as Wallet;
+
+					if (wallet is { } && _walletDictionary.ContainsKey(wallet))
+					{
+						_walletDictionary[wallet].WalletState = x.EventArgs;
+					}
+				});
 		}
 
 		private WalletManager WalletManager { get; }
@@ -44,6 +61,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _selectedItem;
 			set => this.RaiseAndSetIfChanged(ref _selectedItem, value);
+		}
+
+		private void InsertWallet(WalletViewModelBase walletVM)
+		{
+			Wallets.InsertSorted(walletVM);
+			_walletDictionary.Add(walletVM.Wallet, walletVM);
 		}
 
 		internal WalletViewModelBase OpenWallet(Wallet wallet)
@@ -80,23 +103,24 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			var walletViewModel = new WalletViewModel(wallet);
 
-			Wallets.InsertSorted(walletViewModel);
+			InsertWallet(walletViewModel);
 
 			walletViewModel.OpenWallet(receiveDominant);
 
 			return walletViewModel;
 		}
 
-		internal void RemoveWallet(WalletViewModelBase wallet)
+		internal void RemoveWallet(WalletViewModelBase walletVM)
 		{
-			Wallets.Remove(wallet);
+			Wallets.Remove(walletVM);
+			_walletDictionary.Remove(walletVM.Wallet);
 		}
 
 		private void LoadWallets()
 		{
 			foreach (var wallet in WalletManager.GetKeyManagers())
 			{
-				Wallets.InsertSorted(new ClosedWalletViewModel(WalletManager.GetWalletByName(wallet.WalletName)));
+				InsertWallet(new ClosedWalletViewModel(WalletManager.GetWalletByName(wallet.WalletName)));
 			}
 		}
 

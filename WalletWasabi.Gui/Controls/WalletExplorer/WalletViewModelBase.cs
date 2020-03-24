@@ -9,14 +9,12 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class WalletViewModelBase : ViewModelBase, IComparable<WalletViewModelBase>, IDisposable
+	public class WalletViewModelBase : ViewModelBase, IComparable<WalletViewModelBase>
 	{
 		private bool _isExpanded;
 		private bool _isBusy;
 		private string _title;
 		private WalletState _walletState;
-		private CompositeDisposable _disposables;
-		private volatile bool _disposedValue = false;
 
 		public WalletViewModelBase(Wallet wallet)
 		{
@@ -24,13 +22,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Wallet = wallet;
 			Title = WalletName;
-
-			_disposables = new CompositeDisposable();
-
-			Observable.FromEventPattern<WalletState>(wallet, nameof(wallet.StateChanged))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => WalletState = x.EventArgs)
-				.DisposeWith(_disposables);
 
 			WalletState = wallet.State;
 
@@ -93,26 +84,5 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			return Title.CompareTo(other.Title);
 		}
-
-		#region IDisposable Support
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					_disposables?.Dispose();
-				}
-
-				_disposables = null;
-				_disposedValue = true;
-			}
-		}
-
-		public void Dispose()
-		{
-			Dispose(true);
-		}
-		#endregion IDisposable Support
 	}
 }
