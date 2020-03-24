@@ -20,9 +20,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Title = WalletName;
 		}
 
-        protected Wallet Wallet { get; }
+		protected Wallet Wallet { get; }
 
-        public bool IsExpanded
+		public bool IsExpanded
 		{
 			get => _isExpanded;
 			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
