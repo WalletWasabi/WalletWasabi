@@ -1,3 +1,5 @@
+using AvalonStudio.Extensibility;
+using AvalonStudio.Shell;
 using NBitcoin;
 using ReactiveUI;
 using Splat;
@@ -16,12 +18,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class WalletViewModel : WalletViewModelBase
 	{
-		private ObservableCollection<WasabiDocumentTabViewModel> _actions;
+		private ObservableCollection<ViewModelBase> _actions;
 
 		public WalletViewModel(Wallet wallet) : base(wallet)
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
-			Actions = new ObservableCollection<WasabiDocumentTabViewModel>();
+			Actions = new ObservableCollection<ViewModelBase>();
 			Global = Locator.Current.GetService<Global>();
 
 			LurkingWifeModeCommand = ReactiveCommand.Create(() =>
@@ -58,7 +60,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public KeyManager KeyManager => Wallet.KeyManager;		
 		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
 
-		public ObservableCollection<WasabiDocumentTabViewModel> Actions
+		public ObservableCollection<ViewModelBase> Actions
 		{
 			get => _actions;
 			set => this.RaiseAndSetIfChanged(ref _actions, value);
@@ -86,7 +88,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			var coinjoinTab = new CoinJoinTabViewModel(Wallet);
 			var historyTab = new HistoryTabViewModel(Wallet);
 
-			var advancedAction = new WalletAdvancedViewModel(Wallet);
+			var advancedAction = new WalletAdvancedViewModel();
 			var infoTab = new WalletInfoViewModel(Wallet);
 			var buildTab = new BuildTabViewModel(Wallet);
 
@@ -98,16 +100,35 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			advancedAction.Items.Add(infoTab);
 			advancedAction.Items.Add(buildTab);
 
-			// Open tabs.
-			sendTab?.DisplayActionTab();
-			receiveTab.DisplayActionTab();
-			coinjoinTab.DisplayActionTab();
-			historyTab.DisplayActionTab();
+			var shell = IoC.Get<IShell>();
+
+			if (sendTab is { })
+			{
+				shell.AddOrSelectDocument(sendTab);
+			}
+
+			if (receiveTab is { })
+			{
+				shell.AddOrSelectDocument(receiveTab);
+			}
+
+			if (coinjoinTab is { })
+			{
+				shell.AddOrSelectDocument(coinjoinTab);
+			}
+
+			if (historyTab is { })
+			{
+				shell.AddOrSelectDocument(historyTab);
+			}
 
 			// Select tab
 			if (receiveDominant)
 			{
-				receiveTab.DisplayActionTab();
+				if (receiveTab is { })
+				{
+					shell.AddOrSelectDocument(receiveTab);
+				}
 			}
 			else
 			{
@@ -120,7 +141,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					_ => historyTab
 				};
 
-				tabToOpen?.DisplayActionTab();
+				if (tabToOpen is { })
+				{
+					shell.AddOrSelectDocument(tabToOpen);
+				}
 			}
 
 			IsExpanded = true;
