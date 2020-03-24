@@ -9,21 +9,33 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class WalletViewModelBase : ViewModelBase, IComparable<WalletViewModelBase>
+	public class WalletViewModelBase : ViewModelBase, IComparable<WalletViewModelBase>, IDisposable
 	{
 		private bool _isExpanded;
 		private bool _isBusy;
 		private string _title;
 		private WalletState _walletState;
+		private CompositeDisposable _disposables;
+		private bool _disposedValue;
 
 		public WalletViewModelBase(Wallet wallet)
 		{
 			Wallet = Guard.NotNull(nameof(wallet), wallet);
 
+			_disposables = new CompositeDisposable();
+
 			Wallet = wallet;
 			Title = WalletName;
 
 			WalletState = wallet.State;
+
+			Observable.FromEventPattern<WalletState>(wallet, nameof(wallet.StateChanged))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					WalletState = x.EventArgs;
+				})
+				.DisposeWith(_disposables);
 
 			this.WhenAnyValue(x => x.WalletState)
 				.Subscribe(x =>
@@ -47,7 +59,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public WalletState WalletState
 		{
 			get { return _walletState; }
-			set { this.RaiseAndSetIfChanged(ref _walletState, value); }
+			private set { this.RaiseAndSetIfChanged(ref _walletState, value); }
 		}
 
 		public Wallet Wallet { get; }
@@ -84,5 +96,30 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			return Title.CompareTo(other.Title);
 		}
+
+		#region IDisposable Support
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					_disposables?.Dispose();
+					_disposables = null;
+				}
+
+				_disposedValue = true;
+			}
+		}
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose()
+		{
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(true);
+		}
+
+		#endregion IDisposable Support
 	}
 }

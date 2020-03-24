@@ -50,24 +50,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 					}
 				});
-
-			var shell = IoC.Get<IShell>();
-
-			shell.WhenAnyValue(x => x.SelectedDocument)
-				.Subscribe(x =>
-				{
-					if (x is ViewModelBase vmb)
-					{
-						SelectedItem = vmb;
-					}
-				});
-
-			this.WhenAnyValue(x => x.SelectedItem)
-				.OfType<WasabiDocumentTabViewModel>()
-				.Subscribe(x =>
-				{
-					shell.AddOrSelectDocument(x);
-				});
 		}
 
 		private WalletManager WalletManager { get; }
