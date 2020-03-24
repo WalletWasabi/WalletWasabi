@@ -8,12 +8,7 @@ namespace WalletWasabi.Logging
 {
 	public class BenchmarkLogger : IDisposable
 	{
-		private LogLevel LogLevel { get; }
-		public Stopwatch Stopwatch { get; }
-
-		public string OperationName { get; }
-		public string CallerFilePath { get; }
-		public int CallerLineNumber { get; }
+		private bool _disposedValue = false; // To detect redundant calls
 
 		private BenchmarkLogger(LogLevel logLevel = LogLevel.Info, [CallerMemberName]string operationName = "", [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
 		{
@@ -24,6 +19,13 @@ namespace WalletWasabi.Logging
 
 			Stopwatch = Stopwatch.StartNew();
 		}
+
+		private LogLevel LogLevel { get; }
+		public Stopwatch Stopwatch { get; }
+
+		public string OperationName { get; }
+		public string CallerFilePath { get; }
+		public int CallerLineNumber { get; }
 
 		/// <summary>
 		/// Logs the time between the creation of the class and the disposing of the class.
@@ -36,8 +38,6 @@ namespace WalletWasabi.Logging
 		}
 
 		#region IDisposable Support
-
-		private bool _disposedValue = false; // To detect redundant calls
 
 		protected virtual void Dispose(bool disposing)
 		{

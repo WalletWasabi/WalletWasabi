@@ -23,6 +23,12 @@ namespace WalletWasabi.Stores
 	/// </summary>
 	public class IndexStore
 	{
+		private int _throttleId;
+
+		public event EventHandler<FilterModel> Reorged;
+
+		public event EventHandler<FilterModel> NewFilter;
+
 		private string WorkFolderPath { get; set; }
 		private Network Network { get; set; }
 		private DigestableSafeMutexIoManager MatureIndexFileManager { get; set; }
@@ -33,10 +39,6 @@ namespace WalletWasabi.Stores
 		private uint StartingHeight { get; set; }
 		private List<FilterModel> ImmatureFilters { get; set; }
 		private AsyncLock IndexLock { get; set; }
-
-		public event EventHandler<FilterModel> Reorged;
-
-		public event EventHandler<FilterModel> NewFilter;
 
 		public async Task InitializeAsync(string workFolderPath, Network network, SmartHeaderChain hashChain)
 		{
@@ -337,8 +339,6 @@ namespace WalletWasabi.Stores
 
 			return removed;
 		}
-
-		private int _throttleId;
 
 		/// <summary>
 		/// It'll LogError the exceptions.

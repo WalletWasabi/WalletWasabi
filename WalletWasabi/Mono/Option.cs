@@ -165,6 +165,8 @@ namespace Mono.Options
 {
 	public abstract class Option
 	{
+		private static readonly char[] NameTerminator = new char[] { '=', ':' };
+
 		protected Option(string prototype, string description)
 			: this(prototype, description, 1, false)
 		{
@@ -228,6 +230,9 @@ namespace Mono.Options
 		public int MaxValueCount { get; }
 		public bool Hidden { get; }
 
+		public string[] Names { get; }
+		public string[] ValueSeparators { get; private set; }
+
 		public string[] GetNames()
 		{
 			return (string[])Names.Clone();
@@ -272,11 +277,6 @@ namespace Mono.Options
 			}
 			return t;
 		}
-
-		public string[] Names { get; }
-		public string[] ValueSeparators { get; private set; }
-
-		private static readonly char[] NameTerminator = new char[] { '=', ':' };
 
 		private OptionValueType ParsePrototype()
 		{

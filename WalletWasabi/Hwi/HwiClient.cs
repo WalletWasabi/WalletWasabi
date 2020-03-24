@@ -21,13 +21,6 @@ namespace WalletWasabi.Hwi
 {
 	public class HwiClient
 	{
-		#region PropertiesAndMembers
-
-		public Network Network { get; }
-		public IProcessBridge Bridge { get; }
-
-		#endregion PropertiesAndMembers
-
 		#region ConstructorsAndInitializers
 
 		public HwiClient(Network network, IProcessBridge bridge = null)
@@ -37,6 +30,13 @@ namespace WalletWasabi.Hwi
 		}
 
 		#endregion ConstructorsAndInitializers
+
+		#region PropertiesAndMembers
+
+		public Network Network { get; }
+		public IProcessBridge Bridge { get; }
+
+		#endregion PropertiesAndMembers
 
 		#region Commands
 

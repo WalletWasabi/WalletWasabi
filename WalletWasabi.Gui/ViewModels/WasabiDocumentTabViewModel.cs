@@ -69,10 +69,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public virtual void OnSelected()
 		{
-			if (!LegalBarrier())
-			{
-				IsSelected = true;
-			}
+			IsSelected = true;
 		}
 
 		public virtual void OnDeselected()
@@ -139,23 +136,6 @@ namespace WalletWasabi.Gui.ViewModels
 				await Task.Delay(100);
 			}
 			return DialogResult;
-		}
-
-		/// <returns>True if barrier is active.</returns>
-		private bool LegalBarrier()
-		{
-			// If legal docs not accepted then make sure it's selected.
-			if (!(this is LegalDocumentsViewModel))
-			{
-				var foundLegalTab = IoC.Get<IShell>().Documents.OfType<LegalDocumentsViewModel>().FirstOrDefault();
-				if (foundLegalTab is { } && !foundLegalTab.IsAgreed)
-				{
-					IoC.Get<IShell>().Select(foundLegalTab);
-					return true;
-				}
-			}
-
-			return false;
 		}
 	}
 }

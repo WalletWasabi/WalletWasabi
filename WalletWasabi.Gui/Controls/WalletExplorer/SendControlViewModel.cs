@@ -37,14 +37,14 @@ using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Services;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public abstract class SendControlViewModel : WasabiDocumentTabViewModel
 	{
 		protected Global Global { get; }
-		private WalletService WalletService { get; }
+		private Wallet Wallet { get; }
 
 		private string _buildTransactionButtonText;
 		private bool _isMax;
@@ -103,19 +103,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			AmountText = "0.0";
 		}
 
-		protected SendControlViewModel(WalletService walletService, string title)
+		protected SendControlViewModel(Wallet wallet, string title)
 			: base(title)
 		{
 			Global = Locator.Current.GetService<Global>();
-			WalletService = walletService;
+			Wallet = wallet;
 
-			LabelSuggestion = new SuggestLabelViewModel(WalletService);
+			LabelSuggestion = new SuggestLabelViewModel();
 			BuildTransactionButtonText = DoButtonText;
 
 			ResetUi();
 			SetAmountWatermark(Money.Zero);
 
-			CoinList = new CoinListViewModel(WalletService, displayCommonOwnershipWarning: true);
+			CoinList = new CoinListViewModel(Wallet, displayCommonOwnershipWarning: true);
 
 			Observable.FromEventPattern(CoinList, nameof(CoinList.SelectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -221,6 +221,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				});
 
+			// Triggering the detection of same address values.
+			this.WhenAnyValue(x => x.Address)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => this.RaisePropertyChanged(nameof(CustomChangeAddress)));
+
+			this.WhenAnyValue(x => x.CustomChangeAddress)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => this.RaisePropertyChanged(nameof(Address)));
+
 			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay, outputScheduler: RxApp.MainThreadScheduler);
 
 			OnAddressPasteCommand = ReactiveCommand.Create((BitcoinUrlBuilder url) =>
@@ -253,7 +262,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 
 					var selectedCoinViewModels = CoinList.Coins.Where(cvm => cvm.IsSelected);
-					var selectedCoinReferences = selectedCoinViewModels.Select(cvm => new TxoRef(cvm.Model.TransactionId, cvm.Model.Index)).ToList();
+					var selectedCoinReferences = selectedCoinViewModels.Select(cvm => cvm.Model.OutPoint).ToList();
 
 					if (!selectedCoinReferences.Any())
 					{
@@ -274,7 +283,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					var requests = new List<DestinationRequest>();
 
-					if (Global.UiConfig?.IsCustomChangeAddress is true && !IsMax && !string.IsNullOrWhiteSpace(CustomChangeAddress))
+					if (Global.UiConfig.IsCustomChangeAddress is true && !IsMax && !string.IsNullOrWhiteSpace(CustomChangeAddress))
 					{
 						try
 						{
@@ -331,10 +340,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					try
 					{
 						MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.DequeuingSelectedCoins);
-						TxoRef[] toDequeue = selectedCoinViewModels.Where(x => x.CoinJoinInProgress).Select(x => x.Model.GetTxoRef()).ToArray();
+						OutPoint[] toDequeue = selectedCoinViewModels.Where(x => x.CoinJoinInProgress).Select(x => x.Model.OutPoint).ToArray();
 						if (toDequeue != null && toDequeue.Any())
 						{
-							await WalletService.ChaumianClient.DequeueCoinsFromMixAsync(toDequeue, DequeueReason.TransactionBuilding);
+							await Wallet.ChaumianClient.DequeueCoinsFromMixAsync(toDequeue, DequeueReason.TransactionBuilding);
 						}
 					}
 					catch
@@ -347,11 +356,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusType.DequeuingSelectedCoins);
 					}
 
-					if (!WalletService.KeyManager.IsWatchOnly)
+					if (!Wallet.KeyManager.IsWatchOnly)
 					{
 						try
 						{
-							PasswordHelper.GetMasterExtKey(WalletService.KeyManager, Password, out string compatiblityPasswordUsed); // We could use TryPassword but we need the exception.
+							PasswordHelper.GetMasterExtKey(Wallet.KeyManager, Password, out string compatiblityPasswordUsed); // We could use TryPassword but we need the exception.
 							if (compatiblityPasswordUsed != null)
 							{
 								Password = compatiblityPasswordUsed; // Overwrite the password for BuildTransaction function.
@@ -371,7 +380,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 					}
 
-					BuildTransactionResult result = await Task.Run(() => WalletService.BuildTransaction(Password, intent, feeStrategy, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
+					BuildTransactionResult result = await Task.Run(() => Wallet.BuildTransaction(Password, intent, feeStrategy, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
 
 					await DoAfterBuildTransaction(result);
 				}
@@ -617,7 +626,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 						case FeeDisplayFormat.USD:
 							FeeText = $"(~ ${UsdFee.ToString("0.##")})";
-							FeeToolTip = $"Estimated total fees in USD. Exchange Rate: {(long)UsdExchangeRate} BTC/USD.";
+							FeeToolTip = $"Estimated total fees in USD. Exchange Rate: {(long)UsdExchangeRate} USD/BTC.";
 							break;
 
 						case FeeDisplayFormat.BTC:
@@ -785,7 +794,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _allSelectedAmount, value);
 		}
 
-		public bool IsWatchOnly => WalletService.KeyManager.IsWatchOnly;
+		public bool IsWatchOnly => Wallet.KeyManager.IsWatchOnly;
 
 		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
 

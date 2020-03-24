@@ -4,15 +4,15 @@ namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
 {
 	internal abstract class PatternStencilBase : BitMatrix
 	{
-		public int Version { get; private set; }
+		protected const bool O = false;
+		protected const bool X = true;
 
 		internal PatternStencilBase(int version)
 		{
 			Version = version;
 		}
 
-		protected const bool O = false;
-		protected const bool X = true;
+		public int Version { get; private set; }
 
 		public abstract bool[,] Stencil { get; }
 

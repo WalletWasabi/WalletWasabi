@@ -6,7 +6,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Services;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Suggestions
 {
@@ -16,16 +16,18 @@ namespace WalletWasabi.Gui.Suggestions
 		private int _caretIndex;
 		private string _label;
 
-		public SuggestLabelViewModel(WalletService walletService)
+		public SuggestLabelViewModel()
 		{
+			Global = Locator.Current.GetService<Global>();
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
 
 			this.WhenAnyValue(x => x.Label)
 				.Throttle(TimeSpan.FromMilliseconds(100))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(UpdateSuggestions);
-			WalletService = walletService;
 		}
+
+		private Global Global { get; }
 
 		public int CaretIndex
 		{
@@ -44,8 +46,6 @@ namespace WalletWasabi.Gui.Suggestions
 			get => _suggestions;
 			set => this.RaiseAndSetIfChanged(ref _suggestions, value);
 		}
-
-		private WalletService WalletService { get; }
 
 		public void Reset()
 		{
@@ -89,7 +89,8 @@ namespace WalletWasabi.Gui.Suggestions
 				return;
 			}
 
-			var labels = WalletService.GetLabels();
+			var labels = Global.WalletManager.GetLabels().SelectMany(x => x.Labels).ToHashSet();
+
 			IEnumerable<string> suggestedWords = labels.Where(w => w.StartsWith(lastWord, StringComparison.InvariantCultureIgnoreCase))
 				.Union(labels.Where(w => w.Contains(lastWord, StringComparison.InvariantCultureIgnoreCase)))
 				.Except(enteredWordList)

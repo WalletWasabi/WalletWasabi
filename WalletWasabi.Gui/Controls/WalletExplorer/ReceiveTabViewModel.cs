@@ -19,8 +19,8 @@ using WalletWasabi.Logging;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Exceptions;
 using Splat;
-using WalletWasabi.Services;
 using WalletWasabi.Gui.Suggestions;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -29,13 +29,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableCollection<AddressViewModel> _addresses;
 		private AddressViewModel _selectedAddress;
 
-		public ReceiveTabViewModel(WalletService walletService)
+		public ReceiveTabViewModel(Wallet wallet)
 			: base("Receive")
 		{
 			Global = Locator.Current.GetService<Global>();
-			WalletService = walletService;
+			Wallet = wallet;
 
-			LabelSuggestion = new SuggestLabelViewModel(WalletService);
+			LabelSuggestion = new SuggestLabelViewModel();
 			_addresses = new ObservableCollection<AddressViewModel>();
 			LabelSuggestion.Label = "";
 
@@ -53,15 +53,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				AvaloniaThreadingExtensions.PostLogException(Dispatcher.UIThread, () =>
 				{
-					var newKey = WalletService.KeyManager.GetNextReceiveKey(label, out bool minGapLimitIncreased);
+					var newKey = Wallet.KeyManager.GetNextReceiveKey(label, out bool minGapLimitIncreased);
 					if (minGapLimitIncreased)
 					{
-						int minGapLimit = WalletService.KeyManager.MinGapLimit.Value;
+						int minGapLimit = Wallet.KeyManager.MinGapLimit.Value;
 						int prevMinGapLimit = minGapLimit - 1;
 						NotificationHelpers.Warning($"{nameof(KeyManager.MinGapLimit)} increased from {prevMinGapLimit} to {minGapLimit}.");
 					}
 
-					var newAddress = new AddressViewModel(newKey, WalletService.KeyManager, this);
+					var newAddress = new AddressViewModel(newKey, Wallet.KeyManager, this);
 					Addresses.Insert(0, newAddress);
 					SelectedAddress = newAddress;
 					LabelSuggestion.Label = "";
@@ -71,7 +71,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			this.WhenAnyValue(x => x.SelectedAddress)
 				.Subscribe(async address =>
 				{
-					if (Global.UiConfig?.Autocopy is false || address is null)
+					if (Global.UiConfig.Autocopy is false || address is null)
 					{
 						return;
 					}
@@ -93,18 +93,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
 
-		private WalletService WalletService { get; }
+		private Wallet Wallet { get; }
 
 		public SuggestLabelViewModel LabelSuggestion { get; }
 
-		public bool IsHardwareWallet => WalletService.KeyManager.IsHardwareWallet;
+		public bool IsHardwareWallet => Wallet.KeyManager.IsHardwareWallet;
 
 		public override void OnOpen(CompositeDisposable disposables)
 		{
 			base.OnOpen(disposables);
 
 			Observable
-				.FromEventPattern(WalletService.TransactionProcessor, nameof(WalletService.TransactionProcessor.WalletRelevantTransactionProcessed))
+				.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => InitializeAddresses())
 				.DisposeWith(disposables);
@@ -128,10 +128,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				_addresses?.Clear();
 
-				IEnumerable<HdPubKey> keys = WalletService.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Reverse();
+				IEnumerable<HdPubKey> keys = Wallet.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Reverse();
 				foreach (HdPubKey key in keys)
 				{
-					_addresses.Add(new AddressViewModel(key, WalletService.KeyManager, this));
+					_addresses.Add(new AddressViewModel(key, Wallet.KeyManager, this));
 				}
 			}
 			catch (Exception ex)

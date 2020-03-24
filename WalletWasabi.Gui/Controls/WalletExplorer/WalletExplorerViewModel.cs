@@ -7,7 +7,7 @@ using System.Composition;
 using System.IO;
 using System.Linq;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Services;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -42,20 +42,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _selectedItem, value);
 		}
 
-		internal void OpenWallet(WalletService walletService, bool receiveDominant)
+		internal void OpenWallet(Wallet wallet, bool receiveDominant)
 		{
-			var walletName = Path.GetFileNameWithoutExtension(walletService.KeyManager.FilePath);
+			var walletName = Path.GetFileNameWithoutExtension(wallet.KeyManager.FilePath);
 			if (_wallets.Any(x => x.Title == walletName))
 			{
 				return;
 			}
 
-			WalletViewModel walletViewModel = new WalletViewModel(walletService, receiveDominant);
+			WalletViewModel walletViewModel = new WalletViewModel(wallet);
 			_wallets.Add(walletViewModel);
-			walletViewModel.OnWalletOpened();
-
-			// TODO if we ever implement closing a wallet OnWalletClosed needs to be called
-			// to prevent memory leaks.
+			walletViewModel.OpenWallet(receiveDominant);
 		}
 
 		public void BeforeActivation()

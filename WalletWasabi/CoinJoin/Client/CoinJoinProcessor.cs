@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
+using WalletWasabi.BitcoinCore;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
@@ -24,7 +25,7 @@ namespace WalletWasabi.CoinJoin.Client
 	{
 		private volatile bool _disposedValue = false; // To detect redundant calls
 
-		public CoinJoinProcessor(WasabiSynchronizer synchronizer, WalletManager walletManager, RPCClient rpc)
+		public CoinJoinProcessor(WasabiSynchronizer synchronizer, WalletManager walletManager, IRPCClient rpc)
 		{
 			Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
 			WalletManager = Guard.NotNull(nameof(walletManager), walletManager);
@@ -35,7 +36,7 @@ namespace WalletWasabi.CoinJoin.Client
 
 		public WasabiSynchronizer Synchronizer { get; }
 		public WalletManager WalletManager { get; }
-		public RPCClient RpcClient { get; private set; }
+		public IRPCClient RpcClient { get; private set; }
 		private AsyncLock ProcessLock { get; }
 
 		private async void Synchronizer_ResponseArrivedAsync(object sender, SynchronizeResponse response)
@@ -50,11 +51,11 @@ namespace WalletWasabi.CoinJoin.Client
 						return;
 					}
 
-					var txsNotKnownByAWalletService = WalletManager.FilterUnknownCoinjoins(unconfirmedCoinJoinHashes);
+					var txsNotKnownByAWallet = WalletManager.FilterUnknownCoinjoins(unconfirmedCoinJoinHashes);
 
 					using var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint);
 
-					var unconfirmedCoinJoins = await client.GetTransactionsAsync(Synchronizer.Network, txsNotKnownByAWalletService, CancellationToken.None).ConfigureAwait(false);
+					var unconfirmedCoinJoins = await client.GetTransactionsAsync(Synchronizer.Network, txsNotKnownByAWallet, CancellationToken.None).ConfigureAwait(false);
 
 					foreach (var tx in unconfirmedCoinJoins.Select(x => new SmartTransaction(x, Height.Mempool)))
 					{

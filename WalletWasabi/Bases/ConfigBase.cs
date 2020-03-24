@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.Logging;
@@ -35,7 +34,7 @@ namespace WalletWasabi.Bases
 		}
 
 		/// <inheritdoc />
-		public async Task<bool> CheckFileChangeAsync()
+		public bool CheckFileChange()
 		{
 			AssertFilePathSet();
 
@@ -44,7 +43,7 @@ namespace WalletWasabi.Bases
 				throw new FileNotFoundException($"{GetType().Name} file did not exist at path: `{FilePath}`.");
 			}
 
-			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
+			string jsonString = File.ReadAllText(FilePath, Encoding.UTF8);
 
 			var newConfigObject = Activator.CreateInstance(GetType());
 			JsonConvert.PopulateObject(jsonString, newConfigObject);
@@ -53,7 +52,7 @@ namespace WalletWasabi.Bases
 		}
 
 		/// <inheritdoc />
-		public virtual async Task LoadOrCreateDefaultFileAsync()
+		public virtual void LoadOrCreateDefaultFile()
 		{
 			AssertFilePathSet();
 			JsonConvert.PopulateObject("{}", this);
@@ -66,27 +65,28 @@ namespace WalletWasabi.Bases
 			{
 				try
 				{
-					await LoadFileAsync();
+					LoadFile();
 				}
-				catch (JsonException)
+				catch (Exception ex)
 				{
 					Logger.LogInfo($"{GetType().Name} file has been deleted because it was corrupted. Recreated default version at path: `{FilePath}`.");
+					Logger.LogWarning(ex);
 				}
 			}
 
-			await ToFileAsync();
+			ToFile();
 		}
 
 		/// <inheritdoc />
-		public virtual async Task LoadFileAsync()
+		public virtual void LoadFile()
 		{
-			var jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
+			var jsonString = File.ReadAllText(FilePath, Encoding.UTF8);
 
 			JsonConvert.PopulateObject(jsonString, this);
 
 			if (TryEnsureBackwardsCompatibility(jsonString))
 			{
-				await ToFileAsync();
+				ToFile();
 			}
 		}
 
@@ -105,12 +105,12 @@ namespace WalletWasabi.Bases
 		}
 
 		/// <inheritdoc />
-		public async Task ToFileAsync()
+		public void ToFile()
 		{
 			AssertFilePathSet();
 
 			string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
-			await File.WriteAllTextAsync(FilePath, jsonString, Encoding.UTF8);
+			File.WriteAllText(FilePath, jsonString, Encoding.UTF8);
 		}
 
 		protected virtual bool TryEnsureBackwardsCompatibility(string jsonString) => true;

@@ -133,7 +133,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 									else
 									{
 										currentHash = StartingHeight == 0 ? uint256.Zero :
-											await RpcClient.GetBlockHashAsync(StartingHeight);
+											await RpcClient.GetBlockHashAsync((int)StartingHeight);
 										currentHeight = StartingHeight - 1;
 									}
 								}
@@ -166,7 +166,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 								}
 
 								uint nextHeight = currentHeight + 1;
-								uint256 blockHash = await RpcClient.GetBlockHashAsync(nextHeight);
+								uint256 blockHash = await RpcClient.GetBlockHashAsync((int)nextHeight);
 								VerboseBlockInfo block = await RpcClient.GetVerboseBlockAsync(blockHash);
 
 								// Check if we are still on the best chain,

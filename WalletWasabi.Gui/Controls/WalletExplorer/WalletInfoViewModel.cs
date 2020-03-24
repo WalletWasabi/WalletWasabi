@@ -14,7 +14,7 @@ using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Services;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -27,10 +27,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _extendedAccountPrivateKey;
 		private string _extendedAccountZprv;
 
-		public WalletInfoViewModel(WalletService walletService) : base(walletService.Name)
+		public WalletInfoViewModel(Wallet wallet) : base(wallet.WalletName)
 		{
 			Global = Locator.Current.GetService<Global>();
-			WalletService = walletService;
+			Wallet = wallet;
 
 			ClearSensitiveData(true);
 
@@ -42,7 +42,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					else
 					{
-						var secret = PasswordHelper.GetMasterExtKey(WalletService.KeyManager, Password, out string isCompatibilityPasswordUsed);
+						var secret = PasswordHelper.GetMasterExtKey(Wallet.KeyManager, Password, out string isCompatibilityPasswordUsed);
 						Password = "";
 
 						if (isCompatibilityPasswordUsed != null)
@@ -51,9 +51,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 
 						string master = secret.GetWif(Global.Network).ToWif();
-						string account = secret.Derive(WalletService.KeyManager.AccountKeyPath).GetWif(Global.Network).ToWif();
+						string account = secret.Derive(Wallet.KeyManager.AccountKeyPath).GetWif(Global.Network).ToWif();
 						string masterZ = secret.ToZPrv(Global.Network);
-						string accountZ = secret.Derive(WalletService.KeyManager.AccountKeyPath).ToZPrv(Global.Network);
+						string accountZ = secret.Derive(Wallet.KeyManager.AccountKeyPath).ToZPrv(Global.Network);
 						SetSensitiveData(master, account, masterZ, accountZ);
 					}
 				});
@@ -69,16 +69,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private Global Global { get; }
 
-		private WalletService WalletService { get; }
+		private Wallet Wallet { get; }
 
 		public CancellationTokenSource Closing { get; private set; }
 
-		public string ExtendedAccountPublicKey => WalletService.KeyManager.ExtPubKey.ToString(Global.Network);
-		public string ExtendedAccountZpub => WalletService.KeyManager.ExtPubKey.ToZpub(Global.Network);
-		public string AccountKeyPath => $"m/{WalletService.KeyManager.AccountKeyPath}";
-		public string MasterKeyFingerprint => WalletService.KeyManager.MasterFingerprint.ToString();
+		public string ExtendedAccountPublicKey => Wallet.KeyManager.ExtPubKey.ToString(Global.Network);
+		public string ExtendedAccountZpub => Wallet.KeyManager.ExtPubKey.ToZpub(Global.Network);
+		public string AccountKeyPath => $"m/{Wallet.KeyManager.AccountKeyPath}";
+		public string MasterKeyFingerprint => Wallet.KeyManager.MasterFingerprint.ToString();
 		public ReactiveCommand<Unit, Unit> ToggleSensitiveKeysCommand { get; }
-		public bool IsWatchOnly => WalletService.KeyManager.IsWatchOnly;
+		public bool IsWatchOnly => Wallet.KeyManager.IsWatchOnly;
 
 		public bool ShowSensitiveKeys
 		{

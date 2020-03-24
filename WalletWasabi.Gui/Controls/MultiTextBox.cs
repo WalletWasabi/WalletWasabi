@@ -193,7 +193,7 @@ namespace WalletWasabi.Gui.Controls
 			{
 				var eventArgs = eventPattern?.EventArgs as PointerPressedEventArgs;
 				var uiConfig = Locator.Current.GetService<Global>().UiConfig;
-				if (uiConfig?.Autocopy is true && eventArgs?.GetCurrentPoint(this).Properties.IsLeftButtonPressed == true)
+				if (uiConfig.Autocopy is true && eventArgs?.GetCurrentPoint(this).Properties.IsLeftButtonPressed == true)
 				{
 					if (CopyOnClick)
 					{

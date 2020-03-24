@@ -5,8 +5,8 @@ using System.Reactive.Linq;
 using WalletWasabi.Logging;
 using System;
 using System.IO;
-using WalletWasabi.Services;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -24,7 +24,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
 		}
 
-		public WalletAdvancedViewModel(WalletService walletService) : base(walletService.Name)
+		public WalletAdvancedViewModel(Wallet wallet) : base(wallet.WalletName)
 		{
 			Items = new ObservableCollection<WasabiDocumentTabViewModel>();
 

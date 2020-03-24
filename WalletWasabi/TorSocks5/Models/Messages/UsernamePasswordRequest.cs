@@ -9,21 +9,7 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 {
 	public class UsernamePasswordRequest : ByteArraySerializableBase
 	{
-		#region PropertiesAndMembers
-
-		public AuthVerField Ver { get; set; }
-
-		public ULenField ULen { get; set; }
-
-		public UNameField UName { get; set; }
-
-		public PLenField PLen { get; set; }
-
-		public PasswdField Passwd { get; set; }
-
-		#endregion PropertiesAndMembers
-
-		#region ConstructorsAndInitializers
+		#region Constructors
 
 		public UsernamePasswordRequest()
 		{
@@ -43,7 +29,21 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 			ULen = uLen;
 		}
 
-		#endregion ConstructorsAndInitializers
+		#endregion Constructors
+
+		#region PropertiesAndMembers
+
+		public AuthVerField Ver { get; set; }
+
+		public ULenField ULen { get; set; }
+
+		public UNameField UName { get; set; }
+
+		public PLenField PLen { get; set; }
+
+		public PasswdField Passwd { get; set; }
+
+		#endregion PropertiesAndMembers
 
 		#region Serialization
 

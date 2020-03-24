@@ -1,5 +1,5 @@
+using System;
 using ReactiveUI;
-using Splat;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.ViewModels;
@@ -8,32 +8,12 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 {
 	public abstract class LockScreenViewModelBase : ViewModelBase
 	{
-		private bool _isLocked;
+		private bool _isAnimationRunning;
+		private bool _isLocked = true;
 		private bool _canSlide;
+		private volatile bool _disposedValue = false; // To detect redundant calls
 
-		private CompositeDisposable Disposables { get; }
-
-		public LockScreenViewModelBase()
-		{
-			Disposables = new CompositeDisposable();
-
-			var global = Locator.Current.GetService<Global>();
-
-			global.UiConfig
-				.WhenAnyValue(x => x.LockScreenActive)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.BindTo(this, y => y.IsLocked)
-				.DisposeWith(Disposables);
-
-			this.WhenAnyValue(x => x.IsLocked)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.BindTo(global.UiConfig, y => y.LockScreenActive)
-				.DisposeWith(Disposables);
-
-			IsLocked = global.UiConfig.LockScreenActive;
-
-			OnInitialize(Disposables);
-		}
+		protected CompositeDisposable Disposables { get; } = new CompositeDisposable();
 
 		public bool CanSlide
 		{
@@ -47,13 +27,32 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			set => this.RaiseAndSetIfChanged(ref _isLocked, value);
 		}
 
+		public bool IsAnimationRunning
+		{
+			get => _isAnimationRunning;
+			set => this.RaiseAndSetIfChanged(ref _isAnimationRunning, value);
+		}
+
+		public void Initialize()
+		{
+			OnInitialize(Disposables);
+		}
+
 		protected virtual void OnInitialize(CompositeDisposable disposables)
 		{
 		}
 
-		#region IDisposable Support
+		protected void Close()
+		{
+			IsLocked = false;
 
-		private volatile bool _disposedValue = false; // To detect redundant calls
+			this.WhenAnyValue(x => x.IsAnimationRunning)
+				.Where(x => !x)
+				.Take(1)
+				.Subscribe(x => MainWindowViewModel.Instance?.CloseLockScreen(this));
+		}
+
+		#region IDisposable Support
 
 		protected virtual void Dispose(bool disposing)
 		{

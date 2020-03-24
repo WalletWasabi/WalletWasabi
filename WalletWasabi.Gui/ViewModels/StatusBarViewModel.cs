@@ -29,6 +29,7 @@ using WalletWasabi.Legal;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
+using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Gui.ViewModels
@@ -57,6 +58,8 @@ namespace WalletWasabi.Gui.ViewModels
 		private bool _downloadingBlock;
 		private Global Global { get; }
 		private StatusSet ActiveStatuses { get; }
+
+		private bool _legalDocsLoading;
 
 		public StatusBarViewModel()
 		{
@@ -101,13 +104,13 @@ namespace WalletWasabi.Gui.ViewModels
 
 			Peers = Tor == TorStatus.NotRunning ? 0 : Nodes.Count;
 
-			Observable.FromEventPattern<bool>(typeof(WalletService), nameof(WalletService.DownloadingBlockChanged))
+			Observable.FromEventPattern<bool>(typeof(Wallet), nameof(Wallet.DownloadingBlockChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => DownloadingBlock = x.EventArgs)
 				.DisposeWith(Disposables);
 
 			IDisposable walletCheckingInterval = null;
-			Observable.FromEventPattern<bool>(typeof(WalletService), nameof(WalletService.InitializingChanged))
+			Observable.FromEventPattern<bool>(typeof(Wallet), nameof(Wallet.InitializingChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
@@ -117,16 +120,16 @@ namespace WalletWasabi.Gui.ViewModels
 
 						if (walletCheckingInterval is null)
 						{
-							var walletService = x.Sender as WalletService;
+							var wallet = x.Sender as Wallet;
 							walletCheckingInterval = Observable.Interval(TimeSpan.FromSeconds(1))
 							   .ObserveOn(RxApp.MainThreadScheduler)
 							   .Subscribe(_ =>
 							   {
 								   var global = Global;
-								   if (walletService is { })
+								   if (wallet is { })
 								   {
-									   var segwitActivationHeight = SmartHeader.GetStartingHeader(walletService.Network).Height;
-									   if (walletService.LastProcessedFilter?.Header?.Height is uint lastProcessedFilterHeight
+									   var segwitActivationHeight = SmartHeader.GetStartingHeader(wallet.Network).Height;
+									   if (wallet.LastProcessedFilter?.Header?.Height is uint lastProcessedFilterHeight
 											&& lastProcessedFilterHeight > segwitActivationHeight
 											&& global?.BitcoinStore?.SmartHeaderChain?.TipHeight is uint tipHeight
 											&& tipHeight > segwitActivationHeight)
@@ -139,7 +142,7 @@ namespace WalletWasabi.Gui.ViewModels
 										   TryAddStatus(StatusType.WalletProcessingFilters, (ushort)perc);
 									   }
 
-									   var txProcessor = walletService.TransactionProcessor;
+									   var txProcessor = wallet.TransactionProcessor;
 									   if (txProcessor is { })
 									   {
 										   var perc = txProcessor.QueuedTxCount == 0 ?
@@ -258,25 +261,33 @@ namespace WalletWasabi.Gui.ViewModels
 					UpdateAvailable = !x.ClientUpToDate;
 					CriticalUpdateAvailable = !x.BackendCompatible;
 
-					try
+					if (!_legalDocsLoading)
 					{
-						if (Global.LegalDocuments is null || Global.LegalDocuments.Version < x.LegalDocumentsVersion)
-						{
-							using var client = new WasabiClient(() => Global.Config.UseTor ? Global.Config.GetCurrentBackendUri() : Global.Config.GetFallbackBackendUri(), Global.Config.UseTor ? Global.Config.TorSocks5EndPoint : null);
-							var versions = await client.GetVersionsAsync(CancellationToken.None);
-							var version = versions.LegalDocumentsVersion;
-							var legalFolderPath = Path.Combine(Global.DataDir, LegalDocuments.LegalFolderName);
-							var filePath = Path.Combine(legalFolderPath, $"{version}.txt");
-							var legalContent = await client.GetLegalDocumentsAsync(CancellationToken.None);
+						_legalDocsLoading = true;
 
-							IoC.Get<IShell>().Documents.OfType<LegalDocumentsViewModel>()?.FirstOrDefault()?.OnClose();
-							IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel(legalContent, new LegalDocuments(filePath)));
+						try
+						{
+							if (Global.LegalDocuments is null || Global.LegalDocuments.Version < x.LegalDocumentsVersion)
+							{
+								using var client = new WasabiClient(() => Global.Config.UseTor ? Global.Config.GetCurrentBackendUri() : Global.Config.GetFallbackBackendUri(), Global.Config.UseTor ? Global.Config.TorSocks5EndPoint : null);
+								var versions = await client.GetVersionsAsync(CancellationToken.None);
+								var version = versions.LegalDocumentsVersion;
+								var legalFolderPath = Path.Combine(Global.DataDir, LegalDocuments.LegalFolderName);
+								var filePath = Path.Combine(legalFolderPath, $"{version}.txt");
+								var legalContent = await client.GetLegalDocumentsAsync(CancellationToken.None);
+
+								MainWindowViewModel.Instance.PushLockScreen(new LegalDocumentsViewModel(legalContent, new LegalDocuments(filePath)));
+							}
 						}
-					}
-					catch (Exception ex)
-					{
-						Logger.LogError(ex);
-						NotificationHelpers.Error("Could not get Legal Documents!");
+						catch (Exception ex)
+						{
+							Logger.LogError(ex);
+							NotificationHelpers.Error("Could not get Legal Documents!");
+						}
+						finally
+						{
+							_legalDocsLoading = false;
+						}
 					}
 				});
 

@@ -8,7 +8,6 @@ using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.Gui.Converters;
 using WalletWasabi.Gui.Models;

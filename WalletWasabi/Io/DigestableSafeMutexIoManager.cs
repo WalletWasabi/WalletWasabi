@@ -16,13 +16,6 @@ namespace WalletWasabi.Io
 	/// </summary>
 	public class DigestableSafeMutexIoManager : SafeMutexIoManager
 	{
-		public string DigestFilePath { get; }
-
-		/// <summary>
-		/// Use the random index of the line to create digest faster. -1 is special value, it means the last character. If null then hash whole file.
-		/// </summary>
-		private int? DigestRandomIndex { get; }
-
 		private const string DigestExtension = ".dig";
 
 		/// <param name="digestRandomIndex">Use the random index of the line to create digest faster. -1 is special value, it means the last character. If null then hash whole file.</param>
@@ -33,6 +26,13 @@ namespace WalletWasabi.Io
 
 			DigestFilePath = $"{FilePath}{DigestExtension}";
 		}
+
+		public string DigestFilePath { get; }
+
+		/// <summary>
+		/// Use the random index of the line to create digest faster. -1 is special value, it means the last character. If null then hash whole file.
+		/// </summary>
+		private int? DigestRandomIndex { get; }
 
 		#region IoOperations
 

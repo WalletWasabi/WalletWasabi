@@ -251,6 +251,12 @@ tor
 pgrep -ilfa tor
 ```
 
+Review the tor activity using the logs stored in the linux journal:
+
+```sh
+sudo journalctl -u tor@default
+```
+
 # 8. Setup Nginx
 
 https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/linux-nginx?view=aspnetcore-2.0&tabs=aspnetcore2x#install-nginx  

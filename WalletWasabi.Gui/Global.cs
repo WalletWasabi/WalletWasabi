@@ -49,7 +49,7 @@ namespace WalletWasabi.Gui
 		public string TorLogsFile { get; }
 		public BitcoinStore BitcoinStore { get; private set; }
 		public LegalDocuments LegalDocuments { get; set; }
-		public Config Config { get; private set; }
+		public Config Config { get; }
 
 		public string AddressManagerFilePath { get; private set; }
 		public AddressManager AddressManager { get; private set; }
@@ -58,7 +58,7 @@ namespace WalletWasabi.Gui
 		public WasabiSynchronizer Synchronizer { get; private set; }
 		public FeeProviders FeeProviders { get; private set; }
 		public WalletManager WalletManager { get; }
-		public WalletService WalletService => WalletManager?.GetFirstOrDefaultWallet();
+		public Wallet Wallet => WalletManager?.GetFirstOrDefaultWallet();
 		public TransactionBroadcaster TransactionBroadcaster { get; set; }
 		public CoinJoinProcessor CoinJoinProcessor { get; set; }
 		public Node RegTestMempoolServingNode { get; private set; }
@@ -69,7 +69,7 @@ namespace WalletWasabi.Gui
 
 		public bool KillRequested => Interlocked.Read(ref _dispose) > 0;
 
-		public UiConfig UiConfig { get; private set; }
+		public UiConfig UiConfig { get; }
 
 		public Network Network => Config.Network;
 
@@ -77,39 +77,28 @@ namespace WalletWasabi.Gui
 
 		public Global()
 		{
-			StoppingCts = new CancellationTokenSource();
-			DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
-			TorLogsFile = Path.Combine(DataDir, "TorLogs.txt");
-
-			Directory.CreateDirectory(DataDir);
-
-			HostedServices = new HostedServices();
-			WalletManager = new WalletManager(new WalletDirectories(DataDir));
-
-			LegalDocuments = LegalDocuments.TryLoadAgreed(DataDir);
-
-			WalletManager.OnDequeue += WalletManager_OnDequeue;
-			WalletManager.WalletRelevantTransactionProcessed += WalletManager_WalletRelevantTransactionProcessed;
-		}
-
-		public async Task<bool> InitializeUiConfigAsync()
-		{
-			try
+			using (BenchmarkLogger.Measure())
 			{
-				var uiConfigFilePath = Path.Combine(DataDir, "UiConfig.json");
-				var uiConfig = new UiConfig(uiConfigFilePath);
-				await uiConfig.LoadOrCreateDefaultFileAsync().ConfigureAwait(false);
+				StoppingCts = new CancellationTokenSource();
+				DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
+				TorLogsFile = Path.Combine(DataDir, "TorLogs.txt");
+				Directory.CreateDirectory(DataDir);
 
-				UiConfig = uiConfig;
+				Logger.InitializeDefaults(Path.Combine(DataDir, "Logs.txt"));
 
-				return true;
+				UiConfig = new UiConfig(Path.Combine(DataDir, "UiConfig.json"));
+				UiConfig.LoadOrCreateDefaultFile();
+				Config = new Config(Path.Combine(DataDir, "Config.json"));
+				Config.LoadOrCreateDefaultFile();
+
+				HostedServices = new HostedServices();
+				WalletManager = new WalletManager(Network, new WalletDirectories(DataDir));
+
+				LegalDocuments = LegalDocuments.TryLoadAgreed(DataDir);
+
+				WalletManager.OnDequeue += WalletManager_OnDequeue;
+				WalletManager.WalletRelevantTransactionProcessed += WalletManager_WalletRelevantTransactionProcessed;
 			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-			}
-
-			return false;
 		}
 
 		private bool InitializationCompleted { get; set; } = false;
@@ -127,16 +116,6 @@ namespace WalletWasabi.Gui
 
 			try
 			{
-				#region ConfigInitialization
-
-				Config = new Config(Path.Combine(DataDir, "Config.json"));
-				await Config.LoadOrCreateDefaultFileAsync();
-				Logger.LogInfo($"{nameof(Config)} is successfully initialized.");
-
-				#endregion ConfigInitialization
-
-				cancel.ThrowIfCancellationRequested();
-
 				BitcoinStore = new BitcoinStore();
 				var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), Network);
 				var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
@@ -350,7 +329,7 @@ namespace WalletWasabi.Gui
 
 				#endregion JsonRpcServerInitialization
 
-				WalletManager.Initialize(BitcoinStore, Synchronizer, Nodes, DataDir, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
+				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Nodes, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
 			}
 			catch (Exception ex)
 			{
@@ -460,7 +439,7 @@ namespace WalletWasabi.Gui
 		{
 			try
 			{
-				if (UiConfig?.LurkingWifeMode is true)
+				if (UiConfig.LurkingWifeMode is true)
 				{
 					return;
 				}
@@ -498,7 +477,7 @@ namespace WalletWasabi.Gui
 			{
 				// In lurking wife mode no notification is raised.
 				// If there are no news, then don't bother too.
-				if (UiConfig?.LurkingWifeMode is true || !e.IsNews)
+				if (UiConfig.LurkingWifeMode is true || !e.IsNews || (sender as Wallet).State != WalletState.Started)
 				{
 					return;
 				}
@@ -606,58 +585,6 @@ namespace WalletWasabi.Gui
 			title = Guard.Correct(title);
 			NotificationHelpers.Notify(message, title, notificationType, async () => await FileHelpers.OpenFileInTextEditorAsync(Logger.FilePath));
 			Logger.LogInfo($"Transaction Notification ({notificationType}): {title} - {message} - {e.Transaction.GetHash()}");
-		}
-
-		public KeyManager LoadKeyManager(string walletName)
-		{
-			(string walletFullPath, string walletBackupFullPath) = WalletManager.WalletDirectories.GetWalletFilePaths(walletName);
-
-			try
-			{
-				return LoadKeyManagerFromFile(walletFullPath);
-			}
-			catch (Exception ex)
-			{
-				if (!File.Exists(walletBackupFullPath))
-				{
-					throw;
-				}
-
-				Logger.LogWarning($"Wallet got corrupted.\n" +
-					$"Wallet Filepath: {walletFullPath}\n" +
-					$"Trying to recover it from backup.\n" +
-					$"Backup path: {walletBackupFullPath}\n" +
-					$"Exception: {ex}");
-				if (File.Exists(walletFullPath))
-				{
-					string corruptedWalletBackupPath = $"{walletBackupFullPath}_CorruptedBackup";
-					if (File.Exists(corruptedWalletBackupPath))
-					{
-						File.Delete(corruptedWalletBackupPath);
-						Logger.LogInfo($"Deleted previous corrupted wallet file backup from `{corruptedWalletBackupPath}`.");
-					}
-					File.Move(walletFullPath, corruptedWalletBackupPath);
-					Logger.LogInfo($"Backed up corrupted wallet file to `{corruptedWalletBackupPath}`.");
-				}
-				File.Copy(walletBackupFullPath, walletFullPath);
-
-				return LoadKeyManagerFromFile(walletFullPath);
-			}
-		}
-
-		public KeyManager LoadKeyManagerFromFile(string walletFullPath)
-		{
-			KeyManager keyManager;
-
-			// Set the LastAccessTime.
-			new FileInfo(walletFullPath)
-			{
-				LastAccessTime = DateTime.Now
-			};
-
-			keyManager = KeyManager.FromFile(walletFullPath);
-			Logger.LogInfo($"Wallet loaded: {Path.GetFileNameWithoutExtension(keyManager.FilePath)}.");
-			return keyManager;
 		}
 
 		/// <summary>

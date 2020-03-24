@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.CoinJoin.Coordinator.Banning;
@@ -26,7 +27,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 
 		public DateTimeOffset LastSuccessfulCoinJoinTime { get; private set; }
 
-		public Coordinator(Network network, BlockNotifier blockNotifier, string folderPath, RPCClient rpc, CoordinatorRoundConfig roundConfig)
+		public Coordinator(Network network, BlockNotifier blockNotifier, string folderPath, IRPCClient rpc, CoordinatorRoundConfig roundConfig)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 			BlockNotifier = Guard.NotNull(nameof(blockNotifier), blockNotifier);
@@ -145,7 +146,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 
 		private List<uint256> UnconfirmedCoinJoins { get; }
 
-		public RPCClient RpcClient { get; }
+		public IRPCClient RpcClient { get; }
 
 		public CoordinatorRoundConfig RoundConfig { get; private set; }
 
@@ -324,7 +325,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 								if (newDenominationToGetInWithactiveOutputs > Money.Coins(0.01m))
 								{
 									RoundConfig.Denomination = newDenominationToGetInWithactiveOutputs;
-									await RoundConfig.ToFileAsync().ConfigureAwait(false);
+									RoundConfig.ToFile();
 								}
 							}
 						}

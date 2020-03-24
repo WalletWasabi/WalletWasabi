@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -39,7 +40,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		[Fact]
 		public async Task BuildTransactionValidationsTestAsync()
 		{
-			(string password, RPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+			(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 			// Create the services.
 			// 1. Create connection service.
@@ -59,7 +60,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			// 5. Create wallet service.
 			var workDir = Common.GetWorkDir();
-			var wallet = new WalletService(bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer);
+			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer);
 			wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;
 
 			var scp = new Key().ScriptPubKey;
@@ -102,7 +103,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				FeeStrategy.TwentyMinutesConfirmationTargetStrategy));
 
 			// allowedInputs cannot be empty
-			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, validIntent, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowedInputs: Array.Empty<TxoRef>()));
+			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, validIntent, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowedInputs: Array.Empty<OutPoint>()));
 
 			// "Only one element can contain the AllRemaining flag.
 			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(
@@ -198,7 +199,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		[Fact]
 		public async Task BuildTransactionReorgsTestAsync()
 		{
-			(string password, RPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+			(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 			bitcoinStore.IndexStore.NewFilter += Common.Wallet_NewFilterProcessed;
 			// Create the services.
 			// 1. Create connection service.
@@ -218,8 +219,8 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			// 5. Create wallet service.
 			var workDir = Common.GetWorkDir();
-			var walletManager = new WalletManager(null);
-			walletManager.Initialize(bitcoinStore, synchronizer, nodes, workDir, serviceConfiguration, synchronizer, null);
+			var walletManager = new WalletManager(network, new WalletDirectories(workDir));
+			walletManager.RegisterServices(bitcoinStore, synchronizer, nodes, serviceConfiguration, synchronizer, null);
 
 			var baseTip = await rpc.GetBestBlockHashAsync();
 
@@ -242,7 +243,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				// Wait until the filter our previous transaction is present.
 				var blockCount = await rpc.GetBlockCountAsync();
 				await Common.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
-				var wallet = await walletManager.CreateAndStartWalletServiceAsync(keyManager);
+				using var wallet = await walletManager.AddAndStartWalletAsync(keyManager);
 				var coin = Assert.Single(wallet.Coins);
 				Assert.True(coin.Confirmed);
 				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, walletManager, rpc);

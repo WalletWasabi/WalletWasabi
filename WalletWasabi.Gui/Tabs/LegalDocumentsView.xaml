@@ -3,7 +3,7 @@
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
              x:Class="WalletWasabi.Gui.Tabs.LegalDocumentsView">
-  <DockPanel LastChildFill="True">
+  <DockPanel LastChildFill="True" Background="{DynamicResource ThemeBackgroundBrush}">
     <TextBlock IsVisible="{Binding EmptyContent}" Text="Text document is missing!" />
 
     <DockPanel LastChildFill="True" IsVisible="{Binding !EmptyContent}">

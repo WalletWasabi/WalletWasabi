@@ -32,7 +32,7 @@ namespace WalletWasabi.BitcoinCore
 	{
 		public EndPoint P2pEndPoint { get; private set; }
 		public EndPoint RpcEndPoint { get; private set; }
-		public RPCClient RpcClient { get; private set; }
+		public IRPCClient RpcClient { get; private set; }
 		private BitcoindRpcProcessBridge Bridge { get; set; }
 		public HostedServices HostedServices { get; private set; }
 		public string DataDir { get; private set; }
@@ -90,7 +90,9 @@ namespace WalletWasabi.BitcoinCore
 				EndPointParser.TryParse($"{rpcHost}:{rpcPort}", coreNode.Network.RPCPort, out EndPoint rpce);
 				coreNode.RpcEndPoint = rpce;
 
-				coreNode.RpcClient = new RPCClient($"{authString}", coreNode.RpcEndPoint.ToString(coreNode.Network.DefaultPort), coreNode.Network);
+				var rpcClient = new RPCClient($"{authString}", coreNode.RpcEndPoint.ToString(coreNode.Network.DefaultPort), coreNode.Network);
+				coreNode.RpcClient = new RpcClientBase(rpcClient);
+
 
 				if (coreNodeParams.TryRestart)
 				{
@@ -170,7 +172,7 @@ namespace WalletWasabi.BitcoinCore
 				await coreNode.P2pNode.ConnectAsync(cancel).ConfigureAwait(false);
 				cancel.ThrowIfCancellationRequested();
 
-				coreNode.HostedServices.Register(new BlockNotifier(TimeSpan.FromSeconds(7), new RpcWrappedClient(coreNode.RpcClient), coreNode.P2pNode), "Block Notifier");
+				coreNode.HostedServices.Register(new BlockNotifier(TimeSpan.FromSeconds(7), coreNode.RpcClient, coreNode.P2pNode), "Block Notifier");
 				coreNode.HostedServices.Register(new RpcMonitor(TimeSpan.FromSeconds(7), coreNode.RpcClient), "RPC Monitor");
 				coreNode.HostedServices.Register(new RpcFeeProvider(TimeSpan.FromMinutes(1), coreNode.RpcClient), "RPC Fee Provider");
 
@@ -207,7 +209,7 @@ namespace WalletWasabi.BitcoinCore
 			var blocks = await RpcClient.GenerateAsync(blockCount).ConfigureAwait(false);
 			var rpc = RpcClient.PrepareBatch();
 			var tasks = blocks.Select(b => rpc.GetBlockAsync(b));
-			rpc.SendBatch();
+			await rpc.SendBatchAsync();
 			return await Task.WhenAll(tasks).ConfigureAwait(false);
 		}
 

@@ -22,6 +22,7 @@ using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
+using WalletWasabi.Wallets;
 using Xunit;
 
 namespace WalletWasabi.Tests.IntegrationTests
@@ -93,7 +94,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 			KeyManager keyManager = KeyManager.CreateNew(out _, "password");
 			WasabiSynchronizer syncer = new WasabiSynchronizer(network, bitcoinStore, new Uri("http://localhost:12345"), Global.Instance.TorSocks5Endpoint);
-			WalletService walletService = new WalletService(
+			using Wallet wallet = Wallet.CreateAndRegisterServices(
+				network,
 				bitcoinStore,
 				keyManager,
 				syncer,
@@ -121,7 +123,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(4));
 				foreach (var hash in blocksToDownload)
 				{
-					downloadTasks.Add(walletService.FetchBlockAsync(hash, cts.Token));
+					downloadTasks.Add(wallet.FetchBlockAsync(hash, cts.Token));
 				}
 
 				await nodeConnectionAwaiter.WaitAsync(TimeSpan.FromMinutes(3));
@@ -141,11 +143,11 @@ namespace WalletWasabi.Tests.IntegrationTests
 				// So next test will download the block.
 				foreach (var hash in blocksToDownload)
 				{
-					await walletService?.DeleteBlockAsync(hash);
+					await wallet?.DeleteBlockAsync(hash);
 				}
-				if (walletService is { })
+				if (wallet is { })
 				{
-					await walletService.StopAsync(CancellationToken.None);
+					await wallet.StopAsync(CancellationToken.None);
 				}
 
 				if (Directory.Exists(blocksFolderPath))

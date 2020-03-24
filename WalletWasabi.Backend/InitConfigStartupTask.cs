@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Logging;
 
@@ -34,19 +35,19 @@ namespace WalletWasabi.Backend
 			TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 			var configFilePath = Path.Combine(Global.DataDir, "Config.json");
 			var config = new Config(configFilePath);
-			await config.LoadOrCreateDefaultFileAsync();
+			config.LoadOrCreateDefaultFile();
 			Logger.LogInfo("Config is successfully initialized.");
 
 			var roundConfigFilePath = Path.Combine(Global.DataDir, "CcjRoundConfig.json");
 			var roundConfig = new CoordinatorRoundConfig(roundConfigFilePath);
-			await roundConfig.LoadOrCreateDefaultFileAsync();
+			roundConfig.LoadOrCreateDefaultFile();
 			Logger.LogInfo("RoundConfig is successfully initialized.");
 
 			string host = config.GetBitcoinCoreRpcEndPoint().ToString(config.Network.RPCPort);
-			var rpc = new RPCClient(
+			var rpc = new RpcClientBase(new RPCClient(
 					authenticationString: config.BitcoinRpcConnectionString,
 					hostOrUri: host,
-					network: config.Network);
+					network: config.Network));
 
 			await Global.InitializeAsync(config, roundConfig, rpc, cancellationToken);
 

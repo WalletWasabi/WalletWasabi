@@ -2,13 +2,13 @@ namespace Gma.QrCodeNet.Encoding
 {
 	public sealed class StateMatrix
 	{
-		private MatrixStatus[,] MatrixStatus { get; }
-
 		public StateMatrix(int width)
 		{
 			Width = width;
 			MatrixStatus = new MatrixStatus[width, width];
 		}
+
+		private MatrixStatus[,] MatrixStatus { get; }
 
 		public MatrixStatus this[int x, int y]
 		{
