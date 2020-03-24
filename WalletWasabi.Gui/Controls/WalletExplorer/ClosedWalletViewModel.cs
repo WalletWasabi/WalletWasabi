@@ -49,15 +49,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					Dispose();
 
-					if (Wallet.Coins.Any())
-					{
-						// If already have coins then open the last active tab first.
-						walletExplorer.OpenWallet(Wallet, receiveDominant: false, select: select);
-					}
-					else // Else open with Receive tab first.
-					{
-						walletExplorer.OpenWallet(Wallet, receiveDominant: true, select: select);
-					}
+					walletExplorer.OpenClosedWallet(this);
 				});
 		}
 

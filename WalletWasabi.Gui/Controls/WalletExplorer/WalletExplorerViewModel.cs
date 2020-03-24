@@ -47,23 +47,45 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _selectedItem, value);
 		}
 
-		internal void OpenWallet(Wallet wallet, bool receiveDominant, bool select = true)
+		internal WalletViewModelBase OpenWallet(Wallet wallet)
 		{
-			if (_wallets.OfType<WalletViewModel>().Any(x => x.Title == wallet.WalletName))
+			if (wallet.Coins.Any())
 			{
-				return;
+				// If already have coins then open the last active tab first.
+				return OpenWallet(wallet, receiveDominant: false);
 			}
+			else // Else open with Receive tab first.
+			{
+				return OpenWallet(wallet, receiveDominant: true);
+			}
+		}
 
-			WalletViewModel walletViewModel = new WalletViewModel(wallet);
+		internal void OpenClosedWallet(ClosedWalletViewModel closedWalletViewModel)
+		{
+			var select = SelectedItem == closedWalletViewModel;
 
-			Wallets.InsertSorted(walletViewModel);
+			var walletViewModel = OpenWallet(closedWalletViewModel.Wallet);
 
 			if (select)
 			{
 				SelectedItem = walletViewModel;
 			}
+		}
+
+		private WalletViewModelBase OpenWallet(Wallet wallet, bool receiveDominant, bool select = true)
+		{
+			if (_wallets.OfType<WalletViewModel>().Any(x => x.Title == wallet.WalletName))
+			{
+				throw new System.Exception("Wallet already opened.");
+			}
+
+			var walletViewModel = new WalletViewModel(wallet);
+
+			Wallets.InsertSorted(walletViewModel);
 
 			walletViewModel.OpenWallet(receiveDominant);
+
+			return walletViewModel;
 		}
 
 		internal void RemoveWallet(WalletViewModelBase wallet)

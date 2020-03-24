@@ -60,7 +60,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set { this.RaiseAndSetIfChanged(ref _walletState, value); }
 		}
 
-		protected Wallet Wallet { get; }
+		public Wallet Wallet { get; }
 
 		public bool IsExpanded
 		{
