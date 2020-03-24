@@ -6,7 +6,6 @@ using Splat;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Composition;
-using System.IO;
 using System.Linq;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Wallets;
@@ -95,10 +94,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void LoadWallets()
 		{
-			foreach (var wallet in WalletManager
-				.GetKeyManagers()
-				.Where(x => !x.IsWatchOnly)) // If password isn't required then add the wallet, otherwise add only not watchonly wallets.				
-				
+			foreach (var wallet in WalletManager.GetKeyManagers())
 			{
 				Wallets.InsertSorted(new ClosedWalletViewModel(WalletManager.GetWalletByName(wallet.WalletName)));
 			}
