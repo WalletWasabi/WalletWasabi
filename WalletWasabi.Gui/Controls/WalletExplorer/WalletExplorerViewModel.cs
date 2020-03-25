@@ -23,6 +23,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableCollection<WalletViewModelBase> _wallets;
 		private ViewModelBase _selectedItem;
 		private Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
+		private bool _openingFirstWallet = true;
 
 		public override Location DefaultLocation => Location.Right;
 
@@ -132,7 +133,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			InsertWallet(walletViewModel);
 
-			walletViewModel.OpenWallet(receiveDominant);
+			walletViewModel.OpenWallet(receiveDominant, _openingFirstWallet);
+			_openingFirstWallet = false;
 
 			return walletViewModel;
 		}

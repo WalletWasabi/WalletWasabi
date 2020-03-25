@@ -19,6 +19,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	public class WalletViewModel : WalletViewModelBase
 	{
 		private ObservableCollection<ViewModelBase> _actions;
+		private SendTabViewModel _sendTab;
+		private ReceiveTabViewModel _receiveTab;
+		private CoinJoinTabViewModel _coinjoinTab;
+		private HistoryTabViewModel _historyTab;
+		private WalletInfoViewModel _infoTab;
+		private BuildTabViewModel _buildTab;
 
 		public WalletViewModel(Wallet wallet) : base(wallet)
 		{
@@ -54,22 +60,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				})
 				.DisposeWith(Disposables);
-		}
 
-		public Global Global { get; }
-		public KeyManager KeyManager => Wallet.KeyManager;		
-		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
-
-		public ObservableCollection<ViewModelBase> Actions
-		{
-			get => _actions;
-			set => this.RaiseAndSetIfChanged(ref _actions, value);
-		}
-
-		private CompositeDisposable Disposables { get; set; }
-
-		public void OpenWallet(bool receiveDominant)
-		{
 			SendTabViewModel sendTab = null;
 			// If hardware wallet then we need the Send tab.
 			if (KeyManager.IsHardwareWallet is true)
@@ -84,47 +75,69 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				Actions.Add(sendTab);
 			}
 
-			var receiveTab = new ReceiveTabViewModel(Wallet);
-			var coinjoinTab = new CoinJoinTabViewModel(Wallet);
-			var historyTab = new HistoryTabViewModel(Wallet);
+			_receiveTab = new ReceiveTabViewModel(Wallet);
+			_coinjoinTab = new CoinJoinTabViewModel(Wallet);
+			_historyTab = new HistoryTabViewModel(Wallet);
 
 			var advancedAction = new WalletAdvancedViewModel();
-			var infoTab = new WalletInfoViewModel(Wallet);
-			var buildTab = new BuildTabViewModel(Wallet);
+			_infoTab = new WalletInfoViewModel(Wallet);
+			_buildTab = new BuildTabViewModel(Wallet);
 
-			Actions.Add(receiveTab);
-			Actions.Add(coinjoinTab);
-			Actions.Add(historyTab);
+			Actions.Add(_receiveTab);
+			Actions.Add(_coinjoinTab);
+			Actions.Add(_historyTab);
 
 			Actions.Add(advancedAction);
-			advancedAction.Items.Add(infoTab);
-			advancedAction.Items.Add(buildTab);
+			advancedAction.Items.Add(_infoTab);
+			advancedAction.Items.Add(_buildTab);
+		}
+
+		public Global Global { get; }
+		public KeyManager KeyManager => Wallet.KeyManager;
+		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
+
+		public ObservableCollection<ViewModelBase> Actions
+		{
+			get => _actions;
+			set => this.RaiseAndSetIfChanged(ref _actions, value);
+		}
+
+		private CompositeDisposable Disposables { get; set; }
+
+		public void OpenWallet(bool receiveDominant, bool firstWalletOpened)
+		{
+			IsExpanded = true;
+
+			if (!firstWalletOpened)
+			{
+				return;
+			}
 
 			var shell = IoC.Get<IShell>();
 
-			if (sendTab is { })
+			if (_sendTab is { })
 			{
-				shell.AddOrSelectDocument(sendTab);
+				shell.AddOrSelectDocument(_sendTab);
 			}
 
-			shell.AddOrSelectDocument(receiveTab);			
-			shell.AddOrSelectDocument(coinjoinTab);
-			shell.AddOrSelectDocument(historyTab);			
+			shell.AddOrSelectDocument(_receiveTab);
+			shell.AddOrSelectDocument(_coinjoinTab);
+			shell.AddOrSelectDocument(_historyTab);
 
 			// Select tab
 			if (receiveDominant)
 			{
-				shell.AddOrSelectDocument(receiveTab);
+				shell.AddOrSelectDocument(_receiveTab);
 			}
 			else
 			{
 				WasabiDocumentTabViewModel tabToOpen = Global.UiConfig.LastActiveTab switch
 				{
-					nameof(SendTabViewModel) => sendTab,
-					nameof(ReceiveTabViewModel) => receiveTab,
-					nameof(CoinJoinTabViewModel) => coinjoinTab,
-					nameof(BuildTabViewModel) => buildTab,
-					_ => historyTab
+					nameof(SendTabViewModel) => _sendTab,
+					nameof(ReceiveTabViewModel) => _receiveTab,
+					nameof(CoinJoinTabViewModel) => _coinjoinTab,
+					nameof(BuildTabViewModel) => _buildTab,
+					_ => _historyTab
 				};
 
 				if (tabToOpen is { })
@@ -132,8 +145,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					shell.AddOrSelectDocument(tabToOpen);
 				}
 			}
-
-			IsExpanded = true;
 		}
 	}
 }
