@@ -107,28 +107,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				shell.AddOrSelectDocument(sendTab);
 			}
 
-			if (receiveTab is { })
-			{
-				shell.AddOrSelectDocument(receiveTab);
-			}
-
-			if (coinjoinTab is { })
-			{
-				shell.AddOrSelectDocument(coinjoinTab);
-			}
-
-			if (historyTab is { })
-			{
-				shell.AddOrSelectDocument(historyTab);
-			}
+			shell.AddOrSelectDocument(receiveTab);			
+			shell.AddOrSelectDocument(coinjoinTab);
+			shell.AddOrSelectDocument(historyTab);			
 
 			// Select tab
 			if (receiveDominant)
 			{
-				if (receiveTab is { })
-				{
-					shell.AddOrSelectDocument(receiveTab);
-				}
+				shell.AddOrSelectDocument(receiveTab);
 			}
 			else
 			{
