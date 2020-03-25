@@ -81,11 +81,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			SelectedCategory = Categories.First(x => x is LoadWalletViewModel model && model.LoadWalletType == LoadWalletType.Password);
 		}
 
-		public void SelectHardwareWallet()
-		{
-			SelectedCategory = Categories.First(x => x is LoadWalletViewModel model && model.LoadWalletType == LoadWalletType.Hardware);
-		}
-
 		public ViewModelBase CurrentView
 		{
 			get => _currentView;
