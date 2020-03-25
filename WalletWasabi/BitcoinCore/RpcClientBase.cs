@@ -99,6 +99,11 @@ namespace WalletWasabi.BitcoinCore
 			return new RpcClientBase(Rpc.PrepareBatch());
 		}
 
+		public virtual Task<RPCResponse> SendCommandAsync(RPCOperations operations, params object[] parameters)
+		{
+			return Rpc.SendCommandAsync(operations, parameters);
+		}
+
 		#region For Testing Only
 
 		public virtual async Task<uint256> SendToAddressAsync(BitcoinAddress address, Money amount, string commentTx = null, string commentDest = null, bool subtractFeeFromAmount = false, bool replaceable = false)
