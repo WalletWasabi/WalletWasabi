@@ -47,6 +47,15 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 			Owner = owner;
 			Wallets = new ObservableCollection<HardwareWalletViewModel>();
 
+			this.WhenAnyValue(x => x.SelectedWallet)
+				.Subscribe(_ => TrySetWalletStates());
+
+			this.WhenAnyValue(x => x.IsWalletOpened)
+				.Subscribe(_ => TrySetWalletStates());
+
+			this.WhenAnyValue(x => x.IsBusy)
+				.Subscribe(_ => TrySetWalletStates());
+
 			ImportColdcardCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				var ofd = new OpenFileDialog
@@ -105,7 +114,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 					owner.SelectLoadWallet();
 				}
 			});
-
 			EnumerateHardwareWalletsCommand = ReactiveCommand.CreateFromTask(async () => await EnumerateIfHardwareWalletsAsync());
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 			LoadCommand = ReactiveCommand.CreateFromTask(LoadWalletAsync, this.WhenAnyValue(x => x.CanLoadWallet));
