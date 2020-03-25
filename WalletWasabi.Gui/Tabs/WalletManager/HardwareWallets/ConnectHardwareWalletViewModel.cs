@@ -21,10 +21,12 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
+using WalletWasabi.Gui.Models.StatusBarStatuses;
 using WalletWasabi.Gui.Tabs.WalletManager.LoadWallets;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi;
+using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
@@ -134,7 +136,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 		}
 
 		public LoadWalletType LoadWalletType { get; }
-		public bool IsPasswordRequired => LoadWalletType == LoadWalletType.Password;
 		public bool IsHardwareWallet => LoadWalletType == LoadWalletType.Hardware;
 		public bool IsDesktopWallet => LoadWalletType == LoadWalletType.Desktop;
 
@@ -257,7 +258,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 
 			foreach (var wallet in Global.WalletManager
 				.GetKeyManagers()
-				.Where(x => !IsPasswordRequired || !x.IsWatchOnly) // If password isn't required then add the wallet, otherwise add only not watchonly wallets.
+				.Where(x => !x.IsWatchOnly) // If password isn't required then add the wallet, otherwise add only not watchonly wallets.
 				.OrderByDescending(x => x.GetLastAccessTime())
 				.Select(x => new LoadWalletEntry(x.WalletName)))
 			{
