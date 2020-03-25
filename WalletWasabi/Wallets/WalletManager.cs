@@ -40,6 +40,37 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
+		/// <summary>
+		/// Triggered if any of the Wallets processes a transaction. The sender of the event will be the Wallet.
+		/// </summary>
+		public event EventHandler<ProcessedResult> WalletRelevantTransactionProcessed;
+
+		/// <summary>
+		/// Triggered if any of the Wallets dequeues one or more coins. The sender of the event will be the Wallet.
+		/// </summary>
+		public event EventHandler<DequeueResult> OnDequeue;
+
+		/// <summary>
+		/// Triggered if any of the Wallets changes its state. The sender of the event will be the Wallet.
+		/// </summary>
+		public event EventHandler<WalletState> WalletStateChanged;
+
+		private CancellationTokenSource CancelAllInitialization { get; }
+
+		private Dictionary<Wallet, HashSet<uint256>> Wallets { get; }
+		private object Lock { get; }
+		private AsyncLock StartStopWalletLock { get; }
+
+		private BitcoinStore BitcoinStore { get; set; }
+		private WasabiSynchronizer Synchronizer { get; set; }
+		private NodesGroup Nodes { get; set; }
+		private ServiceConfiguration ServiceConfiguration { get; set; }
+
+		private IFeeProvider FeeProvider { get; set; }
+		private CoreNode BitcoinCoreNode { get; set; }
+		public Network Network { get; }
+		public WalletDirectories WalletDirectories { get; }
+
 		private void RefreshWalletList()
 		{
 			foreach (var fileInfo in WalletDirectories.EnumerateWalletFiles())
@@ -62,21 +93,6 @@ namespace WalletWasabi.Wallets
 				}
 			}
 		}
-
-		private CancellationTokenSource CancelAllInitialization { get; }
-
-		public event EventHandler<ProcessedResult> WalletRelevantTransactionProcessed;
-
-		public event EventHandler<DequeueResult> OnDequeue;
-
-		private Dictionary<Wallet, HashSet<uint256>> Wallets { get; }
-		private object Lock { get; }
-		private AsyncLock StartStopWalletLock { get; }
-
-		private BitcoinStore BitcoinStore { get; set; }
-		private WasabiSynchronizer Synchronizer { get; set; }
-		private NodesGroup Nodes { get; set; }
-		private ServiceConfiguration ServiceConfiguration { get; set; }
 
 		public void SignalQuitPending(bool isQuitPending)
 		{
@@ -120,11 +136,6 @@ namespace WalletWasabi.Wallets
 			return labels;
 		}
 
-		private IFeeProvider FeeProvider { get; set; }
-		private CoreNode BitcoinCoreNode { get; set; }
-		public Network Network { get; }
-		public WalletDirectories WalletDirectories { get; }
-
 		public Wallet GetFirstOrDefaultWallet()
 		{
 			lock (Lock)
@@ -151,12 +162,12 @@ namespace WalletWasabi.Wallets
 				Wallets.Single(x => x.Key == wallet);
 			}
 
+			wallet.RegisterServices(BitcoinStore, Synchronizer, Nodes, ServiceConfiguration, FeeProvider, BitcoinCoreNode);
+
 			using (await StartStopWalletLock.LockAsync(CancelAllInitialization.Token).ConfigureAwait(false))
 			{
 				try
 				{
-					wallet.RegisterServices(BitcoinStore, Synchronizer, Nodes, ServiceConfiguration, FeeProvider, BitcoinCoreNode);
-
 					var cancel = CancelAllInitialization.Token;
 					Logger.LogInfo($"Starting {nameof(Wallet)}...");
 					await wallet.StartAsync(cancel).ConfigureAwait(false);
@@ -250,6 +261,7 @@ namespace WalletWasabi.Wallets
 
 			wallet.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
 			wallet.OnDequeue += ChaumianClient_OnDequeue;
+			wallet.StateChanged += Wallet_StateChanged;
 		}
 
 		public async Task DequeueAllCoinsGracefullyAsync(DequeueReason reason, CancellationToken token)
@@ -270,6 +282,11 @@ namespace WalletWasabi.Wallets
 		private void TransactionProcessor_WalletRelevantTransactionProcessed(object sender, ProcessedResult e)
 		{
 			WalletRelevantTransactionProcessed?.Invoke(sender, e);
+		}
+
+		private void Wallet_StateChanged(object sender, WalletState e)
+		{
+			WalletStateChanged?.Invoke(sender, e);
 		}
 
 		public async Task RemoveAndStopAllAsync(CancellationToken cancel)
@@ -300,6 +317,7 @@ namespace WalletWasabi.Wallets
 
 					wallet.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
 					wallet.OnDequeue -= ChaumianClient_OnDequeue;
+					wallet.StateChanged -= Wallet_StateChanged;
 
 					lock (Lock)
 					{

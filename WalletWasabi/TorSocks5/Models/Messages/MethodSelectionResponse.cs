@@ -6,15 +6,7 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 {
 	public class MethodSelectionResponse : ByteArraySerializableBase
 	{
-		#region PropertiesAndMembers
-
-		public VerField Ver { get; set; }
-
-		public MethodField Method { get; set; }
-
-		#endregion PropertiesAndMembers
-
-		#region ConstructorsAndInitializers
+		#region Constructors
 
 		public MethodSelectionResponse()
 		{
@@ -26,7 +18,15 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 			Ver = VerField.Socks5;
 		}
 
-		#endregion ConstructorsAndInitializers
+		#endregion Constructors
+
+		#region PropertiesAndMembers
+
+		public VerField Ver { get; set; }
+
+		public MethodField Method { get; set; }
+
+		#endregion PropertiesAndMembers
 
 		#region Serialization
 

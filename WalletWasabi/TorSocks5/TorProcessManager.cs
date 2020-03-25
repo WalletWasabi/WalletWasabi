@@ -17,15 +17,9 @@ namespace WalletWasabi.TorSocks5
 	public class TorProcessManager
 	{
 		/// <summary>
-		/// If null then it's just a mock, clearnet is used.
+		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
 		/// </summary>
-		public EndPoint TorSocks5EndPoint { get; }
-
-		public string LogFile { get; }
-
-		public static bool RequestFallbackAddressUsage { get; private set; } = false;
-
-		public Process TorProcess { get; private set; }
+		private long _running;
 
 		/// <param name="torSocks5EndPoint">Opt out Tor with null.</param>
 		/// <param name="logFile">Opt out of logging with null.</param>
@@ -37,6 +31,21 @@ namespace WalletWasabi.TorSocks5
 			Stop = new CancellationTokenSource();
 			TorProcess = null;
 		}
+
+		/// <summary>
+		/// If null then it's just a mock, clearnet is used.
+		/// </summary>
+		public EndPoint TorSocks5EndPoint { get; }
+
+		public string LogFile { get; }
+
+		public static bool RequestFallbackAddressUsage { get; private set; } = false;
+
+		public Process TorProcess { get; private set; }
+
+		public bool IsRunning => Interlocked.Read(ref _running) == 1;
+
+		private CancellationTokenSource Stop { get; set; }
 
 		public static TorProcessManager Mock() // Mock, do not use Tor at all for debug.
 		{
@@ -229,15 +238,6 @@ namespace WalletWasabi.TorSocks5
 		}
 
 		#region Monitor
-
-		/// <summary>
-		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
-		/// </summary>
-		private long _running;
-
-		public bool IsRunning => Interlocked.Read(ref _running) == 1;
-
-		private CancellationTokenSource Stop { get; set; }
 
 		public void StartMonitor(TimeSpan torMisbehaviorCheckPeriod, TimeSpan checkIfRunningAfterTorMisbehavedFor, string dataDirToStartWith, Uri fallBackTestRequestUri)
 		{

@@ -9,17 +9,7 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 {
 	public class VersionMethodRequest : ByteArraySerializableBase
 	{
-		#region PropertiesAndMembers
-
-		public VerField Ver { get; set; }
-
-		public NMethodsField NMethods { get; set; }
-
-		public MethodsField Methods { get; set; }
-
-		#endregion PropertiesAndMembers
-
-		#region ConstructorsAndInitializers
+		#region Constructors
 
 		public VersionMethodRequest()
 		{
@@ -37,7 +27,17 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 			NMethods = nMethods;
 		}
 
-		#endregion ConstructorsAndInitializers
+		#endregion Constructors
+
+		#region PropertiesAndMembers
+
+		public VerField Ver { get; set; }
+
+		public NMethodsField NMethods { get; set; }
+
+		public MethodsField Methods { get; set; }
+
+		#endregion PropertiesAndMembers
 
 		#region Serialization
 

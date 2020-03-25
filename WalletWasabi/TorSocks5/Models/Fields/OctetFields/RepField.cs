@@ -5,6 +5,14 @@ namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields
 {
 	public class RepField : OctetSerializableBase
 	{
+		#region Constructors
+
+		public RepField()
+		{
+		}
+
+		#endregion Constructors
+
 		#region Statics
 
 		// https://www.ietf.org/rfc/rfc1928.txt
@@ -111,14 +119,6 @@ namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields
 		}
 
 		#endregion Statics
-
-		#region ConstructorsAndInitializers
-
-		public RepField()
-		{
-		}
-
-		#endregion ConstructorsAndInitializers
 
 		#region Serialization
 
