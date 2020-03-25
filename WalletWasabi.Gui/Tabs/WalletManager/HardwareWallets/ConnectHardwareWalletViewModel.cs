@@ -27,9 +27,11 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 {
-	public class ConnectHardwareWalletViewModel : LoadWalletViewModel
+	public class ConnectHardwareWalletViewModel : CategoryViewModel
 	{
-		public ConnectHardwareWalletViewModel(WalletManagerViewModel owner) : base(owner, LoadWalletType.Hardware)
+		private bool _isHwWalletSearchTextVisible;
+
+		public ConnectHardwareWalletViewModel(WalletManagerViewModel owner) : base("Hardware Wallet")
 		{
 			Global = Locator.Current.GetService<Global>();
 			Owner = owner;
@@ -113,7 +115,38 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
 		public string UDevRulesLink => "https://github.com/bitcoin-core/HWI/tree/master/hwilib/udev";
 		public bool IsLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+
+		public bool IsHwWalletSearchTextVisible
+		{
+			get => _isHwWalletSearchTextVisible;
+			set => this.RaiseAndSetIfChanged(ref _isHwWalletSearchTextVisible, value);
+		}
+
 		private Global Global { get; }
 		private WalletManagerViewModel Owner { get; }
+
+		protected async Task EnumerateIfHardwareWalletsAsync()
+		{
+			var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+			IsHwWalletSearchTextVisible = true;
+			try
+			{
+				var client = new HwiClient(Global.Network);
+				var devices = await client.EnumerateAsync(cts.Token);
+
+				Wallets.Clear();
+				foreach (var dev in devices)
+				{
+					var walletEntry = new LoadWalletEntry(dev);
+					Wallets.Add(walletEntry);
+				}
+				TrySetWalletStates();
+			}
+			finally
+			{
+				IsHwWalletSearchTextVisible = false;
+				cts.Dispose();
+			}
+		}
 	}
 }

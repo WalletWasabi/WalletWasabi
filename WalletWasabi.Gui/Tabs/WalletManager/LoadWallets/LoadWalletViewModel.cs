@@ -49,10 +49,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 		private bool _isBusy;
 		private bool _isHardwareBusy;
 		private string _loadButtonText;
-		private bool _isHwWalletSearchTextVisible;
 
 		public LoadWalletViewModel(WalletManagerViewModel owner, LoadWalletType loadWalletType)
-			: base(loadWalletType == LoadWalletType.Password ? "Test Password" : loadWalletType == LoadWalletType.Desktop ? "Load Wallet" : "Hardware Wallet")
+			: base(loadWalletType == LoadWalletType.Password ? "Test Password" : "Load Wallet")
 		{
 			Global = Locator.Current.GetService<Global>();
 
@@ -60,7 +59,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			Password = "";
 			LoadWalletType = loadWalletType;
 			Wallets = new ObservableCollection<LoadWalletEntry>();
-			IsHwWalletSearchTextVisible = false;
 
 			this.WhenAnyValue(x => x.SelectedWallet)
 				.Subscribe(_ => TrySetWalletStates());
@@ -93,12 +91,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 		public bool IsPasswordRequired => LoadWalletType == LoadWalletType.Password;
 		public bool IsHardwareWallet => LoadWalletType == LoadWalletType.Hardware;
 		public bool IsDesktopWallet => LoadWalletType == LoadWalletType.Desktop;
-
-		public bool IsHwWalletSearchTextVisible
-		{
-			get => _isHwWalletSearchTextVisible;
-			set => this.RaiseAndSetIfChanged(ref _isHwWalletSearchTextVisible, value);
-		}
 
 		public ObservableCollection<LoadWalletEntry> Wallets
 		{
@@ -505,34 +497,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			}
 
 			return false;
-		}
-
-		protected async Task EnumerateIfHardwareWalletsAsync()
-		{
-			if (!IsHardwareWallet)
-			{
-				return;
-			}
-			var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-			IsHwWalletSearchTextVisible = true;
-			try
-			{
-				var client = new HwiClient(Global.Network);
-				var devices = await client.EnumerateAsync(cts.Token);
-
-				Wallets.Clear();
-				foreach (var dev in devices)
-				{
-					var walletEntry = new LoadWalletEntry(dev);
-					Wallets.Add(walletEntry);
-				}
-				TrySetWalletStates();
-			}
-			finally
-			{
-				IsHwWalletSearchTextVisible = false;
-				cts.Dispose();
-			}
 		}
 
 		private bool TryFindWalletByExtPubKey(ExtPubKey extPubKey, out string walletName)
