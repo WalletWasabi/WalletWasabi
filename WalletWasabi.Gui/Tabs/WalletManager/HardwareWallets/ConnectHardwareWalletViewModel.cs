@@ -32,12 +32,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 	public class ConnectHardwareWalletViewModel : CategoryViewModel
 	{
 		private ObservableCollection<LoadWalletEntry> _wallets;
-		private string _password;
 		private LoadWalletEntry _selectedWallet;
 		private bool _isWalletSelected;
 		private bool _isWalletOpened;
 		private bool _canLoadWallet;
-		private bool _canTestPassword;
 		private bool _isBusy;
 		private bool _isHardwareBusy;
 		private string _loadButtonText;
@@ -182,12 +180,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 			set => this.RaiseAndSetIfChanged(ref _canLoadWallet, value);
 		}
 
-		public bool CanTestPassword
-		{
-			get => _canTestPassword;
-			set => this.RaiseAndSetIfChanged(ref _canTestPassword, value);
-		}
-
 		public bool IsBusy
 		{
 			get => _isBusy;
@@ -262,7 +254,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 			}
 
 			Wallets.Clear();
-			Password = "";
 
 			foreach (var wallet in Global.WalletManager
 				.GetKeyManagers()
@@ -285,10 +276,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 		{
 			try
 			{
-				CanTestPassword = false;
-				var password = Guard.Correct(Password); // Do not let whitespaces to the beginning and to the end.
-				Password = ""; // Clear password field.
-
 				var selectedWallet = SelectedWallet;
 				if (selectedWallet is null)
 				{
@@ -413,34 +400,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 
 				KeyManager keyManager = Global.WalletManager.GetWalletByName(walletName).KeyManager;
 
-				// Only check requirepassword here, because the above checks are applicable to loadwallet, too and we are using this function from load wallet.
-				if (IsPasswordRequired)
-				{
-					if (PasswordHelper.TryPassword(keyManager, password, out string compatibilityPasswordUsed))
-					{
-						NotificationHelpers.Success("Correct password.");
-						if (compatibilityPasswordUsed != null)
-						{
-							NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
-						}
-
-						keyManager.SetPasswordVerified();
-					}
-					else
-					{
-						NotificationHelpers.Error("Wrong password.");
-						return null;
-					}
-				}
-				else
-				{
-					if (keyManager.PasswordVerified == false)
-					{
-						Owner.SelectTestPassword();
-						return null;
-					}
-				}
-
 				return keyManager;
 			}
 			catch (Exception ex)
@@ -459,10 +418,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 				Logger.LogError(ex);
 
 				return null;
-			}
-			finally
-			{
-				CanTestPassword = IsWalletSelected;
 			}
 		}
 
@@ -518,7 +473,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 				}
 
 				IsWalletSelected = SelectedWallet != null;
-				CanTestPassword = IsWalletSelected;
 
 				if (Global.WalletManager.AnyWallet())
 				{
