@@ -32,6 +32,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 	{
 		private bool _isHwWalletSearchTextVisible;
 		private HardwareWalletViewModel _selectedWallet;
+		private string _loadButtonText;
+		private bool _isHardwareBusy;
+		private bool _isBusy;
 
 		public ConnectHardwareWalletViewModel(WalletManagerViewModel owner) : base("Hardware Wallet")
 		{
@@ -100,8 +103,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 
 			EnumerateHardwareWalletsCommand = ReactiveCommand.CreateFromTask(async () => await EnumerateIfHardwareWalletsAsync());
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
+			LoadCommand = ReactiveCommand.CreateFromTask(LoadWalletAsync, this.WhenAnyValue(x => x.CanLoadWallet));
 
 			Observable
+				.Merge(LoadCommand.ThrownExceptions)
 				.Merge(OpenBrowserCommand.ThrownExceptions)
 				.Merge(ImportColdcardCommand.ThrownExceptions)
 				.Merge(EnumerateHardwareWalletsCommand.ThrownExceptions)
@@ -116,6 +121,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 		public ReactiveCommand<Unit, Unit> ImportColdcardCommand { get; set; }
 		public ReactiveCommand<Unit, Unit> EnumerateHardwareWalletsCommand { get; set; }
 		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
+		public ReactiveCommand<Unit, Unit> LoadCommand { get; }
 		public string UDevRulesLink => "https://github.com/bitcoin-core/HWI/tree/master/hwilib/udev";
 		public bool IsLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 
@@ -129,6 +135,36 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 		{
 			get => _selectedWallet;
 			set => this.RaiseAndSetIfChanged(ref _selectedWallet, value);
+		}
+
+		public bool IsBusy
+		{
+			get => _isBusy;
+			set => this.RaiseAndSetIfChanged(ref _isBusy, value);
+		}
+
+		public bool IsHardwareBusy
+		{
+			get => _isHardwareBusy;
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _isHardwareBusy, value);
+
+				try
+				{
+					TrySetWalletStates();
+				}
+				catch (Exception ex)
+				{
+					Logger.LogInfo(ex);
+				}
+			}
+		}
+
+		public string LoadButtonText
+		{
+			get => _loadButtonText;
+			set => this.RaiseAndSetIfChanged(ref _loadButtonText, value);
 		}
 
 		private Global Global { get; }
