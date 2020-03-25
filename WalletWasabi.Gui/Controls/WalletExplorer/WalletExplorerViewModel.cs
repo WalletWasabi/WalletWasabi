@@ -122,7 +122,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private WalletViewModelBase OpenWallet(Wallet wallet, bool receiveDominant, bool select = true)
+		private WalletViewModelBase OpenWallet(Wallet wallet, bool receiveDominant)
 		{
 			if (_wallets.OfType<WalletViewModel>().Any(x => x.Title == wallet.WalletName))
 			{
