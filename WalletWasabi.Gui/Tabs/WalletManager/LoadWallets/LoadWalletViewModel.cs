@@ -450,16 +450,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 					var wallet = await Task.Run(async () => await Global.WalletManager.StartWalletAsync(keyManager));
 					// Successfully initialized.
 					Owner.OnClose();
-					// Open Wallet Explorer tabs
-					if (wallet.Coins.Any())
-					{
-						// If already have coins then open the last active tab first.
-						IoC.Get<WalletExplorerViewModel>().OpenWallet(wallet, receiveDominant: false);
-					}
-					else // Else open with Receive tab first.
-					{
-						IoC.Get<WalletExplorerViewModel>().OpenWallet(wallet, receiveDominant: true);
-					}
 				}
 				catch (Exception ex)
 				{
