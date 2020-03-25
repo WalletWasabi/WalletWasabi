@@ -8,6 +8,7 @@ using ReactiveUI;
 using Splat;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reactive;
@@ -35,6 +36,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 		{
 			Global = Locator.Current.GetService<Global>();
 			Owner = owner;
+			Wallets = new ObservableCollection<HardwareWalletViewModel>();
 
 			ImportColdcardCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -124,6 +126,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 
 		private Global Global { get; }
 		private WalletManagerViewModel Owner { get; }
+		public ObservableCollection<HardwareWalletViewModel> Wallets { get; }
 
 		protected async Task EnumerateIfHardwareWalletsAsync()
 		{
@@ -137,7 +140,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 				Wallets.Clear();
 				foreach (var dev in devices)
 				{
-					var walletEntry = new LoadWalletEntry(dev);
+					var walletEntry = new HardwareWalletViewModel(dev);
 					Wallets.Add(walletEntry);
 				}
 				TrySetWalletStates();
