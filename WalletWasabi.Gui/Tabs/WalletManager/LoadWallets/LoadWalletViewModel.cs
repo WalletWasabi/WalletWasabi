@@ -74,10 +74,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			LoadCommand = ReactiveCommand.CreateFromTask(LoadWalletAsync, this.WhenAnyValue(x => x.CanLoadWallet));
 			TestPasswordCommand = ReactiveCommand.CreateFromTask(LoadKeyManagerAsync, this.WhenAnyValue(x => x.CanTestPassword));
 			OpenFolderCommand = ReactiveCommand.Create(OpenWalletsFolder);
-			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 
 			Observable
-				.Merge(OpenBrowserCommand.ThrownExceptions)
 				.Merge(LoadCommand.ThrownExceptions)
 				.Merge(TestPasswordCommand.ThrownExceptions)
 				.Merge(OpenFolderCommand.ThrownExceptions)
@@ -91,13 +89,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			SetLoadButtonText();
 		}
 
-		public bool IsLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
-
 		public LoadWalletType LoadWalletType { get; }
 		public bool IsPasswordRequired => LoadWalletType == LoadWalletType.Password;
 		public bool IsHardwareWallet => LoadWalletType == LoadWalletType.Hardware;
 		public bool IsDesktopWallet => LoadWalletType == LoadWalletType.Desktop;
-		public string UDevRulesLink => "https://github.com/bitcoin-core/HWI/tree/master/hwilib/udev";
 
 		public bool IsHwWalletSearchTextVisible
 		{
@@ -180,8 +175,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 
 		public ReactiveCommand<Unit, Unit> LoadCommand { get; }
 		public ReactiveCommand<Unit, KeyManager> TestPasswordCommand { get; }
-
-		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
 		public ReactiveCommand<Unit, Unit> OpenFolderCommand { get; }
 		private WalletManagerViewModel Owner { get; }
 

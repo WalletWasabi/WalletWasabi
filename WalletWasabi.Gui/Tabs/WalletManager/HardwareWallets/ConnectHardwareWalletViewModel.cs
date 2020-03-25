@@ -94,12 +94,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 			});
 
 			EnumerateHardwareWalletsCommand = ReactiveCommand.CreateFromTask(async () => await EnumerateIfHardwareWalletsAsync());
+			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 
 			Observable
 				.Merge(OpenBrowserCommand.ThrownExceptions)
-				.Merge(LoadCommand.ThrownExceptions)
-				.Merge(TestPasswordCommand.ThrownExceptions)
-				.Merge(OpenFolderCommand.ThrownExceptions)
 				.Merge(ImportColdcardCommand.ThrownExceptions)
 				.Merge(EnumerateHardwareWalletsCommand.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -112,6 +110,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 
 		public ReactiveCommand<Unit, Unit> ImportColdcardCommand { get; set; }
 		public ReactiveCommand<Unit, Unit> EnumerateHardwareWalletsCommand { get; set; }
+		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
+		public string UDevRulesLink => "https://github.com/bitcoin-core/HWI/tree/master/hwilib/udev";
+		public bool IsLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 		private Global Global { get; }
 		private WalletManagerViewModel Owner { get; }
 	}
