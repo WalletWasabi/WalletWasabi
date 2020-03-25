@@ -4,6 +4,14 @@ namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields
 {
 	public class CmdField : OctetSerializableBase
 	{
+		#region Constructors
+
+		public CmdField()
+		{
+		}
+
+		#endregion Constructors
+
 		#region Statics
 
 		// https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt
@@ -54,13 +62,5 @@ namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields
 		}
 
 		#endregion Statics
-
-		#region ConstructorsAndInitializers
-
-		public CmdField()
-		{
-		}
-
-		#endregion ConstructorsAndInitializers
 	}
 }

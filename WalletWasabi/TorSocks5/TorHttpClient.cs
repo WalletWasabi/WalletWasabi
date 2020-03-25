@@ -24,6 +24,19 @@ namespace WalletWasabi.TorSocks5
 	{
 		private static DateTimeOffset? TorDoesntWorkSinceBacking = null;
 
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		public TorHttpClient(Uri baseUri, EndPoint torSocks5EndPoint, bool isolateStream = false)
+		{
+			baseUri = Guard.NotNull(nameof(baseUri), baseUri);
+			Create(torSocks5EndPoint, isolateStream, () => baseUri);
+		}
+
+		public TorHttpClient(Func<Uri> baseUriAction, EndPoint torSocks5EndPoint, bool isolateStream = false)
+		{
+			Create(torSocks5EndPoint, isolateStream, baseUriAction);
+		}
+
 		public static DateTimeOffset? TorDoesntWorkSince
 		{
 			get => TorDoesntWorkSinceBacking;
@@ -52,17 +65,6 @@ namespace WalletWasabi.TorSocks5
 		public TorSocks5Client TorSocks5Client { get; private set; }
 
 		private static AsyncLock AsyncLock { get; } = new AsyncLock(); // We make everything synchronous, so slow, but at least stable.
-
-		public TorHttpClient(Uri baseUri, EndPoint torSocks5EndPoint, bool isolateStream = false)
-		{
-			baseUri = Guard.NotNull(nameof(baseUri), baseUri);
-			Create(torSocks5EndPoint, isolateStream, () => baseUri);
-		}
-
-		public TorHttpClient(Func<Uri> baseUriAction, EndPoint torSocks5EndPoint, bool isolateStream = false)
-		{
-			Create(torSocks5EndPoint, isolateStream, baseUriAction);
-		}
 
 		private void Create(EndPoint torSocks5EndPoint, bool isolateStream, Func<Uri> baseUriAction)
 		{
@@ -267,8 +269,6 @@ namespace WalletWasabi.TorSocks5
 		}
 
 		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
 
 		protected virtual void Dispose(bool disposing)
 		{

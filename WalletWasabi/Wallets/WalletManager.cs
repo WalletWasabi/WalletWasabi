@@ -162,12 +162,12 @@ namespace WalletWasabi.Wallets
 				Wallets.Single(x => x.Key == wallet);
 			}
 
+			wallet.RegisterServices(BitcoinStore, Synchronizer, Nodes, ServiceConfiguration, FeeProvider, BitcoinCoreNode);
+
 			using (await StartStopWalletLock.LockAsync(CancelAllInitialization.Token).ConfigureAwait(false))
 			{
 				try
 				{
-					wallet.RegisterServices(BitcoinStore, Synchronizer, Nodes, ServiceConfiguration, FeeProvider, BitcoinCoreNode);
-
 					var cancel = CancelAllInitialization.Token;
 					Logger.LogInfo($"Starting {nameof(Wallet)}...");
 					await wallet.StartAsync(cancel).ConfigureAwait(false);
