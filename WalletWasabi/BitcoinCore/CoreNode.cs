@@ -67,7 +67,7 @@ namespace WalletWasabi.BitcoinCore
 				string rpcUser = configTranslator.TryGetRpcUser();
 				string rpcPassword = configTranslator.TryGetRpcPassword();
 				string rpcCookieFilePath = configTranslator.TryGetRpcCookieFile();
-				string rpcHost = IPAddress.Loopback.ToString();
+				string rpcHost = configTranslator.TryGetRpcBind();
 				int? rpcPort = configTranslator.TryGetRpcPort();
 				WhiteBind whiteBind = configTranslator.TryGetWhiteBind();
 
@@ -115,6 +115,8 @@ namespace WalletWasabi.BitcoinCore
 					$"{configPrefix}.server			= 1",
 					$"{configPrefix}.listen			= 1",
 					$"{configPrefix}.whitebind		= {whiteBindPermissionsPart}{coreNode.P2pEndPoint.ToString(coreNode.Network.DefaultPort)}",
+					$"{configPrefix}.rpcbind		= {coreNode.RpcEndPoint.GetHostOrDefault()}",
+					$"{configPrefix}.rpcallowip		= {IPAddress.Loopback}",
 					$"{configPrefix}.rpcport		= {coreNode.RpcEndPoint.GetPortOrDefault()}"
 				};
 
@@ -189,7 +191,10 @@ namespace WalletWasabi.BitcoinCore
 				throw new BitcoindException($"'bitcoind {arguments}' exited with incorrect exit code: {exitCode}.");
 			}
 			var firstLine = responseString.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).First();
-			string versionString = firstLine.Split("version v", StringSplitOptions.RemoveEmptyEntries).Last();
+			string versionString = firstLine
+				.Split("version v", StringSplitOptions.RemoveEmptyEntries)
+				.Last()
+				.Split(".knots", StringSplitOptions.RemoveEmptyEntries).First();
 			var version = new Version(versionString);
 			return version;
 		}

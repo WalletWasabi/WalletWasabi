@@ -19,7 +19,7 @@
             <controls:ExtendedTextBox Text="{Binding BackendMajorVersion}" Classes="selectableTextBlock" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
-            <TextBlock Text="Compatible Bitcoin Core Version: " />
+            <TextBlock Text="Compatible Bitcoin Core and Bitcoin Knots Versions: " />
             <controls:ExtendedTextBox Text="{Binding BitcoinCoreVersion, Converter={StaticResource VersionStringConverter}}" Classes="selectableTextBlock" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
