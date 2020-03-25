@@ -31,6 +31,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 	public class ConnectHardwareWalletViewModel : CategoryViewModel
 	{
 		private bool _isHwWalletSearchTextVisible;
+		private HardwareWalletViewModel _selectedWallet;
 
 		public ConnectHardwareWalletViewModel(WalletManagerViewModel owner) : base("Hardware Wallet")
 		{
@@ -122,6 +123,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 		{
 			get => _isHwWalletSearchTextVisible;
 			set => this.RaiseAndSetIfChanged(ref _isHwWalletSearchTextVisible, value);
+		}
+
+		public HardwareWalletViewModel SelectedWallet
+		{
+			get => _selectedWallet;
+			set => this.RaiseAndSetIfChanged(ref _selectedWallet, value);
 		}
 
 		private Global Global { get; }
