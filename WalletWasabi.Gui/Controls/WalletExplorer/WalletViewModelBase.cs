@@ -42,7 +42,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					switch (x)
 					{
-						case WalletState.Initialized:
 						case WalletState.Started:
 						case WalletState.Stopped:
 						case WalletState.Uninitialized:
