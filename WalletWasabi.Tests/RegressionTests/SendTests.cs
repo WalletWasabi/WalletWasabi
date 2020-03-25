@@ -751,13 +751,8 @@ namespace WalletWasabi.Tests.RegressionTests
 				Interlocked.Exchange(ref Common.FiltersProcessedByWalletCount, 0);
 				await rpc.GenerateAsync(1);
 				await Common.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
-				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
-				{
-					await wallet.StartAsync(cts.Token); // Initialize wallet service.
-				}
 
-				var coin = wallet.Coins.First();
-				Assert.Single(wallet.Coins);
+				var coin = Assert.Single(wallet.Coins);
 				Assert.True(coin.Confirmed);
 				Assert.False(coin.IsReplaceable);
 				Assert.Equal(tx2Id, coin.TransactionId);
