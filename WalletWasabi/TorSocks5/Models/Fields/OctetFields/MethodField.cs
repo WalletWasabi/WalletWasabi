@@ -4,6 +4,14 @@ namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields
 {
 	public class MethodField : OctetSerializableBase
 	{
+		#region Constructors
+
+		public MethodField()
+		{
+		}
+
+		#endregion Constructors
+
 		// https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt
 		// The "NO AUTHENTICATION REQUIRED" (SOCKS5) authentication method[00] is
 		// supported; and as of Tor 0.2.3.2-alpha, the "USERNAME/PASSWORD" (SOCKS5)
@@ -41,13 +49,5 @@ namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields
 				return method;
 			}
 		}
-
-		#region ConstructorsAndInitializers
-
-		public MethodField()
-		{
-		}
-
-		#endregion ConstructorsAndInitializers
 	}
 }

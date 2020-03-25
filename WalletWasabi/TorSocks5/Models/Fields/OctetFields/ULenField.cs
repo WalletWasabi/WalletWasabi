@@ -6,13 +6,7 @@ namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields
 {
 	public class ULenField : OctetSerializableBase
 	{
-		#region PropertiesAndMembers
-
-		public int Value => ByteValue;
-
-		#endregion PropertiesAndMembers
-
-		#region ConstructorsAndInitializers
+		#region Constructors
 
 		public ULenField()
 		{
@@ -23,7 +17,13 @@ namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields
 			ByteValue = (byte)Guard.InRangeAndNotNull(nameof(value), value, 0, 255);
 		}
 
-		#endregion ConstructorsAndInitializers
+		#endregion Constructors
+
+		#region PropertiesAndMembers
+
+		public int Value => ByteValue;
+
+		#endregion PropertiesAndMembers
 
 		#region Serialization
 
