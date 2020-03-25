@@ -498,15 +498,5 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 
 			return false;
 		}
-
-		private bool TryFindWalletByExtPubKey(ExtPubKey extPubKey, out string walletName)
-		{
-			walletName = Global.WalletManager.WalletDirectories
-				.EnumerateWalletFiles(includeBackupDir: true)
-				.FirstOrDefault(fi => KeyManager.TryGetExtPubKeyFromFile(fi.FullName, out ExtPubKey epk) && epk == extPubKey)
-				?.Name;
-
-			return walletName is { };
-		}
 	}
 }
