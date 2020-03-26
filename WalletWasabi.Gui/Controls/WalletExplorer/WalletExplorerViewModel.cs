@@ -55,6 +55,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				});
 
+			Observable.FromEventPattern<Wallet>(WalletManager, nameof(WalletManager.WalletAdded))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					Wallets.InsertSorted(new ClosedWalletViewModel(x.EventArgs));
+				});
+
 			var shell = IoC.Get<IShell>();
 
 			shell.WhenAnyValue(x => x.SelectedDocument)
