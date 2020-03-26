@@ -54,7 +54,7 @@
               </i:Interaction.Behaviors>
               <StackPanel.ContextMenu>
                 <ContextMenu>
-                  <MenuItem Header="Open Wallet" Command="{Binding OpenWalletCommand}" />
+                  <MenuItem Header="Load Wallet" Command="{Binding OpenWalletCommand}" />
                 </ContextMenu>
               </StackPanel.ContextMenu>
               <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_ClosedWallet}" />

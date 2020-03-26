@@ -57,6 +57,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				});
 
+			Observable.FromEventPattern<Wallet>(WalletManager, nameof(WalletManager.WalletAdded))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Select(x => x.EventArgs)
+				.Where(x => x is { })
+				.Subscribe(wallet =>
+				{
+					if (wallet.State <= WalletState.Starting)
+					{
+						Wallets.InsertSorted(new ClosedWalletViewModel(wallet));
+					}
+					else
+					{
+						Wallets.InsertSorted(new WalletViewModel(wallet));
+					}
+				});
+
 			CollapseAllCommand = ReactiveCommand.Create(() =>
 			{
 				foreach (var wallet in Wallets)
@@ -81,7 +97,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			shell.WhenAnyValue(x => x.SelectedDocument)
 				.Subscribe(x =>
 				{
-					if(x is ViewModelBase vmb)
+					if (x is ViewModelBase vmb)
 					{
 						SelectedItem = vmb;
 					}
@@ -144,7 +160,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			InsertWallet(walletViewModel);
 
-			walletViewModel.OpenWallet();
+			if (!WalletManager.AnyWallet(x => x.State >= WalletState.Starting && x != walletViewModel.Wallet))
+			{
+				walletViewModel.OpenWalletTabs();
+			}
+
+			walletViewModel.IsExpanded = true;
 
 			return walletViewModel;
 		}
