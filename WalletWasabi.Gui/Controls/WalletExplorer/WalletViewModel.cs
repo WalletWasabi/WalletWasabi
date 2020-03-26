@@ -120,7 +120,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			IsExpanded = true;
 			
-			if (WalletManager.AnyWallet())
+			if (WalletManager.AnyWallet(x=>x.State >= WalletState.Starting && x != Wallet))
 			{
 				return;
 			}
