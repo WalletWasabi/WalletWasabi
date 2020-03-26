@@ -268,7 +268,7 @@ namespace WalletWasabi.Wallets
 			wallet.OnDequeue += ChaumianClient_OnDequeue;
 			wallet.StateChanged += Wallet_StateChanged;
 
-			WalletAdded.Invoke(this, wallet);
+			WalletAdded?.Invoke(this, wallet);
 		}
 
 		public async Task DequeueAllCoinsGracefullyAsync(DequeueReason reason, CancellationToken token)
