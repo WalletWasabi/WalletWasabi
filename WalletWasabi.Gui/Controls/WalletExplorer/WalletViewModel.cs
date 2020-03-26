@@ -23,7 +23,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public WalletViewModel(Wallet wallet) : base(wallet)
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
-			
+
 			Actions = new ObservableCollection<ViewModelBase>();
 
 			UiConfig = Locator.Current.GetService<Global>().UiConfig;
@@ -58,7 +58,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				})
 				.DisposeWith(Disposables);
-			
+
 			// If hardware wallet then we need the Send tab.
 			if (Wallet.KeyManager.IsHardwareWallet is true)
 			{
@@ -104,7 +104,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private UiConfig UiConfig { get; }
 
 		private WalletManager WalletManager { get; }
-		
+
 		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
 
 		public ObservableCollection<ViewModelBase> Actions
@@ -131,7 +131,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			// Select tab
 			if (Wallet.Coins.Any())
 			{
-				WasabiDocumentTabViewModel tabToOpen = UiConfig.LastActiveTab switch
+				WasabiDocumentTabViewModel tab = UiConfig.LastActiveTab switch
 				{
 					nameof(SendTabViewModel) => SendTab,
 					nameof(ReceiveTabViewModel) => ReceiveTab,
@@ -140,14 +140,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					_ => HistoryTab
 				};
 
-				if (tabToOpen is { })
+				if (tab is { })
 				{
-					shell.AddOrSelectDocument(tabToOpen);
+					shell.Select(tab);
 				}
 			}
 			else
 			{
-				shell.AddOrSelectDocument(ReceiveTab);
+				shell.Select(ReceiveTab);
 			}
 		}
 	}
