@@ -23,7 +23,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableCollection<WalletViewModelBase> _wallets;
 		private ViewModelBase _selectedItem;
 		private Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
-		private bool _openingFirstWallet = true;
 
 		public override Location DefaultLocation => Location.Right;
 
@@ -61,7 +60,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			shell.WhenAnyValue(x => x.SelectedDocument)
 				.Subscribe(x =>
 				{
-					if(x is ViewModelBase vmb)
+					if (x is ViewModelBase vmb)
 					{
 						SelectedItem = vmb;
 					}
@@ -133,8 +132,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			InsertWallet(walletViewModel);
 
-			walletViewModel.OpenWallet(receiveDominant, _openingFirstWallet);
-			_openingFirstWallet = false;
+			walletViewModel.OpenWallet(receiveDominant);
 
 			return walletViewModel;
 		}
