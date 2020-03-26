@@ -1,37 +1,20 @@
 using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Threading;
-using AvalonStudio.Extensibility;
-using AvalonStudio.Shell;
-using NBitcoin;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Nito.AsyncEx;
 using ReactiveUI;
 using Splat;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Gui.Controls.WalletExplorer;
-using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
-using WalletWasabi.Gui.Models.StatusBarStatuses;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
-using WalletWasabi.Hwi;
-using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
@@ -47,12 +30,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 		private bool _canLoadWallet;
 		private bool _canTestPassword;
 		private bool _isBusy;
-		private bool _isHardwareBusy;
 		private string _loadButtonText;
-		private bool _isHwWalletSearchTextVisible;
 
 		public LoadWalletViewModel(WalletManagerViewModel owner, LoadWalletType loadWalletType)
-			: base(loadWalletType == LoadWalletType.Password ? "Test Password" : loadWalletType == LoadWalletType.Desktop ? "Load Wallet" : "Hardware Wallet")
+			: base(loadWalletType == LoadWalletType.Password ? "Test Password" : "Load Wallet")
 		{
 			Global = Locator.Current.GetService<Global>();
 
@@ -60,7 +41,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			Password = "";
 			LoadWalletType = loadWalletType;
 			Wallets = new ObservableCollection<LoadWalletEntry>();
-			IsHwWalletSearchTextVisible = false;
 
 			this.WhenAnyValue(x => x.SelectedWallet)
 				.Subscribe(_ => TrySetWalletStates());
@@ -91,14 +71,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 
 		public LoadWalletType LoadWalletType { get; }
 		public bool IsPasswordRequired => LoadWalletType == LoadWalletType.Password;
-		public bool IsHardwareWallet => LoadWalletType == LoadWalletType.Hardware;
 		public bool IsDesktopWallet => LoadWalletType == LoadWalletType.Desktop;
-
-		public bool IsHwWalletSearchTextVisible
-		{
-			get => _isHwWalletSearchTextVisible;
-			set => this.RaiseAndSetIfChanged(ref _isHwWalletSearchTextVisible, value);
-		}
 
 		public ObservableCollection<LoadWalletEntry> Wallets
 		{
@@ -155,24 +128,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			set => this.RaiseAndSetIfChanged(ref _isBusy, value);
 		}
 
-		public bool IsHardwareBusy
-		{
-			get => _isHardwareBusy;
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _isHardwareBusy, value);
-
-				try
-				{
-					TrySetWalletStates();
-				}
-				catch (Exception ex)
-				{
-					Logger.LogInfo(ex);
-				}
-			}
-		}
-
 		public ReactiveCommand<Unit, Unit> LoadCommand { get; }
 		public ReactiveCommand<Unit, KeyManager> TestPasswordCommand { get; }
 		public ReactiveCommand<Unit, Unit> OpenFolderCommand { get; }
@@ -185,11 +140,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 		public void SetLoadButtonText()
 		{
 			var text = "Load Wallet";
-			if (IsHardwareBusy)
-			{
-				text = "Waiting for Hardware Wallet...";
-			}
-			else if (IsBusy)
+			if (IsBusy)
 			{
 				text = "Loading...";
 			}
@@ -199,11 +150,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 
 		public override void OnCategorySelected()
 		{
-			if (IsHardwareWallet)
-			{
-				return;
-			}
-
 			Wallets.Clear();
 			Password = "";
 
@@ -365,16 +311,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			}
 
 			return false;
-		}
-
-		private bool TryFindWalletByExtPubKey(ExtPubKey extPubKey, out string walletName)
-		{
-			walletName = Global.WalletManager.WalletDirectories
-				.EnumerateWalletFiles(includeBackupDir: true)
-				.FirstOrDefault(fi => KeyManager.TryGetExtPubKeyFromFile(fi.FullName, out ExtPubKey epk) && epk == extPubKey)
-				?.Name;
-
-			return walletName is { };
 		}
 	}
 }
