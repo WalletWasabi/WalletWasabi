@@ -23,7 +23,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public WalletViewModel(Wallet wallet) : base(wallet)
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
-			
+
 			Actions = new ObservableCollection<ViewModelBase>();
 
 			UiConfig = Locator.Current.GetService<Global>().UiConfig;
@@ -58,15 +58,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				})
 				.DisposeWith(Disposables);
-			
-			// If hardware wallet then we need the Send tab.
-			if (Wallet.KeyManager.IsHardwareWallet is true)
-			{
-				SendTab = new SendTabViewModel(Wallet);
-				Actions.Add(SendTab);
-			}
-			// If not hardware wallet, but neither watch only then we also need the send tab.
-			else if (Wallet.KeyManager.IsWatchOnly is false)
+
+			// If hardware wallet or not watch only wallet then we need the Send tab.
+			if (Wallet.KeyManager.IsHardwareWallet || !Wallet.KeyManager.IsWatchOnly)
 			{
 				SendTab = new SendTabViewModel(Wallet);
 				Actions.Add(SendTab);
@@ -104,7 +98,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private UiConfig UiConfig { get; }
 
 		private WalletManager WalletManager { get; }
-		
+
 		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
 
 		public ObservableCollection<ViewModelBase> Actions
