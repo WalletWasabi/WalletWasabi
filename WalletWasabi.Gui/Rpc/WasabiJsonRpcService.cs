@@ -1,12 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Helpers;
@@ -24,7 +22,6 @@ namespace WalletWasabi.Gui.Rpc
 		public WasabiJsonRpcService(Global global)
 		{
 			Global = global;
-			ActiveWallet = Global.WalletManager?.GetFirstOrDefaultWallet();
 		}
 
 		[JsonRpcMethod("listunspentcoins")]
@@ -223,16 +220,20 @@ namespace WalletWasabi.Gui.Rpc
 		}
 
 		[JsonRpcMethod("selectwallet")]
-		public async Task SelectWalletAsync(string walletName)
+		public void SelectWallet(string walletName)
 		{
 			walletName = Guard.NotNullOrEmptyOrWhitespace(nameof(walletName), walletName);
-			var wallet = Global.WalletManager.GetWalletByName(walletName);
-
-			if (wallet is null)
+			try
 			{
+				var wallet = Global.WalletManager.GetWalletByName(walletName);
+
+				ActiveWallet = wallet;
+				Global.WalletManager.StartWalletAsync(wallet).ConfigureAwait(false);
 			}
-			await Global.WalletManager.StartWalletAsync(wallet).ConfigureAwait(false);
-			ActiveWallet = wallet;
+			catch(InvalidOperationException) // wallet not found
+			{
+				throw new Exception($"Wallet '{walletName}' not found.");
+			}
 		}
 
 		[JsonRpcMethod("stop")]
