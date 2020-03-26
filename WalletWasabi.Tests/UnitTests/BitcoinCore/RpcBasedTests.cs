@@ -51,9 +51,19 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			var rpc = new MockRpcClient();
 			rpc.OnSendCommandAsync = (op, p) =>
 			{
-				#region Mocked RPC response
+				var byteArray = Encoding.ASCII.GetBytes(RpcOutput);
+				var stream = new MemoryStream(byteArray);
+				return Task.FromResult(RPCResponse.Load(stream));
+			};
+			var blockInfo = await rpc.GetVerboseBlockAsync(uint256.One);
+			Assert.Equal(2, blockInfo.Transactions.Count());
+			Assert.Single(blockInfo.Transactions[1].Inputs);
+			Assert.Equal(2, blockInfo.Transactions[1].Outputs.Count());
+		}
 
-				var rpcOutput = @"
+		#region Mocked RPC response
+
+		public const string RpcOutput = @"
 		{
 		  'result':
 		  {
@@ -188,16 +198,6 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		  }
 		}";
 
-				#endregion Mocked RPC response
-
-				var byteArray = Encoding.ASCII.GetBytes(rpcOutput);
-				var stream = new MemoryStream(byteArray);
-				return Task.FromResult(RPCResponse.Load(stream));
-			};
-			var blockInfo = await rpc.GetVerboseBlockAsync(uint256.One);
-			Assert.Equal(2, blockInfo.Transactions.Count());
-			Assert.Single(blockInfo.Transactions[1].Inputs);
-			Assert.Equal(2, blockInfo.Transactions[1].Outputs.Count());
-		}
+		#endregion Mocked RPC response
 	}
 }
