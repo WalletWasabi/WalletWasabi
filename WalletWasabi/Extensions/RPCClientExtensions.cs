@@ -312,9 +312,7 @@ namespace NBitcoin.RPC
 				{
 					var input = new VerboseInputInfo()
 					{
-						OutPoint = new OutPoint(
-							uint256.Parse(txinJson.Value<string>("txid")),
-							txinJson.Value<uint>("vout")),
+						OutPoint = new OutPoint(uint256.Parse(txinJson.Value<string>("txid")), txinJson.Value<uint>("vout")),
 						PrevOutput = new VerboseOutputInfo()
 						{
 							Value = Money.Coins(txinJson["prevout"].Value<decimal>("value")),
