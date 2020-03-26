@@ -291,23 +291,22 @@ namespace NBitcoin.RPC
 			var resp = await rpc.SendCommandAsync(RPCOperations.getblock, blockId, 3).ConfigureAwait(false);
 			var blockInfoStr = resp.Result.ToString();
 			var blockInfoJson = JObject.Parse(blockInfoStr);
-			var blockInfo = new VerboseBlockInfo();
-			blockInfo.Hash = uint256.Parse(blockInfoJson.Value<string>("hash"));
 			var previousblockhash = blockInfoJson.Value<string>("previousblockhash");
-			blockInfo.PrevBlockHash = previousblockhash != null ? uint256.Parse(previousblockhash) : null;
-			blockInfo.Confirmations = blockInfoJson.Value<ulong>("confirmations");
-			blockInfo.Height = blockInfoJson.Value<ulong>("height");
-			blockInfo.BlockTime = Utils.UnixTimeToDateTime(blockInfoJson.Value<uint>("time"));
+			var blockInfo = new VerboseBlockInfo()
+			{
+				Hash = uint256.Parse(blockInfoJson.Value<string>("hash")),
+				PrevBlockHash = previousblockhash is { } ? uint256.Parse(previousblockhash) : null,
+				Confirmations = blockInfoJson.Value<ulong>("confirmations"),
+				Height = blockInfoJson.Value<ulong>("height"),
+				BlockTime = Utils.UnixTimeToDateTime(blockInfoJson.Value<uint>("time"))
+			};
+
 			foreach (var txJson in blockInfoJson["tx"])
 			{
 				var tx = new VerboseTransactionInfo();
 				tx.Id = uint256.Parse(txJson.Value<string>("txid"));
-				foreach (var txinJson in txJson["vin"])
+				foreach (var txinJson in txJson["vin"].Where(x => x["coinbase"] is null))
 				{
-					if (txinJson["coinbase"] is { })
-					{
-						continue;
-					}
 					var input = new VerboseInputInfo();
 					input.OutPoint = new OutPoint(
 						uint256.Parse(txinJson.Value<string>("txid")),
