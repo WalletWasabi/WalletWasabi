@@ -3,7 +3,8 @@
              xmlns:ViewModels="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
-             x:Class="WalletWasabi.Gui.Controls.WalletExplorer.WalletExplorerView">
+             xmlns:avconverters="clr-namespace:Avalonia.Controls.Converters;assembly=Avalonia.Controls" 
+             x:Class="WalletWasabi.Gui.Controls.WalletExplorer.WalletExplorerView">  
   <UserControl.Styles>
     <Style Selector="DrawingPresenter#PART_Spinner">
       <Style.Animations>
@@ -19,30 +20,58 @@
     <TreeView BorderThickness="0" Items="{Binding Wallets}" SelectedItem="{Binding SelectedItem}">
       <TreeView.Styles>
         <Style Selector="TreeViewItem">
+          <Style.Resources>
+            <avconverters:MarginMultiplierConverter Indent="16" Left="True" x:Key="LeftMarginConverter" />
+          </Style.Resources>
+          <Setter Property="Padding" Value="2"/>
+          <Setter Property="Background" Value="Transparent"/>
           <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+          <Setter Property="Template">
+            <ControlTemplate>
+              <StackPanel>
+                <Border Name="SelectionBorder" Focusable="True" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" TemplatedControl.IsTemplateFocusTarget="True">
+                  <Grid Name="PART_Header" ColumnDefinitions="16,*" Margin="{TemplateBinding Level, Mode=OneWay, Converter={StaticResource LeftMarginConverter}}">
+                    <ToggleButton Name="expander" Focusable="False" IsChecked="{TemplateBinding IsExpanded, Mode=TwoWay}"/>
+                    <ContentPresenter Name="PART_HeaderPresenter" Focusable="False" Content="{TemplateBinding Header}" HorizontalContentAlignment="{TemplateBinding HorizontalAlignment}" Padding="{TemplateBinding Padding}" Grid.Column="1"/>
+                  </Grid>
+                </Border>
+                <ItemsPresenter Name="PART_ItemsPresenter" IsVisible="{TemplateBinding IsExpanded}" Items="{TemplateBinding Items}" ItemsPanel="{TemplateBinding ItemsPanel}"/>
+              </StackPanel>
+            </ControlTemplate>
+          </Setter>
         </Style>
       </TreeView.Styles>
       <TreeView.DataTemplates>
         <TreeDataTemplate DataType="ViewModels:ClosedWalletViewModel" ItemsSource="{Binding Actions}">
-          <StackPanel Orientation="Horizontal" Spacing="6">
+          <Grid Background="Transparent" Height="24">
             <i:Interaction.Behaviors>
               <behaviors:CommandOnDoubleClickBehavior Command="{Binding OpenWalletCommand}" />
             </i:Interaction.Behaviors>
-            <StackPanel.ContextMenu>
+            <Grid.ContextMenu>
               <ContextMenu>
                 <MenuItem Header="Open Wallet" Command="{Binding OpenWalletCommand}" />
               </ContextMenu>
-            </StackPanel.ContextMenu>
-            <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_ClosedWallet}" />
-            <TextBlock Text="{Binding Title}" Height="19" VerticalAlignment="Center" />
-            <DrawingPresenter Name="PART_Spinner" Width="16" Height="16" IsVisible="{Binding IsBusy}" Drawing="{DynamicResource WalletExplorer_Spinner}" />
-          </StackPanel>
+            </Grid.ContextMenu>
+            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+              <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_ClosedWallet}" />
+              <Grid Height="24">
+                <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
+              </Grid>
+              <DrawingPresenter Name="PART_Spinner" Width="16" Height="16" IsVisible="{Binding IsBusy}" Drawing="{DynamicResource WalletExplorer_Spinner}" />
+            </StackPanel>
+          </Grid>
         </TreeDataTemplate>
         <TreeDataTemplate DataType="ViewModels:WalletViewModel" ItemsSource="{Binding Actions}">
-          <StackPanel Orientation="Horizontal" Spacing="6">
-            <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_OpenWallet}" />
-            <Button Content="{Binding Title}" Command="{Binding LurkingWifeModeCommand}" VerticalAlignment="Center" BorderThickness="0" Margin="0" Padding="0" Background="Transparent" />
-          </StackPanel>
+          <Grid Height="24">
+            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+              <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_OpenWallet}" />
+              <TextBlock Text="{Binding Title}" VerticalAlignment="Center">
+                <i:Interaction.Behaviors>
+                  <behaviors:CommandOnClickBehavior Command="{Binding LurkingWifeModeCommand}" />
+                </i:Interaction.Behaviors>
+              </TextBlock>
+            </StackPanel>
+          </Grid>
         </TreeDataTemplate>
         <TreeDataTemplate DataType="ViewModels:SendTabViewModel">
           <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
