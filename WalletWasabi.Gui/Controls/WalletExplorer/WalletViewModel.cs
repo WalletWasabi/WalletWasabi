@@ -19,12 +19,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	public class WalletViewModel : WalletViewModelBase
 	{
 		private ObservableCollection<ViewModelBase> _actions;
-		private SendTabViewModel _sendTab;
-		private ReceiveTabViewModel _receiveTab;
-		private CoinJoinTabViewModel _coinjoinTab;
-		private HistoryTabViewModel _historyTab;
-		private WalletInfoViewModel _infoTab;
-		private BuildTabViewModel _buildTab;
 
 		public WalletViewModel(Wallet wallet) : base(wallet)
 		{
@@ -75,22 +69,34 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				Actions.Add(sendTab);
 			}
 
-			_receiveTab = new ReceiveTabViewModel(Wallet);
-			_coinjoinTab = new CoinJoinTabViewModel(Wallet);
-			_historyTab = new HistoryTabViewModel(Wallet);
+			ReceiveTab = new ReceiveTabViewModel(Wallet);
+			CoinjoinTab = new CoinJoinTabViewModel(Wallet);
+			HistoryTab = new HistoryTabViewModel(Wallet);
 
 			var advancedAction = new WalletAdvancedViewModel();
-			_infoTab = new WalletInfoViewModel(Wallet);
-			_buildTab = new BuildTabViewModel(Wallet);
+			InfoTab = new WalletInfoViewModel(Wallet);
+			BuildTab = new BuildTabViewModel(Wallet);
 
-			Actions.Add(_receiveTab);
-			Actions.Add(_coinjoinTab);
-			Actions.Add(_historyTab);
+			Actions.Add(ReceiveTab);
+			Actions.Add(CoinjoinTab);
+			Actions.Add(HistoryTab);
 
 			Actions.Add(advancedAction);
-			advancedAction.Items.Add(_infoTab);
-			advancedAction.Items.Add(_buildTab);
+			advancedAction.Items.Add(InfoTab);
+			advancedAction.Items.Add(BuildTab);
 		}
+
+		private SendTabViewModel SendTab { get; set; }
+
+		private ReceiveTabViewModel ReceiveTab { get; set; }
+
+		private CoinJoinTabViewModel CoinjoinTab { get; set; }
+
+		private HistoryTabViewModel HistoryTab { get; set; }
+
+		private WalletInfoViewModel InfoTab { get; set; }
+
+		private BuildTabViewModel BuildTab { get; set; }
 
 		public Global Global { get; }
 		public KeyManager KeyManager => Wallet.KeyManager;
@@ -115,29 +121,29 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			var shell = IoC.Get<IShell>();
 
-			if (_sendTab is { })
+			if (SendTab is { })
 			{
-				shell.AddOrSelectDocument(_sendTab);
+				shell.AddOrSelectDocument(SendTab);
 			}
 
-			shell.AddOrSelectDocument(_receiveTab);
-			shell.AddOrSelectDocument(_coinjoinTab);
-			shell.AddOrSelectDocument(_historyTab);
+			shell.AddOrSelectDocument(ReceiveTab);
+			shell.AddOrSelectDocument(CoinjoinTab);
+			shell.AddOrSelectDocument(HistoryTab);
 
 			// Select tab
 			if (receiveDominant)
 			{
-				shell.AddOrSelectDocument(_receiveTab);
+				shell.AddOrSelectDocument(ReceiveTab);
 			}
 			else
 			{
 				WasabiDocumentTabViewModel tabToOpen = Global.UiConfig.LastActiveTab switch
 				{
-					nameof(SendTabViewModel) => _sendTab,
-					nameof(ReceiveTabViewModel) => _receiveTab,
-					nameof(CoinJoinTabViewModel) => _coinjoinTab,
-					nameof(BuildTabViewModel) => _buildTab,
-					_ => _historyTab
+					nameof(SendTabViewModel) => SendTab,
+					nameof(ReceiveTabViewModel) => ReceiveTab,
+					nameof(CoinJoinTabViewModel) => CoinjoinTab,
+					nameof(BuildTabViewModel) => BuildTab,
+					_ => HistoryTab
 				};
 
 				if (tabToOpen is { })
