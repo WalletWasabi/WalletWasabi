@@ -151,10 +151,7 @@ namespace WalletWasabi.Wallets
 
 		public bool AnyWallet()
 		{
-			lock (Lock)
-			{
-				return AnyWallet(x => x.State >= WalletState.Starting);
-			}
+			return AnyWallet(x => x.State >= WalletState.Starting);			
 		}
 
 		public bool AnyWallet(Func<Wallet, bool> predicate)
