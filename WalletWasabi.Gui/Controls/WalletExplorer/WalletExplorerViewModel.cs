@@ -57,8 +57,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Observable.FromEventPattern<Wallet>(WalletManager, nameof(WalletManager.WalletAdded))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Select(x => x.EventArgs)
-				.OfType<Wallet>()
+				.Select(x => x.EventArgs)			
+				.Where(x => x is { })
 				.Subscribe(wallet =>
 				{
 					if (wallet.State <= WalletState.Starting)
