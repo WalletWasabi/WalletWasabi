@@ -117,7 +117,7 @@ namespace WalletWasabi.Gui.Behaviors
 			Disposables.Add(
 				AssociatedObject.GetObservable(InputElement.PointerReleasedEvent).Subscribe(async pointer =>
 					{
-						if (Global.UiConfig.Autocopy is false)
+						if (!Global.UiConfig.Autocopy)
 						{
 							return;
 						}
@@ -145,7 +145,7 @@ namespace WalletWasabi.Gui.Behaviors
 			Disposables.Add(
 				AssociatedObject.GetObservable(InputElement.PointerEnterEvent).Subscribe(async pointerEnter =>
 					{
-						if (!(Global.UiConfig.Autocopy is true))
+						if (!(Global.UiConfig.Autocopy))
 						{
 							return;
 						}

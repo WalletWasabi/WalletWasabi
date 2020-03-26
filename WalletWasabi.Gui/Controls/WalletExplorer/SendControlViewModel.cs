@@ -283,7 +283,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					var requests = new List<DestinationRequest>();
 
-					if (Global.UiConfig.IsCustomChangeAddress is true && !IsMax && !string.IsNullOrWhiteSpace(CustomChangeAddress))
+					if (Global.UiConfig.IsCustomChangeAddress && !IsMax && !string.IsNullOrWhiteSpace(CustomChangeAddress))
 					{
 						try
 						{
