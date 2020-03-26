@@ -109,7 +109,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global = Locator.Current.GetService<Global>();
 			Wallet = wallet;
 
-			LabelSuggestion = new SuggestLabelViewModel(Wallet);
+			LabelSuggestion = new SuggestLabelViewModel();
 			BuildTransactionButtonText = DoButtonText;
 
 			ResetUi();
@@ -262,7 +262,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 
 					var selectedCoinViewModels = CoinList.Coins.Where(cvm => cvm.IsSelected);
-					var selectedCoinReferences = selectedCoinViewModels.Select(cvm => new TxoRef(cvm.Model.TransactionId, cvm.Model.Index)).ToList();
+					var selectedCoinReferences = selectedCoinViewModels.Select(cvm => cvm.Model.OutPoint).ToList();
 
 					if (!selectedCoinReferences.Any())
 					{
@@ -625,8 +625,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							break;
 
 						case FeeDisplayFormat.USD:
-							FeeText = $"(~ ${UsdFee.ToString("0.##")})";
-							FeeToolTip = $"Estimated total fees in USD. Exchange Rate: {(long)UsdExchangeRate} BTC/USD.";
+							FeeText = $"(~ ${UsdFee:0.##})";
+							FeeToolTip = $"Estimated total fees in USD. Exchange Rate: {(long)UsdExchangeRate} USD/BTC.";
 							break;
 
 						case FeeDisplayFormat.BTC:
@@ -635,7 +635,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							break;
 
 						case FeeDisplayFormat.Percentage:
-							FeeText = $"(~ {FeePercentage.ToString("0.#")} %)";
+							FeeText = $"(~ {FeePercentage:0.#} %)";
 							FeeToolTip = "Expected percentage of fees against the amount to be sent.";
 							break;
 

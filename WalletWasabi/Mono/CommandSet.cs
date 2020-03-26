@@ -168,8 +168,6 @@ namespace Mono.Options
 {
 	public class CommandSet : KeyedCollection<string, Command>
 	{
-		public OptionSet Options { get; private set; }
-
 		public CommandSet(string suite, MessageLocalizerConverter localizer = null)
 			: this(suite, Console.Out, Console.Error, localizer)
 		{
@@ -182,6 +180,8 @@ namespace Mono.Options
 			Out = output ?? throw new ArgumentNullException(nameof(output));
 			Error = error ?? throw new ArgumentNullException(nameof(error));
 		}
+
+		public OptionSet Options { get; private set; }
 
 		public string Suite { get; }
 		public TextWriter Out { get; private set; }

@@ -13,8 +13,6 @@ namespace WalletWasabi.Microservices
 {
 	public class ProcessBridge : IProcessBridge
 	{
-		public string ProcessPath { get; }
-
 		public ProcessBridge(string processPath)
 		{
 			ProcessPath = Guard.NotNullOrEmptyOrWhitespace(nameof(processPath), processPath);
@@ -24,6 +22,8 @@ namespace WalletWasabi.Microservices
 				throw new FileNotFoundException($"{fileNameWithoutExtension} is not found.", ProcessPath);
 			}
 		}
+
+		public string ProcessPath { get; }
 
 		public Process Start(string arguments, bool openConsole)
 		{

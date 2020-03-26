@@ -82,6 +82,67 @@ namespace Nito.Collections
 		/// <returns>true if this list is read-only; otherwise, false.</returns>
 		bool ICollection<T>.IsReadOnly => false;
 
+		bool IList.IsFixedSize => false;
+
+		bool IList.IsReadOnly => false;
+
+		bool ICollection.IsSynchronized => false;
+
+		object ICollection.SyncRoot => this;
+
+		/// <summary>
+		/// Gets a value indicating whether this instance is empty.
+		/// </summary>
+		private bool IsEmpty => Count == 0;
+
+		/// <summary>
+		/// Gets a value indicating whether this instance is at full capacity.
+		/// </summary>
+		private bool IsFull => Count == Capacity;
+
+		/// <summary>
+		/// Gets a value indicating whether the buffer is "split" (meaning the beginning of the view is at a later index in <see cref="_buffer"/> than the end).
+		/// </summary>
+		private bool IsSplit =>
+				// Overflow-safe version of "(offset + Count) > Capacity"
+				_offset > (Capacity - Count);
+
+		/// <summary>
+		/// Gets or sets the capacity for this deque. This value must always be greater than zero, and this property cannot be set to a value less than <see cref="Count"/>.
+		/// </summary>
+		/// <exception cref="InvalidOperationException"><c>Capacity</c> cannot be set to a value less than <see cref="Count"/>.</exception>
+		public int Capacity
+		{
+			get => _buffer.Length;
+
+			set
+			{
+				if (value < Count)
+				{
+					throw new ArgumentOutOfRangeException(nameof(value), $"{nameof(Capacity)} cannot be set to a value less than {nameof(Count)}.");
+				}
+
+				if (value == _buffer.Length)
+				{
+					return;
+				}
+
+				// Create the new _buffer and copy our existing range.
+				T[] newBuffer = new T[value];
+				CopyToArray(newBuffer);
+
+				// Set up to use the new _buffer.
+				_buffer = newBuffer;
+				_offset = 0;
+			}
+		}
+
+		/// <summary>
+		/// Gets the number of elements contained in this deque.
+		/// </summary>
+		/// <returns>The number of elements contained in this deque.</returns>
+		public int Count { get; private set; }
+
 		/// <summary>
 		/// Gets or sets the item at the specified index.
 		/// </summary>
@@ -100,6 +161,26 @@ namespace Nito.Collections
 			{
 				CheckExistingIndexArgument(Count, index);
 				DoSetItem(index, value);
+			}
+		}
+
+		object IList.this[int index]
+		{
+			get => this[index];
+
+			set
+			{
+				if (value is null && default(T) != null)
+				{
+					throw new ArgumentNullException(nameof(value), $"{nameof(value)} cannot be null.");
+				}
+
+				if (!IsT(value))
+				{
+					throw new ArgumentException($"{nameof(value)} is of incorrect type.", nameof(value));
+				}
+
+				this[index] = (T)value;
 			}
 		}
 
@@ -352,35 +433,11 @@ namespace Nito.Collections
 			Insert(index, (T)value);
 		}
 
-		bool IList.IsFixedSize => false;
-
-		bool IList.IsReadOnly => false;
-
 		void IList.Remove(object value)
 		{
 			if (IsT(value))
 			{
 				Remove((T)value);
-			}
-		}
-
-		object IList.this[int index]
-		{
-			get => this[index];
-
-			set
-			{
-				if (value is null && default(T) != null)
-				{
-					throw new ArgumentNullException(nameof(value), $"{nameof(value)} cannot be null.");
-				}
-
-				if (!IsT(value))
-				{
-					throw new ArgumentException($"{nameof(value)} is of incorrect type.", nameof(value));
-				}
-
-				this[index] = (T)value;
 			}
 		}
 
@@ -406,10 +463,6 @@ namespace Nito.Collections
 				throw new ArgumentException("Destination array must be single dimensional.", nameof(array), ex);
 			}
 		}
-
-		bool ICollection.IsSynchronized => false;
-
-		object ICollection.SyncRoot => this;
 
 		#endregion ObjectListImplementations
 
@@ -470,59 +523,6 @@ namespace Nito.Collections
 		}
 
 		#endregion GenericListHelpers
-
-		/// <summary>
-		/// Gets a value indicating whether this instance is empty.
-		/// </summary>
-		private bool IsEmpty => Count == 0;
-
-		/// <summary>
-		/// Gets a value indicating whether this instance is at full capacity.
-		/// </summary>
-		private bool IsFull => Count == Capacity;
-
-		/// <summary>
-		/// Gets a value indicating whether the buffer is "split" (meaning the beginning of the view is at a later index in <see cref="_buffer"/> than the end).
-		/// </summary>
-		private bool IsSplit =>
-				// Overflow-safe version of "(offset + Count) > Capacity"
-				_offset > (Capacity - Count);
-
-		/// <summary>
-		/// Gets or sets the capacity for this deque. This value must always be greater than zero, and this property cannot be set to a value less than <see cref="Count"/>.
-		/// </summary>
-		/// <exception cref="InvalidOperationException"><c>Capacity</c> cannot be set to a value less than <see cref="Count"/>.</exception>
-		public int Capacity
-		{
-			get => _buffer.Length;
-
-			set
-			{
-				if (value < Count)
-				{
-					throw new ArgumentOutOfRangeException(nameof(value), $"{nameof(Capacity)} cannot be set to a value less than {nameof(Count)}.");
-				}
-
-				if (value == _buffer.Length)
-				{
-					return;
-				}
-
-				// Create the new _buffer and copy our existing range.
-				T[] newBuffer = new T[value];
-				CopyToArray(newBuffer);
-
-				// Set up to use the new _buffer.
-				_buffer = newBuffer;
-				_offset = 0;
-			}
-		}
-
-		/// <summary>
-		/// Gets the number of elements contained in this deque.
-		/// </summary>
-		/// <returns>The number of elements contained in this deque.</returns>
-		public int Count { get; private set; }
 
 		/// <summary>
 		/// Applies the offset to <paramref name="index"/>, resulting in a buffer index.

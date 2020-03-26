@@ -35,7 +35,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global = Locator.Current.GetService<Global>();
 			Wallet = wallet;
 
-			LabelSuggestion = new SuggestLabelViewModel(Wallet);
+			LabelSuggestion = new SuggestLabelViewModel();
 			_addresses = new ObservableCollection<AddressViewModel>();
 			LabelSuggestion.Label = "";
 

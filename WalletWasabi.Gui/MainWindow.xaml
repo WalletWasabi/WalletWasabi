@@ -20,6 +20,7 @@
                   Width="{Binding Width}" Height="{Binding Height}"
                   WindowState="{Binding WindowState}"
                   UseLayoutRounding="True"
+                  WindowStartupLocation="CenterScreen"
                   RenderOptions.BitmapInterpolationMode="HighQuality">
   <cont:MetroWindow.TitleBarContent>
     <StackPanel Orientation="Horizontal" IsVisible="{Binding MenuVisible}">

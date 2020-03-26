@@ -14,7 +14,7 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 	{
 		private RpcStatus _rpcStatus;
 
-		public RpcMonitor(TimeSpan period, RPCClient rpcClient) : base(period)
+		public RpcMonitor(TimeSpan period, IRPCClient rpcClient) : base(period)
 		{
 			RpcStatus = RpcStatus.Unresponsive;
 			RpcClient = Guard.NotNull(nameof(rpcClient), rpcClient);
@@ -22,7 +22,7 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 
 		public event EventHandler<RpcStatus> RpcStatusChanged;
 
-		public RPCClient RpcClient { get; set; }
+		public IRPCClient RpcClient { get; set; }
 
 		public RpcStatus RpcStatus
 		{

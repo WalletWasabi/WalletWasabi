@@ -10,6 +10,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.CoinJoin.Coordinator.Banning;
 using WalletWasabi.CoinJoin.Coordinator.MixingLevels;
@@ -26,7 +27,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 		private RoundPhase _phase;
 		private CoordinatorRoundStatus _status;
 
-		public CoordinatorRound(RPCClient rpc, UtxoReferee utxoReferee, CoordinatorRoundConfig config, int adjustedConfirmationTarget, int configuredConfirmationTarget, double configuredConfirmationTargetReductionRate)
+		public CoordinatorRound(IRPCClient rpc, UtxoReferee utxoReferee, CoordinatorRoundConfig config, int adjustedConfirmationTarget, int configuredConfirmationTarget, double configuredConfirmationTargetReductionRate)
 		{
 			try
 			{
@@ -88,7 +89,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 		public long RoundId { get; }
 
-		public RPCClient RpcClient { get; }
+		public IRPCClient RpcClient { get; }
 		public Network Network => RpcClient.Network;
 
 		/// <summary>
@@ -213,7 +214,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			{
 				try
 				{
-					Logger.LogInfo($"Round ({RoundId}): Phase change requested: {expectedPhase.ToString()}.");
+					Logger.LogInfo($"Round ({RoundId}): Phase change requested: {expectedPhase}.");
 
 					if (Status == CoordinatorRoundStatus.NotStarted) // So start the input registration phase
 					{
@@ -416,7 +417,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 						return;
 					}
 
-					Logger.LogInfo($"Round ({RoundId}): Phase initialized: {expectedPhase.ToString()}.");
+					Logger.LogInfo($"Round ({RoundId}): Phase initialized: {expectedPhase}.");
 				}
 				catch (Exception ex)
 				{
@@ -467,7 +468,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 						if (executeRunAbortion)
 						{
 							PhaseTimeoutLog.TryAdd((RoundId, Phase), DateTimeOffset.UtcNow);
-							string timedOutLogString = $"Round ({RoundId}): {expectedPhase.ToString()} timed out after {timeout.TotalSeconds} seconds.";
+							string timedOutLogString = $"Round ({RoundId}): {expectedPhase} timed out after {timeout.TotalSeconds} seconds.";
 
 							if (expectedPhase == RoundPhase.ConnectionConfirmation)
 							{
@@ -544,7 +545,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 									}
 									catch (Exception ex)
 									{
-										Logger.LogWarning($"Round ({RoundId}): {expectedPhase.ToString()} timeout failed.");
+										Logger.LogWarning($"Round ({RoundId}): {expectedPhase} timeout failed.");
 										Logger.LogWarning(ex);
 									}
 								});
@@ -552,7 +553,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 					}
 					catch (Exception ex)
 					{
-						Logger.LogWarning($"Round ({RoundId}): {expectedPhase.ToString()} timeout failed.");
+						Logger.LogWarning($"Round ({RoundId}): {expectedPhase} timeout failed.");
 						Logger.LogWarning(ex);
 					}
 				});
@@ -798,7 +799,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			}
 		}
 
-		public static async Task<(Money feePerInputs, Money feePerOutputs)> CalculateFeesAsync(RPCClient rpc, int confirmationTarget)
+		public static async Task<(Money feePerInputs, Money feePerOutputs)> CalculateFeesAsync(IRPCClient rpc, int confirmationTarget)
 		{
 			Guard.NotNull(nameof(rpc), rpc);
 			Guard.NotNull(nameof(confirmationTarget), confirmationTarget);
@@ -1115,7 +1116,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				{
 					if ((Phase != RoundPhase.InputRegistration && Phase != RoundPhase.ConnectionConfirmation) || Status != CoordinatorRoundStatus.Running)
 					{
-						throw new InvalidOperationException($"Updating anonymity set is not allowed in {Phase.ToString()} phase.");
+						throw new InvalidOperationException($"Updating anonymity set is not allowed in {Phase} phase.");
 					}
 					AnonymitySet = anonymitySet;
 				}
@@ -1124,7 +1125,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			{
 				if ((Phase != RoundPhase.InputRegistration && Phase != RoundPhase.ConnectionConfirmation) || Status != CoordinatorRoundStatus.Running)
 				{
-					throw new InvalidOperationException($"Updating anonymity set is not allowed in {Phase.ToString()} phase.");
+					throw new InvalidOperationException($"Updating anonymity set is not allowed in {Phase} phase.");
 				}
 				AnonymitySet = anonymitySet;
 			}

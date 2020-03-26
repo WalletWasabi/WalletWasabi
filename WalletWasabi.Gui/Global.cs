@@ -198,7 +198,7 @@ namespace WalletWasabi.Gui
 									EndPointStrategy.Default(Network, EndPointType.Rpc),
 									txIndex: null,
 									prune: null,
-									userAgent: $"/WasabiClient:{Constants.ClientVersion.ToString()}/"),
+									userAgent: $"/WasabiClient:{Constants.ClientVersion}/"),
 								cancel)
 							.ConfigureAwait(false);
 					}
@@ -584,43 +584,6 @@ namespace WalletWasabi.Gui
 			title = Guard.Correct(title);
 			NotificationHelpers.Notify(message, title, notificationType, async () => await FileHelpers.OpenFileInTextEditorAsync(Logger.FilePath));
 			Logger.LogInfo($"Transaction Notification ({notificationType}): {title} - {message} - {e.Transaction.GetHash()}");
-		}
-
-		public KeyManager LoadKeyManager(string walletName)
-		{
-			(string walletFullPath, string walletBackupFullPath) = WalletManager.WalletDirectories.GetWalletFilePaths(walletName);
-
-			try
-			{
-				return KeyManager.FromFile(walletFullPath);
-			}
-			catch (Exception ex)
-			{
-				if (!File.Exists(walletBackupFullPath))
-				{
-					throw;
-				}
-
-				Logger.LogWarning($"Wallet got corrupted.\n" +
-					$"Wallet Filepath: {walletFullPath}\n" +
-					$"Trying to recover it from backup.\n" +
-					$"Backup path: {walletBackupFullPath}\n" +
-					$"Exception: {ex}");
-				if (File.Exists(walletFullPath))
-				{
-					string corruptedWalletBackupPath = $"{walletBackupFullPath}_CorruptedBackup";
-					if (File.Exists(corruptedWalletBackupPath))
-					{
-						File.Delete(corruptedWalletBackupPath);
-						Logger.LogInfo($"Deleted previous corrupted wallet file backup from `{corruptedWalletBackupPath}`.");
-					}
-					File.Move(walletFullPath, corruptedWalletBackupPath);
-					Logger.LogInfo($"Backed up corrupted wallet file to `{corruptedWalletBackupPath}`.");
-				}
-				File.Copy(walletBackupFullPath, walletFullPath);
-
-				return KeyManager.FromFile(walletFullPath);
-			}
 		}
 
 		/// <summary>

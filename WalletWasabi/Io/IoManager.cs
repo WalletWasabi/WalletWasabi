@@ -11,17 +11,17 @@ namespace WalletWasabi.Io
 {
 	public class IoManager
 	{
-		public string FilePath { get; }
-
-		public string FileName { get; }
-		public string FileNameWithoutExtension { get; }
-
 		public IoManager(string filePath)
 		{
 			FilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath, trim: true);
 			FileName = Path.GetFileName(FilePath);
 			FileNameWithoutExtension = Path.GetFileNameWithoutExtension(FilePath);
 		}
+
+		public string FilePath { get; }
+
+		public string FileName { get; }
+		public string FileNameWithoutExtension { get; }
 
 		#region IoOperations
 

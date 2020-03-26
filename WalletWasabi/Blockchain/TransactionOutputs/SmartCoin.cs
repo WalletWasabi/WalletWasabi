@@ -300,11 +300,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			return new Coin(TransactionId, Index, Amount, ScriptPubKey);
 		}
 
-		public TxoRef GetTxoRef()
-		{
-			return new TxoRef(TransactionId, Index);
-		}
-
 		#endregion Methods
 
 		#region EqualityAndComparison

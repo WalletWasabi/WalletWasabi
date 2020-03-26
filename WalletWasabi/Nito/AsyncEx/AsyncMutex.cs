@@ -11,6 +11,45 @@ namespace Nito.AsyncEx
 {
 	public class AsyncMutex
 	{
+		private int _status;
+
+		private int _command;
+
+		public AsyncMutex(string name)
+		{
+			// https://docs.microsoft.com/en-us/dotnet/api/system.threading.mutex?view=netframework-4.8
+			// On a server that is running Terminal Services, a named system mutex can have two levels of visibility.
+			// If its name begins with the prefix "Global\", the mutex is visible in all terminal server sessions.
+			// If its name begins with the prefix "Local\", the mutex is visible only in the terminal server session where it was created.
+			// In that case, a separate mutex with the same name can exist in each of the other terminal server sessions on the server.
+			// If you do not specify a prefix when you create a named mutex, it takes the prefix "Local\".
+			// Within a terminal server session, two mutexes whose names differ only by their prefixes are separate mutexes,
+			// and both are visible to all processes in the terminal server session.
+			// That is, the prefix names "Global\" and "Local\" describe the scope of the mutex name relative to terminal server sessions, not relative to processes.
+			ShortName = name;
+			FullName = $"Global\\4AA0E5A2-A94F-4B92-B962-F2BBC7A68323-{name}";
+			Mutex = null;
+			MutexThread = null;
+
+			// If we already have an asynclock with this fullname then just use it and do not create a new one.
+			lock (AsyncMutexesLock)
+			{
+				if (AsyncMutexes.TryGetValue(FullName, out AsyncMutex asyncMutex))
+				{
+					// Use the already existing lock.
+					AsyncLock = asyncMutex.AsyncLock;
+				}
+				else
+				{
+					// Create a new lock.
+					AsyncLock = new AsyncLock();
+
+					AsyncMutexes.Add(FullName, this);
+				}
+			}
+			ChangeStatus(AsyncLockStatus.StatusReady, AsyncLockStatus.StatusUninitialized);
+		}
+
 		/// <summary>
 		/// I did this because enum cannot be Interlocked easily.
 		/// </summary>
@@ -22,8 +61,6 @@ namespace Nito.AsyncEx
 			StatusAcquired = 3,
 			StatusReleasing = 4
 		}
-
-		private int _status;
 
 		public bool IsQuitPending { get; set; }
 
@@ -63,42 +100,6 @@ namespace Nito.AsyncEx
 
 		public static bool IsAny => AsyncMutexes.Any();
 
-		public AsyncMutex(string name)
-		{
-			// https://docs.microsoft.com/en-us/dotnet/api/system.threading.mutex?view=netframework-4.8
-			// On a server that is running Terminal Services, a named system mutex can have two levels of visibility.
-			// If its name begins with the prefix "Global\", the mutex is visible in all terminal server sessions.
-			// If its name begins with the prefix "Local\", the mutex is visible only in the terminal server session where it was created.
-			// In that case, a separate mutex with the same name can exist in each of the other terminal server sessions on the server.
-			// If you do not specify a prefix when you create a named mutex, it takes the prefix "Local\".
-			// Within a terminal server session, two mutexes whose names differ only by their prefixes are separate mutexes,
-			// and both are visible to all processes in the terminal server session.
-			// That is, the prefix names "Global\" and "Local\" describe the scope of the mutex name relative to terminal server sessions, not relative to processes.
-			ShortName = name;
-			FullName = $"Global\\4AA0E5A2-A94F-4B92-B962-F2BBC7A68323-{name}";
-			Mutex = null;
-			MutexThread = null;
-
-			// If we already have an asynclock with this fullname then just use it and do not create a new one.
-			lock (AsyncMutexesLock)
-			{
-				if (AsyncMutexes.TryGetValue(FullName, out AsyncMutex asyncMutex))
-				{
-					// Use the already existing lock.
-					AsyncLock = asyncMutex.AsyncLock;
-				}
-				else
-				{
-					// Create a new lock.
-					AsyncLock = new AsyncLock();
-
-					AsyncMutexes.Add(FullName, this);
-				}
-			}
-			ChangeStatus(AsyncLockStatus.StatusReady, AsyncLockStatus.StatusUninitialized);
-		}
-
-		private int _command;
 		private ManualResetEvent ToDo { get; } = new ManualResetEvent(false);
 		private ManualResetEvent Done { get; } = new ManualResetEvent(false);
 
@@ -255,7 +256,7 @@ namespace Nito.AsyncEx
 
 			if (!expectedPreviousStatuses.Contains((AsyncLockStatus)prevstatus))
 			{
-				throw new InvalidOperationException($"Previous {nameof(AsyncLock)} state was unexpected: prev:{((AsyncLockStatus)prevstatus).ToString()} now:{((AsyncLockStatus)_status).ToString()}.");
+				throw new InvalidOperationException($"Previous {nameof(AsyncLock)} state was unexpected: prev:{(AsyncLockStatus)prevstatus} now:{(AsyncLockStatus)_status}.");
 			}
 		}
 
@@ -435,7 +436,7 @@ namespace Nito.AsyncEx
 		/// </summary>
 		private sealed class Key : IDisposable
 		{
-			private AsyncMutex AsyncMutex { get; set; }
+			private volatile bool _disposedValue = false; // To detect redundant calls
 
 			/// <summary>
 			/// Creates the key for a mutex.
@@ -446,9 +447,9 @@ namespace Nito.AsyncEx
 				AsyncMutex = asyncMutex;
 			}
 
-			#region IDisposable Support
+			private AsyncMutex AsyncMutex { get; set; }
 
-			private volatile bool _disposedValue = false; // To detect redundant calls
+			#region IDisposable Support
 
 			private void Dispose(bool disposing)
 			{

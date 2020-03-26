@@ -27,11 +27,6 @@ namespace WalletWasabi.Gui.ViewModels
 		protected WasabiDocumentTabViewModel(string title)
 		{
 			Title = title;
-			DoItCommand = ReactiveCommand.Create(DisplayActionTab);
-
-			DoItCommand.ThrownExceptions
-				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		private CompositeDisposable Disposables { get; set; }
@@ -110,13 +105,6 @@ namespace WalletWasabi.Gui.ViewModels
 			return true;
 		}
 
-		public void DisplayActionTab()
-		{
-			IoC.Get<IShell>().AddOrSelectDocument(this);
-		}
-
-		public ReactiveCommand<Unit, Unit> DoItCommand { get; }
-
 		public void Select()
 		{
 			IoC.Get<IShell>().Select(this);
@@ -125,7 +113,6 @@ namespace WalletWasabi.Gui.ViewModels
 		public async Task<object> ShowDialogAsync()
 		{
 			DialogResult = null;
-			DisplayActionTab();
 
 			while (!IsClosed)
 			{
