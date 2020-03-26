@@ -33,8 +33,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 {
 	public class ConnectHardwareWalletViewModel : CategoryViewModel
 	{
-		private ObservableCollection<LoadWalletEntry> _wallets;
-		private LoadWalletEntry _selectedWallet;
+		private ObservableCollection<HardwareWalletViewModel> _wallets;
+		private HardwareWalletViewModel _selectedWallet;
 		private bool _isWalletSelected;
 		private bool _isWalletOpened;
 		private bool _canLoadWallet;
@@ -47,7 +47,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 		{
 			Global = Locator.Current.GetService<Global>();
 			Owner = owner;
-			Wallets = new ObservableCollection<LoadWalletEntry>();
+			Wallets = new ObservableCollection<HardwareWalletViewModel>();
 			IsHwWalletSearchTextVisible = false;
 
 			this.WhenAnyValue(x => x.SelectedWallet)
@@ -143,13 +143,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 			set => this.RaiseAndSetIfChanged(ref _isHwWalletSearchTextVisible, value);
 		}
 
-		public ObservableCollection<LoadWalletEntry> Wallets
+		public ObservableCollection<HardwareWalletViewModel> Wallets
 		{
 			get => _wallets;
 			set => this.RaiseAndSetIfChanged(ref _wallets, value);
 		}
 
-		public LoadWalletEntry SelectedWallet
+		public HardwareWalletViewModel SelectedWallet
 		{
 			get => _selectedWallet;
 			set => this.RaiseAndSetIfChanged(ref _selectedWallet, value);
@@ -467,7 +467,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 				Wallets.Clear();
 				foreach (var dev in devices)
 				{
-					var walletEntry = new LoadWalletEntry(dev);
+					var walletEntry = new HardwareWalletViewModel(dev);
 					Wallets.Add(walletEntry);
 				}
 				TrySetWalletStates();
