@@ -459,7 +459,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 
 		protected async Task EnumerateIfHardwareWalletsAsync()
 		{
-			var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 			IsHwWalletSearchTextVisible = true;
 			try
 			{
@@ -477,7 +477,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 			finally
 			{
 				IsHwWalletSearchTextVisible = false;
-				cts.Dispose();
 			}
 		}
 
