@@ -55,6 +55,11 @@ namespace WalletWasabi.Wallets
 		/// </summary>
 		public event EventHandler<WalletState> WalletStateChanged;
 
+		/// <summary>
+		/// Triggered if a wallet added to the Wallet collection. The sender of the event will be the WalletManager and the argument is the added Wallet.
+		/// </summary>
+		public event EventHandler<Wallet> WalletAdded;
+
 		private CancellationTokenSource CancelAllInitialization { get; }
 
 		private Dictionary<Wallet, HashSet<uint256>> Wallets { get; }
@@ -262,6 +267,8 @@ namespace WalletWasabi.Wallets
 			wallet.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
 			wallet.OnDequeue += ChaumianClient_OnDequeue;
 			wallet.StateChanged += Wallet_StateChanged;
+
+			WalletAdded?.Invoke(this, wallet);
 		}
 
 		public async Task DequeueAllCoinsGracefullyAsync(DequeueReason reason, CancellationToken token)
