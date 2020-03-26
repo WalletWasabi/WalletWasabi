@@ -199,7 +199,7 @@ namespace WalletWasabi.Gui
 									EndPointStrategy.Default(Network, EndPointType.Rpc),
 									txIndex: null,
 									prune: null,
-									userAgent: $"/WasabiClient:{Constants.ClientVersion.ToString()}/"),
+									userAgent: $"/WasabiClient:{Constants.ClientVersion}/"),
 								cancel)
 							.ConfigureAwait(false);
 					}
