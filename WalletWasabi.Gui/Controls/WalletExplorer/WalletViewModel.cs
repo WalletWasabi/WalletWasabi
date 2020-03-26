@@ -116,7 +116,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private CompositeDisposable Disposables { get; set; }
 
-		public void OpenWallet(bool receiveDominant)
+		public void OpenWallet()
 		{
 			IsExpanded = true;
 			
@@ -137,11 +137,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			shell.AddOrSelectDocument(HistoryTab);
 
 			// Select tab
-			if (receiveDominant)
-			{
-				shell.AddOrSelectDocument(ReceiveTab);
-			}
-			else
+			if (Wallet.Coins.Any())
 			{
 				WasabiDocumentTabViewModel tabToOpen = UiConfig.LastActiveTab switch
 				{
@@ -156,6 +152,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					shell.AddOrSelectDocument(tabToOpen);
 				}
+			}
+			else
+			{
+				shell.AddOrSelectDocument(ReceiveTab);
 			}
 		}
 	}

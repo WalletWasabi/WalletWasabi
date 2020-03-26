@@ -60,7 +60,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			shell.WhenAnyValue(x => x.SelectedDocument)
 				.Subscribe(x =>
 				{
-					if (x is ViewModelBase vmb)
+					if(x is ViewModelBase vmb)
 					{
 						SelectedItem = vmb;
 					}
@@ -94,19 +94,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			_walletDictionary.Add(walletVM.Wallet, walletVM);
 		}
 
-		internal WalletViewModelBase OpenWallet(Wallet wallet)
-		{
-			if (wallet.Coins.Any())
-			{
-				// If already have coins then open the last active tab first.
-				return OpenWallet(wallet, receiveDominant: false);
-			}
-			else // Else open with Receive tab first.
-			{
-				return OpenWallet(wallet, receiveDominant: true);
-			}
-		}
-
 		private void OpenClosedWallet(ClosedWalletViewModel closedWalletViewModel)
 		{
 			var select = SelectedItem == closedWalletViewModel;
@@ -121,7 +108,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private WalletViewModelBase OpenWallet(Wallet wallet, bool receiveDominant)
+		internal WalletViewModelBase OpenWallet(Wallet wallet)
 		{
 			if (_wallets.OfType<WalletViewModel>().Any(x => x.Title == wallet.WalletName))
 			{
@@ -132,7 +119,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			InsertWallet(walletViewModel);
 
-			walletViewModel.OpenWallet(receiveDominant);
+			walletViewModel.OpenWallet();
 
 			return walletViewModel;
 		}
