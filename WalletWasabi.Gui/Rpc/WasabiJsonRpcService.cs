@@ -63,6 +63,7 @@ namespace WalletWasabi.Gui.Rpc
 			{
 				walletName = ActiveWallet.WalletName,
 				walletFile = km.FilePath,
+				State = ActiveWallet.State.ToString(),
 				extendedAccountPublicKey = km.ExtPubKey.ToString(Global.Network),
 				extendedAccountZpub = km.ExtPubKey.ToZpub(Global.Network),
 				accountKeyPath = $"m/{km.AccountKeyPath}",
