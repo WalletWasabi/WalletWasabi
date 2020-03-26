@@ -216,7 +216,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 				// If the hardware wallet was not initialized, then make the button say Setup, not Load.
 				// If pin is needed, then make the button say Send Pin instead.
 
-				if (SelectedWallet?.HardwareWalletInfo != null)
+				if (SelectedWallet?.HardwareWalletInfo is { })
 				{
 					if (!SelectedWallet.HardwareWalletInfo.IsInitialized())
 					{
@@ -420,8 +420,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 			}
 		}
 
-		public void OpenWalletsFolder() => IoHelpers.OpenFolderInFileExplorer(Global.WalletManager.WalletDirectories.WalletsDir);
-
 		private bool TrySetWalletStates()
 		{
 			try
@@ -431,7 +429,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 					SelectedWallet = Wallets.FirstOrDefault();
 				}
 
-				IsWalletSelected = SelectedWallet != null;
+				IsWalletSelected = SelectedWallet is { };
 
 				if (Global.WalletManager.AnyWallet())
 				{
