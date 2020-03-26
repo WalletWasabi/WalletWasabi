@@ -115,15 +115,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private CompositeDisposable Disposables { get; set; }
 
-		public void OpenWallet()
+		public void OpenWalletTabs()
 		{
-			IsExpanded = true;
-			
-			if (WalletManager.AnyWallet(x=>x.State >= WalletState.Starting && x != Wallet))
-			{
-				return;
-			}
-
 			var shell = IoC.Get<IShell>();
 
 			if (SendTab is { })

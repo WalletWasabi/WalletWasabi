@@ -119,7 +119,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			InsertWallet(walletViewModel);
 
-			walletViewModel.OpenWallet();
+			if (!WalletManager.AnyWallet(x => x.State >= WalletState.Starting && x != walletViewModel.Wallet))
+			{
+				walletViewModel.OpenWalletTabs();
+			}
+
+			walletViewModel.IsExpanded = true;
 
 			return walletViewModel;
 		}
