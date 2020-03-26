@@ -57,9 +57,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Observable.FromEventPattern<Wallet>(WalletManager, nameof(WalletManager.WalletAdded))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
+				.Select(x => x.EventArgs)
+				.OfType<Wallet>()
+				.Subscribe(wallet =>
 				{
-					Wallets.InsertSorted(new ClosedWalletViewModel(x.EventArgs));
+					if (wallet.State <= WalletState.Starting)
+					{
+						Wallets.InsertSorted(new ClosedWalletViewModel(wallet));
+					}
+					else
+					{
+						Wallets.InsertSorted(new WalletViewModel(wallet));
+					}
 				});
 
 			var shell = IoC.Get<IShell>();
@@ -67,7 +76,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			shell.WhenAnyValue(x => x.SelectedDocument)
 				.Subscribe(x =>
 				{
-					if(x is ViewModelBase vmb)
+					if (x is ViewModelBase vmb)
 					{
 						SelectedItem = vmb;
 					}
