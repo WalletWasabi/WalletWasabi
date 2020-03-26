@@ -262,18 +262,17 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 						MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.SettingUpHardwareWallet);
 
 						// Setup may take a while for users to write down stuff.
-						using (var ctsSetup = new CancellationTokenSource(TimeSpan.FromMinutes(21)))
-						{
-							// Trezor T doesn't require interactive mode.
-							if (selectedWallet.HardwareWalletInfo.Model == HardwareWalletModels.Trezor_T
+						using var ctsSetup = new CancellationTokenSource(TimeSpan.FromMinutes(21));
+
+						// Trezor T doesn't require interactive mode.
+						if (selectedWallet.HardwareWalletInfo.Model == HardwareWalletModels.Trezor_T
 							|| selectedWallet.HardwareWalletInfo.Model == HardwareWalletModels.Trezor_T_Simulator)
-							{
-								await client.SetupAsync(selectedWallet.HardwareWalletInfo.Model, selectedWallet.HardwareWalletInfo.Path, false, ctsSetup.Token);
-							}
-							else
-							{
-								await client.SetupAsync(selectedWallet.HardwareWalletInfo.Model, selectedWallet.HardwareWalletInfo.Path, true, ctsSetup.Token);
-							}
+						{
+							await client.SetupAsync(selectedWallet.HardwareWalletInfo.Model, selectedWallet.HardwareWalletInfo.Path, false, ctsSetup.Token);
+						}
+						else
+						{
+							await client.SetupAsync(selectedWallet.HardwareWalletInfo.Model, selectedWallet.HardwareWalletInfo.Path, true, ctsSetup.Token);
 						}
 
 						MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.ConnectingToHardwareWallet);
@@ -319,7 +318,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 				}
 
 				ExtPubKey extPubKey;
-				var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+				using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 				try
 				{
 					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.AcquiringXpubFromHardwareWallet);
@@ -327,7 +326,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 				}
 				finally
 				{
-					cts?.Dispose();
 					MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusType.AcquiringXpubFromHardwareWallet);
 				}
 
