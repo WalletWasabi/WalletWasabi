@@ -67,7 +67,7 @@
               <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_OpenWallet}" />
               <TextBlock Text="{Binding Title}" VerticalAlignment="Center">
                 <i:Interaction.Behaviors>
-                  <behaviors:CommandOnClickBehavior Command="{Binding LurkingWifeModeCommand}" />
+                  <behaviors:CommandOnLeftClickBehavior Command="{Binding LurkingWifeModeCommand}" />
                 </i:Interaction.Behaviors>
               </TextBlock>
             </StackPanel>
