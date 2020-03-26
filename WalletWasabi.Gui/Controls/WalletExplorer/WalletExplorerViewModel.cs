@@ -57,7 +57,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Observable.FromEventPattern<Wallet>(WalletManager, nameof(WalletManager.WalletAdded))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Select(x => x.EventArgs)			
+				.Select(x => x.EventArgs)
 				.Where(x => x is { })
 				.Subscribe(wallet =>
 				{
@@ -125,7 +125,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			if (_wallets.OfType<WalletViewModel>().Any(x => x.Title == wallet.WalletName))
 			{
-				throw new System.Exception("Wallet already opened.");
+				throw new Exception("Wallet already opened.");
 			}
 
 			var walletViewModel = new WalletViewModel(wallet);

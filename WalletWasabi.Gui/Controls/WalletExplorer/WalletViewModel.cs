@@ -122,7 +122,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			shell.AddOrSelectDocument(CoinjoinTab);
 			shell.AddOrSelectDocument(HistoryTab);
 
-			// Select tab
+			SelectTab(shell);
+		}
+
+		private void SelectTab(IShell shell)
+		{
 			if (Wallet.Coins.Any())
 			{
 				WasabiDocumentTabViewModel tabToOpen = UiConfig.LastActiveTab switch
