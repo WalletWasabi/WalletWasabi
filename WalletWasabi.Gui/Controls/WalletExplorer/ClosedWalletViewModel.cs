@@ -18,6 +18,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			OpenWalletCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
+				IsBusy = true;
+
 				try
 				{
 					var global = Locator.Current.GetService<Global>();
