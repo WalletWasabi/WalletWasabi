@@ -348,7 +348,7 @@ namespace WalletWasabi.Packager
 			sw.Start();
 			while (true) // Wait for the notarization.
 			{
-				Console.WriteLine($"Checking notarization status. Elapsed time: {sw.Elapsed.ToString()}");
+				Console.WriteLine($"Checking notarization status. Elapsed time: {sw.Elapsed}");
 				using var process = Process.Start(new ProcessStartInfo
 				{
 					FileName = "xcrun",

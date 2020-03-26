@@ -625,7 +625,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							break;
 
 						case FeeDisplayFormat.USD:
-							FeeText = $"(~ ${UsdFee.ToString("0.##")})";
+							FeeText = $"(~ ${UsdFee:0.##})";
 							FeeToolTip = $"Estimated total fees in USD. Exchange Rate: {(long)UsdExchangeRate} USD/BTC.";
 							break;
 
@@ -635,7 +635,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							break;
 
 						case FeeDisplayFormat.Percentage:
-							FeeText = $"(~ {FeePercentage.ToString("0.#")} %)";
+							FeeText = $"(~ {FeePercentage:0.#} %)";
 							FeeToolTip = "Expected percentage of fees against the amount to be sent.";
 							break;
 
