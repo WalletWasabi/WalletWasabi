@@ -28,17 +28,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			UiConfig = Locator.Current.GetService<Global>().UiConfig;
 
-			WalletManager = Locator.Current.GetService<Global>().WalletManager;
-
-			LurkingWifeModeCommand = ReactiveCommand.Create(() =>
-			{
-				UiConfig.LurkingWifeMode = !UiConfig.LurkingWifeMode;
-				UiConfig.ToFile();
-			});
-
-			LurkingWifeModeCommand.ThrownExceptions
-				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(ex => Logger.LogError(ex));
+			WalletManager = Locator.Current.GetService<Global>().WalletManager;					
 
 			Observable.Merge(
 				Observable.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default))
@@ -104,8 +94,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private UiConfig UiConfig { get; }
 
 		private WalletManager WalletManager { get; }
-		
-		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
 
 		public ObservableCollection<ViewModelBase> Actions
 		{

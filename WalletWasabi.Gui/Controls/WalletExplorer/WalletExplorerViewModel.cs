@@ -11,6 +11,8 @@ using System.Linq;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Wallets;
+using System.Reactive;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -55,6 +57,25 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				});
 
+			CollapseAllCommand = ReactiveCommand.Create(() =>
+			{
+				foreach (var wallet in Wallets)
+				{
+					wallet.IsExpanded = false;
+				}
+			});
+
+			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				var uiConfig = Locator.Current.GetService<Global>().UiConfig;
+				uiConfig.LurkingWifeMode = !uiConfig.LurkingWifeMode;
+				uiConfig.ToFile();
+			});
+
+			LurkingWifeModeCommand.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
+
 			var shell = IoC.Get<IShell>();
 
 			shell.WhenAnyValue(x => x.SelectedDocument)
@@ -87,6 +108,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _selectedItem;
 			set => this.RaiseAndSetIfChanged(ref _selectedItem, value);
 		}
+
+		public ReactiveCommand<Unit, Unit> CollapseAllCommand { get; }
+
+		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
 
 		private void InsertWallet(WalletViewModelBase walletVM)
 		{
