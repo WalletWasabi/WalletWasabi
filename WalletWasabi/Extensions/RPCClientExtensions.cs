@@ -291,38 +291,48 @@ namespace NBitcoin.RPC
 			var resp = await rpc.SendCommandAsync(RPCOperations.getblock, blockId, 3).ConfigureAwait(false);
 			var blockInfoStr = resp.Result.ToString();
 			var blockInfoJson = JObject.Parse(blockInfoStr);
-			var blockInfo = new VerboseBlockInfo();
-			blockInfo.Hash = uint256.Parse(blockInfoJson.Value<string>("hash"));
 			var previousblockhash = blockInfoJson.Value<string>("previousblockhash");
-			blockInfo.PrevBlockHash = previousblockhash is { } ? uint256.Parse(previousblockhash) : null;
-			blockInfo.Confirmations = blockInfoJson.Value<ulong>("confirmations");
-			blockInfo.Height = blockInfoJson.Value<ulong>("height");
-			blockInfo.BlockTime = Utils.UnixTimeToDateTime(blockInfoJson.Value<uint>("time"));
+			var blockInfo = new VerboseBlockInfo()
+			{
+				Hash = uint256.Parse(blockInfoJson.Value<string>("hash")),
+				PrevBlockHash = previousblockhash is { } ? uint256.Parse(previousblockhash) : null,
+				Confirmations = blockInfoJson.Value<ulong>("confirmations"),
+				Height = blockInfoJson.Value<ulong>("height"),
+				BlockTime = Utils.UnixTimeToDateTime(blockInfoJson.Value<uint>("time"))
+			};
+
 			foreach (var txJson in blockInfoJson["tx"])
 			{
-				var tx = new VerboseTransactionInfo();
-				tx.Id = uint256.Parse(txJson.Value<string>("txid"));
-				foreach (var txinJson in txJson["vin"])
+				var tx = new VerboseTransactionInfo()
 				{
-					if (txinJson["coinbase"] is { })
+					Id = uint256.Parse(txJson.Value<string>("txid"))
+				};
+
+				foreach (var txinJson in txJson["vin"].Where(x => x["coinbase"] is null))
+				{
+					var input = new VerboseInputInfo()
 					{
-						continue;
-					}
-					var input = new VerboseInputInfo();
-					input.OutPoint = new OutPoint(
-						uint256.Parse(txinJson.Value<string>("txid")),
-						txinJson.Value<uint>("vout"));
-					input.PrevOutput = new VerboseOutputInfo();
-					input.PrevOutput.Value = Money.Coins(txinJson["prevout"].Value<decimal>("value"));
-					input.PrevOutput.ScriptPubKey = Script.FromHex(txinJson["prevout"]["scriptPubKey"].Value<string>("hex"));
+						OutPoint = new OutPoint(
+							uint256.Parse(txinJson.Value<string>("txid")),
+							txinJson.Value<uint>("vout")),
+						PrevOutput = new VerboseOutputInfo()
+						{
+							Value = Money.Coins(txinJson["prevout"].Value<decimal>("value")),
+							ScriptPubKey = Script.FromHex(txinJson["prevout"]["scriptPubKey"].Value<string>("hex"))
+						}
+					};
 
 					tx.Inputs.Add(input);
 				}
+
 				foreach (var txoutJson in txJson["vout"])
 				{
-					var output = new VerboseOutputInfo();
-					output.Value = Money.Coins(txoutJson.Value<decimal>("value"));
-					output.ScriptPubKey = Script.FromHex(txoutJson["scriptPubKey"].Value<string>("hex"));
+					var output = new VerboseOutputInfo()
+					{
+						Value = Money.Coins(txoutJson.Value<decimal>("value")),
+						ScriptPubKey = Script.FromHex(txoutJson["scriptPubKey"].Value<string>("hex"))
+					};
+
 					tx.Outputs.Add(output);
 				}
 
