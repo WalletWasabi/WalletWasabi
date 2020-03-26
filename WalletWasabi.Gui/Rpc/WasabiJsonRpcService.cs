@@ -19,17 +19,12 @@ namespace WalletWasabi.Gui.Rpc
 	{
 		private Global Global { get; }
 		private Wallet ActiveWallet { get; set; }
-		private Dictionary<string, Wallet> WalletsCache { get; } = new Dictionary<string, Wallet>();
 
 
 		public WasabiJsonRpcService(Global global)
 		{
 			Global = global;
 			ActiveWallet = Global.WalletManager?.GetFirstOrDefaultWallet();
-			if (ActiveWallet is {})
-			{
-				WalletsCache.Add(ActiveWallet.WalletName, ActiveWallet);
-			}
 		}
 
 		[JsonRpcMethod("listunspentcoins")]
