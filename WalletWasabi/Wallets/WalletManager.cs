@@ -113,6 +113,13 @@ namespace WalletWasabi.Wallets
 		/// <param name="refreshWalletList">Refreshes wallet list from files.</param>
 		public IEnumerable<KeyManager> GetKeyManagers(bool refreshWalletList = true)
 		{
+			var wallets = GetWallets(refreshWalletList);
+
+			return wallets.Select(x => x.KeyManager);
+		}
+
+		public IEnumerable<Wallet> GetWallets(bool refreshWalletList = true)
+		{
 			if (refreshWalletList)
 			{
 				RefreshWalletList();
@@ -121,7 +128,6 @@ namespace WalletWasabi.Wallets
 			lock (Lock)
 			{
 				return Wallets.Keys
-					.Select(x => x.KeyManager)
 					.ToList();
 			}
 		}
@@ -151,7 +157,7 @@ namespace WalletWasabi.Wallets
 
 		public bool AnyWallet()
 		{
-			return AnyWallet(x => x.State >= WalletState.Starting);			
+			return AnyWallet(x => x.State >= WalletState.Starting);
 		}
 
 		public bool AnyWallet(Func<Wallet, bool> predicate)
@@ -211,7 +217,7 @@ namespace WalletWasabi.Wallets
 			return StartWalletAsync(wallet);
 		}
 
-		private Wallet AddWallet(KeyManager keyManager)
+		public Wallet AddWallet(KeyManager keyManager)
 		{
 			Wallet wallet = new Wallet(WalletDirectories.WorkDir, Network, keyManager);
 			AddWallet(wallet);
@@ -267,6 +273,11 @@ namespace WalletWasabi.Wallets
 					throw new InvalidOperationException($"Wallet with the same name was already added: {wallet.WalletName}.");
 				}
 				Wallets.Add(wallet, new HashSet<uint256>());
+			}
+
+			if (!File.Exists(WalletDirectories.GetWalletFilePaths(wallet.WalletName).walletFilePath))
+			{
+				wallet.KeyManager.ToFile();
 			}
 
 			wallet.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
