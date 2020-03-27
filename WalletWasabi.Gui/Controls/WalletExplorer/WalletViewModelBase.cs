@@ -27,12 +27,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Wallet = wallet;
 			Title = WalletName;
 
-			WalletState = wallet.State;
-
 			Observable.FromEventPattern<WalletState>(wallet, nameof(wallet.StateChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => WalletState = x.EventArgs)
 				.DisposeWith(_disposables);
+			WalletState = wallet.State;
 
 			this.WhenAnyValue(x => x.WalletState)
 				.Subscribe(x =>

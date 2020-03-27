@@ -30,7 +30,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 		private string _password;
 		private WalletViewModelBase _selectedWallet;
 		private bool _isWalletSelected;
-		private bool _isWalletOpened;
 		private bool _canLoadWallet;
 		private bool _canTestPassword;
 		private bool _isBusy;
@@ -56,9 +55,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			this.WhenAnyValue(x => x.SelectedWallet)
 				.Subscribe(_ => TrySetWalletStates());
 
-			this.WhenAnyValue(x => x.IsWalletOpened)
-				.Subscribe(_ => TrySetWalletStates());
-
 			this.WhenAnyValue(x => x.IsBusy)
 				.Subscribe(_ => TrySetWalletStates());
 
@@ -66,10 +62,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Select(x => x.EventArgs)
 				.Where(x => x is { } && (!IsPasswordRequired || !x.KeyManager.IsWatchOnly))
-				.Subscribe(wallet =>
-				{
-					RootList.Add(new WalletViewModelBase(wallet));
-				});
+				.Subscribe(wallet => RootList.Add(new WalletViewModelBase(wallet)));
 
 			RootList.AddRange(Global.WalletManager.GetWallets().Where(x => !IsPasswordRequired || !x.KeyManager.IsWatchOnly).Select(x => new WalletViewModelBase(x)));
 
@@ -114,12 +107,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 		{
 			get => _isWalletSelected;
 			set => this.RaiseAndSetIfChanged(ref _isWalletSelected, value);
-		}
-
-		public bool IsWalletOpened
-		{
-			get => _isWalletOpened;
-			set => this.RaiseAndSetIfChanged(ref _isWalletOpened, value);
 		}
 
 		public string LoadButtonText
@@ -172,11 +159,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			Password = "";
 
 			TrySetWalletStates();
-
-			if (!CanLoadWallet && Wallets.Count > 0)
-			{
-				NotificationHelpers.Warning("There is already an open wallet. Restart the application in order to open a different one.");
-			}
 		}
 
 		public KeyManager LoadKeyManager()
@@ -221,7 +203,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 				{
 					if (keyManager.PasswordVerified == false)
 					{
-						Owner.SelectTestPassword();
+						Owner.SelectTestPassword(walletName);
 						return null;
 					}
 				}
@@ -295,21 +277,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 
 				IsWalletSelected = SelectedWallet != null;
 				CanTestPassword = IsWalletSelected;
-
-				if (Global.WalletManager.AnyWallet())
-				{
-					IsWalletOpened = true;
-					CanLoadWallet = false;
-				}
-				else
-				{
-					IsWalletOpened = false;
-
-					// If not busy loading.
-					// And wallet is selected.
-					// And no wallet is opened.
-					CanLoadWallet = !IsBusy && IsWalletSelected;
-				}
+				CanLoadWallet = SelectedWallet is { } ? (!SelectedWallet.IsBusy && SelectedWallet.WalletState <= WalletState.Initialized) : false;
 
 				SetLoadButtonText();
 				return true;

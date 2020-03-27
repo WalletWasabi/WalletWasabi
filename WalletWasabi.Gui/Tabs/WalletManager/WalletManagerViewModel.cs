@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Composition;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets;
@@ -24,29 +25,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private ObservableCollection<CategoryViewModel> _categories;
 		private CategoryViewModel _selectedCategory;
 		private ViewModelBase _currentView;
-		private LoadWalletViewModel LoadWalletViewModelDesktop { get; }
+		private LoadWalletViewModel LoadWalletViewModelDesktop { get; set; }
 
 		public WalletManagerViewModel() : base("Wallet Manager")
 		{
-			LoadWalletViewModelDesktop = new LoadWalletViewModel(this, LoadWalletType.Desktop);
-
-			Categories = new ObservableCollection<CategoryViewModel>
-			{
-				new GenerateWalletViewModel(this),
-				new RecoverWalletViewModel(this),
-				LoadWalletViewModelDesktop,
-				new LoadWalletViewModel(this, LoadWalletType.Password),
-				new ConnectHardwareWalletViewModel(this)
-			};
-
-			SelectedCategory = Categories.FirstOrDefault();
-
-			this.WhenAnyValue(x => x.SelectedCategory).Subscribe(category =>
-				{
-					category?.OnCategorySelected();
-
-					CurrentView = category;
-				});
 		}
 
 		public ObservableCollection<CategoryViewModel> Categories
@@ -76,15 +58,42 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			SelectedCategory = Categories.First(x => x is LoadWalletViewModel model && model.LoadWalletType == LoadWalletType.Desktop);
 		}
 
-		public void SelectTestPassword()
+		public void SelectTestPassword(string walletNameToSelect)
 		{
-			SelectedCategory = Categories.First(x => x is LoadWalletViewModel model && model.LoadWalletType == LoadWalletType.Password);
+			LoadWalletViewModel pwTest = Categories.OfType<LoadWalletViewModel>().First(x => x.LoadWalletType == LoadWalletType.Password);
+			pwTest.SelectedWallet = pwTest.Wallets.FirstOrDefault(x => x.WalletName == walletNameToSelect);
+			SelectedCategory = pwTest;
 		}
 
 		public ViewModelBase CurrentView
 		{
 			get => _currentView;
 			set => this.RaiseAndSetIfChanged(ref _currentView, value);
+		}
+
+		public override void OnOpen(CompositeDisposable disposables)
+		{
+			base.OnOpen(disposables);
+
+			LoadWalletViewModelDesktop = new LoadWalletViewModel(this, LoadWalletType.Desktop);
+
+			Categories = new ObservableCollection<CategoryViewModel>
+			{
+				new GenerateWalletViewModel(this),
+				new RecoverWalletViewModel(this),
+				LoadWalletViewModelDesktop,
+				new LoadWalletViewModel(this, LoadWalletType.Password),
+				new ConnectHardwareWalletViewModel(this)
+			};
+
+			SelectedCategory = Categories.FirstOrDefault();
+
+			this.WhenAnyValue(x => x.SelectedCategory).Subscribe(category =>
+			{
+				category?.OnCategorySelected();
+
+				CurrentView = category;
+			});
 		}
 
 		public override bool OnClose()
