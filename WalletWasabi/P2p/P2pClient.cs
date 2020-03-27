@@ -135,7 +135,7 @@ namespace WalletWasabi.P2p
 			}
 			else
 			{
-				if (UseTor && Network != Network.RegTest)
+				if (UseTor)
 				{
 					// onlyForOnionHosts: false - Connect to clearnet IPs through Tor, too.
 					ConnectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(TorSocks5EndPoint, onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
