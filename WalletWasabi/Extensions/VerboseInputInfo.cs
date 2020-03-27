@@ -2,7 +2,14 @@ namespace NBitcoin.RPC
 {
 	public class VerboseInputInfo
 	{
-		public OutPoint OutPoint { get; set; }
-		public VerboseOutputInfo PrevOutput { get; set; }
+		public VerboseInputInfo(OutPoint outPoint, VerboseOutputInfo prevOutput)
+		{
+			OutPoint = outPoint;
+			PrevOutput = prevOutput;
+		}
+
+		public OutPoint OutPoint { get; }
+
+		public VerboseOutputInfo PrevOutput { get; }
 	}
 }

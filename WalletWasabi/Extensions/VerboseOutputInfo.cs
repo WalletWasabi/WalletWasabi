@@ -2,7 +2,14 @@ namespace NBitcoin.RPC
 {
 	public class VerboseOutputInfo
 	{
-		public Money Value { get; set; }
-		public Script ScriptPubKey { get; set; }
+		public VerboseOutputInfo(Money value, Script scriptPubKey)
+		{
+			Value = value;
+			ScriptPubKey = scriptPubKey;
+		}
+
+		public Money Value { get; }
+
+		public Script ScriptPubKey { get; }
 	}
 }

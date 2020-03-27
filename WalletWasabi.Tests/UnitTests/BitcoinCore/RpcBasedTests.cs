@@ -57,8 +57,8 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			};
 			var blockInfo = await rpc.GetVerboseBlockAsync(uint256.One);
 			Assert.Equal(2, blockInfo.Transactions.Count());
-			Assert.Single(blockInfo.Transactions[1].Inputs);
-			Assert.Single(blockInfo.Transactions[1].Outputs);
+			Assert.Single(blockInfo.Transactions.ElementAt(1).Inputs);
+			Assert.Single(blockInfo.Transactions.ElementAt(1).Outputs);
 		}
 
 		#region Mocked RPC response

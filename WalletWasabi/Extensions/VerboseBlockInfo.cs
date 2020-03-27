@@ -5,11 +5,26 @@ namespace NBitcoin.RPC
 {
 	public class VerboseBlockInfo
 	{
-		public DateTimeOffset BlockTime { get; set; }
-		public uint256 Hash { get; set; }
-		public uint256 PrevBlockHash { get; set; }
-		public ulong Confirmations { get; set; }
-		public ulong Height { get; set; }
-		public List<VerboseTransactionInfo> Transactions { get; set; } = new List<VerboseTransactionInfo>();
+		public VerboseBlockInfo(uint256 prevBlockHash, ulong confirmations, uint256 hash, DateTimeOffset blockTime, ulong height, IEnumerable<VerboseTransactionInfo> transactions)
+		{
+			PrevBlockHash = prevBlockHash;
+			Confirmations = confirmations;
+			Hash = hash;
+			BlockTime = blockTime;
+			Height = height;
+			Transactions = transactions;
+		}
+
+		public DateTimeOffset BlockTime { get; }
+
+		public uint256 Hash { get; }
+
+		public uint256 PrevBlockHash { get; }
+
+		public ulong Confirmations { get; }
+
+		public ulong Height { get; }
+
+		public IEnumerable<VerboseTransactionInfo> Transactions { get; }
 	}
 }

@@ -4,9 +4,17 @@ namespace NBitcoin.RPC
 {
 	public class VerboseTransactionInfo
 	{
-		public uint256 Id { get; set; }
+		public VerboseTransactionInfo(uint256 id, IEnumerable<VerboseInputInfo> inputs, IEnumerable<VerboseOutputInfo> outputs)
+		{
+			Id = id;
+			Inputs = inputs;
+			Outputs = outputs;
+		}
 
-		public List<VerboseInputInfo> Inputs { get; set; } = new List<VerboseInputInfo>();
-		public List<VerboseOutputInfo> Outputs { get; set; } = new List<VerboseOutputInfo>();
+		public uint256 Id { get; }
+
+		public IEnumerable<VerboseInputInfo> Inputs { get; }
+
+		public IEnumerable<VerboseOutputInfo> Outputs { get; }
 	}
 }

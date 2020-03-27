@@ -291,22 +291,23 @@ namespace NBitcoin.RPC
 			var resp = await rpc.SendCommandAsync(RPCOperations.getblock, blockId, 3).ConfigureAwait(false);
 			var blockInfoStr = resp.Result.ToString();
 			var blockInfoJson = JObject.Parse(blockInfoStr);
-			var previousblockhash = blockInfoJson.Value<string>("previousblockhash");
-			var blockInfo = new VerboseBlockInfo()
-			{
-				Hash = uint256.Parse(blockInfoJson.Value<string>("hash")),
-				PrevBlockHash = previousblockhash is { } ? uint256.Parse(previousblockhash) : uint256.Zero,
-				Confirmations = blockInfoJson.Value<ulong>("confirmations"),
-				Height = blockInfoJson.Value<ulong>("height"),
-				BlockTime = Utils.UnixTimeToDateTime(blockInfoJson.Value<uint>("time"))
-			};
+			var previousBlockHash = blockInfoJson.Value<string>("previousblockhash");
+			var transaction = new List<VerboseTransactionInfo>();
+
+			var blockInfo = new VerboseBlockInfo(
+				hash: uint256.Parse(blockInfoJson.Value<string>("hash")),
+				prevBlockHash: previousBlockHash is { } ? uint256.Parse(previousBlockHash) : uint256.Zero,
+				confirmations: blockInfoJson.Value<ulong>("confirmations"),
+				height: blockInfoJson.Value<ulong>("height"),
+				blockTime: Utils.UnixTimeToDateTime(blockInfoJson.Value<uint>("time")),
+				transactions: transaction
+			);
 
 			foreach (var txJson in blockInfoJson["tx"])
 			{
-				var tx = new VerboseTransactionInfo()
-				{
-					Id = uint256.Parse(txJson.Value<string>("txid"))
-				};
+				var inputs = new List<VerboseInputInfo>();
+				var outputs = new List<VerboseOutputInfo>();
+				var tx = new VerboseTransactionInfo(uint256.Parse(txJson.Value<string>("txid")), inputs, outputs);
 
 				var txinJsonInputs = txJson["vin"]
 					.Where(x => !(x["coinbase"] is { }))
@@ -314,17 +315,14 @@ namespace NBitcoin.RPC
 
 				foreach (var txinJson in txinJsonInputs)
 				{
-					var input = new VerboseInputInfo()
-					{
-						OutPoint = new OutPoint(uint256.Parse(txinJson.Value<string>("txid")), txinJson.Value<uint>("vout")),
-						PrevOutput = new VerboseOutputInfo()
-						{
-							Value = Money.Coins(txinJson["prevout"].Value<decimal>("value")),
-							ScriptPubKey = Script.FromHex(txinJson["prevout"]["scriptPubKey"].Value<string>("hex"))
-						}
-					};
+					var input = new VerboseInputInfo(
+						outPoint: new OutPoint(uint256.Parse(txinJson.Value<string>("txid")), txinJson.Value<uint>("vout")),
+						prevOutput: new VerboseOutputInfo(
+							value: Money.Coins(txinJson["prevout"].Value<decimal>("value")),
+							scriptPubKey: Script.FromHex(txinJson["prevout"]["scriptPubKey"].Value<string>("hex")))
+					);
 
-					tx.Inputs.Add(input);
+					inputs.Add(input);
 				}
 
 				var txinJsonOutputs = txJson["vout"]
@@ -332,16 +330,15 @@ namespace NBitcoin.RPC
 
 				foreach (var txoutJson in txinJsonOutputs)
 				{
-					var output = new VerboseOutputInfo()
-					{
-						Value = Money.Coins(txoutJson.Value<decimal>("value")),
-						ScriptPubKey = Script.FromHex(txoutJson["scriptPubKey"].Value<string>("hex"))
-					};
+					var output = new VerboseOutputInfo(
+						value: Money.Coins(txoutJson.Value<decimal>("value")),
+						scriptPubKey: Script.FromHex(txoutJson["scriptPubKey"].Value<string>("hex"))
+					);
 
-					tx.Outputs.Add(output);
+					outputs.Add(output);
 				}
 
-				blockInfo.Transactions.Add(tx);
+				transaction.Add(tx);
 			}
 
 			return blockInfo;
