@@ -135,18 +135,13 @@ namespace WalletWasabi.P2p
 			}
 			else
 			{
-				if (UseTor)
+				if (UseTor && Network != Network.RegTest)
 				{
 					// onlyForOnionHosts: false - Connect to clearnet IPs through Tor, too.
 					ConnectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(TorSocks5EndPoint, onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
 					// allowOnlyTorEndpoints: true - Connect only to onions and do not connect to clearnet IPs at all.
 					// This of course makes the first setting unnecessary, but it's better if that's around, in case someone wants to tinker here.
 					ConnectionParameters.EndpointConnector = new DefaultEndpointConnector(allowOnlyTorEndpoints: Network == Network.Main);
-
-					if (Network == Network.RegTest)
-					{
-						return;
-					}
 
 					// curl -s https://bitnodes.21.co/api/v1/snapshots/latest/ | egrep -o '[a-z0-9]{16}\.onion:?[0-9]*' | sort -ru
 					// Then filtered to include only /Satoshi:0.17.x
