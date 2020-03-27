@@ -17,9 +17,9 @@
   </UserControl.Styles>
   <DockPanel LastChildFill="True">
     <Panel DockPanel.Dock="Top" HorizontalAlignment="Stretch" Background="{DynamicResource ThemeControlLowBrush}">
-      <StackPanel Orientation="Horizontal" Spacing="2" Margin="2">
+      <StackPanel Orientation="Horizontal" Spacing="2" Margin="8 1">
         <Button Background="Transparent" BorderThickness="0" ToolTip.Tip="Collapse All" Command="{Binding CollapseAllCommand}">
-          <DrawingPresenter Width="16" Height="16">
+          <DrawingPresenter Width="14" Height="14">
             <DrawingGroup>
               <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
               <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M15,10L13,10 13,12 11,12 11,14 2,14 2,5 4,5 4,3 6,3 6,1 15,1z" />
