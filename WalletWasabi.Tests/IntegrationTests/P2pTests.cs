@@ -35,6 +35,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[InlineData("main")]
 		public async Task TestServicesAsync(string networkString)
 		{
+			await RuntimeParams.LoadAsync();
+
 			var network = Network.GetNetwork(networkString);
 			var blocksToDownload = new List<uint256>();
 			if (network == Network.Main)
