@@ -45,9 +45,9 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			Global = Locator.Current.GetService<Global>();
 
-			Autocopy = Global.UiConfig.Autocopy is true;
-			CustomFee = Global.UiConfig.IsCustomFee is true;
-			CustomChangeAddress = Global.UiConfig.IsCustomChangeAddress is true;
+			Autocopy = Global.UiConfig.Autocopy;
+			CustomFee = Global.UiConfig.IsCustomFee;
+			CustomChangeAddress = Global.UiConfig.IsCustomChangeAddress;
 
 			var config = Config.LoadOrCreateDefaultFile(Global.Config.FilePath);
 
@@ -307,7 +307,7 @@ namespace WalletWasabi.Gui.Tabs
 			set => this.RaiseAndSetIfChanged(ref _dustThreshold, value);
 		}
 
-		public bool LurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
+		public bool LurkingWifeMode => Global.UiConfig.LurkingWifeMode;
 
 		public string PinBoxText
 		{
