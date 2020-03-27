@@ -1,3 +1,4 @@
+using System.Security.Cryptography.X509Certificates;
 using System;
 using AvalonStudio.Extensibility;
 using AvalonStudio.MVVM;
@@ -27,6 +28,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
 
 		public override Location DefaultLocation => Location.Right;
+		public bool IsLurkingWifeMode => _isLurkingWifeMode?.Value ?? false;
+		private ObservableAsPropertyHelper<bool> _isLurkingWifeMode;
 
 		public WalletExplorerViewModel()
 		{
@@ -37,6 +40,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
 
 			WalletManager = Locator.Current.GetService<Global>().WalletManager;
+
+			UiConfig = Locator.Current.GetService<Global>().UiConfig;
 
 			Observable.FromEventPattern<WalletState>(WalletManager, nameof(WalletManager.WalletStateChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -67,10 +72,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				var uiConfig = Locator.Current.GetService<Global>().UiConfig;
-				uiConfig.LurkingWifeMode = !uiConfig.LurkingWifeMode;
-				uiConfig.ToFile();
+				UiConfig.LurkingWifeMode = !UiConfig.LurkingWifeMode;
+				UiConfig.ToFile();
 			});
+
+			_isLurkingWifeMode = UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
+										 .ToProperty(this, x => x.IsLurkingWifeMode, scheduler: RxApp.MainThreadScheduler);
 
 			LurkingWifeModeCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -81,7 +88,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			shell.WhenAnyValue(x => x.SelectedDocument)
 				.Subscribe(x =>
 				{
-					if(x is ViewModelBase vmb)
+					if (x is ViewModelBase vmb)
 					{
 						SelectedItem = vmb;
 					}
@@ -96,6 +103,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		private WalletManager WalletManager { get; }
+		private UiConfig UiConfig { get; }
 
 		public ObservableCollection<WalletViewModelBase> Wallets
 		{
