@@ -82,7 +82,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			});
 
-			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
+			LurkingWifeModeCommand = ReactiveCommand.Create(() =>
 			{
 				UiConfig.LurkingWifeMode = !UiConfig.LurkingWifeMode;
 				UiConfig.ToFile();
