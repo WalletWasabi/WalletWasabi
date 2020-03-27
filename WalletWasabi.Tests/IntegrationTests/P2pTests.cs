@@ -61,7 +61,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			KeyManager keyManager = KeyManager.CreateNew(out _, "password");
 			WasabiSynchronizer syncer = new WasabiSynchronizer(network, bitcoinStore, new Uri("http://localhost:12345"), Global.Instance.TorSocks5Endpoint);
 
-			using var client = new P2pClient(dataDir, network, useTor: true, new IPEndPoint(IPAddress.Loopback, 1234), Global.Instance.TorSocks5Endpoint, bitcoinStore);
+			using var client = new P2pClient(dataDir, network, useTor: false, new IPEndPoint(IPAddress.Loopback, 1234), Global.Instance.TorSocks5Endpoint, bitcoinStore);
 			using var startTimeoutSource = new CancellationTokenSource(TimeSpan.FromSeconds(7));
 			await client.StartAsync(startTimeoutSource.Token);
 
