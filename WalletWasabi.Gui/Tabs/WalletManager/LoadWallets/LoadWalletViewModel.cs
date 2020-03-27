@@ -65,7 +65,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 				.Select(x => x.EventArgs)
 				.Subscribe(wallet => RootList.Add(new WalletViewModelBase(wallet)));
 
-			RootList.AddRange(Global.WalletManager.GetWallets().Select(x => new WalletViewModelBase(x)));
+			UpdateWalletList();
 
 			LoadCommand = ReactiveCommand.CreateFromTask(LoadWalletAsync, this.WhenAnyValue(x => x.CanLoadWallet));
 			TestPasswordCommand = ReactiveCommand.Create(LoadKeyManager, this.WhenAnyValue(x => x.CanTestPassword));
@@ -253,6 +253,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 					{
 						Owner.OnClose();
 					}
+
+					UpdateWalletList();
 				}
 				catch (Exception ex)
 				{
@@ -271,6 +273,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 		}
 
 		public void OpenWalletsFolder() => IoHelpers.OpenFolderInFileExplorer(Global.WalletManager.WalletDirectories.WalletsDir);
+
+		private void UpdateWalletList ()
+		{
+			RootList.Clear();
+			RootList.AddRange(Global.WalletManager.GetWallets().Where(x => x.State == WalletState.Uninitialized).Select(x => new WalletViewModelBase(x)));
+		}
 
 		private bool TrySetWalletStates()
 		{
