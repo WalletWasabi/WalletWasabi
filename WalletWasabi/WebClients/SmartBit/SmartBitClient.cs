@@ -16,10 +16,7 @@ namespace WalletWasabi.WebClients.SmartBit
 {
 	public class SmartBitClient : IDisposable
 	{
-		private AsyncLock AsyncLock { get; } = new AsyncLock();
-		private HttpClient HttpClient { get; }
-		public Network Network { get; }
-		public Uri BaseAddress => HttpClient.BaseAddress;
+		private bool _disposedValue = false; // To detect redundant calls
 
 		public SmartBitClient(Network network, HttpMessageHandler handler = null, bool disposeHandler = false)
 		{
@@ -41,6 +38,11 @@ namespace WalletWasabi.WebClients.SmartBit
 				throw new NotSupportedNetworkException(network);
 			}
 		}
+
+		private AsyncLock AsyncLock { get; } = new AsyncLock();
+		private HttpClient HttpClient { get; }
+		public Network Network { get; }
+		public Uri BaseAddress => HttpClient.BaseAddress;
 
 		public async Task PushTransactionAsync(Transaction transaction, CancellationToken cancel)
 		{
@@ -100,8 +102,6 @@ namespace WalletWasabi.WebClients.SmartBit
 		}
 
 		#region IDisposable Support
-
-		private bool _disposedValue = false; // To detect redundant calls
 
 		protected virtual void Dispose(bool disposing)
 		{

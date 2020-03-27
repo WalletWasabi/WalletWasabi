@@ -269,7 +269,7 @@ namespace WalletWasabi.Gui
 				}
 				else
 				{
-					if (Config.UseTor is true)
+					if (Config.UseTor)
 					{
 						// onlyForOnionHosts: false - Connect to clearnet IPs through Tor, too.
 						connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.TorSocks5EndPoint, onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
@@ -370,7 +370,7 @@ namespace WalletWasabi.Gui
 					// of course).
 					// On the other side, increasing this number forces users that do not need to discover more peers
 					// to spend resources (CPU/bandwidth) to discover new peers.
-					needsToDiscoverPeers = Config.UseTor is true || AddressManager.Count < 500;
+					needsToDiscoverPeers = Config.UseTor || AddressManager.Count < 500;
 					Logger.LogInfo($"Loaded {nameof(AddressManager)} from `{AddressManagerFilePath}`.");
 				}
 				catch (DirectoryNotFoundException ex)
@@ -439,7 +439,7 @@ namespace WalletWasabi.Gui
 		{
 			try
 			{
-				if (UiConfig.LurkingWifeMode is true)
+				if (UiConfig.LurkingWifeMode)
 				{
 					return;
 				}
@@ -477,7 +477,7 @@ namespace WalletWasabi.Gui
 			{
 				// In lurking wife mode no notification is raised.
 				// If there are no news, then don't bother too.
-				if (UiConfig.LurkingWifeMode is true || !e.IsNews || (sender as Wallet).State != WalletState.Started)
+				if (UiConfig.LurkingWifeMode || !e.IsNews || (sender as Wallet).State != WalletState.Started)
 				{
 					return;
 				}

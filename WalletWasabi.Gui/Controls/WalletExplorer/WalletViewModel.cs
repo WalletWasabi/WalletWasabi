@@ -23,12 +23,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public WalletViewModel(Wallet wallet) : base(wallet)
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
-			
+
 			Actions = new ObservableCollection<ViewModelBase>();
 
 			UiConfig = Locator.Current.GetService<Global>().UiConfig;
 
-			WalletManager = Locator.Current.GetService<Global>().WalletManager;					
+			WalletManager = Locator.Current.GetService<Global>().WalletManager;
 
 			Observable.Merge(
 				Observable.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default))
@@ -48,15 +48,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				})
 				.DisposeWith(Disposables);
-			
-			// If hardware wallet then we need the Send tab.
-			if (Wallet.KeyManager.IsHardwareWallet is true)
-			{
-				SendTab = new SendTabViewModel(Wallet);
-				Actions.Add(SendTab);
-			}
-			// If not hardware wallet, but neither watch only then we also need the send tab.
-			else if (Wallet.KeyManager.IsWatchOnly is false)
+
+			// If hardware wallet or not watch only wallet then we need the Send tab.
+			if (Wallet.KeyManager.IsHardwareWallet || !Wallet.KeyManager.IsWatchOnly)
 			{
 				SendTab = new SendTabViewModel(Wallet);
 				Actions.Add(SendTab);
@@ -95,6 +89,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private WalletManager WalletManager { get; }
 
+		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
+
 		public ObservableCollection<ViewModelBase> Actions
 		{
 			get => _actions;
@@ -103,15 +99,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private CompositeDisposable Disposables { get; set; }
 
-		public void OpenWallet()
+		public void OpenWalletTabs()
 		{
-			IsExpanded = true;
-			
-			if (WalletManager.AnyWallet(x=>x.State >= WalletState.Starting && x != Wallet))
-			{
-				return;
-			}
-
 			var shell = IoC.Get<IShell>();
 
 			if (SendTab is { })
@@ -123,7 +112,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			shell.AddOrSelectDocument(CoinjoinTab);
 			shell.AddOrSelectDocument(HistoryTab);
 
-			// Select tab
+			SelectTab(shell);
+		}
+
+		private void SelectTab(IShell shell)
+		{
 			if (Wallet.Coins.Any())
 			{
 				WasabiDocumentTabViewModel tabToOpen = UiConfig.LastActiveTab switch
