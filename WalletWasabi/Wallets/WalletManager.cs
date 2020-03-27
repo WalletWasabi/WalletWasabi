@@ -113,6 +113,14 @@ namespace WalletWasabi.Wallets
 		/// <param name="refreshWalletList">Refreshes wallet list from files.</param>
 		public IEnumerable<KeyManager> GetKeyManagers(bool refreshWalletList = true)
 		{
+			var wallets = GetWallets(refreshWalletList);
+
+			return wallets
+				.Select(x => x.KeyManager);
+		}
+
+		public IEnumerable<Wallet> GetWallets(bool refreshWalletList = true)
+		{
 			if (refreshWalletList)
 			{
 				RefreshWalletList();
@@ -121,7 +129,6 @@ namespace WalletWasabi.Wallets
 			lock (Lock)
 			{
 				return Wallets.Keys
-					.Select(x => x.KeyManager)
 					.ToList();
 			}
 		}
@@ -151,7 +158,7 @@ namespace WalletWasabi.Wallets
 
 		public bool AnyWallet()
 		{
-			return AnyWallet(x => x.State >= WalletState.Starting);			
+			return AnyWallet(x => x.State >= WalletState.Starting);
 		}
 
 		public bool AnyWallet(Func<Wallet, bool> predicate)

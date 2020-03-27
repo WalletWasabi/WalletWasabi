@@ -152,9 +152,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void LoadWallets()
 		{
-			foreach (var wallet in WalletManager.GetKeyManagers())
+			foreach (var wallet in WalletManager.GetWallets())
 			{
-				InsertWallet(new ClosedWalletViewModel(WalletManager.GetWalletByName(wallet.WalletName)));
+				InsertWallet(new ClosedWalletViewModel(wallet));
 			}
 		}
 
