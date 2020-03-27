@@ -256,7 +256,7 @@ namespace Nito.AsyncEx
 
 			if (!expectedPreviousStatuses.Contains((AsyncLockStatus)prevstatus))
 			{
-				throw new InvalidOperationException($"Previous {nameof(AsyncLock)} state was unexpected: prev:{((AsyncLockStatus)prevstatus).ToString()} now:{((AsyncLockStatus)_status).ToString()}.");
+				throw new InvalidOperationException($"Previous {nameof(AsyncLock)} state was unexpected: prev:{(AsyncLockStatus)prevstatus} now:{(AsyncLockStatus)_status}.");
 			}
 		}
 

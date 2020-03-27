@@ -54,6 +54,37 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 					}
 				});
+
+			Observable.FromEventPattern<Wallet>(WalletManager, nameof(WalletManager.WalletAdded))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Select(x => x.EventArgs)
+				.Where(x => x is { })
+				.Subscribe(wallet =>
+				{
+					if (wallet.State <= WalletState.Starting)
+					{
+						Wallets.InsertSorted(new ClosedWalletViewModel(wallet));
+					}
+					else
+					{
+						Wallets.InsertSorted(new WalletViewModel(wallet));
+					}
+				});
+
+			var shell = IoC.Get<IShell>();
+
+			shell.WhenAnyValue(x => x.SelectedDocument)
+				.Subscribe(x =>
+				{
+					if (x is ViewModelBase vmb)
+					{
+						SelectedItem = vmb;
+					}
+				});
+
+			this.WhenAnyValue(x => x.SelectedItem)
+				.OfType<WasabiDocumentTabViewModel>()
+				.Subscribe(x => shell.AddOrSelectDocument(x));
 		}
 
 		private WalletManager WalletManager { get; }
@@ -76,19 +107,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			_walletDictionary.Add(walletVM.Wallet, walletVM);
 		}
 
-		internal WalletViewModelBase OpenWallet(Wallet wallet)
-		{
-			if (wallet.Coins.Any())
-			{
-				// If already have coins then open the last active tab first.
-				return OpenWallet(wallet, receiveDominant: false);
-			}
-			else // Else open with Receive tab first.
-			{
-				return OpenWallet(wallet, receiveDominant: true);
-			}
-		}
-
 		private void OpenClosedWallet(ClosedWalletViewModel closedWalletViewModel)
 		{
 			var select = SelectedItem == closedWalletViewModel;
@@ -103,18 +121,23 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private WalletViewModelBase OpenWallet(Wallet wallet, bool receiveDominant, bool select = true)
+		internal WalletViewModelBase OpenWallet(Wallet wallet)
 		{
 			if (_wallets.OfType<WalletViewModel>().Any(x => x.Title == wallet.WalletName))
 			{
-				throw new System.Exception("Wallet already opened.");
+				throw new Exception("Wallet already opened.");
 			}
 
 			var walletViewModel = new WalletViewModel(wallet);
 
 			InsertWallet(walletViewModel);
 
-			walletViewModel.OpenWallet(receiveDominant);
+			if (!WalletManager.AnyWallet(x => x.State >= WalletState.Starting && x != walletViewModel.Wallet))
+			{
+				walletViewModel.OpenWalletTabs();
+			}
+
+			walletViewModel.IsExpanded = true;
 
 			return walletViewModel;
 		}

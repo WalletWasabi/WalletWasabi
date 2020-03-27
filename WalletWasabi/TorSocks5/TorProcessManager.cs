@@ -77,6 +77,7 @@ namespace WalletWasabi.TorSocks5
 						}
 
 						var torDir = Path.Combine(dataDir, "tor");
+						var torDataDir = Path.Combine(dataDir, "tordata");
 						var torPath = "";
 						var fullBaseDirectory = Path.GetFullPath(AppContext.BaseDirectory);
 						if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -116,7 +117,7 @@ namespace WalletWasabi.TorSocks5
 							Logger.LogInfo($"Tor instance found at {torPath}.");
 						}
 
-						string torArguments = $"--SOCKSPort {TorSocks5EndPoint}";
+						string torArguments = $"--SOCKSPort {TorSocks5EndPoint} --DataDirectory {torDataDir}";
 						if (!string.IsNullOrEmpty(LogFile))
 						{
 							IoHelpers.EnsureContainingDirectoryExists(LogFile);

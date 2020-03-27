@@ -104,8 +104,13 @@ namespace WalletWasabi.Gui
 						if (Global.UiConfig != null) // UiConfig not yet loaded.
 						{
 							Global.UiConfig.WindowState = WindowState;
-							Global.UiConfig.Width = Width;
-							Global.UiConfig.Height = Height;
+
+							if (WindowState == Avalonia.Controls.WindowState.Normal)
+							{
+								Global.UiConfig.Width = Width;
+								Global.UiConfig.Height = Height;
+							}
+
 							Global.UiConfig.LastActiveTab = IoC.Get<IShell>().SelectedDocument?.GetType().Name;
 							Global.UiConfig.ToFile();
 							Logger.LogInfo($"{nameof(Global.UiConfig)} is saved.");

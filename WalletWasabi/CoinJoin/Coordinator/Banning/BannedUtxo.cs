@@ -46,7 +46,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Banning
 		/// </summary>
 		public override string ToString()
 		{
-			return $"{TimeOfBan.ToString("yyyy-MM-dd HH-mm-ss")}:{Severity}:{Utxo.N}:{Utxo.Hash}:{IsNoted}:{BannedForRound}";
+			return $"{TimeOfBan:yyyy-MM-dd HH-mm-ss}:{Severity}:{Utxo.N}:{Utxo.Hash}:{IsNoted}:{BannedForRound}";
 		}
 	}
 }

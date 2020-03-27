@@ -65,7 +65,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task AsyncMutexTestsAsync()
 		{
-			var mutexName1 = $"mutex1-{DateTime.Now.Ticks.ToString()}"; // Randomize the name to avoid system wide collisions.
+			var mutexName1 = $"mutex1-{DateTime.Now.Ticks}"; // Randomize the name to avoid system wide collisions.
 
 			AsyncMutex asyncMutex = new AsyncMutex(mutexName1);
 
@@ -130,7 +130,7 @@ namespace WalletWasabi.Tests.UnitTests
 				Assert.Equal(prevnum + 1, num);
 			}
 
-			var mutexName2 = $"mutex2-{DateTime.Now.Ticks.ToString()}";
+			var mutexName2 = $"mutex2-{DateTime.Now.Ticks}";
 
 			// Test that asynclock cancellation is going to throw IOException.
 			var mutex = new AsyncMutex(mutexName2);

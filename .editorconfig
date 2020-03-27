@@ -231,6 +231,9 @@ dotnet_style_prefer_auto_properties = true:error
 # IDE0057: Use range operator
 csharp_style_prefer_range_operator = true:error
 
+# IDE0071: Simplify interpolation
+dotnet_style_prefer_simplified_interpolation = true:error
+
 [*.xaml]
 indent_style = space
 indent_size = 2
