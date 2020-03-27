@@ -1,5 +1,5 @@
-<Styles xmlns="https://github.com/avaloniaui"
-  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+<Styles xmlns="https://github.com/avaloniaui" 
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
   xmlns:local="clr-namespace:AvalonStudio.Controls.Standard.CodeEditor;assembly=AvalonStudio.Controls.Standard">
   <Style>
     <Style.Resources>
@@ -192,7 +192,7 @@
           <GeometryDrawing Brush="#007ACC" Geometry="M304 48c0 26.51-21.49 48-48 48s-48-21.49-48-48 21.49-48 48-48 48 21.49 48 48zm-48 368c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48zm208-208c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48zM96 256c0-26.51-21.49-48-48-48S0 229.49 0 256s21.49 48 48 48 48-21.49 48-48zm12.922 99.078c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48c0-26.509-21.491-48-48-48zm294.156 0c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48c0-26.509-21.49-48-48-48zM108.922 60.922c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.491-48-48-48z" />
         </DrawingGroup.Children>
       </DrawingGroup>
-      
+
       <DrawingGroup x:Key="WalletExplorer_OpenWallet">
         <DrawingGroup.Children>
           <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -324,6 +324,15 @@
       </DrawingGroup>
 
       <!-- WalletExplorerView icons -->
+      <DrawingGroup x:Key="WalletExplorerView_CollapseTree">
+        <DrawingGroup>
+          <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+          <GeometryDrawing Brush="#FF252526" Geometry="F1M15,10L13,10 13,12 11,12 11,14 2,14 2,5 4,5 4,3 6,3 6,1 15,1z" />
+          <GeometryDrawing Brush="#FFC4C4C4" Geometry="F1M9,7L4,7 4,12 9,12z M10,13L3,13 3,6 10,6z M5,4L5,5 6,5 11,5 11,10 11,11 12,11 12,4z M14,2L14,9 13,9 13,8 13,3 8,3 7,3 7,2z" />
+          <GeometryDrawing Brush="#FF29292C" Geometry="F1M8,10L5,10 5,9 8,9z M4,12L9,12 9,7 4,7z" />
+          <GeometryDrawing Brush="#FF6EBBFF" Geometry="F1M8,10L5,10 5,8.969 8,9z" />
+        </DrawingGroup>
+      </DrawingGroup>
       <DrawingGroup x:Key="WalletExplorerView_Send">
         <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
         <GeometryDrawing Brush="#FF252526" Geometry="M 5.0831434 4.1507339 C 2.8320879 4.5076495 0.8915361 6.1713659 0.3077528 8.5140152 -0.47138488 11.637126 1.444748 14.82517 4.5675184 15.603859 7.6911596 16.382629 10.880566 14.467285 11.659315 11.344094 12.438044 8.2207957 10.521237 5.0309294 7.3975965 4.2522965 6.6168277 4.057628 5.8334952 4.0317621 5.0831434 4.1507339 Z"/>
