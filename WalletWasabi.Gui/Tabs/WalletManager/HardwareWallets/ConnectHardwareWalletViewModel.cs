@@ -56,11 +56,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 			this.WhenAnyValue(x => x.IsWalletOpened)
 				.Subscribe(_ => TrySetWalletStates());
 
-			this.WhenAnyValue(x => x.IsBusy)
-				.Subscribe(_ => TrySetWalletStates());
-
-			this.WhenAnyValue(x => x.IsBusy)
-				.Subscribe(_ => TrySetWalletStates());
+			this.WhenAnyValue(x => x.IsBusy, x => x.IsHardwareBusy)
+				.Subscribe(_ => SetLoadButtonText());
 
 			LoadCommand = ReactiveCommand.CreateFromTask(LoadWalletAsync, this.WhenAnyValue(x => x.CanLoadWallet));
 			ImportColdcardCommand = ReactiveCommand.CreateFromTask(async () =>
@@ -254,13 +251,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 					return null;
 				}
 
-				if (!selectedWallet.HardwareWalletInfo.IsInitialized())
+				while (!selectedWallet.HardwareWalletInfo.IsInitialized())
 				{
-					await InitializeHardwareWallet(selectedWallet, client);
-
-					return await LoadKeyManagerAsync();
+					await InitializeHardwareWalletAsync(selectedWallet, client);
 				}
-				else if (selectedWallet.HardwareWalletInfo.NeedsPinSent is true)
+
+				if (selectedWallet.HardwareWalletInfo.NeedsPinSent is true)
 				{
 					await PinPadViewModel.UnlockAsync(selectedWallet.HardwareWalletInfo);
 
@@ -352,7 +348,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 			}
 		}
 
-		private async Task InitializeHardwareWallet(LoadWalletEntry selectedWallet, HwiClient client)
+		private async Task InitializeHardwareWalletAsync(LoadWalletEntry selectedWallet, HwiClient client)
 		{
 			try
 			{
