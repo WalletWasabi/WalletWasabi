@@ -89,7 +89,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			});
 
 			_isLurkingWifeMode = UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
-										 .ToProperty(this, x => x.IsLurkingWifeMode, scheduler: RxApp.MainThreadScheduler);
+				 .ToProperty(this, x => x.IsLurkingWifeMode, scheduler: RxApp.MainThreadScheduler);
 
 			LurkingWifeModeCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
