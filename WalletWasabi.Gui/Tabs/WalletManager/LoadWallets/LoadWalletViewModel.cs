@@ -65,7 +65,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			Observable.FromEventPattern<Wallet>(Global.WalletManager, nameof(Global.WalletManager.WalletAdded))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Select(x => x.EventArgs)
-				.Where(x => x is { })
+				.Where(x => x is { } && (!IsPasswordRequired || !x.KeyManager.IsWatchOnly))
 				.Subscribe(wallet =>
 				{
 					RootList.Add(new WalletViewModelBase(wallet));

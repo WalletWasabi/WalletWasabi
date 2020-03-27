@@ -82,7 +82,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 						var km = KeyManager.Recover(mnemonic, Password, filePath: null, keyPath, MinGapLimit);
 						km.SetNetwork(Global.Network);
 						km.SetFilePath(walletFilePath);
-						km.ToFile();
+						Global.WalletManager.AddWallet(km);
 
 						NotificationHelpers.Success("Wallet was recovered.");
 
