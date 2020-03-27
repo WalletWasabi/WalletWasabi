@@ -115,8 +115,7 @@ namespace WalletWasabi.Wallets
 		{
 			var wallets = GetWallets(refreshWalletList);
 
-			return wallets
-				.Select(x => x.KeyManager);
+			return wallets.Select(x => x.KeyManager);
 		}
 
 		public IEnumerable<Wallet> GetWallets(bool refreshWalletList = true)
