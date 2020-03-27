@@ -26,9 +26,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableCollection<WalletViewModelBase> _wallets;
 		private ViewModelBase _selectedItem;
 		private Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
-
-		public override Location DefaultLocation => Location.Right;
-		public bool IsLurkingWifeMode => _isLurkingWifeMode?.Value ?? false;
 		private ObservableAsPropertyHelper<bool> _isLurkingWifeMode;
 
 		public WalletExplorerViewModel()
@@ -115,7 +112,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(x => shell.AddOrSelectDocument(x));
 		}
 
+		public override Location DefaultLocation => Location.Right;
+
+		public bool IsLurkingWifeMode => _isLurkingWifeMode?.Value ?? false;
+
 		private WalletManager WalletManager { get; }
+
 		private UiConfig UiConfig { get; }
 
 		public ObservableCollection<WalletViewModelBase> Wallets
