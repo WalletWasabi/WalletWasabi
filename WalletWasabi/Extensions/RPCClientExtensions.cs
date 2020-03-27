@@ -308,7 +308,11 @@ namespace NBitcoin.RPC
 					Id = uint256.Parse(txJson.Value<string>("txid"))
 				};
 
-				foreach (var txinJson in txJson["vin"].Where(x => x["coinbase"] is null))
+				var txinJsonInputs = txJson["vin"]
+					.Where(x => !(x["coinbase"] is { }))
+					.Where(x => x["prevout"]["scriptPubKey"].Value<string>("type") == "witness_v0_keyhash");
+
+				foreach (var txinJson in txinJsonInputs)
 				{
 					var input = new VerboseInputInfo()
 					{
@@ -323,7 +327,10 @@ namespace NBitcoin.RPC
 					tx.Inputs.Add(input);
 				}
 
-				foreach (var txoutJson in txJson["vout"])
+				var txinJsonOutputs = txJson["vout"]
+					.Where(x => x["scriptPubKey"].Value<string>("type") == "witness_v0_keyhash");
+
+				foreach (var txoutJson in txinJsonOutputs)
 				{
 					var output = new VerboseOutputInfo()
 					{

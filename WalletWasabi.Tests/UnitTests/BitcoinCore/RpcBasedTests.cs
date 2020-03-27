@@ -58,7 +58,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			var blockInfo = await rpc.GetVerboseBlockAsync(uint256.One);
 			Assert.Equal(2, blockInfo.Transactions.Count());
 			Assert.Single(blockInfo.Transactions[1].Inputs);
-			Assert.Equal(2, blockInfo.Transactions[1].Outputs.Count());
+			Assert.Single(blockInfo.Transactions[1].Outputs);
 		}
 
 		#region Mocked RPC response
@@ -144,7 +144,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		                'desc': 'addr(mkda7wbQ9nVQa8ayYbTVifVzNie1kf8gKy)#yzcmfs2s',
 		                'hex': '76a914381907cb00a047109bc340afe06504d67472d3de88ac',
 		                'reqSigs': 1,
-		                'type': 'pubkeyhash',
+		                'type': 'witness_v0_keyhash',
 		                'addresses': [
 		                  'mkda7wbQ9nVQa8ayYbTVifVzNie1kf8gKy'
 		                ]
@@ -176,7 +176,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		              'desc': 'addr(mjLpPfQNYKCJGc1qXyU71wr6vt9yuVPLR6)#4ezwynfz',
 		              'hex': '76a91429f5bf0598ecef7ae4f9f1163cdeecf1182c51f988ac',
 		              'reqSigs': 1,
-		              'type': 'pubkeyhash',
+		              'type': 'witness_v0_keyhash',
 		              'addresses': [
 		                'mjLpPfQNYKCJGc1qXyU71wr6vt9yuVPLR6'
 		              ]
