@@ -295,7 +295,7 @@ namespace NBitcoin.RPC
 			var blockInfo = new VerboseBlockInfo()
 			{
 				Hash = uint256.Parse(blockInfoJson.Value<string>("hash")),
-				PrevBlockHash = previousblockhash is { } ? uint256.Parse(previousblockhash) : null,
+				PrevBlockHash = previousblockhash is { } ? uint256.Parse(previousblockhash) : uint256.Zero,
 				Confirmations = blockInfoJson.Value<ulong>("confirmations"),
 				Height = blockInfoJson.Value<ulong>("height"),
 				BlockTime = Utils.UnixTimeToDateTime(blockInfoJson.Value<uint>("time"))
