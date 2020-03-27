@@ -47,9 +47,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			RootList = new SourceList<WalletViewModelBase>();
 			RootList
 				.Connect()
+				.Filter(x => !IsPasswordRequired || !x.Wallet.KeyManager.IsWatchOnly)
 				.Sort(SortExpressionComparer<WalletViewModelBase>.Descending(p => p.Wallet.KeyManager.GetLastAccessTime()))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Bind(out _wallets)
+				.DisposeMany()
 				.Subscribe();
 
 			this.WhenAnyValue(x => x.SelectedWallet)
@@ -61,10 +63,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			Observable.FromEventPattern<Wallet>(Global.WalletManager, nameof(Global.WalletManager.WalletAdded))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Select(x => x.EventArgs)
-				.Where(x => x is { } && (!IsPasswordRequired || !x.KeyManager.IsWatchOnly))
 				.Subscribe(wallet => RootList.Add(new WalletViewModelBase(wallet)));
 
-			RootList.AddRange(Global.WalletManager.GetWallets().Where(x => !IsPasswordRequired || !x.KeyManager.IsWatchOnly).Select(x => new WalletViewModelBase(x)));
+			RootList.AddRange(Global.WalletManager.GetWallets().Select(x => new WalletViewModelBase(x)));
 
 			LoadCommand = ReactiveCommand.CreateFromTask(LoadWalletAsync, this.WhenAnyValue(x => x.CanLoadWallet));
 			TestPasswordCommand = ReactiveCommand.Create(LoadKeyManager, this.WhenAnyValue(x => x.CanTestPassword));
@@ -244,9 +245,14 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 						return;
 					}
 
+					var firstWalletToLoad = !Global.WalletManager.AnyWallet();
+
 					var wallet = await Task.Run(async () => await Global.WalletManager.StartWalletAsync(keyManager));
 					// Successfully initialized.
-					Owner.OnClose();
+					if (firstWalletToLoad)
+					{
+						Owner.OnClose();
+					}
 				}
 				catch (Exception ex)
 				{
@@ -300,10 +306,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			{
 				if (disposing)
 				{
-					foreach (var wallet in Wallets)
-					{
-						wallet.Dispose();
-					}
+					RootList.Dispose();
 				}
 				_disposedValue = true;
 			}
