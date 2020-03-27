@@ -9,11 +9,6 @@ namespace WalletWasabi.WebClients.Gemini
 {
 	public class GeminiExchangeRateProvider : IExchangeRateProvider
 	{
-		private class GeminiExchangeRateInfo
-		{
-			public decimal Bid { get; set; }
-		}
-
 		public async Task<List<ExchangeRate>> GetExchangeRateAsync()
 		{
 			using var httpClient = new HttpClient();
@@ -28,6 +23,11 @@ namespace WalletWasabi.WebClients.Gemini
 				};
 
 			return exchangeRates;
+		}
+
+		private class GeminiExchangeRateInfo
+		{
+			public decimal Bid { get; set; }
 		}
 	}
 }
