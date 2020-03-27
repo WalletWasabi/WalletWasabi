@@ -5,9 +5,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 {
 	public class HardwareWalletViewModel
 	{
-		public string WalletName { get; set; } = null;
-		public HwiEnumerateEntry HardwareWalletInfo { get; set; } = null;
-
 		public HardwareWalletViewModel(HwiEnumerateEntry hwi)
 		{
 			string typeString = hwi.Model.ToString();
@@ -37,6 +34,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 			WalletName = walletNameBuilder.ToString();
 			HardwareWalletInfo = hwi;
 		}
+
+		public string WalletName { get; private set; }
+		public HwiEnumerateEntry HardwareWalletInfo { get; private set; }
 
 		public override string ToString()
 		{
