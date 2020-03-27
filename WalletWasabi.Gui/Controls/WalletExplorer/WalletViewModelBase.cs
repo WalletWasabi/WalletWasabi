@@ -31,10 +31,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Observable.FromEventPattern<WalletState>(wallet, nameof(wallet.StateChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				{
-					WalletState = x.EventArgs;
-				})
+				.Subscribe(x => WalletState = x.EventArgs)
 				.DisposeWith(_disposables);
 
 			this.WhenAnyValue(x => x.WalletState)
@@ -57,8 +54,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public WalletState WalletState
 		{
-			get { return _walletState; }
-			private set { this.RaiseAndSetIfChanged(ref _walletState, value); }
+			get => _walletState;
+			private set => this.RaiseAndSetIfChanged(ref _walletState, value);
 		}
 
 		public Wallet Wallet { get; }
@@ -71,16 +68,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string Title
 		{
-			get { return _title; }
-			set { this.RaiseAndSetIfChanged(ref _title, value); }
+			get => _title;
+			set => this.RaiseAndSetIfChanged(ref _title, value);
 		}
 
 		public string WalletName => Wallet.WalletName;
 
 		public bool IsBusy
 		{
-			get { return _isBusy; }
-			set { this.RaiseAndSetIfChanged(ref _isBusy, value); }
+			get => _isBusy;
+			set => this.RaiseAndSetIfChanged(ref _isBusy, value);
 		}
 
 		public int CompareTo([AllowNull] WalletViewModelBase other)

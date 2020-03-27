@@ -19,7 +19,7 @@ namespace AvalonStudio.Shell
 		// because we want to use IoC to create T
 		public static T GetOrCreateByType<T>(this IShell me) where T : IDocumentTabViewModel
 		{
-			return me.GetOrCreate<T>(() => IoC.Get<T>());
+			return me.GetOrCreate(() => IoC.Get<T>());
 		}
 
 		public static ReactiveCommand<Unit, Unit> GetReactiveCommand(this CommandDefinition cmd)

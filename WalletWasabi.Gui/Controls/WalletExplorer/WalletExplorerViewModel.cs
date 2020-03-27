@@ -105,10 +105,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.SelectedItem)
 				.OfType<WasabiDocumentTabViewModel>()
-				.Subscribe(x =>
-				{
-					shell.AddOrSelectDocument(x);
-				});
+				.Subscribe(x => shell.AddOrSelectDocument(x));
 		}
 
 		private WalletManager WalletManager { get; }
@@ -153,7 +150,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			if (_wallets.OfType<WalletViewModel>().Any(x => x.Title == wallet.WalletName))
 			{
-				throw new System.Exception("Wallet already opened.");
+				throw new Exception("Wallet already opened.");
 			}
 
 			var walletViewModel = new WalletViewModel(wallet);

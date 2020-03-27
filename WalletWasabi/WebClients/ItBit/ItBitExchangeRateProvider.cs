@@ -9,11 +9,6 @@ namespace WalletWasabi.WebClients.ItBit
 {
 	public class ItBitExchangeRateProvider : IExchangeRateProvider
 	{
-		private class ItBitExchangeRateInfo
-		{
-			public decimal Bid { get; set; }
-		}
-
 		public async Task<List<ExchangeRate>> GetExchangeRateAsync()
 		{
 			using var httpClient = new HttpClient();
@@ -28,6 +23,11 @@ namespace WalletWasabi.WebClients.ItBit
 				};
 
 			return exchangeRates;
+		}
+
+		private class ItBitExchangeRateInfo
+		{
+			public decimal Bid { get; set; }
 		}
 	}
 }
