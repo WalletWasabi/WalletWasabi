@@ -21,15 +21,15 @@
   </UserControl.Styles>
   <DockPanel LastChildFill="True">
     <Panel DockPanel.Dock="Top" HorizontalAlignment="Stretch" Background="{DynamicResource ThemeControlLowBrush}">
-      <StackPanel Orientation="Horizontal" Spacing="2" Margin="2">
-        <Button Background="Transparent" BorderThickness="0" ToolTip.Tip="Collapse All" Command="{Binding CollapseAllCommand}">
-          <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_CollapseTree}" />
-        </Button>
+      <StackPanel Orientation="Horizontal" Spacing="2" Margin="2">        
         <Button Background="Transparent" BorderThickness="0" ToolTip.Tip="{Binding IsLurkingWifeMode, StringFormat=\{0\} Lurking Wife Mode, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Disable:Enable}" Command="{Binding LurkingWifeModeCommand}">
           <Panel>
-            <DrawingPresenter Width="16" Height="16" IsVisible="{Binding IsLurkingWifeMode}" Drawing="{DynamicResource EyesShow}" />
-            <DrawingPresenter Width="16" Height="16" IsVisible="{Binding !IsLurkingWifeMode}" Drawing="{DynamicResource EyesHide}" />
+            <DrawingPresenter Width="16" Height="16" IsVisible="{Binding !IsLurkingWifeMode}" Drawing="{DynamicResource EyesShow}" />
+            <DrawingPresenter Width="16" Height="16" IsVisible="{Binding IsLurkingWifeMode}" Drawing="{DynamicResource EyesHide}" />
           </Panel>
+        </Button>
+        <Button Background="Transparent" BorderThickness="0" ToolTip.Tip="Collapse All" Command="{Binding CollapseAllCommand}">
+          <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_CollapseTree}" />
         </Button>
       </StackPanel>
     </Panel>
