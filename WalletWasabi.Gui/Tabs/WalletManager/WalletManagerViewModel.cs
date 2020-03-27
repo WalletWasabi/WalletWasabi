@@ -86,5 +86,14 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			get => _currentView;
 			set => this.RaiseAndSetIfChanged(ref _currentView, value);
 		}
+
+		public override bool OnClose()
+		{
+			foreach (var tab in Categories.OfType<IDisposable>())
+			{
+				tab.Dispose();
+			}
+			return base.OnClose();
+		}
 	}
 }

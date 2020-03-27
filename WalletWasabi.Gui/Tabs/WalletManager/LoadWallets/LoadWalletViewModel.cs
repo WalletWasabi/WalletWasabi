@@ -1,4 +1,6 @@
 using Avalonia;
+using DynamicData;
+using DynamicData.Binding;
 using ReactiveUI;
 using Splat;
 using System;
@@ -10,6 +12,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
@@ -17,14 +20,15 @@ using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 {
-	public class LoadWalletViewModel : CategoryViewModel
+	public class LoadWalletViewModel : CategoryViewModel, IDisposable
 	{
-		private ObservableCollection<LoadWalletEntry> _wallets;
+		private ReadOnlyObservableCollection<WalletViewModelBase> _wallets;
 		private string _password;
-		private LoadWalletEntry _selectedWallet;
+		private WalletViewModelBase _selectedWallet;
 		private bool _isWalletSelected;
 		private bool _isWalletOpened;
 		private bool _canLoadWallet;
@@ -40,7 +44,14 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			Owner = owner;
 			Password = "";
 			LoadWalletType = loadWalletType;
-			Wallets = new ObservableCollection<LoadWalletEntry>();
+
+			RootList = new SourceList<WalletViewModelBase>();
+			RootList
+				.Connect()
+				.Sort(SortExpressionComparer<WalletViewModelBase>.Descending(p => p.Wallet.KeyManager.GetLastAccessTime()))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Bind(out _wallets)
+				.Subscribe();
 
 			this.WhenAnyValue(x => x.SelectedWallet)
 				.Subscribe(_ => TrySetWalletStates());
@@ -50,6 +61,17 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 
 			this.WhenAnyValue(x => x.IsBusy)
 				.Subscribe(_ => TrySetWalletStates());
+
+			Observable.FromEventPattern<Wallet>(Global.WalletManager, nameof(Global.WalletManager.WalletAdded))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Select(x => x.EventArgs)
+				.Where(x => x is { })
+				.Subscribe(wallet =>
+				{
+					RootList.Add(new WalletViewModelBase(wallet));
+				});
+
+			RootList.AddRange(Global.WalletManager.GetWallets().Where(x => !IsPasswordRequired || !x.KeyManager.IsWatchOnly).Select(x => new WalletViewModelBase(x)));
 
 			LoadCommand = ReactiveCommand.CreateFromTask(LoadWalletAsync, this.WhenAnyValue(x => x.CanLoadWallet));
 			TestPasswordCommand = ReactiveCommand.Create(LoadKeyManager, this.WhenAnyValue(x => x.CanTestPassword));
@@ -73,11 +95,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 		public bool IsPasswordRequired => LoadWalletType == LoadWalletType.Password;
 		public bool IsDesktopWallet => LoadWalletType == LoadWalletType.Desktop;
 
-		public ObservableCollection<LoadWalletEntry> Wallets
-		{
-			get => _wallets;
-			set => this.RaiseAndSetIfChanged(ref _wallets, value);
-		}
+		public ReadOnlyObservableCollection<WalletViewModelBase> Wallets => _wallets;
 
 		[ValidateMethod(nameof(ValidatePassword))]
 		public string Password
@@ -86,7 +104,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			set => this.RaiseAndSetIfChanged(ref _password, value);
 		}
 
-		public LoadWalletEntry SelectedWallet
+		public WalletViewModelBase SelectedWallet
 		{
 			get => _selectedWallet;
 			set => this.RaiseAndSetIfChanged(ref _selectedWallet, value);
@@ -128,6 +146,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			set => this.RaiseAndSetIfChanged(ref _isBusy, value);
 		}
 
+		public SourceList<WalletViewModelBase> RootList { get; private set; }
 		public ReactiveCommand<Unit, Unit> LoadCommand { get; }
 		public ReactiveCommand<Unit, KeyManager> TestPasswordCommand { get; }
 		public ReactiveCommand<Unit, Unit> OpenFolderCommand { get; }
@@ -150,17 +169,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 
 		public override void OnCategorySelected()
 		{
-			Wallets.Clear();
 			Password = "";
-
-			foreach (var wallet in Global.WalletManager
-				.GetKeyManagers()
-				.Where(x => !IsPasswordRequired || !x.IsWatchOnly) // If password isn't required then add the wallet, otherwise add only not watchonly wallets.
-				.OrderByDescending(x => x.GetLastAccessTime())
-				.Select(x => new LoadWalletEntry(x.WalletName)))
-			{
-				Wallets.Add(wallet);
-			}
 
 			TrySetWalletStates();
 
@@ -312,5 +321,31 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 
 			return false;
 		}
+
+		#region IDisposable Support
+
+		private bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					foreach (var wallet in Wallets)
+					{
+						wallet.Dispose();
+					}
+				}
+				_disposedValue = true;
+			}
+		}
+
+		public void Dispose()
+		{
+			Dispose(true);
+		}
+
+		#endregion IDisposable Support
 	}
 }
