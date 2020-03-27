@@ -19,6 +19,7 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.P2p;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
@@ -30,11 +31,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 	public class P2pTests
 	{
 		[Theory]
-		// [InlineData("test")] - ToDo, this test fails for some reason.
+		[InlineData("test")]
 		[InlineData("main")]
 		public async Task TestServicesAsync(string networkString)
 		{
-			await RuntimeParams.LoadAsync();
 			var network = Network.GetNetwork(networkString);
 			var blocksToDownload = new List<uint256>();
 			if (network == Network.Main)
@@ -55,51 +55,22 @@ namespace WalletWasabi.Tests.IntegrationTests
 			}
 			var dataDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName());
 
-			BitcoinStore bitcoinStore = new BitcoinStore();
-			await bitcoinStore.InitializeAsync(Path.Combine(dataDir, EnvironmentHelpers.GetMethodName()), network);
-
-			var addressManagerFolderPath = Path.Combine(dataDir, "AddressManager");
-			var addressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{network}.dat");
+			BitcoinStore bitcoinStore = new BitcoinStore(Path.Combine(dataDir, EnvironmentHelpers.GetMethodName()), network);
+			await bitcoinStore.InitializeAsync();
 			var blocksFolderPath = Path.Combine(dataDir, "Blocks", network.ToString());
-			var connectionParameters = new NodeConnectionParameters();
-			AddressManager addressManager = null;
-			try
-			{
-				addressManager = await NBitcoinHelpers.LoadAddressManagerFromPeerFileAsync(addressManagerFilePath);
-				Logger.LogInfo($"Loaded {nameof(AddressManager)} from `{addressManagerFilePath}`.");
-			}
-			catch (DirectoryNotFoundException)
-			{
-				addressManager = new AddressManager();
-			}
-			catch (FileNotFoundException)
-			{
-				addressManager = new AddressManager();
-			}
-			catch (OverflowException)
-			{
-				File.Delete(addressManagerFilePath);
-				addressManager = new AddressManager();
-			}
-			catch (FormatException)
-			{
-				File.Delete(addressManagerFilePath);
-				addressManager = new AddressManager();
-			}
-
-			connectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(addressManager));
-			connectionParameters.TemplateBehaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
-
-			using var nodes = new NodesGroup(network, connectionParameters, requirements: Constants.NodeRequirements);
-
 			KeyManager keyManager = KeyManager.CreateNew(out _, "password");
 			WasabiSynchronizer syncer = new WasabiSynchronizer(network, bitcoinStore, new Uri("http://localhost:12345"), Global.Instance.TorSocks5Endpoint);
+
+			using var client = new P2pClient(dataDir, network, useTor: true, new IPEndPoint(IPAddress.Loopback, 1234), Global.Instance.TorSocks5Endpoint, bitcoinStore);
+			using var startTimeoutSource = new CancellationTokenSource(TimeSpan.FromSeconds(7));
+			await client.StartAsync(startTimeoutSource.Token);
+
 			using Wallet wallet = Wallet.CreateAndRegisterServices(
 				network,
 				bitcoinStore,
 				keyManager,
 				syncer,
-				nodes,
+				client.Nodes,
 				dataDir,
 				new ServiceConfiguration(50, 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold)),
 				syncer);
@@ -113,11 +84,9 @@ namespace WalletWasabi.Tests.IntegrationTests
 					3);
 
 				var nodeConnectionAwaiter = new EventsAwaiter<NodeEventArgs>(
-					h => nodes.ConnectedNodes.Added += h,
-					h => nodes.ConnectedNodes.Added -= h,
-					3);
-
-				nodes.Connect();
+					h => client.Nodes.ConnectedNodes.Added += h,
+					h => client.Nodes.ConnectedNodes.Added -= h,
+					3 - client.Nodes.ConnectedNodes.Count);
 
 				var downloadTasks = new List<Task<Block>>();
 				using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(4));
@@ -155,11 +124,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 					Directory.Delete(blocksFolderPath, recursive: true);
 				}
 
-				IoHelpers.EnsureContainingDirectoryExists(addressManagerFilePath);
-				addressManager?.SavePeerFile(addressManagerFilePath, network);
-				Logger.LogInfo($"Saved {nameof(AddressManager)} to `{addressManagerFilePath}`.");
+				await syncer.StopAsync();
 
-				await syncer?.StopAsync();
+				using var stopTimeoutSource = new CancellationTokenSource(TimeSpan.FromSeconds(7));
+				await client.StopAsync(stopTimeoutSource.Token);
 			}
 		}
 	}

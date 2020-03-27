@@ -101,7 +101,7 @@ namespace WalletWasabi.Gui.Rpc
 				filtersLeft = sync.BitcoinStore.SmartHeaderChain.HashesLeft,
 				network = sync.Network.Name,
 				exchangeRate = sync.UsdExchangeRate,
-				peers = Global.Nodes.ConnectedNodes.Select(x => new
+				peers = Global.P2pClient.Nodes.ConnectedNodes.Select(x => new
 				{
 					isConnected = x.IsConnected,
 					lastSeen = x.LastSeen,

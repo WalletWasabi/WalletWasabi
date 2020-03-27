@@ -142,7 +142,7 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			var global = Locator.Current.GetService<Global>();
 
-			StatusBar.Initialize(global.Nodes.ConnectedNodes, global.Synchronizer);
+			StatusBar.Initialize(global.P2pClient.Nodes.ConnectedNodes, global.Synchronizer);
 
 			if (global.Network != Network.Main)
 			{

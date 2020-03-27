@@ -139,15 +139,15 @@ namespace WalletWasabi.Helpers
 			return k;
 		}
 
-		public static async Task<AddressManager> LoadAddressManagerFromPeerFileAsync(string filePath, Network expectedNetwork = null)
+		public static AddressManager LoadAddressManagerFromPeerFile(string filePath, Network expectedNetwork = null)
 		{
 			byte[] data, hash;
 			using (var fs = File.Open(filePath, FileMode.Open, FileAccess.Read))
 			{
 				data = new byte[fs.Length - 32];
-				await fs.ReadAsync(data, 0, data.Length);
+				fs.Read(data, 0, data.Length);
 				hash = new byte[32];
-				await fs.ReadAsync(hash, 0, 32);
+				fs.Read(hash, 0, 32);
 			}
 			var actual = Hashes.Hash256(data);
 			var expected = new uint256(hash);
