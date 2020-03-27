@@ -145,9 +145,10 @@ namespace WalletWasabi.Gui.ViewModels
 									   var txProcessor = wallet.TransactionProcessor;
 									   if (txProcessor is { })
 									   {
-										   var perc = txProcessor.QueuedTxCount == 0 ?
+										   var txCount = txProcessor.QueuedTxCount;
+										   var perc = txCount == 0 ?
 												100
-												: ((decimal)txProcessor.QueuedProcessedTxCount / txProcessor.QueuedTxCount * 100);
+												: ((decimal)txProcessor.QueuedProcessedTxCount / txCount * 100);
 										   TryAddStatus(StatusType.WalletProcessingTransactions, (ushort)perc);
 									   }
 								   }
