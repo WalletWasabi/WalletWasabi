@@ -43,7 +43,7 @@
           <controls:ExtendedListBox Items="{Binding Wallets}" SelectedItem="{Binding SelectedWallet, Mode=TwoWay}">
             <controls:ExtendedListBox.ItemTemplate>
               <DataTemplate>
-                <TextBlock Text="{Binding WalletName}">
+                <TextBlock Text="{Binding WalletName}" Background="Transparent">
                   <i:Interaction.Behaviors>
                     <behaviors:CommandOnDoubleClickBehavior Command="{Binding RelativeSource={RelativeSource AncestorType=ListBox}, Path=DataContext.LoadCommand}" />
                   </i:Interaction.Behaviors>
