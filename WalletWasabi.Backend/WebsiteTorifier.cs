@@ -9,14 +9,14 @@ namespace WalletWasabi.Backend
 {
 	public class WebsiteTorifier
 	{
-		public string RootFolder { get; }
-		public string UnversionedFolder { get; }
-
 		public WebsiteTorifier(string rootFolder)
 		{
 			RootFolder = rootFolder;
 			UnversionedFolder = Path.GetFullPath(Path.Combine(RootFolder, "unversioned"));
 		}
+
+		public string RootFolder { get; }
+		public string UnversionedFolder { get; }
 
 		public async Task CloneAndUpdateOnionIndexHtmlAsync()
 		{

@@ -21,6 +21,16 @@ namespace WalletWasabi.Backend
 {
 	public class Global
 	{
+		public Global() : this(null)
+		{
+		}
+
+		public Global(string dataDir)
+		{
+			DataDir = dataDir ?? EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));
+			HostedServices = new HostedServices();
+		}
+
 		public string DataDir { get; }
 
 		public IRPCClient RpcClient { get; private set; }
@@ -36,16 +46,6 @@ namespace WalletWasabi.Backend
 		public Config Config { get; private set; }
 
 		public CoordinatorRoundConfig RoundConfig { get; private set; }
-
-		public Global(string dataDir)
-		{
-			DataDir = dataDir ?? EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));
-			HostedServices = new HostedServices();
-		}
-
-		public Global() : this(null)
-		{
-		}
 
 		public async Task InitializeAsync(Config config, CoordinatorRoundConfig roundConfig, IRPCClient rpc, CancellationToken cancel)
 		{
