@@ -93,9 +93,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					SelectedItem = x;
 
-					if (x is WasabiWalletDocumentTabViewModel wwdtvm)
+					if (x is IWalletViewModel wvm && _walletDictionary.ContainsKey(wvm.Wallet))
 					{
-						wwdtvm.ExpandWallet();
+						_walletDictionary[wvm.Wallet].IsExpanded = true;
 					}
 				});
 

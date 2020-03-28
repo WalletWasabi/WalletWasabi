@@ -18,7 +18,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class WalletInfoViewModel : WasabiDocumentTabViewModel
+	public class WalletInfoViewModel : WasabiDocumentTabViewModel, IWalletViewModel
 	{
 		private bool _showSensitiveKeys;
 		private string _password;
@@ -70,6 +70,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private Global Global { get; }
 
 		private Wallet Wallet { get; }
+
+		Wallet IWalletViewModel.Wallet => Wallet;
 
 		public CancellationTokenSource Closing { get; private set; }
 
