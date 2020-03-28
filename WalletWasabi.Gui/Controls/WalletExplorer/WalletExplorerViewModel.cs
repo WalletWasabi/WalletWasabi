@@ -71,13 +71,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					InsertWallet(vm);
 				});
 
-			CollapseAllCommand = ReactiveCommand.Create(() =>
-			{
-				foreach (var wallet in Wallets)
-				{
-					wallet.IsExpanded = false;
-				}
-			});
+			CollapseAllCommand = ReactiveCommand.Create(CollapseWallets);
 
 			LurkingWifeModeCommand = ReactiveCommand.Create(() =>
 			{
@@ -113,6 +107,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			this.WhenAnyValue(x => x.SelectedItem)
 				.OfType<WasabiDocumentTabViewModel>()
 				.Subscribe(x => shell.AddOrSelectDocument(x));
+		}
+
+		private void CollapseWallets()
+		{
+			foreach (var wallet in Wallets)
+			{
+				wallet.IsExpanded = false;
+			}
 		}
 
 		public override Location DefaultLocation => Location.Right;
