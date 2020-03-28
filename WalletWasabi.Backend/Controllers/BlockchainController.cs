@@ -24,17 +24,20 @@ namespace WalletWasabi.Backend.Controllers
 	[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
 	public class BlockchainController : Controller
 	{
+		public BlockchainController(IMemoryCache memoryCache, Global global)
+		{
+			Cache = memoryCache;
+			Global = global;
+		}
+
 		public IMemoryCache Cache { get; }
 		public Global Global { get; }
 		private IRPCClient RpcClient => Global.RpcClient;
 
 		private Network Network => Global.Config.Network;
 
-		public BlockchainController(IMemoryCache memoryCache, Global global)
-		{
-			Cache = memoryCache;
-			Global = global;
-		}
+		public static Dictionary<uint256, string> TransactionHexCache { get; } = new Dictionary<uint256, string>();
+		public static object TransactionHexCacheLock { get; } = new object();
 
 		/// <summary>
 		/// Get fees for the requested confirmation targets based on Bitcoin Core's estimatesmartfee output.
@@ -197,9 +200,6 @@ namespace WalletWasabi.Backend.Controllers
 			}
 			return hashes;
 		}
-
-		public static Dictionary<uint256, string> TransactionHexCache { get; } = new Dictionary<uint256, string>();
-		public static object TransactionHexCacheLock { get; } = new object();
 
 		/// <summary>
 		/// Attempts to get transactions.
