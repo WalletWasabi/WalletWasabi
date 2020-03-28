@@ -117,7 +117,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _selectedAddress;
 			set => this.RaiseAndSetIfChanged(ref _selectedAddress, value);
-		}		
+		}
 
 		public void InitializeAddresses()
 		{
