@@ -1,6 +1,7 @@
+using ReactiveUI;
+using Splat;
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Reactive.Linq;
 using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Wallets;
 
@@ -14,7 +15,13 @@ namespace WalletWasabi.Gui.ViewModels
 			WalletViewModel = walletViewModel;
 		}
 
-		public WalletViewModelBase WalletViewModel { get; }
-		public Wallet Wallet => WalletViewModel.Wallet;
+		public void ExpandWallet ()
+		{
+			WalletViewModel.IsExpanded = true;
+		}
+
+		private WalletViewModelBase WalletViewModel { get; }
+
+		protected Wallet Wallet => WalletViewModel.Wallet;
 	}
 }
