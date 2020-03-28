@@ -68,49 +68,49 @@
           <TreeDataTemplate DataType="ViewModels:WalletViewModel" ItemsSource="{Binding Actions}">
             <StackPanel Classes="TreeViewRoot">
               <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_OpenWallet}" />
-              <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
+              <TextBlock Text="{Binding Title}" />
             </StackPanel>
           </TreeDataTemplate>
           <TreeDataTemplate DataType="ViewModels:SendTabViewModel">
             <StackPanel Classes="TreeViewRoot">
               <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_Send}" />
-              <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
+              <TextBlock Text="{Binding Title}" />
             </StackPanel>
           </TreeDataTemplate>
           <TreeDataTemplate DataType="ViewModels:BuildTabViewModel">
             <StackPanel Classes="TreeViewRoot">
               <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_Builder}" />
-              <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
+              <TextBlock Text="{Binding Title}" />
             </StackPanel>
           </TreeDataTemplate>
           <TreeDataTemplate DataType="ViewModels:ReceiveTabViewModel">
             <StackPanel Classes="TreeViewRoot">
               <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_Receive}" />
-              <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
+              <TextBlock Text="{Binding Title}" />
             </StackPanel>
           </TreeDataTemplate>
           <TreeDataTemplate DataType="ViewModels:CoinJoinTabViewModel">
             <StackPanel Classes="TreeViewRoot">
               <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_CoinJoin}" />
-              <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
+              <TextBlock Text="{Binding Title}" />
             </StackPanel>
           </TreeDataTemplate>
           <TreeDataTemplate DataType="ViewModels:HistoryTabViewModel">
             <StackPanel Classes="TreeViewRoot">
               <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_History}" />
-              <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
+              <TextBlock Text="{Binding Title}" />
             </StackPanel>
           </TreeDataTemplate>
           <TreeDataTemplate DataType="ViewModels:WalletInfoViewModel">
             <StackPanel Classes="TreeViewRoot">
               <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_Info}" />
-              <TextBlock Text="Wallet Info" VerticalAlignment="Center" />
+              <TextBlock Text="Wallet Info" />
             </StackPanel>
           </TreeDataTemplate>
           <TreeDataTemplate DataType="ViewModels:WalletAdvancedViewModel" ItemsSource="{Binding Items}">
             <StackPanel Classes="TreeViewRoot">
               <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_Advanced}" />
-              <TextBlock Text="Advanced" VerticalAlignment="Center" />
+              <TextBlock Text="Advanced" />
             </StackPanel>
           </TreeDataTemplate>
         </TreeView.DataTemplates>
