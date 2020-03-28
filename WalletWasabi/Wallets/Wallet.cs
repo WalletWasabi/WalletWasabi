@@ -917,7 +917,7 @@ namespace WalletWasabi.Wallets
 			Logger.LogInfo($"Current timeout value used on block download is: {timeout} seconds.");
 		}
 
-		public void SetInitalizingState()
+		public void SetWaitingForInitState()
 		{
 			if (State != WalletState.Uninitialized)
 			{
