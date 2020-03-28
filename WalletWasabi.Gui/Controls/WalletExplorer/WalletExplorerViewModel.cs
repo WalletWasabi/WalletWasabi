@@ -73,11 +73,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			CollapseAllCommand = ReactiveCommand.Create(CollapseWallets);
 
-			LurkingWifeModeCommand = ReactiveCommand.Create(() =>
-			{
-				UiConfig.LurkingWifeMode = !UiConfig.LurkingWifeMode;
-				UiConfig.ToFile();
-			});
+			LurkingWifeModeCommand = ReactiveCommand.Create(ToggleLurkingWifeMode);
 
 			_isLurkingWifeMode = UiConfig
 				.WhenAnyValue(x => x.LurkingWifeMode)
@@ -107,6 +103,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			this.WhenAnyValue(x => x.SelectedItem)
 				.OfType<WasabiDocumentTabViewModel>()
 				.Subscribe(x => shell.AddOrSelectDocument(x));
+		}
+
+		private void ToggleLurkingWifeMode()
+		{
+			UiConfig.LurkingWifeMode = !UiConfig.LurkingWifeMode;
+			UiConfig.ToFile();
 		}
 
 		private void CollapseWallets()
