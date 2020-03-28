@@ -104,6 +104,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					if (x is ViewModelBase vmb)
 					{
 						SelectedItem = vmb;
+
+						if (x is WasabiWalletDocumentTabViewModel wwdtvm)
+						{
+							wwdtvm.WalletViewModel.IsExpanded = true;
+						}
 					}
 				});
 
