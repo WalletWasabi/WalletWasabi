@@ -87,16 +87,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			shell
 				.WhenAnyValue(x => x.SelectedDocument)
+				.OfType<ViewModelBase>()
+				.Where(x => x != SelectedItem)
 				.Subscribe(x =>
 				{
-					if (x is ViewModelBase vmb)
-					{
-						SelectedItem = vmb;
-					}
+					SelectedItem = x;
 
 					if (x is WasabiWalletDocumentTabViewModel wwdtvm)
 					{
-						wwdtvm.WalletViewModel.IsExpanded = true;
+						wwdtvm.ExpandWallet();
 					}
 				});
 
