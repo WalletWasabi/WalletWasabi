@@ -87,9 +87,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private UiConfig UiConfig { get; }
 
-		private WalletManager WalletManager { get; }
-
-		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
+		private WalletManager WalletManager { get; }		
 
 		public ObservableCollection<ViewModelBase> Actions
 		{
