@@ -84,12 +84,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			SelectedCategory = Categories.FirstOrDefault();
 
-			this.WhenAnyValue(x => x.SelectedCategory).Subscribe(category =>
-			{
-				category?.OnCategorySelected();
-
-				CurrentView = category;
-			});
+			this.WhenAnyValue(x => x.SelectedCategory)
+				.Subscribe(category =>
+				{
+					category?.OnCategorySelected();
+					CurrentView = category;
+				});
 		}
 
 		public override bool OnClose()
