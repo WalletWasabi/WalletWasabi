@@ -179,7 +179,7 @@ namespace WalletWasabi.Wallets
 				Wallets.Single(x => x.Key == wallet);
 			}
 
-			wallet.SetInitalizingState();
+			wallet.SetWaitingForInitState();
 
 			// Wait for the WalletManager to be initialized.
 			while (!IsInitialized)
