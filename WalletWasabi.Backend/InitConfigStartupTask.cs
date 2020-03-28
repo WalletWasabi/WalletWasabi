@@ -17,14 +17,14 @@ namespace WalletWasabi.Backend
 {
 	public class InitConfigStartupTask : IStartupTask
 	{
-		public WebsiteTorifier WebsiteTorifier { get; }
-		public Global Global { get; }
-
 		public InitConfigStartupTask(Global global, IWebHostEnvironment hostingEnvironment)
 		{
 			Global = global;
 			WebsiteTorifier = new WebsiteTorifier(hostingEnvironment.WebRootPath);
 		}
+
+		public WebsiteTorifier WebsiteTorifier { get; }
+		public Global Global { get; }
 
 		public async Task ExecuteAsync(CancellationToken cancellationToken)
 		{
