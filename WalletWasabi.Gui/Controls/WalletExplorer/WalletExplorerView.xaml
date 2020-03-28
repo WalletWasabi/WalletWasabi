@@ -5,7 +5,7 @@
              xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
              xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
              x:Class="WalletWasabi.Gui.Controls.WalletExplorer.WalletExplorerView">
-<UserControl.Resources>
+  <UserControl.Resources>
     <converters:BooleanStringConverter x:Key="BooleanStringConverter" />
   </UserControl.Resources>
   <UserControl.Styles>
@@ -47,29 +47,29 @@
         </TreeView.Styles>
         <TreeView.DataTemplates>
           <TreeDataTemplate DataType="ViewModels:ClosedWalletViewModel" ItemsSource="{Binding Actions}">
-            <StackPanel Classes="TreeViewRoot">
+            <Panel Height="20" Background="Transparent">
               <i:Interaction.Behaviors>
                 <behaviors:CommandOnDoubleClickBehavior Command="{Binding OpenWalletCommand}" />
               </i:Interaction.Behaviors>
-              <StackPanel.ContextMenu>
+              <Panel.ContextMenu>
                 <ContextMenu>
                   <MenuItem Header="Open Wallet" Command="{Binding OpenWalletCommand}" />
                 </ContextMenu>
-              </StackPanel.ContextMenu>
-              <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_ClosedWallet}" />
-              <Panel>
-                <TextBlock Text="{Binding Title}" Height="19" VerticalAlignment="Center" />
-              </Panel>
-              <DrawingPresenter Name="PART_Spinner" Width="16" Height="16" IsVisible="{Binding IsBusy}" Drawing="{DynamicResource WalletExplorer_Spinner}" />
-            </StackPanel>
+              </Panel.ContextMenu>
+              <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_ClosedWallet}" />
+                <TextBlock Text="{Binding Title}" />
+                <DrawingPresenter Name="PART_Spinner" Width="16" Height="16" IsVisible="{Binding IsBusy}" Drawing="{DynamicResource WalletExplorer_Spinner}" />
+              </StackPanel>
+            </Panel>
           </TreeDataTemplate>
           <TreeDataTemplate DataType="ViewModels:WalletViewModel" ItemsSource="{Binding Actions}">
-            <StackPanel Classes="TreeViewRoot">
-              <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_OpenWallet}" />
-              <Panel>
-                <TextBlock Text="{Binding Title}" Height="19" VerticalAlignment="Center" />
-              </Panel>
-            </StackPanel>
+            <Panel Height="20" Background="Transparent">
+              <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_OpenWallet}" />
+                <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
+              </StackPanel>
+            </Panel>
           </TreeDataTemplate>
           <TreeDataTemplate DataType="ViewModels:SendTabViewModel">
             <StackPanel Classes="TreeViewRoot">
@@ -90,7 +90,7 @@
             </StackPanel>
           </TreeDataTemplate>
           <TreeDataTemplate DataType="ViewModels:CoinJoinTabViewModel">
-            <StackPanel >
+            <StackPanel Classes="TreeViewRoot">
               <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_CoinJoin}" />
               <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
             </StackPanel>
