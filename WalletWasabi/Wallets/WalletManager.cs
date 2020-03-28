@@ -70,6 +70,7 @@ namespace WalletWasabi.Wallets
 		private WasabiSynchronizer Synchronizer { get; set; }
 		private NodesGroup Nodes { get; set; }
 		private ServiceConfiguration ServiceConfiguration { get; set; }
+		private bool IsInitialized { get; set; }
 
 		private IFeeProvider FeeProvider { get; set; }
 		private CoreNode BitcoinCoreNode { get; set; }
@@ -178,7 +179,18 @@ namespace WalletWasabi.Wallets
 				Wallets.Single(x => x.Key == wallet);
 			}
 
-			wallet.RegisterServices(BitcoinStore, Synchronizer, Nodes, ServiceConfiguration, FeeProvider, BitcoinCoreNode);
+			wallet.SetWaitingForInitState();
+
+			// Wait for the WalletManager to be initialized.
+			while (!IsInitialized)
+			{
+				await Task.Delay(100, CancelAllInitialization.Token).ConfigureAwait(false);
+			}
+
+			if (wallet.State == WalletState.WaitingForInit)
+			{
+				wallet.RegisterServices(BitcoinStore, Synchronizer, Nodes, ServiceConfiguration, FeeProvider, BitcoinCoreNode);
+			}
 
 			using (await StartStopWalletLock.LockAsync(CancelAllInitialization.Token).ConfigureAwait(false))
 			{
@@ -432,6 +444,13 @@ namespace WalletWasabi.Wallets
 			ServiceConfiguration = serviceConfiguration;
 			FeeProvider = feeProvider;
 			BitcoinCoreNode = bitcoinCoreNode;
+
+			foreach (var wallet in GetWallets().Where(w => w.State == WalletState.WaitingForInit))
+			{
+				wallet.RegisterServices(BitcoinStore, Synchronizer, Nodes, ServiceConfiguration, FeeProvider, BitcoinCoreNode);
+			}
+
+			IsInitialized = true;
 		}
 
 		/// <param name="refreshWalletList">Refreshes wallet list from files.</param>

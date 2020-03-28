@@ -77,7 +77,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public bool IsBusy
 		{
 			get => _isBusy;
-			set => this.RaiseAndSetIfChanged(ref _isBusy, value);
+			private set => this.RaiseAndSetIfChanged(ref _isBusy, value);
 		}
 
 		public int CompareTo([AllowNull] WalletViewModelBase other)

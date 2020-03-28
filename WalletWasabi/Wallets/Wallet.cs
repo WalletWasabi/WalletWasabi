@@ -149,31 +149,39 @@ namespace WalletWasabi.Wallets
 			IFeeProvider feeProvider,
 			CoreNode coreNode = null)
 		{
-			if (State != WalletState.Uninitialized)
+			if (State > WalletState.WaitingForInit)
 			{
-				throw new InvalidOperationException($"{nameof(State)} must be {WalletState.Uninitialized}. Current state: {State}.");
+				throw new InvalidOperationException($"{nameof(State)} must be {WalletState.Uninitialized} or {WalletState.WaitingForInit}. Current state: {State}.");
 			}
 
-			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
-			Nodes = Guard.NotNull(nameof(nodes), nodes);
-			Synchronizer = Guard.NotNull(nameof(syncer), syncer);
-			ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
-			FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
-			CoreNode = coreNode;
+			try
+			{
+				BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
+				Nodes = Guard.NotNull(nameof(nodes), nodes);
+				Synchronizer = Guard.NotNull(nameof(syncer), syncer);
+				ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
+				FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
+				CoreNode = coreNode;
 
-			ChaumianClient = new CoinJoinClient(Synchronizer, Network, KeyManager);
+				ChaumianClient = new CoinJoinClient(Synchronizer, Network, KeyManager);
 
-			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold, ServiceConfiguration.PrivacyLevelStrong);
-			Coins = TransactionProcessor.Coins;
+				TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold, ServiceConfiguration.PrivacyLevelStrong);
+				Coins = TransactionProcessor.Coins;
 
-			TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessedAsync;
-			ChaumianClient.OnDequeue += ChaumianClient_OnDequeue;
+				TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessedAsync;
+				ChaumianClient.OnDequeue += ChaumianClient_OnDequeue;
 
-			BitcoinStore.IndexStore.NewFilter += IndexDownloader_NewFilterAsync;
-			BitcoinStore.IndexStore.Reorged += IndexDownloader_ReorgedAsync;
-			BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;
+				BitcoinStore.IndexStore.NewFilter += IndexDownloader_NewFilterAsync;
+				BitcoinStore.IndexStore.Reorged += IndexDownloader_ReorgedAsync;
+				BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;
 
-			State = WalletState.Initialized;
+				State = WalletState.Initialized;
+			}
+			catch
+			{
+				State = WalletState.Uninitialized;
+				throw;
+			}
 		}
 
 		/// <inheritdoc/>
@@ -907,6 +915,15 @@ namespace WalletWasabi.Wallets
 			await RuntimeParams.Instance.SaveAsync();
 
 			Logger.LogInfo($"Current timeout value used on block download is: {timeout} seconds.");
+		}
+
+		public void SetWaitingForInitState()
+		{
+			if (State != WalletState.Uninitialized)
+			{
+				throw new InvalidOperationException($"{nameof(State)} must be {WalletState.Uninitialized}. Current state: {State}.");
+			}
+			State = WalletState.WaitingForInit;
 		}
 
 		public static Wallet CreateAndRegisterServices(Network network, BitcoinStore bitcoinStore, KeyManager keyManager, WasabiSynchronizer synchronizer, NodesGroup nodes, string dataDir, ServiceConfiguration serviceConfiguration, IFeeProvider feeProvider, CoreNode bitcoinCoreNode = null)
