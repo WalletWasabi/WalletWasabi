@@ -9,6 +9,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Models;
 using WalletWasabi.Gui.Helpers;
+using Splat;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 {
@@ -19,10 +20,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 		public GenerateWalletSuccessViewModel(WalletManagerViewModel owner, KeyManager keyManager, Mnemonic mnemonic) : base("Wallet Generated Successfully!")
 		{
 			_mnemonicWords = mnemonic.ToString();
+			var global = Locator.Current.GetService<Global>();
 
 			ConfirmCommand = ReactiveCommand.Create(() =>
 			{
-				keyManager.ToFile();
+				var wallet = global.WalletManager.AddWallet(keyManager);
 				NotificationHelpers.Success("Wallet was generated.");
 				owner.SelectTestPassword();
 			});

@@ -51,7 +51,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// The transaction cost is higher than the intended payment.
 			var ex = Assert.Throws<InvalidOperationException>(() => transactionFactory.BuildTransaction(payment, new FeeRate(50m)));
-			Assert.StartsWith("The transaction fee is more than twice the transaction amount", ex.Message);
+			Assert.StartsWith("The transaction fee is more than twice the sent amount", ex.Message);
 		}
 
 		[Fact]
