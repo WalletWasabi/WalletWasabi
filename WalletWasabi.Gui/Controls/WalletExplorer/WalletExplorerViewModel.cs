@@ -35,8 +35,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
 
 			var global = Locator.Current.GetService<Global>();
+			
 			WalletManager = global.WalletManager;
 			UiConfig = global.UiConfig;
+
 			Observable
 				.FromEventPattern<WalletState>(WalletManager, nameof(WalletManager.WalletStateChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -79,9 +81,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.WhenAnyValue(x => x.LurkingWifeMode)
 				.ToProperty(this, x => x.IsLurkingWifeMode, scheduler: RxApp.MainThreadScheduler);
 
-			LurkingWifeModeCommand.ThrownExceptions
+			Observable
+				.Merge(CollapseAllCommand.ThrownExceptions)
+				.Merge(LurkingWifeModeCommand.ThrownExceptions)				
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(ex => Logger.LogError(ex));
+				.Subscribe(ex => Logger.LogError(ex)); ;
 
 			var shell = IoC.Get<IShell>();
 
