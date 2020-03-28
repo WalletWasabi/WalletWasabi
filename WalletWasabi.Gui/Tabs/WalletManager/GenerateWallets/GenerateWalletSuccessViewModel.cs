@@ -26,7 +26,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 			{
 				var wallet = global.WalletManager.AddWallet(keyManager);
 				NotificationHelpers.Success("Wallet was generated.");
-				owner.SelectTestPassword();
+				owner.SelectTestPassword(wallet.WalletName);
 			});
 
 			ConfirmCommand.ThrownExceptions

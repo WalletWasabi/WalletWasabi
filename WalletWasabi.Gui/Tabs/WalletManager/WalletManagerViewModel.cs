@@ -76,9 +76,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			SelectedCategory = Categories.First(x => x is LoadWalletViewModel model && model.LoadWalletType == LoadWalletType.Desktop);
 		}
 
-		public void SelectTestPassword()
+		public void SelectTestPassword(string walletName)
 		{
-			SelectedCategory = Categories.First(x => x is LoadWalletViewModel model && model.LoadWalletType == LoadWalletType.Password);
+			var passwordTestViewModel = Categories.OfType<LoadWalletViewModel>().First(x => x.LoadWalletType == LoadWalletType.Password);
+			SelectedCategory = passwordTestViewModel;
+
+			passwordTestViewModel.SelectedWallet = passwordTestViewModel.Wallets.FirstOrDefault(w => w.WalletName == walletName);
 		}
 
 		public ViewModelBase CurrentView
