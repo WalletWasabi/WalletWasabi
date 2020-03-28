@@ -46,8 +46,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			LoadWalletType = loadWalletType;
 
 			RootList = new SourceList<WalletViewModelBase>();
-			RootList
-				.Connect()
+			RootList.Connect()
 				.AutoRefresh(model => model.WalletState)
 				.Filter(x => (!IsPasswordRequired || !x.Wallet.KeyManager.IsWatchOnly) && x.WalletState == WalletState.Uninitialized)
 				.Sort(SortExpressionComparer<WalletViewModelBase>.Descending(p => p.Wallet.KeyManager.GetLastAccessTime()), resort: ResortTrigger.AsObservable())
@@ -285,7 +284,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 
 				IsWalletSelected = SelectedWallet != null;
 				CanTestPassword = IsWalletSelected;
-				CanLoadWallet = SelectedWallet is { } ? (!SelectedWallet.IsBusy && SelectedWallet.WalletState <= WalletState.Initialized) : false;
+				CanLoadWallet = SelectedWallet is { } ? !SelectedWallet.IsBusy && SelectedWallet.WalletState <= WalletState.Initialized : false;
 
 				SetLoadButtonText();
 				return true;
