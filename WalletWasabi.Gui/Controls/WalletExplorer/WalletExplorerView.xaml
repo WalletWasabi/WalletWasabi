@@ -26,19 +26,6 @@
           <Setter Property="Padding" Value="2"/>
           <Setter Property="Background" Value="Transparent" />
           <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
-          <Setter Property="Template">
-            <ControlTemplate>
-              <StackPanel>
-                <Border Name="SelectionBorder" Focusable="True" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" TemplatedControl.IsTemplateFocusTarget="True">
-                  <Grid Name="PART_Header" ColumnDefinitions="16,*" Margin="{TemplateBinding Level, Mode=OneWay, Converter={StaticResource LeftMarginConverter}}">
-                    <ToggleButton Name="expander" Focusable="False" IsChecked="{TemplateBinding IsExpanded, Mode=TwoWay}"/>
-                    <ContentPresenter Name="PART_HeaderPresenter" Focusable="False" Content="{TemplateBinding Header}" HorizontalContentAlignment="{TemplateBinding HorizontalAlignment}" Padding="{TemplateBinding Padding}" Grid.Column="1"/>
-                  </Grid>
-                </Border>
-                <ItemsPresenter Name="PART_ItemsPresenter" IsVisible="{TemplateBinding IsExpanded}" Items="{TemplateBinding Items}" ItemsPanel="{TemplateBinding ItemsPanel}"/>
-              </StackPanel>
-            </ControlTemplate>
-          </Setter>
         </Style>
       </TreeView.Styles>
       <TreeView.DataTemplates>
