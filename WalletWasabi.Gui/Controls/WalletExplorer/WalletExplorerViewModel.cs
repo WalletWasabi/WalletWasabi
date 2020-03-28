@@ -39,7 +39,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			var global = Locator.Current.GetService<Global>();
 			WalletManager = global.WalletManager;
 			UiConfig = global.UiConfig;
-			Observable.FromEventPattern<WalletState>(WalletManager, nameof(WalletManager.WalletStateChanged))
+			Observable
+				.FromEventPattern<WalletState>(WalletManager, nameof(WalletManager.WalletStateChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
@@ -58,7 +59,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				});
 
-			Observable.FromEventPattern<Wallet>(WalletManager, nameof(WalletManager.WalletAdded))
+			Observable
+				.FromEventPattern<Wallet>(WalletManager, nameof(WalletManager.WalletAdded))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Select(x => x.EventArgs)
 				.Where(x => x is { })
@@ -85,8 +87,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				UiConfig.ToFile();
 			});
 
-			_isLurkingWifeMode = UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
-				 .ToProperty(this, x => x.IsLurkingWifeMode, scheduler: RxApp.MainThreadScheduler);
+			_isLurkingWifeMode = UiConfig
+				.WhenAnyValue(x => x.LurkingWifeMode)
+				.ToProperty(this, x => x.IsLurkingWifeMode, scheduler: RxApp.MainThreadScheduler);
 
 			LurkingWifeModeCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -94,7 +97,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			var shell = IoC.Get<IShell>();
 
-			shell.WhenAnyValue(x => x.SelectedDocument)
+			shell
+				.WhenAnyValue(x => x.SelectedDocument)
 				.Subscribe(x =>
 				{
 					if (x is ViewModelBase vmb)
