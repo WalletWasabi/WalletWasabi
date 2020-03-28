@@ -12,8 +12,6 @@ namespace WalletWasabi.Tests.UnitTests
 		public Func<uint256, Task<Block>> OnGetBlockAsync { get; set; }
 		public Func<uint256, Task<BlockHeader>> OnGetBlockHeaderAsync { get; set; }
 
-		public Func<RPCOperations, object[], Task<RPCResponse>> OnSendCommandAsync { get; set; }
-
 		public Network Network => Network.RegTest;
 
 		public RPCCredentialString CredentialString => new RPCCredentialString();
@@ -113,6 +111,11 @@ namespace WalletWasabi.Tests.UnitTests
 			throw new NotImplementedException();
 		}
 
+		public Task<VerboseBlockInfo> GetVerboseBlockAsync(uint256 blockId)
+		{
+			throw new NotImplementedException();
+		}
+
 		public Task<uint256> SendRawTransactionAsync(Transaction transaction)
 		{
 			throw new NotImplementedException();
@@ -161,11 +164,6 @@ namespace WalletWasabi.Tests.UnitTests
 		public Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative)
 		{
 			throw new NotImplementedException();
-		}
-
-		public Task<RPCResponse> SendCommandAsync(RPCOperations operation, params object[] p)
-		{
-			return OnSendCommandAsync(operation, p);
 		}
 	}
 }

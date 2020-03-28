@@ -1,10 +1,9 @@
 using NBitcoin;
 using NBitcoin.RPC;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore;
 using WalletWasabi.Services;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
@@ -48,14 +47,26 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		[Fact]
 		public async Task VerboseBlockInfoAsync()
 		{
-			var rpc = new MockRpcClient();
-			rpc.OnSendCommandAsync = (op, p) =>
+			using var services = new HostedServices();
+			var coreNode = await TestNodeBuilder.CreateAsync(services);
+			await services.StartAllAsync(CancellationToken.None);
+			try
 			{
-				var byteArray = Encoding.ASCII.GetBytes(RpcOutput);
-				var stream = new MemoryStream(byteArray);
-				return Task.FromResult(RPCResponse.Load(stream));
-			};
-			var blockInfo = await rpc.GetVerboseBlockAsync(uint256.One);
+				var rpc = coreNode.RpcClient;
+				var blockInfo = await rpc.GetVerboseBlockAsync(coreNode.Network.GenesisHash);
+				Assert.NotNull(blockInfo.Transactions.ElementAt(0).Inputs.ElementAt(0).Coinbase);
+			}
+			finally
+			{
+				await services.StopAllAsync(CancellationToken.None);
+				await coreNode.TryStopAsync();
+			}
+		}
+
+		[Fact]
+		public async Task ParseVerboseBlockInfoAsync()
+		{
+			var blockInfo = RpcParser.ParseVerboseBlockResponse(RpcOutput);
 			Assert.Equal(2, blockInfo.Transactions.Count());
 			Assert.Equal(1, blockInfo.Transactions.ElementAt(0).Inputs.Count());
 			Assert.Equal(2, blockInfo.Transactions.ElementAt(0).Outputs.Count());
@@ -73,8 +84,6 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 
 		public const string RpcOutput = @"
 		{
-		  'result':
-		  {
 		    'hash': '27cac34bec2bfc3422c352d558b4db29e6d7e8114db2dbc955df06a63cda82fe',
 		    'confirmations': 1,
 		    'strippedsize': 442,
@@ -203,7 +212,6 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		    'chainwork': '00000000000000000000000000000000000000000000000000000000000000ce',
 		    'nTx': 2,
 		    'previousblockhash': '1d434df0cdd3fe26535ebe9734ef013b036441be38921606a9336ce74ab1cf04'
-		  }
 		}";
 
 		#endregion Mocked RPC response

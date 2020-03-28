@@ -99,9 +99,10 @@ namespace WalletWasabi.BitcoinCore
 			return new RpcClientBase(Rpc.PrepareBatch());
 		}
 
-		public virtual Task<RPCResponse> SendCommandAsync(RPCOperations operations, params object[] parameters)
+		public async Task<VerboseBlockInfo> GetVerboseBlockAsync(uint256 blockId)
 		{
-			return Rpc.SendCommandAsync(operations, parameters);
+			var resp = await Rpc.SendCommandAsync(RPCOperations.getblock, blockId, 3).ConfigureAwait(false);
+			return RpcParser.ParseVerboseBlockResponse(resp.Result.ToString());
 		}
 
 		#region For Testing Only

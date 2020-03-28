@@ -68,6 +68,6 @@ namespace WalletWasabi.BitcoinCore
 
 		Task<EstimateSmartFeeResponse> TryEstimateSmartFeeAsync(int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative);
 
-		Task<RPCResponse> SendCommandAsync(RPCOperations operations, params object[] parameters);
+		Task<VerboseBlockInfo> GetVerboseBlockAsync(uint256 blockId);
 	}
 }
