@@ -1,3 +1,4 @@
+using System.Security.Cryptography.X509Certificates;
 using System;
 using AvalonStudio.Extensibility;
 using AvalonStudio.MVVM;
@@ -11,6 +12,8 @@ using System.Linq;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Wallets;
+using System.Reactive;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -23,20 +26,21 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableCollection<WalletViewModelBase> _wallets;
 		private ViewModelBase _selectedItem;
 		private Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
+		private ObservableAsPropertyHelper<bool> _isLurkingWifeMode;
 
-		public override Location DefaultLocation => Location.Right;
-
-		public WalletExplorerViewModel()
+		public WalletExplorerViewModel() : base("Wallet Explorer")
 		{
-			Title = "Wallet Explorer";
-
 			_wallets = new ObservableCollection<WalletViewModelBase>();
 
 			_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
 
-			WalletManager = Locator.Current.GetService<Global>().WalletManager;
+			var global = Locator.Current.GetService<Global>();
+			
+			WalletManager = global.WalletManager;
+			UiConfig = global.UiConfig;
 
-			Observable.FromEventPattern<WalletState>(WalletManager, nameof(WalletManager.WalletStateChanged))
+			Observable
+				.FromEventPattern<WalletState>(WalletManager, nameof(WalletManager.WalletStateChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
@@ -55,7 +59,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				});
 
-			Observable.FromEventPattern<Wallet>(WalletManager, nameof(WalletManager.WalletAdded))
+			Observable
+				.FromEventPattern<Wallet>(WalletManager, nameof(WalletManager.WalletAdded))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Select(x => x.EventArgs)
 				.Where(x => x is { })
@@ -68,14 +73,33 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					InsertWallet(vm);
 				});
 
+			CollapseAllCommand = ReactiveCommand.Create(CollapseWallets);
+
+			LurkingWifeModeCommand = ReactiveCommand.Create(ToggleLurkingWifeMode);
+
+			_isLurkingWifeMode = UiConfig
+				.WhenAnyValue(x => x.LurkingWifeMode)
+				.ToProperty(this, x => x.IsLurkingWifeMode, scheduler: RxApp.MainThreadScheduler);
+
+			Observable
+				.Merge(CollapseAllCommand.ThrownExceptions)
+				.Merge(LurkingWifeModeCommand.ThrownExceptions)				
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex)); ;
+
 			var shell = IoC.Get<IShell>();
 
-			shell.WhenAnyValue(x => x.SelectedDocument)
+			shell
+				.WhenAnyValue(x => x.SelectedDocument)
+				.OfType<ViewModelBase>()
+				.Where(x => x != SelectedItem)
 				.Subscribe(x =>
 				{
-					if (x is ViewModelBase vmb)
+					SelectedItem = x;
+
+					if (x is IWalletViewModel wvm && _walletDictionary.ContainsKey(wvm.Wallet))
 					{
-						SelectedItem = vmb;
+						_walletDictionary[wvm.Wallet].IsExpanded = true;
 					}
 				});
 
@@ -84,7 +108,27 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(x => shell.AddOrSelectDocument(x));
 		}
 
+		private void ToggleLurkingWifeMode()
+		{
+			UiConfig.LurkingWifeMode = !UiConfig.LurkingWifeMode;
+			UiConfig.ToFile();
+		}
+
+		private void CollapseWallets()
+		{
+			foreach (var wallet in Wallets)
+			{
+				wallet.IsExpanded = false;
+			}
+		}
+
+		public override Location DefaultLocation => Location.Right;
+
+		public bool IsLurkingWifeMode => _isLurkingWifeMode?.Value ?? false;
+
 		private WalletManager WalletManager { get; }
+
+		private UiConfig UiConfig { get; }
 
 		public ObservableCollection<WalletViewModelBase> Wallets
 		{
@@ -97,6 +141,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _selectedItem;
 			set => this.RaiseAndSetIfChanged(ref _selectedItem, value);
 		}
+
+		public ReactiveCommand<Unit, Unit> CollapseAllCommand { get; }
+
+		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
 
 		private void InsertWallet(WalletViewModelBase walletVM)
 		{
@@ -129,7 +177,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			InsertWallet(walletViewModel);
 
-			if (!WalletManager.AnyWallet(x => x.State >= WalletState.Starting && x != walletViewModel.Wallet))
+			if (!WalletManager.AnyWallet(x => x.State >= WalletState.Started && x != walletViewModel.Wallet))
 			{
 				walletViewModel.OpenWalletTabs();
 			}

@@ -16,7 +16,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class HistoryTabViewModel : WasabiDocumentTabViewModel
+	public class HistoryTabViewModel : WasabiDocumentTabViewModel, IWalletViewModel
 	{
 		private ObservableCollection<TransactionViewModel> _transactions;
 		private TransactionViewModel _selectedTransaction;
@@ -49,6 +49,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private Global Global { get; }
 
 		private Wallet Wallet { get; }
+
+		Wallet IWalletViewModel.Wallet => Wallet;
 
 		public ReactiveCommand<Unit, Unit> SortCommand { get; }
 

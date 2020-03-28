@@ -3,7 +3,11 @@
              xmlns:ViewModels="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
+             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
              x:Class="WalletWasabi.Gui.Controls.WalletExplorer.WalletExplorerView">
+  <UserControl.Resources>
+    <converters:BooleanStringConverter x:Key="BooleanStringConverter" />
+  </UserControl.Resources>
   <UserControl.Styles>
     <Style Selector="DrawingPresenter#PART_Spinner">
       <Style.Animations>
@@ -15,78 +19,93 @@
       </Style.Animations>
     </Style>
   </UserControl.Styles>
-  <Grid>
-    <TreeView BorderThickness="0" Items="{Binding Wallets}" SelectedItem="{Binding SelectedItem}">
-      <TreeView.Styles>
-        <Style Selector="TreeViewItem">
-          <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
-        </Style>
-      </TreeView.Styles>
-      <TreeView.DataTemplates>
-        <TreeDataTemplate DataType="ViewModels:ClosedWalletViewModel" ItemsSource="{Binding Actions}">
-          <StackPanel Orientation="Horizontal" Spacing="6">
-            <i:Interaction.Behaviors>
-              <behaviors:CommandOnDoubleClickBehavior Command="{Binding OpenWalletCommand}" />
-            </i:Interaction.Behaviors>
-            <StackPanel.ContextMenu>
-              <ContextMenu>
-                <MenuItem Header="Load Wallet" Command="{Binding OpenWalletCommand}" />
-              </ContextMenu>
-            </StackPanel.ContextMenu>
-            <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_ClosedWallet}" />
-            <TextBlock Text="{Binding Title}" Height="19" VerticalAlignment="Center" />
-            <DrawingPresenter Name="PART_Spinner" Width="16" Height="16" IsVisible="{Binding IsBusy}" Drawing="{DynamicResource WalletExplorer_Spinner}" />
-          </StackPanel>
-        </TreeDataTemplate>
-        <TreeDataTemplate DataType="ViewModels:WalletViewModel" ItemsSource="{Binding Actions}">
-          <StackPanel Orientation="Horizontal" Spacing="6">
-            <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_OpenWallet}" />
-            <Button Content="{Binding Title}" Command="{Binding LurkingWifeModeCommand}" VerticalAlignment="Center" BorderThickness="0" Margin="0" Padding="0" Background="Transparent" />
-          </StackPanel>
-        </TreeDataTemplate>
-        <TreeDataTemplate DataType="ViewModels:SendTabViewModel">
-          <StackPanel Orientation="Horizontal" Spacing="6">
-            <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_Send}" />
-            <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
-          </StackPanel>
-        </TreeDataTemplate>
-        <TreeDataTemplate DataType="ViewModels:BuildTabViewModel">
-          <StackPanel Orientation="Horizontal" Spacing="6">
-            <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_Builder}" />
-            <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
-          </StackPanel>
-        </TreeDataTemplate>
-        <TreeDataTemplate DataType="ViewModels:ReceiveTabViewModel">
-          <StackPanel Orientation="Horizontal" Spacing="6">
-            <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_Receive}" />
-            <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
-          </StackPanel>
-        </TreeDataTemplate>
-        <TreeDataTemplate DataType="ViewModels:CoinJoinTabViewModel">
-          <StackPanel Orientation="Horizontal" Spacing="6">
-            <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_CoinJoin}" />
-            <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
-          </StackPanel>
-        </TreeDataTemplate>
-        <TreeDataTemplate DataType="ViewModels:HistoryTabViewModel">
-          <StackPanel Orientation="Horizontal" Spacing="6">
-            <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_History}" />
-            <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
-          </StackPanel>
-        </TreeDataTemplate>
-        <TreeDataTemplate DataType="ViewModels:WalletInfoViewModel">
-          <StackPanel Orientation="Horizontal" Spacing="6">
-            <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_Info}" />
-            <TextBlock Text="Wallet Info" VerticalAlignment="Center" />
-          </StackPanel>
-        </TreeDataTemplate>
-        <TreeDataTemplate DataType="ViewModels:WalletAdvancedViewModel" ItemsSource="{Binding Items}">
-          <StackPanel Orientation="Horizontal" Spacing="6">
-            <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_Advanced}" />
-            <TextBlock Text="Advanced" VerticalAlignment="Center" />
-          </StackPanel>
-        </TreeDataTemplate>
-      </TreeView.DataTemplates>
-    </TreeView>
-  </Grid>
+  <DockPanel LastChildFill="True">
+    <Panel DockPanel.Dock="Top" HorizontalAlignment="Stretch" Background="{DynamicResource ThemeControlLowBrush}">
+      <StackPanel Orientation="Horizontal" Spacing="2" Margin="8 1">
+        <Button Background="Transparent" BorderThickness="0" ToolTip.Tip="{Binding IsLurkingWifeMode, StringFormat=\{0\} Lurking Wife Mode, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Disable:Enable}" Command="{Binding LurkingWifeModeCommand}">
+          <Panel>
+            <DrawingPresenter Width="16" Height="16" IsVisible="{Binding !IsLurkingWifeMode}" Drawing="{DynamicResource EyesShow}" />
+            <DrawingPresenter Width="16" Height="16" IsVisible="{Binding IsLurkingWifeMode}" Drawing="{DynamicResource EyesHide}" />
+          </Panel>
+        </Button>
+        <Button Background="Transparent" BorderThickness="0" ToolTip.Tip="Collapse All" Command="{Binding CollapseAllCommand}">
+          <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_CollapseTree}" />
+        </Button>
+      </StackPanel>
+    </Panel>
+    <Panel>
+      <TreeView BorderThickness="0" Items="{Binding Wallets}" SelectedItem="{Binding SelectedItem}">
+        <TreeView.Styles>
+          <Style Selector="TreeViewItem">
+            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+          </Style>
+        </TreeView.Styles>
+        <TreeView.DataTemplates>
+          <TreeDataTemplate DataType="ViewModels:ClosedWalletViewModel" ItemsSource="{Binding Actions}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <i:Interaction.Behaviors>
+                <behaviors:CommandOnDoubleClickBehavior Command="{Binding OpenWalletCommand}" />
+              </i:Interaction.Behaviors>
+              <StackPanel.ContextMenu>
+                <ContextMenu>
+                  <MenuItem Header="Open Wallet" Command="{Binding OpenWalletCommand}" />
+                </ContextMenu>
+              </StackPanel.ContextMenu>
+              <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_ClosedWallet}" />
+              <TextBlock Text="{Binding Title}" Height="19" VerticalAlignment="Center" />
+              <DrawingPresenter Name="PART_Spinner" Width="16" Height="16" IsVisible="{Binding IsBusy}" Drawing="{DynamicResource WalletExplorer_Spinner}" />
+            </StackPanel>
+          </TreeDataTemplate>
+          <TreeDataTemplate DataType="ViewModels:WalletViewModel" ItemsSource="{Binding Actions}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_OpenWallet}" />
+              <TextBlock Text="{Binding Title}" Height="19" VerticalAlignment="Center" />
+            </StackPanel>
+          </TreeDataTemplate>
+          <TreeDataTemplate DataType="ViewModels:SendTabViewModel">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_Send}" />
+              <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
+            </StackPanel>
+          </TreeDataTemplate>
+          <TreeDataTemplate DataType="ViewModels:BuildTabViewModel">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_Builder}" />
+              <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
+            </StackPanel>
+          </TreeDataTemplate>
+          <TreeDataTemplate DataType="ViewModels:ReceiveTabViewModel">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_Receive}" />
+              <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
+            </StackPanel>
+          </TreeDataTemplate>
+          <TreeDataTemplate DataType="ViewModels:CoinJoinTabViewModel">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_CoinJoin}" />
+              <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
+            </StackPanel>
+          </TreeDataTemplate>
+          <TreeDataTemplate DataType="ViewModels:HistoryTabViewModel">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_History}" />
+              <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
+            </StackPanel>
+          </TreeDataTemplate>
+          <TreeDataTemplate DataType="ViewModels:WalletInfoViewModel">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_Info}" />
+              <TextBlock Text="Wallet Info" VerticalAlignment="Center" />
+            </StackPanel>
+          </TreeDataTemplate>
+          <TreeDataTemplate DataType="ViewModels:WalletAdvancedViewModel" ItemsSource="{Binding Items}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_Advanced}" />
+              <TextBlock Text="Advanced" VerticalAlignment="Center" />
+            </StackPanel>
+          </TreeDataTemplate>
+        </TreeView.DataTemplates>
+      </TreeView>
+    </Panel>
+  </DockPanel>
 </UserControl>

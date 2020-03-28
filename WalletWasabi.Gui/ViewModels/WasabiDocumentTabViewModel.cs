@@ -1,4 +1,3 @@
-using Avalonia.Threading;
 using AvalonStudio.Documents;
 using AvalonStudio.Extensibility;
 using AvalonStudio.MVVM;
@@ -6,14 +5,8 @@ using AvalonStudio.Shell;
 using Dock.Model;
 using ReactiveUI;
 using System;
-using System.Linq;
-using System.Reactive;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
-using WalletWasabi.Gui.Tabs;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.ViewModels
 {
