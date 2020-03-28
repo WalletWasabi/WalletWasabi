@@ -245,12 +245,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 
 				try
 				{
-					bool isSuccessful = await Global.WaitForInitializationCompletedAsync(CancellationToken.None);
-					if (!isSuccessful)
-					{
-						return;
-					}
-
 					var firstWalletToLoad = !Global.WalletManager.AnyWallet();
 
 					var wallet = await Task.Run(async () => await Global.WalletManager.StartWalletAsync(keyManager));
