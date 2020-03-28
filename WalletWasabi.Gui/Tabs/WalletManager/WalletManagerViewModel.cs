@@ -19,7 +19,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private ObservableCollection<CategoryViewModel> _categories;
 		private CategoryViewModel _selectedCategory;
 		private ViewModelBase _currentView;
-		private LoadWalletViewModel LoadWalletViewModelDesktop { get; set; }
+		private LoadWalletViewModel LoadWalletDesktop { get; set; }
 
 		public WalletManagerViewModel() : base("Wallet Manager")
 		{
@@ -64,13 +64,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			base.OnOpen(disposables);
 
-			LoadWalletViewModelDesktop = new LoadWalletViewModel(this, LoadWalletType.Desktop);
+			LoadWalletDesktop = new LoadWalletViewModel(this, LoadWalletType.Desktop);
 
 			Categories = new ObservableCollection<CategoryViewModel>
 			{
 				new GenerateWalletViewModel(this),
 				new RecoverWalletViewModel(this),
-				LoadWalletViewModelDesktop,
+				LoadWalletDesktop,
 				new LoadWalletViewModel(this, LoadWalletType.Password),
 				new ConnectHardwareWalletViewModel(this)
 			};
