@@ -15,13 +15,13 @@ namespace WalletWasabi.Gui.ViewModels
 			WalletViewModel = walletViewModel;
 		}
 
-		public void ExpandWallet ()
-		{
-			WalletViewModel.IsExpanded = true;
-		}
-
 		private WalletViewModelBase WalletViewModel { get; }
 
 		protected Wallet Wallet => WalletViewModel.Wallet;
+
+		public void ExpandWallet()
+		{
+			WalletViewModel.IsExpanded = true;
+		}
 	}
 }
