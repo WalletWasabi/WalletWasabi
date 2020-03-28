@@ -309,26 +309,28 @@ namespace NBitcoin.RPC
 				var outputs = new List<VerboseOutputInfo>();
 				var tx = new VerboseTransactionInfo(uint256.Parse(txJson.Value<string>("txid")), inputs, outputs);
 
-				var txinJsonInputs = txJson["vin"]
-					.Where(x => !(x["coinbase"] is { }))
-					.Where(x => x["prevout"]["scriptPubKey"].Value<string>("type") == "witness_v0_keyhash");
-
-				foreach (var txinJson in txinJsonInputs)
+				foreach (var txinJson in txJson["vin"])
 				{
-					var input = new VerboseInputInfo(
-						outPoint: new OutPoint(uint256.Parse(txinJson.Value<string>("txid")), txinJson.Value<uint>("vout")),
-						prevOutput: new VerboseOutputInfo(
-							value: Money.Coins(txinJson["prevout"].Value<decimal>("value")),
-							scriptPubKey: Script.FromHex(txinJson["prevout"]["scriptPubKey"].Value<string>("hex")))
-					);
+					VerboseInputInfo input = null;
+
+					if (txinJson["coinbase"] is { })
+					{
+						input = new VerboseInputInfo(txinJson["coinbase"].Value<string>());
+					}
+					else
+					{
+						input = new VerboseInputInfo(
+							outPoint: new OutPoint(uint256.Parse(txinJson.Value<string>("txid")), txinJson.Value<uint>("vout")),
+							prevOutput: new VerboseOutputInfo(
+								value: Money.Coins(txinJson["prevout"].Value<decimal>("value")),
+								scriptPubKey: Script.FromHex(txinJson["prevout"]["scriptPubKey"].Value<string>("hex")))
+						);
+					}
 
 					inputs.Add(input);
 				}
 
-				var txinJsonOutputs = txJson["vout"]
-					.Where(x => x["scriptPubKey"].Value<string>("type") == "witness_v0_keyhash");
-
-				foreach (var txoutJson in txinJsonOutputs)
+				foreach (var txoutJson in txJson["vout"])
 				{
 					var output = new VerboseOutputInfo(
 						value: Money.Coins(txoutJson.Value<decimal>("value")),
