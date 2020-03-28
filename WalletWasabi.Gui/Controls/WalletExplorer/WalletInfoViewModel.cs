@@ -18,7 +18,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class WalletInfoViewModel : WasabiDocumentTabViewModel
+	public class WalletInfoViewModel : WasabiWalletDocumentTabViewModel
 	{
 		private bool _showSensitiveKeys;
 		private string _password;
@@ -27,10 +27,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _extendedAccountPrivateKey;
 		private string _extendedAccountZprv;
 
-		public WalletInfoViewModel(Wallet wallet) : base(wallet.WalletName)
+		public WalletInfoViewModel(WalletViewModelBase walletViewModel) : base(walletViewModel.WalletName, walletViewModel)
 		{
 			Global = Locator.Current.GetService<Global>();
-			Wallet = wallet;
 
 			ClearSensitiveData(true);
 
@@ -68,8 +67,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		private Global Global { get; }
-
-		private Wallet Wallet { get; }
 
 		public CancellationTokenSource Closing { get; private set; }
 
