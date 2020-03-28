@@ -149,9 +149,9 @@ namespace WalletWasabi.Wallets
 			IFeeProvider feeProvider,
 			CoreNode coreNode = null)
 		{
-			if (State != WalletState.Uninitialized)
+			if (State >= WalletState.WaitingForInit)
 			{
-				throw new InvalidOperationException($"{nameof(State)} must be {WalletState.Uninitialized}. Current state: {State}.");
+				throw new InvalidOperationException($"{nameof(State)} must be {WalletState.Uninitialized} or {WalletState.WaitingForInit}. Current state: {State}.");
 			}
 
 			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
@@ -907,6 +907,15 @@ namespace WalletWasabi.Wallets
 			await RuntimeParams.Instance.SaveAsync();
 
 			Logger.LogInfo($"Current timeout value used on block download is: {timeout} seconds.");
+		}
+
+		public void SetInitalizingState()
+		{
+			if (State != WalletState.Uninitialized)
+			{
+				throw new InvalidOperationException($"{nameof(State)} must be {WalletState.Uninitialized}. Current state: {State}.");
+			}
+			State = WalletState.WaitingForInit;
 		}
 
 		public static Wallet CreateAndRegisterServices(Network network, BitcoinStore bitcoinStore, KeyManager keyManager, WasabiSynchronizer synchronizer, NodesGroup nodes, string dataDir, ServiceConfiguration serviceConfiguration, IFeeProvider feeProvider, CoreNode bitcoinCoreNode = null)

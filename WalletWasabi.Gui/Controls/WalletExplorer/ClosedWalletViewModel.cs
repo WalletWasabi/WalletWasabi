@@ -24,11 +24,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					var global = Locator.Current.GetService<Global>();
 
-					if (!await global.WaitForInitializationCompletedAsync(CancellationToken.None))
-					{
-						return;
-					}
-
 					await global.WalletManager.StartWalletAsync(Wallet);
 				}
 				catch (Exception e)
