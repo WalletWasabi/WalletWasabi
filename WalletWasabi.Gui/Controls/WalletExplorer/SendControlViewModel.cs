@@ -41,10 +41,13 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public abstract class SendControlViewModel : WasabiDocumentTabViewModel
+	public abstract class SendControlViewModel : WasabiDocumentTabViewModel, IWalletViewModel
 	{
 		protected Global Global { get; }
+
 		private Wallet Wallet { get; }
+
+		Wallet IWalletViewModel.Wallet => Wallet;
 
 		private string _buildTransactionButtonText;
 		private bool _isMax;

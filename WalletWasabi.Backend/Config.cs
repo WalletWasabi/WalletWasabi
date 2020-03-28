@@ -20,6 +20,36 @@ namespace WalletWasabi.Backend
 	[JsonObject(MemberSerialization.OptIn)]
 	public class Config : ConfigBase
 	{
+		public Config() : base()
+		{
+		}
+
+		public Config(string filePath) : base(filePath)
+		{
+		}
+
+		public Config(Network network,
+			string bitcoinRpcConnectionString,
+			EndPoint mainNetBitcoinP2pEndPoint,
+			EndPoint testNetBitcoinP2pEndPoint,
+			EndPoint regTestBitcoinP2pEndPoint,
+			EndPoint mainNetBitcoinCoreRpcEndPoint,
+			EndPoint testNetBitcoinCoreRpcEndPoint,
+			EndPoint regTestBitcoinCoreRpcEndPoint)
+			: base()
+		{
+			Network = Guard.NotNull(nameof(network), network);
+			BitcoinRpcConnectionString = Guard.NotNullOrEmptyOrWhitespace(nameof(bitcoinRpcConnectionString), bitcoinRpcConnectionString);
+
+			MainNetBitcoinP2pEndPoint = Guard.NotNull(nameof(mainNetBitcoinP2pEndPoint), mainNetBitcoinP2pEndPoint);
+			TestNetBitcoinP2pEndPoint = Guard.NotNull(nameof(testNetBitcoinP2pEndPoint), testNetBitcoinP2pEndPoint);
+			RegTestBitcoinP2pEndPoint = Guard.NotNull(nameof(regTestBitcoinP2pEndPoint), regTestBitcoinP2pEndPoint);
+
+			MainNetBitcoinCoreRpcEndPoint = Guard.NotNull(nameof(mainNetBitcoinCoreRpcEndPoint), mainNetBitcoinCoreRpcEndPoint);
+			TestNetBitcoinCoreRpcEndPoint = Guard.NotNull(nameof(testNetBitcoinCoreRpcEndPoint), testNetBitcoinCoreRpcEndPoint);
+			RegTestBitcoinCoreRpcEndPoint = Guard.NotNull(nameof(regTestBitcoinCoreRpcEndPoint), regTestBitcoinCoreRpcEndPoint);
+		}
+
 		[JsonProperty(PropertyName = "Network")]
 		[JsonConverter(typeof(NetworkJsonConverter))]
 		public Network Network { get; private set; } = Network.Main;
@@ -90,36 +120,6 @@ namespace WalletWasabi.Backend
 			{
 				throw new NotSupportedNetworkException(Network);
 			}
-		}
-
-		public Config() : base()
-		{
-		}
-
-		public Config(string filePath) : base(filePath)
-		{
-		}
-
-		public Config(Network network,
-			string bitcoinRpcConnectionString,
-			EndPoint mainNetBitcoinP2pEndPoint,
-			EndPoint testNetBitcoinP2pEndPoint,
-			EndPoint regTestBitcoinP2pEndPoint,
-			EndPoint mainNetBitcoinCoreRpcEndPoint,
-			EndPoint testNetBitcoinCoreRpcEndPoint,
-			EndPoint regTestBitcoinCoreRpcEndPoint)
-			: base()
-		{
-			Network = Guard.NotNull(nameof(network), network);
-			BitcoinRpcConnectionString = Guard.NotNullOrEmptyOrWhitespace(nameof(bitcoinRpcConnectionString), bitcoinRpcConnectionString);
-
-			MainNetBitcoinP2pEndPoint = Guard.NotNull(nameof(mainNetBitcoinP2pEndPoint), mainNetBitcoinP2pEndPoint);
-			TestNetBitcoinP2pEndPoint = Guard.NotNull(nameof(testNetBitcoinP2pEndPoint), testNetBitcoinP2pEndPoint);
-			RegTestBitcoinP2pEndPoint = Guard.NotNull(nameof(regTestBitcoinP2pEndPoint), regTestBitcoinP2pEndPoint);
-
-			MainNetBitcoinCoreRpcEndPoint = Guard.NotNull(nameof(mainNetBitcoinCoreRpcEndPoint), mainNetBitcoinCoreRpcEndPoint);
-			TestNetBitcoinCoreRpcEndPoint = Guard.NotNull(nameof(testNetBitcoinCoreRpcEndPoint), testNetBitcoinCoreRpcEndPoint);
-			RegTestBitcoinCoreRpcEndPoint = Guard.NotNull(nameof(regTestBitcoinCoreRpcEndPoint), regTestBitcoinCoreRpcEndPoint);
 		}
 
 		protected override bool TryEnsureBackwardsCompatibility(string jsonString)

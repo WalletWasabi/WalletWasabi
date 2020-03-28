@@ -9,6 +9,7 @@ using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Dialogs;
@@ -30,6 +31,11 @@ namespace WalletWasabi.Gui
 #if DEBUG
 			this.AttachDevTools();
 #endif
+
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			{			
+				WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.Manual;	
+			}
 
 			var notificationManager = new WindowNotificationManager(this)
 			{

@@ -42,18 +42,11 @@ namespace WalletWasabi.Gui.ViewModels
 
 			_menuVisible = true;
 
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-			{
-				var uiConfig = global.UiConfig;
+			var uiConfig = global.UiConfig;
 
-				Width = uiConfig.Width;
-				Height = uiConfig.Height;
-				WindowState = uiConfig.WindowState;
-			}
-			else
-			{
-				WindowState = WindowState.Maximized;
-			}
+			Width = uiConfig.Width;
+			Height = uiConfig.Height;
+			WindowState = uiConfig.WindowState;
 
 			InitializeLockScreen(global.UiConfig);
 

@@ -56,11 +56,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia.Desktop" Version="0.9.4" />
-    <PackageReference Include="AvalonStudio.Shell" Version="0.9.4" />
-    <PackageReference Include="Dock.Avalonia" Version="0.9.4.1" />
-    <PackageReference Include="Dock.Avalonia.Themes.Default" Version="0.9.4.1" />
-    <PackageReference Include="Dock.Avalonia.Themes.Metro" Version="0.9.4.1" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.9.5" />
+    <PackageReference Include="Avalonia.Native" Version="0.9.6" />
+    <PackageReference Include="AvalonStudio.Shell" Version="0.9.5" />
+    <PackageReference Include="Dock.Avalonia.Themes.Default" Version="0.9.5" />
+    <PackageReference Include="Dock.Avalonia.Themes.Metro" Version="0.9.5" />
     <PackageReference Include="System.Runtime" Version="4.3.1" />
   </ItemGroup>
 

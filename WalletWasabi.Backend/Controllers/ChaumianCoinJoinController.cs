@@ -36,17 +36,21 @@ namespace WalletWasabi.Backend.Controllers
 	[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
 	public class ChaumianCoinJoinController : Controller
 	{
+		public ChaumianCoinJoinController(IMemoryCache memoryCache, Global global)
+		{
+			Cache = memoryCache;
+			Global = global;
+		}
+
 		private IMemoryCache Cache { get; }
 		public Global Global { get; }
 		private IRPCClient RpcClient => Global.RpcClient;
 		private Network Network => Global.Config.Network;
 		private Coordinator Coordinator => Global.Coordinator;
 
-		public ChaumianCoinJoinController(IMemoryCache memoryCache, Global global)
-		{
-			Cache = memoryCache;
-			Global = global;
-		}
+		private static AsyncLock InputsLock { get; } = new AsyncLock();
+		private static AsyncLock OutputLock { get; } = new AsyncLock();
+		private static AsyncLock SigningLock { get; } = new AsyncLock();
 
 		/// <summary>
 		/// Satoshi gets various status information.
@@ -90,8 +94,6 @@ namespace WalletWasabi.Backend.Controllers
 
 			return response;
 		}
-
-		private static AsyncLock InputsLock { get; } = new AsyncLock();
 
 		/// <summary>
 		/// Alice registers her inputs.
@@ -483,8 +485,6 @@ namespace WalletWasabi.Backend.Controllers
 			}
 		}
 
-		private static AsyncLock OutputLock { get; } = new AsyncLock();
-
 		/// <summary>
 		/// Bob registers his output.
 		/// </summary>
@@ -632,8 +632,6 @@ namespace WalletWasabi.Backend.Controllers
 					}
 			}
 		}
-
-		private static AsyncLock SigningLock { get; } = new AsyncLock();
 
 		/// <summary>
 		/// Alice posts her witnesses.
