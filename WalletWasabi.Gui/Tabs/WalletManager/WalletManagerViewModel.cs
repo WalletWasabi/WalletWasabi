@@ -60,31 +60,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			passwordTestViewModel.SelectedWallet = passwordTestViewModel.Wallets.FirstOrDefault(w => w.WalletName == walletName);
 		}
 
-		public override void OnOpen(CompositeDisposable disposables)
-		{
-			base.OnOpen(disposables);
-
-			LoadWalletDesktop = new LoadWalletViewModel(this, LoadWalletType.Desktop);
-
-			Categories = new ObservableCollection<CategoryViewModel>
-			{
-				new GenerateWalletViewModel(this),
-				new RecoverWalletViewModel(this),
-				LoadWalletDesktop,
-				new LoadWalletViewModel(this, LoadWalletType.Password),
-				new ConnectHardwareWalletViewModel(this)
-			};
-
-			SelectedCategory = Categories.FirstOrDefault();
-
-			this.WhenAnyValue(x => x.SelectedCategory).Subscribe(category =>
-			{
-				category?.OnCategorySelected();
-
-				CurrentView = category;
-			});
-		}
-
 		public override bool OnClose()
 		{
 			foreach (var tab in Categories.OfType<IDisposable>())
