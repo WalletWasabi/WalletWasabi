@@ -212,7 +212,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 				{
 					if (keyManager.PasswordVerified == false)
 					{
-						Owner.SelectTestPassword();
+						Owner.SelectTestPassword(walletName);
 						return null;
 					}
 				}
