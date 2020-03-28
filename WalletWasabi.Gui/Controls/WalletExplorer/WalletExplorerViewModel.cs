@@ -61,14 +61,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Where(x => x is { })
 				.Subscribe(wallet =>
 				{
-					if (wallet.State <= WalletState.Starting)
-					{
-						Wallets.InsertSorted(new ClosedWalletViewModel(wallet));
-					}
-					else
-					{
-						Wallets.InsertSorted(new WalletViewModel(wallet));
-					}
+					WalletViewModelBase vm = (wallet.State <= WalletState.Starting) ?
+						new ClosedWalletViewModel(wallet) :
+						(WalletViewModelBase)new WalletViewModel(wallet);
+
+					InsertWallet(vm);
 				});
 
 			var shell = IoC.Get<IShell>();
@@ -152,9 +149,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void LoadWallets()
 		{
-			foreach (var wallet in WalletManager.GetKeyManagers())
+			foreach (var wallet in WalletManager.GetWallets())
 			{
-				InsertWallet(new ClosedWalletViewModel(WalletManager.GetWalletByName(wallet.WalletName)));
+				InsertWallet(new ClosedWalletViewModel(wallet));
 			}
 		}
 

@@ -35,6 +35,10 @@ namespace WalletWasabi.WebClients.Wasabi
 		{
 		}
 
+		public static Dictionary<uint256, Transaction> TransactionCache { get; } = new Dictionary<uint256, Transaction>();
+		private static Queue<uint256> TransactionIdQueue { get; } = new Queue<uint256>();
+		public static object TransactionCacheLock { get; } = new object();
+
 		#region batch
 
 		/// <remarks>
@@ -86,10 +90,6 @@ namespace WalletWasabi.WebClients.Wasabi
 			var ret = await content.ReadAsJsonAsync<FiltersResponse>();
 			return ret;
 		}
-
-		public static Dictionary<uint256, Transaction> TransactionCache { get; } = new Dictionary<uint256, Transaction>();
-		private static Queue<uint256> TransactionIdQueue { get; } = new Queue<uint256>();
-		public static object TransactionCacheLock { get; } = new object();
 
 		public async Task<IEnumerable<Transaction>> GetTransactionsAsync(Network network, IEnumerable<uint256> txHashes, CancellationToken cancel)
 		{
