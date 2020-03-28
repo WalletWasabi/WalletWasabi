@@ -445,7 +445,7 @@ namespace WalletWasabi.Wallets
 			FeeProvider = feeProvider;
 			BitcoinCoreNode = bitcoinCoreNode;
 
-			foreach (var wallet in GetWallets().Where(w => w.State <= WalletState.WaitingForInit))
+			foreach (var wallet in GetWallets().Where(w => w.State == WalletState.WaitingForInit))
 			{
 				wallet.RegisterServices(BitcoinStore, Synchronizer, Nodes, ServiceConfiguration, FeeProvider, BitcoinCoreNode);
 			}

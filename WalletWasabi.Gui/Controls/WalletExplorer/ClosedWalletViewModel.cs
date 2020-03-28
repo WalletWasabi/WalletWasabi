@@ -18,8 +18,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			OpenWalletCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				IsBusy = true;
-
 				try
 				{
 					var global = Locator.Current.GetService<Global>();
@@ -30,10 +28,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					NotificationHelpers.Error($"Error loading Wallet: {Title}");
 					Logger.LogError(e.Message);
-				}
-				finally
-				{
-					IsBusy = false;
 				}
 			}, this.WhenAnyValue(x => x.IsBusy).Select(x => !x));
 		}
