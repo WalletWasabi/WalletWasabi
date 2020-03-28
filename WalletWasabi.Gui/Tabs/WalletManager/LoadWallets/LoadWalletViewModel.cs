@@ -274,10 +274,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 
 		public void OpenWalletsFolder() => IoHelpers.OpenFolderInFileExplorer(Global.WalletManager.WalletDirectories.WalletsDir);
 
-		private void UpdateWalletList ()
+		private void UpdateWalletList()
 		{
 			RootList.Clear();
-			RootList.AddRange(Global.WalletManager.GetWallets().Where(x => x.State == WalletState.Uninitialized).Select(x => new WalletViewModelBase(x)));
+			RootList.AddRange(Global.WalletManager
+				.GetWallets()
+				.Where(x => x.State == WalletState.Uninitialized)
+				.Select(x => new WalletViewModelBase(x)));
 		}
 
 		private bool TrySetWalletStates()
