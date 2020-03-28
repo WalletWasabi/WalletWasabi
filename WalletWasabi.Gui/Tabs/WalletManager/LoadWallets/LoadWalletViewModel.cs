@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
@@ -48,7 +49,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			RootList
 				.Connect()
 				.Filter(x => !IsPasswordRequired || !x.Wallet.KeyManager.IsWatchOnly)
-				.Sort(SortExpressionComparer<WalletViewModelBase>.Descending(p => p.Wallet.KeyManager.GetLastAccessTime()))
+				.Sort(SortExpressionComparer<WalletViewModelBase>.Descending(p => p.Wallet.KeyManager.GetLastAccessTime()), resort: ResortTrigger.AsObservable())
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Bind(out _wallets)
 				.DisposeMany()
@@ -65,7 +66,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 				.Select(x => x.EventArgs)
 				.Subscribe(wallet => RootList.Add(new WalletViewModelBase(wallet)));
 
-			UpdateWalletList();
+			RootList.AddRange(Global.WalletManager
+				.GetWallets()
+				.Select(x => new WalletViewModelBase(x)));
 
 			LoadCommand = ReactiveCommand.CreateFromTask(LoadWalletAsync, this.WhenAnyValue(x => x.CanLoadWallet));
 			TestPasswordCommand = ReactiveCommand.Create(LoadKeyManager, this.WhenAnyValue(x => x.CanTestPassword));
@@ -141,6 +144,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 		private WalletManagerViewModel Owner { get; }
 
 		private Global Global { get; }
+
+		private ReplaySubject<Unit> ResortTrigger { get; } = new ReplaySubject<Unit>();
 
 		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
 
@@ -248,13 +253,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 					var firstWalletToLoad = !Global.WalletManager.AnyWallet();
 
 					var wallet = await Task.Run(async () => await Global.WalletManager.StartWalletAsync(keyManager));
+
+					ResortTrigger.OnNext(new Unit());
 					// Successfully initialized.
 					if (firstWalletToLoad)
 					{
 						Owner.OnClose();
 					}
-
-					UpdateWalletList();
 				}
 				catch (Exception ex)
 				{
@@ -273,15 +278,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 		}
 
 		public void OpenWalletsFolder() => IoHelpers.OpenFolderInFileExplorer(Global.WalletManager.WalletDirectories.WalletsDir);
-
-		private void UpdateWalletList()
-		{
-			RootList.Clear();
-			RootList.AddRange(Global.WalletManager
-				.GetWallets()
-				.Where(x => x.State == WalletState.Uninitialized)
-				.Select(x => new WalletViewModelBase(x)));
-		}
 
 		private bool TrySetWalletStates()
 		{
