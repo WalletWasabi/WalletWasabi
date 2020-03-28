@@ -41,9 +41,10 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public abstract class SendControlViewModel : WasabiWalletDocumentTabViewModel
+	public abstract class SendControlViewModel : WasabiDocumentTabViewModel
 	{
 		protected Global Global { get; }
+		private Wallet Wallet { get; }
 
 		private string _buildTransactionButtonText;
 		private bool _isMax;
@@ -102,10 +103,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			AmountText = "0.0";
 		}
 
-		protected SendControlViewModel(WalletViewModelBase walletViewModel, string title)
-			: base(title, walletViewModel)
+		protected SendControlViewModel(Wallet wallet, string title)
+			: base(title)
 		{
 			Global = Locator.Current.GetService<Global>();
+			Wallet = wallet;
 
 			LabelSuggestion = new SuggestLabelViewModel();
 			BuildTransactionButtonText = DoButtonText;

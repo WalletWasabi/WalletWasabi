@@ -24,15 +24,16 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class ReceiveTabViewModel : WasabiWalletDocumentTabViewModel
+	public class ReceiveTabViewModel : WasabiDocumentTabViewModel
 	{
 		private ObservableCollection<AddressViewModel> _addresses;
 		private AddressViewModel _selectedAddress;
 
-		public ReceiveTabViewModel(WalletViewModelBase walletViewModel)
-			: base("Receive", walletViewModel)
+		public ReceiveTabViewModel(Wallet wallet)
+			: base("Receive")
 		{
 			Global = Locator.Current.GetService<Global>();
+			Wallet = wallet;
 
 			LabelSuggestion = new SuggestLabelViewModel();
 			_addresses = new ObservableCollection<AddressViewModel>();
@@ -91,6 +92,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private Global Global { get; }
 
 		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
+
+		private Wallet Wallet { get; }
 
 		public SuggestLabelViewModel LabelSuggestion { get; }
 

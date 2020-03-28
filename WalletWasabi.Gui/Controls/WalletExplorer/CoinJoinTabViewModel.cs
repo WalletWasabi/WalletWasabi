@@ -25,7 +25,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class CoinJoinTabViewModel : WasabiWalletDocumentTabViewModel
+	public class CoinJoinTabViewModel : WasabiDocumentTabViewModel
 	{
 		private long _roundId;
 		private RoundPhaseState _roundPhaseState;
@@ -48,10 +48,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _coinJoinUntilAnonymitySet;
 		private TargetPrivacy _targetPrivacy;
 
-		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
-			: base("CoinJoin", walletViewModel)
+		public CoinJoinTabViewModel(Wallet wallet)
+			: base("CoinJoin")
 		{
 			Global = Locator.Current.GetService<Global>();
+			Wallet = wallet;
 
 			Password = "";
 			TimeLeftTillRoundTimeout = TimeSpan.Zero;
@@ -129,6 +130,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		private Global Global { get; }
+
+		private Wallet Wallet { get; }
 
 		[ValidateMethod(nameof(ValidatePassword))]
 		public string Password
