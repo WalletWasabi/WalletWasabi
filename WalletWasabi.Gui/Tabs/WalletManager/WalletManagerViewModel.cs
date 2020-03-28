@@ -91,6 +91,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				tab.Dispose();
 			}
+
 			return base.OnClose();
 		}
 
