@@ -28,10 +28,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
 		private ObservableAsPropertyHelper<bool> _isLurkingWifeMode;
 
-		public WalletExplorerViewModel()
+		public WalletExplorerViewModel() : base("Wallet Explorer")
 		{
-			Title = "Wallet Explorer";
-
 			_wallets = new ObservableCollection<WalletViewModelBase>();
 
 			_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
