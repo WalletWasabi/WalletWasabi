@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
+using WalletWasabi.BitcoinCore.RpcModels;
 using WalletWasabi.Services;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
@@ -74,10 +75,15 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			Assert.Equal(2, blockInfo.Transactions.ElementAt(1).Outputs.Count());
 
 			Assert.Equal("01660101", blockInfo.Transactions.ElementAt(0).Inputs.ElementAt(0).Coinbase);
+			Assert.Equal(RpcPubkeyType.TxPubkeyhash, blockInfo.Transactions.ElementAt(0).Outputs.ElementAt(0).PubkeyType);
+			Assert.Equal(RpcPubkeyType.TxNullData, blockInfo.Transactions.ElementAt(0).Outputs.ElementAt(1).PubkeyType);
 
 			Assert.Equal(Money.Coins(50), blockInfo.Transactions.ElementAt(1).Inputs.ElementAt(0).PrevOutput.Value);
 			Assert.Equal(Money.Coins((decimal)48.99995500), blockInfo.Transactions.ElementAt(1).Outputs.ElementAt(0).Value);
 			Assert.Equal(Money.Coins((decimal)1.00000000), blockInfo.Transactions.ElementAt(1).Outputs.ElementAt(1).Value);
+			Assert.Equal(RpcPubkeyType.TxPubkeyhash, blockInfo.Transactions.ElementAt(1).Inputs.ElementAt(0).PrevOutput.PubkeyType);
+			Assert.Equal(RpcPubkeyType.TxPubkeyhash, blockInfo.Transactions.ElementAt(1).Outputs.ElementAt(0).PubkeyType);
+			Assert.Equal(RpcPubkeyType.TxPubkeyhash, blockInfo.Transactions.ElementAt(1).Outputs.ElementAt(1).PubkeyType);
 		}
 
 		#region Mocked RPC response

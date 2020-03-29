@@ -10,6 +10,23 @@ namespace WalletWasabi.BitcoinCore
 {
 	public class RpcParser
 	{
+		public static RpcPubkeyType ConvertPubkeyType(string pubKeyType)
+		{
+			return pubKeyType switch
+			{
+				"nonstandard" => RpcPubkeyType.TxNonstandard,
+				"pubkey" => RpcPubkeyType.TxPubkey,
+				"pubkeyhash" => RpcPubkeyType.TxPubkeyhash,
+				"scripthash" => RpcPubkeyType.TxScripthash,
+				"multisig" => RpcPubkeyType.TxMultisig,
+				"nulldata" => RpcPubkeyType.TxNullData,
+				"witness_v0_keyhash" => RpcPubkeyType.TxWitnessV0Keyhash,
+				"witness_v0_scripthash" => RpcPubkeyType.TxWitnessV0Scripthash,
+				"witness_unknown" => RpcPubkeyType.TxWitnessUnknown,
+				_ => RpcPubkeyType.Unknown
+			};
+		}
+
 		public static VerboseBlockInfo ParseVerboseBlockResponse(string getBlockResponse)
 		{
 			var blockInfoJson = JObject.Parse(getBlockResponse);
@@ -45,7 +62,8 @@ namespace WalletWasabi.BitcoinCore
 							outPoint: new OutPoint(uint256.Parse(txinJson.Value<string>("txid")), txinJson.Value<uint>("vout")),
 							prevOutput: new VerboseOutputInfo(
 								value: Money.Coins(txinJson["prevout"].Value<decimal>("value")),
-								scriptPubKey: Script.FromHex(txinJson["prevout"]["scriptPubKey"].Value<string>("hex")))
+								scriptPubKey: Script.FromHex(txinJson["prevout"]["scriptPubKey"].Value<string>("hex")),
+								pubkeyType: txinJson["prevout"]["scriptPubKey"].Value<string>("type"))
 						);
 					}
 
@@ -56,7 +74,8 @@ namespace WalletWasabi.BitcoinCore
 				{
 					var output = new VerboseOutputInfo(
 						value: Money.Coins(txoutJson.Value<decimal>("value")),
-						scriptPubKey: Script.FromHex(txoutJson["scriptPubKey"].Value<string>("hex"))
+						scriptPubKey: Script.FromHex(txoutJson["scriptPubKey"].Value<string>("hex")),
+						pubkeyType: txoutJson["scriptPubKey"].Value<string>("type")
 					);
 
 					outputs.Add(output);
