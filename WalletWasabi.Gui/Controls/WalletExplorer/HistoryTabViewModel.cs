@@ -41,9 +41,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					Logger.LogError(ex);
 					NotificationHelpers.Error(ex.ToUserFriendlyString());
-				});
-
-			_ = TryRewriteTableAsync();
+				});			
 		}
 
 		private Global Global { get; }
@@ -72,6 +70,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						transaction.Refresh();
 					}
 				}).DisposeWith(disposables);
+
+			_ = TryRewriteTableAsync();
 		}
 
 		private async Task TryRewriteTableAsync()
