@@ -1,28 +1,23 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using AvalonStudio.Extensibility;
 using NBitcoin;
 using Newtonsoft.Json.Linq;
 using ReactiveUI;
 using Splat;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.Helpers;
-using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Models.StatusBarStatuses;
-using WalletWasabi.Gui.Tabs.WalletManager.LoadWallets;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi;
@@ -46,6 +41,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 		public ConnectHardwareWalletViewModel(WalletManagerViewModel owner) : base("Hardware Wallet")
 		{
 			Global = Locator.Current.GetService<Global>();
+			WalletManager = Global.WalletManager;
 			Owner = owner;
 			Wallets = new ObservableCollection<HardwareWalletViewModel>();
 			IsHwWalletSearchTextVisible = false;
@@ -115,9 +111,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 					ExtPubKey extPubKey = NBitcoinHelpers.BetterParseExtPubKey(xpubString);
 
 					Logger.LogInfo("Creating a new wallet file.");
-					var walletName = Global.WalletManager.WalletDirectories.GetNextWalletName("Coldcard");
-					var walletFullPath = Global.WalletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
-					KeyManager.CreateNewHardwareWalletWatchOnly(mfp, extPubKey, walletFullPath);
+					var walletName = WalletManager.WalletDirectories.GetNextWalletName("Coldcard");
+					var walletFullPath = WalletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
+					WalletManager.AddWallet(KeyManager.CreateNewHardwareWalletWatchOnly(mfp, extPubKey, walletFullPath));
 					owner.SelectLoadWallet();
 				}
 			});
@@ -198,6 +194,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 		public string UDevRulesLink => "https://github.com/bitcoin-core/HWI/tree/master/hwilib/udev";
 		public bool IsLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 		private Global Global { get; }
+		private Wallets.WalletManager WalletManager { get; }
 		private WalletManagerViewModel Owner { get; }
 
 		public void SetLoadButtonText()
@@ -339,8 +336,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 				{
 					var prefix = selectedWallet.HardwareWalletInfo is null ? "HardwareWallet" : selectedWallet.HardwareWalletInfo.Model.ToString();
 
-					walletName = Global.WalletManager.WalletDirectories.GetNextWalletName(prefix);
-					var path = Global.WalletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
+					walletName = WalletManager.WalletDirectories.GetNextWalletName(prefix);
+					var path = WalletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
 
 					// Get xpub should had triggered passphrase request, so the fingerprint should be available here.
 					if (!selectedWallet.HardwareWalletInfo.Fingerprint.HasValue)
@@ -352,10 +349,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 					{
 						throw new InvalidOperationException("Hardware wallet did not provide fingerprint.");
 					}
-					KeyManager.CreateNewHardwareWalletWatchOnly(selectedWallet.HardwareWalletInfo.Fingerprint.Value, extPubKey, path);
+					WalletManager.AddWallet(KeyManager.CreateNewHardwareWalletWatchOnly(selectedWallet.HardwareWalletInfo.Fingerprint.Value, extPubKey, path));
 				}
 
-				KeyManager keyManager = Global.WalletManager.GetWalletByName(walletName).KeyManager;
+				KeyManager keyManager = WalletManager.GetWalletByName(walletName).KeyManager;
 
 				return keyManager;
 			}
@@ -392,7 +389,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 
 				try
 				{
-					var wallet = await Task.Run(async () => await Global.WalletManager.StartWalletAsync(keyManager));
+					var wallet = await Task.Run(async () => await WalletManager.StartWalletAsync(keyManager));
 					// Successfully initialized.
 					Owner.OnClose();
 				}
@@ -423,7 +420,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 
 				IsWalletSelected = SelectedWallet is { };
 
-				if (Global.WalletManager.AnyWallet())
+				if (WalletManager.AnyWallet())
 				{
 					IsWalletOpened = true;
 					CanLoadWallet = false;
@@ -474,7 +471,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 
 		private bool TryFindWalletByExtPubKey(ExtPubKey extPubKey, out string walletName)
 		{
-			walletName = Global.WalletManager.WalletDirectories
+			walletName = WalletManager.WalletDirectories
 				.EnumerateWalletFiles(includeBackupDir: true)
 				.FirstOrDefault(fi => KeyManager.TryGetExtPubKeyFromFile(fi.FullName, out ExtPubKey epk) && epk == extPubKey)
 				?.Name;
