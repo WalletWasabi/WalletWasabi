@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.RPC;
 using WalletWasabi.BitcoinCore;
+using WalletWasabi.BitcoinCore.RpcModels;
 
 namespace WalletWasabi.Tests.UnitTests
 {

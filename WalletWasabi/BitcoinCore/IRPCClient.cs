@@ -2,6 +2,7 @@ using NBitcoin;
 using NBitcoin.RPC;
 using System;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore.RpcModels;
 
 namespace WalletWasabi.BitcoinCore
 {

@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
+using NBitcoin;
 
-namespace NBitcoin.RPC
+namespace WalletWasabi.BitcoinCore.RpcModels
 {
 	public class VerboseBlockInfo
 	{

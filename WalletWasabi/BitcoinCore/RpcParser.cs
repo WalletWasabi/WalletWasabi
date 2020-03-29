@@ -4,6 +4,7 @@ using System.Text;
 using NBitcoin;
 using NBitcoin.RPC;
 using Newtonsoft.Json.Linq;
+using WalletWasabi.BitcoinCore.RpcModels;
 
 namespace WalletWasabi.BitcoinCore
 {
