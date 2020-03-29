@@ -35,6 +35,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 		public RecoverWalletViewModel(WalletManagerViewModel owner) : base("Recover Wallet")
 		{
 			Global = Locator.Current.GetService<Global>();
+			WalletManager = Global.WalletManager;
 
 			MnemonicWords = "";
 
@@ -44,7 +45,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 				MnemonicWords = Guard.Correct(MnemonicWords);
 				Password = Guard.Correct(Password); // Do not let whitespaces to the beginning and to the end.
 
-				string walletFilePath = Global.WalletManager.WalletDirectories.GetWalletFilePaths(WalletName).walletFilePath;
+				string walletFilePath = WalletManager.WalletDirectories.GetWalletFilePaths(WalletName).walletFilePath;
 
 				if (string.IsNullOrWhiteSpace(WalletName))
 				{
@@ -82,7 +83,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 						var km = KeyManager.Recover(mnemonic, Password, filePath: null, keyPath, MinGapLimit);
 						km.SetNetwork(Global.Network);
 						km.SetFilePath(walletFilePath);
-						Global.WalletManager.AddWallet(km);
+						WalletManager.AddWallet(km);
 
 						NotificationHelpers.Success("Wallet was recovered.");
 
@@ -106,6 +107,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 		}
 
 		private Global Global { get; }
+		private Wallets.WalletManager WalletManager { get; }
 
 		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
 
@@ -167,7 +169,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 			Password = null;
 			MnemonicWords = "";
 
-			WalletName = Global.WalletManager.WalletDirectories.GetNextWalletName();
+			WalletName = WalletManager.WalletDirectories.GetNextWalletName();
 
 			ShowAdvancedOptions = false;
 			AccountKeyPath = $"m/{KeyManager.DefaultAccountKeyPath}";
