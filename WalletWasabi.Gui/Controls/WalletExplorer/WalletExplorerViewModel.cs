@@ -76,7 +76,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					InsertWallet(vm);
 				});
 
-			CollapseAllCommand = ReactiveCommand.Create(CollapseWallets);
+			CollapseAllCommand = ReactiveCommand.Create(CollapseWallets, this.WhenAnyValue(x => x.AnyWalletStarted));
 
 			LurkingWifeModeCommand = ReactiveCommand.Create(ToggleLurkingWifeMode, this.WhenAnyValue(x => x.AnyWalletStarted));
 
