@@ -12,7 +12,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	public class WalletViewModelBase : ViewModelBase, IComparable<WalletViewModelBase>, IDisposable
 	{
 		private bool _isExpanded;
-		private bool _isBusy;
 		private string _title;
 		private WalletState _walletState;
 		private CompositeDisposable _disposables;
@@ -33,23 +32,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => WalletState = x.EventArgs)
 				.DisposeWith(_disposables);
-
-			this.WhenAnyValue(x => x.WalletState)
-				.Subscribe(x =>
-				{
-					switch (x)
-					{
-						case WalletState.Started:
-						case WalletState.Stopped:
-						case WalletState.Uninitialized:
-							IsBusy = false;
-							break;
-
-						default:
-							IsBusy = true;
-							break;
-					}
-				});
 		}
 
 		public WalletState WalletState
@@ -74,12 +56,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string WalletName => Wallet.WalletName;
 
-		public bool IsBusy
-		{
-			get => _isBusy;
-			private set => this.RaiseAndSetIfChanged(ref _isBusy, value);
-		}
-
 		public int CompareTo([AllowNull] WalletViewModelBase other)
 		{
 			if (WalletState != other.WalletState)
@@ -92,6 +68,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			return Title.CompareTo(other.Title);
 		}
+
+		public override string ToString() => WalletName;
 
 		#region IDisposable Support
 
