@@ -89,7 +89,7 @@ namespace WalletWasabi.Gui.ViewModels
 		/// <returns>true to confirm close, false to cancel.</returns>
 		public virtual bool OnClose()
 		{
-			Disposables.Dispose();
+			Disposables?.Dispose();
 			Disposables = null;
 
 			IsSelected = false;
