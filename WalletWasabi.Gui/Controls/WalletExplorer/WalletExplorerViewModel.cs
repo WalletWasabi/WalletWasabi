@@ -188,7 +188,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (!WalletManager.AnyWallet(x => x.State >= WalletState.Started && x != walletViewModel.Wallet))
 			{
-				walletViewModel.OpenWalletTabs();
+				if (walletViewModel.Wallet.State != WalletState.Stopping && walletViewModel.Wallet.State != WalletState.Stopped)
+				{
+					walletViewModel.OpenWalletTabs();
+				}
 			}
 
 			walletViewModel.IsExpanded = true;
