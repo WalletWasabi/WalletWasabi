@@ -48,7 +48,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			RootList = new SourceList<WalletViewModelBase>();
 			RootList.Connect()
 				.AutoRefresh(model => model.WalletState)
-				.Filter(x => (!IsPasswordRequired || !x.Wallet.KeyManager.IsWatchOnly) && x.WalletState == WalletState.Uninitialized)
+				.Filter(x => (!IsPasswordRequired || !x.Wallet.KeyManager.IsWatchOnly) && (IsPasswordRequired || x.WalletState == WalletState.Uninitialized))
 				.Sort(SortExpressionComparer<WalletViewModelBase>.Descending(p => p.Wallet.KeyManager.GetLastAccessTime()), resort: ResortTrigger.AsObservable())
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Bind(out _wallets)
