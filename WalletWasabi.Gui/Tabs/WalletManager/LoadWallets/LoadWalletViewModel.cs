@@ -30,11 +30,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 		private ReadOnlyObservableCollection<WalletViewModelBase> _wallets;
 		private string _password;
 		private WalletViewModelBase _selectedWallet;
-		private bool _isWalletSelected;
-		private bool _canLoadWallet;
-		private bool _canTestPassword;
-		private bool _isBusy;
-		private string _loadButtonText;
 
 		public LoadWalletViewModel(WalletManagerViewModel owner, LoadWalletType loadWalletType)
 			: base(loadWalletType == LoadWalletType.Password ? "Test Password" : "Load Wallet")
@@ -48,31 +43,40 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			RootList = new SourceList<WalletViewModelBase>();
 			RootList.Connect()
 				.AutoRefresh(model => model.WalletState)
-				.Filter(x => (!IsPasswordRequired || !x.Wallet.KeyManager.IsWatchOnly) && x.WalletState == WalletState.Uninitialized)
-				.Sort(SortExpressionComparer<WalletViewModelBase>.Descending(p => p.Wallet.KeyManager.GetLastAccessTime()), resort: ResortTrigger.AsObservable())
+				.Filter(x => (!IsPasswordRequired || !x.Wallet.KeyManager.IsWatchOnly))
+				.Sort(SortExpressionComparer<WalletViewModelBase>
+					.Ascending(p => p.WalletState).ThenByDescending(p => p.Wallet.KeyManager.GetLastAccessTime()),
+					resort: ResortTrigger.AsObservable())
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Bind(out _wallets)
 				.DisposeMany()
 				.Subscribe();
-
-			this.WhenAnyValue(x => x.SelectedWallet)
-				.Subscribe(_ => TrySetWalletStates());
-
-			this.WhenAnyValue(x => x.IsBusy)
-				.Subscribe(_ => TrySetWalletStates());
 
 			Observable.FromEventPattern<Wallet>(Global.WalletManager, nameof(Global.WalletManager.WalletAdded))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Select(x => x.EventArgs)
 				.Subscribe(wallet => RootList.Add(new WalletViewModelBase(wallet)));
 
+			this.WhenAnyValue(x => x.SelectedWallet)
+				.Where(x => x is null)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => SelectedWallet = Wallets.FirstOrDefault());
+
+			Wallets
+				.ToObservableChangeSet()
+				.ToCollection()
+				.Where(items => items.Any() && SelectedWallet is null)
+				.Select(items => items.First())
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x => SelectedWallet = x);
+
+			LoadCommand = ReactiveCommand.CreateFromTask(LoadWalletAsync, this.WhenAnyValue(x => x.SelectedWallet, x => x?.WalletState).Select(x => x == WalletState.Uninitialized));
+			TestPasswordCommand = ReactiveCommand.Create(LoadKeyManager, this.WhenAnyValue(x => x.SelectedWallet).Select(x => x is { }));
+			OpenFolderCommand = ReactiveCommand.Create(OpenWalletsFolder);
+
 			RootList.AddRange(Global.WalletManager
 				.GetWallets()
 				.Select(x => new WalletViewModelBase(x)));
-
-			LoadCommand = ReactiveCommand.CreateFromTask(LoadWalletAsync, this.WhenAnyValue(x => x.CanLoadWallet));
-			TestPasswordCommand = ReactiveCommand.Create(LoadKeyManager, this.WhenAnyValue(x => x.CanTestPassword));
-			OpenFolderCommand = ReactiveCommand.Create(OpenWalletsFolder);
 
 			Observable
 				.Merge(LoadCommand.ThrownExceptions)
@@ -84,8 +88,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 					Logger.LogError(ex);
 					NotificationHelpers.Error(ex.ToUserFriendlyString());
 				});
-
-			SetLoadButtonText();
 		}
 
 		public LoadWalletType LoadWalletType { get; }
@@ -107,36 +109,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			set => this.RaiseAndSetIfChanged(ref _selectedWallet, value);
 		}
 
-		public bool IsWalletSelected
-		{
-			get => _isWalletSelected;
-			set => this.RaiseAndSetIfChanged(ref _isWalletSelected, value);
-		}
-
-		public string LoadButtonText
-		{
-			get => _loadButtonText;
-			set => this.RaiseAndSetIfChanged(ref _loadButtonText, value);
-		}
-
-		public bool CanLoadWallet
-		{
-			get => _canLoadWallet;
-			set => this.RaiseAndSetIfChanged(ref _canLoadWallet, value);
-		}
-
-		public bool CanTestPassword
-		{
-			get => _canTestPassword;
-			set => this.RaiseAndSetIfChanged(ref _canTestPassword, value);
-		}
-
-		public bool IsBusy
-		{
-			get => _isBusy;
-			set => this.RaiseAndSetIfChanged(ref _isBusy, value);
-		}
-
 		public SourceList<WalletViewModelBase> RootList { get; private set; }
 		public ReactiveCommand<Unit, Unit> LoadCommand { get; }
 		public ReactiveCommand<Unit, KeyManager> TestPasswordCommand { get; }
@@ -149,29 +121,15 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 
 		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
 
-		public void SetLoadButtonText()
-		{
-			var text = "Load Wallet";
-			if (IsBusy)
-			{
-				text = "Loading...";
-			}
-
-			LoadButtonText = text;
-		}
-
 		public override void OnCategorySelected()
 		{
 			Password = "";
-
-			TrySetWalletStates();
 		}
 
 		public KeyManager LoadKeyManager()
 		{
 			try
 			{
-				CanTestPassword = false;
 				var password = Guard.Correct(Password); // Do not let whitespaces to the beginning and to the end.
 				Password = ""; // Clear password field.
 
@@ -224,78 +182,41 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 
 				return null;
 			}
-			finally
-			{
-				CanTestPassword = IsWalletSelected;
-			}
 		}
 
 		public async Task LoadWalletAsync()
 		{
+			var keyManager = LoadKeyManager();
+			if (keyManager is null)
+			{
+				return;
+			}
+
 			try
 			{
-				IsBusy = true;
+				var firstWalletToLoad = !Global.WalletManager.AnyWallet();
 
-				var keyManager = LoadKeyManager();
-				if (keyManager is null)
+				var wallet = await Task.Run(async () => await Global.WalletManager.StartWalletAsync(keyManager));
+
+				ResortTrigger.OnNext(new Unit());
+				// Successfully initialized.
+				if (firstWalletToLoad)
 				{
-					return;
-				}
-
-				try
-				{
-					var firstWalletToLoad = !Global.WalletManager.AnyWallet();
-
-					var wallet = await Task.Run(async () => await Global.WalletManager.StartWalletAsync(keyManager));
-
-					ResortTrigger.OnNext(new Unit());
-					// Successfully initialized.
-					if (firstWalletToLoad)
-					{
-						Owner.OnClose();
-					}
-				}
-				catch (Exception ex)
-				{
-					// Initialization failed.
-					NotificationHelpers.Error(ex.ToUserFriendlyString());
-					if (!(ex is OperationCanceledException))
-					{
-						Logger.LogError(ex);
-					}
+					Owner.OnClose();
 				}
 			}
-			finally
+			catch (TaskCanceledException ex) when (ex is TaskCanceledException || ex is OperationCanceledException)
 			{
-				IsBusy = false;
+				Logger.LogTrace(ex);
+			}
+			catch (Exception ex)
+			{
+				NotificationHelpers.Error($"Couldn't load wallet: {Title}. Reason: {ex.ToUserFriendlyString()}");
+				Logger.LogError(ex);
 			}
 		}
 
 		public void OpenWalletsFolder() => IoHelpers.OpenFolderInFileExplorer(Global.WalletManager.WalletDirectories.WalletsDir);
-
-		private bool TrySetWalletStates()
-		{
-			try
-			{
-				if (SelectedWallet is null)
-				{
-					SelectedWallet = Wallets.FirstOrDefault();
-				}
-
-				IsWalletSelected = SelectedWallet != null;
-				CanTestPassword = IsWalletSelected;
-				CanLoadWallet = SelectedWallet is { } ? !SelectedWallet.IsBusy && SelectedWallet.WalletState <= WalletState.Initialized : false;
-
-				SetLoadButtonText();
-				return true;
-			}
-			catch (Exception ex)
-			{
-				Logger.LogWarning(ex);
-			}
-
-			return false;
-		}
 
 		#region IDisposable Support
 

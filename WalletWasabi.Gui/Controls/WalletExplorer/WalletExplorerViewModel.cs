@@ -27,6 +27,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ViewModelBase _selectedItem;
 		private Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
 		private ObservableAsPropertyHelper<bool> _isLurkingWifeMode;
+		private bool _anyWalletStarted;
 
 		public WalletExplorerViewModel() : base("Wallet Explorer")
 		{
@@ -35,7 +36,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
 
 			var global = Locator.Current.GetService<Global>();
-			
+
 			WalletManager = global.WalletManager;
 			UiConfig = global.UiConfig;
 
@@ -57,6 +58,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							OpenClosedWallet(cwvm);
 						}
 					}
+
+					AnyWalletStarted = Wallets.Any(x => x.WalletState == WalletState.Started);
 				});
 
 			Observable
@@ -73,9 +76,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					InsertWallet(vm);
 				});
 
-			CollapseAllCommand = ReactiveCommand.Create(CollapseWallets);
+			CollapseAllCommand = ReactiveCommand.Create(CollapseWallets, this.WhenAnyValue(x => x.AnyWalletStarted));
 
-			LurkingWifeModeCommand = ReactiveCommand.Create(ToggleLurkingWifeMode);
+			LurkingWifeModeCommand = ReactiveCommand.Create(ToggleLurkingWifeMode, this.WhenAnyValue(x => x.AnyWalletStarted));
 
 			_isLurkingWifeMode = UiConfig
 				.WhenAnyValue(x => x.LurkingWifeMode)
@@ -83,7 +86,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Observable
 				.Merge(CollapseAllCommand.ThrownExceptions)
-				.Merge(LurkingWifeModeCommand.ThrownExceptions)				
+				.Merge(LurkingWifeModeCommand.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex)); ;
 
@@ -140,6 +143,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _selectedItem;
 			set => this.RaiseAndSetIfChanged(ref _selectedItem, value);
+		}
+
+		public bool AnyWalletStarted
+		{
+			get => _anyWalletStarted;
+			set => this.RaiseAndSetIfChanged(ref _anyWalletStarted, value);
 		}
 
 		public ReactiveCommand<Unit, Unit> CollapseAllCommand { get; }

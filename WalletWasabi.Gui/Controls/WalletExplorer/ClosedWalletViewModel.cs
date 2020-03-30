@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
@@ -24,12 +25,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					await global.WalletManager.StartWalletAsync(Wallet);
 				}
-				catch (Exception e)
+				catch (TaskCanceledException ex) when (ex is TaskCanceledException || ex is OperationCanceledException)
 				{
-					NotificationHelpers.Error($"Error loading Wallet: {Title}");
-					Logger.LogError(e.Message);
+					Logger.LogTrace(ex);
 				}
-			}, this.WhenAnyValue(x => x.IsBusy).Select(x => !x));
+				catch (Exception ex)
+				{
+					NotificationHelpers.Error($"Couldn't load wallet: {Title}. Reason: {ex.ToUserFriendlyString()}");
+					Logger.LogError(ex);
+				}
+			}, this.WhenAnyValue(x => x.WalletState).Select(x => x == WalletState.Uninitialized));
 		}
 
 		public ReactiveCommand<Unit, Unit> OpenWalletCommand { get; }
