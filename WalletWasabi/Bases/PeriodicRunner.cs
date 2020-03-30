@@ -82,8 +82,19 @@ namespace WalletWasabi.Bases
 				{
 					try
 					{
-						using var linked = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, TriggeringCts.Token);
-						await Task.Delay(Period, linked.Token).ConfigureAwait(false);
+						CancellationToken triggeringToken = CancellationToken.None;
+						lock (TriggerLock)
+						{
+							if (TriggeringCts is {})
+							{
+								triggeringToken = TriggeringCts.Token;
+							}
+						}
+						if (triggeringToken != CancellationToken.None)
+						{
+							using var linked = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, triggeringToken);
+							await Task.Delay(Period, linked.Token).ConfigureAwait(false);
+						}
 					}
 					catch (TaskCanceledException ex)
 					{
