@@ -141,6 +141,8 @@ namespace WalletWasabi.Wallets
 
 		private int NodeTimeouts { get; set; }
 
+		private readonly CancellationTokenSource StoppingCts = new CancellationTokenSource();
+
 		public void RegisterServices(
 			BitcoinStore bitcoinStore,
 			WasabiSynchronizer syncer,
@@ -185,7 +187,7 @@ namespace WalletWasabi.Wallets
 		}
 
 		/// <inheritdoc/>
-		public override async Task StartAsync(CancellationToken cancel)
+		public override async Task StartAsync(CancellationToken externalCancel)
 		{
 			if (State != WalletState.Initialized)
 			{
@@ -204,11 +206,12 @@ namespace WalletWasabi.Wallets
 					throw new NotSupportedException($"{nameof(Synchronizer)} is not running.");
 				}
 
+				using var cts = CancellationTokenSource.CreateLinkedTokenSource(StoppingCts.Token, externalCancel);
+				var cancel = cts.Token;
+
 				while (!BitcoinStore.IsInitialized)
 				{
-					await Task.Delay(100).ConfigureAwait(false);
-
-					cancel.ThrowIfCancellationRequested();
+					await Task.Delay(100, cancel).ConfigureAwait(false);
 				}
 
 				using (BenchmarkLogger.Measure())
@@ -217,7 +220,7 @@ namespace WalletWasabi.Wallets
 
 					ChaumianClient.Start();
 
-					using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
+					using (await HandleFiltersLock.LockAsync(cancel).ConfigureAwait(false))
 					{
 						await LoadWalletStateAsync(cancel).ConfigureAwait(false);
 						await LoadDummyMempoolAsync().ConfigureAwait(false);
@@ -244,8 +247,11 @@ namespace WalletWasabi.Wallets
 
 		/// <param name="hash">Block hash of the desired block, represented as a 256 bit integer.</param>
 		/// <exception cref="OperationCanceledException"></exception>
-		public async Task<Block> FetchBlockAsync(uint256 hash, CancellationToken cancel)
+		public async Task<Block> FetchBlockAsync(uint256 hash, CancellationToken externalCancel)
 		{
+			using var cts = CancellationTokenSource.CreateLinkedTokenSource(StoppingCts.Token, externalCancel);
+			var cancel = cts.Token;
+
 			Block block = await TryGetBlockFromFileAsync(hash, cancel);
 			if (block is null)
 			{
@@ -261,7 +267,7 @@ namespace WalletWasabi.Wallets
 		{
 			try
 			{
-				using (await BlockFolderLock.LockAsync())
+				using (await BlockFolderLock.LockAsync(StoppingCts.Token))
 				{
 					var filePaths = Directory.EnumerateFiles(BlockFolderPath);
 					var fileNames = filePaths.Select(Path.GetFileName);
@@ -281,7 +287,7 @@ namespace WalletWasabi.Wallets
 
 		public async Task<int> CountBlocksAsync()
 		{
-			using (await BlockFolderLock.LockAsync())
+			using (await BlockFolderLock.LockAsync(StoppingCts.Token))
 			{
 				return Directory.EnumerateFiles(BlockFolderPath).Count();
 			}
@@ -338,6 +344,7 @@ namespace WalletWasabi.Wallets
 			{
 				var prevState = State;
 				State = WalletState.Stopping;
+				StoppingCts.Cancel();
 
 				await base.StopAsync(cancel).ConfigureAwait(false);
 
@@ -457,7 +464,7 @@ namespace WalletWasabi.Wallets
 		{
 			try
 			{
-				using (await HandleFiltersLock.LockAsync())
+				using (await HandleFiltersLock.LockAsync(StoppingCts.Token))
 				{
 					uint256 invalidBlockHash = invalidFilter.Header.BlockHash;
 					await DeleteBlockAsync(invalidBlockHash);
@@ -476,7 +483,9 @@ namespace WalletWasabi.Wallets
 		{
 			try
 			{
-				using (await HandleFiltersLock.LockAsync())
+				StoppingCts.Token.ThrowIfCancellationRequested();
+
+				using (await HandleFiltersLock.LockAsync(StoppingCts.Token))
 				{
 					if (KeyManager.GetBestHeight() < filterModel.Header.Height)
 					{
@@ -497,22 +506,27 @@ namespace WalletWasabi.Wallets
 					{
 						return;
 					}
+
+					StoppingCts.Token.ThrowIfCancellationRequested();
 				} while (Synchronizer.AreRequestsBlocked()); // If requests are blocked, delay mempool cleanup, because coinjoin answers are always priority.
 
 				await BitcoinStore.MempoolService?.TryPerformMempoolCleanupAsync(Synchronizer?.WasabiClient?.TorClient?.DestinationUriAction, Synchronizer?.WasabiClient?.TorClient?.TorSocks5EndPoint);
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!(ex is TaskCanceledException) && !(ex is OperationCanceledException))
 			{
 				Logger.LogWarning(ex);
 			}
 		}
 
-		private async Task LoadWalletStateAsync(CancellationToken cancel)
+		private async Task LoadWalletStateAsync(CancellationToken externalCancel)
 		{
 			KeyManager.AssertNetworkOrClearBlockState(Network);
 			Height bestKeyManagerHeight = KeyManager.GetBestHeight();
 
 			TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight));
+
+			using var cts = CancellationTokenSource.CreateLinkedTokenSource(StoppingCts.Token, externalCancel);
+			var cancel = cts.Token;
 
 			// Go through the filters and queue to download the matches.
 			await BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) =>
@@ -540,7 +554,7 @@ namespace WalletWasabi.Wallets
 					using var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint);
 					var compactness = 10;
 
-					var mempoolHashes = await client.GetMempoolHashesAsync(compactness);
+					var mempoolHashes = await client.GetMempoolHashesAsync(compactness, StoppingCts.Token);
 
 					var txsToProcess = new List<SmartTransaction>();
 					foreach (var tx in BitcoinStore.TransactionStore.MempoolStore.GetTransactions())
@@ -573,8 +587,11 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-		private async Task ProcessFilterModelAsync(FilterModel filterModel, CancellationToken cancel)
+		private async Task ProcessFilterModelAsync(FilterModel filterModel, CancellationToken externalCancel)
 		{
+			using var cts = CancellationTokenSource.CreateLinkedTokenSource(StoppingCts.Token, externalCancel);
+			var cancel = cts.Token;
+
 			var matchFound = filterModel.Filter.MatchAny(KeyManager.GetPubKeyScriptBytes(), filterModel.FilterKey);
 			if (matchFound)
 			{
@@ -598,11 +615,14 @@ namespace WalletWasabi.Wallets
 
 		/// <param name="hash">Block hash of the desired block, represented as a 256 bit integer.</param>
 		/// <exception cref="OperationCanceledException"></exception>
-		private async Task<Block> TryGetBlockFromFileAsync(uint256 hash, CancellationToken cancel)
+		private async Task<Block> TryGetBlockFromFileAsync(uint256 hash, CancellationToken externalCancel)
 		{
+			using var cts = CancellationTokenSource.CreateLinkedTokenSource(StoppingCts.Token, externalCancel);
+			var cancel = cts.Token;
+
 			// Try get the block
 			Block block = null;
-			using (await BlockFolderLock.LockAsync())
+			using (await BlockFolderLock.LockAsync(cancel))
 			{
 				var encoder = new HexEncoder();
 				var filePath = Path.Combine(BlockFolderPath, hash.ToString());
@@ -628,8 +648,11 @@ namespace WalletWasabi.Wallets
 
 		/// <param name="hash">Block hash of the desired block, represented as a 256 bit integer.</param>
 		/// <exception cref="OperationCanceledException"></exception>
-		private async Task<Block> DownloadBlockAsync(uint256 hash, CancellationToken cancel)
+		private async Task<Block> DownloadBlockAsync(uint256 hash, CancellationToken externalCancel)
 		{
+			using var lts = CancellationTokenSource.CreateLinkedTokenSource(StoppingCts.Token, externalCancel);
+			var cancel = lts.Token;
+
 			Block block = null;
 			try
 			{
@@ -651,14 +674,14 @@ namespace WalletWasabi.Wallets
 						// If no connection, wait, then continue.
 						while (Nodes.ConnectedNodes.Count == 0)
 						{
-							await Task.Delay(100);
+							await Task.Delay(100, cancel);
 						}
 
 						// Select a random node we are connected to.
 						Node node = Nodes.ConnectedNodes.RandomElement();
 						if (node is null || !node.IsConnected)
 						{
-							await Task.Delay(100);
+							await Task.Delay(100, cancel);
 							continue;
 						}
 
@@ -667,7 +690,8 @@ namespace WalletWasabi.Wallets
 						{
 							using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(RuntimeParams.Instance.NetworkNodeTimeout))) // 1/2 ADSL	512 kbit/s	00:00:32
 							{
-								block = await node.DownloadBlockAsync(hash, cts.Token);
+								using var blockCts = CancellationTokenSource.CreateLinkedTokenSource(cancel, cts.Token);
+								block = await node.DownloadBlockAsync(hash, blockCts.Token);
 							}
 
 							// Validate block
@@ -726,8 +750,11 @@ namespace WalletWasabi.Wallets
 			return block;
 		}
 
-		private async Task<Block> TryDownloadBlockFromLocalNodeAsync(uint256 hash, CancellationToken cancel)
+		private async Task<Block> TryDownloadBlockFromLocalNodeAsync(uint256 hash, CancellationToken externalCancel)
 		{
+			using var lts = CancellationTokenSource.CreateLinkedTokenSource(StoppingCts.Token, externalCancel);
+			var cancel = lts.Token;
+
 			if (CoreNode?.RpcClient is null)
 			{
 				try
