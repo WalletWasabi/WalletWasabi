@@ -21,8 +21,6 @@ namespace WalletWasabi.Gui
 {
 	public class MainWindow : MetroWindow
 	{
-		public bool IsQuitPending { get; private set; }
-
 		public MainWindow()
 		{
 			Global = Locator.Current.GetService<Global>();
@@ -33,8 +31,8 @@ namespace WalletWasabi.Gui
 #endif
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-			{			
-				WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.Manual;	
+			{
+				WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.Manual;
 			}
 
 			var notificationManager = new WindowNotificationManager(this)
