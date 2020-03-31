@@ -64,10 +64,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 
 			this.WhenAnyValue(x => x.IsBusy, x => x.IsHardwareBusy)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					SetLoadButtonText();
-				});
+				.Subscribe(_ => SetLoadButtonText());
 
 			LoadCommand = ReactiveCommand.CreateFromTask(LoadWalletAsync, this.WhenAnyValue(x => x.SelectedWallet, x => x.IsBusy).Select(x => x.Item1 is { } && !x.Item2));
 			ImportColdcardCommand = ReactiveCommand.CreateFromTask(async () =>
