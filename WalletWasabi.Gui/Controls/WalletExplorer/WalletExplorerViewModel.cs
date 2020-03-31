@@ -28,6 +28,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
 		private ObservableAsPropertyHelper<bool> _isLurkingWifeMode;
 		private bool _anyWalletStarted;
+		private bool _inSelecting;
 
 		public WalletExplorerViewModel() : base("Wallet Explorer")
 		{
@@ -98,17 +99,25 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Where(x => x != SelectedItem)
 				.Subscribe(x =>
 				{
+					_inSelecting = true;
 					SelectedItem = x;
 
 					if (x is IWalletViewModel wvm && _walletDictionary.ContainsKey(wvm.Wallet))
 					{
 						_walletDictionary[wvm.Wallet].IsExpanded = true;
 					}
+					_inSelecting = false;
 				});
 
 			this.WhenAnyValue(x => x.SelectedItem)
 				.OfType<WasabiDocumentTabViewModel>()
-				.Subscribe(x => shell.AddOrSelectDocument(x));
+				.Subscribe(x =>
+				{
+					if (!_inSelecting)
+					{
+						shell.AddOrSelectDocument(x);
+					}
+				});
 		}
 
 		private void ToggleLurkingWifeMode()
