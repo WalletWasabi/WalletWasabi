@@ -106,18 +106,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						_walletDictionary[wvm.Wallet].IsExpanded = true;
 					}
+
 					_inSelecting = false;
 				});
 
 			this.WhenAnyValue(x => x.SelectedItem)
 				.OfType<WasabiDocumentTabViewModel>()
-				.Subscribe(x =>
-				{
-					if (!_inSelecting)
-					{
-						shell.AddOrSelectDocument(x);
-					}
-				});
+				.Where(_ => !_inSelecting)
+				.Subscribe(x => shell.AddOrSelectDocument(x));
 		}
 
 		private void ToggleLurkingWifeMode()
