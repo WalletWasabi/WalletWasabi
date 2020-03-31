@@ -218,6 +218,18 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 
 		public void OpenWalletsFolder() => IoHelpers.OpenFolderInFileExplorer(Global.WalletManager.WalletDirectories.WalletsDir);
 
+		public void SelectWallet(string walletName)
+		{
+			var keyman = Wallets.FirstOrDefault(w => w.Wallet.WalletName == walletName)?.Wallet.KeyManager;
+			SelectWallet(keyman);
+		}
+
+		public void SelectWallet(KeyManager keymanager)
+		{
+			var wallet = Wallets.FirstOrDefault(w => w.Wallet.KeyManager == keymanager);
+			SelectedWallet = wallet;
+		}
+
 		#region IDisposable Support
 
 		private bool _disposedValue = false; // To detect redundant calls
