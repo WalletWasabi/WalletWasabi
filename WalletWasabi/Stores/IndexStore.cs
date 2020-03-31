@@ -398,10 +398,10 @@ namespace WalletWasabi.Stores
 			}
 		}
 
-		public async Task ForeachFiltersAsync(Func<FilterModel, Task> todo, Height fromHeight)
+		public async Task ForeachFiltersAsync(Func<FilterModel, Task> todo, Height fromHeight, CancellationToken cancel)
 		{
-			using (await MatureIndexFileManager.Mutex.LockAsync().ConfigureAwait(false))
-			using (await IndexLock.LockAsync().ConfigureAwait(false))
+			using (await MatureIndexFileManager.Mutex.LockAsync(cancel).ConfigureAwait(false))
+			using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
 			{
 				var firstImmatureHeight = ImmatureFilters.FirstOrDefault()?.Header?.Height;
 				if (!firstImmatureHeight.HasValue || firstImmatureHeight.Value > fromHeight)

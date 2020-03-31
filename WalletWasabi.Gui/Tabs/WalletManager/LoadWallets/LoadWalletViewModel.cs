@@ -205,7 +205,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 					Owner.OnClose();
 				}
 			}
-			catch (TaskCanceledException ex) when (ex is TaskCanceledException || ex is OperationCanceledException)
+			catch (OperationCanceledException ex)
 			{
 				Logger.LogTrace(ex);
 			}
