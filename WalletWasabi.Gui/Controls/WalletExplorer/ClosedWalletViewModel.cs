@@ -25,7 +25,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					await global.WalletManager.StartWalletAsync(Wallet);
 				}
-				catch (TaskCanceledException ex) when (ex is TaskCanceledException || ex is OperationCanceledException)
+				catch (OperationCanceledException ex)
 				{
 					Logger.LogTrace(ex);
 				}

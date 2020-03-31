@@ -800,6 +800,10 @@ namespace WalletWasabi.Wallets
 					Logger.LogInfo($"Block acquired from local P2P connection: {hash}.");
 					return blockFromLocalNode;
 				}
+				catch (OperationCanceledException ex)
+				{
+					Logger.LogTrace(ex);
+				}
 				catch (Exception ex)
 				{
 					DisconnectDisposeNullLocalBitcoinCoreNode();
