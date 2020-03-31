@@ -398,7 +398,7 @@ namespace WalletWasabi.Stores
 			}
 		}
 
-		public async Task ForeachFiltersAsync(Func<FilterModel, Task> todo, Height fromHeight, CancellationToken cancel)
+		public async Task ForeachFiltersAsync(Func<FilterModel, Task> todo, Height fromHeight, CancellationToken cancel = default)
 		{
 			using (await MatureIndexFileManager.Mutex.LockAsync(cancel).ConfigureAwait(false))
 			using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
