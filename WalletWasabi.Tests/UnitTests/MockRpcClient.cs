@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.RPC;
 using WalletWasabi.BitcoinCore;
+using WalletWasabi.BitcoinCore.RpcModels;
 
 namespace WalletWasabi.Tests.UnitTests
 {
@@ -107,6 +108,11 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		public Task<EstimateSmartFeeResponse> TryEstimateSmartFeeAsync(int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative)
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task<VerboseBlockInfo> GetVerboseBlockAsync(uint256 blockId)
 		{
 			throw new NotImplementedException();
 		}

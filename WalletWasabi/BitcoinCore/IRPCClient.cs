@@ -2,6 +2,7 @@ using NBitcoin;
 using NBitcoin.RPC;
 using System;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore.RpcModels;
 
 namespace WalletWasabi.BitcoinCore
 {
@@ -67,5 +68,7 @@ namespace WalletWasabi.BitcoinCore
 		Task SendBatchAsync();
 
 		Task<EstimateSmartFeeResponse> TryEstimateSmartFeeAsync(int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative);
+
+		Task<VerboseBlockInfo> GetVerboseBlockAsync(uint256 blockId);
 	}
 }

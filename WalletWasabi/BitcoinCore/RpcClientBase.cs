@@ -2,6 +2,7 @@ using NBitcoin;
 using NBitcoin.RPC;
 using System;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore.RpcModels;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.BitcoinCore
@@ -97,6 +98,12 @@ namespace WalletWasabi.BitcoinCore
 		public virtual IRPCClient PrepareBatch()
 		{
 			return new RpcClientBase(Rpc.PrepareBatch());
+		}
+
+		public async Task<VerboseBlockInfo> GetVerboseBlockAsync(uint256 blockId)
+		{
+			var resp = await Rpc.SendCommandAsync(RPCOperations.getblock, blockId, 3).ConfigureAwait(false);
+			return RpcParser.ParseVerboseBlockResponse(resp.Result.ToString());
 		}
 
 		#region For Testing Only
