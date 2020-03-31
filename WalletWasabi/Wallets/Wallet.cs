@@ -800,10 +800,6 @@ namespace WalletWasabi.Wallets
 					Logger.LogInfo($"Block acquired from local P2P connection: {hash}.");
 					return blockFromLocalNode;
 				}
-				catch (OperationCanceledException ex)
-				{
-					Logger.LogTrace(ex);
-				}
 				catch (Exception ex)
 				{
 					DisconnectDisposeNullLocalBitcoinCoreNode();
@@ -811,6 +807,10 @@ namespace WalletWasabi.Wallets
 					if (ex is SocketException)
 					{
 						Logger.LogTrace("Did not find local listening and running full node instance. Trying to fetch needed block from other source.");
+					}
+					else if (ex is OperationCanceledException)
+					{
+						Logger.LogTrace(ex);
 					}
 					else
 					{
