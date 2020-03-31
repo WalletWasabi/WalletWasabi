@@ -49,11 +49,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					if (wallet is { } && _walletDictionary.ContainsKey(wallet))
 					{
-						if (x.EventArgs == WalletState.Stopping)
+						if (wallet.State == WalletState.Stopping)
 						{
 							RemoveWallet(_walletDictionary[wallet]);
 						}
-						else if (_walletDictionary[wallet] is ClosedWalletViewModel cwvm && x.EventArgs == WalletState.Started)
+						else if (_walletDictionary[wallet] is ClosedWalletViewModel cwvm && wallet.State == WalletState.Started)
 						{
 							OpenClosedWallet(cwvm);
 						}
