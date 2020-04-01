@@ -96,7 +96,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 					}
 
 					Interlocked.Increment(ref _workerCount);
-					while (Interlocked.Read(ref _workerCount) != 1)
+					while (!IsRunning)
 					{
 						await Task.Delay(100);
 					}
@@ -116,7 +116,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 							try
 							{
 								// If we did not yet initialized syncInfo, do so.
-								if (syncInfo == null)
+								if (syncInfo is null)
 								{
 									syncInfo = await GetSyncInfoAsync();
 								}
@@ -133,16 +133,17 @@ namespace WalletWasabi.Blockchain.BlockFilters
 									}
 									else
 									{
-										currentHash = StartingHeight == 0 ? uint256.Zero :
-											await RpcClient.GetBlockHashAsync((int)StartingHeight - 1);
+										currentHash = StartingHeight == 0
+											? uint256.Zero
+											: await RpcClient.GetBlockHashAsync((int)StartingHeight - 1);
 										currentHeight = StartingHeight - 1;
 									}
 								}
 
 								var coreNotSynced = !syncInfo.IsCoreSynchornized;
 								var tipReached = syncInfo.BlockCount == currentHeight;
-								var refresh = DateTimeOffset.UtcNow - syncInfo.BlockchainInfoUpdated > TimeSpan.FromMinutes(5);
-								if (coreNotSynced || tipReached || refresh)
+								var isTimeToRefresh = DateTimeOffset.UtcNow - syncInfo.BlockchainInfoUpdated > TimeSpan.FromMinutes(5);
+								if (coreNotSynced || tipReached || isTimeToRefresh)
 								{
 									syncInfo = await GetSyncInfoAsync();
 								}
@@ -160,7 +161,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 									}
 									else
 									{
-										// Core is catching up give it a few milliseconds
+										// Knots is catching up give it a few milliseconds
 										await Task.Delay(100);
 										continue;
 									}
@@ -171,10 +172,10 @@ namespace WalletWasabi.Blockchain.BlockFilters
 								VerboseBlockInfo block = await RpcClient.GetVerboseBlockAsync(blockHash);
 
 								// Check if we are still on the best chain,
-								// if not rewind filters til we find the fork.
+								// if not rewind filters till we find the fork.
 								if (currentHash != block.PrevBlockHash)
 								{
-									Logger.LogWarning("Reorg observed on the network");
+									Logger.LogWarning("Reorg observed on the network.");
 
 									await ReorgOneAsync();
 
