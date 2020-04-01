@@ -73,6 +73,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 		private AsyncLock IndexLock { get; }
 		public uint StartingHeight { get; }
 		public bool IsRunning => Interlocked.Read(ref _serviceStatus) == Running;
+		public bool IsStopping => Interlocked.Read(ref _serviceStatus) >= Stopping;
 
 		public static GolombRiceFilter CreateDummyEmptyFilter(uint256 blockHash)
 		{
@@ -96,12 +97,12 @@ namespace WalletWasabi.Blockchain.BlockFilters
 					}
 
 					Interlocked.Increment(ref _workerCount);
-					while (!IsRunning)
+					while (Interlocked.Read(ref _workerCount) != 1)
 					{
 						await Task.Delay(100);
 					}
 
-					if (Interlocked.Read(ref _serviceStatus) >= Stopping)
+					if (IsStopping)
 					{
 						return;
 					}
@@ -161,8 +162,8 @@ namespace WalletWasabi.Blockchain.BlockFilters
 									}
 									else
 									{
-										// Knots is catching up give it a few milliseconds
-										await Task.Delay(100);
+										// Knots is catching up give it a 10 seconds
+										await Task.Delay(10000);
 										continue;
 									}
 								}
@@ -241,9 +242,9 @@ namespace WalletWasabi.Blockchain.BlockFilters
 			});
 		}
 
-		private HashSet<Script> FetchScripts(VerboseBlockInfo block)
+		private List<Script> FetchScripts(VerboseBlockInfo block)
 		{
-			var scripts = new HashSet<Script>();
+			var scripts = new List<Script>();
 
 			foreach (var tx in block.Transactions)
 			{
