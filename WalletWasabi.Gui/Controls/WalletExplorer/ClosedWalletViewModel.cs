@@ -23,7 +23,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					var global = Locator.Current.GetService<Global>();
 
-					await global.WalletManager.StartWalletAsync(Wallet);
+					await Task.Run(async ()=> await global.WalletManager.StartWalletAsync(Wallet));
 				}
 				catch (TaskCanceledException ex) when (ex is TaskCanceledException || ex is OperationCanceledException)
 				{
