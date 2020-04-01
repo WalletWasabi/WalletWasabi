@@ -87,7 +87,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 
 						NotificationHelpers.Success("Wallet was recovered.");
 
-						owner.SelectLoadWallet();
+						owner.SelectLoadWallet(km);
 					}
 					catch (Exception ex)
 					{
