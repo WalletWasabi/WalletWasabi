@@ -97,23 +97,31 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.WhenAnyValue(x => x.SelectedDocument)
 				.OfType<ViewModelBase>()
 				.Where(x => x != SelectedItem)
-				.Subscribe(x =>
-				{
-					_inSelecting = true;
-					SelectedItem = x;
-
-					if (x is IWalletViewModel wvm && _walletDictionary.ContainsKey(wvm.Wallet))
-					{
-						_walletDictionary[wvm.Wallet].IsExpanded = true;
-					}
-
-					_inSelecting = false;
-				});
+				.Subscribe(x => OnShellDocumentSelected(x));
 
 			this.WhenAnyValue(x => x.SelectedItem)
 				.OfType<WasabiDocumentTabViewModel>()
 				.Where(_ => !_inSelecting)
 				.Subscribe(x => shell.AddOrSelectDocument(x));
+		}
+
+		private void OnShellDocumentSelected(ViewModelBase document)
+		{
+			_inSelecting = true;
+
+			try
+			{
+				SelectedItem = document;
+
+				if (document is IWalletViewModel wvm && _walletDictionary.ContainsKey(wvm.Wallet))
+				{
+					_walletDictionary[wvm.Wallet].IsExpanded = true;
+				}
+			}
+			finally
+			{
+				_inSelecting = false;
+			}
 		}
 
 		private void ToggleLurkingWifeMode()
