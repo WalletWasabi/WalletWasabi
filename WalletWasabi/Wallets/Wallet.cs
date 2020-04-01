@@ -522,7 +522,7 @@ namespace WalletWasabi.Wallets
 					await ProcessFilterModelAsync(filterModel, cancel);
 				}
 			},
-			new Height(bestKeyManagerHeight.Value + 1));
+			new Height(bestKeyManagerHeight.Value + 1), cancel);
 		}
 
 		private async Task LoadDummyMempoolAsync()
@@ -651,14 +651,14 @@ namespace WalletWasabi.Wallets
 						// If no connection, wait, then continue.
 						while (Nodes.ConnectedNodes.Count == 0)
 						{
-							await Task.Delay(100);
+							await Task.Delay(100, cancel);
 						}
 
 						// Select a random node we are connected to.
 						Node node = Nodes.ConnectedNodes.RandomElement();
 						if (node is null || !node.IsConnected)
 						{
-							await Task.Delay(100);
+							await Task.Delay(100, cancel);
 							continue;
 						}
 
@@ -667,7 +667,8 @@ namespace WalletWasabi.Wallets
 						{
 							using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(RuntimeParams.Instance.NetworkNodeTimeout))) // 1/2 ADSL	512 kbit/s	00:00:32
 							{
-								block = await node.DownloadBlockAsync(hash, cts.Token);
+								using var lts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancel);
+								block = await node.DownloadBlockAsync(hash, lts.Token);
 							}
 
 							// Validate block
@@ -817,6 +818,10 @@ namespace WalletWasabi.Wallets
 					if (ex is SocketException)
 					{
 						Logger.LogTrace("Did not find local listening and running full node instance. Trying to fetch needed block from other source.");
+					}
+					else if (ex is OperationCanceledException)
+					{
+						Logger.LogTrace(ex);
 					}
 					else
 					{

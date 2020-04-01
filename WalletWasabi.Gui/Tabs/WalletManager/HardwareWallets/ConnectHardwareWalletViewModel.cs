@@ -359,8 +359,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 				}
 
 				// Initialization failed.
-				NotificationHelpers.Error(ex.ToUserFriendlyString());
 				Logger.LogError(ex);
+				NotificationHelpers.Error(ex.ToUserFriendlyString());
 
 				return null;
 			}
@@ -388,14 +388,14 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 					// Successfully initialized.
 					Owner.OnClose();
 				}
+				catch (OperationCanceledException ex)
+				{
+					Logger.LogTrace(ex);
+				}
 				catch (Exception ex)
 				{
-					// Initialization failed.
+					Logger.LogError(ex);
 					NotificationHelpers.Error(ex.ToUserFriendlyString());
-					if (!(ex is OperationCanceledException))
-					{
-						Logger.LogError(ex);
-					}
 				}
 			}
 			finally
