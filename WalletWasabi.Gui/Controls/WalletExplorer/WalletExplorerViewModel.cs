@@ -64,10 +64,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				});
 
 			Observable
-				.FromEventPattern<Wallet>(WalletManager, nameof(WalletManager.WalletAdded))
-				.ObserveOn(RxApp.MainThreadScheduler)
+				.FromEventPattern<Wallet>(WalletManager, nameof(WalletManager.WalletAdded))				
 				.Select(x => x.EventArgs)
 				.Where(x => x is { })
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(wallet =>
 				{
 					WalletViewModelBase vm = (wallet.State <= WalletState.Starting) ?
@@ -97,11 +97,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.WhenAnyValue(x => x.SelectedDocument)
 				.OfType<ViewModelBase>()
 				.Where(x => x != SelectedItem)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => OnShellDocumentSelected(x));
 
 			this.WhenAnyValue(x => x.SelectedItem)
 				.OfType<WasabiDocumentTabViewModel>()
 				.Where(_ => !_inSelecting)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => shell.AddOrSelectDocument(x));
 		}
 
