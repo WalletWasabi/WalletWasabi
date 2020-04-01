@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 using WalletWasabi.JsonConverters;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests
+namespace WalletWasabi.Tests.UnitTests.Converters
 {
 	public class OutPointAsTxoRefJsonConverterTests
 	{
@@ -16,12 +16,12 @@ namespace WalletWasabi.Tests.UnitTests
 			var oldConverters = new JsonConverter[]
 			{
 				new Uint256JsonConverter(),
-				new OutPointJsonConverter(),
+				new OutPointJsonConverter()
 			};
 			var newConverters = new JsonConverter[]
 			{
 				new Uint256JsonConverter(),
-				new OutPointAsTxoRefJsonConverter(),
+				new OutPointAsTxoRefJsonConverter()
 			};
 
 			// Serialization test

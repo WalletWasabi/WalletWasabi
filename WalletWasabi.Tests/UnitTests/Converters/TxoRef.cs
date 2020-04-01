@@ -3,7 +3,7 @@ using NBitcoin;
 using Newtonsoft.Json;
 using WalletWasabi.JsonConverters;
 
-namespace WalletWasabi.Tests.UnitTests
+namespace WalletWasabi.Tests.UnitTests.Converters
 {
 	[JsonObject(MemberSerialization.OptIn)]
 	public class TxoRef
