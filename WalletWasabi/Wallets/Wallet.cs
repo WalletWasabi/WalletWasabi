@@ -713,11 +713,8 @@ namespace WalletWasabi.Wallets
 				}
 
 				// Save the block
-				using (await BlockFolderLock.LockAsync(cancel))
-				{
-					var path = Path.Combine(BlockFolderPath, hash.ToString());
-					await File.WriteAllBytesAsync(path, block.ToBytes());
-				}
+				var path = Path.Combine(BlockFolderPath, hash.ToString());
+				await SaveBlockToDiskAsync(path, block);
 			}
 			finally
 			{
@@ -725,6 +722,20 @@ namespace WalletWasabi.Wallets
 			}
 
 			return block;
+		}
+
+		private async Task SaveBlockToDiskAsync(string path, Block block)
+		{
+			if (!File.Exists(path))
+			{
+				using (await BlockFolderLock.LockAsync())
+				{
+					if (!File.Exists(path))
+					{
+						await File.WriteAllBytesAsync(path, block.ToBytes());
+					}
+				}
+			}
 		}
 
 		private async Task<Block> TryDownloadBlockFromLocalNodeAsync(uint256 hash, CancellationToken cancel)
