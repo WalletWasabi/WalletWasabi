@@ -646,6 +646,23 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		}
 
 		[Fact]
+		public async Task ReceiveManyConsecutiveTransactionWithDustForWalletAsync()
+		{
+			var transactionProcessor = await CreateTransactionProcessorAsync();
+			var keys = transactionProcessor.KeyManager.GetKeys();
+
+			foreach (var key in keys.Take(5))
+			{
+				transactionProcessor.Process(
+					CreateCreditingTransaction(key.P2wpkhScript, Money.Coins(0.000099m)));
+			}
+
+			// It is relevant even when all the coins can be dust.
+			Assert.All(keys.Take(5), key => Assert.Equal( KeyState.Used, key.KeyState));
+			Assert.All(keys.Skip(5), key => Assert.Equal( KeyState.Clean, key.KeyState));
+		}
+
+		[Fact]
 		public async Task ReceiveCoinJoinTransactionAsync()
 		{
 			var transactionProcessor = await CreateTransactionProcessorAsync();
