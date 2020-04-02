@@ -72,11 +72,23 @@ namespace WalletWasabi.Gui.Behaviors
 
 			this.GetObservable(HeightProperty)
 				.Where(x => !double.IsNaN(x))
-				.Subscribe(x => AssociatedObject.Height = x >= _maxSize.Height ? _maxSize.Height : x);
+				.Subscribe(x => 
+				{
+					if (AssociatedObject.WindowState == WindowState.Normal)
+					{
+						AssociatedObject.Height = x >= _maxSize.Height ? _maxSize.Height : x;
+					}
+				});
 
 			this.GetObservable(WidthProperty)
 				.Where(x => !double.IsNaN(x))
-				.Subscribe(x => AssociatedObject.Width = x >= _maxSize.Width ? _maxSize.Width : x);
+				.Subscribe(x =>
+				{
+					if (AssociatedObject.WindowState == WindowState.Normal)
+					{
+						AssociatedObject.Width = x >= _maxSize.Width ? _maxSize.Width : x;
+					}
+				});
 		}
 	}
 }
