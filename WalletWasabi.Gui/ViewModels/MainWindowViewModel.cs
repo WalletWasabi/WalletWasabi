@@ -45,7 +45,8 @@ namespace WalletWasabi.Gui.ViewModels
 			var uiConfig = global.UiConfig;
 
 			Width = uiConfig.Width;
-			Height = uiConfig.Height;
+			Height = uiConfig.Height;			
+
 			WindowState = uiConfig.WindowState;
 
 			InitializeLockScreen(global.UiConfig);
