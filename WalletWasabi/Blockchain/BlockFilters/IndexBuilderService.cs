@@ -19,17 +19,12 @@ namespace WalletWasabi.Blockchain.BlockFilters
 {
 	public class IndexBuilderService
 	{
-		private const long NotStarted = 0;
-		private const long Running = 1;
-		private const long Stopping = 2;
-		private const long Stopped = 3;
-
 		/// <summary>
 		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
 		/// </summary>
-		private long _serviceStatus;
+		private long _running;
 
-		private long _workerCount;
+		private long _runner;
 
 		public IndexBuilderService(IRPCClient rpc, BlockNotifier blockNotifier, string indexFilePath)
 		{
@@ -42,7 +37,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 
 			StartingHeight = SmartHeader.GetStartingHeader(RpcClient.Network).Height;
 
-			_serviceStatus = NotStarted;
+			_running = 0;
 
 			IoHelpers.EnsureContainingDirectoryExists(IndexFilePath);
 			if (File.Exists(IndexFilePath))
@@ -72,7 +67,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 		private List<FilterModel> Index { get; }
 		private AsyncLock IndexLock { get; }
 		public uint StartingHeight { get; }
-		public bool IsRunning => Interlocked.Read(ref _serviceStatus) == Running;
+		public bool IsRunning => Interlocked.Read(ref _running) == 1;
 
 		public static GolombRiceFilter CreateDummyEmptyFilter(uint256 blockHash)
 		{
@@ -90,25 +85,25 @@ namespace WalletWasabi.Blockchain.BlockFilters
 			{
 				try
 				{
-					if (Interlocked.Read(ref _workerCount) >= 2)
+					if (Interlocked.Read(ref _runner) >= 2)
 					{
 						return;
 					}
 
-					Interlocked.Increment(ref _workerCount);
-					while (Interlocked.Read(ref _workerCount) != 1)
+					Interlocked.Increment(ref _runner);
+					while (Interlocked.Read(ref _runner) != 1)
 					{
 						await Task.Delay(100);
 					}
 
-					if (Interlocked.Read(ref _serviceStatus) >= 2)
+					if (Interlocked.Read(ref _running) >= 2)
 					{
 						return;
 					}
 
 					try
 					{
-						Interlocked.Exchange(ref _serviceStatus, Running);
+						Interlocked.Exchange(ref _running, 1);
 
 						SyncInfo syncInfo = null;
 						while (IsRunning)
@@ -156,7 +151,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 									{
 										// Mark the process notstarted, so it can be started again
 										// and finally block can mark it as stopped.
-										Interlocked.Exchange(ref _serviceStatus, NotStarted);
+										Interlocked.Exchange(ref _running, 0);
 										return;
 									}
 									else
@@ -230,8 +225,8 @@ namespace WalletWasabi.Blockchain.BlockFilters
 					}
 					finally
 					{
-						Interlocked.CompareExchange(ref _serviceStatus, Stopped, Stopping); // If IsStopping, make it stopped.
-						Interlocked.Decrement(ref _workerCount);
+						Interlocked.CompareExchange(ref _running, 3, 2); // If IsStopping, make it stopped.
+						Interlocked.Decrement(ref _runner);
 					}
 				}
 				catch (Exception ex)
@@ -352,9 +347,9 @@ namespace WalletWasabi.Blockchain.BlockFilters
 				BlockNotifier.OnBlock -= BlockNotifier_OnBlock;
 			}
 
-			Interlocked.CompareExchange(ref _serviceStatus, Stopping, Running); // If running, make it stopping.
+			Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
 
-			while (Interlocked.CompareExchange(ref _serviceStatus, Stopped, NotStarted) == 2)
+			while (Interlocked.CompareExchange(ref _running, 3, 0) == 2)
 			{
 				await Task.Delay(50);
 			}
