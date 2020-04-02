@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
@@ -70,7 +71,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => SelectedWallet = x);
 
-			LoadCommand = ReactiveCommand.CreateFromTask(LoadWalletAsync, this.WhenAnyValue(x => x.SelectedWallet, x => x?.WalletState).Select(x => x == WalletState.Uninitialized));
+			LoadCommand = ReactiveCommand.Create(()=>
+			{
+				RxApp.MainThreadScheduler.Schedule(async () =>
+				{
+					await LoadWalletAsync();
+				});
+			}, this.WhenAnyValue(x => x.SelectedWallet, x => x?.WalletState).Select(x => x == WalletState.Uninitialized));
 			TestPasswordCommand = ReactiveCommand.Create(LoadKeyManager, this.WhenAnyValue(x => x.SelectedWallet).Select(x => x is { }));
 			OpenFolderCommand = ReactiveCommand.Create(OpenWalletsFolder);
 
@@ -205,7 +212,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 					Owner.OnClose();
 				}
 			}
-			catch (TaskCanceledException ex) when (ex is TaskCanceledException || ex is OperationCanceledException)
+			catch (OperationCanceledException ex)
 			{
 				Logger.LogTrace(ex);
 			}
@@ -217,6 +224,18 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 		}
 
 		public void OpenWalletsFolder() => IoHelpers.OpenFolderInFileExplorer(Global.WalletManager.WalletDirectories.WalletsDir);
+
+		public void SelectWallet(string walletName)
+		{
+			var keyman = Wallets.FirstOrDefault(w => w.Wallet.WalletName == walletName)?.Wallet.KeyManager;
+			SelectWallet(keyman);
+		}
+
+		public void SelectWallet(KeyManager keymanager)
+		{
+			var wallet = Wallets.FirstOrDefault(w => w.Wallet.KeyManager == keymanager);
+			SelectedWallet = wallet;
+		}
 
 		#region IDisposable Support
 

@@ -7,26 +7,27 @@
 5. Go trough all issues and pick the [important ones (adjust date!)](https://github.com/zkSNACKs/WalletWasabi/issues?utf8=%E2%9C%93&q=is%3Aissue+closed%3A%3E%3D2019-07-07+sort%3Aupdated-asc+) and add to Release Notes or to Final Tests if required.
 6. At the end there will be a Final Test document and a Release Notes document.
 
-# 2. Pre-releasing
+# 2. Release candidate
 
-1. Go to https://github.com/zkSNACKs/WalletWasabi/releases and press Draft a new release.
-2. Tag version: add `pre` postfix e.g: v1.1.7pre.
-3. Set release title e.g: `Wasabi v1.1.7pre: Community Edition - PRERELEASE`.
-4. Set description use [previous releases](https://github.com/zkSNACKs/WalletWasabi/releases/tag/1.1.7pre) as a template.
-5. Add the Release Notes.
+1. Go to https://github.com/molnard/WalletWasabi/releases and press Draft a new release.
+2. Tag version: add `rc1` postfix e.g: v1.1.7rc1.
+3. Set release title e.g: `Wasabi v1.1.7: <Release Title> - Release candidate`.
+4. Set description use [previous releases](https://github.com/molnard/WalletWasabi/releases) as a template.
+5. Add the Release Notes, the same as it will be at the final release (can be typofixed).
 6. Make sure local .NET Core version is up to date.
 7. Update the onion seed list to the most reliable ones: in packager run `dotnet run -- --reduceonions`.
-8. Run tests.
-9. Run packager in publish mode.
-10. Create `.msi`.
-11. Run packager in sign mode. (Set back to publish mode.).
-12. Test asc file for `.msi`.
-12. Final `.msi` test on own computer.
-13. Upload the files to the pre-release.
-14. Check `This is a pre-release` and press Publish Release.
-15. Add the pre-release link to the Final Test issue.
-16. Share the Final Test issue link with developers an test it for 24 hour.
-17. Every PR which contained by the release must be at least 24 hours old.
+8. Set the version number in the software but only increase the rev number by one to avoid version collision like: 1.1.6.4.
+9. Run tests.
+10. Run packager in publish mode.
+11. Create `.msi`.
+12. Run packager in sign mode. (Set back to publish mode.).
+13. Test asc file for `.msi`.
+14. Final `.msi` test on own computer.
+15. Upload the files to the pre-release.
+16. Check `This is a pre-release` and press Publish Release.
+17. Add the pre-release link to the Final Test issue.
+18. Share the Final Test issue link with developers an test it for 24 hour.
+19. Every PR which contained by the release must be at least 24 hours old.
 
 # 3. Packaging
 

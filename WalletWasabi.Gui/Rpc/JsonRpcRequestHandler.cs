@@ -23,7 +23,7 @@ namespace WalletWasabi.Gui.Rpc
 			Converters = new JsonConverter[]
 			{
 				new Uint256JsonConverter(),
-				new OutPointJsonConverter(),
+				new OutPointAsTxoRefJsonConverter(),
 				new BitcoinAddressJsonConverter()
 			}
 		};
