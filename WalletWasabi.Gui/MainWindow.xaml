@@ -10,18 +10,19 @@
                   xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
                   xmlns:id="clr-namespace:Dock.Avalonia;assembly=Dock.Avalonia"
                   xmlns:idc="clr-namespace:Dock.Avalonia.Controls;assembly=Dock.Avalonia"
-                  xmlns:beh="clr-namespace:AvalonStudio.Utils.Behaviors;assembly=AvalonStudio.Utils"
+                  xmlns:beh="clr-namespace:WalletWasabi.Gui.Behaviors"
                   x:Class="WalletWasabi.Gui.MainWindow"
                   Icon="avares://WalletWasabi.Gui/Assets/WasabiLogo256.png"
                   Title="{Binding Title}"
                   MinWidth="1100" MinHeight="530"
                   FontFamily="{DynamicResource UiFont}" FontSize="14"
-                  Foreground="{DynamicResource ThemeForegroundBrush}"
-                  Width="{Binding Width}" Height="{Binding Height}"
+                  Foreground="{DynamicResource ThemeForegroundBrush}"                  
                   WindowState="{Binding WindowState}"
                   UseLayoutRounding="True"
-                  WindowStartupLocation="CenterScreen"
                   RenderOptions.BitmapInterpolationMode="HighQuality">
+  <i:Interaction.Behaviors>
+    <beh:BindWindowSizeBehavior Width="{Binding Width}" Height="{Binding Height}" />
+  </i:Interaction.Behaviors>
   <cont:MetroWindow.TitleBarContent>
     <StackPanel Orientation="Horizontal" IsVisible="{Binding MenuVisible}">
       <menu:MainMenuView DataContext="{Binding Shell.MainMenu}" Margin="4 0 0 0" Foreground="{DynamicResource ThemeForegroundBrush}" VerticalAlignment="Stretch" FontSize="13" />      
