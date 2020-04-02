@@ -19,7 +19,6 @@
                   Foreground="{DynamicResource ThemeForegroundBrush}"                  
                   WindowState="{Binding WindowState}"
                   UseLayoutRounding="True"
-                  WindowStartupLocation="CenterScreen"
                   RenderOptions.BitmapInterpolationMode="HighQuality">
   <i:Interaction.Behaviors>
     <beh:BindWindowSizeBehavior Width="{Binding Width}" Height="{Binding Height}" />
