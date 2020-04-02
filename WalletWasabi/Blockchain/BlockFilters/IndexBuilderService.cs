@@ -73,7 +73,6 @@ namespace WalletWasabi.Blockchain.BlockFilters
 		private AsyncLock IndexLock { get; }
 		public uint StartingHeight { get; }
 		public bool IsRunning => Interlocked.Read(ref _serviceStatus) == Running;
-		public bool IsStopping => Interlocked.Read(ref _serviceStatus) >= Stopping;
 
 		public static GolombRiceFilter CreateDummyEmptyFilter(uint256 blockHash)
 		{
@@ -102,7 +101,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 						await Task.Delay(100);
 					}
 
-					if (IsStopping)
+					if (Interlocked.Read(ref _serviceStatus) >= 2)
 					{
 						return;
 					}
