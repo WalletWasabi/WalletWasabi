@@ -81,14 +81,9 @@ namespace WalletWasabi.TorSocks5
 						var torPath = "";
 						var geoIpPath = "";
 						var geoIp6Path = "";
-						var fullBaseDirectory = Path.GetFullPath(AppContext.BaseDirectory);
+						var fullBaseDirectory = EnvironmentHelpers.GetFullBaseDirectory();
 						if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						{
-							if (!fullBaseDirectory.StartsWith('/'))
-							{
-								fullBaseDirectory = fullBaseDirectory.Insert(0, "/");
-							}
-
 							torPath = $@"{torDir}/Tor/tor";
 							geoIpPath = $@"{torDir}/Data/Tor/geoip";
 							geoIp6Path = $@"{torDir}/Data/Tor/geoip6";
