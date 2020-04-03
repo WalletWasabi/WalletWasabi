@@ -172,7 +172,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 					IsLocked = false;
 					await RunOpenAnimationAsync();
 				}
-				else
+				else if (IsLocked)
 				{
 					await RunCloseAnimationAsync();
 				}
