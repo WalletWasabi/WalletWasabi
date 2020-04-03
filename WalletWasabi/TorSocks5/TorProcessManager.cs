@@ -98,7 +98,7 @@ namespace WalletWasabi.TorSocks5
 						if (!File.Exists(torPath))
 						{
 							Logger.LogInfo($"Tor instance NOT found at {torPath}. Attempting to acquire it...");
-							InstallTor(fullBaseDirectory, torDir);
+							InstallTor(torDir);
 						}
 						else if (!IoHelpers.CheckExpectedHash(torPath, Path.Combine(fullBaseDirectory, "TorDaemons")))
 						{
@@ -111,7 +111,7 @@ namespace WalletWasabi.TorSocks5
 							}
 							Directory.Move(torDir, backupTorDir);
 
-							InstallTor(fullBaseDirectory, torDir);
+							InstallTor(torDir);
 						}
 						else
 						{
@@ -167,9 +167,9 @@ namespace WalletWasabi.TorSocks5
 			}).Start();
 		}
 
-		private static void InstallTor(string fullBaseDirectory, string torDir)
+		private static void InstallTor(string torDir)
 		{
-			string torDaemonsDir = Path.Combine(fullBaseDirectory, "TorDaemons");
+			string torDaemonsDir = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "TorDaemons");
 
 			string dataZip = Path.Combine(torDaemonsDir, "data-folder.zip");
 			IoHelpers.BetterExtractZipToDirectoryAsync(dataZip, torDir).GetAwaiter().GetResult();
