@@ -64,7 +64,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				});
 
 			Observable
-				.FromEventPattern<Wallet>(WalletManager, nameof(WalletManager.WalletAdded))				
+				.FromEventPattern<Wallet>(WalletManager, nameof(WalletManager.WalletAdded))
 				.Select(x => x.EventArgs)
 				.Where(x => x is { })
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -79,7 +79,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			CollapseAllCommand = ReactiveCommand.Create(CollapseWallets, this.WhenAnyValue(x => x.AnyWalletStarted));
 
-			LurkingWifeModeCommand = ReactiveCommand.Create(ToggleLurkingWifeMode, this.WhenAnyValue(x => x.AnyWalletStarted));
+			LurkingWifeModeCommand = ReactiveCommand.Create(ToggleLurkingWifeMode);
 
 			_isLurkingWifeMode = UiConfig
 				.WhenAnyValue(x => x.LurkingWifeMode)
