@@ -429,7 +429,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 		private bool TryFindWalletByExtPubKey(ExtPubKey extPubKey, out string walletName)
 		{
 			walletName = WalletManager.WalletDirectories
-				.EnumerateWalletFiles(includeBackupDir: true)
+				.EnumerateWalletFiles(includeBackupDir: false)
 				.FirstOrDefault(fi => KeyManager.TryGetExtPubKeyFromFile(fi.FullName, out ExtPubKey epk) && epk == extPubKey)
 				?.Name;
 
