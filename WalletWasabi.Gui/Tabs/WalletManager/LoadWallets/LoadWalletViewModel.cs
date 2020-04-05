@@ -71,13 +71,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => SelectedWallet = x);
 
-			LoadCommand = ReactiveCommand.Create(()=>
-			{
-				RxApp.MainThreadScheduler.Schedule(async () =>
-				{
-					await LoadWalletAsync();
-				});
-			}, this.WhenAnyValue(x => x.SelectedWallet, x => x?.WalletState).Select(x => x == WalletState.Uninitialized));
+			LoadCommand = ReactiveCommand.Create(() =>
+				RxApp.MainThreadScheduler.Schedule(async () => await LoadWalletAsync()),
+				this.WhenAnyValue(x => x.SelectedWallet, x => x?.WalletState).Select(x => x == WalletState.Uninitialized));
 			TestPasswordCommand = ReactiveCommand.Create(LoadKeyManager, this.WhenAnyValue(x => x.SelectedWallet).Select(x => x is { }));
 			OpenFolderCommand = ReactiveCommand.Create(OpenWalletsFolder);
 
@@ -117,7 +113,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 		}
 
 		public SourceList<WalletViewModelBase> RootList { get; private set; }
-		public ReactiveCommand<Unit, Unit> LoadCommand { get; }
+		public ReactiveCommand<Unit, IDisposable> LoadCommand { get; }
 		public ReactiveCommand<Unit, KeyManager> TestPasswordCommand { get; }
 		public ReactiveCommand<Unit, Unit> OpenFolderCommand { get; }
 		private WalletManagerViewModel Owner { get; }
