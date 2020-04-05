@@ -45,7 +45,7 @@ namespace WalletWasabi.Gui.ViewModels
 			var uiConfig = global.UiConfig;
 
 			Width = uiConfig.Width;
-			Height = uiConfig.Height;			
+			Height = uiConfig.Height;
 
 			WindowState = uiConfig.WindowState;
 
@@ -94,8 +94,8 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public bool MenuVisible
 		{
-			get { return _menuVisible; }
-			set { this.RaiseAndSetIfChanged(ref _menuVisible, value); }
+			get => _menuVisible;
+			set => this.RaiseAndSetIfChanged(ref _menuVisible, value);
 		}
 
 		public void PushLockScreen(LockScreenViewModelBase lockScreen)
