@@ -11,14 +11,6 @@ namespace WalletWasabi.Gui.CommandLine
 {
 	internal class PasswordFinderCommand : Command
 	{
-		public string WalletName { get; set; }
-		public string EncryptedSecret { get; set; }
-		public WalletManager WalletManager { get; }
-		public string Language { get; set; }
-		public bool UseNumbers { get; set; }
-		public bool UseSymbols { get; set; }
-		public bool ShowHelp { get; set; }
-
 		public PasswordFinderCommand(WalletManager walletManager)
 			: base("findpassword", "Try to find typos in provided password.")
 		{
@@ -40,6 +32,14 @@ namespace WalletWasabi.Gui.CommandLine
 				{ "h|help", "Show Help", v => ShowHelp = true }
 			};
 		}
+
+		public string WalletName { get; set; }
+		public string EncryptedSecret { get; set; }
+		public WalletManager WalletManager { get; }
+		public string Language { get; set; }
+		public bool UseNumbers { get; set; }
+		public bool UseSymbols { get; set; }
+		public bool ShowHelp { get; set; }
 
 		public override Task<int> InvokeAsync(IEnumerable<string> args)
 		{
