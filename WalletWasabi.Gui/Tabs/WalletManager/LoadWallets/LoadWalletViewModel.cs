@@ -71,7 +71,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => SelectedWallet = x);
 
-			LoadCommand = ReactiveCommand.Create(()=>
+			LoadCommand = ReactiveCommand.Create(() =>
 			{
 				RxApp.MainThreadScheduler.Schedule(async () =>
 				{

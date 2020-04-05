@@ -64,7 +64,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				});
 
 			Observable
-				.FromEventPattern<Wallet>(WalletManager, nameof(WalletManager.WalletAdded))				
+				.FromEventPattern<Wallet>(WalletManager, nameof(WalletManager.WalletAdded))
 				.Select(x => x.EventArgs)
 				.Where(x => x is { })
 				.ObserveOn(RxApp.MainThreadScheduler)

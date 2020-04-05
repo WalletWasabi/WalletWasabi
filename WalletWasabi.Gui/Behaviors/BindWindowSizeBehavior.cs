@@ -72,7 +72,7 @@ namespace WalletWasabi.Gui.Behaviors
 
 			this.GetObservable(HeightProperty)
 				.Where(x => !double.IsNaN(x))
-				.Subscribe(x => 
+				.Subscribe(x =>
 				{
 					if (AssociatedObject.WindowState == WindowState.Normal)
 					{

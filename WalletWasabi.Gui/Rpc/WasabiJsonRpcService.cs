@@ -96,7 +96,7 @@ namespace WalletWasabi.Gui.Rpc
 
 			return new
 			{
-				torStatus = sync.TorStatus switch 
+				torStatus = sync.TorStatus switch
 				{
 					TorStatus.NotRunning => "Not running",
 					TorStatus.Running => "Running",
@@ -230,7 +230,7 @@ namespace WalletWasabi.Gui.Rpc
 				ActiveWallet = wallet;
 				Global.WalletManager.StartWalletAsync(wallet).ConfigureAwait(false);
 			}
-			catch(InvalidOperationException) // wallet not found
+			catch (InvalidOperationException) // wallet not found
 			{
 				throw new Exception($"Wallet '{walletName}' not found.");
 			}
