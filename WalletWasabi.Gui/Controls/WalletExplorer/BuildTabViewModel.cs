@@ -13,12 +13,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class BuildTabViewModel : SendControlViewModel
 	{
-		public override string DoButtonText => "Build Transaction";
-		public override string DoingButtonText => "Building Transaction...";
-
 		public BuildTabViewModel(Wallet wallet) : base(wallet, "Build Transaction")
 		{
 		}
+
+		public override string DoButtonText => "Build Transaction";
+		public override string DoingButtonText => "Building Transaction...";
 
 		protected override Task DoAfterBuildTransaction(BuildTransactionResult result)
 		{

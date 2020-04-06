@@ -199,6 +199,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(ex => Logger.LogError(ex));
 		}
 
+		public event EventHandler<SmartCoin> DequeueCoinsPressed;
+
+		public event EventHandler CoinListShown;
+
+		public event EventHandler SelectionChanged;
+
 		private CompositeDisposable Disposables { get; set; }
 
 		public SourceList<CoinViewModel> RootList { get; private set; }
@@ -212,12 +218,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> SelectNonPrivateCheckBoxCommand { get; }
 		public ReactiveCommand<Unit, Unit> SortCommand { get; }
 		public ReactiveCommand<Unit, Unit> InitList { get; }
-
-		public event EventHandler<SmartCoin> DequeueCoinsPressed;
-
-		public event EventHandler CoinListShown;
-
-		public event EventHandler SelectionChanged;
 
 		public ReadOnlyObservableCollection<CoinViewModel> Coins => _coinViewModels;
 
@@ -255,11 +255,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _statusSortDirection, value);
 		}
 
-		public void PressDequeue(SmartCoin coin)
-		{
-			DequeueCoinsPressed?.Invoke(this, coin);
-		}
-
 		public SortOrder AmountSortDirection
 		{
 			get => _amountSortDirection;
@@ -294,35 +289,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _labelExposeCommonOwnershipWarning;
 			set => this.RaiseAndSetIfChanged(ref _labelExposeCommonOwnershipWarning, value);
-		}
-
-		private void RefreshOrdering()
-		{
-			var sortExpression = new SortExpressionComparer<CoinViewModel>();
-			if (AmountSortDirection != SortOrder.None)
-			{
-				MyComparer = AmountSortDirection == SortOrder.Increasing
-					? sortExpression.ThenByAscending(cvm => cvm.Amount)
-					: sortExpression.ThenByDescending(cvm => cvm.Amount);
-			}
-			else if (PrivacySortDirection != SortOrder.None)
-			{
-				MyComparer = PrivacySortDirection == SortOrder.Increasing
-					? sortExpression.ThenByAscending(cvm => cvm.AnonymitySet)
-					: sortExpression.ThenByDescending(cvm => cvm.AnonymitySet);
-			}
-			else if (ClustersSortDirection != SortOrder.None)
-			{
-				MyComparer = ClustersSortDirection == SortOrder.Increasing
-					? sortExpression.ThenByAscending(cvm => cvm.Clusters)
-					: sortExpression.ThenByDescending(cvm => cvm.Clusters);
-			}
-			else if (StatusSortDirection != SortOrder.None)
-			{
-				MyComparer = StatusSortDirection == SortOrder.Increasing
-					? sortExpression.ThenByAscending(cvm => cvm.Status)
-					: sortExpression.ThenByDescending(cvm => cvm.Status);
-			}
 		}
 
 		public bool? SelectNonPrivateCheckBoxState
@@ -365,6 +331,40 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _isCoinListLoading;
 			set => this.RaiseAndSetIfChanged(ref _isCoinListLoading, value);
+		}
+
+		public void PressDequeue(SmartCoin coin)
+		{
+			DequeueCoinsPressed?.Invoke(this, coin);
+		}
+
+		private void RefreshOrdering()
+		{
+			var sortExpression = new SortExpressionComparer<CoinViewModel>();
+			if (AmountSortDirection != SortOrder.None)
+			{
+				MyComparer = AmountSortDirection == SortOrder.Increasing
+					? sortExpression.ThenByAscending(cvm => cvm.Amount)
+					: sortExpression.ThenByDescending(cvm => cvm.Amount);
+			}
+			else if (PrivacySortDirection != SortOrder.None)
+			{
+				MyComparer = PrivacySortDirection == SortOrder.Increasing
+					? sortExpression.ThenByAscending(cvm => cvm.AnonymitySet)
+					: sortExpression.ThenByDescending(cvm => cvm.AnonymitySet);
+			}
+			else if (ClustersSortDirection != SortOrder.None)
+			{
+				MyComparer = ClustersSortDirection == SortOrder.Increasing
+					? sortExpression.ThenByAscending(cvm => cvm.Clusters)
+					: sortExpression.ThenByDescending(cvm => cvm.Clusters);
+			}
+			else if (StatusSortDirection != SortOrder.None)
+			{
+				MyComparer = StatusSortDirection == SortOrder.Increasing
+					? sortExpression.ThenByAscending(cvm => cvm.Status)
+					: sortExpression.ThenByDescending(cvm => cvm.Status);
+			}
 		}
 
 		private bool? GetCheckBoxesSelectedState(CoinViewModel[] allCoins, Func<CoinViewModel, bool> coinFilterPredicate)
