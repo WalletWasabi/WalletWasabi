@@ -7,16 +7,16 @@ namespace WalletWasabi.Wallets
 	/// <summary>
 	/// CachedBlocksProvider is a blocks provider that keep the blocks on a repository to satify future requests.
 	/// </summary>
-	public class CachedBlocksProvider : IBlocksProvider
+	public class CachedBlockProvider : IBlockProvider
 	{
-		public CachedBlocksProvider(IBlocksProvider blocksSourceProvider, IRepository<uint256, Block> blocksRepository)
+		public CachedBlockProvider(IBlockProvider blockSourceProvider, IRepository<uint256, Block> blockRepository)
 		{
-			BlocksRepository = blocksRepository;
-			BlocksSourceProvider = blocksSourceProvider;
+			BlockRepository = blockRepository;
+			BlockSourceProvider = blockSourceProvider;
 		}
 
-		public IRepository<uint256, Block> BlocksRepository { get; } 
-		public IBlocksProvider BlocksSourceProvider { get; }
+		public IRepository<uint256, Block> BlockRepository { get; } 
+		public IBlockProvider BlockSourceProvider { get; }
 
 		/// <summary>
 		/// Gets a bitcoin block. In case the requested block is not available in the repository it is returned 
@@ -28,11 +28,11 @@ namespace WalletWasabi.Wallets
 		/// <returns>The requested bitcoin block.</returns>
 		public async Task<Block> GetBlockAsync(uint256 hash, CancellationToken cancellationToken)
 		{
-			Block block = await BlocksRepository.GetAsync(hash, cancellationToken);
+			Block block = await BlockRepository.GetAsync(hash, cancellationToken);
 			if (block is null)
 			{
-				block = await BlocksSourceProvider.GetBlockAsync(hash, cancellationToken);
-				await BlocksRepository.SaveAsync(block, cancellationToken);
+				block = await BlockSourceProvider.GetBlockAsync(hash, cancellationToken);
+				await BlockRepository.SaveAsync(block, cancellationToken);
 			}
 			return block;
 		}
@@ -45,7 +45,7 @@ namespace WalletWasabi.Wallets
 		/// <returns>The requested bitcoin block.</returns>
 		public Task InvalidateAsync(uint256 hash, CancellationToken cancellationToken)
 		{
-			return BlocksRepository.RemoveAsync(hash, cancellationToken);
+			return BlockRepository.RemoveAsync(hash, cancellationToken);
 		}
 	}
 }

@@ -1,4 +1,4 @@
-using NBitcoin;
+﻿using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using System;
@@ -18,11 +18,11 @@ namespace WalletWasabi.Wallets
 	/// P2pBlocksProvider is a blocks provider that provides blocks 
 	/// from bitcoin nodes using the P2P bitcoin protocol.
 	/// </summary>
-	public class P2pBlocksProvider : IBlocksProvider
+	public class P2pBlockProvider : IBlockProvider
 	{
 		private Node _localBitcoinCoreNode = null;
 
-		public P2pBlocksProvider(NodesGroup nodes, CoreNode coreNode, WasabiSynchronizer syncer, ServiceConfiguration serviceConfiguration, Network network)
+		public P2pBlockProvider(NodesGroup nodes, CoreNode coreNode, WasabiSynchronizer syncer, ServiceConfiguration serviceConfiguration, Network network)
 		{
 			Nodes = nodes;
 			CoreNode = coreNode;
