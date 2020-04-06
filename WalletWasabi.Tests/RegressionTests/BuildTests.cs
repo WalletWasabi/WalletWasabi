@@ -2,6 +2,7 @@ using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.RPC;
 using System;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -60,7 +61,12 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			// 5. Create wallet service.
 			var workDir = Common.GetWorkDir();
-			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer);
+			var blocksFolderPath = Path.Combine(workDir, "Blocks", network.ToString());
+			CachedBlockProvider blockProvider = new CachedBlockProvider(
+				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network), 
+				new FileSystemBlockRepository(blocksFolderPath, network));
+
+			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer, blockProvider);
 			wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;
 
 			var scp = new Key().ScriptPubKey;
@@ -219,8 +225,12 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			// 5. Create wallet service.
 			var workDir = Common.GetWorkDir();
+			var blocksFolderPath = Path.Combine(workDir, "Blocks", network.ToString());
+			CachedBlockProvider blockProvider = new CachedBlockProvider(
+				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network), 
+				new FileSystemBlockRepository(blocksFolderPath, network));
 			var walletManager = new WalletManager(network, new WalletDirectories(workDir));
-			walletManager.RegisterServices(bitcoinStore, synchronizer, nodes, serviceConfiguration, synchronizer, null);
+			walletManager.RegisterServices(bitcoinStore, synchronizer, nodes, serviceConfiguration, synchronizer, blockProvider);
 
 			var baseTip = await rpc.GetBestBlockHashAsync();
 

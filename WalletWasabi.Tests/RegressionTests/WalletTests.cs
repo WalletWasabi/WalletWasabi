@@ -297,7 +297,13 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			// 4. Create wallet service.
 			var workDir = Common.GetWorkDir();
-			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer);
+			var blocksFolderPath = Path.Combine(workDir, "Blocks", network.ToString());
+
+			CachedBlockProvider blockProvider = new CachedBlockProvider(
+				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network), 
+				new FileSystemBlockRepository(blocksFolderPath, network));
+
+			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer, blockProvider);
 			wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;
 
 			// Get some money, make it confirm.
@@ -320,7 +326,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				{
 					await wallet.StartAsync(cts.Token); // Initialize wallet service.
 				}
-				Assert.Equal(1, await wallet.CountBlocksAsync());
+				Assert.Equal(1, await blockProvider.BlockRepository.CountAsync(CancellationToken.None));
 
 				Assert.Single(wallet.Coins);
 				var firstCoin = wallet.Coins.Single();
@@ -346,7 +352,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				await rpc.GenerateAsync(1);
 
 				await Common.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 2);
-				Assert.Equal(3, await wallet.CountBlocksAsync());
+				Assert.Equal(3, await blockProvider.BlockRepository.CountAsync(CancellationToken.None));
 
 				Assert.Equal(3, wallet.Coins.Count());
 				firstCoin = wallet.Coins.OrderBy(x => x.Height).First();
@@ -404,7 +410,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				Interlocked.Exchange(ref Common.FiltersProcessedByWalletCount, 0);
 				await rpc.GenerateAsync(3);
 				await Common.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 3);
-				Assert.Equal(4, await wallet.CountBlocksAsync());
+				Assert.Equal(4, await blockProvider.BlockRepository.CountAsync(CancellationToken.None));
 
 				Assert.Equal(4, wallet.Coins.Count());
 				Assert.Empty(wallet.Coins.Where(x => x.TransactionId == txId4));
