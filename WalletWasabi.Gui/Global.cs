@@ -283,7 +283,6 @@ namespace WalletWasabi.Gui
 					RegTestMempoolServingNode = null;
 				}
 
-				Nodes.MaximumNodeConnection = 16;
 				Nodes.Connect();
 				Logger.LogInfo("Start connecting to nodes...");
 
