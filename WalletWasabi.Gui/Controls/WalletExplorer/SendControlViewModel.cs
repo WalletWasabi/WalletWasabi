@@ -153,7 +153,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				var amount = AmountText;
 				if (IsMax)
 				{
-					SetAmountIfMax();
+					SetFeesAndTexts();
 				}
 				else
 				{
@@ -212,7 +212,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					if (IsMax)
 					{
-						SetAmountIfMax();
+						SetFeesAndTexts();
 
 						LabelToolTip = "Spending whole coins does not generate change, thus labeling is unnecessary.";
 					}
