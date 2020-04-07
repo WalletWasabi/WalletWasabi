@@ -366,7 +366,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 							if (changeAmount > Money.Zero) // If the coordinator fee would make change amount to be negative or zero then no need to pay it.
 							{
 								Money minimumOutputAmount = Money.Coins(0.0001m); // If the change would be less than about $1 then add it to the coordinator.
-								Money somePercentOfDenomination = newDenomination.Percentage(0.7m); // If the change is less than about 0.7% of the newDenomination then add it to the coordinator fee.
+								Money somePercentOfDenomination = newDenomination.Percentage(0.3m); // If the change is less than about 0.3% of the newDenomination then add it to the coordinator fee.
 								Money minimumChangeAmount = Math.Max(minimumOutputAmount, somePercentOfDenomination);
 								if (changeAmount < minimumChangeAmount)
 								{
