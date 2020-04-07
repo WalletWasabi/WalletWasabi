@@ -11,8 +11,6 @@ namespace WalletWasabi.Bases
 {
 	public abstract class PeriodicRunner : BackgroundService
 	{
-		private volatile bool _disposedValue = false;
-
 		protected PeriodicRunner(TimeSpan period)
 		{
 			TriggeringCts = new CancellationTokenSource();
@@ -124,22 +122,11 @@ namespace WalletWasabi.Bases
 			}
 		}
 
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					TriggeringCts?.Dispose();
-					TriggeringCts = null;
-				}
-
-				_disposedValue = true;
-			}
-		}
 		public override void Dispose()
 		{
-			Dispose(true);
+			TriggeringCts?.Dispose();
+			TriggeringCts = null;
+
 			base.Dispose();
 		}
 	}

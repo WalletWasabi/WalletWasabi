@@ -157,7 +157,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 									else
 									{
 										// Knots is catching up give it a 10 seconds
-										await Task.Delay(TimeSpan.FromSeconds(10));
+										await Task.Delay(10000);
 										continue;
 									}
 								}
