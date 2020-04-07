@@ -15,13 +15,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class SendTabViewModel : SendControlViewModel
 	{
-		public override string DoButtonText => "Send Transaction";
-		public override string DoingButtonText => "Sending Transaction...";
-
 		public SendTabViewModel(Wallet wallet) : base(wallet, "Send")
 		{
 			Wallet = wallet;
 		}
+
+		public override string DoButtonText => "Send Transaction";
+		public override string DoingButtonText => "Sending Transaction...";
 
 		private Wallet Wallet { get; }
 

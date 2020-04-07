@@ -96,17 +96,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public bool IsHardwareWallet => Wallet.KeyManager.IsHardwareWallet;
 
-		public override void OnOpen(CompositeDisposable disposables)
-		{
-			base.OnOpen(disposables);
-
-			Observable
-				.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => InitializeAddresses())
-				.DisposeWith(disposables);
-		}
-
 		public ObservableCollection<AddressViewModel> Addresses
 		{
 			get => _addresses;
@@ -117,6 +106,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _selectedAddress;
 			set => this.RaiseAndSetIfChanged(ref _selectedAddress, value);
+		}
+
+		public override void OnOpen(CompositeDisposable disposables)
+		{
+			base.OnOpen(disposables);
+
+			Observable
+				.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => InitializeAddresses())
+				.DisposeWith(disposables);
 		}
 
 		public void InitializeAddresses()
