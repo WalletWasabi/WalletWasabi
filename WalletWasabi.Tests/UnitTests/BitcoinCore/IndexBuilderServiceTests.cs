@@ -19,8 +19,10 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		[Fact]
 		public async Task UnsynchronizedBitcoinNodeAsync()
 		{
-			var rpc = new MockRpcClient{
-				OnGetBlockchainInfoAsync = () => Task.FromResult(new BlockchainInfo{
+			var rpc = new MockRpcClient
+			{
+				OnGetBlockchainInfoAsync = () => Task.FromResult(new BlockchainInfo
+				{
 					Headers = 0,
 					Blocks = 0,
 					InitialBlockDownload = false,
@@ -32,18 +34,21 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			indexer.Synchronize();
 
 			await Task.Delay(TimeSpan.FromSeconds(1));
-			//Assert.False(indexer.IsRunning);     // <------------ ERROR: it should have stopped but there is a bug for RegTest
-			Assert.Throws<ArgumentOutOfRangeException>(() => indexer.GetLastFilter());  //There are no filters
+			// Assert.False(indexer.IsRunning);     // <------------ ERROR: it should have stopped but there is a bug for RegTest
+			Assert.Throws<ArgumentOutOfRangeException>(() => indexer.GetLastFilter());  // There are no filters
 		}
 
 		[Fact]
 		public async Task StalledBitcoinNodeAsync()
 		{
 			var called = 0;
-			var rpc = new MockRpcClient{
-				OnGetBlockchainInfoAsync = () => {
+			var rpc = new MockRpcClient
+			{
+				OnGetBlockchainInfoAsync = () => 
+				{
 					called++;
-					return Task.FromResult(new BlockchainInfo{
+					return Task.FromResult(new BlockchainInfo
+					{
 						Headers = 10_000,
 						Blocks = 0,
 						InitialBlockDownload = true
@@ -57,7 +62,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 
 			await Task.Delay(TimeSpan.FromSeconds(2));
 			Assert.True(indexer.IsRunning);  // It is still working
-			Assert.Throws<ArgumentOutOfRangeException>(() => indexer.GetLastFilter());  //There are no filters
+			Assert.Throws<ArgumentOutOfRangeException>(() => indexer.GetLastFilter());  // There are no filters
 			Assert.True(called > 1); 
 		}
 
@@ -66,10 +71,13 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		{
 			var called = 0;
 			var blockchain = GenerateBlockchain().Take(10).ToArray();
-			var rpc = new MockRpcClient{
-				OnGetBlockchainInfoAsync = () => {
+			var rpc = new MockRpcClient
+			{
+				OnGetBlockchainInfoAsync = () =>
+				{
 					called++;
-					return Task.FromResult(new BlockchainInfo{
+					return Task.FromResult(new BlockchainInfo
+					{
 						Headers = (ulong)blockchain.Length,
 						Blocks = (ulong)called - 1,
 						InitialBlockDownload = true
@@ -85,7 +93,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 
 			await Task.Delay(TimeSpan.FromSeconds(10));
 			Assert.True(indexer.IsRunning);  // It is still working
-			Assert.Throws<ArgumentOutOfRangeException>(() => indexer.GetLastFilter());  //There are no filters
+			Assert.Throws<ArgumentOutOfRangeException>(() => indexer.GetLastFilter());  // There are no filters
 			Assert.True(called > 1); 
 		}
 
@@ -93,10 +101,11 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		public async Task SynchronizedBitcoinNodeAsync()
 		{
 			var blockchain = GenerateBlockchain().Take(10).ToArray();
-			var rpc = new MockRpcClient{
+			var rpc = new MockRpcClient
+			{
 				OnGetBlockchainInfoAsync = () => Task.FromResult(new BlockchainInfo{
-					Headers = (ulong)blockchain.Length-1,
-					Blocks = (ulong)blockchain.Length-1,
+					Headers = (ulong)blockchain.Length - 1,
+					Blocks = (ulong)blockchain.Length - 1,
 					InitialBlockDownload = false
 				}),
 				OnGetBlockHashAsync = (height) => Task.FromResult(blockchain[height].Hash),
@@ -121,7 +130,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			var height = 0u;
 			var genesis = new VerboseBlockInfo(uint256.Zero, 1_000_000, BlockHashFromHeight(height), DateTimeOffset.UtcNow.AddYears(-1), height, Enumerable.Empty<VerboseTransactionInfo>());
 			var currentBlock = genesis;
-			while(true)
+			while (true)
 			{
 				yield return currentBlock;
 				height++;
@@ -131,8 +140,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 					BlockHashFromHeight(height),
 					currentBlock.BlockTime.AddMinutes(10),
 					height,
-					Enumerable.Empty<VerboseTransactionInfo>()
-					);
+					Enumerable.Empty<VerboseTransactionInfo>());
 			}
 		}
 

@@ -16,11 +16,8 @@ namespace WalletWasabi.Tests.UnitTests
 		public Func<Task<BlockchainInfo>> OnGetBlockchainInfoAsync { get; set; }
 		public Func<uint256, Task<VerboseBlockInfo>> OnGetVerboseBlockAsync { get; set; }
 
-
 		public Network Network { get; set; } = Network.RegTest;
-
 		public RPCCredentialString CredentialString => new RPCCredentialString();
-
 
 		public Task<uint256> GetBestBlockHashAsync()
 		{
