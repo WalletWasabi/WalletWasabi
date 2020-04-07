@@ -227,10 +227,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		public void BeforeActivation()
-		{
-		}
-
 		public void Activation()
 		{
 			IoC.Get<IShell>().MainPerspective.AddOrSelectTool(this);
