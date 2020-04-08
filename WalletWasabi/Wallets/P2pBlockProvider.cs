@@ -118,7 +118,7 @@ namespace WalletWasabi.Wallets
 								node.DisconnectAsync("Thank you!");
 							}
 
-							await NodeTimeoutsAsync(false);
+							await NodeTimeoutsAsync(false).ConfigureAwait(false);
 						}
 						catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
 						{
