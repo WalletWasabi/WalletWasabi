@@ -24,7 +24,7 @@ namespace System.Net
 			}
 			else
 			{
-				throw new FormatException($"Invalid endpoint: {me.ToString()}");
+				throw new FormatException($"Invalid endpoint: {me}");
 			}
 
 			if (port == 0)

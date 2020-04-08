@@ -18,8 +18,8 @@ namespace WalletWasabi.JsonConverters
 		{
 			JObject item = JObject.Load(reader);
 
-			var hash = item.Value<string>("TransactionId");
-			var n = item.Value<uint>("Index");
+			var hash = item.GetValue("TransactionId", StringComparison.OrdinalIgnoreCase).Value<string>();
+			var n = item.GetValue("Index", StringComparison.OrdinalIgnoreCase).Value<uint>();
 			return new OutPoint(uint256.Parse(hash), n);
 		}
 

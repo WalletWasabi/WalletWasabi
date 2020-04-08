@@ -24,8 +24,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class CoinViewModel : ViewModelBase, IDisposable
 	{
-		private CompositeDisposable Disposables { get; set; }
-
 		private bool _isSelected;
 		private SmartCoinStatus _status;
 		private ObservableAsPropertyHelper<bool> _coinJoinInProgress;
@@ -33,13 +31,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableAsPropertyHelper<bool> _confirmed;
 		private ObservableAsPropertyHelper<bool> _unavailable;
 		private ObservableAsPropertyHelper<string> _cluster;
-		private Wallet Wallet { get; }
-		public CoinListViewModel Owner { get; }
-		private Global Global { get; }
-		public bool CanBeDequeued => Owner.CanDequeueCoins;
-		public ReactiveCommand<Unit, Unit> DequeueCoin { get; }
-		public ReactiveCommand<Unit, Unit> OpenCoinInfo { get; }
-		public ReactiveCommand<Unit, Unit> CopyClusters { get; }
+
+		private volatile bool _disposedValue = false;
 
 		public CoinViewModel(Wallet wallet, CoinListViewModel owner, SmartCoin model)
 		{
@@ -133,6 +126,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 		}
+
+		private CompositeDisposable Disposables { get; set; }
+
+		private Wallet Wallet { get; }
+		public CoinListViewModel Owner { get; }
+		private Global Global { get; }
+		public bool CanBeDequeued => Owner.CanDequeueCoins;
+		public ReactiveCommand<Unit, Unit> DequeueCoin { get; }
+		public ReactiveCommand<Unit, Unit> OpenCoinInfo { get; }
+		public ReactiveCommand<Unit, Unit> CopyClusters { get; }
 
 		public SmartCoin Model { get; }
 
@@ -269,8 +272,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public CompositeDisposable GetDisposables() => Disposables;
 
 		#region IDisposable Support
-
-		private volatile bool _disposedValue = false;
 
 		protected virtual void Dispose(bool disposing)
 		{

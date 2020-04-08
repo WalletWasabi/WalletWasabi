@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Threading;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -8,23 +9,17 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Gui.Helpers;
-using WalletWasabi.Gui.Tabs.WalletManager;
+using WalletWasabi.Gui.Suggestions;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
-using WalletWasabi.Hwi;
-using WalletWasabi.Hwi.Exceptions;
-using Splat;
-using WalletWasabi.Gui.Suggestions;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class ReceiveTabViewModel : WasabiDocumentTabViewModel
+	public class ReceiveTabViewModel : WasabiDocumentTabViewModel, IWalletViewModel
 	{
 		private ObservableCollection<AddressViewModel> _addresses;
 		private AddressViewModel _selectedAddress;
@@ -35,7 +30,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global = Locator.Current.GetService<Global>();
 			Wallet = wallet;
 
-			LabelSuggestion = new SuggestLabelViewModel(Wallet);
+			LabelSuggestion = new SuggestLabelViewModel();
 			_addresses = new ObservableCollection<AddressViewModel>();
 			LabelSuggestion.Label = "";
 
@@ -71,7 +66,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			this.WhenAnyValue(x => x.SelectedAddress)
 				.Subscribe(async address =>
 				{
-					if (Global.UiConfig.Autocopy is false || address is null)
+					if (!Global.UiConfig.Autocopy || address is null)
 					{
 						return;
 					}
@@ -94,6 +89,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
 
 		private Wallet Wallet { get; }
+
+		Wallet IWalletViewModel.Wallet => Wallet;
 
 		public SuggestLabelViewModel LabelSuggestion { get; }
 

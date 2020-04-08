@@ -1,22 +1,11 @@
-using System;
-using System.Collections.Generic;
 using System.Text;
 using WalletWasabi.Hwi.Models;
 
-namespace WalletWasabi.Gui.Models
+namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 {
-	public class LoadWalletEntry
+	public class HardwareWalletViewModel
 	{
-		public string WalletName { get; set; } = null;
-		public HwiEnumerateEntry HardwareWalletInfo { get; set; } = null;
-
-		public LoadWalletEntry(string walletName)
-		{
-			WalletName = walletName;
-			HardwareWalletInfo = null;
-		}
-
-		public LoadWalletEntry(HwiEnumerateEntry hwi)
+		public HardwareWalletViewModel(HwiEnumerateEntry hwi)
 		{
 			string typeString = hwi.Model.ToString();
 			var walletNameBuilder = new StringBuilder(typeString);
@@ -45,6 +34,9 @@ namespace WalletWasabi.Gui.Models
 			WalletName = walletNameBuilder.ToString();
 			HardwareWalletInfo = hwi;
 		}
+
+		public string WalletName { get; }
+		public HwiEnumerateEntry HardwareWalletInfo { get; }
 
 		public override string ToString()
 		{

@@ -18,9 +18,6 @@ namespace WalletWasabi.Backend
 {
 	public class InitConfigStartupTask : IStartupTask
 	{
-		public WebsiteTorifier WebsiteTorifier { get; }
-		public Global Global { get; }
-		public IMemoryCache Cache { get; }
 
 		public InitConfigStartupTask(Global global, IMemoryCache cache, IWebHostEnvironment hostingEnvironment)
 		{
@@ -28,6 +25,10 @@ namespace WalletWasabi.Backend
 			Cache = cache;
 			WebsiteTorifier = new WebsiteTorifier(hostingEnvironment.WebRootPath);
 		}
+
+		public WebsiteTorifier WebsiteTorifier { get; }
+		public Global Global { get; }
+		public IMemoryCache Cache { get; }
 
 		public async Task ExecuteAsync(CancellationToken cancellationToken)
 		{

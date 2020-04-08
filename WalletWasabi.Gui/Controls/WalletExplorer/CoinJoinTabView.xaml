@@ -18,20 +18,8 @@
     <converters:TimeSpanStringConverter x:Key="TimeSpanStringConverter" />
     <converters:TimeSpanVisibilityConverter x:Key="TimeSpanVisibilityConverter" />
   </UserControl.Resources>
-  <Grid Margin="20">
-    <Grid.RowDefinitions>
-      <RowDefinition Height="8*" />
-      <RowDefinition Height="3*" MinHeight="200" />
-    </Grid.RowDefinitions>
-    <Grid Classes="content" Grid.Row="0" Margin="0 0 0 10">
-      <Grid.Styles>
-        <Style Selector="ListBoxItem">
-          <Setter Property="Padding" Value="0 0 5 0" />
-        </Style>
-      </Grid.Styles>
-      <local:CoinListView SelectAllPrivateVisible="False" DataContext="{Binding CoinsList}" />
-    </Grid>
-    <Grid Grid.Row="1">
+  <DockPanel LastChildFill="True" Margin="10">
+    <Grid DockPanel.Dock="Bottom">
       <Grid.RowDefinitions>
         <RowDefinition Height="*" />
       </Grid.RowDefinitions>
@@ -147,5 +135,13 @@
         </Button>
       </controls:GroupBox>
     </Grid>
-  </Grid>
+    <Panel Classes="content" Margin="0 0 0 10">
+      <Panel.Styles>
+        <Style Selector="ListBoxItem">
+          <Setter Property="Padding" Value="0 0 5 0" />
+        </Style>
+      </Panel.Styles>
+      <local:CoinListView SelectAllPrivateVisible="False" DataContext="{Binding CoinsList}" />
+    </Panel>
+  </DockPanel>
 </UserControl>

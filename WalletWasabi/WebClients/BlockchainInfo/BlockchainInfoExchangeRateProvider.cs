@@ -9,18 +9,6 @@ namespace WalletWasabi.WebClients.BlockchainInfo
 {
 	public class BlockchainInfoExchangeRateProvider : IExchangeRateProvider
 	{
-		private class BlockchainInfoExchangeRate
-		{
-			public decimal Last { get; set; }
-			public decimal Buy { get; set; }
-			public decimal Sell { get; set; }
-		}
-
-		private class BlockchainInfoExchangeRates
-		{
-			public BlockchainInfoExchangeRate USD { get; set; }
-		}
-
 		public async Task<List<ExchangeRate>> GetExchangeRateAsync()
 		{
 			using var httpClient = new HttpClient();
@@ -35,6 +23,18 @@ namespace WalletWasabi.WebClients.BlockchainInfo
 				};
 
 			return exchangeRates;
+		}
+
+		private class BlockchainInfoExchangeRate
+		{
+			public decimal Last { get; set; }
+			public decimal Buy { get; set; }
+			public decimal Sell { get; set; }
+		}
+
+		private class BlockchainInfoExchangeRates
+		{
+			public BlockchainInfoExchangeRate USD { get; set; }
 		}
 	}
 }

@@ -41,10 +41,13 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public abstract class SendControlViewModel : WasabiDocumentTabViewModel
+	public abstract class SendControlViewModel : WasabiDocumentTabViewModel, IWalletViewModel
 	{
 		protected Global Global { get; }
+
 		private Wallet Wallet { get; }
+
+		Wallet IWalletViewModel.Wallet => Wallet;
 
 		private string _buildTransactionButtonText;
 		private bool _isMax;
@@ -109,7 +112,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global = Locator.Current.GetService<Global>();
 			Wallet = wallet;
 
-			LabelSuggestion = new SuggestLabelViewModel(Wallet);
+			LabelSuggestion = new SuggestLabelViewModel();
 			BuildTransactionButtonText = DoButtonText;
 
 			ResetUi();
@@ -150,7 +153,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				var amount = AmountText;
 				if (IsMax)
 				{
-					SetAmountIfMax();
+					SetFeesAndTexts();
 				}
 				else
 				{
@@ -209,7 +212,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					if (IsMax)
 					{
-						SetAmountIfMax();
+						SetFeesAndTexts();
 
 						LabelToolTip = "Spending whole coins does not generate change, thus labeling is unnecessary.";
 					}
@@ -283,7 +286,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					var requests = new List<DestinationRequest>();
 
-					if (Global.UiConfig.IsCustomChangeAddress is true && !IsMax && !string.IsNullOrWhiteSpace(CustomChangeAddress))
+					if (Global.UiConfig.IsCustomChangeAddress && !IsMax && !string.IsNullOrWhiteSpace(CustomChangeAddress))
 					{
 						try
 						{
@@ -625,7 +628,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							break;
 
 						case FeeDisplayFormat.USD:
-							FeeText = $"(~ ${UsdFee.ToString("0.##")})";
+							FeeText = $"(~ ${UsdFee:0.##})";
 							FeeToolTip = $"Estimated total fees in USD. Exchange Rate: {(long)UsdExchangeRate} USD/BTC.";
 							break;
 
@@ -635,7 +638,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							break;
 
 						case FeeDisplayFormat.Percentage:
-							FeeText = $"(~ {FeePercentage.ToString("0.#")} %)";
+							FeeText = $"(~ {FeePercentage:0.#} %)";
 							FeeToolTip = "Expected percentage of fees against the amount to be sent.";
 							break;
 

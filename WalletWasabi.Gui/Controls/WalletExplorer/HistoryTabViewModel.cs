@@ -16,7 +16,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class HistoryTabViewModel : WasabiDocumentTabViewModel
+	public class HistoryTabViewModel : WasabiDocumentTabViewModel, IWalletViewModel
 	{
 		private ObservableCollection<TransactionViewModel> _transactions;
 		private TransactionViewModel _selectedTransaction;
@@ -42,74 +42,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					Logger.LogError(ex);
 					NotificationHelpers.Error(ex.ToUserFriendlyString());
 				});
-
-			_ = TryRewriteTableAsync();
 		}
 
 		private Global Global { get; }
 
 		private Wallet Wallet { get; }
 
+		Wallet IWalletViewModel.Wallet => Wallet;
+
 		public ReactiveCommand<Unit, Unit> SortCommand { get; }
-
-		public override void OnOpen(CompositeDisposable disposables)
-		{
-			base.OnOpen(disposables);
-
-			Observable.FromEventPattern(Wallet, nameof(Wallet.NewBlockProcessed))
-				.Merge(Observable.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)))
-				.Throttle(TimeSpan.FromSeconds(3))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(async _ => await TryRewriteTableAsync())
-				.DisposeWith(disposables);
-
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
-				{
-					foreach (var transaction in Transactions)
-					{
-						transaction.Refresh();
-					}
-				}).DisposeWith(disposables);
-		}
-
-		private async Task TryRewriteTableAsync()
-		{
-			try
-			{
-				var historyBuilder = new TransactionHistoryBuilder(Wallet);
-				var txRecordList = await Task.Run(historyBuilder.BuildHistorySummary);
-
-				var rememberSelectedTransactionId = SelectedTransaction?.TransactionId;
-				Transactions?.Clear();
-
-				var trs = txRecordList.Select(txr => new TransactionInfo
-				{
-					DateTime = txr.DateTime.ToLocalTime(),
-					Confirmed = txr.Height.Type == HeightType.Chain,
-					Confirmations = txr.Height.Type == HeightType.Chain ? (int)Global.BitcoinStore.SmartHeaderChain.TipHeight - txr.Height.Value + 1 : 0,
-					AmountBtc = $"{txr.Amount.ToString(fplus: true, trimExcessZero: true)}",
-					Label = txr.Label,
-					BlockHeight = txr.Height.Type == HeightType.Chain ? txr.Height.Value : 0,
-					TransactionId = txr.TransactionId.ToString()
-				}).Select(ti => new TransactionViewModel(ti));
-
-				Transactions = new ObservableCollection<TransactionViewModel>(trs);
-
-				if (Transactions.Count > 0 && !(rememberSelectedTransactionId is null))
-				{
-					var txToSelect = Transactions.FirstOrDefault(x => x.TransactionId == rememberSelectedTransactionId);
-					if (txToSelect != null)
-					{
-						SelectedTransaction = txToSelect;
-					}
-				}
-				RefreshOrdering();
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-			}
-		}
 
 		public ObservableCollection<TransactionViewModel> Transactions
 		{
@@ -162,6 +103,67 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					AmountSortDirection = SortOrder.None;
 					DateSortDirection = SortOrder.None;
 				}
+			}
+		}
+
+		public override void OnOpen(CompositeDisposable disposables)
+		{
+			base.OnOpen(disposables);
+
+			Observable.FromEventPattern(Wallet, nameof(Wallet.NewBlockProcessed))
+				.Merge(Observable.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)))
+				.Throttle(TimeSpan.FromSeconds(3))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(async _ => await TryRewriteTableAsync())
+				.DisposeWith(disposables);
+
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+				{
+					foreach (var transaction in Transactions)
+					{
+						transaction.Refresh();
+					}
+				}).DisposeWith(disposables);
+
+			_ = TryRewriteTableAsync();
+		}
+
+		private async Task TryRewriteTableAsync()
+		{
+			try
+			{
+				var historyBuilder = new TransactionHistoryBuilder(Wallet);
+				var txRecordList = await Task.Run(historyBuilder.BuildHistorySummary);
+
+				var rememberSelectedTransactionId = SelectedTransaction?.TransactionId;
+				Transactions?.Clear();
+
+				var trs = txRecordList.Select(txr => new TransactionInfo
+				{
+					DateTime = txr.DateTime.ToLocalTime(),
+					Confirmed = txr.Height.Type == HeightType.Chain,
+					Confirmations = txr.Height.Type == HeightType.Chain ? (int)Global.BitcoinStore.SmartHeaderChain.TipHeight - txr.Height.Value + 1 : 0,
+					AmountBtc = $"{txr.Amount.ToString(fplus: true, trimExcessZero: true)}",
+					Label = txr.Label,
+					BlockHeight = txr.Height.Type == HeightType.Chain ? txr.Height.Value : 0,
+					TransactionId = txr.TransactionId.ToString()
+				}).Select(ti => new TransactionViewModel(ti));
+
+				Transactions = new ObservableCollection<TransactionViewModel>(trs);
+
+				if (Transactions.Count > 0 && !(rememberSelectedTransactionId is null))
+				{
+					var txToSelect = Transactions.FirstOrDefault(x => x.TransactionId == rememberSelectedTransactionId);
+					if (txToSelect != null)
+					{
+						SelectedTransaction = txToSelect;
+					}
+				}
+				RefreshOrdering();
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
 			}
 		}
 

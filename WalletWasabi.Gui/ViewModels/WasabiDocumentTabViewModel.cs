@@ -1,4 +1,3 @@
-using Avalonia.Threading;
 using AvalonStudio.Documents;
 using AvalonStudio.Extensibility;
 using AvalonStudio.MVVM;
@@ -6,14 +5,8 @@ using AvalonStudio.Shell;
 using Dock.Model;
 using ReactiveUI;
 using System;
-using System.Linq;
-using System.Reactive;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
-using WalletWasabi.Gui.Tabs;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.ViewModels
 {
@@ -27,11 +20,6 @@ namespace WalletWasabi.Gui.ViewModels
 		protected WasabiDocumentTabViewModel(string title)
 		{
 			Title = title;
-			DoItCommand = ReactiveCommand.Create(DisplayActionTab);
-
-			DoItCommand.ThrownExceptions
-				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		private CompositeDisposable Disposables { get; set; }
@@ -101,7 +89,7 @@ namespace WalletWasabi.Gui.ViewModels
 		/// <returns>true to confirm close, false to cancel.</returns>
 		public virtual bool OnClose()
 		{
-			Disposables.Dispose();
+			Disposables?.Dispose();
 			Disposables = null;
 
 			IsSelected = false;
@@ -109,13 +97,6 @@ namespace WalletWasabi.Gui.ViewModels
 			IsClosed = true;
 			return true;
 		}
-
-		public void DisplayActionTab()
-		{
-			IoC.Get<IShell>().AddOrSelectDocument(this);
-		}
-
-		public ReactiveCommand<Unit, Unit> DoItCommand { get; }
 
 		public void Select()
 		{
@@ -125,7 +106,6 @@ namespace WalletWasabi.Gui.ViewModels
 		public async Task<object> ShowDialogAsync()
 		{
 			DialogResult = null;
-			DisplayActionTab();
 
 			while (!IsClosed)
 			{

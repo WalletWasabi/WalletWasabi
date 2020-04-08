@@ -174,7 +174,6 @@ namespace WalletWasabi.Blockchain.Transactions
 			{
 				throw new InvalidOperationException("The amount after subtracting the fee is too small to be sent.");
 			}
-			Money totalSendAmount = totalSendAmountNoFee + fee;
 
 			Money totalOutgoingAmountNoFee;
 			if (changeHdPubKey is null)
@@ -192,13 +191,13 @@ namespace WalletWasabi.Blockchain.Transactions
 
 			if (feePc > 1)
 			{
-				Logger.LogInfo($"The transaction fee is {totalOutgoingAmountNoFee:0.#}% of your transaction amount.{Environment.NewLine}"
-					+ $"Sending:\t {totalSendAmount.ToString(fplus: false, trimExcessZero: true)} BTC.{Environment.NewLine}"
+				Logger.LogInfo($"The transaction fee is {feePc:0.#}% of the sent amount.{Environment.NewLine}"
+					+ $"Sending:\t {totalOutgoingAmountNoFee.ToString(fplus: false, trimExcessZero: true)} BTC.{Environment.NewLine}"
 					+ $"Fee:\t\t {fee.Satoshi} Satoshi.");
 			}
 			if (feePc > 100)
 			{
-				throw new InvalidOperationException($"The transaction fee is more than twice the transaction amount: {feePc:0.#}%.");
+				throw new InvalidOperationException($"The transaction fee is more than twice the sent amount: {feePc:0.#}%.");
 			}
 
 			if (spentCoins.Any(u => !u.Confirmed))

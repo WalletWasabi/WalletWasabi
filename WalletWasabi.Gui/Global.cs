@@ -58,7 +58,6 @@ namespace WalletWasabi.Gui
 		public WasabiSynchronizer Synchronizer { get; private set; }
 		public FeeProviders FeeProviders { get; private set; }
 		public WalletManager WalletManager { get; }
-		public Wallet Wallet => WalletManager?.GetFirstOrDefaultWallet();
 		public TransactionBroadcaster TransactionBroadcaster { get; set; }
 		public CoinJoinProcessor CoinJoinProcessor { get; set; }
 		public Node RegTestMempoolServingNode { get; private set; }
@@ -199,7 +198,7 @@ namespace WalletWasabi.Gui
 									EndPointStrategy.Default(Network, EndPointType.Rpc),
 									txIndex: null,
 									prune: null,
-									userAgent: $"/WasabiClient:{Constants.ClientVersion.ToString()}/"),
+									userAgent: $"/WasabiClient:{Constants.ClientVersion}/"),
 								cancel)
 							.ConfigureAwait(false);
 					}
@@ -269,7 +268,7 @@ namespace WalletWasabi.Gui
 				}
 				else
 				{
-					if (Config.UseTor is true)
+					if (Config.UseTor)
 					{
 						// onlyForOnionHosts: false - Connect to clearnet IPs through Tor, too.
 						connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.TorSocks5EndPoint, onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
@@ -370,7 +369,7 @@ namespace WalletWasabi.Gui
 					// of course).
 					// On the other side, increasing this number forces users that do not need to discover more peers
 					// to spend resources (CPU/bandwidth) to discover new peers.
-					needsToDiscoverPeers = Config.UseTor is true || AddressManager.Count < 500;
+					needsToDiscoverPeers = Config.UseTor || AddressManager.Count < 500;
 					Logger.LogInfo($"Loaded {nameof(AddressManager)} from `{AddressManagerFilePath}`.");
 				}
 				catch (DirectoryNotFoundException ex)
@@ -439,7 +438,7 @@ namespace WalletWasabi.Gui
 		{
 			try
 			{
-				if (UiConfig.LurkingWifeMode is true)
+				if (UiConfig.LurkingWifeMode)
 				{
 					return;
 				}
@@ -477,7 +476,7 @@ namespace WalletWasabi.Gui
 			{
 				// In lurking wife mode no notification is raised.
 				// If there are no news, then don't bother too.
-				if (UiConfig.LurkingWifeMode is true || !e.IsNews || (sender as Wallet).State != WalletState.Started)
+				if (UiConfig.LurkingWifeMode || !e.IsNews || (sender as Wallet).State != WalletState.Started)
 				{
 					return;
 				}
@@ -585,43 +584,6 @@ namespace WalletWasabi.Gui
 			title = Guard.Correct(title);
 			NotificationHelpers.Notify(message, title, notificationType, async () => await FileHelpers.OpenFileInTextEditorAsync(Logger.FilePath));
 			Logger.LogInfo($"Transaction Notification ({notificationType}): {title} - {message} - {e.Transaction.GetHash()}");
-		}
-
-		public KeyManager LoadKeyManager(string walletName)
-		{
-			(string walletFullPath, string walletBackupFullPath) = WalletManager.WalletDirectories.GetWalletFilePaths(walletName);
-
-			try
-			{
-				return KeyManager.FromFile(walletFullPath);
-			}
-			catch (Exception ex)
-			{
-				if (!File.Exists(walletBackupFullPath))
-				{
-					throw;
-				}
-
-				Logger.LogWarning($"Wallet got corrupted.\n" +
-					$"Wallet Filepath: {walletFullPath}\n" +
-					$"Trying to recover it from backup.\n" +
-					$"Backup path: {walletBackupFullPath}\n" +
-					$"Exception: {ex}");
-				if (File.Exists(walletFullPath))
-				{
-					string corruptedWalletBackupPath = $"{walletBackupFullPath}_CorruptedBackup";
-					if (File.Exists(corruptedWalletBackupPath))
-					{
-						File.Delete(corruptedWalletBackupPath);
-						Logger.LogInfo($"Deleted previous corrupted wallet file backup from `{corruptedWalletBackupPath}`.");
-					}
-					File.Move(walletFullPath, corruptedWalletBackupPath);
-					Logger.LogInfo($"Backed up corrupted wallet file to `{corruptedWalletBackupPath}`.");
-				}
-				File.Copy(walletBackupFullPath, walletFullPath);
-
-				return KeyManager.FromFile(walletFullPath);
-			}
 		}
 
 		/// <summary>

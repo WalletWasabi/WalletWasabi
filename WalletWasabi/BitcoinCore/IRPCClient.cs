@@ -2,18 +2,19 @@ using NBitcoin;
 using NBitcoin.RPC;
 using System;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore.RpcModels;
 
 namespace WalletWasabi.BitcoinCore
 {
- 	public interface IRPCClient
- 	{
- 		Network Network { get; }
+	public interface IRPCClient
+	{
+		Network Network { get; }
 		RPCCredentialString CredentialString { get; }
-  
-   		Task<uint256> GetBestBlockHashAsync();
- 
- 		Task<Block> GetBlockAsync(uint256 blockId);
-		 
+
+		Task<uint256> GetBestBlockHashAsync();
+
+		Task<Block> GetBlockAsync(uint256 blockId);
+
 		Task<Block> GetBlockAsync(uint blockHeight);
 
 		Task<BlockHeader> GetBlockHeaderAsync(uint256 blockHash);
@@ -25,6 +26,7 @@ namespace WalletWasabi.BitcoinCore
 		Task<BlockchainInfo> GetBlockchainInfoAsync();
 
 		Task<PeerInfo[]> GetPeersInfoAsync();
+
 		Task<TimeSpan> UptimeAsync();
 
 		Task<uint256> SendRawTransactionAsync(Transaction transaction);
@@ -64,5 +66,9 @@ namespace WalletWasabi.BitcoinCore
 		Task<UnspentCoin[]> ListUnspentAsync();
 
 		Task SendBatchAsync();
+
+		Task<EstimateSmartFeeResponse> TryEstimateSmartFeeAsync(int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative);
+
+		Task<VerboseBlockInfo> GetVerboseBlockAsync(uint256 blockId);
 	}
 }

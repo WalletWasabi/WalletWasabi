@@ -17,15 +17,9 @@ namespace WalletWasabi.TorSocks5
 	public class TorProcessManager
 	{
 		/// <summary>
-		/// If null then it's just a mock, clearnet is used.
+		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
 		/// </summary>
-		public EndPoint TorSocks5EndPoint { get; }
-
-		public string LogFile { get; }
-
-		public static bool RequestFallbackAddressUsage { get; private set; } = false;
-
-		public Process TorProcess { get; private set; }
+		private long _running;
 
 		/// <param name="torSocks5EndPoint">Opt out Tor with null.</param>
 		/// <param name="logFile">Opt out of logging with null.</param>
@@ -37,6 +31,21 @@ namespace WalletWasabi.TorSocks5
 			Stop = new CancellationTokenSource();
 			TorProcess = null;
 		}
+
+		/// <summary>
+		/// If null then it's just a mock, clearnet is used.
+		/// </summary>
+		public EndPoint TorSocks5EndPoint { get; }
+
+		public string LogFile { get; }
+
+		public static bool RequestFallbackAddressUsage { get; private set; } = false;
+
+		public Process TorProcess { get; private set; }
+
+		public bool IsRunning => Interlocked.Read(ref _running) == 1;
+
+		private CancellationTokenSource Stop { get; set; }
 
 		public static TorProcessManager Mock() // Mock, do not use Tor at all for debug.
 		{
@@ -68,26 +77,28 @@ namespace WalletWasabi.TorSocks5
 						}
 
 						var torDir = Path.Combine(dataDir, "tor");
+						var torDataDir = Path.Combine(dataDir, "tordata");
 						var torPath = "";
-						var fullBaseDirectory = Path.GetFullPath(AppContext.BaseDirectory);
+						var geoIpPath = "";
+						var geoIp6Path = "";
+						var fullBaseDirectory = EnvironmentHelpers.GetFullBaseDirectory();
 						if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						{
-							if (!fullBaseDirectory.StartsWith('/'))
-							{
-								fullBaseDirectory = fullBaseDirectory.Insert(0, "/");
-							}
-
 							torPath = $@"{torDir}/Tor/tor";
+							geoIpPath = $@"{torDir}/Data/Tor/geoip";
+							geoIp6Path = $@"{torDir}/Data/Tor/geoip6";
 						}
 						else // If Windows
 						{
 							torPath = $@"{torDir}\Tor\tor.exe";
+							geoIpPath = $@"{torDir}\Data\Tor\geoip";
+							geoIp6Path = $@"{torDir}\Data\Tor\geoip6";
 						}
 
 						if (!File.Exists(torPath))
 						{
 							Logger.LogInfo($"Tor instance NOT found at {torPath}. Attempting to acquire it...");
-							InstallTor(fullBaseDirectory, torDir);
+							InstallTor(torDir);
 						}
 						else if (!IoHelpers.CheckExpectedHash(torPath, Path.Combine(fullBaseDirectory, "TorDaemons")))
 						{
@@ -100,14 +111,14 @@ namespace WalletWasabi.TorSocks5
 							}
 							Directory.Move(torDir, backupTorDir);
 
-							InstallTor(fullBaseDirectory, torDir);
+							InstallTor(torDir);
 						}
 						else
 						{
 							Logger.LogInfo($"Tor instance found at {torPath}.");
 						}
 
-						string torArguments = $"--SOCKSPort {TorSocks5EndPoint}";
+						string torArguments = $"--SOCKSPort {TorSocks5EndPoint} --DataDirectory {torDataDir} --GeoIPFile {geoIpPath} GeoIPv6File {geoIp6Path}";
 						if (!string.IsNullOrEmpty(LogFile))
 						{
 							IoHelpers.EnsureContainingDirectoryExists(LogFile);
@@ -156,9 +167,9 @@ namespace WalletWasabi.TorSocks5
 			}).Start();
 		}
 
-		private static void InstallTor(string fullBaseDirectory, string torDir)
+		private static void InstallTor(string torDir)
 		{
-			string torDaemonsDir = Path.Combine(fullBaseDirectory, "TorDaemons");
+			string torDaemonsDir = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "TorDaemons");
 
 			string dataZip = Path.Combine(torDaemonsDir, "data-folder.zip");
 			IoHelpers.BetterExtractZipToDirectoryAsync(dataZip, torDir).GetAwaiter().GetResult();
@@ -229,15 +240,6 @@ namespace WalletWasabi.TorSocks5
 		}
 
 		#region Monitor
-
-		/// <summary>
-		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
-		/// </summary>
-		private long _running;
-
-		public bool IsRunning => Interlocked.Read(ref _running) == 1;
-
-		private CancellationTokenSource Stop { get; set; }
 
 		public void StartMonitor(TimeSpan torMisbehaviorCheckPeriod, TimeSpan checkIfRunningAfterTorMisbehavedFor, string dataDirToStartWith, Uri fallBackTestRequestUri)
 		{

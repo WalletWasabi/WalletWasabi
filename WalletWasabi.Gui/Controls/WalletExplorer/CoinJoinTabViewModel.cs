@@ -25,7 +25,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class CoinJoinTabViewModel : WasabiDocumentTabViewModel
+	public class CoinJoinTabViewModel : WasabiDocumentTabViewModel, IWalletViewModel
 	{
 		private long _roundId;
 		private RoundPhaseState _roundPhaseState;
@@ -133,6 +133,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private Wallet Wallet { get; }
 
+		Wallet IWalletViewModel.Wallet => Wallet;
+
 		[ValidateMethod(nameof(ValidatePassword))]
 		public string Password
 		{
@@ -235,7 +237,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public bool IsWatchOnly => Wallet.KeyManager.IsWatchOnly;
 		public bool IsHardwareWallet => Wallet.KeyManager.IsHardwareWallet;
 
-		public bool IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode is true;
+		public bool IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode;
 
 		public ReactiveCommand<Unit, Unit> EnqueueCommand { get; }
 

@@ -2,6 +2,7 @@ using NBitcoin;
 using NBitcoin.RPC;
 using System;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore.RpcModels;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.BitcoinCore
@@ -99,6 +100,12 @@ namespace WalletWasabi.BitcoinCore
 			return new RpcClientBase(Rpc.PrepareBatch());
 		}
 
+		public async Task<VerboseBlockInfo> GetVerboseBlockAsync(uint256 blockId)
+		{
+			var resp = await Rpc.SendCommandAsync(RPCOperations.getblock, blockId, 3).ConfigureAwait(false);
+			return RpcParser.ParseVerboseBlockResponse(resp.Result.ToString());
+		}
+
 		#region For Testing Only
 
 		public virtual async Task<uint256> SendToAddressAsync(BitcoinAddress address, Money amount, string commentTx = null, string commentDest = null, bool subtractFeeFromAmount = false, bool replaceable = false)
@@ -159,6 +166,11 @@ namespace WalletWasabi.BitcoinCore
 		public virtual async Task SendBatchAsync()
 		{
 			await Rpc.SendBatchAsync().ConfigureAwait(false);
+		}
+
+		public Task<EstimateSmartFeeResponse> TryEstimateSmartFeeAsync(int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative)
+		{
+			return Rpc.TryEstimateSmartFeeAsync(confirmationTarget, estimateMode: estimateMode);
 		}
 
 		#endregion For Testing Only

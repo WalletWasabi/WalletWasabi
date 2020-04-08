@@ -9,6 +9,7 @@ using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Dialogs;
@@ -20,8 +21,6 @@ namespace WalletWasabi.Gui
 {
 	public class MainWindow : MetroWindow
 	{
-		public bool IsQuitPending { get; private set; }
-
 		public MainWindow()
 		{
 			Global = Locator.Current.GetService<Global>();
@@ -104,8 +103,13 @@ namespace WalletWasabi.Gui
 						if (Global.UiConfig != null) // UiConfig not yet loaded.
 						{
 							Global.UiConfig.WindowState = WindowState;
-							Global.UiConfig.Width = Width;
-							Global.UiConfig.Height = Height;
+
+							if (WindowState == Avalonia.Controls.WindowState.Normal)
+							{
+								Global.UiConfig.Width = Width;
+								Global.UiConfig.Height = Height;
+							}
+
 							Global.UiConfig.LastActiveTab = IoC.Get<IShell>().SelectedDocument?.GetType().Name;
 							Global.UiConfig.ToFile();
 							Logger.LogInfo($"{nameof(Global.UiConfig)} is saved.");

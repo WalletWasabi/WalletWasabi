@@ -32,7 +32,7 @@ For more information, please check out the [Wasabi Documentation](https://docs.w
 
 # [Download Wasabi](https://github.com/zkSNACKs/WalletWasabi/releases)
 
-![](https://i.imgur.com/kpjT9ZV.png)
+![](https://i.imgur.com/cAVJCeT.png)
 
 For step by step instructions of PGP verification and package installation, see the [documentation](https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html)
 
