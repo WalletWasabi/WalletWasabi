@@ -44,7 +44,7 @@ namespace WalletWasabi.Wallets
 				{
 					try
 					{
-						var blockBytes = await File.ReadAllBytesAsync(filePath, cancellationToken);
+						var blockBytes = await File.ReadAllBytesAsync(filePath, cancellationToken).ConfigureAwait(false);
 						block = Block.Load(blockBytes, Network);
 					}
 					catch
@@ -74,7 +74,7 @@ namespace WalletWasabi.Wallets
 				{
 					if (!File.Exists(path))
 					{
-						await File.WriteAllBytesAsync(path, block.ToBytes());
+						await File.WriteAllBytesAsync(path, block.ToBytes()).ConfigureAwait(false);
 					}
 				}
 			}

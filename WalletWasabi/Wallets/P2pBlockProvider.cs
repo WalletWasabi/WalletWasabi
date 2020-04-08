@@ -74,7 +74,7 @@ namespace WalletWasabi.Wallets
 					try
 					{
 						// Try to get block information from local running Core node first.
-						block = await TryDownloadBlockFromLocalNodeAsync(hash, cancellationToken);
+						block = await TryDownloadBlockFromLocalNodeAsync(hash, cancellationToken).ConfigureAwait(false);
 
 						if (block is { })
 						{
@@ -84,14 +84,14 @@ namespace WalletWasabi.Wallets
 						// If no connection, wait, then continue.
 						while (Nodes.ConnectedNodes.Count == 0)
 						{
-							await Task.Delay(100, cancellationToken);
+							await Task.Delay(100, cancellationToken).ConfigureAwait(false);
 						}
 
 						// Select a random node we are connected to.
 						Node node = Nodes.ConnectedNodes.RandomElement();
 						if (node is null || !node.IsConnected)
 						{
-							await Task.Delay(100, cancellationToken);
+							await Task.Delay(100, cancellationToken).ConfigureAwait(false);
 							continue;
 						}
 
@@ -101,7 +101,7 @@ namespace WalletWasabi.Wallets
 							using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(RuntimeParams.Instance.NetworkNodeTimeout))) // 1/2 ADSL	512 kbit/s	00:00:32
 							{
 								using var lts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
-								block = await node.DownloadBlockAsync(hash, lts.Token);
+								block = await node.DownloadBlockAsync(hash, lts.Token).ConfigureAwait(false);
 							}
 
 							// Validate block
@@ -124,7 +124,7 @@ namespace WalletWasabi.Wallets
 						{
 							Logger.LogInfo($"Disconnected node: {node.RemoteSocketAddress}, because block download took too long.");
 
-							await NodeTimeoutsAsync(true);
+							await NodeTimeoutsAsync(true).ConfigureAwait(false);
 
 							node.DisconnectAsync("Block download took too long.");
 							continue;
