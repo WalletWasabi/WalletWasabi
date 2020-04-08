@@ -19,8 +19,12 @@ namespace WalletWasabi.Gui.Behaviors
 {
 	public class PasteAddressOnClickBehavior : CommandBasedBehavior<TextBox>
 	{
-		private CompositeDisposable Disposables { get; set; }
-		private Global Global { get; }
+		private TextBoxState _textBoxState = TextBoxState.None;
+
+		public PasteAddressOnClickBehavior()
+		{
+			Global = Locator.Current.GetService<Global>();
+		}
 
 		protected internal enum TextBoxState
 		{
@@ -29,6 +33,9 @@ namespace WalletWasabi.Gui.Behaviors
 			AddressInsert,
 			SelectAll
 		}
+
+		private CompositeDisposable Disposables { get; set; }
+		private Global Global { get; }
 
 		private TextBoxState MyTextBoxState
 		{
@@ -59,8 +66,6 @@ namespace WalletWasabi.Gui.Behaviors
 			}
 		}
 
-		private TextBoxState _textBoxState = TextBoxState.None;
-
 		private bool ProcessText(string text)
 		{
 			if (AddressStringParser.TryParse(text, Global.Network, out BitcoinUrlBuilder result))
@@ -72,11 +77,6 @@ namespace WalletWasabi.Gui.Behaviors
 			}
 
 			return false;
-		}
-
-		public PasteAddressOnClickBehavior()
-		{
-			Global = Locator.Current.GetService<Global>();
 		}
 
 		protected override void OnAttached()

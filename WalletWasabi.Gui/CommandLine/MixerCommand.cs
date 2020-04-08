@@ -8,12 +8,6 @@ namespace WalletWasabi.Gui.CommandLine
 {
 	internal class MixerCommand : Command
 	{
-		public string WalletName { get; set; }
-		public string DestinationWalletName { get; set; }
-		public bool KeepMixAlive { get; set; }
-		public bool ShowHelp { get; set; }
-		public Daemon Daemon { get; }
-
 		public MixerCommand(Daemon daemon)
 			: base("mix", "Start mixing without the GUI with the specified wallet.")
 		{
@@ -30,6 +24,12 @@ namespace WalletWasabi.Gui.CommandLine
 				{ "keepalive", "Do not exit the software after mixing has been finished, rather keep mixing when new money arrives.", x => KeepMixAlive = x != null }
 			};
 		}
+
+		public string WalletName { get; set; }
+		public string DestinationWalletName { get; set; }
+		public bool KeepMixAlive { get; set; }
+		public bool ShowHelp { get; set; }
+		public Daemon Daemon { get; }
 
 		public override async Task<int> InvokeAsync(IEnumerable<string> args)
 		{
