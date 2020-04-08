@@ -1,5 +1,4 @@
 using NBitcoin;
-using NBitcoin.Crypto;
 using NBitcoin.RPC;
 using Newtonsoft.Json.Linq;
 using Nito.AsyncEx;
@@ -15,9 +14,10 @@ using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.CoinJoin.Coordinator.Banning;
 using WalletWasabi.CoinJoin.Coordinator.MixingLevels;
 using WalletWasabi.CoinJoin.Coordinator.Participants;
+using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using static NBitcoin.Crypto.SchnorrBlinding;
+using static WalletWasabi.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 {
@@ -663,7 +663,8 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 		{
 			lock (RegisteredUnblindedSignaturesLock)
 			{
-				return RegisteredUnblindedSignatures.Any(x => x.C.Equals(unblindedSignature.C) && x.S.Equals(unblindedSignature.S));
+				var unblindedSignatureBytes = unblindedSignature.ToBytes();
+				return RegisteredUnblindedSignatures.Any(x => ByteHelpers.CompareFastUnsafe(x.ToBytes(), unblindedSignatureBytes));
 			}
 		}
 
