@@ -15,7 +15,7 @@ using WalletWasabi.Services;
 namespace WalletWasabi.Wallets
 {
 	/// <summary>
-	/// P2pBlocksProvider is a blocks provider that provides blocks 
+	/// P2pBlockProvider is a blocks provider that provides blocks 
 	/// from bitcoin nodes using the P2P bitcoin protocol.
 	/// </summary>
 	public class P2pBlockProvider : IBlockProvider
@@ -56,7 +56,7 @@ namespace WalletWasabi.Wallets
 
 		/// <summary>
 		/// Gets a bitcoin block from bitcoin nodes using the p2p bitcoin protocol.
-		/// If a CoreNode is available it fetches the blocks using the rpc interface.
+		/// If a bitcoin node is available it fetches the blocks using the rpc interface.
 		/// </summary>
 		/// <param name="hash">The block's hash that identifies the requested block.</param>
 		/// <param name="cancellationToken">The cancellation token.</param>
@@ -168,7 +168,7 @@ namespace WalletWasabi.Wallets
 						{
 							ConnectCancellation = handshakeTimeout.Token,
 							IsRelay = false,
-							UserAgent = $"/Wasabi:{Constants.ClientVersion.ToString()}/"
+							UserAgent = $"/Wasabi:{Constants.ClientVersion}/"
 						};
 
 						// If an onion was added must try to use Tor.
@@ -179,7 +179,7 @@ namespace WalletWasabi.Wallets
 						}
 
 						var localEndPoint = ServiceConfiguration.BitcoinCoreEndPoint;
-						var localNode = await Node.ConnectAsync(Network, localEndPoint, nodeConnectionParameters);
+						var localNode = await Node.ConnectAsync(Network, localEndPoint, nodeConnectionParameters).ConfigureAwait(false);
 						try
 						{
 							Logger.LogInfo("TCP Connection succeeded, handshaking...");
@@ -213,7 +213,7 @@ namespace WalletWasabi.Wallets
 					// Should timeout faster. Not sure if it should ever fail though. Maybe let's keep like this later for remote node connection.
 					using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(64)))
 					{
-						blockFromLocalNode = await LocalBitcoinCoreNode.DownloadBlockAsync(hash, cts.Token);
+						blockFromLocalNode = await LocalBitcoinCoreNode.DownloadBlockAsync(hash, cts.Token).ConfigureAwait(false);
 					}
 
 					// Validate retrieved block

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace WalletWasabi.Wallets
 {
 	/// <summary>
-	/// CachedBlocksProvider is a blocks provider that keep the blocks on a repository to satify future requests.
+	/// CachedBlockProvider is a blocks provider that keeps the blocks on a repository to satisfy future requests.
 	/// </summary>
 	public class CachedBlockProvider : IBlockProvider
 	{
@@ -20,7 +20,7 @@ namespace WalletWasabi.Wallets
 
 		/// <summary>
 		/// Gets a bitcoin block. In case the requested block is not available in the repository it is returned 
-		/// inmediately to the caller; otherwise it obtains the block from the source provider and store it in
+		/// immediately to the caller; otherwise it obtains the block from the source provider and stores it in
 		/// the repository to satisfy future requests.
 		/// </summary>
 		/// <param name="hash">The block's hash that identifies the requested block.</param>
@@ -28,11 +28,11 @@ namespace WalletWasabi.Wallets
 		/// <returns>The requested bitcoin block.</returns>
 		public async Task<Block> GetBlockAsync(uint256 hash, CancellationToken cancellationToken)
 		{
-			Block block = await BlockRepository.GetAsync(hash, cancellationToken);
+			Block block = await BlockRepository.GetAsync(hash, cancellationToken).ConfigureAwait(false);
 			if (block is null)
 			{
-				block = await BlockSourceProvider.GetBlockAsync(hash, cancellationToken);
-				await BlockRepository.SaveAsync(block, cancellationToken);
+				block = await BlockSourceProvider.GetBlockAsync(hash, cancellationToken).ConfigureAwait(false);
+				await BlockRepository.SaveAsync(block, cancellationToken).ConfigureAwait(false);
 			}
 			return block;
 		}

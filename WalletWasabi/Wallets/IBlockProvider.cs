@@ -5,7 +5,7 @@ using NBitcoin;
 namespace WalletWasabi.Wallets
 {
 	/// <summary>
-	/// IBlocksProvider is an abstraction for types that can return blocks.
+	/// IBlockProvider is an abstraction for types that can return blocks.
 	/// </summary>
 	public interface IBlockProvider
 	{

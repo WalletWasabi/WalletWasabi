@@ -11,7 +11,7 @@ using WalletWasabi.Logging;
 namespace WalletWasabi.Wallets
 {
 	/// <summary>
-	/// FileSystemBlocksRepository is a blocks repository that keep the blocks in the file system.
+	/// FileSystemBlockRepository is a blocks repository that keeps the blocks in the file system.
 	/// </summary>
 	public class FileSystemBlockRepository : IRepository<uint256, Block>
 	{
