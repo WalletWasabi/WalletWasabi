@@ -1,6 +1,4 @@
 using NBitcoin;
-using NBitcoin.BouncyCastle.Math;
-using NBitcoin.Crypto;
 using NBitcoin.Protocol;
 using NBitcoin.RPC;
 using System;
@@ -49,7 +47,7 @@ using WalletWasabi.TorSocks5;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
-using static NBitcoin.Crypto.SchnorrBlinding;
+using static WalletWasabi.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.Tests.RegressionTests
 {
@@ -224,10 +222,10 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 			var requester = new Requester();
-			uint256 msg = new uint256(Hashes.SHA256(network.Consensus.ConsensusFactory.CreateTransaction().ToBytes()));
+			uint256 msg = new uint256(NBitcoin.Crypto.Hashes.SHA256(network.Consensus.ConsensusFactory.CreateTransaction().ToBytes()));
 			uint256 blindedData = requester.BlindMessage(msg, round.MixingLevels.GetBaseLevel().SchnorrKey.SchnorrPubKey);
 			inputsRequest.BlindedOutputScripts = new[] { blindedData };
-			uint256 blindedOutputScriptsHash = new uint256(Hashes.SHA256(blindedData.ToBytes()));
+			uint256 blindedOutputScriptsHash = new uint256(NBitcoin.Crypto.Hashes.SHA256(blindedData.ToBytes()));
 
 			proof = key.SignCompact(blindedOutputScriptsHash);
 			inputsRequest.Inputs.First().Proof = proof;
@@ -267,7 +265,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			msg = network.Consensus.ConsensusFactory.CreateTransaction().GetHash();
 			blindedData = requester.BlindMessage(msg, round.MixingLevels.GetBaseLevel().SchnorrKey.SchnorrPubKey);
 			inputsRequest.BlindedOutputScripts = new[] { blindedData };
-			blindedOutputScriptsHash = new uint256(Hashes.SHA256(blindedData.ToBytes()));
+			blindedOutputScriptsHash = new uint256(NBitcoin.Crypto.Hashes.SHA256(blindedData.ToBytes()));
 			proof = key.SignCompact(blindedOutputScriptsHash);
 			inputsRequest.Inputs.First().Proof = proof;
 			using (var aliceClient = await AliceClient.CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, network, inputsRequest, baseUri, null))
@@ -306,7 +304,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			requester = new Requester();
 			blindedData = requester.BlindScript(round.MixingLevels.GetBaseLevel().SchnorrKey.SchnorrPubKey.SignerPubKey, round.MixingLevels.GetBaseLevel().SchnorrKey.SchnorrPubKey.RpubKey, key.ScriptPubKey);
 			inputsRequest.BlindedOutputScripts = new[] { blindedData };
-			blindedOutputScriptsHash = new uint256(Hashes.SHA256(blindedData.ToBytes()));
+			blindedOutputScriptsHash = new uint256(NBitcoin.Crypto.Hashes.SHA256(blindedData.ToBytes()));
 			proof = key.SignCompact(blindedOutputScriptsHash);
 			inputsRequest.Inputs.First().Proof = proof;
 
@@ -330,7 +328,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			}
 
 			inputsRequest.BlindedOutputScripts = new[] { uint256.One };
-			blindedOutputScriptsHash = new uint256(Hashes.SHA256(uint256.One.ToBytes()));
+			blindedOutputScriptsHash = new uint256(NBitcoin.Crypto.Hashes.SHA256(uint256.One.ToBytes()));
 			proof = key.SignCompact(blindedOutputScriptsHash);
 			inputsRequest.Inputs.First().Proof = proof;
 			inputsRequest.Inputs = new List<InputProofModel> { inputsRequest.Inputs.First(), inputsRequest.Inputs.First() };
@@ -440,7 +438,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			registeredAddresses = new[] { bitcoinWitPubKeyAddress };
 			Script script = bitcoinWitPubKeyAddress.ScriptPubKey;
 			blindedData = requester.BlindScript(round.MixingLevels.GetBaseLevel().Signer.Key.PubKey, round.MixingLevels.GetBaseLevel().Signer.R.PubKey, script);
-			blindedOutputScriptsHash = new uint256(Hashes.SHA256(blindedData.ToBytes()));
+			blindedOutputScriptsHash = new uint256(NBitcoin.Crypto.Hashes.SHA256(blindedData.ToBytes()));
 
 			using (var aliceClient = await AliceClient.CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, network, new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network), new[] { blindedData }, new InputProofModel[] { new InputProofModel { Input = coin.Outpoint, Proof = key.SignCompact(blindedOutputScriptsHash) } }, baseUri, null))
 			{
@@ -537,9 +535,9 @@ namespace WalletWasabi.Tests.RegressionTests
 			var requester2 = new Requester();
 
 			uint256 blinded1 = requester1.BlindScript(round.MixingLevels.GetBaseLevel().Signer.Key.PubKey, round.MixingLevels.GetBaseLevel().Signer.R.PubKey, outputAddress1.ScriptPubKey);
-			uint256 blindedOutputScriptsHash1 = new uint256(Hashes.SHA256(blinded1.ToBytes()));
+			uint256 blindedOutputScriptsHash1 = new uint256(NBitcoin.Crypto.Hashes.SHA256(blinded1.ToBytes()));
 			uint256 blinded2 = requester2.BlindScript(round.MixingLevels.GetBaseLevel().Signer.Key.PubKey, round.MixingLevels.GetBaseLevel().Signer.R.PubKey, outputAddress2.ScriptPubKey);
-			uint256 blindedOutputScriptsHash2 = new uint256(Hashes.SHA256(blinded2.ToBytes()));
+			uint256 blindedOutputScriptsHash2 = new uint256(NBitcoin.Crypto.Hashes.SHA256(blinded2.ToBytes()));
 
 			var input1 = new OutPoint(hash1, index1);
 			var input2 = new OutPoint(hash2, index2);
@@ -690,7 +688,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				// Calculate the SHA256( blind1 || blind2 || .....|| blindN )
 				var blindedOutputScriptList = outputs.Select(x => x.blindedScript);
 				var blindedOutputScriptListBytes = ByteHelpers.Combine(blindedOutputScriptList.Select(x => x.ToBytes()));
-				var blindedOutputScriptsHash = new uint256(Hashes.SHA256(blindedOutputScriptListBytes));
+				var blindedOutputScriptsHash = new uint256(NBitcoin.Crypto.Hashes.SHA256(blindedOutputScriptListBytes));
 
 				// Create 4 new coins that we want to mix
 				var inputs = new List<(OutPoint input, byte[] proof, Coin coin, Key key)>();
@@ -817,7 +815,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				CoordinatorRound round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 				var requester = new Requester();
 				uint256 blinded = requester.BlindScript(round.MixingLevels.GetBaseLevel().Signer.Key.PubKey, round.MixingLevels.GetBaseLevel().Signer.R.PubKey, activeOutputAddress.ScriptPubKey);
-				uint256 blindedOutputScriptsHash = new uint256(Hashes.SHA256(blinded.ToBytes()));
+				uint256 blindedOutputScriptsHash = new uint256(NBitcoin.Crypto.Hashes.SHA256(blinded.ToBytes()));
 
 				var inputProofModels = new List<InputProofModel>();
 				int numberOfInputs = new Random().Next(1, 7);
