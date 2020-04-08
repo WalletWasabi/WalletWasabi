@@ -13,11 +13,11 @@ namespace WalletWasabi.BitcoinCore
 		private CancellationTokenSource _tipChangeCancellationTokenSource;
 
 		public CachedRpcClient(RPCClient rpc, IMemoryCache cache)
-		: base(rpc)
+			: base(rpc)
 		{
 			Cache = cache;
 		}
-		
+
 		public IMemoryCache Cache { get; }
 
 		private CancellationTokenSource TipChangeCancellationTokenSource
