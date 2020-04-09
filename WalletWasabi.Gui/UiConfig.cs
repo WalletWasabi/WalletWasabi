@@ -51,7 +51,7 @@ namespace WalletWasabi.Gui
 		[JsonProperty(PropertyName = "LastActiveTab", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public string LastActiveTab { get; internal set; }
 
-		[DefaultValue(true)]
+		[DefaultValue(false)]
 		[JsonProperty(PropertyName = "Autocopy", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public bool Autocopy
 		{
