@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using System;
@@ -15,7 +15,7 @@ using WalletWasabi.Services;
 namespace WalletWasabi.Wallets
 {
 	/// <summary>
-	/// P2pBlockProvider is a blocks provider that provides blocks 
+	/// P2pBlockProvider is a blocks provider that provides blocks
 	/// from bitcoin nodes using the P2P bitcoin protocol.
 	/// </summary>
 	public class P2pBlockProvider : IBlockProvider
@@ -32,6 +32,7 @@ namespace WalletWasabi.Wallets
 		}
 
 		public static event EventHandler<bool> DownloadingBlockChanged;
+
 		public NodesGroup Nodes { get; }
 		public CoreNode CoreNode { get; }
 		public WasabiSynchronizer Synchronizer { get; }
@@ -288,7 +289,6 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-
 		/// <summary>
 		/// Current timeout used when downloading a block from the remote node. It is defined in seconds.
 		/// </summary>
@@ -333,7 +333,7 @@ namespace WalletWasabi.Wallets
 			}
 
 			RuntimeParams.Instance.NetworkNodeTimeout = timeout;
-			await RuntimeParams.Instance.SaveAsync();
+			await RuntimeParams.Instance.SaveAsync().ConfigureAwait(false);
 
 			Logger.LogInfo($"Current timeout value used on block download is: {timeout} seconds.");
 		}

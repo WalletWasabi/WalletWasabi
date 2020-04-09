@@ -375,7 +375,7 @@ namespace WalletWasabi.Wallets
 		{
 			try
 			{
-				using (await HandleFiltersLock.LockAsync())
+				using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
 				{
 					uint256 invalidBlockHash = invalidFilter.Header.BlockHash;
 					if (BlockProvider is CachedBlockProvider blockCache)
@@ -398,18 +398,18 @@ namespace WalletWasabi.Wallets
 		{
 			try
 			{
-				using (await HandleFiltersLock.LockAsync())
+				using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
 				{
 					if (KeyManager.GetBestHeight() < filterModel.Header.Height)
 					{
-						await ProcessFilterModelAsync(filterModel, CancellationToken.None);
+						await ProcessFilterModelAsync(filterModel, CancellationToken.None).ConfigureAwait(false);
 					}
 				}
 				NewFilterProcessed?.Invoke(this, filterModel);
 
 				do
 				{
-					await Task.Delay(100);
+					await Task.Delay(100).ConfigureAwait(false);
 					if (Synchronizer is null || BitcoinStore?.SmartHeaderChain is null)
 					{
 						return;
@@ -421,7 +421,12 @@ namespace WalletWasabi.Wallets
 					}
 				} while (Synchronizer.AreRequestsBlocked()); // If requests are blocked, delay mempool cleanup, because coinjoin answers are always priority.
 
-				await BitcoinStore.MempoolService?.TryPerformMempoolCleanupAsync(Synchronizer?.WasabiClient?.TorClient?.DestinationUriAction, Synchronizer?.WasabiClient?.TorClient?.TorSocks5EndPoint);
+				var task = BitcoinStore.MempoolService?.TryPerformMempoolCleanupAsync(Synchronizer?.WasabiClient?.TorClient?.DestinationUriAction, Synchronizer?.WasabiClient?.TorClient?.TorSocks5EndPoint);
+
+				if (task is { })
+				{
+					await task.ConfigureAwait(false);
+				}
 			}
 			catch (Exception ex)
 			{
@@ -441,10 +446,10 @@ namespace WalletWasabi.Wallets
 			{
 				if (filterModel.Filter != null) // Filter can be null if there is no bech32 tx.
 				{
-					await ProcessFilterModelAsync(filterModel, cancel);
+					await ProcessFilterModelAsync(filterModel, cancel).ConfigureAwait(false);
 				}
 			},
-			new Height(bestKeyManagerHeight.Value + 1), cancel);
+			new Height(bestKeyManagerHeight.Value + 1), cancel).ConfigureAwait(false);
 		}
 
 		private async Task LoadDummyMempoolAsync()
@@ -462,7 +467,7 @@ namespace WalletWasabi.Wallets
 					using var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint);
 					var compactness = 10;
 
-					var mempoolHashes = await client.GetMempoolHashesAsync(compactness);
+					var mempoolHashes = await client.GetMempoolHashesAsync(compactness).ConfigureAwait(false);
 
 					var txsToProcess = new List<SmartTransaction>();
 					foreach (var tx in BitcoinStore.TransactionStore.MempoolStore.GetTransactions())
@@ -500,7 +505,7 @@ namespace WalletWasabi.Wallets
 			var matchFound = filterModel.Filter.MatchAny(KeyManager.GetPubKeyScriptBytes(), filterModel.FilterKey);
 			if (matchFound)
 			{
-				Block currentBlock = await BlockProvider.GetBlockAsync(filterModel.Header.BlockHash, cancel); // Wait until not downloaded.				
+				Block currentBlock = await BlockProvider.GetBlockAsync(filterModel.Header.BlockHash, cancel).ConfigureAwait(false); // Wait until not downloaded.
 				var height = new Height(filterModel.Header.Height);
 
 				var txsToProcess = new List<SmartTransaction>();
