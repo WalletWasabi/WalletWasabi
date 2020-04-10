@@ -328,7 +328,15 @@ namespace WalletWasabi.Gui
 
 				#endregion JsonRpcServerInitialization
 
-				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Nodes, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
+				#region Blocks provider
+
+				var blockProvider = new CachedBlockProvider(
+					new P2pBlockProvider(Nodes, BitcoinCoreNode, Synchronizer, Config.ServiceConfiguration, Network), 
+					new FileSystemBlockRepository(blocksFolderPath, Network));
+
+				#endregion Blocks provider
+
+				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Nodes, Config.ServiceConfiguration, FeeProviders, blockProvider);
 			}
 			catch (Exception ex)
 			{

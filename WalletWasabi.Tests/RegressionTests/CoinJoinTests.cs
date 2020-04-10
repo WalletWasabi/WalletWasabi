@@ -1311,11 +1311,22 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			// 5. Create wallet service.
 			var workDir = Common.GetWorkDir();
-			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer);
+
+			var blocksFolderPath = Path.Combine(workDir, "Blocks", network.ToString());
+
+			CachedBlockProvider blockProvider = new CachedBlockProvider(
+				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network), 
+				new FileSystemBlockRepository(blocksFolderPath, network));
+
+			CachedBlockProvider blockProvider2 = new CachedBlockProvider(
+				new P2pBlockProvider(nodes2, null, synchronizer, serviceConfiguration, network), 
+				new FileSystemBlockRepository(blocksFolderPath, network));
+
+			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer, blockProvider);
 			wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;
 
 			var workDir2 = Path.Combine(Common.GetWorkDir(), "2");
-			using var wallet2 = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager2, synchronizer2, nodes2, workDir2, serviceConfiguration, synchronizer2);
+			using var wallet2 = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager2, synchronizer2, nodes2, workDir2, serviceConfiguration, synchronizer2, blockProvider2);
 
 			// Get some money, make it confirm.
 			var key = keyManager.GetNextReceiveKey("fundZeroLink", out _);
