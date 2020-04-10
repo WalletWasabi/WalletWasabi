@@ -43,12 +43,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public abstract class SendControlViewModel : WasabiDocumentTabViewModel, IWalletViewModel
 	{
-		protected Global Global { get; }
-
-		private Wallet Wallet { get; }
-
-		Wallet IWalletViewModel.Wallet => Wallet;
-
 		private string _buildTransactionButtonText;
 		private bool _isMax;
 		private string _amountText;
@@ -80,31 +74,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private FeeDisplayFormat _feeDisplayFormat;
 		private bool _isSliderFeeUsed = true;
 		private double _feeControlOpacity;
-
-		private FeeDisplayFormat FeeDisplayFormat
-		{
-			get => _feeDisplayFormat;
-			set
-			{
-				_feeDisplayFormat = value;
-				Global.UiConfig.FeeDisplayFormat = (int)value;
-			}
-		}
-
-		public abstract string DoButtonText { get; }
-		public abstract string DoingButtonText { get; }
-
-		protected void ResetUi()
-		{
-			LabelSuggestion.Reset();
-			Address = "";
-			CustomChangeAddress = "";
-			Password = "";
-			AllSelectedAmount = Money.Zero;
-			IsMax = false;
-			LabelToolTip = "Who can link this transaction to you? E.g.: \"Max, BitPay\"";
-			AmountText = "0.0";
-		}
 
 		protected SendControlViewModel(Wallet wallet, string title)
 			: base(title)
@@ -447,7 +416,220 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				});
 		}
 
+		protected Global Global { get; }
+
+		private Wallet Wallet { get; }
+
+		Wallet IWalletViewModel.Wallet => Wallet;
+
+		private FeeDisplayFormat FeeDisplayFormat
+		{
+			get => _feeDisplayFormat;
+			set
+			{
+				_feeDisplayFormat = value;
+				Global.UiConfig.FeeDisplayFormat = (int)value;
+			}
+		}
+
+		public abstract string DoButtonText { get; }
+		public abstract string DoingButtonText { get; }
+
 		public SuggestLabelViewModel LabelSuggestion { get; }
+
+		public CoinListViewModel CoinList { get; }
+
+		public bool IsBusy
+		{
+			get => _isBusy;
+			set => this.RaiseAndSetIfChanged(ref _isBusy, value);
+		}
+
+		public bool IsHardwareBusy
+		{
+			get => _isHardwareBusy;
+			set => this.RaiseAndSetIfChanged(ref _isHardwareBusy, value);
+		}
+
+		public string BuildTransactionButtonText
+		{
+			get => _buildTransactionButtonText;
+			set => this.RaiseAndSetIfChanged(ref _buildTransactionButtonText, value);
+		}
+
+		public bool IsMax
+		{
+			get => _isMax;
+			set => this.RaiseAndSetIfChanged(ref _isMax, value);
+		}
+
+		public string AmountText
+		{
+			get => _amountText;
+			set => this.RaiseAndSetIfChanged(ref _amountText, value);
+		}
+
+		[ValidateMethod(nameof(ValidateUserFeeText))]
+		public string UserFeeText
+		{
+			get => _userFeeText;
+			set => this.RaiseAndSetIfChanged(ref _userFeeText, value);
+		}
+
+		public int FeeTarget
+		{
+			get => _feeTarget;
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _feeTarget, value);
+				Global.UiConfig.FeeTarget = value;
+			}
+		}
+
+		public int MinimumFeeTarget
+		{
+			get => _minimumFeeTarget;
+			set => this.RaiseAndSetIfChanged(ref _minimumFeeTarget, value);
+		}
+
+		public int MaximumFeeTarget
+		{
+			get => _maximumFeeTarget;
+			set => this.RaiseAndSetIfChanged(ref _maximumFeeTarget, value);
+		}
+
+		public bool MinMaxFeeTargetsEqual => _minMaxFeeTargetsEqual?.Value ?? false;
+
+		public string FeeText
+		{
+			get => _feeText;
+			set => this.RaiseAndSetIfChanged(ref _feeText, value);
+		}
+
+		public decimal UsdFee
+		{
+			get => _usdFee;
+			set => this.RaiseAndSetIfChanged(ref _usdFee, value);
+		}
+
+		public Money EstimatedBtcFee
+		{
+			get => _estimatedBtcFee;
+			set => this.RaiseAndSetIfChanged(ref _estimatedBtcFee, value);
+		}
+
+		public FeeRate FeeRate
+		{
+			get => _feeRate;
+			set => this.RaiseAndSetIfChanged(ref _feeRate, value);
+		}
+
+		public decimal FeePercentage
+		{
+			get => _feePercentage;
+			set => this.RaiseAndSetIfChanged(ref _feePercentage, value);
+		}
+
+		public decimal UsdExchangeRate => _usdExchangeRate?.Value ?? 0m;
+
+		public Money AllSelectedAmount
+		{
+			get => _allSelectedAmount;
+			set => this.RaiseAndSetIfChanged(ref _allSelectedAmount, value);
+		}
+
+		public bool IsWatchOnly => Wallet.KeyManager.IsWatchOnly;
+
+		[ValidateMethod(nameof(ValidatePassword))]
+		public string Password
+		{
+			get => _password;
+			set => this.RaiseAndSetIfChanged(ref _password, value);
+		}
+
+		[ValidateMethod(nameof(ValidateActiveAddress))]
+		public string Address
+		{
+			get => _address;
+			set => this.RaiseAndSetIfChanged(ref _address, value?.Trim());
+		}
+
+		[ValidateMethod(nameof(ValidateCustomChangeAddress))]
+		public string CustomChangeAddress
+		{
+			get => _customChangeAddress;
+			set => this.RaiseAndSetIfChanged(ref _customChangeAddress, value?.Trim());
+		}
+
+		public string LabelToolTip
+		{
+			get => _labelToolTip;
+			set => this.RaiseAndSetIfChanged(ref _labelToolTip, value);
+		}
+
+		public string FeeToolTip
+		{
+			get => _feeToolTip;
+			set => this.RaiseAndSetIfChanged(ref _feeToolTip, value);
+		}
+
+		public string AmountWatermarkText
+		{
+			get => _amountWaterMarkText;
+			set => this.RaiseAndSetIfChanged(ref _amountWaterMarkText, value);
+		}
+
+		public bool IsSliderFeeUsed
+		{
+			get => _isSliderFeeUsed;
+			set => this.RaiseAndSetIfChanged(ref _isSliderFeeUsed, value);
+		}
+
+		public double FeeControlOpacity
+		{
+			get => _feeControlOpacity;
+			set => this.RaiseAndSetIfChanged(ref _feeControlOpacity, value);
+		}
+
+		public bool IsCustomFee
+		{
+			get => _isCustomFee;
+			private set => this.RaiseAndSetIfChanged(ref _isCustomFee, value);
+		}
+
+		public bool IsCustomChangeAddress
+		{
+			get => _isCustomChangeAddress;
+			private set => this.RaiseAndSetIfChanged(ref _isCustomChangeAddress, value);
+		}
+
+		public ReactiveCommand<Unit, Unit> BuildTransactionCommand { get; }
+
+		public ReactiveCommand<Unit, bool> MaxCommand { get; }
+
+		public ReactiveCommand<Unit, Unit> FeeRateCommand { get; }
+
+		public ReactiveCommand<BitcoinUrlBuilder, Unit> OnAddressPasteCommand { get; }
+
+		public ReactiveCommand<KeyEventArgs, Unit> UserFeeTextKeyUpCommand { get; }
+
+		public ReactiveCommand<PointerPressedEventArgs, bool> FeeSliderClickedCommand { get; }
+
+		public ReactiveCommand<bool, Unit> HighLightFeeSliderCommand { get; }
+
+		public ReactiveCommand<KeyEventArgs, Unit> AmountKeyUpCommand { get; }
+
+		protected void ResetUi()
+		{
+			LabelSuggestion.Reset();
+			Address = "";
+			CustomChangeAddress = "";
+			Password = "";
+			AllSelectedAmount = Money.Zero;
+			IsMax = false;
+			LabelToolTip = "Who can link this transaction to you? E.g.: \"Max, BitPay\"";
+			AmountText = "0.0";
+		}
 
 		private void SetAmountWatermark(Money amount)
 		{
@@ -677,38 +859,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		public CoinListViewModel CoinList { get; }
-
-		public bool IsBusy
-		{
-			get => _isBusy;
-			set => this.RaiseAndSetIfChanged(ref _isBusy, value);
-		}
-
-		public bool IsHardwareBusy
-		{
-			get => _isHardwareBusy;
-			set => this.RaiseAndSetIfChanged(ref _isHardwareBusy, value);
-		}
-
-		public string BuildTransactionButtonText
-		{
-			get => _buildTransactionButtonText;
-			set => this.RaiseAndSetIfChanged(ref _buildTransactionButtonText, value);
-		}
-
-		public bool IsMax
-		{
-			get => _isMax;
-			set => this.RaiseAndSetIfChanged(ref _isMax, value);
-		}
-
-		public string AmountText
-		{
-			get => _amountText;
-			set => this.RaiseAndSetIfChanged(ref _amountText, value);
-		}
-
 		private bool TryParseUserFee(out decimal userFee)
 		{
 			userFee = default;
@@ -728,85 +878,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				: new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid fee."));
 		}
 
-		[ValidateMethod(nameof(ValidateUserFeeText))]
-		public string UserFeeText
-		{
-			get => _userFeeText;
-			set => this.RaiseAndSetIfChanged(ref _userFeeText, value);
-		}
-
-		public int FeeTarget
-		{
-			get => _feeTarget;
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _feeTarget, value);
-				Global.UiConfig.FeeTarget = value;
-			}
-		}
-
-		public int MinimumFeeTarget
-		{
-			get => _minimumFeeTarget;
-			set => this.RaiseAndSetIfChanged(ref _minimumFeeTarget, value);
-		}
-
-		public int MaximumFeeTarget
-		{
-			get => _maximumFeeTarget;
-			set => this.RaiseAndSetIfChanged(ref _maximumFeeTarget, value);
-		}
-
-		public bool MinMaxFeeTargetsEqual => _minMaxFeeTargetsEqual?.Value ?? false;
-
-		public string FeeText
-		{
-			get => _feeText;
-			set => this.RaiseAndSetIfChanged(ref _feeText, value);
-		}
-
-		public decimal UsdFee
-		{
-			get => _usdFee;
-			set => this.RaiseAndSetIfChanged(ref _usdFee, value);
-		}
-
-		public Money EstimatedBtcFee
-		{
-			get => _estimatedBtcFee;
-			set => this.RaiseAndSetIfChanged(ref _estimatedBtcFee, value);
-		}
-
-		public FeeRate FeeRate
-		{
-			get => _feeRate;
-			set => this.RaiseAndSetIfChanged(ref _feeRate, value);
-		}
-
-		public decimal FeePercentage
-		{
-			get => _feePercentage;
-			set => this.RaiseAndSetIfChanged(ref _feePercentage, value);
-		}
-
-		public decimal UsdExchangeRate => _usdExchangeRate?.Value ?? 0m;
-
-		public Money AllSelectedAmount
-		{
-			get => _allSelectedAmount;
-			set => this.RaiseAndSetIfChanged(ref _allSelectedAmount, value);
-		}
-
-		public bool IsWatchOnly => Wallet.KeyManager.IsWatchOnly;
-
 		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
-
-		[ValidateMethod(nameof(ValidatePassword))]
-		public string Password
-		{
-			get => _password;
-			set => this.RaiseAndSetIfChanged(ref _password, value);
-		}
 
 		public ErrorDescriptors ValidateActiveAddress()
 		{
@@ -857,78 +929,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid change address."));
 		}
-
-		[ValidateMethod(nameof(ValidateActiveAddress))]
-		public string Address
-		{
-			get => _address;
-			set => this.RaiseAndSetIfChanged(ref _address, value?.Trim());
-		}
-
-		[ValidateMethod(nameof(ValidateCustomChangeAddress))]
-		public string CustomChangeAddress
-		{
-			get => _customChangeAddress;
-			set => this.RaiseAndSetIfChanged(ref _customChangeAddress, value?.Trim());
-		}
-
-		public string LabelToolTip
-		{
-			get => _labelToolTip;
-			set => this.RaiseAndSetIfChanged(ref _labelToolTip, value);
-		}
-
-		public string FeeToolTip
-		{
-			get => _feeToolTip;
-			set => this.RaiseAndSetIfChanged(ref _feeToolTip, value);
-		}
-
-		public string AmountWatermarkText
-		{
-			get => _amountWaterMarkText;
-			set => this.RaiseAndSetIfChanged(ref _amountWaterMarkText, value);
-		}
-
-		public bool IsSliderFeeUsed
-		{
-			get => _isSliderFeeUsed;
-			set => this.RaiseAndSetIfChanged(ref _isSliderFeeUsed, value);
-		}
-
-		public double FeeControlOpacity
-		{
-			get => _feeControlOpacity;
-			set => this.RaiseAndSetIfChanged(ref _feeControlOpacity, value);
-		}
-
-		public bool IsCustomFee
-		{
-			get => _isCustomFee;
-			private set => this.RaiseAndSetIfChanged(ref _isCustomFee, value);
-		}
-
-		public bool IsCustomChangeAddress
-		{
-			get => _isCustomChangeAddress;
-			private set => this.RaiseAndSetIfChanged(ref _isCustomChangeAddress, value);
-		}
-
-		public ReactiveCommand<Unit, Unit> BuildTransactionCommand { get; }
-
-		public ReactiveCommand<Unit, bool> MaxCommand { get; }
-
-		public ReactiveCommand<Unit, Unit> FeeRateCommand { get; }
-
-		public ReactiveCommand<BitcoinUrlBuilder, Unit> OnAddressPasteCommand { get; }
-
-		public ReactiveCommand<KeyEventArgs, Unit> UserFeeTextKeyUpCommand { get; }
-
-		public ReactiveCommand<PointerPressedEventArgs, bool> FeeSliderClickedCommand { get; }
-
-		public ReactiveCommand<bool, Unit> HighLightFeeSliderCommand { get; }
-
-		public ReactiveCommand<KeyEventArgs, Unit> AmountKeyUpCommand { get; }
 
 		public override void OnOpen(CompositeDisposable disposables)
 		{
