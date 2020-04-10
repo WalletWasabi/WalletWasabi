@@ -47,7 +47,14 @@ namespace WalletWasabi.Gui.Controls
 			maskedButton.WhenAnyValue(x => x.IsPressed)
 				.Where(x => x)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => IsPasswordVisible = !IsPasswordVisible);
+				.Subscribe(_ =>
+				{
+					IsPasswordVisible = !IsPasswordVisible;
+
+					// Refresh the already opened tooltip immediately.
+					ToolTip.SetIsOpen(maskedButton, false);
+					ToolTip.SetIsOpen(maskedButton, true);
+				});
 		}
 	}
 }
