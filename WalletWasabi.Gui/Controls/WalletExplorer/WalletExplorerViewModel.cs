@@ -107,6 +107,36 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(x => shell.AddOrSelectDocument(x));
 		}
 
+		public override Location DefaultLocation => Location.Right;
+
+		public bool IsLurkingWifeMode => _isLurkingWifeMode?.Value ?? false;
+
+		private WalletManager WalletManager { get; }
+
+		private UiConfig UiConfig { get; }
+
+		public ObservableCollection<WalletViewModelBase> Wallets
+		{
+			get => _wallets;
+			set => this.RaiseAndSetIfChanged(ref _wallets, value);
+		}
+
+		public ViewModelBase SelectedItem
+		{
+			get => _selectedItem;
+			set => this.RaiseAndSetIfChanged(ref _selectedItem, value);
+		}
+
+		public bool AnyWalletStarted
+		{
+			get => _anyWalletStarted;
+			set => this.RaiseAndSetIfChanged(ref _anyWalletStarted, value);
+		}
+
+		public ReactiveCommand<Unit, Unit> CollapseAllCommand { get; }
+
+		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
+
 		private void OnShellDocumentSelected(ViewModelBase document)
 		{
 			_inSelecting = true;
@@ -139,36 +169,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				wallet.IsExpanded = false;
 			}
 		}
-
-		public override Location DefaultLocation => Location.Right;
-
-		public bool IsLurkingWifeMode => _isLurkingWifeMode?.Value ?? false;
-
-		private WalletManager WalletManager { get; }
-
-		private UiConfig UiConfig { get; }
-
-		public ObservableCollection<WalletViewModelBase> Wallets
-		{
-			get => _wallets;
-			set => this.RaiseAndSetIfChanged(ref _wallets, value);
-		}
-
-		public ViewModelBase SelectedItem
-		{
-			get => _selectedItem;
-			set => this.RaiseAndSetIfChanged(ref _selectedItem, value);
-		}
-
-		public bool AnyWalletStarted
-		{
-			get => _anyWalletStarted;
-			set => this.RaiseAndSetIfChanged(ref _anyWalletStarted, value);
-		}
-
-		public ReactiveCommand<Unit, Unit> CollapseAllCommand { get; }
-
-		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
 
 		private void InsertWallet(WalletViewModelBase walletVM)
 		{
