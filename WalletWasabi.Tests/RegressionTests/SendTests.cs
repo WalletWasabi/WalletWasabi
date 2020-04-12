@@ -429,7 +429,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 				// covers:
 				// disallow unconfirmed with allowed inputs
-				res = wallet.BuildTransaction(password, toSend, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, false, allowedInputs: allowedInputs);
+				res = wallet.BuildTransaction(password, toSend, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, null, false, allowedInputs: allowedInputs);
 
 				activeOutput = res.InnerWalletOutputs.Single(x => x.ScriptPubKey == receive);
 				Assert.Single(res.InnerWalletOutputs);

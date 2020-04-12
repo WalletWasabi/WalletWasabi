@@ -3,6 +3,8 @@ using NBitcoin.Policy;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -11,19 +13,21 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Blockchain.Transactions
 {
 	public class TransactionFactory
 	{
 		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
-		public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, string password = "", bool allowUnconfirmed = false)
+		public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, IPayjoinClient payJoinClient, string password = "", bool allowUnconfirmed = false)
 		{
 			Network = network;
 			KeyManager = keyManager;
 			Coins = coins;
 			Password = password;
 			AllowUnconfirmed = allowUnconfirmed;
+			PayjoinClient = payJoinClient;
 		}
 
 		public Network Network { get; }
@@ -31,6 +35,7 @@ namespace WalletWasabi.Blockchain.Transactions
 		public ICoinsView Coins { get; }
 		public string Password { get; }
 		public bool AllowUnconfirmed { get; }
+		public IPayjoinClient PayjoinClient { get; }
 
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
@@ -220,6 +225,18 @@ namespace WalletWasabi.Blockchain.Transactions
 				builder = builder.AddKeys(signingKeys.ToArray());
 				builder.SetLockTime(lockTimeSelector());
 				builder.SignPSBT(psbt);
+
+				if (KeyManager.MasterFingerprint is HDFingerprint fp)
+				{
+					foreach (var coin in spentCoins)
+					{
+						var rootKeyPath = new RootedKeyPath(fp, coin.HdPubKey.FullKeyPath);
+						psbt.AddKeyPath(coin.HdPubKey.PubKey, rootKeyPath, coin.ScriptPubKey);
+					}
+				}
+
+				psbt = PayjoinClient.RequestPayjoin(psbt, KeyManager.ExtPubKey, new RootedKeyPath(KeyManager.MasterFingerprint.Value, KeyManager.DefaultAccountKeyPath), CancellationToken.None).GetAwaiter().GetResult();
+				builder.SignPSBT(psbt);
 				psbt.Finalize();
 				tx = psbt.ExtractTransaction();
 
@@ -240,15 +257,6 @@ namespace WalletWasabi.Blockchain.Transactions
 				if (checkResults.Count > 0)
 				{
 					throw new InvalidTxException(tx, checkResults);
-				}
-			}
-
-			if (KeyManager.MasterFingerprint is HDFingerprint fp)
-			{
-				foreach (var coin in spentCoins)
-				{
-					var rootKeyPath = new RootedKeyPath(fp, coin.HdPubKey.FullKeyPath);
-					psbt.AddKeyPath(coin.HdPubKey.PubKey, rootKeyPath, coin.ScriptPubKey);
 				}
 			}
 

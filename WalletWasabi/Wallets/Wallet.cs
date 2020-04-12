@@ -31,6 +31,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
+using WalletWasabi.WebClients.PayJoin;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Wallets
@@ -216,10 +217,11 @@ namespace WalletWasabi.Wallets
 			string password,
 			PaymentIntent payments,
 			FeeStrategy feeStrategy,
+			IPayjoinClient payjoinClient = null,
 			bool allowUnconfirmed = false,
 			IEnumerable<OutPoint> allowedInputs = null)
 		{
-			var builder = new TransactionFactory(Network, KeyManager, Coins, password, allowUnconfirmed);
+			var builder = new TransactionFactory(Network, KeyManager, Coins, payjoinClient ?? new NullPayjoinClient(), password, allowUnconfirmed);
 			return builder.BuildTransaction(
 				payments,
 				() =>

@@ -38,6 +38,7 @@ using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
+using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -74,6 +75,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private FeeDisplayFormat _feeDisplayFormat;
 		private bool _isSliderFeeUsed = true;
 		private double _feeControlOpacity;
+		private Uri _payjoinEndPoint;
 
 		protected SendControlViewModel(Wallet wallet, string title)
 			: base(title)
@@ -216,6 +218,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					AmountText = url.Amount.ToString(false, true);
 				}
+
+				if (url.UnknowParameters.TryGetValue("bpu", out var endPoint))
+				{
+					PayjoinEndPoint = new Uri(endPoint);
+				}
+				else
+				{
+					PayjoinEndPoint = null;
+				}
 			});
 
 			BuildTransactionCommand = ReactiveCommand.CreateFromTask(async () =>
@@ -352,7 +363,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 					}
 
-					BuildTransactionResult result = await Task.Run(() => Wallet.BuildTransaction(Password, intent, feeStrategy, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
+					IPayjoinClient payjoinClient = PayjoinEndPoint is {} ? (IPayjoinClient)new PayjoinClient(PayjoinEndPoint, Global.TorManager.TorSocks5EndPoint) : new NullPayjoinClient();
+					BuildTransactionResult result = await Task.Run(() => Wallet.BuildTransaction(Password, intent, feeStrategy, payjoinClient, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
 
 					await DoAfterBuildTransaction(result);
 				}
@@ -601,6 +613,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _isCustomChangeAddress;
 			private set => this.RaiseAndSetIfChanged(ref _isCustomChangeAddress, value);
+		}
+
+		public Uri PayjoinEndPoint
+		{
+			get => _payjoinEndPoint;
+			set => this.RaiseAndSetIfChanged(ref _payjoinEndPoint, value);
 		}
 
 		public ReactiveCommand<Unit, Unit> BuildTransactionCommand { get; }
@@ -897,7 +915,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return ErrorDescriptors.Empty;
 			}
 
-			if (AddressStringParser.TryParseBitcoinUrl(Address, Global.Network, out _))
+			if (AddressStringParser.TryParseBitcoinUrl(Address, Global.Network, out var url))
 			{
 				return ErrorDescriptors.Empty;
 			}
