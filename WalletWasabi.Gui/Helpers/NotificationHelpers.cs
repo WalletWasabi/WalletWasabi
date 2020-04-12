@@ -3,6 +3,8 @@ using ReactiveUI;
 using Splat;
 using System;
 using System.Reactive.Concurrency;
+using WalletWasabi.Gui.Controls.WalletExplorer;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Helpers
 {
@@ -15,39 +17,40 @@ namespace WalletWasabi.Gui.Helpers
 			return Locator.Current.GetService<INotificationManager>() ?? NullNotificationManager;
 		}
 
-		public static void Notify(string message, string title, NotificationType type, Action onClick = null)
+		public static void Notify(string message, string title, NotificationType type, Action onClick = null, object sender = null)
 		{
+			if (sender is Wallet wallet)
+			{
+				title = $"{title} - {wallet.WalletName}";
+			}
+			else if (sender is WalletViewModelBase walletViewModelBase)
+			{
+				title = $"{title} - {walletViewModelBase.WalletName}";
+			}
+
 			RxApp.MainThreadScheduler
 				.Schedule(() => GetNotificationManager()
 				.Show(new Notification(title, message, type, TimeSpan.FromSeconds(7), onClick)));
 		}
 
-		public static void Success(string message, string title = "Success!")
+		public static void Success(string message, string title = "Success!", object sender = null)
 		{
-			RxApp.MainThreadScheduler
-				.Schedule(() => GetNotificationManager()
-				.Show(new Notification(title, message, NotificationType.Success, TimeSpan.FromSeconds(7))));
+			Notify(message, title, NotificationType.Success, sender: sender);
 		}
 
-		public static void Information(string message, string title = "Info")
+		public static void Information(string message, string title = "Info", object sender = null)
 		{
-			RxApp.MainThreadScheduler
-				.Schedule(() => GetNotificationManager()
-				.Show(new Notification(title, message, NotificationType.Information, TimeSpan.FromSeconds(7))));
+			Notify(message, title, NotificationType.Information, sender: sender);
 		}
 
-		public static void Warning(string message, string title = "Warning!")
+		public static void Warning(string message, string title = "Warning!", object sender = null)
 		{
-			RxApp.MainThreadScheduler
-				.Schedule(() => GetNotificationManager()
-				.Show(new Notification(title, message, NotificationType.Warning, TimeSpan.FromSeconds(7))));
+			Notify(message, title, NotificationType.Warning, sender: sender);
 		}
 
-		public static void Error(string message, string title = "Error!")
+		public static void Error(string message, string title = "Error!", object sender = null)
 		{
-			RxApp.MainThreadScheduler
-				.Schedule(() => GetNotificationManager()
-				.Show(new Notification(title, message, NotificationType.Error, TimeSpan.FromSeconds(7))));
+			Notify(message, title, NotificationType.Error, sender: sender);
 		}
 	}
 }

@@ -229,7 +229,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					LabelSuggestion.Label = label;
 					if (!IsMax && label.IsEmpty)
 					{
-						NotificationHelpers.Warning("Observers are required.", "");
+						NotificationHelpers.Warning("Observers are required.", "", sender: Wallet);
 						return;
 					}
 
@@ -238,7 +238,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					if (!selectedCoinReferences.Any())
 					{
-						NotificationHelpers.Warning("No coins are selected to spend.", "");
+						NotificationHelpers.Warning("No coins are selected to spend.", "", sender: Wallet);
 						return;
 					}
 
@@ -249,7 +249,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					catch (FormatException)
 					{
-						NotificationHelpers.Warning("Invalid address.", "");
+						NotificationHelpers.Warning("Invalid address.", "", sender: Wallet);
 						return;
 					}
 
@@ -263,7 +263,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 							if (customChangeAddress == address)
 							{
-								NotificationHelpers.Warning("The active address and the change address cannot be the same.", "");
+								NotificationHelpers.Warning("The active address and the change address cannot be the same.", "", sender: Wallet);
 								return;
 							}
 
@@ -271,7 +271,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 						catch (FormatException)
 						{
-							NotificationHelpers.Warning("Invalid custom change address.", "");
+							NotificationHelpers.Warning("Invalid custom change address.", "", sender: Wallet);
 							return;
 						}
 					}
@@ -285,13 +285,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						if (!Money.TryParse(AmountText, out Money amount) || amount == Money.Zero)
 						{
-							NotificationHelpers.Warning("Invalid amount.");
+							NotificationHelpers.Warning("Invalid amount.", sender: Wallet);
 							return;
 						}
 
 						if (amount == selectedCoinViewModels.Sum(x => x.Amount))
 						{
-							NotificationHelpers.Warning("Looks like you want to spend whole coins. Try Max button instead.", "");
+							NotificationHelpers.Warning("Looks like you want to spend whole coins. Try Max button instead.", "", sender: Wallet);
 							return;
 						}
 						moneyRequest = MoneyRequest.Create(amount, subtractFee: false);
@@ -299,7 +299,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					if (FeeRate is null || FeeRate.SatoshiPerByte < 1)
 					{
-						NotificationHelpers.Warning("Invalid fee rate.", "");
+						NotificationHelpers.Warning("Invalid fee rate.", "", sender: Wallet);
 						return;
 					}
 
@@ -320,7 +320,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					catch
 					{
-						NotificationHelpers.Error("Cannot spend mixing coins.", "");
+						NotificationHelpers.Error("Cannot spend mixing coins.", "", sender: Wallet);
 						return;
 					}
 					finally
@@ -336,18 +336,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							if (compatiblityPasswordUsed != null)
 							{
 								Password = compatiblityPasswordUsed; // Overwrite the password for BuildTransaction function.
-								NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
+								NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage, sender: Wallet);
 							}
 						}
 						catch (SecurityException ex)
 						{
-							NotificationHelpers.Error(ex.Message, "");
+							NotificationHelpers.Error(ex.Message, "", sender: Wallet);
 							return;
 						}
 						catch (Exception ex)
 						{
 							Logger.LogError(ex);
-							NotificationHelpers.Error(ex.ToUserFriendlyString());
+							NotificationHelpers.Error(ex.ToUserFriendlyString(), sender: Wallet);
 							return;
 						}
 					}
@@ -359,16 +359,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				catch (InsufficientBalanceException ex)
 				{
 					Money needed = ex.Minimum - ex.Actual;
-					NotificationHelpers.Error($"Not enough coins selected. You need an estimated {needed.ToString(false, true)} BTC more to make this transaction.", "");
+					NotificationHelpers.Error($"Not enough coins selected. You need an estimated {needed.ToString(false, true)} BTC more to make this transaction.", "", sender: Wallet);
 				}
 				catch (HttpRequestException ex)
 				{
-					NotificationHelpers.Error(ex.ToUserFriendlyString());
+					NotificationHelpers.Error(ex.ToUserFriendlyString(), sender: Wallet);
 					Logger.LogError(ex);
 				}
 				catch (Exception ex)
 				{
-					NotificationHelpers.Error(ex.ToUserFriendlyString());
+					NotificationHelpers.Error(ex.ToUserFriendlyString(), sender: Wallet);
 					Logger.LogError(ex);
 				}
 				finally
@@ -411,14 +411,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
 				{
-					NotificationHelpers.Error(ex.ToUserFriendlyString());
+					NotificationHelpers.Error(ex.ToUserFriendlyString(), sender: Wallet);
 					Logger.LogError(ex);
 				});
 		}
 
 		protected Global Global { get; }
 
-		private Wallet Wallet { get; }
+		public Wallet Wallet { get; }
 
 		Wallet IWalletViewModel.Wallet => Wallet;
 

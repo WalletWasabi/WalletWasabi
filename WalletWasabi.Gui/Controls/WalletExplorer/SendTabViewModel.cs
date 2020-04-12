@@ -17,13 +17,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		public SendTabViewModel(Wallet wallet) : base(wallet, "Send")
 		{
-			Wallet = wallet;
 		}
 
 		public override string DoButtonText => "Send Transaction";
 		public override string DoingButtonText => "Sending Transaction...";
-
-		private Wallet Wallet { get; }
 
 		protected override async Task DoAfterBuildTransaction(BuildTransactionResult result)
 		{
@@ -53,7 +50,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				catch (Exception ex)
 				{
-					NotificationHelpers.Error(ex.ToUserFriendlyString());
+					NotificationHelpers.Error(ex.ToUserFriendlyString(), sender: Wallet);
 					return;
 				}
 				finally

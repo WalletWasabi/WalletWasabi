@@ -40,7 +40,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(ex =>
 				{
 					Logger.LogError(ex);
-					NotificationHelpers.Error(ex.ToUserFriendlyString());
+					NotificationHelpers.Error(ex.ToUserFriendlyString(), sender: wallet);
 				});
 		}
 
