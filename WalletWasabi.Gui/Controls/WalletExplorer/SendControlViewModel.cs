@@ -184,6 +184,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						SetFeesAndTexts();
 
 						LabelToolTip = "Spending whole coins does not generate change, thus labeling is unnecessary.";
+
+						CustomChangeAddress = "";
 					}
 					else
 					{
