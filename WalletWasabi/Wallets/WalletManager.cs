@@ -337,17 +337,9 @@ namespace WalletWasabi.Wallets
 
 			using (await StartStopWalletLock.LockAsync(cancel).ConfigureAwait(false))
 			{
-				List<Wallet> walletsListClone;
-				lock (Lock)
+				foreach (var wallet in GetWallets())
 				{
-					walletsListClone = Wallets.Keys.ToList();
-				}
-				foreach (var wallet in walletsListClone)
-				{
-					if (cancel.IsCancellationRequested)
-					{
-						return;
-					}
+					cancel.ThrowIfCancellationRequested();
 
 					wallet.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
 					wallet.OnDequeue -= ChaumianClient_OnDequeue;
@@ -363,13 +355,16 @@ namespace WalletWasabi.Wallets
 
 					try
 					{
-						var keyManager = wallet.KeyManager;
-						string backupWalletFilePath = WalletDirectories.GetWalletFilePaths(Path.GetFileName(keyManager.FilePath)).walletBackupFilePath;
-						keyManager.ToFile(backupWalletFilePath);
-						Logger.LogInfo($"{nameof(wallet.KeyManager)} backup saved to `{backupWalletFilePath}`.");
-						await wallet.StopAsync(cancel).ConfigureAwait(false);
+						if (wallet.State >= WalletState.Initialized)
+						{
+							var keyManager = wallet.KeyManager;
+							string backupWalletFilePath = WalletDirectories.GetWalletFilePaths(Path.GetFileName(keyManager.FilePath)).walletBackupFilePath;
+							keyManager.ToFile(backupWalletFilePath);
+							Logger.LogInfo($"{nameof(wallet.KeyManager)} backup saved to `{backupWalletFilePath}`.");
+							await wallet.StopAsync(cancel).ConfigureAwait(false);
+							Logger.LogInfo($"{nameof(Wallet)} is stopped.");
+						}
 						wallet?.Dispose();
-						Logger.LogInfo($"{nameof(Wallet)} is stopped.");
 					}
 					catch (Exception ex)
 					{
@@ -442,7 +437,7 @@ namespace WalletWasabi.Wallets
 			Nodes = nodes;
 			ServiceConfiguration = serviceConfiguration;
 			FeeProvider = feeProvider;
-			BlockProvider = blockProvider; 
+			BlockProvider = blockProvider;
 
 			foreach (var wallet in GetWallets().Where(w => w.State == WalletState.WaitingForInit))
 			{
