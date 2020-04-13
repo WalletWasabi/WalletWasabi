@@ -40,6 +40,15 @@ namespace WalletWasabi.Gui.Shell.Commands
 				.Subscribe(ex => Logger.LogError(ex));
 		}
 
+		[ExportCommandDefinition("File.GenerateWallet")]
+		public CommandDefinition GenerateWalletCommand { get; }
+
+		[ExportCommandDefinition("File.RecoverWallet")]
+		public CommandDefinition RecoverWalletCommand { get; }
+
+		[ExportCommandDefinition("File.LoadWallet")]
+		public CommandDefinition LoadWallet { get; }
+
 		private void OnGenerateWallet()
 		{
 			IoC.Get<IShell>().GetOrCreateByType<WalletManagerViewModel>().SelectGenerateWallet();
@@ -54,14 +63,5 @@ namespace WalletWasabi.Gui.Shell.Commands
 		{
 			IoC.Get<IShell>().GetOrCreateByType<WalletManagerViewModel>().SelectLoadWallet();
 		}
-
-		[ExportCommandDefinition("File.GenerateWallet")]
-		public CommandDefinition GenerateWalletCommand { get; }
-
-		[ExportCommandDefinition("File.RecoverWallet")]
-		public CommandDefinition RecoverWalletCommand { get; }
-
-		[ExportCommandDefinition("File.LoadWallet")]
-		public CommandDefinition LoadWallet { get; }
 	}
 }
