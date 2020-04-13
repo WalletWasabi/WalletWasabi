@@ -11,16 +11,8 @@ namespace WalletWasabi.Gui.Controls
 {
 	public class TogglePasswordBox : ExtendedTextBox, IStyleable
 	{
-		Type IStyleable.StyleKey => typeof(TogglePasswordBox);
-
 		public static readonly StyledProperty<bool> IsPasswordVisibleProperty =
 			AvaloniaProperty.Register<TogglePasswordBox, bool>(nameof(IsPasswordVisible), defaultBindingMode: BindingMode.TwoWay);
-
-		public bool IsPasswordVisible
-		{
-			get => GetValue(IsPasswordVisibleProperty);
-			set => SetValue(IsPasswordVisibleProperty, value);
-		}
 
 		public TogglePasswordBox()
 		{
@@ -35,6 +27,14 @@ namespace WalletWasabi.Gui.Controls
 			this.WhenAnyValue(x => x.IsPasswordVisible)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => PasswordChar = x ? '\0' : '\u2022');
+		}
+
+		Type IStyleable.StyleKey => typeof(TogglePasswordBox);
+
+		public bool IsPasswordVisible
+		{
+			get => GetValue(IsPasswordVisibleProperty);
+			set => SetValue(IsPasswordVisibleProperty, value);
 		}
 
 		protected override bool IsCopyEnabled => false;
