@@ -15,14 +15,13 @@ namespace WalletWasabi.Gui.Rpc
 {
 	public partial class WasabiJsonRpcService
 	{
-		private Global Global { get; }
-		private Wallet ActiveWallet { get; set; }
-
-
 		public WasabiJsonRpcService(Global global)
 		{
 			Global = global;
 		}
+
+		private Global Global { get; }
+		private Wallet ActiveWallet { get; set; }
 
 		[JsonRpcMethod("listunspentcoins")]
 		public object[] GetUnspentCoinList()

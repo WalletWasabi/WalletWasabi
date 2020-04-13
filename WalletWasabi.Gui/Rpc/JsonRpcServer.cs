@@ -12,10 +12,6 @@ namespace WalletWasabi.Gui.Rpc
 {
 	public class JsonRpcServer : BackgroundService
 	{
-		private HttpListener Listener { get; }
-		private WasabiJsonRpcService Service { get; }
-		private JsonRpcServerConfiguration Config { get; }
-
 		public JsonRpcServer(Global global, JsonRpcServerConfiguration config)
 		{
 			Config = config;
@@ -27,6 +23,10 @@ namespace WalletWasabi.Gui.Rpc
 			}
 			Service = new WasabiJsonRpcService(global);
 		}
+
+		private HttpListener Listener { get; }
+		private WasabiJsonRpcService Service { get; }
+		private JsonRpcServerConfiguration Config { get; }
 
 		public override async Task StartAsync(CancellationToken cancellationToken)
 		{
