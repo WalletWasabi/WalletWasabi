@@ -346,7 +346,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				if (!coins.Any())
 				{
-					NotificationHelpers.Warning("No coins are selected.", "", sender: Wallet);
+					NotificationHelpers.Warning("No coins are selected.", "");
 					return;
 				}
 				try
@@ -356,14 +356,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					if (compatiblityPassword != null)
 					{
 						Password = compatiblityPassword;
-						NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage, sender: Wallet);
+						NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
 					}
 
 					await Wallet.ChaumianClient.QueueCoinsToMixAsync(Password, coins.ToArray());
 				}
 				catch (SecurityException ex)
 				{
-					NotificationHelpers.Error(ex.Message, "", sender: Wallet);
+					NotificationHelpers.Error(ex.Message, "");
 				}
 				catch (Exception ex)
 				{
@@ -375,7 +375,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							builder.Append(Environment.NewLine + iex.ToTypeMessageString());
 						}
 					}
-					NotificationHelpers.Error(builder.ToString(), sender: Wallet);
+					NotificationHelpers.Error(builder.ToString());
 					Logger.LogError(ex);
 				}
 

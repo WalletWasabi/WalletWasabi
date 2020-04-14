@@ -88,7 +88,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
 
-		public Wallet Wallet { get; }
+		private Wallet Wallet { get; }
 
 		Wallet IWalletViewModel.Wallet => Wallet;
 
