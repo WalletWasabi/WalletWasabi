@@ -3,6 +3,7 @@ using NBitcoin.Policy;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -233,10 +234,32 @@ namespace WalletWasabi.Blockchain.Transactions
 						var rootKeyPath = new RootedKeyPath(fp, coin.HdPubKey.FullKeyPath);
 						psbt.AddKeyPath(coin.HdPubKey.PubKey, rootKeyPath, coin.ScriptPubKey);
 					}
+					if (changeHdPubKey is {})
+					{
+						var rootKeyPath = new RootedKeyPath(fp, changeHdPubKey.FullKeyPath);
+						psbt.AddKeyPath(changeHdPubKey.PubKey, rootKeyPath, changeHdPubKey.P2wpkhScript);
+
+					}
 				}
 
-				psbt = PayjoinClient.RequestPayjoin(psbt, KeyManager.ExtPubKey, new RootedKeyPath(KeyManager.MasterFingerprint.Value, KeyManager.DefaultAccountKeyPath), CancellationToken.None).GetAwaiter().GetResult();
-				builder.SignPSBT(psbt);
+				// Try to pay using payjoin
+				try
+				{
+					psbt = PayjoinClient.RequestPayjoin(psbt, 
+						KeyManager.ExtPubKey, 
+						new RootedKeyPath(KeyManager.MasterFingerprint.Value, KeyManager.DefaultAccountKeyPath), 
+						CancellationToken.None).GetAwaiter().GetResult();
+					builder.SignPSBT(psbt);
+				}
+				catch (HttpRequestException e)
+				{
+					Logger.LogWarning($"Payjoin server responded with {e.ToTypeMessageString()}. Ignoring...");
+				}
+				catch (PayjoinException e)
+				{
+					Logger.LogWarning($"Payjoin server responded with {e.Message}. Ignoring...");
+				}
+
 				psbt.Finalize();
 				tx = psbt.ExtractTransaction();
 

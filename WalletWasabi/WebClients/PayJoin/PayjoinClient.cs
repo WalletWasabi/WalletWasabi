@@ -29,8 +29,8 @@ namespace WalletWasabi.WebClients.PayJoin
 			HttpClient = Guard.NotNull(nameof(httpClient), httpClient);
 		}
 
+		public Uri PaymentUrl { get; }
 		private EndPoint TorSocks5EndPoint { get; }
-		private Uri PaymentUrl { get; }
 		private ITorHttpClient HttpClient { get; }
 
 		public async Task<PSBT> RequestPayjoin(PSBT originalTx, IHDKey accountKey, RootedKeyPath rootedKeyPath, CancellationToken cancellationToken)
@@ -87,10 +87,6 @@ namespace WalletWasabi.WebClients.PayJoin
 			var hexOrBase64 = await bpuResponse.Content.ReadAsStringAsync();
 			var newPSBT = PSBT.Parse(hexOrBase64, originalTx.Network);
 
-			if (newPSBT.CheckSanity() is IList<PSBTError> errors2 && errors2.Count != 0)
-			{
-				throw new PayjoinSenderException($"The PSBT of the receiver is insane ({errors2[0]})");
-			}
 
 			// Checking that the PSBT of the receiver is clean
 			if (newPSBT.GlobalXPubs.Any())
@@ -102,6 +98,29 @@ namespace WalletWasabi.WebClients.PayJoin
 			{
 				throw new PayjoinSenderException("Keypath information should not be included in the receiver's PSBT");
 			}
+			////////////
+
+			if (newPSBT.CheckSanity() is IList<PSBTError> errors2 && errors2.Count != 0)
+			{
+				throw new PayjoinSenderException($"The PSBT of the receiver is insane ({errors2[0]})");
+			}
+
+			// Do not trust on inputs order because the payjoin server should shuffle them.
+			foreach (var input in originalTx.Inputs)
+			{
+				var newInput = newPSBT.Inputs.FindIndexedInput(input.PrevOut);
+				if (newInput is { })
+				{
+					newInput.UpdateFrom(input);
+					newInput.PartialSigs.Clear();
+				}
+			}
+			
+			// We make sure we don't sign things what should not be signed
+			foreach (var finalized in newPSBT.Inputs.Where(i => i.IsFinalized()))
+			{
+				finalized.ClearForFinalize();
+			}
 
 			// We make sure we don't sign things what should not be signed
 			foreach (var output in newPSBT.Outputs)
@@ -110,7 +129,7 @@ namespace WalletWasabi.WebClients.PayJoin
 				foreach (var originalOutput in originalTx.Outputs)
 				{
 					if (output.ScriptPubKey == originalOutput.ScriptPubKey)
-						output.UpdateFromCoin(originalOutput.GetCoin());
+						output.UpdateFrom(originalOutput);
 				}
 			}
 
@@ -119,16 +138,6 @@ namespace WalletWasabi.WebClients.PayJoin
 				throw new PayjoinSenderException("The version field of the transaction has been modified");
 			if (newGlobalTx.LockTime != oldGlobalTx.LockTime)
 				throw new PayjoinSenderException("The LockTime field of the transaction has been modified");
-
-			// Do not trust on inputs order because the payjoin server should shuffle them.
-			foreach (var input in originalTx.Inputs)
-			{
-				var newInput = newPSBT.Inputs.FindIndexedInput(input.PrevOut);
-				foreach (var keyPath in input.HDKeyPaths)
-				{
-					newInput.HDKeyPaths.Add(keyPath.Key, keyPath.Value);
-				}
-			}
 
 			// Making sure that our inputs are finalized, and that some of our inputs have not been added
 			int ourInputCount = 0;
@@ -185,21 +194,22 @@ namespace WalletWasabi.WebClients.PayJoin
 			
 			if (sentAfter > sentBefore)
 			{
+				var overPaying = sentAfter - sentBefore;
 				if (!newPSBT.TryGetEstimatedFeeRate(out var newFeeRate) || !newPSBT.TryGetVirtualSize(out var newVirtualSize))
 					throw new PayjoinSenderException("The payjoin receiver did not included UTXO information to calculate fee correctly");
+				var additionalFee = newPSBT.GetFee() - originalFee;
+				if (overPaying > additionalFee)
+					throw new PayjoinSenderException("The payjoin receiver is sending more money to himself");
+				if (overPaying > originalFee)
+					throw new PayjoinSenderException("The payjoin receiver is making us pay more than twice the original fee");
+
 				// Let's check the difference is only for the fee and that feerate
 				// did not changed that much
 				var expectedFee = originalFeeRate.GetFee(newVirtualSize);
 				// Signing precisely is hard science, give some breathing room for error.
-				expectedFee += newPSBT.Inputs.Count * Money.Satoshis(2);
-
-				// If the payjoin is removing some dust, we may pay a bit more as a whole output has been removed
-				var removedOutputs = Math.Max(0, originalTx.Outputs.Count - newPSBT.Outputs.Count);
-				expectedFee += removedOutputs * originalFeeRate.GetFee(294);
-
-				var actualFee = newFeeRate.GetFee(newVirtualSize);
-				if (actualFee > expectedFee && actualFee - expectedFee > Money.Satoshis(546))
-					throw new PayjoinSenderException("The payjoin receiver is paying too much fee");
+				expectedFee += originalFeeRate.GetFee(newPSBT.Inputs.Count * 2);
+				if (overPaying > (expectedFee - originalFee))
+					throw new PayjoinSenderException("The payjoin receiver increased the fee rate we are paying too much");
 			}
 
 			return newPSBT;
