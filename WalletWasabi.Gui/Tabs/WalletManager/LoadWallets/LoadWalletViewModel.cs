@@ -156,10 +156,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 				{
 					if (PasswordHelper.TryPassword(keyManager, password, out string compatibilityPasswordUsed))
 					{
-						NotificationHelpers.Success("Correct password.", sender: selectedWallet);
+						NotificationHelpers.Success("Correct password.");
 						if (compatibilityPasswordUsed != null)
 						{
-							NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage, sender: selectedWallet);
+							NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
 						}
 
 						keyManager.SetPasswordVerified();

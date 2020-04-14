@@ -50,7 +50,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				catch (Exception ex)
 				{
-					NotificationHelpers.Error(ex.ToUserFriendlyString(), sender: Wallet);
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
 					return;
 				}
 				finally

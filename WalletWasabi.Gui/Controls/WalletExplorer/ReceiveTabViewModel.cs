@@ -42,7 +42,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				LabelSuggestion.Label = label;
 				if (label.IsEmpty)
 				{
-					NotificationHelpers.Warning("Observers are required.", sender: Wallet);
+					NotificationHelpers.Warning("Observers are required.");
 					return;
 				}
 
@@ -53,7 +53,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						int minGapLimit = Wallet.KeyManager.MinGapLimit.Value;
 						int prevMinGapLimit = minGapLimit - 1;
-						NotificationHelpers.Warning($"{nameof(KeyManager.MinGapLimit)} increased from {prevMinGapLimit} to {minGapLimit}.", sender: Wallet);
+						NotificationHelpers.Warning($"{nameof(KeyManager.MinGapLimit)} increased from {prevMinGapLimit} to {minGapLimit}.");
 					}
 
 					var newAddress = new AddressViewModel(newKey, Wallet.KeyManager, this);
@@ -80,7 +80,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(ex =>
 				{
 					Logger.LogError(ex);
-					NotificationHelpers.Error(ex.ToUserFriendlyString(), sender: Wallet);
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
 				});
 		}
 

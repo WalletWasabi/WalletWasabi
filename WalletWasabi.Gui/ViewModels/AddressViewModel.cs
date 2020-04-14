@@ -149,7 +149,7 @@ namespace WalletWasabi.Gui.ViewModels
 				.Subscribe(ex =>
 				{
 					Logger.LogError(ex);
-					NotificationHelpers.Error(ex.ToUserFriendlyString(), sender: owner.Wallet);
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
 				});
 		}
 

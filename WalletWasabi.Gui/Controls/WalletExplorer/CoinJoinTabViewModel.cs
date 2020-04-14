@@ -318,7 +318,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				if (!coins.Any())
 				{
-					NotificationHelpers.Warning("No coins are selected.", "", sender: Wallet);
+					NotificationHelpers.Warning("No coins are selected.", "");
 					return;
 				}
 

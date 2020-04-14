@@ -47,7 +47,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 						if (isCompatibilityPasswordUsed != null)
 						{
-							NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage, sender: Wallet);
+							NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
 						}
 
 						string master = secret.GetWif(Global.Network).ToWif();
@@ -62,7 +62,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
 				{
-					NotificationHelpers.Error(ex.ToUserFriendlyString(), sender: wallet);
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
 					Logger.LogError(ex);
 				});
 		}
