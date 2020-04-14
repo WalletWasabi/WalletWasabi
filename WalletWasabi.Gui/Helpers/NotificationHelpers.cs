@@ -28,7 +28,9 @@ namespace WalletWasabi.Gui.Helpers
 				_ => ""
 			};
 
-			title = $"{(string.IsNullOrEmpty(title) ? "" : $"{title} - ")}{walletname}".Substring(0, MaxTitleLength);
+			title = $"{(string.IsNullOrEmpty(title) ? "" : $"{title} - ")}{walletname}";
+
+			title = title.Substring(0, Math.Min(title.Length, MaxTitleLength));
 
 			RxApp.MainThreadScheduler
 				.Schedule(() => GetNotificationManager()
