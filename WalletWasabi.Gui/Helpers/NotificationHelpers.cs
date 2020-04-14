@@ -10,6 +10,8 @@ namespace WalletWasabi.Gui.Helpers
 {
 	public static class NotificationHelpers
 	{
+		private const int MaxTitleLength = 50;
+		private const int DefaultNotificationTimeout = 7;
 		private static INotificationManager NullNotificationManager { get; } = new NullNotificationManager();
 
 		public static INotificationManager GetNotificationManager()
@@ -19,18 +21,18 @@ namespace WalletWasabi.Gui.Helpers
 
 		public static void Notify(string message, string title, NotificationType type, Action onClick = null, object sender = null)
 		{
-			if (sender is Wallet wallet)
+			string walletname = sender switch
 			{
-				title = $"{title} - {wallet.WalletName}";
-			}
-			else if (sender is WalletViewModelBase walletViewModelBase)
-			{
-				title = $"{title} - {walletViewModelBase.WalletName}";
-			}
+				Wallet wallet => wallet.WalletName,
+				WalletViewModelBase walletViewModelBase => walletViewModelBase.WalletName,
+				_ => ""
+			};
+
+			title = $"{(string.IsNullOrEmpty(title) ? "" : $"{title} - ")}{walletname}".Substring(0, MaxTitleLength);
 
 			RxApp.MainThreadScheduler
 				.Schedule(() => GetNotificationManager()
-				.Show(new Notification(title, message, type, TimeSpan.FromSeconds(7), onClick)));
+				.Show(new Notification(title, message, type, TimeSpan.FromSeconds(DefaultNotificationTimeout), onClick)));
 		}
 
 		public static void Success(string message, string title = "Success!", object sender = null)
