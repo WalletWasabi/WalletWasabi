@@ -88,8 +88,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _showSensitiveKeys, value);
 		}
 
-		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
-
 		[ValidateMethod(nameof(ValidatePassword))]
 		public string Password
 		{
@@ -120,6 +118,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _extendedAccountZprv;
 			set => this.RaiseAndSetIfChanged(ref _extendedAccountZprv, value);
 		}
+
+		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
 
 		private void ClearSensitiveData(bool passwordToo)
 		{

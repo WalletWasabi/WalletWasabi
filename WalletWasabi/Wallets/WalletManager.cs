@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
@@ -73,9 +72,9 @@ namespace WalletWasabi.Wallets
 		private bool IsInitialized { get; set; }
 
 		private IFeeProvider FeeProvider { get; set; }
-		private CoreNode BitcoinCoreNode { get; set; }
 		public Network Network { get; }
 		public WalletDirectories WalletDirectories { get; }
+		private IBlockProvider BlockProvider { get; set; }
 
 		private void RefreshWalletList()
 		{
@@ -189,7 +188,7 @@ namespace WalletWasabi.Wallets
 
 			if (wallet.State == WalletState.WaitingForInit)
 			{
-				wallet.RegisterServices(BitcoinStore, Synchronizer, Nodes, ServiceConfiguration, FeeProvider, BitcoinCoreNode);
+				wallet.RegisterServices(BitcoinStore, Synchronizer, Nodes, ServiceConfiguration, FeeProvider, BlockProvider);
 			}
 
 			using (await StartStopWalletLock.LockAsync(CancelAllInitialization.Token).ConfigureAwait(false))
@@ -436,18 +435,18 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-		public void RegisterServices(BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, NodesGroup nodes, ServiceConfiguration serviceConfiguration, IFeeProvider feeProvider, CoreNode bitcoinCoreNode)
+		public void RegisterServices(BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, NodesGroup nodes, ServiceConfiguration serviceConfiguration, IFeeProvider feeProvider, IBlockProvider blockProvider)
 		{
 			BitcoinStore = bitcoinStore;
 			Synchronizer = synchronizer;
 			Nodes = nodes;
 			ServiceConfiguration = serviceConfiguration;
 			FeeProvider = feeProvider;
-			BitcoinCoreNode = bitcoinCoreNode;
+			BlockProvider = blockProvider; 
 
 			foreach (var wallet in GetWallets().Where(w => w.State == WalletState.WaitingForInit))
 			{
-				wallet.RegisterServices(BitcoinStore, Synchronizer, Nodes, ServiceConfiguration, FeeProvider, BitcoinCoreNode);
+				wallet.RegisterServices(BitcoinStore, Synchronizer, Nodes, ServiceConfiguration, FeeProvider, BlockProvider);
 			}
 
 			IsInitialized = true;

@@ -30,11 +30,6 @@ namespace WalletWasabi.Gui
 			this.AttachDevTools();
 #endif
 
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-			{
-				WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.Manual;
-			}
-
 			var notificationManager = new WindowNotificationManager(this)
 			{
 				Position = NotificationPosition.BottomRight,

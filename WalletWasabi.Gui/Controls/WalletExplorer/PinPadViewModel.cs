@@ -25,28 +25,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private string _maskedPin;
 
-		public ReactiveCommand<Unit, Unit> SendPinCommand { get; }
-		public ReactiveCommand<string, Unit> KeyPadCommand { get; }
-
-		/*
-		 * 7 8 9
-		 * 4 5 6
-		 * 1 2 3
-		 */
-
-		public string MaskedPin
-		{
-			get => _maskedPin;
-			set => this.RaiseAndSetIfChanged(ref _maskedPin, value);
-		}
-
 		public PinPadViewModel() : base("Pin Pad")
 		{
 			SendPinCommand = ReactiveCommand.Create(() =>
-				{
-					DialogResult = true;
-					OnClose();
-				},
+			{
+				DialogResult = true;
+				OnClose();
+			},
 				this.WhenAny(x => x.MaskedPin, (maskedPin) => !string.IsNullOrWhiteSpace(maskedPin.Value)));
 
 			KeyPadCommand = ReactiveCommand.Create<string>((arg) => MaskedPin += arg);
@@ -60,6 +45,21 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					Logger.LogError(ex);
 					NotificationHelpers.Error(ex.ToUserFriendlyString());
 				});
+		}
+
+		public ReactiveCommand<Unit, Unit> SendPinCommand { get; }
+		public ReactiveCommand<string, Unit> KeyPadCommand { get; }
+
+		/*
+		 * 7 8 9
+		 * 4 5 6
+		 * 1 2 3
+		 */
+
+		public string MaskedPin
+		{
+			get => _maskedPin;
+			set => this.RaiseAndSetIfChanged(ref _maskedPin, value);
 		}
 
 		public static async Task UnlockAsync()

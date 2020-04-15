@@ -8,11 +8,11 @@ namespace WalletWasabi.Gui.Rpc
 	[AttributeUsage(AttributeTargets.Method, Inherited = true, AllowMultiple = true)]
 	public sealed class JsonRpcMethodAttribute : Attribute
 	{
-		public string Name { get; }
-
 		public JsonRpcMethodAttribute(string name)
 		{
 			Name = name;
 		}
+
+		public string Name { get; }
 	}
 }

@@ -172,13 +172,13 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					HdPubKey foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
 					if (foundKey != default)
 					{
+						foundKey.SetKeyState(KeyState.Used, KeyManager);
 						if (output.Value <= DustThreshold)
 						{
 							result.ReceivedDusts.Add(output);
 							continue;
 						}
 
-						foundKey.SetKeyState(KeyState.Used, KeyManager);
 						spentOwnCoins ??= Coins.OutPoints(tx.Transaction.Inputs).ToList();
 						var anonset = tx.Transaction.GetAnonymitySet(i);
 						if (spentOwnCoins.Count != 0)

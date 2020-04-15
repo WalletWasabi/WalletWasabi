@@ -79,25 +79,26 @@ namespace WalletWasabi.TorSocks5
 						var torDir = Path.Combine(dataDir, "tor");
 						var torDataDir = Path.Combine(dataDir, "tordata");
 						var torPath = "";
-						var fullBaseDirectory = Path.GetFullPath(AppContext.BaseDirectory);
+						var geoIpPath = "";
+						var geoIp6Path = "";
+						var fullBaseDirectory = EnvironmentHelpers.GetFullBaseDirectory();
 						if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						{
-							if (!fullBaseDirectory.StartsWith('/'))
-							{
-								fullBaseDirectory = fullBaseDirectory.Insert(0, "/");
-							}
-
 							torPath = $@"{torDir}/Tor/tor";
+							geoIpPath = $@"{torDir}/Data/Tor/geoip";
+							geoIp6Path = $@"{torDir}/Data/Tor/geoip6";
 						}
 						else // If Windows
 						{
 							torPath = $@"{torDir}\Tor\tor.exe";
+							geoIpPath = $@"{torDir}\Data\Tor\geoip";
+							geoIp6Path = $@"{torDir}\Data\Tor\geoip6";
 						}
 
 						if (!File.Exists(torPath))
 						{
 							Logger.LogInfo($"Tor instance NOT found at {torPath}. Attempting to acquire it...");
-							InstallTor(fullBaseDirectory, torDir);
+							InstallTor(torDir);
 						}
 						else if (!IoHelpers.CheckExpectedHash(torPath, Path.Combine(fullBaseDirectory, "TorDaemons")))
 						{
@@ -110,14 +111,14 @@ namespace WalletWasabi.TorSocks5
 							}
 							Directory.Move(torDir, backupTorDir);
 
-							InstallTor(fullBaseDirectory, torDir);
+							InstallTor(torDir);
 						}
 						else
 						{
 							Logger.LogInfo($"Tor instance found at {torPath}.");
 						}
 
-						string torArguments = $"--SOCKSPort {TorSocks5EndPoint} --DataDirectory {torDataDir}";
+						string torArguments = $"--SOCKSPort {TorSocks5EndPoint} --DataDirectory {torDataDir} --GeoIPFile {geoIpPath} GeoIPv6File {geoIp6Path}";
 						if (!string.IsNullOrEmpty(LogFile))
 						{
 							IoHelpers.EnsureContainingDirectoryExists(LogFile);
@@ -166,9 +167,9 @@ namespace WalletWasabi.TorSocks5
 			}).Start();
 		}
 
-		private static void InstallTor(string fullBaseDirectory, string torDir)
+		private static void InstallTor(string torDir)
 		{
-			string torDaemonsDir = Path.Combine(fullBaseDirectory, "TorDaemons");
+			string torDaemonsDir = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "TorDaemons");
 
 			string dataZip = Path.Combine(torDaemonsDir, "data-folder.zip");
 			IoHelpers.BetterExtractZipToDirectoryAsync(dataZip, torDir).GetAwaiter().GetResult();

@@ -11,16 +11,8 @@ namespace WalletWasabi.Gui.Controls
 {
 	public class TogglePasswordBox : ExtendedTextBox, IStyleable
 	{
-		Type IStyleable.StyleKey => typeof(TogglePasswordBox);
-
 		public static readonly StyledProperty<bool> IsPasswordVisibleProperty =
 			AvaloniaProperty.Register<TogglePasswordBox, bool>(nameof(IsPasswordVisible), defaultBindingMode: BindingMode.TwoWay);
-
-		public bool IsPasswordVisible
-		{
-			get => GetValue(IsPasswordVisibleProperty);
-			set => SetValue(IsPasswordVisibleProperty, value);
-		}
 
 		public TogglePasswordBox()
 		{
@@ -37,6 +29,14 @@ namespace WalletWasabi.Gui.Controls
 				.Subscribe(x => PasswordChar = x ? '\0' : '\u2022');
 		}
 
+		Type IStyleable.StyleKey => typeof(TogglePasswordBox);
+
+		public bool IsPasswordVisible
+		{
+			get => GetValue(IsPasswordVisibleProperty);
+			set => SetValue(IsPasswordVisibleProperty, value);
+		}
+
 		protected override bool IsCopyEnabled => false;
 
 		protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
@@ -47,7 +47,14 @@ namespace WalletWasabi.Gui.Controls
 			maskedButton.WhenAnyValue(x => x.IsPressed)
 				.Where(x => x)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => IsPasswordVisible = !IsPasswordVisible);
+				.Subscribe(_ =>
+				{
+					IsPasswordVisible = !IsPasswordVisible;
+
+					// Refresh the already opened tooltip immediately.
+					ToolTip.SetIsOpen(maskedButton, false);
+					ToolTip.SetIsOpen(maskedButton, true);
+				});
 		}
 	}
 }

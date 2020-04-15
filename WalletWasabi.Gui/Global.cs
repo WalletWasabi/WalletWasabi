@@ -58,7 +58,6 @@ namespace WalletWasabi.Gui
 		public WasabiSynchronizer Synchronizer { get; private set; }
 		public FeeProviders FeeProviders { get; private set; }
 		public WalletManager WalletManager { get; }
-		public Wallet Wallet => WalletManager?.GetFirstOrDefaultWallet();
 		public TransactionBroadcaster TransactionBroadcaster { get; set; }
 		public CoinJoinProcessor CoinJoinProcessor { get; set; }
 		public Node RegTestMempoolServingNode { get; private set; }
@@ -329,7 +328,15 @@ namespace WalletWasabi.Gui
 
 				#endregion JsonRpcServerInitialization
 
-				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Nodes, Config.ServiceConfiguration, FeeProviders, BitcoinCoreNode);
+				#region Blocks provider
+
+				var blockProvider = new CachedBlockProvider(
+					new P2pBlockProvider(Nodes, BitcoinCoreNode, Synchronizer, Config.ServiceConfiguration, Network),
+					new FileSystemBlockRepository(blocksFolderPath, Network));
+
+				#endregion Blocks provider
+
+				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Nodes, Config.ServiceConfiguration, FeeProviders, blockProvider);
 			}
 			catch (Exception ex)
 			{
@@ -452,7 +459,7 @@ namespace WalletWasabi.Gui
 						var type = reason == DequeueReason.UserRequested ? NotificationType.Information : NotificationType.Warning;
 						var message = reason == DequeueReason.UserRequested ? "" : reason.ToFriendlyString();
 						var title = success.Value.Count() == 1 ? $"Coin ({success.Value.First().Amount.ToString(false, true)}) Dequeued" : $"{success.Value.Count()} Coins Dequeued";
-						NotificationHelpers.Notify(message, title, type);
+						NotificationHelpers.Notify(message, title, type, sender: sender);
 					}
 				}
 
@@ -462,7 +469,7 @@ namespace WalletWasabi.Gui
 					var type = NotificationType.Warning;
 					var message = reason.ToFriendlyString();
 					var title = failure.Value.Count() == 1 ? $"Couldn't Dequeue Coin ({failure.Value.First().Amount.ToString(false, true)})" : $"Couldn't Dequeue {failure.Value.Count()} Coins";
-					NotificationHelpers.Notify(message, title, type);
+					NotificationHelpers.Notify(message, title, type, sender: sender);
 				}
 			}
 			catch (Exception ex)
@@ -502,38 +509,38 @@ namespace WalletWasabi.Gui
 
 					if (e.Transaction.Transaction.IsCoinBase)
 					{
-						NotifyAndLog($"{amountString} BTC", "Mined", NotificationType.Success, e);
+						NotifyAndLog($"{amountString} BTC", "Mined", NotificationType.Success, e, sender);
 					}
 					else if (isSpent && receiveSpentDiff == miningFee)
 					{
-						NotifyAndLog($"Mining Fee: {amountString} BTC", "Self Spend", NotificationType.Information, e);
+						NotifyAndLog($"Mining Fee: {amountString} BTC", "Self Spend", NotificationType.Information, e, sender);
 					}
 					else if (isSpent && receiveSpentDiff.Almost(Money.Zero, Money.Coins(0.01m)) && e.IsLikelyOwnCoinJoin)
 					{
-						NotifyAndLog($"CoinJoin Completed!", "", NotificationType.Success, e);
+						NotifyAndLog($"CoinJoin Completed!", "", NotificationType.Success, e, sender);
 					}
 					else if (incoming > Money.Zero)
 					{
 						if (e.Transaction.IsRBF && e.Transaction.IsReplacement)
 						{
-							NotifyAndLog($"{amountString} BTC", "Received Replaceable Replacement Transaction", NotificationType.Information, e);
+							NotifyAndLog($"{amountString} BTC", "Received Replaceable Replacement Transaction", NotificationType.Information, e, sender);
 						}
 						else if (e.Transaction.IsRBF)
 						{
-							NotifyAndLog($"{amountString} BTC", "Received Replaceable Transaction", NotificationType.Success, e);
+							NotifyAndLog($"{amountString} BTC", "Received Replaceable Transaction", NotificationType.Success, e, sender);
 						}
 						else if (e.Transaction.IsReplacement)
 						{
-							NotifyAndLog($"{amountString} BTC", "Received Replacement Transaction", NotificationType.Information, e);
+							NotifyAndLog($"{amountString} BTC", "Received Replacement Transaction", NotificationType.Information, e, sender);
 						}
 						else
 						{
-							NotifyAndLog($"{amountString} BTC", "Received", NotificationType.Success, e);
+							NotifyAndLog($"{amountString} BTC", "Received", NotificationType.Success, e, sender);
 						}
 					}
 					else if (incoming < Money.Zero)
 					{
-						NotifyAndLog($"{amountString} BTC", "Sent", NotificationType.Information, e);
+						NotifyAndLog($"{amountString} BTC", "Sent", NotificationType.Information, e, sender);
 					}
 				}
 				else if (isConfirmedReceive || isConfirmedSpent)
@@ -546,19 +553,19 @@ namespace WalletWasabi.Gui
 
 					if (isConfirmedSpent && receiveSpentDiff == miningFee)
 					{
-						NotifyAndLog($"Mining Fee: {amountString} BTC", "Self Spend Confirmed", NotificationType.Information, e);
+						NotifyAndLog($"Mining Fee: {amountString} BTC", "Self Spend Confirmed", NotificationType.Information, e, sender);
 					}
 					else if (isConfirmedSpent && receiveSpentDiff.Almost(Money.Zero, Money.Coins(0.01m)) && e.IsLikelyOwnCoinJoin)
 					{
-						NotifyAndLog($"CoinJoin Confirmed!", "", NotificationType.Information, e);
+						NotifyAndLog($"CoinJoin Confirmed!", "", NotificationType.Information, e, sender);
 					}
 					else if (incoming > Money.Zero)
 					{
-						NotifyAndLog($"{amountString} BTC", "Receive Confirmed", NotificationType.Information, e);
+						NotifyAndLog($"{amountString} BTC", "Receive Confirmed", NotificationType.Information, e, sender);
 					}
 					else if (incoming < Money.Zero)
 					{
-						NotifyAndLog($"{amountString} BTC", "Send Confirmed", NotificationType.Information, e);
+						NotifyAndLog($"{amountString} BTC", "Send Confirmed", NotificationType.Information, e, sender);
 					}
 				}
 			}
@@ -579,11 +586,11 @@ namespace WalletWasabi.Gui
 			return !StoppingCts.IsCancellationRequested;
 		}
 
-		private static void NotifyAndLog(string message, string title, NotificationType notificationType, ProcessedResult e)
+		private static void NotifyAndLog(string message, string title, NotificationType notificationType, ProcessedResult e, object sender)
 		{
 			message = Guard.Correct(message);
 			title = Guard.Correct(title);
-			NotificationHelpers.Notify(message, title, notificationType, async () => await FileHelpers.OpenFileInTextEditorAsync(Logger.FilePath));
+			NotificationHelpers.Notify(message, title, notificationType, async () => await FileHelpers.OpenFileInTextEditorAsync(Logger.FilePath), sender);
 			Logger.LogInfo($"Transaction Notification ({notificationType}): {title} - {message} - {e.Transaction.GetHash()}");
 		}
 

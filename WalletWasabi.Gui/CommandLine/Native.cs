@@ -6,6 +6,8 @@ namespace WalletWasabi.Gui.CommandLine
 {
 	internal static class Native
 	{
+		public static bool IsConsoleAttached { get; set; }
+
 		[DllImport("kernel32", SetLastError = true)]
 		private static extern bool AttachConsole(int dwProcessId);
 
@@ -17,8 +19,6 @@ namespace WalletWasabi.Gui.CommandLine
 
 		[DllImport("kernel32", SetLastError = true)]
 		private static extern bool FreeConsole();
-
-		public static bool IsConsoleAttached { get; set; }
 
 		public static void AttachParentConsole()
 		{

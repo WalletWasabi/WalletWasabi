@@ -46,6 +46,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 			Width = uiConfig.Width;
 			Height = uiConfig.Height;
+
 			WindowState = uiConfig.WindowState;
 
 			InitializeLockScreen(global.UiConfig);
@@ -93,8 +94,8 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public bool MenuVisible
 		{
-			get { return _menuVisible; }
-			set { this.RaiseAndSetIfChanged(ref _menuVisible, value); }
+			get => _menuVisible;
+			set => this.RaiseAndSetIfChanged(ref _menuVisible, value);
 		}
 
 		public void PushLockScreen(LockScreenViewModelBase lockScreen)
@@ -149,12 +150,9 @@ namespace WalletWasabi.Gui.ViewModels
 				.WhenAnyValue(x => x.LockScreenActive)
 				.Where(x => x)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					PushLockScreen(uiConfig.LockScreenPinHash.Length == 0
+				.Subscribe(_ => PushLockScreen(uiConfig.LockScreenPinHash.Length == 0
 						? (WasabiLockScreenViewModelBase)new SlideLockScreenViewModel()
-						: new PinLockScreenViewModel());
-				});
+						: new PinLockScreenViewModel()));
 		}
 
 		private void DisplayWalletManager()

@@ -23,15 +23,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					var global = Locator.Current.GetService<Global>();
 
-					await global.WalletManager.StartWalletAsync(Wallet);
+					await Task.Run(async () => await global.WalletManager.StartWalletAsync(Wallet));
 				}
-				catch (TaskCanceledException ex) when (ex is TaskCanceledException || ex is OperationCanceledException)
+				catch (OperationCanceledException ex)
 				{
 					Logger.LogTrace(ex);
 				}
 				catch (Exception ex)
 				{
-					NotificationHelpers.Error($"Couldn't load wallet: {Title}. Reason: {ex.ToUserFriendlyString()}");
+					NotificationHelpers.Error($"Couldn't load wallet. Reason: {ex.ToUserFriendlyString()}", sender: wallet);
 					Logger.LogError(ex);
 				}
 			}, this.WhenAnyValue(x => x.WalletState).Select(x => x == WalletState.Uninitialized));

@@ -28,6 +28,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
 		private ObservableAsPropertyHelper<bool> _isLurkingWifeMode;
 		private bool _anyWalletStarted;
+		private bool _inSelecting;
 
 		public WalletExplorerViewModel() : base("Wallet Explorer")
 		{
@@ -49,11 +50,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					if (wallet is { } && _walletDictionary.ContainsKey(wallet))
 					{
-						if (x.EventArgs == WalletState.Stopping)
+						if (wallet.State == WalletState.Stopping)
 						{
 							RemoveWallet(_walletDictionary[wallet]);
 						}
-						else if (_walletDictionary[wallet] is ClosedWalletViewModel cwvm && x.EventArgs == WalletState.Started)
+						else if (_walletDictionary[wallet] is ClosedWalletViewModel cwvm && wallet.State == WalletState.Started)
 						{
 							OpenClosedWallet(cwvm);
 						}
@@ -64,9 +65,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Observable
 				.FromEventPattern<Wallet>(WalletManager, nameof(WalletManager.WalletAdded))
-				.ObserveOn(RxApp.MainThreadScheduler)
 				.Select(x => x.EventArgs)
 				.Where(x => x is { })
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(wallet =>
 				{
 					WalletViewModelBase vm = (wallet.State <= WalletState.Starting) ?
@@ -78,7 +79,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			CollapseAllCommand = ReactiveCommand.Create(CollapseWallets, this.WhenAnyValue(x => x.AnyWalletStarted));
 
-			LurkingWifeModeCommand = ReactiveCommand.Create(ToggleLurkingWifeMode, this.WhenAnyValue(x => x.AnyWalletStarted));
+			LurkingWifeModeCommand = ReactiveCommand.Create(ToggleLurkingWifeMode);
 
 			_isLurkingWifeMode = UiConfig
 				.WhenAnyValue(x => x.LurkingWifeMode)
@@ -96,33 +97,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.WhenAnyValue(x => x.SelectedDocument)
 				.OfType<ViewModelBase>()
 				.Where(x => x != SelectedItem)
-				.Subscribe(x =>
-				{
-					SelectedItem = x;
-
-					if (x is IWalletViewModel wvm && _walletDictionary.ContainsKey(wvm.Wallet))
-					{
-						_walletDictionary[wvm.Wallet].IsExpanded = true;
-					}
-				});
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x => OnShellDocumentSelected(x));
 
 			this.WhenAnyValue(x => x.SelectedItem)
 				.OfType<WasabiDocumentTabViewModel>()
+				.Where(_ => !_inSelecting)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => shell.AddOrSelectDocument(x));
-		}
-
-		private void ToggleLurkingWifeMode()
-		{
-			UiConfig.LurkingWifeMode = !UiConfig.LurkingWifeMode;
-			UiConfig.ToFile();
-		}
-
-		private void CollapseWallets()
-		{
-			foreach (var wallet in Wallets)
-			{
-				wallet.IsExpanded = false;
-			}
 		}
 
 		public override Location DefaultLocation => Location.Right;
@@ -154,6 +136,39 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> CollapseAllCommand { get; }
 
 		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
+
+		private void OnShellDocumentSelected(ViewModelBase document)
+		{
+			_inSelecting = true;
+
+			try
+			{
+				SelectedItem = document;
+
+				if (document is IWalletViewModel wvm && _walletDictionary.ContainsKey(wvm.Wallet))
+				{
+					_walletDictionary[wvm.Wallet].IsExpanded = true;
+				}
+			}
+			finally
+			{
+				_inSelecting = false;
+			}
+		}
+
+		private void ToggleLurkingWifeMode()
+		{
+			UiConfig.LurkingWifeMode = !UiConfig.LurkingWifeMode;
+			UiConfig.ToFile();
+		}
+
+		private void CollapseWallets()
+		{
+			foreach (var wallet in Wallets)
+			{
+				wallet.IsExpanded = false;
+			}
+		}
 
 		private void InsertWallet(WalletViewModelBase walletVM)
 		{

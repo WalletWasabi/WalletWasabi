@@ -1,4 +1,3 @@
-using NBitcoin.BouncyCastle.Math;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;

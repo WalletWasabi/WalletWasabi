@@ -41,7 +41,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					Logger.LogError(ex);
 					NotificationHelpers.Error(ex.ToUserFriendlyString());
-				});			
+				});
 		}
 
 		private Global Global { get; }
@@ -51,6 +51,60 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		Wallet IWalletViewModel.Wallet => Wallet;
 
 		public ReactiveCommand<Unit, Unit> SortCommand { get; }
+
+		public ObservableCollection<TransactionViewModel> Transactions
+		{
+			get => _transactions;
+			set => this.RaiseAndSetIfChanged(ref _transactions, value);
+		}
+
+		public TransactionViewModel SelectedTransaction
+		{
+			get => _selectedTransaction;
+			set => this.RaiseAndSetIfChanged(ref _selectedTransaction, value);
+		}
+
+		public SortOrder DateSortDirection
+		{
+			get => _dateSortDirection;
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _dateSortDirection, value);
+				if (value != SortOrder.None)
+				{
+					AmountSortDirection = SortOrder.None;
+					TransactionSortDirection = SortOrder.None;
+				}
+			}
+		}
+
+		public SortOrder AmountSortDirection
+		{
+			get => _amountSortDirection;
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _amountSortDirection, value);
+				if (value != SortOrder.None)
+				{
+					DateSortDirection = SortOrder.None;
+					TransactionSortDirection = SortOrder.None;
+				}
+			}
+		}
+
+		public SortOrder TransactionSortDirection
+		{
+			get => _transactionSortDirection;
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _transactionSortDirection, value);
+				if (value != SortOrder.None)
+				{
+					AmountSortDirection = SortOrder.None;
+					DateSortDirection = SortOrder.None;
+				}
+			}
+		}
 
 		public override void OnOpen(CompositeDisposable disposables)
 		{
@@ -110,60 +164,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			catch (Exception ex)
 			{
 				Logger.LogError(ex);
-			}
-		}
-
-		public ObservableCollection<TransactionViewModel> Transactions
-		{
-			get => _transactions;
-			set => this.RaiseAndSetIfChanged(ref _transactions, value);
-		}
-
-		public TransactionViewModel SelectedTransaction
-		{
-			get => _selectedTransaction;
-			set => this.RaiseAndSetIfChanged(ref _selectedTransaction, value);
-		}
-
-		public SortOrder DateSortDirection
-		{
-			get => _dateSortDirection;
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _dateSortDirection, value);
-				if (value != SortOrder.None)
-				{
-					AmountSortDirection = SortOrder.None;
-					TransactionSortDirection = SortOrder.None;
-				}
-			}
-		}
-
-		public SortOrder AmountSortDirection
-		{
-			get => _amountSortDirection;
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _amountSortDirection, value);
-				if (value != SortOrder.None)
-				{
-					DateSortDirection = SortOrder.None;
-					TransactionSortDirection = SortOrder.None;
-				}
-			}
-		}
-
-		public SortOrder TransactionSortDirection
-		{
-			get => _transactionSortDirection;
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _transactionSortDirection, value);
-				if (value != SortOrder.None)
-				{
-					AmountSortDirection = SortOrder.None;
-					DateSortDirection = SortOrder.None;
-				}
 			}
 		}
 

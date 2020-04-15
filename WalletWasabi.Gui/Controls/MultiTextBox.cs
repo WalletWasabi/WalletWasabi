@@ -20,10 +20,6 @@ namespace WalletWasabi.Gui.Controls
 {
 	public class MultiTextBox : ExtendedTextBox, IStyleable
 	{
-		Type IStyleable.StyleKey => typeof(MultiTextBox);
-		private CancellationTokenSource CancelClipboardNotification { get; set; }
-		private CompositeDisposable Disposables { get; set; }
-
 		public static readonly StyledProperty<bool> ClipboardNotificationVisibleProperty =
 			AvaloniaProperty.Register<MultiTextBox, bool>(nameof(ClipboardNotificationVisible), defaultBindingMode: BindingMode.TwoWay);
 
@@ -44,6 +40,25 @@ namespace WalletWasabi.Gui.Controls
 
 		public static readonly StyledProperty<bool> IsSelectableProperty =
 			AvaloniaProperty.Register<MultiTextBox, bool>(nameof(IsSelectable), defaultBindingMode: BindingMode.TwoWay);
+
+		public MultiTextBox()
+		{
+			ClipboardNotificationVisible = false;
+			ClipboardNotificationOpacity = 0;
+			IsSelectable = true;
+
+			Disposables = new CompositeDisposable();
+
+			CopyToClipboardCommand = ReactiveCommand.CreateFromTask(async () => await TryCopyToClipboardAsync());
+
+			CopyToClipboardCommand.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
+		}
+
+		Type IStyleable.StyleKey => typeof(MultiTextBox);
+		private CancellationTokenSource CancelClipboardNotification { get; set; }
+		private CompositeDisposable Disposables { get; set; }
 
 		public bool ClipboardNotificationVisible
 		{
@@ -83,20 +98,7 @@ namespace WalletWasabi.Gui.Controls
 
 		public ReactiveCommand<Unit, Unit> CopyToClipboardCommand { get; }
 
-		public MultiTextBox()
-		{
-			ClipboardNotificationVisible = false;
-			ClipboardNotificationOpacity = 0;
-			IsSelectable = true;
-
-			Disposables = new CompositeDisposable();
-
-			CopyToClipboardCommand = ReactiveCommand.CreateFromTask(async () => await TryCopyToClipboardAsync());
-
-			CopyToClipboardCommand.ThrownExceptions
-				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(ex => Logger.LogError(ex));
-		}
+		protected override bool IsCopyEnabled => IsSelectable;
 
 		protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
 		{
@@ -243,7 +245,5 @@ namespace WalletWasabi.Gui.Controls
 			Disposables?.Dispose();
 			Disposables = null;
 		}
-
-		protected override bool IsCopyEnabled => IsSelectable;
 	}
 }

@@ -1,6 +1,8 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using DynamicData;
+using DynamicData.Binding;
 using NBitcoin;
 using Newtonsoft.Json.Linq;
 using ReactiveUI;
@@ -30,9 +32,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 	{
 		private ObservableCollection<HardwareWalletViewModel> _wallets;
 		private HardwareWalletViewModel _selectedWallet;
-		private bool _isWalletSelected;
-		private bool _isWalletOpened;
-		private bool _canLoadWallet;
 		private bool _isBusy;
 		private bool _isHardwareBusy;
 		private string _loadButtonText;
@@ -47,15 +46,27 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 			IsHwWalletSearchTextVisible = false;
 
 			this.WhenAnyValue(x => x.SelectedWallet)
-				.Subscribe(_ => TrySetWalletStates());
+				.Where(x => x is null)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+				{
+					SelectedWallet = Wallets.FirstOrDefault();
+					SetLoadButtonText();
+				});
 
-			this.WhenAnyValue(x => x.IsWalletOpened)
-				.Subscribe(_ => TrySetWalletStates());
+			Wallets
+				.ToObservableChangeSet()
+				.ToCollection()
+				.Where(items => items.Any() && SelectedWallet is null)
+				.Select(items => items.First())
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x => SelectedWallet = x);
 
-			this.WhenAnyValue(x => x.IsBusy)
-				.Subscribe(_ => TrySetWalletStates());
+			this.WhenAnyValue(x => x.IsBusy, x => x.IsHardwareBusy)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => SetLoadButtonText());
 
-			LoadCommand = ReactiveCommand.CreateFromTask(LoadWalletAsync, this.WhenAnyValue(x => x.CanLoadWallet));
+			LoadCommand = ReactiveCommand.CreateFromTask(LoadWalletAsync, this.WhenAnyValue(x => x.SelectedWallet, x => x.IsBusy).Select(x => x.Item1 is { } && !x.Item2));
 			ImportColdcardCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				var ofd = new OpenFileDialog
@@ -110,8 +121,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 					Logger.LogInfo("Creating a new wallet file.");
 					var walletName = WalletManager.WalletDirectories.GetNextWalletName("Coldcard");
 					var walletFullPath = WalletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
-					WalletManager.AddWallet(KeyManager.CreateNewHardwareWalletWatchOnly(mfp, extPubKey, walletFullPath));
-					owner.SelectLoadWallet();
+					var keymanager = KeyManager.CreateNewHardwareWalletWatchOnly(mfp, extPubKey, walletFullPath);
+					WalletManager.AddWallet(keymanager);
+					owner.SelectLoadWallet(keymanager);
 				}
 			});
 			EnumerateHardwareWalletsCommand = ReactiveCommand.CreateFromTask(async () => await EnumerateIfHardwareWalletsAsync());
@@ -148,28 +160,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 			set => this.RaiseAndSetIfChanged(ref _selectedWallet, value);
 		}
 
-		public bool IsWalletSelected
-		{
-			get => _isWalletSelected;
-			set => this.RaiseAndSetIfChanged(ref _isWalletSelected, value);
-		}
-
-		public bool IsWalletOpened
-		{
-			get => _isWalletOpened;
-			set => this.RaiseAndSetIfChanged(ref _isWalletOpened, value);
-		}
-
 		public string LoadButtonText
 		{
 			get => _loadButtonText;
 			set => this.RaiseAndSetIfChanged(ref _loadButtonText, value);
-		}
-
-		public bool CanLoadWallet
-		{
-			get => _canLoadWallet;
-			set => this.RaiseAndSetIfChanged(ref _canLoadWallet, value);
 		}
 
 		public bool IsBusy
@@ -323,14 +317,14 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 					MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusType.AcquiringXpubFromHardwareWallet);
 				}
 
-				Logger.LogInfo("Hardware wallet was not used previously on this computer. Creating a new wallet file.");
-
 				if (TryFindWalletByExtPubKey(extPubKey, out string wn))
 				{
-					walletName = wn;
+					walletName = wn.TrimEnd(".json", StringComparison.OrdinalIgnoreCase);
 				}
 				else
 				{
+					Logger.LogInfo("Hardware wallet was not used previously on this computer. Creating a new wallet file.");
+
 					var prefix = selectedWallet.HardwareWalletInfo is null ? "HardwareWallet" : selectedWallet.HardwareWalletInfo.Model.ToString();
 
 					walletName = WalletManager.WalletDirectories.GetNextWalletName(prefix);
@@ -365,10 +359,14 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 				}
 
 				// Initialization failed.
-				NotificationHelpers.Error(ex.ToUserFriendlyString());
 				Logger.LogError(ex);
+				NotificationHelpers.Error(ex.ToUserFriendlyString());
 
 				return null;
+			}
+			finally
+			{
+				SetLoadButtonText();
 			}
 		}
 
@@ -390,57 +388,20 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 					// Successfully initialized.
 					Owner.OnClose();
 				}
+				catch (OperationCanceledException ex)
+				{
+					Logger.LogTrace(ex);
+				}
 				catch (Exception ex)
 				{
-					// Initialization failed.
+					Logger.LogError(ex);
 					NotificationHelpers.Error(ex.ToUserFriendlyString());
-					if (!(ex is OperationCanceledException))
-					{
-						Logger.LogError(ex);
-					}
 				}
 			}
 			finally
 			{
 				IsBusy = false;
 			}
-		}
-
-		private bool TrySetWalletStates()
-		{
-			try
-			{
-				if (SelectedWallet is null)
-				{
-					SelectedWallet = Wallets.FirstOrDefault();
-				}
-
-				IsWalletSelected = SelectedWallet is { };
-
-				if (WalletManager.AnyWallet())
-				{
-					IsWalletOpened = true;
-					CanLoadWallet = false;
-				}
-				else
-				{
-					IsWalletOpened = false;
-
-					// If not busy loading.
-					// And wallet is selected.
-					// And no wallet is opened.
-					CanLoadWallet = !IsBusy && IsWalletSelected;
-				}
-
-				SetLoadButtonText();
-				return true;
-			}
-			catch (Exception ex)
-			{
-				Logger.LogWarning(ex);
-			}
-
-			return false;
 		}
 
 		protected async Task EnumerateIfHardwareWalletsAsync()
@@ -458,7 +419,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 					var walletEntry = new HardwareWalletViewModel(dev);
 					Wallets.Add(walletEntry);
 				}
-				TrySetWalletStates();
 			}
 			finally
 			{
@@ -469,7 +429,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 		private bool TryFindWalletByExtPubKey(ExtPubKey extPubKey, out string walletName)
 		{
 			walletName = WalletManager.WalletDirectories
-				.EnumerateWalletFiles(includeBackupDir: true)
+				.EnumerateWalletFiles(includeBackupDir: false)
 				.FirstOrDefault(fi => KeyManager.TryGetExtPubKeyFromFile(fi.FullName, out ExtPubKey epk) && epk == extPubKey)
 				?.Name;
 

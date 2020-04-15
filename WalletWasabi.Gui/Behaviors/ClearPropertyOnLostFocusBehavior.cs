@@ -11,10 +11,10 @@ namespace WalletWasabi.Gui.Behaviors
 {
 	public class ClearPropertyOnLostFocusBehavior : Behavior<Control>
 	{
-		private CompositeDisposable Disposables { get; set; }
-
 		public static readonly AvaloniaProperty<object> TargetPropertyProperty =
 			AvaloniaProperty.Register<ClearPropertyOnLostFocusBehavior, object>(nameof(TargetProperty), defaultBindingMode: BindingMode.TwoWay);
+
+		private CompositeDisposable Disposables { get; set; }
 
 		public object TargetProperty
 		{
