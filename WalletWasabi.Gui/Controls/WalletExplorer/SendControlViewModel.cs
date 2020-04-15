@@ -78,11 +78,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _payjoinEndPoint;
 		private ObservableAsPropertyHelper<bool> _isPayjoinEndPointVisible;
 
-		protected SendControlViewModel(Wallet wallet, string title)
+		protected SendControlViewModel(Wallet wallet, string title, bool canUsePayjoin)
 			: base(title)
 		{
 			Global = Locator.Current.GetService<Global>();
 			Wallet = wallet;
+			CanUsePayjoin = canUsePayjoin;
 
 			LabelSuggestion = new SuggestLabelViewModel();
 			BuildTransactionButtonText = DoButtonText;
@@ -375,8 +376,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 					}
 
-					var payjoinEndPointUri = new Uri(PayjoinEndPoint);
-					IPayjoinClient payjoinClient = PayjoinEndPoint is {} ? (IPayjoinClient)new PayjoinClient(payjoinEndPointUri, Global.TorManager.TorSocks5EndPoint) : new NullPayjoinClient();
+					IPayjoinClient payjoinClient = new NullPayjoinClient();
+					if (CanUsePayjoin && PayjoinEndPoint is {})
+					{
+						var payjoinEndPointUri = new Uri(PayjoinEndPoint);
+						payjoinClient = new PayjoinClient(payjoinEndPointUri, Global.TorManager.TorSocks5EndPoint);
+					}
 					BuildTransactionResult result = await Task.Run(() => Wallet.BuildTransaction(Password, intent, feeStrategy, payjoinClient, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
 
 					await DoAfterBuildTransaction(result);
@@ -443,6 +448,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		protected Global Global { get; }
 
+		private bool CanUsePayjoin { get; 
+		}
 		private Wallet Wallet { get; }
 
 		Wallet IWalletViewModel.Wallet => Wallet;
@@ -635,7 +642,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _payjoinEndPoint, value);
 		}
 
-		public bool IsPayjoinEndPointVisible => _isPayjoinEndPointVisible?.Value ?? false;
+		public bool IsPayjoinEndPointVisible => CanUsePayjoin && (_isPayjoinEndPointVisible?.Value ?? false);
 
 		public ReactiveCommand<Unit, Unit> BuildTransactionCommand { get; }
 

@@ -13,7 +13,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class BuildTabViewModel : SendControlViewModel
 	{
-		public BuildTabViewModel(Wallet wallet) : base(wallet, "Build Transaction")
+		public BuildTabViewModel(Wallet wallet) 
+			: base(wallet, "Build Transaction", false)
 		{
 		}
 

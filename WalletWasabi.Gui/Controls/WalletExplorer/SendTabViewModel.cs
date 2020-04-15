@@ -15,7 +15,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class SendTabViewModel : SendControlViewModel
 	{
-		public SendTabViewModel(Wallet wallet) : base(wallet, "Send")
+		public SendTabViewModel(Wallet wallet) 
+			: base(wallet, "Send", true)
 		{
 			Wallet = wallet;
 		}

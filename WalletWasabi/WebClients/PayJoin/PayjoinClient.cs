@@ -112,6 +112,11 @@ namespace WalletWasabi.WebClients.PayJoin
 				if (newInput is { })
 				{
 					newInput.UpdateFrom(input);
+					// Remove this `if` statement after new NBitcoin version is released
+					if (newInput.WitnessUtxo is null && input.WitnessUtxo is { })
+					{
+						newInput.WitnessUtxo = input.WitnessUtxo;
+					}
 					newInput.PartialSigs.Clear();
 				}
 			}
