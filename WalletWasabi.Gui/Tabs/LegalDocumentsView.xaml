@@ -1,18 +1,28 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
-             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
-             x:Class="WalletWasabi.Gui.Tabs.LegalDocumentsView">
-  <DockPanel LastChildFill="True" Background="{DynamicResource ThemeBackgroundBrush}">
-    <TextBlock IsVisible="{Binding EmptyContent}" Text="Text document is missing!" />
-
-    <DockPanel LastChildFill="True" IsVisible="{Binding !EmptyContent}">
-      <Button Command="{Binding AgreeClicked}" IsVisible="{Binding !IsAgreed}" DockPanel.Dock="Top" Margin="15 30 15 10" >I Agree</Button>
-      <controls:GroupBox DockPanel.Dock="Bottom" BorderThickness="0" Classes="docTabContainer" Margin="0">
-        <Grid Classes="content">
-          <controls:MultiTextBox IsReadOnly="True" IsSelectable="False" Text="{Binding Text}" Margin="10 0" TextWrapping="Wrap" AcceptsReturn="True" />
-        </Grid>
-      </controls:GroupBox>
+﻿<UserControl xmlns="https://github.com/avaloniaui" 
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
+  xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui" 
+  xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
+  x:Class="WalletWasabi.Gui.Tabs.LegalDocumentsView">
+  <UserControl.Styles>
+    <Style Selector="controls|MultiTextBox">
+      <Setter Property="BorderBrush" Value="Transparent"/>
+      <Setter Property="IsReadOnly" Value="True"/>
+      <Setter Property="IsSelectable" Value="False"/>
+      <Setter Property="TextWrapping" Value="Wrap"/>
+      <Setter Property="AcceptsReturn" Value="True"/>
+    </Style> 
+    <Style Selector="controls|MultiTextBox:pointerover /template/ Border#border">
+      <Setter Property="BorderBrush" Value="Transparent"/>
+    </Style>
+    <Style Selector="controls|MultiTextBox:focus /template/ Border#border">
+      <Setter Property="BorderBrush" Value="Transparent"/>
+    </Style>
+  </UserControl.Styles>
+  <Grid Background="{DynamicResource ThemeBackgroundBrush}">
+    <TextBlock IsVisible="{Binding EmptyContent}" VerticalAlignment="Center" HorizontalAlignment="Center" Text="Text document is missing!"/>
+    <DockPanel LastChildFill="True" IsVisible="{Binding !EmptyContent}" Margin="10">
+      <Button Command="{Binding AgreeClicked}" IsVisible="{Binding !IsAgreed}" DockPanel.Dock="Bottom" Margin="5">I Agree</Button>
+      <controls:MultiTextBox Text="{Binding Text}"/>
     </DockPanel>
-  </DockPanel>
+  </Grid>
 </UserControl>
