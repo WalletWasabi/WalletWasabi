@@ -14,8 +14,6 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 {
 	public class IndexBuilderServiceTests
 	{
-		private static uint StartingHeight = SmartHeader.GetStartingHeader(Network.RegTest).Height;
-
 		[Fact]
 		public async Task UnsynchronizedBitcoinNodeAsync()
 		{
