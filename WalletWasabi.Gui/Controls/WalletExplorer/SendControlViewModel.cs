@@ -75,7 +75,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private FeeDisplayFormat _feeDisplayFormat;
 		private bool _isSliderFeeUsed = true;
 		private double _feeControlOpacity;
-		private Uri _payjoinEndPoint;
+		private string _payjoinEndPoint;
+		private ObservableAsPropertyHelper<bool> _isPayjoinEndPointVisible;
 
 		protected SendControlViewModel(Wallet wallet, string title)
 			: base(title)
@@ -198,7 +199,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			// Triggering the detection of same address values.
 			this.WhenAnyValue(x => x.Address)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => this.RaisePropertyChanged(nameof(CustomChangeAddress)));
+				.Subscribe(_ => 
+				{
+					if (string.IsNullOrWhiteSpace(Address))
+					{
+						PayjoinEndPoint = null;
+					}
+					this.RaisePropertyChanged(nameof(CustomChangeAddress));
+				});
 
 			this.WhenAnyValue(x => x.CustomChangeAddress)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -219,15 +227,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					AmountText = url.Amount.ToString(false, true);
 				}
 
-				if (url.UnknowParameters.TryGetValue("bpu", out var endPoint))
+				if (url.UnknowParameters.TryGetValue("bpu", out var endPoint) || url.UnknowParameters.TryGetValue("pj", out endPoint))
 				{
-					PayjoinEndPoint = new Uri(endPoint);
+					PayjoinEndPoint = endPoint;
 				}
 				else
 				{
 					PayjoinEndPoint = null;
 				}
 			});
+
+			_isPayjoinEndPointVisible = this.WhenAnyValue(x => x.PayjoinEndPoint)
+				.Select(x => !string.IsNullOrWhiteSpace(x))
+				.ToProperty(this, x => x.IsPayjoinEndPointVisible, scheduler: RxApp.MainThreadScheduler);
 
 			BuildTransactionCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -363,7 +375,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 					}
 
-					IPayjoinClient payjoinClient = PayjoinEndPoint is {} ? (IPayjoinClient)new PayjoinClient(PayjoinEndPoint, Global.TorManager.TorSocks5EndPoint) : new NullPayjoinClient();
+					var payjoinEndPointUri = new Uri(PayjoinEndPoint);
+					IPayjoinClient payjoinClient = PayjoinEndPoint is {} ? (IPayjoinClient)new PayjoinClient(payjoinEndPointUri, Global.TorManager.TorSocks5EndPoint) : new NullPayjoinClient();
 					BuildTransactionResult result = await Task.Run(() => Wallet.BuildTransaction(Password, intent, feeStrategy, payjoinClient, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
 
 					await DoAfterBuildTransaction(result);
@@ -615,11 +628,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			private set => this.RaiseAndSetIfChanged(ref _isCustomChangeAddress, value);
 		}
 
-		public Uri PayjoinEndPoint
+		[ValidateMethod(nameof(ValidatePayjoinEndPoint))]
+		public string PayjoinEndPoint
 		{
 			get => _payjoinEndPoint;
 			set => this.RaiseAndSetIfChanged(ref _payjoinEndPoint, value);
 		}
+
+		public bool IsPayjoinEndPointVisible => _isPayjoinEndPointVisible?.Value ?? false;
 
 		public ReactiveCommand<Unit, Unit> BuildTransactionCommand { get; }
 
@@ -642,6 +658,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			LabelSuggestion.Reset();
 			Address = "";
 			CustomChangeAddress = "";
+			PayjoinEndPoint = "";
 			Password = "";
 			AllSelectedAmount = Money.Zero;
 			IsMax = false;
@@ -946,6 +963,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid change address."));
+		}
+
+		public ErrorDescriptors ValidatePayjoinEndPoint()
+		{
+			if (string.IsNullOrWhiteSpace(PayjoinEndPoint) || Uri.IsWellFormedUriString(PayjoinEndPoint, UriKind.Absolute))
+			{
+				return ErrorDescriptors.Empty;
+			}
+			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid url."));
 		}
 
 		public override void OnOpen(CompositeDisposable disposables)
