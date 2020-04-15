@@ -30,8 +30,8 @@ namespace WalletWasabi.Gui.Behaviors
 		/// </summary>
 		public double Width
 		{
-			get { return GetValue(WidthProperty); }
-			set { SetValue(WidthProperty, value); }
+			get => GetValue(WidthProperty);
+			set => SetValue(WidthProperty, value);
 		}
 
 		/// <summary>
@@ -39,8 +39,8 @@ namespace WalletWasabi.Gui.Behaviors
 		/// </summary>
 		public double Height
 		{
-			get { return GetValue(HeightProperty); }
-			set { SetValue(HeightProperty, value); }
+			get => GetValue(HeightProperty);
+			set => SetValue(HeightProperty, value);
 		}
 
 		protected override void OnAttached()

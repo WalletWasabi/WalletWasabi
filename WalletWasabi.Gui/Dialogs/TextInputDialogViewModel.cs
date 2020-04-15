@@ -13,10 +13,6 @@ namespace WalletWasabi.Gui.Dialogs
 	public class TextInputDialogViewModel : ModalDialogViewModelBase
 	{
 		private string _textInput;
-		public new ReactiveCommand<Unit, Unit> OKCommand { get; set; }
-		public new ReactiveCommand<Unit, Unit> CancelCommand { get; set; }
-		public string Instructions { get; }
-		public string Watermark { get; }
 
 		public TextInputDialogViewModel(string title, string instructions, string watermark = "", string defaultTextInput = "") : base(Guard.Correct(title), false, false)
 		{
@@ -41,6 +37,11 @@ namespace WalletWasabi.Gui.Dialogs
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogWarning(ex));
 		}
+
+		public new ReactiveCommand<Unit, Unit> OKCommand { get; set; }
+		public new ReactiveCommand<Unit, Unit> CancelCommand { get; set; }
+		public string Instructions { get; }
+		public string Watermark { get; }
 
 		public string TextInput
 		{

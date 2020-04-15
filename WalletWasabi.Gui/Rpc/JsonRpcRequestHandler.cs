@@ -30,14 +30,14 @@ namespace WalletWasabi.Gui.Rpc
 
 		private static readonly JsonSerializer DefaultSerializer = JsonSerializer.Create(DefaultSettings);
 
-		private TService Service { get; }
-		private JsonRpcServiceMetadataProvider MetadataProvider { get; }
-
 		public JsonRpcRequestHandler(TService service)
 		{
 			Service = service;
 			MetadataProvider = new JsonRpcServiceMetadataProvider(typeof(TService));
 		}
+
+		private TService Service { get; }
+		private JsonRpcServiceMetadataProvider MetadataProvider { get; }
 
 		/// <summary>
 		/// Parses the request and dispatches it to the correct service's method.

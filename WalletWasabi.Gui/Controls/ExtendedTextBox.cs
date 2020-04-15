@@ -25,11 +25,8 @@ namespace WalletWasabi.Gui.Controls
 	{
 		private TextPresenter _presenter;
 		private MenuItem _pasteItem = null;
-		private CompositeDisposable Disposables { get; }
 
 		private Subject<string> _textPasted;
-
-		public IObservable<string> TextPasted => _textPasted.AsObservable();
 
 		public ExtendedTextBox()
 		{
@@ -87,10 +84,16 @@ namespace WalletWasabi.Gui.Controls
 				});
 		}
 
+		private CompositeDisposable Disposables { get; }
+
+		public IObservable<string> TextPasted => _textPasted.AsObservable();
+
 		Type IStyleable.StyleKey => typeof(TextBox);
 
 		private ReactiveCommand<Unit, Unit> CopyCommand { get; }
 		private ReactiveCommand<Unit, Unit> PasteCommand { get; }
+
+		protected virtual bool IsCopyEnabled => true;
 
 		private async Task<string> PasteAsync()
 		{
@@ -142,8 +145,6 @@ namespace WalletWasabi.Gui.Controls
 				await Application.Current.Clipboard.SetTextAsync(selection);
 			}
 		}
-
-		protected virtual bool IsCopyEnabled => true;
 
 		private DrawingPresenter GetCopyPresenter()
 		{

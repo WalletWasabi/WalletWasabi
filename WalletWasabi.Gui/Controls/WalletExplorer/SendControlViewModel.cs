@@ -448,9 +448,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		protected Global Global { get; }
 
-		private bool CanUsePayjoin { get; 
-		}
-		private Wallet Wallet { get; }
+		private bool CanUsePayjoin { get; }
+		
+		protected Wallet Wallet { get; }
 
 		Wallet IWalletViewModel.Wallet => Wallet;
 

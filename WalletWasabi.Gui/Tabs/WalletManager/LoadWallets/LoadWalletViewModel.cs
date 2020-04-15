@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
@@ -51,12 +52,14 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Bind(out _wallets)
 				.DisposeMany()
-				.Subscribe();
+				.Subscribe()
+				.DisposeWith(Disposables);
 
 			Observable.FromEventPattern<Wallet>(Global.WalletManager, nameof(Global.WalletManager.WalletAdded))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Select(x => x.EventArgs)
-				.Subscribe(wallet => RootList.Add(new WalletViewModelBase(wallet)));
+				.Subscribe(wallet => RootList.Add(new WalletViewModelBase(wallet)))
+				.DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.SelectedWallet)
 				.Where(x => x is null)
@@ -72,12 +75,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 				.Subscribe(x => SelectedWallet = x);
 
 			LoadCommand = ReactiveCommand.Create(() =>
-			{
-				RxApp.MainThreadScheduler.Schedule(async () =>
-				{
-					await LoadWalletAsync();
-				});
-			}, this.WhenAnyValue(x => x.SelectedWallet, x => x?.WalletState).Select(x => x == WalletState.Uninitialized));
+				RxApp.MainThreadScheduler
+					.Schedule(async () => await LoadWalletAsync())
+					.DisposeWith(Disposables),
+				this.WhenAnyValue(x => x.SelectedWallet, x => x?.WalletState)
+					.Select(x => x == WalletState.Uninitialized));
+
 			TestPasswordCommand = ReactiveCommand.Create(LoadKeyManager, this.WhenAnyValue(x => x.SelectedWallet).Select(x => x is { }));
 			OpenFolderCommand = ReactiveCommand.Create(OpenWalletsFolder);
 
@@ -117,7 +120,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 		}
 
 		public SourceList<WalletViewModelBase> RootList { get; private set; }
-		public ReactiveCommand<Unit, Unit> LoadCommand { get; }
+		public ReactiveCommand<Unit, IDisposable> LoadCommand { get; }
 		public ReactiveCommand<Unit, KeyManager> TestPasswordCommand { get; }
 		public ReactiveCommand<Unit, Unit> OpenFolderCommand { get; }
 		private WalletManagerViewModel Owner { get; }
@@ -125,6 +128,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 		private Global Global { get; }
 
 		private ReplaySubject<Unit> ResortTrigger { get; } = new ReplaySubject<Unit>();
+		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
 
 		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
 
@@ -247,7 +251,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			{
 				if (disposing)
 				{
-					RootList.Dispose();
+					Disposables.Dispose();
 				}
 				_disposedValue = true;
 			}

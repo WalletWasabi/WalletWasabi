@@ -20,12 +20,12 @@ namespace WalletWasabi.Gui.Rpc
 		private Dictionary<string, JsonRpcMethodMetadata> _proceduresDirectory =
 				new Dictionary<string, JsonRpcMethodMetadata>();
 
-		private Type ServiceType { get; }
-
 		public JsonRpcServiceMetadataProvider(Type serviceType)
 		{
 			ServiceType = serviceType;
 		}
+
+		private Type ServiceType { get; }
 
 		/// <summary>
 		/// Tries to return the metadata for a given procedure name.
