@@ -191,6 +191,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 						LabelToolTip = "Who can link this transaction to you? E.g.: \"Max, BitPay\"";
 					}
+
+					this.RaisePropertyChanged(nameof(Address));
+					this.RaisePropertyChanged(nameof(CustomChangeAddress));
 				});
 
 			// Triggering the detection of same address values.
@@ -887,7 +890,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return ErrorDescriptors.Empty;
 			}
 
-			if (Address == CustomChangeAddress)
+			if (Address == CustomChangeAddress && !IsMax)
 			{
 				return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "The active address and the change address cannot be the same."));
 			}
@@ -914,7 +917,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (IsMax)
 			{
-				return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Spending whole coins does not generate change."));
+				if (Address == CustomChangeAddress)
+				{
+					return ErrorDescriptors.Empty;
+				}
+				else
+				{
+					return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Spending whole coins does not generate change."));
+				}
 			}
 
 			if (Address == CustomChangeAddress)
