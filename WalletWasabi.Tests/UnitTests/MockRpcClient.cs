@@ -11,10 +11,12 @@ namespace WalletWasabi.Tests.UnitTests
 	{
 		public Func<Task<uint256>> OnGetBestBlockHashAsync { get; set; }
 		public Func<uint256, Task<Block>> OnGetBlockAsync { get; set; }
+		public Func<int, Task<uint256>> OnGetBlockHashAsync { get; set; }
 		public Func<uint256, Task<BlockHeader>> OnGetBlockHeaderAsync { get; set; }
+		public Func<Task<BlockchainInfo>> OnGetBlockchainInfoAsync { get; set; }
+		public Func<uint256, Task<VerboseBlockInfo>> OnGetVerboseBlockAsync { get; set; }
 
-		public Network Network => Network.RegTest;
-
+		public Network Network { get; set; } = Network.RegTest;
 		public RPCCredentialString CredentialString => new RPCCredentialString();
 
 		public Task<uint256> GetBestBlockHashAsync()
@@ -34,7 +36,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 		public Task<BlockchainInfo> GetBlockchainInfoAsync()
 		{
-			throw new NotImplementedException();
+			return OnGetBlockchainInfoAsync();
 		}
 
 		public Task<int> GetBlockCountAsync()
@@ -44,7 +46,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 		public Task<uint256> GetBlockHashAsync(int height)
 		{
-			throw new NotImplementedException();
+			return OnGetBlockHashAsync(height);
 		}
 
 		public Task<BlockHeader> GetBlockHeaderAsync(uint256 blockHash)
@@ -114,7 +116,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 		public Task<VerboseBlockInfo> GetVerboseBlockAsync(uint256 blockId)
 		{
-			throw new NotImplementedException();
+			return OnGetVerboseBlockAsync(blockId);
 		}
 
 		public Task<uint256> SendRawTransactionAsync(Transaction transaction)
