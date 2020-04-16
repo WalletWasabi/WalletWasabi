@@ -31,6 +31,23 @@ namespace WalletWasabi.Gui
 		public const int DefaultJsonRpcServerPort = 37128;
 		public static readonly Money DefaultDustThreshold = Money.Coins(Constants.DefaultDustThreshold);
 
+		private Uri _backendUri = null;
+		private Uri _fallbackBackendUri;
+
+		private int _mixUntilAnonymitySet;
+		private int _privacyLevelSome;
+		private int _privacyLevelFine;
+		private int _privacyLevelStrong;
+
+		public Config() : base()
+		{
+		}
+
+		public Config(string filePath) : base(filePath)
+		{
+			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet, PrivacyLevelSome, PrivacyLevelFine, PrivacyLevelStrong, GetBitcoinP2pEndPoint(), DustThreshold);
+		}
+
 		[JsonProperty(PropertyName = "Network")]
 		[JsonConverter(typeof(NetworkJsonConverter))]
 		public Network Network { get; internal set; } = Network.Main;
@@ -180,9 +197,6 @@ namespace WalletWasabi.Gui
 		[JsonConverter(typeof(MoneyBtcJsonConverter))]
 		public Money DustThreshold { get; internal set; } = DefaultDustThreshold;
 
-		private Uri _backendUri = null;
-		private Uri _fallbackBackendUri;
-
 		public ServiceConfiguration ServiceConfiguration { get; private set; }
 
 		public Uri GetCurrentBackendUri()
@@ -244,11 +258,6 @@ namespace WalletWasabi.Gui
 			return _fallbackBackendUri;
 		}
 
-		private int _mixUntilAnonymitySet;
-		private int _privacyLevelSome;
-		private int _privacyLevelFine;
-		private int _privacyLevelStrong;
-
 		public EndPoint GetBitcoinP2pEndPoint()
 		{
 			if (Network == Network.Main)
@@ -267,15 +276,6 @@ namespace WalletWasabi.Gui
 			{
 				throw new NotSupportedNetworkException(Network);
 			}
-		}
-
-		public Config() : base()
-		{
-		}
-
-		public Config(string filePath) : base(filePath)
-		{
-			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet, PrivacyLevelSome, PrivacyLevelFine, PrivacyLevelStrong, GetBitcoinP2pEndPoint(), DustThreshold);
 		}
 
 		/// <inheritdoc />
