@@ -98,6 +98,22 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _menuVisible, value);
 		}
 
+		public IShell Shell { get; }
+
+		public static MainWindowViewModel Instance { get; internal set; }
+
+		public ModalDialogViewModelBase ModalDialog
+		{
+			get => _modalDialog;
+			private set => this.RaiseAndSetIfChanged(ref _modalDialog, value);
+		}
+
+		public bool CanClose
+		{
+			get => _canClose;
+			set => this.RaiseAndSetIfChanged(ref _canClose, value);
+		}
+
 		public void PushLockScreen(LockScreenViewModelBase lockScreen)
 		{
 			if (LockScreen is { })
@@ -127,10 +143,6 @@ namespace WalletWasabi.Gui.ViewModels
 				}
 			}
 		}
-
-		public IShell Shell { get; }
-
-		public static MainWindowViewModel Instance { get; internal set; }
 
 		public void Initialize()
 		{
@@ -183,18 +195,6 @@ namespace WalletWasabi.Gui.ViewModels
 			ModalDialog = null;
 
 			return res;
-		}
-
-		public ModalDialogViewModelBase ModalDialog
-		{
-			get => _modalDialog;
-			private set => this.RaiseAndSetIfChanged(ref _modalDialog, value);
-		}
-
-		public bool CanClose
-		{
-			get => _canClose;
-			set => this.RaiseAndSetIfChanged(ref _canClose, value);
 		}
 
 		#region IDisposable Support
