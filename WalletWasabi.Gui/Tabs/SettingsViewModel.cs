@@ -166,42 +166,6 @@ namespace WalletWasabi.Gui.Tabs
 		public ReactiveCommand<Unit, Unit> SetClearPinCommand { get; }
 		public ReactiveCommand<Unit, Unit> TextBoxLostFocusCommand { get; }
 
-		public override void OnOpen(CompositeDisposable disposables)
-		{
-			try
-			{
-				Global.UiConfig
-					.WhenAnyValue(x => x.LurkingWifeMode)
-					.Subscribe(_ => this.RaisePropertyChanged(nameof(LurkingWifeMode)))
-					.DisposeWith(disposables);
-
-				_isPinSet = Global.UiConfig
-					.WhenAnyValue(x => x.LockScreenPinHash, x => !string.IsNullOrWhiteSpace(x))
-					.ToProperty(this, x => x.IsPinSet, scheduler: RxApp.MainThreadScheduler)
-					.DisposeWith(disposables);
-				this.RaisePropertyChanged(nameof(IsPinSet)); // Fire now otherwise the button won't update for restart.
-
-				Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => x.Autocopy, x => x.IsCustomFee, x => x.IsCustomChangeAddress)
-					.Throttle(TimeSpan.FromSeconds(1))
-					.ObserveOn(RxApp.TaskpoolScheduler)
-					.Subscribe(_ => Global.UiConfig.ToFile())
-					.DisposeWith(disposables);
-
-				base.OnOpen(disposables);
-			}
-			finally
-			{
-				TabOpened = true;
-			}
-		}
-
-		public override bool OnClose()
-		{
-			TabOpened = false;
-
-			return base.OnClose();
-		}
-
 		public Version BitcoinCoreVersion => Constants.BitcoinCoreVersion;
 
 		public IEnumerable<Network> Networks => new[]
@@ -313,6 +277,42 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			get => _pinBoxText;
 			set => this.RaiseAndSetIfChanged(ref _pinBoxText, value);
+		}
+
+		public override void OnOpen(CompositeDisposable disposables)
+		{
+			try
+			{
+				Global.UiConfig
+					.WhenAnyValue(x => x.LurkingWifeMode)
+					.Subscribe(_ => this.RaisePropertyChanged(nameof(LurkingWifeMode)))
+					.DisposeWith(disposables);
+
+				_isPinSet = Global.UiConfig
+					.WhenAnyValue(x => x.LockScreenPinHash, x => !string.IsNullOrWhiteSpace(x))
+					.ToProperty(this, x => x.IsPinSet, scheduler: RxApp.MainThreadScheduler)
+					.DisposeWith(disposables);
+				this.RaisePropertyChanged(nameof(IsPinSet)); // Fire now otherwise the button won't update for restart.
+
+				Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => x.Autocopy, x => x.IsCustomFee, x => x.IsCustomChangeAddress)
+					.Throttle(TimeSpan.FromSeconds(1))
+					.ObserveOn(RxApp.TaskpoolScheduler)
+					.Subscribe(_ => Global.UiConfig.ToFile())
+					.DisposeWith(disposables);
+
+				base.OnOpen(disposables);
+			}
+			finally
+			{
+				TabOpened = true;
+			}
+		}
+
+		public override bool OnClose()
+		{
+			TabOpened = false;
+
+			return base.OnClose();
 		}
 
 		private void Save()
