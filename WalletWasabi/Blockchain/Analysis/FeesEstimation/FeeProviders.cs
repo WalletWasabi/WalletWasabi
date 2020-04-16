@@ -1,17 +1,22 @@
+using NBitcoin;
+using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Text;
+using WalletWasabi.Bases;
+using WalletWasabi.Logging;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 {
 	public class FeeProviders : IFeeProvider, IDisposable
 	{
 		private AllFeeEstimate _allFeeEstimate;
-		private volatile bool _disposedValue = false; // To detect redundant calls
 
-		public FeeProviders(List<IFeeProvider> feeProviders, AllFeeEstimate defaultFeeEstimate)
+		public FeeProviders(IEnumerable<IFeeProvider> feeProviders)
 		{
-			_allFeeEstimate = defaultFeeEstimate;
 			Providers = feeProviders;
 			Lock = new object();
 
@@ -38,7 +43,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 			}
 		}
 
-		private List<IFeeProvider> Providers { get; }
+		private IEnumerable<IFeeProvider> Providers { get; }
 
 		private object Lock { get; }
 
@@ -51,22 +56,25 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 		{
 			lock (Lock)
 			{
-				foreach (var provider in Providers)
+				IFeeProvider[] providerArray = Providers.ToArray();
+				for (int i = 0; i < providerArray.Length - 1; i++)
 				{
-					if (provider.AllFeeEstimate?.IsAccurate == true)
+					IFeeProvider provider = providerArray[i];
+					var af = provider.AllFeeEstimate;
+					if (af != null && af.IsAccurate)
 					{
-						AllFeeEstimate = provider.AllFeeEstimate;
+						AllFeeEstimate = af;
 						return;
 					}
 				}
-				if (Providers.Count > 0)
-				{
-					AllFeeEstimate = Providers.Last().AllFeeEstimate ?? AllFeeEstimate;
-				}
+
+				AllFeeEstimate = providerArray[^1].AllFeeEstimate;
 			}
 		}
 
 		#region IDisposable Support
+
+		private volatile bool _disposedValue = false; // To detect redundant calls
 
 		protected virtual void Dispose(bool disposing)
 		{

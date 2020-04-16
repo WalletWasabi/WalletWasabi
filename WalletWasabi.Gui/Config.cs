@@ -181,8 +181,8 @@ namespace WalletWasabi.Gui
 		[JsonConverter(typeof(MoneyBtcJsonConverter))]
 		public Money DustThreshold { get; internal set; } = DefaultDustThreshold;
 		
-		[JsonProperty(PropertyName = "DefaultFeeEstimate")]
-		public AllFeeEstimate DefaultFeeEstimate { get; internal set; }
+		[JsonProperty(PropertyName = "LastFeeEstimate")]
+		public AllFeeEstimate LastFeeEstimate { get; internal set; }
 
 		private Uri _backendUri = null;
 		private Uri _fallbackBackendUri;

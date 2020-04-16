@@ -220,13 +220,14 @@ namespace WalletWasabi.Gui
 				{
 					feeProviderList.Insert(0, rpcFeeProvider);
 				}
+				feeProviderList.Add(new StoredFeeEstimateProvider(Config.LastFeeEstimate));
 
-				FeeProviders = new FeeProviders(feeProviderList, Config.DefaultFeeEstimate);
+				FeeProviders = new FeeProviders(feeProviderList);
 				FeeProviders.AllFeeEstimateChanged += (sender, estimate) =>
 				{
 					if (estimate.IsAccurate)
 					{
-						Config.DefaultFeeEstimate = estimate; Config.ToFile();
+						Config.LastFeeEstimate = estimate; Config.ToFile();
 					}
 				};
 
