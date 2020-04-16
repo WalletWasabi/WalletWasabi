@@ -9,6 +9,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Helpers;
@@ -179,6 +180,9 @@ namespace WalletWasabi.Gui
 		[JsonProperty(PropertyName = "DustThreshold")]
 		[JsonConverter(typeof(MoneyBtcJsonConverter))]
 		public Money DustThreshold { get; internal set; } = DefaultDustThreshold;
+		
+		[JsonProperty(PropertyName = "DefaultFeeEstimate")]
+		public AllFeeEstimate DefaultFeeEstimate { get; internal set; }
 
 		private Uri _backendUri = null;
 		private Uri _fallbackBackendUri;

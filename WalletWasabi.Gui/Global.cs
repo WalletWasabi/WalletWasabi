@@ -221,7 +221,8 @@ namespace WalletWasabi.Gui
 					feeProviderList.Insert(0, rpcFeeProvider);
 				}
 
-				FeeProviders = new FeeProviders(feeProviderList);
+				FeeProviders = new FeeProviders(feeProviderList, Config.DefaultFeeEstimate);
+				FeeProviders.AllFeeEstimateChanged += (sender, estimate) => { if(estimate.IsAccurate) { Config.DefaultFeeEstimate = estimate; Config.ToFile(); } };
 
 				#endregion BitcoinCoreInitialization
 

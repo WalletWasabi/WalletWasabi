@@ -1,13 +1,6 @@
-using NBitcoin;
-using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using WalletWasabi.Bases;
-using WalletWasabi.Logging;
-using WalletWasabi.Services;
 
 namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 {
@@ -15,8 +8,9 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 	{
 		private AllFeeEstimate _allFeeEstimate;
 
-		public FeeProviders(IEnumerable<IFeeProvider> feeProviders)
+		public FeeProviders(List<IFeeProvider> feeProviders, AllFeeEstimate defaultFeeEstimate)
 		{
+			_allFeeEstimate = defaultFeeEstimate;
 			Providers = feeProviders;
 			Lock = new object();
 
@@ -43,7 +37,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 			}
 		}
 
-		private IEnumerable<IFeeProvider> Providers { get; }
+		private List<IFeeProvider> Providers { get; }
 
 		private object Lock { get; }
 
@@ -56,19 +50,18 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 		{
 			lock (Lock)
 			{
-				IFeeProvider[] providerArray = Providers.ToArray();
-				for (int i = 0; i < providerArray.Length - 1; i++)
+				foreach(var provider in Providers)
 				{
-					IFeeProvider provider = providerArray[i];
-					var af = provider.AllFeeEstimate;
-					if (af != null && af.IsAccurate)
+					if (provider.AllFeeEstimate?.IsAccurate == true)
 					{
-						AllFeeEstimate = af;
+						AllFeeEstimate = provider.AllFeeEstimate;
 						return;
 					}
 				}
-
-				AllFeeEstimate = providerArray[^1].AllFeeEstimate;
+				if (Providers.Count > 0)
+				{
+					AllFeeEstimate = Providers.Last().AllFeeEstimate ?? AllFeeEstimate;
+				}
 			}
 		}
 
