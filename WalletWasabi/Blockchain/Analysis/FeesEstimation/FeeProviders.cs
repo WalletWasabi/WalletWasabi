@@ -7,6 +7,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 	public class FeeProviders : IFeeProvider, IDisposable
 	{
 		private AllFeeEstimate _allFeeEstimate;
+		private volatile bool _disposedValue = false; // To detect redundant calls
 
 		public FeeProviders(List<IFeeProvider> feeProviders, AllFeeEstimate defaultFeeEstimate)
 		{
@@ -50,7 +51,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 		{
 			lock (Lock)
 			{
-				foreach(var provider in Providers)
+				foreach (var provider in Providers)
 				{
 					if (provider.AllFeeEstimate?.IsAccurate == true)
 					{
@@ -66,8 +67,6 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 		}
 
 		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
 
 		protected virtual void Dispose(bool disposing)
 		{
