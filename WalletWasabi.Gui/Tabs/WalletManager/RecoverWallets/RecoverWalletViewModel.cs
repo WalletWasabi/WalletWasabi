@@ -162,6 +162,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 
 		public ReactiveCommand<Unit, Unit> RecoverCommand { get; }
 
+		private static IEnumerable<string> EnglishWords { get; } = Wordlist.English.GetWords();
+
 		public override void OnCategorySelected()
 		{
 			base.OnCategorySelected();
@@ -218,7 +220,5 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 
 			Suggestions.Clear();
 		}
-
-		private static IEnumerable<string> EnglishWords { get; } = Wordlist.English.GetWords();
 	}
 }

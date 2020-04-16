@@ -39,6 +39,21 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 
 		private Global Global { get; }
 
+		[ValidateMethod(nameof(ValidatePassword))]
+		public string Password
+		{
+			get => _password;
+			set => this.RaiseAndSetIfChanged(ref _password, value);
+		}
+
+		public string WalletName
+		{
+			get => _walletName;
+			set => this.RaiseAndSetIfChanged(ref _walletName, value);
+		}
+
+		public ReactiveCommand<Unit, Unit> NextCommand { get; }
+
 		private void DoNextCommand()
 		{
 			try
@@ -73,21 +88,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 
 			return errors;
 		}
-
-		[ValidateMethod(nameof(ValidatePassword))]
-		public string Password
-		{
-			get => _password;
-			set => this.RaiseAndSetIfChanged(ref _password, value);
-		}
-
-		public string WalletName
-		{
-			get => _walletName;
-			set => this.RaiseAndSetIfChanged(ref _walletName, value);
-		}
-
-		public ReactiveCommand<Unit, Unit> NextCommand { get; }
 
 		public override void OnCategorySelected()
 		{
