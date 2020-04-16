@@ -329,7 +329,7 @@ namespace WalletWasabi.Gui
 					}
 					catch (System.Net.HttpListenerException e)
 					{
-						Logger.LogWarning($"Failed to start JsonRpcServer with error: {e.Message}.");
+						Logger.LogWarning($"Failed to start {nameof(JsonRpcServer)} with error: {e.Message}.");
 						RpcServer = null;
 					}
 				}
