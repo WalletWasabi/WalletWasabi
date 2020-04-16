@@ -11,6 +11,7 @@ namespace WalletWasabi.BitcoinCore
 	public class CachedRpcClient : RpcClientBase
 	{
 		private CancellationTokenSource _tipChangeCancellationTokenSource;
+		private object CancellationTokenSourceLock { get; } = new object();
 
 		public CachedRpcClient(RPCClient rpc, IMemoryCache cache)
 			: base(rpc)
@@ -24,9 +25,12 @@ namespace WalletWasabi.BitcoinCore
 		{
 			get 
 			{
-				if (_tipChangeCancellationTokenSource is null || _tipChangeCancellationTokenSource.IsCancellationRequested)
+				lock (CancellationTokenSourceLock)
 				{
-					_tipChangeCancellationTokenSource = new CancellationTokenSource();
+					if (_tipChangeCancellationTokenSource is null || _tipChangeCancellationTokenSource.IsCancellationRequested)
+					{
+						_tipChangeCancellationTokenSource = new CancellationTokenSource();
+					}
 				}
 				return _tipChangeCancellationTokenSource;
 			}
