@@ -23,7 +23,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				{
 					Headers = 0,
 					Blocks = 0,
-					InitialBlockDownload = false,
+					InitialBlockDownload = false
 				}),
 			};
 			var blockNotifier = new BlockNotifier(TimeSpan.MaxValue, rpc);
