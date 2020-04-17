@@ -76,6 +76,18 @@
               <TextBlock Text="{Binding Title}" />
             </StackPanel>
           </TreeDataTemplate>
+          <TreeDataTemplate DataType="ViewModels:HardwareWalletViewModel" ItemsSource="{Binding Actions}">
+            <StackPanel Classes="TreeViewRoot">
+              <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_OpenHardwareWallet}" />
+              <TextBlock Text="{Binding Title}" />
+            </StackPanel>
+          </TreeDataTemplate>
+          <TreeDataTemplate DataType="ViewModels:WatchOnlyWalletViewModel" ItemsSource="{Binding Actions}">
+            <StackPanel Classes="TreeViewRoot">
+              <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_WatchOnlyOpenWallet}" />
+              <TextBlock Text="{Binding Title}" />
+            </StackPanel>
+          </TreeDataTemplate>
           <TreeDataTemplate DataType="ViewModels:SendTabViewModel">
             <StackPanel Classes="TreeViewRoot">
               <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_Send}" />
