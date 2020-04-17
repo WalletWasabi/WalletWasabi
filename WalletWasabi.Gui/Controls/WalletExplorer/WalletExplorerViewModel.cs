@@ -105,6 +105,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Where(_ => !_inSelecting)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => shell.AddOrSelectDocument(x));
+
+			this.WhenAnyValue(x => x.SelectedItem)
+				.OfType<WalletViewModelBase>()
+				.Subscribe(x => x.IsExpanded = true);
 		}
 
 		public override Location DefaultLocation => Location.Right;
