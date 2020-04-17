@@ -22,9 +22,7 @@ namespace WalletWasabi.Gui.ViewModels
 	{
 		private ModalDialogViewModelBase _modalDialog;
 		private bool _canClose = true;
-		private string _title = "Wasabi Wallet";
-		private double _height;
-		private double _width;
+		private string _title = "Wasabi Wallet";		
 		private WindowState _windowState;
 		private StatusBarViewModel _statusBar;
 		private LockScreenViewModelBase _lockScreen;
@@ -42,10 +40,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 			_menuVisible = true;
 
-			var uiConfig = global.UiConfig;
-
-			Width = uiConfig.Width;
-			Height = uiConfig.Height;
+			var uiConfig = global.UiConfig;			
 
 			WindowState = uiConfig.WindowState;
 
@@ -60,18 +55,6 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			get => _title;
 			internal set => this.RaiseAndSetIfChanged(ref _title, value);
-		}
-
-		public double Height
-		{
-			get => _height;
-			set => this.RaiseAndSetIfChanged(ref _height, value);
-		}
-
-		public double Width
-		{
-			get => _width;
-			set => this.RaiseAndSetIfChanged(ref _width, value);
 		}
 
 		public WindowState WindowState
