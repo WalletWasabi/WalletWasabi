@@ -63,6 +63,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _customChangeAddress;
 		private string _labelToolTip;
 		private string _feeToolTip;
+		private string _customChangeAddressToolTip;
 		private string _amountWaterMarkText;
 		private bool _isBusy;
 		private bool _isHardwareBusy;
@@ -190,6 +191,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						AmountText = "0.0";
 
 						LabelToolTip = "Who can link this transaction to you? E.g.: \"Max, BitPay\"";
+						CustomChangeAddressToolTip = "";
 					}
 
 					this.RaisePropertyChanged(nameof(Address));
@@ -576,6 +578,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _feeToolTip, value);
 		}
 
+		public string CustomChangeAddressToolTip
+		{
+			get => _customChangeAddressToolTip;
+			set => this.RaiseAndSetIfChanged(ref _customChangeAddressToolTip, value);
+		}
+
 		public string AmountWatermarkText
 		{
 			get => _amountWaterMarkText;
@@ -631,6 +639,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			AllSelectedAmount = Money.Zero;
 			IsMax = false;
 			LabelToolTip = "Who can link this transaction to you? E.g.: \"Max, BitPay\"";
+			CustomChangeAddressToolTip = "";
 			AmountText = "0.0";
 		}
 
@@ -917,14 +926,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (IsMax)
 			{
-				if (Address == CustomChangeAddress)
-				{
-					return ErrorDescriptors.Empty;
-				}
-				else
-				{
-					return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Spending whole coins does not generate change."));
-				}
+				CustomChangeAddressToolTip = "Spending whole coins does not generate change.";
+				return ErrorDescriptors.Empty;
 			}
 
 			if (Address == CustomChangeAddress)
