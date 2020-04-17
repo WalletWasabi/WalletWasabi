@@ -65,13 +65,13 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		}
 
 		[Fact]
-		public async Task ParseVerboseBlockInfoAsync()
+		public void ParseVerboseBlockInfo()
 		{
 			var blockInfo = RpcParser.ParseVerboseBlockResponse(RpcOutput);
 			Assert.Equal(2, blockInfo.Transactions.Count());
-			Assert.Equal(1, blockInfo.Transactions.ElementAt(0).Inputs.Count());
+			Assert.Single(blockInfo.Transactions.ElementAt(0).Inputs);
 			Assert.Equal(2, blockInfo.Transactions.ElementAt(0).Outputs.Count());
-			Assert.Equal(1, blockInfo.Transactions.ElementAt(1).Inputs.Count());
+			Assert.Single(blockInfo.Transactions.ElementAt(1).Inputs);
 			Assert.Equal(2, blockInfo.Transactions.ElementAt(1).Outputs.Count());
 
 			Assert.Equal("01660101", blockInfo.Transactions.ElementAt(0).Inputs.ElementAt(0).Coinbase);
