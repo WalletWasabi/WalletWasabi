@@ -71,8 +71,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(wallet =>
 				{
 					WalletViewModelBase vm = (wallet.State <= WalletState.Starting) ?
-						new ClosedWalletViewModel(wallet) :
-						(WalletViewModelBase)new WalletViewModel(wallet);
+						ClosedWalletViewModel.Create(wallet) :
+						WalletViewModel.Create(wallet);
 
 					InsertWallet(vm);
 				});
@@ -190,22 +190,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private static WalletViewModel CreateWalletViewModel (Wallet wallet)
-		{
-			if(wallet.KeyManager.IsHardwareWallet)
-			{
-				return new HardwareWalletViewModel(wallet);
-			}
-			else if(wallet.KeyManager.IsWatchOnly)
-			{
-				return new WatchOnlyWalletViewModel(wallet);
-			}
-			else
-			{
-				return new WalletViewModel(wallet);
-			}
-		}
-
 		internal WalletViewModelBase OpenWallet(Wallet wallet)
 		{
 			if (_wallets.OfType<WalletViewModel>().Any(x => x.Title == wallet.WalletName))
@@ -213,7 +197,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				throw new Exception("Wallet already opened.");
 			}
 
-			var walletViewModel = CreateWalletViewModel(wallet);
+			var walletViewModel = WalletViewModel.Create(wallet);
 
 			InsertWallet(walletViewModel);
 
@@ -239,7 +223,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			foreach (var wallet in WalletManager.GetWallets())
 			{
-				InsertWallet(new ClosedWalletViewModel(wallet));
+				InsertWallet(ClosedWalletViewModel.Create(wallet));
 			}
 		}
 

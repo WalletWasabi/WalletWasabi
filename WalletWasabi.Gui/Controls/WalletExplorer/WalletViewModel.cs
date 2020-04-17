@@ -20,7 +20,23 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private ObservableCollection<ViewModelBase> _actions;
 
-		public WalletViewModel(Wallet wallet) : base(wallet)
+		public static WalletViewModel Create(Wallet wallet)
+		{
+			if (wallet.KeyManager.IsHardwareWallet)
+			{
+				return new HardwareWalletViewModel(wallet);
+			}
+			else if (wallet.KeyManager.IsWatchOnly)
+			{
+				return new WatchOnlyWalletViewModel(wallet);
+			}
+			else
+			{
+				return new WalletViewModel(wallet);
+			}
+		}
+
+		protected WalletViewModel(Wallet wallet) : base(wallet)
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 

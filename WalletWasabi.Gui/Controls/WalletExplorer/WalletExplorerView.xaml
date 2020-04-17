@@ -65,26 +65,36 @@
                   </MenuItem>
                 </ContextMenu>
               </StackPanel.ContextMenu>
-              <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_ClosedWallet}" />
+              <StackPanel.DataTemplates>
+                <DataTemplate DataType="ViewModels:ClosedHardwareWalletViewModel">
+                  <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_ClosedHardwareWallet}" />
+                </DataTemplate>
+                <DataTemplate DataType="ViewModels:ClosedWatchOnlyWalletViewModel">
+                  <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_WatchOnlyClosedWallet}" />
+                </DataTemplate>
+                <DataTemplate DataType="ViewModels:ClosedWalletViewModel">
+                  <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_ClosedWallet}" />
+                </DataTemplate>
+              </StackPanel.DataTemplates>
+              <ContentControl Content="{Binding }" />
               <TextBlock Text="{Binding Title}" />
               <DrawingPresenter Name="PART_Spinner" Width="16" Height="16" IsVisible="{Binding WalletState, Converter={StaticResource WalletLoadingBoolConverter}}" Drawing="{DynamicResource WalletExplorer_Spinner}" />
             </StackPanel>
           </TreeDataTemplate>
           <TreeDataTemplate DataType="ViewModels:WalletViewModel" ItemsSource="{Binding Actions}">
             <StackPanel Classes="TreeViewRoot">
-              <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_OpenWallet}" />
-              <TextBlock Text="{Binding Title}" />
-            </StackPanel>
-          </TreeDataTemplate>
-          <TreeDataTemplate DataType="ViewModels:HardwareWalletViewModel" ItemsSource="{Binding Actions}">
-            <StackPanel Classes="TreeViewRoot">
-              <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_OpenHardwareWallet}" />
-              <TextBlock Text="{Binding Title}" />
-            </StackPanel>
-          </TreeDataTemplate>
-          <TreeDataTemplate DataType="ViewModels:WatchOnlyWalletViewModel" ItemsSource="{Binding Actions}">
-            <StackPanel Classes="TreeViewRoot">
-              <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_WatchOnlyOpenWallet}" />
+              <StackPanel.DataTemplates>
+                <DataTemplate DataType="ViewModels:HardwareWalletViewModel">
+                  <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_OpenHardwareWallet}" />
+                </DataTemplate>
+                <DataTemplate DataType="ViewModels:WatchOnlyWalletViewModel">
+                  <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_WatchOnlyOpenWallet}" />
+                </DataTemplate>
+                <DataTemplate DataType="ViewModels:WalletViewModel">
+                  <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_OpenedWallet}" />
+                </DataTemplate>
+              </StackPanel.DataTemplates>
+              <ContentControl Content="{Binding }" />
               <TextBlock Text="{Binding Title}" />
             </StackPanel>
           </TreeDataTemplate>
