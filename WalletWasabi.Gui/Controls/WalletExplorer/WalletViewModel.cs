@@ -18,23 +18,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class WalletViewModel : WalletViewModelBase
 	{
-		private ObservableCollection<ViewModelBase> _actions;
-
-		public static WalletViewModel Create(Wallet wallet)
-		{
-			if (wallet.KeyManager.IsHardwareWallet)
-			{
-				return new HardwareWalletViewModel(wallet);
-			}
-			else if (wallet.KeyManager.IsWatchOnly)
-			{
-				return new WatchOnlyWalletViewModel(wallet);
-			}
-			else
-			{
-				return new WalletViewModel(wallet);
-			}
-		}
+		private ObservableCollection<ViewModelBase> _actions;		
 
 		protected WalletViewModel(Wallet wallet) : base(wallet)
 		{
@@ -87,6 +71,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Actions.Add(advancedAction);
 			advancedAction.Items.Add(InfoTab);
 			advancedAction.Items.Add(BuildTab);
+		}
+
+		public static WalletViewModel Create(Wallet wallet)
+		{
+			if (wallet.KeyManager.IsHardwareWallet)
+			{
+				return new HardwareWalletViewModel(wallet);
+			}
+			else if (wallet.KeyManager.IsWatchOnly)
+			{
+				return new WatchOnlyWalletViewModel(wallet);
+			}
+			else
+			{
+				return new WalletViewModel(wallet);
+			}
 		}
 
 		private SendTabViewModel SendTab { get; set; }

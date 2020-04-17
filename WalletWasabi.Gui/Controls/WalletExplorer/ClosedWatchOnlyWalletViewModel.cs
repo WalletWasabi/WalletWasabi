@@ -6,7 +6,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		internal ClosedWatchOnlyWalletViewModel(Wallet wallet) : base(wallet)
 		{
-
 		}
 	}
 }
