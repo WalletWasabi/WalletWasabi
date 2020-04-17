@@ -20,6 +20,8 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
+using WalletWasabi.TorSocks5;
+using WalletWasabi.TorSocks5.Socks;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
@@ -48,13 +50,21 @@ namespace WalletWasabi.Services
 
 		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Func<Uri> baseUriAction, EndPoint torSocks5EndPoint)
 		{
-			var client = new WasabiClient(baseUriAction, torSocks5EndPoint);
+			ServerUriAction = baseUriAction;
+			TorSocks5EndPoint = torSocks5EndPoint;
+
+			var torClient = new TorHttpClient(ServerUriAction, TorSocks5EndPoint);
+			var client = new WasabiClient(new SocksHttpClientHandler(torClient));
 			CreateNew(network, bitcoinStore, client);
 		}
 
 		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Uri baseUri, EndPoint torSocks5EndPoint)
 		{
-			var client = new WasabiClient(baseUri, torSocks5EndPoint);
+			ServerUriAction = ()=>baseUri;
+			TorSocks5EndPoint = torSocks5EndPoint;
+
+			var torClient = new TorHttpClient(ServerUriAction, TorSocks5EndPoint);
+			var client = new WasabiClient(new SocksHttpClientHandler(torClient));
 			CreateNew(network, bitcoinStore, client);
 		}
 
@@ -71,6 +81,9 @@ namespace WalletWasabi.Services
 		public WasabiClient WasabiClient { get; private set; }
 
 		public Network Network { get; private set; }
+
+		public Func<Uri> ServerUriAction { get; private set; }
+		public EndPoint TorSocks5EndPoint { get; private set; }
 
 		/// <summary>
 		/// The Bitcoin price in USD.

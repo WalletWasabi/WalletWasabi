@@ -47,8 +47,8 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			DestinationKeyManager = KeyManager;
 			Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
-			CcjHostUriAction = Synchronizer.WasabiClient.TorClient.DestinationUriAction;
-			TorSocks5EndPoint = Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint;
+			CcjHostUriAction = Synchronizer.ServerUriAction;
+			TorSocks5EndPoint = Synchronizer.TorSocks5EndPoint;
 			CoordinatorFeepercentToCheck = null;
 
 			ExposedLinks = new ConcurrentDictionary<OutPoint, IEnumerable<HdPubKeyBlindedPair>>();

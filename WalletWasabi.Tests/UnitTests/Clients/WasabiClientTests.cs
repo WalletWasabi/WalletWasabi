@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Models;
+using WalletWasabi.TorSocks5.Socks;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
@@ -32,7 +33,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 
 			var torHttpClient = new MockTorHttpClient();
 			torHttpClient.OnSendAsync_Method = FakeServerCode;
-			var client = new WasabiClient(torHttpClient);
+			var client = new WasabiClient(new SocksHttpClientHandler(torHttpClient));
 			Assert.Empty(WasabiClient.TransactionCache);
 
 			// Requests one transaction

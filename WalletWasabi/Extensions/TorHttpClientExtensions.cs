@@ -3,21 +3,24 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.TorSocks5;
 
-public static class TorHttpClientExtensions
+public static class HttpClientExtensions
 {
 	/// <remarks>
 	/// Throws OperationCancelledException if <paramref name="cancel"/> is set.
 	/// </remarks>
-	public static async Task<HttpResponseMessage> SendAndRetryAsync(this ITorHttpClient client, HttpMethod method, HttpStatusCode expectedCode, string relativeUri, int retry = 2, HttpContent content = null, CancellationToken cancel = default)
+	public static async Task<HttpResponseMessage> SendAndRetryAsync(this HttpClient client, HttpMethod method, HttpStatusCode expectedCode, string relativeUri, int retry = 2, HttpContent content = null, CancellationToken cancel = default)
 	{
 		HttpResponseMessage response = null;
 		while (retry-- > 0)
 		{
 			response?.Dispose();
 			cancel.ThrowIfCancellationRequested();
-			response = await client.SendAsync(method, relativeUri, content, cancel: cancel);
+			var request = new HttpRequestMessage(method, relativeUri)
+			{
+				Content = content
+			};
+			response = await client.SendAsync(request, cancel);
 			if (response.StatusCode == expectedCode)
 			{
 				break;

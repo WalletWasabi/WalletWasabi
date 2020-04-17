@@ -14,6 +14,8 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
+using WalletWasabi.TorSocks5;
+using WalletWasabi.TorSocks5.Socks;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
@@ -53,7 +55,9 @@ namespace WalletWasabi.Tests.RegressionTests
 			var firstHash = await global.RpcClient.GetBlockHashAsync(0);
 			while (true)
 			{
-				using var client = new WasabiClient(new Uri(regTestFixture.BackendEndPoint), null);
+				using var torClient = new TorHttpClient(new Uri(regTestFixture.BackendEndPoint), null);
+				using var client = new WasabiClient(new SocksHttpClientHandler(torClient));
+
 				FiltersResponse filtersResponse = await client.GetFiltersAsync(firstHash, 1000);
 				Assert.NotNull(filtersResponse);
 

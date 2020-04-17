@@ -29,6 +29,8 @@ using WalletWasabi.Legal;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
+using WalletWasabi.TorSocks5;
+using WalletWasabi.TorSocks5.Socks;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -339,7 +341,15 @@ namespace WalletWasabi.Gui.ViewModels
 						{
 							if (Global.LegalDocuments is null || Global.LegalDocuments.Version < x.LegalDocumentsVersion)
 							{
-								using var client = new WasabiClient(() => Global.Config.UseTor ? Global.Config.GetCurrentBackendUri() : Global.Config.GetFallbackBackendUri(), Global.Config.UseTor ? Global.Config.TorSocks5EndPoint : null);
+								using var torClient = new TorHttpClient(
+									() => Global.Config.UseTor 
+										? Global.Config.GetCurrentBackendUri()
+										: Global.Config.GetFallbackBackendUri(), 
+									Global.Config.UseTor 
+										? Global.Config.TorSocks5EndPoint 
+										: null
+								);
+								using var client = new WasabiClient(new SocksHttpClientHandler(torClient));
 								var versions = await client.GetVersionsAsync(CancellationToken.None);
 								var version = versions.LegalDocumentsVersion;
 								var legalFolderPath = Path.Combine(Global.DataDir, LegalDocuments.LegalFolderName);

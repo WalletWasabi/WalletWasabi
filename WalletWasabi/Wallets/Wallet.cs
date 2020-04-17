@@ -31,6 +31,8 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
+using WalletWasabi.TorSocks5;
+using WalletWasabi.TorSocks5.Socks;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Wallets
@@ -421,7 +423,7 @@ namespace WalletWasabi.Wallets
 					}
 				} while (Synchronizer.AreRequestsBlocked()); // If requests are blocked, delay mempool cleanup, because coinjoin answers are always priority.
 
-				var task = BitcoinStore.MempoolService?.TryPerformMempoolCleanupAsync(Synchronizer?.WasabiClient?.TorClient?.DestinationUriAction, Synchronizer?.WasabiClient?.TorClient?.TorSocks5EndPoint);
+				var task = BitcoinStore.MempoolService?.TryPerformMempoolCleanupAsync(Synchronizer.ServerUriAction, Synchronizer.TorSocks5EndPoint);
 
 				if (task is { })
 				{
@@ -464,7 +466,8 @@ namespace WalletWasabi.Wallets
 			{
 				try
 				{
-					using var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint);
+					using var torClient = new TorHttpClient(Synchronizer.ServerUriAction,	Synchronizer.TorSocks5EndPoint);
+					using var client = new WasabiClient(new SocksHttpClientHandler(torClient));
 					var compactness = 10;
 
 					var mempoolHashes = await client.GetMempoolHashesAsync(compactness).ConfigureAwait(false);

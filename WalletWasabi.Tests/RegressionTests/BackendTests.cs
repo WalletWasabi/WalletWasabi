@@ -45,6 +45,7 @@ using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.TorSocks5;
+using WalletWasabi.TorSocks5.Socks;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
@@ -82,7 +83,9 @@ namespace WalletWasabi.Tests.RegressionTests
 		[Fact]
 		public async Task GetClientVersionAsync()
 		{
-			using var client = new WasabiClient(new Uri(RegTestFixture.BackendEndPoint), null);
+			using var torClient = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint), null);
+			using var client = new WasabiClient(new SocksHttpClientHandler(torClient));
+
 			var uptodate = await client.CheckUpdatesAsync(CancellationToken.None);
 			Assert.True(uptodate.BackendCompatible);
 			Assert.True(uptodate.ClientUpToDate);
@@ -218,8 +221,9 @@ namespace WalletWasabi.Tests.RegressionTests
 					times++;
 				}
 
-				using var client = new WasabiClient(new Uri(RegTestFixture.BackendEndPoint), null);
-				var response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, Request);
+				using var torClient = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint), null);
+				using var client = new HttpClient(new SocksHttpClientHandler(torClient));
+				var response = await client.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, Request);
 				using (HttpContent content = response.Content)
 				{
 					var resp = await content.ReadAsJsonAsync<StatusResponse>();
@@ -232,7 +236,8 @@ namespace WalletWasabi.Tests.RegressionTests
 
 				await rpc.GenerateAsync(1);
 
-				response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, Request);
+
+				response = await client.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, Request);
 				using (HttpContent content = response.Content)
 				{
 					var resp = await content.ReadAsJsonAsync<StatusResponse>();
@@ -244,7 +249,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				var blockchainController = (BlockchainController)RegTestFixture.BackendHost.Services.GetService(typeof(BlockchainController));
 				blockchainController.Cache.Remove($"{nameof(BlockchainController.GetStatusAsync)}");
 
-				response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, Request);
+				response = await client.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, Request);
 				using (HttpContent content = response.Content)
 				{
 					var resp = await content.ReadAsJsonAsync<StatusResponse>();

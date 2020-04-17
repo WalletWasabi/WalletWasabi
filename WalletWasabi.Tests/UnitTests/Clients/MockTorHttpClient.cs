@@ -9,7 +9,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 {
 	public class MockTorHttpClient : ITorHttpClient
 	{
-		public Uri DestinationUri => new Uri("DestinationUri");
+		public Uri DestinationUri => new Uri("https://destination.com", UriKind.Absolute);
 
 		public Func<Uri> DestinationUriAction => () => DestinationUri;
 

@@ -5,13 +5,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
-using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
@@ -19,22 +17,16 @@ using WalletWasabi.TorSocks5;
 
 namespace WalletWasabi.WebClients.Wasabi
 {
-	public class WasabiClient : TorDisposableBase
+	public class WasabiClient : IDisposable
 	{
-		/// <inheritdoc/>
-		public WasabiClient(Func<Uri> baseUriAction, EndPoint torSocks5EndPoint) : base(baseUriAction, torSocks5EndPoint)
+		private bool disposedValue;
+
+		public WasabiClient(HttpMessageHandler handler)
 		{
+			HttpClient = new HttpClient(handler, true);
 		}
 
-		/// <inheritdoc/>
-		public WasabiClient(Uri baseUri, EndPoint torSocks5EndPoint) : base(baseUri, torSocks5EndPoint)
-		{
-		}
-
-		public WasabiClient(ITorHttpClient torHttpClient) : base(torHttpClient)
-		{
-		}
-
+		public HttpClient HttpClient { get; }
 		public static Dictionary<uint256, Transaction> TransactionCache { get; } = new Dictionary<uint256, Transaction>();
 		private static Queue<uint256> TransactionIdQueue { get; } = new Queue<uint256>();
 		public static object TransactionCacheLock { get; } = new object();
@@ -52,7 +44,7 @@ namespace WalletWasabi.WebClients.Wasabi
 				relativeUri = $"{relativeUri}&estimateSmartFeeMode={estimateMode}";
 			}
 
-			using var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, relativeUri, cancel: cancel);
+			using var response = await HttpClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, relativeUri, cancel: cancel);
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
 				await response.ThrowRequestExceptionFromContentAsync();
@@ -72,7 +64,7 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// </remarks>
 		public async Task<FiltersResponse> GetFiltersAsync(uint256 bestKnownBlockHash, int count, CancellationToken cancel = default)
 		{
-			using var response = await TorClient.SendAndRetryAsync(
+			using var response = await HttpClient.SendAndRetryAsync(
 				HttpMethod.Get,
 				HttpStatusCode.OK,
 				$"/api/v{Constants.BackendMajorVersion}/btc/blockchain/filters?bestKnownBlockHash={bestKnownBlockHash}&count={count}",
@@ -106,7 +98,7 @@ namespace WalletWasabi.WebClients.Wasabi
 			{
 				cancel.ThrowIfCancellationRequested();
 
-				using var response = await TorClient.SendAndRetryAsync(
+				using var response = await HttpClient.SendAndRetryAsync(
 					HttpMethod.Get,
 					HttpStatusCode.OK,
 					$"/api/v{Constants.BackendMajorVersion}/btc/blockchain/transaction-hexes?&transactionIds={string.Join("&transactionIds=", chunk.Select(x => x.ToString()))}",
@@ -146,7 +138,7 @@ namespace WalletWasabi.WebClients.Wasabi
 		{
 			var confirmationTargetsString = string.Join(",", confirmationTargets);
 
-			using var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, $"/api/v{Constants.BackendMajorVersion}/btc/blockchain/fees/{confirmationTargetsString}");
+			using var response = await HttpClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, $"/api/v{Constants.BackendMajorVersion}/btc/blockchain/fees/{confirmationTargetsString}");
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
 				await response.ThrowRequestExceptionFromContentAsync();
@@ -160,7 +152,7 @@ namespace WalletWasabi.WebClients.Wasabi
 		public async Task BroadcastAsync(string hex)
 		{
 			using var content = new StringContent($"'{hex}'", Encoding.UTF8, "application/json");
-			using var response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v{Constants.BackendMajorVersion}/btc/blockchain/broadcast", content);
+			using var response = await HttpClient.PostAsync($"/api/v{Constants.BackendMajorVersion}/btc/blockchain/broadcast", content);
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
 				await response.ThrowRequestExceptionFromContentAsync();
@@ -179,7 +171,7 @@ namespace WalletWasabi.WebClients.Wasabi
 
 		public async Task<IEnumerable<uint256>> GetMempoolHashesAsync(CancellationToken cancel = default)
 		{
-			using var response = await TorClient.SendAndRetryAsync(
+			using var response = await HttpClient.SendAndRetryAsync(
 				HttpMethod.Get,
 				HttpStatusCode.OK,
 				$"/api/v{Constants.BackendMajorVersion}/btc/blockchain/mempool-hashes",
@@ -201,7 +193,7 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// <param name="compactness">1 to 64</param>
 		public async Task<ISet<string>> GetMempoolHashesAsync(int compactness, CancellationToken cancel = default)
 		{
-			using var response = await TorClient.SendAndRetryAsync(
+			using var response = await HttpClient.SendAndRetryAsync(
 				HttpMethod.Get,
 				HttpStatusCode.OK,
 				$"/api/v{Constants.BackendMajorVersion}/btc/blockchain/mempool-hashes?compactness={compactness}",
@@ -222,7 +214,7 @@ namespace WalletWasabi.WebClients.Wasabi
 
 		public async Task<IEnumerable<ExchangeRate>> GetExchangeRatesAsync()
 		{
-			using var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, $"/api/v{Constants.BackendMajorVersion}/btc/offchain/exchange-rates");
+			using var response = await HttpClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, $"/api/v{Constants.BackendMajorVersion}/btc/offchain/exchange-rates");
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
 				await response.ThrowRequestExceptionFromContentAsync();
@@ -239,7 +231,7 @@ namespace WalletWasabi.WebClients.Wasabi
 
 		public async Task<(Version ClientVersion, int BackendMajorVersion, Version LegalDocumentsVersion)> GetVersionsAsync(CancellationToken cancel)
 		{
-			using var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, "/api/software/versions", cancel: cancel);
+			using var response = await HttpClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, "/api/software/versions", cancel: cancel);
 
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
@@ -267,7 +259,7 @@ namespace WalletWasabi.WebClients.Wasabi
 
 		public async Task<string> GetLegalDocumentsAsync(CancellationToken cancel)
 		{
-			using var response = await TorClient.SendAndRetryAsync(
+			using var response = await HttpClient.SendAndRetryAsync(
 				HttpMethod.Get,
 				HttpStatusCode.OK,
 				$"/api/v{Constants.BackendMajorVersion}/wasabi/legaldocuments",
@@ -280,6 +272,26 @@ namespace WalletWasabi.WebClients.Wasabi
 			using HttpContent content = response.Content;
 			var ret = await content.ReadAsStringAsync().ConfigureAwait(false);
 			return ret;
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!disposedValue)
+			{
+				if (disposing)
+				{
+					HttpClient.Dispose();
+				}
+
+				disposedValue = true;
+			}
+		}
+
+		public void Dispose()
+		{
+			// Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+			Dispose(disposing: true);
+			GC.SuppressFinalize(this);
 		}
 
 		#endregion wasabi

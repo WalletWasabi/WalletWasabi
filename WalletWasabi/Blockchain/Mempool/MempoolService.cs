@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.TorSocks5;
+using WalletWasabi.TorSocks5.Socks;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Blockchain.Mempool
@@ -117,7 +119,8 @@ namespace WalletWasabi.Blockchain.Mempool
 				}
 
 				Logger.LogInfo("Start cleaning out mempool...");
-				using (var client = new WasabiClient(destAction, torSocks))
+				using var torClient = new TorHttpClient(destAction, torSocks);
+				using (var client = new WasabiClient(new SocksHttpClientHandler(torClient)))
 				{
 					var compactness = 10;
 					var allMempoolHashes = await client.GetMempoolHashesAsync(compactness).ConfigureAwait(false);
