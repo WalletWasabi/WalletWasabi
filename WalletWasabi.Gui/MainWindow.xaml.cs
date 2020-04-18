@@ -102,7 +102,7 @@ namespace WalletWasabi.Gui
 					{
 						if (Global.UiConfig != null) // UiConfig not yet loaded.
 						{
-							Global.UiConfig.WindowState = WindowState;							
+							Global.UiConfig.WindowState = WindowState;
 
 							Global.UiConfig.LastActiveTab = IoC.Get<IShell>().SelectedDocument?.GetType().Name;
 							Global.UiConfig.ToFile();

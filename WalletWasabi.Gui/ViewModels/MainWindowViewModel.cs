@@ -22,7 +22,7 @@ namespace WalletWasabi.Gui.ViewModels
 	{
 		private ModalDialogViewModelBase _modalDialog;
 		private bool _canClose = true;
-		private string _title = "Wasabi Wallet";		
+		private string _title = "Wasabi Wallet";
 		private WindowState _windowState;
 		private StatusBarViewModel _statusBar;
 		private LockScreenViewModelBase _lockScreen;
@@ -40,7 +40,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 			_menuVisible = true;
 
-			var uiConfig = global.UiConfig;			
+			var uiConfig = global.UiConfig;
 
 			WindowState = uiConfig.WindowState;
 
