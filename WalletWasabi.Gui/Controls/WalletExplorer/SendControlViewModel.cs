@@ -228,14 +228,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					AmountText = url.Amount.ToString(false, true);
 				}
 
-				if (url.UnknowParameters.TryGetValue("bpu", out var endPoint) || url.UnknowParameters.TryGetValue("pj", out endPoint))
-				{
-					PayjoinEndPoint = endPoint;
-				}
-				else
-				{
-					PayjoinEndPoint = null;
-				}
+				PayjoinEndPoint = url.UnknowParameters.TryGetValue("bpu", out var endPoint) 
+							   || url.UnknowParameters.TryGetValue("pj", out endPoint)
+					? endPoint
+					: null;
 			});
 
 			_isPayjoinEndPointVisible = this.WhenAnyValue(x => x.PayjoinEndPoint)
@@ -376,13 +372,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 					}
 
-					IPayjoinClient payjoinClient = new NullPayjoinClient();
-					if (CanUsePayjoin && PayjoinEndPoint is {})
-					{
-						var payjoinEndPointUri = new Uri(PayjoinEndPoint);
-						payjoinClient = new PayjoinClient(payjoinEndPointUri, Global.TorManager.TorSocks5EndPoint);
-					}
-					BuildTransactionResult result = await Task.Run(() => Wallet.BuildTransaction(Password, intent, feeStrategy, allowUnconfirmed: true, allowedInputs: selectedCoinReferences, payjoinClient: payjoinClient));
+					BuildTransactionResult result = await Task.Run(() => Wallet.BuildTransaction(Password, intent, feeStrategy, allowUnconfirmed: true, allowedInputs: selectedCoinReferences, GetPayjoinClient()));
 
 					await DoAfterBuildTransaction(result);
 				}
@@ -673,6 +663,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			AmountText = "0.0";
 		}
 
+		private IPayjoinClient GetPayjoinClient()
+		{
+			if (CanUsePayjoin && PayjoinEndPoint is {})
+			{
+				var payjoinEndPointUri = new Uri(PayjoinEndPoint);
+				return new PayjoinClient(payjoinEndPointUri, Global.TorManager.TorSocks5EndPoint);
+			}
+
+			return new NullPayjoinClient();
+		}
+
 		private void SetAmountWatermark(Money amount)
 		{
 			if (amount == Money.Zero)
@@ -939,7 +940,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return ErrorDescriptors.Empty;
 			}
 
-			if (AddressStringParser.TryParseBitcoinUrl(Address, Global.Network, out var url))
+			if (AddressStringParser.TryParseBitcoinUrl(Address, Global.Network, out _))
 			{
 				return ErrorDescriptors.Empty;
 			}

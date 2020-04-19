@@ -228,37 +228,10 @@ namespace WalletWasabi.Blockchain.Transactions
 				builder.SetLockTime(lockTimeSelector());
 				builder.SignPSBT(psbt);
 
-				if (KeyManager.MasterFingerprint is HDFingerprint fp)
-				{
-					foreach (var coin in spentCoins)
-					{
-						var rootKeyPath = new RootedKeyPath(fp, coin.HdPubKey.FullKeyPath);
-						psbt.AddKeyPath(coin.HdPubKey.PubKey, rootKeyPath, coin.ScriptPubKey);
-					}
-					if (changeHdPubKey is {})
-					{
-						var rootKeyPath = new RootedKeyPath(fp, changeHdPubKey.FullKeyPath);
-						psbt.AddKeyPath(changeHdPubKey.PubKey, rootKeyPath, changeHdPubKey.P2wpkhScript);
-					}
-				}
+				UpdatePSBTInfo(psbt, spentCoins, changeHdPubKey);
 
 				// Try to pay using payjoin
-				try
-				{
-					psbt = payjoinClient.RequestPayjoin(psbt, 
-						KeyManager.ExtPubKey, 
-						new RootedKeyPath(KeyManager.MasterFingerprint.Value, KeyManager.DefaultAccountKeyPath), 
-						CancellationToken.None).GetAwaiter().GetResult();
-					builder.SignPSBT(psbt);
-				}
-				catch (HttpRequestException e)
-				{
-					Logger.LogWarning($"Payjoin server responded with {e.ToTypeMessageString()}. Ignoring...");
-				}
-				catch (PayjoinException e)
-				{
-					Logger.LogWarning($"Payjoin server responded with {e.Message}. Ignoring...");
-				}
+				psbt = TryNegociatePayjoin(payjoinClient, builder, psbt);
 
 				psbt.Finalize();
 				tx = psbt.ExtractTransaction();
@@ -326,6 +299,45 @@ namespace WalletWasabi.Blockchain.Transactions
 			var sign = !KeyManager.IsWatchOnly;
 			var spendsUnconfirmed = spentCoins.Any(c => !c.Confirmed);
 			return new BuildTransactionResult(new SmartTransaction(tx, Height.Unknown), psbt, spendsUnconfirmed, sign, fee, feePc, outerWalletOutputs, innerWalletOutputs, spentCoins);
+		}
+
+		private PSBT TryNegociatePayjoin(IPayjoinClient payjoinClient, TransactionBuilder builder, PSBT psbt)
+		{
+			try
+			{
+				psbt = payjoinClient.RequestPayjoin(psbt,
+					KeyManager.ExtPubKey,
+					new RootedKeyPath(KeyManager.MasterFingerprint.Value, KeyManager.DefaultAccountKeyPath),
+					CancellationToken.None).GetAwaiter().GetResult();
+				builder.SignPSBT(psbt);
+			}
+			catch (HttpRequestException e)
+			{
+				Logger.LogWarning($"Payjoin server responded with {e.ToTypeMessageString()}. Ignoring...");
+			}
+			catch (PayjoinException e)
+			{
+				Logger.LogWarning($"Payjoin server responded with {e.Message}. Ignoring...");
+			}
+
+			return psbt;
+		}
+
+		private void UpdatePSBTInfo(PSBT psbt, SmartCoin[] spentCoins, HdPubKey changeHdPubKey)
+		{
+			if (KeyManager.MasterFingerprint is HDFingerprint fp)
+			{
+				foreach (var coin in spentCoins)
+				{
+					var rootKeyPath = new RootedKeyPath(fp, coin.HdPubKey.FullKeyPath);
+					psbt.AddKeyPath(coin.HdPubKey.PubKey, rootKeyPath, coin.ScriptPubKey);
+				}
+				if (changeHdPubKey is { })
+				{
+					var rootKeyPath = new RootedKeyPath(fp, changeHdPubKey.FullKeyPath);
+					psbt.AddKeyPath(changeHdPubKey.PubKey, rootKeyPath, changeHdPubKey.P2wpkhScript);
+				}
+			}
 		}
 	}
 }
