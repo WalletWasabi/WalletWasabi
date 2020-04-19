@@ -49,14 +49,14 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Single(tx.OuterWalletOutputs);
 		}
 
-
 		[Fact]
 		public void HonestPayjoinServerTest()
 		{
 			var amountToPay = Money.Coins(0.001m);
 
 			// This test the scenario where the payjoin server behaves as expected.
-			var httpClient = new MockTorHttpClient{
+			var httpClient = new MockTorHttpClient
+			{
 				OnSendAsync = PayjoinServer(psbt => 
 				{
 					var clientTx = psbt.ExtractTransaction();
@@ -94,11 +94,10 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var innerOutput = Assert.Single(tx.InnerWalletOutputs);
 			var outerOutput = Assert.Single(tx.OuterWalletOutputs);
 
-			// The payment output is the sum of the original wallet output and the value added by the payee. 
+			// The payment output is the sum of the original wallet output and the value added by the payee.
 			Assert.Equal(0.346m, outerOutput.Amount.ToUnit(MoneyUnit.BTC));
 			Assert.Equal(0.09899718m, innerOutput.Amount.ToUnit(MoneyUnit.BTC));
 		}
-
 
 		[Fact]
 		public void DishonestPayjoinServerTest()
@@ -109,7 +108,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var payment = new PaymentIntent(new Key().PubKey.WitHash.ScriptPubKey, amountToPay);
 
 			// This test the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
-			var httpClient = new MockTorHttpClient{
+			var httpClient = new MockTorHttpClient
+			{
 				OnSendAsync = PayjoinServer(psbt =>
 				{
 					var newCoin = psbt.Inputs[0].GetCoin();
@@ -129,7 +129,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			payment = new PaymentIntent(destination, amountToPay);
 
 			// This test the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
-			httpClient = new MockTorHttpClient{
+			httpClient = new MockTorHttpClient
+			{
 				OnSendAsync = PayjoinServer(psbt =>
 				{
 					var globalTx = psbt.GetGlobalTransaction();
@@ -148,7 +149,6 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 		}
 
-
 		[Fact]
 		public void BadImplementedPayjoinServerTest()
 		{
@@ -156,8 +156,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var amountToPay = Money.Coins(0.001m);
 			var payment = new PaymentIntent(new Key().PubKey.WitHash.ScriptPubKey, amountToPay);
 
-			// This test the scenario where the payjoin server do not clean GloablXPubs.
-			var httpClient = new MockTorHttpClient{
+			// This tests the scenario where the payjoin server does not clean GloablXPubs.
+			var httpClient = new MockTorHttpClient
+			{
 				OnSendAsync = PayjoinServer(psbt =>
 				{
 					var extPubkey = new ExtKey().Neuter().GetWif(Network.Main);
@@ -172,7 +173,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			////////
 
 			// This test the scenario where the payjoin server includes keypath info in the inputs.
-			httpClient = new MockTorHttpClient{
+			httpClient = new MockTorHttpClient
+			{
 				OnSendAsync = PayjoinServer(psbt =>
 				{
 					var extPubkey = new ExtKey().Neuter().GetWif(Network.Main);
@@ -186,8 +188,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 			////////
 
-			// This test the scenario where the payjoin server modified the inputs sequence.
-			httpClient = new MockTorHttpClient{
+			// This tests the scenario where the payjoin server modifies the inputs sequence.
+			httpClient = new MockTorHttpClient
+			{
 				OnSendAsync = PayjoinServer(psbt =>
 				{
 					var globalTx = psbt.GetGlobalTransaction();
@@ -201,8 +204,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 			////////
 
-			// This test the scenario where the payjoin server returns an unsigned input (fucking bastard).
-			httpClient = new MockTorHttpClient{
+			// This tests the scenario where the payjoin server returns an unsigned input (fucking bastard).
+			httpClient = new MockTorHttpClient
+			{
 				OnSendAsync = PayjoinServer(psbt =>
 				{
 					var globalTx = psbt.GetGlobalTransaction();
@@ -216,8 +220,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 			////////
 
-			// This test the scenario where the payjoin server removes on of our inputs (probably to optimize it).
-			httpClient = new MockTorHttpClient{
+			// This tests the scenario where the payjoin server removes one of our inputs (probably to optimize it).
+			httpClient = new MockTorHttpClient
+			{
 				OnSendAsync = PayjoinServer(psbt =>
 				{
 					var globalTx = psbt.GetGlobalTransaction();
@@ -232,9 +237,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 			////////
 
-
-			// This test the scenario where the payjoin server includes keypath info in the outputs.
-			httpClient = new MockTorHttpClient{
+			// This tests the scenario where the payjoin server includes keypath info in the outputs.
+			httpClient = new MockTorHttpClient
+			{
 				OnSendAsync = PayjoinServer(psbt =>
 				{
 					var extPubkey = new ExtKey().Neuter().GetWif(Network.Main);
@@ -248,8 +253,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 			////////
 
-			// This test the scenario where the payjoin server includes partial signatures.
-			httpClient = new MockTorHttpClient{
+			// This tests the scenario where the payjoin server includes partial signatures.
+			httpClient = new MockTorHttpClient
+			{
 				OnSendAsync = PayjoinServer(psbt =>
 				{
 					var extPubkey = new ExtKey().Neuter().GetWif(Network.Main);
@@ -263,8 +269,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 			////////
 
-			// This test the scenario where the payjoin server modify the original tx version.
-			httpClient = new MockTorHttpClient{
+			// This tests the scenario where the payjoin server modifies the original tx version.
+			httpClient = new MockTorHttpClient
+			{
 				OnSendAsync = PayjoinServer(psbt =>
 				{
 					var globalTx = psbt.GetGlobalTransaction();
@@ -278,8 +285,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 			////////
 
-			// This test the scenario where the payjoin server modify the original tx locktime value.
-			httpClient = new MockTorHttpClient{
+			// This tests the scenario where the payjoin server modifies the original tx locktime value.
+			httpClient = new MockTorHttpClient
+			{
 				OnSendAsync = PayjoinServer(psbt =>
 				{
 					var globalTx = psbt.GetGlobalTransaction();
@@ -293,7 +301,6 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 		}
 
-
 		[Fact]
 		public void MinersLoverPayjoinServerTest()
 		{
@@ -304,7 +311,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var payment = new PaymentIntent(destination, amountToPay);
 
 			// This test the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
-			var httpClient = new MockTorHttpClient{
+			var httpClient = new MockTorHttpClient
+			{
 				OnSendAsync = PayjoinServer(psbt =>
 				{
 					var globalTx = psbt.GetGlobalTransaction();
@@ -319,53 +327,18 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 		}
 
-
-		[Fact]
-		public void TrollingPayjoinServerTest()
-		{
-			// This test is for discussing all the possible things a payjoin server can do with the transaction.
-			// 
-			// Imagine you create build and sign a transaction that pays 1BTC to the merchant. The merchant payjoin server could:
-			// * Add no new inputs.
-			// * Split the payment output into multiple sub outputs (spliting the amount of course)
-			// * Split the change output into multiple sub outputs (we still receive the same but with dust)
-			// * Split the change output and send part of the money to an older address of our wallet (it is not impossible if we deal frequently)
-			// * Add OP_RETURN outputs or zero value output or non-native-segwit output
-			var walletCoins = new[]{("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)};
-			var amountToPay = Money.Coins(0.001m);
-			var destination = new Key().PubKey.WitHash.ScriptPubKey;
-			var payment = new PaymentIntent(destination, amountToPay);
-
-			// This test the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
-			var httpClient = new MockTorHttpClient{
-				OnSendAsync = PayjoinServer(psbt =>
-				{
-					var globalTx = psbt.GetGlobalTransaction();
-					var paymentOutput = globalTx.Outputs.Single(x => x.ScriptPubKey == destination);
-					paymentOutput.Value = paymentOutput.Value.Percentage(33.333m);
-					globalTx.Outputs.Add(paymentOutput);
-					globalTx.Outputs.Add(paymentOutput);
-					return PSBT.FromTransaction(globalTx, Network.Main); 
-				})
-			};
-
-			var transactionFactory = CreateTransactionFactory(walletCoins, payjoinClient: new PayjoinClient(httpClient));
-			var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint));
-			/// Assert.Single(tx.Transaction.Transaction.Outputs);
-		}
-
-
 		[Fact]
 		public void BrokenPayjoinServerTest()
 		{
-			// The server wants to make us sign a transaction that pays too much fee
+			// The server wants to make us sign a transaction that pays too much fee.
 			var walletCoins = new[]{("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)};
 			var amountToPay = Money.Coins(0.001m);
 			var destination = new Key().PubKey.WitHash.ScriptPubKey;
 			var payment = new PaymentIntent(destination, amountToPay);
 
-			// This test the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
-			var httpClient = new MockTorHttpClient{
+			// This tests the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
+			var httpClient = new MockTorHttpClient
+			{
 				OnSendAsync = PayjoinServer(statusCode: HttpStatusCode.InternalServerError)
 			};
 

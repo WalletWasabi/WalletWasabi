@@ -238,7 +238,6 @@ namespace WalletWasabi.Blockchain.Transactions
 					{
 						var rootKeyPath = new RootedKeyPath(fp, changeHdPubKey.FullKeyPath);
 						psbt.AddKeyPath(changeHdPubKey.PubKey, rootKeyPath, changeHdPubKey.P2wpkhScript);
-
 					}
 				}
 

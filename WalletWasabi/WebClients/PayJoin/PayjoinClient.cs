@@ -87,7 +87,6 @@ namespace WalletWasabi.WebClients.PayJoin
 			var hexOrBase64 = await bpuResponse.Content.ReadAsStringAsync();
 			var newPSBT = PSBT.Parse(hexOrBase64, originalTx.Network);
 
-
 			// Checking that the PSBT of the receiver is clean
 			if (newPSBT.GlobalXPubs.Any())
 			{
@@ -98,7 +97,6 @@ namespace WalletWasabi.WebClients.PayJoin
 			{
 				throw new PayjoinSenderException("Keypath information should not be included in the receiver's PSBT");
 			}
-			////////////
 
 			if (newPSBT.CheckSanity() is IList<PSBTError> errors2 && errors2.Count != 0)
 			{
@@ -112,22 +110,17 @@ namespace WalletWasabi.WebClients.PayJoin
 				if (newInput is { })
 				{
 					newInput.UpdateFrom(input);
-					// Remove this `if` statement after new NBitcoin version is released
-					if (newInput.WitnessUtxo is null && input.WitnessUtxo is { })
-					{
-						newInput.WitnessUtxo = input.WitnessUtxo;
-					}
 					newInput.PartialSigs.Clear();
 				}
 			}
 			
-			// We make sure we don't sign things what should not be signed
+			// We make sure we don't sign things that should not be signed.
 			foreach (var finalized in newPSBT.Inputs.Where(i => i.IsFinalized()))
 			{
 				finalized.ClearForFinalize();
 			}
 
-			// We make sure we don't sign things what should not be signed
+			// We make sure we don't sign things that should not be signed.
 			foreach (var output in newPSBT.Outputs)
 			{
 				output.HDKeyPaths.Clear();
@@ -144,7 +137,7 @@ namespace WalletWasabi.WebClients.PayJoin
 			if (newGlobalTx.LockTime != oldGlobalTx.LockTime)
 				throw new PayjoinSenderException("The LockTime field of the transaction has been modified");
 
-			// Making sure that our inputs are finalized, and that some of our inputs have not been added
+			// Making sure that our inputs are finalized, and that some of our inputs have not been added.
 			int ourInputCount = 0;
 			var accountHDScriptPubkey = new HDKeyScriptPubKey(accountKey, ScriptPubKeyType.Segwit);
 			foreach (var input in newPSBT.Inputs.CoinsFor(accountHDScriptPubkey, accountKey, rootedKeyPath))
@@ -194,7 +187,6 @@ namespace WalletWasabi.WebClients.PayJoin
 			if (originalTx.Inputs.Count < addedInputs)
 				throw new PayjoinSenderException("The payjoin receiver added too much inputs");
 
-
 			var sentAfter = -newPSBT.GetBalance(ScriptPubKeyType.Segwit, accountKey, rootedKeyPath);
 			
 			if (sentAfter > sentBefore)
@@ -218,32 +210,6 @@ namespace WalletWasabi.WebClients.PayJoin
 			}
 
 			return newPSBT;
-		}
-	}
-
-	public static class PSBTExtensions
-	{
-		public static ScriptPubKeyType? GetInputsScriptPubKeyType(this PSBT psbt)
-		{
-			if (!psbt.IsAllFinalized() || psbt.Inputs.Any(i => i.WitnessUtxo == null))
-				throw new InvalidOperationException("The psbt should be finalized with witness information");
-			var coinsPerTypes = psbt.Inputs.Select(i =>
-			{
-				return ((PSBTCoin)i, i.GetInputScriptPubKeyType());
-			}).GroupBy(o => o.Item2, o => o.Item1).ToArray();
-			if (coinsPerTypes.Length != 1)
-				return default;
-			return coinsPerTypes[0].Key;
-		}
-
-		public static ScriptPubKeyType? GetInputScriptPubKeyType(this PSBTInput i)
-		{
-			if (i.WitnessUtxo.ScriptPubKey.IsScriptType(ScriptType.P2WPKH))
-				return ScriptPubKeyType.Segwit;
-			if (i.WitnessUtxo.ScriptPubKey.IsScriptType(ScriptType.P2SH) &&
-				i.FinalScriptWitness.ToScript().IsScriptType(ScriptType.P2WPKH))
-				return ScriptPubKeyType.SegwitP2SH;
-			return null as ScriptPubKeyType?;
 		}
 	}
 }
