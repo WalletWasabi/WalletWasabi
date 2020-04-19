@@ -38,7 +38,10 @@ namespace WalletWasabi.Tests.RegressionTests
 			}
 		}
 
+#pragma warning disable IDE0060 // Remove unused parameter
+
 		public static void Wallet_NewFilterProcessed(object sender, FilterModel e)
+#pragma warning restore IDE0060 // Remove unused parameter
 		{
 			Interlocked.Increment(ref FiltersProcessedByWalletCount);
 		}
