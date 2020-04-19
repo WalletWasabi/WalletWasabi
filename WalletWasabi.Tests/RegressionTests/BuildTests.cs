@@ -118,7 +118,6 @@ namespace WalletWasabi.Tests.RegressionTests
 					new DestinationRequest(scp, MoneyRequest.CreateAllRemaining(), "zero"),
 					new DestinationRequest(scp, MoneyRequest.CreateAllRemaining(), "zero")),
 				FeeStrategy.SevenDaysConfirmationTargetStrategy,
-				null,
 				false));
 
 			// Get some money, make it confirm.
@@ -146,30 +145,30 @@ namespace WalletWasabi.Tests.RegressionTests
 				var operations = new PaymentIntent(
 					new DestinationRequest(scp, Money.Coins(1m), subtractFee: true),
 					new DestinationRequest(scp, Money.Coins(0.5m)));
-				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, null, false));
+				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, false));
 
 				// No enough money (only one confirmed coin, no unconfirmed allowed)
 				operations = new PaymentIntent(scp, Money.Coins(1.5m));
 				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(null, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy));
 
 				// No enough money (only one confirmed coin, unconfirmed allowed)
-				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(null, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, null, true));
+				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(null, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, true));
 
 				// Add new money with no confirmation
 				var txId2 = await rpc.SendToAddressAsync(keyManager.GetNextReceiveKey("bar", out _).GetP2wpkhAddress(network), Money.Coins(2m));
 				await Task.Delay(1000); // Wait tx to arrive and get processed.
 
 				// Enough money (one confirmed coin and one unconfirmed coin, unconfirmed are NOT allowed)
-				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(null, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, null, false));
+				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(null, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, false));
 
 				// Enough money (one unconfirmed coin, unconfirmed are allowed)
-				var btx = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, null, true);
+				var btx = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, true);
 				var spentCoin = Assert.Single(btx.SpentCoins);
 				Assert.False(spentCoin.Confirmed);
 
 				// Enough money (one confirmed coin and one unconfirmed coin, unconfirmed are allowed)
 				operations = new PaymentIntent(scp, Money.Coins(2.5m));
-				btx = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, null, true);
+				btx = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, true);
 				Assert.Equal(2, btx.SpentCoins.Count());
 				Assert.Equal(1, btx.SpentCoins.Count(c => c.Confirmed));
 				Assert.Equal(1, btx.SpentCoins.Count(c => !c.Confirmed));

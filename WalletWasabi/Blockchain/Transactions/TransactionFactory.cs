@@ -21,14 +21,13 @@ namespace WalletWasabi.Blockchain.Transactions
 	public class TransactionFactory
 	{
 		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
-		public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, IPayjoinClient payJoinClient, string password = "", bool allowUnconfirmed = false)
+		public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, string password = "", bool allowUnconfirmed = false)
 		{
 			Network = network;
 			KeyManager = keyManager;
 			Coins = coins;
 			Password = password;
 			AllowUnconfirmed = allowUnconfirmed;
-			PayjoinClient = payJoinClient;
 		}
 
 		public Network Network { get; }
@@ -36,7 +35,6 @@ namespace WalletWasabi.Blockchain.Transactions
 		public ICoinsView Coins { get; }
 		public string Password { get; }
 		public bool AllowUnconfirmed { get; }
-		public IPayjoinClient PayjoinClient { get; }
 
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
@@ -44,8 +42,9 @@ namespace WalletWasabi.Blockchain.Transactions
 		public BuildTransactionResult BuildTransaction(
 			PaymentIntent payments,
 			FeeRate feeRate,
-			IEnumerable<OutPoint> allowedInputs = null)
-			=> BuildTransaction(payments, () => feeRate, allowedInputs, () => LockTime.Zero);
+			IEnumerable<OutPoint> allowedInputs = null,
+			IPayjoinClient payjoinClient = null)
+			=> BuildTransaction(payments, () => feeRate, allowedInputs, () => LockTime.Zero, payjoinClient);
 
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
@@ -54,9 +53,11 @@ namespace WalletWasabi.Blockchain.Transactions
 			PaymentIntent payments,
 			Func<FeeRate> feeRateFetcher,
 			IEnumerable<OutPoint> allowedInputs = null,
-			Func<LockTime> lockTimeSelector = null)
+			Func<LockTime> lockTimeSelector = null,
+			IPayjoinClient payjoinClient = null)
 		{
 			payments = Guard.NotNull(nameof(payments), payments);
+			payjoinClient ??= new NullPayjoinClient();
 			lockTimeSelector ??= () => LockTime.Zero;
 
 			long totalAmount = payments.TotalAmount.Satoshi;
@@ -244,7 +245,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				// Try to pay using payjoin
 				try
 				{
-					psbt = PayjoinClient.RequestPayjoin(psbt, 
+					psbt = payjoinClient.RequestPayjoin(psbt, 
 						KeyManager.ExtPubKey, 
 						new RootedKeyPath(KeyManager.MasterFingerprint.Value, KeyManager.DefaultAccountKeyPath), 
 						CancellationToken.None).GetAwaiter().GetResult();

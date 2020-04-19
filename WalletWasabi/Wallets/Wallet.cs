@@ -217,11 +217,11 @@ namespace WalletWasabi.Wallets
 			string password,
 			PaymentIntent payments,
 			FeeStrategy feeStrategy,
-			IPayjoinClient payjoinClient = null,
 			bool allowUnconfirmed = false,
-			IEnumerable<OutPoint> allowedInputs = null)
+			IEnumerable<OutPoint> allowedInputs = null,
+			IPayjoinClient payjoinClient = null)
 		{
-			var builder = new TransactionFactory(Network, KeyManager, Coins, payjoinClient ?? new NullPayjoinClient(), password, allowUnconfirmed);
+			var builder = new TransactionFactory(Network, KeyManager, Coins, password, allowUnconfirmed);
 			return builder.BuildTransaction(
 				payments,
 				() =>
@@ -240,7 +240,8 @@ namespace WalletWasabi.Wallets
 					}
 				},
 				allowedInputs,
-				SelectLockTimeForTransaction);
+				SelectLockTimeForTransaction,
+				payjoinClient ?? new NullPayjoinClient());
 		}
 
 		public void RenameLabel(SmartCoin coin, SmartLabel newLabel)

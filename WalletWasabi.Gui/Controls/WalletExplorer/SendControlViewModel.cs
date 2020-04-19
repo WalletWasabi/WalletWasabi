@@ -382,7 +382,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						var payjoinEndPointUri = new Uri(PayjoinEndPoint);
 						payjoinClient = new PayjoinClient(payjoinEndPointUri, Global.TorManager.TorSocks5EndPoint);
 					}
-					BuildTransactionResult result = await Task.Run(() => Wallet.BuildTransaction(Password, intent, feeStrategy, payjoinClient, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
+					BuildTransactionResult result = await Task.Run(() => Wallet.BuildTransaction(Password, intent, feeStrategy, allowUnconfirmed: true, allowedInputs: selectedCoinReferences, payjoinClient: payjoinClient));
 
 					await DoAfterBuildTransaction(result);
 				}
