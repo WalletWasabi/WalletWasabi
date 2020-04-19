@@ -23,10 +23,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 {
 	public class RegTestFixture : IDisposable
 	{
-		public string BackendEndPoint { get; internal set; }
-		public IHost BackendHost { get; internal set; }
-		public CoreNode BackendRegTestNode { get; internal set; }
-		public Backend.Global Global { get; }
+		private volatile bool _disposedValue = false; // To detect redundant calls
 
 		public RegTestFixture()
 		{
@@ -79,6 +76,11 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			Task.WaitAny(delayTask, hostInitializationTask); // Wait for server to initialize (Without this OSX CI will fail)
 		}
 
+		public string BackendEndPoint { get; internal set; }
+		public IHost BackendHost { get; internal set; }
+		public CoreNode BackendRegTestNode { get; internal set; }
+		public Backend.Global Global { get; }
+
 		public static CoordinatorRoundConfig CreateRoundConfig(
 			Money denomination,
 			int confirmationTarget,
@@ -113,8 +115,6 @@ namespace WalletWasabi.Tests.XunitConfiguration
 		}
 
 		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
 
 		protected virtual void Dispose(bool disposing)
 		{

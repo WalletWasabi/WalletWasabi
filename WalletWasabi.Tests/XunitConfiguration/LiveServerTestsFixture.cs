@@ -8,8 +8,6 @@ namespace WalletWasabi.Tests.XunitConfiguration
 {
 	public class LiveServerTestsFixture : IDisposable
 	{
-		public Dictionary<NetworkType, Uri> UriMappings { get; internal set; }
-
 		public LiveServerTestsFixture()
 		{
 			UriMappings = new Dictionary<NetworkType, Uri>
@@ -18,6 +16,8 @@ namespace WalletWasabi.Tests.XunitConfiguration
 					{ NetworkType.Testnet, new Uri("http://testwnp3fugjln6vh5vpj7mvq3lkqqwjj3c2aafyu7laxz42kgwh2rad.onion") }
 			};
 		}
+
+		public Dictionary<NetworkType, Uri> UriMappings { get; internal set; }
 
 		public void Dispose()
 		{
