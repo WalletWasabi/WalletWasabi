@@ -9,13 +9,13 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 {
 	internal class HelpMainMenuItems
 	{
-		private IMenuItemFactory MenuItemFactory { get; }
-
 		[ImportingConstructor]
 		public HelpMainMenuItems(IMenuItemFactory menuItemFactory)
 		{
 			MenuItemFactory = menuItemFactory;
 		}
+
+		private IMenuItemFactory MenuItemFactory { get; }
 
 		#region MainMenu
 

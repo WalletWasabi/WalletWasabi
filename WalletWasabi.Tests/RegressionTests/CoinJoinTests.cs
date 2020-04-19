@@ -632,6 +632,9 @@ namespace WalletWasabi.Tests.RegressionTests
 				await aliceClient1.PostSignaturesAsync(myDic1);
 				await aliceClient2.PostSignaturesAsync(myDic2);
 
+
+				((CachedRpcClient) rpc)?.Cache.Remove("GetRawMempoolAsync");
+
 				uint256[] mempooltxs = await rpc.GetRawMempoolAsync();
 				Assert.Contains(unsignedCoinJoin.GetHash(), mempooltxs);
 
@@ -784,6 +787,8 @@ namespace WalletWasabi.Tests.RegressionTests
 
 				await aliceClient.PostSignaturesAsync(witnesses);
 			}
+
+			((CachedRpcClient) rpc)?.Cache.Remove("GetRawMempoolAsync");
 
 			uint256[] mempooltxs = await rpc.GetRawMempoolAsync();
 			Assert.Contains(transactionId, mempooltxs);
@@ -981,6 +986,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			await Task.WhenAll(signatureRequests);
 
+			((CachedRpcClient) rpc)?.Cache.Remove("GetRawMempoolAsync");
 			uint256[] mempooltxs = await rpc.GetRawMempoolAsync();
 			Assert.Contains(unsignedCoinJoin.GetHash(), mempooltxs);
 
