@@ -118,7 +118,11 @@ namespace WalletWasabi.Gui
 
 			try
 			{
-				Cache = new MemoryCache(new MemoryCacheOptions { SizeLimit = 1_000 });
+				Cache = new MemoryCache(new MemoryCacheOptions 
+				{ 
+					SizeLimit = 1_000, 
+					ExpirationScanFrequency = TimeSpan.FromSeconds(30) 
+				});
 				BitcoinStore = new BitcoinStore();
 				var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), Network);
 				var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
