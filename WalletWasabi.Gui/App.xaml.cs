@@ -9,9 +9,7 @@ namespace WalletWasabi.Gui
 	{
 		public App()
 		{
-			Name = "Wasabi Wallet";
-
-			DataContext = new ApplicationViewModel();
+			Name = "Wasabi Wallet";			
 		}
 
 		public override void Initialize()
@@ -27,6 +25,8 @@ namespace WalletWasabi.Gui
 				{
 					DataContext = MainWindowViewModel.Instance
 				};
+
+				DataContext = new ApplicationViewModel();
 			}
 
 			base.OnFrameworkInitializationCompleted();
