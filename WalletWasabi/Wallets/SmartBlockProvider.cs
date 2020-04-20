@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace WalletWasabi.Wallets
 {
 	/// <summary>
-	/// SmartP2pBlockProvider is a blocks provider that can provides 
+	/// SmartP2pBlockProvider is a blocks provider that can provide
 	/// blocks from multiple requesters.
 	/// </summary>
 	public class SmartBlockProvider : IBlockProvider
