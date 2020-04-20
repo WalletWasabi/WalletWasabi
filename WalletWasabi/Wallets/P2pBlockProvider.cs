@@ -109,15 +109,12 @@ namespace WalletWasabi.Wallets
 							if (!block.Check())
 							{
 								Logger.LogInfo($"Disconnected node: {node.RemoteSocketAddress}, because invalid block received.");
-								node.DisconnectAsync("Invalid block received.");
+								DisconnectNode(node, "Invalid block received.", force: true);
 								continue;
 							}
 
-							if (Nodes.ConnectedNodes.Count > 1) // To minimize risking missing unconfirmed transactions.
-							{
-								Logger.LogInfo($"Disconnected node: {node.RemoteSocketAddress}. Block downloaded: {block.GetHash()}.");
-								node.DisconnectAsync("Thank you!");
-							}
+							Logger.LogInfo($"Disconnected node: {node.RemoteSocketAddress}. Block downloaded: {block.GetHash()}.");
+							DisconnectNode(node, "Thank you!");
 
 							await NodeTimeoutsAsync(false).ConfigureAwait(false);
 						}
@@ -127,14 +124,14 @@ namespace WalletWasabi.Wallets
 
 							await NodeTimeoutsAsync(true).ConfigureAwait(false);
 
-							node.DisconnectAsync("Block download took too long.");
+							DisconnectNode(node, "Block download took too long."); // it could be a slow connection and not a misbehaving node
 							continue;
 						}
 						catch (Exception ex)
 						{
 							Logger.LogDebug(ex);
 							Logger.LogInfo($"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}.");
-							node.DisconnectAsync("Block download failed.");
+							DisconnectNode(node, "Block download failed.", force: true);
 							continue;
 						}
 
@@ -288,6 +285,15 @@ namespace WalletWasabi.Wallets
 				}
 			}
 		}
+
+		private void DisconnectNode(Node node, string reason, bool force = false)
+		{
+			if (Nodes.ConnectedNodes.Count > 2 || force)
+			{
+				node.DisconnectAsync(reason);
+			}
+		}
+		
 
 		/// <summary>
 		/// Current timeout used when downloading a block from the remote node. It is defined in seconds.
