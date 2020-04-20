@@ -37,7 +37,7 @@ namespace WalletWasabi.Wallets
 					var cacheEntryOptions = new MemoryCacheEntryOptions()
 						.SetSize(10)
 						.SetSlidingExpiration(TimeSpan.FromSeconds(4))
-						.RegisterPostEvictionCallback(callback: EvictionCallback, state: this);;
+						.RegisterPostEvictionCallback(callback: EvictionCallback, state: this);
 
 					// Save data in cache.
 					Cache.Set(cacheKey, getBlockTask, cacheEntryOptions);
