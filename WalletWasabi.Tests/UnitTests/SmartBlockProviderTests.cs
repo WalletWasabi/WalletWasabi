@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using WalletWasabi.Legal;
 using WalletWasabi.Wallets;
@@ -27,7 +28,8 @@ namespace WalletWasabi.Tests.UnitTests
 				var block = Block.CreateBlock(Network.Main);
 				return block;
 			};
-			var blockProvider = new SmartBlockProvider(source);
+			using var cache = new MemoryCache(new MemoryCacheOptions());
+			var blockProvider = new SmartBlockProvider(source, cache);
 
 			var b1 = blockProvider.GetBlockAsync(uint256.Zero, CancellationToken.None);
 			var b2 = blockProvider.GetBlockAsync(uint256.One,  CancellationToken.None);
@@ -38,7 +40,7 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.NotEqual(await b1, await b2);
 		}
 
-		class MockProvider : IBlockProvider
+		private class MockProvider : IBlockProvider
 		{
 			public Func<uint256, CancellationToken, Task<Block>> OnGetBlockAsync { get; set; }
 

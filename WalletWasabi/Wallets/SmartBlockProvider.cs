@@ -1,18 +1,9 @@
+using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
-using NBitcoin.Protocol;
-using NBitcoin.Protocol.Behaviors;
 using Nito.AsyncEx;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.BitcoinCore;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
-using WalletWasabi.Models;
-using WalletWasabi.Services;
 
 namespace WalletWasabi.Wallets
 {
@@ -22,25 +13,34 @@ namespace WalletWasabi.Wallets
 	/// </summary>
 	public class SmartBlockProvider : IBlockProvider
 	{
-		public SmartBlockProvider(IBlockProvider provider)
+		public SmartBlockProvider(IBlockProvider provider, IMemoryCache cache)
 		{
 			InnerBlockProvider = provider;
+			Cache = cache;
 		}
-
-		private AsyncLock Lock { get; } = new AsyncLock();
-		
-		private Dictionary<uint256, Task<Block>> Requests = new Dictionary<uint256, Task<Block>>();
 		
 		private IBlockProvider InnerBlockProvider { get; }
 
-		public Task<Block> GetBlockAsync(uint256 hash, CancellationToken cancel)
+		public IMemoryCache Cache { get; }
+
+		private AsyncLock Lock { get; } = new AsyncLock();
+
+		public Task<Block> GetBlockAsync(uint256 blockHash, CancellationToken cancel)
 		{
 			lock (Lock)
 			{
-				if (!Requests.TryGetValue(hash, out var getBlockTask))
+				string cacheKey = $"{nameof(SmartBlockProvider):nameof(GetBlockAsync)}:{blockHash}";
+				if (!Cache.TryGetValue(cacheKey, out Task<Block> getBlockTask))
 				{
-					getBlockTask = InnerBlockProvider.GetBlockAsync(hash, cancel);
-					Requests.Add(hash, getBlockTask);
+					getBlockTask = InnerBlockProvider.GetBlockAsync(blockHash, cancel);
+
+					var cacheEntryOptions = new MemoryCacheEntryOptions()
+						.SetSize(10)
+						// There is a block every 10 minutes in average so, keep in cache for 4 seconds.
+						.SetAbsoluteExpiration(TimeSpan.FromSeconds(4));
+
+					// Save data in cache.
+					Cache.Set(cacheKey, getBlockTask, cacheEntryOptions);
 				}
 				return getBlockTask;
 			}
