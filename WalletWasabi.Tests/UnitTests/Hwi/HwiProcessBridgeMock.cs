@@ -12,12 +12,12 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 {
 	public class HwiProcessBridgeMock : IProcessBridge
 	{
-		public HardwareWalletModels Model { get; }
-
 		public HwiProcessBridgeMock(HardwareWalletModels model)
 		{
 			Model = model;
 		}
+
+		public HardwareWalletModels Model { get; }
 
 		public Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel)
 		{

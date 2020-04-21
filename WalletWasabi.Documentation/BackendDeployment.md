@@ -421,3 +421,18 @@ PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:(PROD):\
 ```
 
 **Note:** In the test server replace the word **PROD** by **TEST**
+
+## Let's Encrypt
+
+[Let’s Encrypt](https://letsencrypt.org/about/) is a free, automated, and open certificate authority (CA), run for the public’s benefit.
+It is renewed automatically by certbot which is an agent software installed on both backends. A newly created or renewed certificates are valid for 90 days and the renewal process should start automatically (`cronjob`) if the certificate will expire in less than 30 days.
+
+You can list the certificates with:
+
+`sudo certbot certificates`
+
+Check all of the certificates that you’ve obtained and tries to renew any that will expire in less than 30 days (this should be automatic):
+
+`sudo certbot renew`
+
+Detailed instuctions about configuration [here](https://certbot.eff.org/lets-encrypt/ubuntubionic-nginx).

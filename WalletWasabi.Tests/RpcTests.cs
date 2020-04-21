@@ -10,16 +10,6 @@ namespace WalletWasabi.Tests
 {
 	public class RpcTests
 	{
-		[Theory]
-		[MemberData(nameof(RequestResponse))]
-		public async Task ParsingRequestTestsAsync(string request, string expectedResponse)
-		{
-			var handler = new JsonRpcRequestHandler<TestableRpcService>(new TestableRpcService());
-
-			var response = await handler.HandleAsync(request, CancellationToken.None).ConfigureAwait(false);
-			Assert.Equal(expectedResponse, response);
-		}
-
 		public static IEnumerable<object[]> RequestResponse =>
 			new[]
 			{
@@ -97,6 +87,16 @@ namespace WalletWasabi.Tests
 				}
 			}
 			.Select(x => x.Skip(1).ToArray());
+
+		[Theory]
+		[MemberData(nameof(RequestResponse))]
+		public async Task ParsingRequestTestsAsync(string request, string expectedResponse)
+		{
+			var handler = new JsonRpcRequestHandler<TestableRpcService>(new TestableRpcService());
+
+			var response = await handler.HandleAsync(request, CancellationToken.None).ConfigureAwait(false);
+			Assert.Equal(expectedResponse, response);
+		}
 
 		private static string Request(string id, string methodName, params object[] parameters)
 		{
