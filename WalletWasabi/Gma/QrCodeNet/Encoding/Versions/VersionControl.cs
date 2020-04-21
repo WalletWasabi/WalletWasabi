@@ -8,6 +8,8 @@ namespace Gma.QrCodeNet.Encoding.Versions
 		private const int NumBitsModeIndicator = 4;
 		private const string DefaultEncoding = QRCodeConstantVariable.DefaultEncoding;
 
+		private static readonly int[] VERSION_GROUP = new int[] { 9, 26, 40 };
+
 		/// <summary>
 		/// Determine which version to use
 		/// </summary>
@@ -78,8 +80,6 @@ namespace Gma.QrCodeNet.Encoding.Versions
 			vcStruct.VersionDetail = vcDetail;
 			return vcStruct;
 		}
-
-		private static readonly int[] VERSION_GROUP = new int[] { 9, 26, 40 };
 
 		/// <summary>
 		/// Decide which version group it belong to

@@ -2,6 +2,7 @@ using Avalonia.Controls.Notifications;
 using ReactiveUI;
 using Splat;
 using System;
+using System.Collections.Generic;
 using System.Reactive.Concurrency;
 using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Wallets;
@@ -21,6 +22,13 @@ namespace WalletWasabi.Gui.Helpers
 
 		public static void Notify(string message, string title, NotificationType type, Action onClick = null, object sender = null)
 		{
+			List<string> titles = new List<string>();
+
+			if (!string.IsNullOrEmpty(title))
+			{
+				titles.Add(title);
+			}
+
 			string walletname = sender switch
 			{
 				Wallet wallet => wallet.WalletName,
@@ -28,13 +36,18 @@ namespace WalletWasabi.Gui.Helpers
 				_ => ""
 			};
 
-			title = $"{(string.IsNullOrEmpty(title) ? "" : $"{title} - ")}{walletname}";
+			if (!string.IsNullOrEmpty(walletname))
+			{
+				titles.Add(walletname);
+			}
 
-			title = title.Substring(0, Math.Min(title.Length, MaxTitleLength));
+			var fullTitle = string.Join(" - ", titles);
+
+			fullTitle = fullTitle.Substring(0, Math.Min(fullTitle.Length, MaxTitleLength));
 
 			RxApp.MainThreadScheduler
 				.Schedule(() => GetNotificationManager()
-				.Show(new Notification(title, message, type, TimeSpan.FromSeconds(DefaultNotificationTimeout), onClick)));
+				.Show(new Notification(fullTitle, message, type, TimeSpan.FromSeconds(DefaultNotificationTimeout), onClick)));
 		}
 
 		public static void Success(string message, string title = "Success!", object sender = null)

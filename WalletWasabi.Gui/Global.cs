@@ -279,7 +279,7 @@ namespace WalletWasabi.Gui
 						await AddKnownBitcoinFullNodeAsHiddenServiceAsync(AddressManager);
 					}
 					Nodes = new NodesGroup(Network, connectionParameters, requirements: Constants.NodeRequirements);
-
+					Nodes.MaximumNodeConnection = 12;
 					RegTestMempoolServingNode = null;
 				}
 

@@ -27,7 +27,7 @@ namespace WalletWasabi.Crypto
 				var ctx = new ECMultGenContext();
 				int overflow;
 				Span<byte> tmp = stackalloc byte[32];
-				
+
 				if (!Context.Instance.TryCreatePubKey(signerPubKey.ToBytes(), out var signerECPubkey))
 				{
 					throw new FormatException("Invalid signer pubkey.");

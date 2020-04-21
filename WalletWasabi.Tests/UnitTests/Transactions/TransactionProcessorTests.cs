@@ -658,8 +658,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			}
 
 			// It is relevant even when all the coins can be dust.
-			Assert.All(keys.Take(5), key => Assert.Equal( KeyState.Used, key.KeyState));
-			Assert.All(keys.Skip(5), key => Assert.Equal( KeyState.Clean, key.KeyState));
+			Assert.All(keys.Take(5), key => Assert.Equal(KeyState.Used, key.KeyState));
+			Assert.All(keys.Skip(5), key => Assert.Equal(KeyState.Clean, key.KeyState));
 		}
 
 		[Fact]

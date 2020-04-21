@@ -53,12 +53,12 @@ namespace WalletWasabi.Tests.UnitTests
 			actual.InsertSorted(new ReverseComparable(3));
 			actual.InsertSorted(new ReverseComparable(4));
 
-			var expected = new List<ReverseComparable> 
-			{ 
-				new ReverseComparable(4), 
+			var expected = new List<ReverseComparable>
+			{
+				new ReverseComparable(4),
 				new ReverseComparable(3),
-				new ReverseComparable(2), 
-				new ReverseComparable(1), 
+				new ReverseComparable(2),
+				new ReverseComparable(1),
 				new ReverseComparable(0)
 			};
 
