@@ -55,12 +55,13 @@ namespace WalletWasabi.Tests.RegressionTests
 	public class BackendTests
 	{
 #pragma warning disable IDE0059 // Value assigned to symbol is never used
-		private RegTestFixture RegTestFixture { get; }
 
 		public BackendTests(RegTestFixture regTestFixture)
 		{
 			RegTestFixture = regTestFixture;
 		}
+
+		private RegTestFixture RegTestFixture { get; }
 
 		#region BackendTests
 
