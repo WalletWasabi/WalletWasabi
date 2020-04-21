@@ -285,7 +285,7 @@ namespace WalletWasabi.Wallets
 
 		private void DisconnectNode(Node node, string logIfDisconnect, bool force = false)
 		{
-			if (Nodes.ConnectedNodes.Count > 2 || force)
+			if (Nodes.ConnectedNodes.Count > 3 || force)
 			{
 				Logger.LogInfo(logIfDisconnect);
 				node.DisconnectAsync(logIfDisconnect);
