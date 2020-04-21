@@ -108,6 +108,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.SelectedItem)
 				.OfType<WalletViewModelBase>()
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => x.IsExpanded = true);
 		}
 
