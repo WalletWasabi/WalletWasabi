@@ -48,11 +48,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction);
 				}
-				catch (Exception ex)
-				{
-					NotificationHelpers.Error(ex.ToUserFriendlyString());
-					return;
-				}
 				finally
 				{
 					MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusType.AcquiringSignatureFromHardwareWallet);
