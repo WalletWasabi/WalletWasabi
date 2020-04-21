@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using NBitcoin.DataEncoders;
 using NBitcoin.Protocol;
@@ -90,8 +91,11 @@ namespace WalletWasabi.BitcoinCore
 				EndPointParser.TryParse($"{rpcHost}:{rpcPort}", coreNode.Network.RPCPort, out EndPoint rpce);
 				coreNode.RpcEndPoint = rpce;
 
-				var rpcClient = new RPCClient($"{authString}", coreNode.RpcEndPoint.ToString(coreNode.Network.DefaultPort), coreNode.Network);
-				coreNode.RpcClient = new RpcClientBase(rpcClient);
+				var rpcClient = new RPCClient(
+					$"{authString}",
+					coreNode.RpcEndPoint.ToString(coreNode.Network.DefaultPort),
+					coreNode.Network);
+				coreNode.RpcClient = new CachedRpcClient(rpcClient, new MemoryCache(new MemoryCacheOptions { SizeLimit = 1_000 }));
 
 
 				if (coreNodeParams.TryRestart)

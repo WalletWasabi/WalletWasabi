@@ -21,8 +21,6 @@ namespace WalletWasabi.Gui.ViewModels
 {
 	public class AddressViewModel : ViewModelBase, IDisposable
 	{
-		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
-
 		private bool _isExpanded;
 		private bool[,] _qrCode;
 		private bool _clipboardNotificationVisible;
@@ -30,19 +28,8 @@ namespace WalletWasabi.Gui.ViewModels
 		private string _label;
 		private bool _inEditMode;
 		private ObservableAsPropertyHelper<string> _expandMenuCaption;
-		public ReactiveCommand<Unit, bool> ToggleQrCode { get; }
-		public ReactiveCommand<Unit, Unit> SaveQRCode { get; }
-		public ReactiveCommand<Unit, Unit> CopyAddress { get; }
-		public ReactiveCommand<Unit, Unit> CopyLabel { get; }
-		public ReactiveCommand<Unit, bool> ChangeLabel { get; }
-		public ReactiveCommand<Unit, Unit> DisplayAddressOnHw { get; }
-		public ReactiveCommand<Unit, Unit> LockAddress { get; }
 
-		public HdPubKey Model { get; }
-		private Global Global { get; }
-		public KeyManager KeyManager { get; }
-		public ReceiveTabViewModel Owner { get; }
-		public bool IsHardwareWallet { get; }
+		private volatile bool _disposedValue = false; // To detect redundant calls
 
 		public AddressViewModel(HdPubKey model, KeyManager km, ReceiveTabViewModel owner)
 		{
@@ -153,6 +140,22 @@ namespace WalletWasabi.Gui.ViewModels
 				});
 		}
 
+		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
+
+		public ReactiveCommand<Unit, bool> ToggleQrCode { get; }
+		public ReactiveCommand<Unit, Unit> SaveQRCode { get; }
+		public ReactiveCommand<Unit, Unit> CopyAddress { get; }
+		public ReactiveCommand<Unit, Unit> CopyLabel { get; }
+		public ReactiveCommand<Unit, bool> ChangeLabel { get; }
+		public ReactiveCommand<Unit, Unit> DisplayAddressOnHw { get; }
+		public ReactiveCommand<Unit, Unit> LockAddress { get; }
+
+		public HdPubKey Model { get; }
+		private Global Global { get; }
+		public KeyManager KeyManager { get; }
+		public ReceiveTabViewModel Owner { get; }
+		public bool IsHardwareWallet { get; }
+
 		public bool IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode;
 
 		public bool ClipboardNotificationVisible
@@ -254,8 +257,6 @@ namespace WalletWasabi.Gui.ViewModels
 		}
 
 		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
 
 		protected virtual void Dispose(bool disposing)
 		{

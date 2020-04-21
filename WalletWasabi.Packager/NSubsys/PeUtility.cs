@@ -7,42 +7,6 @@ namespace NSubsys
 {
 	internal class PeUtility : IDisposable
 	{
-		public enum SubSystemType : ushort
-		{
-			ImageSubSystemWindowsGui = 2,
-			ImageSubSystemWindowsCui = 3
-		}
-
-#pragma warning disable IDE1006 // Naming Styles
-
-		[StructLayout(LayoutKind.Explicit)]
-		public struct ImageDosHeader
-		{
-			[FieldOffset(60)]
-			public uint FileAddressNew;
-		}
-
-		[StructLayout(LayoutKind.Explicit)]
-		public struct ImageOptionalHeader
-		{
-			[FieldOffset(68)]
-			public ushort Subsystem;
-		}
-
-#pragma warning restore IDE1006 // Naming Styles
-
-		/// <summary>
-		/// Gets the optional header
-		/// </summary>
-		public ImageOptionalHeader OptionalHeader { get; }
-
-		/// <summary>
-		/// Gets the PE file stream for R/W functions.
-		/// </summary>
-		public FileStream Stream { get; }
-
-		public long MainHeaderOffset { get; }
-
 		private readonly IDisposable InternalBinReader;
 
 		public PeUtility(string filePath)
@@ -62,6 +26,24 @@ namespace NSubsys
 
 			InternalBinReader = reader;
 		}
+
+		public enum SubSystemType : ushort
+		{
+			ImageSubSystemWindowsGui = 2,
+			ImageSubSystemWindowsCui = 3
+		}
+
+		/// <summary>
+		/// Gets the optional header
+		/// </summary>
+		public ImageOptionalHeader OptionalHeader { get; }
+
+		/// <summary>
+		/// Gets the PE file stream for R/W functions.
+		/// </summary>
+		public FileStream Stream { get; }
+
+		public long MainHeaderOffset { get; }
 
 		/// <summary>
 		/// Reads in a block from a file and converts it to the struct
@@ -85,5 +67,23 @@ namespace NSubsys
 			Stream?.Dispose();
 			InternalBinReader?.Dispose();
 		}
+
+#pragma warning disable IDE1006 // Naming Styles
+
+		[StructLayout(LayoutKind.Explicit)]
+		public struct ImageDosHeader
+		{
+			[FieldOffset(60)]
+			public uint FileAddressNew;
+		}
+
+		[StructLayout(LayoutKind.Explicit)]
+		public struct ImageOptionalHeader
+		{
+			[FieldOffset(68)]
+			public ushort Subsystem;
+		}
+
+#pragma warning restore IDE1006 // Naming Styles
 	}
 }

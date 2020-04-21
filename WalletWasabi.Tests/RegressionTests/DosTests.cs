@@ -57,12 +57,13 @@ namespace WalletWasabi.Tests.RegressionTests
 	public class DosTests
 	{
 #pragma warning disable IDE0059 // Value assigned to symbol is never used
-		private RegTestFixture RegTestFixture { get; }
 
 		public DosTests(RegTestFixture regTestFixture)
 		{
 			RegTestFixture = regTestFixture;
 		}
+
+		private RegTestFixture RegTestFixture { get; }
 
 		private static async Task WaitForTimeoutAsync(Uri baseUri)
 		{

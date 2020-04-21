@@ -29,12 +29,13 @@ namespace WalletWasabi.Tests.RegressionTests
 	public class SendTests
 	{
 #pragma warning disable IDE0059 // Value assigned to symbol is never used
-		private RegTestFixture RegTestFixture { get; }
 
 		public SendTests(RegTestFixture regTestFixture)
 		{
 			RegTestFixture = regTestFixture;
 		}
+
+		private RegTestFixture RegTestFixture { get; }
 
 		[Fact]
 		public async Task SendTestsAsync()
@@ -62,7 +63,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var blocksFolderPath = Path.Combine(workDir, "Blocks", network.ToString());
 
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
-				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network), 
+				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
 				new FileSystemBlockRepository(blocksFolderPath, network));
 
 			var walletManager = new WalletManager(network, new WalletDirectories(workDir));
@@ -542,7 +543,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var blocksFolderPath = Path.Combine(workDir, "Blocks", network.ToString());
 
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
-				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network), 
+				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
 				new FileSystemBlockRepository(blocksFolderPath, network));
 
 			var walletManager = new WalletManager(network, new WalletDirectories(workDir));
@@ -716,7 +717,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var blocksFolderPath = Path.Combine(workDir, "Blocks", network.ToString());
 
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
-				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network), 
+				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
 				new FileSystemBlockRepository(blocksFolderPath, network));
 
 			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer, blockProvider);

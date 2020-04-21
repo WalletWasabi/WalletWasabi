@@ -13,10 +13,6 @@ namespace WalletWasabi.Gui.ViewModels
 {
 	public class ViewModelBase : ReactiveObject, INotifyDataErrorInfo
 	{
-		private List<(string propertyName, MethodInfo mInfo)> ValidationMethodCache { get; }
-
-		public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
-
 		public ViewModelBase()
 		{
 			var vmc = Validator.PropertiesWithValidation(this).ToList();
@@ -27,6 +23,10 @@ namespace WalletWasabi.Gui.ViewModels
 
 			ValidationMethodCache = vmc;
 		}
+
+		public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
+
+		private List<(string propertyName, MethodInfo mInfo)> ValidationMethodCache { get; }
 
 		public bool HasErrors => Validator.ValidateAllProperties(this, ValidationMethodCache).HasErrors;
 

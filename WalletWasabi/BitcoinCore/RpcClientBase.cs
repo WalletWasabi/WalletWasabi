@@ -60,7 +60,7 @@ namespace WalletWasabi.BitcoinCore
 			return await Rpc.GetRawMempoolAsync().ConfigureAwait(false);
 		}
 
-		public GetTxOutResponse GetTxOut(uint256 txid, int index, bool includeMempool = true)
+		public virtual GetTxOutResponse GetTxOut(uint256 txid, int index, bool includeMempool = true)
 		{
 			return Rpc.GetTxOut(txid, index, includeMempool);
 		}

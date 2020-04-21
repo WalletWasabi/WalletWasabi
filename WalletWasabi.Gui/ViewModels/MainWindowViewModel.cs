@@ -23,8 +23,6 @@ namespace WalletWasabi.Gui.ViewModels
 		private ModalDialogViewModelBase _modalDialog;
 		private bool _canClose = true;
 		private string _title = "Wasabi Wallet";
-		private double _height;
-		private double _width;
 		private WindowState _windowState;
 		private StatusBarViewModel _statusBar;
 		private LockScreenViewModelBase _lockScreen;
@@ -44,9 +42,6 @@ namespace WalletWasabi.Gui.ViewModels
 
 			var uiConfig = global.UiConfig;
 
-			Width = uiConfig.Width;
-			Height = uiConfig.Height;
-
 			WindowState = uiConfig.WindowState;
 
 			InitializeLockScreen(global.UiConfig);
@@ -60,18 +55,6 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			get => _title;
 			internal set => this.RaiseAndSetIfChanged(ref _title, value);
-		}
-
-		public double Height
-		{
-			get => _height;
-			set => this.RaiseAndSetIfChanged(ref _height, value);
-		}
-
-		public double Width
-		{
-			get => _width;
-			set => this.RaiseAndSetIfChanged(ref _width, value);
 		}
 
 		public WindowState WindowState
@@ -96,6 +79,22 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			get => _menuVisible;
 			set => this.RaiseAndSetIfChanged(ref _menuVisible, value);
+		}
+
+		public IShell Shell { get; }
+
+		public static MainWindowViewModel Instance { get; internal set; }
+
+		public ModalDialogViewModelBase ModalDialog
+		{
+			get => _modalDialog;
+			private set => this.RaiseAndSetIfChanged(ref _modalDialog, value);
+		}
+
+		public bool CanClose
+		{
+			get => _canClose;
+			set => this.RaiseAndSetIfChanged(ref _canClose, value);
 		}
 
 		public void PushLockScreen(LockScreenViewModelBase lockScreen)
@@ -127,10 +126,6 @@ namespace WalletWasabi.Gui.ViewModels
 				}
 			}
 		}
-
-		public IShell Shell { get; }
-
-		public static MainWindowViewModel Instance { get; internal set; }
 
 		public void Initialize()
 		{
@@ -183,18 +178,6 @@ namespace WalletWasabi.Gui.ViewModels
 			ModalDialog = null;
 
 			return res;
-		}
-
-		public ModalDialogViewModelBase ModalDialog
-		{
-			get => _modalDialog;
-			private set => this.RaiseAndSetIfChanged(ref _modalDialog, value);
-		}
-
-		public bool CanClose
-		{
-			get => _canClose;
-			set => this.RaiseAndSetIfChanged(ref _canClose, value);
 		}
 
 		#region IDisposable Support

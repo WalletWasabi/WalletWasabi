@@ -33,6 +33,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 		private string _password;
 		private WalletViewModelBase _selectedWallet;
 
+		private bool _disposedValue = false; // To detect redundant calls
+
 		public LoadWalletViewModel(WalletManagerViewModel owner, LoadWalletType loadWalletType)
 			: base(loadWalletType == LoadWalletType.Password ? "Test Password" : "Load Wallet")
 		{
@@ -242,8 +244,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 		}
 
 		#region IDisposable Support
-
-		private bool _disposedValue = false; // To detect redundant calls
 
 		protected virtual void Dispose(bool disposing)
 		{

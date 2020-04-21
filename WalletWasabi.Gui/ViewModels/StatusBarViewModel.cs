@@ -36,13 +36,6 @@ namespace WalletWasabi.Gui.ViewModels
 {
 	public class StatusBarViewModel : ViewModelBase
 	{
-		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
-		private NodesCollection Nodes { get; set; }
-		private WasabiSynchronizer Synchronizer { get; set; }
-		private SmartHeaderChain HashChain { get; set; }
-
-		private bool UseTor { get; set; }
-
 		private RpcStatus _bitcoinCoreStatus;
 		private UpdateStatus _updateStatus;
 		private bool _updateAvailable;
@@ -56,10 +49,10 @@ namespace WalletWasabi.Gui.ViewModels
 		private string _btcPrice;
 		private ObservableAsPropertyHelper<string> _status;
 		private bool _downloadingBlock;
-		private Global Global { get; }
-		private StatusSet ActiveStatuses { get; }
 
 		private bool _legalDocsLoading;
+
+		private volatile bool _disposedValue = false; // To detect redundant calls
 
 		public StatusBarViewModel()
 		{
@@ -70,6 +63,82 @@ namespace WalletWasabi.Gui.ViewModels
 			Peers = 0;
 			BtcPrice = "$0";
 			ActiveStatuses = new StatusSet();
+		}
+
+		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
+		private NodesCollection Nodes { get; set; }
+		private WasabiSynchronizer Synchronizer { get; set; }
+		private SmartHeaderChain HashChain { get; set; }
+
+		private bool UseTor { get; set; }
+
+		private Global Global { get; }
+		private StatusSet ActiveStatuses { get; }
+
+		public ReactiveCommand<Unit, Unit> UpdateCommand { get; set; }
+
+		public bool UseBitcoinCore
+		{
+			get => _useBitcoinCore;
+			set => this.RaiseAndSetIfChanged(ref _useBitcoinCore, value);
+		}
+
+		public BackendStatus Backend
+		{
+			get => _backend;
+			set => this.RaiseAndSetIfChanged(ref _backend, value);
+		}
+
+		public TorStatus Tor
+		{
+			get => _tor;
+			set => this.RaiseAndSetIfChanged(ref _tor, value);
+		}
+
+		public int Peers
+		{
+			get => _peers;
+			set => this.RaiseAndSetIfChanged(ref _peers, value);
+		}
+
+		public int FiltersLeft => _filtersLeft?.Value ?? 0;
+
+		public RpcStatus BitcoinCoreStatus
+		{
+			get => _bitcoinCoreStatus;
+			set => this.RaiseAndSetIfChanged(ref _bitcoinCoreStatus, value);
+		}
+
+		public UpdateStatus UpdateStatus
+		{
+			get => _updateStatus;
+			set => this.RaiseAndSetIfChanged(ref _updateStatus, value);
+		}
+
+		public bool UpdateAvailable
+		{
+			get => _updateAvailable;
+			set => this.RaiseAndSetIfChanged(ref _updateAvailable, value);
+		}
+
+		public bool CriticalUpdateAvailable
+		{
+			get => _criticalUpdateAvailable;
+			set => this.RaiseAndSetIfChanged(ref _criticalUpdateAvailable, value);
+		}
+
+		public string BtcPrice
+		{
+			get => _btcPrice;
+			set => this.RaiseAndSetIfChanged(ref _btcPrice, value);
+		}
+
+		public string Status => _status?.Value ?? "Loading...";
+
+		public bool DownloadingBlock
+		{
+			get => _downloadingBlock;
+			set => this.RaiseAndSetIfChanged(ref _downloadingBlock, value);
 		}
 
 		public void Initialize(NodesCollection nodes, WasabiSynchronizer synchronizer)
@@ -312,72 +381,6 @@ namespace WalletWasabi.Gui.ViewModels
 				.Subscribe(ex => Logger.LogError(ex));
 		}
 
-		public ReactiveCommand<Unit, Unit> UpdateCommand { get; set; }
-
-		public bool UseBitcoinCore
-		{
-			get => _useBitcoinCore;
-			set => this.RaiseAndSetIfChanged(ref _useBitcoinCore, value);
-		}
-
-		public BackendStatus Backend
-		{
-			get => _backend;
-			set => this.RaiseAndSetIfChanged(ref _backend, value);
-		}
-
-		public TorStatus Tor
-		{
-			get => _tor;
-			set => this.RaiseAndSetIfChanged(ref _tor, value);
-		}
-
-		public int Peers
-		{
-			get => _peers;
-			set => this.RaiseAndSetIfChanged(ref _peers, value);
-		}
-
-		public int FiltersLeft => _filtersLeft?.Value ?? 0;
-
-		public RpcStatus BitcoinCoreStatus
-		{
-			get => _bitcoinCoreStatus;
-			set => this.RaiseAndSetIfChanged(ref _bitcoinCoreStatus, value);
-		}
-
-		public UpdateStatus UpdateStatus
-		{
-			get => _updateStatus;
-			set => this.RaiseAndSetIfChanged(ref _updateStatus, value);
-		}
-
-		public bool UpdateAvailable
-		{
-			get => _updateAvailable;
-			set => this.RaiseAndSetIfChanged(ref _updateAvailable, value);
-		}
-
-		public bool CriticalUpdateAvailable
-		{
-			get => _criticalUpdateAvailable;
-			set => this.RaiseAndSetIfChanged(ref _criticalUpdateAvailable, value);
-		}
-
-		public string BtcPrice
-		{
-			get => _btcPrice;
-			set => this.RaiseAndSetIfChanged(ref _btcPrice, value);
-		}
-
-		public string Status => _status?.Value ?? "Loading...";
-
-		public bool DownloadingBlock
-		{
-			get => _downloadingBlock;
-			set => this.RaiseAndSetIfChanged(ref _downloadingBlock, value);
-		}
-
 		private void OnResponseArrivedIsGenSocksServFail(bool isGenSocksServFail)
 		{
 			if (isGenSocksServFail)
@@ -445,8 +448,6 @@ namespace WalletWasabi.Gui.ViewModels
 		}
 
 		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
 
 		protected virtual void Dispose(bool disposing)
 		{

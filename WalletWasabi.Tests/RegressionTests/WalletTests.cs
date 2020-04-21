@@ -55,12 +55,13 @@ namespace WalletWasabi.Tests.RegressionTests
 	public class WalletTests
 	{
 #pragma warning disable IDE0059 // Value assigned to symbol is never used
-		private RegTestFixture RegTestFixture { get; }
 
 		public WalletTests(RegTestFixture regTestFixture)
 		{
 			RegTestFixture = regTestFixture;
 		}
+
+		private RegTestFixture RegTestFixture { get; }
 
 		private async Task WaitForIndexesToSyncAsync(Backend.Global global, TimeSpan timeout, BitcoinStore bitcoinStore)
 		{
@@ -298,7 +299,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var blocksFolderPath = Path.Combine(workDir, "Blocks", network.ToString());
 
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
-				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network), 
+				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
 				new FileSystemBlockRepository(blocksFolderPath, network));
 
 			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer, blockProvider);

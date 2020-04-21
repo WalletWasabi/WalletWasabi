@@ -9,6 +9,8 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 {
 	public class MockTorHttpClient : ITorHttpClient
 	{
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
 		public Uri DestinationUri => new Uri("DestinationUri");
 
 		public Func<Uri> DestinationUriAction => () => DestinationUri;
@@ -33,8 +35,6 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 		}
 
 		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
 
 		protected virtual void Dispose(bool disposing)
 		{

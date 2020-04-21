@@ -279,7 +279,7 @@ namespace WalletWasabi.Gui
 						await AddKnownBitcoinFullNodeAsHiddenServiceAsync(AddressManager);
 					}
 					Nodes = new NodesGroup(Network, connectionParameters, requirements: Constants.NodeRequirements);
-
+					Nodes.MaximumNodeConnection = 12;
 					RegTestMempoolServingNode = null;
 				}
 
@@ -323,7 +323,15 @@ namespace WalletWasabi.Gui
 				if (jsonRpcServerConfig.IsEnabled)
 				{
 					RpcServer = new JsonRpcServer(this, jsonRpcServerConfig);
-					await RpcServer.StartAsync(cancel).ConfigureAwait(false);
+					try
+					{
+						await RpcServer.StartAsync(cancel).ConfigureAwait(false);
+					}
+					catch (System.Net.HttpListenerException e)
+					{
+						Logger.LogWarning($"Failed to start {nameof(JsonRpcServer)} with error: {e.Message}.");
+						RpcServer = null;
+					}
 				}
 
 				#endregion JsonRpcServerInitialization
