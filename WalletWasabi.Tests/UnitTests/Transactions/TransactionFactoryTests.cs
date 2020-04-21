@@ -10,7 +10,6 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
-using WalletWasabi.WebClients.PayJoin;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions
