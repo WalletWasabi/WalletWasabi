@@ -9,6 +9,13 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		private Dictionary<int, string> _valueToName;
 
 		/// <summary>
+		/// ISO/IEC 18004:2006 Chapter 6.4.2 Mode indicator = 0111 Page 23
+		/// </summary>
+		private const int ECIMode = 7;
+
+		private const int ECIIndicatorNumBits = 4;
+
+		/// <summary>
 		/// Initialize ECI Set.
 		/// </summary>
 		/// <param name="option">AppendOption is enum under ECISet
@@ -19,6 +26,15 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		}
 
 		public enum AppendOption { NameToValue, ValueToName, Both }
+
+		/// <summary>
+		/// Length indicator for number of ECI codewords
+		/// </summary>
+		/// <remarks>ISO/IEC 18004:2006 Chapter 6.4.2 Page 24.
+		/// 1 codeword length = 0. Any additional codeword add 1 to front. Eg: 3 = 110</remarks>
+		/// <description>Bits required for each one is:
+		/// one = 1, two = 2, three = 3</description>
+		private enum ECICodewordsLength { One = 0, Two = 2, Three = 6 }
 
 		private void AppendECI(string name, int value, AppendOption option)
 		{
@@ -181,22 +197,6 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 
 			return _valueToName.ContainsKey(eciValue);
 		}
-
-		/// <summary>
-		/// ISO/IEC 18004:2006 Chapter 6.4.2 Mode indicator = 0111 Page 23
-		/// </summary>
-		private const int ECIMode = 7;
-
-		private const int ECIIndicatorNumBits = 4;
-
-		/// <summary>
-		/// Length indicator for number of ECI codewords
-		/// </summary>
-		/// <remarks>ISO/IEC 18004:2006 Chapter 6.4.2 Page 24.
-		/// 1 codeword length = 0. Any additional codeword add 1 to front. Eg: 3 = 110</remarks>
-		/// <description>Bits required for each one is:
-		/// one = 1, two = 2, three = 3</description>
-		private enum ECICodewordsLength { One = 0, Two = 2, Three = 6 }
 
 		/// <remarks>ISO/IEC 18004:2006 Chapter 6.4.2 Page 24.</remarks>
 		internal BitList GetECIHeader(string encodingName)

@@ -4,16 +4,16 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 {
 	public static class ModeEncodeCheck
 	{
-		public static bool IsModeEncodeValid(string encoding, string content)
-		{
-			return EightBitByteCheck(encoding, content);
-		}
-
 		/// <summary>
 		/// Encoding.GetEncoding.GetBytes will transform char to 0x3F if that char not belong to current encoding table.
 		/// 0x3F is '?'
 		/// </summary>
 		private const int QuestionMarkChar = 0x3F;
+
+		public static bool IsModeEncodeValid(string encoding, string content)
+		{
+			return EightBitByteCheck(encoding, content);
+		}
 
 		private static bool EightBitByteCheck(string encodingName, string content)
 		{
