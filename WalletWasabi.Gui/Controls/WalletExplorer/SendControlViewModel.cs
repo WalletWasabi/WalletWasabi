@@ -76,7 +76,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _isSliderFeeUsed = true;
 		private double _feeControlOpacity;
 		private string _payjoinEndPoint;
-		private ObservableAsPropertyHelper<bool> _isPayjoinEndPointVisible;
 
 		protected SendControlViewModel(Wallet wallet, string title, bool canUsePayjoin)
 			: base(title)
@@ -200,7 +199,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			// Triggering the detection of same address values.
 			this.WhenAnyValue(x => x.Address)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => 
+				.Subscribe(_ =>
 				{
 					if (string.IsNullOrWhiteSpace(Address))
 					{
@@ -228,15 +227,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					AmountText = url.Amount.ToString(false, true);
 				}
 
-				PayjoinEndPoint = url.UnknowParameters.TryGetValue("bpu", out var endPoint) 
+				PayjoinEndPoint = url.UnknowParameters.TryGetValue("bpu", out var endPoint)
 							   || url.UnknowParameters.TryGetValue("pj", out endPoint)
 					? endPoint
 					: null;
 			});
-
-			_isPayjoinEndPointVisible = this.WhenAnyValue(x => x.PayjoinEndPoint)
-				.Select(x => !string.IsNullOrWhiteSpace(x))
-				.ToProperty(this, x => x.IsPayjoinEndPointVisible, scheduler: RxApp.MainThreadScheduler);
 
 			BuildTransactionCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -439,7 +434,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		protected Global Global { get; }
 
 		private bool CanUsePayjoin { get; }
-		
+
 		protected Wallet Wallet { get; }
 
 		Wallet IWalletViewModel.Wallet => Wallet;
@@ -632,8 +627,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _payjoinEndPoint, value);
 		}
 
-		public bool IsPayjoinEndPointVisible => CanUsePayjoin && (_isPayjoinEndPointVisible?.Value ?? false);
-
 		public ReactiveCommand<Unit, Unit> BuildTransactionCommand { get; }
 
 		public ReactiveCommand<Unit, bool> MaxCommand { get; }
@@ -665,7 +658,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private IPayjoinClient GetPayjoinClient()
 		{
-			if (CanUsePayjoin && PayjoinEndPoint is {})
+			if (CanUsePayjoin && PayjoinEndPoint is { })
 			{
 				var payjoinEndPointUri = new Uri(PayjoinEndPoint);
 				return new PayjoinClient(payjoinEndPointUri, Global.TorManager.TorSocks5EndPoint);
