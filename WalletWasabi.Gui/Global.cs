@@ -28,6 +28,7 @@ using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
+using WalletWasabi.Gui.P2EP;
 using WalletWasabi.Gui.Rpc;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
@@ -35,6 +36,7 @@ using WalletWasabi.Legal;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
+using WalletWasabi.TorControl;
 using WalletWasabi.TorSocks5;
 using WalletWasabi.Wallets;
 
@@ -73,6 +75,8 @@ namespace WalletWasabi.Gui
 		public Network Network => Config.Network;
 
 		public static JsonRpcServer RpcServer { get; private set; }
+
+		public static P2EPServer P2EPServer { get; private set; }
 
 		public Global()
 		{
@@ -168,6 +172,27 @@ namespace WalletWasabi.Gui
 				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
 
 				#endregion TorProcessInitialization
+
+				cancel.ThrowIfCancellationRequested();
+
+				#region P2EP 
+
+				var P2EPServerConfig_IsEnabled = true;
+				if (P2EPServerConfig_IsEnabled)
+				{
+					P2EPServer = new P2EPServer(this);
+					try
+					{
+						await P2EPServer.StartAsync(cancel).ConfigureAwait(false);
+					}
+					catch (System.Net.HttpListenerException e)
+					{
+						Logger.LogWarning($"Failed to start {nameof(P2EPServer)} with error: {e.Message}.");
+						P2EPServer = null;
+					}
+				}
+
+				#endregion
 
 				cancel.ThrowIfCancellationRequested();
 
@@ -670,6 +695,14 @@ namespace WalletWasabi.Gui
 					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
 					await rpcServer.StopAsync(cts.Token);
 					Logger.LogInfo($"{nameof(RpcServer)} is stopped.", nameof(Global));
+				}
+
+				var p2epServer = P2EPServer;
+				if (p2epServer is { })
+				{
+					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
+					await p2epServer.StopAsync(cts.Token);
+					P2EPServer = null;
 				}
 
 				var feeProviders = FeeProviders;

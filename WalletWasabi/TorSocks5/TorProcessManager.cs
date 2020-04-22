@@ -119,6 +119,8 @@ namespace WalletWasabi.TorSocks5
 						}
 
 						string torArguments = $"--SOCKSPort {TorSocks5EndPoint} --DataDirectory {torDataDir} --GeoIPFile {geoIpPath} GeoIPv6File {geoIp6Path}";
+						torArguments += $" --HashedControlPassword 16:F44A5EEADC1D0EDC6074748B610587E5348B2914231E9292E2F4C8B1DF --ControlPort {Constants.DefaultTorControlPort}";
+
 						if (!string.IsNullOrEmpty(LogFile))
 						{
 							IoHelpers.EnsureContainingDirectoryExists(LogFile);
