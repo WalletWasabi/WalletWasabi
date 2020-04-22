@@ -75,14 +75,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private FeeDisplayFormat _feeDisplayFormat;
 		private bool _isSliderFeeUsed = true;
 		private double _feeControlOpacity;
-		private string _payjoinEndPoint;
 
-		protected SendControlViewModel(Wallet wallet, string title, bool canUsePayjoin)
+		protected SendControlViewModel(Wallet wallet, string title)
 			: base(title)
 		{
 			Global = Locator.Current.GetService<Global>();
 			Wallet = wallet;
-			CanUsePayjoin = canUsePayjoin;
 
 			LabelSuggestion = new SuggestLabelViewModel();
 			BuildTransactionButtonText = DoButtonText;
@@ -201,10 +199,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
-					if (string.IsNullOrWhiteSpace(Address))
-					{
-						PayjoinEndPoint = null;
-					}
 					this.RaisePropertyChanged(nameof(CustomChangeAddress));
 				});
 
@@ -353,9 +347,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 					}
 
-					BuildTransactionResult result = await Task.Run(() => Wallet.BuildTransaction(Password, intent, feeStrategy, allowUnconfirmed: true, allowedInputs: selectedCoinReferences, GetPayjoinClient()));
-
-					await DoAfterBuildTransaction(result);
+					await BuildTransaction(Password, intent, feeStrategy, allowUnconfirmed: true, allowedInputs: selectedCoinReferences);
 				}
 				catch (InsufficientBalanceException ex)
 				{
@@ -418,8 +410,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		protected Global Global { get; }
-
-		private bool CanUsePayjoin { get; }
 
 		protected Wallet Wallet { get; }
 
@@ -606,13 +596,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			private set => this.RaiseAndSetIfChanged(ref _isCustomChangeAddress, value);
 		}
 
-		[ValidateMethod(nameof(ValidatePayjoinEndPoint))]
-		public string PayjoinEndPoint
-		{
-			get => _payjoinEndPoint;
-			set => this.RaiseAndSetIfChanged(ref _payjoinEndPoint, value);
-		}
-
 		public ReactiveCommand<Unit, Unit> BuildTransactionCommand { get; }
 
 		public ReactiveCommand<Unit, bool> MaxCommand { get; }
@@ -629,28 +612,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public ReactiveCommand<KeyEventArgs, Unit> AmountKeyUpCommand { get; }
 
-		protected void ResetUi()
+		protected virtual void ResetUi()
 		{
 			LabelSuggestion.Reset();
 			Address = "";
 			CustomChangeAddress = "";
-			PayjoinEndPoint = "";
 			Password = "";
 			AllSelectedAmount = Money.Zero;
 			IsMax = false;
 			LabelToolTip = "Who can link this transaction to you? E.g.: \"Max, BitPay\"";
 			AmountText = "0.0";
-		}
-
-		private IPayjoinClient GetPayjoinClient()
-		{
-			if (CanUsePayjoin && PayjoinEndPoint is { })
-			{
-				var payjoinEndPointUri = new Uri(PayjoinEndPoint);
-				return new PayjoinClient(payjoinEndPointUri, Global.TorManager.TorSocks5EndPoint);
-			}
-
-			return new NullPayjoinClient();
 		}
 
 		private void SetAmountWatermark(Money amount)
@@ -952,15 +923,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid change address."));
 		}
 
-		public ErrorDescriptors ValidatePayjoinEndPoint()
-		{
-			if (string.IsNullOrWhiteSpace(PayjoinEndPoint) || Uri.IsWellFormedUriString(PayjoinEndPoint, UriKind.Absolute))
-			{
-				return ErrorDescriptors.Empty;
-			}
-			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid url."));
-		}
-
 		public override void OnOpen(CompositeDisposable disposables)
 		{
 			Observable
@@ -1010,7 +972,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			base.OnOpen(disposables);
 		}
 
-		protected abstract Task DoAfterBuildTransaction(BuildTransactionResult result);
+		protected abstract Task BuildTransaction(string password,
+			PaymentIntent payments,
+			FeeStrategy feeStrategy,
+			bool allowUnconfirmed = false,
+			IEnumerable<OutPoint> allowedInputs = null);
 
 		protected virtual void OnAddressPaste(BitcoinUrlBuilder url)
 		{
