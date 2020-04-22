@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
@@ -9,7 +9,7 @@ namespace WalletWasabi.WebClients.PayJoin
 	{
 		public Uri PaymentUrl => new Uri("https://");
 
-		public Task<PSBT> RequestPayjoin( PSBT originalTx, IHDKey accountKey, RootedKeyPath rootedKeyPath, CancellationToken cancellationToken)
+		public Task<PSBT> RequestPayjoin(PSBT originalTx, IHDKey accountKey, RootedKeyPath rootedKeyPath, CancellationToken cancellationToken)
 		{
 			return Task.FromResult(originalTx);
 		}

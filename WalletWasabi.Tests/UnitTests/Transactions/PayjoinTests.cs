@@ -23,7 +23,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void LazyPayjoinServerTest()
 		{
-			// This test the scenario where the payjoin server returns the same 
+			// This test the scenario where the payjoin server returns the same
 			// transaction that we sent to it and adds no inputs. This can give
 			// us the fake sense of privacy but it should be valid.
 			var httpClient = new MockTorHttpClient
@@ -57,7 +57,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// This test the scenario where the payjoin server behaves as expected.
 			var httpClient = new MockTorHttpClient
 			{
-				OnSendAsync = PayjoinServer(psbt => 
+				OnSendAsync = PayjoinServer(psbt =>
 				{
 					var clientTx = psbt.ExtractTransaction();
 					foreach (var input in clientTx.Inputs)
@@ -103,7 +103,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		public void DishonestPayjoinServerTest()
 		{
 			// The server knows one of our utxos and tries to fool the wallet to make it sign the utxo
-			var walletCoins = new[]{("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)};
+			var walletCoins = new[] { ("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1) };
 			var amountToPay = Money.Coins(0.001m);
 			var payment = new PaymentIntent(new Key().PubKey.WitHash.ScriptPubKey, amountToPay);
 
@@ -113,9 +113,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				OnSendAsync = PayjoinServer(psbt =>
 				{
 					var newCoin = psbt.Inputs[0].GetCoin();
-					newCoin.Outpoint.N = newCoin.Outpoint.N + 1; 
+					newCoin.Outpoint.N = newCoin.Outpoint.N + 1;
 					psbt.AddCoins(newCoin);
-					return psbt; 
+					return psbt;
 				})
 			};
 
@@ -137,10 +137,10 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 					var diff = Money.Coins(0.0007m);
 					var paymentOutput = globalTx.Outputs.Single(x => x.ScriptPubKey == destination);
 					var changeOutput = globalTx.Outputs.Single(x => x.ScriptPubKey != destination);
-					changeOutput.Value = changeOutput.Value - diff; 
-					paymentOutput.Value = paymentOutput.Value + diff; 
+					changeOutput.Value -= diff;
+					paymentOutput.Value += diff;
 
-					return PSBT.FromTransaction(globalTx, Network.Main); 
+					return PSBT.FromTransaction(globalTx, Network.Main);
 				})
 			};
 
@@ -151,7 +151,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void BadImplementedPayjoinServerTest()
 		{
-			var walletCoins = new[]{("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)};
+			var walletCoins = new[] { ("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1) };
 			var amountToPay = Money.Coins(0.001m);
 			var payment = new PaymentIntent(new Key().PubKey.WitHash.ScriptPubKey, amountToPay);
 
@@ -192,7 +192,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				OnSendAsync = PayjoinServer(psbt =>
 				{
 					var globalTx = psbt.GetGlobalTransaction();
-					globalTx.Inputs[0].Sequence = globalTx.Inputs[0].Sequence + 1; 
+					globalTx.Inputs[0].Sequence = globalTx.Inputs[0].Sequence + 1;
 					return PSBT.FromTransaction(globalTx, Network.Main);
 				})
 			};
@@ -208,7 +208,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				{
 					var globalTx = psbt.GetGlobalTransaction();
 					globalTx.Inputs.Add(GetRandomOutPoint());
-					return PSBT.FromTransaction(globalTx, Network.Main); 
+					return PSBT.FromTransaction(globalTx, Network.Main);
 				})
 			};
 
@@ -224,7 +224,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 					var globalTx = psbt.GetGlobalTransaction();
 					globalTx.Inputs.Clear(); // remove all the inputs
 					globalTx.Inputs.Add(GetRandomOutPoint());
-					return PSBT.FromTransaction(globalTx, Network.Main); 
+					return PSBT.FromTransaction(globalTx, Network.Main);
 				})
 			};
 
@@ -268,7 +268,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				OnSendAsync = PayjoinServer(psbt =>
 				{
 					var globalTx = psbt.GetGlobalTransaction();
-					globalTx.Version = globalTx.Version + 1; 
+					globalTx.Version += 1;
 					return PSBT.FromTransaction(globalTx, Network.Main);
 				})
 			};
@@ -283,7 +283,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				OnSendAsync = PayjoinServer(psbt =>
 				{
 					var globalTx = psbt.GetGlobalTransaction();
-					globalTx.LockTime = new LockTime(globalTx.LockTime + 1); 
+					globalTx.LockTime = new LockTime(globalTx.LockTime + 1);
 					return PSBT.FromTransaction(globalTx, Network.Main);
 				})
 			};
@@ -296,7 +296,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		public void MinersLoverPayjoinServerTest()
 		{
 			// The server wants to make us sign a transaction that pays too much fee
-			var walletCoins = new[]{("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)};
+			var walletCoins = new[] { ("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1) };
 			var amountToPay = Money.Coins(0.001m);
 			var destination = new Key().PubKey.WitHash.ScriptPubKey;
 			var payment = new PaymentIntent(destination, amountToPay);
@@ -308,8 +308,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				{
 					var globalTx = psbt.GetGlobalTransaction();
 					var changeOutput = globalTx.Outputs.Single(x => x.ScriptPubKey != destination);
-					changeOutput.Value = changeOutput.Value - Money.Coins(0.0007m);; 
-					return PSBT.FromTransaction(globalTx, Network.Main); 
+					changeOutput.Value -= Money.Coins(0.0007m); ;
+					return PSBT.FromTransaction(globalTx, Network.Main);
 				})
 			};
 
@@ -322,7 +322,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		public void BrokenPayjoinServerTest()
 		{
 			// The server wants to make us sign a transaction that pays too much fee.
-			var walletCoins = new[]{("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)};
+			var walletCoins = new[] { ("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1) };
 			var amountToPay = Money.Coins(0.001m);
 			var destination = new Key().PubKey.WitHash.ScriptPubKey;
 			var payment = new PaymentIntent(destination, amountToPay);
@@ -340,26 +340,26 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 		private static Func<HttpMethod, string, string, Task<HttpResponseMessage>> PayjoinServer(Func<PSBT, PSBT> transformPsbt = null, HttpStatusCode statusCode = HttpStatusCode.OK)
 		{
-			if (transformPsbt is {})
+			if (transformPsbt is { })
 			{
-				return new Func<HttpMethod, string, string, Task<HttpResponseMessage>>( (method, path, requestBody) =>
-				{
-					var psbt = PSBT.Parse(requestBody, Network.Main);
-					var newPsbt = transformPsbt(psbt);
-					var message = new HttpResponseMessage(statusCode);
-					message.Content = new StringContent(newPsbt.ToHex(), Encoding.UTF8, "text/plain");
-					return Task.FromResult(message);
-				});
+				return new Func<HttpMethod, string, string, Task<HttpResponseMessage>>((method, path, requestBody) =>
+			   {
+				   var psbt = PSBT.Parse(requestBody, Network.Main);
+				   var newPsbt = transformPsbt(psbt);
+				   var message = new HttpResponseMessage(statusCode);
+				   message.Content = new StringContent(newPsbt.ToHex(), Encoding.UTF8, "text/plain");
+				   return Task.FromResult(message);
+			   });
 			}
 			else
 			{
-				return new Func<HttpMethod, string, string, Task<HttpResponseMessage>>( (method, path, requestBody) =>
-				{
-					var message = new HttpResponseMessage(statusCode);
-					message.ReasonPhrase = string.Empty;
-					message.Content = new StringContent(string.Empty);
-					return Task.FromResult(message);
-				});
+				return new Func<HttpMethod, string, string, Task<HttpResponseMessage>>((method, path, requestBody) =>
+			   {
+				   var message = new HttpResponseMessage(statusCode);
+				   message.ReasonPhrase = string.Empty;
+				   message.Content = new StringContent(string.Empty);
+				   return Task.FromResult(message);
+			   });
 			}
 		}
 
