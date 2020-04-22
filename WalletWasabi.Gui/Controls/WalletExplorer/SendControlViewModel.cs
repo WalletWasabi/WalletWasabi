@@ -216,21 +216,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			OnAddressPasteCommand = ReactiveCommand.Create((BitcoinUrlBuilder url) =>
 			{
-				SmartLabel label = url.Label;
-				if (!label.IsEmpty)
-				{
-					LabelSuggestion.Label = label;
-				}
-
-				if (url.Amount != null)
-				{
-					AmountText = url.Amount.ToString(false, true);
-				}
-
-				PayjoinEndPoint = url.UnknowParameters.TryGetValue("bpu", out var endPoint)
-							   || url.UnknowParameters.TryGetValue("pj", out endPoint)
-					? endPoint
-					: null;
+				OnAddressPaste(url);
 			});
 
 			BuildTransactionCommand = ReactiveCommand.CreateFromTask(async () =>
@@ -1025,6 +1011,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		protected abstract Task DoAfterBuildTransaction(BuildTransactionResult result);
+
+		protected virtual void OnAddressPaste(BitcoinUrlBuilder url)
+		{
+			SmartLabel label = url.Label;
+			if (!label.IsEmpty)
+			{
+				LabelSuggestion.Label = label;
+			}
+
+			if (url.Amount != null)
+			{
+				AmountText = url.Amount.ToString(false, true);
+			}
+		}
 
 		public override bool OnClose()
 		{

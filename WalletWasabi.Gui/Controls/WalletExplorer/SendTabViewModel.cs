@@ -1,7 +1,9 @@
 using NBitcoin;
+using NBitcoin.Payment;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Gui.Helpers;
@@ -15,7 +17,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class SendTabViewModel : SendControlViewModel
 	{
-		public SendTabViewModel(Wallet wallet) 
+		public SendTabViewModel(Wallet wallet)
 			: base(wallet, "Send", true)
 		{
 		}
@@ -60,6 +62,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			await Task.Run(async () => await Global.TransactionBroadcaster.SendTransactionAsync(signedTransaction));
 
 			ResetUi();
+		}
+
+		protected override void OnAddressPaste(BitcoinUrlBuilder url)
+		{
+			base.OnAddressPaste(url);
+
+			PayjoinEndPoint = url.UnknowParameters.TryGetValue("bpu", out var endPoint)
+						   || url.UnknowParameters.TryGetValue("pj", out endPoint)
+				? endPoint
+				: null;
 		}
 	}
 }
