@@ -16,7 +16,7 @@ namespace WalletWasabi.WebClients.PayJoin
 {
 	public class PayjoinClient : IPayjoinClient
 	{
-		public PayjoinClient(Uri paymentUrl, EndPoint torSocks5EndPoint) 
+		public PayjoinClient(Uri paymentUrl, EndPoint torSocks5EndPoint)
 		{
 			TorSocks5EndPoint = Guard.NotNull(nameof(torSocks5EndPoint), torSocks5EndPoint);
 			PaymentUrl = Guard.NotNull(nameof(paymentUrl), paymentUrl);
@@ -37,13 +37,18 @@ namespace WalletWasabi.WebClients.PayJoin
 		{
 			Guard.NotNull(nameof(originalTx), originalTx);
 			if (originalTx.IsAllFinalized())
+			{
 				throw new InvalidOperationException("The original PSBT should not be finalized.");
+			}
 
 			var sentBefore = -originalTx.GetBalance(ScriptPubKeyType.Segwit, accountKey, rootedKeyPath);
 			var oldGlobalTx = originalTx.GetGlobalTransaction();
 
 			if (!originalTx.TryGetEstimatedFeeRate(out var originalFeeRate) || !originalTx.TryGetVirtualSize(out var oldVirtualSize))
+			{
 				throw new ArgumentException("originalTx should have utxo information", nameof(originalTx));
+			}
+
 			var originalFee = originalTx.GetFee();
 			var cloned = originalTx.Clone();
 			if (!cloned.TryFinalize(out var _))
@@ -63,16 +68,16 @@ namespace WalletWasabi.WebClients.PayJoin
 			}
 
 			cloned.GlobalXPubs.Clear();
-			
+
 			var bpuResponse = await HttpClient.SendAsync(HttpMethod.Post, "",
 				new StringContent(cloned.ToHex(), Encoding.UTF8, "text/plain"), cancellationToken).ConfigureAwait(false);
 			if (!bpuResponse.IsSuccessStatusCode)
 			{
-				var errorStr = await bpuResponse.Content.ReadAsStringAsync();
+				var errorStr = await bpuResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
 				try
 				{
 					var error = JObject.Parse(errorStr);
-					throw new PayjoinReceiverException((int)bpuResponse.StatusCode, 
+					throw new PayjoinReceiverException((int)bpuResponse.StatusCode,
 						error["errorCode"].Value<string>(),
 						error["message"].Value<string>());
 				}
@@ -84,7 +89,7 @@ namespace WalletWasabi.WebClients.PayJoin
 				}
 			}
 
-			var hexOrBase64 = await bpuResponse.Content.ReadAsStringAsync();
+			var hexOrBase64 = await bpuResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
 			var newPSBT = PSBT.Parse(hexOrBase64, originalTx.Network);
 
 			// Checking that the PSBT of the receiver is clean
@@ -113,7 +118,7 @@ namespace WalletWasabi.WebClients.PayJoin
 					newInput.PartialSigs.Clear();
 				}
 			}
-			
+
 			// We make sure we don't sign things that should not be signed.
 			foreach (var finalized in newPSBT.Inputs.Where(i => i.IsFinalized()))
 			{
@@ -127,15 +132,22 @@ namespace WalletWasabi.WebClients.PayJoin
 				foreach (var originalOutput in originalTx.Outputs)
 				{
 					if (output.ScriptPubKey == originalOutput.ScriptPubKey)
+					{
 						output.UpdateFrom(originalOutput);
+					}
 				}
 			}
 
 			var newGlobalTx = newPSBT.GetGlobalTransaction();
 			if (newGlobalTx.Version != oldGlobalTx.Version)
+			{
 				throw new PayjoinSenderException("The version field of the transaction has been modified");
+			}
+
 			if (newGlobalTx.LockTime != oldGlobalTx.LockTime)
+			{
 				throw new PayjoinSenderException("The LockTime field of the transaction has been modified");
+			}
 
 			// Making sure that our inputs are finalized, and that some of our inputs have not been added.
 			int ourInputCount = 0;
@@ -146,9 +158,14 @@ namespace WalletWasabi.WebClients.PayJoin
 				{
 					ourInputCount++;
 					if (input.IsFinalized())
+					{
 						throw new PayjoinSenderException("A PSBT input from us should not be finalized");
+					}
+
 					if (newGlobalTx.Inputs[input.Index].Sequence != ourInput.TxIn.Sequence)
+					{
 						throw new PayjoinSenderException("The sequence of one of our input has been modified");
+					}
 				}
 				else
 				{
@@ -162,7 +179,9 @@ namespace WalletWasabi.WebClients.PayJoin
 				if (originalTx.Inputs.FindIndexedInput(input.PrevOut) is null)
 				{
 					if (!input.IsFinalized())
+					{
 						throw new PayjoinSenderException("The payjoin receiver included a non finalized input");
+					}
 					// Making sure that the receiver's inputs are finalized and match format
 					var payjoinInputType = input.GetInputScriptPubKeyType();
 					if (payjoinInputType is null || payjoinInputType.Value != ScriptPubKeyType.Segwit)
@@ -176,29 +195,43 @@ namespace WalletWasabi.WebClients.PayJoin
 			foreach (var input in newPSBT.Inputs)
 			{
 				if (originalTx.Inputs.FindIndexedInput(input.PrevOut) is null && !input.IsFinalized())
+				{
 					throw new PayjoinSenderException("The payjoin receiver included a non finalized input");
+				}
 			}
 
 			if (ourInputCount < originalTx.Inputs.Count)
+			{
 				throw new PayjoinSenderException("The payjoin receiver removed some of our inputs");
+			}
 
 			// We limit the number of inputs the receiver can add
 			var addedInputs = newPSBT.Inputs.Count - originalTx.Inputs.Count;
 			if (originalTx.Inputs.Count < addedInputs)
+			{
 				throw new PayjoinSenderException("The payjoin receiver added too much inputs");
+			}
 
 			var sentAfter = -newPSBT.GetBalance(ScriptPubKeyType.Segwit, accountKey, rootedKeyPath);
-			
+
 			if (sentAfter > sentBefore)
 			{
 				var overPaying = sentAfter - sentBefore;
 				if (!newPSBT.TryGetEstimatedFeeRate(out var newFeeRate) || !newPSBT.TryGetVirtualSize(out var newVirtualSize))
+				{
 					throw new PayjoinSenderException("The payjoin receiver did not included UTXO information to calculate fee correctly");
+				}
+
 				var additionalFee = newPSBT.GetFee() - originalFee;
 				if (overPaying > additionalFee)
+				{
 					throw new PayjoinSenderException("The payjoin receiver is sending more money to himself");
+				}
+
 				if (overPaying > originalFee)
+				{
 					throw new PayjoinSenderException("The payjoin receiver is making us pay more than twice the original fee");
+				}
 
 				// Let's check the difference is only for the fee and that feerate
 				// did not changed that much
@@ -206,7 +239,9 @@ namespace WalletWasabi.WebClients.PayJoin
 				// Signing precisely is hard science, give some breathing room for error.
 				expectedFee += originalFeeRate.GetFee(newPSBT.Inputs.Count * 2);
 				if (overPaying > (expectedFee - originalFee))
+				{
 					throw new PayjoinSenderException("The payjoin receiver increased the fee rate we are paying too much");
+				}
 			}
 
 			return newPSBT;
