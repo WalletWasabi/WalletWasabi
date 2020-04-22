@@ -11,8 +11,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class BuildTabViewModel : SendControlViewModel
 	{
-		public BuildTabViewModel(Wallet wallet)
-			: base(wallet, "Build Transaction")
+		public BuildTabViewModel(Wallet wallet) : base(wallet, "Build Transaction")
 		{
 		}
 
@@ -22,11 +21,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		// Must be here, it binded at SendControlView.xaml.
 		public string PayjoinEndPoint => null;
 
-		protected override async Task BuildTransaction(string password,
-					PaymentIntent payments,
-			FeeStrategy feeStrategy,
-			bool allowUnconfirmed = false,
-			IEnumerable<OutPoint> allowedInputs = null)
+		protected override async Task BuildTransaction(string password, PaymentIntent payments, FeeStrategy feeStrategy, bool allowUnconfirmed = false, IEnumerable<OutPoint> allowedInputs = null)
 		{
 			BuildTransactionResult result = await Task.Run(() => Wallet.BuildTransaction(Password, payments, feeStrategy, allowUnconfirmed: true, allowedInputs: allowedInputs));
 

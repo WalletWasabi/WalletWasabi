@@ -187,10 +187,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			// Triggering the detection of same address values.
 			this.WhenAnyValue(x => x.Address)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					this.RaisePropertyChanged(nameof(CustomChangeAddress));
-				});
+				.Subscribe(_ => this.RaisePropertyChanged(nameof(CustomChangeAddress)));
 
 			this.WhenAnyValue(x => x.CustomChangeAddress)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -962,11 +959,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			base.OnOpen(disposables);
 		}
 
-		protected abstract Task BuildTransaction(string password,
-			PaymentIntent payments,
-			FeeStrategy feeStrategy,
-			bool allowUnconfirmed = false,
-			IEnumerable<OutPoint> allowedInputs = null);
+		protected abstract Task BuildTransaction(string password, PaymentIntent payments, FeeStrategy feeStrategy, bool allowUnconfirmed = false, IEnumerable<OutPoint> allowedInputs = null);
 
 		protected virtual void OnAddressPaste(BitcoinUrlBuilder url)
 		{
