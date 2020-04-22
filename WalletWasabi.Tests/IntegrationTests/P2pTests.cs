@@ -96,7 +96,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			WasabiSynchronizer syncer = new WasabiSynchronizer(network, bitcoinStore, new Uri("http://localhost:12345"), Global.Instance.TorSocks5Endpoint);
 			ServiceConfiguration serviceConfig = new ServiceConfiguration(50, 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
-				new P2pBlockProvider(nodes, null, syncer, serviceConfig, network), 
+				new P2pBlockProvider(nodes, null, syncer, serviceConfig, network),
 				new FileSystemBlockRepository(blocksFolderPath, network));
 
 			using Wallet wallet = Wallet.CreateAndRegisterServices(

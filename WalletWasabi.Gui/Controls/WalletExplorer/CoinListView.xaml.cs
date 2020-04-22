@@ -13,20 +13,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public static readonly StyledProperty<bool> SelectAllNonPrivateVisibleProperty =
 			AvaloniaProperty.Register<CoinListView, bool>(nameof(SelectAllNonPrivateVisible), defaultBindingMode: BindingMode.OneWayToSource);
 
-		public bool SelectAllNonPrivateVisible
-		{
-			get => GetValue(SelectAllNonPrivateVisibleProperty);
-			set => SetValue(SelectAllNonPrivateVisibleProperty, value);
-		}
-
 		public static readonly StyledProperty<bool> SelectAllPrivateVisibleProperty =
 			AvaloniaProperty.Register<CoinListView, bool>(nameof(SelectAllPrivateVisible), defaultBindingMode: BindingMode.OneWayToSource);
-
-		public bool SelectAllPrivateVisible
-		{
-			get => GetValue(SelectAllPrivateVisibleProperty);
-			set => SetValue(SelectAllPrivateVisibleProperty, value);
-		}
 
 		public CoinListView()
 		{
@@ -45,6 +33,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						viewmodel.SelectAllPrivateVisible = SelectAllPrivateVisible;
 					}
 				});
+		}
+
+		public bool SelectAllNonPrivateVisible
+		{
+			get => GetValue(SelectAllNonPrivateVisibleProperty);
+			set => SetValue(SelectAllNonPrivateVisibleProperty, value);
+		}
+
+		public bool SelectAllPrivateVisible
+		{
+			get => GetValue(SelectAllPrivateVisibleProperty);
+			set => SetValue(SelectAllPrivateVisibleProperty, value);
 		}
 
 		private void InitializeComponent()

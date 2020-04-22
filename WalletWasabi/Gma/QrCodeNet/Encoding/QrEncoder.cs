@@ -4,8 +4,6 @@ namespace Gma.QrCodeNet.Encoding
 {
 	public class QrEncoder
 	{
-		public ErrorCorrectionLevel ErrorCorrectionLevel { get; set; }
-
 		/// <summary>
 		/// Default QrEncoder will set ErrorCorrectionLevel as M
 		/// </summary>
@@ -21,6 +19,8 @@ namespace Gma.QrCodeNet.Encoding
 		{
 			ErrorCorrectionLevel = errorCorrectionLevel;
 		}
+
+		public ErrorCorrectionLevel ErrorCorrectionLevel { get; set; }
 
 		/// <summary>
 		/// Encode string content to QrCode matrix

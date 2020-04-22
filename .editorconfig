@@ -234,6 +234,9 @@ csharp_style_prefer_range_operator = true:error
 # IDE0071: Simplify interpolation
 dotnet_style_prefer_simplified_interpolation = true:error
 
+# IDE0004: Remove Unnecessary Cast
+dotnet_diagnostic.IDE0004.severity = error
+
 # IDE0019: Use pattern matching
 csharp_style_pattern_matching_over_as_with_null_check = true:error
 
