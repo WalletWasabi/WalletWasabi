@@ -147,14 +147,6 @@ namespace WalletWasabi.Wallets
 			return labels;
 		}
 
-		public Wallet GetFirstOrDefaultWallet()
-		{
-			lock (Lock)
-			{
-				return Wallets.Keys.FirstOrDefault(x => x.State == WalletState.Started);
-			}
-		}
-
 		public bool AnyWallet()
 		{
 			return AnyWallet(x => x.State >= WalletState.Starting);
