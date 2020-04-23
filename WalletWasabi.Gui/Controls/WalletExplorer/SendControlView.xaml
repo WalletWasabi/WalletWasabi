@@ -13,6 +13,7 @@
     <converters:BooleanStringConverter x:Key="BooleanStringConverter" />
     <converters:FeeTargetTimeConverter x:Key="FeeTargetTimeConverter" />
     <converters:UsdExchangeRateAmountToolTipConverter x:Key="UsdExchangeRateAmountToolTipConverter" />
+    <converters:IsNotNullOrEmptyBoolConverter x:Key="IsNotNullOrEmptyBoolConverter" />
   </UserControl.Resources>
   <i:Interaction.Behaviors>
     <behaviors:ClearPropertyOnLostFocusBehavior TargetProperty="{Binding SelectedCoin}" />
@@ -41,6 +42,8 @@
               <behaviors:PasteAddressOnClickBehavior />
             </i:Interaction.Behaviors>
           </controls:ExtendedTextBox>
+
+          <controls:ExtendedTextBox IsVisible="{Binding PayjoinEndPoint, Converter={StaticResource IsNotNullOrEmptyBoolConverter}}" Classes="monospaceFont" Text="{Binding PayjoinEndPoint}" Watermark="PayJoin EndPoint" UseFloatingWatermark="True" />
 
           <suggestions:SuggestLabelView DataContext="{Binding LabelSuggestion}" />
 

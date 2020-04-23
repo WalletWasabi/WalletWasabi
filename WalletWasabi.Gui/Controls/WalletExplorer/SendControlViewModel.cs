@@ -1,28 +1,22 @@
 using Avalonia.Input;
-using AvalonStudio.Extensibility;
-using AvalonStudio.Shell;
 using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
 using Splat;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Security;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Gui.Helpers;
@@ -32,9 +26,6 @@ using WalletWasabi.Gui.Suggestions;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
-using WalletWasabi.Hwi;
-using WalletWasabi.Hwi.Exceptions;
-using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
@@ -206,16 +197,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			OnAddressPasteCommand = ReactiveCommand.Create((BitcoinUrlBuilder url) =>
 			{
-				SmartLabel label = url.Label;
-				if (!label.IsEmpty)
-				{
-					LabelSuggestion.Label = label;
-				}
-
-				if (url.Amount != null)
-				{
-					AmountText = url.Amount.ToString(false, true);
-				}
+				OnAddressPaste(url);
 			});
 
 			BuildTransactionCommand = ReactiveCommand.CreateFromTask(async () =>
@@ -352,9 +334,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 					}
 
-					BuildTransactionResult result = await Task.Run(() => Wallet.BuildTransaction(Password, intent, feeStrategy, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
-
-					await DoAfterBuildTransaction(result);
+					await BuildTransaction(Password, intent, feeStrategy, allowUnconfirmed: true, allowedInputs: selectedCoinReferences);
 				}
 				catch (InsufficientBalanceException ex)
 				{
@@ -619,7 +599,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public ReactiveCommand<KeyEventArgs, Unit> AmountKeyUpCommand { get; }
 
-		protected void ResetUi()
+		protected virtual void ResetUi()
 		{
 			LabelSuggestion.Reset();
 			Address = "";
@@ -979,7 +959,21 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			base.OnOpen(disposables);
 		}
 
-		protected abstract Task DoAfterBuildTransaction(BuildTransactionResult result);
+		protected abstract Task BuildTransaction(string password, PaymentIntent payments, FeeStrategy feeStrategy, bool allowUnconfirmed = false, IEnumerable<OutPoint> allowedInputs = null);
+
+		protected virtual void OnAddressPaste(BitcoinUrlBuilder url)
+		{
+			SmartLabel label = url.Label;
+			if (!label.IsEmpty)
+			{
+				LabelSuggestion.Label = label;
+			}
+
+			if (url.Amount != null)
+			{
+				AmountText = url.Amount.ToString(false, true);
+			}
+		}
 
 		public override bool OnClose()
 		{
