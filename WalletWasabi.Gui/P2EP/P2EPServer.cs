@@ -16,7 +16,7 @@ namespace WalletWasabi.Gui.P2EP
 		{
 			Listener = new HttpListener();
 			Listener.AuthenticationSchemes = AuthenticationSchemes.Anonymous;
-			Listener.Prefixes.Add($"http://{IPAddress.Loopback}:{37129}");
+			Listener.Prefixes.Add($"http://{IPAddress.Loopback}:{37129}/");
 			Global = global;
 		}
 
@@ -26,11 +26,15 @@ namespace WalletWasabi.Gui.P2EP
 
 		public override async Task StartAsync(CancellationToken cancellationToken)
 		{
+			while (!Global.TorManager.IsRunning)
+			{
+				await Task.Delay(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+			}
 			using( var torControlClient = new TorControlClient())
 			{
-				await torControlClient.ConnectAsync();
-				await torControlClient.AuthenticateAsync("MyLittlePonny");
-				PaymentEndpoint = await torControlClient.CreateHiddenService();
+				await torControlClient.ConnectAsync().ConfigureAwait(false);
+				await torControlClient.AuthenticateAsync("MyLittlePonny").ConfigureAwait(false);
+				PaymentEndpoint = await torControlClient.CreateHiddenServiceAsync().ConfigureAwait(false);
 			}
 
 			Listener.Start();
