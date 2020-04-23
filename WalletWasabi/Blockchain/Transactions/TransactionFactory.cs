@@ -258,6 +258,8 @@ namespace WalletWasabi.Blockchain.Transactions
 				}
 			}
 
+			UpdatePSBTInfo(psbt, spentCoins, changeHdPubKey);
+
 			var label = SmartLabel.Merge(payments.Requests.Select(x => x.Label).Concat(spentCoins.Select(x => x.Label)));
 			var outerWalletOutputs = new List<SmartCoin>();
 			var innerWalletOutputs = new List<SmartCoin>();
@@ -316,6 +318,14 @@ namespace WalletWasabi.Blockchain.Transactions
 				builder.SignPSBT(psbt);
 
 				Logger.LogInfo($"Payjoin payment was negotiated successfully.");
+			}
+			catch (TorSocks5FailureResponseException e)
+			{
+				if (e.Message.Contains("HostUnreachable"))
+				{
+					Logger.LogWarning($"Payjoin server is not reachable. Ignoring...");
+				}
+				// ignore
 			}
 			catch (HttpRequestException e)
 			{
