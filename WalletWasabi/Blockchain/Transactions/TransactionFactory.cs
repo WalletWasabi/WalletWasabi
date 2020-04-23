@@ -57,7 +57,6 @@ namespace WalletWasabi.Blockchain.Transactions
 			IPayjoinClient payjoinClient = null)
 		{
 			payments = Guard.NotNull(nameof(payments), payments);
-			payjoinClient ??= new NullPayjoinClient();
 			lockTimeSelector ??= () => LockTime.Zero;
 
 			long totalAmount = payments.TotalAmount.Satoshi;
@@ -231,7 +230,10 @@ namespace WalletWasabi.Blockchain.Transactions
 				UpdatePSBTInfo(psbt, spentCoins, changeHdPubKey);
 
 				// Try to pay using payjoin
-				psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt);
+				if (payjoinClient is { })
+				{
+					psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt);
+				}
 
 				psbt.Finalize();
 				tx = psbt.ExtractTransaction();
@@ -305,11 +307,15 @@ namespace WalletWasabi.Blockchain.Transactions
 		{
 			try
 			{
+				Logger.LogInfo($"Negotiating payjoin payment with `{payjoinClient.PaymentUrl}`.");
+
 				psbt = payjoinClient.RequestPayjoin(psbt,
 					KeyManager.ExtPubKey,
 					new RootedKeyPath(KeyManager.MasterFingerprint.Value, KeyManager.DefaultAccountKeyPath),
 					CancellationToken.None).GetAwaiter().GetResult();
 				builder.SignPSBT(psbt);
+
+				Logger.LogInfo($"Payjoin payment was negotiated successfully.");
 			}
 			catch (HttpRequestException e)
 			{
