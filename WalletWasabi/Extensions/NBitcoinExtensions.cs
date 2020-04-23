@@ -375,21 +375,6 @@ namespace NBitcoin
 			}
 		}
 
-		public static ScriptPubKeyType? GetInputsScriptPubKeyType(this PSBT psbt)
-		{
-			if (!psbt.IsAllFinalized() || psbt.Inputs.Any(i => i.WitnessUtxo is null))
-			{
-				throw new InvalidOperationException("The psbt should be finalized with witness information");
-			}
-
-			var coinsPerTypes = psbt.Inputs.Select(i =>
-			{
-				return ((PSBTCoin)i, i.GetInputScriptPubKeyType());
-			}).GroupBy(o => o.Item2, o => o.Item1).ToArray();
-
-			return coinsPerTypes.Length != 1 ? (default) : coinsPerTypes[0].Key;
-		}
-
 		public static ScriptPubKeyType? GetInputScriptPubKeyType(this PSBTInput i)
 		{
 			if (i.WitnessUtxo.ScriptPubKey.IsScriptType(ScriptType.P2WPKH))
@@ -397,10 +382,13 @@ namespace NBitcoin
 				return ScriptPubKeyType.Segwit;
 			}
 
-			return i.WitnessUtxo.ScriptPubKey.IsScriptType(ScriptType.P2SH) &&
-				i.FinalScriptWitness.ToScript().IsScriptType(ScriptType.P2WPKH)
-				? (ScriptPubKeyType?)ScriptPubKeyType.SegwitP2SH
-				: null as ScriptPubKeyType?;
+			if (i.WitnessUtxo.ScriptPubKey.IsScriptType(ScriptType.P2SH) && 
+				i.FinalScriptWitness.ToScript().IsScriptType(ScriptType.P2WPKH))
+			{
+				return ScriptPubKeyType.SegwitP2SH;
+			}
+
+			return null;
 		}
 	}
 }
