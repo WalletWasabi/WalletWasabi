@@ -18,7 +18,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public override string DoButtonText => "Build Transaction";
 		public override string DoingButtonText => "Building Transaction...";
 
-		// Must be here, it binded at SendControlView.xaml.
+		// Must be here, it bound at SendControlView.xaml.
 		public string PayjoinEndPoint => null;
 
 		protected override async Task BuildTransaction(string password, PaymentIntent payments, FeeStrategy feeStrategy, bool allowUnconfirmed = false, IEnumerable<OutPoint> allowedInputs = null)

@@ -241,7 +241,7 @@ namespace WalletWasabi.Wallets
 				},
 				allowedInputs,
 				SelectLockTimeForTransaction,
-				payjoinClient ?? new NullPayjoinClient());
+				payjoinClient);
 		}
 
 		public void RenameLabel(SmartCoin coin, SmartLabel newLabel)

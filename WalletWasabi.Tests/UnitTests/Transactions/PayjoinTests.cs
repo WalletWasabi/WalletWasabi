@@ -343,23 +343,23 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			if (transformPsbt is { })
 			{
 				return new Func<HttpMethod, string, string, Task<HttpResponseMessage>>((method, path, requestBody) =>
-			   {
-				   var psbt = PSBT.Parse(requestBody, Network.Main);
-				   var newPsbt = transformPsbt(psbt);
-				   var message = new HttpResponseMessage(statusCode);
-				   message.Content = new StringContent(newPsbt.ToHex(), Encoding.UTF8, "text/plain");
-				   return Task.FromResult(message);
-			   });
+				{
+					var psbt = PSBT.Parse(requestBody, Network.Main);
+					var newPsbt = transformPsbt(psbt);
+					var message = new HttpResponseMessage(statusCode);
+					message.Content = new StringContent(newPsbt.ToHex(), Encoding.UTF8, "text/plain");
+					return Task.FromResult(message);
+				});
 			}
 			else
 			{
 				return new Func<HttpMethod, string, string, Task<HttpResponseMessage>>((method, path, requestBody) =>
-			   {
-				   var message = new HttpResponseMessage(statusCode);
-				   message.ReasonPhrase = string.Empty;
-				   message.Content = new StringContent(string.Empty);
-				   return Task.FromResult(message);
-			   });
+				{
+					var message = new HttpResponseMessage(statusCode);
+					message.ReasonPhrase = string.Empty;
+					message.Content = new StringContent(string.Empty);
+					return Task.FromResult(message);
+				});
 			}
 		}
 
