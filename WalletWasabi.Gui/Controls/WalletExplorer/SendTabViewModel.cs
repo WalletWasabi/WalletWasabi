@@ -79,13 +79,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private IPayjoinClient GetPayjoinClient()
 		{
-			if (PayjoinEndPoint is { })
+			if (!string.IsNullOrWhiteSpace(PayjoinEndPoint) && Uri.IsWellFormedUriString(PayjoinEndPoint, UriKind.Absolute))
 			{
 				var payjoinEndPointUri = new Uri(PayjoinEndPoint);
 				return new PayjoinClient(payjoinEndPointUri, Global.TorManager.TorSocks5EndPoint);
 			}
 
-			return new NullPayjoinClient();
+			return null;
 		}
 
 		public ErrorDescriptors ValidatePayjoinEndPoint()
