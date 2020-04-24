@@ -19,7 +19,7 @@ namespace WalletWasabi.Gui.Converters
 
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			var descriptors = new ErrorDescriptors();
+			var descriptors = ErrorDescriptors.Create();
 
 			if (value is IEnumerable<object> rawObj)
 			{
