@@ -6,9 +6,7 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.ViewModels.Validation
 {
-	public delegate void AddErrorDelegate(ErrorSeverity severity, string error);
-
-	public delegate void ValidateMethod(AddErrorDelegate addError);
+	public delegate void ValidateMethod(IErrorList errors);	
 
 	public static class Validator
 	{

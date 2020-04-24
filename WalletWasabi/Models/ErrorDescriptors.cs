@@ -2,19 +2,29 @@ using System.Collections.Generic;
 
 namespace WalletWasabi.Models
 {
-	public class ErrorDescriptors : List<ErrorDescriptor>
+	public interface IErrorList
 	{
-		public static ErrorDescriptors Empty = new ErrorDescriptors();
+		void Add(ErrorSeverity severity, string error);
+	}
 
-		public ErrorDescriptors() : base()
+	public class ErrorDescriptors : List<ErrorDescriptor>, IErrorList
+	{
+		public static ErrorDescriptors Create ()
 		{
+			return new ErrorDescriptors();
 		}
 
-		public ErrorDescriptors(params ErrorDescriptor[] errors)
+		public static ErrorDescriptors Empty = Create();
+
+		private ErrorDescriptors() : base()
 		{
-			AddRange(errors);
 		}
 
 		public bool HasErrors => Count > 0;
+
+		void IErrorList.Add(ErrorSeverity severity, string error)
+		{
+			Add(new ErrorDescriptor(severity, error));
+		}
 	}
 }

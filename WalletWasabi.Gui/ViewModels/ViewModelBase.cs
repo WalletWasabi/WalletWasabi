@@ -4,14 +4,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Reflection;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.ViewModels
 {
 	public class ViewModelBase : ReactiveObject, INotifyDataErrorInfo
-	{		
+	{
 		private Dictionary<string, ErrorDescriptors> _errorsByPropertyName;
 		private Dictionary<string, ValidateMethod> _validationMethods;
 
@@ -21,7 +20,7 @@ namespace WalletWasabi.Gui.ViewModels
 			_validationMethods = new Dictionary<string, ValidateMethod>();
 
 			PropertyChanged += ViewModelBase_PropertyChanged;
-		}		
+		}
 
 		protected void RegisterValidationMethod(string propertyName, ValidateMethod validateMethod)
 		{
@@ -31,20 +30,26 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 
 			_validationMethods[propertyName] = validateMethod;
+			_errorsByPropertyName[propertyName] = ErrorDescriptors.Create();
 		}
 
 		private void ViewModelBase_PropertyChanged(object sender, PropertyChangedEventArgs e)
 		{
 			if (string.IsNullOrWhiteSpace(e.PropertyName))
 			{
-				foreach (var propertyName in _validationMethods.Keys)
-				{
-					ValidateProperty(propertyName);
-				}
+				Validate();
 			}
 			else
 			{
 				ValidateProperty(e.PropertyName);
+			}
+		}
+
+		protected void Validate()
+		{
+			foreach (var propertyName in _validationMethods.Keys)
+			{
+				ValidateProperty(propertyName);
 			}
 		}
 
@@ -54,16 +59,17 @@ namespace WalletWasabi.Gui.ViewModels
 			{
 				ClearErrors(propertyName);
 
-				_validationMethods[propertyName]((severity, error) =>
-				{
-					AddError(propertyName, severity, error);
-				});
+				_validationMethods[propertyName](_errorsByPropertyName[propertyName]);
+
+				OnErrorsChanged(propertyName);
+
+				this.RaisePropertyChanged(nameof(HasErrors));
 			}
 		}
 
 		public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
 
-		public bool HasErrors => _errorsByPropertyName.Where(x => x.Value.HasErrors).Any();		
+		public bool HasErrors => _errorsByPropertyName.Where(x => x.Value.HasErrors).Any();
 
 		public IEnumerable GetErrors(string propertyName)
 		{
@@ -72,29 +78,15 @@ namespace WalletWasabi.Gui.ViewModels
 				: ErrorDescriptors.Empty;
 		}
 
-		private void AddError(string propertyName, ErrorSeverity severity, string error)
-		{
-			if (!_errorsByPropertyName.ContainsKey(propertyName))
-			{
-				_errorsByPropertyName[propertyName] = new ErrorDescriptors();
-			}
-
-			_errorsByPropertyName[propertyName].Add(new ErrorDescriptor(severity, error));
-
-			OnErrorsChanged(propertyName);
-
-			//this.RaisePropertyChanged(nameof(HasErrors));
-		}
-
 		private void ClearErrors(string propertyName)
 		{
 			if (_errorsByPropertyName.ContainsKey(propertyName))
 			{
-				_errorsByPropertyName.Remove(propertyName);
+				_errorsByPropertyName[propertyName].Clear();
 
 				OnErrorsChanged(propertyName);
 
-				//this.RaisePropertyChanged(nameof(HasErrors));
+				this.RaisePropertyChanged(nameof(HasErrors));
 			}
 		}
 
