@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Models;
 
@@ -19,6 +20,8 @@ namespace WalletWasabi.Gui.ViewModels
 			_errorsByPropertyName = new Dictionary<string, ErrorDescriptors>();
 			_validationMethods = new Dictionary<string, ValidateMethod>();
 
+			RegisterValidationMethods();
+
 			PropertyChanged += ViewModelBase_PropertyChanged;
 		}
 
@@ -26,7 +29,48 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public bool HasErrors => _errorsByPropertyName.Where(x => x.Value.HasErrors).Any();
 
-		protected void RegisterValidationMethod(string propertyName, ValidateMethod validateMethod)
+		private void RegisterValidationMethods()
+		{
+			var type = GetType();
+			var methods = GetValidateMethods(type);
+
+			var validateMethods = methods.Where(x => x.Name.StartsWith("Validate") && x.Name.Length > 8).ToList();
+
+			foreach (var validateMethod in validateMethods)
+			{
+				var propertyName = validateMethod.Name.Remove(0, 8);
+				var property = type.GetProperty(propertyName);
+
+				if (property != null)
+				{
+					var del = validateMethod.CreateDelegate(typeof(ValidateMethod), this) as ValidateMethod;
+
+					if (del != null)
+					{
+						RegisterValidationMethod(propertyName, del);
+					}
+				}
+			}
+		}
+
+		private static IEnumerable<MethodInfo> GetValidateMethods(Type type)
+		{
+			if (type.BaseType != null)
+			{
+				foreach (var method in GetValidateMethods(type.BaseType))
+				{
+					yield return method;
+				}
+			}
+
+			foreach (var method in type.GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
+				.Where(x => x.Name.StartsWith("Validate")))
+			{
+				yield return method;
+			}
+		}
+
+		private void RegisterValidationMethod(string propertyName, ValidateMethod validateMethod)
 		{
 			if (string.IsNullOrWhiteSpace(propertyName))
 			{
@@ -37,11 +81,11 @@ namespace WalletWasabi.Gui.ViewModels
 			_errorsByPropertyName[propertyName] = ErrorDescriptors.Create();
 		}
 
-		protected void Validate()
+		protected void DoValidation()
 		{
 			foreach (var propertyName in _validationMethods.Keys)
 			{
-				ValidateProperty(propertyName);
+				DoValidateProperty(propertyName);
 			}
 		}
 
@@ -49,21 +93,25 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			if (string.IsNullOrWhiteSpace(e.PropertyName))
 			{
-				Validate();
+				DoValidation();
 			}
 			else
 			{
-				ValidateProperty(e.PropertyName);
+				DoValidateProperty(e.PropertyName);
 			}
 		}
 
-		private void ValidateProperty(string propertyName)
+		private void DoValidateProperty(string propertyName)
 		{
 			if (_validationMethods.ContainsKey(propertyName))
 			{
 				ClearErrors(propertyName);
 
-				_validationMethods[propertyName](_errorsByPropertyName[propertyName]);
+				var del = _validationMethods[propertyName];
+
+				var method = del as ValidateMethod;
+
+				method(_errorsByPropertyName[propertyName]);
 
 				OnErrorsChanged(propertyName);
 
