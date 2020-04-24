@@ -67,10 +67,10 @@
               </StackPanel.ContextMenu>
               <StackPanel.DataTemplates>
                 <DataTemplate DataType="ViewModels:ClosedHardwareWalletViewModel">
-                  <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_ClosedHardwareWallet}" />
+                  <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_HardwareWalletClosed}" />
                 </DataTemplate>
                 <DataTemplate DataType="ViewModels:ClosedWatchOnlyWalletViewModel">
-                  <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_WatchOnlyClosedWallet}" />
+                  <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_WatchOnlyWalletClosed}" />
                 </DataTemplate>
                 <DataTemplate DataType="ViewModels:ClosedWalletViewModel">
                   <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_ClosedWallet}" />
