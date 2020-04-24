@@ -216,7 +216,7 @@
         </DrawingGroup.Children>
       </DrawingGroup>
 
-      <DrawingGroup x:Key="WalletExplorer_OpenHardwareWallet">
+      <DrawingGroup x:Key="WalletExplorer_HardwareWalletOpen">
         <DrawingGroup.Children>
           <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
           <GeometryDrawing Brush="#FF29292C" Geometry="m 0 0 v 1 2.9960938 2.0019531 1 V 9 12 H 9 V 9 6.9980469 3.9960938 0 Z M 2 2 H 7 V 3.9960938 6.9980469 9 10 H 2 v -1 -2.0019531 -1 -2.0019531 z"/>
@@ -227,7 +227,7 @@
         </DrawingGroup.Children>
       </DrawingGroup>
 
-      <DrawingGroup x:Key="WalletExplorer_ClosedHardwareWallet">
+      <DrawingGroup x:Key="WalletExplorer_HardwareWalletClosed">
         <DrawingGroup.Children>
           <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
           <GeometryDrawing Brush="#FF29292C" Geometry="m 0 0 v 1 2.9960938 2.0019531 1 V 9 12 H 9 V 9 6.9980469 3.9960938 0 Z M 2 2 H 7 V 3.9960938 6.9980469 9 10 H 2 v -1 -2.0019531 -1 -2.0019531 z"/>
@@ -238,7 +238,7 @@
         </DrawingGroup.Children>
       </DrawingGroup>
 
-      <DrawingGroup x:Key="WalletExplorer_WatchOnlyClosedWallet">
+      <DrawingGroup x:Key="WalletExplorer_WatchOnlyWalletClosed">
         <DrawingGroup.Children>
           <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
           <GeometryDrawing Brush="#FF252526" Geometry="F1M16,7L16,9.5 15,11C14.86,12.676 13.341,14 11.5,14 9.659,14 8.14,12.676 8,11L7.973,11C7.833,12.676 6.341,14 4.5,14 2.659,14 1.14,12.676 1,11L0,9.5 0,7 1,7 7,1.001 8.999,1 15,7z" />
@@ -247,7 +247,7 @@
         </DrawingGroup.Children>
       </DrawingGroup>
 
-      <DrawingGroup x:Key="WalletExplorer_WatchOnlyOpenWallet">
+      <DrawingGroup x:Key="WalletExplorer_WatchOnlyWalletOpen">
         <DrawingGroup.Children>
           <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
           <GeometryDrawing Brush="#FF252526" Geometry="F1M16,7L16,9.5 15,11C14.86,12.676 13.341,14 11.5,14 9.659,14 8.14,12.676 8,11L7.973,11C7.833,12.676 6.341,14 4.5,14 2.659,14 1.14,12.676 1,11L0,9.5 0,7 1,7 7,1.001 8.999,1 15,7z" />

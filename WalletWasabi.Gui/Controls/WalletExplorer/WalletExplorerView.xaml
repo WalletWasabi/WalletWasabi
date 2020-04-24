@@ -85,10 +85,10 @@
             <StackPanel Classes="TreeViewRoot">
               <StackPanel.DataTemplates>
                 <DataTemplate DataType="ViewModels:HardwareWalletViewModel">
-                  <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_OpenHardwareWallet}" />
+                  <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_HardwareWalletOpen}" />
                 </DataTemplate>
                 <DataTemplate DataType="ViewModels:WatchOnlyWalletViewModel">
-                  <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_WatchOnlyOpenWallet}" />
+                  <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_WatchOnlyWalletOpen}" />
                 </DataTemplate>
                 <DataTemplate DataType="ViewModels:WalletViewModel">
                   <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_OpenedWallet}" />
