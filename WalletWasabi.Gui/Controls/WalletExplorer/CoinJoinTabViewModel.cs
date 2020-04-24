@@ -54,8 +54,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global = Locator.Current.GetService<Global>();
 			Wallet = wallet;
 
-			RegisterValidationMethod(nameof(Password), ValidatePassword);
-
 			Password = "";
 			TimeLeftTillRoundTimeout = TimeSpan.Zero;
 
@@ -136,7 +134,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private Wallet Wallet { get; }
 
 		Wallet IWalletViewModel.Wallet => Wallet;
-		
+
 		public string Password
 		{
 			get => _password;

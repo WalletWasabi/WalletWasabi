@@ -81,12 +81,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global = Locator.Current.GetService<Global>();
 			Wallet = wallet;
 
-			RegisterValidationMethod(nameof(Address), ValidateActiveAddress);
-			RegisterValidationMethod(nameof(UserFeeText), ValidateUserFeeText);
-			RegisterValidationMethod(nameof(Password), ValidatePassword);
-			RegisterValidationMethod(nameof(CustomChangeAddress), ValidateCustomChangeAddress);
-
-
 			LabelSuggestion = new SuggestLabelViewModel();
 			BuildTransactionButtonText = DoButtonText;
 
@@ -474,7 +468,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _amountText;
 			set => this.RaiseAndSetIfChanged(ref _amountText, value);
 		}
-		
+
 		public string UserFeeText
 		{
 			get => _userFeeText;
@@ -544,19 +538,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public bool IsWatchOnly => Wallet.KeyManager.IsWatchOnly;
-		
+
 		public string Password
 		{
 			get => _password;
 			set => this.RaiseAndSetIfChanged(ref _password, value);
 		}
-		
+
 		public string Address
 		{
 			get => _address;
 			set => this.RaiseAndSetIfChanged(ref _address, value?.Trim());
 		}
-		
+
 		public string CustomChangeAddress
 		{
 			get => _customChangeAddress;
@@ -883,7 +877,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void ValidatePassword(IErrorList errors) => PasswordHelper.ValidatePassword(errors, Password);
 
-		private void ValidateActiveAddress(IErrorList errors)
+		private void ValidateAddress(IErrorList errors)
 		{
 			if (string.IsNullOrWhiteSpace(Address))
 			{

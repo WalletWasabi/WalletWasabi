@@ -23,8 +23,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 			Global = Locator.Current.GetService<Global>();
 			Owner = owner;
 
-			RegisterValidationMethod(nameof(Password), ValidatePassword);
-
 			NextCommand = ReactiveCommand.Create(DoNextCommand, this.WhenAnyValue(x => x.HasErrors).Select(x => !x));
 
 			NextCommand.ThrownExceptions
