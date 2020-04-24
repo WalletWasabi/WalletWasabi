@@ -1,5 +1,3 @@
-using AvalonStudio.Extensibility;
-using AvalonStudio.Shell;
 using ReactiveUI;
 using Splat;
 using System;
@@ -9,7 +7,6 @@ using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -28,7 +25,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 
 			RegisterValidationMethod(nameof(Password), ValidatePassword);
 
-			NextCommand = ReactiveCommand.Create(DoNextCommand, this.WhenAnyValue(x=>x.HasErrors).Select(x=> !x));
+			NextCommand = ReactiveCommand.Create(DoNextCommand, this.WhenAnyValue(x => x.HasErrors).Select(x => !x));
 
 			NextCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -38,7 +35,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 		public WalletManagerViewModel Owner { get; }
 
 		private Global Global { get; }
-		
+
 		public string Password
 		{
 			get => _password;

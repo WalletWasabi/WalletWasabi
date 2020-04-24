@@ -22,6 +22,10 @@ namespace WalletWasabi.Gui.ViewModels
 			PropertyChanged += ViewModelBase_PropertyChanged;
 		}
 
+		public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
+
+		public bool HasErrors => _errorsByPropertyName.Where(x => x.Value.HasErrors).Any();
+
 		protected void RegisterValidationMethod(string propertyName, ValidateMethod validateMethod)
 		{
 			if (string.IsNullOrWhiteSpace(propertyName))
@@ -33,6 +37,14 @@ namespace WalletWasabi.Gui.ViewModels
 			_errorsByPropertyName[propertyName] = ErrorDescriptors.Create();
 		}
 
+		protected void Validate()
+		{
+			foreach (var propertyName in _validationMethods.Keys)
+			{
+				ValidateProperty(propertyName);
+			}
+		}
+
 		private void ViewModelBase_PropertyChanged(object sender, PropertyChangedEventArgs e)
 		{
 			if (string.IsNullOrWhiteSpace(e.PropertyName))
@@ -42,14 +54,6 @@ namespace WalletWasabi.Gui.ViewModels
 			else
 			{
 				ValidateProperty(e.PropertyName);
-			}
-		}
-
-		protected void Validate()
-		{
-			foreach (var propertyName in _validationMethods.Keys)
-			{
-				ValidateProperty(propertyName);
 			}
 		}
 
@@ -66,10 +70,6 @@ namespace WalletWasabi.Gui.ViewModels
 				this.RaisePropertyChanged(nameof(HasErrors));
 			}
 		}
-
-		public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
-
-		public bool HasErrors => _errorsByPropertyName.Where(x => x.Value.HasErrors).Any();
 
 		public IEnumerable GetErrors(string propertyName)
 		{
