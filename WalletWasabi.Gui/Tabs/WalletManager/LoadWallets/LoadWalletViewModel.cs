@@ -40,6 +40,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 		{
 			Global = Locator.Current.GetService<Global>();
 
+			RegisterValidationMethod(nameof(Password), ValidatePassword);
+
 			Owner = owner;
 			Password = "";
 			LoadWalletType = loadWalletType;
@@ -107,8 +109,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 		public bool IsDesktopWallet => LoadWalletType == LoadWalletType.Desktop;
 
 		public ReadOnlyObservableCollection<WalletViewModelBase> Wallets => _wallets;
-
-		[ValidateMethod(nameof(ValidatePassword))]
+		
 		public string Password
 		{
 			get => _password;

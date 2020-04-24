@@ -82,6 +82,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Wallet = wallet;
 
 			RegisterValidationMethod(nameof(Address), ValidateActiveAddress);
+			RegisterValidationMethod(nameof(UserFeeText), ValidateUserFeeText);
+			RegisterValidationMethod(nameof(Password), ValidatePassword);
+			RegisterValidationMethod(nameof(CustomChangeAddress), ValidateCustomChangeAddress);
+
 
 			LabelSuggestion = new SuggestLabelViewModel();
 			BuildTransactionButtonText = DoButtonText;
@@ -470,8 +474,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _amountText;
 			set => this.RaiseAndSetIfChanged(ref _amountText, value);
 		}
-
-		[ValidateMethod(nameof(ValidateUserFeeText))]
+		
 		public string UserFeeText
 		{
 			get => _userFeeText;
@@ -541,22 +544,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public bool IsWatchOnly => Wallet.KeyManager.IsWatchOnly;
-
-		[ValidateMethod(nameof(ValidatePassword))]
+		
 		public string Password
 		{
 			get => _password;
 			set => this.RaiseAndSetIfChanged(ref _password, value);
 		}
-
-		[ValidateMethod(nameof(ValidateActiveAddress))]
+		
 		public string Address
 		{
 			get => _address;
 			set => this.RaiseAndSetIfChanged(ref _address, value?.Trim());
 		}
-
-		[ValidateMethod(nameof(ValidateCustomChangeAddress))]
+		
 		public string CustomChangeAddress
 		{
 			get => _customChangeAddress;
@@ -873,7 +873,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				&& userFee > 0;
 		}
 
-		public void ValidateUserFeeText(IErrorList errors)
+		private void ValidateUserFeeText(IErrorList errors)
 		{
 			if (!TryParseUserFee(out _))
 			{
@@ -881,9 +881,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		public void ValidatePassword(IErrorList errors) => PasswordHelper.ValidatePassword(errors, Password);
+		private void ValidatePassword(IErrorList errors) => PasswordHelper.ValidatePassword(errors, Password);
 
-		public void ValidateActiveAddress(IErrorList errors)
+		private void ValidateActiveAddress(IErrorList errors)
 		{
 			if (string.IsNullOrWhiteSpace(Address))
 			{
@@ -911,7 +911,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			errors.Add(ErrorSeverity.Error, "Invalid address.");
 		}
 
-		public void ValidateCustomChangeAddress(IErrorList errors)
+		private void ValidateCustomChangeAddress(IErrorList errors)
 		{
 			if (string.IsNullOrWhiteSpace(CustomChangeAddress))
 			{

@@ -32,6 +32,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global = Locator.Current.GetService<Global>();
 			Wallet = wallet;
 
+			RegisterValidationMethod(nameof(Password), ValidatePassword);
+
 			ClearSensitiveData(true);
 
 			ToggleSensitiveKeysCommand = ReactiveCommand.Create(() =>
@@ -87,8 +89,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _showSensitiveKeys;
 			set => this.RaiseAndSetIfChanged(ref _showSensitiveKeys, value);
 		}
-
-		[ValidateMethod(nameof(ValidatePassword))]
+		
 		public string Password
 		{
 			get => _password;

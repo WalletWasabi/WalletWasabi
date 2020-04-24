@@ -45,6 +45,13 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			Global = Locator.Current.GetService<Global>();
 
+			RegisterValidationMethod(nameof(TorSocks5EndPoint), ValidateTorSocks5EndPoint);
+			RegisterValidationMethod(nameof(BitcoinP2pEndPoint), ValidateBitcoinP2pEndPoint);
+			RegisterValidationMethod(nameof(SomePrivacyLevel), ValidateSomePrivacyLevel);
+			RegisterValidationMethod(nameof(FinePrivacyLevel), ValidateFinePrivacyLevel);
+			RegisterValidationMethod(nameof(StrongPrivacyLevel), ValidateStrongPrivacyLevel);
+			RegisterValidationMethod(nameof(DustThreshold), ValidateDustThreshold);
+
 			Autocopy = Global.UiConfig.Autocopy;
 			CustomFee = Global.UiConfig.IsCustomFee;
 			CustomChangeAddress = Global.UiConfig.IsCustomChangeAddress;
@@ -179,16 +186,13 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			get => _network;
 			set => this.RaiseAndSetIfChanged(ref _network, value);
-		}
-
-		[ValidateMethod(nameof(ValidateTorSocks5EndPoint))]
+		}		
 		public string TorSocks5EndPoint
 		{
 			get => _torSocks5EndPoint;
 			set => this.RaiseAndSetIfChanged(ref _torSocks5EndPoint, value);
 		}
-
-		[ValidateMethod(nameof(ValidateBitcoinP2pEndPoint))]
+		
 		public string BitcoinP2pEndPoint
 		{
 			get => _bitcoinP2pEndPoint;
@@ -242,29 +246,25 @@ namespace WalletWasabi.Gui.Tabs
 			get => _useTor;
 			set => this.RaiseAndSetIfChanged(ref _useTor, value);
 		}
-
-		[ValidateMethod(nameof(ValidateSomePrivacyLevel))]
+		
 		public string SomePrivacyLevel
 		{
 			get => _somePrivacyLevel;
 			set => this.RaiseAndSetIfChanged(ref _somePrivacyLevel, value);
 		}
-
-		[ValidateMethod(nameof(ValidateFinePrivacyLevel))]
+		
 		public string FinePrivacyLevel
 		{
 			get => _finePrivacyLevel;
 			set => this.RaiseAndSetIfChanged(ref _finePrivacyLevel, value);
 		}
-
-		[ValidateMethod(nameof(ValidateStrongPrivacyLevel))]
+		
 		public string StrongPrivacyLevel
 		{
 			get => _strongPrivacyLevel;
 			set => this.RaiseAndSetIfChanged(ref _strongPrivacyLevel, value);
 		}
-
-		[ValidateMethod(nameof(ValidateDustThreshold))]
+		
 		public string DustThreshold
 		{
 			get => _dustThreshold;

@@ -45,6 +45,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 				MnemonicWords = Guard.Correct(MnemonicWords);
 				Password = Guard.Correct(Password); // Do not let whitespaces to the beginning and to the end.
 
+				RegisterValidationMethod(nameof(Password), ValidatePassword);
+
 				string walletFilePath = WalletManager.WalletDirectories.GetWalletFilePaths(WalletName).walletFilePath;
 
 				if (string.IsNullOrWhiteSpace(WalletName))
@@ -110,8 +112,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 		private Wallets.WalletManager WalletManager { get; }
 
 		public void ValidatePassword(IErrorList errors) => PasswordHelper.ValidatePassword(errors, Password);
-
-		[ValidateMethod(nameof(ValidatePassword))]
+		
 		public string Password
 		{
 			get => _password;

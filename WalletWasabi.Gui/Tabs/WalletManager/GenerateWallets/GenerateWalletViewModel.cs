@@ -24,7 +24,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 		public GenerateWalletViewModel(WalletManagerViewModel owner) : base("Generate Wallet")
 		{
 			Global = Locator.Current.GetService<Global>();
-			Owner = owner;			
+			Owner = owner;
+
+			RegisterValidationMethod(nameof(Password), ValidatePassword);
 
 			NextCommand = ReactiveCommand.Create(DoNextCommand, this.WhenAnyValue(x=>x.HasErrors).Select(x=> !x));
 
@@ -36,8 +38,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 		public WalletManagerViewModel Owner { get; }
 
 		private Global Global { get; }
-
-		[ValidateMethod(nameof(ValidatePassword))]
+		
 		public string Password
 		{
 			get => _password;
