@@ -469,6 +469,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			base.OnDeselected();
 		}
 
-		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
+		public void ValidatePassword(IErrorList errors) => PasswordHelper.ValidatePassword(errors, Password);
 	}
 }

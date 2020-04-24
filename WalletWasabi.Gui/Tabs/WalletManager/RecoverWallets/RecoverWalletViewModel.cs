@@ -109,7 +109,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 		private Global Global { get; }
 		private Wallets.WalletManager WalletManager { get; }
 
-		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
+		public void ValidatePassword(IErrorList errors) => PasswordHelper.ValidatePassword(errors, Password);
 
 		[ValidateMethod(nameof(ValidatePassword))]
 		public string Password

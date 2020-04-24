@@ -379,7 +379,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					IsBusy = false;
 				}
 			},
-			this.WhenAny(x => x.IsMax, x => x.AmountText, x => x.Address, x => x.IsBusy, x=>x.HasErrors,
+			this.WhenAny(x => x.IsMax, x => x.AmountText, x => x.Address, x => x.IsBusy, x => x.HasErrors,
 				(isMax, amount, address, busy, hasErrors) => (isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy && !HasErrors)
 				.ObserveOn(RxApp.MainThreadScheduler));
 
@@ -873,54 +873,67 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				&& userFee > 0;
 		}
 
-		public ErrorDescriptors ValidateUserFeeText()
+		public void ValidateUserFeeText(IErrorList errors)
 		{
-			return TryParseUserFee(out _)
-				? ErrorDescriptors.Empty
-				: new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid fee."));
-		}
-
-		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
-
-		public void ValidateActiveAddress(AddErrorDelegate addError)
-		{
-			if (Address == CustomChangeAddress)
+			if (!TryParseUserFee(out _))
 			{
-				addError(ErrorSeverity.Error, "The active address and the change address cannot be the same.");
-				return;
-			}
-
-			if (!AddressStringParser.TryParseBitcoinAddress(Address, Global.Network, out _) ||
-				!AddressStringParser.TryParseBitcoinUrl(Address, Global.Network, out _))
-			{
-				addError(ErrorSeverity.Error, "Invalid address.");
-				return;
+				errors.Add(ErrorSeverity.Error, "Invalid fee.");
 			}
 		}
 
-		public ErrorDescriptors ValidateCustomChangeAddress()
+		public void ValidatePassword(IErrorList errors) => PasswordHelper.ValidatePassword(errors, Password);
+
+		public void ValidateActiveAddress(IErrorList errors)
+		{
+			if (string.IsNullOrWhiteSpace(Address))
+			{
+				return;
+			}
+
+			if (!string.IsNullOrWhiteSpace(CustomChangeAddress))
+			{
+				if (Address == CustomChangeAddress)
+				{
+					errors.Add(ErrorSeverity.Error, "The active address and the change address cannot be the same.");
+				}
+			}
+
+			if (AddressStringParser.TryParseBitcoinAddress(Address, Global.Network, out _))
+			{
+				return;
+			}
+
+			if (AddressStringParser.TryParseBitcoinUrl(Address, Global.Network, out _))
+			{
+				return;
+			}
+
+			errors.Add(ErrorSeverity.Error, "Invalid address.");
+		}
+
+		public void ValidateCustomChangeAddress(IErrorList errors)
 		{
 			if (string.IsNullOrWhiteSpace(CustomChangeAddress))
 			{
-				return ErrorDescriptors.Empty;
+				return;
 			}
 
 			if (IsMax)
 			{
-				return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Spending whole coins does not generate change."));
+				errors.Add(ErrorSeverity.Error, "Spending whole coins does not generate change.");
 			}
 
 			if (Address == CustomChangeAddress)
 			{
-				return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "The active address and the change address cannot be the same."));
+				errors.Add(ErrorSeverity.Error, "The active address and the change address cannot be the same.");
 			}
 
 			if (AddressStringParser.TryParseBitcoinAddress(CustomChangeAddress, Global.Network, out _))
 			{
-				return ErrorDescriptors.Empty;
+				return;
 			}
 
-			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid change address."));
+			errors.Add(ErrorSeverity.Error, "Invalid change address.");
 		}
 
 		public override void OnOpen(CompositeDisposable disposables)

@@ -24,11 +24,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 		public GenerateWalletViewModel(WalletManagerViewModel owner) : base("Generate Wallet")
 		{
 			Global = Locator.Current.GetService<Global>();
-			Owner = owner;
+			Owner = owner;			
 
-			IObservable<bool> canGenerate = this.WhenAnyValue(x => x.Password).Select(pw => !ValidatePassword().HasErrors);
-
-			NextCommand = ReactiveCommand.Create(DoNextCommand, canGenerate);
+			NextCommand = ReactiveCommand.Create(DoNextCommand, this.WhenAnyValue(x=>x.HasErrors).Select(x=> !x));
 
 			NextCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -70,23 +68,19 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 			}
 		}
 
-		public ErrorDescriptors ValidatePassword()
+		public void ValidatePassword(IErrorList errors)
 		{
 			string password = Password;
 
-			var errors = new ErrorDescriptors();
-
 			if (PasswordHelper.IsTrimable(password, out _))
 			{
-				errors.Add(new ErrorDescriptor(ErrorSeverity.Error, "Leading and trailing white spaces are not allowed!"));
+				errors.Add(ErrorSeverity.Error, "Leading and trailing white spaces are not allowed!");
 			}
 
 			if (PasswordHelper.IsTooLong(password, out _))
 			{
-				errors.Add(new ErrorDescriptor(ErrorSeverity.Error, PasswordHelper.PasswordTooLongMessage));
+				errors.Add(ErrorSeverity.Error, PasswordHelper.PasswordTooLongMessage);
 			}
-
-			return errors;
 		}
 
 		public override void OnCategorySelected()

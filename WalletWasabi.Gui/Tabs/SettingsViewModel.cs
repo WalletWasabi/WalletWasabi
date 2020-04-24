@@ -330,14 +330,9 @@ namespace WalletWasabi.Gui.Tabs
 				return;
 			}
 
-			var isValid =
-				!ValidatePrivacyLevel(SomePrivacyLevel, whiteSpaceOk: false).HasErrors
-				&& !ValidatePrivacyLevel(FinePrivacyLevel, whiteSpaceOk: false).HasErrors
-				&& !ValidatePrivacyLevel(StrongPrivacyLevel, whiteSpaceOk: false).HasErrors
-				&& !ValidateDustThreshold(DustThreshold, whiteSpaceOk: false).HasErrors
-				&& !ValidateEndPoint(TorSocks5EndPoint, Constants.DefaultTorSocksPort, whiteSpaceOk: false).HasErrors
-				&& !ValidateEndPoint(BitcoinP2pEndPoint, network.DefaultPort, whiteSpaceOk: false).HasErrors;
-
+			Validate();
+			var isValid = !HasErrors;
+				
 			if (!isValid)
 			{
 				return;
@@ -387,72 +382,60 @@ namespace WalletWasabi.Gui.Tabs
 
 		#region Validation
 
-		public ErrorDescriptors ValidateSomePrivacyLevel()
-			=> ValidatePrivacyLevel(SomePrivacyLevel, whiteSpaceOk: true);
+		public void ValidateSomePrivacyLevel(IErrorList errors)
+			=> ValidatePrivacyLevel(errors, SomePrivacyLevel, whiteSpaceOk: true);
 
-		public ErrorDescriptors ValidateFinePrivacyLevel()
-			=> ValidatePrivacyLevel(FinePrivacyLevel, whiteSpaceOk: true);
+		public void ValidateFinePrivacyLevel(IErrorList errors)
+			=> ValidatePrivacyLevel(errors, FinePrivacyLevel, whiteSpaceOk: true);
 
-		public ErrorDescriptors ValidateStrongPrivacyLevel()
-			=> ValidatePrivacyLevel(StrongPrivacyLevel, whiteSpaceOk: true);
+		public void ValidateStrongPrivacyLevel(IErrorList errors)
+			=> ValidatePrivacyLevel(errors, StrongPrivacyLevel, whiteSpaceOk: true);
 
-		public ErrorDescriptors ValidateDustThreshold()
-			=> ValidateDustThreshold(DustThreshold, whiteSpaceOk: true);
+		public void ValidateDustThreshold(IErrorList errors)
+			=> ValidateDustThreshold(errors, DustThreshold, whiteSpaceOk: true);
 
-		public ErrorDescriptors ValidateTorSocks5EndPoint()
-			=> ValidateEndPoint(TorSocks5EndPoint, Constants.DefaultTorSocksPort, whiteSpaceOk: true);
+		public void ValidateTorSocks5EndPoint(IErrorList errors)
+			=> ValidateEndPoint(errors, TorSocks5EndPoint, Constants.DefaultTorSocksPort, whiteSpaceOk: true);
 
-		public ErrorDescriptors ValidateBitcoinP2pEndPoint()
-			=> ValidateEndPoint(BitcoinP2pEndPoint, Network.DefaultPort, whiteSpaceOk: true);
+		public void ValidateBitcoinP2pEndPoint(IErrorList errors)
+			=> ValidateEndPoint(errors, BitcoinP2pEndPoint, Network.DefaultPort, whiteSpaceOk: true);
 
-		public ErrorDescriptors ValidatePrivacyLevel(string value, bool whiteSpaceOk)
+		public void ValidatePrivacyLevel(IErrorList errors, string value, bool whiteSpaceOk)
 		{
-			if (whiteSpaceOk && string.IsNullOrWhiteSpace(value))
+			if (!whiteSpaceOk || !string.IsNullOrWhiteSpace(value))
 			{
-				return ErrorDescriptors.Empty;
+				if (!uint.TryParse(value, out _))
+				{
+					errors.Add(ErrorSeverity.Error, "Invalid privacy level.");
+				}
 			}
-
-			if (uint.TryParse(value, out _))
-			{
-				return ErrorDescriptors.Empty;
-			}
-
-			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid privacy level."));
 		}
 
-		public ErrorDescriptors ValidateDustThreshold(string dustThreshold, bool whiteSpaceOk)
+		public void ValidateDustThreshold(IErrorList errors, string dustThreshold, bool whiteSpaceOk)
 		{
-			if (whiteSpaceOk && string.IsNullOrWhiteSpace(dustThreshold))
+			if (!whiteSpaceOk || !string.IsNullOrWhiteSpace(dustThreshold))
 			{
-				return ErrorDescriptors.Empty;
-			}
+				if (!string.IsNullOrEmpty(dustThreshold) && dustThreshold.Contains(',', StringComparison.InvariantCultureIgnoreCase))
+				{
+					errors.Add(ErrorSeverity.Error, "Use decimal point instead of comma.");
+				}
 
-			if (!string.IsNullOrEmpty(dustThreshold) && dustThreshold.Contains(',', StringComparison.InvariantCultureIgnoreCase))
-			{
-				return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Use decimal point instead of comma."));
-			}
-
-			if (decimal.TryParse(dustThreshold, out var dust) && dust >= 0)
-			{
-				return ErrorDescriptors.Empty;
-			}
-
-			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid dust threshold."));
+				if (!decimal.TryParse(dustThreshold, out var dust) || dust < 0)
+				{
+					errors.Add(ErrorSeverity.Error, "Invalid dust threshold.");
+				}				
+			}			
 		}
 
-		public ErrorDescriptors ValidateEndPoint(string endPoint, int defaultPort, bool whiteSpaceOk)
+		public void ValidateEndPoint(IErrorList errors, string endPoint, int defaultPort, bool whiteSpaceOk)
 		{
-			if (whiteSpaceOk && string.IsNullOrWhiteSpace(endPoint))
+			if (!whiteSpaceOk || !string.IsNullOrWhiteSpace(endPoint))
 			{
-				return ErrorDescriptors.Empty;
-			}
-
-			if (EndPointParser.TryParse(endPoint, defaultPort, out _))
-			{
-				return ErrorDescriptors.Empty;
-			}
-
-			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid endpoint."));
+				if (!EndPointParser.TryParse(endPoint, defaultPort, out _))
+				{
+					errors.Add(ErrorSeverity.Error, "Invalid endpoint.");
+				}				
+			}			
 		}
 
 		#endregion Validation
