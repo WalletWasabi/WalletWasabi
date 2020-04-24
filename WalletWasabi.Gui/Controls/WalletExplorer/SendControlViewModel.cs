@@ -81,6 +81,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global = Locator.Current.GetService<Global>();
 			Wallet = wallet;
 
+			RegisterValidationMethod(nameof(Address), ValidateActiveAddress);
+
 			LabelSuggestion = new SuggestLabelViewModel();
 			BuildTransactionButtonText = DoButtonText;
 
@@ -377,8 +379,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					IsBusy = false;
 				}
 			},
-			this.WhenAny(x => x.IsMax, x => x.AmountText, x => x.Address, x => x.IsBusy,
-				(isMax, amount, address, busy) => (isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy)
+			this.WhenAny(x => x.IsMax, x => x.AmountText, x => x.Address, x => x.IsBusy, x=>x.HasErrors,
+				(isMax, amount, address, busy, hasErrors) => (isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy && !HasErrors)
 				.ObserveOn(RxApp.MainThreadScheduler));
 
 			UserFeeTextKeyUpCommand = ReactiveCommand.Create((KeyEventArgs key) =>
@@ -880,29 +882,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
 
-		public ErrorDescriptors ValidateActiveAddress()
+		public void ValidateActiveAddress(AddErrorDelegate addError)
 		{
-			if (string.IsNullOrWhiteSpace(Address))
-			{
-				return ErrorDescriptors.Empty;
-			}
-
 			if (Address == CustomChangeAddress)
 			{
-				return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "The active address and the change address cannot be the same."));
+				addError(ErrorSeverity.Error, "The active address and the change address cannot be the same.");
+				return;
 			}
 
-			if (AddressStringParser.TryParseBitcoinAddress(Address, Global.Network, out _))
+			if (!AddressStringParser.TryParseBitcoinAddress(Address, Global.Network, out _) ||
+				!AddressStringParser.TryParseBitcoinUrl(Address, Global.Network, out _))
 			{
-				return ErrorDescriptors.Empty;
+				addError(ErrorSeverity.Error, "Invalid address.");
+				return;
 			}
-
-			if (AddressStringParser.TryParseBitcoinUrl(Address, Global.Network, out _))
-			{
-				return ErrorDescriptors.Empty;
-			}
-
-			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid address."));
 		}
 
 		public ErrorDescriptors ValidateCustomChangeAddress()

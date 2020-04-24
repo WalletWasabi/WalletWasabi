@@ -1,4 +1,3 @@
-using Newtonsoft.Json;
 using ReactiveUI;
 using System;
 using System.Collections;
@@ -11,38 +10,95 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.ViewModels
 {
-	public class ViewModelBase : ReactiveObject, INotifyDataErrorInfo
-	{
+	public class ViewModelBase : ReactiveObject
+	{		
+		private Dictionary<string, ErrorDescriptors> _errorsByPropertyName;
+		private Dictionary<string, ValidateMethod> _validationMethods;
+
 		public ViewModelBase()
 		{
-			var vmc = Validator.PropertiesWithValidation(this).ToList();
-			if (vmc.Count == 0)
+			_errorsByPropertyName = new Dictionary<string, ErrorDescriptors>();
+			_validationMethods = new Dictionary<string, ValidateMethod>();
+
+			PropertyChanged += ViewModelBase_PropertyChanged;
+		}		
+
+		protected void RegisterValidationMethod(string propertyName, ValidateMethod validateMethod)
+		{
+			if (string.IsNullOrWhiteSpace(propertyName))
 			{
-				return;
+				throw new ArgumentException("PropertyName must be valid.", nameof(propertyName));
 			}
 
-			ValidationMethodCache = vmc;
+			_validationMethods[propertyName] = validateMethod;
+		}
+
+		private void ViewModelBase_PropertyChanged(object sender, PropertyChangedEventArgs e)
+		{
+			if (string.IsNullOrWhiteSpace(e.PropertyName))
+			{
+				foreach (var propertyName in _validationMethods.Keys)
+				{
+					ValidateProperty(propertyName);
+				}
+			}
+			else
+			{
+				ValidateProperty(e.PropertyName);
+			}
+		}
+
+		private void ValidateProperty(string propertyName)
+		{
+			if (_validationMethods.ContainsKey(propertyName))
+			{
+				ClearErrors(propertyName);
+
+				_validationMethods[propertyName]((severity, error) =>
+				{
+					AddError(propertyName, severity, error);
+				});
+			}
 		}
 
 		public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
 
-		private List<(string propertyName, MethodInfo mInfo)> ValidationMethodCache { get; }
-
-		public bool HasErrors => Validator.ValidateAllProperties(this, ValidationMethodCache).HasErrors;
+		public bool HasErrors => _errorsByPropertyName.Where(x => x.Value.HasErrors).Any();		
 
 		public IEnumerable GetErrors(string propertyName)
 		{
-			var error = Validator.ValidateProperty(this, propertyName, ValidationMethodCache);
-
-			if (error.HasErrors)
-			{
-				return error;
-			}
-
-			return ErrorDescriptors.Empty;
+			return _errorsByPropertyName.ContainsKey(propertyName) && _errorsByPropertyName[propertyName].HasErrors
+				? _errorsByPropertyName[propertyName]
+				: ErrorDescriptors.Empty;
 		}
 
-		protected void NotifyErrorsChanged(string propertyName)
+		private void AddError(string propertyName, ErrorSeverity severity, string error)
+		{
+			if (!_errorsByPropertyName.ContainsKey(propertyName))
+			{
+				_errorsByPropertyName[propertyName] = new ErrorDescriptors();
+			}
+
+			_errorsByPropertyName[propertyName].Add(new ErrorDescriptor(severity, error));
+
+			OnErrorsChanged(propertyName);
+
+			//this.RaisePropertyChanged(nameof(HasErrors));
+		}
+
+		private void ClearErrors(string propertyName)
+		{
+			if (_errorsByPropertyName.ContainsKey(propertyName))
+			{
+				_errorsByPropertyName.Remove(propertyName);
+
+				OnErrorsChanged(propertyName);
+
+				//this.RaisePropertyChanged(nameof(HasErrors));
+			}
+		}
+
+		private void OnErrorsChanged(string propertyName)
 		{
 			ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
 		}
