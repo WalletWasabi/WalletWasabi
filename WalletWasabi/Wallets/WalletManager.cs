@@ -35,6 +35,8 @@ namespace WalletWasabi.Wallets
 				Lock = new object();
 				StartStopWalletLock = new AsyncLock();
 				CancelAllInitialization = new CancellationTokenSource();
+
+				RefreshWalletList();
 			}
 		}
 
