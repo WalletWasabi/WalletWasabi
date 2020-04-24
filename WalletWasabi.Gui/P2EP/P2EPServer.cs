@@ -14,15 +14,18 @@ namespace WalletWasabi.Gui.P2EP
 	{
 		public P2EPServer(Global global)
 		{
+			Global = global;
 			Listener = new HttpListener();
 			Listener.AuthenticationSchemes = AuthenticationSchemes.Anonymous;
-			Listener.Prefixes.Add($"http://{IPAddress.Loopback}:{37129}/");
-			Global = global;
+			Listener.Prefixes.Add($"http://+:37129/");
+			TorControlClient = new TorControlClient();
 		}
 
+		private TorControlClient TorControlClient { get; }
 		private HttpListener Listener { get; }
-		public string PaymentEndpoint { get; private set; }
+		public string ServiceId { get; private set; }
 		public Global Global { get; }
+		public string PaymentEndpoint => $"http://{ServiceId}.onion:37129";
 
 		public override async Task StartAsync(CancellationToken cancellationToken)
 		{
@@ -30,12 +33,9 @@ namespace WalletWasabi.Gui.P2EP
 			{
 				await Task.Delay(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
 			}
-			using( var torControlClient = new TorControlClient())
-			{
-				await torControlClient.ConnectAsync().ConfigureAwait(false);
-				await torControlClient.AuthenticateAsync("MyLittlePonny").ConfigureAwait(false);
-				PaymentEndpoint = await torControlClient.CreateHiddenServiceAsync().ConfigureAwait(false);
-			}
+			await TorControlClient.ConnectAsync().ConfigureAwait(false);
+			await TorControlClient.AuthenticateAsync("MyLittlePonny").ConfigureAwait(false);
+			ServiceId = await TorControlClient.CreateHiddenServiceAsync().ConfigureAwait(false);
 
 			Listener.Start();
 			await base.StartAsync(cancellationToken).ConfigureAwait(false);
@@ -43,23 +43,18 @@ namespace WalletWasabi.Gui.P2EP
 
 		public override async Task StopAsync(CancellationToken cancellationToken)
 		{
-			await base.StopAsync(cancellationToken).ConfigureAwait(false);			
+			await base.StopAsync(cancellationToken).ConfigureAwait(false);
 			Listener.Stop();
-			var paymentEndpoint = PaymentEndpoint;
-			if (!string.IsNullOrWhiteSpace(paymentEndpoint))
+			var serviceId = ServiceId;
+			if (!string.IsNullOrWhiteSpace(serviceId))
 			{
-				using( var torControlClient = new TorControlClient())
-				{
-					await torControlClient.ConnectAsync();
-					await torControlClient.AuthenticateAsync("MyLittlePonny");
-					await torControlClient.DestroyHiddenService(paymentEndpoint);
-				}
+				await TorControlClient.DestroyHiddenService(serviceId);
 			}
 		}
 
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 		{
-			var handler = new P2EPRequestHandler(Global.Network);
+			var handler = new P2EPRequestHandler(Global.Network, Global.WalletManager, Global.Config.PrivacyLevelSome);
 
 			while (!stoppingToken.IsCancellationRequested)
 			{
@@ -74,13 +69,10 @@ namespace WalletWasabi.Gui.P2EP
 						using var reader = new StreamReader(request.InputStream);
 						string body = await reader.ReadToEndAsync().ConfigureAwait(false);
 
-						var identity = (HttpListenerBasicIdentity)context.User?.Identity;
-
 						try
 						{
 							var result = await handler.HandleAsync(body, stoppingToken).ConfigureAwait(false);
 
-							// result is null only when the request is a notification.
 							var output = response.OutputStream;
 							var buffer = Encoding.UTF8.GetBytes(result);
 							await output.WriteAsync(buffer, 0, buffer.Length, stoppingToken).ConfigureAwait(false);

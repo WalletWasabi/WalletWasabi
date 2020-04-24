@@ -94,6 +94,8 @@ namespace WalletWasabi.Gui.ViewModels
 
 			CopyAddress = ReactiveCommand.CreateFromTask(TryCopyToClipboardAsync);
 
+			CopyBip21Uri = ReactiveCommand.CreateFromTask(TryCopyCopyBip21UriToClipboardAsync);
+
 			CopyLabel = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(Label ?? string.Empty));
 
 			ChangeLabel = ReactiveCommand.Create(() => InEditMode = true);
@@ -129,6 +131,7 @@ namespace WalletWasabi.Gui.ViewModels
 				.Merge(ToggleQrCode.ThrownExceptions)
 				.Merge(SaveQRCode.ThrownExceptions)
 				.Merge(CopyAddress.ThrownExceptions)
+				.Merge(CopyBip21Uri.ThrownExceptions)
 				.Merge(CopyLabel.ThrownExceptions)
 				.Merge(ChangeLabel.ThrownExceptions)
 				.Merge(DisplayAddressOnHw.ThrownExceptions)
@@ -145,6 +148,8 @@ namespace WalletWasabi.Gui.ViewModels
 		public ReactiveCommand<Unit, bool> ToggleQrCode { get; }
 		public ReactiveCommand<Unit, Unit> SaveQRCode { get; }
 		public ReactiveCommand<Unit, Unit> CopyAddress { get; }
+		public ReactiveCommand<Unit, Unit> CopyBip21Uri { get; }
+
 		public ReactiveCommand<Unit, Unit> CopyLabel { get; }
 		public ReactiveCommand<Unit, bool> ChangeLabel { get; }
 		public ReactiveCommand<Unit, Unit> DisplayAddressOnHw { get; }
@@ -226,6 +231,45 @@ namespace WalletWasabi.Gui.ViewModels
 				var cancelToken = CancelClipboardNotification.Token;
 
 				await Application.Current.Clipboard.SetTextAsync(Address);
+				cancelToken.ThrowIfCancellationRequested();
+
+				ClipboardNotificationVisible = true;
+				ClipboardNotificationOpacity = 1;
+
+				await Task.Delay(1000, cancelToken);
+				ClipboardNotificationOpacity = 0;
+				await Task.Delay(1000, cancelToken);
+				ClipboardNotificationVisible = false;
+			}
+			catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
+			{
+				Logger.LogTrace(ex);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning(ex);
+			}
+			finally
+			{
+				CancelClipboardNotification?.Dispose();
+				CancelClipboardNotification = null;
+			}
+		}
+
+		public async Task TryCopyCopyBip21UriToClipboardAsync()
+		{
+			try
+			{
+				CancelClipboardNotification?.Cancel();
+				while (CancelClipboardNotification != null)
+				{
+					await Task.Delay(50);
+				}
+				CancelClipboardNotification = new CancellationTokenSource();
+
+				var cancelToken = CancelClipboardNotification.Token;
+
+				await Application.Current.Clipboard.SetTextAsync($"bitcoin:{Address}?pj={Global.P2EPServer?.PaymentEndpoint}");
 				cancelToken.ThrowIfCancellationRequested();
 
 				ClipboardNotificationVisible = true;

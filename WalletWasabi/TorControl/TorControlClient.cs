@@ -36,8 +36,10 @@ namespace WalletWasabi.TorControl
 
 		public async Task<string> CreateHiddenServiceAsync()
 		{
-			var result = await SendControlCommandAsync($"ADD_ONION NEW:BEST Flags=DiscardPK Port={37129},{IPAddress.Loopback}:{37129}").ConfigureAwait(false);
-			return result.First(x => x.Key == "ServiceID").Value;
+			var result = await SendControlCommandAsync($"ADD_ONION NEW:BEST Flags=DiscardPK Port=37129,37129").ConfigureAwait(false);
+			var serviceId = result.First(x => x.Key == "ServiceID").Value;
+
+			return serviceId;
 		}
 
 		public Task DestroyHiddenService(string serviceId)

@@ -184,7 +184,7 @@ namespace WalletWasabi.Gui
 					try
 					{
 						await P2EPServer.StartAsync(cancel).ConfigureAwait(false);
-						Logger.LogInfo($"P2EP server listening on: http://{P2EPServer.PaymentEndpoint}.onion:{37129}");
+						Logger.LogInfo($"P2EP server listening on: {P2EPServer.PaymentEndpoint}");
 					}
 					catch (System.Net.HttpListenerException e)
 					{
