@@ -55,7 +55,7 @@ namespace WalletWasabi.Gui.P2EP
 			{
 				input.WitScript = WitScript.Empty;
 			}
-			var serverCoinKey =  toUse.KeyManager.GetSecrets("", toUse.coin.ScriptPubKey).First();
+			var serverCoinKey = toUse.KeyManager.GetSecrets("", toUse.coin.ScriptPubKey).First();
 			var serverCoin = toUse.coin.GetCoin();
 			paymentTx.Inputs.Add(serverCoin.Outpoint);
 			var paymentOutput = paymentTx.Outputs.First();

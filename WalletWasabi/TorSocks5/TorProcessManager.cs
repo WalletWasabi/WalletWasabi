@@ -125,7 +125,7 @@ namespace WalletWasabi.TorSocks5
 						{
 							IoHelpers.EnsureContainingDirectoryExists(LogFile);
 							var logFileFullPath = Path.GetFullPath(LogFile);
-							torArguments += $" --Log \"debug file {logFileFullPath}\"";
+							torArguments += $" --Log \"notice file {logFileFullPath}\"";
 						}
 
 						if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
