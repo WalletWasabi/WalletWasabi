@@ -10,7 +10,7 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.ViewModels
 {
-	public class ViewModelBase : ReactiveObject
+	public class ViewModelBase : ReactiveObject, INotifyDataErrorInfo
 	{		
 		private Dictionary<string, ErrorDescriptors> _errorsByPropertyName;
 		private Dictionary<string, ValidateMethod> _validationMethods;
