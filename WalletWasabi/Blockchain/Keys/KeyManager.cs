@@ -750,6 +750,14 @@ namespace WalletWasabi.Blockchain.Keys
 			}
 		}
 
+		public Network GetNetwork()
+		{
+			lock (BlockchainStateLock)
+			{
+				return BlockchainState.Network;
+			}
+		}
+
 		public void SetBestHeight(Height height)
 		{
 			lock (BlockchainStateLock)
@@ -763,8 +771,14 @@ namespace WalletWasabi.Blockchain.Keys
 		{
 			lock (BlockchainStateLock)
 			{
-				BlockchainState.Height = Math.Min(BlockchainState.Height, height);
-				ToFileNoBlockchainStateLock();
+				var prevHeight = BlockchainState.Height;
+				var newHeight = Math.Min(prevHeight, height);
+				if (prevHeight != newHeight)
+				{
+					BlockchainState.Height = newHeight;
+					ToFileNoBlockchainStateLock();
+					Logger.LogWarning($"Wallet ({WalletName}) height been set back by {prevHeight - newHeight}. From {prevHeight} to {newHeight}.");
+				}
 			}
 		}
 
