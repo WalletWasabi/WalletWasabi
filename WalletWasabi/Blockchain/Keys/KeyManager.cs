@@ -750,6 +750,14 @@ namespace WalletWasabi.Blockchain.Keys
 			}
 		}
 
+		public Network GetNetwork()
+		{
+			lock (BlockchainStateLock)
+			{
+				return BlockchainState.Network;
+			}
+		}
+
 		public void SetBestHeight(Height height)
 		{
 			lock (BlockchainStateLock)

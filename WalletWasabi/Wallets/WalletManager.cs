@@ -35,7 +35,6 @@ namespace WalletWasabi.Wallets
 				Lock = new object();
 				StartStopWalletLock = new AsyncLock();
 				CancelAllInitialization = new CancellationTokenSource();
-				RefreshWalletList();
 			}
 		}
 
@@ -437,6 +436,14 @@ namespace WalletWasabi.Wallets
 			}
 
 			IsInitialized = true;
+		}
+
+		public void SetMaxBestHeight(uint bestHeight)
+		{
+			foreach (var km in GetWallets(refreshWalletList: false).Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
+			{
+				km.SetMaxBestHeight(new Height(bestHeight));
+			}
 		}
 
 		/// <param name="refreshWalletList">Refreshes wallet list from files.</param>
