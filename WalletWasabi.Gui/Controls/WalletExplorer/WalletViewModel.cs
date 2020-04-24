@@ -18,7 +18,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class WalletViewModel : WalletViewModelBase
 	{
-		private ObservableCollection<ViewModelBase> _actions;		
+		private ObservableCollection<ViewModelBase> _actions;
 
 		protected WalletViewModel(Wallet wallet) : base(wallet)
 		{
