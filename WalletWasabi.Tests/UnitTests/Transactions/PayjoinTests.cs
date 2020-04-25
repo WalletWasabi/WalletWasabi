@@ -97,6 +97,23 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// The payment output is the sum of the original wallet output and the value added by the payee.
 			Assert.Equal(0.346m, outerOutput.Amount.ToUnit(MoneyUnit.BTC));
 			Assert.Equal(0.09899718m, innerOutput.Amount.ToUnit(MoneyUnit.BTC));
+
+			transactionFactory = CreateTransactionFactory(new[]
+			{
+				("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)
+			}, watchOnly: true);
+			allowedCoins = transactionFactory.Coins.ToArray();
+
+			tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), allowedCoins.Select(x => x.OutPoint), payjoinClient);
+
+			Assert.Equal(TransactionCheckResult.Success, tx.Transaction.Transaction.Check());
+			Assert.False(tx.Signed);
+			innerOutput = Assert.Single(tx.InnerWalletOutputs);
+			outerOutput = Assert.Single(tx.OuterWalletOutputs);
+
+			// No payjoin was involved
+			Assert.Equal(amountToPay, outerOutput.Amount);
+			Assert.Equal(allowedCoins[0].Amount - amountToPay - tx.Fee, innerOutput.Amount);
 		}
 
 		[Fact]

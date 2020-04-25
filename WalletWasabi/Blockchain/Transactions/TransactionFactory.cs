@@ -229,12 +229,14 @@ namespace WalletWasabi.Blockchain.Transactions
 
 				UpdatePSBTInfo(psbt, spentCoins, changeHdPubKey);
 
-				// Try to pay using payjoin
-				if (payjoinClient is { })
+				if (!KeyManager.IsWatchOnly)
 				{
-					psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt);
+					// Try to pay using payjoin
+					if (payjoinClient is { })
+					{
+						psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt);
+					}
 				}
-
 				psbt.Finalize();
 				tx = psbt.ExtractTransaction();
 
