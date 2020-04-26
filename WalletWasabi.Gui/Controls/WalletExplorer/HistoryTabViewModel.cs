@@ -23,6 +23,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private SortOrder _dateSortDirection;
 		private SortOrder _amountSortDirection;
 		private SortOrder _transactionSortDirection;
+		private SortOrder _clustersSortDirection;
 
 		public HistoryTabViewModel(Wallet wallet)
 			: base("History")
@@ -74,6 +75,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					AmountSortDirection = SortOrder.None;
 					TransactionSortDirection = SortOrder.None;
+					ClustersSortDirection = SortOrder.None;
 				}
 			}
 		}
@@ -88,6 +90,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					DateSortDirection = SortOrder.None;
 					TransactionSortDirection = SortOrder.None;
+					ClustersSortDirection = SortOrder.None;
 				}
 			}
 		}
@@ -102,6 +105,21 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					AmountSortDirection = SortOrder.None;
 					DateSortDirection = SortOrder.None;
+					ClustersSortDirection = SortOrder.None;
+				}
+			}
+		}
+		public SortOrder ClustersSortDirection
+		{
+			get => _clustersSortDirection;
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _clustersSortDirection, value);
+				if (value != SortOrder.None)
+				{
+					AmountSortDirection = SortOrder.None;
+					DateSortDirection = SortOrder.None;
+					TransactionSortDirection = SortOrder.None;
 				}
 			}
 		}
@@ -205,6 +223,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					case SortOrder.Decreasing:
 						Transactions = new ObservableCollection<TransactionViewModel>(_transactions.OrderByDescending(t => t.DateTime));
+						break;
+				}
+			}
+			else if (ClustersSortDirection != SortOrder.None)
+			{
+				switch (ClustersSortDirection)
+				{
+					case SortOrder.Increasing:
+						Transactions = new ObservableCollection<TransactionViewModel>(_transactions.OrderBy(t => t.Label));
+						break;
+
+					case SortOrder.Decreasing:
+						Transactions = new ObservableCollection<TransactionViewModel>(_transactions.OrderByDescending(t => t.Label));
 						break;
 				}
 			}

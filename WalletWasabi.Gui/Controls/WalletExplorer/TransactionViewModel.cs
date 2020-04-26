@@ -19,15 +19,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	public class TransactionViewModel : ViewModelBase
 	{
 		private bool _clipboardNotificationVisible;
+		private bool _clipboardClustersNotificationVisible;
 		private double _clipboardNotificationOpacity;
 
 		public TransactionViewModel(TransactionInfo model)
 		{
 			Model = model;
-			ClipboardNotificationVisible = false;
+			ClipboardTransactionNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;
 
 			CopyTransactionId = ReactiveCommand.CreateFromTask(TryCopyTxIdToClipboardAsync);
+			CopyClusters = ReactiveCommand.CreateFromTask(TryCopyClustersToClipboardAsync);
 
 			OpenTransactionInfo = ReactiveCommand.Create(() =>
 			{
@@ -46,6 +48,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Observable
 				.Merge(CopyTransactionId.ThrownExceptions)
+				.Merge(CopyClusters.ThrownExceptions)
 				.Merge(OpenTransactionInfo.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
@@ -58,6 +61,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private TransactionInfo Model { get; }
 
 		public ReactiveCommand<Unit, Unit> CopyTransactionId { get; }
+		public ReactiveCommand<Unit, Unit> CopyClusters { get; }
 
 		public ReactiveCommand<Unit, Unit> OpenTransactionInfo { get; }
 
@@ -77,10 +81,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string TransactionId => Model.TransactionId;
 
-		public bool ClipboardNotificationVisible
+		public bool ClipboardTransactionNotificationVisible
 		{
 			get => _clipboardNotificationVisible;
 			set => this.RaiseAndSetIfChanged(ref _clipboardNotificationVisible, value);
+		}
+
+		public bool ClipboardClustersNotificationVisible
+		{
+			get => _clipboardClustersNotificationVisible;
+			set => this.RaiseAndSetIfChanged(ref _clipboardClustersNotificationVisible, value);
 		}
 
 		public double ClipboardNotificationOpacity
@@ -96,6 +106,46 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			this.RaisePropertyChanged(nameof(AmountBtc));
 			this.RaisePropertyChanged(nameof(TransactionId));
 			this.RaisePropertyChanged(nameof(DateTime));
+			this.RaisePropertyChanged(nameof(Label));
+		}
+
+		public async Task TryCopyClustersToClipboardAsync()
+		{
+			try
+			{
+				CancelClipboardNotification?.Cancel();
+				while (CancelClipboardNotification != null)
+				{
+					await Task.Delay(50);
+				}
+				CancelClipboardNotification = new CancellationTokenSource();
+
+				var cancelToken = CancelClipboardNotification.Token;
+
+				await Application.Current.Clipboard.SetTextAsync(Label);
+				cancelToken.ThrowIfCancellationRequested();
+
+				ClipboardClustersNotificationVisible = true;
+				ClipboardNotificationOpacity = 1;
+
+				await Task.Delay(1000, cancelToken);
+				ClipboardNotificationOpacity = 0;
+				await Task.Delay(1000, cancelToken);
+				ClipboardClustersNotificationVisible = false;
+			}
+			catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
+			{
+				Logger.LogTrace(ex);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning(ex);
+			}
+			finally
+			{
+				CancelClipboardNotification?.Dispose();
+				CancelClipboardNotification = null;
+			}
 		}
 
 		public async Task TryCopyTxIdToClipboardAsync()
@@ -114,13 +164,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				await Application.Current.Clipboard.SetTextAsync(TransactionId);
 				cancelToken.ThrowIfCancellationRequested();
 
-				ClipboardNotificationVisible = true;
+				ClipboardTransactionNotificationVisible = true;
 				ClipboardNotificationOpacity = 1;
 
 				await Task.Delay(1000, cancelToken);
 				ClipboardNotificationOpacity = 0;
 				await Task.Delay(1000, cancelToken);
-				ClipboardNotificationVisible = false;
+				ClipboardTransactionNotificationVisible = false;
 			}
 			catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
 			{
