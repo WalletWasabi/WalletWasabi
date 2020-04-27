@@ -375,25 +375,25 @@ namespace WalletWasabi.Gui.Tabs
 
 		#region Validation
 
-		public void ValidateSomePrivacyLevel(IErrorList errors)
+		private void ValidateSomePrivacyLevel(IErrorList errors)
 			=> ValidatePrivacyLevel(errors, SomePrivacyLevel, whiteSpaceOk: true);
 
-		public void ValidateFinePrivacyLevel(IErrorList errors)
+		private void ValidateFinePrivacyLevel(IErrorList errors)
 			=> ValidatePrivacyLevel(errors, FinePrivacyLevel, whiteSpaceOk: true);
 
-		public void ValidateStrongPrivacyLevel(IErrorList errors)
+		private void ValidateStrongPrivacyLevel(IErrorList errors)
 			=> ValidatePrivacyLevel(errors, StrongPrivacyLevel, whiteSpaceOk: true);
 
-		public void ValidateDustThreshold(IErrorList errors)
+		private void ValidateDustThreshold(IErrorList errors)
 			=> ValidateDustThreshold(errors, DustThreshold, whiteSpaceOk: true);
 
-		public void ValidateTorSocks5EndPoint(IErrorList errors)
+		private void ValidateTorSocks5EndPoint(IErrorList errors)
 			=> ValidateEndPoint(errors, TorSocks5EndPoint, Constants.DefaultTorSocksPort, whiteSpaceOk: true);
 
-		public void ValidateBitcoinP2pEndPoint(IErrorList errors)
+		private void ValidateBitcoinP2pEndPoint(IErrorList errors)
 			=> ValidateEndPoint(errors, BitcoinP2pEndPoint, Network.DefaultPort, whiteSpaceOk: true);
 
-		public void ValidatePrivacyLevel(IErrorList errors, string value, bool whiteSpaceOk)
+		private void ValidatePrivacyLevel(IErrorList errors, string value, bool whiteSpaceOk)
 		{
 			if (!whiteSpaceOk || !string.IsNullOrWhiteSpace(value))
 			{
@@ -404,7 +404,7 @@ namespace WalletWasabi.Gui.Tabs
 			}
 		}
 
-		public void ValidateDustThreshold(IErrorList errors, string dustThreshold, bool whiteSpaceOk)
+		private void ValidateDustThreshold(IErrorList errors, string dustThreshold, bool whiteSpaceOk)
 		{
 			if (!whiteSpaceOk || !string.IsNullOrWhiteSpace(dustThreshold))
 			{
@@ -420,7 +420,7 @@ namespace WalletWasabi.Gui.Tabs
 			}
 		}
 
-		public void ValidateEndPoint(IErrorList errors, string endPoint, int defaultPort, bool whiteSpaceOk)
+		private void ValidateEndPoint(IErrorList errors, string endPoint, int defaultPort, bool whiteSpaceOk)
 		{
 			if (!whiteSpaceOk || !string.IsNullOrWhiteSpace(endPoint))
 			{
