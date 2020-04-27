@@ -10,6 +10,8 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.ViewModels
 {
+	public delegate void ValidateMethod(IValidationErrors errors);
+
 	public class ViewModelBase : ReactiveObject, INotifyDataErrorInfo
 	{
 		private Dictionary<string, ErrorDescriptors> _errorsByPropertyName;
@@ -29,13 +31,13 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public bool HasErrors => _errorsByPropertyName.Where(x => x.Value.HasErrors).Any();
 
-		private static bool IsValidationMethod (MethodInfo methodInfo)
+		private static bool IsValidationMethod(MethodInfo methodInfo)
 		{
 			var parameters = methodInfo.GetParameters();
 
-			if(parameters.Length == 1)
+			if (parameters.Length == 1)
 			{
-				if(parameters.First().ParameterType == typeof(IValidationErrors))
+				if (parameters.First().ParameterType == typeof(IValidationErrors))
 				{
 					return true;
 				}
