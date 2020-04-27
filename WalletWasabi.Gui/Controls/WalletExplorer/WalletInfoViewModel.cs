@@ -30,7 +30,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public WalletInfoViewModel(Wallet wallet) : base(wallet.WalletName)
 		{
 			Global = Locator.Current.GetService<Global>();
-			Wallet = wallet;			
+			Wallet = wallet;
 
 			ClearSensitiveData(true);
 
