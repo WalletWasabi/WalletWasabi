@@ -131,7 +131,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 		private ReplaySubject<Unit> ResortTrigger { get; } = new ReplaySubject<Unit>();
 		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
 
-		public void ValidatePassword(IErrorList errors) => PasswordHelper.ValidatePassword(errors, Password);
+		public void ValidatePassword(IValidationErrors errors) => PasswordHelper.ValidatePassword(errors, Password);
 
 		public override void OnCategorySelected()
 		{

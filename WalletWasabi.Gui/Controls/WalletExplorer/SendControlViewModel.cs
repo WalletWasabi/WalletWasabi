@@ -867,7 +867,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				&& userFee > 0;
 		}
 
-		private void ValidateUserFeeText(IErrorList errors)
+		private void ValidateUserFeeText(IValidationErrors errors)
 		{
 			if (!TryParseUserFee(out _))
 			{
@@ -875,9 +875,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private void ValidatePassword(IErrorList errors) => PasswordHelper.ValidatePassword(errors, Password);
+		private void ValidatePassword(IValidationErrors errors) => PasswordHelper.ValidatePassword(errors, Password);
 
-		private void ValidateAddress(IErrorList errors)
+		private void ValidateAddress(IValidationErrors errors)
 		{
 			if (string.IsNullOrWhiteSpace(Address))
 			{
@@ -905,7 +905,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			errors.Add(ErrorSeverity.Error, "Invalid address.");
 		}
 
-		private void ValidateCustomChangeAddress(IErrorList errors)
+		private void ValidateCustomChangeAddress(IValidationErrors errors)
 		{
 			if (string.IsNullOrWhiteSpace(CustomChangeAddress))
 			{

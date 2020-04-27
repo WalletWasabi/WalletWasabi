@@ -64,7 +64,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 			}
 		}
 
-		public void ValidatePassword(IErrorList errors)
+		public void ValidatePassword(IValidationErrors errors)
 		{
 			string password = Password;
 

@@ -6,5 +6,5 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.ViewModels.Validation
 {
-	public delegate void ValidateMethod(IErrorList errors);		
+	public delegate void ValidateMethod(IValidationErrors errors);		
 }

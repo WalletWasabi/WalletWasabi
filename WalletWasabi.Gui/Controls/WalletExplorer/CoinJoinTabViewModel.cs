@@ -468,6 +468,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			base.OnDeselected();
 		}
 
-		public void ValidatePassword(IErrorList errors) => PasswordHelper.ValidatePassword(errors, Password);
+		public void ValidatePassword(IValidationErrors errors) => PasswordHelper.ValidatePassword(errors, Password);
 	}
 }

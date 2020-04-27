@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace WalletWasabi.Models
 {
-	public class ErrorDescriptors : List<ErrorDescriptor>, IErrorList
+	public class ErrorDescriptors : List<ErrorDescriptor>, IValidationErrors
 	{
 		public static ErrorDescriptors Empty = Create();
 
@@ -17,7 +17,7 @@ namespace WalletWasabi.Models
 			return new ErrorDescriptors();
 		}
 
-		void IErrorList.Add(ErrorSeverity severity, string error)
+		void IValidationErrors.Add(ErrorSeverity severity, string error)
 		{
 			Add(new ErrorDescriptor(severity, error));
 		}

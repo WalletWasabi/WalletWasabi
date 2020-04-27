@@ -118,7 +118,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _extendedAccountZprv, value);
 		}
 
-		public void ValidatePassword(IErrorList errors) => PasswordHelper.ValidatePassword(errors, Password);
+		public void ValidatePassword(IValidationErrors errors) => PasswordHelper.ValidatePassword(errors, Password);
 
 		private void ClearSensitiveData(bool passwordToo)
 		{

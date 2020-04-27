@@ -35,7 +35,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 			if(parameters.Length == 1)
 			{
-				if(parameters.First().ParameterType == typeof(IErrorList))
+				if(parameters.First().ParameterType == typeof(IValidationErrors))
 				{
 					return true;
 				}

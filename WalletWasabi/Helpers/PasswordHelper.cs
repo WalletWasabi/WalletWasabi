@@ -152,7 +152,7 @@ namespace WalletWasabi.Helpers
 			throw resultException; // Throw the last exception - Invalid password.
 		}
 
-		public static void ValidatePassword(IErrorList errors, string password)
+		public static void ValidatePassword(IValidationErrors errors, string password)
 		{
 			if (IsTrimable(password, out _))
 			{
