@@ -29,12 +29,32 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public bool HasErrors => _errorsByPropertyName.Where(x => x.Value.HasErrors).Any();
 
+		private static bool IsValidationMethod (MethodInfo methodInfo)
+		{
+			var parameters = methodInfo.GetParameters();
+
+			if(parameters.Length == 1)
+			{
+				if(parameters.First().ParameterType == typeof(IErrorList))
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
 		private void RegisterValidationMethods()
 		{
 			var type = GetType();
 			var methods = GetValidateMethods(type);
 
-			var validateMethods = methods.Where(x => x.Name.StartsWith("Validate") && x.Name.Length > 8).ToList();
+			var validateMethods =
+				methods.Where(x =>
+				x.Name.StartsWith("Validate") &&
+				x.Name.Length > 8 &&
+				IsValidationMethod(x))
+				.ToList();
 
 			foreach (var validateMethod in validateMethods)
 			{
