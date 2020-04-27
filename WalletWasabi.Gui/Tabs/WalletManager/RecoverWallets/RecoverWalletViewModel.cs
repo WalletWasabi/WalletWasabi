@@ -108,8 +108,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 		private Global Global { get; }
 		private Wallets.WalletManager WalletManager { get; }
 
-		public void ValidatePassword(IValidationErrors errors) => PasswordHelper.ValidatePassword(errors, Password);
-		
+		private void ValidatePassword(IValidationErrors errors) => PasswordHelper.ValidatePassword(errors, Password);
+
 		public string Password
 		{
 			get => _password;
