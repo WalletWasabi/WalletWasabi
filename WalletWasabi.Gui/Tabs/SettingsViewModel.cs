@@ -14,7 +14,6 @@ using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;

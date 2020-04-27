@@ -30,7 +30,6 @@ using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Models.StatusBarStatuses;
 using WalletWasabi.Gui.Suggestions;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Exceptions;

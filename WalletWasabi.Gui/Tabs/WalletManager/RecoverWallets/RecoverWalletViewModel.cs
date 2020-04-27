@@ -14,7 +14,6 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Suggestions;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;

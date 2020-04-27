@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
-using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.ViewModels
