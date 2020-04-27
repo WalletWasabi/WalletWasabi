@@ -323,10 +323,9 @@ namespace WalletWasabi.Gui.Tabs
 				return;
 			}
 
-			DoValidation();
-			var isValid = !HasErrors;
+			Validate();			
 
-			if (!isValid)
+			if (!HasErrors)
 			{
 				return;
 			}

@@ -101,7 +101,7 @@ namespace WalletWasabi.Gui.ViewModels
 			_errorsByPropertyName[propertyName] = ErrorDescriptors.Create();
 		}
 
-		protected void DoValidation()
+		protected void Validate()
 		{
 			foreach (var propertyName in _validationMethods.Keys)
 			{
@@ -113,7 +113,7 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			if (string.IsNullOrWhiteSpace(e.PropertyName))
 			{
-				DoValidation();
+				Validate();
 			}
 			else
 			{
