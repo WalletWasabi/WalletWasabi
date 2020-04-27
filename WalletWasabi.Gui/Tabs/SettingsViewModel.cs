@@ -324,7 +324,7 @@ namespace WalletWasabi.Gui.Tabs
 
 			Validate();			
 
-			if (!HasErrors)
+			if (HasErrors)
 			{
 				return;
 			}
