@@ -884,13 +884,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return;
 			}
 
-			if (!string.IsNullOrWhiteSpace(CustomChangeAddress))
+			if (Address == CustomChangeAddress)
 			{
-				if (Address == CustomChangeAddress)
-				{
-					errors.Add(ErrorSeverity.Error, "The active address and the change address cannot be the same.");
-				}
-			}
+				errors.Add(ErrorSeverity.Error, "The active address and the change address cannot be the same.");
+			}			
 
 			if (AddressStringParser.TryParseBitcoinAddress(Address, Global.Network, out _))
 			{
