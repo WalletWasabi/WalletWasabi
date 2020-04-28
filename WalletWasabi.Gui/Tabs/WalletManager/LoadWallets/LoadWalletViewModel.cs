@@ -213,7 +213,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 
 				ResortTrigger.OnNext(new Unit());
 				// Successfully initialized.
-				if (firstWalletToLoad && !Owner.IsClosed)
+				if (firstWalletToLoad && !Owner.IsClosed && Owner.SelectedCategory == this)
 				{
 					Owner.OnClose();
 				}
