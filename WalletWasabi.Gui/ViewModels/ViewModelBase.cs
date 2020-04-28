@@ -5,13 +5,12 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.ViewModels
 {
-	public delegate void ValidateMethod(IValidationErrors errors);
-
-	public class ViewModelBase : ReactiveObject, INotifyDataErrorInfo
+	public class ViewModelBase : ReactiveObject, INotifyDataErrorInfo, IRegisterValidationMethod
 	{
 		private Dictionary<string, ErrorDescriptors> _errorsByPropertyName;
 		private Dictionary<string, ValidateMethod> _validationMethods;
@@ -21,58 +20,12 @@ namespace WalletWasabi.Gui.ViewModels
 			_errorsByPropertyName = new Dictionary<string, ErrorDescriptors>();
 			_validationMethods = new Dictionary<string, ValidateMethod>();
 
-			RegisterValidationMethods();
-
 			PropertyChanged += ViewModelBase_PropertyChanged;
 		}
 
 		public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
 
 		public bool HasErrors => _errorsByPropertyName.Where(x => x.Value.HasErrors).Any();
-
-		private static bool IsValidationMethod(MethodInfo methodInfo)
-		{
-			var parameters = methodInfo.GetParameters();
-
-			if (parameters.Length == 1)
-			{
-				if (parameters.First().ParameterType == typeof(IValidationErrors))
-				{
-					return true;
-				}
-			}
-
-			return false;
-		}
-
-		private void RegisterValidationMethods()
-		{
-			var type = GetType();
-			var methods = GetValidateMethods(type);
-
-			var validateMethods =
-				methods.Where(x =>
-				x.Name.StartsWith("Validate") &&
-				x.Name.Length > 8 &&
-				IsValidationMethod(x))
-				.ToList();
-
-			foreach (var validateMethod in validateMethods)
-			{
-				var propertyName = validateMethod.Name.Remove(0, 8);
-				var property = type.GetProperty(propertyName);
-
-				if (property != null)
-				{
-					var del = validateMethod.CreateDelegate(typeof(ValidateMethod), this) as ValidateMethod;
-
-					if (del != null)
-					{
-						RegisterValidationMethod(propertyName, del);
-					}
-				}
-			}
-		}
 
 		private static IEnumerable<MethodInfo> GetValidateMethods(Type type)
 		{
@@ -91,7 +44,7 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		private void RegisterValidationMethod(string propertyName, ValidateMethod validateMethod)
+		void IRegisterValidationMethod.RegisterValidationMethod(string propertyName, ValidateMethod validateMethod)
 		{
 			if (string.IsNullOrWhiteSpace(propertyName))
 			{
