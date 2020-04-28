@@ -13,6 +13,7 @@ using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Gui.Validation;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -43,6 +44,13 @@ namespace WalletWasabi.Gui.Tabs
 		public SettingsViewModel() : base("Settings")
 		{
 			Global = Locator.Current.GetService<Global>();
+
+			this.ValidateProperty(x => x.SomePrivacyLevel, ValidateSomePrivacyLevel);
+			this.ValidateProperty(x => x.FinePrivacyLevel, ValidateFinePrivacyLevel);
+			this.ValidateProperty(x => x.StrongPrivacyLevel, ValidateStrongPrivacyLevel);
+			this.ValidateProperty(x => x.DustThreshold, ValidateDustThreshold);
+			this.ValidateProperty(x => x.TorSocks5EndPoint, ValidateTorSocks5EndPoint);
+			this.ValidateProperty(x => x.BitcoinP2pEndPoint, ValidateBitcoinP2pEndPoint);
 
 			Autocopy = Global.UiConfig.Autocopy;
 			CustomFee = Global.UiConfig.IsCustomFee;
@@ -322,7 +330,7 @@ namespace WalletWasabi.Gui.Tabs
 				return;
 			}
 
-			Validate();			
+			Validate();
 
 			if (HasErrors)
 			{

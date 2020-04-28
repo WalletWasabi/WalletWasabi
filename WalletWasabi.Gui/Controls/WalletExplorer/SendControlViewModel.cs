@@ -29,6 +29,7 @@ using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Models.StatusBarStatuses;
 using WalletWasabi.Gui.Suggestions;
+using WalletWasabi.Gui.Validation;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi;
@@ -82,6 +83,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			LabelSuggestion = new SuggestLabelViewModel();
 			BuildTransactionButtonText = DoButtonText;
+
+			this.ValidateProperty(x => x.Address, ValidateAddress);
+			this.ValidateProperty(x => x.CustomChangeAddress, ValidateCustomChangeAddress);
+			this.ValidateProperty(x => x.Password, ValidatePassword);
+			this.ValidateProperty(x => x.UserFeeText, ValidateUserFeeText);
 
 			ResetUi();
 			SetAmountWatermark(Money.Zero);

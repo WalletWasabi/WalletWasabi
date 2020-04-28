@@ -13,6 +13,7 @@ using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Suggestions;
+using WalletWasabi.Gui.Validation;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -35,6 +36,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 		{
 			Global = Locator.Current.GetService<Global>();
 			WalletManager = Global.WalletManager;
+
+			this.ValidateProperty(x => x.Password, ValidatePassword);
 
 			MnemonicWords = "";
 

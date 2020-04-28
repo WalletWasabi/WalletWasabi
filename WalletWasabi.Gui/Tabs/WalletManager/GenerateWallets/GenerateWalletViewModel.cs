@@ -6,6 +6,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Gui.Validation;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -22,6 +23,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 		{
 			Global = Locator.Current.GetService<Global>();
 			Owner = owner;
+
+			this.ValidateProperty(x => x.Password, ValidatePassword);
 
 			NextCommand = ReactiveCommand.Create(DoNextCommand, this.WhenAnyValue(x => x.HasErrors).Select(x => !x));
 

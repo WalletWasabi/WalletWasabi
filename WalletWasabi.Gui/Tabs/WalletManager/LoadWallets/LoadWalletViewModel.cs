@@ -18,6 +18,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
+using WalletWasabi.Gui.Validation;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -42,6 +43,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			Owner = owner;
 			Password = "";
 			LoadWalletType = loadWalletType;
+
+			this.ValidateProperty(x => x.Password, ValidatePassword);
 
 			RootList = new SourceList<WalletViewModelBase>();
 			RootList.Connect()
