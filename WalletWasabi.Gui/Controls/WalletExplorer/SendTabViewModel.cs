@@ -1,12 +1,15 @@
+using Avalonia.Controls.Notifications;
 using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
+using System.Reactive;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models.StatusBarStatuses;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
@@ -101,10 +104,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			base.OnAddressPaste(url);
 
-			PayjoinEndPoint = url.UnknowParameters.TryGetValue("bpu", out var endPoint)
-						   || url.UnknowParameters.TryGetValue("pj", out endPoint)
+			var payjoinEndPoint = url.UnknowParameters.TryGetValue("bpu", out var endPoint) || url.UnknowParameters.TryGetValue("pj", out endPoint)
 				? endPoint
 				: null;
+
+			if (payjoinEndPoint is { } && (Wallet.KeyManager.IsHardwareWallet || Wallet.KeyManager.IsWatchOnly))
+			{
+				NotificationHelpers.Warning("Payjoin is not allowed here.");
+				payjoinEndPoint = null;
+			}
+
+			PayjoinEndPoint = payjoinEndPoint;
 		}
 
 		protected override void ResetUi()
