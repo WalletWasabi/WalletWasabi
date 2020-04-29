@@ -382,8 +382,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					IsBusy = false;
 				}
 			},
-			this.WhenAny(x => x.IsMax, x => x.AmountText, x => x.Address, x => x.IsBusy, x => x.HasErrors,
-				(isMax, amount, address, busy, hasErrors) => (isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy && !HasErrors)
+			this.WhenAny(x => x.IsMax, x => x.AmountText, x => x.Address, x => x.IsBusy,
+				(isMax, amount, address, busy) => (isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy)
 				.ObserveOn(RxApp.MainThreadScheduler));
 
 			UserFeeTextKeyUpCommand = ReactiveCommand.Create((KeyEventArgs key) =>
