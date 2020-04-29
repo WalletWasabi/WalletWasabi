@@ -233,7 +233,7 @@ namespace WalletWasabi.WebClients.PayJoin
 				}
 
 				// Let's check the difference is only for the fee and that feerate
-				// did not changed that much
+				// did not change that much
 				var expectedFee = originalFeeRate.GetFee(newVirtualSize);
 				// Signing precisely is hard science, give some breathing room for error.
 				expectedFee += originalFeeRate.GetFee(newPSBT.Inputs.Count * 2);
