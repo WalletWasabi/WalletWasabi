@@ -19,24 +19,6 @@ namespace WalletWasabi.Gui.Rpc
 	public class JsonRpcRequest
 	{
 		/// <summary>
-		/// Parses the json rpc request giving back the deserialized JsonRpcRequest instance.
-		/// Return true if the deserialization was successful, otherwise false.
-		/// </summary>
-		public static bool TryParse(string rawJson, out JsonRpcRequest request)
-		{
-			try
-			{
-				request = JsonConvert.DeserializeObject<JsonRpcRequest>(rawJson);
-				return true;
-			}
-			catch (JsonException)
-			{
-				request = null;
-				return false;
-			}
-		}
-
-		/// <summary>
 		/// Constructor used to deserialize the requests.
 		/// </summary>
 		[JsonConstructor]
@@ -91,5 +73,23 @@ namespace WalletWasabi.Gui.Rpc
 		/// </summary>
 		[JsonProperty("params")]
 		public JToken Parameters { get; }
+
+		/// <summary>
+		/// Parses the json rpc request giving back the deserialized JsonRpcRequest instance.
+		/// Return true if the deserialization was successful, otherwise false.
+		/// </summary>
+		public static bool TryParse(string rawJson, out JsonRpcRequest request)
+		{
+			try
+			{
+				request = JsonConvert.DeserializeObject<JsonRpcRequest>(rawJson);
+				return true;
+			}
+			catch (JsonException)
+			{
+				request = null;
+				return false;
+			}
+		}
 	}
 }

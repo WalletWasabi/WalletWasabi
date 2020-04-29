@@ -12,15 +12,15 @@ namespace WalletWasabi.Gui.Models.StatusBarStatuses
 	{
 		private Status _status;
 
-		private HashSet<Status> ActiveStatuses { get; }
-		private object ActiveStatusesLock { get; }
-
 		public StatusSet()
 		{
 			ActiveStatuses = new HashSet<Status>() { Status.Set(StatusType.Ready) };
 			ActiveStatusesLock = new object();
 			CurrentStatus = Status.Set(StatusType.Loading);
 		}
+
+		private HashSet<Status> ActiveStatuses { get; }
+		private object ActiveStatusesLock { get; }
 
 		public Status CurrentStatus
 		{

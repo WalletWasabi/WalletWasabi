@@ -300,7 +300,7 @@ namespace WalletWasabi.Wallets
 				{
 					var r when r < (0.9) => LockTime.Zero,
 					var r when r < (0.9 + 0.075) => tipHeight,
-					var r when r < (0.9 + 0.075 + 0.0065) => (uint)(tipHeight + 1),
+					var r when r < (0.9 + 0.075 + 0.0065) => tipHeight + 1,
 					_ => (uint)(tipHeight - rnd.Next(1, 100))
 				};
 			}

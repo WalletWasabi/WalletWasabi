@@ -21,36 +21,6 @@ namespace WalletWasabi.Gui.Dialogs
 		private string _warningMessage;
 		private string _operationMessage;
 
-		private CompositeDisposable Disposables { get; set; }
-
-		private CancellationTokenSource CancelTokenSource { get; set; }
-
-		public bool IsBusy
-		{
-			get => _isBusy;
-			set => this.RaiseAndSetIfChanged(ref _isBusy, value);
-		}
-
-		public string WarningMessage
-		{
-			get => _warningMessage;
-			set => this.RaiseAndSetIfChanged(ref _warningMessage, value);
-		}
-
-		private Global Global { get; }
-
-		public string OperationMessage
-		{
-			get => _operationMessage;
-			set => this.RaiseAndSetIfChanged(ref _operationMessage, value);
-		}
-
-		public new ReactiveCommand<Unit, Unit> OKCommand { get; set; }
-		public new ReactiveCommand<Unit, Unit> CancelCommand { get; set; }
-
-		// http://blog.stephencleary.com/2013/01/async-oop-2-constructors.html
-		public Task Initialization { get; private set; }
-
 		public CannotCloseDialogViewModel() : base("", false, false)
 		{
 			Global = Locator.Current.GetService<Global>();
@@ -89,6 +59,36 @@ namespace WalletWasabi.Gui.Dialogs
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 		}
+
+		private CompositeDisposable Disposables { get; set; }
+
+		private CancellationTokenSource CancelTokenSource { get; set; }
+
+		public bool IsBusy
+		{
+			get => _isBusy;
+			set => this.RaiseAndSetIfChanged(ref _isBusy, value);
+		}
+
+		public string WarningMessage
+		{
+			get => _warningMessage;
+			set => this.RaiseAndSetIfChanged(ref _warningMessage, value);
+		}
+
+		private Global Global { get; }
+
+		public string OperationMessage
+		{
+			get => _operationMessage;
+			set => this.RaiseAndSetIfChanged(ref _operationMessage, value);
+		}
+
+		public new ReactiveCommand<Unit, Unit> OKCommand { get; set; }
+		public new ReactiveCommand<Unit, Unit> CancelCommand { get; set; }
+
+		// http://blog.stephencleary.com/2013/01/async-oop-2-constructors.html
+		public Task Initialization { get; private set; }
 
 		public override void OnOpen()
 		{

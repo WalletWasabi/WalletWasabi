@@ -368,7 +368,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				catch (Exception ex)
 				{
-					NotificationHelpers.Error(ex.ToUserFriendlyString());
+					NotificationHelpers.Error(ex.ToUserFriendlyString(), sender: Wallet);
 					Logger.LogError(ex);
 				}
 				finally
@@ -418,7 +418,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		protected Global Global { get; }
 
-		private Wallet Wallet { get; }
+		protected Wallet Wallet { get; }
 
 		Wallet IWalletViewModel.Wallet => Wallet;
 

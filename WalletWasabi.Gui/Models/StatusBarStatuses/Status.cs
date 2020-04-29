@@ -7,10 +7,6 @@ namespace WalletWasabi.Gui.Models.StatusBarStatuses
 {
 	public class Status : IEquatable<Status>
 	{
-		public static Status Set(StatusType type) => new Status(type, 0);
-
-		public static Status Completed(StatusType type) => new Status(type, 100);
-
 		public Status(StatusType type, ushort percentage)
 		{
 			Type = type;
@@ -21,6 +17,10 @@ namespace WalletWasabi.Gui.Models.StatusBarStatuses
 		public int Percentage { get; }
 
 		public bool IsCompleted => Percentage == 100;
+
+		public static Status Set(StatusType type) => new Status(type, 0);
+
+		public static Status Completed(StatusType type) => new Status(type, 100);
 
 		public override string ToString()
 		{

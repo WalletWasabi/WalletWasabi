@@ -13,10 +13,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 {
 	public class ExtPubKeyExplorerTests
 	{
-		private ExtKey ExtKey { get; }
-		private ExtPubKey ExtPubKey { get; }
-		private Random Random { get; }
-
 		public ExtPubKeyExplorerTests()
 		{
 			Random = new Random(Seed: 6439);
@@ -25,6 +21,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 			ExtKey = mnemonic.DeriveExtKey();
 			ExtPubKey = ExtKey.Derive(new KeyPath($"{KeyManager.DefaultAccountKeyPath.ToString(true, "h")}/1/0")).Neuter();
 		}
+
+		private ExtKey ExtKey { get; }
+		private ExtPubKey ExtPubKey { get; }
+		private Random Random { get; }
 
 		[Fact]
 		public void ShouldFindNeverUsedKey()

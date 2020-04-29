@@ -27,17 +27,17 @@ namespace WalletWasabi.Gui
 		private bool _isCustomChangeAddress;
 		private bool _autocopy;
 
+		public UiConfig() : base()
+		{
+		}
+
+		public UiConfig(string filePath) : base(filePath)
+		{
+		}
+
 		[JsonProperty(PropertyName = "WindowState")]
 		[JsonConverter(typeof(WindowStateAfterStartJsonConverter))]
 		public WindowState WindowState { get; internal set; } = WindowState.Maximized;
-
-		[DefaultValue(530)]
-		[JsonProperty(PropertyName = "Height", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public double Height { get; internal set; }
-
-		[DefaultValue(1100)]
-		[JsonProperty(PropertyName = "Width", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public double Width { get; internal set; }
 
 		[DefaultValue(2)]
 		[JsonProperty(PropertyName = "FeeTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -97,14 +97,6 @@ namespace WalletWasabi.Gui
 		{
 			get => _lockScreenPinHash;
 			set => RaiseAndSetIfChanged(ref _lockScreenPinHash, value);
-		}
-
-		public UiConfig() : base()
-		{
-		}
-
-		public UiConfig(string filePath) : base(filePath)
-		{
 		}
 	}
 }

@@ -16,8 +16,6 @@ namespace WalletWasabi.Gui.Tabs
 {
 	internal class AboutViewModel : WasabiDocumentTabViewModel
 	{
-		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
-
 		public AboutViewModel() : base("About")
 		{
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
@@ -26,6 +24,8 @@ namespace WalletWasabi.Gui.Tabs
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 		}
+
+		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
 
 		public Version ClientVersion => Constants.ClientVersion;
 		public string BackendMajorVersion => Constants.BackendMajorVersion;

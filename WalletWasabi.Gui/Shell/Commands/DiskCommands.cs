@@ -57,6 +57,21 @@ namespace WalletWasabi.Gui.Shell.Commands
 				onOpenConfigFile);
 		}
 
+		[ExportCommandDefinition("File.Open.DataFolder")]
+		public CommandDefinition OpenDataFolderCommand { get; }
+
+		[ExportCommandDefinition("File.Open.WalletsFolder")]
+		public CommandDefinition OpenWalletsFolderCommand { get; }
+
+		[ExportCommandDefinition("File.Open.LogFile")]
+		public CommandDefinition OpenLogFileCommand { get; }
+
+		[ExportCommandDefinition("File.Open.TorLogFile")]
+		public CommandDefinition OpenTorLogFileCommand { get; }
+
+		[ExportCommandDefinition("File.Open.ConfigFile")]
+		public CommandDefinition OpenConfigFileCommand { get; }
+
 		private void OnOpenDataFolder()
 		{
 			var global = Locator.Current.GetService<Global>();
@@ -87,20 +102,5 @@ namespace WalletWasabi.Gui.Shell.Commands
 			var global = Locator.Current.GetService<Global>();
 			await FileHelpers.OpenFileInTextEditorAsync(global.Config.FilePath);
 		}
-
-		[ExportCommandDefinition("File.Open.DataFolder")]
-		public CommandDefinition OpenDataFolderCommand { get; }
-
-		[ExportCommandDefinition("File.Open.WalletsFolder")]
-		public CommandDefinition OpenWalletsFolderCommand { get; }
-
-		[ExportCommandDefinition("File.Open.LogFile")]
-		public CommandDefinition OpenLogFileCommand { get; }
-
-		[ExportCommandDefinition("File.Open.TorLogFile")]
-		public CommandDefinition OpenTorLogFileCommand { get; }
-
-		[ExportCommandDefinition("File.Open.ConfigFile")]
-		public CommandDefinition OpenConfigFileCommand { get; }
 	}
 }

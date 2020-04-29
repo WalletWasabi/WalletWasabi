@@ -14,14 +14,6 @@ namespace WalletWasabi.Gui.Shell.Commands
 {
 	internal class SystemCommands
 	{
-		[DefaultKeyGesture("ALT+F4")]
-		[ExportCommandDefinition("File.Exit")]
-		public CommandDefinition ExitCommand { get; }
-
-		[DefaultKeyGesture("CTRL+L", osxKeyGesture: "CMD+L")]
-		[ExportCommandDefinition("File.LockScreen")]
-		public CommandDefinition LockScreenCommand { get; }
-
 		[ImportingConstructor]
 		public SystemCommands(CommandIconService commandIconService)
 		{
@@ -43,6 +35,14 @@ namespace WalletWasabi.Gui.Shell.Commands
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogWarning(ex));
 		}
+
+		[DefaultKeyGesture("ALT+F4")]
+		[ExportCommandDefinition("File.Exit")]
+		public CommandDefinition ExitCommand { get; }
+
+		[DefaultKeyGesture("CTRL+L", osxKeyGesture: "CMD+L")]
+		[ExportCommandDefinition("File.LockScreen")]
+		public CommandDefinition LockScreenCommand { get; }
 
 		private void OnExit()
 		{

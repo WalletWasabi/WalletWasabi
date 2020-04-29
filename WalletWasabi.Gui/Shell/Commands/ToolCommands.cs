@@ -69,21 +69,6 @@ namespace WalletWasabi.Gui.Shell.Commands
 #endif
 		}
 
-		private void OnWalletManager()
-		{
-			var global = Locator.Current.GetService<Global>();
-
-			var walletManagerViewModel = IoC.Get<IShell>().GetOrCreateByType<WalletManagerViewModel>();
-			if (global.WalletManager.WalletDirectories.EnumerateWalletFiles().Any())
-			{
-				walletManagerViewModel.SelectLoadWallet();
-			}
-			else
-			{
-				walletManagerViewModel.SelectGenerateWallet();
-			}
-		}
-
 		[ExportCommandDefinition("Tools.WalletManager")]
 		public CommandDefinition WalletManagerCommand { get; }
 
@@ -99,5 +84,20 @@ namespace WalletWasabi.Gui.Shell.Commands
 		public CommandDefinition DevToolsCommand { get; }
 
 #endif
+
+		private void OnWalletManager()
+		{
+			var global = Locator.Current.GetService<Global>();
+
+			var walletManagerViewModel = IoC.Get<IShell>().GetOrCreateByType<WalletManagerViewModel>();
+			if (global.WalletManager.WalletDirectories.EnumerateWalletFiles().Any())
+			{
+				walletManagerViewModel.SelectLoadWallet();
+			}
+			else
+			{
+				walletManagerViewModel.SelectGenerateWallet();
+			}
+		}
 	}
 }

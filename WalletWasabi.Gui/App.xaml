@@ -35,6 +35,8 @@
     </DataTemplate>
   </Application.DataTemplates>
   <NativeMenu.Menu>
-    <NativeMenu />
+    <NativeMenu>
+      <NativeMenuItem Header="About Wasabi Wallet" Command="{Binding AboutCommand}" />
+    </NativeMenu>
   </NativeMenu.Menu>
 </Application>

@@ -17,13 +17,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		public SendTabViewModel(Wallet wallet) : base(wallet, "Send")
 		{
-			Wallet = wallet;
 		}
 
 		public override string DoButtonText => "Send Transaction";
 		public override string DoingButtonText => "Sending Transaction...";
-
-		private Wallet Wallet { get; }
 
 		protected override async Task DoAfterBuildTransaction(BuildTransactionResult result)
 		{
@@ -50,11 +47,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						signedPsbt = await client.SignTxAsync(Wallet.KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
 					}
 					signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction);
-				}
-				catch (Exception ex)
-				{
-					NotificationHelpers.Error(ex.ToUserFriendlyString());
-					return;
 				}
 				finally
 				{
