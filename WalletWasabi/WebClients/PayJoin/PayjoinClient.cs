@@ -169,8 +169,7 @@ namespace WalletWasabi.WebClients.PayJoin
 				}
 				else
 				{
-					throw new PayjoinSenderException(
-						"The payjoin receiver added some of our own inputs in the proposal");
+					throw new PayjoinSenderException("The payjoin receiver added some of our own inputs in the proposal");
 				}
 			}
 

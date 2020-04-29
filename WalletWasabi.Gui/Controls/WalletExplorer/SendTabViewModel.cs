@@ -104,17 +104,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			base.OnAddressPaste(url);
 
-			var payjoinEndPoint = url.UnknowParameters.TryGetValue("bpu", out var endPoint) || url.UnknowParameters.TryGetValue("pj", out endPoint)
-				? endPoint
-				: null;
-
-			if (payjoinEndPoint is { } && (Wallet.KeyManager.IsHardwareWallet || Wallet.KeyManager.IsWatchOnly))
+			if (url.UnknowParameters.TryGetValue("bpu", out var endPoint) || url.UnknowParameters.TryGetValue("pj", out endPoint))
 			{
+				if (!Wallet.KeyManager.IsHardwareWallet && !Wallet.KeyManager.IsWatchOnly)
+				{
+					PayjoinEndPoint = endPoint;
+					return;
+				}
 				NotificationHelpers.Warning("Payjoin is not allowed here.");
-				payjoinEndPoint = null;
 			}
-
-			PayjoinEndPoint = payjoinEndPoint;
+			PayjoinEndPoint = null;
 		}
 
 		protected override void ResetUi()
