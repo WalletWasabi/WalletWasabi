@@ -106,7 +106,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (url.UnknowParameters.TryGetValue("bpu", out var endPoint) || url.UnknowParameters.TryGetValue("pj", out endPoint))
 			{
-				if (!Wallet.KeyManager.IsHardwareWallet && !Wallet.KeyManager.IsWatchOnly)
+				if (!Wallet.KeyManager.IsWatchOnly)
 				{
 					PayjoinEndPoint = endPoint;
 					return;
