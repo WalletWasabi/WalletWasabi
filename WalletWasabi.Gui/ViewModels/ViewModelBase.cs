@@ -27,23 +27,6 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public bool HasErrors => _errorsByPropertyName.Where(x => x.Value.HasErrors).Any();
 
-		private static IEnumerable<MethodInfo> GetValidateMethods(Type type)
-		{
-			if (type.BaseType != null)
-			{
-				foreach (var method in GetValidateMethods(type.BaseType))
-				{
-					yield return method;
-				}
-			}
-
-			foreach (var method in type.GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
-				.Where(x => x.Name.StartsWith("Validate")))
-			{
-				yield return method;
-			}
-		}
-
 		void IRegisterValidationMethod.RegisterValidationMethod(string propertyName, ValidateMethod validateMethod)
 		{
 			if (string.IsNullOrWhiteSpace(propertyName))
