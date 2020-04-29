@@ -218,7 +218,7 @@ namespace WalletWasabi.WebClients.PayJoin
 				var overPaying = sentAfter - sentBefore;
 				if (!newPSBT.TryGetEstimatedFeeRate(out var newFeeRate) || !newPSBT.TryGetVirtualSize(out var newVirtualSize))
 				{
-					throw new PayjoinSenderException("The payjoin receiver did not included UTXO information to calculate fee correctly");
+					throw new PayjoinSenderException("The payjoin receiver did not include UTXO information to calculate fee correctly");
 				}
 
 				var additionalFee = newPSBT.GetFee() - originalFee;
