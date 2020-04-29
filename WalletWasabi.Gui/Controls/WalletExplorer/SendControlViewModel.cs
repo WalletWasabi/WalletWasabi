@@ -917,6 +917,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			if (IsMax)
 			{
 				errors.Add(ErrorSeverity.Error, "Spending whole coins does not generate change.");
+				return;
 			}
 
 			if (Address == CustomChangeAddress)
