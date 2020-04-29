@@ -34,13 +34,23 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				Observable.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default))
 				.Throttle(TimeSpan.FromSeconds(0.1))
 				.Merge(UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Select(_ => Unit.Default))
+				.Merge(Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Select(_ => Unit.Default))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
 					try
 					{
 						Money balance = Wallet.Coins.TotalAmount();
-						Title = $"{WalletName} ({(UiConfig.LurkingWifeMode ? "#########" : balance.ToString(false, true))} BTC)";
+						var dollars = Wallet.Synchronizer.UsdExchangeRate * balance.ToDecimal(MoneyUnit.BTC);
+
+						if (dollars == 0)
+						{
+							Title = $"{WalletName} ({(UiConfig.LurkingWifeMode ? "#########" : balance.ToString(false, true))} BTC)";
+						}
+						else
+						{
+							Title = $"{WalletName} ({(UiConfig.LurkingWifeMode ? "#########" : balance.ToString(false, true))} BTC, ${dollars:.00})";
+						}
 					}
 					catch (Exception ex)
 					{
