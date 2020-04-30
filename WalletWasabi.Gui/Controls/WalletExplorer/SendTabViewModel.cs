@@ -1,10 +1,8 @@
-using Avalonia.Controls.Notifications;
 using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
-using System.Reactive;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -12,12 +10,12 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models.StatusBarStatuses;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
+using WalletWasabi.Gui.Validation;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -27,6 +25,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public SendTabViewModel(Wallet wallet) : base(wallet, "Send")
 		{
+			this.ValidateProperty(x => x.PayjoinEndPoint, ValidatePayjoinEndPoint);
 		}
 
 		public override string DoButtonText => "Send Transaction";
@@ -73,7 +72,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ResetUi();
 		}
 
-		[ValidateMethod(nameof(ValidatePayjoinEndPoint))]
 		public string PayjoinEndPoint
 		{
 			get => _payjoinEndPoint;
@@ -91,13 +89,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			return null;
 		}
 
-		public ErrorDescriptors ValidatePayjoinEndPoint()
+		public void ValidatePayjoinEndPoint(IValidationErrors errors)
 		{
-			if (string.IsNullOrWhiteSpace(PayjoinEndPoint) || Uri.IsWellFormedUriString(PayjoinEndPoint, UriKind.Absolute))
+			if (!string.IsNullOrWhiteSpace(PayjoinEndPoint) && !Uri.IsWellFormedUriString(PayjoinEndPoint, UriKind.Absolute))
 			{
-				return ErrorDescriptors.Empty;
+				errors.Add(ErrorSeverity.Error, "Invalid url.");
 			}
-			return new ErrorDescriptors(new ErrorDescriptor(ErrorSeverity.Error, "Invalid url."));
 		}
 
 		protected override void OnAddressPaste(BitcoinUrlBuilder url)
