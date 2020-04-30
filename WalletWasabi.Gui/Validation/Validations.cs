@@ -10,14 +10,15 @@ namespace WalletWasabi.Gui.Validation
 {
 	public class Validations : ReactiveObject, IRegisterValidationMethod, IValidations
 	{
-		private Dictionary<string, ErrorDescriptors> ErrorsByPropertyName { get; }
-		private Dictionary<string, ValidateMethod> ValidationMethods { get; }
-
 		public Validations()
 		{
 			ErrorsByPropertyName = new Dictionary<string, ErrorDescriptors>();
 			ValidationMethods = new Dictionary<string, ValidateMethod>();
 		}
+
+		private Dictionary<string, ErrorDescriptors> ErrorsByPropertyName { get; }
+
+		private Dictionary<string, ValidateMethod> ValidationMethods { get; }
 
 		public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
 
