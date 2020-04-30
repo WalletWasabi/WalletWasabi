@@ -20,13 +20,21 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 		public bool IsTorUsed => true;
 
 		public Func<HttpMethod, string, string[], Task<HttpResponseMessage>> OnSendAsync_Method { get; set; }
+		public Func<HttpMethod, string, string, Task<HttpResponseMessage>> OnSendAsync { get; set; }
 
-		public Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent content = null, CancellationToken cancel = default)
+		public async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent content = null, CancellationToken cancel = default)
 		{
-			var sepPos = relativeUri.IndexOf('?');
-			var action = relativeUri[..sepPos];
-			var parameters = relativeUri[(sepPos + 1)..].Split('&', StringSplitOptions.RemoveEmptyEntries);
-			return OnSendAsync_Method(method, action, parameters);
+			if (string.IsNullOrWhiteSpace(relativeUri))
+			{
+				return await OnSendAsync(method, "", await content.ReadAsStringAsync());
+			}
+			else
+			{
+				var sepPos = relativeUri.IndexOf('?');
+				var action = relativeUri[..sepPos];
+				var parameters = relativeUri[(sepPos + 1)..].Split('&', StringSplitOptions.RemoveEmptyEntries);
+				return await OnSendAsync_Method(method, action, parameters);
+			}
 		}
 
 		public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancel = default)
