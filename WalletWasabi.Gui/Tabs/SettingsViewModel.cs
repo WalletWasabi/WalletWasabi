@@ -330,9 +330,6 @@ namespace WalletWasabi.Gui.Tabs
 				return;
 			}
 
-			// TODO test if this call is needed.. it shouldnt be.
-			Validate();
-
 			if (Validations.Any)
 			{
 				return;

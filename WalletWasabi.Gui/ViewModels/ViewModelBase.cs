@@ -21,11 +21,6 @@ namespace WalletWasabi.Gui.ViewModels
 
 		protected IValidations Validations => _validations;
 
-		protected void Validate()
-		{
-			_validations.Validate();
-		}
-
 		private void OnValidations_ErrorsChanged(object sender, DataErrorsChangedEventArgs e)
 		{
 			ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(e.PropertyName));
