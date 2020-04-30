@@ -155,7 +155,7 @@ namespace WalletWasabi.Gui.CommandLine
 
 				if (enqueuedCoins.Any())
 				{
-					Logger.LogInfo($"Enqueued {Money.Satoshis(enqueuedCoins.Sum(x => x.Amount)).ToString(false, true)} BTC, {enqueuedCoins.Count()} coins with smalles anonset {enqueuedCoins.Min(x => x.AnonymitySet)} and largest anonset {enqueuedCoins.Max(x => x.AnonymitySet)}.");
+					Logger.LogInfo($"Enqueued {Money.Satoshis(enqueuedCoins.Sum(x => x.Amount)).ToString(false, true)} BTC, {enqueuedCoins.Count()} coins with smallest anonset {enqueuedCoins.Min(x => x.AnonymitySet)} and largest anonset {enqueuedCoins.Max(x => x.AnonymitySet)}.");
 				}
 			}
 			catch (Exception ex)
