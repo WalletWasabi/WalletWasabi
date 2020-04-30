@@ -32,7 +32,7 @@ namespace WalletWasabi.Gui.Converters
 
 		private SolidColorBrush GetColorFromDescriptors(ErrorDescriptors descriptors)
 		{
-			if (!descriptors.HasErrors)
+			if (!descriptors.Any())
 			{
 				return null;
 			}

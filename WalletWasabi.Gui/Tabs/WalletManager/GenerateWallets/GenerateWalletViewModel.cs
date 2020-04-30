@@ -26,7 +26,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 
 			this.ValidateProperty(x => x.Password, ValidatePassword);
 
-			NextCommand = ReactiveCommand.Create(DoNextCommand, this.WhenAnyValue(x => x.HasErrors).Select(x => !x));
+			NextCommand = ReactiveCommand.Create(DoNextCommand, this.WhenAnyValue(x => x.Validations.Any).Select(x => !x));
 
 			NextCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)

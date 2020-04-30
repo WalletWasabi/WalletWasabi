@@ -10,8 +10,6 @@ namespace WalletWasabi.Models
 		{
 		}
 
-		public bool HasErrors => Count > 0;
-
 		public static ErrorDescriptors Create()
 		{
 			return new ErrorDescriptors();

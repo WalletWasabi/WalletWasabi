@@ -1,103 +1,58 @@
 using ReactiveUI;
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Reflection;
 using WalletWasabi.Gui.Validation;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.ViewModels
 {
 	public class ViewModelBase : ReactiveObject, INotifyDataErrorInfo, IRegisterValidationMethod
 	{
-		private Dictionary<string, ErrorDescriptors> _errorsByPropertyName;
-		private Dictionary<string, ValidateMethod> _validationMethods;
-
-		public ViewModelBase()
-		{
-			_errorsByPropertyName = new Dictionary<string, ErrorDescriptors>();
-			_validationMethods = new Dictionary<string, ValidateMethod>();
-
-			PropertyChanged += ViewModelBase_PropertyChanged;
-		}
+		private Validations _validations;
 
 		public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
 
-		public bool HasErrors => _errorsByPropertyName.Where(x => x.Value.HasErrors).Any();
-
-		void IRegisterValidationMethod.RegisterValidationMethod(string propertyName, ValidateMethod validateMethod)
+		public ViewModelBase()
 		{
-			if (string.IsNullOrWhiteSpace(propertyName))
-			{
-				throw new ArgumentException("PropertyName must be valid.", nameof(propertyName));
-			}
-
-			_validationMethods[propertyName] = validateMethod;
-			_errorsByPropertyName[propertyName] = ErrorDescriptors.Create();
+			_validations = new Validations();
+			_validations.ErrorsChanged += OnValidations_ErrorsChanged;
+			PropertyChanged += ViewModelBase_PropertyChanged;
 		}
+
+		protected IValidations Validations => _validations;
 
 		protected void Validate()
 		{
-			foreach (var propertyName in _validationMethods.Keys)
-			{
-				DoValidateProperty(propertyName);
-			}
+			_validations.Validate();
+		}
+
+		private void OnValidations_ErrorsChanged(object sender, DataErrorsChangedEventArgs e)
+		{
+			ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(e.PropertyName));
 		}
 
 		private void ViewModelBase_PropertyChanged(object sender, PropertyChangedEventArgs e)
 		{
 			if (string.IsNullOrWhiteSpace(e.PropertyName))
 			{
-				Validate();
+				_validations.Validate();
 			}
 			else
 			{
-				DoValidateProperty(e.PropertyName);
+				_validations.ValidateProperty(e.PropertyName);
 			}
 		}
 
-		private void DoValidateProperty(string propertyName)
+		bool INotifyDataErrorInfo.HasErrors => (_validations as IValidations).Any;
+
+		IEnumerable INotifyDataErrorInfo.GetErrors(string propertyName)
 		{
-			if (_validationMethods.ContainsKey(propertyName))
-			{
-				ClearErrors(propertyName);
-
-				var del = _validationMethods[propertyName];
-
-				var method = del as ValidateMethod;
-
-				method(_errorsByPropertyName[propertyName]);
-
-				OnErrorsChanged(propertyName);
-
-				this.RaisePropertyChanged(nameof(HasErrors));
-			}
+			return _validations.GetErrors(propertyName);
 		}
 
-		public IEnumerable GetErrors(string propertyName)
+		void IRegisterValidationMethod.RegisterValidationMethod(string propertyName, ValidateMethod validateMethod)
 		{
-			return _errorsByPropertyName.ContainsKey(propertyName) && _errorsByPropertyName[propertyName].HasErrors
-				? _errorsByPropertyName[propertyName]
-				: ErrorDescriptors.Empty;
-		}
-
-		private void ClearErrors(string propertyName)
-		{
-			if (_errorsByPropertyName.ContainsKey(propertyName))
-			{
-				_errorsByPropertyName[propertyName].Clear();
-
-				OnErrorsChanged(propertyName);
-
-				this.RaisePropertyChanged(nameof(HasErrors));
-			}
-		}
-
-		private void OnErrorsChanged(string propertyName)
-		{
-			ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
+			((IRegisterValidationMethod)_validations).RegisterValidationMethod(propertyName, validateMethod);
 		}
 	}
 }
