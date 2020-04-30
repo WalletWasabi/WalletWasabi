@@ -29,6 +29,7 @@ namespace WalletWasabi.Logging
 		public static string EntrySeparator { get; private set; } = Environment.NewLine;
 
 		/// <summary>
+		/// Gets the Guid instance.
 		/// You can use it to identify which software instance created a log entry.
 		/// It gets created automatically, but you have to use it manually.
 		/// </summary>

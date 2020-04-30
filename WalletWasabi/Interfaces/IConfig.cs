@@ -6,7 +6,7 @@ namespace WalletWasabi.Interfaces
 	public interface IConfig
 	{
 		/// <summary>
-		/// The path of the config file.
+		/// Gets the path of the config file.
 		/// </summary>
 		string FilePath { get; }
 
