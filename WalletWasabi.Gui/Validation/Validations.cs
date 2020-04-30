@@ -10,34 +10,34 @@ namespace WalletWasabi.Gui.Validation
 {
 	public class Validations : ReactiveObject, IRegisterValidationMethod, IValidations
 	{
-		private Dictionary<string, ErrorDescriptors> _errorsByPropertyName;
-		private Dictionary<string, ValidateMethod> _validationMethods;
+		private Dictionary<string, ErrorDescriptors> ErrorsByPropertyName { get; }
+		private Dictionary<string, ValidateMethod> ValidationMethods { get; }
 
 		public Validations()
 		{
-			_errorsByPropertyName = new Dictionary<string, ErrorDescriptors>();
-			_validationMethods = new Dictionary<string, ValidateMethod>();
+			ErrorsByPropertyName = new Dictionary<string, ErrorDescriptors>();
+			ValidationMethods = new Dictionary<string, ValidateMethod>();
 		}
 
 		public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
 
-		public bool Any => _errorsByPropertyName.Where(x => x.Value.Any()).Any();
+		public bool Any => ErrorsByPropertyName.Where(x => x.Value.Any()).Any();
 
-		public bool AnyErrors => _errorsByPropertyName.Where(x => x.Value.Any(x => x.Severity == ErrorSeverity.Error)).Any();
+		public bool AnyErrors => ErrorsByPropertyName.Where(x => x.Value.Any(x => x.Severity == ErrorSeverity.Error)).Any();
 
-		public bool AnyWarnings => _errorsByPropertyName.Where(x => x.Value.Any(x => x.Severity == ErrorSeverity.Warning)).Any();
+		public bool AnyWarnings => ErrorsByPropertyName.Where(x => x.Value.Any(x => x.Severity == ErrorSeverity.Warning)).Any();
 
-		public bool AnyInfos => _errorsByPropertyName.Where(x => x.Value.Any(x => x.Severity == ErrorSeverity.Info)).Any();
+		public bool AnyInfos => ErrorsByPropertyName.Where(x => x.Value.Any(x => x.Severity == ErrorSeverity.Info)).Any();
 
-		IEnumerable<string> IValidations.Infos => _errorsByPropertyName.Values.SelectMany(x => x.Where(x => x.Severity == ErrorSeverity.Info).Select(x => x.Message));
+		IEnumerable<string> IValidations.Infos => ErrorsByPropertyName.Values.SelectMany(x => x.Where(x => x.Severity == ErrorSeverity.Info).Select(x => x.Message));
 
-		IEnumerable<string> IValidations.Warnings => _errorsByPropertyName.Values.SelectMany(x => x.Where(x => x.Severity == ErrorSeverity.Warning).Select(x => x.Message));
+		IEnumerable<string> IValidations.Warnings => ErrorsByPropertyName.Values.SelectMany(x => x.Where(x => x.Severity == ErrorSeverity.Warning).Select(x => x.Message));
 
-		IEnumerable<string> IValidations.Errors => _errorsByPropertyName.Values.SelectMany(x => x.Where(x => x.Severity == ErrorSeverity.Error).Select(x => x.Message));
+		IEnumerable<string> IValidations.Errors => ErrorsByPropertyName.Values.SelectMany(x => x.Where(x => x.Severity == ErrorSeverity.Error).Select(x => x.Message));
 
 		public void Validate()
 		{
-			foreach (var propertyName in _validationMethods.Keys)
+			foreach (var propertyName in ValidationMethods.Keys)
 			{
 				ValidateProperty(propertyName);
 			}
@@ -45,15 +45,15 @@ namespace WalletWasabi.Gui.Validation
 
 		public void ValidateProperty(string propertyName)
 		{
-			if (_validationMethods.ContainsKey(propertyName))
+			if (ValidationMethods.ContainsKey(propertyName))
 			{
 				ClearErrors(propertyName);
 
-				var del = _validationMethods[propertyName];
+				var del = ValidationMethods[propertyName];
 
 				var method = del as ValidateMethod;
 
-				method(_errorsByPropertyName[propertyName]);
+				method(ErrorsByPropertyName[propertyName]);
 
 				OnErrorsChanged(propertyName);
 			}
@@ -66,22 +66,22 @@ namespace WalletWasabi.Gui.Validation
 				throw new ArgumentException("PropertyName must be valid.", nameof(propertyName));
 			}
 
-			_validationMethods[propertyName] = validateMethod;
-			_errorsByPropertyName[propertyName] = ErrorDescriptors.Create();
+			ValidationMethods[propertyName] = validateMethod;
+			ErrorsByPropertyName[propertyName] = ErrorDescriptors.Create();
 		}
 
 		public IEnumerable GetErrors(string propertyName)
 		{
-			return _errorsByPropertyName.ContainsKey(propertyName) && _errorsByPropertyName[propertyName].Any()
-				? _errorsByPropertyName[propertyName]
+			return ErrorsByPropertyName.ContainsKey(propertyName) && ErrorsByPropertyName[propertyName].Any()
+				? ErrorsByPropertyName[propertyName]
 				: ErrorDescriptors.Empty;
 		}
 
 		private void ClearErrors(string propertyName)
 		{
-			if (_errorsByPropertyName.ContainsKey(propertyName))
+			if (ErrorsByPropertyName.ContainsKey(propertyName))
 			{
-				_errorsByPropertyName[propertyName].Clear();
+				ErrorsByPropertyName[propertyName].Clear();
 
 				OnErrorsChanged(propertyName);
 			}
