@@ -23,7 +23,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void LazyPayjoinServerTest()
 		{
-			// This test the scenario where the payjoin server returns the same
+			// This tests the scenario where the payjoin server returns the same
 			// transaction that we sent to it and adds no inputs. This can give
 			// us the fake sense of privacy but it should be valid.
 			var httpClient = new MockTorHttpClient
@@ -54,7 +54,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		{
 			var amountToPay = Money.Coins(0.001m);
 
-			// This test the scenario where the payjoin server behaves as expected.
+			// This tests the scenario where the payjoin server behaves as expected.
 			var httpClient = new MockTorHttpClient
 			{
 				OnSendAsync = PayjoinServer(psbt =>
@@ -124,7 +124,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var amountToPay = Money.Coins(0.001m);
 			var payment = new PaymentIntent(new Key().PubKey.WitHash.ScriptPubKey, amountToPay);
 
-			// This test the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
+			// This tests the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
 			var httpClient = new MockTorHttpClient
 			{
 				OnSendAsync = PayjoinServer(psbt =>
@@ -145,7 +145,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var destination = new Key().PubKey.WitHash.ScriptPubKey;
 			payment = new PaymentIntent(destination, amountToPay);
 
-			// This test the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
+			// This tests the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
 			httpClient = new MockTorHttpClient
 			{
 				OnSendAsync = PayjoinServer(psbt =>
@@ -188,7 +188,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 			////////
 
-			// This test the scenario where the payjoin server includes keypath info in the inputs.
+			// This tests the scenario where the payjoin server includes keypath info in the inputs.
 			httpClient = new MockTorHttpClient
 			{
 				OnSendAsync = PayjoinServer(psbt =>
@@ -318,7 +318,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var destination = new Key().PubKey.WitHash.ScriptPubKey;
 			var payment = new PaymentIntent(destination, amountToPay);
 
-			// This test the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
+			// This tests the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
 			var httpClient = new MockTorHttpClient
 			{
 				OnSendAsync = PayjoinServer(psbt =>
