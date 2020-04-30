@@ -91,10 +91,10 @@ namespace WalletWasabi.Gui.Validation
 
 		public bool AnyInfos => _errorsByPropertyName.Where(x => x.Value.Any(x => x.Severity == ErrorSeverity.Info)).Any();
 
-		IEnumerable<string> IValidations.Infos => throw new NotImplementedException();
+		IEnumerable<string> IValidations.Infos => _errorsByPropertyName.Values.SelectMany(x => x.Where(x => x.Severity == ErrorSeverity.Info).Select(x => x.Message));
 
-		IEnumerable<string> IValidations.Warnings => throw new NotImplementedException();
+		IEnumerable<string> IValidations.Warnings => _errorsByPropertyName.Values.SelectMany(x => x.Where(x => x.Severity == ErrorSeverity.Warning).Select(x => x.Message));
 
-		IEnumerable<string> IValidations.Errors => throw new NotImplementedException();
+		IEnumerable<string> IValidations.Errors => _errorsByPropertyName.Values.SelectMany(x => x.Where(x => x.Severity == ErrorSeverity.Error).Select(x => x.Message));
 	}
 }
