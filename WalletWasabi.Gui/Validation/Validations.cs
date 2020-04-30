@@ -13,13 +13,27 @@ namespace WalletWasabi.Gui.Validation
 		private Dictionary<string, ErrorDescriptors> _errorsByPropertyName;
 		private Dictionary<string, ValidateMethod> _validationMethods;
 
-		public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
-
 		public Validations()
 		{
 			_errorsByPropertyName = new Dictionary<string, ErrorDescriptors>();
 			_validationMethods = new Dictionary<string, ValidateMethod>();
 		}
+
+		public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
+
+		public bool Any => _errorsByPropertyName.Where(x => x.Value.Any()).Any();
+
+		public bool AnyErrors => _errorsByPropertyName.Where(x => x.Value.Any(x => x.Severity == ErrorSeverity.Error)).Any();
+
+		public bool AnyWarnings => _errorsByPropertyName.Where(x => x.Value.Any(x => x.Severity == ErrorSeverity.Warning)).Any();
+
+		public bool AnyInfos => _errorsByPropertyName.Where(x => x.Value.Any(x => x.Severity == ErrorSeverity.Info)).Any();
+
+		IEnumerable<string> IValidations.Infos => _errorsByPropertyName.Values.SelectMany(x => x.Where(x => x.Severity == ErrorSeverity.Info).Select(x => x.Message));
+
+		IEnumerable<string> IValidations.Warnings => _errorsByPropertyName.Values.SelectMany(x => x.Where(x => x.Severity == ErrorSeverity.Warning).Select(x => x.Message));
+
+		IEnumerable<string> IValidations.Errors => _errorsByPropertyName.Values.SelectMany(x => x.Where(x => x.Severity == ErrorSeverity.Error).Select(x => x.Message));
 
 		public void Validate()
 		{
@@ -82,19 +96,5 @@ namespace WalletWasabi.Gui.Validation
 			this.RaisePropertyChanged(nameof(AnyWarnings));
 			this.RaisePropertyChanged(nameof(AnyInfos));
 		}
-
-		public bool Any => _errorsByPropertyName.Where(x => x.Value.Any()).Any();
-
-		public bool AnyErrors => _errorsByPropertyName.Where(x => x.Value.Any(x => x.Severity == ErrorSeverity.Error)).Any();
-
-		public bool AnyWarnings => _errorsByPropertyName.Where(x => x.Value.Any(x => x.Severity == ErrorSeverity.Warning)).Any();
-
-		public bool AnyInfos => _errorsByPropertyName.Where(x => x.Value.Any(x => x.Severity == ErrorSeverity.Info)).Any();
-
-		IEnumerable<string> IValidations.Infos => _errorsByPropertyName.Values.SelectMany(x => x.Where(x => x.Severity == ErrorSeverity.Info).Select(x => x.Message));
-
-		IEnumerable<string> IValidations.Warnings => _errorsByPropertyName.Values.SelectMany(x => x.Where(x => x.Severity == ErrorSeverity.Warning).Select(x => x.Message));
-
-		IEnumerable<string> IValidations.Errors => _errorsByPropertyName.Values.SelectMany(x => x.Where(x => x.Severity == ErrorSeverity.Error).Select(x => x.Message));
 	}
 }

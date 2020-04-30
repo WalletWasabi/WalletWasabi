@@ -10,14 +10,14 @@ namespace WalletWasabi.Gui.ViewModels
 	{
 		private Validations _validations;
 
-		public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
-
 		public ViewModelBase()
 		{
 			_validations = new Validations();
 			_validations.ErrorsChanged += OnValidations_ErrorsChanged;
 			PropertyChanged += ViewModelBase_PropertyChanged;
 		}
+
+		public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
 
 		protected IValidations Validations => _validations;
 
