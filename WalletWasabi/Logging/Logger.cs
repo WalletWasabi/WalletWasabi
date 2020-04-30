@@ -35,7 +35,7 @@ namespace WalletWasabi.Logging
 		public static Guid InstanceGuid { get; } = Guid.NewGuid();
 
 		/// <summary>
-		/// KB
+		/// Gets the maximum log file size in KB
 		/// </summary>
 		public static long MaximumLogFileSize { get; private set; } = 10_000; // approx 10 MB
 
