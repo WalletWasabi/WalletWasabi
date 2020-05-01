@@ -13,8 +13,8 @@ using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Suggestions;
+using WalletWasabi.Gui.Validation;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -36,6 +36,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 		{
 			Global = Locator.Current.GetService<Global>();
 			WalletManager = Global.WalletManager;
+
+			this.ValidateProperty(x => x.Password, ValidatePassword);
 
 			MnemonicWords = "";
 
@@ -109,9 +111,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 		private Global Global { get; }
 		private Wallets.WalletManager WalletManager { get; }
 
-		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
+		private void ValidatePassword(IValidationErrors errors) => PasswordHelper.ValidatePassword(errors, Password);
 
-		[ValidateMethod(nameof(ValidatePassword))]
 		public string Password
 		{
 			get => _password;

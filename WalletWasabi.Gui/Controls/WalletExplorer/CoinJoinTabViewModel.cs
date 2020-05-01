@@ -16,8 +16,8 @@ using WalletWasabi.CoinJoin.Client.Rounds;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
+using WalletWasabi.Gui.Validation;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -53,6 +53,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Global = Locator.Current.GetService<Global>();
 			Wallet = wallet;
+
+			this.ValidateProperty(x => x.Password, ValidatePassword);
 
 			Password = "";
 			TimeLeftTillRoundTimeout = TimeSpan.Zero;
@@ -135,7 +137,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		Wallet IWalletViewModel.Wallet => Wallet;
 
-		[ValidateMethod(nameof(ValidatePassword))]
 		public string Password
 		{
 			get => _password;
@@ -469,6 +470,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			base.OnDeselected();
 		}
 
-		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
+		private void ValidatePassword(IValidationErrors errors) => PasswordHelper.ValidatePassword(errors, Password);
 	}
 }

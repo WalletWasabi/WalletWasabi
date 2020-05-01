@@ -777,7 +777,7 @@ namespace WalletWasabi.Blockchain.Keys
 				{
 					BlockchainState.Height = newHeight;
 					ToFileNoBlockchainStateLock();
-					Logger.LogWarning($"Wallet ({WalletName}) height been set back by {prevHeight - newHeight}. From {prevHeight} to {newHeight}.");
+					Logger.LogWarning($"Wallet ({WalletName}) height has been set back by {prevHeight - newHeight}. From {prevHeight} to {newHeight}.");
 				}
 			}
 		}
