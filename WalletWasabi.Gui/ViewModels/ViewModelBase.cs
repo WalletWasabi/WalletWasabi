@@ -1,50 +1,53 @@
-using Newtonsoft.Json;
 using ReactiveUI;
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Reflection;
-using WalletWasabi.Gui.ViewModels.Validation;
-using WalletWasabi.Models;
+using WalletWasabi.Gui.Validation;
 
 namespace WalletWasabi.Gui.ViewModels
 {
-	public class ViewModelBase : ReactiveObject, INotifyDataErrorInfo
+	public class ViewModelBase : ReactiveObject, INotifyDataErrorInfo, IRegisterValidationMethod
 	{
+		private Validations _validations;
+
 		public ViewModelBase()
 		{
-			var vmc = Validator.PropertiesWithValidation(this).ToList();
-			if (vmc.Count == 0)
-			{
-				return;
-			}
-
-			ValidationMethodCache = vmc;
+			_validations = new Validations();
+			_validations.ErrorsChanged += OnValidations_ErrorsChanged;
+			PropertyChanged += ViewModelBase_PropertyChanged;
 		}
 
 		public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
 
-		private List<(string propertyName, MethodInfo mInfo)> ValidationMethodCache { get; }
+		protected IValidations Validations => _validations;
 
-		public bool HasErrors => Validator.ValidateAllProperties(this, ValidationMethodCache).HasErrors;
+		bool INotifyDataErrorInfo.HasErrors => Validations.Any;
 
-		public IEnumerable GetErrors(string propertyName)
+		private void OnValidations_ErrorsChanged(object sender, DataErrorsChangedEventArgs e)
 		{
-			var error = Validator.ValidateProperty(this, propertyName, ValidationMethodCache);
-
-			if (error.HasErrors)
-			{
-				return error;
-			}
-
-			return ErrorDescriptors.Empty;
+			ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(e.PropertyName));
 		}
 
-		protected void NotifyErrorsChanged(string propertyName)
+		private void ViewModelBase_PropertyChanged(object sender, PropertyChangedEventArgs e)
 		{
-			ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
+			if (string.IsNullOrWhiteSpace(e.PropertyName))
+			{
+				_validations.Validate();
+			}
+			else
+			{
+				_validations.ValidateProperty(e.PropertyName);
+			}
+		}
+
+		IEnumerable INotifyDataErrorInfo.GetErrors(string propertyName)
+		{
+			return _validations.GetErrors(propertyName);
+		}
+
+		void IRegisterValidationMethod.RegisterValidationMethod(string propertyName, ValidateMethod validateMethod)
+		{
+			((IRegisterValidationMethod)_validations).RegisterValidationMethod(propertyName, validateMethod);
 		}
 	}
 }

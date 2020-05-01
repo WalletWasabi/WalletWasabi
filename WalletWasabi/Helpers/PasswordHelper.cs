@@ -152,21 +152,17 @@ namespace WalletWasabi.Helpers
 			throw resultException; // Throw the last exception - Invalid password.
 		}
 
-		public static ErrorDescriptors ValidatePassword(string password)
+		public static void ValidatePassword(IValidationErrors errors, string password)
 		{
-			var errors = new ErrorDescriptors();
-
 			if (IsTrimable(password, out _))
 			{
-				errors.Add(new ErrorDescriptor(ErrorSeverity.Warning, TrimWarnMessage));
+				errors.Add(ErrorSeverity.Warning, TrimWarnMessage);
 			}
 
 			if (IsTooLong(password, out _))
 			{
-				errors.Add(new ErrorDescriptor(ErrorSeverity.Error, PasswordTooLongMessage));
-			}
-
-			return errors;
+				errors.Add(ErrorSeverity.Error, PasswordTooLongMessage);
+			}			
 		}
 	}
 }
