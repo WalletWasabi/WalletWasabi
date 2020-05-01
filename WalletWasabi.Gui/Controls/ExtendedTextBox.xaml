@@ -4,7 +4,6 @@
         xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
   <Style>
     <Style.Resources>
-      <converters:ErrorDescriptorToBorderColorConverter x:Key="ErrorDescriptorToBorderColorConverter" />
       <converters:BooleanStringConverter x:Key="BooleanStringConverter" />
     </Style.Resources>
   </Style>
@@ -66,14 +65,5 @@
         </Border>
       </ControlTemplate>
     </Setter>
-  </Style>
-  <Style Selector="controls|ExtendedTextBox:pointerover /template/ Border#border">
-    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderHighBrush}" />
-  </Style>
-  <Style Selector="controls|ExtendedTextBox:focus /template/ Border#border">
-    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderHighBrush}" />
-  </Style>
-  <Style Selector="controls|ExtendedTextBox:error /template/ Border#border">
-    <Setter Property="BorderBrush" Value="{Binding $parent[controls:ExtendedTextBox].(DataValidationErrors.Errors), Converter={StaticResource ErrorDescriptorToBorderColorConverter}}" />
   </Style>
 </Styles>

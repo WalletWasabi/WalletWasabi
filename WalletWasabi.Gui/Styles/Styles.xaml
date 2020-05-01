@@ -105,6 +105,15 @@
     <Setter Property="BorderThickness" Value="0" />
     <Setter Property="IsReadOnly" Value="True" />
   </Style>
+  <Style Selector=":is(TextBox):pointerover /template/ Border#border">
+    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderHighBrush}" />
+  </Style>
+  <Style Selector=":is(TextBox):focus /template/ Border#border">
+    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderHighBrush}" />
+  </Style>
+  <Style Selector=":is(TextBox):error /template/ Border#border">
+    <Setter Property="BorderBrush" Value="{Binding $parent.(DataValidationErrors.Errors), Converter={StaticResource ErrorDescriptorToBorderColorConverter}}" />
+  </Style>
   <Style Selector="Control.docTabContainer">
     <Setter Property="Margin" Value="20" />
   </Style>
