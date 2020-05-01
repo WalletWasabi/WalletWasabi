@@ -14,6 +14,7 @@
     <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderThickness}" />
     <Setter Property="SelectionBrush" Value="{DynamicResource HighlightBrush}" />
     <Setter Property="SelectionForegroundBrush" Value="{DynamicResource HighlightForegroundBrush}" />
+    <Setter Property="Cursor" Value="IBeam" />
     <Setter Property="Padding" Value="4" />
     <Setter Property="Template">
       <ControlTemplate>
@@ -74,18 +75,5 @@
   </Style>
   <Style Selector="controls|ExtendedTextBox:error /template/ Border#border">
     <Setter Property="BorderBrush" Value="{Binding $parent[controls:ExtendedTextBox].(DataValidationErrors.Errors), Converter={StaticResource ErrorDescriptorToBorderColorConverter}}" />
-  </Style>
-  <Style Selector="controls|ExtendedTextBox">
-    <Setter Property="Cursor" Value="IBeam" />
-  </Style>
-  <Style Selector="Button">
-    <Setter Property="Cursor" Value="Hand" />
-  </Style>
-  <Style Selector="Button:pointerover /template/ ContentPresenter">
-    <Setter Property="Opacity" Value="0.8" />
-  </Style>
-  <Style Selector="Button:pressed /template/ ContentPresenter">
-    <Setter Property="Opacity" Value="0.6" />
-    <Setter Property="Background" Value="Transparent" />
   </Style>
 </Styles>
