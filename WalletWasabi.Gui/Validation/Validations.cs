@@ -20,7 +20,7 @@ namespace WalletWasabi.Gui.Validation
 
 		private Dictionary<string, ErrorDescriptors> ErrorsByPropertyName { get; }
 
-		private Dictionary<string, ValidateMethod> ValidationMethods { get; }		
+		private Dictionary<string, ValidateMethod> ValidationMethods { get; }
 
 		public bool Any => ErrorsByPropertyName.Where(x => x.Value.Any()).Any();
 
@@ -50,9 +50,7 @@ namespace WalletWasabi.Gui.Validation
 			{
 				ClearErrors(propertyName);
 
-				var del = ValidationMethods[propertyName];
-
-				var method = del as ValidateMethod;
+				var method = ValidationMethods[propertyName];
 
 				method(ErrorsByPropertyName[propertyName]);
 
