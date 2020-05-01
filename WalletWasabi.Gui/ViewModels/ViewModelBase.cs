@@ -21,6 +21,8 @@ namespace WalletWasabi.Gui.ViewModels
 
 		protected IValidations Validations => _validations;
 
+		bool INotifyDataErrorInfo.HasErrors => Validations.Any;
+
 		private void OnValidations_ErrorsChanged(object sender, DataErrorsChangedEventArgs e)
 		{
 			ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(e.PropertyName));
@@ -37,8 +39,6 @@ namespace WalletWasabi.Gui.ViewModels
 				_validations.ValidateProperty(e.PropertyName);
 			}
 		}
-
-		bool INotifyDataErrorInfo.HasErrors => (_validations as IValidations).Any;
 
 		IEnumerable INotifyDataErrorInfo.GetErrors(string propertyName)
 		{

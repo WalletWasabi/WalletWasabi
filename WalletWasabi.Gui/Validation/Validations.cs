@@ -16,11 +16,11 @@ namespace WalletWasabi.Gui.Validation
 			ValidationMethods = new Dictionary<string, ValidateMethod>();
 		}
 
+		public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
+
 		private Dictionary<string, ErrorDescriptors> ErrorsByPropertyName { get; }
 
-		private Dictionary<string, ValidateMethod> ValidationMethods { get; }
-
-		public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
+		private Dictionary<string, ValidateMethod> ValidationMethods { get; }		
 
 		public bool Any => ErrorsByPropertyName.Where(x => x.Value.Any()).Any();
 
