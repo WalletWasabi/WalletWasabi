@@ -203,6 +203,7 @@ namespace WalletWasabi.Gui.Tabs
 			get => _network;
 			set => this.RaiseAndSetIfChanged(ref _network, value);
 		}
+
 		public string TorSocks5EndPoint
 		{
 			get => _torSocks5EndPoint;
@@ -451,8 +452,8 @@ namespace WalletWasabi.Gui.Tabs
 
 				return;
 			}
-      
-      errors.Add(ErrorSeverity.Error, "Invalid privacy level.");
+
+			errors.Add(ErrorSeverity.Error, "Invalid privacy level.");
 		}
 
 		private void ValidateSomePrivacyLevelValue(uint result, out bool isUnderMinimumPrivacyLevel, out uint minimumPrivacyLevel, out bool isAboveMaximumPrivacyLevel, out uint maximumPrivacyLevel)
