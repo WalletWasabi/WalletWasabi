@@ -11,14 +11,11 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		/// <summary>
 		/// Returns the bit representation of input data.
 		/// </summary>
-		/// <param name="content"></param>
-		/// <returns></returns>
 		internal abstract BitList GetDataBits(string content);
 
 		/// <summary>
 		/// Returns bit representation of Modevalue.
 		/// </summary>
-		/// <returns></returns>
 		/// <remarks>See Chapter 8.4 Data encodation, Table 2 — Mode indicators</remarks>
 		internal BitList GetModeIndicator()
 		{
@@ -29,11 +26,6 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			return modeIndicatorBits;
 		}
 
-		/// <summary>
-		///
-		/// </summary>
-		/// <param name="characterCount"></param>
-		/// <returns></returns>
 		internal BitList GetCharCountIndicator(int characterCount, int version)
 		{
 			BitList characterCountBits = new BitList();

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
-using static NBitcoin.Crypto.SchnorrBlinding;
+using static WalletWasabi.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.CoinJoin.Common.Crypto
 {
@@ -44,11 +44,11 @@ namespace WalletWasabi.CoinJoin.Common.Crypto
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => obj is SchnorrPubKey schnorrPubKey && this == schnorrPubKey;
+		public override bool Equals(object obj) => Equals(obj as SchnorrPubKey);
 
 		public bool Equals(SchnorrPubKey other) => this == other;
 
-		public override int GetHashCode() => SignerPubKey.GetHashCode() ^ RpubKey.GetHashCode();
+		public override int GetHashCode() => (SignerPubKey, RpubKey).GetHashCode();
 
 		public static bool operator ==(SchnorrPubKey x, SchnorrPubKey y) => y?.SignerPubKey == x?.SignerPubKey && y?.RpubKey == x?.RpubKey;
 

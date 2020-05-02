@@ -15,17 +15,6 @@ namespace WalletWasabi.Blockchain.Mempool
 {
 	public class MempoolService
 	{
-		private HashSet<uint256> ProcessedTransactionHashes { get; }
-		private object ProcessedLock { get; }
-
-		// Transactions that we would reply to INV messages.
-		private List<TransactionBroadcastEntry> BroadcastStore { get; }
-
-		private object BroadcastStoreLock { get; }
-		public bool TrustedNodeMode { get; set; }
-
-		public event EventHandler<SmartTransaction> TransactionReceived;
-
 		public MempoolService()
 		{
 			ProcessedTransactionHashes = new HashSet<uint256>();
@@ -35,6 +24,17 @@ namespace WalletWasabi.Blockchain.Mempool
 			_cleanupInProcess = 0;
 			TrustedNodeMode = false;
 		}
+
+		public event EventHandler<SmartTransaction> TransactionReceived;
+
+		private HashSet<uint256> ProcessedTransactionHashes { get; }
+		private object ProcessedLock { get; }
+
+		// Transactions that we would reply to INV messages.
+		private List<TransactionBroadcastEntry> BroadcastStore { get; }
+
+		private object BroadcastStoreLock { get; }
+		public bool TrustedNodeMode { get; set; }
 
 		public bool TryAddToBroadcastStore(Transaction transaction, string nodeRemoteSocketEndpoint)
 		{

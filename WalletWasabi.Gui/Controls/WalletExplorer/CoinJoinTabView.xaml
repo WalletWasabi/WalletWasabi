@@ -18,20 +18,8 @@
     <converters:TimeSpanStringConverter x:Key="TimeSpanStringConverter" />
     <converters:TimeSpanVisibilityConverter x:Key="TimeSpanVisibilityConverter" />
   </UserControl.Resources>
-  <Grid Margin="20">
-    <Grid.RowDefinitions>
-      <RowDefinition Height="8*" />
-      <RowDefinition Height="3*" MinHeight="200" />
-    </Grid.RowDefinitions>
-    <Grid Classes="content" Grid.Row="0" Margin="0 0 0 10">
-      <Grid.Styles>
-        <Style Selector="ListBoxItem">
-          <Setter Property="Padding" Value="0 0 5 0" />
-        </Style>
-      </Grid.Styles>
-      <local:CoinListView SelectAllPrivateVisible="False" DataContext="{Binding CoinsList}" />
-    </Grid>
-    <Grid Grid.Row="1">
+  <DockPanel LastChildFill="True" Margin="10">
+    <Grid DockPanel.Dock="Bottom">
       <Grid.RowDefinitions>
         <RowDefinition Height="*" />
       </Grid.RowDefinitions>
@@ -64,17 +52,17 @@
             <Grid ColumnDefinitions="210, *" RowDefinitions="50, 20, 20">
               <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Spacing="4" Margin="0 12">
                 <Canvas Height="20" Width="200">
-                  <Ellipse Width="20" Height="20" StrokeThickness="4" Stroke="{Binding Phase, ConverterParameter=InputRegistration, Converter={StaticResource PhaseColorConverter}}" Canvas.Left="0" />
-                  <Ellipse Width="20" Height="20" StrokeThickness="4" Stroke="{Binding Phase, ConverterParameter=ConnectionConfirmation, Converter={StaticResource PhaseColorConverter}}" Canvas.Left="50" />
-                  <Ellipse Width="20" Height="20" StrokeThickness="4" Stroke="{Binding Phase, ConverterParameter=OutputRegistration, Converter={StaticResource PhaseColorConverter}}" Canvas.Left="100" />
-                  <Ellipse Width="20" Height="20" StrokeThickness="4" Stroke="{Binding Phase, ConverterParameter=Signing, Converter={StaticResource PhaseColorConverter}}" Canvas.Left="150" />
-                  <Line StartPoint="20,10" EndPoint="50,10" StrokeThickness="4" Stroke="{Binding Phase, ConverterParameter=InputRegistration, Converter={StaticResource PhaseColorConverter}}" />
-                  <Line StartPoint="70,10" EndPoint="100,10" StrokeThickness="4" Stroke="{Binding Phase, ConverterParameter=ConnectionConfirmation, Converter={StaticResource PhaseColorConverter}}" />
-                  <Line StartPoint="120,10" EndPoint="150,10" StrokeThickness="4" Stroke="{Binding Phase, ConverterParameter=OutputRegistration, Converter={StaticResource PhaseColorConverter}}" />
+                  <Ellipse Width="20" Height="20" StrokeThickness="4" Stroke="{Binding RoundPhaseState, ConverterParameter=InputRegistration, Converter={StaticResource PhaseColorConverter}}" Canvas.Left="0" />
+                  <Ellipse Width="20" Height="20" StrokeThickness="4" Stroke="{Binding RoundPhaseState, ConverterParameter=ConnectionConfirmation, Converter={StaticResource PhaseColorConverter}}" Canvas.Left="50" />
+                  <Ellipse Width="20" Height="20" StrokeThickness="4" Stroke="{Binding RoundPhaseState, ConverterParameter=OutputRegistration, Converter={StaticResource PhaseColorConverter}}" Canvas.Left="100" />
+                  <Ellipse Width="20" Height="20" StrokeThickness="4" Stroke="{Binding RoundPhaseState, ConverterParameter=Signing, Converter={StaticResource PhaseColorConverter}}" Canvas.Left="150" />
+                  <Line StartPoint="20,10" EndPoint="50,10" StrokeThickness="4" Stroke="{Binding RoundPhaseState, ConverterParameter=InputRegistration, Converter={StaticResource PhaseColorConverter}}" />
+                  <Line StartPoint="70,10" EndPoint="100,10" StrokeThickness="4" Stroke="{Binding RoundPhaseState, ConverterParameter=ConnectionConfirmation, Converter={StaticResource PhaseColorConverter}}" />
+                  <Line StartPoint="120,10" EndPoint="150,10" StrokeThickness="4" Stroke="{Binding RoundPhaseState, ConverterParameter=OutputRegistration, Converter={StaticResource PhaseColorConverter}}" />
                 </Canvas>
               </StackPanel>
               <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="4" Margin="0 12">
-                <TextBlock VerticalAlignment="Center" Foreground="YellowGreen" Text="{Binding Phase, Converter={StaticResource PhaseStringConverter}}" />
+                <TextBlock VerticalAlignment="Center" Foreground="YellowGreen" Text="{Binding RoundPhaseState, Converter={StaticResource PhaseStringConverter}}" />
               </StackPanel>
               <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" Spacing="4" IsVisible="{Binding TimeLeftTillRoundTimeout, Converter={StaticResource TimeSpanVisibilityConverter}}">
                 <TextBlock Text="Registration Ends In:" />
@@ -147,5 +135,13 @@
         </Button>
       </controls:GroupBox>
     </Grid>
-  </Grid>
+    <Panel Classes="content" Margin="0 0 0 10">
+      <Panel.Styles>
+        <Style Selector="ListBoxItem">
+          <Setter Property="Padding" Value="0 0 5 0" />
+        </Style>
+      </Panel.Styles>
+      <local:CoinListView SelectAllPrivateVisible="False" DataContext="{Binding CoinsList}" />
+    </Panel>
+  </DockPanel>
 </UserControl>

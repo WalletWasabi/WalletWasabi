@@ -12,6 +12,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private DateTimeOffset _dateTime;
 		private string _amountBtc;
 		private string _label;
+		private int _blockHeight;
 		private string _transactionId;
 
 		public DateTimeOffset DateTime
@@ -42,6 +43,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _label;
 			set => this.RaiseAndSetIfChanged(ref _label, value);
+		}
+
+		public int BlockHeight
+		{
+			get => _blockHeight;
+			set => this.RaiseAndSetIfChanged(ref _blockHeight, value);
 		}
 
 		public string TransactionId

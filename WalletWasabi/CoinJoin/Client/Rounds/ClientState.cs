@@ -12,6 +12,13 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 {
 	public class ClientState
 	{
+		public ClientState()
+		{
+			StateLock = new object();
+			WaitingList = new Dictionary<SmartCoin, DateTimeOffset>();
+			Rounds = new List<ClientRound>();
+		}
+
 		private object StateLock { get; }
 
 		/// <summary>
@@ -21,12 +28,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 
 		private List<ClientRound> Rounds { get; }
 
-		public ClientState()
-		{
-			StateLock = new object();
-			WaitingList = new Dictionary<SmartCoin, DateTimeOffset>();
-			Rounds = new List<ClientRound>();
-		}
+		public bool IsInErrorState { get; private set; }
 
 		public void AddCoinToWaitingList(SmartCoin coin)
 		{
@@ -40,11 +42,11 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 			}
 		}
 
-		public IEnumerable<TxoRef> GetSpentCoins()
+		public IEnumerable<OutPoint> GetSpentCoins()
 		{
 			lock (StateLock)
 			{
-				return WaitingList.Keys.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Where(x => !x.Unspent).Select(x => x.GetTxoRef()).ToArray();
+				return WaitingList.Keys.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Where(x => !x.Unspent).Select(x => x.OutPoint).ToArray();
 			}
 		}
 
@@ -68,15 +70,15 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 			}
 		}
 
-		public bool Contains(IEnumerable<TxoRef> txos)
+		public bool Contains(IEnumerable<OutPoint> outpoints)
 		{
 			lock (StateLock)
 			{
-				foreach (TxoRef txo in txos)
+				foreach (OutPoint txo in outpoints)
 				{
 					if (WaitingList.Keys
 						.Concat(Rounds.SelectMany(x => x.CoinsRegistered))
-						.Any(x => x.GetTxoRef() == txo))
+						.Any(x => x.OutPoint == txo))
 					{
 						return true;
 					}
@@ -94,11 +96,11 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 			}
 		}
 
-		public SmartCoin GetSingleOrDefaultCoin(TxoRef coinReference)
+		public SmartCoin GetSingleOrDefaultCoin(OutPoint coinReference)
 		{
 			lock (StateLock)
 			{
-				return WaitingList.Keys.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).SingleOrDefault(x => x.GetTxoRef() == coinReference);
+				return WaitingList.Keys.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).SingleOrDefault(x => x.OutPoint == coinReference);
 			}
 		}
 
@@ -110,19 +112,19 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 			}
 		}
 
-		public SmartCoin GetSingleOrDefaultFromWaitingList(TxoRef coinReference)
+		public SmartCoin GetSingleOrDefaultFromWaitingList(OutPoint coinReference)
 		{
 			lock (StateLock)
 			{
-				return WaitingList.Keys.SingleOrDefault(x => x.GetTxoRef() == coinReference);
+				return WaitingList.Keys.SingleOrDefault(x => x.OutPoint == coinReference);
 			}
 		}
 
-		public IEnumerable<TxoRef> GetAllQueuedCoins()
+		public IEnumerable<OutPoint> GetAllQueuedCoins()
 		{
 			lock (StateLock)
 			{
-				return WaitingList.Keys.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Select(x => x.GetTxoRef()).ToArray();
+				return WaitingList.Keys.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Select(x => x.OutPoint).ToArray();
 			}
 		}
 
@@ -150,29 +152,29 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 			}
 		}
 
-		public IEnumerable<TxoRef> GetAllWaitingCoins()
+		public IEnumerable<OutPoint> GetAllWaitingCoins()
 		{
 			lock (StateLock)
 			{
-				return WaitingList.Keys.Select(x => x.GetTxoRef()).ToArray();
+				return WaitingList.Keys.Select(x => x.OutPoint).ToArray();
 			}
 		}
 
-		public IEnumerable<TxoRef> GetAllRegisteredCoins()
+		public IEnumerable<OutPoint> GetAllRegisteredCoins()
 		{
 			lock (StateLock)
 			{
-				return Rounds.SelectMany(x => x.CoinsRegistered).Select(x => x.GetTxoRef()).ToArray();
+				return Rounds.SelectMany(x => x.CoinsRegistered).Select(x => x.OutPoint).ToArray();
 			}
 		}
 
-		public IEnumerable<TxoRef> GetRegistrableCoins(int maximumInputCountPerPeer, Money denomination, Money feePerInputs, Money feePerOutputs)
+		public IEnumerable<OutPoint> GetRegistrableCoins(int maximumInputCountPerPeer, Money denomination, Money feePerInputs, Money feePerOutputs)
 		{
 			lock (StateLock)
 			{
 				if (!WaitingList.Any()) // To avoid computations.
 				{
-					return Enumerable.Empty<TxoRef>();
+					return Enumerable.Empty<OutPoint>();
 				}
 
 				Money amountNeededExceptInputFees = denomination + (feePerOutputs * 2);
@@ -188,17 +190,17 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 			}
 		}
 
-		private IEnumerable<TxoRef> GetRegistrableCoinsNoLock(int maximumInputCountPerPeer, Money feePerInputs, Money amountNeededExceptInputFees, bool allowUnconfirmedZeroLink)
+		private IEnumerable<OutPoint> GetRegistrableCoinsNoLock(int maximumInputCountPerPeer, Money feePerInputs, Money amountNeededExceptInputFees, bool allowUnconfirmedZeroLink)
 		{
 			if (!WaitingList.Any()) // To avoid computations.
 			{
-				return Enumerable.Empty<TxoRef>();
+				return Enumerable.Empty<OutPoint>();
 			}
 
 			Func<SmartCoin, bool> confirmationPredicate;
 			if (allowUnconfirmedZeroLink)
 			{
-				confirmationPredicate = x => x.Confirmed || x.IsLikelyCoinJoinOutput;
+				confirmationPredicate = x => x.Confirmed || x.IsLikelyCoinJoinOutput is true;
 			}
 			else
 			{
@@ -291,11 +293,11 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 						}
 					}
 
-					return bestSet.Select(x => x.GetTxoRef()).ToArray();
+					return bestSet.Select(x => x.OutPoint).ToArray();
 				}
 			}
 
-			return Enumerable.Empty<TxoRef>(); // Inputs are too small, max input to be registered is reached.
+			return Enumerable.Empty<OutPoint>(); // Inputs are too small, max input to be registered is reached.
 		}
 
 		public bool AnyCoinsQueued()
@@ -395,7 +397,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 			}
 		}
 
-		public void UpdateRoundsByStates(ConcurrentDictionary<TxoRef, IEnumerable<HdPubKeyBlindedPair>> exposedLinks, params RoundStateResponse[] allRunningRoundsStates)
+		public void UpdateRoundsByStates(ConcurrentDictionary<OutPoint, IEnumerable<HdPubKeyBlindedPair>> exposedLinks, params RoundStateResponse[] allRunningRoundsStates)
 		{
 			Guard.NotNullOrEmpty(nameof(allRunningRoundsStates), allRunningRoundsStates);
 			IsInErrorState = false;
@@ -429,7 +431,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 							if (roundFailed)
 							{
 								// Cleanup non-exposed links.
-								foreach (TxoRef input in round.Registration.CoinsRegistered.Select(x => x.GetTxoRef()))
+								foreach (OutPoint input in round.Registration.CoinsRegistered.Select(x => x.OutPoint))
 								{
 									if (exposedLinks.ContainsKey(input)) // This should always be the case.
 									{
@@ -470,8 +472,6 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 				}
 			}
 		}
-
-		public bool IsInErrorState { get; private set; }
 
 		public void AddOrReplaceRound(ClientRound round)
 		{

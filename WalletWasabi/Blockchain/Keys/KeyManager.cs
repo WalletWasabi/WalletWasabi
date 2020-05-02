@@ -19,62 +19,12 @@ namespace WalletWasabi.Blockchain.Keys
 	[JsonObject(MemberSerialization.OptIn)]
 	public class KeyManager
 	{
-		[JsonProperty(Order = 1)]
-		[JsonConverter(typeof(BitcoinEncryptedSecretNoECJsonConverter))]
-		public BitcoinEncryptedSecretNoEC EncryptedSecret { get; }
-
-		[JsonProperty(Order = 2)]
-		[JsonConverter(typeof(ByteArrayJsonConverter))]
-		public byte[] ChainCode { get; }
-
-		[JsonProperty(Order = 3)]
-		[JsonConverter(typeof(HDFingerprintJsonConverter))]
-		public HDFingerprint? MasterFingerprint { get; private set; }
-
-		[JsonProperty(Order = 4)]
-		[JsonConverter(typeof(ExtPubKeyJsonConverter))]
-		public ExtPubKey ExtPubKey { get; }
-
-		[JsonProperty(Order = 5)]
-		public bool? PasswordVerified { get; private set; }
-
-		[JsonProperty(Order = 6)]
-		public int? MinGapLimit { get; private set; }
-
-		[JsonProperty(Order = 7)]
-		[JsonConverter(typeof(KeyPathJsonConverter))]
-		public KeyPath AccountKeyPath { get; private set; }
-
-		[JsonProperty(Order = 8)]
-		private BlockchainState BlockchainState { get; }
-
-		private object BlockchainStateLock { get; }
-
-		[JsonProperty(Order = 9)]
-		private List<HdPubKey> HdPubKeys { get; }
-
-		private object HdPubKeysLock { get; }
-
-		private List<byte[]> HdPubKeyScriptBytes { get; }
-
-		private object HdPubKeyScriptBytesLock { get; }
-
-		private Dictionary<Script, HdPubKey> ScriptHdPubKeyMap { get; }
-
-		private object ScriptHdPubKeyMapLock { get; }
+		public const int AbsoluteMinGapLimit = 21;
 
 		// BIP84-ish derivation scheme
 		// m / purpose' / coin_type' / account' / change / address_index
 		// https://github.com/bitcoin/bips/blob/master/bip-0084.mediawiki
 		public static readonly KeyPath DefaultAccountKeyPath = new KeyPath("m/84h/0h/0h");
-
-		public string FilePath { get; private set; }
-		private object ToFileLock { get; }
-
-		public bool IsWatchOnly => EncryptedSecret is null;
-		public bool IsHardwareWallet => EncryptedSecret is null && MasterFingerprint != null;
-
-		public const int AbsoluteMinGapLimit = 21;
 
 		[JsonConstructor]
 		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, HDFingerprint? masterFingerprint, ExtPubKey extPubKey, bool? passwordVerified, int? minGapLimit, BlockchainState blockchainState, string filePath = null, KeyPath accountKeyPath = null)
@@ -134,6 +84,58 @@ namespace WalletWasabi.Blockchain.Keys
 			ToFile();
 		}
 
+		[JsonProperty(Order = 1)]
+		[JsonConverter(typeof(BitcoinEncryptedSecretNoECJsonConverter))]
+		public BitcoinEncryptedSecretNoEC EncryptedSecret { get; }
+
+		[JsonProperty(Order = 2)]
+		[JsonConverter(typeof(ByteArrayJsonConverter))]
+		public byte[] ChainCode { get; }
+
+		[JsonProperty(Order = 3)]
+		[JsonConverter(typeof(HDFingerprintJsonConverter))]
+		public HDFingerprint? MasterFingerprint { get; private set; }
+
+		[JsonProperty(Order = 4)]
+		[JsonConverter(typeof(ExtPubKeyJsonConverter))]
+		public ExtPubKey ExtPubKey { get; }
+
+		[JsonProperty(Order = 5)]
+		public bool? PasswordVerified { get; private set; }
+
+		[JsonProperty(Order = 6)]
+		public int? MinGapLimit { get; private set; }
+
+		[JsonProperty(Order = 7)]
+		[JsonConverter(typeof(KeyPathJsonConverter))]
+		public KeyPath AccountKeyPath { get; private set; }
+
+		public string FilePath { get; private set; }
+
+		public bool IsWatchOnly => EncryptedSecret is null;
+
+		public bool IsHardwareWallet => EncryptedSecret is null && MasterFingerprint != null;
+
+		[JsonProperty(Order = 8)]
+		private BlockchainState BlockchainState { get; }
+
+		[JsonProperty(Order = 9)]
+		private List<HdPubKey> HdPubKeys { get; }
+
+		private object BlockchainStateLock { get; }
+
+		private object HdPubKeysLock { get; }
+
+		private List<byte[]> HdPubKeyScriptBytes { get; }
+
+		private object HdPubKeyScriptBytesLock { get; }
+
+		private Dictionary<Script, HdPubKey> ScriptHdPubKeyMap { get; }
+
+		private object ScriptHdPubKeyMapLock { get; }
+		private object ToFileLock { get; }
+		public string WalletName => string.IsNullOrWhiteSpace(FilePath) ? "" : Path.GetFileNameWithoutExtension(FilePath);
+
 		public static KeyManager CreateNew(out Mnemonic mnemonic, string password, string filePath = null)
 		{
 			if (password is null)
@@ -177,79 +179,6 @@ namespace WalletWasabi.Blockchain.Keys
 			KeyPath keyPath = accountKeyPath ?? DefaultAccountKeyPath;
 			ExtPubKey extPubKey = extKey.Derive(keyPath).Neuter();
 			return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, extPubKey, true, minGapLimit, new BlockchainState(), filePath, keyPath);
-		}
-
-		public void SetMinGapLimit(int? minGapLimit)
-		{
-			MinGapLimit = minGapLimit is int val ? Math.Max(AbsoluteMinGapLimit, val) : AbsoluteMinGapLimit;
-			// AssertCleanKeysIndexed(); Do not do this. Wallet file is null yet.
-		}
-
-		public void SetFilePath(string filePath)
-		{
-			FilePath = string.IsNullOrWhiteSpace(filePath) ? null : filePath;
-			if (FilePath is null)
-			{
-				return;
-			}
-
-			IoHelpers.EnsureContainingDirectoryExists(FilePath);
-		}
-
-		public void ToFile()
-		{
-			lock (HdPubKeysLock)
-				lock (BlockchainStateLock)
-					lock (ToFileLock)
-					{
-						ToFileNoLock();
-					}
-		}
-
-		public void ToFileNoBlockchainStateLock()
-		{
-			lock (HdPubKeysLock)
-				lock (ToFileLock)
-				{
-					ToFileNoLock();
-				}
-		}
-
-		public void ToFile(string filePath)
-		{
-			lock (HdPubKeysLock)
-				lock (BlockchainStateLock)
-					lock (ToFileLock)
-					{
-						ToFileNoLock(filePath);
-					}
-		}
-
-		private void ToFileNoLock()
-		{
-			if (FilePath is null)
-			{
-				return;
-			}
-
-			ToFileNoLock(FilePath);
-		}
-
-		private void ToFileNoLock(string filePath)
-		{
-			IoHelpers.EnsureContainingDirectoryExists(filePath);
-			// Remove the last 100 blocks to ensure verification on the next run. This is needed of reorg.
-			int maturity = 101;
-			Height prevHeight = BlockchainState.Height;
-			int matureHeight = Math.Max(0, prevHeight.Value - maturity);
-
-			BlockchainState.Height = new Height(matureHeight);
-
-			string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
-			File.WriteAllText(filePath, jsonString, Encoding.UTF8);
-
-			// Re-add removed items for further operations.
-			BlockchainState.Height = prevHeight;
 		}
 
 		public static KeyManager FromFile(string filePath)
@@ -396,6 +325,45 @@ namespace WalletWasabi.Blockchain.Keys
 			return true;
 		}
 
+		public void SetFilePath(string filePath)
+		{
+			FilePath = string.IsNullOrWhiteSpace(filePath) ? null : filePath;
+			if (FilePath is null)
+			{
+				return;
+			}
+
+			IoHelpers.EnsureContainingDirectoryExists(FilePath);
+		}
+
+		public void ToFile()
+		{
+			lock (HdPubKeysLock)
+			{
+				lock (BlockchainStateLock)
+				{
+					lock (ToFileLock)
+					{
+						ToFileNoLock();
+					}
+				}
+			}
+		}
+
+		public void ToFile(string filePath)
+		{
+			lock (HdPubKeysLock)
+			{
+				lock (BlockchainStateLock)
+				{
+					lock (ToFileLock)
+					{
+						ToFileNoLock(filePath);
+					}
+				}
+			}
+		}
+
 		public HdPubKey GenerateNewKey(SmartLabel label, KeyState keyState, bool isInternal, bool toFile = true)
 		{
 			// BIP44-ish derivation scheme
@@ -456,7 +424,7 @@ namespace WalletWasabi.Blockchain.Keys
 		{
 			if (label.IsEmpty)
 			{
-				throw new InvalidOperationException("Label is required.");
+				throw new InvalidOperationException("Observers are required.");
 			}
 
 			minGapLimitIncreased = false;
@@ -530,6 +498,33 @@ namespace WalletWasabi.Blockchain.Keys
 			}
 		}
 
+		public int CountConsecutiveUnusedKeys(bool isInternal)
+		{
+			var keyIndexes = GetKeys(x => x.IsInternal == isInternal && x.KeyState != KeyState.Used).Select(x => x.Index).ToArray();
+
+			var hs = keyIndexes.ToHashSet();
+			int largerConsecutiveSequence = 0;
+
+			for (int i = 0; i < keyIndexes.Length; ++i)
+			{
+				if (!hs.Contains(keyIndexes[i] - 1))
+				{
+					int j = keyIndexes[i];
+					while (hs.Contains(j))
+					{
+						j++;
+					}
+
+					var sequenceLength = j - keyIndexes[i];
+					if (largerConsecutiveSequence < sequenceLength)
+					{
+						largerConsecutiveSequence = sequenceLength;
+					}
+				}
+			}
+			return largerConsecutiveSequence;
+		}
+
 		public IEnumerable<byte[]> GetPubKeyScriptBytes()
 		{
 			lock (HdPubKeyScriptBytesLock)
@@ -576,6 +571,8 @@ namespace WalletWasabi.Blockchain.Keys
 			return extKeysAndPubs;
 		}
 
+		public IEnumerable<SmartLabel> GetLabels() => GetKeys().Select(x => x.Label);
+
 		public ExtKey GetMasterExtKey(string password)
 		{
 			if (password is null)
@@ -615,22 +612,22 @@ namespace WalletWasabi.Blockchain.Keys
 		{
 			var newKeys = new List<HdPubKey>();
 
-			if (isInternal is null)
+			if (isInternal.HasValue)
 			{
-				while (GetKeys(KeyState.Clean, true).Count() < MinGapLimit)
+				while (CountConsecutiveUnusedKeys(isInternal.Value) < MinGapLimit)
 				{
-					newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, true, toFile: false));
-				}
-				while (GetKeys(KeyState.Clean, false).Count() < MinGapLimit)
-				{
-					newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, false, toFile: false));
+					newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, isInternal.Value, toFile: false));
 				}
 			}
 			else
 			{
-				while (GetKeys(KeyState.Clean, isInternal).Count() < MinGapLimit)
+				while (CountConsecutiveUnusedKeys(true) < MinGapLimit)
 				{
-					newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, (bool)isInternal, toFile: false));
+					newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, true, toFile: false));
+				}
+				while (CountConsecutiveUnusedKeys(false) < MinGapLimit)
+				{
+					newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, false, toFile: false));
 				}
 			}
 
@@ -663,6 +660,75 @@ namespace WalletWasabi.Blockchain.Keys
 			return generated;
 		}
 
+		private void SetMinGapLimit(int? minGapLimit)
+		{
+			MinGapLimit = minGapLimit is int val ? Math.Max(AbsoluteMinGapLimit, val) : AbsoluteMinGapLimit;
+			// AssertCleanKeysIndexed(); Do not do this. Wallet file is null yet.
+		}
+
+		private void ToFileNoBlockchainStateLock()
+		{
+			lock (HdPubKeysLock)
+			{
+				lock (ToFileLock)
+				{
+					ToFileNoLock();
+				}
+			}
+		}
+
+		private void ToFileNoLock()
+		{
+			if (FilePath is null)
+			{
+				return;
+			}
+
+			ToFileNoLock(FilePath);
+		}
+
+		private void ToFileNoLock(string filePath)
+		{
+			IoHelpers.EnsureContainingDirectoryExists(filePath);
+			// Remove the last 100 blocks to ensure verification on the next run. This is needed of reorg.
+			int maturity = 101;
+			Height prevHeight = BlockchainState.Height;
+			int matureHeight = Math.Max(0, prevHeight.Value - maturity);
+
+			BlockchainState.Height = new Height(matureHeight);
+
+			string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
+			File.WriteAllText(filePath, jsonString, Encoding.UTF8);
+
+			// Re-add removed items for further operations.
+			BlockchainState.Height = prevHeight;
+		}
+
+		public void SetLastAccessTimeForNow()
+		{
+			if (FilePath is { })
+			{
+				// Set the LastAccessTime.
+				new FileInfo(FilePath)
+				{
+					LastAccessTimeUtc = DateTime.UtcNow
+				};
+			}
+		}
+
+		public DateTime GetLastAccessTime()
+		{
+			if (FilePath is { })
+			{
+				// Set the LastAccessTime.
+				return new FileInfo(FilePath).LastAccessTimeUtc;
+			}
+			else
+			{
+				return DateTime.UtcNow;
+			}
+		}
+
 		#region BlockchainState
 
 		public Height GetBestHeight()
@@ -673,6 +739,23 @@ namespace WalletWasabi.Blockchain.Keys
 				res = BlockchainState.Height;
 			}
 			return res;
+		}
+
+		public void SetNetwork(Network network)
+		{
+			lock (BlockchainStateLock)
+			{
+				BlockchainState.Network = network;
+				ToFileNoBlockchainStateLock();
+			}
+		}
+
+		public Network GetNetwork()
+		{
+			lock (BlockchainStateLock)
+			{
+				return BlockchainState.Network;
+			}
 		}
 
 		public void SetBestHeight(Height height)
@@ -688,8 +771,14 @@ namespace WalletWasabi.Blockchain.Keys
 		{
 			lock (BlockchainStateLock)
 			{
-				BlockchainState.Height = Math.Min(BlockchainState.Height, height);
-				ToFileNoBlockchainStateLock();
+				var prevHeight = BlockchainState.Height;
+				var newHeight = Math.Min(prevHeight, height);
+				if (prevHeight != newHeight)
+				{
+					BlockchainState.Height = newHeight;
+					ToFileNoBlockchainStateLock();
+					Logger.LogWarning($"Wallet ({WalletName}) height has been set back by {prevHeight - newHeight}. From {prevHeight} to {newHeight}.");
+				}
 			}
 		}
 

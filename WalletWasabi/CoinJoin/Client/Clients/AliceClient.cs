@@ -1,6 +1,4 @@
 using NBitcoin;
-using NBitcoin.BouncyCastle.Math;
-using NBitcoin.Crypto;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -15,21 +13,13 @@ using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Logging;
-using static NBitcoin.Crypto.SchnorrBlinding;
+using static WalletWasabi.Crypto.SchnorrBlinding;
+using UnblindedSignature = WalletWasabi.Crypto.UnblindedSignature;
 
 namespace WalletWasabi.CoinJoin.Client.Clients
 {
 	public class AliceClient : TorDisposableBase
 	{
-		public Guid UniqueId { get; private set; }
-
-		public long RoundId { get; }
-		public Network Network { get; }
-
-		public BitcoinAddress[] RegisteredAddresses { get; }
-		public SchnorrPubKey[] SchnorrPubKeys { get; }
-		public Requester[] Requesters { get; }
-
 		/// <inheritdoc/>
 		private AliceClient(
 			long roundId,
@@ -46,6 +36,15 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			Requesters = requesters.ToArray();
 			Network = network;
 		}
+
+		public Guid UniqueId { get; private set; }
+
+		public long RoundId { get; }
+		public Network Network { get; }
+
+		public BitcoinAddress[] RegisteredAddresses { get; }
+		public SchnorrPubKey[] SchnorrPubKeys { get; }
+		public Requester[] Requesters { get; }
 
 		public static async Task<AliceClient> CreateNewAsync(
 			long roundId,
@@ -169,7 +168,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 					var address = RegisteredAddresses[i];
 
-					uint256 outputScriptHash = new uint256(Hashes.SHA256(address.ScriptPubKey.ToBytes()));
+					uint256 outputScriptHash = new uint256(NBitcoin.Crypto.Hashes.SHA256(address.ScriptPubKey.ToBytes()));
 					PubKey signerPubKey = SchnorrPubKeys[i].SignerPubKey;
 					if (!VerifySignature(outputScriptHash, unblindedSignature, signerPubKey))
 					{

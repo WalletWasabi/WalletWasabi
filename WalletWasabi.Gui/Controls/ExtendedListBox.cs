@@ -8,8 +8,6 @@ namespace WalletWasabi.Gui.Controls
 {
 	public class ExtendedListBox : ListBox, IStyleable
 	{
-		Type IStyleable.StyleKey => typeof(ListBox);
-
 		public ExtendedListBox()
 		{
 			AddHandler(PointerPressedEvent,
@@ -28,5 +26,7 @@ namespace WalletWasabi.Gui.Controls
 				},
 				RoutingStrategies.Tunnel, true);
 		}
+
+		Type IStyleable.StyleKey => typeof(ListBox);
 	}
 }

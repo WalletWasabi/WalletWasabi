@@ -5,7 +5,6 @@ namespace WalletWasabi.Http.Models
 {
 	public class HttpProtocol : IEquatable<HttpProtocol>, IEquatable<string>
 	{
-		public Version Version { get; }
 		public const string Protocol = "HTTP";
 		public static HttpProtocol HTTP11 = new HttpProtocol("HTTP/1.1");
 		public static HttpProtocol HTTP10 = new HttpProtocol("HTTP/1.0");
@@ -39,6 +38,8 @@ namespace WalletWasabi.Http.Models
 			}
 		}
 
+		public Version Version { get; }
+
 		private static string GetProtocol(string protocolString)
 		{
 			return protocolString.Trim().Split(new char[] { '/' })[0];
@@ -49,7 +50,7 @@ namespace WalletWasabi.Http.Models
 
 		#region Equality
 
-		public override bool Equals(object obj) => obj is HttpProtocol protocol && this == protocol;
+		public override bool Equals(object obj) => Equals(obj as HttpProtocol);
 
 		public bool Equals(HttpProtocol other) => this == other;
 

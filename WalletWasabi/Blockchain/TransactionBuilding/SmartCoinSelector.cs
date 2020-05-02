@@ -13,12 +13,12 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 {
 	public class SmartCoinSelector : ICoinSelector
 	{
-		private IEnumerable<SmartCoin> UnspentCoins { get; }
-
 		public SmartCoinSelector(IEnumerable<SmartCoin> unspentCoins)
 		{
 			UnspentCoins = Guard.NotNull(nameof(unspentCoins), unspentCoins).Distinct();
 		}
+
+		private IEnumerable<SmartCoin> UnspentCoins { get; }
 
 		public IEnumerable<ICoin> Select(IEnumerable<ICoin> coins, IMoney target)
 		{

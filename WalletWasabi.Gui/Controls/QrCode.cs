@@ -4,14 +4,13 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Metadata;
-using Avalonia.Platform;
 using ReactiveUI;
 using System;
 using System.IO;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using WalletWasabi.Helpers;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Controls
@@ -19,9 +18,19 @@ namespace WalletWasabi.Gui.Controls
 	public class QrCode : Control
 	{
 		private const int MatrixPadding = 2;
-		private Size CoercedSize { get; set; }
-		private double GridCellFactor { get; set; }
-		private bool[,] FinalMatrix { get; set; }
+
+		public static readonly DirectProperty<QrCode, ReactiveCommand<string, Unit>> SaveCommandProperty =
+			AvaloniaProperty.RegisterDirect<QrCode, ReactiveCommand<string, Unit>>(
+				nameof(SaveCommand),
+				o => o.SaveCommand,
+				(o, v) => o.SaveCommand = v);
+
+		private ReactiveCommand<string, Unit> _saveCommand;
+
+		public static readonly DirectProperty<QrCode, bool[,]> MatrixProperty =
+			AvaloniaProperty.RegisterDirect<QrCode, bool[,]>(nameof(Matrix), o => o.Matrix, (o, v) => o.Matrix = v);
+
+		private bool[,] _matrix;
 
 		static QrCode()
 		{
@@ -41,7 +50,29 @@ namespace WalletWasabi.Gui.Controls
 
 			SaveCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(ex => Logger.LogError(ex));
+				.Subscribe(ex =>
+				{
+					// The error is thrown also in ReceiveTabViewModel -> SaveQRCodeCommand.ThrownExceptions.
+					// However we need to catch it here too but to avoid duplicate logging the following line commented out.
+					// Logger.LogWarning(ex);
+				});
+		}
+
+		private Size CoercedSize { get; set; }
+		private double GridCellFactor { get; set; }
+		private bool[,] FinalMatrix { get; set; }
+
+		public ReactiveCommand<string, Unit> SaveCommand
+		{
+			get => _saveCommand;
+			set => SetAndRaise(SaveCommandProperty, ref _saveCommand, value);
+		}
+
+		[Content]
+		public bool[,] Matrix
+		{
+			get => _matrix;
+			set => SetAndRaise(MatrixProperty, ref _matrix, value);
 		}
 
 		public async Task<Unit> SaveQRCodeAsync(string address)
@@ -69,47 +100,14 @@ namespace WalletWasabi.Gui.Controls
 					path = $"{path}.png";
 				}
 
-				try
-				{
-					var pixSize = PixelSize.FromSize(CoercedSize, 1);
-					using var rtb = new RenderTargetBitmap(pixSize);
+				var pixSize = PixelSize.FromSize(CoercedSize, 1);
+				using var rtb = new RenderTargetBitmap(pixSize);
 
-					rtb.Render(this);
-					rtb.Save(path);
-				}
-				catch (Exception ex)
-				{
-					Logger.LogDebug(ex);
-				}
+				rtb.Render(this);
+				rtb.Save(path);
 			}
 
 			return Unit.Default;
-		}
-
-		public static readonly DirectProperty<QrCode, ReactiveCommand<string, Unit>> SaveCommandProperty =
-			AvaloniaProperty.RegisterDirect<QrCode, ReactiveCommand<string, Unit>>(
-				nameof(SaveCommand),
-				o => o.SaveCommand,
-				(o, v) => o.SaveCommand = v);
-
-		private ReactiveCommand<string, Unit> _saveCommand;
-
-		public ReactiveCommand<string, Unit> SaveCommand
-		{
-			get => _saveCommand;
-			set => SetAndRaise(SaveCommandProperty, ref _saveCommand, value);
-		}
-
-		public static readonly DirectProperty<QrCode, bool[,]> MatrixProperty =
-			AvaloniaProperty.RegisterDirect<QrCode, bool[,]>(nameof(Matrix), o => o.Matrix, (o, v) => o.Matrix = v);
-
-		private bool[,] _matrix;
-
-		[Content]
-		public bool[,] Matrix
-		{
-			get => _matrix;
-			set => SetAndRaise(MatrixProperty, ref _matrix, value);
 		}
 
 		private bool[,] AddPaddingToMatrix(bool[,] matrix)

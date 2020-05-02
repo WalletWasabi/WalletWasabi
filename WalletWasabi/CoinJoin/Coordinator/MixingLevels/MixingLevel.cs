@@ -6,7 +6,7 @@ using System.Text;
 using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
-using static NBitcoin.Crypto.SchnorrBlinding;
+using static WalletWasabi.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.CoinJoin.Coordinator.MixingLevels
 {
@@ -53,11 +53,11 @@ namespace WalletWasabi.CoinJoin.Coordinator.MixingLevels
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => obj is MixingLevel level && this == level;
+		public override bool Equals(object obj) => Equals(obj as MixingLevel);
 
 		public bool Equals(MixingLevel other) => this == other;
 
-		public override int GetHashCode() => Denomination.GetHashCode() ^ SchnorrKey.GetHashCode();
+		public override int GetHashCode() => (Denomination, SchnorrKey).GetHashCode();
 
 		public static bool operator ==(MixingLevel x, MixingLevel y) => y?.Denomination == x?.Denomination && y?.SchnorrKey == x?.SchnorrKey;
 

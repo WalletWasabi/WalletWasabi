@@ -16,10 +16,7 @@ namespace WalletWasabi.WebClients.SmartBit
 {
 	public class SmartBitClient : IDisposable
 	{
-		public Network Network { get; }
-		private HttpClient HttpClient { get; }
-		public Uri BaseAddress => HttpClient.BaseAddress;
-		private AsyncLock AsyncLock { get; } = new AsyncLock();
+		private bool _disposedValue = false; // To detect redundant calls
 
 		public SmartBitClient(Network network, HttpMessageHandler handler = null, bool disposeHandler = false)
 		{
@@ -42,16 +39,21 @@ namespace WalletWasabi.WebClients.SmartBit
 			}
 		}
 
+		private AsyncLock AsyncLock { get; } = new AsyncLock();
+		private HttpClient HttpClient { get; }
+		public Network Network { get; }
+		public Uri BaseAddress => HttpClient.BaseAddress;
+
 		public async Task PushTransactionAsync(Transaction transaction, CancellationToken cancel)
 		{
 			using (await AsyncLock.LockAsync(cancel))
 			{
-				var content = new StringContent(
+				using var content = new StringContent(
 					new JObject(new JProperty("hex", transaction.ToHex())).ToString(),
 					Encoding.UTF8,
 					"application/json");
 
-				HttpResponseMessage response =
+				using HttpResponseMessage response =
 						await HttpClient.PostAsync("blockchain/pushtx", content, cancel);
 
 				if (response.StatusCode != HttpStatusCode.OK)
@@ -59,7 +61,8 @@ namespace WalletWasabi.WebClients.SmartBit
 					throw new HttpRequestException(response.StatusCode.ToString());
 				}
 
-				string responseString = await response.Content.ReadAsStringAsync();
+				using var responseContent = response.Content;
+				string responseString = await responseContent.ReadAsStringAsync();
 				AssertSuccess(responseString);
 			}
 		}
@@ -67,15 +70,16 @@ namespace WalletWasabi.WebClients.SmartBit
 		public async Task<IEnumerable<SmartBitExchangeRate>> GetExchangeRatesAsync(CancellationToken cancel)
 		{
 			using (await AsyncLock.LockAsync(cancel))
-			using (HttpResponseMessage response =
-					await HttpClient.GetAsync("exchange-rates", HttpCompletionOption.ResponseContentRead, cancel))
 			{
+				using HttpResponseMessage response =
+						await HttpClient.GetAsync("exchange-rates", HttpCompletionOption.ResponseContentRead, cancel);
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
 					throw new HttpRequestException(response.StatusCode.ToString());
 				}
 
-				string responseString = await response.Content.ReadAsStringAsync();
+				using var responseContent = response.Content;
+				string responseString = await responseContent.ReadAsStringAsync();
 				AssertSuccess(responseString);
 
 				var exchangeRates = JObject.Parse(responseString).Value<JArray>("exchange_rates");
@@ -98,8 +102,6 @@ namespace WalletWasabi.WebClients.SmartBit
 		}
 
 		#region IDisposable Support
-
-		private bool _disposedValue = false; // To detect redundant calls
 
 		protected virtual void Dispose(bool disposing)
 		{

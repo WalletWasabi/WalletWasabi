@@ -12,9 +12,9 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 		/// <summary>
 		/// Search for right side bit of Most significant bit
 		/// </summary>
-		/// <param name="num">input number</param>
-		/// <param name="lowBoundary">lower boundary. At start should be 0</param>
-		/// <param name="highBoundary">higher boundary. At start should be 32</param>
+		/// <param name="num">Input number</param>
+		/// <param name="lowBoundary">Lower boundary. At start should be 0</param>
+		/// <param name="highBoundary">Higher boundary. At start should be 32</param>
 		/// <returns>Most significant bit - 1</returns>
 		private static int BinarySearchPos(int num, int lowBoundary, int highBoundary)
 		{
@@ -37,20 +37,20 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 		/// <summary>
 		/// With input number and polynomial number. Method will calculate BCH value and return
 		/// </summary>
-		/// <param name="num">input number</param>
+		/// <param name="num">Input number</param>
 		/// <param name="poly">Polynomial number</param>
 		/// <returns>BCH value</returns>
 		internal static int CalculateBCH(int num, int poly)
 		{
 			int polyMSB = PosMSB(poly);
-			//num's length will be old length + new length - 1.
-			//Once divide poly number. BCH number will be one length short than Poly number's length.
+			// num's length will be old length + new length - 1.
+			// Once divide poly number. BCH number will be one length short than Poly number's length.
 			num <<= (polyMSB - 1);
 			int numMSB = PosMSB(num);
 			while (PosMSB(num) >= polyMSB)
 			{
-				//left shift Poly number to same level as num. Then xor.
-				//Remove most significant bits of num.
+				// left shift Poly number to same level as num. Then xor.
+				// Remove most significant bits of num.
 				num ^= poly << (numMSB - polyMSB);
 				numMSB = PosMSB(num);
 			}

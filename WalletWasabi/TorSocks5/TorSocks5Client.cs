@@ -20,6 +20,37 @@ namespace WalletWasabi.TorSocks5
 	/// </summary>
 	public class TorSocks5Client : IDisposable
 	{
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		#region Constructors
+
+		/// <param name="endPoint">Opt out Tor with null.</param>
+		internal TorSocks5Client(EndPoint endPoint)
+		{
+			TorSocks5EndPoint = endPoint;
+			TcpClient = endPoint is null ? new TcpClient() : new TcpClient(endPoint.AddressFamily);
+			AsyncLock = new AsyncLock();
+		}
+
+		/// <param name="tcpClient">Must be already connected.</param>
+		internal TorSocks5Client(TcpClient tcpClient)
+		{
+			Guard.NotNull(nameof(tcpClient), tcpClient);
+			TcpClient = tcpClient;
+			AsyncLock = new AsyncLock();
+			Stream = tcpClient.GetStream();
+			TorSocks5EndPoint = null;
+			DestinationHost = tcpClient.Client.RemoteEndPoint.GetHostOrDefault();
+			DestinationPort = tcpClient.Client.RemoteEndPoint.GetPortOrDefault().Value;
+			RemoteEndPoint = tcpClient.Client.RemoteEndPoint;
+			if (!IsConnected)
+			{
+				throw new ConnectionException($"{nameof(TorSocks5Client)} is not connected to {RemoteEndPoint}.");
+			}
+		}
+
+		#endregion Constructors
+
 		#region PropertiesAndMembers
 
 		public TcpClient TcpClient { get; private set; }
@@ -54,32 +85,7 @@ namespace WalletWasabi.TorSocks5
 
 		#endregion PropertiesAndMembers
 
-		#region ConstructorsAndInitializers
-
-		/// <param name="endPoint">Opt out Tor with null.</param>
-		internal TorSocks5Client(EndPoint endPoint)
-		{
-			TorSocks5EndPoint = endPoint;
-			TcpClient = endPoint is null ? new TcpClient() : new TcpClient(endPoint.AddressFamily);
-			AsyncLock = new AsyncLock();
-		}
-
-		/// <param name="tcpClient">Must be already connected.</param>
-		internal TorSocks5Client(TcpClient tcpClient)
-		{
-			Guard.NotNull(nameof(tcpClient), tcpClient);
-			TcpClient = tcpClient;
-			AsyncLock = new AsyncLock();
-			Stream = tcpClient.GetStream();
-			TorSocks5EndPoint = null;
-			DestinationHost = tcpClient.Client.RemoteEndPoint.GetHostOrDefault();
-			DestinationPort = tcpClient.Client.RemoteEndPoint.GetPortOrDefault().Value;
-			RemoteEndPoint = tcpClient.Client.RemoteEndPoint;
-			if (!IsConnected)
-			{
-				throw new ConnectionException($"{nameof(TorSocks5Client)} is not connected to {RemoteEndPoint}.");
-			}
-		}
+		#region Initializers
 
 		internal async Task ConnectAsync()
 		{
@@ -276,7 +282,7 @@ namespace WalletWasabi.TorSocks5
 			}
 		}
 
-		#endregion ConstructorsAndInitializers
+		#endregion Initializers
 
 		#region Methods
 
@@ -361,12 +367,12 @@ namespace WalletWasabi.TorSocks5
 					// if we could fit everything into our buffer, then return it
 					if (!stream.DataAvailable)
 					{
-						return receiveBuffer.Take(receiveCount).ToArray();
+						return receiveBuffer[..receiveCount];
 					}
 
 					// while we have data available, start building a bytearray
 					var builder = new ByteArrayBuilder();
-					builder.Append(receiveBuffer.Take(receiveCount).ToArray());
+					builder.Append(receiveBuffer[..receiveCount]);
 					while (stream.DataAvailable)
 					{
 						Array.Clear(receiveBuffer, 0, receiveBuffer.Length);
@@ -375,7 +381,7 @@ namespace WalletWasabi.TorSocks5
 						{
 							throw new ConnectionException($"Not connected to Tor SOCKS5 proxy: {TorSocks5EndPoint}.");
 						}
-						builder.Append(receiveBuffer.Take(receiveCount).ToArray());
+						builder.Append(receiveBuffer[..receiveCount]);
 					}
 
 					return builder.ToArray();
@@ -482,8 +488,6 @@ namespace WalletWasabi.TorSocks5
 		#endregion Methods
 
 		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
 
 		protected virtual void Dispose(bool disposing)
 		{

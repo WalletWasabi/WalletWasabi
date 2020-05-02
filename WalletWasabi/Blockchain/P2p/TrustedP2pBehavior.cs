@@ -12,11 +12,11 @@ namespace WalletWasabi.Blockchain.P2p
 {
 	public class TrustedP2pBehavior : P2pBehavior
 	{
-		public event EventHandler<uint256> BlockInv;
-
 		public TrustedP2pBehavior(MempoolService mempoolService) : base(mempoolService)
 		{
 		}
+
+		public event EventHandler<uint256> BlockInv;
 
 		protected override bool ProcessInventoryVector(InventoryVector inv, EndPoint remoteSocketEndpoint)
 		{

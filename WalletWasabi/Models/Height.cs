@@ -5,25 +5,6 @@ namespace WalletWasabi.Models
 {
 	public struct Height : IEquatable<Height>, IEquatable<int>, IComparable<Height>, IComparable<int>
 	{
-		public HeightType Type { get; }
-
-		/// <summary>
-		/// Gets the height value according to the Height type.
-		/// </summary>
-		public int Value { get; }
-
-		/// <summary>
-		/// Gets a new Height instance for mempool
-		/// </summary>
-		/// <returns></returns>
-		public static Height Mempool { get; } = new Height(HeightType.Mempool);
-
-		/// <summary>
-		/// Gets a new Height instance for unknown (no chain, no mempool)
-		/// </summary>
-		/// <returns></returns>
-		public static Height Unknown { get; } = new Height(HeightType.Unknown);
-
 		public Height(uint height) : this((int)height)
 		{
 		}
@@ -59,6 +40,42 @@ namespace WalletWasabi.Models
 
 			Value = height;
 		}
+
+		/// <summary>
+		/// Creates and initializes a new Height instance
+		/// </summary>
+		/// <param name="type">Height type for the created instance.</param>
+		/// <exception href="NotSupportedException">When type is equal to HeightType.Chain.</exception>
+		public Height(HeightType type)
+		{
+			if (type == HeightType.Chain)
+			{
+				throw new NotSupportedException($"For {type} height must be specified");
+			}
+
+			Type = type;
+
+			Value = Type == HeightType.Mempool
+				? int.MaxValue - 1
+				: int.MaxValue;
+		}
+
+		public HeightType Type { get; }
+
+		/// <summary>
+		/// Gets the height value according to the Height type.
+		/// </summary>
+		public int Value { get; }
+
+		/// <summary>
+		/// Gets a new Height instance for mempool
+		/// </summary>
+		public static Height Mempool { get; } = new Height(HeightType.Mempool);
+
+		/// <summary>
+		/// Gets a new Height instance for unknown (no chain, no mempool)
+		/// </summary>
+		public static Height Unknown { get; } = new Height(HeightType.Unknown);
 
 		/// <param name="heightOrHeightType">The height numerical value as its string representation
 		/// or well the strings "Mempool" or "Unknown" for the default initial height of those Heights.
@@ -99,25 +116,6 @@ namespace WalletWasabi.Models
 			{
 				return false;
 			}
-		}
-
-		/// <summary>
-		/// Creates and initializes a new Height instance
-		/// </summary>
-		/// <param name="type">Height type for the created instance.</param>
-		/// <exception href="NotSupportedException">When type is equal to HeightType.Chain.</exception>
-		public Height(HeightType type)
-		{
-			if (type == HeightType.Chain)
-			{
-				throw new NotSupportedException($"For {type} height must be specified");
-			}
-
-			Type = type;
-
-			Value = Type == HeightType.Mempool
-				? int.MaxValue - 1
-				: int.MaxValue;
 		}
 
 		/// <summary>

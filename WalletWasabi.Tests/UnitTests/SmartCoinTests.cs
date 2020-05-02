@@ -20,22 +20,22 @@ namespace WalletWasabi.Tests.UnitTests
 			var output = tx.Outputs[0];
 			var scriptPubKey = output.ScriptPubKey;
 			var amount = output.Value;
-			var spentOutputs = tx.Inputs.ToTxoRefs().ToArray();
+			var spentOutputs = tx.Inputs.ToOutPoints().ToArray();
 
 			var height = Height.Mempool;
 			var label = "foo";
 
-			var coin = new SmartCoin(txId, index, scriptPubKey, amount, spentOutputs, height, tx.RBF, tx.GetAnonymitySet(index), isLikelyCoinJoinOutput: false, label, txId);
+			var coin = new SmartCoin(txId, index, scriptPubKey, amount, spentOutputs, height, tx.RBF, tx.GetAnonymitySet(index), label, txId);
 			// If the txId or the index differ, equality should think it's a different coin.
-			var differentCoin = new SmartCoin(txId, index + 1, scriptPubKey, amount, spentOutputs, height, tx.RBF, tx.GetAnonymitySet(index + 1), isLikelyCoinJoinOutput: false, label, txId);
+			var differentCoin = new SmartCoin(txId, index + 1, scriptPubKey, amount, spentOutputs, height, tx.RBF, tx.GetAnonymitySet(index + 1), label, txId);
 			var differentOutput = tx.Outputs[1];
 			var differentSpentOutputs = new[]
 			{
-				new TxoRef(txId, 0)
+				new OutPoint(txId, 0)
 			};
 
 			// If the txId and the index are the same, equality should think it's the same coin.
-			var sameCoin = new SmartCoin(txId, index, differentOutput.ScriptPubKey, differentOutput.Value, differentSpentOutputs, Height.Unknown, tx.RBF, tx.GetAnonymitySet(index), isLikelyCoinJoinOutput: false, "boo", null);
+			var sameCoin = new SmartCoin(txId, index, differentOutput.ScriptPubKey, differentOutput.Value, differentSpentOutputs, Height.Unknown, tx.RBF, tx.GetAnonymitySet(index), "boo", null);
 
 			Assert.Equal(coin, sameCoin);
 			Assert.NotEqual(coin, differentCoin);

@@ -1,19 +1,19 @@
 using ReactiveUI;
 using System.Collections.ObjectModel;
-using System.Reactive;
-using System.Reactive.Linq;
-using WalletWasabi.Logging;
-using System;
+using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class WalletAdvancedViewModel : WalletActionViewModel
+	public class WalletAdvancedViewModel : ViewModelBase
 	{
-		private ObservableCollection<WalletActionViewModel> _items;
-
+		private ObservableCollection<WasabiDocumentTabViewModel> _items;
 		private bool _isExpanded;
 
-		public ReactiveCommand<Unit, Unit> ExpandItCommand { get; }
+		public WalletAdvancedViewModel()
+		{
+			Items = new ObservableCollection<WasabiDocumentTabViewModel>();
+		}
 
 		public bool IsExpanded
 		{
@@ -21,18 +21,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
 		}
 
-		public WalletAdvancedViewModel(WalletViewModel walletViewModel) : base(walletViewModel.Name, walletViewModel)
-		{
-			Items = new ObservableCollection<WalletActionViewModel>();
-
-			ExpandItCommand = ReactiveCommand.Create(() => { IsExpanded = !IsExpanded; });
-
-			ExpandItCommand.ThrownExceptions
-				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(ex => Logger.LogError(ex));
-		}
-
-		public ObservableCollection<WalletActionViewModel> Items
+		public ObservableCollection<WasabiDocumentTabViewModel> Items
 		{
 			get => _items;
 			set => this.RaiseAndSetIfChanged(ref _items, value);

@@ -8,10 +8,11 @@ namespace WalletWasabi.Helpers
 {
 	public static class Constants
 	{
-		public static readonly Version ClientVersion = new Version(1, 1, 9, 3);
+		public static readonly Version ClientVersion = new Version(1, 1, 11, 1);
 		public const string BackendMajorVersion = "3";
-		public static readonly Version HwiVersion = new Version("1.0.3");
-		public static readonly Version BitcoinCoreVersion = new Version("0.18.1");
+		public static readonly Version HwiVersion = new Version("1.1.0");
+		public static readonly Version BitcoinCoreVersion = new Version("0.19.1");
+		public static readonly Version LegalDocumentsVersion = new Version(2, 0);
 
 		/// <summary>
 		/// By changing this, we can force to start over the transactions file, so old incorrect transactions would be cleared.
@@ -58,32 +59,6 @@ namespace WalletWasabi.Helpers
 		// There are a maximum of 2,099,999,997,690,000 Bitcoin elements (called satoshis), which are currently most commonly measured in units of 100,000,000 known as BTC. Stated another way, no more than 21 million BTC can ever be created.
 		public const long MaximumNumberOfSatoshis = 2099999997690000;
 
-		private static readonly BitcoinWitPubKeyAddress MainNetCoordinatorAddress = new BitcoinWitPubKeyAddress("bc1qa24tsgchvuxsaccp8vrnkfd85hrcpafg20kmjw", Network.Main);
-		private static readonly BitcoinWitPubKeyAddress TestNetCoordinatorAddress = new BitcoinWitPubKeyAddress("tb1qecaheev3hjzs9a3w9x33wr8n0ptu7txp359exs", Network.TestNet);
-		private static readonly BitcoinWitPubKeyAddress RegTestCoordinatorAddress = new BitcoinWitPubKeyAddress("bcrt1qangxrwyej05x9mnztkakk29s4yfdv4n586gs8l", Network.RegTest);
-
-		public static BitcoinWitPubKeyAddress GetCoordinatorAddress(Network network)
-		{
-			Guard.NotNull(nameof(network), network);
-
-			if (network == Network.Main)
-			{
-				return MainNetCoordinatorAddress;
-			}
-			else if (network == Network.TestNet)
-			{
-				return TestNetCoordinatorAddress;
-			}
-			else if (network == Network.RegTest)
-			{
-				return RegTestCoordinatorAddress;
-			}
-			else
-			{
-				throw new NotSupportedNetworkException(network);
-			}
-		}
-
 		public const int TwentyMinutesConfirmationTarget = 2;
 		public const int OneDayConfirmationTarget = 144;
 		public const int SevenDaysConfirmationTarget = 1008;
@@ -108,5 +83,9 @@ namespace WalletWasabi.Helpers
 		public const double TransactionRBFSignalRate = 0.02; // 2% RBF transactions
 
 		public const decimal DefaultDustThreshold = 0.00005m;
+
+		public const long MaxSatoshisSupply = 2_100_000_000_000_000L;
+
+		public static readonly ExtPubKey FallBackCoordinatorExtPubKey = NBitcoinHelpers.BetterParseExtPubKey("xpub6D2PqhWBAbF3xgfaAUW73KnaCXUroArcgMTzNkNzfVX7ykkSzQGbqaXZeaNyxKbZojAAqDwsne6B7NcVhiTrXbGYrQNq1yF76NkgdonGrEa");
 	}
 }

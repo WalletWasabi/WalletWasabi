@@ -3,6 +3,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using AvalonStudio.Commands;
 using AvalonStudio.Shell;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Composition;
 using System.Reactive.Linq;
@@ -13,20 +14,10 @@ namespace WalletWasabi.Gui.Shell.Commands
 {
 	internal class SystemCommands
 	{
-		public Global Global { get; }
-
-		[DefaultKeyGesture("ALT+F4")]
-		[ExportCommandDefinition("File.Exit")]
-		public CommandDefinition ExitCommand { get; }
-
-		[DefaultKeyGesture("CTRL+L", osxKeyGesture: "CMD+L")]
-		[ExportCommandDefinition("File.LockScreen")]
-		public CommandDefinition LockScreenCommand { get; }
-
 		[ImportingConstructor]
-		public SystemCommands(CommandIconService commandIconService, AvaloniaGlobalComponent global)
+		public SystemCommands(CommandIconService commandIconService)
 		{
-			Global = Guard.NotNull(nameof(Global), global.Global);
+			var global = Locator.Current.GetService<Global>();
 
 			ExitCommand = new CommandDefinition(
 				"Exit",
@@ -36,7 +27,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 			LockScreenCommand = new CommandDefinition(
 				"Lock Screen",
 				commandIconService.GetCompletionKindImage("Lock"),
-				ReactiveCommand.Create(() => { Global.UiConfig.LockScreenActive = true; }));
+				ReactiveCommand.Create(() => global.UiConfig.LockScreenActive = true));
 
 			Observable
 				.Merge(ExitCommand.GetReactiveCommand().ThrownExceptions)
@@ -44,6 +35,14 @@ namespace WalletWasabi.Gui.Shell.Commands
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogWarning(ex));
 		}
+
+		[DefaultKeyGesture("ALT+F4")]
+		[ExportCommandDefinition("File.Exit")]
+		public CommandDefinition ExitCommand { get; }
+
+		[DefaultKeyGesture("CTRL+L", osxKeyGesture: "CMD+L")]
+		[ExportCommandDefinition("File.LockScreen")]
+		public CommandDefinition LockScreenCommand { get; }
 
 		private void OnExit()
 		{

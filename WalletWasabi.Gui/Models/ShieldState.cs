@@ -2,12 +2,6 @@ namespace WalletWasabi.Gui.Models
 {
 	public struct ShieldState
 	{
-		public bool IsPrivacyCriticalVisible { get; }
-		public bool IsPrivacySomeVisible { get; }
-		public bool IsPrivacyFineVisible { get; }
-		public bool IsPrivacyStrongVisible { get; }
-		public bool IsPrivacySaiyanVisible { get; }
-
 		public ShieldState(bool isPrivacyCriticalVisible, bool isPrivacySomeVisible, bool isPrivacyFineVisible, bool isPrivacyStrongVisible, bool isPrivacySaiyanVisible = false)
 		{
 			IsPrivacyCriticalVisible = isPrivacyCriticalVisible;
@@ -16,6 +10,12 @@ namespace WalletWasabi.Gui.Models
 			IsPrivacyStrongVisible = isPrivacyStrongVisible;
 			IsPrivacySaiyanVisible = isPrivacySaiyanVisible;
 		}
+
+		public bool IsPrivacyCriticalVisible { get; }
+		public bool IsPrivacySomeVisible { get; }
+		public bool IsPrivacyFineVisible { get; }
+		public bool IsPrivacyStrongVisible { get; }
+		public bool IsPrivacySaiyanVisible { get; }
 
 		public override bool Equals(object obj)
 		{
@@ -38,7 +38,7 @@ namespace WalletWasabi.Gui.Models
 				IsPrivacySomeVisible,
 				IsPrivacyFineVisible,
 				IsPrivacyStrongVisible,
-				IsPrivacySaiyanVisible,
+				IsPrivacySaiyanVisible
 			};
 
 			uint result = 0;
@@ -49,14 +49,8 @@ namespace WalletWasabi.Gui.Models
 			return result.GetHashCode();
 		}
 
-		public static bool operator ==(ShieldState left, ShieldState right)
-		{
-			return left.Equals(right);
-		}
+		public static bool operator ==(ShieldState left, ShieldState right) => left.Equals(right);
 
-		public static bool operator !=(ShieldState left, ShieldState right)
-		{
-			return !(left == right);
-		}
+		public static bool operator !=(ShieldState left, ShieldState right) => !(left == right);
 	}
 }

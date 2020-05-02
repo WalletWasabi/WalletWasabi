@@ -7,6 +7,7 @@ using Avalonia.Xaml.Interactivity;
 using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -18,8 +19,12 @@ namespace WalletWasabi.Gui.Behaviors
 {
 	public class PasteAddressOnClickBehavior : CommandBasedBehavior<TextBox>
 	{
-		private CompositeDisposable Disposables { get; set; }
-		private Global Global { get; }
+		private TextBoxState _textBoxState = TextBoxState.None;
+
+		public PasteAddressOnClickBehavior()
+		{
+			Global = Locator.Current.GetService<Global>();
+		}
 
 		protected internal enum TextBoxState
 		{
@@ -28,6 +33,9 @@ namespace WalletWasabi.Gui.Behaviors
 			AddressInsert,
 			SelectAll
 		}
+
+		private CompositeDisposable Disposables { get; set; }
+		private Global Global { get; }
 
 		private TextBoxState MyTextBoxState
 		{
@@ -58,8 +66,6 @@ namespace WalletWasabi.Gui.Behaviors
 			}
 		}
 
-		private TextBoxState _textBoxState = TextBoxState.None;
-
 		private bool ProcessText(string text)
 		{
 			if (AddressStringParser.TryParse(text, Global.Network, out BitcoinUrlBuilder result))
@@ -71,11 +77,6 @@ namespace WalletWasabi.Gui.Behaviors
 			}
 
 			return false;
-		}
-
-		public PasteAddressOnClickBehavior()
-		{
-			Global = Application.Current.Resources[Global.GlobalResourceKey] as Global;
 		}
 
 		protected override void OnAttached()
@@ -116,7 +117,7 @@ namespace WalletWasabi.Gui.Behaviors
 			Disposables.Add(
 				AssociatedObject.GetObservable(InputElement.PointerReleasedEvent).Subscribe(async pointer =>
 					{
-						if (Global.UiConfig.Autocopy is false)
+						if (!Global.UiConfig.Autocopy)
 						{
 							return;
 						}
@@ -139,13 +140,12 @@ namespace WalletWasabi.Gui.Behaviors
 								}
 								break;
 						}
-					})
-			);
+					}));
 
 			Disposables.Add(
 				AssociatedObject.GetObservable(InputElement.PointerEnterEvent).Subscribe(async pointerEnter =>
 					{
-						if (!(Global.UiConfig.Autocopy is true))
+						if (!Global.UiConfig.Autocopy)
 						{
 							return;
 						}
@@ -171,8 +171,7 @@ namespace WalletWasabi.Gui.Behaviors
 						{
 							MyTextBoxState = TextBoxState.SelectAll;
 						}
-					})
-			);
+					}));
 
 			base.OnAttached();
 		}

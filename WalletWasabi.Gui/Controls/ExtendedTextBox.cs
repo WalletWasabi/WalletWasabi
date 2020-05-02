@@ -6,12 +6,14 @@ using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Platform;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using AvalonStudio.Extensibility.Theme;
 using ReactiveUI;
 using System;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
@@ -26,13 +28,13 @@ namespace WalletWasabi.Gui.Controls
 
 		private Subject<string> _textPasted;
 
-		public IObservable<string> TextPasted => _textPasted.AsObservable();
-
 		public ExtendedTextBox()
 		{
+			Disposables = new CompositeDisposable();
+
 			_textPasted = new Subject<string>();
 
-			CopyCommand = ReactiveCommand.CreateFromTask(async () => await CopyAsync());
+			CopyCommand = ReactiveCommand.CreateFromTask(CopyAsync);
 
 			PasteCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -82,10 +84,16 @@ namespace WalletWasabi.Gui.Controls
 				});
 		}
 
+		private CompositeDisposable Disposables { get; }
+
+		public IObservable<string> TextPasted => _textPasted.AsObservable();
+
 		Type IStyleable.StyleKey => typeof(TextBox);
 
 		private ReactiveCommand<Unit, Unit> CopyCommand { get; }
 		private ReactiveCommand<Unit, Unit> PasteCommand { get; }
+
+		protected virtual bool IsCopyEnabled => true;
 
 		private async Task<string> PasteAsync()
 		{
@@ -117,10 +125,10 @@ namespace WalletWasabi.Gui.Controls
 
 			if (start == end || (Text?.Length ?? 0) < end)
 			{
-				return "";
+				return string.Empty;
 			}
 
-			return text.Substring(start, end - start);
+			return text[start..end];
 		}
 
 		protected virtual async Task CopyAsync()
@@ -138,41 +146,30 @@ namespace WalletWasabi.Gui.Controls
 			}
 		}
 
-		protected virtual bool IsCopyEnabled => true;
-
-		private static readonly Geometry CopyIcon = Geometry.Parse(
-				"M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z");
-
-		private static readonly Geometry PasteIcon = Geometry.Parse(
-				@"M19,20H5V4H7V7H17V4H19M12,2A1,1 0 0,1 13,3A1,1 0 0,1 12,4A1,1 0 0,1 11,3A1,1 0 0,1 12,2M19,2H14.82C14.4,0.84
-				13.3,0 12,0C10.7,0 9.6,0.84 9.18,2H5A2,2 0 0,0 3,4V20A2,2 0 0,0 5,22H19A2,2 0 0,0 21,20V4A2,2 0 0,0 19,2Z");
-
-		private static DrawingPresenter GetCopyPresenter()
+		private DrawingPresenter GetCopyPresenter()
 		{
-			return new DrawingPresenter
+			if (ResourceNodeExtensions.TryFindResource(this, "Copy", out var rawIcon))
 			{
-				Drawing = new GeometryDrawing
+				if (rawIcon is DrawingGroup icon)
 				{
-					Brush = Brush.Parse("#22B14C"),
-					Geometry = CopyIcon
-				},
-				Width = 16,
-				Height = 16
-			};
+					return new DrawingPresenter() { Drawing = icon };
+				}
+			}
+
+			return null;
 		}
 
-		private static DrawingPresenter GetPastePresenter()
+		private DrawingPresenter GetPastePresenter()
 		{
-			return new DrawingPresenter
+			if (ResourceNodeExtensions.TryFindResource(this, "Paste", out var rawIcon))
 			{
-				Drawing = new GeometryDrawing
+				if (rawIcon is DrawingGroup icon)
 				{
-					Brush = Brush.Parse("#22B14C"),
-					Geometry = PasteIcon
-				},
-				Width = 16,
-				Height = 16
-			};
+					return new DrawingPresenter() { Drawing = icon };
+				}
+			}
+
+			return null;
 		}
 
 		protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
@@ -187,6 +184,11 @@ namespace WalletWasabi.Gui.Controls
 				Items = new Avalonia.Controls.Controls()
 			};
 
+			Observable.FromEventPattern(ContextMenu, nameof(ContextMenu.MenuClosed))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => Focus())
+				.DisposeWith(Disposables);
+
 			var menuItems = (ContextMenu.Items as Avalonia.Controls.Controls);
 			if (IsCopyEnabled)
 			{
@@ -198,6 +200,13 @@ namespace WalletWasabi.Gui.Controls
 				CreatePasteItem();
 				menuItems.Add(_pasteItem);
 			}
+		}
+
+		protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+		{
+			base.OnDetachedFromVisualTree(e);
+
+			Disposables?.Dispose();
 		}
 
 		protected override void OnLostFocus(RoutedEventArgs e)

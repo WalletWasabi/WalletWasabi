@@ -12,17 +12,6 @@ namespace WalletWasabi.Helpers
 {
 	public static class NBitcoinHelpers
 	{
-		public static string HashOutpoints(IEnumerable<OutPoint> outPoints)
-		{
-			var sb = new StringBuilder();
-			foreach (OutPoint input in outPoints.OrderBy(x => x.Hash.ToString()).ThenBy(x => x.N))
-			{
-				sb.Append(ByteHelpers.ToHex(input.ToBytes()));
-			}
-
-			return HashHelpers.GenerateSha256Hash(sb.ToString());
-		}
-
 		private static readonly Money[] ReasonableFees = new[]
 		{
 			Money.Coins(0.002m),
@@ -34,6 +23,17 @@ namespace WalletWasabi.Helpers
 			Money.Coins(0.00002m),
 			Money.Coins(0.00001m)
 		};
+
+		public static string HashOutpoints(IEnumerable<OutPoint> outPoints)
+		{
+			var sb = new StringBuilder();
+			foreach (OutPoint input in outPoints.OrderBy(x => x.Hash.ToString()).ThenBy(x => x.N))
+			{
+				sb.Append(ByteHelpers.ToHex(input.ToBytes()));
+			}
+
+			return HashHelpers.GenerateSha256Hash(sb.ToString());
+		}
 
 		public static Money TakeAReasonableFee(Money inputValue)
 		{
@@ -115,23 +115,28 @@ namespace WalletWasabi.Helpers
 			return ba;
 		}
 
-		public static HDFingerprint BetterParseHDFingerprint(string hdFingerprintString, bool reverseByteOrder = false)
+		public static Key BetterParseKey(string keyString)
 		{
-			hdFingerprintString = Guard.NotNullOrEmptyOrWhitespace(nameof(hdFingerprintString), hdFingerprintString, trim: true);
+			keyString = Guard.NotNullOrEmptyOrWhitespace(nameof(keyString), keyString, trim: true);
 
-			HDFingerprint hdfp;
+			Key k;
 			try
 			{
-				var hdfpu = uint.Parse(hdFingerprintString);
-				hdfp = new HDFingerprint(hdfpu);
+				k = Key.Parse(keyString, Network.Main);
 			}
 			catch
 			{
-				// Try hex, Old wallet format was like this.
-				var bytes = ByteHelpers.FromHex(hdFingerprintString);
-				hdfp = reverseByteOrder ? new HDFingerprint(bytes.Reverse().ToArray()) : new HDFingerprint(bytes);
+				try
+				{
+					k = Key.Parse(keyString, Network.TestNet);
+				}
+				catch
+				{
+					k = Key.Parse(keyString, Network.RegTest);
+				}
 			}
-			return hdfp;
+
+			return k;
 		}
 
 		public static async Task<AddressManager> LoadAddressManagerFromPeerFileAsync(string filePath, Network expectedNetwork = null)

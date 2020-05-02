@@ -21,6 +21,24 @@ namespace Gma.QrCodeNet.Encoding
 
 		internal List<byte> List { get; }
 
+		internal int Count { get; private set; }
+
+		internal int SizeInByte => (Count + 7) >> 3;
+
+		internal bool this[int index]
+		{
+			get
+			{
+				if (index < 0 || index >= Count)
+				{
+					throw new ArgumentOutOfRangeException(nameof(index), "Index out of range");
+				}
+
+				int value_Renamed = List[index >> 3] & 0xff;
+				return ((value_Renamed >> (7 - (index & 0x7))) & 1) == 1;
+			}
+		}
+
 		public IEnumerator<bool> GetEnumerator()
 		{
 			int numBytes = Count >> 3;
@@ -49,20 +67,6 @@ namespace Gma.QrCodeNet.Encoding
 			return GetEnumerator();
 		}
 
-		internal bool this[int index]
-		{
-			get
-			{
-				if (index < 0 || index >= Count)
-				{
-					throw new ArgumentOutOfRangeException(nameof(index), "Index out of range");
-				}
-
-				int value_Renamed = List[index >> 3] & 0xff;
-				return ((value_Renamed >> (7 - (index & 0x7))) & 1) == 1;
-			}
-		}
-
 		private int ToBit(bool item)
 		{
 			return item ? 1 : 0;
@@ -71,7 +75,7 @@ namespace Gma.QrCodeNet.Encoding
 		internal void Add(bool item)
 		{
 			int numBitsinLastByte = Count & 0x7;
-			//Add one more byte to List when we have no bits in the last byte.
+			// Add one more byte to List when we have no bits in the last byte.
 			if (numBitsinLastByte == 0)
 			{
 				List.Add(0);
@@ -102,7 +106,7 @@ namespace Gma.QrCodeNet.Encoding
 			{
 				if ((Count & 0x7) == 0 && numBitsLeft >= 8)
 				{
-					//Add one more byte to List.
+					// Add one more byte to List.
 					byte newByte = (byte)((value >> (numBitsLeft - 8)) & 0xFF);
 					AppendByte(newByte);
 					numBitsLeft -= 8;
@@ -121,9 +125,5 @@ namespace Gma.QrCodeNet.Encoding
 			List.Add(item);
 			Count += 8;
 		}
-
-		internal int Count { get; private set; }
-
-		internal int SizeInByte => (Count + 7) >> 3;
 	}
 }

@@ -31,7 +31,7 @@ namespace WalletWasabi.Helpers
 			{
 				originalPassword,
 				buggyClipboard, // Should be here for every OP system. If I create a buggy wallet on OSX and transfer it to other system, it should also work.
-				$"{buggyClipboard.Substring(0,buggyClipboard.Length-1)}\ufffd" // Later I tested the functionality and experienced that the last character replaced by invalid character.
+				$"{buggyClipboard[0..^1]}\ufffd" // Later I tested the functionality and experienced that the last character replaced by invalid character.
 			};
 
 			return possiblePasswords.ToArray();
@@ -42,7 +42,7 @@ namespace WalletWasabi.Helpers
 			// On OSX Avalonia gets the string from the Clipboard as byte[] and size.
 			// The size was mistakenly taken from the size of the original string which is not correct because of the UTF8 encoding.
 			byte[] bytes = Encoding.UTF8.GetBytes(text);
-			var myString = Encoding.UTF8.GetString(bytes.Take(text.Length).ToArray());
+			var myString = Encoding.UTF8.GetString(bytes[..text.Length]);
 			return text.Substring(0, myString.Length);
 		}
 
@@ -152,21 +152,17 @@ namespace WalletWasabi.Helpers
 			throw resultException; // Throw the last exception - Invalid password.
 		}
 
-		public static ErrorDescriptors ValidatePassword(string password)
+		public static void ValidatePassword(IValidationErrors errors, string password)
 		{
-			var errors = new ErrorDescriptors();
-
 			if (IsTrimable(password, out _))
 			{
-				errors.Add(new ErrorDescriptor(ErrorSeverity.Warning, TrimWarnMessage));
+				errors.Add(ErrorSeverity.Warning, TrimWarnMessage);
 			}
 
 			if (IsTooLong(password, out _))
 			{
-				errors.Add(new ErrorDescriptor(ErrorSeverity.Error, PasswordTooLongMessage));
-			}
-
-			return errors;
+				errors.Add(ErrorSeverity.Error, PasswordTooLongMessage);
+			}			
 		}
 	}
 }

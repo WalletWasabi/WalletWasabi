@@ -1,15 +1,12 @@
-using Avalonia.Threading;
 using AvalonStudio.Documents;
 using AvalonStudio.Extensibility;
+using AvalonStudio.MVVM;
 using AvalonStudio.Shell;
 using Dock.Model;
 using ReactiveUI;
 using System;
-using System.Reactive;
-using System.Reactive.Linq;
+using System.Reactive.Disposables;
 using System.Threading.Tasks;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.ViewModels
 {
@@ -20,19 +17,13 @@ namespace WalletWasabi.Gui.ViewModels
 		private bool _isClosed;
 		private object _dialogResult;
 
-		protected WasabiDocumentTabViewModel(Global global, string title)
+		protected WasabiDocumentTabViewModel(string title)
 		{
 			Title = title;
-			Global = Guard.NotNull(nameof(global), global);
-			DoItCommand = ReactiveCommand.Create(DisplayActionTab);
-
-			DoItCommand.ThrownExceptions
-				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(ex => Logger.LogError(ex));
 		}
 
-		public Global Global { get; }
-		public Guid Id { get; set; } = Guid.NewGuid();
+		private CompositeDisposable Disposables { get; set; }
+
 		public object Context { get; set; }
 		public double Width { get; set; }
 		public double Height { get; set; }
@@ -74,25 +65,38 @@ namespace WalletWasabi.Gui.ViewModels
 			IsSelected = false;
 		}
 
-		public virtual void OnOpen()
+		// This interface member is called explicitly from Avalonia after the Tab was opened.
+		void IDockableViewModel.OnOpen()
 		{
+			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
+
 			IsClosed = false;
+
+			OnOpen(Disposables);
 		}
 
+		/// <summary>
+		/// Called when a tab is opened in the dock for the fist time.
+		/// </summary>
+		/// <param name="disposables">Disposables add IDisposables to this where Dispose will be called when tab is closed.</param>
+		public virtual void OnOpen(CompositeDisposable disposables)
+		{
+		}
+
+		/// <summary>
+		/// Called when the close button on the tab is clicked.
+		/// </summary>
+		/// <returns>true to confirm close, false to cancel.</returns>
 		public virtual bool OnClose()
 		{
+			Disposables?.Dispose();
+			Disposables = null;
+
 			IsSelected = false;
 			IoC.Get<IShell>().RemoveDocument(this);
 			IsClosed = true;
 			return true;
 		}
-
-		public void DisplayActionTab()
-		{
-			IoC.Get<IShell>().AddOrSelectDocument(this);
-		}
-
-		public ReactiveCommand<Unit, Unit> DoItCommand { get; }
 
 		public void Select()
 		{
@@ -102,7 +106,6 @@ namespace WalletWasabi.Gui.ViewModels
 		public async Task<object> ShowDialogAsync()
 		{
 			DialogResult = null;
-			DisplayActionTab();
 
 			while (!IsClosed)
 			{

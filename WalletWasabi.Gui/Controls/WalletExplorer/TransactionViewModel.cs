@@ -1,19 +1,23 @@
 using Avalonia;
-using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
 using System;
+using System.Linq;
 using System.Globalization;
+using System.Reactive;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
+using AvalonStudio.Extensibility;
+using AvalonStudio.Shell;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class TransactionViewModel : ViewModelBase
 	{
-		private TransactionInfo Model { get; }
 		private bool _clipboardNotificationVisible;
 		private double _clipboardNotificationOpacity;
 
@@ -22,14 +26,40 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Model = model;
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;
+
+			CopyTransactionId = ReactiveCommand.CreateFromTask(TryCopyTxIdToClipboardAsync);
+
+			OpenTransactionInfo = ReactiveCommand.Create(() =>
+			{
+				var shell = IoC.Get<IShell>();
+
+				var transactionInfo = shell.Documents?.OfType<TransactionInfoTabViewModel>()?.FirstOrDefault(x => x.Transaction?.TransactionId == TransactionId);
+
+				if (transactionInfo is null)
+				{
+					transactionInfo = new TransactionInfoTabViewModel(Model);
+					shell.AddDocument(transactionInfo);
+				}
+
+				shell.Select(transactionInfo);
+			});
+
+			Observable
+				.Merge(CopyTransactionId.ThrownExceptions)
+				.Merge(OpenTransactionInfo.ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex =>
+				{
+					Logger.LogError(ex);
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
+				});
 		}
 
-		public void Refresh()
-		{
-			this.RaisePropertyChanged(nameof(AmountBtc));
-			this.RaisePropertyChanged(nameof(TransactionId));
-			this.RaisePropertyChanged(nameof(DateTime));
-		}
+		private TransactionInfo Model { get; }
+
+		public ReactiveCommand<Unit, Unit> CopyTransactionId { get; }
+
+		public ReactiveCommand<Unit, Unit> OpenTransactionInfo { get; }
 
 		public string DateTime => Model.DateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
 
@@ -42,6 +72,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public Money Amount => Money.TryParse(Model.AmountBtc, out Money money) ? money : Money.Zero;
 
 		public string Label => Model.Label;
+
+		public int BlockHeight => Model.BlockHeight;
 
 		public string TransactionId => Model.TransactionId;
 
@@ -58,6 +90,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public CancellationTokenSource CancelClipboardNotification { get; set; }
+
+		public void Refresh()
+		{
+			this.RaisePropertyChanged(nameof(AmountBtc));
+			this.RaisePropertyChanged(nameof(TransactionId));
+			this.RaisePropertyChanged(nameof(DateTime));
+		}
 
 		public async Task TryCopyTxIdToClipboardAsync()
 		{

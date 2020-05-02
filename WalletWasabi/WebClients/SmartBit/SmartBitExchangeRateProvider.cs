@@ -9,12 +9,12 @@ namespace WalletWasabi.WebClients.SmartBit
 {
 	public class SmartBitExchangeRateProvider : IExchangeRateProvider
 	{
-		private SmartBitClient Client { get; }
-
 		public SmartBitExchangeRateProvider(SmartBitClient smartBitClient)
 		{
 			Client = smartBitClient;
 		}
+
+		private SmartBitClient Client { get; }
 
 		public async Task<List<ExchangeRate>> GetExchangeRateAsync()
 		{

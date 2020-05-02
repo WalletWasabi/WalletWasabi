@@ -10,12 +10,12 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 {
 	public class CoinsView : ICoinsView
 	{
-		private IEnumerable<SmartCoin> Coins { get; }
-
 		public CoinsView(IEnumerable<SmartCoin> coins)
 		{
 			Coins = Guard.NotNull(nameof(coins), coins);
 		}
+
+		private IEnumerable<SmartCoin> Coins { get; }
 
 		public ICoinsView Unspent() => new CoinsView(Coins.Where(x => x.Unspent && !x.SpentAccordingToBackend));
 
@@ -57,9 +57,16 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		public ICoinsView FilterBy(Func<SmartCoin, bool> expression) => new CoinsView(Coins.Where(expression));
 
-		public ICoinsView OutPoints(IEnumerable<TxoRef> outPoints) => new CoinsView(Coins.Where(x => outPoints.Any(y => y == x.GetTxoRef())));
+		public ICoinsView OutPoints(IEnumerable<OutPoint> outPoints) => new CoinsView(Coins.Where(x => outPoints.Any(y => y == x.OutPoint)));
 
-		public SmartCoin GetByOutPoint(OutPoint outpoint) => Coins.FirstOrDefault(x => x.GetOutPoint() == outpoint);
+		public ICoinsView OutPoints(TxInList txIns)
+		{
+			var outPointSet = txIns.Select(x => x.PrevOut).ToHashSet();
+			var smartCoins = Coins.Where(x => outPointSet.Contains(x.OutPoint));
+			return new CoinsView(smartCoins);
+		}
+
+		public SmartCoin GetByOutPoint(OutPoint outpoint) => Coins.FirstOrDefault(x => x.OutPoint == outpoint);
 
 		public Money TotalAmount() => Coins.Sum(x => x.Amount);
 

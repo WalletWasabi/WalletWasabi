@@ -10,9 +10,6 @@ namespace WalletWasabi.Http.Models
 	// request-line   = method SP request-target SP HTTP-version CRLF
 	public class RequestLine : StartLine
 	{
-		public HttpMethod Method { get; }
-		public Uri URI { get; }
-
 		public RequestLine(HttpMethod method, Uri uri, HttpProtocol protocol) : base(protocol)
 		{
 			Method = method;
@@ -25,6 +22,9 @@ namespace WalletWasabi.Http.Models
 
 			URI = uri;
 		}
+
+		public HttpMethod Method { get; }
+		public Uri URI { get; }
 
 		public override string ToString()
 		{

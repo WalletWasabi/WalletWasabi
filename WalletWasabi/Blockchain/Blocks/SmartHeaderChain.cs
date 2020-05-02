@@ -22,6 +22,12 @@ namespace WalletWasabi.Blockchain.Blocks
 		private int _hashesLeft;
 		private int _hashesCount;
 
+		public SmartHeaderChain()
+		{
+			Chain = new Dictionary<uint, SmartHeader>();
+			Lock = new object();
+		}
+
 		private Dictionary<uint, SmartHeader> Chain { get; }
 		private object Lock { get; }
 
@@ -59,12 +65,6 @@ namespace WalletWasabi.Blockchain.Blocks
 		{
 			get => _hashesCount;
 			private set => RaiseAndSetIfChanged(ref _hashesCount, value);
-		}
-
-		public SmartHeaderChain()
-		{
-			Chain = new Dictionary<uint, SmartHeader>();
-			Lock = new object();
 		}
 
 		public void AddOrReplace(SmartHeader header)

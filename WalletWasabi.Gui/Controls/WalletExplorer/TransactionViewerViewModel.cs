@@ -5,6 +5,7 @@ using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using NBitcoin;
 using ReactiveUI;
+using Splat;
 using System;
 using System.IO;
 using System.Linq;
@@ -15,58 +16,25 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class TransactionViewerViewModel : WalletActionViewModel
+	public class TransactionViewerViewModel : WasabiDocumentTabViewModel
 	{
-		private CompositeDisposable Disposables { get; set; }
-
 		private string _txId;
 		private string _psbtJsonText;
 		private string _psbtHexText;
 		private string _psbtBase64Text;
 		private byte[] _psbtBytes;
-		public ReactiveCommand<Unit, Unit> ExportBinaryPsbt { get; set; }
-		public ReactiveCommand<Unit, Unit> OpenTransactionBroadcaster { get; set; }
 
-		public bool? IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode;
-
-		public string TxId
+		public TransactionViewerViewModel() : base("Transaction")
 		{
-			get => _txId;
-			set => this.RaiseAndSetIfChanged(ref _txId, value);
-		}
+			Global = Locator.Current.GetService<Global>();
 
-		public string PsbtJsonText
-		{
-			get => _psbtJsonText;
-			set => this.RaiseAndSetIfChanged(ref _psbtJsonText, value);
-		}
-
-		public string TransactionHexText
-		{
-			get => _psbtHexText;
-			set => this.RaiseAndSetIfChanged(ref _psbtHexText, value);
-		}
-
-		public string PsbtBase64Text
-		{
-			get => _psbtBase64Text;
-			set => this.RaiseAndSetIfChanged(ref _psbtBase64Text, value);
-		}
-
-		public byte[] PsbtBytes
-		{
-			get => _psbtBytes;
-			set => this.RaiseAndSetIfChanged(ref _psbtBytes, value);
-		}
-
-		public TransactionViewerViewModel(WalletViewModel walletViewModel) : base("Transaction", walletViewModel)
-		{
-			OpenTransactionBroadcaster = ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new TransactionBroadcasterViewModel(Global)));
+			OpenTransactionBroadcaster = ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new TransactionBroadcasterViewModel()));
 			ExportBinaryPsbt = ReactiveCommand.CreateFromTask(async () =>
 			{
 				var psbtExtension = "psbt";
@@ -102,6 +70,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					await File.WriteAllBytesAsync(fileFullName, PsbtBytes);
 				}
+				NotificationHelpers.Success("PSBT file was exported.");
 			});
 
 			Observable
@@ -110,16 +79,50 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
 				{
-					NotificationHelpers.Error(ex.ToTypeMessageString());
 					Logger.LogError(ex);
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
 				});
 		}
 
-		public override void OnOpen()
-		{
-			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
+		private Global Global { get; }
+		public ReactiveCommand<Unit, Unit> ExportBinaryPsbt { get; set; }
+		public ReactiveCommand<Unit, Unit> OpenTransactionBroadcaster { get; set; }
 
-			base.OnOpen();
+		public bool? IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode;
+
+		public string TxId
+		{
+			get => _txId;
+			set => this.RaiseAndSetIfChanged(ref _txId, value);
+		}
+
+		public string PsbtJsonText
+		{
+			get => _psbtJsonText;
+			set => this.RaiseAndSetIfChanged(ref _psbtJsonText, value);
+		}
+
+		public string TransactionHexText
+		{
+			get => _psbtHexText;
+			set => this.RaiseAndSetIfChanged(ref _psbtHexText, value);
+		}
+
+		public string PsbtBase64Text
+		{
+			get => _psbtBase64Text;
+			set => this.RaiseAndSetIfChanged(ref _psbtBase64Text, value);
+		}
+
+		public byte[] PsbtBytes
+		{
+			get => _psbtBytes;
+			set => this.RaiseAndSetIfChanged(ref _psbtBytes, value);
+		}
+
+		public override void OnOpen(CompositeDisposable disposables)
+		{
+			base.OnOpen(disposables);
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -130,15 +133,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					this.RaisePropertyChanged(nameof(PsbtJsonText));
 					this.RaisePropertyChanged(nameof(TransactionHexText));
 					this.RaisePropertyChanged(nameof(PsbtBase64Text));
-				}).DisposeWith(Disposables);
-		}
-
-		public override bool OnClose()
-		{
-			Disposables?.Dispose();
-			Disposables = null;
-
-			return base.OnClose();
+				}).DisposeWith(disposables);
 		}
 
 		public void Update(BuildTransactionResult result)
@@ -153,7 +148,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			catch (Exception ex)
 			{
-				NotificationHelpers.Error(ex.ToTypeMessageString());
+				NotificationHelpers.Error(ex.ToUserFriendlyString());
 				Logger.LogError(ex);
 			}
 		}

@@ -14,14 +14,6 @@ namespace WalletWasabi.Tests
 {
 	public class Global
 	{
-		public static Global Instance { get; } = new Global();
-
-		public EndPoint TorSocks5Endpoint { get; }
-
-		public string DataDir { get; }
-
-		public string TorLogsFile { get; }
-
 		public Global()
 		{
 			TorSocks5Endpoint = new IPEndPoint(IPAddress.Loopback, 9050);
@@ -33,6 +25,14 @@ namespace WalletWasabi.Tests
 			Logger.SetMinimumLevel(LogLevel.Info);
 			Logger.SetModes(LogMode.Debug, LogMode.Console, LogMode.File);
 		}
+
+		public static Global Instance { get; } = new Global();
+
+		public EndPoint TorSocks5Endpoint { get; }
+
+		public string DataDir { get; }
+
+		public string TorLogsFile { get; }
 
 		public static SmartTransaction GenerateRandomSmartTransaction()
 		{

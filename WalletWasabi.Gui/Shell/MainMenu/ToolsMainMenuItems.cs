@@ -9,13 +9,13 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 {
 	internal class ToolsMainMenuItems
 	{
-		private IMenuItemFactory MenuItemFactory { get; }
-
 		[ImportingConstructor]
 		public ToolsMainMenuItems(IMenuItemFactory menuItemFactory)
 		{
 			MenuItemFactory = menuItemFactory;
 		}
+
+		private IMenuItemFactory MenuItemFactory { get; }
 
 		#region MainMenu
 
@@ -50,6 +50,7 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		[DefaultOrder(10)]
 		[DefaultGroup("Utilities")]
 		public IMenuItem DevTools => MenuItemFactory.CreateCommandMenuItem("Tools.DevTools");
+
 #endif
 
 		[ExportMainMenuItem("Tools", "Transaction Broadcaster")]

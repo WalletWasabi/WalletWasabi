@@ -3,6 +3,9 @@ using NBitcoin.Policy;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -11,17 +14,12 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Blockchain.Transactions
 {
 	public class TransactionFactory
 	{
-		public Network Network { get; }
-		public KeyManager KeyManager { get; }
-		public ICoinsView Coins { get; }
-		public string Password { get; }
-		public bool AllowUnconfirmed { get; }
-
 		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
 		public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, string password = "", bool allowUnconfirmed = false)
 		{
@@ -32,14 +30,21 @@ namespace WalletWasabi.Blockchain.Transactions
 			AllowUnconfirmed = allowUnconfirmed;
 		}
 
+		public Network Network { get; }
+		public KeyManager KeyManager { get; }
+		public ICoinsView Coins { get; }
+		public string Password { get; }
+		public bool AllowUnconfirmed { get; }
+
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
 		/// <exception cref="ArgumentOutOfRangeException"></exception>
 		public BuildTransactionResult BuildTransaction(
 			PaymentIntent payments,
 			FeeRate feeRate,
-			IEnumerable<TxoRef> allowedInputs = null)
-			=> BuildTransaction(payments, () => feeRate, allowedInputs);
+			IEnumerable<OutPoint> allowedInputs = null,
+			IPayjoinClient payjoinClient = null)
+			=> BuildTransaction(payments, () => feeRate, allowedInputs, () => LockTime.Zero, payjoinClient);
 
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
@@ -47,9 +52,12 @@ namespace WalletWasabi.Blockchain.Transactions
 		public BuildTransactionResult BuildTransaction(
 			PaymentIntent payments,
 			Func<FeeRate> feeRateFetcher,
-			IEnumerable<TxoRef> allowedInputs = null)
+			IEnumerable<OutPoint> allowedInputs = null,
+			Func<LockTime> lockTimeSelector = null,
+			IPayjoinClient payjoinClient = null)
 		{
 			payments = Guard.NotNull(nameof(payments), payments);
+			lockTimeSelector ??= () => LockTime.Zero;
 
 			long totalAmount = payments.TotalAmount.Satoshi;
 			if (totalAmount < 0 || totalAmount > Constants.MaximumNumberOfSatoshis)
@@ -70,7 +78,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				}
 
 				allowedSmartCoinInputs = allowedSmartCoinInputs
-					.Where(x => allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index))
+					.Where(x => allowedInputs.Any(y => y.Hash == x.TransactionId && y.N == x.Index))
 					.ToList();
 
 				// Add those that have the same script, because common ownership is already exposed.
@@ -148,7 +156,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 			var psbt = builder.BuildPSBT(false);
 
-			var spentCoins = psbt.Inputs.Select(txin => allowedSmartCoinInputs.First(y => y.GetOutPoint() == txin.PrevOut)).ToArray();
+			var spentCoins = psbt.Inputs.Select(txin => allowedSmartCoinInputs.First(y => y.OutPoint == txin.PrevOut)).ToArray();
 
 			var realToSend = payments.Requests
 				.Select(t =>
@@ -172,7 +180,6 @@ namespace WalletWasabi.Blockchain.Transactions
 			{
 				throw new InvalidOperationException("The amount after subtracting the fee is too small to be sent.");
 			}
-			Money totalSendAmount = totalSendAmountNoFee + fee;
 
 			Money totalOutgoingAmountNoFee;
 			if (changeHdPubKey is null)
@@ -190,13 +197,13 @@ namespace WalletWasabi.Blockchain.Transactions
 
 			if (feePc > 1)
 			{
-				Logger.LogInfo($"The transaction fee is {totalOutgoingAmountNoFee:0.#}% of your transaction amount.{Environment.NewLine}"
-					+ $"Sending:\t {totalSendAmount.ToString(fplus: false, trimExcessZero: true)} BTC.{Environment.NewLine}"
+				Logger.LogInfo($"The transaction fee is {feePc:0.#}% of the sent amount.{Environment.NewLine}"
+					+ $"Sending:\t {totalOutgoingAmountNoFee.ToString(fplus: false, trimExcessZero: true)} BTC.{Environment.NewLine}"
 					+ $"Fee:\t\t {fee.Satoshi} Satoshi.");
 			}
 			if (feePc > 100)
 			{
-				throw new InvalidOperationException($"The transaction fee is more than twice the transaction amount: {feePc:0.#}%.");
+				throw new InvalidOperationException($"The transaction fee is more than twice the sent amount: {feePc:0.#}%.");
 			}
 
 			if (spentCoins.Any(u => !u.Confirmed))
@@ -217,7 +224,19 @@ namespace WalletWasabi.Blockchain.Transactions
 			{
 				IEnumerable<ExtKey> signingKeys = KeyManager.GetSecrets(Password, spentCoins.Select(x => x.ScriptPubKey).ToArray());
 				builder = builder.AddKeys(signingKeys.ToArray());
+				builder.SetLockTime(lockTimeSelector());
 				builder.SignPSBT(psbt);
+
+				UpdatePSBTInfo(psbt, spentCoins, changeHdPubKey);
+
+				if (!KeyManager.IsWatchOnly)
+				{
+					// Try to pay using payjoin
+					if (payjoinClient is { })
+					{
+						psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt);
+					}
+				}
 				psbt.Finalize();
 				tx = psbt.ExtractTransaction();
 
@@ -241,14 +260,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				}
 			}
 
-			if (KeyManager.MasterFingerprint is HDFingerprint fp)
-			{
-				foreach (var coin in spentCoins)
-				{
-					var rootKeyPath = new RootedKeyPath(fp, coin.HdPubKey.FullKeyPath);
-					psbt.AddKeyPath(coin.HdPubKey.PubKey, rootKeyPath, coin.ScriptPubKey);
-				}
-			}
+			UpdatePSBTInfo(psbt, spentCoins, changeHdPubKey);
 
 			var label = SmartLabel.Merge(payments.Requests.Select(x => x.Label).Concat(spentCoins.Select(x => x.Label)));
 			var outerWalletOutputs = new List<SmartCoin>();
@@ -258,7 +270,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				TxOut output = tx.Outputs[i];
 				var anonset = tx.GetAnonymitySet(i) + spentCoins.Min(x => x.AnonymitySet) - 1; // Minus 1, because count own only once.
 				var foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
-				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToTxoRefs().ToArray(), Height.Unknown, tx.RBF, anonset, isLikelyCoinJoinOutput: false, pubKey: foundKey);
+				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToOutPoints().ToArray(), Height.Unknown, tx.RBF, anonset, pubKey: foundKey);
 				label = SmartLabel.Merge(label, coin.Label); // foundKey's label is already added to the coinlabel.
 
 				if (foundKey is null)
@@ -293,6 +305,57 @@ namespace WalletWasabi.Blockchain.Transactions
 			var sign = !KeyManager.IsWatchOnly;
 			var spendsUnconfirmed = spentCoins.Any(c => !c.Confirmed);
 			return new BuildTransactionResult(new SmartTransaction(tx, Height.Unknown), psbt, spendsUnconfirmed, sign, fee, feePc, outerWalletOutputs, innerWalletOutputs, spentCoins);
+		}
+
+		private PSBT TryNegotiatePayjoin(IPayjoinClient payjoinClient, TransactionBuilder builder, PSBT psbt)
+		{
+			try
+			{
+				Logger.LogInfo($"Negotiating payjoin payment with `{payjoinClient.PaymentUrl}`.");
+
+				psbt = payjoinClient.RequestPayjoin(psbt,
+					KeyManager.ExtPubKey,
+					new RootedKeyPath(KeyManager.MasterFingerprint.Value, KeyManager.DefaultAccountKeyPath),
+					CancellationToken.None).GetAwaiter().GetResult();
+				builder.SignPSBT(psbt);
+
+				Logger.LogInfo($"Payjoin payment was negotiated successfully.");
+			}
+			catch (TorSocks5FailureResponseException e)
+			{
+				if (e.Message.Contains("HostUnreachable"))
+				{
+					Logger.LogWarning($"Payjoin server is not reachable. Ignoring...");
+				}
+				// ignore
+			}
+			catch (HttpRequestException e)
+			{
+				Logger.LogWarning($"Payjoin server responded with {e.ToTypeMessageString()}. Ignoring...");
+			}
+			catch (PayjoinException e)
+			{
+				Logger.LogWarning($"Payjoin server responded with {e.Message}. Ignoring...");
+			}
+
+			return psbt;
+		}
+
+		private void UpdatePSBTInfo(PSBT psbt, SmartCoin[] spentCoins, HdPubKey changeHdPubKey)
+		{
+			if (KeyManager.MasterFingerprint is HDFingerprint fp)
+			{
+				foreach (var coin in spentCoins)
+				{
+					var rootKeyPath = new RootedKeyPath(fp, coin.HdPubKey.FullKeyPath);
+					psbt.AddKeyPath(coin.HdPubKey.PubKey, rootKeyPath, coin.ScriptPubKey);
+				}
+				if (changeHdPubKey is { })
+				{
+					var rootKeyPath = new RootedKeyPath(fp, changeHdPubKey.FullKeyPath);
+					psbt.AddKeyPath(changeHdPubKey.PubKey, rootKeyPath, changeHdPubKey.P2wpkhScript);
+				}
+			}
 		}
 	}
 }

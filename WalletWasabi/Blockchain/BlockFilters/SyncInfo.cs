@@ -8,11 +8,6 @@ namespace WalletWasabi.Blockchain.BlockFilters
 {
 	public class SyncInfo
 	{
-		public BlockchainInfo BlockchainInfo { get; }
-		public int BlockCount { get; }
-		public DateTimeOffset BlockchainInfoUpdated { get; }
-		public bool IsCoreSynchornized { get; }
-
 		public SyncInfo(BlockchainInfo bcinfo)
 		{
 			Guard.NotNull(nameof(bcinfo), bcinfo);
@@ -20,6 +15,14 @@ namespace WalletWasabi.Blockchain.BlockFilters
 			int headerCount = (int)bcinfo.Headers;
 			BlockchainInfoUpdated = DateTimeOffset.UtcNow;
 			IsCoreSynchornized = BlockCount == headerCount;
+			InitialBlockDownload = bcinfo.InitialBlockDownload;
 		}
+
+		public BlockchainInfo BlockchainInfo { get; }
+		public int BlockCount { get; }
+		public DateTimeOffset BlockchainInfoUpdated { get; }
+		public bool IsCoreSynchornized { get; }
+
+		public bool InitialBlockDownload { get; }
 	}
 }

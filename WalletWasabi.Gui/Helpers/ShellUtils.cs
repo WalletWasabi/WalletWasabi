@@ -11,8 +11,6 @@ namespace WalletWasabi.Gui.Helpers
 {
 	public static class ShellUtils
 	{
-		private static ShellType ExecutorType { get; } = ShellType.Generic;
-
 		static ShellUtils()
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
@@ -26,15 +24,17 @@ namespace WalletWasabi.Gui.Helpers
 			}
 		}
 
+		private static ShellType ExecutorType { get; } = ShellType.Generic;
+
 		public static ShellExecuteResult ExecuteShellCommand(string commandName, string args)
 		{
 			var outputBuilder = new StringBuilder();
 			var errorBuilder = new StringBuilder();
 
 			var exitCode = ExecuteShellCommand(commandName, args,
-			(s, e) => outputBuilder.AppendLine(e.Data),
-			(s, e) => errorBuilder = new StringBuilder(),
-			false, "");
+				(s, e) => outputBuilder.AppendLine(e.Data),
+				(s, e) => errorBuilder = new StringBuilder(),
+				false, "");
 
 			return new ShellExecuteResult()
 			{
@@ -112,8 +112,6 @@ namespace WalletWasabi.Gui.Helpers
 		/// <summary>
 		/// Attempts to locate the full path to a script
 		/// </summary>
-		/// <param name="fileName"></param>
-		/// <returns></returns>
 		public static string ResolveFullExecutablePath(string fileName, bool returnNullOnFailure = true, params string[] extraPaths)
 		{
 			if (File.Exists(fileName))

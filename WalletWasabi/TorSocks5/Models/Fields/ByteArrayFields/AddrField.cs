@@ -9,44 +9,13 @@ namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 {
 	public class AddrField : ByteArraySerializableBase
 	{
-		#region PropertiesAndMembers
-
-		private byte[] Bytes { get; set; }
-
-		public AtypField Atyp { get; set; }
-
-		public string DomainOrIPv4
-		{
-			get
-			{
-				if (Atyp == AtypField.DomainName)
-				{
-					return Encoding.ASCII.GetString(Bytes.Skip(1).ToArray()); // UTF8 result in general SOCKS server failure
-				}
-
-				if (Atyp != AtypField.IPv4)
-				{
-					throw new NotSupportedException($"{nameof(Atyp)} not supported. Value: {Atyp}.");
-				}
-
-				var values = new string[4];
-				for (int i = 0; i < 4; i++)
-				{
-					values[i] = Bytes[i].ToString(); // it's ok ASCII here, these are always numbers
-				}
-				return string.Join(".", values);
-			}
-		}
-
-		#endregion PropertiesAndMembers
-
-		#region ConstructorsAndInitializers
+		#region Constructors
 
 		public AddrField()
 		{
 		}
 
-		/// <param name="dstAddr">domain or IPv4</param>
+		/// <param name="dstAddr">Domain or IPv4</param>
 		public AddrField(string dstAddr)
 		{
 			dstAddr = Guard.NotNullOrEmptyOrWhitespace(nameof(dstAddr), dstAddr, true);
@@ -106,7 +75,38 @@ namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 			Bytes = bytes;
 		}
 
-		#endregion ConstructorsAndInitializers
+		#endregion Constructors
+
+		#region PropertiesAndMembers
+
+		private byte[] Bytes { get; set; }
+
+		public AtypField Atyp { get; set; }
+
+		public string DomainOrIPv4
+		{
+			get
+			{
+				if (Atyp == AtypField.DomainName)
+				{
+					return Encoding.ASCII.GetString(Bytes.Skip(1).ToArray()); // UTF8 result in general SOCKS server failure
+				}
+
+				if (Atyp != AtypField.IPv4)
+				{
+					throw new NotSupportedException($"{nameof(Atyp)} not supported. Value: {Atyp}.");
+				}
+
+				var values = new string[4];
+				for (int i = 0; i < 4; i++)
+				{
+					values[i] = Bytes[i].ToString(); // it's ok ASCII here, these are always numbers
+				}
+				return string.Join(".", values);
+			}
+		}
+
+		#endregion PropertiesAndMembers
 
 		#region Serialization
 

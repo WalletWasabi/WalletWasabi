@@ -8,13 +8,6 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 {
 	public class SmartLabel : IEquatable<SmartLabel>, IEquatable<string>, IEnumerable<string>
 	{
-		public static SmartLabel Empty { get; } = new SmartLabel();
-		public static char[] Separators { get; } = new[] { ',', ':' };
-		public IEnumerable<string> Labels { get; }
-		public bool IsEmpty { get; }
-
-		private string LabelString { get; }
-
 		public SmartLabel(params string[] labels) : this(labels as IEnumerable<string>)
 		{
 		}
@@ -34,6 +27,13 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 
 			LabelString = string.Join(", ", Labels);
 		}
+
+		public static SmartLabel Empty { get; } = new SmartLabel();
+		public static char[] Separators { get; } = new[] { ',', ':' };
+		public IEnumerable<string> Labels { get; }
+		public bool IsEmpty { get; }
+
+		private string LabelString { get; }
 
 		public override string ToString() => LabelString;
 
@@ -56,7 +56,7 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 
 		#region Equality
 
-		public override bool Equals(object obj) => obj is SmartLabel slabel && this == slabel || obj is string label && this == label;
+		public override bool Equals(object obj) => Equals(obj as SmartLabel) || Equals(obj as string);
 
 		public bool Equals(SmartLabel other) => this == other;
 

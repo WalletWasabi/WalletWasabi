@@ -18,14 +18,7 @@ namespace WalletWasabi.BitcoinCore.Processes
 {
 	public class BitcoindRpcProcessBridge : BitcoindProcessBridge
 	{
-		public Network Network { get; }
-		public RPCClient RpcClient { get; set; }
-		public string DataDir { get; }
-		public bool PrintToConsole { get; }
-		public PidFile PidFile { get; }
-		private int? CachedPid { get; set; }
-
-		public BitcoindRpcProcessBridge(RPCClient rpc, string dataDir, bool printToConsole) : base()
+		public BitcoindRpcProcessBridge(IRPCClient rpc, string dataDir, bool printToConsole) : base()
 		{
 			RpcClient = Guard.NotNull(nameof(rpc), rpc);
 			Network = RpcClient.Network;
@@ -35,7 +28,14 @@ namespace WalletWasabi.BitcoinCore.Processes
 			CachedPid = null;
 		}
 
-		public async Task StartAsync()
+		public Network Network { get; }
+		public IRPCClient RpcClient { get; set; }
+		public string DataDir { get; }
+		public bool PrintToConsole { get; }
+		public PidFile PidFile { get; }
+		private int? CachedPid { get; set; }
+
+		public async Task StartAsync(CancellationToken cancel)
 		{
 			var ptcv = PrintToConsole ? 1 : 0;
 			using var process = Start($"{NetworkTranslator.GetCommandLineArguments(Network)} -datadir={DataDir} -printtoconsole={ptcv}", false);
@@ -43,18 +43,33 @@ namespace WalletWasabi.BitcoinCore.Processes
 			await PidFile.SerializeAsync(process.Id).ConfigureAwait(false);
 			CachedPid = process.Id;
 
+			string latestFailureMessage = null;
 			while (true)
 			{
 				var ex = await RpcClient.TestAsync().ConfigureAwait(false);
 				if (ex is null)
 				{
+					Logger.LogInfo($"RPC connection is successfully established.");
 					break;
+				}
+				else if (latestFailureMessage != ex.Message)
+				{
+					latestFailureMessage = ex.Message;
+					Logger.LogInfo($"Bitcoin Core is not yet ready... Reason: {latestFailureMessage}");
 				}
 
 				if (process is null || process.HasExited)
 				{
-					throw ex;
+					throw new BitcoindException($"Failed to start daemon, location: '{process?.StartInfo.FileName} {process?.StartInfo.Arguments}'", ex);
 				}
+
+				if (cancel.IsCancellationRequested)
+				{
+					await StopAsync(true).ConfigureAwait(false);
+					cancel.ThrowIfCancellationRequested();
+				}
+
+				await Task.Delay(100).ConfigureAwait(false); // So to leave some breathing room before the next check.
 			}
 		}
 

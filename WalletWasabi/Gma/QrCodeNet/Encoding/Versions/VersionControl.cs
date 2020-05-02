@@ -8,6 +8,8 @@ namespace Gma.QrCodeNet.Encoding.Versions
 		private const int NumBitsModeIndicator = 4;
 		private const string DefaultEncoding = QRCodeConstantVariable.DefaultEncoding;
 
+		private static readonly int[] VERSION_GROUP = new int[] { 9, 26, 40 };
+
 		/// <summary>
 		/// Determine which version to use
 		/// </summary>
@@ -32,7 +34,7 @@ namespace Gma.QrCodeNet.Encoding.Versions
 				containECI = true;
 			}
 
-			//Determine which version group it belong to
+			// Determine which version group it belong to
 			int searchGroup = DynamicSearchIndicator(totalDataBits, level);
 
 			int[] charCountIndicator = CharCountIndicatorTable.GetCharCountIndicatorSet();
@@ -42,7 +44,7 @@ namespace Gma.QrCodeNet.Encoding.Versions
 			int lowerSearchBoundary = searchGroup == 0 ? 1 : (VERSION_GROUP[searchGroup - 1] + 1);
 			int higherSearchBoundary = VERSION_GROUP[searchGroup];
 
-			//Binary search to find proper version
+			// Binary search to find proper version
 			int versionNum = BinarySearch(totalDataBits, level, lowerSearchBoundary, higherSearchBoundary);
 
 			VersionControlStruct vcStruct = FillVCStruct(versionNum, level);
@@ -79,12 +81,10 @@ namespace Gma.QrCodeNet.Encoding.Versions
 			return vcStruct;
 		}
 
-		private static readonly int[] VERSION_GROUP = new int[] { 9, 26, 40 };
-
 		/// <summary>
 		/// Decide which version group it belong to
 		/// </summary>
-		/// <param name="numBits">number of bits for bitlist where it contain DataBits encode from input content and ECI header</param>
+		/// <param name="numBits">Number of bits for bitlist where it contain DataBits encode from input content and ECI header</param>
 		/// <param name="level">Error correction level</param>
 		/// <returns>Version group index for VERSION_GROUP</returns>
 		private static int DynamicSearchIndicator(int numBits, ErrorCorrectionLevel level)

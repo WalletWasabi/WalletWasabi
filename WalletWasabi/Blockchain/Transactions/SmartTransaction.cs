@@ -14,6 +14,27 @@ namespace WalletWasabi.Blockchain.Transactions
 	[JsonObject(MemberSerialization.OptIn)]
 	public class SmartTransaction : IEquatable<SmartTransaction>
 	{
+		#region Constructors
+
+		public SmartTransaction(Transaction transaction, Height height, uint256 blockHash = null, int blockIndex = 0, SmartLabel label = null, bool isReplacement = false, DateTimeOffset firstSeen = default)
+		{
+			Transaction = transaction;
+			// Because we don't modify those transactions, we can cache the hash
+			Transaction.PrecomputeHash(false, true);
+
+			Label = label ?? SmartLabel.Empty;
+
+			Height = height;
+			BlockHash = blockHash;
+			BlockIndex = blockIndex;
+
+			FirstSeen = firstSeen == default ? DateTimeOffset.UtcNow : firstSeen;
+
+			IsReplacement = isReplacement;
+		}
+
+		#endregion Constructors
+
 		#region Members
 
 		[JsonProperty]
@@ -74,27 +95,6 @@ namespace WalletWasabi.Blockchain.Transactions
 		public bool IsRBF => !Confirmed && (Transaction.RBF || IsReplacement);
 
 		#endregion Members
-
-		#region Constructors
-
-		public SmartTransaction(Transaction transaction, Height height, uint256 blockHash = null, int blockIndex = 0, SmartLabel label = null, bool isReplacement = false, DateTimeOffset firstSeen = default)
-		{
-			Transaction = transaction;
-			// Because we don't modify those transactions, we can cache the hash
-			Transaction.PrecomputeHash(false, true);
-
-			Label = label ?? SmartLabel.Empty;
-
-			Height = height;
-			BlockHash = blockHash;
-			BlockIndex = blockIndex;
-
-			FirstSeen = firstSeen == default ? DateTimeOffset.UtcNow : firstSeen;
-
-			IsReplacement = isReplacement;
-		}
-
-		#endregion Constructors
 
 		/// <summary>
 		/// Update the transaction with the data acquired from another transaction. (For example merge their labels.)
@@ -208,7 +208,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 			try
 			{
-				// First is redundand txhash serialization.
+				// First is redundant txhash serialization.
 				var heightString = parts[2];
 				var blockHashString = parts[3];
 				var blockIndexString = parts[4];
@@ -252,7 +252,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => obj is SmartTransaction tx && this == tx;
+		public override bool Equals(object obj) => Equals(obj as SmartTransaction);
 
 		public bool Equals(SmartTransaction other) => this == other;
 

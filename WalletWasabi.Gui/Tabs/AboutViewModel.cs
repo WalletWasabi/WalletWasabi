@@ -16,16 +16,16 @@ namespace WalletWasabi.Gui.Tabs
 {
 	internal class AboutViewModel : WasabiDocumentTabViewModel
 	{
-		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
-
-		public AboutViewModel(Global global) : base(global, "About")
+		public AboutViewModel() : base("About")
 		{
-			OpenBrowserCommand = ReactiveCommand.Create<string>(x => IoHelpers.OpenBrowser(x));
+			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 
 			OpenBrowserCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 		}
+
+		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
 
 		public Version ClientVersion => Constants.ClientVersion;
 		public string BackendMajorVersion => Constants.BackendMajorVersion;

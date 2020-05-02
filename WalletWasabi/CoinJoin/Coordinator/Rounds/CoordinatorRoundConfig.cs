@@ -17,6 +17,14 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 	[JsonObject(MemberSerialization.OptIn)]
 	public class CoordinatorRoundConfig : ConfigBase
 	{
+		public CoordinatorRoundConfig() : base()
+		{
+		}
+
+		public CoordinatorRoundConfig(string filePath) : base(filePath)
+		{
+		}
+
 		[JsonProperty(PropertyName = "Denomination")]
 		[JsonConverter(typeof(MoneyBtcJsonConverter))]
 		public Money Denomination { get; internal set; } = Money.Coins(0.1m);
@@ -69,15 +77,23 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 		[JsonProperty(PropertyName = "MaximumMixingLevelCount", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public int MaximumMixingLevelCount { get; internal set; }
 
-		public CoordinatorRoundConfig() : base()
+		[JsonProperty(PropertyName = "CoordinatorExtPubKey")]
+		[JsonConverter(typeof(ExtPubKeyJsonConverter))]
+		public ExtPubKey CoordinatorExtPubKey { get; private set; } = Constants.FallBackCoordinatorExtPubKey;
+
+		[DefaultValue(0)]
+		[JsonProperty(PropertyName = "CoordinatorExtPubKeyCurrentDepth", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public int CoordinatorExtPubKeyCurrentDepth { get; private set; }
+
+		public Script GetNextCleanCoordinatorScript() => CoordinatorExtPubKey.Derive(0, false).Derive(CoordinatorExtPubKeyCurrentDepth, false).PubKey.WitHash.ScriptPubKey;
+
+		public void MakeNextCoordinatorScriptDirty()
 		{
+			CoordinatorExtPubKeyCurrentDepth++;
+			ToFile();
 		}
 
-		public CoordinatorRoundConfig(string filePath) : base(filePath)
-		{
-		}
-
-		public async Task UpdateOrDefaultAsync(CoordinatorRoundConfig config, bool toFile)
+		public void UpdateOrDefault(CoordinatorRoundConfig config, bool toFile)
 		{
 			Denomination = config.Denomination ?? Denomination;
 			var configSerialized = JsonConvert.SerializeObject(config);
@@ -85,7 +101,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 			if (toFile)
 			{
-				await ToFileAsync().ConfigureAwait(false);
+				ToFile();
 			}
 		}
 	}

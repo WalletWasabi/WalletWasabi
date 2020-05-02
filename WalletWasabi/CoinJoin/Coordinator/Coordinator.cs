@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.CoinJoin.Coordinator.Banning;
@@ -22,30 +23,9 @@ namespace WalletWasabi.CoinJoin.Coordinator
 {
 	public class Coordinator : IDisposable
 	{
-		private List<CoordinatorRound> Rounds { get; }
-		private AsyncLock RoundsListLock { get; }
+		private volatile bool _disposedValue = false; // To detect redundant calls
 
-		private List<uint256> CoinJoins { get; }
-		public string CoinJoinsFilePath => Path.Combine(FolderPath, $"CoinJoins{Network}.txt");
-		private AsyncLock CoinJoinsLock { get; }
-
-		private List<uint256> UnconfirmedCoinJoins { get; }
-
-		public event EventHandler<Transaction> CoinJoinBroadcasted;
-
-		public RPCClient RpcClient { get; }
-
-		public CoordinatorRoundConfig RoundConfig { get; private set; }
-
-		public Network Network { get; }
-
-		public BlockNotifier BlockNotifier { get; }
-
-		public string FolderPath { get; }
-
-		public UtxoReferee UtxoReferee { get; }
-
-		public Coordinator(Network network, BlockNotifier blockNotifier, string folderPath, RPCClient rpc, CoordinatorRoundConfig roundConfig)
+		public Coordinator(Network network, BlockNotifier blockNotifier, string folderPath, IRPCClient rpc, CoordinatorRoundConfig roundConfig)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 			BlockNotifier = Guard.NotNull(nameof(blockNotifier), blockNotifier);
@@ -59,6 +39,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 			CoinJoins = new List<uint256>();
 			UnconfirmedCoinJoins = new List<uint256>();
 			CoinJoinsLock = new AsyncLock();
+			LastSuccessfulCoinJoinTime = DateTimeOffset.UtcNow;
 
 			Directory.CreateDirectory(FolderPath);
 
@@ -151,6 +132,31 @@ namespace WalletWasabi.CoinJoin.Coordinator
 
 			BlockNotifier.OnBlock += BlockNotifier_OnBlockAsync;
 		}
+
+		public event EventHandler<Transaction> CoinJoinBroadcasted;
+
+		public DateTimeOffset LastSuccessfulCoinJoinTime { get; private set; }
+
+		private List<CoordinatorRound> Rounds { get; }
+		private AsyncLock RoundsListLock { get; }
+
+		private List<uint256> CoinJoins { get; }
+		public string CoinJoinsFilePath => Path.Combine(FolderPath, $"CoinJoins{Network}.txt");
+		private AsyncLock CoinJoinsLock { get; }
+
+		private List<uint256> UnconfirmedCoinJoins { get; }
+
+		public IRPCClient RpcClient { get; }
+
+		public CoordinatorRoundConfig RoundConfig { get; private set; }
+
+		public Network Network { get; }
+
+		public BlockNotifier BlockNotifier { get; }
+
+		public string FolderPath { get; }
+
+		public UtxoReferee UtxoReferee { get; }
 
 		private async void BlockNotifier_OnBlockAsync(object sender, Block block)
 		{
@@ -295,13 +301,14 @@ namespace WalletWasabi.CoinJoin.Coordinator
 				{
 					using (await CoinJoinsLock.LockAsync().ConfigureAwait(false))
 					{
-						uint256 coinJoinHash = round.SignedCoinJoin.GetHash();
+						uint256 coinJoinHash = round.CoinJoin.GetHash();
 						CoinJoins.Add(coinJoinHash);
 						UnconfirmedCoinJoins.Add(coinJoinHash);
+						LastSuccessfulCoinJoinTime = DateTimeOffset.UtcNow;
 						await File.AppendAllLinesAsync(CoinJoinsFilePath, new[] { coinJoinHash.ToString() }).ConfigureAwait(false);
 
 						// When a round succeeded, adjust the denomination as to users still be able to register with the latest round's active output amount.
-						IEnumerable<(Money value, int count)> outputs = round.SignedCoinJoin.GetIndistinguishableOutputs(includeSingle: true);
+						IEnumerable<(Money value, int count)> outputs = round.CoinJoin.GetIndistinguishableOutputs(includeSingle: true);
 						var bestOutput = outputs.OrderByDescending(x => x.count).FirstOrDefault();
 						if (bestOutput != default)
 						{
@@ -318,7 +325,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 								if (newDenominationToGetInWithactiveOutputs > Money.Coins(0.01m))
 								{
 									RoundConfig.Denomination = newDenominationToGetInWithactiveOutputs;
-									await RoundConfig.ToFileAsync().ConfigureAwait(false);
+									RoundConfig.ToFile();
 								}
 							}
 						}
@@ -459,8 +466,6 @@ namespace WalletWasabi.CoinJoin.Coordinator
 		}
 
 		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
 
 		protected virtual void Dispose(bool disposing)
 		{

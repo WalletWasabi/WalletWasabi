@@ -6,6 +6,7 @@ using AvalonStudio.Commands;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Composition;
 using System.IO;
@@ -20,19 +21,16 @@ namespace WalletWasabi.Gui.Shell.Commands
 {
 	internal class ToolCommands
 	{
-		public Global Global { get; }
-
 		[ImportingConstructor]
-		public ToolCommands(CommandIconService commandIconService, AvaloniaGlobalComponent global)
+		public ToolCommands(CommandIconService commandIconService)
 		{
-			Global = global.Global;
 			var walletManagerCommand = ReactiveCommand.Create(OnWalletManager);
 
 			var settingsCommand = ReactiveCommand.Create(() =>
-				IoC.Get<IShell>().AddOrSelectDocument(() => new SettingsViewModel(Global)));
+				IoC.Get<IShell>().AddOrSelectDocument(() => new SettingsViewModel()));
 
 			var transactionBroadcasterCommand = ReactiveCommand.Create(() =>
-				IoC.Get<IShell>().AddOrSelectDocument(() => new TransactionBroadcasterViewModel(Global)));
+				IoC.Get<IShell>().AddOrSelectDocument(() => new TransactionBroadcasterViewModel()));
 
 #if DEBUG
 			var devToolsCommand = ReactiveCommand.Create(() =>
@@ -71,19 +69,6 @@ namespace WalletWasabi.Gui.Shell.Commands
 #endif
 		}
 
-		private void OnWalletManager()
-		{
-			var walletManagerViewModel = IoC.Get<IShell>().GetOrCreate<WalletManagerViewModel>();
-			if (Directory.Exists(Global.WalletsDir) && Directory.EnumerateFiles(Global.WalletsDir).Any())
-			{
-				walletManagerViewModel.SelectLoadWallet();
-			}
-			else
-			{
-				walletManagerViewModel.SelectGenerateWallet();
-			}
-		}
-
 		[ExportCommandDefinition("Tools.WalletManager")]
 		public CommandDefinition WalletManagerCommand { get; }
 
@@ -99,5 +84,20 @@ namespace WalletWasabi.Gui.Shell.Commands
 		public CommandDefinition DevToolsCommand { get; }
 
 #endif
+
+		private void OnWalletManager()
+		{
+			var global = Locator.Current.GetService<Global>();
+
+			var walletManagerViewModel = IoC.Get<IShell>().GetOrCreateByType<WalletManagerViewModel>();
+			if (global.WalletManager.WalletDirectories.EnumerateWalletFiles().Any())
+			{
+				walletManagerViewModel.SelectLoadWallet();
+			}
+			else
+			{
+				walletManagerViewModel.SelectGenerateWallet();
+			}
+		}
 	}
 }

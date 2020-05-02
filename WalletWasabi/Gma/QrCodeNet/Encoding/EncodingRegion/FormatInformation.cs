@@ -11,6 +11,16 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 	internal static class FormatInformation
 	{
 		/// <summary>
+		/// From Appendix C in JISX0510:2004 (p.65).
+		/// </summary>
+		private const int FormatInfoPoly = 0x537;
+
+		/// <summary>
+		/// From Appendix C in JISX0510:2004 (p.65).
+		/// </summary>
+		private const int FormatInfoMaskPattern = 0x5412;
+
+		/// <summary>
 		/// Embed format information to tristatematrix.
 		/// Process combination of create info bits, BCH error correction bits calculation, embed towards matrix.
 		/// </summary>
@@ -52,16 +62,6 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 			}
 		}
 
-		/// <summary>
-		/// From Appendix C in JISX0510:2004 (p.65).
-		/// </summary>
-		private const int FormatInfoPoly = 0x537;
-
-		/// <summary>
-		/// From Appendix C in JISX0510:2004 (p.65).
-		/// </summary>
-		private const int FormatInfoMaskPattern = 0x5412;
-
 		private static BitList GetFormatInfoBits(ErrorCorrectionLevel errorLevel, Pattern pattern)
 		{
 			int formatInfo = (int)pattern.MaskPatternType;
@@ -91,7 +91,7 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 		}
 
 		//According Table 25 — Error correction level indicators
-		//Using this bits as enum values would destroy thir order which currently correspond to error correction strength.
+		//Using these bits as enum values would destroy their order which currently corresponds to error correction strength.
 		internal static int GetErrorCorrectionIndicatorBits(ErrorCorrectionLevel errorLevel)
 		{
 			//L 01

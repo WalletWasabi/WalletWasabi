@@ -11,9 +11,6 @@ namespace WalletWasabi.Io
 {
 	public class SafeMutexIoManager : MutexIoManager
 	{
-		public string OldFilePath { get; }
-		public string NewFilePath { get; }
-
 		private const string OldExtension = ".old";
 		private const string NewExtension = ".new";
 
@@ -23,6 +20,9 @@ namespace WalletWasabi.Io
 
 			NewFilePath = $"{FilePath}{NewExtension}";
 		}
+
+		public string OldFilePath { get; }
+		public string NewFilePath { get; }
 
 		#region IoOperations
 
@@ -85,7 +85,7 @@ namespace WalletWasabi.Io
 		}
 
 		/// <summary>
-		/// https://stackoverflow.com/questions/7957544/how-to-ensure-that-data-doesnt-get-corrupted-when-saving-to-file/7957634#7957634
+		/// Source: https://stackoverflow.com/questions/7957544/how-to-ensure-that-data-doesnt-get-corrupted-when-saving-to-file/7957634#7957634
 		/// </summary>
 		private bool TryGetSafestFileVersion(out string safestFilePath)
 		{

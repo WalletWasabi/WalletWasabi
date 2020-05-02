@@ -169,6 +169,15 @@ namespace Mono.Options
 {
 	public class OptionSet : KeyedCollection<string, Option>
 	{
+		private readonly Regex ValueOption = new Regex(@"^(?<flag>--|-|/)(?<name>[^:=]+)((?<sep>[:=])(?<value>.*))?$");
+
+		private const int OptionWidth = 29;
+		private const int DescriptionFirstWidth = 140 - OptionWidth;
+		private const int DescriptionRemWidth = 140 - OptionWidth - 2;
+
+		private static readonly string CommandHelpIndentStart = new string(' ', OptionWidth);
+		private static readonly string CommandHelpIndentRemaining = new string(' ', OptionWidth + 2);
+
 		public OptionSet()
 			: this(null)
 		{
@@ -556,9 +565,6 @@ namespace Mono.Options
 			return false;
 		}
 
-		private readonly Regex ValueOption = new Regex(
-			@"^(?<flag>--|-|/)(?<name>[^:=]+)((?<sep>[:=])(?<value>.*))?$");
-
 		protected bool GetOptionParts(string argument, out string flag, out string name, out string sep, out string value)
 		{
 			if (argument is null)
@@ -659,7 +665,7 @@ namespace Mono.Options
 			Option p;
 			string rn;
 			if (n.Length >= 1 && (n[^1] == '+' || n[^1] == '-') &&
-					Contains((rn = n.Substring(0, n.Length - 1))))
+					Contains((rn = n[0..^1])))
 			{
 				p = this[rn];
 				string v = n[^1] == '+' ? option : null;
@@ -725,13 +731,6 @@ namespace Mono.Options
 			option.Invoke(c);
 		}
 
-		private const int OptionWidth = 29;
-		private const int DescriptionFirstWidth = 140 - OptionWidth;
-		private const int DescriptionRemWidth = 140 - OptionWidth - 2;
-
-		private static readonly string CommandHelpIndentStart = new string(' ', OptionWidth);
-		private static readonly string CommandHelpIndentRemaining = new string(' ', OptionWidth + 2);
-
 		public void WriteOptionDescriptions(TextWriter o)
 		{
 			foreach (Option p in this)
@@ -743,7 +742,7 @@ namespace Mono.Options
 					continue;
 				}
 
-				if (p is Category c)
+				if (p is Category)
 				{
 					WriteDescription(o, p.Description, "", 140, 140);
 					continue;
@@ -968,7 +967,7 @@ namespace Mono.Options
 						}
 						else
 						{
-							sb.Append(description.Substring(start, i - start));
+							sb.Append(description[start..i]);
 							start = -1;
 						}
 						break;

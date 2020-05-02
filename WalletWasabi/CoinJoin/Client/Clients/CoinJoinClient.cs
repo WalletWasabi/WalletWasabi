@@ -1,6 +1,4 @@
 using NBitcoin;
-using NBitcoin.BouncyCastle.Math;
-using NBitcoin.Crypto;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Concurrent;
@@ -23,37 +21,14 @@ using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 using WalletWasabi.Services;
-using static NBitcoin.Crypto.SchnorrBlinding;
+using static WalletWasabi.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.CoinJoin.Client.Clients
 {
 	public class CoinJoinClient
 	{
-		public Network Network { get; private set; }
-		public KeyManager KeyManager { get; private set; }
-		public bool IsQuitPending { get; set; }
-
-		private ClientRoundRegistration DelayedRoundRegistration { get; set; }
-
-		public Func<Uri> CcjHostUriAction { get; private set; }
-		public WasabiSynchronizer Synchronizer { get; private set; }
-		private EndPoint TorSocks5EndPoint { get; set; }
-
-		private decimal? CoordinatorFeepercentToCheck { get; set; }
-
-		public ConcurrentDictionary<TxoRef, IEnumerable<HdPubKeyBlindedPair>> ExposedLinks { get; set; }
-
-		private AsyncLock MixLock { get; set; }
-
-		public ClientState State { get; private set; }
-
-		public event EventHandler StateUpdated;
-
-		public event EventHandler<SmartCoin> CoinQueued;
-
-		public event EventHandler<DequeueResult> OnDequeue;
-
 		private long _frequentStatusProcessingIfNotMixing;
 
 		/// <summary>
@@ -61,42 +36,22 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		/// </summary>
 		private long _running;
 
-		public bool IsRunning => Interlocked.Read(ref _running) == 1;
-
 		private long _statusProcessing;
 
-		private CancellationTokenSource Cancel { get; set; }
-
 		public CoinJoinClient(
 			WasabiSynchronizer synchronizer,
 			Network network,
-			KeyManager keyManager,
-			Func<Uri> ccjHostUriAction,
-			EndPoint torSocks5EndPoint)
-		{
-			Create(synchronizer, network, keyManager, ccjHostUriAction, torSocks5EndPoint);
-		}
-
-		public CoinJoinClient(
-			WasabiSynchronizer synchronizer,
-			Network network,
-			KeyManager keyManager,
-			Uri ccjHostUri,
-			EndPoint torSocks5EndPoint)
-		{
-			Create(synchronizer, network, keyManager, () => ccjHostUri, torSocks5EndPoint);
-		}
-
-		private void Create(WasabiSynchronizer synchronizer, Network network, KeyManager keyManager, Func<Uri> ccjHostUriAction, EndPoint torSocks5EndPoint)
+			KeyManager keyManager)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
-			CcjHostUriAction = Guard.NotNull(nameof(ccjHostUriAction), ccjHostUriAction);
+			DestinationKeyManager = KeyManager;
 			Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
-			TorSocks5EndPoint = torSocks5EndPoint;
+			CcjHostUriAction = Synchronizer.WasabiClient.TorClient.DestinationUriAction;
+			TorSocks5EndPoint = Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint;
 			CoordinatorFeepercentToCheck = null;
 
-			ExposedLinks = new ConcurrentDictionary<TxoRef, IEnumerable<HdPubKeyBlindedPair>>();
+			ExposedLinks = new ConcurrentDictionary<OutPoint, IEnumerable<HdPubKeyBlindedPair>>();
 			_running = 0;
 			Cancel = new CancellationTokenSource();
 			_frequentStatusProcessingIfNotMixing = 0;
@@ -113,6 +68,43 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				_ = TryProcessStatusAsync(Synchronizer.LastResponse.CcjRoundStates);
 			}
 		}
+
+		public event EventHandler StateUpdated;
+
+		public event EventHandler<SmartCoin> CoinQueued;
+
+		public event EventHandler<DequeueResult> OnDequeue;
+
+		public Network Network { get; private set; }
+		public KeyManager KeyManager { get; }
+		public KeyManager DestinationKeyManager { get; set; }
+		public bool IsQuitPending { get; set; }
+
+		private ClientRoundRegistration DelayedRoundRegistration { get; set; }
+
+		public Func<Uri> CcjHostUriAction { get; private set; }
+		public WasabiSynchronizer Synchronizer { get; private set; }
+		private EndPoint TorSocks5EndPoint { get; set; }
+
+		private decimal? CoordinatorFeepercentToCheck { get; set; }
+
+		public ConcurrentDictionary<OutPoint, IEnumerable<HdPubKeyBlindedPair>> ExposedLinks { get; set; }
+
+		private AsyncLock MixLock { get; set; }
+
+		public ClientState State { get; private set; }
+
+		public bool IsRunning => Interlocked.Read(ref _running) == 1;
+
+		private CancellationTokenSource Cancel { get; set; }
+
+		private string Salt { get; set; } = null;
+		private string Soup { get; set; } = null;
+		private object RefrigeratorLock { get; } = new object();
+
+		public bool HasIngredients => Salt != null && Soup != null;
+
+		public bool IsDestinationSame => KeyManager.ExtPubKey == DestinationKeyManager.ExtPubKey;
 
 		private async void Synchronizer_ResponseArrivedAsync(object sender, SynchronizeResponse e)
 		{
@@ -405,7 +397,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			for (int i = 0; i < signedCoinJoin.Inputs.Count; i++)
 			{
 				var input = signedCoinJoin.Inputs[i];
-				if (ongoingRound.CoinsRegistered.Select(x => x.GetOutPoint()).Contains(input.PrevOut))
+				if (ongoingRound.CoinsRegistered.Select(x => x.OutPoint).Contains(input.PrevOut))
 				{
 					myDic.Add(i, signedCoinJoin.Inputs[i].WitScript);
 				}
@@ -416,7 +408,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		private async Task RegisterOutputAsync(ClientRound ongoingRound)
 		{
-			IEnumerable<TxoRef> registeredInputs = ongoingRound.Registration.CoinsRegistered.Select(x => x.GetTxoRef());
+			IEnumerable<OutPoint> registeredInputs = ongoingRound.Registration.CoinsRegistered.Select(x => x.OutPoint);
 
 			var shuffledOutputs = ongoingRound.Registration.ActiveOutputs.ToList();
 			shuffledOutputs.Shuffle();
@@ -430,7 +422,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				}
 
 				// Unblind our exposed links.
-				foreach (TxoRef input in registeredInputs)
+				foreach (OutPoint input in registeredInputs)
 				{
 					if (ExposedLinks.ContainsKey(input)) // Should never not contain, but oh well, let's not disrupt the round for this.
 					{
@@ -442,7 +434,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 						else
 						{
 							// Should never happen, but oh well we can autocorrect it so why not.
-							ExposedLinks[input] = ExposedLinks[input].Append(new HdPubKeyBlindedPair(KeyManager.GetKeyForScriptPubKey(activeOutput.Address.ScriptPubKey), false));
+							ExposedLinks[input] = ExposedLinks[input].Append(new HdPubKeyBlindedPair(DestinationKeyManager.GetKeyForScriptPubKey(activeOutput.Address.ScriptPubKey) ?? KeyManager.GetKeyForScriptPubKey(activeOutput.Address.ScriptPubKey), false));
 						}
 					}
 				}
@@ -483,8 +475,8 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		{
 			try
 			{
-				// Select the most suitable coins to regiter.
-				List<TxoRef> registrableCoins = State.GetRegistrableCoins(
+				// Select the most suitable coins to register.
+				List<OutPoint> registrableCoins = State.GetRegistrableCoins(
 					inputRegistrableRound.State.MaximumInputCountPerPeer,
 					inputRegistrableRound.State.Denomination,
 					inputRegistrableRound.State.FeePerInputs,
@@ -513,7 +505,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					BitcoinAddress address = outputAddresses.actives.Select(x => x.GetP2wpkhAddress(Network)).ElementAt(i);
 
 					SchnorrPubKey schnorrPubKey = schnorrPubKeys[i];
-					var outputScriptHash = new uint256(Hashes.SHA256(address.ScriptPubKey.ToBytes()));
+					var outputScriptHash = new uint256(NBitcoin.Crypto.Hashes.SHA256(address.ScriptPubKey.ToBytes()));
 					var requester = new Requester();
 					uint256 blindedOutputScriptHash = requester.BlindMessage(outputScriptHash, schnorrPubKey);
 					requesters.Add(requester);
@@ -522,10 +514,10 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				}
 
 				byte[] blindedOutputScriptHashesByte = ByteHelpers.Combine(blindedOutputScriptHashes.Select(x => x.ToBytes()));
-				uint256 blindedOutputScriptsHash = new uint256(Hashes.SHA256(blindedOutputScriptHashesByte));
+				uint256 blindedOutputScriptsHash = new uint256(NBitcoin.Crypto.Hashes.SHA256(blindedOutputScriptHashesByte));
 
 				var inputProofs = new List<InputProofModel>();
-				foreach (TxoRef coinReference in registrableCoins)
+				foreach (OutPoint coinReference in registrableCoins)
 				{
 					SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
 					if (coin is null)
@@ -536,7 +528,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					coin.Secret ??= KeyManager.GetSecrets(SaltSoup(), coin.ScriptPubKey).Single();
 					var inputProof = new InputProofModel
 					{
-						Input = coin.GetTxoRef(),
+						Input = coin.OutPoint,
 						Proof = coin.Secret.PrivateKey.SignCompact(blindedOutputScriptsHash)
 					};
 					inputProofs.Add(inputProof);
@@ -554,7 +546,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					int minuteInt = int.Parse(minutesString);
 					string bannedInputString = parts[2].TrimEnd('.');
 					string[] bannedInputStringParts = bannedInputString.Split(':', StringSplitOptions.RemoveEmptyEntries);
-					TxoRef coinReference = new TxoRef(new uint256(bannedInputStringParts[1]), uint.Parse(bannedInputStringParts[0]));
+					OutPoint coinReference = new OutPoint(new uint256(bannedInputStringParts[1]), uint.Parse(bannedInputStringParts[0]));
 					SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
 					if (coin is null)
 					{
@@ -574,7 +566,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					string[] parts = ex.Message.Split(new[] { "Provided input is not unspent: " }, StringSplitOptions.RemoveEmptyEntries);
 					string spentInputString = parts[1].TrimEnd('.');
 					string[] bannedInputStringParts = spentInputString.Split(':', StringSplitOptions.RemoveEmptyEntries);
-					TxoRef coinReference = new TxoRef(new uint256(bannedInputStringParts[1]), uint.Parse(bannedInputStringParts[0]));
+					OutPoint coinReference = new OutPoint(new uint256(bannedInputStringParts[1]), uint.Parse(bannedInputStringParts[0]));
 					SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
 					if (coin is null)
 					{
@@ -603,7 +595,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				}
 
 				var coinsRegistered = new List<SmartCoin>();
-				foreach (TxoRef coinReference in registrableCoins)
+				foreach (OutPoint coinReference in registrableCoins)
 				{
 					var coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
 					if (coin is null)
@@ -633,11 +625,11 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			}
 		}
 
-		private (HdPubKey change, IEnumerable<HdPubKey> active) GetOutputsToRegister(Money baseDenomination, int mixingLevelCount, IEnumerable<TxoRef> coinsToRegister)
+		private (HdPubKey change, IEnumerable<HdPubKey> active) GetOutputsToRegister(Money baseDenomination, int mixingLevelCount, IEnumerable<OutPoint> coinsToRegister)
 		{
 			// Figure out how many mixing level we need to register active outputs.
 			Money inputSum = Money.Zero;
-			foreach (TxoRef coinReference in coinsToRegister)
+			foreach (OutPoint coinReference in coinsToRegister)
 			{
 				SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
 				inputSum += coin.Amount;
@@ -663,8 +655,8 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			var keysTryNotToRegister = ExposedLinks.SelectMany(x => x.Value).Select(x => x.Key).Except(keysToSurelyRegister).ToArray();
 
 			// Get all locked internal keys we have and assert we have enough.
-			KeyManager.AssertLockedInternalKeysIndexed(howMany: maximumMixingLevelCount + 1);
-			IEnumerable<HdPubKey> allLockedInternalKeys = KeyManager.GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked && !keysTryNotToRegister.Contains(x));
+			DestinationKeyManager.AssertLockedInternalKeysIndexed(howMany: maximumMixingLevelCount + 1);
+			IEnumerable<HdPubKey> allLockedInternalKeys = DestinationKeyManager.GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked && !keysTryNotToRegister.Contains(x));
 
 			// If any of our inputs have exposed address relationship then prefer that.
 			allLockedInternalKeys = keysToSurelyRegister.Concat(allLockedInternalKeys).Distinct();
@@ -678,7 +670,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			var newKeys = new List<HdPubKey>();
 			for (int i = allLockedInternalKeys.Count(); i <= maximumMixingLevelCount + 1; i++)
 			{
-				HdPubKey k = KeyManager.GenerateNewKey(SmartLabel.Empty, KeyState.Locked, isInternal: true, toFile: false);
+				HdPubKey k = DestinationKeyManager.GenerateNewKey(SmartLabel.Empty, KeyState.Locked, isInternal: true, toFile: false);
 				newKeys.Add(k);
 			}
 			allLockedInternalKeys = allLockedInternalKeys.Concat(newKeys);
@@ -701,7 +693,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			{
 				outLinks.Add(new HdPubKeyBlindedPair(active, isBlinded: true));
 			}
-			foreach (TxoRef coin in coinsToRegister)
+			foreach (OutPoint coin in coinsToRegister)
 			{
 				if (!ExposedLinks.TryAdd(coin, outLinks))
 				{
@@ -732,7 +724,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			}
 
 			// Save our modifications in the keymanager before we give back the selected keys.
-			KeyManager.ToFile();
+			DestinationKeyManager.ToFile();
 			return (change, actives);
 		}
 
@@ -753,10 +745,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		{
 			Interlocked.Exchange(ref _frequentStatusProcessingIfNotMixing, 0);
 		}
-
-		private string Salt { get; set; } = null;
-		private string Soup { get; set; } = null;
-		private object RefrigeratorLock { get; } = new object();
 
 		public async Task<IEnumerable<SmartCoin>> QueueCoinsToMixAsync(string password, params SmartCoin[] coins)
 			=> await QueueCoinsToMixAsync(password, coins as IEnumerable<SmartCoin>).ConfigureAwait(false);
@@ -838,23 +826,18 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				{
 					await DequeueSpentCoinsFromMixNoLockAsync().ConfigureAwait(false);
 
-					await DequeueCoinsFromMixNoLockAsync(coins.Select(x => x.GetTxoRef()).ToArray(), reason).ConfigureAwait(false);
+					await DequeueCoinsFromMixNoLockAsync(coins.Select(x => x.OutPoint).ToArray(), reason).ConfigureAwait(false);
 				}
 			}
 			catch (TaskCanceledException)
 			{
 				await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray(), reason).ConfigureAwait(false);
 
-				await DequeueCoinsFromMixNoLockAsync(coins.Select(x => x.GetTxoRef()).ToArray(), reason).ConfigureAwait(false);
+				await DequeueCoinsFromMixNoLockAsync(coins.Select(x => x.OutPoint).ToArray(), reason).ConfigureAwait(false);
 			}
 		}
 
-		public async Task DequeueCoinsFromMixAsync(TxoRef coin, DequeueReason reason)
-		{
-			await DequeueCoinsFromMixAsync(new[] { coin }, reason).ConfigureAwait(false);
-		}
-
-		public async Task DequeueCoinsFromMixAsync(TxoRef[] coins, DequeueReason reason)
+		public async Task DequeueCoinsFromMixAsync(OutPoint[] coins, DequeueReason reason)
 		{
 			if (coins is null || !coins.Any())
 			{
@@ -881,6 +864,10 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		public async Task DequeueAllCoinsFromMixAsync(DequeueReason reason)
 		{
+			if (reason == DequeueReason.ApplicationExit && Synchronizer.BackendStatus == BackendStatus.NotConnected)
+			{
+				return;
+			}
 			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
 			try
 			{
@@ -905,12 +892,12 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray(), DequeueReason.Spent).ConfigureAwait(false);
 		}
 
-		private async Task DequeueCoinsFromMixNoLockAsync(TxoRef coin, DequeueReason reason)
+		private async Task DequeueCoinsFromMixNoLockAsync(OutPoint coin, DequeueReason reason)
 		{
 			await DequeueCoinsFromMixNoLockAsync(new[] { coin }, reason).ConfigureAwait(false);
 		}
 
-		private async Task<DequeueResult> DequeueCoinsFromMixNoLockAsync(TxoRef[] coins, DequeueReason reason)
+		private async Task<DequeueResult> DequeueCoinsFromMixNoLockAsync(OutPoint[] coins, DequeueReason reason)
 		{
 			if (coins is null || !coins.Any())
 			{
@@ -949,7 +936,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					}
 					else
 					{
-						// If coin is unspent we're cannot dequeue.
+						// If coin is unspent we cannot dequeue.
 						if (coinToDequeue.Unspent)
 						{
 							exception = new NotSupportedException($"Cannot deque coin in {round.State.Phase} phase. Coin: {coinToDequeue.Index}:{coinToDequeue.TransactionId}.");
@@ -998,8 +985,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			return result;
 		}
 
-		public bool HasIngredients => Salt != null && Soup != null;
-
 		private string SaltSoup()
 		{
 			if (!HasIngredients)
@@ -1029,27 +1014,27 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			}
 		}
 
-		public async Task StopAsync()
+		public async Task StopAsync(CancellationToken cancel)
 		{
+			await DequeueAllCoinsFromMixGracefullyAsync(DequeueReason.ApplicationExit, cancel).ConfigureAwait(false);
+
 			Synchronizer.ResponseArrived -= Synchronizer_ResponseArrivedAsync;
 
 			Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
 			Cancel?.Cancel();
 			while (Interlocked.CompareExchange(ref _running, 3, 0) == 2)
 			{
-				await Task.Delay(50).ConfigureAwait(false);
+				await Task.Delay(50, cancel).ConfigureAwait(false);
 			}
 
 			Cancel?.Dispose();
 			Cancel = null;
 
-			using (await MixLock.LockAsync().ConfigureAwait(false))
+			using (await MixLock.LockAsync(cancel).ConfigureAwait(false))
 			{
-				await DequeueSpentCoinsFromMixNoLockAsync().ConfigureAwait(false);
-
 				State.DisposeAllAliceClients();
 
-				IEnumerable<TxoRef> allCoins = State.GetAllQueuedCoins();
+				IEnumerable<OutPoint> allCoins = State.GetAllQueuedCoins();
 				foreach (var coinReference in allCoins)
 				{
 					try
@@ -1059,7 +1044,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 						{
 							continue; // The coin is not present anymore. Good. This should never happen though.
 						}
-						await DequeueCoinsFromMixNoLockAsync(coin.GetTxoRef(), DequeueReason.ApplicationExit).ConfigureAwait(false);
+						await DequeueCoinsFromMixNoLockAsync(coin.OutPoint, DequeueReason.ApplicationExit).ConfigureAwait(false);
 					}
 					catch (Exception ex)
 					{
@@ -1076,6 +1061,24 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 							Logger.LogError(ex);
 						}
 					}
+				}
+			}
+		}
+
+		public async Task DequeueAllCoinsFromMixGracefullyAsync(DequeueReason reason, CancellationToken cancel)
+		{
+			while (true)
+			{
+				cancel.ThrowIfCancellationRequested();
+
+				try
+				{
+					await DequeueAllCoinsFromMixAsync(reason).ConfigureAwait(false);
+					break;
+				}
+				catch
+				{
+					await Task.Delay(1000, cancel).ConfigureAwait(false); // wait, maybe the situation will change
 				}
 			}
 		}

@@ -9,12 +9,12 @@ namespace WalletWasabi.Http.Models
 {
 	public class StatusLine : StartLine
 	{
-		public HttpStatusCode StatusCode { get; }
-
 		public StatusLine(HttpProtocol protocol, HttpStatusCode status) : base(protocol)
 		{
 			StatusCode = status;
 		}
+
+		public HttpStatusCode StatusCode { get; }
 
 		public override string ToString()
 		{

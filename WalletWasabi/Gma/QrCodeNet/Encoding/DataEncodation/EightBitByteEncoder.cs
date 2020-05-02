@@ -16,7 +16,10 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 	{
 		private const string DefaultEncoding = QRCodeConstantVariable.DefaultEncoding;
 
-		internal string Encoding { get; private set; }
+		/// <summary>
+		/// Bitcount, Chapter 8.4.4, P.24
+		/// </summary>
+		private const int EightBitByteBitcount = 8;
 
 		/// <summary>
 		/// EightBitByte encoder's encoding will change according to different region
@@ -32,12 +35,9 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			Encoding = DefaultEncoding;
 		}
 
-		protected byte[] EncodeContent(string content, string encoding) => System.Text.Encoding.GetEncoding(encoding).GetBytes(content);
+		internal string Encoding { get; private set; }
 
-		/// <summary>
-		/// Bitcount, Chapter 8.4.4, P.24
-		/// </summary>
-		private const int EightBitByteBitcount = 8;
+		protected byte[] EncodeContent(string content, string encoding) => System.Text.Encoding.GetEncoding(encoding).GetBytes(content);
 
 		internal override BitList GetDataBits(string content)
 		{
@@ -57,8 +57,8 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		internal BitList GetDataBitsByByteArray(byte[] encodeContent, string encodingName)
 		{
 			var dataBits = new BitList();
-			//Current plan for UTF8 support is put Byte order Mark in front of content byte.
-			//Also include ECI header before encoding header. Which will be add with encoding header.
+			// Current plan for UTF8 support is put Byte order Mark in front of content byte.
+			// Also include ECI header before encoding header. Which will be add with encoding header.
 			if (encodingName == "utf-8")
 			{
 				byte[] utf8BOM = QRCodeConstantVariable.UTF8ByteOrderMark;

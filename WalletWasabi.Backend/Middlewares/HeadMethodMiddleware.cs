@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 namespace WalletWasabi.Backend.Middlewares
 {
 	/// <summary>
-	/// https://www.tpeczek.com/2017/10/exploring-head-method-behavior-in.html
-	/// https://github.com/tpeczek/Demo.AspNetCore.Mvc.CosmosDB/blob/master/Demo.AspNetCore.Mvc.CosmosDB/Middlewares/HeadMethodMiddleware.cs
+	/// Source: https://www.tpeczek.com/2017/10/exploring-head-method-behavior-in.html
+	/// Source: https://github.com/tpeczek/Demo.AspNetCore.Mvc.CosmosDB/blob/master/Demo.AspNetCore.Mvc.CosmosDB/Middlewares/HeadMethodMiddleware.cs
 	/// </summary>
 	public class HeadMethodMiddleware
 	{

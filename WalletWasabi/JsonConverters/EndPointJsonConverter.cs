@@ -9,8 +9,6 @@ namespace WalletWasabi.JsonConverters
 {
 	public class EndPointJsonConverter : JsonConverter
 	{
-		public int DefaultPort { get; }
-
 		private EndPointJsonConverter()
 		{
 		}
@@ -24,6 +22,8 @@ namespace WalletWasabi.JsonConverters
 
 			DefaultPort = defaultPort;
 		}
+
+		public int DefaultPort { get; }
 
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)

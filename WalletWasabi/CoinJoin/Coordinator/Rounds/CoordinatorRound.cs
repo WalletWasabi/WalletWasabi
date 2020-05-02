@@ -1,5 +1,4 @@
 using NBitcoin;
-using NBitcoin.Crypto;
 using NBitcoin.RPC;
 using Newtonsoft.Json.Linq;
 using Nito.AsyncEx;
@@ -10,22 +9,87 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.CoinJoin.Coordinator.Banning;
 using WalletWasabi.CoinJoin.Coordinator.MixingLevels;
 using WalletWasabi.CoinJoin.Coordinator.Participants;
+using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using static NBitcoin.Crypto.SchnorrBlinding;
+using static WalletWasabi.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 {
 	public class CoordinatorRound
 	{
 		public static long RoundCount;
+		private RoundPhase _phase;
+		private CoordinatorRoundStatus _status;
+
+		public CoordinatorRound(IRPCClient rpc, UtxoReferee utxoReferee, CoordinatorRoundConfig config, int adjustedConfirmationTarget, int configuredConfirmationTarget, double configuredConfirmationTargetReductionRate)
+		{
+			try
+			{
+				RoundId = Interlocked.Increment(ref RoundCount);
+
+				RpcClient = Guard.NotNull(nameof(rpc), rpc);
+				UtxoReferee = Guard.NotNull(nameof(utxoReferee), utxoReferee);
+				RoundConfig = Guard.NotNull(nameof(config), config);
+
+				AdjustedConfirmationTarget = adjustedConfirmationTarget;
+				ConfiguredConfirmationTarget = configuredConfirmationTarget;
+				ConfiguredConfirmationTargetReductionRate = configuredConfirmationTargetReductionRate;
+				CoordinatorFeePercent = config.CoordinatorFeePercent;
+				AnonymitySet = config.AnonymitySet;
+				InputRegistrationTimeout = TimeSpan.FromSeconds(config.InputRegistrationTimeout);
+				SetInputRegistrationTimesout();
+				ConnectionConfirmationTimeout = TimeSpan.FromSeconds(config.ConnectionConfirmationTimeout);
+				OutputRegistrationTimeout = TimeSpan.FromSeconds(config.OutputRegistrationTimeout);
+				SigningTimeout = TimeSpan.FromSeconds(config.SigningTimeout);
+
+				PhaseLock = new object();
+				Phase = RoundPhase.InputRegistration;
+				StatusLock = new object();
+				Status = CoordinatorRoundStatus.NotStarted;
+
+				RegisteredUnblindedSignatures = new List<UnblindedSignature>();
+				RegisteredUnblindedSignaturesLock = new object();
+
+				MixingLevels = new MixingLevelCollection(config.Denomination, new Signer(new Key()));
+				for (int i = 0; i < config.MaximumMixingLevelCount - 1; i++)
+				{
+					MixingLevels.AddNewLevel();
+				}
+
+				CoinJoin = null;
+
+				Alices = new List<Alice>();
+				Bobs = new List<Bob>();
+
+				Logger.LogInfo($"New round ({RoundId}) is created.\n\t" +
+					$"BaseDenomination: {MixingLevels.GetBaseDenomination().ToString(false, true)} BTC.\n\t" +
+					$"{nameof(AdjustedConfirmationTarget)}: {AdjustedConfirmationTarget}.\n\t" +
+					$"{nameof(CoordinatorFeePercent)}: {CoordinatorFeePercent}%.\n\t" +
+					$"{nameof(AnonymitySet)}: {AnonymitySet}.");
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError($"Round ({RoundId}): Could not create.");
+				Logger.LogError(ex);
+				throw;
+			}
+		}
+
+		public event EventHandler<RoundPhase> PhaseChanged;
+
+		public event EventHandler<CoordinatorRoundStatus> StatusChanged;
+
+		public event EventHandler<Transaction> CoinJoinBroadcasted;
+
 		public long RoundId { get; }
 
-		public RPCClient RpcClient { get; }
+		public IRPCClient RpcClient { get; }
 		public Network Network => RpcClient.Network;
 
 		/// <summary>
@@ -49,21 +113,11 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 		public Money FeePerInputs { get; private set; }
 		public Money FeePerOutputs { get; private set; }
 
-		public Transaction UnsignedCoinJoin { get; private set; }
-		private string _unsignedCoinJoinHex;
+		public string UnsignedCoinJoinHex { get; private set; }
 
 		public MixingLevelCollection MixingLevels { get; }
 
-		public string GetUnsignedCoinJoinHex()
-		{
-			if (_unsignedCoinJoinHex is null)
-			{
-				_unsignedCoinJoinHex = UnsignedCoinJoin.ToHex();
-			}
-			return _unsignedCoinJoinHex;
-		}
-
-		public Transaction SignedCoinJoin { get; private set; }
+		public Transaction CoinJoin { get; private set; }
 
 		private List<Alice> Alices { get; }
 		private List<Bob> Bobs { get; } // Do not make it a hashset or do not make Bob IEquitable!!!
@@ -73,7 +127,6 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 		private static AsyncLock RoundSynchronizerLock { get; } = new AsyncLock();
 
-		private RoundPhase _phase;
 		private object PhaseLock { get; }
 
 		public RoundPhase Phase
@@ -103,10 +156,6 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				}
 			}
 		}
-
-		public event EventHandler<RoundPhase> PhaseChanged;
-
-		private CoordinatorRoundStatus _status;
 
 		private object StatusLock { get; }
 
@@ -138,10 +187,6 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			}
 		}
 
-		public event EventHandler<CoordinatorRoundStatus> StatusChanged;
-
-		public event EventHandler<Transaction> CoinJoinBroadcasted;
-
 		public TimeSpan AliceRegistrationTimeout => ConnectionConfirmationTimeout;
 
 		public TimeSpan InputRegistrationTimeout { get; }
@@ -154,70 +199,14 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 		public TimeSpan SigningTimeout { get; }
 
 		public UtxoReferee UtxoReferee { get; }
+		public CoordinatorRoundConfig RoundConfig { get; }
 
-		public CoordinatorRound(RPCClient rpc, UtxoReferee utxoReferee, CoordinatorRoundConfig config, int adjustedConfirmationTarget, int configuredConfirmationTarget, double configuredConfirmationTargetReductionRate)
-		{
-			try
-			{
-				RoundId = Interlocked.Increment(ref RoundCount);
-
-				RpcClient = Guard.NotNull(nameof(rpc), rpc);
-				UtxoReferee = Guard.NotNull(nameof(utxoReferee), utxoReferee);
-				Guard.NotNull(nameof(config), config);
-
-				AdjustedConfirmationTarget = adjustedConfirmationTarget;
-				ConfiguredConfirmationTarget = configuredConfirmationTarget;
-				ConfiguredConfirmationTargetReductionRate = configuredConfirmationTargetReductionRate;
-				CoordinatorFeePercent = config.CoordinatorFeePercent;
-				AnonymitySet = config.AnonymitySet;
-				InputRegistrationTimeout = TimeSpan.FromSeconds(config.InputRegistrationTimeout);
-				SetInputRegistrationTimesout();
-				ConnectionConfirmationTimeout = TimeSpan.FromSeconds(config.ConnectionConfirmationTimeout);
-				OutputRegistrationTimeout = TimeSpan.FromSeconds(config.OutputRegistrationTimeout);
-				SigningTimeout = TimeSpan.FromSeconds(config.SigningTimeout);
-
-				PhaseLock = new object();
-				Phase = RoundPhase.InputRegistration;
-				StatusLock = new object();
-				Status = CoordinatorRoundStatus.NotStarted;
-
-				RegisteredUnblindedSignatures = new List<UnblindedSignature>();
-				RegisteredUnblindedSignaturesLock = new object();
-
-				MixingLevels = new MixingLevelCollection(config.Denomination, new Signer(new Key()));
-				for (int i = 0; i < config.MaximumMixingLevelCount - 1; i++)
-				{
-					MixingLevels.AddNewLevel();
-				}
-
-				_unsignedCoinJoinHex = null;
-
-				UnsignedCoinJoin = null;
-				SignedCoinJoin = null;
-
-				Alices = new List<Alice>();
-				Bobs = new List<Bob>();
-
-				Logger.LogInfo($"New round ({RoundId}) is created.\n\t" +
-					$"BaseDenomination: {MixingLevels.GetBaseDenomination().ToString(false, true)} BTC.\n\t" +
-					$"{nameof(AdjustedConfirmationTarget)}: {AdjustedConfirmationTarget}.\n\t" +
-					$"{nameof(CoordinatorFeePercent)}: {CoordinatorFeePercent}%.\n\t" +
-					$"{nameof(AnonymitySet)}: {AnonymitySet}.");
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError($"Round ({RoundId}): Could not create.");
-				Logger.LogError(ex);
-				throw;
-			}
-		}
+		public static ConcurrentDictionary<(long roundId, RoundPhase phase), DateTimeOffset> PhaseTimeoutLog { get; } = new ConcurrentDictionary<(long roundId, RoundPhase phase), DateTimeOffset>();
 
 		private void SetInputRegistrationTimesout()
 		{
 			InputRegistrationTimesout = DateTimeOffset.UtcNow + InputRegistrationTimeout;
 		}
-
-		public static ConcurrentDictionary<(long roundId, RoundPhase phase), DateTimeOffset> PhaseTimeoutLog { get; } = new ConcurrentDictionary<(long roundId, RoundPhase phase), DateTimeOffset>();
 
 		public async Task ExecuteNextPhaseAsync(RoundPhase expectedPhase, Money feePerInputs = null, Money feePerOutputs = null)
 		{
@@ -225,7 +214,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			{
 				try
 				{
-					Logger.LogInfo($"Round ({RoundId}): Phase change requested: {expectedPhase.ToString()}.");
+					Logger.LogInfo($"Round ({RoundId}): Phase change requested: {expectedPhase}.");
 
 					if (Status == CoordinatorRoundStatus.NotStarted) // So start the input registration phase
 					{
@@ -279,7 +268,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 						}
 
 						// Build CoinJoin:
-
+						// 1. Set new denomination: minor optimization.
 						Money newDenomination = CalculateNewDenomination();
 						var transaction = Network.Consensus.ConsensusFactory.CreateTransaction();
 
@@ -289,8 +278,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 							transaction.Outputs.AddWithOptimize(newDenomination, bob.ActiveOutputAddress.ScriptPubKey);
 						}
 
-						// 2.1 newDenomination may differs from the Denomination at registration, so we may not be able to tinker with
-						// additional outputs.
+						// 2.1 newDenomination may differ from the Denomination at registration, so we may not be able to tinker with additional outputs.
 						bool tinkerWithAdditionalMixingLevels = CanUseAdditionalOutputs(newDenomination);
 
 						if (tinkerWithAdditionalMixingLevels)
@@ -310,7 +298,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 							}
 						}
 
-						BitcoinWitPubKeyAddress coordinatorAddress = Constants.GetCoordinatorAddress(Network);
+						var coordinatorScript = RoundConfig.GetNextCleanCoordinatorScript();
 						// 3. If there are less Bobs than Alices, then add our own address. The malicious Alice, who will refuse to sign.
 						for (int i = 0; i < MixingLevels.Count(); i++)
 						{
@@ -319,7 +307,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 							for (int j = 0; j < missingBobCount; j++)
 							{
 								var denomination = MixingLevels.GetLevel(i).Denomination;
-								transaction.Outputs.AddWithOptimize(denomination, coordinatorAddress);
+								transaction.Outputs.AddWithOptimize(denomination, coordinatorScript);
 							}
 						}
 
@@ -378,7 +366,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 							if (changeAmount > Money.Zero) // If the coordinator fee would make change amount to be negative or zero then no need to pay it.
 							{
 								Money minimumOutputAmount = Money.Coins(0.0001m); // If the change would be less than about $1 then add it to the coordinator.
-								Money somePercentOfDenomination = newDenomination.Percentage(0.7m); // If the change is less than about 0.7% of the newDenomination then add it to the coordinator fee.
+								Money somePercentOfDenomination = newDenomination.Percentage(0.3m); // If the change is less than about 0.3% of the newDenomination then add it to the coordinator fee.
 								Money minimumChangeAmount = Math.Max(minimumOutputAmount, somePercentOfDenomination);
 								if (changeAmount < minimumChangeAmount)
 								{
@@ -399,29 +387,28 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 						// 6. Add Coordinator fee only if > about $3, else just let it to be miner fee.
 						if (coordinatorFee > Money.Coins(0.0003m))
 						{
-							transaction.Outputs.AddWithOptimize(coordinatorFee, coordinatorAddress);
+							transaction.Outputs.AddWithOptimize(coordinatorFee, coordinatorScript);
 						}
 
-						// 7. Create the unsigned transaction.
-						var builder = Network.CreateTransactionBuilder();
-						UnsignedCoinJoin = builder
-							.ContinueToBuild(transaction)
-							.AddCoins(spentCoins) // It makes sure the UnsignedCoinJoin goes through TransactionBuilder optimizations.
-							.BuildTransaction(false);
+						// 7. Try optimize fees.
+						await TryOptimizeFeesAsync(transaction, spentCoins).ConfigureAwait(false);
 
-						// 8. Try optimize fees.
-						await TryOptimizeFeesAsync(spentCoins).ConfigureAwait(false);
+						// 8. Shuffle.
+						transaction.Inputs.Shuffle();
+						transaction.Outputs.Shuffle();
 
-						// 9. Shuffle.
-						UnsignedCoinJoin.Inputs.Shuffle();
-						UnsignedCoinJoin.Outputs.Shuffle();
+						// 9. Sort inputs and outputs by amount so the coinjoin looks better in a block explorer.
+						transaction.Inputs.SortByAmount(spentCoins);
+						transaction.Outputs.SortByAmount();
+						// Note: We shuffle then sort because inputs and outputs could have equal values
 
-						// 10. Sort inputs and outputs by amount so the coinjoin looks better in a block explorer.
-						UnsignedCoinJoin.Inputs.SortByAmount(spentCoins);
-						UnsignedCoinJoin.Outputs.SortByAmount();
-						//Note: We shuffle then sort because inputs and outputs could have equal values
+						if (transaction.Outputs.Any(x => x.ScriptPubKey == coordinatorScript))
+						{
+							RoundConfig.MakeNextCoordinatorScriptDirty();
+						}
 
-						SignedCoinJoin = Transaction.Parse(UnsignedCoinJoin.ToHex(), Network);
+						CoinJoin = transaction;
+						UnsignedCoinJoinHex = transaction.ToHex();
 
 						Phase = RoundPhase.Signing;
 					}
@@ -430,7 +417,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 						return;
 					}
 
-					Logger.LogInfo($"Round ({RoundId}): Phase initialized: {expectedPhase.ToString()}.");
+					Logger.LogInfo($"Round ({RoundId}): Phase initialized: {expectedPhase}.");
 				}
 				catch (Exception ex)
 				{
@@ -481,7 +468,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 						if (executeRunAbortion)
 						{
 							PhaseTimeoutLog.TryAdd((RoundId, Phase), DateTimeOffset.UtcNow);
-							string timedOutLogString = $"Round ({RoundId}): {expectedPhase.ToString()} timed out after {timeout.TotalSeconds} seconds.";
+							string timedOutLogString = $"Round ({RoundId}): {expectedPhase} timed out after {timeout.TotalSeconds} seconds.";
 
 							if (expectedPhase == RoundPhase.ConnectionConfirmation)
 							{
@@ -558,7 +545,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 									}
 									catch (Exception ex)
 									{
-										Logger.LogWarning($"Round ({RoundId}): {expectedPhase.ToString()} timeout failed.");
+										Logger.LogWarning($"Round ({RoundId}): {expectedPhase} timeout failed.");
 										Logger.LogWarning(ex);
 									}
 								});
@@ -566,7 +553,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 					}
 					catch (Exception ex)
 					{
-						Logger.LogWarning($"Round ({RoundId}): {expectedPhase.ToString()} timeout failed.");
+						Logger.LogWarning($"Round ({RoundId}): {expectedPhase} timeout failed.");
 						Logger.LogWarning(ex);
 					}
 				});
@@ -574,7 +561,6 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 		private Money CalculateNewDenomination()
 		{
-			// 1. Set new denomination: minor optimization.
 			return Alices.Min(x => x.InputSum - x.NetworkFeeToPayAfterBaseDenomination);
 		}
 
@@ -677,7 +663,8 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 		{
 			lock (RegisteredUnblindedSignaturesLock)
 			{
-				return RegisteredUnblindedSignatures.Any(x => x.C.Equals(unblindedSignature.C) && x.S.Equals(unblindedSignature.S));
+				var unblindedSignatureBytes = unblindedSignature.ToBytes();
+				return RegisteredUnblindedSignatures.Any(x => ByteHelpers.CompareFastUnsafe(x.ToBytes(), unblindedSignatureBytes));
 			}
 		}
 
@@ -714,16 +701,16 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			return acceptedBlindedOutputScriptsCount;
 		}
 
-		private async Task TryOptimizeFeesAsync(IEnumerable<Coin> spentCoins)
+		private async Task TryOptimizeFeesAsync(Transaction transaction, IEnumerable<Coin> spentCoins)
 		{
 			try
 			{
 				await TryOptimizeConfirmationTargetAsync(spentCoins.Select(x => x.Outpoint.Hash).ToHashSet()).ConfigureAwait(false);
 
-				// 8.1. Estimate the current FeeRate. Note, there are no signatures yet!
-				int estimatedSigSizeBytes = UnsignedCoinJoin.Inputs.Count * Constants.P2wpkhInputSizeInBytes;
-				int estimatedFinalTxSize = UnsignedCoinJoin.GetSerializedSize() + estimatedSigSizeBytes;
-				Money fee = UnsignedCoinJoin.GetFee(spentCoins.ToArray());
+				// 7.1. Estimate the current FeeRate. Note, there are no signatures yet!
+				int estimatedSigSizeBytes = transaction.Inputs.Count * Constants.P2wpkhInputSizeInBytes;
+				int estimatedFinalTxSize = transaction.GetSerializedSize() + estimatedSigSizeBytes;
+				Money fee = transaction.GetFee(spentCoins.ToArray());
 
 				// There is a currentFeeRate null check later.
 				FeeRate currentFeeRate = null;
@@ -740,7 +727,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 					currentFeeRate = new FeeRate(fee, estimatedFinalTxSize);
 				}
 
-				// 8.2. Get the most optimal FeeRate.
+				// 7.2. Get the most optimal FeeRate.
 				EstimateSmartFeeResponse estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(AdjustedConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true).ConfigureAwait(false);
 				if (estimateSmartFeeResponse is null)
 				{
@@ -755,23 +742,23 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 					optimalFeeRate = optimalFeeRate < sanityFeeRate ? sanityFeeRate : optimalFeeRate;
 					if (optimalFeeRate < currentFeeRate)
 					{
-						// 8.2 If the fee can be lowered, lower it.
-						// 8.2.1. How much fee can we save?
+						// 7.2 If the fee can be lowered, lower it.
+						// 7.2.1. How much fee can we save?
 						Money feeShouldBePaid = Money.Satoshis(estimatedFinalTxSize * (int)optimalFeeRate.SatoshiPerByte);
 						Money toSave = fee - feeShouldBePaid;
 
-						// 8.2.2. Get the outputs to divide the savings between.
-						int maxMixCount = UnsignedCoinJoin.GetIndistinguishableOutputs(includeSingle: true).Max(x => x.count);
-						Money bestMixAmount = UnsignedCoinJoin.GetIndistinguishableOutputs(includeSingle: true).Where(x => x.count == maxMixCount).Max(x => x.value);
-						int bestMixCount = UnsignedCoinJoin.GetIndistinguishableOutputs(includeSingle: true).First(x => x.value == bestMixAmount).count;
+						// 7.2.2. Get the outputs to divide the savings between.
+						int maxMixCount = transaction.GetIndistinguishableOutputs(includeSingle: true).Max(x => x.count);
+						Money bestMixAmount = transaction.GetIndistinguishableOutputs(includeSingle: true).Where(x => x.count == maxMixCount).Max(x => x.value);
+						int bestMixCount = transaction.GetIndistinguishableOutputs(includeSingle: true).First(x => x.value == bestMixAmount).count;
 
-						// 8.2.3. Get the savings per best mix outputs.
+						// 7.2.3. Get the savings per best mix outputs.
 						long toSavePerBestMixOutputs = toSave.Satoshi / bestMixCount;
 
-						// 8.2.4. Modify the best mix outputs in the transaction.
+						// 7.2.4. Modify the best mix outputs in the transaction.
 						if (toSavePerBestMixOutputs > 0)
 						{
-							foreach (TxOut output in UnsignedCoinJoin.Outputs.Where(x => x.Value == bestMixAmount))
+							foreach (TxOut output in transaction.Outputs.Where(x => x.Value == bestMixAmount))
 							{
 								output.Value += toSavePerBestMixOutputs;
 							}
@@ -813,7 +800,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			}
 		}
 
-		public static async Task<(Money feePerInputs, Money feePerOutputs)> CalculateFeesAsync(RPCClient rpc, int confirmationTarget)
+		public static async Task<(Money feePerInputs, Money feePerOutputs)> CalculateFeesAsync(IRPCClient rpc, int confirmationTarget)
 		{
 			Guard.NotNull(nameof(rpc), rpc);
 			Guard.NotNull(nameof(confirmationTarget), confirmationTarget);
@@ -1018,7 +1005,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 		public void StartAliceTimeout(Guid uniqueId)
 		{
-			// 1. Find Alice and set its LastSeen propery.
+			// 1. Find Alice and set its LastSeen property.
 			var foundAlice = false;
 			var started = DateTimeOffset.UtcNow;
 			using (RoundSynchronizerLock.Lock())
@@ -1083,35 +1070,34 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			using (await RoundSynchronizerLock.LockAsync().ConfigureAwait(false))
 			{
 				// Check if fully signed.
-				if (SignedCoinJoin.Inputs.All(x => x.HasWitScript()))
+				if (CoinJoin.Inputs.All(x => x.HasWitScript()))
 				{
 					Logger.LogInfo($"Round ({RoundId}): Trying to broadcast coinjoin.");
 
 					try
 					{
 						Coin[] spentCoins = Alices.SelectMany(x => x.Inputs).ToArray();
-						Money networkFee = SignedCoinJoin.GetFee(spentCoins);
+						Money networkFee = CoinJoin.GetFee(spentCoins);
 						Logger.LogInfo($"Round ({RoundId}): Network Fee: {networkFee.ToString(false, false)} BTC.");
-						Logger.LogInfo($"Round ({RoundId}): Coordinator Fee: {SignedCoinJoin.Outputs.SingleOrDefault(x => x.ScriptPubKey == Constants.GetCoordinatorAddress(Network).ScriptPubKey)?.Value?.ToString(false, false) ?? "0"} BTC.");
-						FeeRate feeRate = SignedCoinJoin.GetFeeRate(spentCoins);
+						FeeRate feeRate = CoinJoin.GetFeeRate(spentCoins);
 						Logger.LogInfo($"Round ({RoundId}): Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} sat/vByte.");
-						Logger.LogInfo($"Round ({RoundId}): Number of inputs: {SignedCoinJoin.Inputs.Count}.");
-						Logger.LogInfo($"Round ({RoundId}): Number of outputs: {SignedCoinJoin.Outputs.Count}.");
-						Logger.LogInfo($"Round ({RoundId}): Serialized Size: {SignedCoinJoin.GetSerializedSize() / 1024} KB.");
-						Logger.LogInfo($"Round ({RoundId}): VSize: {SignedCoinJoin.GetVirtualSize() / 1024} KB.");
-						foreach (var o in SignedCoinJoin.GetIndistinguishableOutputs(includeSingle: false))
+						Logger.LogInfo($"Round ({RoundId}): Number of inputs: {CoinJoin.Inputs.Count}.");
+						Logger.LogInfo($"Round ({RoundId}): Number of outputs: {CoinJoin.Outputs.Count}.");
+						Logger.LogInfo($"Round ({RoundId}): Serialized Size: {CoinJoin.GetSerializedSize() / 1024} KB.");
+						Logger.LogInfo($"Round ({RoundId}): VSize: {CoinJoin.GetVirtualSize() / 1024} KB.");
+						foreach (var o in CoinJoin.GetIndistinguishableOutputs(includeSingle: false))
 						{
 							Logger.LogInfo($"Round ({RoundId}): There are {o.count} occurrences of {o.value.ToString(true, false)} BTC output.");
 						}
 
-						await RpcClient.SendRawTransactionAsync(SignedCoinJoin).ConfigureAwait(false);
-						broadcasted = SignedCoinJoin;
+						await RpcClient.SendRawTransactionAsync(CoinJoin).ConfigureAwait(false);
+						broadcasted = CoinJoin;
 						Succeed(syncLock: false);
-						Logger.LogInfo($"Round ({RoundId}): Successfully broadcasted the CoinJoin: {SignedCoinJoin.GetHash()}.");
+						Logger.LogInfo($"Round ({RoundId}): Successfully broadcasted the CoinJoin: {CoinJoin.GetHash()}.");
 					}
 					catch (Exception ex)
 					{
-						Abort($"Could not broadcast the CoinJoin: {SignedCoinJoin.GetHash()}.", syncLock: false);
+						Abort($"Could not broadcast the CoinJoin: {CoinJoin.GetHash()}.", syncLock: false);
 						Logger.LogError(ex);
 					}
 				}
@@ -1131,7 +1117,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				{
 					if ((Phase != RoundPhase.InputRegistration && Phase != RoundPhase.ConnectionConfirmation) || Status != CoordinatorRoundStatus.Running)
 					{
-						throw new InvalidOperationException($"Updating anonymity set is not allowed in {Phase.ToString()} phase.");
+						throw new InvalidOperationException($"Updating anonymity set is not allowed in {Phase} phase.");
 					}
 					AnonymitySet = anonymitySet;
 				}
@@ -1140,7 +1126,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			{
 				if ((Phase != RoundPhase.InputRegistration && Phase != RoundPhase.ConnectionConfirmation) || Status != CoordinatorRoundStatus.Running)
 				{
-					throw new InvalidOperationException($"Updating anonymity set is not allowed in {Phase.ToString()} phase.");
+					throw new InvalidOperationException($"Updating anonymity set is not allowed in {Phase} phase.");
 				}
 				AnonymitySet = anonymitySet;
 			}

@@ -54,6 +54,22 @@ adduser user
 usermod -aG sudo user
 ```
 
+### Increase the number of files limit
+
+By default a process can keep open up to 4096 files. Increase that limit for the `user` user as follows:
+
+```sh
+sudo pico /etc/security/limits.conf
+```
+
+```
+# Wasabi backend
+# Wasabi runs with the user called user 
+user    soft nofile 16384
+user    hard nofile 16384
+# End of Wasabi backend
+```
+
 # Setup Firewall
 
 https://www.digitalocean.com/community/tutorials/how-to-set-up-a-firewall-with-ufw-on-ubuntu-14-04
@@ -138,12 +154,12 @@ sudo ufw allow 80
 
 **Backup the generated private key!**
 
-# 5. Install, Configure and Synchronize bitcoind
+# 5. Install, Configure and Synchronize bitcoind (Bitcoin Knots)
 
-https://bitcoin.org/en/download
+https://bitcoinknots.org/
 
 ```sh
-sudo add-apt-repository ppa:bitcoin/bitcoin
+sudo add-apt-repository ppa:luke-jr/bitcoinknots
 sudo apt-get update
 sudo apt-get install bitcoind
 mkdir ~/.bitcoin
@@ -153,7 +169,7 @@ pico ~/.bitcoin/bitcoin.conf
 ```sh
 testnet=[0/1]
 
-[main/test].rpcworkqueue=64
+[main/test].rpcworkqueue=128
 
 [main/test].txindex=1
 
@@ -185,12 +201,12 @@ cd WalletWasabi
 dotnet restore
 dotnet build
 dotnet publish WalletWasabi.Backend --configuration Release --self-contained false
-dotnet WalletWasabi.Backend/bin/Release/netcoreapp3.0/publish/WalletWasabi.Backend.dll
+dotnet WalletWasabi.Backend/bin/Release/netcoreapp3.1/publish/WalletWasabi.Backend.dll
 cd ..
 cat .walletwasabi/backend/Logs.txt
 pico .walletwasabi/backend/Config.json
 pico .walletwasabi/backend/CcjRoundConfig.json
-dotnet WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp3.0/publish/WalletWasabi.Backend.dll
+dotnet WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp3.1/publish/WalletWasabi.Backend.dll
 cat .walletwasabi/backend/Logs.txt
 ```
 
@@ -209,8 +225,8 @@ sudo pico /etc/systemd/system/walletwasabi.service
 Description=WalletWasabi Backend API
 
 [Service]
-WorkingDirectory=/home/user/WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp3.0/publish
-ExecStart=/usr/bin/dotnet /home/user/WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp3.0/publish/WalletWasabi.Backend.dll
+WorkingDirectory=/home/user/WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp3.1/publish
+ExecStart=/usr/bin/dotnet /home/user/WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp3.1/publish/WalletWasabi.Backend.dll
 Restart=always
 RestartSec=10  # Restart service after 10 seconds if dotnet service crashes
 SyslogIdentifier=walletwasabi-backend
@@ -233,6 +249,12 @@ tail -10000 .walletwasabi/backend/Logs.txt
 ```sh
 tor
 pgrep -ilfa tor
+```
+
+Review the tor activity using the logs stored in the linux journal:
+
+```sh
+sudo journalctl -u tor@default
 ```
 
 # 8. Setup Nginx
@@ -330,10 +352,19 @@ tail -f ~/.bitcoin/debug.log
 tail -10000 .walletwasabi/backend/Logs.txt
 du -bsh .walletwasabi/backend/IndexBuilderService/*
 ```
+# Specify Your ExtPubKey
+
+Take your ExtPubKey from Wasabi. Never receive money to that wallet's external keypath.
+
+```sh
+pico ~/.walletwasabi/backend/CcjRoundConfig.json
+```
+
+Add your extpub to the `CoordinatorExtPubKey`.
 
 # Additional (optional) Settings
 
-## Rolling Bitcoin Core node debug logs
+## Rolling Bitcoin Knots node debug logs
 
 The following command line adds a configuration file to let logrotate service know
 how to rotate the bitcoin debug logs.
@@ -390,3 +421,18 @@ PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:(PROD):\
 ```
 
 **Note:** In the test server replace the word **PROD** by **TEST**
+
+## Let's Encrypt
+
+[Let’s Encrypt](https://letsencrypt.org/about/) is a free, automated, and open certificate authority (CA), run for the public’s benefit.
+It is renewed automatically by certbot which is an agent software installed on both backends. A newly created or renewed certificates are valid for 90 days and the renewal process should start automatically (`cronjob`) if the certificate will expire in less than 30 days.
+
+You can list the certificates with:
+
+`sudo certbot certificates`
+
+Check all of the certificates that you’ve obtained and tries to renew any that will expire in less than 30 days (this should be automatic):
+
+`sudo certbot renew`
+
+Detailed instuctions about configuration [here](https://certbot.eff.org/lets-encrypt/ubuntubionic-nginx).

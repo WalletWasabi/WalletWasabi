@@ -5,6 +5,11 @@ namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
 {
 	internal class AlignmentPattern : PatternStencilBase
 	{
+		public AlignmentPattern(int version)
+			: base(version)
+		{
+		}
+
 		private static bool[,] AlignmentPatternArray { get; } =
 			new[,]
 			{
@@ -15,53 +20,15 @@ namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
 				{ X, X, X, X, X }
 			};
 
-		public AlignmentPattern(int version)
-			: base(version)
-		{
-		}
-
 		public override bool[,] Stencil => AlignmentPatternArray;
 
-		public override void ApplyTo(TriStateMatrix matrix)
-		{
-			foreach (MatrixPoint coordinatePair in GetNonColidingCoordinatePairs(matrix))
-			{
-				CopyTo(matrix, coordinatePair, MatrixStatus.NoMask);
-			}
-		}
-
-		public IEnumerable<MatrixPoint> GetNonColidingCoordinatePairs(TriStateMatrix matrix)
-		{
-			return
-				GetAllCoordinatePairs()
-					.Where(point => matrix.MStatus(point.Offset(2, 2)) == MatrixStatus.None);
-		}
-
-		private IEnumerable<MatrixPoint> GetAllCoordinatePairs()
-		{
-			IEnumerable<byte> coordinates = GetPatternCoordinatesByVersion(Version);
-			foreach (byte centerX in coordinates)
-			{
-				foreach (byte centerY in coordinates)
-				{
-					MatrixPoint location = new MatrixPoint(centerX - 2, centerY - 2);
-					yield return location;
-				}
-			}
-		}
-
-		private static IEnumerable<byte> GetPatternCoordinatesByVersion(int version)
-		{
-			return AlignmentPatternCoordinatesByVersion[version];
-		}
-
-		//Table E.1 — Row/column coordinates of center module of Alignment Patterns
+		// Table E.1 — Row/column coordinates of center module of Alignment Patterns
 		private static byte[][] AlignmentPatternCoordinatesByVersion { get; } =
 			new[]
 			{
 				null,
 				System.Array.Empty<byte>(),
-				new byte[] { 6, 18},
+				new byte[] { 6, 18 },
 				new byte[] { 6, 22 },
 				new byte[] { 6, 26 },
 				new byte[] { 6, 30 },
@@ -101,5 +68,38 @@ namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
 				new byte[] { 6, 26, 54, 82, 110, 138, 166 },
 				new byte[] { 6, 30, 58, 86, 114, 142, 170 }
 			};
+
+		public override void ApplyTo(TriStateMatrix matrix)
+		{
+			foreach (MatrixPoint coordinatePair in GetNonColidingCoordinatePairs(matrix))
+			{
+				CopyTo(matrix, coordinatePair, MatrixStatus.NoMask);
+			}
+		}
+
+		public IEnumerable<MatrixPoint> GetNonColidingCoordinatePairs(TriStateMatrix matrix)
+		{
+			return
+				GetAllCoordinatePairs()
+					.Where(point => matrix.MStatus(point.Offset(2, 2)) == MatrixStatus.None);
+		}
+
+		private IEnumerable<MatrixPoint> GetAllCoordinatePairs()
+		{
+			IEnumerable<byte> coordinates = GetPatternCoordinatesByVersion(Version);
+			foreach (byte centerX in coordinates)
+			{
+				foreach (byte centerY in coordinates)
+				{
+					MatrixPoint location = new MatrixPoint(centerX - 2, centerY - 2);
+					yield return location;
+				}
+			}
+		}
+
+		private static IEnumerable<byte> GetPatternCoordinatesByVersion(int version)
+		{
+			return AlignmentPatternCoordinatesByVersion[version];
+		}
 	}
 }

@@ -10,23 +10,7 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 {
 	public class TorSocks5Response : ByteArraySerializableBase
 	{
-		#region PropertiesAndMembers
-
-		public VerField Ver { get; set; }
-
-		public RepField Rep { get; set; }
-
-		public RsvField Rsv { get; set; }
-
-		public AtypField Atyp { get; set; }
-
-		public AddrField BndAddr { get; set; }
-
-		public PortField BndPort { get; set; }
-
-		#endregion PropertiesAndMembers
-
-		#region ConstructorsAndInitializers
+		#region Constructors
 
 		public TorSocks5Response()
 		{
@@ -42,7 +26,23 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 			Atyp = bndAddr.Atyp;
 		}
 
-		#endregion ConstructorsAndInitializers
+		#endregion Constructors
+
+		#region PropertiesAndMembers
+
+		public VerField Ver { get; set; }
+
+		public RepField Rep { get; set; }
+
+		public RsvField Rsv { get; set; }
+
+		public AtypField Atyp { get; set; }
+
+		public AddrField BndAddr { get; set; }
+
+		public PortField BndPort { get; set; }
+
+		#endregion PropertiesAndMembers
 
 		#region Serialization
 
@@ -64,10 +64,10 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 			Atyp.FromByte(bytes[3]);
 
 			BndAddr = new AddrField();
-			BndAddr.FromBytes(bytes.Skip(4).Take(bytes.Length - 4 - 2).ToArray());
+			BndAddr.FromBytes(bytes[4..^2]);
 
 			BndPort = new PortField();
-			BndPort.FromBytes(bytes.Skip(bytes.Length - 2).ToArray());
+			BndPort.FromBytes(bytes[^2..]);
 		}
 
 		public override byte[] ToBytes() => ByteHelpers.Combine(new byte[] { Ver.ToByte(), Rep.ToByte(), Rsv.ToByte(), Atyp.ToByte() }, BndAddr.ToBytes(), BndPort.ToBytes());

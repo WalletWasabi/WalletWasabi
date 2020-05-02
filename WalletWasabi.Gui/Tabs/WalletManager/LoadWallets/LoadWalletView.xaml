@@ -1,0 +1,53 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
+             x:Class="WalletWasabi.Gui.Tabs.WalletManager.LoadWallets.LoadWalletView">
+  <DockPanel LastChildFill="True">
+    <StackPanel DockPanel.Dock="Bottom" Spacing="10">
+      <controls:GroupBox IsVisible="{Binding !IsDesktopWallet}" TextBlock.FontSize="30" Padding="30" Margin="20 0">
+        <Grid Classes="content">
+          <StackPanel IsVisible="{Binding IsPasswordRequired}" Spacing="8">
+            <StackPanel>
+              <TextBlock Text="Select a wallet to test its password!" FontWeight="Bold" />
+            </StackPanel>
+            <controls:TogglePasswordBox Text="{Binding Password}">
+              <i:Interaction.Behaviors>
+                <behaviors:CommandOnEnterBehavior Command="{Binding LoadCommand}" />
+              </i:Interaction.Behaviors>
+            </controls:TogglePasswordBox>
+          </StackPanel>
+        </Grid>
+      </controls:GroupBox>
+      <DockPanel LastChildFill="True" Margin="20 10">
+        <Button IsVisible="{Binding IsPasswordRequired}" Content="Test Password" Command="{Binding TestPasswordCommand}" DockPanel.Dock="Right" Margin="10 0 0 0" />
+        <Button Command="{Binding LoadCommand}" Content="Load Wallet" DockPanel.Dock="Right" />
+        <Button IsVisible="{Binding IsDesktopWallet}" Command="{Binding OpenFolderCommand}" DockPanel.Dock="Right" Margin="0 0 10 0">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <DrawingPresenter Drawing="{DynamicResource FolderOpen}" />
+            <TextBlock Text="Open Wallets Folder" />
+          </StackPanel>
+        </Button>
+        <Grid></Grid>
+      </DockPanel>
+    </StackPanel>
+    <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" BorderThickness="0">
+      <DockPanel LastChildFill="True">
+        <Grid Classes="content">
+          <controls:ExtendedListBox Items="{Binding Wallets}" SelectedItem="{Binding SelectedWallet, Mode=TwoWay}">
+            <controls:ExtendedListBox.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding WalletName}" Background="Transparent">
+                  <i:Interaction.Behaviors>
+                    <behaviors:CommandOnDoubleClickBehavior Command="{Binding RelativeSource={RelativeSource AncestorType=ListBox}, Path=DataContext.LoadCommand}" />
+                  </i:Interaction.Behaviors>
+                </TextBlock>
+              </DataTemplate>
+            </controls:ExtendedListBox.ItemTemplate>
+          </controls:ExtendedListBox>
+        </Grid>
+      </DockPanel>
+    </controls:GroupBox>
+  </DockPanel>
+</UserControl>

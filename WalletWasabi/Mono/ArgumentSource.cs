@@ -168,9 +168,9 @@ namespace Mono.Options
 		{
 		}
 
-		public abstract string[] GetNames();
-
 		public abstract string Description { get; }
+
+		public abstract string[] GetNames();
 
 		public abstract bool GetArguments(string value, out IEnumerable<string> replacement);
 

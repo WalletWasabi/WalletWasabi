@@ -18,13 +18,11 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 	{
 		#region Fields
 
-		private uint256 _transactionId;
-		private uint _index;
 		private Script _scriptPubKey;
 		private Money _amount;
 		private Height _height;
 		private SmartLabel _label;
-		private TxoRef[] _spentOutputs;
+		private OutPoint[] _spentOutputs;
 		private bool _replaceable;
 		private int _anonymitySet;
 		private uint256 _spenderTransactionId;
@@ -44,19 +42,34 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		#endregion Fields
 
+		#region Constructors
+
+		public SmartCoin(uint256 transactionId, uint index, Script scriptPubKey, Money amount, OutPoint[] spentOutputs, Height height, bool replaceable, int anonymitySet, SmartLabel label = null, uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false, HdPubKey pubKey = null)
+		{
+			Create(transactionId, index, scriptPubKey, amount, spentOutputs, height, replaceable, anonymitySet, label, spenderTransactionId, coinJoinInProgress, bannedUntilUtc, spentAccordingToBackend, pubKey);
+		}
+
+		public SmartCoin(Coin coin, OutPoint[] spentOutputs, Height height, bool replaceable, int anonymitySet, SmartLabel label = null, uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false, HdPubKey pubKey = null)
+		{
+			OutPoint outpoint = Guard.NotNull($"{coin}.{coin?.Outpoint}", coin?.Outpoint);
+			uint256 transactionId = outpoint.Hash;
+			uint index = outpoint.N;
+			Script scriptPubKey = Guard.NotNull($"{coin}.{coin?.ScriptPubKey}", coin?.ScriptPubKey);
+			Money amount = Guard.NotNull($"{coin}.{coin?.Amount}", coin?.Amount);
+
+			Create(transactionId, index, scriptPubKey, amount, spentOutputs, height, replaceable, anonymitySet, label, spenderTransactionId, coinJoinInProgress, bannedUntilUtc, spentAccordingToBackend, pubKey);
+		}
+
+		#endregion Constructors
+
 		#region Properties
 
-		public uint256 TransactionId
-		{
-			get => _transactionId;
-			private set => RaiseAndSetIfChanged(ref _transactionId, value);
-		}
+		public uint256 TransactionId => OutPoint.Hash;
 
-		public uint Index
-		{
-			get => _index;
-			private set => RaiseAndSetIfChanged(ref _index, value);
-		}
+		public uint Index => OutPoint.N;
+		private int HashCode { get; set; }
+
+		public OutPoint OutPoint { get; private set; }
 
 		public Script ScriptPubKey
 		{
@@ -91,7 +104,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			set => RaiseAndSetIfChanged(ref _label, value);
 		}
 
-		public TxoRef[] SpentOutputs
+		public OutPoint[] SpentOutputs
 		{
 			get => _spentOutputs;
 			private set => RaiseAndSetIfChanged(ref _spentOutputs, value);
@@ -167,7 +180,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			private set => RaiseAndSetIfChanged(ref _hdPubKey, value);
 		}
 
-		public bool IsLikelyCoinJoinOutput { get; private set; }
+		public bool? IsLikelyCoinJoinOutput { get; set; }
 
 		/// <summary>
 		/// It's a secret, so it's usually going to be null. Do not use it.
@@ -248,35 +261,21 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		#endregion Properties
 
-		#region Constructors
+		#region Methods
 
-		public SmartCoin(uint256 transactionId, uint index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, bool replaceable, int anonymitySet, bool isLikelyCoinJoinOutput, SmartLabel label = null, uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false, HdPubKey pubKey = null)
+		private void Create(uint256 transactionId, uint index, Script scriptPubKey, Money amount, OutPoint[] spentOutputs, Height height, bool replaceable, int anonymitySet, SmartLabel label, uint256 spenderTransactionId, bool coinJoinInProgress, DateTimeOffset? bannedUntilUtc, bool spentAccordingToBackend, HdPubKey pubKey)
 		{
-			Create(transactionId, index, scriptPubKey, amount, spentOutputs, height, replaceable, anonymitySet, isLikelyCoinJoinOutput, label, spenderTransactionId, coinJoinInProgress, bannedUntilUtc, spentAccordingToBackend, pubKey);
-		}
-
-		public SmartCoin(Coin coin, TxoRef[] spentOutputs, Height height, bool replaceable, int anonymitySet, bool isLikelyCoinJoinOutput, SmartLabel label = null, uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false, HdPubKey pubKey = null)
-		{
-			OutPoint outpoint = Guard.NotNull($"{coin}.{coin?.Outpoint}", coin?.Outpoint);
-			uint256 transactionId = outpoint.Hash;
-			uint index = outpoint.N;
-			Script scriptPubKey = Guard.NotNull($"{coin}.{coin?.ScriptPubKey}", coin?.ScriptPubKey);
-			Money amount = Guard.NotNull($"{coin}.{coin?.Amount}", coin?.Amount);
-
-			Create(transactionId, index, scriptPubKey, amount, spentOutputs, height, replaceable, anonymitySet, isLikelyCoinJoinOutput, label, spenderTransactionId, coinJoinInProgress, bannedUntilUtc, spentAccordingToBackend, pubKey);
-		}
-
-		private void Create(uint256 transactionId, uint index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, bool replaceable, int anonymitySet, bool isLikelyCoinJoinOutput, SmartLabel label, uint256 spenderTransactionId, bool coinJoinInProgress, DateTimeOffset? bannedUntilUtc, bool spentAccordingToBackend, HdPubKey pubKey)
-		{
-			TransactionId = Guard.NotNull(nameof(transactionId), transactionId);
-			Index = Guard.NotNull(nameof(index), index);
+			Guard.NotNull(nameof(transactionId), transactionId);
+			Guard.NotNull(nameof(index), index);
+			OutPoint = new OutPoint(transactionId, index);
+			HashCode = (TransactionId, Index).GetHashCode();
 			ScriptPubKey = Guard.NotNull(nameof(scriptPubKey), scriptPubKey);
 			Amount = Guard.NotNull(nameof(amount), amount);
 			Height = height;
 			SpentOutputs = Guard.NotNullOrEmpty(nameof(spentOutputs), spentOutputs);
 			IsReplaceable = replaceable;
 			AnonymitySet = Guard.InRangeAndNotNull(nameof(anonymitySet), anonymitySet, 1, int.MaxValue);
-			IsLikelyCoinJoinOutput = isLikelyCoinJoinOutput;
+			IsLikelyCoinJoinOutput = null;
 
 			SpenderTransactionId = spenderTransactionId;
 
@@ -296,36 +295,37 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			SetUnavailable();
 		}
 
-		#endregion Constructors
-
-		#region Methods
-
 		public Coin GetCoin()
 		{
 			return new Coin(TransactionId, Index, Amount, ScriptPubKey);
-		}
-
-		public OutPoint GetOutPoint()
-		{
-			return new OutPoint(TransactionId, Index);
-		}
-
-		public TxoRef GetTxoRef()
-		{
-			return new TxoRef(TransactionId, Index);
 		}
 
 		#endregion Methods
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => obj is SmartCoin coin && this == coin;
+		public override bool Equals(object obj) => Equals(obj as SmartCoin);
 
 		public bool Equals(SmartCoin other) => this == other;
 
-		public override int GetHashCode() => TransactionId.GetHashCode() ^ (int)Index;
+		public override int GetHashCode() => HashCode;
 
-		public static bool operator ==(SmartCoin x, SmartCoin y) => y?.TransactionId == x?.TransactionId && y?.Index == x?.Index;
+		public static bool operator ==(SmartCoin x, SmartCoin y)
+		{
+			if (ReferenceEquals(x, y))
+			{
+				return true;
+			}
+			else if (x is null || y is null)
+			{
+				return false;
+			}
+			else
+			{
+				var hashEquals = x.HashCode == y.HashCode;
+				return hashEquals && y.TransactionId == x.TransactionId && y.Index == x.Index;
+			}
+		}
 
 		public static bool operator !=(SmartCoin x, SmartCoin y) => !(x == y);
 

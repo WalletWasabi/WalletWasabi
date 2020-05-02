@@ -11,13 +11,6 @@ namespace WalletWasabi.Bases
 {
 	public abstract class PeriodicRunner : BackgroundService
 	{
-		private CancellationTokenSource TriggeringCts { get; set; }
-		private object TriggerLock { get; }
-		public TimeSpan Period { get; }
-		public Exception LastException { get; set; }
-		public long LastExceptionCount { get; set; }
-		public DateTimeOffset LastExceptionFirstAppeared { get; set; }
-
 		protected PeriodicRunner(TimeSpan period)
 		{
 			TriggeringCts = new CancellationTokenSource();
@@ -25,6 +18,13 @@ namespace WalletWasabi.Bases
 			Period = period;
 			ResetLastException();
 		}
+
+		private CancellationTokenSource TriggeringCts { get; set; }
+		private object TriggerLock { get; }
+		public TimeSpan Period { get; }
+		public Exception LastException { get; set; }
+		public long LastExceptionCount { get; set; }
+		public DateTimeOffset LastExceptionFirstAppeared { get; set; }
 
 		private void ResetLastException()
 		{
@@ -43,6 +43,7 @@ namespace WalletWasabi.Bases
 
 		protected abstract Task ActionAsync(CancellationToken cancel);
 
+		/// <inheritdoc />
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 		{
 			while (!stoppingToken.IsCancellationRequested)
@@ -81,8 +82,16 @@ namespace WalletWasabi.Bases
 				{
 					try
 					{
-						using var linked = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, TriggeringCts.Token);
-						await Task.Delay(Period, linked.Token).ConfigureAwait(false);
+						CancellationToken? triggeringToken = null;
+						lock (TriggerLock)
+						{
+							triggeringToken = TriggeringCts?.Token;
+						}
+						if (triggeringToken is { })
+						{
+							using var linked = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, triggeringToken.Value);
+							await Task.Delay(Period, linked.Token).ConfigureAwait(false);
+						}
 					}
 					catch (TaskCanceledException ex)
 					{

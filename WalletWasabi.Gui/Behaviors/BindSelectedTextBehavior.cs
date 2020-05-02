@@ -10,10 +10,10 @@ namespace WalletWasabi.Gui.Behaviors
 {
 	public class BindSelectedTextBehavior : Behavior<TextBox>
 	{
-		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
-
 		public static readonly AvaloniaProperty<string> SelectedTextProperty =
 			AvaloniaProperty.Register<BindSelectedTextBehavior, string>(nameof(SelectedText), defaultBindingMode: BindingMode.TwoWay);
+
+		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
 
 		public string SelectedText
 		{
@@ -37,7 +37,7 @@ namespace WalletWasabi.Gui.Behaviors
 			{
 				return "";
 			}
-			return text.Substring(start, end - start);
+			return text[start..end];
 		}
 
 		protected override void OnAttached()

@@ -18,14 +18,14 @@ namespace WalletWasabi.Backend.Controllers
 	[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
 	public class OffchainController : Controller
 	{
-		private IMemoryCache Cache { get; }
-		private IExchangeRateProvider ExchangeRateProvider { get; }
-
 		public OffchainController(IMemoryCache memoryCache, IExchangeRateProvider exchangeRateProvider)
 		{
 			Cache = memoryCache;
 			ExchangeRateProvider = exchangeRateProvider;
 		}
+
+		private IMemoryCache Cache { get; }
+		private IExchangeRateProvider ExchangeRateProvider { get; }
 
 		/// <summary>
 		/// Gets exchange rates for one Bitcoin.

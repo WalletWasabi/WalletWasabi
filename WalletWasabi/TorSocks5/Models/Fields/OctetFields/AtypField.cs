@@ -7,6 +7,14 @@ namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields
 {
 	public class AtypField : OctetSerializableBase
 	{
+		#region Constructors
+
+		public AtypField()
+		{
+		}
+
+		#endregion Constructors
+
 		#region Statics
 
 		// https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt
@@ -33,14 +41,6 @@ namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields
 		}
 
 		#endregion Statics
-
-		#region ConstructorsAndInitializers
-
-		public AtypField()
-		{
-		}
-
-		#endregion ConstructorsAndInitializers
 
 		#region Serialization
 

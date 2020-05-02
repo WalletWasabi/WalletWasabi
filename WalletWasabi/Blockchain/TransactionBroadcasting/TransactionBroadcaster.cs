@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
@@ -16,40 +17,29 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
+using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Blockchain.TransactionBroadcasting
 {
 	public class TransactionBroadcaster
 	{
-		public BitcoinStore BitcoinStore { get; }
-		public WasabiSynchronizer Synchronizer { get; }
-		public Network Network { get; }
-		public NodesGroup Nodes { get; }
-		public List<WalletService> WalletServices { get; }
-		public IEnumerable<WalletService> AliveWalletServices => WalletServices.Where(x => x != null && !x.IsDisposed);
-		public object WalletServicesLock { get; }
-		public RPCClient RpcClient { get; private set; }
-
-		public TransactionBroadcaster(Network network, BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, NodesGroup nodes, RPCClient rpc)
+		public TransactionBroadcaster(Network network, BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, NodesGroup nodes, WalletManager walletManager, IRPCClient rpc)
 		{
 			Nodes = Guard.NotNull(nameof(nodes), nodes);
 			Network = Guard.NotNull(nameof(network), network);
 			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
 			Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
-			WalletServices = new List<WalletService>();
-			WalletServicesLock = new object();
+			WalletManager = Guard.NotNull(nameof(walletManager), walletManager);
 			RpcClient = rpc;
 		}
 
-		public void AddWalletService(WalletService walletService)
-		{
-			Guard.NotNull(nameof(walletService), walletService);
-			lock (WalletServicesLock)
-			{
-				WalletServices.Add(walletService);
-			}
-		}
+		public BitcoinStore BitcoinStore { get; }
+		public WasabiSynchronizer Synchronizer { get; }
+		public Network Network { get; }
+		public NodesGroup Nodes { get; }
+		public IRPCClient RpcClient { get; private set; }
+		public WalletManager WalletManager { get; }
 
 		private async Task BroadcastTransactionToNetworkNodeAsync(SmartTransaction transaction, Node node)
 		{
@@ -113,18 +103,13 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 					if (transaction.Transaction.Inputs.Count == 1) // If we tried to only spend one coin, then we can mark it as spent. If there were more coins, then we do not know.
 					{
 						OutPoint input = transaction.Transaction.Inputs.First().PrevOut;
-						lock (WalletServicesLock)
+						foreach (var coin in WalletManager.CoinsByOutPoint(input))
 						{
-							foreach (var walletService in AliveWalletServices)
-							{
-								SmartCoin coin = walletService.Coins.GetByOutPoint(input);
-								if (coin != default)
-								{
-									coin.SpentAccordingToBackend = true;
-								}
-							}
+							coin.SpentAccordingToBackend = true;
 						}
 					}
+
+					throw;
 				}
 			}
 
@@ -140,13 +125,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 				transaction.SetUnconfirmed();
 			}
 
-			lock (WalletServicesLock)
-			{
-				foreach (var walletService in AliveWalletServices)
-				{
-					walletService.TransactionProcessor.Process(transaction);
-				}
-			}
+			WalletManager.Process(transaction);
 		}
 
 		public async Task SendTransactionAsync(SmartTransaction transaction)
@@ -163,7 +142,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 				}
 
 				Node node = Nodes.ConnectedNodes.RandomElement();
-				while (node == default(Node) || !node.IsConnected || Nodes.ConnectedNodes.Count < 5)
+				while (node is null || !node.IsConnected || Nodes.ConnectedNodes.Count < 5)
 				{
 					// As long as we are connected to at least 4 nodes, we can always try again.
 					// 3 should be enough, but make it 5 so 2 nodes could disconnect in the meantime.

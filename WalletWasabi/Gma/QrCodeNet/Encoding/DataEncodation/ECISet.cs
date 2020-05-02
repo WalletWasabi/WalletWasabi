@@ -8,7 +8,33 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		private Dictionary<string, int> _nameToValue;
 		private Dictionary<int, string> _valueToName;
 
+		/// <summary>
+		/// ISO/IEC 18004:2006 Chapter 6.4.2 Mode indicator = 0111 Page 23
+		/// </summary>
+		private const int ECIMode = 7;
+
+		private const int ECIIndicatorNumBits = 4;
+
+		/// <summary>
+		/// Initialize ECI Set.
+		/// </summary>
+		/// <param name="option">AppendOption is enum under ECISet
+		/// Use NameToValue during Encode. ValueToName during Decode</param>
+		internal ECISet(AppendOption option)
+		{
+			Initialize(option);
+		}
+
 		public enum AppendOption { NameToValue, ValueToName, Both }
+
+		/// <summary>
+		/// Length indicator for number of ECI codewords
+		/// </summary>
+		/// <remarks>ISO/IEC 18004:2006 Chapter 6.4.2 Page 24.
+		/// 1 codeword length = 0. Any additional codeword add 1 to front. Eg: 3 = 110</remarks>
+		/// <description>Bits required for each one is:
+		/// one = 1, two = 2, three = 3</description>
+		private enum ECICodewordsLength { One = 0, Two = 2, Three = 6 }
 
 		private void AppendECI(string name, int value, AppendOption option)
 		{
@@ -32,16 +58,6 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			}
 		}
 
-		/// <summary>
-		/// Initialize ECI Set.
-		/// </summary>
-		/// <param name="option">AppendOption is enum under ECISet
-		/// Use NameToValue during Encode. ValueToName during Decode</param>
-		internal ECISet(AppendOption option)
-		{
-			Initialize(option);
-		}
-
 		private void Initialize(AppendOption option)
 		{
 			switch (option)
@@ -63,12 +79,12 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 					throw new InvalidOperationException($"There is no such {nameof(AppendOption)}.");
 			}
 
-			//ECI table. Source 01 URL: http://strokescribe.com/en/ECI.html
-			//ECI table. Source 02 URL: http://lab.must.or.kr/Extended-Channel-Interpretations-ECI-Encoding.ashx
-			//ToDo. Fill up remaining missing table.
+			// ECI table. Source 01 URL: http://strokescribe.com/en/ECI.html
+			// ECI table. Source 02 URL: http://lab.must.or.kr/Extended-Channel-Interpretations-ECI-Encoding.ashx
+			// ToDo. Fill up remaining missing table.
 			AppendECI("iso-8859-1", 1, option);
 			AppendECI("IBM437", 2, option);
-			//AppendECI("iso-8859-1", 3, option);	//ECI value 1 is default encoding.
+			// AppendECI("iso-8859-1", 3, option);	//ECI value 1 is default encoding.
 			AppendECI("iso-8859-2", 4, option);
 			AppendECI("iso-8859-3", 5, option);
 			AppendECI("iso-8859-4", 6, option);
@@ -182,22 +198,6 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			return _valueToName.ContainsKey(eciValue);
 		}
 
-		/// <summary>
-		/// ISO/IEC 18004:2006 Chapter 6.4.2 Mode indicator = 0111 Page 23
-		/// </summary>
-		private const int ECIMode = 7;
-
-		private const int ECIIndicatorNumBits = 4;
-
-		/// <summary>
-		/// Length indicator for number of ECI codewords
-		/// </summary>
-		/// <remarks>ISO/IEC 18004:2006 Chapter 6.4.2 Page 24.
-		/// 1 codeword length = 0. Any additional codeword add 1 to front. Eg: 3 = 110</remarks>
-		/// <description>Bits required for each one is:
-		/// one = 1, two = 2, three = 3</description>
-		private enum ECICodewordsLength { One = 0, Two = 2, Three = 6 }
-
 		/// <remarks>ISO/IEC 18004:2006 Chapter 6.4.2 Page 24.</remarks>
 		internal BitList GetECIHeader(string encodingName)
 		{
@@ -209,25 +209,25 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			};
 
 			int eciAssignmentByte = NumOfCodewords(eciValue);
-			//Number of bits = Num codewords indicator + codeword value = Number of codewords * 8
-			//Chapter 6.4.2.1 ECI Designator ISOIEC 18004:2006 Page 24
+			// Number of bits = Num codewords indicator + codeword value = Number of codewords * 8
+			// Chapter 6.4.2.1 ECI Designator ISOIEC 18004:2006 Page 24
 			int eciAssignmentBits;
 			switch (eciAssignmentByte)
 			{
 				case 1:
-					//Indicator = 0. Page 24. Chapter 6.4.2.1
+					// Indicator = 0. Page 24. Chapter 6.4.2.1
 					dataBits.Add((int)ECICodewordsLength.One, 1);
 					eciAssignmentBits = (eciAssignmentByte * 8) - 1;
 					break;
 
 				case 2:
-					//Indicator = 10. Page 24. Chapter 6.4.2.1
+					// Indicator = 10. Page 24. Chapter 6.4.2.1
 					dataBits.Add((int)ECICodewordsLength.Two, 2);
 					eciAssignmentBits = (eciAssignmentByte * 8) - 2;
 					break;
 
 				case 3:
-					//Indicator = 110. Page 24. Chapter 6.4.2.1
+					// Indicator = 110. Page 24. Chapter 6.4.2.1
 					dataBits.Add((int)ECICodewordsLength.Three, 3);
 					eciAssignmentBits = (eciAssignmentByte * 8) - 3;
 					break;

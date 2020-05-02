@@ -23,10 +23,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 {
 	public class RegTestFixture : IDisposable
 	{
-		public string BackendEndPoint { get; internal set; }
-		public IHost BackendHost { get; internal set; }
-		public CoreNode BackendRegTestNode { get; internal set; }
-		public Backend.Global Global { get; }
+		private volatile bool _disposedValue = false; // To detect redundant calls
 
 		public RegTestFixture()
 		{
@@ -50,12 +47,12 @@ namespace WalletWasabi.Tests.XunitConfiguration
 				BackendRegTestNode.RpcEndPoint);
 			var configFilePath = Path.Combine(testnetBackendDir, "Config.json");
 			config.SetFilePath(configFilePath);
-			config.ToFileAsync().GetAwaiter().GetResult();
+			config.ToFile();
 
 			var roundConfig = CreateRoundConfig(Money.Coins(0.1m), Constants.OneDayConfirmationTarget, 0.7, 0.1m, 100, 120, 60, 60, 60, 1, 24, true, 11);
 			var roundConfigFilePath = Path.Combine(testnetBackendDir, "CcjRoundConfig.json");
 			roundConfig.SetFilePath(roundConfigFilePath);
-			roundConfig.ToFileAsync().GetAwaiter().GetResult();
+			roundConfig.ToFile();
 
 			var conf = new ConfigurationBuilder()
 				.AddInMemoryCollection(new[] { new KeyValuePair<string, string>("datadir", testnetBackendDir) })
@@ -78,6 +75,11 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			var delayTask = Task.Delay(3000);
 			Task.WaitAny(delayTask, hostInitializationTask); // Wait for server to initialize (Without this OSX CI will fail)
 		}
+
+		public string BackendEndPoint { get; internal set; }
+		public IHost BackendHost { get; internal set; }
+		public CoreNode BackendRegTestNode { get; internal set; }
+		public Backend.Global Global { get; }
 
 		public static CoordinatorRoundConfig CreateRoundConfig(
 			Money denomination,
@@ -113,8 +115,6 @@ namespace WalletWasabi.Tests.XunitConfiguration
 		}
 
 		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
 
 		protected virtual void Dispose(bool disposing)
 		{

@@ -14,7 +14,11 @@ namespace WalletWasabi.Logging
 	{
 		#region PropertiesAndMembers
 
+		private static readonly object Lock = new object();
+
 		private static long On = 1;
+
+		private static int LoggingFailedCount = 0;
 
 		public static LogLevel MinimumLevel { get; private set; } = LogLevel.Critical;
 
@@ -30,10 +34,6 @@ namespace WalletWasabi.Logging
 		/// </summary>
 		public static Guid InstanceGuid { get; } = Guid.NewGuid();
 
-		private static int LoggingFailedCount = 0;
-
-		private static readonly object Lock = new object();
-
 		/// <summary>
 		/// KB
 		/// </summary>
@@ -48,7 +48,6 @@ namespace WalletWasabi.Logging
 		/// If RELEASE then minlevel is info, and logs only to file.
 		/// If DEBUG then minlevel is debug, and logs to file, debug and console.
 		/// </summary>
-		/// <param name="filePath"></param>
 		public static void InitializeDefaults(string filePath)
 		{
 			SetFilePath(filePath);

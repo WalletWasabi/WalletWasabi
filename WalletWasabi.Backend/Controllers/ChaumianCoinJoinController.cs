@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
-using NBitcoin.BouncyCastle.Math;
 using NBitcoin.Crypto;
 using NBitcoin.Protocol;
 using NBitcoin.RPC;
@@ -15,6 +14,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.CoinJoin.Coordinator;
@@ -24,7 +24,7 @@ using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using static NBitcoin.Crypto.SchnorrBlinding;
+using static WalletWasabi.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.Backend.Controllers
 {
@@ -35,17 +35,21 @@ namespace WalletWasabi.Backend.Controllers
 	[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
 	public class ChaumianCoinJoinController : Controller
 	{
-		private IMemoryCache Cache { get; }
-		public Global Global { get; }
-		private RPCClient RpcClient => Global.RpcClient;
-		private Network Network => Global.Config.Network;
-		private Coordinator Coordinator => Global.Coordinator;
-
 		public ChaumianCoinJoinController(IMemoryCache memoryCache, Global global)
 		{
 			Cache = memoryCache;
 			Global = global;
 		}
+
+		private IMemoryCache Cache { get; }
+		public Global Global { get; }
+		private IRPCClient RpcClient => Global.RpcClient;
+		private Network Network => Global.Config.Network;
+		private Coordinator Coordinator => Global.Coordinator;
+
+		private static AsyncLock InputsLock { get; } = new AsyncLock();
+		private static AsyncLock OutputLock { get; } = new AsyncLock();
+		private static AsyncLock SigningLock { get; } = new AsyncLock();
 
 		/// <summary>
 		/// Satoshi gets various status information.
@@ -89,8 +93,6 @@ namespace WalletWasabi.Backend.Controllers
 
 			return response;
 		}
-
-		private static AsyncLock InputsLock { get; } = new AsyncLock();
 
 		/// <summary>
 		/// Alice registers her inputs.
@@ -155,14 +157,15 @@ namespace WalletWasabi.Backend.Controllers
 						}
 					}
 
-					var uniqueInputs = new HashSet<TxoRef>();
+					var uniqueInputs = new HashSet<OutPoint>();
 					foreach (InputProofModel inputProof in request.Inputs)
 					{
-						if (uniqueInputs.Contains(inputProof.Input))
+						var outpoint = inputProof.Input;
+						if (uniqueInputs.Contains(outpoint))
 						{
 							return BadRequest("Cannot register an input twice.");
 						}
-						uniqueInputs.Add(inputProof.Input);
+						uniqueInputs.Add(outpoint);
 					}
 
 					var alicesToRemove = new HashSet<Guid>();
@@ -172,11 +175,11 @@ namespace WalletWasabi.Backend.Controllers
 
 					foreach (InputProofModel inputProof in request.Inputs)
 					{
-						if (round.ContainsInput(inputProof.Input.ToOutPoint(), out List<Alice> tr))
+						if (round.ContainsInput(inputProof.Input, out List<Alice> tr))
 						{
 							alicesToRemove.UnionWith(tr.Select(x => x.UniqueId)); // Input is already registered by this alice, remove it later if all the checks are completed fine.
 						}
-						if (Coordinator.AnyRunningRoundContainsInput(inputProof.Input.ToOutPoint(), out List<Alice> tnr))
+						if (Coordinator.AnyRunningRoundContainsInput(inputProof.Input, out List<Alice> tnr))
 						{
 							if (tr.Union(tnr).Count() > tr.Count)
 							{
@@ -184,14 +187,14 @@ namespace WalletWasabi.Backend.Controllers
 							}
 						}
 
-						OutPoint outpoint = inputProof.Input.ToOutPoint();
+						OutPoint outpoint = inputProof.Input;
 						var bannedElem = await Coordinator.UtxoReferee.TryGetBannedAsync(outpoint, notedToo: false);
 						if (bannedElem != null)
 						{
-							return BadRequest($"Input is banned from participation for {(int)bannedElem.BannedRemaining.TotalMinutes} minutes: {inputProof.Input.Index}:{inputProof.Input.TransactionId}.");
+							return BadRequest($"Input is banned from participation for {(int)bannedElem.BannedRemaining.TotalMinutes} minutes: {inputProof.Input.N}:{inputProof.Input.Hash}.");
 						}
 
-						var txOutResponseTask = batch.GetTxOutAsync(inputProof.Input.TransactionId, (int)inputProof.Input.Index, includeMempool: true);
+						var txOutResponseTask = batch.GetTxOutAsync(inputProof.Input.Hash, (int)inputProof.Input.N, includeMempool: true);
 						getTxOutResponses.Add((inputProof, txOutResponseTask));
 					}
 
@@ -213,21 +216,21 @@ namespace WalletWasabi.Backend.Controllers
 						// Check if inputs are unspent.
 						if (getTxOutResponse is null)
 						{
-							return BadRequest($"Provided input is not unspent: {inputProof.Input.Index}:{inputProof.Input.TransactionId}.");
+							return BadRequest($"Provided input is not unspent: {inputProof.Input.N}:{inputProof.Input.Hash}.");
 						}
 
 						// Check if unconfirmed.
 						if (getTxOutResponse.Confirmations <= 0)
 						{
 							// If it spends a CJ then it may be acceptable to register.
-							if (!await Coordinator.ContainsUnconfirmedCoinJoinAsync(inputProof.Input.TransactionId))
+							if (!await Coordinator.ContainsUnconfirmedCoinJoinAsync(inputProof.Input.Hash))
 							{
 								return BadRequest("Provided input is neither confirmed, nor is from an unconfirmed coinjoin.");
 							}
 
 							// Check if mempool would accept a fake transaction created with the registered inputs.
 							// This will catch ascendant/descendant count and size limits for example.
-							var result = await RpcClient.TestMempoolAcceptAsync(new[] { new Coin(inputProof.Input.ToOutPoint(), getTxOutResponse.TxOut) });
+							var result = await RpcClient.TestMempoolAcceptAsync(new[] { new Coin(inputProof.Input, getTxOutResponse.TxOut) });
 							if (!result.accept)
 							{
 								return BadRequest($"Provided input is from an unconfirmed coinjoin, but a limit is reached: {result.rejectReason}");
@@ -258,7 +261,7 @@ namespace WalletWasabi.Backend.Controllers
 							return BadRequest("Provided proof is invalid.");
 						}
 
-						inputs.Add(new Coin(inputProof.Input.ToOutPoint(), txOut));
+						inputs.Add(new Coin(inputProof.Input, txOut));
 					}
 
 					var acceptedBlindedOutputScripts = new List<uint256>();
@@ -356,7 +359,7 @@ namespace WalletWasabi.Backend.Controllers
 		/// <param name="uniqueId">Unique identifier, obtained previously.</param>
 		/// <param name="roundId">Round identifier, obtained previously.</param>
 		/// <returns>Current phase and blinded output sinatures if Alice is found.</returns>
-		/// <response code="200">Current phase and blinded output sinatures if Alice is found.</response>
+		/// <response code="200">Current phase and blinded output signatures if Alice is found.</response>
 		/// <response code="400">The provided uniqueId or roundId was malformed.</response>
 		/// <response code="404">If Alice or the round is not found.</response>
 		/// <response code="410">Participation can be only confirmed from a Running round's InputRegistration or ConnectionConfirmation phase.</response>
@@ -399,8 +402,8 @@ namespace WalletWasabi.Backend.Controllers
 
 						int takeBlindCount = round.EstimateBestMixingLevel(alice);
 
-						alice.BlindedOutputScripts = alice.BlindedOutputScripts.Take(takeBlindCount).ToArray();
-						alice.BlindedOutputSignatures = alice.BlindedOutputSignatures.Take(takeBlindCount).ToArray();
+						alice.BlindedOutputScripts = alice.BlindedOutputScripts[..takeBlindCount];
+						alice.BlindedOutputSignatures = alice.BlindedOutputSignatures[..takeBlindCount];
 						resp.BlindedOutputSignatures = alice.BlindedOutputSignatures; // Do not give back more mixing levels than we'll use.
 
 						// Progress round if needed.
@@ -427,7 +430,7 @@ namespace WalletWasabi.Backend.Controllers
 		/// <param name="uniqueId">Unique identifier, obtained previously.</param>
 		/// <param name="roundId">Round identifier, obtained previously.</param>
 		/// <response code="200">Alice or the round was not found.</response>
-		/// <response code="204">Alice sucessfully uncofirmed her participation.</response>
+		/// <response code="204">Alice sucessfully unconfirmed her participation.</response>
 		/// <response code="400">The provided uniqueId or roundId was malformed.</response>
 		/// <response code="410">Participation can be only unconfirmed from a Running round's InputRegistration phase.</response>
 		[HttpPost("unconfirmation")]
@@ -481,8 +484,6 @@ namespace WalletWasabi.Backend.Controllers
 			}
 		}
 
-		private static AsyncLock OutputLock { get; } = new AsyncLock();
-
 		/// <summary>
 		/// Bob registers his output.
 		/// </summary>
@@ -534,11 +535,6 @@ namespace WalletWasabi.Backend.Controllers
 				{
 					return BadRequest($"Invalid OutputAddress Network.");
 				}
-			}
-
-			if (request.OutputAddress == Constants.GetCoordinatorAddress(Network))
-			{
-				Logger.LogWarning($"Bob is registering the coordinator's address. Address: {request.OutputAddress}, Level: {request.Level}, Signature: {request.UnblindedSignature}.");
 			}
 
 			if (request.Level > round.MixingLevels.GetMaxLevel())
@@ -618,7 +614,15 @@ namespace WalletWasabi.Backend.Controllers
 			{
 				case RoundPhase.Signing:
 					{
-						return Ok(round.GetUnsignedCoinJoinHex());
+						var hex = round.UnsignedCoinJoinHex;
+						if (hex is { })
+						{
+							return Ok(hex);
+						}
+						else
+						{
+							return NotFound("Hex not found. This is impossible.");
+						}
 					}
 				default:
 					{
@@ -627,8 +631,6 @@ namespace WalletWasabi.Backend.Controllers
 					}
 			}
 		}
-
-		private static AsyncLock SigningLock { get; } = new AsyncLock();
 
 		/// <summary>
 		/// Alice posts her witnesses.
@@ -689,21 +691,21 @@ namespace WalletWasabi.Backend.Controllers
 								{
 									return BadRequest($"Malformed witness is provided. Details: {ex.Message}");
 								}
-								int maxIndex = round.UnsignedCoinJoin.Inputs.Count - 1;
+								int maxIndex = round.CoinJoin.Inputs.Count - 1;
 								if (maxIndex < index)
 								{
 									return BadRequest($"Index out of range. Maximum value: {maxIndex}. Provided value: {index}");
 								}
 
 								// Check duplicates.
-								if (round.SignedCoinJoin.Inputs[index].HasWitScript())
+								if (round.CoinJoin.Inputs[index].HasWitScript())
 								{
 									return BadRequest("Input is already signed.");
 								}
 
 								// Verify witness.
 								// 1. Copy UnsignedCoinJoin.
-								Transaction cjCopy = Transaction.Parse(round.UnsignedCoinJoin.ToHex(), Network);
+								Transaction cjCopy = Transaction.Parse(round.CoinJoin.ToHex(), Network);
 								// 2. Sign the copy.
 								cjCopy.Inputs[index].WitScript = witness;
 								// 3. Convert the current input to IndexedTxIn.
@@ -717,7 +719,7 @@ namespace WalletWasabi.Backend.Controllers
 								}
 
 								// Finally add it to our CJ.
-								round.SignedCoinJoin.Inputs[index].WitScript = witness;
+								round.CoinJoin.Inputs[index].WitScript = witness;
 							}
 
 							alice.State = AliceState.SignedCoinJoin;

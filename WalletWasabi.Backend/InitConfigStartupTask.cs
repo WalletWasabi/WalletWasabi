@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using NBitcoin.RPC;
@@ -9,6 +10,7 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Logging;
 
@@ -16,14 +18,16 @@ namespace WalletWasabi.Backend
 {
 	public class InitConfigStartupTask : IStartupTask
 	{
-		public WebsiteTorifier WebsiteTorifier { get; }
-		public Global Global { get; }
-
-		public InitConfigStartupTask(Global global, IWebHostEnvironment hostingEnvironment)
+		public InitConfigStartupTask(Global global, IMemoryCache cache, IWebHostEnvironment hostingEnvironment)
 		{
 			Global = global;
+			Cache = cache;
 			WebsiteTorifier = new WebsiteTorifier(hostingEnvironment.WebRootPath);
 		}
+
+		public WebsiteTorifier WebsiteTorifier { get; }
+		public Global Global { get; }
+		public IMemoryCache Cache { get; }
 
 		public async Task ExecuteAsync(CancellationToken cancellationToken)
 		{
@@ -34,12 +38,12 @@ namespace WalletWasabi.Backend
 			TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 			var configFilePath = Path.Combine(Global.DataDir, "Config.json");
 			var config = new Config(configFilePath);
-			await config.LoadOrCreateDefaultFileAsync();
+			config.LoadOrCreateDefaultFile();
 			Logger.LogInfo("Config is successfully initialized.");
 
 			var roundConfigFilePath = Path.Combine(Global.DataDir, "CcjRoundConfig.json");
 			var roundConfig = new CoordinatorRoundConfig(roundConfigFilePath);
-			await roundConfig.LoadOrCreateDefaultFileAsync();
+			roundConfig.LoadOrCreateDefaultFile();
 			Logger.LogInfo("RoundConfig is successfully initialized.");
 
 			string host = config.GetBitcoinCoreRpcEndPoint().ToString(config.Network.RPCPort);
@@ -48,11 +52,12 @@ namespace WalletWasabi.Backend
 					hostOrUri: host,
 					network: config.Network);
 
-			await Global.InitializeAsync(config, roundConfig, rpc, cancellationToken);
+			var cachedRpc = new CachedRpcClient(rpc, Cache);
+			await Global.InitializeAsync(config, roundConfig, cachedRpc, cancellationToken);
 
 			try
 			{
-				WebsiteTorifier.CloneAndUpdateOnionIndexHtml();
+				await WebsiteTorifier.CloneAndUpdateOnionIndexHtmlAsync();
 			}
 			catch (Exception ex)
 			{

@@ -39,7 +39,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.False(txStore.TryGetTransaction(txHash, out _));
 
 			var mempoolFile = Path.Combine(dir, "Mempool", "Transactions.dat");
-			var txFile = Path.Combine(dir, "ConfirmedTransactions", WalletWasabi.Helpers.Constants.ConfirmedTransactionsVersion, "Transactions.dat");
+			var txFile = Path.Combine(dir, "ConfirmedTransactions", Constants.ConfirmedTransactionsVersion, "Transactions.dat");
 			var mempoolContent = await File.ReadAllBytesAsync(mempoolFile);
 			var txContent = await File.ReadAllBytesAsync(txFile);
 
@@ -55,7 +55,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			string dir = PrepareWorkDir();
 			var network = Network.TestNet;
 			var mempoolFile = Path.Combine(dir, "Mempool", "Transactions.dat");
-			var txFile = Path.Combine(dir, "ConfirmedTransactions", WalletWasabi.Helpers.Constants.ConfirmedTransactionsVersion, "Transactions.dat");
+			var txFile = Path.Combine(dir, "ConfirmedTransactions", Constants.ConfirmedTransactionsVersion, "Transactions.dat");
 			IoHelpers.EnsureContainingDirectoryExists(mempoolFile);
 			IoHelpers.EnsureContainingDirectoryExists(txFile);
 
@@ -226,7 +226,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			string dir = PrepareWorkDir();
 			var network = Network.TestNet;
 			var mempoolFile = Path.Combine(dir, "Mempool", "Transactions.dat");
-			var txFile = Path.Combine(dir, "ConfirmedTransactions", WalletWasabi.Helpers.Constants.ConfirmedTransactionsVersion, "Transactions.dat");
+			var txFile = Path.Combine(dir, "ConfirmedTransactions", Constants.ConfirmedTransactionsVersion, "Transactions.dat");
 			IoHelpers.EnsureContainingDirectoryExists(mempoolFile);
 			IoHelpers.EnsureContainingDirectoryExists(txFile);
 
@@ -354,11 +354,11 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.False(myUnconfirmedTx2.Confirmed);
 
 			// Create the same transaction but now with a Height to make it confirmed.
-			const int reorgedBlockHeight = 34532;
+			const int ReorgedBlockHeight = 34532;
 			uint256 reorgedBlockHash = new uint256(5);
 
-			var tx1Confirmed = new SmartTransaction(uTx1.Transaction, new Height(reorgedBlockHeight), blockHash: reorgedBlockHash, label: "buz, qux");
-			var tx2Confirmed = new SmartTransaction(uTx2.Transaction, new Height(reorgedBlockHeight), blockHash: reorgedBlockHash, label: "buz, qux");
+			var tx1Confirmed = new SmartTransaction(uTx1.Transaction, new Height(ReorgedBlockHeight), blockHash: reorgedBlockHash, label: "buz, qux");
+			var tx2Confirmed = new SmartTransaction(uTx2.Transaction, new Height(ReorgedBlockHeight), blockHash: reorgedBlockHash, label: "buz, qux");
 			Assert.True(txStore.TryUpdate(tx1Confirmed));
 			Assert.True(txStore.TryUpdate(tx2Confirmed));
 
@@ -443,7 +443,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			dir = PrepareWorkDir(EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName);
 			network = Network.TestNet;
 			mempoolFile = Path.Combine(dir, "Mempool", "Transactions.dat");
-			txFile = Path.Combine(dir, "ConfirmedTransactions", WalletWasabi.Helpers.Constants.ConfirmedTransactionsVersion, "Transactions.dat");
+			txFile = Path.Combine(dir, "ConfirmedTransactions", Constants.ConfirmedTransactionsVersion, "Transactions.dat");
 			IoHelpers.EnsureContainingDirectoryExists(mempoolFile);
 			IoHelpers.EnsureContainingDirectoryExists(txFile);
 
