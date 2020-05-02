@@ -2,12 +2,13 @@ namespace Gma.QrCodeNet.Encoding
 {
 	public abstract class BitMatrix
 	{
-		public abstract bool this[int i, int j] { get; set; }
 		public abstract int Width { get; }
 		public abstract int Height { get; }
 		public abstract bool[,] InternalArray { get; }
 
 		internal MatrixSize Size => new MatrixSize(Width, Height);
+
+		public abstract bool this[int i, int j] { get; set; }
 
 		internal bool this[MatrixPoint point]
 		{

@@ -6,12 +6,6 @@ namespace WalletWasabi.Bases
 {
 	public abstract class OctetSerializableBase : IByteSerializable, IEquatable<OctetSerializableBase>, IEquatable<byte>
 	{
-		#region PropertiesAndMembers
-
-		protected byte ByteValue { get; set; }
-
-		#endregion PropertiesAndMembers
-
 		#region ConstructorsAndInitializers
 
 		protected OctetSerializableBase()
@@ -19,6 +13,12 @@ namespace WalletWasabi.Bases
 		}
 
 		#endregion ConstructorsAndInitializers
+
+		#region PropertiesAndMembers
+
+		protected byte ByteValue { get; set; }
+
+		#endregion PropertiesAndMembers
 
 		#region Serialization
 

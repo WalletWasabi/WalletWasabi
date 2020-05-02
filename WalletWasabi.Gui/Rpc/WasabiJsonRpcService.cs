@@ -227,7 +227,10 @@ namespace WalletWasabi.Gui.Rpc
 				var wallet = Global.WalletManager.GetWalletByName(walletName);
 
 				ActiveWallet = wallet;
-				Global.WalletManager.StartWalletAsync(wallet).ConfigureAwait(false);
+				if (wallet.State == WalletState.Uninitialized)
+				{
+					Global.WalletManager.StartWalletAsync(wallet).ConfigureAwait(false);
+				}
 			}
 			catch (InvalidOperationException) // wallet not found
 			{

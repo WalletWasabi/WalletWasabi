@@ -175,6 +175,9 @@ namespace WalletWasabi.Gui
 
 				await bstoreInitTask;
 
+				// Make sure that the height of the wallets will not be better than the current height of the filters.
+				WalletManager.SetMaxBestHeight(BitcoinStore.IndexStore.SmartHeaderChain.TipHeight);
+
 				#endregion BitcoinStoreInitialization
 
 				cancel.ThrowIfCancellationRequested();
