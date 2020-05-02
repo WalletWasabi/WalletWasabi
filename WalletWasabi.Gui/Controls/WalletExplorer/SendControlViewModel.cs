@@ -892,7 +892,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void ValidateCustomChangeAddress(IValidationErrors errors)
 		{
-			if (string.IsNullOrWhiteSpace(CustomChangeAddress) || IsMax)
+			if (string.IsNullOrWhiteSpace(CustomChangeAddress))
+			{
+				return;
+			}
+
+			if (IsMax)
 			{
 				return;
 			}
