@@ -30,7 +30,7 @@ namespace WalletWasabi.Io
 		public string DigestFilePath { get; }
 
 		/// <summary>
-		/// Use the random index of the line to create digest faster. -1 is special value, it means the last character. If null then hash whole file.
+		/// Gets a random index of the line to create digest faster. -1 is special value, it means the last character. If null then hash whole file.
 		/// </summary>
 		private int? DigestRandomIndex { get; }
 
