@@ -329,12 +329,8 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		public static Config LoadOrCreateDefaultFile(string path)
+		public static void CorrectMixUntilAnonymitySetValue(Config config)
 		{
-			var config = new Config(path);
-			config.LoadOrCreateDefaultFile();
-
-			// MixUntilAnonymitySet sanity check.
 			if (config.MixUntilAnonymitySet != config.PrivacyLevelFine &&
 				config.MixUntilAnonymitySet != config.PrivacyLevelSome &&
 				config.MixUntilAnonymitySet != config.PrivacyLevelStrong)
@@ -351,9 +347,9 @@ namespace WalletWasabi.Gui
 				{
 					config.MixUntilAnonymitySet = config.PrivacyLevelStrong;
 				}
-			}
 
-			return config;
+				config.ToFile();
+			}
 		}
 
 		public TargetPrivacy GetTargetPrivacy()

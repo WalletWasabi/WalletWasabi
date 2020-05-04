@@ -89,6 +89,7 @@ namespace WalletWasabi.Gui
 				UiConfig.LoadOrCreateDefaultFile();
 				Config = new Config(Path.Combine(DataDir, "Config.json"));
 				Config.LoadOrCreateDefaultFile();
+				Config.CorrectMixUntilAnonymitySetValue(Config);
 
 				HostedServices = new HostedServices();
 				WalletManager = new WalletManager(Network, new WalletDirectories(DataDir));
