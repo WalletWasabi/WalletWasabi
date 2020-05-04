@@ -374,5 +374,21 @@ namespace NBitcoin
 				nodes = parentCounter.Where(x => x.Value == 0).Select(x => x.Key).Distinct().ToArray();
 			}
 		}
+
+		public static ScriptPubKeyType? GetInputScriptPubKeyType(this PSBTInput i)
+		{
+			if (i.WitnessUtxo.ScriptPubKey.IsScriptType(ScriptType.P2WPKH))
+			{
+				return ScriptPubKeyType.Segwit;
+			}
+
+			if (i.WitnessUtxo.ScriptPubKey.IsScriptType(ScriptType.P2SH) && 
+				i.FinalScriptWitness.ToScript().IsScriptType(ScriptType.P2WPKH))
+			{
+				return ScriptPubKeyType.SegwitP2SH;
+			}
+
+			return null;
+		}
 	}
 }

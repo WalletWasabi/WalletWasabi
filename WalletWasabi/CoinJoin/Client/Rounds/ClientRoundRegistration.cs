@@ -26,7 +26,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 		}
 
 		/// <summary>
-		/// Completed all the necessary actions in the phase.
+		/// Gets or sets the RoundPhase that completed all the necessary actions in the phase.
 		/// </summary>
 		public RoundPhase CompletedPhase { get; set; }
 

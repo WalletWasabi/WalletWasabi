@@ -55,12 +55,13 @@ namespace WalletWasabi.Tests.RegressionTests
 	public class BackendTests
 	{
 #pragma warning disable IDE0059 // Value assigned to symbol is never used
-		private RegTestFixture RegTestFixture { get; }
 
 		public BackendTests(RegTestFixture regTestFixture)
 		{
 			RegTestFixture = regTestFixture;
 		}
+
+		private RegTestFixture RegTestFixture { get; }
 
 		#region BackendTests
 
@@ -133,9 +134,8 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			var indexBuilderServiceDir = Common.GetWorkDir();
 			var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{rpc.Network}.dat");
-			var utxoSetFilePath = Path.Combine(indexBuilderServiceDir, $"UtxoSet{rpc.Network}.dat");
 
-			var indexBuilderService = new IndexBuilderService(rpc, global.HostedServices.FirstOrDefault<BlockNotifier>(), indexFilePath, utxoSetFilePath);
+			var indexBuilderService = new IndexBuilderService(rpc, global.HostedServices.FirstOrDefault<BlockNotifier>(), indexFilePath);
 			try
 			{
 				indexBuilderService.Synchronize();
