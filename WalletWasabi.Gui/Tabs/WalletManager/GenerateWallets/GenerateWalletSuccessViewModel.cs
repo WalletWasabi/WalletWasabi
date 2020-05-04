@@ -10,16 +10,24 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Models;
 using WalletWasabi.Gui.Helpers;
 using Splat;
+using System.Collections.Generic;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 {
 	internal class GenerateWalletSuccessViewModel : CategoryViewModel
 	{
-		private string _mnemonicWords;
+		private List<string> _mnemonicWords;
 
 		public GenerateWalletSuccessViewModel(WalletManagerViewModel owner, KeyManager keyManager, Mnemonic mnemonic) : base("Wallet Generated Successfully!")
 		{
-			_mnemonicWords = mnemonic.ToString();
+
+			_mnemonicWords = new List<string>(mnemonic.Words.Length);
+
+			for (int i = 0; i < mnemonic.Words.Length; i++)
+			{
+				_mnemonicWords.Add($"{i + 1}. {mnemonic.Words[i]}");
+			}
+
 			var global = Locator.Current.GetService<Global>();
 
 			ConfirmCommand = ReactiveCommand.Create(() =>
@@ -34,17 +42,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 				.Subscribe(ex => Logger.LogError(ex));
 		}
 
-		public string MnemonicWords
+		public List<string> MnemonicWords
 		{
-			get => _mnemonicWords;
-			set => this.RaiseAndSetIfChanged(ref _mnemonicWords, value);
+			get { return _mnemonicWords; }
+			set { this.RaiseAndSetIfChanged(ref _mnemonicWords, value); }
 		}
 
 		public ReactiveCommand<Unit, Unit> ConfirmCommand { get; }
-
-		public override void OnCategorySelected()
-		{
-			base.OnCategorySelected();
-		}
 	}
 }
