@@ -73,7 +73,7 @@ namespace WalletWasabi.Services
 		public Network Network { get; private set; }
 
 		/// <summary>
-		/// The Bitcoin price in USD.
+		/// Gets the Bitcoin price in USD.
 		/// </summary>
 		public decimal UsdExchangeRate
 		{
