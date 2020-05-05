@@ -358,9 +358,26 @@ namespace WalletWasabi.Gui.Tabs
 						config.StopLocalBitcoinCoreOnShutdown = StopLocalBitcoinCoreOnShutdown;
 						config.LocalBitcoinCoreDataDir = Guard.Correct(LocalBitcoinCoreDataDir);
 						config.DustThreshold = decimal.TryParse(DustThreshold, out var threshold) ? Money.Coins(threshold) : Config.DefaultDustThreshold;
-						config.PrivacyLevelSome = int.TryParse(SomePrivacyLevel, out int level) ? level : Config.DefaultPrivacyLevelSome;
-						config.PrivacyLevelStrong = int.TryParse(StrongPrivacyLevel, out level) ? level : Config.DefaultPrivacyLevelStrong;
-						config.PrivacyLevelFine = int.TryParse(FinePrivacyLevel, out level) ? level : Config.DefaultPrivacyLevelFine;
+
+						int privacyLevelSome = int.TryParse(SomePrivacyLevel, out int someLevel) ? someLevel : Config.DefaultPrivacyLevelSome;
+						int privacyLevelFine = int.TryParse(FinePrivacyLevel, out int fineLevel) ? fineLevel : Config.DefaultPrivacyLevelFine;
+						int privacyLevelStrong = int.TryParse(StrongPrivacyLevel, out int strongLevel) ? strongLevel : Config.DefaultPrivacyLevelStrong;
+
+						if (config.MixUntilAnonymitySet == config.PrivacyLevelSome)
+						{
+							config.MixUntilAnonymitySet = privacyLevelSome;
+						}
+						else if (config.MixUntilAnonymitySet == config.PrivacyLevelFine)
+						{
+							config.MixUntilAnonymitySet = privacyLevelFine;
+						}
+						else if (config.MixUntilAnonymitySet == config.PrivacyLevelStrong)
+						{
+							config.MixUntilAnonymitySet = privacyLevelStrong;
+						}
+						config.PrivacyLevelSome = privacyLevelSome;
+						config.PrivacyLevelFine = privacyLevelFine;
+						config.PrivacyLevelStrong = privacyLevelStrong;
 					}
 					else
 					{
