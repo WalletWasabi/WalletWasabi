@@ -275,9 +275,13 @@ namespace WalletWasabi.WebClients.PayJoin
 					keyManager.ExtPubKey,
 					new RootedKeyPath(keyManager.MasterFingerprint.Value, keyManager.AccountKeyPath),
 					CancellationToken.None);
-				
-				var signedPayjoinPsbt =  await sign.Invoke(psbt);
-				Logger.LogInfo($"Payjoin payment was negotiated successfully."); 
+				if (psbt == null)
+				{
+					return null;
+				}
+
+				var signedPayjoinPsbt = await sign.Invoke(psbt);
+				Logger.LogInfo($"Payjoin payment was negotiated successfully.");
 				return signedPayjoinPsbt;
 			}
 			catch (TorSocks5FailureResponseException e)
@@ -286,6 +290,7 @@ namespace WalletWasabi.WebClients.PayJoin
 				{
 					Logger.LogWarning($"Payjoin server is not reachable. Ignoring...");
 				}
+
 				// ignore
 			}
 			catch (HttpRequestException e)
@@ -296,8 +301,13 @@ namespace WalletWasabi.WebClients.PayJoin
 			{
 				Logger.LogWarning($"Payjoin server responded with {e.Message}. Ignoring...");
 			}
+			catch (Exception e)
+			{
+				Logger.LogError($"Payjoin payment ran into an issue {e.Message}. Ignoring...");
+				//the show must go on. There is a chance that the transaction was received or exposed to the receiver or listening third-party. Not attempting to broadcast the original now leave you vulnerable to the tx being broadcasted eventually.
+			}
 
-			return psbt;
+			return null;
 		}
 	}
 }

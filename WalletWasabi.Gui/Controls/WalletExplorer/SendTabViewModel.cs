@@ -67,13 +67,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					PSBT signedPsbt = await SignWithHWW(result.Psbt);
 					if (pjClient != null)
 					{
-						var signedPayjoinPsbt = await pjClient.TryNegotiatePayjoin(SignWithHWW, signedPsbt,
-							Wallet.KeyManager);
-						if (signedPayjoinPsbt != null)
-						{
-							//TODO: Schedule signedPsbt to be broadcast in 2 mins
-							signedPsbt = signedPayjoinPsbt;
-						}
+							var signedPayjoinPsbt = await pjClient.TryNegotiatePayjoin(SignWithHWW, signedPsbt,
+								Wallet.KeyManager);
+							if (signedPayjoinPsbt != null)
+							{
+								//TODO: Schedule signedPsbt to be broadcast in 2 mins
+								signedPsbt = signedPayjoinPsbt;
+							}
 					}
 					if (!signedPsbt.IsAllFinalized())
 					{
@@ -115,7 +115,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					return null;
 				}
 				//TODO: Use an IHttpClientFactory to construct the HttpClient
+				if (Global.Config.Network == Network.RegTest)
+				{
+					HttpClientHandler clientHandler = new HttpClientHandler();
+					clientHandler.ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => true;
+					
+					return new PayjoinClient(payjoinEndPointUri, new HttpClient(clientHandler));
+				}
+				
 				return new PayjoinClient(payjoinEndPointUri, new HttpClient());
+
 			}
 
 			return null;
