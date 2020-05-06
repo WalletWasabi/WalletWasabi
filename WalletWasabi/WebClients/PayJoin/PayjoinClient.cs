@@ -9,7 +9,10 @@ using System.Threading.Tasks;
 using NBitcoin;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.TorSocks5;
 
 namespace WalletWasabi.WebClients.PayJoin
@@ -20,20 +23,26 @@ namespace WalletWasabi.WebClients.PayJoin
 		{
 			TorSocks5EndPoint = Guard.NotNull(nameof(torSocks5EndPoint), torSocks5EndPoint);
 			PaymentUrl = Guard.NotNull(nameof(paymentUrl), paymentUrl);
-			HttpClient = new TorHttpClient(PaymentUrl, TorSocks5EndPoint);
+			TorHttpClient = new TorHttpClient(PaymentUrl, TorSocks5EndPoint);
+		}
+		public PayjoinClient(Uri paymentUrl, HttpClient httpClient)
+		{
+			PaymentUrl = Guard.NotNull(nameof(paymentUrl), paymentUrl);
+			ClearnetHttpClient = Guard.NotNull(nameof(httpClient), httpClient);
 		}
 
 		// For testing only
 		internal PayjoinClient(ITorHttpClient httpClient)
 		{
-			HttpClient = Guard.NotNull(nameof(httpClient), httpClient);
+			TorHttpClient = Guard.NotNull(nameof(httpClient), httpClient);
 		}
 
 		public Uri PaymentUrl { get; }
 		private EndPoint TorSocks5EndPoint { get; }
-		private ITorHttpClient HttpClient { get; }
+		private ITorHttpClient TorHttpClient { get; }
+		private HttpClient ClearnetHttpClient { get; }
 
-		public async Task<PSBT> RequestPayjoin(PSBT originalTx, IHDKey accountKey, RootedKeyPath rootedKeyPath, CancellationToken cancellationToken)
+		private async Task<PSBT> RequestPayjoin(PSBT originalTx, IHDKey accountKey, RootedKeyPath rootedKeyPath, CancellationToken cancellationToken)
 		{
 			Guard.NotNull(nameof(originalTx), originalTx);
 			if (originalTx.IsAllFinalized())
@@ -68,9 +77,19 @@ namespace WalletWasabi.WebClients.PayJoin
 			}
 
 			cloned.GlobalXPubs.Clear();
-
-			var bpuResponse = await HttpClient.SendAsync(HttpMethod.Post, "",
-				new StringContent(cloned.ToHex(), Encoding.UTF8, "text/plain"), cancellationToken).ConfigureAwait(false);
+			var request = new HttpRequestMessage(HttpMethod.Post, PaymentUrl)
+			{
+				Content = new StringContent(cloned.ToHex(), Encoding.UTF8, "text/plain")
+			};
+			HttpResponseMessage bpuResponse = null;
+			if (TorHttpClient == null)
+			{
+				bpuResponse = await new HttpClient().SendAsync(request, cancellationToken).ConfigureAwait(false);
+			}
+			else
+			{
+				bpuResponse = await TorHttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+			}
 			if (!bpuResponse.IsSuccessStatusCode)
 			{
 				var errorStr = await bpuResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
@@ -244,6 +263,41 @@ namespace WalletWasabi.WebClients.PayJoin
 			}
 
 			return newPSBT;
+		}
+		
+		public async Task<PSBT> TryNegotiatePayjoin(Func<PSBT, Task<PSBT>> sign, PSBT psbt, KeyManager keyManager)
+		{
+			try
+			{
+				Logger.LogInfo($"Negotiating payjoin payment with `{PaymentUrl}`.");
+
+				psbt = await RequestPayjoin(psbt,
+					keyManager.ExtPubKey,
+					new RootedKeyPath(keyManager.MasterFingerprint.Value, keyManager.AccountKeyPath),
+					CancellationToken.None);
+				
+				var signedPayjoinPsbt =  await sign.Invoke(psbt);
+				Logger.LogInfo($"Payjoin payment was negotiated successfully."); 
+				return signedPayjoinPsbt;
+			}
+			catch (TorSocks5FailureResponseException e)
+			{
+				if (e.Message.Contains("HostUnreachable"))
+				{
+					Logger.LogWarning($"Payjoin server is not reachable. Ignoring...");
+				}
+				// ignore
+			}
+			catch (HttpRequestException e)
+			{
+				Logger.LogWarning($"Payjoin server responded with {e.ToTypeMessageString()}. Ignoring...");
+			}
+			catch (PayjoinException e)
+			{
+				Logger.LogWarning($"Payjoin server responded with {e.Message}. Ignoring...");
+			}
+
+			return psbt;
 		}
 	}
 }

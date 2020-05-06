@@ -232,9 +232,16 @@ namespace WalletWasabi.Blockchain.Transactions
 				if (!KeyManager.IsWatchOnly)
 				{
 					// Try to pay using payjoin
-					if (payjoinClient is { })
+					var signedPayjoinPsbt = payjoinClient?.TryNegotiatePayjoin(
+						(payjoinPsbt) =>
+						{
+							builder.SignPSBT(payjoinPsbt);
+							return Task.FromResult(payjoinPsbt);
+						}, psbt, KeyManager).GetAwaiter().GetResult();
+					if (signedPayjoinPsbt != null)
 					{
-						psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt);
+						//TODO: Schedule signedPsbt to be broadcast in 2 mins
+						psbt = signedPayjoinPsbt;
 					}
 				}
 				psbt.Finalize();
@@ -305,40 +312,6 @@ namespace WalletWasabi.Blockchain.Transactions
 			var sign = !KeyManager.IsWatchOnly;
 			var spendsUnconfirmed = spentCoins.Any(c => !c.Confirmed);
 			return new BuildTransactionResult(new SmartTransaction(tx, Height.Unknown), psbt, spendsUnconfirmed, sign, fee, feePc, outerWalletOutputs, innerWalletOutputs, spentCoins);
-		}
-
-		private PSBT TryNegotiatePayjoin(IPayjoinClient payjoinClient, TransactionBuilder builder, PSBT psbt)
-		{
-			try
-			{
-				Logger.LogInfo($"Negotiating payjoin payment with `{payjoinClient.PaymentUrl}`.");
-
-				psbt = payjoinClient.RequestPayjoin(psbt,
-					KeyManager.ExtPubKey,
-					new RootedKeyPath(KeyManager.MasterFingerprint.Value, KeyManager.DefaultAccountKeyPath),
-					CancellationToken.None).GetAwaiter().GetResult();
-				builder.SignPSBT(psbt);
-
-				Logger.LogInfo($"Payjoin payment was negotiated successfully.");
-			}
-			catch (TorSocks5FailureResponseException e)
-			{
-				if (e.Message.Contains("HostUnreachable"))
-				{
-					Logger.LogWarning($"Payjoin server is not reachable. Ignoring...");
-				}
-				// ignore
-			}
-			catch (HttpRequestException e)
-			{
-				Logger.LogWarning($"Payjoin server responded with {e.ToTypeMessageString()}. Ignoring...");
-			}
-			catch (PayjoinException e)
-			{
-				Logger.LogWarning($"Payjoin server responded with {e.Message}. Ignoring...");
-			}
-
-			return psbt;
 		}
 
 		private void UpdatePSBTInfo(PSBT psbt, SmartCoin[] spentCoins, HdPubKey changeHdPubKey)

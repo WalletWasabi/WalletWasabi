@@ -1,21 +1,23 @@
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models.StatusBarStatuses;
+using WalletWasabi.Gui.Validation;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Exceptions;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
-using WalletWasabi.Gui.Validation;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -33,7 +35,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		protected override async Task BuildTransaction(string password, PaymentIntent payments, FeeStrategy feeStrategy, bool allowUnconfirmed = false, IEnumerable<OutPoint> allowedInputs = null)
 		{
-			BuildTransactionResult result = await Task.Run(() => Wallet.BuildTransaction(Password, payments, feeStrategy, allowUnconfirmed: true, allowedInputs: allowedInputs, GetPayjoinClient()));
+			var pjClient = GetPayjoinClient();
+			BuildTransactionResult result = await Task.Run(() => Wallet.BuildTransaction(Password, payments, feeStrategy, allowUnconfirmed: true, allowedInputs: allowedInputs, pjClient));
 
 			MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.SigningTransaction);
 			SmartTransaction signedTransaction = result.Transaction;
@@ -47,15 +50,34 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					var client = new HwiClient(Global.Network);
 
 					using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-					PSBT signedPsbt = null;
-					try
+
+					async Task<PSBT> SignWithHWW(PSBT psbt)
 					{
-						signedPsbt = await client.SignTxAsync(Wallet.KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
+						try
+						{
+							return await client.SignTxAsync(Wallet.KeyManager.MasterFingerprint.Value, psbt, false, cts.Token);
+						}
+						catch (HwiException)
+						{
+							await PinPadViewModel.UnlockAsync();
+							return await client.SignTxAsync(Wallet.KeyManager.MasterFingerprint.Value, psbt, false, cts.Token);
+						}
 					}
-					catch (HwiException)
+
+					PSBT signedPsbt = await SignWithHWW(result.Psbt);
+					if (pjClient != null)
 					{
-						await PinPadViewModel.UnlockAsync();
-						signedPsbt = await client.SignTxAsync(Wallet.KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
+						var signedPayjoinPsbt = await pjClient.TryNegotiatePayjoin(SignWithHWW, signedPsbt,
+							Wallet.KeyManager);
+						if (signedPayjoinPsbt != null)
+						{
+							//TODO: Schedule signedPsbt to be broadcast in 2 mins
+							signedPsbt = signedPayjoinPsbt;
+						}
+					}
+					if (!signedPsbt.IsAllFinalized())
+					{
+						signedPsbt.Finalize();
 					}
 					signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction);
 				}
@@ -83,7 +105,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			if (!string.IsNullOrWhiteSpace(PayjoinEndPoint) && Uri.IsWellFormedUriString(PayjoinEndPoint, UriKind.Absolute))
 			{
 				var payjoinEndPointUri = new Uri(PayjoinEndPoint);
-				return new PayjoinClient(payjoinEndPointUri, Global.TorManager.TorSocks5EndPoint);
+				if (Global.Config.UseTor)
+				{
+					return new PayjoinClient(payjoinEndPointUri, Global.TorManager.TorSocks5EndPoint);
+				}
+				if (payjoinEndPointUri.DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
+				{
+					Logger.LogWarning("Payjoin server is a hidden service but Tor is disabled. Ignoring...");
+					return null;
+				}
+				//TODO: Use an IHttpClientFactory to construct the HttpClient
+				return new PayjoinClient(payjoinEndPointUri, new HttpClient());
 			}
 
 			return null;
@@ -103,7 +135,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (url.UnknowParameters.TryGetValue("pj", out var endPoint))
 			{
-				if (!Wallet.KeyManager.IsWatchOnly)
+				if (!Wallet.KeyManager.IsWatchOnly || Wallet.KeyManager.IsHardwareWallet)
 				{
 					PayjoinEndPoint = endPoint;
 					return;
