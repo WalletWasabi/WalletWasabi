@@ -7,12 +7,13 @@
       <converters:BooleanStringConverter x:Key="BooleanStringConverter" />
     </Style.Resources>
   </Style>
-  <Style Selector="controls|TogglePasswordBox">
+  <Style Selector="controls|ExtendedTextBox">
     <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderMidBrush}" />
     <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderThickness}" />
     <Setter Property="SelectionBrush" Value="{DynamicResource HighlightBrush}" />
     <Setter Property="SelectionForegroundBrush" Value="{DynamicResource HighlightForegroundBrush}" />
+    <Setter Property="Cursor" Value="IBeam" />
     <Setter Property="Padding" Value="4" />
     <Setter Property="Template">
       <ControlTemplate>
@@ -21,7 +22,6 @@
                 BorderBrush="{TemplateBinding BorderBrush}"
                 BorderThickness="{TemplateBinding BorderThickness}">
           <DockPanel Margin="{TemplateBinding Padding}">
-
             <TextBlock Name="floatingWatermark"
                        Foreground="{DynamicResource ThemeAccentBrush}"
                        FontSize="{DynamicResource FontSizeSmall}"
@@ -37,20 +37,8 @@
                 </MultiBinding>
               </TextBlock.IsVisible>
             </TextBlock>
-
-            <Button Name="PART_MaskedButton" Focusable="False" DockPanel.Dock="Right" Padding="5 0 5 0" Margin="0" Background="Transparent" BorderThickness="0"
-                    ToolTip.Tip="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=IsPasswordVisible, StringFormat=\{0\} characters, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Hide:Show}">
-              <Grid Height="15" Width="15">
-                <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource EyesShow}" />
-                <DrawingPresenter IsVisible="{TemplateBinding IsPasswordVisible}"
-                                  VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource EyesHide}" />
-              </Grid>
-              <Button.IsVisible>
-                <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Text" Converter="{x:Static StringConverters.IsNotNullOrEmpty}" />
-              </Button.IsVisible>
-            </Button>
-
-            <DataValidationErrors>
+ 
+            <DataValidationErrors DockPanel.Dock="Bottom">
               <ScrollViewer HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
                             VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
 
@@ -77,16 +65,5 @@
         </Border>
       </ControlTemplate>
     </Setter>
-  </Style>
-
-  <Style Selector="controls|TogglePasswordBox /template/ Button">
-    <Setter Property="Cursor" Value="Hand" />
-  </Style>
-  <Style Selector="controls|TogglePasswordBox /template/ Button:pointerover /template/ ContentPresenter">
-    <Setter Property="Opacity" Value="0.8" />
-  </Style>
-  <Style Selector="controls|TogglePasswordBox /template/ Button:pressed /template/ ContentPresenter">
-    <Setter Property="Opacity" Value="0.6" />
-    <Setter Property="Background" Value="Transparent" />
   </Style>
 </Styles>
