@@ -219,7 +219,8 @@ namespace WalletWasabi.Wallets
 			FeeStrategy feeStrategy,
 			bool allowUnconfirmed = false,
 			IEnumerable<OutPoint> allowedInputs = null,
-			IPayjoinClient payjoinClient = null)
+			IPayjoinClient payjoinClient = null,
+			Func<PSBT, CancellationToken, Task<(PSBT PSBT, bool Signed)>> psbtSigner = null)
 		{
 			var builder = new TransactionFactory(Network, KeyManager, Coins, password, allowUnconfirmed);
 			return builder.BuildTransaction(
@@ -241,7 +242,8 @@ namespace WalletWasabi.Wallets
 				},
 				allowedInputs,
 				SelectLockTimeForTransaction,
-				payjoinClient);
+				payjoinClient,
+				psbtSigner);
 		}
 
 		public void RenameLabel(SmartCoin coin, SmartLabel newLabel)

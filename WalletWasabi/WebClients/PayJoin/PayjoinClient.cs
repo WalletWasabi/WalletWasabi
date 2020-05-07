@@ -265,7 +265,7 @@ namespace WalletWasabi.WebClients.PayJoin
 			return newPSBT;
 		}
 		
-		public async Task<PSBT> TryNegotiatePayjoin(Func<PSBT, Task<PSBT>> sign, PSBT psbt, KeyManager keyManager)
+		public async Task<PSBT> TryNegotiatePayjoin(Func<PSBT, CancellationToken, Task<(PSBT PSBT, bool Signed)>> sign, PSBT psbt, KeyManager keyManager, CancellationToken cancellationToken)
 		{
 			try
 			{
@@ -274,15 +274,20 @@ namespace WalletWasabi.WebClients.PayJoin
 				psbt = await RequestPayjoin(psbt,
 					keyManager.ExtPubKey,
 					new RootedKeyPath(keyManager.MasterFingerprint.Value, keyManager.AccountKeyPath),
-					CancellationToken.None);
+					cancellationToken);
 				if (psbt == null)
 				{
 					return null;
 				}
 
-				var signedPayjoinPsbt = await sign.Invoke(psbt);
+				var signedPayjoinPsbt = await sign.Invoke(psbt, cancellationToken);
+				if (!signedPayjoinPsbt.Signed)
+				{
+					Logger.LogWarning($"Payjoin PSBT could not be signed. Ignoring...");
+					return null;
+				}
 				Logger.LogInfo($"Payjoin payment was negotiated successfully.");
-				return signedPayjoinPsbt;
+				return signedPayjoinPsbt.PSBT;
 			}
 			catch (TorSocks5FailureResponseException e)
 			{

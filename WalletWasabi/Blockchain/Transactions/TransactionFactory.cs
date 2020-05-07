@@ -54,7 +54,9 @@ namespace WalletWasabi.Blockchain.Transactions
 			Func<FeeRate> feeRateFetcher,
 			IEnumerable<OutPoint> allowedInputs = null,
 			Func<LockTime> lockTimeSelector = null,
-			IPayjoinClient payjoinClient = null)
+			IPayjoinClient payjoinClient = null,
+			Func<PSBT, CancellationToken,
+			Task<(PSBT PSBT,bool Signed)>> psbtSigner = null)
 		{
 			payments = Guard.NotNull(nameof(payments), payments);
 			lockTimeSelector ??= () => LockTime.Zero;
@@ -216,34 +218,40 @@ namespace WalletWasabi.Blockchain.Transactions
 			// It must be watch only, too, because if we have the key and also hardware wallet, we do not care we can sign.
 
 			Transaction tx = null;
-			if (KeyManager.IsWatchOnly)
+
+			psbtSigner ??= (psbt1, token) =>
+			{
+				if (KeyManager.IsWatchOnly)
+				{
+					return Task.FromResult((psbt1, false));
+				}
+
+				var psbt = psbt1.Clone();
+				IEnumerable<ExtKey> signingKeys =
+					KeyManager.GetSecrets(Password, spentCoins.Select(x => x.ScriptPubKey).ToArray());
+				builder = builder.AddKeys(signingKeys.ToArray());
+				builder.SetLockTime(lockTimeSelector());
+				builder.SignPSBT(psbt);
+				return Task.FromResult((psbt, true));
+			};
+
+			var signingResult = psbtSigner(psbt, CancellationToken.None).GetAwaiter().GetResult();
+			psbt = signingResult.PSBT;
+			UpdatePSBTInfo(psbt, spentCoins, changeHdPubKey);
+			if (!signingResult.Signed)
 			{
 				tx = psbt.GetGlobalTransaction();
 			}
 			else
 			{
-				IEnumerable<ExtKey> signingKeys = KeyManager.GetSecrets(Password, spentCoins.Select(x => x.ScriptPubKey).ToArray());
-				builder = builder.AddKeys(signingKeys.ToArray());
-				builder.SetLockTime(lockTimeSelector());
-				builder.SignPSBT(psbt);
-
-				UpdatePSBTInfo(psbt, spentCoins, changeHdPubKey);
-
-				if (!KeyManager.IsWatchOnly)
+				// Try to pay using payjoin
+				var signedPayjoinPsbt = payjoinClient?.TryNegotiatePayjoin(psbtSigner, psbt, KeyManager, CancellationToken.None).GetAwaiter().GetResult();
+				if (signedPayjoinPsbt != null)
 				{
-					// Try to pay using payjoin
-					var signedPayjoinPsbt = payjoinClient?.TryNegotiatePayjoin(
-						(payjoinPsbt) =>
-						{
-							builder.SignPSBT(payjoinPsbt);
-							return Task.FromResult(payjoinPsbt);
-						}, psbt, KeyManager).GetAwaiter().GetResult();
-					if (signedPayjoinPsbt != null)
-					{
-						//TODO: Schedule signedPsbt to be broadcast in 2 mins
-						psbt = signedPayjoinPsbt;
-					}
+					//TODO: Schedule signedPsbt to be broadcast in 2 mins
+					psbt = signedPayjoinPsbt;
 				}
+				
 				psbt.Finalize();
 				tx = psbt.ExtractTransaction();
 

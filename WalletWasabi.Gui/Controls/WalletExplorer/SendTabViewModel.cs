@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Gui.Helpers;
@@ -33,60 +34,52 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public override string DoButtonText => "Send Transaction";
 		public override string DoingButtonText => "Sending Transaction...";
 
-		protected override async Task BuildTransaction(string password, PaymentIntent payments, FeeStrategy feeStrategy, bool allowUnconfirmed = false, IEnumerable<OutPoint> allowedInputs = null)
+		private Func<PSBT, CancellationToken, Task<(PSBT PSBT, bool Signed)>> GetSigner()
 		{
-			var pjClient = GetPayjoinClient();
-			BuildTransactionResult result = await Task.Run(() => Wallet.BuildTransaction(Password, payments, feeStrategy, allowUnconfirmed: true, allowedInputs: allowedInputs, pjClient));
+			if (!Wallet.KeyManager.IsHardwareWallet)
+			{
+				return null;
+			}
 
-			MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.SigningTransaction);
-			SmartTransaction signedTransaction = result.Transaction;
-
-			if (Wallet.KeyManager.IsHardwareWallet && !result.Signed) // If hardware but still has a privkey then it's password, then meh.
+			var hwiClient = new HwiClient(Global.Network);
+			return async (psbt, cancellationToken) =>
 			{
 				try
 				{
 					IsHardwareBusy = true;
-					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.AcquiringSignatureFromHardwareWallet);
-					var client = new HwiClient(Global.Network);
-
-					using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-
-					async Task<PSBT> SignWithHWW(PSBT psbt)
+					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType
+						.AcquiringSignatureFromHardwareWallet);
+					try
 					{
-						try
-						{
-							return await client.SignTxAsync(Wallet.KeyManager.MasterFingerprint.Value, psbt, false, cts.Token);
-						}
-						catch (HwiException)
-						{
-							await PinPadViewModel.UnlockAsync();
-							return await client.SignTxAsync(Wallet.KeyManager.MasterFingerprint.Value, psbt, false, cts.Token);
-						}
+						return (await hwiClient.SignTxAsync(Wallet.KeyManager.MasterFingerprint.Value, psbt, false,
+							cancellationToken), true);
 					}
-
-					PSBT signedPsbt = await SignWithHWW(result.Psbt);
-					if (pjClient != null)
+					catch (HwiException)
 					{
-							var signedPayjoinPsbt = await pjClient.TryNegotiatePayjoin(SignWithHWW, signedPsbt,
-								Wallet.KeyManager);
-							if (signedPayjoinPsbt != null)
-							{
-								//TODO: Schedule signedPsbt to be broadcast in 2 mins
-								signedPsbt = signedPayjoinPsbt;
-							}
+						await PinPadViewModel.UnlockAsync();
+						return (await hwiClient.SignTxAsync(Wallet.KeyManager.MasterFingerprint.Value, psbt, false,
+							cancellationToken), true);
 					}
-					if (!signedPsbt.IsAllFinalized())
-					{
-						signedPsbt.Finalize();
-					}
-					signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction);
+				}
+				catch
+				{
+					return (psbt, false);
 				}
 				finally
 				{
 					MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusType.AcquiringSignatureFromHardwareWallet);
 					IsHardwareBusy = false;
 				}
-			}
+			};
+		}
+
+		protected override async Task BuildTransaction(string password, PaymentIntent payments, FeeStrategy feeStrategy, bool allowUnconfirmed = false, IEnumerable<OutPoint> allowedInputs = null)
+		{
+			var pjClient = GetPayjoinClient();
+			BuildTransactionResult result = await Task.Run(() => Wallet.BuildTransaction(Password, payments, feeStrategy, allowUnconfirmed: true, allowedInputs: allowedInputs, pjClient, GetSigner()));
+
+			MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.SigningTransaction);
+			SmartTransaction signedTransaction = result.Transaction;
 
 			MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.BroadcastingTransaction);
 			await Task.Run(async () => await Global.TransactionBroadcaster.SendTransactionAsync(signedTransaction));
