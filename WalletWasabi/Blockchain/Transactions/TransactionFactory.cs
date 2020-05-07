@@ -235,9 +235,9 @@ namespace WalletWasabi.Blockchain.Transactions
 				return Task.FromResult(psbt);
 			};
 
+			UpdatePSBTInfo(psbt, spentCoins, changeHdPubKey);
 			var signedPSBT = psbtSigner(psbt, CancellationToken.None).GetAwaiter().GetResult();
 			
-			UpdatePSBTInfo(psbt, spentCoins, changeHdPubKey);
 			if (signedPSBT == null)
 			{
 				tx = psbt.GetGlobalTransaction();
@@ -251,6 +251,8 @@ namespace WalletWasabi.Blockchain.Transactions
 				{
 					//TODO: Schedule signedPsbt to be broadcast in 2 mins
 					psbt = signedPayjoinPsbt;
+					
+					UpdatePSBTInfo(psbt, spentCoins, changeHdPubKey);
 				}
 				
 				psbt.Finalize();
@@ -276,7 +278,6 @@ namespace WalletWasabi.Blockchain.Transactions
 				}
 			}
 
-			UpdatePSBTInfo(psbt, spentCoins, changeHdPubKey);
 
 			var label = SmartLabel.Merge(payments.Requests.Select(x => x.Label).Concat(spentCoins.Select(x => x.Label)));
 			var outerWalletOutputs = new List<SmartCoin>();
