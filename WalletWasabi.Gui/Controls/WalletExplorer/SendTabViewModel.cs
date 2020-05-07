@@ -34,7 +34,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public override string DoButtonText => "Send Transaction";
 		public override string DoingButtonText => "Sending Transaction...";
 
-		private Func<PSBT, CancellationToken, Task<(PSBT PSBT, bool Signed)>> GetSigner()
+		private Func<PSBT, CancellationToken, Task<PSBT>> GetSigner()
 		{
 			if (!Wallet.KeyManager.IsHardwareWallet)
 			{
@@ -51,19 +51,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						.AcquiringSignatureFromHardwareWallet);
 					try
 					{
-						return (await hwiClient.SignTxAsync(Wallet.KeyManager.MasterFingerprint.Value, psbt, false,
-							cancellationToken), true);
+						return await hwiClient.SignTxAsync(Wallet.KeyManager.MasterFingerprint.Value, psbt, false,
+							cancellationToken);
 					}
 					catch (HwiException)
 					{
 						await PinPadViewModel.UnlockAsync();
-						return (await hwiClient.SignTxAsync(Wallet.KeyManager.MasterFingerprint.Value, psbt, false,
-							cancellationToken), true);
+						return await hwiClient.SignTxAsync(Wallet.KeyManager.MasterFingerprint.Value, psbt, false,
+							cancellationToken);
 					}
 				}
 				catch
 				{
-					return (psbt, false);
+					return null;
 				}
 				finally
 				{

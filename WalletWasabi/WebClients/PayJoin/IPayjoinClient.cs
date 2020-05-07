@@ -9,7 +9,7 @@ namespace WalletWasabi.WebClients.PayJoin
 	public interface IPayjoinClient
 	{
 		Uri PaymentUrl { get; }
-		Task<PSBT> TryNegotiatePayjoin(Func<PSBT, CancellationToken, Task<(PSBT PSBT, bool Signed)>> sign, PSBT psbt,
+		Task<PSBT> TryNegotiatePayjoin(Func<PSBT, CancellationToken, Task<PSBT>> sign, PSBT psbt,
 			KeyManager keyManager, CancellationToken cancellationToken);
 	}
 }

@@ -220,7 +220,7 @@ namespace WalletWasabi.Wallets
 			bool allowUnconfirmed = false,
 			IEnumerable<OutPoint> allowedInputs = null,
 			IPayjoinClient payjoinClient = null,
-			Func<PSBT, CancellationToken, Task<(PSBT PSBT, bool Signed)>> psbtSigner = null)
+			Func<PSBT, CancellationToken, Task<PSBT>> psbtSigner = null)
 		{
 			var builder = new TransactionFactory(Network, KeyManager, Coins, password, allowUnconfirmed);
 			return builder.BuildTransaction(

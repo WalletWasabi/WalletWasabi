@@ -56,7 +56,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			Func<LockTime> lockTimeSelector = null,
 			IPayjoinClient payjoinClient = null,
 			Func<PSBT, CancellationToken,
-			Task<(PSBT PSBT,bool Signed)>> psbtSigner = null)
+			Task<PSBT>> psbtSigner = null)
 		{
 			payments = Guard.NotNull(nameof(payments), payments);
 			lockTimeSelector ??= () => LockTime.Zero;
@@ -223,7 +223,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			{
 				if (KeyManager.IsWatchOnly)
 				{
-					return Task.FromResult((psbt1, false));
+					return null;
 				}
 
 				var psbt = psbt1.Clone();
@@ -232,18 +232,19 @@ namespace WalletWasabi.Blockchain.Transactions
 				builder = builder.AddKeys(signingKeys.ToArray());
 				builder.SetLockTime(lockTimeSelector());
 				builder.SignPSBT(psbt);
-				return Task.FromResult((psbt, true));
+				return Task.FromResult(psbt);
 			};
 
-			var signingResult = psbtSigner(psbt, CancellationToken.None).GetAwaiter().GetResult();
-			psbt = signingResult.PSBT;
+			var signedPSBT = psbtSigner(psbt, CancellationToken.None).GetAwaiter().GetResult();
+			
 			UpdatePSBTInfo(psbt, spentCoins, changeHdPubKey);
-			if (!signingResult.Signed)
+			if (signedPSBT == null)
 			{
 				tx = psbt.GetGlobalTransaction();
 			}
 			else
 			{
+				psbt = signedPSBT;
 				// Try to pay using payjoin
 				var signedPayjoinPsbt = payjoinClient?.TryNegotiatePayjoin(psbtSigner, psbt, KeyManager, CancellationToken.None).GetAwaiter().GetResult();
 				if (signedPayjoinPsbt != null)

@@ -265,7 +265,7 @@ namespace WalletWasabi.WebClients.PayJoin
 			return newPSBT;
 		}
 		
-		public async Task<PSBT> TryNegotiatePayjoin(Func<PSBT, CancellationToken, Task<(PSBT PSBT, bool Signed)>> sign, PSBT psbt, KeyManager keyManager, CancellationToken cancellationToken)
+		public async Task<PSBT> TryNegotiatePayjoin(Func<PSBT, CancellationToken, Task<PSBT>> sign, PSBT psbt, KeyManager keyManager, CancellationToken cancellationToken)
 		{
 			try
 			{
@@ -281,13 +281,13 @@ namespace WalletWasabi.WebClients.PayJoin
 				}
 
 				var signedPayjoinPsbt = await sign.Invoke(psbt, cancellationToken);
-				if (!signedPayjoinPsbt.Signed)
+				if (signedPayjoinPsbt == null)
 				{
 					Logger.LogWarning($"Payjoin PSBT could not be signed. Ignoring...");
 					return null;
 				}
 				Logger.LogInfo($"Payjoin payment was negotiated successfully.");
-				return signedPayjoinPsbt.PSBT;
+				return signedPayjoinPsbt;
 			}
 			catch (TorSocks5FailureResponseException e)
 			{
