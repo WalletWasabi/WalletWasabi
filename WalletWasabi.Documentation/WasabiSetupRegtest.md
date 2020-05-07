@@ -5,14 +5,14 @@
 RegTest is a local testing environment in which developers can almost instantly generate blocks on demand for testing events, and create private satoshis with no real-world value. Running Wasabi Backend on RegTest allows you to emulate network events and observe how the Backend and the Client react on that.
 You do not need to download the blockchain for this setup!
 
-## Setup Bitcoin Core with RegTest
+## Setup Bitcoin Knots with RegTest
 
-Follow [this guide](https://bitcoin.org/en/developer-examples).
+Bitcoin Knots is working very similarly to Bitcoin Core. You can get a grasp with [this guide](https://bitcoin.org/en/developer-examples).
 
 Todo:
 
-1. Install [Bitcoin Core](https://bitcoin.org/en/bitcoin-core/) on your computer.
-2. Start Bitcoin Core with: bitcoin-qt.exe -regtest then quit immediately. In this way the data directory and the config files will be generated.
+1. Install [Bitcoin Knots](http://bitcoinknots.org/) on your computer. Verify the PGP - there is a tutorial [here](http://bitcoinknots.org/)
+2. Start Bitcoin Knots with: bitcoin-qt.exe -regtest then quit immediately. In this way the data directory and the config files will be generated.
 ```
 Windows: "C:\Program Files\Bitcoin\bitcoin-qt.exe" -regtest
 macOS: "/Applications/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" -regtest
