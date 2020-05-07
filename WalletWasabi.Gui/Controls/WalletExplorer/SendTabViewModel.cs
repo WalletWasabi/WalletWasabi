@@ -34,6 +34,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public override string DoButtonText => "Send Transaction";
 		public override string DoingButtonText => "Sending Transaction...";
 
+		public string PayjoinEndPoint
+		{
+			get => _payjoinEndPoint;
+			set => this.RaiseAndSetIfChanged(ref _payjoinEndPoint, value);
+		}
+
 		private Func<PSBT, CancellationToken, Task<PSBT>> GetSigner()
 		{
 			if (!Wallet.KeyManager.IsHardwareWallet)
@@ -67,16 +73,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				finally
 				{
-					MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusType.AcquiringSignatureFromHardwareWallet);
+					MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusType
+						.AcquiringSignatureFromHardwareWallet);
 					IsHardwareBusy = false;
 				}
 			};
 		}
 
-		protected override async Task BuildTransaction(string password, PaymentIntent payments, FeeStrategy feeStrategy, bool allowUnconfirmed = false, IEnumerable<OutPoint> allowedInputs = null)
+		protected override async Task BuildTransaction(string password, PaymentIntent payments, FeeStrategy feeStrategy,
+			bool allowUnconfirmed = false, IEnumerable<OutPoint> allowedInputs = null)
 		{
 			var pjClient = GetPayjoinClient();
-			BuildTransactionResult result = await Task.Run(() => Wallet.BuildTransaction(Password, payments, feeStrategy, allowUnconfirmed: true, allowedInputs: allowedInputs, pjClient, GetSigner()));
+			BuildTransactionResult result = await Task.Run(() => Wallet.BuildTransaction(Password, payments,
+				feeStrategy, allowUnconfirmed: true, allowedInputs: allowedInputs, pjClient, GetSigner()));
 
 			MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.SigningTransaction);
 			SmartTransaction signedTransaction = result.Transaction;
@@ -87,37 +96,34 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ResetUi();
 		}
 
-		public string PayjoinEndPoint
-		{
-			get => _payjoinEndPoint;
-			set => this.RaiseAndSetIfChanged(ref _payjoinEndPoint, value);
-		}
-
 		private IPayjoinClient GetPayjoinClient()
 		{
-			if (!string.IsNullOrWhiteSpace(PayjoinEndPoint) && Uri.IsWellFormedUriString(PayjoinEndPoint, UriKind.Absolute))
+			if (!string.IsNullOrWhiteSpace(PayjoinEndPoint) &&
+			    Uri.IsWellFormedUriString(PayjoinEndPoint, UriKind.Absolute))
 			{
 				var payjoinEndPointUri = new Uri(PayjoinEndPoint);
 				if (Global.Config.UseTor)
 				{
 					return new PayjoinClient(payjoinEndPointUri, Global.TorManager.TorSocks5EndPoint);
 				}
+
 				if (payjoinEndPointUri.DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
 				{
 					Logger.LogWarning("Payjoin server is a hidden service but Tor is disabled. Ignoring...");
 					return null;
 				}
-				//TODO: Use an IHttpClientFactory to construct the HttpClient
+
+				// TODO: Use an IHttpClientFactory to construct the HttpClient
 				if (Global.Config.Network == Network.RegTest)
 				{
 					HttpClientHandler clientHandler = new HttpClientHandler();
-					clientHandler.ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => true;
-					
+					clientHandler.ServerCertificateCustomValidationCallback =
+						(sender, cert, chain, sslPolicyErrors) => true;
+
 					return new PayjoinClient(payjoinEndPointUri, new HttpClient(clientHandler));
 				}
-				
-				return new PayjoinClient(payjoinEndPointUri, new HttpClient());
 
+				return new PayjoinClient(payjoinEndPointUri, new HttpClient());
 			}
 
 			return null;
@@ -125,7 +131,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public void ValidatePayjoinEndPoint(IValidationErrors errors)
 		{
-			if (!string.IsNullOrWhiteSpace(PayjoinEndPoint) && !Uri.IsWellFormedUriString(PayjoinEndPoint, UriKind.Absolute))
+			if (!string.IsNullOrWhiteSpace(PayjoinEndPoint) &&
+			    !Uri.IsWellFormedUriString(PayjoinEndPoint, UriKind.Absolute))
 			{
 				errors.Add(ErrorSeverity.Error, "Invalid url.");
 			}
@@ -142,8 +149,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					PayjoinEndPoint = endPoint;
 					return;
 				}
+
 				NotificationHelpers.Warning("Payjoin is not allowed here.");
 			}
+
 			PayjoinEndPoint = null;
 		}
 
