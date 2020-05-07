@@ -223,7 +223,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			{
 				if (KeyManager.IsWatchOnly)
 				{
-					return null;
+					return Task.FromResult((PSBT)null);
 				}
 
 				var psbt = psbt1.Clone();
