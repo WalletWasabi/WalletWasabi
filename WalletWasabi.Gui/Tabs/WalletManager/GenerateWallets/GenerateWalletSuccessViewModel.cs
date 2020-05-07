@@ -1,22 +1,23 @@
 using NBitcoin;
 using ReactiveUI;
+using Splat;
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Reactive;
+using System.Reactive.Linq;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
-using System;
-using System.Reactive.Linq;
-using WalletWasabi.Helpers;
-using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Models;
-using WalletWasabi.Gui.Helpers;
-using Splat;
-using System.Collections.Generic;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 {
 	internal class GenerateWalletSuccessViewModel : CategoryViewModel
 	{
+		private const string PasswordBestPractisesUrl = "https://docs.wasabiwallet.io/using-wasabi/PasswordBestPractices.html";
 		private List<string> _mnemonicWords;
+		private bool _isConfirmed;
 
 		public GenerateWalletSuccessViewModel(WalletManagerViewModel owner, KeyManager keyManager, Mnemonic mnemonic) : base("Wallet Generated Successfully!")
 		{
@@ -35,9 +36,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 				var wallet = global.WalletManager.AddWallet(keyManager);
 				NotificationHelpers.Success("Wallet was generated.");
 				owner.SelectTestPassword(wallet.WalletName);
-			});
+			}, this.WhenAnyValue(x=>x.IsConfirmed));
+
+			PasswordBestPracticesCommand = ReactiveCommand.CreateFromTask(async () => await IoHelpers.OpenBrowserAsync(PasswordBestPractisesUrl));
 
 			ConfirmCommand.ThrownExceptions
+				.Concat(PasswordBestPracticesCommand.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 		}
@@ -46,8 +50,16 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 		{
 			get { return _mnemonicWords; }
 			set { this.RaiseAndSetIfChanged(ref _mnemonicWords, value); }
+		}		
+
+		public bool IsConfirmed
+		{
+			get { return _isConfirmed; }
+			set { this.RaiseAndSetIfChanged(ref _isConfirmed, value); }
 		}
 
 		public ReactiveCommand<Unit, Unit> ConfirmCommand { get; }
+
+		public ReactiveCommand<Unit, Unit> PasswordBestPracticesCommand { get; }
 	}
 }
