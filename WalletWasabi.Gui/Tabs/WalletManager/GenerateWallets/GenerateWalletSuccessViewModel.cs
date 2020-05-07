@@ -21,7 +21,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 
 		public GenerateWalletSuccessViewModel(WalletManagerViewModel owner, KeyManager keyManager, Mnemonic mnemonic) : base("Wallet Generated Successfully!")
 		{
-
 			_mnemonicWords = new List<string>(mnemonic.Words.Length);
 
 			for (int i = 0; i < mnemonic.Words.Length; i++)
@@ -36,7 +35,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 				var wallet = global.WalletManager.AddWallet(keyManager);
 				NotificationHelpers.Success("Wallet was generated.");
 				owner.SelectTestPassword(wallet.WalletName);
-			}, this.WhenAnyValue(x=>x.IsConfirmed));
+			}, this.WhenAnyValue(x => x.IsConfirmed));
 
 			PasswordBestPracticesCommand = ReactiveCommand.CreateFromTask(async () => await IoHelpers.OpenBrowserAsync(PasswordBestPractisesUrl));
 
@@ -50,7 +49,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 		{
 			get { return _mnemonicWords; }
 			set { this.RaiseAndSetIfChanged(ref _mnemonicWords, value); }
-		}		
+		}
 
 		public bool IsConfirmed
 		{
