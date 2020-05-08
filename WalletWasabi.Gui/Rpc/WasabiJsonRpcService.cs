@@ -27,6 +27,7 @@ namespace WalletWasabi.Gui.Rpc
 		public object[] GetUnspentCoinList()
 		{
 			AssertWalletIsLoaded();
+			var tipHeight = ActiveWallet.BitcoinStore.SmartHeaderChain.TipHeight;
 			return ActiveWallet.Coins.Where(x => x.Unspent).Select(x => new
 			{
 				txid = x.TransactionId.ToString(),
@@ -34,6 +35,7 @@ namespace WalletWasabi.Gui.Rpc
 				amount = x.Amount.Satoshi,
 				anonymitySet = x.AnonymitySet,
 				confirmed = x.Confirmed,
+				confirmations = tipHeight - x.Height + 1,
 				label = x.Label.ToString(),
 				keyPath = x.HdPubKey.FullKeyPath.ToString(),
 				address = x.HdPubKey.GetP2wpkhAddress(Global.Network).ToString()
