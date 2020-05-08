@@ -382,7 +382,7 @@ namespace NBitcoin
 				return ScriptPubKeyType.Segwit;
 			}
 
-			if (i.WitnessUtxo.ScriptPubKey.IsScriptType(ScriptType.P2SH) && 
+			if (i.WitnessUtxo.ScriptPubKey.IsScriptType(ScriptType.P2SH) &&
 				i.FinalScriptWitness.ToScript().IsScriptType(ScriptType.P2WPKH))
 			{
 				return ScriptPubKeyType.SegwitP2SH;
