@@ -3,16 +3,13 @@ using NBitcoin.Payment;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models.StatusBarStatuses;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Hwi;
-using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
@@ -92,57 +89,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private IPsbtSigner GetSigner()
 		{
-			return !Wallet.KeyManager.IsHardwareWallet
-				? null
-				: new HwiPsbtSigner(new HwiClient(Global.Network), b => IsHardwareBusy = b);
-		}
-
-		private class HwiPsbtSigner : IPsbtSigner
-		{
-			private readonly HwiClient _hwiClient;
-			private readonly Action<bool> _hardwareBusyModifier;
-
-			public HwiPsbtSigner(HwiClient hwiClient, Action<bool> hardwareBusyModifier)
-			{
-				_hwiClient = hwiClient;
-				_hardwareBusyModifier = hardwareBusyModifier;
-			}
-
-			public async Task<PSBT> TrySign(PSBT psbt, KeyManager keyManager, CancellationToken cancellationToken)
-			{
-				try
-				{
-					if (!keyManager.IsHardwareWallet)
-					{
-						return null;
-					}
-
-					_hardwareBusyModifier.Invoke(true);
-					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType
-						.AcquiringSignatureFromHardwareWallet);
-					try
-					{
-						return await _hwiClient.SignTxAsync(keyManager.MasterFingerprint.Value, psbt, false,
-							cancellationToken);
-					}
-					catch (HwiException)
-					{
-						await PinPadViewModel.UnlockAsync();
-						return await _hwiClient.SignTxAsync(keyManager.MasterFingerprint.Value, psbt, false,
-							cancellationToken);
-					}
-				}
-				catch
-				{
-					return null;
-				}
-				finally
-				{
-					MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusType
-						.AcquiringSignatureFromHardwareWallet);
-					_hardwareBusyModifier.Invoke(false);
-				}
-			}
+			return Wallet.KeyManager.IsHardwareWallet
+				? new HwiPsbtSigner(new HwiClient(Global.Network), b => IsHardwareBusy = b)
+				: null;
 		}
 	}
 }

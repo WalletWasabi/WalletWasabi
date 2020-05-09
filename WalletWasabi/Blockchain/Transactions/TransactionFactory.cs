@@ -221,7 +221,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			psbtSigner ??= new DefaultPSBTSigner(Password, spentCoins, builder, lockTimeSelector);
 			UpdatePSBTInfo(psbt, spentCoins, changeHdPubKey);
 			var signedPSBT = psbtSigner.TrySign(psbt, KeyManager, CancellationToken.None).GetAwaiter().GetResult();
-			if (signedPSBT == null)
+			if (signedPSBT is null)
 			{
 				tx = psbt.GetGlobalTransaction();
 			}
@@ -324,13 +324,13 @@ namespace WalletWasabi.Blockchain.Transactions
 					KeyManager.ExtPubKey,
 					new RootedKeyPath(KeyManager.MasterFingerprint.Value, KeyManager.AccountKeyPath),
 					cancellationToken);
-				if (psbt == null)
+				if (psbt is null)
 				{
 					return null;
 				}
 
 				var signedPayjoinPsbt = await psbtSigner.TrySign(psbt, KeyManager, cancellationToken);
-				if (signedPayjoinPsbt == null)
+				if (signedPayjoinPsbt is null)
 				{
 					Logger.LogWarning($"Payjoin PSBT could not be signed. Ignoring...");
 					return null;
