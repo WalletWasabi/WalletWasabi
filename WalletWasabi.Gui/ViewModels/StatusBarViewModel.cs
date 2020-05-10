@@ -352,7 +352,7 @@ namespace WalletWasabi.Gui.ViewModels
 						catch (Exception ex)
 						{
 							Logger.LogError(ex);
-							NotificationHelpers.Error("Backend not connected. Could not get Legal Documents!");
+							NotificationHelpers.Error("Could not get Legal Documents! Backend not connected.");
 						}
 						finally
 						{
