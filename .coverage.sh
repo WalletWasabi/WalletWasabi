@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 COLLECT_COVERAGE="//p:CollectCoverage=true"
 OUTPUT_FORMAT="//p:CoverletOutputFormat=lcov"
 FILE_NAME="//p:CoverletOutputName=lcov"

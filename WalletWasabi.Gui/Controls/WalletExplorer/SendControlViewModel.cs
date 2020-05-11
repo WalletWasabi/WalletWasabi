@@ -200,10 +200,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay, outputScheduler: RxApp.MainThreadScheduler);
 
-			OnAddressPasteCommand = ReactiveCommand.Create((BitcoinUrlBuilder url) =>
-			{
-				OnAddressPaste(url);
-			});
+			OnAddressPasteCommand = ReactiveCommand.Create((BitcoinUrlBuilder url) => OnAddressPaste(url));
 
 			BuildTransactionCommand = ReactiveCommand.CreateFromTask(async () =>
 			{

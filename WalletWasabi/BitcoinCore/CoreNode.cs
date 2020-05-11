@@ -95,7 +95,7 @@ namespace WalletWasabi.BitcoinCore
 					$"{authString}",
 					coreNode.RpcEndPoint.ToString(coreNode.Network.DefaultPort),
 					coreNode.Network);
-				coreNode.RpcClient = new CachedRpcClient(rpcClient, new MemoryCache(new MemoryCacheOptions { SizeLimit = 1_000 }));
+				coreNode.RpcClient = new CachedRpcClient(rpcClient, coreNodeParams.Cache);
 
 
 				if (coreNodeParams.TryRestart)
