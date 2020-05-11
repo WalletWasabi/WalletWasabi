@@ -45,7 +45,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _dequeueButtonText;
 		private const string DequeueButtonTextString = "Dequeue Selected Coins";
 		private const string DequeuingButtonTextString = "Dequeuing coins...";
-		private int _coinJoinUntilAnonymitySet;
+		private string _coinJoinUntilAnonymitySet;
 		private TargetPrivacy _targetPrivacy;
 
 		public CoinJoinTabViewModel(Wallet wallet)
@@ -81,10 +81,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			   {
 				   switch (TargetPrivacy)
 				   {
-					   case TargetPrivacy.None:
-						   TargetPrivacy = TargetPrivacy.Some;
-						   break;
-
 					   case TargetPrivacy.Some:
 						   TargetPrivacy = TargetPrivacy.Fine;
 						   break;
@@ -223,7 +219,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _dequeueButtonText, value);
 		}
 
-		public int CoinJoinUntilAnonymitySet
+		public string CoinJoinUntilAnonymitySet
 		{
 			get => _coinJoinUntilAnonymitySet;
 			set => this.RaiseAndSetIfChanged(ref _coinJoinUntilAnonymitySet, value);

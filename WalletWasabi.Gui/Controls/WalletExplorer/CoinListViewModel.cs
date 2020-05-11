@@ -153,7 +153,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				switch (SelectPrivateCheckBoxState)
 				{
 					case true:
-						SelectCoins(x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
+						SelectCoins(x => x.AnonymitySet >= Global.Config.GetMixUntilAnonymitySetValue());
 						break;
 
 					case null:
@@ -169,7 +169,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				switch (SelectNonPrivateCheckBoxState)
 				{
 					case true:
-						SelectCoins(x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
+						SelectCoins(x => x.AnonymitySet < Global.Config.GetMixUntilAnonymitySetValue());
 						break;
 
 					case false:
@@ -402,8 +402,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private void RefreshSelectionCheckBoxes(CoinViewModel[] coins)
 		{
 			SelectAllCheckBoxState = GetCheckBoxesSelectedState(coins, x => true);
-			SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(coins, x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
-			SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(coins, x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
+			SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(coins, x => x.AnonymitySet >= Global.Config.GetMixUntilAnonymitySetValue());
+			SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(coins, x => x.AnonymitySet < Global.Config.GetMixUntilAnonymitySetValue());
 		}
 
 		private void RefreshStatusColumnWidth(CoinViewModel[] coins)
@@ -477,7 +477,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					try
 					{
-						RefreshSelectCheckBoxesShields(x);
+						RefreshSelectCheckBoxesShields(Global.Config.GetMixUntilAnonymitySetValue(x));
 						RefreshSelectionCheckBoxes(RootList.Items.ToArray());
 					}
 					catch (Exception ex)

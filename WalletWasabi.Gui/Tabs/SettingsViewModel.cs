@@ -56,7 +56,7 @@ namespace WalletWasabi.Gui.Tabs
 			CustomFee = Global.UiConfig.IsCustomFee;
 			CustomChangeAddress = Global.UiConfig.IsCustomChangeAddress;
 
-			var config = Config.LoadOrCreateDefaultFile(Global.Config.FilePath);
+			var config = Global.Config;
 
 			Network = config.Network;
 			TorSocks5EndPoint = config.TorSocks5EndPoint.ToString(-1);
@@ -187,6 +187,7 @@ namespace WalletWasabi.Gui.Tabs
 			get => _network;
 			set => this.RaiseAndSetIfChanged(ref _network, value);
 		}
+
 		public string TorSocks5EndPoint
 		{
 			get => _torSocks5EndPoint;
