@@ -7,8 +7,7 @@
     <Border Padding="20" Margin="20 0" HorizontalAlignment="Center">
       <ItemsControl Items="{Binding MnemonicWords}">
         <ItemsControl.Styles>
-          <Style Selector="TextBlock">
-            <Setter Property="TextBlock.FontFamily" Value="{StaticResource HandWrittenFont}" />
+          <Style Selector="TextBlock">            
             <Setter Property="FontSize" Value="22" />
             <Setter Property="Margin" Value="40 10" />
             <Setter Property="Height" Value="32" />
@@ -21,11 +20,9 @@
         </ItemsControl.ItemsPanel>
       </ItemsControl>
     </Border>
-    <TextBlock Text="Your Password" Margin="0 0 0 20" FontFamily="{StaticResource HandWrittenFont}" HorizontalAlignment="Center" FontSize="22" />
-    <TextBlock Text="You need BOTH the Recovery Words AND the Password to recover your wallet." />    
-    <TextBlock Text="Heads Up! You always need the password to spend your bitcoin. Use a secure password and back it up."/>
-    <Button Content="Find out more about password best practises here." Classes="activeHyperLink" Command="{Binding PasswordBestPracticesCommand}" HorizontalAlignment="Left"  />
-
+    <TextBlock Text="You can recover your wallet on any computer with" />
+    <TextBlock Text="- your Recovery Words AND" />
+    <TextBlock Text="- your Password." />
     <CheckBox Margin="0 20 0 0" HorizontalAlignment="Center" IsChecked="{Binding IsConfirmed}" Content="I have written down my password and recovery words." />
     <Button Margin="0 10 0 0" HorizontalAlignment="Center" Content="Continue" Command="{Binding ConfirmCommand}" />
   </StackPanel>

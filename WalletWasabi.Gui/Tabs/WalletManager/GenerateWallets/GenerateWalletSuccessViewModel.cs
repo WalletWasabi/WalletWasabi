@@ -15,7 +15,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 {
 	internal class GenerateWalletSuccessViewModel : CategoryViewModel
 	{
-		private const string PasswordBestPractisesUrl = "https://docs.wasabiwallet.io/using-wasabi/PasswordBestPractices.html";
 		private List<string> _mnemonicWords;
 		private bool _isConfirmed;
 
@@ -37,10 +36,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 				owner.SelectTestPassword(wallet.WalletName);
 			}, this.WhenAnyValue(x => x.IsConfirmed));
 
-			PasswordBestPracticesCommand = ReactiveCommand.CreateFromTask(async () => await IoHelpers.OpenBrowserAsync(PasswordBestPractisesUrl));
-
 			ConfirmCommand.ThrownExceptions
-				.Concat(PasswordBestPracticesCommand.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 		}
@@ -58,7 +54,5 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 		}
 
 		public ReactiveCommand<Unit, Unit> ConfirmCommand { get; }
-
-		public ReactiveCommand<Unit, Unit> PasswordBestPracticesCommand { get; }
 	}
 }
