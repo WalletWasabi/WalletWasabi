@@ -36,7 +36,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		private Cluster _clusters;
 
 		private bool _confirmed;
-		private int _confirmations;
 		private bool _unavailable;
 		private bool _unspent;
 		private bool _isBanned;
@@ -205,12 +204,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		{
 			get => _confirmed;
 			private set => RaiseAndSetIfChanged(ref _confirmed, value);
-		}
-
-		public int Confirmations 
-		{ 
-			get => _confirmations; 
-			private set => RaiseAndSetIfChanged(ref _confirmations, value); 
 		}
 
 		/// <summary>
