@@ -330,32 +330,35 @@ namespace WalletWasabi.Gui
 
 		private int CorrectMixUntilAnonymitySetValue()
 		{
-			if (int.TryParse(MixUntilAnonymitySet, out int mixUntilAnonymitySetValue))
+			try
 			{
-				if (mixUntilAnonymitySetValue <= PrivacyLevelSome)
+				if (int.TryParse(MixUntilAnonymitySet, out int mixUntilAnonymitySetValue))
 				{
-					MixUntilAnonymitySet = WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelSome.ToString();
-					ToFile();
-					return PrivacyLevelSome;
-				}
-				else if (mixUntilAnonymitySetValue <= PrivacyLevelFine)
-				{
-					MixUntilAnonymitySet = WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelFine.ToString();
-					ToFile();
-					return PrivacyLevelFine;
+					if (mixUntilAnonymitySetValue <= PrivacyLevelSome)
+					{
+						MixUntilAnonymitySet = WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelSome.ToString();
+						return PrivacyLevelSome;
+					}
+					else if (mixUntilAnonymitySetValue <= PrivacyLevelFine)
+					{
+						MixUntilAnonymitySet = WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelFine.ToString();
+						return PrivacyLevelFine;
+					}
+					else
+					{
+						MixUntilAnonymitySet = WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelStrong.ToString();
+						return PrivacyLevelStrong;
+					}
 				}
 				else
 				{
 					MixUntilAnonymitySet = WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelStrong.ToString();
-					ToFile();
 					return PrivacyLevelStrong;
 				}
 			}
-			else
+			finally
 			{
-				MixUntilAnonymitySet = WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelStrong.ToString();
 				ToFile();
-				return PrivacyLevelStrong;
 			}
 		}
 
