@@ -43,14 +43,14 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 
 		public List<string> MnemonicWords
 		{
-			get { return _mnemonicWords; }
-			set { this.RaiseAndSetIfChanged(ref _mnemonicWords, value); }
+			get => _mnemonicWords;
+			set => this.RaiseAndSetIfChanged(ref _mnemonicWords, value);
 		}
 
 		public bool IsConfirmed
 		{
-			get { return _isConfirmed; }
-			set { this.RaiseAndSetIfChanged(ref _isConfirmed, value); }
+			get => _isConfirmed;
+			set => this.RaiseAndSetIfChanged(ref _isConfirmed, value);
 		}
 
 		public ReactiveCommand<Unit, Unit> ConfirmCommand { get; }
