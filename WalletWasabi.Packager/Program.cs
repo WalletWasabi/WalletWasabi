@@ -116,52 +116,18 @@ namespace WalletWasabi.Packager
 
 		private static void GetOnions()
 		{
-			using var httpClient = new HttpClient();
-			httpClient.BaseAddress = new Uri("https://bitnodes.21.co/api/v1/");
-
-			using var response = httpClient.GetAsync("snapshots/latest/", HttpCompletionOption.ResponseContentRead).GetAwaiter().GetResult();
-			if (response.StatusCode != HttpStatusCode.OK)
-			{
-				throw new HttpRequestException(response.StatusCode.ToString());
-			}
-
-			var responseString = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-			var json = (JObject)JsonConvert.DeserializeObject(responseString);
-			var onions = new List<string>();
-			foreach (JProperty node in json["nodes"])
-			{
-				if (!node.Name.Contains(".onion"))
-				{
-					continue;
-				}
-
-				var userAgent = ((JArray)node.Value)[1].ToString();
-
-				try
-				{
-					var verString = userAgent.Substring(userAgent.IndexOf("Satoshi:") + 8, 4);
-					var ver = new Version(verString);
-
-					if (ver >= new Version("0.16"))
-					{
-						onions.Add(node.Name);
-					}
-				}
-				catch
-				{
-				}
-			}
-
-			foreach (var onion in onions.OrderBy(x => x))
-			{
-				Console.WriteLine(onion);
-			}
+			WriteOnionsToConsole(null);
 		}
 
 		private static void ReduceOnions()
 		{
 			var onionFile = Path.Combine(LibraryProjectDirectory, "OnionSeeds", "MainOnionSeeds.txt");
 			var currentOnions = File.ReadAllLines(onionFile).ToHashSet();
+			WriteOnionsToConsole(currentOnions);
+		}
+
+		private static void WriteOnionsToConsole(HashSet<string> currentOnions)
+		{
 			using var httpClient = new HttpClient();
 			httpClient.BaseAddress = new Uri("https://bitnodes.21.co/api/v1/");
 
@@ -187,8 +153,9 @@ namespace WalletWasabi.Packager
 				{
 					var verString = userAgent.Substring(userAgent.IndexOf("Satoshi:") + 8, 4);
 					var ver = new Version(verString);
+					bool addToResult = currentOnions is null ? true : currentOnions.Contains(node.Name);
 
-					if (ver >= new Version("0.16") && currentOnions.Contains(node.Name))
+					if (ver >= new Version("0.16") && addToResult)
 					{
 						onions.Add(node.Name);
 					}
