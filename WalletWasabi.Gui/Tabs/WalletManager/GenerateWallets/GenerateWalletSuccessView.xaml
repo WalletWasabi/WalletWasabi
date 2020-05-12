@@ -2,9 +2,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              x:Class="WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets.GenerateWalletSuccessView">
-  <StackPanel Margin="20" Spacing="10">
+  <StackPanel Margin="10" Spacing="5">
     <TextBlock Text="Write down these Recovery Words &amp; Your Password" FontWeight="Bold" />
-    <Border Padding="20" Margin="20 0" HorizontalAlignment="Center">
+    <Border Padding="10" Margin="10 0" HorizontalAlignment="Center">
       <ItemsControl Items="{Binding MnemonicWords}">
         <ItemsControl.Styles>
           <Style Selector="TextBlock">            
@@ -23,7 +23,7 @@
     <TextBlock Text="You can recover your wallet on any computer with" />
     <TextBlock Text="- your Recovery Words AND" />
     <TextBlock Text="- your Password." />
-    <CheckBox Margin="0 20 0 0" HorizontalAlignment="Center" IsChecked="{Binding IsConfirmed}" Content="I have written down my password and recovery words." />
-    <Button Margin="0 10 0 0" HorizontalAlignment="Center" Content="Continue" Command="{Binding ConfirmCommand}" />
+    <CheckBox Margin="0 10 0 0" HorizontalAlignment="Center" IsChecked="{Binding IsConfirmed}" Content="I have written down my password and recovery words." />
+    <Button Margin="0 10 0 0" HorizontalAlignment="Center" Content="Generate" Command="{Binding ConfirmCommand}" />
   </StackPanel>
 </UserControl>
