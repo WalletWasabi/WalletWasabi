@@ -96,7 +96,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					Logger.LogWarning("Payjoin server is a hidden service but Tor is disabled. Ignoring...");
 					return null;
 				}
-
+				
+				if (Global.Config.Network != Network.RegTest && payjoinEndPointUri.Scheme != "https")
+				{
+					Logger.LogWarning("Payjoin server is not using https. Ignoring...");
+					return null;
+				}
+				
 				// TODO: Use an IHttpClientFactory to construct the HttpClient
 				if (Global.Config.Network == Network.RegTest)
 				{
