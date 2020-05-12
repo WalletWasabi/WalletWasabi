@@ -389,10 +389,10 @@ namespace WalletWasabi.Gui
 
 		public int GetMixUntilAnonymitySetValue()
 		{
-			return GetMixUntilAnonymitySetValue(MixUntilAnonymitySet);
+			return GetAnonymitySet(MixUntilAnonymitySet);
 		}
 
-		public int GetMixUntilAnonymitySetValue(string mixUntilAnonymitySet)
+		public int GetAnonymitySet(string mixUntilAnonymitySet)
 		{
 			if (mixUntilAnonymitySet == WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelSome.ToString())
 			{

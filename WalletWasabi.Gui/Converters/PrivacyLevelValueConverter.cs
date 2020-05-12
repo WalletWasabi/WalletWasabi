@@ -39,9 +39,11 @@ namespace WalletWasabi.Gui.Converters
 			var config = Locator.Current.GetService<Global>().Config;
 			string shield;
 			string toolTip = null;
+
+			// value can be a string (CoinJoinUntilAnonymitySet) or an int (AnonymitySet)
 			int integer = value is int
 				? (int)value
-				: config.GetMixUntilAnonymitySetValue(value.ToString());
+				: config.GetAnonymitySet(value.ToString());
 
 			if (integer < config.PrivacyLevelSome)
 			{

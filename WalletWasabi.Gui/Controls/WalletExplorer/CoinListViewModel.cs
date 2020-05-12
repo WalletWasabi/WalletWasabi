@@ -477,7 +477,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					try
 					{
-						RefreshSelectCheckBoxesShields(Global.Config.GetMixUntilAnonymitySetValue(x));
+						RefreshSelectCheckBoxesShields(Global.Config.GetAnonymitySet(x));
 						RefreshSelectionCheckBoxes(RootList.Items.ToArray());
 					}
 					catch (Exception ex)
@@ -541,12 +541,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.DisposeWith(cvm.GetDisposables()); // Subscription will be disposed with the coinViewModel.
 		}
 
-		private void RefreshSelectCheckBoxesShields(int mixUntilAnonymitySet)
+		private void RefreshSelectCheckBoxesShields(int anonymitySet)
 		{
 			var isCriticalPrivate = false;
-			var isSomePrivate = mixUntilAnonymitySet <= Global.Config.PrivacyLevelSome;
-			var isFinePrivate = mixUntilAnonymitySet <= Global.Config.PrivacyLevelFine;
-			var isStrongPrivate = mixUntilAnonymitySet <= Global.Config.PrivacyLevelStrong;
+			var isSomePrivate = anonymitySet <= Global.Config.PrivacyLevelSome;
+			var isFinePrivate = anonymitySet <= Global.Config.PrivacyLevelFine;
+			var isStrongPrivate = anonymitySet <= Global.Config.PrivacyLevelStrong;
 
 			SelectAllNonPrivateShieldState = new ShieldState(
 					!isCriticalPrivate,
