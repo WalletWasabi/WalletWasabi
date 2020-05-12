@@ -7,7 +7,7 @@
     <Border Padding="10" Margin="10 0" HorizontalAlignment="Center">
       <ItemsControl Items="{Binding MnemonicWords}">
         <ItemsControl.Styles>
-          <Style Selector="TextBlock">            
+          <Style Selector="TextBlock">
             <Setter Property="FontSize" Value="22" />
             <Setter Property="Margin" Value="40 10" />
             <Setter Property="Height" Value="32" />
