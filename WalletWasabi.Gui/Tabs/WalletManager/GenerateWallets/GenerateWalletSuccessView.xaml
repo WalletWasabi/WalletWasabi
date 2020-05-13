@@ -3,7 +3,7 @@
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              x:Class="WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets.GenerateWalletSuccessView">
   <StackPanel Margin="10" Spacing="5">
-    <TextBlock Text="Write down these Recovery Words &amp; Your Password" FontWeight="Bold" />
+    <TextBlock Text="Write down these Recovery Words and Your Password" FontWeight="Bold" />
     <Border Padding="10" Margin="10 0" HorizontalAlignment="Center">
       <ItemsControl Items="{Binding MnemonicWords}">
         <ItemsControl.Styles>
