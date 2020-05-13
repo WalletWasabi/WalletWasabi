@@ -238,9 +238,9 @@ namespace WalletWasabi.Backend.Controllers
 						}
 
 						// Check if immature.
-						if (getTxOutResponse.Confirmations <= 100)
+						if (getTxOutResponse.IsCoinBase)
 						{
-							if (getTxOutResponse.IsCoinBase)
+							if (getTxOutResponse.Confirmations <= 100)
 							{
 								return BadRequest("Provided input is immature.");
 							}
