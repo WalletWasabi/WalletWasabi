@@ -222,6 +222,12 @@ namespace WalletWasabi.Backend.Controllers
 						// Check if unconfirmed.
 						if (getTxOutResponse.Confirmations <= 0)
 						{
+							// Check if immature.
+							if (getTxOutResponse.IsCoinBase)
+							{
+								return BadRequest("Provided input is immature.");
+							}
+
 							// If it spends a CJ then it may be acceptable to register.
 							if (!await Coordinator.ContainsUnconfirmedCoinJoinAsync(inputProof.Input.Hash))
 							{
