@@ -81,15 +81,23 @@ namespace WalletWasabi.WebClients.PayJoin
 				Content = new StringContent(cloned.ToHex(), Encoding.UTF8, "text/plain")
 			};
 
-			if (TorHttpClient is null && ClearnetHttpClient is null)
+			HttpResponseMessage bpuResponse = null;
+			if (TorHttpClient is null)
 			{
-				throw new NullReferenceException(
-					"A Tor HttpClient OR a clearnet HttpClient needs to be provided to the Payjoin client");
+				if (ClearnetHttpClient is null)
+				{
+					throw new NullReferenceException(
+						"A Tor HttpClient OR a clearnet HttpClient needs to be provided to the Payjoin client");
+				}
+				else
+				{
+					bpuResponse = await ClearnetHttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+				}
 			}
-
-			HttpResponseMessage bpuResponse = TorHttpClient is { } ?
-				await TorHttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false) :
-				await ClearnetHttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+			else
+			{
+				bpuResponse = await TorHttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+			}
 
 			if (!bpuResponse.IsSuccessStatusCode)
 			{
