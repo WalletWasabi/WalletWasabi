@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Gui.CommandLine
 {
@@ -70,7 +71,7 @@ namespace WalletWasabi.Gui.CommandLine
 		private static void ShowVersion()
 		{
 			Console.WriteLine($"Wasabi Client Version: {Constants.ClientVersion}");
-			Console.WriteLine($"Compatible Coordinator Version: {Constants.BackendMajorVersion}");
+			Console.WriteLine($"Compatible Coordinator Version: {WasabiClient.CurrentBackendMajorVersion}");
 			Console.WriteLine($"Compatible Bitcoin Core and Bitcoin Knots Versions: {Constants.BitcoinCoreVersion}");
 			Console.WriteLine($"Compatible Hardware Wallet Interface Version: {Constants.HwiVersion}");
 		}

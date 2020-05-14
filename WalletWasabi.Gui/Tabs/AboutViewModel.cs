@@ -11,6 +11,7 @@ using System.Reactive;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using System.Reactive.Linq;
+using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Gui.Tabs
 {
@@ -28,7 +29,8 @@ namespace WalletWasabi.Gui.Tabs
 		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
 
 		public Version ClientVersion => Constants.ClientVersion;
-		public string BackendMajorVersion => Constants.BackendMajorVersion;
+		public string BackendMajorVersion => $"{Constants.BackendMajorVersion},{Constants.ClientCompatibleWithBackendVersion}";
+		public string CurrentBackendMajorVersion => WasabiClient.CurrentBackendMajorVersion;
 		public Version BitcoinCoreVersion => Constants.BitcoinCoreVersion;
 		public Version HwiVersion => Constants.HwiVersion;
 

@@ -15,8 +15,12 @@
             <controls:ExtendedTextBox Text="{Binding ClientVersion, Converter={StaticResource VersionStringConverter}}" Classes="selectableTextBlock" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
-            <TextBlock Text="Compatible Coordinator Version: " />
+            <TextBlock Text="Compatible Coordinator Versions: " />
             <controls:ExtendedTextBox Text="{Binding BackendMajorVersion}" Classes="selectableTextBlock" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="Current Coordinator Versions: " />
+            <controls:ExtendedTextBox Text="{Binding CurrentBackendMajorVersion}" Classes="selectableTextBlock" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Compatible Bitcoin Core and Bitcoin Knots Versions: " />
