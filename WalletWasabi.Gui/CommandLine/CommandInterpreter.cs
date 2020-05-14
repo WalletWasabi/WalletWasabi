@@ -6,7 +6,6 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Gui.CommandLine
 {
