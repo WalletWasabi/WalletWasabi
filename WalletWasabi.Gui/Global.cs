@@ -73,7 +73,7 @@ namespace WalletWasabi.Gui
 
 		public Network Network => Config.Network;
 
-		public MemoryCache Cache  { get; private set; }
+		public MemoryCache Cache { get; private set; }
 
 		public static JsonRpcServer RpcServer { get; private set; }
 
@@ -118,10 +118,10 @@ namespace WalletWasabi.Gui
 
 			try
 			{
-				Cache = new MemoryCache(new MemoryCacheOptions 
-				{ 
-					SizeLimit = 1_000, 
-					ExpirationScanFrequency = TimeSpan.FromSeconds(30) 
+				Cache = new MemoryCache(new MemoryCacheOptions
+				{
+					SizeLimit = 1_000,
+					ExpirationScanFrequency = TimeSpan.FromSeconds(30)
 				});
 				BitcoinStore = new BitcoinStore();
 				var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), Network);
@@ -142,7 +142,7 @@ namespace WalletWasabi.Gui
 					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, Config.GetFallbackBackendUri(), null);
 				}
 
-				HostedServices.Register(new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer.WasabiClient), "Software Update Checker");
+				HostedServices.Register(new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
 
 				#region ProcessKillSubscription
 
