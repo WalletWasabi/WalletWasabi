@@ -9,7 +9,8 @@ namespace WalletWasabi.Helpers
 	public static class Constants
 	{
 		public static readonly Version ClientVersion = new Version(1, 1, 11, 1);
-		public const string ClientCompatibleWithBackendVersion = "4";
+		public const string ClientSupportBackendVersionMin = "3";
+		public const string ClientSupportBackendVersionMax = "4";
 		public const string BackendMajorVersion = "3";
 		public static readonly Version HwiVersion = new Version("1.1.0");
 		public static readonly Version BitcoinCoreVersion = new Version("0.19.1");
