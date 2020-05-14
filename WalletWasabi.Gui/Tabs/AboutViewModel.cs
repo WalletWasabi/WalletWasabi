@@ -29,7 +29,7 @@ namespace WalletWasabi.Gui.Tabs
 		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
 
 		public Version ClientVersion => Constants.ClientVersion;
-		public string BackendCompatibleVersion => $"{Constants.BackendMajorVersion},{Constants.ClientCompatibleWithBackendVersion}";
+		public string BackendCompatibleVersions => $"{Constants.BackendMajorVersion},{Constants.ClientCompatibleWithBackendVersion}";
 		public string CurrentBackendMajorVersion => WasabiClient.CurrentBackendMajorVersion;
 		public Version BitcoinCoreVersion => Constants.BitcoinCoreVersion;
 		public Version HwiVersion => Constants.HwiVersion;
