@@ -12,13 +12,18 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using System.Reactive.Linq;
 using WalletWasabi.WebClients.Wasabi;
+using System.Reactive.Disposables;
 
 namespace WalletWasabi.Gui.Tabs
 {
 	internal class AboutViewModel : WasabiDocumentTabViewModel
 	{
+		private string _currentBackendMajorVersion;
+
 		public AboutViewModel() : base("About")
 		{
+			CurrentBackendMajorVersion = WasabiClient.CurrentBackendMajorVersion;
+
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 
 			OpenBrowserCommand.ThrownExceptions
@@ -30,7 +35,13 @@ namespace WalletWasabi.Gui.Tabs
 
 		public Version ClientVersion => Constants.ClientVersion;
 		public string BackendCompatibleVersions => Constants.ClientSupportBackendVersionText;
-		public string CurrentBackendMajorVersion => WasabiClient.CurrentBackendMajorVersion;
+
+		public string CurrentBackendMajorVersion
+		{
+			get => _currentBackendMajorVersion;
+			set => this.RaiseAndSetIfChanged(ref _currentBackendMajorVersion, value);
+		}
+
 		public Version BitcoinCoreVersion => Constants.BitcoinCoreVersion;
 		public Version HwiVersion => Constants.HwiVersion;
 
@@ -49,5 +60,24 @@ namespace WalletWasabi.Gui.Tabs
 		public string FAQLink => "https://docs.wasabiwallet.io/FAQ/";
 
 		public string DocsLink => "https://docs.wasabiwallet.io/";
+
+		public override void OnOpen(CompositeDisposable disposables)
+		{
+			base.OnOpen(disposables);
+
+			WasabiClient.CurrentBackendMajorVersionUpdated += WasabiClient_CurrentBackendMajorVersionUpdated;
+		}
+
+		public override bool OnClose()
+		{
+			WasabiClient.CurrentBackendMajorVersionUpdated -= WasabiClient_CurrentBackendMajorVersionUpdated;
+
+			return base.OnClose();
+		}
+
+		private void WasabiClient_CurrentBackendMajorVersionUpdated(object sender, string currentBackendMajorVersion)
+		{
+			CurrentBackendMajorVersion = currentBackendMajorVersion;
+		}
 	}
 }
