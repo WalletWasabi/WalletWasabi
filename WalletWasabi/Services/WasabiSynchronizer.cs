@@ -179,6 +179,11 @@ namespace WalletWasabi.Services
 								}
 
 								response = await WasabiClient.GetSynchronizeAsync(hashChain.TipHash, maxFiltersToSyncAtInitialization, estimateMode, Cancel.Token).WithAwaitCancellationAsync(Cancel.Token, 300);
+
+								if (BackendStatus != BackendStatus.Connected)
+								{
+									await WasabiClient.CheckUpdatesAsync(Cancel.Token).ConfigureAwait(false);
+								}
 								// NOT GenSocksServErr
 								BackendStatus = BackendStatus.Connected;
 								TorStatus = TorStatus.Running;
