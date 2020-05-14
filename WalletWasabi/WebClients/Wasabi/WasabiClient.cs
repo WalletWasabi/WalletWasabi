@@ -39,7 +39,7 @@ namespace WalletWasabi.WebClients.Wasabi
 		private static Queue<uint256> TransactionIdQueue { get; } = new Queue<uint256>();
 		public static object TransactionCacheLock { get; } = new object();
 
-		public static string CurrentBackendMajorVersion { get; private set; }
+		public static string CurrentBackendMajorVersion { get; private set; } = Constants.BackendMajorVersion;
 
 		#region batch
 
@@ -273,7 +273,7 @@ namespace WalletWasabi.WebClients.Wasabi
 			using var response = await TorClient.SendAndRetryAsync(
 				HttpMethod.Get,
 				HttpStatusCode.OK,
-				$"/api/v{WasabiClient.CurrentBackendMajorVersion}/wasabi/legaldocuments",
+				$"/api/v{CurrentBackendMajorVersion}/wasabi/legaldocuments",
 				cancel: cancel).ConfigureAwait(false);
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
