@@ -24,15 +24,6 @@ namespace WalletWasabi.Services
 			Synchronizer.PropertyChanged += Synchronizer_PropertyChanged;
 		}
 
-		private void Synchronizer_PropertyChanged(object sender, PropertyChangedEventArgs e)
-		{
-			if (e.PropertyName == nameof(WasabiSynchronizer.BackendStatus) &&
-				Synchronizer.BackendStatus == BackendStatus.Connected)
-			{
-				TriggerRound();
-			}
-		}
-
 		public event EventHandler<UpdateStatus> UpdateStatusChanged;
 
 		public WasabiClient WasabiClient { get; }
@@ -49,6 +40,15 @@ namespace WalletWasabi.Services
 					_updateStatus = value;
 					UpdateStatusChanged?.Invoke(this, value);
 				}
+			}
+		}
+
+		private void Synchronizer_PropertyChanged(object sender, PropertyChangedEventArgs e)
+		{
+			if (e.PropertyName == nameof(WasabiSynchronizer.BackendStatus) &&
+				Synchronizer.BackendStatus == BackendStatus.Connected)
+			{
+				TriggerRound();
 			}
 		}
 
