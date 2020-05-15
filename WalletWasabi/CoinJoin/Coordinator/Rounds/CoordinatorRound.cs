@@ -1179,7 +1179,12 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 				// Check if mempool would accept a fake transaction created with the all the registered inputs.
 				var coinsToTest = Alices.SelectMany(alice => alice.Inputs);
-				var resultAll = await RpcClient.TestMempoolAcceptAsync(coinsToTest, fakeOutputsCount: (Alices.Count + 1) * 2);
+				// Add the outputs by denomination level.
+				var outputsAll = Alices.Sum(alice => EstimateBestMixingLevel(alice));
+				// Add the change outputs.
+				outputsAll += Alices.Count;
+
+				var resultAll = await RpcClient.TestMempoolAcceptAsync(coinsToTest, fakeOutputsCount: outputsAll);
 				if (resultAll.accept)
 				{
 					Logger.LogInfo($"Mempool acceptance successful! Number of Alices: {Alices.Count}.");
@@ -1192,7 +1197,8 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				{
 					// Check if mempool would accept a fake transaction created with the registered input.
 					// This will catch ascendant/descendant count and size limits for example.
-					checkingTasks.Add((alice, batch.TestMempoolAcceptAsync(alice.Inputs, fakeOutputsCount: 2)));
+					var outputs = EstimateBestMixingLevel(alice) + 1;
+					checkingTasks.Add((alice, batch.TestMempoolAcceptAsync(alice.Inputs, fakeOutputsCount: outputs)));
 				}
 				var waiting = Task.WhenAll(checkingTasks.Select(t => t.task));
 				await batch.SendBatchAsync().ConfigureAwait(false);

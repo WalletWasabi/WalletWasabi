@@ -233,9 +233,17 @@ namespace WalletWasabi.Backend.Controllers
 
 							var currentAlices = round.GetAlicesBy(AliceState.InputsRegistered).ToArray();
 							var coinsToTest = currentAlices.SelectMany(alice => alice.Inputs).ToList();
-							coinsToTest.Add(new Coin(inputProof.Input, getTxOutResponse.TxOut));
 
-							var result = await RpcClient.TestMempoolAcceptAsync(coinsToTest, fakeOutputsCount: (currentAlices.Length + 1) * 2);
+							// Add the outputs by denomination level.
+							var outputCount = currentAlices.Sum(alice => round.EstimateBestMixingLevel(alice));
+							// Add the change outputs.
+							outputCount += currentAlices.Length;
+
+							// Add the current input registration and outputs.
+							coinsToTest.Add(new Coin(inputProof.Input, getTxOutResponse.TxOut));
+							outputCount += 2;
+
+							var result = await RpcClient.TestMempoolAcceptAsync(coinsToTest, fakeOutputsCount: outputCount);
 							if (!result.accept)
 							{
 								return BadRequest($"Provided input is from an unconfirmed coinjoin, but a limit is reached: {result.rejectReason}");
