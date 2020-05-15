@@ -228,9 +228,14 @@ namespace WalletWasabi.Backend.Controllers
 								return BadRequest("Provided input is neither confirmed, nor is from an unconfirmed coinjoin.");
 							}
 
-							// Check if mempool would accept a fake transaction created with the registered inputs.
+							// Check if mempool would accept a fake transaction created with all of the registered inputs plus the new input.
 							// This will catch ascendant/descendant count and size limits for example.
-							var result = await RpcClient.TestMempoolAcceptAsync(new[] { new Coin(inputProof.Input, getTxOutResponse.TxOut) });
+
+							var currentAlices = round.GetAlicesBy(AliceState.InputsRegistered).ToArray();
+							var coinsToTest = currentAlices.SelectMany(alice => alice.Inputs).ToList();
+							coinsToTest.Add(new Coin(inputProof.Input, getTxOutResponse.TxOut));
+
+							var result = await RpcClient.TestMempoolAcceptAsync(coinsToTest, fakeOutputsCount: currentAlices.Length * 2);
 							if (!result.accept)
 							{
 								return BadRequest($"Provided input is from an unconfirmed coinjoin, but a limit is reached: {result.rejectReason}");

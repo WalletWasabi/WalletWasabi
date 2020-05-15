@@ -214,14 +214,17 @@ namespace NBitcoin.RPC
 			return newEstimations;
 		}
 
-		public static async Task<(bool accept, string rejectReason)> TestMempoolAcceptAsync(this IRPCClient rpc, IEnumerable<Coin> coins)
+		public static async Task<(bool accept, string rejectReason)> TestMempoolAcceptAsync(this IRPCClient rpc, IEnumerable<Coin> coins, int fakeOutputsCount = 1)
 		{
 			// Check if mempool would accept a fake transaction created with the registered inputs.
 			// This will catch ascendant/descendant count and size limits for example.
 			var fakeTransaction = rpc.Network.CreateTransaction();
 			fakeTransaction.Inputs.AddRange(coins.Select(coin => new TxIn(coin.Outpoint)));
 			Money fakeOutputValue = NBitcoinHelpers.TakeAReasonableFee(coins.Sum(coin => coin.TxOut.Value));
-			fakeTransaction.Outputs.Add(fakeOutputValue, new Key());
+			for (int i = 0; i < fakeOutputsCount; i++)
+			{
+				fakeTransaction.Outputs.Add(fakeOutputValue, new Key());
+			}
 			MempoolAcceptResult testMempoolAcceptResult = await rpc.TestMempoolAcceptAsync(fakeTransaction, allowHighFees: true);
 
 			if (!testMempoolAcceptResult.IsAllowed)
