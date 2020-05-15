@@ -1183,7 +1183,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				{
 					// Check if mempool would accept a fake transaction created with the registered inputs.
 					// This will catch ascendant/descendant count and size limits for example.
-					checkingTasks.Add((alice, batch.TestMempoolAcceptAsync(alice.Inputs)));
+					checkingTasks.Add((alice, batch.TestMempoolAcceptAsync(alice.Inputs, fakeOutputsCount: 2)));
 				}
 				var waiting = Task.WhenAll(checkingTasks.Select(t => t.task));
 				await batch.SendBatchAsync().ConfigureAwait(false);
