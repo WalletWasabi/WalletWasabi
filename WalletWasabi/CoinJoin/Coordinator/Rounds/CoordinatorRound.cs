@@ -1177,11 +1177,19 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
 				}
 
+				// Check if mempool would accept a fake transaction created with the all the registered inputs.
+				var coinsToTest = Alices.SelectMany(alice => alice.Inputs);
+				var resultAll = await RpcClient.TestMempoolAcceptAsync(coinsToTest, fakeOutputsCount: (Alices.Count + 1) * 2);
+				if (resultAll.accept)
+				{
+					return Enumerable.Empty<Alice>();
+				}
+
 				var checkingTasks = new List<(Alice alice, Task<(bool accepted, string reason)> task)>();
 				var batch = RpcClient.PrepareBatch();
 				foreach (Alice alice in Alices)
 				{
-					// Check if mempool would accept a fake transaction created with the registered inputs.
+					// Check if mempool would accept a fake transaction created with the registered input.
 					// This will catch ascendant/descendant count and size limits for example.
 					checkingTasks.Add((alice, batch.TestMempoolAcceptAsync(alice.Inputs, fakeOutputsCount: 2)));
 				}
@@ -1199,11 +1207,21 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 						Logger.LogInfo($"Mempool acceptance failed: {result.reason ?? "no reason"}.");
 					}
 				}
-			}
 
-			foreach (var alice in alicesRemoved)
-			{
-				Logger.LogInfo($"Round ({RoundId}): Alice ({alice.UniqueId}) removed.");
+				foreach (var alice in alicesRemoved)
+				{
+					Logger.LogInfo($"Round ({RoundId}): Alice ({alice.UniqueId}) removed.");
+				}
+
+				if (alicesRemoved.Count == 0)
+				{
+					Logger.LogInfo($"Overall Mempool acceptance failed, but could not found guilty Alice: {resultAll.rejectReason ?? "no reason"}.");
+				}
+				else
+				{
+					var utxosToBan = alicesRemoved.SelectMany(alice => alice.Inputs).Select(x => x.Outpoint);
+					await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, utxosToBan.ToArray()).ConfigureAwait(false);
+				}
 			}
 
 			return alicesRemoved;
