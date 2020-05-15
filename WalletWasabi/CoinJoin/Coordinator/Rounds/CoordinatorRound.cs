@@ -1182,6 +1182,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				var resultAll = await RpcClient.TestMempoolAcceptAsync(coinsToTest, fakeOutputsCount: (Alices.Count + 1) * 2);
 				if (resultAll.accept)
 				{
+					Logger.LogInfo($"Mempool acceptance successful! Number of Alices: {Alices.Count}.");
 					return Enumerable.Empty<Alice>();
 				}
 
