@@ -90,8 +90,8 @@ namespace WalletWasabi.Helpers
 
 		public static readonly ExtPubKey FallBackCoordinatorExtPubKey = NBitcoinHelpers.BetterParseExtPubKey("xpub6D2PqhWBAbF3xgfaAUW73KnaCXUroArcgMTzNkNzfVX7ykkSzQGbqaXZeaNyxKbZojAAqDwsne6B7NcVhiTrXbGYrQNq1yF76NkgdonGrEa");
 
-		public static string ClientSupportBackendVersionText => ClientSupportBackendVersionMin == ClientSupportBackendVersionMax ?
-				ClientSupportBackendVersionMin :
-				$"{ClientSupportBackendVersionMin} - {ClientSupportBackendVersionMax}";
+		public static string ClientSupportBackendVersionText => ClientSupportBackendVersionMin == ClientSupportBackendVersionMax
+				? ClientSupportBackendVersionMin
+				: $"{ClientSupportBackendVersionMin} - {ClientSupportBackendVersionMax}";
 	}
 }

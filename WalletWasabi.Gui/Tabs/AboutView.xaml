@@ -19,7 +19,7 @@
             <controls:ExtendedTextBox Text="{Binding BackendCompatibleVersions}" Classes="selectableTextBlock" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
-            <TextBlock Text="Current Coordinator Versions: " />
+            <TextBlock Text="Current Coordinator Version: " />
             <controls:ExtendedTextBox Text="{Binding CurrentBackendMajorVersion}" Classes="selectableTextBlock" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
