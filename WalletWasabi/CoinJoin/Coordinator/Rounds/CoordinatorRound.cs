@@ -1217,11 +1217,6 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				{
 					Logger.LogInfo($"Overall Mempool acceptance failed, but could not found guilty Alice: {resultAll.rejectReason ?? "no reason"}.");
 				}
-				else
-				{
-					var utxosToBan = alicesRemoved.SelectMany(alice => alice.Inputs).Select(x => x.Outpoint);
-					await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, utxosToBan.ToArray()).ConfigureAwait(false);
-				}
 			}
 
 			return alicesRemoved;
