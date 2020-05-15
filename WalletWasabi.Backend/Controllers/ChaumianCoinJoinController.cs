@@ -238,12 +238,9 @@ namespace WalletWasabi.Backend.Controllers
 						}
 
 						// Check if immature.
-						if (getTxOutResponse.Confirmations <= 100)
+						if (getTxOutResponse.IsCoinBase && getTxOutResponse.Confirmations <= 100)
 						{
-							if (getTxOutResponse.IsCoinBase)
-							{
-								return BadRequest("Provided input is immature.");
-							}
+							return BadRequest("Provided input is immature.");
 						}
 
 						// Check if inputs are native segwit.
