@@ -1195,7 +1195,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				var batch = RpcClient.PrepareBatch();
 				foreach (Alice alice in Alices)
 				{
-					// Check if mempool would accept a fake transaction created with the registered input.
+					// Check if mempool would accept a fake transaction created with the registered inputs.
 					// This will catch ascendant/descendant count and size limits for example.
 					var outputs = EstimateBestMixingLevel(alice) + 1;
 					checkingTasks.Add((alice, batch.TestMempoolAcceptAsync(alice.Inputs, fakeOutputsCount: outputs)));
