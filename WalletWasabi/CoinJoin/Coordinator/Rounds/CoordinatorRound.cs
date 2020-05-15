@@ -1177,7 +1177,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
 				}
 
-				// Check if mempool would accept a fake transaction created with the all the registered inputs.
+				// Check if mempool would accept a fake transaction created with all the registered inputs.
 				var coinsToTest = Alices.SelectMany(alice => alice.Inputs);
 				// Add the outputs by denomination level.
 				var outputsAll = Alices.Sum(alice => EstimateBestMixingLevel(alice));
@@ -1222,7 +1222,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 				if (alicesRemoved.Count == 0)
 				{
-					Logger.LogInfo($"Overall Mempool acceptance failed, but could not found guilty Alice: {resultAll.rejectReason ?? "no reason"}.");
+					Logger.LogInfo($"Overall Mempool acceptance failed, but could not find guilty Alice: {resultAll.rejectReason ?? "no reason"}.");
 				}
 			}
 
