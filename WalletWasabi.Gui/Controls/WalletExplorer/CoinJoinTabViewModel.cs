@@ -46,7 +46,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private const string DequeueButtonTextString = "Dequeue Selected Coins";
 		private const string DequeuingButtonTextString = "Dequeuing coins...";
 		private string _coinJoinUntilAnonymitySet;
-		private MixUntilAnonymitySet _targetPrivacy;
 
 		public CoinJoinTabViewModel(Wallet wallet)
 			: base("CoinJoin")
@@ -71,26 +70,26 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			DequeueCommand = ReactiveCommand.CreateFromTask(async () => await DoDequeueAsync(CoinsList.Coins.Where(c => c.IsSelected).Select(x => x.Model)));
 
-			PrivacySomeCommand = ReactiveCommand.Create(() => TargetPrivacy = MixUntilAnonymitySet.PrivacyLevelSome);
+			PrivacySomeCommand = ReactiveCommand.Create(() => CoinJoinUntilAnonymitySet = MixUntilAnonymitySet.PrivacyLevelSome.ToString());
 
-			PrivacyFineCommand = ReactiveCommand.Create(() => TargetPrivacy = MixUntilAnonymitySet.PrivacyLevelFine);
+			PrivacyFineCommand = ReactiveCommand.Create(() => CoinJoinUntilAnonymitySet = MixUntilAnonymitySet.PrivacyLevelFine.ToString());
 
-			PrivacyStrongCommand = ReactiveCommand.Create(() => TargetPrivacy = MixUntilAnonymitySet.PrivacyLevelStrong);
+			PrivacyStrongCommand = ReactiveCommand.Create(() => CoinJoinUntilAnonymitySet = MixUntilAnonymitySet.PrivacyLevelStrong.ToString());
 
 			TargetButtonCommand = ReactiveCommand.Create(() =>
 			   {
-				   switch (TargetPrivacy)
+				   switch (CoinJoinUntilAnonymitySet)
 				   {
-					   case MixUntilAnonymitySet.PrivacyLevelSome:
-						   TargetPrivacy = MixUntilAnonymitySet.PrivacyLevelFine;
+					   case nameof(MixUntilAnonymitySet.PrivacyLevelSome):
+						   CoinJoinUntilAnonymitySet = MixUntilAnonymitySet.PrivacyLevelFine.ToString();
 						   break;
 
-					   case MixUntilAnonymitySet.PrivacyLevelFine:
-						   TargetPrivacy = MixUntilAnonymitySet.PrivacyLevelStrong;
+					   case nameof(MixUntilAnonymitySet.PrivacyLevelFine):
+						   CoinJoinUntilAnonymitySet = MixUntilAnonymitySet.PrivacyLevelStrong.ToString();
 						   break;
 
-					   case MixUntilAnonymitySet.PrivacyLevelStrong:
-						   TargetPrivacy = MixUntilAnonymitySet.PrivacyLevelSome;
+					   case nameof(MixUntilAnonymitySet.PrivacyLevelStrong):
+						   CoinJoinUntilAnonymitySet = MixUntilAnonymitySet.PrivacyLevelSome.ToString();
 						   break;
 				   }
 
@@ -110,9 +109,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			this.WhenAnyValue(x => x.IsDequeueBusy)
 				.Select(x => x ? DequeuingButtonTextString : DequeueButtonTextString)
 				.Subscribe(text => DequeueButtonText = text);
-
-			this.WhenAnyValue(x => x.TargetPrivacy)
-				.Subscribe(target => CoinJoinUntilAnonymitySet = target.ToString());
 
 			this.WhenAnyValue(x => x.RoundTimesout)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -231,12 +227,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _coinJoinUntilAnonymitySet, value);
 		}
 
-		private MixUntilAnonymitySet TargetPrivacy
-		{
-			get => _targetPrivacy;
-			set => this.RaiseAndSetIfChanged(ref _targetPrivacy, value);
-		}
-
 		public bool IsWatchOnly => Wallet.KeyManager.IsWatchOnly;
 		public bool IsHardwareWallet => Wallet.KeyManager.IsHardwareWallet;
 
@@ -246,16 +236,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public ReactiveCommand<Unit, Unit> DequeueCommand { get; }
 
-		public ReactiveCommand<Unit, MixUntilAnonymitySet> PrivacySomeCommand { get; }
-		public ReactiveCommand<Unit, MixUntilAnonymitySet> PrivacyFineCommand { get; }
-		public ReactiveCommand<Unit, MixUntilAnonymitySet> PrivacyStrongCommand { get; }
+		public ReactiveCommand<Unit, string> PrivacySomeCommand { get; }
+		public ReactiveCommand<Unit, string> PrivacyFineCommand { get; }
+		public ReactiveCommand<Unit, string> PrivacyStrongCommand { get; }
 		public ReactiveCommand<Unit, Unit> TargetButtonCommand { get; }
 
 		public override void OnOpen(CompositeDisposable disposables)
 		{
 			base.OnOpen(disposables);
 
-			TargetPrivacy = Global.Config.GetTargetPrivacy();
+			CoinJoinUntilAnonymitySet = Global.Config.MixUntilAnonymitySet;
 
 			var registrableRound = Wallet.ChaumianClient.State.GetRegistrableRoundOrDefault();
 
