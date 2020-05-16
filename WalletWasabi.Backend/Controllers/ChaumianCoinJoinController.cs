@@ -208,7 +208,7 @@ namespace WalletWasabi.Backend.Controllers
 
 					var inputs = new HashSet<Coin>();
 
-					var assertMempoolAcceptance = false;
+					var allInputsConfirmed = true;
 					foreach (var responses in getTxOutResponses)
 					{
 						var (inputProof, getTxOutResponseTask) = responses;
@@ -223,14 +223,12 @@ namespace WalletWasabi.Backend.Controllers
 						// Check if unconfirmed.
 						if (getTxOutResponse.Confirmations <= 0)
 						{
+							allInputsConfirmed = false;
 							// If it spends a CJ then it may be acceptable to register.
 							if (!await Coordinator.ContainsUnconfirmedCoinJoinAsync(inputProof.Input.Hash))
 							{
 								return BadRequest("Provided input is neither confirmed, nor is from an unconfirmed coinjoin.");
 							}
-
-							// If an unconfirmed UTXO is about to be registered, then assert mempool acceptance, but with all the registered coins from the user, not only with a single one.
-							assertMempoolAcceptance = true;
 						}
 
 						// Check if immature.
@@ -257,7 +255,7 @@ namespace WalletWasabi.Backend.Controllers
 						inputs.Add(new Coin(inputProof.Input, txOut));
 					}
 
-					if (assertMempoolAcceptance)
+					if (!allInputsConfirmed)
 					{
 						// Check if mempool would accept a fake transaction created with the registered inputs.
 						// Fake outputs: 200 + 400 because the size of a bech32 input is rougly the size of an outputs and this'd be a 200input + 400 output tx and 0.9/600=0.0015, which is well above the dust, so should be good.
@@ -306,7 +304,7 @@ namespace WalletWasabi.Backend.Controllers
 					}
 
 					// Make sure Alice checks work.
-					var alice = new Alice(inputs, networkFeeToPayAfterBaseDenomination, request.ChangeOutputAddress, acceptedBlindedOutputScripts);
+					var alice = new Alice(inputs, allInputsConfirmed, networkFeeToPayAfterBaseDenomination, request.ChangeOutputAddress, acceptedBlindedOutputScripts);
 
 					foreach (Guid aliceToRemove in alicesToRemove)
 					{

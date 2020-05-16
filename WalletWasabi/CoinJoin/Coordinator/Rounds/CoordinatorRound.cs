@@ -1187,42 +1187,24 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				var resultAll = await RpcClient.TestMempoolAcceptAsync(coinsToTest, fakeOutputsCount: outputsAll);
 				if (resultAll.accept)
 				{
-					Logger.LogInfo($"Mempool acceptance successful! Number of Alices: {Alices.Count}.");
 					return Enumerable.Empty<Alice>();
 				}
+				Logger.LogInfo($"Mempool acceptance is unsuccessful! Number of Alices: {Alices.Count}.");
 
-				var checkingTasks = new List<(Alice alice, Task<(bool accepted, string reason)> task)>();
-				var batch = RpcClient.PrepareBatch();
-				foreach (Alice alice in Alices)
+				// The created tx was not accepted. Let's only accept confirmed txs then.
+				foreach (var alice in Alices.Where(x => !x.AllInputsConfirmed))
 				{
-					// Check if mempool would accept a fake transaction created with the registered inputs.
-					// This will catch ascendant/descendant count and size limits for example.
-					var outputs = EstimateBestMixingLevel(alice) + 1;
-					checkingTasks.Add((alice, batch.TestMempoolAcceptAsync(alice.Inputs, fakeOutputsCount: outputs)));
-				}
-				var waiting = Task.WhenAll(checkingTasks.Select(t => t.task));
-				await batch.SendBatchAsync().ConfigureAwait(false);
-				await waiting.ConfigureAwait(false);
-
-				foreach (var t in checkingTasks)
-				{
-					var result = await t.task.ConfigureAwait(false);
-					if (!result.accepted)
+					foreach (var input in alice.Inputs.Select(x => x.Outpoint))
 					{
-						alicesRemoved.Add(t.alice);
-						Alices.Remove(t.alice);
-						Logger.LogInfo($"Mempool acceptance failed: {result.reason ?? "no reason"}.");
+						var response = await RpcClient.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true);
+						if (response.Confirmations <= 0)
+						{
+							alicesRemoved.Add(alice);
+							Alices.Remove(alice);
+							Logger.LogInfo($"Round ({RoundId}): Alice ({alice.UniqueId}) removed, because of unconfirmed inputs.");
+							break;
+						}
 					}
-				}
-
-				foreach (var alice in alicesRemoved)
-				{
-					Logger.LogInfo($"Round ({RoundId}): Alice ({alice.UniqueId}) removed.");
-				}
-
-				if (alicesRemoved.Count == 0)
-				{
-					Logger.LogInfo($"Overall Mempool acceptance failed, but could not find guilty Alice: {resultAll.rejectReason ?? "no reason"}.");
 				}
 			}
 
