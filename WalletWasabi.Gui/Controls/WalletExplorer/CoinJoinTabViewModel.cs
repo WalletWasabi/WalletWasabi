@@ -46,7 +46,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private const string DequeueButtonTextString = "Dequeue Selected Coins";
 		private const string DequeuingButtonTextString = "Dequeuing coins...";
 		private string _coinJoinUntilAnonymitySet;
-		private TargetPrivacy _targetPrivacy;
+		private MixUntilAnonymitySet _targetPrivacy;
 
 		public CoinJoinTabViewModel(Wallet wallet)
 			: base("CoinJoin")
@@ -71,30 +71,36 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			DequeueCommand = ReactiveCommand.CreateFromTask(async () => await DoDequeueAsync(CoinsList.Coins.Where(c => c.IsSelected).Select(x => x.Model)));
 
-			PrivacySomeCommand = ReactiveCommand.Create(() => TargetPrivacy = TargetPrivacy.Some);
+			PrivacySomeCommand = ReactiveCommand.Create(() => TargetPrivacy = MixUntilAnonymitySet.PrivacyLevelSome);
 
-			PrivacyFineCommand = ReactiveCommand.Create(() => TargetPrivacy = TargetPrivacy.Fine);
+			PrivacyFineCommand = ReactiveCommand.Create(() => TargetPrivacy = MixUntilAnonymitySet.PrivacyLevelFine);
 
-			PrivacyStrongCommand = ReactiveCommand.Create(() => TargetPrivacy = TargetPrivacy.Strong);
+			PrivacyStrongCommand = ReactiveCommand.Create(() => TargetPrivacy = MixUntilAnonymitySet.PrivacyLevelStrong);
 
 			TargetButtonCommand = ReactiveCommand.Create(() =>
 			   {
 				   switch (TargetPrivacy)
 				   {
-					   case TargetPrivacy.Some:
-						   TargetPrivacy = TargetPrivacy.Fine;
+					   case MixUntilAnonymitySet.PrivacyLevelSome:
+						   TargetPrivacy = MixUntilAnonymitySet.PrivacyLevelFine;
 						   break;
 
-					   case TargetPrivacy.Fine:
-						   TargetPrivacy = TargetPrivacy.Strong;
+					   case MixUntilAnonymitySet.PrivacyLevelFine:
+						   TargetPrivacy = MixUntilAnonymitySet.PrivacyLevelStrong;
 						   break;
 
-					   case TargetPrivacy.Strong:
-						   TargetPrivacy = TargetPrivacy.Some;
+					   case MixUntilAnonymitySet.PrivacyLevelStrong:
+						   TargetPrivacy = MixUntilAnonymitySet.PrivacyLevelSome;
 						   break;
 				   }
+
 				   Global.Config.MixUntilAnonymitySet = CoinJoinUntilAnonymitySet;
-				   Global.Config.ToFile();
+
+				   // Config.json can be different to Global.Config. Only change the MixUntilAnonymitySet in the file.
+				   var config = new Config(Global.Config.FilePath);
+				   config.LoadOrCreateDefaultFile();
+				   config.MixUntilAnonymitySet = CoinJoinUntilAnonymitySet;
+				   config.ToFile();
 			   });
 
 			this.WhenAnyValue(x => x.IsEnqueueBusy)
@@ -106,7 +112,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(text => DequeueButtonText = text);
 
 			this.WhenAnyValue(x => x.TargetPrivacy)
-				.Subscribe(target => CoinJoinUntilAnonymitySet = Global.Config.GetTargetLevel(target));
+				.Subscribe(target => CoinJoinUntilAnonymitySet = target.ToString());
 
 			this.WhenAnyValue(x => x.RoundTimesout)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -225,7 +231,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _coinJoinUntilAnonymitySet, value);
 		}
 
-		private TargetPrivacy TargetPrivacy
+		private MixUntilAnonymitySet TargetPrivacy
 		{
 			get => _targetPrivacy;
 			set => this.RaiseAndSetIfChanged(ref _targetPrivacy, value);
@@ -240,9 +246,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public ReactiveCommand<Unit, Unit> DequeueCommand { get; }
 
-		public ReactiveCommand<Unit, TargetPrivacy> PrivacySomeCommand { get; }
-		public ReactiveCommand<Unit, TargetPrivacy> PrivacyFineCommand { get; }
-		public ReactiveCommand<Unit, TargetPrivacy> PrivacyStrongCommand { get; }
+		public ReactiveCommand<Unit, MixUntilAnonymitySet> PrivacySomeCommand { get; }
+		public ReactiveCommand<Unit, MixUntilAnonymitySet> PrivacyFineCommand { get; }
+		public ReactiveCommand<Unit, MixUntilAnonymitySet> PrivacyStrongCommand { get; }
 		public ReactiveCommand<Unit, Unit> TargetButtonCommand { get; }
 
 		public override void OnOpen(CompositeDisposable disposables)

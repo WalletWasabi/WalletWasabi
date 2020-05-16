@@ -364,29 +364,14 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		public TargetPrivacy GetTargetPrivacy()
+		public MixUntilAnonymitySet GetTargetPrivacy()
 		{
-			if (MixUntilAnonymitySet == WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelSome.ToString())
+			if (Enum.TryParse(MixUntilAnonymitySet, out MixUntilAnonymitySet anonimitySet))
 			{
-				return TargetPrivacy.Some;
+				return anonimitySet;
 			}
 
-			if (MixUntilAnonymitySet == WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelFine.ToString())
-			{
-				return TargetPrivacy.Fine;
-			}
-
-			return TargetPrivacy.Strong;
-		}
-
-		public string GetTargetLevel(TargetPrivacy target)
-		{
-			return target switch
-			{
-				TargetPrivacy.Some => WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelSome.ToString(),
-				TargetPrivacy.Fine => WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelFine.ToString(),
-				_ => WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelStrong.ToString()
-			};
+			return WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelStrong;
 		}
 
 		public void CorrectMixUntilAnonymitySet()
