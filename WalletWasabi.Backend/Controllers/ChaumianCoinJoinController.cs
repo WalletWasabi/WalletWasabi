@@ -208,6 +208,7 @@ namespace WalletWasabi.Backend.Controllers
 
 					var inputs = new HashSet<Coin>();
 
+					var assertMempoolAcceptance = false;
 					foreach (var responses in getTxOutResponses)
 					{
 						var (inputProof, getTxOutResponseTask) = responses;
@@ -228,13 +229,8 @@ namespace WalletWasabi.Backend.Controllers
 								return BadRequest("Provided input is neither confirmed, nor is from an unconfirmed coinjoin.");
 							}
 
-							// Check if mempool would accept a fake transaction created with the registered inputs.
-							// Fake outputs: 200 + 400 because the size of a bech32 input is rougly the size of an outputs and this'd be a 200input + 400 output tx and 0.9/600=0.0015, which is well above the dust, so should be good.
-							var result = await RpcClient.TestMempoolAcceptAsync(new[] { new Coin(inputProof.Input, getTxOutResponse.TxOut) }, fakeOutputsCount: 200 + 400);
-							if (!result.accept)
-							{
-								return BadRequest($"Provided input is from an unconfirmed coinjoin, but a limit is reached: {result.rejectReason}");
-							}
+							// If an unconfirmed UTXO is about to be registered, then assert mempool acceptance, but with all the registered coins from the user, not only with a single one.
+							assertMempoolAcceptance = true;
 						}
 
 						// Check if immature.
@@ -259,6 +255,17 @@ namespace WalletWasabi.Backend.Controllers
 						}
 
 						inputs.Add(new Coin(inputProof.Input, txOut));
+					}
+
+					if (assertMempoolAcceptance)
+					{
+						// Check if mempool would accept a fake transaction created with the registered inputs.
+						// Fake outputs: 200 + 400 because the size of a bech32 input is rougly the size of an outputs and this'd be a 200input + 400 output tx and 0.9/600=0.0015, which is well above the dust, so should be good.
+						var result = await RpcClient.TestMempoolAcceptAsync(inputs, fakeOutputsCount: 200 + 400);
+						if (!result.accept)
+						{
+							return BadRequest($"Provided input is from an unconfirmed coinjoin, but a limit is reached: {result.rejectReason}");
+						}
 					}
 
 					var acceptedBlindedOutputScripts = new List<uint256>();
