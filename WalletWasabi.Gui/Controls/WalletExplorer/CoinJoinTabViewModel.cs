@@ -96,7 +96,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				   Global.Config.MixUntilAnonymitySet = CoinJoinUntilAnonymitySet;
 
-				   // Config.json can be different to Global.Config. Only change the MixUntilAnonymitySet in the file.
+				   // Config.json can be different than Global.Config. Only change the MixUntilAnonymitySet in the file.
 				   var config = new Config(Global.Config.FilePath);
 				   config.LoadOrCreateDefaultFile();
 				   config.MixUntilAnonymitySet = CoinJoinUntilAnonymitySet;

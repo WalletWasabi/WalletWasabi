@@ -366,9 +366,9 @@ namespace WalletWasabi.Gui
 
 		public MixUntilAnonymitySet GetTargetPrivacy()
 		{
-			if (Enum.TryParse(MixUntilAnonymitySet, out MixUntilAnonymitySet anonimitySet))
+			if (Enum.TryParse(MixUntilAnonymitySet, out MixUntilAnonymitySet anonymitySet))
 			{
-				return anonimitySet;
+				return anonymitySet;
 			}
 
 			return WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelStrong;
