@@ -1184,7 +1184,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				// Add the change outputs.
 				outputsAll += Alices.Count;
 
-				var resultAll = await RpcClient.TestMempoolAcceptAsync(coinsToTest, fakeOutputsCount: outputsAll);
+				var resultAll = await RpcClient.TestMempoolAcceptAsync(coinsToTest, fakeOutputsCount: outputsAll).ConfigureAwait(false);
 				if (resultAll.accept)
 				{
 					return Enumerable.Empty<Alice>();
@@ -1196,7 +1196,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				{
 					foreach (var input in alice.Inputs.Select(x => x.Outpoint))
 					{
-						var response = await RpcClient.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true);
+						var response = await RpcClient.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true).ConfigureAwait(false);
 						if (response.Confirmations <= 0)
 						{
 							alicesRemoved.Add(alice);
