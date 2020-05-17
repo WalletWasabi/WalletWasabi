@@ -1186,19 +1186,29 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				var alicesSpent = new HashSet<Alice>();
 				var alicesUnconfirmed = new HashSet<Alice>();
 				// The created tx was not accepted. Let's figure out why. Is it because an Alice doublespent or because of too long mempool chains.
-				foreach (var alice in Alices)
+				var checkingTasks = new List<(Alice alice, Task<GetTxOutResponse> task)>();
+				var batch = RpcClient.PrepareBatch();
+				foreach (Alice alice in Alices)
 				{
 					foreach (var input in alice.Inputs.Select(x => x.Outpoint))
 					{
-						var response = await RpcClient.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true).ConfigureAwait(false);
-						if (response is null)
-						{
-							alicesSpent.Add(alice);
-						}
-						else if (response.Confirmations <= 0)
-						{
-							alicesUnconfirmed.Add(alice);
-						}
+						checkingTasks.Add((alice, batch.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true)));
+					}
+				}
+				var waiting = Task.WhenAll(checkingTasks.Select(t => t.task));
+				await batch.SendBatchAsync().ConfigureAwait(false);
+				await waiting.ConfigureAwait(false);
+
+				foreach (var t in checkingTasks)
+				{
+					var response = await t.task.ConfigureAwait(false);
+					if (response is null)
+					{
+						alicesSpent.Add(t.alice);
+					}
+					else if (response.Confirmations <= 0)
+					{
+						alicesUnconfirmed.Add(t.alice);
 					}
 				}
 
