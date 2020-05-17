@@ -223,12 +223,12 @@ namespace WalletWasabi.Backend.Controllers
 						// Check if unconfirmed.
 						if (getTxOutResponse.Confirmations <= 0)
 						{
-							allInputsConfirmed = false;
 							// If it spends a CJ then it may be acceptable to register.
 							if (!await Coordinator.ContainsUnconfirmedCoinJoinAsync(inputProof.Input.Hash))
 							{
 								return BadRequest("Provided input is neither confirmed, nor is from an unconfirmed coinjoin.");
 							}
+							allInputsConfirmed = false;
 						}
 
 						// Check if immature.
