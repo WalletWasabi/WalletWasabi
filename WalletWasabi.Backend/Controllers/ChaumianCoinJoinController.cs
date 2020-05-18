@@ -199,9 +199,7 @@ namespace WalletWasabi.Backend.Controllers
 					}
 
 					// Perform all RPC request at once
-					var waiting = Task.WhenAll(getTxOutResponses.Select(x => x.getTxOutTask));
 					await batch.SendBatchAsync();
-					await waiting;
 
 					byte[] blindedOutputScriptHashesByte = ByteHelpers.Combine(blindedOutputs.Select(x => x.ToBytes()));
 					uint256 blindedOutputScriptsHash = new uint256(Hashes.SHA256(blindedOutputScriptHashesByte));
