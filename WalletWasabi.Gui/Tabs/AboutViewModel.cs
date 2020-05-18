@@ -65,17 +65,17 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			base.OnOpen(disposables);
 
-			WasabiClient.CurrentBackendMajorVersionUpdated += WasabiClient_CurrentBackendMajorVersionUpdated;
+			WasabiClient.CurrentBackendMajorVersionChanged += WasabiClient_CurrentBackendMajorVersionChanged;
 		}
 
 		public override bool OnClose()
 		{
-			WasabiClient.CurrentBackendMajorVersionUpdated -= WasabiClient_CurrentBackendMajorVersionUpdated;
+			WasabiClient.CurrentBackendMajorVersionChanged -= WasabiClient_CurrentBackendMajorVersionChanged;
 
 			return base.OnClose();
 		}
 
-		private void WasabiClient_CurrentBackendMajorVersionUpdated(object sender, string currentBackendMajorVersion)
+		private void WasabiClient_CurrentBackendMajorVersionChanged(object sender, string currentBackendMajorVersion)
 		{
 			CurrentBackendMajorVersion = currentBackendMajorVersion;
 		}

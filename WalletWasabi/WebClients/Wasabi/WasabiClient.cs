@@ -35,7 +35,7 @@ namespace WalletWasabi.WebClients.Wasabi
 		{
 		}
 
-		public static event EventHandler<string> CurrentBackendMajorVersionUpdated;
+		public static event EventHandler<string> CurrentBackendMajorVersionChanged;
 
 		public static Dictionary<uint256, Transaction> TransactionCache { get; } = new Dictionary<uint256, Transaction>();
 		private static Queue<uint256> TransactionIdQueue { get; } = new Queue<uint256>();
@@ -261,8 +261,12 @@ namespace WalletWasabi.WebClients.Wasabi
 			var versions = await GetVersionsAsync(cancel);
 			var clientUpToDate = Constants.ClientVersion >= versions.ClientVersion; // If the client version locally is greater than or equal to the backend's reported client version, then good.
 			var backendCompatible = int.Parse(Constants.ClientSupportBackendVersionMax) >= versions.BackendMajorVersion && versions.BackendMajorVersion >= int.Parse(Constants.ClientSupportBackendVersionMin); // If ClientSupportBackendVersionMin <= backend major <= ClientSupportBackendVersionMax, then our software is compatible.
-			CurrentBackendMajorVersion = versions.BackendMajorVersion.ToString();
-			CurrentBackendMajorVersionUpdated?.Invoke(this, CurrentBackendMajorVersion);
+			var currentBackendMajorVersion = versions.BackendMajorVersion.ToString();
+			if (CurrentBackendMajorVersion != currentBackendMajorVersion)
+			{
+				CurrentBackendMajorVersion = currentBackendMajorVersion;
+				CurrentBackendMajorVersionChanged?.Invoke(this, CurrentBackendMajorVersion);
+			}
 
 			return new UpdateStatus(backendCompatible, clientUpToDate, versions.LegalDocumentsVersion);
 		}
