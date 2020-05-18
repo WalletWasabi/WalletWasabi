@@ -252,7 +252,7 @@ namespace WalletWasabi.Backend.Controllers
 						inputs.Add(new SmartInput(new Coin(inputProof.Input, txOut), isConfirmed));
 					}
 
-					if (inputs.All(x => x.IsConfirmed))
+					if (inputs.Any(x => !x.IsConfirmed))
 					{
 						// Check if mempool would accept a fake transaction created with the registered inputs.
 						// Fake outputs: mixlevels + 1 maximum, +1 because there can be a change.
