@@ -12,18 +12,6 @@ namespace WalletWasabi.Helpers
 {
 	public static class NBitcoinHelpers
 	{
-		private static readonly Money[] ReasonableFees = new[]
-		{
-			Money.Coins(0.002m),
-			Money.Coins(0.001m),
-			Money.Coins(0.0005m),
-			Money.Coins(0.0002m),
-			Money.Coins(0.0001m),
-			Money.Coins(0.00005m),
-			Money.Coins(0.00002m),
-			Money.Coins(0.00001m)
-		};
-
 		public static string HashOutpoints(IEnumerable<OutPoint> outPoints)
 		{
 			var sb = new StringBuilder();
@@ -35,20 +23,18 @@ namespace WalletWasabi.Helpers
 			return HashHelpers.GenerateSha256Hash(sb.ToString());
 		}
 
-		public static Money TakeAReasonableFee(Money inputValue)
+		/// <exception cref="InvalidOperationException">If valid output value cannot be created with the given parameters.</exception>
+		/// <returns>Sum of outputs' values. Sum of inputs' values - the calculated fee.</returns>
+		public static Money TakeFee(IEnumerable<Coin> inputs, int outputCount, Money feePerInputs, Money feePerOutputs)
 		{
-			Money half = inputValue / 2;
-
-			foreach (Money fee in ReasonableFees)
+			var inputValue = inputs.Sum(coin => coin.TxOut.Value);
+			var fee = inputs.Count() * feePerInputs + outputCount * feePerOutputs;
+			Money outputSum = inputValue - fee;
+			if (outputSum < Money.Zero)
 			{
-				Money diff = inputValue - fee;
-				if (diff > half)
-				{
-					return diff;
-				}
+				throw new InvalidOperationException($"{nameof(outputSum)} cannot be negative.");
 			}
-
-			return half;
+			return outputSum;
 		}
 
 		public static int CalculateVsizeAssumeSegwit(int inNum, int outNum)
