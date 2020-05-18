@@ -8,7 +8,7 @@ using WalletWasabi.Crypto;
 using WalletWasabi.JsonConverters;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.JsonConverters
+namespace WalletWasabi.Tests.UnitTests.JsonConvertersTest
 {
 	public class UnblindedSignatureTests
 	{

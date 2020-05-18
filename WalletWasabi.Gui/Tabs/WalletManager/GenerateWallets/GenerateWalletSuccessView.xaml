@@ -2,14 +2,28 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              x:Class="WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets.GenerateWalletSuccessView">
-  <StackPanel Margin="20" Spacing="10">
-    <TextBlock Text="Write down these Recovery Words!" FontWeight="Bold" />
-    <Border Padding="2" Background="White" HorizontalAlignment="Stretch" Opacity="0.8">
-      <controls:ExtendedTextBox Text="{Binding MnemonicWords, Mode=TwoWay}" Background="Transparent" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Classes="selectableTextBlock" />
+  <StackPanel Margin="10" Spacing="5">
+    <TextBlock Text="Write down these Recovery Words and Your Password" FontWeight="Bold" />
+    <Border Padding="10" Margin="10 0" HorizontalAlignment="Center">
+      <ItemsControl Items="{Binding MnemonicWords}">
+        <ItemsControl.Styles>
+          <Style Selector="TextBlock">
+            <Setter Property="FontSize" Value="22" />
+            <Setter Property="Margin" Value="40 10" />
+            <Setter Property="Height" Value="32" />
+          </Style>
+        </ItemsControl.Styles>
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel MaxHeight="220" Orientation="Vertical" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+      </ItemsControl>
     </Border>
     <TextBlock Text="You can recover your wallet on any computer with" />
     <TextBlock Text="- your Recovery Words AND" />
     <TextBlock Text="- your Password." />
-    <Button Margin="0 10 0 0" Background="IndianRed" Content="I wrote down my Recovery Words!" Command="{Binding ConfirmCommand}" />
+    <CheckBox Margin="0 10 0 0" HorizontalAlignment="Center" IsChecked="{Binding IsConfirmed}" Content="I have written down my password and recovery words." />
+    <Button Margin="0 10 0 0" HorizontalAlignment="Center" Content="Generate Wallet" Command="{Binding ConfirmCommand}" />
   </StackPanel>
 </UserControl>

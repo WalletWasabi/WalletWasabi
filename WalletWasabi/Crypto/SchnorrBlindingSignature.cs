@@ -9,9 +9,12 @@ namespace WalletWasabi.Crypto
 	{
 		public class Requester
 		{
-			Scalar _v = Scalar.Zero;
-			Scalar _c = Scalar.Zero;
-			Scalar _w = Scalar.Zero;
+#pragma warning disable IDE1006 // Naming Styles
+
+			private Scalar _v = Scalar.Zero;
+			private Scalar _c = Scalar.Zero;
+			private Scalar _w = Scalar.Zero;
+
 			public Requester()
 			{
 			}
@@ -25,7 +28,6 @@ namespace WalletWasabi.Crypto
 			public uint256 BlindMessage(uint256 message, PubKey rpubkey, PubKey signerPubKey)
 			{
 				var ctx = new ECMultGenContext();
-				int overflow;
 				Span<byte> tmp = stackalloc byte[32];
 
 				if (!Context.Instance.TryCreatePubKey(signerPubKey.ToBytes(), out var signerECPubkey))
@@ -36,25 +38,36 @@ namespace WalletWasabi.Crypto
 				{
 					throw new FormatException("Invalid r pubkey.");
 				}
+
 				var P = signerECPubkey.Q;
 				var R = rECPubKey.Q.ToGroupElementJacobian();
 				var t = FE.Zero;
+
 			retry:
 
 				RandomUtils.GetBytes(tmp);
-				_v = new Scalar(tmp, out overflow);
+				_v = new Scalar(tmp, out int overflow);
 				if (overflow != 0 || _v.IsZero)
+				{
 					goto retry;
+				}
+
 				RandomUtils.GetBytes(tmp);
 				_w = new Scalar(tmp, out overflow);
 				if (overflow != 0 || _v.IsZero)
+				{
 					goto retry;
+				}
+
 				var A1 = ctx.MultGen(_v);
 				var A2 = _w * P;
 				var A = R.AddVariable(A1, out _).AddVariable(A2, out _).ToGroupElement();
 				t = A.x.Normalize();
 				if (t.IsZero)
+				{
 					goto retry;
+				}
+
 				using (var sha = new SHA256())
 				{
 					message.ToBytes(tmp, false);
@@ -65,25 +78,36 @@ namespace WalletWasabi.Crypto
 				}
 				_c = new Scalar(tmp, out overflow);
 				if (overflow != 0 || _c.IsZero)
+				{
 					goto retry;
+				}
+
 				var cp = _c.Add(_w.Negate(), out overflow); // this is sent to the signer (blinded message)
 				if (cp.IsZero || overflow != 0)
+				{
 					goto retry;
+				}
+
 				cp.WriteToSpan(tmp);
 				return new uint256(tmp);
 			}
 
 			public UnblindedSignature UnblindSignature(uint256 blindSignature)
 			{
-				int overflow;
 				Span<byte> tmp = stackalloc byte[32];
 				blindSignature.ToBytes(tmp);
-				var sp = new Scalar(tmp, out overflow);
+				var sp = new Scalar(tmp, out int overflow);
 				if (sp.IsZero || overflow != 0)
+				{
 					throw new ArgumentException("Invalid blindSignature", nameof(blindSignature));
+				}
+
 				var s = sp + _v;
 				if (s.IsZero || s.IsOverflow)
+				{
 					throw new ArgumentException("Invalid blindSignature", nameof(blindSignature));
+				}
+
 				return new UnblindedSignature(_c, s);
 			}
 
@@ -96,6 +120,17 @@ namespace WalletWasabi.Crypto
 
 		public class Signer
 		{
+			public Signer(Key key)
+				: this(key, new Key())
+			{
+			}
+
+			public Signer(Key key, Key r)
+			{
+				R = r;
+				Key = key;
+			}
+
 			// The random generated r value. It is used to derivate an R point where
 			// R = r*G that has to be sent to the requester in order to allow him to
 			// blind the message to be signed.
@@ -104,23 +139,16 @@ namespace WalletWasabi.Crypto
 			// The signer key used for signing
 			public Key Key { get; }
 
-			public Signer(Key key)
-				: this(key, new Key())
-			{ }
-
-			public Signer(Key key, Key r)
-			{
-				R = r;
-				Key = key;
-			}
-
 			public uint256 Sign(uint256 blindedMessage)
 			{
 				Span<byte> tmp = stackalloc byte[32];
 				blindedMessage.ToBytes(tmp);
 				var cp = new Scalar(tmp, out int overflow);
 				if (cp.IsZero || overflow != 0)
-					throw new System.ArgumentException("Invalid blinded message.", nameof(blindedMessage));
+				{
+					throw new ArgumentException("Invalid blinded message.", nameof(blindedMessage));
+				}
+
 				if (!Context.Instance.TryCreateECPrivKey(R.ToBytes(), out var r))
 				{
 					throw new FormatException("Invalid key.");
@@ -137,13 +165,13 @@ namespace WalletWasabi.Crypto
 
 			public bool VerifyUnblindedSignature(UnblindedSignature signature, uint256 dataHash)
 			{
-				return SchnorrBlinding.VerifySignature(dataHash, signature, Key.PubKey);
+				return VerifySignature(dataHash, signature, Key.PubKey);
 			}
 
 			public bool VerifyUnblindedSignature(UnblindedSignature signature, byte[] data)
 			{
 				var hash = new uint256(Hashes.SHA256(data));
-				return SchnorrBlinding.VerifySignature(hash, signature, Key.PubKey);
+				return VerifySignature(hash, signature, Key.PubKey);
 			}
 		}
 
@@ -160,6 +188,7 @@ namespace WalletWasabi.Crypto
 			var cP = P * signature.C;
 			var R = cP + sG;
 			var t = R.ToGroupElement().x.Normalize();
+
 			using var sha = new SHA256();
 			Span<byte> tmp = stackalloc byte[32];
 			message.ToBytes(tmp, false);
@@ -169,5 +198,7 @@ namespace WalletWasabi.Crypto
 			sha.GetHash(tmp);
 			return new Scalar(tmp) == signature.C;
 		}
+
+#pragma warning restore IDE1006 // Naming Styles
 	}
 }

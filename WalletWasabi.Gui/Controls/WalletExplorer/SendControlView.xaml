@@ -55,8 +55,7 @@
               ToolTip.Tip="{Binding UsdExchangeRate, Converter={StaticResource UsdExchangeRateAmountToolTipConverter}}"
               Watermark="{Binding AmountWatermarkText}"
               UseFloatingWatermark="True"
-              MinWidth="124"
-              MinHeight="46">
+              MinWidth="124">
               <i:Interaction.Behaviors>
                 <behaviors:CommandOnKeyUpBehavior Command="{Binding AmountKeyUpCommand}" />
               </i:Interaction.Behaviors>
@@ -91,7 +90,7 @@
             </StackPanel>
             <StackPanel IsVisible="{Binding IsCustomFee}" VerticalAlignment="Center" Orientation="Horizontal" Spacing="10">
               <TextBlock Text="or set Fee:" />
-              <controls:ExtendedTextBox Text="{Binding UserFeeText, Mode=TwoWay}" Watermark="Fee (sat/vByte)" UseFloatingWatermark="True" MinWidth="124" MaxWidth="124" MinHeight="46">
+              <controls:ExtendedTextBox Text="{Binding UserFeeText, Mode=TwoWay}" Watermark="Fee (sat/vByte)" UseFloatingWatermark="True" MinWidth="124" MaxWidth="124">
                 <i:Interaction.Behaviors>
                   <behaviors:CommandOnKeyUpBehavior Command="{Binding UserFeeTextKeyUpCommand}" />
                 </i:Interaction.Behaviors>

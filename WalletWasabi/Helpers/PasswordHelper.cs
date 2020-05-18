@@ -162,7 +162,7 @@ namespace WalletWasabi.Helpers
 			if (IsTooLong(password, out _))
 			{
 				errors.Add(ErrorSeverity.Error, PasswordTooLongMessage);
-			}			
+			}
 		}
 	}
 }
