@@ -16,12 +16,16 @@ namespace System.Linq
 			foreach (var item in source)
 			{
 				if (bucket == null)
+				{
 					bucket = new T[size];
+				}
 
 				bucket[count++] = item;
 
 				if (count != size)
+				{
 					continue;
+				}
 
 				yield return bucket.Select(x => x);
 
@@ -89,7 +93,7 @@ namespace System.Linq
 			}
 		}
 
-		public static void AddToValueList<TKey, TValue, Telem>(this Dictionary<TKey, TValue> myDic, TKey key, Telem elem) where TValue : List<Telem>
+		public static void AddToValueList<TKey, TValue, TElem>(this Dictionary<TKey, TValue> myDic, TKey key, TElem elem) where TValue : List<TElem>
 		{
 			if (myDic.ContainsKey(key))
 			{
@@ -97,7 +101,7 @@ namespace System.Linq
 			}
 			else
 			{
-				myDic.Add(key, new List<Telem>() { elem } as TValue);
+				myDic.Add(key, new List<TElem>() { elem } as TValue);
 			}
 		}
 
