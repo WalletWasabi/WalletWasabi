@@ -258,8 +258,8 @@ namespace WalletWasabi.Backend.Controllers
 					if (!allInputsConfirmed)
 					{
 						// Check if mempool would accept a fake transaction created with the registered inputs.
-						// Fake outputs: 200 + 400 because the size of a bech32 input is roughly the size of an output. To emulate total CoinJoin size this'd be a 200 inputs + 400 outputs tx and 0.9/600=0.0015, which is well above the dust, so should be good.
-						var result = await RpcClient.TestMempoolAcceptAsync(inputs, fakeOutputsCount: 200 + 400);
+						// Fake outputs: 12 maximum, because there's 11 denom level + change.
+						var result = await RpcClient.TestMempoolAcceptAsync(inputs, fakeOutputCount: 12, round.FeePerInputs, round.FeePerOutputs);
 						if (!result.accept)
 						{
 							return BadRequest($"Provided input is from an unconfirmed coinjoin, but a limit is reached: {result.rejectReason}");

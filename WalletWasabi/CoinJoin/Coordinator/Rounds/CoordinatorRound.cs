@@ -1248,12 +1248,12 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 		{
 			// Check if mempool would accept a fake transaction created with all the registered inputs.
 			var coinsToTest = Alices.SelectMany(alice => alice.Inputs);
-			// Add the outputs by denomination level.
-			var outputsAll = Alices.Sum(alice => EstimateBestMixingLevel(alice));
+			// Add the outputs by denomination level. Add 1 as estimation could be sometimes off by 1.
+			var outputCount = Alices.Sum(alice => EstimateBestMixingLevel(alice) + 1);
 			// Add the change outputs.
-			outputsAll += Alices.Count;
+			outputCount += Alices.Count;
 
-			return await RpcClient.TestMempoolAcceptAsync(coinsToTest, fakeOutputsCount: outputsAll).ConfigureAwait(false);
+			return await RpcClient.TestMempoolAcceptAsync(coinsToTest, fakeOutputCount: outputCount, FeePerInputs, FeePerOutputs).ConfigureAwait(false);
 		}
 
 		public int RemoveAlicesBy(params Guid[] ids)
