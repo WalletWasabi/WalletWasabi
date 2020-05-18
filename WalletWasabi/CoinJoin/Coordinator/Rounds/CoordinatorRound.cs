@@ -585,14 +585,14 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			RemoveAlicesBy(additionalAlicesToBan.Select(x => x.UniqueId).Concat(alicesToBan.Select(y => y.UniqueId)).Distinct().ToArray());
 
 			int aliceCountAfterConnectionConfirmationTimeout = CountAlices();
-			int didNotConfirmeCount = AnonymitySet - aliceCountAfterConnectionConfirmationTimeout;
+			int didNotConfirmCount = AnonymitySet - aliceCountAfterConnectionConfirmationTimeout;
 			if (aliceCountAfterConnectionConfirmationTimeout < 2)
 			{
-				Abort($"{didNotConfirmeCount} Alices did not confirm their connection.");
+				Abort($"{didNotConfirmCount} Alices did not confirm their connection.");
 			}
 			else
 			{
-				if (didNotConfirmeCount > 0)
+				if (didNotConfirmCount > 0)
 				{
 					// Adjust anonymity set.
 					UpdateAnonymitySet(aliceCountAfterConnectionConfirmationTimeout);
