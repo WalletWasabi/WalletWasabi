@@ -1191,15 +1191,22 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 				var alicesSpent = new HashSet<Alice>();
 				var alicesUnconfirmed = new HashSet<Alice>();
-				foreach (var (alice, resp) in responses)
+				foreach (var (alice, input, resp) in responses)
 				{
+					var smartInput = alice.SmartInputs.First(x => x.Coin.Outpoint == input);
 					if (resp is null)
 					{
 						alicesSpent.Add(alice);
+						// Let's leave the smartinput confirmation here alone. This call doesn't tell us if it changed or not.
 					}
 					else if (resp.Confirmations <= 0)
 					{
 						alicesUnconfirmed.Add(alice);
+						smartInput.IsConfirmed = false;
+					}
+					else
+					{
+						smartInput.IsConfirmed = true;
 					}
 				}
 
@@ -1235,9 +1242,9 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			}
 		}
 
-		private async Task<List<(Alice alice, GetTxOutResponse resp)>> GetTxOutForAllInputsAsync()
+		private async Task<List<(Alice alice, OutPoint input, GetTxOutResponse resp)>> GetTxOutForAllInputsAsync()
 		{
-			var responses = new List<(Alice alice, GetTxOutResponse resp)>();
+			var responses = new List<(Alice alice, OutPoint input, GetTxOutResponse resp)>();
 
 			var inputAliceDic = new Dictionary<OutPoint, Alice>();
 			foreach (Alice alice in Alices)
@@ -1250,14 +1257,14 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 			foreach (var dicBatch in inputAliceDic.Batch(8)) // 8 is default rpcworkqueue/2, so other requests can go.
 			{
-				var checkingTasks = new List<(Alice alice, Task<GetTxOutResponse> task)>();
+				var checkingTasks = new List<(Alice alice, OutPoint input, Task<GetTxOutResponse> task)>();
 				var batch = RpcClient.PrepareBatch();
 
 				foreach (var aliceInput in dicBatch)
 				{
 					var alice = aliceInput.Value;
 					var input = aliceInput.Key;
-					checkingTasks.Add((alice, batch.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true)));
+					checkingTasks.Add((alice, input, batch.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true)));
 				}
 
 				await batch.SendBatchAsync().ConfigureAwait(false);
@@ -1265,7 +1272,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				foreach (var t in checkingTasks)
 				{
 					var resp = await t.task.ConfigureAwait(false);
-					responses.Add((t.alice, resp));
+					responses.Add((t.alice, t.input, resp));
 				}
 			}
 

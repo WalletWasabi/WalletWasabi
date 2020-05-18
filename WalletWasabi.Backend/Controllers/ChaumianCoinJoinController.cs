@@ -204,9 +204,8 @@ namespace WalletWasabi.Backend.Controllers
 					byte[] blindedOutputScriptHashesByte = ByteHelpers.Combine(blindedOutputs.Select(x => x.ToBytes()));
 					uint256 blindedOutputScriptsHash = new uint256(Hashes.SHA256(blindedOutputScriptHashesByte));
 
-					var inputs = new HashSet<Coin>();
+					var inputs = new HashSet<SmartInput>();
 
-					var allInputsConfirmed = true;
 					foreach (var responses in getTxOutResponses)
 					{
 						var (inputProof, getTxOutResponseTask) = responses;
@@ -219,14 +218,14 @@ namespace WalletWasabi.Backend.Controllers
 						}
 
 						// Check if unconfirmed.
-						if (getTxOutResponse.Confirmations <= 0)
+						var isConfirmed = getTxOutResponse.Confirmations > 0;
+						if (!isConfirmed)
 						{
 							// If it spends a CJ then it may be acceptable to register.
 							if (!await Coordinator.ContainsUnconfirmedCoinJoinAsync(inputProof.Input.Hash))
 							{
 								return BadRequest("Provided input is neither confirmed, nor is from an unconfirmed coinjoin.");
 							}
-							allInputsConfirmed = false;
 						}
 
 						// Check if immature.
@@ -250,14 +249,14 @@ namespace WalletWasabi.Backend.Controllers
 							return BadRequest("Provided proof is invalid.");
 						}
 
-						inputs.Add(new Coin(inputProof.Input, txOut));
+						inputs.Add(new SmartInput(new Coin(inputProof.Input, txOut), isConfirmed));
 					}
 
-					if (!allInputsConfirmed)
+					if (inputs.All(x => x.IsConfirmed))
 					{
 						// Check if mempool would accept a fake transaction created with the registered inputs.
 						// Fake outputs: mixlevels + 1 maximum, +1 because there can be a change.
-						var result = await RpcClient.TestMempoolAcceptAsync(inputs, fakeOutputCount: round.MixingLevels.Count() + 1, round.FeePerInputs, round.FeePerOutputs);
+						var result = await RpcClient.TestMempoolAcceptAsync(inputs.Select(x => x.Coin), fakeOutputCount: round.MixingLevels.Count() + 1, round.FeePerInputs, round.FeePerOutputs);
 						if (!result.accept)
 						{
 							return BadRequest($"Provided input is from an unconfirmed coinjoin, but a limit is reached: {result.rejectReason}");
@@ -271,7 +270,7 @@ namespace WalletWasabi.Backend.Controllers
 					Money networkFeeToPayAfterBaseDenomination = (inputCount * round.FeePerInputs) + (2 * round.FeePerOutputs);
 
 					// Check if inputs have enough coins.
-					Money inputSum = inputs.Sum(x => x.Amount);
+					Money inputSum = inputs.Sum(x => x.Coin.Amount);
 					Money changeAmount = (inputSum - (round.MixingLevels.GetBaseDenomination() + networkFeeToPayAfterBaseDenomination));
 					if (changeAmount < Money.Zero)
 					{
