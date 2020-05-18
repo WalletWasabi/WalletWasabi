@@ -987,6 +987,14 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			}
 		}
 
+		public IEnumerable<Alice> GetAllAlices()
+		{
+			using (RoundSynchronizerLock.Lock())
+			{
+				return Alices.ToList();
+			}
+		}
+
 		public Alice TryGetAliceBy(Guid uniqueId)
 		{
 			using (RoundSynchronizerLock.Lock())
