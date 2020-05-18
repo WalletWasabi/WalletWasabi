@@ -573,8 +573,12 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			// THEN connection confirmation will go with 2 alices in every round
 			// Therefore Alices that did not confirm, nor requested disconnection should be banned:
 
-			IEnumerable<Alice> alicesToBan = await RemoveAlicesIfAnInputRefusedByMempoolAsync().ConfigureAwait(false); // So ban only those who confirmed participation, yet spent their inputs.
+			var alicesRemoved = await RemoveAlicesIfAnInputRefusedByMempoolAsync().ConfigureAwait(false); // So ban only those who confirmed participation, yet spent their inputs.
 
+			// There's the question of alices who spent their inputs but confirmed connection and alices who we removed because their inputs were unconfirmed and the resulting mempool chain was too big.
+			// We should ban alices who spent their coins, but not the ones who ended up being in a large mempool chain.
+			// However note that even alices who spent their coins don't have to be banned, since the attack described here would still be probably very expensive. Anyway, to be sure let's ban them.
+			IEnumerable<Alice> alicesToBan = alicesRemoved.removedSpentAlices;
 			IEnumerable<OutPoint> inputsToBan = alicesToBan.SelectMany(x => x.Inputs).Select(y => y.Outpoint).Concat(additionalAlicesToBan.SelectMany(x => x.Inputs).Select(y => y.Outpoint)).Distinct();
 
 			if (inputsToBan.Any())
@@ -1165,11 +1169,10 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			Logger.LogInfo($"Round ({RoundId}): Bob ({bob.Level.Denomination}) added.");
 		}
 
-		public async Task<IEnumerable<Alice>> RemoveAlicesIfAnInputRefusedByMempoolAsync()
+		public async Task<(IEnumerable<Alice> removedSpentAlices, IEnumerable<Alice> removedUnconfirmedAlices)> RemoveAlicesIfAnInputRefusedByMempoolAsync()
 		{
 			using (await RoundSynchronizerLock.LockAsync().ConfigureAwait(false))
 			{
-				// Removing Alice without penalty can only happen in early phases.
 				if ((Phase != RoundPhase.InputRegistration && Phase != RoundPhase.ConnectionConfirmation) || Status != CoordinatorRoundStatus.Running)
 				{
 					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
@@ -1179,7 +1182,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				(bool accept, string rejectReason) resultAll = await TestMempoolAcceptWithTransactionSimulationAsync().ConfigureAwait(false);
 				if (resultAll.accept)
 				{
-					return Enumerable.Empty<Alice>();
+					return (Enumerable.Empty<Alice>(), Enumerable.Empty<Alice>());
 				}
 				Logger.LogInfo($"Mempool acceptance is unsuccessful! Number of Alices: {Alices.Count}.");
 
@@ -1227,7 +1230,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 					resultAll = await TestMempoolAcceptWithTransactionSimulationAsync().ConfigureAwait(false);
 					if (resultAll.accept)
 					{
-						return alicesSpent;
+						return (alicesSpent, Enumerable.Empty<Alice>());
 					}
 					Logger.LogInfo($"Mempool acceptance is unsuccessful! Number of Alices: {Alices.Count}.");
 				}
@@ -1240,7 +1243,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 					Logger.LogInfo($"Round ({RoundId}): Alice ({alice.UniqueId}) removed, because of unconfirmed inputs.");
 				}
 
-				return alicesSpent.Union(alicesUnconfirmed);
+				return (alicesSpent, alicesUnconfirmed);
 			}
 		}
 
