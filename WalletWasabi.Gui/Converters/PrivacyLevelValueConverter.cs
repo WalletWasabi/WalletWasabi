@@ -36,41 +36,40 @@ namespace WalletWasabi.Gui.Converters
 
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (value is int integer)
-			{
-				var config = Locator.Current.GetService<Global>().Config;
-				string shield;
-				string toolTip = null;
-				if (integer < config.PrivacyLevelSome)
-				{
-					shield = "Critical";
-				}
-				else if (integer < config.PrivacyLevelFine)
-				{
-					shield = "Some";
-				}
-				else if (integer < config.PrivacyLevelStrong)
-				{
-					shield = "Fine";
-				}
-				else if (integer < 9000)
-				{
-					shield = "Strong";
-				}
-				else // It's Over 9000!
-				{
-					shield = "Saiyan";
-					toolTip = "It's over 9000!!!";
-				}
+			var config = Locator.Current.GetService<Global>().Config;
+			string shield;
+			string toolTip = null;
 
-				toolTip ??= $"Anonymity Set: {integer}";
-				var icon = GetIconByName($"Privacy{shield}");
-				return new { Icon = icon, ToolTip = toolTip };
-			}
-			else
+			// value can be a string (CoinJoinUntilAnonymitySet) or an int (AnonymitySet)
+			int integer = value is int
+				? (int)value
+				: config.GetAnonymitySet(value.ToString());
+
+			if (integer < config.PrivacyLevelSome)
 			{
-				throw new TypeArgumentException(value, typeof(int), nameof(value));
+				shield = "Critical";
 			}
+			else if (integer < config.PrivacyLevelFine)
+			{
+				shield = "Some";
+			}
+			else if (integer < config.PrivacyLevelStrong)
+			{
+				shield = "Fine";
+			}
+			else if (integer < 9000)
+			{
+				shield = "Strong";
+			}
+			else // It's Over 9000!
+			{
+				shield = "Saiyan";
+				toolTip = "It's over 9000!!!";
+			}
+
+			toolTip ??= $"Anonymity Set: {integer}";
+			var icon = GetIconByName($"Privacy{shield}");
+			return new { Icon = icon, ToolTip = toolTip };
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
