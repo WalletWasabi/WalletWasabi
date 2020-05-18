@@ -222,7 +222,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 			{
 				int runningRoundCount = Rounds.Count(x => x.Status == CoordinatorRoundStatus.Running);
 
-				int confirmationTarget = await CalculateStartingConfirmationTargetAsync().ConfigureAwait(false);
+				int confirmationTarget = await AdjustConfirmationTargetAsync(lockCoinJoins: true).ConfigureAwait(false);
 
 				if (runningRoundCount == 0)
 				{
@@ -250,45 +250,22 @@ namespace WalletWasabi.CoinJoin.Coordinator
 		}
 
 		/// <summary>
-		/// Depending on the number of unconfirmed coinjoins between alices's inputs.
-		/// </summary>
-		private int AdjustConfirmationTarget(IEnumerable<Alice> alices)
-		{
-			try
-			{
-				var uniqueInputTxs = alices.SelectMany(x => x.Inputs).Select(x => x.Outpoint.Hash).Distinct();
-				int unconfirmedCoinJoinsCount = 0;
-				foreach (var tx in uniqueInputTxs)
-				{
-					var found = alices.SelectMany(x => x.SmartInputs).Where(x => !x.IsConfirmed).FirstOrDefault(x => x.Coin.Outpoint.N == tx);
-					if (found is { })
-					{
-						unconfirmedCoinJoinsCount++;
-					}
-				}
-
-				int confirmationTarget = CoordinatorRound.AdjustConfirmationTarget(unconfirmedCoinJoinsCount, RoundConfig.ConfirmationTarget, RoundConfig.ConfirmationTargetReductionRate);
-				return confirmationTarget;
-			}
-			catch (Exception ex)
-			{
-				Logger.LogWarning("Adjusting confirmation target failed. Falling back to default, specified in config.");
-				Logger.LogWarning(ex);
-
-				return RoundConfig.ConfirmationTarget;
-			}
-		}
-
-		/// <summary>
-		/// Depending on the number of unconfirmed coinjoins.
+		/// Depending on the number of unconfirmed coinjoins lower the confirmation target.
 		/// https://github.com/zkSNACKs/WalletWasabi/issues/1155
 		/// </summary>
-		private async Task<int> CalculateStartingConfirmationTargetAsync()
+		private async Task<int> AdjustConfirmationTargetAsync(bool lockCoinJoins)
 		{
 			try
 			{
 				int unconfirmedCoinJoinsCount = 0;
-				using (await CoinJoinsLock.LockAsync().ConfigureAwait(false))
+				if (lockCoinJoins)
+				{
+					using (await CoinJoinsLock.LockAsync().ConfigureAwait(false))
+					{
+						unconfirmedCoinJoinsCount = UnconfirmedCoinJoins.Count;
+					}
+				}
+				else
 				{
 					unconfirmedCoinJoinsCount = UnconfirmedCoinJoins.Count;
 				}
@@ -337,7 +314,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 						{
 							Money activeOutputAmount = bestOutput.value;
 
-							int currentConfirmationTarget = AdjustConfirmationTarget(round.GetAllAlices());
+							int currentConfirmationTarget = await AdjustConfirmationTargetAsync(lockCoinJoins: false).ConfigureAwait(false);
 							var fees = await CoordinatorRound.CalculateFeesAsync(RpcClient, currentConfirmationTarget).ConfigureAwait(false);
 							feePerInputs = fees.feePerInputs;
 							feePerOutputs = fees.feePerOutputs;
