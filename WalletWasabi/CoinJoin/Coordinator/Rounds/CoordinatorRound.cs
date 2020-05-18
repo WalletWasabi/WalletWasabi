@@ -1186,32 +1186,20 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				}
 				Logger.LogInfo($"Mempool acceptance is unsuccessful! Number of Alices: {Alices.Count}.");
 
+				// The created tx was not accepted. Let's figure out why. Is it because an Alice doublespent or because of too long mempool chains.
+				var responses = await GetTxOutForAllInputsAsync().ConfigureAwait(false);
+
 				var alicesSpent = new HashSet<Alice>();
 				var alicesUnconfirmed = new HashSet<Alice>();
-				// The created tx was not accepted. Let's figure out why. Is it because an Alice doublespent or because of too long mempool chains.
-				var checkingTasks = new List<(Alice alice, Task<GetTxOutResponse> task)>();
-				var batch = RpcClient.PrepareBatch();
-				foreach (Alice alice in Alices)
+				foreach (var (alice, resp) in responses)
 				{
-					foreach (var input in alice.Inputs.Select(x => x.Outpoint))
+					if (resp is null)
 					{
-						checkingTasks.Add((alice, batch.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true)));
+						alicesSpent.Add(alice);
 					}
-				}
-				var waiting = Task.WhenAll(checkingTasks.Select(t => t.task));
-				await batch.SendBatchAsync().ConfigureAwait(false);
-				await waiting.ConfigureAwait(false);
-
-				foreach (var t in checkingTasks)
-				{
-					var response = await t.task.ConfigureAwait(false);
-					if (response is null)
+					else if (resp.Confirmations <= 0)
 					{
-						alicesSpent.Add(t.alice);
-					}
-					else if (response.Confirmations <= 0)
-					{
-						alicesUnconfirmed.Add(t.alice);
+						alicesUnconfirmed.Add(alice);
 					}
 				}
 
@@ -1245,6 +1233,44 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 				return (alicesSpent, alicesUnconfirmed);
 			}
+		}
+
+		private async Task<List<(Alice alice, GetTxOutResponse resp)>> GetTxOutForAllInputsAsync()
+		{
+			var responses = new List<(Alice alice, GetTxOutResponse resp)>();
+
+			var inputAliceDic = new Dictionary<OutPoint, Alice>();
+			foreach (Alice alice in Alices)
+			{
+				foreach (var input in alice.Inputs.Select(x => x.Outpoint))
+				{
+					inputAliceDic.Add(input, alice);
+				}
+			}
+
+			foreach (var dicBatch in inputAliceDic.Batch(8)) // 8 is default rpcworkqueue/2, so other requests can go.
+			{
+				var checkingTasks = new List<(Alice alice, Task<GetTxOutResponse> task)>();
+				var batch = RpcClient.PrepareBatch();
+
+				foreach (var aliceInput in dicBatch)
+				{
+					var alice = aliceInput.Value;
+					var input = aliceInput.Key;
+					checkingTasks.Add((alice, batch.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true)));
+				}
+				var waiting = Task.WhenAll(checkingTasks.Select(t => t.task)); // Not sure this waiting is needed, but no test gets here, so oh well.
+				await batch.SendBatchAsync().ConfigureAwait(false);
+				await waiting.ConfigureAwait(false);
+
+				foreach (var t in checkingTasks)
+				{
+					var resp = await t.task.ConfigureAwait(false);
+					responses.Add((t.alice, resp));
+				}
+			}
+
+			return responses;
 		}
 
 		private async Task<(bool accept, string rejectReason)> TestMempoolAcceptWithTransactionSimulationAsync()
