@@ -48,7 +48,7 @@ namespace WalletWasabi.Services
 			if (e.PropertyName == nameof(WasabiSynchronizer.BackendStatus) &&
 				Synchronizer.BackendStatus == BackendStatus.Connected)
 			{
-				// Any time when the synchronizer detects the backend, we immediately check the versions.
+				// Any time when the synchronizer detects the backend, we immediately check the versions. GUI relies on UpdateStatus changes.
 				TriggerRound();
 			}
 		}
