@@ -1259,9 +1259,8 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 					var input = aliceInput.Key;
 					checkingTasks.Add((alice, batch.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true)));
 				}
-				var waiting = Task.WhenAll(checkingTasks.Select(t => t.task)); // Not sure this waiting is needed, but no test gets here, so oh well.
+
 				await batch.SendBatchAsync().ConfigureAwait(false);
-				await waiting.ConfigureAwait(false);
 
 				foreach (var t in checkingTasks)
 				{
