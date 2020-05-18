@@ -220,7 +220,15 @@ namespace NBitcoin.RPC
 			// This will catch ascendant/descendant count and size limits for example.
 			var fakeTransaction = rpc.Network.CreateTransaction();
 			fakeTransaction.Inputs.AddRange(coins.Select(coin => new TxIn(coin.Outpoint)));
-			Money totalFakeOutputsValue = NBitcoinHelpers.TakeFee(coins, fakeOutputCount, feePerInputs, feePerOutputs);
+			Money totalFakeOutputsValue;
+			try
+			{
+				totalFakeOutputsValue = NBitcoinHelpers.TakeFee(coins, fakeOutputCount, feePerInputs, feePerOutputs);
+			}
+			catch (InvalidOperationException ex)
+			{
+				return (false, ex.Message);
+			}
 			for (int i = 0; i < fakeOutputCount; i++)
 			{
 				var fakeOutputValue = totalFakeOutputsValue / fakeOutputCount;

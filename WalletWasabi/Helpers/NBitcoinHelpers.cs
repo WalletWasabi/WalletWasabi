@@ -23,6 +23,8 @@ namespace WalletWasabi.Helpers
 			return HashHelpers.GenerateSha256Hash(sb.ToString());
 		}
 
+		/// <exception cref="InvalidOperationException">If valid output value cannot be created with the given parameters.</exception>
+		/// <returns>Sum of outputs' values. Sum of inputs' values - the calculated fee.</returns>
 		public static Money TakeFee(IEnumerable<Coin> inputs, int outputCount, Money feePerInputs, Money feePerOutputs)
 		{
 			var inputValue = inputs.Sum(coin => coin.TxOut.Value);
