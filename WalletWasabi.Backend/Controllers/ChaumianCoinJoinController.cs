@@ -258,8 +258,8 @@ namespace WalletWasabi.Backend.Controllers
 					if (!allInputsConfirmed)
 					{
 						// Check if mempool would accept a fake transaction created with the registered inputs.
-						// Fake outputs: 12 maximum, because there's 11 denom level + change.
-						var result = await RpcClient.TestMempoolAcceptAsync(inputs, fakeOutputCount: 12, round.FeePerInputs, round.FeePerOutputs);
+						// Fake outputs: mixlevels + 1 maximum, +1 because there can be a change.
+						var result = await RpcClient.TestMempoolAcceptAsync(inputs, fakeOutputCount: round.MixingLevels.Count() + 1, round.FeePerInputs, round.FeePerOutputs);
 						if (!result.accept)
 						{
 							return BadRequest($"Provided input is from an unconfirmed coinjoin, but a limit is reached: {result.rejectReason}");
