@@ -180,10 +180,6 @@ namespace WalletWasabi.Services
 
 								response = await WasabiClient.GetSynchronizeAsync(hashChain.TipHash, maxFiltersToSyncAtInitialization, estimateMode, Cancel.Token).WithAwaitCancellationAsync(Cancel.Token, 300);
 
-								if (BackendStatus != BackendStatus.Connected)
-								{
-									await WasabiClient.CheckUpdatesAsync(Cancel.Token).ConfigureAwait(false);
-								}
 								// NOT GenSocksServErr
 								BackendStatus = BackendStatus.Connected;
 								TorStatus = TorStatus.Running;
@@ -207,6 +203,15 @@ namespace WalletWasabi.Services
 							{
 								TorStatus = TorStatus.Running;
 								BackendStatus = BackendStatus.Connected;
+								try
+								{
+									// Backend API version might be updated meanwhile. Trying to update the versions.
+									await WasabiClient.CheckUpdatesAsync(Cancel.Token).ConfigureAwait(false);
+								}
+								catch (Exception x)
+								{
+									Logger.LogError(x);
+								}
 								HandleIfGenSocksServFail(ex);
 								throw;
 							}
