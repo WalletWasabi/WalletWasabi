@@ -74,6 +74,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 		public uint StartingHeight { get; }
 		public bool IsRunning => Interlocked.Read(ref _serviceStatus) == Running;
 		public bool IsStopping => Interlocked.Read(ref _serviceStatus) >= Stopping;
+		public DateTimeOffset LastFilterBuildTime { get; private set; }
 
 		public static GolombRiceFilter CreateDummyEmptyFilter(uint256 blockHash)
 		{
@@ -222,6 +223,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 								{
 									Logger.LogDebug($"Created filter for block: {nextHeight}.");
 								}
+								LastFilterBuildTime = DateTimeOffset.UtcNow;
 							}
 							catch (Exception ex)
 							{
