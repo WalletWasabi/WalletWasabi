@@ -2,7 +2,7 @@ trigger:
   batch: true
 
 variables:
-  testConfiguration: 'Debug'
+  testConfiguration: 'Release'
 
 jobs:
 - job: Windows
