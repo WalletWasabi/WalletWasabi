@@ -2,7 +2,7 @@ trigger:
   batch: true
 
 variables:
-  testConfiguration: 'Release'
+  testConfiguration: 'Debug'
 
 jobs:
 - job: Windows
@@ -28,4 +28,4 @@ jobs:
     inputs:
       command: test
       projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
-      arguments: --configuration $(testConfiguration) --filter "NodeBuildingTests"
+      arguments: --configuration $(testConfiguration) --filter "UnitTests"
