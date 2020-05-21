@@ -83,37 +83,25 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private IPayjoinClient GetPayjoinClient()
 		{
 			if (!string.IsNullOrWhiteSpace(PayjoinEndPoint) &&
-			    Uri.IsWellFormedUriString(PayjoinEndPoint, UriKind.Absolute))
+				Uri.IsWellFormedUriString(PayjoinEndPoint, UriKind.Absolute))
 			{
 				var payjoinEndPointUri = new Uri(PayjoinEndPoint);
-				if (Global.Config.UseTor)
+				if (!Global.Config.UseTor)
 				{
-					return new PayjoinClient(payjoinEndPointUri, Global.TorManager.TorSocks5EndPoint);
+					if (payjoinEndPointUri.DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
+					{
+						Logger.LogWarning("Payjoin server is a hidden service but Tor is disabled. Ignoring...");
+						return null;
+					}
+
+					if (Global.Config.Network != Network.RegTest && payjoinEndPointUri.Scheme != "https")
+					{
+						Logger.LogWarning("Payjoin server is not using https. Ignoring...");
+						return null;
+					}
 				}
 
-				if (payjoinEndPointUri.DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
-				{
-					Logger.LogWarning("Payjoin server is a hidden service but Tor is disabled. Ignoring...");
-					return null;
-				}
-				
-				if (Global.Config.Network != Network.RegTest && payjoinEndPointUri.Scheme != "https")
-				{
-					Logger.LogWarning("Payjoin server is not using https. Ignoring...");
-					return null;
-				}
-				
-				// TODO: Use an IHttpClientFactory to construct the HttpClient
-				if (Global.Config.Network == Network.RegTest)
-				{
-					HttpClientHandler clientHandler = new HttpClientHandler();
-					clientHandler.ServerCertificateCustomValidationCallback =
-						(sender, cert, chain, sslPolicyErrors) => true;
-
-					return new PayjoinClient(payjoinEndPointUri, new HttpClient(clientHandler));
-				}
-
-				return new PayjoinClient(payjoinEndPointUri, new HttpClient());
+				return new PayjoinClient(payjoinEndPointUri, Global.TorManager.TorSocks5EndPoint);
 			}
 
 			return null;

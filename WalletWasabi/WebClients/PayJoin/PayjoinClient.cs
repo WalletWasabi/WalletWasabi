@@ -23,12 +23,6 @@ namespace WalletWasabi.WebClients.PayJoin
 			TorHttpClient = new TorHttpClient(PaymentUrl, TorSocks5EndPoint);
 		}
 
-		public PayjoinClient(Uri paymentUrl, HttpClient httpClient)
-		{
-			PaymentUrl = Guard.NotNull(nameof(paymentUrl), paymentUrl);
-			ClearnetHttpClient = Guard.NotNull(nameof(httpClient), httpClient);
-		}
-
 		// For testing only
 		internal PayjoinClient(ITorHttpClient httpClient)
 		{
@@ -38,7 +32,6 @@ namespace WalletWasabi.WebClients.PayJoin
 		public Uri PaymentUrl { get; }
 		private EndPoint TorSocks5EndPoint { get; }
 		private ITorHttpClient TorHttpClient { get; }
-		private HttpClient ClearnetHttpClient { get; }
 
 		public async Task<PSBT> RequestPayjoin(PSBT originalTx, IHDKey accountKey, RootedKeyPath rootedKeyPath, CancellationToken cancellationToken)
 		{
@@ -81,23 +74,7 @@ namespace WalletWasabi.WebClients.PayJoin
 				Content = new StringContent(cloned.ToHex(), Encoding.UTF8, "text/plain")
 			};
 
-			HttpResponseMessage bpuResponse = null;
-			if (TorHttpClient is null)
-			{
-				if (ClearnetHttpClient is null)
-				{
-					throw new NullReferenceException(
-						"A Tor HttpClient OR a clearnet HttpClient needs to be provided to the Payjoin client");
-				}
-				else
-				{
-					bpuResponse = await ClearnetHttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
-				}
-			}
-			else
-			{
-				bpuResponse = await TorHttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
-			}
+			HttpResponseMessage bpuResponse = await TorHttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
 			if (!bpuResponse.IsSuccessStatusCode)
 			{
