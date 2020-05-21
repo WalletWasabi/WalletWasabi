@@ -1,15 +1,18 @@
 using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.ObjectModel;
 using System.Composition;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets;
 using WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets;
 using WalletWasabi.Gui.Tabs.WalletManager.LoadWallets;
 using WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
@@ -92,6 +95,28 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					category?.OnCategorySelected();
 					CurrentView = category;
 				});
+
+			var global = Locator.Current.GetService<Global>();
+			var walletManager = global.WalletManager;
+
+			if (!walletManager.GetWallets().Any(wallet => wallet.State == WalletState.Started))
+			{
+				// If there aren't any opened wallet then close this walletmanager if the first wallet loaded.
+				Observable
+					.FromEventPattern<WalletState>(walletManager, nameof(walletManager.WalletStateChanged))
+					.Select(x => x.EventArgs)
+					.Where(x => x == WalletState.Started)
+					.Take(1)
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.Subscribe(wallet =>
+					{
+						// Only close this tab if the user still looking at the load tab.
+						if (CurrentView == LoadWalletDesktop)
+						{
+							OnClose();
+						}
+					}).DisposeWith(disposables);
+			}
 		}
 
 		public override bool OnClose()
