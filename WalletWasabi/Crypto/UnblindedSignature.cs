@@ -64,7 +64,7 @@ namespace WalletWasabi.Crypto
 		public static bool TryParse(string str, out UnblindedSignature? unblindedSignature)
 		{
 			unblindedSignature = null;
-			if (str == null)
+			if (str is null)
 			{
 				throw new ArgumentNullException(nameof(str));
 			}
