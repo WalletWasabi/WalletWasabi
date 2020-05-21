@@ -119,7 +119,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			base.OnAddressPaste(url);
 
-			if (url.UnknowParameters.TryGetValue("bpu", out var endPoint) || url.UnknowParameters.TryGetValue("pj", out endPoint))
+			if (url.UnknowParameters.TryGetValue("pj", out var endPoint))
 			{
 				if (!Wallet.KeyManager.IsWatchOnly)
 				{
