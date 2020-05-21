@@ -37,6 +37,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}, this.WhenAnyValue(x => x.WalletState).Select(x => x == WalletState.Uninitialized));
 		}
 
+		public ReactiveCommand<Unit, Unit> OpenWalletCommand { get; }
+
 		public static WalletViewModelBase Create(Wallet wallet)
 		{
 			if (wallet.KeyManager.IsHardwareWallet)
@@ -52,7 +54,5 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return new ClosedWalletViewModel(wallet);
 			}
 		}
-
-		public ReactiveCommand<Unit, Unit> OpenWalletCommand { get; }
 	}
 }
