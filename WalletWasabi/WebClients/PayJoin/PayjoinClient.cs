@@ -18,7 +18,8 @@ namespace WalletWasabi.WebClients.PayJoin
 	{
 		public PayjoinClient(Uri paymentUrl, EndPoint torSocks5EndPoint)
 		{
-			TorSocks5EndPoint = Guard.NotNull(nameof(torSocks5EndPoint), torSocks5EndPoint);
+			// This can be null if Tor is turned off - and it is OK.
+			TorSocks5EndPoint = torSocks5EndPoint;
 			PaymentUrl = Guard.NotNull(nameof(paymentUrl), paymentUrl);
 			TorHttpClient = new TorHttpClient(PaymentUrl, TorSocks5EndPoint);
 		}
