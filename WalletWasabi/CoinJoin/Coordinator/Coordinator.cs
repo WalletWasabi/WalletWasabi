@@ -25,8 +25,6 @@ namespace WalletWasabi.CoinJoin.Coordinator
 	{
 		private volatile bool _disposedValue = false; // To detect redundant calls
 
-		public DateTimeOffset LastSuccessfulCoinJoinTime { get; private set; }
-
 		public Coordinator(Network network, BlockNotifier blockNotifier, string folderPath, IRPCClient rpc, CoordinatorRoundConfig roundConfig)
 		{
 			Network = Guard.NotNull(nameof(network), network);
@@ -136,6 +134,8 @@ namespace WalletWasabi.CoinJoin.Coordinator
 		}
 
 		public event EventHandler<Transaction> CoinJoinBroadcasted;
+
+		public DateTimeOffset LastSuccessfulCoinJoinTime { get; private set; }
 
 		private List<CoordinatorRound> Rounds { get; }
 		private AsyncLock RoundsListLock { get; }

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using System;
 using System.Collections.Generic;
@@ -23,7 +24,8 @@ namespace WalletWasabi.BitcoinCore
 			EndPointStrategy rpcEndPointStrategy,
 			int? txIndex,
 			int? prune,
-			string userAgent)
+			string userAgent,
+			IMemoryCache cache)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 			MempoolService = Guard.NotNull(nameof(mempoolService), mempoolService);
@@ -36,6 +38,7 @@ namespace WalletWasabi.BitcoinCore
 			TxIndex = txIndex;
 			Prune = prune;
 			UserAgent = Guard.NotNullOrEmptyOrWhitespace(nameof(userAgent), userAgent, trim: true);
+			Cache = Guard.NotNull(nameof(cache), cache);
 		}
 
 		public string DataDir { get; }
@@ -49,5 +52,6 @@ namespace WalletWasabi.BitcoinCore
 		public string UserAgent { get; }
 		public EndPointStrategy P2pEndPointStrategy { get; }
 		public EndPointStrategy RpcEndPointStrategy { get; }
+		public IMemoryCache Cache { get; }
 	}
 }

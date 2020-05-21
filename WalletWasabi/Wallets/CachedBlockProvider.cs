@@ -15,7 +15,7 @@ namespace WalletWasabi.Wallets
 			BlockSourceProvider = blockSourceProvider;
 		}
 
-		public IRepository<uint256, Block> BlockRepository { get; } 
+		public IRepository<uint256, Block> BlockRepository { get; }
 		public IBlockProvider BlockSourceProvider { get; }
 
 		/// <summary>

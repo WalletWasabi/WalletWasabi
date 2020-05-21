@@ -90,8 +90,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		public async Task CanDoHttpsAsync()
 		{
 			using var client = new TorHttpClient(new Uri("https://slack.com"), Global.Instance.TorSocks5Endpoint);
-			var content =
-await (await client.SendAsync(HttpMethod.Get, "api/api.test")).Content.ReadAsStringAsync();
+			var content = await (await client.SendAsync(HttpMethod.Get, "api/api.test")).Content.ReadAsStringAsync();
 
 			Assert.Equal("{\"ok\":true}", content);
 		}

@@ -27,6 +27,7 @@ namespace WalletWasabi.Gui.Rpc
 		public object[] GetUnspentCoinList()
 		{
 			AssertWalletIsLoaded();
+			var serverTipHeight = ActiveWallet.BitcoinStore.SmartHeaderChain.ServerTipHeight;
 			return ActiveWallet.Coins.Where(x => x.Unspent).Select(x => new
 			{
 				txid = x.TransactionId.ToString(),
@@ -34,6 +35,7 @@ namespace WalletWasabi.Gui.Rpc
 				amount = x.Amount.Satoshi,
 				anonymitySet = x.AnonymitySet,
 				confirmed = x.Confirmed,
+				confirmations = x.Confirmed ? serverTipHeight - (uint)x.Height.Value + 1 : 0,
 				label = x.Label.ToString(),
 				keyPath = x.HdPubKey.FullKeyPath.ToString(),
 				address = x.HdPubKey.GetP2wpkhAddress(Global.Network).ToString()
@@ -199,13 +201,13 @@ namespace WalletWasabi.Gui.Rpc
 		}
 
 		[JsonRpcMethod("enqueue")]
-		public async Task EnqueueForCoinJoinAsync(OutPoint[] coins)
+		public async Task EnqueueForCoinJoinAsync(OutPoint[] coins, string password = null)
 		{
 			Guard.NotNull(nameof(coins), coins);
 
 			AssertWalletIsLoaded();
 			var coinsToMix = ActiveWallet.Coins.Where(x => coins.Any(y => y == x.OutPoint));
-			await ActiveWallet.ChaumianClient.QueueCoinsToMixAsync(coinsToMix.ToArray()).ConfigureAwait(false);
+			await ActiveWallet.ChaumianClient.QueueCoinsToMixAsync(password, coinsToMix.ToArray()).ConfigureAwait(false);
 		}
 
 		[JsonRpcMethod("dequeue")]
@@ -227,7 +229,10 @@ namespace WalletWasabi.Gui.Rpc
 				var wallet = Global.WalletManager.GetWalletByName(walletName);
 
 				ActiveWallet = wallet;
-				Global.WalletManager.StartWalletAsync(wallet).ConfigureAwait(false);
+				if (wallet.State == WalletState.Uninitialized)
+				{
+					Global.WalletManager.StartWalletAsync(wallet).ConfigureAwait(false);
+				}
 			}
 			catch (InvalidOperationException) // wallet not found
 			{

@@ -11,7 +11,7 @@ namespace WalletWasabi.Tests.UnitTests.Converters
 		public void Tests()
 		{
 			var outpoint = new OutPoint(new uint256("2716e680f47d74c1bc6f031da22331564dd4c6641d7216576aad1b846c85d492"), 765);
-			var txoref   = new TxoRef(new uint256("2716e680f47d74c1bc6f031da22331564dd4c6641d7216576aad1b846c85d492"), 765);
+			var txoref = new TxoRef(new uint256("2716e680f47d74c1bc6f031da22331564dd4c6641d7216576aad1b846c85d492"), 765);
 
 			var oldConverters = new JsonConverter[]
 			{

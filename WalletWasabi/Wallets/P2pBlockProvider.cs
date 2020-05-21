@@ -108,33 +108,27 @@ namespace WalletWasabi.Wallets
 							// Validate block
 							if (!block.Check())
 							{
-								Logger.LogInfo($"Disconnected node: {node.RemoteSocketAddress}, because invalid block received.");
-								node.DisconnectAsync("Invalid block received.");
+								DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because invalid block received.", force: true);
 								continue;
 							}
 
-							if (Nodes.ConnectedNodes.Count > 1) // To minimize risking missing unconfirmed transactions.
-							{
-								Logger.LogInfo($"Disconnected node: {node.RemoteSocketAddress}. Block downloaded: {block.GetHash()}.");
-								node.DisconnectAsync("Thank you!");
-							}
+							DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}. Block downloaded: {block.GetHash()}.");
 
 							await NodeTimeoutsAsync(false).ConfigureAwait(false);
 						}
 						catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
 						{
-							Logger.LogInfo($"Disconnected node: {node.RemoteSocketAddress}, because block download took too long.");
-
 							await NodeTimeoutsAsync(true).ConfigureAwait(false);
 
-							node.DisconnectAsync("Block download took too long.");
+							DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download took too long."); // it could be a slow connection and not a misbehaving node
 							continue;
 						}
 						catch (Exception ex)
 						{
 							Logger.LogDebug(ex);
-							Logger.LogInfo($"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}.");
-							node.DisconnectAsync("Block download failed.");
+							DisconnectNode(node,
+								$"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}.",
+								force: true);
 							continue;
 						}
 
@@ -286,6 +280,15 @@ namespace WalletWasabi.Wallets
 						Logger.LogInfo("Local Bitcoin Core node disconnected.");
 					}
 				}
+			}
+		}
+
+		private void DisconnectNode(Node node, string logIfDisconnect, bool force = false)
+		{
+			if (Nodes.ConnectedNodes.Count > 3 || force)
+			{
+				Logger.LogInfo(logIfDisconnect);
+				node.DisconnectAsync(logIfDisconnect);
 			}
 		}
 

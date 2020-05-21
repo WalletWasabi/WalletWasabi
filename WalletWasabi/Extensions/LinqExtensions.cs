@@ -7,6 +7,40 @@ namespace System.Linq
 {
 	public static class LinqExtensions
 	{
+		public static IEnumerable<IEnumerable<T>> Batch<T>(
+		   this IEnumerable<T> source, int size)
+		{
+			T[] bucket = null;
+			var count = 0;
+
+			foreach (var item in source)
+			{
+				if (bucket == null)
+				{
+					bucket = new T[size];
+				}
+
+				bucket[count++] = item;
+
+				if (count != size)
+				{
+					continue;
+				}
+
+				yield return bucket.Select(x => x);
+
+				bucket = null;
+				count = 0;
+			}
+
+			// Return the last bucket with all remaining elements
+			if (bucket != null && count > 0)
+			{
+				Array.Resize(ref bucket, count);
+				yield return bucket.Select(x => x);
+			}
+		}
+
 		public static T RandomElement<T>(this IEnumerable<T> source)
 		{
 			T current = default;
@@ -59,7 +93,7 @@ namespace System.Linq
 			}
 		}
 
-		public static void AddToValueList<TKey, TValue, Telem>(this Dictionary<TKey, TValue> myDic, TKey key, Telem elem) where TValue : List<Telem>
+		public static void AddToValueList<TKey, TValue, TElem>(this Dictionary<TKey, TValue> myDic, TKey key, TElem elem) where TValue : List<TElem>
 		{
 			if (myDic.ContainsKey(key))
 			{
@@ -67,7 +101,7 @@ namespace System.Linq
 			}
 			else
 			{
-				myDic.Add(key, new List<Telem>() { elem } as TValue);
+				myDic.Add(key, new List<TElem>() { elem } as TValue);
 			}
 		}
 

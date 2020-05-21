@@ -55,12 +55,13 @@ namespace WalletWasabi.Tests.RegressionTests
 	public class CoinJoinTests
 	{
 #pragma warning disable IDE0059 // Value assigned to symbol is never used
-		private RegTestFixture RegTestFixture { get; }
 
 		public CoinJoinTests(RegTestFixture regTestFixture)
 		{
 			RegTestFixture = regTestFixture;
 		}
+
+		private RegTestFixture RegTestFixture { get; }
 
 		[Fact]
 		public async Task CoordinatorCtorTestsAsync()
@@ -632,6 +633,8 @@ namespace WalletWasabi.Tests.RegressionTests
 				await aliceClient1.PostSignaturesAsync(myDic1);
 				await aliceClient2.PostSignaturesAsync(myDic2);
 
+				((CachedRpcClient)rpc)?.Cache.Remove("GetRawMempoolAsync");
+
 				uint256[] mempooltxs = await rpc.GetRawMempoolAsync();
 				Assert.Contains(unsignedCoinJoin.GetHash(), mempooltxs);
 
@@ -784,6 +787,8 @@ namespace WalletWasabi.Tests.RegressionTests
 
 				await aliceClient.PostSignaturesAsync(witnesses);
 			}
+
+			((CachedRpcClient)rpc)?.Cache.Remove("GetRawMempoolAsync");
 
 			uint256[] mempooltxs = await rpc.GetRawMempoolAsync();
 			Assert.Contains(transactionId, mempooltxs);
@@ -981,6 +986,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			await Task.WhenAll(signatureRequests);
 
+			((CachedRpcClient)rpc)?.Cache.Remove("GetRawMempoolAsync");
 			uint256[] mempooltxs = await rpc.GetRawMempoolAsync();
 			Assert.Contains(unsignedCoinJoin.GetHash(), mempooltxs);
 
@@ -1315,11 +1321,11 @@ namespace WalletWasabi.Tests.RegressionTests
 			var blocksFolderPath = Path.Combine(workDir, "Blocks", network.ToString());
 
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
-				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network), 
+				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
 				new FileSystemBlockRepository(blocksFolderPath, network));
 
 			CachedBlockProvider blockProvider2 = new CachedBlockProvider(
-				new P2pBlockProvider(nodes2, null, synchronizer, serviceConfiguration, network), 
+				new P2pBlockProvider(nodes2, null, synchronizer, serviceConfiguration, network),
 				new FileSystemBlockRepository(blocksFolderPath, network));
 
 			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer, blockProvider);

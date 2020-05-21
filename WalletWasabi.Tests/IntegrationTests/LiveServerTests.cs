@@ -21,8 +21,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 	[Collection("LiveServerTests collection")]
 	public class LiveServerTests
 	{
-		private LiveServerTestsFixture LiveServerTestsFixture { get; }
-
 		public LiveServerTests(LiveServerTestsFixture liveServerTestsFixture)
 		{
 			LiveServerTestsFixture = liveServerTestsFixture;
@@ -31,6 +29,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 			torManager.Start(ensureRunning: true, dataDir: Path.GetFullPath(AppContext.BaseDirectory));
 			Task.Delay(3000).GetAwaiter().GetResult();
 		}
+
+		private LiveServerTestsFixture LiveServerTestsFixture { get; }
 
 		#region Blockchain
 

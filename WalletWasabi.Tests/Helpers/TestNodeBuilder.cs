@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using System;
 using System.Collections.Generic;
@@ -32,7 +33,8 @@ namespace WalletWasabi.Tests.Helpers
 					EndPointStrategy.Random,
 					txIndex: 1,
 					prune: 0,
-					userAgent: $"/WasabiClient:{Constants.ClientVersion}/"),
+					userAgent: $"/WasabiClient:{Constants.ClientVersion}/",
+					new MemoryCache(new MemoryCacheOptions())),
 				CancellationToken.None);
 		}
 	}

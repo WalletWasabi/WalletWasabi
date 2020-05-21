@@ -8,7 +8,7 @@ using WalletWasabi.Crypto;
 using WalletWasabi.JsonConverters;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.JsonConverters
+namespace WalletWasabi.Tests.UnitTests.JsonConvertersTest
 {
 	public class UnblindedSignatureTests
 	{
@@ -47,7 +47,7 @@ namespace WalletWasabi.Tests.UnitTests.JsonConverters
 		public void DetectInvalidSerializedMessage()
 		{
 			var json = "[ '999999999999999999999999999999999999999999999999999999999999999999999999999999'," + // 33 bytes (INVALID)
-			            " '999999999999999999999999999']";
+						" '999999999999999999999999999']";
 
 			using var reader = new JsonTextReader(new StringReader(json));
 			var converter = new UnblindedSignatureJsonConverter();

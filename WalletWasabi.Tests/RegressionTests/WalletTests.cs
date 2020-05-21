@@ -55,12 +55,13 @@ namespace WalletWasabi.Tests.RegressionTests
 	public class WalletTests
 	{
 #pragma warning disable IDE0059 // Value assigned to symbol is never used
-		private RegTestFixture RegTestFixture { get; }
 
 		public WalletTests(RegTestFixture regTestFixture)
 		{
 			RegTestFixture = regTestFixture;
 		}
+
+		private RegTestFixture RegTestFixture { get; }
 
 		private async Task WaitForIndexesToSyncAsync(Backend.Global global, TimeSpan timeout, BitcoinStore bitcoinStore)
 		{
@@ -187,14 +188,6 @@ namespace WalletWasabi.Tests.RegressionTests
 				var tipBlock = await rpc.GetBlockHeaderAsync(tip);
 				Assert.Equal(tipBlock.HashPrevBlock, bitcoinStore.SmartHeaderChain.GetChain().Select(x => x.header.BlockHash).ToArray()[bitcoinStore.SmartHeaderChain.HashCount - 2]);
 
-				var utxoPath = global.IndexBuilderService.Bech32UtxoSetFilePath;
-				var utxoLines = await File.ReadAllTextAsync(utxoPath);
-				Assert.Contains(tx1.ToString(), utxoLines);
-				Assert.Contains(tx2.ToString(), utxoLines);
-				Assert.Contains(tx3.ToString(), utxoLines);
-				Assert.DoesNotContain(tx4.ToString(), utxoLines); // make sure only bech is recorded
-				Assert.DoesNotContain(tx5.ToString(), utxoLines); // make sure only bech is recorded
-
 				// Test synchronization after fork.
 				await rpc.InvalidateBlockAsync(tip); // Reorg 1
 				tip = await rpc.GetBestBlockHashAsync();
@@ -203,14 +196,6 @@ namespace WalletWasabi.Tests.RegressionTests
 
 				await rpc.GenerateAsync(5);
 				await WaitForIndexesToSyncAsync(global, TimeSpan.FromSeconds(90), bitcoinStore);
-
-				utxoLines = await File.ReadAllTextAsync(utxoPath);
-				Assert.Contains(tx1bumpRes.TransactionId.ToString(), utxoLines); // assert the tx1bump is the correct tx
-				Assert.DoesNotContain(tx1.ToString(), utxoLines); // assert tx1 is abandoned (despite it confirmed previously)
-				Assert.Contains(tx2.ToString(), utxoLines);
-				Assert.Contains(tx3.ToString(), utxoLines);
-				Assert.DoesNotContain(tx4.ToString(), utxoLines);
-				Assert.DoesNotContain(tx5.ToString(), utxoLines);
 
 				var hashes = bitcoinStore.SmartHeaderChain.GetChain().Select(x => x.header.BlockHash).ToArray();
 				Assert.DoesNotContain(tip, hashes);
@@ -298,7 +283,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var blocksFolderPath = Path.Combine(workDir, "Blocks", network.ToString());
 
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
-				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network), 
+				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
 				new FileSystemBlockRepository(blocksFolderPath, network));
 
 			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer, blockProvider);

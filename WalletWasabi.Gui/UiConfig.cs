@@ -39,14 +39,6 @@ namespace WalletWasabi.Gui
 		[JsonConverter(typeof(WindowStateAfterStartJsonConverter))]
 		public WindowState WindowState { get; internal set; } = WindowState.Maximized;
 
-		[DefaultValue(530)]
-		[JsonProperty(PropertyName = "Height", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public double Height { get; internal set; }
-
-		[DefaultValue(1100)]
-		[JsonProperty(PropertyName = "Width", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public double Width { get; internal set; }
-
 		[DefaultValue(2)]
 		[JsonProperty(PropertyName = "FeeTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public int FeeTarget { get; internal set; }

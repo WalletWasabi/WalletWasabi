@@ -4,6 +4,8 @@ namespace Gma.QrCodeNet.Encoding.Versions
 {
 	public static class VersionTable
 	{
+		private static readonly QRCodeVersion[] Version = Initialize();
+
 		internal static QRCodeVersion GetVersionByNum(int versionNum)
 		{
 			if (versionNum < QRCodeConstantVariable.MinVersion || versionNum > QRCodeConstantVariable.MaxVersion)
@@ -25,8 +27,6 @@ namespace Gma.QrCodeNet.Encoding.Versions
 				return GetVersionByNum((matrixWidth - 17) / 4);
 			}
 		}
-
-		private static readonly QRCodeVersion[] Version = Initialize();
 
 		private static QRCodeVersion[] Initialize()
 		{

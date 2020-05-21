@@ -31,6 +31,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
+using WalletWasabi.WebClients.PayJoin;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Wallets
@@ -217,7 +218,8 @@ namespace WalletWasabi.Wallets
 			PaymentIntent payments,
 			FeeStrategy feeStrategy,
 			bool allowUnconfirmed = false,
-			IEnumerable<OutPoint> allowedInputs = null)
+			IEnumerable<OutPoint> allowedInputs = null,
+			IPayjoinClient payjoinClient = null)
 		{
 			var builder = new TransactionFactory(Network, KeyManager, Coins, password, allowUnconfirmed);
 			return builder.BuildTransaction(
@@ -238,7 +240,8 @@ namespace WalletWasabi.Wallets
 					}
 				},
 				allowedInputs,
-				SelectLockTimeForTransaction);
+				SelectLockTimeForTransaction,
+				payjoinClient);
 		}
 
 		public void RenameLabel(SmartCoin coin, SmartLabel newLabel)
@@ -300,7 +303,7 @@ namespace WalletWasabi.Wallets
 				{
 					var r when r < (0.9) => LockTime.Zero,
 					var r when r < (0.9 + 0.075) => tipHeight,
-					var r when r < (0.9 + 0.075 + 0.0065) => (uint)(tipHeight + 1),
+					var r when r < (0.9 + 0.075 + 0.0065) => tipHeight + 1,
 					_ => (uint)(tipHeight - rnd.Next(1, 100))
 				};
 			}
@@ -336,7 +339,7 @@ namespace WalletWasabi.Wallets
 						{
 							// If it's being mixed and anonset is not sufficient, then queue it.
 							if (newCoin.Unspent && ChaumianClient.HasIngredients
-								&& newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet)
+								&& newCoin.AnonymitySet < ServiceConfiguration.GetMixUntilAnonymitySetValue())
 							{
 								coinsToQueue.Add(newCoin);
 							}

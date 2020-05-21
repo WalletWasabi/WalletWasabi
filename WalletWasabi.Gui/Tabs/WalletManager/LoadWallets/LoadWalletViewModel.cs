@@ -18,8 +18,8 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
+using WalletWasabi.Gui.Validation;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -43,6 +43,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			Owner = owner;
 			Password = "";
 			LoadWalletType = loadWalletType;
+
+			this.ValidateProperty(x => x.Password, ValidatePassword);
 
 			RootList = new SourceList<WalletViewModelBase>();
 			RootList.Connect()
@@ -108,7 +110,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 
 		public ReadOnlyObservableCollection<WalletViewModelBase> Wallets => _wallets;
 
-		[ValidateMethod(nameof(ValidatePassword))]
 		public string Password
 		{
 			get => _password;
@@ -132,7 +133,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 		private ReplaySubject<Unit> ResortTrigger { get; } = new ReplaySubject<Unit>();
 		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
 
-		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
+		private void ValidatePassword(IValidationErrors errors) => PasswordHelper.ValidatePassword(errors, Password);
 
 		public override void OnCategorySelected()
 		{
@@ -213,7 +214,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 
 				ResortTrigger.OnNext(new Unit());
 				// Successfully initialized.
-				if (firstWalletToLoad)
+				if (firstWalletToLoad && !Owner.IsClosed && Owner.SelectedCategory == this)
 				{
 					Owner.OnClose();
 				}

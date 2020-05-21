@@ -31,12 +31,13 @@ namespace WalletWasabi.Tests.RegressionTests
 	public class BuildTests
 	{
 #pragma warning disable IDE0059 // Value assigned to symbol is never used
-		private RegTestFixture RegTestFixture { get; }
 
 		public BuildTests(RegTestFixture regTestFixture)
 		{
 			RegTestFixture = regTestFixture;
 		}
+
+		private RegTestFixture RegTestFixture { get; }
 
 		[Fact]
 		public async Task BuildTransactionValidationsTestAsync()
@@ -63,7 +64,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var workDir = Common.GetWorkDir();
 			var blocksFolderPath = Path.Combine(workDir, "Blocks", network.ToString());
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
-				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network), 
+				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
 				new FileSystemBlockRepository(blocksFolderPath, network));
 
 			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer, blockProvider);
@@ -227,7 +228,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var workDir = Common.GetWorkDir();
 			var blocksFolderPath = Path.Combine(workDir, "Blocks", network.ToString());
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
-				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network), 
+				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
 				new FileSystemBlockRepository(blocksFolderPath, network));
 			var walletManager = new WalletManager(network, new WalletDirectories(workDir));
 			walletManager.RegisterServices(bitcoinStore, synchronizer, nodes, serviceConfiguration, synchronizer, blockProvider);
