@@ -73,7 +73,7 @@
                   <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_WatchOnlyWalletClosed}" />
                 </DataTemplate>
                 <DataTemplate DataType="ViewModels:ClosedWalletViewModel">
-                  <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_ClosedWallet}" />
+                  <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_WalletClosed}" />
                 </DataTemplate>
               </StackPanel.DataTemplates>
               <ContentControl Content="{Binding }" />
@@ -91,7 +91,7 @@
                   <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_WatchOnlyWalletOpen}" />
                 </DataTemplate>
                 <DataTemplate DataType="ViewModels:WalletViewModel">
-                  <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_OpenedWallet}" />
+                  <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_WalletOpen}" />
                 </DataTemplate>
               </StackPanel.DataTemplates>
               <ContentControl Content="{Binding }" />
