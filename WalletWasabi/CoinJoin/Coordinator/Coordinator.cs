@@ -347,6 +347,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 						// New round's anonset should be the number of alices that signed in this round.
 						// Except if the number of alices in the next round is already larger.
 						var newAnonymitySet = Math.Max(alicesSignedCount, nextRoundAlicesCount);
+
 						// But it cannot be larger than the current anonset of that round.
 						newAnonymitySet = Math.Min(newAnonymitySet, nextRound.AnonymitySet);
 
@@ -509,7 +510,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 		{
 			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
 			Dispose(true);
-			// GC.SuppressFinalize(this);
+			//// GC.SuppressFinalize(this);
 		}
 
 		#endregion IDisposable Support

@@ -62,6 +62,7 @@ namespace WalletWasabi.Hwi
 			{
 				throw new OperationCanceledException($"'hwi {arguments}' operation is canceled.", ex);
 			}
+
 			// HWI is inconsistent with error codes here.
 			catch (HwiException ex) when (ex.ErrorCode == HwiErrorCode.DeviceConnError || ex.ErrorCode == HwiErrorCode.DeviceNotReady)
 			{

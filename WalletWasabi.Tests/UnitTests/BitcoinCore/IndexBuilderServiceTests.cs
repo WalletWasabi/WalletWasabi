@@ -32,7 +32,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			indexer.Synchronize();
 
 			await Task.Delay(TimeSpan.FromSeconds(1));
-			// Assert.False(indexer.IsRunning);     // <------------ ERROR: it should have stopped but there is a bug for RegTest
+			//// Assert.False(indexer.IsRunning);     // <------------ ERROR: it should have stopped but there is a bug for RegTest
 			Assert.Throws<ArgumentOutOfRangeException>(() => indexer.GetLastFilter());  // There are no filters
 		}
 

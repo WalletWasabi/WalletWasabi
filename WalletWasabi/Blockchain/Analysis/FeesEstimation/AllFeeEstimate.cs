@@ -45,6 +45,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 			Guard.NotNullOrEmpty(nameof(estimations), estimations);
 			Estimations = new Dictionary<int, int>();
 			var valueSet = new HashSet<decimal>();
+
 			// Make sure values are unique and in the correct order.
 			foreach (KeyValuePair<int, int> estimation in estimations.OrderBy(x => x.Key))
 			{

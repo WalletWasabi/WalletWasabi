@@ -46,8 +46,7 @@ namespace WalletWasabi.BitcoinCore
 
 				var cacheEntryOptions = new MemoryCacheEntryOptions()
 					.SetSize(1)
-					// The best hash doesn't change so often so, keep in cache for 4 seconds.
-					.SetAbsoluteExpiration(TimeSpan.FromSeconds(4))
+					.SetAbsoluteExpiration(TimeSpan.FromSeconds(4)) // The best hash doesn't change so often so, keep in cache for 4 seconds.
 					.AddExpirationToken(new CancellationChangeToken(TipChangeCancellationTokenSource.Token));
 
 				// Save data in cache.
@@ -65,8 +64,7 @@ namespace WalletWasabi.BitcoinCore
 
 				var cacheEntryOptions = new MemoryCacheEntryOptions()
 					.SetSize(10)
-					// There is a block every 10 minutes in average so, keep in cache for 4 seconds.
-					.SetAbsoluteExpiration(TimeSpan.FromSeconds(4));
+					.SetAbsoluteExpiration(TimeSpan.FromSeconds(4)); // There is a block every 10 minutes in average so, keep in cache for 4 seconds.
 
 				// Save data in cache.
 				Cache.Set(cacheKey, block, cacheEntryOptions);
@@ -83,8 +81,7 @@ namespace WalletWasabi.BitcoinCore
 
 				var cacheEntryOptions = new MemoryCacheEntryOptions()
 					.SetSize(10)
-					// There is a block every 10 minutes in average so, keep in cache for 4 seconds.
-					.SetAbsoluteExpiration(TimeSpan.FromSeconds(4));
+					.SetAbsoluteExpiration(TimeSpan.FromSeconds(4)); // There is a block every 10 minutes in average so, keep in cache for 4 seconds.
 
 				// Save data in cache.
 				Cache.Set(cacheKey, block, cacheEntryOptions);
@@ -101,8 +98,7 @@ namespace WalletWasabi.BitcoinCore
 
 				var cacheEntryOptions = new MemoryCacheEntryOptions()
 					.SetSize(2)
-					// There is a block every 10 minutes in average so, keep in cache for 4 seconds.
-					.SetAbsoluteExpiration(TimeSpan.FromSeconds(4));
+					.SetAbsoluteExpiration(TimeSpan.FromSeconds(4)); // There is a block every 10 minutes in average so, keep in cache for 4 seconds.
 
 				// Save data in cache.
 				Cache.Set(cacheKey, blockHeader, cacheEntryOptions);
@@ -119,8 +115,7 @@ namespace WalletWasabi.BitcoinCore
 
 				var cacheEntryOptions = new MemoryCacheEntryOptions()
 					.SetSize(1)
-					// The blockchain info does not change frequently.
-					.SetAbsoluteExpiration(TimeSpan.FromSeconds(2))
+					.SetAbsoluteExpiration(TimeSpan.FromSeconds(2)) // The blockchain info does not change frequently.
 					.AddExpirationToken(new CancellationChangeToken(TipChangeCancellationTokenSource.Token));
 
 				// Save data in cache.

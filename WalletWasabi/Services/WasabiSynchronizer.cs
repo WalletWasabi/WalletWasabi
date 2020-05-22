@@ -179,6 +179,7 @@ namespace WalletWasabi.Services
 								}
 
 								response = await WasabiClient.GetSynchronizeAsync(hashChain.TipHash, maxFiltersToSyncAtInitialization, estimateMode, Cancel.Token).WithAwaitCancellationAsync(Cancel.Token, 300);
+
 								// NOT GenSocksServErr
 								BackendStatus = BackendStatus.Connected;
 								TorStatus = TorStatus.Running;
@@ -277,8 +278,8 @@ namespace WalletWasabi.Services
 								// Assert index state.
 								if (response.BestHeight > hashChain.TipHeight) // If the server's tip height is larger than ours, we're missing a filter, our index got corrupted.
 								{
-									await BitcoinStore.IndexStore.RemoveAllImmmatureFiltersAsync(Cancel.Token, deleteAndCrashIfMature: true);
 									// If still bad delete filters and crash the software?
+									await BitcoinStore.IndexStore.RemoveAllImmmatureFiltersAsync(Cancel.Token, deleteAndCrashIfMature: true);
 								}
 							}
 
