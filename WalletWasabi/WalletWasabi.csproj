@@ -43,6 +43,9 @@
     <None Update="Microservices\Binaries\osx64\hwi">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Microservices\Binaries\win64\bitcoind.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Microservices\Binaries\win64\hwi.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
