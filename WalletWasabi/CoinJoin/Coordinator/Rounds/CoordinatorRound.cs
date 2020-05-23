@@ -1150,7 +1150,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 			StartAliceTimeout(alice.UniqueId);
 
-			Logger.LogInfo($"Round ({RoundId}): Alice ({alice.InputSum.ToString(false, false)}) added.");
+			Logger.LogDebug($"Round ({RoundId}): Alice ({alice.InputSum.ToString(false, false)}) added.");
 		}
 
 		public void AddBob(Bob bob)
@@ -1166,7 +1166,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				Bobs.Add(bob);
 			}
 
-			Logger.LogInfo($"Round ({RoundId}): Bob ({bob.Level.Denomination}) added.");
+			Logger.LogDebug($"Round ({RoundId}): Bob ({bob.Level.Denomination}) added.");
 		}
 
 		public async Task<(IEnumerable<Alice> removedSpentAlices, IEnumerable<Alice> removedUnconfirmedAlices)> RemoveAlicesIfAnInputRefusedByMempoolAsync()
