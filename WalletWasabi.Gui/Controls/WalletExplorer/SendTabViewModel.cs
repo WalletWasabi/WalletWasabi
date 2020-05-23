@@ -96,7 +96,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					if (Global.Config.Network == Network.Main && payjoinEndPointUri.Scheme != Uri.UriSchemeHttps)
 					{
-						Logger.LogWarning("Payjoin server is not using https. Ignoring...");
+						Logger.LogWarning("Payjoin server is not exposed as onion hidden service nor https. Ignoring...");
 						return null;
 					}
 				}
