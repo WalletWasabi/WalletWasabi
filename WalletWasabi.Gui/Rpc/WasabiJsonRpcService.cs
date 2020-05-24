@@ -121,18 +121,27 @@ namespace WalletWasabi.Gui.Rpc
 		}
 
 		[JsonRpcMethod("build")]
-		public string BuildTransaction(PaymentInfo[] payments, OutPoint[] coins, int feeTarget, string password = null)
+		public string BuildTransaction(PaymentInfo[] payments, OutPoint[] coins, int feeTarget = 0, decimal feeRate = 0, string password = null)
 		{
 			Guard.NotNull(nameof(payments), payments);
 			Guard.NotNull(nameof(coins), coins);
-			Guard.InRangeAndNotNull(nameof(feeTarget), feeTarget, 2, Constants.SevenDaysConfirmationTarget);
 			password = Guard.Correct(password);
+
+			FeeStrategy feeStrategy;
+
+			if (feeTarget != 0) {
+				Guard.InRangeAndNotNull(nameof(feeTarget), feeTarget, 2, Constants.SevenDaysConfirmationTarget);
+				feeStrategy = FeeStrategy.CreateFromConfirmationTarget(feeTarget);
+			} else if (feeRate != 0) {
+				feeStrategy = FeeStrategy.CreateFromFeeRate(new FeeRate(feeRate));
+			} else {
+				throw new Exception($"{nameof(feeTarget)} or {nameof(feeRate)} must be set");
+			}
 
 			AssertWalletIsLoaded();
 			var sync = Global.Synchronizer;
 			var payment = new PaymentIntent(payments.Select(p =>
 				new DestinationRequest(p.Sendto.ScriptPubKey, MoneyRequest.Create(p.Amount, p.SubtractFee), new SmartLabel(p.Label))));
-			var feeStrategy = FeeStrategy.CreateFromConfirmationTarget(feeTarget);
 			var result = ActiveWallet.BuildTransaction(
 				password,
 				payment,
@@ -145,9 +154,9 @@ namespace WalletWasabi.Gui.Rpc
 		}
 
 		[JsonRpcMethod("send")]
-		public async Task<object> SendTransactionAsync(PaymentInfo[] payments, OutPoint[] coins, int feeTarget, string password = null)
+		public async Task<object> SendTransactionAsync(PaymentInfo[] payments, OutPoint[] coins, int feeTarget = 0, decimal feeRate = 0, string password = null)
 		{
-			var txHex = BuildTransaction(payments, coins, feeTarget, password);
+			var txHex = BuildTransaction(payments, coins, feeTarget, feeRate, password);
 			var smartTx = new SmartTransaction(Transaction.Parse(txHex, Global.Network), Height.Mempool);
 
 			// dequeue the coins we are going to spend
