@@ -129,13 +129,18 @@ namespace WalletWasabi.Gui.Rpc
 
 			FeeStrategy feeStrategy;
 
-			if (feeTarget != 0) {
+			if (feeTarget != 0)
+			{
 				Guard.InRangeAndNotNull(nameof(feeTarget), feeTarget, 2, Constants.SevenDaysConfirmationTarget);
 				feeStrategy = FeeStrategy.CreateFromConfirmationTarget(feeTarget);
-			} else if (feeRate != 0) {
+			}
+			else if (feeRate != 0)
+			{
 				feeStrategy = FeeStrategy.CreateFromFeeRate(new FeeRate(feeRate));
-			} else {
-				throw new Exception($"{nameof(feeTarget)} or {nameof(feeRate)} must be set");
+			}
+			else
+			{
+				throw new Exception($"{nameof(feeTarget)} or {nameof(feeRate)} must be set.");
 			}
 
 			AssertWalletIsLoaded();
