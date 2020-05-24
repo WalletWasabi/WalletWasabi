@@ -28,4 +28,4 @@ jobs:
     inputs:
       command: test
       projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
-      arguments: --configuration $(testConfiguration) --filter "NodeBuildingTests|ConfigTests|ConfigTranslatorTests|P2pBasedTests|RpcBasedTests"
+      arguments: --configuration $(testConfiguration) --filter "!IndexBuilderServiceTest"
