@@ -1,19 +1,8 @@
 using Avalonia.Controls;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using ReactiveUI;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
-using System.Runtime.CompilerServices;
-using System.Text;
 using WalletWasabi.Bases;
 using WalletWasabi.Gui.Converters;
-using WalletWasabi.Gui.Models;
-using WalletWasabi.Helpers;
-using WalletWasabi.Interfaces;
-using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.Gui
 {
