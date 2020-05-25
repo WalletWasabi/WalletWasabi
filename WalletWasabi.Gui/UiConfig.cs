@@ -98,5 +98,15 @@ namespace WalletWasabi.Gui
 			get => _lockScreenPinHash;
 			set => RaiseAndSetIfChanged(ref _lockScreenPinHash, value);
 		}
+		
+
+		[JsonProperty(PropertyName = "ClosedWalletViewModelSortingPreference", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public SortingPreference CoinListViewSortingPreference
+		{
+			get => _lockScreenPinHash;
+			set => RaiseAndSetIfChanged(ref _lockScreenPinHash, value);
+		}
+
+		
 	}
 }

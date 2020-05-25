@@ -23,6 +23,9 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
+
+	
+
 	public class CoinListViewModel : ViewModelBase
 	{
 		private static HashSet<SmartCoinStatus> NotVisibleStatuses = new HashSet<SmartCoinStatus>()

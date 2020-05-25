@@ -17,6 +17,19 @@ using System.Runtime.CompilerServices;
 
 namespace WalletWasabi.Gui.Controls
 {
+	public struct SortingPreference
+	{
+		public SortingPreference(SortOrder sortOrder, string propertyTarget)
+		{
+			SortOrder = sortOrder;
+			PropertyTarget = propertyTarget;
+		}
+
+		public SortOrder SortOrder { get; set; }
+		public string PropertyTarget { get; set; }
+	}
+
+	
 	public enum SortOrder
 	{
 		None,
