@@ -16,7 +16,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 	{
 		private volatile bool _disposedValue = false; // To detect redundant calls
 
-		public ClientRoundRegistration(AliceClient aliceClient, IEnumerable<SmartCoin> coinsRegistereds, BitcoinAddress changeAddress)
+		public ClientRoundRegistration(AliceClientBase aliceClient, IEnumerable<SmartCoin> coinsRegistereds, BitcoinAddress changeAddress)
 		{
 			AliceClient = Guard.NotNull(nameof(aliceClient), aliceClient);
 			CoinsRegistered = Guard.NotNullOrEmpty(nameof(coinsRegistereds), coinsRegistereds);
@@ -36,7 +36,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 
 		public IEnumerable<SmartCoin> CoinsRegistered { get; }
 
-		public AliceClient AliceClient { get; }
+		public AliceClientBase AliceClient { get; }
 
 		public bool IsPhaseActionsComleted(RoundPhase phase) => CompletedPhase >= phase;
 
