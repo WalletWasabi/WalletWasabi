@@ -29,7 +29,7 @@ namespace WalletWasabi.Gui
 		private bool _autocopy;
 
 		private SortingPreference _coinListViewSortingPreference;
-
+		
 		public UiConfig() : base()
 		{
 		}
@@ -102,11 +102,7 @@ namespace WalletWasabi.Gui
 			set => RaiseAndSetIfChanged(ref _lockScreenPinHash, value);
 		}
 
-		[JsonProperty(PropertyName = "CoinListViewSortingPreference", DefaultValueHandling = DefaultValueHandling.Ignore)]
-		public SortingPreference CoinListViewSortingPreference
-		{
-			get => _coinListViewSortingPreference;
-			set => RaiseAndSetIfChanged(ref _coinListViewSortingPreference, value);
-		}		
+		[JsonProperty(PropertyName = "CoinListViewSortingPreference")]
+		public SortingPreference CoinListViewSortingPreference { get; internal set; } = new SortingPreference(SortOrder.Increasing, default(SortOrder));
 	}
 }

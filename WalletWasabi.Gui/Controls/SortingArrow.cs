@@ -12,23 +12,26 @@ using Avalonia.Styling;
 using ReactiveUI;
 using System;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
 
 namespace WalletWasabi.Gui.Controls
 {
-	public struct SortingPreference
+	public struct SortingPreference : IEquatable<SortingPreference>
 	{
 		public static SortingPreference DefaultValue = new SortingPreference(SortOrder.None, null);
 
-		public SortingPreference(SortOrder sortOrder, string propertyTarget)
+		public SortingPreference(SortOrder sortOrder, Enum propertyTarget)
 		{
 			SortOrder = sortOrder;
 			PropertyTarget = propertyTarget;
 		}
 
 		public SortOrder SortOrder { get; set; }
-		public string PropertyTarget { get; set; }
+		public Enum PropertyTarget { get; set; }
+
+		public bool Equals([AllowNull] SortingPreference other) => SortOrder == other.SortOrder && PropertyTarget == other.PropertyTarget;
 	}
 
 

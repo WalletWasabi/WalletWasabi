@@ -23,6 +23,15 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
+
+	internal enum CoinListViewSortTarget
+	{
+		Amount,
+		Privacy,
+		Clusters,
+		Status,
+	}
+
 	public class CoinListViewModel : ViewModelBase
 	{
 		private static HashSet<SmartCoinStatus> NotVisibleStatuses = new HashSet<SmartCoinStatus>()
@@ -61,7 +70,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Wallet = wallet;
 			CanDequeueCoins = canDequeueCoins;
 			DisplayCommonOwnershipWarning = displayCommonOwnershipWarning;
-
+ 
+			SetSortOrder(Global.UiConfig.CoinListViewSortingPreference);
 			RefreshOrdering();
 
 			// Otherwise they're all selected as null on load.
@@ -86,51 +96,23 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.AmountSortDirection)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				{
-					if (x != SortOrder.None)
-					{
-						PrivacySortDirection = SortOrder.None;
-						StatusSortDirection = SortOrder.None;
-						ClustersSortDirection = SortOrder.None;
-					}
-				});
+				.Where(x => x != SortOrder.None)
+				.Subscribe(x => SortColumn(x, CoinListViewSortTarget.Amount));
 
 			this.WhenAnyValue(x => x.ClustersSortDirection)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				{
-					if (x != SortOrder.None)
-					{
-						AmountSortDirection = SortOrder.None;
-						StatusSortDirection = SortOrder.None;
-						PrivacySortDirection = SortOrder.None;
-					}
-				});
+				.Where(x => x != SortOrder.None)
+				.Subscribe(x => SortColumn(x, CoinListViewSortTarget.Clusters));
 
 			this.WhenAnyValue(x => x.StatusSortDirection)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				{
-					if (x != SortOrder.None)
-					{
-						AmountSortDirection = SortOrder.None;
-						PrivacySortDirection = SortOrder.None;
-						ClustersSortDirection = SortOrder.None;
-					}
-				});
+				.Where(x => x != SortOrder.None)
+				.Subscribe(x => SortColumn(x, CoinListViewSortTarget.Status));
 
 			this.WhenAnyValue(x => x.PrivacySortDirection)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				{
-					if (x != SortOrder.None)
-					{
-						AmountSortDirection = SortOrder.None;
-						StatusSortDirection = SortOrder.None;
-						ClustersSortDirection = SortOrder.None;
-					}
-				});
+				.Where(x => x != SortOrder.None)
+				.Subscribe(x => SortColumn(x, CoinListViewSortTarget.Privacy));
 
 			SelectAllCheckBoxCommand = ReactiveCommand.Create(() =>
 			{
@@ -197,6 +179,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(SortCommand.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
+		}
+
+		private void SortColumn(SortOrder x, CoinListViewSortTarget privacy)
+		{
+			Global.UiConfig.CoinListViewSortingPreference = new SortingPreference(x, privacy);
+			SetSortOrder(Global.UiConfig.CoinListViewSortingPreference);
 		}
 
 		public event EventHandler<SmartCoin> DequeueCoinsPressed;
@@ -559,6 +547,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					isSomePrivate,
 					isFinePrivate,
 					isStrongPrivate);
+		}
+
+		private void SetSortOrder(SortingPreference sortPref)
+		{
+			var sortTarget = (CoinListViewSortTarget)sortPref.PropertyTarget;
+			var sortOrd = sortPref.SortOrder;
+
+			AmountSortDirection = sortTarget == CoinListViewSortTarget.Amount ? sortOrd : SortOrder.None;
+			PrivacySortDirection = sortTarget == CoinListViewSortTarget.Privacy ? sortOrd : SortOrder.None;
+			ClustersSortDirection = sortTarget == CoinListViewSortTarget.Clusters ? sortOrd : SortOrder.None;
+			StatusSortDirection = sortTarget == CoinListViewSortTarget.Status ? sortOrd : SortOrder.None;
 		}
 
 		public void OnClose()
