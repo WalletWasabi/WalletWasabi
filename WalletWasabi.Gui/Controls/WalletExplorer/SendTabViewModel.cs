@@ -3,6 +3,7 @@ using NBitcoin.Payment;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -16,6 +17,7 @@ using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 using WalletWasabi.Gui.Validation;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -80,9 +82,25 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private IPayjoinClient GetPayjoinClient()
 		{
-			if (!string.IsNullOrWhiteSpace(PayjoinEndPoint) && Uri.IsWellFormedUriString(PayjoinEndPoint, UriKind.Absolute))
+			if (!string.IsNullOrWhiteSpace(PayjoinEndPoint) &&
+				Uri.IsWellFormedUriString(PayjoinEndPoint, UriKind.Absolute))
 			{
 				var payjoinEndPointUri = new Uri(PayjoinEndPoint);
+				if (!Global.Config.UseTor)
+				{
+					if (payjoinEndPointUri.DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
+					{
+						Logger.LogWarning("Payjoin server is a hidden service but Tor is disabled. Ignoring...");
+						return null;
+					}
+
+					if (Global.Config.Network == Network.Main && payjoinEndPointUri.Scheme != Uri.UriSchemeHttps)
+					{
+						Logger.LogWarning("Payjoin server is not exposed as onion hidden service nor https. Ignoring...");
+						return null;
+					}
+				}
+
 				return new PayjoinClient(payjoinEndPointUri, Global.TorManager.TorSocks5EndPoint);
 			}
 

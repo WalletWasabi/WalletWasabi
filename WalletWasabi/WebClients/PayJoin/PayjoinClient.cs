@@ -18,20 +18,21 @@ namespace WalletWasabi.WebClients.PayJoin
 	{
 		public PayjoinClient(Uri paymentUrl, EndPoint torSocks5EndPoint)
 		{
-			TorSocks5EndPoint = Guard.NotNull(nameof(torSocks5EndPoint), torSocks5EndPoint);
+			// This can be null if Tor is turned off - and it is OK.
+			TorSocks5EndPoint = torSocks5EndPoint;
 			PaymentUrl = Guard.NotNull(nameof(paymentUrl), paymentUrl);
-			HttpClient = new TorHttpClient(PaymentUrl, TorSocks5EndPoint);
+			TorHttpClient = new TorHttpClient(PaymentUrl, TorSocks5EndPoint);
 		}
 
 		// For testing only
 		internal PayjoinClient(ITorHttpClient httpClient)
 		{
-			HttpClient = Guard.NotNull(nameof(httpClient), httpClient);
+			TorHttpClient = Guard.NotNull(nameof(httpClient), httpClient);
 		}
 
 		public Uri PaymentUrl { get; }
 		private EndPoint TorSocks5EndPoint { get; }
-		private ITorHttpClient HttpClient { get; }
+		private ITorHttpClient TorHttpClient { get; }
 
 		public async Task<PSBT> RequestPayjoin(PSBT originalTx, IHDKey accountKey, RootedKeyPath rootedKeyPath, CancellationToken cancellationToken)
 		{
@@ -69,8 +70,13 @@ namespace WalletWasabi.WebClients.PayJoin
 
 			cloned.GlobalXPubs.Clear();
 
-			var bpuResponse = await HttpClient.SendAsync(HttpMethod.Post, "",
-				new StringContent(cloned.ToHex(), Encoding.UTF8, "text/plain"), cancellationToken).ConfigureAwait(false);
+			var request = new HttpRequestMessage(HttpMethod.Post, PaymentUrl)
+			{
+				Content = new StringContent(cloned.ToHex(), Encoding.UTF8, "text/plain")
+			};
+
+			HttpResponseMessage bpuResponse = await TorHttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+
 			if (!bpuResponse.IsSuccessStatusCode)
 			{
 				var errorStr = await bpuResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
