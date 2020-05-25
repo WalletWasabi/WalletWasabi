@@ -9,6 +9,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using WalletWasabi.Bases;
+using WalletWasabi.Gui.Controls;
 using WalletWasabi.Gui.Converters;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Helpers;
@@ -26,6 +27,8 @@ namespace WalletWasabi.Gui
 		private bool _isCustomFee;
 		private bool _isCustomChangeAddress;
 		private bool _autocopy;
+
+		private SortingPreference _coinListViewSortingPreference;
 
 		public UiConfig() : base()
 		{
@@ -98,15 +101,12 @@ namespace WalletWasabi.Gui
 			get => _lockScreenPinHash;
 			set => RaiseAndSetIfChanged(ref _lockScreenPinHash, value);
 		}
-		
 
-		[JsonProperty(PropertyName = "ClosedWalletViewModelSortingPreference", DefaultValueHandling = DefaultValueHandling.Populate)]
+		[JsonProperty(PropertyName = "CoinListViewSortingPreference", DefaultValueHandling = DefaultValueHandling.Ignore)]
 		public SortingPreference CoinListViewSortingPreference
 		{
-			get => _lockScreenPinHash;
-			set => RaiseAndSetIfChanged(ref _lockScreenPinHash, value);
-		}
-
-		
+			get => _coinListViewSortingPreference;
+			set => RaiseAndSetIfChanged(ref _coinListViewSortingPreference, value);
+		}		
 	}
 }

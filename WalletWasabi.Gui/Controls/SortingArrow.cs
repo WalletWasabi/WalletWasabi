@@ -19,6 +19,8 @@ namespace WalletWasabi.Gui.Controls
 {
 	public struct SortingPreference
 	{
+		public static SortingPreference DefaultValue = new SortingPreference(SortOrder.None, null);
+
 		public SortingPreference(SortOrder sortOrder, string propertyTarget)
 		{
 			SortOrder = sortOrder;
@@ -29,7 +31,7 @@ namespace WalletWasabi.Gui.Controls
 		public string PropertyTarget { get; set; }
 	}
 
-	
+
 	public enum SortOrder
 	{
 		None,
