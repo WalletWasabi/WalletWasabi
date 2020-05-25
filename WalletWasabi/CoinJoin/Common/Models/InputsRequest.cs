@@ -1,4 +1,4 @@
-using NBitcoin;
+﻿using NBitcoin;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -8,17 +8,13 @@ using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.CoinJoin.Common.Models
 {
-	public class InputsRequest
+	public abstract class InputsRequestBase
 	{
 		[Required]
 		public long RoundId { get; set; }
 
 		[Required, MinLength(1)]
 		public IEnumerable<InputProofModel> Inputs { get; set; }
-
-		[Required, MinLength(1)]
-		[JsonProperty(ItemConverterType = typeof(Uint256JsonConverter))]
-		public IEnumerable<uint256> BlindedOutputScripts { get; set; }
 
 		[Required]
 		[JsonConverter(typeof(BitcoinAddressJsonConverter))]
@@ -29,5 +25,18 @@ namespace WalletWasabi.CoinJoin.Common.Models
 			string jsonString = JsonConvert.SerializeObject(this, Formatting.None);
 			return new StringContent(jsonString, Encoding.UTF8, "application/json");
 		}
+	}
+
+	public class InputsRequest : InputsRequestBase
+	{
+		[Required, MinLength(1)]
+		[JsonProperty(ItemConverterType = typeof(Uint256JsonConverter))]
+		public IEnumerable<uint256> BlindedOutputScripts { get; set; }
+	}
+
+	public class InputsRequest4 : InputsRequestBase
+	{
+		[Required, MinLength(1)]
+		public IEnumerable<BlindedOutputWithNonceIndex> BlindedOutputScripts { get; set; }
 	}
 }
