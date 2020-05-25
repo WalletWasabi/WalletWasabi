@@ -27,8 +27,6 @@ namespace WalletWasabi.Gui
 		private bool _isCustomFee;
 		private bool _isCustomChangeAddress;
 		private bool _autocopy;
-
-		private SortingPreference _coinListViewSortingPreference;
 		
 		public UiConfig() : base()
 		{
