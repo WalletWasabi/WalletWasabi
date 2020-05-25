@@ -35,24 +35,24 @@ namespace WalletWasabi.Gui
 		{
 		}
 
-		[JsonProperty(PropertyName = "WindowState")]
+		[JsonProperty(PropertyName = nameof(WindowState))]
 		[JsonConverter(typeof(WindowStateAfterStartJsonConverter))]
 		public WindowState WindowState { get; internal set; } = WindowState.Maximized;
 
 		[DefaultValue(2)]
-		[JsonProperty(PropertyName = "FeeTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
+		[JsonProperty(PropertyName = nameof(FeeTarget), DefaultValueHandling = DefaultValueHandling.Populate)]
 		public int FeeTarget { get; internal set; }
 
 		[DefaultValue(0)]
-		[JsonProperty(PropertyName = "FeeDisplayFormat", DefaultValueHandling = DefaultValueHandling.Populate)]
+		[JsonProperty(PropertyName = nameof(FeeDisplayFormat), DefaultValueHandling = DefaultValueHandling.Populate)]
 		public int FeeDisplayFormat { get; internal set; }
 
 		[DefaultValue("")]
-		[JsonProperty(PropertyName = "LastActiveTab", DefaultValueHandling = DefaultValueHandling.Populate)]
+		[JsonProperty(PropertyName = nameof(LastActiveTab), DefaultValueHandling = DefaultValueHandling.Populate)]
 		public string LastActiveTab { get; internal set; }
 
 		[DefaultValue(true)]
-		[JsonProperty(PropertyName = "Autocopy", DefaultValueHandling = DefaultValueHandling.Populate)]
+		[JsonProperty(PropertyName = nameof(Autocopy), DefaultValueHandling = DefaultValueHandling.Populate)]
 		public bool Autocopy
 		{
 			get => _autocopy;
@@ -60,7 +60,7 @@ namespace WalletWasabi.Gui
 		}
 
 		[DefaultValue(false)]
-		[JsonProperty(PropertyName = "IsCustomFee", DefaultValueHandling = DefaultValueHandling.Populate)]
+		[JsonProperty(PropertyName = nameof(IsCustomFee), DefaultValueHandling = DefaultValueHandling.Populate)]
 		public bool IsCustomFee
 		{
 			get => _isCustomFee;
@@ -68,7 +68,7 @@ namespace WalletWasabi.Gui
 		}
 
 		[DefaultValue(false)]
-		[JsonProperty(PropertyName = "IsCustomChangeAddress", DefaultValueHandling = DefaultValueHandling.Populate)]
+		[JsonProperty(PropertyName = nameof(IsCustomChangeAddress), DefaultValueHandling = DefaultValueHandling.Populate)]
 		public bool IsCustomChangeAddress
 		{
 			get => _isCustomChangeAddress;
@@ -76,7 +76,7 @@ namespace WalletWasabi.Gui
 		}
 
 		[DefaultValue(false)]
-		[JsonProperty(PropertyName = "LurkingWifeMode", DefaultValueHandling = DefaultValueHandling.Populate)]
+		[JsonProperty(PropertyName = nameof(LurkingWifeMode), DefaultValueHandling = DefaultValueHandling.Populate)]
 		public bool LurkingWifeMode
 		{
 			get => _lurkingWifeMode;
@@ -84,7 +84,7 @@ namespace WalletWasabi.Gui
 		}
 
 		[DefaultValue(false)]
-		[JsonProperty(PropertyName = "LockScreenActive", DefaultValueHandling = DefaultValueHandling.Populate)]
+		[JsonProperty(PropertyName = nameof(LockScreenActive), DefaultValueHandling = DefaultValueHandling.Populate)]
 		public bool LockScreenActive
 		{
 			get => _lockScreenActive;
@@ -92,7 +92,7 @@ namespace WalletWasabi.Gui
 		}
 
 		[DefaultValue("")]
-		[JsonProperty(PropertyName = "LockScreenPinHash", DefaultValueHandling = DefaultValueHandling.Populate)]
+		[JsonProperty(PropertyName = nameof(LockScreenPinHash), DefaultValueHandling = DefaultValueHandling.Populate)]
 		public string LockScreenPinHash
 		{
 			get => _lockScreenPinHash;
