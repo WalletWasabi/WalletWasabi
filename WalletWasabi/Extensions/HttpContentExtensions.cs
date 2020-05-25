@@ -1,5 +1,8 @@
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using System.Threading.Tasks;
+using WalletWasabi.JsonConverters;
+using WalletWasabi.WebClients.Wasabi;
 
 namespace System.Net.Http
 {
@@ -12,8 +15,11 @@ namespace System.Net.Http
 				return default;
 			}
 
+			var settings = new JsonSerializerSettings{
+				Converters = new [] { new RoundStateResponseJsonConverter(WasabiClient.CurrentBackendMajorVersion) }
+			};
 			var jsonString = await me.ReadAsStringAsync();
-			return JsonConvert.DeserializeObject<T>(jsonString);
+			return JsonConvert.DeserializeObject<T>(jsonString, settings);
 		}
 	}
 }

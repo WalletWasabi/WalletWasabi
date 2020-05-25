@@ -9,7 +9,7 @@ using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.CoinJoin.Common.Models
 {
-	public class RoundStateResponse
+	public abstract class RoundStateResponseBase
 	{
 		[JsonConverter(typeof(StringEnumConverter))]
 		public RoundPhase Phase { get; set; }
@@ -19,8 +19,6 @@ namespace WalletWasabi.CoinJoin.Common.Models
 
 		[JsonConverter(typeof(BlockCypherDateTimeOffsetJsonConverter))]
 		public DateTimeOffset InputRegistrationTimesout { get; set; }
-
-		public IEnumerable<SchnorrPubKey> SchnorrPubKeys { get; set; }
 
 		public int RegisteredPeerCount { get; set; }
 
@@ -40,6 +38,8 @@ namespace WalletWasabi.CoinJoin.Common.Models
 
 		public long RoundId { get; set; }
 
+		public abstract int MixLevelCount { get; }
+		 
 		/// <summary>
 		/// Gets or sets the number of successful rounds.
 		/// This is round independent, it is only here because of backward compatibility.
@@ -91,5 +91,21 @@ namespace WalletWasabi.CoinJoin.Common.Models
 
 			return false;
 		}
+	}
+
+	public class RoundStateResponse4 : RoundStateResponseBase
+	{
+		[JsonProperty(ItemConverterType = typeof(PubKeyJsonConverter))]
+		public IEnumerable<PubKey> SignerPubKeys { get; set; }
+		public IEnumerable<PublicNonceWithIndex> RPubKeys { get; set; }
+
+		public override int MixLevelCount => SignerPubKeys.Count();
+	}
+
+	public class RoundStateResponse : RoundStateResponseBase
+	{
+		public IEnumerable<SchnorrPubKey> SchnorrPubKeys { get; set; }
+
+		public override int MixLevelCount => SchnorrPubKeys.Count();
 	}
 }
