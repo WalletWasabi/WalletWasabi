@@ -778,7 +778,7 @@ namespace WalletWasabi.Gui
 
 				try
 				{
-					SingleInstanceChecker.Dispose();
+					SingleInstanceChecker?.Dispose();
 				}
 				catch (Exception ex)
 				{
