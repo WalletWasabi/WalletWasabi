@@ -182,24 +182,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(ex => Logger.LogError(ex));
 		}
 
-		private void SortColumn(SortOrder x, CoinListViewSortTarget y, bool saveToUiConfig = true)
-		{
-			var sortPref = new SortingPreference(x, (int)y);
-
-			if (saveToUiConfig)
-			{
-				Global.UiConfig.CoinListViewSortingPreference = sortPref;
-			}
-
-			var sortTarget = (CoinListViewSortTarget)sortPref.ColumnTarget;
-			var sortOrd = sortPref.SortOrder;
-
-			AmountSortDirection = sortTarget == CoinListViewSortTarget.Amount ? sortOrd : SortOrder.None;
-			PrivacySortDirection = sortTarget == CoinListViewSortTarget.Privacy ? sortOrd : SortOrder.None;
-			ClustersSortDirection = sortTarget == CoinListViewSortTarget.Clusters ? sortOrd : SortOrder.None;
-			StatusSortDirection = sortTarget == CoinListViewSortTarget.Status ? sortOrd : SortOrder.None;
-		}
-
 		public event EventHandler<SmartCoin> DequeueCoinsPressed;
 
 		public event EventHandler CoinListShown;
@@ -339,6 +321,24 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			DequeueCoinsPressed?.Invoke(this, coin);
 		}
 
+		private void SortColumn(SortOrder x, CoinListViewSortTarget y, bool saveToUiConfig = true)
+		{
+			var sortPref = new SortingPreference(x, (int)y);
+
+			if (saveToUiConfig)
+			{
+				Global.UiConfig.CoinListViewSortingPreference = sortPref;
+			}
+
+			var sortTarget = (CoinListViewSortTarget)sortPref.ColumnTarget;
+			var sortOrd = sortPref.SortOrder;
+
+			AmountSortDirection = sortTarget == CoinListViewSortTarget.Amount ? sortOrd : SortOrder.None;
+			PrivacySortDirection = sortTarget == CoinListViewSortTarget.Privacy ? sortOrd : SortOrder.None;
+			ClustersSortDirection = sortTarget == CoinListViewSortTarget.Clusters ? sortOrd : SortOrder.None;
+			StatusSortDirection = sortTarget == CoinListViewSortTarget.Status ? sortOrd : SortOrder.None;
+		}
+		
 		private void RefreshOrdering()
 		{
 			var sortExpression = new SortExpressionComparer<CoinViewModel>();
