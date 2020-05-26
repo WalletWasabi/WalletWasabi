@@ -73,9 +73,11 @@ namespace WalletWasabi.Gui
 
 		public Network Network => Config.Network;
 
-		public MemoryCache Cache  { get; private set; }
+		public MemoryCache Cache { get; private set; }
 
 		public static JsonRpcServer RpcServer { get; private set; }
+
+		private static IDisposable SingleApplicationLockHolder { get; set; }
 
 		public Global()
 		{
@@ -119,10 +121,10 @@ namespace WalletWasabi.Gui
 
 			try
 			{
-				Cache = new MemoryCache(new MemoryCacheOptions 
-				{ 
-					SizeLimit = 1_000, 
-					ExpirationScanFrequency = TimeSpan.FromSeconds(30) 
+				Cache = new MemoryCache(new MemoryCacheOptions
+				{
+					SizeLimit = 1_000,
+					ExpirationScanFrequency = TimeSpan.FromSeconds(30)
 				});
 				BitcoinStore = new BitcoinStore();
 				var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), Network);
@@ -617,6 +619,22 @@ namespace WalletWasabi.Gui
 			Logger.LogInfo($"Transaction Notification ({notificationType}): {title} - {message} - {e.Transaction.GetHash()}");
 		}
 
+		public static async Task EnsureSingleInstanceAsync()
+		{
+			using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.Zero);
+
+			// The disposal of this mutex handled by AsyncMutex.WaitForAllMutexToCloseAsync().
+			var mutex = new AsyncMutex("WalletWasabiSingleInstance");
+			try
+			{
+				SingleApplicationLockHolder = await mutex.LockAsync(cts.Token).ConfigureAwait(false);
+			}
+			catch (IOException)
+			{
+				throw new InvalidOperationException("Wasabi is already running!");
+			}
+		}
+
 		/// <summary>
 		/// 0: nobody called
 		/// 1: somebody called
@@ -770,6 +788,15 @@ namespace WalletWasabi.Gui
 				if (cache is { })
 				{
 					cache.Dispose();
+				}
+
+				try
+				{
+					SingleApplicationLockHolder?.Dispose();
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError($"Error during the disposal of {nameof(SingleApplicationLockHolder)}: {ex}");
 				}
 
 				if (AsyncMutex.IsAny)

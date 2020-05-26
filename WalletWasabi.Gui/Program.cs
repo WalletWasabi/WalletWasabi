@@ -52,7 +52,7 @@ namespace WalletWasabi.Gui
 			finally
 			{
 				MainWindowViewModel.Instance?.Dispose();
-				Global.DisposeAsync().GetAwaiter().GetResult();
+				Global?.DisposeAsync().GetAwaiter().GetResult();
 				AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
 
@@ -67,6 +67,8 @@ namespace WalletWasabi.Gui
 		{
 			AvalonStudio.Extensibility.Theme.ColorTheme.LoadTheme(AvalonStudio.Extensibility.Theme.ColorTheme.VisualStudioDark);
 			MainWindowViewModel.Instance = new MainWindowViewModel();
+
+			await Global.EnsureSingleInstanceAsync();
 
 			await Global.InitializeNoWalletAsync();
 

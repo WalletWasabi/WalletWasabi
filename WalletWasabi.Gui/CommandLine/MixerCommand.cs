@@ -36,6 +36,8 @@ namespace WalletWasabi.Gui.CommandLine
 			var error = false;
 			try
 			{
+				await Global.EnsureSingleInstanceAsync();
+
 				var extra = Options.Parse(args);
 				if (ShowHelp)
 				{
