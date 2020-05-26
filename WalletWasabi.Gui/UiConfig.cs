@@ -27,6 +27,7 @@ namespace WalletWasabi.Gui
 		private bool _isCustomFee;
 		private bool _isCustomChangeAddress;
 		private bool _autocopy;
+
 		public UiConfig() : base()
 		{
 		}
