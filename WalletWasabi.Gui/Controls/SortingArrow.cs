@@ -18,6 +18,13 @@ using System.Runtime.CompilerServices;
 
 namespace WalletWasabi.Gui.Controls
 {
+	public enum SortOrder
+	{
+		None,
+		Increasing,
+		Decreasing
+	}
+	
 	public struct SortingPreference : IEquatable<SortingPreference>
 	{
 		public SortingPreference(SortOrder sortOrder, int propertyTarget)
@@ -30,14 +37,6 @@ namespace WalletWasabi.Gui.Controls
 		public int ColumnTarget { get; set; }
 
 		public bool Equals([AllowNull] SortingPreference other) => SortOrder == other.SortOrder && ColumnTarget == other.ColumnTarget;
-	}
-
-
-	public enum SortOrder
-	{
-		None,
-		Increasing,
-		Decreasing
 	}
 
 	public class SortingArrow : Button, IStyleable

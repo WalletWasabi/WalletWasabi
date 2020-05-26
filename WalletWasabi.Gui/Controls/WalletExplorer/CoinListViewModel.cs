@@ -23,7 +23,6 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-
 	internal enum CoinListViewSortTarget
 	{
 		Amount,
@@ -338,7 +337,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ClustersSortDirection = sortTarget == CoinListViewSortTarget.Clusters ? sortOrd : SortOrder.None;
 			StatusSortDirection = sortTarget == CoinListViewSortTarget.Status ? sortOrd : SortOrder.None;
 		}
-		
+
 		private void RefreshOrdering()
 		{
 			var sortExpression = new SortExpressionComparer<CoinViewModel>();
