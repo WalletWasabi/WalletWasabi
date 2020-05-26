@@ -112,5 +112,26 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			Assert.NotEqual(u1, u5);
 			Assert.NotEqual(u1.GetHashCode(), u5.GetHashCode());
 		}
+
+		[Fact]
+		public async Task SingleInstanceTestsAsync()
+		{
+			Gui.Global global = new Gui.Global();
+			await global.InitializeNoWalletAsync();
+			await global.DisposeAsync();
+
+			try
+			{
+				global = new Gui.Global();
+
+				await global.InitializeNoWalletAsync();
+
+				await Assert.ThrowsAsync<FormatException>(() => global.InitializeNoWalletAsync());
+			}
+			finally
+			{
+				await global?.DisposeAsync();
+			}
+		}
 	}
 }

@@ -68,8 +68,6 @@ namespace WalletWasabi.Gui
 			AvalonStudio.Extensibility.Theme.ColorTheme.LoadTheme(AvalonStudio.Extensibility.Theme.ColorTheme.VisualStudioDark);
 			MainWindowViewModel.Instance = new MainWindowViewModel();
 
-			await Global.EnsureSingleInstanceAsync();
-
 			await Global.InitializeNoWalletAsync();
 
 			MainWindowViewModel.Instance.Initialize();

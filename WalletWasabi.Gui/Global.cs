@@ -77,7 +77,7 @@ namespace WalletWasabi.Gui
 
 		public static JsonRpcServer RpcServer { get; private set; }
 
-		private static IDisposable SingleApplicationLockHolder { get; set; }
+		private IDisposable SingleApplicationLockHolder { get; set; }
 
 		public Global()
 		{
@@ -121,6 +121,8 @@ namespace WalletWasabi.Gui
 
 			try
 			{
+				await EnsureSingleInstanceAsync().ConfigureAwait(false);
+
 				Cache = new MemoryCache(new MemoryCacheOptions
 				{
 					SizeLimit = 1_000,
@@ -619,9 +621,9 @@ namespace WalletWasabi.Gui
 			Logger.LogInfo($"Transaction Notification ({notificationType}): {title} - {message} - {e.Transaction.GetHash()}");
 		}
 
-		public static async Task EnsureSingleInstanceAsync()
+		private async Task EnsureSingleInstanceAsync()
 		{
-			using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.Zero);
+			using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
 			// The disposal of this mutex handled by AsyncMutex.WaitForAllMutexToCloseAsync().
 			var mutex = new AsyncMutex("WalletWasabiSingleInstance");
