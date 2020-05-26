@@ -23,13 +23,13 @@ namespace WalletWasabi.Gui.Controls
 		public SortingPreference(SortOrder sortOrder, int propertyTarget)
 		{
 			SortOrder = sortOrder;
-			PropertyTarget = propertyTarget;
+			ColumnTarget = propertyTarget;
 		}
 
 		public SortOrder SortOrder { get; set; }
-		public int PropertyTarget { get; set; }
+		public int ColumnTarget { get; set; }
 
-		public bool Equals([AllowNull] SortingPreference other) => SortOrder == other.SortOrder && PropertyTarget == other.PropertyTarget;
+		public bool Equals([AllowNull] SortingPreference other) => SortOrder == other.SortOrder && ColumnTarget == other.ColumnTarget;
 	}
 
 

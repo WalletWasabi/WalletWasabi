@@ -16,6 +16,13 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
+	internal enum HistoryTabViewSortTarget
+	{
+		Date,
+		Amount,
+		Transaction
+	}
+
 	public class HistoryTabViewModel : WasabiDocumentTabViewModel, IWalletViewModel
 	{
 		private ObservableCollection<TransactionViewModel> _transactions;
@@ -33,7 +40,25 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Transactions = new ObservableCollection<TransactionViewModel>();
 
 			SortCommand = ReactiveCommand.Create(RefreshOrdering);
-			DateSortDirection = SortOrder.Decreasing;
+
+			var savedSort = Global.UiConfig.HistoryTabViewSortingPreference;
+			SortColumn(savedSort.SortOrder, (HistoryTabViewSortTarget)savedSort.ColumnTarget, false);
+			RefreshOrdering();
+
+			this.WhenAnyValue(x => x.DateSortDirection)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Where(x => x != SortOrder.None)
+				.Subscribe(x => SortColumn(x, HistoryTabViewSortTarget.Date));
+
+			this.WhenAnyValue(x => x.AmountSortDirection)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Where(x => x != SortOrder.None)
+				.Subscribe(x => SortColumn(x, HistoryTabViewSortTarget.Amount));
+
+			this.WhenAnyValue(x => x.TransactionSortDirection)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Where(x => x != SortOrder.None)
+				.Subscribe(x => SortColumn(x, HistoryTabViewSortTarget.Transaction));
 
 			SortCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -67,43 +92,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public SortOrder DateSortDirection
 		{
 			get => _dateSortDirection;
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _dateSortDirection, value);
-				if (value != SortOrder.None)
-				{
-					AmountSortDirection = SortOrder.None;
-					TransactionSortDirection = SortOrder.None;
-				}
-			}
+			set => this.RaiseAndSetIfChanged(ref _dateSortDirection, value);
 		}
 
 		public SortOrder AmountSortDirection
 		{
 			get => _amountSortDirection;
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _amountSortDirection, value);
-				if (value != SortOrder.None)
-				{
-					DateSortDirection = SortOrder.None;
-					TransactionSortDirection = SortOrder.None;
-				}
-			}
+			set => this.RaiseAndSetIfChanged(ref _amountSortDirection, value);
 		}
 
 		public SortOrder TransactionSortDirection
 		{
 			get => _transactionSortDirection;
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _transactionSortDirection, value);
-				if (value != SortOrder.None)
-				{
-					AmountSortDirection = SortOrder.None;
-					DateSortDirection = SortOrder.None;
-				}
-			}
+			set => this.RaiseAndSetIfChanged(ref _transactionSortDirection, value);
 		}
 
 		public override void OnOpen(CompositeDisposable disposables)
@@ -165,6 +166,23 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				Logger.LogError(ex);
 			}
+		}
+
+		private void SortColumn(SortOrder x, HistoryTabViewSortTarget y, bool saveToUiConfig = true)
+		{
+			var sortPref = new SortingPreference(x, (int)y);
+
+			if (saveToUiConfig)
+			{
+				Global.UiConfig.HistoryTabViewSortingPreference = sortPref;
+			}
+
+			var sortTarget = (HistoryTabViewSortTarget)sortPref.ColumnTarget;
+			var sortOrd = sortPref.SortOrder;
+
+			DateSortDirection = sortTarget == HistoryTabViewSortTarget.Date ? sortOrd : SortOrder.None;
+			AmountSortDirection = sortTarget == HistoryTabViewSortTarget.Amount ? sortOrd : SortOrder.None;
+			TransactionSortDirection = sortTarget == HistoryTabViewSortTarget.Transaction ? sortOrd : SortOrder.None;
 		}
 
 		private void RefreshOrdering()

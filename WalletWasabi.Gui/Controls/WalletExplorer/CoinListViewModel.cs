@@ -70,8 +70,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Wallet = wallet;
 			CanDequeueCoins = canDequeueCoins;
 			DisplayCommonOwnershipWarning = displayCommonOwnershipWarning;
- 
-			SetSortOrder(Global.UiConfig.CoinListViewSortingPreference);
+
+			var savedSort = Global.UiConfig.CoinListViewSortingPreference;
+			SortColumn(savedSort.SortOrder, (CoinListViewSortTarget)savedSort.ColumnTarget, false);
 			RefreshOrdering();
 
 			// Otherwise they're all selected as null on load.
@@ -181,10 +182,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(ex => Logger.LogError(ex));
 		}
 
-		private void SortColumn(SortOrder x, CoinListViewSortTarget privacy)
+		private void SortColumn(SortOrder x, CoinListViewSortTarget y, bool saveToUiConfig = true)
 		{
-			Global.UiConfig.CoinListViewSortingPreference = new SortingPreference(x, (int)privacy);
-			SetSortOrder(Global.UiConfig.CoinListViewSortingPreference);
+			var sortPref = new SortingPreference(x, (int)y);
+
+			if (saveToUiConfig)
+			{
+				Global.UiConfig.CoinListViewSortingPreference = sortPref;
+			}
+
+			var sortTarget = (CoinListViewSortTarget)sortPref.ColumnTarget;
+			var sortOrd = sortPref.SortOrder;
+
+			AmountSortDirection = sortTarget == CoinListViewSortTarget.Amount ? sortOrd : SortOrder.None;
+			PrivacySortDirection = sortTarget == CoinListViewSortTarget.Privacy ? sortOrd : SortOrder.None;
+			ClustersSortDirection = sortTarget == CoinListViewSortTarget.Clusters ? sortOrd : SortOrder.None;
+			StatusSortDirection = sortTarget == CoinListViewSortTarget.Status ? sortOrd : SortOrder.None;
 		}
 
 		public event EventHandler<SmartCoin> DequeueCoinsPressed;
@@ -547,17 +560,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					isSomePrivate,
 					isFinePrivate,
 					isStrongPrivate);
-		}
-
-		private void SetSortOrder(SortingPreference sortPref)
-		{
-			var sortTarget = (CoinListViewSortTarget)sortPref.PropertyTarget;
-			var sortOrd = sortPref.SortOrder;
-
-			AmountSortDirection = sortTarget == CoinListViewSortTarget.Amount ? sortOrd : SortOrder.None;
-			PrivacySortDirection = sortTarget == CoinListViewSortTarget.Privacy ? sortOrd : SortOrder.None;
-			ClustersSortDirection = sortTarget == CoinListViewSortTarget.Clusters ? sortOrd : SortOrder.None;
-			StatusSortDirection = sortTarget == CoinListViewSortTarget.Status ? sortOrd : SortOrder.None;
 		}
 
 		public void OnClose()
