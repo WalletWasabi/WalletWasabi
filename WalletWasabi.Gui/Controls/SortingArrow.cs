@@ -20,16 +20,14 @@ namespace WalletWasabi.Gui.Controls
 {
 	public struct SortingPreference : IEquatable<SortingPreference>
 	{
-		public static SortingPreference DefaultValue = new SortingPreference(SortOrder.None, null);
-
-		public SortingPreference(SortOrder sortOrder, Enum propertyTarget)
+		public SortingPreference(SortOrder sortOrder, int propertyTarget)
 		{
 			SortOrder = sortOrder;
 			PropertyTarget = propertyTarget;
 		}
 
 		public SortOrder SortOrder { get; set; }
-		public Enum PropertyTarget { get; set; }
+		public int PropertyTarget { get; set; }
 
 		public bool Equals([AllowNull] SortingPreference other) => SortOrder == other.SortOrder && PropertyTarget == other.PropertyTarget;
 	}

@@ -183,7 +183,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SortColumn(SortOrder x, CoinListViewSortTarget privacy)
 		{
-			Global.UiConfig.CoinListViewSortingPreference = new SortingPreference(x, privacy);
+			Global.UiConfig.CoinListViewSortingPreference = new SortingPreference(x, (int)privacy);
 			SetSortOrder(Global.UiConfig.CoinListViewSortingPreference);
 		}
 
