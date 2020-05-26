@@ -119,13 +119,13 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 		{
 			using (SingleInstanceChecker sic = new SingleInstanceChecker())
 			{
-				await sic.EnsureSingleInstanceAsync().ConfigureAwait(false);
+				await sic.CheckAsync().ConfigureAwait(false);
 			}
 
 			using (SingleInstanceChecker sic = new SingleInstanceChecker())
 			{
-				await sic.EnsureSingleInstanceAsync().ConfigureAwait(false);
-				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sic.EnsureSingleInstanceAsync().ConfigureAwait(false));
+				await sic.CheckAsync().ConfigureAwait(false);
+				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sic.CheckAsync().ConfigureAwait(false));
 			}
 		}
 	}

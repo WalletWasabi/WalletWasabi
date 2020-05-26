@@ -121,7 +121,7 @@ namespace WalletWasabi.Gui
 
 			try
 			{
-				await SingleInstanceChecker.EnsureSingleInstanceAsync().ConfigureAwait(false);
+				await SingleInstanceChecker.CheckAsync().ConfigureAwait(false);
 
 				Cache = new MemoryCache(new MemoryCacheOptions
 				{

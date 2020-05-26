@@ -15,7 +15,7 @@ namespace WalletWasabi.Services
 
 		private IDisposable SingleApplicationLockHolder { get; set; }
 
-		public async Task EnsureSingleInstanceAsync()
+		public async Task CheckAsync()
 		{
 			using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.Zero);
 
