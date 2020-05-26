@@ -77,8 +77,6 @@ namespace WalletWasabi.Gui
 
 		public static JsonRpcServer RpcServer { get; private set; }
 
-		private IDisposable SingleApplicationLockHolder { get; set; }
-
 		public Global()
 		{
 			using (BenchmarkLogger.Measure())
@@ -112,6 +110,8 @@ namespace WalletWasabi.Gui
 
 		private CancellationTokenSource StoppingCts { get; }
 
+		private SingleInstanceChecker SingleInstanceChecker { get; } = new SingleInstanceChecker();
+
 		public async Task InitializeNoWalletAsync()
 		{
 			InitializationStarted = true;
@@ -121,7 +121,7 @@ namespace WalletWasabi.Gui
 
 			try
 			{
-				await EnsureSingleInstanceAsync().ConfigureAwait(false);
+				await SingleInstanceChecker.EnsureSingleInstanceAsync().ConfigureAwait(false);
 
 				Cache = new MemoryCache(new MemoryCacheOptions
 				{
@@ -621,22 +621,6 @@ namespace WalletWasabi.Gui
 			Logger.LogInfo($"Transaction Notification ({notificationType}): {title} - {message} - {e.Transaction.GetHash()}");
 		}
 
-		private async Task EnsureSingleInstanceAsync()
-		{
-			using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-
-			// The disposal of this mutex handled by AsyncMutex.WaitForAllMutexToCloseAsync().
-			var mutex = new AsyncMutex("WalletWasabiSingleInstance");
-			try
-			{
-				SingleApplicationLockHolder = await mutex.LockAsync(cts.Token).ConfigureAwait(false);
-			}
-			catch (IOException)
-			{
-				throw new InvalidOperationException("Wasabi is already running!");
-			}
-		}
-
 		/// <summary>
 		/// 0: nobody called
 		/// 1: somebody called
@@ -794,11 +778,11 @@ namespace WalletWasabi.Gui
 
 				try
 				{
-					SingleApplicationLockHolder?.Dispose();
+					SingleInstanceChecker.Dispose();
 				}
 				catch (Exception ex)
 				{
-					Logger.LogError($"Error during the disposal of {nameof(SingleApplicationLockHolder)}: {ex}");
+					Logger.LogError($"Error during the disposal of {nameof(SingleInstanceChecker)}: {ex}");
 				}
 
 				if (AsyncMutex.IsAny)

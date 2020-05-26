@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Models;
+using WalletWasabi.Services;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
@@ -116,21 +117,15 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 		[Fact]
 		public async Task SingleInstanceTestsAsync()
 		{
-			Gui.Global global = new Gui.Global();
-			await global.InitializeNoWalletAsync();
-			await global.DisposeAsync();
-
-			try
+			using (SingleInstanceChecker sic = new SingleInstanceChecker())
 			{
-				global = new Gui.Global();
-
-				await global.InitializeNoWalletAsync();
-
-				await Assert.ThrowsAsync<FormatException>(() => global.InitializeNoWalletAsync());
+				await sic.EnsureSingleInstanceAsync().ConfigureAwait(false);
 			}
-			finally
+
+			using (SingleInstanceChecker sic = new SingleInstanceChecker())
 			{
-				await global?.DisposeAsync();
+				await sic.EnsureSingleInstanceAsync().ConfigureAwait(false);
+				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sic.EnsureSingleInstanceAsync().ConfigureAwait(false));
 			}
 		}
 	}
