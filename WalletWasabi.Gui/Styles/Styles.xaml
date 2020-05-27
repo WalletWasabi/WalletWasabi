@@ -24,6 +24,8 @@
       <sys:Double x:Key="FontSizeNormal">14</sys:Double>
       <sys:Double x:Key="FontSizeLarge">16</sys:Double>
       <FontFamily x:Key="MonospacedFont">avares://WalletWasabi.Gui/Assets#Cascadia Mono</FontFamily>
+      <!-- <FontFamily x:Key="UiFont">avares://WalletWasabi.Gui/Assets#Segoe UI</FontFamily> -->
+      <FontFamily x:Key="UiFont">avares://WalletWasabi.Gui/Assets#WeblySleek UI</FontFamily>
       <converters:ErrorSeverityColorConverter x:Key="ErrorSeverityColorConverter" />
       <converters:ErrorDescriptorToBorderColorConverter x:Key="ErrorDescriptorToBorderColorConverter" />
     </Style.Resources>
