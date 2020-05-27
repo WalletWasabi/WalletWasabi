@@ -4,7 +4,7 @@
                   x:Class="WalletWasabi.Gui.WasabiWindow"
                   Icon="avares://WalletWasabi.Gui/Assets/WasabiLogo256.png"
                   Title="{Binding Title}"                  
-                  FontFamily="{DynamicResource UiFont}" FontSize="14"
+                  FontFamily="{DynamicResource UiFont}" FontSize="14" FontWeight="Light"
                   Foreground="{DynamicResource ThemeForegroundBrush}"                  
                   UseLayoutRounding="True"
                   WindowStartupLocation="CenterOwner"

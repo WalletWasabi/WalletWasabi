@@ -1,6 +1,7 @@
 using ReactiveUI;
 using Splat;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Composition;
 using System.Linq;
@@ -70,6 +71,37 @@ namespace WalletWasabi.Gui.Tabs.WelcomeTab
 			SelectedCategory = LoadWalletPassword;
 			LoadWalletPassword.SelectWallet(walletname);
 		}
+
+
+		public class DummyNewsItem
+		{
+			private static Random RNG = new Random();
+			private static DateTime GetRandomDate()
+			{
+				var b = DateTime.Now;
+				return new DateTime(b.Year, b.Month, b.Day - RNG.Next(0, 7));
+			}
+
+			public DummyNewsItem()
+			{ 
+				PublishDate = GetRandomDate();
+			}
+
+			public string Title { get; } = "Lorem Ipsum";
+			public string Content { get; } = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.";
+			public DateTime PublishDate { get; }
+		}
+
+#pragma warning disable
+		public List<DummyNewsItem> NewsItems { get; set; } = new List<DummyNewsItem>()
+		{
+			new DummyNewsItem(),
+			new DummyNewsItem(),
+			new DummyNewsItem(),
+			new DummyNewsItem(),
+			new DummyNewsItem(),
+		}.OrderByDescending(x => x.PublishDate).ToList();
+#pragma warning restore
 
 		public override void OnOpen(CompositeDisposable disposables)
 		{
