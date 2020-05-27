@@ -11,14 +11,14 @@ using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
+namespace WalletWasabi.Gui.Tabs.WelcomeTab.GenerateWallets
 {
 	internal class GenerateWalletSuccessViewModel : CategoryViewModel
 	{
 		private List<string> _mnemonicWords;
 		private bool _isConfirmed;
 
-		public GenerateWalletSuccessViewModel(WalletManagerViewModel owner, KeyManager keyManager, Mnemonic mnemonic) : base("Wallet Generated Successfully!")
+		public GenerateWalletSuccessViewModel(WelcomeTabViewModel owner, KeyManager keyManager, Mnemonic mnemonic) : base("Wallet Generated Successfully!")
 		{
 			_mnemonicWords = new List<string>(mnemonic.Words.Length);
 

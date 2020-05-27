@@ -6,11 +6,11 @@ using Avalonia.Markup.Xaml;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 
-namespace WalletWasabi.Gui.Tabs.WalletManager
+namespace WalletWasabi.Gui.Tabs.WelcomeTab
 {
-	internal class WalletManagerView : UserControl
+	internal class WelcomeTabView : UserControl
 	{
-		public WalletManagerView()
+		public WelcomeTabView()
 		{
 			InitializeComponent();
 		}

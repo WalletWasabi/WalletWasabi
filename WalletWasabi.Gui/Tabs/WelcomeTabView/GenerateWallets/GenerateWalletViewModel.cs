@@ -12,14 +12,14 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
+namespace WalletWasabi.Gui.Tabs.WelcomeTab.GenerateWallets
 {
 	internal class GenerateWalletViewModel : CategoryViewModel
 	{
 		private string _password;
 		private string _walletName;
 
-		public GenerateWalletViewModel(WalletManagerViewModel owner) : base("Generate Wallet")
+		public GenerateWalletViewModel(WelcomeTabViewModel owner) : base("Generate Wallet")
 		{
 			Global = Locator.Current.GetService<Global>();
 			Owner = owner;
@@ -33,7 +33,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 				.Subscribe(ex => Logger.LogError(ex));
 		}
 
-		public WalletManagerViewModel Owner { get; }
+		public WelcomeTabViewModel Owner { get; }
 
 		private Global Global { get; }
 

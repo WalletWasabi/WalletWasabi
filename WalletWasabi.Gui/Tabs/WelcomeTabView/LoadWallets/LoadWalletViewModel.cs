@@ -25,7 +25,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
+namespace WalletWasabi.Gui.Tabs.WelcomeTab.LoadWallets
 {
 	public class LoadWalletViewModel : CategoryViewModel, IDisposable
 	{
@@ -35,7 +35,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 
 		private bool _disposedValue = false; // To detect redundant calls
 
-		public LoadWalletViewModel(WalletManagerViewModel owner, LoadWalletType loadWalletType)
+		public LoadWalletViewModel(WelcomeTabViewModel owner, LoadWalletType loadWalletType)
 			: base(loadWalletType == LoadWalletType.Password ? "Test Password" : "Load Wallet")
 		{
 			Global = Locator.Current.GetService<Global>();
@@ -126,7 +126,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 		public ReactiveCommand<Unit, IDisposable> LoadCommand { get; }
 		public ReactiveCommand<Unit, KeyManager> TestPasswordCommand { get; }
 		public ReactiveCommand<Unit, Unit> OpenFolderCommand { get; }
-		private WalletManagerViewModel Owner { get; }
+		private WelcomeTabViewModel Owner { get; }
 
 		private Global Global { get; }
 

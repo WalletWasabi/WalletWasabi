@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
+namespace WalletWasabi.Gui.Tabs.WelcomeTab.LoadWallets
 {
 	public enum LoadWalletType
 	{

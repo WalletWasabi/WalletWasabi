@@ -5,7 +5,7 @@ using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using ReactiveUI;
 using System.Composition;
-using WalletWasabi.Gui.Tabs.WalletManager;
+using WalletWasabi.Gui.Tabs.WelcomeTab;
 using Avalonia;
 using System.Reactive.Linq;
 using WalletWasabi.Logging;
@@ -51,17 +51,17 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnGenerateWallet()
 		{
-			IoC.Get<IShell>().GetOrCreateByType<WalletManagerViewModel>().SelectGenerateWallet();
+			IoC.Get<IShell>().GetOrCreateByType<WelcomeTabViewModel>().SelectGenerateWallet();
 		}
 
 		private void OnRecoverWallet()
 		{
-			IoC.Get<IShell>().GetOrCreateByType<WalletManagerViewModel>().SelectRecoverWallet();
+			IoC.Get<IShell>().GetOrCreateByType<WelcomeTabViewModel>().SelectRecoverWallet();
 		}
 
 		private void OnLoadWallet()
 		{
-			IoC.Get<IShell>().GetOrCreateByType<WalletManagerViewModel>().SelectLoadWallet();
+			IoC.Get<IShell>().GetOrCreateByType<WelcomeTabViewModel>().SelectLoadWallet();
 		}
 	}
 }

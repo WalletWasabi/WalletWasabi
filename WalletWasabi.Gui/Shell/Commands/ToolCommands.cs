@@ -14,7 +14,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.Tabs;
-using WalletWasabi.Gui.Tabs.WalletManager;
+using WalletWasabi.Gui.Tabs.WelcomeTab;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Shell.Commands
@@ -89,7 +89,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 		{
 			var global = Locator.Current.GetService<Global>();
 
-			var walletManagerViewModel = IoC.Get<IShell>().GetOrCreateByType<WalletManagerViewModel>();
+			var walletManagerViewModel = IoC.Get<IShell>().GetOrCreateByType<WelcomeTabViewModel>();
 			if (global.WalletManager.WalletDirectories.EnumerateWalletFiles().Any())
 			{
 				walletManagerViewModel.SelectLoadWallet();

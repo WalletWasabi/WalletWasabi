@@ -19,7 +19,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
+namespace WalletWasabi.Gui.Tabs.WelcomeTab.RecoverWallets
 {
 	internal class RecoverWalletViewModel : CategoryViewModel
 	{
@@ -32,7 +32,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 		private int _minGapLimit;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 
-		public RecoverWalletViewModel(WalletManagerViewModel owner) : base("Recover Wallet")
+		public RecoverWalletViewModel(WelcomeTabViewModel owner) : base("Recover Wallet")
 		{
 			Global = Locator.Current.GetService<Global>();
 			WalletManager = Global.WalletManager;

@@ -1,11 +1,12 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
+namespace WalletWasabi.Gui.Tabs.WelcomeTab.HardwareWallets
 {
-	internal class RecoverWalletView : UserControl
+	public class ConnectHardwareWalletView : UserControl
 	{
-		public RecoverWalletView()
+		public ConnectHardwareWalletView()
 		{
 			InitializeComponent();
 		}

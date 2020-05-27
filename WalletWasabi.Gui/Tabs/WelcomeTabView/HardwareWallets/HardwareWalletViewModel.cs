@@ -1,7 +1,7 @@
 using System.Text;
 using WalletWasabi.Hwi.Models;
 
-namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
+namespace WalletWasabi.Gui.Tabs.WelcomeTab.HardwareWallets
 {
 	public class HardwareWalletViewModel
 	{

@@ -7,24 +7,24 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets;
-using WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets;
-using WalletWasabi.Gui.Tabs.WalletManager.LoadWallets;
-using WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets;
+using WalletWasabi.Gui.Tabs.WelcomeTab.GenerateWallets;
+using WalletWasabi.Gui.Tabs.WelcomeTab.HardwareWallets;
+using WalletWasabi.Gui.Tabs.WelcomeTab.LoadWallets;
+using WalletWasabi.Gui.Tabs.WelcomeTab.RecoverWallets;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Gui.Tabs.WalletManager
+namespace WalletWasabi.Gui.Tabs.WelcomeTab
 {
 	[Export]
 	[Shared]
-	public class WalletManagerViewModel : WasabiDocumentTabViewModel
+	public class WelcomeTabViewModel : WasabiDocumentTabViewModel
 	{
 		private ObservableCollection<CategoryViewModel> _categories;
 		private CategoryViewModel _selectedCategory;
 		private ViewModelBase _currentView;
 
-		public WalletManagerViewModel() : base("Wallet Manager")
+		public WelcomeTabViewModel() : base("Welcome!")
 		{
 		}
 

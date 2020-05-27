@@ -13,7 +13,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Dialogs;
-using WalletWasabi.Gui.Tabs.WalletManager;
+using WalletWasabi.Gui.Tabs.WelcomeTab;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 
@@ -110,11 +110,11 @@ namespace WalletWasabi.Gui
 						}
 
 						Hide();
-						var wm = IoC.Get<IShell>().Documents?.OfType<WalletManagerViewModel>().FirstOrDefault();
+						var wm = IoC.Get<IShell>().Documents?.OfType<WelcomeTabViewModel>().FirstOrDefault();
 						if (wm is { })
 						{
 							wm.OnClose();
-							Logger.LogInfo($"{nameof(WalletManagerViewModel)} closed.");
+							Logger.LogInfo($"{nameof(WelcomeTabViewModel)} closed.");
 						}
 
 						await Global.DisposeAsync();

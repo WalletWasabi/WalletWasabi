@@ -26,7 +26,7 @@ using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
+namespace WalletWasabi.Gui.Tabs.WelcomeTab.HardwareWallets
 {
 	public class ConnectHardwareWalletViewModel : CategoryViewModel
 	{
@@ -37,7 +37,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 		private string _loadButtonText;
 		private bool _isHwWalletSearchTextVisible;
 
-		public ConnectHardwareWalletViewModel(WalletManagerViewModel owner) : base("Hardware Wallet")
+		public ConnectHardwareWalletViewModel(WelcomeTabViewModel owner) : base("Hardware Wallet")
 		{
 			Global = Locator.Current.GetService<Global>();
 			WalletManager = Global.WalletManager;
@@ -186,7 +186,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 		public bool IsLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 		private Global Global { get; }
 		private Wallets.WalletManager WalletManager { get; }
-		private WalletManagerViewModel Owner { get; }
+		private WelcomeTabViewModel Owner { get; }
 
 		public void SetLoadButtonText()
 		{

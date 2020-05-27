@@ -14,7 +14,7 @@ using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Controls.LockScreen;
-using WalletWasabi.Gui.Tabs.WalletManager;
+using WalletWasabi.Gui.Tabs.WelcomeTab;
 
 namespace WalletWasabi.Gui.ViewModels
 {
@@ -152,7 +152,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private void DisplayWalletManager()
 		{
-			var walletManagerViewModel = IoC.Get<WalletManagerViewModel>();
+			var walletManagerViewModel = IoC.Get<WelcomeTabViewModel>();
 			IoC.Get<IShell>().AddDocument(walletManagerViewModel);
 
 			var global = Locator.Current.GetService<Global>();

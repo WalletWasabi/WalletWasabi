@@ -1,11 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
+namespace WalletWasabi.Gui.Tabs.WelcomeTab.RecoverWallets
 {
-	public class GenerateWalletSuccessView : UserControl
+	internal class RecoverWalletView : UserControl
 	{
-		public GenerateWalletSuccessView()
+		public RecoverWalletView()
 		{
 			InitializeComponent();
 		}
