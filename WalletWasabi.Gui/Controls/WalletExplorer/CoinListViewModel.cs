@@ -28,7 +28,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		Amount,
 		Privacy,
 		Clusters,
-		Status,
+		Status
 	}
 
 	public class CoinListViewModel : ViewModelBase
