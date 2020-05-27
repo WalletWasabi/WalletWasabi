@@ -84,7 +84,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			global.Coordinator.UtxoReferee.Clear();
 
 			var network = global.RpcClient.Network;
-			var serviceConfiguration = new ServiceConfiguration(2, 2, 21, 50, regTestFixture.BackendRegTestNode.P2pEndPoint, Money.Coins(Constants.DefaultDustThreshold));
+			var serviceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.PrivacyLevelSome.ToString(), 2, 21, 50, regTestFixture.BackendRegTestNode.P2pEndPoint, Money.Coins(Constants.DefaultDustThreshold));
 			var bitcoinStore = new BitcoinStore();
 			var dir = GetWorkDir(callerFilePath, callerMemberName);
 			await bitcoinStore.InitializeAsync(dir, network);

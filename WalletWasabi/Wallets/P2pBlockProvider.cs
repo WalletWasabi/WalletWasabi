@@ -126,7 +126,7 @@ namespace WalletWasabi.Wallets
 						catch (Exception ex)
 						{
 							Logger.LogDebug(ex);
-							DisconnectNode(node, 
+							DisconnectNode(node,
 								$"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}.",
 								force: true);
 							continue;
@@ -291,7 +291,7 @@ namespace WalletWasabi.Wallets
 				node.DisconnectAsync(logIfDisconnect);
 			}
 		}
-		
+
 		/// <summary>
 		/// Current timeout used when downloading a block from the remote node. It is defined in seconds.
 		/// </summary>

@@ -135,7 +135,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				switch (SelectPrivateCheckBoxState)
 				{
 					case true:
-						SelectCoins(x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
+						SelectCoins(x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySetValue);
 						break;
 
 					case null:
@@ -151,7 +151,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				switch (SelectNonPrivateCheckBoxState)
 				{
 					case true:
-						SelectCoins(x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
+						SelectCoins(x => x.AnonymitySet < Global.Config.MixUntilAnonymitySetValue);
 						break;
 
 					case false:
@@ -402,8 +402,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private void RefreshSelectionCheckBoxes(CoinViewModel[] coins)
 		{
 			SelectAllCheckBoxState = GetCheckBoxesSelectedState(coins, x => true);
-			SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(coins, x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySet);
-			SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(coins, x => x.AnonymitySet < Global.Config.MixUntilAnonymitySet);
+			SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(coins, x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySetValue);
+			SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(coins, x => x.AnonymitySet < Global.Config.MixUntilAnonymitySetValue);
 		}
 
 		private void RefreshStatusColumnWidth(CoinViewModel[] coins)
@@ -477,7 +477,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					try
 					{
-						RefreshSelectCheckBoxesShields(x);
+						RefreshSelectCheckBoxesShields(Global.Config.GetAnonymitySet(x));
 						RefreshSelectionCheckBoxes(RootList.Items.ToArray());
 					}
 					catch (Exception ex)
@@ -541,12 +541,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.DisposeWith(cvm.GetDisposables()); // Subscription will be disposed with the coinViewModel.
 		}
 
-		private void RefreshSelectCheckBoxesShields(int mixUntilAnonymitySet)
+		private void RefreshSelectCheckBoxesShields(int anonymitySet)
 		{
 			var isCriticalPrivate = false;
-			var isSomePrivate = mixUntilAnonymitySet <= Global.Config.PrivacyLevelSome;
-			var isFinePrivate = mixUntilAnonymitySet <= Global.Config.PrivacyLevelFine;
-			var isStrongPrivate = mixUntilAnonymitySet <= Global.Config.PrivacyLevelStrong;
+			var isSomePrivate = anonymitySet <= Global.Config.PrivacyLevelSome;
+			var isFinePrivate = anonymitySet <= Global.Config.PrivacyLevelFine;
+			var isStrongPrivate = anonymitySet <= Global.Config.PrivacyLevelStrong;
 
 			SelectAllNonPrivateShieldState = new ShieldState(
 					!isCriticalPrivate,

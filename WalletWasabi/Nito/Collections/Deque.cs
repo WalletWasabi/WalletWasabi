@@ -389,7 +389,7 @@ namespace Nito.Collections
 				return false;
 			}
 
-			return default(T) == null;
+			return default(T) is null;
 		}
 
 		int IList.Add(object value)

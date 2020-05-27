@@ -573,8 +573,12 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			// THEN connection confirmation will go with 2 alices in every round
 			// Therefore Alices that did not confirm, nor requested disconnection should be banned:
 
-			IEnumerable<Alice> alicesToBan = await RemoveAlicesIfAnInputRefusedByMempoolAsync().ConfigureAwait(false); // So ban only those who confirmed participation, yet spent their inputs.
+			var alicesRemoved = await RemoveAlicesIfAnInputRefusedByMempoolAsync().ConfigureAwait(false); // So ban only those who confirmed participation, yet spent their inputs.
 
+			// There's the question of alices who spent their inputs but confirmed connection and alices who we removed because their inputs were unconfirmed and the resulting mempool chain was too big.
+			// We should ban alices who spent their coins, but not the ones who ended up being in a large mempool chain.
+			// However note that even alices who spent their coins don't have to be banned, since the attack described here would still be probably very expensive. Anyway, to be sure let's ban them.
+			IEnumerable<Alice> alicesToBan = alicesRemoved.removedSpentAlices;
 			IEnumerable<OutPoint> inputsToBan = alicesToBan.SelectMany(x => x.Inputs).Select(y => y.Outpoint).Concat(additionalAlicesToBan.SelectMany(x => x.Inputs).Select(y => y.Outpoint)).Distinct();
 
 			if (inputsToBan.Any())
@@ -585,14 +589,14 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			RemoveAlicesBy(additionalAlicesToBan.Select(x => x.UniqueId).Concat(alicesToBan.Select(y => y.UniqueId)).Distinct().ToArray());
 
 			int aliceCountAfterConnectionConfirmationTimeout = CountAlices();
-			int didNotConfirmeCount = AnonymitySet - aliceCountAfterConnectionConfirmationTimeout;
+			int didNotConfirmCount = AnonymitySet - aliceCountAfterConnectionConfirmationTimeout;
 			if (aliceCountAfterConnectionConfirmationTimeout < 2)
 			{
-				Abort($"{didNotConfirmeCount} Alices did not confirm their connection.");
+				Abort($"{didNotConfirmCount} Alices did not confirm their connection.");
 			}
 			else
 			{
-				if (didNotConfirmeCount > 0)
+				if (didNotConfirmCount > 0)
 				{
 					// Adjust anonymity set.
 					UpdateAnonymitySet(aliceCountAfterConnectionConfirmationTimeout);
@@ -1146,7 +1150,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 			StartAliceTimeout(alice.UniqueId);
 
-			Logger.LogInfo($"Round ({RoundId}): Alice ({alice.InputSum.ToString(false, false)}) added.");
+			Logger.LogDebug($"Round ({RoundId}): Alice ({alice.InputSum.ToString(false, false)}) added.");
 		}
 
 		public void AddBob(Bob bob)
@@ -1162,14 +1166,11 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				Bobs.Add(bob);
 			}
 
-			Logger.LogInfo($"Round ({RoundId}): Bob ({bob.Level.Denomination}) added.");
+			Logger.LogDebug($"Round ({RoundId}): Bob ({bob.Level.Denomination}) added.");
 		}
 
-		public async Task<IEnumerable<Alice>> RemoveAlicesIfAnInputRefusedByMempoolAsync()
+		public async Task<(IEnumerable<Alice> removedSpentAlices, IEnumerable<Alice> removedUnconfirmedAlices)> RemoveAlicesIfAnInputRefusedByMempoolAsync()
 		{
-			var alicesRemoved = new List<Alice>();
-			var key = new Key();
-
 			using (await RoundSynchronizerLock.LockAsync().ConfigureAwait(false))
 			{
 				if ((Phase != RoundPhase.InputRegistration && Phase != RoundPhase.ConnectionConfirmation) || Status != CoordinatorRoundStatus.Running)
@@ -1177,36 +1178,110 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
 				}
 
-				var checkingTasks = new List<(Alice alice, Task<(bool accepted, string reason)> task)>();
-				var batch = RpcClient.PrepareBatch();
-				foreach (Alice alice in Alices)
+				// If we can build a transaction that the mempool accepts, then we're good, no need to remove any Alices.
+				(bool accept, string rejectReason) resultAll = await TestMempoolAcceptWithTransactionSimulationAsync().ConfigureAwait(false);
+				if (resultAll.accept)
 				{
-					// Check if mempool would accept a fake transaction created with the registered inputs.
-					// This will catch ascendant/descendant count and size limits for example.
-					checkingTasks.Add((alice, batch.TestMempoolAcceptAsync(alice.Inputs)));
+					return (Enumerable.Empty<Alice>(), Enumerable.Empty<Alice>());
 				}
-				var waiting = Task.WhenAll(checkingTasks.Select(t => t.task));
+				Logger.LogInfo($"Mempool acceptance is unsuccessful! Number of Alices: {Alices.Count}.");
+
+				// The created tx was not accepted. Let's figure out why. Is it because an Alice doublespent or because of too long mempool chains.
+				var responses = await GetTxOutForAllInputsAsync().ConfigureAwait(false);
+
+				var alicesSpent = new HashSet<Alice>();
+				var alicesUnconfirmed = new HashSet<Alice>();
+				foreach (var (alice, resp) in responses)
+				{
+					if (resp is null)
+					{
+						alicesSpent.Add(alice);
+					}
+					else if (resp.Confirmations <= 0)
+					{
+						alicesUnconfirmed.Add(alice);
+					}
+				}
+
+				// Let's go through Alices those have spent inputs and remove them.
+				foreach (var alice in alicesSpent)
+				{
+					Alices.Remove(alice);
+					Logger.LogInfo($"Round ({RoundId}): Alice ({alice.UniqueId}) removed, because of spent inputs.");
+				}
+
+				// If we removed spent Alices, then test mempool acceptance again.
+				// If we did not remove spent Alices, then no need to test again, we know it's because of unconfirmed Alices.
+				if (alicesSpent.Any())
+				{
+					// Let's test another fake transaction, maybe the problem was spent inputs.
+					resultAll = await TestMempoolAcceptWithTransactionSimulationAsync().ConfigureAwait(false);
+					if (resultAll.accept)
+					{
+						return (alicesSpent, Enumerable.Empty<Alice>());
+					}
+					Logger.LogInfo($"Mempool acceptance is unsuccessful! Number of Alices: {Alices.Count}.");
+				}
+
+				// Let's go remove the unconfirmed Alices.
+				// If there are unconfirmed Alices those are also spent Alices, then we don't need to double remove them.
+				foreach (var alice in alicesUnconfirmed.Except(alicesSpent))
+				{
+					Alices.Remove(alice);
+					Logger.LogInfo($"Round ({RoundId}): Alice ({alice.UniqueId}) removed, because of unconfirmed inputs.");
+				}
+
+				return (alicesSpent, alicesUnconfirmed);
+			}
+		}
+
+		private async Task<List<(Alice alice, GetTxOutResponse resp)>> GetTxOutForAllInputsAsync()
+		{
+			var responses = new List<(Alice alice, GetTxOutResponse resp)>();
+
+			var inputAliceDic = new Dictionary<OutPoint, Alice>();
+			foreach (Alice alice in Alices)
+			{
+				foreach (var input in alice.Inputs.Select(x => x.Outpoint))
+				{
+					inputAliceDic.Add(input, alice);
+				}
+			}
+
+			foreach (var dicBatch in inputAliceDic.Batch(8)) // 8 is default rpcworkqueue/2, so other requests can go.
+			{
+				var checkingTasks = new List<(Alice alice, Task<GetTxOutResponse> task)>();
+				var batch = RpcClient.PrepareBatch();
+
+				foreach (var aliceInput in dicBatch)
+				{
+					var alice = aliceInput.Value;
+					var input = aliceInput.Key;
+					checkingTasks.Add((alice, batch.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true)));
+				}
+
 				await batch.SendBatchAsync().ConfigureAwait(false);
-				await waiting.ConfigureAwait(false);
 
 				foreach (var t in checkingTasks)
 				{
-					var result = await t.task.ConfigureAwait(false);
-					if (!result.accepted)
-					{
-						alicesRemoved.Add(t.alice);
-						Alices.Remove(t.alice);
-						Logger.LogInfo($"Mempool acceptance failed: {result.reason ?? "no reason"}.");
-					}
+					var resp = await t.task.ConfigureAwait(false);
+					responses.Add((t.alice, resp));
 				}
 			}
 
-			foreach (var alice in alicesRemoved)
-			{
-				Logger.LogInfo($"Round ({RoundId}): Alice ({alice.UniqueId}) removed.");
-			}
+			return responses;
+		}
 
-			return alicesRemoved;
+		private async Task<(bool accept, string rejectReason)> TestMempoolAcceptWithTransactionSimulationAsync()
+		{
+			// Check if mempool would accept a fake transaction created with all the registered inputs.
+			var coinsToTest = Alices.SelectMany(alice => alice.Inputs);
+			// Add the outputs by denomination level. Add 1 as estimation could be sometimes off by 1.
+			var outputCount = Alices.Sum(alice => EstimateBestMixingLevel(alice) + 1);
+			// Add the change outputs.
+			outputCount += Alices.Count;
+
+			return await RpcClient.TestMempoolAcceptAsync(coinsToTest, fakeOutputCount: outputCount, FeePerInputs, FeePerOutputs).ConfigureAwait(false);
 		}
 
 		public int RemoveAlicesBy(params Guid[] ids)

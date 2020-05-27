@@ -26,7 +26,6 @@ namespace WalletWasabi.Gui
 		public const int DefaultPrivacyLevelSome = 2;
 		public const int DefaultPrivacyLevelFine = 21;
 		public const int DefaultPrivacyLevelStrong = 50;
-		public const int DefaultMixUntilAnonymitySet = 50;
 		public const int DefaultTorSock5Port = 9050;
 		public const int DefaultJsonRpcServerPort = 37128;
 		public static readonly Money DefaultDustThreshold = Money.Coins(Constants.DefaultDustThreshold);
@@ -34,7 +33,7 @@ namespace WalletWasabi.Gui
 		private Uri _backendUri = null;
 		private Uri _fallbackBackendUri;
 
-		private int _mixUntilAnonymitySet;
+		private string _mixUntilAnonymitySet = WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelStrong.ToString();
 		private int _privacyLevelSome;
 		private int _privacyLevelFine;
 		private int _privacyLevelStrong;
@@ -122,9 +121,9 @@ namespace WalletWasabi.Gui
 			"http://localhost:37128/"
 		};
 
-		[DefaultValue(DefaultMixUntilAnonymitySet)]
+		[DefaultValue(nameof(WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelStrong))]
 		[JsonProperty(PropertyName = "MixUntilAnonymitySet", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public int MixUntilAnonymitySet
+		public string MixUntilAnonymitySet
 		{
 			get => _mixUntilAnonymitySet;
 			internal set
@@ -138,6 +137,8 @@ namespace WalletWasabi.Gui
 				}
 			}
 		}
+
+		public int MixUntilAnonymitySetValue => GetAnonymitySet(MixUntilAnonymitySet);
 
 		[DefaultValue(DefaultPrivacyLevelSome)]
 		[JsonProperty(PropertyName = "PrivacyLevelSome", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -329,79 +330,63 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		public static Config LoadOrCreateDefaultFile(string path)
+		private int CorrectMixUntilAnonymitySetValue()
 		{
-			var config = new Config(path);
-			config.LoadOrCreateDefaultFile();
-
-			// MixUntilAnonymitySet sanity check.
-			if (config.MixUntilAnonymitySet != config.PrivacyLevelFine &&
-				config.MixUntilAnonymitySet != config.PrivacyLevelSome &&
-				config.MixUntilAnonymitySet != config.PrivacyLevelStrong)
+			try
 			{
-				if (config.MixUntilAnonymitySet < config.PrivacyLevelSome)
+				if (int.TryParse(MixUntilAnonymitySet, out int mixUntilAnonymitySetValue))
 				{
-					config.MixUntilAnonymitySet = config.PrivacyLevelSome;
-				}
-				else if (config.MixUntilAnonymitySet < config.PrivacyLevelFine)
-				{
-					config.MixUntilAnonymitySet = config.PrivacyLevelFine;
+					if (mixUntilAnonymitySetValue <= PrivacyLevelSome)
+					{
+						MixUntilAnonymitySet = WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelSome.ToString();
+						return PrivacyLevelSome;
+					}
+					else if (mixUntilAnonymitySetValue <= PrivacyLevelFine)
+					{
+						MixUntilAnonymitySet = WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelFine.ToString();
+						return PrivacyLevelFine;
+					}
+					else
+					{
+						MixUntilAnonymitySet = WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelStrong.ToString();
+						return PrivacyLevelStrong;
+					}
 				}
 				else
 				{
-					config.MixUntilAnonymitySet = config.PrivacyLevelStrong;
+					MixUntilAnonymitySet = WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelStrong.ToString();
+					return PrivacyLevelStrong;
 				}
 			}
-
-			return config;
+			finally
+			{
+				ToFile();
+			}
 		}
 
-		public TargetPrivacy GetTargetPrivacy()
+		public void CorrectMixUntilAnonymitySet()
 		{
-			if (MixUntilAnonymitySet == PrivacyLevelSome)
-			{
-				return TargetPrivacy.Some;
-			}
-
-			if (MixUntilAnonymitySet == PrivacyLevelFine)
-			{
-				return TargetPrivacy.Fine;
-			}
-
-			if (MixUntilAnonymitySet == PrivacyLevelStrong)
-			{
-				return TargetPrivacy.Strong;
-			}
-
-			//the levels changed in the config file, adjust
-			if (MixUntilAnonymitySet < PrivacyLevelSome)
-			{
-				return TargetPrivacy.None; //choose the lower
-			}
-
-			if (MixUntilAnonymitySet < PrivacyLevelFine)
-			{
-				return TargetPrivacy.Some;
-			}
-
-			if (MixUntilAnonymitySet < PrivacyLevelStrong)
-			{
-				return TargetPrivacy.Fine;
-			}
-
-			return TargetPrivacy.Strong;
+			GetAnonymitySet(MixUntilAnonymitySet);
 		}
 
-		public int GetTargetLevel(TargetPrivacy target)
+		public int GetAnonymitySet(string mixUntilAnonymitySet)
 		{
-			return target switch
+			if (mixUntilAnonymitySet == WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelSome.ToString())
 			{
-				TargetPrivacy.None => 0,
-				TargetPrivacy.Some => PrivacyLevelSome,
-				TargetPrivacy.Fine => PrivacyLevelFine,
-				TargetPrivacy.Strong => PrivacyLevelStrong,
-				_ => 0
-			};
+				return PrivacyLevelSome;
+			}
+			else if (mixUntilAnonymitySet == WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelFine.ToString())
+			{
+				return PrivacyLevelFine;
+			}
+			else if (mixUntilAnonymitySet == WalletWasabi.Models.MixUntilAnonymitySet.PrivacyLevelStrong.ToString())
+			{
+				return PrivacyLevelStrong;
+			}
+			else
+			{
+				return CorrectMixUntilAnonymitySetValue();
+			}
 		}
 
 		protected override bool TryEnsureBackwardsCompatibility(string jsonString)

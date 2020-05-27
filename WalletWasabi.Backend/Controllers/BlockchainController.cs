@@ -433,13 +433,21 @@ namespace WalletWasabi.Backend.Controllers
 					status = new StatusResponse();
 
 					// Updating the status of the filters.
-					var lastFilter = Global.IndexBuilderService.GetLastFilter();
-					var lastFilterHash = lastFilter.Header.BlockHash;
-					var bestHash = await RpcClient.GetBestBlockHashAsync();
-					var lastBlockHeader = await RpcClient.GetBlockHeaderAsync(bestHash);
-					var prevHash = lastBlockHeader.HashPrevBlock;
+					if (DateTimeOffset.UtcNow - Global.IndexBuilderService.LastFilterBuildTime > TimeSpan.FromMinutes(20))
+					{
+						// Checking if the last generated filter is created for one of the last two blocks on the blockchain.
+						var lastFilter = Global.IndexBuilderService.GetLastFilter();
+						var lastFilterHash = lastFilter.Header.BlockHash;
+						var bestHash = await RpcClient.GetBestBlockHashAsync();
+						var lastBlockHeader = await RpcClient.GetBlockHeaderAsync(bestHash);
+						var prevHash = lastBlockHeader.HashPrevBlock;
 
-					if (bestHash == lastFilterHash || prevHash == lastFilterHash)
+						if (bestHash == lastFilterHash || prevHash == lastFilterHash)
+						{
+							status.FilterCreationActive = true;
+						}
+					}
+					else
 					{
 						status.FilterCreationActive = true;
 					}

@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
 using WalletWasabi.TorSocks5;
 
 namespace WalletWasabi.Tests.UnitTests.Clients
@@ -37,9 +38,20 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			}
 		}
 
-		public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancel = default)
+		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancel = default)
 		{
-			throw new NotImplementedException();
+			var relativeUri = request.RequestUri?.ToString()?.Replace(TorSocks5EndPoint.ToEndpointString(), "");
+			if (string.IsNullOrWhiteSpace(relativeUri))
+			{
+				return await OnSendAsync(request.Method, "", await request.Content.ReadAsStringAsync());
+			}
+			else
+			{
+				var sepPos = relativeUri.IndexOf('?');
+				var action = relativeUri[..sepPos];
+				var parameters = relativeUri[(sepPos + 1)..].Split('&', StringSplitOptions.RemoveEmptyEntries);
+				return await OnSendAsync_Method(request.Method, action, parameters);
+			}
 		}
 
 		#region IDisposable Support

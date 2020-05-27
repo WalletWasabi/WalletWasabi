@@ -31,19 +31,19 @@ namespace WalletWasabi.Gui.Rpc
 		}
 
 		/// <summary>
-		/// Requests with null Id are called notification requests and indicate the
-		/// client is not interested in receiving a response.
+		/// Gets a value indicating whether the JsonRpcRequest is a notification request
+		/// which means the client is not interested in receiving a response.
 		/// </summary>
-		public bool IsNotification => Id == null;
+		public bool IsNotification => Id is null;
 
 		/// <summary>
-		/// A String specifying the version of the JSON-RPC protocol. MUST be exactly "2.0".
+		/// Gets the version of the JSON-RPC protocol. MUST be exactly "2.0".
 		/// </summary>
 		[JsonProperty("jsonrpc", Required = Required.Always)]
 		public string JsonRPC { get; }
 
 		/// <summary>
-		/// An identifier established by the Client that MUST contain a String,
+		/// Gets the identifier established by the Client that MUST contain a String,
 		/// Number, or NULL value if included. If it is not included it is assumed
 		/// to be a notification.
 		/// The value SHOULD normally not be Null and Numbers SHOULD NOT contain
@@ -59,7 +59,7 @@ namespace WalletWasabi.Gui.Rpc
 		public string Id { get; }
 
 		/// <summary>
-		/// A String containing the name of the method to be invoked. Method names that
+		/// Gets the name of the method to be invoked. Method names that
 		/// begin with the word rpc followed by a period character (U+002E or ASCII 46)
 		/// are reserved for rpc-internal methods and extensions and MUST NOT be used
 		/// for anything else.
@@ -68,7 +68,7 @@ namespace WalletWasabi.Gui.Rpc
 		public string Method { get; }
 
 		/// <summary>
-		/// A Structured value that holds the parameter values to be used during the
+		/// Gets a structured value that holds the parameter values to be used during the
 		/// invocation of the method. This member MAY be omitted.
 		/// </summary>
 		[JsonProperty("params")]

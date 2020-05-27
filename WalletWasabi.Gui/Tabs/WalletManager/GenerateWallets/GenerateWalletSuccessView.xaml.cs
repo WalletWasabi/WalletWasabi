@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 {
-	internal class GenerateWalletSuccessView : UserControl
+	public class GenerateWalletSuccessView : UserControl
 	{
 		public GenerateWalletSuccessView()
 		{
