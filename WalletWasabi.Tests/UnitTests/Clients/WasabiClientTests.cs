@@ -119,11 +119,13 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 		}
 
 		[Fact]
-		public void ClientSupportBackendVersionTests()
+		public void ConstantsTests()
 		{
 			var min = int.Parse(WalletWasabi.Helpers.Constants.ClientSupportBackendVersionMin);
 			var max = int.Parse(WalletWasabi.Helpers.Constants.ClientSupportBackendVersionMax);
 			Assert.True(min <= max);
+
+			int.Parse(WalletWasabi.Helpers.Constants.BackendMajorVersion);
 		}
 	}
 }

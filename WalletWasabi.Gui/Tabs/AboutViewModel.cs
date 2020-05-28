@@ -30,7 +30,7 @@ namespace WalletWasabi.Gui.Tabs
 
 			UpdateChecker = hostedServices.FirstOrDefault<UpdateChecker>();
 
-			CurrentBackendMajorVersion = UpdateChecker.UpdateStatus.CurrentBackendApiVersion;
+			CurrentBackendMajorVersion = UpdateChecker.UpdateStatus?.CurrentBackendApiVersion ?? "";
 
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 
