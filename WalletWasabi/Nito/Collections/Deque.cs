@@ -408,7 +408,7 @@ namespace Nito.Collections
 
 		bool IList.Contains(object value)
 		{
-			return IsT(value) ? ((ICollection<T>)this).Contains((T)value) : false;
+			return IsT(value) && ((ICollection<T>)this).Contains((T)value);
 		}
 
 		int IList.IndexOf(object value)

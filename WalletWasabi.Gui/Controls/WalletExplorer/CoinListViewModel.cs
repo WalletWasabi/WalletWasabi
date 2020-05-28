@@ -506,11 +506,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						SelectedAmount = selectedCoins.Sum(x => x.Amount);
 						IsAnyCoinSelected = selectedCoins.Any();
 
-						LabelExposeCommonOwnershipWarning = !DisplayCommonOwnershipWarning
-							? false
-							: selectedCoins
-								.Where(c => c.AnonymitySet == 1)
-								.Any(x => selectedCoins.Any(x => x.AnonymitySet > 1));
+						LabelExposeCommonOwnershipWarning = DisplayCommonOwnershipWarning && selectedCoins.Where(c => c.AnonymitySet == 1).Any(x => selectedCoins.Any(x => x.AnonymitySet > 1));
 
 						SelectionChanged?.Invoke(this, null);
 					}
