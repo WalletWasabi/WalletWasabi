@@ -15,8 +15,9 @@ namespace System.Net.Http
 				return default;
 			}
 
-			var settings = new JsonSerializerSettings{
-				Converters = new [] { new RoundStateResponseJsonConverter(WasabiClient.CurrentBackendMajorVersion) }
+			var settings = new JsonSerializerSettings
+			{
+				Converters = new[] { new RoundStateResponseJsonConverter(WasabiClient.ApiVersion) }
 			};
 			var jsonString = await me.ReadAsStringAsync();
 			return JsonConvert.DeserializeObject<T>(jsonString, settings);

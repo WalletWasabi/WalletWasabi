@@ -95,22 +95,26 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 		[Fact]
 		public void UpdateStatusEqualityTests()
 		{
-			var u1 = new UpdateStatus(true, true, new Version(1, 0));
-			var u2 = new UpdateStatus(true, true, new Version(1, 0));
+			var u1 = new UpdateStatus(true, true, new Version(1, 0), "3");
+			var u2 = new UpdateStatus(true, true, new Version(1, 0), "3");
 			Assert.Equal(u1, u2);
 			Assert.Equal(u1.GetHashCode(), u2.GetHashCode());
 
-			var u3 = new UpdateStatus(false, true, new Version(1, 0));
+			var u3 = new UpdateStatus(false, true, new Version(1, 0), "3");
 			Assert.NotEqual(u1, u3);
 			Assert.NotEqual(u1.GetHashCode(), u3.GetHashCode());
 
-			var u4 = new UpdateStatus(true, false, new Version(1, 0));
+			var u4 = new UpdateStatus(true, false, new Version(1, 0), "3");
 			Assert.NotEqual(u1, u4);
 			Assert.NotEqual(u1.GetHashCode(), u4.GetHashCode());
 
-			var u5 = new UpdateStatus(true, true, new Version(1, 0, 1));
+			var u5 = new UpdateStatus(true, true, new Version(1, 0, 1), "3");
 			Assert.NotEqual(u1, u5);
 			Assert.NotEqual(u1.GetHashCode(), u5.GetHashCode());
+
+			var u6 = new UpdateStatus(true, true, new Version(1, 0), "4");
+			Assert.NotEqual(u1, u6);
+			Assert.NotEqual(u1.GetHashCode(), u6.GetHashCode());
 		}
 	}
 }

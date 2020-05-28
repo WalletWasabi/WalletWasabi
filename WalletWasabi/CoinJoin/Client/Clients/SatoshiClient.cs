@@ -24,7 +24,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		public async Task<IEnumerable<RoundStateResponseBase>> GetAllRoundStatesAsync()
 		{
-			using var response = await TorClient.SendAsync(HttpMethod.Get, $"/api/v{WasabiClient.CurrentBackendMajorVersion}/btc/chaumiancoinjoin/states/").ConfigureAwait(false);
+			using var response = await TorClient.SendAsync(HttpMethod.Get, $"/api/v{WasabiClient.ApiVersion}/btc/chaumiancoinjoin/states/").ConfigureAwait(false);
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
 				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);

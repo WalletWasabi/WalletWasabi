@@ -13,6 +13,9 @@ using WalletWasabi.Logging;
 using System.Reactive.Linq;
 using WalletWasabi.WebClients.Wasabi;
 using System.Reactive.Disposables;
+using Splat;
+using WalletWasabi.Models;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Tabs
 {
@@ -22,8 +25,6 @@ namespace WalletWasabi.Gui.Tabs
 
 		public AboutViewModel() : base("About")
 		{
-			CurrentBackendMajorVersion = WasabiClient.CurrentBackendMajorVersion;
-
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 
 			OpenBrowserCommand.ThrownExceptions
@@ -65,19 +66,19 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			base.OnOpen(disposables);
 
-			WasabiClient.CurrentBackendMajorVersionChanged += WasabiClient_CurrentBackendMajorVersionChanged;
+			var global = Locator.Current.GetService<Global>();
+			var hostedServices = global.HostedServices;
+
+			var updateChecker = hostedServices.FirstOrDefault<UpdateChecker>();
+			Observable.FromEventPattern<UpdateStatus>(updateChecker, nameof(updateChecker.UpdateStatusChanged))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(e => CurrentBackendMajorVersion = e.EventArgs.CurrentBackendApiVersion)
+				.DisposeWith(disposables);
 		}
 
 		public override bool OnClose()
 		{
-			WasabiClient.CurrentBackendMajorVersionChanged -= WasabiClient_CurrentBackendMajorVersionChanged;
-
 			return base.OnClose();
-		}
-
-		private void WasabiClient_CurrentBackendMajorVersionChanged(object sender, string currentBackendMajorVersion)
-		{
-			CurrentBackendMajorVersion = currentBackendMajorVersion;
 		}
 	}
 }
