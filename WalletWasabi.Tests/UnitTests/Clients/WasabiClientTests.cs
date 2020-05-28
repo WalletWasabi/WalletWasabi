@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Models;
@@ -115,6 +116,14 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			var u6 = new UpdateStatus(true, true, new Version(1, 0), "4");
 			Assert.NotEqual(u1, u6);
 			Assert.NotEqual(u1.GetHashCode(), u6.GetHashCode());
+		}
+
+		[Fact]
+		public void ClientSupportBackendVersionTests()
+		{
+			var min = int.Parse(WalletWasabi.Helpers.Constants.ClientSupportBackendVersionMin);
+			var max = int.Parse(WalletWasabi.Helpers.Constants.ClientSupportBackendVersionMax);
+			Assert.True(min <= max);
 		}
 	}
 }
