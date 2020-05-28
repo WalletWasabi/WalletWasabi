@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 using System;
-using WalletWasabi.Gui.Controls;
+using WalletWasabi.Gui.Models.Sorting;
 
 namespace WalletWasabi.Gui.Converters
 {

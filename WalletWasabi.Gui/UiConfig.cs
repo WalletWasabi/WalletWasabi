@@ -12,6 +12,7 @@ using WalletWasabi.Bases;
 using WalletWasabi.Gui.Controls;
 using WalletWasabi.Gui.Converters;
 using WalletWasabi.Gui.Models;
+using WalletWasabi.Gui.Models.Sorting;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.JsonConverters;
