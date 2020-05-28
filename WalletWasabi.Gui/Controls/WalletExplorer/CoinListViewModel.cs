@@ -91,23 +91,23 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SortCommand = ReactiveCommand.Create(RefreshOrdering);
 
 			this.WhenAnyValue(x => x.AmountSortDirection)
-				.ObserveOn(RxApp.MainThreadScheduler)
 				.Where(x => x != SortOrder.None)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => SortColumn(x, nameof(AmountSortDirection)));
 
 			this.WhenAnyValue(x => x.ClustersSortDirection)
-				.ObserveOn(RxApp.MainThreadScheduler)
 				.Where(x => x != SortOrder.None)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => SortColumn(x, nameof(ClustersSortDirection)));
 
 			this.WhenAnyValue(x => x.StatusSortDirection)
-				.ObserveOn(RxApp.MainThreadScheduler)
 				.Where(x => x != SortOrder.None)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => SortColumn(x, nameof(StatusSortDirection)));
 
 			this.WhenAnyValue(x => x.PrivacySortDirection)
-				.ObserveOn(RxApp.MainThreadScheduler)
 				.Where(x => x != SortOrder.None)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => SortColumn(x, nameof(PrivacySortDirection)));
 
 			SelectAllCheckBoxCommand = ReactiveCommand.Create(() =>
@@ -363,14 +363,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				SelectedColumnPreference = sortPref;
 			}
-
-			var sortTarget = sortPref.ColumnTarget;
-			var sortOrd = sortPref.SortOrder;
-
-			AmountSortDirection = sortTarget == nameof(AmountSortDirection) ? sortOrd : SortOrder.None;
-			PrivacySortDirection = sortTarget == nameof(PrivacySortDirection) ? sortOrd : SortOrder.None;
-			ClustersSortDirection = sortTarget == nameof(ClustersSortDirection) ? sortOrd : SortOrder.None;
-			StatusSortDirection = sortTarget == nameof(StatusSortDirection) ? sortOrd : SortOrder.None;
+ 
+			AmountSortDirection = sortPref.Match(sortOrder, nameof(AmountSortDirection));
+			PrivacySortDirection = sortPref.Match(sortOrder, nameof(PrivacySortDirection));
+			ClustersSortDirection = sortPref.Match(sortOrder, nameof(ClustersSortDirection));
+			StatusSortDirection = sortPref.Match(sortOrder, nameof(StatusSortDirection));
 		}
 
 		private void RefreshOrdering()

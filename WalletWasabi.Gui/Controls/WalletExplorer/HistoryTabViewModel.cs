@@ -42,18 +42,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			RefreshOrdering();
 
 			this.WhenAnyValue(x => x.DateSortDirection)
-				.ObserveOn(RxApp.MainThreadScheduler)
 				.Where(x => x != SortOrder.None)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => SortColumn(x, nameof(DateSortDirection)));
 
 			this.WhenAnyValue(x => x.AmountSortDirection)
-				.ObserveOn(RxApp.MainThreadScheduler)
 				.Where(x => x != SortOrder.None)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => SortColumn(x, nameof(AmountSortDirection)));
 
 			this.WhenAnyValue(x => x.TransactionSortDirection)
-				.ObserveOn(RxApp.MainThreadScheduler)
 				.Where(x => x != SortOrder.None)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => SortColumn(x, nameof(TransactionSortDirection)));
 
 			SortCommand.ThrownExceptions
@@ -185,12 +185,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				Global.UiConfig.HistoryTabViewSortingPreference = sortPref;
 			}
 
-			var sortTarget = sortPref.ColumnTarget;
-			var sortOrd = sortPref.SortOrder;
-
-			DateSortDirection = sortTarget == nameof(DateSortDirection) ? sortOrd : SortOrder.None;
-			AmountSortDirection = sortTarget == nameof(AmountSortDirection) ? sortOrd : SortOrder.None;
-			TransactionSortDirection = sortTarget == nameof(TransactionSortDirection) ? sortOrd : SortOrder.None;
+			DateSortDirection = sortPref.Match(sortOrder, nameof(DateSortDirection));
+			AmountSortDirection = sortPref.Match(sortOrder, nameof(AmountSortDirection));
+			TransactionSortDirection = sortPref.Match(sortOrder, nameof(TransactionSortDirection));
 		}
 
 		private void RefreshOrdering()

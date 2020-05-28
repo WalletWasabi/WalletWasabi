@@ -15,5 +15,10 @@ namespace WalletWasabi.Gui.Models.Sorting
 		public string ColumnTarget { get; set; }
 
 		public bool Equals([AllowNull] SortingPreference other) => SortOrder == other.SortOrder && ColumnTarget == other.ColumnTarget;
+
+		public SortOrder Match(SortOrder targetOrd, string match)
+		{
+			return ColumnTarget == match ? targetOrd : SortOrder.None;
+		}
 	}
 }
