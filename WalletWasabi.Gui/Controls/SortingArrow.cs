@@ -27,14 +27,14 @@ namespace WalletWasabi.Gui.Controls
 	
 	public struct SortingPreference : IEquatable<SortingPreference>
 	{
-		public SortingPreference(SortOrder sortOrder, int propertyTarget)
+		public SortingPreference(SortOrder sortOrder, string colTarget)
 		{
 			SortOrder = sortOrder;
-			ColumnTarget = propertyTarget;
+			ColumnTarget = colTarget;
 		}
 
 		public SortOrder SortOrder { get; set; }
-		public int ColumnTarget { get; set; }
+		public string ColumnTarget { get; set; }
 
 		public bool Equals([AllowNull] SortingPreference other) => SortOrder == other.SortOrder && ColumnTarget == other.ColumnTarget;
 	}

@@ -15,7 +15,8 @@ namespace WalletWasabi.Gui.Converters
 		{
 			try
 			{
-				return serializer.Deserialize(reader, typeof(SortingPreference));
+				var readValue = (SortingPreference)serializer.Deserialize(reader, typeof(SortingPreference));
+				return new SortingPreference(readValue.SortOrder, $"{readValue.ColumnTarget}SortDirection");
 			}
 			catch
 			{
@@ -25,7 +26,15 @@ namespace WalletWasabi.Gui.Converters
 
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
-			serializer.Serialize(writer, value);
+			if (value is null)
+			{
+				return;
+			}
+
+			var saveValue = (SortingPreference)value;
+			var newSaveValue = new SortingPreference(saveValue.SortOrder, saveValue.ColumnTarget.Replace("SortDirection", null));
+
+			serializer.Serialize(writer, newSaveValue);
 		}
 	}
 }

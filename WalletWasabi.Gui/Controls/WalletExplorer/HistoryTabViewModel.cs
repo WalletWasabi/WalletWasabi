@@ -16,13 +16,6 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	internal enum HistoryTabViewSortTarget
-	{
-		Date,
-		Amount,
-		Transaction
-	}
-
 	public class HistoryTabViewModel : WasabiDocumentTabViewModel, IWalletViewModel
 	{
 		private ObservableCollection<TransactionViewModel> _transactions;
@@ -39,26 +32,28 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Transactions = new ObservableCollection<TransactionViewModel>();
 
+			ValidateSavedColumnConfig();
+
 			SortCommand = ReactiveCommand.Create(RefreshOrdering);
 
 			var savedSort = Global.UiConfig.HistoryTabViewSortingPreference;
-			SortColumn(savedSort.SortOrder, (HistoryTabViewSortTarget)savedSort.ColumnTarget, false);
+			SortColumn(savedSort.SortOrder, savedSort.ColumnTarget, false);
 			RefreshOrdering();
 
 			this.WhenAnyValue(x => x.DateSortDirection)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Where(x => x != SortOrder.None)
-				.Subscribe(x => SortColumn(x, HistoryTabViewSortTarget.Date));
+				.Subscribe(x => SortColumn(x, nameof(DateSortDirection)));
 
 			this.WhenAnyValue(x => x.AmountSortDirection)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Where(x => x != SortOrder.None)
-				.Subscribe(x => SortColumn(x, HistoryTabViewSortTarget.Amount));
+				.Subscribe(x => SortColumn(x, nameof(AmountSortDirection)));
 
 			this.WhenAnyValue(x => x.TransactionSortDirection)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Where(x => x != SortOrder.None)
-				.Subscribe(x => SortColumn(x, HistoryTabViewSortTarget.Transaction));
+				.Subscribe(x => SortColumn(x, nameof(TransactionSortDirection)));
 
 			SortCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -168,21 +163,33 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private void SortColumn(SortOrder x, HistoryTabViewSortTarget y, bool saveToUiConfig = true)
+		private void ValidateSavedColumnConfig()
 		{
-			var sortPref = new SortingPreference(x, (int)y);
+			var savedCol = Global.UiConfig.HistoryTabViewSortingPreference.ColumnTarget;
+
+			if (savedCol != nameof(DateSortDirection)
+	   			& savedCol != nameof(AmountSortDirection)
+				& savedCol != nameof(TransactionSortDirection))
+			{
+				Global.UiConfig.HistoryTabViewSortingPreference = new SortingPreference(SortOrder.Increasing, nameof(DateSortDirection));
+			}
+		}
+
+		private void SortColumn(SortOrder sortOrder, string target, bool saveToUiConfig = true)
+		{
+			var sortPref = new SortingPreference(sortOrder, target);
 
 			if (saveToUiConfig)
 			{
 				Global.UiConfig.HistoryTabViewSortingPreference = sortPref;
 			}
 
-			var sortTarget = (HistoryTabViewSortTarget)sortPref.ColumnTarget;
+			var sortTarget = sortPref.ColumnTarget;
 			var sortOrd = sortPref.SortOrder;
 
-			DateSortDirection = sortTarget == HistoryTabViewSortTarget.Date ? sortOrd : SortOrder.None;
-			AmountSortDirection = sortTarget == HistoryTabViewSortTarget.Amount ? sortOrd : SortOrder.None;
-			TransactionSortDirection = sortTarget == HistoryTabViewSortTarget.Transaction ? sortOrd : SortOrder.None;
+			DateSortDirection = sortTarget == nameof(DateSortDirection) ? sortOrd : SortOrder.None;
+			AmountSortDirection = sortTarget == nameof(AmountSortDirection) ? sortOrd : SortOrder.None;
+			TransactionSortDirection = sortTarget == nameof(TransactionSortDirection) ? sortOrd : SortOrder.None;
 		}
 
 		private void RefreshOrdering()

@@ -102,10 +102,10 @@ namespace WalletWasabi.Gui
 
 		[JsonProperty(PropertyName = "CoinListViewSortingPreference")]
 		[JsonConverter(typeof(SortingPreferenceJsonConverter))]
-		public SortingPreference CoinListViewSortingPreference { get; internal set; } = new SortingPreference(SortOrder.Increasing, 0);
+		public SortingPreference CoinListViewSortingPreference { get; internal set; } = new SortingPreference(SortOrder.Increasing, "Amount");
 
 		[JsonProperty(PropertyName = "HistoryTabViewSortingPreference")]
 		[JsonConverter(typeof(SortingPreferenceJsonConverter))]
-		public SortingPreference HistoryTabViewSortingPreference { get; internal set; } = new SortingPreference(SortOrder.Increasing, 0);
+		public SortingPreference HistoryTabViewSortingPreference { get; internal set; } = new SortingPreference(SortOrder.Increasing, "Date");
 	}
 }
