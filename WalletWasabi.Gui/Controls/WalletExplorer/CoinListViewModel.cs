@@ -65,7 +65,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			ValidateSavedColumnConfig();
 
-			var savedSort = Global.UiConfig.CoinListViewSortingPreference;
+			var savedSort = SelectedColumnPreference;
 
 			SortColumn(savedSort.SortOrder, savedSort.ColumnTarget, false);
 			RefreshOrdering();
@@ -316,16 +316,42 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			DequeueCoinsPressed?.Invoke(this, coin);
 		}
 
+		public SortingPreference SelectedColumnPreference
+		{
+			get
+			{
+				if (!CanDequeueCoins)
+				{
+					return Global.UiConfig.CoinListViewSortingPreference;
+				}
+				else
+				{
+					return Global.UiConfig.CoinJoinTabSortingPreference;
+				}
+			}
+			set
+			{
+				if (!CanDequeueCoins)
+				{
+					Global.UiConfig.CoinListViewSortingPreference = value;
+				}
+				else
+				{
+					Global.UiConfig.CoinJoinTabSortingPreference = value;
+				}
+			}
+		}
+
 		private void ValidateSavedColumnConfig()
 		{
-			var savedCol = Global.UiConfig.CoinListViewSortingPreference.ColumnTarget;
+			var savedCol = SelectedColumnPreference.ColumnTarget;
 
-			if (  savedCol != nameof(AmountSortDirection)
+			if (savedCol != nameof(AmountSortDirection)
 	   			& savedCol != nameof(PrivacySortDirection)
 				& savedCol != nameof(ClustersSortDirection)
-				& savedCol != nameof(StatusSortDirection)   )
+				& savedCol != nameof(StatusSortDirection))
 			{
-				Global.UiConfig.CoinListViewSortingPreference = new SortingPreference(SortOrder.Increasing, nameof(AmountSortDirection));
+				SelectedColumnPreference = new SortingPreference(SortOrder.Increasing, nameof(AmountSortDirection));
 			}
 		}
 
@@ -335,7 +361,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (saveToUiConfig)
 			{
-				Global.UiConfig.CoinListViewSortingPreference = sortPref;
+				SelectedColumnPreference = sortPref;
 			}
 
 			var sortTarget = sortPref.ColumnTarget;
