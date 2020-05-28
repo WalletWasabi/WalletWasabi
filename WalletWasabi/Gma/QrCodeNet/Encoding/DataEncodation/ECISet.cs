@@ -84,6 +84,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			// ToDo. Fill up remaining missing table.
 			AppendECI("iso-8859-1", 1, option);
 			AppendECI("IBM437", 2, option);
+
 			// AppendECI("iso-8859-1", 3, option);	//ECI value 1 is default encoding.
 			AppendECI("iso-8859-2", 4, option);
 			AppendECI("iso-8859-3", 5, option);
@@ -209,6 +210,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			};
 
 			int eciAssignmentByte = NumOfCodewords(eciValue);
+
 			// Number of bits = Num codewords indicator + codeword value = Number of codewords * 8
 			// Chapter 6.4.2.1 ECI Designator ISOIEC 18004:2006 Page 24
 			int eciAssignmentBits;
