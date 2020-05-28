@@ -101,6 +101,8 @@ namespace WalletWasabi.Gui
 
 				WalletManager.OnDequeue += WalletManager_OnDequeue;
 				WalletManager.WalletRelevantTransactionProcessed += WalletManager_WalletRelevantTransactionProcessed;
+
+				SingleInstanceChecker = new SingleInstanceChecker(Network);
 			}
 		}
 
@@ -110,7 +112,7 @@ namespace WalletWasabi.Gui
 
 		private CancellationTokenSource StoppingCts { get; }
 
-		private SingleInstanceChecker SingleInstanceChecker { get; } = new SingleInstanceChecker();
+		private SingleInstanceChecker SingleInstanceChecker { get; }
 
 		public async Task InitializeNoWalletAsync()
 		{

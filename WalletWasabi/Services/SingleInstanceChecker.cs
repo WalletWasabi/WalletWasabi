@@ -1,3 +1,4 @@
+using NBitcoin;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
@@ -13,14 +14,20 @@ namespace WalletWasabi.Services
 		private const string MutexString = "WalletWasabiSingleInstance";
 		private bool _disposedValue;
 
+		public SingleInstanceChecker(Network network)
+		{
+			Network = network;
+		}
+
 		private IDisposable SingleApplicationLockHolder { get; set; }
+		private Network Network { get; }
 
 		public async Task CheckAsync()
 		{
 			using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.Zero);
 
 			// The disposal of this mutex handled by AsyncMutex.WaitForAllMutexToCloseAsync().
-			var mutex = new AsyncMutex(MutexString);
+			var mutex = new AsyncMutex($"{MutexString}-{Network}");
 			try
 			{
 				SingleApplicationLockHolder = await mutex.LockAsync(cts.Token).ConfigureAwait(false);

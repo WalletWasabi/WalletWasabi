@@ -117,15 +117,24 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 		[Fact]
 		public async Task SingleInstanceTestsAsync()
 		{
-			using (SingleInstanceChecker sic = new SingleInstanceChecker())
+			using (SingleInstanceChecker sic = new SingleInstanceChecker(Network.Main))
 			{
 				await sic.CheckAsync().ConfigureAwait(false);
 			}
 
-			using (SingleInstanceChecker sic = new SingleInstanceChecker())
+			using (SingleInstanceChecker sic = new SingleInstanceChecker(Network.Main))
 			{
 				await sic.CheckAsync().ConfigureAwait(false);
 				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sic.CheckAsync().ConfigureAwait(false));
+				using SingleInstanceChecker sic2 = new SingleInstanceChecker(Network.Main);
+				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sic2.CheckAsync().ConfigureAwait(false));
+			}
+
+			using (SingleInstanceChecker sic = new SingleInstanceChecker(Network.Main))
+			{
+				await sic.CheckAsync().ConfigureAwait(false);
+				using SingleInstanceChecker sicTest = new SingleInstanceChecker(Network.TestNet);
+				await sicTest.CheckAsync().ConfigureAwait(false);
 			}
 		}
 	}
