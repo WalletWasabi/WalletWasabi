@@ -6,6 +6,7 @@ using System;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Helpers;
@@ -44,19 +45,33 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					else
 					{
-						var secret = PasswordHelper.GetMasterExtKey(Wallet.KeyManager, Password, out string isCompatibilityPasswordUsed);
-						Password = "";
-
-						if (isCompatibilityPasswordUsed != null)
+						try
 						{
-							NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
-						}
+							var secret = PasswordHelper.GetMasterExtKey(Wallet.KeyManager, Password, out string isCompatibilityPasswordUsed);
+							Password = "";
 
-						string master = secret.GetWif(Global.Network).ToWif();
-						string account = secret.Derive(Wallet.KeyManager.AccountKeyPath).GetWif(Global.Network).ToWif();
-						string masterZ = secret.ToZPrv(Global.Network);
-						string accountZ = secret.Derive(Wallet.KeyManager.AccountKeyPath).ToZPrv(Global.Network);
-						SetSensitiveData(master, account, masterZ, accountZ);
+							if (isCompatibilityPasswordUsed != null)
+							{
+								NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
+							}
+
+							string master = secret.GetWif(Global.Network).ToWif();
+							string account = secret.Derive(Wallet.KeyManager.AccountKeyPath).GetWif(Global.Network).ToWif();
+							string masterZ = secret.ToZPrv(Global.Network);
+							string accountZ = secret.Derive(Wallet.KeyManager.AccountKeyPath).ToZPrv(Global.Network);
+							SetSensitiveData(master, account, masterZ, accountZ);
+						}
+						catch (SecurityException ex)
+						{
+							NotificationHelpers.Error(ex.Message, "");
+							return;
+						}
+						catch (Exception ex)
+						{
+							Logger.LogError(ex);
+							NotificationHelpers.Error(ex.ToUserFriendlyString());
+							return;
+						}
 					}
 				});
 
