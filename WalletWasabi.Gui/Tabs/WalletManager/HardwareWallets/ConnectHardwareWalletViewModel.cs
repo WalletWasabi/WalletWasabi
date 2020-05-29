@@ -37,8 +37,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 		private string _loadButtonText;
 		private bool _isHwWalletSearchTextVisible;
 
-
-		private void ImportHardwareWallet(JObject json, String name, Boolean shouldReverseMfp)
+		private void ImportHardwareWallet(JObject json, string name, bool shouldReverseMfp)
 		{
 			var xpubString = json["ExtPubKey"].ToString();
 			var mfpString = json["MasterFingerprint"].ToString();
@@ -54,6 +53,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 			WalletManager.AddWallet(keymanager);
 			Owner.SelectLoadWallet(keymanager);
 		}
+
 		public ConnectHardwareWalletViewModel(WalletManagerViewModel owner) : base("Hardware Wallet")
 		{
 			Global = Locator.Current.GetService<Global>();
@@ -108,10 +108,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 					var path = selected.First();
 					var jsonString = await File.ReadAllTextAsync(path);
 					var json = JObject.Parse(jsonString);
-					Boolean shouldReverseMfp = false;
+					bool shouldReverseMfp = false;
 					var coldCardVersionString = json["ColdCardFirmwareVersion"]?.ToString();
-					var coboVaultVersionString = json["CoboVaultFirmwareVersion"]?.ToString();
-					if (coldCardVersionString is String)
+					if (coldCardVersionString is string)
 					{
 						Version coldCardVersion = new Version(coldCardVersionString);
 						// https://github.com/zkSNACKs/WalletWasabi/pull/1663#issuecomment-508073066
@@ -124,7 +123,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 						ImportHardwareWallet(json, "Coldcard", shouldReverseMfp);
 						return;
 					}
-					if (coboVaultVersionString is String)
+					var coboVaultVersionString = json["CoboVaultFirmwareVersion"]?.ToString();
+					if (coboVaultVersionString is string)
 					{
 						ImportHardwareWallet(json, "CoboVault", shouldReverseMfp);
 						return;
