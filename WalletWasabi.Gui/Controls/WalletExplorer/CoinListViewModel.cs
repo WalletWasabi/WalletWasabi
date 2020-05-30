@@ -318,17 +318,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public SortingPreference SelectedColumnPreference
 		{
-			get
-			{
-				if (!CanDequeueCoins)
-				{
-					return Global.UiConfig.CoinListViewSortingPreference;
-				}
-				else
-				{
-					return Global.UiConfig.CoinJoinTabSortingPreference;
-				}
-			}
+			get => CanDequeueCoins ? Global.UiConfig.CoinJoinTabSortingPreference : Global.UiConfig.CoinListViewSortingPreference;
 			set
 			{
 				if (!CanDequeueCoins)
