@@ -321,13 +321,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => CanDequeueCoins ? Global.UiConfig.CoinJoinTabSortingPreference : Global.UiConfig.CoinListViewSortingPreference;
 			set
 			{
-				if (!CanDequeueCoins)
+				if (CanDequeueCoins)
 				{
-					Global.UiConfig.CoinListViewSortingPreference = value;
+					Global.UiConfig.CoinJoinTabSortingPreference = value;
 				}
 				else
 				{
-					Global.UiConfig.CoinJoinTabSortingPreference = value;
+					Global.UiConfig.CoinListViewSortingPreference = value;
 				}
 			}
 		}
