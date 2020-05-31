@@ -49,6 +49,11 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 			catch (Exception ex)
 			{
+				if (!(ex is OperationCanceledException))
+				{
+					Logger.LogCritical(ex);
+				}
+
 				Console.WriteLine($"commands: There was a problem interpreting the command, please review it.");
 				Logger.LogDebug(ex);
 				error = true;

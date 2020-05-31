@@ -125,8 +125,6 @@ namespace WalletWasabi.Gui.CommandLine
 
 				// Keep this loop alive as long as a coin is enqueued or keepalive was specified.
 				while (keepMixAlive || AnyCoinsQueued());
-
-				await Global.DisposeAsync();
 			}
 			catch
 			{
@@ -137,6 +135,7 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 			finally
 			{
+				await Global.DisposeAsync().ConfigureAwait(false); 
 				Logger.LogInfo($"{nameof(Daemon)} stopped.");
 			}
 		}
