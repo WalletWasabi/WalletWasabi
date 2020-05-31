@@ -78,10 +78,5 @@ namespace WalletWasabi.Gui.Tabs
 				.Subscribe(e => CurrentBackendMajorVersion = e.EventArgs.CurrentBackendApiVersion)
 				.DisposeWith(disposables);
 		}
-
-		public override bool OnClose()
-		{
-			return base.OnClose();
-		}
 	}
 }
