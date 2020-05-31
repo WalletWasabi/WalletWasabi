@@ -1046,8 +1046,8 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 	public class CoinJoinClient : CoinJoinClientBase
 	{
-		public CoinJoinClient(WasabiSynchronizer synchronizer, Network network,	KeyManager keyManager)
-			: base( synchronizer, network, keyManager)
+		public CoinJoinClient(WasabiSynchronizer synchronizer, Network network, KeyManager keyManager)
+			: base(synchronizer, network, keyManager)
 		{
 		}
 
@@ -1104,8 +1104,8 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 	public class CoinJoinClient4 : CoinJoinClientBase
 	{
-		public CoinJoinClient4(WasabiSynchronizer synchronizer, Network network,	KeyManager keyManager)
-			: base( synchronizer, network, keyManager)
+		public CoinJoinClient4(WasabiSynchronizer synchronizer, Network network, KeyManager keyManager)
+			: base(synchronizer, network, keyManager)
 		{
 		}
 
@@ -1130,8 +1130,8 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				PubKey signerPubKey = signerPubKeys[i];
 				var outputScriptHash = new uint256(NBitcoin.Crypto.Hashes.SHA256(address.ScriptPubKey.ToBytes()));
 				var requester = new Requester();
-				(int n, PubKey R) = (numerateNonces[i].N, numerateNonces[i].R);
-				var blindedMessage = requester.BlindMessage(outputScriptHash, R, signerPubKey);
+				(int n, PubKey r) = (numerateNonces[i].N, numerateNonces[i].R);
+				var blindedMessage = requester.BlindMessage(outputScriptHash, r, signerPubKey);
 				var blindedOutputScript = new BlindedOutputWithNonceIndex(n, blindedMessage);
 				requesters.Add(requester);
 				blindedOutputScriptHashes.Add(blindedOutputScript);

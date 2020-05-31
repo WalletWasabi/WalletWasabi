@@ -1480,17 +1480,16 @@ namespace WalletWasabi.Tests.RegressionTests
 			EndPoint torSocks5EndPoint)
 		{
 			return await AliceClient.CreateNewAsync(
-				roundId, 
-				registeredAddresses, 
-				schnorrPubKeys, 
-				requesters, 
-				network, 
+				roundId,
+				registeredAddresses,
+				schnorrPubKeys,
+				requesters,
+				network,
 				request.ChangeOutputAddress,
 				request.BlindedOutputScripts,
-				request.Inputs, 
-				() => baseUri, 
+				request.Inputs,
+				() => baseUri,
 				torSocks5EndPoint).ConfigureAwait(false);
 		}
-
 	}
 }

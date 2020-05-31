@@ -29,7 +29,7 @@ namespace WalletWasabi.CoinJoin.Common.Models
 
 		public bool Equals(BlindedOutputWithNonceIndex other)
 		{
-			return other?.BlindedOutput == this.BlindedOutput;
+			return other?.BlindedOutput == BlindedOutput;
 		}
 
 		public override int GetHashCode()
