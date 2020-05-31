@@ -19,6 +19,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.Blockchain.Blocks;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Gui.Converters;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.Helpers;
@@ -352,7 +353,7 @@ namespace WalletWasabi.Gui.ViewModels
 						catch (Exception ex)
 						{
 							Logger.LogError(ex);
-							NotificationHelpers.Error("Could not get Legal Documents!");
+							NotificationHelpers.Error($"Could not get Legal Documents!{(ex is ConnectionException ? " Backend not connected." : "")}");
 						}
 						finally
 						{

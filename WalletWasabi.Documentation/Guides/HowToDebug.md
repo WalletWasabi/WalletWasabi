@@ -115,7 +115,7 @@ Add the following launcher to the array of `configurations` in the `.vscode/laun
    }
 }
 ```
-As before, we need to create a task for compiling the backend project before executing the code, and this is done again in the `.vscode/tasks.jon` file.
+As before, we need to create a task for compiling the backend project before executing the code, and this is done again in the `.vscode/tasks.json` file.
 Add the following task to the array of tasks:
 
 ```json

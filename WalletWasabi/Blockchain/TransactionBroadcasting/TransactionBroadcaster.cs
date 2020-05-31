@@ -49,6 +49,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 				Logger.LogWarning($"Transaction {transaction.GetHash()} was already present in the broadcast store.");
 			}
 			var invPayload = new InvPayload(transaction.Transaction);
+
 			// Give 7 seconds to send the inv payload.
 			await node.SendMessageAsync(invPayload).WithAwaitCancellationAsync(TimeSpan.FromSeconds(7)).ConfigureAwait(false); // ToDo: It's dangerous way to cancel. Implement proper cancellation to NBitcoin!
 
