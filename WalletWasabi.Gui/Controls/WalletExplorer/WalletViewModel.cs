@@ -57,7 +57,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			ReceiveTab = new ReceiveTabViewModel(Wallet);
-			CoinjoinTab = new CoinJoinTabViewModel(Wallet);
 			HistoryTab = new HistoryTabViewModel(Wallet);
 
 			var advancedAction = new WalletAdvancedViewModel();
@@ -65,7 +64,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			BuildTab = new BuildTabViewModel(Wallet);
 
 			Actions.Add(ReceiveTab);
-			Actions.Add(CoinjoinTab);
+
+			// If not watch only wallet (not hww) then we need the CoinJoin tab.
+			if (!Wallet.KeyManager.IsWatchOnly)
+			{
+				CoinjoinTab = new CoinJoinTabViewModel(Wallet);
+				Actions.Add(CoinjoinTab);
+			}
+
 			Actions.Add(HistoryTab);
 
 			Actions.Add(advancedAction);
@@ -107,7 +113,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			shell.AddOrSelectDocument(ReceiveTab);
-			shell.AddOrSelectDocument(CoinjoinTab);
+
+			if (CoinjoinTab is { })
+			{
+				shell.AddOrSelectDocument(CoinjoinTab);
+			}
+
 			shell.AddOrSelectDocument(HistoryTab);
 
 			SelectTab(shell);

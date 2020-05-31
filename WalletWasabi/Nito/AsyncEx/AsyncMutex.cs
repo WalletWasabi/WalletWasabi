@@ -65,34 +65,34 @@ namespace Nito.AsyncEx
 		public bool IsQuitPending { get; set; }
 
 		/// <summary>
-		/// Short name of the mutex. This string added to the end of the mutex name.
+		/// Gets or sets the short name of the mutex. This string added to the end of the mutex name.
 		/// </summary>
 		private string ShortName { get; set; }
 
 		/// <summary>
-		/// The full name of the named mutex. Global\ included in the string.
+		/// Gets or sets the full name of the named mutex. Global\ included in the string.
 		/// </summary>
 		private string FullName { get; set; }
 
 		/// <summary>
-		/// Mutex for interprocess synchronization.
+		/// Gets or sets the Mutex for interprocess synchronization.
 		/// </summary>
 		private Mutex Mutex { get; set; }
 
 		/// <summary>
-		/// AsyncLock for local thread synchronization.
+		/// Gets or sets the AsyncLock for local thread synchronization.
 		/// </summary>
 		private AsyncLock AsyncLock { get; set; }
 
 		/// <summary>
-		/// Separate thread for the mutex where it is created and released.
+		/// Gets or sets a separate thread for the mutex where it is created and released.
 		/// </summary>
 		private Thread MutexThread { get; set; }
 
 		private bool IsAlive => MutexThread?.IsAlive is true;
 
 		/// <summary>
-		/// Static storage for local mutexes. It can be used to get an already existing AsyncLock by name of the mutex.
+		/// Gets the static storage for local mutexes. It can be used to get an already existing AsyncLock by name of the mutex.
 		/// </summary>
 		private static Dictionary<string, AsyncMutex> AsyncMutexes { get; } = new Dictionary<string, AsyncMutex>();
 
@@ -151,6 +151,7 @@ namespace Nito.AsyncEx
 								{
 									throw new TimeoutException("Could not acquire mutex in time.");
 								}
+
 								// Block for n ms and try to acquire the mutex. Blocking is not a problem
 								// we are on our own thread.
 								acquired = Mutex.WaitOne(1000);
@@ -174,6 +175,7 @@ namespace Nito.AsyncEx
 								// Go to finally.
 								continue;
 							}
+
 							// Let it go and throw the exception...
 						}
 					}
@@ -196,6 +198,7 @@ namespace Nito.AsyncEx
 					{
 						LatestHoldLockException = ex;
 					}
+
 					// Terminate the Thread.
 					return;
 				}
@@ -329,6 +332,7 @@ namespace Nito.AsyncEx
 			{
 				Logger.LogError($"{ex.ToTypeMessageString()} in {ShortName}.");
 				inner = ex;
+
 				// Let it go.
 			}
 
@@ -381,6 +385,7 @@ namespace Nito.AsyncEx
 			StopThread();
 
 			ChangeStatus(AsyncLockStatus.StatusReady, AsyncLockStatus.StatusReleasing);
+
 			// Release the local lock.
 			AsyncLock?.ReleaseLock();
 		}

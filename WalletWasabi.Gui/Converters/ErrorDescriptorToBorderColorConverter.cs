@@ -11,15 +11,9 @@ namespace WalletWasabi.Gui.Converters
 {
 	public class ErrorDescriptorToBorderColorConverter : IValueConverter
 	{
-		private ErrorDescriptor UndefinedExceptionToErrorDescriptor(Exception ex)
-		{
-			var newErrDescMessage = ExceptionExtensions.ToTypeMessageString(ex);
-			return new ErrorDescriptor(ErrorSeverity.Warning, newErrDescMessage);
-		}
-
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			var descriptors = new ErrorDescriptors();
+			var descriptors = ErrorDescriptors.Create();
 
 			if (value is IEnumerable<object> rawObj)
 			{
@@ -27,15 +21,6 @@ namespace WalletWasabi.Gui.Converters
 				{
 					descriptors.Add(error);
 				}
-
-				foreach (var ex in rawObj.OfType<Exception>())
-				{
-					descriptors.Add(UndefinedExceptionToErrorDescriptor(ex));
-				}
-			}
-			else if (value is Exception ex)
-			{
-				descriptors.Add(UndefinedExceptionToErrorDescriptor(ex));
 			}
 			else
 			{
@@ -47,7 +32,7 @@ namespace WalletWasabi.Gui.Converters
 
 		private SolidColorBrush GetColorFromDescriptors(ErrorDescriptors descriptors)
 		{
-			if (!descriptors.HasErrors)
+			if (!descriptors.Any())
 			{
 				return null;
 			}

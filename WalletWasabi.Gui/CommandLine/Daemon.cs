@@ -100,7 +100,7 @@ namespace WalletWasabi.Gui.CommandLine
 					if (isDifferentDestinationSpecified && !AnyCoinsQueued())
 					{
 						Wallet.ChaumianClient.DestinationKeyManager = destinationKeyManager;
-						await TryQueueCoinsToMixAsync(password, minAnonset: Wallet.ServiceConfiguration.MixUntilAnonymitySet);
+						await TryQueueCoinsToMixAsync(password, minAnonset: Wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue());
 					}
 
 					if (Global.KillRequested)
@@ -112,7 +112,7 @@ namespace WalletWasabi.Gui.CommandLine
 					if (!AnyCoinsQueued())
 					{
 						Wallet.ChaumianClient.DestinationKeyManager = Wallet.ChaumianClient.KeyManager;
-						await TryQueueCoinsToMixAsync(password, maxAnonset: Wallet.ServiceConfiguration.MixUntilAnonymitySet - 1);
+						await TryQueueCoinsToMixAsync(password, maxAnonset: Wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue() - 1);
 					}
 
 					if (Global.KillRequested)
@@ -122,6 +122,7 @@ namespace WalletWasabi.Gui.CommandLine
 
 					await Task.Delay(3000);
 				}
+
 				// Keep this loop alive as long as a coin is enqueued or keepalive was specified.
 				while (keepMixAlive || AnyCoinsQueued());
 

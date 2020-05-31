@@ -29,13 +29,14 @@ namespace WalletWasabi.Logging
 		public static string EntrySeparator { get; private set; } = Environment.NewLine;
 
 		/// <summary>
+		/// Gets the Guid instance.
 		/// You can use it to identify which software instance created a log entry.
 		/// It gets created automatically, but you have to use it manually.
 		/// </summary>
 		public static Guid InstanceGuid { get; } = Guid.NewGuid();
 
 		/// <summary>
-		/// KB
+		/// Gets the maximum log file size in KB
 		/// </summary>
 		public static long MaximumLogFileSize { get; private set; } = 10_000; // approx 10 MB
 
@@ -221,6 +222,7 @@ namespace WalletWasabi.Logging
 				{
 					LogDebug($"Logging failed: {ex}");
 				}
+
 				// If logging the failure is successful then clear the failure counter.
 				// If it's not the first time the logging failed, then we do not try to log logging failure, so clear the failure counter.
 				Interlocked.Exchange(ref LoggingFailedCount, 0);

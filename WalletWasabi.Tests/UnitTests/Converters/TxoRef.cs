@@ -30,8 +30,7 @@ namespace WalletWasabi.Tests.UnitTests.Converters
 				return true;
 			}
 
-			var other = obj as TxoRef;
-			if (this is null || other is null)
+			if (this is null || !(obj is TxoRef other))
 			{
 				return false;
 			}

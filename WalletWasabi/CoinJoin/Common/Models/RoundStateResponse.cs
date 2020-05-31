@@ -41,6 +41,7 @@ namespace WalletWasabi.CoinJoin.Common.Models
 		public long RoundId { get; set; }
 
 		/// <summary>
+		/// Gets or sets the number of successful rounds.
 		/// This is round independent, it is only here because of backward compatibility.
 		/// </summary>
 		public int SuccessfulRoundCount { get; set; }
@@ -63,7 +64,7 @@ namespace WalletWasabi.CoinJoin.Common.Models
 			}
 
 			return baseMinimum + FeePerInputs;
-			// return baseMinimum + (FeePerInputs * MaximumInputCountPerPeer);
+			//// return baseMinimum + (FeePerInputs * MaximumInputCountPerPeer);
 		}
 
 		public bool HaveEnoughQueued(IEnumerable<Money> queuedCoinAmounts)

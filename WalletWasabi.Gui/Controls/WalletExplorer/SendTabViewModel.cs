@@ -1,5 +1,9 @@
 using NBitcoin;
+using NBitcoin.Payment;
+using ReactiveUI;
 using System;
+using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -9,21 +13,30 @@ using WalletWasabi.Gui.Models.StatusBarStatuses;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Exceptions;
+using WalletWasabi.Models;
 using WalletWasabi.Wallets;
+using WalletWasabi.WebClients.PayJoin;
+using WalletWasabi.Gui.Validation;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class SendTabViewModel : SendControlViewModel
 	{
+		private string _payjoinEndPoint;
+
 		public SendTabViewModel(Wallet wallet) : base(wallet, "Send")
 		{
+			this.ValidateProperty(x => x.PayjoinEndPoint, ValidatePayjoinEndPoint);
 		}
 
 		public override string DoButtonText => "Send Transaction";
 		public override string DoingButtonText => "Sending Transaction...";
 
-		protected override async Task DoAfterBuildTransaction(BuildTransactionResult result)
+		protected override async Task BuildTransaction(string password, PaymentIntent payments, FeeStrategy feeStrategy, bool allowUnconfirmed = false, IEnumerable<OutPoint> allowedInputs = null)
 		{
+			BuildTransactionResult result = await Task.Run(() => Wallet.BuildTransaction(Password, payments, feeStrategy, allowUnconfirmed: true, allowedInputs: allowedInputs, GetPayjoinClient()));
+
 			MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.SigningTransaction);
 			SmartTransaction signedTransaction = result.Transaction;
 
@@ -59,6 +72,69 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			await Task.Run(async () => await Global.TransactionBroadcaster.SendTransactionAsync(signedTransaction));
 
 			ResetUi();
+		}
+
+		public string PayjoinEndPoint
+		{
+			get => _payjoinEndPoint;
+			set => this.RaiseAndSetIfChanged(ref _payjoinEndPoint, value);
+		}
+
+		private IPayjoinClient GetPayjoinClient()
+		{
+			if (!string.IsNullOrWhiteSpace(PayjoinEndPoint) &&
+				Uri.IsWellFormedUriString(PayjoinEndPoint, UriKind.Absolute))
+			{
+				var payjoinEndPointUri = new Uri(PayjoinEndPoint);
+				if (!Global.Config.UseTor)
+				{
+					if (payjoinEndPointUri.DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
+					{
+						Logger.LogWarning("Payjoin server is a hidden service but Tor is disabled. Ignoring...");
+						return null;
+					}
+
+					if (Global.Config.Network == Network.Main && payjoinEndPointUri.Scheme != Uri.UriSchemeHttps)
+					{
+						Logger.LogWarning("Payjoin server is not exposed as onion hidden service nor https. Ignoring...");
+						return null;
+					}
+				}
+
+				return new PayjoinClient(payjoinEndPointUri, Global.TorManager.TorSocks5EndPoint);
+			}
+
+			return null;
+		}
+
+		public void ValidatePayjoinEndPoint(IValidationErrors errors)
+		{
+			if (!string.IsNullOrWhiteSpace(PayjoinEndPoint) && !Uri.IsWellFormedUriString(PayjoinEndPoint, UriKind.Absolute))
+			{
+				errors.Add(ErrorSeverity.Error, "Invalid url.");
+			}
+		}
+
+		protected override void OnAddressPaste(BitcoinUrlBuilder url)
+		{
+			base.OnAddressPaste(url);
+
+			if (url.UnknowParameters.TryGetValue("pj", out var endPoint))
+			{
+				if (!Wallet.KeyManager.IsWatchOnly)
+				{
+					PayjoinEndPoint = endPoint;
+					return;
+				}
+				NotificationHelpers.Warning("Payjoin is not allowed here.");
+			}
+			PayjoinEndPoint = null;
+		}
+
+		protected override void ResetUi()
+		{
+			base.ResetUi();
+			PayjoinEndPoint = "";
 		}
 	}
 }

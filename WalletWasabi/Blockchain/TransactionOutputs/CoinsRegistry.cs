@@ -103,6 +103,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 							if (!CoinsByOutPoint.TryAdd(outPoint, newCoinSet))
 							{
 								var previousCoinTxId = CoinsByOutPoint[outPoint].First().TransactionId;
+
 								// Then check if we're in the same transaction as the previous coins in the dictionary are.
 								if (coin.TransactionId == previousCoinTxId)
 								{
@@ -224,6 +225,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 				{
 					toRemove.AddRange(RemoveNoLock(createdCoin));
 				}
+
 				// destroyed (spent) coins are now (unspent)
 				foreach (SmartCoin destroyedCoin in allCoins.SpentBy(txId))
 				{

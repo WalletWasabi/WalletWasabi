@@ -103,9 +103,7 @@ namespace Nito.Collections
 		/// <summary>
 		/// Gets a value indicating whether the buffer is "split" (meaning the beginning of the view is at a later index in <see cref="_buffer"/> than the end).
 		/// </summary>
-		private bool IsSplit =>
-				// Overflow-safe version of "(offset + Count) > Capacity"
-				_offset > (Capacity - Count);
+		private bool IsSplit => _offset > (Capacity - Count); // Overflow-safe version of "(offset + Count) > Capacity"
 
 		/// <summary>
 		/// Gets or sets the capacity for this deque. This value must always be greater than zero, and this property cannot be set to a value less than <see cref="Count"/>.
@@ -389,7 +387,7 @@ namespace Nito.Collections
 				return false;
 			}
 
-			return default(T) == null;
+			return default(T) is null;
 		}
 
 		int IList.Add(object value)
@@ -675,6 +673,7 @@ namespace Nito.Collections
 		private void DoInsertRange(int index, IReadOnlyCollection<T> collection)
 		{
 			var collectionCount = collection.Count;
+
 			// Make room in the existing list
 			if (index < Count / 2)
 			{
