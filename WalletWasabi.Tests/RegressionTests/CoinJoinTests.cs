@@ -1479,7 +1479,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			Uri baseUri,
 			EndPoint torSocks5EndPoint)
 		{
-			return await AliceClient.CreateNewAsync(
+			return await AliceClientBase.CreateNewAsync(
 				roundId,
 				registeredAddresses,
 				schnorrPubKeys,

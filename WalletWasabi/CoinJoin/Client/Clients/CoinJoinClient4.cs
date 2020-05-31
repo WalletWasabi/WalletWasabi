@@ -28,19 +28,20 @@ using static WalletWasabi.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.CoinJoin.Client.Clients
 {
-	public class CoinJoinClient : CoinJoinClientBase
+	public class CoinJoinClient4 : CoinJoinClientBase
 	{
-		public CoinJoinClient(WasabiSynchronizer synchronizer, Network network, KeyManager keyManager)
+		public CoinJoinClient4(WasabiSynchronizer synchronizer, Network network, KeyManager keyManager)
 			: base(synchronizer, network, keyManager)
 		{
 		}
 
 		protected override async Task<AliceClientBase> CreateAliceClientAsync(long roundId, RoundStateResponseBase stateParam, List<OutPoint> registrableCoins, (HdPubKey change, IEnumerable<HdPubKey> actives) outputAddresses)
 		{
-			var state = stateParam as RoundStateResponse;
-			SchnorrPubKey[] schnorrPubKeys = state.SchnorrPubKeys.ToArray();
+			var state = stateParam as RoundStateResponse4;
+			PubKey[] signerPubKeys = state.SignerPubKeys.ToArray();
+			PublicNonceWithIndex[] numerateNonces = state.RPubKeys.ToArray();
 			List<Requester> requesters = new List<Requester>();
-			var blindedOutputScriptHashes = new List<uint256>();
+			var blindedOutputScriptHashes = new List<BlindedOutputWithNonceIndex>();
 
 			var registeredAddresses = new List<BitcoinAddress>();
 			for (int i = 0; i < state.MixLevelCount; i++)
@@ -52,16 +53,18 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 				BitcoinAddress address = outputAddresses.actives.Select(x => x.GetP2wpkhAddress(Network)).ElementAt(i);
 
-				SchnorrPubKey schnorrPubKey = schnorrPubKeys[i];
+				PubKey signerPubKey = signerPubKeys[i];
 				var outputScriptHash = new uint256(NBitcoin.Crypto.Hashes.SHA256(address.ScriptPubKey.ToBytes()));
 				var requester = new Requester();
-				uint256 blindedOutputScriptHash = requester.BlindMessage(outputScriptHash, schnorrPubKey);
+				(int n, PubKey r) = (numerateNonces[i].N, numerateNonces[i].R);
+				var blindedMessage = requester.BlindMessage(outputScriptHash, r, signerPubKey);
+				var blindedOutputScript = new BlindedOutputWithNonceIndex(n, blindedMessage);
 				requesters.Add(requester);
-				blindedOutputScriptHashes.Add(blindedOutputScriptHash);
+				blindedOutputScriptHashes.Add(blindedOutputScript);
 				registeredAddresses.Add(address);
 			}
 
-			byte[] blindedOutputScriptHashesByte = ByteHelpers.Combine(blindedOutputScriptHashes.Select(x => x.ToBytes()));
+			byte[] blindedOutputScriptHashesByte = ByteHelpers.Combine(blindedOutputScriptHashes.Select(x => x.BlindedOutput.ToBytes()));
 			uint256 blindedOutputScriptsHash = new uint256(NBitcoin.Crypto.Hashes.SHA256(blindedOutputScriptHashesByte));
 
 			var inputProofs = new List<InputProofModel>();
@@ -82,7 +85,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				inputProofs.Add(inputProof);
 			}
 
-			return await AliceClientBase.CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, Network, outputAddresses.change.GetP2wpkhAddress(Network), blindedOutputScriptHashes, inputProofs, CcjHostUriAction, TorSocks5EndPoint).ConfigureAwait(false);
+			return await AliceClientBase.CreateNewAsync(roundId, registeredAddresses, signerPubKeys, requesters, Network, outputAddresses.change.GetP2wpkhAddress(Network), blindedOutputScriptHashes, inputProofs, CcjHostUriAction, TorSocks5EndPoint).ConfigureAwait(false);
 		}
 	}
 }
