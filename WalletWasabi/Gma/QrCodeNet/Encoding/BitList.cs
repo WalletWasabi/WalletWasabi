@@ -75,6 +75,7 @@ namespace Gma.QrCodeNet.Encoding
 		internal void Add(bool item)
 		{
 			int numBitsinLastByte = Count & 0x7;
+
 			// Add one more byte to List when we have no bits in the last byte.
 			if (numBitsinLastByte == 0)
 			{

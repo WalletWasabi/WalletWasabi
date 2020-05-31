@@ -26,6 +26,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var label = "foo";
 
 			var coin = new SmartCoin(txId, index, scriptPubKey, amount, spentOutputs, height, tx.RBF, tx.GetAnonymitySet(index), label, txId);
+
 			// If the txId or the index differ, equality should think it's a different coin.
 			var differentCoin = new SmartCoin(txId, index + 1, scriptPubKey, amount, spentOutputs, height, tx.RBF, tx.GetAnonymitySet(index + 1), label, txId);
 			var differentOutput = tx.Outputs[1];

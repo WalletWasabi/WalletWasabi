@@ -65,14 +65,27 @@ namespace WalletWasabi.Gui
 
 		private static async void AppMainAsync(string[] args)
 		{
-			AvalonStudio.Extensibility.Theme.ColorTheme.LoadTheme(AvalonStudio.Extensibility.Theme.ColorTheme.VisualStudioDark);
-			MainWindowViewModel.Instance = new MainWindowViewModel();
+			try
+			{
+				AvalonStudio.Extensibility.Theme.ColorTheme.LoadTheme(AvalonStudio.Extensibility.Theme.ColorTheme.VisualStudioDark);
+				MainWindowViewModel.Instance = new MainWindowViewModel();
 
-			await Global.InitializeNoWalletAsync();
+				await Global.InitializeNoWalletAsync();
 
-			MainWindowViewModel.Instance.Initialize();
+				MainWindowViewModel.Instance.Initialize();
 
-			Dispatcher.UIThread.Post(GC.Collect);
+				Dispatcher.UIThread.Post(GC.Collect);
+			}
+			catch (Exception ex)
+			{
+				if (!(ex is OperationCanceledException))
+				{
+					Logger.LogCritical(ex);
+				}
+
+				await Global.DisposeAsync().ConfigureAwait(false);
+				Environment.Exit(1);
+			}
 		}
 
 		private static void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
