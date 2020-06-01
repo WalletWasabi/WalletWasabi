@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -14,6 +15,8 @@ using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+
+[assembly: InternalsVisibleTo("WalletWasabi.Tests.RegressionTests")]
 
 namespace WalletWasabi.Blockchain.BlockFilters
 {
@@ -74,7 +77,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 		public uint StartingHeight { get; }
 		public bool IsRunning => Interlocked.Read(ref _serviceStatus) == Running;
 		public bool IsStopping => Interlocked.Read(ref _serviceStatus) >= Stopping;
-		public DateTimeOffset LastFilterBuildTime { get; private set; }
+		public DateTimeOffset LastFilterBuildTime { get; internal set; }
 
 		public static GolombRiceFilter CreateDummyEmptyFilter(uint256 blockHash)
 		{
