@@ -74,7 +74,8 @@ namespace WalletWasabi.Backend.Controllers
 				var state = new RoundStateResponse
 				{
 					Phase = round.Phase,
-					SchnorrPubKeys = round.MixingLevels.SchnorrPubKeys,
+					SignerPubKeys = round.MixingLevels.SignerPubKeys,
+					RPubKeys = round.GetNextNoncesForMixingLevels(),
 					Denomination = round.MixingLevels.GetBaseDenomination(),
 					InputRegistrationTimesout = round.InputRegistrationTimesout,
 					RegisteredPeerCount = round.CountAlices(syncLock: false),
@@ -130,7 +131,7 @@ namespace WalletWasabi.Backend.Controllers
 				// Do more checks.
 				try
 				{
-					uint256[] blindedOutputs = request.BlindedOutputScripts.ToArray();
+					var blindedOutputs = request.BlindedOutputScripts.ToArray();
 					int blindedOutputCount = blindedOutputs.Length;
 					int maxBlindedOutputCount = round.MixingLevels.Count();
 					if (blindedOutputCount > maxBlindedOutputCount)
@@ -143,7 +144,7 @@ namespace WalletWasabi.Backend.Controllers
 						return BadRequest("Duplicate blinded output found.");
 					}
 
-					if (round.ContainsAnyBlindedOutputScript(blindedOutputs))
+					if (round.ContainsAnyBlindedOutputScript(blindedOutputs.Select(x => x.BlindedOutput)))
 					{
 						return BadRequest("Blinded output has already been registered.");
 					}
@@ -201,7 +202,7 @@ namespace WalletWasabi.Backend.Controllers
 					// Perform all RPC request at once
 					await batch.SendBatchAsync();
 
-					byte[] blindedOutputScriptHashesByte = ByteHelpers.Combine(blindedOutputs.Select(x => x.ToBytes()));
+					byte[] blindedOutputScriptHashesByte = ByteHelpers.Combine(blindedOutputs.Select(x => x.BlindedOutput.ToBytes()));
 					uint256 blindedOutputScriptsHash = new uint256(Hashes.SHA256(blindedOutputScriptHashesByte));
 
 					var inputs = new HashSet<Coin>();
@@ -264,7 +265,7 @@ namespace WalletWasabi.Backend.Controllers
 						}
 					}
 
-					var acceptedBlindedOutputScripts = new List<uint256>();
+					var acceptedBlindedOutputScripts = new List<BlindedOutputWithNonceIndex>();
 
 					// Calculate expected networkfee to pay after base denomination.
 					int inputCount = inputs.Count;
@@ -302,7 +303,7 @@ namespace WalletWasabi.Backend.Controllers
 					}
 
 					// Make sure Alice checks work.
-					var alice = new Alice(inputs, networkFeeToPayAfterBaseDenomination, request.ChangeOutputAddress, acceptedBlindedOutputScripts);
+					var alice = new Alice(inputs, networkFeeToPayAfterBaseDenomination, request.ChangeOutputAddress, acceptedBlindedOutputScripts.Select(x => x.BlindedOutput));
 
 					foreach (Guid aliceToRemove in alicesToRemove)
 					{
@@ -316,7 +317,7 @@ namespace WalletWasabi.Backend.Controllers
 					{
 						var blindedOutput = acceptedBlindedOutputScripts[i];
 						var signer = round.MixingLevels.GetLevel(i).Signer;
-						uint256 blindSignature = signer.Sign(blindedOutput);
+						uint256 blindSignature = signer.Sign(blindedOutput.BlindedOutput, round.GetNextNonceKey(blindedOutput.N));
 						blindSignatures.Add(blindSignature);
 					}
 					alice.BlindedOutputSignatures = blindSignatures.ToArray();

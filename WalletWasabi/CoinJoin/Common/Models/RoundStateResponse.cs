@@ -4,7 +4,6 @@ using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.CoinJoin.Common.Models
@@ -20,7 +19,9 @@ namespace WalletWasabi.CoinJoin.Common.Models
 		[JsonConverter(typeof(BlockCypherDateTimeOffsetJsonConverter))]
 		public DateTimeOffset InputRegistrationTimesout { get; set; }
 
-		public IEnumerable<SchnorrPubKey> SchnorrPubKeys { get; set; }
+		[JsonProperty(ItemConverterType = typeof(PubKeyJsonConverter))]
+		public IEnumerable<PubKey> SignerPubKeys { get; set; }
+		public IEnumerable<PublicNonceWithIndex> RPubKeys { get; set; }
 
 		public int RegisteredPeerCount { get; set; }
 

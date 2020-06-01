@@ -120,36 +120,22 @@ namespace WalletWasabi.Crypto
 
 		public class Signer
 		{
-			public Signer(Key key)
-				: this(key, new Key())
-			{
-			}
-
-			public Signer(Key key, Key r)
-			{
-				R = r;
-				Key = key;
-			}
-
-			// The random generated r value. It is used to derivate an R point where
-			// R = r*G that has to be sent to the requester in order to allow him to
-			// blind the message to be signed.
-			public Key R { get; }
-
 			// The signer key used for signing
 			public Key Key { get; }
 
-			public uint256 Sign(uint256 blindedMessage)
+			public Signer(Key key)
+			{
+				Key = key;
+			}
+
+			public uint256 Sign(uint256 blindedMessage, Key rKey)
 			{
 				Span<byte> tmp = stackalloc byte[32];
 				blindedMessage.ToBytes(tmp);
 				var cp = new Scalar(tmp, out int overflow);
 				if (cp.IsZero || overflow != 0)
-				{
-					throw new ArgumentException("Invalid blinded message.", nameof(blindedMessage));
-				}
-
-				if (!Context.Instance.TryCreateECPrivKey(R.ToBytes(), out var r))
+					throw new System.ArgumentException("Invalid blinded message.", nameof(blindedMessage));
+				if (!Context.Instance.TryCreateECPrivKey(rKey.ToBytes(), out var r))
 				{
 					throw new FormatException("Invalid key.");
 				}

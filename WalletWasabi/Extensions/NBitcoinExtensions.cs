@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using static WalletWasabi.Crypto.SchnorrBlinding;
@@ -164,13 +163,6 @@ namespace NBitcoin
 			return pubKey.WitHash == address.Hash;
 		}
 
-		public static Signer CreateSigner(this SchnorrKey schnorrKey)
-		{
-			var k = Guard.NotNull(nameof(schnorrKey.SignerKey), schnorrKey.SignerKey);
-			var r = Guard.NotNull(nameof(schnorrKey.Rkey), schnorrKey.Rkey);
-			return new Signer(k, r);
-		}
-
 		/// <summary>
 		/// If scriptpubkey is already present, just add the value.
 		/// </summary>
@@ -214,9 +206,8 @@ namespace NBitcoin
 			}
 		}
 
-		public static SchnorrPubKey GetSchnorrPubKey(this Signer signer) => new SchnorrPubKey(signer);
-
-		public static uint256 BlindMessage(this Requester requester, uint256 messageHash, SchnorrPubKey schnorrPubKey) => requester.BlindMessage(messageHash, schnorrPubKey.RpubKey, schnorrPubKey.SignerPubKey);
+		public static uint256 BlindMessage(this Requester requester, uint256 messageHash, PubKey RpubKey, PubKey signerPubKey) 
+			=> requester.BlindMessage(messageHash, RpubKey, signerPubKey);
 
 		public static string ToZpub(this ExtPubKey extPubKey, Network network)
 		{

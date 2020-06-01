@@ -3,7 +3,6 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 using static WalletWasabi.Crypto.SchnorrBlinding;
@@ -18,28 +17,16 @@ namespace WalletWasabi.CoinJoin.Coordinator.MixingLevels
 			Denomination = Guard.NotNull(nameof(denomination), denomination);
 			Signer = Guard.NotNull(nameof(signer), signer);
 			var signerKey = Guard.NotNull(nameof(signer.Key), signer.Key);
-			var rKey = Guard.NotNull(nameof(signer.R), signer.R);
 
-			SchnorrKey = new SchnorrKey(signerKey, rKey);
-		}
-
-		public MixingLevel(Money denomination, Key signerKey, Key rKey)
-		{
-			Denomination = Guard.NotNull(nameof(denomination), denomination);
-			signerKey = Guard.NotNull(nameof(signerKey), signerKey);
-			rKey = Guard.NotNull(nameof(rKey), rKey);
-			SchnorrKey = new SchnorrKey(signerKey, rKey);
-
-			Signer = SchnorrKey.CreateSigner();
+			SignerKey = signer.Key;
 		}
 
 		[JsonConstructor]
-		public MixingLevel(Money denomination, SchnorrKey schnorrKey)
+		public MixingLevel(Money denomination, Key signerKey)
 		{
 			Denomination = Guard.NotNull(nameof(denomination), denomination);
-			SchnorrKey = Guard.NotNull(nameof(schnorrKey), schnorrKey);
-
-			Signer = SchnorrKey.CreateSigner();
+			SignerKey = Guard.NotNull(nameof(signerKey), signerKey);
+			Signer = new Signer(signerKey);
 		}
 
 		public Signer Signer { get; }
@@ -49,7 +36,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.MixingLevels
 		public Money Denomination { get; }
 
 		[JsonProperty]
-		public SchnorrKey SchnorrKey { get; }
+		public Key SignerKey { get; }
 
 		#region EqualityAndComparison
 
@@ -57,9 +44,9 @@ namespace WalletWasabi.CoinJoin.Coordinator.MixingLevels
 
 		public bool Equals(MixingLevel other) => this == other;
 
-		public override int GetHashCode() => (Denomination, SchnorrKey).GetHashCode();
+		public override int GetHashCode() => (Denomination, SignerKey).GetHashCode();
 
-		public static bool operator ==(MixingLevel x, MixingLevel y) => y?.Denomination == x?.Denomination && y?.SchnorrKey == x?.SchnorrKey;
+		public static bool operator ==(MixingLevel x, MixingLevel y) => y?.Denomination == x?.Denomination && y?.SignerKey == x?.SignerKey;
 
 		public static bool operator !=(MixingLevel x, MixingLevel y) => !(x == y);
 
