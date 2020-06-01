@@ -16,7 +16,6 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.CoinJoin.Client.Rounds;
-using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
@@ -488,14 +487,17 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					return;
 				}
 
-				(HdPubKey change, IEnumerable<HdPubKey> actives) outputAddresses = GetOutputsToRegister(inputRegistrableRound.State.Denomination, inputRegistrableRound.State.SchnorrPubKeys.Count(), registrableCoins);
+				(HdPubKey change, IEnumerable<HdPubKey> actives) outputAddresses = GetOutputsToRegister(inputRegistrableRound.State.Denomination, inputRegistrableRound.State.SignerPubKeys.Count(), registrableCoins);
 
-				SchnorrPubKey[] schnorrPubKeys = inputRegistrableRound.State.SchnorrPubKeys.ToArray();
+
+				RoundStateResponse state = inputRegistrableRound.State; 
+				PubKey[] signerPubKeys = state.SignerPubKeys.ToArray();
+				PublicNonceWithIndex[] numerateNonces = state.RPubKeys.ToArray();
 				List<Requester> requesters = new List<Requester>();
-				var blindedOutputScriptHashes = new List<uint256>();
+				var blindedOutputScriptHashes = new List<BlindedOutputWithNonceIndex>();
 
 				var registeredAddresses = new List<BitcoinAddress>();
-				for (int i = 0; i < schnorrPubKeys.Length; i++)
+				for (int i = 0; i < signerPubKeys.Length; i++)
 				{
 					if (outputAddresses.actives.Count() <= i)
 					{
@@ -504,16 +506,18 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 					BitcoinAddress address = outputAddresses.actives.Select(x => x.GetP2wpkhAddress(Network)).ElementAt(i);
 
-					SchnorrPubKey schnorrPubKey = schnorrPubKeys[i];
+					PubKey signerPubKey = signerPubKeys[i];
 					var outputScriptHash = new uint256(NBitcoin.Crypto.Hashes.SHA256(address.ScriptPubKey.ToBytes()));
 					var requester = new Requester();
-					uint256 blindedOutputScriptHash = requester.BlindMessage(outputScriptHash, schnorrPubKey);
+					(int n, PubKey R) = (numerateNonces[i].N, numerateNonces[i].R);
+					var blindedMessage = requester.BlindMessage(outputScriptHash, R, signerPubKey);
+					var blindedOutputScript = new BlindedOutputWithNonceIndex(n, blindedMessage);
 					requesters.Add(requester);
-					blindedOutputScriptHashes.Add(blindedOutputScriptHash);
+					blindedOutputScriptHashes.Add(blindedOutputScript);
 					registeredAddresses.Add(address);
 				}
 
-				byte[] blindedOutputScriptHashesByte = ByteHelpers.Combine(blindedOutputScriptHashes.Select(x => x.ToBytes()));
+				byte[] blindedOutputScriptHashesByte = ByteHelpers.Combine(blindedOutputScriptHashes.Select(x => x.BlindedOutput.ToBytes()));
 				uint256 blindedOutputScriptsHash = new uint256(NBitcoin.Crypto.Hashes.SHA256(blindedOutputScriptHashesByte));
 
 				var inputProofs = new List<InputProofModel>();
@@ -537,7 +541,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				AliceClient aliceClient = null;
 				try
 				{
-					aliceClient = await AliceClient.CreateNewAsync(inputRegistrableRound.RoundId, registeredAddresses, schnorrPubKeys, requesters, Network, outputAddresses.change.GetP2wpkhAddress(Network), blindedOutputScriptHashes, inputProofs, CcjHostUriAction, TorSocks5EndPoint).ConfigureAwait(false);
+					aliceClient = await AliceClient.CreateNewAsync(inputRegistrableRound.RoundId, registeredAddresses, signerPubKeys, requesters, Network, outputAddresses.change.GetP2wpkhAddress(Network), blindedOutputScriptHashes, inputProofs, CcjHostUriAction, TorSocks5EndPoint).ConfigureAwait(false);
 				}
 				catch (HttpRequestException ex) when (ex.Message.Contains("Input is banned", StringComparison.InvariantCultureIgnoreCase))
 				{

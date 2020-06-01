@@ -9,7 +9,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
-using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Logging;
@@ -24,7 +23,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		private AliceClient(
 			long roundId,
 			IEnumerable<BitcoinAddress> registeredAddresses,
-			IEnumerable<SchnorrPubKey> schnorrPubKeys,
+			IEnumerable<PubKey> signerPubKeys,
 			IEnumerable<Requester> requesters,
 			Network network,
 			Func<Uri> baseUriAction,
@@ -32,7 +31,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		{
 			RoundId = roundId;
 			RegisteredAddresses = registeredAddresses.ToArray();
-			SchnorrPubKeys = schnorrPubKeys.ToArray();
+			SignerPubKeys = signerPubKeys.ToArray();
 			Requesters = requesters.ToArray();
 			Network = network;
 		}
@@ -43,32 +42,32 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		public Network Network { get; }
 
 		public BitcoinAddress[] RegisteredAddresses { get; }
-		public SchnorrPubKey[] SchnorrPubKeys { get; }
+		public PubKey[] SignerPubKeys { get; }
 		public Requester[] Requesters { get; }
 
 		public static async Task<AliceClient> CreateNewAsync(
 			long roundId,
 			IEnumerable<BitcoinAddress> registeredAddresses,
-			IEnumerable<SchnorrPubKey> schnorrPubKeys,
+			IEnumerable<PubKey> signerPubKeys,
 			IEnumerable<Requester> requesters,
 			Network network,
 			InputsRequest request,
 			Uri baseUri,
 			EndPoint torSocks5EndPoint)
 		{
-			return await CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, network, request, () => baseUri, torSocks5EndPoint).ConfigureAwait(false);
+			return await CreateNewAsync(roundId, registeredAddresses, signerPubKeys, requesters, network, request, () => baseUri, torSocks5EndPoint).ConfigureAwait(false);
 		}
 
 		public static async Task<AliceClient> CreateNewAsync(long roundId,
 			IEnumerable<BitcoinAddress> registeredAddresses,
-			IEnumerable<SchnorrPubKey> schnorrPubKeys,
+			IEnumerable<PubKey> signerPubKeys,
 			IEnumerable<Requester> requesters,
 			Network network,
 			InputsRequest request,
 			Func<Uri> baseUriAction,
 			EndPoint torSocks5EndPoint)
 		{
-			AliceClient client = new AliceClient(roundId, registeredAddresses, schnorrPubKeys, requesters, network, baseUriAction, torSocks5EndPoint);
+			AliceClient client = new AliceClient(roundId, registeredAddresses, signerPubKeys, requesters, network, baseUriAction, torSocks5EndPoint);
 			try
 			{
 				// Correct it if forgot to set.
@@ -111,25 +110,25 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		public static async Task<AliceClient> CreateNewAsync(
 			long roundId,
 			IEnumerable<BitcoinAddress> registeredAddresses,
-			IEnumerable<SchnorrPubKey> schnorrPubKeys,
+			IEnumerable<PubKey> signerPubKeys,
 			IEnumerable<Requester> requesters,
 			Network network,
 			BitcoinAddress changeOutput,
-			IEnumerable<uint256> blindedOutputScriptHashes,
+			IEnumerable<BlindedOutputWithNonceIndex> blindedOutputScriptHashes,
 			IEnumerable<InputProofModel> inputs,
 			Uri baseUri,
 			EndPoint torSocks5EndPoint)
 		{
-			return await CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, network, changeOutput, blindedOutputScriptHashes, inputs, () => baseUri, torSocks5EndPoint).ConfigureAwait(false);
+			return await CreateNewAsync(roundId, registeredAddresses, signerPubKeys, requesters, network, changeOutput, blindedOutputScriptHashes, inputs, () => baseUri, torSocks5EndPoint).ConfigureAwait(false);
 		}
 
 		public static async Task<AliceClient> CreateNewAsync(long roundId,
 			IEnumerable<BitcoinAddress> registeredAddresses,
-			IEnumerable<SchnorrPubKey> schnorrPubKeys,
+			IEnumerable<PubKey> signerPubKeys,
 			IEnumerable<Requester> requesters,
 			Network network,
 			BitcoinAddress changeOutput,
-			IEnumerable<uint256> blindedOutputScriptHashes,
+			IEnumerable<BlindedOutputWithNonceIndex> blindedOutputScriptHashes,
 			IEnumerable<InputProofModel> inputs,
 			Func<Uri> baseUriAction,
 			EndPoint torSocks5EndPoint)
@@ -141,7 +140,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				ChangeOutputAddress = changeOutput,
 				Inputs = inputs
 			};
-			return await CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, network, request, baseUriAction, torSocks5EndPoint).ConfigureAwait(false);
+			return await CreateNewAsync(roundId, registeredAddresses, signerPubKeys, requesters, network, request, baseUriAction, torSocks5EndPoint).ConfigureAwait(false);
 		}
 
 		public async Task<(RoundPhase currentPhase, IEnumerable<ActiveOutput> activeOutputs)> PostConfirmationAsync()
@@ -169,7 +168,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					var address = RegisteredAddresses[i];
 
 					uint256 outputScriptHash = new uint256(NBitcoin.Crypto.Hashes.SHA256(address.ScriptPubKey.ToBytes()));
-					PubKey signerPubKey = SchnorrPubKeys[i].SignerPubKey;
+					PubKey signerPubKey = SignerPubKeys[i];
 					if (!VerifySignature(outputScriptHash, unblindedSignature, signerPubKey))
 					{
 						throw new NotSupportedException($"Coordinator did not sign the blinded output properly for level: {i}.");
