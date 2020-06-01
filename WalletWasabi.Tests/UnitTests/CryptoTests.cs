@@ -78,7 +78,7 @@ namespace WalletWasabi.Tests.UnitTests
 			// Generate ECDSA keypairs.
 			var r = new Key();
 			var key = new Key();
-			Signer signer = new Signer(key, r);
+			Signer signer = new Signer(key);
 
 			// Generate ECDSA requester.
 			// Get the r's pubkey and the key's pubkey.
@@ -93,7 +93,7 @@ namespace WalletWasabi.Tests.UnitTests
 			uint256 blindedMessageHash = requester.BlindMessage(hash, rPubKey, keyPubKey);
 
 			// Sign the blinded message hash.
-			uint256 blindedSignature = signer.Sign(blindedMessageHash);
+			uint256 blindedSignature = signer.Sign(blindedMessageHash, r);
 
 			// Unblind the signature.
 			UnblindedSignature unblindedSignature = requester.UnblindSignature(blindedSignature);

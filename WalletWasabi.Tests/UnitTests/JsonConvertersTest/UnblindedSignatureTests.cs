@@ -20,7 +20,7 @@ namespace WalletWasabi.Tests.UnitTests.JsonConvertersTest
 			var converter = new UnblindedSignatureJsonConverter();
 			var r = new Key();
 			var key = new Key();
-			var signer = new SchnorrBlinding.Signer(key, r);
+			var signer = new SchnorrBlinding.Signer(key);
 
 			foreach (var i in Enumerable.Range(0, 100))
 			{
@@ -29,7 +29,7 @@ namespace WalletWasabi.Tests.UnitTests.JsonConvertersTest
 				var message = new byte[256];
 				Random.NextBytes(message);
 				var blindedMessage = requester.BlindMessage(message, r.PubKey, key.PubKey);
-				var blindSignature = signer.Sign(blindedMessage);
+				var blindSignature = signer.Sign(blindedMessage, r);
 				var unblindedSignature = requester.UnblindSignature(blindSignature);
 
 				var sb = new StringBuilder();
