@@ -14,16 +14,10 @@ using System;
 using System.ComponentModel;
 using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
+using WalletWasabi.Gui.Models.Sorting;
 
 namespace WalletWasabi.Gui.Controls
 {
-	public enum SortOrder
-	{
-		None,
-		Increasing,
-		Decreasing
-	}
-
 	public class SortingArrow : Button, IStyleable
 	{
 		public static readonly StyledProperty<SortOrder> SortDirectionProperty =

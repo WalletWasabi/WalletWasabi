@@ -14,6 +14,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Models;
+using WalletWasabi.Gui.Models.Sorting;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -62,6 +63,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			CanDequeueCoins = canDequeueCoins;
 			DisplayCommonOwnershipWarning = displayCommonOwnershipWarning;
 
+			ValidateSavedColumnConfig();
+
+			var savedSort = SelectedColumnPreference;
+
+			SortColumn(savedSort.SortOrder, savedSort.ColumnTarget, false);
 			RefreshOrdering();
 
 			// Otherwise they're all selected as null on load.
@@ -85,52 +91,24 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SortCommand = ReactiveCommand.Create(RefreshOrdering);
 
 			this.WhenAnyValue(x => x.AmountSortDirection)
+				.Where(x => x != SortOrder.None)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				{
-					if (x != SortOrder.None)
-					{
-						PrivacySortDirection = SortOrder.None;
-						StatusSortDirection = SortOrder.None;
-						ClustersSortDirection = SortOrder.None;
-					}
-				});
+				.Subscribe(x => SortColumn(x, nameof(AmountSortDirection)));
 
 			this.WhenAnyValue(x => x.ClustersSortDirection)
+				.Where(x => x != SortOrder.None)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				{
-					if (x != SortOrder.None)
-					{
-						AmountSortDirection = SortOrder.None;
-						StatusSortDirection = SortOrder.None;
-						PrivacySortDirection = SortOrder.None;
-					}
-				});
+				.Subscribe(x => SortColumn(x, nameof(ClustersSortDirection)));
 
 			this.WhenAnyValue(x => x.StatusSortDirection)
+				.Where(x => x != SortOrder.None)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				{
-					if (x != SortOrder.None)
-					{
-						AmountSortDirection = SortOrder.None;
-						PrivacySortDirection = SortOrder.None;
-						ClustersSortDirection = SortOrder.None;
-					}
-				});
+				.Subscribe(x => SortColumn(x, nameof(StatusSortDirection)));
 
 			this.WhenAnyValue(x => x.PrivacySortDirection)
+				.Where(x => x != SortOrder.None)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				{
-					if (x != SortOrder.None)
-					{
-						AmountSortDirection = SortOrder.None;
-						StatusSortDirection = SortOrder.None;
-						ClustersSortDirection = SortOrder.None;
-					}
-				});
+				.Subscribe(x => SortColumn(x, nameof(PrivacySortDirection)));
 
 			SelectAllCheckBoxCommand = ReactiveCommand.Create(() =>
 			{
@@ -338,6 +316,50 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			DequeueCoinsPressed?.Invoke(this, coin);
 		}
 
+		public SortingPreference SelectedColumnPreference
+		{
+			get => CanDequeueCoins ? Global.UiConfig.CoinJoinTabSortingPreference : Global.UiConfig.CoinListViewSortingPreference;
+			set
+			{
+				if (CanDequeueCoins)
+				{
+					Global.UiConfig.CoinJoinTabSortingPreference = value;
+				}
+				else
+				{
+					Global.UiConfig.CoinListViewSortingPreference = value;
+				}
+			}
+		}
+
+		private void ValidateSavedColumnConfig()
+		{
+			var savedCol = SelectedColumnPreference.ColumnTarget;
+
+			if (savedCol != nameof(AmountSortDirection)
+	   			& savedCol != nameof(PrivacySortDirection)
+				& savedCol != nameof(ClustersSortDirection)
+				& savedCol != nameof(StatusSortDirection))
+			{
+				SelectedColumnPreference = new SortingPreference(SortOrder.Increasing, nameof(AmountSortDirection));
+			}
+		}
+
+		private void SortColumn(SortOrder sortOrder, string target, bool saveToUiConfig = true)
+		{
+			var sortPref = new SortingPreference(sortOrder, target);
+
+			if (saveToUiConfig)
+			{
+				SelectedColumnPreference = sortPref;
+			}
+ 
+			AmountSortDirection = sortPref.Match(sortOrder, nameof(AmountSortDirection));
+			PrivacySortDirection = sortPref.Match(sortOrder, nameof(PrivacySortDirection));
+			ClustersSortDirection = sortPref.Match(sortOrder, nameof(ClustersSortDirection));
+			StatusSortDirection = sortPref.Match(sortOrder, nameof(StatusSortDirection));
+		}
+
 		private void RefreshOrdering()
 		{
 			var sortExpression = new SortExpressionComparer<CoinViewModel>();
@@ -506,11 +528,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						SelectedAmount = selectedCoins.Sum(x => x.Amount);
 						IsAnyCoinSelected = selectedCoins.Any();
 
-						LabelExposeCommonOwnershipWarning = !DisplayCommonOwnershipWarning
-							? false
-							: selectedCoins
-								.Where(c => c.AnonymitySet == 1)
-								.Any(x => selectedCoins.Any(x => x.AnonymitySet > 1));
+						LabelExposeCommonOwnershipWarning = DisplayCommonOwnershipWarning &&
+							selectedCoins.Where(c => c.AnonymitySet == 1)
+								.Any(x => selectedCoins
+								.Any(x => x.AnonymitySet > 1));
 
 						SelectionChanged?.Invoke(this, null);
 					}

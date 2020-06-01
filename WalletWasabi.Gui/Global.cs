@@ -361,17 +361,6 @@ namespace WalletWasabi.Gui
 
 				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Nodes, Config.ServiceConfiguration, FeeProviders, blockProvider);
 			}
-			catch (Exception ex)
-			{
-				if (!cancel.IsCancellationRequested)
-				{
-					Logger.LogCritical(ex);
-				}
-
-				InitializationCompleted = true;
-				await DisposeAsync().ConfigureAwait(false);
-				Environment.Exit(1);
-			}
 			finally
 			{
 				InitializationCompleted = true;
