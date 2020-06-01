@@ -567,6 +567,41 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.DoesNotContain(rest, x => x > samplingSize * 0.001);
 		}
 
+		[Fact]
+		public void RespectLockTimeProbabilityDistribution()
+		{
+			var lockTimeZero = uint.MaxValue;
+			var samplingSize = 2_000;
+
+			var dict = Enumerable.Range(-99, 101).ToDictionary(x => (uint)x, x => 0);
+			dict[lockTimeZero] = 0;
+
+			var curTip = 100_000u;
+			var rnd = new Random(123456);
+			foreach (var i in Enumerable.Range(0, samplingSize))
+			{
+				var transactionFactory = CreateTransactionFactory(new[]
+				{
+					("Pablo", 0, 100m, confirmed: true, anonymitySet: 1)
+				});
+
+				var amount = Money.Coins(1m);
+				var payment = new PaymentIntent(new Key().ScriptPubKey, amount);
+				var result = transactionFactory.BuildTransaction(payment, new FeeRate(2m));
+
+				var lt = (uint)result.Transaction.Transaction.LockTime.Height;
+				var diff = lt == 0 ? lockTimeZero : lt - curTip;
+				dict[diff]++;
+			}
+
+			Assert.InRange(dict[lockTimeZero], samplingSize * 0.85, samplingSize * 0.95); // around 90%
+			Assert.InRange(dict[0], samplingSize * 0.070, samplingSize * 0.080); // around 7.5%
+			Assert.InRange(dict[1], samplingSize * 0.003, samplingSize * 0.009); // around 0.65%
+
+			var rest = dict.Where(x => x.Key < 0).Select(x => x.Value);
+			Assert.DoesNotContain(rest, x => x > samplingSize * 0.001);
+		}
+
 		private TransactionFactory CreateTransactionFactory(
 			IEnumerable<(string Label, int KeyIndex, decimal Amount, bool Confirmed, int AnonymitySet)> coins,
 			bool allowUnconfirmed = true,
