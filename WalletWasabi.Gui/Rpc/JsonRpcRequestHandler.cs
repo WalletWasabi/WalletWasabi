@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -95,11 +96,14 @@ namespace WalletWasabi.Gui.Rpc
 						parameters.Insert(position, cancellationToken);
 					}
 				}
-				if (parameters.Count != methodParameters.Count)
+				if (parameters.Count < methodParameters.Count( x => !x.isOptional ))
 				{
 					return Error(JsonRpcErrorCodes.InvalidParams,
 						$"{methodParameters.Count} parameters were expected but {parameters.Count} were received.", jsonRpcRequest.Id);
 				}
+
+				var missingParameters = methodParameters.Count() - parameters.Count(); 
+				parameters.AddRange( methodParameters.TakeLast(missingParameters).Select(x => x.defaultValue) );
 				var result = prodecureMetadata.MethodInfo.Invoke(Service, parameters.ToArray());
 
 				if (jsonRpcRequest.IsNotification) // the client is not interested in getting a response
