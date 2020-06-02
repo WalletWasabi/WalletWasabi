@@ -506,7 +506,7 @@
         </Rule>
         <Rule Name="UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasName">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="ConstantsMustAppearBeforeFields">
