@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using NBitcoin.RPC;
@@ -9,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Backend
@@ -28,6 +30,10 @@ namespace WalletWasabi.Backend
 					.ConfigureWebHostDefaults(webBuilder => webBuilder
 							.UseStartup<Startup>()
 							.UseUrls(endPoint))
+					.ConfigureServices(services =>
+					{
+						services.AddScoped<IIndexBuilderService, IndexBuilderService>();
+					})
 					.Build();
 
 				await host.RunWithTasksAsync();

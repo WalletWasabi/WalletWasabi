@@ -39,7 +39,7 @@ namespace WalletWasabi.Backend
 
 		public HostedServices HostedServices { get; set; }
 
-		public IndexBuilderService IndexBuilderService { get; private set; }
+		public IIndexBuilderService IndexBuilderService { get; private set; }
 
 		public Coordinator Coordinator { get; private set; }
 

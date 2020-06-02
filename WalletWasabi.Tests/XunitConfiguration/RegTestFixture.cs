@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using NBitcoin.RPC;
@@ -13,11 +14,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend;
 using WalletWasabi.BitcoinCore;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.TestableModels;
 
 namespace WalletWasabi.Tests.XunitConfiguration
 {
@@ -65,6 +68,10 @@ namespace WalletWasabi.Tests.XunitConfiguration
 							.UseConfiguration(conf)
 							.UseWebRoot("../../../../WalletWasabi.Backend/wwwroot")
 							.UseUrls(BackendEndPoint))
+					.ConfigureServices(services =>
+					{
+						services.AddScoped<IIndexBuilderService, IndexBuilderServiceTestable>();
+					})
 					.Build();
 
 			Global = (Backend.Global)BackendHost.Services.GetService(typeof(Backend.Global));
