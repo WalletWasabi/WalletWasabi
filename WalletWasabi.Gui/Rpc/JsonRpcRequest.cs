@@ -39,7 +39,7 @@ namespace WalletWasabi.Gui.Rpc
 		/// <summary>
 		/// Gets the version of the JSON-RPC protocol. MUST be exactly "2.0".
 		/// </summary>
-		[JsonProperty("jsonrpc", Required = Required.Always)]
+		[JsonProperty("jsonrpc", Required = Required.Default)]
 		public string JsonRPC { get; }
 
 		/// <summary>
