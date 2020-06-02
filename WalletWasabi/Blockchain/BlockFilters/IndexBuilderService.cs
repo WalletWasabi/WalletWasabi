@@ -74,7 +74,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 		public uint StartingHeight { get; }
 		public bool IsRunning => Interlocked.Read(ref _serviceStatus) == Running;
 		public bool IsStopping => Interlocked.Read(ref _serviceStatus) >= Stopping;
-		public DateTimeOffset LastFilterBuildTime { get; private set; }
+		public DateTimeOffset LastFilterBuildTime { get; set; }
 
 		public static GolombRiceFilter CreateDummyEmptyFilter(uint256 blockHash)
 		{
