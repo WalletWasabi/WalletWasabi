@@ -21,6 +21,8 @@ namespace WalletWasabi.Gui.Models.Sorting
 
 		#region EqualityAndComparison
 
+		public override bool Equals(object obj) => Equals(obj as SortingPreference?);
+
 		public bool Equals(SortingPreference other) => this == other;
 
 		public override int GetHashCode() => (SortOrder, ColumnTarget).GetHashCode();
