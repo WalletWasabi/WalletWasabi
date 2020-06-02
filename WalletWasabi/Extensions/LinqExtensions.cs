@@ -15,7 +15,7 @@ namespace System.Linq
 
 			foreach (var item in source)
 			{
-				if (bucket == null)
+				if (bucket is null)
 				{
 					bucket = new T[size];
 				}

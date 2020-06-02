@@ -55,6 +55,7 @@ namespace NBitcoin.RPC
 				catch (Exception ex) when (ex is RPCException || ex is NoEstimationException)
 				{
 					Logger.LogTrace(ex);
+
 					// Hopefully Bitcoin Core brainfart: https://github.com/bitcoin/bitcoin/issues/14431
 					for (int i = 2; i <= Constants.SevenDaysConfirmationTarget; i++)
 					{
@@ -68,6 +69,7 @@ namespace NBitcoin.RPC
 						}
 					}
 				}
+
 				// Let's try one more time, whatever.
 			}
 
@@ -100,6 +102,7 @@ namespace NBitcoin.RPC
 						}
 					}
 				}
+
 				// Let's try one more time, whatever.
 			}
 
@@ -256,6 +259,7 @@ namespace NBitcoin.RPC
 		public static async Task<IEnumerable<uint256>> GetUnconfirmedAsync(this IRPCClient rpc, IEnumerable<uint256> transactionHashes)
 		{
 			uint256[] unconfirmedTransactionHashes = await rpc.GetRawMempoolAsync();
+
 			// If there are common elements, then there's unconfirmed.
 			return transactionHashes.Intersect(unconfirmedTransactionHashes);
 		}

@@ -27,6 +27,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 			eciSet.Remove(QRCodeConstantVariable.DefaultEncoding);
 
 			int scanPos = startPos;
+
 			// default encoding as priority
 			scanPos = ModeEncodeCheck.TryEncodeEightBitByte(content, QRCodeConstantVariable.DefaultEncoding, scanPos, contentLength);
 			if (scanPos == -1)

@@ -16,6 +16,7 @@ namespace System.Net.Http
 			}
 
 			var h = host.Trim().TrimEnd('/').TrimStart(uriScheme.ToString() + "://", StringComparison.OrdinalIgnoreCase);
+
 			// https://tools.ietf.org/html/rfc7230#section-2.7.1
 			// A sender MUST NOT generate an "http" URI with an empty host identifier.
 			if (h.Length == 0)

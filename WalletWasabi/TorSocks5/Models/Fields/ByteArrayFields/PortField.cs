@@ -22,6 +22,7 @@ namespace WalletWasabi.TorSocks5.TorSocks5.Models.Fields.ByteArrayFields
 			{
 				throw new FormatException($"{nameof(dstPort)} cannot be encoded in two octets. Value: {dstPort}.");
 			}
+
 			// https://www.ietf.org/rfc/rfc1928.txt
 			// DST.PORT desired destination port in network octet order
 			Bytes = bytes.Take(2).Reverse().ToArray();
