@@ -78,16 +78,19 @@ namespace WalletWasabi.Gui.Rpc
 		/// Parses the json rpc request giving back the deserialized JsonRpcRequest instance.
 		/// Return true if the deserialization was successful, otherwise false.
 		/// </summary>
-		public static bool TryParse(string rawJson, out JsonRpcRequest request)
+		public static bool TryParse(string rawJson, out JsonRpcRequest[] requests, out bool isBatch)
 		{
 			try
 			{
-				request = JsonConvert.DeserializeObject<JsonRpcRequest>(rawJson);
+				isBatch = rawJson.TrimStart().StartsWith("[");
+				rawJson = isBatch ? rawJson : $"[{rawJson}]";
+				requests = JsonConvert.DeserializeObject<JsonRpcRequest[]>(rawJson);
 				return true;
 			}
 			catch (JsonException)
 			{
-				request = null;
+				requests = null;
+				isBatch = false;
 				return false;
 			}
 		}

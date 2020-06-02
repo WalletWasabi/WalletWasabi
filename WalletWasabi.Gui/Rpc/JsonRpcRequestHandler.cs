@@ -48,10 +48,21 @@ namespace WalletWasabi.Gui.Rpc
 		/// <returns>The response that, after serialization, is returned as response.</returns>
 		public async Task<string> HandleAsync(string body, CancellationToken cancellationToken)
 		{
-			if (!JsonRpcRequest.TryParse(body, out var jsonRpcRequest))
+			if (!JsonRpcRequest.TryParse(body, out var jsonRpcRequests, out var isBatch))
 			{
 				return JsonRpcResponse.CreateErrorResponse(null, JsonRpcErrorCodes.ParseError).ToJson(DefaultSettings);
 			}
+			var results = new List<string>();
+			foreach(var jsonRpcRequest in jsonRpcRequests)
+			{
+				cancellationToken.ThrowIfCancellationRequested();
+				results.Add(await HandleRequestAsync(jsonRpcRequest, cancellationToken));
+			}
+			return isBatch ? $"[{string.Join(",", results)}]" : results[0];
+		}
+
+		private async Task<string> HandleRequestAsync(JsonRpcRequest jsonRpcRequest, CancellationToken cancellationToken)
+		{
 			var methodName = jsonRpcRequest.Method;
 
 			if (!MetadataProvider.TryGetMetadata(methodName, out var prodecureMetadata))
