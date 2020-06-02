@@ -72,18 +72,18 @@ namespace WalletWasabi.Gui.Tabs.WelcomeTab
 			LoadWalletPassword.SelectWallet(walletname);
 		}
 
-
 		public class DummyNewsItem
 		{
 			private static Random RNG = new Random();
+
 			private static DateTime GetRandomDate()
 			{
 				var b = DateTime.Now;
-				return new DateTime(b.Year, b.Month, b.Day - RNG.Next(0, 7));
+				return new DateTime(b.Year, b.Month, b.Day) - TimeSpan.FromDays(RNG.Next(0, 7));
 			}
 
 			public DummyNewsItem()
-			{ 
+			{
 				PublishDate = GetRandomDate();
 			}
 
@@ -93,6 +93,7 @@ namespace WalletWasabi.Gui.Tabs.WelcomeTab
 		}
 
 #pragma warning disable
+
 		public List<DummyNewsItem> NewsItems { get; set; } = new List<DummyNewsItem>()
 		{
 			new DummyNewsItem(),
@@ -101,6 +102,7 @@ namespace WalletWasabi.Gui.Tabs.WelcomeTab
 			new DummyNewsItem(),
 			new DummyNewsItem(),
 		}.OrderByDescending(x => x.PublishDate).ToList();
+
 #pragma warning restore
 
 		public override void OnOpen(CompositeDisposable disposables)
