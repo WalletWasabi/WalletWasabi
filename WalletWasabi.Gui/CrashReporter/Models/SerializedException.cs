@@ -52,10 +52,11 @@ namespace WalletWasabi.Gui.CrashReporter.Models
 
 			if (!string.IsNullOrEmpty(StackTrace))
 			{
+				var header = "StackTrace: ";
 				sb.Append(Tabs(tabLevel));
-				sb.Append("StackTrace: ");
+				sb.Append(header);
 				sb.Append(Tabs(tabLevel));
-				sb.AppendLine(MultiLineTabs(tabLevel, StackTrace));
+				sb.AppendLine(MultiLineTabs(tabLevel, StackTrace, header.Length));
 			}
 
 			if (InnerException != null)
@@ -63,7 +64,7 @@ namespace WalletWasabi.Gui.CrashReporter.Models
 				var header = "InnerException: ";
 				sb.Append(Tabs(tabLevel));
 				sb.Append(header);
-				sb.Append(Tabs(tabLevel+1));
+				sb.Append(Tabs(tabLevel + 1));
 				sb.AppendLine(MultiLineTabs(tabLevel + 1, InnerException.ToString(), header.Length));
 			}
 
