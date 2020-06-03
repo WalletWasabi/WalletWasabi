@@ -595,6 +595,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					this.RaiseAndSetIfChanged(ref _isCustomChangeAddress, value);
 				}
+
+				this.RaisePropertyChanged(nameof(Address));
+				this.RaisePropertyChanged(nameof(CustomChangeAddress));
 			}
 		}
 
@@ -883,7 +886,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return;
 			}
 
-			if (Address == CustomChangeAddress && !IsMax)
+			if (Address == CustomChangeAddress && !IsMax && IsCustomChangeAddress)
 			{
 				errors.Add(ErrorSeverity.Error, "The active address and the change address cannot be the same.");
 			}
@@ -913,7 +916,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return;
 			}
 
-			if (Address == CustomChangeAddress)
+			if (Address == CustomChangeAddress && IsCustomChangeAddress)
 			{
 				errors.Add(ErrorSeverity.Error, "The active address and the change address cannot be the same.");
 			}
