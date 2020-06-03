@@ -180,12 +180,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						SetFeesAndTexts();
 
 						LabelToolTip = "Spending whole coins does not generate change, thus labeling is unnecessary.";
+
+						IsCustomChangeAddress = false;
 					}
 					else
 					{
 						AmountText = "0.0";
 
 						LabelToolTip = "Who can link this transaction to you? E.g.: \"Max, BitPay\"";
+
+						IsCustomChangeAddress = Global.UiConfig.IsCustomChangeAddress;
 					}
 
 					this.RaisePropertyChanged(nameof(Address));
@@ -581,7 +585,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public bool IsCustomChangeAddress
 		{
 			get => _isCustomChangeAddress;
-			private set => this.RaiseAndSetIfChanged(ref _isCustomChangeAddress, value);
+			private set
+			{
+				if (IsMax)
+				{
+					this.RaiseAndSetIfChanged(ref _isCustomChangeAddress, false);
+				}
+				else
+				{
+					this.RaiseAndSetIfChanged(ref _isCustomChangeAddress, value);
+				}
+			}
 		}
 
 		public ReactiveCommand<Unit, Unit> BuildTransactionCommand { get; }
