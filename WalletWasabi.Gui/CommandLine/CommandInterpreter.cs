@@ -1,22 +1,27 @@
 using Mono.Options;
 using System;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.CommandLine
 {
-	public static class CommandInterpreter
+	public class CommandInterpreter
 	{
+		public PasswordFinderCommand PasswordFinderCommand { get; }
+		public MixerCommand MixerCommand { get; }
+
+		public CommandInterpreter(PasswordFinderCommand passwordFinderCommand, MixerCommand mixerCommand)
+		{
+			PasswordFinderCommand = passwordFinderCommand;
+			MixerCommand = mixerCommand;
+		}
+
 		/// <returns>If the GUI should run or not.</returns>
-		public static async Task<bool> ExecuteCommandsAsync(Global global, string[] args)
+		public async Task<bool> ExecuteCommandsAsync(string[] args)
 		{
 			var showHelp = false;
 			var showVersion = false;
-			var daemon = new Daemon(global);
 
 			if (args.Length == 0)
 			{
@@ -34,11 +39,12 @@ namespace WalletWasabi.Gui.CommandLine
 				"",
 				"Available commands are:",
 				"",
-				new MixerCommand(daemon),
-				new PasswordFinderCommand(global.WalletManager)
+				MixerCommand,
+				PasswordFinderCommand
 			};
 
 			EnsureBackwardCompatibilityWithOldParameters(ref args);
+
 			if (await suite.RunAsync(args) == 0)
 			{
 				return false;
@@ -57,7 +63,7 @@ namespace WalletWasabi.Gui.CommandLine
 			return false;
 		}
 
-		private static void EnsureBackwardCompatibilityWithOldParameters(ref string[] args)
+		private void EnsureBackwardCompatibilityWithOldParameters(ref string[] args)
 		{
 			var listArgs = args.ToList();
 			if (listArgs.Remove("--mix") || listArgs.Remove("-m"))
@@ -67,7 +73,7 @@ namespace WalletWasabi.Gui.CommandLine
 			args = listArgs.ToArray();
 		}
 
-		private static void ShowVersion()
+		private void ShowVersion()
 		{
 			Console.WriteLine($"Wasabi Client Version: {Constants.ClientVersion}");
 			Console.WriteLine($"Compatible Coordinator Version: {Constants.ClientSupportBackendVersionText}");
@@ -75,7 +81,7 @@ namespace WalletWasabi.Gui.CommandLine
 			Console.WriteLine($"Compatible Hardware Wallet Interface Version: {Constants.HwiVersion}");
 		}
 
-		private static void ShowHelp(OptionSet p)
+		private void ShowHelp(OptionSet p)
 		{
 			ShowVersion();
 			Console.WriteLine();

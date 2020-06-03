@@ -6,7 +6,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.CommandLine
 {
-	internal class MixerCommand : Command
+	public class MixerCommand : Command
 	{
 		public MixerCommand(Daemon daemon)
 			: base("mix", "Start mixing without the GUI with the specified wallet.")
