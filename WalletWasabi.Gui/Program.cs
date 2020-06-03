@@ -11,12 +11,15 @@ using System.Threading.Tasks;
 using WalletWasabi.Gui.CommandLine;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
+using Microsoft.Extensions.DependencyInjection;
+using WalletWasabi.Gui.Tabs.WalletManager;
 
 namespace WalletWasabi.Gui
 {
 	internal class Program
 	{
 		private static Global Global;
+		private static ServiceProvider Container;
 
 		/// Warning! In Avalonia applications Main must not be async. Otherwise application may not run on OSX.
 		/// see https://github.com/AvaloniaUI/Avalonia/wiki/Unresolved-platform-support-issues
@@ -25,15 +28,31 @@ namespace WalletWasabi.Gui
 			bool runGui = false;
 			try
 			{
-				Global = new Global();
+				Global = new Global(); // TODO: Remove
 
-				Locator.CurrentMutable.RegisterConstant(Global);
+				//setup our DI
+				Container = new ServiceCollection()
+					//.AddLogging()
+					.AddSingleton(Global)
+					.AddSingleton(Global.WalletManager)					
+					.AddSingleton(Global.UiConfig)
+					.AddSingleton<CommandInterpreter>()
+					.AddSingleton<Daemon>()
+					.AddSingleton<PasswordFinderCommand>()
+					.AddSingleton<MixerCommand>()
+					.AddSingleton<StatusBarViewModel>()
+					.AddSingleton<WalletManagerViewModel>()
+					.AddSingleton<MainWindowViewModel>()
+					.BuildServiceProvider();
+
+
+				Locator.CurrentMutable.RegisterConstant(Global); // TODO Remove
 
 				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
-
-				runGui = CommandInterpreter.ExecuteCommandsAsync(Global, args).GetAwaiter().GetResult();
+				
+				runGui = Container.GetService<CommandInterpreter>().ExecuteCommandsAsync(args).GetAwaiter().GetResult();
 
 				if (!runGui)
 				{
@@ -68,11 +87,12 @@ namespace WalletWasabi.Gui
 			try
 			{
 				AvalonStudio.Extensibility.Theme.ColorTheme.LoadTheme(AvalonStudio.Extensibility.Theme.ColorTheme.VisualStudioDark);
-				MainWindowViewModel.Instance = new MainWindowViewModel();
+				MainWindowViewModel.Instance = Container.GetService<MainWindowViewModel>();
+				MainWindowViewModel.Instance.InitStep1();
 
 				await Global.InitializeNoWalletAsync();
 
-				MainWindowViewModel.Instance.Initialize();
+				MainWindowViewModel.Instance.InitStep2(Global.Network, Global.Nodes, Global.Synchronizer);
 
 				Dispatcher.UIThread.Post(GC.Collect);
 			}

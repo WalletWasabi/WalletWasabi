@@ -55,9 +55,9 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private volatile bool _disposedValue = false; // To detect redundant calls
 
-		public StatusBarViewModel()
+		public StatusBarViewModel(Global global)
 		{
-			Global = Locator.Current.GetService<Global>();
+			Global = global;
 			Backend = BackendStatus.NotConnected;
 			UseTor = false;
 			Tor = TorStatus.NotRunning;
