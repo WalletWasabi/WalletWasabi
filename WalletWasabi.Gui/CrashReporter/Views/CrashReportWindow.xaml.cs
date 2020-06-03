@@ -1,3 +1,5 @@
+using System;
+using System.ComponentModel;
 using Avalonia;
 using Avalonia.Markup.Xaml;
 using AvalonStudio.Shell.Controls;
@@ -13,7 +15,12 @@ namespace WalletWasabi.Gui.CrashReporter.Views
 #if DEBUG
 			this.AttachDevTools();
 #endif
+			Closing += CrashReportWindow_ClosingAsync;
+		}
 
+		private void CrashReportWindow_ClosingAsync(object sender, CancelEventArgs e)
+		{
+			Environment.Exit(0);
 		}
 
 		private void InitializeComponent()
