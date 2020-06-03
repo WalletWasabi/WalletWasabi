@@ -9,6 +9,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.CommandLine;
+using WalletWasabi.Gui.CrashReporter.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 
@@ -34,6 +35,11 @@ namespace WalletWasabi.Gui
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
 				runGui = CommandInterpreter.ExecuteCommandsAsync(Global, args).GetAwaiter().GetResult();
+
+				if (Global.CrashReportException != null)
+				{
+					StartCrashReporter();
+				}
 
 				if (!runGui)
 				{
@@ -96,6 +102,33 @@ namespace WalletWasabi.Gui
 		private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
 		{
 			Logger.LogWarning(e?.ExceptionObject as Exception);
+		}
+
+		private static void StartCrashReporter()
+		{
+			var result = AppBuilder.Configure<CrashReporter.CrashReportApp>();
+
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				result
+					.UseWin32()
+					.UseSkia();
+			}
+			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+			{
+				result.UsePlatformDetect();
+			}
+			else
+			{
+				result.UsePlatformDetect();
+			}
+
+			result
+				.With(new Win32PlatformOptions { AllowEglInitialization = false, UseDeferredRendering = true })
+				.With(new X11PlatformOptions { UseGpu = false, WmClass = "Wasabi Wallet Crash Reporting" })
+				.With(new AvaloniaNativePlatformOptions { UseDeferredRendering = true, UseGpu = false })
+				.With(new MacOSPlatformOptions { ShowInDock = true })
+				.StartWithClassicDesktopLifetime(null);
 		}
 
 		private static AppBuilder BuildAvaloniaApp()

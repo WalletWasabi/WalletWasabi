@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using Newtonsoft.Json;
 using WalletWasabi.Logging;
+using WalletWasabi.Gui.CrashReporter.Models;
 
 namespace WalletWasabi.Gui.CommandLine
 {
@@ -16,33 +17,31 @@ namespace WalletWasabi.Gui.CommandLine
 
 			Options = new OptionSet()
 			{
-				{ "e|exception=", "The serialized exception from the previous crash.", ExceptionDecode }
+				{ "attempt=", "Number of attempts at starting the crash reporter.", x => Attempts = x },
+				{ "exception=", "The serialized exception from the previous crash.", x => ExceptionString = x },
 			};
 		}
 
 		private void ExceptionDecode(string exceptionString)
 		{
-			try
-			{
-				var e = Guard.NotNullOrEmptyOrWhitespace(nameof(exceptionString), exceptionString);
-				ReportedException = JsonConvert.DeserializeObject<Exception>(e);
-                
-				Global.ShowCrashReporter = true;
-				Global.CrashReportException = e;
-			}
-			catch (Exception ex)
-			{
-				Logger.LogCritical(ex.Message);
-				Environment.Exit(1);
-			}
+			var e = Guard.NotNullOrEmptyOrWhitespace(nameof(exceptionString), exceptionString);
+			e = e.Trim(' ').Trim('\"');
+			Global.CrashReportException = JsonConvert.DeserializeObject<SerializedException>(e);
 		}
 
 		public Global Global { get; }
-		public object ReportedException { get; private set; }
+		public string Attempts { get; private set; }
+		public string ExceptionString { get; private set; }
 
-		public override Task<int> InvokeAsync(IEnumerable<string> arguments)
+		public override async Task<int> InvokeAsync(IEnumerable<string> args)
 		{
-			return base.InvokeAsync(arguments);
+			Options.Parse(args);
+
+			Global.CrashReportStartAttempt = Attempts;
+			
+			ExceptionDecode(ExceptionString);
+			
+			return 0;
 		}
 	}
 }

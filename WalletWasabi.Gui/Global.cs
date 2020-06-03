@@ -27,6 +27,7 @@ using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.CoinJoin.Client;
 using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
+using WalletWasabi.Gui.CrashReporter.Models;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Rpc;
@@ -109,8 +110,8 @@ namespace WalletWasabi.Gui
 		private bool InitializationStarted { get; set; } = false;
 
 		private CancellationTokenSource StoppingCts { get; }
-		public bool ShowCrashReporter { get; set; }
-		public string CrashReportException { get; set; }
+		public SerializedException CrashReportException { get; set; }
+		public string CrashReportStartAttempt { get; internal set; }
 
 		public async Task InitializeNoWalletAsync()
 		{
