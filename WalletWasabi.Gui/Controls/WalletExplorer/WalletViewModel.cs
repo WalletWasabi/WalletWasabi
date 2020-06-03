@@ -81,18 +81,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public static WalletViewModel Create(Wallet wallet)
 		{
-			if (wallet.KeyManager.IsHardwareWallet)
-			{
-				return new HardwareWalletViewModel(wallet);
-			}
-			else if (wallet.KeyManager.IsWatchOnly)
-			{
-				return new WatchOnlyWalletViewModel(wallet);
-			}
-			else
-			{
-				return new WalletViewModel(wallet);
-			}
+			return wallet.KeyManager.IsHardwareWallet
+				? new HardwareWalletViewModel(wallet)
+				: wallet.KeyManager.IsWatchOnly
+					? new WatchOnlyWalletViewModel(wallet)
+					: new WalletViewModel(wallet);
 		}
 
 		private SendTabViewModel SendTab { get; set; }
