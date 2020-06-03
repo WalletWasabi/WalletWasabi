@@ -61,6 +61,7 @@
     <PackageReference Include="Dock.Avalonia.Themes.Default" Version="0.9.9" />
     <PackageReference Include="Dock.Avalonia.Themes.Metro" Version="0.9.9" />
     <PackageReference Include="System.Runtime" Version="4.3.1" />
+    <PackageReference Include="Unity" Version="5.11.7" />
   </ItemGroup>
 
   <ItemGroup>

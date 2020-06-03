@@ -8,6 +8,7 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Unity;
 using WalletWasabi.Gui.CommandLine;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
@@ -17,6 +18,7 @@ namespace WalletWasabi.Gui
 	internal class Program
 	{
 		private static Global Global;
+		private static UnityContainer Container = new UnityContainer();
 
 		/// Warning! In Avalonia applications Main must not be async. Otherwise application may not run on OSX.
 		/// see https://github.com/AvaloniaUI/Avalonia/wiki/Unresolved-platform-support-issues
@@ -25,15 +27,23 @@ namespace WalletWasabi.Gui
 			bool runGui = false;
 			try
 			{
-				Global = new Global();
+				Global = new Global(); // TODO: Remove
+				Container.RegisterInstance(Global, InstanceLifetime.Singleton);
+				Container.RegisterInstance(Global.WalletManager, InstanceLifetime.Singleton);
+				Container.RegisterType<CommandInterpreter>(TypeLifetime.Singleton);
+				Container.RegisterType<Daemon>(TypeLifetime.Singleton);
+				Container.RegisterType<PasswordFinderCommand>(TypeLifetime.Singleton);
+				Container.RegisterType<MixerCommand>(TypeLifetime.Singleton);
+				Container.RegisterType<StatusBarViewModel>(TypeLifetime.Singleton);
+				Container.RegisterType<MainWindowViewModel>(TypeLifetime.Singleton);
 
-				Locator.CurrentMutable.RegisterConstant(Global);
+				Locator.CurrentMutable.RegisterConstant(Global); // TODO Remove
 
 				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
-
-				runGui = CommandInterpreter.ExecuteCommandsAsync(Global, args).GetAwaiter().GetResult();
+				
+				runGui = Container.Resolve<CommandInterpreter>().ExecuteCommandsAsync(args).GetAwaiter().GetResult();
 
 				if (!runGui)
 				{
@@ -68,11 +78,12 @@ namespace WalletWasabi.Gui
 			try
 			{
 				AvalonStudio.Extensibility.Theme.ColorTheme.LoadTheme(AvalonStudio.Extensibility.Theme.ColorTheme.VisualStudioDark);
-				MainWindowViewModel.Instance = new MainWindowViewModel();
+				MainWindowViewModel.Instance = Container.Resolve<MainWindowViewModel>();
+				MainWindowViewModel.Instance.InitStep1();
 
 				await Global.InitializeNoWalletAsync();
 
-				MainWindowViewModel.Instance.Initialize();
+				MainWindowViewModel.Instance.InitStep2(Global.Network, Global.Nodes, Global.Synchronizer);
 
 				Dispatcher.UIThread.Post(GC.Collect);
 			}

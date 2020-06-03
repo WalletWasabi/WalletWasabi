@@ -23,9 +23,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private ObservableCollection<CategoryViewModel> _categories;
 		private CategoryViewModel _selectedCategory;
 		private ViewModelBase _currentView;
+		private readonly Wallets.WalletManager WalletManager;
 
-		public WalletManagerViewModel() : base("Wallet Manager")
+		public WalletManagerViewModel(Wallets.WalletManager walletManager) : base("Wallet Manager")
 		{
+			WalletManager = walletManager;
 		}
 
 		public ObservableCollection<CategoryViewModel> Categories
@@ -96,14 +98,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					CurrentView = category;
 				});
 
-			var global = Locator.Current.GetService<Global>();
-			var walletManager = global.WalletManager;
-
-			if (!walletManager.GetWallets().Any(wallet => wallet.State == WalletState.Started))
+			if (!WalletManager.GetWallets().Any(wallet => wallet.State == WalletState.Started))
 			{
 				// If there aren't any opened wallet then close this walletmanager if the first wallet loaded.
 				Observable
-					.FromEventPattern<WalletState>(walletManager, nameof(walletManager.WalletStateChanged))
+					.FromEventPattern<WalletState>(WalletManager, nameof(WalletManager.WalletStateChanged))
 					.Select(x => x.EventArgs)
 					.Where(x => x == WalletState.Started)
 					.Take(1)
