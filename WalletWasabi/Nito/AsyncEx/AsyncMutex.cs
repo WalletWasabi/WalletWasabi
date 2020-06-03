@@ -151,6 +151,7 @@ namespace Nito.AsyncEx
 								{
 									throw new TimeoutException("Could not acquire mutex in time.");
 								}
+
 								// Block for n ms and try to acquire the mutex. Blocking is not a problem
 								// we are on our own thread.
 								acquired = Mutex.WaitOne(1000);
@@ -174,6 +175,7 @@ namespace Nito.AsyncEx
 								// Go to finally.
 								continue;
 							}
+
 							// Let it go and throw the exception...
 						}
 					}
@@ -196,6 +198,7 @@ namespace Nito.AsyncEx
 					{
 						LatestHoldLockException = ex;
 					}
+
 					// Terminate the Thread.
 					return;
 				}
@@ -329,6 +332,7 @@ namespace Nito.AsyncEx
 			{
 				Logger.LogError($"{ex.ToTypeMessageString()} in {ShortName}.");
 				inner = ex;
+
 				// Let it go.
 			}
 
@@ -381,6 +385,7 @@ namespace Nito.AsyncEx
 			StopThread();
 
 			ChangeStatus(AsyncLockStatus.StatusReady, AsyncLockStatus.StatusReleasing);
+
 			// Release the local lock.
 			AsyncLock?.ReleaseLock();
 		}

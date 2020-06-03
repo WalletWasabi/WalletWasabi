@@ -73,7 +73,7 @@ namespace WalletWasabi.Gui
 
 		public Network Network => Config.Network;
 
-		public MemoryCache Cache  { get; private set; }
+		public MemoryCache Cache { get; private set; }
 
 		public static JsonRpcServer RpcServer { get; private set; }
 
@@ -119,10 +119,10 @@ namespace WalletWasabi.Gui
 
 			try
 			{
-				Cache = new MemoryCache(new MemoryCacheOptions 
-				{ 
-					SizeLimit = 1_000, 
-					ExpirationScanFrequency = TimeSpan.FromSeconds(30) 
+				Cache = new MemoryCache(new MemoryCacheOptions
+				{
+					SizeLimit = 1_000,
+					ExpirationScanFrequency = TimeSpan.FromSeconds(30)
 				});
 				BitcoinStore = new BitcoinStore();
 				var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), Network);
@@ -360,17 +360,6 @@ namespace WalletWasabi.Gui
 				#endregion Blocks provider
 
 				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Nodes, Config.ServiceConfiguration, FeeProviders, blockProvider);
-			}
-			catch (Exception ex)
-			{
-				if (!cancel.IsCancellationRequested)
-				{
-					Logger.LogCritical(ex);
-				}
-
-				InitializationCompleted = true;
-				await DisposeAsync().ConfigureAwait(false);
-				Environment.Exit(1);
 			}
 			finally
 			{

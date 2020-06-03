@@ -159,11 +159,14 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				{
 					// Normal input.
 					$"{txHash}:{txHex}:{height}:{blockHash}:{blockIndex}:{label}:{unixSeconds}:{isReplacement}",
+
 					// Whitespaces.
 					$"     {txHash} :   {txHex}  :  {height}  :  {blockHash} :  {blockIndex}  : {label}    : {unixSeconds}     :    {isReplacement}  ",
+
 					// Don't fail on more inputs.
 					$"{txHash}:{txHex}:{height}:{blockHash}:{blockIndex}:{label}:{unixSeconds}:{isReplacement}::",
 					$"{txHash}:{txHex}:{height}:{blockHash}:{blockIndex}:{label}:{unixSeconds}:{isReplacement}:bar:buz",
+
 					// Can leave out some inputs.
 					$":{txHex}:{height}:{blockHash}:{blockIndex}:{label}:{unixSeconds}:{isReplacement}",
 					$"{txHash}:{txHex}::{blockHash}:{blockIndex}:{label}:{unixSeconds}:{isReplacement}",

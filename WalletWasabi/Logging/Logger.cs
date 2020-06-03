@@ -222,6 +222,7 @@ namespace WalletWasabi.Logging
 				{
 					LogDebug($"Logging failed: {ex}");
 				}
+
 				// If logging the failure is successful then clear the failure counter.
 				// If it's not the first time the logging failed, then we do not try to log logging failure, so clear the failure counter.
 				Interlocked.Exchange(ref LoggingFailedCount, 0);

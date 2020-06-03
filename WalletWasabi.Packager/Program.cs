@@ -153,7 +153,7 @@ namespace WalletWasabi.Packager
 				{
 					var verString = userAgent.Substring(userAgent.IndexOf("Satoshi:") + 8, 4);
 					var ver = new Version(verString);
-					bool addToResult = currentOnions is null ? true : currentOnions.Contains(node.Name);
+					bool addToResult = currentOnions is null || currentOnions.Contains(node.Name);
 
 					if (ver >= new Version("0.16") && addToResult)
 					{

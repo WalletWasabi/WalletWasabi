@@ -208,16 +208,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 
 			try
 			{
-				var firstWalletToLoad = !Global.WalletManager.AnyWallet();
-
-				var wallet = await Task.Run(async () => await Global.WalletManager.StartWalletAsync(keyManager));
-
+				await Task.Run(async () => await Global.WalletManager.StartWalletAsync(keyManager));
 				ResortTrigger.OnNext(new Unit());
-				// Successfully initialized.
-				if (firstWalletToLoad && !Owner.IsClosed && Owner.SelectedCategory == this)
-				{
-					Owner.OnClose();
-				}
 			}
 			catch (OperationCanceledException ex)
 			{

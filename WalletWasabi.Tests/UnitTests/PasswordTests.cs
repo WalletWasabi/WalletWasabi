@@ -53,6 +53,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var keyManager = KeyManager.CreateNew(out _, Guard.Correct(buggy)); // Every wallet was created with Guard.Correct before.
 
 			Logger.TurnOff();
+
 			// Password will be trimmed inside.
 			PasswordHelper.GetMasterExtKey(keyManager, original, out _);
 
