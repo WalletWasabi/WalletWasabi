@@ -41,18 +41,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public static WalletViewModelBase Create(Wallet wallet)
 		{
-			if (wallet.KeyManager.IsHardwareWallet)
-			{
-				return new ClosedHardwareWalletViewModel(wallet);
-			}
-			else if (wallet.KeyManager.IsWatchOnly)
-			{
-				return new ClosedWatchOnlyWalletViewModel(wallet);
-			}
-			else
-			{
-				return new ClosedWalletViewModel(wallet);
-			}
+			return wallet.KeyManager.IsHardwareWallet
+				? new ClosedHardwareWalletViewModel(wallet)
+				: wallet.KeyManager.IsWatchOnly
+					? new ClosedWatchOnlyWalletViewModel(wallet)
+					: new ClosedWalletViewModel(wallet);
 		}
 	}
 }
