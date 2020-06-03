@@ -9,9 +9,10 @@ namespace WalletWasabi.Gui.CrashReporter.ViewModels
 		{
 			Global = Locator.Current.GetService<Global>();
 		}
-
+		public int WinWidth => 640;
+		public int WinHeight => 360;
         public string Title => "Wasabi Wallet - Crash Reporting";
-        public SerializedException ReportedException => Global.CrashReportException;
+        public string ReportedException => Global.CrashReportException.ToString();
 
 		public Global Global { get; }
 	}

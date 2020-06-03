@@ -5,11 +5,13 @@
                   x:Class="WalletWasabi.Gui.CrashReporter.Views.CrashReportWindow"
                   Icon="avares://WalletWasabi.Gui/Assets/WasabiLogo256.png"
                   Title="{Binding Title}"
-                  MinWidth="400" MinHeight="400"
+                  Width="{Binding WinWidth}" Height="{Binding WinHeight}"
+                  MinWidth="{Binding WinWidth}" MinHeight="{Binding WinHeight}"
+                  MaxWidth="{Binding WinWidth}" MaxHeight="{Binding WinHeight}"
                   FontFamily="{DynamicResource UiFont}" FontSize="14"
                   Foreground="{DynamicResource ThemeForegroundBrush}"                  
                   WindowState="{Binding WindowState}">
-  <Grid>
-     
+  <Grid ColumnDefinitions="*,*" RowDefinitions="*,Auto">
+     <TextBox Grid.ColumnSpan="2" Grid.RowSpan="1" Classes="monospaceFont" AcceptsReturn="True" Text="{Binding ReportedException}"/>
   </Grid>
 </cont:MetroWindow>

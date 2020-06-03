@@ -25,7 +25,6 @@ namespace WalletWasabi.Gui.CommandLine
 		private void ExceptionDecode(string exceptionString)
 		{
 			var e = Guard.NotNullOrEmptyOrWhitespace(nameof(exceptionString), exceptionString);
-			e = e.Trim(' ').Trim('\"');
 			Global.CrashReportException = JsonConvert.DeserializeObject<SerializedException>(e);
 		}
 
