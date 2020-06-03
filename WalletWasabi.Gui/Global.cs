@@ -109,6 +109,8 @@ namespace WalletWasabi.Gui
 		private bool InitializationStarted { get; set; } = false;
 
 		private CancellationTokenSource StoppingCts { get; }
+		public bool ShowCrashReporter { get; set; }
+		public string CrashReportException { get; set; }
 
 		public async Task InitializeNoWalletAsync()
 		{
