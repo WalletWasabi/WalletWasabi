@@ -37,7 +37,14 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		protected override async Task<AliceClientBase> CreateAliceClientAsync(long roundId, RoundStateResponseBase stateParam, List<OutPoint> registrableCoins, (HdPubKey change, IEnumerable<HdPubKey> actives) outputAddresses)
 		{
-			var state = stateParam as RoundStateResponse4;
+			RoundStateResponse4 state = null;
+
+			var torClient = Synchronizer.WasabiClient.TorClient;
+			using( var satoshiClient = new SatoshiClient(torClient.DestinationUriAction, torClient.TorSocks5EndPoint) )
+			{
+				state = (RoundStateResponse4)await satoshiClient.GetRoundStateAsync(roundId).ConfigureAwait(false);
+			}
+
 			PubKey[] signerPubKeys = state.SignerPubKeys.ToArray();
 			PublicNonceWithIndex[] numerateNonces = state.RPubKeys.ToArray();
 			List<Requester> requesters = new List<Requester>();
