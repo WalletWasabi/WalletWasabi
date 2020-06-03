@@ -81,13 +81,13 @@ namespace WalletWasabi.Gui.CrashReporter.Models
 				{
 					case 0:
 						sb.AppendLine(line);
+						i++;
 						break;
 					default:
 						var padding = new string(' ', addedPadding);
 						sb.AppendLine($"{padding}{Tabs(n)}{line}");
 						break;
 				}
-				i++;
 			}
 			return sb.ToString();
 		}
