@@ -111,7 +111,7 @@ namespace WalletWasabi.Gui
 
 		private CancellationTokenSource StoppingCts { get; }
 		public SerializedException CrashReportException { get; set; }
-		public string CrashReportStartAttempt { get; internal set; }
+		public int CrashReportStartAttempt { get; internal set; } = 0;
 
 		public async Task InitializeNoWalletAsync()
 		{

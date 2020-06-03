@@ -24,8 +24,16 @@ namespace WalletWasabi.Gui.CommandLine
 
 		private void ExceptionDecode(string exceptionString)
 		{
-			var e = Guard.NotNullOrEmptyOrWhitespace(nameof(exceptionString), exceptionString);
-			Global.CrashReportException = JsonConvert.DeserializeObject<SerializedException>(e);
+			var exS = Guard.NotNullOrEmptyOrWhitespace(nameof(exceptionString), exceptionString);
+			
+			exS = exS.Replace("\\X0009", "\'")
+					 .Replace("\\X0022", "\"")
+					 .Replace("\\X000A", "\n")
+					 .Replace("\\X000D", "\r")
+					 .Replace("\\X0009", "\t")
+					 .Replace("\\X0020", " ");
+			 
+			Global.CrashReportException = JsonConvert.DeserializeObject<SerializedException>(exS);
 		}
 
 		public Global Global { get; }
@@ -36,10 +44,10 @@ namespace WalletWasabi.Gui.CommandLine
 		{
 			Options.Parse(args);
 
-			Global.CrashReportStartAttempt = Attempts;
-			
+			Global.CrashReportStartAttempt = Convert.ToInt32(Attempts);
+
 			ExceptionDecode(ExceptionString);
-			
+
 			return 0;
 		}
 	}

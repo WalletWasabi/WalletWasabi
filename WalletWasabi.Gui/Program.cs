@@ -9,6 +9,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.CommandLine;
+using WalletWasabi.Gui.CrashReporter.Helpers;
 using WalletWasabi.Gui.CrashReporter.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
@@ -87,6 +88,7 @@ namespace WalletWasabi.Gui
 				if (!(ex is OperationCanceledException))
 				{
 					Logger.LogCritical(ex);
+					StartCrashReporterHelper.Start(ex, Global.CrashReportStartAttempt);
 				}
 
 				await Global.DisposeAsync().ConfigureAwait(false);
