@@ -22,16 +22,16 @@ namespace WalletWasabi.Models
 
 		#region EqualityAndComparison
 
+		public static bool operator ==(UpdateStatus x, UpdateStatus y)
+			=> (x?.ClientUpToDate, x?.BackendCompatible, x?.LegalDocumentsVersion, x?.CurrentBackendMajorVersion) == (y?.ClientUpToDate, y?.BackendCompatible, y?.LegalDocumentsVersion, y?.CurrentBackendMajorVersion);
+
+		public static bool operator !=(UpdateStatus x, UpdateStatus y) => !(x == y);
+
 		public override bool Equals(object obj) => Equals(obj as UpdateStatus);
 
 		public bool Equals(UpdateStatus other) => this == other;
 
 		public override int GetHashCode() => (ClientUpToDate, BackendCompatible, LegalDocumentsVersion, CurrentBackendMajorVersion).GetHashCode();
-
-		public static bool operator ==(UpdateStatus x, UpdateStatus y)
-			=> (x?.ClientUpToDate, x?.BackendCompatible, x?.LegalDocumentsVersion, x?.CurrentBackendMajorVersion) == (y?.ClientUpToDate, y?.BackendCompatible, y?.LegalDocumentsVersion, y?.CurrentBackendMajorVersion);
-
-		public static bool operator !=(UpdateStatus x, UpdateStatus y) => !(x == y);
 
 		#endregion EqualityAndComparison
 	}

@@ -21,6 +21,11 @@ namespace WalletWasabi.Gui.Models.Sorting
 
 		#region EqualityAndComparison
 
+		public static bool operator ==(SortingPreference x, SortingPreference y)
+			=> (x.SortOrder, x.ColumnTarget) == (y.SortOrder, y.ColumnTarget);
+
+		public static bool operator !=(SortingPreference x, SortingPreference y) => !(x == y);
+
 		public override bool Equals(object obj)
 		{
 			if (obj is SortingPreference sp)
@@ -36,11 +41,6 @@ namespace WalletWasabi.Gui.Models.Sorting
 		public bool Equals(SortingPreference other) => this == other;
 
 		public override int GetHashCode() => (SortOrder, ColumnTarget).GetHashCode();
-
-		public static bool operator ==(SortingPreference x, SortingPreference y)
-			=> (x.SortOrder, x.ColumnTarget) == (y.SortOrder, y.ColumnTarget);
-
-		public static bool operator !=(SortingPreference x, SortingPreference y) => !(x == y);
 
 		#endregion EqualityAndComparison
 	}
