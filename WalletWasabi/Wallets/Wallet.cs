@@ -87,7 +87,7 @@ namespace WalletWasabi.Wallets
 		public BitcoinStore BitcoinStore { get; private set; }
 		public KeyManager KeyManager { get; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
-		public CoinJoinClient ChaumianClient { get; private set; }
+		public CoinJoinClientBase ChaumianClient { get; private set; }
 		public NodesGroup Nodes { get; private set; }
 		public ServiceConfiguration ServiceConfiguration { get; private set; }
 		public string WalletName => KeyManager.WalletName;
@@ -127,7 +127,14 @@ namespace WalletWasabi.Wallets
 				ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 				FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
 
-				ChaumianClient = new CoinJoinClient(Synchronizer, Network, KeyManager);
+				if (WasabiClient.ApiVersion == 3)
+				{
+					ChaumianClient = new CoinJoinClient(Synchronizer, Network, KeyManager);
+				}
+				else
+				{
+					ChaumianClient = new CoinJoinClient4(Synchronizer, Network, KeyManager);
+				}
 
 				TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold, ServiceConfiguration.PrivacyLevelStrong);
 				Coins = TransactionProcessor.Coins;

@@ -19,26 +19,26 @@ using UnblindedSignature = WalletWasabi.Crypto.UnblindedSignature;
 
 namespace WalletWasabi.CoinJoin.Client.Clients
 {
-	public class AliceClient : AliceClientBase
+	public class AliceClient4 : AliceClientBase
 	{
-		internal AliceClient(
+		internal AliceClient4(
 			long roundId,
 			IEnumerable<BitcoinAddress> registeredAddresses,
-			IEnumerable<SchnorrPubKey> schnorrPubKeys,
+			IEnumerable<PubKey> signerPubKeys,
 			IEnumerable<Requester> requesters,
 			Network network,
 			Func<Uri> baseUriAction,
 			EndPoint torSocks5EndPoint)
 			: base(roundId, registeredAddresses, requesters, network, baseUriAction, torSocks5EndPoint)
 		{
-			SchnorrPubKeys = schnorrPubKeys.ToArray();
+			SignerPubKeys = signerPubKeys.ToArray();
 		}
 
-		public SchnorrPubKey[] SchnorrPubKeys { get; }
+		public PubKey[] SignerPubKeys { get; }
 
 		protected override PubKey GetSignerPubKey(int i)
 		{
-			return SchnorrPubKeys[i].SignerPubKey;
+			return SignerPubKeys[i];
 		}
 	}
 }
