@@ -39,7 +39,7 @@ namespace WalletWasabi.Gui
 
 				if (Global.CrashReportException != null)
 				{
-					StartCrashReporter();
+					StartCrashReporter(args);
 				}
 
 				if (!runGui)
@@ -106,7 +106,7 @@ namespace WalletWasabi.Gui
 			Logger.LogWarning(e?.ExceptionObject as Exception);
 		}
 
-		private static void StartCrashReporter()
+		private static void StartCrashReporter(string[] args)
 		{
 			var result = AppBuilder.Configure<CrashReporter.CrashReportApp>();
 
@@ -115,10 +115,6 @@ namespace WalletWasabi.Gui
 				result
 					.UseWin32()
 					.UseSkia();
-			}
-			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-			{
-				result.UsePlatformDetect();
 			}
 			else
 			{
@@ -130,7 +126,7 @@ namespace WalletWasabi.Gui
 				.With(new X11PlatformOptions { UseGpu = false, WmClass = "Wasabi Wallet Crash Reporting" })
 				.With(new AvaloniaNativePlatformOptions { UseDeferredRendering = true, UseGpu = false })
 				.With(new MacOSPlatformOptions { ShowInDock = true })
-				.StartWithClassicDesktopLifetime(null);
+				.StartWithClassicDesktopLifetime(args);
 		}
 
 		private static AppBuilder BuildAvaloniaApp()

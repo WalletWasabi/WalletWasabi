@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.CrashReporter.Models
 {
@@ -22,18 +20,17 @@ namespace WalletWasabi.Gui.CrashReporter.Models
 			{
 				InnerException = new SerializedException(ex.InnerException);
 			}
+
 			ExceptionType = ex.GetType().FullName;
+
 			Message = ex.Message;
 			StackTrace = ex.StackTrace;
 		}
 
 		public override string ToString()
 		{
-			return ToStringCore();
-		}
+			int tabLevel = 0;
 
-		internal string ToStringCore(int tabLevel = 0)
-		{
 			var sb = new System.Text.StringBuilder();
 
 			if (!string.IsNullOrEmpty(ExceptionType))
