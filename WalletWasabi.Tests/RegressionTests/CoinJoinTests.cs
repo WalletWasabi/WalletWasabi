@@ -483,7 +483,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				Assert.Equal($"{HttpStatusCode.Gone.ToReasonString()}\nRound is not running.", httpRequestException.Message);
 			}
 
-			using (var aliceClient = await AliceClient.CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, network, new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network), new[] { blindedData }, new InputProofModel[] { new InputProofModel { Input = coin.Outpoint, Proof = key.SignCompact(blindedOutputScriptsHash) } }, () => BaseUri, null))
+			using (var aliceClient = await AliceClientBase.CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, network, new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network), new[] { blindedData }, new InputProofModel[] { new InputProofModel { Input = coin.Outpoint, Proof = key.SignCompact(blindedOutputScriptsHash) } }, () => BaseUri, null))
 			{
 				Assert.NotEqual(Guid.Empty, aliceClient.UniqueId);
 				Assert.True(aliceClient.RoundId > 0);
@@ -545,8 +545,8 @@ namespace WalletWasabi.Tests.RegressionTests
 			var input1 = new OutPoint(hash1, index1);
 			var input2 = new OutPoint(hash2, index2);
 
-			using (var aliceClient1 = await AliceClient.CreateNewAsync(roundId, new[] { outputAddress1 }, schnorrPubKeys, new[] { requester1 }, network, new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network), new[] { blinded1 }, new InputProofModel[] { new InputProofModel { Input = input1, Proof = key1.SignCompact(blindedOutputScriptsHash1) } }, () => BaseUri, null))
-			using (var aliceClient2 = await AliceClient.CreateNewAsync(roundId, new[] { outputAddress2 }, schnorrPubKeys, new[] { requester2 }, network, new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network), new[] { blinded2 }, new InputProofModel[] { new InputProofModel { Input = input2, Proof = key2.SignCompact(blindedOutputScriptsHash2) } }, () => BaseUri, null))
+			using (var aliceClient1 = await AliceClientBase.CreateNewAsync(roundId, new[] { outputAddress1 }, schnorrPubKeys, new[] { requester1 }, network, new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network), new[] { blinded1 }, new InputProofModel[] { new InputProofModel { Input = input1, Proof = key1.SignCompact(blindedOutputScriptsHash1) } }, () => BaseUri, null))
+			using (var aliceClient2 = await AliceClientBase.CreateNewAsync(roundId, new[] { outputAddress2 }, schnorrPubKeys, new[] { requester2 }, network, new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network), new[] { blinded2 }, new InputProofModel[] { new InputProofModel { Input = input2, Proof = key2.SignCompact(blindedOutputScriptsHash2) } }, () => BaseUri, null))
 			{
 				Assert.Equal(aliceClient2.RoundId, aliceClient1.RoundId);
 				Assert.NotEqual(aliceClient2.UniqueId, aliceClient1.UniqueId);
@@ -718,7 +718,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				// Save alice client and the outputs, requesters, etc
 				var changeOutput = new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
 				var inputProof = inputs.Select(x => new InputProofModel { Input = x.input, Proof = x.proof }).ToArray();
-				var aliceClient = await AliceClient.CreateNewAsync(
+				var aliceClient = await AliceClientBase.CreateNewAsync(
 					round.RoundId,
 					outputs.Select(x => x.outputAddress),
 					round.MixingLevels.SchnorrPubKeys,
@@ -875,7 +875,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			foreach (var user in inputRegistrationUsers)
 			{
-				aliceClients.Add(AliceClient.CreateNewAsync(currentRound.RoundId, new[] { user.activeOutputAddress }, currentRound.MixingLevels.SchnorrPubKeys, new[] { user.requester }, network, user.changeOutputAddress, new[] { user.blinded }, user.inputProofModels, () => baseUri, null));
+				aliceClients.Add(AliceClientBase.CreateNewAsync(currentRound.RoundId, new[] { user.activeOutputAddress }, currentRound.MixingLevels.SchnorrPubKeys, new[] { user.requester }, network, user.changeOutputAddress, new[] { user.blinded }, user.inputProofModels, () => baseUri, null));
 			}
 
 			long roundId = 0;
