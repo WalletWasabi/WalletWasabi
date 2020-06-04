@@ -40,7 +40,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			RoundStateResponse4 state = null;
 
 			var torClient = Synchronizer.WasabiClient.TorClient;
-			using( var satoshiClient = new SatoshiClient(torClient.DestinationUriAction, torClient.TorSocks5EndPoint) )
+			using (var satoshiClient = new SatoshiClient(torClient.DestinationUriAction, torClient.TorSocks5EndPoint))
 			{
 				state = (RoundStateResponse4)await satoshiClient.GetRoundStateAsync(roundId).ConfigureAwait(false);
 			}
