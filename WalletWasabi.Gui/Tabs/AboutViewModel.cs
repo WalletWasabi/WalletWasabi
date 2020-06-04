@@ -30,7 +30,7 @@ namespace WalletWasabi.Gui.Tabs
 
 			UpdateChecker = hostedServices.FirstOrDefault<UpdateChecker>();
 
-			CurrentBackendMajorVersion = UpdateChecker?.UpdateStatus?.CurrentBackendApiVersion ?? "";
+			CurrentBackendMajorVersion = UpdateChecker?.UpdateStatus?.CurrentBackendMajorVersion.ToString() ?? "";
 
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 
@@ -78,7 +78,7 @@ namespace WalletWasabi.Gui.Tabs
 			{
 				Observable.FromEventPattern<UpdateStatus>(updateChecker, nameof(updateChecker.UpdateStatusChanged))
 					.ObserveOn(RxApp.MainThreadScheduler)
-					.Subscribe(e => CurrentBackendMajorVersion = e.EventArgs.CurrentBackendApiVersion)
+					.Subscribe(e => CurrentBackendMajorVersion = e.EventArgs.CurrentBackendMajorVersion.ToString())
 					.DisposeWith(disposables);
 			}
 		}

@@ -19,7 +19,7 @@ namespace WalletWasabi.Services
 		{
 			Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
 			WasabiClient = synchronizer.WasabiClient;
-			UpdateStatus = new UpdateStatus(true, true, new Version(), null);
+			UpdateStatus = new UpdateStatus(true, true, new Version(), 0);
 
 			Synchronizer.PropertyChanged += Synchronizer_PropertyChanged;
 		}

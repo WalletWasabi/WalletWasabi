@@ -38,7 +38,7 @@ namespace WalletWasabi.WebClients.Wasabi
 		public static Dictionary<uint256, Transaction> TransactionCache { get; } = new Dictionary<uint256, Transaction>();
 		private static Queue<uint256> TransactionIdQueue { get; } = new Queue<uint256>();
 		public static object TransactionCacheLock { get; } = new object();
-		public static string ApiVersion { get; private set; } = Constants.BackendMajorVersion;
+		public static ushort ApiVersion { get; private set; } = ushort.Parse(Constants.BackendMajorVersion);
 
 		#region batch
 
@@ -238,7 +238,7 @@ namespace WalletWasabi.WebClients.Wasabi
 
 		#region software
 
-		public async Task<(Version ClientVersion, int BackendMajorVersion, Version LegalDocumentsVersion)> GetVersionsAsync(CancellationToken cancel)
+		public async Task<(Version ClientVersion, ushort BackendMajorVersion, Version LegalDocumentsVersion)> GetVersionsAsync(CancellationToken cancel)
 		{
 			using var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, "/api/software/versions", cancel: cancel);
 
@@ -250,7 +250,7 @@ namespace WalletWasabi.WebClients.Wasabi
 			using HttpContent content = response.Content;
 			var resp = await content.ReadAsJsonAsync<VersionsResponse>();
 
-			return (Version.Parse(resp.ClientVersion), int.Parse(resp.BackendMajorVersion), Version.Parse(resp.LegalDocumentsVersion));
+			return (Version.Parse(resp.ClientVersion), ushort.Parse(resp.BackendMajorVersion), Version.Parse(resp.LegalDocumentsVersion));
 		}
 
 		public async Task<UpdateStatus> CheckUpdatesAsync(CancellationToken cancel)
@@ -258,15 +258,15 @@ namespace WalletWasabi.WebClients.Wasabi
 			var versions = await GetVersionsAsync(cancel);
 			var clientUpToDate = Constants.ClientVersion >= versions.ClientVersion; // If the client version locally is greater than or equal to the backend's reported client version, then good.
 			var backendCompatible = int.Parse(Constants.ClientSupportBackendVersionMax) >= versions.BackendMajorVersion && versions.BackendMajorVersion >= int.Parse(Constants.ClientSupportBackendVersionMin); // If ClientSupportBackendVersionMin <= backend major <= ClientSupportBackendVersionMax, then our software is compatible.
-			var currentApiVersion = versions.BackendMajorVersion.ToString();
+			var currentBackendMajorVersion = versions.BackendMajorVersion;
 
 			if (backendCompatible)
 			{
 				// Only refresh if compatible.
-				ApiVersion = currentApiVersion;
+				ApiVersion = currentBackendMajorVersion;
 			}
 
-			return new UpdateStatus(backendCompatible, clientUpToDate, versions.LegalDocumentsVersion, currentApiVersion);
+			return new UpdateStatus(backendCompatible, clientUpToDate, versions.LegalDocumentsVersion, currentBackendMajorVersion);
 		}
 
 		#endregion software

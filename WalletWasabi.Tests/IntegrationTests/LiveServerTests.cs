@@ -133,12 +133,12 @@ namespace WalletWasabi.Tests.IntegrationTests
 			var updateStatus = await client.CheckUpdatesAsync(CancellationToken.None);
 
 			var expectedVersion = new Version(2, 0);
-			var backendVersion = "3";
+			ushort backendVersion = 3;
 			Assert.Equal(new UpdateStatus(true, true, expectedVersion, backendVersion), updateStatus);
 			Assert.True(updateStatus.BackendCompatible);
 			Assert.True(updateStatus.ClientUpToDate);
 			Assert.Equal(expectedVersion, updateStatus.LegalDocumentsVersion);
-			Assert.Equal(backendVersion, updateStatus.CurrentBackendApiVersion);
+			Assert.Equal(backendVersion, updateStatus.CurrentBackendMajorVersion);
 
 			var versions = await client.GetVersionsAsync(CancellationToken.None);
 			Assert.Equal(versions.LegalDocumentsVersion, updateStatus.LegalDocumentsVersion);

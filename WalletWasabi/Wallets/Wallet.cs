@@ -127,7 +127,7 @@ namespace WalletWasabi.Wallets
 				ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 				FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
 
-				if (WasabiClient.ApiVersion == "3")
+				if (WasabiClient.ApiVersion == 3)
 				{
 					ChaumianClient = new CoinJoinClient(Synchronizer, Network, KeyManager);
 				}
