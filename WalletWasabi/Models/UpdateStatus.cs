@@ -14,11 +14,11 @@ namespace WalletWasabi.Models
 			CurrentBackendMajorVersion = currentBackendMajorVersion;
 		}
 
-		public bool ClientUpToDate { get; private set; }
-		public bool BackendCompatible { get; private set; }
+		public bool ClientUpToDate { get; }
+		public bool BackendCompatible { get; }
 
-		public Version LegalDocumentsVersion { get; private set; }
-		public ushort CurrentBackendMajorVersion { get; private set; }
+		public Version LegalDocumentsVersion { get; }
+		public ushort CurrentBackendMajorVersion { get; }
 
 		#region EqualityAndComparison
 
