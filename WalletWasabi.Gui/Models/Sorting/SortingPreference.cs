@@ -14,11 +14,6 @@ namespace WalletWasabi.Gui.Models.Sorting
 		public SortOrder SortOrder { get; set; }
 		public string ColumnTarget { get; set; }
 
-		public SortOrder Match(SortOrder targetOrd, string match)
-		{
-			return ColumnTarget == match ? targetOrd : SortOrder.None;
-		}
-
 		#region EqualityAndComparison
 
 		public static bool operator ==(SortingPreference x, SortingPreference y)
@@ -43,5 +38,10 @@ namespace WalletWasabi.Gui.Models.Sorting
 		public override int GetHashCode() => (SortOrder, ColumnTarget).GetHashCode();
 
 		#endregion EqualityAndComparison
+
+		public SortOrder Match(SortOrder targetOrd, string match)
+		{
+			return ColumnTarget == match ? targetOrd : SortOrder.None;
+		}
 	}
 }
