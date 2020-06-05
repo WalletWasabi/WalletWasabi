@@ -1184,7 +1184,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				{
 					return (Enumerable.Empty<Alice>(), Enumerable.Empty<Alice>());
 				}
-				Logger.LogInfo($"Mempool acceptance is unsuccessful! Number of Alices: {Alices.Count}.");
+				Logger.LogInfo($"Round ({RoundId}): Mempool acceptance is unsuccessful! Number of Alices: {Alices.Count}.");
 
 				// The created tx was not accepted. Let's figure out why. Is it because an Alice doublespent or because of too long mempool chains.
 				var responses = await GetTxOutForAllInputsAsync().ConfigureAwait(false);
@@ -1220,7 +1220,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 					{
 						return (alicesSpent, Enumerable.Empty<Alice>());
 					}
-					Logger.LogInfo($"Mempool acceptance is unsuccessful! Number of Alices: {Alices.Count}.");
+					Logger.LogInfo($"Round ({RoundId}): Mempool acceptance is unsuccessful! Number of Alices: {Alices.Count}.");
 				}
 
 				// Let's go remove the unconfirmed Alices.
