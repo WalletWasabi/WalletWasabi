@@ -1,13 +1,11 @@
 using NBitcoin;
 using NBitcoin.RPC;
-using Newtonsoft.Json.Linq;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
@@ -577,10 +575,10 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			{
 				await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, inputsToBan.ToArray()).ConfigureAwait(false);
 
-				var alicesSpentButNotConfirmedCount = alicesSpent.Select(x => x.UniqueId).Except(alicesNotConfirmConnection.Select(x => x.UniqueId)).Distinct().Count();
-				if (alicesSpentButNotConfirmedCount > 0)
+				var alicesConnectionConfirmedAndSpentCount = alicesSpent.Select(x => x.UniqueId).Except(alicesNotConfirmConnection.Select(x => x.UniqueId)).Distinct().Count();
+				if (alicesConnectionConfirmedAndSpentCount > 0)
 				{
-					Abort($"{alicesSpentButNotConfirmedCount} Alices confirmed their connections but spent their inputs.");
+					Abort($"{alicesConnectionConfirmedAndSpentCount} Alices confirmed their connections but spent their inputs.");
 				}
 			}
 
@@ -1174,7 +1172,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			{
 				if (Phase != RoundPhase.InputRegistration || Status != CoordinatorRoundStatus.Running)
 				{
-					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
+					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration phase.");
 				}
 
 				// If we can build a transaction that the mempool accepts, then we're good, no need to remove any Alices.
