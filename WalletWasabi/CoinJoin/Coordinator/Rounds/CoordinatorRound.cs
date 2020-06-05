@@ -571,11 +571,13 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			var alicesSpent = responses.Where(x => x.resp is null).Select(x => x.alice).ToHashSet();
 			IEnumerable<OutPoint> inputsToBan = alicesSpent.SelectMany(x => x.Inputs).Select(y => y.Outpoint).Concat(alicesNotConfirmConnection.SelectMany(x => x.Inputs).Select(y => y.Outpoint)).Distinct();
 
+			var alicesNotConfirmConnectionIds = alicesNotConfirmConnection.Select(x => x.UniqueId);
+
 			if (inputsToBan.Any())
 			{
 				await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, inputsToBan.ToArray()).ConfigureAwait(false);
 
-				var alicesConnectionConfirmedAndSpentCount = alicesSpent.Select(x => x.UniqueId).Except(alicesNotConfirmConnection.Select(x => x.UniqueId)).Distinct().Count();
+				var alicesConnectionConfirmedAndSpentCount = alicesSpent.Select(x => x.UniqueId).Except(alicesNotConfirmConnectionIds).Distinct().Count();
 				if (alicesConnectionConfirmedAndSpentCount > 0)
 				{
 					Abort($"{alicesConnectionConfirmedAndSpentCount} Alices confirmed their connections but spent their inputs.");
@@ -583,7 +585,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			}
 
 			// It is ok to remove these Alices, because these did not get blind signatures.
-			RemoveAlicesBy(alicesNotConfirmConnection.Select(x => x.UniqueId).Distinct().ToArray());
+			RemoveAlicesBy(alicesNotConfirmConnectionIds.Distinct().ToArray());
 
 			int aliceCountAfterConnectionConfirmationTimeout = CountAlices();
 			int didNotConfirmCount = AnonymitySet - aliceCountAfterConnectionConfirmationTimeout;
