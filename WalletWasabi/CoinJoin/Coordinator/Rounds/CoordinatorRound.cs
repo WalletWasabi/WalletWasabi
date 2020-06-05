@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
@@ -248,6 +249,8 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 						{
 							return;
 						}
+
+						await RemoveAlicesIfAnInputRefusedByMempoolAsync().ConfigureAwait(false);
 
 						Phase = RoundPhase.ConnectionConfirmation;
 					}
@@ -564,29 +567,25 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			return Alices.Min(x => x.InputSum - x.NetworkFeeToPayAfterBaseDenomination);
 		}
 
-		public async Task ProgressToOutputRegistrationOrFailAsync(params Alice[] additionalAlicesToBan)
+		public async Task ProgressToOutputRegistrationOrFailAsync(params Alice[] alicesNotConfirmConnection)
 		{
-			// Only abort if less than two one alices are registered.
-			// What if an attacker registers all the time many alices, then drops out. He'll achieve only 2 alices to participate?
-			// If he registers many alices at InputRegistration
-			// AND never confirms in connection confirmation
-			// THEN connection confirmation will go with 2 alices in every round
-			// Therefore Alices that did not confirm, nor requested disconnection should be banned:
-
-			var alicesRemoved = await RemoveAlicesIfAnInputRefusedByMempoolAsync().ConfigureAwait(false); // So ban only those who confirmed participation, yet spent their inputs.
-
-			// There's the question of alices who spent their inputs but confirmed connection and alices who we removed because their inputs were unconfirmed and the resulting mempool chain was too big.
-			// We should ban alices who spent their coins, but not the ones who ended up being in a large mempool chain.
-			// However note that even alices who spent their coins don't have to be banned, since the attack described here would still be probably very expensive. Anyway, to be sure let's ban them.
-			IEnumerable<Alice> alicesToBan = alicesRemoved.removedSpentAlices;
-			IEnumerable<OutPoint> inputsToBan = alicesToBan.SelectMany(x => x.Inputs).Select(y => y.Outpoint).Concat(additionalAlicesToBan.SelectMany(x => x.Inputs).Select(y => y.Outpoint)).Distinct();
+			var responses = await GetTxOutForAllInputsAsync().ConfigureAwait(false);
+			var alicesSpent = responses.Where(x => x.resp is null).Select(x => x.alice).ToHashSet();
+			IEnumerable<OutPoint> inputsToBan = alicesSpent.SelectMany(x => x.Inputs).Select(y => y.Outpoint).Concat(alicesNotConfirmConnection.SelectMany(x => x.Inputs).Select(y => y.Outpoint)).Distinct();
 
 			if (inputsToBan.Any())
 			{
 				await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, inputsToBan.ToArray()).ConfigureAwait(false);
+
+				var alicesSpentButNotConfirmedCount = alicesSpent.Select(x => x.UniqueId).Except(alicesNotConfirmConnection.Select(x => x.UniqueId)).Distinct().Count();
+				if (alicesSpentButNotConfirmedCount > 0)
+				{
+					Abort($"{alicesSpentButNotConfirmedCount} Alices confirmed their connections but spent their inputs.");
+				}
 			}
 
-			RemoveAlicesBy(additionalAlicesToBan.Select(x => x.UniqueId).Concat(alicesToBan.Select(y => y.UniqueId)).Distinct().ToArray());
+			// It is ok to remove these Alices, because these did not get blind signatures.
+			RemoveAlicesBy(alicesNotConfirmConnection.Select(x => x.UniqueId).Distinct().ToArray());
 
 			int aliceCountAfterConnectionConfirmationTimeout = CountAlices();
 			int didNotConfirmCount = AnonymitySet - aliceCountAfterConnectionConfirmationTimeout;
@@ -1173,7 +1172,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 		{
 			using (await RoundSynchronizerLock.LockAsync().ConfigureAwait(false))
 			{
-				if ((Phase != RoundPhase.InputRegistration && Phase != RoundPhase.ConnectionConfirmation) || Status != CoordinatorRoundStatus.Running)
+				if (Phase != RoundPhase.InputRegistration || Status != CoordinatorRoundStatus.Running)
 				{
 					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
 				}
