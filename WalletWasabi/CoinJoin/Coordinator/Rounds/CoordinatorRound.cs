@@ -571,7 +571,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			var alicesSpent = responses.Where(x => x.resp is null).Select(x => x.alice).ToHashSet();
 			IEnumerable<OutPoint> inputsToBan = alicesSpent.SelectMany(x => x.Inputs).Select(y => y.Outpoint).Concat(alicesNotConfirmConnection.SelectMany(x => x.Inputs).Select(y => y.Outpoint)).Distinct();
 
-			var alicesNotConfirmConnectionIds = alicesNotConfirmConnection.Select(x => x.UniqueId);
+			var alicesNotConfirmConnectionIds = alicesNotConfirmConnection.Select(x => x.UniqueId).ToArray();
 
 			if (inputsToBan.Any())
 			{
