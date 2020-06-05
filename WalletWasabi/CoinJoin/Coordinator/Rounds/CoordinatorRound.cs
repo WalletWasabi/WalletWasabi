@@ -549,7 +549,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 										Logger.LogWarning($"Round ({RoundId}): {expectedPhase} timeout failed.");
 										Logger.LogWarning(ex);
 									}
-								});
+								}).ConfigureAwait(false);
 						}
 					}
 					catch (Exception ex)
@@ -557,7 +557,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 						Logger.LogWarning($"Round ({RoundId}): {expectedPhase} timeout failed.");
 						Logger.LogWarning(ex);
 					}
-				});
+				}).ConfigureAwait(false); ;
 		}
 
 		private Money CalculateNewDenomination()
