@@ -581,6 +581,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				if (alicesConnectionConfirmedAndSpentCount > 0)
 				{
 					Abort($"{alicesConnectionConfirmedAndSpentCount} Alices confirmed their connections but spent their inputs.");
+					return;
 				}
 			}
 
