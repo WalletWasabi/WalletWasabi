@@ -569,7 +569,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 		private async Task MoveToConnectionConfirmationAsync()
 		{
-			await RemoveAlicesIfAnInputRefusedByMempoolAsync().ConfigureAwait(false);
+			await RemoveAlicesIfAnInputRefusedByMempoolNoLockAsync().ConfigureAwait(false);
 
 			Phase = RoundPhase.ConnectionConfirmation;
 		}
@@ -1205,64 +1205,69 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 		{
 			using (await RoundSynchronizerLock.LockAsync().ConfigureAwait(false))
 			{
-				if (Phase != RoundPhase.InputRegistration || Status != CoordinatorRoundStatus.Running)
+				await RemoveAlicesIfAnInputRefusedByMempoolNoLockAsync().ConfigureAwait(false);
+			}
+		}
+
+		private async Task RemoveAlicesIfAnInputRefusedByMempoolNoLockAsync()
+		{
+			if (Phase != RoundPhase.InputRegistration || Status != CoordinatorRoundStatus.Running)
+			{
+				throw new InvalidOperationException($"Round ({RoundId}): Removing Alice is only allowed in {RoundPhase.InputRegistration} phase.");
+			}
+
+			// If we can build a transaction that the mempool accepts, then we're good, no need to remove any Alices.
+			(bool accept, string rejectReason) resultAll = await TestMempoolAcceptWithTransactionSimulationAsync().ConfigureAwait(false);
+			if (!resultAll.accept)
+			{
+				Logger.LogInfo($"Round ({RoundId}): Mempool acceptance is unsuccessful! Number of Alices: {Alices.Count}.");
+
+				// The created tx was not accepted. Let's figure out why. Is it because an Alice doublespent or because of too long mempool chains.
+				var responses = await GetTxOutForAllInputsAsync().ConfigureAwait(false);
+
+				var alicesSpent = new HashSet<Alice>();
+				var alicesUnconfirmed = new HashSet<Alice>();
+				foreach (var (alice, resp) in responses)
 				{
-					throw new InvalidOperationException($"Round ({RoundId}): Removing Alice is only allowed in {RoundPhase.InputRegistration} phase.");
+					if (resp is null)
+					{
+						alicesSpent.Add(alice);
+					}
+					else if (resp.Confirmations <= 0)
+					{
+						alicesUnconfirmed.Add(alice);
+					}
 				}
 
-				// If we can build a transaction that the mempool accepts, then we're good, no need to remove any Alices.
-				(bool accept, string rejectReason) resultAll = await TestMempoolAcceptWithTransactionSimulationAsync().ConfigureAwait(false);
-				if (!resultAll.accept)
+				// Let's go through Alices those have spent inputs and remove them.
+				foreach (var alice in alicesSpent)
 				{
-					Logger.LogInfo($"Round ({RoundId}): Mempool acceptance is unsuccessful! Number of Alices: {Alices.Count}.");
+					Alices.Remove(alice);
+					Logger.LogInfo($"Round ({RoundId}): Alice ({alice.UniqueId}) removed, because of spent inputs.");
+				}
 
-					// The created tx was not accepted. Let's figure out why. Is it because an Alice doublespent or because of too long mempool chains.
-					var responses = await GetTxOutForAllInputsAsync().ConfigureAwait(false);
-
-					var alicesSpent = new HashSet<Alice>();
-					var alicesUnconfirmed = new HashSet<Alice>();
-					foreach (var (alice, resp) in responses)
+				// If we removed spent Alices, then test mempool acceptance again.
+				// If we did not remove spent Alices, then no need to test again, we know it's because of unconfirmed Alices.
+				var problemSolved = false;
+				if (alicesSpent.Any())
+				{
+					// Let's test another fake transaction, maybe the problem was spent inputs.
+					resultAll = await TestMempoolAcceptWithTransactionSimulationAsync().ConfigureAwait(false);
+					if (resultAll.accept)
 					{
-						if (resp is null)
-						{
-							alicesSpent.Add(alice);
-						}
-						else if (resp.Confirmations <= 0)
-						{
-							alicesUnconfirmed.Add(alice);
-						}
+						problemSolved = true;
 					}
+					Logger.LogInfo($"Round ({RoundId}): Mempool acceptance is unsuccessful! Number of Alices: {Alices.Count}.");
+				}
 
-					// Let's go through Alices those have spent inputs and remove them.
-					foreach (var alice in alicesSpent)
+				if (!problemSolved)
+				{
+					// Let's go remove the unconfirmed Alices.
+					// If there are unconfirmed Alices those are also spent Alices, then we don't need to double remove them.
+					foreach (var alice in alicesUnconfirmed.Except(alicesSpent))
 					{
 						Alices.Remove(alice);
-						Logger.LogInfo($"Round ({RoundId}): Alice ({alice.UniqueId}) removed, because of spent inputs.");
-					}
-
-					// If we removed spent Alices, then test mempool acceptance again.
-					// If we did not remove spent Alices, then no need to test again, we know it's because of unconfirmed Alices.
-					var problemSolved = false;
-					if (alicesSpent.Any())
-					{
-						// Let's test another fake transaction, maybe the problem was spent inputs.
-						resultAll = await TestMempoolAcceptWithTransactionSimulationAsync().ConfigureAwait(false);
-						if (resultAll.accept)
-						{
-							problemSolved = true;
-						}
-						Logger.LogInfo($"Round ({RoundId}): Mempool acceptance is unsuccessful! Number of Alices: {Alices.Count}.");
-					}
-
-					if (!problemSolved)
-					{
-						// Let's go remove the unconfirmed Alices.
-						// If there are unconfirmed Alices those are also spent Alices, then we don't need to double remove them.
-						foreach (var alice in alicesUnconfirmed.Except(alicesSpent))
-						{
-							Alices.Remove(alice);
-							Logger.LogInfo($"Round ({RoundId}): Alice ({alice.UniqueId}) removed, because of unconfirmed inputs.");
-						}
+						Logger.LogInfo($"Round ({RoundId}): Alice ({alice.UniqueId}) removed, because of unconfirmed inputs.");
 					}
 				}
 			}
