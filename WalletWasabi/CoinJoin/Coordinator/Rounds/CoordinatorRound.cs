@@ -1212,55 +1212,58 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 				// If we can build a transaction that the mempool accepts, then we're good, no need to remove any Alices.
 				(bool accept, string rejectReason) resultAll = await TestMempoolAcceptWithTransactionSimulationAsync().ConfigureAwait(false);
-				if (resultAll.accept)
+				if (!resultAll.accept)
 				{
-					return;
-				}
-				Logger.LogInfo($"Round ({RoundId}): Mempool acceptance is unsuccessful! Number of Alices: {Alices.Count}.");
-
-				// The created tx was not accepted. Let's figure out why. Is it because an Alice doublespent or because of too long mempool chains.
-				var responses = await GetTxOutForAllInputsAsync().ConfigureAwait(false);
-
-				var alicesSpent = new HashSet<Alice>();
-				var alicesUnconfirmed = new HashSet<Alice>();
-				foreach (var (alice, resp) in responses)
-				{
-					if (resp is null)
-					{
-						alicesSpent.Add(alice);
-					}
-					else if (resp.Confirmations <= 0)
-					{
-						alicesUnconfirmed.Add(alice);
-					}
-				}
-
-				// Let's go through Alices those have spent inputs and remove them.
-				foreach (var alice in alicesSpent)
-				{
-					Alices.Remove(alice);
-					Logger.LogInfo($"Round ({RoundId}): Alice ({alice.UniqueId}) removed, because of spent inputs.");
-				}
-
-				// If we removed spent Alices, then test mempool acceptance again.
-				// If we did not remove spent Alices, then no need to test again, we know it's because of unconfirmed Alices.
-				if (alicesSpent.Any())
-				{
-					// Let's test another fake transaction, maybe the problem was spent inputs.
-					resultAll = await TestMempoolAcceptWithTransactionSimulationAsync().ConfigureAwait(false);
-					if (resultAll.accept)
-					{
-						return;
-					}
 					Logger.LogInfo($"Round ({RoundId}): Mempool acceptance is unsuccessful! Number of Alices: {Alices.Count}.");
-				}
 
-				// Let's go remove the unconfirmed Alices.
-				// If there are unconfirmed Alices those are also spent Alices, then we don't need to double remove them.
-				foreach (var alice in alicesUnconfirmed.Except(alicesSpent))
-				{
-					Alices.Remove(alice);
-					Logger.LogInfo($"Round ({RoundId}): Alice ({alice.UniqueId}) removed, because of unconfirmed inputs.");
+					// The created tx was not accepted. Let's figure out why. Is it because an Alice doublespent or because of too long mempool chains.
+					var responses = await GetTxOutForAllInputsAsync().ConfigureAwait(false);
+
+					var alicesSpent = new HashSet<Alice>();
+					var alicesUnconfirmed = new HashSet<Alice>();
+					foreach (var (alice, resp) in responses)
+					{
+						if (resp is null)
+						{
+							alicesSpent.Add(alice);
+						}
+						else if (resp.Confirmations <= 0)
+						{
+							alicesUnconfirmed.Add(alice);
+						}
+					}
+
+					// Let's go through Alices those have spent inputs and remove them.
+					foreach (var alice in alicesSpent)
+					{
+						Alices.Remove(alice);
+						Logger.LogInfo($"Round ({RoundId}): Alice ({alice.UniqueId}) removed, because of spent inputs.");
+					}
+
+					// If we removed spent Alices, then test mempool acceptance again.
+					// If we did not remove spent Alices, then no need to test again, we know it's because of unconfirmed Alices.
+					var problemSolved = false;
+					if (alicesSpent.Any())
+					{
+						// Let's test another fake transaction, maybe the problem was spent inputs.
+						resultAll = await TestMempoolAcceptWithTransactionSimulationAsync().ConfigureAwait(false);
+						if (resultAll.accept)
+						{
+							problemSolved = true;
+						}
+						Logger.LogInfo($"Round ({RoundId}): Mempool acceptance is unsuccessful! Number of Alices: {Alices.Count}.");
+					}
+
+					if (!problemSolved)
+					{
+						// Let's go remove the unconfirmed Alices.
+						// If there are unconfirmed Alices those are also spent Alices, then we don't need to double remove them.
+						foreach (var alice in alicesUnconfirmed.Except(alicesSpent))
+						{
+							Alices.Remove(alice);
+							Logger.LogInfo($"Round ({RoundId}): Alice ({alice.UniqueId}) removed, because of unconfirmed inputs.");
+						}
+					}
 				}
 			}
 		}
