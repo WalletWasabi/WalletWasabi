@@ -1201,7 +1201,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			Logger.LogDebug($"Round ({RoundId}): Bob ({bob.Level.Denomination}) added.");
 		}
 
-		public async Task<(IEnumerable<Alice> removedSpentAlices, IEnumerable<Alice> removedUnconfirmedAlices)> RemoveAlicesIfAnInputRefusedByMempoolAsync()
+		public async Task RemoveAlicesIfAnInputRefusedByMempoolAsync()
 		{
 			using (await RoundSynchronizerLock.LockAsync().ConfigureAwait(false))
 			{
@@ -1214,7 +1214,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				(bool accept, string rejectReason) resultAll = await TestMempoolAcceptWithTransactionSimulationAsync().ConfigureAwait(false);
 				if (resultAll.accept)
 				{
-					return (Enumerable.Empty<Alice>(), Enumerable.Empty<Alice>());
+					return;
 				}
 				Logger.LogInfo($"Round ({RoundId}): Mempool acceptance is unsuccessful! Number of Alices: {Alices.Count}.");
 
@@ -1250,7 +1250,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 					resultAll = await TestMempoolAcceptWithTransactionSimulationAsync().ConfigureAwait(false);
 					if (resultAll.accept)
 					{
-						return (alicesSpent, Enumerable.Empty<Alice>());
+						return;
 					}
 					Logger.LogInfo($"Round ({RoundId}): Mempool acceptance is unsuccessful! Number of Alices: {Alices.Count}.");
 				}
@@ -1262,8 +1262,6 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 					Alices.Remove(alice);
 					Logger.LogInfo($"Round ({RoundId}): Alice ({alice.UniqueId}) removed, because of unconfirmed inputs.");
 				}
-
-				return (alicesSpent, alicesUnconfirmed);
 			}
 		}
 
