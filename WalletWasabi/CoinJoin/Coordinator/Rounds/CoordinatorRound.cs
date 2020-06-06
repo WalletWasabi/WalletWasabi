@@ -1174,7 +1174,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			{
 				if (Phase != RoundPhase.InputRegistration || Status != CoordinatorRoundStatus.Running)
 				{
-					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration phase.");
+					throw new InvalidOperationException($"Round ({RoundId}): Removing Alice is only allowed in {RoundPhase.InputRegistration} phase.");
 				}
 
 				// If we can build a transaction that the mempool accepts, then we're good, no need to remove any Alices.
