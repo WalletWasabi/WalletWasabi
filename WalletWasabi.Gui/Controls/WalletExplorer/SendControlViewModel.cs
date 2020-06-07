@@ -205,6 +205,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(Address)));
 
+			this.WhenAnyValue(x => x.IsCustomChangeAddress)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+				{
+					if (IsMax)
+					{
+						IsCustomChangeAddress = false;
+					}
+
+					this.RaisePropertyChanged(nameof(Address));
+					this.RaisePropertyChanged(nameof(CustomChangeAddress));
+				});
+
 			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay, outputScheduler: RxApp.MainThreadScheduler);
 
 			OnAddressPasteCommand = ReactiveCommand.Create((BitcoinUrlBuilder url) => OnAddressPaste(url));
@@ -585,20 +598,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public bool IsCustomChangeAddress
 		{
 			get => _isCustomChangeAddress;
-			private set
-			{
-				if (IsMax)
-				{
-					this.RaiseAndSetIfChanged(ref _isCustomChangeAddress, false);
-				}
-				else
-				{
-					this.RaiseAndSetIfChanged(ref _isCustomChangeAddress, value);
-				}
-
-				this.RaisePropertyChanged(nameof(Address));
-				this.RaisePropertyChanged(nameof(CustomChangeAddress));
-			}
+			private set => this.RaiseAndSetIfChanged(ref _isCustomChangeAddress, value);
 		}
 
 		public ReactiveCommand<Unit, Unit> BuildTransactionCommand { get; }
