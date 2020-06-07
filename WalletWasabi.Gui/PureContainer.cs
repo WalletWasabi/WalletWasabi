@@ -1,18 +1,14 @@
-using System;
-using System.Collections.Generic;
 using WalletWasabi.Gui.CommandLine;
 using WalletWasabi.Gui.ViewModels;
-using Microsoft.Extensions.DependencyInjection;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Wallets;
+using WalletWasabi.Legal;
 
 namespace WalletWasabi.Gui
 {
-	class PureContainer
+	public class PureContainer
 	{
-		private readonly Global Global;
 		private readonly WalletManager WalletManager;
-		private readonly UiConfig UiConfig;
 		private readonly Daemon Daemon;
 		private readonly MixerCommand MixerCommand;
 		private readonly PasswordFinderCommand PasswordFinderCommand;
@@ -21,21 +17,24 @@ namespace WalletWasabi.Gui
 		private readonly WalletManagerViewModel WalletManagerViewModel;
 		private readonly MainWindowViewModel MainWindowViewModel;
 
-		public PureContainer(Global global)
+		public PureContainer(UiConfig uiConfig, LegalDocuments legalDocuments, WalletManager walletManager, Daemon daemon, StatusBarViewModel statusBarViewModel)
 		{
-			Global = global;
-			WalletManager = global.WalletManager;
-			UiConfig = Global.UiConfig;
+			WalletManager = walletManager;
+			UiConfig = uiConfig;
+			LegalDocuments = legalDocuments;
 
-			Daemon = new Daemon(Global);
+			Daemon = daemon;
 			MixerCommand = new MixerCommand(Daemon);
 			PasswordFinderCommand = new PasswordFinderCommand(WalletManager);
 			CommandInterpreter = new CommandInterpreter(PasswordFinderCommand, MixerCommand);
 
-			StatusBarViewModel = new StatusBarViewModel(Global);
+			StatusBarViewModel = statusBarViewModel;
 			WalletManagerViewModel = new WalletManagerViewModel(WalletManager);
-			MainWindowViewModel = new MainWindowViewModel(WalletManager, UiConfig, StatusBarViewModel, WalletManagerViewModel);
+			MainWindowViewModel = new MainWindowViewModel(WalletManager, UiConfig, StatusBarViewModel, WalletManagerViewModel);			
 		}
+
+		public UiConfig UiConfig { get; }
+		public LegalDocuments LegalDocuments { get; }
 
 		public CommandInterpreter GetSingletonCommandInterpreter()
 		{

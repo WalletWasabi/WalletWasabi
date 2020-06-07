@@ -1,26 +1,18 @@
-using Avalonia.Threading;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using NBitcoin.Protocol;
-using Nito.AsyncEx;
 using ReactiveUI;
-using Splat;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Exceptions;
-using WalletWasabi.Gui.Converters;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models.StatusBarStatuses;
@@ -30,6 +22,7 @@ using WalletWasabi.Legal;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
+using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -55,9 +48,13 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private volatile bool _disposedValue = false; // To detect redundant calls
 
-		public StatusBarViewModel(Global global)
+		public StatusBarViewModel(string dataDir, Config config, LegalDocuments legalDocuments, HostedServices hostedServices, BitcoinStore bitcoinStore)
 		{
-			Global = global;
+			DataDir = dataDir;
+			Config = config;
+			LegalDocuments = legalDocuments;
+			HostedServices = hostedServices;
+			BitcoinStore = bitcoinStore;
 			Backend = BackendStatus.NotConnected;
 			UseTor = false;
 			Tor = TorStatus.NotRunning;
@@ -72,8 +69,11 @@ namespace WalletWasabi.Gui.ViewModels
 		private SmartHeaderChain HashChain { get; set; }
 
 		private bool UseTor { get; set; }
-
-		private Global Global { get; }
+		public string DataDir { get; }
+		public Config Config { get; }
+		public LegalDocuments LegalDocuments { get; }
+		public HostedServices HostedServices { get; }
+		public BitcoinStore BitcoinStore { get; }
 		private StatusSet ActiveStatuses { get; }
 
 		public ReactiveCommand<Unit, Unit> UpdateCommand { get; set; }
@@ -147,9 +147,9 @@ namespace WalletWasabi.Gui.ViewModels
 			Nodes = nodes;
 			Synchronizer = synchronizer;
 			HashChain = synchronizer.BitcoinStore.SmartHeaderChain;
-			UseTor = Global.Config.UseTor; // Do not make it dynamic, because if you change this config settings only next time will it activate.
-			UseBitcoinCore = Global.Config.StartLocalBitcoinCoreOnStartup;
-			var hostedServices = Global.HostedServices;
+			UseTor = Config.UseTor; // Do not make it dynamic, because if you change this config settings only next time will it activate.
+			UseBitcoinCore = Config.StartLocalBitcoinCoreOnStartup;
+			var hostedServices = HostedServices;
 
 			var updateChecker = hostedServices.FirstOrDefault<UpdateChecker>();
 			Guard.NotNull(nameof(updateChecker), updateChecker);
@@ -195,13 +195,12 @@ namespace WalletWasabi.Gui.ViewModels
 							   .ObserveOn(RxApp.MainThreadScheduler)
 							   .Subscribe(_ =>
 							   {
-								   var global = Global;
 								   if (wallet is { })
 								   {
 									   var segwitActivationHeight = SmartHeader.GetStartingHeader(wallet.Network).Height;
 									   if (wallet.LastProcessedFilter?.Header?.Height is uint lastProcessedFilterHeight
 											&& lastProcessedFilterHeight > segwitActivationHeight
-											&& global?.BitcoinStore?.SmartHeaderChain?.TipHeight is uint tipHeight
+											&& BitcoinStore?.SmartHeaderChain?.TipHeight is uint tipHeight
 											&& tipHeight > segwitActivationHeight)
 									   {
 										   var allFilters = tipHeight - segwitActivationHeight;
@@ -338,12 +337,12 @@ namespace WalletWasabi.Gui.ViewModels
 
 						try
 						{
-							if (Global.LegalDocuments is null || Global.LegalDocuments.Version < x.LegalDocumentsVersion)
+							if (LegalDocuments is null || LegalDocuments.Version < x.LegalDocumentsVersion)
 							{
-								using var client = new WasabiClient(() => Global.Config.UseTor ? Global.Config.GetCurrentBackendUri() : Global.Config.GetFallbackBackendUri(), Global.Config.UseTor ? Global.Config.TorSocks5EndPoint : null);
+								using var client = new WasabiClient(() => Config.UseTor ? Config.GetCurrentBackendUri() : Config.GetFallbackBackendUri(), Config.UseTor ? Config.TorSocks5EndPoint : null);
 								var versions = await client.GetVersionsAsync(CancellationToken.None);
 								var version = versions.LegalDocumentsVersion;
-								var legalFolderPath = Path.Combine(Global.DataDir, LegalDocuments.LegalFolderName);
+								var legalFolderPath = Path.Combine(DataDir, LegalDocuments.LegalFolderName);
 								var filePath = Path.Combine(legalFolderPath, $"{version}.txt");
 								var legalContent = await client.GetLegalDocumentsAsync(CancellationToken.None);
 

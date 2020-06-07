@@ -8,14 +8,14 @@ namespace WalletWasabi.Gui.CommandLine
 {
 	public class CommandInterpreter
 	{
-		public PasswordFinderCommand PasswordFinderCommand { get; }
-		public MixerCommand MixerCommand { get; }
-
 		public CommandInterpreter(PasswordFinderCommand passwordFinderCommand, MixerCommand mixerCommand)
 		{
 			PasswordFinderCommand = passwordFinderCommand;
 			MixerCommand = mixerCommand;
 		}
+
+		public PasswordFinderCommand PasswordFinderCommand { get; }
+		public MixerCommand MixerCommand { get; }
 
 		/// <returns>If the GUI should run or not.</returns>
 		public async Task<bool> ExecuteCommandsAsync(string[] args)

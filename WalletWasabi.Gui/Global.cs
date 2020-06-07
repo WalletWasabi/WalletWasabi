@@ -44,7 +44,7 @@ namespace WalletWasabi.Gui
 
 		public string DataDir { get; }
 		public string TorLogsFile { get; }
-		public BitcoinStore BitcoinStore { get; private set; }
+		public BitcoinStore BitcoinStore { get; }
 		public LegalDocuments LegalDocuments { get; set; }
 		public Config Config { get; }
 
@@ -73,31 +73,19 @@ namespace WalletWasabi.Gui
 
 		public static JsonRpcServer RpcServer { get; private set; }
 
-		public Global()
+		public Global(string dataDir, string torLogsFile, BitcoinStore bitcoinStore, 
+			HostedServices hostedServices, UiConfig uiConfig, 
+			WalletManager walletManager, LegalDocuments legalDocuments)
 		{
-			using (BenchmarkLogger.Measure())
-			{
-				StoppingCts = new CancellationTokenSource();
-				DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
-				TorLogsFile = Path.Combine(DataDir, "TorLogs.txt");
-				Directory.CreateDirectory(DataDir);
+			DataDir = dataDir;
+			TorLogsFile = torLogsFile;
+			BitcoinStore = bitcoinStore;
+			HostedServices = hostedServices;
+			UiConfig = uiConfig;
+			WalletManager = walletManager;			
+			LegalDocuments = legalDocuments;
 
-				Logger.InitializeDefaults(Path.Combine(DataDir, "Logs.txt"));
-
-				UiConfig = new UiConfig(Path.Combine(DataDir, "UiConfig.json"));
-				UiConfig.LoadOrCreateDefaultFile();
-				Config = new Config(Path.Combine(DataDir, "Config.json"));
-				Config.LoadOrCreateDefaultFile();
-				Config.CorrectMixUntilAnonymitySet();
-
-				HostedServices = new HostedServices();
-				WalletManager = new WalletManager(Network, new WalletDirectories(DataDir));
-
-				LegalDocuments = LegalDocuments.TryLoadAgreed(DataDir);
-
-				WalletManager.OnDequeue += WalletManager_OnDequeue;
-				WalletManager.WalletRelevantTransactionProcessed += WalletManager_WalletRelevantTransactionProcessed;
-			}
+			StoppingCts = new CancellationTokenSource();
 		}
 
 		private bool InitializationCompleted { get; set; } = false;
@@ -115,12 +103,6 @@ namespace WalletWasabi.Gui
 
 			try
 			{
-				Cache = new MemoryCache(new MemoryCacheOptions
-				{
-					SizeLimit = 1_000,
-					ExpirationScanFrequency = TimeSpan.FromSeconds(30)
-				});
-				BitcoinStore = new BitcoinStore();
 				var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), Network);
 				var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
 
@@ -140,6 +122,12 @@ namespace WalletWasabi.Gui
 				}
 
 				HostedServices.Register(new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
+
+				Cache = new MemoryCache(new MemoryCacheOptions
+				{
+					SizeLimit = 1_000,
+					ExpirationScanFrequency = TimeSpan.FromSeconds(30)
+				});
 
 				#region ProcessKillSubscription
 
@@ -450,7 +438,8 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private void WalletManager_OnDequeue(object sender, DequeueResult e)
+		// TODO: Move to a separate class
+		public void WalletManager_OnDequeue(object sender, DequeueResult e)
 		{
 			try
 			{
@@ -486,7 +475,8 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private void WalletManager_WalletRelevantTransactionProcessed(object sender, ProcessedResult e)
+		// TODO: Move to a separate class
+		public void WalletManager_WalletRelevantTransactionProcessed(object sender, ProcessedResult e)
 		{
 			try
 			{

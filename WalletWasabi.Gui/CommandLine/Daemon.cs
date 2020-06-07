@@ -1,10 +1,8 @@
 using NBitcoin;
 using System;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
@@ -13,13 +11,14 @@ namespace WalletWasabi.Gui.CommandLine
 {
 	public class Daemon
 	{
-		public Daemon(Global global)
+		public Daemon(Global global, WalletManager walletManager)
 		{
 			Global = global;
+			WalletManager = walletManager;
 		}
 
 		private Global Global { get; }
-
+		public WalletManager WalletManager { get; }
 		private Wallet Wallet { get; set; }
 
 		internal async Task RunAsync(string walletName, string destinationWalletName, bool keepMixAlive)
@@ -28,7 +27,7 @@ namespace WalletWasabi.Gui.CommandLine
 			{
 				Logger.LogSoftwareStarted("Wasabi Daemon");
 
-				KeyManager keyManager = Global.WalletManager.GetWalletByName(walletName).KeyManager;
+				KeyManager keyManager = WalletManager.GetWalletByName(walletName).KeyManager;
 
 				string password = null;
 				var count = 3;
@@ -76,17 +75,17 @@ namespace WalletWasabi.Gui.CommandLine
 					return;
 				}
 
-				Wallet = await Global.WalletManager.StartWalletAsync(keyManager);
+				Wallet = await WalletManager.StartWalletAsync(keyManager);
 				if (Global.KillRequested)
 				{
 					return;
 				}
 
-				KeyManager destinationKeyManager = Global.WalletManager.GetWalletByName(destinationWalletName).KeyManager;
+				KeyManager destinationKeyManager = WalletManager.GetWalletByName(destinationWalletName).KeyManager;
 				bool isDifferentDestinationSpecified = keyManager.ExtPubKey != destinationKeyManager.ExtPubKey;
 				if (isDifferentDestinationSpecified)
 				{
-					await Global.WalletManager.StartWalletAsync(destinationKeyManager);
+					await WalletManager.StartWalletAsync(destinationKeyManager);
 				}
 
 				do

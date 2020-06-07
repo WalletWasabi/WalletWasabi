@@ -8,8 +8,14 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using WalletWasabi.Gui.CommandLine;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Helpers;
+using WalletWasabi.Legal;
 using WalletWasabi.Logging;
+using WalletWasabi.Services;
+using WalletWasabi.Stores;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui
 {
@@ -25,8 +31,37 @@ namespace WalletWasabi.Gui
 			bool runGui = false;
 			try
 			{
-				Global = new Global(); // TODO: Remove
-				PureContainer = new PureContainer(Global);
+				using (BenchmarkLogger.Measure())
+				{
+					// <Temporary>
+					string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
+					Directory.CreateDirectory(dataDir);
+
+					string torLogsFile = Path.Combine(dataDir, "TorLogs.txt");										
+
+					Logger.InitializeDefaults(Path.Combine(dataDir, "Logs.txt"));
+
+					var uiConfig = new UiConfig(Path.Combine(dataDir, "UiConfig.json"));
+					uiConfig.LoadOrCreateDefaultFile();
+
+					var config = new Config(Path.Combine(dataDir, "Config.json"));
+					config.LoadOrCreateDefaultFile();
+					config.CorrectMixUntilAnonymitySet();
+
+					var bitcoinStore = new BitcoinStore();
+					var hostedServices = new HostedServices();
+					var walletManager = new WalletManager(config.Network, new WalletDirectories(dataDir));					
+					var legalDocuments = LegalDocuments.TryLoadAgreed(dataDir);
+					var statusBarViewModel = new StatusBarViewModel(dataDir, config, legalDocuments, hostedServices, bitcoinStore);
+
+					Global = new Global(dataDir, torLogsFile, bitcoinStore, hostedServices, uiConfig, walletManager, legalDocuments); // TODO: Remove
+					var daemon = new Daemon(Global, walletManager); // TODO: Remove Globals
+
+					PureContainer = new PureContainer(uiConfig, legalDocuments, walletManager, daemon, statusBarViewModel);
+
+					walletManager.OnDequeue += Global.WalletManager_OnDequeue;
+					walletManager.WalletRelevantTransactionProcessed += Global.WalletManager_WalletRelevantTransactionProcessed;
+				}				
 
 				Locator.CurrentMutable.RegisterConstant(Global); // TODO Remove
 
