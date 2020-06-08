@@ -48,7 +48,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public void InitStep1()
 		{
-			InitializeLockScreen(UiConfig);
+			InitializeLockScreen();
 			StatusBar = StatusBarViewModel;
 			DisplayWalletManager();
 		}
@@ -143,13 +143,13 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		private void InitializeLockScreen(UiConfig uiConfig)
+		private void InitializeLockScreen()
 		{
-			uiConfig
+			UiConfig
 				.WhenAnyValue(x => x.LockScreenActive)
 				.Where(x => x)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => PushLockScreen(uiConfig.LockScreenPinHash.Length == 0
+				.Subscribe(_ => PushLockScreen(UiConfig.LockScreenPinHash.Length == 0
 						? (WasabiLockScreenViewModelBase)new SlideLockScreenViewModel()
 						: new PinLockScreenViewModel()));
 		}

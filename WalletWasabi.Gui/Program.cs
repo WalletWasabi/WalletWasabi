@@ -9,6 +9,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.CommandLine;
+using WalletWasabi.Gui.Container;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Legal;
@@ -37,7 +38,7 @@ namespace WalletWasabi.Gui
 					string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
 					Directory.CreateDirectory(dataDir);
 
-					string torLogsFile = Path.Combine(dataDir, "TorLogs.txt");										
+					string torLogsFile = Path.Combine(dataDir, "TorLogs.txt");
 
 					Logger.InitializeDefaults(Path.Combine(dataDir, "Logs.txt"));
 
@@ -50,22 +51,21 @@ namespace WalletWasabi.Gui
 
 					var bitcoinStore = new BitcoinStore();
 					var hostedServices = new HostedServices();
-					var walletManager = new WalletManager(config.Network, new WalletDirectories(dataDir));					
+					var walletManager = new WalletManager(config.Network, new WalletDirectories(dataDir));
+					var walletManagerLifecycle = new WalletManagerLifecycle(uiConfig, walletManager);
 					var legalDocuments = LegalDocuments.TryLoadAgreed(dataDir);
 					var statusBarViewModel = new StatusBarViewModel(dataDir, config, legalDocuments, hostedServices, bitcoinStore);
 
-					Global = new Global(dataDir, torLogsFile, bitcoinStore, hostedServices, uiConfig, walletManager, legalDocuments); // TODO: Remove
+					Global = new Global(dataDir, torLogsFile, bitcoinStore, hostedServices, uiConfig, walletManager, walletManagerLifecycle, legalDocuments); // TODO: Remove
 					var daemon = new Daemon(Global, walletManager); // TODO: Remove Globals
 
 					PureContainer = new PureContainer(uiConfig, legalDocuments, walletManager, daemon, statusBarViewModel);
 
-					walletManager.OnDequeue += Global.WalletManager_OnDequeue;
-					walletManager.WalletRelevantTransactionProcessed += Global.WalletManager_WalletRelevantTransactionProcessed;
-				}				
+					walletManagerLifecycle.OnInit();
 
-				Locator.CurrentMutable.RegisterConstant(Global); // TODO Remove
-
-				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
+					Locator.CurrentMutable.RegisterConstant(Global); // TODO Remove
+					Platform.BaseDirectory = Path.Combine(dataDir, "Gui");
+				}
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 				

@@ -4,7 +4,7 @@ using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Wallets;
 using WalletWasabi.Legal;
 
-namespace WalletWasabi.Gui
+namespace WalletWasabi.Gui.Container
 {
 	public class PureContainer
 	{
