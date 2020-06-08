@@ -10,7 +10,6 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.TorSocks5.Models.Fields.OctetFields;
-using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.TorSocks5
 {
@@ -23,9 +22,10 @@ namespace WalletWasabi.TorSocks5
 
 		/// <param name="torSocks5EndPoint">Opt out Tor with null.</param>
 		/// <param name="logFile">Opt out of logging with null.</param>
-		public TorProcessManager(EndPoint torSocks5EndPoint, string logFile)
+		public TorProcessManager(EndPoint torSocks5EndPoint, string dataDir, string logFile)
 		{
 			TorSocks5EndPoint = torSocks5EndPoint;
+			DataDir = dataDir;
 			LogFile = logFile;
 			_running = 0;
 			Stop = new CancellationTokenSource();
@@ -36,7 +36,7 @@ namespace WalletWasabi.TorSocks5
 		/// If null then it's just a mock, clearnet is used.
 		/// </summary>
 		public EndPoint TorSocks5EndPoint { get; }
-
+		public string DataDir { get; }
 		public string LogFile { get; }
 
 		public static bool RequestFallbackAddressUsage { get; private set; } = false;
@@ -47,12 +47,12 @@ namespace WalletWasabi.TorSocks5
 
 		private CancellationTokenSource Stop { get; set; }
 
-		public static TorProcessManager Mock() // Mock, do not use Tor at all for debug.
+		public static TorProcessManager Mock(string dataDir) // Mock, do not use Tor at all for debug.
 		{
-			return new TorProcessManager(null, null);
+			return new TorProcessManager(null, dataDir, null);
 		}
 
-		public void Start(bool ensureRunning, string dataDir)
+		public void Start(bool ensureRunning)
 		{
 			if (TorSocks5EndPoint is null)
 			{
@@ -76,8 +76,8 @@ namespace WalletWasabi.TorSocks5
 							return;
 						}
 
-						var torDir = Path.Combine(dataDir, "tor");
-						var torDataDir = Path.Combine(dataDir, "tordata");
+						var torDir = Path.Combine(DataDir, "tor");
+						var torDataDir = Path.Combine(DataDir, "tordata");
 						var torPath = "";
 						var geoIpPath = "";
 						var geoIp6Path = "";
@@ -241,7 +241,7 @@ namespace WalletWasabi.TorSocks5
 
 		#region Monitor
 
-		public void StartMonitor(TimeSpan torMisbehaviorCheckPeriod, TimeSpan checkIfRunningAfterTorMisbehavedFor, string dataDirToStartWith, Uri fallBackTestRequestUri)
+		public void StartMonitor(TimeSpan torMisbehaviorCheckPeriod, TimeSpan checkIfRunningAfterTorMisbehavedFor, Uri fallBackTestRequestUri)
 		{
 			if (TorSocks5EndPoint is null)
 			{
@@ -292,7 +292,7 @@ namespace WalletWasabi.TorSocks5
 									else
 									{
 										Logger.LogInfo($"Tor did not work properly for {(int)torMisbehavedFor.TotalSeconds} seconds. Maybe it crashed. Attempting to start it...");
-										Start(true, dataDirToStartWith); // Try starting Tor, if it does not work it'll be another issue.
+										Start(true); // Try starting Tor, if it does not work it'll be another issue.
 										await Task.Delay(14000, Stop.Token).ConfigureAwait(false);
 									}
 								}

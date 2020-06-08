@@ -29,10 +29,10 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			try
 			{
 				var network = coreNode.Network;
-				var rpc = coreNode.RpcClient;
-				var bitcoinStore = new BitcoinStore();
+				var rpc = coreNode.RpcClient;				
 				var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName(), EnvironmentHelpers.GetMethodName());
-				await bitcoinStore.InitializeAsync(dir, network);
+				var bitcoinStore = new BitcoinStore(dir, network);
+				await bitcoinStore.InitializeAsync();
 
 				await rpc.GenerateAsync(101);
 

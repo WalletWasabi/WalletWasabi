@@ -74,7 +74,8 @@ namespace WalletWasabi.Gui
 		public Global(string dataDir, string torLogsFile, BitcoinStore bitcoinStore, 
 			HostedServices hostedServices, UiConfig uiConfig, 
 			WalletManager walletManager, WalletManagerLifecycle walletManagerLifecycle, 
-			LegalDocuments legalDocuments, KillHandler killHandler, WasabiSynchronizer synchronizer)
+			LegalDocuments legalDocuments, KillHandler killHandler, WasabiSynchronizer synchronizer,
+			TorProcessManager torManager)
 		{
 			DataDir = dataDir;
 			TorLogsFile = torLogsFile;
@@ -86,6 +87,7 @@ namespace WalletWasabi.Gui
 			LegalDocuments = legalDocuments;
 			KillHandler = killHandler;
 			Synchronizer = synchronizer;
+			TorManager = torManager;
 			StoppingCts = new CancellationTokenSource();
 		}
 
@@ -104,7 +106,7 @@ namespace WalletWasabi.Gui
 
 			try
 			{
-				var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), Network);
+				var bstoreInitTask = BitcoinStore.InitializeAsync();
 				var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
 
 				AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
@@ -136,19 +138,11 @@ namespace WalletWasabi.Gui
 				cancel.ThrowIfCancellationRequested();
 
 				#region TorProcessInitialization
-
-				if (Config.UseTor)
-				{
-					TorManager = new TorProcessManager(Config.TorSocks5EndPoint, TorLogsFile);
-				}
-				else
-				{
-					TorManager = TorProcessManager.Mock();
-				}
-				TorManager.Start(false, DataDir);
+				
+				TorManager.Start(false);
 
 				var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
-				TorManager.StartMonitor(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(7), DataDir, fallbackRequestTestUri);
+				TorManager.StartMonitor(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(7), fallbackRequestTestUri);
 
 				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
 

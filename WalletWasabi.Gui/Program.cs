@@ -16,6 +16,7 @@ using WalletWasabi.Legal;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
+using WalletWasabi.TorSocks5;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui
@@ -46,7 +47,7 @@ namespace WalletWasabi.Gui
 				config.LoadOrCreateDefaultFile();
 				config.CorrectMixUntilAnonymitySet();
 
-				var bitcoinStore = new BitcoinStore();
+				var bitcoinStore = new BitcoinStore(Path.Combine(dataDir, "BitcoinStore"), config.Network);
 				var hostedServices = new HostedServices();
 				var walletManager = new WalletManager(config.Network, new WalletDirectories(dataDir));
 				var walletManagerLifecycle = new WalletManagerLifecycle(uiConfig, walletManager);
@@ -55,19 +56,22 @@ namespace WalletWasabi.Gui
 				var killHandler = new KillHandler();
 
 				WasabiSynchronizer synchronizer;
+				TorProcessManager torManager;
 
 				if (config.UseTor)
 				{
 					synchronizer = new WasabiSynchronizer(config.Network, bitcoinStore, () => config.GetCurrentBackendUri(), config.TorSocks5EndPoint);
+					torManager = new TorProcessManager(config.TorSocks5EndPoint, dataDir, torLogsFile);
 				}
 				else
 				{
 					synchronizer = new WasabiSynchronizer(config.Network, bitcoinStore, config.GetFallbackBackendUri(), null);
+					torManager = TorProcessManager.Mock(dataDir);
 				}
 
 				Global = new Global(dataDir, torLogsFile, bitcoinStore, hostedServices, uiConfig, walletManager, 
-					walletManagerLifecycle, legalDocuments, killHandler, synchronizer); // TODO: Remove
-				var daemon = new Daemon(Global, walletManager, killHandler); // TODO: Remove Globals
+					walletManagerLifecycle, legalDocuments, killHandler, synchronizer, torManager); // TODO: Remove
+				var daemon = new Daemon(Global, walletManager, killHandler);
 
 				PureContainer = new PureContainer(uiConfig, legalDocuments, walletManager, statusBarViewModel);
 

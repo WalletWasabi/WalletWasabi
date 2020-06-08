@@ -16,8 +16,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 	{
 		public TorTests()
 		{
-			var torManager = new TorProcessManager(Global.Instance.TorSocks5Endpoint, Global.Instance.TorLogsFile);
-			torManager.Start(ensureRunning: true, dataDir: Path.GetFullPath(AppContext.BaseDirectory));
+			var torManager = new TorProcessManager(Global.Instance.TorSocks5Endpoint, dataDir: Path.GetFullPath(AppContext.BaseDirectory), logFile:Global.Instance.TorLogsFile);
+			torManager.Start(ensureRunning: true);
 			Task.Delay(3000).GetAwaiter().GetResult();
 		}
 
