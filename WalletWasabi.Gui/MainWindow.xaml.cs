@@ -49,7 +49,7 @@ namespace WalletWasabi.Gui
 			AvaloniaXamlLoader.Load(this);
 		}
 
-		private int _closingState;
+		private int _closingState; // TODO: Use KillHandler here
 
 		private async void MainWindow_ClosingAsync(object sender, CancelEventArgs e)
 		{
