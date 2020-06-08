@@ -48,16 +48,14 @@ namespace WalletWasabi.Gui.CommandLine
 			if (await suite.RunAsync(args) == 0)
 			{
 				return false;
-			}
-			if (showHelp)
+			} 
+			else if (showHelp)
 			{
 				ShowHelp(options);
-				return false;
 			}
 			else if (showVersion)
 			{
 				ShowVersion();
-				return false;
 			}
 
 			return false;

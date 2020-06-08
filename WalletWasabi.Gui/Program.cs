@@ -55,9 +55,10 @@ namespace WalletWasabi.Gui
 					var walletManagerLifecycle = new WalletManagerLifecycle(uiConfig, walletManager);
 					var legalDocuments = LegalDocuments.TryLoadAgreed(dataDir);
 					var statusBarViewModel = new StatusBarViewModel(dataDir, config, legalDocuments, hostedServices, bitcoinStore);
+					var killHandler = new KillHandler();
 
-					Global = new Global(dataDir, torLogsFile, bitcoinStore, hostedServices, uiConfig, walletManager, walletManagerLifecycle, legalDocuments); // TODO: Remove
-					var daemon = new Daemon(Global, walletManager); // TODO: Remove Globals
+					Global = new Global(dataDir, torLogsFile, bitcoinStore, hostedServices, uiConfig, walletManager, walletManagerLifecycle, legalDocuments, killHandler); // TODO: Remove
+					var daemon = new Daemon(Global, walletManager, killHandler); // TODO: Remove Globals
 
 					PureContainer = new PureContainer(uiConfig, legalDocuments, walletManager, daemon, statusBarViewModel);
 
@@ -66,6 +67,7 @@ namespace WalletWasabi.Gui
 					Locator.CurrentMutable.RegisterConstant(Global); // TODO Remove
 					Platform.BaseDirectory = Path.Combine(dataDir, "Gui");
 				}
+
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 				

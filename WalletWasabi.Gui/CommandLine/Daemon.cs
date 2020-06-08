@@ -3,6 +3,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Gui.Container;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
@@ -11,14 +12,16 @@ namespace WalletWasabi.Gui.CommandLine
 {
 	public class Daemon
 	{
-		public Daemon(Global global, WalletManager walletManager)
+		public Daemon(Global global, WalletManager walletManager, KillHandler killHandler)
 		{
 			Global = global;
 			WalletManager = walletManager;
+			KillHandler = killHandler;
 		}
 
 		private Global Global { get; }
 		public WalletManager WalletManager { get; }
+		public KillHandler KillHandler { get; }
 		private Wallet Wallet { get; set; }
 
 		internal async Task RunAsync(string walletName, string destinationWalletName, bool keepMixAlive)
@@ -70,13 +73,14 @@ namespace WalletWasabi.Gui.CommandLine
 				Logger.LogInfo("Correct password.");
 
 				await Global.InitializeNoWalletAsync();
-				if (Global.KillRequested)
+
+				if (KillHandler.KillRequested)
 				{
 					return;
 				}
 
 				Wallet = await WalletManager.StartWalletAsync(keyManager);
-				if (Global.KillRequested)
+				if (KillHandler.KillRequested)
 				{
 					return;
 				}
@@ -90,7 +94,7 @@ namespace WalletWasabi.Gui.CommandLine
 
 				do
 				{
-					if (Global.KillRequested)
+					if (KillHandler.KillRequested)
 					{
 						break;
 					}
@@ -102,7 +106,7 @@ namespace WalletWasabi.Gui.CommandLine
 						await TryQueueCoinsToMixAsync(password, minAnonset: Wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue());
 					}
 
-					if (Global.KillRequested)
+					if (KillHandler.KillRequested)
 					{
 						break;
 					}
@@ -114,7 +118,7 @@ namespace WalletWasabi.Gui.CommandLine
 						await TryQueueCoinsToMixAsync(password, maxAnonset: Wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue() - 1);
 					}
 
-					if (Global.KillRequested)
+					if (KillHandler.KillRequested)
 					{
 						break;
 					}
@@ -127,7 +131,7 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 			catch
 			{
-				if (!Global.KillRequested)
+				if (!KillHandler.KillRequested)
 				{
 					throw;
 				}

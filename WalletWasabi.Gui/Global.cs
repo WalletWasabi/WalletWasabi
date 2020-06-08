@@ -31,6 +31,7 @@ using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.TorSocks5;
 using WalletWasabi.Wallets;
+using static WalletWasabi.Gui.Container.KillHandler;
 
 namespace WalletWasabi.Gui
 {
@@ -43,6 +44,7 @@ namespace WalletWasabi.Gui
 		public string TorLogsFile { get; }
 		public BitcoinStore BitcoinStore { get; }
 		public LegalDocuments LegalDocuments { get; set; }
+		public KillHandler KillHandler { get; }
 		public Config Config { get; }
 
 		public string AddressManagerFilePath { get; private set; }
@@ -61,8 +63,6 @@ namespace WalletWasabi.Gui
 
 		public HostedServices HostedServices { get; }
 
-		public bool KillRequested => Interlocked.Read(ref _dispose) > 0;
-
 		public UiConfig UiConfig { get; }
 
 		public Network Network => Config.Network;
@@ -73,7 +73,8 @@ namespace WalletWasabi.Gui
 
 		public Global(string dataDir, string torLogsFile, BitcoinStore bitcoinStore, 
 			HostedServices hostedServices, UiConfig uiConfig, 
-			WalletManager walletManager, WalletManagerLifecycle walletManagerLifecycle, LegalDocuments legalDocuments)
+			WalletManager walletManager, WalletManagerLifecycle walletManagerLifecycle, 
+			LegalDocuments legalDocuments, KillHandler killHandler)
 		{
 			DataDir = dataDir;
 			TorLogsFile = torLogsFile;
@@ -83,7 +84,7 @@ namespace WalletWasabi.Gui
 			WalletManager = walletManager;
 			WalletManagerLifecycle = walletManagerLifecycle;
 			LegalDocuments = legalDocuments;
-
+			KillHandler = killHandler;
 			StoppingCts = new CancellationTokenSource();
 		}
 
@@ -448,28 +449,24 @@ namespace WalletWasabi.Gui
 			return !StoppingCts.IsCancellationRequested;
 		}
 
-		/// <summary>
-		/// 0: nobody called
-		/// 1: somebody called
-		/// 2: call finished
-		/// </summary>
-		private long _dispose = 0; // To detect redundant calls
 
 		public async Task DisposeAsync()
 		{
-			var compareRes = Interlocked.CompareExchange(ref _dispose, 1, 0);
-			if (compareRes == 1)
+			var compareRes = KillHandler.CompareExchange(Status.SOMEBODY_CALLED, Status.NOBODY_CALLED);
+
+			if (compareRes == Status.SOMEBODY_CALLED)
 			{
-				while (Interlocked.Read(ref _dispose) != 2)
+				while (KillHandler.GetState() != Status.CALL_FINISHED)
 				{
 					await Task.Delay(50);
 				}
 				return;
 			}
-			else if (compareRes == 2)
+			else if (compareRes == KillHandler.Status.CALL_FINISHED)
 			{
 				return;
 			}
+
 			Logger.LogWarning("Process is exiting.", nameof(Global));
 
 			try
@@ -622,7 +619,8 @@ namespace WalletWasabi.Gui
 			finally
 			{
 				StoppingCts?.Dispose();
-				Interlocked.Exchange(ref _dispose, 2);
+				KillHandler.SetStatus(KillHandler.Status.CALL_FINISHED);
+
 				Logger.LogSoftwareStopped("Wasabi");
 			}
 		}
