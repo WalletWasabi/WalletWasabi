@@ -12,14 +12,14 @@ namespace WalletWasabi.Gui.CommandLine
 {
 	public class Daemon
 	{
-		public Daemon(Global global, WalletManager walletManager, KillHandler killHandler)
+		public Daemon(IProgramLifecycle programLifecycle, WalletManager walletManager, KillHandler killHandler)
 		{
-			Global = global;
+			ProgramLifecycle = programLifecycle;
 			WalletManager = walletManager;
 			KillHandler = killHandler;
 		}
 
-		private Global Global { get; }
+		public IProgramLifecycle ProgramLifecycle { get; }
 		public WalletManager WalletManager { get; }
 		public KillHandler KillHandler { get; }
 		private Wallet Wallet { get; set; }
@@ -72,7 +72,7 @@ namespace WalletWasabi.Gui.CommandLine
 
 				Logger.LogInfo("Correct password.");
 
-				await Global.InitializeNoWalletAsync();
+				await ProgramLifecycle.InitializeNoWalletAsync();
 
 				if (KillHandler.KillRequested)
 				{
@@ -138,7 +138,7 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 			finally
 			{
-				await Global.DisposeAsync().ConfigureAwait(false); 
+				await ProgramLifecycle.DisposeAsync().ConfigureAwait(false); 
 				Logger.LogInfo($"{nameof(Daemon)} stopped.");
 			}
 		}

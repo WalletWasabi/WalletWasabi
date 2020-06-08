@@ -35,7 +35,7 @@ using static WalletWasabi.Gui.Container.KillHandler;
 
 namespace WalletWasabi.Gui
 {
-	public class Global
+	public class Global : IProgramLifecycle
 	{
 		public const string ThemeBackgroundBrushResourceKey = "ThemeBackgroundBrush";
 		public const string ApplicationAccentForegroundBrushResourceKey = "ApplicationAccentForegroundBrush";
