@@ -32,46 +32,46 @@ namespace WalletWasabi.Gui
 			bool runGui = false;
 			try
 			{
-				using (BenchmarkLogger.Measure())
-				{
-					// <Temporary>
-					string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
-					Directory.CreateDirectory(dataDir);
+				string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
+				Directory.CreateDirectory(dataDir);
 
-					string torLogsFile = Path.Combine(dataDir, "TorLogs.txt");
+				string torLogsFile = Path.Combine(dataDir, "TorLogs.txt");
 
-					Logger.InitializeDefaults(Path.Combine(dataDir, "Logs.txt"));
+				Logger.InitializeDefaults(Path.Combine(dataDir, "Logs.txt"));
 
-					var uiConfig = new UiConfig(Path.Combine(dataDir, "UiConfig.json"));
-					uiConfig.LoadOrCreateDefaultFile();
+				var uiConfig = new UiConfig(Path.Combine(dataDir, "UiConfig.json"));
+				uiConfig.LoadOrCreateDefaultFile();
 
-					var config = new Config(Path.Combine(dataDir, "Config.json"));
-					config.LoadOrCreateDefaultFile();
-					config.CorrectMixUntilAnonymitySet();
+				var config = new Config(Path.Combine(dataDir, "Config.json"));
+				config.LoadOrCreateDefaultFile();
+				config.CorrectMixUntilAnonymitySet();
 
-					var bitcoinStore = new BitcoinStore();
-					var hostedServices = new HostedServices();
-					var walletManager = new WalletManager(config.Network, new WalletDirectories(dataDir));
-					var walletManagerLifecycle = new WalletManagerLifecycle(uiConfig, walletManager);
-					var legalDocuments = LegalDocuments.TryLoadAgreed(dataDir);
-					var statusBarViewModel = new StatusBarViewModel(dataDir, config, legalDocuments, hostedServices, bitcoinStore);
-					var killHandler = new KillHandler();
+				var bitcoinStore = new BitcoinStore();
+				var hostedServices = new HostedServices();
+				var walletManager = new WalletManager(config.Network, new WalletDirectories(dataDir));
+				var walletManagerLifecycle = new WalletManagerLifecycle(uiConfig, walletManager);
+				var legalDocuments = LegalDocuments.TryLoadAgreed(dataDir);
+				var statusBarViewModel = new StatusBarViewModel(dataDir, config, legalDocuments, hostedServices, bitcoinStore);
+				var killHandler = new KillHandler();
 
-					Global = new Global(dataDir, torLogsFile, bitcoinStore, hostedServices, uiConfig, walletManager, walletManagerLifecycle, legalDocuments, killHandler); // TODO: Remove
-					var daemon = new Daemon(Global, walletManager, killHandler); // TODO: Remove Globals
+				Global = new Global(dataDir, torLogsFile, bitcoinStore, hostedServices, uiConfig, walletManager, walletManagerLifecycle, legalDocuments, killHandler); // TODO: Remove
+				var daemon = new Daemon(Global, walletManager, killHandler); // TODO: Remove Globals
 
-					PureContainer = new PureContainer(uiConfig, legalDocuments, walletManager, daemon, statusBarViewModel);
+				PureContainer = new PureContainer(uiConfig, legalDocuments, walletManager, statusBarViewModel);
 
-					walletManagerLifecycle.OnInit();
+				walletManagerLifecycle.OnInit();
 
-					Locator.CurrentMutable.RegisterConstant(Global); // TODO Remove
-					Platform.BaseDirectory = Path.Combine(dataDir, "Gui");
-				}
+				Locator.CurrentMutable.RegisterConstant(Global); // TODO Remove
+				Platform.BaseDirectory = Path.Combine(dataDir, "Gui");
 
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
-				
-				runGui = PureContainer.GetSingletonCommandInterpreter().ExecuteCommandsAsync(args).GetAwaiter().GetResult();
+
+				var mixerCommand = new MixerCommand(daemon);
+				var passwordFinderCommand = new PasswordFinderCommand(walletManager);
+				var commandInterpreter = new CommandInterpreter(passwordFinderCommand, mixerCommand);				
+
+				runGui = commandInterpreter.ExecuteCommandsAsync(args).GetAwaiter().GetResult();
 
 				if (!runGui)
 				{
