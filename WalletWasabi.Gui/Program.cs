@@ -10,6 +10,8 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.CommandLine;
 using WalletWasabi.Gui.Container;
+using WalletWasabi.Gui.Converters;
+using WalletWasabi.Gui.Shell.Commands;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Legal;
@@ -74,6 +76,14 @@ namespace WalletWasabi.Gui
 				var daemon = new Daemon(Global, walletManager, killHandler);
 
 				PureContainer = new PureContainer(uiConfig, legalDocuments, walletManager, statusBarViewModel);
+
+				#region AvaloniaDependencies Propagate dependencies to classes which are instantiated by Avalonia
+
+				DiskCommands.InjectDependencies(config, dataDir, torLogsFile);
+				SystemCommands.InjectDependencies(uiConfig);
+				LurkingWifeModeStringConverter.InjectDependencies(uiConfig);
+
+				#endregion AvaloniaDependencies 
 
 				walletManagerLifecycle.OnInit();
 

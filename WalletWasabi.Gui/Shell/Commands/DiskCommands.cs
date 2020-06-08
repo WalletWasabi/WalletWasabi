@@ -8,10 +8,11 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
-	internal class DiskCommands
+	public class DiskCommands
 	{
 		[ImportingConstructor]
 		public DiskCommands(CommandIconService commandIconService)
@@ -57,6 +58,13 @@ namespace WalletWasabi.Gui.Shell.Commands
 				onOpenConfigFile);
 		}
 
+		private static Config Config { get; set; }
+		private static string TorLogsFile { get; set; }
+		
+		private static string DataDir { get; set; }
+
+		private static WalletManager WalletManager { get; set; }
+
 		[ExportCommandDefinition("File.Open.DataFolder")]
 		public CommandDefinition OpenDataFolderCommand { get; }
 
@@ -72,18 +80,21 @@ namespace WalletWasabi.Gui.Shell.Commands
 		[ExportCommandDefinition("File.Open.ConfigFile")]
 		public CommandDefinition OpenConfigFileCommand { get; }
 
+		public static void InjectDependencies(Config config, string dataDir, string torLogsFile)
+		{
+			Config = config;
+			DataDir = dataDir;
+			TorLogsFile = torLogsFile;
+		}
+
 		private void OnOpenDataFolder()
 		{
-			var global = Locator.Current.GetService<Global>();
-
-			IoHelpers.OpenFolderInFileExplorer(global.DataDir);
+			IoHelpers.OpenFolderInFileExplorer(DataDir);
 		}
 
 		private void OnOpenWalletsFolder()
 		{
-			var global = Locator.Current.GetService<Global>();
-
-			IoHelpers.OpenFolderInFileExplorer(global.WalletManager.WalletDirectories.WalletsDir);
+			IoHelpers.OpenFolderInFileExplorer(WalletManager.WalletDirectories.WalletsDir);
 		}
 
 		private async Task OnOpenLogFileAsync()
@@ -93,14 +104,12 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private async Task OnOpenTorLogFileAsync()
 		{
-			var global = Locator.Current.GetService<Global>();
-			await FileHelpers.OpenFileInTextEditorAsync(global.TorLogsFile);
+			await FileHelpers.OpenFileInTextEditorAsync(TorLogsFile);
 		}
 
 		private async Task OnOpenConfigFileAsync()
 		{
-			var global = Locator.Current.GetService<Global>();
-			await FileHelpers.OpenFileInTextEditorAsync(global.Config.FilePath);
+			await FileHelpers.OpenFileInTextEditorAsync(Config.FilePath);
 		}
 	}
 }
