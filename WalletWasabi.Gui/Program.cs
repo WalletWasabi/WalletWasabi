@@ -54,7 +54,19 @@ namespace WalletWasabi.Gui
 				var statusBarViewModel = new StatusBarViewModel(dataDir, config, legalDocuments, hostedServices, bitcoinStore);
 				var killHandler = new KillHandler();
 
-				Global = new Global(dataDir, torLogsFile, bitcoinStore, hostedServices, uiConfig, walletManager, walletManagerLifecycle, legalDocuments, killHandler); // TODO: Remove
+				WasabiSynchronizer synchronizer;
+
+				if (config.UseTor)
+				{
+					synchronizer = new WasabiSynchronizer(config.Network, bitcoinStore, () => config.GetCurrentBackendUri(), config.TorSocks5EndPoint);
+				}
+				else
+				{
+					synchronizer = new WasabiSynchronizer(config.Network, bitcoinStore, config.GetFallbackBackendUri(), null);
+				}
+
+				Global = new Global(dataDir, torLogsFile, bitcoinStore, hostedServices, uiConfig, walletManager, 
+					walletManagerLifecycle, legalDocuments, killHandler, synchronizer); // TODO: Remove
 				var daemon = new Daemon(Global, walletManager, killHandler); // TODO: Remove Globals
 
 				PureContainer = new PureContainer(uiConfig, legalDocuments, walletManager, statusBarViewModel);

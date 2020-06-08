@@ -51,7 +51,7 @@ namespace WalletWasabi.Gui
 		public AddressManager AddressManager { get; private set; }
 
 		public NodesGroup Nodes { get; private set; }
-		public WasabiSynchronizer Synchronizer { get; private set; }
+		public WasabiSynchronizer Synchronizer { get; }
 		public FeeProviders FeeProviders { get; private set; }
 		public WalletManager WalletManager { get; }
 		public WalletManagerLifecycle WalletManagerLifecycle { get; }
@@ -74,7 +74,7 @@ namespace WalletWasabi.Gui
 		public Global(string dataDir, string torLogsFile, BitcoinStore bitcoinStore, 
 			HostedServices hostedServices, UiConfig uiConfig, 
 			WalletManager walletManager, WalletManagerLifecycle walletManagerLifecycle, 
-			LegalDocuments legalDocuments, KillHandler killHandler)
+			LegalDocuments legalDocuments, KillHandler killHandler, WasabiSynchronizer synchronizer)
 		{
 			DataDir = dataDir;
 			TorLogsFile = torLogsFile;
@@ -85,6 +85,7 @@ namespace WalletWasabi.Gui
 			WalletManagerLifecycle = walletManagerLifecycle;
 			LegalDocuments = legalDocuments;
 			KillHandler = killHandler;
+			Synchronizer = synchronizer;
 			StoppingCts = new CancellationTokenSource();
 		}
 
@@ -111,15 +112,6 @@ namespace WalletWasabi.Gui
 
 				var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
 				var connectionParameters = new NodeConnectionParameters { UserAgent = "/Satoshi:0.18.1/" };
-
-				if (Config.UseTor)
-				{
-					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint);
-				}
-				else
-				{
-					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, Config.GetFallbackBackendUri(), null);
-				}
 
 				HostedServices.Register(new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
 
