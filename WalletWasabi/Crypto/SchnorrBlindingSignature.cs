@@ -120,13 +120,13 @@ namespace WalletWasabi.Crypto
 
 		public class Signer
 		{
-			// The signer key used for signing
-			public Key Key { get; }
-
 			public Signer(Key key)
 			{
 				Key = key;
 			}
+
+			// The signer key used for signing
+			public Key Key { get; }
 
 			public uint256 Sign(uint256 blindedMessage, Key rKey)
 			{
