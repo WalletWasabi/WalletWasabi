@@ -1,7 +1,5 @@
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Diagnostics;
 using AvalonStudio.Commands;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
@@ -9,17 +7,17 @@ using ReactiveUI;
 using Splat;
 using System;
 using System.Composition;
-using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.Tabs;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Logging;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
-	internal class ToolCommands
+	public class ToolCommands
 	{
 		[ImportingConstructor]
 		public ToolCommands(CommandIconService commandIconService)
@@ -69,6 +67,12 @@ namespace WalletWasabi.Gui.Shell.Commands
 #endif
 		}
 
+		public static WalletManager WalletManager { get; private set; }
+		public static void InjectDependencies(WalletManager walletManager)
+		{
+			WalletManager = walletManager;
+		}
+
 		[ExportCommandDefinition("Tools.WalletManager")]
 		public CommandDefinition WalletManagerCommand { get; }
 
@@ -87,10 +91,8 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnWalletManager()
 		{
-			var global = Locator.Current.GetService<Global>();
-
 			var walletManagerViewModel = IoC.Get<IShell>().GetOrCreateByType<WalletManagerViewModel>();
-			if (global.WalletManager.WalletDirectories.EnumerateWalletFiles().Any())
+			if (WalletManager.WalletDirectories.EnumerateWalletFiles().Any())
 			{
 				walletManagerViewModel.SelectLoadWallet();
 			}

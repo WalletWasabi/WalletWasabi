@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.CommandLine;
 using WalletWasabi.Gui.Container;
+using WalletWasabi.Gui.Controls.LockScreen;
 using WalletWasabi.Gui.Converters;
 using WalletWasabi.Gui.Shell.Commands;
 using WalletWasabi.Gui.ViewModels;
@@ -82,6 +83,8 @@ namespace WalletWasabi.Gui
 				DiskCommands.InjectDependencies(config, dataDir, torLogsFile);
 				SystemCommands.InjectDependencies(uiConfig);
 				LurkingWifeModeStringConverter.InjectDependencies(uiConfig);
+				PinLockScreenViewModel.InjectDependencies(uiConfig);
+				ToolCommands.InjectDependencies(walletManager);
 
 				#endregion AvaloniaDependencies 
 
