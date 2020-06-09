@@ -143,6 +143,19 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			}
 		}
 
+		[Fact]
+		public async Task HwiProcessBridgeArgumentLengthTestAsync()
+		{
+			HwiProcessBridge pb = new HwiProcessBridge();
+
+			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
+
+			string myString = new string('a', 4000);
+
+			var res = await pb.SendCommandAsync(myString, false, cts.Token);
+			Assert.NotEmpty(res.response);
+		}
+
 		#endregion Tests
 
 		#region HelperMethods
