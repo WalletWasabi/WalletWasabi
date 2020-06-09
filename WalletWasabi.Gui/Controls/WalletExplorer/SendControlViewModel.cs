@@ -246,7 +246,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					var requests = new List<DestinationRequest>();
 
-					if (Global.UiConfig.IsCustomChangeAddress && !IsMax && !string.IsNullOrWhiteSpace(CustomChangeAddress))
+					if (IsCustomChangeAddressVisible && !string.IsNullOrWhiteSpace(CustomChangeAddress))
 					{
 						try
 						{
@@ -869,7 +869,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return;
 			}
 
-			if (Address == CustomChangeAddress && !IsMax && IsCustomChangeAddressVisible)
+			if (Address == CustomChangeAddress && IsCustomChangeAddressVisible)
 			{
 				errors.Add(ErrorSeverity.Error, "The active address and the change address cannot be the same.");
 			}
