@@ -337,6 +337,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 						try
 						{
+							// TODO: FIX
 							if (LegalDocuments is null || LegalDocuments.Version < x.LegalDocumentsVersion)
 							{
 								using var client = new WasabiClient(() => Config.UseTor ? Config.GetCurrentBackendUri() : Config.GetFallbackBackendUri(), Config.UseTor ? Config.TorSocks5EndPoint : null);
