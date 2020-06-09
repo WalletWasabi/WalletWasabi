@@ -2,13 +2,12 @@ using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Hwi;
-using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Hwi.ProcessBridge;
+using WalletWasabi.Microservices;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Hwi
@@ -150,7 +149,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 
 			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
 
-			string myString = new string('a', 4000);
+			string myString = new string('a', ProcessBridge.MaxArgumentLength);
 
 			var res = await pb.SendCommandAsync(myString, false, cts.Token);
 			Assert.NotEmpty(res.response);

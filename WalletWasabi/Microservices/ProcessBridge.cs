@@ -13,10 +13,12 @@ namespace WalletWasabi.Microservices
 {
 	public class ProcessBridge : IProcessBridge
 	{
-		public ProcessBridge(string processPath)
+		public const int MaxArgumentLength = 32_698;
+
+		public ProcessBridge(string processPath, bool ensureExists = true)
 		{
 			ProcessPath = Guard.NotNullOrEmptyOrWhitespace(nameof(processPath), processPath);
-			if (!File.Exists(ProcessPath))
+			if (ensureExists && !File.Exists(ProcessPath))
 			{
 				var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(ProcessPath);
 				throw new FileNotFoundException($"{fileNameWithoutExtension} is not found.", ProcessPath);
