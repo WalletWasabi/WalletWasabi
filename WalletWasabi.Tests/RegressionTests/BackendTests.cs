@@ -198,7 +198,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		[Fact]
 		public async Task StatusRequestTestAsync()
 		{
-			const string Request = "/api/v3/btc/Blockchain/status";
+			string Request = $"/api/v{WasabiClient.ApiVersion}/btc/Blockchain/status";
 			(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 			var indexBuilderService = global.IndexBuilderService;
