@@ -186,9 +186,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 						LabelToolTip = "Who can link this transaction to you? E.g.: \"Max, BitPay\"";
 					}
-
-					this.RaisePropertyChanged(nameof(Address));
-					this.RaisePropertyChanged(nameof(CustomChangeAddress));
 				});
 
 			// Triggering the detection of same address values.
