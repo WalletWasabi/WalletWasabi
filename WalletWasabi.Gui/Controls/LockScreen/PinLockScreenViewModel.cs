@@ -12,6 +12,12 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 	public class PinLockScreenViewModel : WasabiLockScreenViewModelBase
 	{
 		private string _pinInput;
+		public static UiConfig UiConfig { get; private set; }
+
+		public static void InjectDependencies(UiConfig uiConfig)
+		{
+			UiConfig = uiConfig;
+		}
 
 		public PinLockScreenViewModel() : base()
 		{
@@ -44,9 +50,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
-					var global = Locator.Current.GetService<Global>();
-
-					if (global.UiConfig.LockScreenPinHash != HashHelpers.GenerateSha256Hash(x))
+					if (UiConfig.LockScreenPinHash != HashHelpers.GenerateSha256Hash(x))
 					{
 						NotificationHelpers.Error("PIN is incorrect.");
 					}
@@ -58,9 +62,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
-					var global = Locator.Current.GetService<Global>();
-
-					if (global.UiConfig.LockScreenPinHash == HashHelpers.GenerateSha256Hash(x))
+					if (UiConfig.LockScreenPinHash == HashHelpers.GenerateSha256Hash(x))
 					{
 						Close();
 						PinInput = string.Empty;

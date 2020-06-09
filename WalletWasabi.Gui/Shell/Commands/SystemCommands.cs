@@ -3,22 +3,18 @@ using Avalonia.Controls.ApplicationLifetimes;
 using AvalonStudio.Commands;
 using AvalonStudio.Shell;
 using ReactiveUI;
-using Splat;
 using System;
 using System.Composition;
 using System.Reactive.Linq;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
-	internal class SystemCommands
+	public class SystemCommands
 	{
 		[ImportingConstructor]
 		public SystemCommands(CommandIconService commandIconService)
 		{
-			var global = Locator.Current.GetService<Global>();
-
 			ExitCommand = new CommandDefinition(
 				"Exit",
 				commandIconService.GetCompletionKindImage("Exit"),
@@ -27,7 +23,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 			LockScreenCommand = new CommandDefinition(
 				"Lock Screen",
 				commandIconService.GetCompletionKindImage("Lock"),
-				ReactiveCommand.Create(() => global.UiConfig.LockScreenActive = true));
+				ReactiveCommand.Create(() => UiConfig.LockScreenActive = true));
 
 			Observable
 				.Merge(ExitCommand.GetReactiveCommand().ThrownExceptions)
@@ -36,6 +32,8 @@ namespace WalletWasabi.Gui.Shell.Commands
 				.Subscribe(ex => Logger.LogWarning(ex));
 		}
 
+		public static UiConfig UiConfig { get; private set; }
+
 		[DefaultKeyGesture("ALT+F4")]
 		[ExportCommandDefinition("File.Exit")]
 		public CommandDefinition ExitCommand { get; }
@@ -43,6 +41,11 @@ namespace WalletWasabi.Gui.Shell.Commands
 		[DefaultKeyGesture("CTRL+L", osxKeyGesture: "CMD+L")]
 		[ExportCommandDefinition("File.LockScreen")]
 		public CommandDefinition LockScreenCommand { get; }
+
+		public static void InjectDependencies(UiConfig uiConfig)
+		{
+			UiConfig = uiConfig;
+		}
 
 		private void OnExit()
 		{

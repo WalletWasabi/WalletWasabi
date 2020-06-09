@@ -9,6 +9,9 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.CommandLine;
+using WalletWasabi.Gui.Controls.LockScreen;
+using WalletWasabi.Gui.Converters;
+using WalletWasabi.Gui.Shell.Commands;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 
@@ -26,6 +29,16 @@ namespace WalletWasabi.Gui
 			try
 			{
 				Global = new Global();
+
+				#region AvaloniaDependencies Propagate dependencies to classes which are instantiated by Avalonia
+
+				DiskCommands.InjectDependencies(Global.Config, Global.DataDir, Global.TorLogsFile);				
+				LurkingWifeModeStringConverter.InjectDependencies(Global.UiConfig);
+				PinLockScreenViewModel.InjectDependencies(Global.UiConfig);
+				SystemCommands.InjectDependencies(Global.UiConfig);
+				ToolCommands.InjectDependencies(Global.WalletManager);
+
+				#endregion AvaloniaDependencies
 
 				Locator.CurrentMutable.RegisterConstant(Global);
 

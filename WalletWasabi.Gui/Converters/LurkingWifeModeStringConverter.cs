@@ -12,10 +12,16 @@ namespace WalletWasabi.Gui.Converters
 {
 	public class LurkingWifeModeStringConverter : IValueConverter
 	{
+		public static UiConfig UiConfig { get; private set; }
+
+		public static void InjectDependencies(UiConfig uiConfig)
+		{
+			UiConfig = uiConfig;
+		}
+
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			var uiConfig = Locator.Current.GetService<Global>().UiConfig;
-			if (uiConfig.LurkingWifeMode)
+			if (UiConfig.LurkingWifeMode)
 			{
 				int len = 10;
 				if (int.TryParse(parameter.ToString(), out int newLength))
