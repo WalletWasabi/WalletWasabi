@@ -1,18 +1,23 @@
+using Newtonsoft.Json;
 using System;
+using System.Text;
 
-namespace WalletWasabi.Gui.CrashReporter.Models
+namespace WalletWasabi.Gui.CrashReport.Models
 {
-	[Serializable]
+	[JsonObject(MemberSerialization.OptIn)]
 	public class SerializedException
 	{
+		[JsonProperty(PropertyName = "ExceptionType")]
 		public string ExceptionType { get; set; }
-		public string Message { get; set; }
-		public string StackTrace { get; set; }
-		public SerializedException InnerException { get; set; }
 
-		public SerializedException()
-		{
-		}
+		[JsonProperty(PropertyName = "Message")]
+		public string Message { get; set; }
+
+		[JsonProperty(PropertyName = "StackTrace")]
+		public string StackTrace { get; set; }
+
+		[JsonProperty(PropertyName = "InnerException")]
+		public SerializedException InnerException { get; set; }
 
 		public SerializedException(Exception ex)
 		{
@@ -31,7 +36,7 @@ namespace WalletWasabi.Gui.CrashReporter.Models
 		{
 			int tabLevel = 0;
 
-			var sb = new System.Text.StringBuilder();
+			var sb = new StringBuilder();
 
 			if (!string.IsNullOrEmpty(ExceptionType))
 			{
@@ -68,10 +73,10 @@ namespace WalletWasabi.Gui.CrashReporter.Models
 			return sb.ToString();
 		}
 
-		internal string MultiLineTabs(int n, string t, int addedPadding = 0)
+		private string MultiLineTabs(int n, string t, int addedPadding = 0)
 		{
 			int i = 0;
-			var sb = new System.Text.StringBuilder();
+			var sb = new StringBuilder();
 			foreach (var line in t.Split(Environment.NewLine))
 			{
 				switch (i)
@@ -80,6 +85,7 @@ namespace WalletWasabi.Gui.CrashReporter.Models
 						sb.AppendLine(line);
 						i++;
 						break;
+
 					default:
 						var padding = new string(' ', addedPadding);
 						sb.AppendLine($"{padding}{Tabs(n)}{line}");
@@ -89,9 +95,14 @@ namespace WalletWasabi.Gui.CrashReporter.Models
 			return sb.ToString();
 		}
 
-		internal string Tabs(int n)
+		private string Tabs(int n)
 		{
 			return n == 0 ? string.Empty : new string(' ', n * 4);
+		}
+
+		public static string ToCommandLineArgument(Exception serializedException)
+		{
+			return JsonConvert.SerializeObject(new SerializedException(serializedException));
 		}
 	}
 }

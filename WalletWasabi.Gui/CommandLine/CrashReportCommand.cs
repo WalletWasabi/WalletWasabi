@@ -5,15 +5,15 @@ using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using Newtonsoft.Json;
 using WalletWasabi.Logging;
-using WalletWasabi.Gui.CrashReporter.Models;
+using WalletWasabi.Gui.Models.CrashReport;
 
 namespace WalletWasabi.Gui.CommandLine
 {
 	internal class CrashReportCommand : Command
 	{
-		public CrashReportCommand(Global global) : base("crashreport", "Activates the internal crash reporting mechanism.")
+		public CrashReportCommand(CrashReporter crashReporter) : base("crashreport", "Activates the internal crash reporting mechanism.")
 		{
-			Global = Guard.NotNull(nameof(Global), global);
+			CrashReporter = Guard.NotNull(nameof(crashReporter), crashReporter);
 
 			Options = new OptionSet()
 			{
@@ -22,33 +22,24 @@ namespace WalletWasabi.Gui.CommandLine
 			};
 		}
 
-		private void ExceptionDecode(string exceptionString)
-		{
-			var exS = Guard.NotNullOrEmptyOrWhitespace(nameof(exceptionString), exceptionString);
-			
-			exS = exS.Replace("\\X0009", "\'")
-					 .Replace("\\X0022", "\"")
-					 .Replace("\\X000A", "\n")
-					 .Replace("\\X000D", "\r")
-					 .Replace("\\X0009", "\t")
-					 .Replace("\\X0020", " ");
-			 
-			Global.CrashReportException = JsonConvert.DeserializeObject<SerializedException>(exS);
-		}
-
-		public Global Global { get; }
+		public CrashReporter CrashReporter { get; }
 		public string Attempts { get; private set; }
 		public string ExceptionString { get; private set; }
 
-		public override async Task<int> InvokeAsync(IEnumerable<string> args)
+		public override Task<int> InvokeAsync(IEnumerable<string> args)
 		{
-			Options.Parse(args);
+			try
+			{
+				Options.Parse(args);
 
-			Global.CrashReportStartAttempt = Convert.ToInt32(Attempts);
+				CrashReporter.SetException(ExceptionString, int.Parse(Attempts));
+			}
+			catch (Exception ex)
+			{
+				Task.FromException(ex);
+			}
 
-			ExceptionDecode(ExceptionString);
-
-			return 0;
+			return Task.FromResult(0);
 		}
 	}
 }

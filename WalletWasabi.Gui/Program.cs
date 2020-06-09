@@ -9,8 +9,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.CommandLine;
-using WalletWasabi.Gui.CrashReporter.Helpers;
-using WalletWasabi.Gui.CrashReporter.Models;
+using WalletWasabi.Gui.CrashReport;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 
@@ -37,19 +36,18 @@ namespace WalletWasabi.Gui
 
 				runGui = CommandInterpreter.ExecuteCommandsAsync(Global, args).GetAwaiter().GetResult();
 
-				if (Global.CrashReportException != null)
+				if (Global.CrashReporter.IsReport)
 				{
 					StartCrashReporter(args);
-				}
-
-				if (!runGui)
-				{
 					return;
 				}
 
-				Logger.LogSoftwareStarted("Wasabi GUI");
+				if (runGui)
+				{
+					Logger.LogSoftwareStarted("Wasabi GUI");
 
-				BuildAvaloniaApp().StartShellApp("Wasabi Wallet", AppMainAsync, args);
+					BuildAvaloniaApp().StartShellApp("Wasabi Wallet", AppMainAsync, args);
+				}
 			}
 			catch (Exception ex)
 			{
@@ -88,10 +86,12 @@ namespace WalletWasabi.Gui
 				if (!(ex is OperationCanceledException))
 				{
 					Logger.LogCritical(ex);
-					StartCrashReporterHelper.Start(ex, Global.CrashReportStartAttempt);
+					Global.CrashReporter.SetException(ex);
 				}
 
 				await Global.DisposeAsync().ConfigureAwait(false);
+
+				// There is no other way to stop the creation of the WasabiWindow.
 				Environment.Exit(1);
 			}
 		}
@@ -108,7 +108,7 @@ namespace WalletWasabi.Gui
 
 		private static void StartCrashReporter(string[] args)
 		{
-			var result = AppBuilder.Configure<CrashReporter.CrashReportApp>();
+			var result = AppBuilder.Configure<CrashReportApp>();
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{

@@ -1,7 +1,6 @@
 using Splat;
-using WalletWasabi.Gui.CrashReporter.Models;
 
-namespace WalletWasabi.Gui.CrashReporter.ViewModels
+namespace WalletWasabi.Gui.CrashReport.ViewModels
 {
 	public class CrashReportWindowViewModel
 	{
@@ -9,11 +8,11 @@ namespace WalletWasabi.Gui.CrashReporter.ViewModels
 		{
 			Global = Locator.Current.GetService<Global>();
 		}
+
 		public int WinWidth => 640;
 		public int WinHeight => 360;
-        public string Title => "Wasabi Wallet - Crash Reporting";
-        public string ReportedException => Global.CrashReportException.ToString();
-
+		public string Title => "Wasabi Wallet - Crash Reporting";
+		public string ReportedException => Global.CrashReporter.ToString();
 		public Global Global { get; }
 	}
 }

@@ -1,10 +1,10 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using WalletWasabi.Gui.CrashReporter.ViewModels;
-using WalletWasabi.Gui.CrashReporter.Views;
+using WalletWasabi.Gui.CrashReport.ViewModels;
+using WalletWasabi.Gui.CrashReport.Views;
 
-namespace WalletWasabi.Gui.CrashReporter
+namespace WalletWasabi.Gui.CrashReport
 {
 	public class CrashReportApp : Application
 	{

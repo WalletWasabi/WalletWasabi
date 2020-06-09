@@ -36,7 +36,7 @@ namespace WalletWasabi.Gui.CommandLine
 				"",
 				new MixerCommand(daemon),
 				new PasswordFinderCommand(global.WalletManager),
-				new CrashReportCommand(global)
+				new CrashReportCommand(global.CrashReporter)
 			};
 
 			EnsureBackwardCompatibilityWithOldParameters(ref args);

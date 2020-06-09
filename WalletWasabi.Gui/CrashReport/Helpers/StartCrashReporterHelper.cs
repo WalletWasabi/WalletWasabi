@@ -3,10 +3,10 @@ using Avalonia;
 using System;
 using WalletWasabi.Logging;
 using Newtonsoft.Json;
-using WalletWasabi.Gui.CrashReporter.Models;
 using System.Diagnostics;
+using WalletWasabi.Gui.CrashReport.Models;
 
-namespace WalletWasabi.Gui.CrashReporter.Helpers
+namespace WalletWasabi.Gui.CrashReport.Helpers
 {
 	public static class StartCrashReporterHelper
 	{

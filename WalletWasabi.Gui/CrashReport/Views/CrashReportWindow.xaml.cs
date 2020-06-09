@@ -5,7 +5,7 @@ using Avalonia.Markup.Xaml;
 using AvalonStudio.Shell.Controls;
 using Splat;
 
-namespace WalletWasabi.Gui.CrashReporter.Views
+namespace WalletWasabi.Gui.CrashReport.Views
 {
 	public class CrashReportWindow : MetroWindow
 	{
