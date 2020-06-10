@@ -52,6 +52,7 @@ namespace WalletWasabi.Gui
 			catch (Exception ex)
 			{
 				Logger.LogCritical(ex);
+				Global.CrashReporter.SetException(ex);
 				throw;
 			}
 			finally
@@ -98,7 +99,7 @@ namespace WalletWasabi.Gui
 
 			if (Global?.CrashReporter?.IsReport is true)
 			{
-				// Start the crash report
+				// Trigger the CrashReport process.
 				Global.CrashReporter.Start();
 			}
 
