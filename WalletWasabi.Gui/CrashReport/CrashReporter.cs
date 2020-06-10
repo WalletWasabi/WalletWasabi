@@ -8,7 +8,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
 
-namespace WalletWasabi.Gui.Models.CrashReport
+namespace WalletWasabi.Gui.CrashReport
 {
 	public class CrashReporter
 	{
