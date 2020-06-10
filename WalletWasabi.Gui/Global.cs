@@ -39,6 +39,7 @@ using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.TorSocks5;
 using WalletWasabi.Wallets;
+using Constants = WalletWasabi.Helpers.Constants;
 
 namespace WalletWasabi.Gui
 {
@@ -122,6 +123,7 @@ namespace WalletWasabi.Gui
 
 			try
 			{
+				throw new Exception("my dummy exception");
 				Cache = new MemoryCache(new MemoryCacheOptions
 				{
 					SizeLimit = 1_000,

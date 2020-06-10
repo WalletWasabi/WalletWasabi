@@ -96,6 +96,12 @@ namespace WalletWasabi.Gui
 				MainWindowViewModel.Instance.Dispose();
 			}
 
+			if (Global?.CrashReporter?.IsReport is true)
+			{
+				// Start the crash report
+				Global.CrashReporter.Start();
+			}
+
 			await Global?.DisposeAsync();
 			AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 			TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
