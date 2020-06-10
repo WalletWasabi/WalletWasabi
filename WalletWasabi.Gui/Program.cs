@@ -56,15 +56,7 @@ namespace WalletWasabi.Gui
 			}
 			finally
 			{
-				MainWindowViewModel.Instance?.Dispose();
-				Global.DisposeAsync().GetAwaiter().GetResult();
-				AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
-				TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
-
-				if (runGui)
-				{
-					Logger.LogSoftwareStopped("Wasabi GUI");
-				}
+				CloseAsync().GetAwaiter().GetResult();
 			}
 		}
 
@@ -89,10 +81,28 @@ namespace WalletWasabi.Gui
 					Global.CrashReporter.SetException(ex);
 				}
 
-				await Global.DisposeAsync().ConfigureAwait(false);
+				await CloseAsync();
 
 				// There is no other way to stop the creation of the WasabiWindow.
 				Environment.Exit(1);
+			}
+		}
+
+		private static async Task CloseAsync()
+		{
+			var disposeGui = MainWindowViewModel.Instance is { };
+			if (disposeGui)
+			{
+				MainWindowViewModel.Instance.Dispose();
+			}
+
+			await Global?.DisposeAsync();
+			AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
+			TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
+
+			if (disposeGui)
+			{
+				Logger.LogSoftwareStopped("Wasabi GUI");
 			}
 		}
 
