@@ -93,5 +93,22 @@ namespace WalletWasabi.Helpers
 		public static string ClientSupportBackendVersionText => ClientSupportBackendVersionMin == ClientSupportBackendVersionMax
 				? ClientSupportBackendVersionMin
 				: $"{ClientSupportBackendVersionMin} - {ClientSupportBackendVersionMax}";
+
+		public static string[] UserAgents = new[]
+		{
+			"/Satoshi:0.20.0/",
+			"/Satoshi:0.19.1/",
+			"/Satoshi:0.19.0.1/",
+			"/Satoshi:0.19.0/",
+			"/Satoshi:0.18.1/",
+			"/Satoshi:0.18.0/",
+			"/Satoshi:0.17.1/",
+			"/Satoshi:0.17.0.1/",
+			"/Satoshi:0.17.0/",
+			"/Satoshi:0.16.3/",
+			"/Satoshi:0.16.2/",
+			"/Satoshi:0.16.1/",
+			"/Satoshi:0.16.0/",
+		};
 	}
 }
