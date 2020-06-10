@@ -106,7 +106,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				var changeOutputAddress = new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
 				round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 				Requester requester = new Requester();
-				var nonce = round.GetNextNonce();
+				var nonce = round.NonceProvider.GetNextNonce();
 
 				var blinded = new BlindedOutputWithNonceIndex(nonce.N, requester.BlindScript(round.MixingLevels.GetBaseLevel().SignerKey.PubKey, nonce.R, activeOutputAddress.ScriptPubKey));
 				uint256 blindedOutputScriptsHash = new uint256(Hashes.SHA256(blinded.BlindedOutput.ToBytes()));
@@ -311,7 +311,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				BitcoinWitPubKeyAddress inputAddress = inputKey.PubKey.GetSegwitAddress(network);
 
 				var requester = new Requester();
-				var nonce = round.GetNextNonce();
+				var nonce = round.NonceProvider.GetNextNonce();
 
 				var blinded = new BlindedOutputWithNonceIndex(nonce.N, requester.BlindScript(round.MixingLevels.GetBaseLevel().SignerKey.PubKey, nonce.R, activeOutputAddress.ScriptPubKey));
 				uint256 blindedOutputScriptsHash = new uint256(Hashes.SHA256(blinded.BlindedOutput.ToBytes()));

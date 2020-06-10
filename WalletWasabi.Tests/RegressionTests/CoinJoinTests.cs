@@ -227,7 +227,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 			var requester = new Requester();
 			uint256 msg = new uint256(NBitcoin.Crypto.Hashes.SHA256(network.Consensus.ConsensusFactory.CreateTransaction().ToBytes()));
-			var nonce = round.GetNextNonce();
+			var nonce = round.NonceProvider.GetNextNonce();
 			var blindedData = new BlindedOutputWithNonceIndex(nonce.N, requester.BlindMessage(msg, nonce.R, round.MixingLevels.GetBaseLevel().SignerKey.PubKey));
 			inputsRequest.BlindedOutputScripts = new[] { blindedData };
 			uint256 blindedOutputScriptsHash = new uint256(NBitcoin.Crypto.Hashes.SHA256(blindedData.BlindedOutput.ToBytes()));
@@ -268,7 +268,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			requester = new Requester();
 			requesters = new[] { requester };
 			msg = network.Consensus.ConsensusFactory.CreateTransaction().GetHash();
-			nonce = round.GetNextNonce(); 
+			nonce = round.NonceProvider.GetNextNonce(); 
 			blindedData = new BlindedOutputWithNonceIndex(nonce.N, requester.BlindMessage(msg, nonce.R, round.MixingLevels.GetBaseLevel().SignerKey.PubKey));
 			inputsRequest.BlindedOutputScripts = new[] { blindedData };
 			blindedOutputScriptsHash = new uint256(NBitcoin.Crypto.Hashes.SHA256(blindedData.BlindedOutput.ToBytes()));
@@ -308,7 +308,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 			requester = new Requester();
-			nonce = round.GetNextNonce(); 
+			nonce = round.NonceProvider.GetNextNonce(); 
 			blindedData = new BlindedOutputWithNonceIndex(nonce.N, requester.BlindScript(round.MixingLevels.GetBaseLevel().SignerKey.PubKey, nonce.R, key.ScriptPubKey));
 			inputsRequest.BlindedOutputScripts = new[] { blindedData };
 			blindedOutputScriptsHash = new uint256(NBitcoin.Crypto.Hashes.SHA256(blindedData.BlindedOutput.ToBytes()));
@@ -343,7 +343,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await CreateNewAliceClientAsync(roundId, registeredAddresses, signerPubKeys, requesters, inputsRequest));
 			Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nNonce 0 was already used.", httpRequestException.Message);
 
-			nonce = round.GetNextNonce(); 
+			nonce = round.NonceProvider.GetNextNonce(); 
 			blindedData = new BlindedOutputWithNonceIndex(nonce.N, RandomUtils.GetUInt256());
 			inputsRequest.BlindedOutputScripts = new[] { blindedData };
 			blindedOutputScriptsHash = new uint256(NBitcoin.Crypto.Hashes.SHA256(uint256.One.ToBytes()));
@@ -353,7 +353,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await CreateNewAliceClientAsync(roundId, registeredAddresses, signerPubKeys, requesters, inputsRequest));
 			Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nCannot register an input twice.", httpRequestException.Message);
 
-			nonce = round.GetNextNonce(); 
+			nonce = round.NonceProvider.GetNextNonce(); 
 			blindedData = new BlindedOutputWithNonceIndex(nonce.N, requester.BlindScript(round.MixingLevels.GetBaseLevel().SignerKey.PubKey, nonce.R, key.ScriptPubKey));
 			inputsRequest.BlindedOutputScripts = new[] { blindedData };
 			blindedOutputScriptsHash = new uint256(NBitcoin.Crypto.Hashes.SHA256(blindedData.BlindedOutput.ToBytes()));
@@ -460,7 +460,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			BitcoinWitPubKeyAddress bitcoinWitPubKeyAddress = new Key().PubKey.GetSegwitAddress(network);
 			registeredAddresses = new[] { bitcoinWitPubKeyAddress };
 			Script script = bitcoinWitPubKeyAddress.ScriptPubKey;
-			nonce = round.GetNextNonce();
+			nonce = round.NonceProvider.GetNextNonce();
 			blindedData = new BlindedOutputWithNonceIndex(nonce.N, requester.BlindScript(round.MixingLevels.GetBaseLevel().SignerKey.PubKey, nonce.R, script));
 			blindedOutputScriptsHash = new uint256(NBitcoin.Crypto.Hashes.SHA256(blindedData.BlindedOutput.ToBytes()));
 
@@ -575,10 +575,10 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			var requester1 = new Requester();
 			var requester2 = new Requester();
-			nonce = round.GetNextNonce();
+			nonce = round.NonceProvider.GetNextNonce();
 			var blinded1 = new BlindedOutputWithNonceIndex(nonce.N, requester1.BlindScript(round.MixingLevels.GetBaseLevel().SignerKey.PubKey, nonce.R, outputAddress1.ScriptPubKey));
 			uint256 blindedOutputScriptsHash1 = new uint256(NBitcoin.Crypto.Hashes.SHA256(blinded1.BlindedOutput.ToBytes()));
-			nonce = round.GetNextNonce();
+			nonce = round.NonceProvider.GetNextNonce();
 			var blinded2 = new BlindedOutputWithNonceIndex(nonce.N, requester2.BlindScript(round.MixingLevels.GetBaseLevel().Signer.Key.PubKey, nonce.R, outputAddress2.ScriptPubKey));
 			uint256 blindedOutputScriptsHash2 = new uint256(NBitcoin.Crypto.Hashes.SHA256(blinded2.BlindedOutput.ToBytes()));
 
@@ -744,7 +744,7 @@ namespace WalletWasabi.Tests.RegressionTests
 					var outputsAddress = new Key().PubKey.GetSegwitAddress(network);
 					var scriptPubKey = outputsAddress.ScriptPubKey;
 					// We blind the scriptPubKey with a new requester by mixin level
-					var nonce = round.GetNextNonce();
+					var nonce = round.NonceProvider.GetNextNonce();
 					var blindedScript = new BlindedOutputWithNonceIndex(nonce.N, requester.BlindScript(level.SignerKey.PubKey, nonce.R, scriptPubKey));
 					outputs.Add((requester, outputsAddress, blindedScript));
 				}
@@ -883,7 +883,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				var changeOutputAddress = new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
 				CoordinatorRound round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 				var requester = new Requester();
-				var nonce = round.GetNextNonce();
+				var nonce = round.NonceProvider.GetNextNonce();
 				var blinded = new BlindedOutputWithNonceIndex(nonce.N, requester.BlindScript(round.MixingLevels.GetBaseLevel().SignerKey.PubKey, nonce.R, activeOutputAddress.ScriptPubKey));
 				uint256 blindedOutputScriptsHash = new uint256(NBitcoin.Crypto.Hashes.SHA256(blinded.BlindedOutput.ToBytes()));
 

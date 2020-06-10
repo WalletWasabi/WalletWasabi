@@ -6,7 +6,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
@@ -26,9 +25,6 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 		public static long RoundCount;
 		private RoundPhase _phase;
 		private CoordinatorRoundStatus _status;
-		private ExtKey _nonceGenerator;
-		private int _lastNonceIndex;
-		private HashSet<int> _alreadyUsedNonceIndexes;
 
 		public CoordinatorRound(IRPCClient rpc, UtxoReferee utxoReferee, CoordinatorRoundConfig config, int adjustedConfirmationTarget, int configuredConfirmationTarget, double configuredConfirmationTargetReductionRate)
 		{
@@ -59,9 +55,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				RegisteredUnblindedSignatures = new List<UnblindedSignature>();
 				RegisteredUnblindedSignaturesLock = new object();
 
-				_nonceGenerator = new ExtKey();
-				_lastNonceIndex = -1;
-				_alreadyUsedNonceIndexes = new HashSet<int>();
+				NonceProvider = new RoundNonceProvider(config.MaximumMixingLevelCount);
 
 				MixingLevels = new MixingLevelCollection(config.Denomination, new Signer(new Key()));
 				for (int i = 0; i < config.MaximumMixingLevelCount - 1; i++)
@@ -207,6 +201,8 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 		public UtxoReferee UtxoReferee { get; }
 		public CoordinatorRoundConfig RoundConfig { get; }
+
+		public RoundNonceProvider NonceProvider { get; }
 
 		public static ConcurrentDictionary<(long roundId, RoundPhase phase), DateTimeOffset> PhaseTimeoutLog { get; } = new ConcurrentDictionary<(long roundId, RoundPhase phase), DateTimeOffset>();
 
@@ -1354,37 +1350,5 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 		}
 
 		#endregion Modifiers
-
-		#region Nonce management
-
-		public PublicNonceWithIndex GetNextNonce()
-		{
-			var n = Interlocked.Increment(ref _lastNonceIndex);
-			var extKey = _nonceGenerator.Derive(n, hardened: true);
-			return new PublicNonceWithIndex(n, extKey.GetPublicKey());
-		}
-
-		public PublicNonceWithIndex[] GetNextNoncesForMixingLevels()
-		{
-			var mixingLevels = MixingLevels.Count();
-			var nonces = new PublicNonceWithIndex[mixingLevels];
-			for (var i = 0; i < mixingLevels; i++)
-			{
-				nonces[i] = GetNextNonce();
-			}
-			return nonces;
-		}
-
-		public Key GetNextNonceKey(int n)
-		{
-			if (!_alreadyUsedNonceIndexes.Add(n))
-			{
-				throw new SecurityException($"Nonce {n} was already used.");
-			}
-			var extKey = _nonceGenerator.Derive(n, hardened: true);
-			return extKey.PrivateKey;
-		}
-
-		#endregion Nonce management
 	}
 }

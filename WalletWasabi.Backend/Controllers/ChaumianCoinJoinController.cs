@@ -75,7 +75,7 @@ namespace WalletWasabi.Backend.Controllers
 				{
 					Phase = round.Phase,
 					SignerPubKeys = round.MixingLevels.SignerPubKeys,
-					RPubKeys = round.GetNextNoncesForMixingLevels(),
+					RPubKeys = round.NonceProvider.GetNextNoncesForMixingLevels(),
 					Denomination = round.MixingLevels.GetBaseDenomination(),
 					InputRegistrationTimesout = round.InputRegistrationTimesout,
 					RegisteredPeerCount = round.CountAlices(syncLock: false),
@@ -317,7 +317,7 @@ namespace WalletWasabi.Backend.Controllers
 					{
 						var blindedOutput = acceptedBlindedOutputScripts[i];
 						var signer = round.MixingLevels.GetLevel(i).Signer;
-						uint256 blindSignature = signer.Sign(blindedOutput.BlindedOutput, round.GetNextNonceKey(blindedOutput.N));
+						uint256 blindSignature = signer.Sign(blindedOutput.BlindedOutput, round.NonceProvider.GetNonceKeyForIndex(blindedOutput.N));
 						blindSignatures.Add(blindSignature);
 					}
 					alice.BlindedOutputSignatures = blindSignatures.ToArray();
