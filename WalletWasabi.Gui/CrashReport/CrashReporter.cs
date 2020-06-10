@@ -44,7 +44,7 @@ namespace WalletWasabi.Gui.CrashReport
 		}
 
 		/// <summary>
-		/// Sets the exception when it first time occurs and should be reported to the user.
+		/// Sets the exception when it occurs the first time and should be reported to the user.
 		/// </summary>
 		public void SetException(Exception ex)
 		{
