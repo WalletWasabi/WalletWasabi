@@ -19,6 +19,10 @@ namespace WalletWasabi.Gui.CrashReport.Models
 		[JsonProperty(PropertyName = "InnerException")]
 		public SerializedException InnerException { get; set; }
 
+		public SerializedException()
+		{
+		}
+
 		public SerializedException(Exception ex)
 		{
 			if (ex.InnerException != null)
@@ -100,9 +104,16 @@ namespace WalletWasabi.Gui.CrashReport.Models
 			return n == 0 ? string.Empty : new string(' ', n * 4);
 		}
 
-		public static string ToCommandLineArgument(Exception serializedException)
+		public static string ToCommandLineString(Exception exception)
 		{
-			return JsonConvert.SerializeObject(new SerializedException(serializedException));
+			return Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new SerializedException(exception))));
+		}
+
+		public static SerializedException ToSerializedException(string serializedException)
+		{
+			var json = Encoding.UTF8.GetString(Convert.FromBase64String(serializedException));
+			var se = JsonConvert.DeserializeObject<SerializedException>(json);
+			return se;
 		}
 	}
 }

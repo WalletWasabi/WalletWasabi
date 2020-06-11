@@ -5,13 +5,17 @@
                   x:Class="WalletWasabi.Gui.CrashReport.Views.CrashReportWindow"
                   Icon="avares://WalletWasabi.Gui/Assets/WasabiLogo256.png"
                   Title="{Binding Title}"
-                  Width="{Binding WinWidth}" Height="{Binding WinHeight}"
-                  MinWidth="{Binding WinWidth}" MinHeight="{Binding WinHeight}"
-                  MaxWidth="{Binding WinWidth}" MaxHeight="{Binding WinHeight}"
+                  MinWidth="{Binding MinWidth}" MinHeight="{Binding MinHeight}"
                   FontFamily="{DynamicResource UiFont}" FontSize="14"
                   Foreground="{DynamicResource ThemeForegroundBrush}"
-                  WindowState="{Binding WindowState}">
-  <Grid ColumnDefinitions="*,*" RowDefinitions="*,Auto">
-    <TextBox Grid.ColumnSpan="2" Grid.RowSpan="1" Classes="monospaceFont" AcceptsReturn="True" Text="{Binding ReportedException}" />
-  </Grid>
+                  WindowState="{Binding WindowState}"
+                  Classes="ToolWindow">
+  <DockPanel LastChildFill="True" Margin="25,0,25,25">
+    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="5">
+      <Button MinWidth="135" Height="35">Open logs</Button>
+      <Button MinWidth="135" Height="35" Background="{DynamicResource ThemeAccentBrush}">Ok</Button>
+    </StackPanel>
+    <TextBlock DockPanel.Dock="Top" FontWeight="Bold" FontSize="18" Margin="0,0,0,25" Text="{Binding Message}" />
+    <TextBlock Text="{Binding Details}" />
+  </DockPanel>
 </cont:MetroWindow>

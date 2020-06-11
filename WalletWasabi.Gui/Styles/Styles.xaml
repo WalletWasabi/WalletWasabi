@@ -155,7 +155,7 @@
   <Style Selector="TextBox">
     <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderHighBrush}" />
   </Style>
-  
+
   <Style Selector="DataValidationErrors">
     <Setter Property="Template">
       <ControlTemplate>
@@ -215,5 +215,21 @@
        not visible to hit testing, in order to disable them.-->
   <Style Selector="dock|ProportionalStackPanelSplitter">
     <Setter Property="IsHitTestVisible" Value="False" />
+  </Style>
+
+  <Style Selector="shell|MetroWindow.ToolWindow /template/ Button#minimiseButton">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector="shell|MetroWindow.ToolWindow /template/ Button#restoreButton">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector="shell|MetroWindow.ToolWindow /template/ Image">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector="shell|MetroWindow.ToolWindow /template/ Border > VisualLayerManager > Grid > Grid > Grid > Grid > TextBlock">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector="shell|MetroWindow.ToolWindow /template/ DockPanel#titlebar > ContentControl">
+    <Setter Property="IsVisible" Value="False" />
   </Style>
 </Styles>

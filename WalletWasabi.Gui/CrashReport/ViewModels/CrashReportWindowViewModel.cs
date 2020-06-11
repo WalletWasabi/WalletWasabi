@@ -6,13 +6,22 @@ namespace WalletWasabi.Gui.CrashReport.ViewModels
 	{
 		public CrashReportWindowViewModel()
 		{
-			Global = Locator.Current.GetService<Global>();
+			var global = Locator.Current.GetService<Global>();
+			CrashReporter = global.CrashReporter;
 		}
 
-		public int WinWidth => 640;
-		public int WinHeight => 360;
+		private CrashReporter CrashReporter { get; }
+		public int MinWidth => 370;
+		public int MinHeight => 180;
 		public string Title => "Wasabi Wallet - Crash Reporting";
-		public string ReportedException => Global.CrashReporter.ToString();
-		public Global Global { get; }
+		public string Details => CrashReporter.GetException().ToString();
+
+		public string Message
+		{
+			get
+			{
+				return CrashReporter.GetException().Message;
+			}
+		}
 	}
 }

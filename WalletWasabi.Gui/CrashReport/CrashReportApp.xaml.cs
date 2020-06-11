@@ -10,7 +10,7 @@ namespace WalletWasabi.Gui.CrashReport
 	{
 		public CrashReportApp()
 		{
-			Name = "Wasabi Wallet Crash Reporting";
+			Name = "WasabiWallet Crash Report";
 		}
 
 		public override void Initialize()

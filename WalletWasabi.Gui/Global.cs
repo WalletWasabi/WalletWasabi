@@ -123,7 +123,6 @@ namespace WalletWasabi.Gui
 
 			try
 			{
-				throw new Exception("my dummy exception");
 				Cache = new MemoryCache(new MemoryCacheOptions
 				{
 					SizeLimit = 1_000,

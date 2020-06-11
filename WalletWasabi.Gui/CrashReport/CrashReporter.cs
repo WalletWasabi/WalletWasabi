@@ -48,7 +48,7 @@ namespace WalletWasabi.Gui.CrashReport
 		/// </summary>
 		public void SetException(Exception ex)
 		{
-			SetException(SerializedException.ToCommandLineArgument(ex), 1);
+			SetException(SerializedException.ToCommandLineString(ex), 1);
 		}
 
 		public override string ToString()
@@ -62,6 +62,11 @@ namespace WalletWasabi.Gui.CrashReport
 					 .Replace("\\X0020", " ");
 
 			return exceptionToDisplay;
+		}
+
+		public SerializedException GetException()
+		{
+			return SerializedException.ToSerializedException(ExceptionString);
 		}
 	}
 }
