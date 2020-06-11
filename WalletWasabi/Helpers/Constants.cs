@@ -90,10 +90,6 @@ namespace WalletWasabi.Helpers
 
 		public static readonly ExtPubKey FallBackCoordinatorExtPubKey = NBitcoinHelpers.BetterParseExtPubKey("xpub6D2PqhWBAbF3xgfaAUW73KnaCXUroArcgMTzNkNzfVX7ykkSzQGbqaXZeaNyxKbZojAAqDwsne6B7NcVhiTrXbGYrQNq1yF76NkgdonGrEa");
 
-		public static string ClientSupportBackendVersionText => ClientSupportBackendVersionMin == ClientSupportBackendVersionMax
-				? ClientSupportBackendVersionMin
-				: $"{ClientSupportBackendVersionMin} - {ClientSupportBackendVersionMax}";
-
 		public static string[] UserAgents = new[]
 		{
 			"/Satoshi:0.20.0/",
@@ -110,5 +106,9 @@ namespace WalletWasabi.Helpers
 			"/Satoshi:0.16.1/",
 			"/Satoshi:0.16.0/",
 		};
+
+		public static string ClientSupportBackendVersionText => ClientSupportBackendVersionMin == ClientSupportBackendVersionMax
+				? ClientSupportBackendVersionMin
+				: $"{ClientSupportBackendVersionMin} - {ClientSupportBackendVersionMax}";
 	}
 }
