@@ -65,7 +65,6 @@ namespace WalletWasabi.Tests.RegressionTests
 		private RegTestFixture RegTestFixture { get; }
 		public Uri BaseUri { get; }
 
-
 		[Fact]
 		public async Task CoordinatorCtorTestsAsync()
 		{
@@ -775,7 +774,8 @@ namespace WalletWasabi.Tests.RegressionTests
 				}
 
 				// Save alice client and the outputs, requesters, etc
-				var inputRequest = new InputsRequest4{
+				var inputRequest = new InputsRequest4
+				{
 					BlindedOutputScripts = blindedOutputScriptList,
 					ChangeOutputAddress = new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, network),
 					Inputs = inputs.Select(x => new InputProofModel { Input = x.input, Proof = x.proof }).ToArray() 
@@ -945,7 +945,7 @@ namespace WalletWasabi.Tests.RegressionTests
 					new InputsRequest4{
 						ChangeOutputAddress = user.changeOutputAddress,
 						BlindedOutputScripts = new[] { user.blinded },
-						Inputs =  user.inputProofModels
+						Inputs = user.inputProofModels
 				}));
 			}
 

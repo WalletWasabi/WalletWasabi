@@ -11,7 +11,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 		private ExtKey _nonceGenerator;
 		private int _lastNonceIndex;
 		private HashSet<int> _alreadyUsedNonceIndexes;
-		private int	_mixingLevels;
+		private int _mixingLevels;
 
 		public RoundNonceProvider(int mixingLevels)
 		{
