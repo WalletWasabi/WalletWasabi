@@ -2,20 +2,22 @@
                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                   xmlns:cont="clr-namespace:AvalonStudio.Shell.Controls;assembly=AvalonStudio.Shell"
                   xmlns:wasabi="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
+                  xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
                   x:Class="WalletWasabi.Gui.CrashReport.Views.CrashReportWindow"
                   Icon="avares://WalletWasabi.Gui/Assets/WasabiLogo256.png"
                   Title="{Binding Title}"
                   MinWidth="{Binding MinWidth}" MinHeight="{Binding MinHeight}"
+                  Width="{Binding MinWidth, Mode=OneTime}" Height="{Binding MinHeight, Mode=OneTime}"
                   FontFamily="{DynamicResource UiFont}" FontSize="14"
                   Foreground="{DynamicResource ThemeForegroundBrush}"
                   WindowState="{Binding WindowState}"
                   Classes="ToolWindow">
   <DockPanel LastChildFill="True" Margin="25,0,25,25">
-    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="5">
+    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="5" Margin="0,25,0,0">
       <Button MinWidth="135" Height="35">Open logs</Button>
       <Button MinWidth="135" Height="35" Background="{DynamicResource ThemeAccentBrush}">Ok</Button>
     </StackPanel>
     <TextBlock DockPanel.Dock="Top" FontWeight="Bold" FontSize="18" Margin="0,0,0,25" Text="{Binding Message}" />
-    <TextBlock Text="{Binding Details}" />
+    <controls:MultiTextBox Text="{Binding Details}" />
   </DockPanel>
 </cont:MetroWindow>
