@@ -15,13 +15,6 @@ namespace WalletWasabi.Gui.CrashReport.ViewModels
 		public int MinHeight => 180;
 		public string Title => "Wasabi Wallet - Crash Reporting";
 		public string Details => CrashReporter.GetException().ToString();
-
-		public string Message
-		{
-			get
-			{
-				return CrashReporter.GetException().Message;
-			}
-		}
+		public string Message => CrashReporter.GetException().Message;
 	}
 }
