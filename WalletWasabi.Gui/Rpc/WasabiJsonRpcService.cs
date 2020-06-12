@@ -180,6 +180,7 @@ namespace WalletWasabi.Gui.Rpc
 				amount = x.Amount.Satoshi,
 				label = x.Label,
 				tx = x.TransactionId,
+				islikelycoinjoin = x.IsLikelyCoinJoinOutput
 			}).ToArray();
 		}
 
