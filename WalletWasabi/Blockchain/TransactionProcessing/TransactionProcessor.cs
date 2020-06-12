@@ -124,8 +124,8 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 							// if the received transaction is spending at least one input already
 							// spent by a previous unconfirmed transaction signaling RBF then it is not a double
 							// spending transaction but a replacement transaction.
-							var isReplacemenetTx = doubleSpends.Any(x => x.IsReplaceable && !x.Confirmed);
-							if (isReplacemenetTx)
+							var isReplacementTx = doubleSpends.Any(x => x.IsReplaceable && !x.Confirmed);
+							if (isReplacementTx)
 							{
 								// Undo the replaced transaction by removing the coins it created (if other coin
 								// spends it, remove that too and so on) and restoring those that it replaced.
