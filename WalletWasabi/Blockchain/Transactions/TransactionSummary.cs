@@ -12,5 +12,6 @@ namespace WalletWasabi.Blockchain.Transactions
 		public string Label { get; set; }
 		public uint256 TransactionId { get; set; }
 		public int BlockIndex { get; set; }
+		public bool IsLikelyCoinJoinOutput { get; set; }
 	}
 }
