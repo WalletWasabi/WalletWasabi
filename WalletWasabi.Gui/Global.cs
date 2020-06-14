@@ -1,238 +1,427 @@
-﻿using Avalonia;
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls.Notifications;
 using Avalonia.Threading;
+using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using NBitcoin.Protocol.Connectors;
+using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Crypto;
-using WalletWasabi.Gui.Dialogs;
-using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.BitcoinCore;
+using WalletWasabi.BitcoinCore.Endpointing;
+using WalletWasabi.BitcoinCore.Monitoring;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionBroadcasting;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.TransactionProcessing;
+using WalletWasabi.CoinJoin.Client;
+using WalletWasabi.CoinJoin.Client.Clients;
+using WalletWasabi.CoinJoin.Client.Clients.Queuing;
+using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Gui.Models;
+using WalletWasabi.Gui.Rpc;
 using WalletWasabi.Helpers;
-using WalletWasabi.KeyManagement;
+using WalletWasabi.Hwi.Models;
+using WalletWasabi.Legal;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
 using WalletWasabi.Services;
+using WalletWasabi.Stores;
 using WalletWasabi.TorSocks5;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui
 {
-	public static class Global
+	public class Global
 	{
-		private static string _dataDir = null;
+		public const string ThemeBackgroundBrushResourceKey = "ThemeBackgroundBrush";
+		public const string ApplicationAccentForegroundBrushResourceKey = "ApplicationAccentForegroundBrush";
 
-		public static string DataDir
+		public string DataDir { get; }
+		public string TorLogsFile { get; }
+		public BitcoinStore BitcoinStore { get; private set; }
+		public LegalDocuments LegalDocuments { get; set; }
+		public Config Config { get; }
+
+		public string AddressManagerFilePath { get; private set; }
+		public AddressManager AddressManager { get; private set; }
+
+		public NodesGroup Nodes { get; private set; }
+		public WasabiSynchronizer Synchronizer { get; private set; }
+		public FeeProviders FeeProviders { get; private set; }
+		public WalletManager WalletManager { get; }
+		public TransactionBroadcaster TransactionBroadcaster { get; set; }
+		public CoinJoinProcessor CoinJoinProcessor { get; set; }
+		public Node RegTestMempoolServingNode { get; private set; }
+		public TorProcessManager TorManager { get; private set; }
+		public CoreNode BitcoinCoreNode { get; private set; }
+
+		public HostedServices HostedServices { get; }
+
+		public bool KillRequested => Interlocked.Read(ref _dispose) > 0;
+
+		public UiConfig UiConfig { get; }
+
+		public Network Network => Config.Network;
+
+		public MemoryCache Cache { get; private set; }
+
+		public static JsonRpcServer RpcServer { get; private set; }
+
+		public Global()
 		{
-			get
+			using (BenchmarkLogger.Measure())
 			{
-				if (!string.IsNullOrWhiteSpace(_dataDir)) return _dataDir;
+				StoppingCts = new CancellationTokenSource();
+				DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
+				TorLogsFile = Path.Combine(DataDir, "TorLogs.txt");
+				Directory.CreateDirectory(DataDir);
 
-				_dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
+				Logger.InitializeDefaults(Path.Combine(DataDir, "Logs.txt"));
 
-				return _dataDir;
+				UiConfig = new UiConfig(Path.Combine(DataDir, "UiConfig.json"));
+				UiConfig.LoadOrCreateDefaultFile();
+				Config = new Config(Path.Combine(DataDir, "Config.json"));
+				Config.LoadOrCreateDefaultFile();
+				Config.CorrectMixUntilAnonymitySet();
+
+				HostedServices = new HostedServices();
+				WalletManager = new WalletManager(Network, new WalletDirectories(DataDir));
+
+				LegalDocuments = LegalDocuments.TryLoadAgreed(DataDir);
+
+				WalletManager.OnDequeue += WalletManager_OnDequeue;
+				WalletManager.WalletRelevantTransactionProcessed += WalletManager_WalletRelevantTransactionProcessed;
 			}
 		}
 
-		private static string _torLogsFile = null;
+		private bool InitializationCompleted { get; set; } = false;
 
-		public static string TorLogsFile
+		private bool InitializationStarted { get; set; } = false;
+
+		private CancellationTokenSource StoppingCts { get; }
+
+		public async Task InitializeNoWalletAsync()
 		{
-			get
-			{
-				if (!string.IsNullOrWhiteSpace(_torLogsFile)) return _torLogsFile;
+			InitializationStarted = true;
+			AddressManager = null;
+			TorManager = null;
+			var cancel = StoppingCts.Token;
 
-				_torLogsFile = Path.Combine(DataDir, "TorLogs.txt");
-
-				return _torLogsFile;
-			}
-		}
-
-		public static string WalletsDir => Path.Combine(DataDir, "Wallets");
-		public static string WalletBackupsDir => Path.Combine(DataDir, "WalletBackups");
-		public static Network Network => Config.Network;
-		public static string IndexFilePath => Path.Combine(DataDir, $"Index{Network}.dat");
-
-		public static string AddressManagerFilePath { get; private set; }
-		public static AddressManager AddressManager { get; private set; }
-		public static MemPoolService MemPoolService { get; private set; }
-
-		public static NodesGroup Nodes { get; private set; }
-		public static WasabiSynchronizer Synchronizer { get; private set; }
-		public static CcjClient ChaumianClient { get; private set; }
-		public static WalletService WalletService { get; private set; }
-		public static Node RegTestMemPoolServingNode { get; private set; }
-		public static UpdateChecker UpdateChecker { get; private set; }
-		public static TorProcessManager TorManager { get; private set; }
-
-		public static Config Config { get; private set; }
-		public static UiConfig UiConfig { get; private set; }
-
-		public static void InitializeConfig(Config config)
-		{
-			Config = Guard.NotNull(nameof(config), config);
-		}
-
-		public static void InitializeUiConfig(UiConfig uiConfig)
-		{
-			UiConfig = Guard.NotNull(nameof(uiConfig), uiConfig);
-		}
-
-		private static int _isDesperateDequeuing = 0;
-
-		public static async Task TryDesperateDequeueAllCoinsAsync()
-		{
-			// If already desperate dequeueing then return.
-			// If not desperate dequeueing then make sure we're doing that.
-			if (Interlocked.CompareExchange(ref _isDesperateDequeuing, 1, 0) == 1)
-			{
-				return;
-			}
 			try
 			{
-				await DesperateDequeueAllCoinsAsync();
-			}
-			catch (NotSupportedException ex)
-			{
-				Logger.LogWarning(ex.Message, nameof(Global));
-			}
-			catch (Exception ex)
-			{
-				Logger.LogWarning(ex, nameof(Global));
+				Cache = new MemoryCache(new MemoryCacheOptions
+				{
+					SizeLimit = 1_000,
+					ExpirationScanFrequency = TimeSpan.FromSeconds(30)
+				});
+				BitcoinStore = new BitcoinStore();
+				var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), Network);
+				var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
+
+				AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
+				var addrManTask = InitializeAddressManagerBehaviorAsync();
+
+				var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
+				var userAgent = Constants.UserAgents.RandomElement();
+				var connectionParameters = new NodeConnectionParameters { UserAgent = userAgent };
+
+				if (Config.UseTor)
+				{
+					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint);
+				}
+				else
+				{
+					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, Config.GetFallbackBackendUri(), null);
+				}
+
+				HostedServices.Register(new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
+
+				#region ProcessKillSubscription
+
+				AppDomain.CurrentDomain.ProcessExit += async (s, e) => await DisposeAsync().ConfigureAwait(false);
+				Console.CancelKeyPress += async (s, e) =>
+				{
+					e.Cancel = true;
+					Logger.LogWarning("Process was signaled for killing.", nameof(Global));
+					await DisposeAsync().ConfigureAwait(false);
+				};
+
+				#endregion ProcessKillSubscription
+
+				cancel.ThrowIfCancellationRequested();
+
+				#region TorProcessInitialization
+
+				if (Config.UseTor)
+				{
+					TorManager = new TorProcessManager(Config.TorSocks5EndPoint, TorLogsFile);
+				}
+				else
+				{
+					TorManager = TorProcessManager.Mock();
+				}
+				TorManager.Start(false, DataDir);
+
+				var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
+				TorManager.StartMonitor(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(7), DataDir, fallbackRequestTestUri);
+
+				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
+
+				#endregion TorProcessInitialization
+
+				cancel.ThrowIfCancellationRequested();
+
+				#region BitcoinStoreInitialization
+
+				await bstoreInitTask;
+
+				// Make sure that the height of the wallets will not be better than the current height of the filters.
+				WalletManager.SetMaxBestHeight(BitcoinStore.IndexStore.SmartHeaderChain.TipHeight);
+
+				#endregion BitcoinStoreInitialization
+
+				cancel.ThrowIfCancellationRequested();
+
+				#region BitcoinCoreInitialization
+
+				try
+				{
+					if (Config.StartLocalBitcoinCoreOnStartup)
+					{
+						BitcoinCoreNode = await CoreNode
+							.CreateAsync(
+								new CoreNodeParams(
+									Network,
+									BitcoinStore.MempoolService,
+									HostedServices,
+									Config.LocalBitcoinCoreDataDir,
+									tryRestart: false,
+									tryDeleteDataDir: false,
+									EndPointStrategy.Default(Network, EndPointType.P2p),
+									EndPointStrategy.Default(Network, EndPointType.Rpc),
+									txIndex: null,
+									prune: null,
+									userAgent: $"/WasabiClient:{Constants.ClientVersion}/",
+									Cache),
+								cancel)
+							.ConfigureAwait(false);
+					}
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError(ex);
+				}
+
+				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
+
+				var feeProviderList = new List<IFeeProvider>
+				{
+					Synchronizer
+				};
+
+				var rpcFeeProvider = HostedServices.FirstOrDefault<RpcFeeProvider>();
+				if (rpcFeeProvider is { })
+				{
+					feeProviderList.Insert(0, rpcFeeProvider);
+				}
+
+				FeeProviders = new FeeProviders(feeProviderList);
+
+				#endregion BitcoinCoreInitialization
+
+				cancel.ThrowIfCancellationRequested();
+
+				#region MempoolInitialization
+
+				connectionParameters.TemplateBehaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
+
+				#endregion MempoolInitialization
+
+				cancel.ThrowIfCancellationRequested();
+
+				#region AddressManagerInitialization
+
+				AddressManagerBehavior addressManagerBehavior = await addrManTask;
+				connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
+
+				#endregion AddressManagerInitialization
+
+				cancel.ThrowIfCancellationRequested();
+
+				#region P2PInitialization
+
+				if (Network == Network.RegTest)
+				{
+					Nodes = new NodesGroup(Network, requirements: Constants.NodeRequirements);
+					try
+					{
+						EndPoint bitcoinCoreEndpoint = Config.GetBitcoinP2pEndPoint();
+
+						Node node = await Node.ConnectAsync(Network.RegTest, bitcoinCoreEndpoint).ConfigureAwait(false);
+
+						Nodes.ConnectedNodes.Add(node);
+
+						RegTestMempoolServingNode = await Node.ConnectAsync(Network.RegTest, bitcoinCoreEndpoint).ConfigureAwait(false);
+
+						RegTestMempoolServingNode.Behaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
+					}
+					catch (SocketException ex)
+					{
+						Logger.LogError(ex);
+					}
+				}
+				else
+				{
+					if (Config.UseTor)
+					{
+						// onlyForOnionHosts: false - Connect to clearnet IPs through Tor, too.
+						connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.TorSocks5EndPoint, onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
+						// allowOnlyTorEndpoints: true - Connect only to onions and do not connect to clearnet IPs at all.
+						// This of course makes the first setting unnecessary, but it's better if that's around, in case someone wants to tinker here.
+						connectionParameters.EndpointConnector = new DefaultEndpointConnector(allowOnlyTorEndpoints: Network == Network.Main);
+
+						await AddKnownBitcoinFullNodeAsHiddenServiceAsync(AddressManager);
+					}
+					Nodes = new NodesGroup(Network, connectionParameters, requirements: Constants.NodeRequirements);
+					Nodes.MaximumNodeConnection = 12;
+					RegTestMempoolServingNode = null;
+				}
+
+				Nodes.Connect();
+				Logger.LogInfo("Start connecting to nodes...");
+
+				var regTestMempoolServingNode = RegTestMempoolServingNode;
+				if (regTestMempoolServingNode is { })
+				{
+					regTestMempoolServingNode.VersionHandshake();
+					Logger.LogInfo("Start connecting to mempool serving regtest node...");
+				}
+
+				#endregion P2PInitialization
+
+				cancel.ThrowIfCancellationRequested();
+
+				#region SynchronizerInitialization
+
+				var requestInterval = TimeSpan.FromSeconds(30);
+				if (Network == Network.RegTest)
+				{
+					requestInterval = TimeSpan.FromSeconds(5);
+				}
+
+				int maxFiltSyncCount = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
+
+				Synchronizer.Start(requestInterval, TimeSpan.FromMinutes(5), maxFiltSyncCount);
+				Logger.LogInfo("Start synchronizing filters...");
+
+				#endregion SynchronizerInitialization
+
+				cancel.ThrowIfCancellationRequested();
+
+				TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, Synchronizer, Nodes, WalletManager, BitcoinCoreNode?.RpcClient);
+				CoinJoinProcessor = new CoinJoinProcessor(Synchronizer, WalletManager, BitcoinCoreNode?.RpcClient);
+
+				#region JsonRpcServerInitialization
+
+				var jsonRpcServerConfig = new JsonRpcServerConfiguration(Config);
+				if (jsonRpcServerConfig.IsEnabled)
+				{
+					RpcServer = new JsonRpcServer(this, jsonRpcServerConfig);
+					try
+					{
+						await RpcServer.StartAsync(cancel).ConfigureAwait(false);
+					}
+					catch (System.Net.HttpListenerException e)
+					{
+						Logger.LogWarning($"Failed to start {nameof(JsonRpcServer)} with error: {e.Message}.");
+						RpcServer = null;
+					}
+				}
+
+				#endregion JsonRpcServerInitialization
+
+				#region Blocks provider
+
+				var blockProvider = new CachedBlockProvider(
+					new SmartBlockProvider(
+						new P2pBlockProvider(Nodes, BitcoinCoreNode, Synchronizer, Config.ServiceConfiguration, Network),
+						Cache),
+					new FileSystemBlockRepository(blocksFolderPath, Network));
+
+				#endregion Blocks provider
+
+				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Nodes, Config.ServiceConfiguration, FeeProviders, blockProvider);
 			}
 			finally
 			{
-				Interlocked.Exchange(ref _isDesperateDequeuing, 0);
+				InitializationCompleted = true;
 			}
 		}
 
-		public static async Task DesperateDequeueAllCoinsAsync()
+		private async Task<AddressManagerBehavior> InitializeAddressManagerBehaviorAsync()
 		{
-			if (WalletService is null || ChaumianClient is null)
-			{
-				return;
-			}
-
-			SmartCoin[] enqueuedCoins = WalletService.Coins.Where(x => x.CoinJoinInProgress).ToArray();
-			if (enqueuedCoins.Any())
-			{
-				Logger.LogWarning("Unregistering coins in CoinJoin process.", nameof(Global));
-				await ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins);
-			}
-		}
-
-		public static async Task InitializeNoUiAsync()
-		{
-			var configFilePath = Path.Combine(DataDir, "Config.json");
-			var config = new Config(configFilePath);
-			await config.LoadOrCreateDefaultFileAsync();
-			Logger.LogInfo<Config>("Config is successfully initialized.");
-
-			InitializeConfig(config);
-
-			await InitializeNoWalletAsync();
-		}
-
-		public static async Task InitializeNoWalletAsync()
-		{
-			WalletService = null;
-			ChaumianClient = null;
-
-			AppDomain.CurrentDomain.ProcessExit += async (s, e) => await TryDesperateDequeueAllCoinsAsync();
-			Console.CancelKeyPress += async (s, e) =>
-			{
-				e.Cancel = true;
-				Logger.LogWarning("Process was signaled for killing.", nameof(Global));
-				await TryDesperateDequeueAllCoinsAsync();
-				Dispatcher.UIThread.PostLogException(() =>
-				{
-					Application.Current?.MainWindow?.Close();
-				});
-			};
-
-			var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
-			AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
-			var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
-			var connectionParameters = new NodeConnectionParameters();
-			AddressManager = null;
-			TorManager = null;
-
-			if (Config.UseTor.Value)
-			{
-				TorManager = new TorProcessManager(Config.GetTorSocks5EndPoint(), TorLogsFile);
-			}
-			else
-			{
-				TorManager = TorProcessManager.Mock();
-			}
-			TorManager.Start(false, DataDir);
-			var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
-			TorManager.StartMonitor(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(7), DataDir, fallbackRequestTestUri);
-
-			Logger.LogInfo<TorProcessManager>($"{nameof(TorProcessManager)} is initialized.");
-
 			var needsToDiscoverPeers = true;
 			if (Network == Network.RegTest)
 			{
 				AddressManager = new AddressManager();
-				Logger.LogInfo<AddressManager>($"Fake {nameof(AddressManager)} is initialized on the RegTest.");
+				Logger.LogInfo($"Fake {nameof(AddressManager)} is initialized on the {Network.RegTest}.");
 			}
 			else
 			{
 				try
 				{
-					AddressManager = AddressManager.LoadPeerFile(AddressManagerFilePath);
+					AddressManager = await NBitcoinHelpers.LoadAddressManagerFromPeerFileAsync(AddressManagerFilePath);
 
-					// The most of the times we don't need to discover new peers. Instead, we can connect to
-					// some of those that we already discovered in the past. In this case we assume that we
-					// assume that discovering new peers could be necessary if out address manager has less
-					// than 500 addresses. A 500 addresses could be okay because previously we tried with
+					// Most of the times we do not need to discover new peers. Instead, we can connect to
+					// some of those that we already discovered in the past. In this case we assume that
+					// discovering new peers could be necessary if our address manager has less
+					// than 500 addresses. 500 addresses could be okay because previously we tried with
 					// 200 and only one user reported he/she was not able to connect (there could be many others,
 					// of course).
 					// On the other side, increasing this number forces users that do not need to discover more peers
-					// to spend resources (CPU/bandwith) to discover new peers.
-					needsToDiscoverPeers = AddressManager.Count < 500;
-					Logger.LogInfo<AddressManager>($"Loaded {nameof(AddressManager)} from `{AddressManagerFilePath}`.");
+					// to spend resources (CPU/bandwidth) to discover new peers.
+					needsToDiscoverPeers = Config.UseTor || AddressManager.Count < 500;
+					Logger.LogInfo($"Loaded {nameof(AddressManager)} from `{AddressManagerFilePath}`.");
 				}
 				catch (DirectoryNotFoundException ex)
 				{
-					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{AddressManagerFilePath}`. Initializing new one.");
-					Logger.LogTrace<AddressManager>(ex);
+					Logger.LogInfo($"{nameof(AddressManager)} did not exist at `{AddressManagerFilePath}`. Initializing new one.");
+					Logger.LogTrace(ex);
 					AddressManager = new AddressManager();
 				}
 				catch (FileNotFoundException ex)
 				{
-					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{AddressManagerFilePath}`. Initializing new one.");
-					Logger.LogTrace<AddressManager>(ex);
+					Logger.LogInfo($"{nameof(AddressManager)} did not exist at `{AddressManagerFilePath}`. Initializing new one.");
+					Logger.LogTrace(ex);
 					AddressManager = new AddressManager();
 				}
 				catch (OverflowException ex)
 				{
 					// https://github.com/zkSNACKs/WalletWasabi/issues/712
-					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} has thrown `{nameof(OverflowException)}`. Attempting to autocorrect.");
+					Logger.LogInfo($"{nameof(AddressManager)} has thrown `{nameof(OverflowException)}`. Attempting to autocorrect.");
 					File.Delete(AddressManagerFilePath);
-					Logger.LogTrace<AddressManager>(ex);
+					Logger.LogTrace(ex);
 					AddressManager = new AddressManager();
-					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} autocorrection is successful.");
+					Logger.LogInfo($"{nameof(AddressManager)} autocorrection is successful.");
 				}
 				catch (FormatException ex)
 				{
 					// https://github.com/zkSNACKs/WalletWasabi/issues/880
-					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} has thrown `{nameof(FormatException)}`. Attempting to autocorrect.");
+					Logger.LogInfo($"{nameof(AddressManager)} has thrown `{nameof(FormatException)}`. Attempting to autocorrect.");
 					File.Delete(AddressManagerFilePath);
-					Logger.LogTrace<AddressManager>(ex);
+					Logger.LogTrace(ex);
 					AddressManager = new AddressManager();
-					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} autocorrection is successful.");
+					Logger.LogInfo($"{nameof(AddressManager)} autocorrection is successful.");
 				}
 			}
 
@@ -240,274 +429,361 @@ namespace WalletWasabi.Gui
 			{
 				Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None
 			};
-			connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
-			MemPoolService = new MemPoolService();
-			connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(MemPoolService));
+			return addressManagerBehavior;
+		}
 
+		private async Task AddKnownBitcoinFullNodeAsHiddenServiceAsync(AddressManager addressManager)
+		{
 			if (Network == Network.RegTest)
 			{
-				Nodes = new NodesGroup(Network, requirements: Constants.NodeRequirements);
-				try
+				return;
+			}
+
+			// curl -s https://bitnodes.21.co/api/v1/snapshots/latest/ | egrep -o '[a-z0-9]{16}\.onion:?[0-9]*' | sort -ru
+			// Then filtered to include only /Satoshi:0.17.x
+			var fullBaseDirectory = EnvironmentHelpers.GetFullBaseDirectory();
+
+			var onions = await File.ReadAllLinesAsync(Path.Combine(fullBaseDirectory, "OnionSeeds", $"{Network}OnionSeeds.txt"));
+
+			onions.Shuffle();
+			foreach (var onion in onions.Take(60))
+			{
+				if (EndPointParser.TryParse(onion, Network.DefaultPort, out var endpoint))
 				{
-					Node node = await Node.ConnectAsync(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
-					Nodes.ConnectedNodes.Add(node);
-
-					RegTestMemPoolServingNode = await Node.ConnectAsync(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
-
-					RegTestMemPoolServingNode.Behaviors.Add(new MemPoolBehavior(MemPoolService));
-				}
-				catch (SocketException ex)
-				{
-					Logger.LogError(ex, nameof(Global));
+					await addressManager.AddAsync(endpoint);
 				}
 			}
-			else
-			{
-				if (Config.UseTor is true)
-				{
-					// onlyForOnionHosts: false - Connect to clearnet IPs through Tor, too.
-					connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.GetTorSocks5EndPoint(), onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
-					// allowOnlyTorEndpoints: true - Connect only to onions and don't connect to clearnet IPs at all.
-					// This of course makes the first setting unneccessary, but it's better if that's around, in case someone wants to tinker here.
-					connectionParameters.EndpointConnector = new DefaultEndpointConnector(allowOnlyTorEndpoints: true);
-				}
-				Nodes = new NodesGroup(Network, connectionParameters, requirements: Constants.NodeRequirements);
-
-				RegTestMemPoolServingNode = null;
-			}
-
-			if (Config.UseTor.Value)
-			{
-				Synchronizer = new WasabiSynchronizer(Network, IndexFilePath, () => Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
-			}
-			else
-			{
-				Synchronizer = new WasabiSynchronizer(Network, IndexFilePath, Config.GetFallbackBackendUri(), null);
-			}
-
-			UpdateChecker = new UpdateChecker(Synchronizer.WasabiClient);
-
-			Nodes.Connect();
-			Logger.LogInfo("Start connecting to nodes...");
-
-			if (RegTestMemPoolServingNode != null)
-			{
-				RegTestMemPoolServingNode.VersionHandshake();
-				Logger.LogInfo("Start connecting to mempool serving regtest node...");
-			}
-
-			var requestInterval = TimeSpan.FromSeconds(30);
-			if (Network == Network.RegTest)
-			{
-				requestInterval = TimeSpan.FromSeconds(5);
-			}
-
-			int maxFiltSyncCount = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
-
-			Synchronizer.Start(requestInterval, TimeSpan.FromMinutes(5), maxFiltSyncCount);
-			Logger.LogInfo("Start synchronizing filters...");
 		}
 
-		private static CancellationTokenSource CancelWalletServiceInitialization = null;
-
-		public static async Task InitializeWalletServiceAsync(KeyManager keyManager)
-		{
-			if (Config.UseTor.Value)
-			{
-				ChaumianClient = new CcjClient(Synchronizer, Network, keyManager, () => Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
-			}
-			else
-			{
-				ChaumianClient = new CcjClient(Synchronizer, Network, keyManager, Config.GetFallbackBackendUri(), null);
-			}
-			WalletService = new WalletService(keyManager, Synchronizer, ChaumianClient, MemPoolService, Nodes, DataDir, Config.ServiceConfiguration);
-
-			ChaumianClient.Start();
-			Logger.LogInfo("Start Chaumian CoinJoin service...");
-
-			using (CancelWalletServiceInitialization = new CancellationTokenSource())
-			{
-				Logger.LogInfo("Starting WalletService...");
-				await WalletService.InitializeAsync(CancelWalletServiceInitialization.Token);
-				Logger.LogInfo("WalletService started.");
-			}
-			CancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
-			WalletService.Coins.CollectionChanged += Coins_CollectionChanged;
-		}
-
-		public static string GetWalletFullPath(string walletName)
-		{
-			walletName = walletName.TrimEnd(".json", StringComparison.OrdinalIgnoreCase);
-			return Path.Combine(WalletsDir, walletName + ".json");
-		}
-
-		public static string GetWalletBackupFullPath(string walletName)
-		{
-			walletName = walletName.TrimEnd(".json", StringComparison.OrdinalIgnoreCase);
-			return Path.Combine(WalletBackupsDir, walletName + ".json");
-		}
-
-		public static KeyManager LoadKeyManager(string walletFullPath, string walletBackupFullPath)
+		private void WalletManager_OnDequeue(object sender, DequeueResult e)
 		{
 			try
 			{
-				return LoadKeyManager(walletFullPath);
-			}
-			catch (Exception ex)
-			{
-				if (!File.Exists(walletBackupFullPath))
-				{
-					throw;
-				}
-
-				Logger.LogWarning($"Wallet got corrupted.\n" +
-					$"Wallet Filepath: {walletFullPath}\n" +
-					$"Trying to recover it from backup.\n" +
-					$"Backup path: {walletBackupFullPath}\n" +
-					$"Exception: {ex.ToString()}");
-				if (File.Exists(walletFullPath))
-				{
-					string corruptedWalletBackupPath = Path.Combine(WalletBackupsDir, $"{Path.GetFileName(walletFullPath)}_CorruptedBackup");
-					if (File.Exists(corruptedWalletBackupPath))
-					{
-						File.Delete(corruptedWalletBackupPath);
-						Logger.LogInfo($"Deleted previous corrupted wallet file backup from {corruptedWalletBackupPath}.");
-					}
-					File.Move(walletFullPath, corruptedWalletBackupPath);
-					Logger.LogInfo($"Backed up corrupted wallet file to {corruptedWalletBackupPath}.");
-				}
-				File.Copy(walletBackupFullPath, walletFullPath);
-
-				return LoadKeyManager(walletFullPath);
-			}
-		}
-
-		public static KeyManager LoadKeyManager(string walletFullPath)
-		{
-			KeyManager keyManager;
-			var walletFileInfo = new FileInfo(walletFullPath)
-			{
-				LastAccessTime = DateTime.Now
-			};
-
-			keyManager = KeyManager.FromFile(walletFullPath);
-			Logger.LogInfo($"Wallet loaded: {Path.GetFileNameWithoutExtension(keyManager.FilePath)}.");
-			return keyManager;
-		}
-
-		private static void Coins_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-		{
-			try
-			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				if (UiConfig.LurkingWifeMode)
 				{
 					return;
 				}
 
-				if (e.Action == NotifyCollectionChangedAction.Add)
+				foreach (var success in e.Successful.Where(x => x.Value.Any()))
 				{
-					foreach (SmartCoin coin in e.NewItems)
+					DequeueReason reason = success.Key;
+					if (reason != DequeueReason.Spent)
 					{
-						//if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RuntimeInformation.OSDescription.StartsWith("Microsoft Windows 10"))
-						//{
-						//	// It's harder than you'd think. Maybe the best would be to wait for .NET Core 3 for WPF things on Windows?
-						//}
-						// else
-
-						using (var process = Process.Start(new ProcessStartInfo
-						{
-							FileName = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osascript" : "notify-send",
-							Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e \"display notification \\\"Received {coin.Amount.ToString(false, true)} BTC\\\" with title \\\"Wasabi\\\"\"" : $"--expire-time=3000 \"Wasabi\" \"Received {coin.Amount.ToString(false, true)} BTC\"",
-							CreateNoWindow = true
-						})) { };
+						var type = reason == DequeueReason.UserRequested ? NotificationType.Information : NotificationType.Warning;
+						var message = reason == DequeueReason.UserRequested ? "" : reason.ToFriendlyString();
+						var title = success.Value.Count() == 1 ? $"Coin ({success.Value.First().Amount.ToString(false, true)}) Dequeued" : $"{success.Value.Count()} Coins Dequeued";
+						NotificationHelpers.Notify(message, title, type, sender: sender);
 					}
+				}
+
+				foreach (var failure in e.Unsuccessful.Where(x => x.Value.Any()))
+				{
+					DequeueReason reason = failure.Key;
+					var type = NotificationType.Warning;
+					var message = reason.ToFriendlyString();
+					var title = failure.Value.Count() == 1 ? $"Couldn't Dequeue Coin ({failure.Value.First().Amount.ToString(false, true)})" : $"Couldn't Dequeue {failure.Value.Count()} Coins";
+					NotificationHelpers.Notify(message, title, type, sender: sender);
 				}
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning(ex, nameof(Global));
+				Logger.LogWarning(ex);
 			}
 		}
 
-		public static async Task DisposeInWalletDependentServicesAsync()
-		{
-			if (WalletService != null)
-			{
-				WalletService.Coins.CollectionChanged -= Coins_CollectionChanged;
-			}
-			CancelWalletServiceInitialization?.Cancel();
-			CancelWalletServiceInitialization = null;
-
-			if (WalletService != null)
-			{
-				if (WalletService.KeyManager != null) // This should not ever happen.
-				{
-					string backupWalletFilePath = Path.Combine(WalletBackupsDir, Path.GetFileName(WalletService.KeyManager.FilePath));
-					WalletService.KeyManager?.ToFile(backupWalletFilePath);
-					Logger.LogInfo($"{nameof(KeyManager)} backup saved to {backupWalletFilePath}.", nameof(Global));
-				}
-				WalletService?.Dispose();
-				WalletService = null;
-				Logger.LogInfo($"{nameof(WalletService)} is stopped.", nameof(Global));
-			}
-
-			if (ChaumianClient != null)
-			{
-				await ChaumianClient.StopAsync();
-				ChaumianClient = null;
-				Logger.LogInfo($"{nameof(ChaumianClient)} is stopped.", nameof(Global));
-			}
-		}
-
-		public static async Task DisposeAsync()
+		private void WalletManager_WalletRelevantTransactionProcessed(object sender, ProcessedResult e)
 		{
 			try
 			{
-				await DisposeInWalletDependentServicesAsync();
-
-				if (UpdateChecker != null)
+				// In lurking wife mode no notification is raised.
+				// If there are no news, then don't bother too.
+				if (UiConfig.LurkingWifeMode || !e.IsNews || (sender as Wallet).State != WalletState.Started)
 				{
-					UpdateChecker?.Dispose();
-					Logger.LogInfo($"{nameof(UpdateChecker)} is stopped.", nameof(Global));
+					return;
 				}
 
-				if (Synchronizer != null)
-				{
-					Synchronizer?.Dispose();
-					Logger.LogInfo($"{nameof(Synchronizer)} is stopped.", nameof(Global));
-				}
+				// ToDo
+				// Double spent.
+				// Anonymity set gained?
+				// Received dust
 
-				if (AddressManagerFilePath != null)
+				bool isSpent = e.NewlySpentCoins.Any();
+				bool isReceived = e.NewlyReceivedCoins.Any();
+				bool isConfirmedReceive = e.NewlyConfirmedReceivedCoins.Any();
+				bool isConfirmedSpent = e.NewlyConfirmedReceivedCoins.Any();
+				Money miningFee = e.Transaction.Transaction.GetFee(e.SpentCoins.Select(x => x.GetCoin()).ToArray());
+				if (isReceived || isSpent)
 				{
-					IoHelpers.EnsureContainingDirectoryExists(AddressManagerFilePath);
-					if (AddressManager != null)
+					Money receivedSum = e.NewlyReceivedCoins.Sum(x => x.Amount);
+					Money spentSum = e.NewlySpentCoins.Sum(x => x.Amount);
+					Money incoming = receivedSum - spentSum;
+					Money receiveSpentDiff = incoming.Abs();
+					string amountString = receiveSpentDiff.ToString(false, true);
+
+					if (e.Transaction.Transaction.IsCoinBase)
 					{
-						AddressManager?.SavePeerFile(AddressManagerFilePath, Config.Network);
-						Logger.LogInfo($"{nameof(AddressManager)} is saved to `{AddressManagerFilePath}`.", nameof(Global));
+						NotifyAndLog($"{amountString} BTC", "Mined", NotificationType.Success, e, sender);
+					}
+					else if (isSpent && receiveSpentDiff == miningFee)
+					{
+						NotifyAndLog($"Mining Fee: {amountString} BTC", "Self Spend", NotificationType.Information, e, sender);
+					}
+					else if (isSpent && receiveSpentDiff.Almost(Money.Zero, Money.Coins(0.01m)) && e.IsLikelyOwnCoinJoin)
+					{
+						NotifyAndLog($"CoinJoin Completed!", "", NotificationType.Success, e, sender);
+					}
+					else if (incoming > Money.Zero)
+					{
+						if (e.Transaction.IsRBF && e.Transaction.IsReplacement)
+						{
+							NotifyAndLog($"{amountString} BTC", "Received Replaceable Replacement Transaction", NotificationType.Information, e, sender);
+						}
+						else if (e.Transaction.IsRBF)
+						{
+							NotifyAndLog($"{amountString} BTC", "Received Replaceable Transaction", NotificationType.Success, e, sender);
+						}
+						else if (e.Transaction.IsReplacement)
+						{
+							NotifyAndLog($"{amountString} BTC", "Received Replacement Transaction", NotificationType.Information, e, sender);
+						}
+						else
+						{
+							NotifyAndLog($"{amountString} BTC", "Received", NotificationType.Success, e, sender);
+						}
+					}
+					else if (incoming < Money.Zero)
+					{
+						NotifyAndLog($"{amountString} BTC", "Sent", NotificationType.Information, e, sender);
 					}
 				}
-
-				if (Nodes != null)
+				else if (isConfirmedReceive || isConfirmedSpent)
 				{
-					Nodes?.Dispose();
-					Logger.LogInfo($"{nameof(Nodes)} are disposed.", nameof(Global));
-				}
+					Money receivedSum = e.ReceivedCoins.Sum(x => x.Amount);
+					Money spentSum = e.SpentCoins.Sum(x => x.Amount);
+					Money incoming = receivedSum - spentSum;
+					Money receiveSpentDiff = incoming.Abs();
+					string amountString = receiveSpentDiff.ToString(false, true);
 
-				if (RegTestMemPoolServingNode != null)
-				{
-					RegTestMemPoolServingNode.Disconnect();
-					Logger.LogInfo($"{nameof(RegTestMemPoolServingNode)} is disposed.", nameof(Global));
-				}
-
-				if (TorManager != null)
-				{
-					TorManager?.Dispose();
-					Logger.LogInfo($"{nameof(TorManager)} is stopped.", nameof(Global));
+					if (isConfirmedSpent && receiveSpentDiff == miningFee)
+					{
+						NotifyAndLog($"Mining Fee: {amountString} BTC", "Self Spend Confirmed", NotificationType.Information, e, sender);
+					}
+					else if (isConfirmedSpent && receiveSpentDiff.Almost(Money.Zero, Money.Coins(0.01m)) && e.IsLikelyOwnCoinJoin)
+					{
+						NotifyAndLog($"CoinJoin Confirmed!", "", NotificationType.Information, e, sender);
+					}
+					else if (incoming > Money.Zero)
+					{
+						NotifyAndLog($"{amountString} BTC", "Receive Confirmed", NotificationType.Information, e, sender);
+					}
+					else if (incoming < Money.Zero)
+					{
+						NotifyAndLog($"{amountString} BTC", "Send Confirmed", NotificationType.Information, e, sender);
+					}
 				}
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning(ex, nameof(Global));
+				Logger.LogWarning(ex);
+			}
+		}
+
+		/// <returns>If initialization is successful, otherwise it was interrupted which means stopping was requested.</returns>
+		public async Task<bool> WaitForInitializationCompletedAsync(CancellationToken cancellationToken)
+		{
+			while (!InitializationCompleted)
+			{
+				await Task.Delay(100, cancellationToken).ConfigureAwait(false);
+			}
+
+			return !StoppingCts.IsCancellationRequested;
+		}
+
+		private static void NotifyAndLog(string message, string title, NotificationType notificationType, ProcessedResult e, object sender)
+		{
+			message = Guard.Correct(message);
+			title = Guard.Correct(title);
+			NotificationHelpers.Notify(message, title, notificationType, async () => await FileHelpers.OpenFileInTextEditorAsync(Logger.FilePath), sender);
+			Logger.LogInfo($"Transaction Notification ({notificationType}): {title} - {message} - {e.Transaction.GetHash()}");
+		}
+
+		/// <summary>
+		/// 0: nobody called
+		/// 1: somebody called
+		/// 2: call finished
+		/// </summary>
+		private long _dispose = 0; // To detect redundant calls
+
+		public async Task DisposeAsync()
+		{
+			var compareRes = Interlocked.CompareExchange(ref _dispose, 1, 0);
+			if (compareRes == 1)
+			{
+				while (Interlocked.Read(ref _dispose) != 2)
+				{
+					await Task.Delay(50);
+				}
+				return;
+			}
+			else if (compareRes == 2)
+			{
+				return;
+			}
+			Logger.LogWarning("Process is exiting.", nameof(Global));
+
+			try
+			{
+				StoppingCts?.Cancel();
+
+				if (!InitializationStarted)
+				{
+					return;
+				}
+
+				try
+				{
+					using var initCts = new CancellationTokenSource(TimeSpan.FromMinutes(6));
+					await WaitForInitializationCompletedAsync(initCts.Token).ConfigureAwait(false);
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError($"Error during {nameof(WaitForInitializationCompletedAsync)}: {ex}");
+				}
+
+				try
+				{
+					using var dequeueCts = new CancellationTokenSource(TimeSpan.FromMinutes(6));
+					await WalletManager.RemoveAndStopAllAsync(dequeueCts.Token).ConfigureAwait(false);
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError($"Error during {nameof(WalletManager.RemoveAndStopAllAsync)}: {ex}");
+				}
+
+				Dispatcher.UIThread.PostLogException(() =>
+				{
+					var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
+					window?.Close();
+				});
+
+				WalletManager.OnDequeue -= WalletManager_OnDequeue;
+				WalletManager.WalletRelevantTransactionProcessed -= WalletManager_WalletRelevantTransactionProcessed;
+
+				var rpcServer = RpcServer;
+				if (rpcServer is { })
+				{
+					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
+					await rpcServer.StopAsync(cts.Token);
+					Logger.LogInfo($"{nameof(RpcServer)} is stopped.", nameof(Global));
+				}
+
+				var feeProviders = FeeProviders;
+				if (feeProviders is { })
+				{
+					feeProviders.Dispose();
+					Logger.LogInfo($"Disposed {nameof(FeeProviders)}.");
+				}
+
+				var coinJoinProcessor = CoinJoinProcessor;
+				if (coinJoinProcessor is { })
+				{
+					coinJoinProcessor.Dispose();
+					Logger.LogInfo($"{nameof(CoinJoinProcessor)} is disposed.");
+				}
+
+				var synchronizer = Synchronizer;
+				if (synchronizer is { })
+				{
+					await synchronizer.StopAsync();
+					Logger.LogInfo($"{nameof(Synchronizer)} is stopped.");
+				}
+
+				var backgroundServices = HostedServices;
+				if (backgroundServices is { })
+				{
+					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
+					await backgroundServices.StopAllAsync(cts.Token).ConfigureAwait(false);
+					backgroundServices.Dispose();
+					Logger.LogInfo("Stopped background services.");
+				}
+
+				var addressManagerFilePath = AddressManagerFilePath;
+				if (addressManagerFilePath is { })
+				{
+					IoHelpers.EnsureContainingDirectoryExists(addressManagerFilePath);
+					var addressManager = AddressManager;
+					if (addressManager is { })
+					{
+						addressManager.SavePeerFile(AddressManagerFilePath, Config.Network);
+						Logger.LogInfo($"{nameof(AddressManager)} is saved to `{AddressManagerFilePath}`.");
+					}
+				}
+
+				var nodes = Nodes;
+				if (nodes is { })
+				{
+					nodes.Disconnect();
+					while (nodes.ConnectedNodes.Any(x => x.IsConnected))
+					{
+						await Task.Delay(50);
+					}
+					nodes.Dispose();
+					Logger.LogInfo($"{nameof(Nodes)} are disposed.");
+				}
+
+				var regTestMempoolServingNode = RegTestMempoolServingNode;
+				if (regTestMempoolServingNode is { })
+				{
+					regTestMempoolServingNode.Disconnect();
+					Logger.LogInfo($"{nameof(RegTestMempoolServingNode)} is disposed.");
+				}
+
+				var bitcoinCoreNode = BitcoinCoreNode;
+				if (bitcoinCoreNode is { })
+				{
+					await bitcoinCoreNode.DisposeAsync().ConfigureAwait(false);
+
+					if (Config.StopLocalBitcoinCoreOnShutdown)
+					{
+						await bitcoinCoreNode.TryStopAsync().ConfigureAwait(false);
+					}
+				}
+
+				var torManager = TorManager;
+				if (torManager is { })
+				{
+					await torManager.StopAsync();
+					Logger.LogInfo($"{nameof(TorManager)} is stopped.");
+				}
+
+				var cache = Cache;
+				if (cache is { })
+				{
+					cache.Dispose();
+				}
+
+				if (AsyncMutex.IsAny)
+				{
+					try
+					{
+						await AsyncMutex.WaitForAllMutexToCloseAsync();
+						Logger.LogInfo($"{nameof(AsyncMutex)}(es) are stopped.");
+					}
+					catch (Exception ex)
+					{
+						Logger.LogError($"Error during stopping {nameof(AsyncMutex)}: {ex}");
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning(ex);
+			}
+			finally
+			{
+				StoppingCts?.Dispose();
+				Interlocked.Exchange(ref _dispose, 2);
+				Logger.LogSoftwareStopped("Wasabi");
 			}
 		}
 	}

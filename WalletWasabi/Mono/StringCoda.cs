@@ -1,4 +1,4 @@
-﻿//
+//
 // Options.cs
 //
 // Authors:
@@ -172,7 +172,10 @@ namespace Mono.Options
 		public static IEnumerable<string> WrappedLines(string self, IEnumerable<int> widths)
 		{
 			if (widths is null)
-				throw new ArgumentNullException("widths");
+			{
+				throw new ArgumentNullException(nameof(widths));
+			}
+
 			return CreateWrappedLinesIterator(self, widths);
 		}
 
@@ -183,44 +186,51 @@ namespace Mono.Options
 				yield return string.Empty;
 				yield break;
 			}
-			using (IEnumerator<int> ewidths = widths.GetEnumerator())
+			using IEnumerator<int> eWidths = widths.GetEnumerator();
+			bool? hw = null;
+			int width = GetNextWidth(eWidths, int.MaxValue, ref hw);
+			int start = 0, end;
+			do
 			{
-				bool? hw = null;
-				int width = GetNextWidth(ewidths, int.MaxValue, ref hw);
-				int start = 0, end;
-				do
+				end = GetLineEnd(start, width, self);
+				char c = self[end - 1];
+				if (char.IsWhiteSpace(c))
 				{
-					end = GetLineEnd(start, width, self);
-					char c = self[end - 1];
-					if (char.IsWhiteSpace(c))
-						--end;
-					bool needContinuation = end != self.Length && !IsEolChar(c);
-					string continuation = "";
-					if (needContinuation)
-					{
-						--end;
-						continuation = "-";
-					}
-					string line = self.Substring(start, end - start) + continuation;
-					yield return line;
-					start = end;
-					if (char.IsWhiteSpace(c))
-						++start;
-					width = GetNextWidth(ewidths, width, ref hw);
-				} while (start < self.Length);
-			}
+					--end;
+				}
+
+				bool needContinuation = end != self.Length && !IsEolChar(c);
+				string continuation = "";
+				if (needContinuation)
+				{
+					--end;
+					continuation = "-";
+				}
+				string line = self[start..end] + continuation;
+				yield return line;
+				start = end;
+				if (char.IsWhiteSpace(c))
+				{
+					++start;
+				}
+
+				width = GetNextWidth(eWidths, width, ref hw);
+			} while (start < self.Length);
 		}
 
-		private static int GetNextWidth(IEnumerator<int> ewidths, int curWidth, ref bool? eValid)
+		private static int GetNextWidth(IEnumerator<int> eWidths, int curWidth, ref bool? eValid)
 		{
 			if (!eValid.HasValue || (eValid.HasValue && eValid.Value))
 			{
-				curWidth = (eValid = ewidths.MoveNext()).Value ? ewidths.Current : curWidth;
+				curWidth = (eValid = eWidths.MoveNext()).Value ? eWidths.Current : curWidth;
 				// '.' is any character, - is for a continuation
-				const string minWidth = ".-";
-				if (curWidth < minWidth.Length)
+				const string MinWidth = ".-";
+				if (curWidth < MinWidth.Length)
+				{
 					throw new ArgumentOutOfRangeException("widths",
-							string.Format("Element must be >= {0}, was {1}.", minWidth.Length, curWidth));
+						$"Element must be greater than or equal to {MinWidth.Length}, was {curWidth}.");
+				}
+
 				return curWidth;
 			}
 			// no more elements, use the last element.
@@ -234,17 +244,25 @@ namespace Mono.Options
 
 		private static int GetLineEnd(int start, int length, string description)
 		{
-			int end = System.Math.Min(start + length, description.Length);
+			int end = Math.Min(start + length, description.Length);
 			int sep = -1;
 			for (int i = start; i < end; ++i)
 			{
 				if (description[i] == '\n')
+				{
 					return i + 1;
+				}
+
 				if (IsEolChar(description[i]))
+				{
 					sep = i + 1;
+				}
 			}
 			if (sep == -1 || end == description.Length)
+			{
 				return end;
+			}
+
 			return sep;
 		}
 	}

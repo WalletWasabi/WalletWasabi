@@ -1,5 +1,6 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Xaml.Interactivity;
 using System;
 using System.Reactive.Disposables;
@@ -7,12 +8,12 @@ using System.Reactive.Linq;
 
 namespace WalletWasabi.Gui.Behaviors
 {
-	internal class BindSelectedTextBehavior : Behavior<TextBox>
+	public class BindSelectedTextBehavior : Behavior<TextBox>
 	{
-		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
+		public static readonly AvaloniaProperty<string> SelectedTextProperty =
+			AvaloniaProperty.Register<BindSelectedTextBehavior, string>(nameof(SelectedText), defaultBindingMode: BindingMode.TwoWay);
 
-		private static readonly AvaloniaProperty<string> SelectedTextProperty =
-			AvaloniaProperty.Register<BindSelectedTextBehavior, string>(nameof(SelectedText), defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
+		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
 
 		public string SelectedText
 		{
@@ -24,7 +25,10 @@ namespace WalletWasabi.Gui.Behaviors
 		{
 			var text = AssociatedObject.Text;
 			if (string.IsNullOrEmpty(text))
+			{
 				return "";
+			}
+
 			var selectionStart = AssociatedObject.SelectionStart;
 			var selectionEnd = AssociatedObject.SelectionEnd;
 			var start = Math.Min(selectionStart, selectionEnd);
@@ -33,18 +37,16 @@ namespace WalletWasabi.Gui.Behaviors
 			{
 				return "";
 			}
-			return text.Substring(start, end - start);
+			return text[start..end];
 		}
 
 		protected override void OnAttached()
 		{
 			base.OnAttached();
 
-			AssociatedObject.GetObservable(TextBox.SelectionStartProperty).Merge(
-				AssociatedObject.GetObservable(TextBox.SelectionEndProperty)).Subscribe(_ =>
-				{
-					SelectedText = GetSelection();
-				});
+			AssociatedObject.GetObservable(TextBox.SelectionStartProperty)
+				.Merge(AssociatedObject.GetObservable(TextBox.SelectionEndProperty))
+				.Subscribe(_ => SelectedText = GetSelection());
 		}
 
 		protected override void OnDetaching()

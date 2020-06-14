@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -10,7 +10,7 @@ namespace WalletWasabi.Helpers
 		{
 			AssertCorrectParameterName(parameterName);
 
-			if (value == null)
+			if (value is null)
 			{
 				throw new ArgumentNullException(parameterName, "Parameter cannot be null.");
 			}
@@ -25,12 +25,12 @@ namespace WalletWasabi.Helpers
 				throw new ArgumentNullException(nameof(parameterName), "Parameter cannot be null.");
 			}
 
-			if (parameterName == "")
+			if (parameterName.Length == 0)
 			{
 				throw new ArgumentException("Parameter cannot be empty.", nameof(parameterName));
 			}
 
-			if (parameterName.Trim() == "")
+			if (parameterName.Trim().Length == 0)
 			{
 				throw new ArgumentException("Parameter cannot be whitespace.", nameof(parameterName));
 			}
@@ -43,7 +43,7 @@ namespace WalletWasabi.Helpers
 
 			if (!expected.Equals(actual))
 			{
-				throw new ArgumentException($"`Parameter must be {expected}. Actual: {actual}.", parameterName);
+				throw new ArgumentException($"Parameter must be {expected}. Actual: {actual}.", parameterName);
 			}
 
 			return actual;
@@ -98,7 +98,7 @@ namespace WalletWasabi.Helpers
 			NotNullOrEmpty(parameterName, value);
 
 			string trimmedValue = value.Trim();
-			if (trimmedValue == "")
+			if (trimmedValue.Length == 0)
 			{
 				throw new ArgumentException("Parameter cannot be whitespace.", parameterName);
 			}

@@ -1,64 +1,69 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
-             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui">
+             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
+             x:Class="WalletWasabi.Gui.Controls.WalletExplorer.WalletInfoView">
   <UserControl.Resources>
     <converters:LurkingWifeModeStringConverter x:Key="LurkingWifeModeStringConverter" />
+    <converters:BooleanStringConverter x:Key="BooleanStringConverter" />
   </UserControl.Resources>
   <controls:GroupBox Title="{Binding Title}" BorderThickness="0" Classes="docTabContainer">
     <StackPanel>
       <controls:GroupBox Title="Keys" TextBlock.FontSize="16" Padding="30" Margin="0 10 0 0">
         <Grid Classes="content">
           <StackPanel Orientation="Vertical" Spacing="2">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="Encrypted Extended Master Private Key: " />
-              <controls:ExtendedTextBox Text="{Binding EncryptedExtendedMasterPrivateKey , ConverterParameter=40, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Classes="selectableTextBlock" />
-            </StackPanel>
-
-            <StackPanel Orientation="Horizontal">
+            <StackPanel IsVisible="{Binding !IsWatchOnly}" Orientation="Horizontal">
               <TextBlock Text="Extended Master Private Key: " />
-              <controls:ExtendedTextBox Text="{Binding ExtendedMasterPrivateKey}" Classes="selectableTextBlock" />
+              <controls:ExtendedTextBox Text="{Binding ExtendedMasterPrivateKey}" Foreground="IndianRed" Classes="selectableTextBlock" />
             </StackPanel>
-
-            <StackPanel Orientation="Horizontal">
+            <StackPanel IsVisible="{Binding !IsWatchOnly}" Orientation="Horizontal">
               <TextBlock Text="Extended Master zprv: " />
-              <controls:ExtendedTextBox Text="{Binding ExtendedMasterZprv}" Classes="selectableTextBlock" />
+              <controls:ExtendedTextBox Text="{Binding ExtendedMasterZprv}" Foreground="IndianRed" Classes="selectableTextBlock" />
             </StackPanel>
-
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="Extended Master Fingerprint: " />
+              <controls:ExtendedTextBox Text="{Binding MasterKeyFingerprint}" Classes="selectableTextBlock" />
+            </StackPanel>
             <StackPanel Orientation="Horizontal">
               <TextBlock Text="Account Key Path: " />
               <controls:ExtendedTextBox Text="{Binding AccountKeyPath}" Classes="selectableTextBlock" />
             </StackPanel>
-
-            <StackPanel Orientation="Horizontal">
+            <StackPanel IsVisible="{Binding !IsWatchOnly}" Orientation="Horizontal">
               <TextBlock Text="Extended Account Private Key: " />
-              <controls:ExtendedTextBox Text="{Binding ExtendedAccountPrivateKey}" Classes="selectableTextBlock" />
+              <controls:ExtendedTextBox Text="{Binding ExtendedAccountPrivateKey}" Foreground="IndianRed" Classes="selectableTextBlock" />
             </StackPanel>
-
-            <StackPanel Orientation="Horizontal">
+            <StackPanel IsVisible="{Binding !IsWatchOnly}" Orientation="Horizontal">
               <TextBlock Text="Extended Account zprv: " />
-              <controls:ExtendedTextBox Text="{Binding ExtendedAccountZprv}" Classes="selectableTextBlock" />
+              <controls:ExtendedTextBox Text="{Binding ExtendedAccountZprv}" Foreground="IndianRed" Classes="selectableTextBlock" />
             </StackPanel>
-
             <StackPanel Orientation="Horizontal">
               <TextBlock Text="Extended Account Public Key: " />
-              <controls:ExtendedTextBox Text="{Binding ExtendedAccountPublicKey, ConverterParameter=60, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Classes="selectableTextBlock" />
+              <controls:ExtendedTextBox Text="{Binding ExtendedAccountPublicKey, ConverterParameter=60, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Classes="selectableTextBlock">
+                <ToolTip.Tip>
+                  <TextBlock TextWrapping="Wrap" Width="400" Text="Your extended public key can get all your addresses and find out how many coins you have, do not share this with anyone you do not trust." />
+                </ToolTip.Tip>
+              </controls:ExtendedTextBox>
             </StackPanel>
-
             <StackPanel Orientation="Horizontal">
               <TextBlock Text="Extended Account zpub: " />
-              <controls:ExtendedTextBox Text="{Binding ExtendedAccountZpub, ConverterParameter=60, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Classes="selectableTextBlock" />
+              <controls:ExtendedTextBox Text="{Binding ExtendedAccountZpub, ConverterParameter=60, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Classes="selectableTextBlock">
+                <ToolTip.Tip>
+                  <TextBlock TextWrapping="Wrap" Width="400" Text="Your zpub can get all your addresses and find out how many coins you have, do not share this with anyone you do not trust." />
+                </ToolTip.Tip>
+              </controls:ExtendedTextBox>
             </StackPanel>
-
-            <StackPanel Margin="0 10 0 0" Spacing="10" Orientation="Horizontal">
-              <controls:NoparaPasswordBox Password="{Binding Password}" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" MaxWidth="173" />
+            <StackPanel IsVisible="{Binding !IsWatchOnly}" Margin="0 10 0 0" Spacing="10" Orientation="Horizontal">
+              <controls:TogglePasswordBox Text="{Binding Password}" MaxWidth = "600">
+                <i:Interaction.Behaviors>
+                  <behaviors:CommandOnEnterBehavior Command="{Binding ToggleSensitiveKeysCommand}" />
+                </i:Interaction.Behaviors>
+              </controls:TogglePasswordBox>
               <DockPanel VerticalAlignment="Top" LastChildFill="True">
-                <Button Command="{Binding ShowSensitiveKeysCommand}" DockPanel.Dock="Right">
-                  Show Sensitive Keys
-                </Button>
+                <Button Content="{Binding ShowSensitiveKeys, StringFormat=\{0\} Sensitive Keys, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Hide:Show}" Command="{Binding ToggleSensitiveKeysCommand}" DockPanel.Dock="Right" />
                 <Grid></Grid>
               </DockPanel>
-              <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
             </StackPanel>
           </StackPanel>
         </Grid>

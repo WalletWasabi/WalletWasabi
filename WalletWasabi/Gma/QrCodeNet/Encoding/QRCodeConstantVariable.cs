@@ -1,4 +1,4 @@
-﻿namespace Gma.QrCodeNet.Encoding
+namespace Gma.QrCodeNet.Encoding
 {
 	/// <summary>
 	/// Contain most of common constant variables. S
@@ -26,22 +26,28 @@
 		/// </summary>
 		internal const int PadeCodewordsOdd = 0xec;
 
-		internal static bool[] PadeOdd = new bool[]{true, true, true, false,
-													true, true, false, false};
+		internal static bool[] PadeOdd = new bool[]
+		{
+			true, true, true, false,
+			true, true, false, false
+		};
 
 		/// <summary>
 		/// 0x11
 		/// </summary>
 		internal const int PadeCodewordsEven = 0x11;
 
-		internal static bool[] PadeEven = new bool[]{false, false, false, true,
-													  false, false, false, true};
+		internal static bool[] PadeEven = new bool[]
+		{
+			false, false, false, true,
+			false, false, false, true
+		};
+
+		internal const int PositionStencilWidth = 7;
 
 		/// <summary>
 		/// URL:http://en.wikipedia.org/wiki/Byte-order_mark
 		/// </summary>
 		public static byte[] UTF8ByteOrderMark => new byte[] { 0xEF, 0xBB, 0xBF };
-
-		internal const int PositionStencilWidth = 7;
 	}
 }

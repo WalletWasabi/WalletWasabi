@@ -1,4 +1,4 @@
-﻿namespace WalletWasabi.Logging
+namespace WalletWasabi.Logging
 {
 	public enum LogLevel
 	{

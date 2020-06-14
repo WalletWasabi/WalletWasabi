@@ -1,50 +1,162 @@
-﻿using Avalonia;
-using Avalonia.Threading;
+using Avalonia;
 using Gma.QrCodeNet.Encoding;
 using ReactiveUI;
+using Splat;
 using System;
+using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.KeyManagement;
+using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Gui.Controls.WalletExplorer;
+using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Hwi;
+using WalletWasabi.Hwi.Exceptions;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.ViewModels
 {
 	public class AddressViewModel : ViewModelBase, IDisposable
 	{
-		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
-
 		private bool _isExpanded;
 		private bool[,] _qrCode;
 		private bool _clipboardNotificationVisible;
 		private double _clipboardNotificationOpacity;
+		private string _label;
+		private bool _inEditMode;
+		private ObservableAsPropertyHelper<string> _expandMenuCaption;
 
-		public HdPubKey Model { get; }
+		private volatile bool _disposedValue = false; // To detect redundant calls
 
-		public AddressViewModel(HdPubKey model)
+		public AddressViewModel(HdPubKey model, KeyManager km, ReceiveTabViewModel owner)
 		{
+			Global = Locator.Current.GetService<Global>();
+			KeyManager = km;
+			Owner = owner;
+			IsHardwareWallet = km.IsHardwareWallet;
 			Model = model;
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;
+			_label = model.Label;
 
-			// TODO fix this performance issue this should only be generated when accessed.
-			Task.Run(() =>
-			{
-				var encoder = new QrEncoder(ErrorCorrectionLevel.M);
-				encoder.TryEncode(Address, out var qrCode);
+			this.WhenAnyValue(x => x.IsExpanded)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Where(x => x)
+				.Take(1)
+				.Select(x =>
+				{
+					var encoder = new QrEncoder();
+					encoder.TryEncode(Address, out var qrCode);
+					return qrCode.Matrix.InternalArray;
+				})
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(qr => QrCode = qr, onError: ex => Logger.LogError(ex)); // Catch the exceptions everywhere (e.g.: Select) except in Subscribe.
 
-				return qrCode.Matrix.InternalArray;
-			}).ContinueWith(x =>
+			Global.UiConfig
+				.WhenAnyValue(x => x.LurkingWifeMode)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+				{
+					this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
+					this.RaisePropertyChanged(nameof(Address));
+					this.RaisePropertyChanged(nameof(Label));
+				}).DisposeWith(Disposables);
+
+			this.WhenAnyValue(x => x.Label)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(newLabel =>
+				{
+					if (InEditMode)
+					{
+						KeyManager keyManager = KeyManager;
+						HdPubKey hdPubKey = keyManager.GetKeys(x => Model == x).FirstOrDefault();
+
+						if (hdPubKey != default)
+						{
+							hdPubKey.SetLabel(newLabel, kmToFile: keyManager);
+						}
+					}
+				});
+
+			_expandMenuCaption = this
+				.WhenAnyValue(x => x.IsExpanded)
+				.Select(x => (x ? "Hide " : "Show ") + "QR Code")
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.ToProperty(this, x => x.ExpandMenuCaption)
+				.DisposeWith(Disposables);
+
+			ToggleQrCode = ReactiveCommand.Create(() => IsExpanded = !IsExpanded);
+
+			SaveQRCode = ReactiveCommand.CreateFromTask(SaveQRCodeAsync);
+
+			CopyAddress = ReactiveCommand.CreateFromTask(TryCopyToClipboardAsync);
+
+			CopyLabel = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(Label ?? string.Empty));
+
+			ChangeLabel = ReactiveCommand.Create(() => InEditMode = true);
+
+			DisplayAddressOnHw = ReactiveCommand.CreateFromTask(async () =>
 			{
-				QrCode = x.Result;
+				var client = new HwiClient(Global.Network);
+				using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+				try
+				{
+					await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, Model.FullKeyPath, cts.Token);
+				}
+				catch (HwiException)
+				{
+					await PinPadViewModel.UnlockAsync();
+					await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, Model.FullKeyPath, cts.Token);
+				}
 			});
 
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
+			LockAddress = ReactiveCommand.CreateFromTask(async () =>
 			{
-				this.RaisePropertyChanged(nameof(AddressPrivate));
-				this.RaisePropertyChanged(nameof(LabelPrivate));
-			}).DisposeWith(Disposables);
+				Model.SetKeyState(KeyState.Locked, km);
+				owner.InitializeAddresses();
+
+				bool isAddressCopied = await Application.Current.Clipboard.GetTextAsync() == Address;
+				if (isAddressCopied)
+				{
+					await Application.Current.Clipboard.ClearAsync();
+				}
+			});
+
+			Observable
+				.Merge(ToggleQrCode.ThrownExceptions)
+				.Merge(SaveQRCode.ThrownExceptions)
+				.Merge(CopyAddress.ThrownExceptions)
+				.Merge(CopyLabel.ThrownExceptions)
+				.Merge(ChangeLabel.ThrownExceptions)
+				.Merge(DisplayAddressOnHw.ThrownExceptions)
+				.Merge(LockAddress.ThrownExceptions)
+				.Subscribe(ex =>
+				{
+					Logger.LogError(ex);
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
+				});
 		}
+
+		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
+
+		public ReactiveCommand<Unit, bool> ToggleQrCode { get; }
+		public ReactiveCommand<Unit, Unit> SaveQRCode { get; }
+		public ReactiveCommand<Unit, Unit> CopyAddress { get; }
+		public ReactiveCommand<Unit, Unit> CopyLabel { get; }
+		public ReactiveCommand<Unit, bool> ChangeLabel { get; }
+		public ReactiveCommand<Unit, Unit> DisplayAddressOnHw { get; }
+		public ReactiveCommand<Unit, Unit> LockAddress { get; }
+
+		public HdPubKey Model { get; }
+		private Global Global { get; }
+		public KeyManager KeyManager { get; }
+		public ReceiveTabViewModel Owner { get; }
+		public bool IsHardwareWallet { get; }
+
+		public bool IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode;
 
 		public bool ClipboardNotificationVisible
 		{
@@ -64,15 +176,27 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
 		}
 
-		public string Label => Model.Label;
+		public string Label
+		{
+			get => _label;
+			set
+			{
+				if (!IsLurkingWifeMode && !new SmartLabel(value).IsEmpty)
+				{
+					this.RaiseAndSetIfChanged(ref _label, value);
+				}
+			}
+		}
 
-		public string LabelPrivate => Global.UiConfig.LurkingWifeMode == true ? "###########" : Label;
+		public bool InEditMode
+		{
+			get => _inEditMode;
+			set => this.RaiseAndSetIfChanged(ref _inEditMode, value);
+		}
 
 		public string Address => Model.GetP2wpkhAddress(Global.Network).ToString();
 
-		public string AddressPrivate => Global.UiConfig.LurkingWifeMode == true ? "###########################" : Address;
-
-		public string Pubkey => Model.PubKey.ToString();
+		public string PubKey => Model.PubKey.ToString();
 
 		public string KeyPath => Model.FullKeyPath.ToString();
 
@@ -82,7 +206,11 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _qrCode, value);
 		}
 
-		public CancellationTokenSource CancelClipboardNotification { get; set; }
+		public ReactiveCommand<string, Unit> ExecuteSaveQRCodeCommand { get; set; }
+
+		public string ExpandMenuCaption => _expandMenuCaption?.Value ?? string.Empty;
+
+		private CancellationTokenSource CancelClipboardNotification { get; set; }
 
 		public async Task TryCopyToClipboardAsync()
 		{
@@ -108,15 +236,13 @@ namespace WalletWasabi.Gui.ViewModels
 				await Task.Delay(1000, cancelToken);
 				ClipboardNotificationVisible = false;
 			}
-			catch (Exception ex) when (ex is OperationCanceledException
-									|| ex is TaskCanceledException
-									|| ex is TimeoutException)
+			catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
 			{
-				Logging.Logger.LogTrace<AddressViewModel>(ex);
+				Logger.LogTrace(ex);
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogWarning<AddressViewModel>(ex);
+				Logger.LogWarning(ex);
 			}
 			finally
 			{
@@ -125,9 +251,12 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		#region IDisposable Support
+		public async Task SaveQRCodeAsync()
+		{
+			await ExecuteSaveQRCodeCommand?.Execute(Address);
+		}
 
-		private volatile bool _disposedValue = false; // To detect redundant calls
+		#region IDisposable Support
 
 		protected virtual void Dispose(bool disposing)
 		{
@@ -135,6 +264,7 @@ namespace WalletWasabi.Gui.ViewModels
 			{
 				if (disposing)
 				{
+					CancelClipboardNotification?.Dispose();
 					Disposables?.Dispose();
 				}
 

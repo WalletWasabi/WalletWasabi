@@ -23,8 +23,8 @@
       Languages="!(loc.Language)" />
 
     <Property Id="REINSTALLMODE" Value="amus" />
-    <!-- Downgrade error message. -->
-    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <!-- Downgrade error message. https://wixtoolset.org/documentation/manual/v3/xsd/wix/majorupgrade.html -->
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." AllowSameVersionUpgrades="yes" />
 
     <!-- Include .cab file into the .msi file. -->
     <MediaTemplate

@@ -1,12 +1,7 @@
-﻿namespace Gma.QrCodeNet.Encoding
+namespace Gma.QrCodeNet.Encoding
 {
 	public struct VersionDetail
 	{
-		internal int Version { get; private set; }
-		internal int NumTotalBytes { get; private set; }
-		internal int NumDataBytes { get; private set; }
-		internal int NumECBlocks { get; private set; }
-
 		internal VersionDetail(int version, int numTotalBytes, int numDataBytes, int numECBlocks)
 			: this()
 		{
@@ -16,9 +11,12 @@
 			NumECBlocks = numECBlocks;
 		}
 
-		internal int MatrixWidth => Width(Version);
+		internal int Version { get; private set; }
+		internal int NumTotalBytes { get; private set; }
+		internal int NumDataBytes { get; private set; }
+		internal int NumECBlocks { get; private set; }
 
-		internal static int Width(int version) => 17 + (4 * version);
+		internal int MatrixWidth => Width(Version);
 
 		internal int ECBlockGroup1 => NumECBlocks - ECBlockGroup2;
 
@@ -29,6 +27,8 @@
 		internal int NumDataBytesGroup2 => NumDataBytesGroup1 + 1;
 
 		internal int NumECBytesPerBlock => (NumTotalBytes - NumDataBytes) / NumECBlocks;
+
+		internal static int Width(int version) => 17 + (4 * version);
 
 		public override string ToString() => $"{Version};{NumTotalBytes};{NumDataBytes};{NumECBlocks}";
 	}

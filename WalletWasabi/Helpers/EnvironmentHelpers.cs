@@ -1,7 +1,12 @@
-﻿using System;
+using Microsoft.Win32;
+using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Helpers
@@ -10,8 +15,8 @@ namespace WalletWasabi.Helpers
 	{
 		private const int ProcessorCountRefreshIntervalMs = 30000;
 
-		private static volatile int _processorCount;
-		private static volatile int _lastProcessorCountRefreshTicks;
+		private static volatile int InternalProcessorCount;
+		private static volatile int LastProcessorCountRefreshTicks;
 
 		/// <summary>
 		/// https://github.com/i3arnon/ConcurrentHashSet/blob/master/src/ConcurrentHashSet/PlatformHelper.cs
@@ -21,19 +26,28 @@ namespace WalletWasabi.Helpers
 			get
 			{
 				var now = Environment.TickCount;
-				if (_processorCount == 0 || now - _lastProcessorCountRefreshTicks >= ProcessorCountRefreshIntervalMs)
+				if (InternalProcessorCount == 0 || now - LastProcessorCountRefreshTicks >= ProcessorCountRefreshIntervalMs)
 				{
-					_processorCount = Environment.ProcessorCount;
-					_lastProcessorCountRefreshTicks = now;
+					InternalProcessorCount = Environment.ProcessorCount;
+					LastProcessorCountRefreshTicks = now;
 				}
 
-				return _processorCount;
+				return InternalProcessorCount;
 			}
 		}
 
+		// appName, dataDir
+		private static ConcurrentDictionary<string, string> DataDirDict { get; } = new ConcurrentDictionary<string, string>();
+
+		// Do not change the output of this function. Backwards compatibility depends on it.
 		public static string GetDataDir(string appName)
 		{
-			string directory = null;
+			if (DataDirDict.TryGetValue(appName, out string dataDir))
+			{
+				return dataDir;
+			}
+
+			string directory;
 
 			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
@@ -62,11 +76,16 @@ namespace WalletWasabi.Helpers
 				}
 			}
 
-			if (Directory.Exists(directory)) return directory;
+			if (Directory.Exists(directory))
+			{
+				DataDirDict.TryAdd(appName, directory);
+				return directory;
+			}
 
 			Logger.LogInfo($"Creating data directory at `{directory}`.");
 			Directory.CreateDirectory(directory);
 
+			DataDirDict.TryAdd(appName, directory);
 			return directory;
 		}
 
@@ -94,14 +113,9 @@ namespace WalletWasabi.Helpers
 					var home = Environment.GetEnvironmentVariable("HOME");
 					if (!string.IsNullOrEmpty(home))
 					{
-						if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-						{
-							directory = Path.Combine(home, "Library", "Application Support", "Bitcoin");
-						}
-						else // Linux
-						{
-							directory = Path.Combine(home, ".bitcoin");
-						}
+						directory = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+							? Path.Combine(home, "Library", "Application Support", "Bitcoin")
+							: Path.Combine(home, ".bitcoin"); // Linux
 					}
 					else
 					{
@@ -113,22 +127,49 @@ namespace WalletWasabi.Helpers
 			}
 			catch (Exception ex)
 			{
-				Logger.LogDebug(ex, nameof(EnvironmentHelpers));
+				Logger.LogDebug(ex);
 			}
 
 			return directory;
+		}
+
+		// This method removes the path and file extension.
+		//
+		// Given Wasabi releases are currently built using Windows, the generated assemblies contain
+		// the hardcoded "C:\Users\User\Desktop\WalletWasabi\.......\FileName.cs" string because that
+		// is the real path of the file, it doesn't matter what OS was targeted.
+		// In Windows and Linux that string is a valid path and that means Path.GetFileNameWithoutExtension
+		// can extract the file name but in the case of OSX the same string is not a valid path so, it assumes
+		// the whole string is the file name.
+		public static string ExtractFileName(string callerFilePath)
+		{
+			var lastSeparatorIndex = callerFilePath.LastIndexOf("\\");
+			if (lastSeparatorIndex == -1)
+			{
+				lastSeparatorIndex = callerFilePath.LastIndexOf("/");
+			}
+
+			var fileName = callerFilePath;
+
+			if (lastSeparatorIndex != -1)
+			{
+				lastSeparatorIndex++;
+				fileName = callerFilePath[lastSeparatorIndex..]; // From lastSeparatorIndex until the end of the string.
+			}
+
+			var fileNameWithoutExtension = fileName.TrimEnd(".cs", StringComparison.InvariantCultureIgnoreCase);
+			return fileNameWithoutExtension;
 		}
 
 		/// <summary>
 		/// Executes a command with bash.
 		/// https://stackoverflow.com/a/47918132/2061103
 		/// </summary>
-		/// <param name="cmd"></param>
-		public static void ShellExec(string cmd, bool waitForExit = true)
+		public static async Task ShellExecAsync(string cmd, bool waitForExit = true)
 		{
 			var escapedArgs = cmd.Replace("\"", "\\\"");
 
-			using (var process = Process.Start(
+			using var process = Process.Start(
 				new ProcessStartInfo
 				{
 					FileName = "/bin/sh",
@@ -138,17 +179,69 @@ namespace WalletWasabi.Helpers
 					CreateNoWindow = true,
 					WindowStyle = ProcessWindowStyle.Hidden
 				}
-			))
+			);
+			if (waitForExit)
 			{
-				if (waitForExit)
+				await process.WaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
+				var exitCode = process.ExitCode;
+				if (exitCode != 0)
 				{
-					process.WaitForExit();
-					if (process.ExitCode != 0)
+					Logger.LogError($"{nameof(ShellExecAsync)} command: {cmd} exited with exit code: {exitCode}, instead of 0.");
+				}
+			}
+		}
+
+		public static bool IsFileTypeAssociated(string fileExtension)
+		{
+			// Source article: https://edi.wang/post/2019/3/4/read-and-write-windows-registry-in-net-core
+
+			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				throw new InvalidOperationException("Operation only supported on windows.");
+			}
+
+			fileExtension = fileExtension.TrimStart('.'); // Remove . if added by the caller.
+
+			using (RegistryKey key = Registry.ClassesRoot.OpenSubKey($".{fileExtension}"))
+			{
+				if (key != null)
+				{
+					object val = key.GetValue(null); // Read the (Default) value.
+					if (val != null)
 					{
-						Logger.LogError($"{nameof(ShellExec)} command: {cmd} exited with exit code: {process.ExitCode}, instead of 0.", nameof(EnvironmentHelpers));
+						return true;
 					}
 				}
 			}
+			return false;
+		}
+
+		/// <summary>
+		/// Gets the name of the current method.
+		/// </summary>
+		public static string GetMethodName([CallerMemberName] string callerName = "")
+		{
+			return callerName;
+		}
+
+		public static string GetCallerFileName([CallerFilePath] string callerFilePath = "")
+		{
+			return ExtractFileName(callerFilePath);
+		}
+
+		public static string GetFullBaseDirectory()
+		{
+			var fullBaseDirectory = Path.GetFullPath(AppContext.BaseDirectory);
+
+			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				if (!fullBaseDirectory.StartsWith('/'))
+				{
+					fullBaseDirectory = fullBaseDirectory.Insert(0, "/");
+				}
+			}
+
+			return fullBaseDirectory;
 		}
 	}
 }

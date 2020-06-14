@@ -1,38 +1,47 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.Protocol;
 using System;
 using WalletWasabi.Backend.Models.Responses;
+using WalletWasabi.Exceptions;
 
 namespace WalletWasabi.Helpers
 {
 	public static class Constants
 	{
-		public static readonly Version ClientVersion = new Version(1, 1, 3);
+		public static readonly Version ClientVersion = new Version(1, 1, 11, 1);
+		public const string ClientSupportBackendVersionMin = "3";
+		public const string ClientSupportBackendVersionMax = "4";
 		public const string BackendMajorVersion = "3";
-		public static readonly VersionsResponse VersionsResponse = new VersionsResponse { ClientVersion = ClientVersion.ToString(), BackenMajordVersion = BackendMajorVersion };
+		public static readonly Version HwiVersion = new Version("1.1.0");
+		public static readonly Version BitcoinCoreVersion = new Version("0.19.1");
+		public static readonly Version LegalDocumentsVersion = new Version(2, 0);
 
-		public const uint ProtocolVersion_WITNESS_VERSION = 70012;
+		/// <summary>
+		/// By changing this, we can force to start over the transactions file, so old incorrect transactions would be cleared.
+		/// It is also important to force the KeyManagers to be reindexed when this is changed by renaming the BlockState Height related property.
+		/// </summary>
+		public const string ConfirmedTransactionsVersion = "2";
 
-		public const int MaxPasswordLength = 150;
+		public const uint ProtocolVersionWitnessVersion = 70012;
 
 		public static readonly NodeRequirement NodeRequirements = new NodeRequirement
 		{
 			RequiredServices = NodeServices.NODE_WITNESS,
-			MinVersion = ProtocolVersion_WITNESS_VERSION,
+			MinVersion = ProtocolVersionWitnessVersion,
 			MinProtocolCapabilities = new ProtocolCapabilities { SupportGetBlock = true, SupportWitness = true, SupportMempoolQuery = true }
 		};
 
 		public static readonly NodeRequirement LocalNodeRequirements = new NodeRequirement
 		{
 			RequiredServices = NodeServices.NODE_WITNESS,
-			MinVersion = ProtocolVersion_WITNESS_VERSION,
+			MinVersion = ProtocolVersionWitnessVersion,
 			MinProtocolCapabilities = new ProtocolCapabilities { SupportGetBlock = true, SupportWitness = true }
 		};
 
 		public static readonly NodeRequirement LocalBackendNodeRequirements = new NodeRequirement
 		{
 			RequiredServices = NodeServices.NODE_WITNESS,
-			MinVersion = ProtocolVersion_WITNESS_VERSION,
+			MinVersion = ProtocolVersionWitnessVersion,
 			MinProtocolCapabilities = new ProtocolCapabilities
 			{
 				SupportGetBlock = true,
@@ -52,31 +61,54 @@ namespace WalletWasabi.Helpers
 		// There are a maximum of 2,099,999,997,690,000 Bitcoin elements (called satoshis), which are currently most commonly measured in units of 100,000,000 known as BTC. Stated another way, no more than 21 million BTC can ever be created.
 		public const long MaximumNumberOfSatoshis = 2099999997690000;
 
-		private static readonly BitcoinWitPubKeyAddress MainNetCoordinatorAddress = new BitcoinWitPubKeyAddress("bc1qs604c7jv6amk4cxqlnvuxv26hv3e48cds4m0ew", Network.Main);
-		private static readonly BitcoinWitPubKeyAddress TestNetCoordinatorAddress = new BitcoinWitPubKeyAddress("tb1qecaheev3hjzs9a3w9x33wr8n0ptu7txp359exs", Network.TestNet);
-		private static readonly BitcoinWitPubKeyAddress RegTestCoordinatorAddress = new BitcoinWitPubKeyAddress("bcrt1qangxrwyej05x9mnztkakk29s4yfdv4n586gs8l", Network.RegTest);
+		public const int TwentyMinutesConfirmationTarget = 2;
+		public const int OneDayConfirmationTarget = 144;
+		public const int SevenDaysConfirmationTarget = 1008;
 
-		public static BitcoinWitPubKeyAddress GetCoordinatorAddress(Network network)
+		public const int BigFileReadWriteBufferSize = 1 * 1024 * 1024;
+
+		public const int DefaultTorSocksPort = 9050;
+		public const int DefaultTorBrowserSocksPort = 9150;
+		public const int DefaultTorControlPort = 9051;
+		public const int DefaultTorBrowserControlPort = 9151;
+
+		public const int DefaultMainNetBitcoinP2pPort = 8333;
+		public const int DefaultTestNetBitcoinP2pPort = 18333;
+		public const int DefaultRegTestBitcoinP2pPort = 18444;
+
+		public const int DefaultMainNetBitcoinCoreRpcPort = 8332;
+		public const int DefaultTestNetBitcoinCoreRpcPort = 18332;
+		public const int DefaultRegTestBitcoinCoreRpcPort = 18443;
+
+		public const string Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+		public const double TransactionRBFSignalRate = 0.02; // 2% RBF transactions
+
+		public const decimal DefaultDustThreshold = 0.00005m;
+
+		public const long MaxSatoshisSupply = 2_100_000_000_000_000L;
+
+		public static readonly ExtPubKey FallBackCoordinatorExtPubKey = NBitcoinHelpers.BetterParseExtPubKey("xpub6D2PqhWBAbF3xgfaAUW73KnaCXUroArcgMTzNkNzfVX7ykkSzQGbqaXZeaNyxKbZojAAqDwsne6B7NcVhiTrXbGYrQNq1yF76NkgdonGrEa");
+
+		public static string[] UserAgents = new[]
 		{
-			Guard.NotNull(nameof(network), network);
+			"/Satoshi:0.20.0/",
+			"/Satoshi:0.19.1/",
+			"/Satoshi:0.19.0.1/",
+			"/Satoshi:0.19.0/",
+			"/Satoshi:0.18.1/",
+			"/Satoshi:0.18.0/",
+			"/Satoshi:0.17.1/",
+			"/Satoshi:0.17.0.1/",
+			"/Satoshi:0.17.0/",
+			"/Satoshi:0.16.3/",
+			"/Satoshi:0.16.2/",
+			"/Satoshi:0.16.1/",
+			"/Satoshi:0.16.0/",
+		};
 
-			if (network == Network.Main)
-			{
-				return MainNetCoordinatorAddress;
-			}
-
-			if (network == Network.TestNet)
-			{
-				return TestNetCoordinatorAddress;
-			}
-
-			// else regtest
-			return RegTestCoordinatorAddress;
-		}
-
-		public const string ChangeOfSpecialLabelStart = "change of (";
-		public const string ChangeOfSpecialLabelEnd = ")";
-
-		public static Money DustThreshold = Money.Coins(0.0001m);
+		public static string ClientSupportBackendVersionText => ClientSupportBackendVersionMin == ClientSupportBackendVersionMax
+				? ClientSupportBackendVersionMin
+				: $"{ClientSupportBackendVersionMin} - {ClientSupportBackendVersionMax}";
 	}
 }

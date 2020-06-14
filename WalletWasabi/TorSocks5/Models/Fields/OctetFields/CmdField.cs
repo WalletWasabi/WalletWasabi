@@ -1,9 +1,17 @@
-﻿using WalletWasabi.Bases;
+using WalletWasabi.Bases;
 
 namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields
 {
 	public class CmdField : OctetSerializableBase
 	{
+		#region Constructors
+
+		public CmdField()
+		{
+		}
+
+		#endregion Constructors
+
 		#region Statics
 
 		// https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt
@@ -22,9 +30,9 @@ namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields
 
 		// https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt#n46
 		// As an extension to SOCKS4A and SOCKS5, Tor implements a new command value,
-		// "RESOLVE" [F0].  When Tor receives a "RESOLVE" SOCKS command, it initiates
+		// "RESOLVE" [F0]. When Tor receives a "RESOLVE" SOCKS command, it initiates
 		// a remote lookup of the hostname provided as the target address in the SOCKS
-		// request.The reply is either an error(if the address couldn't be
+		// request.The reply is either an error(if the address could not be
 		// resolved) or a success response.In the case of success, the address is
 		// stored in the portion of the SOCKS response reserved for remote IP address.
 		public static CmdField Resolve
@@ -54,13 +62,5 @@ namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields
 		}
 
 		#endregion Statics
-
-		#region ConstructorsAndInitializers
-
-		public CmdField()
-		{
-		}
-
-		#endregion ConstructorsAndInitializers
 	}
 }

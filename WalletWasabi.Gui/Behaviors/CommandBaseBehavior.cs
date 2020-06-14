@@ -12,8 +12,8 @@ namespace WalletWasabi.Gui.Behaviors
 		/// Defines the <see cref="Command"/> property.
 		/// </summary>
 		public static readonly DirectProperty<CommandBasedBehavior<T>, ICommand> CommandProperty =
-			AvaloniaProperty.RegisterDirect<CommandBasedBehavior<T>, ICommand>(nameof(Command),
-				commandBehavior => commandBehavior.Command, (commandBehavior, command) => commandBehavior.Command = command, enableDataValidation: true);
+			AvaloniaProperty.RegisterDirect<CommandBasedBehavior<T>, ICommand>(nameof(Command), commandBehavior => commandBehavior.Command,
+				(commandBehavior, command) => commandBehavior.Command = command, enableDataValidation: true);
 
 		/// <summary>
 		/// Defines the <see cref="CommandParameter"/> property.

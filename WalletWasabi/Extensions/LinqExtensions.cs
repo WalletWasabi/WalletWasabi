@@ -1,9 +1,46 @@
-﻿using System.Collections.Generic;
+using NBitcoin;
+using System.Collections.Generic;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Transactions;
 
 namespace System.Linq
 {
 	public static class LinqExtensions
 	{
+		public static IEnumerable<IEnumerable<T>> Batch<T>(
+		   this IEnumerable<T> source, int size)
+		{
+			T[] bucket = null;
+			var count = 0;
+
+			foreach (var item in source)
+			{
+				if (bucket is null)
+				{
+					bucket = new T[size];
+				}
+
+				bucket[count++] = item;
+
+				if (count != size)
+				{
+					continue;
+				}
+
+				yield return bucket.Select(x => x);
+
+				bucket = null;
+				count = 0;
+			}
+
+			// Return the last bucket with all remaining elements
+			if (bucket != null && count > 0)
+			{
+				Array.Resize(ref bucket, count);
+				yield return bucket.Select(x => x);
+			}
+		}
+
 		public static T RandomElement<T>(this IEnumerable<T> source)
 		{
 			T current = default;
@@ -45,12 +82,26 @@ namespace System.Linq
 			foreach (var pair in me)
 			{
 				if (pair.Value.Equals(value))
+				{
 					itemsToRemove.Add(pair.Key);
+				}
 			}
 
 			foreach (TKey item in itemsToRemove)
 			{
 				me.Remove(item);
+			}
+		}
+
+		public static void AddToValueList<TKey, TValue, TElem>(this Dictionary<TKey, TValue> myDic, TKey key, TElem elem) where TValue : List<TElem>
+		{
+			if (myDic.ContainsKey(key))
+			{
+				myDic[key].Add(elem);
+			}
+			else
+			{
+				myDic.Add(key, new List<TElem>() { elem } as TValue);
 			}
 		}
 
@@ -62,7 +113,9 @@ namespace System.Linq
 			foreach (var pair in me)
 			{
 				if (pair.Value.Equals(value))
+				{
 					itemsToRemove.Add(pair.Key);
+				}
 			}
 
 			foreach (TKey item in itemsToRemove)
@@ -76,21 +129,104 @@ namespace System.Linq
 			return !(source is null) && source.Any();
 		}
 
+		public static IEnumerable<IEnumerable<T>> CombinationsWithoutRepetition<T>(
+			this IEnumerable<T> items,
+			int ofLength)
+		{
+			return (ofLength == 1)
+				? items.Select(item => new[] { item })
+				: items.SelectMany((item, i) => items
+					.Skip(i + 1)
+					.CombinationsWithoutRepetition(ofLength - 1)
+					.Select(result => new T[] { item }
+					.Concat(result)));
+		}
+
+		public static IEnumerable<IEnumerable<T>> CombinationsWithoutRepetition<T>(
+			this IEnumerable<T> items,
+			int ofLength,
+			int upToLength)
+		{
+			return Enumerable
+				.Range(ofLength, Math.Max(0, upToLength - ofLength + 1))
+				.SelectMany(len => items.CombinationsWithoutRepetition(ofLength: len));
+		}
+
 		public static IEnumerable<IEnumerable<T>> GetPermutations<T>(this IEnumerable<T> items, int count)
 		{
 			int i = 0;
 			foreach (var item in items)
 			{
 				if (count == 1)
+				{
 					yield return new T[] { item };
+				}
 				else
 				{
 					foreach (var result in items.Skip(i + 1).GetPermutations(count - 1))
+					{
 						yield return new T[] { item }.Concat(result);
+					}
 				}
 
 				++i;
 			}
+		}
+
+		public static IEnumerable<IEnumerable<SmartCoin>> GetPermutations(this IEnumerable<SmartCoin> items, int count, Money minAmount)
+		{
+			int i = 0;
+			foreach (var item in items)
+			{
+				if (count == 1)
+				{
+					if (item.Amount >= minAmount)
+					{
+						yield return new SmartCoin[] { item };
+					}
+				}
+				else
+				{
+					foreach (var result in items.Skip(i + 1).GetPermutations(count - 1))
+					{
+						if (item.Amount + result.Sum(x => x.Amount) >= minAmount)
+						{
+							yield return new SmartCoin[] { item }.Concat(result);
+						}
+					}
+				}
+
+				++i;
+			}
+		}
+
+		public static IOrderedEnumerable<SmartTransaction> OrderByBlockchain(this IEnumerable<SmartTransaction> me)
+			=> me
+				.OrderBy(x => x.Height)
+				.ThenBy(x => x.BlockIndex)
+				.ThenBy(x => x.FirstSeen);
+
+		public static IOrderedEnumerable<TransactionSummary> OrderByBlockchain(this IEnumerable<TransactionSummary> me)
+			=> me
+				.OrderBy(x => x.Height)
+				.ThenBy(x => x.BlockIndex)
+				.ThenBy(x => x.DateTime);
+
+		public static IEnumerable<string> ToBlockchainOrderedLines(this IEnumerable<SmartTransaction> me)
+			=> me
+				.OrderByBlockchain()
+				.Select(x => x.ToLine());
+
+		/// <summary>
+		/// Chunks the source list to sub-lists by the specified chunk size.
+		/// Source: https://stackoverflow.com/a/24087164/2061103
+		/// </summary>
+		public static IEnumerable<IEnumerable<T>> ChunkBy<T>(this IEnumerable<T> source, int chunkSize)
+		{
+			return source
+				.Select((x, i) => new { Index = i, Value = x })
+				.GroupBy(x => x.Index / chunkSize)
+				.Select(x => x.Select(v => v.Value));
 		}
 	}
 }

@@ -1,11 +1,11 @@
-﻿using Avalonia.Data.Converters;
+using Avalonia.Data.Converters;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.Models;
-using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.Gui.Converters
 {
@@ -15,22 +15,25 @@ namespace WalletWasabi.Gui.Converters
 		{
 			if (value is SmartCoinStatus status)
 			{
-				switch (status)
+				return status switch
 				{
-					case SmartCoinStatus.Confirmed: return "";
-					case SmartCoinStatus.Unconfirmed: return "";
-					case SmartCoinStatus.MixingOnWaitingList: return " queued  ";
-					case SmartCoinStatus.MixingBanned: return " banned  ";
-					case SmartCoinStatus.MixingInputRegistration: return " registered  ";
-					case SmartCoinStatus.MixingConnectionConfirmation: return " connection confirmed  ";
-					case SmartCoinStatus.MixingOutputRegistration: return " output registered  ";
-					case SmartCoinStatus.MixingSigning: return " signed  ";
-					case SmartCoinStatus.SpentAccordingToBackend: return " spent  ";
-					case SmartCoinStatus.MixingWaitingForConfirmation: return " waiting for confirmation  ";
-				}
+					SmartCoinStatus.Confirmed => "",
+					SmartCoinStatus.Unconfirmed => "",
+					SmartCoinStatus.MixingOnWaitingList => " queued  ",
+					SmartCoinStatus.MixingBanned => " banned  ",
+					SmartCoinStatus.MixingInputRegistration => " registered  ",
+					SmartCoinStatus.MixingConnectionConfirmation => " connection confirmed  ",
+					SmartCoinStatus.MixingOutputRegistration => " output registered  ",
+					SmartCoinStatus.MixingSigning => " signed  ",
+					SmartCoinStatus.SpentAccordingToBackend => " spent  ",
+					SmartCoinStatus.MixingWaitingForConfirmation => " waiting for confirmation  ",
+					_ => ""
+				};
 			}
-
-			throw new InvalidOperationException();
+			else
+			{
+				throw new TypeArgumentException(value, typeof(SmartCoinStatus), nameof(value));
+			}
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

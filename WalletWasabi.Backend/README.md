@@ -1,6 +1,6 @@
 # API Specification
 
-**ATTENTION:** This document describes the initial specification. The actual implementation may significantly differ. You can find up to date documentation here:  
+**ATTENTION:** This document describes the initial specification. The actual implementation may significantly differ. You can find up to date documentation here:
 - TestNet: http://testwnp3fugjln6vh5vpj7mvq3lkqqwjj3c2aafyu7laxz42kgwh2rad.onion/swagger
 - Main: http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/swagger
 
@@ -13,8 +13,8 @@
   Requests and Responses are JSON.
   Requests have the following format: `/api/v3/{coin}/{controller}/`.
   Currently supported coins: `btc`.
-  
-  For example requesting fees: `GET /api/v3/btc/offchain/exchange-rates`.
+
+  For example requesting exchange rate: `GET /api/v3/btc/offchain/exchange-rates`.
 
 ### Controller: Blockchain, Coin: BTC
 
@@ -27,7 +27,7 @@
 
 #### POST filters
 
-  At initial synchronization the wallet must specify the hash of the first block that contains native segwit output. This hash must be hard coded into the client.  
+  At the initial synchronization the wallet must specify the hash of the first block that contains native segwit output. This hash must be hard coded into the client.  
   - First block with P2WPKH: dfcec48bb8491856c353306ab5febeb7e99e4d783eedf3de98f3ee0812b92bad
   - First block with P2WPKH on TestNet: b29fbe96bf737000f8e3536e9b4681a01b1ca6be3ac4bd1f8269cdbd465e6700
   
@@ -36,7 +36,7 @@
   
 #### Handling Reorgs
 
-  If the answer to the `filters` request is not found, then the client steps back one block and queries the filters with that previous hash. This can happen multiple times. This will only happen when blockchain reorganization happened. 
+  If the answer to the `filters` request is not found, then the client steps back one block and queries the filters with that previous hash. This can happen multiple times. This will only happen when blockchain reorganization has occurred. 
 
 ### Controller: ChaumianCoinJoin, Coin: BTC
 

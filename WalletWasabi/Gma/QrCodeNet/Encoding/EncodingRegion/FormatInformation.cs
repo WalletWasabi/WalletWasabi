@@ -1,5 +1,5 @@
-﻿using System;
 using Gma.QrCodeNet.Encoding.Masking;
+using System;
 
 namespace Gma.QrCodeNet.Encoding.EncodingRegion
 {
@@ -11,13 +11,23 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 	internal static class FormatInformation
 	{
 		/// <summary>
+		/// From Appendix C in JISX0510:2004 (p.65).
+		/// </summary>
+		private const int FormatInfoPoly = 0x537;
+
+		/// <summary>
+		/// From Appendix C in JISX0510:2004 (p.65).
+		/// </summary>
+		private const int FormatInfoMaskPattern = 0x5412;
+
+		/// <summary>
 		/// Embed format information to tristatematrix.
 		/// Process combination of create info bits, BCH error correction bits calculation, embed towards matrix.
 		/// </summary>
 		/// <remarks>ISO/IEC 18004:2000 Chapter 8.9 Page 53</remarks>
-		internal static void EmbedFormatInformation(this TriStateMatrix triMatrix, ErrorCorrectionLevel errorlevel, Pattern pattern)
+		internal static void EmbedFormatInformation(this TriStateMatrix triMatrix, ErrorCorrectionLevel errorLevel, Pattern pattern)
 		{
-			BitList formatInfo = GetFormatInfoBits(errorlevel, pattern);
+			BitList formatInfo = GetFormatInfoBits(errorLevel, pattern);
 			int width = triMatrix.Width;
 			for (int index = 0; index < 15; index++)
 			{
@@ -40,38 +50,30 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 		{
 			if (bitsIndex <= 7)
 			{
-				return bitsIndex >= 6 ? new MatrixPoint(bitsIndex + 1, 8)
+				return bitsIndex >= 6
+					? new MatrixPoint(bitsIndex + 1, 8)
 					: new MatrixPoint(bitsIndex, 8);
 			}
 			else
 			{
-				return bitsIndex == 8 ? new MatrixPoint(8, 8 - (bitsIndex - 7))
+				return bitsIndex == 8
+					? new MatrixPoint(8, 8 - (bitsIndex - 7))
 					: new MatrixPoint(8, 8 - (bitsIndex - 7) - 1);
 			}
 		}
 
-		/// <summary>
-		/// From Appendix C in JISX0510:2004 (p.65).
-		/// </summary>
-		private const int S_FormatInfoPoly = 0x537;
-
-		/// <summary>
-		/// From Appendix C in JISX0510:2004 (p.65).
-		/// </summary>
-		private const int S_FormatInfoMaskPattern = 0x5412;
-
-		private static BitList GetFormatInfoBits(ErrorCorrectionLevel errorlevel, Pattern pattern)
+		private static BitList GetFormatInfoBits(ErrorCorrectionLevel errorLevel, Pattern pattern)
 		{
 			int formatInfo = (int)pattern.MaskPatternType;
 			//Pattern bits length = 3
-			formatInfo |= GetErrorCorrectionIndicatorBits(errorlevel) << 3;
+			formatInfo |= GetErrorCorrectionIndicatorBits(errorLevel) << 3;
 
-			int bchCode = BCHCalculator.CalculateBCH(formatInfo, S_FormatInfoPoly);
+			int bchCode = BCHCalculator.CalculateBCH(formatInfo, FormatInfoPoly);
 			//bchCode length = 10
 			formatInfo = (formatInfo << 10) | bchCode;
 
 			//xor maskPattern
-			formatInfo ^= S_FormatInfoMaskPattern;
+			formatInfo ^= FormatInfoMaskPattern;
 
 			BitList resultBits = new BitList
 			{
@@ -79,36 +81,31 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 			};
 
 			if (resultBits.Count != 15)
+			{
 				throw new Exception("FormatInfoBits length is not 15");
+			}
 			else
+			{
 				return resultBits;
+			}
 		}
 
 		//According Table 25 — Error correction level indicators
-		//Using this bits as enum values would destroy thir order which currently correspond to error correction strength.
+		//Using these bits as enum values would destroy their order which currently corresponds to error correction strength.
 		internal static int GetErrorCorrectionIndicatorBits(ErrorCorrectionLevel errorLevel)
 		{
 			//L 01
 			//M 00
 			//Q 11
 			//H 10
-			switch (errorLevel)
+			return errorLevel switch
 			{
-				case ErrorCorrectionLevel.H:
-					return 0x02;
-
-				case ErrorCorrectionLevel.L:
-					return 0x01;
-
-				case ErrorCorrectionLevel.M:
-					return 0x00;
-
-				case ErrorCorrectionLevel.Q:
-					return 0x03;
-
-				default:
-					throw new ArgumentException($"Unsupported error correction level [{errorLevel}]", nameof(errorLevel));
-			}
+				ErrorCorrectionLevel.H => 0x02,
+				ErrorCorrectionLevel.L => 0x01,
+				ErrorCorrectionLevel.M => 0x00,
+				ErrorCorrectionLevel.Q => 0x03,
+				_ => throw new ArgumentException($"Unsupported error correction level [{errorLevel}]", nameof(errorLevel))
+			};
 		}
 	}
 }

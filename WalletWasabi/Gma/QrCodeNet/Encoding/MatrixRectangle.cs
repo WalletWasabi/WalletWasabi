@@ -1,19 +1,19 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Gma.QrCodeNet.Encoding
 {
 	internal struct MatrixRectangle : IEnumerable<MatrixPoint>
 	{
-		public MatrixPoint Location { get; private set; }
-		public MatrixSize Size { get; private set; }
-
 		internal MatrixRectangle(MatrixPoint location, MatrixSize size) :
 			this()
 		{
 			Location = location;
 			Size = size;
 		}
+
+		public MatrixPoint Location { get; private set; }
+		public MatrixSize Size { get; private set; }
 
 		public IEnumerator<MatrixPoint> GetEnumerator()
 		{

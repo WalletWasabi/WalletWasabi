@@ -1,26 +1,41 @@
-﻿using WalletWasabi.Exceptions;
-using WalletWasabi.Helpers;
-using WalletWasabi.Http.Models;
-using WalletWasabi.Logging;
-using WalletWasabi.TorSocks5.Models.Fields.OctetFields;
 using Nito.AsyncEx;
 using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Security;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Threading.Tasks;
 using System.Threading;
+using System.Threading.Tasks;
+using WalletWasabi.Exceptions;
+using WalletWasabi.Helpers;
+using WalletWasabi.Http.Models;
+using WalletWasabi.Logging;
+using WalletWasabi.TorSocks5.Models.Fields.OctetFields;
 
 namespace WalletWasabi.TorSocks5
 {
-	public class TorHttpClient : IDisposable
+	public class TorHttpClient : ITorHttpClient, IDisposable
 	{
 		private static DateTimeOffset? TorDoesntWorkSinceBacking = null;
+
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		public TorHttpClient(Uri baseUri, EndPoint torSocks5EndPoint, bool isolateStream = false)
+		{
+			baseUri = Guard.NotNull(nameof(baseUri), baseUri);
+			Create(torSocks5EndPoint, isolateStream, () => baseUri);
+		}
+
+		public TorHttpClient(Func<Uri> baseUriAction, EndPoint torSocks5EndPoint, bool isolateStream = false)
+		{
+			Create(torSocks5EndPoint, isolateStream, baseUriAction);
+		}
 
 		public static DateTimeOffset? TorDoesntWorkSince
 		{
@@ -42,7 +57,8 @@ namespace WalletWasabi.TorSocks5
 
 		public Uri DestinationUri => DestinationUriAction();
 		public Func<Uri> DestinationUriAction { get; private set; }
-		public IPEndPoint TorSocks5EndPoint { get; private set; }
+		public EndPoint TorSocks5EndPoint { get; private set; }
+		public bool IsTorUsed => TorSocks5EndPoint != null;
 
 		public bool IsolateStream { get; private set; }
 
@@ -50,28 +66,10 @@ namespace WalletWasabi.TorSocks5
 
 		private static AsyncLock AsyncLock { get; } = new AsyncLock(); // We make everything synchronous, so slow, but at least stable.
 
-		public TorHttpClient(Uri baseUri, IPEndPoint torSocks5EndPoint, bool isolateStream = false)
-		{
-			baseUri = Guard.NotNull(nameof(baseUri), baseUri);
-			Create(torSocks5EndPoint, isolateStream, () => baseUri);
-		}
-
-		public TorHttpClient(Func<Uri> baseUriAction, IPEndPoint torSocks5EndPoint, bool isolateStream = false)
-		{
-			Create(torSocks5EndPoint, isolateStream, baseUriAction);
-		}
-
-		private void Create(IPEndPoint torSocks5EndPoint, bool isolateStream, Func<Uri> baseUriAction)
+		private void Create(EndPoint torSocks5EndPoint, bool isolateStream, Func<Uri> baseUriAction)
 		{
 			DestinationUriAction = Guard.NotNull(nameof(baseUriAction), baseUriAction);
-			if (DestinationUri.IsLoopback)
-			{
-				TorSocks5EndPoint = null;
-			}
-			else
-			{
-				TorSocks5EndPoint = torSocks5EndPoint;
-			}
+			TorSocks5EndPoint = DestinationUri.IsLoopback ? null : torSocks5EndPoint;
 			TorSocks5Client = null;
 			IsolateStream = isolateStream;
 		}
@@ -84,26 +82,26 @@ namespace WalletWasabi.TorSocks5
 			Guard.NotNull(nameof(method), method);
 			relativeUri = Guard.NotNull(nameof(relativeUri), relativeUri);
 			var requestUri = new Uri(DestinationUri, relativeUri);
-			var request = new HttpRequestMessage(method, requestUri);
+			using var request = new HttpRequestMessage(method, requestUri);
 			if (content != null)
 			{
 				request.Content = content;
 			}
-			request.Headers.AcceptEncoding.Add(new System.Net.Http.Headers.StringWithQualityHeaderValue("gzip"));
+			request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
 
 			try
 			{
-				using (await AsyncLock.LockAsync(cancel))
+				using (await AsyncLock.LockAsync(cancel).ConfigureAwait(false))
 				{
 					try
 					{
-						HttpResponseMessage ret = await SendAsync(request);
+						HttpResponseMessage ret = await SendAsync(request).ConfigureAwait(false);
 						TorDoesntWorkSince = null;
 						return ret;
 					}
 					catch (Exception ex)
 					{
-						Logger.LogTrace<TorHttpClient>(ex);
+						Logger.LogTrace(ex);
 
 						TorSocks5Client?.Dispose(); // rebuild the connection and retry
 						TorSocks5Client = null;
@@ -111,31 +109,35 @@ namespace WalletWasabi.TorSocks5
 						cancel.ThrowIfCancellationRequested();
 						try
 						{
-							HttpResponseMessage ret2 = await SendAsync(request);
+							HttpResponseMessage ret2 = await SendAsync(request).ConfigureAwait(false);
 							TorDoesntWorkSince = null;
 							return ret2;
 						}
 						// If we get ttlexpired then wait and retry again linux often do this.
 						catch (TorSocks5FailureResponseException ex2) when (ex2.RepField == RepField.TtlExpired)
 						{
-							Logger.LogTrace<TorHttpClient>(ex);
+							Logger.LogTrace(ex);
 
 							TorSocks5Client?.Dispose(); // rebuild the connection and retry
 							TorSocks5Client = null;
 
 							try
 							{
-								await Task.Delay(1000, cancel);
+								await Task.Delay(1000, cancel).ConfigureAwait(false);
 							}
 							catch (TaskCanceledException tce)
 							{
 								throw new OperationCanceledException(tce.Message, tce, cancel);
 							}
 						}
+						catch (SocketException ex3) when (ex3.ErrorCode == (int)SocketError.ConnectionRefused)
+						{
+							throw new ConnectionException("Connection was refused.", ex3);
+						}
 
 						cancel.ThrowIfCancellationRequested();
 
-						HttpResponseMessage ret3 = await SendAsync(request);
+						HttpResponseMessage ret3 = await SendAsync(request).ConfigureAwait(false);
 						TorDoesntWorkSince = null;
 						return ret3;
 					}
@@ -188,9 +190,9 @@ namespace WalletWasabi.TorSocks5
 			if (TorSocks5Client is null || !TorSocks5Client.IsConnected)
 			{
 				TorSocks5Client = new TorSocks5Client(TorSocks5EndPoint);
-				await TorSocks5Client.ConnectAsync();
-				await TorSocks5Client.HandshakeAsync(IsolateStream);
-				await TorSocks5Client.ConnectToDestinationAsync(host, request.RequestUri.Port);
+				await TorSocks5Client.ConnectAsync().ConfigureAwait(false);
+				await TorSocks5Client.HandshakeAsync(IsolateStream).ConfigureAwait(false);
+				await TorSocks5Client.ConnectToDestinationAsync(host, request.RequestUri.Port).ConfigureAwait(false);
 
 				Stream stream = TorSocks5Client.TcpClient.GetStream();
 				if (request.RequestUri.Scheme == "https")
@@ -220,7 +222,7 @@ namespace WalletWasabi.TorSocks5
 							host,
 							new X509CertificateCollection(),
 							SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12,
-							checkCertificateRevocation: true);
+							checkCertificateRevocation: true).ConfigureAwait(false);
 					stream = sslStream;
 				}
 
@@ -243,34 +245,30 @@ namespace WalletWasabi.TorSocks5
 				{
 					if (request.Content is null)
 					{
-						request.Content = new ByteArrayContent(new byte[] { }); // dummy empty content
+						request.Content = new ByteArrayContent(Array.Empty<byte>()); // dummy empty content
 						request.Content.Headers.ContentLength = 0;
 					}
 					else
 					{
 						if (request.Content.Headers.ContentLength is null)
 						{
-							request.Content.Headers.ContentLength = (await request.Content.ReadAsStringAsync()).Length;
+							request.Content.Headers.ContentLength = (await request.Content.ReadAsStringAsync().ConfigureAwait(false)).Length;
 						}
 					}
 				}
 			}
 
-			var requestString = await request.ToHttpStringAsync();
+			var requestString = await request.ToHttpStringAsync().ConfigureAwait(false);
 
 			var bytes = Encoding.UTF8.GetBytes(requestString);
 
-			await TorSocks5Client.Stream.WriteAsync(bytes, 0, bytes.Length);
-			await TorSocks5Client.Stream.FlushAsync();
-			using (var httpResponseMessage = new HttpResponseMessage())
-			{
-				return await HttpResponseMessageExtensions.CreateNewAsync(TorSocks5Client.Stream, request.Method);
-			}
+			await TorSocks5Client.Stream.WriteAsync(bytes, 0, bytes.Length).ConfigureAwait(false);
+			await TorSocks5Client.Stream.FlushAsync().ConfigureAwait(false);
+			using var httpResponseMessage = new HttpResponseMessage();
+			return await HttpResponseMessageExtensions.CreateNewAsync(TorSocks5Client.Stream, request.Method).ConfigureAwait(false);
 		}
 
 		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
 
 		protected virtual void Dispose(bool disposing)
 		{
@@ -284,11 +282,6 @@ namespace WalletWasabi.TorSocks5
 				_disposedValue = true;
 			}
 		}
-
-		// ~TorHttpClient() {
-		// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-		//   Dispose(false);
-		// }
 
 		// This code added to correctly implement the disposable pattern.
 		public void Dispose()

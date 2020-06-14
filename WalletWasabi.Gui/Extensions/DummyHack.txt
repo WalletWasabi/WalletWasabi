@@ -1,3 +1,3 @@
-﻿This file is neccessary to have in the publish folder, otherwise Avalonia or AvalonStudio and Wix won't work together.
+﻿This file is necessary to have in the publish folder, otherwise Avalonia or AvalonStudio and Wix won't work together.
 It matters on Windows. It may or may not make a difference in Linux and OSX.
 For more info see: https://github.com/VitalElement/AvalonStudio.Shell/issues/11

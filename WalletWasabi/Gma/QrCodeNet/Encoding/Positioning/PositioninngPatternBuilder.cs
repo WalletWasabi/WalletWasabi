@@ -1,8 +1,8 @@
-﻿using Gma.QrCodeNet.Encoding.Positioning.Stencils;
+using Gma.QrCodeNet.Encoding.Positioning.Stencils;
 
 namespace Gma.QrCodeNet.Encoding.Positioning
 {
-	internal static class PositioninngPatternBuilder
+	internal static class PositioningPatternBuilder
 	{
 		internal static void EmbedBasicPatterns(int version, TriStateMatrix matrix)
 		{

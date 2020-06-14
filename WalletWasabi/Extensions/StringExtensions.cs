@@ -1,4 +1,4 @@
-﻿namespace System
+namespace System
 {
 	public static class StringExtensions
 	{
@@ -30,7 +30,7 @@
 		}
 
 		/// <summary>
-		/// Removes one leading and trailing occurence of the specified string
+		/// Removes one leading and trailing occurrence of the specified string
 		/// </summary>
 		public static string Trim(this string me, string trimString, StringComparison comparisonType)
 		{
@@ -38,7 +38,7 @@
 		}
 
 		/// <summary>
-		/// Removes one leading occurence of the specified string
+		/// Removes one leading occurrence of the specified string
 		/// </summary>
 		public static string TrimStart(this string me, string trimString, StringComparison comparisonType)
 		{
@@ -50,7 +50,7 @@
 		}
 
 		/// <summary>
-		/// Removes one trailing occurence of the specified string
+		/// Removes one trailing occurrence of the specified string
 		/// </summary>
 		public static string TrimEnd(this string me, string trimString, StringComparison comparisonType)
 		{

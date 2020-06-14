@@ -1,171 +1,100 @@
-﻿using Avalonia;
-using Avalonia.Input.Platform;
+using Avalonia;
 using Avalonia.Threading;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
-using WalletWasabi.Gui.Tabs.WalletManager;
+using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Gui.Suggestions;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.KeyManagement;
+using WalletWasabi.Logging;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class ReceiveTabViewModel : WalletActionViewModel
+	public class ReceiveTabViewModel : WasabiDocumentTabViewModel, IWalletViewModel
 	{
-		private CompositeDisposable Disposables { get; set; }
-
 		private ObservableCollection<AddressViewModel> _addresses;
 		private AddressViewModel _selectedAddress;
-		private string _label;
-		private double _labelRequiredNotificationOpacity;
-		private bool _labelRequiredNotificationVisible;
-		private int _caretIndex;
-		private ObservableCollection<SuggestionViewModel> _suggestions;
 
-		public ReactiveCommand CopyAddress { get; }
-		public ReactiveCommand CopyLabel { get; }
-		public ReactiveCommand ShowQrCode { get; }
-
-		public ReceiveTabViewModel(WalletViewModel walletViewModel)
-			: base("Receive", walletViewModel)
+		public ReceiveTabViewModel(Wallet wallet)
+			: base("Receive")
 		{
+			Global = Locator.Current.GetService<Global>();
+			Wallet = wallet;
+
+			LabelSuggestion = new SuggestLabelViewModel();
 			_addresses = new ObservableCollection<AddressViewModel>();
-			Label = "";
+			LabelSuggestion.Label = "";
 
 			InitializeAddresses();
 
 			GenerateCommand = ReactiveCommand.Create(() =>
 			{
-				Label = Label.Trim(',', ' ').Trim();
-				if (string.IsNullOrWhiteSpace(Label))
+				var label = new SmartLabel(LabelSuggestion.Label);
+				LabelSuggestion.Label = label;
+				if (label.IsEmpty)
 				{
-					LabelRequiredNotificationVisible = true;
-					LabelRequiredNotificationOpacity = 1;
-
-					Dispatcher.UIThread.PostLogException(async () =>
-					{
-						await Task.Delay(1000);
-						LabelRequiredNotificationOpacity = 0;
-					});
-
+					NotificationHelpers.Warning("Observers are required.");
 					return;
 				}
 
-				Dispatcher.UIThread.PostLogException(() =>
+				AvaloniaThreadingExtensions.PostLogException(Dispatcher.UIThread, () =>
 				{
-					var label = Label;
-					HdPubKey newKey = Global.WalletService.GetReceiveKey(label, Addresses.Select(x => x.Model).Take(7)); // Never touch the first 7 keys.
-
-					AddressViewModel found = Addresses.FirstOrDefault(x => x.Model == newKey);
-					if (found != default)
+					var newKey = Wallet.KeyManager.GetNextReceiveKey(label, out bool minGapLimitIncreased);
+					if (minGapLimitIncreased)
 					{
-						Addresses.Remove(found);
+						int minGapLimit = Wallet.KeyManager.MinGapLimit.Value;
+						int prevMinGapLimit = minGapLimit - 1;
+						NotificationHelpers.Warning($"{nameof(KeyManager.MinGapLimit)} increased from {prevMinGapLimit} to {minGapLimit}.");
 					}
 
-					var newAddress = new AddressViewModel(newKey);
-
+					var newAddress = new AddressViewModel(newKey, Wallet.KeyManager, this);
 					Addresses.Insert(0, newAddress);
-
 					SelectedAddress = newAddress;
-
-					Label = "";
+					LabelSuggestion.Label = "";
 				});
 			});
 
-			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x));
-
-			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(async address =>
-			{
-				if (Global.UiConfig.Autocopy is false || address is null) return;
-				await address.TryCopyToClipboardAsync();
-			});
-
-			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
-			{
-				if (Label is null) return;
-				if (CaretIndex != Label.Length)
+			this.WhenAnyValue(x => x.SelectedAddress)
+				.Subscribe(async address =>
 				{
-					CaretIndex = Label.Length;
-				}
-			});
+					if (!Global.UiConfig.Autocopy || address is null)
+					{
+						return;
+					}
 
-			var isCoinListItemSelected = this.WhenAnyValue(x => x.SelectedAddress).Select(coin => coin != null);
+					await address.TryCopyToClipboardAsync();
+				});
 
-			CopyAddress = ReactiveCommand.Create(async () =>
-			{
-				if (SelectedAddress is null) return;
-				await SelectedAddress.TryCopyToClipboardAsync();
-			}, isCoinListItemSelected);
-
-			CopyLabel = ReactiveCommand.CreateFromTask(async () =>
-			{
-				try
+			Observable
+				.Merge(GenerateCommand.ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex =>
 				{
-					await ((IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard)))
-						.SetTextAsync(SelectedAddress.Label ?? string.Empty);
-				}
-				catch (Exception)
-				{ }
-			}, isCoinListItemSelected);
-
-			ShowQrCode = ReactiveCommand.Create(() =>
-			{
-				try
-				{
-					SelectedAddress.IsExpanded = true;
-				}
-				catch (Exception)
-				{ }
-			}, isCoinListItemSelected);
-
-			_suggestions = new ObservableCollection<SuggestionViewModel>();
+					Logger.LogError(ex);
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
+				});
 		}
 
-		public override void OnOpen()
-		{
-			base.OnOpen();
+		private Global Global { get; }
 
-			if (Disposables != null)
-			{
-				throw new Exception("Receive tab opened before last one was closed.");
-			}
+		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
 
-			Disposables = new CompositeDisposable();
+		private Wallet Wallet { get; }
 
-			Observable.FromEventPattern(Global.WalletService.Coins,
-				nameof(Global.WalletService.Coins.CollectionChanged))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(o => InitializeAddresses())
-				.DisposeWith(Disposables);
-		}
+		Wallet IWalletViewModel.Wallet => Wallet;
 
-		public override bool OnClose()
-		{
-			Disposables.Dispose();
+		public SuggestLabelViewModel LabelSuggestion { get; }
 
-			Disposables = null;
-
-			return base.OnClose();
-		}
-
-		private void InitializeAddresses()
-		{
-			_addresses?.Clear();
-
-			foreach (HdPubKey key in Global.WalletService.KeyManager.GetKeys(x =>
-																		x.HasLabel
-																		&& !x.IsInternal
-																		&& x.KeyState == KeyState.Clean)
-																	.Reverse())
-			{
-				_addresses.Add(new AddressViewModel(key));
-			}
-		}
+		public bool IsHardwareWallet => Wallet.KeyManager.IsHardwareWallet;
 
 		public ObservableCollection<AddressViewModel> Addresses
 		{
@@ -179,84 +108,33 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _selectedAddress, value);
 		}
 
-		public string Label
+		public override void OnOpen(CompositeDisposable disposables)
 		{
-			get => _label;
-			set => this.RaiseAndSetIfChanged(ref _label, value);
+			base.OnOpen(disposables);
+
+			Observable
+				.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => InitializeAddresses())
+				.DisposeWith(disposables);
 		}
 
-		public double LabelRequiredNotificationOpacity
+		public void InitializeAddresses()
 		{
-			get => _labelRequiredNotificationOpacity;
-			set => this.RaiseAndSetIfChanged(ref _labelRequiredNotificationOpacity, value);
-		}
-
-		public bool LabelRequiredNotificationVisible
-		{
-			get => _labelRequiredNotificationVisible;
-			set => this.RaiseAndSetIfChanged(ref _labelRequiredNotificationVisible, value);
-		}
-
-		public int CaretIndex
-		{
-			get => _caretIndex;
-			set => this.RaiseAndSetIfChanged(ref _caretIndex, value);
-		}
-
-		public ObservableCollection<SuggestionViewModel> Suggestions
-		{
-			get => _suggestions;
-			set => this.RaiseAndSetIfChanged(ref _suggestions, value);
-		}
-
-		private void UpdateSuggestions(string words)
-		{
-			if (string.IsNullOrWhiteSpace(words))
+			try
 			{
-				Suggestions?.Clear();
-				return;
+				_addresses?.Clear();
+
+				IEnumerable<HdPubKey> keys = Wallet.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Reverse();
+				foreach (HdPubKey key in keys)
+				{
+					_addresses.Add(new AddressViewModel(key, Wallet.KeyManager, this));
+				}
 			}
-
-			var enteredWordList = words.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim());
-			var lastWord = enteredWordList?.LastOrDefault()?.Replace("\t", "") ?? "";
-
-			if (!lastWord.Any())
+			catch (Exception ex)
 			{
-				Suggestions.Clear();
-				return;
-			}
-
-			string[] nonSpecialLabels = Global.WalletService.GetNonSpecialLabels().ToArray();
-			IEnumerable<string> suggestedWords = nonSpecialLabels.Where(w => w.StartsWith(lastWord, StringComparison.InvariantCultureIgnoreCase))
-				.Union(nonSpecialLabels.Where(w => w.Contains(lastWord, StringComparison.InvariantCultureIgnoreCase)))
-				.Except(enteredWordList)
-				.Take(3);
-
-			Suggestions.Clear();
-			foreach (var suggestion in suggestedWords)
-			{
-				Suggestions.Add(new SuggestionViewModel(suggestion, OnAddWord));
+				Logger.LogError(ex);
 			}
 		}
-
-		public void OnAddWord(string word)
-		{
-			var words = Label.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToArray();
-			if (words.Length == 0)
-			{
-				Label = word + ", ";
-			}
-			else
-			{
-				words[words.Length - 1] = word;
-				Label = string.Join(", ", words) + ", ";
-			}
-
-			CaretIndex = Label.Length;
-
-			Suggestions.Clear();
-		}
-
-		public ReactiveCommand GenerateCommand { get; }
 	}
 }

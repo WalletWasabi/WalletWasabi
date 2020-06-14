@@ -1,4 +1,4 @@
-﻿namespace WalletWasabi.TorSocks5.Models
+namespace WalletWasabi.TorSocks5.Models
 {
 	public enum ReplyType : byte
 	{

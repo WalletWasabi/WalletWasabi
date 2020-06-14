@@ -1,4 +1,4 @@
-﻿using WalletWasabi.Bases;
+using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
 using WalletWasabi.TorSocks5.Models.Fields.OctetFields;
 
@@ -6,15 +6,7 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 {
 	public class UsernamePasswordResponse : ByteArraySerializableBase
 	{
-		#region PropertiesAndMembers
-
-		public AuthVerField Ver { get; set; }
-
-		public AuthStatusField Status { get; set; }
-
-		#endregion PropertiesAndMembers
-
-		#region ConstructorsAndInitializers
+		#region Constructors
 
 		public UsernamePasswordResponse()
 		{
@@ -26,7 +18,15 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 			Ver = AuthVerField.Version1;
 		}
 
-		#endregion ConstructorsAndInitializers
+		#endregion Constructors
+
+		#region PropertiesAndMembers
+
+		public AuthVerField Ver { get; set; }
+
+		public AuthStatusField Status { get; set; }
+
+		#endregion PropertiesAndMembers
 
 		#region Serialization
 
@@ -42,7 +42,11 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 			Status.FromByte(bytes[1]);
 		}
 
-		public override byte[] ToBytes() => new byte[] { Ver.ToByte(), Status.ToByte() };
+		public override byte[] ToBytes() => new byte[]
+			{
+				Ver.ToByte(),
+				Status.ToByte()
+			};
 
 		#endregion Serialization
 	}

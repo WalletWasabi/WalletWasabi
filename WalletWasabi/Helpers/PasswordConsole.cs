@@ -1,42 +1,49 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace WalletWasabi.Helpers
 {
-	public class PasswordConsole
+	public static class PasswordConsole
 	{
 		/// <summary>
 		/// Gets the console password.
 		/// </summary>
 		public static string ReadPassword()
 		{
-			var sb = new StringBuilder();
-			while (true)
+			try
 			{
-				ConsoleKeyInfo cki = Console.ReadKey(true);
-				if (cki.Key == ConsoleKey.Enter)
+				var sb = new StringBuilder();
+				while (true)
 				{
-					Console.WriteLine();
-					break;
-				}
-
-				if (cki.Key == ConsoleKey.Backspace)
-				{
-					if (sb.Length > 0)
+					ConsoleKeyInfo cki = Console.ReadKey(true);
+					if (cki.Key == ConsoleKey.Enter)
 					{
-						Console.Write("\b\0\b");
-						sb.Length--;
+						Console.WriteLine();
+						break;
 					}
 
-					continue;
+					if (cki.Key == ConsoleKey.Backspace)
+					{
+						if (sb.Length > 0)
+						{
+							Console.Write("\b \b");
+							sb.Length--;
+						}
+
+						continue;
+					}
+
+					Console.Write('*');
+					sb.Append(cki.KeyChar);
 				}
 
-				Console.Write('*');
-				sb.Append(cki.KeyChar);
+				return sb.ToString();
 			}
-
-			return sb.ToString();
+			catch (InvalidOperationException)
+			{
+				return Console.ReadLine();
+			}
 		}
 	}
 }

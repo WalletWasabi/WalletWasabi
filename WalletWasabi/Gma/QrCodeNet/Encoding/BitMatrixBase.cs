@@ -1,45 +1,49 @@
-﻿namespace Gma.QrCodeNet.Encoding
+namespace Gma.QrCodeNet.Encoding
 {
 	public abstract class BitMatrixBase : BitMatrix
 	{
-		public readonly bool[,] M_InternalArray;
-
-		public readonly int M_Width;
-
 		protected BitMatrixBase(int width, bool[,] internalArray)
 		{
-			M_Width = width;
-			M_InternalArray = internalArray;
+			Width = width;
+			InternalArray = internalArray;
 		}
 
 		protected BitMatrixBase(bool[,] internalArray)
 		{
-			M_InternalArray = internalArray;
+			InternalArray = internalArray;
 			int width = internalArray.GetLength(0);
-			M_Width = width;
+			Width = width;
 		}
+
+		public override bool[,] InternalArray { get; }
+
+		public override int Width { get; }
 
 		public static bool CanCreate(bool[,] internalArray)
 		{
 			if (internalArray is null)
+			{
 				return false;
+			}
 
-			return internalArray.GetLength(0) == internalArray.GetLength(1) ? true : false;
+			return internalArray.GetLength(0) == internalArray.GetLength(1);
 		}
 
 		/// <summary>
 		/// Return value will be deep copy of array.
 		/// </summary>
-		public override bool[,] InternalArray
+		public bool[,] CloneInternalArray()
 		{
-			get
+			bool[,] deepCopyArray = new bool[Width, Width];
+			for (int x = 0; x < Width; x++)
 			{
-				bool[,] deepCopyArray = new bool[M_Width, M_Width];
-				for (int x = 0; x < M_Width; x++)
-					for (int y = 0; y < M_Width; y++)
-						deepCopyArray[x, y] = M_InternalArray[x, y];
-				return deepCopyArray;
+				for (int y = 0; y < Width; y++)
+				{
+					deepCopyArray[x, y] = InternalArray[x, y];
+				}
 			}
+
+			return deepCopyArray;
 		}
 	}
 }

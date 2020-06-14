@@ -1,4 +1,4 @@
-﻿namespace WalletWasabi.Interfaces
+namespace WalletWasabi.Interfaces
 {
 	public interface IByteArraySerializable
 	{

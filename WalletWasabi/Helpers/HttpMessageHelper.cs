@@ -1,13 +1,13 @@
-﻿using WalletWasabi.Http.Models;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Http.Models;
 using static WalletWasabi.Http.Constants;
-using System.IO.Compression;
 
 namespace System.Net.Http
 {
@@ -38,7 +38,11 @@ namespace System.Net.Http
 			}
 
 			var startLine = bab.ToString(Encoding.ASCII);
-			if (string.IsNullOrEmpty(startLine)) throw new FormatException($"{nameof(startLine)} cannot be null or empty.");
+			if (string.IsNullOrEmpty(startLine))
+			{
+				throw new FormatException($"{nameof(startLine)} cannot be null or empty.");
+			}
+
 			return startLine;
 		}
 
@@ -52,8 +56,12 @@ namespace System.Net.Http
 			{
 				string header = await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken);
 
-				if (header is null) throw new FormatException("Malformed HTTP message: End of headers must be CRLF.");
-				if (header == "")
+				if (header is null)
+				{
+					throw new FormatException("Malformed HTTP message: End of headers must be CRLF.");
+				}
+
+				if (header.Length == 0)
 				{
 					// 2 CRLF was read in row so it's the end of the headers
 					break;
@@ -77,6 +85,7 @@ namespace System.Net.Http
 
 				builder.Append(header + CRLF); // CRLF is part of the headerstring
 			}
+
 			headers = builder.ToString();
 			if (string.IsNullOrEmpty(headers))
 			{
@@ -92,7 +101,10 @@ namespace System.Net.Http
 			while (true)
 			{
 				int ch = await stream.ReadByteAsync(ctsToken);
-				if (ch == -1) break;
+				if (ch == -1)
+				{
+					break;
+				}
 
 				if (ch == '\r')
 				{
@@ -106,28 +118,27 @@ namespace System.Net.Http
 				}
 				bab.Append((byte)ch);
 			}
-			if (bab.Length > 0)
-			{
-				return bab.ToString(encoding);
-			}
 
-			return null;
+			return bab.Length > 0
+				? bab.ToString(encoding)
+				: null;
 		}
 
 		public static byte[] HandleGzipCompression(HttpContentHeaders contentHeaders, byte[] decodedBodyArray)
 		{
-			if (decodedBodyArray is null || !decodedBodyArray.Any()) return decodedBodyArray;
+			if (decodedBodyArray is null || !decodedBodyArray.Any())
+			{
+				return decodedBodyArray;
+			}
 
 			if (contentHeaders?.ContentEncoding != null && contentHeaders.ContentEncoding.Contains("gzip"))
 			{
 				using (var src = new MemoryStream(decodedBodyArray))
 				using (var unzipStream = new GZipStream(src, CompressionMode.Decompress))
 				{
-					using (var targetStream = new MemoryStream())
-					{
-						unzipStream.CopyTo(targetStream);
-						decodedBodyArray = targetStream.ToArray();
-					}
+					using var targetStream = new MemoryStream();
+					unzipStream.CopyTo(targetStream);
+					decodedBodyArray = targetStream.ToArray();
 				}
 				contentHeaders.ContentEncoding.Remove("gzip");
 				if (!contentHeaders.ContentEncoding.Any())
@@ -153,7 +164,7 @@ namespace System.Net.Http
 				// If a Transfer - Encoding header field is present in a response and
 				// the chunked transfer coding is not the final encoding, the
 				// message body length is determined by reading the connection until
-				// it is closed by the server.  If a Transfer - Encoding header field
+				// it is closed by the server. If a Transfer - Encoding header field
 				// is present in a request and the chunked transfer coding is not
 				// the final encoding, the message body length cannot be determined
 				// reliably; the server MUST respond with the 400(Bad Request)
@@ -176,7 +187,7 @@ namespace System.Net.Http
 			// https://tools.ietf.org/html/rfc7230#section-3.3.3
 			// 6.If this is a request message and none of the above are true, then
 			// the message body length is zero (no message body is present).
-			// 7.  Otherwise, this is a response message without a declared message
+			// 7. Otherwise, this is a response message without a declared message
 			// body length, so the message body length is determined by the
 			// number of octets received prior to the server closing the
 			// connection.
@@ -231,7 +242,7 @@ namespace System.Net.Http
 				// If a Transfer - Encoding header field is present in a response and
 				// the chunked transfer coding is not the final encoding, the
 				// message body length is determined by reading the connection until
-				// it is closed by the server.  If a Transfer - Encoding header field
+				// it is closed by the server. If a Transfer - Encoding header field
 				// is present in a request and the chunked transfer coding is not
 				// the final encoding, the message body length cannot be determined
 				// reliably; the server MUST respond with the 400(Bad Request)
@@ -255,7 +266,7 @@ namespace System.Net.Http
 			// https://tools.ietf.org/html/rfc7230#section-3.3.3
 			// 6.If this is a request message and none of the above are true, then
 			// the message body length is zero (no message body is present).
-			// 7.  Otherwise, this is a response message without a declared message
+			// 7. Otherwise, this is a response message without a declared message
 			// body length, so the message body length is determined by the
 			// number of octets received prior to the server closing the
 			// connection.
@@ -274,13 +285,19 @@ namespace System.Net.Http
 
 		private static async Task<byte[]> GetDecodedChunkedContentBytesAsync(Stream stream, HttpRequestContentHeaders requestHeaders, HttpResponseContentHeaders responseHeaders, CancellationToken ctsToken = default)
 		{
-			if (responseHeaders is null && requestHeaders is null)
+			if (responseHeaders is null)
 			{
-				throw new ArgumentException("Response and request headers cannot be both null.");
+				if (requestHeaders is null)
+				{
+					throw new ArgumentException("Response and request headers cannot be both null.");
+				}
 			}
-			if (responseHeaders != null && requestHeaders != null)
+			else
 			{
-				throw new ArgumentException("Either response or request headers has to be null.");
+				if (requestHeaders != null)
+				{
+					throw new ArgumentException("Either response or request headers has to be null.");
+				}
 			}
 
 			// https://tools.ietf.org/html/rfc7230#section-4.1.3
@@ -321,7 +338,8 @@ namespace System.Net.Http
 			while (chunkSize > 0)
 			{
 				var chunkData = await ReadBytesTillLengthAsync(stream, chunkSize, ctsToken);
-				if (await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken) != "")
+				string crlfLine = await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken);
+				if (crlfLine.Length != 0)
 				{
 					throw new FormatException("Chunk does not end with CRLF.");
 				}
@@ -331,7 +349,7 @@ namespace System.Net.Http
 				length += chunkSize;
 
 				firstChunkLine = await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken: ctsToken);
-				ParseFistChunkLine(firstChunkLine, out long cs, out IEnumerable<string> ces);
+				ParseFistChunkLine(firstChunkLine, out long cs, out _);
 				chunkSize = cs;
 			}
 
@@ -340,7 +358,7 @@ namespace System.Net.Http
 			// of a chunked message in order to supply metadata that might be
 			// dynamically generated while the message body is sent
 			string trailerHeaders = await ReadHeadersAsync(stream, ctsToken);
-			var trailerHeaderSection = HeaderSection.CreateNew(trailerHeaders);
+			var trailerHeaderSection = await HeaderSection.CreateNewAsync(trailerHeaders);
 			RemoveInvalidTrailers(trailerHeaderSection);
 			if (responseHeaders != null)
 			{
@@ -487,7 +505,7 @@ namespace System.Net.Http
 				// supposedly chunked transfer coding fails, MUST record the message as
 				// incomplete.Cache requirements for incomplete responses are defined
 				// in Section 3 of[RFC7234].
-				throw new NotSupportedException($"Incomplete message. Expected length: {length}, actual: {num}.");
+				throw new NotSupportedException($"Incomplete message. Expected length: {length}. Actual: {num}.");
 			}
 			return allData;
 		}
@@ -505,7 +523,9 @@ namespace System.Net.Http
 			if (contentHeaders != null && contentHeaders.Contains("Content-Length"))
 			{
 				if (contentHeaders.ContentLength < 0)
-					throw new HttpRequestException("Content-Length MUST be larger than zero.");
+				{
+					throw new HttpRequestException("Content-Length MUST be greater than or equal to zero.");
+				}
 			}
 		}
 
@@ -513,14 +533,18 @@ namespace System.Net.Http
 		{
 			if (contentHeaders.NotNullAndNotEmpty())
 			{
-				return new byte[] { }; // dummy empty content
+				return Array.Empty<byte>(); // dummy empty content
 			}
 			return null;
 		}
 
 		public static void CopyHeaders(HttpHeaders source, HttpHeaders destination)
 		{
-			if (!source.NotNullAndNotEmpty()) return;
+			if (!source.NotNullAndNotEmpty())
+			{
+				return;
+			}
+
 			foreach (var header in source)
 			{
 				destination.TryAddWithoutValidation(header.Key, header.Value);

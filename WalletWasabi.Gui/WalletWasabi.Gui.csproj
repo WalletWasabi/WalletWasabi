@@ -1,41 +1,41 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <PlatformTarget>x64</PlatformTarget>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
-    <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
-    <PreserveCompilationContext>true</PreserveCompilationContext>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>latest</LangVersion>
-    <NoWarn>1701;1702;1705;1591;1573</NoWarn>
+    <NoWarn>1701;1702;1705;1591;1573;CA1031</NoWarn>
   </PropertyGroup>
-  
+
   <PropertyGroup>
     <Authors>nopara73;lontivero;danwalmsley</Authors>
     <Company>zkSNACKs</Company>
     <NeutralLanguage>en-US</NeutralLanguage>
     <AssemblyTitle>Wasabi Wallet</AssemblyTitle>
     <Description>
-      Privacy focused, ZeroLink compliant Bitcoin wallet.
+      Open-source, non-custodial, privacy focused Bitcoin wallet for Windows, Linux, and Mac. Built-in Tor, CoinJoin, and coin control features.
     </Description>
     <Copyright>MIT</Copyright>
     <PackageId>Wasabi Wallet</PackageId>
-    <PackageTags>bitcoin;cryptocurrency;blockchain;privacy;fungibility;anonymity</PackageTags>
+    <PackageTags>bitcoin-wallet;privacy;bitcoin;dotnet;nbitcoin;cross-platform;zerolink;wallet;tumbler;coin;tor</PackageTags>
     <PackageProjectUrl>https://github.com/zkSNACKs/WalletWasabi/</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md</PackageLicenseUrl>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/zkSNACKs/WalletWasabi/</RepositoryUrl>
     <!-- owners is not supported in MSBuild -->
   </PropertyGroup>
-  
+
   <ItemGroup>
     <Compile Update="**\*.xaml.cs">
       <DependentUpon>%(Filename)</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="**\*.xaml;Assets\*" Exclude="bin\**;obj\**;**\*.xproj;packages\**;@(EmbeddedResource)" />
+    <AvaloniaResource Include="**\*.xaml;Assets\*" Exclude="bin\**;obj\**;**\*.xproj;packages\**;@(EmbeddedResource)" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>bin\Debug\netcoreapp2.2\WalletWasabi.Gui.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\netcoreapp3.1\WalletWasabi.Gui.xml</DocumentationFile>
+    <OutputPath />
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -56,13 +56,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia.Desktop" />
-	<PackageReference Include="Avalonia.Angle.Windows.Natives" Version="2.1.0.2019013001" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.9.9" />    
+    <PackageReference Include="AvalonStudio.Shell" Version="0.9.9" />
+    <PackageReference Include="Dock.Avalonia.Themes.Default" Version="0.9.9" />
+    <PackageReference Include="Dock.Avalonia.Themes.Metro" Version="0.9.9" />
+    <PackageReference Include="System.Runtime" Version="4.3.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\WalletWasabi.Dependencies\AvalonStudio.Shell\src\AvalonStudio.Shell.Extensibility\AvalonStudio.Shell.Extensibility.csproj" />
-    <ProjectReference Include="..\WalletWasabi.Dependencies\AvalonStudio.Shell\src\AvalonStudio.Shell\AvalonStudio.Shell.csproj" />
     <ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
   </ItemGroup>
 
@@ -70,5 +71,5 @@
     <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
   </ItemGroup>
 
-</Project>
 
+</Project>

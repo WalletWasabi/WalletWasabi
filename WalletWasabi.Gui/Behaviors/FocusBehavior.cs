@@ -1,17 +1,18 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Xaml.Interactivity;
 using System;
 using System.Reactive.Disposables;
 
 namespace WalletWasabi.Gui.Behaviors
 {
-	internal class FocusBehavior : Behavior<Control>
+	public class FocusBehavior : Behavior<Control>
 	{
-		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
+		public static readonly AvaloniaProperty<bool> IsFocusedProperty =
+			AvaloniaProperty.Register<FocusBehavior, bool>(nameof(IsFocused), defaultBindingMode: BindingMode.TwoWay);
 
-		private static readonly AvaloniaProperty<bool> IsFocusedProperty =
-			AvaloniaProperty.Register<FocusBehavior, bool>(nameof(IsFocused), defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
+		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
 
 		public bool IsFocused
 		{
@@ -24,15 +25,14 @@ namespace WalletWasabi.Gui.Behaviors
 			base.OnAttached();
 
 			AssociatedObject.AttachedToLogicalTree += (sender, e) =>
-			{
-				Disposables.Add(this.GetObservable(IsFocusedProperty).Subscribe(focused =>
-				{
-					if (focused)
+				Disposables.Add(this.GetObservable(IsFocusedProperty)
+					.Subscribe(focused =>
 					{
-						AssociatedObject.Focus();
-					}
-				}));
-			};
+						if (focused)
+						{
+							AssociatedObject.Focus();
+						}
+					}));
 		}
 
 		protected override void OnDetaching()

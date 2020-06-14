@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Interactivity;
@@ -11,10 +11,10 @@ namespace WalletWasabi.Gui.Behaviors
 {
 	public class ClearPropertyOnLostFocusBehavior : Behavior<Control>
 	{
-		private CompositeDisposable Disposables { get; set; }
-
 		public static readonly AvaloniaProperty<object> TargetPropertyProperty =
 			AvaloniaProperty.Register<ClearPropertyOnLostFocusBehavior, object>(nameof(TargetProperty), defaultBindingMode: BindingMode.TwoWay);
+
+		private CompositeDisposable Disposables { get; set; }
 
 		public object TargetProperty
 		{
@@ -26,10 +26,8 @@ namespace WalletWasabi.Gui.Behaviors
 		{
 			Disposables = new CompositeDisposable
 			{
-				Observable.FromEventPattern<RoutedEventArgs>(AssociatedObject, nameof(AssociatedObject.LostFocus)).Subscribe(args=>
-				{
-					TargetProperty = null;
-				})
+				Observable.FromEventPattern<RoutedEventArgs>(AssociatedObject, nameof(AssociatedObject.LostFocus))
+					.Subscribe(_ => TargetProperty = null)
 			};
 
 			base.OnAttached();

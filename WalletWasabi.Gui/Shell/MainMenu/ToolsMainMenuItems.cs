@@ -1,4 +1,4 @@
-﻿using AvalonStudio.MainMenu;
+using AvalonStudio.MainMenu;
 using AvalonStudio.Menus;
 using System;
 using System.Collections.Generic;
@@ -9,30 +9,30 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 {
 	internal class ToolsMainMenuItems
 	{
-		private IMenuItemFactory _menuItemFactory;
-
 		[ImportingConstructor]
 		public ToolsMainMenuItems(IMenuItemFactory menuItemFactory)
 		{
-			_menuItemFactory = menuItemFactory;
+			MenuItemFactory = menuItemFactory;
 		}
+
+		private IMenuItemFactory MenuItemFactory { get; }
 
 		#region MainMenu
 
 		[ExportMainMenuItem("Tools")]
 		[DefaultOrder(1)]
-		public IMenuItem Tools => _menuItemFactory.CreateHeaderMenuItem("Tools", null);
+		public IMenuItem Tools => MenuItemFactory.CreateHeaderMenuItem("Tools", null);
 
 		#endregion MainMenu
 
 		#region Group
 
-		[ExportMainMenuDefaultGroup("Tools", "Managers")]
+		[ExportMainMenuDefaultGroup("Tools", "Utilities")]
 		[DefaultOrder(0)]
-		public object ManagersGroup => null;
+		public object UtilitiesGroup => null;
 
 		[ExportMainMenuDefaultGroup("Tools", "Settings")]
-		[DefaultOrder(1)]
+		[DefaultOrder(10)]
 		public object SettingsGroup => null;
 
 		#endregion Group
@@ -40,14 +40,28 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		#region MenuItem
 
 		[ExportMainMenuItem("Tools", "Wallet Manager")]
-		[DefaultOrder(0)]
-		[DefaultGroup("Managers")]
-		public IMenuItem WalletManager => _menuItemFactory.CreateCommandMenuItem("Tools.WalletManager");
+		[DefaultOrder(1)]
+		[DefaultGroup("Utilities")]
+		public IMenuItem WalletManager => MenuItemFactory.CreateCommandMenuItem("Tools.WalletManager");
+
+#if DEBUG
+
+		[ExportMainMenuItem("Tools", "Dev Tools")]
+		[DefaultOrder(10)]
+		[DefaultGroup("Utilities")]
+		public IMenuItem DevTools => MenuItemFactory.CreateCommandMenuItem("Tools.DevTools");
+
+#endif
+
+		[ExportMainMenuItem("Tools", "Transaction Broadcaster")]
+		[DefaultOrder(2)]
+		[DefaultGroup("Utilities")]
+		public IMenuItem BroadcastTransaction => MenuItemFactory.CreateCommandMenuItem("Tools.BroadcastTransaction");
 
 		[ExportMainMenuItem("Tools", "Settings")]
-		[DefaultOrder(1)]
+		[DefaultOrder(20)]
 		[DefaultGroup("Settings")]
-		public IMenuItem Settings => _menuItemFactory.CreateCommandMenuItem("Tools.Settings");
+		public IMenuItem Settings => MenuItemFactory.CreateCommandMenuItem("Tools.Settings");
 
 		#endregion MenuItem
 	}

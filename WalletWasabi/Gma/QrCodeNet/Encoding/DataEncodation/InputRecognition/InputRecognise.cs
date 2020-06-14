@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
@@ -14,21 +14,26 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 		private static string EightBitByteRecognision(string content, int startPos, int contentLength)
 		{
 			if (string.IsNullOrEmpty(content))
+			{
 				throw new ArgumentNullException(nameof(content), "Input content is null or empty");
+			}
 
 			var eciSets = new ECISet(ECISet.AppendOption.NameToValue);
 
 			Dictionary<string, int> eciSet = eciSets.GetECITable();
 
-			//we will not check for utf8 encoding.
+			// we will not check for utf8 encoding.
 			eciSet.Remove(QRCodeConstantVariable.UTF8Encoding);
 			eciSet.Remove(QRCodeConstantVariable.DefaultEncoding);
 
 			int scanPos = startPos;
-			//default encoding as priority
+
+			// default encoding as priority
 			scanPos = ModeEncodeCheck.TryEncodeEightBitByte(content, QRCodeConstantVariable.DefaultEncoding, scanPos, contentLength);
 			if (scanPos == -1)
+			{
 				return QRCodeConstantVariable.DefaultEncoding;
+			}
 
 			foreach (KeyValuePair<string, int> kvp in eciSet)
 			{
@@ -40,9 +45,13 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 			}
 
 			if (scanPos == -1)
+			{
 				throw new ArgumentException("foreach Loop check give wrong result.");
+			}
 			else
+			{
 				return QRCodeConstantVariable.UTF8Encoding;
+			}
 		}
 	}
 }

@@ -1,4 +1,4 @@
-﻿//
+//
 // Options.cs
 //
 // Authors:
@@ -169,15 +169,38 @@ namespace Mono.Options
 			C = c;
 		}
 
+		bool ICollection.IsSynchronized => (Values as ICollection).IsSynchronized;
+		object ICollection.SyncRoot => (Values as ICollection).SyncRoot;
+
+		public int Count => Values.Count;
+		public bool IsReadOnly => false;
+
+		bool IList.IsFixedSize => false;
+		public List<string> Values { get; set; } = new List<string>();
+		public OptionContext C { get; set; }
+
+		object IList.this[int index]
+		{
+			get => this[index];
+			set => (Values as IList)[index] = value;
+		}
+
+		public string this[int index]
+		{
+			get
+			{
+				AssertValid(index);
+				return index >= Values.Count ? null : Values[index];
+			}
+			set => Values[index] = value;
+		}
+
 		#region ICollection
 
 		void ICollection.CopyTo(Array array, int index)
 		{
 			(Values as ICollection).CopyTo(array, index);
 		}
-
-		bool ICollection.IsSynchronized { get { return (Values as ICollection).IsSynchronized; } }
-		object ICollection.SyncRoot { get { return (Values as ICollection).SyncRoot; } }
 
 		#endregion ICollection
 
@@ -207,9 +230,6 @@ namespace Mono.Options
 		{
 			return Values.Remove(item);
 		}
-
-		public int Count { get { return Values.Count; } }
-		public bool IsReadOnly { get { return false; } }
 
 		#endregion ICollection<T>
 
@@ -263,13 +283,6 @@ namespace Mono.Options
 			(Values as IList).RemoveAt(index);
 		}
 
-		bool IList.IsFixedSize { get { return false; } }
-
-		public List<string> Values { get; set; } = new List<string>();
-		public OptionContext C { get; set; }
-
-		object IList.this[int index] { get { return this[index]; } set { (Values as IList)[index] = value; } }
-
 		#endregion IList
 
 		#region IList<T>
@@ -292,26 +305,21 @@ namespace Mono.Options
 		private void AssertValid(int index)
 		{
 			if (C.Option is null)
-				throw new InvalidOperationException("OptionContext.Option is null.");
+			{
+				throw new InvalidOperationException($"{nameof(OptionContext)}.{nameof(OptionContext.Option)} is null.");
+			}
+
 			if (index >= C.Option.MaxValueCount)
-				throw new ArgumentOutOfRangeException("index");
+			{
+				throw new ArgumentOutOfRangeException(nameof(index));
+			}
+
 			if (C.Option.OptionValueType == OptionValueType.Required &&
 					index >= Values.Count)
+			{
 				throw new OptionException(string.Format(
-							C.OptionSet.MessageLocalizer("Missing required value for option '{0}'."), C.OptionName),
-						C.OptionName);
-		}
-
-		public string this[int index]
-		{
-			get
-			{
-				AssertValid(index);
-				return index >= Values.Count ? null : Values[index];
-			}
-			set
-			{
-				Values[index] = value;
+					C.OptionSet.MessageLocalizer($"Missing required value for option '{C.OptionName}'.")),
+					C.OptionName);
 			}
 		}
 

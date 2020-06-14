@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
@@ -8,7 +8,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		public WalletInfoView()
 		{
-			this.InitializeComponent();
+			InitializeComponent();
 		}
 
 		private void InitializeComponent()

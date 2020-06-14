@@ -1,4 +1,6 @@
 using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Interactivity;
 using System.Reactive.Disposables;
 
 namespace WalletWasabi.Gui.Behaviors
@@ -13,13 +15,16 @@ namespace WalletWasabi.Gui.Behaviors
 
 			base.OnAttached();
 
-			Disposables.Add(AssociatedObject.AddHandler(TextBox.KeyDownEvent, (sender, e) =>
-			{
-				if (e.Key == Avalonia.Input.Key.Enter)
+			Disposables.Add(AssociatedObject.AddHandler(
+				InputElement.KeyDownEvent,
+				(sender, e) =>
 				{
-					e.Handled = ExecuteCommand();
-				}
-			}));
+					if (e.Key == Key.Enter)
+					{
+						e.Handled = ExecuteCommand();
+					}
+				},
+				RoutingStrategies.Tunnel));
 		}
 
 		protected override void OnDetaching()

@@ -1,13 +1,19 @@
-﻿using AvalonStudio.Extensibility;
+using System.Security.Cryptography.X509Certificates;
+using System;
+using AvalonStudio.Extensibility;
 using AvalonStudio.MVVM;
 using AvalonStudio.Shell;
 using ReactiveUI;
+using Splat;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Composition;
-using System.IO;
 using System.Linq;
+using System.Reactive.Linq;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Services;
+using WalletWasabi.Wallets;
+using System.Reactive;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -17,43 +23,213 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	[Shared]
 	public class WalletExplorerViewModel : ToolViewModel, IActivatableExtension
 	{
-		public override Location DefaultLocation => Location.Right;
+		private ObservableCollection<WalletViewModelBase> _wallets;
+		private ViewModelBase _selectedItem;
+		private Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
+		private ObservableAsPropertyHelper<bool> _isLurkingWifeMode;
+		private bool _anyWalletStarted;
+		private bool _inSelecting;
 
-		public WalletExplorerViewModel()
+		public WalletExplorerViewModel() : base("Wallet Explorer")
 		{
-			Title = "Wallet Explorer";
+			_wallets = new ObservableCollection<WalletViewModelBase>();
 
-			_wallets = new ObservableCollection<WalletViewModel>();
+			_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
+
+			var global = Locator.Current.GetService<Global>();
+
+			WalletManager = global.WalletManager;
+			UiConfig = global.UiConfig;
+
+			Observable
+				.FromEventPattern<WalletState>(WalletManager, nameof(WalletManager.WalletStateChanged))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					var wallet = x.Sender as Wallet;
+
+					if (wallet is { } && _walletDictionary.ContainsKey(wallet))
+					{
+						if (wallet.State == WalletState.Stopping)
+						{
+							RemoveWallet(_walletDictionary[wallet]);
+						}
+						else if (_walletDictionary[wallet] is ClosedWalletViewModel cwvm && wallet.State == WalletState.Started)
+						{
+							OpenClosedWallet(cwvm);
+						}
+					}
+
+					AnyWalletStarted = Wallets.Any(x => x.WalletState == WalletState.Started);
+				});
+
+			Observable
+				.FromEventPattern<Wallet>(WalletManager, nameof(WalletManager.WalletAdded))
+				.Select(x => x.EventArgs)
+				.Where(x => x is { })
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(wallet =>
+				{
+					WalletViewModelBase vm = (wallet.State <= WalletState.Starting) ?
+						ClosedWalletViewModel.Create(wallet) :
+						WalletViewModel.Create(wallet);
+
+					InsertWallet(vm);
+				});
+
+			CollapseAllCommand = ReactiveCommand.Create(CollapseWallets, this.WhenAnyValue(x => x.AnyWalletStarted));
+
+			LurkingWifeModeCommand = ReactiveCommand.Create(ToggleLurkingWifeMode);
+
+			_isLurkingWifeMode = UiConfig
+				.WhenAnyValue(x => x.LurkingWifeMode)
+				.ToProperty(this, x => x.IsLurkingWifeMode, scheduler: RxApp.MainThreadScheduler);
+
+			Observable
+				.Merge(CollapseAllCommand.ThrownExceptions)
+				.Merge(LurkingWifeModeCommand.ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex)); ;
+
+			var shell = IoC.Get<IShell>();
+
+			shell
+				.WhenAnyValue(x => x.SelectedDocument)
+				.OfType<ViewModelBase>()
+				.Where(x => x != SelectedItem)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x => OnShellDocumentSelected(x));
+
+			this.WhenAnyValue(x => x.SelectedItem)
+				.OfType<WasabiDocumentTabViewModel>()
+				.Where(_ => !_inSelecting)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x => shell.AddOrSelectDocument(x));
+
+			this.WhenAnyValue(x => x.SelectedItem)
+				.OfType<WalletViewModelBase>()
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x => x.IsExpanded = true);
 		}
 
-		private ObservableCollection<WalletViewModel> _wallets;
+		public override Location DefaultLocation => Location.Right;
 
-		public ObservableCollection<WalletViewModel> Wallets
+		public bool IsLurkingWifeMode => _isLurkingWifeMode?.Value ?? false;
+
+		private WalletManager WalletManager { get; }
+
+		private UiConfig UiConfig { get; }
+
+		public ObservableCollection<WalletViewModelBase> Wallets
 		{
 			get => _wallets;
 			set => this.RaiseAndSetIfChanged(ref _wallets, value);
 		}
 
-		private WasabiDocumentTabViewModel _selectedItem;
-
-		public WasabiDocumentTabViewModel SelectedItem
+		public ViewModelBase SelectedItem
 		{
 			get => _selectedItem;
 			set => this.RaiseAndSetIfChanged(ref _selectedItem, value);
 		}
 
-		internal void OpenWallet(WalletService walletService, bool receiveDominant)
+		public bool AnyWalletStarted
 		{
-			var walletName = Path.GetFileNameWithoutExtension(walletService.KeyManager.FilePath);
-			if (_wallets.Any(x => x.Title == walletName))
-				return;
+			get => _anyWalletStarted;
+			set => this.RaiseAndSetIfChanged(ref _anyWalletStarted, value);
+		}
 
-			WalletViewModel walletViewModel = new WalletViewModel(walletService, receiveDominant);
-			_wallets.Add(walletViewModel);
-			walletViewModel.OnWalletOpened();
+		public ReactiveCommand<Unit, Unit> CollapseAllCommand { get; }
 
-			// TODO if we ever implement closing a wallet OnWalletClosed needs to be called
-			// to prevent memory leaks.
+		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
+
+		private void OnShellDocumentSelected(ViewModelBase document)
+		{
+			_inSelecting = true;
+
+			try
+			{
+				SelectedItem = document;
+
+				if (document is IWalletViewModel wvm && _walletDictionary.ContainsKey(wvm.Wallet))
+				{
+					_walletDictionary[wvm.Wallet].IsExpanded = true;
+				}
+			}
+			finally
+			{
+				_inSelecting = false;
+			}
+		}
+
+		private void ToggleLurkingWifeMode()
+		{
+			UiConfig.LurkingWifeMode = !UiConfig.LurkingWifeMode;
+			UiConfig.ToFile();
+		}
+
+		private void CollapseWallets()
+		{
+			foreach (var wallet in Wallets)
+			{
+				wallet.IsExpanded = false;
+			}
+		}
+
+		private void InsertWallet(WalletViewModelBase walletVM)
+		{
+			Wallets.InsertSorted(walletVM);
+			_walletDictionary.Add(walletVM.Wallet, walletVM);
+		}
+
+		private void OpenClosedWallet(ClosedWalletViewModel closedWalletViewModel)
+		{
+			var select = SelectedItem == closedWalletViewModel;
+
+			RemoveWallet(closedWalletViewModel);
+
+			var walletViewModel = OpenWallet(closedWalletViewModel.Wallet);
+
+			if (select)
+			{
+				SelectedItem = walletViewModel;
+			}
+		}
+
+		internal WalletViewModelBase OpenWallet(Wallet wallet)
+		{
+			if (_wallets.OfType<WalletViewModel>().Any(x => x.Title == wallet.WalletName))
+			{
+				throw new Exception("Wallet already opened.");
+			}
+
+			var walletViewModel = WalletViewModel.Create(wallet);
+
+			InsertWallet(walletViewModel);
+
+			if (!WalletManager.AnyWallet(x => x.State >= WalletState.Started && x != walletViewModel.Wallet))
+			{
+				walletViewModel.OpenWalletTabs();
+			}
+
+			walletViewModel.IsExpanded = true;
+
+			return walletViewModel;
+		}
+
+		internal void RemoveWallet(WalletViewModelBase walletVM)
+		{
+			walletVM.Dispose();
+
+			Wallets.Remove(walletVM);
+			_walletDictionary.Remove(walletVM.Wallet);
+		}
+
+		private void LoadWallets()
+		{
+			foreach (var wallet in WalletManager.GetWallets())
+			{
+				InsertWallet(ClosedWalletViewModel.Create(wallet));
+			}
 		}
 
 		public void BeforeActivation()
@@ -63,6 +239,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public void Activation()
 		{
 			IoC.Get<IShell>().MainPerspective.AddOrSelectTool(this);
+
+			LoadWallets();
 		}
 	}
 }

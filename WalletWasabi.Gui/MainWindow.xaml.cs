@@ -1,49 +1,51 @@
 using Avalonia;
-using Avalonia.Controls;
+using Avalonia.Controls.Notifications;
 using Avalonia.Markup.Xaml;
-using Avalonia.Media;
 using AvalonStudio.Extensibility;
-using AvalonStudio.Extensibility.Theme;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Controls;
+using Splat;
 using System;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui
 {
 	public class MainWindow : MetroWindow
 	{
-		public bool IsQuitPending { get; private set; }
-
 		public MainWindow()
 		{
+			Global = Locator.Current.GetService<Global>();
+
 			InitializeComponent();
 #if DEBUG
 			this.AttachDevTools();
 #endif
 
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			var notificationManager = new WindowNotificationManager(this)
 			{
-				HasSystemDecorations = true;
+				Position = NotificationPosition.BottomRight,
+				MaxItems = 4,
+				Margin = new Thickness(0, 0, 15, 40)
+			};
 
-				// This will need implementing properly once this is supported by avalonia itself.
-				var color = (ColorTheme.CurrentTheme.Background as SolidColorBrush).Color;
-				(PlatformImpl as Avalonia.Native.WindowImpl).SetTitleBarColor(color);
-			}
+			Locator.CurrentMutable.RegisterConstant<INotificationManager>(notificationManager);
+
+			Closing += MainWindow_ClosingAsync;
 		}
+
+		private Global Global { get; }
 
 		private void InitializeComponent()
 		{
-			Activated += OnActivated;
-			Closing += MainWindow_ClosingAsync;
 			AvaloniaXamlLoader.Load(this);
 		}
 
@@ -71,7 +73,7 @@ namespace WalletWasabi.Gui
 			}
 			catch (Exception ex)
 			{
-				Logging.Logger.LogError<MainWindow>(ex);
+				Logger.LogError(ex);
 			}
 		}
 
@@ -80,10 +82,8 @@ namespace WalletWasabi.Gui
 			bool closeApplication = false;
 			try
 			{
-				if (Global.ChaumianClient != null)
-				{
-					Global.ChaumianClient.IsQuitPending = true; // indicate -> do not add any more alices to the coinjoin
-				}
+				// Indicate -> do not add any more alices to the coinjoin.
+				Global.WalletManager.SignalQuitPending(true);
 
 				if (!MainWindowViewModel.Instance.CanClose)
 				{
@@ -100,16 +100,30 @@ namespace WalletWasabi.Gui
 				{
 					try
 					{
-						Global.UiConfig.WindowState = WindowState;
-						Global.UiConfig.Width = Width;
-						Global.UiConfig.Height = Height;
-						await Global.UiConfig.ToFileAsync();
-						Logging.Logger.LogInfo<UiConfig>("UiConfig is saved.");
+						if (Global.UiConfig != null) // UiConfig not yet loaded.
+						{
+							Global.UiConfig.WindowState = WindowState;
+
+							Global.UiConfig.LastActiveTab = IoC.Get<IShell>().SelectedDocument?.GetType().Name;
+							Global.UiConfig.ToFile();
+							Logger.LogInfo($"{nameof(Global.UiConfig)} is saved.");
+						}
+
+						Hide();
+						var wm = IoC.Get<IShell>().Documents?.OfType<WalletManagerViewModel>().FirstOrDefault();
+						if (wm is { })
+						{
+							wm.OnClose();
+							Logger.LogInfo($"{nameof(WalletManagerViewModel)} closed.");
+						}
+
+						await Global.DisposeAsync();
 					}
 					catch (Exception ex)
 					{
-						Logging.Logger.LogWarning<MainWindow>(ex);
+						Logger.LogWarning(ex);
 					}
+
 					Interlocked.Exchange(ref _closingState, 2); //now we can close the app
 					Close(); // start the closing process. Will call MainWindow_ClosingAsync again!
 				}
@@ -118,68 +132,16 @@ namespace WalletWasabi.Gui
 			catch (Exception ex)
 			{
 				Interlocked.Exchange(ref _closingState, 0); //something happened back to starting point
-				Logging.Logger.LogWarning<MainWindow>(ex);
+				Logger.LogWarning(ex);
 			}
 			finally
 			{
 				if (!closeApplication) //we are not closing the application for some reason
 				{
 					Interlocked.Exchange(ref _closingState, 0);
-					if (Global.ChaumianClient != null)
-					{
-						Global.ChaumianClient.IsQuitPending = false; //re-enable enqueuing coins
-					}
+					// Re-enable enqueuing coins.
+					Global.WalletManager.SignalQuitPending(false);
 				}
-			}
-		}
-
-#pragma warning disable IDE1006 // Naming Styles
-
-		private async void OnActivated(object sender, EventArgs e)
-#pragma warning restore IDE1006 // Naming Styles
-		{
-			try
-			{
-				Activated -= OnActivated;
-
-				var uiConfigFilePath = Path.Combine(Global.DataDir, "UiConfig.json");
-				var uiConfig = new UiConfig(uiConfigFilePath);
-				await uiConfig.LoadOrCreateDefaultFileAsync();
-				Global.InitializeUiConfig(uiConfig);
-				Logging.Logger.LogInfo<UiConfig>("UiConfig is successfully initialized.");
-
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-				{
-					MainWindowViewModel.Instance.Width = (double)uiConfig.Width;
-					MainWindowViewModel.Instance.Height = (double)uiConfig.Height;
-					MainWindowViewModel.Instance.WindowState = (WindowState)uiConfig.WindowState;
-				}
-				else
-				{
-					MainWindowViewModel.Instance.WindowState = WindowState.Maximized;
-				}
-				DisplayWalletManager();
-			}
-			catch (Exception ex)
-			{
-				Logging.Logger.LogWarning<MainWindow>(ex);
-			}
-		}
-
-		private void DisplayWalletManager()
-		{
-			var isAnyWalletAvailable = Directory.Exists(Global.WalletsDir) && Directory.EnumerateFiles(Global.WalletsDir).Any();
-
-			var walletManagerViewModel = new WalletManagerViewModel();
-			IoC.Get<IShell>().AddDocument(walletManagerViewModel);
-
-			if (isAnyWalletAvailable)
-			{
-				walletManagerViewModel.SelectLoadWallet();
-			}
-			else
-			{
-				walletManagerViewModel.SelectGenerateWallet();
 			}
 		}
 	}

@@ -1,11 +1,10 @@
-﻿using System;
+using System;
 
 // https://tools.ietf.org/html/rfc7230#section-2.6
 namespace WalletWasabi.Http.Models
 {
 	public class HttpProtocol : IEquatable<HttpProtocol>, IEquatable<string>
 	{
-		public Version Version { get; }
 		public const string Protocol = "HTTP";
 		public static HttpProtocol HTTP11 = new HttpProtocol("HTTP/1.1");
 		public static HttpProtocol HTTP10 = new HttpProtocol("HTTP/1.0");
@@ -15,7 +14,10 @@ namespace WalletWasabi.Http.Models
 			try
 			{
 				var parts = protocolString.Trim().Split(new char[] { '/' });
-				if (parts.Length != 2) throw new FormatException($"Wrong {nameof(HttpProtocol)} format: {protocolString}.");
+				if (parts.Length != 2)
+				{
+					throw new FormatException($"Wrong {nameof(HttpProtocol)} format: {protocolString}.");
+				}
 
 				if (parts[1].Split(new char[] { '.' }).Length != 2)
 				{
@@ -36,6 +38,8 @@ namespace WalletWasabi.Http.Models
 			}
 		}
 
+		public Version Version { get; }
+
 		private static string GetProtocol(string protocolString)
 		{
 			return protocolString.Trim().Split(new char[] { '/' })[0];
@@ -46,7 +50,7 @@ namespace WalletWasabi.Http.Models
 
 		#region Equality
 
-		public override bool Equals(object obj) => obj is HttpProtocol && this == (HttpProtocol)obj;
+		public override bool Equals(object obj) => Equals(obj as HttpProtocol);
 
 		public bool Equals(HttpProtocol other) => this == other;
 

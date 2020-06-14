@@ -1,29 +1,15 @@
-﻿using WalletWasabi.Bases;
-using WalletWasabi.TorSocks5.TorSocks5.Models.Fields.ByteArrayFields;
-using WalletWasabi.TorSocks5.Models.Fields.OctetFields;
 using System;
 using System.Linq;
+using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
+using WalletWasabi.TorSocks5.Models.Fields.OctetFields;
+using WalletWasabi.TorSocks5.TorSocks5.Models.Fields.ByteArrayFields;
 
 namespace WalletWasabi.TorSocks5.Models.Messages
 {
 	public class UsernamePasswordRequest : ByteArraySerializableBase
 	{
-		#region PropertiesAndMembers
-
-		public AuthVerField Ver { get; set; }
-
-		public ULenField ULen { get; set; }
-
-		public UNameField UName { get; set; }
-
-		public PLenField PLen { get; set; }
-
-		public PasswdField Passwd { get; set; }
-
-		#endregion PropertiesAndMembers
-
-		#region ConstructorsAndInitializers
+		#region Constructors
 
 		public UsernamePasswordRequest()
 		{
@@ -43,7 +29,21 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 			ULen = uLen;
 		}
 
-		#endregion ConstructorsAndInitializers
+		#endregion Constructors
+
+		#region PropertiesAndMembers
+
+		public AuthVerField Ver { get; set; }
+
+		public ULenField ULen { get; set; }
+
+		public UNameField UName { get; set; }
+
+		public PLenField PLen { get; set; }
+
+		public PasswdField Passwd { get; set; }
+
+		#endregion PropertiesAndMembers
 
 		#region Serialization
 
@@ -59,7 +59,7 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 			ULen.FromByte(bytes[1]);
 
 			UName = new UNameField();
-			UName.FromBytes(bytes.Skip(2).Take(ULen.Value).ToArray());
+			UName.FromBytes(bytes[2..(2 + ULen.Value)]);
 
 			PLen = new PLenField();
 			PLen.FromByte(bytes[1 + ULen.Value]);
@@ -68,7 +68,7 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 			{
 				throw new FormatException($"{nameof(PLen)}.{nameof(PLen.Value)} must be {nameof(bytes)}.{nameof(bytes.Length)} - 3 + {nameof(ULen)}.{nameof(ULen.Value)} = {expectedPlenValue}. Actual: {PLen.Value}.");
 			}
-			Passwd.FromBytes(bytes.Skip(3 + ULen.Value).ToArray());
+			Passwd.FromBytes(bytes[(3 + ULen.Value)..]);
 		}
 
 		public override byte[] ToBytes() => ByteHelpers.Combine(new byte[] { Ver.ToByte(), ULen.ToByte() }, UName.ToBytes(), new byte[] { PLen.ToByte() }, Passwd.ToBytes());

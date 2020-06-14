@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
 {
@@ -8,10 +8,7 @@ namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
 		{
 		}
 
-		public override bool[,] Stencil
-		{
-			get { throw new NotImplementedException(); }
-		}
+		public override bool[,] Stencil => throw new NotImplementedException();
 
 		public override void ApplyTo(TriStateMatrix matrix)
 		{

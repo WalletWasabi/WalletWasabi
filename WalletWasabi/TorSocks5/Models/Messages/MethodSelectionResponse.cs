@@ -1,4 +1,4 @@
-﻿using WalletWasabi.Bases;
+using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
 using WalletWasabi.TorSocks5.Models.Fields.OctetFields;
 
@@ -6,15 +6,7 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 {
 	public class MethodSelectionResponse : ByteArraySerializableBase
 	{
-		#region PropertiesAndMembers
-
-		public VerField Ver { get; set; }
-
-		public MethodField Method { get; set; }
-
-		#endregion PropertiesAndMembers
-
-		#region ConstructorsAndInitializers
+		#region Constructors
 
 		public MethodSelectionResponse()
 		{
@@ -26,7 +18,15 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 			Ver = VerField.Socks5;
 		}
 
-		#endregion ConstructorsAndInitializers
+		#endregion Constructors
+
+		#region PropertiesAndMembers
+
+		public VerField Ver { get; set; }
+
+		public MethodField Method { get; set; }
+
+		#endregion PropertiesAndMembers
 
 		#region Serialization
 
@@ -42,7 +42,11 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 			Method.FromByte(bytes[1]);
 		}
 
-		public override byte[] ToBytes() => new byte[] { Ver.ToByte(), Method.ToByte() };
+		public override byte[] ToBytes() => new byte[]
+			{
+				Ver.ToByte(),
+				Method.ToByte()
+			};
 
 		#endregion Serialization
 	}

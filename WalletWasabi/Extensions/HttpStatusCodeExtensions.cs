@@ -1,4 +1,4 @@
-﻿using System.Net.Http;
+using System.Net.Http;
 
 namespace System.Net
 {
@@ -6,10 +6,8 @@ namespace System.Net
 	{
 		public static string ToReasonString(this HttpStatusCode me)
 		{
-			using (var message = new HttpResponseMessage(me))
-			{
-				return message.ReasonPhrase;
-			}
+			using var message = new HttpResponseMessage(me);
+			return message.ReasonPhrase;
 		}
 	}
 }

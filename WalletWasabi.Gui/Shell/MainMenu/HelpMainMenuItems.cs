@@ -1,4 +1,4 @@
-﻿using AvalonStudio.MainMenu;
+using AvalonStudio.MainMenu;
 using AvalonStudio.Menus;
 using System;
 using System.Collections.Generic;
@@ -9,13 +9,13 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 {
 	internal class HelpMainMenuItems
 	{
-		private IMenuItemFactory MenuItemFactory { get; }
-
 		[ImportingConstructor]
 		public HelpMainMenuItems(IMenuItemFactory menuItemFactory)
 		{
 			MenuItemFactory = menuItemFactory;
 		}
+
+		private IMenuItemFactory MenuItemFactory { get; }
 
 		#region MainMenu
 
@@ -48,39 +48,25 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		[DefaultGroup("About")]
 		public IMenuItem About => MenuItemFactory.CreateCommandMenuItem("Help.About");
 
-#if DEBUG
-
-		[ExportMainMenuItem("Help", "Dev Tools")]
-		[DefaultOrder(1)]
-		[DefaultGroup("About")]
-		public IMenuItem DevTools => MenuItemFactory.CreateCommandMenuItem("Help.DevTools");
-
-#endif
-
 		[ExportMainMenuItem("Help", "Customer Support")]
-		[DefaultOrder(2)]
+		[DefaultOrder(1)]
 		[DefaultGroup("Support")]
 		public IMenuItem CustomerSupport => MenuItemFactory.CreateCommandMenuItem("Help.CustomerSupport");
 
 		[ExportMainMenuItem("Help", "Report Bug")]
-		[DefaultOrder(3)]
+		[DefaultOrder(2)]
 		[DefaultGroup("Support")]
 		public IMenuItem ReportBug => MenuItemFactory.CreateCommandMenuItem("Help.ReportBug");
 
-		[ExportMainMenuItem("Help", "Privacy Policy")]
+		[ExportMainMenuItem("Help", "Documentation")]
+		[DefaultOrder(3)]
+		[DefaultGroup("Support")]
+		public IMenuItem Docs => MenuItemFactory.CreateCommandMenuItem("Help.Documentation");
+
+		[ExportMainMenuItem("Help", "Legal Documents")]
 		[DefaultOrder(4)]
 		[DefaultGroup("Legal")]
-		public IMenuItem PrivacyPolicy => MenuItemFactory.CreateCommandMenuItem("Help.PrivacyPolicy");
-
-		[ExportMainMenuItem("Help", "Terms And Conditions")]
-		[DefaultOrder(5)]
-		[DefaultGroup("Legal")]
-		public IMenuItem TermsAndConditions => MenuItemFactory.CreateCommandMenuItem("Help.TermsAndConditions");
-
-		[ExportMainMenuItem("Help", "Legal Issues")]
-		[DefaultOrder(6)]
-		[DefaultGroup("Legal")]
-		public IMenuItem LegalIssues => MenuItemFactory.CreateCommandMenuItem("Help.LegalIssues");
+		public IMenuItem LegalDocuments => MenuItemFactory.CreateCommandMenuItem("Help.LegalDocuments");
 
 		#endregion MenuItem
 	}

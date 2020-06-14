@@ -1,20 +1,12 @@
-﻿using WalletWasabi.Bases;
-using WalletWasabi.Helpers;
 using System.Text;
+using WalletWasabi.Bases;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.TorSocks5.TorSocks5.Models.Fields.ByteArrayFields
 {
 	public class UNameField : ByteArraySerializableBase
 	{
-		#region PropertiesAndMembers
-
-		private byte[] Bytes { get; set; }
-
-		public string UName => Encoding.UTF8.GetString(Bytes); // Tor accepts UTF8 encoded passwd
-
-		#endregion PropertiesAndMembers
-
-		#region ConstructorsAndInitializers
+		#region Constructors
 
 		public UNameField()
 		{
@@ -26,7 +18,15 @@ namespace WalletWasabi.TorSocks5.TorSocks5.Models.Fields.ByteArrayFields
 			Bytes = Encoding.UTF8.GetBytes(uName);
 		}
 
-		#endregion ConstructorsAndInitializers
+		#endregion Constructors
+
+		#region PropertiesAndMembers
+
+		private byte[] Bytes { get; set; }
+
+		public string UName => Encoding.UTF8.GetString(Bytes); // Tor accepts UTF8 encoded passwd
+
+		#endregion PropertiesAndMembers
 
 		#region Serialization
 

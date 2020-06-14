@@ -1,4 +1,4 @@
-﻿//
+//
 // Options.cs
 //
 // Authors:
@@ -168,16 +168,11 @@ namespace Mono.Options
 		{
 		}
 
-		public abstract string[] GetNames();
-
 		public abstract string Description { get; }
 
-		public abstract bool GetArguments(string value, out IEnumerable<string> replacement);
+		public abstract string[] GetNames();
 
-		public static IEnumerable<string> GetArgumentsFromFile(string file)
-		{
-			return GetArguments(File.OpenText(file), true);
-		}
+		public abstract bool GetArguments(string value, out IEnumerable<string> replacement);
 
 		public static IEnumerable<string> GetArguments(TextReader reader)
 		{
@@ -209,7 +204,10 @@ namespace Mono.Options
 								c = line[i];
 
 								if (c == end)
+								{
 									break;
+								}
+
 								arg.Append(c);
 							}
 						}
@@ -222,7 +220,9 @@ namespace Mono.Options
 							}
 						}
 						else
+						{
 							arg.Append(c);
+						}
 					}
 					if (arg.Length > 0)
 					{
@@ -234,7 +234,9 @@ namespace Mono.Options
 			finally
 			{
 				if (close)
+				{
 					reader?.Dispose();
+				}
 			}
 		}
 	}

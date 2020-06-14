@@ -1,12 +1,12 @@
-﻿using Avalonia.Data.Converters;
+using Avalonia.Data.Converters;
 using Avalonia.Media;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.Models;
-using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.Gui.Converters
 {
@@ -24,7 +24,10 @@ namespace WalletWasabi.Gui.Converters
 					default: return Brushes.White;
 				}
 			}
-			throw new InvalidOperationException();
+			else
+			{
+				throw new TypeArgumentException(value, typeof(SmartCoinStatus), nameof(value));
+			}
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

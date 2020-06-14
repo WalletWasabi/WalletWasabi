@@ -1,9 +1,14 @@
-﻿using AvalonStudio.Commands;
+using AvalonStudio.Commands;
+using System.Linq;
+using System;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using ReactiveUI;
 using System.Composition;
 using WalletWasabi.Gui.Tabs.WalletManager;
+using Avalonia;
+using System.Reactive.Linq;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
@@ -26,21 +31,13 @@ namespace WalletWasabi.Gui.Shell.Commands
 				"Load Wallet",
 				commandIconService.GetCompletionKindImage("LoadWallet"),
 				ReactiveCommand.Create(OnLoadWallet));
-		}
 
-		private void OnGenerateWallet()
-		{
-			IoC.Get<IShell>().GetOrCreate<WalletManagerViewModel>().SelectGenerateWallet();
-		}
-
-		private void OnRecoverWallet()
-		{
-			IoC.Get<IShell>().GetOrCreate<WalletManagerViewModel>().SelectRecoverWallet();
-		}
-
-		private void OnLoadWallet()
-		{
-			IoC.Get<IShell>().GetOrCreate<WalletManagerViewModel>().SelectLoadWallet();
+			Observable
+				.Merge(GenerateWalletCommand.GetReactiveCommand().ThrownExceptions)
+				.Merge(RecoverWalletCommand.GetReactiveCommand().ThrownExceptions)
+				.Merge(LoadWallet.GetReactiveCommand().ThrownExceptions)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		[ExportCommandDefinition("File.GenerateWallet")]
@@ -51,5 +48,20 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		[ExportCommandDefinition("File.LoadWallet")]
 		public CommandDefinition LoadWallet { get; }
+
+		private void OnGenerateWallet()
+		{
+			IoC.Get<IShell>().GetOrCreateByType<WalletManagerViewModel>().SelectGenerateWallet();
+		}
+
+		private void OnRecoverWallet()
+		{
+			IoC.Get<IShell>().GetOrCreateByType<WalletManagerViewModel>().SelectRecoverWallet();
+		}
+
+		private void OnLoadWallet()
+		{
+			IoC.Get<IShell>().GetOrCreateByType<WalletManagerViewModel>().SelectLoadWallet();
+		}
 	}
 }

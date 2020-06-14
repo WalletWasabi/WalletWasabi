@@ -1,8 +1,10 @@
-﻿using Avalonia;
+using Avalonia;
+using Avalonia.Dialogs;
 using Avalonia.Threading;
+using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Extensibility.Platforms;
-using NBitcoin;
+using Splat;
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -15,86 +17,121 @@ namespace WalletWasabi.Gui
 {
 	internal class Program
 	{
-#pragma warning disable IDE1006 // Naming Styles
+		private static Global Global;
 
-		private static async Task Main(string[] args)
-#pragma warning restore IDE1006 // Naming Styles
+		/// Warning! In Avalonia applications Main must not be async. Otherwise application may not run on OSX.
+		/// see https://github.com/AvaloniaUI/Avalonia/wiki/Unresolved-platform-support-issues
+		private static void Main(string[] args)
 		{
-			StatusBarViewModel statusBar = null;
+			bool runGui = false;
 			try
 			{
+				Global = new Global();
+
+				Locator.CurrentMutable.RegisterConstant(Global);
+
 				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-				if (!await Daemon.RunAsyncReturnTrueIfContinueWithGuiAsync(args))
+				runGui = CommandInterpreter.ExecuteCommandsAsync(Global, args).GetAwaiter().GetResult();
+
+				if (!runGui)
 				{
 					return;
 				}
-				BuildAvaloniaApp()
-					.BeforeStarting(async builder =>
-					{
-						MainWindowViewModel.Instance = new MainWindowViewModel();
 
-						await Global.InitializeNoUiAsync();
+				Logger.LogSoftwareStarted("Wasabi GUI");
 
-						statusBar = new StatusBarViewModel(Global.Nodes.ConnectedNodes, Global.Synchronizer, Global.UpdateChecker);
-
-						MainWindowViewModel.Instance.StatusBar = statusBar;
-
-						if (Global.Network != Network.Main)
-						{
-							MainWindowViewModel.Instance.Title += $" - {Global.Network}";
-						}
-
-						Dispatcher.UIThread.Post(() =>
-						{
-							GC.Collect();
-						});
-					}).StartShellApp<AppBuilder, MainWindow>("Wasabi Wallet", null, () => MainWindowViewModel.Instance);
+				BuildAvaloniaApp().StartShellApp("Wasabi Wallet", AppMainAsync, args);
 			}
 			catch (Exception ex)
 			{
-				Logger.LogCritical<Program>(ex);
+				Logger.LogCritical(ex);
 				throw;
 			}
 			finally
 			{
-				statusBar?.Dispose();
-				await Global.DisposeAsync();
+				MainWindowViewModel.Instance?.Dispose();
+				Global.DisposeAsync().GetAwaiter().GetResult();
 				AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
 
-				Logger.LogInfo($"Wasabi stopped gracefully.", Logger.InstanceGuid.ToString());
+				if (runGui)
+				{
+					Logger.LogSoftwareStopped("Wasabi GUI");
+				}
+			}
+		}
+
+		private static async void AppMainAsync(string[] args)
+		{
+			try
+			{
+				AvalonStudio.Extensibility.Theme.ColorTheme.LoadTheme(AvalonStudio.Extensibility.Theme.ColorTheme.VisualStudioDark);
+
+				MainWindowViewModel.Instance = new MainWindowViewModel(Global.Network, Global.UiConfig, Global.WalletManager, new StatusBarViewModel(), IoC.Get<IShell>());
+
+				await Global.InitializeNoWalletAsync();
+
+				MainWindowViewModel.Instance.Initialize(Global.Nodes.ConnectedNodes, Global.Synchronizer);
+
+				Dispatcher.UIThread.Post(GC.Collect);
+			}
+			catch (Exception ex)
+			{
+				if (!(ex is OperationCanceledException))
+				{
+					Logger.LogCritical(ex);
+				}
+
+				await Global.DisposeAsync().ConfigureAwait(false);
+				Environment.Exit(1);
 			}
 		}
 
 		private static void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
 		{
-			Logger.LogWarning(e?.Exception, "UnobservedTaskException");
+			Logger.LogWarning(e?.Exception);
 		}
 
 		private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
 		{
-			Logger.LogWarning(e?.ExceptionObject as Exception, "UnhandledException");
+			Logger.LogWarning(e?.ExceptionObject as Exception);
 		}
 
 		private static AppBuilder BuildAvaloniaApp()
 		{
+			bool useGpuLinux = true;
+
 			var result = AppBuilder.Configure<App>();
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
 				result
-					.UseWin32(true, true)
+					.UseWin32()
 					.UseSkia();
+			}
+			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+			{
+				if (Helpers.Utils.DetectLLVMPipeRasterizer())
+				{
+					useGpuLinux = false;
+				}
+
+				result.UsePlatformDetect()
+					.UseManagedSystemDialogs<AppBuilder, WasabiWindow>();
 			}
 			else
 			{
 				result.UsePlatformDetect();
 			}
 
-			return result;
+			return result
+				.With(new Win32PlatformOptions { AllowEglInitialization = true, UseDeferredRendering = true })
+				.With(new X11PlatformOptions { UseGpu = useGpuLinux, WmClass = "Wasabi Wallet" })
+				.With(new AvaloniaNativePlatformOptions { UseDeferredRendering = true, UseGpu = true })
+				.With(new MacOSPlatformOptions { ShowInDock = true });
 		}
 	}
 }

@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -10,7 +11,7 @@ namespace Nito.Collections
 	/// <typeparam name="T">The type of elements contained in the deque.</typeparam>
 	[DebuggerDisplay("Count = {Count}, Capacity = {Capacity}")]
 	[DebuggerTypeProxy(typeof(Deque<>.DebugView))]
-	public sealed class Deque<T> : IList<T>, IReadOnlyList<T>, System.Collections.IList
+	public sealed class Deque<T> : IList<T>, IReadOnlyList<T>, IList
 	{
 		/// <summary>
 		/// The default capacity.
@@ -34,7 +35,10 @@ namespace Nito.Collections
 		public Deque(int capacity)
 		{
 			if (capacity < 0)
-				throw new ArgumentOutOfRangeException(nameof(capacity), "Capacity may not be negative.");
+			{
+				throw new ArgumentOutOfRangeException(nameof(capacity), $"{nameof(Capacity)} may not be negative.");
+			}
+
 			_buffer = new T[capacity];
 		}
 
@@ -45,7 +49,9 @@ namespace Nito.Collections
 		public Deque(IEnumerable<T> collection)
 		{
 			if (collection is null)
+			{
 				throw new ArgumentNullException(nameof(collection));
+			}
 
 			var source = CollectionHelpers.ReifyCollection(collection);
 			var count = source.Count;
@@ -74,10 +80,66 @@ namespace Nito.Collections
 		/// Gets a value indicating whether this list is read-only. This implementation always returns <c>false</c>.
 		/// </summary>
 		/// <returns>true if this list is read-only; otherwise, false.</returns>
-		bool ICollection<T>.IsReadOnly
+		bool ICollection<T>.IsReadOnly => false;
+
+		bool IList.IsFixedSize => false;
+
+		bool IList.IsReadOnly => false;
+
+		bool ICollection.IsSynchronized => false;
+
+		object ICollection.SyncRoot => this;
+
+		/// <summary>
+		/// Gets a value indicating whether this instance is empty.
+		/// </summary>
+		private bool IsEmpty => Count == 0;
+
+		/// <summary>
+		/// Gets a value indicating whether this instance is at full capacity.
+		/// </summary>
+		private bool IsFull => Count == Capacity;
+
+		/// <summary>
+		/// Gets a value indicating whether the buffer is "split" (meaning the beginning of the view is at a later index in <see cref="_buffer"/> than the end).
+		/// </summary>
+		private bool IsSplit => _offset > (Capacity - Count); // Overflow-safe version of "(offset + Count) > Capacity"
+
+		/// <summary>
+		/// Gets or sets the capacity for this deque. This value must always be greater than zero, and this property cannot be set to a value less than <see cref="Count"/>.
+		/// </summary>
+		/// <exception cref="InvalidOperationException"><c>Capacity</c> cannot be set to a value less than <see cref="Count"/>.</exception>
+		public int Capacity
 		{
-			get { return false; }
+			get => _buffer.Length;
+
+			set
+			{
+				if (value < Count)
+				{
+					throw new ArgumentOutOfRangeException(nameof(value), $"{nameof(Capacity)} cannot be set to a value less than {nameof(Count)}.");
+				}
+
+				if (value == _buffer.Length)
+				{
+					return;
+				}
+
+				// Create the new _buffer and copy our existing range.
+				T[] newBuffer = new T[value];
+				CopyToArray(newBuffer);
+
+				// Set up to use the new _buffer.
+				_buffer = newBuffer;
+				_offset = 0;
+			}
 		}
+
+		/// <summary>
+		/// Gets the number of elements contained in this deque.
+		/// </summary>
+		/// <returns>The number of elements contained in this deque.</returns>
+		public int Count { get; private set; }
 
 		/// <summary>
 		/// Gets or sets the item at the specified index.
@@ -97,6 +159,26 @@ namespace Nito.Collections
 			{
 				CheckExistingIndexArgument(Count, index);
 				DoSetItem(index, value);
+			}
+		}
+
+		object IList.this[int index]
+		{
+			get => this[index];
+
+			set
+			{
+				if (value is null && default(T) != null)
+				{
+					throw new ArgumentNullException(nameof(value), $"{nameof(value)} cannot be null.");
+				}
+
+				if (!IsT(value))
+				{
+					throw new ArgumentException($"{nameof(value)} is of incorrect type.", nameof(value));
+				}
+
+				this[index] = (T)value;
 			}
 		}
 
@@ -145,7 +227,10 @@ namespace Nito.Collections
 			foreach (var sourceItem in this)
 			{
 				if (comparer.Equals(item, sourceItem))
+				{
 					return ret;
+				}
+
 				++ret;
 			}
 
@@ -169,7 +254,7 @@ namespace Nito.Collections
 		/// </summary>
 		/// <param name="item">The object to locate in this list.</param>
 		/// <returns>
-		/// true if <paramref name="item"/> is found in this list; otherwise, false.
+		/// True if <paramref name="item"/> is found in this list; otherwise, false.
 		/// </returns>
 		bool ICollection<T>.Contains(T item)
 		{
@@ -177,7 +262,9 @@ namespace Nito.Collections
 			foreach (var entry in this)
 			{
 				if (comparer.Equals(item, entry))
+				{
 					return true;
+				}
 			}
 			return false;
 		}
@@ -201,7 +288,9 @@ namespace Nito.Collections
 		void ICollection<T>.CopyTo(T[] array, int arrayIndex)
 		{
 			if (array is null)
+			{
 				throw new ArgumentNullException(nameof(array));
+			}
 
 			int count = Count;
 			CheckRangeArguments(array.Length, arrayIndex, count);
@@ -209,14 +298,16 @@ namespace Nito.Collections
 		}
 
 		/// <summary>
-		/// Copies the deque elemens into an array. The resulting array always has all the deque elements contiguously.
+		/// Copies the deque elements into an array. The resulting array always has all the deque elements contiguously.
 		/// </summary>
 		/// <param name="array">The destination array.</param>
 		/// <param name="arrayIndex">The optional index in the destination array at which to begin writing.</param>
 		private void CopyToArray(Array array, int arrayIndex = 0)
 		{
 			if (array is null)
+			{
 				throw new ArgumentNullException(nameof(array));
+			}
 
 			if (IsSplit)
 			{
@@ -237,7 +328,7 @@ namespace Nito.Collections
 		/// </summary>
 		/// <param name="item">The object to remove from this list.</param>
 		/// <returns>
-		/// true if <paramref name="item"/> was successfully removed from this list; otherwise, false. This method also returns false if <paramref name="item"/> is not found in this list.
+		/// True if <paramref name="item"/> was successfully removed from this list; otherwise, false. This method also returns false if <paramref name="item"/> is not found in this list.
 		/// </returns>
 		/// <exception cref="T:System.NotSupportedException">
 		/// This list is read-only.
@@ -246,7 +337,9 @@ namespace Nito.Collections
 		{
 			int index = IndexOf(item);
 			if (index == -1)
+			{
 				return false;
+			}
 
 			DoRemoveAt(index);
 			return true;
@@ -273,7 +366,7 @@ namespace Nito.Collections
 		/// <returns>
 		/// An <see cref="T:System.Collections.IEnumerator"/> object that can be used to iterate through the collection.
 		/// </returns>
-		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+		IEnumerator IEnumerable.GetEnumerator()
 		{
 			return GetEnumerator();
 		}
@@ -285,78 +378,74 @@ namespace Nito.Collections
 		private static bool IsT(object value)
 		{
 			if (value is T)
+			{
 				return true;
+			}
+
 			if (value != null)
+			{
 				return false;
-			return default(T) == null;
+			}
+
+			return default(T) is null;
 		}
 
-		int System.Collections.IList.Add(object value)
+		int IList.Add(object value)
 		{
 			if (value is null && default(T) != null)
-				throw new ArgumentNullException(nameof(value), "Value cannot be null.");
+			{
+				throw new ArgumentNullException(nameof(value), $"{nameof(value)} cannot be null.");
+			}
+
 			if (!IsT(value))
-				throw new ArgumentException("Value is of incorrect type.", nameof(value));
+			{
+				throw new ArgumentException($"{nameof(value)} is of incorrect type.", nameof(value));
+			}
+
 			AddToBack((T)value);
 			return Count - 1;
 		}
 
-		bool System.Collections.IList.Contains(object value)
+		bool IList.Contains(object value)
 		{
-			return IsT(value) ? ((ICollection<T>)this).Contains((T)value) : false;
+			return IsT(value) && ((ICollection<T>)this).Contains((T)value);
 		}
 
-		int System.Collections.IList.IndexOf(object value)
+		int IList.IndexOf(object value)
 		{
 			return IsT(value) ? IndexOf((T)value) : -1;
 		}
 
-		void System.Collections.IList.Insert(int index, object value)
+		void IList.Insert(int index, object value)
 		{
 			if (value is null && default(T) != null)
-				throw new ArgumentNullException("value", "Value cannot be null.");
+			{
+				throw new ArgumentNullException(nameof(value), $"{nameof(value)} cannot be null.");
+			}
+
 			if (!IsT(value))
-				throw new ArgumentException("Value is of incorrect type.", "value");
+			{
+				throw new ArgumentException($"{nameof(value)} is of incorrect type.", nameof(value));
+			}
+
 			Insert(index, (T)value);
 		}
 
-		bool System.Collections.IList.IsFixedSize
-		{
-			get { return false; }
-		}
-
-		bool System.Collections.IList.IsReadOnly
-		{
-			get { return false; }
-		}
-
-		void System.Collections.IList.Remove(object value)
+		void IList.Remove(object value)
 		{
 			if (IsT(value))
+			{
 				Remove((T)value);
-		}
-
-		object System.Collections.IList.this[int index]
-		{
-			get
-			{
-				return this[index];
-			}
-
-			set
-			{
-				if (value is null && default(T) != null)
-					throw new ArgumentNullException(nameof(value), "Value cannot be null.");
-				if (!IsT(value))
-					throw new ArgumentException("Value is of incorrect type.", nameof(value));
-				this[index] = (T)value;
 			}
 		}
 
-		void System.Collections.ICollection.CopyTo(Array array, int index)
+		void ICollection.CopyTo(Array array, int index)
 		{
 			if (array is null)
+			{
 				throw new ArgumentNullException(nameof(array), "Destination array cannot be null.");
+			}
+
 			CheckRangeArguments(array.Length, index, Count);
 
 			try
@@ -373,16 +462,6 @@ namespace Nito.Collections
 			}
 		}
 
-		bool System.Collections.ICollection.IsSynchronized
-		{
-			get { return false; }
-		}
-
-		object System.Collections.ICollection.SyncRoot
-		{
-			get { return this; }
-		}
-
 		#endregion ObjectListImplementations
 
 		#region GenericListHelpers
@@ -397,7 +476,7 @@ namespace Nito.Collections
 		{
 			if (index < 0 || index > sourceLength)
 			{
-				throw new ArgumentOutOfRangeException(nameof(index), "Invalid new index " + index + " for source length " + sourceLength);
+				throw new ArgumentOutOfRangeException(nameof(index), $"Invalid new index {index} for source length {sourceLength}.");
 			}
 		}
 
@@ -411,7 +490,7 @@ namespace Nito.Collections
 		{
 			if (index < 0 || index >= sourceLength)
 			{
-				throw new ArgumentOutOfRangeException(nameof(index), "Invalid existing index " + index + " for source length " + sourceLength);
+				throw new ArgumentOutOfRangeException(nameof(index), $"Invalid existing index {index} for source length {sourceLength}.");
 			}
 		}
 
@@ -427,84 +506,21 @@ namespace Nito.Collections
 		{
 			if (offset < 0)
 			{
-				throw new ArgumentOutOfRangeException(nameof(offset), "Invalid offset " + offset);
+				throw new ArgumentOutOfRangeException(nameof(offset), $"Invalid {nameof(offset)} {offset}");
 			}
 
 			if (count < 0)
 			{
-				throw new ArgumentOutOfRangeException(nameof(count), "Invalid count " + count);
+				throw new ArgumentOutOfRangeException(nameof(count), $"Invalid {nameof(count)} {count}");
 			}
 
 			if (sourceLength - offset < count)
 			{
-				throw new ArgumentException("Invalid offset (" + offset + ") or count + (" + count + ") for source length " + sourceLength);
+				throw new ArgumentException($"Invalid {nameof(offset)} ({offset}) or {nameof(count)} + ({count}) for source length {sourceLength}");
 			}
 		}
 
 		#endregion GenericListHelpers
-
-		/// <summary>
-		/// Gets a value indicating whether this instance is empty.
-		/// </summary>
-		private bool IsEmpty
-		{
-			get { return Count == 0; }
-		}
-
-		/// <summary>
-		/// Gets a value indicating whether this instance is at full capacity.
-		/// </summary>
-		private bool IsFull
-		{
-			get { return Count == Capacity; }
-		}
-
-		/// <summary>
-		/// Gets a value indicating whether the buffer is "split" (meaning the beginning of the view is at a later index in <see cref="_buffer"/> than the end).
-		/// </summary>
-		private bool IsSplit
-		{
-			get
-			{
-				// Overflow-safe version of "(offset + Count) > Capacity"
-				return _offset > (Capacity - Count);
-			}
-		}
-
-		/// <summary>
-		/// Gets or sets the capacity for this deque. This value must always be greater than zero, and this property cannot be set to a value less than <see cref="Count"/>.
-		/// </summary>
-		/// <exception cref="InvalidOperationException"><c>Capacity</c> cannot be set to a value less than <see cref="Count"/>.</exception>
-		public int Capacity
-		{
-			get
-			{
-				return _buffer.Length;
-			}
-
-			set
-			{
-				if (value < Count)
-					throw new ArgumentOutOfRangeException(nameof(value), "Capacity cannot be set to a value less than Count");
-
-				if (value == _buffer.Length)
-					return;
-
-				// Create the new _buffer and copy our existing range.
-				T[] newBuffer = new T[value];
-				CopyToArray(newBuffer);
-
-				// Set up to use the new _buffer.
-				_buffer = newBuffer;
-				_offset = 0;
-			}
-		}
-
-		/// <summary>
-		/// Gets the number of elements contained in this deque.
-		/// </summary>
-		/// <returns>The number of elements contained in this deque.</returns>
-		public int Count { get; private set; }
 
 		/// <summary>
 		/// Applies the offset to <paramref name="index"/>, resulting in a buffer index.
@@ -601,7 +617,10 @@ namespace Nito.Collections
 		{
 			_offset -= value;
 			if (_offset < 0)
+			{
 				_offset += Capacity;
+			}
+
 			return _offset;
 		}
 
@@ -654,6 +673,7 @@ namespace Nito.Collections
 		private void DoInsertRange(int index, IReadOnlyCollection<T> collection)
 		{
 			var collectionCount = collection.Count;
+
 			// Make room in the existing list
 			if (index < Count / 2)
 			{
@@ -661,11 +681,13 @@ namespace Nito.Collections
 
 				// Move lower items down: [0, index) -> [Capacity - collectionCount, Capacity - collectionCount + index)
 				// This clears out the low "index" number of items, moving them "collectionCount" places down;
-				//   after rotation, there will be a "collectionCount"-sized hole at "index".
+				// after rotation, there will be a "collectionCount"-sized hole at "index".
 				int copyCount = index;
 				int writeIndex = Capacity - collectionCount;
 				for (int j = 0; j != copyCount; ++j)
+				{
 					_buffer[DequeIndexToBufferIndex(writeIndex + j)] = _buffer[DequeIndexToBufferIndex(j)];
+				}
 
 				// Rotate to the new view
 				PreDecrement(collectionCount);
@@ -678,7 +700,9 @@ namespace Nito.Collections
 				int copyCount = Count - index;
 				int writeIndex = index + collectionCount;
 				for (int j = copyCount - 1; j != -1; --j)
+				{
 					_buffer[DequeIndexToBufferIndex(writeIndex + j)] = _buffer[DequeIndexToBufferIndex(index + j)];
+				}
 			}
 
 			// Copy new items into place
@@ -722,7 +746,9 @@ namespace Nito.Collections
 				int copyCount = index;
 				int writeIndex = collectionCount;
 				for (int j = copyCount - 1; j != -1; --j)
+				{
 					_buffer[DequeIndexToBufferIndex(writeIndex + j)] = _buffer[DequeIndexToBufferIndex(j)];
+				}
 
 				// Rotate to new view
 				PostIncrement(collectionCount);
@@ -735,7 +761,9 @@ namespace Nito.Collections
 				int copyCount = Count - collectionCount - index;
 				int readIndex = index + collectionCount;
 				for (int j = 0; j != copyCount; ++j)
+				{
 					_buffer[DequeIndexToBufferIndex(index + j)] = _buffer[DequeIndexToBufferIndex(readIndex + j)];
+				}
 			}
 
 			// Adjust valid count
@@ -826,7 +854,9 @@ namespace Nito.Collections
 		public T RemoveFromBack()
 		{
 			if (IsEmpty)
+			{
 				throw new InvalidOperationException("The deque is empty.");
+			}
 
 			return DoRemoveFromBack();
 		}
@@ -839,7 +869,9 @@ namespace Nito.Collections
 		public T RemoveFromFront()
 		{
 			if (IsEmpty)
+			{
 				throw new InvalidOperationException("The deque is empty.");
+			}
 
 			return DoRemoveFromFront();
 		}
@@ -874,13 +906,7 @@ namespace Nito.Collections
 			}
 
 			[DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-			public T[] Items
-			{
-				get
-				{
-					return Deque.ToArray();
-				}
-			}
+			public T[] Items => Deque.ToArray();
 		}
 	}
 }

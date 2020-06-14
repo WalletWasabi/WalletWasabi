@@ -1,152 +1,38 @@
-﻿using Mono.Options;
+using NBitcoin;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Helpers;
-using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.CommandLine
 {
-	public static class Daemon
+	public class Daemon
 	{
-		public static async Task<bool> RunAsyncReturnTrueIfContinueWithGuiAsync(string[] args)
+		public Daemon(Global global)
 		{
-			var continueWithGui = true;
-			var silent = false;
+			Global = global;
+		}
 
-			var showHelp = false;
-			var showVersion = false;
-			LogLevel? logLevel = null;
-			string walletName = null;
-			var doMix = false;
+		private Global Global { get; }
 
+		private Wallet Wallet { get; set; }
+
+		internal async Task RunAsync(string walletName, string destinationWalletName, bool keepMixAlive)
+		{
 			try
 			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-				{
-					Native.AttachParentConsole();
-					Console.WriteLine();
-				}
+				Logger.LogSoftwareStarted("Wasabi Daemon");
 
-				var options = new OptionSet() {
-					{ "v|version", "Displays Wasabi version and exit.", x => showVersion = x != null},
-					{ "h|help", "Displays help page and exit.", x => showHelp = x != null},
-					{ "s|silent", "Do not log to the standard outputs.", x => silent = x != null},
-					{ "l|loglevel=", "Sets the level of verbosity for the log TRACE|INFO|WARNING|DEBUG|ERROR.", x => {
-						var normalized = x?.ToLower()?.Trim();
-						if(normalized == "info") logLevel = LogLevel.Info;
-						else if(normalized == "warning")  logLevel = LogLevel.Warning;
-						else if(normalized == "error") logLevel = LogLevel.Error;
-						else if(normalized == "trace") logLevel = LogLevel.Trace;
-						else if(normalized == "debug") logLevel = LogLevel.Debug;
-						else {
-							Console.WriteLine("ERROR: Log level not recognized.");
-							showHelp = true;
-						}
-					}},
-					{ "m|mix", "Start mixing without the GUI with the specified wallet.", x => doMix = x != null},
-					{ "w|wallet=", "The specified wallet file.", x => {
-						walletName = x?.Trim();
-					}}
-				};
-				try
-				{
-					var extras = options.Parse(args);
-					if (extras.Count > 0)
-					{
-						showHelp = true;
-					}
-				}
-				catch (OptionException)
-				{
-					continueWithGui = false;
-					Console.WriteLine("Option not recognized.");
-					Console.WriteLine();
-					ShowHelp(options);
-					return continueWithGui;
-				}
-				if (showHelp)
-				{
-					continueWithGui = false;
-					ShowHelp(options);
-					return continueWithGui;
-				}
-				else if (showVersion)
-				{
-					continueWithGui = false;
-					ShowVersion();
-					return continueWithGui;
-				}
-			}
-			finally
-			{
-				if (silent)
-				{
-					Native.DettachParentConsole();
-				}
-			}
-
-			Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
-
-			if (logLevel.HasValue)
-			{
-				Logger.SetMinimumLevel(logLevel.Value);
-			}
-			if (silent)
-			{
-				Logger.Modes.Remove(LogMode.Console);
-				Logger.Modes.Remove(LogMode.Debug);
-			}
-			else
-			{
-				Logger.Modes.Add(LogMode.Console);
-				Logger.Modes.Add(LogMode.Debug);
-			}
-			Logger.LogStarting("Wasabi");
-
-			KeyManager keyManager = null;
-			if (walletName != null)
-			{
-				continueWithGui = false;
-
-				var walletFullPath = Global.GetWalletFullPath(walletName);
-				var walletBackupFullPath = Global.GetWalletBackupFullPath(walletName);
-				if (!File.Exists(walletFullPath) && !File.Exists(walletBackupFullPath))
-				{
-					// The selected wallet is not available any more (someone deleted it?).
-					Logger.LogCritical("The selected wallet doesn't exsist, did you delete it?", nameof(Daemon));
-					return continueWithGui;
-				}
-
-				try
-				{
-					keyManager = Global.LoadKeyManager(walletFullPath, walletBackupFullPath);
-				}
-				catch (Exception ex)
-				{
-					Logger.LogCritical(ex, nameof(Daemon));
-					return continueWithGui;
-				}
-			}
-
-			if (doMix)
-			{
-				continueWithGui = false;
-
-				if (keyManager is null)
-				{
-					Logger.LogCritical("Wallet was not supplied. Add --wallet {WalletName}", nameof(Daemon));
-					return continueWithGui;
-				}
+				KeyManager keyManager = Global.WalletManager.GetWalletByName(walletName).KeyManager;
 
 				string password = null;
 				var count = 3;
+				string compatibilityPassword = null;
 				do
 				{
 					if (password != null)
@@ -158,50 +44,124 @@ namespace WalletWasabi.Gui.CommandLine
 						else
 						{
 							Logger.LogCritical($"Wrong password. {count} attempts left. Exiting...");
-							return continueWithGui;
+							return;
 						}
 						count--;
 					}
 					Console.Write("Password: ");
 
 					password = PasswordConsole.ReadPassword();
-					password = Guard.Correct(password);
+					if (PasswordHelper.IsTooLong(password, out password))
+					{
+						Console.WriteLine(PasswordHelper.PasswordTooLongMessage);
+					}
+					if (PasswordHelper.IsTrimable(password, out password))
+					{
+						Console.WriteLine(PasswordHelper.TrimWarnMessage);
+					}
 				}
-				while (!keyManager.TestPassword(password));
+				while (!PasswordHelper.TryPassword(keyManager, password, out compatibilityPassword));
+
+				if (compatibilityPassword != null)
+				{
+					password = compatibilityPassword;
+					Logger.LogInfo(PasswordHelper.CompatibilityPasswordWarnMessage);
+				}
 
 				Logger.LogInfo("Correct password.");
 
-				await Global.InitializeNoUiAsync();
-				await Global.InitializeWalletServiceAsync(keyManager);
-
-				await Global.ChaumianClient.QueueCoinsToMixAsync(password, Global.WalletService.Coins.Where(x => !x.Unavailable).ToArray());
-
-				while (Global.ChaumianClient.State.AnyCoinsQueued())
+				await Global.InitializeNoWalletAsync();
+				if (Global.KillRequested)
 				{
+					return;
+				}
+
+				Wallet = await Global.WalletManager.StartWalletAsync(keyManager);
+				if (Global.KillRequested)
+				{
+					return;
+				}
+
+				KeyManager destinationKeyManager = Global.WalletManager.GetWalletByName(destinationWalletName).KeyManager;
+				bool isDifferentDestinationSpecified = keyManager.ExtPubKey != destinationKeyManager.ExtPubKey;
+				if (isDifferentDestinationSpecified)
+				{
+					await Global.WalletManager.StartWalletAsync(destinationKeyManager);
+				}
+
+				do
+				{
+					if (Global.KillRequested)
+					{
+						break;
+					}
+
+					// If no coins enqueued then try to enqueue the large anonset coins and mix to another wallet.
+					if (isDifferentDestinationSpecified && !AnyCoinsQueued())
+					{
+						Wallet.ChaumianClient.DestinationKeyManager = destinationKeyManager;
+						await TryQueueCoinsToMixAsync(password, minAnonset: Wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue());
+					}
+
+					if (Global.KillRequested)
+					{
+						break;
+					}
+
+					// If no coins were enqueued then try to enqueue coins those have less anonset and mix into the same wallet.
+					if (!AnyCoinsQueued())
+					{
+						Wallet.ChaumianClient.DestinationKeyManager = Wallet.ChaumianClient.KeyManager;
+						await TryQueueCoinsToMixAsync(password, maxAnonset: Wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue() - 1);
+					}
+
+					if (Global.KillRequested)
+					{
+						break;
+					}
+
 					await Task.Delay(3000);
 				}
 
-				await Global.ChaumianClient.DequeueAllCoinsFromMixAsync();
+				// Keep this loop alive as long as a coin is enqueued or keepalive was specified.
+				while (keepMixAlive || AnyCoinsQueued());
 			}
-
-			return continueWithGui;
+			catch
+			{
+				if (!Global.KillRequested)
+				{
+					throw;
+				}
+			}
+			finally
+			{
+				await Global.DisposeAsync().ConfigureAwait(false); 
+				Logger.LogInfo($"{nameof(Daemon)} stopped.");
+			}
 		}
 
-		private static void ShowVersion()
+		private bool AnyCoinsQueued()
 		{
-			Console.WriteLine($"Wasabi Client Version: {Constants.ClientVersion}");
-			Console.WriteLine($"Compatible Coordinator Version: {Constants.BackendMajorVersion}");
+			return Wallet.ChaumianClient.State.AnyCoinsQueued();
 		}
 
-		private static void ShowHelp(OptionSet p)
+		private async Task TryQueueCoinsToMixAsync(string password, int minAnonset = int.MinValue, int maxAnonset = int.MaxValue)
 		{
-			ShowVersion();
-			Console.WriteLine();
-			Console.WriteLine("Usage: wassabee [OPTIONS]+");
-			Console.WriteLine("Launches Wasabi Wallet.");
-			Console.WriteLine();
-			Console.WriteLine("Options:");
-			p.WriteOptionDescriptions(Console.Out);
+			try
+			{
+				var coinsToMix = Wallet.Coins.Available().FilterBy(x => x.AnonymitySet <= maxAnonset && minAnonset <= x.AnonymitySet);
+
+				var enqueuedCoins = await Wallet.ChaumianClient.QueueCoinsToMixAsync(password, coinsToMix.ToArray());
+
+				if (enqueuedCoins.Any())
+				{
+					Logger.LogInfo($"Enqueued {Money.Satoshis(enqueuedCoins.Sum(x => x.Amount)).ToString(false, true)} BTC, {enqueuedCoins.Count()} coins with smallest anonset {enqueuedCoins.Min(x => x.AnonymitySet)} and largest anonset {enqueuedCoins.Max(x => x.AnonymitySet)}.");
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning(ex);
+			}
 		}
 	}
 }

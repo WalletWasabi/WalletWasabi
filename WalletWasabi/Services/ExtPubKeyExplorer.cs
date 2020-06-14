@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +8,7 @@ using WalletWasabi.Backend.Models;
 
 namespace WalletWasabi.Services
 {
-	public class ExtPubKeyExplorer
+	public static class ExtPubKeyExplorer
 	{
 		/// <summary>
 		/// WARNING: ONLY CHECKS CONFIRMED KEYPATHS

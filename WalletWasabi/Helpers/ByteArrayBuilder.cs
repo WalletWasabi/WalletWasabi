@@ -1,17 +1,18 @@
-﻿using System.Text;
+using System.Text;
 
 namespace System
 {
 	public class ByteArrayBuilder
 	{
 		private byte[] _buffer;
-		public int Length { get; set; }
 
 		public ByteArrayBuilder()
 		{
 			_buffer = new byte[4096];
 			Length = 0;
 		}
+
+		public int Length { get; set; }
 
 		public ByteArrayBuilder Append(byte b)
 		{
@@ -49,7 +50,7 @@ namespace System
 		}
 
 		/// <summary>
-		/// utf8 encoding
+		/// UTF8 encoding
 		/// </summary>
 		public override string ToString()
 		{
@@ -58,7 +59,11 @@ namespace System
 
 		public string ToString(Encoding encoding)
 		{
-			if (Length == 0) return "";
+			if (Length == 0)
+			{
+				return "";
+			}
+
 			return encoding.GetString(ToArray());
 		}
 

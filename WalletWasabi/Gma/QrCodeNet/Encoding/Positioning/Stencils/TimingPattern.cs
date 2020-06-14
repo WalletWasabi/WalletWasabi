@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
 {
@@ -18,8 +18,8 @@ namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
 			for (int i = 8; i < matrix.Width - 8; ++i)
 			{
 				bool value = (sbyte)((i + 1) % 2) == 1;
-				// Horizontal line.
 
+				// Horizontal line.
 				if (matrix.MStatus(6, i) == MatrixStatus.None)
 				{
 					matrix[6, i, MatrixStatus.NoMask] = value;

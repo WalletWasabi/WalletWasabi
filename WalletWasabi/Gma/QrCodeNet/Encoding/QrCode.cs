@@ -1,10 +1,10 @@
-﻿namespace Gma.QrCodeNet.Encoding
+namespace Gma.QrCodeNet.Encoding
 {
 	/// <summary>
 	/// This class contain two variables.
 	/// BitMatrix for QrCode
 	/// isContainMatrix for indicate whether QrCode contains BitMatrix or not.
-	/// BitMatrix will equal to null if isContainMatrix is false.
+	/// BitMatrix will be equal to null if isContainMatrix is false.
 	/// </summary>
 	public class QrCode
 	{

@@ -1,9 +1,17 @@
-﻿using WalletWasabi.Bases;
+using WalletWasabi.Bases;
 
 namespace WalletWasabi.TorSocks5.TorSocks5.Models.Fields.ByteArrayFields
 {
 	public class RsvField : OctetSerializableBase
 	{
+		#region Constructors
+
+		public RsvField()
+		{
+		}
+
+		#endregion Constructors
+
 		#region Statics
 
 		public static RsvField X00
@@ -17,13 +25,5 @@ namespace WalletWasabi.TorSocks5.TorSocks5.Models.Fields.ByteArrayFields
 		}
 
 		#endregion Statics
-
-		#region ConstructorsAndInitializers
-
-		public RsvField()
-		{
-		}
-
-		#endregion ConstructorsAndInitializers
 	}
 }

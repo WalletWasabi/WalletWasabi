@@ -1,25 +1,15 @@
-﻿using WalletWasabi.Bases;
-using WalletWasabi.TorSocks5.Models.Fields.OctetFields;
 using System;
 using System.Linq;
-using WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields;
+using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
+using WalletWasabi.TorSocks5.Models.Fields.OctetFields;
+using WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields;
 
 namespace WalletWasabi.TorSocks5.Models.Messages
 {
 	public class VersionMethodRequest : ByteArraySerializableBase
 	{
-		#region PropertiesAndMembers
-
-		public VerField Ver { get; set; }
-
-		public NMethodsField NMethods { get; set; }
-
-		public MethodsField Methods { get; set; }
-
-		#endregion PropertiesAndMembers
-
-		#region ConstructorsAndInitializers
+		#region Constructors
 
 		public VersionMethodRequest()
 		{
@@ -37,7 +27,17 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 			NMethods = nMethods;
 		}
 
-		#endregion ConstructorsAndInitializers
+		#endregion Constructors
+
+		#region PropertiesAndMembers
+
+		public VerField Ver { get; set; }
+
+		public NMethodsField NMethods { get; set; }
+
+		public MethodsField Methods { get; set; }
+
+		#endregion PropertiesAndMembers
 
 		#region Serialization
 
@@ -54,14 +54,20 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 
 			if (NMethods.Value != bytes.Length - 2)
 			{
-				throw new FormatException($"{nameof(NMethods)}.{nameof(NMethods.Value)} must be {nameof(bytes)}.{nameof(bytes.Length)} - 2` = {bytes.Length - 2}. Actual: {NMethods.Value}.");
+				throw new FormatException($"{nameof(NMethods)}.{nameof(NMethods.Value)} must be {nameof(bytes)}.{nameof(bytes.Length)} - 2 = {bytes.Length - 2}. Actual: {NMethods.Value}.");
 			}
 
 			Methods = new MethodsField();
 			Methods.FromBytes(bytes.Skip(2).ToArray());
 		}
 
-		public override byte[] ToBytes() => ByteHelpers.Combine(new byte[] { Ver.ToByte(), NMethods.ToByte() }, Methods.ToBytes());
+		public override byte[] ToBytes() => ByteHelpers.Combine(
+			new byte[]
+			{
+				Ver.ToByte(),
+				NMethods.ToByte()
+			},
+			Methods.ToBytes());
 
 		#endregion Serialization
 	}

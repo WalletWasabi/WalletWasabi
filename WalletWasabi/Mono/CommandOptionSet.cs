@@ -1,4 +1,4 @@
-﻿//
+//
 // Options.cs
 //
 // Authors:
@@ -164,13 +164,13 @@ namespace Mono.Options
 {
 	public class CommandOptionSet : OptionSet
 	{
-		public CommandSet Commands { get; set; }
-
 		public CommandOptionSet(CommandSet commands, MessageLocalizerConverter localizer)
 			: base(localizer)
 		{
 			Commands = commands;
 		}
+
+		public CommandSet Commands { get; set; }
 
 		protected override void SetItem(int index, Option item)
 		{
@@ -185,13 +185,21 @@ namespace Mono.Options
 		private bool ShouldWrapOption(Option item)
 		{
 			if (item is null)
+			{
 				return false;
-			if (item is HelpOption help)
+			}
+
+			if (item is HelpOption)
+			{
 				return false;
+			}
+
 			foreach (var n in item.Names)
 			{
 				if (n == "help")
+				{
 					return true;
+				}
 			}
 			return false;
 		}

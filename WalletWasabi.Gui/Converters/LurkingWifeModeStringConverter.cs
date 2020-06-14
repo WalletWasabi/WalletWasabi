@@ -1,4 +1,7 @@
-﻿using Avalonia.Data.Converters;
+using Avalonia;
+using Avalonia.Data.Converters;
+using NBitcoin;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -11,23 +14,31 @@ namespace WalletWasabi.Gui.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if ((value is string text))
+			var uiConfig = Locator.Current.GetService<Global>().UiConfig;
+			if (uiConfig.LurkingWifeMode)
 			{
-				if (Global.UiConfig.LurkingWifeMode == true)
+				int len = 10;
+				if (int.TryParse(parameter.ToString(), out int newLength))
 				{
-					int len = 10;
-					if (int.TryParse(parameter.ToString(), out int newLength))
-						len = newLength;
-					return new string(Enumerable.Repeat('#', len).ToArray());
+					len = newLength;
 				}
-				return text;
+
+				return new string(Enumerable.Repeat('#', len).ToArray());
 			}
-			return "?";
+			else if (value is Money)
+			{
+				var conv = new MoneyStringConverter();
+				return conv.Convert(value, targetType, parameter, culture);
+			}
+			else
+			{
+				return value?.ToString() ?? "";
+			}
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			throw new NotSupportedException();
+			return value?.ToString() ?? "";
 		}
 	}
 }

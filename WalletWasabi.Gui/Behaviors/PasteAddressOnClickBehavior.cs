@@ -1,27 +1,41 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Xaml.Interactivity;
 using NBitcoin;
+using NBitcoin.Payment;
+using ReactiveUI;
+using Splat;
 using System;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using WalletWasabi.Gui.Controls;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.Behaviors
 {
-	internal class PasteAddressOnClickBehavior : Behavior<TextBox>
+	public class PasteAddressOnClickBehavior : CommandBasedBehavior<TextBox>
 	{
-		private CompositeDisposable Disposables { get; set; }
+		private TextBoxState _textBoxState = TextBoxState.None;
+
+		public PasteAddressOnClickBehavior()
+		{
+			Global = Locator.Current.GetService<Global>();
+		}
 
 		protected internal enum TextBoxState
 		{
 			None,
 			NormalTextBoxOperation,
 			AddressInsert,
-			SelectAll,
+			SelectAll
 		}
+
+		private CompositeDisposable Disposables { get; set; }
+		private Global Global { get; }
 
 		private TextBoxState MyTextBoxState
 		{
@@ -33,133 +47,131 @@ namespace WalletWasabi.Gui.Behaviors
 				{
 					case TextBoxState.NormalTextBoxOperation:
 						{
-							ToolTip.SetTip(AssociatedObject, _originalToolTipText);
-							ToolTip.SetIsOpen(AssociatedObject, false);
-							AssociatedObject.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Ibeam);
+							AssociatedObject.Cursor = new Cursor(StandardCursorType.Ibeam);
 						}
 						break;
 
 					case TextBoxState.AddressInsert:
 						{
-							ToolTip.SetTip(AssociatedObject, "Click to paste address from clipboard");
-							AssociatedObject.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Arrow);
+							AssociatedObject.Cursor = new Cursor(StandardCursorType.Arrow);
 						}
 						break;
 
 					case TextBoxState.SelectAll:
 						{
-							ToolTip.SetTip(AssociatedObject, "Click to select all");
-							AssociatedObject.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Arrow);
+							AssociatedObject.Cursor = new Cursor(StandardCursorType.Arrow);
 						}
 						break;
 				}
 			}
 		}
 
-		private string _originalToolTipText;
-		private TextBoxState _textBoxState = TextBoxState.None;
-
-		public async Task<(bool isAddress, string address)> IsThereABitcoinAddressOnTheClipboardAsync()
+		private bool ProcessText(string text)
 		{
-			var clipboard = (IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard));
-			Task<string> clipboardTask = clipboard.GetTextAsync();
-			string text = await clipboardTask;
-			if (string.IsNullOrEmpty(text) || text.Length > 100)
+			if (AddressStringParser.TryParse(text, Global.Network, out BitcoinUrlBuilder result))
 			{
-				return (false, null);
+				AssociatedObject.Text = result?.Address?.ToString();
+				CommandParameter = result;
+				ExecuteCommand();
+				return true;
 			}
 
-			text = text.Trim();
-			try
-			{
-				var bitcoinAddress = BitcoinAddress.Create(text, Global.Network);
-				return (true, bitcoinAddress.ToString());
-			}
-			catch (FormatException)
-			{
-				return (false, null);
-			}
+			return false;
 		}
 
 		protected override void OnAttached()
 		{
-			_originalToolTipText = (string)ToolTip.GetTip(AssociatedObject);
-
 			Disposables?.Dispose();
 
 			Disposables = new CompositeDisposable
 			{
-				AssociatedObject.GetObservable(TextBox.IsFocusedProperty).Subscribe(focused =>
-				{
-					if (!focused)
+				AssociatedObject.GetObservable(InputElement.IsFocusedProperty).Subscribe(focused =>
 					{
-						MyTextBoxState = TextBoxState.None;
-					}
-				})
+						if (!focused)
+						{
+							MyTextBoxState = TextBoxState.None;
+						}
+					}),
+				AssociatedObject
+					.GetObservable(InputElement.KeyUpEvent)
+					.Throttle(TimeSpan.FromMilliseconds(500)) // Do not remove this we need to make sure we are running on a separate Task.
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.Subscribe(_ =>
+					{
+						ProcessText(AssociatedObject.Text);
+						MyTextBoxState = TextBoxState.NormalTextBoxOperation;
+					})
 			};
 
-			Disposables.Add(
-				AssociatedObject.GetObservable(TextBox.PointerReleasedEvent).Subscribe(async pointer =>
-				{
-					switch (MyTextBoxState)
+			if (AssociatedObject is ExtendedTextBox extendedTextBox)
+			{
+				Disposables.Add(extendedTextBox.TextPasted
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.Subscribe(text =>
 					{
-						case TextBoxState.AddressInsert:
-							var result = await IsThereABitcoinAddressOnTheClipboardAsync();
-
-							if (result.isAddress)
-							{
-								AssociatedObject.Text = result.address;
-							}
-							MyTextBoxState = TextBoxState.NormalTextBoxOperation;
-							var labeltextbox = AssociatedObject.Parent.FindControl<TextBox>("LabelTextBox");
-							if (labeltextbox != null)
-							{
-								labeltextbox.Focus();
-							}
-
-							break;
-
-						case TextBoxState.SelectAll:
-							AssociatedObject.SelectionStart = 0;
-							AssociatedObject.SelectionEnd = AssociatedObject.Text.Length;
-							MyTextBoxState = TextBoxState.NormalTextBoxOperation;
-							break;
-					}
-				})
-			);
+						ProcessText(text);
+						MyTextBoxState = TextBoxState.NormalTextBoxOperation;
+					}));
+			}
 
 			Disposables.Add(
-				AssociatedObject.GetObservable(TextBox.PointerEnterEvent).Subscribe(async pointerEnter =>
-				{
-					if (!AssociatedObject.IsFocused && MyTextBoxState == TextBoxState.NormalTextBoxOperation)
+				AssociatedObject.GetObservable(InputElement.PointerReleasedEvent).Subscribe(async pointer =>
 					{
-						MyTextBoxState = TextBoxState.None;
-					}
-
-					if (MyTextBoxState == TextBoxState.NormalTextBoxOperation)
-					{
-						return;
-					}
-
-					if (string.IsNullOrEmpty(AssociatedObject.Text))
-					{
-						var result = await IsThereABitcoinAddressOnTheClipboardAsync();
-						if (result.isAddress)
+						if (!Global.UiConfig.Autocopy)
 						{
-							MyTextBoxState = TextBoxState.AddressInsert;
-							ToolTip.SetIsOpen(AssociatedObject, true);
+							return;
+						}
+
+						switch (MyTextBoxState)
+						{
+							case TextBoxState.AddressInsert:
+								{
+									string text = await Application.Current.Clipboard.GetTextAsync();
+									ProcessText(text);
+									MyTextBoxState = TextBoxState.NormalTextBoxOperation;
+								}
+								break;
+
+							case TextBoxState.SelectAll:
+								{
+									AssociatedObject.SelectionStart = 0;
+									AssociatedObject.SelectionEnd = AssociatedObject.Text.Length;
+									MyTextBoxState = TextBoxState.NormalTextBoxOperation;
+								}
+								break;
+						}
+					}));
+
+			Disposables.Add(
+				AssociatedObject.GetObservable(InputElement.PointerEnterEvent).Subscribe(async pointerEnter =>
+					{
+						if (!Global.UiConfig.Autocopy)
+						{
+							return;
+						}
+
+						if (!AssociatedObject.IsFocused && MyTextBoxState == TextBoxState.NormalTextBoxOperation)
+						{
+							MyTextBoxState = TextBoxState.None;
+						}
+
+						if (MyTextBoxState == TextBoxState.NormalTextBoxOperation)
+						{
+							return;
+						}
+
+						if (string.IsNullOrEmpty(AssociatedObject.Text))
+						{
+							string text = await Application.Current.Clipboard.GetTextAsync();
+							MyTextBoxState = AddressStringParser.TryParse(text, Global.Network, out _)
+								? TextBoxState.AddressInsert
+								: TextBoxState.NormalTextBoxOperation;
 						}
 						else
 						{
-							MyTextBoxState = TextBoxState.NormalTextBoxOperation;
+							MyTextBoxState = TextBoxState.SelectAll;
 						}
-					}
-					else
-					{
-						MyTextBoxState = TextBoxState.SelectAll;
-					}
-				})
-			);
+					}));
 
 			base.OnAttached();
 		}

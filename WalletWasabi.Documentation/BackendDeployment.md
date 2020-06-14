@@ -1,6 +1,6 @@
 # Update
 
-Consider updating the versions in `WalletWasabi.Helpers.Constants`. If versions are updated, make sure Client Release is already available before updating the backend.
+Consider updating the versions in `WalletWasabi.Helpers.Constants`. If the versions are updated, make sure the Client Release is already available before updating the backend.
 
 ```sh
 sudo apt-get update && cd ~/WalletWasabi && git pull && cd ~
@@ -44,7 +44,7 @@ https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubunt
 
 ## SSH in as Root
 
-Putty (Note copypaste with Ctrl+Insert and Shift+Insert.)  
+Putty (Copypaste with Ctrl+Insert and Shift+Insert)  
 https://www.digitalocean.com/community/tutorials/how-to-use-ssh-keys-with-putty-on-digitalocean-droplets-windows-users
 
 ### Create a New User and Grant Administrative Privileges
@@ -52,6 +52,22 @@ https://www.digitalocean.com/community/tutorials/how-to-use-ssh-keys-with-putty-
 ```sh
 adduser user
 usermod -aG sudo user
+```
+
+### Increase the number of files limit
+
+By default a process can keep open up to 4096 files. Increase that limit for the `user` user as follows:
+
+```sh
+sudo pico /etc/security/limits.conf
+```
+
+```
+# Wasabi backend
+# Wasabi runs with the user called user 
+user    soft nofile 16384
+user    hard nofile 16384
+# End of Wasabi backend
 ```
 
 # Setup Firewall
@@ -66,7 +82,7 @@ ufw enable
 > As the firewall is currently blocking all connections except for SSH, if you install and configure additional services, you will need to adjust the firewall settings to allow acceptable traffic in. You can learn some common UFW operations in this guide.
 > https://www.digitalocean.com/community/tutorials/ufw-essentials-common-firewall-rules-and-commands
 
-## Enabling External Access for User
+## Enable External Access for User
 
 ```sh
 rsync --archive --chown=user:user ~/.ssh /home/user
@@ -82,7 +98,11 @@ sudo apt-get update && sudo apt-get dist-upgrade -y
 
 https://www.microsoft.com/net/learn/get-started/linux/ubuntu18-04
 
-Opt out of the telemetry: `export DOTNET_CLI_TELEMETRY_OPTOUT=1`.
+Opt out of the telemetry:
+
+```sh
+export DOTNET_CLI_TELEMETRY_OPTOUT=1
+```
 
 # 4. Install Tor
 
@@ -134,12 +154,12 @@ sudo ufw allow 80
 
 **Backup the generated private key!**
 
-# 5. Install, Configure and Synchronize bitcoind
+# 5. Install, Configure and Synchronize bitcoind (Bitcoin Knots)
 
-https://bitcoin.org/en/download
+https://bitcoinknots.org/
 
 ```sh
-sudo add-apt-repository ppa:bitcoin/bitcoin
+sudo add-apt-repository ppa:luke-jr/bitcoinknots
 sudo apt-get update
 sudo apt-get install bitcoind
 mkdir ~/.bitcoin
@@ -149,7 +169,7 @@ pico ~/.bitcoin/bitcoin.conf
 ```sh
 testnet=[0/1]
 
-[main/test].maxuploadtarget=144
+[main/test].rpcworkqueue=128
 
 [main/test].txindex=1
 
@@ -158,8 +178,9 @@ testnet=[0/1]
 [main/test].rpcuser=bitcoinuser
 [main/test].rpcpassword=password
 [main/test].whitebind=127.0.0.1:[8333/18333]
+#[main/test].debug=rpc     # in some cases it could be good to uncomment this line.
 ```
-https://bitcoincore.org/en/releases/0.17.0/
+https://bitcoincore.org/en/releases/0.17.0/  
 https://medium.com/@loopring/how-to-run-lighting-btc-node-and-start-mining-b55c4bab8ad  
 https://github.com/MrChrisJ/fullnode/issues/18
 
@@ -180,12 +201,12 @@ cd WalletWasabi
 dotnet restore
 dotnet build
 dotnet publish WalletWasabi.Backend --configuration Release --self-contained false
-dotnet WalletWasabi.Backend/bin/Release/netcoreapp2.2/publish/WalletWasabi.Backend.dll
+dotnet WalletWasabi.Backend/bin/Release/netcoreapp3.1/publish/WalletWasabi.Backend.dll
 cd ..
 cat .walletwasabi/backend/Logs.txt
 pico .walletwasabi/backend/Config.json
 pico .walletwasabi/backend/CcjRoundConfig.json
-dotnet WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp2.2/publish/WalletWasabi.Backend.dll
+dotnet WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp3.1/publish/WalletWasabi.Backend.dll
 cat .walletwasabi/backend/Logs.txt
 ```
 
@@ -204,8 +225,8 @@ sudo pico /etc/systemd/system/walletwasabi.service
 Description=WalletWasabi Backend API
 
 [Service]
-WorkingDirectory=/home/user/WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp2.2/publish
-ExecStart=/usr/bin/dotnet /home/user/WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp2.2/publish/WalletWasabi.Backend.dll
+WorkingDirectory=/home/user/WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp3.1/publish
+ExecStart=/usr/bin/dotnet /home/user/WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp3.1/publish/WalletWasabi.Backend.dll
 Restart=always
 RestartSec=10  # Restart service after 10 seconds if dotnet service crashes
 SyslogIdentifier=walletwasabi-backend
@@ -230,10 +251,16 @@ tor
 pgrep -ilfa tor
 ```
 
-## 8. Setup nginx
+Review the tor activity using the logs stored in the linux journal:
 
-https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/linux-nginx?view=aspnetcore-2.0&tabs=aspnetcore2x#install-nginx
-Only setup nginx if you want to expose the autogenerated website to the clearnet.
+```sh
+sudo journalctl -u tor@default
+```
+
+# 8. Setup Nginx
+
+https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/linux-nginx?view=aspnetcore-2.0&tabs=aspnetcore2x#install-nginx  
+Only setup Nginx if you want to expose the autogenerated website to the clearnet.
 
 Enable firewall:
 ```sh
@@ -245,13 +272,14 @@ sudo ufw allow https
 sudo apt-get install nginx -y
 sudo service nginx start
 ```
-Verify a browser displays the default landing page for Nginx. The landing page is reachable at `http://<server_IP_address>/index.nginx-debian.html`.
+Verify the browser displays the default landing page for Nginx.  
+The landing page is reachable at `http://<server_IP_address>/index.nginx-debian.html`
 
 ```sh
 sudo pico /etc/nginx/sites-available/default
 ```
 
-Fill out the server name with the server's IP and domain. And remove the unneeded domains (note I use `wasabiwallet.co` for testnet.)
+Fill out the first server's name with the server's IP and domain, and remove the unneeded domains and the second server. (Note that I use `wasabiwallet.co` for testnet.)
 
 ```
 server {
@@ -259,7 +287,20 @@ server {
     listen        [::]:80;
     listen        443 ssl;
     listen        [::]:443 ssl;
-    server_name   [InsertServerIPHere] wasabiwallet.io www.wasabiwallet.io wasabiwallet.net www.wasabiwallet.net wasabiwallet.org www.wasabiwallet.org wasabiwallet.info www.wasabiwallet.info wasabiwallet.co www.wasabiwallet.co zerolink.info www.zerolink.info hiddenwallet.org www.hiddenwallet.org;
+    server_name   [InsertServerIPHere] wasabiwallet.net www.wasabiwallet.net wasabiwallet.org www.wasabiwallet.org wasabiwallet.info www.wasabiwallet.info wasabiwallet.co www.wasabiwallet.co zerolink.info www.zerolink.info hiddenwallet.org www.hiddenwallet.org;
+    location / {
+        sub_filter '<head>'  '<head><meta name="robots" content="noindex, nofollow" />';
+        sub_filter_once on;
+        proxy_pass         http://localhost:37127;
+    }
+}
+
+server {
+    listen        80;
+    listen        [::]:80;
+    listen        443 ssl;
+    listen        [::]:443 ssl;
+    server_name   wasabiwallet.io www.wasabiwallet.io;
     location / {
         proxy_pass         http://localhost:37127;
     }
@@ -271,13 +312,14 @@ sudo nginx -t
 sudo nginx -s reload
 ```
 
-Setup https, redirect to https when asks. This'll modify the above config file, but oh well.  
+Setup https, redirect to https when asks. This will modify the above config file, but oh well.
 
 ```sh
 sudo certbot -d wasabiwallet.io -d www.wasabiwallet.io -d wasabiwallet.net -d www.wasabiwallet.net -d wasabiwallet.org -d www.wasabiwallet.org -d wasabiwallet.info -d www.wasabiwallet.info -d wasabiwallet.co -d www.wasabiwallet.co -d zerolink.info -d www.zerolink.info -d hiddenwallet.org -d www.hiddenwallet.org
 ```
 
-certbot won't properly redirect www, so it must be setup by hand, one by one. Duplicate all entries like this by adding a `www.`:
+certbot will not properly redirect www, so it must be setup by hand, one by one.  
+Duplicate all entries like this by adding a `www.`:
 ```
 server {
     if ($host = wasabiwallet.co) {
@@ -310,3 +352,87 @@ tail -f ~/.bitcoin/debug.log
 tail -10000 .walletwasabi/backend/Logs.txt
 du -bsh .walletwasabi/backend/IndexBuilderService/*
 ```
+# Specify Your ExtPubKey
+
+Take your ExtPubKey from Wasabi. Never receive money to that wallet's external keypath.
+
+```sh
+pico ~/.walletwasabi/backend/CcjRoundConfig.json
+```
+
+Add your extpub to the `CoordinatorExtPubKey`.
+
+# Additional (optional) Settings
+
+## Rolling Bitcoin Knots node debug logs
+
+The following command line adds a configuration file to let logrotate service know
+how to rotate the bitcoin debug logs.
+
+```sh
+sudo tee -a /etc/logrotate.d/bitcoin <<EOS
+/home/user/.bitcoin/debug.log
+{
+        su user user
+        rotate 5
+        copytruncate
+        daily
+        missingok
+        notifempty
+        compress
+        delaycompress
+        sharedscripts
+}
+EOS
+```
+
+**Note:** In test server replace the first line by the following one `/home/user/.bitcoin/testnet3/debug.log`
+
+## Welcome Banner
+
+The following command line adds a welcome banner indicating the ssh logged user that he is in the production server.
+
+```sh
+sudo tee -a /etc/motd <<EOS
+****************************************************************************
+*** Attention! Wasabi PRODUCTION server                                  ***
+****************************************************************************
+EOS
+```
+
+## Prompt
+
+Additionally to the welcome banner it could be good to know in what server we are all the time, in this case update the prompt as follow:
+
+```sh
+pico ~/.bashrc
+```
+
+Replace the line:
+
+```sh
+PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+```
+
+by this one:
+
+```sh
+PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:(PROD):\[\033[01;34m\]\w\[\033[00m\]\$ '
+```
+
+**Note:** In the test server replace the word **PROD** by **TEST**
+
+## Let's Encrypt
+
+[Let’s Encrypt](https://letsencrypt.org/about/) is a free, automated, and open certificate authority (CA), run for the public’s benefit.
+It is renewed automatically by certbot which is an agent software installed on both backends. A newly created or renewed certificates are valid for 90 days and the renewal process should start automatically (`cronjob`) if the certificate will expire in less than 30 days.
+
+You can list the certificates with:
+
+`sudo certbot certificates`
+
+Check all of the certificates that you’ve obtained and tries to renew any that will expire in less than 30 days (this should be automatic):
+
+`sudo certbot renew`
+
+Detailed instuctions about configuration [here](https://certbot.eff.org/lets-encrypt/ubuntubionic-nginx).

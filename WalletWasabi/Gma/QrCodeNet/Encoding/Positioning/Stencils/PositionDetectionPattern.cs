@@ -1,4 +1,4 @@
-﻿namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
+namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
 {
 	internal class PositionDetectionPattern : PatternStencilBase
 	{
@@ -7,20 +7,21 @@
 		{
 		}
 
-		private static readonly bool[,] S_PositionDetection = new[,]
-																		 {
-																			 { O, O, O, O, O, O, O, O, O },
-																			 { O, X, X, X, X, X, X, X, O },
-																			 { O, X, O, O, O, O, O, X, O },
-																			 { O, X, O, X, X, X, O, X, O },
-																			 { O, X, O, X, X, X, O, X, O },
-																			 { O, X, O, X, X, X, O, X, O },
-																			 { O, X, O, O, O, O, O, X, O },
-																			 { O, X, X, X, X, X, X, X, O },
-																			 { O, O, O, O, O, O, O, O, O }
-																		 };
+		private static bool[,] PositionDetection { get; } =
+			new[,]
+			{
+				{ O, O, O, O, O, O, O, O, O },
+				{ O, X, X, X, X, X, X, X, O },
+				{ O, X, O, O, O, O, O, X, O },
+				{ O, X, O, X, X, X, O, X, O },
+				{ O, X, O, X, X, X, O, X, O },
+				{ O, X, O, X, X, X, O, X, O },
+				{ O, X, O, O, O, O, O, X, O },
+				{ O, X, X, X, X, X, X, X, O },
+				{ O, O, O, O, O, O, O, O, O }
+			};
 
-		public override bool[,] Stencil => S_PositionDetection;
+		public override bool[,] Stencil => PositionDetection;
 
 		public override void ApplyTo(TriStateMatrix matrix)
 		{

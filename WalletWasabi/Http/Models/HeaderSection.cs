@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Threading.Tasks;
 using static WalletWasabi.Http.Constants;
 
 namespace WalletWasabi.Http.Models
@@ -32,7 +33,7 @@ namespace WalletWasabi.Http.Models
 			return ToString(false);
 		}
 
-		public static HeaderSection CreateNew(string headersString)
+		public static async Task<HeaderSection> CreateNewAsync(string headersString)
 		{
 			headersString = HeaderField.CorrectObsFolding(headersString);
 
@@ -42,22 +43,20 @@ namespace WalletWasabi.Http.Models
 				headersString = headersString.TrimEnd(CRLF, StringComparison.Ordinal);
 			}
 
-			using (var reader = new StringReader(headersString))
+			using var reader = new StringReader(headersString);
+			while (true)
 			{
-				while (true)
+				var field = reader.ReadLine(strictCRLF: true);
+				if (field is null)
 				{
-					var field = reader.ReadLine(strictCRLF: true);
-					if (field is null)
-					{
-						break;
-					}
-					hs.Fields.Add(HeaderField.CreateNew(field));
+					break;
 				}
-
-				ValidateAndCorrectHeaders(hs);
-
-				return hs;
+				hs.Fields.Add(await HeaderField.CreateNewAsync(field).ConfigureAwait(false));
 			}
+
+			ValidateAndCorrectHeaders(hs);
+
+			return hs;
 		}
 
 		private static void ValidateAndCorrectHeaders(HeaderSection hs)
@@ -125,52 +124,54 @@ namespace WalletWasabi.Http.Models
 
 		public HttpRequestContentHeaders ToHttpRequestHeaders()
 		{
-			using (var message = new HttpRequestMessage
+			using var message = new HttpRequestMessage
 			{
-				Content = new ByteArrayContent(new byte[] { })
-			})
+				Content = new ByteArrayContent(Array.Empty<byte>())
+			};
+			message.Content.Headers.ContentLength = null;
+			foreach (var field in Fields)
 			{
-				message.Content.Headers.ContentLength = null;
-				foreach (var field in Fields)
+				if (field.Name.StartsWith("Content-", StringComparison.Ordinal))
 				{
-					if (field.Name.StartsWith("Content-", StringComparison.Ordinal))
-					{
-						message.Content.Headers.TryAddWithoutValidation(field.Name, field.Value);
-					}
-					else message.Headers.TryAddWithoutValidation(field.Name, field.Value);
+					message.Content.Headers.TryAddWithoutValidation(field.Name, field.Value);
 				}
-
-				return new HttpRequestContentHeaders
+				else
 				{
-					RequestHeaders = message.Headers,
-					ContentHeaders = message.Content.Headers
-				};
+					message.Headers.TryAddWithoutValidation(field.Name, field.Value);
+				}
 			}
+
+			return new HttpRequestContentHeaders
+			{
+				RequestHeaders = message.Headers,
+				ContentHeaders = message.Content.Headers
+			};
 		}
 
 		public HttpResponseContentHeaders ToHttpResponseHeaders()
 		{
-			using (var message = new HttpResponseMessage
+			using var message = new HttpResponseMessage
 			{
-				Content = new ByteArrayContent(new byte[] { })
-			})
+				Content = new ByteArrayContent(Array.Empty<byte>())
+			};
+			message.Content.Headers.ContentLength = null;
+			foreach (var field in Fields)
 			{
-				message.Content.Headers.ContentLength = null;
-				foreach (var field in Fields)
+				if (field.Name.StartsWith("Content-", StringComparison.Ordinal))
 				{
-					if (field.Name.StartsWith("Content-", StringComparison.Ordinal))
-					{
-						message.Content.Headers.TryAddWithoutValidation(field.Name, field.Value);
-					}
-					else message.Headers.TryAddWithoutValidation(field.Name, field.Value);
+					message.Content.Headers.TryAddWithoutValidation(field.Name, field.Value);
 				}
-
-				return new HttpResponseContentHeaders
+				else
 				{
-					ResponseHeaders = message.Headers,
-					ContentHeaders = message.Content.Headers
-				};
+					message.Headers.TryAddWithoutValidation(field.Name, field.Value);
+				}
 			}
+
+			return new HttpResponseContentHeaders
+			{
+				ResponseHeaders = message.Headers,
+				ContentHeaders = message.Content.Headers
+			};
 		}
 
 		public static HeaderSection CreateNew(HttpHeaders headers)
@@ -186,13 +187,13 @@ namespace WalletWasabi.Http.Models
 			// If this section is not added the Content-Length header will not be set unless...
 			// - I put a break point at the start of the function
 			// - And I explicitly expand the "headers" variable
-			if (headers is HttpContentHeaders)
+			if (headers is HttpContentHeaders contentHeaders)
 			{
-				if (((HttpContentHeaders)headers).ContentLength != null)
+				if (contentHeaders.ContentLength != null)
 				{
 					if (hs.Fields.All(x => x.Name != "Content-Length"))
 					{
-						hs.Fields.Add(new HeaderField("Content-Length", ((HttpContentHeaders)headers).ContentLength.ToString()));
+						hs.Fields.Add(new HeaderField("Content-Length", contentHeaders.ContentLength.ToString()));
 					}
 				}
 			}

@@ -1,12 +1,12 @@
-﻿using Avalonia.Data.Converters;
+using Avalonia.Data.Converters;
 using Avalonia.Media;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.Models;
-using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.Gui.Converters
 {
@@ -16,21 +16,25 @@ namespace WalletWasabi.Gui.Converters
 		{
 			if (value is SmartCoinStatus status)
 			{
-				switch (status)
+				return status switch
 				{
-					case SmartCoinStatus.Confirmed: return Brushes.Transparent;
-					case SmartCoinStatus.Unconfirmed: return Brushes.Transparent;
-					case SmartCoinStatus.MixingOnWaitingList: return Brushes.WhiteSmoke;
-					case SmartCoinStatus.MixingBanned: return Brushes.IndianRed;
-					case SmartCoinStatus.MixingInputRegistration: return Brushes.LimeGreen;
-					case SmartCoinStatus.MixingConnectionConfirmation: return Brushes.DarkGreen;
-					case SmartCoinStatus.MixingOutputRegistration: return Brushes.DarkGreen;
-					case SmartCoinStatus.MixingSigning: return Brushes.DarkGreen;
-					case SmartCoinStatus.SpentAccordingToBackend: return Brushes.IndianRed;
-					case SmartCoinStatus.MixingWaitingForConfirmation: return Brushes.LightYellow;
-				}
+					SmartCoinStatus.Confirmed => Brushes.Transparent,
+					SmartCoinStatus.Unconfirmed => Brushes.Transparent,
+					SmartCoinStatus.MixingOnWaitingList => Brushes.WhiteSmoke,
+					SmartCoinStatus.MixingBanned => Brushes.IndianRed,
+					SmartCoinStatus.MixingInputRegistration => Brushes.LimeGreen,
+					SmartCoinStatus.MixingConnectionConfirmation => Brushes.DarkGreen,
+					SmartCoinStatus.MixingOutputRegistration => Brushes.DarkGreen,
+					SmartCoinStatus.MixingSigning => Brushes.DarkGreen,
+					SmartCoinStatus.SpentAccordingToBackend => Brushes.IndianRed,
+					SmartCoinStatus.MixingWaitingForConfirmation => Brushes.LightYellow,
+					_ => throw new NotSupportedException() // Or rather not implemented?
+				};
 			}
-			throw new InvalidOperationException();
+			else
+			{
+				throw new TypeArgumentException(value, typeof(SmartCoinStatus), nameof(value));
+			}
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

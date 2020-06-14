@@ -1,9 +1,9 @@
-﻿using NBitcoin;
-using NBitcoin.BouncyCastle.Math;
-using NBitcoin.Crypto;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Linq;
+using System.Numerics;
+using WalletWasabi.Crypto;
 
 namespace WalletWasabi.JsonConverters
 {
@@ -20,20 +20,55 @@ namespace WalletWasabi.JsonConverters
 		{
 			JArray arr = JArray.Load(reader);
 
-			string c = arr[0].Value<string>();
-			string s = arr[1].Value<string>();
+			var carr = ToFixedLengthByteArray(StringToBigInteger(arr[0].Value<string>()));
+			var sarr = ToFixedLengthByteArray(StringToBigInteger(arr[1].Value<string>()));
 
-			return new UnblindedSignature(new BigInteger(c), new BigInteger(s));
+			var signatureBytes = carr.Concat(sarr).ToArray();
+			var signature = ByteHelpers.ToHex(signatureBytes);
+
+			var sig = UnblindedSignature.Parse(signature);
+			return sig;
+		}
+
+		private BigInteger StringToBigInteger(string num)
+		{
+			if (string.IsNullOrWhiteSpace(num) || num.Length > 78)
+			{
+				throw new FormatException("UnblindedSignature components C or S are not valid.");
+			}
+			var bi = BigInteger.Parse(num);
+			if (bi.IsZero || bi < BigInteger.Zero)
+			{
+				throw new FormatException("UnblindedSignature components C or S are zero or negative.");
+			}
+			return bi;
 		}
 
 		/// <inheritdoc />
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
-			UnblindedSignature signature = (UnblindedSignature)value;
+			var signature = (UnblindedSignature)value;
+			var c = new BigInteger(signature.C.ToBytes(), isUnsigned: true, isBigEndian: true);
+			var s = new BigInteger(signature.S.ToBytes(), isUnsigned: true, isBigEndian: true);
 			writer.WriteStartArray();
-			writer.WriteValue(signature.C.ToString());
-			writer.WriteValue(signature.S.ToString());
+			writer.WriteValue(c.ToString());
+			writer.WriteValue(s.ToString());
 			writer.WriteEndArray();
+		}
+
+		private static byte[] ToFixedLengthByteArray(BigInteger bi)
+		{
+			var arr = bi.ToByteArray(true, true);
+
+			if (arr.Length > 32)
+			{
+				throw new FormatException("UnblindedSignature components C or S are longer than 32 bytes.");
+			}
+			if (arr.Length < 32)
+			{
+				arr = new byte[32 - arr.Length].Concat(arr).ToArray();
+			}
+			return arr;
 		}
 	}
 }

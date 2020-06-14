@@ -1,32 +1,16 @@
-﻿using WalletWasabi.Bases;
-using WalletWasabi.TorSocks5.TorSocks5.Models.Fields.ByteArrayFields;
-using WalletWasabi.TorSocks5.Models.Fields.OctetFields;
 using System;
 using System.Linq;
-using WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields;
+using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
+using WalletWasabi.TorSocks5.Models.Fields.OctetFields;
+using WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields;
+using WalletWasabi.TorSocks5.TorSocks5.Models.Fields.ByteArrayFields;
 
 namespace WalletWasabi.TorSocks5.Models.Messages
 {
 	public class TorSocks5Request : ByteArraySerializableBase
 	{
-		#region PropertiesAndMembers
-
-		public VerField Ver { get; set; }
-
-		public CmdField Cmd { get; set; }
-
-		public RsvField Rsv { get; set; }
-
-		public AtypField Atyp { get; set; }
-
-		public AddrField DstAddr { get; set; }
-
-		public PortField DstPort { get; set; }
-
-		#endregion PropertiesAndMembers
-
-		#region ConstructorsAndInitializers
+		#region Constructors
 
 		public TorSocks5Request()
 		{
@@ -42,7 +26,23 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 			Atyp = dstAddr.Atyp;
 		}
 
-		#endregion ConstructorsAndInitializers
+		#endregion Constructors
+
+		#region PropertiesAndMembers
+
+		public VerField Ver { get; set; }
+
+		public CmdField Cmd { get; set; }
+
+		public RsvField Rsv { get; set; }
+
+		public AtypField Atyp { get; set; }
+
+		public AddrField DstAddr { get; set; }
+
+		public PortField DstPort { get; set; }
+
+		#endregion PropertiesAndMembers
 
 		#region Serialization
 
@@ -64,10 +64,10 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 			Atyp.FromByte(bytes[3]);
 
 			DstAddr = new AddrField();
-			DstAddr.FromBytes(bytes.Skip(4).Take(bytes.Length - 4 - 2).ToArray());
+			DstAddr.FromBytes(bytes[4..^2]);
 
 			DstPort = new PortField();
-			DstPort.FromBytes(bytes.Skip(bytes.Length - 2).ToArray());
+			DstPort.FromBytes(bytes[^2..]);
 		}
 
 		public override byte[] ToBytes() => ByteHelpers.Combine(new byte[] { Ver.ToByte(), Cmd.ToByte(), Rsv.ToByte(), Atyp.ToByte() }, DstAddr.ToBytes(), DstPort.ToBytes());

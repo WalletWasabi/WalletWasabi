@@ -1,97 +1,94 @@
-﻿using Avalonia.Threading;
+using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
+using Splat;
 using System;
-using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Gui.Validation;
+using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
-using WalletWasabi.KeyManagement;
-using WalletWasabi.Services;
+using WalletWasabi.Logging;
+using WalletWasabi.Models;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class WalletInfoViewModel : WalletActionViewModel
+	public class WalletInfoViewModel : WasabiDocumentTabViewModel, IWalletViewModel
 	{
-		private CompositeDisposable Disposables { get; set; }
-
+		private bool _showSensitiveKeys;
 		private string _password;
 		private string _extendedMasterPrivateKey;
 		private string _extendedMasterZprv;
 		private string _extendedAccountPrivateKey;
 		private string _extendedAccountZprv;
-		private string _warningMessage;
 
-		public WalletInfoViewModel(WalletViewModel walletViewModel) : base(walletViewModel.Name, walletViewModel)
+		public WalletInfoViewModel(Wallet wallet) : base(wallet.WalletName)
 		{
+			Global = Locator.Current.GetService<Global>();
+			Wallet = wallet;
+
+			this.ValidateProperty(x => x.Password, ValidatePassword);
+
 			ClearSensitiveData(true);
-			_warningMessage = "";
 
-			this.WhenAnyValue(x => x.Password).Subscribe(x =>
-			{
-				try
+			ToggleSensitiveKeysCommand = ReactiveCommand.Create(() =>
 				{
-					if (x.NotNullAndNotEmpty())
+					if (ShowSensitiveKeys)
 					{
-						char lastChar = x.Last();
-						if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
-						{
-							Password = x.TrimEnd('\r', '\n');
-						}
+						ClearSensitiveData(true);
 					}
-				}
-				catch (Exception ex)
-				{
-					Logging.Logger.LogTrace(ex);
-				}
-			});
+					else
+					{
+						var secret = PasswordHelper.GetMasterExtKey(Wallet.KeyManager, Password, out string isCompatibilityPasswordUsed);
+						Password = "";
 
-			ShowSensitiveKeysCommand = ReactiveCommand.Create(() =>
-			{
-				try
-				{
-					Password = Guard.Correct(Password);
-					var secret = KeyManager.GetMasterExtKey(Password);
-					Password = "";
+						if (isCompatibilityPasswordUsed != null)
+						{
+							NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
+						}
 
-					string master = secret.GetWif(Global.Network).ToWif();
-					string account = secret.Derive(KeyManager.AccountKeyPath).GetWif(Global.Network).ToWif();
-					string masterZ = secret.ToZPrv(Global.Network);
-					string accountZ = secret.Derive(KeyManager.AccountKeyPath).ToZPrv(Global.Network);
-					SetSensitiveData(master, account, masterZ, accountZ);
-				}
-				catch (Exception ex)
+						string master = secret.GetWif(Global.Network).ToWif();
+						string account = secret.Derive(Wallet.KeyManager.AccountKeyPath).GetWif(Global.Network).ToWif();
+						string masterZ = secret.ToZPrv(Global.Network);
+						string accountZ = secret.Derive(Wallet.KeyManager.AccountKeyPath).ToZPrv(Global.Network);
+						SetSensitiveData(master, account, masterZ, accountZ);
+					}
+				});
+
+			ToggleSensitiveKeysCommand.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex =>
 				{
-					SetWarningMessage(ex.ToTypeMessageString());
-				}
-			});
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
+					Logger.LogError(ex);
+				});
 		}
 
-		private void ClearSensitiveData(bool passwordToo)
+		private Global Global { get; }
+
+		private Wallet Wallet { get; }
+
+		Wallet IWalletViewModel.Wallet => Wallet;
+
+		public CancellationTokenSource Closing { get; private set; }
+
+		public string ExtendedAccountPublicKey => Wallet.KeyManager.ExtPubKey.ToString(Global.Network);
+		public string ExtendedAccountZpub => Wallet.KeyManager.ExtPubKey.ToZpub(Global.Network);
+		public string AccountKeyPath => $"m/{Wallet.KeyManager.AccountKeyPath}";
+		public string MasterKeyFingerprint => Wallet.KeyManager.MasterFingerprint.ToString();
+		public ReactiveCommand<Unit, Unit> ToggleSensitiveKeysCommand { get; }
+		public bool IsWatchOnly => Wallet.KeyManager.IsWatchOnly;
+
+		public bool ShowSensitiveKeys
 		{
-			ExtendedMasterPrivateKey = "";
-			ExtendedMasterZprv = "";
-			ExtendedAccountPrivateKey = "";
-			ExtendedAccountZprv = "";
-
-			if (passwordToo)
-			{
-				Password = "";
-			}
+			get => _showSensitiveKeys;
+			set => this.RaiseAndSetIfChanged(ref _showSensitiveKeys, value);
 		}
-
-		public CancellationTokenSource Closing { private set; get; }
-
-		public WalletService WalletService => Wallet.WalletService;
-		public KeyManager KeyManager => WalletService.KeyManager;
-
-		public string ExtendedAccountPublicKey => KeyManager.ExtPubKey.ToString(Global.Network);
-		public string ExtendedAccountZpub => KeyManager.ExtPubKey.ToZpub(Global.Network);
-		public string EncryptedExtendedMasterPrivateKey => KeyManager.EncryptedSecret.ToWif();
-		public string AccountKeyPath => $"m/{KeyManager.AccountKeyPath.ToString()}";
-
-		public ReactiveCommand ShowSensitiveKeysCommand { get; }
 
 		public string Password
 		{
@@ -123,10 +120,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _extendedAccountZprv, value);
 		}
 
-		public string WarningMessage
+		public void ValidatePassword(IValidationErrors errors) => PasswordHelper.ValidatePassword(errors, Password);
+
+		private void ClearSensitiveData(bool passwordToo)
 		{
-			get => _warningMessage;
-			set => this.RaiseAndSetIfChanged(ref _warningMessage, value);
+			ExtendedMasterPrivateKey = "";
+			ExtendedMasterZprv = "";
+			ExtendedAccountPrivateKey = "";
+			ExtendedAccountZprv = "";
+			ShowSensitiveKeys = false;
+
+			if (passwordToo)
+			{
+				Password = "";
+			}
 		}
 
 		private void SetSensitiveData(string extendedMasterPrivateKey, string extendedAccountPrivateKey, string extendedMasterZprv, string extendedAccountZprv)
@@ -135,45 +142,38 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ExtendedAccountPrivateKey = extendedAccountPrivateKey;
 			ExtendedMasterZprv = extendedMasterZprv;
 			ExtendedAccountZprv = extendedAccountZprv;
+			ShowSensitiveKeys = true;
 
 			Dispatcher.UIThread.PostLogException(async () =>
-			{
-				try
 				{
-					await Task.Delay(21000, Closing.Token);
-				}
-				catch (TaskCanceledException)
-				{
-					// Ignore
-				}
-				finally
-				{
-					ClearSensitiveData(false);
-				}
-			});
+					try
+					{
+						await Task.Delay(21000, Closing.Token);
+					}
+					catch (TaskCanceledException)
+					{
+						// Ignore
+					}
+					finally
+					{
+						ClearSensitiveData(false);
+					}
+				});
 		}
 
-		public override void OnOpen()
+		public override void OnOpen(CompositeDisposable disposables)
 		{
-			if (Disposables != null)
-			{
-				throw new Exception("WalletInfo was opened before it was closed.");
-			}
-
-			Disposables = new CompositeDisposable();
-
 			Closing = new CancellationTokenSource();
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
-			{
-				this.RaisePropertyChanged(nameof(EncryptedExtendedMasterPrivateKey));
-				this.RaisePropertyChanged(nameof(ExtendedAccountPublicKey));
-				this.RaisePropertyChanged(nameof(ExtendedAccountZpub));
-			}).DisposeWith(Disposables);
+				{
+					this.RaisePropertyChanged(nameof(ExtendedAccountPublicKey));
+					this.RaisePropertyChanged(nameof(ExtendedAccountZpub));
+				}).DisposeWith(disposables);
 
-			Closing.DisposeWith(Disposables);
+			Closing.DisposeWith(disposables);
 
-			base.OnOpen();
+			base.OnOpen(disposables);
 		}
 
 		public override void OnDeselected()
@@ -191,35 +191,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public override bool OnClose()
 		{
 			Closing.Cancel();
-			Disposables?.Dispose();
-			Disposables = null;
 
 			ClearSensitiveData(true);
 			return base.OnClose();
-		}
-
-		private void SetWarningMessage(string message)
-		{
-			WarningMessage = message;
-
-			Dispatcher.UIThread.PostLogException(async () =>
-			{
-				try
-				{
-					await Task.Delay(7000, Closing.Token);
-				}
-				catch (TaskCanceledException)
-				{
-					// Ignore
-				}
-				finally
-				{
-					if (WarningMessage == message)
-					{
-						WarningMessage = "";
-					}
-				}
-			});
 		}
 	}
 }

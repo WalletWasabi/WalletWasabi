@@ -1,10 +1,15 @@
-﻿using NBitcoin;
+using NBitcoin;
+using NBitcoin.RPC;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Bases;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.JsonConverters;
@@ -13,204 +18,165 @@ using WalletWasabi.Logging;
 namespace WalletWasabi.Backend
 {
 	[JsonObject(MemberSerialization.OptIn)]
-	public class Config : IConfig
+	public class Config : ConfigBase
 	{
-		/// <inheritdoc />
-		public string FilePath { get; private set; }
-
-		[JsonProperty(PropertyName = "Network")]
-		[JsonConverter(typeof(NetworkJsonConverter))]
-		public Network Network { get; private set; }
-
-		[JsonProperty(PropertyName = "BitcoinRpcConnectionString")]
-		public string BitcoinRpcConnectionString { get; private set; }
-
-		[JsonProperty(PropertyName = "MainNetBitcoinCoreHost")]
-		public string MainNetBitcoinCoreHost { get; internal set; }
-
-		[JsonProperty(PropertyName = "TestNetBitcoinCoreHost")]
-		public string TestNetBitcoinCoreHost { get; internal set; }
-
-		[JsonProperty(PropertyName = "RegTestBitcoinCoreHost")]
-		public string RegTestBitcoinCoreHost { get; internal set; }
-
-		[JsonProperty(PropertyName = "MainNetBitcoinCorePort")]
-		public int? MainNetBitcoinCorePort { get; internal set; }
-
-		[JsonProperty(PropertyName = "TestNetBitcoinCorePort")]
-		public int? TestNetBitcoinCorePort { get; internal set; }
-
-		[JsonProperty(PropertyName = "RegTestBitcoinCorePort")]
-		public int? RegTestBitcoinCorePort { get; internal set; }
-
-		private IPEndPoint _bitcoinCoreEndPoint;
-
-		public IPEndPoint GetBitcoinCoreEndPoint()
-		{
-			if (_bitcoinCoreEndPoint is null)
-			{
-				IPAddress host;
-				int? port;
-				if (Network == Network.Main)
-				{
-					host = IPAddress.Parse(MainNetBitcoinCoreHost);
-					port = MainNetBitcoinCorePort;
-				}
-				else if (Network == Network.TestNet)
-				{
-					host = IPAddress.Parse(TestNetBitcoinCoreHost);
-					port = TestNetBitcoinCorePort;
-				}
-				else // if (Network == Network.RegTest)
-				{
-					host = IPAddress.Parse(RegTestBitcoinCoreHost);
-					port = RegTestBitcoinCorePort;
-				}
-
-				_bitcoinCoreEndPoint = new IPEndPoint(host, port ?? Network.DefaultPort);
-			}
-
-			return _bitcoinCoreEndPoint;
-		}
-
-		public Config()
+		public Config() : base()
 		{
 		}
 
-		public Config(string filePath)
+		public Config(string filePath) : base(filePath)
 		{
-			SetFilePath(filePath);
 		}
 
 		public Config(Network network,
-			string BitcoinRpcConnectionString,
-			string mainNetBitcoinCoreHost,
-			string testNetBitcoinCoreHost,
-			string regTestBitcoinCoreHost,
-			int? mainNetBitcoinCorePort,
-			int? testNetBitcoinCorePort,
-			int? regTestBitcoinCorePort)
+			string bitcoinRpcConnectionString,
+			EndPoint mainNetBitcoinP2pEndPoint,
+			EndPoint testNetBitcoinP2pEndPoint,
+			EndPoint regTestBitcoinP2pEndPoint,
+			EndPoint mainNetBitcoinCoreRpcEndPoint,
+			EndPoint testNetBitcoinCoreRpcEndPoint,
+			EndPoint regTestBitcoinCoreRpcEndPoint)
+			: base()
 		{
 			Network = Guard.NotNull(nameof(network), network);
-			BitcoinRpcConnectionString = Guard.NotNullOrEmptyOrWhitespace(nameof(BitcoinRpcConnectionString), BitcoinRpcConnectionString);
+			BitcoinRpcConnectionString = Guard.NotNullOrEmptyOrWhitespace(nameof(bitcoinRpcConnectionString), bitcoinRpcConnectionString);
 
-			MainNetBitcoinCoreHost = Guard.NotNullOrEmptyOrWhitespace(nameof(mainNetBitcoinCoreHost), mainNetBitcoinCoreHost);
-			TestNetBitcoinCoreHost = Guard.NotNullOrEmptyOrWhitespace(nameof(testNetBitcoinCoreHost), testNetBitcoinCoreHost);
-			RegTestBitcoinCoreHost = Guard.NotNullOrEmptyOrWhitespace(nameof(regTestBitcoinCoreHost), regTestBitcoinCoreHost);
-			MainNetBitcoinCorePort = Guard.NotNull(nameof(mainNetBitcoinCorePort), mainNetBitcoinCorePort);
-			TestNetBitcoinCorePort = Guard.NotNull(nameof(testNetBitcoinCorePort), testNetBitcoinCorePort);
-			RegTestBitcoinCorePort = Guard.NotNull(nameof(regTestBitcoinCorePort), regTestBitcoinCorePort);
+			MainNetBitcoinP2pEndPoint = Guard.NotNull(nameof(mainNetBitcoinP2pEndPoint), mainNetBitcoinP2pEndPoint);
+			TestNetBitcoinP2pEndPoint = Guard.NotNull(nameof(testNetBitcoinP2pEndPoint), testNetBitcoinP2pEndPoint);
+			RegTestBitcoinP2pEndPoint = Guard.NotNull(nameof(regTestBitcoinP2pEndPoint), regTestBitcoinP2pEndPoint);
+
+			MainNetBitcoinCoreRpcEndPoint = Guard.NotNull(nameof(mainNetBitcoinCoreRpcEndPoint), mainNetBitcoinCoreRpcEndPoint);
+			TestNetBitcoinCoreRpcEndPoint = Guard.NotNull(nameof(testNetBitcoinCoreRpcEndPoint), testNetBitcoinCoreRpcEndPoint);
+			RegTestBitcoinCoreRpcEndPoint = Guard.NotNull(nameof(regTestBitcoinCoreRpcEndPoint), regTestBitcoinCoreRpcEndPoint);
 		}
 
-		/// <inheritdoc />
-		public async Task ToFileAsync()
+		[JsonProperty(PropertyName = "Network")]
+		[JsonConverter(typeof(NetworkJsonConverter))]
+		public Network Network { get; private set; } = Network.Main;
+
+		[DefaultValue("user:password")]
+		[JsonProperty(PropertyName = "BitcoinRpcConnectionString", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public string BitcoinRpcConnectionString { get; private set; }
+
+		[JsonProperty(PropertyName = "MainNetBitcoinP2pEndPoint")]
+		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultMainNetBitcoinP2pPort)]
+		public EndPoint MainNetBitcoinP2pEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultMainNetBitcoinP2pPort);
+
+		[JsonProperty(PropertyName = "TestNetBitcoinP2pEndPoint")]
+		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultTestNetBitcoinP2pPort)]
+		public EndPoint TestNetBitcoinP2pEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultTestNetBitcoinP2pPort);
+
+		[JsonProperty(PropertyName = "RegTestBitcoinP2pEndPoint")]
+		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultRegTestBitcoinP2pPort)]
+		public EndPoint RegTestBitcoinP2pEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultRegTestBitcoinP2pPort);
+
+		[JsonProperty(PropertyName = "MainNetBitcoinCoreRpcEndPoint")]
+		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultMainNetBitcoinCoreRpcPort)]
+		public EndPoint MainNetBitcoinCoreRpcEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultMainNetBitcoinCoreRpcPort);
+
+		[JsonProperty(PropertyName = "TestNetBitcoinCoreRpcEndPoint")]
+		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultTestNetBitcoinCoreRpcPort)]
+		public EndPoint TestNetBitcoinCoreRpcEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultTestNetBitcoinCoreRpcPort);
+
+		[JsonProperty(PropertyName = "RegTestBitcoinCoreRpcEndPoint")]
+		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultRegTestBitcoinCoreRpcPort)]
+		public EndPoint RegTestBitcoinCoreRpcEndPoint { get; internal set; } = new IPEndPoint(IPAddress.Loopback, Constants.DefaultRegTestBitcoinCoreRpcPort);
+
+		public EndPoint GetBitcoinP2pEndPoint()
 		{
-			AssertFilePathSet();
-
-			string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
-			await File.WriteAllTextAsync(FilePath,
-			jsonString,
-			Encoding.UTF8);
-		}
-
-		/// <inheritdoc />
-		public async Task LoadOrCreateDefaultFileAsync()
-		{
-			AssertFilePathSet();
-
-			Network = Network.Main;
-			BitcoinRpcConnectionString = "user:password";
-
-			MainNetBitcoinCoreHost = IPAddress.Loopback.ToString();
-			TestNetBitcoinCoreHost = IPAddress.Loopback.ToString();
-			RegTestBitcoinCoreHost = IPAddress.Loopback.ToString();
-			MainNetBitcoinCorePort = Network.Main.DefaultPort;
-			TestNetBitcoinCorePort = Network.TestNet.DefaultPort;
-			RegTestBitcoinCorePort = Network.RegTest.DefaultPort;
-
-			if (!File.Exists(FilePath))
+			if (Network == Network.Main)
 			{
-				Logger.LogInfo<Config>($"{nameof(Config)} file did not exist. Created at path: `{FilePath}`.");
+				return MainNetBitcoinP2pEndPoint;
+			}
+			else if (Network == Network.TestNet)
+			{
+				return TestNetBitcoinP2pEndPoint;
+			}
+			else if (Network == Network.RegTest)
+			{
+				return RegTestBitcoinP2pEndPoint;
 			}
 			else
 			{
-				string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-				var config = JsonConvert.DeserializeObject<Config>(jsonString);
-
-				Network = config.Network ?? Network;
-				BitcoinRpcConnectionString = config.BitcoinRpcConnectionString ?? BitcoinRpcConnectionString;
-
-				MainNetBitcoinCoreHost = config.MainNetBitcoinCoreHost ?? MainNetBitcoinCoreHost;
-				TestNetBitcoinCoreHost = config.TestNetBitcoinCoreHost ?? TestNetBitcoinCoreHost;
-				RegTestBitcoinCoreHost = config.RegTestBitcoinCoreHost ?? RegTestBitcoinCoreHost;
-				MainNetBitcoinCorePort = config.MainNetBitcoinCorePort ?? MainNetBitcoinCorePort;
-				TestNetBitcoinCorePort = config.TestNetBitcoinCorePort ?? TestNetBitcoinCorePort;
-				RegTestBitcoinCorePort = config.RegTestBitcoinCorePort ?? RegTestBitcoinCorePort;
+				throw new NotSupportedNetworkException(Network);
 			}
-
-			await ToFileAsync();
 		}
 
-		/// <inheritdoc />
-		public async Task<bool> CheckFileChangeAsync()
+		public EndPoint GetBitcoinCoreRpcEndPoint()
 		{
-			AssertFilePathSet();
-
-			if (!File.Exists(FilePath))
+			if (Network == Network.Main)
 			{
-				throw new FileNotFoundException($"{nameof(Config)} file did not exist at path: `{FilePath}`.");
+				return MainNetBitcoinCoreRpcEndPoint;
 			}
-
-			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-			var config = JsonConvert.DeserializeObject<Config>(jsonString);
-
-			if (Network != config.Network)
+			else if (Network == Network.TestNet)
 			{
-				return true;
+				return TestNetBitcoinCoreRpcEndPoint;
 			}
-			if (BitcoinRpcConnectionString != config.BitcoinRpcConnectionString)
+			else if (Network == Network.RegTest)
 			{
-				return true;
+				return RegTestBitcoinCoreRpcEndPoint;
 			}
-
-			if (!MainNetBitcoinCoreHost.Equals(config.MainNetBitcoinCoreHost, StringComparison.OrdinalIgnoreCase))
+			else
 			{
-				return true;
+				throw new NotSupportedNetworkException(Network);
 			}
-			if (!TestNetBitcoinCoreHost.Equals(config.TestNetBitcoinCoreHost, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (!RegTestBitcoinCoreHost.Equals(config.RegTestBitcoinCoreHost, StringComparison.OrdinalIgnoreCase))
-			{
-				return true;
-			}
-			if (MainNetBitcoinCorePort != config.MainNetBitcoinCorePort)
-			{
-				return true;
-			}
-			if (TestNetBitcoinCorePort != config.TestNetBitcoinCorePort)
-			{
-				return true;
-			}
-			if (RegTestBitcoinCorePort != config.RegTestBitcoinCorePort)
-			{
-				return true;
-			}
-
-			return false;
 		}
 
-		/// <inheritdoc />
-		public void SetFilePath(string path)
+		protected override bool TryEnsureBackwardsCompatibility(string jsonString)
 		{
-			FilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(path), path, trim: true);
-		}
+			try
+			{
+				var jsObject = JsonConvert.DeserializeObject<JObject>(jsonString);
+				bool saveIt = false;
 
-		/// <inheritdoc />
-		public void AssertFilePathSet()
-		{
-			if (FilePath is null) throw new NotSupportedException($"{nameof(FilePath)} is not set. Use {nameof(SetFilePath)} to set it.");
+				var mainNetBitcoinCoreHost = jsObject.Value<string>("MainNetBitcoinCoreHost");
+				var mainNetBitcoinCorePort = jsObject.Value<int?>("MainNetBitcoinCorePort");
+				var testNetBitcoinCoreHost = jsObject.Value<string>("TestNetBitcoinCoreHost");
+				var testNetBitcoinCorePort = jsObject.Value<int?>("TestNetBitcoinCorePort");
+				var regTestBitcoinCoreHost = jsObject.Value<string>("RegTestBitcoinCoreHost");
+				var regTestBitcoinCorePort = jsObject.Value<int?>("RegTestBitcoinCorePort");
+
+				if (mainNetBitcoinCoreHost != null)
+				{
+					int port = mainNetBitcoinCorePort ?? Constants.DefaultMainNetBitcoinP2pPort;
+
+					if (EndPointParser.TryParse(mainNetBitcoinCoreHost, port, out EndPoint ep))
+					{
+						MainNetBitcoinP2pEndPoint = ep;
+						saveIt = true;
+					}
+				}
+
+				if (testNetBitcoinCoreHost != null)
+				{
+					int port = testNetBitcoinCorePort ?? Constants.DefaultTestNetBitcoinP2pPort;
+
+					if (EndPointParser.TryParse(testNetBitcoinCoreHost, port, out EndPoint ep))
+					{
+						TestNetBitcoinP2pEndPoint = ep;
+						saveIt = true;
+					}
+				}
+
+				if (regTestBitcoinCoreHost != null)
+				{
+					int port = regTestBitcoinCorePort ?? Constants.DefaultRegTestBitcoinP2pPort;
+
+					if (EndPointParser.TryParse(regTestBitcoinCoreHost, port, out EndPoint ep))
+					{
+						RegTestBitcoinP2pEndPoint = ep;
+						saveIt = true;
+					}
+				}
+
+				return saveIt;
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning("Backwards compatibility couldn't be ensured.");
+				Logger.LogInfo(ex);
+				return false;
+			}
 		}
 	}
 }

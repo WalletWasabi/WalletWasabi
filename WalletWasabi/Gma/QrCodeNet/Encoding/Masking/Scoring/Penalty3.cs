@@ -1,4 +1,4 @@
-﻿namespace Gma.QrCodeNet.Encoding.Masking.Scoring
+namespace Gma.QrCodeNet.Encoding.Masking.Scoring
 {
 	/// <summary>
 	/// ISO/IEC 18004:2000 Chapter 8.8.2 Page 52
@@ -21,11 +21,13 @@
 			{
 				while (j < width - 5)
 				{
-					bit = isHorizontal ? matrix[j + 4, i]
+					bit = isHorizontal
+						? matrix[j + 4, i]
 						: matrix[i, j + 4];
 					if (!bit)
 					{
-						bit = isHorizontal ? matrix[j, i]
+						bit = isHorizontal
+							? matrix[j, i]
 							: matrix[i, j];
 						if (!bit)
 						{
@@ -33,13 +35,16 @@
 							j += 4;
 						}
 						else
+						{
 							j += 4;
+						}
 					}
 					else
 					{
 						for (int num = 4; num > 0; num--)
 						{
-							bit = bit = isHorizontal ? matrix[j + num, i]
+							bit = isHorizontal
+								? matrix[j + num, i]
 								: matrix[i, j + num];
 							if (!bit)
 							{
@@ -47,7 +52,9 @@
 								break;
 							}
 							if (num == 1)
+							{
 								j += 5;
+							}
 						}
 					}
 				}
@@ -62,33 +69,53 @@
 			bool bit;
 			for (int num = 3; num >= 1; num--)
 			{
-				bit = isHorizontal ? matrix[j + num, i]
+				bit = isHorizontal
+					? matrix[j + num, i]
 					: matrix[i, j + num];
 				if (!bit)
+				{
 					return 0;
+				}
 			}
-			//Check for left side and right side x ( xoxxxox ).
+
+			// Check for left side and right side x ( xoxxxox ).
 			if ((j - 1) < 0 || (j + 1) >= matrix.Width)
+			{
 				return 0;
-			bit = isHorizontal ? matrix[j + 5, i]
+			}
+
+			bit = isHorizontal
+				? matrix[j + 5, i]
 				: matrix[i, j + 5];
 			if (!bit)
+			{
 				return 0;
-			bit = isHorizontal ? matrix[j - 1, i]
+			}
+
+			bit = isHorizontal
+				? matrix[j - 1, i]
 				: matrix[i, j - 1];
 			if (!bit)
+			{
 				return 0;
+			}
 
 			if ((j - 5) >= 0)
 			{
 				for (int num = -2; num >= -5; num--)
 				{
-					bit = isHorizontal ? matrix[j + num, i]
+					bit = isHorizontal
+						? matrix[j + num, i]
 						: matrix[i, j + num];
 					if (bit)
+					{
 						break;
+					}
+
 					if (num == -5)
+					{
 						return 40;
+					}
 				}
 			}
 
@@ -96,15 +123,20 @@
 			{
 				for (int num = 6; num <= 9; num++)
 				{
-					bit = isHorizontal ? matrix[j + num, i]
+					bit = isHorizontal
+						? matrix[j + num, i]
 						: matrix[i, j + num];
 					if (bit)
+					{
 						return 0;
+					}
 				}
 				return 40;
 			}
 			else
+			{
 				return 0;
+			}
 		}
 	}
 }

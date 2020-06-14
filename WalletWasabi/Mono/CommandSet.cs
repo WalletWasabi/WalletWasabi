@@ -1,4 +1,4 @@
-﻿//
+//
 // Options.cs
 //
 // Authors:
@@ -159,15 +159,15 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using MessageLocalizerConverter = System.Converter<string, string>;
 
 namespace Mono.Options
 {
 	public class CommandSet : KeyedCollection<string, Command>
 	{
-		public OptionSet Options { get; private set; }
-
 		public CommandSet(string suite, MessageLocalizerConverter localizer = null)
 			: this(suite, Console.Out, Console.Error, localizer)
 		{
@@ -180,6 +180,8 @@ namespace Mono.Options
 			Out = output ?? throw new ArgumentNullException(nameof(output));
 			Error = error ?? throw new ArgumentNullException(nameof(error));
 		}
+
+		public OptionSet Options { get; private set; }
 
 		public string Suite { get; }
 		public TextWriter Out { get; private set; }
@@ -198,7 +200,10 @@ namespace Mono.Options
 		public new CommandSet Add(Command value)
 		{
 			if (value is null)
+			{
 				throw new ArgumentNullException(nameof(value));
+			}
+
 			AddCommand(value);
 			Options.Add(new CommandOption(value));
 			return this;
@@ -208,7 +213,7 @@ namespace Mono.Options
 		{
 			if (value.CommandSet != null && value.CommandSet != this)
 			{
-				throw new ArgumentException("Command instances can only be added to a single CommandSet.", nameof(value));
+				throw new ArgumentException($"Command instances can only be added to a single {nameof(CommandSet)}.", nameof(value));
 			}
 			value.CommandSet = this;
 			if (value.Options != null)
@@ -218,7 +223,7 @@ namespace Mono.Options
 
 			base.Add(value);
 
-			Help = Help ?? value as HelpCommand;
+			Help ??= value as HelpCommand;
 		}
 
 		public CommandSet Add(string header)
@@ -302,7 +307,9 @@ namespace Mono.Options
 		public CommandSet Add(CommandSet nestedCommands)
 		{
 			if (nestedCommands is null)
+			{
 				throw new ArgumentNullException(nameof(nestedCommands));
+			}
 
 			if (NestedCommandSets is null)
 			{
@@ -335,13 +342,21 @@ namespace Mono.Options
 		private bool AlreadyAdded(CommandSet value)
 		{
 			if (value == this)
+			{
 				return true;
+			}
+
 			if (NestedCommandSets is null)
+			{
 				return false;
+			}
+
 			foreach (var nc in NestedCommandSets)
 			{
 				if (nc.AlreadyAdded(value))
+				{
 					return true;
+				}
 			}
 			return false;
 		}
@@ -359,7 +374,9 @@ namespace Mono.Options
 			}
 
 			if (NestedCommandSets is null)
+			{
 				yield break;
+			}
 
 			foreach (var subset in NestedCommandSets)
 			{
@@ -376,15 +393,17 @@ namespace Mono.Options
 		private static void ExtractToken(ref string input, out string rest)
 		{
 			rest = "";
-			input = input ?? "";
+			input ??= "";
 
 			int top = input.Length;
 			for (int i = 0; i < top; i++)
 			{
 				if (char.IsWhiteSpace(input[i]))
+				{
 					continue;
+				}
 
-				for (int j = i; j < top; j++)
+				for (int j = i + 1; j < top; j++)
 				{
 					if (char.IsWhiteSpace(input[j]))
 					{
@@ -395,15 +414,20 @@ namespace Mono.Options
 				}
 				rest = "";
 				if (i != 0)
+				{
 					input = input.Substring(i).Trim();
+				}
+
 				return;
 			}
 		}
 
-		public int Run(IEnumerable<string> arguments)
+		public async Task<int> RunAsync(IEnumerable<string> arguments)
 		{
 			if (arguments is null)
+			{
 				throw new ArgumentNullException(nameof(arguments));
+			}
 
 			ShowHelp = false;
 			if (Help is null)
@@ -413,20 +437,23 @@ namespace Mono.Options
 			}
 			if (!Options.Contains("help"))
 			{
-				Options.Add("help", "", (Action<string>)(v => ShowHelp = v != null), hidden: true);
+				Options.Add("help", "", v => ShowHelp = v != null, hidden: true);
 			}
 			if (!Options.Contains("?"))
 			{
-				Options.Add("?", "", (Action<string>)(v => ShowHelp = v != null), hidden: true);
+				Options.Add("?", "", v => ShowHelp = v != null, hidden: true);
 			}
 			var extra = Options.Parse(arguments);
 			if (extra.Count == 0)
 			{
 				if (ShowHelp)
 				{
-					return Help.Invoke(extra);
+					return await Help.InvokeAsync(extra);
 				}
-				Out.WriteLine(Options.MessageLocalizer($"Use `{Suite} help` for usage."));
+				if (arguments.All(x => !x.Contains("version")))
+				{
+					Out.WriteLine(Options.MessageLocalizer($"Use `{Suite} help` for usage."));
+				}
 				return 1;
 			}
 			var command = GetCommand(extra);
@@ -440,12 +467,12 @@ namespace Mono.Options
 				if (command.Options?.Contains("help") ?? true)
 				{
 					extra.Add("--help");
-					return command.Invoke(extra);
+					return await command.InvokeAsync(extra);
 				}
 				command.Options.WriteOptionDescriptions(Out);
 				return 0;
 			}
-			return command.Invoke(extra);
+			return await command.InvokeAsync(extra);
 		}
 
 		public Command GetCommand(List<string> extra)
@@ -463,9 +490,12 @@ namespace Mono.Options
 			}
 			for (int i = 1; i < extra.Count; ++i)
 			{
-				name = name + " " + extra[i];
+				name = $"{name} {extra[i]}";
 				if (!Contains(name))
+				{
 					continue;
+				}
+
 				extra.RemoveRange(0, i + 1);
 				return this[name];
 			}
@@ -475,16 +505,22 @@ namespace Mono.Options
 		private Command TryGetNestedCommand(List<string> extra)
 		{
 			if (NestedCommandSets is null)
+			{
 				return null;
+			}
 
 			var nestedCommands = NestedCommandSets.Find(c => c.Suite == extra[0]);
 			if (nestedCommands is null)
+			{
 				return null;
+			}
 
 			var extraCopy = new List<string>(extra);
 			extraCopy.RemoveAt(0);
 			if (extraCopy.Count == 0)
+			{
 				return null;
+			}
 
 			var command = nestedCommands.GetCommand(extraCopy);
 			if (command != null)

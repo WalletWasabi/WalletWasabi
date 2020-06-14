@@ -1,11 +1,15 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 
 namespace System
 {
-	unsafe public static class ByteHelpers
+	public static unsafe class ByteHelpers
 	{
+		private static readonly uint[] Lookup32Unsafe = CreateLookup32Unsafe();
+		private static readonly uint* Lookup32UnsafeP = (uint*)GCHandle.Alloc(Lookup32Unsafe, GCHandleType.Pinned).AddrOfPinnedObject();
+
 		// https://stackoverflow.com/questions/415291/best-way-to-combine-two-or-more-byte-arrays-in-c-sharp
 		/// <summary>
 		/// Fastest byte array concatenation in C#
@@ -78,7 +82,7 @@ namespace System
 				}
 				if ((l & 1) != 0)
 				{
-					if (*((byte*)x1) != *((byte*)x2))
+					if (*x1 != *x2)
 					{
 						return false;
 					}
@@ -88,19 +92,13 @@ namespace System
 			}
 		}
 
-		private static readonly uint[] _lookup32Unsafe = CreateLookup32Unsafe();
-		private static readonly uint* _lookup32UnsafeP = (uint*)GCHandle.Alloc(_lookup32Unsafe, GCHandleType.Pinned).AddrOfPinnedObject();
-
 		private static uint[] CreateLookup32Unsafe()
 		{
 			var result = new uint[256];
 			for (int i = 0; i < 256; i++)
 			{
 				string s = i.ToString("X2");
-				if (BitConverter.IsLittleEndian)
-					result[i] = s[0] + ((uint)s[1] << 16);
-				else
-					result[i] = s[1] + ((uint)s[0] << 16);
+				result[i] = BitConverter.IsLittleEndian ? s[0] + ((uint)s[1] << 16) : s[1] + ((uint)s[0] << 16);
 			}
 			return result;
 		}
@@ -111,10 +109,17 @@ namespace System
 		/// </summary>
 		public static string ToHex(params byte[] bytes)
 		{
-			if (bytes is null) return null;
-			if (bytes.Length == 0) return "";
+			if (bytes is null)
+			{
+				return null;
+			}
 
-			var lookupP = _lookup32UnsafeP;
+			if (bytes.Length == 0)
+			{
+				return "";
+			}
+
+			var lookupP = Lookup32UnsafeP;
 			var result = new string((char)0, bytes.Length * 2);
 			fixed (byte* bytesP = bytes)
 			fixed (char* resultP = result)
@@ -135,18 +140,28 @@ namespace System
 		/// </summary>
 		public static byte[] FromHex(string hex)
 		{
-			if (hex is null) return null;
-			if (string.IsNullOrWhiteSpace(hex)) return new byte[0];
+			if (hex is null)
+			{
+				return null;
+			}
+
+			if (string.IsNullOrWhiteSpace(hex))
+			{
+				return Array.Empty<byte>();
+			}
 
 			var bytes = new byte[hex.Length / 2];
-			var hexValue = new int[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05,
-	   0x06, 0x07, 0x08, 0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	   0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F };
+			var hexValue = new int[]
+			{
+				0x00, 0x01, 0x02, 0x03, 0x04, 0x05,
+				0x06, 0x07, 0x08, 0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+				0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F
+			};
 
 			for (int x = 0, i = 0; i < hex.Length; i += 2, x += 1)
 			{
-				bytes[x] = (byte)(hexValue[char.ToUpper(hex[i + 0]) - '0'] << 4 |
-								  hexValue[char.ToUpper(hex[i + 1]) - '0']);
+				bytes[x] = (byte)((hexValue[char.ToUpper(hex[i + 0]) - '0'] << 4) |
+					hexValue[char.ToUpper(hex[i + 1]) - '0']);
 			}
 
 			return bytes;

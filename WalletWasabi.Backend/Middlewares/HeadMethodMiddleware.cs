@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 namespace WalletWasabi.Backend.Middlewares
 {
 	/// <summary>
-	/// https://www.tpeczek.com/2017/10/exploring-head-method-behavior-in.html
-	/// https://github.com/tpeczek/Demo.AspNetCore.Mvc.CosmosDB/blob/master/Demo.AspNetCore.Mvc.CosmosDB/Middlewares/HeadMethodMiddleware.cs
+	/// Source: https://www.tpeczek.com/2017/10/exploring-head-method-behavior-in.html
+	/// Source: https://github.com/tpeczek/Demo.AspNetCore.Mvc.CosmosDB/blob/master/Demo.AspNetCore.Mvc.CosmosDB/Middlewares/HeadMethodMiddleware.cs
 	/// </summary>
 	public class HeadMethodMiddleware
 	{
 		#region Fields
 
-		private readonly RequestDelegate _next;
+		private readonly RequestDelegate Next;
 
 		#endregion Fields
 
@@ -21,7 +21,7 @@ namespace WalletWasabi.Backend.Middlewares
 
 		public HeadMethodMiddleware(RequestDelegate next)
 		{
-			_next = next ?? throw new ArgumentNullException(nameof(next));
+			Next = next ?? throw new ArgumentNullException(nameof(next));
 		}
 
 		#endregion Constructor
@@ -40,7 +40,7 @@ namespace WalletWasabi.Backend.Middlewares
 				context.Response.Body = Stream.Null;
 			}
 
-			await _next(context);
+			await Next(context);
 
 			if (methodSwitched)
 			{

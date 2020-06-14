@@ -1,909 +1,140 @@
-﻿using Avalonia.Threading;
 using NBitcoin;
+using NBitcoin.Payment;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
+using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Exceptions;
-using WalletWasabi.Gui.Models;
-using WalletWasabi.Gui.Tabs.WalletManager;
+using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Gui.Models.StatusBarStatuses;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Gui.ViewModels.Validation;
-using WalletWasabi.Helpers;
+using WalletWasabi.Hwi;
+using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Models;
-using WalletWasabi.Services;
+using WalletWasabi.Wallets;
+using WalletWasabi.WebClients.PayJoin;
+using WalletWasabi.Gui.Validation;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class SendTabViewModel : WalletActionViewModel
+	public class SendTabViewModel : SendControlViewModel
 	{
-		private CompositeDisposable Disposables { get; set; }
+		private string _payjoinEndPoint;
 
-		private string _buildTransactionButtonText;
-		private bool _isMax;
-		private string _maxClear;
-		private string _amount;
-		private int _feeTarget;
-		private int _minimumFeeTarget;
-		private int _maximumFeeTarget;
-		private string _confirmationExpectedText;
-		private string _feeText;
-		private decimal _usdFee;
-		private Money _btcFee;
-		private Money _satoshiPerByteFeeRate;
-		private decimal _feePercentage;
-		private decimal _usdExchangeRate;
-		private Money _allSelectedAmount;
-		private string _password;
-		private string _address;
-		private string _label;
-		private string _labelToolTip;
-		private string _feeToolTip;
-		private string _amountWaterMarkText;
-		private string _amountToolTip;
-		private bool _isBusy;
-		private string _warningMessage;
-		private string _successMessage;
-		private const string BuildTransactionButtonTextString = "Send Transaction";
-		private const string BuildingTransactionButtonTextString = "Sending Transaction...";
-		private int _caretIndex;
-		private ObservableCollection<SuggestionViewModel> _suggestions;
-		private FeeDisplayFormat _feeDisplayFormat;
-
-		private bool IgnoreAmountChanges { get; set; }
-
-		private FeeDisplayFormat FeeDisplayFormat
+		public SendTabViewModel(Wallet wallet) : base(wallet, "Send")
 		{
-			get => _feeDisplayFormat;
-			set
-			{
-				_feeDisplayFormat = value;
-				Global.UiConfig.FeeDisplayFormat = (int)value;
-			}
+			this.ValidateProperty(x => x.PayjoinEndPoint, ValidatePayjoinEndPoint);
 		}
 
-		public SendTabViewModel(WalletViewModel walletViewModel)
-			: base("Send", walletViewModel)
+		public override string DoButtonText => "Send Transaction";
+		public override string DoingButtonText => "Sending Transaction...";
+
+		protected override async Task BuildTransaction(string password, PaymentIntent payments, FeeStrategy feeStrategy, bool allowUnconfirmed = false, IEnumerable<OutPoint> allowedInputs = null)
 		{
-			_suggestions = new ObservableCollection<SuggestionViewModel>();
-			Label = "";
-			AllSelectedAmount = Money.Zero;
-			UsdExchangeRate = Global.Synchronizer.UsdExchangeRate;
-			SetAmountWatermarkAndToolTip(Money.Zero);
+			BuildTransactionResult result = await Task.Run(() => Wallet.BuildTransaction(Password, payments, feeStrategy, allowUnconfirmed: true, allowedInputs: allowedInputs, GetPayjoinClient()));
 
-			CoinList = new CoinListViewModel();
-			Observable.FromEventPattern(CoinList, nameof(CoinList.SelectionChanged)).Subscribe(_ => SetFeesAndTexts());
-			Observable.FromEventPattern(CoinList, nameof(CoinList.DequeueCoinsPressed)).Subscribe(_ => OnCoinsListDequeueCoinsPressedAsync());
+			MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.SigningTransaction);
+			SmartTransaction signedTransaction = result.Transaction;
 
-			BuildTransactionButtonText = BuildTransactionButtonTextString;
-
-			ResetMax();
-			SetFeeTargetLimits();
-			FeeTarget = Global.UiConfig.FeeTarget ?? MinimumFeeTarget;
-			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
-			SetFeesAndTexts();
-
-			this.WhenAnyValue(x => x.Amount).Subscribe(amount =>
-			{
-				if (!IgnoreAmountChanges)
-				{
-					IsMax = false;
-
-					// Correct amount
-					Regex digitsOnly = new Regex(@"[^\d,.]");
-					string betterAmount = digitsOnly.Replace(amount, ""); // Make it digits , and . only.
-					betterAmount = betterAmount.Replace(',', '.');
-					int countBetterAmount = betterAmount.Count(x => x == '.');
-					if (countBetterAmount > 1) // Don't enable typing two dots.
-					{
-						var index = betterAmount.IndexOf('.', betterAmount.IndexOf('.') + 1);
-						if (index > 0)
-						{
-							betterAmount = betterAmount.Substring(0, index);
-						}
-					}
-					var dotIndex = betterAmount.IndexOf('.');
-					if (betterAmount.Length - dotIndex > 8) // Enable max 8 decimals.
-					{
-						betterAmount = betterAmount.Substring(0, dotIndex + 1 + 8);
-					}
-
-					if (betterAmount != amount)
-					{
-						Dispatcher.UIThread.PostLogException(() =>
-						{
-							Amount = betterAmount;
-						});
-					}
-				}
-
-				if (Money.TryParse(amount.TrimStart('~', ' '), out Money amountBtc))
-				{
-					SetAmountWatermarkAndToolTip(amountBtc);
-				}
-				else
-				{
-					SetAmountWatermarkAndToolTip(Money.Zero);
-				}
-
-				SetFeesAndTexts();
-			});
-
-			this.WhenAnyValue(x => x.IsBusy).Subscribe(busy =>
-			{
-				if (busy)
-				{
-					BuildTransactionButtonText = BuildingTransactionButtonTextString;
-				}
-				else
-				{
-					BuildTransactionButtonText = BuildTransactionButtonTextString;
-				}
-			});
-
-			this.WhenAnyValue(x => x.Password).Subscribe(x =>
+			if (Wallet.KeyManager.IsHardwareWallet && !result.Signed) // If hardware but still has a privkey then it's password, then meh.
 			{
 				try
 				{
-					if (x.NotNullAndNotEmpty())
-					{
-						char lastChar = x.Last();
-						if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
-						{
-							Password = x.TrimEnd('\r', '\n');
-						}
-					}
-				}
-				catch (Exception ex)
-				{
-					Logging.Logger.LogTrace(ex);
-				}
-			});
+					IsHardwareBusy = true;
+					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.AcquiringSignatureFromHardwareWallet);
+					var client = new HwiClient(Global.Network);
 
-			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x));
-
-			this.WhenAnyValue(x => x.FeeTarget).Subscribe(_ => SetFeesAndTexts());
-
-			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
-			{
-				if (Label is null) return;
-				if (CaretIndex != Label.Length)
-				{
-					CaretIndex = Label.Length;
-				}
-			});
-
-			MaxCommand = ReactiveCommand.Create(SetMax);
-
-			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay);
-
-			BuildTransactionCommand = ReactiveCommand.Create(async () =>
-			{
-				try
-				{
-					IsBusy = true;
-					MainWindowViewModel.Instance.StatusBar.SetStatusAndDoUpdateActions("Building transaction...");
-
-					Password = Guard.Correct(Password);
-					Label = Label.Trim(',', ' ').Trim();
-					if (!IsMax && string.IsNullOrWhiteSpace(Label))
-					{
-						SetWarningMessage("Label is required.");
-						return;
-					}
-
-					var selectedCoinViewModels = CoinList.Coins.Where(cvm => cvm.IsSelected);
-					var selectedCoinReferences = selectedCoinViewModels.Select(cvm => new TxoRef(cvm.Model.TransactionId, cvm.Model.Index)).ToList();
-
-					if (!selectedCoinReferences.Any())
-					{
-						SetWarningMessage("No coins are selected to spend.");
-						return;
-					}
-
-					BitcoinAddress address;
+					using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+					PSBT signedPsbt = null;
 					try
 					{
-						address = BitcoinAddress.Create(Address.Trim(), Global.Network);
+						signedPsbt = await client.SignTxAsync(Wallet.KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
 					}
-					catch (FormatException)
+					catch (HwiException)
 					{
-						SetWarningMessage("Invalid address.");
-						return;
+						await PinPadViewModel.UnlockAsync();
+						signedPsbt = await client.SignTxAsync(Wallet.KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
 					}
-
-					var script = address.ScriptPubKey;
-					var amount = Money.Zero;
-					if (!IsMax)
-					{
-						if (!Money.TryParse(Amount, out amount) || amount == Money.Zero)
-						{
-							SetWarningMessage($"Invalid amount.");
-							return;
-						}
-
-						if (amount == selectedCoinViewModels.Sum(x => x.Amount))
-						{
-							SetWarningMessage("Looks like you want to spend a whole coin. Try Max button instead.");
-							return;
-						}
-					}
-					var label = Label;
-					var operation = new WalletService.Operation(script, amount, label);
-
-					try
-					{
-						TxoRef[] toDequeue = selectedCoinViewModels.Where(x => x.CoinJoinInProgress).Select(x => x.Model.GetTxoRef()).ToArray();
-						if (toDequeue != null && toDequeue.Any())
-						{
-							await Global.ChaumianClient.DequeueCoinsFromMixAsync(toDequeue);
-						}
-					}
-					catch
-					{
-						SetWarningMessage("Spending coins those are being actively mixed is not allowed.");
-						return;
-					}
-
-					var result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, new[] { operation }, FeeTarget, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
-
-					MainWindowViewModel.Instance.StatusBar.SetStatusAndDoUpdateActions("Broadcasting transaction...");
-
-					await Task.Run(async () => await Global.WalletService.SendTransactionAsync(result.Transaction));
-
-					ResetMax();
-					Address = "";
-					Label = "";
-					Password = "";
-
-					SetSuccessMessage("Transaction is successfully sent!");
-				}
-				catch (InsufficientBalanceException ex)
-				{
-					Money needed = ex.Minimum - ex.Actual;
-					SetWarningMessage($"Not enough coins selected. You need an estimated {needed.ToString(false, true)} BTC more to make this transaction.");
-				}
-				catch (Exception ex)
-				{
-					SetWarningMessage(ex.ToTypeMessageString());
+					signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction);
 				}
 				finally
 				{
-					IsBusy = false;
-					MainWindowViewModel.Instance.StatusBar.SetStatusAndDoUpdateActions();
-				}
-			},
-			this.WhenAny(x => x.IsMax, x => x.Amount, x => x.Address, x => x.IsBusy,
-				(isMax, amount, address, busy) => (isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy));
-		}
-
-		private void SetAmountWatermarkAndToolTip(Money amount)
-		{
-			if (amount == Money.Zero)
-			{
-				AmountWatermarkText = "Amount (BTC)";
-			}
-			else
-			{
-				long amountUsd = 0;
-				try
-				{
-					amountUsd = (long)amount.ToUsd(UsdExchangeRate);
-				}
-				catch (OverflowException ex)
-				{
-					Logging.Logger.LogTrace<SendTabViewModel>(ex);
-				}
-				if (amountUsd != 0)
-				{
-					AmountWatermarkText = $"Amount (BTC) ~ ${amountUsd}";
-				}
-				else
-				{
-					AmountWatermarkText = "Amount (BTC)";
+					MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusType.AcquiringSignatureFromHardwareWallet);
+					IsHardwareBusy = false;
 				}
 			}
 
-			AmountToolTip = $"Exchange Rate: {(long)UsdExchangeRate} BTC/USD.";
+			MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.BroadcastingTransaction);
+			await Task.Run(async () => await Global.TransactionBroadcaster.SendTransactionAsync(signedTransaction));
+
+			ResetUi();
 		}
 
-		private void ChangeFeeRateDisplay()
+		public string PayjoinEndPoint
 		{
-			var nextval = (from FeeDisplayFormat val in Enum.GetValues(typeof(FeeDisplayFormat))
-						   where val > FeeDisplayFormat
-						   orderby val
-						   select val).DefaultIfEmpty().First();
-			FeeDisplayFormat = nextval;
-			SetFeesAndTexts();
+			get => _payjoinEndPoint;
+			set => this.RaiseAndSetIfChanged(ref _payjoinEndPoint, value);
 		}
 
-		private void SetFeesAndTexts()
+		private IPayjoinClient GetPayjoinClient()
 		{
-			AllFeeEstimate allFeeEstimate = Global.Synchronizer?.AllFeeEstimate;
-
-			var feeTarget = FeeTarget;
-
-			if (allFeeEstimate != null)
+			if (!string.IsNullOrWhiteSpace(PayjoinEndPoint) &&
+				Uri.IsWellFormedUriString(PayjoinEndPoint, UriKind.Absolute))
 			{
-				int prevKey = allFeeEstimate.Estimations.Keys.First();
-				foreach (int target in allFeeEstimate.Estimations.Keys)
+				var payjoinEndPointUri = new Uri(PayjoinEndPoint);
+				if (!Global.Config.UseTor)
 				{
-					if (feeTarget == target)
+					if (payjoinEndPointUri.DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
 					{
-						feeTarget = target;
-						break;
+						Logger.LogWarning("Payjoin server is a hidden service but Tor is disabled. Ignoring...");
+						return null;
 					}
-					else if (feeTarget < target)
+
+					if (Global.Config.Network == Network.Main && payjoinEndPointUri.Scheme != Uri.UriSchemeHttps)
 					{
-						feeTarget = prevKey;
-						break;
-					}
-					prevKey = target;
-				}
-			}
-
-			if (feeTarget >= 2 && feeTarget <= 6) // minutes
-			{
-				ConfirmationExpectedText = $"{feeTarget}0 minutes";
-			}
-			else if (feeTarget >= 7 && feeTarget <= 144) // hours
-			{
-				var h = feeTarget / 6;
-				ConfirmationExpectedText = $"{h} {IfPlural(h, "hour", "hours")}";
-			}
-			else if (feeTarget >= 145 && feeTarget < 1008) // days
-			{
-				var d = feeTarget / 144;
-				ConfirmationExpectedText = $"{d} {IfPlural(d, "day", "days")}";
-			}
-			else if (feeTarget == 10008)
-			{
-				ConfirmationExpectedText = $"two weeks™";
-			}
-
-			if (allFeeEstimate != null)
-			{
-				SetFees(allFeeEstimate, feeTarget);
-
-				switch (FeeDisplayFormat)
-				{
-					case FeeDisplayFormat.SatoshiPerByte:
-						FeeText = $"(~ {SatoshiPerByteFeeRate.Satoshi} sat/byte)";
-						FeeToolTip = "Expected fee rate in satoshi / vbyte.";
-						break;
-
-					case FeeDisplayFormat.USD:
-						FeeText = $"(~ ${UsdFee.ToString("0.##")})";
-						FeeToolTip = $"Estimated total fees in USD. Exchange Rate: {(long)UsdExchangeRate} BTC/USD.";
-						break;
-
-					case FeeDisplayFormat.BTC:
-						FeeText = $"(~ {BtcFee.ToString(false, false)} BTC)";
-						FeeToolTip = "Estimated total fees in BTC.";
-						break;
-
-					case FeeDisplayFormat.Percentage:
-						FeeText = $"(~ {FeePercentage.ToString("0.#")} %)";
-						FeeToolTip = "Expected percentage of fees against the amount to be sent.";
-						break;
-
-					default:
-						throw new NotSupportedException("This is impossible.");
-				}
-			}
-
-			SetAmountIfMax();
-		}
-
-		private static string IfPlural(int val, string singular, string plural)
-		{
-			if (val == 1)
-			{
-				return singular;
-			}
-
-			return plural;
-		}
-
-		private void SetAmountIfMax()
-		{
-			IgnoreAmountChanges = true;
-			if (IsMax)
-			{
-				if (AllSelectedAmount == Money.Zero)
-				{
-					Amount = "No Coins Selected";
-				}
-				else
-				{
-					Amount = $"~ {AllSelectedAmount.ToString(false, true)}";
-				}
-			}
-
-			IgnoreAmountChanges = false;
-		}
-
-		private void SetFees(AllFeeEstimate allFeeEstimate, int feeTarget)
-		{
-			SatoshiPerByteFeeRate = allFeeEstimate.GetFeeRate(feeTarget);
-
-			IEnumerable<SmartCoin> selectedCoins = CoinList.Coins.Where(cvm => cvm.IsSelected).Select(x => x.Model);
-
-			int vsize = 150;
-			if (selectedCoins.Any())
-			{
-				if (IsMax)
-				{
-					vsize = NBitcoinHelpers.CalculateVsizeAssumeSegwit(selectedCoins.Count(), 1);
-				}
-				else
-				{
-					if (Money.TryParse(Amount.TrimStart('~', ' '), out Money amount))
-					{
-						var inNum = 0;
-						var amountSoFar = Money.Zero;
-						foreach (SmartCoin coin in selectedCoins.OrderByDescending(x => x.Amount))
-						{
-							amountSoFar += coin.Amount;
-							inNum++;
-							if (amountSoFar > amount)
-							{
-								break;
-							}
-						}
-						vsize = NBitcoinHelpers.CalculateVsizeAssumeSegwit(inNum, 2);
-					}
-					// Else whatever, don't change.
-				}
-			}
-
-			BtcFee = Money.Satoshis(vsize * SatoshiPerByteFeeRate);
-
-			long all = selectedCoins.Sum(x => x.Amount);
-			if (IsMax)
-			{
-				if (all != 0)
-				{
-					FeePercentage = 100 * (decimal)BtcFee.Satoshi / all;
-				}
-			}
-			else
-			{
-				if (Money.TryParse(Amount.TrimStart('~', ' '), out Money amount) && amount.Satoshi != 0)
-				{
-					FeePercentage = 100 * (decimal)BtcFee.Satoshi / amount.Satoshi;
-				}
-			}
-
-			if (UsdExchangeRate != 0)
-			{
-				UsdFee = BtcFee.ToUsd(UsdExchangeRate);
-			}
-
-			AllSelectedAmount = Math.Max(Money.Zero, all - BtcFee);
-		}
-
-		private void SetFeeTargetLimits()
-		{
-			var allFeeEstimate = Global.Synchronizer?.AllFeeEstimate;
-
-			if (allFeeEstimate != null)
-			{
-				MinimumFeeTarget = allFeeEstimate.Estimations.Min(x => x.Key); // This should be always 2, but bugs will be seen at least if it isn't.
-				MaximumFeeTarget = allFeeEstimate.Estimations.Max(x => x.Key);
-			}
-			else
-			{
-				MinimumFeeTarget = 2;
-				MaximumFeeTarget = 1008;
-			}
-		}
-
-		private void SetWarningMessage(string message)
-		{
-			SuccessMessage = "";
-			WarningMessage = message;
-
-			Dispatcher.UIThread.PostLogException(async () =>
-			{
-				await Task.Delay(7000);
-				if (WarningMessage == message)
-				{
-					WarningMessage = "";
-				}
-			});
-		}
-
-		private void SetSuccessMessage(string message)
-		{
-			SuccessMessage = message;
-			WarningMessage = "";
-
-			Dispatcher.UIThread.PostLogException(async () =>
-			{
-				await Task.Delay(7000);
-				if (SuccessMessage == message)
-				{
-					SuccessMessage = "";
-				}
-			});
-		}
-
-		private void SetMax()
-		{
-			if (IsMax)
-			{
-				ResetMax();
-				return;
-			}
-
-			IsMax = true;
-			MaxClear = "Clear";
-
-			SetAmountIfMax();
-
-			LabelToolTip = "Spending whole coins doesn't generate change, thus labeling is unnecessary.";
-		}
-
-		private void ResetMax()
-		{
-			IsMax = false;
-			MaxClear = "Max";
-
-			IgnoreAmountChanges = true;
-			Amount = "0.0";
-			IgnoreAmountChanges = false;
-
-			LabelToolTip = "Start labelling today and your privacy will thank you tomorrow!";
-		}
-
-		public CoinListViewModel CoinList { get; }
-
-		private async void OnCoinsListDequeueCoinsPressedAsync()
-		{
-			try
-			{
-				var selectedCoin = CoinList?.SelectedCoin;
-				if (selectedCoin is null) return;
-				await DoDequeueAsync(new[] { selectedCoin });
-			}
-			catch (Exception ex)
-			{
-				Logging.Logger.LogWarning<SendTabViewModel>(ex);
-			}
-		}
-
-		private async Task DoDequeueAsync(IEnumerable<CoinViewModel> selectedCoins)
-		{
-			WarningMessage = "";
-
-			if (!selectedCoins.Any())
-			{
-				SetWarningMessage("No coins are selected to dequeue.");
-				return;
-			}
-
-			try
-			{
-				await Global.ChaumianClient.DequeueCoinsFromMixAsync(selectedCoins.Select(c => c.Model).ToArray());
-			}
-			catch (Exception ex)
-			{
-				Logging.Logger.LogWarning<CoinJoinTabViewModel>(ex);
-				var builder = new StringBuilder(ex.ToTypeMessageString());
-				if (ex is AggregateException aggex)
-				{
-					foreach (var iex in aggex.InnerExceptions)
-					{
-						builder.Append(Environment.NewLine + iex.ToTypeMessageString());
+						Logger.LogWarning("Payjoin server is not exposed as onion hidden service nor https. Ignoring...");
+						return null;
 					}
 				}
-				SetWarningMessage(builder.ToString());
-				return;
+
+				return new PayjoinClient(payjoinEndPointUri, Global.TorManager.TorSocks5EndPoint);
+			}
+
+			return null;
+		}
+
+		public void ValidatePayjoinEndPoint(IValidationErrors errors)
+		{
+			if (!string.IsNullOrWhiteSpace(PayjoinEndPoint) && !Uri.IsWellFormedUriString(PayjoinEndPoint, UriKind.Absolute))
+			{
+				errors.Add(ErrorSeverity.Error, "Invalid url.");
 			}
 		}
 
-		public bool IsBusy
+		protected override void OnAddressPaste(BitcoinUrlBuilder url)
 		{
-			get => _isBusy;
-			set => this.RaiseAndSetIfChanged(ref _isBusy, value);
-		}
+			base.OnAddressPaste(url);
 
-		public string BuildTransactionButtonText
-		{
-			get => _buildTransactionButtonText;
-			set => this.RaiseAndSetIfChanged(ref _buildTransactionButtonText, value);
-		}
-
-		public bool IsMax
-		{
-			get => _isMax;
-			set => this.RaiseAndSetIfChanged(ref _isMax, value);
-		}
-
-		public string MaxClear
-		{
-			get => _maxClear;
-			set => this.RaiseAndSetIfChanged(ref _maxClear, value);
-		}
-
-		public string Amount
-		{
-			get => _amount;
-			set => this.RaiseAndSetIfChanged(ref _amount, value);
-		}
-
-		public int FeeTarget
-		{
-			get => _feeTarget;
-			set
+			if (url.UnknowParameters.TryGetValue("pj", out var endPoint))
 			{
-				this.RaiseAndSetIfChanged(ref _feeTarget, value);
-				Global.UiConfig.FeeTarget = value;
-			}
-		}
-
-		public int MinimumFeeTarget
-		{
-			get => _minimumFeeTarget;
-			set => this.RaiseAndSetIfChanged(ref _minimumFeeTarget, value);
-		}
-
-		public int MaximumFeeTarget
-		{
-			get => _maximumFeeTarget;
-			set => this.RaiseAndSetIfChanged(ref _maximumFeeTarget, value);
-		}
-
-		public string ConfirmationExpectedText
-		{
-			get => _confirmationExpectedText;
-			set => this.RaiseAndSetIfChanged(ref _confirmationExpectedText, value);
-		}
-
-		public string FeeText
-		{
-			get => _feeText;
-			set => this.RaiseAndSetIfChanged(ref _feeText, value);
-		}
-
-		public decimal UsdFee
-		{
-			get => _usdFee;
-			set => this.RaiseAndSetIfChanged(ref _usdFee, value);
-		}
-
-		public Money BtcFee
-		{
-			get => _btcFee;
-			set => this.RaiseAndSetIfChanged(ref _btcFee, value);
-		}
-
-		public Money SatoshiPerByteFeeRate
-		{
-			get => _satoshiPerByteFeeRate;
-			set => this.RaiseAndSetIfChanged(ref _satoshiPerByteFeeRate, value);
-		}
-
-		public decimal FeePercentage
-		{
-			get => _feePercentage;
-			set => this.RaiseAndSetIfChanged(ref _feePercentage, value);
-		}
-
-		public decimal UsdExchangeRate
-		{
-			get => _usdExchangeRate;
-			set => this.RaiseAndSetIfChanged(ref _usdExchangeRate, value);
-		}
-
-		public Money AllSelectedAmount
-		{
-			get => _allSelectedAmount;
-			set => this.RaiseAndSetIfChanged(ref _allSelectedAmount, value);
-		}
-
-		public string Password
-		{
-			get => _password;
-			set => this.RaiseAndSetIfChanged(ref _password, value);
-		}
-
-		public int CaretIndex
-		{
-			get => _caretIndex;
-			set => this.RaiseAndSetIfChanged(ref _caretIndex, value);
-		}
-
-		public ObservableCollection<SuggestionViewModel> Suggestions
-		{
-			get => _suggestions;
-			set => this.RaiseAndSetIfChanged(ref _suggestions, value);
-		}
-
-		private void UpdateSuggestions(string words)
-		{
-			if (string.IsNullOrWhiteSpace(words))
-			{
-				Suggestions?.Clear();
-				return;
-			}
-
-			var enteredWordList = words.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim());
-			var lastWord = enteredWordList?.LastOrDefault()?.Replace("\t", "") ?? "";
-
-			if (!lastWord.Any())
-			{
-				Suggestions.Clear();
-				return;
-			}
-
-			string[] nonSpecialLabels = Global.WalletService.GetNonSpecialLabels().ToArray();
-			IEnumerable<string> suggestedWords = nonSpecialLabels.Where(w => w.StartsWith(lastWord, StringComparison.InvariantCultureIgnoreCase))
-				.Union(nonSpecialLabels.Where(w => w.Contains(lastWord, StringComparison.InvariantCultureIgnoreCase)))
-				.Except(enteredWordList)
-				.Take(3);
-
-			Suggestions.Clear();
-			foreach (var suggestion in suggestedWords)
-			{
-				Suggestions.Add(new SuggestionViewModel(suggestion, OnAddWord));
-			}
-		}
-
-		public void OnAddWord(string word)
-		{
-			var words = Label.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToArray();
-			if (words.Length == 0)
-			{
-				Label = word + ", ";
-			}
-			else
-			{
-				words[words.Length - 1] = word;
-				Label = string.Join(", ", words) + ", ";
-			}
-
-			CaretIndex = Label.Length;
-
-			Suggestions.Clear();
-		}
-
-		public string ValidateAddress()
-		{
-			if (string.IsNullOrEmpty(Address))
-			{
-				return "";
-			}
-
-			if (!string.IsNullOrWhiteSpace(Address))
-			{
-				var trimmed = Address.Trim();
-				try
+				if (!Wallet.KeyManager.IsWatchOnly)
 				{
-					BitcoinAddress.Create(trimmed, Global.Network);
-					return "";
+					PayjoinEndPoint = endPoint;
+					return;
 				}
-				catch
-				{
-				}
+				NotificationHelpers.Warning("Payjoin is not allowed here.");
 			}
-
-			return $"Invalid {nameof(Address)}";
+			PayjoinEndPoint = null;
 		}
 
-		[ValidateMethod(nameof(ValidateAddress))]
-		public string Address
+		protected override void ResetUi()
 		{
-			get => _address;
-			set => this.RaiseAndSetIfChanged(ref _address, value);
-		}
-
-		public string Label
-		{
-			get => _label;
-			set => this.RaiseAndSetIfChanged(ref _label, value);
-		}
-
-		public string LabelToolTip
-		{
-			get => _labelToolTip;
-			set => this.RaiseAndSetIfChanged(ref _labelToolTip, value);
-		}
-
-		public string WarningMessage
-		{
-			get => _warningMessage;
-			set => this.RaiseAndSetIfChanged(ref _warningMessage, value);
-		}
-
-		public string SuccessMessage
-		{
-			get => _successMessage;
-			set => this.RaiseAndSetIfChanged(ref _successMessage, value);
-		}
-
-		public string FeeToolTip
-		{
-			get => _feeToolTip;
-			set => this.RaiseAndSetIfChanged(ref _feeToolTip, value);
-		}
-
-		public string AmountWatermarkText
-		{
-			get => _amountWaterMarkText;
-			set => this.RaiseAndSetIfChanged(ref _amountWaterMarkText, value);
-		}
-
-		public string AmountToolTip
-		{
-			get => _amountToolTip;
-			set => this.RaiseAndSetIfChanged(ref _amountToolTip, value);
-		}
-
-		public ReactiveCommand BuildTransactionCommand { get; }
-
-		public ReactiveCommand MaxCommand { get; }
-
-		public ReactiveCommand FeeRateCommand { get; }
-
-		public override void OnOpen()
-		{
-			if (Disposables != null)
-			{
-				throw new Exception("Send tab opened before last one closed.");
-			}
-
-			Disposables = new CompositeDisposable();
-
-			Global.Synchronizer.WhenAnyValue(x => x.AllFeeEstimate).Subscribe(_ =>
-			{
-				SetFeeTargetLimits();
-
-				if (FeeTarget < MinimumFeeTarget) // Should never happen.
-				{
-					FeeTarget = MinimumFeeTarget;
-				}
-				else if (FeeTarget > MaximumFeeTarget)
-				{
-					FeeTarget = MaximumFeeTarget;
-				}
-
-				SetFeesAndTexts();
-			}).DisposeWith(Disposables);
-
-			Global.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Subscribe(_ =>
-			{
-				var exchangeRate = Global.Synchronizer.UsdExchangeRate;
-
-				if (exchangeRate != 0)
-				{
-					UsdExchangeRate = exchangeRate;
-				}
-
-				SetFeesAndTexts();
-			}).DisposeWith(Disposables);
-
-			CoinList.OnOpen();
-
-			base.OnOpen();
-		}
-
-		public override bool OnClose()
-		{
-			Disposables.Dispose();
-
-			Disposables = null;
-
-			CoinList.OnClose();
-
-			return base.OnClose();
+			base.ResetUi();
+			PayjoinEndPoint = "";
 		}
 	}
 }

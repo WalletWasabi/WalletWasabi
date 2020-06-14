@@ -1,82 +1,35 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Services
 {
-	public class ConfigWatcher
+	public class ConfigWatcher : PeriodicRunner
 	{
-		/// <summary>
-		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
-		/// </summary>
-		private long _running;
-
-		public bool IsRunning => Interlocked.Read(ref _running) == 1;
-		public bool IsStopping => Interlocked.Read(ref _running) == 2;
-
-		private CancellationTokenSource Stop { get; }
-
-		public IConfig Config { get; }
-
-		public ConfigWatcher(IConfig config)
+		public ConfigWatcher(TimeSpan period, IConfig config, Action executeWhenChanged) : base(period)
 		{
 			Config = Guard.NotNull(nameof(config), config);
+			ExecuteWhenChanged = Guard.NotNull(nameof(executeWhenChanged), executeWhenChanged);
 			config.AssertFilePathSet();
-
-			_running = 0;
-			Stop = new CancellationTokenSource();
 		}
 
-		public void Start(TimeSpan period, Func<Task> executeWhenChangedAsync)
+		public IConfig Config { get; }
+		public Action ExecuteWhenChanged { get; }
+
+		protected override Task ActionAsync(CancellationToken cancel)
 		{
-			Interlocked.Exchange(ref _running, 1);
-
-			Task.Run(async () =>
+			if (Config.CheckFileChange())
 			{
-				try
-				{
-					while (IsRunning)
-					{
-						try
-						{
-							await Task.Delay(period, Stop.Token);
+				cancel.ThrowIfCancellationRequested();
+				Config.LoadOrCreateDefaultFile();
 
-							if (await Config.CheckFileChangeAsync())
-							{
-								await Config.LoadOrCreateDefaultFileAsync();
-
-								await executeWhenChangedAsync?.Invoke();
-							}
-						}
-						catch (TaskCanceledException ex)
-						{
-							Logger.LogTrace<ConfigWatcher>(ex);
-						}
-						catch (Exception ex)
-						{
-							Logger.LogDebug<ConfigWatcher>(ex);
-						}
-					}
-				}
-				finally
-				{
-					Interlocked.CompareExchange(ref _running, 3, 2); // If IsStopping, make it stopped.
-				}
-			});
-		}
-
-		public async Task StopAsync()
-		{
-			Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
-			Stop?.Cancel();
-			while (IsStopping)
-			{
-				await Task.Delay(50);
+				ExecuteWhenChanged();
 			}
-			Stop?.Dispose();
+			return Task.CompletedTask;
 		}
 	}
 }

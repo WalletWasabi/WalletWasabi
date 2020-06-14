@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net;
 using WalletWasabi.TorSocks5;
 
@@ -6,23 +6,28 @@ namespace WalletWasabi.Bases
 {
 	public abstract class TorDisposableBase : IDisposable
 	{
-		public TorHttpClient TorClient { get; }
+		private volatile bool _disposedValue = false; // To detect redundant calls
 
-		/// <param name="torSocks5EndPoint">if null, then localhost:9050</param>
-		protected TorDisposableBase(Uri baseUri, IPEndPoint torSocks5EndPoint)
+		/// <param name="torSocks5EndPoint">If null, then localhost:9050</param>
+		protected TorDisposableBase(Uri baseUri, EndPoint torSocks5EndPoint)
 		{
 			TorClient = new TorHttpClient(baseUri, torSocks5EndPoint, isolateStream: true);
 		}
 
-		/// <param name="torSocks5EndPoint">if null, then localhost:9050</param>
-		protected TorDisposableBase(Func<Uri> baseUriAction, IPEndPoint torSocks5EndPoint)
+		/// <param name="torSocks5EndPoint">If null, then localhost:9050</param>
+		protected TorDisposableBase(Func<Uri> baseUriAction, EndPoint torSocks5EndPoint)
 		{
 			TorClient = new TorHttpClient(baseUriAction, torSocks5EndPoint, isolateStream: true);
 		}
 
-		#region IDisposable Support
+		protected TorDisposableBase(ITorHttpClient torClient)
+		{
+			TorClient = torClient;
+		}
 
-		private volatile bool _disposedValue = false; // To detect redundant calls
+		public ITorHttpClient TorClient { get; }
+
+		#region IDisposable Support
 
 		protected virtual void Dispose(bool disposing)
 		{

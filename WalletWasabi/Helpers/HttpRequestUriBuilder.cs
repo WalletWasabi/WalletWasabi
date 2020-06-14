@@ -1,4 +1,4 @@
-﻿using WalletWasabi.Http.Models;
+using WalletWasabi.Http.Models;
 
 namespace System.Net.Http
 {
@@ -10,11 +10,20 @@ namespace System.Net.Http
 			// The scheme and host are case-insensitive and normally provided in lowercase;
 			// all other components are compared in a case-sensitive manner.
 
-			if (host is null) throw new FormatException("Host identifier cannot be null.");
+			if (host is null)
+			{
+				throw new FormatException("Host identifier cannot be null.");
+			}
+
 			var h = host.Trim().TrimEnd('/').TrimStart(uriScheme.ToString() + "://", StringComparison.OrdinalIgnoreCase);
+
 			// https://tools.ietf.org/html/rfc7230#section-2.7.1
 			// A sender MUST NOT generate an "http" URI with an empty host identifier.
-			if (h == "") throw new FormatException("Host identifier is empty.");
+			if (h.Length == 0)
+			{
+				throw new FormatException("Host identifier is empty.");
+			}
+
 			Host = h;
 
 			Scheme = uriScheme.ToString().ToLowerInvariant();
@@ -32,16 +41,16 @@ namespace System.Net.Http
 				Port = 443;
 			}
 
-			// Because we want to tolerate http:// and https:// in the host we also want to make sure it doesn't contradict the schame
+			// Because we want to tolerate http:// and https:// in the host we also want to make sure it does not contradict the scheme
 			foreach (UriScheme scheme in Enum.GetValues(typeof(UriScheme)))
 			{
 				// if host starts with http:// or https:// then check
 				if (host.StartsWith(scheme.ToString() + "://", StringComparison.OrdinalIgnoreCase))
 				{
-					// if the currently iterated schemen not equals to the provided scheme
+					// if the currently iterated scheme does not equal the provided scheme
 					if (scheme != uriScheme)
 					{
-						throw new FormatException("uriScheme not consistent with host identifier.");
+						throw new FormatException($"{nameof(uriScheme)} not consistent with host identifier.");
 					}
 				}
 			}

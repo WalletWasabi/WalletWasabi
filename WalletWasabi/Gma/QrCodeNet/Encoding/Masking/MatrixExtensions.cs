@@ -1,14 +1,14 @@
-﻿using System;
 using Gma.QrCodeNet.Encoding.EncodingRegion;
+using System;
 
 namespace Gma.QrCodeNet.Encoding.Masking
 {
 	public static class MatrixExtensions
 	{
-		public static TriStateMatrix Xor(this TriStateMatrix first, Pattern second, ErrorCorrectionLevel errorlevel)
+		public static TriStateMatrix Xor(this TriStateMatrix first, Pattern second, ErrorCorrectionLevel errorLevel)
 		{
 			TriStateMatrix result = XorMatrix(first, second);
-			result.EmbedFormatInformation(errorlevel, second);
+			result.EmbedFormatInformation(errorLevel, second);
 			return result;
 		}
 
@@ -32,7 +32,7 @@ namespace Gma.QrCodeNet.Encoding.Masking
 							break;
 
 						default:
-							throw new ArgumentException("TristateMatrix has None value cell.", nameof(first));
+							throw new ArgumentException($"{nameof(TriStateMatrix)} has None value cell.", nameof(first));
 					}
 				}
 			}
@@ -40,8 +40,8 @@ namespace Gma.QrCodeNet.Encoding.Masking
 			return maskedMatrix;
 		}
 
-		public static TriStateMatrix Apply(this TriStateMatrix matrix, Pattern pattern, ErrorCorrectionLevel errorlevel) => matrix.Xor(pattern, errorlevel);
+		public static TriStateMatrix Apply(this TriStateMatrix matrix, Pattern pattern, ErrorCorrectionLevel errorLevel) => matrix.Xor(pattern, errorLevel);
 
-		public static TriStateMatrix Apply(this Pattern pattern, TriStateMatrix matrix, ErrorCorrectionLevel errorlevel) => matrix.Xor(pattern, errorlevel);
+		public static TriStateMatrix Apply(this Pattern pattern, TriStateMatrix matrix, ErrorCorrectionLevel errorLevel) => matrix.Xor(pattern, errorLevel);
 	}
 }

@@ -1,111 +1,160 @@
+using AvalonStudio.Extensibility;
+using AvalonStudio.Shell;
 using NBitcoin;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Services;
+using WalletWasabi.Logging;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class WalletViewModel : WasabiDocumentTabViewModel
+	public class WalletViewModel : WalletViewModelBase
 	{
-		private CompositeDisposable Disposables { get; set; }
+		private ObservableCollection<ViewModelBase> _actions;
 
-		private ObservableCollection<WalletActionViewModel> _actions;
-
-		private string _title;
-
-		public WalletViewModel(WalletService walletService, bool receiveDominant)
-			: base(Path.GetFileNameWithoutExtension(walletService.KeyManager.FilePath))
+		protected WalletViewModel(Wallet wallet) : base(wallet)
 		{
-			WalletService = walletService;
-			Name = Path.GetFileNameWithoutExtension(WalletService.KeyManager.FilePath);
+			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			SetBalance(Name);
+			Actions = new ObservableCollection<ViewModelBase>();
 
-			Actions = new ObservableCollection<WalletActionViewModel>
-			{
-				new SendTabViewModel(this),
-				new ReceiveTabViewModel(this),
-				new CoinJoinTabViewModel(this),
-				new HistoryTabViewModel(this),
-				new WalletInfoViewModel(this)
-			};
+			UiConfig = Locator.Current.GetService<Global>().UiConfig;
 
-			Actions[0].DisplayActionTab();
-			if (receiveDominant)
-			{
-				Actions[2].DisplayActionTab();
-				Actions[3].DisplayActionTab();
-				Actions[1].DisplayActionTab();
-			}
-			else
-			{
-				Actions[1].DisplayActionTab();
-				Actions[2].DisplayActionTab();
-				Actions[3].DisplayActionTab();
-			}
+			WalletManager = Locator.Current.GetService<Global>().WalletManager;
 
-			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				Global.UiConfig.LurkingWifeMode = !Global.UiConfig.LurkingWifeMode;
-				await Global.UiConfig.ToFileAsync();
-			});
-		}
-
-		public void OnWalletOpened()
-		{
-			if (Disposables != null)
-			{
-				throw new Exception("Wallet opened before it was closed.");
-			}
-
-			Disposables = new CompositeDisposable();
-
-			Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
-				.Merge(Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.CoinSpentOrSpenderConfirmed)))
+			Observable.Merge(
+				Observable.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default))
+				.Throttle(TimeSpan.FromSeconds(0.1))
+				.Merge(UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Select(_ => Unit.Default))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(o => SetBalance(Name))
+				.Subscribe(_ =>
+				{
+					try
+					{
+						Money balance = Wallet.Coins.TotalAmount();
+						Title = $"{WalletName} ({(UiConfig.LurkingWifeMode ? "#########" : balance.ToString(false, true))} BTC)";
+					}
+					catch (Exception ex)
+					{
+						Logger.LogError(ex);
+					}
+				})
 				.DisposeWith(Disposables);
 
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(x =>
+			// If hardware wallet or not watch only wallet then we need the Send tab.
+			if (Wallet.KeyManager.IsHardwareWallet || !Wallet.KeyManager.IsWatchOnly)
 			{
-				SetBalance(Name);
-			}).DisposeWith(Disposables);
+				SendTab = new SendTabViewModel(Wallet);
+				Actions.Add(SendTab);
+			}
+
+			ReceiveTab = new ReceiveTabViewModel(Wallet);
+			HistoryTab = new HistoryTabViewModel(Wallet);
+
+			var advancedAction = new WalletAdvancedViewModel();
+			InfoTab = new WalletInfoViewModel(Wallet);
+			BuildTab = new BuildTabViewModel(Wallet);
+
+			Actions.Add(ReceiveTab);
+
+			// If not watch only wallet (not hww) then we need the CoinJoin tab.
+			if (!Wallet.KeyManager.IsWatchOnly)
+			{
+				CoinjoinTab = new CoinJoinTabViewModel(Wallet);
+				Actions.Add(CoinjoinTab);
+			}
+
+			Actions.Add(HistoryTab);
+
+			Actions.Add(advancedAction);
+			advancedAction.Items.Add(InfoTab);
+			advancedAction.Items.Add(BuildTab);
 		}
 
-		public void OnWalletClosed()
+		public static WalletViewModel Create(Wallet wallet)
 		{
-			Disposables?.Dispose();
+			return wallet.KeyManager.IsHardwareWallet
+				? new HardwareWalletViewModel(wallet)
+				: wallet.KeyManager.IsWatchOnly
+					? new WatchOnlyWalletViewModel(wallet)
+					: new WalletViewModel(wallet);
 		}
 
-		public string Name { get; }
+		private SendTabViewModel SendTab { get; set; }
 
-		public WalletService WalletService { get; }
+		private ReceiveTabViewModel ReceiveTab { get; set; }
 
-		public override string Title
-		{
-			get => _title;
-			set => this.RaiseAndSetIfChanged(ref _title, value);
-		}
+		private CoinJoinTabViewModel CoinjoinTab { get; set; }
 
-		public ReactiveCommand LurkingWifeModeCommand { get; }
+		private HistoryTabViewModel HistoryTab { get; set; }
 
-		public ObservableCollection<WalletActionViewModel> Actions
+		private WalletInfoViewModel InfoTab { get; set; }
+
+		private BuildTabViewModel BuildTab { get; set; }
+
+		private UiConfig UiConfig { get; }
+
+		private WalletManager WalletManager { get; }
+
+		public ObservableCollection<ViewModelBase> Actions
 		{
 			get => _actions;
 			set => this.RaiseAndSetIfChanged(ref _actions, value);
 		}
 
-		private void SetBalance(string walletName)
-		{
-			Money balance = Enumerable.Where(WalletService.Coins, c => c.Unspent && !c.IsDust && !c.SpentAccordingToBackend).Sum(c => (long?)c.Amount) ?? 0;
+		private CompositeDisposable Disposables { get; set; }
 
-			Title = $"{walletName} ({(Global.UiConfig.LurkingWifeMode.Value ? "#########" : balance.ToString(false, true))} BTC)";
+		public void OpenWalletTabs()
+		{
+			var shell = IoC.Get<IShell>();
+
+			if (SendTab is { })
+			{
+				shell.AddOrSelectDocument(SendTab);
+			}
+
+			shell.AddOrSelectDocument(ReceiveTab);
+
+			if (CoinjoinTab is { })
+			{
+				shell.AddOrSelectDocument(CoinjoinTab);
+			}
+
+			shell.AddOrSelectDocument(HistoryTab);
+
+			SelectTab(shell);
+		}
+
+		private void SelectTab(IShell shell)
+		{
+			if (Wallet.Coins.Any())
+			{
+				WasabiDocumentTabViewModel tabToOpen = UiConfig.LastActiveTab switch
+				{
+					nameof(SendTabViewModel) => SendTab,
+					nameof(ReceiveTabViewModel) => ReceiveTab,
+					nameof(CoinJoinTabViewModel) => CoinjoinTab,
+					nameof(BuildTabViewModel) => BuildTab,
+					_ => HistoryTab
+				};
+
+				if (tabToOpen is { })
+				{
+					shell.AddOrSelectDocument(tabToOpen);
+				}
+			}
+			else
+			{
+				shell.AddOrSelectDocument(ReceiveTab);
+			}
 		}
 	}
 }

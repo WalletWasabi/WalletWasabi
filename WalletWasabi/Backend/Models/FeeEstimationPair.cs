@@ -1,9 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace WalletWasabi.Backend.Models
 {
 	/// <summary>
-	/// Satoshi per bytes.
+	/// Satoshi per byte.
 	/// </summary>
 	public class FeeEstimationPair
 	{

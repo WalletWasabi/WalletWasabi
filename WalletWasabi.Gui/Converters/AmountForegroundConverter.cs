@@ -1,9 +1,10 @@
-﻿using Avalonia.Data.Converters;
+using Avalonia.Data.Converters;
 using Avalonia.Media;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using WalletWasabi.Exceptions;
 
 namespace WalletWasabi.Gui.Converters
 {
@@ -11,19 +12,20 @@ namespace WalletWasabi.Gui.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (value is bool boolean)
+			if (value is string amount)
 			{
-				if (boolean)
-				{
-					return Brushes.ForestGreen;
-				}
-				else
-				{
-					return Brushes.White;
-				}
+				// When the amount starts with a '~' then Max is selected
+				return amount.StartsWith("~")
+					? Brushes.ForestGreen
+					: amount.Equals("No Coins Selected", StringComparison.OrdinalIgnoreCase)
+					  || amount.Equals("Too high fee", StringComparison.OrdinalIgnoreCase)
+						? Brushes.IndianRed
+						: Brushes.White;
 			}
-
-			throw new InvalidOperationException();
+			else
+			{
+				throw new TypeArgumentException(value, typeof(string), nameof(value));
+			}
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

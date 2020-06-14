@@ -1,4 +1,4 @@
-﻿using AvalonStudio.MainMenu;
+using AvalonStudio.MainMenu;
 using AvalonStudio.Menus;
 using System;
 using System.Collections.Generic;
@@ -9,13 +9,13 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 {
 	internal class FileMainMenuItems
 	{
-		private IMenuItemFactory MenuItemFactory { get; }
-
 		[ImportingConstructor]
 		public FileMainMenuItems(IMenuItemFactory menuItemFactory)
 		{
 			MenuItemFactory = menuItemFactory;
 		}
+
+		private IMenuItemFactory MenuItemFactory { get; }
 
 		#region MainMenu
 
@@ -35,9 +35,14 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		[DefaultOrder(1)]
 		public object DiskGroup => null;
 
-		[ExportMainMenuDefaultGroup("File", "Exit")]
+		[ExportMainMenuDefaultGroup("File", "Security")]
 		[DefaultOrder(2)]
-		public object ExitGroup => null;
+		public object SecurityGroup => null;
+
+		[ExportOnPlatform(osx: false)]
+		[ExportMainMenuDefaultGroup("File", "System")]
+		[DefaultOrder(3)]
+		public object SystemGroup => null;
 
 		#endregion Group
 
@@ -62,9 +67,14 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		[DefaultOrder(3)]
 		public IMenuItem Open => MenuItemFactory.CreateHeaderMenuItem("Open", null);
 
-		[ExportMainMenuItem("File", "Exit")]
+		[ExportMainMenuItem("File", "LockScreen")]
 		[DefaultOrder(4)]
-		[DefaultGroup("Exit")]
+		[DefaultGroup("Security")]
+		public IMenuItem LockScreen => MenuItemFactory.CreateCommandMenuItem("File.LockScreen");
+
+		[ExportMainMenuItem("File", "Exit")]
+		[DefaultOrder(5)]
+		[DefaultGroup("System")]
 		public IMenuItem Exit => MenuItemFactory.CreateCommandMenuItem("File.Exit");
 
 		#endregion MenuItem

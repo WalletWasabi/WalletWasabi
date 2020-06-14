@@ -1,4 +1,4 @@
-﻿//
+//
 // Options.cs
 //
 // Authors:
@@ -165,6 +165,6 @@ namespace Mono.Options
 	{
 		None,
 		Optional,
-		Required,
+		Required
 	}
 }

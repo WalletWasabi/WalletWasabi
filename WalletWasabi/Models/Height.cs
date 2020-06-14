@@ -1,72 +1,44 @@
-﻿using System;
+using System;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Models
 {
 	public struct Height : IEquatable<Height>, IEquatable<int>, IComparable<Height>, IComparable<int>
 	{
-		public HeightType Type { get; }
-		private readonly int _value;
-
-		/// <summary>
-		/// Gets the height value according to the Height type.
-		/// </summary>
-		public int Value
+		public Height(uint height) : this((int)height)
 		{
-			get
-			{
-				if (Type == HeightType.Chain)
-					return _value;
-				if (Type == HeightType.MemPool)
-					return int.MaxValue - 1;
-				//if(Type == HeightType.Unknown)
-				return int.MaxValue;
-			}
 		}
-
-		/// <summary>
-		/// Gets a new Height instance for mempool
-		/// </summary>
-		/// <returns></returns>
-		public readonly static Height MemPool = new Height(HeightType.MemPool);
-
-		/// <summary>
-		/// Gets a new Height instance for unknown (no chain, no mempool)
-		/// </summary>
-		/// <returns></returns>
-		public readonly static Height Unknown = new Height(HeightType.Unknown);
 
 		/// <summary>
 		/// Creates and initializes a new Height instance
 		/// </summary>
 		/// <param name="height">The height value to initialize the instance.
-		/// If height value is (Int32.MaxValue -1) then the Height type is setted to MemPool.
-		/// If height value is (Int32.MaxValue) then the Height tpe is setted to Unknown;
-		/// Otherwise the Height type is setted as Chain.
+		/// If height value is (Int32.MaxValue -1) then the Height type is set to Mempool.
+		/// If height value is (Int32.MaxValue) then the Height tpe is set to Unknown;
+		/// Otherwise the Height type is set as Chain.
 		/// </param>
 		/// <exception href="ArgumentException">When height value is less than zero.</exception>
 		public Height(int height)
 		{
-			if (height < 0) throw new ArgumentException($"{nameof(height)} : {height} cannot be < 0");
-			if (height == Unknown.Value) Type = HeightType.Unknown;
-			else if (height == MemPool.Value) Type = HeightType.MemPool;
-			else Type = HeightType.Chain;
-			_value = height;
-		}
+			if (height < 0)
+			{
+				throw new ArgumentException($"{nameof(height)}: {height} cannot be less than zero");
+			}
 
-		/// <summary>
-		/// Creates and initializes a new Height instance
-		/// </summary>
-		/// <param name="heightOrHeightType">The height numerical value as its string representation
-		/// or well the strings "MemPool" or "Unknown" for the default initial height of those Heights.
-		/// </param>
-		public Height(string heightOrHeightType)
-		{
-			var trimmed = heightOrHeightType.Trim();
-			if (trimmed == HeightType.MemPool.ToString())
-				this = MemPool;
-			else if (trimmed == HeightType.Unknown.ToString())
-				this = Unknown;
-			else this = new Height(int.Parse(trimmed));
+			if (height == Unknown.Value)
+			{
+				Type = HeightType.Unknown;
+			}
+			else if (height == Mempool.Value)
+			{
+				Type = HeightType.Mempool;
+			}
+			else
+			{
+				Type = HeightType.Chain;
+			}
+
+			Value = height;
 		}
 
 		/// <summary>
@@ -76,52 +48,103 @@ namespace WalletWasabi.Models
 		/// <exception href="NotSupportedException">When type is equal to HeightType.Chain.</exception>
 		public Height(HeightType type)
 		{
-			if (type == HeightType.Chain) throw new NotSupportedException($"For {type} height must be specified");
+			if (type == HeightType.Chain)
+			{
+				throw new NotSupportedException($"For {type} height must be specified");
+			}
+
 			Type = type;
-			_value = (Type == HeightType.MemPool)
-				? MemPool.Value
-				: Unknown.Value;
+
+			Value = Type == HeightType.Mempool
+				? int.MaxValue - 1
+				: int.MaxValue;
 		}
 
+		public HeightType Type { get; }
+
 		/// <summary>
-		/// Constructor for copy
+		/// Gets the height value according to the Height type.
 		/// </summary>
-		/// <param name="height">The height to be copied.</param>
-		public Height(Height height)
+		public int Value { get; }
+
+		/// <summary>
+		/// Gets a new Height instance for mempool
+		/// </summary>
+		public static Height Mempool { get; } = new Height(HeightType.Mempool);
+
+		/// <summary>
+		/// Gets a new Height instance for unknown (no chain, no mempool)
+		/// </summary>
+		public static Height Unknown { get; } = new Height(HeightType.Unknown);
+
+		/// <param name="heightOrHeightType">The height numerical value as its string representation
+		/// or well the strings "Mempool" or "Unknown" for the default initial height of those Heights.
+		/// </param>
+		public static bool TryParse(string heightOrHeightType, out Height height)
 		{
-			_value = height._value;
-			Type = height.Type;
+			height = default;
+
+			var correct = Guard.Correct(heightOrHeightType);
+			if (correct.Length == 0)
+			{
+				return false;
+			}
+
+			if (HeightType.Mempool.ToString().Equals(correct, StringComparison.OrdinalIgnoreCase))
+			{
+				height = Mempool;
+				return true;
+			}
+			else if (HeightType.Unknown.ToString().Equals(correct, StringComparison.OrdinalIgnoreCase))
+			{
+				height = Unknown;
+				return true;
+			}
+			else if (int.TryParse(correct, out int h))
+			{
+				try
+				{
+					height = new Height(h);
+					return true;
+				}
+				catch
+				{
+					return false;
+				}
+			}
+			else
+			{
+				return false;
+			}
 		}
 
 		/// <summary>
 		/// Implicit conversion from Int32 to Height.
 		/// </summary>
 		/// <param name="value">Int32 to convert to Height instance.</param>
-		public static implicit operator Height(int value)
-		{
-			return new Height(value);
-		}
+		public static implicit operator Height(int value) => new Height(value);
 
 		/// <summary>
 		/// Implicit conversion from Height to Int32 value.
 		/// </summary>
 		/// <param name="height">Height value to convert to Int32.</param>
-		public static implicit operator int(Height height)
-		{
-			return height.Value;
-		}
+		public static implicit operator int(Height height) => height.Value;
 
 		/// <inheritdoc/>
 		public override string ToString()
 		{
-			if (Type == HeightType.Chain) return Value.ToString();
+			if (Type == HeightType.Chain)
+			{
+				return Value.ToString();
+			}
+
 			return Type.ToString();
 		}
 
 		#region EqualityAndComparison
 
 		/// <inheritdoc/>
-		public override bool Equals(object obj) => obj is Height && this == (Height)obj;
+		public override bool Equals(object obj) => obj is Height height && this == height;
 
 		/// <inheritdoc/>
 		public bool Equals(Height other) => this == other;
@@ -218,19 +241,19 @@ namespace WalletWasabi.Models
 		public static bool operator <(Height x, Height y) => x.Value < y.Value;
 
 		/// <summary>
-		/// Performs a comparison and return if left-side value is greater or equal to right-side value.
+		/// Performs a comparison and return if left-side value is greater than or equal to right-side value.
 		/// </summary>
 		/// <param name="x">The left-hand Height value to compare.</param>
 		/// <param name="y">The right-hand Height value to compare.</param>
-		/// <returns>true if left-hand value is greater or equal to right-side value; otherwise false.</returns>
+		/// <returns>true if left-hand value is greater than or equal to right-side value; otherwise false.</returns>
 		public static bool operator >=(Height x, Height y) => x.Value >= y.Value;
 
 		/// <summary>
-		/// Performs a comparison and return if left-side value is less or equal to right-side value.
+		/// Performs a comparison and return if left-side value is less than or equal to right-side value.
 		/// </summary>
 		/// <param name="x">The left-hand Height value to compare.</param>
 		/// <param name="y">The right-hand Height value to compare.</param>
-		/// <returns>true if left-hand value is less or equal to right-side value; otherwise false.</returns>
+		/// <returns>true if left-hand value is less than or equal to right-side value; otherwise false.</returns>
 		public static bool operator <=(Height x, Height y) => x.Value <= y.Value;
 
 		/// <summary>
@@ -244,7 +267,7 @@ namespace WalletWasabi.Models
 		/// <summary>
 		/// Performs a comparison and return if left-side value is greater than right-side value.
 		/// </summary>
-		/// <param name="x">The left-hand Height  value to compare.</param>
+		/// <param name="x">The left-hand Height value to compare.</param>
 		/// <param name="y">The right-hand Int32 value to compare.</param>
 		/// <returns>true if left-hand value is greater than right-side value; otherwise false.</returns>
 		public static bool operator >(Height x, int y) => x.Value > y;
@@ -266,35 +289,35 @@ namespace WalletWasabi.Models
 		public static bool operator <(Height x, int y) => x.Value < y;
 
 		/// <summary>
-		/// Performs a comparison and return if left-side value is greater or equal to right-side value.
+		/// Performs a comparison and return if left-side value is greater than or equal to right-side value.
 		/// </summary>
 		/// <param name="x">The left-hand Int32 value to compare.</param>
 		/// <param name="y">The right-hand Height value to compare.</param>
-		/// <returns>true if left-hand value is greater or equal to right-side value; otherwise false.</returns>
+		/// <returns>true if left-hand value is greater than or equal to right-side value; otherwise false.</returns>
 		public static bool operator >=(int x, Height y) => x >= y.Value;
 
 		/// <summary>
-		/// Performs a comparison and return if left-side value is less or equal to right-side value.
+		/// Performs a comparison and return if left-side value is less than or equal to right-side value.
 		/// </summary>
 		/// <param name="x">The left-hand Int32 value to compare.</param>
 		/// <param name="y">The right-hand Height value to compare.</param>
-		/// <returns>true if left-hand value is less or equal to right-side value; otherwise false.</returns>
+		/// <returns>true if left-hand value is less than or equal to right-side value; otherwise false.</returns>
 		public static bool operator <=(int x, Height y) => x <= y.Value;
 
 		/// <summary>
-		/// Performs a comparison and return if left-side value is greater or equal to right-side value.
+		/// Performs a comparison and return if left-side value is greater than or equal to right-side value.
 		/// </summary>
 		/// <param name="x">The left-hand Height value to compare.</param>
 		/// <param name="y">The right-hand Int32 value to compare.</param>
-		/// <returns>true if left-hand value is greater or equal to right-side value; otherwise false.</returns>
+		/// <returns>true if left-hand value is greater than or equal to right-side value; otherwise false.</returns>
 		public static bool operator >=(Height x, int y) => x.Value >= y;
 
 		/// <summary>
-		/// Performs a comparison and return if left-side value is less or equal to right-side value.
+		/// Performs a comparison and return if left-side value is less than or equal to right-side value.
 		/// </summary>
 		/// <param name="x">The left-hand Height value to compare.</param>
 		/// <param name="y">The right-hand Int32 value to compare.</param>
-		/// <returns>true if left-hand value is less or equal to right-side value; otherwise false.</returns>
+		/// <returns>true if left-hand value is less than or equal to right-side value; otherwise false.</returns>
 		public static bool operator <=(Height x, int y) => x.Value <= y;
 
 		#endregion EqualityAndComparison
@@ -305,67 +328,42 @@ namespace WalletWasabi.Models
 		/// Increments the height value by 1
 		/// </summary>
 		/// <param name="me">The instance to be used as base value.</param>
-		public static Height operator ++(Height me)
-		{
-			return new Height(me.Value + 1);
-		}
+		public static Height operator ++(Height me) => new Height(me.Value + 1);
 
 		/// <summary>
 		/// Decrements the height value by 1
 		/// </summary>
 		/// <param name="me">The instance to be used as base value.</param>
-		public static Height operator --(Height me)
-		{
-			return new Height(me.Value - 1);
-		}
+		public static Height operator --(Height me) => new Height(me.Value - 1);
 
 		/// <summary>
 		/// Unary or binary operator for adding a value to height.
 		/// </summary>
 		/// <param name="value">The Int32 value.</param>
 		/// <param name="height">The height value to be added.</param>
-		public static int operator +(int value, Height height)
-		{
-			return height.Value + value;
-		}
+		public static int operator +(int value, Height height) => height.Value + value;
 
 		/// <summary>
 		/// Unary or binary operator for substracting a value to height.
 		/// </summary>
 		/// <param name="value">The Int32 value.</param>
 		/// <param name="height">The height value to be substracted from.</param>
-		public static int operator -(int value, Height height)
-		{
-			return value - height.Value;
-		}
+		public static int operator -(int value, Height height) => value - height.Value;
 
 		/// <summary>
 		/// Unary or binary operator for adding a value to height.
 		/// </summary>
 		/// <param name="height">The height value to be added.</param>
 		/// <param name="value">The Int32 value.</param>
-		public static int operator +(Height height, int value)
-		{
-			return height.Value + value;
-		}
+		public static int operator +(Height height, int value) => height.Value + value;
 
 		/// <summary>
 		/// Unary or binary operator for substracting a value to height.
 		/// </summary>
 		/// <param name="height">The height value to be substracted from.</param>
 		/// <param name="value">The Int32 value.</param>
-		public static int operator -(Height height, int value)
-		{
-			return height.Value - value;
-		}
+		public static int operator -(Height height, int value) => height.Value - value;
 
 		#endregion MathOperations
-	}
-
-	public enum HeightType
-	{
-		Chain,
-		MemPool,
-		Unknown
 	}
 }

@@ -1,46 +1,52 @@
-﻿using System;
+using Newtonsoft.Json;
+using Nito.AsyncEx;
+using System;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Nito.AsyncEx;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Helpers
 {
 	public class RuntimeParams
 	{
-		[JsonProperty(PropertyName = "NetworkNodeTimeout")]
-		public int NetworkNodeTimeout { get; set; } = 64;
-
-		#region Business logic
-
-		private static RuntimeParams _instance = null;
-
-		public static RuntimeParams Instance
-		{
-			get
-			{
-				if (_instance is null)
-					throw new InvalidOperationException("Not loaded! Use LoadAsync() first!");
-				if (string.IsNullOrEmpty(FileDir))
-					throw new InvalidOperationException("Directory not set!");
-				return _instance;
-			}
-		}
-
-		private AsyncLock AsyncLock { get; } = new AsyncLock();
+		private static RuntimeParams InternalInstance = null;
 		private static string FileDir;
-		private static string FilePath => Path.Combine(FileDir, "RuntimeParams.json");
 
 		private RuntimeParams()
 		{
 		}
 
+		[JsonProperty(PropertyName = "NetworkNodeTimeout")]
+		public int NetworkNodeTimeout { get; set; } = 64;
+
+		#region Business logic
+
+		public static RuntimeParams Instance
+		{
+			get
+			{
+				if (InternalInstance is null)
+				{
+					throw new InvalidOperationException($"Not loaded! Use {nameof(LoadAsync)}() first!");
+				}
+
+				if (string.IsNullOrEmpty(FileDir))
+				{
+					throw new InvalidOperationException("Directory not set!");
+				}
+
+				return InternalInstance;
+			}
+		}
+
+		private AsyncLock AsyncLock { get; } = new AsyncLock();
+		private static string FilePath => Path.Combine(FileDir, "RuntimeParams.json");
+
 		public static void SetDataDir(string dataDir)
 		{
-			FileDir = Path.Combine(dataDir, "Data");
+			FileDir = Path.Combine(dataDir);
 		}
 
 		public async Task SaveAsync()
@@ -50,7 +56,10 @@ namespace WalletWasabi.Helpers
 				using (await AsyncLock.LockAsync())
 				{
 					if (!Directory.Exists(FileDir))
+					{
 						Directory.CreateDirectory(FileDir);
+					}
+
 					string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
 					await File.WriteAllTextAsync(FilePath,
 					jsonString,
@@ -59,7 +68,7 @@ namespace WalletWasabi.Helpers
 			}
 			catch (Exception ex)
 			{
-				Logger.LogInfo<RuntimeParams>($"Could not save RuntimeParams: {ex}.");
+				Logger.LogInfo($"Could not save {nameof(RuntimeParams)}: {ex}.");
 			}
 		}
 
@@ -74,14 +83,14 @@ namespace WalletWasabi.Helpers
 				}
 
 				string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-				_instance = JsonConvert.DeserializeObject<RuntimeParams>(jsonString);
+				InternalInstance = JsonConvert.DeserializeObject<RuntimeParams>(jsonString);
 				return;
 			}
 			catch (Exception ex)
 			{
-				Logger.LogInfo<RuntimeParams>($"Could not load RuntimeParams: {ex}.");
+				Logger.LogInfo($"Could not load {nameof(RuntimeParams)}: {ex}.");
 			}
-			_instance = new RuntimeParams();
+			InternalInstance = new RuntimeParams();
 		}
 
 		#endregion Business logic

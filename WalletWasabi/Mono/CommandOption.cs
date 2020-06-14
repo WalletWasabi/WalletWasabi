@@ -1,4 +1,4 @@
-﻿//
+//
 // Options.cs
 //
 // Authors:
@@ -163,9 +163,6 @@ namespace Mono.Options
 {
 	public class CommandOption : Option
 	{
-		public Command Command { get; }
-		public string CommandName { get; }
-
 		// Prototype starts with '=' because this is an invalid prototype
 		// (see Option.ParsePrototype(), and thus it'll prevent Category
 		// instances from being accidentally used as normal options.
@@ -176,9 +173,12 @@ namespace Mono.Options
 			CommandName = commandName ?? command.Name;
 		}
 
+		public Command Command { get; }
+		public string CommandName { get; }
+
 		protected override void OnParseComplete(OptionContext c)
 		{
-			throw new NotSupportedException("CommandOption.OnParseComplete should not be invoked.");
+			throw new NotSupportedException($"{nameof(CommandOption)}.{nameof(CommandOption.OnParseComplete)} should not be invoked.");
 		}
 	}
 }
