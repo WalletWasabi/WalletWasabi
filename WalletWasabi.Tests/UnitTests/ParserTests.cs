@@ -161,7 +161,7 @@ namespace WalletWasabi.Tests.UnitTests
 			{
 				Assert.False(AddressStringParser.TryParseBitcoinAddress(test.address.Remove(0, 1), test.network, out _));
 				Assert.False(AddressStringParser.TryParseBitcoinAddress(test.address.Remove(5, 1), test.network, out _));
-				Assert.False(AddressStringParser.TryParseBitcoinAddress(test.address.Insert(1, "b"), test.network, out _));
+				Assert.False(AddressStringParser.TryParseBitcoinAddress(test.address.Insert(4, "b"), test.network, out _));
 
 				Assert.False(AddressStringParser.TryParseBitcoinAddress(test.address, null, out _));
 				Assert.False(AddressStringParser.TryParseBitcoinAddress(null, test.network, out _));
