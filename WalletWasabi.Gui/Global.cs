@@ -80,25 +80,20 @@ namespace WalletWasabi.Gui
 
 		public static JsonRpcServer RpcServer { get; private set; }
 
-		public Global()
+		public Global(string dataDir, string torLogsFile, Config config, UiConfig uiConfig, WalletManager walletManager)
 		{
 			using (BenchmarkLogger.Measure())
 			{
 				StoppingCts = new CancellationTokenSource();
-				DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
-				TorLogsFile = Path.Combine(DataDir, "TorLogs.txt");
-				Directory.CreateDirectory(DataDir);
+				DataDir = dataDir;
+				Config = config;
+				UiConfig = uiConfig;
+				TorLogsFile = torLogsFile;
 
 				Logger.InitializeDefaults(Path.Combine(DataDir, "Logs.txt"));
 
-				UiConfig = new UiConfig(Path.Combine(DataDir, "UiConfig.json"));
-				UiConfig.LoadOrCreateDefaultFile();
-				Config = new Config(Path.Combine(DataDir, "Config.json"));
-				Config.LoadOrCreateDefaultFile();
-				Config.CorrectMixUntilAnonymitySet();
-
 				HostedServices = new HostedServices();
-				WalletManager = new WalletManager(Network, new WalletDirectories(DataDir));
+				WalletManager = walletManager;
 
 				LegalDocuments = LegalDocuments.TryLoadAgreed(DataDir);
 
