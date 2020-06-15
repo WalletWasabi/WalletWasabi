@@ -11,7 +11,9 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.Crypto;
@@ -55,8 +57,9 @@ namespace WalletWasabi.Tests.IntegrationTests
 			}
 			var dataDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName());
 
-			BitcoinStore bitcoinStore = new BitcoinStore();
-			await bitcoinStore.InitializeAsync(Path.Combine(dataDir, EnvironmentHelpers.GetMethodName()), network);
+			BitcoinStore bitcoinStore = new BitcoinStore(Path.Combine(dataDir, EnvironmentHelpers.GetMethodName()), network,
+				new IndexStore(), new AllTransactionStore(), new SmartHeaderChain(), new MempoolService());
+			await bitcoinStore.InitializeAsync();
 
 			var addressManagerFolderPath = Path.Combine(dataDir, "AddressManager");
 			var addressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{network}.dat");

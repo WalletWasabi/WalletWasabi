@@ -107,10 +107,7 @@ namespace WalletWasabi.Gui
 
 				BitcoinStore = new BitcoinStore(
 					Path.Combine(DataDir, "BitcoinStore"), Network,
-					new IndexStore(),
-					new AllTransactionStore(),
-					new SmartHeaderChain(),
-					new MempoolService()
+					new IndexStore(), new AllTransactionStore(), new SmartHeaderChain(), new MempoolService()
 				);
 			}
 		}
