@@ -10,7 +10,7 @@ namespace WalletWasabi.Helpers
 		{
 			AssertCorrectParameterName(parameterName);
 
-			if (value == null)
+			if (value is null)
 			{
 				throw new ArgumentNullException(parameterName, "Parameter cannot be null.");
 			}

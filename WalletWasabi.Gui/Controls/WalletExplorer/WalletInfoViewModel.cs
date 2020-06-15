@@ -9,8 +9,8 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Gui.Validation;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -31,6 +31,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Global = Locator.Current.GetService<Global>();
 			Wallet = wallet;
+
+			this.ValidateProperty(x => x.Password, ValidatePassword);
 
 			ClearSensitiveData(true);
 
@@ -88,7 +90,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _showSensitiveKeys, value);
 		}
 
-		[ValidateMethod(nameof(ValidatePassword))]
 		public string Password
 		{
 			get => _password;
@@ -119,7 +120,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _extendedAccountZprv, value);
 		}
 
-		public ErrorDescriptors ValidatePassword() => PasswordHelper.ValidatePassword(Password);
+		public void ValidatePassword(IValidationErrors errors) => PasswordHelper.ValidatePassword(errors, Password);
 
 		private void ClearSensitiveData(bool passwordToo)
 		{

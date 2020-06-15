@@ -27,13 +27,13 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 		public EstimateSmartFeeMode Type { get; private set; }
 
 		/// <summary>
-		/// If it's been fetched from a fully synced node.
+		/// Gets a value indicating whether the fee has been fetched from a fully synced node.
 		/// </summary>
 		[JsonProperty]
 		public bool IsAccurate { get; private set; }
 
 		/// <summary>
-		/// Dictionary: int: fee target, int: satoshi/vByte
+		/// Gets the fee estimations: int: fee target, int: satoshi/vByte
 		/// </summary>
 		[JsonProperty]
 		public Dictionary<int, int> Estimations { get; private set; }
@@ -45,6 +45,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 			Guard.NotNullOrEmpty(nameof(estimations), estimations);
 			Estimations = new Dictionary<int, int>();
 			var valueSet = new HashSet<decimal>();
+
 			// Make sure values are unique and in the correct order.
 			foreach (KeyValuePair<int, int> estimation in estimations.OrderBy(x => x.Key))
 			{

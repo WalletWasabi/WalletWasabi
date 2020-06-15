@@ -55,6 +55,7 @@ namespace NBitcoin.RPC
 				catch (Exception ex) when (ex is RPCException || ex is NoEstimationException)
 				{
 					Logger.LogTrace(ex);
+
 					// Hopefully Bitcoin Core brainfart: https://github.com/bitcoin/bitcoin/issues/14431
 					for (int i = 2; i <= Constants.SevenDaysConfirmationTarget; i++)
 					{
@@ -68,6 +69,7 @@ namespace NBitcoin.RPC
 						}
 					}
 				}
+
 				// Let's try one more time, whatever.
 			}
 
@@ -100,6 +102,7 @@ namespace NBitcoin.RPC
 						}
 					}
 				}
+
 				// Let's try one more time, whatever.
 			}
 
@@ -214,14 +217,26 @@ namespace NBitcoin.RPC
 			return newEstimations;
 		}
 
-		public static async Task<(bool accept, string rejectReason)> TestMempoolAcceptAsync(this IRPCClient rpc, IEnumerable<Coin> coins)
+		public static async Task<(bool accept, string rejectReason)> TestMempoolAcceptAsync(this IRPCClient rpc, IEnumerable<Coin> coins, int fakeOutputCount, Money feePerInputs, Money feePerOutputs)
 		{
 			// Check if mempool would accept a fake transaction created with the registered inputs.
 			// This will catch ascendant/descendant count and size limits for example.
 			var fakeTransaction = rpc.Network.CreateTransaction();
 			fakeTransaction.Inputs.AddRange(coins.Select(coin => new TxIn(coin.Outpoint)));
-			Money fakeOutputValue = NBitcoinHelpers.TakeAReasonableFee(coins.Sum(coin => coin.TxOut.Value));
-			fakeTransaction.Outputs.Add(fakeOutputValue, new Key());
+			Money totalFakeOutputsValue;
+			try
+			{
+				totalFakeOutputsValue = NBitcoinHelpers.TakeFee(coins, fakeOutputCount, feePerInputs, feePerOutputs);
+			}
+			catch (InvalidOperationException ex)
+			{
+				return (false, ex.Message);
+			}
+			for (int i = 0; i < fakeOutputCount; i++)
+			{
+				var fakeOutputValue = totalFakeOutputsValue / fakeOutputCount;
+				fakeTransaction.Outputs.Add(fakeOutputValue, new Key());
+			}
 			MempoolAcceptResult testMempoolAcceptResult = await rpc.TestMempoolAcceptAsync(fakeTransaction, allowHighFees: true);
 
 			if (!testMempoolAcceptResult.IsAllowed)
@@ -244,6 +259,7 @@ namespace NBitcoin.RPC
 		public static async Task<IEnumerable<uint256>> GetUnconfirmedAsync(this IRPCClient rpc, IEnumerable<uint256> transactionHashes)
 		{
 			uint256[] unconfirmedTransactionHashes = await rpc.GetRawMempoolAsync();
+
 			// If there are common elements, then there's unconfirmed.
 			return transactionHashes.Intersect(unconfirmedTransactionHashes);
 		}

@@ -8,7 +8,9 @@ namespace WalletWasabi.Helpers
 {
 	public static class Constants
 	{
-		public static readonly Version ClientVersion = new Version(1, 1, 11, 0);
+		public static readonly Version ClientVersion = new Version(1, 1, 11, 1);
+		public const string ClientSupportBackendVersionMin = "3";
+		public const string ClientSupportBackendVersionMax = "4";
 		public const string BackendMajorVersion = "3";
 		public static readonly Version HwiVersion = new Version("1.1.0");
 		public static readonly Version BitcoinCoreVersion = new Version("0.19.1");
@@ -87,5 +89,26 @@ namespace WalletWasabi.Helpers
 		public const long MaxSatoshisSupply = 2_100_000_000_000_000L;
 
 		public static readonly ExtPubKey FallBackCoordinatorExtPubKey = NBitcoinHelpers.BetterParseExtPubKey("xpub6D2PqhWBAbF3xgfaAUW73KnaCXUroArcgMTzNkNzfVX7ykkSzQGbqaXZeaNyxKbZojAAqDwsne6B7NcVhiTrXbGYrQNq1yF76NkgdonGrEa");
+
+		public static string[] UserAgents = new[]
+		{
+			"/Satoshi:0.20.0/",
+			"/Satoshi:0.19.1/",
+			"/Satoshi:0.19.0.1/",
+			"/Satoshi:0.19.0/",
+			"/Satoshi:0.18.1/",
+			"/Satoshi:0.18.0/",
+			"/Satoshi:0.17.1/",
+			"/Satoshi:0.17.0.1/",
+			"/Satoshi:0.17.0/",
+			"/Satoshi:0.16.3/",
+			"/Satoshi:0.16.2/",
+			"/Satoshi:0.16.1/",
+			"/Satoshi:0.16.0/",
+		};
+
+		public static string ClientSupportBackendVersionText => ClientSupportBackendVersionMin == ClientSupportBackendVersionMax
+				? ClientSupportBackendVersionMin
+				: $"{ClientSupportBackendVersionMin} - {ClientSupportBackendVersionMax}";
 	}
 }

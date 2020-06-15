@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Dialogs;
 using Avalonia.Threading;
+using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Extensibility.Platforms;
 using Splat;
@@ -65,14 +66,28 @@ namespace WalletWasabi.Gui
 
 		private static async void AppMainAsync(string[] args)
 		{
-			AvalonStudio.Extensibility.Theme.ColorTheme.LoadTheme(AvalonStudio.Extensibility.Theme.ColorTheme.VisualStudioDark);
-			MainWindowViewModel.Instance = new MainWindowViewModel();
+			try
+			{
+				AvalonStudio.Extensibility.Theme.ColorTheme.LoadTheme(AvalonStudio.Extensibility.Theme.ColorTheme.VisualStudioDark);
 
-			await Global.InitializeNoWalletAsync();
+				MainWindowViewModel.Instance = new MainWindowViewModel(Global.Network, Global.UiConfig, Global.WalletManager, new StatusBarViewModel(), IoC.Get<IShell>());
 
-			MainWindowViewModel.Instance.Initialize();
+				await Global.InitializeNoWalletAsync();
 
-			Dispatcher.UIThread.Post(GC.Collect);
+				MainWindowViewModel.Instance.Initialize(Global.Nodes.ConnectedNodes, Global.Synchronizer);
+
+				Dispatcher.UIThread.Post(GC.Collect);
+			}
+			catch (Exception ex)
+			{
+				if (!(ex is OperationCanceledException))
+				{
+					Logger.LogCritical(ex);
+				}
+
+				await Global.DisposeAsync().ConfigureAwait(false);
+				Environment.Exit(1);
+			}
 		}
 
 		private static void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)

@@ -43,6 +43,7 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 		internal static int CalculateBCH(int num, int poly)
 		{
 			int polyMSB = PosMSB(poly);
+
 			// num's length will be old length + new length - 1.
 			// Once divide poly number. BCH number will be one length short than Poly number's length.
 			num <<= (polyMSB - 1);

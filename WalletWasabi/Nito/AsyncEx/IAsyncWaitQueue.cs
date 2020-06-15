@@ -13,7 +13,7 @@ namespace Nito.AsyncEx
 	public interface IAsyncWaitQueue<T>
 	{
 		/// <summary>
-		/// Gets whether the queue is empty.
+		/// Gets a value indicating whether the queue is empty.
 		/// </summary>
 		bool IsEmpty { get; }
 

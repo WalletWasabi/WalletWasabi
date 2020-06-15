@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Notifications;
 using Avalonia.Threading;
+using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
@@ -72,6 +73,8 @@ namespace WalletWasabi.Gui
 
 		public Network Network => Config.Network;
 
+		public MemoryCache Cache { get; private set; }
+
 		public static JsonRpcServer RpcServer { get; private set; }
 
 		public Global()
@@ -89,6 +92,7 @@ namespace WalletWasabi.Gui
 				UiConfig.LoadOrCreateDefaultFile();
 				Config = new Config(Path.Combine(DataDir, "Config.json"));
 				Config.LoadOrCreateDefaultFile();
+				Config.CorrectMixUntilAnonymitySet();
 
 				HostedServices = new HostedServices();
 				WalletManager = new WalletManager(Network, new WalletDirectories(DataDir));
@@ -115,6 +119,11 @@ namespace WalletWasabi.Gui
 
 			try
 			{
+				Cache = new MemoryCache(new MemoryCacheOptions
+				{
+					SizeLimit = 1_000,
+					ExpirationScanFrequency = TimeSpan.FromSeconds(30)
+				});
 				BitcoinStore = new BitcoinStore();
 				var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), Network);
 				var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
@@ -123,7 +132,8 @@ namespace WalletWasabi.Gui
 				var addrManTask = InitializeAddressManagerBehaviorAsync();
 
 				var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
-				var connectionParameters = new NodeConnectionParameters { UserAgent = "/Satoshi:0.18.1/" };
+				var userAgent = Constants.UserAgents.RandomElement();
+				var connectionParameters = new NodeConnectionParameters { UserAgent = userAgent };
 
 				if (Config.UseTor)
 				{
@@ -134,7 +144,7 @@ namespace WalletWasabi.Gui
 					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, Config.GetFallbackBackendUri(), null);
 				}
 
-				HostedServices.Register(new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer.WasabiClient), "Software Update Checker");
+				HostedServices.Register(new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
 
 				#region ProcessKillSubscription
 
@@ -201,7 +211,8 @@ namespace WalletWasabi.Gui
 									EndPointStrategy.Default(Network, EndPointType.Rpc),
 									txIndex: null,
 									prune: null,
-									userAgent: $"/WasabiClient:{Constants.ClientVersion}/"),
+									userAgent: $"/WasabiClient:{Constants.ClientVersion}/",
+									Cache),
 								cancel)
 							.ConfigureAwait(false);
 					}
@@ -342,23 +353,14 @@ namespace WalletWasabi.Gui
 				#region Blocks provider
 
 				var blockProvider = new CachedBlockProvider(
-					new P2pBlockProvider(Nodes, BitcoinCoreNode, Synchronizer, Config.ServiceConfiguration, Network),
+					new SmartBlockProvider(
+						new P2pBlockProvider(Nodes, BitcoinCoreNode, Synchronizer, Config.ServiceConfiguration, Network),
+						Cache),
 					new FileSystemBlockRepository(blocksFolderPath, Network));
 
 				#endregion Blocks provider
 
 				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Nodes, Config.ServiceConfiguration, FeeProviders, blockProvider);
-			}
-			catch (Exception ex)
-			{
-				if (!cancel.IsCancellationRequested)
-				{
-					Logger.LogCritical(ex);
-				}
-
-				InitializationCompleted = true;
-				await DisposeAsync().ConfigureAwait(false);
-				Environment.Exit(1);
 			}
 			finally
 			{
@@ -752,6 +754,12 @@ namespace WalletWasabi.Gui
 				{
 					await torManager.StopAsync();
 					Logger.LogInfo($"{nameof(TorManager)} is stopped.");
+				}
+
+				var cache = Cache;
+				if (cache is { })
+				{
+					cache.Dispose();
 				}
 
 				if (AsyncMutex.IsAny)

@@ -138,6 +138,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var legalDir = Assert.Single(Directory.GetDirectories(dir));
 
 			var version = new Version(1, 1);
+
 			// Deletes them if multiple legal docs found.
 			var candidate = File.Create(Path.Combine(legalDir, $"{version}.txt"));
 			await candidate.DisposeAsync();

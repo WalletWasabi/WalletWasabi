@@ -31,55 +31,55 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 		public bool IsLikelyOwnCoinJoin { get; set; } = false;
 
 		/// <summary>
-		/// Dust outputs we received in this transaction. We may or may not have known about
+		/// Gets the dust outputs we received in this transaction. We may or may not have known about
 		/// them previously. They aren't SmartCoins, because they aren't fully processed.
 		/// </summary>
 		public List<TxOut> ReceivedDusts { get; } = new List<TxOut>();
 
 		/// <summary>
-		/// Coins we received in this transaction.
+		/// Gets the coins we received in this transaction.
 		/// </summary>
 		public List<SmartCoin> ReceivedCoins { get; } = new List<SmartCoin>();
 
 		/// <summary>
-		/// Coins we received in this transaction and we did not previously know about.
+		/// Gets the coins we received in this transaction and we did not previously know about.
 		/// </summary>
 		public List<SmartCoin> NewlyReceivedCoins { get; } = new List<SmartCoin>();
 
 		/// <summary>
-		/// Coins we received in this transaction, we have known already about, but they just got confirmed.
+		/// Gets the coins we received in this transaction, we have known already about, but they just got confirmed.
 		/// </summary>
 		public List<SmartCoin> NewlyConfirmedReceivedCoins { get; } = new List<SmartCoin>();
 
 		/// <summary>
-		/// Coins we spent in this transaction.
+		/// Gets the coins we spent in this transaction.
 		/// </summary>
 		public List<SmartCoin> SpentCoins { get; } = new List<SmartCoin>();
 
 		/// <summary>
-		/// Coins we spent in this transaction and we did not previously know about.
+		/// Gets the coins we spent in this transaction and we did not previously know about.
 		/// </summary>
 		public List<SmartCoin> NewlySpentCoins { get; } = new List<SmartCoin>();
 
 		/// <summary>
-		/// Coins we spent in this transaction, we have known already about, but they just got confirmed.
+		/// Gets the coins we spent in this transaction, we have known already about, but they just got confirmed.
 		/// </summary>
 		public List<SmartCoin> NewlyConfirmedSpentCoins { get; } = new List<SmartCoin>();
 
 		/// <summary>
-		/// Coins those we previously had in the mempool, but this confirmed
+		/// Gets the coins that we previously had in the mempool, but this confirmed
 		/// transaction has successfully invalidated them, because it spends
 		/// some of the same inputs.
 		/// </summary>
 		public List<SmartCoin> SuccessfullyDoubleSpentCoins { get; } = new List<SmartCoin>();
 
 		/// <summary>
-		/// Unconfirmed coins those were replaced by the coins of the transaction.
+		/// Gets the unconfirmed coins that were replaced by the coins of the transaction.
 		/// </summary>
 		public List<SmartCoin> ReplacedCoins { get; } = new List<SmartCoin>();
 
 		/// <summary>
-		/// Coins those were made unspent again by this double spend transaction.
+		/// Gets the coins that were made unspent again by this double spend transaction.
 		/// </summary>
 		public List<SmartCoin> RestoredCoins { get; } = new List<SmartCoin>();
 	}

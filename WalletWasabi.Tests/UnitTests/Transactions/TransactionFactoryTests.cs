@@ -166,6 +166,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Equal("Daniel, Maria, Sophie", changeCoin.Label);
 
 			var tx = result.Transaction.Transaction;
+
 			// it must select the unconfirm coin even when the anonymity set is lower
 			Assert.True(result.SpendsUnconfirmed);
 			Assert.Equal(2, tx.Outputs.Count());
@@ -507,6 +508,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var payment = new PaymentIntent(new Key().ScriptPubKey, Money.Coins(0.095m));
 			var feeRate = new FeeRate(2m);
 			var coins = transactionFactory.Coins;
+
 			// the allowed coins contain enough money but one of those has the same script that
 			// one unselected coins. That unselected coin has to be spent too.
 			var allowedInputs = new[]

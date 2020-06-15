@@ -9,7 +9,7 @@ namespace WalletWasabi.Gui.Rpc
 	/// </summary>
 	public class JsonRpcMethodMetadata
 	{
-		public JsonRpcMethodMetadata(string name, MethodInfo mi, List<(string name, Type type)> parameters)
+		public JsonRpcMethodMetadata(string name, MethodInfo mi, List<(string name, Type type, bool isOptional, object defaultValue)> parameters)
 		{
 			Name = name;
 			MethodInfo = mi;
@@ -20,6 +20,6 @@ namespace WalletWasabi.Gui.Rpc
 		public string Name { get; }
 
 		public MethodInfo MethodInfo { get; }
-		public List<(string name, Type type)> Parameters { get; }
+		public List<(string name, Type type, bool isOptional, object defaultValue)> Parameters { get; }
 	}
 }

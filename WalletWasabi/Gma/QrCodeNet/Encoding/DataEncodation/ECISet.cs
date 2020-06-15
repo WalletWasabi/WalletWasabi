@@ -25,7 +25,12 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			Initialize(option);
 		}
 
-		public enum AppendOption { NameToValue, ValueToName, Both }
+		public enum AppendOption
+		{
+			NameToValue,
+			ValueToName,
+			Both
+		}
 
 		/// <summary>
 		/// Length indicator for number of ECI codewords
@@ -34,7 +39,12 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		/// 1 codeword length = 0. Any additional codeword add 1 to front. Eg: 3 = 110</remarks>
 		/// <description>Bits required for each one is:
 		/// one = 1, two = 2, three = 3</description>
-		private enum ECICodewordsLength { One = 0, Two = 2, Three = 6 }
+		private enum ECICodewordsLength
+		{
+			One = 0,
+			Two = 2,
+			Three = 6
+		}
 
 		private void AppendECI(string name, int value, AppendOption option)
 		{
@@ -84,6 +94,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			// ToDo. Fill up remaining missing table.
 			AppendECI("iso-8859-1", 1, option);
 			AppendECI("IBM437", 2, option);
+
 			// AppendECI("iso-8859-1", 3, option);	//ECI value 1 is default encoding.
 			AppendECI("iso-8859-2", 4, option);
 			AppendECI("iso-8859-3", 5, option);
@@ -209,6 +220,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			};
 
 			int eciAssignmentByte = NumOfCodewords(eciValue);
+
 			// Number of bits = Num codewords indicator + codeword value = Number of codewords * 8
 			// Chapter 6.4.2.1 ECI Designator ISOIEC 18004:2006 Page 24
 			int eciAssignmentBits;

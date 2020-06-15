@@ -20,7 +20,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private ObservableCollection<ViewModelBase> _actions;
 
-		public WalletViewModel(Wallet wallet) : base(wallet)
+		protected WalletViewModel(Wallet wallet) : base(wallet)
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
@@ -67,7 +67,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			ReceiveTab = new ReceiveTabViewModel(Wallet);
-			CoinjoinTab = new CoinJoinTabViewModel(Wallet);
 			HistoryTab = new HistoryTabViewModel(Wallet);
 
 			var advancedAction = new WalletAdvancedViewModel();
@@ -75,12 +74,28 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			BuildTab = new BuildTabViewModel(Wallet);
 
 			Actions.Add(ReceiveTab);
-			Actions.Add(CoinjoinTab);
+
+			// If not watch only wallet (not hww) then we need the CoinJoin tab.
+			if (!Wallet.KeyManager.IsWatchOnly)
+			{
+				CoinjoinTab = new CoinJoinTabViewModel(Wallet);
+				Actions.Add(CoinjoinTab);
+			}
+
 			Actions.Add(HistoryTab);
 
 			Actions.Add(advancedAction);
 			advancedAction.Items.Add(InfoTab);
 			advancedAction.Items.Add(BuildTab);
+		}
+
+		public static WalletViewModel Create(Wallet wallet)
+		{
+			return wallet.KeyManager.IsHardwareWallet
+				? new HardwareWalletViewModel(wallet)
+				: wallet.KeyManager.IsWatchOnly
+					? new WatchOnlyWalletViewModel(wallet)
+					: new WalletViewModel(wallet);
 		}
 
 		private SendTabViewModel SendTab { get; set; }
@@ -117,7 +132,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			shell.AddOrSelectDocument(ReceiveTab);
-			shell.AddOrSelectDocument(CoinjoinTab);
+
+			if (CoinjoinTab is { })
+			{
+				shell.AddOrSelectDocument(CoinjoinTab);
+			}
+
 			shell.AddOrSelectDocument(HistoryTab);
 
 			SelectTab(shell);

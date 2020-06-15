@@ -36,11 +36,13 @@
             </i:Interaction.Behaviors>
           </controls:ExtendedTextBox>
 
-          <controls:ExtendedTextBox IsEnabled="{Binding !IsMax}" IsVisible="{Binding IsCustomChangeAddress}" Classes="monospaceFont" Text="{Binding CustomChangeAddress}" Watermark="(Optional) Custom Change Address" UseFloatingWatermark="True">
+          <controls:ExtendedTextBox IsEnabled="{Binding !IsMax}" IsVisible="{Binding IsCustomChangeAddressVisible}" Classes="monospaceFont" Text="{Binding CustomChangeAddress}" Watermark="(Optional) Custom Change Address" UseFloatingWatermark="True">
             <i:Interaction.Behaviors>
               <behaviors:PasteAddressOnClickBehavior />
             </i:Interaction.Behaviors>
           </controls:ExtendedTextBox>
+
+          <controls:ExtendedTextBox IsVisible="{Binding PayjoinEndPoint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Classes="monospaceFont" Text="{Binding PayjoinEndPoint}" Watermark="PayJoin EndPoint" UseFloatingWatermark="True" />
 
           <suggestions:SuggestLabelView DataContext="{Binding LabelSuggestion}" />
 
@@ -53,8 +55,7 @@
               ToolTip.Tip="{Binding UsdExchangeRate, Converter={StaticResource UsdExchangeRateAmountToolTipConverter}}"
               Watermark="{Binding AmountWatermarkText}"
               UseFloatingWatermark="True"
-              MinWidth="124"
-              MinHeight="46">
+              MinWidth="124">
               <i:Interaction.Behaviors>
                 <behaviors:CommandOnKeyUpBehavior Command="{Binding AmountKeyUpCommand}" />
               </i:Interaction.Behaviors>
@@ -89,7 +90,7 @@
             </StackPanel>
             <StackPanel IsVisible="{Binding IsCustomFee}" VerticalAlignment="Center" Orientation="Horizontal" Spacing="10">
               <TextBlock Text="or set Fee:" />
-              <controls:ExtendedTextBox Text="{Binding UserFeeText, Mode=TwoWay}" Watermark="Fee (sat/vByte)" UseFloatingWatermark="True" MinWidth="124" MaxWidth="124" MinHeight="46">
+              <controls:ExtendedTextBox Text="{Binding UserFeeText, Mode=TwoWay}" Watermark="Fee (sat/vByte)" UseFloatingWatermark="True" MinWidth="124" MaxWidth="124">
                 <i:Interaction.Behaviors>
                   <behaviors:CommandOnKeyUpBehavior Command="{Binding UserFeeTextKeyUpCommand}" />
                 </i:Interaction.Behaviors>

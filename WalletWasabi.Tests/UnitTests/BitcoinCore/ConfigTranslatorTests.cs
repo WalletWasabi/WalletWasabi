@@ -100,6 +100,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			whiteBind = translator.TryGetWhiteBind();
 			ipEndPoint = whiteBind.EndPoint as IPEndPoint;
 			Assert.Equal(IPAddress.Loopback, ipEndPoint.Address);
+
 			// Default port.
 			Assert.Equal(8333, ipEndPoint.Port);
 			Assert.Equal(string.Empty, whiteBind.Permissions);

@@ -13,6 +13,7 @@ namespace WalletWasabi.Http.Models
 		public RequestLine(HttpMethod method, Uri uri, HttpProtocol protocol) : base(protocol)
 		{
 			Method = method;
+
 			// https://tools.ietf.org/html/rfc7230#section-2.7.1
 			// A sender MUST NOT generate an "http" URI with an empty host identifier.
 			if (string.IsNullOrEmpty(uri.DnsSafeHost))
