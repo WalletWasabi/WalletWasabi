@@ -21,15 +21,15 @@ namespace WalletWasabi.Tests.UnitTests.Filters
 		[Fact]
 		public async Task IndexStoreTestsAsync()
 		{
-			var indexStore = new IndexStore();
+			var network = Network.Main;
+			var indexStore = new IndexStore(network, new SmartHeaderChain());
 
 			var dir = (await GetIndexStorePathsAsync()).dir;
 			if (Directory.Exists(dir))
 			{
 				Directory.Delete(dir, true);
 			}
-			var network = Network.Main;
-			await indexStore.InitializeAsync(dir, network, new SmartHeaderChain());
+			await indexStore.InitializeAsync(dir);
 		}
 
 		[Fact]
@@ -37,11 +37,10 @@ namespace WalletWasabi.Tests.UnitTests.Filters
 		{
 			var (dir, matureFilters, _) = await GetIndexStorePathsAsync();
 
-			var indexStore = new IndexStore();
-
 			var network = Network.Main;
 			var headersChain = new SmartHeaderChain();
 
+			var indexStore = new IndexStore(network, headersChain);
 			var dummyFilter = GolombRiceFilter.Parse("00");
 
 			static DateTimeOffset MinutesAgo(int mins) => DateTimeOffset.UtcNow.Subtract(TimeSpan.FromMinutes(mins));
@@ -53,7 +52,7 @@ namespace WalletWasabi.Tests.UnitTests.Filters
 			};
 			await File.WriteAllLinesAsync(matureFilters, matureIndexStoreContent.Select(x => x.ToLine()));
 
-			await Assert.ThrowsAsync<InvalidOperationException>(async () => await indexStore.InitializeAsync(dir, network, headersChain));
+			await Assert.ThrowsAsync<InvalidOperationException>(async () => await indexStore.InitializeAsync(dir));
 			Assert.Equal(new uint256(3), headersChain.TipHash);
 			Assert.Equal(2u, headersChain.TipHeight);
 
@@ -66,10 +65,9 @@ namespace WalletWasabi.Tests.UnitTests.Filters
 		{
 			var (dir, _, immatureFilters) = await GetIndexStorePathsAsync();
 
-			var indexStore = new IndexStore();
-
 			var network = Network.Main;
 			var headersChain = new SmartHeaderChain();
+			var indexStore = new IndexStore(network, headersChain);
 
 			var dummyFilter = GolombRiceFilter.Parse("00");
 
@@ -84,7 +82,7 @@ namespace WalletWasabi.Tests.UnitTests.Filters
 			};
 			await File.WriteAllLinesAsync(immatureFilters, immatureIndexStoreContent.Select(x => x.ToLine()));
 
-			await Assert.ThrowsAsync<InvalidOperationException>(async () => await indexStore.InitializeAsync(dir, network, headersChain));
+			await Assert.ThrowsAsync<InvalidOperationException>(async () => await indexStore.InitializeAsync(dir));
 			Assert.Equal(new uint256(3), headersChain.TipHash);
 			Assert.Equal(startingFilter.Header.Height + 2u, headersChain.TipHeight);
 
@@ -97,10 +95,9 @@ namespace WalletWasabi.Tests.UnitTests.Filters
 		{
 			var (dir, matureFilters, immatureFilters) = await GetIndexStorePathsAsync();
 
-			var indexStore = new IndexStore();
-
 			var network = Network.Main;
 			var headersChain = new SmartHeaderChain();
+			var indexStore = new IndexStore(network, headersChain);
 
 			var dummyFilter = GolombRiceFilter.Parse("00");
 
@@ -118,7 +115,7 @@ namespace WalletWasabi.Tests.UnitTests.Filters
 			};
 			await File.WriteAllLinesAsync(immatureFilters, immatureIndexStoreContent.Select(x => x.ToLine()));
 
-			await Assert.ThrowsAsync<InvalidOperationException>(async () => await indexStore.InitializeAsync(dir, network, headersChain));
+			await Assert.ThrowsAsync<InvalidOperationException>(async () => await indexStore.InitializeAsync(dir));
 			Assert.Equal(new uint256(3), headersChain.TipHash);
 			Assert.Equal(2u, headersChain.TipHeight);
 
@@ -131,10 +128,9 @@ namespace WalletWasabi.Tests.UnitTests.Filters
 		{
 			var (dir, matureFilters, immatureFilters) = await GetIndexStorePathsAsync();
 
-			var indexStore = new IndexStore();
-
 			var network = Network.Main;
 			var headersChain = new SmartHeaderChain();
+			var indexStore = new IndexStore(network, headersChain);
 
 			var dummyFilter = GolombRiceFilter.Parse("00");
 
@@ -146,7 +142,7 @@ namespace WalletWasabi.Tests.UnitTests.Filters
 			};
 			await File.WriteAllLinesAsync(matureFilters, matureIndexStoreContent.Select(x => x.ToLine()));
 
-			await indexStore.InitializeAsync(dir, network, headersChain);
+			await indexStore.InitializeAsync(dir);
 			Assert.Equal(new uint256(3), headersChain.TipHash);
 			Assert.Equal(2u, headersChain.TipHeight);
 

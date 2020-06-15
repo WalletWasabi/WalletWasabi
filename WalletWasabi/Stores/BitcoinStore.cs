@@ -24,7 +24,6 @@ namespace WalletWasabi.Stores
 			Network network,
 			IndexStore indexStore,
 			AllTransactionStore transactionStore,
-			SmartHeaderChain smartHeaderChain,
 			MempoolService mempoolService)
 		{
 			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
@@ -33,7 +32,6 @@ namespace WalletWasabi.Stores
 			Network = Guard.NotNull(nameof(network), network);
 			IndexStore = indexStore;
 			TransactionStore = transactionStore;
-			SmartHeaderChain = smartHeaderChain;
 			MempoolService = mempoolService;
 		}
 
@@ -43,7 +41,7 @@ namespace WalletWasabi.Stores
 
 		public IndexStore IndexStore { get; }
 		public AllTransactionStore TransactionStore { get; }
-		public SmartHeaderChain SmartHeaderChain { get; }
+		public SmartHeaderChain SmartHeaderChain => IndexStore.SmartHeaderChain;
 		public MempoolService MempoolService { get; }
 
 		/// <summary>
@@ -61,7 +59,7 @@ namespace WalletWasabi.Stores
 
 				var initTasks = new[]
 				{
-					IndexStore.InitializeAsync(indexStoreFolderPath, Network, SmartHeaderChain),
+					IndexStore.InitializeAsync(indexStoreFolderPath),
 					TransactionStore.InitializeAsync(networkWorkFolderPath, Network)
 				};
 

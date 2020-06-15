@@ -23,6 +23,12 @@ namespace WalletWasabi.Stores
 	/// </summary>
 	public class IndexStore
 	{
+		public IndexStore(Network network, SmartHeaderChain hashChain)
+		{
+			Network = Guard.NotNull(nameof(network), network);
+			SmartHeaderChain = Guard.NotNull(nameof(hashChain), hashChain);
+		}
+
 		private int _throttleId;
 
 		public event EventHandler<FilterModel> Reorged;
@@ -30,23 +36,21 @@ namespace WalletWasabi.Stores
 		public event EventHandler<FilterModel> NewFilter;
 
 		private string WorkFolderPath { get; set; }
-		private Network Network { get; set; }
+		private Network Network { get; }
 		private DigestableSafeMutexIoManager MatureIndexFileManager { get; set; }
 		private DigestableSafeMutexIoManager ImmatureIndexFileManager { get; set; }
-		public SmartHeaderChain SmartHeaderChain { get; private set; }
+		public SmartHeaderChain SmartHeaderChain { get; }
 
 		private FilterModel StartingFilter { get; set; }
 		private uint StartingHeight { get; set; }
 		private List<FilterModel> ImmatureFilters { get; set; }
 		private AsyncLock IndexLock { get; set; }
 
-		public async Task InitializeAsync(string workFolderPath, Network network, SmartHeaderChain hashChain)
+		public async Task InitializeAsync(string workFolderPath)
 		{
 			using (BenchmarkLogger.Measure())
 			{
 				WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
-				Network = Guard.NotNull(nameof(network), network);
-				SmartHeaderChain = Guard.NotNull(nameof(hashChain), hashChain);
 				var indexFilePath = Path.Combine(WorkFolderPath, "MatureIndex.dat");
 				MatureIndexFileManager = new DigestableSafeMutexIoManager(indexFilePath, digestRandomIndex: -1);
 				var immatureIndexFilePath = Path.Combine(WorkFolderPath, "ImmatureIndex.dat");
