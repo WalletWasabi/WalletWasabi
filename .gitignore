@@ -276,3 +276,6 @@ lcov.info
 
 # vim
 *.swp
+# WindowsInstaller generated files
+/WalletWasabi.WindowsInstaller/ComponentsGenerated.wxs
+/WalletWasabi.WindowsInstaller/*.wixobj
