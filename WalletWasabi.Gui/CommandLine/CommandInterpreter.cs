@@ -22,7 +22,6 @@ namespace WalletWasabi.Gui.CommandLine
 				return true;
 			}
 
-			OptionSet options = null;
 			var suite = new CommandSet("wassabee")
 			{
 				"Usage: wassabee [OPTIONS]+",
@@ -44,7 +43,7 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 			if (showHelp)
 			{
-				ShowHelp(options);
+				ShowHelp(suite.Options);
 				return false;
 			}
 			else if (showVersion)
