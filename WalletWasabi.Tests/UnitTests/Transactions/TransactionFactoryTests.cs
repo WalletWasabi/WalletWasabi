@@ -571,7 +571,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		public void RespectLockTimeProbabilityDistribution()
 		{
 			var lockTimeZero = uint.MaxValue;
-			var samplingSize = 2_000;
+			var samplingSize = 4_000;
 
 			var dict = Enumerable.Range(-99, 101).ToDictionary(x => (uint)x, x => 0);
 			dict[lockTimeZero] = 0;
