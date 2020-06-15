@@ -20,8 +20,8 @@ namespace WalletWasabi.Stores
 	public class BitcoinStore
 	{
 		public bool IsInitialized { get; private set; }
-		private string WorkFolderPath { get;}
-		public Network Network { get;}
+		private string WorkFolderPath { get; }
+		public Network Network { get; }
 
 		public IndexStore IndexStore { get; }
 		public AllTransactionStore TransactionStore { get; }
@@ -34,17 +34,22 @@ namespace WalletWasabi.Stores
 		/// </summary>
 		public UntrustedP2pBehavior CreateUntrustedP2pBehavior() => new UntrustedP2pBehavior(MempoolService);
 
-		public BitcoinStore(string workFolderPath, Network network)
+		public BitcoinStore(
+			string workFolderPath,
+			Network network,
+			IndexStore indexStore,
+			AllTransactionStore transactionStore,
+			SmartHeaderChain smartHeaderChain,
+			MempoolService mempoolService)
 		{
 			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 			IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 
 			Network = Guard.NotNull(nameof(network), network);
-
-			IndexStore = new IndexStore();
-			TransactionStore = new AllTransactionStore();
-			SmartHeaderChain = new SmartHeaderChain();
-			MempoolService = new MempoolService();
+			IndexStore = indexStore;
+			TransactionStore = transactionStore;
+			SmartHeaderChain = smartHeaderChain;
+			MempoolService = mempoolService;
 		}
 
 		public async Task InitializeAsync()
