@@ -19,21 +19,6 @@ namespace WalletWasabi.Stores
 	/// </summary>
 	public class BitcoinStore
 	{
-		public bool IsInitialized { get; private set; }
-		private string WorkFolderPath { get; }
-		public Network Network { get; }
-
-		public IndexStore IndexStore { get; }
-		public AllTransactionStore TransactionStore { get; }
-		public SmartHeaderChain SmartHeaderChain { get; }
-		public MempoolService MempoolService { get; }
-
-		/// <summary>
-		/// This should not be a property, but a creator function, because it'll be cloned left and right by NBitcoin later.
-		/// So it should not be assumed it's some singleton.
-		/// </summary>
-		public UntrustedP2pBehavior CreateUntrustedP2pBehavior() => new UntrustedP2pBehavior(MempoolService);
-
 		public BitcoinStore(
 			string workFolderPath,
 			Network network,
@@ -51,6 +36,21 @@ namespace WalletWasabi.Stores
 			SmartHeaderChain = smartHeaderChain;
 			MempoolService = mempoolService;
 		}
+
+		public bool IsInitialized { get; private set; }
+		private string WorkFolderPath { get; }
+		public Network Network { get; }
+
+		public IndexStore IndexStore { get; }
+		public AllTransactionStore TransactionStore { get; }
+		public SmartHeaderChain SmartHeaderChain { get; }
+		public MempoolService MempoolService { get; }
+
+		/// <summary>
+		/// This should not be a property, but a creator function, because it'll be cloned left and right by NBitcoin later.
+		/// So it should not be assumed it's some singleton.
+		/// </summary>
+		public UntrustedP2pBehavior CreateUntrustedP2pBehavior() => new UntrustedP2pBehavior(MempoolService);
 
 		public async Task InitializeAsync()
 		{
