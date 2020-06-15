@@ -59,7 +59,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 			BitcoinStore bitcoinStore = new BitcoinStore(Path.Combine(dataDir, EnvironmentHelpers.GetMethodName()), network,
 				new IndexStore(network, new SmartHeaderChain()), new AllTransactionStore(), new MempoolService());
-			
 			await bitcoinStore.InitializeAsync();
 
 			var addressManagerFolderPath = Path.Combine(dataDir, "AddressManager");
