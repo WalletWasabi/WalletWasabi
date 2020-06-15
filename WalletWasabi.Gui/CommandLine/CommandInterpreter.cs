@@ -9,14 +9,13 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.CommandLine
 {
-	public static class CommandInterpreter
+	public class CommandInterpreter
 	{
 		/// <returns>If the GUI should run or not.</returns>
-		public static async Task<bool> ExecuteCommandsAsync(Global global, string[] args)
+		public async Task<bool> ExecuteCommandsAsync(string[] args, MixerCommand mixerCommand, PasswordFinderCommand passwordFinderCommand)
 		{
 			var showHelp = false;
 			var showVersion = false;
-			var daemon = new Daemon(global);
 
 			if (args.Length == 0)
 			{
@@ -34,8 +33,8 @@ namespace WalletWasabi.Gui.CommandLine
 				"",
 				"Available commands are:",
 				"",
-				new MixerCommand(daemon),
-				new PasswordFinderCommand(global.WalletManager)
+				mixerCommand,
+				passwordFinderCommand
 			};
 
 			EnsureBackwardCompatibilityWithOldParameters(ref args);
@@ -57,7 +56,7 @@ namespace WalletWasabi.Gui.CommandLine
 			return false;
 		}
 
-		private static void EnsureBackwardCompatibilityWithOldParameters(ref string[] args)
+		private void EnsureBackwardCompatibilityWithOldParameters(ref string[] args)
 		{
 			var listArgs = args.ToList();
 			if (listArgs.Remove("--mix") || listArgs.Remove("-m"))
@@ -67,7 +66,7 @@ namespace WalletWasabi.Gui.CommandLine
 			args = listArgs.ToArray();
 		}
 
-		private static void ShowVersion()
+		private void ShowVersion()
 		{
 			Console.WriteLine($"Wasabi Client Version: {Constants.ClientVersion}");
 			Console.WriteLine($"Compatible Coordinator Version: {Constants.ClientSupportBackendVersionText}");
@@ -75,7 +74,7 @@ namespace WalletWasabi.Gui.CommandLine
 			Console.WriteLine($"Compatible Hardware Wallet Interface Version: {Constants.HwiVersion}");
 		}
 
-		private static void ShowHelp(OptionSet p)
+		private void ShowHelp(OptionSet p)
 		{
 			ShowVersion();
 			Console.WriteLine();

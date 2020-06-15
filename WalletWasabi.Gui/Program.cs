@@ -34,7 +34,10 @@ namespace WalletWasabi.Gui
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-				runGui = CommandInterpreter.ExecuteCommandsAsync(Global, args).GetAwaiter().GetResult();
+				var daemon = new Daemon(Global);
+				var mixerCommand = new MixerCommand(daemon);
+				var passwordFinderCommand = new PasswordFinderCommand(Global.WalletManager);
+				runGui = new CommandInterpreter().ExecuteCommandsAsync(args, mixerCommand, passwordFinderCommand).GetAwaiter().GetResult();
 
 				if (!runGui)
 				{
