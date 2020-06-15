@@ -37,7 +37,7 @@ namespace WalletWasabi.Gui
 				var daemon = new Daemon(Global);
 				var mixerCommand = new MixerCommand(daemon);
 				var passwordFinderCommand = new PasswordFinderCommand(Global.WalletManager);
-				runGui = new CommandInterpreter().ExecuteCommandsAsync(args, mixerCommand, passwordFinderCommand).GetAwaiter().GetResult();
+				runGui = new CommandInterpreter(Console.Out).ExecuteCommandsAsync(args, mixerCommand, passwordFinderCommand).GetAwaiter().GetResult();
 
 				if (!runGui)
 				{

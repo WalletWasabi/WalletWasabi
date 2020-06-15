@@ -2,17 +2,21 @@ using Mono.Options;
 using System;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.CommandLine
 {
 	public class CommandInterpreter
 	{
+		public CommandInterpreter(TextWriter textWriter)
+		{
+			TextWriter = textWriter;
+		}
+		public TextWriter TextWriter { get; }
+
 		/// <returns>If the GUI should run or not.</returns>
-		public async Task<bool> ExecuteCommandsAsync(string[] args, MixerCommand mixerCommand, PasswordFinderCommand passwordFinderCommand)
+		public async Task<bool> ExecuteCommandsAsync(string[] args, Command mixerCommand, Command passwordFinderCommand)
 		{
 			var showHelp = false;
 			var showVersion = false;
@@ -81,7 +85,7 @@ namespace WalletWasabi.Gui.CommandLine
 			Console.WriteLine("Launches Wasabi Wallet.");
 			Console.WriteLine();
 			Console.WriteLine("Options:");
-			p.WriteOptionDescriptions(Console.Out);
+			p.WriteOptionDescriptions(TextWriter);
 		}
 	}
 }
