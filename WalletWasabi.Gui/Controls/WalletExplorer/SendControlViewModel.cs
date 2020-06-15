@@ -786,6 +786,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					switch (FeeDisplayFormat)
 					{
 						case FeeDisplayFormat.SatoshiPerByte:
+							if (IsCustomFee)
+							{
+								FeeDisplayFormat = FeeDisplayFormat.Percentage;
+								FeeText = $"(~ {FeePercentage:0.#} %)";
+								FeeToolTip = "Expected percentage of fees against the amount to be sent.";
+								break;
+							}
+
 							FeeText = $"(~ {FeeRate.SatoshiPerByte} sat/vByte)";
 							FeeToolTip = "Expected fee rate in satoshi/vByte.";
 							break;
@@ -945,7 +953,24 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Global.UiConfig.WhenAnyValue(x => x.IsCustomFee)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => IsCustomFee = x)
+				.Subscribe(isCustomFee =>
+				{
+					IsCustomFee = isCustomFee;
+
+					if (isCustomFee)
+					{
+						if (FeeDisplayFormat == FeeDisplayFormat.SatoshiPerByte)
+						{
+							FeeDisplayFormat = FeeDisplayFormat.Percentage;
+							FeeText = $"(~ {FeePercentage:0.#} %)";
+							FeeToolTip = "Expected percentage of fees against the amount to be sent.";
+						}
+					}
+					else
+					{
+						SetFeesAndTexts();
+					}
+				})
 				.DisposeWith(disposables);
 
 			this.WhenAnyValue(x => x.IsCustomFee)
