@@ -203,6 +203,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var tx0 = CreateCreditingTransaction(keys[0].PubKey.WitHash.ScriptPubKey, Money.Coins(1.0m));
 
 			var createdCoin = tx0.Transaction.Outputs.AsCoins().First();
+
 			// Spend the received coin
 			var tx1 = CreateSpendingTransaction(createdCoin, keys[1].PubKey.WitHash.ScriptPubKey);
 
@@ -236,6 +237,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				if (doubleSpents.Any())
 				{
 					var coin = Assert.Single(doubleSpents);
+
 					// Double spend to ourselves but to a different address. So checking the address.
 					Assert.Equal(keys[1].PubKey.WitHash.ScriptPubKey, coin.ScriptPubKey);
 
@@ -244,6 +246,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			};
 
 			int coinReceivedCalled = 0;
+
 			// The coin with the confirmed tx should win.
 			transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
 			{
@@ -266,10 +269,12 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var tx0 = CreateCreditingTransaction(keys[0].PubKey.WitHash.ScriptPubKey, Money.Coins(1.0m), height: 54321);
 
 			var createdCoin = tx0.Transaction.Outputs.AsCoins().First();
+
 			// Spend the received coin
 			var tx1 = CreateSpendingTransaction(createdCoin, keys[1].PubKey.WitHash.ScriptPubKey);
 
 			Assert.Equal(0, doubleSpendReceived);
+
 			// Spend it coin
 			var tx2 = CreateSpendingTransaction(createdCoin, keys[2].PubKey.WitHash.ScriptPubKey, height: 54321);
 			var relevant = transactionProcessor.Process(tx0, tx1, tx2).Last();
@@ -323,6 +328,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var tx0 = CreateCreditingTransaction(transactionProcessor.NewKey("A").P2wpkhScript, Money.Coins(1.0m), height: 54321);
 
 			var createdCoin = tx0.Transaction.Outputs.AsCoins().First();
+
 			// Spend the received coin
 			var tx1 = CreateSpendingTransaction(createdCoin, transactionProcessor.NewKey("B").P2wpkhScript);
 			tx1.Transaction.Inputs[0].Sequence = Sequence.OptInRBF;
@@ -391,6 +397,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var results = transactionProcessor.Process(tx1, tx1).ToArray();
 			var res1 = results[0];
 			var res2a = results[1];
+
 			// Process it again.
 			var res2b = transactionProcessor.Process(tx1);
 
@@ -469,6 +476,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var changeScript = NewScript("Change myself");
 			var tx2 = CreateSpendingTransaction(createdCoins, destinationScript, changeScript); // spends 1.2btc
 			tx2.Transaction.Inputs[0].Sequence = Sequence.OptInRBF;
+
 			// Another confirmed segwit transaction for us
 			var tx3 = CreateCreditingTransaction(NewScript("C"), Money.Coins(1.0m), height: 54322);
 
@@ -480,7 +488,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var coinsToSpend = createdCoins.Concat(new[] { latestCreatedCoin.GetCoin() }).ToArray();
 
 			// Spend them again with a different amount
-			var destinationScript2 = new Key().PubKey.WitHash.ScriptPubKey;  // spend to someone else
+			var destinationScript2 = new Key().PubKey.WitHash.ScriptPubKey; // spend to someone else
 			var tx4 = CreateSpendingTransaction(coinsToSpend, destinationScript2, changeScript);
 			var relevant2 = transactionProcessor.Process(tx4);
 
@@ -533,7 +541,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.True(relevant.IsNews);
 
 			// replace previous tx with another one spending only one coin
-			destinationScript = new Key().PubKey.WitHash.ScriptPubKey;  // spend to someone else
+			destinationScript = new Key().PubKey.WitHash.ScriptPubKey; // spend to someone else
 			var tx3 = CreateSpendingTransaction(createdCoins.Take(1), destinationScript, changeScript); // spends 0.6btc
 			relevant = transactionProcessor.Process(tx3);
 
@@ -598,6 +606,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			transactionProcessor.Process(tx0);
 
 			var createdCoin = tx0.Transaction.Outputs.AsCoins().First();
+
 			// Spend the received coin
 			var tx1 = CreateSpendingTransaction(createdCoin, new Key().PubKey.ScriptPubKey);
 			var relevant = transactionProcessor.Process(tx1);
@@ -639,7 +648,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// Transaction store assertions
 			var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
-			Assert.Single(mempool);  // it doesn't matter if it is a dust only tx, we save the tx anyway.
+			Assert.Single(mempool); // it doesn't matter if it is a dust only tx, we save the tx anyway.
 
 			var matureTxs = transactionProcessor.TransactionStore.ConfirmedStore.GetTransactions().ToArray();
 			Assert.Empty(matureTxs);
@@ -685,7 +694,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var coin = Assert.Single(transactionProcessor.Coins);
 			Assert.Equal(4, coin.AnonymitySet);
 			Assert.Equal(amount, coin.Amount);
-			Assert.False(coin.IsLikelyCoinJoinOutput);  // It is a coinjoin however we are receiving but not spending.
+			Assert.False(coin.IsLikelyCoinJoinOutput); // It is a coinjoin however we are receiving but not spending.
 		}
 
 		[Fact]
@@ -716,7 +725,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var coin = Assert.Single(transactionProcessor.Coins, c => c.AnonymitySet > 1);
 			Assert.Equal(5, coin.AnonymitySet);
 			Assert.Equal(amount, coin.Amount);
-			Assert.True(coin.IsLikelyCoinJoinOutput);  // because we are spending and receiving almost the same amount
+			Assert.True(coin.IsLikelyCoinJoinOutput); // because we are spending and receiving almost the same amount
 		}
 
 		[Fact]

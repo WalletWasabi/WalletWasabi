@@ -36,7 +36,7 @@
             </i:Interaction.Behaviors>
           </controls:ExtendedTextBox>
 
-          <controls:ExtendedTextBox IsEnabled="{Binding !IsMax}" IsVisible="{Binding IsCustomChangeAddress}" Classes="monospaceFont" Text="{Binding CustomChangeAddress}" Watermark="(Optional) Custom Change Address" UseFloatingWatermark="True">
+          <controls:ExtendedTextBox IsEnabled="{Binding !IsMax}" IsVisible="{Binding IsCustomChangeAddressVisible}" Classes="monospaceFont" Text="{Binding CustomChangeAddress}" Watermark="(Optional) Custom Change Address" UseFloatingWatermark="True">
             <i:Interaction.Behaviors>
               <behaviors:PasteAddressOnClickBehavior />
             </i:Interaction.Behaviors>

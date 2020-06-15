@@ -15,6 +15,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 			Primitive = primitive;
 
 			int gfx = 1;
+
 			// Power cycle is from 0 to 254. 2^255 = 1 = 2^0
 			// Value cycle is from 1 to 255. Thus there should not have Log(0).
 			for (int powers = 0; powers < 256; powers++)
@@ -71,9 +72,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 
 		internal int Addition(int gfValueA, int gfValueB) => gfValueA ^ gfValueB;
 
-		internal int Subtraction(int gfValueA, int gfValueB) =>
-			// Subtraction is same as addition.
-			Addition(gfValueA, gfValueB);
+		internal int Subtraction(int gfValueA, int gfValueB) => Addition(gfValueA, gfValueB); // Subtraction is same as addition.
 
 		/// <returns>
 		/// Product of two values.

@@ -9,8 +9,10 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using WalletWasabi.Bases;
+using WalletWasabi.Gui.Controls;
 using WalletWasabi.Gui.Converters;
 using WalletWasabi.Gui.Models;
+using WalletWasabi.Gui.Models.Sorting;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.JsonConverters;
@@ -98,5 +100,17 @@ namespace WalletWasabi.Gui
 			get => _lockScreenPinHash;
 			set => RaiseAndSetIfChanged(ref _lockScreenPinHash, value);
 		}
+
+		[JsonProperty(PropertyName = "CoinListViewSortingPreference")]
+		[JsonConverter(typeof(SortingPreferenceJsonConverter))]
+		public SortingPreference CoinListViewSortingPreference { get; internal set; } = new SortingPreference(SortOrder.Increasing, "Amount");
+
+		[JsonProperty(PropertyName = "CoinJoinTabSortingPreference")]
+		[JsonConverter(typeof(SortingPreferenceJsonConverter))]
+		public SortingPreference CoinJoinTabSortingPreference { get; internal set; } = new SortingPreference(SortOrder.Increasing, "Amount");
+
+		[JsonProperty(PropertyName = "HistoryTabViewSortingPreference")]
+		[JsonConverter(typeof(SortingPreferenceJsonConverter))]
+		public SortingPreference HistoryTabViewSortingPreference { get; internal set; } = new SortingPreference(SortOrder.Increasing, "Date");
 	}
 }

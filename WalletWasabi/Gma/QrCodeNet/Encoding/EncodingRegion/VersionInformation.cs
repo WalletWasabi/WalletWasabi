@@ -29,8 +29,10 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 			BitList versionInfo = VersionInfoBitList(version);
 
 			int matrixWidth = tsMatrix.Width;
+
 			// 1 cell between version info and position stencil
 			int shiftLength = QRCodeConstantVariable.PositionStencilWidth + VIRectangleHeight + 1;
+
 			// Reverse order input
 			int viIndex = LengthDataBits + LengthECBits - 1;
 
@@ -40,8 +42,10 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 				{
 					bool bit = versionInfo[viIndex];
 					viIndex--;
+
 					// Bottom left
 					tsMatrix[viWidth, (matrixWidth - shiftLength + viHeight), MatrixStatus.NoMask] = bit;
+
 					// Top right
 					tsMatrix[(matrixWidth - shiftLength + viHeight), viWidth, MatrixStatus.NoMask] = bit;
 				}

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,10 +48,21 @@ namespace WalletWasabi.Gui.Rpc
 		/// <returns>The response that, after serialization, is returned as response.</returns>
 		public async Task<string> HandleAsync(string body, CancellationToken cancellationToken)
 		{
-			if (!JsonRpcRequest.TryParse(body, out var jsonRpcRequest))
+			if (!JsonRpcRequest.TryParse(body, out var jsonRpcRequests, out var isBatch))
 			{
 				return JsonRpcResponse.CreateErrorResponse(null, JsonRpcErrorCodes.ParseError).ToJson(DefaultSettings);
 			}
+			var results = new List<string>();
+			foreach(var jsonRpcRequest in jsonRpcRequests)
+			{
+				cancellationToken.ThrowIfCancellationRequested();
+				results.Add(await HandleRequestAsync(jsonRpcRequest, cancellationToken));
+			}
+			return isBatch ? $"[{string.Join(",", results)}]" : results[0];
+		}
+
+		private async Task<string> HandleRequestAsync(JsonRpcRequest jsonRpcRequest, CancellationToken cancellationToken)
+		{
 			var methodName = jsonRpcRequest.Method;
 
 			if (!MetadataProvider.TryGetMetadata(methodName, out var prodecureMetadata))
@@ -95,11 +107,14 @@ namespace WalletWasabi.Gui.Rpc
 						parameters.Insert(position, cancellationToken);
 					}
 				}
-				if (parameters.Count != methodParameters.Count)
+				if (parameters.Count < methodParameters.Count(x => !x.isOptional))
 				{
 					return Error(JsonRpcErrorCodes.InvalidParams,
 						$"{methodParameters.Count} parameters were expected but {parameters.Count} were received.", jsonRpcRequest.Id);
 				}
+
+				var missingParameters = methodParameters.Count() - parameters.Count(); 
+				parameters.AddRange(methodParameters.TakeLast(missingParameters).Select(x => x.defaultValue));
 				var result = prodecureMetadata.MethodInfo.Invoke(Service, parameters.ToArray());
 
 				if (jsonRpcRequest.IsNotification) // the client is not interested in getting a response

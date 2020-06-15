@@ -23,7 +23,7 @@ namespace WalletWasabi.Tests
 				{
 					"Invalid (missing jsonrpc) request",
 					Request("1", "substract", 42, 23).Replace("\"jsonrpc\":\"2.0\",", ""),
-					Error(null, -32700, "Parse error")
+					Ok("1", 19)
 				},
 				new[]
 				{

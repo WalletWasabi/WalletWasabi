@@ -397,7 +397,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 			}
 		}
 
-		public void UpdateRoundsByStates(ConcurrentDictionary<OutPoint, IEnumerable<HdPubKeyBlindedPair>> exposedLinks, params RoundStateResponse[] allRunningRoundsStates)
+		public void UpdateRoundsByStates(ConcurrentDictionary<OutPoint, IEnumerable<HdPubKeyBlindedPair>> exposedLinks, params RoundStateResponseBase[] allRunningRoundsStates)
 		{
 			Guard.NotNullOrEmpty(nameof(allRunningRoundsStates), allRunningRoundsStates);
 			IsInErrorState = false;
@@ -461,7 +461,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 					}
 				}
 
-				foreach (RoundStateResponse state in allRunningRoundsStates)
+				foreach (RoundStateResponseBase state in allRunningRoundsStates)
 				{
 					if (!Rounds.Select(x => x.State.RoundId).Contains(state.RoundId))
 					{

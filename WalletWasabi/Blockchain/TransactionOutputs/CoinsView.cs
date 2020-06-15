@@ -53,7 +53,11 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			return new CoinsView(Generator(coin));
 		}
 
-		public ICoinsView DescendantOfAndSelf(SmartCoin coin) => new CoinsView(DescendantOf(coin).Concat(new[] { coin }));
+		public ICoinsView DescendantOfAndSelf(SmartCoin coin) => new CoinsView(DescendantOf(coin)
+			.Concat(new[]
+			{
+				coin
+			}));
 
 		public ICoinsView FilterBy(Func<SmartCoin, bool> expression) => new CoinsView(Coins.Where(expression));
 
