@@ -20,13 +20,13 @@ namespace WalletWasabi.Stores
 	public class BitcoinStore
 	{
 		public bool IsInitialized { get; private set; }
-		private string WorkFolderPath { get; set; }
-		public Network Network { get; private set; }
+		private string WorkFolderPath { get;}
+		public Network Network { get;}
 
-		public IndexStore IndexStore { get; private set; }
-		public AllTransactionStore TransactionStore { get; private set; }
-		public SmartHeaderChain SmartHeaderChain { get; private set; }
-		public MempoolService MempoolService { get; private set; }
+		public IndexStore IndexStore { get; }
+		public AllTransactionStore TransactionStore { get; }
+		public SmartHeaderChain SmartHeaderChain { get; }
+		public MempoolService MempoolService { get; }
 
 		/// <summary>
 		/// This should not be a property, but a creator function, because it'll be cloned left and right by NBitcoin later.
@@ -34,21 +34,25 @@ namespace WalletWasabi.Stores
 		/// </summary>
 		public UntrustedP2pBehavior CreateUntrustedP2pBehavior() => new UntrustedP2pBehavior(MempoolService);
 
-		public async Task InitializeAsync(string workFolderPath, Network network)
+		public BitcoinStore(string workFolderPath, Network network)
+		{
+			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
+			IoHelpers.EnsureDirectoryExists(WorkFolderPath);
+
+			Network = Guard.NotNull(nameof(network), network);
+
+			IndexStore = new IndexStore();
+			TransactionStore = new AllTransactionStore();
+			SmartHeaderChain = new SmartHeaderChain();
+			MempoolService = new MempoolService();
+		}
+
+		public async Task InitializeAsync()
 		{
 			using (BenchmarkLogger.Measure())
 			{
-				WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
-				IoHelpers.EnsureDirectoryExists(WorkFolderPath);
-
-				Network = Guard.NotNull(nameof(network), network);
-
-				IndexStore = new IndexStore();
-				TransactionStore = new AllTransactionStore();
 				var networkWorkFolderPath = Path.Combine(WorkFolderPath, Network.ToString());
 				var indexStoreFolderPath = Path.Combine(networkWorkFolderPath, "IndexStore");
-				SmartHeaderChain = new SmartHeaderChain();
-				MempoolService = new MempoolService();
 
 				var initTasks = new[]
 				{

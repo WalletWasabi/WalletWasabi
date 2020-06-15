@@ -48,7 +48,7 @@ namespace WalletWasabi.Gui
 
 		public string DataDir { get; }
 		public string TorLogsFile { get; }
-		public BitcoinStore BitcoinStore { get; private set; }
+		public BitcoinStore BitcoinStore { get; }
 		public LegalDocuments LegalDocuments { get; set; }
 		public Config Config { get; }
 
@@ -101,6 +101,8 @@ namespace WalletWasabi.Gui
 
 				WalletManager.OnDequeue += WalletManager_OnDequeue;
 				WalletManager.WalletRelevantTransactionProcessed += WalletManager_WalletRelevantTransactionProcessed;
+
+				BitcoinStore = new BitcoinStore(Path.Combine(DataDir, "BitcoinStore"), Network);
 			}
 		}
 
@@ -124,8 +126,7 @@ namespace WalletWasabi.Gui
 					SizeLimit = 1_000,
 					ExpirationScanFrequency = TimeSpan.FromSeconds(30)
 				});
-				BitcoinStore = new BitcoinStore();
-				var bstoreInitTask = BitcoinStore.InitializeAsync(Path.Combine(DataDir, "BitcoinStore"), Network);
+				var bstoreInitTask = BitcoinStore.InitializeAsync();
 				var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
 
 				AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
