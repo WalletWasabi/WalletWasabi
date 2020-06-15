@@ -18,6 +18,8 @@ namespace WalletWasabi.Gui.CrashReport
 		public string ExceptionString { get; private set; } = null;
 		public bool IsReport => ExceptionString is { };
 
+		public SerializedException SerializedException { get; private set; }
+
 		public void Start()
 		{
 			var exceptionString = ExceptionString;
@@ -41,6 +43,7 @@ namespace WalletWasabi.Gui.CrashReport
 		{
 			Attempts = attempts;
 			ExceptionString = exceptionString;
+			SerializedException = SerializedException.ToSerializedException(ExceptionString);
 		}
 
 		/// <summary>
@@ -62,11 +65,6 @@ namespace WalletWasabi.Gui.CrashReport
 					 .Replace("\\X0020", " ");
 
 			return exceptionToDisplay;
-		}
-
-		public SerializedException GetException()
-		{
-			return SerializedException.ToSerializedException(ExceptionString);
 		}
 	}
 }

@@ -35,7 +35,7 @@ namespace WalletWasabi.Gui.CrashReport.ViewModels
 		public int MinHeight => 280;
 		public string Title => "Wasabi Wallet - Crash Reporting";
 		public string Details => $"Wasabi has crashed. You can check the details here, open the log file, or report the crash to the support team. {Environment.NewLine}{Environment.NewLine}Please always consider your privacy before sharing any information!";
-		public string Message => CrashReporter.GetException().Message;
+		public string Message => CrashReporter?.SerializedException?.Message;
 
 		public ReactiveCommand<Unit, Unit> OpenLogCommand { get; }
 		public ReactiveCommand<Unit, Unit> OkCommand { get; }
