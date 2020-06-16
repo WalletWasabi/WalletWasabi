@@ -29,6 +29,7 @@ namespace WalletWasabi.Microservices
 		{
 			var finalArguments = arguments;
 			var redirectStandardOutput = !openConsole;
+			var redirectStandardInput = !openConsole;
 			var useShellExecute = openConsole;
 			var createNoWindow = !openConsole;
 			var windowStyle = openConsole ? ProcessWindowStyle.Normal : ProcessWindowStyle.Hidden;
@@ -43,6 +44,7 @@ namespace WalletWasabi.Microservices
 				FileName = ProcessPath,
 				Arguments = finalArguments,
 				RedirectStandardOutput = redirectStandardOutput,
+				RedirectStandardInput = redirectStandardInput,
 				UseShellExecute = useShellExecute,
 				CreateNoWindow = createNoWindow,
 				WindowStyle = windowStyle
@@ -67,16 +69,19 @@ namespace WalletWasabi.Microservices
 
 		public async Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel)
 		{
-			int exitCode;
-
 			using var process = Start(arguments, openConsole);
+			Send(process.StandardInput);
 			await process.WaitForExitAsync(cancel).ConfigureAwait(false);
 
-			exitCode = process.ExitCode;
+			var exitCode = process.ExitCode;
 
 			string responseString = openConsole ? string.Empty : await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
 
 			return (responseString, exitCode);
+		}
+
+		protected virtual void Send(StreamWriter input)
+		{
 		}
 	}
 }
