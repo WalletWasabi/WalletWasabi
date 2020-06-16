@@ -34,7 +34,7 @@ namespace WalletWasabi.Services
 			}
 			catch (IOException)
 			{
-				throw new InvalidOperationException("Wasabi is already running!");
+				throw new InvalidOperationException($"Wasabi is already running on {Network}!");
 			}
 		}
 
@@ -53,7 +53,6 @@ namespace WalletWasabi.Services
 		public void Dispose()
 		{
 			Dispose(disposing: true);
-			GC.SuppressFinalize(this);
 		}
 	}
 }
