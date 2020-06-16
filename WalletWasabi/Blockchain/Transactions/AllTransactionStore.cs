@@ -33,7 +33,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			using (BenchmarkLogger.Measure())
 			{
 				WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
-
+				IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 				MempoolStore = new TransactionStore();
 				ConfirmedStore = new TransactionStore();
 				Lock = new object();
