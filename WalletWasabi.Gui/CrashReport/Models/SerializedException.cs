@@ -7,18 +7,6 @@ namespace WalletWasabi.Gui.CrashReport.Models
 	[JsonObject(MemberSerialization.OptIn)]
 	public class SerializedException
 	{
-		[JsonProperty(PropertyName = "ExceptionType")]
-		public string ExceptionType { get; set; }
-
-		[JsonProperty(PropertyName = "Message")]
-		public string Message { get; set; }
-
-		[JsonProperty(PropertyName = "StackTrace")]
-		public string StackTrace { get; set; }
-
-		[JsonProperty(PropertyName = "InnerException")]
-		public SerializedException InnerException { get; set; }
-
 		public SerializedException()
 		{
 		}
@@ -34,6 +22,30 @@ namespace WalletWasabi.Gui.CrashReport.Models
 
 			Message = ex.Message;
 			StackTrace = ex.StackTrace;
+		}
+
+		[JsonProperty(PropertyName = "ExceptionType")]
+		public string ExceptionType { get; set; }
+
+		[JsonProperty(PropertyName = "Message")]
+		public string Message { get; set; }
+
+		[JsonProperty(PropertyName = "StackTrace")]
+		public string StackTrace { get; set; }
+
+		[JsonProperty(PropertyName = "InnerException")]
+		public SerializedException InnerException { get; set; }
+
+		public static string ToCommandLineString(Exception exception)
+		{
+			return Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new SerializedException(exception))));
+		}
+
+		public static SerializedException ToSerializedException(string serializedException)
+		{
+			var json = Encoding.UTF8.GetString(Convert.FromBase64String(serializedException));
+			var se = JsonConvert.DeserializeObject<SerializedException>(json);
+			return se;
 		}
 
 		public override string ToString()
@@ -102,18 +114,6 @@ namespace WalletWasabi.Gui.CrashReport.Models
 		private string Tabs(int n)
 		{
 			return n == 0 ? string.Empty : new string(' ', n * 4);
-		}
-
-		public static string ToCommandLineString(Exception exception)
-		{
-			return Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new SerializedException(exception))));
-		}
-
-		public static SerializedException ToSerializedException(string serializedException)
-		{
-			var json = Encoding.UTF8.GetString(Convert.FromBase64String(serializedException));
-			var se = JsonConvert.DeserializeObject<SerializedException>(json);
-			return se;
 		}
 	}
 }
