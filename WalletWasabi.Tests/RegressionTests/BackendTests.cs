@@ -244,6 +244,9 @@ namespace WalletWasabi.Tests.RegressionTests
 				var blockchainController = (BlockchainController)RegTestFixture.BackendHost.Services.GetService(typeof(BlockchainController));
 				blockchainController.Cache.Remove($"{nameof(BlockchainController.GetStatusAsync)}");
 
+				// Set back the time to trigger timeout in BlockchainController.GetStatusAsync.
+				global.IndexBuilderService.LastFilterBuildTime = DateTimeOffset.UtcNow - BlockchainController.FilterTimeout;
+
 				response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, Request);
 				using (HttpContent content = response.Content)
 				{

@@ -93,24 +93,13 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 		}
 
 		[Fact]
-		public void UpdateStatusEqualityTests()
+		public void ConstantsTests()
 		{
-			var u1 = new UpdateStatus(true, true, new Version(1, 0));
-			var u2 = new UpdateStatus(true, true, new Version(1, 0));
-			Assert.Equal(u1, u2);
-			Assert.Equal(u1.GetHashCode(), u2.GetHashCode());
+			var min = int.Parse(WalletWasabi.Helpers.Constants.ClientSupportBackendVersionMin);
+			var max = int.Parse(WalletWasabi.Helpers.Constants.ClientSupportBackendVersionMax);
+			Assert.True(min <= max);
 
-			var u3 = new UpdateStatus(false, true, new Version(1, 0));
-			Assert.NotEqual(u1, u3);
-			Assert.NotEqual(u1.GetHashCode(), u3.GetHashCode());
-
-			var u4 = new UpdateStatus(true, false, new Version(1, 0));
-			Assert.NotEqual(u1, u4);
-			Assert.NotEqual(u1.GetHashCode(), u4.GetHashCode());
-
-			var u5 = new UpdateStatus(true, true, new Version(1, 0, 1));
-			Assert.NotEqual(u1, u5);
-			Assert.NotEqual(u1.GetHashCode(), u5.GetHashCode());
+			int.Parse(WalletWasabi.Helpers.Constants.BackendMajorVersion);
 		}
 	}
 }

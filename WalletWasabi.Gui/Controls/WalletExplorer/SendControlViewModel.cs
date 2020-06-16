@@ -58,7 +58,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _isBusy;
 		private bool _isHardwareBusy;
 		private bool _isCustomFee;
-		private bool _isCustomChangeAddress;
 
 		private const string WaitingForHardwareWalletButtonTextString = "Waiting for Hardware Wallet...";
 
@@ -198,6 +197,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(Address)));
 
+			this.WhenAnyValue(x => x.IsCustomChangeAddressVisible)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+				{
+					this.RaisePropertyChanged(nameof(Address));
+					this.RaisePropertyChanged(nameof(CustomChangeAddress));
+				});
+
 			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay, outputScheduler: RxApp.MainThreadScheduler);
 
 			OnAddressPasteCommand = ReactiveCommand.Create((BitcoinUrlBuilder url) => OnAddressPaste(url));
@@ -239,7 +246,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					var requests = new List<DestinationRequest>();
 
-					if (Global.UiConfig.IsCustomChangeAddress && !IsMax && !string.IsNullOrWhiteSpace(CustomChangeAddress))
+					if (IsCustomChangeAddressVisible && !string.IsNullOrWhiteSpace(CustomChangeAddress))
 					{
 						try
 						{
@@ -575,11 +582,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			private set => this.RaiseAndSetIfChanged(ref _isCustomFee, value);
 		}
 
-		public bool IsCustomChangeAddress
-		{
-			get => _isCustomChangeAddress;
-			private set => this.RaiseAndSetIfChanged(ref _isCustomChangeAddress, value);
-		}
+		public bool IsCustomChangeAddressVisible => Global.UiConfig.IsCustomChangeAddress && !IsMax;
 
 		public ReactiveCommand<Unit, Unit> BuildTransactionCommand { get; }
 
@@ -866,7 +869,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return;
 			}
 
-			if (Address == CustomChangeAddress)
+			if (Address == CustomChangeAddress && IsCustomChangeAddressVisible)
 			{
 				errors.Add(ErrorSeverity.Error, "The active address and the change address cannot be the same.");
 			}
@@ -893,11 +896,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (IsMax)
 			{
-				errors.Add(ErrorSeverity.Error, "Spending whole coins does not generate change.");
 				return;
 			}
 
-			if (Address == CustomChangeAddress)
+			if (Address == CustomChangeAddress && IsCustomChangeAddressVisible)
 			{
 				errors.Add(ErrorSeverity.Error, "The active address and the change address cannot be the same.");
 			}
@@ -946,15 +948,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(x => IsCustomFee = x)
 				.DisposeWith(disposables);
 
-			Global.UiConfig.WhenAnyValue(x => x.IsCustomChangeAddress)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => IsCustomChangeAddress = x)
-				.DisposeWith(disposables);
-
 			this.WhenAnyValue(x => x.IsCustomFee)
 				.Where(x => !x)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => IsSliderFeeUsed = true);
+
+			Observable
+				.Merge(Global.UiConfig.WhenAnyValue(x => x.IsCustomChangeAddress))
+				.Merge(this.WhenAnyValue(x => x.IsMax))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => this.RaisePropertyChanged(nameof(IsCustomChangeAddressVisible)))
+				.DisposeWith(disposables);
 
 			base.OnOpen(disposables);
 		}

@@ -11,13 +11,27 @@ using System.Reactive;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using System.Reactive.Linq;
+using WalletWasabi.WebClients.Wasabi;
+using System.Reactive.Disposables;
+using Splat;
+using WalletWasabi.Models;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Tabs
 {
 	internal class AboutViewModel : WasabiDocumentTabViewModel
 	{
+		private string _currentBackendMajorVersion;
+
 		public AboutViewModel() : base("About")
 		{
+			var global = Locator.Current.GetService<Global>();
+			var hostedServices = global.HostedServices;
+
+			UpdateChecker = hostedServices.FirstOrDefault<UpdateChecker>();
+
+			CurrentBackendMajorVersion = UpdateChecker?.UpdateStatus?.CurrentBackendMajorVersion.ToString() ?? "";
+
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 
 			OpenBrowserCommand.ThrownExceptions
@@ -26,9 +40,16 @@ namespace WalletWasabi.Gui.Tabs
 		}
 
 		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
-
+		private UpdateChecker UpdateChecker { get; }
 		public Version ClientVersion => Constants.ClientVersion;
-		public string BackendMajorVersion => Constants.BackendMajorVersion;
+		public string BackendCompatibleVersions => Constants.ClientSupportBackendVersionText;
+
+		public string CurrentBackendMajorVersion
+		{
+			get => _currentBackendMajorVersion;
+			set => this.RaiseAndSetIfChanged(ref _currentBackendMajorVersion, value);
+		}
+
 		public Version BitcoinCoreVersion => Constants.BitcoinCoreVersion;
 		public Version HwiVersion => Constants.HwiVersion;
 
@@ -47,5 +68,19 @@ namespace WalletWasabi.Gui.Tabs
 		public string FAQLink => "https://docs.wasabiwallet.io/FAQ/";
 
 		public string DocsLink => "https://docs.wasabiwallet.io/";
+
+		public override void OnOpen(CompositeDisposable disposables)
+		{
+			base.OnOpen(disposables);
+
+			var updateChecker = UpdateChecker;
+			if (updateChecker is { })
+			{
+				Observable.FromEventPattern<UpdateStatus>(updateChecker, nameof(updateChecker.UpdateStatusChanged))
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.Subscribe(e => CurrentBackendMajorVersion = e.EventArgs.CurrentBackendMajorVersion.ToString())
+					.DisposeWith(disposables);
+			}
+		}
 	}
 }

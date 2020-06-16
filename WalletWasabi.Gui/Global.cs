@@ -136,7 +136,8 @@ namespace WalletWasabi.Gui
 				var addrManTask = InitializeAddressManagerBehaviorAsync();
 
 				var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
-				var connectionParameters = new NodeConnectionParameters { UserAgent = "/Satoshi:0.18.1/" };
+				var userAgent = Constants.UserAgents.RandomElement();
+				var connectionParameters = new NodeConnectionParameters { UserAgent = userAgent };
 
 				if (Config.UseTor)
 				{
@@ -147,7 +148,7 @@ namespace WalletWasabi.Gui
 					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, Config.GetFallbackBackendUri(), null);
 				}
 
-				HostedServices.Register(new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer.WasabiClient), "Software Update Checker");
+				HostedServices.Register(new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
 
 				#region ProcessKillSubscription
 

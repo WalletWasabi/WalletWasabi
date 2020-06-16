@@ -24,6 +24,8 @@ namespace WalletWasabi.Backend.Controllers
 	[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
 	public class BlockchainController : Controller
 	{
+		public static readonly TimeSpan FilterTimeout = TimeSpan.FromMinutes(20);
+
 		public BlockchainController(IMemoryCache memoryCache, Global global)
 		{
 			Cache = memoryCache;
@@ -124,7 +126,7 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(200)]
 		[ProducesResponseType(400)]
 		[ResponseCache(Duration = 300, Location = ResponseCacheLocation.Client)]
-		public async Task<IActionResult> GetAllFeesAsync([FromQuery, Required]string estimateSmartFeeMode)
+		public async Task<IActionResult> GetAllFeesAsync([FromQuery, Required] string estimateSmartFeeMode)
 		{
 			if (!ModelState.IsValid || !Enum.TryParse(estimateSmartFeeMode, ignoreCase: true, out EstimateSmartFeeMode mode))
 			{
@@ -163,7 +165,7 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(200)]
 		[ProducesResponseType(400)]
 		[ResponseCache(Duration = 3, Location = ResponseCacheLocation.Client)]
-		public async Task<IActionResult> GetMempoolHashesAsync([FromQuery]int compactness = 64)
+		public async Task<IActionResult> GetMempoolHashesAsync([FromQuery] int compactness = 64)
 		{
 			if (compactness < 1 || compactness > 64 || !ModelState.IsValid)
 			{
@@ -211,7 +213,7 @@ namespace WalletWasabi.Backend.Controllers
 		[HttpGet("transaction-hexes")]
 		[ProducesResponseType(200)]
 		[ProducesResponseType(400)]
-		public async Task<IActionResult> GetTransactionsAsync([FromQuery, Required]IEnumerable<string> transactionIds)
+		public async Task<IActionResult> GetTransactionsAsync([FromQuery, Required] IEnumerable<string> transactionIds)
 		{
 			if (!ModelState.IsValid)
 			{
@@ -315,7 +317,7 @@ namespace WalletWasabi.Backend.Controllers
 		[HttpPost("broadcast")]
 		[ProducesResponseType(200)]
 		[ProducesResponseType(400)]
-		public async Task<IActionResult> BroadcastAsync([FromBody, Required]string hex)
+		public async Task<IActionResult> BroadcastAsync([FromBody, Required] string hex)
 		{
 			if (!ModelState.IsValid)
 			{
@@ -373,7 +375,7 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(204)]
 		[ProducesResponseType(400)]
 		[ProducesResponseType(404)]
-		public IActionResult GetFilters([FromQuery, Required]string bestKnownBlockHash, [FromQuery, Required]int count)
+		public IActionResult GetFilters([FromQuery, Required] string bestKnownBlockHash, [FromQuery, Required] int count)
 		{
 			if (count <= 0 || !ModelState.IsValid)
 			{
@@ -433,7 +435,7 @@ namespace WalletWasabi.Backend.Controllers
 					status = new StatusResponse();
 
 					// Updating the status of the filters.
-					if (DateTimeOffset.UtcNow - Global.IndexBuilderService.LastFilterBuildTime > TimeSpan.FromMinutes(20))
+					if (DateTimeOffset.UtcNow - Global.IndexBuilderService.LastFilterBuildTime > FilterTimeout)
 					{
 						// Checking if the last generated filter is created for one of the last two blocks on the blockchain.
 						var lastFilter = Global.IndexBuilderService.GetLastFilter();

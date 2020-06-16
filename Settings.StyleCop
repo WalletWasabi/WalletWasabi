@@ -416,7 +416,7 @@
         </Rule>
         <Rule Name="ElementMustNotBeOnSingleLine">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="SingleLineCommentsMustNotBeFollowedByBlankLine">
@@ -511,7 +511,7 @@
         </Rule>
         <Rule Name="ConstantsMustAppearBeforeFields">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectives">
@@ -521,7 +521,7 @@
         </Rule>
         <Rule Name="DeclarationKeywordsMustFollowOrder">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="ProtectedMustComeBeforeInternal">
@@ -581,7 +581,7 @@
         </Rule>
         <Rule Name="SplitParametersMustStartOnLineAfterDeclaration">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="ParametersMustBeOnSameLineOrSeparateLines">
