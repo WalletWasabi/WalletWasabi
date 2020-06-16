@@ -1,14 +1,8 @@
-using NBitcoin;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.P2p;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Stores
@@ -20,17 +14,10 @@ namespace WalletWasabi.Stores
 	public class BitcoinStore
 	{
 		public BitcoinStore(
-			string workFolderPath,
-			Network network,
 			IndexStore indexStore,
 			AllTransactionStore transactionStore,
 			MempoolService mempoolService)
 		{
-			var workFolderPath2 = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
-
-			NetworkWorkFolderPath = Path.Combine(workFolderPath2, network.ToString());
-			IndexStoreFolderPath = Path.Combine(NetworkWorkFolderPath, "IndexStore");
-
 			IndexStore = indexStore;
 			TransactionStore = transactionStore;
 			MempoolService = mempoolService;
@@ -45,8 +32,6 @@ namespace WalletWasabi.Stores
 		}
 
 		public bool IsInitialized { get; private set; }
-		private string NetworkWorkFolderPath { get; }
-		private string IndexStoreFolderPath { get; }
 
 		public IndexStore IndexStore { get; }
 		public AllTransactionStore TransactionStore { get; }
@@ -65,8 +50,8 @@ namespace WalletWasabi.Stores
 			{
 				var initTasks = new[]
 				{
-					IndexStore.InitializeAsync(IndexStoreFolderPath),
-					TransactionStore.InitializeAsync(NetworkWorkFolderPath)
+					IndexStore.InitializeAsync(),
+					TransactionStore.InitializeAsync()
 				};
 
 				await Task.WhenAll(initTasks).ConfigureAwait(false);
