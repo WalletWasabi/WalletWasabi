@@ -29,7 +29,6 @@ namespace WalletWasabi.Stores
 			var workFolderPath2 = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 			IoHelpers.EnsureDirectoryExists(workFolderPath2);
 
-			Guard.NotNull(nameof(network), network);
 			NetworkWorkFolderPath = Path.Combine(workFolderPath2, network.ToString());
 			IndexStoreFolderPath = Path.Combine(NetworkWorkFolderPath, "IndexStore");
 
