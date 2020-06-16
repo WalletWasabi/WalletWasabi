@@ -20,7 +20,7 @@ namespace WalletWasabi.Gui.CrashReport
 
 		public SerializedException SerializedException { get; private set; }
 
-		public void Start()
+		public void InvokeCrashReport()
 		{
 			var exceptionString = ExceptionString;
 			var prevAttempts = Attempts;
