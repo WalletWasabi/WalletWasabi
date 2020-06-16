@@ -4,7 +4,7 @@ using System;
 using WalletWasabi.Logging;
 using Newtonsoft.Json;
 using System.Diagnostics;
-using WalletWasabi.Gui.CrashReport.Models;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.CrashReport.Helpers
 {
@@ -18,7 +18,7 @@ namespace WalletWasabi.Gui.CrashReport.Helpers
 				Environment.Exit(-1);
 			}
 
-			var jsonException = JsonConvert.SerializeObject(new SerializedException(e), Formatting.None)
+			var jsonException = JsonConvert.SerializeObject(new SerializableException(e), Formatting.None)
 										   .Replace("\'", "\\X0009")
 										   .Replace("\"", "\\X0022")
 										   .Replace("\n", "\\X000A")

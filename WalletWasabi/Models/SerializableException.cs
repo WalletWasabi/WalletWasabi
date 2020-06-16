@@ -2,20 +2,20 @@ using Newtonsoft.Json;
 using System;
 using System.Text;
 
-namespace WalletWasabi.Gui.CrashReport.Models
+namespace WalletWasabi.Models
 {
 	[JsonObject(MemberSerialization.OptIn)]
-	public class SerializedException
+	public class SerializableException
 	{
-		public SerializedException()
+		public SerializableException()
 		{
 		}
 
-		public SerializedException(Exception ex)
+		public SerializableException(Exception ex)
 		{
 			if (ex.InnerException != null)
 			{
-				InnerException = new SerializedException(ex.InnerException);
+				InnerException = new SerializableException(ex.InnerException);
 			}
 
 			ExceptionType = ex.GetType().FullName;
@@ -34,17 +34,17 @@ namespace WalletWasabi.Gui.CrashReport.Models
 		public string StackTrace { get; set; }
 
 		[JsonProperty(PropertyName = "InnerException")]
-		public SerializedException InnerException { get; set; }
+		public SerializableException InnerException { get; set; }
 
-		public static string ToCommandLineString(Exception exception)
+		public static string ToBase64String(SerializableException exception)
 		{
-			return Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new SerializedException(exception))));
+			return Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(exception)));
 		}
 
-		public static SerializedException ToSerializedException(string serializedException)
+		public static SerializableException FromBase64String(string base64String)
 		{
-			var json = Encoding.UTF8.GetString(Convert.FromBase64String(serializedException));
-			var se = JsonConvert.DeserializeObject<SerializedException>(json);
+			var json = Encoding.UTF8.GetString(Convert.FromBase64String(base64String));
+			var se = JsonConvert.DeserializeObject<SerializableException>(json);
 			return se;
 		}
 

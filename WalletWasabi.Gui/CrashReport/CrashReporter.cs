@@ -3,10 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
-using WalletWasabi.Gui.CrashReport.Models;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.CrashReport
 {
@@ -18,7 +18,7 @@ namespace WalletWasabi.Gui.CrashReport
 		public string ExceptionString { get; private set; } = null;
 		public bool IsReport => ExceptionString is { };
 
-		public SerializedException SerializedException { get; private set; }
+		public SerializableException SerializedException { get; private set; }
 
 		public void InvokeCrashReport()
 		{
@@ -39,11 +39,11 @@ namespace WalletWasabi.Gui.CrashReport
 			return;
 		}
 
-		public void SetException(string exceptionString, int attempts)
+		public void SetException(string base64ExceptionString, int attempts)
 		{
 			Attempts = attempts;
-			ExceptionString = exceptionString;
-			SerializedException = SerializedException.ToSerializedException(ExceptionString);
+			ExceptionString = base64ExceptionString;
+			SerializedException = SerializableException.FromBase64String(ExceptionString);
 		}
 
 		/// <summary>
@@ -51,7 +51,7 @@ namespace WalletWasabi.Gui.CrashReport
 		/// </summary>
 		public void SetException(Exception ex)
 		{
-			SetException(SerializedException.ToCommandLineString(ex), 1);
+			SetException(SerializableException.ToBase64String(ex.ToSerializableException()), 1);
 		}
 
 		public override string ToString()
