@@ -83,6 +83,8 @@ namespace WalletWasabi.Gui
 
 		public Global(string dataDir, string torLogsFile, Config config, UiConfig uiConfig, WalletManager walletManager)
 		{
+			Guard.NotNull(nameof(config.Network), config.Network);
+
 			using (BenchmarkLogger.Measure())
 			{
 				CrashReporter = new CrashReporter();
