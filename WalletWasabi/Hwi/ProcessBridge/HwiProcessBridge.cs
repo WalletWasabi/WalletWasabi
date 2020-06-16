@@ -22,7 +22,7 @@ namespace WalletWasabi.Hwi.ProcessBridge
 			_content = string.Empty;
 		}
 
-		public new async Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel)
+		public override async Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel)
 		{
 			try
 			{
@@ -57,9 +57,13 @@ namespace WalletWasabi.Hwi.ProcessBridge
 
 		protected override void Send(StreamWriter input)
 		{
-			input.WriteLine(_content);
-			input.WriteLine();
-			input.Flush();
+			if (!string.IsNullOrEmpty(_content))
+			{
+				input.WriteLine(_content);
+				input.WriteLine();
+				input.WriteLine();
+				input.Flush();
+			}
 		}
 	}
 }

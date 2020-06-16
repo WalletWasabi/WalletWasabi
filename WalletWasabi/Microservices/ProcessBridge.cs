@@ -67,7 +67,7 @@ namespace WalletWasabi.Microservices
 			}
 		}
 
-		public async Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel)
+		public virtual async Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel)
 		{
 			using var process = Start(arguments, openConsole);
 			Send(process.StandardInput);
