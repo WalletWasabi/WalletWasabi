@@ -14,8 +14,11 @@ namespace WalletWasabi.Blockchain.Transactions
 {
 	public class AllTransactionStore
 	{
-		public AllTransactionStore(Network network)
+		public AllTransactionStore(string workFolderPath, Network network)
 		{
+			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
+			IoHelpers.EnsureDirectoryExists(WorkFolderPath);
+
 			Network = Guard.NotNull(nameof(network), network);
 		}
 
@@ -28,12 +31,10 @@ namespace WalletWasabi.Blockchain.Transactions
 		public TransactionStore ConfirmedStore { get; private set; }
 		private object Lock { get; set; }
 
-		public async Task InitializeAsync(string workFolderPath, bool ensureBackwardsCompatibility = true)
+		public async Task InitializeAsync(bool ensureBackwardsCompatibility = true)
 		{
 			using (BenchmarkLogger.Measure())
 			{
-				WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
-				IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 				MempoolStore = new TransactionStore();
 				ConfirmedStore = new TransactionStore();
 				Lock = new object();
