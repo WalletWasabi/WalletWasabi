@@ -23,8 +23,11 @@ namespace WalletWasabi.Stores
 	/// </summary>
 	public class IndexStore
 	{
-		public IndexStore(Network network, SmartHeaderChain hashChain)
+		public IndexStore(string workFolderPath, Network network, SmartHeaderChain hashChain)
 		{
+			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
+			IoHelpers.EnsureDirectoryExists(WorkFolderPath);
+
 			Network = Guard.NotNull(nameof(network), network);
 			SmartHeaderChain = Guard.NotNull(nameof(hashChain), hashChain);
 		}
@@ -46,12 +49,10 @@ namespace WalletWasabi.Stores
 		private List<FilterModel> ImmatureFilters { get; set; }
 		private AsyncLock IndexLock { get; set; }
 
-		public async Task InitializeAsync(string workFolderPath)
+		public async Task InitializeAsync()
 		{
 			using (BenchmarkLogger.Measure())
 			{
-				WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
-				IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 				var indexFilePath = Path.Combine(WorkFolderPath, "MatureIndex.dat");
 				MatureIndexFileManager = new DigestableSafeMutexIoManager(indexFilePath, digestRandomIndex: -1);
 				var immatureIndexFilePath = Path.Combine(WorkFolderPath, "ImmatureIndex.dat");
