@@ -26,10 +26,13 @@ namespace WalletWasabi.Stores
 			AllTransactionStore transactionStore,
 			MempoolService mempoolService)
 		{
-			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
-			IoHelpers.EnsureDirectoryExists(WorkFolderPath);
+			var workFolderPath2 = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
+			IoHelpers.EnsureDirectoryExists(workFolderPath2);
 
-			Network = Guard.NotNull(nameof(network), network);
+			Guard.NotNull(nameof(network), network);
+			NetworkWorkFolderPath = Path.Combine(workFolderPath2, network.ToString());
+			IndexStoreFolderPath = Path.Combine(NetworkWorkFolderPath, "IndexStore");
+
 			IndexStore = indexStore;
 			TransactionStore = transactionStore;
 			MempoolService = mempoolService;
@@ -44,8 +47,8 @@ namespace WalletWasabi.Stores
 		}
 
 		public bool IsInitialized { get; private set; }
-		private string WorkFolderPath { get; }
-		public Network Network { get; }
+		private string NetworkWorkFolderPath { get; }
+		private string IndexStoreFolderPath { get; }
 
 		public IndexStore IndexStore { get; }
 		public AllTransactionStore TransactionStore { get; }
@@ -62,13 +65,10 @@ namespace WalletWasabi.Stores
 		{
 			using (BenchmarkLogger.Measure())
 			{
-				var networkWorkFolderPath = Path.Combine(WorkFolderPath, Network.ToString());
-				var indexStoreFolderPath = Path.Combine(networkWorkFolderPath, "IndexStore");
-
 				var initTasks = new[]
 				{
-					IndexStore.InitializeAsync(indexStoreFolderPath),
-					TransactionStore.InitializeAsync(networkWorkFolderPath)
+					IndexStore.InitializeAsync(IndexStoreFolderPath),
+					TransactionStore.InitializeAsync(NetworkWorkFolderPath)
 				};
 
 				await Task.WhenAll(initTasks).ConfigureAwait(false);
