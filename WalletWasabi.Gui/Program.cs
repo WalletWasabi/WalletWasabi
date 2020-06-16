@@ -58,7 +58,7 @@ namespace WalletWasabi.Gui
 			}
 			finally
 			{
-				CloseAsync().GetAwaiter().GetResult();
+				DisposeAsync().GetAwaiter().GetResult();
 			}
 		}
 
@@ -84,14 +84,14 @@ namespace WalletWasabi.Gui
 					Global.CrashReporter.SetException(ex);
 				}
 
-				await CloseAsync();
+				await DisposeAsync();
 
 				// There is no other way to stop the creation of the WasabiWindow.
 				Environment.Exit(1);
 			}
 		}
 
-		private static async Task CloseAsync()
+		private static async Task DisposeAsync()
 		{
 			var disposeGui = MainWindowViewModel.Instance is { };
 			if (disposeGui)
