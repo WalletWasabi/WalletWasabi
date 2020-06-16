@@ -27,7 +27,6 @@ namespace WalletWasabi.Stores
 			MempoolService mempoolService)
 		{
 			var workFolderPath2 = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
-			IoHelpers.EnsureDirectoryExists(workFolderPath2);
 
 			NetworkWorkFolderPath = Path.Combine(workFolderPath2, network.ToString());
 			IndexStoreFolderPath = Path.Combine(NetworkWorkFolderPath, "IndexStore");

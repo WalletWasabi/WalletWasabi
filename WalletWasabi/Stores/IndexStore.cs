@@ -51,6 +51,7 @@ namespace WalletWasabi.Stores
 			using (BenchmarkLogger.Measure())
 			{
 				WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
+				IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 				var indexFilePath = Path.Combine(WorkFolderPath, "MatureIndex.dat");
 				MatureIndexFileManager = new DigestableSafeMutexIoManager(indexFilePath, digestRandomIndex: -1);
 				var immatureIndexFilePath = Path.Combine(WorkFolderPath, "ImmatureIndex.dat");
