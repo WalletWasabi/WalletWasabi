@@ -178,7 +178,12 @@ namespace Mono.Options
 		bool IList.IsFixedSize => false;
 		public List<string> Values { get; set; } = new List<string>();
 		public OptionContext C { get; set; }
-		object IList.this[int index] { get => this[index]; set => (Values as IList)[index] = value; }
+
+		object IList.this[int index]
+		{
+			get => this[index];
+			set => (Values as IList)[index] = value;
+		}
 
 		public string this[int index]
 		{

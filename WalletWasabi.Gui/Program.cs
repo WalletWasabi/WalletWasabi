@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Dialogs;
 using Avalonia.Threading;
+using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Extensibility.Platforms;
 using Splat;
@@ -68,11 +69,12 @@ namespace WalletWasabi.Gui
 			try
 			{
 				AvalonStudio.Extensibility.Theme.ColorTheme.LoadTheme(AvalonStudio.Extensibility.Theme.ColorTheme.VisualStudioDark);
-				MainWindowViewModel.Instance = new MainWindowViewModel();
+
+				MainWindowViewModel.Instance = new MainWindowViewModel(Global.Network, Global.UiConfig, Global.WalletManager, new StatusBarViewModel(), IoC.Get<IShell>());
 
 				await Global.InitializeNoWalletAsync();
 
-				MainWindowViewModel.Instance.Initialize();
+				MainWindowViewModel.Instance.Initialize(Global.Nodes.ConnectedNodes, Global.Synchronizer);
 
 				Dispatcher.UIThread.Post(GC.Collect);
 			}

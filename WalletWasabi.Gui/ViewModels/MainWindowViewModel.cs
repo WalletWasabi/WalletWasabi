@@ -3,18 +3,18 @@ using AvalonStudio.Extensibility;
 using AvalonStudio.Extensibility.Dialogs;
 using AvalonStudio.Shell;
 using NBitcoin;
+using NBitcoin.Protocol;
 using ReactiveUI;
 using Splat;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Controls.LockScreen;
 using WalletWasabi.Gui.Tabs.WalletManager;
+using WalletWasabi.Services;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.ViewModels
 {
@@ -30,23 +30,21 @@ namespace WalletWasabi.Gui.ViewModels
 		private Stack<LockScreenViewModelBase> _lockScreens;
 		private bool _menuVisible;
 
-		public MainWindowViewModel()
+		public MainWindowViewModel(Network network, UiConfig uiConfig, WalletManager walletManager, StatusBarViewModel statusBarViewModel, IShell shell)
 		{
-			Shell = IoC.Get<IShell>();
-
-			var global = Locator.Current.GetService<Global>();
-
+			Network = network;
+			UiConfig = uiConfig;
+			Shell = shell;
+			WalletManager = walletManager;
 			_lockScreens = new Stack<LockScreenViewModelBase>();
 
 			_menuVisible = true;
 
-			var uiConfig = global.UiConfig;
-
 			WindowState = uiConfig.WindowState;
 
-			InitializeLockScreen(global.UiConfig);
+			InitializeLockScreen();
 
-			StatusBar = new StatusBarViewModel();
+			StatusBar = statusBarViewModel;
 
 			DisplayWalletManager();
 		}
@@ -80,9 +78,10 @@ namespace WalletWasabi.Gui.ViewModels
 			get => _menuVisible;
 			set => this.RaiseAndSetIfChanged(ref _menuVisible, value);
 		}
-
+		public Network Network { get; }
+		public UiConfig UiConfig { get; }
 		public IShell Shell { get; }
-
+		public WalletManager WalletManager { get; }
 		public static MainWindowViewModel Instance { get; internal set; }
 
 		public ModalDialogViewModelBase ModalDialog
@@ -127,25 +126,23 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		public void Initialize()
+		public void Initialize(NodesCollection connectedNodes, WasabiSynchronizer synchronizer)
 		{
-			var global = Locator.Current.GetService<Global>();
+			StatusBar.Initialize(connectedNodes, synchronizer);
 
-			StatusBar.Initialize(global.Nodes.ConnectedNodes, global.Synchronizer);
-
-			if (global.Network != Network.Main)
+			if (Network != Network.Main)
 			{
-				Instance.Title += $" - {global.Network}";
+				Title += $" - {Network}";
 			}
 		}
 
-		private void InitializeLockScreen(UiConfig uiConfig)
+		private void InitializeLockScreen()
 		{
-			uiConfig
+			UiConfig
 				.WhenAnyValue(x => x.LockScreenActive)
 				.Where(x => x)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => PushLockScreen(uiConfig.LockScreenPinHash.Length == 0
+				.Subscribe(_ => PushLockScreen(UiConfig.LockScreenPinHash.Length == 0
 						? (WasabiLockScreenViewModelBase)new SlideLockScreenViewModel()
 						: new PinLockScreenViewModel()));
 		}
@@ -153,11 +150,9 @@ namespace WalletWasabi.Gui.ViewModels
 		private void DisplayWalletManager()
 		{
 			var walletManagerViewModel = IoC.Get<WalletManagerViewModel>();
-			IoC.Get<IShell>().AddDocument(walletManagerViewModel);
+			Shell.AddDocument(walletManagerViewModel);
 
-			var global = Locator.Current.GetService<Global>();
-
-			var isAnyDesktopWalletAvailable = global.WalletManager.WalletDirectories.EnumerateWalletFiles().Any();
+			var isAnyDesktopWalletAvailable = WalletManager.WalletDirectories.EnumerateWalletFiles().Any();
 
 			if (isAnyDesktopWalletAvailable)
 			{

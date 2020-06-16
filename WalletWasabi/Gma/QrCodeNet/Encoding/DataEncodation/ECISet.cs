@@ -25,7 +25,12 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			Initialize(option);
 		}
 
-		public enum AppendOption { NameToValue, ValueToName, Both }
+		public enum AppendOption
+		{
+			NameToValue,
+			ValueToName,
+			Both
+		}
 
 		/// <summary>
 		/// Length indicator for number of ECI codewords
@@ -34,7 +39,12 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		/// 1 codeword length = 0. Any additional codeword add 1 to front. Eg: 3 = 110</remarks>
 		/// <description>Bits required for each one is:
 		/// one = 1, two = 2, three = 3</description>
-		private enum ECICodewordsLength { One = 0, Two = 2, Three = 6 }
+		private enum ECICodewordsLength
+		{
+			One = 0,
+			Two = 2,
+			Three = 6
+		}
 
 		private void AppendECI(string name, int value, AppendOption option)
 		{

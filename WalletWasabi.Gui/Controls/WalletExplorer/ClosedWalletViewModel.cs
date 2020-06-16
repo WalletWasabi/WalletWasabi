@@ -15,7 +15,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class ClosedWalletViewModel : WalletViewModelBase
 	{
-		public ClosedWalletViewModel(Wallet wallet) : base(wallet)
+		protected ClosedWalletViewModel(Wallet wallet) : base(wallet)
 		{
 			OpenWalletCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -38,5 +38,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public ReactiveCommand<Unit, Unit> OpenWalletCommand { get; }
+
+		public static WalletViewModelBase Create(Wallet wallet)
+		{
+			return wallet.KeyManager.IsHardwareWallet
+				? new ClosedHardwareWalletViewModel(wallet)
+				: wallet.KeyManager.IsWatchOnly
+					? new ClosedWatchOnlyWalletViewModel(wallet)
+					: new ClosedWalletViewModel(wallet);
+		}
 	}
 }
