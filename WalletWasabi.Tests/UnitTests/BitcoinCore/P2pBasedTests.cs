@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
 using WalletWasabi.Blockchain.Blocks;
+using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Services;
@@ -30,9 +31,9 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			{
 				var network = coreNode.Network;
 				var rpc = coreNode.RpcClient;
-				var bitcoinStore = new BitcoinStore();
 				var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName(), EnvironmentHelpers.GetMethodName());
-				await bitcoinStore.InitializeAsync(dir, network);
+				var bitcoinStore = new BitcoinStore(dir, network, new IndexStore(), new AllTransactionStore(), new SmartHeaderChain(), new MempoolService());
+				await bitcoinStore.InitializeAsync();
 
 				await rpc.GenerateAsync(101);
 
