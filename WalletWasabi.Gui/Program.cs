@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Dialogs;
+using Avalonia.ReactiveUI;
 using Avalonia.Threading;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
@@ -127,7 +128,7 @@ namespace WalletWasabi.Gui
 
 		private static void StartCrashReporter(string[] args)
 		{
-			var result = AppBuilder.Configure<CrashReportApp>();
+			var result = AppBuilder.Configure<CrashReportApp>().UseReactiveUI();
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
