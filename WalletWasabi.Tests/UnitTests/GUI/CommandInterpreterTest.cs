@@ -3,7 +3,7 @@ using System.IO;
 using WalletWasabi.Gui.CommandLine;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests
+namespace WalletWasabi.Tests.UnitTests.GUI
 {
 	public class CommandInterpreterTest
 	{
