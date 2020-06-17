@@ -26,8 +26,7 @@ Available commands are:
         mixer               
         findpassword        
 ",
-				textWriter.ToString()
-			);
+				textWriter.ToString());
 		}
 	}
 }
