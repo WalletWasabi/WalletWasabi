@@ -13,7 +13,7 @@ namespace WalletWasabi.Gui.CommandLine
 		{
 			TextWriter = textWriter;
 		}
-		public TextWriter TextWriter { get; }
+		private TextWriter TextWriter { get; }
 
 		/// <returns>If the GUI should run or not.</returns>
 		public async Task<bool> ExecuteCommandsAsync(string[] args, Command mixerCommand, Command passwordFinderCommand)
