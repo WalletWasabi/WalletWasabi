@@ -15,15 +15,6 @@ namespace Nito.AsyncEx
 
 		private int _command;
 
-		/// <summary>
-		/// Gets the static storage for local mutexes. It can be used to get an already existing AsyncLock by name of the mutex.
-		/// </summary>
-		private static Dictionary<string, AsyncMutex> AsyncMutexes { get; } = new Dictionary<string, AsyncMutex>();
-
-		private static object AsyncMutexesLock { get; } = new object();
-
-		public static bool IsAny => AsyncMutexes.Any();
-
 		public AsyncMutex(string name)
 		{
 			// https://docs.microsoft.com/en-us/dotnet/api/system.threading.mutex?view=netframework-4.8
@@ -70,6 +61,15 @@ namespace Nito.AsyncEx
 			StatusAcquired = 3,
 			StatusReleasing = 4
 		}
+
+		/// <summary>
+		/// Gets the static storage for local mutexes. It can be used to get an already existing AsyncLock by name of the mutex.
+		/// </summary>
+		private static Dictionary<string, AsyncMutex> AsyncMutexes { get; } = new Dictionary<string, AsyncMutex>();
+
+		private static object AsyncMutexesLock { get; } = new object();
+
+		public static bool IsAny => AsyncMutexes.Any();
 
 		public bool IsQuitPending { get; set; }
 
