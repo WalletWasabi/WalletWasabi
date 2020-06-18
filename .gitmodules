@@ -1,0 +1,4 @@
+[submodule "NBitcoin"]
+	path = NBitcoin
+	url = git@github.com:jmacato/NBitcoin
+	branch = nonsegwit-unfiltering
