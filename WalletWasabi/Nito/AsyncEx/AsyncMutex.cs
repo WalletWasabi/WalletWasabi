@@ -227,10 +227,12 @@ namespace Nito.AsyncEx
 			}
 			Done.Reset(); // Reset the Done.
 			ToDo.Set(); // Indicate that there is a new command.
+			bool firstRound = true;
 			while (!Done.WaitOne(1))
 			{
 				// Waiting for Done asynchronously.
-				await Task.Delay(pollInterval, cancellationToken).ConfigureAwait(false);
+				await Task.Delay(pollInterval, firstRound ? CancellationToken.None : cancellationToken).ConfigureAwait(false);
+				firstRound = false;
 			}
 			lock (LatestHoldLockExceptionLock)
 			{
@@ -317,9 +319,10 @@ namespace Nito.AsyncEx
 
 				return new Key(this);
 			}
-			catch (TaskCanceledException)
+			catch (TaskCanceledException ex)
 			{
 				// Let it go.
+				Logger.LogTrace(ex);
 			}
 			catch (AbandonedMutexException)
 			{
