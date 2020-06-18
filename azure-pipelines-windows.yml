@@ -12,7 +12,7 @@ jobs:
   - task: UseDotNet@2
     displayName: 'Install .NET Core 3'
     inputs:
-      version: 3.1.x
+      version: 3.1.201
   - task: DotNetCoreCLI@2
     displayName: 'Build Debug'
     inputs:
