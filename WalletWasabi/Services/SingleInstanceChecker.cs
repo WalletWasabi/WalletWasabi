@@ -32,9 +32,9 @@ namespace WalletWasabi.Services
 			{
 				SingleApplicationLockHolder = await mutex.LockAsync(cts.Token).ConfigureAwait(false);
 			}
-			catch (IOException)
+			catch (IOException ex)
 			{
-				throw new InvalidOperationException($"Wasabi is already running on {Network}!");
+				throw new InvalidOperationException($"Wasabi is already running on {Network}!", ex);
 			}
 		}
 
