@@ -11,6 +11,15 @@ namespace Nito.AsyncEx
 {
 	public class AsyncMutex
 	{
+		/// <summary>
+		/// Gets the static storage for local mutexes. It can be used to get an already existing AsyncLock by name of the mutex.
+		/// </summary>
+		private static Dictionary<string, AsyncMutex> AsyncMutexes { get; } = new Dictionary<string, AsyncMutex>();
+
+		private static object AsyncMutexesLock { get; } = new object();
+
+		public static bool IsAny => AsyncMutexes.Any();
+
 		private int _status;
 
 		private int _command;
@@ -90,15 +99,6 @@ namespace Nito.AsyncEx
 		private Thread MutexThread { get; set; }
 
 		private bool IsAlive => MutexThread?.IsAlive is true;
-
-		/// <summary>
-		/// Gets the static storage for local mutexes. It can be used to get an already existing AsyncLock by name of the mutex.
-		/// </summary>
-		private static Dictionary<string, AsyncMutex> AsyncMutexes { get; } = new Dictionary<string, AsyncMutex>();
-
-		private static object AsyncMutexesLock { get; } = new object();
-
-		public static bool IsAny => AsyncMutexes.Any();
 
 		private ManualResetEvent ToDo { get; } = new ManualResetEvent(false);
 		private ManualResetEvent Done { get; } = new ManualResetEvent(false);
