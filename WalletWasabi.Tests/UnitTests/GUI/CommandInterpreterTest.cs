@@ -1,6 +1,7 @@
 using Mono.Options;
 using System.IO;
 using WalletWasabi.Gui.CommandLine;
+using WalletWasabi.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.GUI
@@ -15,7 +16,16 @@ namespace WalletWasabi.Tests.UnitTests.GUI
 			await c.ExecuteCommandsAsync(new string[] { "wassabee", "--help" }, new Command("mixer"), new Command("findpassword"));
 
 			Assert.Equal(
-				@"Usage: wassabee [OPTIONS]+
+				$@"Wasabi Client Version: {Constants.ClientVersion}
+Compatible Coordinator Version: {Constants.ClientSupportBackendVersionText}
+Compatible Bitcoin Core and Bitcoin Knots Versions: {Constants.BitcoinCoreVersion}
+Compatible Hardware Wallet Interface Version: {Constants.HwiVersion}
+
+Usage: wassabee [OPTIONS]+
+Launches Wasabi Wallet.
+
+Options:
+Usage: wassabee [OPTIONS]+
 Launches Wasabi Wallet.
 
   -h, --help                 Displays help page and exit.

@@ -47,6 +47,7 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 			if (showHelp)
 			{
+				ShowVersion();
 				ShowHelp(suite.Options);
 				return false;
 			}
@@ -59,7 +60,7 @@ namespace WalletWasabi.Gui.CommandLine
 			return false;
 		}
 
-		private void EnsureBackwardCompatibilityWithOldParameters(ref string[] args)
+		private static void EnsureBackwardCompatibilityWithOldParameters(ref string[] args)
 		{
 			var listArgs = args.ToList();
 			if (listArgs.Remove("--mix") || listArgs.Remove("-m"))
@@ -71,20 +72,19 @@ namespace WalletWasabi.Gui.CommandLine
 
 		private void ShowVersion()
 		{
-			Console.WriteLine($"Wasabi Client Version: {Constants.ClientVersion}");
-			Console.WriteLine($"Compatible Coordinator Version: {Constants.ClientSupportBackendVersionText}");
-			Console.WriteLine($"Compatible Bitcoin Core and Bitcoin Knots Versions: {Constants.BitcoinCoreVersion}");
-			Console.WriteLine($"Compatible Hardware Wallet Interface Version: {Constants.HwiVersion}");
+			TextWriter.WriteLine($"Wasabi Client Version: {Constants.ClientVersion}");
+			TextWriter.WriteLine($"Compatible Coordinator Version: {Constants.ClientSupportBackendVersionText}");
+			TextWriter.WriteLine($"Compatible Bitcoin Core and Bitcoin Knots Versions: {Constants.BitcoinCoreVersion}");
+			TextWriter.WriteLine($"Compatible Hardware Wallet Interface Version: {Constants.HwiVersion}");
 		}
 
 		private void ShowHelp(OptionSet p)
 		{
-			ShowVersion();
-			Console.WriteLine();
-			Console.WriteLine("Usage: wassabee [OPTIONS]+");
-			Console.WriteLine("Launches Wasabi Wallet.");
-			Console.WriteLine();
-			Console.WriteLine("Options:");
+			TextWriter.WriteLine();
+			TextWriter.WriteLine("Usage: wassabee [OPTIONS]+");
+			TextWriter.WriteLine("Launches Wasabi Wallet.");
+			TextWriter.WriteLine();
+			TextWriter.WriteLine("Options:");
 			p.WriteOptionDescriptions(TextWriter);
 		}
 	}
