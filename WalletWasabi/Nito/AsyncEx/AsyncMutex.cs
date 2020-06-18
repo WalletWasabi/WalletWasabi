@@ -12,6 +12,18 @@ namespace Nito.AsyncEx
 	public class AsyncMutex
 	{
 		/// <summary>
+		/// I did this because enum cannot be Interlocked easily.
+		/// </summary>
+		public enum AsyncLockStatus
+		{
+			StatusUninitialized = 0,
+			StatusReady = 1,
+			StatusAcquiring = 2,
+			StatusAcquired = 3,
+			StatusReleasing = 4
+		}
+
+		/// <summary>
 		/// Gets the static storage for local mutexes. It can be used to get an already existing AsyncLock by name of the mutex.
 		/// </summary>
 		private static Dictionary<string, AsyncMutex> AsyncMutexes { get; } = new Dictionary<string, AsyncMutex>();
@@ -57,18 +69,6 @@ namespace Nito.AsyncEx
 				}
 			}
 			ChangeStatus(AsyncLockStatus.StatusReady, AsyncLockStatus.StatusUninitialized);
-		}
-
-		/// <summary>
-		/// I did this because enum cannot be Interlocked easily.
-		/// </summary>
-		public enum AsyncLockStatus
-		{
-			StatusUninitialized = 0,
-			StatusReady = 1,
-			StatusAcquiring = 2,
-			StatusAcquired = 3,
-			StatusReleasing = 4
 		}
 
 		public bool IsQuitPending { get; set; }
