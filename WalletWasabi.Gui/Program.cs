@@ -67,7 +67,7 @@ namespace WalletWasabi.Gui
 		private static bool ShouldRunGui(string[] args)
 		{
 			var daemon = new Daemon(Global);
-			var interpreter = new CommandInterpreter(Console.Out);
+			var interpreter = new CommandInterpreter(Console.Out, Console.Error);
 			var executionTask = interpreter.ExecuteCommandsAsync(
 				args,
 				new MixerCommand(daemon),

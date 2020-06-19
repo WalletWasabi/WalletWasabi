@@ -9,11 +9,13 @@ namespace WalletWasabi.Gui.CommandLine
 {
 	public class CommandInterpreter
 	{
-		public CommandInterpreter(TextWriter textWriter)
+		public CommandInterpreter(TextWriter outW, TextWriter errorW)
 		{
-			TextWriter = textWriter;
+			Out = outW;
+			Error = errorW;
 		}
-		private TextWriter TextWriter { get; }
+		private TextWriter Out { get; }
+		private TextWriter Error { get; }
 
 		/// <returns>If the GUI should run or not.</returns>
 		public async Task<bool> ExecuteCommandsAsync(string[] args, Command mixerCommand, Command passwordFinderCommand)
@@ -26,7 +28,7 @@ namespace WalletWasabi.Gui.CommandLine
 				return true;
 			}
 
-			var suite = new CommandSet("wassabee")
+			var suite = new CommandSet("wassabee", Out, Error)
 			{
 				"Usage: wassabee [OPTIONS]+",
 				"Launches Wasabi Wallet.",
@@ -48,7 +50,7 @@ namespace WalletWasabi.Gui.CommandLine
 			if (showHelp)
 			{
 				ShowVersion();
-				ShowHelp(suite.Options);
+				await suite.RunAsync(new string[] { "--help" });
 				return false;
 			}
 			else if (showVersion)
@@ -72,20 +74,10 @@ namespace WalletWasabi.Gui.CommandLine
 
 		private void ShowVersion()
 		{
-			TextWriter.WriteLine($"Wasabi Client Version: {Constants.ClientVersion}");
-			TextWriter.WriteLine($"Compatible Coordinator Version: {Constants.ClientSupportBackendVersionText}");
-			TextWriter.WriteLine($"Compatible Bitcoin Core and Bitcoin Knots Versions: {Constants.BitcoinCoreVersion}");
-			TextWriter.WriteLine($"Compatible Hardware Wallet Interface Version: {Constants.HwiVersion}");
-		}
-
-		private void ShowHelp(OptionSet p)
-		{
-			TextWriter.WriteLine();
-			TextWriter.WriteLine("Usage: wassabee [OPTIONS]+");
-			TextWriter.WriteLine("Launches Wasabi Wallet.");
-			TextWriter.WriteLine();
-			TextWriter.WriteLine("Options:");
-			p.WriteOptionDescriptions(TextWriter);
+			Out.WriteLine($"Wasabi Client Version: {Constants.ClientVersion}");
+			Out.WriteLine($"Compatible Coordinator Version: {Constants.ClientSupportBackendVersionText}");
+			Out.WriteLine($"Compatible Bitcoin Core and Bitcoin Knots Versions: {Constants.BitcoinCoreVersion}");
+			Out.WriteLine($"Compatible Hardware Wallet Interface Version: {Constants.HwiVersion}");
 		}
 	}
 }
