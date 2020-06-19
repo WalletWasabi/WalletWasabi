@@ -24,6 +24,11 @@ namespace WalletWasabi.Services
 
 		public async Task CheckAsync()
 		{
+			if (_disposedValue)
+			{
+				throw new ObjectDisposedException(nameof(SingleInstanceChecker));
+			}
+
 			// The disposal of this mutex handled by AsyncMutex.WaitForAllMutexToCloseAsync().
 			var mutex = new AsyncMutex($"{MutexString}-{Network}");
 			try
