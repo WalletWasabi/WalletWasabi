@@ -104,11 +104,12 @@ namespace WalletWasabi.Gui
 
 				WalletManager.OnDequeue += WalletManager_OnDequeue;
 				WalletManager.WalletRelevantTransactionProcessed += WalletManager_WalletRelevantTransactionProcessed;
-
 				BitcoinStore = new BitcoinStore(
 					Path.Combine(DataDir, "BitcoinStore"), Network,
 					new IndexStore(), new AllTransactionStore(), new SmartHeaderChain(), new MempoolService()
 				);
+
+				SingleInstanceChecker = new SingleInstanceChecker(Network);
 			}
 		}
 
@@ -117,6 +118,8 @@ namespace WalletWasabi.Gui
 		private bool InitializationStarted { get; set; } = false;
 
 		private CancellationTokenSource StoppingCts { get; }
+
+		private SingleInstanceChecker SingleInstanceChecker { get; }
 
 		public async Task InitializeNoWalletAsync()
 		{
@@ -127,6 +130,8 @@ namespace WalletWasabi.Gui
 
 			try
 			{
+				await SingleInstanceChecker.CheckAsync().ConfigureAwait(false);
+
 				Cache = new MemoryCache(new MemoryCacheOptions
 				{
 					SizeLimit = 1_000,
@@ -767,6 +772,15 @@ namespace WalletWasabi.Gui
 				if (cache is { })
 				{
 					cache.Dispose();
+				}
+
+				try
+				{
+					SingleInstanceChecker?.Dispose();
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError($"Error during the disposal of {nameof(SingleInstanceChecker)}: {ex}");
 				}
 
 				if (AsyncMutex.IsAny)
