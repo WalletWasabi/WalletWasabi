@@ -14,20 +14,23 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Stores;
 using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Blockchain.Transactions
 {
 	public class TransactionFactory
-	{
+	{ 
 		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
-		public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, string password = "", bool allowUnconfirmed = false)
+		public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, string password = "",
+			bool allowUnconfirmed = false, BitcoinStore bitcoinStore = null)
 		{
 			Network = network;
 			KeyManager = keyManager;
 			Coins = coins;
 			Password = password;
 			AllowUnconfirmed = allowUnconfirmed;
+			BitcoinStore = bitcoinStore;
 		}
 
 		public Network Network { get; }
@@ -35,7 +38,8 @@ namespace WalletWasabi.Blockchain.Transactions
 		public ICoinsView Coins { get; }
 		public string Password { get; }
 		public bool AllowUnconfirmed { get; }
-
+		public BitcoinStore BitcoinStore { get; }
+		
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
 		/// <exception cref="ArgumentOutOfRangeException"></exception>
@@ -261,7 +265,20 @@ namespace WalletWasabi.Blockchain.Transactions
 			}
 
 			UpdatePSBTInfo(psbt, spentCoins, changeHdPubKey);
-
+			
+			foreach (var input in spentCoins)
+			{
+				var coinInputTxID = input.TransactionId;
+				if(BitcoinStore.TransactionStore.TryGetTransaction(coinInputTxID, out var txn))
+				{
+					var psbtInput = psbt.Inputs.FirstOrDefault(x => x.PrevOut.Hash == coinInputTxID);
+					if(psbtInput != null)
+					{
+						psbtInput.NonWitnessUtxo = txn.Transaction;
+					}
+				}
+			}
+			
 			var label = SmartLabel.Merge(payments.Requests.Select(x => x.Label).Concat(spentCoins.Select(x => x.Label)));
 			var outerWalletOutputs = new List<SmartCoin>();
 			var innerWalletOutputs = new List<SmartCoin>();
