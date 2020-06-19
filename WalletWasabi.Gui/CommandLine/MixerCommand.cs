@@ -20,7 +20,7 @@ namespace WalletWasabi.Gui.CommandLine
 				"eg: ./wassabee mix --wallet:MyWalletName --keepalive",
 				{ "h|help", "Displays help page and exit.", x => ShowHelp = x != null },
 				{ "w|wallet=", "The name of the wallet file.", x => WalletName = x },
-				{ "destination:", "The name of the destination wallet file.", x => DestinationWalletName = x },
+				{ "destination=", "The name of the destination wallet file.", x => DestinationWalletName = x },
 				{ "keepalive", "Do not exit the software after mixing has been finished, rather keep mixing when new money arrives.", x => KeepMixAlive = x != null }
 			};
 		}
