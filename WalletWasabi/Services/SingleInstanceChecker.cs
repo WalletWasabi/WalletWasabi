@@ -24,12 +24,11 @@ namespace WalletWasabi.Services
 
 		public async Task CheckAsync()
 		{
-			using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.Zero);
-
 			// The disposal of this mutex handled by AsyncMutex.WaitForAllMutexToCloseAsync().
 			var mutex = new AsyncMutex($"{MutexString}-{Network}");
 			try
 			{
+				using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.Zero);
 				SingleApplicationLockHolder = await mutex.LockAsync(cts.Token).ConfigureAwait(false);
 			}
 			catch (IOException ex)
