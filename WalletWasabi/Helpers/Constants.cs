@@ -8,13 +8,9 @@ namespace WalletWasabi.Helpers
 {
 	public static class Constants
 	{
-		public static readonly Version ClientVersion = new Version(1, 1, 11, 1);
 		public const string ClientSupportBackendVersionMin = "3";
 		public const string ClientSupportBackendVersionMax = "4";
 		public const string BackendMajorVersion = "3";
-		public static readonly Version HwiVersion = new Version("1.1.0");
-		public static readonly Version BitcoinCoreVersion = new Version("0.19.1");
-		public static readonly Version LegalDocumentsVersion = new Version(2, 0);
 
 		/// <summary>
 		/// By changing this, we can force to start over the transactions file, so old incorrect transactions would be cleared.
@@ -23,35 +19,6 @@ namespace WalletWasabi.Helpers
 		public const string ConfirmedTransactionsVersion = "2";
 
 		public const uint ProtocolVersionWitnessVersion = 70012;
-
-		public static readonly NodeRequirement NodeRequirements = new NodeRequirement
-		{
-			RequiredServices = NodeServices.NODE_WITNESS,
-			MinVersion = ProtocolVersionWitnessVersion,
-			MinProtocolCapabilities = new ProtocolCapabilities { SupportGetBlock = true, SupportWitness = true, SupportMempoolQuery = true }
-		};
-
-		public static readonly NodeRequirement LocalNodeRequirements = new NodeRequirement
-		{
-			RequiredServices = NodeServices.NODE_WITNESS,
-			MinVersion = ProtocolVersionWitnessVersion,
-			MinProtocolCapabilities = new ProtocolCapabilities { SupportGetBlock = true, SupportWitness = true }
-		};
-
-		public static readonly NodeRequirement LocalBackendNodeRequirements = new NodeRequirement
-		{
-			RequiredServices = NodeServices.NODE_WITNESS,
-			MinVersion = ProtocolVersionWitnessVersion,
-			MinProtocolCapabilities = new ProtocolCapabilities
-			{
-				SupportGetBlock = true,
-				SupportWitness = true,
-				SupportMempoolQuery = true,
-				SupportSendHeaders = true,
-				SupportPingPong = true,
-				PeerTooOld = true
-			}
-		};
 
 		public const int P2wpkhInputSizeInBytes = 41;
 		public const int P2pkhInputSizeInBytes = 145;
@@ -87,6 +54,40 @@ namespace WalletWasabi.Helpers
 		public const decimal DefaultDustThreshold = 0.00005m;
 
 		public const long MaxSatoshisSupply = 2_100_000_000_000_000L;
+
+		public static readonly Version ClientVersion = new Version(1, 1, 11, 1);
+		public static readonly Version HwiVersion = new Version("1.1.0");
+		public static readonly Version BitcoinCoreVersion = new Version("0.19.1");
+		public static readonly Version LegalDocumentsVersion = new Version(2, 0);
+
+		public static readonly NodeRequirement NodeRequirements = new NodeRequirement
+		{
+			RequiredServices = NodeServices.NODE_WITNESS,
+			MinVersion = ProtocolVersionWitnessVersion,
+			MinProtocolCapabilities = new ProtocolCapabilities { SupportGetBlock = true, SupportWitness = true, SupportMempoolQuery = true }
+		};
+
+		public static readonly NodeRequirement LocalNodeRequirements = new NodeRequirement
+		{
+			RequiredServices = NodeServices.NODE_WITNESS,
+			MinVersion = ProtocolVersionWitnessVersion,
+			MinProtocolCapabilities = new ProtocolCapabilities { SupportGetBlock = true, SupportWitness = true }
+		};
+
+		public static readonly NodeRequirement LocalBackendNodeRequirements = new NodeRequirement
+		{
+			RequiredServices = NodeServices.NODE_WITNESS,
+			MinVersion = ProtocolVersionWitnessVersion,
+			MinProtocolCapabilities = new ProtocolCapabilities
+			{
+				SupportGetBlock = true,
+				SupportWitness = true,
+				SupportMempoolQuery = true,
+				SupportSendHeaders = true,
+				SupportPingPong = true,
+				PeerTooOld = true
+			}
+		};
 
 		public static readonly ExtPubKey FallBackCoordinatorExtPubKey = NBitcoinHelpers.BetterParseExtPubKey("xpub6D2PqhWBAbF3xgfaAUW73KnaCXUroArcgMTzNkNzfVX7ykkSzQGbqaXZeaNyxKbZojAAqDwsne6B7NcVhiTrXbGYrQNq1yF76NkgdonGrEa");
 
