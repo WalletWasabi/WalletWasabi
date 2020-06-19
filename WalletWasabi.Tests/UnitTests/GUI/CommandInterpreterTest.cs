@@ -68,7 +68,8 @@ wassabee: Use `wassabee help` for usage.
 			(StringWriter outW, StringWriter errorW, CommandInterpreter c) = Make();
 			await c.ExecuteCommandsAsync(new string[] { "invalid", "--help" }, new Command("mixer"), new Command("findpassword"));
 
-			Assert.Equal($@"Wasabi Client Version: {Constants.ClientVersion}
+			Assert.Equal(
+				$@"Wasabi Client Version: {Constants.ClientVersion}
 Compatible Coordinator Version: {Constants.ClientSupportBackendVersionText}
 Compatible Bitcoin Core and Bitcoin Knots Versions: {Constants.BitcoinCoreVersion}
 Compatible Hardware Wallet Interface Version: {Constants.HwiVersion}
