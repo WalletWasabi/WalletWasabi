@@ -46,21 +46,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					return;
 				}
 
-				AvaloniaThreadingExtensions.PostLogException(Dispatcher.UIThread, () =>
-				{
-					var newKey = Wallet.KeyManager.GetNextReceiveKey(label, out bool minGapLimitIncreased);
-					if (minGapLimitIncreased)
+				AvaloniaThreadingExtensions.PostLogException(Dispatcher.UIThread,
+					() =>
 					{
-						int minGapLimit = Wallet.KeyManager.MinGapLimit.Value;
-						int prevMinGapLimit = minGapLimit - 1;
-						NotificationHelpers.Warning($"{nameof(KeyManager.MinGapLimit)} increased from {prevMinGapLimit} to {minGapLimit}.");
-					}
+						var newKey = Wallet.KeyManager.GetNextReceiveKey(label, out bool minGapLimitIncreased);
+						if (minGapLimitIncreased)
+						{
+							int minGapLimit = Wallet.KeyManager.MinGapLimit.Value;
+							int prevMinGapLimit = minGapLimit - 1;
+							NotificationHelpers.Warning($"{nameof(KeyManager.MinGapLimit)} increased from {prevMinGapLimit} to {minGapLimit}.");
+						}
 
-					var newAddress = new AddressViewModel(newKey, Wallet.KeyManager, this);
-					Addresses.Insert(0, newAddress);
-					SelectedAddress = newAddress;
-					LabelSuggestion.Label = "";
-				});
+						var newAddress = new AddressViewModel(newKey, Wallet.KeyManager, this);
+						Addresses.Insert(0, newAddress);
+						SelectedAddress = newAddress;
+						LabelSuggestion.Label = "";
+					});
 			});
 
 			this.WhenAnyValue(x => x.SelectedAddress)
