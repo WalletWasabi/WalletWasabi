@@ -11,7 +11,9 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.CommandLine;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui
 {
@@ -26,7 +28,7 @@ namespace WalletWasabi.Gui
 			bool runGui = false;
 			try
 			{
-				Global = new Global();
+				Global = CreateGlobal();
 
 				Locator.CurrentMutable.RegisterConstant(Global);
 
@@ -62,6 +64,22 @@ namespace WalletWasabi.Gui
 					Logger.LogSoftwareStopped("Wasabi GUI");
 				}
 			}
+		}
+
+		private static Global CreateGlobal()
+		{
+			string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
+			Directory.CreateDirectory(dataDir);
+			string torLogsFile = Path.Combine(dataDir, "TorLogs.txt");
+
+			var uiConfig = new UiConfig(Path.Combine(dataDir, "UiConfig.json"));
+			uiConfig.LoadOrCreateDefaultFile();
+			var config = new Config(Path.Combine(dataDir, "Config.json"));
+			config.LoadOrCreateDefaultFile();
+			config.CorrectMixUntilAnonymitySet();
+			var walletManager = new WalletManager(config.Network, new WalletDirectories(dataDir));
+
+			return new Global(dataDir, torLogsFile, config, uiConfig, walletManager);
 		}
 
 		private static bool ShouldRunGui(string[] args)
