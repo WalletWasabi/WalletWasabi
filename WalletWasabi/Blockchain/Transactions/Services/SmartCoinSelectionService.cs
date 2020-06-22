@@ -15,20 +15,20 @@ namespace WalletWasabi.Blockchain.Transactions.Services
 		}
 		public bool AllowUnconfirmed { get; }
 
-		public List<SmartCoin> GetAllowedSmartCoinInputs(ICoinsView availableCoinsView)
-		{
-			List<SmartCoin> smartCoinInputs = AllowUnconfirmed // Inputs that can be used to build the transaction.
-					? availableCoinsView.ToList()
-					: availableCoinsView.Confirmed().ToList();
-
-			return smartCoinInputs;
-		}
-
 		public static List<SmartCoin> IntersectWithAllowedInputs(List<SmartCoin> smartCoinInputs, IEnumerable<OutPoint> allowedInputs)
 		{
 			smartCoinInputs = smartCoinInputs
 								.Where(x => allowedInputs.Any(y => y.Hash == x.TransactionId && y.N == x.Index))
 								.ToList();
+
+			return smartCoinInputs;
+		}
+
+		public List<SmartCoin> GetAllowedSmartCoinInputs(ICoinsView availableCoinsView)
+		{
+			List<SmartCoin> smartCoinInputs = AllowUnconfirmed // Inputs that can be used to build the transaction.
+					? availableCoinsView.ToList()
+					: availableCoinsView.Confirmed().ToList();
 
 			return smartCoinInputs;
 		}
