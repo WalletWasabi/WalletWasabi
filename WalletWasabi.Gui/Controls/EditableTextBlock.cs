@@ -65,7 +65,8 @@ namespace WalletWasabi.Gui.Controls
 					}
 				});
 
-			AddHandler(PointerPressedEvent,
+			AddHandler(
+				PointerPressedEvent,
 				(sender, e) =>
 				{
 					EditClickTimer.Stop();
@@ -94,7 +95,8 @@ namespace WalletWasabi.Gui.Controls
 				},
 				RoutingStrategies.Tunnel);
 
-			AddHandler(PointerReleasedEvent,
+			AddHandler(
+				PointerReleasedEvent,
 				(sender, e) =>
 				{
 					if (InEditMode)
