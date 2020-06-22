@@ -10,6 +10,7 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Transactions.Services;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -27,14 +28,15 @@ namespace WalletWasabi.Blockchain.Transactions
 			KeyManager = keyManager;
 			Coins = coins;
 			Password = password;
-			AllowUnconfirmed = allowUnconfirmed;
+
+			SmartCoinSelectionService = new SmartCoinSelectionService(allowUnconfirmed);
 		}
 
 		public Network Network { get; }
 		public KeyManager KeyManager { get; }
 		public ICoinsView Coins { get; }
 		public string Password { get; }
-		public bool AllowUnconfirmed { get; }
+		public SmartCoinSelectionService SmartCoinSelectionService { get; }
 
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
@@ -66,40 +68,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			}
 
 			// Get allowed coins to spend.
-			var availableCoinsView = Coins.Available();
-			List<SmartCoin> allowedSmartCoinInputs = AllowUnconfirmed // Inputs that can be used to build the transaction.
-					? availableCoinsView.ToList()
-					: availableCoinsView.Confirmed().ToList();
-			if (allowedInputs != null) // If allowedInputs are specified then select the coins from them.
-			{
-				if (!allowedInputs.Any())
-				{
-					throw new ArgumentException($"{nameof(allowedInputs)} is not null, but empty.");
-				}
-
-				allowedSmartCoinInputs = allowedSmartCoinInputs
-					.Where(x => allowedInputs.Any(y => y.Hash == x.TransactionId && y.N == x.Index))
-					.ToList();
-
-				// Add those that have the same script, because common ownership is already exposed.
-				// But only if the user didn't click the "max" button. In this case he'd send more money than what he'd think.
-				if (payments.ChangeStrategy != ChangeStrategy.AllRemainingCustom)
-				{
-					var allScripts = allowedSmartCoinInputs.Select(x => x.ScriptPubKey).ToHashSet();
-					foreach (var coin in availableCoinsView.Where(x => !allowedSmartCoinInputs.Any(y => x.TransactionId == y.TransactionId && x.Index == y.Index)))
-					{
-						if (!(AllowUnconfirmed || coin.Confirmed))
-						{
-							continue;
-						}
-
-						if (allScripts.Contains(coin.ScriptPubKey))
-						{
-							allowedSmartCoinInputs.Add(coin);
-						}
-					}
-				}
-			}
+			List<SmartCoin> allowedSmartCoinInputs = GetAllowedCoinsToSpend(payments.ChangeStrategy, allowedInputs);
 
 			// Get and calculate fee
 			Logger.LogInfo("Calculating dynamic transaction fee...");
@@ -305,6 +274,31 @@ namespace WalletWasabi.Blockchain.Transactions
 			var sign = !KeyManager.IsWatchOnly;
 			var spendsUnconfirmed = spentCoins.Any(c => !c.Confirmed);
 			return new BuildTransactionResult(new SmartTransaction(tx, Height.Unknown), psbt, spendsUnconfirmed, sign, fee, feePc, outerWalletOutputs, innerWalletOutputs, spentCoins);
+		}
+
+		private List<SmartCoin> GetAllowedCoinsToSpend(ChangeStrategy changeStrategy, IEnumerable<OutPoint> allowedInputs)
+		{
+			var availableCoinsView = Coins.Available();
+			List<SmartCoin> allowedSmartCoinInputs = SmartCoinSelectionService.GetAllowedSmartCoinInputs(availableCoinsView);
+
+			if (allowedInputs != null) // If allowedInputs are specified then select the coins from them.
+			{
+				if (!allowedInputs.Any())
+				{
+					throw new ArgumentException($"{nameof(allowedInputs)} is not null, but empty.");
+				}
+
+				allowedSmartCoinInputs = SmartCoinSelectionService.IntersectWithAllowedInputs(allowedSmartCoinInputs, allowedInputs);
+
+				// Add those that have the same script, because common ownership is already exposed.
+				// But only if the user didn't click the "max" button. In this case he'd send more money than what he'd think.
+				if (changeStrategy != ChangeStrategy.AllRemainingCustom)
+				{
+					allowedSmartCoinInputs = SmartCoinSelectionService.AppendThoseWithTheSameScript(allowedSmartCoinInputs, availableCoinsView);
+				}
+			}
+
+			return allowedSmartCoinInputs;
 		}
 
 		private PSBT TryNegotiatePayjoin(IPayjoinClient payjoinClient, TransactionBuilder builder, PSBT psbt)
