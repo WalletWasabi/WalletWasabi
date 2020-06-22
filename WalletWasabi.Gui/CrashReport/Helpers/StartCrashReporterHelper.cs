@@ -18,13 +18,7 @@ namespace WalletWasabi.Gui.CrashReport.Helpers
 				Environment.Exit(-1);
 			}
 
-			var jsonException = JsonConvert.SerializeObject(new SerializableException(e), Formatting.None)
-										   .Replace("\'", "\\X0009")
-										   .Replace("\"", "\\X0022")
-										   .Replace("\n", "\\X000A")
-										   .Replace("\r", "\\X000D")
-										   .Replace("\t", "\\X0009")
-										   .Replace(" ", "\\X0020");
+			var jsonException = JsonConvert.SerializeObject(new SerializableException(e), Formatting.None);
 
 			var args = $"crashreport -attempt={prevAttempts + 1} -exception={jsonException}";
 

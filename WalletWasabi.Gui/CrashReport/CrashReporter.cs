@@ -53,18 +53,5 @@ namespace WalletWasabi.Gui.CrashReport
 		{
 			SetException(SerializableException.ToBase64String(ex.ToSerializableException()), 1);
 		}
-
-		public override string ToString()
-		{
-			var exceptionToDisplay = Guard.NotNullOrEmptyOrWhitespace(nameof(ExceptionString), ExceptionString);
-			exceptionToDisplay = exceptionToDisplay.Replace("\\X0009", "\'")
-					 .Replace("\\X0022", "\"")
-					 .Replace("\\X000A", "\n")
-					 .Replace("\\X000D", "\r")
-					 .Replace("\\X0009", "\t")
-					 .Replace("\\X0020", " ");
-
-			return exceptionToDisplay;
-		}
 	}
 }
