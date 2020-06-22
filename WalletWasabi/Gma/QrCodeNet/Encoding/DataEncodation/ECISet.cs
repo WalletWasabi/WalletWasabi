@@ -5,15 +5,15 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 {
 	public sealed class ECISet
 	{
-		private Dictionary<string, int> _nameToValue;
-		private Dictionary<int, string> _valueToName;
-
 		/// <summary>
 		/// ISO/IEC 18004:2006 Chapter 6.4.2 Mode indicator = 0111 Page 23
 		/// </summary>
 		private const int ECIMode = 7;
 
 		private const int ECIIndicatorNumBits = 4;
+
+		private Dictionary<string, int> _nameToValue;
+		private Dictionary<int, string> _valueToName;
 
 		/// <summary>
 		/// Initialize ECI Set.

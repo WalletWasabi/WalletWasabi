@@ -9,7 +9,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.CommandLine
 {
-	internal class PasswordFinderCommand : Command
+	public class PasswordFinderCommand : Command
 	{
 		public PasswordFinderCommand(WalletManager walletManager)
 			: base("findpassword", "Try to find typos in provided password.")

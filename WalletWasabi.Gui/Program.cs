@@ -13,7 +13,9 @@ using System.Threading.Tasks;
 using WalletWasabi.Gui.CommandLine;
 using WalletWasabi.Gui.CrashReport;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui
 {
@@ -28,7 +30,7 @@ namespace WalletWasabi.Gui
 			bool runGui = false;
 			try
 			{
-				Global = new Global();
+				Global = CreateGlobal();
 
 				Locator.CurrentMutable.RegisterConstant(Global);
 
@@ -36,7 +38,7 @@ namespace WalletWasabi.Gui
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-				runGui = CommandInterpreter.ExecuteCommandsAsync(Global, args).GetAwaiter().GetResult();
+				runGui = ShouldRunGui(args);
 
 				if (Global.CrashReporter.IsReport)
 				{
@@ -61,6 +63,34 @@ namespace WalletWasabi.Gui
 			{
 				DisposeAsync().GetAwaiter().GetResult();
 			}
+		}
+
+		private static Global CreateGlobal()
+		{
+			string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
+			Directory.CreateDirectory(dataDir);
+			string torLogsFile = Path.Combine(dataDir, "TorLogs.txt");
+
+			var uiConfig = new UiConfig(Path.Combine(dataDir, "UiConfig.json"));
+			uiConfig.LoadOrCreateDefaultFile();
+			var config = new Config(Path.Combine(dataDir, "Config.json"));
+			config.LoadOrCreateDefaultFile();
+			config.CorrectMixUntilAnonymitySet();
+			var walletManager = new WalletManager(config.Network, new WalletDirectories(dataDir));
+
+			return new Global(dataDir, torLogsFile, config, uiConfig, walletManager);
+		}
+
+		private static bool ShouldRunGui(string[] args)
+		{
+			var daemon = new Daemon(Global);
+			var interpreter = new CommandInterpreter(Console.Out, Console.Error);
+			var executionTask = interpreter.ExecuteCommandsAsync(
+				args,
+				new MixerCommand(daemon),
+				new PasswordFinderCommand(Global.WalletManager),
+				new CrashReportCommand(Global.CrashReporter));
+			return executionTask.GetAwaiter().GetResult();
 		}
 
 		private static async void AppMainAsync(string[] args)
