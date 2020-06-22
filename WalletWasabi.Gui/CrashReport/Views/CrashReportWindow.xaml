@@ -1,7 +1,9 @@
 <cont:MetroWindow xmlns="https://github.com/avaloniaui"
                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                   xmlns:cont="clr-namespace:AvalonStudio.Shell.Controls;assembly=AvalonStudio.Shell"
+                  xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
                   xmlns:wasabi="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
+                  xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
                   x:Class="WalletWasabi.Gui.CrashReport.Views.CrashReportWindow"
                   Icon="avares://WalletWasabi.Gui/Assets/WasabiLogo256.png"
                   Title="{Binding Title}"
@@ -12,6 +14,9 @@
                   WindowState="{Binding WindowState}"
                   Classes="ToolWindow"
                   CanResize="False">
+  <i:Interaction.Behaviors>
+    <behaviors:CloseWindowBehavior CloseTrigger="{Binding CloseTrigger}" />
+  </i:Interaction.Behaviors>
   <DockPanel LastChildFill="True" Margin="25,0,25,25">
     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="5" Margin="0,25,0,0">
       <Button MinWidth="135" Height="35" Command="{Binding OpenLogCommand}">Open logs</Button>
