@@ -23,10 +23,10 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.1" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
-    <ProjectReference Include="../NBitcoin/NBitcoin/NBitcoin.csproj" />
-    <ProjectReference Include="../NBitcoin/NBitcoin.Secp256k1/NBitcoin.Secp256k1.csproj" />
+    <PackageReference Include="NBitcoin" Version="5.0.43" />
+    <PackageReference Include="NBitcoin.Secp256k1" Version="1.0.3" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <None Update="Legal\Assets\LegalDocuments.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -74,7 +74,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  
+
   <ItemGroup>
     <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
   </ItemGroup>
