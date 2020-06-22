@@ -44,8 +44,7 @@ namespace WalletWasabi.Models
 		public static SerializableException FromBase64String(string base64String)
 		{
 			var json = Encoding.UTF8.GetString(Convert.FromBase64String(base64String));
-			var se = JsonConvert.DeserializeObject<SerializableException>(json);
-			return se;
+			return JsonConvert.DeserializeObject<SerializableException>(json);
 		}
 	}
 }

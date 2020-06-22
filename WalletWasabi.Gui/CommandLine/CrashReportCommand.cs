@@ -3,8 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
-using Newtonsoft.Json;
-using WalletWasabi.Logging;
 using WalletWasabi.Gui.CrashReport;
 
 namespace WalletWasabi.Gui.CommandLine

@@ -42,7 +42,6 @@ using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.TorSocks5;
 using WalletWasabi.Wallets;
-using Constants = WalletWasabi.Helpers.Constants;
 
 namespace WalletWasabi.Gui
 {
@@ -86,6 +85,7 @@ namespace WalletWasabi.Gui
 		{
 			using (BenchmarkLogger.Measure())
 			{
+				CrashReporter = new CrashReporter();
 				StoppingCts = new CancellationTokenSource();
 				DataDir = dataDir;
 				Config = config;
@@ -117,7 +117,8 @@ namespace WalletWasabi.Gui
 		private CancellationTokenSource StoppingCts { get; }
 
 		private SingleInstanceChecker SingleInstanceChecker { get; }
-		public CrashReporter CrashReporter { get; set; } = new CrashReporter();
+		public CrashReporter CrashReporter { get; }
+
 		public async Task InitializeNoWalletAsync()
 		{
 			InitializationStarted = true;
