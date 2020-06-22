@@ -22,7 +22,7 @@
       <Button MinWidth="135" Height="35" Command="{Binding OpenLogCommand}">Open logs</Button>
       <Button MinWidth="135" Height="35" Background="{DynamicResource ThemeAccentBrush}" Command="{Binding OkCommand}">Ok</Button>
     </StackPanel>
-    <TextBlock DockPanel.Dock="Top" FontWeight="Bold" FontSize="18" Margin="0,0,0,25" Text="{Binding Message}" />
+    <TextBox DockPanel.Dock="Top" Text="{Binding Message}" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" FontWeight="Bold" FontSize="18" Margin="0,0,0,25" BorderThickness="0" />
     <TextBox Text="{Binding Details}" IsReadOnly="True" Margin="0 8" TextWrapping="Wrap" AcceptsReturn="True" BorderThickness="0" />
   </DockPanel>
 </cont:MetroWindow>

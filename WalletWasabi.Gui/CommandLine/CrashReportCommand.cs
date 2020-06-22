@@ -32,7 +32,7 @@ namespace WalletWasabi.Gui.CommandLine
 			{
 				Options.Parse(args);
 
-				CrashReporter.SetException(ExceptionString, int.Parse(Attempts));
+				CrashReporter.SetShowCrashReport(ExceptionString, int.Parse(Attempts));
 			}
 			catch (Exception ex)
 			{
