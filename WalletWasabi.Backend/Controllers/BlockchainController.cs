@@ -32,14 +32,14 @@ namespace WalletWasabi.Backend.Controllers
 			Global = global;
 		}
 
-		public IMemoryCache Cache { get; }
-		public Global Global { get; }
 		private IRPCClient RpcClient => Global.RpcClient;
-
 		private Network Network => Global.Config.Network;
 
 		public static Dictionary<uint256, string> TransactionHexCache { get; } = new Dictionary<uint256, string>();
 		public static object TransactionHexCacheLock { get; } = new object();
+
+		public IMemoryCache Cache { get; }
+		public Global Global { get; }
 
 		/// <summary>
 		/// Get fees for the requested confirmation targets based on Bitcoin Core's estimatesmartfee output.
