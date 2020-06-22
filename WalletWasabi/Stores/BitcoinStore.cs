@@ -68,7 +68,7 @@ namespace WalletWasabi.Stores
 				var initTasks = new[]
 				{
 					IndexStore.InitializeAsync(indexStoreFolderPath),
-					TransactionStore.InitializeAsync(networkWorkFolderPath, Network)
+					TransactionStore.InitializeAsync(networkWorkFolderPath)
 				};
 
 				await Task.WhenAll(initTasks).ConfigureAwait(false);
