@@ -83,6 +83,7 @@ Available commands are:
 
         mixer
         findpassword
+		crashreport
 ", outW.ToString());
 			Assert.Equal(
 				@"wassabee: Unknown command: invalid

@@ -15,12 +15,6 @@ namespace WalletWasabi.Gui.CrashReport.Views
 #if DEBUG
 			this.AttachDevTools();
 #endif
-			Closing += CrashReportWindow_ClosingAsync;
-		}
-
-		private void CrashReportWindow_ClosingAsync(object sender, CancelEventArgs e)
-		{
-			Environment.Exit(0);
 		}
 
 		private void InitializeComponent()
