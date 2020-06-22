@@ -27,7 +27,7 @@ Available commands are:
 
         mix
         findpassword
-		crashreport
+        crashreport
 ",
 				outW.ToString(),
 				new StringNoWhiteSpaceEqualityComparer());
@@ -88,7 +88,7 @@ Available commands are:
 
         mix
         findpassword
-		crashreport
+        crashreport
 ",
 				outW.ToString(),
 				new StringNoWhiteSpaceEqualityComparer());
