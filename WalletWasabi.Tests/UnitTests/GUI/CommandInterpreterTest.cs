@@ -1,7 +1,9 @@
 using Mono.Options;
+using System;
 using System.IO;
 using WalletWasabi.Gui.CommandLine;
 using WalletWasabi.Helpers;
+using WalletWasabi.Tests.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.GUI
@@ -12,7 +14,7 @@ namespace WalletWasabi.Tests.UnitTests.GUI
 		public async void ShowsHelpAsync()
 		{
 			(StringWriter outW, StringWriter errorW, CommandInterpreter c) = Make();
-			await c.ExecuteCommandsAsync(new string[] { "--help" }, new Command("mixer"), new Command("findpassword"), new Command("crashreport"));
+			await c.ExecuteCommandsAsync(new string[] { "--help" }, new Command("mix"), new Command("findpassword"), new Command("crashreport"));
 
 			Assert.Equal(
 				@"Usage: wassabee [OPTIONS]+
@@ -23,10 +25,12 @@ Launches Wasabi Wallet.
 
 Available commands are:
 
-        mixer
+        mix
         findpassword
+		crashreport
 ",
-				outW.ToString());
+				outW.ToString(),
+				new StringNoWhiteSpaceEqualityComparer());
 
 			Assert.Equal("", errorW.ToString());
 		}
@@ -35,7 +39,7 @@ Available commands are:
 		public async void ShowsVersionAsync()
 		{
 			(StringWriter outW, StringWriter errorW, CommandInterpreter c) = Make();
-			await c.ExecuteCommandsAsync(new string[] { "--version" }, new Command("mixer"), new Command("findpassword"), new Command("crashreport"));
+			await c.ExecuteCommandsAsync(new string[] { "--version" }, new Command("mix"), new Command("findpassword"), new Command("crashreport"));
 
 			Assert.Equal(
 				$@"Wasabi Client Version: {Constants.ClientVersion}
@@ -43,7 +47,8 @@ Compatible Coordinator Version: {Constants.ClientSupportBackendVersionText}
 Compatible Bitcoin Core and Bitcoin Knots Versions: {Constants.BitcoinCoreVersion}
 Compatible Hardware Wallet Interface Version: {Constants.HwiVersion}
 ",
-				outW.ToString());
+				outW.ToString(),
+				new StringNoWhiteSpaceEqualityComparer());
 
 			Assert.Equal("", errorW.ToString());
 		}
@@ -52,7 +57,7 @@ Compatible Hardware Wallet Interface Version: {Constants.HwiVersion}
 		public async void InvalidCommandAsync()
 		{
 			(StringWriter outW, StringWriter errorW, CommandInterpreter c) = Make();
-			await c.ExecuteCommandsAsync(new string[] { "invalid" }, new Command("mixer"), new Command("findpassword"), new Command("crashreport"));
+			await c.ExecuteCommandsAsync(new string[] { "invalid" }, new Command("mix"), new Command("findpassword"), new Command("crashreport"));
 
 			Assert.Equal("", outW.ToString());
 			Assert.Equal(
@@ -66,7 +71,7 @@ wassabee: Use `wassabee help` for usage.
 		public async void InvalidCommandWithHelpAsync()
 		{
 			(StringWriter outW, StringWriter errorW, CommandInterpreter c) = Make();
-			await c.ExecuteCommandsAsync(new string[] { "invalid", "--help" }, new Command("mixer"), new Command("findpassword"), new Command("crashreport"));
+			await c.ExecuteCommandsAsync(new string[] { "invalid", "--help" }, new Command("mix"), new Command("findpassword"), new Command("crashreport"));
 
 			Assert.Equal(
 				$@"Wasabi Client Version: {Constants.ClientVersion}
@@ -81,10 +86,13 @@ Launches Wasabi Wallet.
 
 Available commands are:
 
-        mixer
+        mix
         findpassword
 		crashreport
-", outW.ToString());
+",
+				outW.ToString(),
+				new StringNoWhiteSpaceEqualityComparer());
+
 			Assert.Equal(
 				@"wassabee: Unknown command: invalid
 wassabee: Use `wassabee help` for usage.
