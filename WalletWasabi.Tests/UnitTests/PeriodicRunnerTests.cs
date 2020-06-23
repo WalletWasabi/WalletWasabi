@@ -63,6 +63,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			// If Trigger called then run immediately.
 			runner.TriggerRound();
+
 			// Triggering a round meanwhile it is running should not be a problem.
 			runner.TriggerRound();
 			runner.TriggerRound();
