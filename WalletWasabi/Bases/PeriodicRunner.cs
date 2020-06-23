@@ -1,44 +1,48 @@
+#nullable enable
+
 using Microsoft.Extensions.Hosting;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Bases
 {
+	/// <summary>
+	/// <see cref="PeriodicRunner"/> is an extension of <see cref="BackgroundService"/> that is useful for tasks
+	/// that are supposed to repeat regularly.
+	/// </summary>
 	public abstract class PeriodicRunner : BackgroundService
 	{
 		protected PeriodicRunner(TimeSpan period)
 		{
-			Trigger = new SemaphoreSlim(0, 1);
 			Period = period;
-			ResetLastException();
+			ExceptionTracker = new LastExceptionTracker();
 		}
 
-		private SemaphoreSlim Trigger { get; set; }
 		public TimeSpan Period { get; }
-		public Exception LastException { get; set; }
-		public long LastExceptionCount { get; set; }
-		public DateTimeOffset LastExceptionFirstAppeared { get; set; }
 
-		private void ResetLastException()
-		{
-			LastException = null;
-			LastExceptionCount = 0;
-			LastExceptionFirstAppeared = DateTimeOffset.MinValue;
-		}
+		private volatile TaskCompletionSource<bool>? _tcs;
 
+		private LastExceptionTracker ExceptionTracker { get; }
+
+		/// <summary>
+		/// Normally, <see cref="ActionAsync(CancellationToken)"/> user-action is called every time that <see cref="Period"/> elapses.
+		/// This method allows to expedite the process by interrupting the waiting process.
+		/// </summary>
+		/// <remarks>
+		/// If <see cref="ExecuteAsync(CancellationToken)"/> is not actually in waiting phase, this method call makes
+		/// sure that next waiting process will be omitted altogether.
+		/// </remarks>
 		public void TriggerRound()
 		{
-			if (Trigger.CurrentCount == 0)
-			{
-				Trigger.Release();
-			}
+			// Note: All members of TaskCompletionSource<TResult> are thread-safe and may be used from multiple threads concurrently.
+			_tcs?.TrySetResult(true);
 		}
 
+		/// <summary>
+		/// Abstract method that is called every <see cref="Period"/> or sooner when <see cref="TriggerRound"/> is called.
+		/// </summary>
 		protected abstract Task ActionAsync(CancellationToken cancel);
 
 		/// <inheritdoc />
@@ -46,10 +50,15 @@ namespace WalletWasabi.Bases
 		{
 			while (!stoppingToken.IsCancellationRequested)
 			{
+				_tcs = new TaskCompletionSource<bool>();
+
 				try
 				{
+					// Do user action.
 					await ActionAsync(stoppingToken).ConfigureAwait(false);
-					LogAndResetLastExceptionIfNotNull();
+
+					// Log previous exception if any.
+					LogLastException(ExceptionTracker.LastException);
 				}
 				catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
 				{
@@ -57,54 +66,32 @@ namespace WalletWasabi.Bases
 				}
 				catch (Exception ex)
 				{
-					// Only log one type of exception once.
-					if (LastException is null // If the exception never came.
-						|| ex.GetType() != LastException.GetType() // Or the exception have different type from previous exception.
-						|| ex.Message != LastException.Message) // Or the exception have different message from previous exception.
-					{
-						// Then log and reset the last exception if another one came before.
-						LogAndResetLastExceptionIfNotNull();
-						// Set new exception and log it.
-						LastException = ex;
-						LastExceptionFirstAppeared = DateTimeOffset.UtcNow;
-						LastExceptionCount = 1;
-						Logger.LogError(ex);
-					}
-					else
-					{
-						// Increment the exception counter.
-						LastExceptionCount++;
-					}
+					// Exception encountered. Process it and log it, if it is first in the row.
+					LogLastException(ExceptionTracker.Process(ex));
+
+					Logger.LogError(ExceptionTracker.LastException!.Exception);
 				}
-				finally
+
+				// Wait for the next round.
+				try
 				{
-					try
-					{
-						await Trigger.WaitAsync(Period, stoppingToken).ConfigureAwait(false);
-					}
-					catch (TaskCanceledException ex)
-					{
-						Logger.LogTrace(ex);
-					}
+					await Task.WhenAny(_tcs.Task, Task.Delay(Period, stoppingToken)).ConfigureAwait(false);
+				}
+				catch (TaskCanceledException ex)
+				{
+					Logger.LogTrace(ex);
 				}
 			}
 		}
 
-		private void LogAndResetLastExceptionIfNotNull()
+		private void LogLastException(LastExceptionTracker.ExceptionInfo? info)
 		{
-			if (LastException != null)
+			if (info != null)
 			{
-				Logger.LogInfo($"Exception stopped coming. It came for {(DateTimeOffset.UtcNow - LastExceptionFirstAppeared).TotalSeconds} seconds, {LastExceptionCount} times: {LastException.ToTypeMessageString()}");
-				ResetLastException();
+				Logger.LogInfo($"Exception stopped coming. It came for " +
+							$"{(DateTimeOffset.UtcNow - info.FirstAppeared).TotalSeconds} seconds, " +
+							$"{info.ExceptionCount} times: {info.Exception.ToTypeMessageString()}");
 			}
-		}
-
-		public override void Dispose()
-		{
-			Trigger?.Dispose();
-			Trigger = null;
-
-			base.Dispose();
 		}
 	}
 }

@@ -1,9 +1,7 @@
-using Nito.AsyncEx;
+#nullable enable
+
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
@@ -18,64 +16,72 @@ namespace WalletWasabi.Tests.UnitTests
 			public AutoResetEvent NextRoundAutoResetEvent { get; private set; } = new AutoResetEvent(false);
 
 			public int RoundCounter { get; private set; }
+			private TimeSpan MaxNextRoundWaitTime { get; }
 
-			internal TestRunner(TimeSpan period) : base(period)
+			internal TestRunner(TimeSpan period, TimeSpan maxNextRoundWaitTime) : base(period)
 			{
+				MaxNextRoundWaitTime = maxNextRoundWaitTime;
 			}
 
 			protected override async Task ActionAsync(CancellationToken cancel)
 			{
 				// Add some delay to simulate work.
-				await Task.Delay(50).ConfigureAwait(false);
+				await Task.Delay(50, cancel).ConfigureAwait(false);
 				RoundCounter++;
 				NextRoundAutoResetEvent.Set();
+			}
+
+			public bool WaitForNextRound()
+			{
+				return NextRoundAutoResetEvent.WaitOne(MaxNextRoundWaitTime);
 			}
 		}
 
 		[Fact]
 		public async Task PeriodicRunnerTestsAsync()
 		{
-			var period = TimeSpan.FromSeconds(1);
-			var failTimeout = TimeSpan.FromSeconds(5);
-			var additionalDelay = TimeSpan.FromSeconds(0.5);
+			const double Scaler = 3.0;
+			TimeSpan leniencyThreshold = Scaler * TimeSpan.FromSeconds(0.5);
+			TimeSpan period = Scaler * TimeSpan.FromSeconds(1);
 
-			using var runner = new TestRunner(period);
-			Stopwatch sw = new Stopwatch();
+			using var runner = new TestRunner(period: period, maxNextRoundWaitTime: TimeSpan.FromSeconds(5));
 			using CancellationTokenSource cts = new CancellationTokenSource();
 
-			// First round starts immediately.
-
-			await runner.StartAsync(cts.Token);
+			var sw = new Stopwatch();
 			sw.Start();
-			Assert.True(runner.NextRoundAutoResetEvent.WaitOne(failTimeout));
+
+			// Round #1. This round starts immediately.
+			await runner.StartAsync(cts.Token).ConfigureAwait(false);
+
+			Assert.True(runner.WaitForNextRound());
 			Assert.Equal(1, runner.RoundCounter);
-			Assert.InRange(sw.Elapsed, TimeSpan.Zero, TimeSpan.Zero + additionalDelay);
+			Assert.InRange(sw.Elapsed, TimeSpan.Zero, 1 * runner.Period + leniencyThreshold); // Full period must elapse.
 
-			// Second round start only after Period is elapsed.
-			Assert.True(runner.NextRoundAutoResetEvent.WaitOne(failTimeout));
+			// Round #2.
+			Assert.True(runner.WaitForNextRound());
 			Assert.Equal(2, runner.RoundCounter);
-			Assert.InRange(sw.Elapsed, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1) + additionalDelay);
+			Assert.InRange(sw.Elapsed, 1 * runner.Period, 2 * runner.Period + leniencyThreshold); // Full period must elapse.
 
-			// Third round start only after Period is elapsed.
-			Assert.True(runner.NextRoundAutoResetEvent.WaitOne(failTimeout));
+			// Round #3.
+			Assert.True(runner.WaitForNextRound());
 			Assert.Equal(3, runner.RoundCounter);
-			Assert.InRange(sw.Elapsed, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(2) + additionalDelay);
+			Assert.InRange(sw.Elapsed, 2 * runner.Period, 3 * runner.Period + leniencyThreshold); // Full period must elapse.
 
-			// If Trigger called then run immediately.
+			// Run immediately next round when trigger is called.
 			runner.TriggerRound();
-			// Triggering a round meanwhile it is running should not be a problem.
+
+			// Repeated triggers should do nothing when not in waiting state.
 			runner.TriggerRound();
 			runner.TriggerRound();
 			runner.TriggerRound();
 			runner.TriggerRound();
-			Assert.True(runner.NextRoundAutoResetEvent.WaitOne(failTimeout));
+
+			// Round #4.
+			Assert.True(runner.WaitForNextRound());
 			Assert.Equal(4, runner.RoundCounter);
-			Assert.InRange(sw.Elapsed, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(2) + additionalDelay);
+			Assert.InRange(sw.Elapsed, 2 * runner.Period, 3 * runner.Period + leniencyThreshold); // Elapsed time should not change much from the last round.
 
-			// If Trigger was called during the actual run it should one more time but only once!
-			await Task.Delay(period / 2);
-			Assert.Equal(5, runner.RoundCounter);
+			await runner.StopAsync(cts.Token).ConfigureAwait(false);
 		}
 	}
 }
-;
