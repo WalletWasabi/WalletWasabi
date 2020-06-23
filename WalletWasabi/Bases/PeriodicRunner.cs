@@ -64,6 +64,7 @@ namespace WalletWasabi.Bases
 					{
 						// Then log and reset the last exception if another one came before.
 						LogAndResetLastExceptionIfNotNull();
+
 						// Set new exception and log it.
 						LastException = ex;
 						LastExceptionFirstAppeared = DateTimeOffset.UtcNow;
