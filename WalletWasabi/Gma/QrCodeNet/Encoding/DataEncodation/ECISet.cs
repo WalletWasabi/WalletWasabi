@@ -5,15 +5,15 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 {
 	public sealed class ECISet
 	{
-		private Dictionary<string, int> _nameToValue;
-		private Dictionary<int, string> _valueToName;
-
 		/// <summary>
 		/// ISO/IEC 18004:2006 Chapter 6.4.2 Mode indicator = 0111 Page 23
 		/// </summary>
 		private const int ECIMode = 7;
 
 		private const int ECIIndicatorNumBits = 4;
+
+		private Dictionary<string, int> _nameToValue;
+		private Dictionary<int, string> _valueToName;
 
 		/// <summary>
 		/// Initialize ECI Set.
@@ -25,7 +25,12 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			Initialize(option);
 		}
 
-		public enum AppendOption { NameToValue, ValueToName, Both }
+		public enum AppendOption
+		{
+			NameToValue,
+			ValueToName,
+			Both
+		}
 
 		/// <summary>
 		/// Length indicator for number of ECI codewords
@@ -34,7 +39,40 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		/// 1 codeword length = 0. Any additional codeword add 1 to front. Eg: 3 = 110</remarks>
 		/// <description>Bits required for each one is:
 		/// one = 1, two = 2, three = 3</description>
-		private enum ECICodewordsLength { One = 0, Two = 2, Three = 6 }
+		private enum ECICodewordsLength
+		{
+			One = 0,
+			Two = 2,
+			Three = 6
+		}
+
+		/// <remarks>ISO/IEC 18004:2006E ECI Designator Page 24</remarks>
+		/// <param name="eCIValue">Range: 0 ~ 999999</param>
+		/// <returns>Number of Codewords(Byte) for ECI Assignment Value</returns>
+		private static int NumOfCodewords(int eCIValue)
+		{
+			if (eCIValue >= 0 && eCIValue <= 127)
+			{
+				return 1;
+			}
+			else if (eCIValue > 127 && eCIValue <= 16383)
+			{
+				return 2;
+			}
+			else if (eCIValue > 16383 && eCIValue <= 999999)
+			{
+				return 3;
+			}
+			else
+			{
+				throw new ArgumentOutOfRangeException($"{nameof(eCIValue)} should be in range: 0 to 999999.");
+			}
+		}
+
+		/// <remarks>ISO/IEC 18004:2006E ECI Designator Page 24</remarks>
+		/// <param name="eCIValue">Range: 0 ~ 999999</param>
+		/// <returns>Number of bits for ECI Assignment Value</returns>
+		private static int NumOfAssignmentBits(int eCIValue) => NumOfCodewords(eCIValue) * 8;
 
 		private void AppendECI(string name, int value, AppendOption option)
 		{
@@ -101,6 +139,11 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			AppendECI("utf-8", 26, option);
 		}
 
+		/// <remarks>ISO/IEC 18004:2006E ECI Designator Page 24</remarks>
+		/// <param name="eCIValue">Range: 0 ~ 999999</param>
+		/// <returns>Number of bits for ECI Header</returns>
+		internal static int NumOfECIHeaderBits(int eCIValue) => NumOfAssignmentBits(eCIValue) + 4;
+
 		internal int GetECIValueByName(string encodingName)
 		{
 			if (_nameToValue is null)
@@ -134,39 +177,6 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 				throw new ArgumentOutOfRangeException($"ECI does not contain value: {eCIValue}.");
 			}
 		}
-
-		/// <remarks>ISO/IEC 18004:2006E ECI Designator Page 24</remarks>
-		/// <param name="eCIValue">Range: 0 ~ 999999</param>
-		/// <returns>Number of Codewords(Byte) for ECI Assignment Value</returns>
-		private static int NumOfCodewords(int eCIValue)
-		{
-			if (eCIValue >= 0 && eCIValue <= 127)
-			{
-				return 1;
-			}
-			else if (eCIValue > 127 && eCIValue <= 16383)
-			{
-				return 2;
-			}
-			else if (eCIValue > 16383 && eCIValue <= 999999)
-			{
-				return 3;
-			}
-			else
-			{
-				throw new ArgumentOutOfRangeException($"{nameof(eCIValue)} should be in range: 0 to 999999.");
-			}
-		}
-
-		/// <remarks>ISO/IEC 18004:2006E ECI Designator Page 24</remarks>
-		/// <param name="eCIValue">Range: 0 ~ 999999</param>
-		/// <returns>Number of bits for ECI Assignment Value</returns>
-		private static int NumOfAssignmentBits(int eCIValue) => NumOfCodewords(eCIValue) * 8;
-
-		/// <remarks>ISO/IEC 18004:2006E ECI Designator Page 24</remarks>
-		/// <param name="eCIValue">Range: 0 ~ 999999</param>
-		/// <returns>Number of bits for ECI Header</returns>
-		internal static int NumOfECIHeaderBits(int eCIValue) => NumOfAssignmentBits(eCIValue) + 4;
 
 		/// <returns>ECI table in Dictionary collection</returns>
 		public Dictionary<string, int> GetECITable()
