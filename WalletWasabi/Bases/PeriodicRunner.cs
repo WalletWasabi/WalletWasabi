@@ -13,14 +13,12 @@ namespace WalletWasabi.Bases
 	{
 		protected PeriodicRunner(TimeSpan period)
 		{
-			TriggeringCts = new CancellationTokenSource();
-			TriggerLock = new object();
+			Trigger = new SemaphoreSlim(0, 1);
 			Period = period;
 			ResetLastException();
 		}
 
-		private CancellationTokenSource TriggeringCts { get; set; }
-		private object TriggerLock { get; }
+		private SemaphoreSlim Trigger { get; set; }
 		public TimeSpan Period { get; }
 		public Exception LastException { get; set; }
 		public long LastExceptionCount { get; set; }
@@ -35,9 +33,9 @@ namespace WalletWasabi.Bases
 
 		public void TriggerRound()
 		{
-			lock (TriggerLock)
+			if (Trigger.CurrentCount == 0)
 			{
-				TriggeringCts?.Cancel();
+				Trigger.Release();
 			}
 		}
 
@@ -82,32 +80,11 @@ namespace WalletWasabi.Bases
 				{
 					try
 					{
-						CancellationToken? triggeringToken = null;
-						lock (TriggerLock)
-						{
-							triggeringToken = TriggeringCts?.Token;
-						}
-						if (triggeringToken is { })
-						{
-							using var linked = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, triggeringToken.Value);
-							await Task.Delay(Period, linked.Token).ConfigureAwait(false);
-						}
+						await Trigger.WaitAsync(Period, stoppingToken).ConfigureAwait(false);
 					}
 					catch (TaskCanceledException ex)
 					{
 						Logger.LogTrace(ex);
-					}
-					finally
-					{
-						lock (TriggerLock)
-						{
-							if (TriggeringCts.IsCancellationRequested)
-							{
-								TriggeringCts?.Dispose();
-								TriggeringCts = null;
-								TriggeringCts = new CancellationTokenSource();
-							}
-						}
 					}
 				}
 			}
@@ -124,8 +101,8 @@ namespace WalletWasabi.Bases
 
 		public override void Dispose()
 		{
-			TriggeringCts?.Dispose();
-			TriggeringCts = null;
+			Trigger?.Dispose();
+			Trigger = null;
 
 			base.Dispose();
 		}
