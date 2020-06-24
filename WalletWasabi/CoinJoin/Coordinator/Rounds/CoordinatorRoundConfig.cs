@@ -87,6 +87,8 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 		public Script GetNextCleanCoordinatorScript() => CoordinatorExtPubKey.Derive(0, false).Derive(CoordinatorExtPubKeyCurrentDepth, false).PubKey.WitHash.ScriptPubKey;
 
+		public Script DeriveCoordinatorScript(int index) => CoordinatorExtPubKey.Derive(0, false).Derive(index, false).PubKey.WitHash.ScriptPubKey;
+
 		public void MakeNextCoordinatorScriptDirty()
 		{
 			CoordinatorExtPubKeyCurrentDepth++;
