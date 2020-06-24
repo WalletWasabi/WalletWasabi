@@ -58,3 +58,9 @@ __Fact__: code review is one of the few scientifically proven code improvement t
 - Always fix CI.
 - Set Reviewers.
 - If it is UX related always ask Jumar or Dan to review.
+
+## Visual Studio Tips (Windows)
+
+### Clever Extensions
+
+- Open [Power Shell or Command Line with hotkey](https://marketplace.visualstudio.com/items?itemName=MadsKristensen.OpenCommandLine). By pressing Alt-Space a cmd prompt will be opened. You can change the default command line tool under Tools/Options/Command Line => Select preset. `Always open at solution` level option is also a useful feature.

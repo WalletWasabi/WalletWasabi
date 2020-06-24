@@ -596,7 +596,15 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 		private Money CalculateNewDenomination()
 		{
-			return Alices.Min(x => x.InputSum - x.NetworkFeeToPayAfterBaseDenomination);
+			var newDenomination = Alices.Min(x => x.InputSum - x.NetworkFeeToPayAfterBaseDenomination);
+			var collision = MixingLevels.GetLevelsExceptBase().FirstOrDefault(x => x.Denomination == newDenomination);
+			if (collision is { })
+			{
+				newDenomination -= Money.Satoshis(1);
+				Logger.LogDebug($"This is impossibru. The new base denomination is exactly the same as the one of the mixing level. Adjusted the new denomination one satoshi less.");
+			}
+
+			return newDenomination;
 		}
 
 		public async Task ProgressToOutputRegistrationOrFailAsync(params Alice[] alicesNotConfirmConnection)
