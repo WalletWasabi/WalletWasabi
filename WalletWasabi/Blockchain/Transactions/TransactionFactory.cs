@@ -14,6 +14,7 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Stores;
 using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Blockchain.Transactions
@@ -21,11 +22,12 @@ namespace WalletWasabi.Blockchain.Transactions
 	public class TransactionFactory
 	{
 		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
-		public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, string password = "", bool allowUnconfirmed = false)
+		public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, BitcoinStore bitcoinStore, string password = "", bool allowUnconfirmed = false)
 		{
 			Network = network;
 			KeyManager = keyManager;
 			Coins = coins;
+			Store = bitcoinStore;
 			Password = password;
 			AllowUnconfirmed = allowUnconfirmed;
 		}
@@ -33,6 +35,7 @@ namespace WalletWasabi.Blockchain.Transactions
 		public Network Network { get; }
 		public KeyManager KeyManager { get; }
 		public ICoinsView Coins { get; }
+		public BitcoinStore Store { get; }
 		public string Password { get; }
 		public bool AllowUnconfirmed { get; }
 
