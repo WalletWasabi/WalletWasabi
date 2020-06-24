@@ -3,6 +3,7 @@ using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.P2p;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Stores
@@ -18,9 +19,9 @@ namespace WalletWasabi.Stores
 			AllTransactionStore transactionStore,
 			MempoolService mempoolService)
 		{
-			IndexStore = indexStore;
-			TransactionStore = transactionStore;
-			MempoolService = mempoolService;
+			IndexStore = Guard.NotNull(nameof(indexStore), indexStore);
+			TransactionStore = Guard.NotNull(nameof(transactionStore), transactionStore);
+			MempoolService = Guard.NotNull(nameof(mempoolService), mempoolService);
 		}
 
 		/// <summary>
