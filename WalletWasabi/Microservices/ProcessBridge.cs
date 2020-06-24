@@ -18,8 +18,7 @@ namespace WalletWasabi.Microservices
 			ProcessPath = Guard.NotNullOrEmptyOrWhitespace(nameof(processPath), processPath);
 			if (!File.Exists(ProcessPath))
 			{
-				var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(ProcessPath);
-				throw new FileNotFoundException($"{fileNameWithoutExtension} is not found.", ProcessPath);
+				throw new FileNotFoundException($"{Path.GetFileNameWithoutExtension(ProcessPath)} is not found.", ProcessPath);
 			}
 		}
 
@@ -27,7 +26,6 @@ namespace WalletWasabi.Microservices
 
 		public Process Start(string arguments, bool openConsole)
 		{
-			var finalArguments = arguments;
 			var redirectStandardOutput = !openConsole;
 			var useShellExecute = openConsole;
 			var createNoWindow = !openConsole;
@@ -41,7 +39,7 @@ namespace WalletWasabi.Microservices
 			ProcessStartInfo startInfo = new ProcessStartInfo
 			{
 				FileName = ProcessPath,
-				Arguments = finalArguments,
+				Arguments = arguments,
 				RedirectStandardOutput = redirectStandardOutput,
 				UseShellExecute = useShellExecute,
 				CreateNoWindow = createNoWindow,
@@ -67,16 +65,11 @@ namespace WalletWasabi.Microservices
 
 		public async Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel)
 		{
-			int exitCode;
-
 			using var process = Start(arguments, openConsole);
 			await process.WaitForExitAsync(cancel).ConfigureAwait(false);
-
-			exitCode = process.ExitCode;
-
 			string responseString = openConsole ? string.Empty : await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
 
-			return (responseString, exitCode);
+			return (responseString, exitCode: process.ExitCode);
 		}
 	}
 }
