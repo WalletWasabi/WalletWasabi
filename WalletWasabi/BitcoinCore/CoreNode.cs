@@ -188,7 +188,7 @@ namespace WalletWasabi.BitcoinCore
 		{
 			var arguments = "-version";
 			var bridge = new BitcoindProcessBridge();
-			var (responseString, exitCode) = await bridge.SendCommandAsync(arguments, false, cancel).ConfigureAwait(false);
+			var (responseString, exitCode) = await bridge.SendCommandAsync(arguments, openConsole:false, cancel).ConfigureAwait(false);
 
 			if (exitCode != 0)
 			{

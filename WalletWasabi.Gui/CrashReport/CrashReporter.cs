@@ -32,7 +32,7 @@ namespace WalletWasabi.Gui.CrashReport
 				var args = $"crashreport -attempt=\"{Attempts + 1}\" -exception=\"{Base64ExceptionString}\"";
 
 				ProcessBridge processBridge = new ProcessBridge(Process.GetCurrentProcess().MainModule.FileName);
-				processBridge.Start(args, false);
+				processBridge.Start(args, openConsole: false);
 			}
 			catch (Exception ex)
 			{

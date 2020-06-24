@@ -1,9 +1,8 @@
 using System;
-using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
@@ -16,6 +15,7 @@ namespace WalletWasabi.Microservices
 		public ProcessBridge(string processPath)
 		{
 			ProcessPath = Guard.NotNullOrEmptyOrWhitespace(nameof(processPath), processPath);
+
 			if (!File.Exists(ProcessPath))
 			{
 				throw new FileNotFoundException($"{Path.GetFileNameWithoutExtension(ProcessPath)} is not found.", ProcessPath);
@@ -25,6 +25,39 @@ namespace WalletWasabi.Microservices
 		public string ProcessPath { get; }
 
 		public Process Start(string arguments, bool openConsole)
+		{
+			var process = CreateProcessInstance(arguments, openConsole);
+			try
+			{
+				process.Start();
+			}
+			catch
+			{
+				Logger.LogInfo($"{nameof(process.StartInfo.FileName)}: {process.StartInfo.FileName}");
+				Logger.LogInfo($"{nameof(process.StartInfo.Arguments)}: {process.StartInfo.Arguments}");
+				Logger.LogInfo($"{nameof(process.StartInfo.RedirectStandardOutput)}: {process.StartInfo.RedirectStandardOutput}");
+				Logger.LogInfo($"{nameof(process.StartInfo.UseShellExecute)}: {process.StartInfo.UseShellExecute}");
+				Logger.LogInfo($"{nameof(process.StartInfo.CreateNoWindow)}: {process.StartInfo.CreateNoWindow}");
+				Logger.LogInfo($"{nameof(process.StartInfo.WindowStyle)}: {process.StartInfo.WindowStyle}");
+				throw;
+			}
+			return process;
+		}
+
+		public async Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel)
+		{
+			// "using" makes sure the process exits at the end of this method.
+			using var process = new ProcessAsync(CreateProcessInstance(arguments, openConsole));
+
+			process.Start();
+
+			await process.WaitForExitAsync(cancel);
+
+			string responseString = openConsole ? string.Empty : await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+			return (responseString, exitCode: process.ExitCode);
+		}
+
+		protected Process CreateProcessInstance(string arguments, bool openConsole)
 		{
 			var redirectStandardOutput = !openConsole;
 			var useShellExecute = openConsole;
@@ -36,40 +69,15 @@ namespace WalletWasabi.Microservices
 				throw new PlatformNotSupportedException($"{RuntimeInformation.OSDescription} is not supported.");
 			}
 
-			ProcessStartInfo startInfo = new ProcessStartInfo
-			{
-				FileName = ProcessPath,
-				Arguments = arguments,
-				RedirectStandardOutput = redirectStandardOutput,
-				UseShellExecute = useShellExecute,
-				CreateNoWindow = createNoWindow,
-				WindowStyle = windowStyle
-			};
+			var p = new Process();
+			p.StartInfo.FileName = ProcessPath;
+			p.StartInfo.Arguments = arguments;
+			p.StartInfo.RedirectStandardOutput = redirectStandardOutput;
+			p.StartInfo.UseShellExecute = useShellExecute;
+			p.StartInfo.CreateNoWindow = createNoWindow;
+			p.StartInfo.WindowStyle = windowStyle;
 
-			try
-			{
-				return Process.Start(startInfo);
-			}
-			catch
-			{
-				Logger.LogInfo($"{nameof(startInfo.FileName)}: {startInfo.FileName}");
-				Logger.LogInfo($"{nameof(startInfo.Arguments)}: {startInfo.Arguments}");
-				Logger.LogInfo($"{nameof(startInfo.RedirectStandardOutput)}: {startInfo.RedirectStandardOutput}");
-				Logger.LogInfo($"{nameof(startInfo.UseShellExecute)}: {startInfo.UseShellExecute}");
-				Logger.LogInfo($"{nameof(startInfo.CreateNoWindow)}: {startInfo.CreateNoWindow}");
-				Logger.LogInfo($"{nameof(startInfo.WindowStyle)}: {startInfo.WindowStyle}");
-
-				throw;
-			}
-		}
-
-		public async Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel)
-		{
-			using var process = Start(arguments, openConsole);
-			await process.WaitForExitAsync(cancel).ConfigureAwait(false);
-			string responseString = openConsole ? string.Empty : await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
-
-			return (responseString, exitCode: process.ExitCode);
+			return p;
 		}
 	}
 }

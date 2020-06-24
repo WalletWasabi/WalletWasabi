@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
+using WalletWasabi.Microservices;
 
 namespace WalletWasabi.Helpers
 {
@@ -169,25 +170,30 @@ namespace WalletWasabi.Helpers
 		{
 			var escapedArgs = cmd.Replace("\"", "\\\"");
 
-			using var process = Process.Start(
-				new ProcessStartInfo
-				{
-					FileName = "/bin/sh",
-					Arguments = $"-c \"{escapedArgs}\"",
-					RedirectStandardOutput = true,
-					UseShellExecute = false,
-					CreateNoWindow = true,
-					WindowStyle = ProcessWindowStyle.Hidden
-				}
-			);
+			var startInfo = new ProcessStartInfo
+			{
+				FileName = "/bin/sh",
+				Arguments = $"-c \"{escapedArgs}\"",
+				RedirectStandardOutput = true,
+				UseShellExecute = false,
+				CreateNoWindow = true,
+				WindowStyle = ProcessWindowStyle.Hidden
+			};
+
 			if (waitForExit)
 			{
+				using var process = new ProcessAsync(startInfo);
+				process.Start();
+
 				await process.WaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
-				var exitCode = process.ExitCode;
-				if (exitCode != 0)
+
+				if (process.ExitCode != 0)
 				{
-					Logger.LogError($"{nameof(ShellExecAsync)} command: {cmd} exited with exit code: {exitCode}, instead of 0.");
+					Logger.LogError($"{nameof(ShellExecAsync)} command: {cmd} exited with exit code: {process.ExitCode}, instead of 0.");
 				}
+			} else
+			{
+				using var process = Process.Start(startInfo);
 			}
 		}
 

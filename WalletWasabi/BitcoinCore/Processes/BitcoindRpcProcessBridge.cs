@@ -4,13 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Configuration;
 using WalletWasabi.Helpers;
-using WalletWasabi.Interfaces;
 using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
 
@@ -37,41 +35,53 @@ namespace WalletWasabi.BitcoinCore.Processes
 		public PidFile PidFile { get; }
 		private int? CachedPid { get; set; }
 
+		private ProcessAsync _process = null;
+
 		public async Task StartAsync(CancellationToken cancel)
 		{
 			var ptcv = PrintToConsole ? 1 : 0;
-			using var process = Start($"{NetworkTranslator.GetCommandLineArguments(Network)} -datadir={DataDir} -printtoconsole={ptcv}", false);
+			_process = new ProcessAsync(CreateProcessInstance($"{NetworkTranslator.GetCommandLineArguments(Network)} -datadir={DataDir} -printtoconsole={ptcv}", openConsole: false));
+			_process.Start();
 
-			await PidFile.WriteFileAsync(process.Id).ConfigureAwait(false);
-			CachedPid = process.Id;
+			await PidFile.WriteFileAsync(_process.Id).ConfigureAwait(false);
+			CachedPid = _process.Id;
 
 			string latestFailureMessage = null;
-			while (true)
+
+			try
 			{
-				var ex = await RpcClient.TestAsync().ConfigureAwait(false);
-				if (ex is null)
+				while (true)
 				{
-					Logger.LogInfo($"RPC connection is successfully established.");
-					break;
-				}
-				else if (latestFailureMessage != ex.Message)
-				{
-					latestFailureMessage = ex.Message;
-					Logger.LogInfo($"Bitcoin Core is not yet ready... Reason: {latestFailureMessage}");
-				}
+					var ex = await RpcClient.TestAsync().ConfigureAwait(false);
+					if (ex is null)
+					{
+						Logger.LogInfo($"RPC connection is successfully established.");
+						break;
+					}
+					else if (latestFailureMessage != ex.Message)
+					{
+						latestFailureMessage = ex.Message;
+						Logger.LogInfo($"Bitcoin Core is not yet ready... Reason: {latestFailureMessage}");
+					}
 
-				if (process is null || process.HasExited)
-				{
-					throw new BitcoindException($"Failed to start daemon, location: '{process?.StartInfo.FileName} {process?.StartInfo.Arguments}'", ex);
-				}
+					if (_process is null || _process.HasExited)
+					{
+						throw new BitcoindException($"Failed to start daemon, location: '{_process?.StartInfo.FileName} {_process?.StartInfo.Arguments}'", ex);
+					}
 
-				if (cancel.IsCancellationRequested)
-				{
-					await StopAsync(true).ConfigureAwait(false);
-					cancel.ThrowIfCancellationRequested();
-				}
+					if (cancel.IsCancellationRequested)
+					{
+						await StopAsync(true).ConfigureAwait(false);
+						cancel.ThrowIfCancellationRequested();
+					}
 
-				await Task.Delay(100).ConfigureAwait(false); // So to leave some breathing room before the next check.
+					await Task.Delay(100).ConfigureAwait(false); // So to leave some breathing room before the next check.
+				}
+			}
+			catch (Exception)
+			{
+				_process?.Dispose();
+				throw;
 			}
 		}
 
@@ -86,26 +96,26 @@ namespace WalletWasabi.BitcoinCore.Processes
 				using CancellationTokenSource cts = new CancellationTokenSource(reasonableCoreShutdownTimeout);
 				int? pid = await PidFile.TryReadAsync().ConfigureAwait(false);
 
-				// If the cached pid is pid, then we own the process.
+				// If the cached PID is PID, then we own the process.
 				if (pid.HasValue && (!onlyOwned || CachedPid == pid))
 				{
 					try
 					{
-						using Process process = Process.GetProcessById(pid.Value);
-						try
-						{
-							await RpcClient.StopAsync().ConfigureAwait(false);
-							rpcRan = true;
-						}
-						catch (Exception ex)
-						{
-							process.Kill();
-							Logger.LogDebug(ex);
-						}
-						await process.WaitForExitAsync(cts.Token).ConfigureAwait(false);
+							try
+							{
+								await RpcClient.StopAsync().ConfigureAwait(false);
+								rpcRan = true;
+							}
+							catch (Exception ex)
+							{
+								_process.Kill();
+								Logger.LogDebug(ex);
+							}
+							await _process.WaitForExitAsync(cts.Token).ConfigureAwait(false);
 					}
 					finally
 					{
+						_process?.Dispose();
 						PidFile.TryDelete();
 					}
 				}

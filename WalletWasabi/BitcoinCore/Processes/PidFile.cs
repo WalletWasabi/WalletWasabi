@@ -26,7 +26,7 @@ namespace WalletWasabi.BitcoinCore.Processes
 		}
 
 		/// <summary>
-		/// Full path to PID file.
+		/// Gets full path to PID file.
 		/// </summary>
 		public string FilePath { get; }
 
