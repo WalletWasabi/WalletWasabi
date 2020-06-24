@@ -107,8 +107,9 @@ namespace WalletWasabi.Gui
 				var networkWorkFolderPath = Path.Combine(DataDir, "BitcoinStore", Network.ToString());
 				var transactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
 				var indexStore = new IndexStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, new SmartHeaderChain());
+				var mempoolService = new MempoolService();
 
-				BitcoinStore = new BitcoinStore(indexStore, transactionStore, new MempoolService());
+				BitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService);
 
 				SingleInstanceChecker = new SingleInstanceChecker(Network);
 			}

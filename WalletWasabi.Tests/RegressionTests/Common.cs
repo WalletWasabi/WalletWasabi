@@ -95,7 +95,8 @@ namespace WalletWasabi.Tests.RegressionTests
 			var dir = GetWorkDir(callerFilePath, callerMemberName);
 			var indexStore = new IndexStore(Path.Combine(dir, "indexStore"), network, new SmartHeaderChain());
 			var transactionStore = new AllTransactionStore(Path.Combine(dir, "transactionStore"), network);
-			var bitcoinStore = new BitcoinStore(indexStore, transactionStore, new MempoolService());
+			var mempoolService = new MempoolService();
+			var bitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService);
 			await bitcoinStore.InitializeAsync();
 			return ("password", global.RpcClient, network, global.Coordinator, serviceConfiguration, bitcoinStore, global);
 		}
