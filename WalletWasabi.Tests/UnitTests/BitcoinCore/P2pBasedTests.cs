@@ -34,7 +34,8 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName(), EnvironmentHelpers.GetMethodName());
 				var indexStore = new IndexStore(Path.Combine(dir, "indexStore"), network, new SmartHeaderChain());
 				var transactionStore = new AllTransactionStore(Path.Combine(dir, "transactionStore"), network);
-				var bitcoinStore = new BitcoinStore(indexStore, transactionStore, new MempoolService());
+				var mempoolService = new MempoolService();
+				var bitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService);
 				await bitcoinStore.InitializeAsync();
 
 				await rpc.GenerateAsync(101);
