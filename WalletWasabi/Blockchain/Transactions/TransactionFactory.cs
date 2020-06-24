@@ -359,6 +359,19 @@ namespace WalletWasabi.Blockchain.Transactions
 					psbt.AddKeyPath(changeHdPubKey.PubKey, rootKeyPath, changeHdPubKey.P2wpkhScript);
 				}
 			}
+
+			foreach (var input in spentCoins)
+			{
+				var coinInputTxID = input.TransactionId;
+				if (Store.TransactionStore.TryGetTransaction(coinInputTxID, out var txn))
+				{
+					var psbtInput = psbt.Inputs.FirstOrDefault(x => x.PrevOut.Hash == coinInputTxID);
+					if (psbtInput != null)
+					{
+						psbtInput.NonWitnessUtxo = txn.Transaction;
+					}
+				}
+			}
 		}
 	}
 }
