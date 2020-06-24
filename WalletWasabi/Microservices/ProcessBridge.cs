@@ -36,18 +36,6 @@ namespace WalletWasabi.Microservices
 			if (openConsole && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
 				throw new PlatformNotSupportedException($"{RuntimeInformation.OSDescription} is not supported.");
-				//var escapedArguments = (hwiPath + " " + arguments).Replace("\"", "\\\"");
-				//useShellExecute = false;
-				//if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-				//{
-				//	fileName = "xterm";
-				//	finalArguments = $"-e \"{escapedArguments}\"";
-				//}
-				//else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-				//{
-				//	fileName = "osascript";
-				//	finalArguments = $"-e 'tell application \"Terminal\" to do script \"{escapedArguments}\"'";
-				//}
 			}
 
 			ProcessStartInfo startInfo = new ProcessStartInfo
