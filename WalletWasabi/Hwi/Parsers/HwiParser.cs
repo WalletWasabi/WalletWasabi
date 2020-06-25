@@ -336,12 +336,10 @@ namespace WalletWasabi.Hwi.Parsers
 			options ??= Enumerable.Empty<HwiOption>();
 			var fullOptions = new List<HwiOption>(options);
 
-			// TODO: Hackfix for making testnet usable on
-			//		 Trezor HWW.
-			// if (network != Network.Main)
-			// {
-			// 	fullOptions.Insert(0, HwiOption.TestNet);
-			// }
+			if (network != Network.Main)
+			{
+				fullOptions.Insert(0, HwiOption.TestNet);
+			}
 
 			var optionsString = string.Join(" --", fullOptions.Select(x =>
 			{
