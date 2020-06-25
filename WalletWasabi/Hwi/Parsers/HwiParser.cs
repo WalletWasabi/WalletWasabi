@@ -290,7 +290,7 @@ namespace WalletWasabi.Hwi.Parsers
 		{
 			int startIndex = hwiResponse.IndexOf(substringFrom) + substringFrom.Length;
 			int endIndex = hwiResponse.IndexOf("-");
-			var versionString = hwiResponse.Substring(startIndex, endIndex - startIndex).Trim();
+			var versionString = hwiResponse[startIndex..endIndex].Trim();
 			version = null;
 			if (Version.TryParse(versionString, out Version v))
 			{
