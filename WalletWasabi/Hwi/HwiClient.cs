@@ -48,7 +48,7 @@ namespace WalletWasabi.Hwi
 			{
 				(string responseString, int exitCode) = await Bridge.SendCommandAsync(arguments, openConsole, cancel).ConfigureAwait(false);
 
-				ThrowIfError(options, arguments, responseString, exitCode);
+				ThrowIfError(responseString, options, arguments, exitCode);
 
 				return responseString;
 			}
@@ -85,7 +85,7 @@ namespace WalletWasabi.Hwi
 				string fixedArguments = HwiParser.ToArgumentString(Network.Main, options, command, commandArguments);
 				(string responseString, int exitCode) = await Bridge.SendCommandAsync(fixedArguments, openConsole, cancel).ConfigureAwait(false);
 
-				ThrowIfError(options, fixedArguments, responseString, exitCode);
+				ThrowIfError(responseString, options, fixedArguments, exitCode);
 
 				return responseString;
 			}
@@ -266,7 +266,7 @@ namespace WalletWasabi.Hwi
 
 		#region Helpers
 
-		private static void ThrowIfError(IEnumerable<HwiOption> options, string arguments, string responseString, int exitCode)
+		private static void ThrowIfError(string responseString, IEnumerable<HwiOption> options, string arguments, int exitCode)
 		{
 			if (exitCode != 0)
 			{
