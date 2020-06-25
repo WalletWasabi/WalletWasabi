@@ -599,7 +599,7 @@ namespace WalletWasabi.Packager
 					{
 						throw new Exception($"{publishedFolder} does not exist.");
 					}
-					var newFolderName = $"WasabiLinux-{VersionPrefix}";
+					var newFolderName = $"Wasabi-{VersionPrefix}";
 					var newFolderPath = Path.Combine(BinDistDirectory, newFolderName);
 					Directory.Move(publishedFolder, newFolderPath);
 					publishedFolder = newFolderPath;

@@ -107,6 +107,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			TransactionBuilder builder = Network.CreateTransactionBuilder();
 			builder.SetCoinSelector(new SmartCoinSelector(allowedSmartCoinInputs));
 			builder.AddCoins(allowedSmartCoinInputs.Select(c => c.GetCoin()));
+			builder.SetLockTime(lockTimeSelector());
 
 			foreach (var request in payments.Requests.Where(x => x.Amount.Type == MoneyRequestType.Value))
 			{
@@ -224,7 +225,6 @@ namespace WalletWasabi.Blockchain.Transactions
 			{
 				IEnumerable<ExtKey> signingKeys = KeyManager.GetSecrets(Password, spentCoins.Select(x => x.ScriptPubKey).ToArray());
 				builder = builder.AddKeys(signingKeys.ToArray());
-				builder.SetLockTime(lockTimeSelector());
 				builder.SignPSBT(psbt);
 
 				UpdatePSBTInfo(psbt, spentCoins, changeHdPubKey);
