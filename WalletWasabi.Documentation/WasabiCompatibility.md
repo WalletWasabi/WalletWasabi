@@ -30,4 +30,5 @@ Wasabi dependencies are:
 
 ## Hardware wallets
 
-Wasabi is using [HWI](https://github.com/bitcoin-core/HWI) as a bridge between the wallet and the hardware. Check the compatibility list there, but some hardware wallets supported by HWI still not compatible with the Wallet because they implemented custom workflows that are not compatible.
+Wasabi dependencies are:
+- [HWI](https://github.com/bitcoin-core/HWI), check the [device support](https://github.com/bitcoin-core/HWI#device-support) list there. Some hardware wallets supported by HWI still not compatible with the Wallet because they implemented custom workflows.
