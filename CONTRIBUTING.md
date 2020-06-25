@@ -100,6 +100,14 @@ private async void Synchronizer_ResponseArrivedAsync(object sender, EventArgs e)
 }
 ```
 
+## `ConfigureAwait(false)`
+
+Basically every async library method that does not touch the UI should use `ConfigureAwait(false)`
+
+```cs
+await MyMethodAsync().ConfigureAwait(false);
+```
+
 ## Disposing Subscriptions in ReactiveObjects
 
 **DO** follow [ReactiveUI's Subscription Disposing Conventions](https://reactiveui.net/docs/guidelines/framework/dispose-your-subscriptions).
