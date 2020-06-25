@@ -4,15 +4,12 @@ This document lists all the officially supported software and devices by Wasabi 
 
 # Officially Supported Operating systems
 
-MacOs 10.13+
 Windows 10
+macOs 10.13+
 Ubuntu 16.04+
 Fedora 30+
 Debian 9+
 CentOS 7+
-Oracle Linux 7+
-Linux Mint 18+
-openSUSE 15+
 
 # Officially Supported Hardware wallets
 
@@ -25,7 +22,7 @@ openSUSE 15+
 
 ## Operating systems
 
-Wasabi might work on OSs those support these:
+Wasabi might work on OSs those support these dependencies:
 - .NET Core [reqs](https://github.com/dotnet/core/blob/master/release-notes/3.1/3.1-supported-os.md)
 - Avalonia [reqs](https://github.com/AvaloniaUI/Avalonia/wiki/Runtime-Requirements)
 - NBitcoin dependencies and requirements are the same as .NET Core. 
@@ -33,4 +30,4 @@ Wasabi might work on OSs those support these:
 
 ## Hardware wallets
 
-Wasabi is using [HWI](https://github.com/bitcoin-core/HWI) as a bridge between the wallet and the hardware. Unfortunately, some hardware wallets supported by HWI implemented custom workflows that are not compatible with the Wallet.
+Wasabi is using [HWI](https://github.com/bitcoin-core/HWI) as a bridge between the wallet and the hardware. Check the compatibility list there, but some hardware wallets supported by HWI still not compatible with the Wallet because they implemented custom workflows that are not compatible.
