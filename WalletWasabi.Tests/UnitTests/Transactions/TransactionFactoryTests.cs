@@ -212,7 +212,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			}
 
 			var coinsView = new CoinsView(scoins.ToArray());
-			var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, password);
+			var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, null, password);
 
 			// Two 0.9btc coins are enough
 			var payment = new PaymentIntent(new Key().ScriptPubKey, Money.Coins(1.75m), label: "Sophie");
@@ -612,7 +612,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				}
 			}
 			var coinsView = new CoinsView(scoins);
-			return new TransactionFactory(Network.Main, keyManager, coinsView, password, allowUnconfirmed);
+			return new TransactionFactory(Network.Main, keyManager, coinsView, null, password, allowUnconfirmed);
 		}
 	}
 }

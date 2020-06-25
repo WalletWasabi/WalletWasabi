@@ -399,7 +399,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				}
 			}
 			var coinsView = new CoinsView(scoins);
-			return new TransactionFactory(Network.Main, keyManager, coinsView, password, allowUnconfirmed);
+			return new TransactionFactory(Network.Main, keyManager, coinsView, null, password, allowUnconfirmed);
 		}
 
 		private static (string, KeyManager) DefaultKeyManager()
