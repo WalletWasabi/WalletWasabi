@@ -22,7 +22,7 @@ This document lists all the officially supported software and devices by Wasabi 
 
 ## Operating systems
 
-Wasabi might work on OSs those support these dependencies:
+Wasabi dependencies are:
 - .NET Core [reqs](https://github.com/dotnet/core/blob/master/release-notes/3.1/3.1-supported-os.md).
 - Avalonia [reqs](https://github.com/AvaloniaUI/Avalonia/wiki/Runtime-Requirements).
 - NBitcoin dependencies and requirements are the same as .NET Core.
