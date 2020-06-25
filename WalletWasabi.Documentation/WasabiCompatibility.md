@@ -1,6 +1,6 @@
 # Abstract
 
-This document lists all the officially supported software and devices by Wasabi Wallet. This means that Wasabi makes tests on those systems and put all the efforts to make it work and maintain compatibility. One of our main goals is to not break user-space so we have to set up boundaries that we can responsibly maintain. This does not necessarily mean that systems that are not listed will not work - they might work but we will not give any support for them. There are a lot of potentially supported systems out there and more to come, but we can only promise support and stability on platforms that our dependencies support, too.
+This document lists all the officially supported software and devices by Wasabi Wallet. This means that Wasabi is tested on those systems and we put all the efforts to make it work and maintain compatibility. One of our main goals is to not break the user-space so we have to set up boundaries that we can responsibly maintain. This does not necessarily mean that systems that are not listed will not work - they might work but we do not officially support them. There are a lot of potentially supported systems out there and more to come, but we can only promise support and stability on platforms that our dependencies support, too.
 
 # Officially Supported Operating Systems
 
