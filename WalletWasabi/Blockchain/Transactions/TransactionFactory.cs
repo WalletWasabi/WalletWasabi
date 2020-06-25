@@ -360,6 +360,11 @@ namespace WalletWasabi.Blockchain.Transactions
 				}
 			}
 
+			if (Store is null)
+			{
+				return;
+			}
+
 			foreach (var input in spentCoins)
 			{
 				var coinInputTxID = input.TransactionId;
