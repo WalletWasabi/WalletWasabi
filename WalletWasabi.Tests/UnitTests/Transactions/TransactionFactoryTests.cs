@@ -529,10 +529,12 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void DoNotSignWatchOnly()
 		{
-			var transactionFactory = CreateTransactionFactory(new[]
-			{
-				("Pablo", 0, 1m, confirmed: true, anonymitySet: 1)
-			}, watchOnly: true);
+			var transactionFactory = CreateTransactionFactory(
+				new[]
+				{
+					("Pablo", 0, 1m, confirmed: true, anonymitySet: 1)
+				},
+				watchOnly: true);
 
 			var payment = new PaymentIntent(new Key().ScriptPubKey, MoneyRequest.CreateAllRemaining(subtractFee: true));
 
