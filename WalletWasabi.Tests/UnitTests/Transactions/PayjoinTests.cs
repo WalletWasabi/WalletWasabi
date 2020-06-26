@@ -18,6 +18,8 @@ using WalletWasabi.Models;
 using System.IO;
 using WalletWasabi.Helpers;
 using WalletWasabi.Stores;
+using WalletWasabi.Blockchain.Blocks;
+using WalletWasabi.Blockchain.Mempool;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions
 {
