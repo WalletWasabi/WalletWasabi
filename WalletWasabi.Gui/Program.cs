@@ -133,7 +133,7 @@ namespace WalletWasabi.Gui
 			if (Global?.CrashReporter?.IsInvokeRequired is true)
 			{
 				// Trigger the CrashReport process.
-				Global.CrashReporter.InvokeCrashReport();
+				Global.CrashReporter.TryInvokeCrashReport();
 			}
 
 			await Global?.DisposeAsync();

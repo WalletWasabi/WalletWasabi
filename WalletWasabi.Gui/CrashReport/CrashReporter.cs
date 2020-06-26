@@ -10,36 +10,41 @@ namespace WalletWasabi.Gui.CrashReport
 	{
 		private const int MaxRecursiveCalls = 5;
 		public int Attempts { get; private set; }
-		public string ExceptionString { get; private set; } = null;
+		public string Base64ExceptionString { get; private set; } = null;
 		public bool IsReport { get; private set; }
 		public bool HadException { get; private set; }
 		public bool IsInvokeRequired => !IsReport && HadException;
 		public SerializableException SerializedException { get; private set; }
 
-		public void InvokeCrashReport()
+		public void TryInvokeCrashReport()
 		{
-			var exceptionString = ExceptionString;
-			var prevAttempts = Attempts;
-
-			if (prevAttempts >= MaxRecursiveCalls)
+			try
 			{
-				Logger.LogCritical($"The crash helper has been called {MaxRecursiveCalls} times. Will not continue to avoid recursion errors.");
-				return;
+				if (Attempts >= MaxRecursiveCalls)
+				{
+					throw new InvalidOperationException($"The crash report has been called {MaxRecursiveCalls} times. Will not continue to avoid recursion errors.");
+				}
+				if (string.IsNullOrEmpty(Base64ExceptionString))
+				{
+					throw new InvalidOperationException($"The crash report exception message is empty.");
+				}
+
+				var args = $"crashreport -attempt=\"{Attempts + 1}\" -exception=\"{Base64ExceptionString}\"";
+
+				ProcessBridge processBridge = new ProcessBridge(Process.GetCurrentProcess().MainModule.FileName);
+				processBridge.Start(args, false);
 			}
-
-			var args = $"crashreport -attempt={prevAttempts + 1} -exception={exceptionString}";
-
-			ProcessBridge processBridge = new ProcessBridge(Process.GetCurrentProcess().MainModule.FileName);
-			processBridge.Start(args, false);
-
-			return;
+			catch (Exception ex)
+			{
+				Logger.LogWarning($"There was a problem while invoking crash report:{ex}.");
+			}
 		}
 
 		public void SetShowCrashReport(string base64ExceptionString, int attempts)
 		{
 			Attempts = attempts;
-			ExceptionString = base64ExceptionString;
-			SerializedException = SerializableException.FromBase64String(ExceptionString);
+			Base64ExceptionString = base64ExceptionString;
+			SerializedException = SerializableException.FromBase64String(Base64ExceptionString);
 			IsReport = true;
 		}
 
@@ -49,7 +54,7 @@ namespace WalletWasabi.Gui.CrashReport
 		public void SetException(Exception ex)
 		{
 			SerializedException = ex.ToSerializableException();
-			ExceptionString = SerializableException.ToBase64String(SerializedException);
+			Base64ExceptionString = SerializableException.ToBase64String(SerializedException);
 			HadException = true;
 		}
 	}
