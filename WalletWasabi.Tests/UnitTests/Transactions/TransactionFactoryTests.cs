@@ -217,10 +217,10 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			}
 
 			var coinsView = new CoinsView(scoins.ToArray());
-			
+
 			var bitcoinStore = new BitcoinStoreMock();
-			
-			var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, bitcoinStore, password);
+
+			var transactionFactory = new TransactionFactory(new TransactionFactoryConfiguration(Network.Main, keyManager, coinsView, bitcoinStore, password));
 
 			// Two 0.9btc coins are enough
 			var payment = new PaymentIntent(new Key().ScriptPubKey, Money.Coins(1.75m), label: "Sophie");
@@ -620,12 +620,12 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				}
 			}
 			var coinsView = new CoinsView(scoins);
- 
-			var bitcoinStore = new BitcoinStoreMock();
- 
-			var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, bitcoinStore, password);
 
-			return new TransactionFactory(Network.Main, keyManager, coinsView, bitcoinStore, password, allowUnconfirmed);
+			var bitcoinStore = new BitcoinStoreMock();
+
+			var transactionFactory = new TransactionFactory(new TransactionFactoryConfiguration(Network.Main, keyManager, coinsView, bitcoinStore, password));
+
+			return new TransactionFactory(new TransactionFactoryConfiguration(Network.Main, keyManager, coinsView, bitcoinStore, password, allowUnconfirmed));
 		}
 	}
 }

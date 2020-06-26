@@ -21,23 +21,19 @@ namespace WalletWasabi.Blockchain.Transactions
 {
 	public class TransactionFactory
 	{
-		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
-		public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, BitcoinStore store, string password = "", bool allowUnconfirmed = false)
+		public TransactionFactory(TransactionFactoryConfiguration config)
 		{
-			Network = Guard.NotNull(nameof(network), network);
-			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
-			Coins = Guard.NotNull(nameof(coins), coins);
-			Store = Guard.NotNull(nameof(store), store);
-			Password = password;
-			AllowUnconfirmed = allowUnconfirmed;
+			Config = Guard.NotNull(nameof(config), config);
 		}
 
-		public Network Network { get; }
-		public KeyManager KeyManager { get; }
-		public ICoinsView Coins { get; }
-		public BitcoinStore Store { get; }
-		public string Password { get; }
-		public bool AllowUnconfirmed { get; }
+		public TransactionFactoryConfiguration Config { get; }
+
+		public Network Network => Config.Network;
+		public KeyManager KeyManager => Config.KeyManager;
+		public ICoinsView Coins => Config.Coins;
+		public BitcoinStore Store => Config.Store;
+		public string Password => Config.Password;
+		public bool AllowUnconfirmed => Config.AllowUnconfirmed;
 
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>

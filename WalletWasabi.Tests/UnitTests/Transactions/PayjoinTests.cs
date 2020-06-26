@@ -404,10 +404,10 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				}
 			}
 			var coinsView = new CoinsView(scoins);
-			
+
 			var bitcoinStore = new BitcoinStoreMock();
 
-			return new TransactionFactory(Network.Main, keyManager, coinsView, bitcoinStore, password, allowUnconfirmed);
+			return new TransactionFactory(new TransactionFactoryConfiguration(Network.Main, keyManager, coinsView, bitcoinStore, password, allowUnconfirmed));
 		}
 
 		private static (string, KeyManager) DefaultKeyManager()
