@@ -222,6 +222,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			var bitcoinStore = new BitcoinStore(Path.Combine(dataDir, EnvironmentHelpers.GetMethodName()), Network.Main, new IndexStore(Network.Main, new SmartHeaderChain()), new AllTransactionStore(), new MempoolService());
 
+			bitcoinStore.InitializeAsync().Wait();
+
 			var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, bitcoinStore, password);
 
 			// Two 0.9btc coins are enough
@@ -626,6 +628,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var dataDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName());
 
 			var bitcoinStore = new BitcoinStore(Path.Combine(dataDir, EnvironmentHelpers.GetMethodName()), Network.Main, new IndexStore(Network.Main, new SmartHeaderChain()), new AllTransactionStore(), new MempoolService());
+
+			bitcoinStore.InitializeAsync().Wait();
 
 			var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, bitcoinStore, password);
 
