@@ -1,14 +1,19 @@
 using NBitcoin;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
+using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 using Xunit;
 
@@ -175,6 +180,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void SelectSameClusterCoins()
 		{
+
 			var (password, keyManager) = DefaultKeyManager();
 
 			keyManager.AssertCleanKeysIndexed();
@@ -212,7 +218,13 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			}
 
 			var coinsView = new CoinsView(scoins.ToArray());
-			var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, null, password);
+
+			var dataDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName());
+
+			var bitcoinStore = new BitcoinStore(Path.Combine(dataDir, EnvironmentHelpers.GetMethodName()), Network.Main,
+				new IndexStore(Network.Main, new SmartHeaderChain()), new AllTransactionStore(), new MempoolService());
+
+			var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, bitcoinStore, password);
 
 			// Two 0.9btc coins are enough
 			var payment = new PaymentIntent(new Key().ScriptPubKey, Money.Coins(1.75m), label: "Sophie");
@@ -612,7 +624,14 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				}
 			}
 			var coinsView = new CoinsView(scoins);
-			return new TransactionFactory(Network.Main, keyManager, coinsView, null, password, allowUnconfirmed);
+
+			var dataDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName());
+
+			var bitcoinStore = new BitcoinStore(Path.Combine(dataDir, EnvironmentHelpers.GetMethodName()), Network.Main, new IndexStore(Network.Main, new SmartHeaderChain()), new AllTransactionStore(), new MempoolService());
+
+			var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, bitcoinStore, password);
+
+			return new TransactionFactory(Network.Main, keyManager, coinsView, bitcoinStore, password, allowUnconfirmed);
 		}
 	}
 }

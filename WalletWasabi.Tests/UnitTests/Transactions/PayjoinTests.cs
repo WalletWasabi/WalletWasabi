@@ -15,6 +15,9 @@ using System.Net.Http;
 using System.Net;
 using System.Text;
 using WalletWasabi.Models;
+using System.IO;
+using WalletWasabi.Helpers;
+using WalletWasabi.Stores;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions
 {
@@ -399,7 +402,12 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				}
 			}
 			var coinsView = new CoinsView(scoins);
-			return new TransactionFactory(Network.Main, keyManager, coinsView, null, password, allowUnconfirmed);
+
+			var dataDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName());
+
+			var bitcoinStore = new BitcoinStore(Path.Combine(dataDir, EnvironmentHelpers.GetMethodName()), Network.Main, new IndexStore(Network.Main, new SmartHeaderChain()), new AllTransactionStore(), new MempoolService());
+
+			return new TransactionFactory(Network.Main, keyManager, coinsView, bitcoinStore, password, allowUnconfirmed);
 		}
 
 		private static (string, KeyManager) DefaultKeyManager()
