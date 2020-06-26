@@ -88,19 +88,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				// But only if the user didn't click the "max" button. In this case he'd send more money than what he'd think.
 				if (payments.ChangeStrategy != ChangeStrategy.AllRemainingCustom)
 				{
-					var allScripts = allowedSmartCoinInputs.Select(x => x.ScriptPubKey).ToHashSet();
-					foreach (var coin in availableCoinsView.Where(x => !allowedSmartCoinInputs.Any(y => x.TransactionId == y.TransactionId && x.Index == y.Index)))
-					{
-						if (!(AllowUnconfirmed || coin.Confirmed))
-						{
-							continue;
-						}
-
-						if (allScripts.Contains(coin.ScriptPubKey))
-						{
-							allowedSmartCoinInputs.Add(coin);
-						}
-					}
+					allowedSmartCoinInputs = ConsolidateReusedScripts(availableCoinsView, allowedSmartCoinInputs).ToList();
 				}
 			}
 
@@ -308,6 +296,26 @@ namespace WalletWasabi.Blockchain.Transactions
 			var sign = !KeyManager.IsWatchOnly;
 			var spendsUnconfirmed = spentCoins.Any(c => !c.Confirmed);
 			return new BuildTransactionResult(new SmartTransaction(tx, Height.Unknown), psbt, spendsUnconfirmed, sign, fee, feePc, outerWalletOutputs, innerWalletOutputs, spentCoins);
+		}
+
+		private IEnumerable<SmartCoin> ConsolidateReusedScripts(ICoinsView availableCoinsView, IEnumerable<SmartCoin> allowedSmartCoinInputs)
+		{
+			var allScripts = allowedSmartCoinInputs.Select(x => x.ScriptPubKey).ToHashSet();
+			var consolidation = allowedSmartCoinInputs.ToList();
+			foreach (var coin in availableCoinsView.Where(x => !consolidation.Any(y => x.TransactionId == y.TransactionId && x.Index == y.Index)))
+			{
+				if (!(AllowUnconfirmed || coin.Confirmed))
+				{
+					continue;
+				}
+
+				if (allScripts.Contains(coin.ScriptPubKey))
+				{
+					consolidation.Add(coin);
+				}
+			}
+
+			return consolidation;
 		}
 
 		private PSBT TryNegotiatePayjoin(IPayjoinClient payjoinClient, TransactionBuilder builder, PSBT psbt)
