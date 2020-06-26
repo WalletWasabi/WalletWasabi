@@ -38,7 +38,8 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			Directory.CreateDirectory(testnetBackendDir);
 			Thread.Sleep(100);
 			var config = new Config(
-				BackendRegTestNode.RpcClient.Network, BackendRegTestNode.RpcClient.CredentialString.ToString(),
+				BackendRegTestNode.RpcClient.Network,
+				BackendRegTestNode.RpcClient.CredentialString.ToString(),
 				new IPEndPoint(IPAddress.Loopback, Network.Main.DefaultPort),
 				new IPEndPoint(IPAddress.Loopback, Network.TestNet.DefaultPort),
 				BackendRegTestNode.P2pEndPoint,
