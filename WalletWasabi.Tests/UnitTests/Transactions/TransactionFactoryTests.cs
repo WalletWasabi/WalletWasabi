@@ -180,7 +180,6 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void SelectSameClusterCoins()
 		{
-
 			var (password, keyManager) = DefaultKeyManager();
 
 			keyManager.AssertCleanKeysIndexed();
@@ -221,8 +220,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			var dataDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName());
 
-			var bitcoinStore = new BitcoinStore(Path.Combine(dataDir, EnvironmentHelpers.GetMethodName()), Network.Main,
-				new IndexStore(Network.Main, new SmartHeaderChain()), new AllTransactionStore(), new MempoolService());
+			var bitcoinStore = new BitcoinStore(Path.Combine(dataDir, EnvironmentHelpers.GetMethodName()), Network.Main, new IndexStore(Network.Main, new SmartHeaderChain()), new AllTransactionStore(), new MempoolService());
 
 			var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, bitcoinStore, password);
 
