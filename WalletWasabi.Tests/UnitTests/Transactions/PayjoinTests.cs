@@ -404,12 +404,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				}
 			}
 			var coinsView = new CoinsView(scoins);
-
-			var dataDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName());
-
-			var bitcoinStore = new BitcoinStore(Path.Combine(dataDir, EnvironmentHelpers.GetMethodName()), Network.Main, new IndexStore(Network.Main, new SmartHeaderChain()), new AllTransactionStore(), new MempoolService());
-
-			bitcoinStore.InitializeAsync().Wait();
+			
+			var bitcoinStore = new BitcoinStoreMock();
 
 			return new TransactionFactory(Network.Main, keyManager, coinsView, bitcoinStore, password, allowUnconfirmed);
 		}
