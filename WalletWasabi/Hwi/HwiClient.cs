@@ -48,13 +48,7 @@ namespace WalletWasabi.Hwi
 			{
 				(string responseString, int exitCode) = await Bridge.SendCommandAsync(arguments, openConsole, cancel).ConfigureAwait(false);
 
-				if (exitCode != 0)
-				{
-					ThrowIfError(responseString, options);
-					throw new HwiException(HwiErrorCode.UnknownError, $"'hwi {arguments}' exited with incorrect exit code: {exitCode}.");
-				}
-
-				ThrowIfError(responseString, options);
+				ThrowIfError(responseString, options, arguments, exitCode);
 
 				return responseString;
 			}
@@ -84,6 +78,16 @@ namespace WalletWasabi.Hwi
 				// Build options without fingerprint with device model and device path.
 				var newOptions = BuildOptions(firstNoFingerprintEntry.Model, firstNoFingerprintEntry.Path, fingerprint: null, options.Where(x => x.Type != HwiOptions.Fingerprint).ToArray());
 				return await SendCommandAsync(newOptions, command, arguments, openConsole, cancel, isRecursion: true);
+			}
+			catch (HwiException ex) when (Network != Network.Main && ex.ErrorCode == HwiErrorCode.UnknownError && ex.Message?.Contains("DataError: Forbidden key path") is true)
+			{
+				// Trezor only accepts KeyPath 84'/1' on TestNet from v2.3.1. We fake that we are on MainNet to ensure compatibility.
+				string fixedArguments = HwiParser.ToArgumentString(Network.Main, options, command, commandArguments);
+				(string responseString, int exitCode) = await Bridge.SendCommandAsync(fixedArguments, openConsole, cancel).ConfigureAwait(false);
+
+				ThrowIfError(responseString, options, fixedArguments, exitCode);
+
+				return responseString;
 			}
 		}
 
@@ -262,11 +266,20 @@ namespace WalletWasabi.Hwi
 
 		#region Helpers
 
-		private static void ThrowIfError(string responseString, IEnumerable<HwiOption> options)
+		private static void ThrowIfError(string responseString, IEnumerable<HwiOption> options, string arguments, int exitCode)
 		{
-			if (HwiParser.TryParseErrors(responseString, options, out HwiException error))
+			if (exitCode != 0)
 			{
-				throw error;
+				if (HwiParser.TryParseErrors(responseString, options, out HwiException error))
+				{
+					throw error;
+				}
+				throw new HwiException(HwiErrorCode.UnknownError, $"'hwi {arguments}' exited with incorrect exit code: {exitCode}.");
+			}
+
+			if (HwiParser.TryParseErrors(responseString, options, out HwiException error2))
+			{
+				throw error2;
 			}
 		}
 
