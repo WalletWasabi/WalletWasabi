@@ -932,7 +932,7 @@ namespace Mono.Options
 		{
 			if (description is null)
 			{
-				return string.Empty;
+				return "";
 			}
 
 			StringBuilder sb = new StringBuilder(description.Length);

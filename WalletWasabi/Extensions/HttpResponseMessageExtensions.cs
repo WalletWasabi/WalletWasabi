@@ -87,7 +87,7 @@ namespace System.Net.Http
 		public static async Task ThrowRequestExceptionFromContentAsync(this HttpResponseMessage me)
 		{
 			var error = await me.Content.ReadAsJsonAsync<string>().ConfigureAwait(false);
-			string errorMessage = error is null ? string.Empty : $"\n{error}";
+			string errorMessage = error is null ? "" : $"\n{error}";
 			throw new HttpRequestException($"{me.StatusCode.ToReasonString()}{errorMessage}");
 		}
 	}

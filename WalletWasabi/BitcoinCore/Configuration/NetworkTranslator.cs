@@ -38,7 +38,7 @@ namespace WalletWasabi.BitcoinCore.Configuration
 			yield return $"{GetConfigPrefix(network)}.";
 			if (network == Network.Main)
 			{
-				yield return string.Empty;
+				yield return "";
 			}
 		}
 
@@ -47,7 +47,7 @@ namespace WalletWasabi.BitcoinCore.Configuration
 			Guard.NotNull(nameof(network), network);
 			if (network == Network.Main)
 			{
-				return string.Empty;
+				return "";
 			}
 			else if (network == Network.TestNet)
 			{

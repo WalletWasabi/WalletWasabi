@@ -162,7 +162,7 @@ namespace WalletWasabi.Helpers
 		public static string Correct(string str)
 		{
 			return string.IsNullOrWhiteSpace(str)
-				? string.Empty
+				? ""
 				: str.Trim();
 		}
 	}

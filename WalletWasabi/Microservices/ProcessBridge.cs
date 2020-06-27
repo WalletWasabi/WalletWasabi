@@ -86,7 +86,7 @@ namespace WalletWasabi.Microservices
 
 			exitCode = process.ExitCode;
 
-			string responseString = openConsole ? string.Empty : await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+			string responseString = openConsole ? "" : await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
 
 			return (responseString, exitCode);
 		}
