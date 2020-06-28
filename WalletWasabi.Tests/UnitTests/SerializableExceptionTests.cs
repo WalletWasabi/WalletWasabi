@@ -13,7 +13,7 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			var message = "Foo Bar Buzz";
 			var innerMessage = "Inner Foo Bar Buzz";
-			string innerStackTrace = "";
+			var innerStackTrace = "";
 
 			Exception ex;
 			string stackTrace;
