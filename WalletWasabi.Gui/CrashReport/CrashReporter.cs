@@ -36,7 +36,7 @@ namespace WalletWasabi.Gui.CrashReport
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning($"There was a problem while invoking crash report:{ex}.");
+				Logger.LogWarning($"There was a problem while invoking crash report:{ex.ToUserFriendlyString()}.");
 			}
 		}
 
