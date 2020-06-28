@@ -317,8 +317,8 @@ namespace Mono.Options
 			if (C.Option.OptionValueType == OptionValueType.Required &&
 					index >= Values.Count)
 			{
-				throw new OptionException(string.Format(
-					C.OptionSet.MessageLocalizer($"Missing required value for option '{C.OptionName}'.")),
+				throw new OptionException(
+					string.Format(C.OptionSet.MessageLocalizer($"Missing required value for option '{C.OptionName}'.")),
 					C.OptionName);
 			}
 		}

@@ -28,7 +28,8 @@ namespace WalletWasabi.Backend
 		{
 		}
 
-		public Config(Network network,
+		public Config(
+			Network network,
 			string bitcoinRpcConnectionString,
 			EndPoint mainNetBitcoinP2pEndPoint,
 			EndPoint testNetBitcoinP2pEndPoint,
