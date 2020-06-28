@@ -651,7 +651,7 @@
         </Rule>
         <Rule Name="DoNotPlaceRegionsWithinElements">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">False</BooleanProperty>
+            <BooleanProperty Name="Enabled">True</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="DoNotUseRegions">
