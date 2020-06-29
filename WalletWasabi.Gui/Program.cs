@@ -136,7 +136,11 @@ namespace WalletWasabi.Gui
 				Global.CrashReporter.TryInvokeCrashReport();
 			}
 
-			await Global?.DisposeAsync();
+			if (Global is { } global)
+			{
+				await global.DisposeAsync().ConfigureAwait(false);
+			}
+
 			AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 			TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
 
