@@ -12,6 +12,7 @@ namespace WalletWasabi.Gui.Behaviors
 	public class CloseWindowCommandBehavior : CommandBasedBehavior<Window>
 	{
 		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
+		private IDisposable CommandSubscription { get; set; }
 
 		protected override void OnAttached()
 		{
@@ -19,14 +20,20 @@ namespace WalletWasabi.Gui.Behaviors
 
 			this.GetObservable(CommandProperty)
 				.Where(cmd => cmd is { })
-				.Subscribe(cmd => ObservableExtensions.Subscribe(
+				.Subscribe(cmd =>
+				{
+					CommandSubscription?.Dispose();
+
+					CommandSubscription = ObservableExtensions.Subscribe(
 						(ReactiveCommand<Unit, Unit>)cmd,
-						_ => AssociatedObject.Close()))
+						_ => AssociatedObject.Close());
+				})
 				.DisposeWith(Disposables);
 		}
 
 		protected override void OnDetaching()
 		{
+			CommandSubscription?.Dispose();
 			Disposables?.Dispose();
 			base.OnDetaching();
 		}
