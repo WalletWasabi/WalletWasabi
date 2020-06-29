@@ -1,4 +1,4 @@
-<cont:MetroWindow xmlns="https://github.com/avaloniaui"
+<cont:WasabiWindow xmlns="https://github.com/avaloniaui"
                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                   xmlns:cont="clr-namespace:AvalonStudio.Shell.Controls;assembly=AvalonStudio.Shell"
                   xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
@@ -25,4 +25,4 @@
     <TextBox DockPanel.Dock="Top" Text="{Binding Message}" MaxHeight="50" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" FontWeight="Bold" FontSize="18" Margin="0,0,0,25" BorderThickness="0" />
     <TextBox Text="{Binding Details}" IsReadOnly="True" Margin="0 8" TextWrapping="Wrap" AcceptsReturn="True" BorderThickness="0" />
   </DockPanel>
-</cont:MetroWindow>
+</cont:WasabiWindow>

@@ -7,7 +7,7 @@ using Splat;
 
 namespace WalletWasabi.Gui.CrashReport.Views
 {
-	public class CrashReportWindow : MetroWindow
+	public class CrashReportWindow : WasabiWindow
 	{
 		public CrashReportWindow()
 		{
