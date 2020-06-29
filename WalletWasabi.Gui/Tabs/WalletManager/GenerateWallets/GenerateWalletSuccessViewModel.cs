@@ -29,12 +29,14 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 
 			var global = Locator.Current.GetService<Global>();
 
-			ConfirmCommand = ReactiveCommand.Create(() =>
-			{
-				var wallet = global.WalletManager.AddWallet(keyManager);
-				NotificationHelpers.Success("Wallet was generated.");
-				owner.SelectTestPassword(wallet.WalletName);
-			}, this.WhenAnyValue(x => x.IsConfirmed));
+			ConfirmCommand = ReactiveCommand.Create(
+				() =>
+				{
+					var wallet = global.WalletManager.AddWallet(keyManager);
+					NotificationHelpers.Success("Wallet was generated.");
+					owner.SelectTestPassword(wallet.WalletName);
+				},
+				this.WhenAnyValue(x => x.IsConfirmed));
 
 			ConfirmCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)

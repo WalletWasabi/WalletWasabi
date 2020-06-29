@@ -27,6 +27,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class CoinJoinTabViewModel : WasabiDocumentTabViewModel, IWalletViewModel
 	{
+		private const string EnqueueButtonTextString = "Enqueue Selected Coins";
+		private const string EnqueuingButtonTextString = "Queuing coins...";
+		private const string DequeueButtonTextString = "Dequeue Selected Coins";
+		private const string DequeuingButtonTextString = "Dequeuing coins...";
+
 		private long _roundId;
 		private RoundPhaseState _roundPhaseState;
 		private DateTimeOffset _roundTimesout;
@@ -40,11 +45,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _isEnqueueBusy;
 		private bool _isDequeueBusy;
 		private string _enqueueButtonText;
-		private const string EnqueueButtonTextString = "Enqueue Selected Coins";
-		private const string EnqueuingButtonTextString = "Queuing coins...";
 		private string _dequeueButtonText;
-		private const string DequeueButtonTextString = "Dequeue Selected Coins";
-		private const string DequeuingButtonTextString = "Dequeuing coins...";
 		private string _coinJoinUntilAnonymitySet;
 
 		public CoinJoinTabViewModel(Wallet wallet)
