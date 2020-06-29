@@ -14,6 +14,11 @@ namespace WalletWasabi.Tests.Helpers
 				return true;
 			}
 
+			if (x is null || y is null)
+			{
+				return false;
+			}
+
 			return Enumerable.SequenceEqual(
 				x.Where(c => !char.IsWhiteSpace(c)),
 				y.Where(c => !char.IsWhiteSpace(c)));
