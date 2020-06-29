@@ -17,24 +17,26 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		protected ClosedWalletViewModel(Wallet wallet) : base(wallet)
 		{
-			OpenWalletCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				try
+			OpenWalletCommand = ReactiveCommand.CreateFromTask(
+				async () =>
 				{
-					var global = Locator.Current.GetService<Global>();
+					try
+					{
+						var global = Locator.Current.GetService<Global>();
 
-					await Task.Run(async () => await global.WalletManager.StartWalletAsync(Wallet));
-				}
-				catch (OperationCanceledException ex)
-				{
-					Logger.LogTrace(ex);
-				}
-				catch (Exception ex)
-				{
-					NotificationHelpers.Error($"Couldn't load wallet. Reason: {ex.ToUserFriendlyString()}", sender: wallet);
-					Logger.LogError(ex);
-				}
-			}, this.WhenAnyValue(x => x.WalletState).Select(x => x == WalletState.Uninitialized));
+						await Task.Run(async () => await global.WalletManager.StartWalletAsync(Wallet));
+					}
+					catch (OperationCanceledException ex)
+					{
+						Logger.LogTrace(ex);
+					}
+					catch (Exception ex)
+					{
+						NotificationHelpers.Error($"Couldn't load wallet. Reason: {ex.ToUserFriendlyString()}", sender: wallet);
+						Logger.LogError(ex);
+					}
+				},
+				this.WhenAnyValue(x => x.WalletState).Select(x => x == WalletState.Uninitialized));
 		}
 
 		public ReactiveCommand<Unit, Unit> OpenWalletCommand { get; }

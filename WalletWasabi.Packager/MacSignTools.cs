@@ -449,7 +449,7 @@ namespace WalletWasabi.Packager
 		{
 			// Tor already signed by: The Tor Project, Inc (MADPSAYN6T)
 
-			// Wassabee has to be signed at the end. Otherwise codesing will throw a submodule not signed error.
+			// Wassabee has to be signed at the end. Otherwise codesign will throw a "submodule not signed" error.
 			foreach (var file in files)
 			{
 				var fileName = new FileInfo(file).Name;

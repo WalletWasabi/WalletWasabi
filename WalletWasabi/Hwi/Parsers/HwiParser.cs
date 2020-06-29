@@ -289,7 +289,8 @@ namespace WalletWasabi.Hwi.Parsers
 		public static bool TryParseVersion(string hwiResponse, string substringFrom, out Version version)
 		{
 			int startIndex = hwiResponse.IndexOf(substringFrom) + substringFrom.Length;
-			var versionString = hwiResponse.Substring(startIndex).Trim();
+			int endIndex = hwiResponse.IndexOf("-");
+			var versionString = hwiResponse[startIndex..endIndex].Trim();
 			version = null;
 			if (Version.TryParse(versionString, out Version v))
 			{
