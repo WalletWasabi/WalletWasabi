@@ -15,7 +15,7 @@
                   Classes="ToolWindow"
                   CanResize="False">
   <i:Interaction.Behaviors>
-    <behaviors:CloseWindowBehavior CloseTrigger="{Binding CloseTrigger}" />
+    <behaviors:CloseWindowCommandBehavior Command="{Binding OkCommand}" />
   </i:Interaction.Behaviors>
   <DockPanel LastChildFill="True" Margin="25,0,25,25">
     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="5" Margin="0,25,0,0">
