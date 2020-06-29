@@ -38,6 +38,73 @@ namespace WalletWasabi.Hwi
 
 		#endregion PropertiesAndMembers
 
+		#region Helpers
+
+		private static void ThrowIfError(string responseString, IEnumerable<HwiOption> options, string arguments, int exitCode)
+		{
+			if (exitCode != 0)
+			{
+				if (HwiParser.TryParseErrors(responseString, options, out HwiException error))
+				{
+					throw error;
+				}
+				throw new HwiException(HwiErrorCode.UnknownError, $"'hwi {arguments}' exited with incorrect exit code: {exitCode}.");
+			}
+
+			if (HwiParser.TryParseErrors(responseString, options, out HwiException error2))
+			{
+				throw error2;
+			}
+		}
+
+		private static HwiOption[] BuildOptions(HardwareWalletModels? deviceType, string devicePath, HDFingerprint? fingerprint, params HwiOption[] extraOptions)
+		{
+			var options = new List<HwiOption>();
+
+			var hasDevicePath = devicePath != null;
+			var hasDeviceType = deviceType.HasValue;
+			var hasFingerprint = fingerprint.HasValue;
+
+			// Fingerprint and devicetype-devicepath pair cannot happen the same time.
+			var notSupportedExceptionMessage = $"Provide either {nameof(fingerprint)} or {nameof(devicePath)}-{nameof(deviceType)} pair, not both.";
+			if (hasDeviceType)
+			{
+				Guard.NotNull(nameof(devicePath), devicePath);
+				if (hasFingerprint)
+				{
+					throw new NotSupportedException(notSupportedExceptionMessage);
+				}
+			}
+			if (hasFingerprint)
+			{
+				if (hasDevicePath || hasDeviceType)
+				{
+					throw new NotSupportedException(notSupportedExceptionMessage);
+				}
+			}
+
+			if (hasDevicePath)
+			{
+				options.Add(HwiOption.DevicePath(devicePath));
+			}
+			if (hasDeviceType)
+			{
+				options.Add(HwiOption.DeviceType(deviceType.Value));
+			}
+			if (hasFingerprint)
+			{
+				options.Add(HwiOption.Fingerprint(fingerprint.Value));
+			}
+			foreach (var opt in extraOptions)
+			{
+				options.Add(opt);
+			}
+
+			return options.ToArray();
+		}
+
+		#endregion Helpers
+
 		#region Commands
 
 		private async Task<string> SendCommandAsync(IEnumerable<HwiOption> options, HwiCommands? command, string commandArguments, bool openConsole, CancellationToken cancel, bool isRecursion = false)
@@ -263,72 +330,5 @@ namespace WalletWasabi.Hwi
 		}
 
 		#endregion Commands
-
-		#region Helpers
-
-		private static void ThrowIfError(string responseString, IEnumerable<HwiOption> options, string arguments, int exitCode)
-		{
-			if (exitCode != 0)
-			{
-				if (HwiParser.TryParseErrors(responseString, options, out HwiException error))
-				{
-					throw error;
-				}
-				throw new HwiException(HwiErrorCode.UnknownError, $"'hwi {arguments}' exited with incorrect exit code: {exitCode}.");
-			}
-
-			if (HwiParser.TryParseErrors(responseString, options, out HwiException error2))
-			{
-				throw error2;
-			}
-		}
-
-		private static HwiOption[] BuildOptions(HardwareWalletModels? deviceType, string devicePath, HDFingerprint? fingerprint, params HwiOption[] extraOptions)
-		{
-			var options = new List<HwiOption>();
-
-			var hasDevicePath = devicePath != null;
-			var hasDeviceType = deviceType.HasValue;
-			var hasFingerprint = fingerprint.HasValue;
-
-			// Fingerprint and devicetype-devicepath pair cannot happen the same time.
-			var notSupportedExceptionMessage = $"Provide either {nameof(fingerprint)} or {nameof(devicePath)}-{nameof(deviceType)} pair, not both.";
-			if (hasDeviceType)
-			{
-				Guard.NotNull(nameof(devicePath), devicePath);
-				if (hasFingerprint)
-				{
-					throw new NotSupportedException(notSupportedExceptionMessage);
-				}
-			}
-			if (hasFingerprint)
-			{
-				if (hasDevicePath || hasDeviceType)
-				{
-					throw new NotSupportedException(notSupportedExceptionMessage);
-				}
-			}
-
-			if (hasDevicePath)
-			{
-				options.Add(HwiOption.DevicePath(devicePath));
-			}
-			if (hasDeviceType)
-			{
-				options.Add(HwiOption.DeviceType(deviceType.Value));
-			}
-			if (hasFingerprint)
-			{
-				options.Add(HwiOption.Fingerprint(fingerprint.Value));
-			}
-			foreach (var opt in extraOptions)
-			{
-				options.Add(opt);
-			}
-
-			return options.ToArray();
-		}
-
-		#endregion Helpers
 	}
 }

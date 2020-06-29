@@ -84,6 +84,11 @@ namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
 					.Where(point => matrix.MStatus(point.Offset(2, 2)) == MatrixStatus.None);
 		}
 
+		private static IEnumerable<byte> GetPatternCoordinatesByVersion(int version)
+		{
+			return AlignmentPatternCoordinatesByVersion[version];
+		}
+
 		private IEnumerable<MatrixPoint> GetAllCoordinatePairs()
 		{
 			IEnumerable<byte> coordinates = GetPatternCoordinatesByVersion(Version);
@@ -95,11 +100,6 @@ namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
 					yield return location;
 				}
 			}
-		}
-
-		private static IEnumerable<byte> GetPatternCoordinatesByVersion(int version)
-		{
-			return AlignmentPatternCoordinatesByVersion[version];
 		}
 	}
 }

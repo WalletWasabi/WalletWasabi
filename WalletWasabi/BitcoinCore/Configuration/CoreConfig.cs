@@ -75,32 +75,6 @@ namespace WalletWasabi.BitcoinCore.Configuration
 			return ret;
 		}
 
-		private bool RemoveEmptyDuplications()
-		{
-			var ret = false;
-			while (RemoveFirstEmptyDuplication())
-			{
-				ret = true;
-			}
-			return ret;
-		}
-
-		private bool RemoveFirstEmptyDuplication()
-		{
-			for (int i = 1; i < Lines.Count; i++)
-			{
-				CoreConfigLine currentLine = Lines[i];
-				CoreConfigLine prevLine = Lines[i - 1];
-				if (string.IsNullOrWhiteSpace(currentLine.Line) && string.IsNullOrWhiteSpace(prevLine.Line))
-				{
-					Lines.Remove(currentLine);
-					return true;
-				}
-			}
-
-			return false;
-		}
-
 		private static IEnumerable<CoreConfigLine> ParseConfigLines(string configString)
 		{
 			configString = Guard.Correct(configString);
@@ -141,6 +115,32 @@ namespace WalletWasabi.BitcoinCore.Configuration
 			}
 			return retLines
 				.Select(x => new CoreConfigLine(x));
+		}
+
+		private bool RemoveEmptyDuplications()
+		{
+			var ret = false;
+			while (RemoveFirstEmptyDuplication())
+			{
+				ret = true;
+			}
+			return ret;
+		}
+
+		private bool RemoveFirstEmptyDuplication()
+		{
+			for (int i = 1; i < Lines.Count; i++)
+			{
+				CoreConfigLine currentLine = Lines[i];
+				CoreConfigLine prevLine = Lines[i - 1];
+				if (string.IsNullOrWhiteSpace(currentLine.Line) && string.IsNullOrWhiteSpace(prevLine.Line))
+				{
+					Lines.Remove(currentLine);
+					return true;
+				}
+			}
+
+			return false;
 		}
 	}
 }
