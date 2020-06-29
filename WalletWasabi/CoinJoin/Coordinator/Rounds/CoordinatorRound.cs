@@ -421,13 +421,27 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			Money newDenomination = CalculateNewDenomination();
 			var transaction = Network.Consensus.ConsensusFactory.CreateTransaction();
 
-			// 2. Add Bob outputs.
+			// 2. If there are less Bobs than Alices, then add our own address. The malicious Alice, who will refuse to sign.
+			var derivationIndex = RoundConfig.CoordinatorExtPubKeyCurrentDepth + 1;
+			for (int i = 0; i < MixingLevels.Count(); i++)
+			{
+				var aliceCountInLevel = Alices.Count(x => i < x.BlindedOutputScripts.Length);
+				var missingBobCount = aliceCountInLevel - Bobs.Count(x => x.Level == MixingLevels.GetLevel(i));
+				for (int j = 0; j < missingBobCount; j++)
+				{
+					var denomination = MixingLevels.GetLevel(i).Denomination;
+					transaction.Outputs.AddWithOptimize(denomination, RoundConfig.DeriveCoordinatorScript(derivationIndex));
+					derivationIndex++;
+				}
+			}
+
+			// 3. Add Bob outputs.
 			foreach (Bob bob in Bobs.Where(x => x.Level == MixingLevels.GetBaseLevel()))
 			{
 				transaction.Outputs.AddWithOptimize(newDenomination, bob.ActiveOutputAddress.ScriptPubKey);
 			}
 
-			// 2.1 newDenomination may differ from the Denomination at registration, so we may not be able to tinker with additional outputs.
+			// 3.1 newDenomination may differ from the Denomination at registration, so we may not be able to tinker with additional outputs.
 			bool tinkerWithAdditionalMixingLevels = CanUseAdditionalOutputs(newDenomination);
 
 			if (tinkerWithAdditionalMixingLevels)
@@ -444,19 +458,6 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 					{
 						transaction.Outputs.AddWithOptimize(level.Denomination, bob.ActiveOutputAddress.ScriptPubKey);
 					}
-				}
-			}
-
-			var coordinatorScript = RoundConfig.GetNextCleanCoordinatorScript();
-			// 3. If there are less Bobs than Alices, then add our own address. The malicious Alice, who will refuse to sign.
-			for (int i = 0; i < MixingLevels.Count(); i++)
-			{
-				var aliceCountInLevel = Alices.Count(x => i < x.BlindedOutputScripts.Length);
-				var missingBobCount = aliceCountInLevel - Bobs.Count(x => x.Level == MixingLevels.GetLevel(i));
-				for (int j = 0; j < missingBobCount; j++)
-				{
-					var denomination = MixingLevels.GetLevel(i).Denomination;
-					transaction.Outputs.AddWithOptimize(denomination, coordinatorScript);
 				}
 			}
 
@@ -533,6 +534,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				}
 			}
 
+			var coordinatorScript = RoundConfig.GetNextCleanCoordinatorScript();
 			// 6. Add Coordinator fee only if > about $3, else just let it to be miner fee.
 			if (coordinatorFee > Money.Coins(0.0003m))
 			{
