@@ -46,7 +46,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					return;
 				}
 
-				AvaloniaThreadingExtensions.PostLogException(Dispatcher.UIThread,
+				AvaloniaThreadingExtensions.PostLogException(
+					Dispatcher.UIThread,
 					() =>
 					{
 						var newKey = Wallet.KeyManager.GetNextReceiveKey(label, out bool minGapLimitIncreased);
