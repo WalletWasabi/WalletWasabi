@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using WalletWasabi.Helpers;
@@ -286,50 +287,47 @@ namespace WalletWasabi.Hwi.Parsers
 			return rawPath.Replace(@"\\", @"\");
 		}
 
-		public static bool TryParseVersion(string hwiResponse, string substringFrom, out Version version)
-		{
-			int startIndex = hwiResponse.IndexOf(substringFrom) + substringFrom.Length;
-			int endIndex = hwiResponse.IndexOf("-");
-			var versionString = hwiResponse[startIndex..endIndex].Trim();
-			version = null;
-			if (Version.TryParse(versionString, out Version v))
-			{
-				version = v;
-				return true;
-			}
-
-			return false;
-		}
-
 		public static bool TryParseVersion(string hwiResponse, out Version version)
 		{
 			version = null;
-
-			// Order matters! https://github.com/zkSNACKs/WalletWasabi/pull/1905/commits/cecefcc50af140cc06cb93961cda86f9b21db11b
-
-			// Example output: hwi.exe 1.0.1
-			if (TryParseVersion(hwiResponse, "hwi.exe", out Version v2))
+			try
 			{
-				version = v2;
+				version = ParseVersion(hwiResponse);
+				return true;
 			}
-
-			// Example output: hwi 1.0.1
-			if (TryParseVersion(hwiResponse, "hwi", out Version v1))
+			catch (Exception)
 			{
-				version = v1;
+				return false;
 			}
-
-			return version != null;
 		}
 
 		public static Version ParseVersion(string hwiResponse)
 		{
-			if (TryParseVersion(hwiResponse, out Version version))
+			const string WinPrefix = "hwi.exe";
+			const string Prefix = "hwi";
+
+			// Order matters! https://github.com/zkSNACKs/WalletWasabi/pull/1905/commits/cecefcc50af140cc06cb93961cda86f9b21db11b
+			string prefixToTrim = hwiResponse.StartsWith(WinPrefix) ?
+				WinPrefix :
+				hwiResponse.StartsWith(Prefix) ?
+					Prefix :
+					null;
+
+			if (prefixToTrim is null)
 			{
-				return version;
+				throw new FormatException("HWI prefix is missing in the provided version response.");
 			}
 
-			throw new FormatException($"Cannot parse version from HWI's response. Response: {hwiResponse}.");
+			hwiResponse = hwiResponse.TrimStart(prefixToTrim, StringComparison.InvariantCultureIgnoreCase).TrimEnd();
+
+			var onlyVersion = hwiResponse.Split("-")[0];
+
+			if (onlyVersion.Split('.').Length != 3)
+			{
+				throw new FormatException("Version must contain major.minor.build numbers.");
+			}
+
+			return Version.Parse(onlyVersion);
 		}
 
 		public static string ToArgumentString(Network network, IEnumerable<HwiOption> options, HwiCommands? command, string commandArguments)
