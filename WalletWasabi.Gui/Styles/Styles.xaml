@@ -100,6 +100,14 @@
     <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
     <Setter Property="FontSize" Value="14" />
   </Style>
+  <Style Selector="TextBox.largeHeader">
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="FontSize" Value="18" />
+    <Setter Property="Margin" Value="0,0,0,25" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="AcceptsReturn" Value="True" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
   <Style Selector="TextBox.selectableTextBlock">
     <Setter Property="Padding" Value="0" />
     <Setter Property="BorderThickness" Value="0" />

@@ -8,5 +8,7 @@
     <StyleInclude Source="avares://AvalonStudio.Shell/Icons/Icons.xaml" />
     <StyleInclude Source="avares://AvalonStudio.Shell/Controls/MetroWindowTheme.paml" />
     <StyleInclude Source="avares://WalletWasabi.Gui/Styles/Styles.xaml" />
+    <StyleInclude Source="avares://WalletWasabi.Gui/Icons/Icons.xaml" />
+
   </Application.Styles>
 </Application>
