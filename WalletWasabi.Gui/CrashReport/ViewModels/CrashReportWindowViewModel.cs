@@ -20,7 +20,7 @@ namespace WalletWasabi.Gui.CrashReport.ViewModels
 
 			OkCommand = ReactiveCommand.Create(() =>
 			{
-				// This command binded in xaml to close the window.
+				// This command is bound in xaml to close the window.
 			});
 
 			Observable
