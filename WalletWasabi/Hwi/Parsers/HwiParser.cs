@@ -313,7 +313,7 @@ namespace WalletWasabi.Hwi.Parsers
 				}
 			}
 
-			if (versionEndIndex - versionStartIndex <= 5) // 5 because `0.0.0` is the mininum valid semver
+			if (versionEndIndex - versionStartIndex < 5) // 5 because `0.0.0` is the mininum valid semver
 			{
 				version = null;
 				return false;
