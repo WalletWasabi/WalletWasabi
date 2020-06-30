@@ -159,7 +159,11 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		{
 			Version result = new Version(1, 1, 2);
 			Assert.Equal(accepted, HwiParser.TryParseVersion(versionResponse, out Version v1));
-			Assert.Equal(result, v1);
+
+			if (accepted)
+			{
+				Assert.Equal(result, v1);
+			}
 		}
 
 		#endregion Tests

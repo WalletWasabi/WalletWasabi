@@ -287,81 +287,47 @@ namespace WalletWasabi.Hwi.Parsers
 			return rawPath.Replace(@"\\", @"\");
 		}
 
-		public static bool TryParseVersion(string hwiResponse, string substringFrom, out Version version)
-		{
-			var setterIndex = 0;
-			var versionStart = false;
-			var versionStartIndex = 0;
-			var versionEndIndex = 0;
-
-			for (int i = 0; i < hwiResponse.Length; i++)
-			{
-				var chr = hwiResponse[i];
-				if (!versionStart & char.IsDigit(chr))
-				{
-					versionStartIndex = i;
-					versionStart = true;
-				}
-				else if (versionStart && chr == '.')
-				{
-					setterIndex++;
-				}
-				else if (versionStart && !char.IsDigit(chr) & setterIndex >= 2)
-				{
-					versionEndIndex = i;
-					break;
-				}
-			}
-
-			if (versionEndIndex - versionStartIndex <= 5) // 5 because `0.0.0` is the mininum valid semver
-			{
-				version = null;
-				return false;
-			}
-
-			var verString = hwiResponse[versionStartIndex..versionEndIndex];
-
-			if (Version.TryParse(verString, out var res))
-			{
-				version = res;
-				return true;
-			}
-			else
-			{
-				version = null;
-				return false;
-			}
-		}
-
 		public static bool TryParseVersion(string hwiResponse, out Version version)
 		{
 			version = null;
-
-			// Order matters! https://github.com/zkSNACKs/WalletWasabi/pull/1905/commits/cecefcc50af140cc06cb93961cda86f9b21db11b
-
-			// Example output: hwi.exe 1.0.1
-			if (TryParseVersion(hwiResponse, "hwi.exe", out Version v2))
+			try
 			{
-				version = v2;
+				version = ParseVersion(hwiResponse);
+				return true;
 			}
-
-			// Example output: hwi 1.0.1
-			if (TryParseVersion(hwiResponse, "hwi", out Version v1))
+			catch (Exception)
 			{
-				version = v1;
+				return false;
 			}
-
-			return version != null;
 		}
 
 		public static Version ParseVersion(string hwiResponse)
 		{
-			if (TryParseVersion(hwiResponse, out Version version))
+			const string WinPrefix = "hwi.exe";
+			const string Prefix = "hwi";
+
+			// Order matters! https://github.com/zkSNACKs/WalletWasabi/pull/1905/commits/cecefcc50af140cc06cb93961cda86f9b21db11b
+			string prefixToTrim = hwiResponse.StartsWith(WinPrefix) ?
+				WinPrefix :
+				hwiResponse.StartsWith(Prefix) ?
+					Prefix :
+					null;
+
+			if (prefixToTrim is null)
 			{
-				return version;
+				throw new FormatException("Hwi prefix is missing from the version response");
 			}
 
-			throw new FormatException($"Cannot parse version from HWI's response. Response: {hwiResponse}.");
+			hwiResponse = hwiResponse.TrimStart(prefixToTrim, StringComparison.InvariantCultureIgnoreCase).TrimEnd();
+
+			var onlyVersion = hwiResponse.Split("-")[0];
+
+			if (onlyVersion.Split('.').Length != 3)
+			{
+				throw new FormatException("Version must contain major.minor.build numbers.");
+			}
+
+			return Version.Parse(onlyVersion);
 		}
 
 		public static string ToArgumentString(Network network, IEnumerable<HwiOption> options, HwiCommands? command, string commandArguments)
