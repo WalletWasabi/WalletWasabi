@@ -145,24 +145,32 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		}
 
 		[Theory]
+		[InlineData("", false)]
+		[InlineData("hwi", false)]
+		[InlineData("hwi ", false)]
+		[InlineData("hwi 1", false)]
+		[InlineData("hwi 1.", false)]
+		[InlineData("hwi 1.1", false)]
+		[InlineData("hwi 1.1.", false)]
 		[InlineData("hwi 1.1.2\n", true)]
 		[InlineData("hwi 1.1.2", true)]
 		[InlineData("hwi 1.1.2-rc1\n", true)]
 		[InlineData("hwi 1.1.2-rc1", true)]
 		[InlineData("hwi.exe 1.1.2\n", true)]
 		[InlineData("hwi.exe 1.1.2", true)]
+		[InlineData("hwi.exe 1.1.2-", true)]
 		[InlineData("hwi.exe 1.1.2-rc1\n", true)]
 		[InlineData("hwi.exe 1.1.2-rc1", true)]
 		[InlineData("1.1.2-rc1\n", false)]
 		[InlineData("1.1-rc1\n", false)]
-		public void TryParseVersionTests(string versionResponse, bool accepted)
+		public void TryParseVersionTests(string input, bool isParsable)
 		{
-			Version result = new Version(1, 1, 2);
-			Assert.Equal(accepted, HwiParser.TryParseVersion(versionResponse, out Version v1));
+			Version expectedVersion = new Version(1, 1, 2);
+			Assert.Equal(isParsable, HwiParser.TryParseVersion(input, out Version actualVersion));
 
-			if (accepted)
+			if (isParsable)
 			{
-				Assert.Equal(result, v1);
+				Assert.Equal(expectedVersion, actualVersion);
 			}
 		}
 

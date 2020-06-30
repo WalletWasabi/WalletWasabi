@@ -315,7 +315,7 @@ namespace WalletWasabi.Hwi.Parsers
 
 			if (prefixToTrim is null)
 			{
-				throw new FormatException("Hwi prefix is missing from the version response");
+				throw new FormatException("HWI prefix is missing in the provided version response.");
 			}
 
 			hwiResponse = hwiResponse.TrimStart(prefixToTrim, StringComparison.InvariantCultureIgnoreCase).TrimEnd();
