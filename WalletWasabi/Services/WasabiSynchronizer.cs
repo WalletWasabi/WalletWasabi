@@ -214,7 +214,7 @@ namespace WalletWasabi.Services
 									if (result.BackendCompatible && lastUsedApiVersion != WasabiClient.ApiVersion)
 									{
 										// Next request will be fine, do not throw exception.
-										return;
+										continue;
 									}
 								}
 								catch (Exception x)
