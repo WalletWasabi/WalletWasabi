@@ -149,6 +149,10 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		[InlineData("hwi 1.1.2", true)]
 		[InlineData("hwi 1.1.2-rc1\n", true)]
 		[InlineData("hwi 1.1.2-rc1", true)]
+		[InlineData("hwi.exe 1.1.2\n", true)]
+		[InlineData("hwi.exe 1.1.2", true)]
+		[InlineData("hwi.exe 1.1.2-rc1\n", true)]
+		[InlineData("hwi.exe 1.1.2-rc1", true)]
 		[InlineData("1.1.2-rc1\n", false)]
 		[InlineData("1.1-rc1\n", false)]
 		public void TryParseVersionTests(string versionResponse, bool accepted)
