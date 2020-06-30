@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using WalletWasabi.Helpers;
@@ -288,17 +289,41 @@ namespace WalletWasabi.Hwi.Parsers
 
 		public static bool TryParseVersion(string hwiResponse, string substringFrom, out Version version)
 		{
-			int startIndex = hwiResponse.IndexOf(substringFrom) + substringFrom.Length;
-			int endIndex = hwiResponse.IndexOf("-");
-			var versionString = hwiResponse[startIndex..endIndex].Trim();
-			version = null;
-			if (Version.TryParse(versionString, out Version v))
+			var setterIndex = 0;
+			var versionStart = false;
+			var versionStartIndex = 0;
+			var versionEndIndex = 0;
+
+			for (int i = 0; i < hwiResponse.Length; i++)
 			{
-				version = v;
-				return true;
+				var chr = hwiResponse[i];
+				if (!versionStart & char.IsDigit(chr))
+				{
+					versionStartIndex = i;
+					versionStart = true;
+				}
+				else if (versionStart && chr == '.')
+				{
+					setterIndex++;
+				}
+				else if (versionStart && !char.IsDigit(chr) & setterIndex >= 2)
+				{
+					versionEndIndex = i;
+					break;
+				}
 			}
 
-			return false;
+			var verString = hwiResponse[versionStartIndex..versionEndIndex];
+
+			if (Version.TryParse(verString, out var res))
+			{
+				version = res;
+				return true;
+			}
+			else
+			{
+				throw new FormatException($"Can't find a semver string in HWI's version response: {hwiResponse}");
+			}
 		}
 
 		public static bool TryParseVersion(string hwiResponse, out Version version)
