@@ -313,6 +313,12 @@ namespace WalletWasabi.Hwi.Parsers
 				}
 			}
 
+			if (versionEndIndex - versionStartIndex <= 5) // 5 because `0.0.0` is the mininum valid semver
+			{
+				version = null;
+				return false;
+			}
+
 			var verString = hwiResponse[versionStartIndex..versionEndIndex];
 
 			if (Version.TryParse(verString, out var res))
@@ -322,7 +328,8 @@ namespace WalletWasabi.Hwi.Parsers
 			}
 			else
 			{
-				throw new FormatException($"Can't find a semver string in HWI's version response: {hwiResponse}");
+				version = null;
+				return false;
 			}
 		}
 
