@@ -188,7 +188,7 @@ namespace WalletWasabi.Packager
 
 			string torOsxZip = Path.Combine(torDaemonsDir, "tor-osx64.zip");
 			IoHelpers.BetterExtractZipToDirectoryAsync(torOsxZip, tempDir).GetAwaiter().GetResult();
-			File.Move(Path.Combine(tempDir, "Tor", "tor"), Path.Combine(tempDir, "TorOsx"));
+			File.Move(Path.Combine(tempDir, "Tor", "tor.real"), Path.Combine(tempDir, "TorOsx"));
 
 			var tempDirInfo = new DirectoryInfo(tempDir);
 			var binaries = tempDirInfo.GetFiles();
