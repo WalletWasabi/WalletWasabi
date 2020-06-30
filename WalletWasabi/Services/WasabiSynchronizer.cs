@@ -203,8 +203,6 @@ namespace WalletWasabi.Services
 							}
 							catch (Exception ex)
 							{
-								TorStatus = TorStatus.Running;
-								BackendStatus = BackendStatus.Connected;
 								try
 								{
 									// Backend API version might be updated meanwhile. Trying to update the versions.
@@ -221,6 +219,9 @@ namespace WalletWasabi.Services
 								{
 									Logger.LogError(x);
 								}
+
+								TorStatus = TorStatus.Running;
+								BackendStatus = BackendStatus.Connected;
 								HandleIfGenSocksServFail(ex);
 								throw;
 							}
