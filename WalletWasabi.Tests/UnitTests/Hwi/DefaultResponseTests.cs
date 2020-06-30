@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Hwi.Models;
+using WalletWasabi.Hwi.Parsers;
 using WalletWasabi.Hwi.ProcessBridge;
 using Xunit;
 
@@ -141,6 +142,20 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			{
 				await Assert.ThrowsAsync<PlatformNotSupportedException>(async () => await pb.SendCommandAsync("enumerate", true, cts.Token));
 			}
+		}
+
+		[Theory]
+		[InlineData("hwi 1.1.2\n", true)]
+		[InlineData("hwi 1.1.2", true)]
+		[InlineData("hwi 1.1.2-rc1\n", true)]
+		[InlineData("hwi 1.1.2-rc1", true)]
+		[InlineData("1.1.2-rc1\n", false)]
+		[InlineData("1.1-rc1\n", false)]
+		public void TryParseVersionTests(string versionResponse, bool accepted)
+		{
+			Version result = new Version(1, 1, 2);
+			Assert.Equal(accepted, HwiParser.TryParseVersion(versionResponse, out Version v1));
+			Assert.Equal(result, v1);
 		}
 
 		#endregion Tests
