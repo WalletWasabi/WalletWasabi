@@ -101,10 +101,9 @@ namespace WalletWasabi.Bases
 					{
 						lock (TriggerLock)
 						{
-							if (TriggeringCts.IsCancellationRequested)
+							if (TriggeringCts?.IsCancellationRequested is true)
 							{
 								TriggeringCts?.Dispose();
-								TriggeringCts = null;
 								TriggeringCts = new CancellationTokenSource();
 							}
 						}

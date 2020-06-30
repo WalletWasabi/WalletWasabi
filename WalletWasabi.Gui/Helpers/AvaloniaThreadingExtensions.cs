@@ -10,34 +10,36 @@ namespace Avalonia.Threading
 	{
 		public static void PostLogException(this Dispatcher dispatcher, Func<Task> action, DispatcherPriority priority = DispatcherPriority.Normal)
 		{
-			dispatcher.Post(async () =>
-			{
-				try
+			dispatcher.Post(
+				async () =>
 				{
-					await action();
-				}
-				catch (Exception ex)
-				{
-					Logger.LogDebug(ex);
-				}
-			},
-			priority);
+					try
+					{
+						await action();
+					}
+					catch (Exception ex)
+					{
+						Logger.LogDebug(ex);
+					}
+				},
+				priority);
 		}
 
 		public static void PostLogException(this Dispatcher dispatcher, Action action, DispatcherPriority priority = DispatcherPriority.Normal)
 		{
-			dispatcher.Post(() =>
-			{
-				try
+			dispatcher.Post(
+				() =>
 				{
-					action();
-				}
-				catch (Exception ex)
-				{
-					Logger.LogDebug(ex);
-				}
-			},
-			priority);
+					try
+					{
+						action();
+					}
+					catch (Exception ex)
+					{
+						Logger.LogDebug(ex);
+					}
+				},
+				priority);
 		}
 	}
 }

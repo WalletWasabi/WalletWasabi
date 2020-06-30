@@ -187,7 +187,8 @@ namespace WalletWasabi.Blockchain.Transactions
 		{
 			// GetHash is also serialized, so file can be interpreted with our eyes better.
 
-			return string.Join(':',
+			return string.Join(
+				':',
 				GetHash(),
 				Transaction.ToHex(),
 				Height,

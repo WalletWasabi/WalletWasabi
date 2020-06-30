@@ -171,6 +171,8 @@ namespace WalletWasabi.Services
 							}
 
 							SynchronizeResponse response;
+
+							var lastUsedApiVersion = WasabiClient.ApiVersion;
 							try
 							{
 								if (!IsRunning)
@@ -206,7 +208,14 @@ namespace WalletWasabi.Services
 								try
 								{
 									// Backend API version might be updated meanwhile. Trying to update the versions.
-									await WasabiClient.CheckUpdatesAsync(Cancel.Token).ConfigureAwait(false);
+									var result = await WasabiClient.CheckUpdatesAsync(Cancel.Token).ConfigureAwait(false);
+
+									// If the backend is compatible and the Api version updated then we just used the wrong API.
+									if (result.BackendCompatible && lastUsedApiVersion != WasabiClient.ApiVersion)
+									{
+										// Next request will be fine, do not throw exception.
+										return;
+									}
 								}
 								catch (Exception x)
 								{
