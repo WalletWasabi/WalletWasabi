@@ -264,7 +264,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			return extPubKey != null;
 		}
 
-		public Process Start(string arguments, bool openConsole)
+		public Process Start(string arguments, bool openConsole, bool redirectStandardInput)
 		{
 			throw new NotImplementedException();
 		}

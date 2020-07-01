@@ -12,6 +12,6 @@ namespace WalletWasabi.Microservices
 	{
 		Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel, Action<StreamWriter> standartInputWriter = null);
 
-		Process Start(string arguments, bool openConsole);
+		Process Start(string arguments, bool openConsole, bool redirectStandardInput);
 	}
 }

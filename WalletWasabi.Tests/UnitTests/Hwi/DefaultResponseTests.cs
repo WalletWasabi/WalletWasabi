@@ -125,6 +125,12 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
 			var res = await pb.SendCommandAsync("enumerate", false, cts.Token);
 			Assert.NotEmpty(res.response);
+
+			res = await pb.SendCommandAsync("enumerate", true, cts.Token);
+			Assert.Contains("success", res.response);
+
+			res = await pb.SendCommandAsync("enumerate", true, cts.Token, (sw) => { });
+			Assert.Contains("success", res.response);
 		}
 
 		[Fact]
