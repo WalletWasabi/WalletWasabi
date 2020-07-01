@@ -187,14 +187,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Wallet wallet = closedWalletViewModel.Wallet;
 
 			// Is password verified for the wallet?
+			if (wallet.KeyManager.PasswordVerified == false)
 			{
-				if (wallet.KeyManager.PasswordVerified == false)
-				{
-					IoC.Get<IShell>()
-						.GetOrCreateByType<WalletManagerViewModel>()
-						.SelectTestPassword(wallet.WalletName);
-					return;
-				}
+				IoC.Get<IShell>()
+					.GetOrCreateByType<WalletManagerViewModel>()
+					.SelectTestPassword(wallet.WalletName);
+				return;
 			}
 
 			var select = SelectedItem == closedWalletViewModel;
