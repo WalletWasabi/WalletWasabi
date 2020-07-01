@@ -86,9 +86,9 @@ namespace WalletWasabi.TorSocks5
 						if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						{
 							torPath = $@"{torDir}/Tor/tor";
-							hashSourcePath = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ?
-								$@"{torDir}/Tor/tor.real" :
-								$@"{torDir}/Tor/tor";
+							hashSourcePath = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+								? $@"{torDir}/Tor/tor.real"
+								: $@"{torDir}/Tor/tor";
 							geoIpPath = $@"{torDir}/Data/Tor/geoip";
 							geoIp6Path = $@"{torDir}/Data/Tor/geoip6";
 						}
