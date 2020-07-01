@@ -1,6 +1,5 @@
 Check if there is a new Tor Browser version.
-
-Tor changelog here: https://gitweb.torproject.org/tor.git/plain/ChangeLog
+The Tor changelog can found here: https://gitweb.torproject.org/tor.git/plain/ChangeLog
 
 Download the latest stable Tor Browser from here: https://www.torproject.org/download/languages/
 
