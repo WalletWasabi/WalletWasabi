@@ -67,7 +67,7 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			const int BlockCount = 3;
 
-			var cts = new CancellationTokenSource();
+			using var cts = new CancellationTokenSource();
 			var chain = new ConcurrentChain(Network.RegTest);
 			using var notifier = CreateNotifier(chain);
 
