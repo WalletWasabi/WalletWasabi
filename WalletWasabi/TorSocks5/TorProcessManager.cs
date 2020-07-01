@@ -182,7 +182,7 @@ namespace WalletWasabi.TorSocks5
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				string torWinZip = Path.Combine(torDaemonsDir, "tor-win32.zip");
+				string torWinZip = Path.Combine(torDaemonsDir, "tor-win64.zip");
 				IoHelpers.BetterExtractZipToDirectoryAsync(torWinZip, torDir).GetAwaiter().GetResult();
 				Logger.LogInfo($"Extracted {torWinZip} to {torDir}.");
 			}

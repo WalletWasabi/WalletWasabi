@@ -178,7 +178,7 @@ namespace WalletWasabi.Packager
 			Directory.CreateDirectory(tempDir);
 
 			var torDaemonsDir = Path.Combine(LibraryProjectDirectory, "TorDaemons");
-			string torWinZip = Path.Combine(torDaemonsDir, "tor-win32.zip");
+			string torWinZip = Path.Combine(torDaemonsDir, "tor-win64.zip");
 			IoHelpers.BetterExtractZipToDirectoryAsync(torWinZip, tempDir).GetAwaiter().GetResult();
 			File.Move(Path.Combine(tempDir, "Tor", "tor.exe"), Path.Combine(tempDir, "TorWin"));
 
