@@ -3,7 +3,7 @@ The Tor changelog can found here: https://gitweb.torproject.org/tor.git/plain/Ch
 
 Download the latest stable Tor Browser from here: https://www.torproject.org/download/languages/
 
-- Windows x32
+- Windows x64
 - Linux x64
 - macOS x64
 
@@ -27,4 +27,4 @@ msi => Browser\TorBrowser\Data\Tor
 ## Digest creation 
 
 WalletWasabi\WalletWasabi.Packager> dotnet run -- onlycreatedigests
-Copy hashes without file names into WalletWasabi\WalletWasabi\TorDaemons\digests.txt (order of the hashes doesn't matter)
+Copy hashes (SHA256) without file names into WalletWasabi\WalletWasabi\TorDaemons\digests.txt (order of the hashes doesn't matter)
