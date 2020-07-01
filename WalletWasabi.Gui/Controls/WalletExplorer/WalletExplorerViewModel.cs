@@ -190,7 +190,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				if (wallet.KeyManager.PasswordVerified == false)
 				{
-					IoC.Get<IShell>().GetOrCreateByType<WalletManagerViewModel>().SelectTestPassword(wallet.WalletName);
+					IoC.Get<IShell>()
+						.GetOrCreateByType<WalletManagerViewModel>()
+						.SelectTestPassword(wallet.WalletName);
 					return;
 				}
 			}
