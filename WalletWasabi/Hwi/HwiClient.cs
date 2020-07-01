@@ -42,7 +42,7 @@ namespace WalletWasabi.Hwi
 
 		private async Task<string> SendCommandAsync(IEnumerable<HwiOption> options, HwiCommands? command, string commandArguments, bool openConsole, CancellationToken cancel, bool isRecursion = false, Action<StreamWriter> standartInputWriter = null)
 		{
-			if (standartInputWriter is { })
+			if (standartInputWriter is { } && !options.Contains(HwiOption.StdIn))
 			{
 				var optList = options.ToList();
 				optList.Add(HwiOption.StdIn);
