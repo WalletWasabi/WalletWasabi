@@ -1,4 +1,4 @@
-Check if there is a new Tor client. 
+Check if there is a new Tor Browser version.
 
 Tor changelog here: https://gitweb.torproject.org/tor.git/plain/ChangeLog
 
