@@ -77,11 +77,15 @@ namespace WalletWasabi.Microservices
 			}
 		}
 
-		public async Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel)
+		public async Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel, Action<StreamWriter> standartInputWriter = null)
 		{
 			int exitCode;
 
 			using var process = Start(arguments, openConsole);
+			if (standartInputWriter is { })
+			{
+				standartInputWriter(process.StandardInput);
+			}
 			await process.WaitForExitAsync(cancel).ConfigureAwait(false);
 
 			exitCode = process.ExitCode;

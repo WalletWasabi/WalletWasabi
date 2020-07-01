@@ -19,9 +19,9 @@ namespace WalletWasabi.Hwi.ProcessBridge
 		{
 		}
 
-		public new async Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel)
+		public new async Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel, Action<StreamWriter> standartInputWriter = null)
 		{
-			var (responseString, exitCode) = await base.SendCommandAsync(arguments, openConsole, cancel).ConfigureAwait(false);
+			var (responseString, exitCode) = await base.SendCommandAsync(arguments, openConsole, cancel, standartInputWriter).ConfigureAwait(false);
 
 			string modifiedResponseString;
 

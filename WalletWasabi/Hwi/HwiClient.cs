@@ -40,8 +40,15 @@ namespace WalletWasabi.Hwi
 
 		#region Commands
 
-		private async Task<string> SendCommandAsync(IEnumerable<HwiOption> options, HwiCommands? command, string commandArguments, bool openConsole, CancellationToken cancel, bool isRecursion = false)
+		private async Task<string> SendCommandAsync(IEnumerable<HwiOption> options, HwiCommands? command, string commandArguments, bool openConsole, CancellationToken cancel, bool isRecursion = false, Action<StreamWriter> standartInputWriter = null)
 		{
+			if (standartInputWriter is { })
+			{
+				var optList = options.ToList();
+				optList.Add(HwiOption.StdIn);
+				options = optList;
+			}
+
 			string arguments = HwiParser.ToArgumentString(Network, options, command, commandArguments);
 
 			try
@@ -179,9 +186,19 @@ namespace WalletWasabi.Hwi
 			var response = await SendCommandAsync(
 				options: BuildOptions(deviceType, devicePath, fingerprint),
 				command: HwiCommands.SignTx,
-				commandArguments: psbtString,
+				commandArguments: "",
 				openConsole: false,
-				cancel).ConfigureAwait(false);
+				cancel,
+				standartInputWriter: (inputWriter) =>
+				{
+					if (!string.IsNullOrEmpty(psbtString))
+					{
+						inputWriter.WriteLine(psbtString);
+						inputWriter.WriteLine();
+						inputWriter.WriteLine();
+						inputWriter.Flush();
+					}
+				}).ConfigureAwait(false);
 
 			PSBT signedPsbt = HwiParser.ParsePsbt(response, Network);
 
