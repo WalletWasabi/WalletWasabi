@@ -14,6 +14,7 @@ using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Wallets;
 using System.Reactive;
 using WalletWasabi.Logging;
+using WalletWasabi.Gui.Tabs.WalletManager;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -183,11 +184,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void OpenClosedWallet(ClosedWalletViewModel closedWalletViewModel)
 		{
+			Wallet wallet = closedWalletViewModel.Wallet;
+
+			// Is password verified for the wallet?
+			{
+				if (wallet.KeyManager.PasswordVerified == false)
+				{
+					IoC.Get<IShell>().GetOrCreateByType<WalletManagerViewModel>().SelectTestPassword(wallet.WalletName);
+					return;
+				}
+			}
+
 			var select = SelectedItem == closedWalletViewModel;
 
 			RemoveWallet(closedWalletViewModel);
 
-			var walletViewModel = OpenWallet(closedWalletViewModel.Wallet);
+			var walletViewModel = OpenWallet(wallet);
 
 			if (select)
 			{
