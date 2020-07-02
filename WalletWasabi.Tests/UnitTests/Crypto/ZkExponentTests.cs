@@ -8,14 +8,45 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Crypto
 {
-	public class KnowledgeOfExponentTests
+	public class ZkExponentTests
 	{
 		[Fact]
-		public void VerifyProof()
+		public void VerifyBasicProof()
 		{
 			var exponent = new Scalar(5);
 			var proof = ZkProver.CreateProof(exponent);
+			Assert.True(ZkVerifier.Verify(proof));
+		}
 
+		[Theory]
+		[InlineData(1)]
+		[InlineData(3)]
+		[InlineData(uint.MaxValue)]
+		public void VerifySimpleProof(uint scalarSeed)
+		{
+			var exponent = new Scalar(scalarSeed);
+			var proof = ZkProver.CreateProof(exponent);
+			Assert.True(ZkVerifier.Verify(proof));
+		}
+
+		[Fact]
+		public void ScalarCannotBeZero()
+		{
+			var exponent = new Scalar(0);
+			Assert.Throws<ArgumentOutOfRangeException>(() => ZkProver.CreateProof(exponent));
+
+			exponent = Scalar.Zero;
+			Assert.Throws<ArgumentOutOfRangeException>(() => ZkProver.CreateProof(exponent));
+		}
+
+		[Theory]
+		[InlineData(int.MaxValue)]
+		[InlineData(uint.MaxValue)]
+		public void VerifyLargeScalar(uint val)
+		{
+			// var exponent = new Scalar(val, val, val, val, val - 1, val, val, val);
+			var exponent = new Scalar(val, val, val, val, val, val, val, val);
+			var proof = ZkProver.CreateProof(exponent);
 			Assert.True(ZkVerifier.Verify(proof));
 		}
 
