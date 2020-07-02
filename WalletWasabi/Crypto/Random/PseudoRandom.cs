@@ -3,16 +3,18 @@ using WalletWasabi.Helpers;
 
 namespace System
 {
-	public static class RandomString
+	public static class PseudoRandom
 	{
+		public const string Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 		private static Random Random { get; } = new Random();
 
-		public static string Generate(int length)
+		public static string GetString(int length, string chars = Chars)
 		{
 			Guard.MinimumAndNotNull(nameof(length), length, 1);
 
-			return new string(Enumerable.Repeat(Constants.Chars, length)
+			var random = new string(Enumerable.Repeat(chars, length)
 				.Select(s => s[Random.Next(s.Length)]).ToArray());
+			return random;
 		}
 	}
 }

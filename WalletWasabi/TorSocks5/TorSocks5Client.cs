@@ -120,7 +120,7 @@ namespace WalletWasabi.TorSocks5
 		/// </summary>
 		internal async Task HandshakeAsync(bool isolateStream = true)
 		{
-			await HandshakeAsync(isolateStream ? RandomString.Generate(21) : "").ConfigureAwait(false);
+			await HandshakeAsync(isolateStream ? PseudoRandom.GetString(21) : "").ConfigureAwait(false);
 		}
 
 		/// <summary>
