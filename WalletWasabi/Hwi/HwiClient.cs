@@ -53,7 +53,7 @@ namespace WalletWasabi.Hwi
 
 			try
 			{
-				(string responseString, int exitCode) = await Bridge.SendCommandAsync(arguments, openConsole, cancel).ConfigureAwait(false);
+				(string responseString, int exitCode) = await Bridge.SendCommandAsync(arguments, openConsole, cancel, standartInputWriter).ConfigureAwait(false);
 
 				ThrowIfError(responseString, options, arguments, exitCode);
 
@@ -90,7 +90,7 @@ namespace WalletWasabi.Hwi
 			{
 				// Trezor only accepts KeyPath 84'/1' on TestNet from v2.3.1. We fake that we are on MainNet to ensure compatibility.
 				string fixedArguments = HwiParser.ToArgumentString(Network.Main, options, command, commandArguments);
-				(string responseString, int exitCode) = await Bridge.SendCommandAsync(fixedArguments, openConsole, cancel).ConfigureAwait(false);
+				(string responseString, int exitCode) = await Bridge.SendCommandAsync(fixedArguments, openConsole, cancel, standartInputWriter).ConfigureAwait(false);
 
 				ThrowIfError(responseString, options, fixedArguments, exitCode);
 
