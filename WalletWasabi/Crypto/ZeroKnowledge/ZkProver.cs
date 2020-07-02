@@ -14,15 +14,8 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			var publicPoint = (EC.G * exponent).ToGroupElement();
 			var randomScalar = SecureRandom.GetScalar();
 			var randomPoint = (EC.G * randomScalar).ToGroupElement();
+			var challenge = ZkChallenge.Build(publicPoint, randomPoint);
 
-			var concatenation = ByteHelpers.Combine(
-				publicPoint.x.ToBytes(),
-				publicPoint.y.ToBytes(),
-				randomPoint.x.ToBytes(),
-				randomPoint.y.ToBytes());
-			using var sha256 = System.Security.Cryptography.SHA256.Create();
-			var hash = sha256.ComputeHash(concatenation);
-			var challenge = new Scalar(hash);
 			var response = randomScalar + exponent * challenge;
 
 			return new ZkProof(publicPoint, randomPoint, response);
