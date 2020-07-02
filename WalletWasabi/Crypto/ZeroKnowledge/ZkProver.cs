@@ -13,6 +13,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		public static ZkExponentProof CreateProof(Scalar exponent)
 		{
 			Guard.False($"{nameof(exponent)}.{nameof(exponent.IsOverflow)}", exponent.IsOverflow);
+			Guard.False($"{nameof(exponent)}.{nameof(exponent.IsZero)}", exponent.IsZero);
 
 			var publicPoint = (EC.G * exponent).ToGroupElement();
 			var randomScalar = SecureRandom.GetScalarNonZero();

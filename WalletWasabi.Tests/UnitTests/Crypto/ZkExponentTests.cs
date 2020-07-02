@@ -12,17 +12,13 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 	{
 		public static readonly Scalar LargestScalarOverflow = new Scalar(uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue);
 
-		[Fact]
-		public void VerifyBasicProof()
-		{
-			var exponent = new Scalar(5);
-			var proof = ZkProver.CreateProof(exponent);
-			Assert.True(ZkVerifier.Verify(proof));
-		}
-
 		[Theory]
 		[InlineData(1)]
 		[InlineData(3)]
+		[InlineData(5)]
+		[InlineData(7)]
+		[InlineData(short.MaxValue)]
+		[InlineData(int.MaxValue)]
 		[InlineData(uint.MaxValue)]
 		public void VerifySimpleProof(uint scalarSeed)
 		{
