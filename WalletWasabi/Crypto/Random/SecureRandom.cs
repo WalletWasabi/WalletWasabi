@@ -8,7 +8,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 {
 	public static class SecureRandom
 	{
-		public static Scalar GetScalar()
+		public static Scalar GetScalarNonZero()
 		{
 			using var randomGenerator = RandomNumberGenerator.Create();
 			Scalar randomScalar;

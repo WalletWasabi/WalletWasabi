@@ -12,7 +12,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		public static ZkProof CreateProof(Scalar exponent)
 		{
 			var publicPoint = (EC.G * exponent).ToGroupElement();
-			var randomScalar = SecureRandom.GetScalar();
+			var randomScalar = SecureRandom.GetScalarNonZero();
 			var randomPoint = (EC.G * randomScalar).ToGroupElement();
 			var challenge = ZkChallenge.Build(publicPoint, randomPoint);
 
