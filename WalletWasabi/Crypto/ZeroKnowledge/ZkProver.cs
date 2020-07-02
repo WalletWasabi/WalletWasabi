@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Crypto;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge
@@ -11,6 +12,8 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 	{
 		public static ZkExponentProof CreateProof(Scalar exponent)
 		{
+			Guard.False($"{nameof(exponent)}.{nameof(exponent.IsOverflow)}", exponent.IsOverflow);
+
 			var publicPoint = (EC.G * exponent).ToGroupElement();
 			var randomScalar = SecureRandom.GetScalarNonZero();
 			var randomPoint = (EC.G * randomScalar).ToGroupElement();

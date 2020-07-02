@@ -10,6 +10,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 {
 	public class ZkExponentTests
 	{
+		public static readonly Scalar LargestScalarOverflow = new Scalar(uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue);
+
 		[Fact]
 		public void VerifyBasicProof()
 		{
@@ -30,23 +32,39 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		}
 
 		[Fact]
-		public void ScalarCannotBeZero()
+		public void InvalidExponent()
 		{
 			var exponent = new Scalar(0);
 			Assert.Throws<ArgumentOutOfRangeException>(() => ZkProver.CreateProof(exponent));
-
 			exponent = Scalar.Zero;
+			Assert.Throws<ArgumentOutOfRangeException>(() => ZkProver.CreateProof(exponent));
+
+			exponent = EC.N;
+			Assert.Throws<ArgumentOutOfRangeException>(() => ZkProver.CreateProof(exponent));
+			exponent = LargestScalarOverflow;
 			Assert.Throws<ArgumentOutOfRangeException>(() => ZkProver.CreateProof(exponent));
 		}
 
-		[Theory]
-		[InlineData(int.MaxValue)]
-		[InlineData(uint.MaxValue)]
-		public void VerifyLargeScalar(uint val)
+		[Fact]
+		public void VerifyLargeScalar()
 		{
-			// var exponent = new Scalar(val, val, val, val, val - 1, val, val, val);
+			uint val = int.MaxValue;
 			var exponent = new Scalar(val, val, val, val, val, val, val, val);
 			var proof = ZkProver.CreateProof(exponent);
+			Assert.True(ZkVerifier.Verify(proof));
+
+			exponent = EC.N + (new Scalar(1)).Negate();
+			proof = ZkProver.CreateProof(exponent);
+			Assert.True(ZkVerifier.Verify(proof));
+
+			exponent = EC.NC;
+			proof = ZkProver.CreateProof(exponent);
+			Assert.True(ZkVerifier.Verify(proof));
+			exponent = EC.NC + new Scalar(1);
+			proof = ZkProver.CreateProof(exponent);
+			Assert.True(ZkVerifier.Verify(proof));
+			exponent = EC.NC + (new Scalar(1)).Negate();
+			proof = ZkProver.CreateProof(exponent);
 			Assert.True(ZkVerifier.Verify(proof));
 		}
 
@@ -136,6 +154,9 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			Assert.Throws<ArgumentOutOfRangeException>(() => new ZkExponentProof(GEJ.Infinity.ToGroupElement(), point2, scalar));
 			Assert.Throws<ArgumentOutOfRangeException>(() => new ZkExponentProof(point1, GEJ.Infinity.ToGroupElement(), scalar));
+
+			Assert.Throws<ArgumentOutOfRangeException>(() => new ZkExponentProof(point1, point2, EC.N));
+			Assert.Throws<ArgumentOutOfRangeException>(() => new ZkExponentProof(point1, point2, LargestScalarOverflow));
 
 			Assert.Throws<InvalidOperationException>(() => new ZkExponentProof(point1, point1, scalar));
 		}

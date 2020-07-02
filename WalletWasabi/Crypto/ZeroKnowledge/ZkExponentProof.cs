@@ -12,6 +12,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		{
 			Guard.True($"{nameof(publicPoint)}.{nameof(publicPoint.IsValidVariable)}", publicPoint.IsValidVariable);
 			Guard.True($"{nameof(randomPoint)}.{nameof(randomPoint.IsValidVariable)}", randomPoint.IsValidVariable);
+			Guard.False($"{nameof(response)}.{nameof(response.IsOverflow)}", response.IsOverflow);
 			if (Secp256k1Helpers.Equals(publicPoint, randomPoint))
 			{
 				throw new InvalidOperationException($"{nameof(publicPoint)} and {nameof(randomPoint)} should not be equal.");
