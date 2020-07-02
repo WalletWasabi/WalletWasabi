@@ -6,6 +6,30 @@ namespace WalletWasabi.Helpers
 {
 	public static class Guard
 	{
+		public static bool True(string parameterName, bool value)
+		{
+			AssertCorrectParameterName(parameterName);
+
+			if (!value)
+			{
+				throw new ArgumentOutOfRangeException(parameterName, value, "Parameter must be true.");
+			}
+
+			return value;
+		}
+
+		public static bool False(string parameterName, bool value)
+		{
+			AssertCorrectParameterName(parameterName);
+
+			if (value)
+			{
+				throw new ArgumentOutOfRangeException(parameterName, value, "Parameter must be false.");
+			}
+
+			return value;
+		}
+
 		public static T NotNull<T>(string parameterName, T value)
 		{
 			AssertCorrectParameterName(parameterName);
