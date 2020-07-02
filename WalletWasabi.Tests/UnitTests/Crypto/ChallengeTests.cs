@@ -34,9 +34,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			randomPoint = point2;
 			challenge = ZkChallenge.Build(publicPoint, randomPoint);
 			Assert.Equal("secp256k1_scalar  = { 0x1B37E3AEUL, 0x019AC818UL, 0x0375B82CUL, 0x1DABC711UL, 0x0D056003UL, 0x1DB920CAUL, 0x3536D66BUL, 0x3824CDF4UL }", challenge.ToC(""));
-
-			// Make sure failing for invalid points.
-			// Consructor stuff?
 		}
 
 		[Fact]
