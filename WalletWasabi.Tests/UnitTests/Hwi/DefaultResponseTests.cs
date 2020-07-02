@@ -128,9 +128,6 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 
 			res = await pb.SendCommandAsync("enumerate", true, cts.Token);
 			Assert.Contains("success", res.response);
-
-			res = await pb.SendCommandAsync("enumerate", true, cts.Token, (sw) => { });
-			Assert.Contains("success", res.response);
 		}
 
 		[Fact]
