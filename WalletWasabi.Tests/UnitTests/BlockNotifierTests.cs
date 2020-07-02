@@ -65,9 +65,9 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task NotifyBlocksAsync()
 		{
-			const int BlockCount = 3;
+			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(1.5));
 
-			using var cts = new CancellationTokenSource();
+			const int BlockCount = 3;
 			var chain = new ConcurrentChain(Network.RegTest);
 			using var notifier = CreateNotifier(chain);
 
@@ -110,8 +110,8 @@ namespace WalletWasabi.Tests.UnitTests
 
 			notifier.TriggerRound();
 
-			// Wait at most 1500 ms or until cts is canceled
-			await WaitForCancelSignalAsync(TimeSpan.FromSeconds(1.5), cts.Token).ConfigureAwait(false);
+			// Waits at most 1.5s given CancellationTokenSource definition
+			await Task.WhenAny(Task.Delay(Timeout.InfiniteTimeSpan, cts.Token)).ConfigureAwait(false);
 
 			Assert.True(string.IsNullOrEmpty(message), message);
 
@@ -124,17 +124,6 @@ namespace WalletWasabi.Tests.UnitTests
 
 			notifier.OnBlock -= OnBlockInv;
 			await notifier.StopAsync(CancellationToken.None);
-		}
-
-		private async Task WaitForCancelSignalAsync(TimeSpan timeSpan, CancellationToken token)
-		{
-			try
-			{
-				await Task.Delay(timeSpan, token).ConfigureAwait(false);
-			}
-			catch (TaskCanceledException)
-			{
-			}
 		}
 
 		[Fact]
