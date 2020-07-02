@@ -55,6 +55,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						{
 							RemoveWallet(_walletDictionary[wallet]);
 						}
+						else if (wallet.KeyManager.PasswordVerified == false)
+						{
+							IoC.Get<IShell>()
+								.GetOrCreateByType<WalletManagerViewModel>()
+								.SelectTestPassword(wallet.WalletName);
+						}
 						else if (_walletDictionary[wallet] is ClosedWalletViewModel cwvm && wallet.State == WalletState.Started)
 						{
 							OpenClosedWallet(cwvm);
