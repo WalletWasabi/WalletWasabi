@@ -111,7 +111,7 @@ namespace WalletWasabi.Tests.UnitTests
 			notifier.TriggerRound();
 
 			// Wait at most 1500 ms or until cts is canceled
-			await WaitForCancelSignalAsync(TimeSpan.FromMilliseconds(1500), cts.Token);
+			await WaitForCancelSignalAsync(TimeSpan.FromMilliseconds(1500), cts.Token).ConfigureAwait(false);
 
 			Assert.True(string.IsNullOrEmpty(message), message);
 
