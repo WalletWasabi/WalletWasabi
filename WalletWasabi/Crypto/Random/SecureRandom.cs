@@ -21,5 +21,13 @@ namespace WalletWasabi.WabiSabi.Crypto
 			} while (overflow != 0 || randomScalar.IsZero);
 			return randomScalar;
 		}
+
+		public static byte[] GetBytes(int length)
+		{
+			using var randomGenerator = RandomNumberGenerator.Create();
+			var buffer = new byte[length];
+			randomGenerator.GetBytes(buffer);
+			return buffer;
+		}
 	}
 }

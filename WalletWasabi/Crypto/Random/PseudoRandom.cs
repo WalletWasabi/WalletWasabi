@@ -12,8 +12,10 @@ namespace System
 		{
 			Guard.MinimumAndNotNull(nameof(length), length, 1);
 
-			var random = new string(Enumerable.Repeat(chars, length)
-				.Select(s => s[Random.Next(s.Length)]).ToArray());
+			var random = new string(Enumerable
+				.Repeat(chars, length)
+				.Select(s => s[Random.Next(s.Length)])
+				.ToArray());
 			return random;
 		}
 	}

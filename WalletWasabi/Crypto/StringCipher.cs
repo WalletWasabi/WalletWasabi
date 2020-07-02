@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using WalletWasabi.WabiSabi.Crypto;
 
 namespace WalletWasabi.Crypto
 {
@@ -20,7 +21,7 @@ namespace WalletWasabi.Crypto
 		{
 			// Salt is randomly generated each time, but is preprended to encrypted cipher text
 			// so that the same Salt value can be used when decrypting.
-			byte[] salt = Generate128BitsOfRandomEntropy();
+			byte[] salt = SecureRandom.GetBytes(16);
 			byte[] iv = null;
 			byte[] cipherTextBytes = null;
 			byte[] key = null;
@@ -116,17 +117,6 @@ namespace WalletWasabi.Crypto
 				Padding = PaddingMode.PKCS7
 			};
 			return aes;
-		}
-
-		private static byte[] Generate128BitsOfRandomEntropy()
-		{
-			var randomBytes = new byte[16]; // 16 Bytes will give us 128 bits.
-			using (var rngCsp = new RNGCryptoServiceProvider())
-			{
-				// Fill the array with cryptographically secure random bytes.
-				rngCsp.GetBytes(randomBytes);
-			}
-			return randomBytes;
 		}
 	}
 }
