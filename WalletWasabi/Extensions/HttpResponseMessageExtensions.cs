@@ -90,7 +90,10 @@ namespace System.Net.Http
 			string error = null;
 			try
 			{
-				error = await me.Content.ReadAsJsonAsync<string>().ConfigureAwait(false);
+				if (me.Content.Headers?.ContentType?.MediaType != "text/html")
+				{
+					error = await me.Content.ReadAsJsonAsync<string>().ConfigureAwait(false);
+				}
 			}
 			catch (Exception ex)
 			{
