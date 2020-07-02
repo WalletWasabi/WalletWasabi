@@ -71,11 +71,13 @@ namespace WalletWasabi.Microservices
 		{
 			using var process = Start(arguments, openConsole);
 			Send(process.StandardInput);
+			var readPipeTask = openConsole ? Task.FromResult(string.Empty) :process.StandardOutput.ReadToEndAsync();
+
 			await process.WaitForExitAsync(cancel).ConfigureAwait(false);
 
 			var exitCode = process.ExitCode;
 
-			string responseString = openConsole ? string.Empty : await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+			string responseString = await readPipeTask.ConfigureAwait(false);
 
 			return (responseString, exitCode);
 		}
