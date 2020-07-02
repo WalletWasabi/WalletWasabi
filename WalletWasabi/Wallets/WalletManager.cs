@@ -171,6 +171,11 @@ namespace WalletWasabi.Wallets
 				Wallets.Single(x => x.Key == wallet);
 			}
 
+			if (!(wallet.KeyManager.PasswordVerified is true))
+			{
+				throw new InvalidOperationException("Password verification required on the first load.");
+			}
+
 			wallet.SetWaitingForInitState();
 
 			// Wait for the WalletManager to be initialized.
