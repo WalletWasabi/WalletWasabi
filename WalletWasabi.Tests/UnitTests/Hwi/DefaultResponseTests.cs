@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Hwi.Models;
+using WalletWasabi.Hwi.Parsers;
 using WalletWasabi.Hwi.ProcessBridge;
 using Xunit;
 
@@ -140,6 +141,36 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			else
 			{
 				await Assert.ThrowsAsync<PlatformNotSupportedException>(async () => await pb.SendCommandAsync("enumerate", true, cts.Token));
+			}
+		}
+
+		[Theory]
+		[InlineData("", false)]
+		[InlineData("hwi", false)]
+		[InlineData("hwi ", false)]
+		[InlineData("hwi 1", false)]
+		[InlineData("hwi 1.", false)]
+		[InlineData("hwi 1.1", false)]
+		[InlineData("hwi 1.1.", false)]
+		[InlineData("hwi 1.1.2\n", true)]
+		[InlineData("hwi 1.1.2", true)]
+		[InlineData("hwi 1.1.2-rc1\n", true)]
+		[InlineData("hwi 1.1.2-rc1", true)]
+		[InlineData("hwi.exe 1.1.2\n", true)]
+		[InlineData("hwi.exe 1.1.2", true)]
+		[InlineData("hwi.exe 1.1.2-", true)]
+		[InlineData("hwi.exe 1.1.2-rc1\n", true)]
+		[InlineData("hwi.exe 1.1.2-rc1", true)]
+		[InlineData("1.1.2-rc1\n", false)]
+		[InlineData("1.1-rc1\n", false)]
+		public void TryParseVersionTests(string input, bool isParsable)
+		{
+			Version expectedVersion = new Version(1, 1, 2);
+			Assert.Equal(isParsable, HwiParser.TryParseVersion(input, out Version actualVersion));
+
+			if (isParsable)
+			{
+				Assert.Equal(expectedVersion, actualVersion);
 			}
 		}
 
