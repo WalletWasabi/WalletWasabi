@@ -90,7 +90,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		}
 
 		[Fact]
-		public void BuildProof()
+		public void InvalidProof()
 		{
 			var point1 = (EC.G * new Scalar(3)).ToGroupElement();
 			var point2 = (EC.G * new Scalar(7)).ToGroupElement();
