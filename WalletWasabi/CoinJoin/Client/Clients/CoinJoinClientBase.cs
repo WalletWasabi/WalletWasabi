@@ -23,6 +23,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
+using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WebClients.Wasabi;
 using static WalletWasabi.Crypto.SchnorrBlinding;
 
@@ -967,7 +968,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			{
 				ingredients ??= "";
 
-				Salt = TokenGenerator.GetUniqueKey(21);
+				Salt = SecureRandom.GetString(21);
 				Soup = StringCipher.Encrypt(ingredients, Salt);
 			}
 		}

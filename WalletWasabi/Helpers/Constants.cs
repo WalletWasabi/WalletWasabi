@@ -109,5 +109,8 @@ namespace WalletWasabi.Helpers
 		public static string ClientSupportBackendVersionText => ClientSupportBackendVersionMin == ClientSupportBackendVersionMax
 				? ClientSupportBackendVersionMin
 				: $"{ClientSupportBackendVersionMin} - {ClientSupportBackendVersionMax}";
+
+		public const string AlphaNumericChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+		public const string CapitalAlphaNumericChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 	}
 }
