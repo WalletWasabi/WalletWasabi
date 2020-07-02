@@ -12,28 +12,23 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		[Fact]
 		public void BuildChallenge()
 		{
-			var point1 = (EC.G * new Scalar(1)).ToGroupElement();
-			var point2 = (EC.G * new Scalar(2)).ToGroupElement();
+			var point1 = (EC.G * new Scalar(3)).ToGroupElement();
+			var point2 = (EC.G * new Scalar(7)).ToGroupElement();
 
-			var publicPoint = EC.G;
+			var publicPoint = point1;
 			var randomPoint = EC.G;
 			var challenge = ZkChallenge.Build(publicPoint, randomPoint);
-			Assert.Equal("secp256k1_scalar  = { 0x75BF65A1UL, 0x0F13F9BDUL, 0x97C721AEUL, 0x616E9700UL, 0xBF4E7CA7UL, 0x283A3041UL, 0x4767F567UL, 0xFD0A9D2AUL }", challenge.ToC(""));
-
-			publicPoint = point1;
-			randomPoint = EC.G;
-			challenge = ZkChallenge.Build(publicPoint, randomPoint);
-			Assert.Equal("secp256k1_scalar  = { 0x75BF65A1UL, 0x0F13F9BDUL, 0x97C721AEUL, 0x616E9700UL, 0xBF4E7CA7UL, 0x283A3041UL, 0x4767F567UL, 0xFD0A9D2AUL }", challenge.ToC(""));
+			Assert.Equal("secp256k1_scalar  = { 0x18F5F6E4UL, 0x5B8787FEUL, 0x14727A9EUL, 0xD7F74A19UL, 0xDA006442UL, 0x79492D72UL, 0xD551E4A3UL, 0xAC29D7FCUL }", challenge.ToC(""));
 
 			publicPoint = EC.G;
 			randomPoint = point2;
 			challenge = ZkChallenge.Build(publicPoint, randomPoint);
-			Assert.Equal("secp256k1_scalar  = { 0x1B37E3AEUL, 0x019AC818UL, 0x0375B82CUL, 0x1DABC711UL, 0x0D056003UL, 0x1DB920CAUL, 0x3536D66BUL, 0x3824CDF4UL }", challenge.ToC(""));
+			Assert.Equal("secp256k1_scalar  = { 0xCC5AEF16UL, 0x09E5B262UL, 0xD750EAC5UL, 0xE14DFBF8UL, 0x98819DF3UL, 0xB532F187UL, 0x4897CB03UL, 0x2179CD2FUL }", challenge.ToC(""));
 
 			publicPoint = point1;
 			randomPoint = point2;
 			challenge = ZkChallenge.Build(publicPoint, randomPoint);
-			Assert.Equal("secp256k1_scalar  = { 0x1B37E3AEUL, 0x019AC818UL, 0x0375B82CUL, 0x1DABC711UL, 0x0D056003UL, 0x1DB920CAUL, 0x3536D66BUL, 0x3824CDF4UL }", challenge.ToC(""));
+			Assert.Equal("secp256k1_scalar  = { 0x79342242UL, 0x9F7E0258UL, 0x1E6DAA75UL, 0xD374DA42UL, 0x3AB38E04UL, 0x30837227UL, 0x35A22847UL, 0x887A4A08UL }", challenge.ToC(""));
 		}
 
 		[Fact]
@@ -78,6 +73,10 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			publicPoint = new GE(new FE(1), new FE(3));
 			randomPoint = new GE(new FE(7), new FE(11));
 			Assert.Throws<ArgumentOutOfRangeException>(() => ZkChallenge.Build(publicPoint, randomPoint));
+
+			publicPoint = point1;
+			randomPoint = point1;
+			Assert.Throws<InvalidOperationException>(() => ZkChallenge.Build(publicPoint, randomPoint));
 		}
 	}
 }

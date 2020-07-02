@@ -9,7 +9,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 {
 	public static class ZkVerifier
 	{
-		public static bool Verify(ZkProof proof)
+		public static bool Verify(ZkExponentProof proof)
 		{
 			Guard.NotNull(nameof(proof), proof);
 
@@ -17,9 +17,9 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			var randomPoint = proof.RandomPoint;
 			var challenge = ZkChallenge.Build(publicPoint, randomPoint);
 
-			var left = (publicPoint * challenge + randomPoint).ToGroupElement();
-			var right = (EC.G * proof.Response).ToGroupElement();
-			return (left.IsInfinity && right.IsInfinity) || (left.x == right.x && left.y == right.y);
+			var a = (publicPoint * challenge + randomPoint).ToGroupElement();
+			var b = (EC.G * proof.Response).ToGroupElement();
+			return Secp256k1Helpers.Equals(a, b);
 		}
 	}
 }

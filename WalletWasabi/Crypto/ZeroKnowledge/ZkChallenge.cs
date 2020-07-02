@@ -12,6 +12,10 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		{
 			Guard.True($"{nameof(publicPoint)}.{nameof(publicPoint.IsValidVariable)}", publicPoint.IsValidVariable);
 			Guard.True($"{nameof(randomPoint)}.{nameof(randomPoint.IsValidVariable)}", randomPoint.IsValidVariable);
+			if (Secp256k1Helpers.Equals(publicPoint, randomPoint))
+			{
+				throw new InvalidOperationException($"{nameof(publicPoint)} and {nameof(randomPoint)} should not be equal.");
+			}
 
 			var concatenation = ByteHelpers.Combine(
 				publicPoint.x.ToBytes(),
