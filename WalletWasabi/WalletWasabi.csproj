@@ -70,7 +70,7 @@
     <None Update="TorDaemons\tor-osx64.zip">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="TorDaemons\tor-win32.zip">
+    <None Update="TorDaemons\tor-win64.zip">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
