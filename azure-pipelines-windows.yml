@@ -24,13 +24,11 @@ jobs:
     inputs:
       command: build
       arguments: --configuration Debug --no-restore
-      noCache: true
   - task: DotNetCoreCLI@2
     displayName: 'Build Release'
     inputs:
       command: build
       arguments: --configuration Release --no-restore
-      noCache: true
   - task: DotNetCoreCLI@2
     displayName: 'Test Debug'
     inputs:
