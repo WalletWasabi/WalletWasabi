@@ -13,17 +13,23 @@ jobs:
     displayName: 'Install .NET Core 3'
     inputs:
       version: 3.1.x
+  - task: NuGetCommand@2
+    inputs:
+      command: 'restore'
+      restoreSolution: '$(project)'
+      feedsToUse: 'select'
+      includeNuGetOrg: true
   - task: DotNetCoreCLI@2
     displayName: 'Build Debug'
     inputs:
       command: build
-      arguments: --configuration Debug
+      arguments: --configuration Debug --no-restore
       noCache: true
   - task: DotNetCoreCLI@2
     displayName: 'Build Release'
     inputs:
       command: build
-      arguments: --configuration Release
+      arguments: --configuration Release --no-restore
       noCache: true
   - task: DotNetCoreCLI@2
     displayName: 'Test Debug'
