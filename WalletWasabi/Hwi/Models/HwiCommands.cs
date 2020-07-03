@@ -9,7 +9,7 @@ namespace WalletWasabi.Hwi.Models
 	/// </summary>
 	/// <remarks>HWI may partially support a hardware device.</remarks>
 	/// <seealso href="https://github.com/bitcoin-core/HWI/blob/master/hwilib/hwwclient.py"/>
-	/// <seealso href="https://github.com/bitcoin-core/HWI/blob/master/docs/trezor.md"/>
+	/// <seealso href="https://github.com/bitcoin-core/HWI/blob/master/docs/coldcard.md"/>
 	/// <seealso href="https://github.com/bitcoin-core/HWI/blob/master/docs/ledger.md"/>
 	public enum HwiCommands
 	{
