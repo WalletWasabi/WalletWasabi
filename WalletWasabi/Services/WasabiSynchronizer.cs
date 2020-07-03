@@ -217,7 +217,7 @@ namespace WalletWasabi.Services
 								}
 								catch (Exception x)
 								{
-									// It is failed again so there is a backend problem.
+									// It has failed again so there is a backend problem.
 									BackendStatus = BackendStatus.NotConnected;
 									Logger.LogError(x);
 									HandleIfGenSocksServFail(x);
