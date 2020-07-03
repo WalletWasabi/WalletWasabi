@@ -8,9 +8,9 @@ using WalletWasabi.Tests.XunitConfiguration;
 using Xunit;
 using static WalletWasabi.Crypto.SchnorrBlinding;
 
-namespace WalletWasabi.Tests.UnitTests
+namespace WalletWasabi.Tests.UnitTests.Crypto
 {
-	public class CryptoTests
+	public class StringCipherTests
 	{
 		[Fact]
 		public void CipherTests()
@@ -70,51 +70,6 @@ namespace WalletWasabi.Tests.UnitTests
 			}
 			var rate = errorCount / (double)count;
 			Assert.True(rate < 0.000001 && rate > -0.000001);
-		}
-
-		[Fact]
-		public void CanBlindSign()
-		{
-			// Generate ECDSA keypairs.
-			var r = new Key();
-			var key = new Key();
-			Signer signer = new Signer(key, r);
-
-			// Generate ECDSA requester.
-			// Get the r's pubkey and the key's pubkey.
-			// Blind messages.
-			Requester requester = new Requester();
-			PubKey rPubKey = r.PubKey;
-			PubKey keyPubKey = key.PubKey;
-
-			byte[] message = Encoding.UTF8.GetBytes("áéóúősing me please~!@#$%^&*())_+");
-			byte[] hashBytes = NBitcoin.Crypto.Hashes.SHA256(message);
-			uint256 hash = new uint256(hashBytes);
-			uint256 blindedMessageHash = requester.BlindMessage(hash, rPubKey, keyPubKey);
-
-			// Sign the blinded message hash.
-			uint256 blindedSignature = signer.Sign(blindedMessageHash);
-
-			// Unblind the signature.
-			UnblindedSignature unblindedSignature = requester.UnblindSignature(blindedSignature);
-
-			// verify the original data is signed
-
-			Assert.True(VerifySignature(hash, unblindedSignature, keyPubKey));
-		}
-
-		[Fact]
-		public void CanEncodeDecodeBlinding()
-		{
-			var key = new Key();
-			var r = new Key();
-			byte[] message = Encoding.UTF8.GetBytes("áéóúősing me please~!@#$%^&*())_+");
-			var hash = new uint256(NBitcoin.Crypto.Hashes.SHA256(message));
-			var requester = new Requester();
-			uint256 blindedHash = requester.BlindMessage(hash, r.PubKey, key.PubKey);
-			string encoded = blindedHash.ToString();
-			uint256 decoded = new uint256(encoded);
-			Assert.Equal(blindedHash, decoded);
 		}
 	}
 }
