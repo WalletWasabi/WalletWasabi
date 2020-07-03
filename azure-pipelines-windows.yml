@@ -13,11 +13,10 @@ jobs:
     displayName: 'Install .NET Core 3'
     inputs:
       version: 3.1.x
-  - task: NuGetCommand@2
+  - task: DotNetCoreCLI@2
     inputs:
       command: 'restore'
       restoreSolution: '**/*.sln'
-      feedsToUse: 'select'
       includeNuGetOrg: true
   - task: DotNetCoreCLI@2
     displayName: 'Build Debug'
