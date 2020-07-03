@@ -15,6 +15,11 @@ using System.Net.Http;
 using System.Net;
 using System.Text;
 using WalletWasabi.Models;
+using System.IO;
+using WalletWasabi.Helpers;
+using WalletWasabi.Stores;
+using WalletWasabi.Blockchain.Blocks;
+using WalletWasabi.Blockchain.Mempool;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions
 {
@@ -399,7 +404,10 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				}
 			}
 			var coinsView = new CoinsView(scoins);
-			return new TransactionFactory(Network.Main, keyManager, coinsView, password, allowUnconfirmed);
+			
+			var bitcoinStore = new BitcoinStoreMock();
+
+			return new TransactionFactory(Network.Main, keyManager, coinsView, bitcoinStore, password, allowUnconfirmed);
 		}
 
 		private static (string, KeyManager) DefaultKeyManager()

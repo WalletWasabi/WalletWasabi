@@ -31,7 +31,8 @@ namespace Nito.AsyncEx
 				return ret;
 			}
 
-			var registration = token.Register(() =>
+			var registration = token.Register(
+				() =>
 				{
 					lock (mutex)
 					{

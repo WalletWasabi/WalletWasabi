@@ -51,79 +51,80 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				async () => await OnDoTransactionBroadcastAsync(),
 				broadcastTransactionCanExecute);
 
-			ImportTransactionCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				try
+			ImportTransactionCommand = ReactiveCommand.CreateFromTask(
+				async () =>
 				{
-					var ofd = new OpenFileDialog
+					try
 					{
-						AllowMultiple = false,
-						Title = "Import Transaction"
-					};
-
-					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-					{
-						var initialDirectory = Path.Combine("/media", Environment.UserName);
-						if (!Directory.Exists(initialDirectory))
+						var ofd = new OpenFileDialog
 						{
-							initialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+							AllowMultiple = false,
+							Title = "Import Transaction"
+						};
+
+						if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+						{
+							var initialDirectory = Path.Combine("/media", Environment.UserName);
+							if (!Directory.Exists(initialDirectory))
+							{
+								initialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+							}
+							ofd.Directory = initialDirectory;
 						}
-						ofd.Directory = initialDirectory;
-					}
-					else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-					{
-						ofd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-					}
-
-					var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
-					var selected = await ofd.ShowAsync(window, fallBack: true);
-
-					if (selected != null && selected.Any())
-					{
-						var path = selected.First();
-						var psbtBytes = await File.ReadAllBytesAsync(path);
-						PSBT psbt = null;
-						Transaction transaction = null;
-						try
+						else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 						{
-							psbt = PSBT.Load(psbtBytes, Global.Network);
+							ofd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 						}
-						catch
+
+						var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
+						var selected = await ofd.ShowAsync(window, fallBack: true);
+
+						if (selected != null && selected.Any())
 						{
-							var text = await File.ReadAllTextAsync(path);
-							text = text.Trim();
+							var path = selected.First();
+							var psbtBytes = await File.ReadAllBytesAsync(path);
+							PSBT psbt = null;
+							Transaction transaction = null;
 							try
 							{
-								psbt = PSBT.Parse(text, Global.Network);
+								psbt = PSBT.Load(psbtBytes, Global.Network);
 							}
 							catch
 							{
-								transaction = Transaction.Parse(text, Global.Network);
+								var text = await File.ReadAllTextAsync(path);
+								text = text.Trim();
+								try
+								{
+									psbt = PSBT.Parse(text, Global.Network);
+								}
+								catch
+								{
+									transaction = Transaction.Parse(text, Global.Network);
+								}
 							}
-						}
 
-						if (psbt != null)
-						{
-							if (!psbt.IsAllFinalized())
+							if (psbt != null)
 							{
-								psbt.Finalize();
-							}
+								if (!psbt.IsAllFinalized())
+								{
+									psbt.Finalize();
+								}
 
-							TransactionString = psbt.ToBase64();
-						}
-						else
-						{
-							TransactionString = transaction.ToHex();
+								TransactionString = psbt.ToBase64();
+							}
+							else
+							{
+								TransactionString = transaction.ToHex();
+							}
 						}
 					}
-				}
-				catch (Exception ex)
-				{
-					Logger.LogError(ex);
-					NotificationHelpers.Error(ex.ToUserFriendlyString());
-				}
-			},
-			outputScheduler: RxApp.MainThreadScheduler);
+					catch (Exception ex)
+					{
+						Logger.LogError(ex);
+						NotificationHelpers.Error(ex.ToUserFriendlyString());
+					}
+				},
+				outputScheduler: RxApp.MainThreadScheduler);
 
 			Observable
 				.Merge(PasteCommand.ThrownExceptions)

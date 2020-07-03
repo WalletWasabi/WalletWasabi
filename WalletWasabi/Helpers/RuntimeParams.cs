@@ -61,9 +61,10 @@ namespace WalletWasabi.Helpers
 					}
 
 					string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
-					await File.WriteAllTextAsync(FilePath,
-					jsonString,
-					Encoding.UTF8);
+					await File.WriteAllTextAsync(
+						FilePath,
+						jsonString,
+						Encoding.UTF8);
 				}
 			}
 			catch (Exception ex)
