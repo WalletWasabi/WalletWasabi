@@ -116,7 +116,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			UnblindedSignature unblindedSignature = requester.UnblindSignature(blindedSignature);
 
 			// verify the original data is signed
-
 			Assert.True(VerifySignature(hash, unblindedSignature, keyPubKey));
 		}
 
