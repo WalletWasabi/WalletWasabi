@@ -18,16 +18,14 @@ jobs:
     inputs:
       command: build
       arguments: --configuration Debug
-      noCache: true
   - task: DotNetCoreCLI@2
     displayName: 'Build Release'
     inputs:
       command: build
       arguments: --configuration Release
-      noCache: true
   - task: DotNetCoreCLI@2
     displayName: 'Test Debug'
     inputs:
       command: test
       projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
-      arguments: --configuration $(testConfiguration) --filter "FullyQualifiedName~UnitTests & FullyQualifiedName!~NodeBuildingTests.GetVersionTestsAsync" --logger "console;verbosity=detailed"
+      arguments: --configuration $(testConfiguration) --filter "UnitTests" --logger "console;verbosity=detailed"
