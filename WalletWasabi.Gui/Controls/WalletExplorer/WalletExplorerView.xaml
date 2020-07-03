@@ -52,7 +52,7 @@
         </TreeView.Styles>
         <TreeView.DataTemplates>
           <TreeDataTemplate DataType="ViewModels:ClosedWalletViewModel" ItemsSource="{Binding Actions}">
-            <StackPanel Classes="TreeViewRoot">
+            <StackPanel Classes="TreeViewRoot" ToolTip.Tip="{Binding TitleTip}">
               <i:Interaction.Behaviors>
                 <behaviors:CommandOnDoubleClickBehavior Command="{Binding OpenWalletCommand}" />
               </i:Interaction.Behaviors>

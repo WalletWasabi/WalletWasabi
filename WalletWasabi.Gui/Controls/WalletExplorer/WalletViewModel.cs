@@ -41,16 +41,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					try
 					{
 						Money balance = Wallet.Coins.TotalAmount();
-						var dollars = Wallet.Synchronizer.UsdExchangeRate * balance.ToDecimal(MoneyUnit.BTC);
+						Title = $"{WalletName} ({(UiConfig.LurkingWifeMode ? "#########" : balance.ToString(false, true))} BTC)";
 
-						if (dollars == 0)
-						{
-							Title = $"{WalletName} ({(UiConfig.LurkingWifeMode ? "#########" : balance.ToString(false, true))} BTC)";
-						}
-						else
-						{
-							Title = $"{WalletName} ({(UiConfig.LurkingWifeMode ? "#########" : balance.ToString(false, true))} BTC, ${dollars:.00})";
-						}
+						var dollars = Wallet.Synchronizer.UsdExchangeRate * balance.ToDecimal(MoneyUnit.BTC);
+						TitleTip = dollars > 0 ? $"{dollars:.00} USD" : "??? USD";
 					}
 					catch (Exception ex)
 					{
