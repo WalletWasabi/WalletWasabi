@@ -57,6 +57,7 @@ namespace WalletWasabi.Hwi.Models
 
 		/// <summary>
 		/// Display and return the address of specified type.
+		///
 		/// <para>redeem_script is a hex-string.</para>
 		/// <para>Retrieve the public key at the specified BIP32 derivation path.</para>
 		/// </summary>
