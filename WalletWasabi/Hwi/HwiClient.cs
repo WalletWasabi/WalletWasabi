@@ -196,7 +196,6 @@ namespace WalletWasabi.Hwi
 						inputWriter.WriteLine(psbtString);
 						inputWriter.WriteLine();
 						inputWriter.WriteLine();
-						inputWriter.Flush();
 					}
 				}).ConfigureAwait(false);
 

@@ -87,6 +87,7 @@ namespace WalletWasabi.Microservices
 			if (redirectStandardInput)
 			{
 				standardInputWriter(process.StandardInput);
+				process.StandardInput.Close();
 			}
 			await process.WaitForExitAsync(cancel).ConfigureAwait(false);
 
