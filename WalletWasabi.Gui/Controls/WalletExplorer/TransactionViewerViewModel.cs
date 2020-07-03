@@ -24,8 +24,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class TransactionViewerViewModel : WasabiDocumentTabViewModel
 	{
+		private readonly int _jsonCharLimit = 5_0;
 		private string _txId;
 		private string _psbtJsonText;
+		private string _psbtJsonTextHeader;
+		private string _truncatedPsbtJsonText;
 		private string _psbtHexText;
 		private string _psbtBase64Text;
 		private byte[] _psbtBytes;
@@ -35,6 +38,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global = Locator.Current.GetService<Global>();
 
 			OpenTransactionBroadcaster = ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new TransactionBroadcasterViewModel()));
+
+			CopyBase64Psbt = ReactiveCommand.CreateFromTask(async () =>
+			{
+				await Application.Current.Clipboard.SetTextAsync(PsbtBase64Text);
+				NotificationHelpers.Information("The PSBT Base64 string is now copied on your clipboard!");
+			});
+
+			CopyTransactionHex = ReactiveCommand.CreateFromTask(async () =>
+			{
+				await Application.Current.Clipboard.SetTextAsync(TransactionHexText);
+				NotificationHelpers.Information("The Transaction hex string is now copied on your clipboard!");
+			});
+
 			ExportBinaryPsbt = ReactiveCommand.CreateFromTask(async () =>
 			{
 				var psbtExtension = "psbt";
@@ -86,6 +102,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private Global Global { get; }
 		public ReactiveCommand<Unit, Unit> ExportBinaryPsbt { get; set; }
+		public ReactiveCommand<Unit, Unit> CopyTransactionHex { get; set; }
+		public ReactiveCommand<Unit, Unit> CopyBase64Psbt { get; set; }
+
 		public ReactiveCommand<Unit, Unit> OpenTransactionBroadcaster { get; set; }
 
 		public bool? IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode;
@@ -101,6 +120,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _psbtJsonText;
 			set => this.RaiseAndSetIfChanged(ref _psbtJsonText, value);
 		}
+
+		public string PsbtJsonTextHeader
+		{
+			get => _psbtJsonTextHeader;
+			set => this.RaiseAndSetIfChanged(ref _psbtJsonTextHeader, value);
+		}
+
+		public string TruncatedPsbtJsonText
+		{
+			get => _truncatedPsbtJsonText;
+			set => this.RaiseAndSetIfChanged(ref _truncatedPsbtJsonText, value);
+		}
+
+
 
 		public string TransactionHexText
 		{
@@ -131,6 +164,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
 					this.RaisePropertyChanged(nameof(TxId));
 					this.RaisePropertyChanged(nameof(PsbtJsonText));
+					this.RaisePropertyChanged(nameof(TruncatedPsbtJsonText));
 					this.RaisePropertyChanged(nameof(TransactionHexText));
 					this.RaisePropertyChanged(nameof(PsbtBase64Text));
 				}).DisposeWith(disposables);
@@ -142,6 +176,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				TxId = result.Transaction.GetHash().ToString();
 				PsbtJsonText = result.Psbt.ToString();
+
+				var isTruncated = PsbtJsonText.Length > _jsonCharLimit;
+
+				TruncatedPsbtJsonText = isTruncated ? $"{PsbtJsonText[0.._jsonCharLimit]}..." : PsbtJsonText;
+				PsbtJsonTextHeader = isTruncated ? "PSBT Json (Truncated)" : "PSBT Json";
+
 				TransactionHexText = result.Transaction.Transaction.ToHex();
 				PsbtBase64Text = result.Psbt.ToBase64();
 				PsbtBytes = result.Psbt.ToBytes();

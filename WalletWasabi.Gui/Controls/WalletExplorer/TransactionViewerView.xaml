@@ -14,27 +14,21 @@
   <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
     <Grid Classes="content">
       <DockPanel LastChildFill="True">
-        <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Right" Orientation="Horizontal" Spacing="10">
+        <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Right" Orientation="Horizontal" Spacing="10" Margin="5,0">
           <Button Command="{Binding OpenTransactionBroadcaster}" Content="Open Transaction Broadcaster" />
-          <Button Command="{Binding ExportBinaryPsbt}" Content="Export Binary PSBT" />
+          <!-- <Button Command="{Binding ExportBinaryPsbt}" Content="Export Binary PSBT" /> -->
+          <Button Command="{Binding CopyTransactionHex}" Content="Copy Transaction Hex" />
+          <Button Command="{Binding CopyBase64Psbt}" Content="Copy Base64 PSBT" />
         </StackPanel>
-        <Grid ScrollViewer.VerticalScrollBarVisibility="Auto" RowDefinitions="26,1*,1*,1*">
+        <Grid ScrollViewer.VerticalScrollBarVisibility="Auto" RowDefinitions="26,1*">
           <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0 8 0 0" Spacing="5">
             <TextBlock Text="Transaction ID:" FontWeight="Bold" />
             <controls:ExtendedTextBox Text="{Binding TxId, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Classes="selectableTextBlock" />
           </StackPanel>
           <DockPanel LastChildFill="True" Grid.Row="1" Margin="0 8 0 0">
-            <TextBlock DockPanel.Dock="Top" Text="PSBT Json" FontWeight="Bold" />
-            <controls:MultiTextBox Margin="0 8 0 0" Text="{Binding PsbtJsonText, ConverterParameter=1536, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" CopyOnClick="{Binding !IsLurkingWifeMode}" IsSelectable="False" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" />
-          </DockPanel>
-          <DockPanel LastChildFill="True" Grid.Row="2" Margin="0 8 0 0">
-            <TextBlock DockPanel.Dock="Top" Text="Transaction Hex" FontWeight="Bold" />
-            <controls:MultiTextBox Margin="0 8 0 0" Text="{Binding TransactionHexText, ConverterParameter=382, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" CopyOnClick="{Binding !IsLurkingWifeMode}" IsSelectable="False" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" />
-          </DockPanel>
-          <DockPanel LastChildFill="True" Grid.Row="3" Margin="0 8 0 0">
-            <TextBlock DockPanel.Dock="Top" Text="PSBT Base64 String" FontWeight="Bold" />
-            <controls:MultiTextBox Margin="0 8" VerticalAlignment="Stretch" Text="{Binding PsbtBase64Text, ConverterParameter=472, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" CopyOnClick="{Binding !IsLurkingWifeMode}" IsSelectable="False" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" />
-          </DockPanel>
+            <TextBlock DockPanel.Dock="Top" Text="{Binding PsbtJsonTextHeader}" FontWeight="Bold" />
+            <controls:MultiTextBox Margin="0 8 0 0" Text="{Binding TruncatedPsbtJsonText, ConverterParameter=1536, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" IsSelectable="False" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" />
+          </DockPanel> 
         </Grid>
       </DockPanel>
     </Grid>
