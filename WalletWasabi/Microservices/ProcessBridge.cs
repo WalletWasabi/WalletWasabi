@@ -89,11 +89,14 @@ namespace WalletWasabi.Microservices
 				standardInputWriter(process.StandardInput);
 				process.StandardInput.Close();
 			}
+
+			var readPipeTask = openConsole ? Task.FromResult(string.Empty) : process.StandardOutput.ReadToEndAsync();
+
 			await process.WaitForExitAsync(cancel).ConfigureAwait(false);
 
 			exitCode = process.ExitCode;
 
-			string responseString = openConsole ? string.Empty : await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+			string responseString = await readPipeTask.ConfigureAwait(false);
 
 			return (responseString, exitCode);
 		}
