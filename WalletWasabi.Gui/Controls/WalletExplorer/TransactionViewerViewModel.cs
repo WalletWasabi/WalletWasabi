@@ -24,14 +24,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class TransactionViewerViewModel : WasabiDocumentTabViewModel
 	{
-		private readonly int _jsonCharLimit = 5_0;
+		private readonly int _jsonCharLimit = 2_500;
 		private string _txId;
-		private string _psbtJsonText;
-		private string _psbtJsonTextHeader;
+		private string _psbtJsonText; 
 		private string _truncatedPsbtJsonText;
 		private string _psbtHexText;
 		private string _psbtBase64Text;
 		private byte[] _psbtBytes;
+		private bool _IsPsbtJsonTextTruncated;
 
 		public TransactionViewerViewModel() : base("Transaction")
 		{
@@ -104,7 +104,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> ExportBinaryPsbt { get; set; }
 		public ReactiveCommand<Unit, Unit> CopyTransactionHex { get; set; }
 		public ReactiveCommand<Unit, Unit> CopyBase64Psbt { get; set; }
-
 		public ReactiveCommand<Unit, Unit> OpenTransactionBroadcaster { get; set; }
 
 		public bool? IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode;
@@ -121,19 +120,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _psbtJsonText, value);
 		}
 
-		public string PsbtJsonTextHeader
-		{
-			get => _psbtJsonTextHeader;
-			set => this.RaiseAndSetIfChanged(ref _psbtJsonTextHeader, value);
-		}
-
 		public string TruncatedPsbtJsonText
 		{
 			get => _truncatedPsbtJsonText;
 			set => this.RaiseAndSetIfChanged(ref _truncatedPsbtJsonText, value);
 		}
-
-
 
 		public string TransactionHexText
 		{
@@ -151,6 +142,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _psbtBytes;
 			set => this.RaiseAndSetIfChanged(ref _psbtBytes, value);
+		}
+
+		public bool IsPsbtJsonTextTruncated
+		{
+			get => _IsPsbtJsonTextTruncated;
+			set => this.RaiseAndSetIfChanged(ref _IsPsbtJsonTextTruncated, value);
 		}
 
 		public override void OnOpen(CompositeDisposable disposables)
@@ -177,10 +174,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				TxId = result.Transaction.GetHash().ToString();
 				PsbtJsonText = result.Psbt.ToString();
 
-				var isTruncated = PsbtJsonText.Length > _jsonCharLimit;
+				IsPsbtJsonTextTruncated = PsbtJsonText.Length > _jsonCharLimit;
 
-				TruncatedPsbtJsonText = isTruncated ? $"{PsbtJsonText[0.._jsonCharLimit]}..." : PsbtJsonText;
-				PsbtJsonTextHeader = isTruncated ? "PSBT Json (Truncated)" : "PSBT Json";
+				TruncatedPsbtJsonText = IsPsbtJsonTextTruncated ? $"{PsbtJsonText[0.._jsonCharLimit]}..." : PsbtJsonText;
 
 				TransactionHexText = result.Transaction.Transaction.ToHex();
 				PsbtBase64Text = result.Psbt.ToBase64();
