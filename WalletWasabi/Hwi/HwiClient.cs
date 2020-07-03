@@ -40,9 +40,9 @@ namespace WalletWasabi.Hwi
 
 		#region Commands
 
-		private async Task<string> SendCommandAsync(IEnumerable<HwiOption> options, HwiCommands? command, string commandArguments, bool openConsole, CancellationToken cancel, bool isRecursion = false, Action<StreamWriter> standartInputWriter = null)
+		private async Task<string> SendCommandAsync(IEnumerable<HwiOption> options, HwiCommands? command, string commandArguments, bool openConsole, CancellationToken cancel, bool isRecursion = false, Action<StreamWriter> standardInputWriter = null)
 		{
-			if (standartInputWriter is { } && !options.Contains(HwiOption.StdIn))
+			if (standardInputWriter is { } && !options.Contains(HwiOption.StdIn))
 			{
 				var optList = options.ToList();
 				optList.Add(HwiOption.StdIn);
@@ -53,7 +53,7 @@ namespace WalletWasabi.Hwi
 
 			try
 			{
-				(string responseString, int exitCode) = await Bridge.SendCommandAsync(arguments, openConsole, cancel, standartInputWriter).ConfigureAwait(false);
+				(string responseString, int exitCode) = await Bridge.SendCommandAsync(arguments, openConsole, cancel, standardInputWriter).ConfigureAwait(false);
 
 				ThrowIfError(responseString, options, arguments, exitCode);
 
@@ -90,7 +90,7 @@ namespace WalletWasabi.Hwi
 			{
 				// Trezor only accepts KeyPath 84'/1' on TestNet from v2.3.1. We fake that we are on MainNet to ensure compatibility.
 				string fixedArguments = HwiParser.ToArgumentString(Network.Main, options, command, commandArguments);
-				(string responseString, int exitCode) = await Bridge.SendCommandAsync(fixedArguments, openConsole, cancel, standartInputWriter).ConfigureAwait(false);
+				(string responseString, int exitCode) = await Bridge.SendCommandAsync(fixedArguments, openConsole, cancel, standardInputWriter).ConfigureAwait(false);
 
 				ThrowIfError(responseString, options, fixedArguments, exitCode);
 
@@ -189,7 +189,7 @@ namespace WalletWasabi.Hwi
 				commandArguments: "",
 				openConsole: false,
 				cancel,
-				standartInputWriter: (inputWriter) =>
+				standardInputWriter: (inputWriter) =>
 				{
 					if (!string.IsNullOrEmpty(psbtString))
 					{

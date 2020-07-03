@@ -20,7 +20,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 
 		public HardwareWalletModels Model { get; }
 
-		public Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel, Action<StreamWriter> standartInputWriter = null)
+		public Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel, Action<StreamWriter> standardInputWriter = null)
 		{
 			if (openConsole)
 			{

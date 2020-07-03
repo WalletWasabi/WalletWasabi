@@ -10,7 +10,7 @@ namespace WalletWasabi.Microservices
 {
 	public interface IProcessBridge
 	{
-		Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel, Action<StreamWriter> standartInputWriter = null);
+		Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel, Action<StreamWriter> standardInputWriter = null);
 
 		Process Start(string arguments, bool openConsole, bool redirectStandardInput);
 	}
