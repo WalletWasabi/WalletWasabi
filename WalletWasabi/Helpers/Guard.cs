@@ -7,24 +7,18 @@ namespace WalletWasabi.Helpers
 	public static class Guard
 	{
 		public static bool True(string parameterName, bool value)
-		{
-			AssertCorrectParameterName(parameterName);
-
-			if (!value)
-			{
-				throw new ArgumentOutOfRangeException(parameterName, value, "Parameter must be true.");
-			}
-
-			return value;
-		}
+			=> AssertBool(parameterName, true, value);
 
 		public static bool False(string parameterName, bool value)
+			=> AssertBool(parameterName, false, value);
+
+		private static bool AssertBool(string parameterName, bool expectedValue, bool value)
 		{
 			AssertCorrectParameterName(parameterName);
 
-			if (value)
+			if (value != expectedValue)
 			{
-				throw new ArgumentOutOfRangeException(parameterName, value, "Parameter must be false.");
+				throw new ArgumentOutOfRangeException(parameterName, value, $"Parameter must be {expectedValue}.");
 			}
 
 			return value;
