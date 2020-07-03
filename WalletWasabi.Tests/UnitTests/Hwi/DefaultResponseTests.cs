@@ -123,8 +123,13 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			HwiProcessBridge pb = new HwiProcessBridge();
 
 			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
-			var res = await pb.SendCommandAsync("enumerate", false, cts.Token);
+			var res = await pb.SendCommandAsync("version", false, cts.Token);
 			Assert.NotEmpty(res.response);
+
+			bool stdInputActionCalled = false;
+			res = await pb.SendCommandAsync("version", false, cts.Token, (sw) => stdInputActionCalled = true);
+			Assert.NotEmpty(res.response);
+			Assert.True(stdInputActionCalled);
 		}
 
 		[Fact]
@@ -135,8 +140,8 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				var res = await pb.SendCommandAsync("enumerate", true, cts.Token);
-				Assert.NotEmpty(res.response);
+				var res = await pb.SendCommandAsync("version", true, cts.Token);
+				Assert.Contains("success", res.response);
 			}
 			else
 			{
