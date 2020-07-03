@@ -90,6 +90,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			});
 
 			Observable
+				.Merge(CopyBase64Psbt.ThrownExceptions)
+				.Merge(CopyTransactionHex.ThrownExceptions)
 				.Merge(ExportBinaryPsbt.ThrownExceptions)
 				.Merge(OpenTransactionBroadcaster.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -101,6 +103,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		private Global Global { get; }
+
 		public ReactiveCommand<Unit, Unit> ExportBinaryPsbt { get; set; }
 		public ReactiveCommand<Unit, Unit> CopyTransactionHex { get; set; }
 		public ReactiveCommand<Unit, Unit> CopyBase64Psbt { get; set; }
