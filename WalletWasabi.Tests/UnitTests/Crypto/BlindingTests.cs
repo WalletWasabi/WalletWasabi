@@ -13,7 +13,7 @@ using static WalletWasabi.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.Tests.UnitTests.Crypto
 {
-	public class SchnorrBlindindSignatureTests
+	public class BlindingTests
 	{
 		[Fact]
 		[Trait("UnitTest", "UnitTest")]
