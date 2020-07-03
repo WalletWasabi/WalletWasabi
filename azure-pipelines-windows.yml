@@ -16,7 +16,7 @@ jobs:
   - task: NuGetCommand@2
     inputs:
       command: 'restore'
-      restoreSolution: '$(project)'
+      restoreSolution: '**/*.sln'
       feedsToUse: 'select'
       includeNuGetOrg: true
   - task: DotNetCoreCLI@2
