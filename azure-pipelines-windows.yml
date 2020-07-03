@@ -29,3 +29,4 @@ jobs:
       command: test
       projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
       arguments: --configuration $(testConfiguration) --filter "UnitTests" --logger "console;verbosity=detailed"
+
