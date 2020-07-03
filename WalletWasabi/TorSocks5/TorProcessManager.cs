@@ -79,18 +79,23 @@ namespace WalletWasabi.TorSocks5
 						var torDir = Path.Combine(dataDir, "tor");
 						var torDataDir = Path.Combine(dataDir, "tordata");
 						var torPath = "";
+						var hashSourcePath = "";
 						var geoIpPath = "";
 						var geoIp6Path = "";
 						var fullBaseDirectory = EnvironmentHelpers.GetFullBaseDirectory();
 						if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						{
 							torPath = $@"{torDir}/Tor/tor";
+							hashSourcePath = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+								? $@"{torDir}/Tor/tor.real"
+								: $@"{torDir}/Tor/tor";
 							geoIpPath = $@"{torDir}/Data/Tor/geoip";
 							geoIp6Path = $@"{torDir}/Data/Tor/geoip6";
 						}
 						else // If Windows
 						{
 							torPath = $@"{torDir}\Tor\tor.exe";
+							hashSourcePath = $@"{torDir}\Tor\tor.exe";
 							geoIpPath = $@"{torDir}\Data\Tor\geoip";
 							geoIp6Path = $@"{torDir}\Data\Tor\geoip6";
 						}
@@ -100,7 +105,7 @@ namespace WalletWasabi.TorSocks5
 							Logger.LogInfo($"Tor instance NOT found at {torPath}. Attempting to acquire it...");
 							InstallTor(torDir);
 						}
-						else if (!IoHelpers.CheckExpectedHash(torPath, Path.Combine(fullBaseDirectory, "TorDaemons")))
+						else if (!IoHelpers.CheckExpectedHash(hashSourcePath, Path.Combine(fullBaseDirectory, "TorDaemons")))
 						{
 							Logger.LogInfo($"Updating Tor...");
 
@@ -177,7 +182,7 @@ namespace WalletWasabi.TorSocks5
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				string torWinZip = Path.Combine(torDaemonsDir, "tor-win32.zip");
+				string torWinZip = Path.Combine(torDaemonsDir, "tor-win64.zip");
 				IoHelpers.BetterExtractZipToDirectoryAsync(torWinZip, torDir).GetAwaiter().GetResult();
 				Logger.LogInfo($"Extracted {torWinZip} to {torDir}.");
 			}
