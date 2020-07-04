@@ -59,22 +59,27 @@ namespace WalletWasabi.Microservices
 
 		protected Process CreateProcessInstance(string arguments, bool openConsole)
 		{
-			var redirectStandardOutput = !openConsole;
-			var useShellExecute = openConsole;
-			var createNoWindow = !openConsole;
-			var windowStyle = openConsole ? ProcessWindowStyle.Normal : ProcessWindowStyle.Hidden;
-
-			if (openConsole && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			ProcessWindowStyle windowStyle;
+			if (openConsole)
 			{
-				throw new PlatformNotSupportedException($"{RuntimeInformation.OSDescription} is not supported.");
+				if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				{
+					throw new PlatformNotSupportedException($"{RuntimeInformation.OSDescription} is not supported.");
+				}
+
+				windowStyle = ProcessWindowStyle.Normal;
+			}
+			else
+			{
+				windowStyle = ProcessWindowStyle.Hidden;
 			}
 
 			var p = new Process();
 			p.StartInfo.FileName = ProcessPath;
 			p.StartInfo.Arguments = arguments;
-			p.StartInfo.RedirectStandardOutput = redirectStandardOutput;
-			p.StartInfo.UseShellExecute = useShellExecute;
-			p.StartInfo.CreateNoWindow = createNoWindow;
+			p.StartInfo.RedirectStandardOutput = !openConsole;
+			p.StartInfo.UseShellExecute = openConsole;
+			p.StartInfo.CreateNoWindow = !openConsole;
 			p.StartInfo.WindowStyle = windowStyle;
 
 			return p;
