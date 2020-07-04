@@ -119,6 +119,18 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		}
 
 		[Fact]
+		public async void HwiProcessHelpTestAsync()
+		{
+			using var cts = new CancellationTokenSource();
+
+			var processBridge = new HwiProcessBridge(MicroserviceHelpers.GetBinaryPath("hwi"), new ProcessInvoker());
+			(string response, int exitCode) p = await processBridge.SendCommandAsync("--help", openConsole: false, cts.Token);
+
+			Assert.Equal(0, p.exitCode);
+			Assert.Equal("{\"error\": \"Help text requested\", \"code\": -17}" + Environment.NewLine, p.response);
+		}
+
+		[Fact]
 		public async Task HwiProcessBridgeTestAsync()
 		{
 			var pb = new HwiProcessBridge(MicroserviceHelpers.GetBinaryPath("hwi"), new ProcessInvoker());

@@ -14,11 +14,11 @@ using WalletWasabi.Microservices;
 
 namespace WalletWasabi.BitcoinCore.Processes
 {
-	public class BitcoindRpcProcessBridge : ProcessBridge
+	public class BitcoindRpcProcessBridge
 	{
 		public const string PidFileName = "bitcoin.pid";
 
-		public BitcoindRpcProcessBridge(IRPCClient rpc, string dataDir, bool printToConsole) : base(MicroserviceHelpers.GetBinaryPath("bitcoind"))
+		public BitcoindRpcProcessBridge(IRPCClient rpc, string dataDir, bool printToConsole)
 		{
 			RpcClient = Guard.NotNull(nameof(rpc), rpc);
 			Network = RpcClient.Network;
