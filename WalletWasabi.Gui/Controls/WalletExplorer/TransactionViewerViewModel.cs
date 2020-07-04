@@ -48,7 +48,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			CopyTransactionHex = ReactiveCommand.CreateFromTask(async () =>
 			{
 				await Application.Current.Clipboard.SetTextAsync(TransactionHexText);
-				NotificationHelpers.Information("The Transaction hex string is now copied on your clipboard!");
+				NotificationHelpers.Information("The Transaction hex string is now copied to your clipboard!");
 			});
 
 			ExportBinaryPsbt = ReactiveCommand.CreateFromTask(async () =>
