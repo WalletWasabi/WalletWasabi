@@ -191,7 +191,8 @@ namespace WalletWasabi.Helpers
 				{
 					Logger.LogError($"{nameof(ShellExecAsync)} command: {cmd} exited with exit code: {process.ExitCode}, instead of 0.");
 				}
-			} else
+			}
+			else
 			{
 				using var process = Process.Start(startInfo);
 			}
