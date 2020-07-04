@@ -23,10 +23,10 @@ namespace WalletWasabi.Hwi
 	{
 		#region ConstructorsAndInitializers
 
-		public HwiClient(Network network, IProcessBridge bridge = null)
+		public HwiClient(Network network, IHwiProcessInvoker bridge = null)
 		{
 			Network = Guard.NotNull(nameof(network), network);
-			Bridge = bridge ?? new HwiProcessBridge();
+			Bridge = bridge ?? new HwiProcessBridge(MicroserviceHelpers.GetBinaryPath("hwi"), new ProcessInvoker());
 		}
 
 		#endregion ConstructorsAndInitializers
@@ -34,7 +34,7 @@ namespace WalletWasabi.Hwi
 		#region PropertiesAndMembers
 
 		public Network Network { get; }
-		public IProcessBridge Bridge { get; }
+		public IHwiProcessInvoker Bridge { get; }
 
 		#endregion PropertiesAndMembers
 

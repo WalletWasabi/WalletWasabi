@@ -10,6 +10,7 @@ using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Hwi.Parsers;
 using WalletWasabi.Hwi.ProcessBridge;
+using WalletWasabi.Microservices;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Hwi
@@ -120,22 +121,22 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		[Fact]
 		public async Task HwiProcessBridgeTestAsync()
 		{
-			HwiProcessBridge pb = new HwiProcessBridge();
+			var pb = new HwiProcessBridge(MicroserviceHelpers.GetBinaryPath("hwi"), new ProcessInvoker());
 
 			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
-			var res = await pb.SendCommandAsync("enumerate", false, cts.Token);
+			var res = await pb.SendCommandAsync("enumerate", openConsole: false, cts.Token);
 			Assert.NotEmpty(res.response);
 		}
 
 		[Fact]
 		public async Task OpenConsoleDoesntThrowAsync()
 		{
-			HwiProcessBridge pb = new HwiProcessBridge();
+			var pb = new HwiProcessBridge(MicroserviceHelpers.GetBinaryPath("hwi"), new ProcessInvoker());
 
 			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				var res = await pb.SendCommandAsync("enumerate", true, cts.Token);
+				var res = await pb.SendCommandAsync("enumerate", openConsole: true, cts.Token);
 				Assert.NotEmpty(res.response);
 			}
 			else

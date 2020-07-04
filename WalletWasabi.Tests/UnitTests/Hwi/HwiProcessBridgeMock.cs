@@ -6,11 +6,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Hwi.Parsers;
+using WalletWasabi.Hwi.ProcessBridge;
 using WalletWasabi.Microservices;
 
 namespace WalletWasabi.Tests.UnitTests.Hwi
 {
-	public class HwiProcessBridgeMock : IProcessBridge
+	public class HwiProcessBridgeMock : IHwiProcessInvoker
 	{
 		public HwiProcessBridgeMock(HardwareWalletModels model)
 		{

@@ -1,42 +1,46 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Helpers;
-using WalletWasabi.Interfaces;
-using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
 
 namespace WalletWasabi.Hwi.ProcessBridge
 {
-	public class HwiProcessBridge : Microservices.ProcessBridge
+	public class HwiProcessBridge : IHwiProcessInvoker
 	{
-		public HwiProcessBridge() : base(MicroserviceHelpers.GetBinaryPath("hwi"))
+		public HwiProcessBridge(string processPath, ProcessInvoker processInvoker)
 		{
+			ProcessPath = processPath;
+			ProcessInvoker = processInvoker;
 		}
 
-		public new async Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel)
-		{
-			var (responseString, exitCode) = await base.SendCommandAsync(arguments, openConsole, cancel).ConfigureAwait(false);
+		private string ProcessPath { get; }
+		private ProcessInvoker ProcessInvoker { get; }
 
-			string modifiedResponseString;
+		public async Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel)
+		{
+			var process = ProcessBuilder.BuildProcessInstance(ProcessPath, arguments, openConsole);
+
+			(string rawResponse, int exitCode) = await ProcessInvoker.SendCommandAsync(process, cancel).ConfigureAwait(false);
+
+			string response;
 
 			if (!openConsole)
 			{
-				modifiedResponseString = responseString;
+				response = rawResponse;
 			}
 			else
 			{
-				modifiedResponseString = exitCode == 0
+				response = exitCode == 0
 					? "{\"success\":\"true\"}"
 					: $"{{\"success\":\"false\",\"error\":\"Process terminated with exit code: {exitCode}.\"}}";
 			}
 
-			return (modifiedResponseString, exitCode);
+			return (response, exitCode);
 		}
+	}
+
+	public interface IHwiProcessInvoker
+	{
+		Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel);
 	}
 }
