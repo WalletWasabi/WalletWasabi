@@ -30,12 +30,16 @@ namespace WalletWasabi.Hwi.Models
 		/// Sign a partially signed bitcoin transaction (PSBT).
 		/// </summary>
 		/// <remarks>
-		/// Return <code>{"psbt": &lt;base64 psbt string&gt;</code>.
+		/// Return <code>{"psbt": &lt;base64 psbt string&gt;}</code>.
 		/// </remarks>
 		SignTx,
 
 		/// <summary>
-		/// ???
+		/// Return the public key at the BIP32 derivation path.
+		///
+		/// <remarks>
+		/// Return <code>{"xpub": &lt;xpub string&gt;}</code>.
+		/// </remarks>
 		/// </summary>
 		GetXpub,
 
@@ -51,8 +55,16 @@ namespace WalletWasabi.Hwi.Models
 		SignMessage,
 
 		/// <summary>
-		/// ??? (unused at the moment?)
+		/// Get JSON array of keys that can be imported to Bitcoin Core with <c>importmulti</c>.
 		/// </summary>
+		/// <remarks>
+		/// Notable arguments:
+		/// <list type="table">
+		/// <item><c>--path</c> - Derivation path, default follows BIP43 convention, e.g. m/84h/0h/0h/1/* with --wpkh --internal. If this argument and --internal is not given, both internal and external keypools will be returned.</item>
+		/// <item><c>start</c>  - The index to start at.</item>
+		/// <item><c>end</c>    - The index to end at.</item>
+		/// </list>
+		/// </remarks>
 		GetKeypool,
 
 		/// <summary>
