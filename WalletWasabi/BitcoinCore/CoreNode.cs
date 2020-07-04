@@ -24,6 +24,7 @@ using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.P2p;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Microservices;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 
@@ -186,9 +187,11 @@ namespace WalletWasabi.BitcoinCore
 
 		public static async Task<Version> GetVersionAsync(CancellationToken cancel)
 		{
+			var invoker = new ProcessInvoker();
+
 			var arguments = "-version";
-			var bridge = new BitcoindProcessBridge();
-			var (responseString, exitCode) = await bridge.SendCommandAsync(arguments, openConsole:false, cancel).ConfigureAwait(false);
+			var process = ProcessBuilder.BuildProcessInstance(MicroserviceHelpers.GetBinaryPath("bitcoind"), arguments);
+			var (responseString, exitCode) = await invoker.SendCommandAsync(process, cancel).ConfigureAwait(false);
 
 			if (exitCode != 0)
 			{
