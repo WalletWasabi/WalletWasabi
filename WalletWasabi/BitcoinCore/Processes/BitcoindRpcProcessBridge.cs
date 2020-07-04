@@ -40,7 +40,9 @@ namespace WalletWasabi.BitcoinCore.Processes
 		public async Task StartAsync(CancellationToken cancel)
 		{
 			var ptcv = PrintToConsole ? 1 : 0;
-			_process = new ProcessAsync(CreateProcessInstance($"{NetworkTranslator.GetCommandLineArguments(Network)} -datadir={DataDir} -printtoconsole={ptcv}", openConsole: false));
+			string processPath = MicroserviceHelpers.GetBinaryPath("bitcoind");
+			string args = $"{NetworkTranslator.GetCommandLineArguments(Network)} -datadir={DataDir} -printtoconsole={ptcv}";
+			_process = new ProcessAsync(ProcessBuilder.BuildProcessInstance(processPath, args));
 			_process.Start();
 
 			await PidFile.WriteFileAsync(_process.Id).ConfigureAwait(false);
