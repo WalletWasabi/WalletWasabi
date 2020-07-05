@@ -136,8 +136,13 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			var pb = new HwiProcessBridge(MicroserviceHelpers.GetBinaryPath("hwi"), new ProcessInvoker());
 
 			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
-			var res = await pb.SendCommandAsync("enumerate", openConsole: false, cts.Token);
+			var res = await pb.SendCommandAsync("version", openConsole: false, cts.Token);
 			Assert.NotEmpty(res.response);
+
+			bool stdInputActionCalled = false;
+			res = await pb.SendCommandAsync("version", openConsole: false, cts.Token, (sw) => stdInputActionCalled = true);
+			Assert.NotEmpty(res.response);
+			Assert.True(stdInputActionCalled);
 		}
 
 		[Fact]
@@ -148,8 +153,8 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				var res = await pb.SendCommandAsync("enumerate", openConsole: true, cts.Token);
-				Assert.NotEmpty(res.response);
+				var res = await pb.SendCommandAsync("version", openConsole: true, cts.Token);
+				Assert.Contains("success", res.response);
 			}
 			else
 			{

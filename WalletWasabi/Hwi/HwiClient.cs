@@ -40,13 +40,20 @@ namespace WalletWasabi.Hwi
 
 		#region Commands
 
-		private async Task<string> SendCommandAsync(IEnumerable<HwiOption> options, HwiCommands? command, string commandArguments, bool openConsole, CancellationToken cancel, bool isRecursion = false)
+		private async Task<string> SendCommandAsync(IEnumerable<HwiOption> options, HwiCommands? command, string commandArguments, bool openConsole, CancellationToken cancel, bool isRecursion = false, Action<StreamWriter> standardInputWriter = null)
 		{
+			if (standardInputWriter is { } && !options.Contains(HwiOption.StdIn))
+			{
+				var optList = options.ToList();
+				optList.Add(HwiOption.StdIn);
+				options = optList;
+			}
+
 			string arguments = HwiParser.ToArgumentString(Network, options, command, commandArguments);
 
 			try
 			{
-				(string responseString, int exitCode) = await Bridge.SendCommandAsync(arguments, openConsole, cancel).ConfigureAwait(false);
+				(string responseString, int exitCode) = await Bridge.SendCommandAsync(arguments, openConsole, cancel, standardInputWriter).ConfigureAwait(false);
 
 				ThrowIfError(responseString, options, arguments, exitCode);
 
@@ -83,7 +90,7 @@ namespace WalletWasabi.Hwi
 			{
 				// Trezor only accepts KeyPath 84'/1' on TestNet from v2.3.1. We fake that we are on MainNet to ensure compatibility.
 				string fixedArguments = HwiParser.ToArgumentString(Network.Main, options, command, commandArguments);
-				(string responseString, int exitCode) = await Bridge.SendCommandAsync(fixedArguments, openConsole, cancel).ConfigureAwait(false);
+				(string responseString, int exitCode) = await Bridge.SendCommandAsync(fixedArguments, openConsole, cancel, standardInputWriter).ConfigureAwait(false);
 
 				ThrowIfError(responseString, options, fixedArguments, exitCode);
 
@@ -179,9 +186,18 @@ namespace WalletWasabi.Hwi
 			var response = await SendCommandAsync(
 				options: BuildOptions(deviceType, devicePath, fingerprint),
 				command: HwiCommands.SignTx,
-				commandArguments: psbtString,
+				commandArguments: "",
 				openConsole: false,
-				cancel).ConfigureAwait(false);
+				cancel,
+				standardInputWriter: (inputWriter) =>
+				{
+					if (!string.IsNullOrEmpty(psbtString))
+					{
+						inputWriter.WriteLine(psbtString);
+						inputWriter.WriteLine();
+						inputWriter.WriteLine();
+					}
+				}).ConfigureAwait(false);
 
 			PSBT signedPsbt = HwiParser.ParsePsbt(response, Network);
 
