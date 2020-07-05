@@ -24,6 +24,7 @@
       <Setter Property="Orientation" Value="Horizontal" />
       <Setter Property="Spacing" Value="6" />
       <Setter Property="Height" Value="20" />
+      <Setter Property="ToolTip.Tip" Value="{Binding TitleTip}" />
     </Style>
     <Style Selector="StackPanel.TreeViewRoot > :is(Control)">
       <Setter Property="VerticalAlignment" Value="Center" />
@@ -52,7 +53,7 @@
         </TreeView.Styles>
         <TreeView.DataTemplates>
           <TreeDataTemplate DataType="ViewModels:ClosedWalletViewModel" ItemsSource="{Binding Actions}">
-            <StackPanel Classes="TreeViewRoot" ToolTip.Tip="{Binding TitleTip}">
+            <StackPanel Classes="TreeViewRoot">
               <i:Interaction.Behaviors>
                 <behaviors:CommandOnDoubleClickBehavior Command="{Binding OpenWalletCommand}" />
               </i:Interaction.Behaviors>
