@@ -44,7 +44,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						Title = $"{WalletName} ({(UiConfig.LurkingWifeMode ? "#########" : balance.ToString(false, true))} BTC)";
 
 						var dollars = Wallet.Synchronizer.UsdExchangeRate * balance.ToDecimal(MoneyUnit.BTC);
-						TitleTip = UiConfig.LurkingWifeMode ? "### USD" : dollars <= 0 ? "??? USD" : $"{dollars:.00} USD";
+						TitleTip = UiConfig.LurkingWifeMode ? "### USD" : Wallet.Synchronizer.UsdExchangeRate == default ? "??? USD" : $"{dollars:.00} USD";
 					}
 					catch (Exception ex)
 					{
