@@ -24,6 +24,7 @@
       <Setter Property="Orientation" Value="Horizontal" />
       <Setter Property="Spacing" Value="6" />
       <Setter Property="Height" Value="20" />
+      <Setter Property="ToolTip.Tip" Value="{Binding TitleTip}" />
     </Style>
     <Style Selector="StackPanel.TreeViewRoot > :is(Control)">
       <Setter Property="VerticalAlignment" Value="Center" />
