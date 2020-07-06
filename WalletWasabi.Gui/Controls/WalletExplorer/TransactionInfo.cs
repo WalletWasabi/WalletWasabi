@@ -23,6 +23,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private IList<AddressMoneyTuple> _outputsInfo;
 		private string _totalInputValue;
 		private string _totalOutputValue;
+		private List<object> _combinedTxOInfo;
 
 		public DateTimeOffset DateTime
 		{
@@ -78,6 +79,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _outputsInfo, value);
 		}
 
+		public List<object> CombinedTXOInfo
+		{
+			get => _combinedTxOInfo;
+			set => this.RaiseAndSetIfChanged(ref _combinedTxOInfo, value);
+		}
+
 		public string TotalInputValue
 		{
 			get => _totalInputValue;
@@ -100,7 +107,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					var address = targetTxO.ScriptPubKey.GetDestinationAddress(result.Network).ToString();
 					var money = targetTxO.Value;
 
-					return new AddressMoneyTuple(address, money);
+					return new AddressMoneyTuple(address, money, false);
 				}
 				else
 				{
@@ -112,12 +119,24 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				var address = targetTxO.ScriptPubKey.GetDestinationAddress(result.Network).ToString();
 				var money = targetTxO.Value;
-				return new AddressMoneyTuple(address, money);
+				return new AddressMoneyTuple(address, money, false);
 			}).ToList();
 
 			var totalInValue = inputAddrMoney.Select(x => x.Amount).Sum().ToString();
 			var totalOutValue = outputAddrMoney.Select(x => x.Amount).Sum().ToString();
-			
+
+			var maxItems = Math.Max(inputAddrMoney.Count(), outputAddrMoney.Count());
+			var combList = new List<object>();
+
+			combList.Add(new BuildTransactionDetailsCoinViewHeader());
+
+			for (int i = 0; i < maxItems; i++)
+			{
+				var input = inputAddrMoney.ElementAtOrDefault(i);
+				var output = outputAddrMoney.ElementAtOrDefault(i);
+				combList.Add(new InOutInfoTuple(input, output));
+			}
+
 			return new TransactionInfo()
 			{
 				TransactionId = result.Transaction.GetHash().ToString(),
@@ -126,7 +145,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				InputsInfo = inputAddrMoney,
 				OutputsInfo = outputAddrMoney,
 				TotalInputValue = totalInValue,
-				TotalOutputValue = totalOutValue
+				TotalOutputValue = totalOutValue,
+				CombinedTXOInfo = combList
 			};
 		}
 	}
