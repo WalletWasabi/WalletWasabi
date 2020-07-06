@@ -76,7 +76,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 
 			var ex = await Assert.ThrowsAsync<HttpRequestException>(async () =>
 				await client.GetTransactionsAsync(Network.Main, new[] { RandomUtils.GetUInt256() }, CancellationToken.None));
-			Assert.Equal("Bad Request\nSome RPC problem...", ex.Message);
+			Assert.Equal("Bad Request\n\"Some RPC problem...\"", ex.Message);
 		}
 
 		private static Transaction CreateTransaction()
