@@ -41,8 +41,8 @@ namespace WalletWasabi.Gui.Converters
 			string toolTip = null;
 
 			// value can be a string (CoinJoinUntilAnonymitySet) or an int (AnonymitySet)
-			int integer = value is int
-				? (int)value
+			int integer = value is int intValue
+				? intValue
 				: config.GetAnonymitySet(value.ToString());
 
 			if (integer < config.PrivacyLevelSome)
