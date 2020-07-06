@@ -205,6 +205,7 @@ namespace WalletWasabi.Services
 							catch (HttpRequestException ex) when (ex.Message.Contains("Not Found"))
 							{
 								TorStatus = TorStatus.Running;
+								BackendStatus = BackendStatus.NotConnected;
 								try
 								{
 									// Backend API version might be updated meanwhile. Trying to update the versions.
