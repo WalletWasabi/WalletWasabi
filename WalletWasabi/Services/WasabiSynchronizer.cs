@@ -222,8 +222,9 @@ namespace WalletWasabi.Services
 										throw ex;
 									}
 								}
-								catch (Exception)
+								catch (Exception x)
 								{
+									HandleIfGenSocksServFail(x);
 									throw;
 								}
 							}
