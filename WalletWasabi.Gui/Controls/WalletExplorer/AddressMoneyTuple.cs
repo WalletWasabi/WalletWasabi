@@ -11,12 +11,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Amount = amount;
 			IsEmpty = isEmpty;
 		}
+		public static AddressMoneyTuple Empty { get; } = new AddressMoneyTuple();
 
 		public string Address { get; }
 		public Money Amount { get; }
 		private bool IsEmpty { get; }
-
-		public static AddressMoneyTuple Empty { get; } = new AddressMoneyTuple();
 
 		public static bool operator ==(AddressMoneyTuple x, AddressMoneyTuple y) => x.Equals(y);
 		public static bool operator !=(AddressMoneyTuple x, AddressMoneyTuple y) => !(x == y);
@@ -26,6 +25,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			return this.IsEmpty == other.IsEmpty
 		 		&& this.Amount == other.Amount
 				&& this.Address == other.Address;
+		}
+
+		public override bool Equals(object obj)
+		{
+			return base.Equals(obj);
 		}
 	}
 }
