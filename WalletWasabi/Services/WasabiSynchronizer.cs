@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -201,7 +202,7 @@ namespace WalletWasabi.Services
 								HandleIfGenSocksServFail(ex);
 								throw;
 							}
-							catch (Exception ex)
+							catch (HttpRequestException ex) when (ex.Message.Contains("Not Found"))
 							{
 								try
 								{
@@ -212,18 +213,21 @@ namespace WalletWasabi.Services
 									if (result.BackendCompatible && lastUsedApiVersion != WasabiClient.ApiVersion)
 									{
 										// Next request will be fine, do not throw exception.
+										ignoreRequestInterval = true;
 										continue;
 									}
+									else
+									{
+										throw ex;
+									}
 								}
-								catch (Exception x)
+								catch (Exception)
 								{
-									// It has failed again so there is a backend problem.
-									BackendStatus = BackendStatus.NotConnected;
-									Logger.LogError(x);
-									HandleIfGenSocksServFail(x);
 									throw;
 								}
-
+							}
+							catch (Exception ex)
+							{
 								TorStatus = TorStatus.Running;
 								BackendStatus = BackendStatus.Connected;
 								HandleIfGenSocksServFail(ex);
