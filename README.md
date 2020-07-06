@@ -28,7 +28,7 @@ and on the blockchain level:
 - Opt-in PayJoin (BIP-78)
 - Dust attack protections.
 - Custom change address.
-- Anti Wallet/Transaction fingerprinting
+- Anti wallet fingerprinting.
 
 For more information, please check out the [Wasabi Documentation](https://docs.wasabiwallet.io), an archive of knowledge about the nuances of Bitcoin privacy and how to properly use Wasabi.
 
