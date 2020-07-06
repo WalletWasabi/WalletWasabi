@@ -87,19 +87,17 @@ namespace System.Net.Http
 
 		public static async Task ThrowRequestExceptionFromContentAsync(this HttpResponseMessage me)
 		{
-			string error = null;
-			try
+			var errorMessage = "";
+			if (me?.Content is { })
 			{
-				if (me.Content.Headers?.ContentType?.MediaType != "text/html")
+				var contentString = await me.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+				if (!string.IsNullOrWhiteSpace(contentString) && contentString.Length <= 1000)
 				{
-					error = await me.Content.ReadAsJsonAsync<string>().ConfigureAwait(false);
+					errorMessage = $"\n{contentString}";
 				}
 			}
-			catch (Exception ex)
-			{
-				Logger.LogDebug(ex);
-			}
-			string errorMessage = error is null ? string.Empty : $"\n{error}";
+
 			throw new HttpRequestException($"{me.StatusCode.ToReasonString()}{errorMessage}");
 		}
 	}
