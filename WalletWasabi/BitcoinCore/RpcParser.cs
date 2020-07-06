@@ -50,8 +50,7 @@ namespace WalletWasabi.BitcoinCore
 
 				foreach (var txinJson in txJson["vin"])
 				{
-					VerboseInputInfo input = null;
-
+					VerboseInputInfo input;
 					if (txinJson["coinbase"] is { })
 					{
 						input = new VerboseInputInfo(txinJson["coinbase"].Value<string>());
