@@ -92,7 +92,7 @@ namespace System.Net.Http
 			{
 				var contentString = await me.Content.ReadAsStringAsync().ConfigureAwait(false);
 
-				if (!string.IsNullOrWhiteSpace(contentString) && contentString.Length <= 1000)
+				if (!string.IsNullOrWhiteSpace(contentString) && contentString.Length <= 10_000)
 				{
 					errorMessage = $"\n{contentString}";
 				}
