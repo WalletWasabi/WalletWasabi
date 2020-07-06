@@ -11,6 +11,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
@@ -43,8 +44,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						Money balance = Wallet.Coins.TotalAmount();
 						Title = $"{WalletName} ({(UiConfig.LurkingWifeMode ? "#########" : balance.ToString(false, true))} BTC)";
 
-						var dollars = Wallet.Synchronizer.UsdExchangeRate * balance.ToDecimal(MoneyUnit.BTC);
-						TitleTip = UiConfig.LurkingWifeMode ? "### USD" : Wallet.Synchronizer.UsdExchangeRate == default ? "??? USD" : $"{dollars:.00} USD";
+						TitleTip = balance.ToUsd(Wallet.Synchronizer.UsdExchangeRate, UiConfig.LurkingWifeMode);
 					}
 					catch (Exception ex)
 					{
