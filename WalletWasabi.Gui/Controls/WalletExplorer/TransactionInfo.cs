@@ -18,12 +18,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _amountBtc;
 		private string _label;
 		private int _blockHeight;
-		private string _transactionId;
-		private IList<AddressMoneyTuple> _inputsInfo;
-		private IList<AddressMoneyTuple> _outputsInfo;
+		private string _transactionId; 
 		private string _totalInputValue;
 		private string _totalOutputValue;
-		private List<object> _combinedTxOInfo;
+		private int _inputCount;
+		private int _outputCount;
 
 		public DateTimeOffset DateTime
 		{
@@ -66,25 +65,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _transactionId;
 			set => this.RaiseAndSetIfChanged(ref _transactionId, value);
 		}
-
-		public IList<AddressMoneyTuple> InputsInfo
-		{
-			get => _inputsInfo;
-			set => this.RaiseAndSetIfChanged(ref _inputsInfo, value);
-		}
-
-		public IList<AddressMoneyTuple> OutputsInfo
-		{
-			get => _outputsInfo;
-			set => this.RaiseAndSetIfChanged(ref _outputsInfo, value);
-		}
-
-		public List<object> CombinedTXOInfo
-		{
-			get => _combinedTxOInfo;
-			set => this.RaiseAndSetIfChanged(ref _combinedTxOInfo, value);
-		}
-
+ 
 		public string TotalInputValue
 		{
 			get => _totalInputValue;
@@ -95,6 +76,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _totalOutputValue;
 			set => this.RaiseAndSetIfChanged(ref _totalOutputValue, value);
+		}
+		public int InputCount
+		{
+			get => _inputCount;
+			set => this.RaiseAndSetIfChanged(ref _inputCount, value);
+		}
+
+		public int OutputCount
+		{
+			get => _outputCount;
+			set => this.RaiseAndSetIfChanged(ref _outputCount, value);
 		}
 
 		public static TransactionInfo FromBuildTxnResult(BuildTransactionResult result)
@@ -125,28 +117,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			var totalInValue = inputAddrMoney.Select(x => x.Amount).Sum().ToString();
 			var totalOutValue = outputAddrMoney.Select(x => x.Amount).Sum().ToString();
 
-			var maxItems = Math.Max(inputAddrMoney.Count(), outputAddrMoney.Count());
-			var combList = new List<object>();
-
-			combList.Add(new BuildTransactionDetailsCoinViewHeader());
-
-			for (int i = 0; i < maxItems; i++)
-			{
-				var input = inputAddrMoney.ElementAtOrDefault(i);
-				var output = outputAddrMoney.ElementAtOrDefault(i);
-				combList.Add(new InOutInfoTuple(input, output));
-			}
-
 			return new TransactionInfo()
 			{
 				TransactionId = result.Transaction.GetHash().ToString(),
 				Confirmed = false,
-				DateTime = result.Transaction.FirstSeen,
-				InputsInfo = inputAddrMoney,
-				OutputsInfo = outputAddrMoney,
+				DateTime = result.Transaction.FirstSeen, 
+				InputCount = inputAddrMoney.Count(),
+				OutputCount = outputAddrMoney.Count(),
 				TotalInputValue = totalInValue,
 				TotalOutputValue = totalOutValue,
-				CombinedTXOInfo = combList
 			};
 		}
 	}
