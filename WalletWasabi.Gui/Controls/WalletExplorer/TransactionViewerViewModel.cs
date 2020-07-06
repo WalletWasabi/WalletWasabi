@@ -24,14 +24,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class TransactionViewerViewModel : WasabiDocumentTabViewModel
 	{
-		private readonly int _jsonCharLimit = 2_500;
-		private string _txId;
-		private string _psbtJsonText;
-		private string _truncatedPsbtJsonText;
 		private string _psbtHexText;
 		private string _psbtBase64Text;
 		private byte[] _psbtBytes;
-		private bool _isPsbtJsonTextTruncated;
 		private TransactionInfo _transactionInfo;
 
 		public TransactionViewerViewModel() : base("Transaction")
@@ -58,7 +53,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				var sfd = new SaveFileDialog
 				{
 					DefaultExtension = psbtExtension,
-					InitialFileName = TxId.Substring(0, 7),
+					InitialFileName = TransactionInfo.TransactionId.Substring(0, 7),
 					Title = "Export Binary PSBT"
 				};
 
@@ -112,24 +107,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public bool? IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode;
 
-		public string TxId
-		{
-			get => _txId;
-			set => this.RaiseAndSetIfChanged(ref _txId, value);
-		}
-
-		public string PsbtJsonText
-		{
-			get => _psbtJsonText;
-			set => this.RaiseAndSetIfChanged(ref _psbtJsonText, value);
-		}
-
-		public string TruncatedPsbtJsonText
-		{
-			get => _truncatedPsbtJsonText;
-			set => this.RaiseAndSetIfChanged(ref _truncatedPsbtJsonText, value);
-		}
-
 		public string TransactionHexText
 		{
 			get => _psbtHexText;
@@ -148,12 +125,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _psbtBytes, value);
 		}
 
-		public bool IsPsbtJsonTextTruncated
-		{
-			get => _isPsbtJsonTextTruncated;
-			set => this.RaiseAndSetIfChanged(ref _isPsbtJsonTextTruncated, value);
-		}
-
 		public TransactionInfo TransactionInfo
 		{
 			get => _transactionInfo;
@@ -169,11 +140,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(_ =>
 				{
 					this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
-					this.RaisePropertyChanged(nameof(TxId));
-					this.RaisePropertyChanged(nameof(PsbtJsonText));
-					this.RaisePropertyChanged(nameof(TruncatedPsbtJsonText));
-					this.RaisePropertyChanged(nameof(TransactionHexText));
-					this.RaisePropertyChanged(nameof(PsbtBase64Text));
+					this.RaisePropertyChanged(nameof(TransactionInfo));
 				}).DisposeWith(disposables);
 		}
 
@@ -182,14 +149,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			try
 			{
 				TransactionInfo = TransactionInfo.FromBuildTxnResult(result);
-
-				TxId = result.Transaction.GetHash().ToString();
-				PsbtJsonText = result.Psbt.ToString();
-
-				IsPsbtJsonTextTruncated = PsbtJsonText.Length > _jsonCharLimit;
-
-				TruncatedPsbtJsonText = IsPsbtJsonTextTruncated ? $"{PsbtJsonText[0.._jsonCharLimit]}..." : PsbtJsonText;
-
 				TransactionHexText = result.Transaction.Transaction.ToHex();
 				PsbtBase64Text = result.Psbt.ToBase64();
 				PsbtBytes = result.Psbt.ToBytes();
