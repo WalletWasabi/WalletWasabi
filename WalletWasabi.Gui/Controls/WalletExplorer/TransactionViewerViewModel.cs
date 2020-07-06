@@ -26,12 +26,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private readonly int _jsonCharLimit = 2_500;
 		private string _txId;
-		private string _psbtJsonText; 
+		private string _psbtJsonText;
 		private string _truncatedPsbtJsonText;
 		private string _psbtHexText;
 		private string _psbtBase64Text;
 		private byte[] _psbtBytes;
-		private bool _IsPsbtJsonTextTruncated;
+		private bool _isPsbtJsonTextTruncated;
+		private TransactionInfo _transactionInfo;
 
 		public TransactionViewerViewModel() : base("Transaction")
 		{
@@ -149,8 +150,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public bool IsPsbtJsonTextTruncated
 		{
-			get => _IsPsbtJsonTextTruncated;
-			set => this.RaiseAndSetIfChanged(ref _IsPsbtJsonTextTruncated, value);
+			get => _isPsbtJsonTextTruncated;
+			set => this.RaiseAndSetIfChanged(ref _isPsbtJsonTextTruncated, value);
+		}
+
+		public TransactionInfo TransactionInfo
+		{
+			get => _transactionInfo;
+			set => this.RaiseAndSetIfChanged(ref _transactionInfo, value);
 		}
 
 		public override void OnOpen(CompositeDisposable disposables)
@@ -174,6 +181,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			try
 			{
+				TransactionInfo = TransactionInfo.FromBuildTxnResult(result);
+
 				TxId = result.Transaction.GetHash().ToString();
 				PsbtJsonText = result.Psbt.ToString();
 

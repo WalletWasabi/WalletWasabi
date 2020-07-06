@@ -20,6 +20,11 @@ namespace WalletWasabi.Gui.Converters
 				var money = decimal.Parse(moneyString);
 				return money < 0 ? Brushes.IndianRed : Brushes.MediumSeaGreen;
 			}
+			else if (value is Money inMoney)
+			{
+				var money = decimal.Parse(inMoney.ToString());
+				return money < 0 ? Brushes.IndianRed : Brushes.MediumSeaGreen;
+			}
 			else
 			{
 				throw new TypeArgumentException(value, typeof(string), nameof(value));

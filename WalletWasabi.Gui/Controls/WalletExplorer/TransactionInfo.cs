@@ -1,7 +1,12 @@
+using System.Transactions;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Text;
+using WalletWasabi.Blockchain.TransactionBuilding;
+using NBitcoin;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -14,6 +19,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _label;
 		private int _blockHeight;
 		private string _transactionId;
+		private IList<AddressMoneyTuple> _inputsInfo;
+		private IList<AddressMoneyTuple> _outputsInfo;
+		private string _totalInputValue;
+		private string _totalOutputValue;
 
 		public DateTimeOffset DateTime
 		{
@@ -55,6 +64,70 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _transactionId;
 			set => this.RaiseAndSetIfChanged(ref _transactionId, value);
+		}
+
+		public IList<AddressMoneyTuple> InputsInfo
+		{
+			get => _inputsInfo;
+			set => this.RaiseAndSetIfChanged(ref _inputsInfo, value);
+		}
+
+		public IList<AddressMoneyTuple> OutputsInfo
+		{
+			get => _outputsInfo;
+			set => this.RaiseAndSetIfChanged(ref _outputsInfo, value);
+		}
+
+		public string TotalInputValue
+		{
+			get => _totalInputValue;
+			set => this.RaiseAndSetIfChanged(ref _totalInputValue, value);
+		}
+
+		public string TotalOutputValue
+		{
+			get => _totalOutputValue;
+			set => this.RaiseAndSetIfChanged(ref _totalOutputValue, value);
+		}
+
+		public static TransactionInfo FromBuildTxnResult(BuildTransactionResult result)
+		{
+			var inputAddrMoney = result.Transaction.Transaction.Inputs.Select(x =>
+			{
+				if (result.Store.TransactionStore.TryGetTransaction(x.PrevOut.Hash, out var prevTxn))
+				{
+					var targetTxO = prevTxn.Transaction.Outputs[x.PrevOut.N];
+					var address = targetTxO.ScriptPubKey.GetDestinationAddress(result.Network).ToString();
+					var money = targetTxO.Value;
+
+					return new AddressMoneyTuple(address, money);
+				}
+				else
+				{
+					return AddressMoneyTuple.Empty;
+				}
+			}).Where(x => x != AddressMoneyTuple.Empty).ToList();
+
+			var outputAddrMoney = result.Transaction.Transaction.Outputs.Select(targetTxO =>
+			{
+				var address = targetTxO.ScriptPubKey.GetDestinationAddress(result.Network).ToString();
+				var money = targetTxO.Value;
+				return new AddressMoneyTuple(address, money);
+			}).ToList();
+
+			var totalInValue = inputAddrMoney.Select(x => x.Amount).Sum().ToString();
+			var totalOutValue = outputAddrMoney.Select(x => x.Amount).Sum().ToString();
+			
+			return new TransactionInfo()
+			{
+				TransactionId = result.Transaction.GetHash().ToString(),
+				Confirmed = false,
+				DateTime = result.Transaction.FirstSeen,
+				InputsInfo = inputAddrMoney,
+				OutputsInfo = outputAddrMoney,
+				TotalInputValue = totalInValue,
+				TotalOutputValue = totalOutValue
+			};
 		}
 	}
 }
