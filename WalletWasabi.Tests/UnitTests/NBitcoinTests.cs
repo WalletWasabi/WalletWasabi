@@ -80,5 +80,17 @@ namespace WalletWasabi.Tests.UnitTests
 			tx.PrecomputeHash(true, false);
 			return (tx, tx.Outputs.AsCoins().ToArray());
 		}
+
+		[Theory]
+		[InlineData("??? USD", 1, 0, false)]
+		[InlineData("900 USD", 1, 900, false)]
+		[InlineData("18 000 USD", 2, 9000, false)]
+		[InlineData("### USD", 2, 9000, true)]
+		[InlineData("### USD", 2, 0, true)]
+		[InlineData("0USD", 0, 0, false)]
+		public void ToUsdStringTests(string expected, decimal coins, decimal exchangeRate, bool lurkingWifeMode)
+		{
+			Assert.Equal(expected, Money.Coins(coins).ToUsdString(exchangeRate, lurkingWifeMode));
+		}
 	}
 }
