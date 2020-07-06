@@ -768,6 +768,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						FeePercentage = 100 * (decimal)EstimatedBtcFee.Satoshi / amount.Satoshi;
 					}
+					else
+					{
+						FeePercentage = 0;
+					}
 				}
 
 				if (UsdExchangeRate != 0)
