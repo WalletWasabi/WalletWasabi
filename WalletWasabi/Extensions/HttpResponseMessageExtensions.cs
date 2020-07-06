@@ -92,7 +92,13 @@ namespace System.Net.Http
 			{
 				var contentString = await me.Content.ReadAsStringAsync().ConfigureAwait(false);
 
-				if (!string.IsNullOrWhiteSpace(contentString) && contentString.Length <= 10_000)
+				// Remove " from beginning and end to ensure backwards compatibility and it's kindof trash, too.
+				if (contentString.Count(f => f == '"') <= 2)
+				{
+					contentString = contentString.Trim('"');
+				}
+
+				if (!string.IsNullOrWhiteSpace(contentString))
 				{
 					errorMessage = $"\n{contentString}";
 				}
