@@ -14,13 +14,13 @@ namespace WalletWasabi.Services
 	{
 		private volatile bool _disposedValue = false; // To detect redundant calls
 
+		public event EventHandler<bool> StartAllAsyncCompleted;
+
 		private List<HostedService> Services { get; } = new List<HostedService>();
 
 		private object ServicesLock { get; } = new object();
 		private bool IsStartAllAsyncStarted { get; set; } = false;
 		public bool IsStartAllAsyncCompleted { get; private set; } = false;
-
-		public event EventHandler<bool> StartAllAsyncCompleted;
 
 		public void Register(IHostedService service, string friendlyName)
 		{
