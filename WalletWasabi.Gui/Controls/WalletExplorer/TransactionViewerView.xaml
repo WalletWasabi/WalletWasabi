@@ -6,6 +6,7 @@
              xmlns:iac="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions.Custom"
              xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
              xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui"
+             xmlns:txndetail="clr-namespace:WalletWasabi.Gui.Controls.TransactionDetails.Views;assembly=WalletWasabi.Gui"
              x:Class="WalletWasabi.Gui.Controls.WalletExplorer.TransactionViewerView"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450">
   <UserControl.Resources>
@@ -24,7 +25,7 @@
           </StackPanel>
         </Panel>
         <Grid ScrollViewer.VerticalScrollBarVisibility="Auto">
-          <local:BuildTransactionDetails Grid.Row="1" DataContext="{Binding TransactionInfo}" DockPanel.Dock="Top" Margin="0 8 0 0"/>
+          <txndetail:TransactionDetails Grid.Row="1" DataContext="{Binding TransactionInfo}" DockPanel.Dock="Top" Margin="0 8 0 0"/>
         </Grid>
       </DockPanel>
     </Grid>

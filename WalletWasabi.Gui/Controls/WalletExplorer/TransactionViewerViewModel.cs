@@ -15,6 +15,7 @@ using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Gui.Controls.TransactionDetails.ViewModels;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
@@ -27,7 +28,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _psbtHexText;
 		private string _psbtBase64Text;
 		private byte[] _psbtBytes;
-		private TransactionInfo _transactionInfo;
+		private TransactionDetailsViewModel _transactionInfo;
 
 		public TransactionViewerViewModel() : base("Transaction")
 		{
@@ -125,7 +126,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _psbtBytes, value);
 		}
 
-		public TransactionInfo TransactionInfo
+		public TransactionDetailsViewModel TransactionInfo
 		{
 			get => _transactionInfo;
 			set => this.RaiseAndSetIfChanged(ref _transactionInfo, value);
@@ -148,7 +149,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			try
 			{
-				TransactionInfo = TransactionInfo.FromBuildTxnResult(result);
+				TransactionInfo = TransactionDetailsViewModel.FromBuildTxnResult(result);
 				TransactionHexText = result.Transaction.Transaction.ToHex();
 				PsbtBase64Text = result.Psbt.ToBase64();
 				PsbtBytes = result.Psbt.ToBytes();

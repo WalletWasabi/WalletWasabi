@@ -5,11 +5,11 @@ using Avalonia.Markup.Xaml;
 using ReactiveUI;
 using System.Reactive.Linq;
 
-namespace WalletWasabi.Gui.Controls.WalletExplorer
+namespace WalletWasabi.Gui.Controls.TransactionDetails.Views
 {
-	public class BuildTransactionDetails : UserControl
+	public class TransactionDetails : UserControl
 	{
-		public BuildTransactionDetails()
+		public TransactionDetails()
 		{
 			InitializeComponent();
 		}

@@ -23,6 +23,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 			InnerWalletOutputs = innerWalletOutputs ?? new List<SmartCoin>();
 			SpentCoins = Guard.NotNullOrEmpty(nameof(spentCoins), spentCoins);
 		}
+		
 		public BitcoinStore Store { get; }
 		public Network Network { get; }
 		public SmartTransaction Transaction { get; }

@@ -1,13 +1,14 @@
-using System;
+﻿using System;
 using System.Linq;
 
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Gui.Controls.TransactionDetails.Models;
 
-namespace WalletWasabi.Gui.Controls.WalletExplorer
+namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 {
-	public class TransactionInfo : ReactiveObject
+	public class TransactionDetailsViewModel : ReactiveObject
 	{
 		private int _confirmations;
 		private bool _confirmed;
@@ -86,7 +87,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _outputCount, value);
 		}
 
-		public static TransactionInfo FromBuildTxnResult(BuildTransactionResult result)
+		public static TransactionDetailsViewModel FromBuildTxnResult(BuildTransactionResult result)
 		{
 			AddressAmountTuple FromTxOutput(TxOut output) =>
 				new AddressAmountTuple(output.ScriptPubKey.GetDestinationAddress(result.Network).ToString(), output.Value);
@@ -107,7 +108,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			var totalInValue = inputAddrMoney.Select(x => x.Amount).Sum().ToString();
 			var totalOutValue = outputAddrMoney.Select(x => x.Amount).Sum().ToString();
 
-			return new TransactionInfo()
+			return new TransactionDetailsViewModel()
 			{
 				TransactionId = result.Transaction.GetHash().ToString(),
 				Confirmed = false,

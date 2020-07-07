@@ -14,6 +14,7 @@ using WalletWasabi.Gui.Models.Sorting;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
+using WalletWasabi.Gui.Controls.TransactionDetails.ViewModels;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -135,7 +136,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				var rememberSelectedTransactionId = SelectedTransaction?.TransactionId;
 				Transactions?.Clear();
 
-				var trs = txRecordList.Select(txr => new TransactionInfo
+				var trs = txRecordList.Select(txr => new TransactionDetailsViewModel
 				{
 					DateTime = txr.DateTime.ToLocalTime(),
 					Confirmed = txr.Height.Type == HeightType.Chain,

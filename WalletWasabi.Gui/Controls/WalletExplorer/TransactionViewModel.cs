@@ -13,6 +13,7 @@ using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
+using WalletWasabi.Gui.Controls.TransactionDetails.ViewModels;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -21,7 +22,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _clipboardNotificationVisible;
 		private double _clipboardNotificationOpacity;
 
-		public TransactionViewModel(TransactionInfo model)
+		public TransactionViewModel(TransactionDetailsViewModel model)
 		{
 			Model = model;
 			ClipboardNotificationVisible = false;
@@ -55,7 +56,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				});
 		}
 
-		private TransactionInfo Model { get; }
+		private TransactionDetailsViewModel Model { get; }
 
 		public ReactiveCommand<Unit, Unit> CopyTransactionId { get; }
 

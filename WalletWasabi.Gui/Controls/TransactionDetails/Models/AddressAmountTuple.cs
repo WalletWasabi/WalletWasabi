@@ -1,7 +1,7 @@
 ﻿using NBitcoin;
 using System;
 
-namespace WalletWasabi.Gui.Controls.WalletExplorer
+namespace WalletWasabi.Gui.Controls.TransactionDetails.Models
 {
 	public readonly struct AddressAmountTuple : IEquatable<AddressAmountTuple>
 	{
