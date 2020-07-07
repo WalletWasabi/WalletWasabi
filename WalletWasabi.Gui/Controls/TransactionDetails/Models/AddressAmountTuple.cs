@@ -1,11 +1,11 @@
-﻿using NBitcoin;
+using NBitcoin;
 using System;
 
 namespace WalletWasabi.Gui.Controls.TransactionDetails.Models
 {
 	public readonly struct AddressAmountTuple : IEquatable<AddressAmountTuple>
 	{
-		public AddressAmountTuple(string address = default(string), Money amount = default(Money), bool isEmpty = true)
+		public AddressAmountTuple(string address = default, Money amount = default, bool isEmpty = true)
 		{
 			Address = address;
 			Amount = amount;
@@ -17,6 +17,7 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.Models
 		private bool IsEmpty { get; }
 
 		public static bool operator ==(AddressAmountTuple x, AddressAmountTuple y) => x.Equals(y);
+
 		public static bool operator !=(AddressAmountTuple x, AddressAmountTuple y) => !(x == y);
 
 		public bool Equals(AddressAmountTuple other) =>
