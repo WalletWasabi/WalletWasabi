@@ -149,7 +149,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			try
 			{
-				TransactionDetails = TransactionDetailsViewModel.FromBuildTxnResult(result);
+				TransactionDetails = TransactionDetailsViewModel.FromBuildTxnResult(Global.BitcoinStore, result);
 				TransactionHexText = result.Transaction.Transaction.ToHex();
 				PsbtBase64Text = result.Psbt.ToBase64();
 				PsbtBytes = result.Psbt.ToBytes();

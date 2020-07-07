@@ -5,6 +5,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Gui.Controls.TransactionDetails.Models;
+using WalletWasabi.Stores;
 
 namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 {
@@ -88,13 +89,13 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _outputCount, value);
 		}
 
-		public static TransactionDetailsViewModel FromBuildTxnResult(BuildTransactionResult result)
+		public static TransactionDetailsViewModel FromBuildTxnResult(BitcoinStore stores, BuildTransactionResult result)
 		{
 			AddressAmountTuple FromTxOutput(TxOut output) =>
 				new AddressAmountTuple(output.ScriptPubKey.GetDestinationAddress(result.Network).ToString(), output.Value);
 
 			TxOut GetOutput(OutPoint outpoint) =>
-				result.Store.TransactionStore.TryGetTransaction(outpoint.Hash, out var prevTxn)
+				stores.TransactionStore.TryGetTransaction(outpoint.Hash, out var prevTxn)
 					? prevTxn.Transaction.Outputs[outpoint.N]
 					: null;
 
