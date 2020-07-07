@@ -751,11 +751,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 
 				long all = selectedCoins.Sum(x => x.Amount);
-				long theAmount = IsMax
-					? all
-					: Money.TryParse(AmountText.TrimStart('~', ' '), out Money value)
-						? value.Satoshi
-						: 0;
+				long theAmount = (IsMax, Money.TryParse(AmountText.TrimStart('~', ' '), out Money value)) switch
+				{
+					(true, _) => all,
+					(false, true) => value.Satoshi,
+					(false, false) => 0
+				};
 
 				FeePercentage = theAmount != 0
 					? 100 * (decimal)EstimatedBtcFee.Satoshi / theAmount
