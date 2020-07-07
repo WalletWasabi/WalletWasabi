@@ -54,7 +54,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				var sfd = new SaveFileDialog
 				{
 					DefaultExtension = psbtExtension,
-					InitialFileName = TransactionInfo.TransactionId.Substring(0, 7),
+					InitialFileName = TransactionDetails.TransactionId.Substring(0, 7),
 					Title = "Export Binary PSBT"
 				};
 
@@ -126,7 +126,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _psbtBytes, value);
 		}
 
-		public TransactionDetailsViewModel TransactionInfo
+		public TransactionDetailsViewModel TransactionDetails
 		{
 			get => _transactionInfo;
 			set => this.RaiseAndSetIfChanged(ref _transactionInfo, value);
@@ -141,7 +141,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(_ =>
 				{
 					this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
-					this.RaisePropertyChanged(nameof(TransactionInfo));
+					this.RaisePropertyChanged(nameof(TransactionDetails));
 				}).DisposeWith(disposables);
 		}
 
@@ -149,7 +149,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			try
 			{
-				TransactionInfo = TransactionDetailsViewModel.FromBuildTxnResult(result);
+				TransactionDetails = TransactionDetailsViewModel.FromBuildTxnResult(result);
 				TransactionHexText = result.Transaction.Transaction.ToHex();
 				PsbtBase64Text = result.Psbt.ToBase64();
 				PsbtBytes = result.Psbt.ToBytes();
