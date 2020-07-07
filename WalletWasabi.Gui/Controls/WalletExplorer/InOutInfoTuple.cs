@@ -2,22 +2,26 @@ using System;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public struct InOutInfoTuple : IEquatable<InOutInfoTuple>
+	public readonly struct InOutInfoTuple : IEquatable<InOutInfoTuple>
 	{
-		public InOutInfoTuple(AddressMoneyTuple input, AddressMoneyTuple output)
+		public InOutInfoTuple(AddressAmountTuple input, AddressAmountTuple output)
 		{
 			Input = input;
 			Output = output;
 		}
-		public AddressMoneyTuple Input { get; }
-		public AddressMoneyTuple Output { get; }
+
+		public AddressAmountTuple Input { get; }
+		public AddressAmountTuple Output { get; }
 		public static bool operator ==(InOutInfoTuple x, InOutInfoTuple y) => x.Equals(y);
 		public static bool operator !=(InOutInfoTuple x, InOutInfoTuple y) => !(x == y);
 
-		public bool Equals(InOutInfoTuple other)
-		{
-			return this.Input == other.Input 
-				&& this.Output == other.Output;
-		}
+		public bool Equals(InOutInfoTuple other) =>
+			 (Input, Output) == (other.Input, other.Output);
+ 
+		public override bool Equals(object other) =>
+			((InOutInfoTuple)other).Equals(this) == true;
+
+		public override int GetHashCode() =>
+			HashCode.Combine(Input, Output);
 	}
 }

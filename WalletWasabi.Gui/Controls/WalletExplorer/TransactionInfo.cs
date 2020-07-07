@@ -1,12 +1,9 @@
-using System.Transactions;
-using ReactiveUI;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
-using WalletWasabi.Blockchain.TransactionBuilding;
+
 using NBitcoin;
+using ReactiveUI;
+using WalletWasabi.Blockchain.TransactionBuilding;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -91,8 +88,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public static TransactionInfo FromBuildTxnResult(BuildTransactionResult result)
 		{
-			AddressMoneyTuple FromTxOutput(TxOut output) =>
-				new AddressMoneyTuple(output.ScriptPubKey.GetDestinationAddress(result.Network).ToString(), output.Value);
+			AddressAmountTuple FromTxOutput(TxOut output) =>
+				new AddressAmountTuple(output.ScriptPubKey.GetDestinationAddress(result.Network).ToString(), output.Value);
 
 			TxOut GetOutput(OutPoint outpoint) =>
 				result.Store.TransactionStore.TryGetTransaction(outpoint.Hash, out var prevTxn)
@@ -106,7 +103,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Select(FromTxOutput);
 
 			var outputAddrMoney = result.Transaction.Transaction.Outputs.Select(FromTxOutput);
-
 
 			var totalInValue = inputAddrMoney.Select(x => x.Amount).Sum().ToString();
 			var totalOutValue = outputAddrMoney.Select(x => x.Amount).Sum().ToString();
