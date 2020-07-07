@@ -18,7 +18,9 @@ namespace WalletWasabi.Services
 
 		private object ServicesLock { get; } = new object();
 		private bool IsStartAllAsyncStarted { get; set; } = false;
-		private bool IsStartAllAsyncCompleted { get; set; } = false;
+		public bool IsStartAllAsyncCompleted { get; private set; } = false;
+
+		public event EventHandler<bool> StartAllAsyncCompleted;
 
 		public void Register(IHostedService service, string friendlyName)
 		{
@@ -69,6 +71,7 @@ namespace WalletWasabi.Services
 			}
 
 			IsStartAllAsyncCompleted = true;
+			StartAllAsyncCompleted?.Invoke(this, IsStartAllAsyncCompleted);
 		}
 
 		public async Task StopAllAsync(CancellationToken token)

@@ -22,16 +22,10 @@ namespace WalletWasabi.Gui.Tabs
 	internal class AboutViewModel : WasabiDocumentTabViewModel
 	{
 		private string _currentBackendMajorVersion;
+		private UpdateChecker _updateChecker;
 
 		public AboutViewModel() : base("About")
 		{
-			var global = Locator.Current.GetService<Global>();
-			var hostedServices = global.HostedServices;
-
-			UpdateChecker = hostedServices.FirstOrDefault<UpdateChecker>();
-
-			CurrentBackendMajorVersion = UpdateChecker?.UpdateStatus?.CurrentBackendMajorVersion.ToString() ?? "";
-
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 
 			OpenBrowserCommand.ThrownExceptions
@@ -40,7 +34,13 @@ namespace WalletWasabi.Gui.Tabs
 		}
 
 		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
-		private UpdateChecker UpdateChecker { get; }
+
+		private UpdateChecker UpdateChecker
+		{
+			get => _updateChecker;
+			set => this.RaiseAndSetIfChanged(ref _updateChecker, value);
+		}
+
 		public Version ClientVersion => Constants.ClientVersion;
 		public string BackendCompatibleVersions => Constants.ClientSupportBackendVersionText;
 
@@ -73,13 +73,32 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			base.OnOpen(disposables);
 
-			var updateChecker = UpdateChecker;
-			if (updateChecker is { })
+			var global = Locator.Current.GetService<Global>();
+			var hostedServices = global.HostedServices;
+
+			this.WhenAnyValue(x => x.UpdateChecker)
+				.Where(x => x is { })
+				.Take(1)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					Observable.FromEventPattern<UpdateStatus>(x, nameof(x.UpdateStatusChanged))
+						.ObserveOn(RxApp.MainThreadScheduler)
+						.Subscribe(e => CurrentBackendMajorVersion = e.EventArgs.CurrentBackendMajorVersion.ToString())
+						.DisposeWith(disposables);
+				})
+				.DisposeWith(disposables);
+
+			var hostedServiceObservable = Observable.FromEventPattern<bool>(global.HostedServices, nameof(HostedServices.StartAllAsyncCompleted))
+				.Take(1)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => UpdateChecker = hostedServices.FirstOrDefault<UpdateChecker>())
+				.DisposeWith(disposables);
+
+			if (hostedServices.IsStartAllAsyncCompleted)
 			{
-				Observable.FromEventPattern<UpdateStatus>(updateChecker, nameof(updateChecker.UpdateStatusChanged))
-					.ObserveOn(RxApp.MainThreadScheduler)
-					.Subscribe(e => CurrentBackendMajorVersion = e.EventArgs.CurrentBackendMajorVersion.ToString())
-					.DisposeWith(disposables);
+				hostedServiceObservable.Dispose();
+				UpdateChecker = hostedServices.FirstOrDefault<UpdateChecker>();
 			}
 		}
 	}
