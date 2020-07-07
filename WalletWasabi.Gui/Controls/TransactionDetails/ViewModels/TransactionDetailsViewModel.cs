@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 
 using NBitcoin;
@@ -16,7 +16,7 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 		private string _amountBtc;
 		private string _label;
 		private int _blockHeight;
-		private string _transactionId; 
+		private string _transactionId;
 		private string _totalInputValue;
 		private string _totalOutputValue;
 		private int _inputCount;
@@ -63,7 +63,7 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 			get => _transactionId;
 			set => this.RaiseAndSetIfChanged(ref _transactionId, value);
 		}
- 
+
 		public string TotalInputValue
 		{
 			get => _totalInputValue;
@@ -75,6 +75,7 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 			get => _totalOutputValue;
 			set => this.RaiseAndSetIfChanged(ref _totalOutputValue, value);
 		}
+
 		public int InputCount
 		{
 			get => _inputCount;
@@ -112,7 +113,7 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 			{
 				TransactionId = result.Transaction.GetHash().ToString(),
 				Confirmed = false,
-				DateTime = result.Transaction.FirstSeen, 
+				DateTime = result.Transaction.FirstSeen,
 				InputCount = inputAddrMoney.Count(),
 				OutputCount = outputAddrMoney.Count(),
 				TotalInputValue = totalInValue,
