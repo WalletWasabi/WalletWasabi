@@ -44,12 +44,12 @@ namespace WalletWasabi.Tests.UnitTests
 
 		private class MockProvider : IBlockProvider
 		{
-			public Func<uint256, CancellationToken, Task<Block>> OnGetBlockAsync { get; }
-
 			public MockProvider(Func<uint256, CancellationToken, Task<Block>> onGetBlockAsync)
 			{
 				OnGetBlockAsync = onGetBlockAsync;
 			}
+
+			public Func<uint256, CancellationToken, Task<Block>> OnGetBlockAsync { get; }
 
 			public Task<Block> GetBlockAsync(uint256 hash, CancellationToken cancel)
 			{
