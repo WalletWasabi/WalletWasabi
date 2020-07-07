@@ -1,3 +1,5 @@
+#nullable enable
+
 using NBitcoin;
 using NBitcoin.DataEncoders;
 using System;

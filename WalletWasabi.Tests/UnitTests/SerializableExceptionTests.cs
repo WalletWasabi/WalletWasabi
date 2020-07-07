@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -16,7 +18,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var innerStackTrace = "";
 
 			Exception ex;
-			string stackTrace;
+			string? stackTrace;
 			try
 			{
 				try

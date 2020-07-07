@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -57,7 +59,7 @@ namespace WalletWasabi.Tests.UnitTests
 			label = new SmartLabel(new List<string>() { "   foo   ", "   bar    " });
 			Assert.Equal("bar, foo", label);
 
-			label = new SmartLabel(new List<string>() { "foo:", ":bar", null, ":buz:", ",", ": , :", "qux:quux", "corge,grault", "", "  ", " , garply, waldo,", " : ,  :  ,  fred  , : , :   plugh, : , : ," });
+			label = new SmartLabel(new List<string>() { "foo:", ":bar", null!, ":buz:", ",", ": , :", "qux:quux", "corge,grault", "", "  ", " , garply, waldo,", " : ,  :  ,  fred  , : , :   plugh, : , : ," });
 			Assert.Equal("bar, buz, corge, foo, fred, garply, grault, plugh, quux, qux, waldo", label);
 
 			label = new SmartLabel(",: foo::bar :buz:,: , :qux:quux, corge,grault  , garply, waldo, : ,  :  ,  fred  , : , :   plugh, : , : ,");
@@ -81,8 +83,10 @@ namespace WalletWasabi.Tests.UnitTests
 			var label3 = new SmartLabel("bar, buz");
 			Assert.NotEqual(label, label3);
 
-			SmartLabel label4 = null;
-			SmartLabel label5 = null;
+			SmartLabel? label4 = null;
+			SmartLabel? label5 = null;
+
+			// Tests equality operators in SmartLabel class.
 			Assert.Equal(label4, label5);
 			Assert.NotEqual(label, label4);
 			Assert.False(label.Equals(label4));

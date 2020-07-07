@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -18,21 +20,21 @@ namespace WalletWasabi.Tests.UnitTests
 			var blocks = new Dictionary<uint256, Block>
 			{
 				[uint256.Zero] = Block.CreateBlock(Network.Main),
-				[uint256.One]  = Block.CreateBlock(Network.Main)
+				[uint256.One] = Block.CreateBlock(Network.Main)
 			};
-			
-			var source = new MockProvider();
-			source.OnGetBlockAsync = async (hash, cancel) => 
-			{
-				await Task.Delay(TimeSpan.FromSeconds(0.5));
-				var block = Block.CreateBlock(Network.Main);
-				return block;
-			};
+
+			var source = new MockProvider(onGetBlockAsync: async (hash, cancel) =>
+				{
+					await Task.Delay(TimeSpan.FromSeconds(0.5));
+					var block = Block.CreateBlock(Network.Main);
+					return block;
+				});
+
 			using var cache = new MemoryCache(new MemoryCacheOptions());
 			var blockProvider = new SmartBlockProvider(source, cache);
 
 			var b1 = blockProvider.GetBlockAsync(uint256.Zero, CancellationToken.None);
-			var b2 = blockProvider.GetBlockAsync(uint256.One,  CancellationToken.None);
+			var b2 = blockProvider.GetBlockAsync(uint256.One, CancellationToken.None);
 			var b3 = blockProvider.GetBlockAsync(uint256.Zero, CancellationToken.None);
 
 			await Task.WhenAll(b1, b2, b3);
@@ -42,7 +44,12 @@ namespace WalletWasabi.Tests.UnitTests
 
 		private class MockProvider : IBlockProvider
 		{
-			public Func<uint256, CancellationToken, Task<Block>> OnGetBlockAsync { get; set; }
+			public Func<uint256, CancellationToken, Task<Block>> OnGetBlockAsync { get; }
+
+			public MockProvider(Func<uint256, CancellationToken, Task<Block>> onGetBlockAsync)
+			{
+				OnGetBlockAsync = onGetBlockAsync;
+			}
 
 			public Task<Block> GetBlockAsync(uint256 hash, CancellationToken cancel)
 			{
