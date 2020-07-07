@@ -13,6 +13,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private bool _isExpanded;
 		private string _title;
+		private string _titleTip;
 		private WalletState _walletState;
 		private CompositeDisposable _disposables;
 		private bool _disposedValue;
@@ -23,8 +24,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			_disposables = new CompositeDisposable();
 
-			Wallet = wallet;
 			Title = WalletName;
+			var isHardware = Wallet.KeyManager.IsHardwareWallet;
+			var isWatch = Wallet.KeyManager.IsWatchOnly;
+			TitleTip = isHardware ? "Hardware Wallet" : isWatch ? "Watch Only Wallet" : "Hot Wallet";
 
 			WalletState = wallet.State;
 
@@ -52,6 +55,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _title;
 			set => this.RaiseAndSetIfChanged(ref _title, value);
+		}
+
+		public string TitleTip
+		{
+			get => _titleTip;
+			set => this.RaiseAndSetIfChanged(ref _titleTip, value);
 		}
 
 		public string WalletName => Wallet.WalletName;
