@@ -92,7 +92,8 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 		public static TransactionDetailsViewModel FromBuildTxnResult(BitcoinStore stores, BuildTransactionResult result)
 		{
 			AddressAmountTuple FromTxOutput(TxOut output) =>
-				new AddressAmountTuple(output.ScriptPubKey.GetDestinationAddress(result.Network).ToString(), output.Value);
+				new AddressAmountTuple(output.ScriptPubKey?.GetDestinationAddress(result.Network).ToString() ?? string.Empty
+								 	 , output?.Value ?? Money.Zero);
 
 			TxOut GetOutput(OutPoint outpoint) =>
 				stores.TransactionStore.TryGetTransaction(outpoint.Hash, out var prevTxn)
@@ -102,7 +103,6 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 			var inputAddrMoney = result.Transaction.Transaction.Inputs
 				.Select(x => x.PrevOut)
 				.Select(GetOutput)
-				.Where(x => x is { })
 				.Select(FromTxOutput);
 
 			var outputAddrMoney = result.Transaction.Transaction.Outputs.Select(FromTxOutput);
