@@ -3,9 +3,9 @@ using System;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public struct AddressMoneyTuple : IEquatable<AddressMoneyTuple>
+   public readonly struct AddressMoneyTuple : IEquatable<AddressMoneyTuple>
 	{
-		public AddressMoneyTuple(string address = null, Money amount = null, bool isEmpty = true)
+		public AddressMoneyTuple(string address = "", Money amount = Money.Zero, bool isEmpty = true)
 		{
 			Address = address;
 			Amount = amount;
@@ -20,16 +20,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public static bool operator ==(AddressMoneyTuple x, AddressMoneyTuple y) => x.Equals(y);
 		public static bool operator !=(AddressMoneyTuple x, AddressMoneyTuple y) => !(x == y);
 
-		public bool Equals(AddressMoneyTuple other)
-		{
-			return this.IsEmpty == other.IsEmpty
-		 		&& this.Amount == other.Amount
-				&& this.Address == other.Address;
-		}
+		public bool Equals(AddressMoneyTuple other) =>
+			(IsEmpty, Amount, Address)  == (other.IsEmpty, other.Amount, other.Address);
 
 		public override bool Equals(object obj)
 		{
 			return base.Equals(obj);
 		}
 	}
+
+
+	public override int GetHashCode() =>
+		HashCode.Combine(IsEmpty, Amount, Address);
 }

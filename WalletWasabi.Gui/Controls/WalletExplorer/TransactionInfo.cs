@@ -91,28 +91,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public static TransactionInfo FromBuildTxnResult(BuildTransactionResult result)
 		{
-			var inputAddrMoney = result.Transaction.Transaction.Inputs.Select(x =>
-			{
-				if (result.Store.TransactionStore.TryGetTransaction(x.PrevOut.Hash, out var prevTxn))
-				{
-					var targetTxO = prevTxn.Transaction.Outputs[x.PrevOut.N];
-					var address = targetTxO.ScriptPubKey.GetDestinationAddress(result.Network).ToString();
-					var money = targetTxO.Value;
+			AddressMoneyTuple FromTxOutput(TxOut output) =>
+				new AddressMoneyTuple(output.ScriptPubKey.GetDestinationAddress(result.Network).ToString(), output.Value);
 
-					return new AddressMoneyTuple(address, money, false);
-				}
-				else
-				{
-					return AddressMoneyTuple.Empty;
-				}
-			}).Where(x => x != AddressMoneyTuple.Empty).ToList();
+			TxOut GetOutput(OutPoint outpoint) =>
+				result.Store.TransactionStore.TryGetTransaction(outpoint.Hash, out var prevTxn)
+					? prevTxn.Transaction.Outputs[outpoint.N]
+					: null;
 
-			var outputAddrMoney = result.Transaction.Transaction.Outputs.Select(targetTxO =>
-			{
-				var address = targetTxO.ScriptPubKey.GetDestinationAddress(result.Network).ToString();
-				var money = targetTxO.Value;
-				return new AddressMoneyTuple(address, money, false);
-			}).ToList();
+			var inputAddrMoney = result.Transaction.Transaction.Inputs
+				.Select(x => x.PrevOut)
+				.Select(GetOutput)
+				.Where(x => x is { })
+				.Select(FromTxOutput);
+
+			var outputAddrMoney = result.Transaction.Transaction.Outputs.Select(FromTxOutput);
+
 
 			var totalInValue = inputAddrMoney.Select(x => x.Amount).Sum().ToString();
 			var totalOutValue = outputAddrMoney.Select(x => x.Amount).Sum().ToString();
