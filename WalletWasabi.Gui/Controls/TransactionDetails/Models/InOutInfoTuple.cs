@@ -12,12 +12,14 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.Models
 
 		public AddressAmountTuple Input { get; }
 		public AddressAmountTuple Output { get; }
+
 		public static bool operator ==(InOutInfoTuple x, InOutInfoTuple y) => x.Equals(y);
+
 		public static bool operator !=(InOutInfoTuple x, InOutInfoTuple y) => !(x == y);
 
 		public bool Equals(InOutInfoTuple other) =>
 			 (Input, Output) == (other.Input, other.Output);
- 
+
 		public override bool Equals(object other) =>
 			((InOutInfoTuple)other).Equals(this) == true;
 
