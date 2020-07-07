@@ -92,7 +92,7 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 		public static TransactionDetailsViewModel FromBuildTxnResult(BitcoinStore stores, BuildTransactionResult result)
 		{
 			AddressAmountTuple FromTxOutput(TxOut output) =>
-				new AddressAmountTuple(output.ScriptPubKey?.GetDestinationAddress(result.Network).ToString() ?? string.Empty
+				new AddressAmountTuple(output?.ScriptPubKey.GetDestinationAddress(result.Network).ToString() ?? string.Empty
 								 	 , output?.Value ?? Money.Zero);
 
 			TxOut GetOutput(OutPoint outpoint) =>
