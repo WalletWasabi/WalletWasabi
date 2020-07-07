@@ -89,31 +89,38 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _outputCount, value);
 		}
 
-		public static TransactionDetailsViewModel FromBuildTxnResult(BitcoinStore stores, BuildTransactionResult result)
+		public static TransactionDetailsViewModel FromBuildTxnResult(BitcoinStore stores, PSBT psbt)
 		{
 			AddressAmountTuple FromTxOutput(TxOut output) =>
-				new AddressAmountTuple(output?.ScriptPubKey.GetDestinationAddress(result.Network).ToString() ?? string.Empty, output?.Value ?? Money.Zero);
+				FromOutputCore(output?.ScriptPubKey, output?.Value);
+
+			AddressAmountTuple FromPSBTOutput(PSBTOutput output) =>
+				FromOutputCore(output?.ScriptPubKey, output?.Value);
+
+			AddressAmountTuple FromOutputCore(Script pubKey, Money value) =>
+				new AddressAmountTuple(pubKey?.GetDestinationAddress(psbt.Network).ToString() ?? string.Empty, value ?? Money.Zero);
 
 			TxOut GetOutput(OutPoint outpoint) =>
-				stores.TransactionStore.TryGetTransaction(outpoint.Hash, out var prevTxn)
-					? prevTxn.Transaction.Outputs[outpoint.N]
-					: null;
+							stores.TransactionStore.TryGetTransaction(outpoint.Hash, out var prevTxn)
+								? prevTxn.Transaction.Outputs[outpoint.N]
+								: null;
 
-			var inputAddrMoney = result.Transaction.Transaction.Inputs
+			var inputAddrMoney = psbt.Inputs
 				.Select(x => x.PrevOut)
 				.Select(GetOutput)
 				.Select(FromTxOutput);
 
-			var outputAddrMoney = result.Transaction.Transaction.Outputs.Select(FromTxOutput);
+			var outputAddrMoney = psbt.Outputs.Select(FromPSBTOutput);
 
 			var totalInValue = inputAddrMoney.Select(x => x.Amount).Sum().ToString();
 			var totalOutValue = outputAddrMoney.Select(x => x.Amount).Sum().ToString();
+			
+			var psbtTxn = psbt.GetOriginalTransaction();
 
 			return new TransactionDetailsViewModel()
 			{
-				TransactionId = result.Transaction.GetHash().ToString(),
+				TransactionId = psbtTxn.GetHash().ToString(),
 				Confirmed = false,
-				DateTime = result.Transaction.FirstSeen,
 				InputCount = inputAddrMoney.Count(),
 				OutputCount = outputAddrMoney.Count(),
 				TotalInputValue = totalInValue,
