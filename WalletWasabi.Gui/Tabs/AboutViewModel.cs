@@ -26,6 +26,7 @@ namespace WalletWasabi.Gui.Tabs
 
 		public AboutViewModel() : base("About")
 		{
+			CurrentBackendMajorVersion = "?";
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 
 			OpenBrowserCommand.ThrownExceptions
@@ -84,8 +85,10 @@ namespace WalletWasabi.Gui.Tabs
 				{
 					Observable.FromEventPattern<UpdateStatus>(x, nameof(x.UpdateStatusChanged))
 						.ObserveOn(RxApp.MainThreadScheduler)
-						.Subscribe(e => CurrentBackendMajorVersion = e.EventArgs.CurrentBackendMajorVersion.ToString())
+						.Subscribe(e => CurrentBackendMajorVersion = WasabiClient.ApiVersion.ToString())
 						.DisposeWith(disposables);
+
+					CurrentBackendMajorVersion = WasabiClient.ApiVersion.ToString();
 				})
 				.DisposeWith(disposables);
 
