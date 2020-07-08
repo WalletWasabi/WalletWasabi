@@ -14,7 +14,7 @@ namespace WalletWasabi.Crypto.Randomness
 			Random = RandomNumberGenerator.Create();
 		}
 
-		public RandomNumberGenerator Random { get; }
+		private RandomNumberGenerator Random { get; }
 
 		public void GetBytes(byte[] buffer) => Random.GetBytes(buffer);
 
