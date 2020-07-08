@@ -27,7 +27,7 @@ namespace WalletWasabi.Gui.Converters
 			}
 			else
 			{
-				throw new TypeArgumentException(value, typeof(string), nameof(value));
+				return Brushes.IndianRed;
 			}
 
 			return money < 0 ? Brushes.IndianRed : Brushes.MediumSeaGreen;

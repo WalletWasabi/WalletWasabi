@@ -5,28 +5,26 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.Models
 {
 	public readonly struct AddressAmountTuple : IEquatable<AddressAmountTuple>
 	{
-		public AddressAmountTuple(string address = default, Money amount = default, bool isEmpty = true)
+		public AddressAmountTuple(string address, Money amount)
 		{
 			Address = address;
 			Amount = amount;
-			IsEmpty = isEmpty;
 		}
 
 		public string Address { get; }
 		public Money Amount { get; }
-		private bool IsEmpty { get; }
 
 		public static bool operator ==(AddressAmountTuple x, AddressAmountTuple y) => x.Equals(y);
 
 		public static bool operator !=(AddressAmountTuple x, AddressAmountTuple y) => !(x == y);
 
 		public bool Equals(AddressAmountTuple other) =>
-			(IsEmpty, Amount, Address) == (other.IsEmpty, other.Amount, other.Address);
+			(Amount, Address) == (other.Amount, other.Address);
 
 		public override bool Equals(object other) =>
 			((AddressAmountTuple)other).Equals(this) == true;
 
 		public override int GetHashCode() =>
-			HashCode.Combine(IsEmpty, Amount, Address);
+			HashCode.Combine(Amount, Address);
 	}
 }
