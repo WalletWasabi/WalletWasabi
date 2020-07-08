@@ -27,6 +27,10 @@
         <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding TotalOutputValue, Mode=OneWay, Converter={StaticResource MoneyStringConverter}}" Foreground="{Binding TotalOutputValue, Converter={StaticResource MoneyBrushConverter}}" />
       </Grid>
       <Grid ColumnDefinitions="170, *">
+        <TextBlock Classes="monospaceFont" Text="Network Fee (BTC):" />
+        <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding NetworkFee, Mode=OneWay, Converter={StaticResource MoneyStringConverter}}" Foreground="{Binding NetworkFee, Converter={StaticResource MoneyBrushConverter}}" />
+      </Grid>
+      <Grid ColumnDefinitions="170, *">
         <TextBlock Classes="monospaceFont" Text="Input Count:" />
         <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Path=InputCount, Mode=OneWay, StringFormat=\{0\} Input(s)}" />
       </Grid>
