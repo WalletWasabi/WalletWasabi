@@ -12,6 +12,7 @@ using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Gui.Controls.TransactionDetails.ViewModels;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models.StatusBarStatuses;
 using WalletWasabi.Gui.ViewModels;
@@ -21,10 +22,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class TransactionBroadcasterViewModel : WasabiDocumentTabViewModel
 	{
-		private string _transactionString;
 		private bool _isBusy;
 		private string _buttonText;
 		private int _caretIndex;
+		private TransactionDetailsViewModel _transactionDetails;
+		private SmartTransaction _finalTransaction;
 
 		public TransactionBroadcasterViewModel() : base("Transaction Broadcaster")
 		{
@@ -32,19 +34,53 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			ButtonText = "Broadcast Transaction";
 
+			this.WhenAnyValue(x => x.FinalTransaction)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					try
+					{
+						TransactionDetails = x is { }
+							? TransactionDetailsViewModel.FromBuildTxnResult(Global.BitcoinStore, PSBT.FromTransaction(x.Transaction, Global.Network))
+							: null;
+					}
+					catch (Exception ex)
+					{
+						TransactionDetails = null;
+						NotificationHelpers.Error(ex.ToUserFriendlyString());
+						Logger.LogError(ex);
+					}
+				});
+
 			PasteCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				if (!string.IsNullOrEmpty(TransactionString))
+				try
 				{
-					return;
-				}
+					var textToPaste = await Application.Current.Clipboard.GetTextAsync();
+					if (PSBT.TryParse(textToPaste, Global.Network ?? Network.Main, out var signedPsbt))
+					{
+						if (!signedPsbt.IsAllFinalized())
+						{
+							signedPsbt.Finalize();
+						}
 
-				var textToPaste = await Application.Current.Clipboard.GetTextAsync();
-				TransactionString = textToPaste;
+						FinalTransaction = signedPsbt.ExtractSmartTransaction();
+					}
+					else
+					{
+						FinalTransaction = new SmartTransaction(Transaction.Parse(textToPaste, Global.Network ?? Network.Main), WalletWasabi.Models.Height.Unknown);
+					}
+				}
+				catch (Exception ex)
+				{
+					FinalTransaction = null;
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
+					Logger.LogError(ex);
+				}
 			});
 
 			IObservable<bool> broadcastTransactionCanExecute = this
-				.WhenAny(x => x.TransactionString, (transactionString) => !string.IsNullOrWhiteSpace(transactionString.Value))
+				.WhenAny(x => x.FinalTransaction, (tx) => tx is { })
 				.ObserveOn(RxApp.MainThreadScheduler);
 
 			BroadcastTransactionCommand = ReactiveCommand.CreateFromTask(
@@ -103,18 +139,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 								}
 							}
 
-							if (psbt != null)
+							if (psbt is { })
 							{
 								if (!psbt.IsAllFinalized())
 								{
 									psbt.Finalize();
 								}
 
-								TransactionString = psbt.ToBase64();
+								FinalTransaction = psbt.ExtractSmartTransaction();
 							}
 							else
 							{
-								TransactionString = transaction.ToHex();
+								FinalTransaction = new SmartTransaction(transaction, WalletWasabi.Models.Height.Unknown);
 							}
 						}
 					}
@@ -144,12 +180,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> BroadcastTransactionCommand { get; set; }
 		public ReactiveCommand<Unit, Unit> ImportTransactionCommand { get; set; }
 
-		public string TransactionString
-		{
-			get => _transactionString;
-			set => this.RaiseAndSetIfChanged(ref _transactionString, value);
-		}
-
 		public bool IsBusy
 		{
 			get => _isBusy;
@@ -168,9 +198,21 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _caretIndex, value);
 		}
 
+		public TransactionDetailsViewModel TransactionDetails
+		{
+			get => _transactionDetails;
+			set => this.RaiseAndSetIfChanged(ref _transactionDetails, value);
+		}
+
+		public SmartTransaction FinalTransaction
+		{
+			get => _finalTransaction;
+			set => this.RaiseAndSetIfChanged(ref _finalTransaction, value);
+		}
+
 		public override bool OnClose()
 		{
-			TransactionString = "";
+			FinalTransaction = null;
 
 			return base.OnClose();
 		}
@@ -182,27 +224,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				IsBusy = true;
 				ButtonText = "Broadcasting Transaction...";
 
-				SmartTransaction transaction;
-
-				if (PSBT.TryParse(TransactionString, Global.Network ?? Network.Main, out var signedPsbt))
-				{
-					if (!signedPsbt.IsAllFinalized())
-					{
-						signedPsbt.Finalize();
-					}
-
-					transaction = signedPsbt.ExtractSmartTransaction();
-				}
-				else
-				{
-					transaction = new SmartTransaction(Transaction.Parse(TransactionString, Global.Network ?? Network.Main), WalletWasabi.Models.Height.Unknown);
-				}
-
 				MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.BroadcastingTransaction);
-				await Task.Run(async () => await Global.TransactionBroadcaster.SendTransactionAsync(transaction));
+				await Task.Run(async () => await Global.TransactionBroadcaster.SendTransactionAsync(FinalTransaction));
 
 				NotificationHelpers.Success("Transaction was broadcast.");
-				TransactionString = "";
+				FinalTransaction = null;
 			}
 			catch (PSBTException ex)
 			{
