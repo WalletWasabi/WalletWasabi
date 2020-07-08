@@ -8,9 +8,8 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 {
 	public class BuildTransactionResult
 	{
-		public BuildTransactionResult(Network network, SmartTransaction transaction, PSBT psbt, bool spendsUnconfirmed, bool signed, Money fee, decimal feePercentOfSent, IEnumerable<SmartCoin> outerWalletOutputs, IEnumerable<SmartCoin> innerWalletOutputs, IEnumerable<SmartCoin> spentCoins)
+		public BuildTransactionResult(SmartTransaction transaction, PSBT psbt, bool spendsUnconfirmed, bool signed, Money fee, decimal feePercentOfSent, IEnumerable<SmartCoin> outerWalletOutputs, IEnumerable<SmartCoin> innerWalletOutputs, IEnumerable<SmartCoin> spentCoins)
 		{
-			Network = Guard.NotNull(nameof(network), network);
 			Transaction = Guard.NotNull(nameof(transaction), transaction);
 			Psbt = Guard.NotNull(nameof(psbt), psbt);
 			SpendsUnconfirmed = spendsUnconfirmed;
@@ -21,8 +20,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 			InnerWalletOutputs = innerWalletOutputs ?? new List<SmartCoin>();
 			SpentCoins = Guard.NotNullOrEmpty(nameof(spentCoins), spentCoins);
 		}
-		
-		public Network Network { get; }
+
 		public SmartTransaction Transaction { get; }
 		public PSBT Psbt { get; }
 		public bool SpendsUnconfirmed { get; }
