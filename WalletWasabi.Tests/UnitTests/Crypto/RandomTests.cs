@@ -31,12 +31,12 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var pseudoSet = new HashSet<byte[]>();
 			var secureSet = new HashSet<byte[]>();
 			var count = 100;
-			IWasabiRandom iPseudoRandom = new PseudoRandom();
+			IWasabiRandom iUnsecureRandom = new UnsecureRandom();
 			using var secureRandom = new SecureRandom();
 			IWasabiRandom iSecureRandom = secureRandom;
 			for (int i = 0; i < count; i++)
 			{
-				pseudoSet.Add(iPseudoRandom.GetBytes(10));
+				pseudoSet.Add(iUnsecureRandom.GetBytes(10));
 				secureSet.Add(iSecureRandom.GetBytes(10));
 			}
 			Assert.Equal(count, pseudoSet.Count);
@@ -49,7 +49,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var randoms = new List<IWasabiRandom>
 			{
 				new SecureRandom(),
-				new PseudoRandom(),
+				new UnsecureRandom(),
 				new MockRandom()
 			};
 

@@ -4,9 +4,9 @@ using System.Text;
 
 namespace WalletWasabi.Crypto.Randomness
 {
-	public class PseudoRandom : IWasabiRandom
+	public class UnsecureRandom : IWasabiRandom
 	{
-		public PseudoRandom()
+		public UnsecureRandom()
 		{
 			Random = new Random();
 		}
