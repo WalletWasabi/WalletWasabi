@@ -43,6 +43,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						TransactionDetails = x is { }
 							? TransactionDetailsViewModel.FromBuildTxnResult(Global.BitcoinStore, PSBT.FromTransaction(x.Transaction, Global.Network))
 							: null;
+
+						if (x is { })
+						{
+							NotificationHelpers.Information("Transaction imported successfully!");
+						}
 					}
 					catch (Exception ex)
 					{
@@ -70,7 +75,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						FinalTransaction = new SmartTransaction(Transaction.Parse(textToPaste, Global.Network ?? Network.Main), WalletWasabi.Models.Height.Unknown);
 					}
-					NotificationHelpers.Information("Transaction imported successfully!");
 				}
 				catch (Exception ex)
 				{
