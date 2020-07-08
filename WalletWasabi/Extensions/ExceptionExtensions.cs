@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Text;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Exceptions;
+using WalletWasabi.Models;
 
 namespace System
 {
@@ -65,6 +66,11 @@ namespace System
 
 				return ex.ToTypeMessageString();
 			}
+		}
+
+		public static SerializableException ToSerializableException(this Exception ex)
+		{
+			return new SerializableException(ex);
 		}
 	}
 }

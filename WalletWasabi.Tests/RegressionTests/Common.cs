@@ -41,12 +41,15 @@ namespace WalletWasabi.Tests.RegressionTests
 			}
 		}
 
+#pragma warning disable IDE0060 // Remove unused parameter
+
 		public static void Wallet_NewFilterProcessed(object sender, FilterModel e)
+#pragma warning restore IDE0060 // Remove unused parameter
 		{
 			Interlocked.Increment(ref FiltersProcessedByWalletCount);
 		}
 
-		public static string GetWorkDir([CallerFilePath]string callerFilePath = null, [CallerMemberName]string callerMemberName = null)
+		public static string GetWorkDir([CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerMemberName = null)
 		{
 			return Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName);
 		}
@@ -75,7 +78,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		public static async Task<(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global)> InitializeTestEnvironmentAsync(
 			RegTestFixture regTestFixture,
 			int numberOfBlocksToGenerate,
-			[CallerFilePath]string callerFilePath = null,
+			[CallerFilePath] string callerFilePath = null,
 			[CallerMemberName] string callerMemberName = null)
 		{
 			var global = regTestFixture.Global;

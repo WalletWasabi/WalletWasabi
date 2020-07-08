@@ -518,7 +518,7 @@ namespace Mono.Options
 			{
 				do
 				{
-					IEnumerator<string> c = Sources[Sources.Count - 1];
+					IEnumerator<string> c = Sources[^1];
 					if (c.MoveNext())
 					{
 						yield return c.Current;

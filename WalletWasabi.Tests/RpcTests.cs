@@ -131,10 +131,12 @@ namespace WalletWasabi.Tests
 
 		private static string ToJson(object o)
 		{
-			return JsonConvert.SerializeObject(o, new JsonSerializerSettings
-			{
-				DefaultValueHandling = DefaultValueHandling.Ignore
-			});
+			return JsonConvert.SerializeObject(
+				o,
+				new JsonSerializerSettings
+				{
+					DefaultValueHandling = DefaultValueHandling.Ignore
+				});
 		}
 	}
 }

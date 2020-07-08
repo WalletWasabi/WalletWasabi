@@ -65,9 +65,11 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task NotifyBlocksAsync()
 		{
+			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(1.5));
+
+			const int BlockCount = 3;
 			var chain = new ConcurrentChain(Network.RegTest);
 			using var notifier = CreateNotifier(chain);
-			var blockCount = 3;
 
 			var reorgAwaiter = new EventAwaiter<uint256>(
 				h => notifier.OnReorg += h,
@@ -77,16 +79,41 @@ namespace WalletWasabi.Tests.UnitTests
 
 			// Assert that the blocks come in the right order
 			var height = 0;
-			void OnBlockInv(object s, Block b) => Assert.Equal(b.GetHash(), chain.GetBlock(height++).HashBlock);
+			string message = string.Empty;
+
+			void OnBlockInv(object blockNotifier, Block b)
+			{
+				uint256 h1 = b.GetHash();
+				uint256 h2 = chain.GetBlock(height + 1).HashBlock;
+
+				if (h1 != h2)
+				{
+					message = string.Format("height={0}, [h1] {1} != [h2] {2}", height, h1, h2);
+					cts.Cancel();
+					return;
+				}
+
+				height++;
+
+				if (height == BlockCount)
+				{
+					cts.Cancel();
+				}
+			}
+
 			notifier.OnBlock += OnBlockInv;
 
-			foreach (var n in Enumerable.Range(0, blockCount))
+			foreach (var n in Enumerable.Range(0, BlockCount))
 			{
 				await AddBlockAsync(chain);
 			}
 
 			notifier.TriggerRound();
-			await Task.Delay(TimeSpan.FromMilliseconds(100)); // give it time to process the blocks
+
+			// Waits at most 1.5s given CancellationTokenSource definition
+			await Task.WhenAny(Task.Delay(Timeout.InfiniteTimeSpan, cts.Token)).ConfigureAwait(false);
+
+			Assert.True(string.IsNullOrEmpty(message), message);
 
 			// Three blocks notifications
 			Assert.Equal(chain.Height, height);

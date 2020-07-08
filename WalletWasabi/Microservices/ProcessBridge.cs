@@ -25,7 +25,7 @@ namespace WalletWasabi.Microservices
 
 		public string ProcessPath { get; }
 
-		public Process Start(string arguments, bool openConsole)
+		public Process Start(string arguments, bool openConsole, bool redirectStandardInput = false)
 		{
 			var finalArguments = arguments;
 			var redirectStandardOutput = !openConsole;
@@ -55,6 +55,7 @@ namespace WalletWasabi.Microservices
 				FileName = ProcessPath,
 				Arguments = finalArguments,
 				RedirectStandardOutput = redirectStandardOutput,
+				RedirectStandardInput = redirectStandardInput,
 				UseShellExecute = useShellExecute,
 				CreateNoWindow = createNoWindow,
 				WindowStyle = windowStyle
@@ -77,16 +78,25 @@ namespace WalletWasabi.Microservices
 			}
 		}
 
-		public async Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel)
+		public async Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel, Action<StreamWriter> standardInputWriter = null)
 		{
 			int exitCode;
+			bool redirectStandardInput = standardInputWriter is { };
 
-			using var process = Start(arguments, openConsole);
+			using var process = Start(arguments, openConsole, redirectStandardInput);
+			if (redirectStandardInput)
+			{
+				standardInputWriter(process.StandardInput);
+				process.StandardInput.Close();
+			}
+
+			var readPipeTask = openConsole ? Task.FromResult(string.Empty) : process.StandardOutput.ReadToEndAsync();
+
 			await process.WaitForExitAsync(cancel).ConfigureAwait(false);
 
 			exitCode = process.ExitCode;
 
-			string responseString = openConsole ? "" : await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+			string responseString = await readPipeTask.ConfigureAwait(false);
 
 			return (responseString, exitCode);
 		}

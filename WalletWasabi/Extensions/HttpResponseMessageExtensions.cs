@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Http.Models;
+using WalletWasabi.Logging;
 using static WalletWasabi.Http.Constants;
 
 namespace System.Net.Http
@@ -86,8 +87,23 @@ namespace System.Net.Http
 
 		public static async Task ThrowRequestExceptionFromContentAsync(this HttpResponseMessage me)
 		{
-			var error = await me.Content.ReadAsJsonAsync<string>().ConfigureAwait(false);
-			string errorMessage = error is null ? "" : $"\n{error}";
+			var errorMessage = "";
+			if (me?.Content is { })
+			{
+				var contentString = await me.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+				// Remove " from beginning and end to ensure backwards compatibility and it's kindof trash, too.
+				if (contentString.Count(f => f == '"') <= 2)
+				{
+					contentString = contentString.Trim('"');
+				}
+
+				if (!string.IsNullOrWhiteSpace(contentString))
+				{
+					errorMessage = $"\n{contentString}";
+				}
+			}
+
 			throw new HttpRequestException($"{me.StatusCode.ToReasonString()}{errorMessage}");
 		}
 	}
