@@ -105,8 +105,8 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 
 			TxOut GetOutput(OutPoint outpoint) =>
 							store.TransactionStore.TryGetTransaction(outpoint.Hash, out var prevTxn)
-								? null
-								: prevTxn.Transaction.Outputs[outpoint.N];
+								? prevTxn.Transaction.Outputs[outpoint.N]
+								: null;
 
 			var inputAddressAmount = psbt.Inputs
 				.Select(x => x.PrevOut)
