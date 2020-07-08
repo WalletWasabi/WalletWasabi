@@ -17,8 +17,8 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 		private string _label;
 		private int _blockHeight;
 		private string _transactionId;
-		private string _totalInputValue;
-		private string _totalOutputValue;
+		private Money _totalInputValue;
+		private Money _totalOutputValue;
 		private int _inputCount;
 		private int _outputCount;
 
@@ -64,13 +64,13 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _transactionId, value);
 		}
 
-		public string TotalInputValue
+		public Money TotalInputValue
 		{
 			get => _totalInputValue;
 			set => this.RaiseAndSetIfChanged(ref _totalInputValue, value);
 		}
 
-		public string TotalOutputValue
+		public Money TotalOutputValue
 		{
 			get => _totalOutputValue;
 			set => this.RaiseAndSetIfChanged(ref _totalOutputValue, value);
@@ -111,8 +111,8 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 
 			var outputAddressAmount = psbt.Outputs.Select(FromPSBTOutput);
 
-			var totalInValue = inputAddressAmount.Select(x => x.Amount).Sum().ToString();
-			var totalOutValue = outputAddressAmount.Select(x => x.Amount).Sum().ToString();
+			var totalInValue = inputAddressAmount.Select(x => x.Amount).Sum();
+			var totalOutValue = outputAddressAmount.Select(x => x.Amount).Sum();
 
 			var psbtTxn = psbt.GetOriginalTransaction();
 
