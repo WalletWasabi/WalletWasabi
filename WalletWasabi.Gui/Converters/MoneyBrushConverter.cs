@@ -23,7 +23,7 @@ namespace WalletWasabi.Gui.Converters
 			}
 			else if (value is Money inMoney)
 			{
-				money = decimal.Parse(inMoney.ToString());
+				money = inMoney.ToDecimal(MoneyUnit.BTC);
 			}
 			else
 			{
