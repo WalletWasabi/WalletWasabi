@@ -105,24 +105,24 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 								? prevTxn.Transaction.Outputs[outpoint.N]
 								: null;
 
-			var inputAddrMoney = psbt.Inputs
+			var inputAddressAmount = psbt.Inputs
 				.Select(x => x.PrevOut)
 				.Select(GetOutput)
 				.Select(FromTxOutput);
 
-			var outputAddrMoney = psbt.Outputs.Select(FromPSBTOutput);
+			var outputAddressAmount = psbt.Outputs.Select(FromPSBTOutput);
 
-			var totalInValue = inputAddrMoney.Select(x => x.Amount).Sum().ToString();
-			var totalOutValue = outputAddrMoney.Select(x => x.Amount).Sum().ToString();
-			
+			var totalInValue = inputAddressAmount.Select(x => x.Amount).Sum().ToString();
+			var totalOutValue = outputAddressAmount.Select(x => x.Amount).Sum().ToString();
+
 			var psbtTxn = psbt.GetOriginalTransaction();
 
 			return new TransactionDetailsViewModel()
 			{
 				TransactionId = psbtTxn.GetHash().ToString(),
 				Confirmed = false,
-				InputCount = inputAddrMoney.Count(),
-				OutputCount = outputAddrMoney.Count(),
+				InputCount = inputAddressAmount.Count(),
+				OutputCount = outputAddressAmount.Count(),
 				TotalInputValue = totalInValue,
 				TotalOutputValue = totalOutValue,
 			};

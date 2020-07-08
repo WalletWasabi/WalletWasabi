@@ -28,7 +28,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _psbtHexText;
 		private string _psbtBase64Text;
 		private byte[] _psbtBytes;
-		private TransactionDetailsViewModel _transactionInfo;
+		private TransactionDetailsViewModel _transactionDetails;
 
 		public TransactionViewerViewModel() : base("Transaction")
 		{
@@ -128,8 +128,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public TransactionDetailsViewModel TransactionDetails
 		{
-			get => _transactionInfo;
-			set => this.RaiseAndSetIfChanged(ref _transactionInfo, value);
+			get => _transactionDetails;
+			set => this.RaiseAndSetIfChanged(ref _transactionDetails, value);
 		}
 
 		public override void OnOpen(CompositeDisposable disposables)
