@@ -88,7 +88,7 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _outputCount, value);
 		}
 
-		public static TransactionDetailsViewModel FromBuildTxnResult(BitcoinStore stores, PSBT psbt)
+		public static TransactionDetailsViewModel FromBuildTxnResult(BitcoinStore store, PSBT psbt)
 		{
 			AddressAmountTuple FromTxOutput(TxOut output) =>
 				FromOutputCore(output?.ScriptPubKey, output?.Value);
@@ -97,10 +97,10 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 				FromOutputCore(output?.ScriptPubKey, output?.Value);
 
 			AddressAmountTuple FromOutputCore(Script pubKey, Money value) =>
-				new AddressAmountTuple(pubKey?.GetDestinationAddress(psbt.Network).ToString() ?? string.Empty, value ?? Money.Zero);
+				new AddressAmountTuple(pubKey?.GetDestinationAddress(psbt.Network)?.ToString() ?? string.Empty, value ?? Money.Zero);
 
 			TxOut GetOutput(OutPoint outpoint) =>
-							stores.TransactionStore.TryGetTransaction(outpoint.Hash, out var prevTxn)
+							store.TransactionStore.TryGetTransaction(outpoint.Hash, out var prevTxn)
 								? prevTxn.Transaction.Outputs[outpoint.N]
 								: null;
 
