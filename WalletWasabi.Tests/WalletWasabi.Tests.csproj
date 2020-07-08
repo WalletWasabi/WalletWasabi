@@ -10,6 +10,7 @@
     <OutputType>Library</OutputType>
     <StartupObject />
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
