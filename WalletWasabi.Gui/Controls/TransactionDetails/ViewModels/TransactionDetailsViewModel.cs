@@ -88,7 +88,7 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _outputCount, value);
 		}
 
-		public Money NetworkFee => TotalOutputValue - TotalInputValue;
+		public Money NetworkFee => TotalInputValue - TotalOutputValue;
 
 		public static TransactionDetailsViewModel FromBuildTxnResult(BitcoinStore store, PSBT psbt)
 		{
