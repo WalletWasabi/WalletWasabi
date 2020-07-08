@@ -62,6 +62,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				try
 				{
 					var textToPaste = await Application.Current.Clipboard.GetTextAsync();
+
+					if (string.IsNullOrWhiteSpace(textToPaste))
+					{
+						FinalTransaction = null;
+						NotificationHelpers.Information("Clipboard is empty!");
+						return;
+					}
+
 					if (PSBT.TryParse(textToPaste, Global.Network ?? Network.Main, out var signedPsbt))
 					{
 						if (!signedPsbt.IsAllFinalized())
