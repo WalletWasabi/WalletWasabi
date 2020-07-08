@@ -2,13 +2,13 @@ using System;
 using System.Linq;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Gui.Controls.TransactionDetails.Models;
+using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Stores;
 
 namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 {
-	public class TransactionDetailsViewModel : ReactiveObject
+	public class TransactionDetailsViewModel : ViewModelBase
 	{
 		private int _confirmations;
 		private bool _confirmed;
