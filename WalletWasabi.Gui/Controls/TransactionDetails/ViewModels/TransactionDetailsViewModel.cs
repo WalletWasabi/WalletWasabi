@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBuilding;
