@@ -31,9 +31,9 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var pseudoSet = new HashSet<byte[]>();
 			var secureSet = new HashSet<byte[]>();
 			var count = 100;
-			IWasabiRandom iPseudoRandom = new SecureRandom();
+			IWasabiRandom iPseudoRandom = new PseudoRandom();
 			using var secureRandom = new SecureRandom();
-			IWasabiRandom iSecureRandom = new SecureRandom();
+			IWasabiRandom iSecureRandom = secureRandom;
 			for (int i = 0; i < count; i++)
 			{
 				pseudoSet.Add(iPseudoRandom.GetBytes(10));
