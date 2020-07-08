@@ -88,7 +88,9 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _outputCount, value);
 		}
 
-		public Money NetworkFee => TotalInputValue - TotalOutputValue;
+		public Money NetworkFee => TotalInputValue is null || TotalInputValue is null
+				? null
+				: TotalInputValue - TotalOutputValue;
 
 		public static TransactionDetailsViewModel FromBuildTxnResult(BitcoinStore store, PSBT psbt)
 		{
@@ -98,13 +100,13 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 			AddressAmountTuple FromPSBTOutput(PSBTOutput output) =>
 				FromOutputCore(output?.ScriptPubKey, output?.Value);
 
-			AddressAmountTuple FromOutputCore(Script pubKey, Money value) =>
-				new AddressAmountTuple(pubKey?.GetDestinationAddress(psbt.Network)?.ToString() ?? string.Empty, value ?? Money.Zero);
+			AddressAmountTuple FromOutputCore(Script pubKey, Money money) =>
+				new AddressAmountTuple(pubKey?.GetDestinationAddress(psbt.Network)?.ToString(), money);
 
 			TxOut GetOutput(OutPoint outpoint) =>
 							store.TransactionStore.TryGetTransaction(outpoint.Hash, out var prevTxn)
-								? prevTxn.Transaction.Outputs[outpoint.N]
-								: null;
+								? null
+								: prevTxn.Transaction.Outputs[outpoint.N];
 
 			var inputAddressAmount = psbt.Inputs
 				.Select(x => x.PrevOut)
@@ -112,9 +114,6 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 				.Select(FromTxOutput);
 
 			var outputAddressAmount = psbt.Outputs.Select(FromPSBTOutput);
-
-			var totalInValue = inputAddressAmount.Select(x => x.Amount).Sum();
-			var totalOutValue = outputAddressAmount.Select(x => x.Amount).Sum();
 
 			var psbtTxn = psbt.GetOriginalTransaction();
 
@@ -124,8 +123,8 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 				Confirmed = false,
 				InputCount = inputAddressAmount.Count(),
 				OutputCount = outputAddressAmount.Count(),
-				TotalInputValue = totalInValue,
-				TotalOutputValue = totalOutValue,
+				TotalInputValue = inputAddressAmount.Any(x => x.Amount is null) ? null : inputAddressAmount.Select(x => x.Amount).Sum(),
+				TotalOutputValue = outputAddressAmount.Any(x => x.Amount is null) ? null : outputAddressAmount.Select(x => x.Amount).Sum(),
 			};
 		}
 	}
