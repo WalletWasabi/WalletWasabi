@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Gui.Controls.TransactionDetails.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Stores;
 
@@ -87,26 +86,20 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 
 		public static TransactionDetailsViewModel FromBuildTxnResult(BitcoinStore store, PSBT psbt)
 		{
-			AddressAmountTuple FromTxOutput(TxOut output) =>
-				FromOutputCore(output?.ScriptPubKey, output?.Value);
-
-			AddressAmountTuple FromPSBTOutput(PSBTOutput output) =>
-				FromOutputCore(output?.ScriptPubKey, output?.Value);
-
-			AddressAmountTuple FromOutputCore(Script pubKey, Money money) =>
-				new AddressAmountTuple(pubKey?.GetDestinationAddress(psbt.Network)?.ToString(), money);
+			var nullMoney = new Money(-1L);
+			var nullOutput = new TxOut(nullMoney, Script.Empty);
 
 			TxOut GetOutput(OutPoint outpoint) =>
 				store.TransactionStore.TryGetTransaction(outpoint.Hash, out var prevTxn)
 					? prevTxn.Transaction.Outputs[outpoint.N]
-					: null;
+					: nullOutput;
 
 			var inputAddressAmount = psbt.Inputs
 				.Select(x => x.PrevOut)
-				.Select(GetOutput)
-				.Select(FromTxOutput);
+				.Select(GetOutput);
 
-			var outputAddressAmount = psbt.Outputs.Select(FromPSBTOutput);
+			var outputAddressAmount = psbt.Outputs
+				.Select(x => x.GetCoin().TxOut);
 
 			var psbtTxn = psbt.GetOriginalTransaction();
 
@@ -115,8 +108,8 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 				TransactionId = psbtTxn.GetHash().ToString(),
 				InputCount = inputAddressAmount.Count(),
 				OutputCount = outputAddressAmount.Count(),
-				TotalInputValue = inputAddressAmount.Any(x => x.Amount is null) ? null : inputAddressAmount.Select(x => x.Amount).Sum(),
-				TotalOutputValue = outputAddressAmount.Any(x => x.Amount is null) ? null : outputAddressAmount.Select(x => x.Amount).Sum(),
+				TotalInputValue = inputAddressAmount.Any(x => x.Value == nullMoney) ? null : inputAddressAmount.Select(x => x.Value).Sum(),
+				TotalOutputValue = outputAddressAmount.Any(x => x.Value == nullMoney) ? null : outputAddressAmount.Select(x => x.Value).Sum(),
 			};
 		}
 	}
