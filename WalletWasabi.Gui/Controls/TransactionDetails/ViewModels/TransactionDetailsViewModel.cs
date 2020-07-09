@@ -89,8 +89,8 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 		}
 
 		public Money NetworkFee => TotalInputValue is null || TotalInputValue is null
-				? null
-				: TotalInputValue - TotalOutputValue;
+			? null
+			: TotalInputValue - TotalOutputValue;
 
 		public static TransactionDetailsViewModel FromBuildTxnResult(BitcoinStore store, PSBT psbt)
 		{
@@ -104,9 +104,9 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 				new AddressAmountTuple(pubKey?.GetDestinationAddress(psbt.Network)?.ToString(), money);
 
 			TxOut GetOutput(OutPoint outpoint) =>
-							store.TransactionStore.TryGetTransaction(outpoint.Hash, out var prevTxn)
-								? prevTxn.Transaction.Outputs[outpoint.N]
-								: null;
+				store.TransactionStore.TryGetTransaction(outpoint.Hash, out var prevTxn)
+					? prevTxn.Transaction.Outputs[outpoint.N]
+					: null;
 
 			var inputAddressAmount = psbt.Inputs
 				.Select(x => x.PrevOut)
