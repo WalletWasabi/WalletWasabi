@@ -313,8 +313,9 @@ namespace WalletWasabi.CoinJoin.Coordinator
 					{
 						if (mempoolHashes is { })
 						{
-							CoinJoins.RemoveAll(x => !mempoolHashes.Contains(x));
-							UnconfirmedCoinJoins.RemoveAll(x => !mempoolHashes.Contains(x));
+							var fallOuts = UnconfirmedCoinJoins.Where(x => !mempoolHashes.Contains(x));
+							CoinJoins.RemoveAll(x => fallOuts.Contains(x));
+							UnconfirmedCoinJoins.RemoveAll(x => fallOuts.Contains(x));
 						}
 
 						uint256 coinJoinHash = round.CoinJoin.GetHash();
