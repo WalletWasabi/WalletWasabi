@@ -125,7 +125,7 @@ namespace WalletWasabi.Gui.Controls
 
 			if (start == end || (Text?.Length ?? 0) < end)
 			{
-				return string.Empty;
+				return "";
 			}
 
 			return text[start..end];

@@ -2,16 +2,15 @@ using System;
 using System.Linq;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Gui.Controls.TransactionDetails.Models;
+using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Stores;
 
 namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 {
-	public class TransactionDetailsViewModel : ReactiveObject
+	public class TransactionDetailsViewModel : ViewModelBase
 	{
 		private int _confirmations;
-		private bool _confirmed;
 		private DateTimeOffset _dateTime;
 		private string _amountBtc;
 		private string _label;
@@ -32,12 +31,6 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 		{
 			get => _confirmations;
 			set => this.RaiseAndSetIfChanged(ref _confirmations, value);
-		}
-
-		public bool Confirmed
-		{
-			get => _confirmed;
-			set => this.RaiseAndSetIfChanged(ref _confirmed, value);
 		}
 
 		public string AmountBtc
@@ -89,8 +82,8 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 		}
 
 		public Money NetworkFee => TotalInputValue is null || TotalInputValue is null
-				? null
-				: TotalInputValue - TotalOutputValue;
+			? null
+			: TotalInputValue - TotalOutputValue;
 
 		public static TransactionDetailsViewModel FromBuildTxnResult(BitcoinStore store, PSBT psbt)
 		{
@@ -104,9 +97,9 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 				new AddressAmountTuple(pubKey?.GetDestinationAddress(psbt.Network)?.ToString(), money);
 
 			TxOut GetOutput(OutPoint outpoint) =>
-							store.TransactionStore.TryGetTransaction(outpoint.Hash, out var prevTxn)
-								? prevTxn.Transaction.Outputs[outpoint.N]
-								: null;
+				store.TransactionStore.TryGetTransaction(outpoint.Hash, out var prevTxn)
+					? prevTxn.Transaction.Outputs[outpoint.N]
+					: null;
 
 			var inputAddressAmount = psbt.Inputs
 				.Select(x => x.PrevOut)
@@ -120,7 +113,6 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 			return new TransactionDetailsViewModel()
 			{
 				TransactionId = psbtTxn.GetHash().ToString(),
-				Confirmed = false,
 				InputCount = inputAddressAmount.Count(),
 				OutputCount = outputAddressAmount.Count(),
 				TotalInputValue = inputAddressAmount.Any(x => x.Amount is null) ? null : inputAddressAmount.Select(x => x.Amount).Sum(),
