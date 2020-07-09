@@ -299,11 +299,15 @@ namespace WalletWasabi.CoinJoin.Coordinator
 				// If success save the coinjoin.
 				if (status == CoordinatorRoundStatus.Succeded)
 				{
+					uint256[] mempoolHashes = await RpcClient.GetRawMempoolAsync().ConfigureAwait(false);
+
 					using (await CoinJoinsLock.LockAsync().ConfigureAwait(false))
 					{
 						uint256 coinJoinHash = round.CoinJoin.GetHash();
 						CoinJoins.Add(coinJoinHash);
 						UnconfirmedCoinJoins.Add(coinJoinHash);
+						CoinJoins.RemoveAll(x => !mempoolHashes.Contains(x));
+						UnconfirmedCoinJoins.RemoveAll(x => !mempoolHashes.Contains(x));
 						LastSuccessfulCoinJoinTime = DateTimeOffset.UtcNow;
 						await File.AppendAllLinesAsync(CoinJoinsFilePath, new[] { coinJoinHash.ToString() }).ConfigureAwait(false);
 
