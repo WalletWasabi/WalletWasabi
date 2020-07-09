@@ -12,6 +12,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
+using WalletWasabi.Crypto;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Gui.ViewModels;

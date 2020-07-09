@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using WalletWasabi.Helpers;
+using WalletWasabi.Crypto;
 
 namespace WalletWasabi.Io
 {

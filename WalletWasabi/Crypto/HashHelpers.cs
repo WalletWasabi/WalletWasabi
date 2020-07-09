@@ -2,7 +2,7 @@ using System;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace WalletWasabi.Helpers
+namespace WalletWasabi.Crypto
 {
 	public static class HashHelpers
 	{
