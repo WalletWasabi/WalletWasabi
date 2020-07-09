@@ -6,13 +6,7 @@ namespace WalletWasabi.Crypto
 {
 	public static class HashHelpers
 	{
-		public static string GenerateSha256Hash(string input)
-		{
-			using var sha256 = SHA256.Create();
-			var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
-
-			return ByteHelpers.ToHex(hash);
-		}
+		public static string GenerateSha256Hash(string input) => ByteHelpers.ToHex(GenerateSha256Hash(Encoding.UTF8.GetBytes(input)));
 
 		public static byte[] GenerateSha256Hash(byte[] input)
 		{
