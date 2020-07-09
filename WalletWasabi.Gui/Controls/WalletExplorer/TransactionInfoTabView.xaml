@@ -33,10 +33,6 @@
           <TextBlock Classes="monospaceFont" Text="Confirmed:" />
           <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Confirmed, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Yes:No, Mode=OneWay}" />
         </Grid>
-        <Grid ColumnDefinitions="170, *" IsVisible="{Binding Confirmed}">
-          <TextBlock Classes="monospaceFont" Text="Confirmations:" />
-          <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Confirmations}" />
-        </Grid>
       </StackPanel>
     </controls:GroupBox>
   </controls:GroupBox>

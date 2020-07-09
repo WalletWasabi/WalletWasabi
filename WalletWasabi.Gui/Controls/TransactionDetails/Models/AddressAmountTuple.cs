@@ -5,7 +5,7 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.Models
 {
 	public readonly struct AddressAmountTuple : IEquatable<AddressAmountTuple>
 	{
-		public AddressAmountTuple(string address, Money amount)
+		public AddressAmountTuple(string address = "", Money amount = default(Money))
 		{
 			Address = address;
 			Amount = amount;
@@ -21,8 +21,17 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.Models
 		public bool Equals(AddressAmountTuple other) =>
 			(Amount, Address) == (other.Amount, other.Address);
 
-		public override bool Equals(object other) =>
-			((AddressAmountTuple)other).Equals(this) == true;
+		public override bool Equals(object other)
+		{
+			if (other is null)
+			{
+				return false;
+			}
+			else
+			{
+				return ((AddressAmountTuple)other).Equals(this);
+			}
+		}
 
 		public override int GetHashCode() =>
 			HashCode.Combine(Amount, Address);

@@ -11,7 +11,6 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 	public class TransactionDetailsViewModel : ViewModelBase
 	{
 		private int _confirmations;
-		private bool _confirmed;
 		private DateTimeOffset _dateTime;
 		private string _amountBtc;
 		private string _label;
@@ -32,12 +31,6 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 		{
 			get => _confirmations;
 			set => this.RaiseAndSetIfChanged(ref _confirmations, value);
-		}
-
-		public bool Confirmed
-		{
-			get => _confirmed;
-			set => this.RaiseAndSetIfChanged(ref _confirmed, value);
 		}
 
 		public string AmountBtc
@@ -120,7 +113,6 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 			return new TransactionDetailsViewModel()
 			{
 				TransactionId = psbtTxn.GetHash().ToString(),
-				Confirmed = false,
 				InputCount = inputAddressAmount.Count(),
 				OutputCount = outputAddressAmount.Count(),
 				TotalInputValue = inputAddressAmount.Any(x => x.Amount is null) ? null : inputAddressAmount.Select(x => x.Amount).Sum(),
