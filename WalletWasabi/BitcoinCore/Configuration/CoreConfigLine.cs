@@ -35,8 +35,8 @@ namespace WalletWasabi.BitcoinCore.Configuration
 		}
 
 		public string Line { get; }
-		public string Key { get; } = string.Empty;
-		public string Value { get; } = string.Empty;
+		public string Key { get; } = "";
+		public string Value { get; } = "";
 		public bool HasKeyValuePair => !string.IsNullOrWhiteSpace(Key) && !string.IsNullOrWhiteSpace(Value);
 
 		public override string ToString() => Line;

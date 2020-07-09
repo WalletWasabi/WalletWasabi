@@ -378,8 +378,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				return new Func<HttpMethod, string, string, Task<HttpResponseMessage>>((method, path, requestBody) =>
 				{
 					var message = new HttpResponseMessage(statusCode);
-					message.ReasonPhrase = string.Empty;
-					message.Content = new StringContent(string.Empty);
+					message.ReasonPhrase = "";
+					message.Content = new StringContent("");
 					return Task.FromResult(message);
 				});
 			}
@@ -404,7 +404,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				}
 			}
 			var coinsView = new CoinsView(scoins);
-			
+
 			var bitcoinStore = new BitcoinStoreMock();
 
 			return new TransactionFactory(Network.Main, keyManager, coinsView, bitcoinStore, password, allowUnconfirmed);

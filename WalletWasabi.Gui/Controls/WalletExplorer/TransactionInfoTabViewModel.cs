@@ -6,7 +6,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class TransactionInfoTabViewModel : WasabiDocumentTabViewModel
 	{
-		public TransactionInfoTabViewModel(TransactionDetailsViewModel transaction) : base(string.Empty)
+		public TransactionInfoTabViewModel(TransactionDetailsViewModel transaction) : base("")
 		{
 			Transaction = transaction;
 			Title = $"Transaction ({transaction.TransactionId[0..10]}) Details";
