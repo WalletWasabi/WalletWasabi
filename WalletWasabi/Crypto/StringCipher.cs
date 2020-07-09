@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using WalletWasabi.Crypto.Randomness;
 
 namespace WalletWasabi.Crypto
 {
@@ -120,12 +121,8 @@ namespace WalletWasabi.Crypto
 
 		private static byte[] Generate128BitsOfRandomEntropy()
 		{
-			var randomBytes = new byte[16]; // 16 Bytes will give us 128 bits.
-			using (var rngCsp = new RNGCryptoServiceProvider())
-			{
-				// Fill the array with cryptographically secure random bytes.
-				rngCsp.GetBytes(randomBytes);
-			}
+			using var secureRandom = new SecureRandom();
+			var randomBytes = (secureRandom as IWasabiRandom).GetBytes(16); // 16 Bytes will give us 128 bits.
 			return randomBytes;
 		}
 	}

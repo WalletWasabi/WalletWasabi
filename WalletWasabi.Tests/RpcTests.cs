@@ -59,7 +59,7 @@ namespace WalletWasabi.Tests
 				{
 					"Valid request (Notification)",
 					Request(null, "substract", 42, 23),
-					string.Empty
+					""
 				},
 				new[]
 				{

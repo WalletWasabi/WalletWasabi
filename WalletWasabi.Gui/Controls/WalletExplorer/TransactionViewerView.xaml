@@ -20,12 +20,12 @@
             <Button Command="{Binding CopyTransactionHex}" Content="Copy Transaction Hex" />
             <Button Command="{Binding CopyBase64Psbt}" Content="Copy Base64 PSBT" />
             <Button Command="{Binding ExportBinaryPsbt}" Content="Export Binary PSBT" />
-            <Panel Width="12"/>
+            <Panel Width="12" />
             <Button Command="{Binding OpenTransactionBroadcaster}" Content="Open Transaction Broadcaster" />
           </StackPanel>
         </Panel>
         <Grid ScrollViewer.VerticalScrollBarVisibility="Auto">
-          <txndetail:TransactionDetails Grid.Row="1" DataContext="{Binding TransactionDetails}" DockPanel.Dock="Top" Margin="0 8 0 0"/>
+          <txndetail:TransactionDetails Grid.Row="1" DataContext="{Binding TransactionDetails}" DockPanel.Dock="Top" Margin="0 8 0 0" />
         </Grid>
       </DockPanel>
     </Grid>

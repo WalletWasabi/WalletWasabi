@@ -36,7 +36,7 @@
       </Grid>
       <Grid ColumnDefinitions="170, *">
         <TextBlock Classes="monospaceFont" Text="Output Count:" />
-        <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Path=OutputCount, Mode=OneWay, StringFormat=\{0\} Outputs(s)}" />
+        <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Path=OutputCount, Mode=OneWay, StringFormat=\{0\} Output(s)}" />
       </Grid>
     </StackPanel>
   </Panel>

@@ -24,7 +24,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private bool _isBusy;
 		private string _buttonText;
-		private int _caretIndex;
 		private TransactionDetailsViewModel _transactionDetails;
 		private SmartTransaction _finalTransaction;
 
@@ -40,14 +39,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					try
 					{
-						TransactionDetails = x is { }
-							? TransactionDetailsViewModel.FromBuildTxnResult(Global.BitcoinStore, PSBT.FromTransaction(x.Transaction, Global.Network))
-							: null;
-
-						if (x is { })
+						if (x is null)
 						{
-							NotificationHelpers.Information("Transaction imported successfully!");
+							TransactionDetails = null;
 						}
+
+						TransactionDetails = TransactionDetailsViewModel.FromBuildTxnResult(Global.BitcoinStore, PSBT.FromTransaction(x.Transaction, Global.Network));
+						NotificationHelpers.Information("Transaction imported successfully!");
 					}
 					catch (Exception ex)
 					{
@@ -128,43 +126,45 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
 						var selected = await ofd.ShowAsync(window, fallBack: true);
 
-						if (selected != null && selected.Any())
+						if (selected is null || !selected.Any())
 						{
-							var path = selected.First();
-							var psbtBytes = await File.ReadAllBytesAsync(path);
-							PSBT psbt = null;
-							Transaction transaction = null;
+							return;
+						}
+
+						var path = selected.First();
+						var psbtBytes = await File.ReadAllBytesAsync(path);
+						PSBT psbt = null;
+						Transaction transaction = null;
+						try
+						{
+							psbt = PSBT.Load(psbtBytes, Global.Network);
+						}
+						catch
+						{
+							var text = await File.ReadAllTextAsync(path);
+							text = text.Trim();
 							try
 							{
-								psbt = PSBT.Load(psbtBytes, Global.Network);
+								psbt = PSBT.Parse(text, Global.Network);
 							}
 							catch
 							{
-								var text = await File.ReadAllTextAsync(path);
-								text = text.Trim();
-								try
-								{
-									psbt = PSBT.Parse(text, Global.Network);
-								}
-								catch
-								{
-									transaction = Transaction.Parse(text, Global.Network);
-								}
+								transaction = Transaction.Parse(text, Global.Network);
+							}
+						}
+
+						if (psbt is { })
+						{
+							if (!psbt.IsAllFinalized())
+							{
+								psbt.Finalize();
 							}
 
-							if (psbt is { })
-							{
-								if (!psbt.IsAllFinalized())
-								{
-									psbt.Finalize();
-								}
-
-								FinalTransaction = psbt.ExtractSmartTransaction();
-							}
-							else
-							{
-								FinalTransaction = new SmartTransaction(transaction, WalletWasabi.Models.Height.Unknown);
-							}
+							FinalTransaction = psbt.ExtractSmartTransaction();
+						}
+						else
+						{
+							FinalTransaction = new SmartTransaction(transaction, WalletWasabi.Models.Height.Unknown);
 						}
 					}
 					catch (Exception ex)
@@ -203,12 +203,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _buttonText;
 			set => this.RaiseAndSetIfChanged(ref _buttonText, value);
-		}
-
-		public int CaretIndex
-		{
-			get => _caretIndex;
-			set => this.RaiseAndSetIfChanged(ref _caretIndex, value);
 		}
 
 		public TransactionDetailsViewModel TransactionDetails

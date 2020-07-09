@@ -21,5 +21,15 @@ namespace WalletWasabi.Helpers
 
 			return hash;
 		}
+
+		public static int ComputeHashCode(params byte[] data)
+		{
+			var hash = new HashCode();
+			foreach (var element in data)
+			{
+				hash.Add(element);
+			}
+			return hash.ToHashCode();
+		}
 	}
 }
