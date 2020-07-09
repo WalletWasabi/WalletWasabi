@@ -64,7 +64,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string DateTime => TransactionDetails.DateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
 
-		public bool Confirmed => TransactionDetails.Confirmed;
+		public bool Confirmed => Confirmations > 0;
 
 		public int Confirmations => TransactionDetails.Confirmations;
 
