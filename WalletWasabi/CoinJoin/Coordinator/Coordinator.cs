@@ -303,11 +303,12 @@ namespace WalletWasabi.CoinJoin.Coordinator
 
 					using (await CoinJoinsLock.LockAsync().ConfigureAwait(false))
 					{
+						CoinJoins.RemoveAll(x => !mempoolHashes.Contains(x));
+						UnconfirmedCoinJoins.RemoveAll(x => !mempoolHashes.Contains(x));
+
 						uint256 coinJoinHash = round.CoinJoin.GetHash();
 						CoinJoins.Add(coinJoinHash);
 						UnconfirmedCoinJoins.Add(coinJoinHash);
-						CoinJoins.RemoveAll(x => !mempoolHashes.Contains(x));
-						UnconfirmedCoinJoins.RemoveAll(x => !mempoolHashes.Contains(x));
 						LastSuccessfulCoinJoinTime = DateTimeOffset.UtcNow;
 						await File.AppendAllLinesAsync(CoinJoinsFilePath, new[] { coinJoinHash.ToString() }).ConfigureAwait(false);
 
