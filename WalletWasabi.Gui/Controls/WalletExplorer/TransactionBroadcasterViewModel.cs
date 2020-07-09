@@ -42,6 +42,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						if (x is null)
 						{
 							TransactionDetails = null;
+							return;
 						}
 						else
 						{
@@ -105,69 +106,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					try
 					{
-						var ofd = new OpenFileDialog
-						{
-							AllowMultiple = false,
-							Title = "Import Transaction"
-						};
+						var path = await OpenDialogAsync();
 
-						if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-						{
-							var initialDirectory = Path.Combine("/media", Environment.UserName);
-							if (!Directory.Exists(initialDirectory))
-							{
-								initialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-							}
-							ofd.Directory = initialDirectory;
-						}
-						else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-						{
-							ofd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-						}
-
-						var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
-						var selected = await ofd.ShowAsync(window, fallBack: true);
-
-						if (selected is null || !selected.Any())
+						if (path is null)
 						{
 							return;
 						}
 
-						var path = selected.First();
-						var psbtBytes = await File.ReadAllBytesAsync(path);
-						PSBT psbt = null;
-						Transaction transaction = null;
-						try
-						{
-							psbt = PSBT.Load(psbtBytes, Global.Network);
-						}
-						catch
-						{
-							var text = await File.ReadAllTextAsync(path);
-							text = text.Trim();
-							try
-							{
-								psbt = PSBT.Parse(text, Global.Network);
-							}
-							catch
-							{
-								transaction = Transaction.Parse(text, Global.Network);
-							}
-						}
-
-						if (psbt is { })
-						{
-							if (!psbt.IsAllFinalized())
-							{
-								psbt.Finalize();
-							}
-
-							FinalTransaction = psbt.ExtractSmartTransaction();
-						}
-						else
-						{
-							FinalTransaction = new SmartTransaction(transaction, WalletWasabi.Models.Height.Unknown);
-						}
+						FinalTransaction = await ParseTransactionAsync(path);
 					}
 					catch (Exception ex)
 					{
@@ -249,6 +195,77 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusType.BroadcastingTransaction);
 				IsBusy = false;
 				ButtonText = "Broadcast Transaction";
+			}
+		}
+
+		private async Task<string> OpenDialogAsync()
+		{
+			var ofd = new OpenFileDialog
+			{
+				AllowMultiple = false,
+				Title = "Import Transaction"
+			};
+
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+			{
+				var initialDirectory = Path.Combine("/media", Environment.UserName);
+				if (!Directory.Exists(initialDirectory))
+				{
+					initialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+				}
+				ofd.Directory = initialDirectory;
+			}
+			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			{
+				ofd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+			}
+
+			var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
+			var selected = await ofd.ShowAsync(window, fallBack: true);
+
+			if (selected is null || !selected.Any())
+			{
+				return null;
+			}
+
+			return selected.First();
+		}
+
+		private async Task<SmartTransaction> ParseTransactionAsync(string path)
+		{
+			var psbtBytes = await File.ReadAllBytesAsync(path);
+			PSBT psbt = null;
+			Transaction transaction = null;
+			try
+			{
+				psbt = PSBT.Load(psbtBytes, Global.Network);
+			}
+			catch
+			{
+				var text = await File.ReadAllTextAsync(path);
+				text = text.Trim();
+				try
+				{
+					psbt = PSBT.Parse(text, Global.Network);
+				}
+				catch
+				{
+					transaction = Transaction.Parse(text, Global.Network);
+				}
+			}
+
+			if (psbt is { })
+			{
+				if (!psbt.IsAllFinalized())
+				{
+					psbt.Finalize();
+				}
+
+				return psbt.ExtractSmartTransaction();
+			}
+			else
+			{
+				return new SmartTransaction(transaction, WalletWasabi.Models.Height.Unknown);
 			}
 		}
 	}
