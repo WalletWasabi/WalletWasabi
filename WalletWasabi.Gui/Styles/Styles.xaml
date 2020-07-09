@@ -100,6 +100,9 @@
     <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
     <Setter Property="FontSize" Value="14" />
   </Style>
+  <Style Selector=":is(TextBox).Transparent">
+    <Setter Property="Background" Value="Transparent" /> 
+  </Style>
   <Style Selector="TextBox.largeHeader">
     <Setter Property="FontWeight" Value="Bold" />
     <Setter Property="FontSize" Value="18" />
