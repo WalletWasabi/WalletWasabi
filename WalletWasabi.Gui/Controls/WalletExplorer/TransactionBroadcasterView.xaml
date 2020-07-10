@@ -24,7 +24,7 @@
             </StackPanel>
           </Button>
         </StackPanel>
-        <Grid ScrollViewer.VerticalScrollBarVisibility="Auto">
+        <Grid>
           <txndetail:TransactionDetails Grid.Row="1" DataContext="{Binding TransactionDetails}" DockPanel.Dock="Top" Margin="0 8 0 0" />
         </Grid>
       </DockPanel>
