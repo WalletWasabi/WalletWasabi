@@ -19,7 +19,7 @@
           <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" Spacing="10">
             <Button Command="{Binding CopyTransactionHex}" Content="Copy Transaction Hex" />
             <Button Command="{Binding CopyBase64Psbt}" Content="Copy Base64 PSBT" />
-            <Button Command="{Binding ExportBinaryPsbt}" Content="Export Binary PSBT" />
+            <Button Command="{Binding ExportBinaryPsbt}" Content="Export Transaction" />
             <Panel Width="12" />
             <Button Command="{Binding OpenTransactionBroadcaster}" Content="Open Transaction Broadcaster" />
           </StackPanel>
