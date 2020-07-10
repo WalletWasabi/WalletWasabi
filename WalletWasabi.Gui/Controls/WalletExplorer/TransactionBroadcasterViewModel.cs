@@ -94,7 +94,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			});
 
 			IObservable<bool> broadcastTransactionCanExecute = this
-				.WhenAny(x => x.FinalTransaction, (tx) => tx is { })
+				.WhenAny(x => x.FinalTransaction, (tx) => tx.Value is { })
 				.ObserveOn(RxApp.MainThreadScheduler);
 
 			BroadcastTransactionCommand = ReactiveCommand.CreateFromTask(
