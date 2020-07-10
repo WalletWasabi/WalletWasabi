@@ -14,7 +14,6 @@
   <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
     <Grid Classes="content">
       <DockPanel LastChildFill="True">
-        <TextBlock DockPanel.Dock="Top" Text="PSBT or Transaction Hex" FontWeight="Bold" />
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
           <Button Command="{Binding PasteCommand}" Content="Paste From Clipboard" />
           <Button Command="{Binding ImportTransactionCommand}" Content="Import Transaction" />
