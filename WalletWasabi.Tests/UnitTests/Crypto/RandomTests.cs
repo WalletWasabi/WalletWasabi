@@ -114,5 +114,35 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 				}
 			}
 		}
+
+		[Fact]
+		public void ScalarInternalTests()
+		{
+			var mockRandom = new MockRandom();
+			IWasabiRandom iWasabiRandom = mockRandom;
+
+			mockRandom.GetBytesResults.Add(Scalar.Zero.ToBytes()); // The random should not be zero.
+																   // ToDo: EC.N + new Scalar(1) will be Scalar(1) and the overflow will not be set, so it'd be valid. Investigate if it's good like this.
+			mockRandom.GetBytesResults.Add(EC.N.ToBytes()); // The random should not overfow.
+			mockRandom.GetBytesResults.Add(new Scalar(uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue).ToBytes()); // The random should not overfow.
+
+			var one = new Scalar(1);
+			mockRandom.GetBytesResults.Add(one.ToBytes());
+			var two = new Scalar(2);
+			mockRandom.GetBytesResults.Add(two.ToBytes());
+			var big = new Scalar(int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue);
+			mockRandom.GetBytesResults.Add(big.ToBytes());
+			var biggest = EC.N + one.Negate();
+			mockRandom.GetBytesResults.Add(biggest.ToBytes());
+
+			var randomScalar = iWasabiRandom.GetScalarNonZero();
+			Assert.Equal(one, randomScalar);
+			randomScalar = iWasabiRandom.GetScalarNonZero();
+			Assert.Equal(two, randomScalar);
+			randomScalar = iWasabiRandom.GetScalarNonZero();
+			Assert.Equal(big, randomScalar);
+			randomScalar = iWasabiRandom.GetScalarNonZero();
+			Assert.Equal(biggest, randomScalar);
+		}
 	}
 }
