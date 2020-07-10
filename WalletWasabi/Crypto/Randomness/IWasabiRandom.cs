@@ -17,7 +17,7 @@ namespace WalletWasabi.Crypto.Randomness
 			return buffer;
 		}
 
-		public Scalar GetScalarNonZero()
+		public Scalar GetScalar()
 		{
 			Scalar randomScalar;
 			int overflow;
@@ -26,7 +26,7 @@ namespace WalletWasabi.Crypto.Randomness
 			{
 				GetBytes(buffer);
 				randomScalar = new Scalar(buffer, out overflow);
-			} while (overflow != 0 || randomScalar.IsZero);
+			} while (overflow != 0);
 			return randomScalar;
 		}
 	}

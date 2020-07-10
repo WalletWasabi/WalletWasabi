@@ -96,17 +96,14 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			foreach (var random in randoms)
 			{
 				// It's probabilistically ensured that it never produces the same scalar, so unit test should pass always.
-				var nonZeroSet = new HashSet<Scalar>();
+				var set = new HashSet<Scalar>();
 				var count = 100;
 				for (int i = 0; i < count; i++)
 				{
-					Scalar randomScalar = random.GetScalarNonZero();
-					nonZeroSet.Add(randomScalar);
+					Scalar randomScalar = random.GetScalar();
+					set.Add(randomScalar);
 				}
-				Assert.Equal(count, nonZeroSet.Count);
-
-				// Well, this is unlikely to catch any issues, but it catches the large ones at least.
-				Assert.True(nonZeroSet.All(x => x != Scalar.Zero));
+				Assert.Equal(count, set.Count);
 
 				if (random is SecureRandom secureRandom)
 				{
@@ -127,7 +124,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			// The random should not overfow.
 			mockRandom.GetBytesResults.Add(EC.N.ToBytes());
 
-			// ToDo: EC.N + new Scalar(1) will be Scalar(1) and the overflow will not be set, so it'd be valid. Investigate if it's good like this.
+			// ToDo: `EC.N + new Scalar(1)` will be `new Scalar(1)` (so the `IsOverflow` property will be `false`). Investigate if it's a bug or not.
 
 			// The random should not overfow.
 			mockRandom.GetBytesResults.Add(new Scalar(uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue).ToBytes());
@@ -141,13 +138,13 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var biggest = EC.N + one.Negate();
 			mockRandom.GetBytesResults.Add(biggest.ToBytes());
 
-			var randomScalar = iWasabiRandom.GetScalarNonZero();
+			var randomScalar = iWasabiRandom.GetScalar();
 			Assert.Equal(one, randomScalar);
-			randomScalar = iWasabiRandom.GetScalarNonZero();
+			randomScalar = iWasabiRandom.GetScalar();
 			Assert.Equal(two, randomScalar);
-			randomScalar = iWasabiRandom.GetScalarNonZero();
+			randomScalar = iWasabiRandom.GetScalar();
 			Assert.Equal(big, randomScalar);
-			randomScalar = iWasabiRandom.GetScalarNonZero();
+			randomScalar = iWasabiRandom.GetScalar();
 			Assert.Equal(biggest, randomScalar);
 		}
 	}
