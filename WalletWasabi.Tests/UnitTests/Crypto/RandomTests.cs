@@ -80,11 +80,11 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		public void ScalarTests()
 		{
 			// Make sure first that scalar equality works within hashset and that the underlying API won't pull the floor out.
-			var singleSet = new HashSet<Scalar>();
-			var scalar = new Scalar(5);
-			var same = new Scalar(5);
-			singleSet.Add(scalar);
-			singleSet.Add(same);
+			var singleSet = new HashSet<Scalar>
+			{
+				new Scalar(5),
+				new Scalar(5)
+			};
 			Assert.Single(singleSet);
 
 			var randoms = new List<IWasabiRandom>
