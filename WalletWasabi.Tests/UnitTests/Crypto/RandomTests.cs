@@ -121,8 +121,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			// The random should not overfow.
 			mockRandom.GetBytesResults.Add(EC.N.ToBytes());
 
-			// ToDo: `EC.N + new Scalar(1)` will be `new Scalar(1)` (so the `IsOverflow` property will be `false`). Investigate if it's a bug or not.
-
 			// The random should not overfow.
 			mockRandom.GetBytesResults.Add(new Scalar(uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue).ToBytes());
 
