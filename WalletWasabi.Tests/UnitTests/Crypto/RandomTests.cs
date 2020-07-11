@@ -118,9 +118,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var mockRandom = new MockRandom();
 			IWasabiRandom iWasabiRandom = mockRandom;
 
-			// The random should not be zero.
-			mockRandom.GetBytesResults.Add(Scalar.Zero.ToBytes());
-
 			// The random should not overfow.
 			mockRandom.GetBytesResults.Add(EC.N.ToBytes());
 
@@ -129,6 +126,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			// The random should not overfow.
 			mockRandom.GetBytesResults.Add(new Scalar(uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue).ToBytes());
 
+			mockRandom.GetBytesResults.Add(Scalar.Zero.ToBytes());
 			var one = new Scalar(1);
 			mockRandom.GetBytesResults.Add(one.ToBytes());
 			var two = new Scalar(2);
@@ -139,6 +137,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			mockRandom.GetBytesResults.Add(biggest.ToBytes());
 
 			var randomScalar = iWasabiRandom.GetScalar();
+			Assert.Equal(Scalar.Zero, randomScalar);
+			randomScalar = iWasabiRandom.GetScalar();
 			Assert.Equal(one, randomScalar);
 			randomScalar = iWasabiRandom.GetScalar();
 			Assert.Equal(two, randomScalar);
