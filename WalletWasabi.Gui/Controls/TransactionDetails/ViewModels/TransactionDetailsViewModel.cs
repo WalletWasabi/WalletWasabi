@@ -26,6 +26,8 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _dateTime, value);
 		}
 
+		public bool Confirmed => Confirmations > 0;
+
 		public int Confirmations
 		{
 			get => _confirmations;
