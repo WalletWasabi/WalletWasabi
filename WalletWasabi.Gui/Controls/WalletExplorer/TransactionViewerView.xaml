@@ -6,6 +6,7 @@
              xmlns:iac="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions.Custom"
              xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
              xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui"
+             xmlns:txndetail="clr-namespace:WalletWasabi.Gui.Controls.TransactionDetails.Views;assembly=WalletWasabi.Gui"
              x:Class="WalletWasabi.Gui.Controls.WalletExplorer.TransactionViewerView"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450">
   <UserControl.Resources>
@@ -14,27 +15,17 @@
   <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
     <Grid Classes="content">
       <DockPanel LastChildFill="True">
-        <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Right" Orientation="Horizontal" Spacing="10">
-          <Button Command="{Binding OpenTransactionBroadcaster}" Content="Open Transaction Broadcaster" />
-          <Button Command="{Binding ExportBinaryPsbt}" Content="Export Binary PSBT" />
-        </StackPanel>
-        <Grid ScrollViewer.VerticalScrollBarVisibility="Auto" RowDefinitions="26,1*,1*,1*">
-          <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0 8 0 0" Spacing="5">
-            <TextBlock Text="Transaction ID:" FontWeight="Bold" />
-            <controls:ExtendedTextBox Text="{Binding TxId, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Classes="selectableTextBlock" />
+        <Panel DockPanel.Dock="Bottom" Height="64" Margin="0 0 0 -20">
+          <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" Spacing="10">
+            <Button Command="{Binding CopyTransactionHex}" Content="Copy Transaction Hex" />
+            <Button Command="{Binding CopyBase64Psbt}" Content="Copy Base64 PSBT" />
+            <Button Command="{Binding ExportBinaryPsbt}" Content="Export Transaction" />
+            <Panel Width="12" />
+            <Button Command="{Binding OpenTransactionBroadcaster}" Content="Open Transaction Broadcaster" />
           </StackPanel>
-          <DockPanel LastChildFill="True" Grid.Row="1" Margin="0 8 0 0">
-            <TextBlock DockPanel.Dock="Top" Text="PSBT Json" FontWeight="Bold" />
-            <controls:MultiTextBox Margin="0 8 0 0" Text="{Binding PsbtJsonText, ConverterParameter=1536, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" CopyOnClick="{Binding !IsLurkingWifeMode}" IsSelectable="False" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" />
-          </DockPanel>
-          <DockPanel LastChildFill="True" Grid.Row="2" Margin="0 8 0 0">
-            <TextBlock DockPanel.Dock="Top" Text="Transaction Hex" FontWeight="Bold" />
-            <controls:MultiTextBox Margin="0 8 0 0" Text="{Binding TransactionHexText, ConverterParameter=382, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" CopyOnClick="{Binding !IsLurkingWifeMode}" IsSelectable="False" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" />
-          </DockPanel>
-          <DockPanel LastChildFill="True" Grid.Row="3" Margin="0 8 0 0">
-            <TextBlock DockPanel.Dock="Top" Text="PSBT Base64 String" FontWeight="Bold" />
-            <controls:MultiTextBox Margin="0 8" VerticalAlignment="Stretch" Text="{Binding PsbtBase64Text, ConverterParameter=472, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" CopyOnClick="{Binding !IsLurkingWifeMode}" IsSelectable="False" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" />
-          </DockPanel>
+        </Panel>
+        <Grid ScrollViewer.VerticalScrollBarVisibility="Auto">
+          <txndetail:TransactionDetails Grid.Row="1" DataContext="{Binding TransactionDetails}" DockPanel.Dock="Top" Margin="0 8 0 0" />
         </Grid>
       </DockPanel>
     </Grid>

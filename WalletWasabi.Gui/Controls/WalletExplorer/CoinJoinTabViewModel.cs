@@ -325,7 +325,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					Logger.LogWarning(ex);
 				}
 
-				Password = string.Empty;
+				Password = "";
 			}
 			finally
 			{
@@ -373,7 +373,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					Logger.LogError(ex);
 				}
 
-				Password = string.Empty;
+				Password = "";
 			}
 			finally
 			{
