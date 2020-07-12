@@ -10,7 +10,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 	public class HashTests
 	{
 		[Fact]
-		public void HashCodeUniqueForSameByteArray()
+		public void HashCodeSameForSameByteArrays()
 		{
 			var array1 = Array.Empty<byte>();
 			var array2 = Array.Empty<byte>();
