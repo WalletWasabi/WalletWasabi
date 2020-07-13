@@ -7,7 +7,7 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Crypto
 {
-	public class HashTests
+	public class HashingTests
 	{
 		[Fact]
 		public void HashCodeSameForSameByteArrays()
