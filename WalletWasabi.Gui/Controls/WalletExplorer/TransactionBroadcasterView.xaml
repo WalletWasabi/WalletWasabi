@@ -15,7 +15,7 @@
     <Grid Classes="content">
       <DockPanel LastChildFill="True">
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
-          <Button Command="{Binding PasteCommand}" Content="Paste Transaction" />
+          <Button Command="{Binding PasteCommand}" Content="Paste Signed Transaction" />
           <Button Command="{Binding ImportTransactionCommand}" Content="Import Transaction" />
           <Button Command="{Binding BroadcastTransactionCommand}">
             <StackPanel Orientation="Horizontal">
