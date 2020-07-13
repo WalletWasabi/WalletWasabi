@@ -40,21 +40,22 @@ namespace WalletWasabi.Hwi
 
 		#region Commands
 
-		private async Task<string> SendCommandAsync(IEnumerable<HwiOption> options, HwiCommands? command, string commandArguments, bool openConsole, CancellationToken cancel, bool isRecursion = false)
+		private async Task<string> SendCommandAsync(IEnumerable<HwiOption> options, HwiCommands? command, string commandArguments, bool openConsole, CancellationToken cancel, bool isRecursion = false, Action<StreamWriter> standardInputWriter = null)
 		{
+			if (standardInputWriter is { } && !options.Contains(HwiOption.StdIn))
+			{
+				var optList = options.ToList();
+				optList.Add(HwiOption.StdIn);
+				options = optList;
+			}
+
 			string arguments = HwiParser.ToArgumentString(Network, options, command, commandArguments);
 
 			try
 			{
-				(string responseString, int exitCode) = await Bridge.SendCommandAsync(arguments, openConsole, cancel).ConfigureAwait(false);
+				(string responseString, int exitCode) = await Bridge.SendCommandAsync(arguments, openConsole, cancel, standardInputWriter).ConfigureAwait(false);
 
-				if (exitCode != 0)
-				{
-					ThrowIfError(responseString, options);
-					throw new HwiException(HwiErrorCode.UnknownError, $"'hwi {arguments}' exited with incorrect exit code: {exitCode}.");
-				}
-
-				ThrowIfError(responseString, options);
+				ThrowIfError(responseString, options, arguments, exitCode);
 
 				return responseString;
 			}
@@ -84,6 +85,16 @@ namespace WalletWasabi.Hwi
 				// Build options without fingerprint with device model and device path.
 				var newOptions = BuildOptions(firstNoFingerprintEntry.Model, firstNoFingerprintEntry.Path, fingerprint: null, options.Where(x => x.Type != HwiOptions.Fingerprint).ToArray());
 				return await SendCommandAsync(newOptions, command, arguments, openConsole, cancel, isRecursion: true);
+			}
+			catch (HwiException ex) when (Network != Network.Main && ex.ErrorCode == HwiErrorCode.UnknownError && ex.Message?.Contains("DataError: Forbidden key path") is true)
+			{
+				// Trezor only accepts KeyPath 84'/1' on TestNet from v2.3.1. We fake that we are on MainNet to ensure compatibility.
+				string fixedArguments = HwiParser.ToArgumentString(Network.Main, options, command, commandArguments);
+				(string responseString, int exitCode) = await Bridge.SendCommandAsync(fixedArguments, openConsole, cancel, standardInputWriter).ConfigureAwait(false);
+
+				ThrowIfError(responseString, options, fixedArguments, exitCode);
+
+				return responseString;
 			}
 		}
 
@@ -175,9 +186,18 @@ namespace WalletWasabi.Hwi
 			var response = await SendCommandAsync(
 				options: BuildOptions(deviceType, devicePath, fingerprint),
 				command: HwiCommands.SignTx,
-				commandArguments: psbtString,
+				commandArguments: "",
 				openConsole: false,
-				cancel).ConfigureAwait(false);
+				cancel,
+				standardInputWriter: (inputWriter) =>
+				{
+					if (!string.IsNullOrEmpty(psbtString))
+					{
+						inputWriter.WriteLine(psbtString);
+						inputWriter.WriteLine();
+						inputWriter.WriteLine();
+					}
+				}).ConfigureAwait(false);
 
 			PSBT signedPsbt = HwiParser.ParsePsbt(response, Network);
 
@@ -262,11 +282,20 @@ namespace WalletWasabi.Hwi
 
 		#region Helpers
 
-		private static void ThrowIfError(string responseString, IEnumerable<HwiOption> options)
+		private static void ThrowIfError(string responseString, IEnumerable<HwiOption> options, string arguments, int exitCode)
 		{
-			if (HwiParser.TryParseErrors(responseString, options, out HwiException error))
+			if (exitCode != 0)
 			{
-				throw error;
+				if (HwiParser.TryParseErrors(responseString, options, out HwiException error))
+				{
+					throw error;
+				}
+				throw new HwiException(HwiErrorCode.UnknownError, $"'hwi {arguments}' exited with incorrect exit code: {exitCode}.");
+			}
+
+			if (HwiParser.TryParseErrors(responseString, options, out HwiException error2))
+			{
+				throw error2;
 			}
 		}
 

@@ -23,7 +23,7 @@ namespace WalletWasabi.Tests
 				{
 					"Invalid (missing jsonrpc) request",
 					Request("1", "substract", 42, 23).Replace("\"jsonrpc\":\"2.0\",", ""),
-					Error(null, -32700, "Parse error")
+					Ok("1", 19)
 				},
 				new[]
 				{
@@ -59,7 +59,7 @@ namespace WalletWasabi.Tests
 				{
 					"Valid request (Notification)",
 					Request(null, "substract", 42, 23),
-					string.Empty
+					""
 				},
 				new[]
 				{
@@ -131,10 +131,12 @@ namespace WalletWasabi.Tests
 
 		private static string ToJson(object o)
 		{
-			return JsonConvert.SerializeObject(o, new JsonSerializerSettings
-			{
-				DefaultValueHandling = DefaultValueHandling.Ignore
-			});
+			return JsonConvert.SerializeObject(
+				o,
+				new JsonSerializerSettings
+				{
+					DefaultValueHandling = DefaultValueHandling.Ignore
+				});
 		}
 	}
 }

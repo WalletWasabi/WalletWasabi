@@ -61,14 +61,14 @@ namespace WalletWasabi.Gui.Rpc
 				var attrs = methodInfo.GetCustomAttributes();
 				foreach (Attribute attr in attrs)
 				{
-					if (attr is JsonRpcMethodAttribute)
+					if (attr is JsonRpcMethodAttribute attribute)
 					{
-						var parameters = new List<(string name, Type type)>();
+						var parameters = new List<(string name, Type type, bool isOptional, object defaultValue)>();
 						foreach (var p in methodInfo.GetParameters())
 						{
-							parameters.Add((p.Name, p.ParameterType));
+							parameters.Add((p.Name, p.ParameterType, p.IsOptional, p.DefaultValue));
 						}
-						var jsonRpcMethodAttr = (JsonRpcMethodAttribute)attr;
+						var jsonRpcMethodAttr = attribute;
 						yield return new JsonRpcMethodMetadata(jsonRpcMethodAttr.Name, methodInfo, parameters);
 					}
 				}

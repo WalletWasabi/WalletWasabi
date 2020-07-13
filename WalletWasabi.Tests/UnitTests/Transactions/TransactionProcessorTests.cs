@@ -1065,22 +1065,6 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.NotEmpty(changeCoin.Clusters.Labels);
 		}
 
-		private async Task<TransactionProcessor> CreateTransactionProcessorAsync([CallerFilePath]string callerFilePath = null, [CallerMemberName] string callerName = "")
-		{
-			var keyManager = KeyManager.CreateNew(out _, "password");
-			keyManager.AssertCleanKeysIndexed();
-
-			var txStore = new AllTransactionStore();
-			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerName, "TransactionStore");
-			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(dir);
-			await txStore.InitializeAsync(dir, Network.RegTest);
-
-			return new TransactionProcessor(
-				txStore,
-				keyManager,
-				Money.Coins(0.0001m));
-		}
-
 		private static SmartTransaction CreateSpendingTransaction(Coin coin, Script scriptPubKey = null, int height = 0)
 		{
 			var tx = Network.RegTest.CreateTransaction();
@@ -1117,6 +1101,22 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		private static OutPoint GetRandomOutPoint()
 		{
 			return new OutPoint(RandomUtils.GetUInt256(), 0);
+		}
+
+		private async Task<TransactionProcessor> CreateTransactionProcessorAsync([CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerName = "")
+		{
+			var keyManager = KeyManager.CreateNew(out _, "password");
+			keyManager.AssertCleanKeysIndexed();
+
+			var txStore = new AllTransactionStore();
+			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerName, "TransactionStore");
+			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(dir);
+			await txStore.InitializeAsync(dir, Network.RegTest);
+
+			return new TransactionProcessor(
+				txStore,
+				keyManager,
+				Money.Coins(0.0001m));
 		}
 	}
 }

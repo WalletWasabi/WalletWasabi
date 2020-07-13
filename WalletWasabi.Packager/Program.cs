@@ -178,7 +178,7 @@ namespace WalletWasabi.Packager
 			Directory.CreateDirectory(tempDir);
 
 			var torDaemonsDir = Path.Combine(LibraryProjectDirectory, "TorDaemons");
-			string torWinZip = Path.Combine(torDaemonsDir, "tor-win32.zip");
+			string torWinZip = Path.Combine(torDaemonsDir, "tor-win64.zip");
 			IoHelpers.BetterExtractZipToDirectoryAsync(torWinZip, tempDir).GetAwaiter().GetResult();
 			File.Move(Path.Combine(tempDir, "Tor", "tor.exe"), Path.Combine(tempDir, "TorWin"));
 
@@ -188,7 +188,7 @@ namespace WalletWasabi.Packager
 
 			string torOsxZip = Path.Combine(torDaemonsDir, "tor-osx64.zip");
 			IoHelpers.BetterExtractZipToDirectoryAsync(torOsxZip, tempDir).GetAwaiter().GetResult();
-			File.Move(Path.Combine(tempDir, "Tor", "tor"), Path.Combine(tempDir, "TorOsx"));
+			File.Move(Path.Combine(tempDir, "Tor", "tor.real"), Path.Combine(tempDir, "TorOsx"));
 
 			var tempDirInfo = new DirectoryInfo(tempDir);
 			var binaries = tempDirInfo.GetFiles();
@@ -599,7 +599,7 @@ namespace WalletWasabi.Packager
 					{
 						throw new Exception($"{publishedFolder} does not exist.");
 					}
-					var newFolderName = $"WasabiLinux-{VersionPrefix}";
+					var newFolderName = $"Wasabi-{VersionPrefix}";
 					var newFolderPath = Path.Combine(BinDistDirectory, newFolderName);
 					Directory.Move(publishedFolder, newFolderPath);
 					publishedFolder = newFolderPath;

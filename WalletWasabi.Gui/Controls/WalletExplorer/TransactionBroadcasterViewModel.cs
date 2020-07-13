@@ -12,6 +12,7 @@ using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Gui.Controls.TransactionDetails.ViewModels;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models.StatusBarStatuses;
 using WalletWasabi.Gui.ViewModels;
@@ -21,10 +22,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class TransactionBroadcasterViewModel : WasabiDocumentTabViewModel
 	{
-		private string _transactionString;
 		private bool _isBusy;
 		private string _buttonText;
-		private int _caretIndex;
+		private TransactionDetailsViewModel _transactionDetails;
+		private SmartTransaction _finalTransaction;
 
 		public TransactionBroadcasterViewModel() : base("Transaction Broadcaster")
 		{
@@ -32,98 +33,95 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			ButtonText = "Broadcast Transaction";
 
+			this.WhenAnyValue(x => x.FinalTransaction)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					try
+					{
+						if (x is null)
+						{
+							TransactionDetails = null;
+							return;
+						}
+						else
+						{
+							TransactionDetails = TransactionDetailsViewModel.FromBuildTxnResult(Global.BitcoinStore, PSBT.FromTransaction(x.Transaction, Global.Network));
+							NotificationHelpers.Information("Transaction imported successfully!");
+						}
+					}
+					catch (Exception ex)
+					{
+						TransactionDetails = null;
+						NotificationHelpers.Error(ex.ToUserFriendlyString());
+						Logger.LogError(ex);
+					}
+				});
+
 			PasteCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				if (!string.IsNullOrEmpty(TransactionString))
+				try
 				{
-					return;
-				}
+					var textToPaste = await Application.Current.Clipboard.GetTextAsync();
 
-				var textToPaste = await Application.Current.Clipboard.GetTextAsync();
-				TransactionString = textToPaste;
+					if (string.IsNullOrWhiteSpace(textToPaste))
+					{
+						FinalTransaction = null;
+						NotificationHelpers.Information("Clipboard is empty!");
+						return;
+					}
+
+					if (PSBT.TryParse(textToPaste, Global.Network ?? Network.Main, out var signedPsbt))
+					{
+						if (!signedPsbt.IsAllFinalized())
+						{
+							signedPsbt.Finalize();
+						}
+
+						FinalTransaction = signedPsbt.ExtractSmartTransaction();
+					}
+					else
+					{
+						FinalTransaction = new SmartTransaction(Transaction.Parse(textToPaste, Global.Network ?? Network.Main), WalletWasabi.Models.Height.Unknown);
+					}
+				}
+				catch (Exception ex)
+				{
+					FinalTransaction = null;
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
+					Logger.LogError(ex);
+				}
 			});
 
 			IObservable<bool> broadcastTransactionCanExecute = this
-				.WhenAny(x => x.TransactionString, (transactionString) => !string.IsNullOrWhiteSpace(transactionString.Value))
+				.WhenAny(x => x.FinalTransaction, (tx) => tx.Value is { })
 				.ObserveOn(RxApp.MainThreadScheduler);
 
 			BroadcastTransactionCommand = ReactiveCommand.CreateFromTask(
 				async () => await OnDoTransactionBroadcastAsync(),
 				broadcastTransactionCanExecute);
 
-			ImportTransactionCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				try
+			ImportTransactionCommand = ReactiveCommand.CreateFromTask(
+				async () =>
 				{
-					var ofd = new OpenFileDialog
+					try
 					{
-						AllowMultiple = false,
-						Title = "Import Transaction"
-					};
+						var path = await OpenDialogAsync();
 
-					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-					{
-						var initialDirectory = Path.Combine("/media", Environment.UserName);
-						if (!Directory.Exists(initialDirectory))
+						if (path is null)
 						{
-							initialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+							return;
 						}
-						ofd.Directory = initialDirectory;
+
+						FinalTransaction = await ParseTransactionAsync(path);
 					}
-					else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+					catch (Exception ex)
 					{
-						ofd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+						Logger.LogError(ex);
+						NotificationHelpers.Error(ex.ToUserFriendlyString());
 					}
-
-					var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
-					var selected = await ofd.ShowAsync(window, fallBack: true);
-
-					if (selected != null && selected.Any())
-					{
-						var path = selected.First();
-						var psbtBytes = await File.ReadAllBytesAsync(path);
-						PSBT psbt = null;
-						Transaction transaction = null;
-						try
-						{
-							psbt = PSBT.Load(psbtBytes, Global.Network);
-						}
-						catch
-						{
-							var text = await File.ReadAllTextAsync(path);
-							text = text.Trim();
-							try
-							{
-								psbt = PSBT.Parse(text, Global.Network);
-							}
-							catch
-							{
-								transaction = Transaction.Parse(text, Global.Network);
-							}
-						}
-
-						if (psbt != null)
-						{
-							if (!psbt.IsAllFinalized())
-							{
-								psbt.Finalize();
-							}
-
-							TransactionString = psbt.ToBase64();
-						}
-						else
-						{
-							TransactionString = transaction.ToHex();
-						}
-					}
-				}
-				catch (Exception ex)
-				{
-					Logger.LogError(ex);
-					NotificationHelpers.Error(ex.ToUserFriendlyString());
-				}
-			},
-			outputScheduler: RxApp.MainThreadScheduler);
+				},
+				outputScheduler: RxApp.MainThreadScheduler);
 
 			Observable
 				.Merge(PasteCommand.ThrownExceptions)
@@ -143,12 +141,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> BroadcastTransactionCommand { get; set; }
 		public ReactiveCommand<Unit, Unit> ImportTransactionCommand { get; set; }
 
-		public string TransactionString
-		{
-			get => _transactionString;
-			set => this.RaiseAndSetIfChanged(ref _transactionString, value);
-		}
-
 		public bool IsBusy
 		{
 			get => _isBusy;
@@ -161,15 +153,21 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _buttonText, value);
 		}
 
-		public int CaretIndex
+		public TransactionDetailsViewModel TransactionDetails
 		{
-			get => _caretIndex;
-			set => this.RaiseAndSetIfChanged(ref _caretIndex, value);
+			get => _transactionDetails;
+			set => this.RaiseAndSetIfChanged(ref _transactionDetails, value);
+		}
+
+		public SmartTransaction FinalTransaction
+		{
+			get => _finalTransaction;
+			set => this.RaiseAndSetIfChanged(ref _finalTransaction, value);
 		}
 
 		public override bool OnClose()
 		{
-			TransactionString = "";
+			FinalTransaction = null;
 
 			return base.OnClose();
 		}
@@ -181,27 +179,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				IsBusy = true;
 				ButtonText = "Broadcasting Transaction...";
 
-				SmartTransaction transaction;
-
-				if (PSBT.TryParse(TransactionString, Global.Network ?? Network.Main, out var signedPsbt))
-				{
-					if (!signedPsbt.IsAllFinalized())
-					{
-						signedPsbt.Finalize();
-					}
-
-					transaction = signedPsbt.ExtractSmartTransaction();
-				}
-				else
-				{
-					transaction = new SmartTransaction(Transaction.Parse(TransactionString, Global.Network ?? Network.Main), WalletWasabi.Models.Height.Unknown);
-				}
-
 				MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.BroadcastingTransaction);
-				await Task.Run(async () => await Global.TransactionBroadcaster.SendTransactionAsync(transaction));
+				await Task.Run(async () => await Global.TransactionBroadcaster.SendTransactionAsync(FinalTransaction));
 
 				NotificationHelpers.Success("Transaction was broadcast.");
-				TransactionString = "";
+				FinalTransaction = null;
 			}
 			catch (PSBTException ex)
 			{
@@ -213,6 +195,77 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusType.BroadcastingTransaction);
 				IsBusy = false;
 				ButtonText = "Broadcast Transaction";
+			}
+		}
+
+		private async Task<string> OpenDialogAsync()
+		{
+			var ofd = new OpenFileDialog
+			{
+				AllowMultiple = false,
+				Title = "Import Transaction"
+			};
+
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+			{
+				var initialDirectory = Path.Combine("/media", Environment.UserName);
+				if (!Directory.Exists(initialDirectory))
+				{
+					initialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+				}
+				ofd.Directory = initialDirectory;
+			}
+			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			{
+				ofd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+			}
+
+			var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
+			var selected = await ofd.ShowAsync(window, fallBack: true);
+
+			if (selected is null || !selected.Any())
+			{
+				return null;
+			}
+
+			return selected.First();
+		}
+
+		private async Task<SmartTransaction> ParseTransactionAsync(string path)
+		{
+			var psbtBytes = await File.ReadAllBytesAsync(path);
+			PSBT psbt = null;
+			Transaction transaction = null;
+			try
+			{
+				psbt = PSBT.Load(psbtBytes, Global.Network);
+			}
+			catch
+			{
+				var text = await File.ReadAllTextAsync(path);
+				text = text.Trim();
+				try
+				{
+					psbt = PSBT.Parse(text, Global.Network);
+				}
+				catch
+				{
+					transaction = Transaction.Parse(text, Global.Network);
+				}
+			}
+
+			if (psbt is { })
+			{
+				if (!psbt.IsAllFinalized())
+				{
+					psbt.Finalize();
+				}
+
+				return psbt.ExtractSmartTransaction();
+			}
+			else
+			{
+				return new SmartTransaction(transaction, WalletWasabi.Models.Height.Unknown);
 			}
 		}
 	}

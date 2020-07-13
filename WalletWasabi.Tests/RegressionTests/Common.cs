@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.BitcoinCore;
+using WalletWasabi.Blockchain.Blocks;
+using WalletWasabi.Blockchain.Mempool;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Coordinator;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
@@ -38,12 +41,15 @@ namespace WalletWasabi.Tests.RegressionTests
 			}
 		}
 
+#pragma warning disable IDE0060 // Remove unused parameter
+
 		public static void Wallet_NewFilterProcessed(object sender, FilterModel e)
+#pragma warning restore IDE0060 // Remove unused parameter
 		{
 			Interlocked.Increment(ref FiltersProcessedByWalletCount);
 		}
 
-		public static string GetWorkDir([CallerFilePath]string callerFilePath = null, [CallerMemberName]string callerMemberName = null)
+		public static string GetWorkDir([CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerMemberName = null)
 		{
 			return Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName);
 		}
@@ -72,7 +78,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		public static async Task<(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global)> InitializeTestEnvironmentAsync(
 			RegTestFixture regTestFixture,
 			int numberOfBlocksToGenerate,
-			[CallerFilePath]string callerFilePath = null,
+			[CallerFilePath] string callerFilePath = null,
 			[CallerMemberName] string callerMemberName = null)
 		{
 			var global = regTestFixture.Global;
@@ -85,9 +91,10 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			var network = global.RpcClient.Network;
 			var serviceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.PrivacyLevelSome.ToString(), 2, 21, 50, regTestFixture.BackendRegTestNode.P2pEndPoint, Money.Coins(Constants.DefaultDustThreshold));
-			var bitcoinStore = new BitcoinStore();
+
 			var dir = GetWorkDir(callerFilePath, callerMemberName);
-			await bitcoinStore.InitializeAsync(dir, network);
+			var bitcoinStore = new BitcoinStore(dir, network, new IndexStore(network, new SmartHeaderChain()), new AllTransactionStore(), new MempoolService());
+			await bitcoinStore.InitializeAsync();
 			return ("password", global.RpcClient, network, global.Coordinator, serviceConfiguration, bitcoinStore, global);
 		}
 	}

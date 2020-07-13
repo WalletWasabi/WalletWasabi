@@ -94,7 +94,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 			CopyAddress = ReactiveCommand.CreateFromTask(TryCopyToClipboardAsync);
 
-			CopyLabel = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(Label ?? string.Empty));
+			CopyLabel = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(Label ?? ""));
 
 			ChangeLabel = ReactiveCommand.Create(() => InEditMode = true);
 
@@ -208,7 +208,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public ReactiveCommand<string, Unit> ExecuteSaveQRCodeCommand { get; set; }
 
-		public string ExpandMenuCaption => _expandMenuCaption?.Value ?? string.Empty;
+		public string ExpandMenuCaption => _expandMenuCaption?.Value ?? "";
 
 		private CancellationTokenSource CancelClipboardNotification { get; set; }
 

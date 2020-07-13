@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Hwi.Models;
+using WalletWasabi.Hwi.Parsers;
 using WalletWasabi.Hwi.ProcessBridge;
 using Xunit;
 
@@ -122,8 +123,13 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			HwiProcessBridge pb = new HwiProcessBridge();
 
 			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
-			var res = await pb.SendCommandAsync("enumerate", false, cts.Token);
+			var res = await pb.SendCommandAsync("version", false, cts.Token);
 			Assert.NotEmpty(res.response);
+
+			bool stdInputActionCalled = false;
+			res = await pb.SendCommandAsync("version", false, cts.Token, (sw) => stdInputActionCalled = true);
+			Assert.NotEmpty(res.response);
+			Assert.True(stdInputActionCalled);
 		}
 
 		[Fact]
@@ -134,12 +140,42 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				var res = await pb.SendCommandAsync("enumerate", true, cts.Token);
-				Assert.NotEmpty(res.response);
+				var res = await pb.SendCommandAsync("version", true, cts.Token);
+				Assert.Contains("success", res.response);
 			}
 			else
 			{
 				await Assert.ThrowsAsync<PlatformNotSupportedException>(async () => await pb.SendCommandAsync("enumerate", true, cts.Token));
+			}
+		}
+
+		[Theory]
+		[InlineData("", false)]
+		[InlineData("hwi", false)]
+		[InlineData("hwi ", false)]
+		[InlineData("hwi 1", false)]
+		[InlineData("hwi 1.", false)]
+		[InlineData("hwi 1.1", false)]
+		[InlineData("hwi 1.1.", false)]
+		[InlineData("hwi 1.1.2\n", true)]
+		[InlineData("hwi 1.1.2", true)]
+		[InlineData("hwi 1.1.2-rc1\n", true)]
+		[InlineData("hwi 1.1.2-rc1", true)]
+		[InlineData("hwi.exe 1.1.2\n", true)]
+		[InlineData("hwi.exe 1.1.2", true)]
+		[InlineData("hwi.exe 1.1.2-", true)]
+		[InlineData("hwi.exe 1.1.2-rc1\n", true)]
+		[InlineData("hwi.exe 1.1.2-rc1", true)]
+		[InlineData("1.1.2-rc1\n", false)]
+		[InlineData("1.1-rc1\n", false)]
+		public void TryParseVersionTests(string input, bool isParsable)
+		{
+			Version expectedVersion = new Version(1, 1, 2);
+			Assert.Equal(isParsable, HwiParser.TryParseVersion(input, out Version actualVersion));
+
+			if (isParsable)
+			{
+				Assert.Equal(expectedVersion, actualVersion);
 			}
 		}
 

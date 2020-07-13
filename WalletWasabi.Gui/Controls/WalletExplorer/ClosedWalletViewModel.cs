@@ -1,4 +1,5 @@
 using AvalonStudio.Extensibility;
+using AvalonStudio.Shell;
 using ReactiveUI;
 using Splat;
 using System;
@@ -8,6 +9,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
@@ -17,24 +19,33 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		protected ClosedWalletViewModel(Wallet wallet) : base(wallet)
 		{
-			OpenWalletCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				try
+			OpenWalletCommand = ReactiveCommand.CreateFromTask(
+				async () =>
 				{
-					var global = Locator.Current.GetService<Global>();
+					try
+					{
+						var global = Locator.Current.GetService<Global>();
 
-					await Task.Run(async () => await global.WalletManager.StartWalletAsync(Wallet));
-				}
-				catch (OperationCanceledException ex)
-				{
-					Logger.LogTrace(ex);
-				}
-				catch (Exception ex)
-				{
-					NotificationHelpers.Error($"Couldn't load wallet. Reason: {ex.ToUserFriendlyString()}", sender: wallet);
-					Logger.LogError(ex);
-				}
-			}, this.WhenAnyValue(x => x.WalletState).Select(x => x == WalletState.Uninitialized));
+						if (wallet.KeyManager.PasswordVerified is true)
+						{
+							await Task.Run(async () => await global.WalletManager.StartWalletAsync(Wallet));
+						}
+						else
+						{
+							IoC.Get<IShell>().GetOrCreateByType<WalletManagerViewModel>().SelectTestPassword(wallet.WalletName);
+						}
+					}
+					catch (OperationCanceledException ex)
+					{
+						Logger.LogTrace(ex);
+					}
+					catch (Exception ex)
+					{
+						NotificationHelpers.Error($"Couldn't load wallet. Reason: {ex.ToUserFriendlyString()}", sender: wallet);
+						Logger.LogError(ex);
+					}
+				},
+				this.WhenAnyValue(x => x.WalletState).Select(x => x == WalletState.Uninitialized));
 		}
 
 		public ReactiveCommand<Unit, Unit> OpenWalletCommand { get; }
