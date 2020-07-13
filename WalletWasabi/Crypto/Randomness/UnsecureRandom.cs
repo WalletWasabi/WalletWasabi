@@ -16,5 +16,7 @@ namespace WalletWasabi.Crypto.Randomness
 		public void GetBytes(byte[] buffer) => Random.NextBytes(buffer);
 
 		public void GetBytes(Span<byte> buffer) => Random.NextBytes(buffer);
+
+		public int GetInt(int fromInclusive, int toExclusive) => Random.Next(fromInclusive, toExclusive);
 	}
 }

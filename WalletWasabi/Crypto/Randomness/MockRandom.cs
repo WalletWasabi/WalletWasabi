@@ -23,5 +23,10 @@ namespace WalletWasabi.Crypto.Randomness
 			GetBytesResults.RemoveFirst();
 			first.AsSpan().CopyTo(output);
 		}
+
+		public int GetInt(int fromInclusive, int toExclusive)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

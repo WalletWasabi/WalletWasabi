@@ -20,6 +20,8 @@ namespace WalletWasabi.Crypto.Randomness
 
 		public void GetBytes(Span<byte> buffer) => Random.GetBytes(buffer);
 
+		public int GetInt(int fromInclusive, int toExclusive) => RandomNumberGenerator.GetInt32(fromInclusive, toExclusive);
+
 		protected virtual void Dispose(bool disposing)
 		{
 			if (!_disposedValue)

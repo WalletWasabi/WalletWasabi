@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Io;
 using Xunit;
@@ -23,8 +24,7 @@ namespace WalletWasabi.Tests.UnitTests
 			List<string> lines = new List<string>();
 			for (int i = 0; i < 1000; i++)
 			{
-				string line = new string(Enumerable.Repeat(Constants.Chars, 100)
-					.Select(s => s[random.Next(s.Length)]).ToArray());
+				string line = (new UnsecureRandom() as IWasabiRandom).GetString(100, Characters.AlphaNumeric);
 
 				lines.Add(line);
 			}

@@ -2,6 +2,7 @@ using NBitcoin;
 using NBitcoin.Secp256k1;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using WalletWasabi.Helpers;
 
@@ -16,6 +17,22 @@ namespace WalletWasabi.Crypto.Randomness
 			GetBytes(buffer);
 			return buffer;
 		}
+
+		public int GetInt(int fromInclusive, int toExclusive);
+
+		public string GetString(int length, string chars)
+		{
+			Guard.MinimumAndNotNull(nameof(length), length, 1);
+			Guard.NotNullOrEmpty(nameof(chars), chars);
+
+			var random = new string(Enumerable
+				.Repeat(chars, length)
+				.Select(s => s[GetInt(0, s.Length)])
+				.ToArray());
+			return random;
+		}
+
+		public string GetString(int length, Characters chars) => GetString(length, chars.Chars);
 
 		public Scalar GetScalar()
 		{
