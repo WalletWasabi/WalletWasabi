@@ -39,9 +39,9 @@ namespace WalletWasabi.Gui.Controls
 
 		protected override bool IsCopyEnabled => false;
 
-		protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
+		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
 		{
-			base.OnTemplateApplied(e);
+			base.OnApplyTemplate(e);
 
 			var maskedButton = e.NameScope.Get<Button>("PART_MaskedButton");
 			maskedButton.WhenAnyValue(x => x.IsPressed)

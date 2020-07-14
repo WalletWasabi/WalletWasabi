@@ -148,9 +148,9 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			return result;
 		}
 
-		protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
+		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
 		{
-			base.OnTemplateApplied(e);
+			base.OnApplyTemplate(e);
 
 			_thumb = e.NameScope.Find<Thumb>("PART_Thumb");
 			_container = e.NameScope.Find<Grid>("PART_Container");

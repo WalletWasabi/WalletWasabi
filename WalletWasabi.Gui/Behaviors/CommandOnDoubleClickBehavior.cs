@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using System.Reactive.Disposables;
 
 namespace WalletWasabi.Gui.Behaviors
@@ -14,7 +15,7 @@ namespace WalletWasabi.Gui.Behaviors
 
 			base.OnAttached();
 
-			Disposables.Add(AssociatedObject.AddHandler(InputElement.DoubleTappedEvent, (sender, e) => e.Handled = ExecuteCommand()));
+			Disposables.Add(AssociatedObject.AddDisposableHandler(InputElement.DoubleTappedEvent, (sender, e) => e.Handled = ExecuteCommand()));
 		}
 
 		protected override void OnDetaching()

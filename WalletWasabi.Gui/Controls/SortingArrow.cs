@@ -99,9 +99,9 @@ namespace WalletWasabi.Gui.Controls
 			}
 		}
 
-		protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
+		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
 		{
-			base.OnTemplateApplied(e);
+			base.OnApplyTemplate(e);
 			Click += SortingArrow_Click;
 		}
 

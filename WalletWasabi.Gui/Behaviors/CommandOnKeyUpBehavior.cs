@@ -15,7 +15,7 @@ namespace WalletWasabi.Gui.Behaviors
 
 			base.OnAttached();
 
-			Disposables.Add(AssociatedObject.AddHandler(
+			Disposables.Add(AssociatedObject.AddDisposableHandler(
 				InputElement.KeyUpEvent,
 				(sender, e) =>
 				{

@@ -172,9 +172,9 @@ namespace WalletWasabi.Gui.Controls
 			return null;
 		}
 
-		protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
+		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
 		{
-			base.OnTemplateApplied(e);
+			base.OnApplyTemplate(e);
 
 			_presenter = e.NameScope.Get<TextPresenter>("PART_TextPresenter");
 

@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using System.Reactive.Disposables;
 
 namespace WalletWasabi.Gui.Behaviors
@@ -14,14 +15,14 @@ namespace WalletWasabi.Gui.Behaviors
 
 			Disposables = new CompositeDisposable
 			{
-				AssociatedObject.AddHandler(
+				AssociatedObject.AddDisposableHandler(
 					InputElement.PointerEnterEvent,
 					(sender, e) =>
 					{
 						CommandParameter = true;
 						e.Handled = ExecuteCommand();
 					}),
-				AssociatedObject.AddHandler(
+				AssociatedObject.AddDisposableHandler(
 					InputElement.PointerLeaveEvent,
 					(sender, e) =>
 					{

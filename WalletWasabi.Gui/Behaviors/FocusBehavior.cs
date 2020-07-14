@@ -9,7 +9,7 @@ namespace WalletWasabi.Gui.Behaviors
 {
 	public class FocusBehavior : Behavior<Control>
 	{
-		public static readonly AvaloniaProperty<bool> IsFocusedProperty =
+		public static readonly StyledProperty<bool> IsFocusedProperty =
 			AvaloniaProperty.Register<FocusBehavior, bool>(nameof(IsFocused), defaultBindingMode: BindingMode.TwoWay);
 
 		private CompositeDisposable Disposables { get; } = new CompositeDisposable();

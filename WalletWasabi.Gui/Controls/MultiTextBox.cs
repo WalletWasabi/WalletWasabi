@@ -100,9 +100,9 @@ namespace WalletWasabi.Gui.Controls
 
 		protected override bool IsCopyEnabled => IsSelectable;
 
-		protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
+		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
 		{
-			base.OnTemplateApplied(e);
+			base.OnApplyTemplate(e);
 			var text = e.NameScope.Get<TextPresenter>("PART_TextPresenter");
 			var border = e.NameScope.Get<Border>("border");
 			if (IsSelectable)

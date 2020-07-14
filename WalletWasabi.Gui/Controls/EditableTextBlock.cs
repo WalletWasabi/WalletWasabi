@@ -31,12 +31,7 @@ namespace WalletWasabi.Gui.Controls
 			AvaloniaProperty.Register<EditableTextBlock, bool>(nameof(ReadMode), defaultValue: true, defaultBindingMode: BindingMode.TwoWay);
 
 		public static readonly StyledProperty<bool> ReadOnlyModeProperty =
-			AvaloniaProperty.Register<EditableTextBlock, bool>(nameof(ReadOnlyMode), defaultValue: true, defaultBindingMode: BindingMode.TwoWay);
-
-		static EditableTextBlock()
-		{
-			PseudoClass<EditableTextBlock>(InEditModeProperty, ":editing");
-		}
+			AvaloniaProperty.Register<EditableTextBlock, bool>(nameof(ReadOnlyMode), defaultValue: true, defaultBindingMode: BindingMode.TwoWay);		
 
 		public EditableTextBlock()
 		{
@@ -148,9 +143,9 @@ namespace WalletWasabi.Gui.Controls
 			set => SetValue(ReadOnlyModeProperty, value);
 		}
 
-		protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
+		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
 		{
-			base.OnTemplateApplied(e);
+			base.OnApplyTemplate(e);
 
 			_textBox = e.NameScope.Find<TextBox>("PART_TextBox");
 
@@ -220,6 +215,16 @@ namespace WalletWasabi.Gui.Controls
 #pragma warning disable CS0618 // Type or member is obsolete
 			_root.MouseDevice.Capture(null);
 #pragma warning restore CS0618 // Type or member is obsolete
+		}
+
+		protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+		{
+			base.OnPropertyChanged(change);
+
+			if(change.Property == InEditModeProperty)
+			{
+				PseudoClasses.Set(":editing", change.NewValue.GetValueOrDefault<bool>());
+			}
 		}
 	}
 }
