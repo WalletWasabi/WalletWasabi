@@ -124,7 +124,7 @@ namespace WalletWasabi.Tests.UnitTests
 			for (int i = 0; i < 1000; i++)
 			{
 				var isInternal = random.Next(2) == 0;
-				var label = (new InsecureRandom() as IWasabiRandom).GetString(21, Constants.AlphaNumericCharacters);
+				var label = RandomString.AlphaNumeric(21);
 				var keyState = (KeyState)random.Next(3);
 				manager.GenerateNewKey(label, keyState, isInternal, toFile: false);
 			}
@@ -157,7 +157,7 @@ namespace WalletWasabi.Tests.UnitTests
 			for (int i = 0; i < 1000; i++)
 			{
 				var isInternal = random.Next(2) == 0;
-				var label = (new InsecureRandom() as IWasabiRandom).GetString(21, Constants.AlphaNumericCharacters);
+				var label = RandomString.AlphaNumeric(21);
 				var keyState = (KeyState)random.Next(3);
 				var generatedKey = manager.GenerateNewKey(label, keyState, isInternal);
 

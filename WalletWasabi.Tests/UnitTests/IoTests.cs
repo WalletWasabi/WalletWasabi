@@ -24,7 +24,7 @@ namespace WalletWasabi.Tests.UnitTests
 			List<string> lines = new List<string>();
 			for (int i = 0; i < 1000; i++)
 			{
-				string line = (new InsecureRandom() as IWasabiRandom).GetString(100, Constants.AlphaNumericCharacters);
+				string line = RandomString.AlphaNumeric(100);
 
 				lines.Add(line);
 			}

@@ -121,7 +121,7 @@ namespace WalletWasabi.TorSocks5
 		/// </summary>
 		internal async Task HandshakeAsync(bool isolateStream = true)
 		{
-			await HandshakeAsync(isolateStream ? (new InsecureRandom() as IWasabiRandom).GetString(21, Constants.CapitalAlphaNumericCharacters) : "").ConfigureAwait(false);
+			await HandshakeAsync(isolateStream ? RandomString.CapitalAlphaNumeric(21) : "").ConfigureAwait(false);
 		}
 
 		/// <summary>
