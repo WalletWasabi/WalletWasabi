@@ -20,7 +20,12 @@ namespace WalletWasabi.Helpers
 
 			text = text.Trim();
 
-			if (text.Length > 100 || text.Length < 20)
+			if (text.Length < 14 || text.Length > 74)
+			{
+				return false;
+			}
+			var hrpPos = text.LastIndexOf("1", StringComparison.OrdinalIgnoreCase);
+			if (hrpPos != 2)
 			{
 				return false;
 			}
