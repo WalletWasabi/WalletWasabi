@@ -32,8 +32,6 @@ namespace WalletWasabi.Crypto.Randomness
 			return random;
 		}
 
-		public string GetString(int length, Characters chars) => GetString(length, chars.Chars);
-
 		public Scalar GetScalar()
 		{
 			Scalar randomScalar;

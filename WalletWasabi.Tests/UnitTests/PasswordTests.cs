@@ -59,13 +59,13 @@ namespace WalletWasabi.Tests.UnitTests
 			PasswordHelper.GetMasterExtKey(keyManager, original, out _);
 
 			// This should not throw format exception but pw is not correct.
-			Assert.Throws<SecurityException>(() => PasswordHelper.GetMasterExtKey(keyManager, (new InsecureRandom() as IWasabiRandom).GetString(PasswordHelper.MaxPasswordLength, Characters.AlphaNumeric), out _));
+			Assert.Throws<SecurityException>(() => PasswordHelper.GetMasterExtKey(keyManager, (new InsecureRandom() as IWasabiRandom).GetString(PasswordHelper.MaxPasswordLength, Constants.AlphaNumericCharacters), out _));
 
 			// Password should be formatted, before entering here.
-			Assert.Throws<FormatException>(() => PasswordHelper.GetMasterExtKey(keyManager, (new InsecureRandom() as IWasabiRandom).GetString(PasswordHelper.MaxPasswordLength + 1, Characters.AlphaNumeric), out _));
+			Assert.Throws<FormatException>(() => PasswordHelper.GetMasterExtKey(keyManager, (new InsecureRandom() as IWasabiRandom).GetString(PasswordHelper.MaxPasswordLength + 1, Constants.AlphaNumericCharacters), out _));
 
 			// Too long password with extra spaces.
-			var badPassword = $"   {(new InsecureRandom() as IWasabiRandom).GetString(PasswordHelper.MaxPasswordLength + 1, Characters.AlphaNumeric)}   ";
+			var badPassword = $"   {(new InsecureRandom() as IWasabiRandom).GetString(PasswordHelper.MaxPasswordLength + 1, Constants.AlphaNumericCharacters)}   ";
 
 			// Password should be formatted, before entering here.
 			Assert.Throws<FormatException>(() => PasswordHelper.GetMasterExtKey(keyManager, badPassword, out _));

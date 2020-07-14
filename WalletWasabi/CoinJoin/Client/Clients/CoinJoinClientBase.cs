@@ -969,7 +969,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				ingredients ??= "";
 
 				using var rand = new SecureRandom();
-				Salt = (rand as IWasabiRandom).GetString(21, Characters.AlphaNumeric);
+				Salt = (rand as IWasabiRandom).GetString(21, Constants.AlphaNumericCharacters);
 				Soup = StringCipher.Encrypt(ingredients, Salt);
 			}
 		}

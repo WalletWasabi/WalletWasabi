@@ -53,6 +53,9 @@ namespace WalletWasabi.Helpers
 
 		public const long MaxSatoshisSupply = 2_100_000_000_000_000L;
 
+		public const string AlphaNumericCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+		public const string CapitalAlphaNumericCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
 		public static readonly Version ClientVersion = new Version(1, 1, 11, 1);
 		public static readonly Version HwiVersion = new Version("1.1.2");
 		public static readonly Version BitcoinCoreVersion = new Version("0.19.1");
