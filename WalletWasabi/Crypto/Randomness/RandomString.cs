@@ -9,18 +9,24 @@ namespace WalletWasabi.Crypto.Randomness
 	{
 		public static string FromCharacters(int length, string characters, bool secureRandom = false)
 		{
-			IWasabiRandom random;
+			WasabiRandom random;
 			if (secureRandom)
 			{
-				using var rand = new SecureRandom();
-				random = rand;
+				random = new SecureRandom();
 			}
 			else
 			{
 				random = new InsecureRandom();
 			}
 
-			return random.GetString(length, characters);
+			var res = random.GetString(length, characters);
+
+			if (random is IDisposable disposableRandom)
+			{
+				disposableRandom.Dispose();
+			}
+
+			return res;
 		}
 
 		public static string AlphaNumeric(int length, bool secureRandom = false) => FromCharacters(length, Constants.AlphaNumericCharacters, secureRandom);

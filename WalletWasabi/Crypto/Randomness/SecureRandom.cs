@@ -5,7 +5,7 @@ using System.Text;
 
 namespace WalletWasabi.Crypto.Randomness
 {
-	public class SecureRandom : IWasabiRandom, IDisposable
+	public class SecureRandom : WasabiRandom, IDisposable
 	{
 		private bool _disposedValue;
 
@@ -16,11 +16,11 @@ namespace WalletWasabi.Crypto.Randomness
 
 		private RandomNumberGenerator Random { get; }
 
-		public void GetBytes(byte[] buffer) => Random.GetBytes(buffer);
+		public override void GetBytes(byte[] buffer) => Random.GetBytes(buffer);
 
-		public void GetBytes(Span<byte> buffer) => Random.GetBytes(buffer);
+		public override void GetBytes(Span<byte> buffer) => Random.GetBytes(buffer);
 
-		public int GetInt(int fromInclusive, int toExclusive) => RandomNumberGenerator.GetInt32(fromInclusive, toExclusive);
+		public override int GetInt(int fromInclusive, int toExclusive) => RandomNumberGenerator.GetInt32(fromInclusive, toExclusive);
 
 		protected virtual void Dispose(bool disposing)
 		{

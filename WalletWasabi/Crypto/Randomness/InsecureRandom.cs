@@ -4,7 +4,7 @@ using System.Text;
 
 namespace WalletWasabi.Crypto.Randomness
 {
-	public class InsecureRandom : IWasabiRandom
+	public class InsecureRandom : WasabiRandom
 	{
 		public InsecureRandom()
 		{
@@ -13,10 +13,10 @@ namespace WalletWasabi.Crypto.Randomness
 
 		private Random Random { get; }
 
-		public void GetBytes(byte[] buffer) => Random.NextBytes(buffer);
+		public override void GetBytes(byte[] buffer) => Random.NextBytes(buffer);
 
-		public void GetBytes(Span<byte> buffer) => Random.NextBytes(buffer);
+		public override void GetBytes(Span<byte> buffer) => Random.NextBytes(buffer);
 
-		public int GetInt(int fromInclusive, int toExclusive) => Random.Next(fromInclusive, toExclusive);
+		public override int GetInt(int fromInclusive, int toExclusive) => Random.Next(fromInclusive, toExclusive);
 	}
 }

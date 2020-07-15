@@ -8,8 +8,12 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto.Randomness
 {
-	public interface IWasabiRandom : IRandom
+	public abstract class WasabiRandom : IRandom
 	{
+		public abstract void GetBytes(byte[] output);
+
+		public abstract void GetBytes(Span<byte> output);
+
 		public byte[] GetBytes(int length)
 		{
 			Guard.MinimumAndNotNull(nameof(length), length, 1);
@@ -18,7 +22,7 @@ namespace WalletWasabi.Crypto.Randomness
 			return buffer;
 		}
 
-		public int GetInt(int fromInclusive, int toExclusive);
+		public abstract int GetInt(int fromInclusive, int toExclusive);
 
 		public string GetString(int length, string chars)
 		{
