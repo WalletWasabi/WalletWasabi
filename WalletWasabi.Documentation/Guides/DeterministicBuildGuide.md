@@ -4,7 +4,7 @@ The term *deterministic builds* is [defined](https://reproducible-builds.org/) a
 
 > Reproducible [or deterministic] builds are a set of software development practices that create an independently-verifiable path from source to binary code.
 
-This guide describes how to reproduce Wasabi's builds. If you get stuck with these instructions, take a look at [how to build Wasabi from source code](https://github.com/zkSNACKs/WalletWasabi#build-from-source-code).
+This guide describes how to reproduce Wasabi's builds. If you get stuck with these instructions, take a look at [how to build Wasabi from source code](https://docs.wasabiwallet.io/using-wasabi/BuildSource.html).
 
 **Warning:** Reproducible builds were introduced in [1.1.3 release](https://github.com/zkSNACKs/WalletWasabi/releases/tag/v1.1.3), you cannot use these instructions for older versions!
 
