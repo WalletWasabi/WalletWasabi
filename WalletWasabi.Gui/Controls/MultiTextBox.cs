@@ -98,8 +98,6 @@ namespace WalletWasabi.Gui.Controls
 
 		public ReactiveCommand<Unit, Unit> CopyToClipboardCommand { get; }
 
-		protected override bool IsCopyEnabled => IsSelectable;
-
 		protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
 		{
 			base.OnTemplateApplied(e);
