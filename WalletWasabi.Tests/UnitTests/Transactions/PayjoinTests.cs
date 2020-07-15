@@ -360,11 +360,11 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 		}
 
-		private static Func<HttpMethod, string, string, Task<HttpResponseMessage>> PayjoinServer(Func<PSBT, PSBT> transformPsbt = null, HttpStatusCode statusCode = HttpStatusCode.OK)
+		private static Func<HttpMethod, string, string[], string, Task<HttpResponseMessage>> PayjoinServer(Func<PSBT, PSBT> transformPsbt = null, HttpStatusCode statusCode = HttpStatusCode.OK)
 		{
 			if (transformPsbt is { })
 			{
-				return new Func<HttpMethod, string, string, Task<HttpResponseMessage>>((method, path, requestBody) =>
+				return new Func<HttpMethod, string, string[], string, Task<HttpResponseMessage>>((method, path, parameters, requestBody) =>
 				{
 					var psbt = PSBT.Parse(requestBody, Network.Main);
 					var newPsbt = transformPsbt(psbt);
@@ -375,7 +375,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			}
 			else
 			{
-				return new Func<HttpMethod, string, string, Task<HttpResponseMessage>>((method, path, requestBody) =>
+				return new Func<HttpMethod, string, string[], string, Task<HttpResponseMessage>>((method, path, parameters, requestBody) =>
 				{
 					var message = new HttpResponseMessage(statusCode);
 					message.ReasonPhrase = "";

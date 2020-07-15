@@ -29,6 +29,7 @@ namespace WalletWasabi.WebClients.PayJoin
 		// For testing only
 		internal PayjoinClient(ITorHttpClient httpClient)
 		{
+			PaymentUrl = httpClient.DestinationUri;
 			TorHttpClient = Guard.NotNull(nameof(httpClient), httpClient);
 		}
 
@@ -56,12 +57,7 @@ namespace WalletWasabi.WebClients.PayJoin
 			{
 				throw new ArgumentException("originalTx should have utxo information", nameof(originalTx));
 			}
-/*
-			if (!originalTx.TryGetEstimatedFeeRate(out var originalFeeRate))
-			{
-				throw new ArgumentException("signedPSBT should have utxo information", nameof(originalTx));
-			}
-			*/
+
 			var originalFee = originalTx.GetFee();
 			optionalParameters.MaxAdditionalFeeContribution =
 				// By default, we want to keep same fee rate and a single additional input
