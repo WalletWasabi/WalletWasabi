@@ -23,7 +23,20 @@
       <Grid ColumnDefinitions="*,320,*" DockPanel.Dock="Bottom">
         <Button Command="{Binding AgreeClicked}" Grid.Column="1" Grid.ColumnSpan="1" IsVisible="{Binding !IsAgreed}" Margin="0,10,0,0">I Agree</Button>
       </Grid>
-      <controls:MultiTextBox Text="{Binding Text}" BorderBrush="{DynamicResource ThemeForegroundBrush}" IsReadOnly="True" IsSelectable="False" TextWrapping="Wrap" AcceptsReturn="True"  />
+      <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+        <Panel>
+          <TextBlock Text="{Binding Text}" TextWrapping="Wrap"/>
+          <Panel.ContextMenu>
+            <ContextMenu>
+              <MenuItem Header="Copy Legal Text" Command="{Binding CopyLegalText}">
+                <MenuItem.Icon>
+                  <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource Copy}" />
+                </MenuItem.Icon>
+              </MenuItem>
+            </ContextMenu>
+          </Panel.ContextMenu>
+        </Panel>
+      </ScrollViewer>
     </DockPanel>
   </Grid>
 </UserControl>
