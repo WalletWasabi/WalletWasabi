@@ -16,7 +16,7 @@ namespace WalletWasabi.Helpers
 		public const int MaxPasswordLength = 150;
 		public const string CompatibilityPasswordWarnMessage = "Compatibility password was used! Please consider generating a new wallet to ensure recoverability!";
 		public static readonly string PasswordTooLongMessage = $"Password is too long (Max {MaxPasswordLength} characters).";
-		public const string TrimWarnMessage = "Leading and trailing white spaces will be removed!";
+		public const string TrimWarnMessage = "The first and last letter cannot be white space and will be removed!";
 
 		public static string[] GetPossiblePasswords(string originalPassword)
 		{
@@ -111,7 +111,7 @@ namespace WalletWasabi.Helpers
 
 			if (IsTrimable(password, out _)) // Password should be formatted, before entering here.
 			{
-				throw new FormatException("Leading and trailing white spaces are not allowed!");
+				throw new FormatException("The first and last letter cannot be white spaces and will be removed!");
 			}
 		}
 
