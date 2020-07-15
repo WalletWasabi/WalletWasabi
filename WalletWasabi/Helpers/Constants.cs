@@ -21,6 +21,7 @@ namespace WalletWasabi.Helpers
 		public const uint ProtocolVersionWitnessVersion = 70012;
 
 		public const int P2wpkhInputSizeInBytes = 41;
+		public const int P2wpkhInputVirtualSizeAccordingBtcPayServer = 68;
 		public const int P2pkhInputSizeInBytes = 145;
 		public const int OutputSizeInBytes = 33;
 

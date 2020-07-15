@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 using NBitcoin;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Helpers;
 using WalletWasabi.TorSocks5;
 
@@ -27,6 +29,7 @@ namespace WalletWasabi.WebClients.PayJoin
 		// For testing only
 		internal PayjoinClient(ITorHttpClient httpClient)
 		{
+			PaymentUrl = httpClient.DestinationUri;
 			TorHttpClient = Guard.NotNull(nameof(httpClient), httpClient);
 		}
 
@@ -34,7 +37,7 @@ namespace WalletWasabi.WebClients.PayJoin
 		private EndPoint TorSocks5EndPoint { get; }
 		private ITorHttpClient TorHttpClient { get; }
 
-		public async Task<PSBT> RequestPayjoin(PSBT originalTx, IHDKey accountKey, RootedKeyPath rootedKeyPath, CancellationToken cancellationToken)
+		public async Task<PSBT> RequestPayjoin(PSBT originalTx, IHDKey accountKey, RootedKeyPath rootedKeyPath, HdPubKey changeHdPubKey, CancellationToken cancellationToken)
 		{
 			Guard.NotNull(nameof(originalTx), originalTx);
 			if (originalTx.IsAllFinalized())
@@ -42,8 +45,13 @@ namespace WalletWasabi.WebClients.PayJoin
 				throw new InvalidOperationException("The original PSBT should not be finalized.");
 			}
 
-			var sentBefore = -originalTx.GetBalance(ScriptPubKeyType.Segwit, accountKey, rootedKeyPath);
-			var oldGlobalTx = originalTx.GetGlobalTransaction();
+			var optionalParameters = new PayjoinClientParameters();
+			var changeOutput = originalTx.Outputs.FirstOrDefault(x => x.ScriptPubKey == changeHdPubKey.P2wpkhScript);
+
+			if (changeOutput is PSBTOutput o)
+			{
+				optionalParameters.AdditionalFeeOutputIndex = (int)o.Index;
+			}
 
 			if (!originalTx.TryGetEstimatedFeeRate(out var originalFeeRate) || !originalTx.TryGetVirtualSize(out var oldVirtualSize))
 			{
@@ -51,6 +59,13 @@ namespace WalletWasabi.WebClients.PayJoin
 			}
 
 			var originalFee = originalTx.GetFee();
+			// By default, we want to keep same fee rate and a single additional input
+			optionalParameters.MaxAdditionalFeeContribution = originalFeeRate.GetFee(Constants.P2wpkhInputVirtualSizeAccordingBtcPayServer);
+			optionalParameters.DisableOutputSubstitution = false;
+
+			var sentBefore = -originalTx.GetBalance(ScriptPubKeyType.Segwit, accountKey, rootedKeyPath);
+			var oldGlobalTx = originalTx.GetGlobalTransaction();
+
 			var cloned = originalTx.Clone();
 			if (!cloned.TryFinalize(out var _))
 			{
@@ -70,7 +85,9 @@ namespace WalletWasabi.WebClients.PayJoin
 
 			cloned.GlobalXPubs.Clear();
 
-			var request = new HttpRequestMessage(HttpMethod.Post, PaymentUrl)
+			var endpoint = ApplyOptionalParameters(PaymentUrl, optionalParameters);
+
+			var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
 			{
 				Content = new StringContent(cloned.ToHex(), Encoding.UTF8, "text/plain")
 			};
@@ -250,6 +267,35 @@ namespace WalletWasabi.WebClients.PayJoin
 			}
 
 			return newPSBT;
+		}
+
+		private static Uri ApplyOptionalParameters(Uri endpoint, PayjoinClientParameters clientParameters)
+		{
+			var requestUri = endpoint.AbsoluteUri;
+			if (requestUri.IndexOf('?', StringComparison.OrdinalIgnoreCase) is int i && i != -1)
+			{
+				requestUri = requestUri.Substring(0, i);
+			}
+			List<string> parameters = new List<string>(3);
+			parameters.Add($"v={clientParameters.Version}");
+			if (clientParameters.AdditionalFeeOutputIndex is int additionalFeeOutputIndex)
+			{
+				parameters.Add($"additionalfeeoutputindex={additionalFeeOutputIndex.ToString(CultureInfo.InvariantCulture)}");
+			}
+			if (clientParameters.DisableOutputSubstitution is bool disableoutputsubstitution)
+			{
+				parameters.Add($"disableoutputsubstitution={disableoutputsubstitution}");
+			}
+			if (clientParameters.MaxAdditionalFeeContribution is Money maxAdditionalFeeContribution)
+			{
+				parameters.Add($"maxadditionalfeecontribution={maxAdditionalFeeContribution.Satoshi.ToString(CultureInfo.InvariantCulture)}");
+			}
+			if (clientParameters.MinFeeRate is FeeRate minFeeRate)
+			{
+				parameters.Add($"minfeerate={minFeeRate.SatoshiPerByte.ToString(CultureInfo.InvariantCulture)}");
+			}
+			endpoint = new Uri($"{requestUri}?{string.Join('&', parameters)}");
+			return endpoint;
 		}
 	}
 }

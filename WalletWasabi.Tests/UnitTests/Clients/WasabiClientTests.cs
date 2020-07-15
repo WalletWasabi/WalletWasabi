@@ -20,7 +20,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 		{
 			var mempool = Enumerable.Range(0, 1_100).Select(_ => CreateTransaction()).ToArray();
 
-			Task<HttpResponseMessage> FakeServerCode(HttpMethod method, string action, string[] parameters)
+			Task<HttpResponseMessage> FakeServerCode(HttpMethod method, string action, string[] parameters, string body)
 			{
 				Assert.True(parameters.Length <= 10);
 				var requestedTxId = parameters.Select(p => uint256.Parse(p[(p.IndexOf('=') + 1)..]));
@@ -32,7 +32,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			};
 
 			var torHttpClient = new MockTorHttpClient();
-			torHttpClient.OnSendAsync_Method = FakeServerCode;
+			torHttpClient.OnSendAsync = FakeServerCode;
 			var client = new WasabiClient(torHttpClient);
 			Assert.Empty(WasabiClient.TransactionCache);
 
@@ -58,7 +58,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			Assert.Subset(WasabiClient.TransactionCache.Keys.ToHashSet(), txs.TakeLast(1_000).Select(x => x.GetHash()).ToHashSet());
 
 			// Requests transactions that are already in the cache
-			torHttpClient.OnSendAsync_Method = (verb, action, parameters) =>
+			torHttpClient.OnSendAsync = (verb, action, parameters, body) =>
 				Task.FromException<HttpResponseMessage>(
 					new InvalidOperationException("The transaction should already be in the client cache. Http request was unexpected."));
 
@@ -67,7 +67,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			Assert.Equal(expectedTobeCachedTxId, txs.Last().GetHash());
 
 			// Requests fails with Bad Request
-			torHttpClient.OnSendAsync_Method = (verb, action, parameters) =>
+			torHttpClient.OnSendAsync = (verb, action, parameters, body) =>
 			{
 				var response = new HttpResponseMessage(HttpStatusCode.BadRequest);
 				response.Content = new StringContent("\"Some RPC problem...\"");
