@@ -49,8 +49,6 @@ namespace WalletWasabi.Gui.Tabs
 			this.WhenAnyValue(x => x.Text)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(text => EmptyContent = string.IsNullOrEmpty(text));
-
-			CopyLegalText = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(Text));
 		}
 
 		public string FilePath { get; set; } = null;
@@ -70,7 +68,6 @@ namespace WalletWasabi.Gui.Tabs
 		}
 
 		public ReactiveCommand<Unit, Unit> AgreeClicked { get; }
-		public ReactiveCommand<Unit, Unit> CopyLegalText { get; }
 		public LegalDocuments LegalDoc { get; }
 
 		public bool IsAgreed { get; set; }
