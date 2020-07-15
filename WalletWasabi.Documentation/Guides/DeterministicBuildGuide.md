@@ -1,67 +1,79 @@
-> Reproducible [or deterministic] builds are a set of software development practices that create an independently-verifiable path from source to binary code.- https://reproducible-builds.org/
+# Guide for deterministic builds
 
-This guide describes how to reproduce Wasabi's builds. If you got stuck with these instructions, take a look at how to build Wasabi from source code: https://github.com/zkSNACKs/WalletWasabi#build-from-source-code
+The term *deterministic builds* is [defined](https://reproducible-builds.org/) as follows:
 
-# 1: Assert Correct Environment
+> Reproducible [or deterministic] builds are a set of software development practices that create an independently-verifiable path from source to binary code.
 
-In order to reproduce Wasabi's builds you need Git, Windows 10 and the version of .NET Core SDK that was the most recent in the time of building the release.
+This guide describes how to reproduce Wasabi's builds. If you get stuck with these instructions, take a look at [how to build Wasabi from source code](https://github.com/zkSNACKs/WalletWasabi#build-from-source-code).
 
-# 2. Reproduce Builds
+**Warning:** Reproducible builds were introduced in [1.1.3 release](https://github.com/zkSNACKs/WalletWasabi/releases/tag/v1.1.3), you cannot use these instructions for older versions!
+
+## 1. Assert correct environment
+
+In order to reproduce Wasabi's builds, you need [git](https://git-scm.com/) package, Windows 10, and the version of .NET Core SDK that was used by the Wasabi team to produce given Wasabi Wallet release. The latest version of .NET Core SDK is always used, unless specified otherwise in the release notes of Wasabi Wallet. You can get it here https://dotnet.microsoft.com/download/dotnet-core.
+
+## 2. Reproduce builds
+
+You can see the list of Wasabi releases here: https://github.com/zkSNACKs/WalletWasabi/releases. Please note that each release has a version and a git hash assigned. The git hash is useful in the following instructions:
 
 ```sh
 git clone https://github.com/zkSNACKs/WalletWasabi.git
-git checkout {hash of the release} # This works from 1.1.3 release, https://github.com/zkSNACKs/WalletWasabi/releases
-cd WalletWasabi/WalletWasabi.Packager/
+cd WalletWasabi
+git checkout <SHA-1-hash-of-the-release>
+cd WalletWasabi.Packager
 dotnet restore
 dotnet build
 dotnet run -- --onlybinaries
 ```
 
-This will build our binaries for Windows, OSX and Linux from source code and open them in a file explorer for you.
+These commands will produce Wasabi's binaries for Windows, macOS and Linux from source code. Also, for your convenience, a new file explorer window will navigate you to the binaries location - i.e. `WalletWasabi\\WalletWasabi.Gui\\bin\\dist`.
 
 ![](https://i.imgur.com/8XAQzz4.png)
 
-# 3. Verify Builds
+## 3. Verify builds
 
-You can compare our binaries with the downloads we have on the website: https://wasabiwallet.io/
-In order to end-to-end verify all the downloaded packages you need a Windows, a Linux, and an OSX machine.
+Now, we will attempt to verify the binaries you have just compiled with the officially distributed binaries on https://wasabiwallet.io website. Please download those packages from the website, you should see the following files in your File Explorer:
 
 ![](https://i.imgur.com/aI9Kx0c.png)
 
-## Windows
+Please note that to completely verify Wasabi packages for all supported platforms, you actually need machines with Windows, Linux and macOS operating systems. If you don't have so many physical machines, you can use any virtualization sofware packages like [VirtualBox](https://www.virtualbox.org/), [VMWare](https://www.vmware.com/), etc.
 
-After you installed Wasabi from the `.msi`, it will be in `C:\Program Files\WasabiWallet` folder. You can compare it with your build:
+### Windows
 
-```sh
-git diff --no-index win7-x64 "C:\Program Files\WasabiWallet"
-```
+* Install Wasabi using `Wasabi-<version>.msi` file. It will install to `C:\Program Files\WasabiWallet` directory.
+* Start `cmd` or Powershell and navigate to the `dist` directory.
+* Execute the following command:
+  ```sh
+  git diff --no-index "win7-x64" "C:\Program Files\WasabiWallet"
+  ```
+  and make sure that there is **NO** difference reported by the command.
 
-## Linux && OSX
+### Linux & macOS
 
-You can use the Windows Subsystem for Linux to verify all the packages in one go. At the time of writing this guide we provide a `.tar.gz` and a `.deb` package for Linux and .dmg for OSX.  
+You can use the [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/) to verify all the packages in one go. At the time of writing this guide we provide `.tar.gz` and `.deb` packages for Linux and `.dmg` package for macOS.  
 Install the `.deb` package and extract the `tar.gz` and `.dmg` packages, then compare them with your build.
 
-After installing WSL, just type `wsl` in explorer where your downloaded and built packages are located.
+After [installing WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10), just type `wsl` in File Explorer where your downloaded and built packages are located.
 
 ![](https://i.imgur.com/yRUjxvG.png)
 
-### .deb
+#### .deb
 
 ```sh
 sudo dpkg -i Wasabi-1.1.6.deb
 git diff --no-index linux-x64/ /usr/local/bin/wasabiwallet/
 ```
 
-### .tar.gz
+#### .tar.gz
 
 ```sh
 tar -pxzf WasabiLinux-1.1.6.tar.gz
 git diff --no-index linux-x64/ WasabiLinux-1.1.6
 ```
 
-### .dmg
+#### .dmg
 
-You will need to install `7z` (or something else) to extract the `.dmg`: `sudo apt install p7zip-full`
+You will need to install `7z` (or something else) to extract the `.dmg`. You can do that using `sudo apt install p7zip-full` command.
 
 ```sh
 7z x Wasabi-1.1.6.dmg -oWasabiOsx
