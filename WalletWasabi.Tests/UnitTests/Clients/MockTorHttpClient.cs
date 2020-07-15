@@ -24,8 +24,8 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 
 		public async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent content = null, CancellationToken cancel = default)
 		{
-			var body = (content is {})
-				?  await content.ReadAsStringAsync()
+			var body = (content is { })
+				? await content.ReadAsStringAsync()
 				: "";
 			var sepPos = relativeUri.IndexOf('?');
 			var action = relativeUri[..sepPos];
@@ -36,8 +36,8 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancel = default)
 		{
 			var relativeUri = request.RequestUri?.ToString()?.Replace(TorSocks5EndPoint.ToEndpointString(), "");
-			var body = (request.Content is {})
-				?  await request.Content.ReadAsStringAsync()
+			var body = (request.Content is { })
+				? await request.Content.ReadAsStringAsync()
 				: "";
 
 			var sepPos = relativeUri.IndexOf('?');

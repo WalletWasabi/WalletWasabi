@@ -59,10 +59,8 @@ namespace WalletWasabi.WebClients.PayJoin
 			}
 
 			var originalFee = originalTx.GetFee();
-			optionalParameters.MaxAdditionalFeeContribution =
-				// By default, we want to keep same fee rate and a single additional input
-				originalFeeRate.GetFee(Constants.P2wpkhInputVirtualSizeAccordingBtcPayServer);
-
+			// By default, we want to keep same fee rate and a single additional input
+			optionalParameters.MaxAdditionalFeeContribution = originalFeeRate.GetFee(Constants.P2wpkhInputVirtualSizeAccordingBtcPayServer);
 			optionalParameters.DisableOutputSubstitution = false;
 
 			var sentBefore = -originalTx.GetBalance(ScriptPubKeyType.Segwit, accountKey, rootedKeyPath);
@@ -275,28 +273,29 @@ namespace WalletWasabi.WebClients.PayJoin
 		{
 			var requestUri = endpoint.AbsoluteUri;
 			if (requestUri.IndexOf('?', StringComparison.OrdinalIgnoreCase) is int i && i != -1)
+			{
 				requestUri = requestUri.Substring(0, i);
+			}
 			List<string> parameters = new List<string>(3);
 			parameters.Add($"v={clientParameters.Version}");
 			if (clientParameters.AdditionalFeeOutputIndex is int additionalFeeOutputIndex)
+			{
 				parameters.Add($"additionalfeeoutputindex={additionalFeeOutputIndex.ToString(CultureInfo.InvariantCulture)}");
+			}
 			if (clientParameters.DisableOutputSubstitution is bool disableoutputsubstitution)
+			{
 				parameters.Add($"disableoutputsubstitution={disableoutputsubstitution}");
+			}
 			if (clientParameters.MaxAdditionalFeeContribution is Money maxAdditionalFeeContribution)
+			{
 				parameters.Add($"maxadditionalfeecontribution={maxAdditionalFeeContribution.Satoshi.ToString(CultureInfo.InvariantCulture)}");
+			}
 			if (clientParameters.MinFeeRate is FeeRate minFeeRate)
+			{
 				parameters.Add($"minfeerate={minFeeRate.SatoshiPerByte.ToString(CultureInfo.InvariantCulture)}");
+			}
 			endpoint = new Uri($"{requestUri}?{string.Join('&', parameters)}");
 			return endpoint;
 		}
-	}
-
-	public class PayjoinClientParameters
-	{
-		public Money MaxAdditionalFeeContribution { get; set; }
-		public FeeRate MinFeeRate { get; set; }
-		public int? AdditionalFeeOutputIndex { get; set; }
-		public bool DisableOutputSubstitution { get; set; }
-		public int Version { get; set; } = 1;
 	}
 }
