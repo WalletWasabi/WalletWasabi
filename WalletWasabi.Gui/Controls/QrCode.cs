@@ -83,7 +83,7 @@ namespace WalletWasabi.Gui.Controls
 			}
 
 			var sfd = new SaveFileDialog();
-
+			sfd.Title = "Save Bitcoin Address QR Code To...";
 			sfd.InitialFileName = $"{address}.png";
 			sfd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
 			sfd.Filters.Add(new FileDialogFilter() { Name = "Portable Network Graphics (PNG) Image file", Extensions = { "png" } });
