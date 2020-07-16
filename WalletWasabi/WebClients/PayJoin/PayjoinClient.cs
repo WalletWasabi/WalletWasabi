@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.WebUtilities;
 using NBitcoin;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -46,7 +47,7 @@ namespace WalletWasabi.WebClients.PayJoin
 			}
 
 			var optionalParameters = new PayjoinClientParameters();
-			var changeOutput = originalTx.Outputs.FirstOrDefault(x => x.ScriptPubKey == changeHdPubKey.P2wpkhScript);
+			PSBTOutput changeOutput = originalTx.Outputs.FirstOrDefault(x => x.ScriptPubKey == changeHdPubKey.P2wpkhScript);
 
 			if (changeOutput is PSBTOutput o)
 			{
@@ -269,33 +270,36 @@ namespace WalletWasabi.WebClients.PayJoin
 			return newPSBT;
 		}
 
-		private static Uri ApplyOptionalParameters(Uri endpoint, PayjoinClientParameters clientParameters)
+		internal static Uri ApplyOptionalParameters(Uri endpoint, PayjoinClientParameters clientParameters)
 		{
-			var requestUri = endpoint.AbsoluteUri;
-			if (requestUri.IndexOf('?', StringComparison.OrdinalIgnoreCase) is int i && i != -1)
+			var parameters = new Dictionary<string, string>
 			{
-				requestUri = requestUri.Substring(0, i);
-			}
-			List<string> parameters = new List<string>(3);
-			parameters.Add($"v={clientParameters.Version}");
+				{ "v", clientParameters.Version.ToString() }
+			};
+
 			if (clientParameters.AdditionalFeeOutputIndex is int additionalFeeOutputIndex)
 			{
-				parameters.Add($"additionalfeeoutputindex={additionalFeeOutputIndex.ToString(CultureInfo.InvariantCulture)}");
+				parameters.Add(nameof(clientParameters.AdditionalFeeOutputIndex).ToLower(), additionalFeeOutputIndex.ToString(CultureInfo.InvariantCulture));
 			}
 			if (clientParameters.DisableOutputSubstitution is bool disableoutputsubstitution)
 			{
-				parameters.Add($"disableoutputsubstitution={disableoutputsubstitution}");
+				parameters.Add(nameof(clientParameters.DisableOutputSubstitution).ToLower(), disableoutputsubstitution.ToString());
 			}
 			if (clientParameters.MaxAdditionalFeeContribution is Money maxAdditionalFeeContribution)
 			{
-				parameters.Add($"maxadditionalfeecontribution={maxAdditionalFeeContribution.Satoshi.ToString(CultureInfo.InvariantCulture)}");
+				parameters.Add(nameof(clientParameters.MaxAdditionalFeeContribution).ToLower(), maxAdditionalFeeContribution.Satoshi.ToString(CultureInfo.InvariantCulture));
 			}
 			if (clientParameters.MinFeeRate is FeeRate minFeeRate)
 			{
-				parameters.Add($"minfeerate={minFeeRate.SatoshiPerByte.ToString(CultureInfo.InvariantCulture)}");
+				parameters.Add(nameof(clientParameters.MinFeeRate).ToLower(), minFeeRate.SatoshiPerByte.ToString(CultureInfo.InvariantCulture));
 			}
-			endpoint = new Uri($"{requestUri}?{string.Join('&', parameters)}");
-			return endpoint;
+
+			// Remove query from endpoint.
+			var builder = new UriBuilder(endpoint);
+			builder.Query = "";
+
+			// Construct final URI.
+			return new Uri(QueryHelpers.AddQueryString(builder.Uri.AbsoluteUri, parameters));
 		}
 	}
 }
