@@ -48,7 +48,7 @@
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="User Support: " />
-            <Button Content="{Binding CustomerSupportLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding CustomerSupportLink}" />
+            <Button Content="{Binding UserSupportLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding UserSupportLink}" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Bug Report: " />
