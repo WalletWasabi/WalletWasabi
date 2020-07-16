@@ -46,13 +46,15 @@ namespace WalletWasabi.WebClients.PayJoin
 			}
 
 			var optionalParameters = new PayjoinClientParameters();
-			var changeOutput = originalTx.Outputs.FirstOrDefault(x => x.ScriptPubKey == changeHdPubKey.P2wpkhScript);
-
-			if (changeOutput is PSBTOutput o)
+			if (changeHdPubKey is { })
 			{
-				optionalParameters.AdditionalFeeOutputIndex = (int)o.Index;
-			}
+				var changeOutput = originalTx.Outputs.FirstOrDefault(x => x.ScriptPubKey == changeHdPubKey.P2wpkhScript);
 
+				if (changeOutput is PSBTOutput o)
+				{
+					optionalParameters.AdditionalFeeOutputIndex = (int)o.Index;
+				}
+			}
 			if (!originalTx.TryGetEstimatedFeeRate(out var originalFeeRate) || !originalTx.TryGetVirtualSize(out var oldVirtualSize))
 			{
 				throw new ArgumentException("originalTx should have utxo information", nameof(originalTx));
@@ -60,7 +62,7 @@ namespace WalletWasabi.WebClients.PayJoin
 
 			var originalFee = originalTx.GetFee();
 			// By default, we want to keep same fee rate and a single additional input
-			optionalParameters.MaxAdditionalFeeContribution = originalFeeRate.GetFee(Constants.P2wpkhInputVirtualSizeAccordingBtcPayServer);
+			optionalParameters.MaxAdditionalFeeContribution = originalFeeRate.GetFee(Constants.P2wpkhInputVirtualSize);
 			optionalParameters.DisableOutputSubstitution = false;
 
 			var sentBefore = -originalTx.GetBalance(ScriptPubKeyType.Segwit, accountKey, rootedKeyPath);
@@ -269,7 +271,7 @@ namespace WalletWasabi.WebClients.PayJoin
 			return newPSBT;
 		}
 
-		private static Uri ApplyOptionalParameters(Uri endpoint, PayjoinClientParameters clientParameters)
+		internal static Uri ApplyOptionalParameters(Uri endpoint, PayjoinClientParameters clientParameters)
 		{
 			var requestUri = endpoint.AbsoluteUri;
 			if (requestUri.IndexOf('?', StringComparison.OrdinalIgnoreCase) is int i && i != -1)
@@ -284,7 +286,7 @@ namespace WalletWasabi.WebClients.PayJoin
 			}
 			if (clientParameters.DisableOutputSubstitution is bool disableoutputsubstitution)
 			{
-				parameters.Add($"disableoutputsubstitution={disableoutputsubstitution}");
+				parameters.Add($"disableoutputsubstitution={(disableoutputsubstitution ? "true" : "false")}");
 			}
 			if (clientParameters.MaxAdditionalFeeContribution is Money maxAdditionalFeeContribution)
 			{

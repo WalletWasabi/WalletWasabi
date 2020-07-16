@@ -340,6 +340,10 @@ namespace WalletWasabi.Blockchain.Transactions
 			catch (PayjoinException e)
 			{
 				Logger.LogWarning($"Payjoin server responded with {e.Message}. Ignoring...");
+				if (e is PayjoinReceiverException pje && pje.ErrorCode == "already-paid")
+				{
+					throw;
+				}
 			}
 
 			return psbt;

@@ -27,6 +27,19 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 	public class PayjoinTests
 	{
 		[Fact]
+		public void ApplyOptionalParametersTest()
+		{
+			var clientParameters = new PayjoinClientParameters();
+			clientParameters.Version = 1;
+			clientParameters.MaxAdditionalFeeContribution = new Money(50, MoneyUnit.MilliBTC);
+
+			Uri result = PayjoinClient.ApplyOptionalParameters(new Uri("http://test.me/btc/?something=1"), clientParameters);
+
+			// Assert that the final URI does not contain `something=1` and that it contains proper parameters (in lowercase!).
+			Assert.Equal("http://test.me/btc/?v=1&disableoutputsubstitution=false&maxadditionalfeecontribution=5000000", result.AbsoluteUri);
+		}
+
+		[Fact]
 		public void LazyPayjoinServerTest()
 		{
 			// This tests the scenario where the payjoin server returns the same
@@ -34,7 +47,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// us the fake sense of privacy but it should be valid.
 			var httpClient = new MockTorHttpClient
 			{
-				OnSendAsync = PayjoinServer(psbt => psbt)
+				OnSendAsync = PayjoinServerOk(psbt => psbt)
 			};
 			var payjoinClient = new PayjoinClient(httpClient);
 			var transactionFactory = CreateTransactionFactory(new[]
@@ -63,7 +76,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// This tests the scenario where the payjoin server behaves as expected.
 			var httpClient = new MockTorHttpClient
 			{
-				OnSendAsync = PayjoinServer(psbt =>
+				OnSendAsync = PayjoinServerOk(psbt =>
 				{
 					var clientTx = psbt.ExtractTransaction();
 					foreach (var input in clientTx.Inputs)
@@ -133,7 +146,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// This tests the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
 			var httpClient = new MockTorHttpClient
 			{
-				OnSendAsync = PayjoinServer(psbt =>
+				OnSendAsync = PayjoinServerOk(psbt =>
 				{
 					var newCoin = psbt.Inputs[0].GetCoin();
 					newCoin.Outpoint.N = newCoin.Outpoint.N + 1;
@@ -154,7 +167,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// This tests the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
 			httpClient = new MockTorHttpClient
 			{
-				OnSendAsync = PayjoinServer(psbt =>
+				OnSendAsync = PayjoinServerOk(psbt =>
 				{
 					var globalTx = psbt.GetGlobalTransaction();
 					var diff = Money.Coins(0.0007m);
@@ -181,7 +194,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// This tests the scenario where the payjoin server does not clean GloablXPubs.
 			var httpClient = new MockTorHttpClient
 			{
-				OnSendAsync = PayjoinServer(psbt =>
+				OnSendAsync = PayjoinServerOk(psbt =>
 				{
 					var extPubkey = new ExtKey().Neuter().GetWif(Network.Main);
 					psbt.GlobalXPubs.Add(extPubkey, new RootedKeyPath(extPubkey.GetPublicKey().GetHDFingerPrint(), KeyManager.DefaultAccountKeyPath));
@@ -197,7 +210,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// This tests the scenario where the payjoin server includes keypath info in the inputs.
 			httpClient = new MockTorHttpClient
 			{
-				OnSendAsync = PayjoinServer(psbt =>
+				OnSendAsync = PayjoinServerOk(psbt =>
 				{
 					var extPubkey = new ExtKey().Neuter().GetWif(Network.Main);
 					psbt.Inputs[0].AddKeyPath(new Key().PubKey, new RootedKeyPath(extPubkey.GetPublicKey().GetHDFingerPrint(), KeyManager.DefaultAccountKeyPath));
@@ -212,7 +225,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// This tests the scenario where the payjoin server modifies the inputs sequence.
 			httpClient = new MockTorHttpClient
 			{
-				OnSendAsync = PayjoinServer(psbt =>
+				OnSendAsync = PayjoinServerOk(psbt =>
 				{
 					var globalTx = psbt.GetGlobalTransaction();
 					globalTx.Inputs[0].Sequence = globalTx.Inputs[0].Sequence + 1;
@@ -227,7 +240,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// This tests the scenario where the payjoin server returns an unsigned input (fucking bastard).
 			httpClient = new MockTorHttpClient
 			{
-				OnSendAsync = PayjoinServer(psbt =>
+				OnSendAsync = PayjoinServerOk(psbt =>
 				{
 					var globalTx = psbt.GetGlobalTransaction();
 					globalTx.Inputs.Add(GetRandomOutPoint());
@@ -242,7 +255,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// This tests the scenario where the payjoin server removes one of our inputs (probably to optimize it).
 			httpClient = new MockTorHttpClient
 			{
-				OnSendAsync = PayjoinServer(psbt =>
+				OnSendAsync = PayjoinServerOk(psbt =>
 				{
 					var globalTx = psbt.GetGlobalTransaction();
 					globalTx.Inputs.Clear(); // remove all the inputs
@@ -258,7 +271,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// This tests the scenario where the payjoin server includes keypath info in the outputs.
 			httpClient = new MockTorHttpClient
 			{
-				OnSendAsync = PayjoinServer(psbt =>
+				OnSendAsync = PayjoinServerOk(psbt =>
 				{
 					var extPubkey = new ExtKey().Neuter().GetWif(Network.Main);
 					psbt.Outputs[0].AddKeyPath(new Key().PubKey, new RootedKeyPath(extPubkey.GetPublicKey().GetHDFingerPrint(), KeyManager.DefaultAccountKeyPath));
@@ -273,7 +286,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// This tests the scenario where the payjoin server includes partial signatures.
 			httpClient = new MockTorHttpClient
 			{
-				OnSendAsync = PayjoinServer(psbt =>
+				OnSendAsync = PayjoinServerOk(psbt =>
 				{
 					var extPubkey = new ExtKey().Neuter().GetWif(Network.Main);
 					psbt.Inputs[0].PartialSigs.Add(new Key().PubKey, new TransactionSignature(new Key().Sign(uint256.One)));
@@ -288,7 +301,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// This tests the scenario where the payjoin server modifies the original tx version.
 			httpClient = new MockTorHttpClient
 			{
-				OnSendAsync = PayjoinServer(psbt =>
+				OnSendAsync = PayjoinServerOk(psbt =>
 				{
 					var globalTx = psbt.GetGlobalTransaction();
 					globalTx.Version += 1;
@@ -303,7 +316,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// This tests the scenario where the payjoin server modifies the original tx locktime value.
 			httpClient = new MockTorHttpClient
 			{
-				OnSendAsync = PayjoinServer(psbt =>
+				OnSendAsync = PayjoinServerOk(psbt =>
 				{
 					var globalTx = psbt.GetGlobalTransaction();
 					globalTx.LockTime = new LockTime(globalTx.LockTime + 1);
@@ -327,7 +340,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// This tests the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
 			var httpClient = new MockTorHttpClient
 			{
-				OnSendAsync = PayjoinServer(psbt =>
+				OnSendAsync = PayjoinServerOk(psbt =>
 				{
 					var globalTx = psbt.GetGlobalTransaction();
 					var changeOutput = globalTx.Outputs.Single(x => x.ScriptPubKey != destination);
@@ -353,7 +366,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// This tests the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
 			var httpClient = new MockTorHttpClient
 			{
-				OnSendAsync = PayjoinServer(statusCode: HttpStatusCode.InternalServerError)
+				OnSendAsync = PayjoinServerError(statusCode: HttpStatusCode.InternalServerError, "Internal Server Error")
 			};
 
 			var transactionFactory = CreateTransactionFactory(walletCoins);
@@ -361,11 +374,29 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 		}
 
-		private static Func<HttpMethod, string, NameValueCollection, string, Task<HttpResponseMessage>> PayjoinServer(Func<PSBT, PSBT> transformPsbt = null, HttpStatusCode statusCode = HttpStatusCode.OK)
+		[Fact]
+		public void InvoiceAlreadyPaidTest()
 		{
-			if (transformPsbt is { })
+			// The server wants to make us sign a transaction that pays too much fee.
+			var walletCoins = new[] { ("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1) };
+			var amountToPay = Money.Coins(0.001m);
+			var destination = new Key().PubKey.WitHash.ScriptPubKey;
+			var payment = new PaymentIntent(destination, amountToPay);
+
+			// This tests the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
+			var httpClient = new MockTorHttpClient
 			{
-				return new Func<HttpMethod, string, NameValueCollection, string, Task<HttpResponseMessage>>((method, path, parameters, requestBody) =>
+				OnSendAsync = PayjoinServerError(statusCode: HttpStatusCode.UnprocessableEntity, "already-paid", "The invoice this PSBT is paying has already been partially or completely paid")
+			};
+
+			var transactionFactory = CreateTransactionFactory(walletCoins);
+			var e = Assert.Throws<PayjoinReceiverException>(
+				() => transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), new PayjoinClient(httpClient)));
+			Assert.Equal("The invoice this PSBT is paying has already been partially or completely paid", e.Message);
+		}
+
+		private static Func<HttpMethod, string, NameValueCollection, string, Task<HttpResponseMessage>> PayjoinServerOk(Func<PSBT, PSBT> transformPsbt = null, HttpStatusCode statusCode = HttpStatusCode.OK)
+			=> new Func<HttpMethod, string, NameValueCollection, string, Task<HttpResponseMessage>>((method, path, parameters, requestBody) =>
 				{
 					var psbt = PSBT.Parse(requestBody, Network.Main);
 					var newPsbt = transformPsbt(psbt);
@@ -373,18 +404,15 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 					message.Content = new StringContent(newPsbt.ToHex(), Encoding.UTF8, "text/plain");
 					return Task.FromResult(message);
 				});
-			}
-			else
-			{
-				return new Func<HttpMethod, string, NameValueCollection, string, Task<HttpResponseMessage>>((method, path, parameters, requestBody) =>
+
+		private static Func<HttpMethod, string, NameValueCollection, string, Task<HttpResponseMessage>> PayjoinServerError(HttpStatusCode statusCode, string errorCode, string description="")
+			=> 	new Func<HttpMethod, string, NameValueCollection, string, Task<HttpResponseMessage>>((method, path, parameters, requestBody) =>
 				{
 					var message = new HttpResponseMessage(statusCode);
 					message.ReasonPhrase = "";
-					message.Content = new StringContent("");
+					message.Content = new StringContent("{ \"errorCode\": \"" + errorCode + "\", \"message\": \"" + description + "\"}" );
 					return Task.FromResult(message);
 				});
-			}
-		}
 
 		private TransactionFactory CreateTransactionFactory(
 			IEnumerable<(string Label, int KeyIndex, decimal Amount, bool Confirmed, int AnonymitySet)> coins,
