@@ -1,6 +1,8 @@
 using NBitcoin;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -20,11 +22,12 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 		{
 			var mempool = Enumerable.Range(0, 1_100).Select(_ => CreateTransaction()).ToArray();
 
-			Task<HttpResponseMessage> FakeServerCode(HttpMethod method, string action, string[] parameters, string body)
+			Task<HttpResponseMessage> FakeServerCode(HttpMethod method, string action, NameValueCollection parameters, string body)
 			{
-				Assert.True(parameters.Length <= 10);
-				var requestedTxId = parameters.Select(p => uint256.Parse(p[(p.IndexOf('=') + 1)..]));
-				var result = mempool.Where(tx => requestedTxId.Contains(tx.GetHash())).Select(tx => tx.ToHex());
+				Assert.True(parameters.Count <= 10);
+
+				IEnumerable<uint256> requestedTxIds = parameters["transactionIds"].Split(",").Select(x => uint256.Parse(x));
+				IEnumerable<string> result = mempool.Where(tx => requestedTxIds.Contains(tx.GetHash())).Select(tx => tx.ToHex());
 
 				var response = new HttpResponseMessage(HttpStatusCode.OK);
 				response.Content = new StringContent(JsonConvert.SerializeObject(result));
