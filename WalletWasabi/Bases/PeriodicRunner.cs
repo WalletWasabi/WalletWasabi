@@ -66,7 +66,7 @@ namespace WalletWasabi.Bases
 				}
 				catch (Exception ex)
 				{
-					// Exception encountered. Process it and log it, if it is first in the row.
+					// Exception encountered, process it.
 					LogLastException(ExceptionTracker.Process(ex));
 
 					Logger.LogError(ExceptionTracker.LastException!.Exception);
@@ -75,7 +75,17 @@ namespace WalletWasabi.Bases
 				// Wait for the next round.
 				try
 				{
-					await Task.WhenAny(_tcs.Task, Task.Delay(Period, stoppingToken)).ConfigureAwait(false);
+					using var cts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
+					var linkedTcs = _tcs; // Copy reference so it cannot change.
+
+					if (linkedTcs.Task == await Task.WhenAny(linkedTcs.Task, Task.Delay(Period, cts.Token)).ConfigureAwait(false))
+					{
+						cts.Cancel(); // Ensure that the Task.Delay task is cleaned up.
+					}
+					else
+					{
+						linkedTcs.TrySetCanceled(); // Ensure that the tcs.Task is cleaned up.
+					}
 				}
 				catch (TaskCanceledException ex)
 				{
@@ -84,13 +94,13 @@ namespace WalletWasabi.Bases
 			}
 		}
 
-		private void LogLastException(LastExceptionTracker.ExceptionInfo? info)
+		private void LogLastException(ExceptionInfo? info)
 		{
 			if (info != null)
 			{
 				Logger.LogInfo($"Exception stopped coming. It came for " +
-							$"{(DateTimeOffset.UtcNow - info.FirstAppeared).TotalSeconds} seconds, " +
-							$"{info.ExceptionCount} times: {info.Exception.ToTypeMessageString()}");
+					$"{(DateTimeOffset.UtcNow - info.FirstAppeared).TotalSeconds} seconds, " +
+					$"{info.ExceptionCount} times: {info.Exception.ToTypeMessageString()}");
 			}
 		}
 	}

@@ -13,15 +13,15 @@ namespace WalletWasabi.Tests.UnitTests
 	{
 		internal class TestRunner : PeriodicRunner
 		{
-			public AutoResetEvent NextRoundAutoResetEvent { get; private set; } = new AutoResetEvent(false);
-
-			public int RoundCounter { get; private set; }
-			private TimeSpan MaxNextRoundWaitTime { get; }
-
 			internal TestRunner(TimeSpan period, TimeSpan maxNextRoundWaitTime) : base(period)
 			{
 				MaxNextRoundWaitTime = maxNextRoundWaitTime;
 			}
+
+			public AutoResetEvent NextRoundAutoResetEvent { get; private set; } = new AutoResetEvent(false);
+
+			public int RoundCounter { get; private set; }
+			private TimeSpan MaxNextRoundWaitTime { get; }
 
 			protected override async Task ActionAsync(CancellationToken cancel)
 			{
