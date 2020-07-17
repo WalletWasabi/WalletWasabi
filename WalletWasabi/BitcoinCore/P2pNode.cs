@@ -66,7 +66,7 @@ namespace WalletWasabi.BitcoinCore
 
 			if (!Node.PeerVersion.Services.HasFlag(NodeServices.Network))
 			{
-				throw new InvalidOperationException("We are unable to use the local node because it does not provide blocks.");
+				throw new InvalidOperationException("Unable to use the local node because it does not provide blocks.");
 			}
 
 			if (!Node.IsConnected)
