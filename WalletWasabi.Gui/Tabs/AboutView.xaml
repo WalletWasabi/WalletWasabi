@@ -68,6 +68,6 @@
           </Grid>
         </StackPanel>
       </controls:GroupBox>
-    </UserControl>
-  </Panel>
-</ScrollViewer>
+    </Panel>
+  </ScrollViewer>
+</UserControl>
