@@ -64,7 +64,18 @@ using (AsyncLock.Lock())
 **DO** use `is null` instead of `== null`. It was a performance consideration in the past but from C# 7.0 it does not matter anymore, today we use this convention to keep our code consistent.
 
 ```cs
-	if (foo is null) return;
+if (foo is null) return;
+```
+
+## Empty quotes
+
+**DO** use `""` instead of `string.Empty` for consistency.
+
+```cs
+if (foo is null)
+{
+	return "";
+}
 ```
 
 ## Blocking
