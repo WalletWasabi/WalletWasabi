@@ -26,7 +26,7 @@
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="Height" Value="24" />
     </Style>
-    <Style Selector="Grid.CoinItemGrid > :is(Control)">
+    <Style Selector="Grid.CoinItemGrid > :is(Control):not(:is(Control).FocusTarget)">
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
   </UserControl.Styles>
@@ -79,9 +79,7 @@
           <controls:ExtendedListBox.ItemTemplate>
             <DataTemplate>
               <Grid Classes="CoinItemGrid">
-                <i:Interaction.Behaviors>
-                  <behaviors:CommandOnDoubleClickBehavior Command="{Binding OpenCoinInfo}" />
-                </i:Interaction.Behaviors>
+
                 <Grid.ContextMenu>
                   <ContextMenu>
                     <MenuItem Header="Open Details" Command="{Binding OpenCoinInfo}">
@@ -94,7 +92,7 @@
                         <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource Copy}" />
                       </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem IsVisible="{Binding CanBeDequeued}"  Header="Dequeue from CoinJoin" Command="{Binding DequeueCoin}">
+                    <MenuItem IsVisible="{Binding CanBeDequeued}" Header="Dequeue from CoinJoin" Command="{Binding DequeueCoin}">
                       <MenuItem.Icon>
                         <DrawingPresenter HorizontalAlignment="Left" Height="16" Width="16" Stretch="Fill" Drawing="{StaticResource CoinListView_DequeueCoin}" />
                       </MenuItem.Icon>
@@ -109,6 +107,11 @@
                   <ColumnDefinition Width="80" />
                   <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
+                <Panel Classes="FocusTarget" Background="Transparent" Grid.ColumnSpan="6">
+                  <i:Interaction.Behaviors>
+                    <behaviors:CommandOnDoubleClickBehavior Command="{Binding OpenCoinInfo}" />
+                  </i:Interaction.Behaviors>
+                </Panel>
                 <Border>
                   <CheckBox HorizontalAlignment="Center" IsChecked="{Binding IsSelected}" Background="{DynamicResource ThemeBackgroundBrush}" />
                 </Border>
