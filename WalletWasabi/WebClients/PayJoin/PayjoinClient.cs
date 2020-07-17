@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.WebUtilities;
 using NBitcoin;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -273,31 +274,34 @@ namespace WalletWasabi.WebClients.PayJoin
 
 		internal static Uri ApplyOptionalParameters(Uri endpoint, PayjoinClientParameters clientParameters)
 		{
-			var requestUri = endpoint.AbsoluteUri;
-			if (requestUri.IndexOf('?', StringComparison.OrdinalIgnoreCase) is int i && i != -1)
+			var parameters = new Dictionary<string, string>
 			{
-				requestUri = requestUri.Substring(0, i);
-			}
-			List<string> parameters = new List<string>(3);
-			parameters.Add($"v={clientParameters.Version}");
+				{ "v", clientParameters.Version.ToString() }
+			};
+
 			if (clientParameters.AdditionalFeeOutputIndex is int additionalFeeOutputIndex)
 			{
-				parameters.Add($"additionalfeeoutputindex={additionalFeeOutputIndex.ToString(CultureInfo.InvariantCulture)}");
+				parameters.Add("additionalfeeoutputindex", additionalFeeOutputIndex.ToString(CultureInfo.InvariantCulture));
 			}
 			if (clientParameters.DisableOutputSubstitution is bool disableoutputsubstitution)
 			{
-				parameters.Add($"disableoutputsubstitution={(disableoutputsubstitution ? "true" : "false")}");
+				parameters.Add("disableoutputsubstitution", disableoutputsubstitution ? "true" : "false");
 			}
 			if (clientParameters.MaxAdditionalFeeContribution is Money maxAdditionalFeeContribution)
 			{
-				parameters.Add($"maxadditionalfeecontribution={maxAdditionalFeeContribution.Satoshi.ToString(CultureInfo.InvariantCulture)}");
+				parameters.Add("maxadditionalfeecontribution", maxAdditionalFeeContribution.Satoshi.ToString(CultureInfo.InvariantCulture));
 			}
 			if (clientParameters.MinFeeRate is FeeRate minFeeRate)
 			{
-				parameters.Add($"minfeerate={minFeeRate.SatoshiPerByte.ToString(CultureInfo.InvariantCulture)}");
+				parameters.Add("minfeerate", minFeeRate.SatoshiPerByte.ToString(CultureInfo.InvariantCulture));
 			}
-			endpoint = new Uri($"{requestUri}?{string.Join('&', parameters)}");
-			return endpoint;
+
+			// Remove query from endpoint.
+			var builder = new UriBuilder(endpoint);
+			builder.Query = "";
+
+			// Construct final URI.
+			return new Uri(QueryHelpers.AddQueryString(builder.Uri.AbsoluteUri, parameters));
 		}
 	}
 }
