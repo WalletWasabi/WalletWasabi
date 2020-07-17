@@ -405,8 +405,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 					return Task.FromResult(message);
 				});
 
-		private static Func<HttpMethod, string, NameValueCollection, string, Task<HttpResponseMessage>> PayjoinServerError(HttpStatusCode statusCode, string errorCode, string description="")
-			=> 	new Func<HttpMethod, string, NameValueCollection, string, Task<HttpResponseMessage>>((method, path, parameters, requestBody) =>
+		private static Func<HttpMethod, string, NameValueCollection, string, Task<HttpResponseMessage>> PayjoinServerError(HttpStatusCode statusCode, string errorCode, string description = "")
+			=> new Func<HttpMethod, string, NameValueCollection, string, Task<HttpResponseMessage>>((method, path, parameters, requestBody) =>
 				{
 					var message = new HttpResponseMessage(statusCode);
 					message.ReasonPhrase = "";
