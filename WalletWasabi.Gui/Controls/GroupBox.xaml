@@ -12,9 +12,7 @@
           <Grid ColumnDefinitions="6,Auto,*,6" RowDefinitions="Auto,Auto,*,6">
             <Border Grid.Row="1" Grid.RowSpan="3" Grid.ColumnSpan="4" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}" />
             <ContentPresenter Padding="3" Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Background="{TemplateBinding Background}" Content="{TemplateBinding Title}" />
-            <ScrollViewer Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-              <ContentPresenter Margin="{TemplateBinding Padding}" Content="{TemplateBinding Content}" />
-            </ScrollViewer>
+            <ContentPresenter Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="{TemplateBinding Padding}" Content="{TemplateBinding Content}" />
           </Grid>
         </ControlTemplate>
       </Setter.Value>
