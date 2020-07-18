@@ -16,8 +16,8 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			var walletsPath = Path.Combine(baseDir, WalletDirectories.WalletsDirName);
 			var walletsBackupPath = Path.Combine(baseDir, WalletDirectories.WalletsBackupDirName);
-			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(walletsPath);
-			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(walletsBackupPath);
+			await IoHelpers.TryDeleteDirectoryAsync(walletsPath);
+			await IoHelpers.TryDeleteDirectoryAsync(walletsBackupPath);
 
 			return (walletsPath, walletsBackupPath);
 		}

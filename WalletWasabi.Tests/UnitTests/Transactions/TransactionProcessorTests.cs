@@ -1110,7 +1110,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			var txStore = new AllTransactionStore();
 			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerName, "TransactionStore");
-			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(dir);
+			await IoHelpers.TryDeleteDirectoryAsync(dir);
 			await txStore.InitializeAsync(dir, Network.RegTest);
 
 			return new TransactionProcessor(
