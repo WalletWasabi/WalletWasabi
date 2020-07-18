@@ -58,9 +58,13 @@ namespace WalletWasabi.Packager
 		public static bool OnlyBinaries;
 		public static bool OnlyCreateDigests;
 
+		/// <summary>
+		/// Main entry point.
+		/// </summary>
 		private static void Main(string[] args)
 		{
-			if (MacSignTools.IsMacSignMode())
+			// For now this is enough. If you run it on macOS you want to sign.
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
 				MacSignTools.Sign();
 				return;
