@@ -1,86 +1,87 @@
+#nullable enable
+
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace WalletWasabi.Packager
 {
+	/// <summary>
+	/// Class for processing program's command line arguments.
+	/// </summary>
 	public class ArgsProcessor
 	{
-		public bool IsReduceOnionsMode(string[] args)
+		public ArgsProcessor(string[]? args)
 		{
-			bool getOnions = false;
-			if (args != null)
+			if (args == null)
 			{
-				foreach (var arg in args)
-				{
-					if (arg.Trim().TrimStart('-').Equals("reduceonions", StringComparison.OrdinalIgnoreCase)
-						|| arg.Trim().TrimStart('-').Equals("reduceonion", StringComparison.OrdinalIgnoreCase))
-					{
-						getOnions = true;
-						break;
-					}
-				}
+				throw new ArgumentNullException(nameof(args));
 			}
 
-			return getOnions;
+			Args = args;
 		}
 
-		public bool IsOnlyCreateDigestsMode(string[] args)
+		public string[] Args { get; }
+
+		public bool IsReduceOnionsMode()
 		{
-			bool onlyCreateDigests = false;
-			if (args != null)
+			foreach (var arg in Args)
 			{
-				foreach (var arg in args)
+				string value = arg.Trim().TrimStart('-');
+
+				if (value.Equals("reduceonions", StringComparison.OrdinalIgnoreCase)
+					|| value.Equals("reduceonion", StringComparison.OrdinalIgnoreCase))
 				{
-					if (arg.Trim().TrimStart('-').Equals("onlycreatedigests", StringComparison.OrdinalIgnoreCase)
-						|| arg.Trim().TrimStart('-').Equals("onlycreatedigest", StringComparison.OrdinalIgnoreCase)
-						|| arg.Trim().TrimStart('-').Equals("onlydigests", StringComparison.OrdinalIgnoreCase)
-						|| arg.Trim().TrimStart('-').Equals("onlydigest", StringComparison.OrdinalIgnoreCase))
-					{
-						onlyCreateDigests = true;
-						break;
-					}
+					return true;
 				}
 			}
 
-			return onlyCreateDigests;
+			return false;
 		}
 
-		public bool IsOnlyBinariesMode(string[] args)
+		public bool IsOnlyCreateDigestsMode()
 		{
-			bool onlyBinaries = false;
-			if (args != null)
+			foreach (var arg in Args)
 			{
-				foreach (var arg in args)
+				string value = arg.Trim().TrimStart('-');
+
+				if (value.Equals("onlycreatedigests", StringComparison.OrdinalIgnoreCase)
+					|| value.Equals("onlycreatedigest", StringComparison.OrdinalIgnoreCase)
+					|| value.Equals("onlydigests", StringComparison.OrdinalIgnoreCase)
+					|| value.Equals("onlydigest", StringComparison.OrdinalIgnoreCase))
 				{
-					if (arg.Trim().TrimStart('-').Equals("onlybinaries", StringComparison.OrdinalIgnoreCase))
-					{
-						onlyBinaries = true;
-						break;
-					}
+					return true;
 				}
 			}
 
-			return onlyBinaries;
+			return false;
 		}
 
-		public bool IsGetOnionsMode(string[] args)
+		public bool IsOnlyBinariesMode()
 		{
-			bool getOnions = false;
-			if (args != null)
+			foreach (var arg in Args)
 			{
-				foreach (var arg in args)
+				if (arg.Trim().TrimStart('-').Equals("onlybinaries", StringComparison.OrdinalIgnoreCase))
 				{
-					if (arg.Trim().TrimStart('-').Equals("getonions", StringComparison.OrdinalIgnoreCase)
-						|| arg.Trim().TrimStart('-').Equals("getonion", StringComparison.OrdinalIgnoreCase))
-					{
-						getOnions = true;
-						break;
-					}
+					return true;
 				}
 			}
 
-			return getOnions;
+			return false;
+		}
+
+		public bool IsGetOnionsMode()
+		{
+			foreach (var arg in Args)
+			{
+				string value = arg.Trim().TrimStart('-');
+
+				if (value.Equals("getonions", StringComparison.OrdinalIgnoreCase)
+					|| value.Equals("getonion", StringComparison.OrdinalIgnoreCase))
+				{
+					return true;
+				}
+			}
+
+			return false;
 		}
 	}
 }

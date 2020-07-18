@@ -63,7 +63,7 @@ namespace WalletWasabi.Packager
 		/// </summary>
 		private static void Main(string[] args)
 		{
-			var argsProcessor = new ArgsProcessor();
+			var argsProcessor = new ArgsProcessor(args);
 
 			// For now this is enough. If you run it on macOS you want to sign.
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
@@ -73,14 +73,14 @@ namespace WalletWasabi.Packager
 			}
 
 			// If I want a list of up to date onions run it with '--getonions'.
-			if (argsProcessor.IsGetOnionsMode(args))
+			if (argsProcessor.IsGetOnionsMode())
 			{
 				GetOnions();
 				return;
 			}
 
 			// If I want a list of up to date onions run it with '--getonions'.
-			if (argsProcessor.IsReduceOnionsMode(args))
+			if (argsProcessor.IsReduceOnionsMode())
 			{
 				ReduceOnions();
 				return;
@@ -89,14 +89,14 @@ namespace WalletWasabi.Packager
 			// Start with digest creation and return if only digest creation.
 			CreateDigests();
 
-			OnlyCreateDigests = argsProcessor.IsOnlyCreateDigestsMode(args);
+			OnlyCreateDigests = argsProcessor.IsOnlyCreateDigestsMode();
 			if (OnlyCreateDigests)
 			{
 				return;
 			}
 
 			// Only binaries mode is for deterministic builds.
-			OnlyBinaries = argsProcessor.IsOnlyBinariesMode(args);
+			OnlyBinaries = argsProcessor.IsOnlyBinariesMode();
 			ReportStatus();
 
 			if (DoPublish || OnlyBinaries)
