@@ -3,7 +3,8 @@
   xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui" 
   xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity" 
   xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui" 
-  xmlns:suggestions="clr-namespace:WalletWasabi.Gui.Suggestions;assembly=WalletWasabi.Gui" x:Class="WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets.RecoverWalletView">
+  xmlns:suggestions="clr-namespace:WalletWasabi.Gui.Suggestions;assembly=WalletWasabi.Gui"
+  x:Class="WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets.RecoverWalletView">
   <ScrollViewer Name="root">
     <Panel Width="{Binding #root.Bounds.Width}">
       <StackPanel Margin="10" Spacing="10">
