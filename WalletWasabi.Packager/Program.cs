@@ -63,6 +63,8 @@ namespace WalletWasabi.Packager
 		/// </summary>
 		private static void Main(string[] args)
 		{
+			var argsProcessor = new ArgsProcessor();
+
 			// For now this is enough. If you run it on macOS you want to sign.
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
@@ -71,14 +73,14 @@ namespace WalletWasabi.Packager
 			}
 
 			// If I want a list of up to date onions run it with '--getonions'.
-			if (IsGetOnionsMode(args))
+			if (argsProcessor.IsGetOnionsMode(args))
 			{
 				GetOnions();
 				return;
 			}
 
 			// If I want a list of up to date onions run it with '--getonions'.
-			if (IsReduceOnionsMode(args))
+			if (argsProcessor.IsReduceOnionsMode(args))
 			{
 				ReduceOnions();
 				return;
@@ -87,14 +89,14 @@ namespace WalletWasabi.Packager
 			// Start with digest creation and return if only digest creation.
 			CreateDigests();
 
-			OnlyCreateDigests = IsOnlyCreateDigestsMode(args);
+			OnlyCreateDigests = argsProcessor.IsOnlyCreateDigestsMode(args);
 			if (OnlyCreateDigests)
 			{
 				return;
 			}
 
 			// Only binaries mode is for deterministic builds.
-			OnlyBinaries = IsOnlyBinariesMode(args);
+			OnlyBinaries = argsProcessor.IsOnlyBinariesMode(args);
 			ReportStatus();
 
 			if (DoPublish || OnlyBinaries)
@@ -230,83 +232,6 @@ namespace WalletWasabi.Packager
 				}
 			}
 			Console.WriteLine();
-		}
-
-		private static bool IsOnlyBinariesMode(string[] args)
-		{
-			bool onlyBinaries = false;
-			if (args != null)
-			{
-				foreach (var arg in args)
-				{
-					if (arg.Trim().TrimStart('-').Equals("onlybinaries", StringComparison.OrdinalIgnoreCase))
-					{
-						onlyBinaries = true;
-						break;
-					}
-				}
-			}
-
-			return onlyBinaries;
-		}
-
-		private static bool IsOnlyCreateDigestsMode(string[] args)
-		{
-			bool onlyCreateDigests = false;
-			if (args != null)
-			{
-				foreach (var arg in args)
-				{
-					if (arg.Trim().TrimStart('-').Equals("onlycreatedigests", StringComparison.OrdinalIgnoreCase)
-						|| arg.Trim().TrimStart('-').Equals("onlycreatedigest", StringComparison.OrdinalIgnoreCase)
-						|| arg.Trim().TrimStart('-').Equals("onlydigests", StringComparison.OrdinalIgnoreCase)
-						|| arg.Trim().TrimStart('-').Equals("onlydigest", StringComparison.OrdinalIgnoreCase))
-					{
-						onlyCreateDigests = true;
-						break;
-					}
-				}
-			}
-
-			return onlyCreateDigests;
-		}
-
-		private static bool IsGetOnionsMode(string[] args)
-		{
-			bool getOnions = false;
-			if (args != null)
-			{
-				foreach (var arg in args)
-				{
-					if (arg.Trim().TrimStart('-').Equals("getonions", StringComparison.OrdinalIgnoreCase)
-						|| arg.Trim().TrimStart('-').Equals("getonion", StringComparison.OrdinalIgnoreCase))
-					{
-						getOnions = true;
-						break;
-					}
-				}
-			}
-
-			return getOnions;
-		}
-
-		private static bool IsReduceOnionsMode(string[] args)
-		{
-			bool getOnions = false;
-			if (args != null)
-			{
-				foreach (var arg in args)
-				{
-					if (arg.Trim().TrimStart('-').Equals("reduceonions", StringComparison.OrdinalIgnoreCase)
-						|| arg.Trim().TrimStart('-').Equals("reduceonion", StringComparison.OrdinalIgnoreCase))
-					{
-						getOnions = true;
-						break;
-					}
-				}
-			}
-
-			return getOnions;
 		}
 
 		private static void RestoreProgramCs()
