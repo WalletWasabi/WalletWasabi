@@ -29,7 +29,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 		private string _walletName;
 		private bool _showAdvancedOptions;
 		private string _accountKeyPath;
-		private int _minGapLimit;
+		private string _minGapLimit;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 
 		public RecoverWalletViewModel(WalletManagerViewModel owner) : base("Recover Wallet")
@@ -49,6 +49,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 
 				string walletFilePath = WalletManager.WalletDirectories.GetWalletFilePaths(WalletName).walletFilePath;
 
+				int.TryParse(MinGapLimit, out int minGapLimit);
+				bool isValidMinGapLimit = IsValidMinGapLimit(minGapLimit);
+
 				if (string.IsNullOrWhiteSpace(WalletName))
 				{
 					NotificationHelpers.Error("Invalid wallet name.");
@@ -65,24 +68,20 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 				{
 					NotificationHelpers.Error("The account key path is not valid.");
 				}
-				else if (MinGapLimit < KeyManager.AbsoluteMinGapLimit)
-				{
-					NotificationHelpers.Error($"Min Gap Limit cannot be smaller than {KeyManager.AbsoluteMinGapLimit}.");
-				}
-				else if (MinGapLimit > 1_000_000)
-				{
-					NotificationHelpers.Error($"Min Gap Limit cannot be larger than {1_000_000}.");
-				}
 				else if (!KeyPath.TryParse(AccountKeyPath, out KeyPath keyPath))
 				{
 					NotificationHelpers.Error("The account key path is not a valid derivation path.");
+				}
+				else if (!isValidMinGapLimit)
+				{
+					NotificationHelpers.Error($"Min Gap Limit cannot be smaller than {KeyManager.AbsoluteMinGapLimit} or larger than {1_000_000}.");
 				}
 				else
 				{
 					try
 					{
 						var mnemonic = new Mnemonic(MnemonicWords);
-						var km = KeyManager.Recover(mnemonic, Password, filePath: null, keyPath, MinGapLimit);
+						var km = KeyManager.Recover(mnemonic, Password, filePath: null, keyPath, minGapLimit);
 						km.SetNetwork(Global.Network);
 						km.SetFilePath(walletFilePath);
 						WalletManager.AddWallet(km);
@@ -110,8 +109,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 
 		private Global Global { get; }
 		private Wallets.WalletManager WalletManager { get; }
-
-		private void ValidatePassword(IValidationErrors errors) => PasswordHelper.ValidatePassword(errors, Password);
 
 		public string Password
 		{
@@ -155,7 +152,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 			set => this.RaiseAndSetIfChanged(ref _accountKeyPath, value);
 		}
 
-		public int MinGapLimit
+		public string MinGapLimit
 		{
 			get => _minGapLimit;
 			set => this.RaiseAndSetIfChanged(ref _minGapLimit, value);
@@ -164,6 +161,18 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 		public ReactiveCommand<Unit, Unit> RecoverCommand { get; }
 
 		private static IEnumerable<string> EnglishWords { get; } = Wordlist.English.GetWords();
+
+		private void ValidatePassword(IValidationErrors errors) => PasswordHelper.ValidatePassword(errors, Password);
+
+		private bool IsValidMinGapLimit(int minGapLimit)
+		{
+			if (minGapLimit < KeyManager.AbsoluteMinGapLimit || minGapLimit > 1_000_000)
+			{
+				return false;
+			}
+
+			return true;
+		}
 
 		public override void OnCategorySelected()
 		{
@@ -176,7 +185,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 
 			ShowAdvancedOptions = false;
 			AccountKeyPath = $"m/{KeyManager.DefaultAccountKeyPath}";
-			MinGapLimit = KeyManager.AbsoluteMinGapLimit * 3;
+			MinGapLimit = (KeyManager.AbsoluteMinGapLimit * 3).ToString();
 		}
 
 		private void UpdateSuggestions(string words)
