@@ -79,7 +79,7 @@ namespace WalletWasabi.Packager
 				return;
 			}
 
-			// If I want a list of up to date onions run it with '--getonions'.
+			// If I want a list of up to date onions run it with '--reduceonions'.
 			if (argsProcessor.IsReduceOnionsMode())
 			{
 				ReduceOnions();
