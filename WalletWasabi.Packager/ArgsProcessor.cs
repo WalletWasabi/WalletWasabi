@@ -9,13 +9,8 @@ namespace WalletWasabi.Packager
 	/// </summary>
 	public class ArgsProcessor
 	{
-		public ArgsProcessor(string[]? args)
+		public ArgsProcessor(string[] args)
 		{
-			if (args is null)
-			{
-				throw new ArgumentNullException(nameof(args));
-			}
-
 			Args = args;
 		}
 
