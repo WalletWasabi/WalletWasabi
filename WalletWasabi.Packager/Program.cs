@@ -422,6 +422,7 @@ namespace WalletWasabi.Packager
 						$"--runtime \"{target}\"",
 						$"--disable-parallel",
 						$"--no-cache",
+						$"/p:WasabiPackagerRuntimeIdentifier=\"{target}\"",
 						$"/p:VersionPrefix={VersionPrefix}",
 						$"/p:DebugType=none",
 						$"/p:DebugSymbols=false",
@@ -442,41 +443,6 @@ namespace WalletWasabi.Packager
 				}
 
 				Tools.ClearSha512Tags(currentBinDistDirectory);
-
-				// Remove Tor binaries that are not relevant to the platform.
-				var torFolder = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "TorDaemons"));
-				var toNotRemove = "";
-				if (target.StartsWith("win"))
-				{
-					toNotRemove = "win";
-				}
-				else if (target.StartsWith("linux"))
-				{
-					toNotRemove = "lin";
-				}
-				else if (target.StartsWith("osx"))
-				{
-					toNotRemove = "osx";
-				}
-
-				foreach (var file in torFolder.EnumerateFiles())
-				{
-					if (!file.Name.Contains("data", StringComparison.OrdinalIgnoreCase) && !file.Name.Contains(toNotRemove, StringComparison.OrdinalIgnoreCase))
-					{
-						File.Delete(file.FullName);
-					}
-				}
-
-				// Remove binaries that are not relevant to the platform.
-				var binaryFolder = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "Microservices", "Binaries"));
-
-				foreach (var dir in binaryFolder.EnumerateDirectories())
-				{
-					if (!dir.Name.Contains(toNotRemove, StringComparison.OrdinalIgnoreCase))
-					{
-						IoHelpers.TryDeleteDirectoryAsync(dir.FullName).GetAwaiter().GetResult();
-					}
-				}
 
 				// Rename the final exe.
 				string oldExecutablePath;

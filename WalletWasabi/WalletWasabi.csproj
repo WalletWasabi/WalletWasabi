@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <PlatformTarget>x64</PlatformTarget>
@@ -36,24 +36,6 @@
     <None Update="Legal\Assets\LegalDocuments.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Microservices\Binaries\lin64\bitcoind">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Microservices\Binaries\osx64\bitcoind">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Microservices\Binaries\win64\bitcoind.exe">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Microservices\Binaries\lin64\hwi">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Microservices\Binaries\osx64\hwi">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Microservices\Binaries\win64\hwi.exe">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="OnionSeeds\MainOnionSeeds.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -69,10 +51,37 @@
     <None Update="TorDaemons\Data.zip">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup Condition="$(WasabiPackagerRuntimeIdentifier.StartsWith('linux')) Or $(WasabiPackagerRuntimeIdentifier) == ''">
+    <None Update="Microservices\Binaries\lin64\bitcoind">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Microservices\Binaries\lin64\hwi">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="TorDaemons\tor-linux64.zip">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup Condition="$(WasabiPackagerRuntimeIdentifier.StartsWith('osx')) Or $(WasabiPackagerRuntimeIdentifier) == ''">
+    <None Update="Microservices\Binaries\osx64\bitcoind">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Microservices\Binaries\osx64\hwi">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="TorDaemons\tor-osx64.zip">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup Condition="$(WasabiPackagerRuntimeIdentifier.StartsWith('win')) Or $(WasabiPackagerRuntimeIdentifier) == ''">
+    <None Update="Microservices\Binaries\win64\bitcoind.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Microservices\Binaries\win64\hwi.exe">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="TorDaemons\tor-win64.zip">
