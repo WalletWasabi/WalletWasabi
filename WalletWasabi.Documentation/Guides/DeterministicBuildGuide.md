@@ -18,7 +18,7 @@ dotnet build
 dotnet run -- --onlybinaries
 ```
 
-This will build our binaries for Windows, OSX and Linux from source code and open them in a file explorer for you.
+This will build our binaries for Windows, OSX and Linux from source code in `WalletWasabi/WalletWasabi.Gui/bin/dist` and open them in a file explorer for you.
 
 ![](https://i.imgur.com/8XAQzz4.png)
 
@@ -31,7 +31,7 @@ In order to end-to-end verify all the downloaded packages you need a Windows, a 
 
 ## Windows
 
-After you installed Wasabi from the `.msi`, it will be in `C:\Program Files\WasabiWallet` folder. You can compare it with your build:
+After you installed Wasabi from the `.msi`, it will be in `C:\Program Files\WasabiWallet` folder. Open a terminal, move to `WalletWasabi/WalletWasabi.Gui/bin/dist` and compare it with your build with the following command:
 
 ```sh
 git diff --no-index win7-x64 "C:\Program Files\WasabiWallet"
