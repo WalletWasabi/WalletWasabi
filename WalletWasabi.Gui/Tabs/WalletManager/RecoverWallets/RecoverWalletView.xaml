@@ -41,15 +41,15 @@
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
-          <Expander Header="Advanced" Background="Transparent">
-            <StackPanel Orientation="Horizontal" Spacing="16">
-              <StackPanel Spacing="6">
+          <Expander Header="Advanced" Background="Transparent" HorizontalContentAlignment="Stretch">
+            <DockPanel LastChildFill="True">
+              <StackPanel Orientation="Vertical" Spacing="8" DockPanel.Dock="Left">
                 <controls:ExtendedTextBox Text="{Binding AccountKeyPath}" Watermark="Account Key Path" UseFloatingWatermark="True" />
                 <TextBlock Text="Wasabi can only monitor native SegWit (bech32) addresses." Classes="warningMessage" />
               </StackPanel>
-              <controls:ExtendedTextBox Text="{Binding MinGapLimit}" Watermark="Minimum Gap Limit" UseFloatingWatermark="True" VerticalAlignment="Top" />
-            </StackPanel>
-          </Expander>          
+              <controls:ExtendedTextBox Margin="16 0 0 0" Text="{Binding MinGapLimit}" Watermark="Minimum Gap Limit" UseFloatingWatermark="True" VerticalAlignment="Top" />
+            </DockPanel>
+          </Expander>
         </StackPanel>
       </Grid>
     </controls:GroupBox>
