@@ -49,8 +49,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 
 				string walletFilePath = WalletManager.WalletDirectories.GetWalletFilePaths(WalletName).walletFilePath;
 
-				int.TryParse(MinGapLimit, out int minGapLimit);
-				bool isValidMinGapLimit = IsValidMinGapLimit(minGapLimit);
+				//int.TryParse(MinGapLimit, out int minGapLimit);
+				bool isValidMinGapLimit = false;
+				if (int.TryParse(MinGapLimit, out int minGapLimit))
+				{
+					isValidMinGapLimit = IsValidMinGapLimit(minGapLimit);
+				}
 
 				if (string.IsNullOrWhiteSpace(WalletName))
 				{
