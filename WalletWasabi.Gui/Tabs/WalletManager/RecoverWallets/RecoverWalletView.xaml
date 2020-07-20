@@ -6,6 +6,11 @@
              xmlns:suggestions="clr-namespace:WalletWasabi.Gui.Suggestions;assembly=WalletWasabi.Gui"
              x:Class="WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets.RecoverWalletView">
   <StackPanel Margin="10" Spacing="10">
+    <StackPanel.Styles>
+      <Style Selector="Expander /template/ ToggleButton#PART_toggle /template/ Border">
+        <Setter Property="Background" Value="Transparent" />
+      </Style>
+    </StackPanel.Styles>
     <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="30">
       <Grid Classes="content">
         <StackPanel Spacing="8">
@@ -36,18 +41,15 @@
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
-          <StackPanel Spacing="16">
-            <CheckBox IsChecked="{Binding ShowAdvancedOptions, Mode=TwoWay}">
-              <TextBlock Text="Show Advanced Options" />
-            </CheckBox>
-            <StackPanel IsVisible="{Binding ShowAdvancedOptions}">
-              <controls:ExtendedTextBox Text="{Binding AccountKeyPath}" Watermark="Account Key Path" UseFloatingWatermark="True" />
-              <TextBlock Text="Wasabi can only monitor native SegWit (bech32) addresses." Classes="warningMessage" />
+          <Expander Header="Advanced" Background="Transparent">
+            <StackPanel Orientation="Horizontal" Spacing="16">
+              <StackPanel Spacing="6">
+                <controls:ExtendedTextBox Text="{Binding AccountKeyPath}" Watermark="Account Key Path" UseFloatingWatermark="True" />
+                <TextBlock Text="Wasabi can only monitor native SegWit (bech32) addresses." Classes="warningMessage" />
+              </StackPanel>
+              <controls:ExtendedTextBox Text="{Binding MinGapLimit}" Watermark="Minimum Gap Limit" UseFloatingWatermark="True" VerticalAlignment="Top" />
             </StackPanel>
-            <StackPanel IsVisible="{Binding ShowAdvancedOptions}">
-              <controls:ExtendedTextBox Text="{Binding MinGapLimit}" Watermark="Minimum Gap Limit" UseFloatingWatermark="True" />
-            </StackPanel>
-          </StackPanel>
+          </Expander>          
         </StackPanel>
       </Grid>
     </controls:GroupBox>

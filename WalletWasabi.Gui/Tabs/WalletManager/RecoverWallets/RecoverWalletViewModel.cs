@@ -26,8 +26,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 		private int _caretIndex;
 		private string _password;
 		private string _mnemonicWords;
-		private string _walletName;
-		private bool _showAdvancedOptions;
+		private string _walletName;		
 		private string _accountKeyPath;
 		private int _minGapLimit;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
@@ -141,13 +140,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 		{
 			get => _caretIndex;
 			set => this.RaiseAndSetIfChanged(ref _caretIndex, value);
-		}
-
-		public bool ShowAdvancedOptions
-		{
-			get => _showAdvancedOptions;
-			set => this.RaiseAndSetIfChanged(ref _showAdvancedOptions, value);
-		}
+		}		
 
 		public string AccountKeyPath
 		{
@@ -173,8 +166,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 			MnemonicWords = "";
 
 			WalletName = WalletManager.WalletDirectories.GetNextWalletName();
-
-			ShowAdvancedOptions = false;
+			
 			AccountKeyPath = $"m/{KeyManager.DefaultAccountKeyPath}";
 			MinGapLimit = KeyManager.AbsoluteMinGapLimit * 3;
 		}
