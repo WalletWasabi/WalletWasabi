@@ -78,7 +78,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 				}
 				else if (!isValidMinGapLimit)
 				{
-					NotificationHelpers.Error($"Min Gap Limit cannot be smaller than {KeyManager.AbsoluteMinGapLimit} or larger than {1_000_000}.");
+					NotificationHelpers.Error($"Min Gap Limit should be an integer between {KeyManager.AbsoluteMinGapLimit} and {1_000_000}.");
 				}
 				else
 				{
