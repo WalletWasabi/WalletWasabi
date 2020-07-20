@@ -20,13 +20,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class WalletInfoViewModel : WasabiDocumentTabViewModel, IWalletViewModel
 	{
+		private const string HiddenKeyString = "Sensitive Data - Not Shown";
 		private bool _showSensitiveKeys;
 		private string _password;
 		private string _extendedMasterPrivateKey;
 		private string _extendedMasterZprv;
 		private string _extendedAccountPrivateKey;
-		private string _extendedAccountZprv;
-		private const string HiddenKeyString = "Sensitive Data - Not Shown";
+		private string _extendedAccountZprv;		
 
 		public WalletInfoViewModel(Wallet wallet) : base(wallet.WalletName)
 		{
