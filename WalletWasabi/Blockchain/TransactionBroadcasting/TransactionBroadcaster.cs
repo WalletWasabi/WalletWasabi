@@ -114,19 +114,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 				}
 			}
 
-			BelieveTransaction(transaction);
-
 			Logger.LogInfo($"Transaction is successfully broadcasted to backend: {transaction.GetHash()}.");
-		}
-
-		private void BelieveTransaction(SmartTransaction transaction)
-		{
-			if (transaction.Height == Height.Unknown)
-			{
-				transaction.SetUnconfirmed();
-			}
-
-			WalletManager.Process(transaction);
 		}
 
 		public async Task SendTransactionAsync(SmartTransaction transaction)
@@ -189,7 +177,6 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 		private async Task BroadcastTransactionWithRpcAsync(SmartTransaction transaction)
 		{
 			await RpcClient.SendRawTransactionAsync(transaction.Transaction).ConfigureAwait(false);
-			BelieveTransaction(transaction);
 			Logger.LogInfo($"Transaction is successfully broadcasted with RPC: {transaction.GetHash()}.");
 		}
 	}
