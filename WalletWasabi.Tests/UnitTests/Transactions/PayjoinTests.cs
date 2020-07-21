@@ -117,10 +117,12 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Equal(0.346m, outerOutput.Amount.ToUnit(MoneyUnit.BTC));
 			Assert.Equal(0.09899718m, innerOutput.Amount.ToUnit(MoneyUnit.BTC));
 
-			transactionFactory = CreateTransactionFactory(new[]
-			{
-				("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)
-			}, watchOnly: true);
+			transactionFactory = CreateTransactionFactory(
+				new[]
+				{
+					("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)
+				},
+				watchOnly: true);
 			allowedCoins = transactionFactory.Coins.ToArray();
 
 			tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), allowedCoins.Select(x => x.OutPoint), payjoinClient);
