@@ -91,5 +91,48 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var singleSet = new HashSet<GroupElement> { a, b, c, d, e, f, g };
 			Assert.Single(singleSet);
 		}
+
+		[Fact]
+		public void OneEqualsOne()
+		{
+			var one = new Scalar(1);
+			var a = new GroupElement(EC.G * one);
+			var b = new GroupElement(EC.G * one);
+			Assert.Equal(a, b);
+		}
+
+		[Fact]
+		public void OneDoesntEqualTwo()
+		{
+			var one = new Scalar(1);
+			var two = new Scalar(2);
+			var a = new GroupElement(EC.G * one);
+			var b = new GroupElement(EC.G * two);
+			Assert.NotEqual(a, b);
+		}
+
+		[Fact]
+		public void InfinityDoesntEqualNotInfinity()
+		{
+			var one = new Scalar(1);
+			var a = new GroupElement(EC.G * one);
+			Assert.NotEqual(a, GroupElement.Infinity);
+		}
+
+		[Fact]
+		public void TransformationsDontRuinEquality()
+		{
+			var one = new Scalar(1);
+			var gej = EC.G * one;
+			var ge = gej.ToGroupElement();
+			var sameGej = ge.ToGroupElementJacobian();
+
+			var a = new GroupElement(ge);
+			var b = new GroupElement(gej);
+			var c = new GroupElement(sameGej);
+
+			Assert.Equal(a, b);
+			Assert.Equal(a, c);
+		}
 	}
 }
