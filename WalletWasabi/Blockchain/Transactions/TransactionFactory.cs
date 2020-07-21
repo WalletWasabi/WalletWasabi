@@ -10,6 +10,7 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Transactions.Payjoin;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -316,10 +317,13 @@ namespace WalletWasabi.Blockchain.Transactions
 			{
 				Logger.LogInfo($"Negotiating payjoin payment with `{payjoinClient.PaymentUrl}`.");
 
+				var endpointBuilder = new PayjoinClientEndpointFactory();
+				PayjoinClientParameters clientParameters = endpointBuilder.BuildOptionalParameters(psbt, changeHdPubKey);
+
 				psbt = payjoinClient.RequestPayjoin(psbt,
 					KeyManager.ExtPubKey,
 					new RootedKeyPath(KeyManager.MasterFingerprint.Value, KeyManager.DefaultAccountKeyPath),
-					changeHdPubKey,
+					endpointBuilder.ConstructEndpoint(payjoinClient.PaymentUrl, clientParameters),
 					CancellationToken.None).GetAwaiter().GetResult();
 				builder.SignPSBT(psbt);
 

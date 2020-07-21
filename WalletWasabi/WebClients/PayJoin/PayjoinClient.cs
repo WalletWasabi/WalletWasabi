@@ -38,34 +38,21 @@ namespace WalletWasabi.WebClients.PayJoin
 		private EndPoint TorSocks5EndPoint { get; }
 		private ITorHttpClient TorHttpClient { get; }
 
-		public async Task<PSBT> RequestPayjoin(PSBT originalTx, IHDKey accountKey, RootedKeyPath rootedKeyPath, HdPubKey changeHdPubKey, CancellationToken cancellationToken)
+		public async Task<PSBT> RequestPayjoin(PSBT originalTx, IHDKey accountKey, RootedKeyPath rootedKeyPath, Uri endpointUri, CancellationToken cancellationToken)
 		{
 			Guard.NotNull(nameof(originalTx), originalTx);
+
 			if (originalTx.IsAllFinalized())
 			{
 				throw new InvalidOperationException("The original PSBT should not be finalized.");
 			}
 
-			var optionalParameters = new PayjoinClientParameters();
-			if (changeHdPubKey is { })
-			{
-				var changeOutput = originalTx.Outputs.FirstOrDefault(x => x.ScriptPubKey == changeHdPubKey.P2wpkhScript);
-
-				if (changeOutput is PSBTOutput o)
-				{
-					optionalParameters.AdditionalFeeOutputIndex = (int)o.Index;
-				}
-			}
 			if (!originalTx.TryGetEstimatedFeeRate(out var originalFeeRate) || !originalTx.TryGetVirtualSize(out var oldVirtualSize))
 			{
-				throw new ArgumentException("originalTx should have utxo information", nameof(originalTx));
+				throw new ArgumentException("Original transaction should have UTXO information.", nameof(originalTx));
 			}
 
 			var originalFee = originalTx.GetFee();
-			// By default, we want to keep same fee rate and a single additional input
-			optionalParameters.MaxAdditionalFeeContribution = originalFeeRate.GetFee(Constants.P2wpkhInputVirtualSize);
-			optionalParameters.DisableOutputSubstitution = false;
-
 			var sentBefore = -originalTx.GetBalance(ScriptPubKeyType.Segwit, accountKey, rootedKeyPath);
 			var oldGlobalTx = originalTx.GetGlobalTransaction();
 
@@ -88,9 +75,7 @@ namespace WalletWasabi.WebClients.PayJoin
 
 			cloned.GlobalXPubs.Clear();
 
-			var endpoint = ApplyOptionalParameters(PaymentUrl, optionalParameters);
-
-			var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
+			var request = new HttpRequestMessage(HttpMethod.Post, endpointUri)
 			{
 				Content = new StringContent(cloned.ToHex(), Encoding.UTF8, "text/plain")
 			};
@@ -270,38 +255,6 @@ namespace WalletWasabi.WebClients.PayJoin
 			}
 
 			return newPSBT;
-		}
-
-		internal static Uri ApplyOptionalParameters(Uri endpoint, PayjoinClientParameters clientParameters)
-		{
-			var parameters = new Dictionary<string, string>
-			{
-				{ "v", clientParameters.Version.ToString() }
-			};
-
-			if (clientParameters.AdditionalFeeOutputIndex is int additionalFeeOutputIndex)
-			{
-				parameters.Add("additionalfeeoutputindex", additionalFeeOutputIndex.ToString(CultureInfo.InvariantCulture));
-			}
-			if (clientParameters.DisableOutputSubstitution is bool disableoutputsubstitution)
-			{
-				parameters.Add("disableoutputsubstitution", disableoutputsubstitution ? "true" : "false");
-			}
-			if (clientParameters.MaxAdditionalFeeContribution is Money maxAdditionalFeeContribution)
-			{
-				parameters.Add("maxadditionalfeecontribution", maxAdditionalFeeContribution.Satoshi.ToString(CultureInfo.InvariantCulture));
-			}
-			if (clientParameters.MinFeeRate is FeeRate minFeeRate)
-			{
-				parameters.Add("minfeerate", minFeeRate.SatoshiPerByte.ToString(CultureInfo.InvariantCulture));
-			}
-
-			// Remove query from endpoint.
-			var builder = new UriBuilder(endpoint);
-			builder.Query = "";
-
-			// Construct final URI.
-			return new Uri(QueryHelpers.AddQueryString(builder.Uri.AbsoluteUri, parameters));
 		}
 	}
 }
