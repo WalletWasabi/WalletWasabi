@@ -26,6 +26,74 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 {
 	public class PayjoinTests
 	{
+		private static (string, KeyManager) DefaultKeyManager()
+		{
+			var password = "blahblahblah";
+			return (password, KeyManager.CreateNew(out var _, password));
+		}
+
+		private static (string, KeyManager) WatchOnlyKeyManager()
+		{
+			var (password, keyManager) = DefaultKeyManager();
+			return (password, KeyManager.CreateNewWatchOnly(keyManager.ExtPubKey));
+		}
+
+		private static SmartCoin Coin(string label, HdPubKey pubKey, decimal amount, bool confirmed = true, int anonymitySet = 1)
+		{
+			var randomIndex = new Func<int>(() => new Random().Next(0, 200));
+			var height = confirmed ? new Height(randomIndex()) : Height.Mempool;
+			SmartLabel slabel = label;
+			var spentOutput = new[]
+			{
+				new OutPoint(RandomUtils.GetUInt256(), (uint)randomIndex())
+			};
+			pubKey.SetLabel(slabel);
+			pubKey.SetKeyState(KeyState.Used);
+			return new SmartCoin(RandomUtils.GetUInt256(), (uint)randomIndex(), pubKey.P2wpkhScript, Money.Coins(amount), spentOutput, height, false, anonymitySet, slabel, pubKey: pubKey);
+		}
+
+		public static PSBT GenerateRandomTransaction()
+		{
+			var key = new Key();
+			var tx =
+				Network.Main.CreateTransactionBuilder()
+				.AddCoins(Coin(0.5m, key.PubKey.WitHash.ScriptPubKey))
+				.AddKeys(key)
+				.Send(new Key().PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m))
+				.BuildPSBT(true);
+			tx.Finalize();
+			return tx;
+		}
+
+		private static ICoin Coin(decimal amount, Script scriptPubKey)
+		{
+			return new Coin(GetRandomOutPoint(), new TxOut(Money.Coins(amount), scriptPubKey));
+		}
+
+		private static OutPoint GetRandomOutPoint()
+		{
+			return new OutPoint(RandomUtils.GetUInt256(), 0);
+		}
+
+		private static Func<HttpMethod, string, NameValueCollection, string, Task<HttpResponseMessage>> PayjoinServerOk(Func<PSBT, PSBT> transformPsbt = null, HttpStatusCode statusCode = HttpStatusCode.OK)
+			=> new Func<HttpMethod, string, NameValueCollection, string, Task<HttpResponseMessage>>((method, path, parameters, requestBody) =>
+			{
+				var psbt = PSBT.Parse(requestBody, Network.Main);
+				var newPsbt = transformPsbt(psbt);
+				var message = new HttpResponseMessage(statusCode);
+				message.Content = new StringContent(newPsbt.ToHex(), Encoding.UTF8, "text/plain");
+				return Task.FromResult(message);
+			});
+
+		private static Func<HttpMethod, string, NameValueCollection, string, Task<HttpResponseMessage>> PayjoinServerError(HttpStatusCode statusCode, string errorCode, string description = "")
+			=> new Func<HttpMethod, string, NameValueCollection, string, Task<HttpResponseMessage>>((method, path, parameters, requestBody) =>
+			{
+				var message = new HttpResponseMessage(statusCode);
+				message.ReasonPhrase = "";
+				message.Content = new StringContent("{ \"errorCode\": \"" + errorCode + "\", \"message\": \"" + description + "\"}");
+				return Task.FromResult(message);
+			});
+
 		[Fact]
 		public void ApplyOptionalParametersTest()
 		{
@@ -346,7 +414,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				{
 					var globalTx = psbt.GetGlobalTransaction();
 					var changeOutput = globalTx.Outputs.Single(x => x.ScriptPubKey != destination);
-					changeOutput.Value -= Money.Coins(0.0007m); ;
+					changeOutput.Value -= Money.Coins(0.0007m);
 					return PSBT.FromTransaction(globalTx, Network.Main);
 				})
 			};
@@ -397,25 +465,6 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Equal("The invoice this PSBT is paying has already been partially or completely paid", e.Message);
 		}
 
-		private static Func<HttpMethod, string, NameValueCollection, string, Task<HttpResponseMessage>> PayjoinServerOk(Func<PSBT, PSBT> transformPsbt = null, HttpStatusCode statusCode = HttpStatusCode.OK)
-			=> new Func<HttpMethod, string, NameValueCollection, string, Task<HttpResponseMessage>>((method, path, parameters, requestBody) =>
-				{
-					var psbt = PSBT.Parse(requestBody, Network.Main);
-					var newPsbt = transformPsbt(psbt);
-					var message = new HttpResponseMessage(statusCode);
-					message.Content = new StringContent(newPsbt.ToHex(), Encoding.UTF8, "text/plain");
-					return Task.FromResult(message);
-				});
-
-		private static Func<HttpMethod, string, NameValueCollection, string, Task<HttpResponseMessage>> PayjoinServerError(HttpStatusCode statusCode, string errorCode, string description = "")
-			=> new Func<HttpMethod, string, NameValueCollection, string, Task<HttpResponseMessage>>((method, path, parameters, requestBody) =>
-				{
-					var message = new HttpResponseMessage(statusCode);
-					message.ReasonPhrase = "";
-					message.Content = new StringContent("{ \"errorCode\": \"" + errorCode + "\", \"message\": \"" + description + "\"}");
-					return Task.FromResult(message);
-				});
-
 		private TransactionFactory CreateTransactionFactory(
 			IEnumerable<(string Label, int KeyIndex, decimal Amount, bool Confirmed, int AnonymitySet)> coins,
 			bool allowUnconfirmed = true,
@@ -439,55 +488,6 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var bitcoinStore = new BitcoinStoreMock();
 
 			return new TransactionFactory(Network.Main, keyManager, coinsView, bitcoinStore, password, allowUnconfirmed);
-		}
-
-		private static (string, KeyManager) DefaultKeyManager()
-		{
-			var password = "blahblahblah";
-			return (password, KeyManager.CreateNew(out var _, password));
-		}
-
-		private static (string, KeyManager) WatchOnlyKeyManager()
-		{
-			var (password, keyManager) = DefaultKeyManager();
-			return (password, KeyManager.CreateNewWatchOnly(keyManager.ExtPubKey));
-		}
-
-		private static SmartCoin Coin(string label, HdPubKey pubKey, decimal amount, bool confirmed = true, int anonymitySet = 1)
-		{
-			var randomIndex = new Func<int>(() => new Random().Next(0, 200));
-			var height = confirmed ? new Height(randomIndex()) : Height.Mempool;
-			SmartLabel slabel = label;
-			var spentOutput = new[]
-			{
-				new OutPoint(RandomUtils.GetUInt256(), (uint)randomIndex())
-			};
-			pubKey.SetLabel(slabel);
-			pubKey.SetKeyState(KeyState.Used);
-			return new SmartCoin(RandomUtils.GetUInt256(), (uint)randomIndex(), pubKey.P2wpkhScript, Money.Coins(amount), spentOutput, height, false, anonymitySet, slabel, pubKey: pubKey);
-		}
-
-		public static PSBT GenerateRandomTransaction()
-		{
-			var key = new Key();
-			var tx =
-				Network.Main.CreateTransactionBuilder()
-				.AddCoins(Coin(0.5m, key.PubKey.WitHash.ScriptPubKey))
-				.AddKeys(key)
-				.Send(new Key().PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m))
-				.BuildPSBT(true);
-			tx.Finalize();
-			return tx;
-		}
-
-		private static ICoin Coin(decimal amount, Script scriptPubKey)
-		{
-			return new Coin(GetRandomOutPoint(), new TxOut(Money.Coins(amount), scriptPubKey));
-		}
-
-		private static OutPoint GetRandomOutPoint()
-		{
-			return new OutPoint(RandomUtils.GetUInt256(), 0);
 		}
 	}
 }
