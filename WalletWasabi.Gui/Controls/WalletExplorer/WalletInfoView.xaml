@@ -77,7 +77,7 @@
                   <TextBlock TextWrapping="Wrap" Width="400" Text="Your zpub can get all your addresses and find out how many coins you have, do not share this with anyone you do not trust." />
                 </ToolTip.Tip>
               </controls:ExtendedTextBox>
-            </StackPanel>            
+            </StackPanel>
           </StackPanel>
         </Grid>
       </ScrollViewer>
