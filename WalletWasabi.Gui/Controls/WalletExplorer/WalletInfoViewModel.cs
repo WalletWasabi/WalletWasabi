@@ -26,7 +26,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _extendedMasterPrivateKey;
 		private string _extendedMasterZprv;
 		private string _extendedAccountPrivateKey;
-		private string _extendedAccountZprv;		
+		private string _extendedAccountZprv;
 
 		public WalletInfoViewModel(Wallet wallet) : base(wallet.WalletName)
 		{
