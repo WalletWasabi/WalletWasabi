@@ -81,23 +81,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 			}
 			else
 			{
-				var minGapLimitErrors = ErrorDescriptors.Create();
-				ValidateMinGapLimit(minGapLimitErrors);
-				if (minGapLimitErrors.Any())
-				{
-					NotificationHelpers.Error(minGapLimitErrors.First().Message);
-					return;
-				}
 				var minGapLimit = int.Parse(MinGapLimit);
-
-				var keyPathErrors = ErrorDescriptors.Create();
-				ValidateKeyPath(keyPathErrors);
-				if (keyPathErrors.Any())
-				{
-					NotificationHelpers.Error(keyPathErrors.First().Message);
-					return;
-				}
-
 				var keyPath = KeyPath.Parse(AccountKeyPath);
 
 				try
@@ -231,15 +215,15 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 		{
 			if (!int.TryParse(MinGapLimit, out int minGapLimit))
 			{
-				errors.Add(ErrorSeverity.Error, "Min Gap Limit must be a number.");
+				errors.Add(ErrorSeverity.Error, "Must be a number.");
 			}
 			else if (minGapLimit < KeyManager.AbsoluteMinGapLimit)
 			{
-				errors.Add(ErrorSeverity.Error, $"Min Gap Limit cannot be smaller than {KeyManager.AbsoluteMinGapLimit}.");
+				errors.Add(ErrorSeverity.Error, $"Cannot be smaller than {KeyManager.AbsoluteMinGapLimit}.");
 			}
 			else if (minGapLimit > 1_000_000)
 			{
-				errors.Add(ErrorSeverity.Error, $"Min Gap Limit cannot be larger than {1_000_000}.");
+				errors.Add(ErrorSeverity.Error, $"Cannot be larger than {1_000_000}.");
 			}
 		}
 
@@ -247,11 +231,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 		{
 			if (string.IsNullOrWhiteSpace(AccountKeyPath))
 			{
-				errors.Add(ErrorSeverity.Error, "The account key path is not valid.");
+				errors.Add(ErrorSeverity.Error, "Path is not valid.");
 			}
 			else if (!KeyPath.TryParse(AccountKeyPath, out _))
 			{
-				errors.Add(ErrorSeverity.Error, "The account key path is not a valid derivation path.");
+				errors.Add(ErrorSeverity.Error, "Path is not a valid derivation path.");
 			}
 		}
 	}
