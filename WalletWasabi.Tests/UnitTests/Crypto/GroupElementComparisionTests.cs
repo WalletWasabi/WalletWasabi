@@ -123,5 +123,18 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var b = new GEJ(one, one, one);
 			Assert.True(Secp256k1Helpers.Equals(a, b));
 		}
+
+		[Fact]
+		public void TransformationsDontRuinEquality()
+		{
+			var one = new FE(1);
+			var ge = new GE(one, one);
+			var gej = ge.ToGroupElementJacobian();
+			Assert.True(Secp256k1Helpers.Equals(ge, gej));
+
+			gej = new GEJ(one, one, one);
+			ge = gej.ToGroupElement();
+			Assert.True(Secp256k1Helpers.Equals(ge, gej));
+		}
 	}
 }
