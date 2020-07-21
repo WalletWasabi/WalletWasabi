@@ -44,63 +44,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 
 			RecoverCommand = ReactiveCommand.Create(() =>
 			{
-				WalletName = Guard.Correct(WalletName);
-				MnemonicWords = Guard.Correct(MnemonicWords);
-				Password = Guard.Correct(Password); // Do not let whitespaces to the beginning and to the end.
-				
-				string walletFilePath = WalletManager.WalletDirectories.GetWalletFilePaths(WalletName).walletFilePath;
-
-				if (string.IsNullOrWhiteSpace(WalletName))
-				{
-					NotificationHelpers.Error("Invalid wallet name.");
-				}
-				else if (File.Exists(walletFilePath))
-				{
-					NotificationHelpers.Error("Wallet name is already taken.");
-				}
-				else if (string.IsNullOrWhiteSpace(MnemonicWords))
-				{
-					NotificationHelpers.Error("Recovery Words were not supplied.");
-				}
-				else
-				{
-					var minGapLimitErrors = ErrorDescriptors.Create();
-					ValidateMinGapLimit(minGapLimitErrors);
-					if (minGapLimitErrors.Any())
-					{
-						NotificationHelpers.Error(minGapLimitErrors.First().Message);
-						return;
-					}
-					var minGapLimit = int.Parse(MinGapLimit);
-
-					var keyPathErrors = ErrorDescriptors.Create();
-					ValidateKeyPath(keyPathErrors);
-					if (keyPathErrors.Any())
-					{
-						NotificationHelpers.Error(keyPathErrors.First().Message);
-						return;
-					}
-
-					var keyPath = KeyPath.Parse(AccountKeyPath);
-
-					try
-					{
-						var mnemonic = new Mnemonic(MnemonicWords);
-						var km = KeyManager.Recover(mnemonic, Password, filePath: null, keyPath, minGapLimit);
-						km.SetNetwork(Global.Network);
-						km.SetFilePath(walletFilePath);
-						WalletManager.AddWallet(km);
-
-						NotificationHelpers.Success("Wallet was recovered.");
-
-						owner.SelectLoadWallet(km);
-					}
-					catch (Exception ex)
-					{
-						Logger.LogError(ex);
-						NotificationHelpers.Error(ex.ToUserFriendlyString());
-					}
-				}
+				RecoverWallet(owner);
 			},
 			Observable.FromEventPattern(this, nameof(ErrorsChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -113,6 +57,67 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 			RecoverCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
+		}
+
+		private void RecoverWallet(WalletManagerViewModel owner)
+		{
+			WalletName = Guard.Correct(WalletName);
+			MnemonicWords = Guard.Correct(MnemonicWords);
+			Password = Guard.Correct(Password); // Do not let whitespaces to the beginning and to the end.
+
+			string walletFilePath = WalletManager.WalletDirectories.GetWalletFilePaths(WalletName).walletFilePath;
+
+			if (string.IsNullOrWhiteSpace(WalletName))
+			{
+				NotificationHelpers.Error("Invalid wallet name.");
+			}
+			else if (File.Exists(walletFilePath))
+			{
+				NotificationHelpers.Error("Wallet name is already taken.");
+			}
+			else if (string.IsNullOrWhiteSpace(MnemonicWords))
+			{
+				NotificationHelpers.Error("Recovery Words were not supplied.");
+			}
+			else
+			{
+				var minGapLimitErrors = ErrorDescriptors.Create();
+				ValidateMinGapLimit(minGapLimitErrors);
+				if (minGapLimitErrors.Any())
+				{
+					NotificationHelpers.Error(minGapLimitErrors.First().Message);
+					return;
+				}
+				var minGapLimit = int.Parse(MinGapLimit);
+
+				var keyPathErrors = ErrorDescriptors.Create();
+				ValidateKeyPath(keyPathErrors);
+				if (keyPathErrors.Any())
+				{
+					NotificationHelpers.Error(keyPathErrors.First().Message);
+					return;
+				}
+
+				var keyPath = KeyPath.Parse(AccountKeyPath);
+
+				try
+				{
+					var mnemonic = new Mnemonic(MnemonicWords);
+					var km = KeyManager.Recover(mnemonic, Password, filePath: null, keyPath, minGapLimit);
+					km.SetNetwork(Global.Network);
+					km.SetFilePath(walletFilePath);
+					WalletManager.AddWallet(km);
+
+					NotificationHelpers.Success("Wallet was recovered.");
+
+					owner.SelectLoadWallet(km);
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError(ex);
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
+				}
+			}
 		}
 
 		private Global Global { get; }
