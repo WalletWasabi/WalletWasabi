@@ -221,9 +221,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 			{
 				errors.Add(ErrorSeverity.Error, $"Cannot be smaller than {KeyManager.AbsoluteMinGapLimit}.");
 			}
-			else if (minGapLimit > 1_000_000)
+			else if (minGapLimit > KeyManager.MaxGapLimit)
 			{
-				errors.Add(ErrorSeverity.Error, $"Cannot be larger than {1_000_000}.");
+				errors.Add(ErrorSeverity.Error, $"Cannot be larger than {KeyManager.MaxGapLimit}.");
 			}
 		}
 
