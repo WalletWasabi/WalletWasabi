@@ -410,7 +410,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				{
 					var message = new HttpResponseMessage(statusCode);
 					message.ReasonPhrase = "";
-					message.Content = new StringContent("{ \"errorCode\": \"" + errorCode + "\", \"message\": \"" + description + "\"}" );
+					message.Content = new StringContent("{ \"errorCode\": \"" + errorCode + "\", \"message\": \"" + description + "\"}");
 					return Task.FromResult(message);
 				});
 
@@ -486,18 +486,6 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		private static OutPoint GetRandomOutPoint()
 		{
 			return new OutPoint(RandomUtils.GetUInt256(), 0);
-		}
-	}
-
-	public static class PSBTExtensions
-	{
-		public static void ClearInputs(this PSBT psbt)
-		{
-			foreach (var input in psbt.Inputs)
-			{
-				input.FinalScriptSig = null;
-				input.FinalScriptWitness = null;
-			}
 		}
 	}
 }
