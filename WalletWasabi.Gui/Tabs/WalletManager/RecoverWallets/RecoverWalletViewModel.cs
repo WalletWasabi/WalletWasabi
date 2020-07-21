@@ -50,6 +50,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Select(_ => !Validations.AnyErrors)
 			);
+
 			this.WhenAnyValue(x => x.MnemonicWords).Subscribe(UpdateSuggestions);
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
