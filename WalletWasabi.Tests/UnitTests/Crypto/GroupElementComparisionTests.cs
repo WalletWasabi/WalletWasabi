@@ -104,5 +104,24 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var b = new GEJ(two, one, one, infinity: true);
 			Assert.True(Secp256k1Helpers.Equals(a, b));
 		}
+
+		[Fact]
+		public void JacobianDoesntEqualAffine()
+		{
+			var one = new FE(1);
+			var two = new FE(2);
+			var a = new GE(one, one);
+			var b = new GEJ(two, one, one);
+			Assert.False(Secp256k1Helpers.Equals(a, b));
+		}
+
+		[Fact]
+		public void JacobianEqualsAffine()
+		{
+			var one = new FE(1);
+			var a = new GE(one, one);
+			var b = new GEJ(one, one, one);
+			Assert.True(Secp256k1Helpers.Equals(a, b));
+		}
 	}
 }
