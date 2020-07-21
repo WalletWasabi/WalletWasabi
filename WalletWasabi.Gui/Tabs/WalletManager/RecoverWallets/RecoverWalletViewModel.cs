@@ -26,9 +26,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 		private int _caretIndex;
 		private string _password;
 		private string _mnemonicWords;
-		private string _walletName;		
+		private string _walletName;
 		private string _accountKeyPath;
-		private int _minGapLimit;
+		private string _minGapLimit;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 
 		public RecoverWalletViewModel(WalletManagerViewModel owner) : base("Recover Wallet")
@@ -37,6 +37,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 			WalletManager = Global.WalletManager;
 
 			this.ValidateProperty(x => x.Password, ValidatePassword);
+			this.ValidateProperty(x => x.MinGapLimit, ValidateMinGapLimit);
+			this.ValidateProperty(x => x.AccountKeyPath, ValidateKeyPath);
 
 			MnemonicWords = "";
 
@@ -45,7 +47,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 				WalletName = Guard.Correct(WalletName);
 				MnemonicWords = Guard.Correct(MnemonicWords);
 				Password = Guard.Correct(Password); // Do not let whitespaces to the beginning and to the end.
-
+				
 				string walletFilePath = WalletManager.WalletDirectories.GetWalletFilePaths(WalletName).walletFilePath;
 
 				if (string.IsNullOrWhiteSpace(WalletName))
@@ -60,28 +62,31 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 				{
 					NotificationHelpers.Error("Recovery Words were not supplied.");
 				}
-				else if (string.IsNullOrWhiteSpace(AccountKeyPath))
-				{
-					NotificationHelpers.Error("The account key path is not valid.");
-				}
-				else if (MinGapLimit < KeyManager.AbsoluteMinGapLimit)
-				{
-					NotificationHelpers.Error($"Min Gap Limit cannot be smaller than {KeyManager.AbsoluteMinGapLimit}.");
-				}
-				else if (MinGapLimit > 1_000_000)
-				{
-					NotificationHelpers.Error($"Min Gap Limit cannot be larger than {1_000_000}.");
-				}
-				else if (!KeyPath.TryParse(AccountKeyPath, out KeyPath keyPath))
-				{
-					NotificationHelpers.Error("The account key path is not a valid derivation path.");
-				}
 				else
 				{
+					var minGapLimitErrors = ErrorDescriptors.Create();
+					ValidateMinGapLimit(minGapLimitErrors);
+					if (minGapLimitErrors.Any())
+					{
+						NotificationHelpers.Error(minGapLimitErrors.First().Message);
+						return;
+					}
+					var minGapLimit = int.Parse(MinGapLimit);
+
+					var keyPathErrors = ErrorDescriptors.Create();
+					ValidateKeyPath(keyPathErrors);
+					if (keyPathErrors.Any())
+					{
+						NotificationHelpers.Error(keyPathErrors.First().Message);
+						return;
+					}
+
+					var keyPath = KeyPath.Parse(AccountKeyPath);
+
 					try
 					{
 						var mnemonic = new Mnemonic(MnemonicWords);
-						var km = KeyManager.Recover(mnemonic, Password, filePath: null, keyPath, MinGapLimit);
+						var km = KeyManager.Recover(mnemonic, Password, filePath: null, keyPath, minGapLimit);
 						km.SetNetwork(Global.Network);
 						km.SetFilePath(walletFilePath);
 						WalletManager.AddWallet(km);
@@ -96,8 +101,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 						NotificationHelpers.Error(ex.ToUserFriendlyString());
 					}
 				}
-			});
-
+			},
+			Observable.FromEventPattern(this, nameof(ErrorsChanged))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Select(_ => !Validations.AnyErrors)
+			);
 			this.WhenAnyValue(x => x.MnemonicWords).Subscribe(UpdateSuggestions);
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
@@ -140,7 +148,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 		{
 			get => _caretIndex;
 			set => this.RaiseAndSetIfChanged(ref _caretIndex, value);
-		}		
+		}
 
 		public string AccountKeyPath
 		{
@@ -148,7 +156,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 			set => this.RaiseAndSetIfChanged(ref _accountKeyPath, value);
 		}
 
-		public int MinGapLimit
+		public string MinGapLimit
 		{
 			get => _minGapLimit;
 			set => this.RaiseAndSetIfChanged(ref _minGapLimit, value);
@@ -166,9 +174,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 			MnemonicWords = "";
 
 			WalletName = WalletManager.WalletDirectories.GetNextWalletName();
-			
+
 			AccountKeyPath = $"m/{KeyManager.DefaultAccountKeyPath}";
-			MinGapLimit = KeyManager.AbsoluteMinGapLimit * 3;
+			MinGapLimit = (KeyManager.AbsoluteMinGapLimit * 3).ToString();
 		}
 
 		private void UpdateSuggestions(string words)
@@ -212,6 +220,34 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 			CaretIndex = MnemonicWords.Length;
 
 			Suggestions.Clear();
+		}
+
+		private void ValidateMinGapLimit(IValidationErrors errors)
+		{
+			if (!int.TryParse(MinGapLimit, out int minGapLimit))
+			{
+				errors.Add(ErrorSeverity.Error, "Min Gap Limit must be a number.");
+			}
+			else if (minGapLimit < KeyManager.AbsoluteMinGapLimit)
+			{
+				errors.Add(ErrorSeverity.Error, $"Min Gap Limit cannot be smaller than {KeyManager.AbsoluteMinGapLimit}.");
+			}
+			else if (minGapLimit > 1_000_000)
+			{
+				errors.Add(ErrorSeverity.Error, $"Min Gap Limit cannot be larger than {1_000_000}.");
+			}
+		}
+
+		private void ValidateKeyPath(IValidationErrors errors)
+		{
+			if (string.IsNullOrWhiteSpace(AccountKeyPath))
+			{
+				errors.Add(ErrorSeverity.Error, "The account key path is not valid.");
+			}
+			else if (!KeyPath.TryParse(AccountKeyPath, out _))
+			{
+				errors.Add(ErrorSeverity.Error, "The account key path is not a valid derivation path.");
+			}
 		}
 	}
 }
