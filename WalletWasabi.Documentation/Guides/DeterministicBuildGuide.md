@@ -36,8 +36,6 @@ Now, we will attempt to verify the binaries you have just compiled with the offi
 
 ![](https://i.imgur.com/aI9Kx0c.png)
 
-Please note that to completely verify Wasabi packages for all supported platforms, you actually need machines with Windows, Linux and macOS operating systems. If you don't have so many physical machines, you can use any virtualization sofware packages like [VirtualBox](https://www.virtualbox.org/), [VMWare](https://www.vmware.com/), etc.
-
 ### Windows
 
 * Install Wasabi using `Wasabi-<version>.msi` file. It will install to `C:\Program Files\WasabiWallet` directory.
