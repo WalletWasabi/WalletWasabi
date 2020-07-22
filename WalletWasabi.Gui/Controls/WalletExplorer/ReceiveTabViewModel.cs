@@ -42,7 +42,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				LabelSuggestion.Label = label;
 				if (label.IsEmpty)
 				{
-					NotificationHelpers.Warning("Observers are required.");
+					NotificationHelpers.Warning("Known By is required.");
 					return;
 				}
 
