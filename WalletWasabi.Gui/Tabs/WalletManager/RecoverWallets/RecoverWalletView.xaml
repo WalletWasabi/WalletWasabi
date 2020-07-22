@@ -63,10 +63,7 @@
             </StackPanel>
           </Grid>
         </controls:GroupBox>
-        <DockPanel LastChildFill="True">
-          <Button Content="Recover" Command="{Binding RecoverCommand}" DockPanel.Dock="Right" />
-          <Grid />
-        </DockPanel>
+        <Button Content="Recover" Command="{Binding RecoverCommand}" HorizontalAlignment="Right" />
       </StackPanel>
     </Border>
   </ScrollViewer>
