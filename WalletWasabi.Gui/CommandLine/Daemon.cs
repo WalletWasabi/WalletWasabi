@@ -7,6 +7,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Services;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.CommandLine
@@ -76,6 +77,17 @@ namespace WalletWasabi.Gui.CommandLine
 					return;
 				}
 
+				var updateChecker = Global.HostedServices.FirstOrDefault<UpdateChecker>();
+				if ( updateChecker is null)
+				{
+					Logger.LogCritical($"Update checker not found. Cannot verify protocol version. Exiting...");
+					return;
+				}
+				while (updateChecker.UpdateStatus.CurrentBackendMajorVersion == 0)
+				{
+					await Task.Delay(500).ConfigureAwait(false);
+				}
+
 				Wallet = await Global.WalletManager.StartWalletAsync(keyManager);
 				if (Global.KillRequested)
 				{
@@ -135,7 +147,7 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 			finally
 			{
-				await Global.DisposeAsync().ConfigureAwait(false); 
+				await Global.DisposeAsync().ConfigureAwait(false);
 				Logger.LogInfo($"{nameof(Daemon)} stopped.");
 			}
 		}
