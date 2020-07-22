@@ -137,7 +137,7 @@ RunAsDaemon 1
 
 # ---MAKE TOR FASTER---
 
-# Need to disable for HiddenServiceNonymousMode
+# Need to disable for HiddenServiceNonAnonymousMode
 SOCKSPort 0
 # Need to enable for HiddenServiceSingleHopMode
 HiddenServiceNonAnonymousMode 1
