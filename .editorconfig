@@ -3,6 +3,19 @@
 # You can learn more about editorconfig here: https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-code-style-settings-reference
 root = true
 
+[*.csproj]
+
+charset = utf-8
+
+# use hard tabs for indentation
+indent_style = tab
+
+# Formatting - set preferred newline characters
+end_of_line = lf
+
+# Formatting - remove any whitespace characters preceding newline characters
+trim_trailing_whitespace = true
+
 [*.cs]
 
 charset = utf-8
@@ -14,7 +27,7 @@ indent_style = tab
 
 # Formatting - new line options
 
-#require braces to be on a new line for all
+# require braces to be on a new line for all
 csharp_new_line_before_open_brace = all
 
 # Formatting - organize using options
