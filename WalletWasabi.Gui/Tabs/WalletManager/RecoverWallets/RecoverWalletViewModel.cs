@@ -214,17 +214,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 
 		private void ValidateMinGapLimit(IValidationErrors errors)
 		{
-			if (!int.TryParse(MinGapLimit, out int minGapLimit))
+			if (!int.TryParse(MinGapLimit, out int minGapLimit) || minGapLimit < KeyManager.AbsoluteMinGapLimit || minGapLimit > KeyManager.MaxGapLimit)
 			{
-				errors.Add(ErrorSeverity.Error, "Must be a number.");
-			}
-			else if (minGapLimit < KeyManager.AbsoluteMinGapLimit)
-			{
-				errors.Add(ErrorSeverity.Error, $"Cannot be smaller than {KeyManager.AbsoluteMinGapLimit}.");
-			}
-			else if (minGapLimit > KeyManager.MaxGapLimit)
-			{
-				errors.Add(ErrorSeverity.Error, $"Cannot be larger than {KeyManager.MaxGapLimit}.");
+				errors.Add(ErrorSeverity.Error, $"Must be a number between {KeyManager.AbsoluteMinGapLimit} and {KeyManager.MaxGapLimit}.");
 			}
 		}
 
