@@ -816,8 +816,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				userFeeText is { }
 				&& !userFeeText.Contains(",")
 				&& decimal.TryParse(userFeeText, out userFee)
-				&& userFee < MaxSatoshisSupplyLimit
-				&& userFee > 0;
+				&& Math.Round(userFee) < MaxSatoshisSupplyLimit
+				&& Math.Round(userFee) > 0;
 		}
 
 		private void ValidateUserFeeText(IValidationErrors errors)
