@@ -225,6 +225,7 @@ namespace WalletWasabi.Gui
 									txIndex: null,
 									prune: null,
 									userAgent: $"/WasabiClient:{Constants.ClientVersion}/",
+									fallbackFee: null, // ToDo: Maybe we should have it, not only for tests?
 									Cache),
 								cancel)
 							.ConfigureAwait(false);

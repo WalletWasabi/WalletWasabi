@@ -42,7 +42,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						if (x is null)
 						{
 							TransactionDetails = null;
-							return;
 						}
 						else
 						{
@@ -68,10 +67,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						FinalTransaction = null;
 						NotificationHelpers.Information("Clipboard is empty!");
-						return;
 					}
-
-					if (PSBT.TryParse(textToPaste, Global.Network ?? Network.Main, out var signedPsbt))
+					else if (PSBT.TryParse(textToPaste, Global.Network ?? Network.Main, out var signedPsbt))
 					{
 						if (!signedPsbt.IsAllFinalized())
 						{
@@ -107,13 +104,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					try
 					{
 						var path = await OpenDialogAsync();
-
-						if (path is null)
+						if (path is { })
 						{
-							return;
+							FinalTransaction = await ParseTransactionAsync(path);
 						}
-
-						FinalTransaction = await ParseTransactionAsync(path);
 					}
 					catch (Exception ex)
 					{
