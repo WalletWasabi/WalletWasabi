@@ -78,7 +78,7 @@ namespace WalletWasabi.Gui.CommandLine
 				}
 
 				var updateChecker = Global.HostedServices.FirstOrDefault<UpdateChecker>();
-				if ( updateChecker is null)
+				if (updateChecker is null)
 				{
 					Logger.LogCritical($"Update checker not found. Cannot verify protocol version. Exiting...");
 					return;
