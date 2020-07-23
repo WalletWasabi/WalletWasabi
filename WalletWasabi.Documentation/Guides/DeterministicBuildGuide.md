@@ -14,19 +14,18 @@ In order to reproduce Wasabi's builds, you need [git](https://git-scm.com/) pack
 
 ## 2. Reproduce builds
 
-You can see the list of Wasabi releases here: https://github.com/zkSNACKs/WalletWasabi/releases. Please note that each release has a version and a git hash assigned. The git hash is useful in the following instructions:
+You can see the list of Wasabi releases here: https://github.com/zkSNACKs/WalletWasabi/releases. Please note that each release has a git tag assigned. It is useful in the following instructions:
 
 ```sh
-git clone https://github.com/zkSNACKs/WalletWasabi.git
-cd WalletWasabi
-git checkout <SHA-1-hash-of-the-release>
-cd WalletWasabi.Packager
+# The following command downloads only a single git branch. However, you can clone whole repository, which is bigger, if you like.
+git clone --depth 1 --branch <git-branch-or-tag> https://github.com/zkSNACKs/WalletWasabi.git # where `<git-branch-or-tag>` may be, for example, `v1.1.11.1`.
+cd WalletWasabi/WalletWasabi.Packager
 dotnet restore
 dotnet build
 dotnet run -- --onlybinaries
 ```
 
-These commands will produce Wasabi's binaries for Windows, macOS and Linux from source code. Also, for your convenience, a new file explorer window will navigate you to the binaries location - i.e. `WalletWasabi\\WalletWasabi.Gui\\bin\\dist`.
+The previous commands produce Wasabi's binaries for Windows, macOS and Linux. Also, for your convenience, a new file explorer window will navigate you to the binaries location - i.e. `WalletWasabi\\WalletWasabi.Gui\\bin\\dist`.
 
 ![](https://i.imgur.com/8XAQzz4.png)
 
