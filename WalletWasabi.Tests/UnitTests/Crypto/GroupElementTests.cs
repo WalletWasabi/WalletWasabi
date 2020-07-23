@@ -112,6 +112,21 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		}
 
 		[Fact]
+		public void NullEquality()
+		{
+			var one = new Scalar(1);
+			var a = new GroupElement(EC.G * one);
+
+			Assert.False(a == null);
+			Assert.True(a != null);
+
+			Assert.False(null == a);
+			Assert.True(null != a);
+
+			Assert.False(a.Equals(null));
+		}
+
+		[Fact]
 		public void InfinityDoesntEqualNotInfinity()
 		{
 			var one = new Scalar(1);

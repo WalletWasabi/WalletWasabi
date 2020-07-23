@@ -40,7 +40,15 @@ namespace WalletWasabi.Crypto
 
 		public static bool operator ==(GroupElement x, GroupElement y)
 		{
-			if (x.IsInfinity && y.IsInfinity)
+			if (x is null && y is null)
+			{
+				return true;
+			}
+			else if (x is null || y is null)
+			{
+				return false;
+			}
+			else if (x.IsInfinity && y.IsInfinity)
 			{
 				return true;
 			}
