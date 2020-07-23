@@ -38,26 +38,26 @@ namespace WalletWasabi.Crypto
 
 		public override int GetHashCode() => Ge.GetHashCode();
 
-		public static bool operator ==(GroupElement x, GroupElement y)
+		public static bool operator ==(GroupElement a, GroupElement b)
 		{
-			if (x is null && y is null)
+			if (a is null && b is null)
 			{
 				return true;
 			}
-			else if (x is null || y is null)
+			else if (a is null || b is null)
 			{
 				return false;
 			}
-			else if (x.IsInfinity && y.IsInfinity)
+			else if (a.IsInfinity && b.IsInfinity)
 			{
 				return true;
 			}
 			else
 			{
-				return x.IsInfinity == y.IsInfinity && x.Ge.x == y.Ge.x && x.Ge.y == y.Ge.y;
+				return a.IsInfinity == b.IsInfinity && a.Ge.x == b.Ge.x && a.Ge.y == b.Ge.y;
 			}
 		}
 
-		public static bool operator !=(GroupElement x, GroupElement y) => !(x == y);
+		public static bool operator !=(GroupElement a, GroupElement b) => !(a == b);
 	}
 }
