@@ -1,6 +1,7 @@
 using Avalonia.Threading;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
+using NBitcoin;
 using NBitcoin.Protocol;
 using Nito.AsyncEx;
 using ReactiveUI;
@@ -53,6 +54,8 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private bool _legalDocsLoading;
 
+		private Network _network;
+
 		private volatile bool _disposedValue = false; // To detect redundant calls
 
 		public StatusBarViewModel()
@@ -77,6 +80,12 @@ namespace WalletWasabi.Gui.ViewModels
 		private StatusSet ActiveStatuses { get; }
 
 		public ReactiveCommand<Unit, Unit> UpdateCommand { get; set; }
+
+		public Network Network
+		{
+			get => _network;
+			set => this.RaiseAndSetIfChanged(ref _network, value);
+		}
 
 		public bool UseBitcoinCore
 		{
@@ -145,6 +154,7 @@ namespace WalletWasabi.Gui.ViewModels
 		public void Initialize(NodesCollection nodes, WasabiSynchronizer synchronizer)
 		{
 			Nodes = nodes;
+			Network = synchronizer.Network;
 			Synchronizer = synchronizer;
 			HashChain = synchronizer.BitcoinStore.SmartHeaderChain;
 			UseTor = Global.Config.UseTor; // Do not make it dynamic, because if you change this config settings only next time will it activate.
