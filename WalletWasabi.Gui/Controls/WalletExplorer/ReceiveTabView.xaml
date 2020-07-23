@@ -31,7 +31,7 @@
           </Grid>
         </DockPanel>
         <Grid ColumnDefinitions="300, *, 50" Margin="5 10 5 0" Grid.Row="1">
-          <TextBlock Text="Known by:" />
+          <TextBlock Text="Known By:" />
           <TextBlock Text="Address:" Grid.Column="1" Margin="20 0 0 0" />
         </Grid>
         <controls:ExtendedListBox Grid.Row="2" Items="{Binding Addresses}" SelectedItem="{Binding SelectedAddress, Mode=TwoWay}" VirtualizationMode="None">
