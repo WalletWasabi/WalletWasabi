@@ -60,7 +60,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _amountTip;
 
 		private const string WaitingForHardwareWalletButtonTextString = "Waiting for Hardware Wallet...";
-		private readonly long MaxSatoshisSupplyLimit = Constants.MaxSatoshisSupply * 1_000; 
+		private readonly long MaxSatoshisSupplyLimit = Constants.MaxSatoshisSupply / 1_000; 
 		private FeeDisplayFormat _feeDisplayFormat;
 		private bool _isSliderFeeUsed = true;
 		private double _feeControlOpacity;
