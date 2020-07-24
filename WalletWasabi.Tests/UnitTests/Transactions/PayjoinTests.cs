@@ -444,27 +444,6 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 		}
 
-		[Fact]
-		public void InvoiceAlreadyPaidTest()
-		{
-			// The server wants to make us sign a transaction that pays too much fee.
-			var walletCoins = new[] { ("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1) };
-			var amountToPay = Money.Coins(0.001m);
-			var destination = new Key().PubKey.WitHash.ScriptPubKey;
-			var payment = new PaymentIntent(destination, amountToPay);
-
-			// This tests the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
-			var httpClient = new MockTorHttpClient
-			{
-				OnSendAsync = PayjoinServerError(statusCode: HttpStatusCode.UnprocessableEntity, "already-paid", "The invoice this PSBT is paying has already been partially or completely paid")
-			};
-
-			var transactionFactory = CreateTransactionFactory(walletCoins);
-			var e = Assert.Throws<PayjoinReceiverException>(
-				() => transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), new PayjoinClient(httpClient)));
-			Assert.Equal("The invoice this PSBT is paying has already been partially or completely paid", e.Message);
-		}
-
 		private TransactionFactory CreateTransactionFactory(
 			IEnumerable<(string Label, int KeyIndex, decimal Amount, bool Confirmed, int AnonymitySet)> coins,
 			bool allowUnconfirmed = true,

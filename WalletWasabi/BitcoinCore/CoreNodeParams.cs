@@ -25,6 +25,7 @@ namespace WalletWasabi.BitcoinCore
 			int? txIndex,
 			int? prune,
 			string userAgent,
+			Money fallbackFee,
 			IMemoryCache cache)
 		{
 			Network = Guard.NotNull(nameof(network), network);
@@ -38,6 +39,7 @@ namespace WalletWasabi.BitcoinCore
 			TxIndex = txIndex;
 			Prune = prune;
 			UserAgent = Guard.NotNullOrEmptyOrWhitespace(nameof(userAgent), userAgent, trim: true);
+			FallbackFee = fallbackFee;
 			Cache = Guard.NotNull(nameof(cache), cache);
 		}
 
@@ -50,6 +52,7 @@ namespace WalletWasabi.BitcoinCore
 		public int? TxIndex { get; }
 		public int? Prune { get; }
 		public string UserAgent { get; }
+		public Money FallbackFee { get; }
 		public EndPointStrategy P2pEndPointStrategy { get; }
 		public EndPointStrategy RpcEndPointStrategy { get; }
 		public IMemoryCache Cache { get; }
