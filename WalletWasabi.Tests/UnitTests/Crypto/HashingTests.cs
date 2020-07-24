@@ -68,5 +68,18 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			Assert.Equal(hashCode1, hashCode2);
 			Assert.Equal(hashCode1, hashCode3);
 		}
+
+		[Fact]
+		public void Sha256GroupElement()
+		{
+			var ge = new GroupElement(EC.G);
+			Assert.Throws<ArgumentNullException>(() => ge.Sha256(null));
+			Assert.Throws<ArgumentOutOfRangeException>(() => ge.Sha256(GroupElement.Infinity));
+			Assert.Throws<ArgumentOutOfRangeException>(() => GroupElement.Infinity.Sha256(ge));
+
+			var sha = ge.Sha256(new GroupElement(EC.G));
+			var expectedSha = new Scalar(ByteHelpers.FromHex("FD0A9D2A4767F567283A3041BF4E7CA7616E970097C721AE0F13F9BD75BF65A1"));
+			Assert.Equal(expectedSha, sha);
+		}
 	}
 }

@@ -27,6 +27,7 @@ namespace WalletWasabi.Crypto
 		}
 
 		public static GroupElement Infinity { get; } = new GroupElement(GE.Infinity);
+		public static GroupElement Generator { get; } = new GroupElement(EC.G);
 
 		private GE Ge { get; }
 
@@ -59,5 +60,24 @@ namespace WalletWasabi.Crypto
 		}
 
 		public static bool operator !=(GroupElement a, GroupElement b) => !(a == b);
+
+		public Scalar Sha256(GroupElement groupElement)
+		{
+			Guard.NotNull(nameof(groupElement), groupElement);
+			Guard.False($"{nameof(groupElement)}.{nameof(groupElement.IsInfinity)}", groupElement.IsInfinity);
+
+			Guard.False($"{nameof(IsInfinity)}", IsInfinity);
+
+			var concatenation = ByteHelpers.Combine(
+				Ge.x.ToBytes(),
+				Ge.y.ToBytes(),
+				groupElement.Ge.x.ToBytes(),
+				groupElement.Ge.y.ToBytes());
+
+			using var sha256 = System.Security.Cryptography.SHA256.Create();
+			var hash = sha256.ComputeHash(concatenation);
+
+			return new Scalar(hash);
+		}
 	}
 }
