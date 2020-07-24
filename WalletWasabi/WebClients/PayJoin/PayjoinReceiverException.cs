@@ -3,7 +3,7 @@ namespace WalletWasabi.WebClients.PayJoin
 	public class PayjoinReceiverException : PayjoinException
 	{
 		public PayjoinReceiverException(int httpCode, string errorCode, string message)
-			: base(FormatMessage(httpCode, errorCode, message))
+			: base(message)
 		{
 			HttpCode = httpCode;
 			ErrorCode = errorCode;

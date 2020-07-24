@@ -42,13 +42,13 @@ namespace WalletWasabi.Gui.CommandLine
 			var charset = Charsets[language] + (useNumbers ? "0123456789" : "") + (useSymbols ? "|!¡@$¿?_-\"#$/%&()´+*=[]{},;:.^`<>" : "");
 
 			var found = false;
-			var lastpwd = string.Empty;
+			var lastpwd = "";
 			var attempts = 0;
 			var maxNumberAttempts = password.Length * charset.Length;
 			var stepSize = (maxNumberAttempts + 101) / 100;
 
 			Console.WriteLine();
-			Console.Write($"[{string.Empty,100}] 0%");
+			Console.Write($"[{"",100}] 0%");
 
 			var sw = new Stopwatch();
 			sw.Start();

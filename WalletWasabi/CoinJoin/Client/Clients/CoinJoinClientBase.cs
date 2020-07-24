@@ -539,7 +539,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					aliceClient?.Dispose();
 					return;
 				}
-				catch (HttpRequestException ex) when (ex.Message.Contains("No such running round in InputRegistration.", StringComparison.InvariantCultureIgnoreCase))
+				catch (HttpRequestException ex) when (ex.Message.Contains("No such running round in InputRegistration", StringComparison.InvariantCultureIgnoreCase))
 				{
 					Logger.LogInfo("Client tried to register a round that is not in InputRegistration anymore. Trying again later.");
 					aliceClient?.Dispose();

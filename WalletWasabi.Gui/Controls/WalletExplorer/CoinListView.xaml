@@ -22,9 +22,6 @@
     <Style Selector="TextBox">
       <Setter Property="FontSize" Value="{DynamicResource FontSizeNormal}" />
     </Style>
-    <Style Selector="TextBox.Transparent">
-      <Setter Property="Background" Value="Transparent" />
-    </Style>
     <Style Selector="Grid.CoinItemGrid">
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="Height" Value="24" />

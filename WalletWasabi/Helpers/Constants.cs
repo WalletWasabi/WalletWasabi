@@ -21,6 +21,7 @@ namespace WalletWasabi.Helpers
 		public const uint ProtocolVersionWitnessVersion = 70012;
 
 		public const int P2wpkhInputSizeInBytes = 41;
+		public const int P2wpkhInputVirtualSize = 68;
 		public const int P2pkhInputSizeInBytes = 145;
 		public const int OutputSizeInBytes = 33;
 
@@ -57,7 +58,7 @@ namespace WalletWasabi.Helpers
 
 		public static readonly Version ClientVersion = new Version(1, 1, 11, 1);
 		public static readonly Version HwiVersion = new Version("1.1.2");
-		public static readonly Version BitcoinCoreVersion = new Version("0.19.1");
+		public static readonly Version BitcoinCoreVersion = new Version("0.20.0");
 		public static readonly Version LegalDocumentsVersion = new Version(2, 0);
 
 		public static readonly NodeRequirement NodeRequirements = new NodeRequirement

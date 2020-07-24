@@ -25,13 +25,6 @@ namespace WalletWasabi.Gui.Tabs
 
 		public AboutViewModel() : base("About")
 		{
-			var global = Locator.Current.GetService<Global>();
-			var hostedServices = global.HostedServices;
-
-			UpdateChecker = hostedServices.FirstOrDefault<UpdateChecker>();
-
-			CurrentBackendMajorVersion = UpdateChecker?.UpdateStatus?.CurrentBackendMajorVersion.ToString() ?? "";
-
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 
 			OpenBrowserCommand.ThrownExceptions
@@ -40,7 +33,6 @@ namespace WalletWasabi.Gui.Tabs
 		}
 
 		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
-		private UpdateChecker UpdateChecker { get; }
 		public Version ClientVersion => Constants.ClientVersion;
 		public string BackendCompatibleVersions => Constants.ClientSupportBackendVersionText;
 
@@ -61,7 +53,7 @@ namespace WalletWasabi.Gui.Tabs
 
 		public string StatusPageLink => "https://stats.uptimerobot.com/YQqGyUL8A7";
 
-		public string CustomerSupportLink => "https://www.reddit.com/r/WasabiWallet/";
+		public string UserSupportLink => "https://www.reddit.com/r/WasabiWallet/";
 
 		public string BugReportLink => "https://github.com/zkSNACKs/WalletWasabi/issues/";
 
@@ -73,14 +65,7 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			base.OnOpen(disposables);
 
-			var updateChecker = UpdateChecker;
-			if (updateChecker is { })
-			{
-				Observable.FromEventPattern<UpdateStatus>(updateChecker, nameof(updateChecker.UpdateStatusChanged))
-					.ObserveOn(RxApp.MainThreadScheduler)
-					.Subscribe(e => CurrentBackendMajorVersion = e.EventArgs.CurrentBackendMajorVersion.ToString())
-					.DisposeWith(disposables);
-			}
+			CurrentBackendMajorVersion = WasabiClient.ApiVersion.ToString();
 		}
 	}
 }

@@ -3,6 +3,7 @@ using Splat;
 using System;
 using System.Reactive;
 using System.Reactive.Linq;
+using WalletWasabi.Crypto;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -26,7 +27,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				}
 				else if (arg == "CLEAR")
 				{
-					PinInput = string.Empty;
+					PinInput = "";
 				}
 				else
 				{
@@ -63,14 +64,14 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 					if (global.UiConfig.LockScreenPinHash == HashHelpers.GenerateSha256Hash(x))
 					{
 						Close();
-						PinInput = string.Empty;
+						PinInput = "";
 					}
 				});
 
 			this.WhenAnyValue(x => x.IsLocked)
 				.Where(x => !x)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => PinInput = string.Empty);
+				.Subscribe(_ => PinInput = "");
 		}
 
 		public string PinInput
