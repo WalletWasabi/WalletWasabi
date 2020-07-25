@@ -5,6 +5,7 @@ using ReactiveUI;
 using Splat;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive;
@@ -60,7 +61,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _amountTip;
 
 		private const string WaitingForHardwareWalletButtonTextString = "Waiting for Hardware Wallet...";
-		private readonly long MaxSatoshisSupplyLimit = Constants.MaxSatoshisSupply / 1_000; 
+
+		private readonly FeeRate MinRelayTxFee = new FeeRate(Money.Satoshis(0), 1);
+		private readonly FeeRate AbsurdlyHighFee = new FeeRate(Money.Satoshis(Constants.MaximumNumberOfSatoshis), 1);
+
 		private FeeDisplayFormat _feeDisplayFormat;
 		private bool _isSliderFeeUsed = true;
 		private double _feeControlOpacity;
@@ -808,17 +812,24 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private bool TryParseUserFee(out decimal userFee)
+		private bool TryParseUserFee(out decimal userFeeRateAsDecimal)
 		{
-			userFee = default;
-			var userFeeText = UserFeeText;
-			return
-				userFeeText is { }
-				&& !userFeeText.Contains(",")
-				&& decimal.TryParse(userFeeText, out userFee)
-				&& Math.Ceiling(userFee) == Math.Floor(userFee)
-				&& Math.Round(userFee) < MaxSatoshisSupplyLimit
-				&& Math.Round(userFee) > 0;
+			try
+			{
+				if (decimal.TryParse(UserFeeText, NumberStyles.Integer, new CultureInfo("en-US"), out var userFee))
+				{
+					var userFeeRate = new FeeRate(userFee);
+					userFeeRateAsDecimal = userFeeRate.SatoshiPerByte;
+					return userFeeRate > MinRelayTxFee && userFeeRate <= AbsurdlyHighFee;
+				}
+			}
+			catch (OverflowException _)
+			{
+				// Ignore OverflowException
+			}
+
+			userFeeRateAsDecimal = 0;
+			return false;
 		}
 
 		private void ValidateUserFeeText(IValidationErrors errors)
