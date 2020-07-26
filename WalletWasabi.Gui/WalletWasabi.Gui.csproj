@@ -14,7 +14,7 @@
     <NeutralLanguage>en-US</NeutralLanguage>
     <AssemblyTitle>Wasabi Wallet</AssemblyTitle>
     <Description>
-      Open-source, non-custodial, privacy focused Bitcoin wallet for Windows, Linux, and Mac. Built-in Tor, CoinJoin, and coin control features.
+      Open-source, non-custodial, privacy focused Bitcoin wallet for Windows, Linux, and Mac. Built-in Tor, CoinJoin, PayJoin and coin control features.
     </Description>
     <Copyright>MIT</Copyright>
     <PackageId>Wasabi Wallet</PackageId>
