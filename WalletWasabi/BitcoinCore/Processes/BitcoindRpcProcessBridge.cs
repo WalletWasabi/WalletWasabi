@@ -38,7 +38,7 @@ namespace WalletWasabi.BitcoinCore.Processes
 		public async Task StartAsync(CancellationToken cancel)
 		{
 			var ptcv = PrintToConsole ? 1 : 0;
-			using var process = Start($"{NetworkTranslator.GetCommandLineArguments(Network)} -datadir={DataDir} -printtoconsole={ptcv}", false);
+			using var process = Start($"{NetworkTranslator.GetCommandLineArguments(Network)} -datadir=\"{DataDir}\" -printtoconsole={ptcv}", false);
 
 			await PidFile.SerializeAsync(process.Id).ConfigureAwait(false);
 			CachedPid = process.Id;
