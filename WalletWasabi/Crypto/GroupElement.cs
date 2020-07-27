@@ -100,5 +100,7 @@ namespace WalletWasabi.Crypto
 
 			return a + new GroupElement(b.Ge.Negate());
 		}
+
+		public GroupElement Negate() => new GroupElement(Ge.Negate());
 	}
 }

@@ -268,5 +268,14 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			Assert.Equal(one, two - one + zero);
 			Assert.Equal(zero, zero + zero - zero + zero);
 		}
+
+		[Fact]
+		public void Negation()
+		{
+			Assert.Equal(new GroupElement(EC.G.Negate()), GroupElement.Generator.Negate());
+			Scalar one = new Scalar(1);
+			Assert.Equal(new GroupElement(EC.G.Negate() * one), new GroupElement(EC.G * one).Negate());
+			Assert.Equal(GroupElement.Infinity, GroupElement.Infinity.Negate());
+		}
 	}
 }
