@@ -14,10 +14,6 @@ namespace WalletWasabi.Crypto
 			{
 				Ge = GE.Infinity;
 			}
-			else if (groupElement.IsGenerator())
-			{
-				Ge = EC.G;
-			}
 			else
 			{
 				Guard.True($"{nameof(groupElement)}.{nameof(groupElement.IsValidVariable)}", groupElement.IsValidVariable);
@@ -31,12 +27,15 @@ namespace WalletWasabi.Crypto
 		}
 
 		public static GroupElement Infinity { get; } = new GroupElement(GE.Infinity);
-		public static GroupElement Generator { get; } = new GroupElement(EC.G);
+
+		/// <summary>
+		/// The base point defined in the secp256k1 standard used in ECDSA public key derivation.
+		/// </summary>
+		public static GroupElement StandardGenerator { get; } = new GroupElement(EC.G);
 
 		private GE Ge { get; }
 
 		public bool IsInfinity => Ge.IsInfinity;
-		public bool IsGenerator => Ge.IsGenerator();
 
 		public override bool Equals(object obj) => Equals(obj as GroupElement);
 
@@ -75,9 +74,9 @@ namespace WalletWasabi.Crypto
 			{
 				return "Infinity";
 			}
-			else if (IsGenerator)
+			else if (Ge.x == EC.G.x && Ge.y == EC.G.y)
 			{
-				return $"Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
+				return $"Standard Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
 			}
 			else
 			{

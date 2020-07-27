@@ -163,29 +163,26 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		{
 			var generator = new GroupElement(EC.G);
 			var generator2 = new GroupElement(new GE(EC.G.x, EC.G.y));
-			Assert.Equal(GroupElement.Generator, generator);
-			Assert.Equal(GroupElement.Generator, generator2);
+			Assert.Equal(GroupElement.StandardGenerator, generator);
+			Assert.Equal(GroupElement.StandardGenerator, generator2);
 
-			Assert.True(generator.IsGenerator);
-			Assert.True(GroupElement.Generator.IsGenerator);
-
-			Assert.False(GroupElement.Infinity.IsGenerator);
-			Assert.False(new GroupElement(EC.G * Scalar.Zero).IsGenerator);
-			Assert.False(new GroupElement(EC.G * new Scalar(2)).IsGenerator);
+			Assert.NotEqual(GroupElement.StandardGenerator, GroupElement.Infinity);
+			Assert.NotEqual(GroupElement.StandardGenerator, new GroupElement(EC.G * Scalar.Zero));
+			Assert.NotEqual(GroupElement.StandardGenerator, new GroupElement(EC.G * new Scalar(2)));
 
 			var infinity = new GroupElement(new GE(EC.G.x, EC.G.y, infinity: true));
-			Assert.False(infinity.IsGenerator);
+			Assert.NotEqual(GroupElement.StandardGenerator, infinity);
 			Assert.True(infinity.IsInfinity);
 		}
 
 		[Fact]
 		public void ToStringIsNice()
 		{
-			var expectedGenerator = "Generator, secp256k1_fe x = { 0x02F81798UL, 0x00A056C5UL, 0x028D959FUL, 0x036CB738UL, 0x03029BFCUL, 0x03A1C2C1UL, 0x0206295CUL, 0x02EEB156UL, 0x027EF9DCUL, 0x001E6F99UL, 1, 1 };secp256k1_fe y = { 0x0310D4B8UL, 0x01F423FEUL, 0x014199C4UL, 0x01229A15UL, 0x00FD17B4UL, 0x0384422AUL, 0x024FBFC0UL, 0x03119576UL, 0x027726A3UL, 0x00120EB6UL, 1, 1 };";
+			var expectedGenerator = "Standard Generator, secp256k1_fe x = { 0x02F81798UL, 0x00A056C5UL, 0x028D959FUL, 0x036CB738UL, 0x03029BFCUL, 0x03A1C2C1UL, 0x0206295CUL, 0x02EEB156UL, 0x027EF9DCUL, 0x001E6F99UL, 1, 1 };secp256k1_fe y = { 0x0310D4B8UL, 0x01F423FEUL, 0x014199C4UL, 0x01229A15UL, 0x00FD17B4UL, 0x0384422AUL, 0x024FBFC0UL, 0x03119576UL, 0x027726A3UL, 0x00120EB6UL, 1, 1 };";
 			var expectedInfinity = "Infinity";
 			var expectedTwo = "secp256k1_fe x = { 0x00709EE5UL, 0x03026E57UL, 0x03CA7ABAUL, 0x012E33BCUL, 0x005C778EUL, 0x01701F36UL, 0x005406E9UL, 0x01F5B4C1UL, 0x039441EDUL, 0x0031811FUL, 1, 0 };secp256k1_fe y = { 0x00CFE52AUL, 0x010C6A54UL, 0x010E1236UL, 0x0194C99BUL, 0x02F7F632UL, 0x019B3ABBUL, 0x00584194UL, 0x030CE68FUL, 0x00FEA63DUL, 0x0006B85AUL, 1, 0 };";
 
-			Assert.Equal(expectedGenerator, GroupElement.Generator.ToString());
+			Assert.Equal(expectedGenerator, GroupElement.StandardGenerator.ToString());
 			Assert.Equal(expectedInfinity, GroupElement.Infinity.ToString());
 			Assert.Equal(expectedTwo, new GroupElement(EC.G * new Scalar(2)).ToString());
 		}
@@ -193,16 +190,16 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		[Fact]
 		public void Addition()
 		{
-			Assert.Throws<ArgumentNullException>(() => GroupElement.Generator + null);
-			Assert.Throws<ArgumentNullException>(() => null + GroupElement.Generator);
+			Assert.Throws<ArgumentNullException>(() => GroupElement.StandardGenerator + null);
+			Assert.Throws<ArgumentNullException>(() => null + GroupElement.StandardGenerator);
 			Assert.Throws<ArgumentNullException>(() => GroupElement.Infinity + null);
 			Assert.Throws<ArgumentNullException>(() => null + GroupElement.Infinity);
 
-			var gen1 = GroupElement.Infinity + GroupElement.Generator;
-			var gen2 = GroupElement.Generator + GroupElement.Infinity;
+			var gen1 = GroupElement.Infinity + GroupElement.StandardGenerator;
+			var gen2 = GroupElement.StandardGenerator + GroupElement.Infinity;
 			var inf = GroupElement.Infinity + GroupElement.Infinity;
-			Assert.Equal(GroupElement.Generator, gen1);
-			Assert.Equal(GroupElement.Generator, gen2);
+			Assert.Equal(GroupElement.StandardGenerator, gen1);
+			Assert.Equal(GroupElement.StandardGenerator, gen2);
 			Assert.Equal(GroupElement.Infinity, inf);
 
 			var one = new GroupElement(new Scalar(1) * EC.G);
@@ -210,7 +207,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var three = new GroupElement(new Scalar(3) * EC.G);
 			var zero = new GroupElement(Scalar.Zero * EC.G);
 
-			Assert.True(one.IsGenerator);
+			Assert.Equal(GroupElement.StandardGenerator, one);
 			Assert.True(zero.IsInfinity);
 
 			Assert.Equal(two, one + one);
@@ -227,16 +224,16 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		[Fact]
 		public void Subtraction()
 		{
-			Assert.Throws<ArgumentNullException>(() => GroupElement.Generator - null);
-			Assert.Throws<ArgumentNullException>(() => null - GroupElement.Generator);
+			Assert.Throws<ArgumentNullException>(() => GroupElement.StandardGenerator - null);
+			Assert.Throws<ArgumentNullException>(() => null - GroupElement.StandardGenerator);
 			Assert.Throws<ArgumentNullException>(() => GroupElement.Infinity - null);
 			Assert.Throws<ArgumentNullException>(() => null - GroupElement.Infinity);
 
-			var minusGen = GroupElement.Infinity - GroupElement.Generator;
-			var gen = GroupElement.Generator - GroupElement.Infinity;
+			var minusGen = GroupElement.Infinity - GroupElement.StandardGenerator;
+			var gen = GroupElement.StandardGenerator - GroupElement.Infinity;
 			var inf = GroupElement.Infinity - GroupElement.Infinity;
 			Assert.Equal(new GroupElement(EC.G.Negate()), minusGen);
-			Assert.Equal(GroupElement.Generator, gen);
+			Assert.Equal(GroupElement.StandardGenerator, gen);
 			Assert.Equal(GroupElement.Infinity, inf);
 
 			var minusOne = new GroupElement(new Scalar(1) * EC.G.Negate());
@@ -246,7 +243,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var three = new GroupElement(new Scalar(3) * EC.G);
 			var zero = new GroupElement(Scalar.Zero * EC.G);
 
-			Assert.True(one.IsGenerator);
+			Assert.Equal(GroupElement.StandardGenerator, one);
 			Assert.True(zero.IsInfinity);
 
 			Assert.Equal(zero, one - one);
@@ -272,7 +269,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		[Fact]
 		public void Negation()
 		{
-			Assert.Equal(new GroupElement(EC.G.Negate()), GroupElement.Generator.Negate());
+			Assert.Equal(new GroupElement(EC.G.Negate()), GroupElement.StandardGenerator.Negate());
 			Scalar one = new Scalar(1);
 			Assert.Equal(new GroupElement(EC.G.Negate() * one), new GroupElement(EC.G * one).Negate());
 			Assert.Equal(GroupElement.Infinity, GroupElement.Infinity.Negate());
