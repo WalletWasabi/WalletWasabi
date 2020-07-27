@@ -168,5 +168,10 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			throw new NotImplementedException();
 		}
+
+		public Task<uint256[]> GenerateToAddressAsync(int nBlocks, BitcoinAddress address)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }
