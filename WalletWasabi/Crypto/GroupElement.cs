@@ -84,5 +84,21 @@ namespace WalletWasabi.Crypto
 				return $"{Ge.x.ToC("x")}{Ge.y.ToC("y")}";
 			}
 		}
+
+		public static GroupElement operator +(GroupElement a, GroupElement b)
+		{
+			Guard.NotNull(nameof(a), a);
+			Guard.NotNull(nameof(b), b);
+
+			return new GroupElement(a.Ge.ToGroupElementJacobian().AddVariable(b.Ge, out _));
+		}
+
+		public static GroupElement operator -(GroupElement a, GroupElement b)
+		{
+			Guard.NotNull(nameof(a), a);
+			Guard.NotNull(nameof(b), b);
+
+			return a + new GroupElement(b.Ge.Negate());
+		}
 	}
 }

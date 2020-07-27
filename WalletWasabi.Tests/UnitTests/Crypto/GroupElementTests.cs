@@ -189,5 +189,84 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			Assert.Equal(expectedInfinity, GroupElement.Infinity.ToString());
 			Assert.Equal(expectedTwo, new GroupElement(EC.G * new Scalar(2)).ToString());
 		}
+
+		[Fact]
+		public void Addition()
+		{
+			Assert.Throws<ArgumentNullException>(() => GroupElement.Generator + null);
+			Assert.Throws<ArgumentNullException>(() => null + GroupElement.Generator);
+			Assert.Throws<ArgumentNullException>(() => GroupElement.Infinity + null);
+			Assert.Throws<ArgumentNullException>(() => null + GroupElement.Infinity);
+
+			var gen1 = GroupElement.Infinity + GroupElement.Generator;
+			var gen2 = GroupElement.Generator + GroupElement.Infinity;
+			var inf = GroupElement.Infinity + GroupElement.Infinity;
+			Assert.Equal(GroupElement.Generator, gen1);
+			Assert.Equal(GroupElement.Generator, gen2);
+			Assert.Equal(GroupElement.Infinity, inf);
+
+			var one = new GroupElement(new Scalar(1) * EC.G);
+			var two = new GroupElement(new Scalar(2) * EC.G);
+			var three = new GroupElement(new Scalar(3) * EC.G);
+			var zero = new GroupElement(Scalar.Zero * EC.G);
+
+			Assert.True(one.IsGenerator);
+			Assert.True(zero.IsInfinity);
+
+			Assert.Equal(two, one + one);
+			Assert.Equal(three, one + one + one);
+			Assert.Equal(three, two + one);
+			Assert.Equal(three, one + two);
+			Assert.Equal(one, one + zero);
+			Assert.Equal(two, one + one + zero);
+			Assert.Equal(two, two + zero);
+			Assert.Equal(three, three + zero);
+			Assert.Equal(three, two + one + zero);
+		}
+
+		[Fact]
+		public void Subtraction()
+		{
+			Assert.Throws<ArgumentNullException>(() => GroupElement.Generator - null);
+			Assert.Throws<ArgumentNullException>(() => null - GroupElement.Generator);
+			Assert.Throws<ArgumentNullException>(() => GroupElement.Infinity - null);
+			Assert.Throws<ArgumentNullException>(() => null - GroupElement.Infinity);
+
+			var minusGen = GroupElement.Infinity - GroupElement.Generator;
+			var gen = GroupElement.Generator - GroupElement.Infinity;
+			var inf = GroupElement.Infinity - GroupElement.Infinity;
+			Assert.Equal(new GroupElement(EC.G.Negate()), minusGen);
+			Assert.Equal(GroupElement.Generator, gen);
+			Assert.Equal(GroupElement.Infinity, inf);
+
+			var minusOne = new GroupElement(new Scalar(1) * EC.G.Negate());
+			var minusTwo = new GroupElement(new Scalar(2) * EC.G.Negate());
+			var one = new GroupElement(new Scalar(1) * EC.G);
+			var two = new GroupElement(new Scalar(2) * EC.G);
+			var three = new GroupElement(new Scalar(3) * EC.G);
+			var zero = new GroupElement(Scalar.Zero * EC.G);
+
+			Assert.True(one.IsGenerator);
+			Assert.True(zero.IsInfinity);
+
+			Assert.Equal(zero, one - one);
+			Assert.Equal(minusOne, one - one - one);
+			Assert.Equal(one, one + one - one);
+			Assert.Equal(one, one - one + one);
+			Assert.Equal(one, two - one);
+			Assert.Equal(minusOne, one - two);
+			Assert.Equal(one, one - zero);
+			Assert.Equal(minusOne, zero - one);
+			Assert.Equal(zero, one - one + zero);
+			Assert.Equal(two, one + one - zero);
+			Assert.Equal(zero, one - one - zero);
+			Assert.Equal(two, two - zero);
+			Assert.Equal(minusTwo, zero - two);
+			Assert.Equal(three, three - zero);
+			Assert.Equal(two, three - one);
+			Assert.Equal(minusTwo, one - three);
+			Assert.Equal(one, two - one + zero);
+			Assert.Equal(zero, zero + zero - zero + zero);
+		}
 	}
 }
