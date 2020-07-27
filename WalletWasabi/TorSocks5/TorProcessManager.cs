@@ -145,7 +145,7 @@ namespace WalletWasabi.TorSocks5
 						}
 						else // Linux and OSX
 						{
-							string runTorCmd = $"LD_LIBRARY_PATH=$LD_LIBRARY_PATH:={torDir}/Tor && export LD_LIBRARY_PATH && cd '{torDir}/Tor' && ./tor {torArguments}";
+							string runTorCmd = $"LD_LIBRARY_PATH=$LD_LIBRARY_PATH:='{torDir}/Tor' && export LD_LIBRARY_PATH && cd '{torDir}/Tor' && ./tor {torArguments}";
 							EnvironmentHelpers.ShellExecAsync(runTorCmd, false).GetAwaiter().GetResult();
 							Logger.LogInfo($"Started Tor process with shell command: {runTorCmd}.");
 						}
