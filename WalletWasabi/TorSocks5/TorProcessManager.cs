@@ -102,7 +102,7 @@ namespace WalletWasabi.TorSocks5
 
 						if (!File.Exists(torPath))
 						{
-							Logger.LogInfo($"Tor instance NOT found at {torPath}. Attempting to acquire it...");
+							Logger.LogInfo($"Tor instance NOT found at '{torPath}'. Attempting to acquire it ...");
 							InstallTor(torDir);
 						}
 						else if (!IoHelpers.CheckExpectedHash(hashSourcePath, Path.Combine(fullBaseDirectory, "TorDaemons")))
@@ -120,10 +120,10 @@ namespace WalletWasabi.TorSocks5
 						}
 						else
 						{
-							Logger.LogInfo($"Tor instance found at {torPath}.");
+							Logger.LogInfo($"Tor instance found at '{torPath}'.");
 						}
 
-						string torArguments = $"--SOCKSPort {TorSocks5EndPoint} --DataDirectory {torDataDir} --GeoIPFile {geoIpPath} GeoIPv6File {geoIp6Path}";
+						string torArguments = $"--SOCKSPort {TorSocks5EndPoint} --DataDirectory \"{torDataDir}\" --GeoIPFile \"{geoIpPath}\" GeoIPv6File \"{geoIp6Path}\"";
 						if (!string.IsNullOrEmpty(LogFile))
 						{
 							IoHelpers.EnsureContainingDirectoryExists(LogFile);
@@ -145,7 +145,7 @@ namespace WalletWasabi.TorSocks5
 						}
 						else // Linux and OSX
 						{
-							string runTorCmd = $"LD_LIBRARY_PATH=$LD_LIBRARY_PATH:={torDir}/Tor && export LD_LIBRARY_PATH && cd {torDir}/Tor && ./tor {torArguments}";
+							string runTorCmd = $"LD_LIBRARY_PATH=$LD_LIBRARY_PATH:={torDir}/Tor && export LD_LIBRARY_PATH && cd '{torDir}/Tor' && ./tor {torArguments}";
 							EnvironmentHelpers.ShellExecAsync(runTorCmd, false).GetAwaiter().GetResult();
 							Logger.LogInfo($"Started Tor process with shell command: {runTorCmd}.");
 						}
