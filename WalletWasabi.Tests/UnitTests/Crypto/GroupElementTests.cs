@@ -149,5 +149,11 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			Assert.Equal(a, b);
 			Assert.Equal(a, c);
 		}
+
+		[Fact]
+		public void GeneratorCorrect()
+		{
+			Assert.Equal(GroupElement.Generator, new GroupElement(EC.G));
+		}
 	}
 }

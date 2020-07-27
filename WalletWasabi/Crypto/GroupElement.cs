@@ -27,6 +27,7 @@ namespace WalletWasabi.Crypto
 		}
 
 		public static GroupElement Infinity { get; } = new GroupElement(GE.Infinity);
+		public static GroupElement Generator { get; } = new GroupElement(EC.G);
 
 		private GE Ge { get; }
 
