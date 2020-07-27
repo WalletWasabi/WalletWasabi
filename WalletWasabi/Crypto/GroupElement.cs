@@ -14,6 +14,10 @@ namespace WalletWasabi.Crypto
 			{
 				Ge = GE.Infinity;
 			}
+			else if (groupElement.IsGenerator())
+			{
+				Ge = EC.G;
+			}
 			else
 			{
 				Guard.True($"{nameof(groupElement)}.{nameof(groupElement.IsValidVariable)}", groupElement.IsValidVariable);
@@ -32,6 +36,7 @@ namespace WalletWasabi.Crypto
 		private GE Ge { get; }
 
 		public bool IsInfinity => Ge.IsInfinity;
+		public bool IsGenerator => Ge.IsGenerator();
 
 		public override bool Equals(object obj) => Equals(obj as GroupElement);
 
@@ -60,5 +65,24 @@ namespace WalletWasabi.Crypto
 		}
 
 		public static bool operator !=(GroupElement a, GroupElement b) => !(a == b);
+
+		/// <summary>
+		/// ToString is only used for nice visual representation during debugging. Do not rely on the result for anything else.
+		/// </summary>
+		public override string ToString()
+		{
+			if (IsInfinity)
+			{
+				return "Infinity";
+			}
+			else if (IsGenerator)
+			{
+				return $"Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
+			}
+			else
+			{
+				return $"{Ge.x.ToC("x")}{Ge.y.ToC("y")}";
+			}
+		}
 	}
 }
