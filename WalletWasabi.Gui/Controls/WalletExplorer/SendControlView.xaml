@@ -12,7 +12,6 @@
     <converters:AmountForegroundConverter x:Key="AmountForegroundConverter" />
     <converters:BooleanStringConverter x:Key="BooleanStringConverter" />
     <converters:FeeTargetTimeConverter x:Key="FeeTargetTimeConverter" />
-    <converters:UsdExchangeRateAmountToolTipConverter x:Key="UsdExchangeRateAmountToolTipConverter" />
   </UserControl.Resources>
   <i:Interaction.Behaviors>
     <behaviors:ClearPropertyOnLostFocusBehavior TargetProperty="{Binding SelectedCoin}" />
@@ -52,8 +51,8 @@
               Foreground="{Binding AmountText, Converter={StaticResource AmountForegroundConverter}}"
               IsReadOnly="{Binding IsMax}"
               Text="{Binding AmountText, Mode=TwoWay}"
-              ToolTip.Tip="{Binding UsdExchangeRate, Converter={StaticResource UsdExchangeRateAmountToolTipConverter}}"
-              Watermark="{Binding AmountWatermarkText}"
+              ToolTip.Tip="{Binding AmountTip}"
+              Watermark="Amount (BTC)"
               UseFloatingWatermark="True"
               MinWidth="124">
               <i:Interaction.Behaviors>
