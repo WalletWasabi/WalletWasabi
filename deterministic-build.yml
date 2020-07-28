@@ -5,13 +5,10 @@ strategy:
   matrix:
     linux:
       runtime: 'linux-x64'
-      imageName: 'ubuntu-16.04'
     mac:
       runtime: 'osx-x64'
-      imageName: 'macos-10.14'
     windows:
       runtime: 'win7-x64'
-      imageName: 'vs2017-win2016'
 
 pool:
   vmImage: ubuntu-16.04
