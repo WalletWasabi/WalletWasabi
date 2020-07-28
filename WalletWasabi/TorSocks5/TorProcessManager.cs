@@ -10,7 +10,6 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.TorSocks5.Models.Fields.OctetFields;
-using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.TorSocks5
 {
@@ -212,26 +211,6 @@ namespace WalletWasabi.TorSocks5
 		public static async Task<bool> IsTorRunningAsync(EndPoint torSocks5EndPoint)
 		{
 			using var client = new TorSocks5Client(torSocks5EndPoint);
-			try
-			{
-				await client.ConnectAsync().ConfigureAwait(false);
-				await client.HandshakeAsync().ConfigureAwait(false);
-			}
-			catch (ConnectionException)
-			{
-				return false;
-			}
-			return true;
-		}
-
-		public async Task<bool> IsTorRunningAsync()
-		{
-			if (TorSocks5EndPoint is null)
-			{
-				return true;
-			}
-
-			using var client = new TorSocks5Client(TorSocks5EndPoint);
 			try
 			{
 				await client.ConnectAsync().ConfigureAwait(false);
