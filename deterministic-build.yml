@@ -4,11 +4,6 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
-variables:
-  solution: '**/*.sln'
-  buildPlatform: 'Any CPU'
-  buildConfiguration: 'Release'
-
 steps:
 - task: UseDotNet@2
   displayName: 'Install .NET Core 3'
@@ -16,6 +11,7 @@ steps:
     version: 3.1.x
 
 - task: Bash@3
+  displayName: 'Build and compare'
   inputs:
     targetType: 'inline'
     script: |
@@ -24,5 +20,5 @@ steps:
       do 
       dotnet clean --configuration Release && dotnet publish --configuration Release --force --output "./dist${i}" --self-contained true --runtime "linux-x64" -fl /p:VersionPrefix=1.1.20 --disable-parallel --no-cache /p:DebugType=none /p:DebugSymbols=false /p:ErrorReport=none /p:DocumentationFile=\"\" /p:Deterministic=True; 
       done;
-      diff <(find ./dist1/ -type f -exec md5sum {} + | cut -f1 -d' ' | sort) <(find ./dist2/ -type f -exec md5sum {} + | cut -f1 -d' '| sort);
+      diff <(find ./dist1/ -type f -exec md5sum {} + | cut -f1 -d' ' | sort) <(find ./dist1/ -type f -exec md5sum {} + | cut -f1 -d' '| sort);
 
