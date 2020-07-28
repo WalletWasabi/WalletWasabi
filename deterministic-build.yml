@@ -3,11 +3,11 @@ trigger:
 
 strategy:
   matrix:
-    linux:
+    lin:
       runtime: 'linux-x64'
     mac:
       runtime: 'osx-x64'
-    windows:
+    win:
       runtime: 'win7-x64'
 
 pool:
