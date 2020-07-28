@@ -1,8 +1,20 @@
 trigger:
 - master
 
+strategy:
+  matrix:
+    linux:
+      runtime: 'linux-x64'
+      imageName: 'ubuntu-16.04'
+    mac:
+      runtime: 'osx-x64'
+      imageName: 'macos-10.14'
+    windows:
+      runtime: 'win7-x64'
+      imageName: 'vs2017-win2016'
+
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: $(imageName)
 
 steps:
 - task: UseDotNet@2
@@ -18,7 +30,7 @@ steps:
       cd WalletWasabi.Gui;
       for i in `seq 2`; 
       do 
-      dotnet clean --configuration Release && dotnet publish --configuration Release --force --output "./dist${i}" --self-contained true --runtime "linux-x64" -fl /p:VersionPrefix=1.1.20 --disable-parallel --no-cache /p:DebugType=none /p:DebugSymbols=false /p:ErrorReport=none /p:DocumentationFile=\"\" /p:Deterministic=True; 
+      dotnet clean --configuration Release && dotnet publish --configuration Release --force --output "./dist${i}" --self-contained true --runtime "linux-x64" /p:VersionPrefix=1.1.20 --disable-parallel --no-cache /p:DebugType=none /p:DebugSymbols=false /p:ErrorReport=none /p:DocumentationFile=\"\" /p:Deterministic=true; 
       done;
-      diff <(find ./dist1/ -type f -exec md5sum {} + | cut -f1 -d' ' | sort) <(find ./dist1/ -type f -exec md5sum {} + | cut -f1 -d' '| sort);
+      diff <(find ./dist1/ -type f -exec md5sum {} + | cut -f1 -d' ' | sort) <(find ./dist2/ -type f -exec md5sum {} + | cut -f1 -d' '| sort);
 
