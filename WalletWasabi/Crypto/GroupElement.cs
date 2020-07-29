@@ -31,7 +31,7 @@ namespace WalletWasabi.Crypto
 		/// <summary>
 		/// The base point defined in the secp256k1 standard used in ECDSA public key derivation.
 		/// </summary>
-		public static GroupElement StandardGenerator { get; } = new GroupElement(EC.G);
+		public static GroupElement G { get; } = new GroupElement(EC.G);
 
 		private GE Ge { get; }
 
