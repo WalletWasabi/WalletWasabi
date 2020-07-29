@@ -226,17 +226,17 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 			{
 				errors.Add(ErrorSeverity.Error, "Path is not valid.");
 			}
-			else if (!KeyPath.TryParse(AccountKeyPath, out var keyPath))
-			{
-				errors.Add(ErrorSeverity.Error, "Path is not a valid derivation path.");
-			}
-			else
+			else if (KeyPath.TryParse(AccountKeyPath, out var keyPath))
 			{
 				var accountKeyPath = keyPath.GetAccountKeyPath();
 				if (keyPath.Length != accountKeyPath.Length || accountKeyPath.Length != KeyManager.DefaultAccountKeyPath.Length)
 				{
 					errors.Add(ErrorSeverity.Error, "Path is not a compatible account derivation path.");
 				}
+			}
+			else
+			{
+				errors.Add(ErrorSeverity.Error, "Path is not a valid derivation path.");
 			}
 		}
 	}
