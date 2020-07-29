@@ -421,7 +421,7 @@ EOS
 
 ## Prompt
 
-Additionally to the welcome banner it could be good to know in what server we are all the time, in this case update the prompt as follow:
+Additionally to the welcome banner it could be good to know in what server we are all the time and see clearly what branch is checkout-ed, in this case update the prompt as follow:
 
 ```sh
 pico ~/.bashrc
@@ -436,7 +436,15 @@ PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[0
 by this one:
 
 ```sh
-PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:(PROD):\[\033[01;34m\]\w\[\033[00m\]\$ '
+PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:(PROD):\[\033[01;34m\]\w\[\033[01;31m\]$(parse_git_branch)\[\033[00m\]\$ '
+```
+
+Additionally add the following function before:
+
+```sh
+parse_git_branch() {
+ git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1)/'
+}
 ```
 
 **Note:** In the test server replace the word **PROD** by **TEST**
