@@ -185,22 +185,45 @@ namespace WalletWasabi.Backend.Controllers
 			}
 		}
 
+		private static object GetRawMempoolStringsAsyncLock { get; } = new object();
+		private static bool GetRawMempoolStringsAsyncInUse { get; set; } = false;
+
 		internal async Task<IEnumerable<string>> GetRawMempoolStringsAsync()
 		{
-			var cacheKey = $"{nameof(GetRawMempoolStringsAsync)}";
-
-			if (!Cache.TryGetValue(cacheKey, out IEnumerable<string> hashes))
+			try
 			{
-				uint256[] transactionHashes = await Global.RpcClient.GetRawMempoolAsync();
+				lock (GetRawMempoolStringsAsyncLock)
+				{
+					GetRawMempoolStringsAsyncInUse = true;
+				}
 
-				hashes = transactionHashes.Select(x => x.ToString());
+				var cacheKey = $"{nameof(GetRawMempoolStringsAsync)}";
 
-				var cacheEntryOptions = new MemoryCacheEntryOptions()
-					.SetAbsoluteExpiration(TimeSpan.FromSeconds(3));
+				while (GetRawMempoolStringsAsyncInUse)
+				{
+					await Task.Delay(100);
+				}
 
-				Cache.Set(cacheKey, hashes, cacheEntryOptions);
+				if (!Cache.TryGetValue(cacheKey, out IEnumerable<string> hashes))
+				{
+					uint256[] transactionHashes = await Global.RpcClient.GetRawMempoolAsync();
+
+					hashes = transactionHashes.Select(x => x.ToString());
+
+					var cacheEntryOptions = new MemoryCacheEntryOptions()
+						.SetAbsoluteExpiration(TimeSpan.FromSeconds(3));
+
+					Cache.Set(cacheKey, hashes, cacheEntryOptions);
+				}
+				return hashes;
 			}
-			return hashes;
+			finally
+			{
+				lock (GetRawMempoolStringsAsyncLock)
+				{
+					GetRawMempoolStringsAsyncInUse = false;
+				}
+			}
 		}
 
 		/// <summary>
