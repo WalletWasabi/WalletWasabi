@@ -4,16 +4,16 @@
     ".NETCoreApp,Version=v3.1": {
       "Avalonia.Desktop": {
         "type": "Direct",
-        "requested": "[0.9.11, )",
-        "resolved": "0.9.11",
-        "contentHash": "koyrnxYI5i0JDkP1CbeRssKOsFhSlk08OoDAoPSpSLW745iTPioVASzakMhbEXhASSZxFY92FUSXWQi5Bqsykw==",
+        "requested": "[0.9.12, )",
+        "resolved": "0.9.12",
+        "contentHash": "e30JwlGf9bUa/4Aizpuy6a2WlIfdoTSy+OwdZDyiayg1kN8tG6py9vNctvWNgC/5QnhRXAzFk1YzWvgLpma0Pg==",
         "dependencies": {
-          "Avalonia": "0.9.11",
-          "Avalonia.Direct2D1": "0.9.11",
-          "Avalonia.Native": "0.9.11",
-          "Avalonia.Skia": "0.9.11",
-          "Avalonia.Win32": "0.9.11",
-          "Avalonia.X11": "0.9.11"
+          "Avalonia": "0.9.12",
+          "Avalonia.Direct2D1": "0.9.12",
+          "Avalonia.Native": "0.9.12",
+          "Avalonia.Skia": "0.9.12",
+          "Avalonia.Win32": "0.9.12",
+          "Avalonia.X11": "0.9.12"
         }
       },
       "AvalonStudio.Shell": {
@@ -75,10 +75,10 @@
       },
       "Avalonia": {
         "type": "Transitive",
-        "resolved": "0.9.11",
-        "contentHash": "6Ekp5Ix6Ka5VAmuW9h8Pb7Ul7ZYd3XwvVLDlplDM5CATHzDAhBRHSXTBW2F+RnXilZfZ7mzD3xr9IMViUUCZOw==",
+        "resolved": "0.9.12",
+        "contentHash": "DfqzTQVI5x7Uu6WpxQNdSqkCYsrOp45O4lcVIXxhuBb7IXfL9ax+8LU+rRzRBC/SeZGFD60g20HI9nhiFDoSDg==",
         "dependencies": {
-          "Avalonia.Remote.Protocol": "0.9.11",
+          "Avalonia.Remote.Protocol": "0.9.12",
           "JetBrains.Annotations": "10.3.0",
           "Serilog": "2.5.0",
           "Serilog.Sinks.Debug": "1.0.0",
@@ -98,10 +98,10 @@
       },
       "Avalonia.Direct2D1": {
         "type": "Transitive",
-        "resolved": "0.9.11",
-        "contentHash": "kAoIOq989E1R6cNMM02BjOxzFJ5IScy3opMJc7vncRhknM2kFF9885OB+BVGqErag3VYsRd/Nqc3soA6O6kpjg==",
+        "resolved": "0.9.12",
+        "contentHash": "qaWmmkV6O14gDofOVSPweMvPeH0rqDQULPwnvXsQ8obJIFRpD4XkQXtdNX4jS+vi7cKuE/c8u6rbg7FtbfO7BQ==",
         "dependencies": {
-          "Avalonia": "0.9.11",
+          "Avalonia": "0.9.12",
           "JetBrains.Annotations": "10.3.0",
           "SharpDX": "4.0.1",
           "SharpDX.DXGI": "4.0.1",
@@ -112,19 +112,19 @@
       },
       "Avalonia.FreeDesktop": {
         "type": "Transitive",
-        "resolved": "0.9.11",
-        "contentHash": "LmNBqc4Vtjvv6ahMl9/FjQMc5H8KN7zQCJDndFjY2JjrMApoeWE1SBRjxVIgZW78pjHGtRCQyrJkL5dE207cLQ==",
+        "resolved": "0.9.12",
+        "contentHash": "kGFGvXFxE78vDfV8kxlkU1iNEbN+3l14xoC0rj1CBn3HHgp7smJaEumtJ64ckuVqaXY1BGat9WLlp0h3G+QJAQ==",
         "dependencies": {
-          "Avalonia": "0.9.11",
+          "Avalonia": "0.9.12",
           "Tmds.DBus": "0.7.0"
         }
       },
       "Avalonia.Native": {
         "type": "Transitive",
-        "resolved": "0.9.11",
-        "contentHash": "DOUhiyTohxLwU5A1k6bnUc1wPREkDTS9KSsVx19Q/ZIG61wJ4TqweDeXGrPq3m4qvaxRt+deghQ0CXnH7O3fAA==",
+        "resolved": "0.9.12",
+        "contentHash": "K8ZkaT+CPnhF7TjMmYY2taXrSNkQAMoZdTpgUXlxW5hk6K4pD8oN1mEXuM0MY0BPzXNh8fUNhEEHktt7+D2SHg==",
         "dependencies": {
-          "Avalonia": "0.9.11",
+          "Avalonia": "0.9.12",
           "SharpGen.Runtime": "1.2.1",
           "SharpGen.Runtime.COM": "1.2.0"
         }
@@ -141,15 +141,15 @@
       },
       "Avalonia.Remote.Protocol": {
         "type": "Transitive",
-        "resolved": "0.9.11",
-        "contentHash": "KlxpoyZbqTuhfakmcUGLDzi33Z9WQxwgDhGfqo6RkSKJvaIhSmaBiF7rBl5WMnbdw/OLIt9TJzNgbFOFgNSMeQ=="
+        "resolved": "0.9.12",
+        "contentHash": "ebj8S6zs0iJUiyegQMrEZlIrEulFuilSHWdxnascTfCZUwUqq5v88di14ksyYtLe49S8gWPsIb4pLeBJsUTQlg=="
       },
       "Avalonia.Skia": {
         "type": "Transitive",
-        "resolved": "0.9.11",
-        "contentHash": "/b10R3P8pdtH/+geJN/VDfkQGS+1QXXMTkT1PGFkdUabfAsyUi6jJTGTd2Y1unGnS0GTsrbOPS1Hi/bfEcPcxA==",
+        "resolved": "0.9.12",
+        "contentHash": "WiBKVRiroYXCxGvV57lJiut9ISis0zmNWBp0/T56vEGhJkjuZuvImGYG72mKXe/IktzEOpAjs5U4fLCNCJub/Q==",
         "dependencies": {
-          "Avalonia": "0.9.11",
+          "Avalonia": "0.9.12",
           "Avalonia.Skia.Linux.Natives": "1.68.0.2",
           "SkiaSharp": "1.68.0"
         }
@@ -165,21 +165,21 @@
       },
       "Avalonia.Win32": {
         "type": "Transitive",
-        "resolved": "0.9.11",
-        "contentHash": "bz5A5E8eh3m1VAJMcqrwrZJN7PFwQQe1532FkxoFJHIlbwOF0UngMt7Q27VWo1nGbCv005/v3qXZXfi9eLDepg==",
+        "resolved": "0.9.12",
+        "contentHash": "idimBlkjqFNR6PvobwB6fNimquClk3ur+JYDPHvP44dhc9Vlz4dd0luWVyekayZAor/rGUAx/zEBWDuEXpckvQ==",
         "dependencies": {
-          "Avalonia": "0.9.11",
+          "Avalonia": "0.9.12",
           "System.Drawing.Common": "4.5.0"
         }
       },
       "Avalonia.X11": {
         "type": "Transitive",
-        "resolved": "0.9.11",
-        "contentHash": "ZiMruLni7t5feME3t6ptKBcBdeBglLXudYesakdEe9pbL0nlw+zjZegFhJXj3zLKXDMY6vDDHINX+S5kVtYEFQ==",
+        "resolved": "0.9.12",
+        "contentHash": "Wyzk+aWgtBa0tQbQQ+EQ3K72cRBDPwXN5usWNQ9vCf0OwxyKET36Q+RpVIyaSdvPCjpjRqZ7ChtMIrHQaFVcPw==",
         "dependencies": {
-          "Avalonia": "0.9.11",
-          "Avalonia.FreeDesktop": "0.9.11",
-          "Avalonia.Skia": "0.9.11"
+          "Avalonia": "0.9.12",
+          "Avalonia.FreeDesktop": "0.9.12",
+          "Avalonia.Skia": "0.9.12"
         }
       },
       "Avalonia.Xaml.Behaviors": {
@@ -552,8 +552,8 @@
       },
       "NBitcoin": {
         "type": "Transitive",
-        "resolved": "5.0.43",
-        "contentHash": "cbcJ6T5DO4SrtrGQ0gckDga/MAAcH97QXev65FI8lDmCxWtMxo2vYUCqtl+k/8TMTU5dAS8jog4mT9O16yGwJg==",
+        "resolved": "5.0.47",
+        "contentHash": "fjEOFg2syu1AC2Q6NCeZ8GmwpDGtUeRTvbgiRyVQflm8NVSR/6X2mrFRu+KG/Q+77eq9c5K5ip081cnpuK9d4w==",
         "dependencies": {
           "Microsoft.Extensions.Logging.Abstractions": "1.0.0",
           "Newtonsoft.Json": "11.0.1"
@@ -860,7 +860,7 @@
       "SkiaSharp": {
         "type": "Transitive",
         "resolved": "1.68.0",
-        "contentHash": "ptuxAKk9FiClNnAgWM8hVMCYw/B0hUJWZ8W6efnIAtJmJn/Xl4jvxxDF5WOqfQYCLVzxXw5gvBPVxvTLblFp0g=="
+        "contentHash": "F8Nh6ws9WGVCddQb509Xl4lCIOu786Oc27t9LxPbuPZU7Olw6jVO2X6iqmHrwY+MZQXQXD4DeK5LU8vfiNwTCg=="
       },
       "Splat": {
         "type": "Transitive",
@@ -2272,7 +2272,7 @@
         "dependencies": {
           "Microsoft.AspNetCore.Mvc.NewtonsoftJson": "3.1.1",
           "Microsoft.Win32.Registry": "4.7.0",
-          "NBitcoin": "5.0.43",
+          "NBitcoin": "5.0.47",
           "NBitcoin.Secp256k1": "1.0.3"
         }
       }
