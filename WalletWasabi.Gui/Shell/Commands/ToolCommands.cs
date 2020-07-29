@@ -33,8 +33,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 				IoC.Get<IShell>().AddOrSelectDocument(() => new TransactionBroadcasterViewModel()));
 
 #if DEBUG
-			var devToolsCommand = ReactiveCommand.Create(() => { });
-				//DevToolsExtensions.OpenDevTools((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow));
+			var devToolsCommand = ReactiveCommand.Create(() => DevTools.Open((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow));
 #endif
 			Observable
 				.Merge(walletManagerCommand.ThrownExceptions)
