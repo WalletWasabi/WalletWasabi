@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Interfaces;
 
 namespace WalletWasabi.WebClients.BlockchainInfo
 {
-	public class CoinstampExchangeRateProvider : IExchangeRateProvider
+	public partial class CoinstampExchangeRateProvider : IExchangeRateProvider
 	{
 		public async Task<List<ExchangeRate>> GetExchangeRateAsync()
 		{
@@ -19,18 +18,11 @@ namespace WalletWasabi.WebClients.BlockchainInfo
 			var rate = await content.ReadAsJsonAsync<CoinstampExchangeRate>();
 
 			var exchangeRates = new List<ExchangeRate>
-				{
-					new ExchangeRate { Rate = rate.Rate, Ticker = "USD" }
-				};
+			{
+				new ExchangeRate { Rate = rate.Rate, Ticker = "USD" }
+			};
 
 			return exchangeRates;
-		}
-
-		public class CoinstampExchangeRate
-		{
-
-			[JsonProperty(PropertyName = "bid")]
-			public decimal Rate { get; set; }
 		}
 	}
 }
