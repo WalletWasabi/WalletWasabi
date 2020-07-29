@@ -28,6 +28,11 @@ namespace WalletWasabi.Crypto
 
 		public static GroupElement Infinity { get; } = new GroupElement(GE.Infinity);
 
+		/// <summary>
+		/// The base point defined in the secp256k1 standard used in ECDSA public key derivation.
+		/// </summary>
+		public static GroupElement G { get; } = new GroupElement(EC.G);
+
 		private GE Ge { get; }
 
 		public bool IsInfinity => Ge.IsInfinity;
@@ -59,5 +64,42 @@ namespace WalletWasabi.Crypto
 		}
 
 		public static bool operator !=(GroupElement a, GroupElement b) => !(a == b);
+
+		/// <summary>
+		/// ToString is only used for nice visual representation during debugging. Do not rely on the result for anything else.
+		/// </summary>
+		public override string ToString()
+		{
+			if (IsInfinity)
+			{
+				return "Infinity";
+			}
+			else if (Ge.x == EC.G.x && Ge.y == EC.G.y)
+			{
+				return $"Standard Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
+			}
+			else
+			{
+				return $"{Ge.x.ToC("x")}{Ge.y.ToC("y")}";
+			}
+		}
+
+		public static GroupElement operator +(GroupElement a, GroupElement b)
+		{
+			Guard.NotNull(nameof(a), a);
+			Guard.NotNull(nameof(b), b);
+
+			return new GroupElement(a.Ge.ToGroupElementJacobian().AddVariable(b.Ge, out _));
+		}
+
+		public static GroupElement operator -(GroupElement a, GroupElement b)
+		{
+			Guard.NotNull(nameof(a), a);
+			Guard.NotNull(nameof(b), b);
+
+			return a + new GroupElement(b.Ge.Negate());
+		}
+
+		public GroupElement Negate() => new GroupElement(Ge.Negate());
 	}
 }
