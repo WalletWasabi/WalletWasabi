@@ -7,6 +7,8 @@ using WalletWasabi.Interfaces;
 using WalletWasabi.Logging;
 using WalletWasabi.WebClients.BlockchainInfo;
 using WalletWasabi.WebClients.Coinbase;
+using WalletWasabi.WebClients.Coinstamp;
+using WalletWasabi.WebClients.CoinGecko;
 using WalletWasabi.WebClients.Gemini;
 using WalletWasabi.WebClients.ItBit;
 using WalletWasabi.WebClients.SmartBit;

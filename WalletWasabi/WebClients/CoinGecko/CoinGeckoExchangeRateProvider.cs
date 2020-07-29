@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Interfaces;
 
-namespace WalletWasabi.WebClients.BlockchainInfo
+namespace WalletWasabi.WebClients.CoinGecko
 {
 	public partial class CoinGeckoExchangeRateProvider : IExchangeRateProvider
 	{

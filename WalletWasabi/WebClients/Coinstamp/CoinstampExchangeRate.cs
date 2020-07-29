@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace WalletWasabi.WebClients.BlockchainInfo
+namespace WalletWasabi.WebClients.Coinstamp
 {
 	public partial class CoinstampExchangeRateProvider
 	{
