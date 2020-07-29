@@ -484,17 +484,22 @@ namespace WalletWasabi.Packager
 				using (var process = Process.Start(new ProcessStartInfo
 				{
 					FileName = "dotnet",
-					Arguments = $"publish --configuration Release --force --output \"{currentBinDistDirectory}\" " +
-						$"--self-contained true " +
-						$"--runtime \"{target}\" " +
-						$"/p:VersionPrefix={VersionPrefix} " +
-						$"--disable-parallel " +
-						$"--no-cache " +
-						$"/p:DebugType=none " +
-						$"/p:DebugSymbols=false " +
-						$"/p:ErrorReport=none " +
-						$"/p:DocumentationFile=\"\" " +
+					Arguments = string.Join(" ",
+						$"publish",
+						$"--configuration Release",
+						$"--force",
+						$"--output \"{currentBinDistDirectory}\"",
+						$"--self-contained true",
+						$"--runtime \"{target}\"",
+						$"--disable-parallel",
+						$"--no-cache",
+						$"/p:VersionPrefix={VersionPrefix}",
+						$"/p:DebugType=none",
+						$"/p:DebugSymbols=false",
+						$"/p:ErrorReport=none",
+						$"/p:DocumentationFile=\"\"",
 						$"/p:Deterministic=true",
+						$"/p:RestoreLockedMode=true"),
 					WorkingDirectory = GuiProjectDirectory,
 					RedirectStandardOutput = true
 				}))
