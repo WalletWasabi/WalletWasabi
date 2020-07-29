@@ -224,6 +224,7 @@ namespace WalletWasabi.Gui
 									EndPointStrategy.Default(Network, EndPointType.Rpc),
 									txIndex: null,
 									prune: null,
+									mempoolReplacement: "fee,optin",
 									userAgent: $"/WasabiClient:{Constants.ClientVersion}/",
 									fallbackFee: null, // ToDo: Maybe we should have it, not only for tests?
 									Cache),

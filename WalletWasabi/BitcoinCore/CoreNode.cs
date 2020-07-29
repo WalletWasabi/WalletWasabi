@@ -139,6 +139,11 @@ namespace WalletWasabi.BitcoinCore
 					desiredConfigLines.Add($"{configPrefix}.prune = {coreNodeParams.Prune}");
 				}
 
+				if (coreNodeParams.MempoolReplacement is { })
+				{
+					desiredConfigLines.Add($"{configPrefix}.mempoolreplacement = {coreNodeParams.MempoolReplacement}");
+				}
+
 				if (coreNodeParams.FallbackFee is { })
 				{
 					desiredConfigLines.Add($"{configPrefix}.fallbackfee = {coreNodeParams.FallbackFee.ToString(fplus: false, trimExcessZero: true)}");

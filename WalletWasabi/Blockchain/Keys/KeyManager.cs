@@ -425,7 +425,7 @@ namespace WalletWasabi.Blockchain.Keys
 		{
 			if (label.IsEmpty)
 			{
-				throw new InvalidOperationException("Observers are required.");
+				throw new InvalidOperationException("Known By is required.");
 			}
 
 			minGapLimitIncreased = false;

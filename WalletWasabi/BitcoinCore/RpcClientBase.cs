@@ -106,6 +106,11 @@ namespace WalletWasabi.BitcoinCore
 			return RpcParser.ParseVerboseBlockResponse(resp.Result.ToString());
 		}
 
+		public async Task<uint256[]> GenerateToAddressAsync(int nBlocks, BitcoinAddress address)
+		{
+			return await Rpc.GenerateToAddressAsync(nBlocks, address).ConfigureAwait(false);
+		}
+
 		#region For Testing Only
 
 		public virtual async Task<uint256> SendToAddressAsync(BitcoinAddress address, Money amount, string commentTx = null, string commentDest = null, bool subtractFeeFromAmount = false, bool replaceable = false)
