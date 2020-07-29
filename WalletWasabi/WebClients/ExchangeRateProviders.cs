@@ -17,11 +17,13 @@ namespace WalletWasabi.WebClients
 	{
 		private readonly IExchangeRateProvider[] ExchangeRateProviders =
 		{
-			new SmartBitExchangeRateProvider(new SmartBitClient(Network.Main)),
 			new BlockchainInfoExchangeRateProvider(),
+			new CoinstampExchangeRateProvider(),
+			new CoinGeckoExchangeRateProvider(),
 			new CoinbaseExchangeRateProvider(),
 			new GeminiExchangeRateProvider(),
 			new ItBitExchangeRateProvider()
+			new SmartBitExchangeRateProvider(new SmartBitClient(Network.Main)),
 		};
 
 		public async Task<List<ExchangeRate>> GetExchangeRateAsync()
