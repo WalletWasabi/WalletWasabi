@@ -93,11 +93,13 @@ namespace WalletWasabi.Gui
 			return executionTask.GetAwaiter().GetResult();
 		}
 
+		private static void SetTheme() => AvalonStudio.Extensibility.Theme.ColorTheme.LoadTheme(AvalonStudio.Extensibility.Theme.ColorTheme.VisualStudioDark);
+
 		private static async void AppMainAsync(string[] args)
 		{
 			try
 			{
-				AvalonStudio.Extensibility.Theme.ColorTheme.LoadTheme(AvalonStudio.Extensibility.Theme.ColorTheme.VisualStudioDark);
+				SetTheme();
 
 				MainWindowViewModel.Instance = new MainWindowViewModel(Global.Network, Global.UiConfig, Global.WalletManager, new StatusBarViewModel(), IoC.Get<IShell>());
 
@@ -179,8 +181,9 @@ namespace WalletWasabi.Gui
 				.With(new Win32PlatformOptions { AllowEglInitialization = false, UseDeferredRendering = true })
 				.With(new X11PlatformOptions { UseGpu = false, WmClass = "Wasabi Wallet Crash Reporting" })
 				.With(new AvaloniaNativePlatformOptions { UseDeferredRendering = true, UseGpu = false })
-				.With(new MacOSPlatformOptions { ShowInDock = true })
-				.StartWithClassicDesktopLifetime(args);
+				.With(new MacOSPlatformOptions { ShowInDock = true });
+
+			result.StartShellApp("Wasabi Wallet", _ => SetTheme(), args);
 		}
 
 		private static AppBuilder BuildAvaloniaApp()

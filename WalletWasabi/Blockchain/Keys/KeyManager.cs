@@ -20,6 +20,7 @@ namespace WalletWasabi.Blockchain.Keys
 	public class KeyManager
 	{
 		public const int AbsoluteMinGapLimit = 21;
+		public const int MaxGapLimit = 10_000;
 
 		// BIP84-ish derivation scheme
 		// m / purpose' / coin_type' / account' / change / address_index
@@ -424,7 +425,7 @@ namespace WalletWasabi.Blockchain.Keys
 		{
 			if (label.IsEmpty)
 			{
-				throw new InvalidOperationException("Observers are required.");
+				throw new InvalidOperationException("Known By is required.");
 			}
 
 			minGapLimitIncreased = false;

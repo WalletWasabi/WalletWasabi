@@ -6,7 +6,6 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Logging;
 using WalletWasabi.Tests.XunitConfiguration;
 using Xunit;
-using static WalletWasabi.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.Tests.UnitTests.Crypto
 {

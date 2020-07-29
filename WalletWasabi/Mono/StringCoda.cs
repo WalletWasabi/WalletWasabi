@@ -183,7 +183,7 @@ namespace Mono.Options
 		{
 			if (string.IsNullOrEmpty(self))
 			{
-				yield return string.Empty;
+				yield return "";
 				yield break;
 			}
 			using IEnumerator<int> eWidths = widths.GetEnumerator();

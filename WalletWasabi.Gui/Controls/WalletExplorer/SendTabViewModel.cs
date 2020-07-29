@@ -52,7 +52,24 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					PSBT signedPsbt = null;
 					try
 					{
-						signedPsbt = await client.SignTxAsync(Wallet.KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
+						try
+						{
+							signedPsbt = await client.SignTxAsync(Wallet.KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
+						}
+						catch (PSBTException ex) when (ex.Message.Contains("NullFail"))
+						{
+							NotificationHelpers.Warning("Fall back to Unverified Inputs Mode, trying to sign again.");
+
+							// Ledger Nano S hackfix https://github.com/MetacoSA/NBitcoin/pull/888
+
+							var noinputtx = result.Psbt.Clone();
+							foreach (var input in noinputtx.Inputs)
+							{
+								input.NonWitnessUtxo = null;
+							}
+
+							signedPsbt = await client.SignTxAsync(Wallet.KeyManager.MasterFingerprint.Value, noinputtx, cts.Token);
+						}
 					}
 					catch (HwiException)
 					{

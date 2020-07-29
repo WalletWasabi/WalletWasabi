@@ -4,7 +4,7 @@ namespace WalletWasabi.Models
 {
 	public struct ErrorDescriptor : IEquatable<ErrorDescriptor>
 	{
-		public static ErrorDescriptor Default = new ErrorDescriptor(ErrorSeverity.Default, string.Empty);
+		public static ErrorDescriptor Default = new ErrorDescriptor(ErrorSeverity.Default, "");
 
 		public ErrorDescriptor(ErrorSeverity severity, string message)
 		{

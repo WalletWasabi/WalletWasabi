@@ -20,6 +20,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class WalletInfoViewModel : WasabiDocumentTabViewModel, IWalletViewModel
 	{
+		private const string HiddenKeyString = "Sensitive Data - Not Shown";
 		private bool _showSensitiveKeys;
 		private string _password;
 		private string _extendedMasterPrivateKey;
@@ -124,10 +125,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void ClearSensitiveData(bool passwordToo)
 		{
-			ExtendedMasterPrivateKey = "";
-			ExtendedMasterZprv = "";
-			ExtendedAccountPrivateKey = "";
-			ExtendedAccountZprv = "";
+			ExtendedMasterPrivateKey = HiddenKeyString;
+			ExtendedMasterZprv = HiddenKeyString;
+			ExtendedAccountPrivateKey = HiddenKeyString;
+			ExtendedAccountZprv = HiddenKeyString;
 			ShowSensitiveKeys = false;
 
 			if (passwordToo)
