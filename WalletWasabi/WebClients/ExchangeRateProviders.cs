@@ -22,8 +22,8 @@ namespace WalletWasabi.WebClients
 			new CoinGeckoExchangeRateProvider(),
 			new CoinbaseExchangeRateProvider(),
 			new GeminiExchangeRateProvider(),
-			new ItBitExchangeRateProvider()
-			new SmartBitExchangeRateProvider(new SmartBitClient(Network.Main)),
+			new ItBitExchangeRateProvider(),
+			new SmartBitExchangeRateProvider(new SmartBitClient(Network.Main))
 		};
 
 		public async Task<List<ExchangeRate>> GetExchangeRateAsync()
