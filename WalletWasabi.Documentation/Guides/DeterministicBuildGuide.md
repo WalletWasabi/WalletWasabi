@@ -64,8 +64,8 @@ git diff --no-index linux-x64/ /usr/local/bin/wasabiwallet/
 #### .tar.gz
 
 ```sh
-tar -pxzf WasabiLinux-1.1.6.tar.gz
-git diff --no-index linux-x64/ WasabiLinux-1.1.6
+tar -pxzf Wasabi-1.1.6.tar.gz
+git diff --no-index linux-x64/ Wasabi-1.1.6
 ```
 
 #### .dmg
