@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
@@ -185,24 +186,18 @@ namespace WalletWasabi.Backend.Controllers
 			}
 		}
 
-		private static object GetRawMempoolStringsAsyncLock { get; } = new object();
-		private static bool GetRawMempoolStringsAsyncInUse { get; set; } = false;
+		private static int GetRawMempoolStringsAsyncCalls;
 
 		internal async Task<IEnumerable<string>> GetRawMempoolStringsAsync()
 		{
 			try
 			{
-				lock (GetRawMempoolStringsAsyncLock)
-				{
-					GetRawMempoolStringsAsyncInUse = true;
-				}
-
-				var cacheKey = $"{nameof(GetRawMempoolStringsAsync)}";
-
-				while (GetRawMempoolStringsAsyncInUse)
+				while (Interlocked.CompareExchange(ref GetRawMempoolStringsAsyncCalls, 1, 0) == 1)
 				{
 					await Task.Delay(100);
 				}
+
+				var cacheKey = $"{nameof(GetRawMempoolStringsAsync)}";
 
 				if (!Cache.TryGetValue(cacheKey, out IEnumerable<string> hashes))
 				{
@@ -219,10 +214,7 @@ namespace WalletWasabi.Backend.Controllers
 			}
 			finally
 			{
-				lock (GetRawMempoolStringsAsyncLock)
-				{
-					GetRawMempoolStringsAsyncInUse = false;
-				}
+				Interlocked.Exchange(ref GetRawMempoolStringsAsyncCalls, 0);
 			}
 		}
 
