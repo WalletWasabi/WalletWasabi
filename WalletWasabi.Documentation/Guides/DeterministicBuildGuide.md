@@ -12,6 +12,7 @@ In order to reproduce Wasabi's builds you need Git, Windows 10 and the version o
 git clone https://github.com/zkSNACKs/WalletWasabi.git
 git checkout {hash of the release} # This works from 1.1.3 release, https://github.com/zkSNACKs/WalletWasabi/releases
 cd WalletWasabi/WalletWasabi.Packager/
+dotnet clean
 dotnet restore
 dotnet build
 dotnet run -- --onlybinaries
@@ -55,8 +56,8 @@ git diff --no-index linux-x64/ /usr/local/bin/wasabiwallet/
 ### .tar.gz
 
 ```sh
-tar -pxzf WasabiLinux-1.1.6.tar.gz
-git diff --no-index linux-x64/ WasabiLinux-1.1.6
+tar -pxzf Wasabi-1.1.6.tar.gz
+git diff --no-index linux-x64/ Wasabi-1.1.6
 ```
 
 ### .dmg
