@@ -31,7 +31,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 			var rateProvider = new SmartBitExchangeRateProvider(client);
 			IEnumerable<ExchangeRate> rates = await rateProvider.GetExchangeRateAsync();
 
-			Assert.Contains("USD", rates.Select(x => x.Ticker));
+			var usdRate = Assert.Single(rates, x => x.Ticker == "USD");
+			Assert.NotEqual(0.0m, usdRate.Rate);
 		}
 
 		[Fact]
@@ -40,7 +41,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 			var client = new CoinbaseExchangeRateProvider();
 			IEnumerable<ExchangeRate> rates = await client.GetExchangeRateAsync();
 
-			Assert.Contains("USD", rates.Select(x => x.Ticker));
+			var usdRate = Assert.Single(rates, x => x.Ticker == "USD");
+			Assert.NotEqual(0.0m, usdRate.Rate);
 		}
 
 		[Fact]
@@ -49,7 +51,28 @@ namespace WalletWasabi.Tests.IntegrationTests
 			var client = new BlockchainInfoExchangeRateProvider();
 			IEnumerable<ExchangeRate> rates = await client.GetExchangeRateAsync();
 
-			Assert.Contains("USD", rates.Select(x => x.Ticker));
+			var usdRate = Assert.Single(rates, x => x.Ticker == "USD");
+			Assert.NotEqual(0.0m, usdRate.Rate);
+		}
+
+		[Fact]
+		public async Task CoinGeckoExchangeRateProviderTestsAsync()
+		{
+			var client = new CoinGeckoExchangeRateProvider();
+			IEnumerable<ExchangeRate> rates = await client.GetExchangeRateAsync();
+
+			var usdRate = Assert.Single(rates, x => x.Ticker == "USD");
+			Assert.NotEqual(0.0m, usdRate.Rate);
+		}
+
+		[Fact]
+		public async Task CoinstampExchangeRateProviderTestsAsync()
+		{
+			var client = new CoinstampExchangeRateProvider();
+			IEnumerable<ExchangeRate> rates = await client.GetExchangeRateAsync();
+
+			var usdRate = Assert.Single(rates, x => x.Ticker == "USD");
+			Assert.NotEqual(0.0m, usdRate.Rate);
 		}
 
 		[Fact]
@@ -58,7 +81,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 			var client = new GeminiExchangeRateProvider();
 			IEnumerable<ExchangeRate> rates = await client.GetExchangeRateAsync();
 
-			Assert.Contains("USD", rates.Select(x => x.Ticker));
+			var usdRate = Assert.Single(rates, x => x.Ticker == "USD");
+			Assert.NotEqual(0.0m, usdRate.Rate);
 		}
 
 		[Fact]
@@ -67,7 +91,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 			var client = new ItBitExchangeRateProvider();
 			IEnumerable<ExchangeRate> rates = await client.GetExchangeRateAsync();
 
-			Assert.Contains("USD", rates.Select(x => x.Ticker));
+			var usdRate = Assert.Single(rates, x => x.Ticker == "USD");
+			Assert.NotEqual(0.0m, usdRate.Rate);
 		}
 	}
 }
