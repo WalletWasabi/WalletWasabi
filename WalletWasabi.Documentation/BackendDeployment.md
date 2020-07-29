@@ -187,7 +187,7 @@ pico ~/.bitcoin/bitcoin.conf
 ```sh
 testnet=[0/1]
 
-[main/test].rpcworkqueue=128
+[main/test].rpcworkqueue=256
 
 [main/test].txindex=1
 
