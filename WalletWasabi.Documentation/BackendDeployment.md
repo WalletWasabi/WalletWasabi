@@ -421,7 +421,7 @@ EOS
 
 ## Prompt
 
-Additionally to the welcome banner it could be good to know in what server we are all the time and see clearly what branch is checkout-ed, in this case update the prompt as follow:
+Additionally to the welcome banner it could be good to know in which server we are all the time and to see clearly which branch is checked out, in this case update the prompt as follow:
 
 ```sh
 pico ~/.bashrc
