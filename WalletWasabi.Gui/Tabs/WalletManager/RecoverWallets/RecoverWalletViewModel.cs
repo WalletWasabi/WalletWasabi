@@ -235,7 +235,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 				var accountKeyPath = keyPath.GetAccountKeyPath();
 				if (keyPath.Length != accountKeyPath.Length || accountKeyPath.Length != KeyManager.DefaultAccountKeyPath.Length)
 				{
-					errors.Add(ErrorSeverity.Error, "Path is a full account derivation path.");
+					errors.Add(ErrorSeverity.Error, "Path is not a compatible account derivation path.");
 				}
 			}
 		}
