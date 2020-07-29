@@ -484,7 +484,17 @@ namespace WalletWasabi.Packager
 				using (var process = Process.Start(new ProcessStartInfo
 				{
 					FileName = "dotnet",
-					Arguments = $"publish --configuration Release --force --output \"{currentBinDistDirectory}\" --self-contained true --runtime \"{target}\" /p:VersionPrefix={VersionPrefix} --disable-parallel --no-cache /p:DebugType=none /p:DebugSymbols=false /p:ErrorReport=none /p:DocumentationFile=\"\" /p:Deterministic=true",
+					Arguments = $"publish --configuration Release --force --output \"{currentBinDistDirectory}\" " +
+						$"--self-contained true " +
+						$"--runtime \"{target}\" " +
+						$"/p:VersionPrefix={VersionPrefix} " +
+						$"--disable-parallel " +
+						$"--no-cache " +
+						$"/p:DebugType=none " +
+						$"/p:DebugSymbols=false " +
+						$"/p:ErrorReport=none " +
+						$"/p:DocumentationFile=\"\" " +
+						$"/p:Deterministic=true",
 					WorkingDirectory = GuiProjectDirectory
 				}))
 				{
@@ -547,17 +557,6 @@ namespace WalletWasabi.Packager
 
 				if (target.StartsWith("win"))
 				{
-					var icoPath = Path.Combine(GuiProjectDirectory, "Assets", "WasabiLogo.ico");
-					using (var process = Process.Start(new ProcessStartInfo
-					{
-						FileName = "rcedit", // https://github.com/electron/rcedit/
-						Arguments = $"\"{newExecutablePath}\" --set-icon \"{icoPath}\" --set-file-version \"{VersionPrefix}\" --set-product-version \"{VersionPrefix}\" --set-version-string \"LegalCopyright\" \"MIT\" --set-version-string \"CompanyName\" \"zkSNACKs\" --set-version-string \"FileDescription\" \"Privacy focused, ZeroLink compliant Bitcoin wallet.\" --set-version-string \"ProductName\" \"Wasabi Wallet\"",
-						WorkingDirectory = currentBinDistDirectory
-					}))
-					{
-						process.WaitForExit();
-					}
-
 					var daemonExePath = newExecutablePath[0..^4] + "d.exe";
 					File.Copy(newExecutablePath, daemonExePath);
 
