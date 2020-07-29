@@ -24,6 +24,7 @@ namespace WalletWasabi.BitcoinCore
 			EndPointStrategy rpcEndPointStrategy,
 			int? txIndex,
 			int? prune,
+			string mempoolReplacement,
 			string userAgent,
 			Money fallbackFee,
 			IMemoryCache cache)
@@ -38,6 +39,7 @@ namespace WalletWasabi.BitcoinCore
 			RpcEndPointStrategy = Guard.NotNull(nameof(rpcEndPointStrategy), rpcEndPointStrategy);
 			TxIndex = txIndex;
 			Prune = prune;
+			MempoolReplacement = mempoolReplacement;
 			UserAgent = Guard.NotNullOrEmptyOrWhitespace(nameof(userAgent), userAgent, trim: true);
 			FallbackFee = fallbackFee;
 			Cache = Guard.NotNull(nameof(cache), cache);
@@ -51,6 +53,7 @@ namespace WalletWasabi.BitcoinCore
 		public bool TryDeleteDataDir { get; }
 		public int? TxIndex { get; }
 		public int? Prune { get; }
+		public string MempoolReplacement { get; }
 		public string UserAgent { get; }
 		public Money FallbackFee { get; }
 		public EndPointStrategy P2pEndPointStrategy { get; }

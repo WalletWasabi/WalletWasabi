@@ -70,5 +70,7 @@ namespace WalletWasabi.BitcoinCore
 		Task<EstimateSmartFeeResponse> TryEstimateSmartFeeAsync(int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative);
 
 		Task<VerboseBlockInfo> GetVerboseBlockAsync(uint256 blockId);
+
+		Task<uint256[]> GenerateToAddressAsync(int nBlocks, BitcoinAddress address);
 	}
 }

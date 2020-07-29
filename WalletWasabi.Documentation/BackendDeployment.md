@@ -187,7 +187,7 @@ pico ~/.bitcoin/bitcoin.conf
 ```sh
 testnet=[0/1]
 
-[main/test].rpcworkqueue=128
+[main/test].rpcworkqueue=256
 
 [main/test].txindex=1
 
@@ -196,6 +196,7 @@ testnet=[0/1]
 [main/test].rpcuser=bitcoinuser
 [main/test].rpcpassword=password
 [main/test].whitebind=127.0.0.1:[8333/18333]
+[main/test].mempoolreplacement=fee,optin # Only valid for Bitcoin Knots - https://github.com/MetacoSA/NBitcoin/pull/884#issuecomment-663620290
 #[main/test].debug=rpc     # in some cases it could be good to uncomment this line.
 ```
 https://bitcoincore.org/en/releases/0.17.0/  

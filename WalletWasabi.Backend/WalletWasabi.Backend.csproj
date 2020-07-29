@@ -11,6 +11,8 @@
     <PackageTags>walletwasabi, wasabiwallet, wasabi, hiddenwallet, wallet, bitcoin, hbitcoin, nbitcoin, magicalcryptowallet, magicalwallet, tor, chaum, chaumian, zerolink, coinjoin, fungibility, privacy, anonymity</PackageTags>
     <RepositoryType>Git</RepositoryType>
     <RepositoryUrl>https://github.com/zkSNACKs/WalletWasabi/</RepositoryUrl>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
   </PropertyGroup>
 
   <ItemGroup>
@@ -32,13 +34,13 @@
     <DebugSymbols>false</DebugSymbols>
     <ErrorReport>none</ErrorReport>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.0.0" />
   </ItemGroup>
-  
+
 </Project>
