@@ -30,14 +30,16 @@ namespace WalletWasabi.Wallets
 			lock (Lock)
 			{
 				string cacheKey = $"{nameof(SmartBlockProvider)}:{nameof(GetBlockAsync)}:{blockHash}";
-				return Cache.GetOrCreate(cacheKey, entry =>
-				{
-					entry.SetSize(10);
-					entry.SetSlidingExpiration(TimeSpan.FromSeconds(4));
-					entry.RegisterPostEvictionCallback(callback: EvictionCallback, state: this);
+				return Cache.GetOrCreate(
+					cacheKey,
+					entry =>
+					{
+						entry.SetSize(10);
+						entry.SetSlidingExpiration(TimeSpan.FromSeconds(4));
+						entry.RegisterPostEvictionCallback(callback: EvictionCallback, state: this);
 
-					return InnerBlockProvider.GetBlockAsync(blockHash, cancel);
-				});
+						return InnerBlockProvider.GetBlockAsync(blockHash, cancel);
+					});
 			}
 		}
 
