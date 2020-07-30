@@ -41,7 +41,7 @@ namespace WalletWasabi.BitcoinCore
 		{
 			string cacheKey = nameof(GetBestBlockHashAsync);
 
-			return await Cache.GetOrCreateAsync(
+			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
 				entry =>
 				{
@@ -56,7 +56,7 @@ namespace WalletWasabi.BitcoinCore
 		public override async Task<Block> GetBlockAsync(uint256 blockHash)
 		{
 			string cacheKey = $"{nameof(GetBlockAsync)}:{blockHash}";
-			return await Cache.GetOrCreateAsync(
+			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
 				entry =>
 				{
@@ -70,7 +70,7 @@ namespace WalletWasabi.BitcoinCore
 		public override async Task<Block> GetBlockAsync(uint blockHeight)
 		{
 			string cacheKey = $"{nameof(GetBlockAsync)}:{blockHeight}";
-			return await Cache.GetOrCreateAsync(
+			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
 				entry =>
 				{
@@ -84,7 +84,7 @@ namespace WalletWasabi.BitcoinCore
 		public override async Task<BlockHeader> GetBlockHeaderAsync(uint256 blockHash)
 		{
 			string cacheKey = $"{nameof(GetBlockHeaderAsync)}:{blockHash}";
-			return await Cache.GetOrCreateAsync(
+			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
 				entry =>
 				{
@@ -98,7 +98,7 @@ namespace WalletWasabi.BitcoinCore
 		public override async Task<int> GetBlockCountAsync()
 		{
 			string cacheKey = nameof(GetBlockCountAsync);
-			return await Cache.GetOrCreateAsync(
+			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
 				entry =>
 				{
@@ -113,7 +113,7 @@ namespace WalletWasabi.BitcoinCore
 		public override async Task<PeerInfo[]> GetPeersInfoAsync()
 		{
 			string cacheKey = nameof(GetPeersInfoAsync);
-			return await Cache.GetOrCreateAsync(
+			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
 				entry =>
 				{
@@ -127,7 +127,7 @@ namespace WalletWasabi.BitcoinCore
 		public override async Task<MempoolEntry> GetMempoolEntryAsync(uint256 txid, bool throwIfNotFound = true)
 		{
 			string cacheKey = $"{nameof(GetMempoolEntryAsync)}:{txid}";
-			return await Cache.GetOrCreateAsync(
+			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
 				entry =>
 				{
@@ -142,7 +142,7 @@ namespace WalletWasabi.BitcoinCore
 		public override async Task<uint256[]> GetRawMempoolAsync()
 		{
 			string cacheKey = nameof(GetRawMempoolAsync);
-			return await Cache.GetOrCreateAsync(
+			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
 				entry =>
 				{
@@ -157,7 +157,7 @@ namespace WalletWasabi.BitcoinCore
 		public override async Task<GetTxOutResponse> GetTxOutAsync(uint256 txid, int index, bool includeMempool = true)
 		{
 			string cacheKey = $"{nameof(GetTxOutAsync)}:{txid}:{index}:{includeMempool}";
-			return await Cache.GetOrCreateAsync(
+			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
 				entry =>
 				{

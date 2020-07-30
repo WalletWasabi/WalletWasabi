@@ -141,7 +141,7 @@ namespace WalletWasabi.Backend.Controllers
 		internal async Task<AllFeeEstimate> GetAllFeeEstimateAsync(EstimateSmartFeeMode mode)
 		{
 			var cacheKey = $"{nameof(GetAllFeeEstimateAsync)}_{mode}";
-			return await Cache.GetOrCreateAsync(
+			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
 				entry =>
 				{
@@ -185,7 +185,7 @@ namespace WalletWasabi.Backend.Controllers
 		internal async Task<IEnumerable<string>> GetRawMempoolStringsAsync()
 		{
 			var cacheKey = $"{nameof(GetRawMempoolStringsAsync)}";
-			return await Cache.GetOrCreateAsync(
+			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
 				async entry =>
 				{
@@ -401,7 +401,7 @@ namespace WalletWasabi.Backend.Controllers
 		private async Task<EstimateSmartFeeResponse> GetEstimateSmartFeeAsync(int target, EstimateSmartFeeMode mode)
 		{
 			var cacheKey = $"{nameof(GetEstimateSmartFeeAsync)}_{target}_{mode}";
-			return await Cache.GetOrCreateAsync(
+			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
 				entry =>
 				{

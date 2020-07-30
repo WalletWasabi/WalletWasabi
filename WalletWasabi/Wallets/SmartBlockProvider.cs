@@ -26,7 +26,7 @@ namespace WalletWasabi.Wallets
 		public async Task<Block> GetBlockAsync(uint256 blockHash, CancellationToken cancel)
 		{
 			string cacheKey = $"{nameof(SmartBlockProvider)}:{nameof(GetBlockAsync)}:{blockHash}";
-			return await Cache.GetOrCreateAsync(
+			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
 				entry =>
 				{
