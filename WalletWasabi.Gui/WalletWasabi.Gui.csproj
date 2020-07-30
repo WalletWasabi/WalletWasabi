@@ -24,7 +24,7 @@
     <PackageLicenseUrl>https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md</PackageLicenseUrl>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/zkSNACKs/WalletWasabi/</RepositoryUrl>
-    <ApplicationIcon>WasabiLogo.ico</ApplicationIcon>
+    <ApplicationIcon>Assets\WasabiLogo.ico</ApplicationIcon>
     <PackageIcon>Assets\WasabiLogo.ico</PackageIcon>
     <Product>Wasabi Wallet</Product>
     <!-- owners is not supported in MSBuild -->

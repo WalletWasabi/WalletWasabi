@@ -495,10 +495,16 @@ namespace WalletWasabi.Packager
 						$"/p:ErrorReport=none " +
 						$"/p:DocumentationFile=\"\" " +
 						$"/p:Deterministic=true",
-					WorkingDirectory = GuiProjectDirectory
+					WorkingDirectory = GuiProjectDirectory,
+					RedirectStandardOutput = true
 				}))
 				{
+					string error = process.StandardOutput.ReadToEnd();
 					process.WaitForExit();
+					if (process.ExitCode != 0)
+					{
+						throw new InvalidOperationException($"dotnet publish returned with error code {process.ExitCode}. Error message was: {error ?? "none"}");
+					}
 				}
 
 				Tools.ClearSha512Tags(currentBinDistDirectory);
