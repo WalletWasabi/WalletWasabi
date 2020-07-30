@@ -51,7 +51,6 @@ namespace WalletWasabi.BitcoinCore
 			}
 		}
 
-
 		public override async Task<uint256> GetBestBlockHashAsync() =>
 			await Get<uint256>(
 				nameof(GetBestBlockHashAsync),
