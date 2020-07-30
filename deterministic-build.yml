@@ -11,6 +11,7 @@ steps:
     version: 3.1.x
 
 - task: PowerShell@2
+  displayName: 'Build and compare'
   inputs:
     targetType: 'inline'
     script: |
