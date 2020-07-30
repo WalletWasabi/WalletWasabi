@@ -18,7 +18,7 @@ namespace WalletWasabi.Wallets
 			InnerBlockProvider = provider;
 			Cache = cache;
 		}
-		
+
 		private IBlockProvider InnerBlockProvider { get; }
 
 		public IMemoryCache Cache { get; }
@@ -29,20 +29,15 @@ namespace WalletWasabi.Wallets
 		{
 			lock (Lock)
 			{
-				string cacheKey = $"{nameof(SmartBlockProvider):nameof(GetBlockAsync)}:{blockHash}";
-				if (!Cache.TryGetValue(cacheKey, out Task<Block> getBlockTask))
+				string cacheKey = $"{nameof(SmartBlockProvider)}:{nameof(GetBlockAsync)}:{blockHash}";
+				return Cache.GetOrCreate(cacheKey, entry =>
 				{
-					getBlockTask = InnerBlockProvider.GetBlockAsync(blockHash, cancel);
+					entry.SetSize(10);
+					entry.SetSlidingExpiration(TimeSpan.FromSeconds(4));
+					entry.RegisterPostEvictionCallback(callback: EvictionCallback, state: this);
 
-					var cacheEntryOptions = new MemoryCacheEntryOptions()
-						.SetSize(10)
-						.SetSlidingExpiration(TimeSpan.FromSeconds(4))
-						.RegisterPostEvictionCallback(callback: EvictionCallback, state: this);
-
-					// Save data in cache.
-					Cache.Set(cacheKey, getBlockTask, cacheEntryOptions);
-				}
-				return getBlockTask;
+					return InnerBlockProvider.GetBlockAsync(blockHash, cancel);
+				});
 			}
 		}
 

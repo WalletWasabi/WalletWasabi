@@ -141,17 +141,12 @@ namespace WalletWasabi.Backend.Controllers
 		internal async Task<AllFeeEstimate> GetAllFeeEstimateAsync(EstimateSmartFeeMode mode)
 		{
 			var cacheKey = $"{nameof(GetAllFeeEstimateAsync)}_{mode}";
-
-			if (!Cache.TryGetValue(cacheKey, out AllFeeEstimate allFee))
+			return await Cache.GetOrCreateAsync(cacheKey, entry =>
 			{
-				allFee = await RpcClient.EstimateAllFeeAsync(mode, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: true);
+				entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(500));
 
-				var cacheEntryOptions = new MemoryCacheEntryOptions()
-					.SetAbsoluteExpiration(TimeSpan.FromSeconds(500));
-
-				Cache.Set(cacheKey, allFee, cacheEntryOptions);
-			}
-			return allFee;
+				return RpcClient.EstimateAllFeeAsync(mode, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: true);
+			});
 		}
 
 		/// <summary>
@@ -188,19 +183,13 @@ namespace WalletWasabi.Backend.Controllers
 		internal async Task<IEnumerable<string>> GetRawMempoolStringsAsync()
 		{
 			var cacheKey = $"{nameof(GetRawMempoolStringsAsync)}";
-
-			if (!Cache.TryGetValue(cacheKey, out IEnumerable<string> hashes))
+			return await Cache.GetOrCreateAsync(cacheKey, async entry =>
 			{
+				entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(3));
+
 				uint256[] transactionHashes = await Global.RpcClient.GetRawMempoolAsync();
-
-				hashes = transactionHashes.Select(x => x.ToString());
-
-				var cacheEntryOptions = new MemoryCacheEntryOptions()
-					.SetAbsoluteExpiration(TimeSpan.FromSeconds(3));
-
-				Cache.Set(cacheKey, hashes, cacheEntryOptions);
-			}
-			return hashes;
+				return transactionHashes.Select(x => x.ToString());
+			});
 		}
 
 		/// <summary>
@@ -408,18 +397,12 @@ namespace WalletWasabi.Backend.Controllers
 		private async Task<EstimateSmartFeeResponse> GetEstimateSmartFeeAsync(int target, EstimateSmartFeeMode mode)
 		{
 			var cacheKey = $"{nameof(GetEstimateSmartFeeAsync)}_{target}_{mode}";
-
-			if (!Cache.TryGetValue(cacheKey, out EstimateSmartFeeResponse feeResponse))
+			return await Cache.GetOrCreateAsync(cacheKey, entry =>
 			{
-				feeResponse = await RpcClient.EstimateSmartFeeAsync(target, mode, simulateIfRegTest: true, tryOtherFeeRates: true);
+				entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(300));
 
-				var cacheEntryOptions = new MemoryCacheEntryOptions()
-					.SetAbsoluteExpiration(TimeSpan.FromSeconds(300));
-
-				Cache.Set(cacheKey, feeResponse, cacheEntryOptions);
-			}
-
-			return feeResponse;
+				return RpcClient.EstimateSmartFeeAsync(target, mode, simulateIfRegTest: true, tryOtherFeeRates: true);
+			});
 		}
 
 		[HttpGet("status")]
