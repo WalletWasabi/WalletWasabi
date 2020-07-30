@@ -52,7 +52,7 @@ namespace WalletWasabi.BitcoinCore
 		}
 
 		public override async Task<uint256> GetBestBlockHashAsync() =>
-			await Get<uint256>(
+			await GetAsync<uint256>(
 				nameof(GetBestBlockHashAsync),
 				() => base.GetBestBlockHashAsync(),
 				new MemoryCacheEntryOptions()
@@ -61,7 +61,7 @@ namespace WalletWasabi.BitcoinCore
 					.AddExpirationToken(new CancellationChangeToken(TipChangeCancellationTokenSource.Token)));
 
 		public override async Task<Block> GetBlockAsync(uint256 blockHash) =>
-			await Get<Block>(
+			await GetAsync<Block>(
 				$"{nameof(GetBlockAsync)}hash:{blockHash}",
 				() => base.GetBlockAsync(blockHash),
 				new MemoryCacheEntryOptions()
@@ -69,7 +69,7 @@ namespace WalletWasabi.BitcoinCore
 					.SetAbsoluteExpiration(TimeSpan.FromSeconds(4))); // There is a block every 10 minutes in average so, keep in cache for 4 seconds.
 
 		public override async Task<Block> GetBlockAsync(uint blockHeight) =>
-			await Get<Block>(
+			await GetAsync<Block>(
 				$"{nameof(GetBlockAsync)}height:{blockHeight}",
 				() => base.GetBlockAsync(blockHeight),
 				new MemoryCacheEntryOptions()
@@ -77,7 +77,7 @@ namespace WalletWasabi.BitcoinCore
 					.SetAbsoluteExpiration(TimeSpan.FromSeconds(4))); // There is a block every 10 minutes in average so, keep in cache for 4 seconds.
 
 		public override async Task<BlockHeader> GetBlockHeaderAsync(uint256 blockHash) =>
-			await Get<BlockHeader>(
+			await GetAsync<BlockHeader>(
 				$"{nameof(GetBlockHeaderAsync)}:{blockHash}",
 				() => base.GetBlockHeaderAsync(blockHash),
 				new MemoryCacheEntryOptions()
@@ -85,7 +85,7 @@ namespace WalletWasabi.BitcoinCore
 					.SetAbsoluteExpiration(TimeSpan.FromSeconds(4))); // There is a block every 10 minutes in average so, keep in cache for 4 seconds.
 
 		public override async Task<int> GetBlockCountAsync() =>
-			await Get<int>(
+			await GetAsync<int>(
 				nameof(GetBlockCountAsync),
 				() => base.GetBlockCountAsync(),
 				new MemoryCacheEntryOptions()
@@ -94,7 +94,7 @@ namespace WalletWasabi.BitcoinCore
 					.AddExpirationToken(new CancellationChangeToken(TipChangeCancellationTokenSource.Token)));
 
 		public override async Task<PeerInfo[]> GetPeersInfoAsync() =>
-			await Get<PeerInfo[]>(
+			await GetAsync<PeerInfo[]>(
 				nameof(GetPeersInfoAsync),
 				() => base.GetPeersInfoAsync(),
 				new MemoryCacheEntryOptions()
@@ -102,7 +102,7 @@ namespace WalletWasabi.BitcoinCore
 					.SetAbsoluteExpiration(TimeSpan.FromSeconds(0.5)));
 
 		public override async Task<MempoolEntry> GetMempoolEntryAsync(uint256 txid, bool throwIfNotFound = true) =>
-			await Get<MempoolEntry>(
+			await GetAsync<MempoolEntry>(
 				$"{nameof(GetMempoolEntryAsync)}:{txid}",
 				() => base.GetMempoolEntryAsync(txid, throwIfNotFound),
 				new MemoryCacheEntryOptions()
@@ -111,7 +111,7 @@ namespace WalletWasabi.BitcoinCore
 					.AddExpirationToken(new CancellationChangeToken(TipChangeCancellationTokenSource.Token)));
 
 		public override async Task<uint256[]> GetRawMempoolAsync() =>
-			await Get<uint256[]>(
+			await GetAsync<uint256[]>(
 				nameof(GetRawMempoolAsync),
 				() => base.GetRawMempoolAsync(),
 				new MemoryCacheEntryOptions()
@@ -159,7 +159,7 @@ namespace WalletWasabi.BitcoinCore
 			await base.InvalidateBlockAsync(blockHash);
 		}
 
-		private async Task<T> Get<T>(string cacheKey, Func<Task<T>> fetch, MemoryCacheEntryOptions cacheEntryOptions)
+		private async Task<T> GetAsync<T>(string cacheKey, Func<Task<T>> fetch, MemoryCacheEntryOptions cacheEntryOptions)
 		{
 			if (Cache.TryGetValue(cacheKey, out T cachedObject))
 			{
