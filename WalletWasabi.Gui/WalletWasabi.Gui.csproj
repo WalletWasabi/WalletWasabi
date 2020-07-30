@@ -25,7 +25,7 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/zkSNACKs/WalletWasabi/</RepositoryUrl>
     <ApplicationIcon>WasabiLogo.ico</ApplicationIcon>
-    <PackageIcon>WasabiLogo.ico</PackageIcon>
+    <PackageIcon>Assets\WasabiLogo.ico</PackageIcon>
     <Product>Wasabi Wallet</Product>
     <!-- owners is not supported in MSBuild -->
   </PropertyGroup>
