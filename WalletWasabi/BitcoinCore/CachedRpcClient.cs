@@ -12,7 +12,7 @@ namespace WalletWasabi.BitcoinCore
 {
 	public class CachedRpcClient : RpcClientBase
 	{
-		private static Dictionary<string, SemaphoreSlim> Semaphores = new Dictionary<string, SemaphoreSlim>
+		private static Dictionary<string, SemaphoreSlim> Semaphores { get; } = new Dictionary<string, SemaphoreSlim>
 		{
 			{ nameof(GetBestBlockHashAsync), new SemaphoreSlim(1) },
 			{ nameof(GetBlockAsync) + "height", new SemaphoreSlim(1) },
