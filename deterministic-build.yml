@@ -20,3 +20,4 @@ steps:
       dotnet run -p .\WalletWasabi.Packager\ --onlybinaries
       git diff --no-index .\WalletWasabi.Gui\bin\dist .\WalletWasabi.Gui\bin\dist1
       exit $LASTEXITCODE
+    failOnStderr: false
