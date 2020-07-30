@@ -11,7 +11,7 @@ strategy:
       runtime: 'win7-x64'
 
 pool:
-  vmImage: ubuntu-16.04
+  vmImage: windows-latest
 
 steps:
 - task: UseDotNet@2
@@ -19,15 +19,14 @@ steps:
   inputs:
     version: 3.1.x
 
-- task: Bash@3
-  displayName: 'Build and compare'
+- task: PowerShell@2
   inputs:
     targetType: 'inline'
     script: |
-      cd WalletWasabi.Gui;
-      for i in `seq 2`;
-      do
-      dotnet clean --configuration Release && dotnet publish --configuration Release --force --output "./dist${i}" --self-contained true --runtime "$(runtime)" /p:VersionPrefix=1.1.20 --disable-parallel --no-cache /p:DebugType=none /p:DebugSymbols=false /p:ErrorReport=none /p:DocumentationFile=\"\" /p:Deterministic=true;
-      done;
-      diff <(find ./dist1/ -type f -exec md5sum {} + | cut -f1 -d' ' | sort) <(find ./dist2/ -type f -exec md5sum {} + | cut -f1 -d' '| sort);
+      dotnet run -p .\WalletWasabi.Packager\ --onlybinaries
+      Remove-Item -Recurse -ErrorAction SilentlyContinue .\WalletWasabi.Gui\bin\dist1
+      Rename-Item -Path .\WalletWasabi.Gui\bin\dist -NewName dist1
+      dotnet run -p .\WalletWasabi.Packager\ --onlybinaries
+      # git diff returns 1 on any differences. Warnings do not count as difference. 
+      git diff --no-index .\WalletWasabi.Gui\bin\dist .\WalletWasabi.Gui\bin\dist1
 
