@@ -9,7 +9,7 @@ namespace Microsoft.Extensions.Caching.Memory
 	public static class MemoryExtensions
 	{
 		private static Dictionary<object, AsyncLock> AsyncLocks { get; } = new Dictionary<object, AsyncLock>();
-		private static object AsyncLocksLock = new object();
+		private static object AsyncLocksLock { get; } = new object();
 
 		public static async Task<TItem> AtomicGetOrCreateAsync<TItem>(this IMemoryCache cache, object key, Func<ICacheEntry, Task<TItem>> factory)
 		{
