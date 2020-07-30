@@ -18,6 +18,5 @@ steps:
       Remove-Item -Recurse -ErrorAction SilentlyContinue .\WalletWasabi.Gui\bin\dist1
       Rename-Item -Path .\WalletWasabi.Gui\bin\dist -NewName dist1
       dotnet run -p .\WalletWasabi.Packager\ --onlybinaries
-      # git diff returns 1 on any differences. Warnings do not count as difference. 
       git diff --no-index .\WalletWasabi.Gui\bin\dist .\WalletWasabi.Gui\bin\dist1
-
+      exit $LASTEXITCODE
