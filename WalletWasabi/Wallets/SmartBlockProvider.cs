@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace WalletWasabi.Wallets
 {
 	/// <summary>
-	/// SmartP2pBlockProvider is a blocks provider that can provide
+	/// SmartP2pBlockProvider is a block provider that can provide
 	/// blocks from multiple requesters.
 	/// </summary>
 	public class SmartBlockProvider : IBlockProvider
@@ -23,33 +23,18 @@ namespace WalletWasabi.Wallets
 
 		public IMemoryCache Cache { get; }
 
-		private AsyncLock Lock { get; } = new AsyncLock();
-
-		public Task<Block> GetBlockAsync(uint256 blockHash, CancellationToken cancel)
+		public async Task<Block> GetBlockAsync(uint256 blockHash, CancellationToken cancel)
 		{
-			lock (Lock)
-			{
-				string cacheKey = $"{nameof(SmartBlockProvider)}:{nameof(GetBlockAsync)}:{blockHash}";
-				return Cache.GetOrCreate(
-					cacheKey,
-					entry =>
-					{
-						entry.SetSize(10);
-						entry.SetSlidingExpiration(TimeSpan.FromSeconds(4));
-						entry.RegisterPostEvictionCallback(callback: EvictionCallback, state: this);
+			string cacheKey = $"{nameof(SmartBlockProvider)}:{nameof(GetBlockAsync)}:{blockHash}";
+			return await Cache.GetOrCreateAsync(
+				cacheKey,
+				entry =>
+				{
+					entry.SetSize(10);
+					entry.SetSlidingExpiration(TimeSpan.FromSeconds(4));
 
-						return InnerBlockProvider.GetBlockAsync(blockHash, cancel);
-					});
-			}
-		}
-
-		private void EvictionCallback(object key, object value, EvictionReason reason, object state)
-		{
-			var task = value as Task<Block>;
-			if (task.IsCompleted)
-			{
-				task?.Dispose();
-			}
+					return InnerBlockProvider.GetBlockAsync(blockHash, cancel);
+				}).ConfigureAwait(false);
 		}
 	}
 }
