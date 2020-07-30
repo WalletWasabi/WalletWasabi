@@ -52,7 +52,7 @@ namespace WalletWasabi.BitcoinCore
 		}
 
 		public override async Task<uint256> GetBestBlockHashAsync() =>
-			await GetAsync<uint256>(
+			await GetAsync(
 				nameof(GetBestBlockHashAsync),
 				() => base.GetBestBlockHashAsync(),
 				new MemoryCacheEntryOptions()
@@ -62,7 +62,7 @@ namespace WalletWasabi.BitcoinCore
 				.ConfigureAwait(false);
 
 		public override async Task<Block> GetBlockAsync(uint256 blockHash) =>
-			await GetAsync<Block>(
+			await GetAsync(
 				$"{nameof(GetBlockAsync)}hash:{blockHash}",
 				() => base.GetBlockAsync(blockHash),
 				new MemoryCacheEntryOptions()
@@ -71,7 +71,7 @@ namespace WalletWasabi.BitcoinCore
 				.ConfigureAwait(false);
 
 		public override async Task<Block> GetBlockAsync(uint blockHeight) =>
-			await GetAsync<Block>(
+			await GetAsync(
 				$"{nameof(GetBlockAsync)}height:{blockHeight}",
 				() => base.GetBlockAsync(blockHeight),
 				new MemoryCacheEntryOptions()
@@ -80,7 +80,7 @@ namespace WalletWasabi.BitcoinCore
 				.ConfigureAwait(false);
 
 		public override async Task<BlockHeader> GetBlockHeaderAsync(uint256 blockHash) =>
-			await GetAsync<BlockHeader>(
+			await GetAsync(
 				$"{nameof(GetBlockHeaderAsync)}:{blockHash}",
 				() => base.GetBlockHeaderAsync(blockHash),
 				new MemoryCacheEntryOptions()
@@ -89,7 +89,7 @@ namespace WalletWasabi.BitcoinCore
 				.ConfigureAwait(false);
 
 		public override async Task<int> GetBlockCountAsync() =>
-			await GetAsync<int>(
+			await GetAsync(
 				nameof(GetBlockCountAsync),
 				() => base.GetBlockCountAsync(),
 				new MemoryCacheEntryOptions()
@@ -99,7 +99,7 @@ namespace WalletWasabi.BitcoinCore
 				.ConfigureAwait(false);
 
 		public override async Task<PeerInfo[]> GetPeersInfoAsync() =>
-			await GetAsync<PeerInfo[]>(
+			await GetAsync(
 				nameof(GetPeersInfoAsync),
 				() => base.GetPeersInfoAsync(),
 				new MemoryCacheEntryOptions()
@@ -108,7 +108,7 @@ namespace WalletWasabi.BitcoinCore
 				.ConfigureAwait(false);
 
 		public override async Task<MempoolEntry> GetMempoolEntryAsync(uint256 txid, bool throwIfNotFound = true) =>
-			await GetAsync<MempoolEntry>(
+			await GetAsync(
 				$"{nameof(GetMempoolEntryAsync)}:{txid}",
 				() => base.GetMempoolEntryAsync(txid, throwIfNotFound),
 				new MemoryCacheEntryOptions()
@@ -118,7 +118,7 @@ namespace WalletWasabi.BitcoinCore
 				.ConfigureAwait(false);
 
 		public override async Task<uint256[]> GetRawMempoolAsync() =>
-			await GetAsync<uint256[]>(
+			await GetAsync(
 				nameof(GetRawMempoolAsync),
 				() => base.GetRawMempoolAsync(),
 				new MemoryCacheEntryOptions()
