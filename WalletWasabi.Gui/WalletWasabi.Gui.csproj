@@ -17,7 +17,7 @@
     <Description>Open-source, non-custodial, privacy focused Bitcoin wallet for Windows, Linux, and Mac. Built-in Tor, CoinJoin, and coin control features.</Description>
     <Copyright>MIT</Copyright>
     <PackageId>Wasabi Wallet</PackageId>
-    <AssemblyTitle>Privacy focused, ZeroLink compliant Bitcoin wallet.</AssemblyTitle>
+    <AssemblyTitle>Privacy focused Bitcoin wallet.</AssemblyTitle>
     <Company>zkSNACKs</Company>
     <PackageTags>bitcoin-wallet;privacy;bitcoin;dotnet;nbitcoin;cross-platform;zerolink;wallet;tumbler;coin;tor</PackageTags>
     <PackageProjectUrl>https://github.com/zkSNACKs/WalletWasabi/</PackageProjectUrl>
