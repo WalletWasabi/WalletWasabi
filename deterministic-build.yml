@@ -14,10 +14,11 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
+      # Change git output from stderr to stdout https://github.com/dahlbyk/posh-git/issues/109.
+      $env:GIT_REDIRECT_STDERR = '2>&1'
       dotnet run -p .\WalletWasabi.Packager\ --onlybinaries
       Remove-Item -Recurse -ErrorAction SilentlyContinue .\WalletWasabi.Gui\bin\dist1
       Rename-Item -Path .\WalletWasabi.Gui\bin\dist -NewName dist1
       dotnet run -p .\WalletWasabi.Packager\ --onlybinaries
       git diff --no-index .\WalletWasabi.Gui\bin\dist .\WalletWasabi.Gui\bin\dist1
       exit $LASTEXITCODE
-    failOnStderr: false
