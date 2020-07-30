@@ -141,12 +141,14 @@ namespace WalletWasabi.Backend.Controllers
 		internal async Task<AllFeeEstimate> GetAllFeeEstimateAsync(EstimateSmartFeeMode mode)
 		{
 			var cacheKey = $"{nameof(GetAllFeeEstimateAsync)}_{mode}";
-			return await Cache.GetOrCreateAsync(cacheKey, entry =>
-			{
-				entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(500));
+			return await Cache.GetOrCreateAsync(
+				cacheKey,
+				entry =>
+				{
+					entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(500));
 
-				return RpcClient.EstimateAllFeeAsync(mode, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: true);
-			});
+					return RpcClient.EstimateAllFeeAsync(mode, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: true);
+				});
 		}
 
 		/// <summary>
@@ -183,13 +185,15 @@ namespace WalletWasabi.Backend.Controllers
 		internal async Task<IEnumerable<string>> GetRawMempoolStringsAsync()
 		{
 			var cacheKey = $"{nameof(GetRawMempoolStringsAsync)}";
-			return await Cache.GetOrCreateAsync(cacheKey, async entry =>
-			{
-				entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(3));
+			return await Cache.GetOrCreateAsync(
+				cacheKey,
+				async entry =>
+				{
+					entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(3));
 
-				uint256[] transactionHashes = await Global.RpcClient.GetRawMempoolAsync();
-				return transactionHashes.Select(x => x.ToString());
-			});
+					uint256[] transactionHashes = await Global.RpcClient.GetRawMempoolAsync();
+					return transactionHashes.Select(x => x.ToString());
+				});
 		}
 
 		/// <summary>
@@ -397,12 +401,14 @@ namespace WalletWasabi.Backend.Controllers
 		private async Task<EstimateSmartFeeResponse> GetEstimateSmartFeeAsync(int target, EstimateSmartFeeMode mode)
 		{
 			var cacheKey = $"{nameof(GetEstimateSmartFeeAsync)}_{target}_{mode}";
-			return await Cache.GetOrCreateAsync(cacheKey, entry =>
-			{
-				entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(300));
+			return await Cache.GetOrCreateAsync(
+				cacheKey,
+				entry =>
+				{
+					entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(300));
 
-				return RpcClient.EstimateSmartFeeAsync(target, mode, simulateIfRegTest: true, tryOtherFeeRates: true);
-			});
+					return RpcClient.EstimateSmartFeeAsync(target, mode, simulateIfRegTest: true, tryOtherFeeRates: true);
+				});
 		}
 
 		[HttpGet("status")]
