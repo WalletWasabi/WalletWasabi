@@ -83,8 +83,8 @@
   </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec ContinueOnError="True" Command="git log --pretty=format:'%H' -n 1 > &quot;$(ProjectDir)/GitInfo/currentcommit.txt&quot;" />
-    <Exec ContinueOnError="True" Command="git branch --show-current > &quot;$(ProjectDir)/GitInfo/currentbranch.txt&quot;" />
+    <Exec ContinueOnError="True" Command="git log --pretty=format:'%H' -n 1 > &quot;$(ProjectDir)/GitInfo/git-info-commit.txt&quot;" />
+    <Exec ContinueOnError="True" Command="git branch --show-current > &quot;$(ProjectDir)/GitInfo/git-info-branch.txt&quot;" />
   </Target>
 
 </Project>
