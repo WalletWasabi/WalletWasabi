@@ -2,6 +2,7 @@ using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -118,6 +119,58 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal(result0, result2);
 			Assert.NotEqual(result0, result1);
 			Assert.Equal(2, invoked);
+		}
+
+		[Fact]
+		public async Task LockTestsAsync()
+		{
+			TimeSpan timeout = TimeSpan.FromSeconds(10);
+			SemaphoreSlim trigger = new SemaphoreSlim(0, 1);
+			SemaphoreSlim signal = new SemaphoreSlim(0, 1);
+
+			async Task<string> WaitUntilTrigger(string argument)
+			{
+				signal.Release();
+				if (!await trigger.WaitAsync(timeout))
+				{
+					throw new TimeoutException();
+				}
+				return argument;
+			}
+
+			var cache = new MemoryCache(new MemoryCacheOptions());
+
+			var task0 = cache.AtomicGetOrCreateAsync(
+				"key1",
+				(entry) =>
+				{
+					entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(60));
+					return WaitUntilTrigger("World!");
+				}
+			);
+
+			if (!await signal.WaitAsync(timeout))
+			{
+				throw new TimeoutException();
+			}
+
+			var task1 = cache.AtomicGetOrCreateAsync(
+				"key1",
+				(entry) =>
+				{
+					entry.SetAbsoluteExpiration(TimeSpan.FromMilliseconds(60));
+					return Task.FromResult("Should not change to this");
+				}
+			);
+
+			Assert.False(task0.IsCompleted);
+			Assert.False(task1.IsCompleted);
+			trigger.Release();
+			string result0 = await task0;
+			Assert.Equal(TaskStatus.RanToCompletion, task0.Status);
+			string result1 = await task1;
+			Assert.Equal(TaskStatus.RanToCompletion, task1.Status);
+			Assert.Equal(result0, result1);
 		}
 	}
 }
