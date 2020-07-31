@@ -179,42 +179,48 @@ ul {
   max-height: 5000px;
 }
 
+/* Wasabi navbar logo */
+.logo {
+  height: 40px;
+  width: auto;
+}
+
 /* Make navbar toggler work on mobile devices without Bootstrap JS */
 #navbar-toggle-cbox {
-  display: none
+  display: none;
 }
 #navbar-toggle-cbox:checked ~ .collapse {
-    display: block;
+  display: block;
 }
 
-/** get wasabi button **/
+/** get Wasabi button **/
 
-#get-wasabi{
+#get-wasabi {
   border-radius: 10px;
-  background:  rgb(116, 182, 74);
+  background: rgb(116, 182, 74);
   transition: background-color 0.5s;
 }
 
-#get-wasabi a.nav-link{
+#get-wasabi a.nav-link {
   color: #000000;
   padding-right: 1.2rem;
   padding-left: 1.2rem;
   transition: color 0.3s;
 }
 
-#get-wasabi:hover{
-  background:  rgb(246, 146, 30);
+#get-wasabi:hover {
+  background: rgb(246, 146, 30);
   transition: background-color 0.5s;
 }
 
-#get-wasabi:hover a.nav-link{
+#get-wasabi:hover a.nav-link {
   transition: color 0.3s;
   color: #ffffff;
   padding-right: 1.2rem;
   padding-left: 1.2rem;
 }
 
-/** get wasabi button end **/
+/** get Wasabi button end **/
 
 header {
   position: relative;
@@ -426,7 +432,7 @@ section .shader {
 
 /* Download Section */
 
-.download{
+.download {
   padding-top: 110px;
 }
 
@@ -447,7 +453,7 @@ section .shader {
 
 /* FAQ section */
 
-.faq{
+.faq {
   padding-top: 110px;
 }
 
@@ -463,6 +469,16 @@ section .shader {
   display: block;
   width: 100%;
   border-bottom: 1px dashed rgba(255,255,255,0.2);
+}
+
+.icon-colored-onion {
+  width: 17px;
+  height: auto;
+  margin-right: 17px;
+}
+
+.weareblock-link {
+  color: #FF859D !important;
 }
 
 /* For devices larger than mobile screen */
