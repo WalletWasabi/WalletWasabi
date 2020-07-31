@@ -22,11 +22,11 @@ namespace WalletWasabi
 			try
 			{
 				using var reader = new StreamReader(assembly.GetManifestResourceStream(resId));
-				return reader.ReadToEnd().Trim().Trim('\r').Trim('\n');
+				return reader.ReadToEnd().Trim('\r', '\n', '\t', ' ');
 			}
 			catch (Exception)
 			{
-				return "";
+				return "N/A";
 			}
 		}
 	}
