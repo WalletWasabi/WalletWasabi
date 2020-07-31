@@ -24,7 +24,7 @@ namespace WalletWasabi
 				using var reader = new StreamReader(assembly.GetManifestResourceStream(resId));
 				return reader.ReadToEnd().Trim().Trim('\r').Trim('\n');
 			}
-			catch (Exception _)
+			catch (Exception)
 			{
 				return "";
 			}
