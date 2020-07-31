@@ -187,13 +187,17 @@ namespace WalletWasabi.Backend.Controllers
 			var cacheKey = $"{nameof(GetRawMempoolStringsAsync)}";
 			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
-				async entry =>
+				entry =>
 				{
 					entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(3));
-
-					uint256[] transactionHashes = await Global.RpcClient.GetRawMempoolAsync();
-					return transactionHashes.Select(x => x.ToString());
+					return GetRawMempoolStringsNoCacheAsync();
 				});
+		}
+
+		private async Task<IEnumerable<string>> GetRawMempoolStringsNoCacheAsync()
+		{
+			uint256[] transactionHashes = await Global.RpcClient.GetRawMempoolAsync();
+			return transactionHashes.Select(x => x.ToString());
 		}
 
 		/// <summary>
