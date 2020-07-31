@@ -5,6 +5,9 @@ pool:
   vmImage: windows-latest
 
 steps:
+- checkout: self
+  path: WalletWasabi
+
 - task: UseDotNet@2
   displayName: 'Install .NET Core 3'
   inputs:
