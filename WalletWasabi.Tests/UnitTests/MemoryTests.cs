@@ -64,7 +64,7 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal("Hello World!", result3);
 			Assert.Equal(2, invoked);
 
-			// Make sure chache2 call will fail.
+			// Make sure cache2 call will fail.
 			await Assert.ThrowsAsync<ObjectDisposedException>(async () => await cache2.AtomicGetOrCreateAsync(
 					"the-same-key",
 					(entry) =>
