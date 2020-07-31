@@ -140,8 +140,8 @@ namespace WalletWasabi.Tests.UnitTests
 		public async Task LockTestsAsync()
 		{
 			TimeSpan timeout = TimeSpan.FromSeconds(10);
-			SemaphoreSlim trigger = new SemaphoreSlim(0, 1);
-			SemaphoreSlim signal = new SemaphoreSlim(0, 1);
+			using SemaphoreSlim trigger = new SemaphoreSlim(0, 1);
+			using SemaphoreSlim signal = new SemaphoreSlim(0, 1);
 
 			async Task<string> WaitUntilTrigger(string argument)
 			{
@@ -178,14 +178,27 @@ namespace WalletWasabi.Tests.UnitTests
 				}
 			);
 
+			var task2 = cache.AtomicGetOrCreateAsync(
+				"key1",
+				(entry) =>
+				{
+					entry.SetAbsoluteExpiration(TimeSpan.FromMilliseconds(60));
+					return Task.FromResult("Should not change to this either");
+				}
+			);
+
 			Assert.False(task0.IsCompleted);
 			Assert.False(task1.IsCompleted);
+			Assert.False(task2.IsCompleted);
 			trigger.Release();
 			string result0 = await task0;
 			Assert.Equal(TaskStatus.RanToCompletion, task0.Status);
 			string result1 = await task1;
+			string result2 = await task2;
 			Assert.Equal(TaskStatus.RanToCompletion, task1.Status);
+			Assert.Equal(TaskStatus.RanToCompletion, task2.Status);
 			Assert.Equal(result0, result1);
+			Assert.Equal(result0, result2);
 		}
 	}
 }
