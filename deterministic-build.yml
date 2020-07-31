@@ -17,9 +17,18 @@ steps:
     script: |
       # Change git output from stderr to stdout https://github.com/dahlbyk/posh-git/issues/109.
       $env:GIT_REDIRECT_STDERR = '2>&1'
-      dotnet run -p .\WalletWasabi.Packager\ --onlybinaries
-      Remove-Item -Recurse -ErrorAction SilentlyContinue .\WalletWasabi.Gui\bin\dist1
-      Rename-Item -Path .\WalletWasabi.Gui\bin\dist -NewName dist1
-      dotnet run -p .\WalletWasabi.Packager\ --onlybinaries
-      git diff --no-index .\WalletWasabi.Gui\bin\dist .\WalletWasabi.Gui\bin\dist1
+      Remove-Item -Recurse -ErrorAction SilentlyContinue -Force .\WalletWasabi.Gui\bin
+      Remove-Item -Recurse -ErrorAction SilentlyContinue -Force ..\WalletWasabiClone
+      robocopy ..\WalletWasabi ..\WalletWasabiClone /COPYALL /S /XD ".git"
+      dotnet run -p .\WalletWasabi.Packager --onlybinaries
+      dotnet run -p ..\WalletWasabiClone\WalletWasabi.Packager --onlybinaries
+      git diff --no-index ..\WalletWasabiClone\WalletWasabi.Gui\bin\dist .\WalletWasabi.Gui\bin\dist
+      if (0 -eq $LASTEXITCODE)
+      {
+          Write-Output "Deterministic build succeed"
+      }
+      else
+      {
+          Write-Output "Deterministic build failed"
+      }
       exit $LASTEXITCODE
