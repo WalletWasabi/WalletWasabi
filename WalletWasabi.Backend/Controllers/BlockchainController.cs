@@ -419,52 +419,58 @@ namespace WalletWasabi.Backend.Controllers
 			{
 				var cacheKey = $"{nameof(GetStatusAsync)}";
 
-				if (!Cache.TryGetValue(cacheKey, out StatusResponse status))
-				{
-					status = new StatusResponse();
-
-					// Updating the status of the filters.
-					if (DateTimeOffset.UtcNow - Global.IndexBuilderService.LastFilterBuildTime > FilterTimeout)
+				return await Cache.AtomicGetOrCreateAsync(
+					cacheKey,
+					entry =>
 					{
-						// Checking if the last generated filter is created for one of the last two blocks on the blockchain.
-						var lastFilter = Global.IndexBuilderService.GetLastFilter();
-						var lastFilterHash = lastFilter.Header.BlockHash;
-						var bestHash = await RpcClient.GetBestBlockHashAsync();
-						var lastBlockHeader = await RpcClient.GetBlockHeaderAsync(bestHash);
-						var prevHash = lastBlockHeader.HashPrevBlock;
+						entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(30));
 
-						if (bestHash == lastFilterHash || prevHash == lastFilterHash)
-						{
-							status.FilterCreationActive = true;
-						}
-					}
-					else
-					{
-						status.FilterCreationActive = true;
-					}
-
-					// Updating the status of CoinJoin
-					var validInterval = TimeSpan.FromSeconds(Global.Coordinator.RoundConfig.InputRegistrationTimeout * 2);
-					if (validInterval < TimeSpan.FromHours(1))
-					{
-						validInterval = TimeSpan.FromHours(1);
-					}
-					if (DateTimeOffset.UtcNow - Global.Coordinator.LastSuccessfulCoinJoinTime < validInterval)
-					{
-						status.CoinJoinCreationActive = true;
-					}
-					var cacheEntryOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(30));
-
-					Cache.Set(cacheKey, status, cacheEntryOptions);
-				}
-
-				return status;
+						return FetchStatusAsync();
+					});
 			}
 			catch (Exception ex)
 			{
 				Logger.LogDebug(ex);
 				throw ex;
 			}
+		}
+
+		private async Task<StatusResponse> FetchStatusAsync()
+		{
+			StatusResponse status = new StatusResponse();
+
+			// Updating the status of the filters.
+			if (DateTimeOffset.UtcNow - Global.IndexBuilderService.LastFilterBuildTime > FilterTimeout)
+			{
+				// Checking if the last generated filter is created for one of the last two blocks on the blockchain.
+				var lastFilter = Global.IndexBuilderService.GetLastFilter();
+				var lastFilterHash = lastFilter.Header.BlockHash;
+				var bestHash = await RpcClient.GetBestBlockHashAsync();
+				var lastBlockHeader = await RpcClient.GetBlockHeaderAsync(bestHash);
+				var prevHash = lastBlockHeader.HashPrevBlock;
+
+				if (bestHash == lastFilterHash || prevHash == lastFilterHash)
+				{
+					status.FilterCreationActive = true;
+				}
+			}
+			else
+			{
+				status.FilterCreationActive = true;
+			}
+
+			// Updating the status of CoinJoin
+			var validInterval = TimeSpan.FromSeconds(Global.Coordinator.RoundConfig.InputRegistrationTimeout * 2);
+			if (validInterval < TimeSpan.FromHours(1))
+			{
+				validInterval = TimeSpan.FromHours(1);
+			}
+			if (DateTimeOffset.UtcNow - Global.Coordinator.LastSuccessfulCoinJoinTime < validInterval)
+			{
+				status.CoinJoinCreationActive = true;
+			}
+
+			return status;
 		}
 	}
 }
