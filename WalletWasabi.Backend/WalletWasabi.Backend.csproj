@@ -11,8 +11,6 @@
     <PackageTags>walletwasabi, wasabiwallet, wasabi, hiddenwallet, wallet, bitcoin, hbitcoin, nbitcoin, magicalcryptowallet, magicalwallet, tor, chaum, chaumian, zerolink, coinjoin, fungibility, privacy, anonymity</PackageTags>
     <RepositoryType>Git</RepositoryType>
     <RepositoryUrl>https://github.com/zkSNACKs/WalletWasabi/</RepositoryUrl>
-    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
-    <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <RuntimeIdentifiers>win7-x64;linux-x64;osx-x64</RuntimeIdentifiers>
   </PropertyGroup>
 

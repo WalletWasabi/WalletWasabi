@@ -37,8 +37,6 @@ namespace WalletWasabi.BitcoinCore
 
 		Task<MempoolAcceptResult> TestMempoolAcceptAsync(Transaction transaction, bool allowHighFees = false);
 
-		GetTxOutResponse GetTxOut(uint256 txid, int index, bool includeMempool = true);
-
 		Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative);
 
 		Task<GetTxOutResponse> GetTxOutAsync(uint256 txid, int index, bool includeMempool = true);
