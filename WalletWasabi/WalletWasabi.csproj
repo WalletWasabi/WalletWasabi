@@ -81,10 +81,9 @@
     <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
   </ItemGroup>
 
-  <Target Name="EmbedLocal" BeforeTargets="PrepareForBuild">
+  <Target Name="InvokeGitForCommitAndHash" BeforeTargets="PrepareForBuild">
     <Exec ContinueOnError="True" Command="git log --pretty=format:'%H' -n 1 > &quot;$(ProjectDir)/GitInfo/git-info-commit.txt&quot;" />
     <Exec ContinueOnError="True" Command="git rev-parse --abbrev-ref HEAD > &quot;$(ProjectDir)/GitInfo/git-info-branch.txt&quot;" />
-
     <ItemGroup>
       <EmbeddedResource Include="GitInfo\*.txt" />
     </ItemGroup>
