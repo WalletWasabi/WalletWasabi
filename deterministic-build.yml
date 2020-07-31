@@ -34,4 +34,3 @@ steps:
           Write-Output "Deterministic build failed"
       }
       exit $LASTEXITCODE
-    workingDirectory: 'WalletWasabi'
