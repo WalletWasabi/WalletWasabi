@@ -3,7 +3,7 @@
 Consider updating the versions in `WalletWasabi.Helpers.Constants`. If the versions are updated, make sure the Client Release is already available before updating the backend.
 
 ```sh
-sudo apt-get update && cd ~/WalletWasabi && git pull && cd ~
+sudo apt-get update && cd ~/WalletWasabi && git pull && cd ~/WalletWasabi/WalletWasabi.Backend && dotnet restore && cd ~
 sudo service nginx stop
 sudo systemctl stop walletwasabi.service
 sudo killall tor
