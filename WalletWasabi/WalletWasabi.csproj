@@ -23,8 +23,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-	  <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.1" />
-	  <PackageReference Include="NBitcoin" Version="5.0.47" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.1" />
+    <PackageReference Include="NBitcoin" Version="5.0.47" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
     <PackageReference Include="NBitcoin.Secp256k1" Version="1.0.3" />
   </ItemGroup>
@@ -75,10 +75,16 @@
     <None Update="TorDaemons\tor-win64.zip">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <EmbeddedResource Include="GitInfo\*.txt" />
   </ItemGroup>
 
   <ItemGroup>
     <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
   </ItemGroup>
+
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec ContinueOnError="True" Command="git log --pretty=format:'%H' -n 1 > &quot;$(ProjectDir)/GitInfo/currentcommit.txt&quot;" />
+    <Exec ContinueOnError="True" Command="git branch --show-current > &quot;$(ProjectDir)/GitInfo/currentbranch.txt&quot;" />
+  </Target>
 
 </Project>
