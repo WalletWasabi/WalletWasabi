@@ -45,6 +45,7 @@ namespace Microsoft.Extensions.Caching.Memory
 					lock (AsyncLocksLock)
 					{
 						var cacheDic = AsyncLocks[cache];
+
 						// Note that if a cache is disposed, then the cleanup will never happen. This should not cause normally issues, but keep in mind.
 						// Cleanup the evicted asynclocks.
 						foreach (var toRemove in cacheDic.Keys.Where(x => !cache.TryGetValue(x, out _)).ToList())
