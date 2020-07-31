@@ -7,6 +7,9 @@
     <LangVersion>latest</LangVersion>
     <NoWarn>1701;1702;1705;1591;1573;CA1031</NoWarn>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
+    <RuntimeIdentifiers>win7-x64;linux-x64;osx-x64</RuntimeIdentifiers>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -26,7 +29,7 @@
     <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
     <PackageReference Include="NBitcoin.Secp256k1" Version="1.0.3" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <None Update="Legal\Assets\LegalDocuments.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -74,7 +77,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  
+
   <ItemGroup>
     <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
   </ItemGroup>
