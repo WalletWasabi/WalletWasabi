@@ -61,6 +61,7 @@ namespace WalletWasabi.Gui.ViewModels
 		public StatusBarViewModel()
 		{
 			Global = Locator.Current.GetService<Global>();
+			Network = Global.Network;
 			Backend = BackendStatus.NotConnected;
 			UseTor = false;
 			Tor = TorStatus.NotRunning;
@@ -154,7 +155,6 @@ namespace WalletWasabi.Gui.ViewModels
 		public void Initialize(NodesCollection nodes, WasabiSynchronizer synchronizer)
 		{
 			Nodes = nodes;
-			Network = synchronizer.Network;
 			Synchronizer = synchronizer;
 			HashChain = synchronizer.BitcoinStore.SmartHeaderChain;
 			UseTor = Global.Config.UseTor; // Do not make it dynamic, because if you change this config settings only next time will it activate.

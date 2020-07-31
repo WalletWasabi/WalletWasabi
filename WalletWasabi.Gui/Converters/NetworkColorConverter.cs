@@ -12,26 +12,15 @@ namespace WalletWasabi.Gui.Converters
 {
 	public class NetworkColorConverter : IValueConverter
 	{
-		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-		{
-			if (value is Network network)
+		public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
+			Brush.Parse(value switch
 			{
-				return network switch
-				{
-					_ when network == Network.TestNet => Brush.Parse("#AE6200"),
-					_ when network == Network.RegTest  => Brush.Parse("#CE6200"),
-					_ => Application.Current.Resources["ApplicationAccentBrushLow"] as IBrush
-				};
-			}
-			else
-			{
-					return Application.Current.Resources["ApplicationAccentBrushLow"] as IBrush;
-			}
-		}
+				Network network when network == Network.TestNet => "#318522",
+				Network network when network == Network.RegTest => "#AE6200",
+				_ => "#007ACC"
+			});
 
-		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-		{
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
 			throw new NotSupportedException();
-		}
 	}
 }
