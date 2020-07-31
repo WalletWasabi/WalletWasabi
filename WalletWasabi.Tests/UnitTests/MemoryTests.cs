@@ -187,18 +187,71 @@ namespace WalletWasabi.Tests.UnitTests
 				}
 			);
 
+			var task3 = cache.AtomicGetOrCreateAsync(
+				"key2",
+				(entry) =>
+				{
+					entry.SetAbsoluteExpiration(TimeSpan.FromMilliseconds(60));
+					return Task.FromResult("Key2");
+				}
+			);
+
+			// Different key should immediately added.
+			await task3.WithAwaitCancellationAsync(timeout);
+			Assert.True(task3.IsCompletedSuccessfully);
+
+			// Tasks are waiting for the factory method.
 			Assert.False(task0.IsCompleted);
 			Assert.False(task1.IsCompleted);
 			Assert.False(task2.IsCompleted);
+
+			// Let the factory method finish.
 			trigger.Release();
-			string result0 = await task0;
+			string result0 = await task0.WithAwaitCancellationAsync(timeout);
 			Assert.Equal(TaskStatus.RanToCompletion, task0.Status);
-			string result1 = await task1;
-			string result2 = await task2;
+			string result1 = await task1.WithAwaitCancellationAsync(timeout);
+			string result2 = await task2.WithAwaitCancellationAsync(timeout);
 			Assert.Equal(TaskStatus.RanToCompletion, task1.Status);
 			Assert.Equal(TaskStatus.RanToCompletion, task2.Status);
 			Assert.Equal(result0, result1);
 			Assert.Equal(result0, result2);
+		}
+
+		[Fact]
+		public async Task ExpirationTestsAsync()
+		{
+			var cache = new MemoryCache(new MemoryCacheOptions());
+
+			var result0 = await cache.AtomicGetOrCreateAsync(
+				"key1",
+				(entry) =>
+				{
+					entry.SetAbsoluteExpiration(TimeSpan.FromMilliseconds(1));
+					return Task.FromResult("This will be expired");
+				}
+			);
+
+			await Task.Delay(1);
+
+			var result1 = await cache.AtomicGetOrCreateAsync(
+				"key1",
+				(entry) =>
+				{
+					entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(60));
+					return Task.FromResult("Foo");
+				}
+			);
+
+			var result2 = await cache.AtomicGetOrCreateAsync(
+				"key1",
+				(entry) =>
+				{
+					entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(60));
+					return Task.FromResult("Should not change to this");
+				}
+			);
+
+			Assert.Equal("Foo", result2);
 		}
 	}
 }
