@@ -1,3 +1,5 @@
+#nullable enable
+
 using NBitcoin;
 using System;
 using System.Collections.Generic;
@@ -12,6 +14,7 @@ using WalletWasabi.WebClients.CoinGecko;
 using WalletWasabi.WebClients.Gemini;
 using WalletWasabi.WebClients.ItBit;
 using WalletWasabi.WebClients.SmartBit;
+using System.Linq;
 
 namespace WalletWasabi.WebClients
 {
@@ -30,14 +33,11 @@ namespace WalletWasabi.WebClients
 
 		public async Task<List<ExchangeRate>> GetExchangeRateAsync()
 		{
-			List<ExchangeRate> exchangeRates = null;
-
 			foreach (var provider in ExchangeRateProviders)
 			{
 				try
 				{
-					exchangeRates = await provider.GetExchangeRateAsync();
-					break;
+					return await provider.GetExchangeRateAsync();
 				}
 				catch (Exception ex)
 				{
@@ -45,7 +45,7 @@ namespace WalletWasabi.WebClients
 					Logger.LogTrace(ex);
 				}
 			}
-			return exchangeRates;
+			return Enumerable.Empty<ExchangeRate>().ToList();
 		}
 	}
 }

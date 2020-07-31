@@ -56,15 +56,14 @@ namespace WalletWasabi.Backend.Controllers
 			{
 				exchangeRates = await ExchangeRateProvider.GetExchangeRateAsync();
 
-				if (exchangeRates is null)
+				if (exchangeRates.Any())
 				{
-					return Enumerable.Empty<ExchangeRate>();
+					var cacheEntryOptions = new MemoryCacheEntryOptions()
+						.SetAbsoluteExpiration(TimeSpan.FromSeconds(500));
+
+					Cache.Set(cacheKey, exchangeRates, cacheEntryOptions);
 				}
 
-				var cacheEntryOptions = new MemoryCacheEntryOptions()
-					.SetAbsoluteExpiration(TimeSpan.FromSeconds(500));
-
-				Cache.Set(cacheKey, exchangeRates, cacheEntryOptions);
 			}
 			return exchangeRates;
 		}
