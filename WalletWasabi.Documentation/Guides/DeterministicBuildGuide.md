@@ -20,6 +20,7 @@ You can see the list of Wasabi releases here: https://github.com/zkSNACKs/Wallet
 # The following command downloads only a single git branch. However, you can clone whole repository, which is bigger, if you like.
 git clone --depth 1 --branch <git-branch-or-tag> https://github.com/zkSNACKs/WalletWasabi.git # where `<git-branch-or-tag>` may be, for example, `v1.1.11.1`.
 cd WalletWasabi/WalletWasabi.Packager
+dotnet nuget locals all --clear
 dotnet restore
 dotnet build
 dotnet run -- --onlybinaries
