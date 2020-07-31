@@ -1,20 +1,14 @@
 using NBitcoin;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
-using WalletWasabi.Logging;
-using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.WebClients.BlockchainInfo;
 using WalletWasabi.WebClients.Coinbase;
+using WalletWasabi.WebClients.CoinGecko;
+using WalletWasabi.WebClients.Coinstamp;
 using WalletWasabi.WebClients.Gemini;
 using WalletWasabi.WebClients.ItBit;
 using WalletWasabi.WebClients.SmartBit;
-using WalletWasabi.WebClients.SmartBit.Models;
 using Xunit;
 
 namespace WalletWasabi.Tests.IntegrationTests
