@@ -187,14 +187,30 @@ namespace WalletWasabi.Tests.UnitTests
 				}
 			);
 
+			var task3 = cache.AtomicGetOrCreateAsync(
+				"key2",
+				(entry) =>
+				{
+					entry.SetAbsoluteExpiration(TimeSpan.FromMilliseconds(60));
+					return Task.FromResult("Key2");
+				}
+			);
+
+			// Different key should immediately added.
+			await task3.WithAwaitCancellationAsync(timeout);
+			Assert.True(task3.IsCompletedSuccessfully);
+
+			// Tasks are waiting for the factory method.
 			Assert.False(task0.IsCompleted);
 			Assert.False(task1.IsCompleted);
 			Assert.False(task2.IsCompleted);
+
+			// Let the factory method finish.
 			trigger.Release();
-			string result0 = await task0;
+			string result0 = await task0.WithAwaitCancellationAsync(timeout);
 			Assert.Equal(TaskStatus.RanToCompletion, task0.Status);
-			string result1 = await task1;
-			string result2 = await task2;
+			string result1 = await task1.WithAwaitCancellationAsync(timeout);
+			string result2 = await task2.WithAwaitCancellationAsync(timeout);
 			Assert.Equal(TaskStatus.RanToCompletion, task1.Status);
 			Assert.Equal(TaskStatus.RanToCompletion, task2.Status);
 			Assert.Equal(result0, result1);
