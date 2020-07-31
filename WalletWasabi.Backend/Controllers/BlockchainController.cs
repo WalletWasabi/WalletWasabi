@@ -169,7 +169,7 @@ namespace WalletWasabi.Backend.Controllers
 				return BadRequest("Invalid compactness parameter is provided.");
 			}
 
-			IEnumerable<string> fulls = await GetRawMempoolStringsAsync();
+			IEnumerable<string> fulls = await GetRawMempoolStringsWithCacheAsync();
 
 			if (compactness == 64)
 			{
@@ -182,9 +182,9 @@ namespace WalletWasabi.Backend.Controllers
 			}
 		}
 
-		internal async Task<IEnumerable<string>> GetRawMempoolStringsAsync()
+		internal async Task<IEnumerable<string>> GetRawMempoolStringsWithCacheAsync()
 		{
-			var cacheKey = $"{nameof(GetRawMempoolStringsAsync)}";
+			var cacheKey = $"{nameof(GetRawMempoolStringsWithCacheAsync)}";
 			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
 				entry =>
