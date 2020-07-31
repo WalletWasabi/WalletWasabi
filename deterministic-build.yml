@@ -5,19 +5,32 @@ pool:
   vmImage: windows-latest
 
 steps:
+- checkout: self
+  path: WalletWasabi
+
 - task: UseDotNet@2
   displayName: 'Install .NET Core 3'
   inputs:
     version: 3.1.x
 
 - task: PowerShell@2
+  displayName: 'Build and compare'
   inputs:
     targetType: 'inline'
     script: |
-      dotnet run -p .\WalletWasabi.Packager\ --onlybinaries
-      Remove-Item -Recurse -ErrorAction SilentlyContinue .\WalletWasabi.Gui\bin\dist1
-      Rename-Item -Path .\WalletWasabi.Gui\bin\dist -NewName dist1
-      dotnet run -p .\WalletWasabi.Packager\ --onlybinaries
-      # git diff returns 1 on any differences. Warnings do not count as difference. 
-      git diff --no-index .\WalletWasabi.Gui\bin\dist .\WalletWasabi.Gui\bin\dist1
-
+      # Change git output from stderr to stdout https://github.com/dahlbyk/posh-git/issues/109.
+      $env:GIT_REDIRECT_STDERR = '2>&1'
+      cd ..
+      robocopy WalletWasabi WalletWasabiClone /COPYALL /S /XD ".git" /NFL /NDL /NJH
+      dotnet run -p WalletWasabi\WalletWasabi.Packager --onlybinaries
+      dotnet run -p WalletWasabiClone\WalletWasabi.Packager --onlybinaries
+      git diff --no-index WalletWasabiClone\WalletWasabi.Gui\bin\dist WalletWasabi.Gui\bin\dist
+      if (0 -eq $LASTEXITCODE)
+      {
+          Write-Output "Deterministic build succeed"
+      }
+      else
+      {
+          Write-Output "Deterministic build failed"
+      }
+      exit $LASTEXITCODE
