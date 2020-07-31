@@ -23,10 +23,6 @@
             <controls:ExtendedTextBox Text="{Binding BuildBranch}" Classes="selectableTextBlock" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
-            <TextBlock Text="Current Version: " />
-            <controls:ExtendedTextBox Text="{Binding ClientVersion, Converter={StaticResource VersionStringConverter}}" Classes="selectableTextBlock" />
-          </StackPanel>
-          <StackPanel Orientation="Horizontal">
             <TextBlock Text="Compatible Coordinator Versions: " />
             <controls:ExtendedTextBox Text="{Binding BackendCompatibleVersions}" Classes="selectableTextBlock" />
           </StackPanel>
