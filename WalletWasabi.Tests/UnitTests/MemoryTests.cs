@@ -1,7 +1,9 @@
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Primitives;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -87,12 +89,14 @@ namespace WalletWasabi.Tests.UnitTests
 			}
 
 			var cache = new MemoryCache(new MemoryCacheOptions());
+			var expireKey1 = new CancellationTokenSource();
 
 			var result0 = await cache.AtomicGetOrCreateAsync(
 				"key1",
 				(entry) =>
 				{
 					entry.SetAbsoluteExpiration(TimeSpan.FromMilliseconds(10));
+					entry.AddExpirationToken(new CancellationChangeToken(expireKey1.Token));
 					return Task.FromResult(ExpensiveComputation("World!"));
 				}
 			);
@@ -118,6 +122,28 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal(result0, result2);
 			Assert.NotEqual(result0, result1);
 			Assert.Equal(2, invoked);
+
+			// Make sure key1 expired.
+			expireKey1.Cancel();
+			var result3 = await cache.AtomicGetOrCreateAsync(
+				"key1",
+				(entry) =>
+				{
+					entry.SetAbsoluteExpiration(TimeSpan.FromMilliseconds(10));
+					return Task.FromResult(ExpensiveComputation("Foo!"));
+				}
+			);
+			var result4 = await cache.AtomicGetOrCreateAsync(
+				"key2",
+				(entry) =>
+				{
+					entry.SetAbsoluteExpiration(TimeSpan.FromMilliseconds(10));
+					return Task.FromResult(ExpensiveComputation("Bar!"));
+				}
+			);
+			Assert.Equal(result1, result4);
+			Assert.NotEqual(result0, result3);
+			Assert.Equal(3, invoked);
 		}
 	}
 }
