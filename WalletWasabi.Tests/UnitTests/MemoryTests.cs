@@ -77,7 +77,7 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public async Task ChacheBasicBehaviorAsync()
+		public async Task CacheBasicBehaviorAsync()
 		{
 			var invoked = 0;
 			string ExpensiveComputation(string argument)
