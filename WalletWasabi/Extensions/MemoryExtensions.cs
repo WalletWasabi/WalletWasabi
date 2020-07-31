@@ -9,7 +9,7 @@ namespace Microsoft.Extensions.Caching.Memory
 {
 	public static class MemoryExtensions
 	{
-		private static Dictionary<object, AsyncLock> AsyncLocks { get; } = new Dictionary<object, AsyncLock>();
+		private static Dictionary<IMemoryCache, Dictionary<object, AsyncLock>> AsyncLocks { get; } = new Dictionary<IMemoryCache, Dictionary<object, AsyncLock>>();
 
 		private static object AsyncLocksLock { get; } = new object();
 
@@ -23,16 +23,24 @@ namespace Microsoft.Extensions.Caching.Memory
 			AsyncLock asyncLock;
 			lock (AsyncLocksLock)
 			{
-				// Cleanup the evicted asynclocks first.
-				foreach (var toRemove in AsyncLocks.Keys.Where(x => !cache.TryGetValue(x, out _)).ToList())
+				// Note that if a cache is disposed, then the cleanup will never happen. This should not cause normally issues, but keep in mind.
+				// If we have no dic for the cache yet then create one.
+				if (!AsyncLocks.TryGetValue(cache, out Dictionary<object, AsyncLock> cacheDic))
 				{
-					AsyncLocks.Remove(toRemove);
+					cacheDic = new Dictionary<object, AsyncLock>();
+					AsyncLocks.Add(cache, cacheDic);
 				}
 
-				if (!AsyncLocks.TryGetValue(key, out asyncLock))
+				// Cleanup the evicted asynclocks first.
+				foreach (var toRemove in cacheDic.Keys.Where(x => !cache.TryGetValue(x, out _)).ToList())
+				{
+					cacheDic.Remove(toRemove);
+				}
+
+				if (!cacheDic.TryGetValue(key, out asyncLock))
 				{
 					asyncLock = new AsyncLock();
-					AsyncLocks.Add(key, asyncLock);
+					cacheDic.Add(key, asyncLock);
 				}
 			}
 
