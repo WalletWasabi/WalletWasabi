@@ -28,7 +28,7 @@ namespace WalletWasabi.Tests.UnitTests
 				"the-same-key",
 				(entry) =>
 				{
-					entry.SetAbsoluteExpiration(TimeSpan.FromMilliseconds(10));
+					entry.SetAbsoluteExpiration(TimeSpan.FromHours(10));
 					return Task.FromResult(ExpensiveComputation("World!"));
 				});
 
@@ -36,7 +36,7 @@ namespace WalletWasabi.Tests.UnitTests
 				"the-same-other-key",
 				(entry) =>
 				{
-					entry.SetAbsoluteExpiration(TimeSpan.FromMilliseconds(10));
+					entry.SetAbsoluteExpiration(TimeSpan.FromHours(10));
 					return Task.FromResult(ExpensiveComputation("Lurking Wife!"));
 				});
 
@@ -44,7 +44,7 @@ namespace WalletWasabi.Tests.UnitTests
 				"the-same-key",
 				(entry) =>
 				{
-					entry.SetAbsoluteExpiration(TimeSpan.FromMilliseconds(10));
+					entry.SetAbsoluteExpiration(TimeSpan.FromHours(10));
 					return Task.FromResult(ExpensiveComputation("World!"));
 				});
 			Assert.Equal(result0, result2);
@@ -56,7 +56,7 @@ namespace WalletWasabi.Tests.UnitTests
 				"the-same-key",
 				(entry) =>
 				{
-					entry.SetAbsoluteExpiration(TimeSpan.FromMilliseconds(10));
+					entry.SetAbsoluteExpiration(TimeSpan.FromHours(10));
 					return Task.FromResult(ExpensiveComputation("Foo!"));
 				});
 			Assert.Equal("Hello World!", result3);
@@ -67,7 +67,7 @@ namespace WalletWasabi.Tests.UnitTests
 					"the-same-key",
 					(entry) =>
 					{
-						entry.SetAbsoluteExpiration(TimeSpan.FromMilliseconds(10));
+						entry.SetAbsoluteExpiration(TimeSpan.FromHours(10));
 						return Task.FromResult(ExpensiveComputation("Foo!"));
 					}));
 			Assert.Equal(2, invoked);
@@ -90,7 +90,7 @@ namespace WalletWasabi.Tests.UnitTests
 				"key1",
 				(entry) =>
 				{
-					entry.SetAbsoluteExpiration(TimeSpan.FromMilliseconds(10));
+					entry.SetAbsoluteExpiration(TimeSpan.FromHours(10));
 					entry.AddExpirationToken(new CancellationChangeToken(expireKey1.Token));
 					return Task.FromResult(ExpensiveComputation("World!"));
 				});
@@ -99,7 +99,7 @@ namespace WalletWasabi.Tests.UnitTests
 				"key2",
 				(entry) =>
 				{
-					entry.SetAbsoluteExpiration(TimeSpan.FromMilliseconds(10));
+					entry.SetAbsoluteExpiration(TimeSpan.FromHours(10));
 					return Task.FromResult(ExpensiveComputation("Lurking Wife!"));
 				});
 
@@ -107,7 +107,7 @@ namespace WalletWasabi.Tests.UnitTests
 				"key1",
 				(entry) =>
 				{
-					entry.SetAbsoluteExpiration(TimeSpan.FromMilliseconds(10));
+					entry.SetAbsoluteExpiration(TimeSpan.FromHours(10));
 					return Task.FromResult(ExpensiveComputation("World!"));
 				});
 
@@ -121,14 +121,14 @@ namespace WalletWasabi.Tests.UnitTests
 				"key1",
 				(entry) =>
 				{
-					entry.SetAbsoluteExpiration(TimeSpan.FromMilliseconds(10));
+					entry.SetAbsoluteExpiration(TimeSpan.FromHours(10));
 					return Task.FromResult(ExpensiveComputation("Foo!"));
 				});
 			var result4 = await cache.AtomicGetOrCreateAsync(
 				"key2",
 				(entry) =>
 				{
-					entry.SetAbsoluteExpiration(TimeSpan.FromMilliseconds(10));
+					entry.SetAbsoluteExpiration(TimeSpan.FromHours(10));
 					return Task.FromResult(ExpensiveComputation("Bar!"));
 				});
 			Assert.Equal(result1, result4);
