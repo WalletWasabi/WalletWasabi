@@ -20,8 +20,7 @@ steps:
     script: |
       # Change git output from stderr to stdout https://github.com/dahlbyk/posh-git/issues/109.
       $env:GIT_REDIRECT_STDERR = '2>&1'
-      Remove-Item -Recurse -ErrorAction SilentlyContinue -Force .\WalletWasabi.Gui\bin
-      Remove-Item -Recurse -ErrorAction SilentlyContinue -Force ..\WalletWasabiClone
+      ls
       robocopy WalletWasabi WalletWasabiClone /COPYALL /S /XD ".git" /NFL /NDL /NJH
       dotnet run -p WalletWasabi\WalletWasabi.Packager --onlybinaries
       dotnet run -p WalletWasabiClone\WalletWasabi.Packager --onlybinaries
