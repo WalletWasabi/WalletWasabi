@@ -82,8 +82,8 @@
   </ItemGroup>
 
   <Target Name="InvokeGitForCommitAndHash" BeforeTargets="PrepareForBuild">
-    <Exec ContinueOnError="True" Command="git log --pretty=format:'%H' -n 1 > &quot;$(ProjectDir)/GitInfo/git-info-commit.txt&quot;" />
-    <Exec ContinueOnError="True" Command="git rev-parse --abbrev-ref HEAD > &quot;$(ProjectDir)/GitInfo/git-info-branch.txt&quot;" />
+    <Exec ContinueOnError="True" Command="git log --pretty=format:'%H' -n 1 > '$(ProjectDir)/GitInfo/git-info-commit.txt'" />
+    <Exec ContinueOnError="True" Command="git rev-parse --abbrev-ref HEAD > '$(ProjectDir)/GitInfo/git-info-branch.txt'" />
     <ItemGroup>
       <EmbeddedResource Include="GitInfo\*.txt" />
     </ItemGroup>
