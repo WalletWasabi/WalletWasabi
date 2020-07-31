@@ -63,7 +63,6 @@ namespace WalletWasabi.Backend.Controllers
 
 					Cache.Set(cacheKey, exchangeRates, cacheEntryOptions);
 				}
-
 			}
 			return exchangeRates;
 		}
