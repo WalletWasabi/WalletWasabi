@@ -216,5 +216,42 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal(result0, result1);
 			Assert.Equal(result0, result2);
 		}
+
+		[Fact]
+		public async Task ExpirationTestsAsync()
+		{
+			var cache = new MemoryCache(new MemoryCacheOptions());
+
+			var result0 = await cache.AtomicGetOrCreateAsync(
+				"key1",
+				(entry) =>
+				{
+					entry.SetAbsoluteExpiration(TimeSpan.FromMilliseconds(1));
+					return Task.FromResult("This will be expired");
+				}
+			);
+
+			await Task.Delay(1);
+
+			var result1 = await cache.AtomicGetOrCreateAsync(
+				"key1",
+				(entry) =>
+				{
+					entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(60));
+					return Task.FromResult("Foo");
+				}
+			);
+
+			var result2 = await cache.AtomicGetOrCreateAsync(
+				"key1",
+				(entry) =>
+				{
+					entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(60));
+					return Task.FromResult("Should not change to this");
+				}
+			);
+
+			Assert.Equal("Foo", result2);
+		}
 	}
 }
