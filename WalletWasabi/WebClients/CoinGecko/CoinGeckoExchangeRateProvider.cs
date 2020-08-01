@@ -9,7 +9,7 @@ using WalletWasabi.Interfaces;
 
 namespace WalletWasabi.WebClients.CoinGecko
 {
-	public partial class CoinGeckoExchangeRateProvider : IExchangeRateProvider
+	public class CoinGeckoExchangeRateProvider : IExchangeRateProvider
 	{
 		public async Task<List<ExchangeRate>> GetExchangeRateAsync()
 		{

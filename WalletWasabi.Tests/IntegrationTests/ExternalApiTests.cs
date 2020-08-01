@@ -5,7 +5,7 @@ using WalletWasabi.Backend.Models;
 using WalletWasabi.WebClients.BlockchainInfo;
 using WalletWasabi.WebClients.Coinbase;
 using WalletWasabi.WebClients.CoinGecko;
-using WalletWasabi.WebClients.Coinstamp;
+using WalletWasabi.WebClients.Bitstamp;
 using WalletWasabi.WebClients.Gemini;
 using WalletWasabi.WebClients.ItBit;
 using WalletWasabi.WebClients.SmartBit;
@@ -60,9 +60,9 @@ namespace WalletWasabi.Tests.IntegrationTests
 		}
 
 		[Fact]
-		public async Task CoinstampExchangeRateProviderTestsAsync()
+		public async Task BitstampExchangeRateProviderTestsAsync()
 		{
-			var client = new CoinstampExchangeRateProvider();
+			var client = new BitstampExchangeRateProvider();
 			IEnumerable<ExchangeRate> rates = await client.GetExchangeRateAsync();
 
 			var usdRate = Assert.Single(rates, x => x.Ticker == "USD");
