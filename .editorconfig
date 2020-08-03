@@ -3,20 +3,21 @@
 # You can learn more about editorconfig here: https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-code-style-settings-reference
 root = true
 
-[*.{cs,csproj}]
+# For all files.
+[*]
 
 charset = utf-8
 
-# Core editorconfig formatting - indentation
+# Formatting - remove any whitespace characters preceding newline characters
+trim_trailing_whitespace = true
+
+[*.{cs,csproj}]
 
 # use hard tabs for indentation
 indent_style = tab
 
 # Formatting - set preferred newline characters
 end_of_line = lf
-
-# Formatting - remove any whitespace characters preceding newline characters
-trim_trailing_whitespace = true
 
 [*.xaml]
 
