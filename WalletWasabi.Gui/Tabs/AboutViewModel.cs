@@ -61,9 +61,9 @@ namespace WalletWasabi.Gui.Tabs
 
 		public string DocsLink => "https://docs.wasabiwallet.io/";
 
-		public string BuildCommitHash => GitInfo.BuildCommitHash;
+		public string BuildCommitHash => GitInfo.BuildCommitHash ?? "N/A";
 
-		public string BuildBranch => GitInfo.BuildBranch;
+		public string BuildBranch => GitInfo.BuildBranch ?? "N/A";
 
 		public override void OnOpen(CompositeDisposable disposables)
 		{

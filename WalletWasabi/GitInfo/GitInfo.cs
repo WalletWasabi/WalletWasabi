@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿#nullable enable
+using System.IO;
 using System;
 using System.Reflection;
 
@@ -6,9 +7,9 @@ namespace WalletWasabi
 {
 	public class GitInfo
 	{
-		public static string BuildCommitHash { get; }
+		public static string? BuildCommitHash { get; }
 
-		public static string BuildBranch { get; }
+		public static string? BuildBranch { get; }
 
 		static GitInfo()
 		{
@@ -26,7 +27,7 @@ namespace WalletWasabi
 			}
 			catch (Exception)
 			{
-				return "N/A";
+				return null;
 			}
 		}
 	}
