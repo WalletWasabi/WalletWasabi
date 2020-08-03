@@ -11,22 +11,12 @@
       <StackPanel DockPanel.Dock="Bottom">
         <Button Margin="4 20" Content="Send PIN to Device" Command="{Binding SendPinCommand}" />
       </StackPanel>
-      <Grid>
+      <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="Auto,Auto,Auto">
         <Grid.Styles>
           <Style Selector="Button">
             <Setter Property="Margin" Value="4" />
           </Style>
         </Grid.Styles>
-        <Grid.RowDefinitions>
-          <RowDefinition />
-          <RowDefinition />
-          <RowDefinition />
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition />
-          <ColumnDefinition />
-          <ColumnDefinition />
-        </Grid.ColumnDefinitions>
         <Button Grid.Row="0" Grid.Column="0" Content="." Command="{Binding KeyPadCommand}" CommandParameter="7" />
         <Button Grid.Row="0" Grid.Column="1" Content="." Command="{Binding KeyPadCommand}" CommandParameter="8" />
         <Button Grid.Row="0" Grid.Column="2" Content="." Command="{Binding KeyPadCommand}" CommandParameter="9" />

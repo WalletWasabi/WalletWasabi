@@ -17,7 +17,7 @@
     </StackPanel>
     <ScrollViewer>
       <StackPanel Margin="30" Spacing="10">
-        <Grid Classes="content">
+        <Panel Classes="content">
           <StackPanel Orientation="Vertical" Spacing="30">
             <controls:GroupBox Title="Bitcoin" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
               <StackPanel Orientation="Vertical" Spacing="5">
@@ -158,7 +158,7 @@
             </controls:GroupBox>
             <Button Content="Open Config File" Command="{Binding OpenConfigFileCommand}" />
           </StackPanel>
-        </Grid>
+        </Panel>
       </StackPanel>
     </ScrollViewer>
   </DockPanel>

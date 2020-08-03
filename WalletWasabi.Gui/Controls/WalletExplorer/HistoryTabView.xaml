@@ -17,7 +17,7 @@
         <Setter Property="FontSize" Value="{DynamicResource FontSizeNormal}" />
       </Style>
     </controls:GroupBox.Styles>
-    <Grid Classes="content">
+    <Panel Classes="content">
       <DockPanel LastChildFill="True">
         <DockPanel LastChildFill="True" DockPanel.Dock="Bottom">
           <Grid ColumnDefinitions="40, 160, 150, *" Margin="10 0 0 0" DockPanel.Dock="Top">
@@ -72,6 +72,6 @@
           </controls:ExtendedListBox>
         </DockPanel>
       </DockPanel>
-    </Grid>
+    </Panel>
   </controls:GroupBox>
 </UserControl>

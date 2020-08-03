@@ -14,7 +14,7 @@
           </Style>
         </StackPanel.Styles>
         <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="15 0">
-          <Grid Classes="content">
+          <Panel Classes="content">
             <StackPanel Spacing="8">
               <StackPanel>
                 <TextBlock Text="Heads Up!" FontWeight="Bold" />
@@ -61,7 +61,7 @@
                 </StackPanel>
               </Expander>
             </StackPanel>
-          </Grid>
+          </Panel>
         </controls:GroupBox>
         <Button Content="Recover" Command="{Binding RecoverCommand}" HorizontalAlignment="Right" />
       </StackPanel>

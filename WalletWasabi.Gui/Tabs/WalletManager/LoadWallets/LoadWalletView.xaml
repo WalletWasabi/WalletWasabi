@@ -7,7 +7,7 @@
   <DockPanel LastChildFill="True">
     <StackPanel DockPanel.Dock="Bottom" Spacing="10">
       <controls:GroupBox IsVisible="{Binding !IsDesktopWallet}" TextBlock.FontSize="30" Padding="30" Margin="20 0">
-        <Grid Classes="content">
+        <Panel Classes="content">
           <StackPanel IsVisible="{Binding IsPasswordRequired}" Spacing="8">
             <StackPanel>
               <TextBlock Text="Select a wallet to test its password!" FontWeight="Bold" />
@@ -18,7 +18,7 @@
               </i:Interaction.Behaviors>
             </controls:TogglePasswordBox>
           </StackPanel>
-        </Grid>
+        </Panel>
       </controls:GroupBox>
       <DockPanel LastChildFill="True" Margin="20 10">
         <Button IsVisible="{Binding IsPasswordRequired}" Content="Test Password" Command="{Binding TestPasswordCommand}" DockPanel.Dock="Right" Margin="10 0 0 0" />
@@ -29,12 +29,12 @@
             <TextBlock Text="Open Wallets Folder" />
           </StackPanel>
         </Button>
-        <Grid></Grid>
+        <Panel/>
       </DockPanel>
     </StackPanel>
     <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" BorderThickness="0">
       <DockPanel LastChildFill="True">
-        <Grid Classes="content">
+        <Panel Classes="content">
           <controls:ExtendedListBox Items="{Binding Wallets}" SelectedItem="{Binding SelectedWallet, Mode=TwoWay}">
             <controls:ExtendedListBox.ItemTemplate>
               <DataTemplate>
@@ -46,7 +46,7 @@
               </DataTemplate>
             </controls:ExtendedListBox.ItemTemplate>
           </controls:ExtendedListBox>
-        </Grid>
+        </Panel>
       </DockPanel>
     </controls:GroupBox>
   </DockPanel>

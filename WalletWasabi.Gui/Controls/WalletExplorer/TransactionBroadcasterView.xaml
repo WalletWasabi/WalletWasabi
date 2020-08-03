@@ -12,7 +12,7 @@
              x:Class="WalletWasabi.Gui.Controls.WalletExplorer.TransactionBroadcasterView"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450">
   <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
-    <Grid Classes="content">
+    <Panel Classes="content">
       <DockPanel LastChildFill="True">
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
           <Button Command="{Binding PasteCommand}" Content="Paste Signed Transaction" />
@@ -24,10 +24,10 @@
             </StackPanel>
           </Button>
         </StackPanel>
-        <Grid>
+        <Panel>
           <txndetail:TransactionDetails Grid.Row="1" DataContext="{Binding TransactionDetails}" DockPanel.Dock="Top" Margin="0 8 0 0" />
-        </Grid>
+        </Panel>
       </DockPanel>
-    </Grid>
+    </Panel>
   </controls:GroupBox>
 </UserControl>

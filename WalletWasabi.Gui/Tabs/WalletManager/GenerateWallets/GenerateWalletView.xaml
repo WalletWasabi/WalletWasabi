@@ -6,7 +6,7 @@
              xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui">
   <StackPanel Margin="10" Spacing="10">
     <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="30">
-      <Grid Classes="content">
+      <Panel Classes="content">
         <StackPanel Spacing="8">
           <StackPanel>
             <TextBlock Text="Heads Up!" FontWeight="Bold" />
@@ -19,11 +19,11 @@
             </i:Interaction.Behaviors>
           </controls:TogglePasswordBox>
         </StackPanel>
-      </Grid>
+      </Panel>
     </controls:GroupBox>
     <DockPanel LastChildFill="True">
       <Button Content="Next" Command="{Binding NextCommand}" DockPanel.Dock="Right" />
-      <Grid></Grid>
+      <Panel/>
     </DockPanel>
   </StackPanel>
 </UserControl>

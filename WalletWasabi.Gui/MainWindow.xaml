@@ -23,12 +23,12 @@
     </StackPanel>
   </cont:MetroWindow.TitleBarContent>
 
-  <Grid  id:DockProperties.IsDragEnabled="False" id:DockProperties.IsDropEnabled="False">
+  <Panel  id:DockProperties.IsDragEnabled="False" id:DockProperties.IsDropEnabled="False">
     <DockPanel LastChildFill="True">
       <wasabi:StatusBar DockPanel.Dock="Bottom" DataContext="{Binding StatusBar}" />
       <shell:ShellView DataContext="{Binding Shell}" />
     </DockPanel>
     <wasabi:ModalDialog DataContext="{Binding ModalDialog}" />
     <lockscreen:LockScreen DataContext="{Binding LockScreen}" />
-  </Grid>
+  </Panel>
 </cont:MetroWindow>

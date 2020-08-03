@@ -3,9 +3,9 @@
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              xmlns:cont="clr-namespace:AvalonStudio.Controls;assembly=AvalonStudio.Shell.Extensibility"
              x:Class="WalletWasabi.Gui.Tabs.WalletManager.WalletManagerView">
-  <Grid Classes="content">
+  <Panel Classes="content">
     <DockPanel>
-      <Grid DockPanel.Dock="Left" Width="200">
+      <Panel DockPanel.Dock="Left" Width="200">
         <controls:ExtendedListBox Items="{Binding Categories}" SelectedItem="{Binding SelectedCategory, Mode=TwoWay}" BorderThickness="0 0 1 0">
           <controls:ExtendedListBox.ItemTemplate>
             <DataTemplate>
@@ -13,10 +13,10 @@
             </DataTemplate>
           </controls:ExtendedListBox.ItemTemplate>
         </controls:ExtendedListBox>
-      </Grid>
-      <Grid>
+      </Panel>
+      <Panel>
         <cont:ViewModelViewHost DataContext="{Binding CurrentView}" Margin="4" />
-      </Grid>
+      </Panel>
     </DockPanel>
-  </Grid>
+  </Panel>
 </UserControl>
