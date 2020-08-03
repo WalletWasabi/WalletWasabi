@@ -19,10 +19,7 @@
     <converters:TimeSpanVisibilityConverter x:Key="TimeSpanVisibilityConverter" />
   </UserControl.Resources>
   <DockPanel LastChildFill="True" Margin="10">
-    <Grid DockPanel.Dock="Bottom">
-      <Grid.RowDefinitions>
-        <RowDefinition Height="*" />
-      </Grid.RowDefinitions>
+    <Grid DockPanel.Dock="Bottom" RowDefinitions="*">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="*" />
         <ColumnDefinition Width="150" />
@@ -84,14 +81,7 @@
         </ScrollViewer>
       </controls:GroupBox>
       <controls:GroupBox Grid.Row="0" Grid.Column="0" Title="CoinJoin" Padding="5" Margin="0 5 5 0">
-        <Grid Grid.Row="0" Grid.Column="0" Classes="content">
-          <Grid.RowDefinitions>
-            <RowDefinition Height="150" />
-          </Grid.RowDefinitions>
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
-          </Grid.ColumnDefinitions>
+        <Grid Grid.Row="0" Grid.Column="0" Classes="content" RowDefinitions="150" ColumnDefinitions="*,Auto">
           <StackPanel Grid.Column="0" Spacing="10">
             <controls:TogglePasswordBox Text="{Binding Password}" Margin="0 20 0 0" MinWidth="200">
               <i:Interaction.Behaviors>
