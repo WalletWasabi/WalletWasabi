@@ -823,7 +823,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					return userFeeRate > MinRelayTxFee && userFeeRate <= AbsurdlyHighFee;
 				}
 			}
-			catch (OverflowException _)
+			catch (OverflowException)
 			{
 				// Ignore OverflowException
 			}
