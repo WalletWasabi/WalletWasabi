@@ -69,7 +69,7 @@ tar -pxzf Wasabi-1.1.6.tar.gz
 git diff --no-index linux-x64/ Wasabi-1.1.6
 ```
 
-*There could be warnings reagarding SOS_README.md that it differs in line endings. That is a text file and it has no effect on the running software.*
+*There could be warnings regarding SOS_README.md that it differs in line endings. That is a text file and it has no effect on the running software.*
 
 #### .dmg
 
