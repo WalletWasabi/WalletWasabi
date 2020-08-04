@@ -21,8 +21,7 @@ namespace System
 
 			["invalid password"] = "Wrong password.",
 			["Invalid wallet name"] = "Invalid wallet name.",
-			["Wallet name is already taken"] = "Wallet name is already taken.",
-			["The invoice this PSBT is paying has already been partially or completely paid"] = "The invoice has already been paid"
+			["Wallet name is already taken"] = "Wallet name is already taken."
 		};
 
 		public static string ToTypeMessageString(this Exception ex)

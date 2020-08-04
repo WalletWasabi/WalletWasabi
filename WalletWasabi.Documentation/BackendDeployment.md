@@ -3,7 +3,7 @@
 Consider updating the versions in `WalletWasabi.Helpers.Constants`. If the versions are updated, make sure the Client Release is already available before updating the backend.
 
 ```sh
-sudo apt-get update && cd ~/WalletWasabi && git pull && cd ~
+sudo apt-get update && cd ~/WalletWasabi && git pull && cd ~/WalletWasabi/WalletWasabi.Backend && dotnet restore && cd ~
 sudo service nginx stop
 sudo systemctl stop walletwasabi.service
 sudo killall tor
@@ -154,6 +154,24 @@ sudo ufw allow 80
 
 **Backup the generated private key!**
 
+## Update Tor
+
+```
+$ sudo pico /etc/apt/sources.list
+
+Append these two lines:
+deb https://deb.torproject.org/torproject.org bionic main
+deb-src https://deb.torproject.org/torproject.org bionic main
+
+$ curl https://deb.torproject.org/torproject.org/A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc | gpg --import
+$ gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 > exported 
+$ sudo apt-key add exported
+$ rm exported 
+$ sudo apt update
+$ sudo apt install tor
+IMPORTANT! Press N otherwise it will replace the torrc with a default version and bye wasabi hidden service
+```
+
 # 5. Install, Configure and Synchronize bitcoind (Bitcoin Knots)
 
 https://bitcoinknots.org/
@@ -169,7 +187,7 @@ pico ~/.bitcoin/bitcoin.conf
 ```sh
 testnet=[0/1]
 
-[main/test].rpcworkqueue=128
+[main/test].rpcworkqueue=256
 
 [main/test].txindex=1
 
@@ -178,6 +196,7 @@ testnet=[0/1]
 [main/test].rpcuser=bitcoinuser
 [main/test].rpcpassword=password
 [main/test].whitebind=127.0.0.1:[8333/18333]
+[main/test].mempoolreplacement=fee,optin # Only valid for Bitcoin Knots - https://github.com/MetacoSA/NBitcoin/pull/884#issuecomment-663620290
 #[main/test].debug=rpc     # in some cases it could be good to uncomment this line.
 ```
 https://bitcoincore.org/en/releases/0.17.0/  
