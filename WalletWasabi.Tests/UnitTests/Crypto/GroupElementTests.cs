@@ -411,11 +411,13 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			scalar = EC.N;
 			expected = new GroupElement(EC.G * scalar);
 			Assert.Equal(expected, g * scalar);
+			Assert.Equal(g * Scalar.Zero, g * scalar);
 
 			// Scalar overflown N+1.
 			scalar = EC.N + Scalar.One;
 			expected = new GroupElement(EC.G * scalar);
 			Assert.Equal(expected, g * scalar);
+			Assert.Equal(g * Scalar.One, g * scalar);
 
 			// Scalar overflown uint.Max
 			scalar = new Scalar(uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue);
