@@ -348,5 +348,79 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			ge2 = GroupElement.FromBytes(ge.ToBytes());
 			Assert.Equal(ge, ge2);
 		}
+
+		[Fact]
+		public void MultiplyByScalar()
+		{
+			// Scalar one.
+			var g = GroupElement.G;
+			var scalar = Scalar.One;
+			var expected = new GroupElement(EC.G * scalar);
+			Assert.Equal(expected, g * scalar);
+
+			// Can switch order.
+			Assert.Equal(expected, scalar * g);
+
+			// Scalar two.
+			scalar = new Scalar(2);
+			expected = new GroupElement(EC.G * scalar);
+			Assert.Equal(expected, g * scalar);
+
+			// Scalar three.
+			scalar = new Scalar(3);
+			expected = new GroupElement(EC.G * scalar);
+			Assert.Equal(expected, g * scalar);
+
+			// Scalar NC.
+			scalar = EC.NC;
+			expected = new GroupElement(EC.G * scalar);
+			Assert.Equal(expected, g * scalar);
+
+			// Scalar big.
+			scalar = new Scalar(int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue);
+			expected = new GroupElement(EC.G * scalar);
+			Assert.Equal(expected, g * scalar);
+
+			// Scalar biggest.
+			scalar = EC.N + Scalar.One.Negate();
+			expected = new GroupElement(EC.G * scalar);
+			Assert.Equal(expected, g * scalar);
+
+			// Scalar zero.
+			scalar = Scalar.Zero;
+			expected = new GroupElement(EC.G * scalar);
+			var result = g * scalar;
+			Assert.Equal(expected, result);
+			Assert.True(result.IsInfinity);
+
+			// Group element is infinity.
+			scalar = new Scalar(2);
+			result = GroupElement.Infinity * scalar;
+			expected = GroupElement.Infinity;
+			Assert.Equal(expected, result);
+			Assert.True(result.IsInfinity);
+
+			// Group element is infinity & Scalar is zero.
+			scalar = Scalar.Zero;
+			result = GroupElement.Infinity * scalar;
+			expected = GroupElement.Infinity;
+			Assert.Equal(expected, result);
+			Assert.True(result.IsInfinity);
+
+			// Scalar overflown N.
+			scalar = EC.N;
+			expected = new GroupElement(EC.G * scalar);
+			Assert.Equal(expected, g * scalar);
+
+			// Scalar overflown N+1.
+			scalar = EC.N + Scalar.One;
+			expected = new GroupElement(EC.G * scalar);
+			Assert.Equal(expected, g * scalar);
+
+			// Scalar overflown uint.Max
+			scalar = new Scalar(uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue);
+			expected = new GroupElement(EC.G * scalar);
+			Assert.Equal(expected, g * scalar);
+		}
 	}
 }

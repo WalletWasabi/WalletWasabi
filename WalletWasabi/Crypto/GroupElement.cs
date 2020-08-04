@@ -101,6 +101,20 @@ namespace WalletWasabi.Crypto
 			return a + new GroupElement(b.Ge.Negate());
 		}
 
+		public static GroupElement operator *(Scalar scalar, GroupElement groupElement)
+		{
+			Guard.NotNull(nameof(GroupElement), groupElement);
+
+			if (groupElement.IsInfinity)
+			{
+				return Infinity;
+			}
+
+			return new GroupElement(scalar * groupElement.Ge);
+		}
+
+		public static GroupElement operator *(GroupElement groupElement, Scalar scalar) => scalar * groupElement;
+
 		public GroupElement Negate() => new GroupElement(Ge.Negate());
 
 		public byte[] ToBytes() => ByteHelpers.Combine(Ge.x.ToBytes(), Ge.y.ToBytes());
@@ -116,13 +130,11 @@ namespace WalletWasabi.Crypto
 			{
 				return Infinity;
 			}
-			else
-			{
-				var x = bytes.Take(32).ToArray();
-				var y = bytes.Skip(32).ToArray();
 
-				return new GroupElement(new GE(new FE(x), new FE(y)));
-			}
+			var x = bytes.Take(32).ToArray();
+			var y = bytes.Skip(32).ToArray();
+
+			return new GroupElement(new GE(new FE(x), new FE(y)));
 		}
 	}
 }
