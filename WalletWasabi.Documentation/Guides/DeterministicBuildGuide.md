@@ -69,8 +69,21 @@ tar -pxzf Wasabi-1.1.6.tar.gz
 git diff --no-index linux-x64/ Wasabi-1.1.6
 ```
 
+*There could be warnings reagarding SOS_README.md that it differs in line endings. That is a text file and it has no effect on the running software.*
+
 #### .dmg
 
+According to Apple documentation, the signature that is used to ensure the integrity of the software is added into the binary itself - so it will manipulate the content of the files.
+
+> If the code is universal, the object code for each slice (architecture) is signed separately. This signature is stored within the binary file itself.
+
+[Source](https://developer.apple.com/library/archive/documentation/Security/Conceptual/CodeSigningGuide/AboutCS/AboutCS.html#//apple_ref/doc/uid/TP40005929-CH3-SW3)
+
+According to this, it is impossible to have both deterministic build and code signature on macOS. macOS Gatekeeper won't let you run software without it - thus code signature is prior to the deterministic build. 
+
+There is an issue [here](https://github.com/zkSNACKs/WalletWasabi/issues/4110) for further discussion. 
+
+With the following method you can check the differences by yourself:
 You will need to install `7z` (or something else) to extract the `.dmg`. You can do that using `sudo apt install p7zip-full` command.
 
 ```sh
