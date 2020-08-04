@@ -1,6 +1,7 @@
 using NBitcoin.Secp256k1;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using WalletWasabi.Helpers;
 
@@ -101,5 +102,27 @@ namespace WalletWasabi.Crypto
 		}
 
 		public GroupElement Negate() => new GroupElement(Ge.Negate());
+
+		public byte[] ToBytes() => ByteHelpers.Combine(Ge.x.ToBytes(), Ge.y.ToBytes());
+
+		public static GroupElement FromBytes(byte[] bytes)
+		{
+			Guard.Same($"{nameof(bytes)}.{nameof(bytes.Length)}", 64, bytes.Length);
+
+			// Only infinity can have zeros.
+			// If one defines infinity in the constructor, but with non-zero coordinates it'll zero them out.
+			// If one defines zero coordinates but not infinity, the constructor will throw invalid variable error.
+			if (bytes.All(b => b == 0))
+			{
+				return Infinity;
+			}
+			else
+			{
+				var x = bytes.Take(32).ToArray();
+				var y = bytes.Skip(32).ToArray();
+
+				return new GroupElement(new GE(new FE(x), new FE(y)));
+			}
+		}
 	}
 }

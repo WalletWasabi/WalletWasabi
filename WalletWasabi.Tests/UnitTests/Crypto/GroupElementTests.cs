@@ -274,5 +274,79 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			Assert.Equal(new GroupElement(EC.G.Negate() * one), new GroupElement(EC.G * one).Negate());
 			Assert.Equal(GroupElement.Infinity, GroupElement.Infinity.Negate());
 		}
+
+		private byte[] FillByteArray(int length, byte character)
+		{
+			var array = new byte[length];
+			for (int i = 0; i < array.Length; i++)
+			{
+				array[i] = character;
+			}
+
+			return array;
+		}
+
+		[Fact]
+		public void FromBytesThrows()
+		{
+			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(Array.Empty<byte>()));
+			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(new byte[] { 0 }));
+			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(new byte[] { 1 }));
+			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(new byte[] { 0, 1 }));
+			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(new byte[] { 0, 1 }));
+
+			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(FillByteArray(length: 32, character: 0)));
+			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(FillByteArray(length: 63, character: 0)));
+			var infinity = GroupElement.FromBytes(FillByteArray(length: 64, character: 0));
+			Assert.True(infinity.IsInfinity);
+			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(FillByteArray(length: 64, character: 1)));
+			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(FillByteArray(length: 64, character: 2)));
+			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(FillByteArray(length: 65, character: 0)));
+		}
+
+		[Fact]
+		public void Serialization()
+		{
+			var ge = GroupElement.G;
+			var ge2 = GroupElement.FromBytes(ge.ToBytes());
+			Assert.Equal(ge, ge2);
+
+			ge = GroupElement.Infinity;
+			ge2 = GroupElement.FromBytes(ge.ToBytes());
+			Assert.Equal(ge, ge2);
+
+			// Make sure infinity definition isn't f*d up in the constructor as the frombytes relies on special zero coordinates for infinity.
+			// 1. Try defining infinity with non-zero coordinates should work:
+			ge = new GroupElement(new GE(EC.G.x, EC.G.y, infinity: true));
+			byte[] zeroBytes = ge.ToBytes();
+			ge2 = GroupElement.FromBytes(zeroBytes);
+			Assert.Equal(GroupElement.Infinity, ge2);
+			// 2. Try defining non-infinity with zero coordinates should not work.
+			Assert.ThrowsAny<ArgumentException>(() => new GroupElement(new GE(FE.Zero, FE.Zero, infinity: false)));
+
+			ge = new GroupElement(EC.G * new Scalar(1));
+			ge2 = GroupElement.FromBytes(ge.ToBytes());
+			Assert.Equal(ge, ge2);
+
+			ge = new GroupElement(EC.G * new Scalar(2));
+			ge2 = GroupElement.FromBytes(ge.ToBytes());
+			Assert.Equal(ge, ge2);
+
+			ge = new GroupElement(EC.G * new Scalar(3));
+			ge2 = GroupElement.FromBytes(ge.ToBytes());
+			Assert.Equal(ge, ge2);
+
+			ge = new GroupElement(EC.G * new Scalar(21));
+			ge2 = GroupElement.FromBytes(ge.ToBytes());
+			Assert.Equal(ge, ge2);
+
+			ge = new GroupElement(EC.G * EC.NC);
+			ge2 = GroupElement.FromBytes(ge.ToBytes());
+			Assert.Equal(ge, ge2);
+
+			ge = new GroupElement(EC.G * EC.N);
+			ge2 = GroupElement.FromBytes(ge.ToBytes());
+			Assert.Equal(ge, ge2);
+		}
 	}
 }
