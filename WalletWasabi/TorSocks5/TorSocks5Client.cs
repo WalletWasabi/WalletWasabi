@@ -166,7 +166,7 @@ namespace WalletWasabi.TorSocks5
 				// https://tools.ietf.org/html/rfc1929#section-2
 				// Once the SOCKS V5 server has started, and the client has selected the
 				// Username / Password Authentication protocol, the Username / Password
-				// subnegotiation begins. This begins with the client producing a
+				// sub-negotiation begins. This begins with the client producing a
 				// Username / Password request:
 				var username = identity;
 				var password = identity;
@@ -371,7 +371,7 @@ namespace WalletWasabi.TorSocks5
 						return receiveBuffer[..receiveCount];
 					}
 
-					// while we have data available, start building a bytearray
+					// while we have data available, start building a byte array
 					var builder = new ByteArrayBuilder();
 					builder.Append(receiveBuffer[..receiveCount]);
 					while (stream.DataAvailable)
