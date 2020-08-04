@@ -12,6 +12,7 @@
     <RepositoryType>Git</RepositoryType>
     <RepositoryUrl>https://github.com/zkSNACKs/WalletWasabi/</RepositoryUrl>
     <RuntimeIdentifiers>win7-x64;linux-x64;osx-x64</RuntimeIdentifiers>
+    <PathMap>$(MSBuildProjectDirectory)\=WalletWasabi.Backend</PathMap>
   </PropertyGroup>
 
   <ItemGroup>
