@@ -79,7 +79,7 @@ According to Apple documentation, the signature that is used to ensure the integ
 
 [Source](https://developer.apple.com/library/archive/documentation/Security/Conceptual/CodeSigningGuide/AboutCS/AboutCS.html#//apple_ref/doc/uid/TP40005929-CH3-SW3)
 
-According to this, it is impossible to have both deterministic build and code signature on macOS. macOS Gatekeeper won't let you run software without it - thus code signature is prior to the deterministic build. 
+According to this, it is impossible to have both deterministic build and code signature on macOS. macOS Gatekeeper won't let you run software without it. Thus, Wasabi only applies code signature, but no deterministic build for macOS. 
 
 There is an issue [here](https://github.com/zkSNACKs/WalletWasabi/issues/4110) for further discussion. 
 
