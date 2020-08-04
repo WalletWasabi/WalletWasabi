@@ -107,7 +107,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					if (payjoinEndPointUri.DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
 					{
-						Logger.LogWarning("Payjoin server is a onion service but Tor is disabled. Ignoring...");
+						Logger.LogWarning("Payjoin server is an onion service but Tor is disabled. Ignoring...");
 						return null;
 					}
 
