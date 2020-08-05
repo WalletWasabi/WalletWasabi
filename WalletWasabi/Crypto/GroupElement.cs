@@ -135,10 +135,20 @@ namespace WalletWasabi.Crypto
 				return Infinity;
 			}
 
-			var x = bytes.Take(32).ToArray();
-			var y = bytes.Skip(32).ToArray();
+			var xBytes = bytes.Take(32).ToArray();
+			var yBytes = bytes.Skip(32).ToArray();
 
-			return new GroupElement(new GE(new FE(x), new FE(y)));
+			if (!FE.TryCreate(xBytes, out FE x))
+			{
+				throw new ArgumentException("Couldn't create x field element.", nameof(bytes));
+			}
+
+			if (!FE.TryCreate(yBytes, out FE y))
+			{
+				throw new ArgumentException("Couldn't create y field element.", nameof(bytes));
+			}
+
+			return new GroupElement(new GE(x, y));
 		}
 	}
 }
