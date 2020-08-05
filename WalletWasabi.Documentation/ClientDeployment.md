@@ -95,6 +95,6 @@ If it's a major release, then the backport branch must be rebased, so we can sta
 ```sh
 git checkout --track upstream/backport
 git rebase upstream/master
-git push -u upstream/backport
+git push -u upstream backport
 ```
 
