@@ -279,7 +279,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		{
 			var array = new byte[length];
 			Array.Fill(array, character);
-
 			return array;
 		}
 
