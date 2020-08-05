@@ -278,10 +278,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		private byte[] FillByteArray(int length, byte character)
 		{
 			var array = new byte[length];
-			for (int i = 0; i < array.Length; i++)
-			{
-				array[i] = character;
-			}
+			Array.Fill(array, character);
 
 			return array;
 		}
