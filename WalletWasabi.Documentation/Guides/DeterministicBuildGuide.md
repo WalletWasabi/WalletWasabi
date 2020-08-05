@@ -10,7 +10,7 @@ This guide describes how to reproduce Wasabi's builds. If you get stuck with the
 
 ## 1. Assert correct environment
 
-In order to reproduce Wasabi's builds, you need [git](https://git-scm.com/) package, Windows 10, and the version of .NET Core SDK that was used by the Wasabi team to produce given Wasabi Wallet release. The latest version of .NET Core SDK is always used, unless specified otherwise in the release notes of Wasabi Wallet. You can get it here https://dotnet.microsoft.com/download/dotnet-core.
+In order to reproduce Wasabi's builds, you need [git](https://git-scm.com/) package, Windows 10, and the version of [.NET Core SDK](https://dotnet.microsoft.com/download/dotnet-core) that was used by the Wasabi team to produce the release. The latest version of .NET Core SDK is always used, unless specified otherwise in the release notes of Wasabi Wallet.
 
 ## 2. Reproduce builds
 
