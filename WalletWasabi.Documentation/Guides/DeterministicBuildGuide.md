@@ -14,7 +14,7 @@ In order to reproduce Wasabi's builds, you need [git](https://git-scm.com/) pack
 
 ## 2. Reproduce builds
 
-You can see the list of Wasabi releases here: https://github.com/zkSNACKs/WalletWasabi/releases. Please note that each release has a git tag assigned. It is useful in the following instructions:
+You can see the list of Wasabi releases here: https://github.com/zkSNACKs/WalletWasabi/releases. Please note that each release has a git tag assigned, which is useful in the following instructions:
 
 ```sh
 # The following command downloads only a single git branch. However, you can clone whole repository, which is bigger, if you like.
