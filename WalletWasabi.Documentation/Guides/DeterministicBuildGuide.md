@@ -17,7 +17,7 @@ In order to reproduce Wasabi's builds, you need [git](https://git-scm.com/) pack
 You can see the list of Wasabi releases here: https://github.com/zkSNACKs/WalletWasabi/releases. Please note that each release has a git tag assigned, which is useful in the following instructions:
 
 ```sh
-# The following command downloads only a single git branch. However, you can clone whole repository, which is bigger, if you like.
+# The following command downloads only a single git branch. However, you can clone the whole repository, which is bigger.
 git clone --depth 1 --branch <git-branch-or-tag> https://github.com/zkSNACKs/WalletWasabi.git # where `<git-branch-or-tag>` may be, for example, `v1.1.11.1`.
 cd WalletWasabi/WalletWasabi.Packager
 dotnet nuget locals all --clear
@@ -44,7 +44,7 @@ Now, we will attempt to verify the binaries you have just compiled with the offi
   ```sh
   git diff --no-index "win7-x64" "C:\Program Files\WasabiWallet"
   ```
-  and make sure that there is **NO** difference reported by the command.
+* Make sure that there is **NO** difference reported by the command.
 
 ### Linux & macOS
 
@@ -84,6 +84,7 @@ According to this, it is impossible to have both deterministic build and code si
 There is an issue [here](https://github.com/zkSNACKs/WalletWasabi/issues/4110) for further discussion. 
 
 With the following method you can check the differences by yourself:
+
 You will need to install `7z` (or something else) to extract the `.dmg`. You can do that using `sudo apt install p7zip-full` command.
 
 ```sh
