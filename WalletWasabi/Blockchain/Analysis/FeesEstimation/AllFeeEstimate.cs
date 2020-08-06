@@ -44,13 +44,15 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 			IsAccurate = isAccurate;
 			Guard.NotNullOrEmpty(nameof(estimations), estimations);
 			Estimations = new Dictionary<int, int>();
-			var valueSet = new HashSet<decimal>();
 
-			// Make sure values are unique and in the correct order.
+			// Make sure values are unique and in the correct order and feerates are consistently decreasing.
+			var lastFeeRate = int.MaxValue;
 			foreach (KeyValuePair<int, int> estimation in estimations.OrderBy(x => x.Key))
 			{
-				if (valueSet.Add(estimation.Value))
+				// Otherwise it's inconsistent data.
+				if (lastFeeRate > estimation.Value)
 				{
+					lastFeeRate = estimation.Value;
 					Estimations.TryAdd(estimation.Key, estimation.Value);
 				}
 			}
