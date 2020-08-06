@@ -564,6 +564,34 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			Phase = RoundPhase.Signing;
 		}
 
+		/// <summary>
+		/// This may result in a phase change, too.
+		/// </summary>
+		/// <returns>The signatures.</returns>
+		public async Task<uint256[]> ConfirmAliceConnectionAsync(Alice alice)
+		{
+			uint256[] signatures;
+			bool progessToOutputRegistration = false;
+			using (await RoundSynchronizerLock.LockAsync().ConfigureAwait(false))
+			{
+				alice.State = AliceState.ConnectionConfirmed;
+
+				int takeBlindCount = EstimateBestMixingLevel(alice);
+
+				alice.BlindedOutputScripts = alice.BlindedOutputScripts[..takeBlindCount];
+				alice.BlindedOutputSignatures = alice.BlindedOutputSignatures[..takeBlindCount];
+				signatures = alice.BlindedOutputSignatures; // Do not give back more mixing levels than we'll use.
+
+				// Progress round if needed.
+				progessToOutputRegistration = Alices.All(x => x.State == AliceState.ConnectionConfirmed);
+			}
+			if (progessToOutputRegistration)
+			{
+				await ProgressToOutputRegistrationOrFailAsync().ConfigureAwait(false);
+			}
+			return signatures;
+		}
+
 		private void MoveToOutputRegistration()
 		{
 			Phase = RoundPhase.OutputRegistration;
@@ -607,7 +635,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			return newDenomination;
 		}
 
-		public async Task ProgressToOutputRegistrationOrFailAsync(params Alice[] alicesNotConfirmConnection)
+		private async Task ProgressToOutputRegistrationOrFailAsync(params Alice[] alicesNotConfirmConnection)
 		{
 			var responses = await GetTxOutForAllInputsAsync().ConfigureAwait(false);
 			var alicesSpent = responses.Where(x => x.resp is null).Select(x => x.alice).ToHashSet();
@@ -940,14 +968,6 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			return Alices.Count;
 		}
 
-		public bool AllAlices(AliceState state)
-		{
-			using (RoundSynchronizerLock.Lock())
-			{
-				return Alices.All(x => x.State == state);
-			}
-		}
-
 		public int CountBlindSignatures()
 		{
 			using (RoundSynchronizerLock.Lock())
@@ -1085,7 +1105,8 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 							if (alice != default(Alice))
 							{
 								// 4. If LastSeen is not changed by then, remove Alice.
-								if (alice.LastSeen == started)
+								// But only if Alice didn't get blind sig yet.
+								if (alice.LastSeen == started && alice.State < AliceState.ConnectionConfirmed)
 								{
 									Alices.Remove(alice);
 									Logger.LogInfo($"Round ({RoundId}): Alice ({alice.UniqueId}) timed out.");
@@ -1250,7 +1271,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				}
 
 				// Let's go through Alices those have spent inputs and remove them.
-				foreach (var alice in alicesSpent)
+				foreach (var alice in alicesSpent.Where(x => x.State < AliceState.ConnectionConfirmed))
 				{
 					Alices.Remove(alice);
 					Logger.LogInfo($"Round ({RoundId}): Alice ({alice.UniqueId}) removed, because of spent inputs.");
@@ -1274,7 +1295,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				{
 					// Let's go remove the unconfirmed Alices.
 					// If there are unconfirmed Alices those are also spent Alices, then we don't need to double remove them.
-					foreach (var alice in alicesUnconfirmed.Except(alicesSpent))
+					foreach (var alice in alicesUnconfirmed.Except(alicesSpent).Where(x => x.State < AliceState.ConnectionConfirmed))
 					{
 						Alices.Remove(alice);
 						Logger.LogInfo($"Round ({RoundId}): Alice ({alice.UniqueId}) removed, because of unconfirmed inputs.");
@@ -1343,7 +1364,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				}
 				foreach (var id in ids)
 				{
-					numberOfRemovedAlices = Alices.RemoveAll(x => x.UniqueId == id);
+					numberOfRemovedAlices = Alices.RemoveAll(x => x.UniqueId == id && x.State < AliceState.ConnectionConfirmed);
 				}
 			}
 
