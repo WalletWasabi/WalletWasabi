@@ -141,14 +141,29 @@ namespace WalletWasabi.Backend.Controllers
 		internal async Task<AllFeeEstimate> GetAllFeeEstimateAsync(EstimateSmartFeeMode mode)
 		{
 			var cacheKey = $"{nameof(GetAllFeeEstimateAsync)}_{mode}";
-			return await Cache.AtomicGetOrCreateAsync(
-				cacheKey,
-				entry =>
-				{
-					entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(500));
 
-					return RpcClient.EstimateAllFeeAsync(mode, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: true);
-				});
+			if (Cache.TryGetValue(cacheKey, out AllFeeEstimate allFeeEstimate))
+			{
+				return allFeeEstimate;
+			}
+			else
+			{
+				var ret = await RpcClient.EstimateAllFeeAsync(mode, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: true);
+				Cache.Set(cacheKey, ret, TimeSpan.FromMinutes(500));
+				return ret;
+			}
+
+			// ToDo: fix calling AtomicGetOrCreateAsync from AtomicGetOrCreateAsync
+			//return await Cache.AtomicGetOrCreateAsync(
+			//	cacheKey,
+			//	entry =>
+			//	{
+			//		entry.SetAbsoluteExpiration(TimeSpan.FromMinutes(500));
+
+			//		Count2++;
+			//		Logger.LogCritical($"{Count2}");
+			//		return RpcClient.EstimateAllFeeAsync(mode, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: true);
+			//	});
 		}
 
 		/// <summary>
