@@ -66,7 +66,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				Alices = new List<Alice>();
 				Bobs = new List<Bob>();
 
-				Logger.LogInfo($"New round ({RoundId}) is created.\n\t" +
+				Logger.LogInfo($"Round ({RoundId}): New round is created.\n\t" +
 					$"BaseDenomination: {MixingLevels.GetBaseDenomination().ToString(false, true)} BTC.\n\t" +
 					$"{nameof(AdjustedConfirmationTarget)}: {AdjustedConfirmationTarget}.\n\t" +
 					$"{nameof(CoordinatorFeePercent)}: {CoordinatorFeePercent}%.\n\t" +
@@ -300,11 +300,11 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 						}
 						else if (phase == RoundPhase.OutputRegistration)
 						{
-							Logger.LogInfo($"{timedOutLogString} Progressing to signing phase to blame...");
+							Logger.LogInfo($"Round ({RoundId}): {timedOutLogString} Progressing to signing phase to blame...");
 						}
 						else
 						{
-							Logger.LogInfo($"{timedOutLogString} Aborting...");
+							Logger.LogInfo($"Round ({RoundId}): {timedOutLogString} Aborting...");
 						}
 
 						// This will happen outside the lock.
@@ -762,11 +762,11 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				FeeRate currentFeeRate = null;
 				if (fee is null)
 				{
-					Logger.LogError($"Cannot calculate CoinJoin transaction fee. Some spent coins are missing.");
+					Logger.LogError($"Round ({RoundId}): Cannot calculate CoinJoin transaction fee. Some spent coins are missing.");
 				}
 				else if (fee <= Money.Zero)
 				{
-					Logger.LogError("CoinJoin transaction is not paying any fee.");
+					Logger.LogError($"Round ({RoundId}): CoinJoin transaction is not paying any fee. Fee: {fee.ToString(fplus: true)}, Total Inputs: {(Money)spentCoins.Sum(x => x.Amount)}, Total Outputs: {transaction.TotalOut}.");
 				}
 				else
 				{
@@ -813,12 +813,12 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				}
 				else
 				{
-					Logger.LogError($"This is impossible. {nameof(optimalFeeRate)}: {optimalFeeRate}, {nameof(currentFeeRate)}: {currentFeeRate}.");
+					Logger.LogError($"Round ({RoundId}): This is impossible. {nameof(optimalFeeRate)}: {optimalFeeRate}, {nameof(currentFeeRate)}: {currentFeeRate}.");
 				}
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning("Failed to optimize fees. Fallback to normal fees.");
+				Logger.LogWarning($"Round ({RoundId}): Failed to optimize fees. Fallback to normal fees.");
 				Logger.LogWarning(ex);
 			}
 		}
@@ -836,12 +836,12 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 				if (originalConfirmationTarget != AdjustedConfirmationTarget)
 				{
-					Logger.LogInfo($"Confirmation target is optimized from {originalConfirmationTarget} blocks to {AdjustedConfirmationTarget} blocks.");
+					Logger.LogInfo($"Round ({RoundId}): Confirmation target is optimized from {originalConfirmationTarget} blocks to {AdjustedConfirmationTarget} blocks.");
 				}
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning($"Failed to optimize confirmation target. Fallback using the original one: {AdjustedConfirmationTarget} blocks.");
+				Logger.LogWarning($"Round ({RoundId}): Failed to optimize confirmation target. Fallback using the original one: {AdjustedConfirmationTarget} blocks.");
 				Logger.LogWarning(ex);
 			}
 		}
