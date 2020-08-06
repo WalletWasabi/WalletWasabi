@@ -276,6 +276,24 @@ Review the tor activity using the logs stored in the linux journal:
 sudo journalctl -u tor@default
 ```
 
+## Load balance and server performance
+
+Check load avarages
+```sh
+uptime
+```
+Check the number of CPU-s
+```sh
+nproc
+```
+
+Load average numbers are in order according to the average time-window in the last - 1, 5, 15 minutes. Zero means no load, 1 means 100% load - however, average loads are added up among the number of CPUs. So as far as the load average is not bigger than the number of CPUs, there shouldn't be any performance issues.
+
+For interactive monitoring you can use:
+```sh
+htop
+```
+
 # 8. Setup Nginx
 
 https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/linux-nginx?view=aspnetcore-2.0&tabs=aspnetcore2x#install-nginx  
