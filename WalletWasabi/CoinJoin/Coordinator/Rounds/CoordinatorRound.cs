@@ -766,7 +766,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				}
 				else if (fee <= Money.Zero)
 				{
-					Logger.LogError($"Round ({RoundId}): CoinJoin transaction is not paying any fee. Fee: {fee.ToString(fplus: true)}.");
+					Logger.LogError($"Round ({RoundId}): CoinJoin transaction is not paying any fee. Fee: {fee.ToString(fplus: true)}, Total Inputs: {(Money)spentCoins.Sum(x => x.Amount)}, Total Outputs: {transaction.TotalOut}.");
 				}
 				else
 				{
