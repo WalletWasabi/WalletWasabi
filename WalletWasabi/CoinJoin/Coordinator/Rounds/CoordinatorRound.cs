@@ -655,7 +655,6 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				}
 			}
 
-			// It is ok to remove these Alices, because these did not get blind signatures.
 			RemoveAlicesBy(alicesNotConfirmConnectionIds.Distinct().ToArray());
 
 			int aliceCountAfterConnectionConfirmationTimeout = CountAlices();
