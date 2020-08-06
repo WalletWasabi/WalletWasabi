@@ -160,8 +160,6 @@ namespace WalletWasabi.Backend.Controllers
 			//	{
 			//		entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(500));
 
-			//		Count2++;
-			//		Logger.LogCritical($"{Count2}");
 			//		return RpcClient.EstimateAllFeeAsync(mode, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: true);
 			//	});
 		}
