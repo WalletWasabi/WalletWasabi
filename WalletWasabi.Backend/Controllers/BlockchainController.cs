@@ -149,7 +149,7 @@ namespace WalletWasabi.Backend.Controllers
 			else
 			{
 				var ret = await RpcClient.EstimateAllFeeAsync(mode, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: true);
-				Cache.Set(cacheKey, ret, TimeSpan.FromMinutes(500));
+				Cache.Set(cacheKey, ret, TimeSpan.FromSeconds(500));
 				return ret;
 			}
 
@@ -158,7 +158,7 @@ namespace WalletWasabi.Backend.Controllers
 			//	cacheKey,
 			//	entry =>
 			//	{
-			//		entry.SetAbsoluteExpiration(TimeSpan.FromMinutes(500));
+			//		entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(500));
 
 			//		Count2++;
 			//		Logger.LogCritical($"{Count2}");
