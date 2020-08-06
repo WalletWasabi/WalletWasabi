@@ -207,14 +207,6 @@ namespace NBitcoin.RPC
 					newEstimations.TryAdd(est.Key, est.Value);
 				}
 			}
-			if (largeTargetFee < halfTargetFee)
-			{
-				var largeEstimations = await rpc.EstimateHalfFeesAsync(newEstimations, halfTarget, halfTargetFee, largeTarget, largeTargetFee, estimateMode, simulateIfRegTest, tolerateBitcoinCoreBrainfuck);
-				foreach (var est in largeEstimations)
-				{
-					newEstimations.TryAdd(est.Key, est.Value);
-				}
-			}
 
 			return newEstimations;
 		}
