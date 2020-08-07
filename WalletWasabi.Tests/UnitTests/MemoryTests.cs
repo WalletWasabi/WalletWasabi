@@ -24,17 +24,17 @@ namespace WalletWasabi.Tests.UnitTests
 			var cache1 = new MemoryCache(new MemoryCacheOptions());
 			var cache2 = new MemoryCache(new MemoryCacheOptions());
 
-			var result0 = await cache1.AtomicGetOrCreate2Async(
+			var result0 = await cache1.AtomicGetOrCreateAsync(
 				"the-same-key",
 				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(10) },
 				() => Task.FromResult(ExpensiveComputation("World!")));
 
-			var result1 = await cache2.AtomicGetOrCreate2Async(
+			var result1 = await cache2.AtomicGetOrCreateAsync(
 				"the-same-other-key",
 				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(10) },
 				() => Task.FromResult(ExpensiveComputation("Lurking Wife!")));
 
-			var result2 = await cache1.AtomicGetOrCreate2Async(
+			var result2 = await cache1.AtomicGetOrCreateAsync(
 				"the-same-key",
 				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(10) },
 				() => Task.FromResult(ExpensiveComputation("World!")));
@@ -43,7 +43,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			// Make sure AtomicGetOrCreateAsync doesn't fail because another cache is disposed.
 			cache2.Dispose();
-			var result3 = await cache1.AtomicGetOrCreate2Async(
+			var result3 = await cache1.AtomicGetOrCreateAsync(
 				"the-same-key",
 				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(10) },
 				() => Task.FromResult(ExpensiveComputation("Foo!")));
@@ -51,7 +51,7 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal(2, invoked);
 
 			// Make sure cache2 call will fail.
-			await Assert.ThrowsAsync<ObjectDisposedException>(async () => await cache2.AtomicGetOrCreate2Async(
+			await Assert.ThrowsAsync<ObjectDisposedException>(async () => await cache2.AtomicGetOrCreateAsync(
 					"the-same-key",
 				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(10) },
 				() => Task.FromResult(ExpensiveComputation("Foo!"))));
@@ -73,17 +73,17 @@ namespace WalletWasabi.Tests.UnitTests
 
 			var options = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(10) };
 			options.AddExpirationToken(new CancellationChangeToken(expireKey1.Token));
-			var result0 = await cache.AtomicGetOrCreate2Async(
+			var result0 = await cache.AtomicGetOrCreateAsync(
 				"key1",
 				options,
 				() => Task.FromResult(ExpensiveComputation("World!")));
 
-			var result1 = await cache.AtomicGetOrCreate2Async(
+			var result1 = await cache.AtomicGetOrCreateAsync(
 				"key2",
 				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(10) },
 				() => Task.FromResult(ExpensiveComputation("Lurking Wife!")));
 
-			var result2 = await cache.AtomicGetOrCreate2Async(
+			var result2 = await cache.AtomicGetOrCreateAsync(
 				"key1",
 				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(10) },
 				() => Task.FromResult(ExpensiveComputation("World!")));
@@ -94,12 +94,12 @@ namespace WalletWasabi.Tests.UnitTests
 
 			// Make sure key1 expired.
 			expireKey1.Cancel();
-			var result3 = await cache.AtomicGetOrCreate2Async(
+			var result3 = await cache.AtomicGetOrCreateAsync(
 				"key1",
 				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(10) },
 				() => Task.FromResult(ExpensiveComputation("Foo!")));
 
-			var result4 = await cache.AtomicGetOrCreate2Async(
+			var result4 = await cache.AtomicGetOrCreateAsync(
 				"key2",
 				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(10) },
 				() => Task.FromResult(ExpensiveComputation("Bar!")));
@@ -128,7 +128,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			var cache = new MemoryCache(new MemoryCacheOptions());
 
-			var task0 = cache.AtomicGetOrCreate2Async(
+			var task0 = cache.AtomicGetOrCreateAsync(
 				"key1",
 				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60) },
 				() => WaitUntilTrigger("World!"));
@@ -138,17 +138,17 @@ namespace WalletWasabi.Tests.UnitTests
 				throw new TimeoutException();
 			}
 
-			var task1 = cache.AtomicGetOrCreate2Async(
+			var task1 = cache.AtomicGetOrCreateAsync(
 				"key1",
 				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(60) },
 				() => Task.FromResult("Should not change to this"));
 
-			var task2 = cache.AtomicGetOrCreate2Async(
+			var task2 = cache.AtomicGetOrCreateAsync(
 				"key1",
 				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(60) },
 				() => Task.FromResult("Should not change to this either"));
 
-			var task3 = cache.AtomicGetOrCreate2Async(
+			var task3 = cache.AtomicGetOrCreateAsync(
 				"key2",
 				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(60) },
 				() => Task.FromResult("Key2"));
@@ -179,19 +179,19 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			var cache = new MemoryCache(new MemoryCacheOptions());
 
-			var result0 = await cache.AtomicGetOrCreate2Async(
+			var result0 = await cache.AtomicGetOrCreateAsync(
 				"key1",
 				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(1) },
 				() => Task.FromResult("This will be expired"));
 
 			await Task.Delay(1);
 
-			var result1 = await cache.AtomicGetOrCreate2Async(
+			var result1 = await cache.AtomicGetOrCreateAsync(
 				"key1",
 				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60) },
 				() => Task.FromResult("Foo"));
 
-			var result2 = await cache.AtomicGetOrCreate2Async(
+			var result2 = await cache.AtomicGetOrCreateAsync(
 				"key1",
 				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60) },
 				() => Task.FromResult("Should not change to this"));
@@ -207,7 +207,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var leeCalled = 0;
 
 			async Task<string> Greet(string who) =>
-				await cache.AtomicGetOrCreate2Async(
+				await cache.AtomicGetOrCreateAsync(
 					$"{nameof(Greet)}{who}",
 					new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromTicks(1) }, // expires really soon
 					() =>
@@ -217,7 +217,7 @@ namespace WalletWasabi.Tests.UnitTests
 					});
 
 			async Task<string> GreetMrLee() =>
-				await cache.AtomicGetOrCreate2Async(
+				await cache.AtomicGetOrCreateAsync(
 					"key1",
 					new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1) },
 					() =>
