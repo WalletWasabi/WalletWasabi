@@ -141,7 +141,7 @@ namespace WalletWasabi.Backend.Controllers
 		internal async Task<AllFeeEstimate> GetAllFeeEstimateAsync(EstimateSmartFeeMode mode)
 		{
 			var cacheKey = $"{nameof(GetAllFeeEstimateAsync)}_{mode}";
-			var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(500) };
+			var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60) };
 
 			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
@@ -402,7 +402,7 @@ namespace WalletWasabi.Backend.Controllers
 		private async Task<EstimateSmartFeeResponse> GetEstimateSmartFeeAsync(int target, EstimateSmartFeeMode mode)
 		{
 			var cacheKey = $"{nameof(GetEstimateSmartFeeAsync)}_{target}_{mode}";
-			var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(300) };
+			var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60) };
 
 			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
@@ -417,7 +417,7 @@ namespace WalletWasabi.Backend.Controllers
 			try
 			{
 				var cacheKey = $"{nameof(GetStatusAsync)}";
-				var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(30) };
+				var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(7) };
 
 				return await Cache.AtomicGetOrCreateAsync(
 					cacheKey,
