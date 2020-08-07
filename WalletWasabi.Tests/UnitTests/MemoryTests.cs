@@ -276,7 +276,7 @@ namespace WalletWasabi.Tests.UnitTests
 					"key1",
 					(entry) =>
 					{
-						entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(10));
+						entry.SetAbsoluteExpiration(TimeSpan.FromHours(10));
 						return Greet("Lee");
 					}
 				);
