@@ -253,5 +253,40 @@ namespace WalletWasabi.Tests.UnitTests
 
 			Assert.Equal("Foo", result2);
 		}
+
+		[Fact]
+		public async Task CacheTaskTest()
+		{
+			var cache = new MemoryCache(new MemoryCacheOptions());
+			var called = 0;
+
+			async Task<string> Greet(string who) =>
+				await cache.AtomicGetOrCreateAsync(
+					$"{nameof(Greet)}{who}",
+					(entry) =>
+					{
+						entry.SetAbsoluteExpiration(TimeSpan.FromTicks(1)); // expires really soon
+						called++;
+						return Task.FromResult($"Hello Mr. {who}");
+					}
+				);
+
+			async Task<string> GreetMrLee() =>
+				await cache.AtomicGetOrCreateAsync(
+					"key1",
+					(entry) =>
+					{
+						entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(10));
+						return Greet("Lee");
+					}
+				);
+
+			for (var i = 0; i < 10; i++)
+			{
+				await GreetMrLee();
+			}
+
+			Assert.Equal(1, called);
+		}
 	}
 }
