@@ -13,6 +13,10 @@ using WalletWasabi.TorSocks5.Models.Fields.OctetFields;
 
 namespace WalletWasabi.TorSocks5
 {
+	/// <summary>
+	/// Installs, starts and monitors Tor program.
+	/// </summary>
+	/// <seealso href="https://2019.www.torproject.org/docs/tor-manual.html.en"/>
 	public class TorProcessManager
 	{
 		/// <summary>
