@@ -3,7 +3,7 @@
 Consider updating the versions in `WalletWasabi.Helpers.Constants`. If the versions are updated, make sure the Client Release is already available before updating the backend.
 
 ```sh
-sudo apt-get update && cd ~/WalletWasabi && git pull && cd ~
+sudo apt-get update && cd ~/WalletWasabi && git pull && cd ~/WalletWasabi/WalletWasabi.Backend && dotnet restore && cd ~
 sudo service nginx stop
 sudo systemctl stop walletwasabi.service
 sudo killall tor
@@ -187,7 +187,7 @@ pico ~/.bitcoin/bitcoin.conf
 ```sh
 testnet=[0/1]
 
-[main/test].rpcworkqueue=128
+[main/test].rpcworkqueue=256
 
 [main/test].txindex=1
 
@@ -274,6 +274,24 @@ Review the tor activity using the logs stored in the linux journal:
 
 ```sh
 sudo journalctl -u tor@default
+```
+
+## Load balance and server performance
+
+Check load avarages
+```sh
+uptime
+```
+Check the number of CPU-s
+```sh
+nproc
+```
+
+Load average numbers are in order according to the average time-window in the last - 1, 5, 15 minutes. Zero means no load, 1 means 100% load - however, average loads are added up among the number of CPUs. So as far as the load average is not bigger than the number of CPUs, there shouldn't be any performance issues.
+
+For interactive monitoring you can use:
+```sh
+htop
 ```
 
 # 8. Setup Nginx

@@ -60,9 +60,9 @@ namespace WalletWasabi.BitcoinCore
 			return await Rpc.GetRawMempoolAsync().ConfigureAwait(false);
 		}
 
-		public virtual GetTxOutResponse GetTxOut(uint256 txid, int index, bool includeMempool = true)
+		public virtual async Task<GetTxOutResponse> GetTxOutAsync(uint256 txid, int index, bool includeMempool = true)
 		{
-			return Rpc.GetTxOut(txid, index, includeMempool);
+			return await Rpc.GetTxOutAsync(txid, index, includeMempool).ConfigureAwait(false);
 		}
 
 		public virtual async Task<MempoolAcceptResult> TestMempoolAcceptAsync(Transaction transaction, bool allowHighFees = false)
@@ -151,11 +151,6 @@ namespace WalletWasabi.BitcoinCore
 		public virtual async Task<BitcoinAddress> GetNewAddressAsync()
 		{
 			return await Rpc.GetNewAddressAsync().ConfigureAwait(false);
-		}
-
-		public virtual async Task<GetTxOutResponse> GetTxOutAsync(uint256 txid, int index, bool includeMempool = true)
-		{
-			return await Rpc.GetTxOutAsync(txid, index, includeMempool).ConfigureAwait(false);
 		}
 
 		public virtual async Task<SignRawTransactionResponse> SignRawTransactionWithWalletAsync(SignRawTransactionRequest request)
