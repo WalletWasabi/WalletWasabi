@@ -111,14 +111,6 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-		/// <param name="refreshWalletList">Refreshes wallet list from files.</param>
-		public IEnumerable<KeyManager> GetKeyManagers(bool refreshWalletList = true)
-		{
-			var wallets = GetWallets(refreshWalletList);
-
-			return wallets.Select(x => x.KeyManager);
-		}
-
 		public IEnumerable<Wallet> GetWallets(bool refreshWalletList = true)
 		{
 			if (refreshWalletList)
@@ -131,21 +123,6 @@ namespace WalletWasabi.Wallets
 				return Wallets.Keys
 					.ToList();
 			}
-		}
-
-		public IEnumerable<SmartLabel> GetLabels()
-		{
-			// Don't refresh wallet list as it may be slow.
-			var labels = GetKeyManagers(refreshWalletList: false)
-				.SelectMany(x => x.GetLabels());
-
-			var txStore = BitcoinStore?.TransactionStore;
-			if (txStore is { })
-			{
-				labels = labels.Concat(txStore.GetLabels());
-			}
-
-			return labels;
 		}
 
 		public bool AnyWallet()
