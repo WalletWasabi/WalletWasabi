@@ -42,7 +42,7 @@ namespace Microsoft.Extensions.Caching.Memory
 			{
 				if (!cache.TryGetValue(key, out value))
 				{
-					value = await factory.Invoke();
+					value = await factory.Invoke().ConfigureAwait(false);
 					cache.Set(key, value, options);
 					lock (AsyncLocksLock)
 					{
