@@ -255,7 +255,7 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public async Task CacheTaskTest()
+		public async Task CacheTaskTestAsync()
 		{
 			var cache = new MemoryCache(new MemoryCacheOptions());
 			var called = 0;
