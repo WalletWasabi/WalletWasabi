@@ -13,6 +13,7 @@ namespace Microsoft.Extensions.Caching.Memory
 
 		private static object AsyncLocksLock { get; } = new object();
 
+		/// <param name="cache">Must be thread safe.</param>
 		public static async Task<TItem> AtomicGetOrCreateAsync<TItem>(this IMemoryCache cache, object key, MemoryCacheEntryOptions options, Func<Task<TItem>> factory)
 		{
 			if (cache.TryGetValue(key, out TItem value))
