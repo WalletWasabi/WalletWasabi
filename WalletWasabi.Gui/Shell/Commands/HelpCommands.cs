@@ -27,9 +27,9 @@ namespace WalletWasabi.Gui.Shell.Commands
 				commandIconService.GetCompletionKindImage("About"),
 				ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel())));
 
-			CustomerSupportCommand = new CommandDefinition(
-				"Customer Support",
-				commandIconService.GetCompletionKindImage("CustomerSupport"),
+			UserSupportCommand = new CommandDefinition(
+				"User Support",
+				commandIconService.GetCompletionKindImage("UserSupport"),
 				ReactiveCommand.CreateFromTask(async () =>
 					{
 						try
@@ -82,7 +82,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 			Observable
 				.Merge(AboutCommand.GetReactiveCommand().ThrownExceptions)
-				.Merge(CustomerSupportCommand.GetReactiveCommand().ThrownExceptions)
+				.Merge(UserSupportCommand.GetReactiveCommand().ThrownExceptions)
 				.Merge(ReportBugCommand.GetReactiveCommand().ThrownExceptions)
 				.Merge(DocsCommand.GetReactiveCommand().ThrownExceptions)
 				.Merge(LegalDocumentsCommand.GetReactiveCommand().ThrownExceptions)
@@ -97,8 +97,8 @@ namespace WalletWasabi.Gui.Shell.Commands
 		[ExportCommandDefinition("Help.About")]
 		public CommandDefinition AboutCommand { get; }
 
-		[ExportCommandDefinition("Help.CustomerSupport")]
-		public CommandDefinition CustomerSupportCommand { get; }
+		[ExportCommandDefinition("Help.UserSupport")]
+		public CommandDefinition UserSupportCommand { get; }
 
 		[ExportCommandDefinition("Help.ReportBug")]
 		public CommandDefinition ReportBugCommand { get; }

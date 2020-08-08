@@ -14,7 +14,7 @@ namespace WalletWasabi.Gui.Converters
 		{
 			if (value is null)
 			{
-				return "0";
+				return "Unknown";
 			}
 			else if (value is Money money)
 			{

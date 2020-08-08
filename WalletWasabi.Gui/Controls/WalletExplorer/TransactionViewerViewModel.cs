@@ -15,6 +15,7 @@ using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Gui.Controls.TransactionDetails.ViewModels;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
@@ -24,24 +25,36 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class TransactionViewerViewModel : WasabiDocumentTabViewModel
 	{
-		private string _txId;
-		private string _psbtJsonText;
 		private string _psbtHexText;
 		private string _psbtBase64Text;
 		private byte[] _psbtBytes;
+		private TransactionDetailsViewModel _transactionDetails;
 
 		public TransactionViewerViewModel() : base("Transaction")
 		{
 			Global = Locator.Current.GetService<Global>();
 
 			OpenTransactionBroadcaster = ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new TransactionBroadcasterViewModel()));
+
+			CopyBase64Psbt = ReactiveCommand.CreateFromTask(async () =>
+			{
+				await Application.Current.Clipboard.SetTextAsync(PsbtBase64Text);
+				NotificationHelpers.Information("PSBT Base64 string copied to clipboard!");
+			});
+
+			CopyTransactionHex = ReactiveCommand.CreateFromTask(async () =>
+			{
+				await Application.Current.Clipboard.SetTextAsync(TransactionHexText);
+				NotificationHelpers.Information("Transaction hex string copied to clipboard!");
+			});
+
 			ExportBinaryPsbt = ReactiveCommand.CreateFromTask(async () =>
 			{
 				var psbtExtension = "psbt";
 				var sfd = new SaveFileDialog
 				{
 					DefaultExtension = psbtExtension,
-					InitialFileName = TxId.Substring(0, 7),
+					InitialFileName = TransactionDetails.TransactionId.Substring(0, 7),
 					Title = "Export Binary PSBT"
 				};
 
@@ -69,11 +82,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						fileFullName = $"{fileFullName}.{psbtExtension}";
 					}
 					await File.WriteAllBytesAsync(fileFullName, PsbtBytes);
+
+					NotificationHelpers.Success("PSBT file was exported.");
 				}
-				NotificationHelpers.Success("PSBT file was exported.");
 			});
 
 			Observable
+				.Merge(CopyBase64Psbt.ThrownExceptions)
+				.Merge(CopyTransactionHex.ThrownExceptions)
 				.Merge(ExportBinaryPsbt.ThrownExceptions)
 				.Merge(OpenTransactionBroadcaster.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -85,22 +101,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		private Global Global { get; }
+
 		public ReactiveCommand<Unit, Unit> ExportBinaryPsbt { get; set; }
+		public ReactiveCommand<Unit, Unit> CopyTransactionHex { get; set; }
+		public ReactiveCommand<Unit, Unit> CopyBase64Psbt { get; set; }
 		public ReactiveCommand<Unit, Unit> OpenTransactionBroadcaster { get; set; }
 
 		public bool? IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode;
-
-		public string TxId
-		{
-			get => _txId;
-			set => this.RaiseAndSetIfChanged(ref _txId, value);
-		}
-
-		public string PsbtJsonText
-		{
-			get => _psbtJsonText;
-			set => this.RaiseAndSetIfChanged(ref _psbtJsonText, value);
-		}
 
 		public string TransactionHexText
 		{
@@ -120,6 +127,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _psbtBytes, value);
 		}
 
+		public TransactionDetailsViewModel TransactionDetails
+		{
+			get => _transactionDetails;
+			set => this.RaiseAndSetIfChanged(ref _transactionDetails, value);
+		}
+
 		public override void OnOpen(CompositeDisposable disposables)
 		{
 			base.OnOpen(disposables);
@@ -129,10 +142,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(_ =>
 				{
 					this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
-					this.RaisePropertyChanged(nameof(TxId));
-					this.RaisePropertyChanged(nameof(PsbtJsonText));
-					this.RaisePropertyChanged(nameof(TransactionHexText));
-					this.RaisePropertyChanged(nameof(PsbtBase64Text));
+					this.RaisePropertyChanged(nameof(TransactionDetails));
 				}).DisposeWith(disposables);
 		}
 
@@ -140,8 +150,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			try
 			{
-				TxId = result.Transaction.GetHash().ToString();
-				PsbtJsonText = result.Psbt.ToString();
+				TransactionDetails = TransactionDetailsViewModel.FromBuildTxnResult(Global.BitcoinStore, result.Psbt);
 				TransactionHexText = result.Transaction.Transaction.ToHex();
 				PsbtBase64Text = result.Psbt.ToBase64();
 				PsbtBytes = result.Psbt.ToBytes();

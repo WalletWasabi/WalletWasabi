@@ -98,7 +98,6 @@ namespace WalletWasabi.BitcoinCore
 					coreNode.Network);
 				coreNode.RpcClient = new CachedRpcClient(rpcClient, coreNodeParams.Cache);
 
-
 				if (coreNodeParams.TryRestart)
 				{
 					await coreNode.TryStopAsync(false).ConfigureAwait(false);
@@ -139,6 +138,16 @@ namespace WalletWasabi.BitcoinCore
 				if (coreNodeParams.Prune is { })
 				{
 					desiredConfigLines.Add($"{configPrefix}.prune = {coreNodeParams.Prune}");
+				}
+
+				if (coreNodeParams.MempoolReplacement is { })
+				{
+					desiredConfigLines.Add($"{configPrefix}.mempoolreplacement = {coreNodeParams.MempoolReplacement}");
+				}
+
+				if (coreNodeParams.FallbackFee is { })
+				{
+					desiredConfigLines.Add($"{configPrefix}.fallbackfee = {coreNodeParams.FallbackFee.ToString(fplus: false, trimExcessZero: true)}");
 				}
 
 				var sectionComment = $"# The following configuration options were added or modified by Wasabi Wallet.";

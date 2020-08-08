@@ -12,6 +12,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
+using WalletWasabi.Crypto;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Gui.ViewModels;
@@ -135,11 +136,11 @@ namespace WalletWasabi.Gui.Tabs
 					if (uiConfigPinHash != enteredPinHash)
 					{
 						NotificationHelpers.Error("PIN is incorrect.");
-						PinBoxText = string.Empty;
+						PinBoxText = "";
 						return;
 					}
 
-					Global.UiConfig.LockScreenPinHash = string.Empty;
+					Global.UiConfig.LockScreenPinHash = "";
 					NotificationHelpers.Success("PIN was cleared.");
 				}
 				else
@@ -148,7 +149,7 @@ namespace WalletWasabi.Gui.Tabs
 					NotificationHelpers.Success("PIN was changed.");
 				}
 
-				PinBoxText = string.Empty;
+				PinBoxText = "";
 			});
 
 			TextBoxLostFocusCommand = ReactiveCommand.Create(Save);

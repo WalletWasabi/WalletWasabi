@@ -220,7 +220,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					LabelSuggestion.Label = label;
 					if (!IsMax && label.IsEmpty)
 					{
-						NotificationHelpers.Warning("Observers are required.", "");
+						NotificationHelpers.Warning("Known By is required.", "");
 						return;
 					}
 
@@ -751,24 +751,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 
 				long all = selectedCoins.Sum(x => x.Amount);
-				if (IsMax)
+				long theAmount = (IsMax, Money.TryParse(AmountText.TrimStart('~', ' '), out Money value)) switch
 				{
-					if (all != 0)
-					{
-						FeePercentage = 100 * (decimal)EstimatedBtcFee.Satoshi / all;
-					}
-					else
-					{
-						FeePercentage = 0;
-					}
-				}
-				else
-				{
-					if (Money.TryParse(AmountText.TrimStart('~', ' '), out Money amount) && amount.Satoshi != 0)
-					{
-						FeePercentage = 100 * (decimal)EstimatedBtcFee.Satoshi / amount.Satoshi;
-					}
-				}
+					(true, _) => all,
+					(false, true) => value.Satoshi,
+					(false, false) => 0
+				};
+
+				FeePercentage = theAmount != 0
+					? 100 * (decimal)EstimatedBtcFee.Satoshi / theAmount
+					: 0;
 
 				if (UsdExchangeRate != 0)
 				{
