@@ -3,30 +3,36 @@
 # You can learn more about editorconfig here: https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-code-style-settings-reference
 root = true
 
-[*.cs]
+# For all files.
+[*]
 
 charset = utf-8
 
-# Core editorconfig formatting - indentation
+# Formatting - remove any whitespace characters preceding newline characters
+trim_trailing_whitespace = true
+
+[*.{cs,csproj}]
 
 # use hard tabs for indentation
 indent_style = tab
 
-# Formatting - new line options
+# Formatting - set preferred newline characters
+end_of_line = lf
 
-#require braces to be on a new line for all
+[*.xaml]
+
+indent_style = space
+indent_size = 2
+
+[*.cs]
+
+# require braces to be on a new line for all
 csharp_new_line_before_open_brace = all
 
 # Formatting - organize using options
 
 # do not place System.* using directives before other using directives
 dotnet_sort_system_directives_first = true:error
-
-# Formatting - remove any whitespace characters preceding newline characters
-trim_trailing_whitespace = true
-
-# Formatting - set preferred newline characters
-end_of_line = lf
 
 # Formatting - spacing options
 
@@ -245,7 +251,3 @@ dotnet_diagnostic.IDE0004.severity = error
 
 # IDE0019: Use pattern matching
 csharp_style_pattern_matching_over_as_with_null_check = true:error
-
-[*.xaml]
-indent_style = space
-indent_size = 2

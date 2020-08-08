@@ -108,7 +108,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			base.OnOpen(disposables);
 
-			Observable.FromEventPattern(Wallet, nameof(Wallet.NewBlockProcessed))
+			Observable.FromEventPattern(Wallet, nameof(Wallet.NewFilterProcessed))
 				.Merge(Observable.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)))
 				.Throttle(TimeSpan.FromSeconds(3))
 				.ObserveOn(RxApp.MainThreadScheduler)

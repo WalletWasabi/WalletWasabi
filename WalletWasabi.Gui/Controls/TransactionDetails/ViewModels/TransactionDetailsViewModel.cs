@@ -82,7 +82,7 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _outputCount, value);
 		}
 
-		public Money NetworkFee => TotalInputValue is null || TotalInputValue is null
+		public Money NetworkFee => TotalInputValue is null || TotalOutputValue is null
 			? null
 			: TotalInputValue - TotalOutputValue;
 
