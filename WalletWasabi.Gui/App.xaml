@@ -27,9 +27,7 @@
   </Application.Styles>
   <Application.DataTemplates>
     <DataTemplate DataType="Views:MainView">
-      <Grid>
         <ContentControl Content="{Binding ActiveDockable}" />
-      </Grid>
     </DataTemplate>
     <DataTemplate DataType="id:IDockable">
       <cont:ViewModelViewHost DataContext="{Binding Context}" />

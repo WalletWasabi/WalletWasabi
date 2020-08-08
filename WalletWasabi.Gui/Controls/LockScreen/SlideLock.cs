@@ -29,7 +29,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			AvaloniaProperty.Register<SlideLock, double>(nameof(Value));
 
 		private Thumb _thumb;
-		private Grid _container;
+		private Panel _container;
 		private bool _isLocked;
 		private bool _isAnimationRunning;
 		private Animation _closeAnimation;
@@ -153,7 +153,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			base.OnTemplateApplied(e);
 
 			_thumb = e.NameScope.Find<Thumb>("PART_Thumb");
-			_container = e.NameScope.Find<Grid>("PART_Container");
+			_container = e.NameScope.Find<Panel>("PART_Container");
 
 			this.GetObservable(CanSlideProperty)
 				.Subscribe(x => _thumb.IsHitTestVisible = x);
