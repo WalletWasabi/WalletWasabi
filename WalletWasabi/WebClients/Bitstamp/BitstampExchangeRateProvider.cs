@@ -11,7 +11,7 @@ namespace WalletWasabi.WebClients.Bitstamp
 {
 	public class BitstampExchangeRateProvider : IExchangeRateProvider
 	{
-		public async Task<List<ExchangeRate>> GetExchangeRateAsync()
+		public async Task<IEnumerable<ExchangeRate>> GetExchangeRateAsync()
 		{
 			using var httpClient = new HttpClient();
 			httpClient.BaseAddress = new Uri("https://www.bitstamp.net");

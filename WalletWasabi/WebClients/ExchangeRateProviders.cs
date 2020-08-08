@@ -31,7 +31,7 @@ namespace WalletWasabi.WebClients
 			new SmartBitExchangeRateProvider(new SmartBitClient(Network.Main))
 		};
 
-		public async Task<List<ExchangeRate>> GetExchangeRateAsync()
+		public async Task<IEnumerable<ExchangeRate>> GetExchangeRateAsync()
 		{
 			foreach (var provider in ExchangeRateProviders)
 			{
@@ -45,7 +45,7 @@ namespace WalletWasabi.WebClients
 					Logger.LogTrace(ex);
 				}
 			}
-			return Enumerable.Empty<ExchangeRate>().ToList();
+			return Enumerable.Empty<ExchangeRate>();
 		}
 	}
 }
