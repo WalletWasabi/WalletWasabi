@@ -42,7 +42,7 @@ namespace WalletWasabi.BitcoinCore.Processes
 			var ptcv = PrintToConsole ? 1 : 0;
 			string processPath = MicroserviceHelpers.GetBinaryPath("bitcoind");
 			string args = $"{NetworkTranslator.GetCommandLineArguments(Network)} -datadir=\"{DataDir}\" -printtoconsole={ptcv}";
-			_process = new ProcessAsync(ProcessBuilder.BuildProcessInstance(processPath, args));
+			_process = new ProcessAsync(ProcessStartInfoFactory.Make(processPath, args));
 			_process.Start();
 
 			await PidFile.WriteFileAsync(_process.Id).ConfigureAwait(false);

@@ -43,7 +43,7 @@ namespace WalletWasabi.Microservices
 		public int Id => Process.Id;
 
 		/// <inheritdoc cref="Process.StandardInput"/>
-		public StreamWriter StreamWriter => Process.StandardInput;
+		public StreamWriter StandardInput => Process.StandardInput;
 
 		/// <inheritdoc cref="Process.StandardOutput"/>
 		public StreamReader StandardOutput => Process.StandardOutput;

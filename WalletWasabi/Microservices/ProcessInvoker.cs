@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,33 +8,33 @@ namespace WalletWasabi.Microservices
 {
 	public class ProcessInvoker
 	{
-		public async Task<(string response, int exitCode)> SendCommandAsync(Process process, CancellationToken cancel, Action<StreamWriter> standardInputWriter = null)
+		public async Task<(string response, int exitCode)> SendCommandAsync(ProcessStartInfo startInfo, CancellationToken token, Action<StreamWriter> standardInputWriter = null)
 		{
 			// "using" makes sure the process exits at the end of this method.
-			using var processAsync = new ProcessAsync(process);
+			using var processAsync = new ProcessAsync(startInfo);
 
 			if (standardInputWriter is { })
 			{
 				processAsync.StartInfo.RedirectStandardInput = true;
 			}
 
-			process.Start();
+			processAsync.Start();
 
 			if (standardInputWriter is { })
 			{
-				standardInputWriter(process.StandardInput);
-				process.StandardInput.Close();
+				standardInputWriter(processAsync.StandardInput);
+				processAsync.StandardInput.Close();
 			}
 
-			Task<string> readPipeTask = process.StartInfo.UseShellExecute
+			Task<string> readPipeTask = processAsync.StartInfo.UseShellExecute
 				? Task.FromResult(string.Empty)
-				: process.StandardOutput.ReadToEndAsync();
+				: processAsync.StandardOutput.ReadToEndAsync();
 
-			await processAsync.WaitForExitAsync(cancel);
+			await processAsync.WaitForExitAsync(token);
 
 			string output = await readPipeTask.ConfigureAwait(false);
 
-			return (output, exitCode: process.ExitCode);
+			return (output, exitCode: processAsync.ExitCode);
 		}
 	}
 }

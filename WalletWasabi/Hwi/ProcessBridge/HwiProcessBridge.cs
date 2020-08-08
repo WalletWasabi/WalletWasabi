@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,9 +20,9 @@ namespace WalletWasabi.Hwi.ProcessBridge
 
 		public async Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel, Action<StreamWriter> standardInputWriter = null)
 		{
-			var process = ProcessBuilder.BuildProcessInstance(ProcessPath, arguments, openConsole);
+			ProcessStartInfo startInfo = ProcessStartInfoFactory.Make(ProcessPath, arguments, openConsole);
 
-			(string rawResponse, int exitCode) = await ProcessInvoker.SendCommandAsync(process, cancel, standardInputWriter).ConfigureAwait(false);
+			(string rawResponse, int exitCode) = await ProcessInvoker.SendCommandAsync(startInfo, cancel, standardInputWriter).ConfigureAwait(false);
 
 			string response;
 
