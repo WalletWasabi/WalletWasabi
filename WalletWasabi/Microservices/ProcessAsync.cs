@@ -7,6 +7,11 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Microservices
 {
+	/// <summary>
+	/// Async wrapper class for <see cref="System.Diagnostics.Process"/> class that implements <see cref="WaitForExitAsync(CancellationToken, bool)"/>
+	/// to asynchronously wait for a process to exit.
+	/// </summary>
+	/// <remarks><see cref="IDisposable"/> is implemented. Do not forget to use `using` or dispose any instance of this class.</remarks>
 	public class ProcessAsync : IDisposable
 	{
 		private readonly TaskCompletionSource<bool> TaskCompletionSource;
@@ -21,7 +26,7 @@ namespace WalletWasabi.Microservices
 		{
 		}
 
-		public ProcessAsync(Process process)
+		private ProcessAsync(Process process)
 		{
 			TaskCompletionSource = new TaskCompletionSource<bool>();
 

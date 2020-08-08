@@ -158,7 +158,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			}
 			else
 			{
-				await Assert.ThrowsAsync<PlatformNotSupportedException>(async () => await pb.SendCommandAsync("enumerate", true, cts.Token));
+				await Assert.ThrowsAsync<PlatformNotSupportedException>(async () => await pb.SendCommandAsync("enumerate", openConsole: true, cts.Token));
 			}
 		}
 
