@@ -10,80 +10,43 @@ using WalletWasabi.WebClients.Gemini;
 using WalletWasabi.WebClients.ItBit;
 using WalletWasabi.WebClients.SmartBit;
 using Xunit;
+using WalletWasabi.Interfaces;
 
 namespace WalletWasabi.Tests.IntegrationTests
 {
 	public class ExternalApiTests
 	{
-		[Theory]
-		[InlineData("test")]
-		[InlineData("main")]
-		public async Task SmartBitExchangeRateProviderTestAsync(string networkString)
-		{
-			var network = Network.GetNetwork(networkString);
-			var client = new SmartBitClient(network);
-			var rateProvider = new SmartBitExchangeRateProvider(client);
-			IEnumerable<ExchangeRate> rates = await rateProvider.GetExchangeRateAsync();
-
-			var usdRate = Assert.Single(rates, x => x.Ticker == "USD");
-			Assert.NotEqual(0.0m, usdRate.Rate);
-		}
+		[Fact]
+		public async Task SmartBitExchangeRateProviderTestAsync() =>
+			await AssertProviderAsync(new SmartBitExchangeRateProvider(new SmartBitClient(Network.Main)));
 
 		[Fact]
-		public async Task CoinbaseExchangeRateProviderTestsAsync()
-		{
-			var client = new CoinbaseExchangeRateProvider();
-			IEnumerable<ExchangeRate> rates = await client.GetExchangeRateAsync();
-
-			var usdRate = Assert.Single(rates, x => x.Ticker == "USD");
-			Assert.NotEqual(0.0m, usdRate.Rate);
-		}
+		public async Task CoinbaseExchangeRateProviderTestsAsync() =>
+			await AssertProviderAsync(new CoinbaseExchangeRateProvider());
 
 		[Fact]
-		public async Task BlockchainInfoExchangeRateProviderTestsAsync()
-		{
-			var client = new BlockchainInfoExchangeRateProvider();
-			IEnumerable<ExchangeRate> rates = await client.GetExchangeRateAsync();
-
-			var usdRate = Assert.Single(rates, x => x.Ticker == "USD");
-			Assert.NotEqual(0.0m, usdRate.Rate);
-		}
+		public async Task BlockchainInfoExchangeRateProviderTestsAsync() =>
+			await AssertProviderAsync(new BlockchainInfoExchangeRateProvider());
 
 		[Fact]
-		public async Task CoinGeckoExchangeRateProviderTestsAsync()
-		{
-			var client = new CoinGeckoExchangeRateProvider();
-			IEnumerable<ExchangeRate> rates = await client.GetExchangeRateAsync();
-
-			var usdRate = Assert.Single(rates, x => x.Ticker == "USD");
-			Assert.NotEqual(0.0m, usdRate.Rate);
-		}
+		public async Task CoinGeckoExchangeRateProviderTestsAsync() =>
+			await AssertProviderAsync(new CoinGeckoExchangeRateProvider());
 
 		[Fact]
-		public async Task BitstampExchangeRateProviderTestsAsync()
-		{
-			var client = new BitstampExchangeRateProvider();
-			IEnumerable<ExchangeRate> rates = await client.GetExchangeRateAsync();
-
-			var usdRate = Assert.Single(rates, x => x.Ticker == "USD");
-			Assert.NotEqual(0.0m, usdRate.Rate);
-		}
+		public async Task BitstampExchangeRateProviderTestsAsync() =>
+			await AssertProviderAsync(new BitstampExchangeRateProvider());
 
 		[Fact]
-		public async Task GeminiExchangeRateProviderTestsAsync()
-		{
-			var client = new GeminiExchangeRateProvider();
-			IEnumerable<ExchangeRate> rates = await client.GetExchangeRateAsync();
-
-			var usdRate = Assert.Single(rates, x => x.Ticker == "USD");
-			Assert.NotEqual(0.0m, usdRate.Rate);
-		}
+		public async Task GeminiExchangeRateProviderTestsAsync() =>
+			await AssertProviderAsync(new GeminiExchangeRateProvider());
 
 		[Fact]
-		public async Task ItBitExchangeRateProviderTestsAsync()
+		public async Task ItBitExchangeRateProviderTestsAsync() =>
+			await AssertProviderAsync(new ItBitExchangeRateProvider());
+
+		private async Task AssertProviderAsync(IExchangeRateProvider provider)
 		{
-			var client = new ItBitExchangeRateProvider();
-			IEnumerable<ExchangeRate> rates = await client.GetExchangeRateAsync();
+			IEnumerable<ExchangeRate> rates = await provider.GetExchangeRateAsync();
 
 			var usdRate = Assert.Single(rates, x => x.Ticker == "USD");
 			Assert.NotEqual(0.0m, usdRate.Rate);
