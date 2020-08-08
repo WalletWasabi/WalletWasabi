@@ -39,9 +39,4 @@ namespace WalletWasabi.Hwi.ProcessBridge
 			return (response, exitCode);
 		}
 	}
-
-	public interface IHwiProcessInvoker
-	{
-		Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel, Action<StreamWriter> standardInputWriter = null);
-	}
 }
