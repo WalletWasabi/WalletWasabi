@@ -50,9 +50,14 @@ This file contains the list of projects that can be launched, how to do it, what
       "cwd": "${workspaceFolder}/WalletWasabi.Gui",
       "stopAtEntry": false,
       "internalConsoleOptions": "openOnSessionStart",
+      "sourceFileMap": { 
+          "WalletWasabi.Gui/": "${workspaceFolder}/WalletWasabi.Gui", 
+          "WalletWasabi/": "${workspaceFolder}/WalletWasabi" 
+      }
    }]
 }
 ```
+
 
 It is important to see that this launcher requires the execution of a `build-client` task.
 That is defined in the tasks file (it goes into `.vscode/tasks.json` file).

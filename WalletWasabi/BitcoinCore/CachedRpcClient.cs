@@ -40,147 +40,156 @@ namespace WalletWasabi.BitcoinCore
 		public override async Task<uint256> GetBestBlockHashAsync()
 		{
 			string cacheKey = nameof(GetBestBlockHashAsync);
+			var cacheOptions = new MemoryCacheEntryOptions
+			{
+				Size = 1,
+				AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(4) // The best hash doesn't change so often so, keep in cache for 4 seconds.
+			};
+			cacheOptions.AddExpirationToken(new CancellationChangeToken(TipChangeCancellationTokenSource.Token));
 
 			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
-				entry =>
-				{
-					entry.SetSize(1);
-					entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(4)); // The best hash doesn't change so often so, keep in cache for 4 seconds.
-					entry.AddExpirationToken(new CancellationChangeToken(TipChangeCancellationTokenSource.Token));
-
-					return base.GetBestBlockHashAsync();
-				}).ConfigureAwait(false);
+				cacheOptions,
+				() => base.GetBestBlockHashAsync()).ConfigureAwait(false);
 		}
 
 		public override async Task<Block> GetBlockAsync(uint256 blockHash)
 		{
 			string cacheKey = $"{nameof(GetBlockAsync)}:{blockHash}";
+			var cacheOptions = new MemoryCacheEntryOptions
+			{
+				Size = 10,
+				AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(4) // There is a block every 10 minutes in average so, keep in cache for 4 seconds.
+			};
+
 			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
-				entry =>
-				{
-					entry.SetSize(10);
-					entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(4)); // There is a block every 10 minutes in average so, keep in cache for 4 seconds.
-
-					return base.GetBlockAsync(blockHash);
-				}).ConfigureAwait(false);
+				cacheOptions,
+				() => base.GetBlockAsync(blockHash)).ConfigureAwait(false);
 		}
 
 		public override async Task<Block> GetBlockAsync(uint blockHeight)
 		{
 			string cacheKey = $"{nameof(GetBlockAsync)}:{blockHeight}";
+			var cacheOptions = new MemoryCacheEntryOptions
+			{
+				Size = 10,
+				AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(4) // There is a block every 10 minutes in average so, keep in cache for 4 seconds.
+			};
+
 			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
-				entry =>
-				{
-					entry.SetSize(10);
-					entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(4)); // There is a block every 10 minutes in average so, keep in cache for 4 seconds.
-
-					return base.GetBlockAsync(blockHeight);
-				}).ConfigureAwait(false);
+				cacheOptions,
+				() => base.GetBlockAsync(blockHeight)).ConfigureAwait(false);
 		}
 
 		public override async Task<BlockHeader> GetBlockHeaderAsync(uint256 blockHash)
 		{
 			string cacheKey = $"{nameof(GetBlockHeaderAsync)}:{blockHash}";
+			var cacheOptions = new MemoryCacheEntryOptions
+			{
+				Size = 2,
+				AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(4) // There is a block every 10 minutes in average so, keep in cache for 4 seconds.
+			};
+
 			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
-				entry =>
-				{
-					entry.SetSize(2);
-					entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(4)); // There is a block every 10 minutes in average so, keep in cache for 4 seconds.
-
-					return base.GetBlockHeaderAsync(blockHash);
-				}).ConfigureAwait(false);
+				cacheOptions,
+				() => base.GetBlockHeaderAsync(blockHash)).ConfigureAwait(false);
 		}
 
 		public override async Task<int> GetBlockCountAsync()
 		{
 			string cacheKey = nameof(GetBlockCountAsync);
+			var cacheOptions = new MemoryCacheEntryOptions
+			{
+				Size = 1,
+				AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(2) // The blockchain info does not change frequently.
+			};
+			cacheOptions.AddExpirationToken(new CancellationChangeToken(TipChangeCancellationTokenSource.Token));
+
 			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
-				entry =>
-				{
-					entry.SetSize(1);
-					entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(2)); // The blockchain info does not change frequently.
-					entry.AddExpirationToken(new CancellationChangeToken(TipChangeCancellationTokenSource.Token));
-
-					return base.GetBlockCountAsync();
-				}).ConfigureAwait(false);
+				cacheOptions,
+				() => base.GetBlockCountAsync()).ConfigureAwait(false);
 		}
 
 		public override async Task<PeerInfo[]> GetPeersInfoAsync()
 		{
 			string cacheKey = nameof(GetPeersInfoAsync);
+			var cacheOptions = new MemoryCacheEntryOptions
+			{
+				Size = 2,
+				AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(0.5)
+			};
+
 			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
-				entry =>
-				{
-					entry.SetSize(2);
-					entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(0.5));
-
-					return base.GetPeersInfoAsync();
-				}).ConfigureAwait(false);
+				cacheOptions,
+				() => base.GetPeersInfoAsync()).ConfigureAwait(false);
 		}
 
 		public override async Task<MempoolEntry> GetMempoolEntryAsync(uint256 txid, bool throwIfNotFound = true)
 		{
 			string cacheKey = $"{nameof(GetMempoolEntryAsync)}:{txid}";
+			var cacheOptions = new MemoryCacheEntryOptions
+			{
+				Size = 20,
+				AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(2)
+			};
+			cacheOptions.AddExpirationToken(new CancellationChangeToken(TipChangeCancellationTokenSource.Token));
+
 			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
-				entry =>
-				{
-					entry.SetSize(20);
-					entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(2));
-					entry.AddExpirationToken(new CancellationChangeToken(TipChangeCancellationTokenSource.Token));
-
-					return base.GetMempoolEntryAsync(txid, throwIfNotFound);
-				}).ConfigureAwait(false);
+				cacheOptions,
+				() => base.GetMempoolEntryAsync(txid, throwIfNotFound)).ConfigureAwait(false);
 		}
 
 		public override async Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative)
 		{
 			string cacheKey = $"{nameof(EstimateSmartFeeAsync)}:{confirmationTarget}:{estimateMode}";
+			var cacheOptions = new MemoryCacheEntryOptions
+			{
+				Size = 1,
+				AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(4)
+			};
+			cacheOptions.AddExpirationToken(new CancellationChangeToken(TipChangeCancellationTokenSource.Token));
+
 			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
-				entry =>
-				{
-					entry.SetSize(1);
-					entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(4));
-					entry.AddExpirationToken(new CancellationChangeToken(TipChangeCancellationTokenSource.Token));
-
-					return base.EstimateSmartFeeAsync(confirmationTarget, estimateMode);
-				}).ConfigureAwait(false);
+				cacheOptions,
+				() => base.EstimateSmartFeeAsync(confirmationTarget, estimateMode)).ConfigureAwait(false);
 		}
 
 		public override async Task<uint256[]> GetRawMempoolAsync()
 		{
 			string cacheKey = nameof(GetRawMempoolAsync);
+			var cacheOptions = new MemoryCacheEntryOptions
+			{
+				Size = 20,
+				AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(2)
+			};
+			cacheOptions.AddExpirationToken(new CancellationChangeToken(TipChangeCancellationTokenSource.Token));
+
 			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
-				entry =>
-				{
-					entry.SetSize(20);
-					entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(2));
-					entry.AddExpirationToken(new CancellationChangeToken(TipChangeCancellationTokenSource.Token));
-
-					return base.GetRawMempoolAsync();
-				}).ConfigureAwait(false);
+				cacheOptions,
+				() => base.GetRawMempoolAsync()).ConfigureAwait(false);
 		}
 
 		public override async Task<GetTxOutResponse> GetTxOutAsync(uint256 txid, int index, bool includeMempool = true)
 		{
 			string cacheKey = $"{nameof(GetTxOutAsync)}:{txid}:{index}:{includeMempool}";
+			var cacheOptions = new MemoryCacheEntryOptions
+			{
+				Size = 2,
+				AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(2)
+			};
+
 			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
-				entry =>
-				{
-					entry.SetSize(2);
-					entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(2));
-
-					return base.GetTxOutAsync(txid, index, includeMempool);
-				}).ConfigureAwait(false);
+				cacheOptions,
+				() => base.GetTxOutAsync(txid, index, includeMempool)).ConfigureAwait(false);
 		}
 
 		public override async Task<uint256[]> GenerateAsync(int blockCount)
