@@ -365,7 +365,9 @@ namespace WalletWasabi.Logging
 		/// These messages indicate a failure in the current activity or operation (such as the current HTTP request), not an application-wide failure.
 		/// Example log message: "Cannot insert record due to duplicate key violation."
 		/// </summary>
-		public static void LogError(string message, Exception ex, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) => Log(message, ex, LogLevel.Error, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
+		public static void LogError(string message, Exception ex, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
+			=> Log(message, ex, LogLevel.Error, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
+
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.ToString() at Error level.
 		///
