@@ -125,6 +125,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 		private object RegisteredUnblindedSignaturesLock { get; }
 
 		private static AsyncLock RoundSynchronizerLock { get; } = new AsyncLock();
+		public static AsyncLock ConnectionConfirmationLock { get; } = new AsyncLock();
 
 		private object PhaseLock { get; }
 
@@ -335,9 +336,12 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 									case RoundPhase.ConnectionConfirmation:
 										{
-											IEnumerable<Alice> alicesToBan = GetAlicesBy(AliceState.InputsRegistered);
+											using (await ConnectionConfirmationLock.LockAsync().ConfigureAwait(false))
+											{
+												IEnumerable<Alice> alicesToBan = GetAlicesBy(AliceState.InputsRegistered);
 
-											await ProgressToOutputRegistrationOrFailAsync(alicesToBan.ToArray()).ConfigureAwait(false);
+												await ProgressToOutputRegistrationOrFailAsync(alicesToBan.ToArray()).ConfigureAwait(false);
+											}
 										}
 										break;
 

@@ -375,41 +375,44 @@ namespace WalletWasabi.Backend.Controllers
 				return BadRequest();
 			}
 
-			(CoordinatorRound round, Alice alice) = GetRunningRoundAndAliceOrFailureResponse(roundId, uniqueId, RoundPhase.ConnectionConfirmation, out IActionResult returnFailureResponse);
-			if (returnFailureResponse != null)
+			using (await CoordinatorRound.ConnectionConfirmationLock.LockAsync())
 			{
-				return returnFailureResponse;
+				(CoordinatorRound round, Alice alice) = GetRunningRoundAndAliceOrFailureResponse(roundId, uniqueId, RoundPhase.ConnectionConfirmation, out IActionResult returnFailureResponse);
+				if (returnFailureResponse != null)
+				{
+					return returnFailureResponse;
+				}
+
+				RoundPhase phase = round.Phase;
+
+				// Start building the response.
+				var resp = new ConnectionConfirmationResponse
+				{
+					CurrentPhase = phase
+				};
+
+				switch (phase)
+				{
+					case RoundPhase.InputRegistration:
+						{
+							round.StartAliceTimeout(alice.UniqueId);
+							break;
+						}
+					case RoundPhase.ConnectionConfirmation:
+						{
+							resp.BlindedOutputSignatures = await round.ConfirmAliceConnectionAsync(alice);
+
+							break;
+						}
+					default:
+						{
+							TryLogLateRequest(roundId, RoundPhase.ConnectionConfirmation);
+							return Gone($"Participation can be only confirmed from InputRegistration or ConnectionConfirmation phase. Current phase: {phase}.");
+						}
+				}
+
+				return Ok(resp);
 			}
-
-			RoundPhase phase = round.Phase;
-
-			// Start building the response.
-			var resp = new ConnectionConfirmationResponse
-			{
-				CurrentPhase = phase
-			};
-
-			switch (phase)
-			{
-				case RoundPhase.InputRegistration:
-					{
-						round.StartAliceTimeout(alice.UniqueId);
-						break;
-					}
-				case RoundPhase.ConnectionConfirmation:
-					{
-						resp.BlindedOutputSignatures = await round.ConfirmAliceConnectionAsync(alice);
-
-						break;
-					}
-				default:
-					{
-						TryLogLateRequest(roundId, RoundPhase.ConnectionConfirmation);
-						return Gone($"Participation can be only confirmed from InputRegistration or ConnectionConfirmation phase. Current phase: {phase}.");
-					}
-			}
-
-			return Ok(resp);
 		}
 
 		/// <summary>
