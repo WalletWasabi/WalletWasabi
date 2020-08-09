@@ -135,8 +135,8 @@ namespace WalletWasabi.Crypto
 
 			buffer[0] = (Ge.IsInfinity, y.IsOdd) switch
 			{
-				(true,   _   ) => (byte)0, // see http://www.secg.org/sec1-v2.pdf sections 2.3.3-4:
-				(false, true ) => GE.SECP256K1_TAG_PUBKEY_ODD,
+				(true, _) => 0, // see http://www.secg.org/sec1-v2.pdf sections 2.3.3-4:
+				(false, true) => GE.SECP256K1_TAG_PUBKEY_ODD,
 				(false, false) => GE.SECP256K1_TAG_PUBKEY_EVEN,
 			};
 			x.WriteToSpan(buffer[1..]);
@@ -148,15 +148,15 @@ namespace WalletWasabi.Crypto
 			const int CompressedLength = 32 + 1;
 			Guard.Same($"{nameof(bytes)}.{nameof(bytes.Length)}", CompressedLength, bytes.Length);
 
-			GroupElement Parse(Span<byte> buffer, bool isOdd) =>
+			static GroupElement Parse(Span<byte> buffer, bool isOdd) =>
 				FE.TryCreate(buffer, out var x) && GE.TryCreateXOVariable(x, isOdd, out var ge)
 				? new GroupElement(ge)
 				: throw new InvalidOperationException("Group element could not be deserialized");
 
 			return bytes[0] switch
 			{
-				0 => GroupElement.Infinity,
-				GE.SECP256K1_TAG_PUBKEY_ODD  => Parse(bytes[1..], isOdd: true),
+				0 => Infinity,
+				GE.SECP256K1_TAG_PUBKEY_ODD => Parse(bytes[1..], isOdd: true),
 				GE.SECP256K1_TAG_PUBKEY_EVEN => Parse(bytes[1..], isOdd: false),
 				_ => throw new ArgumentException("Argument is not a valid group element")
 			};
