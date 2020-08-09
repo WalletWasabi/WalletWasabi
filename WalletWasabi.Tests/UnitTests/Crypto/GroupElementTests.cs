@@ -283,7 +283,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		}
 
 		[Fact]
-		public void FromBytesThrows()
+		public void DeserializationThrows()
 		{
 			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(Array.Empty<byte>()));
 			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(new byte[] { 0 }));
@@ -298,6 +298,21 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(FillByteArray(length: 64, character: 1)));
 			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(FillByteArray(length: 64, character: 2)));
 			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(FillByteArray(length: 65, character: 0)));
+
+			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(ByteHelpers.FromHex("100000000000000000000000000000000000000000000000000000000000000000")));
+		}
+
+		[Theory]
+		[InlineData("000000000000000000000000000000000000000000000000000000000000000000")]
+		[InlineData("001000000000000000000000000000000000000000000000000000000000000000")]
+		[InlineData("002000000000000000000000000000000000000000000000000000000000000000")]
+		[InlineData("003000000000000000000000000000000000000000000000000000000000000000")]
+		[InlineData("000000000000000000000000000000000000000000000000000000000000000001")]
+		public void InfinityDeserialization(string infinityHex)
+		{
+			var infinity = GroupElement.FromBytes(ByteHelpers.FromHex(infinityHex));
+			Assert.True(infinity.IsInfinity);
+			Assert.Equal(GroupElement.Infinity, infinity);
 		}
 
 		[Fact]
