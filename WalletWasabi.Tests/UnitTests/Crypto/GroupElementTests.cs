@@ -346,6 +346,19 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		}
 
 		[Fact]
+		public void EvenOddSerialization()
+		{
+			var hexG = "0279BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798";
+			var hexGodd = "0379BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798";
+
+			Assert.Equal(hexG, ByteHelpers.ToHex(GroupElement.G.ToBytes()));
+			Assert.Equal(GroupElement.G, GroupElement.FromBytes(ByteHelpers.FromHex(hexG)));
+
+			Assert.Equal(hexGodd, ByteHelpers.ToHex(GroupElement.G.Negate().ToBytes()));
+			Assert.Equal(GroupElement.G.Negate(), GroupElement.FromBytes(ByteHelpers.FromHex(hexGodd)));
+		}
+
+		[Fact]
 		public void MultiplyByScalar()
 		{
 			// Scalar one.
