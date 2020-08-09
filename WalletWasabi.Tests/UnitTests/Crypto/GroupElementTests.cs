@@ -293,7 +293,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(FillByteArray(length: 32, character: 0)));
 			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(FillByteArray(length: 63, character: 0)));
-			var infinity = GroupElement.FromBytes(FillByteArray(length: 64, character: 0));
+			var infinity = GroupElement.FromBytes(FillByteArray(length: 33, character: 0));
 			Assert.True(infinity.IsInfinity);
 			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(FillByteArray(length: 64, character: 1)));
 			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(FillByteArray(length: 64, character: 2)));

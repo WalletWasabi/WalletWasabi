@@ -121,34 +121,45 @@ namespace WalletWasabi.Crypto
 
 		public GroupElement Negate() => new GroupElement(Ge.Negate());
 
-		public byte[] ToBytes() => ByteHelpers.Combine(Ge.x.ToBytes(), Ge.y.ToBytes());
+		public byte[] ToBytes()
+		{
+			// Buffer to store the serialized Group Element in its **compressed** format.
+			// It requires 32 bytes for the 256bits `x` coordinate and an extra byte for
+			// the EVEN/ODD flag.
+			const int CompressedLength = 32 + 1;
+			Span<byte> buffer = new byte[CompressedLength];
+
+			// We cannot assume the Group Element was already normalized somewhere else.
+			var x = Ge.x.NormalizeVariable();
+			var y = Ge.y.NormalizeVariable();
+
+			buffer[0] = (Ge.IsInfinity, y.IsOdd) switch
+			{
+				(true,   _   ) => (byte)0, // see http://www.secg.org/sec1-v2.pdf sections 2.3.3-4:
+				(false, true ) => GE.SECP256K1_TAG_PUBKEY_ODD,
+				(false, false) => GE.SECP256K1_TAG_PUBKEY_EVEN,
+			};
+			x.WriteToSpan(buffer[1..]);
+			return buffer.ToArray();
+		}
 
 		public static GroupElement FromBytes(byte[] bytes)
 		{
-			Guard.Same($"{nameof(bytes)}.{nameof(bytes.Length)}", 64, bytes.Length);
+			const int CompressedLength = 32 + 1;
+			Guard.Same($"{nameof(bytes)}.{nameof(bytes.Length)}", CompressedLength, bytes.Length);
 
-			// Only infinity can have zeros.
-			// If one defines infinity in the constructor, but with non-zero coordinates it'll zero them out.
-			// If one defines zero coordinates but not infinity, the constructor will throw invalid variable error.
-			if (bytes.All(b => b == 0))
+			GroupElement Parse(Span<byte> buffer, bool isOdd) =>
+				FE.TryCreate(buffer, out var x) && GE.TryCreateXOVariable(x, isOdd, out var ge)
+				? new GroupElement(ge)
+				: throw new InvalidOperationException("Group element could not be deserialized");
+
+			return bytes[0] switch
 			{
-				return Infinity;
-			}
-
-			var xBytes = bytes.Take(32).ToArray();
-			var yBytes = bytes.Skip(32).ToArray();
-
-			if (!FE.TryCreate(xBytes, out FE x))
-			{
-				throw new ArgumentException("Couldn't create x field element.", nameof(bytes));
-			}
-
-			if (!FE.TryCreate(yBytes, out FE y))
-			{
-				throw new ArgumentException("Couldn't create y field element.", nameof(bytes));
-			}
-
-			return new GroupElement(new GE(x, y));
+				0 => GroupElement.Infinity,
+				GE.SECP256K1_TAG_PUBKEY_ODD  => Parse(bytes[1..], isOdd: true),
+				GE.SECP256K1_TAG_PUBKEY_EVEN => Parse(bytes[1..], isOdd: false),
+				_ => throw new ArgumentException("Argument is not a valid group element")
+			};
 		}
 	}
 }
