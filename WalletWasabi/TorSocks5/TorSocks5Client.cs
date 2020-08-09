@@ -33,23 +33,6 @@ namespace WalletWasabi.TorSocks5
 			AsyncLock = new AsyncLock();
 		}
 
-		/// <param name="tcpClient">Must be already connected.</param>
-		internal TorSocks5Client(TcpClient tcpClient)
-		{
-			Guard.NotNull(nameof(tcpClient), tcpClient);
-			TcpClient = tcpClient;
-			AsyncLock = new AsyncLock();
-			Stream = tcpClient.GetStream();
-			TorSocks5EndPoint = null;
-			DestinationHost = tcpClient.Client.RemoteEndPoint.GetHostOrDefault();
-			DestinationPort = tcpClient.Client.RemoteEndPoint.GetPortOrDefault().Value;
-			RemoteEndPoint = tcpClient.Client.RemoteEndPoint;
-			if (!IsConnected)
-			{
-				throw new ConnectionException($"{nameof(TorSocks5Client)} is not connected to {RemoteEndPoint}.");
-			}
-		}
-
 		#endregion Constructors
 
 		#region PropertiesAndMembers

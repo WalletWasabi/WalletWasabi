@@ -163,7 +163,7 @@ namespace NBitcoin.RPC
 			}
 		}
 
-		private static async Task<Dictionary<int, int>> EstimateHalfFeesAsync(this IRPCClient rpc, IDictionary<int, int> estimations, int smallTarget, int smallFee, int largeTarget, int largeFee, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false, bool tolerateBitcoinCoreBrainfuck = true)
+		private static async Task<Dictionary<int, int>> EstimateHalfFeesAsync(this IRPCClient rpc, IDictionary<int, int> estimations, int smallTarget, int smallTargetFee, int largeTarget, int largeTargetFee, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false, bool tolerateBitcoinCoreBrainfuck = true)
 		{
 			var newEstimations = new Dictionary<int, int>();
 			foreach (var est in estimations)
@@ -176,38 +176,40 @@ namespace NBitcoin.RPC
 				return newEstimations;
 			}
 
-			if (smallFee == 0)
+			if (smallTargetFee == 0)
 			{
-				var smallFeeResult = await rpc.EstimateSmartFeeAsync(smallTarget, estimateMode, simulateIfRegTest, tolerateBitcoinCoreBrainfuck);
-				smallFee = (int)Math.Ceiling(smallFeeResult.FeeRate.SatoshiPerByte);
-				newEstimations.TryAdd(smallTarget, smallFee);
+				var smallTargetFeeResult = await rpc.EstimateSmartFeeAsync(smallTarget, estimateMode, simulateIfRegTest, tolerateBitcoinCoreBrainfuck);
+				smallTargetFee = (int)Math.Ceiling(smallTargetFeeResult.FeeRate.SatoshiPerByte);
+				newEstimations.TryAdd(smallTarget, smallTargetFee);
 			}
 
-			if (largeFee == 0)
+			if (largeTargetFee == 0)
 			{
-				var largeFeeResult = await rpc.EstimateSmartFeeAsync(largeTarget, estimateMode, simulateIfRegTest, tolerateBitcoinCoreBrainfuck);
-				largeFee = (int)Math.Ceiling(largeFeeResult.FeeRate.SatoshiPerByte);
-				largeTarget = largeFeeResult.Blocks;
-				newEstimations.TryAdd(largeTarget, largeFee);
+				var largeTargetFeeResult = await rpc.EstimateSmartFeeAsync(largeTarget, estimateMode, simulateIfRegTest, tolerateBitcoinCoreBrainfuck);
+				largeTargetFee = (int)Math.Ceiling(largeTargetFeeResult.FeeRate.SatoshiPerByte);
+				// Blocks should be never larger than the target that we asked for, so it's just a sanity check.
+				largeTarget = Math.Min(largeTarget, largeTargetFeeResult.Blocks);
+				newEstimations.TryAdd(largeTarget, largeTargetFee);
 			}
 
 			int halfTarget = (smallTarget + largeTarget) / 2;
 			var halfFeeResult = await rpc.EstimateSmartFeeAsync(halfTarget, estimateMode, simulateIfRegTest, tolerateBitcoinCoreBrainfuck);
-			int halfFee = (int)Math.Ceiling(halfFeeResult.FeeRate.SatoshiPerByte);
-			halfTarget = halfFeeResult.Blocks;
-			newEstimations.TryAdd(halfTarget, halfFee);
+			int halfTargetFee = (int)Math.Ceiling(halfFeeResult.FeeRate.SatoshiPerByte);
+			// Blocks should be never larger than the target that we asked for, so it's just a sanity check.
+			halfTarget = Math.Min(halfTarget, halfFeeResult.Blocks);
+			newEstimations.TryAdd(halfTarget, halfTargetFee);
 
-			if (smallFee != halfFee)
+			if (smallTargetFee > halfTargetFee)
 			{
-				var smallEstimations = await rpc.EstimateHalfFeesAsync(newEstimations, smallTarget, smallFee, halfTarget, halfFee, estimateMode, simulateIfRegTest, tolerateBitcoinCoreBrainfuck);
+				var smallEstimations = await rpc.EstimateHalfFeesAsync(newEstimations, smallTarget, smallTargetFee, halfTarget, halfTargetFee, estimateMode, simulateIfRegTest, tolerateBitcoinCoreBrainfuck);
 				foreach (var est in smallEstimations)
 				{
 					newEstimations.TryAdd(est.Key, est.Value);
 				}
 			}
-			if (largeFee != halfFee)
+			if (largeTargetFee < halfTargetFee)
 			{
-				var largeEstimations = await rpc.EstimateHalfFeesAsync(newEstimations, halfTarget, halfFee, largeTarget, largeFee, estimateMode, simulateIfRegTest, tolerateBitcoinCoreBrainfuck);
+				var largeEstimations = await rpc.EstimateHalfFeesAsync(newEstimations, halfTarget, halfTargetFee, largeTarget, largeTargetFee, estimateMode, simulateIfRegTest, tolerateBitcoinCoreBrainfuck);
 				foreach (var est in largeEstimations)
 				{
 					newEstimations.TryAdd(est.Key, est.Value);
