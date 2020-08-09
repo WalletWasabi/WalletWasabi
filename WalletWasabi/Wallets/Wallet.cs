@@ -244,16 +244,6 @@ namespace WalletWasabi.Wallets
 				payjoinClient);
 		}
 
-		public void RenameLabel(SmartCoin coin, SmartLabel newLabel)
-		{
-			coin.Label = newLabel ?? SmartLabel.Empty;
-			var key = KeyManager.GetKeys(x => x.P2wpkhScript == coin.ScriptPubKey).SingleOrDefault();
-			if (key != null)
-			{
-				key.SetLabel(coin.Label, KeyManager);
-			}
-		}
-
 		/// <inheritdoc/>
 		public async override Task StopAsync(CancellationToken cancel)
 		{

@@ -17,7 +17,7 @@
   <i:Interaction.Behaviors>
     <behaviors:CloseWindowCommandBehavior Command="{Binding OkCommand}" />
   </i:Interaction.Behaviors>
-  <Grid>
+  <Panel>
     <Grid ColumnDefinitions="*,*,*" RowDefinitions="*,*,*" Opacity="0.05">
       <DrawingPresenter Grid.Column="2" Width="200" Height="200" Grid.ColumnSpan="1" Grid.Row="2" Grid.RowSpan="1" Drawing="{DynamicResource WasabiLogo}" />
     </Grid>
@@ -29,5 +29,5 @@
       <TextBox DockPanel.Dock="Top" Text="{Binding Message}" Classes="selectableTextBlock largeHeader" />
       <TextBlock Text="{Binding Details}" Margin="0 8" TextWrapping="Wrap" />
     </DockPanel>
-  </Grid>
+  </Panel>
 </cont:WasabiWindow>

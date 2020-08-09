@@ -141,14 +141,12 @@ namespace WalletWasabi.Backend.Controllers
 		internal async Task<AllFeeEstimate> GetAllFeeEstimateAsync(EstimateSmartFeeMode mode)
 		{
 			var cacheKey = $"{nameof(GetAllFeeEstimateAsync)}_{mode}";
+			var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60) };
+
 			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
-				entry =>
-				{
-					entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(500));
-
-					return RpcClient.EstimateAllFeeAsync(mode, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: true);
-				});
+				cacheOptions,
+				() => RpcClient.EstimateAllFeeAsync(mode, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: true));
 		}
 
 		/// <summary>
@@ -185,13 +183,12 @@ namespace WalletWasabi.Backend.Controllers
 		internal async Task<IEnumerable<string>> GetRawMempoolStringsWithCacheAsync()
 		{
 			var cacheKey = $"{nameof(GetRawMempoolStringsWithCacheAsync)}";
+			var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(3) };
+
 			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
-				entry =>
-				{
-					entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(3));
-					return GetRawMempoolStringsNoCacheAsync();
-				});
+				cacheOptions,
+				() => GetRawMempoolStringsNoCacheAsync());
 		}
 
 		private async Task<IEnumerable<string>> GetRawMempoolStringsNoCacheAsync()
@@ -405,14 +402,12 @@ namespace WalletWasabi.Backend.Controllers
 		private async Task<EstimateSmartFeeResponse> GetEstimateSmartFeeAsync(int target, EstimateSmartFeeMode mode)
 		{
 			var cacheKey = $"{nameof(GetEstimateSmartFeeAsync)}_{target}_{mode}";
+			var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60) };
+
 			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
-				entry =>
-				{
-					entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(300));
-
-					return RpcClient.EstimateSmartFeeAsync(target, mode, simulateIfRegTest: true, tryOtherFeeRates: true);
-				});
+				cacheOptions,
+				() => RpcClient.EstimateSmartFeeAsync(target, mode, simulateIfRegTest: true, tryOtherFeeRates: true));
 		}
 
 		[HttpGet("status")]
@@ -422,15 +417,12 @@ namespace WalletWasabi.Backend.Controllers
 			try
 			{
 				var cacheKey = $"{nameof(GetStatusAsync)}";
+				var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(7) };
 
 				return await Cache.AtomicGetOrCreateAsync(
 					cacheKey,
-					entry =>
-					{
-						entry.SetAbsoluteExpiration(TimeSpan.FromSeconds(30));
-
-						return FetchStatusAsync();
-					});
+					cacheOptions,
+					() => FetchStatusAsync());
 			}
 			catch (Exception ex)
 			{
