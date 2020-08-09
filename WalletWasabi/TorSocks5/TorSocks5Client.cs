@@ -271,6 +271,7 @@ namespace WalletWasabi.TorSocks5
 			catch (Exception e)
 			{
 				Logger.LogError("Exception was thrown when connecting to destination.", e);
+				throw;
 			}
 			finally
 			{
