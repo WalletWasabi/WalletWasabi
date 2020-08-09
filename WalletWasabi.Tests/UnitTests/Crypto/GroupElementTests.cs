@@ -384,6 +384,31 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(serialized));
 		}
 
+
+		[Fact]
+		public void NonNormalizedPointDeserialization()
+		{
+			var p = FE.CONST(
+				0xFFFFFC2FU,
+				0xFFFFFFFFU,
+				0xFFFFFFFFU,
+				0xFFFFFFFFU,
+				0xFFFFFFFFU,
+				0xFFFFFFFFU,
+				0xFFFFFFFFU,
+				0xFFFFFFFFU
+				);
+			var x = EC.G.x;
+			x = x.Add(p);
+			var x3 = ((x * x) * x);
+			var y2 = x3 + new FE(EC.CURVE_B);
+			Assert.True(y2.Sqrt(out var y));
+			var ge = new GroupElement(new GE(x, y));
+
+			var ge2 = GroupElement.FromBytes(ge.ToBytes());
+			Assert.Equal(ge, ge2);
+		}
+
 		[Fact]
 		public void MultiplyByScalar()
 		{
