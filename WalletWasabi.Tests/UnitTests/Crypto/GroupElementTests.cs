@@ -374,6 +374,17 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		}
 
 		[Fact]
+		public void PointOutOfCurveDeserialization()
+		{
+			var serialized = FillByteArray(length: 33, character: 0);
+			serialized[0] = GE.SECP256K1_TAG_PUBKEY_EVEN;
+			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(serialized));
+
+			serialized[0] = GE.SECP256K1_TAG_PUBKEY_ODD;
+			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(serialized));
+		}
+
+		[Fact]
 		public void MultiplyByScalar()
 		{
 			// Scalar one.
