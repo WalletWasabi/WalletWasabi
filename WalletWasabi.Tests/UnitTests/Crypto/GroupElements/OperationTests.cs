@@ -160,6 +160,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 		public void OverflownScalar()
 		{
 			var g = GroupElement.G;
+
 			// Scalar overflown N.
 			var scalar = EC.N;
 			var expected = new GroupElement(EC.G * scalar);

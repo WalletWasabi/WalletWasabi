@@ -128,9 +128,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 			Assert.False(a == null);
 			Assert.True(a != null);
 
-			Assert.False(null == a);
-			Assert.True(null != a);
-
 			Assert.False(a.Equals(null));
 		}
 
@@ -244,6 +241,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 			byte[] zeroBytes = ge.ToBytes();
 			ge2 = GroupElement.FromBytes(zeroBytes);
 			Assert.Equal(GroupElement.Infinity, ge2);
+
 			// 2. Try defining non-infinity with zero coordinates should not work.
 			Assert.ThrowsAny<ArgumentException>(() => new GroupElement(new GE(FE.Zero, FE.Zero, infinity: false)));
 
@@ -307,8 +305,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 				0xFFFFFFFFU,
 				0xFFFFFFFFU,
 				0xFFFFFFFFU,
-				0xFFFFFFFFU
-				);
+				0xFFFFFFFFU);
 			var x = EC.G.x;
 			x = x.Add(p);
 			var x3 = x * x * x;
