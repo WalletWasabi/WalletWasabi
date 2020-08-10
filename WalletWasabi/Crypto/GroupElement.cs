@@ -18,7 +18,7 @@ namespace WalletWasabi.Crypto
 			else
 			{
 				Guard.True($"{nameof(groupElement)}.{nameof(groupElement.IsValidVariable)}", groupElement.IsValidVariable);
-				Ge = groupElement;
+				Ge = new GE(groupElement.x.Normalize(), groupElement.y.Normalize());
 			}
 		}
 
@@ -129,9 +129,8 @@ namespace WalletWasabi.Crypto
 			const int CompressedLength = 32 + 1;
 			Span<byte> buffer = new byte[CompressedLength];
 
-			// We cannot assume the Group Element was already normalized somewhere else.
-			var x = Ge.x.NormalizeVariable();
-			var y = Ge.y.NormalizeVariable();
+			var x = Ge.x;
+			var y = Ge.y;
 
 			buffer[0] = (Ge.IsInfinity, y.IsOdd) switch
 			{
