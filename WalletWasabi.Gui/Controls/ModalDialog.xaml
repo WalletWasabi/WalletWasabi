@@ -2,8 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:cont="clr-namespace:AvalonStudio.Controls;assembly=AvalonStudio.Shell.Extensibility"
              x:Class="WalletWasabi.Gui.Controls.ModalDialog">
-  <Grid Background="#EF2D2D2D" IsVisible="{Binding IsVisible, FallbackValue=False}">
-    <Grid Height="500" Background="{DynamicResource ThemeControlBackgroundBrush}" Margin="10 0">
+  <Panel Background="#EF2D2D2D" IsVisible="{Binding IsVisible, FallbackValue=False}">
+    <Panel Height="500" Background="{DynamicResource ThemeControlBackgroundBrush}" Margin="10 0">
       <DockPanel LastChildFill="True" Margin="200 0 200 100">
         <StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Right" DockPanel.Dock="Bottom" Margin="8 0 8 8" TextBlock.FontSize="15">
           <Button Command="{Binding CancelCommand}" IsVisible="{Binding CancelButtonVisible}" Content="Cancel" Width="160" Height="50" />
@@ -11,6 +11,6 @@
         </StackPanel>
         <cont:ViewModelViewHost DataContext="{Binding }" />
       </DockPanel>
-    </Grid>
-  </Grid>
+    </Panel>
+  </Panel>
 </UserControl>

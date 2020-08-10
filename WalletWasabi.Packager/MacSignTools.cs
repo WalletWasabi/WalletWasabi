@@ -291,11 +291,6 @@ namespace WalletWasabi.Packager
 			Console.WriteLine("Phase: finish.");
 		}
 
-		public static bool IsMacSignMode()
-		{
-			return RuntimeInformation.IsOSPlatform(OSPlatform.OSX); // For now this is enough. If you run it on macOS you want to sign.
-		}
-
 		private static void Notarize(string appleId, string password, string filePath, string bundleIdentifier)
 		{
 			string uploadId = null;
