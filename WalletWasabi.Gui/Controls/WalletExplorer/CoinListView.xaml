@@ -102,12 +102,14 @@
                   </ContextMenu>
                 </Grid.ContextMenu>
                 <Grid.ColumnDefinitions>
-                  <ColumnDefinition Width="24" />
-                  <ColumnDefinition Width="30" />
-                  <ColumnDefinition SharedSizeGroup="A" />
-                  <ColumnDefinition Width="150" />
-                  <ColumnDefinition Width="80" />
-                  <ColumnDefinition Width="*" />
+                  <ColumnDefinitions>
+                    <ColumnDefinition Width="24" />
+                    <ColumnDefinition Width="30" />
+                    <ColumnDefinition SharedSizeGroup="A" />
+                    <ColumnDefinition Width="150" />
+                    <ColumnDefinition Width="80" />
+                    <ColumnDefinition Width="*" />
+                  </ColumnDefinitions>
                 </Grid.ColumnDefinitions>
                 <Border>
                   <CheckBox HorizontalAlignment="Center" IsChecked="{Binding IsSelected}" Background="{DynamicResource ThemeBackgroundBrush}" />
