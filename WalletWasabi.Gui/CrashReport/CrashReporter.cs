@@ -33,8 +33,6 @@ namespace WalletWasabi.Gui.CrashReport
 
 				ProcessStartInfo startInfo = ProcessStartInfoFactory.Make(Process.GetCurrentProcess().MainModule.FileName, args);
 				using Process p = Process.Start(startInfo);
-				p.Start();
-				p.WaitForExit();
 			}
 			catch (Exception ex)
 			{
