@@ -172,7 +172,7 @@ namespace WalletWasabi.Helpers
 
 			var startInfo = new ProcessStartInfo
 			{
-				FileName = "/bin/sh",
+				FileName = "/usr/bin/env sh",
 				Arguments = $"-c \"{escapedArgs}\"",
 				RedirectStandardOutput = true,
 				UseShellExecute = false,
