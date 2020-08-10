@@ -1,6 +1,7 @@
 using NBitcoin.Secp256k1;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using WalletWasabi.Helpers;
 
@@ -17,7 +18,7 @@ namespace WalletWasabi.Crypto
 			else
 			{
 				Guard.True($"{nameof(groupElement)}.{nameof(groupElement.IsValidVariable)}", groupElement.IsValidVariable);
-				Ge = groupElement;
+				Ge = new GE(groupElement.x.Normalize(), groupElement.y.Normalize());
 			}
 		}
 
@@ -100,6 +101,64 @@ namespace WalletWasabi.Crypto
 			return a + new GroupElement(b.Ge.Negate());
 		}
 
+		/// <param name="scalar">It's ok for the scalar to overflow.</param>
+		public static GroupElement operator *(Scalar scalar, GroupElement groupElement)
+		{
+			Guard.NotNull(nameof(GroupElement), groupElement);
+
+			// For some strange reason scalar * GE.Infinity isn't infinity. Let's fix it as it should be, since:
+			// 2 * GE.Infinity = GE.Infinity + GE.Infinity = GE.Infinity.
+			if (groupElement.IsInfinity)
+			{
+				return Infinity;
+			}
+
+			return new GroupElement(scalar * groupElement.Ge);
+		}
+
+		/// <param name="scalar">It's ok for the scalar to overflow.</param>
+		public static GroupElement operator *(GroupElement groupElement, Scalar scalar) => scalar * groupElement;
+
 		public GroupElement Negate() => new GroupElement(Ge.Negate());
+
+		public byte[] ToBytes()
+		{
+			// Buffer to store the serialized Group Element in its **compressed** format.
+			// It requires 32 bytes for the 256bits `x` coordinate and an extra byte for
+			// the EVEN/ODD flag.
+			const int CompressedLength = 32 + 1;
+			Span<byte> buffer = new byte[CompressedLength];
+
+			var x = Ge.x;
+			var y = Ge.y;
+
+			buffer[0] = (Ge.IsInfinity, y.IsOdd) switch
+			{
+				(true, _) => 0, // see http://www.secg.org/sec1-v2.pdf sections 2.3.3-4:
+				(false, true) => GE.SECP256K1_TAG_PUBKEY_ODD,
+				(false, false) => GE.SECP256K1_TAG_PUBKEY_EVEN,
+			};
+			x.WriteToSpan(buffer[1..]);
+			return buffer.ToArray();
+		}
+
+		public static GroupElement FromBytes(byte[] bytes)
+		{
+			const int CompressedLength = 32 + 1;
+			Guard.Same($"{nameof(bytes)}.{nameof(bytes.Length)}", CompressedLength, bytes.Length);
+
+			static GroupElement Parse(Span<byte> buffer, bool isOdd) =>
+				FE.TryCreate(buffer, out var x) && GE.TryCreateXOVariable(x, isOdd, out var ge)
+				? new GroupElement(ge)
+				: throw new ArgumentException("Argument is not a valid group element.", nameof(bytes));
+
+			return bytes[0] switch
+			{
+				0 => Infinity,
+				GE.SECP256K1_TAG_PUBKEY_ODD => Parse(bytes[1..], isOdd: true),
+				GE.SECP256K1_TAG_PUBKEY_EVEN => Parse(bytes[1..], isOdd: false),
+				_ => throw new ArgumentException($"Argument is not a well-formatted group element.", nameof(bytes))
+			};
+		}
 	}
 }
