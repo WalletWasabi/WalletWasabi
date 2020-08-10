@@ -5,9 +5,9 @@ using System.Text;
 using WalletWasabi.Crypto;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.Crypto
+namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 {
-	public class GroupElementTests
+	public class GeneralTests
 	{
 		[Fact]
 		public void IsIEquitable()
@@ -123,15 +123,18 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		public void NullEquality()
 		{
 			var one = new Scalar(1);
-			var a = new GroupElement(EC.G * one);
+			var ge = new GroupElement(EC.G * one);
 
-			Assert.False(a == null);
-			Assert.True(a != null);
+			// Kinda clunky, but otherwise CodeFactor won't be happy.
+			GroupElement n = null;
 
-			Assert.False(null == a);
-			Assert.True(null != a);
+			Assert.False(ge == n);
+			Assert.True(ge != n);
 
-			Assert.False(a.Equals(null));
+			Assert.False(n == ge);
+			Assert.True(n != ge);
+
+			Assert.False(ge.Equals(n));
 		}
 
 		[Fact]
@@ -185,94 +188,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			Assert.Equal(expectedGenerator, GroupElement.G.ToString());
 			Assert.Equal(expectedInfinity, GroupElement.Infinity.ToString());
 			Assert.Equal(expectedTwo, new GroupElement(EC.G * new Scalar(2)).ToString());
-		}
-
-		[Fact]
-		public void Addition()
-		{
-			Assert.Throws<ArgumentNullException>(() => GroupElement.G + null);
-			Assert.Throws<ArgumentNullException>(() => null + GroupElement.G);
-			Assert.Throws<ArgumentNullException>(() => GroupElement.Infinity + null);
-			Assert.Throws<ArgumentNullException>(() => null + GroupElement.Infinity);
-
-			var gen1 = GroupElement.Infinity + GroupElement.G;
-			var gen2 = GroupElement.G + GroupElement.Infinity;
-			var inf = GroupElement.Infinity + GroupElement.Infinity;
-			Assert.Equal(GroupElement.G, gen1);
-			Assert.Equal(GroupElement.G, gen2);
-			Assert.Equal(GroupElement.Infinity, inf);
-
-			var one = new GroupElement(new Scalar(1) * EC.G);
-			var two = new GroupElement(new Scalar(2) * EC.G);
-			var three = new GroupElement(new Scalar(3) * EC.G);
-			var zero = new GroupElement(Scalar.Zero * EC.G);
-
-			Assert.Equal(GroupElement.G, one);
-			Assert.True(zero.IsInfinity);
-
-			Assert.Equal(two, one + one);
-			Assert.Equal(three, one + one + one);
-			Assert.Equal(three, two + one);
-			Assert.Equal(three, one + two);
-			Assert.Equal(one, one + zero);
-			Assert.Equal(two, one + one + zero);
-			Assert.Equal(two, two + zero);
-			Assert.Equal(three, three + zero);
-			Assert.Equal(three, two + one + zero);
-		}
-
-		[Fact]
-		public void Subtraction()
-		{
-			Assert.Throws<ArgumentNullException>(() => GroupElement.G - null);
-			Assert.Throws<ArgumentNullException>(() => null - GroupElement.G);
-			Assert.Throws<ArgumentNullException>(() => GroupElement.Infinity - null);
-			Assert.Throws<ArgumentNullException>(() => null - GroupElement.Infinity);
-
-			var minusGen = GroupElement.Infinity - GroupElement.G;
-			var gen = GroupElement.G - GroupElement.Infinity;
-			var inf = GroupElement.Infinity - GroupElement.Infinity;
-			Assert.Equal(new GroupElement(EC.G.Negate()), minusGen);
-			Assert.Equal(GroupElement.G, gen);
-			Assert.Equal(GroupElement.Infinity, inf);
-
-			var minusOne = new GroupElement(new Scalar(1) * EC.G.Negate());
-			var minusTwo = new GroupElement(new Scalar(2) * EC.G.Negate());
-			var one = new GroupElement(new Scalar(1) * EC.G);
-			var two = new GroupElement(new Scalar(2) * EC.G);
-			var three = new GroupElement(new Scalar(3) * EC.G);
-			var zero = new GroupElement(Scalar.Zero * EC.G);
-
-			Assert.Equal(GroupElement.G, one);
-			Assert.True(zero.IsInfinity);
-
-			Assert.Equal(zero, one - one);
-			Assert.Equal(minusOne, one - one - one);
-			Assert.Equal(one, one + one - one);
-			Assert.Equal(one, one - one + one);
-			Assert.Equal(one, two - one);
-			Assert.Equal(minusOne, one - two);
-			Assert.Equal(one, one - zero);
-			Assert.Equal(minusOne, zero - one);
-			Assert.Equal(zero, one - one + zero);
-			Assert.Equal(two, one + one - zero);
-			Assert.Equal(zero, one - one - zero);
-			Assert.Equal(two, two - zero);
-			Assert.Equal(minusTwo, zero - two);
-			Assert.Equal(three, three - zero);
-			Assert.Equal(two, three - one);
-			Assert.Equal(minusTwo, one - three);
-			Assert.Equal(one, two - one + zero);
-			Assert.Equal(zero, zero + zero - zero + zero);
-		}
-
-		[Fact]
-		public void Negation()
-		{
-			Assert.Equal(new GroupElement(EC.G.Negate()), GroupElement.G.Negate());
-			Scalar one = new Scalar(1);
-			Assert.Equal(new GroupElement(EC.G.Negate() * one), new GroupElement(EC.G * one).Negate());
-			Assert.Equal(GroupElement.Infinity, GroupElement.Infinity.Negate());
 		}
 
 		private byte[] FillByteArray(int length, byte character)
@@ -332,6 +247,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			byte[] zeroBytes = ge.ToBytes();
 			ge2 = GroupElement.FromBytes(zeroBytes);
 			Assert.Equal(GroupElement.Infinity, ge2);
+
 			// 2. Try defining non-infinity with zero coordinates should not work.
 			Assert.ThrowsAny<ArgumentException>(() => new GroupElement(new GE(FE.Zero, FE.Zero, infinity: false)));
 
@@ -395,93 +311,16 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 				0xFFFFFFFFU,
 				0xFFFFFFFFU,
 				0xFFFFFFFFU,
-				0xFFFFFFFFU
-				);
+				0xFFFFFFFFU);
 			var x = EC.G.x;
 			x = x.Add(p);
-			var x3 = ((x * x) * x);
+			var x3 = x * x * x;
 			var y2 = x3 + new FE(EC.CURVE_B);
 			Assert.True(y2.Sqrt(out var y));
 			var ge = new GroupElement(new GE(x, y));
 
 			var ge2 = GroupElement.FromBytes(ge.ToBytes());
 			Assert.Equal(ge, ge2);
-		}
-
-		[Fact]
-		public void MultiplyByScalar()
-		{
-			// Scalar one.
-			var g = GroupElement.G;
-			var scalar = Scalar.One;
-			var expected = new GroupElement(EC.G * scalar);
-			Assert.Equal(expected, g * scalar);
-
-			// Can switch order.
-			Assert.Equal(expected, scalar * g);
-
-			// Scalar two.
-			scalar = new Scalar(2);
-			expected = new GroupElement(EC.G * scalar);
-			Assert.Equal(expected, g * scalar);
-
-			// Scalar three.
-			scalar = new Scalar(3);
-			expected = new GroupElement(EC.G * scalar);
-			Assert.Equal(expected, g * scalar);
-
-			// Scalar NC.
-			scalar = EC.NC;
-			expected = new GroupElement(EC.G * scalar);
-			Assert.Equal(expected, g * scalar);
-
-			// Scalar big.
-			scalar = new Scalar(int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue);
-			expected = new GroupElement(EC.G * scalar);
-			Assert.Equal(expected, g * scalar);
-
-			// Scalar biggest.
-			scalar = EC.N + Scalar.One.Negate();
-			expected = new GroupElement(EC.G * scalar);
-			Assert.Equal(expected, g * scalar);
-
-			// Scalar zero.
-			scalar = Scalar.Zero;
-			expected = new GroupElement(EC.G * scalar);
-			var result = g * scalar;
-			Assert.Equal(expected, result);
-			Assert.True(result.IsInfinity);
-
-			// Group element is infinity.
-			scalar = new Scalar(2);
-			result = GroupElement.Infinity * scalar;
-			expected = GroupElement.Infinity;
-			Assert.Equal(expected, result);
-			Assert.True(result.IsInfinity);
-
-			// Group element is infinity & Scalar is zero.
-			scalar = Scalar.Zero;
-			result = GroupElement.Infinity * scalar;
-			expected = GroupElement.Infinity;
-			Assert.Equal(expected, result);
-			Assert.True(result.IsInfinity);
-
-			// Scalar overflown N.
-			scalar = EC.N;
-			expected = new GroupElement(EC.G * scalar);
-			Assert.Equal(expected, g * scalar);
-			Assert.Equal(g * Scalar.Zero, g * scalar);
-
-			// Scalar overflown N+1.
-			scalar = EC.N + Scalar.One;
-			expected = new GroupElement(EC.G * scalar);
-			Assert.Equal(expected, g * scalar);
-			Assert.Equal(g * Scalar.One, g * scalar);
-
-			// Scalar overflown uint.Max
-			scalar = new Scalar(uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue);
-			expected = new GroupElement(EC.G * scalar);
-			Assert.Equal(expected, g * scalar);
 		}
 	}
 }
