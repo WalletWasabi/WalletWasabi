@@ -217,9 +217,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			}
 
 			var coinsView = new CoinsView(scoins.ToArray());
-			
-			var bitcoinStore = new BitcoinStoreMock();
-			
+			var bitcoinStore = new BitcoinStore(null!, new AllTransactionStoreMock(workFolderPath: ".", Network.Main), null!, isMock: true);
 			var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, bitcoinStore, password);
 
 			// Two 0.9btc coins are enough
@@ -622,9 +620,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				}
 			}
 			var coinsView = new CoinsView(scoins);
- 
-			var bitcoinStore = new BitcoinStoreMock();
- 
+			var bitcoinStore = new BitcoinStore(indexStore: null!, new AllTransactionStoreMock(workFolderPath: ".", Network.Main), mempoolService: null!, isMock: true);
 			var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, bitcoinStore, password);
 
 			return new TransactionFactory(Network.Main, keyManager, coinsView, bitcoinStore, password, allowUnconfirmed);
