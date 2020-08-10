@@ -1,0 +1,133 @@
+using NBitcoin.Secp256k1;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using WalletWasabi.Crypto;
+using WalletWasabi.Crypto.ZeroKnowledge;
+using Xunit;
+
+namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
+{
+	public class ZkExponentTests
+	{
+		public static readonly Scalar LargestScalarOverflow = new Scalar(uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue);
+
+		[Theory]
+		[InlineData(1)]
+		[InlineData(3)]
+		[InlineData(5)]
+		[InlineData(7)]
+		[InlineData(short.MaxValue)]
+		[InlineData(int.MaxValue)]
+		[InlineData(uint.MaxValue)]
+		public void VerifySimpleProof(uint scalarSeed)
+		{
+			var exponent = new Scalar(scalarSeed);
+			var proof = ZkProver.CreateProof(exponent);
+			Assert.True(ZkVerifier.Verify(proof));
+		}
+
+		[Fact]
+		public void InvalidExponent()
+		{
+			var exponent = new Scalar(0);
+			Assert.Throws<ArgumentOutOfRangeException>(() => ZkProver.CreateProof(exponent));
+			exponent = Scalar.Zero;
+			Assert.Throws<ArgumentOutOfRangeException>(() => ZkProver.CreateProof(exponent));
+
+			exponent = EC.N;
+			Assert.Throws<ArgumentOutOfRangeException>(() => ZkProver.CreateProof(exponent));
+			exponent = LargestScalarOverflow;
+			Assert.Throws<ArgumentOutOfRangeException>(() => ZkProver.CreateProof(exponent));
+		}
+
+		[Fact]
+		public void VerifyLargeScalar()
+		{
+			uint val = int.MaxValue;
+			var exponent = new Scalar(val, val, val, val, val, val, val, val);
+			var proof = ZkProver.CreateProof(exponent);
+			Assert.True(ZkVerifier.Verify(proof));
+
+			exponent = EC.N + (new Scalar(1)).Negate();
+			proof = ZkProver.CreateProof(exponent);
+			Assert.True(ZkVerifier.Verify(proof));
+
+			exponent = EC.NC;
+			proof = ZkProver.CreateProof(exponent);
+			Assert.True(ZkVerifier.Verify(proof));
+			exponent = EC.NC + new Scalar(1);
+			proof = ZkProver.CreateProof(exponent);
+			Assert.True(ZkVerifier.Verify(proof));
+			exponent = EC.NC + (new Scalar(1)).Negate();
+			proof = ZkProver.CreateProof(exponent);
+			Assert.True(ZkVerifier.Verify(proof));
+		}
+
+		[Fact]
+		public void BuildChallenge()
+		{
+			var point1 = new Scalar(3) * GroupElement.G;
+			var point2 = new Scalar(7) * GroupElement.G;
+
+			var publicPoint = point1;
+			var randomPoint = GroupElement.G;
+			var challenge = ZkChallenge.Build(publicPoint, randomPoint);
+			Assert.Equal("secp256k1_scalar  = { 0x0F850F8CUL, 0x9D74683AUL, 0xDD03779BUL, 0xFD58F09BUL, 0xE148D87AUL, 0x3477A63FUL, 0xBE5906D3UL, 0x35E5A382UL }", challenge.ToC(""));
+
+			publicPoint = GroupElement.G;
+			randomPoint = point2;
+			challenge = ZkChallenge.Build(publicPoint, randomPoint);
+			Assert.Equal("secp256k1_scalar  = { 0x69823107UL, 0xDA1CE96BUL, 0xBA00C8E7UL, 0x8A031437UL, 0x4D0BC9ADUL, 0x790E6FD8UL, 0x6C2EF5E6UL, 0x8F476E3FUL }", challenge.ToC(""));
+
+			publicPoint = point1;
+			randomPoint = point2;
+			challenge = ZkChallenge.Build(publicPoint, randomPoint);
+			Assert.Equal("secp256k1_scalar  = { 0xC5AA9243UL, 0x074DDA7CUL, 0xE8FFD6CAUL, 0xF3613B9EUL, 0x542CBD09UL, 0xF4191712UL, 0x045BD716UL, 0xECCC6626UL }", challenge.ToC(""));
+		}
+
+		[Fact]
+		public void InvalidChallenge()
+		{
+			var point1 = new Scalar(1) * GroupElement.G;
+			var point2 = new Scalar(2) * GroupElement.G;
+
+			ZkChallenge.Build(point1, point2); // Make sure the points are valid.
+
+			var publicPoint = GroupElement.Infinity;
+			var randomPoint = GroupElement.Infinity;
+			Assert.Throws<ArgumentOutOfRangeException>(() => ZkChallenge.Build(publicPoint, randomPoint));
+
+			publicPoint = point1;
+			randomPoint = GroupElement.Infinity;
+			Assert.Throws<ArgumentOutOfRangeException>(() => ZkChallenge.Build(publicPoint, randomPoint));
+
+			publicPoint = GroupElement.Infinity;
+			randomPoint = point2;
+			Assert.Throws<ArgumentOutOfRangeException>(() => ZkChallenge.Build(publicPoint, randomPoint));
+
+			publicPoint = point1;
+			randomPoint = point1;
+			Assert.Throws<InvalidOperationException>(() => ZkChallenge.Build(publicPoint, randomPoint));
+		}
+
+		[Fact]
+		public void InvalidProof()
+		{
+			var point1 = new Scalar(3) * GroupElement.G;
+			var point2 = new Scalar(7) * GroupElement.G;
+			var scalar = new Scalar(11);
+
+			var proof = new ZkExponentProof(point1, point2, scalar);
+			Assert.False(ZkVerifier.Verify(proof));
+
+			Assert.Throws<ArgumentOutOfRangeException>(() => new ZkExponentProof(GroupElement.Infinity, point2, scalar));
+			Assert.Throws<ArgumentOutOfRangeException>(() => new ZkExponentProof(point1, GroupElement.Infinity, scalar));
+
+			Assert.Throws<ArgumentOutOfRangeException>(() => new ZkExponentProof(point1, point2, EC.N));
+			Assert.Throws<ArgumentOutOfRangeException>(() => new ZkExponentProof(point1, point2, LargestScalarOverflow));
+
+			Assert.Throws<InvalidOperationException>(() => new ZkExponentProof(point1, point1, scalar));
+		}
+	}
+}
