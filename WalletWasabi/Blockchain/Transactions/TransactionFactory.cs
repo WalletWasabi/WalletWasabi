@@ -237,7 +237,7 @@ namespace WalletWasabi.Blockchain.Transactions
 					// Try to pay using payjoin
 					if (payjoinClient is { })
 					{
-						psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt);
+						psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt, changeHdPubKey);
 					}
 				}
 				psbt.Finalize();
@@ -310,7 +310,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			return new BuildTransactionResult(new SmartTransaction(tx, Height.Unknown), psbt, spendsUnconfirmed, sign, fee, feePc, outerWalletOutputs, innerWalletOutputs, spentCoins);
 		}
 
-		private PSBT TryNegotiatePayjoin(IPayjoinClient payjoinClient, TransactionBuilder builder, PSBT psbt)
+		private PSBT TryNegotiatePayjoin(IPayjoinClient payjoinClient, TransactionBuilder builder, PSBT psbt, HdPubKey changeHdPubKey)
 		{
 			try
 			{
@@ -319,6 +319,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				psbt = payjoinClient.RequestPayjoin(psbt,
 					KeyManager.ExtPubKey,
 					new RootedKeyPath(KeyManager.MasterFingerprint.Value, KeyManager.DefaultAccountKeyPath),
+					changeHdPubKey,
 					CancellationToken.None).GetAwaiter().GetResult();
 				builder.SignPSBT(psbt);
 
