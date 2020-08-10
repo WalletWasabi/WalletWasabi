@@ -34,7 +34,12 @@ namespace WalletWasabi.Microservices
 
 			Process = process;
 			Process.EnableRaisingEvents = true;
-			Process.Exited += (object sender, EventArgs e) => TaskCompletionSource.TrySetResult(true);
+			Process.Exited += OnExited;
+		}
+
+		private void OnExited(object? sender, EventArgs? e)
+		{
+			TaskCompletionSource.TrySetResult(true);
 		}
 
 		/// <inheritdoc cref="Process.StartInfo"/>
@@ -135,7 +140,8 @@ namespace WalletWasabi.Microservices
 			if (disposing)
 			{
 				// Dispose managed state (managed objects).
-				Process?.Dispose();
+				Process.Exited -= OnExited;
+				Process.Dispose();
 			}
 
 			_disposed = true;
