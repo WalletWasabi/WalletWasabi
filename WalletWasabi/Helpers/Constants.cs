@@ -48,13 +48,14 @@ namespace WalletWasabi.Helpers
 		public const int DefaultTestNetBitcoinCoreRpcPort = 18332;
 		public const int DefaultRegTestBitcoinCoreRpcPort = 18443;
 
-		public const string Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
 		public const double TransactionRBFSignalRate = 0.02; // 2% RBF transactions
 
 		public const decimal DefaultDustThreshold = 0.00005m;
 
 		public const long MaxSatoshisSupply = 2_100_000_000_000_000L;
+
+		public const string AlphaNumericCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+		public const string CapitalAlphaNumericCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
 		public static readonly Version ClientVersion = new Version(1, 1, 12, 0);
 		public static readonly Version HwiVersion = new Version("1.1.2");

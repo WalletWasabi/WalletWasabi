@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -103,7 +104,7 @@ namespace WalletWasabi.TorSocks5
 		/// </summary>
 		internal async Task HandshakeAsync(bool isolateStream = true)
 		{
-			await HandshakeAsync(isolateStream ? RandomString.Generate(21) : "").ConfigureAwait(false);
+			await HandshakeAsync(isolateStream ? RandomString.CapitalAlphaNumeric(21) : "").ConfigureAwait(false);
 		}
 
 		/// <summary>

@@ -122,7 +122,7 @@ namespace WalletWasabi.Crypto
 		private static byte[] Generate128BitsOfRandomEntropy()
 		{
 			using var secureRandom = new SecureRandom();
-			var randomBytes = (secureRandom as IWasabiRandom).GetBytes(16); // 16 Bytes will give us 128 bits.
+			var randomBytes = secureRandom.GetBytes(16); // 16 Bytes will give us 128 bits.
 			return randomBytes;
 		}
 	}
