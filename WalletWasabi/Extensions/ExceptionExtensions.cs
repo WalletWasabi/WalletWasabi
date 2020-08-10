@@ -21,8 +21,7 @@ namespace System
 
 			["invalid password"] = "Wrong password.",
 			["Invalid wallet name"] = "Invalid wallet name.",
-			["Wallet name is already taken"] = "Wallet name is already taken.",
-			["The invoice this PSBT is paying has already been partially or completely paid"] = "The invoice has already been paid"
+			["Wallet name is already taken"] = "Wallet name is already taken."
 		};
 
 		public static string ToTypeMessageString(this Exception ex)
@@ -52,9 +51,16 @@ namespace System
 			}
 			else
 			{
-				if (ex is HwiException hwiEx && hwiEx.ErrorCode == HwiErrorCode.DeviceConnError)
+				if (ex is HwiException hwiEx)
 				{
-					return "Could not find the hardware wallet.\nMake sure it is connected.";
+					if (hwiEx.ErrorCode == HwiErrorCode.DeviceConnError)
+					{
+						return "Could not find the hardware wallet.\nMake sure it is connected.";
+					}
+					else if (hwiEx.ErrorCode == HwiErrorCode.ActionCanceled)
+					{
+						return "The transaction was canceled on the device.";
+					}
 				}
 
 				foreach (KeyValuePair<string, string> pair in Translations)

@@ -233,14 +233,22 @@ namespace WalletWasabi.Logging
 
 		#region ExceptionLoggingMethods
 
-		private static void Log(Exception ex, LogLevel level, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
+		/// <summary>
+		/// Logs user message concatenated with exception string.
+		/// </summary>
+		private static void Log(string message, Exception ex, LogLevel level, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
 		{
-			Log(level, ExceptionToStringHandleNull(ex), callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
+			string formattedMessage = message + " Exception: " + (ex?.ToString() ?? "Exception was null.");
+			Log(level, formattedMessage, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 		}
 
-		private static string ExceptionToStringHandleNull(Exception ex)
+		/// <summary>
+		/// Logs exception string without any user message.
+		/// </summary>
+		private static void Log(Exception ex, LogLevel level, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
 		{
-			return ex?.ToString() ?? "Exception was null.";
+			string message = ex?.ToString() ?? "Exception was null.";
+			Log(level, message, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 		}
 
 		#endregion ExceptionLoggingMethods
@@ -349,6 +357,16 @@ namespace WalletWasabi.Logging
 		/// Example log message: "Cannot insert record due to duplicate key violation."
 		/// </summary>
 		public static void LogError(string message, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) => Log(LogLevel.Error, message, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
+
+		/// <summary>
+		/// Logs user message with exception concatenated to it at Error level.
+		///
+		/// For errors and exceptions that cannot be handled.
+		/// These messages indicate a failure in the current activity or operation (such as the current HTTP request), not an application-wide failure.
+		/// Example log message: "Cannot insert record due to duplicate key violation."
+		/// </summary>
+		public static void LogError(string message, Exception ex, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
+			=> Log(message, ex, LogLevel.Error, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.ToString() at Error level.

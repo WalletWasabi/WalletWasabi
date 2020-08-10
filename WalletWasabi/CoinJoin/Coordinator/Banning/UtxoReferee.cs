@@ -37,7 +37,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Banning
 					{
 						var bannedRecord = BannedUtxo.FromString(line);
 
-						GetTxOutResponse getTxOutResponse = RpcClient.GetTxOut(bannedRecord.Utxo.Hash, (int)bannedRecord.Utxo.N, includeMempool: true);
+						GetTxOutResponse getTxOutResponse = RpcClient.GetTxOutAsync(bannedRecord.Utxo.Hash, (int)bannedRecord.Utxo.N, includeMempool: true).GetAwaiter().GetResult();
 
 						// Check if inputs are unspent.
 						if (getTxOutResponse is null)

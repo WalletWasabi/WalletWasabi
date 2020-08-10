@@ -35,7 +35,7 @@
 1. Update the onion seed list to the most reliable ones: `dotnet run -- --reduceonions`
 2. Run tests.
 3. Retest every PR since last release on Windows, macOS and Linux.
-4. Dump client version. (WalletWasabi/Helpers/Constants.cs)
+4. Dump client version. (WalletWasabi/Helpers/Constants.cs, WalletWasabi.Backend\wwwroot\index.html)
 5. Run packager in publish mode.
 6. [mac sign] Copy Wasabi-osx-version.zip to [macOS release environment](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/Guides/MacOsSigning.md) desktop.
 7. [mac sign] Run the packager on macOS.
@@ -95,6 +95,6 @@ If it's a major release, then the backport branch must be rebased, so we can sta
 ```sh
 git checkout --track upstream/backport
 git rebase upstream/master
-git push -u upstream/backport
+git push -u upstream backport
 ```
 
