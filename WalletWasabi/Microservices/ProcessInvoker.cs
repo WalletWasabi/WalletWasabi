@@ -30,7 +30,7 @@ namespace WalletWasabi.Microservices
 				? Task.FromResult(string.Empty)
 				: processAsync.StandardOutput.ReadToEndAsync();
 
-			await processAsync.WaitForExitAsync(token);
+			await processAsync.WaitForExitAsync(token).ConfigureAwait(false);
 
 			string output = await readPipeTask.ConfigureAwait(false);
 

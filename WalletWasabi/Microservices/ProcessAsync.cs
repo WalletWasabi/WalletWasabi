@@ -71,12 +71,12 @@ namespace WalletWasabi.Microservices
 			{
 				Logger.LogError(ex);
 
-				Logger.LogInfo($"{nameof(Process.StartInfo.FileName)}: {Process.StartInfo.FileName}");
-				Logger.LogInfo($"{nameof(Process.StartInfo.Arguments)}: {Process.StartInfo.Arguments}");
-				Logger.LogInfo($"{nameof(Process.StartInfo.RedirectStandardOutput)}: {Process.StartInfo.RedirectStandardOutput}");
-				Logger.LogInfo($"{nameof(Process.StartInfo.UseShellExecute)}: {Process.StartInfo.UseShellExecute}");
-				Logger.LogInfo($"{nameof(Process.StartInfo.CreateNoWindow)}: {Process.StartInfo.CreateNoWindow}");
-				Logger.LogInfo($"{nameof(Process.StartInfo.WindowStyle)}: {Process.StartInfo.WindowStyle}");
+				Logger.LogInfo($"{nameof(Process.StartInfo.FileName)}: {Process.StartInfo.FileName}.");
+				Logger.LogInfo($"{nameof(Process.StartInfo.Arguments)}: {Process.StartInfo.Arguments}.");
+				Logger.LogInfo($"{nameof(Process.StartInfo.RedirectStandardOutput)}: {Process.StartInfo.RedirectStandardOutput}.");
+				Logger.LogInfo($"{nameof(Process.StartInfo.UseShellExecute)}: {Process.StartInfo.UseShellExecute}.");
+				Logger.LogInfo($"{nameof(Process.StartInfo.CreateNoWindow)}: {Process.StartInfo.CreateNoWindow}.");
+				Logger.LogInfo($"{nameof(Process.StartInfo.WindowStyle)}: {Process.StartInfo.WindowStyle}.");
 				throw;
 			}
 		}
@@ -120,7 +120,7 @@ namespace WalletWasabi.Microservices
 						}
 						catch (Exception e)
 						{
-							Logger.LogError($"Could not kill process: {e}");
+							Logger.LogError($"Could not kill process: {e}.");
 						}
 					}
 				}
