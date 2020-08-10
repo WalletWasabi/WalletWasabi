@@ -37,11 +37,6 @@ namespace WalletWasabi.Microservices
 			Process.Exited += OnExited;
 		}
 
-		private void OnExited(object? sender, EventArgs? e)
-		{
-			TaskCompletionSource.TrySetResult(true);
-		}
-
 		/// <inheritdoc cref="Process.StartInfo"/>
 		public ProcessStartInfo StartInfo => Process.StartInfo;
 
@@ -154,6 +149,11 @@ namespace WalletWasabi.Microservices
 
 			// Suppress finalization.
 			GC.SuppressFinalize(this);
+		}
+
+		private void OnExited(object? sender, EventArgs? e)
+		{
+			TaskCompletionSource.TrySetResult(true);
 		}
 	}
 }

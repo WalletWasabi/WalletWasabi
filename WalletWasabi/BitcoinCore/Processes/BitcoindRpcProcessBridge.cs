@@ -17,6 +17,8 @@ namespace WalletWasabi.BitcoinCore.Processes
 	{
 		public const string PidFileName = "bitcoin.pid";
 
+		private ProcessAsync? _process = null;
+
 		public BitcoindRpcProcessBridge(IRPCClient rpc, string dataDir, bool printToConsole)
 		{
 			RpcClient = Guard.NotNull(nameof(rpc), rpc);
@@ -33,8 +35,6 @@ namespace WalletWasabi.BitcoinCore.Processes
 		public bool PrintToConsole { get; }
 		public PidFile PidFile { get; }
 		private int? CachedPid { get; set; }
-
-		private ProcessAsync? _process = null;
 
 		/// <summary>
 		/// This method can be called only once.
