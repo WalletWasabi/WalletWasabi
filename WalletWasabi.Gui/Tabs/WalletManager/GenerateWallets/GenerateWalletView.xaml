@@ -23,7 +23,7 @@
     </controls:GroupBox>
     <DockPanel LastChildFill="True">
       <Button Content="Next" Command="{Binding NextCommand}" DockPanel.Dock="Right" />
-      <Grid></Grid>
+      <Panel/>
     </DockPanel>
   </StackPanel>
 </UserControl>

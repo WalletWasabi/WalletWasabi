@@ -6,6 +6,6 @@ namespace WalletWasabi.Interfaces
 {
 	public interface IExchangeRateProvider
 	{
-		Task<List<ExchangeRate>> GetExchangeRateAsync();
+		Task<IEnumerable<ExchangeRate>> GetExchangeRateAsync();
 	}
 }

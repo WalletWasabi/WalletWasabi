@@ -375,7 +375,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public async Task ReorgAsync()
 		{
-			PrepareTestEnv(out string dir,
+			PrepareTestEnv(
+				out string dir,
 				out Network network,
 				out string mempoolFile,
 				out string txFile,

@@ -23,7 +23,8 @@ namespace WalletWasabi.Tests.UnitTests
 
 			// Assert some functions do not raise any events when default.
 			Assert.Throws<PropertyChangedException>(() =>
-				Assert.PropertyChanged(hashChain,
+				Assert.PropertyChanged(
+					hashChain,
 					nameof(hashChain.HashCount),
 					() =>
 					{
@@ -32,8 +33,10 @@ namespace WalletWasabi.Tests.UnitTests
 						hashChain.RemoveLast();
 						AssertEverythingDefault(hashChain);
 					}));
+
 			Assert.Throws<PropertyChangedException>(() =>
-				Assert.PropertyChanged(hashChain,
+				Assert.PropertyChanged(
+					hashChain,
 					nameof(hashChain.HashesLeft),
 					() =>
 					{
@@ -42,8 +45,10 @@ namespace WalletWasabi.Tests.UnitTests
 						hashChain.RemoveLast();
 						AssertEverythingDefault(hashChain);
 					}));
+
 			Assert.Throws<PropertyChangedException>(() =>
-				Assert.PropertyChanged(hashChain,
+				Assert.PropertyChanged(
+					hashChain,
 					nameof(hashChain.ServerTipHeight),
 					() =>
 					{
@@ -52,8 +57,10 @@ namespace WalletWasabi.Tests.UnitTests
 						hashChain.RemoveLast();
 						AssertEverythingDefault(hashChain);
 					}));
+
 			Assert.Throws<PropertyChangedException>(() =>
-				Assert.PropertyChanged(hashChain,
+				Assert.PropertyChanged(
+					hashChain,
 					nameof(hashChain.TipHash),
 					() =>
 					{
@@ -62,8 +69,10 @@ namespace WalletWasabi.Tests.UnitTests
 						hashChain.RemoveLast();
 						AssertEverythingDefault(hashChain);
 					}));
+
 			Assert.Throws<PropertyChangedException>(() =>
-				Assert.PropertyChanged(hashChain,
+				Assert.PropertyChanged(
+					hashChain,
 					nameof(hashChain.TipHeight),
 					() =>
 					{
@@ -75,54 +84,66 @@ namespace WalletWasabi.Tests.UnitTests
 
 			// Assert the correct events are thrown and not thrown when applicable.
 			var newServerHeight = hashChain.ServerTipHeight + 1;
-			Assert.PropertyChanged(hashChain,
-					nameof(hashChain.ServerTipHeight),
+			Assert.PropertyChanged(
+				hashChain,
+				nameof(hashChain.ServerTipHeight),
 
-					// ASSERT FUNCTION
-					// Assert update server height raises.
-					() => hashChain.UpdateServerTipHeight(newServerHeight));
+				// ASSERT FUNCTION
+				// Assert update server height raises.
+				() => hashChain.UpdateServerTipHeight(newServerHeight));
+
 			newServerHeight++;
-			Assert.PropertyChanged(hashChain,
-					nameof(hashChain.HashesLeft),
+			Assert.PropertyChanged(
+				hashChain,
+				nameof(hashChain.HashesLeft),
 
-					// ASSERT FUNCTION
-					// Assert update server height raises.
-					() => hashChain.UpdateServerTipHeight(newServerHeight));
+				// ASSERT FUNCTION
+				// Assert update server height raises.
+				() => hashChain.UpdateServerTipHeight(newServerHeight));
 
 			newServerHeight++;
 			Assert.Throws<PropertyChangedException>(() =>
-				Assert.PropertyChanged(hashChain,
+				Assert.PropertyChanged(
+					hashChain,
 					nameof(hashChain.HashCount),
 
 					// ASSERT FUNCTIONS
 					// Assert update server height does not raise unnecessary events.
 					() => hashChain.UpdateServerTipHeight(newServerHeight)));
+
 			newServerHeight++;
 			Assert.Throws<PropertyChangedException>(() =>
-				Assert.PropertyChanged(hashChain,
+				Assert.PropertyChanged(
+					hashChain,
 					nameof(hashChain.TipHash),
 
 					// ASSERT FUNCTIONS
 					// Assert update server height does not raise unnecessary events.
 					() => hashChain.UpdateServerTipHeight(newServerHeight)));
+
 			newServerHeight++;
 			Assert.Throws<PropertyChangedException>(() =>
-				Assert.PropertyChanged(hashChain,
+				Assert.PropertyChanged(
+					hashChain,
 					nameof(hashChain.TipHeight),
 
 					// ASSERT FUNCTIONS
 					// Assert update server height does not raise unnecessary events.
 					() => hashChain.UpdateServerTipHeight(newServerHeight)));
+
 			var sameServerheight = newServerHeight;
 			Assert.Throws<PropertyChangedException>(() =>
-				Assert.PropertyChanged(hashChain,
+				Assert.PropertyChanged(
+					hashChain,
 					nameof(hashChain.ServerTipHeight),
 
 					// ASSERT FUNCTIONS
 					// Assert update server height does not raise without actually changing.
 					() => hashChain.UpdateServerTipHeight(sameServerheight)));
+
 			Assert.Throws<PropertyChangedException>(() =>
-				Assert.PropertyChanged(hashChain,
+				Assert.PropertyChanged(
+					hashChain,
 					nameof(hashChain.HashesLeft),
 
 					// ASSERT FUNCTIONS

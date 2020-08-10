@@ -14,6 +14,7 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Stores;
 using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Blockchain.Transactions
@@ -21,11 +22,12 @@ namespace WalletWasabi.Blockchain.Transactions
 	public class TransactionFactory
 	{
 		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
-		public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, string password = "", bool allowUnconfirmed = false)
+		public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, BitcoinStore store, string password = "", bool allowUnconfirmed = false)
 		{
-			Network = network;
-			KeyManager = keyManager;
-			Coins = coins;
+			Network = Guard.NotNull(nameof(network), network);
+			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
+			Coins = Guard.NotNull(nameof(coins), coins);
+			Store = Guard.NotNull(nameof(store), store);
 			Password = password;
 			AllowUnconfirmed = allowUnconfirmed;
 		}
@@ -33,6 +35,7 @@ namespace WalletWasabi.Blockchain.Transactions
 		public Network Network { get; }
 		public KeyManager KeyManager { get; }
 		public ICoinsView Coins { get; }
+		public BitcoinStore Store { get; }
 		public string Password { get; }
 		public bool AllowUnconfirmed { get; }
 
@@ -234,7 +237,7 @@ namespace WalletWasabi.Blockchain.Transactions
 					// Try to pay using payjoin
 					if (payjoinClient is { })
 					{
-						psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt);
+						psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt, changeHdPubKey);
 					}
 				}
 				psbt.Finalize();
@@ -307,7 +310,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			return new BuildTransactionResult(new SmartTransaction(tx, Height.Unknown), psbt, spendsUnconfirmed, sign, fee, feePc, outerWalletOutputs, innerWalletOutputs, spentCoins);
 		}
 
-		private PSBT TryNegotiatePayjoin(IPayjoinClient payjoinClient, TransactionBuilder builder, PSBT psbt)
+		private PSBT TryNegotiatePayjoin(IPayjoinClient payjoinClient, TransactionBuilder builder, PSBT psbt, HdPubKey changeHdPubKey)
 		{
 			try
 			{
@@ -316,6 +319,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				psbt = payjoinClient.RequestPayjoin(psbt,
 					KeyManager.ExtPubKey,
 					new RootedKeyPath(KeyManager.MasterFingerprint.Value, KeyManager.DefaultAccountKeyPath),
+					changeHdPubKey,
 					CancellationToken.None).GetAwaiter().GetResult();
 				builder.SignPSBT(psbt);
 
@@ -354,6 +358,23 @@ namespace WalletWasabi.Blockchain.Transactions
 				{
 					var rootKeyPath = new RootedKeyPath(fp, changeHdPubKey.FullKeyPath);
 					psbt.AddKeyPath(changeHdPubKey.PubKey, rootKeyPath, changeHdPubKey.P2wpkhScript);
+				}
+			}
+
+			foreach (var input in spentCoins)
+			{
+				var coinInputTxID = input.TransactionId;
+				if (Store.TransactionStore.TryGetTransaction(coinInputTxID, out var txn))
+				{
+					var psbtInputs = psbt.Inputs.Where(x => x.PrevOut.Hash == coinInputTxID);
+					foreach (var psbtInput in psbtInputs)
+					{
+						psbtInput.NonWitnessUtxo = txn.Transaction;
+					}
+				}
+				else
+				{
+					Logger.LogWarning($"Transaction id:{coinInputTxID} is missing from the TransactionStore. Ignoring...");
 				}
 			}
 		}

@@ -22,6 +22,7 @@ namespace WalletWasabi.Hwi.Models
 
 		public static HwiOption TestNet => new HwiOption(HwiOptions.TestNet);
 		public static HwiOption Version => new HwiOption(HwiOptions.Version);
+		public static HwiOption StdIn => new HwiOption(HwiOptions.StdIn);
 
 		public HwiOptions Type { get; }
 		public string Arguments { get; }

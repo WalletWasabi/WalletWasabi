@@ -10,7 +10,7 @@ namespace WalletWasabi.BitcoinCore.Configuration.Whitening
 {
 	public abstract class WhiteEntry
 	{
-		public string Permissions { get; private set; } = string.Empty;
+		public string Permissions { get; private set; } = "";
 		public EndPoint EndPoint { get; private set; } = null;
 
 		public static bool TryParse<T>(string value, Network network, out T whiteEntry) where T : WhiteEntry, new()

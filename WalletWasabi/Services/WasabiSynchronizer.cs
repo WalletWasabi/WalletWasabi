@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -171,6 +172,8 @@ namespace WalletWasabi.Services
 							}
 
 							SynchronizeResponse response;
+
+							var lastUsedApiVersion = WasabiClient.ApiVersion;
 							try
 							{
 								if (!IsRunning)
@@ -199,19 +202,37 @@ namespace WalletWasabi.Services
 								HandleIfGenSocksServFail(ex);
 								throw;
 							}
+							catch (HttpRequestException ex) when (ex.Message.Contains("Not Found"))
+							{
+								TorStatus = TorStatus.Running;
+								BackendStatus = BackendStatus.NotConnected;
+								try
+								{
+									// Backend API version might be updated meanwhile. Trying to update the versions.
+									var result = await WasabiClient.CheckUpdatesAsync(Cancel.Token).ConfigureAwait(false);
+
+									// If the backend is compatible and the Api version updated then we just used the wrong API.
+									if (result.BackendCompatible && lastUsedApiVersion != WasabiClient.ApiVersion)
+									{
+										// Next request will be fine, do not throw exception.
+										ignoreRequestInterval = true;
+										continue;
+									}
+									else
+									{
+										throw ex;
+									}
+								}
+								catch (Exception x)
+								{
+									HandleIfGenSocksServFail(x);
+									throw;
+								}
+							}
 							catch (Exception ex)
 							{
 								TorStatus = TorStatus.Running;
 								BackendStatus = BackendStatus.Connected;
-								try
-								{
-									// Backend API version might be updated meanwhile. Trying to update the versions.
-									await WasabiClient.CheckUpdatesAsync(Cancel.Token).ConfigureAwait(false);
-								}
-								catch (Exception x)
-								{
-									Logger.LogError(x);
-								}
 								HandleIfGenSocksServFail(ex);
 								throw;
 							}

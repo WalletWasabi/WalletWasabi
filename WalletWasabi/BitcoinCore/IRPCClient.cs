@@ -37,8 +37,6 @@ namespace WalletWasabi.BitcoinCore
 
 		Task<MempoolAcceptResult> TestMempoolAcceptAsync(Transaction transaction, bool allowHighFees = false);
 
-		GetTxOutResponse GetTxOut(uint256 txid, int index, bool includeMempool = true);
-
 		Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative);
 
 		Task<GetTxOutResponse> GetTxOutAsync(uint256 txid, int index, bool includeMempool = true);
@@ -70,5 +68,7 @@ namespace WalletWasabi.BitcoinCore
 		Task<EstimateSmartFeeResponse> TryEstimateSmartFeeAsync(int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative);
 
 		Task<VerboseBlockInfo> GetVerboseBlockAsync(uint256 blockId);
+
+		Task<uint256[]> GenerateToAddressAsync(int nBlocks, BitcoinAddress address);
 	}
 }

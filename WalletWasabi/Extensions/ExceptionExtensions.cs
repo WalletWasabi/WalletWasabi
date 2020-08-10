@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Text;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Exceptions;
+using WalletWasabi.Models;
 
 namespace System
 {
@@ -50,9 +51,16 @@ namespace System
 			}
 			else
 			{
-				if (ex is HwiException hwiEx && hwiEx.ErrorCode == HwiErrorCode.DeviceConnError)
+				if (ex is HwiException hwiEx)
 				{
-					return "Could not find the hardware wallet.\nMake sure it is connected.";
+					if (hwiEx.ErrorCode == HwiErrorCode.DeviceConnError)
+					{
+						return "Could not find the hardware wallet.\nMake sure it is connected.";
+					}
+					else if (hwiEx.ErrorCode == HwiErrorCode.ActionCanceled)
+					{
+						return "The transaction was canceled on the device.";
+					}
 				}
 
 				foreach (KeyValuePair<string, string> pair in Translations)
@@ -65,6 +73,11 @@ namespace System
 
 				return ex.ToTypeMessageString();
 			}
+		}
+
+		public static SerializableException ToSerializableException(this Exception ex)
+		{
+			return new SerializableException(ex);
 		}
 	}
 }

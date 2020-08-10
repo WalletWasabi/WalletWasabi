@@ -24,6 +24,14 @@ namespace WalletWasabi.Stores
 			MempoolService = Guard.NotNull(nameof(mempoolService), mempoolService);
 		}
 
+		/// <summary>
+		/// Special constructor used by the mock version.
+		/// </summary>
+		internal BitcoinStore()
+		{
+			TransactionStore = new AllTransactionStoreMock();
+		}
+
 		public bool IsInitialized { get; private set; }
 
 		public IndexStore IndexStore { get; }

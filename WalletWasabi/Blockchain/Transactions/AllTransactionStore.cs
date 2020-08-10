@@ -191,7 +191,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 		#region Accessors
 
-		public bool TryGetTransaction(uint256 hash, out SmartTransaction sameStx)
+		public virtual bool TryGetTransaction(uint256 hash, out SmartTransaction sameStx)
 		{
 			lock (Lock)
 			{
