@@ -123,12 +123,18 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 		public void NullEquality()
 		{
 			var one = new Scalar(1);
-			var a = new GroupElement(EC.G * one);
+			var ge = new GroupElement(EC.G * one);
 
-			Assert.False(a == null);
-			Assert.True(a != null);
+			// Kinda clunky, but otherwise CodeFactor won't be happy.
+			GroupElement n = null;
 
-			Assert.False(a.Equals(null));
+			Assert.False(ge == n);
+			Assert.True(ge != n);
+
+			Assert.False(n == ge);
+			Assert.True(n != ge);
+
+			Assert.False(ge.Equals(n));
 		}
 
 		[Fact]
