@@ -116,7 +116,7 @@ namespace WalletWasabi.Microservices
 					{
 						try
 						{
-							Process.Kill(true);
+							Process.Kill(entireProcessTree: true);
 						}
 						catch (Exception e)
 						{
