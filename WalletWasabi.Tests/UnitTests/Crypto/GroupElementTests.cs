@@ -180,7 +180,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		{
 			var expectedGenerator = "Standard Generator, secp256k1_fe x = { 0x02F81798UL, 0x00A056C5UL, 0x028D959FUL, 0x036CB738UL, 0x03029BFCUL, 0x03A1C2C1UL, 0x0206295CUL, 0x02EEB156UL, 0x027EF9DCUL, 0x001E6F99UL, 1, 1 };secp256k1_fe y = { 0x0310D4B8UL, 0x01F423FEUL, 0x014199C4UL, 0x01229A15UL, 0x00FD17B4UL, 0x0384422AUL, 0x024FBFC0UL, 0x03119576UL, 0x027726A3UL, 0x00120EB6UL, 1, 1 };";
 			var expectedInfinity = "Infinity";
-			var expectedTwo = "secp256k1_fe x = { 0x00709EE5UL, 0x03026E57UL, 0x03CA7ABAUL, 0x012E33BCUL, 0x005C778EUL, 0x01701F36UL, 0x005406E9UL, 0x01F5B4C1UL, 0x039441EDUL, 0x0031811FUL, 1, 0 };secp256k1_fe y = { 0x00CFE52AUL, 0x010C6A54UL, 0x010E1236UL, 0x0194C99BUL, 0x02F7F632UL, 0x019B3ABBUL, 0x00584194UL, 0x030CE68FUL, 0x00FEA63DUL, 0x0006B85AUL, 1, 0 };";
+			var expectedTwo = "secp256k1_fe x = { 0x00709EE5UL, 0x03026E57UL, 0x03CA7ABAUL, 0x012E33BCUL, 0x005C778EUL, 0x01701F36UL, 0x005406E9UL, 0x01F5B4C1UL, 0x039441EDUL, 0x0031811FUL, 1, 1 };secp256k1_fe y = { 0x00CFE52AUL, 0x010C6A54UL, 0x010E1236UL, 0x0194C99BUL, 0x02F7F632UL, 0x019B3ABBUL, 0x00584194UL, 0x030CE68FUL, 0x00FEA63DUL, 0x0006B85AUL, 1, 1 };";
 
 			Assert.Equal(expectedGenerator, GroupElement.G.ToString());
 			Assert.Equal(expectedInfinity, GroupElement.Infinity.ToString());
@@ -273,6 +273,215 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			Scalar one = new Scalar(1);
 			Assert.Equal(new GroupElement(EC.G.Negate() * one), new GroupElement(EC.G * one).Negate());
 			Assert.Equal(GroupElement.Infinity, GroupElement.Infinity.Negate());
+		}
+
+		private byte[] FillByteArray(int length, byte character)
+		{
+			var array = new byte[length];
+			Array.Fill(array, character);
+			return array;
+		}
+
+		[Fact]
+		public void DeserializationThrows()
+		{
+			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(Array.Empty<byte>()));
+			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(new byte[] { 0 }));
+			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(new byte[] { 1 }));
+			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(new byte[] { 0, 1 }));
+			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(new byte[] { 0, 1 }));
+
+			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(FillByteArray(length: 32, character: 0)));
+			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(FillByteArray(length: 63, character: 0)));
+			var infinity = GroupElement.FromBytes(FillByteArray(length: 33, character: 0));
+			Assert.True(infinity.IsInfinity);
+			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(FillByteArray(length: 64, character: 1)));
+			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(FillByteArray(length: 64, character: 2)));
+			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(FillByteArray(length: 65, character: 0)));
+
+			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(ByteHelpers.FromHex("100000000000000000000000000000000000000000000000000000000000000000")));
+		}
+
+		[Theory]
+		[InlineData("000000000000000000000000000000000000000000000000000000000000000000")]
+		[InlineData("001000000000000000000000000000000000000000000000000000000000000000")]
+		[InlineData("002000000000000000000000000000000000000000000000000000000000000000")]
+		[InlineData("003000000000000000000000000000000000000000000000000000000000000000")]
+		[InlineData("000000000000000000000000000000000000000000000000000000000000000001")]
+		public void InfinityDeserialization(string infinityHex)
+		{
+			var infinity = GroupElement.FromBytes(ByteHelpers.FromHex(infinityHex));
+			Assert.True(infinity.IsInfinity);
+			Assert.Equal(GroupElement.Infinity, infinity);
+		}
+
+		[Fact]
+		public void Serialization()
+		{
+			var ge = GroupElement.G;
+			var ge2 = GroupElement.FromBytes(ge.ToBytes());
+			Assert.Equal(ge, ge2);
+
+			ge = GroupElement.Infinity;
+			ge2 = GroupElement.FromBytes(ge.ToBytes());
+			Assert.Equal(ge, ge2);
+
+			// Make sure infinity definition isn't f*d up in the constructor as the frombytes relies on special zero coordinates for infinity.
+			// 1. Try defining infinity with non-zero coordinates should work:
+			ge = new GroupElement(new GE(EC.G.x, EC.G.y, infinity: true));
+			byte[] zeroBytes = ge.ToBytes();
+			ge2 = GroupElement.FromBytes(zeroBytes);
+			Assert.Equal(GroupElement.Infinity, ge2);
+			// 2. Try defining non-infinity with zero coordinates should not work.
+			Assert.ThrowsAny<ArgumentException>(() => new GroupElement(new GE(FE.Zero, FE.Zero, infinity: false)));
+
+			ge = new GroupElement(EC.G * new Scalar(1));
+			ge2 = GroupElement.FromBytes(ge.ToBytes());
+			Assert.Equal(ge, ge2);
+
+			ge = new GroupElement(EC.G * new Scalar(2));
+			ge2 = GroupElement.FromBytes(ge.ToBytes());
+			Assert.Equal(ge, ge2);
+
+			ge = new GroupElement(EC.G * new Scalar(3));
+			ge2 = GroupElement.FromBytes(ge.ToBytes());
+			Assert.Equal(ge, ge2);
+
+			ge = new GroupElement(EC.G * new Scalar(21));
+			ge2 = GroupElement.FromBytes(ge.ToBytes());
+			Assert.Equal(ge, ge2);
+
+			ge = new GroupElement(EC.G * EC.NC);
+			ge2 = GroupElement.FromBytes(ge.ToBytes());
+			Assert.Equal(ge, ge2);
+
+			ge = new GroupElement(EC.G * EC.N);
+			ge2 = GroupElement.FromBytes(ge.ToBytes());
+			Assert.Equal(ge, ge2);
+		}
+
+		[Fact]
+		public void EvenOddSerialization()
+		{
+			var hexG = "0279BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798";
+			var hexGodd = "0379BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798";
+
+			Assert.Equal(hexG, ByteHelpers.ToHex(GroupElement.G.ToBytes()));
+			Assert.Equal(GroupElement.G, GroupElement.FromBytes(ByteHelpers.FromHex(hexG)));
+
+			Assert.Equal(hexGodd, ByteHelpers.ToHex(GroupElement.G.Negate().ToBytes()));
+			Assert.Equal(GroupElement.G.Negate(), GroupElement.FromBytes(ByteHelpers.FromHex(hexGodd)));
+		}
+
+		[Fact]
+		public void PointOutOfCurveDeserialization()
+		{
+			var serialized = FillByteArray(length: 33, character: 0);
+			serialized[0] = GE.SECP256K1_TAG_PUBKEY_EVEN;
+			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(serialized));
+
+			serialized[0] = GE.SECP256K1_TAG_PUBKEY_ODD;
+			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(serialized));
+		}
+
+		[Fact]
+		public void NonNormalizedPointDeserialization()
+		{
+			var p = FE.CONST(
+				0xFFFFFC2FU,
+				0xFFFFFFFFU,
+				0xFFFFFFFFU,
+				0xFFFFFFFFU,
+				0xFFFFFFFFU,
+				0xFFFFFFFFU,
+				0xFFFFFFFFU,
+				0xFFFFFFFFU
+				);
+			var x = EC.G.x;
+			x = x.Add(p);
+			var x3 = ((x * x) * x);
+			var y2 = x3 + new FE(EC.CURVE_B);
+			Assert.True(y2.Sqrt(out var y));
+			var ge = new GroupElement(new GE(x, y));
+
+			var ge2 = GroupElement.FromBytes(ge.ToBytes());
+			Assert.Equal(ge, ge2);
+		}
+
+		[Fact]
+		public void MultiplyByScalar()
+		{
+			// Scalar one.
+			var g = GroupElement.G;
+			var scalar = Scalar.One;
+			var expected = new GroupElement(EC.G * scalar);
+			Assert.Equal(expected, g * scalar);
+
+			// Can switch order.
+			Assert.Equal(expected, scalar * g);
+
+			// Scalar two.
+			scalar = new Scalar(2);
+			expected = new GroupElement(EC.G * scalar);
+			Assert.Equal(expected, g * scalar);
+
+			// Scalar three.
+			scalar = new Scalar(3);
+			expected = new GroupElement(EC.G * scalar);
+			Assert.Equal(expected, g * scalar);
+
+			// Scalar NC.
+			scalar = EC.NC;
+			expected = new GroupElement(EC.G * scalar);
+			Assert.Equal(expected, g * scalar);
+
+			// Scalar big.
+			scalar = new Scalar(int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue);
+			expected = new GroupElement(EC.G * scalar);
+			Assert.Equal(expected, g * scalar);
+
+			// Scalar biggest.
+			scalar = EC.N + Scalar.One.Negate();
+			expected = new GroupElement(EC.G * scalar);
+			Assert.Equal(expected, g * scalar);
+
+			// Scalar zero.
+			scalar = Scalar.Zero;
+			expected = new GroupElement(EC.G * scalar);
+			var result = g * scalar;
+			Assert.Equal(expected, result);
+			Assert.True(result.IsInfinity);
+
+			// Group element is infinity.
+			scalar = new Scalar(2);
+			result = GroupElement.Infinity * scalar;
+			expected = GroupElement.Infinity;
+			Assert.Equal(expected, result);
+			Assert.True(result.IsInfinity);
+
+			// Group element is infinity & Scalar is zero.
+			scalar = Scalar.Zero;
+			result = GroupElement.Infinity * scalar;
+			expected = GroupElement.Infinity;
+			Assert.Equal(expected, result);
+			Assert.True(result.IsInfinity);
+
+			// Scalar overflown N.
+			scalar = EC.N;
+			expected = new GroupElement(EC.G * scalar);
+			Assert.Equal(expected, g * scalar);
+			Assert.Equal(g * Scalar.Zero, g * scalar);
+
+			// Scalar overflown N+1.
+			scalar = EC.N + Scalar.One;
+			expected = new GroupElement(EC.G * scalar);
+			Assert.Equal(expected, g * scalar);
+			Assert.Equal(g * Scalar.One, g * scalar);
+
+			// Scalar overflown uint.Max
+			scalar = new Scalar(uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue);
+			expected = new GroupElement(EC.G * scalar);
+			Assert.Equal(expected, g * scalar);
 		}
 	}
 }
