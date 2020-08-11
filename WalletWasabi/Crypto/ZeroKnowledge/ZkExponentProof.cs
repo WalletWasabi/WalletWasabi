@@ -12,6 +12,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		{
 			Guard.False($"{nameof(publicPoint)}.{nameof(publicPoint.IsInfinity)}", publicPoint.IsInfinity);
 			Guard.False($"{nameof(randomPoint)}.{nameof(randomPoint.IsInfinity)}", randomPoint.IsInfinity);
+			Guard.False($"{nameof(response)}.{nameof(response.IsZero)}", response.IsZero);
 			Guard.False($"{nameof(response)}.{nameof(response.IsOverflow)}", response.IsOverflow);
 			if (publicPoint == randomPoint)
 			{
