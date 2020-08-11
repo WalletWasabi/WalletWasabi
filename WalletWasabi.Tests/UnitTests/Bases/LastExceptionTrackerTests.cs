@@ -1,9 +1,6 @@
-#nullable enable
-
 using System;
 using WalletWasabi.Bases;
 using Xunit;
-using static WalletWasabi.Bases.LastExceptionTracker;
 
 namespace WalletWasabi.Tests.UnitTests.Bases
 {
