@@ -126,7 +126,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 			var ge = new GroupElement(EC.G * one);
 
 			// Kinda clunky, but otherwise CodeFactor won't be happy.
-			GroupElement n = null;
+			GroupElement? n = null;
 
 			Assert.False(ge == n);
 			Assert.True(ge != n);

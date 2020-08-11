@@ -38,13 +38,13 @@ namespace WalletWasabi.Crypto
 
 		public bool IsInfinity => Ge.IsInfinity;
 
-		public override bool Equals(object obj) => Equals(obj as GroupElement);
+		public override bool Equals(object? obj) => Equals(obj as GroupElement);
 
-		public bool Equals(GroupElement other) => this == other;
+		public bool Equals(GroupElement? other) => this == other;
 
 		public override int GetHashCode() => Ge.GetHashCode();
 
-		public static bool operator ==(GroupElement a, GroupElement b)
+		public static bool operator ==(GroupElement? a, GroupElement? b)
 		{
 			if (a is null && b is null)
 			{
@@ -64,7 +64,7 @@ namespace WalletWasabi.Crypto
 			}
 		}
 
-		public static bool operator !=(GroupElement a, GroupElement b) => !(a == b);
+		public static bool operator !=(GroupElement? a, GroupElement? b) => !(a == b);
 
 		/// <summary>
 		/// ToString is only used for nice visual representation during debugging. Do not rely on the result for anything else.
@@ -86,26 +86,14 @@ namespace WalletWasabi.Crypto
 		}
 
 		public static GroupElement operator +(GroupElement a, GroupElement b)
-		{
-			Guard.NotNull(nameof(a), a);
-			Guard.NotNull(nameof(b), b);
-
-			return new GroupElement(a.Ge.ToGroupElementJacobian().AddVariable(b.Ge, out _));
-		}
+			=> new GroupElement(a.Ge.ToGroupElementJacobian().AddVariable(b.Ge, out _));
 
 		public static GroupElement operator -(GroupElement a, GroupElement b)
-		{
-			Guard.NotNull(nameof(a), a);
-			Guard.NotNull(nameof(b), b);
-
-			return a + new GroupElement(b.Ge.Negate());
-		}
+			=> a + new GroupElement(b.Ge.Negate());
 
 		/// <param name="scalar">It's ok for the scalar to overflow.</param>
 		public static GroupElement operator *(Scalar scalar, GroupElement groupElement)
 		{
-			Guard.NotNull(nameof(GroupElement), groupElement);
-
 			// For some strange reason scalar * GE.Infinity isn't infinity. Let's fix it as it should be, since:
 			// 2 * GE.Infinity = GE.Infinity + GE.Infinity = GE.Infinity.
 			if (groupElement.IsInfinity)
