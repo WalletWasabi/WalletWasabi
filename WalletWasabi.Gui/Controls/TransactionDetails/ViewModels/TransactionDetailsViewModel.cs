@@ -19,6 +19,13 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 		private Money _totalOutputValue;
 		private int _inputCount;
 		private int _outputCount;
+		private string _walletName;
+
+		public string WalletName
+		{
+			get => _walletName;
+			set => this.RaiseAndSetIfChanged(ref _walletName, value);
+		}
 
 		public DateTimeOffset DateTime
 		{

@@ -138,6 +138,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				var trs = txRecordList.Select(txr => new TransactionDetailsViewModel
 				{
+					WalletName = Wallet.WalletName,
 					DateTime = txr.DateTime.ToLocalTime(),
 					Confirmations = txr.Height.Type == HeightType.Chain ? (int)Global.BitcoinStore.SmartHeaderChain.TipHeight - txr.Height.Value + 1 : 0,
 					AmountBtc = $"{txr.Amount.ToString(fplus: true, trimExcessZero: true)}",
