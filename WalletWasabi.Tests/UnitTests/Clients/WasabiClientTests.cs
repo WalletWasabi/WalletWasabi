@@ -112,25 +112,25 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			// Disposal test.
 			using (SingleInstanceChecker sic = new SingleInstanceChecker(Network.Main))
 			{
-				await sic.CheckAsync().ConfigureAwait(false);
+				await sic.CheckAsync();
 			}
 
 			// Check different networks.
 			using (SingleInstanceChecker sic = new SingleInstanceChecker(Network.Main))
 			{
-				await sic.CheckAsync().ConfigureAwait(false);
-				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sic.CheckAsync().ConfigureAwait(false));
+				await sic.CheckAsync();
+				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sic.CheckAsync());
 
 				using SingleInstanceChecker sic2 = new SingleInstanceChecker(Network.Main);
-				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sic2.CheckAsync().ConfigureAwait(false));
+				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sic2.CheckAsync());
 
 				using SingleInstanceChecker sicTest = new SingleInstanceChecker(Network.TestNet);
-				await sicTest.CheckAsync().ConfigureAwait(false);
-				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sicTest.CheckAsync().ConfigureAwait(false));
+				await sicTest.CheckAsync();
+				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sicTest.CheckAsync());
 
 				using SingleInstanceChecker sicReg = new SingleInstanceChecker(Network.RegTest);
-				await sicReg.CheckAsync().ConfigureAwait(false);
-				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sicReg.CheckAsync().ConfigureAwait(false));
+				await sicReg.CheckAsync();
+				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sicReg.CheckAsync());
 			}
 		}
 	}

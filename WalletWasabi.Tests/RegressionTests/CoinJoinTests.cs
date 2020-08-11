@@ -1487,7 +1487,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				request.BlindedOutputScripts,
 				request.Inputs,
 				() => BaseUri,
-				null).ConfigureAwait(false);
+				null);
 		}
 	}
 }
