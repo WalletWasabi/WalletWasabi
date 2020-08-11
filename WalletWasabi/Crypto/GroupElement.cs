@@ -35,37 +35,37 @@ namespace WalletWasabi.Crypto
 		public static GroupElement G { get; } = new GroupElement(EC.G);
 
 		/// <summary>
-		/// Generators for MAC and Show.
+		/// Generator for MAC and Show.
 		/// </summary>
 		public static GroupElement Gw { get; } = FromText("Gw");
 
 		/// <summary>
-		/// Generators for MAC and Show.
+		/// Generator for MAC and Show.
 		/// </summary>
 		public static GroupElement Gwp { get; } = FromText("Gwp");
 
 		/// <summary>
-		/// Generators for MAC and Show.
+		/// Generator for MAC and Show.
 		/// </summary>
 		public static GroupElement Gx0 { get; } = FromText("Gx0");
 
 		/// <summary>
-		/// Generators for MAC and Show.
+		/// Generator for MAC and Show.
 		/// </summary>
 		public static GroupElement Gx1 { get; } = FromText("Gx1");
 
 		/// <summary>
-		/// Generators for MAC and Show.
+		/// Generator for MAC and Show.
 		/// </summary>
 		public static GroupElement GV { get; } = FromText("GV");
 
 		/// <summary>
-		/// Generators for Pedersen commitments.
+		/// Generator for Pedersen commitments.
 		/// </summary>
 		public static GroupElement Gg { get; } = FromText("Gg");
 
 		/// <summary>
-		/// Generators for Pedersen commitments.
+		/// Generator for Pedersen commitments.
 		/// </summary>
 		public static GroupElement Gh { get; } = FromText("Gh");
 
