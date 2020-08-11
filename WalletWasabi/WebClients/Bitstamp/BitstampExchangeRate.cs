@@ -1,5 +1,3 @@
-﻿#nullable enable
-
 using Newtonsoft.Json;
 
 namespace WalletWasabi.WebClients.Bitstamp
