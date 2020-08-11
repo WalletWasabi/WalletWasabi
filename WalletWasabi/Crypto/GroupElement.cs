@@ -86,26 +86,14 @@ namespace WalletWasabi.Crypto
 		}
 
 		public static GroupElement operator +(GroupElement a, GroupElement b)
-		{
-			Guard.NotNull(nameof(a), a);
-			Guard.NotNull(nameof(b), b);
-
-			return new GroupElement(a.Ge.ToGroupElementJacobian().AddVariable(b.Ge, out _));
-		}
+			=> new GroupElement(a.Ge.ToGroupElementJacobian().AddVariable(b.Ge, out _));
 
 		public static GroupElement operator -(GroupElement a, GroupElement b)
-		{
-			Guard.NotNull(nameof(a), a);
-			Guard.NotNull(nameof(b), b);
-
-			return a + new GroupElement(b.Ge.Negate());
-		}
+			=> a + new GroupElement(b.Ge.Negate());
 
 		/// <param name="scalar">It's ok for the scalar to overflow.</param>
 		public static GroupElement operator *(Scalar scalar, GroupElement groupElement)
 		{
-			Guard.NotNull(nameof(GroupElement), groupElement);
-
 			// For some strange reason scalar * GE.Infinity isn't infinity. Let's fix it as it should be, since:
 			// 2 * GE.Infinity = GE.Infinity + GE.Infinity = GE.Infinity.
 			if (groupElement.IsInfinity)

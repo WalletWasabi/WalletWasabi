@@ -127,9 +127,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			Assert.Throws<ArgumentOutOfRangeException>(() => new ZkExponentProof(GroupElement.Infinity, point2, scalar));
 			Assert.Throws<ArgumentOutOfRangeException>(() => new ZkExponentProof(point1, GroupElement.Infinity, scalar));
 
-			Assert.Throws<ArgumentOutOfRangeException>(() => new ZkExponentProof(point1, point2, EC.N));
-			Assert.Throws<ArgumentOutOfRangeException>(() => new ZkExponentProof(point1, point2, LargestScalarOverflow));
-
 			Assert.Throws<InvalidOperationException>(() => new ZkExponentProof(point1, point1, scalar));
 		}
 	}
