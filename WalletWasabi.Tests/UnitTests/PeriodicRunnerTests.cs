@@ -38,11 +38,11 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task PeriodicRunnerTestsAsync()
 		{
-			const double Scaler = 3.0;
+			const double Scaler = 5.0;
 			TimeSpan leniencyThreshold = Scaler * TimeSpan.FromSeconds(0.5);
 			TimeSpan period = Scaler * TimeSpan.FromSeconds(1);
 
-			using var runner = new TestRunner(period: period, maxNextRoundWaitTime: TimeSpan.FromSeconds(5));
+			using var runner = new TestRunner(period: period, maxNextRoundWaitTime: TimeSpan.FromSeconds(10));
 			using CancellationTokenSource cts = new CancellationTokenSource();
 
 			var sw = new Stopwatch();
