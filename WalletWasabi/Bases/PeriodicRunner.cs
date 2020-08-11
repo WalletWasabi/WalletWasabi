@@ -1,5 +1,3 @@
-#nullable enable
-
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Threading;
