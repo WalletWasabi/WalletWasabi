@@ -200,8 +200,6 @@ namespace WalletWasabi.Crypto
 		/// </summary>
 		public static GroupElement FromText(string text)
 		{
-			Guard.NotNull(nameof(text), text);
-
 			FE x;
 			GE ge;
 			int nonce = 0;

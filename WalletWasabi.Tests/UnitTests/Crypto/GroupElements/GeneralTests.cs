@@ -306,12 +306,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 			Assert.Equal(ge, ge2);
 		}
 
-		[Fact]
-		public void FromTextFails()
-		{
-			Assert.Throws<ArgumentNullException>(() => GroupElement.FromText(null));
-		}
-
 		[Theory]
 		[InlineData("", "035FECEB66FFC86F38D952786C6D696C79C2DBC239DD4E91B46729D73A27FB57E9")]
 		[InlineData(" ", "03E12A7E051731CF1DBEEFA2142A8E1ABB1EB5898E2CBE4AA522120829A5588DC7")]
