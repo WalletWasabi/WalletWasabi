@@ -9,19 +9,20 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 {
 	public static class ZkProver
 	{
-		public static ZkExponentProof CreateProof(Scalar exponent)
+		public static ZkExponentProof CreateProof(Scalar exponent, GroupElement generator)
 		{
 			Guard.False($"{nameof(exponent)}.{nameof(exponent.IsOverflow)}", exponent.IsOverflow);
 			Guard.False($"{nameof(exponent)}.{nameof(exponent.IsZero)}", exponent.IsZero);
+			Guard.False($"{nameof(generator)}.{nameof(generator.IsInfinity)}", generator.IsInfinity);
 
-			var publicPoint = exponent * GroupElement.G;
+			var publicPoint = exponent * generator;
 			using var secureRandom = new SecureRandom();
 			Scalar randomScalar = Scalar.Zero;
 			while (randomScalar == Scalar.Zero)
 			{
 				randomScalar = secureRandom.GetScalar();
 			}
-			var randomPoint = randomScalar * GroupElement.G;
+			var randomPoint = randomScalar * generator;
 			var challenge = ZkChallenge.Build(publicPoint, randomPoint);
 
 			var response = randomScalar + exponent * challenge;

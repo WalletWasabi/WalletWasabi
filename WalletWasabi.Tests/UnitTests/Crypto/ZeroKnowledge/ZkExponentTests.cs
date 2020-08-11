@@ -23,45 +23,48 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		public void VerifySimpleProof(uint scalarSeed)
 		{
 			var exponent = new Scalar(scalarSeed);
-			var proof = ZkProver.CreateProof(exponent);
-			Assert.True(ZkVerifier.Verify(proof));
+			var gen = new Scalar(2) * GroupElement.G;
+			var proof = ZkProver.CreateProof(exponent, gen);
+			Assert.True(ZkVerifier.Verify(proof, gen));
 		}
 
 		[Fact]
 		public void InvalidExponent()
 		{
 			var exponent = new Scalar(0);
-			Assert.Throws<ArgumentOutOfRangeException>(() => ZkProver.CreateProof(exponent));
+			var gen = new Scalar(3) * GroupElement.G;
+			Assert.Throws<ArgumentOutOfRangeException>(() => ZkProver.CreateProof(exponent, gen));
 			exponent = Scalar.Zero;
-			Assert.Throws<ArgumentOutOfRangeException>(() => ZkProver.CreateProof(exponent));
+			Assert.Throws<ArgumentOutOfRangeException>(() => ZkProver.CreateProof(exponent, gen));
 
 			exponent = EC.N;
-			Assert.Throws<ArgumentOutOfRangeException>(() => ZkProver.CreateProof(exponent));
+			Assert.Throws<ArgumentOutOfRangeException>(() => ZkProver.CreateProof(exponent, gen));
 			exponent = LargestScalarOverflow;
-			Assert.Throws<ArgumentOutOfRangeException>(() => ZkProver.CreateProof(exponent));
+			Assert.Throws<ArgumentOutOfRangeException>(() => ZkProver.CreateProof(exponent, gen));
 		}
 
 		[Fact]
 		public void VerifyLargeScalar()
 		{
 			uint val = int.MaxValue;
+			var gen = new Scalar(4) * GroupElement.G;
 			var exponent = new Scalar(val, val, val, val, val, val, val, val);
-			var proof = ZkProver.CreateProof(exponent);
-			Assert.True(ZkVerifier.Verify(proof));
+			var proof = ZkProver.CreateProof(exponent, gen);
+			Assert.True(ZkVerifier.Verify(proof, gen));
 
 			exponent = EC.N + (new Scalar(1)).Negate();
-			proof = ZkProver.CreateProof(exponent);
-			Assert.True(ZkVerifier.Verify(proof));
+			proof = ZkProver.CreateProof(exponent, gen);
+			Assert.True(ZkVerifier.Verify(proof, gen));
 
 			exponent = EC.NC;
-			proof = ZkProver.CreateProof(exponent);
-			Assert.True(ZkVerifier.Verify(proof));
+			proof = ZkProver.CreateProof(exponent, gen);
+			Assert.True(ZkVerifier.Verify(proof, gen));
 			exponent = EC.NC + new Scalar(1);
-			proof = ZkProver.CreateProof(exponent);
-			Assert.True(ZkVerifier.Verify(proof));
+			proof = ZkProver.CreateProof(exponent, gen);
+			Assert.True(ZkVerifier.Verify(proof, gen));
 			exponent = EC.NC + (new Scalar(1)).Negate();
-			proof = ZkProver.CreateProof(exponent);
-			Assert.True(ZkVerifier.Verify(proof));
+			proof = ZkProver.CreateProof(exponent, gen);
+			Assert.True(ZkVerifier.Verify(proof, gen));
 		}
 
 		[Fact]
@@ -119,7 +122,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var scalar = new Scalar(11);
 
 			var proof = new ZkExponentProof(point1, point2, scalar);
-			Assert.False(ZkVerifier.Verify(proof));
+			Assert.False(ZkVerifier.Verify(proof, GroupElement.G));
 
 			Assert.Throws<ArgumentOutOfRangeException>(() => new ZkExponentProof(GroupElement.Infinity, point2, scalar));
 			Assert.Throws<ArgumentOutOfRangeException>(() => new ZkExponentProof(point1, GroupElement.Infinity, scalar));
