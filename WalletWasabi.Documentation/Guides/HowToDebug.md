@@ -50,9 +50,8 @@ This file contains the list of projects that can be launched, how to do it, what
       "cwd": "${workspaceFolder}/WalletWasabi.Gui",
       "stopAtEntry": false,
       "internalConsoleOptions": "openOnSessionStart",
-      "sourceFileMap": { 
-          "WalletWasabi.Gui/": "${workspaceFolder}/WalletWasabi.Gui", 
-          "WalletWasabi/": "${workspaceFolder}/WalletWasabi" 
+      "sourceFileMap": {
+          ".": "${workspaceFolder}"
       }
    }]
 }
@@ -116,7 +115,8 @@ Add the following launcher to the array of `configurations` in the `.vscode/laun
        "ASPNETCORE_ENVIRONMENT": "Development"
    },
    "sourceFileMap": {
-       "/Views": "${workspaceFolder}/Views"
+       "/Views": "${workspaceFolder}/Views",
+        ".": "${workspaceFolder}"
    }
 }
 ```
@@ -192,7 +192,8 @@ Once this has been done a developer can press (CTRL+SHIFT+D) to go to the debugg
                 "ASPNETCORE_ENVIRONMENT": "Development"
             },
             "sourceFileMap": {
-                "/Views": "${workspaceFolder}/Views"
+                "/Views": "${workspaceFolder}/Views",
+                ".": "${workspaceFolder}"
             }
         },
         {
@@ -206,7 +207,10 @@ Once this has been done a developer can press (CTRL+SHIFT+D) to go to the debugg
             ],
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,
-            "console": "internalConsole"
+            "console": "internalConsole",
+            "sourceFileMap": {
+                ".": "${workspaceFolder}"
+            }
         },
         {
             "name": "Wasabi Unit Tests .NET Core",
@@ -290,9 +294,25 @@ Once this has been done a developer can press (CTRL+SHIFT+D) to go to the debugg
 }
 ```
 
+## Debugging code with unit tests
+
+Because `dotnet test` will run the test code in a child process, it isn't possible to configure a "unit test debugging" configuration in `launch.json`.
+You can tweak debugging options for unit tests by addind the followin setting to your local `.vscode/settings.json` file (if it doesn't exists then create it):
+
+```json
+   "csharp.unitTestDebuggingOptions": {
+        "sourceFileMap": {
+            "WalletWasabi/": "${workspaceFolder}/WalletWasabi",
+            "WalletWasabi.Gui/": "${workspaceFolder}/WalletWasabi.Gui",
+            "WalletWasabi.Tests/": "${workspaceFolder}/WalletWasabi.Tests",
+            "WalletWasabi.Backend/": "${workspaceFolder}/WalletWasabi.Backend"
+        }
+    },
+```
+
 ## How to setup and run the whole system
 
-Sometimes, as developers, we need to test an advanced interaction between the Bitcoin Core node, the Coordinator, and one or more Wasabi clients. 
+Sometimes, as developers, we need to test an advanced interaction between the Bitcoin Core node, the Coordinator, and one or more Wasabi clients.
 Just imagine a case in which we want to verify the system behavior after a blockchain reorg.
 In these cases we have to setup and run all the components, and use regtest.
 

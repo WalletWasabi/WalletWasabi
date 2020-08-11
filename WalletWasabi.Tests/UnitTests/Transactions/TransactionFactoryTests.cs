@@ -559,10 +559,11 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			dict[lockTimeZero] = 0;
 
 			var curTip = 100_000u;
-			var rnd = new Random(123456);
+			var lockTimeSelector = new LockTimeSelector(new Random(123456));
+
 			foreach (var i in Enumerable.Range(0, samplingSize))
 			{
-				var lt = (uint)Wallet.InternalSelectLockTimeForTransaction(curTip, rnd).Height;
+				var lt = (uint)lockTimeSelector.GetLockTimeBasedOnDistribution(curTip).Height;
 				var diff = lt == 0 ? lockTimeZero : lt - curTip;
 				dict[diff]++;
 			}

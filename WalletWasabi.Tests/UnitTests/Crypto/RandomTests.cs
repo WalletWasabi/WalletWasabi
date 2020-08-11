@@ -33,12 +33,11 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var pseudoSet = new HashSet<byte[]>();
 			var secureSet = new HashSet<byte[]>();
 			var count = 100;
-			IWasabiRandom unsecureRandom = new UnsecureRandom();
-			using var secureRandomToDispose = new SecureRandom();
-			IWasabiRandom secureRandom = secureRandomToDispose;
+			var insecureRandom = new InsecureRandom();
+			using var secureRandom = new SecureRandom();
 			for (int i = 0; i < count; i++)
 			{
-				pseudoSet.Add(unsecureRandom.GetBytes(10));
+				pseudoSet.Add(insecureRandom.GetBytes(10));
 				secureSet.Add(secureRandom.GetBytes(10));
 			}
 			Assert.Equal(count, pseudoSet.Count);
@@ -48,10 +47,10 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		[Fact]
 		public void GetBytesArgumentTests()
 		{
-			var randoms = new List<IWasabiRandom>
+			var randoms = new List<WasabiRandom>
 			{
 				new SecureRandom(),
-				new UnsecureRandom(),
+				new InsecureRandom(),
 				new MockRandom()
 			};
 
@@ -68,11 +67,11 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 					var r2 = random.GetBytes(2);
 					Assert.Equal(2, r2.Length);
 				}
+			}
 
-				if (random is SecureRandom secureRandom)
-				{
-					secureRandom.Dispose();
-				}
+			foreach (var random in randoms.Where(x => x is IDisposable))
+			{
+				(random as IDisposable).Dispose();
 			}
 		}
 
@@ -87,10 +86,10 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			};
 			Assert.Single(singleSet);
 
-			var randoms = new List<IWasabiRandom>
+			var randoms = new List<WasabiRandom>
 			{
 				new SecureRandom(),
-				new UnsecureRandom()
+				new InsecureRandom()
 			};
 
 			foreach (var random in randoms)
@@ -104,11 +103,11 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 					set.Add(randomScalar);
 				}
 				Assert.Equal(count, set.Count);
+			}
 
-				if (random is SecureRandom secureRandom)
-				{
-					secureRandom.Dispose();
-				}
+			foreach (var random in randoms.Where(x => x is IDisposable))
+			{
+				(random as IDisposable).Dispose();
 			}
 		}
 
@@ -116,7 +115,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		public void ScalarInternalTests()
 		{
 			var mockRandom = new MockRandom();
-			IWasabiRandom iWasabiRandom = mockRandom;
 
 			// The random should not overfow.
 			mockRandom.GetBytesResults.Add(EC.N.ToBytes());
@@ -134,16 +132,26 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var biggest = EC.N + one.Negate();
 			mockRandom.GetBytesResults.Add(biggest.ToBytes());
 
-			var randomScalar = iWasabiRandom.GetScalar();
+			var randomScalar = mockRandom.GetScalar();
 			Assert.Equal(Scalar.Zero, randomScalar);
-			randomScalar = iWasabiRandom.GetScalar();
+			randomScalar = mockRandom.GetScalar();
 			Assert.Equal(one, randomScalar);
-			randomScalar = iWasabiRandom.GetScalar();
+			randomScalar = mockRandom.GetScalar();
 			Assert.Equal(two, randomScalar);
-			randomScalar = iWasabiRandom.GetScalar();
+			randomScalar = mockRandom.GetScalar();
 			Assert.Equal(big, randomScalar);
-			randomScalar = iWasabiRandom.GetScalar();
+			randomScalar = mockRandom.GetScalar();
 			Assert.Equal(biggest, randomScalar);
+		}
+
+		[Fact]
+		public void RandomStringTests()
+		{
+			var s1 = RandomString.AlphaNumeric(21, true);
+			Assert.Equal(21, s1.Length);
+
+			var s2 = RandomString.CapitalAlphaNumeric(21, false);
+			Assert.Equal(21, s2.Length);
 		}
 	}
 }
