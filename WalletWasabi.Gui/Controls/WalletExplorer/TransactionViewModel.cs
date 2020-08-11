@@ -34,7 +34,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				var shell = IoC.Get<IShell>();
 
-				var transactionInfo = shell.Documents?.OfType<TransactionInfoTabViewModel>()?.FirstOrDefault(x => x.Transaction?.TransactionId == TransactionId);
+				var transactionInfo = shell.Documents?.OfType<TransactionInfoTabViewModel>()?.FirstOrDefault(x => x.Transaction?.TransactionId == TransactionId && x.Transaction?.WalletName == WalletName);
 
 				if (transactionInfo is null)
 				{
@@ -77,6 +77,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public int BlockHeight => TransactionDetails.BlockHeight;
 
 		public string TransactionId => TransactionDetails.TransactionId;
+
+		public string WalletName => TransactionDetails.WalletName;
 
 		public bool ClipboardNotificationVisible
 		{
