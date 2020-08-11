@@ -111,7 +111,7 @@ namespace WalletWasabi.Tests.UnitTests
 			notifier.TriggerRound();
 
 			// Waits at most 1.5s given CancellationTokenSource definition
-			await Task.WhenAny(Task.Delay(Timeout.InfiniteTimeSpan, cts.Token)).ConfigureAwait(false);
+			await Task.WhenAny(Task.Delay(Timeout.InfiniteTimeSpan, cts.Token));
 
 			Assert.True(string.IsNullOrEmpty(message), message);
 
@@ -280,7 +280,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var block = chain.GetBlock(header.GetHash());
 			if (wait)
 			{
-				await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+				await Task.Delay(TimeSpan.FromSeconds(1));
 			}
 			return block;
 		}

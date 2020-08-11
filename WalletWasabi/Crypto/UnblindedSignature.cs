@@ -4,8 +4,6 @@ using NBitcoin.Secp256k1;
 
 namespace WalletWasabi.Crypto
 {
-#nullable enable
-
 	public class UnblindedSignature
 	{
 		internal UnblindedSignature(in Scalar c, in Scalar s)
