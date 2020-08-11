@@ -13,7 +13,7 @@ namespace WalletWasabi.Bases
 		public ExceptionInfo? Process(Exception currentException)
 		{
 			// Only log one type of exception once.
-			if (!(LastException is null)
+			if (LastException is { }
 				&& currentException.GetType() == LastException.Exception.GetType()
 				&& currentException.Message == LastException.Exception.Message)
 			{
