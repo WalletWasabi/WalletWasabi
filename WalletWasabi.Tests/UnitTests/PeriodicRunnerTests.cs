@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc.TagHelpers.Cache;
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -49,7 +50,7 @@ namespace WalletWasabi.Tests.UnitTests
 			sw.Start();
 
 			// Round #1. This round starts immediately.
-			await runner.StartAsync(cts.Token).ConfigureAwait(false);
+			Task<Task> runnerTask = Task.Factory.StartNew(async () => await runner.StartAsync(cts.Token));
 
 			Assert.True(runner.WaitForNextRound());
 			Assert.Equal(1, runner.RoundCounter);
@@ -80,6 +81,7 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.InRange(sw.Elapsed, 2 * runner.Period, 3 * runner.Period + leniencyThreshold); // Elapsed time should not change much from the last round.
 
 			await runner.StopAsync(cts.Token);
+			await runnerTask;
 		}
 	}
 }
