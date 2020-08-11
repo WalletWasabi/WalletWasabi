@@ -62,8 +62,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private const string WaitingForHardwareWalletButtonTextString = "Waiting for Hardware Wallet...";
 
-		private readonly FeeRate MinRelayTxFee = new FeeRate(Money.Satoshis(0), 1);
-		private readonly FeeRate AbsurdlyHighFee = new FeeRate(Money.Satoshis(Constants.MaximumNumberOfSatoshis), 1);
+		private readonly FeeRate MinRelayTxFeeRate = new FeeRate(Money.Satoshis(0), 1);
+		private readonly FeeRate AbsurdlyHighFeeRate = new FeeRate(Money.Satoshis(Constants.MaximumNumberOfSatoshis), 1);
 
 		private FeeDisplayFormat _feeDisplayFormat;
 		private bool _isSliderFeeUsed = true;
