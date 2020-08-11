@@ -12,6 +12,8 @@ namespace WalletWasabi.Bases
 	/// </summary>
 	public abstract class PeriodicRunner : BackgroundService
 	{
+		private volatile TaskCompletionSource<bool>? _tcs;
+
 		protected PeriodicRunner(TimeSpan period)
 		{
 			Period = period;
@@ -19,8 +21,6 @@ namespace WalletWasabi.Bases
 		}
 
 		public TimeSpan Period { get; }
-
-		private volatile TaskCompletionSource<bool>? _tcs;
 
 		private LastExceptionTracker ExceptionTracker { get; }
 
