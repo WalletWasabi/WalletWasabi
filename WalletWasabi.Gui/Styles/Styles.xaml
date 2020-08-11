@@ -26,6 +26,8 @@
       <FontFamily x:Key="MonospacedFont">avares://WalletWasabi.Gui/Assets#Cascadia Mono</FontFamily>
       <converters:ErrorSeverityColorConverter x:Key="ErrorSeverityColorConverter" />
       <converters:ErrorDescriptorToBorderColorConverter x:Key="ErrorDescriptorToBorderColorConverter" />
+      
+      <Thickness x:Key="PageRootPadding">15 0 30 0</Thickness>
     </Style.Resources>
   </Style>
 
