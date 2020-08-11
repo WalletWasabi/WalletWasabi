@@ -36,10 +36,10 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			// Connect and initialize your Trezor T with the following seed phrase:
 			// more maid moon upgrade layer alter marine screen benefit way cover alcohol
 			// Run this test.
-			// displayaddress request: refuse
-			// displayaddress request: confirm
-			// displayaddress request: confirm
-			// signtx request: confirm
+			// displayaddress request: refuse 1 time
+			// displayaddress request: confirm 2 times
+			// displayaddress request: confirm 1 time
+			// signtx request: confirm 23 times + Hold to confirm
 			//
 			// --- USER INTERACTIONS ---
 
@@ -77,9 +77,9 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			// USER SHOULD REFUSE ACTION
 			await Assert.ThrowsAsync<HwiException>(async () => await client.DisplayAddressAsync(deviceType, devicePath, keyPath1, cts.Token));
 
-			// USER: CONFIRM
+			// USER: CONFIRM 2 TIMES
 			BitcoinWitPubKeyAddress address1 = await client.DisplayAddressAsync(deviceType, devicePath, keyPath1, cts.Token);
-			// USER: CONFIRM
+			// USER: CONFIRM 1 TIME
 			BitcoinWitPubKeyAddress address2 = await client.DisplayAddressAsync(fingerprint, keyPath2, cts.Token);
 			Assert.NotNull(address1);
 			Assert.NotNull(address2);
@@ -89,7 +89,7 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			Assert.Equal(expectedAddress1, address1);
 			Assert.Equal(expectedAddress2, address2);
 
-			// USER: CONFIRM
+			// USER: CONFIRM 23 TIMES + Hold to confirm
 			// The user has to confirm multiple times because this transaction spends 22 inputs.
 			// The transaction is similar to these transactions:
 			// https://blockstream.info/testnet/tx/580d04a1891bf5b03a972eb63791e57ca39b85476d45f1d82a09732fe4c9214d
