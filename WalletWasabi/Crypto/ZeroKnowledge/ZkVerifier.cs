@@ -9,8 +9,6 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 	{
 		public static bool Verify(ZkExponentProof proof)
 		{
-			Guard.NotNull(nameof(proof), proof);
-
 			var publicPoint = proof.PublicPoint;
 			var randomPoint = proof.RandomPoint;
 			var challenge = ZkChallenge.Build(publicPoint, randomPoint);
