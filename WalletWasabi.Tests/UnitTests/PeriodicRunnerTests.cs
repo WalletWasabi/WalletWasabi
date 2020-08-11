@@ -49,7 +49,7 @@ namespace WalletWasabi.Tests.UnitTests
 			sw.Start();
 
 			// Round #1. This round starts immediately.
-			await runner.StartAsync(cts.Token);
+			await runner.StartAsync(cts.Token).ConfigureAwait(false);
 
 			Assert.True(runner.WaitForNextRound());
 			Assert.Equal(1, runner.RoundCounter);
