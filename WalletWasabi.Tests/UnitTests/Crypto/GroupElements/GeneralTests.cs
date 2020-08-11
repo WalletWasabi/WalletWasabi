@@ -162,23 +162,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 		}
 
 		[Fact]
-		public void GeneratorCorrect()
-		{
-			var generator = new GroupElement(EC.G);
-			var generator2 = new GroupElement(new GE(EC.G.x, EC.G.y));
-			Assert.Equal(GroupElement.G, generator);
-			Assert.Equal(GroupElement.G, generator2);
-
-			Assert.NotEqual(GroupElement.G, GroupElement.Infinity);
-			Assert.NotEqual(GroupElement.G, new GroupElement(EC.G * Scalar.Zero));
-			Assert.NotEqual(GroupElement.G, new GroupElement(EC.G * new Scalar(2)));
-
-			var infinity = new GroupElement(new GE(EC.G.x, EC.G.y, infinity: true));
-			Assert.NotEqual(GroupElement.G, infinity);
-			Assert.True(infinity.IsInfinity);
-		}
-
-		[Fact]
 		public void ToStringIsNice()
 		{
 			var expectedGenerator = "Standard Generator, secp256k1_fe x = { 0x02F81798UL, 0x00A056C5UL, 0x028D959FUL, 0x036CB738UL, 0x03029BFCUL, 0x03A1C2C1UL, 0x0206295CUL, 0x02EEB156UL, 0x027EF9DCUL, 0x001E6F99UL, 1, 1 };secp256k1_fe y = { 0x0310D4B8UL, 0x01F423FEUL, 0x014199C4UL, 0x01229A15UL, 0x00FD17B4UL, 0x0384422AUL, 0x024FBFC0UL, 0x03119576UL, 0x027726A3UL, 0x00120EB6UL, 1, 1 };";
@@ -321,6 +304,25 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 
 			var ge2 = GroupElement.FromBytes(ge.ToBytes());
 			Assert.Equal(ge, ge2);
+		}
+
+		[Fact]
+		public void FromTextFails()
+		{
+			Assert.Throws<ArgumentNullException>(() => GroupElement.FromText(null));
+		}
+
+		[Theory]
+		[InlineData("", "035FECEB66FFC86F38D952786C6D696C79C2DBC239DD4E91B46729D73A27FB57E9")]
+		[InlineData(" ", "03E12A7E051731CF1DBEEFA2142A8E1ABB1EB5898E2CBE4AA522120829A5588DC7")]
+		[InlineData("  ", "0397D2E845C60987D38F0A97F9E0E0BC9946BF55A499A1F0E5257B0978BBEC85E3")]
+		[InlineData("a", "034E1195DF020DE59E0D65A33A4279F1183E7AE4E5D980E309F8B55ADFF2E61C3E")]
+		[InlineData("12345", "03DD712114FB283417DE4DA3512E17486ADBDA004060D0D1646508C8A2740D29B4")]
+		public void FromText(string text, string expectedHex)
+		{
+			var ge = GroupElement.FromText(text);
+			var hex = ByteHelpers.ToHex(ge.ToBytes());
+			Assert.Equal(expectedHex, hex);
 		}
 	}
 }
