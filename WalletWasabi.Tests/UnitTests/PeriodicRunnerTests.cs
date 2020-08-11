@@ -26,7 +26,7 @@ namespace WalletWasabi.Tests.UnitTests
 			protected override async Task ActionAsync(CancellationToken cancel)
 			{
 				// Add some delay to simulate work.
-				await Task.Delay(50, cancel).ConfigureAwait(false);
+				await Task.Delay(50, cancel);
 				RoundCounter++;
 				NextRoundAutoResetEvent.Set();
 			}
@@ -51,7 +51,7 @@ namespace WalletWasabi.Tests.UnitTests
 			sw.Start();
 
 			// Round #1. This round starts immediately.
-			await runner.StartAsync(cts.Token).ConfigureAwait(false);
+			await runner.StartAsync(cts.Token);
 
 			Assert.True(runner.WaitForNextRound());
 			Assert.Equal(1, runner.RoundCounter);
@@ -81,7 +81,7 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal(4, runner.RoundCounter);
 			Assert.InRange(sw.Elapsed, 2 * runner.Period, 3 * runner.Period + leniencyThreshold); // Elapsed time should not change much from the last round.
 
-			await runner.StopAsync(cts.Token).ConfigureAwait(false);
+			await runner.StopAsync(cts.Token);
 		}
 	}
 }
