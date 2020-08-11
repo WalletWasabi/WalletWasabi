@@ -64,7 +64,18 @@ using (AsyncLock.Lock())
 **DO** use `is null` instead of `== null`. It was a performance consideration in the past but from C# 7.0 it does not matter anymore, today we use this convention to keep our code consistent.
 
 ```cs
-	if (foo is null) return;
+if (foo is null) return;
+```
+
+## Empty quotes
+
+**DO** use `""` instead of `string.Empty` for consistency.
+
+```cs
+if (foo is null)
+{
+	return "";
+}
 ```
 
 ## Blocking
@@ -177,3 +188,6 @@ Some pointers on how to recognise if we are breaking MVVM:
 * Views that depend on more than 1 viewmodel class.
 
 If it seems not possible to implement something without breaking some of this advice please consult with @danwalmsley.
+
+## Avoid using Grid as much as possible, Use Panel instead 
+If you don't need any row or column splitting for your child controls, just use `Panel` as your default container control instead of `Grid` since it is a moderately memory and CPU intensive control.

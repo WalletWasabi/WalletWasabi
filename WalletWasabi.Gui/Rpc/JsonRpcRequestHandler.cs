@@ -53,7 +53,7 @@ namespace WalletWasabi.Gui.Rpc
 				return JsonRpcResponse.CreateErrorResponse(null, JsonRpcErrorCodes.ParseError).ToJson(DefaultSettings);
 			}
 			var results = new List<string>();
-			foreach(var jsonRpcRequest in jsonRpcRequests)
+			foreach (var jsonRpcRequest in jsonRpcRequests)
 			{
 				cancellationToken.ThrowIfCancellationRequested();
 				results.Add(await HandleRequestAsync(jsonRpcRequest, cancellationToken));
@@ -113,13 +113,13 @@ namespace WalletWasabi.Gui.Rpc
 						$"{methodParameters.Count} parameters were expected but {parameters.Count} were received.", jsonRpcRequest.Id);
 				}
 
-				var missingParameters = methodParameters.Count() - parameters.Count(); 
+				var missingParameters = methodParameters.Count() - parameters.Count();
 				parameters.AddRange(methodParameters.TakeLast(missingParameters).Select(x => x.defaultValue));
 				var result = prodecureMetadata.MethodInfo.Invoke(Service, parameters.ToArray());
 
 				if (jsonRpcRequest.IsNotification) // the client is not interested in getting a response
 				{
-					return string.Empty;
+					return "";
 				}
 
 				JsonRpcResponse response = null;
@@ -157,7 +157,7 @@ namespace WalletWasabi.Gui.Rpc
 			var response = JsonRpcResponse.CreateErrorResponse(id, code, reason);
 			return id is { }
 				? response.ToJson(DefaultSettings)
-				: string.Empty;
+				: "";
 		}
 	}
 }

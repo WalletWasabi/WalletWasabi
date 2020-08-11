@@ -2,20 +2,13 @@ using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using NBitcoin.DataEncoders;
 using NBitcoin.Protocol;
-using NBitcoin.Protocol.Behaviors;
-using NBitcoin.RPC;
 using Nito.AsyncEx;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Net.Http;
-using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
-using WalletWasabi.BitcoinCore;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
@@ -25,7 +18,6 @@ using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
-using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -87,7 +79,7 @@ namespace WalletWasabi.Wallets
 		public BitcoinStore BitcoinStore { get; private set; }
 		public KeyManager KeyManager { get; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
-		public CoinJoinClientBase ChaumianClient { get; private set; }
+		public CoinJoinClient ChaumianClient { get; private set; }
 		public NodesGroup Nodes { get; private set; }
 		public ServiceConfiguration ServiceConfiguration { get; private set; }
 		public string WalletName => KeyManager.WalletName;
@@ -103,7 +95,6 @@ namespace WalletWasabi.Wallets
 		public IFeeProvider FeeProvider { get; private set; }
 		public FilterModel LastProcessedFilter { get; private set; }
 		public IBlockProvider BlockProvider { get; private set; }
-		private static Random Random { get; } = new Random();
 		private AsyncLock HandleFiltersLock { get; }
 
 		public void RegisterServices(
@@ -127,14 +118,7 @@ namespace WalletWasabi.Wallets
 				ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 				FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
 
-				if (WasabiClient.ApiVersion == 3)
-				{
-					ChaumianClient = new CoinJoinClient(Synchronizer, Network, KeyManager);
-				}
-				else
-				{
-					ChaumianClient = new CoinJoinClient4(Synchronizer, Network, KeyManager);
-				}
+				ChaumianClient = new CoinJoinClient(Synchronizer, Network, KeyManager);
 
 				TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold, ServiceConfiguration.PrivacyLevelStrong);
 				Coins = TransactionProcessor.Coins;
@@ -231,7 +215,7 @@ namespace WalletWasabi.Wallets
 			var builder = new TransactionFactory(Network, KeyManager, Coins, BitcoinStore, password, allowUnconfirmed);
 			return builder.BuildTransaction(
 				payments,
-				() =>
+				feeRateFetcher: () =>
 				{
 					if (feeStrategy.Type == FeeStrategyType.Target)
 					{
@@ -247,18 +231,12 @@ namespace WalletWasabi.Wallets
 					}
 				},
 				allowedInputs,
-				SelectLockTimeForTransaction,
+				lockTimeSelector: () =>
+				{
+					var currentTipHeight = Synchronizer.BitcoinStore.SmartHeaderChain.TipHeight;
+					return LockTimeSelector.Instance.GetLockTimeBasedOnDistribution(currentTipHeight);
+				},
 				payjoinClient);
-		}
-
-		public void RenameLabel(SmartCoin coin, SmartLabel newLabel)
-		{
-			coin.Label = newLabel ?? SmartLabel.Empty;
-			var key = KeyManager.GetKeys(x => x.P2wpkhScript == coin.ScriptPubKey).SingleOrDefault();
-			if (key != null)
-			{
-				key.SetLabel(coin.Label, KeyManager);
-			}
 		}
 
 		/// <inheritdoc/>
@@ -286,37 +264,6 @@ namespace WalletWasabi.Wallets
 			finally
 			{
 				State = WalletState.Stopped;
-			}
-		}
-
-		internal static LockTime InternalSelectLockTimeForTransaction(uint tipHeight, Random rnd)
-		{
-			try
-			{
-				// We use the timelock distribution observed in the bitcoin network
-				// in order to reduce the wasabi wallet transactions fingerprinting
-				// chances.
-				//
-				// Network observations:
-				// 90.0% uses locktime = 0
-				//  7.5% uses locktime = current tip
-				//  0.65% uses locktime = next tip (current tip + 1)
-				//  1.85% uses up to 5 blocks in the future (we don't do this)
-				//  0.65% uses an uniform random from -1 to -99
-
-				// sometimes pick locktime a bit further back, to help privacy.
-				var randomValue = rnd.NextDouble();
-				return randomValue switch
-				{
-					var r when r < (0.9) => LockTime.Zero,
-					var r when r < (0.9 + 0.075) => tipHeight,
-					var r when r < (0.9 + 0.075 + 0.0065) => tipHeight + 1,
-					_ => (uint)(tipHeight - rnd.Next(1, 100))
-				};
-			}
-			catch
-			{
-				return LockTime.Zero;
 			}
 		}
 
@@ -531,13 +478,6 @@ namespace WalletWasabi.Wallets
 			}
 
 			LastProcessedFilter = filterModel;
-		}
-
-		private LockTime SelectLockTimeForTransaction()
-		{
-			var currentTipHeight = Synchronizer.BitcoinStore.SmartHeaderChain.TipHeight;
-
-			return InternalSelectLockTimeForTransaction(currentTipHeight, Random);
 		}
 
 		public void SetWaitingForInitState()

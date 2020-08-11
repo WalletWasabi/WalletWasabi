@@ -14,15 +14,15 @@
       <ControlTemplate>
         <Border Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
           <DockPanel Margin="{TemplateBinding Padding}">
-            <Grid>
-              <Grid IsVisible="{TemplateBinding ClipboardNotificationVisible}">
-                <Grid Opacity="{TemplateBinding ClipboardNotificationOpacity}">
-                  <Grid.Transitions>
+            <Panel>
+              <Panel IsVisible="{TemplateBinding ClipboardNotificationVisible}">
+                <Panel Opacity="{TemplateBinding ClipboardNotificationOpacity}">
+                  <Panel.Transitions>
                     <DoubleTransition Property="Opacity" Easing="CircularEaseIn" Duration="0:0:0.5" />
-                  </Grid.Transitions>
+                  </Panel.Transitions>
                   <TextBlock Text="Copied" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White" FontWeight="Bold" />
-                </Grid>
-              </Grid>
+                </Panel>
+              </Panel>
               <TextBlock Name="floatingWatermark" Foreground="{DynamicResource ThemeAccentBrush}" FontSize="{DynamicResource FontSizeSmall}" Text="{TemplateBinding Watermark}" DockPanel.Dock="Top">
                 <TextBlock.IsVisible>
                   <MultiBinding Converter="{x:Static BoolConverters.And}">
@@ -54,7 +54,7 @@
                   </Panel>
                 </ScrollViewer>
               </DataValidationErrors>
-            </Grid>
+            </Panel>
           </DockPanel>
         </Border>
       </ControlTemplate>

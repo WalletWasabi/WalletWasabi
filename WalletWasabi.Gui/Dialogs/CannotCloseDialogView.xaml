@@ -9,11 +9,7 @@
         <Button Width="100" Content="Ok" Command="{Binding OKCommand}" IsVisible="{Binding !IsBusy}" />
         <Button Width="100" Content="Cancel" Command="{Binding CancelCommand}" IsVisible="{Binding IsBusy}" />
       </StackPanel>
-      <Grid Classes="content">
-        <Grid.RowDefinitions>
-          <RowDefinition />
-          <RowDefinition />
-        </Grid.RowDefinitions>
+      <Grid Classes="content" RowDefinitions="*,*">
         <Panel Grid.Row="0" Margin="10">
           <TextBlock FontSize="15" Text="You have coins registered for CoinJoin. Wasabi is dequeing them. If a coin is currently being coinjoined Wasabi will wait for the mix to finish, so you do not disrupt the mixing round. This could take a few minutes, please be patient." TextWrapping="Wrap" />
         </Panel>

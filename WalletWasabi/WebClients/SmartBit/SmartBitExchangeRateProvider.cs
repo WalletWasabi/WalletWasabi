@@ -16,7 +16,7 @@ namespace WalletWasabi.WebClients.SmartBit
 
 		private SmartBitClient Client { get; }
 
-		public async Task<List<ExchangeRate>> GetExchangeRateAsync()
+		public async Task<IEnumerable<ExchangeRate>> GetExchangeRateAsync()
 		{
 			var rates = await Client.GetExchangeRatesAsync(CancellationToken.None);
 			var rate = rates.Single(x => x.Code == "USD");
