@@ -7,11 +7,11 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 {
 	public static class ZkVerifier
 	{
-		public static bool Verify(ZkExponentProof proof, GroupElement generator)
+		public static bool Verify(ZkExponentProof proof, GroupElement publicPoint, GroupElement generator)
 		{
 			Guard.False($"{nameof(generator)}.{nameof(generator.IsInfinity)}", generator.IsInfinity);
+			Guard.False($"{nameof(publicPoint)}.{nameof(publicPoint.IsInfinity)}", publicPoint.IsInfinity);
 
-			var publicPoint = proof.PublicPoint;
 			var randomPoint = proof.RandomPoint;
 			var challenge = ZkChallenge.Build(publicPoint, randomPoint);
 
