@@ -209,7 +209,7 @@ namespace WalletWasabi.Crypto
 				x = new FE(sha256.ComputeHash(Encoding.UTF8.GetBytes(text + nonce)));
 				nonce++;
 			}
-			while (!GE.TryCreateXOVariable(x, true, out ge));
+			while (!GE.TryCreateXQuad(x, out ge));
 
 			return new GroupElement(ge);
 		}
