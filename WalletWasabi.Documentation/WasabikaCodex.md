@@ -12,6 +12,8 @@
 7. Check the [notifications](https://github.com/notifications).
 8. Work on anything you want - assign it to yourself.
 
+
+
 ## Weekly routine
 
 - Wednesday: Developer meeting. Use [dev meeting board](https://github.com/orgs/zkSNACKs/projects/1) to manage tasks.
@@ -62,6 +64,19 @@ __Fact__: code review is one of the few scientifically proven code improvement t
 
 - Visual Studio 2019 errors:
   - If you get an error about Visual Studio does not support `WalletWasabi.WindowsInstaller` then you can fix this by installing `WiX Toolset Visual Studio 2019 Extension`. After the the installation reload the `WalletWasabi.WindowsInstaller` project by right click (on it) -> `Reload project`.
+  
+## Git tips
+
+- Scripts
+  - Add these lines to your `C:\Users\{YourUser}\.gitconfig` file.
+   ```
+   [alias]
+      upd = "!f(){ git fetch upstream && git checkout master && git rebase upstream/master && git push -f origin master && git branch --merged; };f"
+      del = "!f(){ git checkout master && (git branch -D \"$1\"; git push origin --delete \"$1\"); git branch; };f"
+   ```
+  - How to use
+    - `git upd` in console in the project libary will update the forked repository
+    - `git del`
 
 ### Clever Extensions
 
