@@ -61,6 +61,9 @@ __Fact__: code review is one of the few scientifically proven code improvement t
 
 ## Visual Studio Tips (Windows)
 
+- Visual Studio 2019 errors:
+  - If you get an error about Visual Studio does not support `WalletWasabi.WindowsInstaller` then you can fix this by installing `WiX Toolset Visual Studio 2019 Extension`. After the the installation reload the `WalletWasabi.WindowsInstaller` project by right click (on it) -> `Reload project`.
+
 ### Clever Extensions
 
 - Open [Power Shell or Command Line with hotkey](https://marketplace.visualstudio.com/items?itemName=MadsKristensen.OpenCommandLine). By pressing Alt-Space a cmd prompt will be opened. You can change the default command line tool under Tools/Options/Command Line => Select preset. `Always open at solution` level option is also a useful feature.
