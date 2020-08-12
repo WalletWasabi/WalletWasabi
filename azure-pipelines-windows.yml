@@ -29,6 +29,12 @@ jobs:
       command: build
       arguments: --no-restore --configuration Release
   - task: DotNetCoreCLI@2
+    displayName: 'Test PeriodicRunner'
+    inputs:
+      command: test
+      projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
+      arguments: --configuration $(testConfiguration) --filter "PeriodicRunnerTests" --logger "console;verbosity=detailed"
+  - task: DotNetCoreCLI@2
     displayName: 'Test Debug'
     inputs:
       command: test

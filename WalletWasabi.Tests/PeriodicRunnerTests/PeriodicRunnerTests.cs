@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests
+namespace WalletWasabi.Tests.PeriodicRunnerTests
 {
 	public class PeriodicRunnerTests
 	{
@@ -24,9 +24,22 @@ namespace WalletWasabi.Tests.UnitTests
 			protected override async Task ActionAsync(CancellationToken cancel)
 			{
 				// Add some delay to simulate work.
-				await Task.Delay(50, cancel);
+				await Task.Delay(50, cancel).ConfigureAwait(false);
 				RoundCounter++;
-				Semaphore.Release();
+				Logging.Logger.LogInfo($"> {Thread.CurrentThread.ManagedThreadId} | TestRunner:ActionAsync: #3");
+
+				try
+				{
+					Semaphore.Release();
+
+					Logging.Logger.LogInfo($"> {Thread.CurrentThread.ManagedThreadId} | TestRunner:ActionAsync: #4");
+				}
+				catch (Exception e)
+				{
+					Logging.Logger.LogInfo($"> {Thread.CurrentThread.ManagedThreadId} | TestRunner:ActionAsync: {e}");
+				}
+
+				Logging.Logger.LogInfo($"< {Thread.CurrentThread.ManagedThreadId} | TestRunner:ActionAsync (RoundCounter: {RoundCounter})");
 			}
 
 			public async Task<bool> WaitForNextRoundAsync()
