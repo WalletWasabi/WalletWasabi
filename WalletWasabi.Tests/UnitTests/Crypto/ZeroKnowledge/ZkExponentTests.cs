@@ -238,6 +238,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		{
 			var mockRandom = new MockRandom();
 			mockRandom.GetScalarResults.Add(Scalar.Zero);
+
 			// Don't tolerate if the second zero scalar random is received.
 			mockRandom.GetScalarResults.Add(Scalar.Zero);
 
