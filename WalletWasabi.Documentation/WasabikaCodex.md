@@ -22,6 +22,7 @@
 | MaxHillebrand | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3AMaxHillebrand) |
 | nopara73 | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Anopara73) |
 | yahiheb | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Ayahiheb) |
+| soosr | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Asoosr) |
 
 
 ## Weekly routine
