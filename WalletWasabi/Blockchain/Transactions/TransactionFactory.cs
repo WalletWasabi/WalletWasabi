@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -14,7 +13,6 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Stores;
 using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Blockchain.Transactions
@@ -22,12 +20,12 @@ namespace WalletWasabi.Blockchain.Transactions
 	public class TransactionFactory
 	{
 		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
-		public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, BitcoinStore store, string password = "", bool allowUnconfirmed = false)
+		public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, AllTransactionStore transactionStore, string password = "", bool allowUnconfirmed = false)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			Coins = Guard.NotNull(nameof(coins), coins);
-			Store = Guard.NotNull(nameof(store), store);
+			TransactionStore = Guard.NotNull(nameof(transactionStore), transactionStore);
 			Password = password;
 			AllowUnconfirmed = allowUnconfirmed;
 		}
@@ -35,9 +33,9 @@ namespace WalletWasabi.Blockchain.Transactions
 		public Network Network { get; }
 		public KeyManager KeyManager { get; }
 		public ICoinsView Coins { get; }
-		public BitcoinStore Store { get; }
 		public string Password { get; }
 		public bool AllowUnconfirmed { get; }
+		private AllTransactionStore TransactionStore { get; }
 
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
@@ -370,7 +368,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			foreach (var input in spentCoins)
 			{
 				var coinInputTxID = input.TransactionId;
-				if (Store.TransactionStore.TryGetTransaction(coinInputTxID, out var txn))
+				if (TransactionStore.TryGetTransaction(coinInputTxID, out var txn))
 				{
 					var psbtInputs = psbt.Inputs.Where(x => x.PrevOut.Hash == coinInputTxID);
 					foreach (var psbtInput in psbtInputs)
