@@ -86,8 +86,6 @@
         <Panel Height="10" Width="10" IsVisible="{Binding CriticalUpdateAvailable}">
           <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource StatusBar_YellowFlag}" />
         </Panel>
-        <TextBlock Text="{Binding Network, Converter={StaticResource NetworkStringConverter}}" />
-        <TextBlock Text="|" />
         <TextBlock Text="{Binding Status}" />
       </StackPanel>
     </DockPanel>
