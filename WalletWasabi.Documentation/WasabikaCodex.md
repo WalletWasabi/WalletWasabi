@@ -12,6 +12,16 @@
 7. Check the [notifications](https://github.com/notifications).
 8. Work on anything you want - assign it to yourself.
 
+| Developer | Issues |
+| --- | --- |
+| molnard | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Amolnard) |
+| jmacato | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Ajmacato) |
+| danwalmsley | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Adanwalmsley) |
+| kiminuo | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Akiminuo) |
+| lontivero | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Alontivero) |
+| MaxHillebrand | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3AMaxHillebrand) |
+| nopara73 | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Anopara73) |
+| yahiheb | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Ayahiheb) |
 
 
 ## Weekly routine
@@ -67,16 +77,16 @@ __Fact__: code review is one of the few scientifically proven code improvement t
   
 ## Git tips
 
-- Scripts
-  - Add these lines to your `C:\Users\{YourUser}\.gitconfig` file.
+- Scripts  
+  Add these lines to your `C:\Users\{YourUser}\.gitconfig` file.  
    ```
    [alias]
       upd = "!f(){ git fetch upstream && git checkout master && git rebase upstream/master && git push -f origin master && git branch --merged; };f"
       del = "!f(){ git checkout master && (git branch -D \"$1\"; git push origin --delete \"$1\"); git branch; };f"
    ```
-  - How to use
-    - `git upd` in console in the project libary will update the forked repository
-    - `git del`
+  You can use it in console in project libary by the following commands:  
+   - `git upd` -> update the forked repository  
+   - `git del` ->
 
 ### Clever Extensions
 
