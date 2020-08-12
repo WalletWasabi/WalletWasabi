@@ -180,7 +180,7 @@ namespace WalletWasabi.Packager
 		private static void CreateDigests()
 		{
 			var tempDir = "DigestTempDir";
-			IoHelpers.DeleteRecursivelyWithMagicDustAsync(tempDir).GetAwaiter().GetResult();
+			IoHelpers.TryDeleteDirectoryAsync(tempDir).GetAwaiter().GetResult();
 			Directory.CreateDirectory(tempDir);
 
 			var torDaemonsDir = Path.Combine(LibraryProjectDirectory, "TorDaemons");
@@ -206,7 +206,7 @@ namespace WalletWasabi.Packager
 				Console.WriteLine($"{file.Name}: {hash}");
 			}
 
-			IoHelpers.DeleteRecursivelyWithMagicDustAsync(tempDir).GetAwaiter().GetResult();
+			IoHelpers.TryDeleteDirectoryAsync(tempDir).GetAwaiter().GetResult();
 		}
 
 		private static void ReportStatus()
@@ -278,7 +278,7 @@ namespace WalletWasabi.Packager
 						process.WaitForExit();
 					}
 
-					IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter().GetResult();
+					IoHelpers.TryDeleteDirectoryAsync(publishedFolder).GetAwaiter().GetResult();
 					Console.WriteLine($"Deleted {publishedFolder}");
 				}
 				else if (target.StartsWith("osx", StringComparison.OrdinalIgnoreCase))
@@ -331,7 +331,7 @@ namespace WalletWasabi.Packager
 		{
 			if (Directory.Exists(BinDistDirectory))
 			{
-				IoHelpers.DeleteRecursivelyWithMagicDustAsync(BinDistDirectory).GetAwaiter().GetResult();
+				IoHelpers.TryDeleteDirectoryAsync(BinDistDirectory).GetAwaiter().GetResult();
 				Console.WriteLine($"Deleted {BinDistDirectory}");
 			}
 
@@ -350,12 +350,12 @@ namespace WalletWasabi.Packager
 			var libraryBinReleaseDirectory = Path.GetFullPath(Path.Combine(LibraryProjectDirectory, "bin", "Release"));
 			if (Directory.Exists(guiBinReleaseDirectory))
 			{
-				IoHelpers.DeleteRecursivelyWithMagicDustAsync(guiBinReleaseDirectory).GetAwaiter().GetResult();
+				IoHelpers.TryDeleteDirectoryAsync(guiBinReleaseDirectory).GetAwaiter().GetResult();
 				Console.WriteLine($"Deleted {guiBinReleaseDirectory}");
 			}
 			if (Directory.Exists(libraryBinReleaseDirectory))
 			{
-				IoHelpers.DeleteRecursivelyWithMagicDustAsync(libraryBinReleaseDirectory).GetAwaiter().GetResult();
+				IoHelpers.TryDeleteDirectoryAsync(libraryBinReleaseDirectory).GetAwaiter().GetResult();
 				Console.WriteLine($"Deleted {libraryBinReleaseDirectory}");
 			}
 
@@ -474,7 +474,7 @@ namespace WalletWasabi.Packager
 				{
 					if (!dir.Name.Contains(toNotRemove, StringComparison.OrdinalIgnoreCase))
 					{
-						IoHelpers.DeleteRecursivelyWithMagicDustAsync(dir.FullName).GetAwaiter().GetResult();
+						IoHelpers.TryDeleteDirectoryAsync(dir.FullName).GetAwaiter().GetResult();
 					}
 				}
 
@@ -522,7 +522,7 @@ namespace WalletWasabi.Packager
 
 					ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(BinDistDirectory, $"Wasabi-osx-{VersionPrefix}.zip"));
 
-					IoHelpers.DeleteRecursivelyWithMagicDustAsync(currentBinDistDirectory).GetAwaiter().GetResult();
+					IoHelpers.TryDeleteDirectoryAsync(currentBinDistDirectory).GetAwaiter().GetResult();
 					Console.WriteLine($"Deleted {currentBinDistDirectory}");
 				}
 				else if (target.StartsWith("linux"))
@@ -670,13 +670,13 @@ namespace WalletWasabi.Packager
 						process.WaitForExit();
 					}
 
-					IoHelpers.DeleteRecursivelyWithMagicDustAsync(debFolderPath).GetAwaiter().GetResult();
+					IoHelpers.TryDeleteDirectoryAsync(debFolderPath).GetAwaiter().GetResult();
 
 					string oldDeb = Path.Combine(BinDistDirectory, $"{ExecutableName}_{VersionPrefix}_amd64.deb");
 					string newDeb = Path.Combine(BinDistDirectory, $"Wasabi-{VersionPrefix}.deb");
 					File.Move(oldDeb, newDeb);
 
-					IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter().GetResult();
+					IoHelpers.TryDeleteDirectoryAsync(publishedFolder).GetAwaiter().GetResult();
 					Console.WriteLine($"Deleted {publishedFolder}");
 				}
 			}

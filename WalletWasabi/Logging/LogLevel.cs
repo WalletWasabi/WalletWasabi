@@ -5,7 +5,7 @@ namespace WalletWasabi.Logging
 		/// <summary>
 		/// For information that is valuable only to a developer debugging an issue.
 		/// These messages may contain sensitive application data and so should not be enabled in a production environment.
-		/// Example: "Credentials: {"User":"someuser", "Password":"P@ssword"}"
+		/// Example: "Credentials: {"User":"SomeUser", "Password":"P@ssword"}"
 		/// </summary>
 		Trace,
 

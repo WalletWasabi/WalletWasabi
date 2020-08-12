@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
@@ -11,49 +10,53 @@ namespace System.IO
 {
 	public static class IoHelpers
 	{
-		// http://stackoverflow.com/a/14933880/2061103
-		public static async Task DeleteRecursivelyWithMagicDustAsync(string destinationDir)
+		/// <summary>
+		/// Attempts to delete <paramref name="directory"/> with retry feature to allow File Explorer or any other
+		/// application that holds the directory handle of the <paramref name="directory"/> to release it.
+		/// </summary>
+		/// <see href="https://stackoverflow.com/questions/329355/cannot-delete-directory-with-directory-deletepath-true/14933880#44324346"/>
+		public static async Task<bool> TryDeleteDirectoryAsync(string directory, int maxRetries = 10, int millisecondsDelay = 100)
 		{
-			const int MagicDust = 10;
-			for (var gnomes = 1; gnomes <= MagicDust; gnomes++)
+			if (directory is null)
+			{
+				throw new ArgumentNullException(directory);
+			}
+
+			if (maxRetries < 1)
+			{
+				throw new ArgumentOutOfRangeException(nameof(maxRetries));
+			}
+
+			if (millisecondsDelay < 1)
+			{
+				throw new ArgumentOutOfRangeException(nameof(millisecondsDelay));
+			}
+
+			for (int i = 0; i < maxRetries; ++i)
 			{
 				try
 				{
-					Directory.Delete(destinationDir, true);
-				}
-				catch (DirectoryNotFoundException)
-				{
-					return; // good!
-				}
-				catch (IOException)
-				{
-					if (gnomes == MagicDust)
+					if (Directory.Exists(directory))
 					{
-						throw;
+						Directory.Delete(directory, recursive: true);
 					}
-					// System.IO.IOException: The directory is not empty
-					Logger.LogDebug($"Gnomes prevent deletion of {destinationDir}! Applying magic dust, attempt #{gnomes}.");
 
-					// see http://stackoverflow.com/questions/329355/cannot-delete-directory-with-directory-deletepath-true for more magic
-					await Task.Delay(100);
-					continue;
+					return true;
 				}
-				catch (UnauthorizedAccessException)
+				catch (DirectoryNotFoundException e)
 				{
-					if (gnomes == MagicDust)
-					{
-						throw;
-					}
-					// Wait, maybe another software make us authorized a little later
-					Logger.LogDebug($"Gnomes prevent deletion of {destinationDir}! Applying magic dust, attempt #{gnomes}.");
+					Logger.LogDebug($"Directory was not found: {e}");
 
-					// see http://stackoverflow.com/questions/329355/cannot-delete-directory-with-directory-deletepath-true for more magic
-					await Task.Delay(100);
-					continue;
+					// Directory does not exist. So the operation is trivially done.
+					return true;
 				}
-				return;
+				catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+				{
+					await Task.Delay(millisecondsDelay).ConfigureAwait(false);
+				}
 			}
-			// depending on your use case, consider throwing an exception here
+
+			return false;
 		}
 
 		public static async Task BetterExtractZipToDirectoryAsync(string src, string dest)
@@ -72,14 +75,14 @@ namespace System.IO
 		public static void EnsureContainingDirectoryExists(string fileNameOrPath)
 		{
 			string fullPath = Path.GetFullPath(fileNameOrPath); // No matter if relative or absolute path is given to this.
-			string dir = Path.GetDirectoryName(fullPath);
+			string? dir = Path.GetDirectoryName(fullPath);
 			EnsureDirectoryExists(dir);
 		}
 
 		/// <summary>
 		/// It's like Directory.CreateDirectory, but does not fail when root is given.
 		/// </summary>
-		public static void EnsureDirectoryExists(string dir)
+		public static void EnsureDirectoryExists(string? dir)
 		{
 			if (!string.IsNullOrWhiteSpace(dir)) // If root is given, then do not worry.
 			{

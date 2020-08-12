@@ -36,17 +36,24 @@ namespace WalletWasabi.Crypto.Randomness
 			return random;
 		}
 
-		public Scalar GetScalar()
+		public virtual Scalar GetScalar(bool allowZero = true)
 		{
 			Scalar randomScalar;
 			int overflow;
 			Span<byte> buffer = stackalloc byte[32];
+			var randomWasZero = false;
 			do
 			{
 				GetBytes(buffer);
 				randomScalar = new Scalar(buffer, out overflow);
+
+				if (randomScalar.IsZero && randomWasZero)
+				{
+					throw new InvalidOperationException("Random generator generated zero scalar twice in a row. Stop using this computer now!");
+				}
+				randomWasZero = randomScalar.IsZero;
 			}
-			while (overflow != 0);
+			while (overflow != 0 || (!allowZero && randomScalar.IsZero));
 			return randomScalar;
 		}
 	}

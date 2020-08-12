@@ -1,5 +1,3 @@
-#nullable enable
-
 using NBitcoin;
 using System;
 using System.Collections.Generic;

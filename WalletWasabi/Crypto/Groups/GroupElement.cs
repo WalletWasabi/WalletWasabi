@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.Crypto
+namespace WalletWasabi.Crypto.Groups
 {
 	public class GroupElement : IEquatable<GroupElement>
 	{
@@ -29,22 +29,17 @@ namespace WalletWasabi.Crypto
 
 		public static GroupElement Infinity { get; } = new GroupElement(GE.Infinity);
 
-		/// <summary>
-		/// The base point defined in the secp256k1 standard used in ECDSA public key derivation.
-		/// </summary>
-		public static GroupElement G { get; } = new GroupElement(EC.G);
-
 		private GE Ge { get; }
 
 		public bool IsInfinity => Ge.IsInfinity;
 
-		public override bool Equals(object obj) => Equals(obj as GroupElement);
+		public override bool Equals(object? obj) => Equals(obj as GroupElement);
 
-		public bool Equals(GroupElement other) => this == other;
+		public bool Equals(GroupElement? other) => this == other;
 
 		public override int GetHashCode() => Ge.GetHashCode();
 
-		public static bool operator ==(GroupElement a, GroupElement b)
+		public static bool operator ==(GroupElement? a, GroupElement? b)
 		{
 			if (a is null && b is null)
 			{
@@ -64,7 +59,7 @@ namespace WalletWasabi.Crypto
 			}
 		}
 
-		public static bool operator !=(GroupElement a, GroupElement b) => !(a == b);
+		public static bool operator !=(GroupElement? a, GroupElement? b) => !(a == b);
 
 		/// <summary>
 		/// ToString is only used for nice visual representation during debugging. Do not rely on the result for anything else.
@@ -75,9 +70,9 @@ namespace WalletWasabi.Crypto
 			{
 				return "Infinity";
 			}
-			else if (Ge.x == EC.G.x && Ge.y == EC.G.y)
+			else if (Generators.TryGetFriendlyGeneratorName(this, out string generatorName))
 			{
-				return $"Standard Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
+				return $"{generatorName}, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
 			}
 			else
 			{
@@ -86,26 +81,14 @@ namespace WalletWasabi.Crypto
 		}
 
 		public static GroupElement operator +(GroupElement a, GroupElement b)
-		{
-			Guard.NotNull(nameof(a), a);
-			Guard.NotNull(nameof(b), b);
-
-			return new GroupElement(a.Ge.ToGroupElementJacobian().AddVariable(b.Ge, out _));
-		}
+			=> new GroupElement(a.Ge.ToGroupElementJacobian().AddVariable(b.Ge, out _));
 
 		public static GroupElement operator -(GroupElement a, GroupElement b)
-		{
-			Guard.NotNull(nameof(a), a);
-			Guard.NotNull(nameof(b), b);
-
-			return a + new GroupElement(b.Ge.Negate());
-		}
+			=> a + new GroupElement(b.Ge.Negate());
 
 		/// <param name="scalar">It's ok for the scalar to overflow.</param>
 		public static GroupElement operator *(Scalar scalar, GroupElement groupElement)
 		{
-			Guard.NotNull(nameof(GroupElement), groupElement);
-
 			// For some strange reason scalar * GE.Infinity isn't infinity. Let's fix it as it should be, since:
 			// 2 * GE.Infinity = GE.Infinity + GE.Infinity = GE.Infinity.
 			if (groupElement.IsInfinity)
@@ -159,6 +142,26 @@ namespace WalletWasabi.Crypto
 				GE.SECP256K1_TAG_PUBKEY_EVEN => Parse(bytes[1..], isOdd: false),
 				_ => throw new ArgumentException($"Argument is not a well-formatted group element.", nameof(bytes))
 			};
+		}
+
+		/// <summary>
+		/// Deterministically creates a group element from the given text.
+		/// Uniqueness relies on the SHA256 hash function.
+		/// </summary>
+		public static GroupElement FromText(string text)
+		{
+			FE x;
+			GE ge;
+			int nonce = 0;
+			using var sha256 = System.Security.Cryptography.SHA256.Create();
+			do
+			{
+				x = new FE(sha256.ComputeHash(Encoding.UTF8.GetBytes(text + nonce)));
+				nonce++;
+			}
+			while (!GE.TryCreateXQuad(x, out ge));
+
+			return new GroupElement(ge);
 		}
 	}
 }

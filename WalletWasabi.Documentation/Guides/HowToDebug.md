@@ -163,6 +163,9 @@ Once this has been done a developer can press (CTRL+SHIFT+D) to go to the debugg
             "cwd": "${workspaceFolder}/WalletWasabi.Gui",
             "stopAtEntry": false,
             "internalConsoleOptions": "openOnSessionStart",
+            "sourceFileMap": {
+                ".": "${workspaceFolder}"
+            }
         },
         {
             "name": "Wasabi Backend .NET Core",

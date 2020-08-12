@@ -2,11 +2,9 @@ using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Hwi;
-using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Hwi.Parsers;
 using WalletWasabi.Hwi.ProcessBridge;
@@ -115,21 +113,6 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			cts.CancelAfter(ReasonableRequestTimeout * tasks.Count);
 
 			await Task.WhenAny(tasks);
-		}
-
-		[Fact]
-		public async Task HwiProcessBridgeTestAsync()
-		{
-			HwiProcessBridge pb = new HwiProcessBridge();
-
-			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
-			var res = await pb.SendCommandAsync("version", false, cts.Token);
-			Assert.NotEmpty(res.response);
-
-			bool stdInputActionCalled = false;
-			res = await pb.SendCommandAsync("version", false, cts.Token, (sw) => stdInputActionCalled = true);
-			Assert.NotEmpty(res.response);
-			Assert.True(stdInputActionCalled);
 		}
 
 		[Fact]
