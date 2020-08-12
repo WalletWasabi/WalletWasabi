@@ -123,7 +123,7 @@ namespace NBitcoin.RPC
 		}
 
 		private static Dictionary<int, FeeRate> SimulateRegTestFeeEstimation(EstimateSmartFeeMode estimateMode) =>
-			new []{2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, Constants.SevenDaysConfirmationTarget}
+			new[]{ 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, Constants.SevenDaysConfirmationTarget }
 			.Select(target => SimulateRegTestFeeEstimation(target, estimateMode))
 			.ToDictionary(x => x.Blocks, x => x.FeeRate);
 
@@ -144,7 +144,6 @@ namespace NBitcoin.RPC
 			return null;
 		}
 
-
 		public static async Task<AllFeeEstimate> EstimateAllFeeAsync(this IRPCClient rpc, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false)
 		{
 			var rpcStatus = await rpc.GetRpcStatusAsync(CancellationToken.None).ConfigureAwait(false);
@@ -153,19 +152,17 @@ namespace NBitcoin.RPC
 				? SimulateRegTestFeeEstimation(estimateMode)
 				: await GetFeeEstimationsAsync(rpc, estimateMode);
 
-			return new AllFeeEstimate
-			(
+			return new AllFeeEstimate(
 				estimateMode,
 				estmimations,
-				rpcStatus.Synchronized
-			);
+				rpcStatus.Synchronized);
 		}
 
 		private static async Task<Dictionary<int, FeeRate>> GetFeeEstimationsAsync(IRPCClient rpc, EstimateSmartFeeMode estimateMode)
 		{
 			var batchClient = rpc.PrepareBatch();
 
-			var rpcFeeEstimationTasks = new []{2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, Constants.SevenDaysConfirmationTarget}
+			var rpcFeeEstimationTasks = new[]{ 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, Constants.SevenDaysConfirmationTarget }
 				.Select(target => batchClient.EstimateSmartFeeAsync(target, estimateMode))
 				.ToList();
 
@@ -188,7 +185,7 @@ namespace NBitcoin.RPC
 			return rpcFeeEstimationTasks
 					.Where(x => x.IsCompletedSuccessfully)
 					.Select(x => x.Result)
-					.ToDictionary(x=>x.Blocks, x=>x.FeeRate);
+					.ToDictionary(x => x.Blocks, x => x.FeeRate);
 		}
 
 		public static async Task<RpcStatus> GetRpcStatusAsync(this IRPCClient rpc, CancellationToken cancel)
@@ -207,7 +204,6 @@ namespace NBitcoin.RPC
 				return RpcStatus.Unresponsive;
 			}
 		}
-
 
 		public static async Task<(bool accept, string rejectReason)> TestMempoolAcceptAsync(this IRPCClient rpc, IEnumerable<Coin> coins, int fakeOutputCount, Money feePerInputs, Money feePerOutputs)
 		{

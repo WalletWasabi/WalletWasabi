@@ -160,7 +160,9 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.False(allFee.IsAccurate);
 			Assert.Equal(3, allFee.Estimations.Count);
 			Assert.Equal(100, allFee.Estimations[2].SatoshiPerByte);
+			Assert.False(allFee.Estimations.ContainsKey(3));
 			Assert.Equal(89, allFee.Estimations[5].SatoshiPerByte);
+			Assert.False(allFee.Estimations.ContainsKey(6));
 			Assert.Equal(70, allFee.Estimations[8].SatoshiPerByte);
 		}
 
@@ -196,9 +198,11 @@ namespace WalletWasabi.Tests.UnitTests
 			var allFee = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
 			Assert.False(allFee.IsAccurate);
 			Assert.Equal(3, allFee.Estimations.Count);
+			Assert.False(allFee.Estimations.ContainsKey(3));
 			Assert.Equal(100, allFee.Estimations[2].SatoshiPerByte);
 			Assert.Equal(89, allFee.Estimations[5].SatoshiPerByte);
 			Assert.Equal(70, allFee.Estimations[8].SatoshiPerByte);
+			Assert.False(allFee.Estimations.ContainsKey(13));
 		}
 
 		[Fact]
@@ -224,9 +228,9 @@ namespace WalletWasabi.Tests.UnitTests
 						3 => new FeeRate(100m),
 						5 => new FeeRate(89m),
 						6 => new FeeRate(75m),
-						8 => new FeeRate(70m),
+						8 => new FeeRate(30m),
 						11 => new FeeRate(30m),
-						12 => new FeeRate(30m),
+						13 => new FeeRate(30m),
 						15 => new FeeRate(30m),
 						1008  => new FeeRate(35m),
 						_ => throw new NoEstimationException(target)
@@ -235,11 +239,9 @@ namespace WalletWasabi.Tests.UnitTests
 
 			var allFee = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
 			Assert.False(allFee.IsAccurate);
-			Assert.Equal(4, allFee.Estimations.Count);
-			Assert.Equal(100, allFee.Estimations[2].SatoshiPerByte);
-			Assert.Equal(89, allFee.Estimations[5].SatoshiPerByte);
-			Assert.Equal(70, allFee.Estimations[8].SatoshiPerByte);
-			Assert.Equal(35, allFee.Estimations[1008].SatoshiPerByte);
+			Assert.False(allFee.Estimations.ContainsKey(13));
+			Assert.False(allFee.Estimations.ContainsKey(1008));
+			Assert.Equal(30, allFee.Estimations[8].SatoshiPerByte);
 		}
 	}
 }
