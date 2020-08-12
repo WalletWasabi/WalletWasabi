@@ -463,10 +463,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				}
 			}
 			var coinsView = new CoinsView(scoins);
+			var transactionStore = new AllTransactionStoreMock(workFolderPath: ".", Network.Main);
 
-			var bitcoinStore = new BitcoinStore(null!, new AllTransactionStoreMock(workFolderPath: ".", Network.Main), null!);
-
-			return new TransactionFactory(Network.Main, keyManager, coinsView, bitcoinStore, password, allowUnconfirmed);
+			return new TransactionFactory(Network.Main, keyManager, coinsView, transactionStore, password, allowUnconfirmed);
 		}
 	}
 }
