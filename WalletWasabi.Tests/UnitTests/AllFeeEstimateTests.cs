@@ -158,11 +158,8 @@ namespace WalletWasabi.Tests.UnitTests
 
 			var allFee = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
 			Assert.Equal(3, allFee.Estimations.Count);
-			Assert.Equal(100, allFee.Estimations[2].SatoshiPerByte);
 			Assert.False(allFee.Estimations.ContainsKey(3));
-			Assert.Equal(89, allFee.Estimations[5].SatoshiPerByte);
 			Assert.False(allFee.Estimations.ContainsKey(6));
-			Assert.Equal(70, allFee.Estimations[8].SatoshiPerByte);
 		}
 
 
@@ -197,7 +194,6 @@ namespace WalletWasabi.Tests.UnitTests
 			var allFee = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Economical);
 			Assert.False(allFee.IsAccurate);
 			Assert.Equal(3, allFee.Estimations.Count);
-			Assert.False(allFee.Estimations.ContainsKey(3));
 			Assert.Equal(100, allFee.Estimations[2].SatoshiPerByte);
 			Assert.Equal(89, allFee.Estimations[5].SatoshiPerByte);
 			Assert.Equal(70, allFee.Estimations[8].SatoshiPerByte);
