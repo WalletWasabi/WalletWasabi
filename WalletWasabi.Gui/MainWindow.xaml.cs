@@ -13,6 +13,7 @@ using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
@@ -106,7 +107,9 @@ namespace WalletWasabi.Gui
 							Global.UiConfig.WindowState = WindowState;
 
 							IDocumentTabViewModel? selectedDocument = IoC.Get<IShell>().SelectedDocument;
-							Global.UiConfig.LastActiveTab = selectedDocument is { } ? selectedDocument.GetType().Name : "";
+							Global.UiConfig.LastActiveTab = selectedDocument is null
+								? nameof(HistoryTabViewModel)
+								: selectedDocument.GetType().Name;
 
 							Global.UiConfig.ToFile();
 							Logger.LogInfo($"{nameof(Global.UiConfig)} is saved.");
