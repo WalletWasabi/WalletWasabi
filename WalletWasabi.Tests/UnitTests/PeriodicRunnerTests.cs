@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Mvc.TagHelpers.Cache;
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -17,7 +16,7 @@ namespace WalletWasabi.Tests.UnitTests
 				MaxNextRoundWaitTime = maxNextRoundWaitTime;
 			}
 
-			public AutoResetEvent NextRoundAutoResetEvent { get; private set; } = new AutoResetEvent(false);
+			public SemaphoreSlim Semaphore { get; private set; } = new SemaphoreSlim(initialCount: 0, maxCount: 1);
 
 			public int RoundCounter { get; private set; }
 			private TimeSpan MaxNextRoundWaitTime { get; }
@@ -27,12 +26,12 @@ namespace WalletWasabi.Tests.UnitTests
 				// Add some delay to simulate work.
 				await Task.Delay(50, cancel);
 				RoundCounter++;
-				NextRoundAutoResetEvent.Set();
+				Semaphore.Release();
 			}
 
-			public bool WaitForNextRound()
+			public async Task<bool> WaitForNextRoundAsync()
 			{
-				return NextRoundAutoResetEvent.WaitOne(MaxNextRoundWaitTime);
+				return await Semaphore.WaitAsync(MaxNextRoundWaitTime);
 			}
 		}
 
@@ -50,19 +49,19 @@ namespace WalletWasabi.Tests.UnitTests
 			sw.Start();
 
 			// Round #1. This round starts immediately.
-			Task<Task> runnerTask = Task.Factory.StartNew(async () => await runner.StartAsync(cts.Token));
+			Task runnerTask = runner.StartAsync(cts.Token);
 
-			Assert.True(runner.WaitForNextRound());
+			Assert.True(await runner.WaitForNextRoundAsync());
 			Assert.Equal(1, runner.RoundCounter);
 			Assert.InRange(sw.Elapsed, TimeSpan.Zero, 1 * runner.Period + leniencyThreshold); // Full period must elapse.
 
 			// Round #2.
-			Assert.True(runner.WaitForNextRound());
+			Assert.True(await runner.WaitForNextRoundAsync());
 			Assert.Equal(2, runner.RoundCounter);
 			Assert.InRange(sw.Elapsed, 1 * runner.Period, 2 * runner.Period + leniencyThreshold); // Full period must elapse.
 
 			// Round #3.
-			Assert.True(runner.WaitForNextRound());
+			Assert.True(await runner.WaitForNextRoundAsync());
 			Assert.Equal(3, runner.RoundCounter);
 			Assert.InRange(sw.Elapsed, 2 * runner.Period, 3 * runner.Period + leniencyThreshold); // Full period must elapse.
 
@@ -76,7 +75,7 @@ namespace WalletWasabi.Tests.UnitTests
 			runner.TriggerRound();
 
 			// Round #4.
-			Assert.True(runner.WaitForNextRound());
+			Assert.True(await runner.WaitForNextRoundAsync());
 			Assert.Equal(4, runner.RoundCounter);
 			Assert.InRange(sw.Elapsed, 2 * runner.Period, 3 * runner.Period + leniencyThreshold); // Elapsed time should not change much from the last round.
 
