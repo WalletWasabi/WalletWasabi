@@ -12,11 +12,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 		[Fact]
 		public void Addition()
 		{
-			Assert.Throws<ArgumentNullException>(() => GroupElement.G + null);
-			Assert.Throws<ArgumentNullException>(() => null + GroupElement.G);
-			Assert.Throws<ArgumentNullException>(() => GroupElement.Infinity + null);
-			Assert.Throws<ArgumentNullException>(() => null + GroupElement.Infinity);
-
 			var gen1 = GroupElement.Infinity + GroupElement.G;
 			var gen2 = GroupElement.G + GroupElement.Infinity;
 			var inf = GroupElement.Infinity + GroupElement.Infinity;
@@ -46,11 +41,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 		[Fact]
 		public void Subtraction()
 		{
-			Assert.Throws<ArgumentNullException>(() => GroupElement.G - null);
-			Assert.Throws<ArgumentNullException>(() => null - GroupElement.G);
-			Assert.Throws<ArgumentNullException>(() => GroupElement.Infinity - null);
-			Assert.Throws<ArgumentNullException>(() => null - GroupElement.Infinity);
-
 			var minusGen = GroupElement.Infinity - GroupElement.G;
 			var gen = GroupElement.G - GroupElement.Infinity;
 			var inf = GroupElement.Infinity - GroupElement.Infinity;

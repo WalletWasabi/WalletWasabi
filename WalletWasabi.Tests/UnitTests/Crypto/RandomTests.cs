@@ -71,7 +71,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			foreach (var random in randoms.Where(x => x is IDisposable))
 			{
-				(random as IDisposable).Dispose();
+				(random as IDisposable)?.Dispose();
 			}
 		}
 
@@ -107,7 +107,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			foreach (var random in randoms.Where(x => x is IDisposable))
 			{
-				(random as IDisposable).Dispose();
+				(random as IDisposable)?.Dispose();
 			}
 		}
 

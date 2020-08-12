@@ -34,17 +34,62 @@ namespace WalletWasabi.Crypto
 		/// </summary>
 		public static GroupElement G { get; } = new GroupElement(EC.G);
 
+		/// <summary>
+		/// Generator for MAC and Show.
+		/// </summary>
+		public static GroupElement Gw { get; } = FromText("Gw");
+
+		/// <summary>
+		/// Generator for MAC and Show.
+		/// </summary>
+		public static GroupElement Gwp { get; } = FromText("Gwp");
+
+		/// <summary>
+		/// Generator for MAC and Show.
+		/// </summary>
+		public static GroupElement Gx0 { get; } = FromText("Gx0");
+
+		/// <summary>
+		/// Generator for MAC and Show.
+		/// </summary>
+		public static GroupElement Gx1 { get; } = FromText("Gx1");
+
+		/// <summary>
+		/// Generator for MAC and Show.
+		/// </summary>
+		public static GroupElement GV { get; } = FromText("GV");
+
+		/// <summary>
+		/// Generator for Pedersen commitments.
+		/// </summary>
+		public static GroupElement Gg { get; } = FromText("Gg");
+
+		/// <summary>
+		/// Generator for Pedersen commitments.
+		/// </summary>
+		public static GroupElement Gh { get; } = FromText("Gh");
+
+		/// <summary>
+		/// Generator for attributes M_{ai}.
+		/// </summary>
+		public static GroupElement Ga { get; } = FromText("Ga");
+
+		/// <summary>
+		/// Generator for serial numbers.
+		/// </summary>
+		public static GroupElement Gs { get; } = FromText("Gs");
+
 		private GE Ge { get; }
 
 		public bool IsInfinity => Ge.IsInfinity;
 
-		public override bool Equals(object obj) => Equals(obj as GroupElement);
+		public override bool Equals(object? obj) => Equals(obj as GroupElement);
 
-		public bool Equals(GroupElement other) => this == other;
+		public bool Equals(GroupElement? other) => this == other;
 
 		public override int GetHashCode() => Ge.GetHashCode();
 
-		public static bool operator ==(GroupElement a, GroupElement b)
+		public static bool operator ==(GroupElement? a, GroupElement? b)
 		{
 			if (a is null && b is null)
 			{
@@ -64,7 +109,7 @@ namespace WalletWasabi.Crypto
 			}
 		}
 
-		public static bool operator !=(GroupElement a, GroupElement b) => !(a == b);
+		public static bool operator !=(GroupElement? a, GroupElement? b) => !(a == b);
 
 		/// <summary>
 		/// ToString is only used for nice visual representation during debugging. Do not rely on the result for anything else.
@@ -147,6 +192,26 @@ namespace WalletWasabi.Crypto
 				GE.SECP256K1_TAG_PUBKEY_EVEN => Parse(bytes[1..], isOdd: false),
 				_ => throw new ArgumentException($"Argument is not a well-formatted group element.", nameof(bytes))
 			};
+		}
+
+		/// <summary>
+		/// Deterministically creates a group element from the given text.
+		/// Uniqueness relies on the SHA256 hash function.
+		/// </summary>
+		public static GroupElement FromText(string text)
+		{
+			FE x;
+			GE ge;
+			int nonce = 0;
+			using var sha256 = System.Security.Cryptography.SHA256.Create();
+			do
+			{
+				x = new FE(sha256.ComputeHash(Encoding.UTF8.GetBytes(text + nonce)));
+				nonce++;
+			}
+			while (!GE.TryCreateXQuad(x, out ge));
+
+			return new GroupElement(ge);
 		}
 	}
 }
