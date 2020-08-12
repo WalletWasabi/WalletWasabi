@@ -694,7 +694,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						{
 							var target = feeEstimate.Key;
 							var fee = feeEstimate.Value;
-							if (FeeRate.SatoshiPerByte > fee)
+							if (FeeRate > fee)
 							{
 								feeTarget = target;
 								break;

@@ -41,7 +41,7 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 		{
 			try
 			{
-				var allFeeEstimate = await RpcClient.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative, true, true).ConfigureAwait(false);
+				var allFeeEstimate = await RpcClient.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative, true).ConfigureAwait(false);
 				AllFeeEstimate = allFeeEstimate;
 			}
 			catch
