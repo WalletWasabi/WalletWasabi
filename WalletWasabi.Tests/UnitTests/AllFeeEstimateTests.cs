@@ -157,7 +157,6 @@ namespace WalletWasabi.Tests.UnitTests
 				});
 
 			var allFee = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
-			Assert.False(allFee.IsAccurate);
 			Assert.Equal(3, allFee.Estimations.Count);
 			Assert.Equal(100, allFee.Estimations[2].SatoshiPerByte);
 			Assert.False(allFee.Estimations.ContainsKey(3));
@@ -178,7 +177,7 @@ namespace WalletWasabi.Tests.UnitTests
 					Headers = 2  // the node is not synchronized.
 				});
 			rpc.OnGetPeersInfoAsync = async () =>
-				await Task.FromResult(new PeerInfo[0]);
+				await Task.FromResult(new[] { new PeerInfo() });
 
 			rpc.OnEstimateSmartFeeAsync = async (target, _) =>
 				await Task.FromResult(new EstimateSmartFeeResponse
@@ -195,7 +194,7 @@ namespace WalletWasabi.Tests.UnitTests
 					}
 				});
 
-			var allFee = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
+			var allFee = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Economical);
 			Assert.False(allFee.IsAccurate);
 			Assert.Equal(3, allFee.Estimations.Count);
 			Assert.False(allFee.Estimations.ContainsKey(3));
@@ -216,7 +215,7 @@ namespace WalletWasabi.Tests.UnitTests
 					Headers = 600_000
 				});
 			rpc.OnGetPeersInfoAsync = async () =>
-				await Task.FromResult(new PeerInfo[0]);
+				await Task.FromResult(new[] { new PeerInfo() });
 
 			rpc.OnEstimateSmartFeeAsync = async (target, _) =>
 				await Task.FromResult(new EstimateSmartFeeResponse
@@ -238,7 +237,7 @@ namespace WalletWasabi.Tests.UnitTests
 				});
 
 			var allFee = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
-			Assert.False(allFee.IsAccurate);
+			Assert.True(allFee.IsAccurate);
 			Assert.False(allFee.Estimations.ContainsKey(13));
 			Assert.False(allFee.Estimations.ContainsKey(1008));
 			Assert.Equal(30, allFee.Estimations[8].SatoshiPerByte);
