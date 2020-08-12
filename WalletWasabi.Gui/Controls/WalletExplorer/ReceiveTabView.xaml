@@ -42,8 +42,8 @@
           </controls:ExtendedListBox.Styles>
           <controls:ExtendedListBox.ItemTemplate>
             <DataTemplate>
-              <Grid>
-                <Grid.ContextMenu>
+              <Panel>
+                <Panel.ContextMenu>
                   <ContextMenu>
                     <MenuItem Header="{Binding ExpandMenuCaption}" Command="{Binding ToggleQrCode}">
                       <MenuItem.Icon>
@@ -81,7 +81,7 @@
                       </MenuItem.Icon>
                     </MenuItem>
                   </ContextMenu>
-                </Grid.ContextMenu>
+                </Panel.ContextMenu>
                 <Expander Name="coinExpander" ExpandDirection="Down" IsExpanded="{Binding IsExpanded}" Classes="coloredExpander" Background="{Binding ElementName=coinExpander, Path=IsExpanded, Converter={StaticResource CoinItemExpanderColorConverter}}">
                   <StackPanel Orientation="Horizontal" Spacing="16" Margin="35 10 0 5">
                     <controls:QrCode Height="220" Matrix="{Binding QrCode}" SaveCommand="{Binding ExecuteSaveQRCodeCommand, Mode=OneWayToSource}" HorizontalAlignment="Left" />
@@ -102,7 +102,7 @@
                   </Grid>
                   <controls:EditableTextBlock VerticalAlignment="Top" Text="{Binding Label, ConverterParameter=27, Converter={StaticResource LurkingWifeModeStringConverter}}" InEditMode="{Binding InEditMode}" ReadOnlyMode="{Binding IsLurkingWifeMode}" Grid.Column="1" />
                 </Grid>
-              </Grid>
+              </Panel>
             </DataTemplate>
           </controls:ExtendedListBox.ItemTemplate>
         </controls:ExtendedListBox>

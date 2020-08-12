@@ -4,7 +4,7 @@
     <Setter Property="Threshold" Value="75" />
     <Setter Property="Template">
       <ControlTemplate>
-        <Grid Name="PART_Container">
+        <Panel Name="PART_Container">
           <ContentPresenter Name="PART_ContentPresenter"
                         Background="{TemplateBinding Background}"
                         BorderBrush="{TemplateBinding BorderBrush}"
@@ -21,7 +21,7 @@
               </ControlTemplate>
             </Thumb.Template>
           </Thumb>
-        </Grid>
+        </Panel>
       </ControlTemplate>
     </Setter>
   </Style>

@@ -6,16 +6,21 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>latest</LangVersion>
     <NoWarn>1701;1702;1705;1591;1573;CA1031</NoWarn>
+    <Nullable>enable</Nullable>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <RuntimeIdentifiers>win7-x64;linux-x64;osx-x64</RuntimeIdentifiers>
+    <PathMap>$(MSBuildProjectDirectory)\=WalletWasabi.Gui</PathMap>
   </PropertyGroup>
 
   <PropertyGroup>
     <Authors>nopara73;lontivero;danwalmsley</Authors>
     <Company>zkSNACKs</Company>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <Description>Open-source, non-custodial, privacy focused Bitcoin wallet for Windows, Linux, and Mac. Built-in Tor, CoinJoin, and coin control features.</Description>
+    <AssemblyTitle>Wasabi Wallet</AssemblyTitle>
+    <Description>
+      Open-source, non-custodial, privacy focused Bitcoin wallet for Windows, Linux, and Mac. Built-in Tor, CoinJoin, PayJoin and coin control features.
+    </Description>
     <Copyright>MIT</Copyright>
     <PackageId>Wasabi Wallet</PackageId>
     <AssemblyTitle>Privacy focused Bitcoin wallet.</AssemblyTitle>
