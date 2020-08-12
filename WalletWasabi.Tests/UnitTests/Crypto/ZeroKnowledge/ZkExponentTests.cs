@@ -31,7 +31,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		}
 
 		[Fact]
-		public void InvalidProof()
+		public void VerifiesFalse()
 		{
 			// Even if the challenge is correct, because the public input in the hash is right,
 			// if the final response is not valid wrt the verification equation,
@@ -48,7 +48,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var proof = new ZkExponentProof(randomPoint, response);
 			Assert.False(ZkVerifier.Verify(proof, publicPoint, generator));
 
-			// Other invalid proof tests.
+			// Other false verification tests.
 			var point1 = new Scalar(3) * GroupElement.G;
 			var point2 = new Scalar(7) * GroupElement.G;
 			var scalar = new Scalar(11);
@@ -56,24 +56,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 
 			proof = new ZkExponentProof(point1, scalar);
 			Assert.False(ZkVerifier.Verify(proof, point2, gen));
-
-			Assert.Throws<ArgumentOutOfRangeException>(() => new ZkExponentProof(GroupElement.Infinity, scalar));
-		}
-
-		[Fact]
-		public void InvalidExponent()
-		{
-			var exponent = new Scalar(0);
-			var gen = new Scalar(3) * GroupElement.G;
-			var p = exponent * gen;
-			Assert.Throws<ArgumentOutOfRangeException>(() => ZkProver.CreateProof(exponent, p, gen));
-			exponent = Scalar.Zero;
-			Assert.Throws<ArgumentOutOfRangeException>(() => ZkProver.CreateProof(exponent, p, gen));
-
-			exponent = EC.N;
-			Assert.Throws<ArgumentOutOfRangeException>(() => ZkProver.CreateProof(exponent, p, gen));
-			exponent = LargestScalarOverflow;
-			Assert.Throws<ArgumentOutOfRangeException>(() => ZkProver.CreateProof(exponent, p, gen));
 		}
 
 		[Fact]
@@ -128,28 +110,74 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		}
 
 		[Fact]
-		public void InvalidChallenge()
+		public void ChallengeThrows()
 		{
-			var point1 = new Scalar(1) * GroupElement.G;
-			var point2 = new Scalar(2) * GroupElement.G;
+			// Demonstrate when it shouldn't throw.
+			ZkChallenge.Build(GroupElement.G, GroupElement.Ga);
 
-			ZkChallenge.Build(point1, point2); // Make sure the points are valid.
+			// Infinity cannot pass through.
+			Assert.ThrowsAny<ArgumentException>(() => ZkChallenge.Build(GroupElement.G, GroupElement.Infinity));
+			Assert.ThrowsAny<ArgumentException>(() => ZkChallenge.Build(GroupElement.Infinity, GroupElement.Ga));
+			Assert.ThrowsAny<ArgumentException>(() => ZkChallenge.Build(GroupElement.Infinity, GroupElement.Infinity));
 
-			var publicPoint = GroupElement.Infinity;
-			var randomPoint = GroupElement.Infinity;
-			Assert.Throws<ArgumentOutOfRangeException>(() => ZkChallenge.Build(publicPoint, randomPoint));
+			// Public and random points cannot be the same.
+			Assert.ThrowsAny<InvalidOperationException>(() => ZkChallenge.Build(GroupElement.G, GroupElement.G));
+		}
 
-			publicPoint = point1;
-			randomPoint = GroupElement.Infinity;
-			Assert.Throws<ArgumentOutOfRangeException>(() => ZkChallenge.Build(publicPoint, randomPoint));
+		[Fact]
+		public void ExponentProofThrows()
+		{
+			// Demonstrate when it shouldn't throw.
+			new ZkExponentProof(GroupElement.G, Scalar.One);
 
-			publicPoint = GroupElement.Infinity;
-			randomPoint = point2;
-			Assert.Throws<ArgumentOutOfRangeException>(() => ZkChallenge.Build(publicPoint, randomPoint));
+			// Infinity or zero cannot pass through.
+			Assert.ThrowsAny<ArgumentException>(() => new ZkExponentProof(GroupElement.G, Scalar.Zero));
+			Assert.ThrowsAny<ArgumentException>(() => new ZkExponentProof(GroupElement.Infinity, Scalar.One));
+			Assert.ThrowsAny<ArgumentException>(() => new ZkExponentProof(GroupElement.Infinity, Scalar.Zero));
+		}
 
-			publicPoint = point1;
-			randomPoint = point1;
-			Assert.Throws<InvalidOperationException>(() => ZkChallenge.Build(publicPoint, randomPoint));
+		[Fact]
+		public void ProverThrows()
+		{
+			var two = new Scalar(2);
+
+			// Demonstrate when it shouldn't throw.
+			ZkProver.CreateProof(two, two * GroupElement.G, GroupElement.G);
+
+			// Infinity or zero cannot pass through.
+			Assert.ThrowsAny<ArgumentException>(() => ZkProver.CreateProof(Scalar.Zero, two * GroupElement.G, GroupElement.G));
+			Assert.ThrowsAny<ArgumentException>(() => ZkProver.CreateProof(two, GroupElement.Infinity, GroupElement.G));
+			Assert.ThrowsAny<ArgumentException>(() => ZkProver.CreateProof(two, two * GroupElement.G, GroupElement.Infinity));
+			Assert.ThrowsAny<ArgumentException>(() => ZkProver.CreateProof(Scalar.Zero, GroupElement.Infinity, GroupElement.G));
+			Assert.ThrowsAny<ArgumentException>(() => ZkProver.CreateProof(Scalar.Zero, two * GroupElement.G, GroupElement.Infinity));
+			Assert.ThrowsAny<ArgumentException>(() => ZkProver.CreateProof(two, GroupElement.Infinity, GroupElement.Infinity));
+			Assert.ThrowsAny<ArgumentException>(() => ZkProver.CreateProof(Scalar.Zero, GroupElement.Infinity, GroupElement.Infinity));
+
+			// Public point must be generator * exponent.
+			Assert.ThrowsAny<InvalidOperationException>(() => ZkProver.CreateProof(two, GroupElement.G, GroupElement.G));
+			Assert.ThrowsAny<InvalidOperationException>(() => ZkProver.CreateProof(two, new Scalar(3) * GroupElement.G, GroupElement.G));
+			Assert.ThrowsAny<InvalidOperationException>(() => ZkProver.CreateProof(two, Scalar.One * GroupElement.G, GroupElement.G));
+
+			// Exponent cannot overflow.
+			Assert.ThrowsAny<ArgumentException>(() => ZkProver.CreateProof(EC.N, EC.N * GroupElement.G, GroupElement.G));
+			Assert.ThrowsAny<ArgumentException>(() => ZkProver.CreateProof(LargestScalarOverflow, LargestScalarOverflow * GroupElement.G, GroupElement.G));
+		}
+
+		[Fact]
+		public void VerifierThrows()
+		{
+			var proof = new ZkExponentProof(GroupElement.G, Scalar.One);
+
+			// Demonstrate when it shouldn't throw.
+			ZkVerifier.Verify(proof, GroupElement.Ga, GroupElement.Gg);
+
+			// Infinity cannot pass through.
+			Assert.ThrowsAny<ArgumentException>(() => ZkVerifier.Verify(proof, GroupElement.Infinity, GroupElement.Gg));
+			Assert.ThrowsAny<ArgumentException>(() => ZkVerifier.Verify(proof, GroupElement.Ga, GroupElement.Infinity));
+			Assert.ThrowsAny<ArgumentException>(() => ZkVerifier.Verify(proof, GroupElement.Infinity, GroupElement.Infinity));
+
+			// Public point should not be equal to the random point of the proof.
+			Assert.ThrowsAny<InvalidOperationException>(() => ZkVerifier.Verify(proof, GroupElement.G, GroupElement.Ga));
 		}
 	}
 }
