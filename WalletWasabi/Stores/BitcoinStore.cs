@@ -18,21 +18,11 @@ namespace WalletWasabi.Stores
 		public BitcoinStore(
 			IndexStore indexStore,
 			AllTransactionStore transactionStore,
-			MempoolService mempoolService,
-			bool isMock = false)
+			MempoolService mempoolService)
 		{
-			if (isMock)
-			{
-				IndexStore = indexStore;
-				TransactionStore = transactionStore;
-				MempoolService = mempoolService;
-			}
-			else
-			{
-				IndexStore = Guard.NotNull(nameof(indexStore), indexStore);
-				TransactionStore = Guard.NotNull(nameof(transactionStore), transactionStore);
-				MempoolService = Guard.NotNull(nameof(mempoolService), mempoolService);
-			}
+			IndexStore = indexStore;
+			TransactionStore = transactionStore;
+			MempoolService = mempoolService;
 		}
 
 		public bool IsInitialized { get; private set; }
