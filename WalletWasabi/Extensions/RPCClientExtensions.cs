@@ -123,7 +123,7 @@ namespace NBitcoin.RPC
 		}
 
 		private static Dictionary<int, FeeRate> SimulateRegTestFeeEstimation(EstimateSmartFeeMode estimateMode) =>
-			new[]{ 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, Constants.SevenDaysConfirmationTarget }
+			new[] { 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, Constants.SevenDaysConfirmationTarget }
 			.Select(target => SimulateRegTestFeeEstimation(target, estimateMode))
 			.ToDictionary(x => x.Blocks, x => x.FeeRate);
 
@@ -162,7 +162,7 @@ namespace NBitcoin.RPC
 		{
 			var batchClient = rpc.PrepareBatch();
 
-			var rpcFeeEstimationTasks = new[]{ 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, Constants.SevenDaysConfirmationTarget }
+			var rpcFeeEstimationTasks = new[] { 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, Constants.SevenDaysConfirmationTarget }
 				.Select(target => batchClient.EstimateSmartFeeAsync(target, estimateMode))
 				.ToList();
 
