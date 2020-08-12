@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls.Notifications;
 using Avalonia.Markup.Xaml;
+using AvalonStudio.Documents;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Controls;
@@ -104,7 +105,9 @@ namespace WalletWasabi.Gui
 						{
 							Global.UiConfig.WindowState = WindowState;
 
-							Global.UiConfig.LastActiveTab = IoC.Get<IShell>().SelectedDocument?.GetType().Name;
+							IDocumentTabViewModel? selectedDocument = IoC.Get<IShell>().SelectedDocument;
+							Global.UiConfig.LastActiveTab = selectedDocument is { } ? selectedDocument.GetType().Name : "";
+
 							Global.UiConfig.ToFile();
 							Logger.LogInfo($"{nameof(Global.UiConfig)} is saved.");
 						}

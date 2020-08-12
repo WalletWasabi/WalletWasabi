@@ -24,7 +24,7 @@ namespace WalletWasabi.Gui
 	{
 		private bool _lurkingWifeMode;
 		private bool _lockScreenActive;
-		private string _lockScreenPinHash;
+		private string _lockScreenPinHash = "";
 		private bool _isCustomFee;
 		private bool _isCustomChangeAddress;
 		private bool _autocopy;
@@ -51,7 +51,7 @@ namespace WalletWasabi.Gui
 
 		[DefaultValue("")]
 		[JsonProperty(PropertyName = "LastActiveTab", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public string LastActiveTab { get; internal set; }
+		public string LastActiveTab { get; internal set; } = "";
 
 		[DefaultValue(true)]
 		[JsonProperty(PropertyName = "Autocopy", DefaultValueHandling = DefaultValueHandling.Populate)]
