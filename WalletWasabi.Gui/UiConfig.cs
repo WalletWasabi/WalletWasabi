@@ -111,6 +111,6 @@ namespace WalletWasabi.Gui
 
 		[JsonProperty(PropertyName = "HistoryTabViewSortingPreference")]
 		[JsonConverter(typeof(SortingPreferenceJsonConverter))]
-		public SortingPreference HistoryTabViewSortingPreference { get; internal set; } = new SortingPreference(SortOrder.Increasing, "Date");
+		public SortingPreference HistoryTabViewSortingPreference { get; internal set; } = new SortingPreference(SortOrder.Decreasing, "Date");
 	}
 }
