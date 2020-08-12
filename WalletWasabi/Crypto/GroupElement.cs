@@ -120,9 +120,45 @@ namespace WalletWasabi.Crypto
 			{
 				return "Infinity";
 			}
-			else if (Ge.x == EC.G.x && Ge.y == EC.G.y)
+			else if (Ge.x == G.Ge.x && Ge.y == G.Ge.y)
 			{
 				return $"Standard Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
+			}
+			else if (Ge.x == Gw.Ge.x && Ge.y == Gw.Ge.y)
+			{
+				return $"{nameof(Gw)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
+			}
+			else if (Ge.x == Gwp.Ge.x && Ge.y == Gwp.Ge.y)
+			{
+				return $"{nameof(Gwp)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
+			}
+			else if (Ge.x == Gx0.Ge.x && Ge.y == Gx0.Ge.y)
+			{
+				return $"{nameof(Gx0)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
+			}
+			else if (Ge.x == Gx1.Ge.x && Ge.y == Gx1.Ge.y)
+			{
+				return $"{nameof(Gx1)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
+			}
+			else if (Ge.x == GV.Ge.x && Ge.y == GV.Ge.y)
+			{
+				return $"{nameof(GV)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
+			}
+			else if (Ge.x == Gg.Ge.x && Ge.y == Gg.Ge.y)
+			{
+				return $"{nameof(Gg)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
+			}
+			else if (Ge.x == Gh.Ge.x && Ge.y == Gh.Ge.y)
+			{
+				return $"{nameof(Gh)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
+			}
+			else if (Ge.x == Ga.Ge.x && Ge.y == Ga.Ge.y)
+			{
+				return $"{nameof(Ga)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
+			}
+			else if (Ge.x == Gs.Ge.x && Ge.y == Gs.Ge.y)
+			{
+				return $"{nameof(Gs)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
 			}
 			else
 			{
