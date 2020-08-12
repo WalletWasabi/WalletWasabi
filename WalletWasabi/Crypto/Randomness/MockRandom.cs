@@ -9,6 +9,7 @@ namespace WalletWasabi.Crypto.Randomness
 	public class MockRandom : WasabiRandom
 	{
 		public List<byte[]> GetBytesResults { get; } = new List<byte[]>();
+		public List<Scalar> GetScalarResults { get; } = new List<Scalar>();
 
 		public override void GetBytes(byte[] output)
 		{
@@ -27,6 +28,20 @@ namespace WalletWasabi.Crypto.Randomness
 		public override int GetInt(int fromInclusive, int toExclusive)
 		{
 			throw new NotImplementedException();
+		}
+
+		public override Scalar GetScalar()
+		{
+			if (GetScalarResults.Any())
+			{
+				var first = GetScalarResults.First();
+				GetScalarResults.RemoveFirst();
+				return first;
+			}
+			else
+			{
+				return base.GetScalar();
+			}
 		}
 	}
 }

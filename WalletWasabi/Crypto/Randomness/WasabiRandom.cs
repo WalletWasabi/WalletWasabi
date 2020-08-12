@@ -36,7 +36,7 @@ namespace WalletWasabi.Crypto.Randomness
 			return random;
 		}
 
-		public Scalar GetScalar()
+		public virtual Scalar GetScalar()
 		{
 			Scalar randomScalar;
 			int overflow;

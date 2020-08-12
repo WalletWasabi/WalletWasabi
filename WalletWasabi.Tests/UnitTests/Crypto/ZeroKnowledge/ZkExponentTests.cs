@@ -1,6 +1,7 @@
 using NBitcoin.Secp256k1;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
@@ -11,7 +12,35 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 {
 	public class ZkExponentTests
 	{
-		public static readonly Scalar LargestScalarOverflow = new Scalar(uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue);
+		public static readonly Scalar ScalarLargestOverflow = new Scalar(uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue);
+		public static readonly Scalar ScalarN = EC.N;
+		public static readonly Scalar ScalarEcnPlusOne = EC.N + Scalar.One;
+		public static readonly Scalar ScalarEcnMinusOne = EC.N + Scalar.One.Negate(); // Largest non-overflown scalar.
+		public static readonly Scalar ScalarLarge = new Scalar(int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue);
+		public static readonly Scalar ScalarZero = Scalar.Zero;
+		public static readonly Scalar ScalarOne = Scalar.One;
+		public static readonly Scalar ScalarTwo = new Scalar(2);
+		public static readonly Scalar ScalarThree = new Scalar(3);
+		public static readonly Scalar ScalarEcnc = EC.NC;
+
+		public static IEnumerable<Scalar> GetScalars(Func<Scalar, bool> predicate)
+		{
+			var scalars = new List<Scalar>
+			{
+				ScalarLargestOverflow,
+				ScalarN,
+				ScalarEcnPlusOne,
+				ScalarEcnMinusOne,
+				ScalarLarge,
+				ScalarZero,
+				ScalarOne,
+				ScalarTwo,
+				ScalarThree,
+				ScalarEcnc
+			};
+
+			return scalars.Where(predicate);
+		}
 
 		[Theory]
 		[InlineData(1)]
@@ -21,17 +50,29 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		[InlineData(short.MaxValue)]
 		[InlineData(int.MaxValue)]
 		[InlineData(uint.MaxValue)]
-		public void VerifySimpleProof(uint scalarSeed)
+		public void End2EndVerifiesSimpleProof(uint scalarSeed)
 		{
 			var exponent = new Scalar(scalarSeed);
-			var gen = new Scalar(2) * GroupElement.G;
-			var p = exponent * gen;
-			var proof = ZkProver.CreateProof(exponent, p, gen);
-			Assert.True(ZkVerifier.Verify(proof, p, gen));
+			var generator = GroupElement.G;
+			var publicPoint = exponent * generator;
+			var proof = ZkProver.CreateProof(exponent, publicPoint, generator);
+			Assert.True(ZkVerifier.Verify(proof, publicPoint, generator));
 		}
 
 		[Fact]
-		public void VerifiesFalse()
+		public void End2EndVerifiesExponents()
+		{
+			foreach (var exponent in GetScalars(x => !x.IsOverflow && !x.IsZero))
+			{
+				var generator = GroupElement.G;
+				var publicPoint = exponent * generator;
+				var proof = ZkProver.CreateProof(exponent, publicPoint, generator);
+				Assert.True(ZkVerifier.Verify(proof, publicPoint, generator));
+			}
+		}
+
+		[Fact]
+		public void VerifiesToFalse()
 		{
 			// Even if the challenge is correct, because the public input in the hash is right,
 			// if the final response is not valid wrt the verification equation,
@@ -160,7 +201,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 
 			// Exponent cannot overflow.
 			Assert.ThrowsAny<ArgumentException>(() => ZkProver.CreateProof(EC.N, EC.N * GroupElement.G, GroupElement.G));
-			Assert.ThrowsAny<ArgumentException>(() => ZkProver.CreateProof(LargestScalarOverflow, LargestScalarOverflow * GroupElement.G, GroupElement.G));
+			Assert.ThrowsAny<ArgumentException>(() => ZkProver.CreateProof(ScalarLargestOverflow, ScalarLargestOverflow * GroupElement.G, GroupElement.G));
 		}
 
 		[Fact]
@@ -178,6 +219,29 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 
 			// Public point should not be equal to the random point of the proof.
 			Assert.ThrowsAny<InvalidOperationException>(() => ZkVerifier.Verify(proof, GroupElement.G, GroupElement.Ga));
+		}
+
+		[Fact]
+		public void RandomOverflow()
+		{
+			var mockRandom = new MockRandom();
+			foreach (var scalar in GetScalars(x => x.IsOverflow))
+			{
+				mockRandom.GetScalarResults.Add(scalar);
+
+				Assert.ThrowsAny<InvalidOperationException>(() => ZkProver.CreateProof(Scalar.One, Scalar.One * GroupElement.G, GroupElement.G, mockRandom));
+			}
+		}
+
+		[Fact]
+		public void RandomZero()
+		{
+			var mockRandom = new MockRandom();
+			mockRandom.GetScalarResults.Add(Scalar.Zero);
+			// Don't tolerate if the second zero scalar random is received.
+			mockRandom.GetScalarResults.Add(Scalar.Zero);
+
+			Assert.ThrowsAny<InvalidOperationException>(() => ZkProver.CreateProof(Scalar.One, Scalar.One * GroupElement.G, GroupElement.G, mockRandom));
 		}
 	}
 }
