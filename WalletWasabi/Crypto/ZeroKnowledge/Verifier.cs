@@ -31,7 +31,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			}
 
 			var nonce = proof.Nonce;
-			var responses = proof.Responses.ToArray();
+			var responses = proof.Responses;
 
 			var challenge = Challenge.HashToScalar(new[] { publicPoint, nonce }.Concat(generators));
 			var a = challenge * publicPoint + nonce;
