@@ -1,6 +1,7 @@
 using NBitcoin.Secp256k1;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.ZeroKnowledge;
@@ -24,13 +25,10 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var secrets = new[] { new Scalar(scalarSeed1), new Scalar(scalarSeed2) };
 			var generators = new[] { Generators.G, Generators.Ga };
 			var publicPoint = GroupElement.Infinity;
-			var secretGeneratorPairs = new List<(Scalar, GroupElement)>();
-			for (int i = 0; i < secrets.Length; i++)
+			var secretGeneratorPairs = secrets.TupleWith(generators);
+			foreach (var (secret, generator) in secretGeneratorPairs)
 			{
-				Scalar secret = secrets[i];
-				GroupElement generator = generators[i];
 				publicPoint += secret * generator;
-				secretGeneratorPairs.Add((secret, generator));
 			}
 			var proof = Prover.CreateProof(secretGeneratorPairs, publicPoint);
 			Assert.True(Verifier.Verify(proof, publicPoint, generators));

@@ -33,15 +33,12 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			var nonce = proof.Nonce;
 			var responses = proof.Responses.ToArray();
 
-			var challenge = Challenge.HashToScalar(new[] { publicPoint, nonce }.Concat(generators).ToArray());
+			var challenge = Challenge.HashToScalar(new[] { publicPoint, nonce }.Concat(generators));
 			var a = challenge * publicPoint + nonce;
 
 			var b = GroupElement.Infinity;
-			for (int i = 0; i < responses.Length; i++)
+			foreach (var (response, generator) in responses.TupleWith(generators))
 			{
-				var response = responses[i];
-				var generator = generators.ToArray()[i];
-
 				b += response * generator;
 			}
 			return a == b;

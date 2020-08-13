@@ -48,13 +48,11 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 
 			var challenge = Challenge.HashToScalar(new[] { publicPoint, nonce }.Concat(secretGeneratorPairs.Select(x => x.generator)));
 
-			var secretArray = secretGeneratorPairs.Select(x => x.secret).ToArray();
-			var randomScalarArray = randomScalars.ToArray();
 			var responses = new List<Scalar>();
-			for (int i = 0; i < secretArray.Length; i++)
+			foreach (var (secret, randomScalar) in secretGeneratorPairs
+				.Select(x => x.secret)
+				.TupleWith(randomScalars))
 			{
-				var secret = secretArray[i];
-				var randomScalar = randomScalarArray[i];
 				var response = randomScalar + secret * challenge;
 				responses.Add(response);
 			}
