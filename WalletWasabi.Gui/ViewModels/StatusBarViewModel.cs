@@ -54,8 +54,6 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private bool _legalDocsLoading;
 
-		private Network _network;
-
 		private volatile bool _disposedValue = false; // To detect redundant calls
 
 		public StatusBarViewModel()
@@ -82,11 +80,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public ReactiveCommand<Unit, Unit> UpdateCommand { get; set; }
 
-		public Network Network
-		{
-			get => _network;
-			set => this.RaiseAndSetIfChanged(ref _network, value);
-		}
+		public Network Network { get; set; }
 
 		public bool UseBitcoinCore
 		{
