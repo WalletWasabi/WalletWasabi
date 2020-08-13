@@ -36,18 +36,6 @@ namespace WalletWasabi.Microservices
 			if (openConsole && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
 				throw new PlatformNotSupportedException($"{RuntimeInformation.OSDescription} is not supported.");
-				//var escapedArguments = (hwiPath + " " + arguments).Replace("\"", "\\\"");
-				//useShellExecute = false;
-				//if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-				//{
-				//	fileName = "xterm";
-				//	finalArguments = $"-e \"{escapedArguments}\"";
-				//}
-				//else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-				//{
-				//	fileName = "osascript";
-				//	finalArguments = $"-e 'tell application \"Terminal\" to do script \"{escapedArguments}\"'";
-				//}
 			}
 
 			ProcessStartInfo startInfo = new ProcessStartInfo
@@ -84,19 +72,22 @@ namespace WalletWasabi.Microservices
 			bool redirectStandardInput = standardInputWriter is { };
 
 			using var process = Start(arguments, openConsole, redirectStandardInput);
+			process.EnableRaisingEvents = true;
+			var output = new StringBuilder();
+			process.OutputDataReceived += (s, e) => output.Append(e.Data);
+
 			if (redirectStandardInput)
 			{
 				standardInputWriter(process.StandardInput);
 				process.StandardInput.Close();
 			}
 
-			var readPipeTask = openConsole ? Task.FromResult(string.Empty) : process.StandardOutput.ReadToEndAsync();
-
+			process.BeginOutputReadLine();
 			await process.WaitForExitAsync(cancel).ConfigureAwait(false);
 
 			exitCode = process.ExitCode;
-
-			string responseString = await readPipeTask.ConfigureAwait(false);
+			process.Close();
+			string responseString = output.ToString();
 
 			return (responseString, exitCode);
 		}
