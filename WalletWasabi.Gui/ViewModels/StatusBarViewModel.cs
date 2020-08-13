@@ -80,7 +80,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public ReactiveCommand<Unit, Unit> UpdateCommand { get; set; }
 
-		public Network Network { get; set; }
+		public Network Network { get; }
 
 		public bool UseBitcoinCore
 		{
