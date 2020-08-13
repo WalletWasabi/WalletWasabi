@@ -6,42 +6,13 @@ using System.Text;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
+using WalletWasabi.Tests.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 {
 	public class KnowledgeOfDiscreteLogTests
 	{
-		public static readonly Scalar ScalarLargestOverflow = new Scalar(uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue);
-		public static readonly Scalar ScalarN = EC.N;
-		public static readonly Scalar ScalarEcnPlusOne = EC.N + Scalar.One;
-		public static readonly Scalar ScalarEcnMinusOne = EC.N + Scalar.One.Negate(); // Largest non-overflown scalar.
-		public static readonly Scalar ScalarLarge = new Scalar(int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue);
-		public static readonly Scalar ScalarZero = Scalar.Zero;
-		public static readonly Scalar ScalarOne = Scalar.One;
-		public static readonly Scalar ScalarTwo = new Scalar(2);
-		public static readonly Scalar ScalarThree = new Scalar(3);
-		public static readonly Scalar ScalarEcnc = EC.NC;
-
-		public static IEnumerable<Scalar> GetScalars(Func<Scalar, bool> predicate)
-		{
-			var scalars = new List<Scalar>
-			{
-				ScalarLargestOverflow,
-				ScalarN,
-				ScalarEcnPlusOne,
-				ScalarEcnMinusOne,
-				ScalarLarge,
-				ScalarZero,
-				ScalarOne,
-				ScalarTwo,
-				ScalarThree,
-				ScalarEcnc
-			};
-
-			return scalars.Where(predicate);
-		}
-
 		[Theory]
 		[InlineData(1)]
 		[InlineData(3)]
@@ -62,7 +33,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		[Fact]
 		public void End2EndVerification()
 		{
-			foreach (var secret in GetScalars(x => !x.IsOverflow && !x.IsZero))
+			foreach (var secret in CryptoHelpers.GetScalars(x => !x.IsOverflow && !x.IsZero))
 			{
 				var generator = Generators.G;
 				var publicPoint = secret * generator;
@@ -72,35 +43,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		}
 
 		[Fact]
-		public void VerifiesToFalse()
-		{
-			// Even if the challenge is correct, because the public input in the hash is right,
-			// if the final response is not valid wrt the verification equation,
-			// the verifier should still reject.
-			var secret = new Scalar(7);
-			var generator = Generators.G;
-			var publicPoint = secret * generator;
-
-			Scalar randomScalar = new Scalar(14);
-			var nonce = randomScalar * generator;
-			var challenge = Challenge.Build(publicPoint, nonce);
-
-			var response = randomScalar + (secret + Scalar.One) * challenge;
-			var proof = new KnowledgeOfDiscreteLog(nonce, response);
-			Assert.False(Verifier.Verify(proof, publicPoint, generator));
-
-			// Other false verification tests.
-			var point1 = new Scalar(3) * Generators.G;
-			var point2 = new Scalar(7) * Generators.G;
-			var scalar = new Scalar(11);
-			var gen = Generators.G;
-
-			proof = new KnowledgeOfDiscreteLog(point1, scalar);
-			Assert.False(Verifier.Verify(proof, point2, gen));
-		}
-
-		[Fact]
-		public void VerifyLargeScalar()
+		public void End2EndVerificationLargeScalar()
 		{
 			uint val = int.MaxValue;
 			var gen = new Scalar(4) * Generators.G;
@@ -151,22 +94,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		}
 
 		[Fact]
-		public void ChallengeThrows()
-		{
-			// Demonstrate when it shouldn't throw.
-			Challenge.Build(Generators.G, Generators.Ga);
-
-			// Infinity cannot pass through.
-			Assert.ThrowsAny<ArgumentException>(() => Challenge.Build(Generators.G, GroupElement.Infinity));
-			Assert.ThrowsAny<ArgumentException>(() => Challenge.Build(GroupElement.Infinity, Generators.Ga));
-			Assert.ThrowsAny<ArgumentException>(() => Challenge.Build(GroupElement.Infinity, GroupElement.Infinity));
-
-			// Public and random points cannot be the same.
-			Assert.ThrowsAny<InvalidOperationException>(() => Challenge.Build(Generators.G, Generators.G));
-		}
-
-		[Fact]
-		public void KnowledgeOfDiscreteLogThrows()
+		public void Throws()
 		{
 			// Demonstrate when it shouldn't throw.
 			new KnowledgeOfDiscreteLog(Generators.G, Scalar.One);
@@ -175,74 +103,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfDiscreteLog(Generators.G, Scalar.Zero));
 			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfDiscreteLog(GroupElement.Infinity, Scalar.One));
 			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfDiscreteLog(GroupElement.Infinity, Scalar.Zero));
-		}
-
-		[Fact]
-		public void ProverThrows()
-		{
-			var two = new Scalar(2);
-
-			// Demonstrate when it shouldn't throw.
-			Prover.CreateProof(two, two * Generators.G, Generators.G);
-
-			// Infinity or zero cannot pass through.
-			Assert.ThrowsAny<ArgumentException>(() => Prover.CreateProof(Scalar.Zero, two * Generators.G, Generators.G));
-			Assert.ThrowsAny<ArgumentException>(() => Prover.CreateProof(two, GroupElement.Infinity, Generators.G));
-			Assert.ThrowsAny<ArgumentException>(() => Prover.CreateProof(two, two * Generators.G, GroupElement.Infinity));
-			Assert.ThrowsAny<ArgumentException>(() => Prover.CreateProof(Scalar.Zero, GroupElement.Infinity, Generators.G));
-			Assert.ThrowsAny<ArgumentException>(() => Prover.CreateProof(Scalar.Zero, two * Generators.G, GroupElement.Infinity));
-			Assert.ThrowsAny<ArgumentException>(() => Prover.CreateProof(two, GroupElement.Infinity, GroupElement.Infinity));
-			Assert.ThrowsAny<ArgumentException>(() => Prover.CreateProof(Scalar.Zero, GroupElement.Infinity, GroupElement.Infinity));
-
-			// Public point must be generator * secret.
-			Assert.ThrowsAny<InvalidOperationException>(() => Prover.CreateProof(two, Generators.G, Generators.G));
-			Assert.ThrowsAny<InvalidOperationException>(() => Prover.CreateProof(two, new Scalar(3) * Generators.G, Generators.G));
-			Assert.ThrowsAny<InvalidOperationException>(() => Prover.CreateProof(two, Scalar.One * Generators.G, Generators.G));
-
-			// Secret cannot overflow.
-			Assert.ThrowsAny<ArgumentException>(() => Prover.CreateProof(EC.N, EC.N * Generators.G, Generators.G));
-			Assert.ThrowsAny<ArgumentException>(() => Prover.CreateProof(ScalarLargestOverflow, ScalarLargestOverflow * Generators.G, Generators.G));
-		}
-
-		[Fact]
-		public void VerifierThrows()
-		{
-			var proof = new KnowledgeOfDiscreteLog(Generators.G, Scalar.One);
-
-			// Demonstrate when it shouldn't throw.
-			Verifier.Verify(proof, Generators.Ga, Generators.Gg);
-
-			// Infinity cannot pass through.
-			Assert.ThrowsAny<ArgumentException>(() => Verifier.Verify(proof, GroupElement.Infinity, Generators.Gg));
-			Assert.ThrowsAny<ArgumentException>(() => Verifier.Verify(proof, Generators.Ga, GroupElement.Infinity));
-			Assert.ThrowsAny<ArgumentException>(() => Verifier.Verify(proof, GroupElement.Infinity, GroupElement.Infinity));
-
-			// Public point should not be equal to the random point of the proof.
-			Assert.ThrowsAny<InvalidOperationException>(() => Verifier.Verify(proof, Generators.G, Generators.Ga));
-		}
-
-		[Fact]
-		public void RandomOverflow()
-		{
-			var mockRandom = new MockRandom();
-			foreach (var scalar in GetScalars(x => x.IsOverflow))
-			{
-				mockRandom.GetScalarResults.Add(scalar);
-
-				Assert.ThrowsAny<InvalidOperationException>(() => Prover.CreateProof(Scalar.One, Scalar.One * Generators.G, Generators.G, mockRandom));
-			}
-		}
-
-		[Fact]
-		public void RandomZero()
-		{
-			var mockRandom = new MockRandom();
-			mockRandom.GetScalarResults.Add(Scalar.Zero);
-
-			// Don't tolerate if the second zero scalar random is received.
-			mockRandom.GetScalarResults.Add(Scalar.Zero);
-
-			Assert.ThrowsAny<InvalidOperationException>(() => Prover.CreateProof(Scalar.One, Scalar.One * Generators.G, Generators.G, mockRandom));
 		}
 	}
 }

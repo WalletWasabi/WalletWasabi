@@ -12,6 +12,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		public static bool Verify(KnowledgeOfRepresentation proof, GroupElement publicPoint, IEnumerable<GroupElement> generators)
 		{
 			Guard.False($"{nameof(publicPoint)}.{nameof(publicPoint.IsInfinity)}", publicPoint.IsInfinity);
+			Guard.NotNullOrEmpty(nameof(generators), generators);
 
 			if (publicPoint == proof.Nonce)
 			{

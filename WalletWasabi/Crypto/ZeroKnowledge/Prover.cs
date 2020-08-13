@@ -13,15 +13,6 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 	{
 		public static KnowledgeOfDiscreteLog CreateProof(Scalar secret, GroupElement publicPoint, GroupElement generator, WasabiRandom? random = null)
 		{
-			Guard.False($"{nameof(secret)}.{nameof(secret.IsOverflow)}", secret.IsOverflow);
-			Guard.False($"{nameof(secret)}.{nameof(secret.IsZero)}", secret.IsZero);
-			Guard.False($"{nameof(generator)}.{nameof(generator.IsInfinity)}", generator.IsInfinity);
-			Guard.False($"{nameof(publicPoint)}.{nameof(publicPoint.IsInfinity)}", publicPoint.IsInfinity);
-			if (publicPoint != secret * generator)
-			{
-				throw new InvalidOperationException($"{nameof(publicPoint)} != {nameof(secret)} * {nameof(generator)}");
-			}
-
 			var proof = CreateProof(new[] { (secret, generator) }, publicPoint, random);
 
 			return new KnowledgeOfDiscreteLog(proof.Nonce, proof.Responses.First());
@@ -52,7 +43,8 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				throw new InvalidOperationException($"{nameof(publicPoint)} was incorrectly constructed.");
 			}
 
-			var challenge = Challenge.Build(publicPoint, nonce, secretGeneratorPairs.Select(x => x.generator));
+			var generators = secretGeneratorPairs.Select(x => x.generator);
+			var challenge = Challenge.Build(publicPoint, nonce, generators);
 
 			var responses = new List<Scalar>();
 			foreach (var (secret, randomScalar) in secretGeneratorPairs
@@ -63,7 +55,14 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				responses.Add(response);
 			}
 
-			return new KnowledgeOfRepresentation(nonce, responses);
+			var proof = new KnowledgeOfRepresentation(nonce, responses);
+
+			// Sanity check:
+			if (!Verifier.Verify(proof, publicPoint, generators))
+			{
+				throw new InvalidOperationException($"{nameof(CreateProof)} or {nameof(Verifier.Verify)} is incorrectly implemented. Proof was built, but verification failed.");
+			}
+			return proof;
 		}
 
 		private static Scalar GetNonZeroRandomScalar(WasabiRandom? random = null)

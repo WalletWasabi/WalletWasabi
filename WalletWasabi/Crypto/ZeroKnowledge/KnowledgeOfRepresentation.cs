@@ -22,6 +22,11 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			Responses = responses;
 		}
 
+		public KnowledgeOfRepresentation(GroupElement nonce, params Scalar[] responses)
+			: this(nonce, responses as IEnumerable<Scalar>)
+		{
+		}
+
 		public GroupElement Nonce { get; }
 		public IEnumerable<Scalar> Responses { get; }
 	}
