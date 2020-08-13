@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.Crypto
+namespace WalletWasabi.Crypto.Groups
 {
 	public class GroupElement : IEquatable<GroupElement>
 	{
