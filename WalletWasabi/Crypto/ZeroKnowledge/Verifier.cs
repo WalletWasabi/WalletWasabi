@@ -19,8 +19,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				throw new InvalidOperationException($"{nameof(publicPoint)} and {nameof(proof.Nonce)} should not be equal.");
 			}
 
-			var knowledge = new KnowledgeOfRepresentation(proof.Nonce, new[] { proof.Response });
-			return Verify(knowledge, publicPoint, new[] { generator });
+			return Verify(proof, publicPoint, new[] { generator });
 		}
 
 		public static bool Verify(KnowledgeOfRepresentation proof, GroupElement publicPoint, IEnumerable<GroupElement> generators)
