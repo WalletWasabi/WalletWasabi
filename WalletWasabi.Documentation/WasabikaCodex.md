@@ -26,7 +26,7 @@
 
 ## Weekly routine
 
-- Wednesday: Developer meeting. Use [dev meeting board](https://github.com/orgs/zkSNACKs/projects/1) to manage tasks.
+- Wednesday 15:00 CEST: Developer meeting.
 - Pair programming hour.
 
 ## Monthly routine
