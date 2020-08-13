@@ -30,6 +30,8 @@ namespace WalletWasabi.Crypto.Groups
 		public static GroupElement Infinity { get; } = new GroupElement(GE.Infinity);
 
 		private GE Ge { get; }
+		public FE X => Ge.x;
+		public FE Y => Ge.y;
 
 		public bool IsInfinity => Ge.IsInfinity;
 
@@ -70,45 +72,9 @@ namespace WalletWasabi.Crypto.Groups
 			{
 				return "Infinity";
 			}
-			else if (Ge.x == Generators.G.Ge.x && Ge.y == Generators.G.Ge.y)
+			else if (Generators.TryGetFriendlyGeneratorName(this, out string generatorName))
 			{
-				return $"Standard Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
-			}
-			else if (Ge.x == Generators.Gw.Ge.x && Ge.y == Generators.Gw.Ge.y)
-			{
-				return $"{nameof(Generators.Gw)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
-			}
-			else if (Ge.x == Generators.Gwp.Ge.x && Ge.y == Generators.Gwp.Ge.y)
-			{
-				return $"{nameof(Generators.Gwp)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
-			}
-			else if (Ge.x == Generators.Gx0.Ge.x && Ge.y == Generators.Gx0.Ge.y)
-			{
-				return $"{nameof(Generators.Gx0)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
-			}
-			else if (Ge.x == Generators.Gx1.Ge.x && Ge.y == Generators.Gx1.Ge.y)
-			{
-				return $"{nameof(Generators.Gx1)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
-			}
-			else if (Ge.x == Generators.GV.Ge.x && Ge.y == Generators.GV.Ge.y)
-			{
-				return $"{nameof(Generators.GV)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
-			}
-			else if (Ge.x == Generators.Gg.Ge.x && Ge.y == Generators.Gg.Ge.y)
-			{
-				return $"{nameof(Generators.Gg)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
-			}
-			else if (Ge.x == Generators.Gh.Ge.x && Ge.y == Generators.Gh.Ge.y)
-			{
-				return $"{nameof(Generators.Gh)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
-			}
-			else if (Ge.x == Generators.Ga.Ge.x && Ge.y == Generators.Ga.Ge.y)
-			{
-				return $"{nameof(Generators.Ga)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
-			}
-			else if (Ge.x == Generators.Gs.Ge.x && Ge.y == Generators.Gs.Ge.y)
-			{
-				return $"{nameof(Generators.Gs)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
+				return $"{generatorName}, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
 			}
 			else
 			{
