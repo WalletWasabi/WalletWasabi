@@ -10,7 +10,7 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 {
-	public class KnowledgeOfExponentTests
+	public class KnowledgeOfDiscreteLogTests
 	{
 		public static readonly Scalar ScalarLargestOverflow = new Scalar(uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue);
 		public static readonly Scalar ScalarN = EC.N;
@@ -86,7 +86,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var challenge = Challenge.Build(publicPoint, nonce);
 
 			var response = randomScalar + (secret + Scalar.One) * challenge;
-			var proof = new KnowledgeOfExponent(nonce, response);
+			var proof = new KnowledgeOfDiscreteLog(nonce, response);
 			Assert.False(Verifier.Verify(proof, publicPoint, generator));
 
 			// Other false verification tests.
@@ -95,7 +95,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var scalar = new Scalar(11);
 			var gen = Generators.G;
 
-			proof = new KnowledgeOfExponent(point1, scalar);
+			proof = new KnowledgeOfDiscreteLog(point1, scalar);
 			Assert.False(Verifier.Verify(proof, point2, gen));
 		}
 
@@ -166,15 +166,15 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		}
 
 		[Fact]
-		public void KnowledgeOfExponentThrows()
+		public void KnowledgeOfDiscreteLogThrows()
 		{
 			// Demonstrate when it shouldn't throw.
-			new KnowledgeOfExponent(Generators.G, Scalar.One);
+			new KnowledgeOfDiscreteLog(Generators.G, Scalar.One);
 
 			// Infinity or zero cannot pass through.
-			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfExponent(Generators.G, Scalar.Zero));
-			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfExponent(GroupElement.Infinity, Scalar.One));
-			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfExponent(GroupElement.Infinity, Scalar.Zero));
+			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfDiscreteLog(Generators.G, Scalar.Zero));
+			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfDiscreteLog(GroupElement.Infinity, Scalar.One));
+			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfDiscreteLog(GroupElement.Infinity, Scalar.Zero));
 		}
 
 		[Fact]
@@ -207,7 +207,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		[Fact]
 		public void VerifierThrows()
 		{
-			var proof = new KnowledgeOfExponent(Generators.G, Scalar.One);
+			var proof = new KnowledgeOfDiscreteLog(Generators.G, Scalar.One);
 
 			// Demonstrate when it shouldn't throw.
 			Verifier.Verify(proof, Generators.Ga, Generators.Gg);

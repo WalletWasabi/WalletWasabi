@@ -11,7 +11,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 {
 	public static class Prover
 	{
-		public static KnowledgeOfExponent CreateProof(Scalar secret, GroupElement publicPoint, GroupElement generator, WasabiRandom? random = null)
+		public static KnowledgeOfDiscreteLog CreateProof(Scalar secret, GroupElement publicPoint, GroupElement generator, WasabiRandom? random = null)
 		{
 			Guard.False($"{nameof(secret)}.{nameof(secret.IsOverflow)}", secret.IsOverflow);
 			Guard.False($"{nameof(secret)}.{nameof(secret.IsZero)}", secret.IsZero);
@@ -24,7 +24,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 
 			var proof = CreateProof(new[] { (secret, generator) }, publicPoint, random);
 
-			return new KnowledgeOfExponent(proof.Nonce, proof.Responses.First());
+			return new KnowledgeOfDiscreteLog(proof.Nonce, proof.Responses.First());
 		}
 
 		public static KnowledgeOfRepresentation CreateProof(IEnumerable<(Scalar secret, GroupElement generator)> secretGeneratorPairs, GroupElement publicPoint, WasabiRandom? random = null)

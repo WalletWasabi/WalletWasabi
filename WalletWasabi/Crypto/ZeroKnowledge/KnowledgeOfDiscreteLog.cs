@@ -7,9 +7,9 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge
 {
-	public class KnowledgeOfExponent
+	public class KnowledgeOfDiscreteLog
 	{
-		public KnowledgeOfExponent(GroupElement nonce, Scalar response)
+		public KnowledgeOfDiscreteLog(GroupElement nonce, Scalar response)
 		{
 			Guard.False($"{nameof(nonce)}.{nameof(nonce.IsInfinity)}", nonce.IsInfinity);
 			Guard.False($"{nameof(response)}.{nameof(response.IsZero)}", response.IsZero);

@@ -9,7 +9,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 {
 	public static class Verifier
 	{
-		public static bool Verify(KnowledgeOfExponent proof, GroupElement publicPoint, GroupElement generator)
+		public static bool Verify(KnowledgeOfDiscreteLog proof, GroupElement publicPoint, GroupElement generator)
 		{
 			Guard.False($"{nameof(generator)}.{nameof(generator.IsInfinity)}", generator.IsInfinity);
 			Guard.False($"{nameof(publicPoint)}.{nameof(publicPoint.IsInfinity)}", publicPoint.IsInfinity);
