@@ -10,17 +10,17 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 {
 	public static class ZkChallenge
 	{
-		public static Scalar Build(GroupElement publicPoint, GroupElement randomPoint)
+		public static Scalar Build(GroupElement publicPoint, GroupElement nonce)
 		{
 			Guard.False($"{nameof(publicPoint)}.{nameof(publicPoint.IsInfinity)}", publicPoint.IsInfinity);
-			Guard.False($"{nameof(randomPoint)}.{nameof(randomPoint.IsInfinity)}", randomPoint.IsInfinity);
+			Guard.False($"{nameof(nonce)}.{nameof(nonce.IsInfinity)}", nonce.IsInfinity);
 
-			if (publicPoint == randomPoint)
+			if (publicPoint == nonce)
 			{
-				throw new InvalidOperationException($"{nameof(publicPoint)} and {nameof(randomPoint)} should not be equal.");
+				throw new InvalidOperationException($"{nameof(publicPoint)} and {nameof(nonce)} should not be equal.");
 			}
 
-			return HashToScalar(publicPoint, randomPoint);
+			return HashToScalar(publicPoint, nonce);
 		}
 
 		public static Scalar HashToScalar(params GroupElement[] transcript)

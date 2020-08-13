@@ -24,7 +24,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 
 			var proof = CreateProof(new[] { exponent }, publicPoint, new[] { generator }, random);
 
-			return new ZkKnowledgeOfExponent(proof.Randomness, proof.Responses.First());
+			return new ZkKnowledgeOfExponent(proof.Nonce, proof.Responses.First());
 		}
 
 		public static ZkKnowledgeOfRepresentation CreateProof(IEnumerable<Scalar> exponents, GroupElement publicPoint, IEnumerable<GroupElement> generators, WasabiRandom? random = null)
@@ -39,7 +39,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				throw new ArgumentException($"Same number of exponents and generators must be provided. Exponents: {exponentArray.Length}, Generators: {generatorArray.Length}");
 			}
 
-			var randomness = GroupElement.Infinity;
+			var nonce = GroupElement.Infinity;
 			var randomScalars = new List<Scalar>();
 			for (int i = 0; i < exponentArray.Length; i++)
 			{
@@ -54,10 +54,10 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				randomScalars.Add(randomScalar);
 				var randomPoint = randomScalar * generator;
 
-				randomness += randomPoint;
+				nonce += randomPoint;
 			}
 
-			var challenge = ZkChallenge.HashToScalar(new[] { publicPoint, randomness }.Concat(generators).ToArray());
+			var challenge = ZkChallenge.HashToScalar(new[] { publicPoint, nonce }.Concat(generators).ToArray());
 
 			var responses = new List<Scalar>();
 			for (int i = 0; i < exponentArray.Length; i++)
@@ -68,7 +68,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				responses.Add(response);
 			}
 
-			return new ZkKnowledgeOfRepresentation(randomness, responses);
+			return new ZkKnowledgeOfRepresentation(nonce, responses);
 		}
 
 		private static Scalar GetNonZeroRandomScalar(WasabiRandom? random = null)

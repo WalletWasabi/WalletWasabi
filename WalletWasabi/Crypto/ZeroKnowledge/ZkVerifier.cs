@@ -14,12 +14,12 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			Guard.False($"{nameof(generator)}.{nameof(generator.IsInfinity)}", generator.IsInfinity);
 			Guard.False($"{nameof(publicPoint)}.{nameof(publicPoint.IsInfinity)}", publicPoint.IsInfinity);
 
-			if (publicPoint == proof.RandomPoint)
+			if (publicPoint == proof.Nonce)
 			{
-				throw new InvalidOperationException($"{nameof(publicPoint)} and {nameof(proof.RandomPoint)} should not be equal.");
+				throw new InvalidOperationException($"{nameof(publicPoint)} and {nameof(proof.Nonce)} should not be equal.");
 			}
 
-			var zkor = new ZkKnowledgeOfRepresentation(proof.RandomPoint, new[] { proof.Response });
+			var zkor = new ZkKnowledgeOfRepresentation(proof.Nonce, new[] { proof.Response });
 			return Verify(zkor, publicPoint, new[] { generator });
 		}
 
@@ -30,11 +30,11 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				Guard.False($"{nameof(generator)}.{nameof(generator.IsInfinity)}", generator.IsInfinity);
 			}
 
-			var randomness = proof.Randomness;
+			var nonce = proof.Nonce;
 			var responses = proof.Responses.ToArray();
 
-			var challenge = ZkChallenge.HashToScalar(new[] { publicPoint, randomness }.Concat(generators).ToArray());
-			var a = challenge * publicPoint + randomness;
+			var challenge = ZkChallenge.HashToScalar(new[] { publicPoint, nonce }.Concat(generators).ToArray());
+			var a = challenge * publicPoint + nonce;
 
 			var b = GroupElement.Infinity;
 			for (int i = 0; i < responses.Length; i++)

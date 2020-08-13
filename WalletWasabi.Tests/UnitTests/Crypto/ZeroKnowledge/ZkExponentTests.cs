@@ -82,11 +82,11 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var publicPoint = secret * generator;
 
 			Scalar randomScalar = new Scalar(14);
-			var randomPoint = randomScalar * generator;
-			var challenge = ZkChallenge.Build(publicPoint, randomPoint);
+			var nonce = randomScalar * generator;
+			var challenge = ZkChallenge.Build(publicPoint, nonce);
 
 			var response = randomScalar + (secret + Scalar.One) * challenge;
-			var proof = new ZkKnowledgeOfExponent(randomPoint, response);
+			var proof = new ZkKnowledgeOfExponent(nonce, response);
 			Assert.False(ZkVerifier.Verify(proof, publicPoint, generator));
 
 			// Other false verification tests.
@@ -135,18 +135,18 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var point2 = new Scalar(7) * Generators.G;
 
 			var publicPoint = point1;
-			var randomPoint = Generators.G;
-			var challenge = ZkChallenge.Build(publicPoint, randomPoint);
+			var nonce = Generators.G;
+			var challenge = ZkChallenge.Build(publicPoint, nonce);
 			Assert.Equal("secp256k1_scalar  = { 0x0F850F8CUL, 0x9D74683AUL, 0xDD03779BUL, 0xFD58F09BUL, 0xE148D87AUL, 0x3477A63FUL, 0xBE5906D3UL, 0x35E5A382UL }", challenge.ToC(""));
 
 			publicPoint = Generators.G;
-			randomPoint = point2;
-			challenge = ZkChallenge.Build(publicPoint, randomPoint);
+			nonce = point2;
+			challenge = ZkChallenge.Build(publicPoint, nonce);
 			Assert.Equal("secp256k1_scalar  = { 0x69823107UL, 0xDA1CE96BUL, 0xBA00C8E7UL, 0x8A031437UL, 0x4D0BC9ADUL, 0x790E6FD8UL, 0x6C2EF5E6UL, 0x8F476E3FUL }", challenge.ToC(""));
 
 			publicPoint = point1;
-			randomPoint = point2;
-			challenge = ZkChallenge.Build(publicPoint, randomPoint);
+			nonce = point2;
+			challenge = ZkChallenge.Build(publicPoint, nonce);
 			Assert.Equal("secp256k1_scalar  = { 0xC5AA9243UL, 0x074DDA7CUL, 0xE8FFD6CAUL, 0xF3613B9EUL, 0x542CBD09UL, 0xF4191712UL, 0x045BD716UL, 0xECCC6626UL }", challenge.ToC(""));
 		}
 

@@ -8,13 +8,13 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 {
 	public class ZkKnowledgeOfRepresentation
 	{
-		public ZkKnowledgeOfRepresentation(GroupElement randomness, IEnumerable<Scalar> responses)
+		public ZkKnowledgeOfRepresentation(GroupElement nonce, IEnumerable<Scalar> responses)
 		{
-			Randomness = randomness;
+			Nonce = nonce;
 			Responses = responses;
 		}
 
-		public GroupElement Randomness { get; }
+		public GroupElement Nonce { get; }
 		public IEnumerable<Scalar> Responses { get; }
 	}
 }
