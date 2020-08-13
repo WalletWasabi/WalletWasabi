@@ -30,7 +30,7 @@ namespace WalletWasabi.Crypto.Randomness
 			throw new NotImplementedException();
 		}
 
-		public override Scalar GetScalar()
+		public override Scalar GetScalar(bool allowZero = true)
 		{
 			if (GetScalarResults.Any())
 			{
@@ -40,7 +40,7 @@ namespace WalletWasabi.Crypto.Randomness
 			}
 			else
 			{
-				return base.GetScalar();
+				return base.GetScalar(allowZero);
 			}
 		}
 	}

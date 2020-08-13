@@ -82,33 +82,15 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 
 			try
 			{
-				Scalar randomScalar = Scalar.Zero;
-				var gotZero = false;
+				var scalar = random.GetScalar(allowZero: false);
+				// Sanity checks:
 
-				while (randomScalar == Scalar.Zero)
+				if (scalar.IsOverflow || scalar.IsZero)
 				{
-					randomScalar = random.GetScalar();
-
-					// We can tolerate zero scalar only once.
-					// Its probability is null to get it even once, but getting it twice is a catastrophe.
-					if (randomScalar == Scalar.Zero)
-					{
-						if (gotZero)
-						{
-							throw new InvalidOperationException("Something is wrong with the random generation. It should not return zero scalar twice in a row.");
-						}
-						else
-						{
-							gotZero = true;
-						}
-					}
+					throw new InvalidOperationException("Bloody murder! Random generator served invalid scalar.");
 				}
 
-				if (randomScalar.IsOverflow)
-				{
-					throw new InvalidOperationException("Something is wrong with the random generation. It should not return overflown scalar.");
-				}
-				return randomScalar;
+				return scalar;
 			}
 			finally
 			{
