@@ -83,8 +83,8 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			try
 			{
 				var scalar = random.GetScalar(allowZero: false);
-				// Sanity checks:
 
+				// Sanity checks:
 				if (scalar.IsOverflow || scalar.IsZero)
 				{
 					throw new InvalidOperationException("Bloody murder! Random generator served invalid scalar.");
