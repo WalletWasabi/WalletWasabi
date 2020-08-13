@@ -76,37 +76,20 @@ namespace WalletWasabi.Microservices
 				throw new PlatformNotSupportedException($"{RuntimeInformation.OSDescription} is not supported.");
 			}
 
-			ProcessStartInfo startInfo = new ProcessStartInfo
-			{
-				FileName = ProcessPath,
-				Arguments = arguments,
-				RedirectStandardOutput = !openConsole,
-				RedirectStandardInput = redirectStandardInput,
-				UseShellExecute = openConsole,
-				CreateNoWindow = !openConsole,
-				WindowStyle = openConsole ? ProcessWindowStyle.Normal : ProcessWindowStyle.Hidden
-			};
 
 			var output = new StringBuilder();
 			var process = new Process();
-			process.StartInfo = startInfo;
+			process.StartInfo.FileName = ProcessPath;
+			process.StartInfo.Arguments = arguments;
+			process.StartInfo.RedirectStandardInput = redirectStandardInput;
+			process.StartInfo.UseShellExecute = openConsole;
+			process.StartInfo.CreateNoWindow = !openConsole;
+			process.StartInfo.WindowStyle = openConsole ? ProcessWindowStyle.Normal : ProcessWindowStyle.Hidden;
 			process.EnableRaisingEvents = true;
 			process.OutputDataReceived += (s, e) => output.Append(e.Data);
-			try
-			{
-				process.Start();
-			}
-			catch
-			{
-				Logger.LogInfo($"{nameof(startInfo.FileName)}: {startInfo.FileName}");
-				Logger.LogInfo($"{nameof(startInfo.Arguments)}: {startInfo.Arguments}");
-				Logger.LogInfo($"{nameof(startInfo.RedirectStandardOutput)}: {startInfo.RedirectStandardOutput}");
-				Logger.LogInfo($"{nameof(startInfo.UseShellExecute)}: {startInfo.UseShellExecute}");
-				Logger.LogInfo($"{nameof(startInfo.CreateNoWindow)}: {startInfo.CreateNoWindow}");
-				Logger.LogInfo($"{nameof(startInfo.WindowStyle)}: {startInfo.WindowStyle}");
+			process.StartInfo.RedirectStandardOutput = true;
 
-				throw;
-			}
+			process.Start();
 
 			if (redirectStandardInput)
 			{
