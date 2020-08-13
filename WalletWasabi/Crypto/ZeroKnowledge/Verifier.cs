@@ -38,7 +38,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		}
 
 		public static bool Verify(KnowledgeOfDiscreteLog proof, GroupElement publicPoint, GroupElement generator)
-			=> Verify(proof, publicPoint, generator);
+			=> Verify(proof as KnowledgeOfRepresentation, publicPoint, generator);
 
 		public static bool Verify(KnowledgeOfRepresentation proof, GroupElement publicPoint, params GroupElement[] generators)
 			=> Verify(proof, publicPoint, generators as IEnumerable<GroupElement>);
