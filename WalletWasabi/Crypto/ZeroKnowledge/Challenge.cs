@@ -10,20 +10,27 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 {
 	public static class Challenge
 	{
-		public static Scalar Build(GroupElement publicPoint, GroupElement nonce)
+		public static Scalar Build(GroupElement publicPoint, GroupElement nonce, IEnumerable<GroupElement> generators)
 		{
 			Guard.False($"{nameof(publicPoint)}.{nameof(publicPoint.IsInfinity)}", publicPoint.IsInfinity);
 			Guard.False($"{nameof(nonce)}.{nameof(nonce.IsInfinity)}", nonce.IsInfinity);
+			foreach (var generator in generators)
+			{
+				Guard.False($"{nameof(generator)}.{nameof(generator.IsInfinity)}", generator.IsInfinity);
+			}
 
 			if (publicPoint == nonce)
 			{
 				throw new InvalidOperationException($"{nameof(publicPoint)} and {nameof(nonce)} should not be equal.");
 			}
 
-			return HashToScalar(publicPoint, nonce);
+			return HashToScalar(new[] { publicPoint, nonce }.Concat(generators));
 		}
 
-		public static Scalar HashToScalar(IEnumerable<GroupElement> transcript)
+		public static Scalar Build(GroupElement publicPoint, GroupElement nonce, params GroupElement[] generators)
+			=> Build(publicPoint, nonce, generators as IEnumerable<GroupElement>);
+
+		private static Scalar HashToScalar(IEnumerable<GroupElement> transcript)
 		{
 			var concatenation = ByteHelpers.Combine(transcript.Select(x => x.ToBytes()));
 			using var sha256 = System.Security.Cryptography.SHA256.Create();
@@ -31,8 +38,5 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			var challenge = new Scalar(hash);
 			return challenge;
 		}
-
-		public static Scalar HashToScalar(params GroupElement[] transcript)
-			=> HashToScalar(transcript as IEnumerable<GroupElement>);
 	}
 }

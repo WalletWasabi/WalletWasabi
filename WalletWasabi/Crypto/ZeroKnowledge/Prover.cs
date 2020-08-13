@@ -46,7 +46,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				nonce += randomPoint;
 			}
 
-			var challenge = Challenge.HashToScalar(new[] { publicPoint, nonce }.Concat(secretGeneratorPairs.Select(x => x.generator)));
+			var challenge = Challenge.Build(publicPoint, nonce, secretGeneratorPairs.Select(x => x.generator));
 
 			var responses = new List<Scalar>();
 			foreach (var (secret, randomScalar) in secretGeneratorPairs
