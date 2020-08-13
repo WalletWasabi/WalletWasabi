@@ -9,9 +9,8 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 {
 	public static class Verifier
 	{
-		public static bool Verify(KnowledgeOfDiscreteLog proof, GroupElement publicPoint, GroupElement generator)
+		public static bool Verify(KnowledgeOfRepresentation proof, GroupElement publicPoint, IEnumerable<GroupElement> generators)
 		{
-			Guard.False($"{nameof(generator)}.{nameof(generator.IsInfinity)}", generator.IsInfinity);
 			Guard.False($"{nameof(publicPoint)}.{nameof(publicPoint.IsInfinity)}", publicPoint.IsInfinity);
 
 			if (publicPoint == proof.Nonce)
@@ -19,11 +18,6 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				throw new InvalidOperationException($"{nameof(publicPoint)} and {nameof(proof.Nonce)} should not be equal.");
 			}
 
-			return Verify(proof, publicPoint, new[] { generator });
-		}
-
-		public static bool Verify(KnowledgeOfRepresentation proof, GroupElement publicPoint, IEnumerable<GroupElement> generators)
-		{
 			foreach (var generator in generators)
 			{
 				Guard.False($"{nameof(generator)}.{nameof(generator.IsInfinity)}", generator.IsInfinity);
@@ -42,5 +36,11 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			}
 			return a == b;
 		}
+
+		public static bool Verify(KnowledgeOfDiscreteLog proof, GroupElement publicPoint, GroupElement generator)
+			=> Verify(proof, publicPoint, generator);
+
+		public static bool Verify(KnowledgeOfRepresentation proof, GroupElement publicPoint, params GroupElement[] generators)
+			=> Verify(proof, publicPoint, generators as IEnumerable<GroupElement>);
 	}
 }
