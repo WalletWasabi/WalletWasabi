@@ -57,7 +57,7 @@ namespace System.IO
 				}
 				catch (UnauthorizedAccessException)
 				{
-					await Task.Delay(millisecondsDelay);
+					await Task.Delay(millisecondsDelay).ConfigureAwait(false);
 				}
 			}
 
