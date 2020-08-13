@@ -11,43 +11,43 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 {
 	public static class Prover
 	{
-		public static KnowledgeOfExponent CreateProof(Scalar exponent, GroupElement publicPoint, GroupElement generator, WasabiRandom? random = null)
+		public static KnowledgeOfExponent CreateProof(Scalar secret, GroupElement publicPoint, GroupElement generator, WasabiRandom? random = null)
 		{
-			Guard.False($"{nameof(exponent)}.{nameof(exponent.IsOverflow)}", exponent.IsOverflow);
-			Guard.False($"{nameof(exponent)}.{nameof(exponent.IsZero)}", exponent.IsZero);
+			Guard.False($"{nameof(secret)}.{nameof(secret.IsOverflow)}", secret.IsOverflow);
+			Guard.False($"{nameof(secret)}.{nameof(secret.IsZero)}", secret.IsZero);
 			Guard.False($"{nameof(generator)}.{nameof(generator.IsInfinity)}", generator.IsInfinity);
 			Guard.False($"{nameof(publicPoint)}.{nameof(publicPoint.IsInfinity)}", publicPoint.IsInfinity);
-			if (publicPoint != exponent * generator)
+			if (publicPoint != secret * generator)
 			{
-				throw new InvalidOperationException($"{nameof(publicPoint)} != {nameof(exponent)} * {nameof(generator)}");
+				throw new InvalidOperationException($"{nameof(publicPoint)} != {nameof(secret)} * {nameof(generator)}");
 			}
 
-			var proof = CreateProof(new[] { exponent }, publicPoint, new[] { generator }, random);
+			var proof = CreateProof(new[] { secret }, publicPoint, new[] { generator }, random);
 
 			return new KnowledgeOfExponent(proof.Nonce, proof.Responses.First());
 		}
 
-		public static KnowledgeOfRepresentation CreateProof(IEnumerable<Scalar> exponents, GroupElement publicPoint, IEnumerable<GroupElement> generators, WasabiRandom? random = null)
+		public static KnowledgeOfRepresentation CreateProof(IEnumerable<Scalar> secrets, GroupElement publicPoint, IEnumerable<GroupElement> generators, WasabiRandom? random = null)
 		{
 			Guard.False($"{nameof(publicPoint)}.{nameof(publicPoint.IsInfinity)}", publicPoint.IsInfinity);
 
-			var exponentArray = exponents.ToArray();
+			var secretArray = secrets.ToArray();
 			var generatorArray = generators.ToArray();
 
-			if (exponentArray.Length != generatorArray.Length)
+			if (secretArray.Length != generatorArray.Length)
 			{
-				throw new ArgumentException($"Same number of exponents and generators must be provided. Exponents: {exponentArray.Length}, Generators: {generatorArray.Length}");
+				throw new ArgumentException($"Same number of secrets and generators must be provided. Secrets: {secretArray.Length}, Generators: {generatorArray.Length}");
 			}
 
 			var nonce = GroupElement.Infinity;
 			var randomScalars = new List<Scalar>();
-			for (int i = 0; i < exponentArray.Length; i++)
+			for (int i = 0; i < secretArray.Length; i++)
 			{
-				var exponent = exponentArray[i];
+				var secret = secretArray[i];
 				var generator = generatorArray[i];
 
-				Guard.False($"{nameof(exponent)}.{nameof(exponent.IsOverflow)}", exponent.IsOverflow);
-				Guard.False($"{nameof(exponent)}.{nameof(exponent.IsZero)}", exponent.IsZero);
+				Guard.False($"{nameof(secret)}.{nameof(secret.IsOverflow)}", secret.IsOverflow);
+				Guard.False($"{nameof(secret)}.{nameof(secret.IsZero)}", secret.IsZero);
 				Guard.False($"{nameof(generator)}.{nameof(generator.IsInfinity)}", generator.IsInfinity);
 
 				var randomScalar = GetNonZeroRandomScalar(random);
@@ -60,11 +60,11 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			var challenge = Challenge.HashToScalar(new[] { publicPoint, nonce }.Concat(generators).ToArray());
 
 			var responses = new List<Scalar>();
-			for (int i = 0; i < exponentArray.Length; i++)
+			for (int i = 0; i < secretArray.Length; i++)
 			{
-				var exponent = exponentArray[i];
+				var secret = secretArray[i];
 				var randomScalar = randomScalars.ToArray()[i];
-				var response = randomScalar + exponent * challenge;
+				var response = randomScalar + secret * challenge;
 				responses.Add(response);
 			}
 

@@ -50,23 +50,23 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		[InlineData(short.MaxValue)]
 		[InlineData(int.MaxValue)]
 		[InlineData(uint.MaxValue)]
-		public void End2EndVerifiesSimpleProof(uint scalarSeed)
+		public void End2EndVerificationSimple(uint scalarSeed)
 		{
-			var exponent = new Scalar(scalarSeed);
+			var secret = new Scalar(scalarSeed);
 			var generator = Generators.G;
-			var publicPoint = exponent * generator;
-			var proof = Prover.CreateProof(exponent, publicPoint, generator);
+			var publicPoint = secret * generator;
+			var proof = Prover.CreateProof(secret, publicPoint, generator);
 			Assert.True(Verifier.Verify(proof, publicPoint, generator));
 		}
 
 		[Fact]
-		public void End2EndVerifiesExponents()
+		public void End2EndVerification()
 		{
-			foreach (var exponent in GetScalars(x => !x.IsOverflow && !x.IsZero))
+			foreach (var secret in GetScalars(x => !x.IsOverflow && !x.IsZero))
 			{
 				var generator = Generators.G;
-				var publicPoint = exponent * generator;
-				var proof = Prover.CreateProof(exponent, publicPoint, generator);
+				var publicPoint = secret * generator;
+				var proof = Prover.CreateProof(secret, publicPoint, generator);
 				Assert.True(Verifier.Verify(proof, publicPoint, generator));
 			}
 		}
@@ -104,27 +104,27 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		{
 			uint val = int.MaxValue;
 			var gen = new Scalar(4) * Generators.G;
-			var exponent = new Scalar(val, val, val, val, val, val, val, val);
-			var p = exponent * gen;
-			var proof = Prover.CreateProof(exponent, p, gen);
+			var secret = new Scalar(val, val, val, val, val, val, val, val);
+			var p = secret * gen;
+			var proof = Prover.CreateProof(secret, p, gen);
 			Assert.True(Verifier.Verify(proof, p, gen));
 
-			exponent = EC.N + (new Scalar(1)).Negate();
-			p = exponent * gen;
-			proof = Prover.CreateProof(exponent, p, gen);
+			secret = EC.N + (new Scalar(1)).Negate();
+			p = secret * gen;
+			proof = Prover.CreateProof(secret, p, gen);
 			Assert.True(Verifier.Verify(proof, p, gen));
 
-			exponent = EC.NC;
-			p = exponent * gen;
-			proof = Prover.CreateProof(exponent, p, gen);
+			secret = EC.NC;
+			p = secret * gen;
+			proof = Prover.CreateProof(secret, p, gen);
 			Assert.True(Verifier.Verify(proof, p, gen));
-			exponent = EC.NC + new Scalar(1);
-			p = exponent * gen;
-			proof = Prover.CreateProof(exponent, p, gen);
+			secret = EC.NC + new Scalar(1);
+			p = secret * gen;
+			proof = Prover.CreateProof(secret, p, gen);
 			Assert.True(Verifier.Verify(proof, p, gen));
-			exponent = EC.NC + (new Scalar(1)).Negate();
-			p = exponent * gen;
-			proof = Prover.CreateProof(exponent, p, gen);
+			secret = EC.NC + (new Scalar(1)).Negate();
+			p = secret * gen;
+			proof = Prover.CreateProof(secret, p, gen);
 			Assert.True(Verifier.Verify(proof, p, gen));
 		}
 
@@ -166,7 +166,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		}
 
 		[Fact]
-		public void ExponentProofThrows()
+		public void KnowledgeOfExponentThrows()
 		{
 			// Demonstrate when it shouldn't throw.
 			new KnowledgeOfExponent(Generators.G, Scalar.One);
@@ -194,12 +194,12 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			Assert.ThrowsAny<ArgumentException>(() => Prover.CreateProof(two, GroupElement.Infinity, GroupElement.Infinity));
 			Assert.ThrowsAny<ArgumentException>(() => Prover.CreateProof(Scalar.Zero, GroupElement.Infinity, GroupElement.Infinity));
 
-			// Public point must be generator * exponent.
+			// Public point must be generator * secret.
 			Assert.ThrowsAny<InvalidOperationException>(() => Prover.CreateProof(two, Generators.G, Generators.G));
 			Assert.ThrowsAny<InvalidOperationException>(() => Prover.CreateProof(two, new Scalar(3) * Generators.G, Generators.G));
 			Assert.ThrowsAny<InvalidOperationException>(() => Prover.CreateProof(two, Scalar.One * Generators.G, Generators.G));
 
-			// Exponent cannot overflow.
+			// Secret cannot overflow.
 			Assert.ThrowsAny<ArgumentException>(() => Prover.CreateProof(EC.N, EC.N * Generators.G, Generators.G));
 			Assert.ThrowsAny<ArgumentException>(() => Prover.CreateProof(ScalarLargestOverflow, ScalarLargestOverflow * Generators.G, Generators.G));
 		}

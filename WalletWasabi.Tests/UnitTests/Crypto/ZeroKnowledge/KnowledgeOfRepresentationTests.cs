@@ -19,16 +19,16 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		[InlineData(short.MaxValue, uint.MaxValue)]
 		[InlineData(int.MaxValue, uint.MaxValue)]
 		[InlineData(uint.MaxValue, uint.MaxValue)]
-		public void End2EndVerifiesSimpleProof(uint scalarSeed1, uint scalarSeed2)
+		public void End2EndVerificationSimple(uint scalarSeed1, uint scalarSeed2)
 		{
-			var exponents = new[] { new Scalar(scalarSeed1), new Scalar(scalarSeed2) };
+			var secrets = new[] { new Scalar(scalarSeed1), new Scalar(scalarSeed2) };
 			var generators = new[] { Generators.G, Generators.Ga };
 			var publicPoint = GroupElement.Infinity;
-			for (int i = 0; i < exponents.Length; i++)
+			for (int i = 0; i < secrets.Length; i++)
 			{
-				publicPoint += exponents[i] * generators[i];
+				publicPoint += secrets[i] * generators[i];
 			}
-			var proof = Prover.CreateProof(exponents, publicPoint, generators);
+			var proof = Prover.CreateProof(secrets, publicPoint, generators);
 			Assert.True(Verifier.Verify(proof, publicPoint, generators));
 		}
 	}
