@@ -18,7 +18,7 @@ namespace WalletWasabi.Gui.Converters
 			value switch
 			{
 				Network network => Application.Current.Resources[network.Name],
-				_ => Application.Current.Resources[Network.Main.Name]
+				_ => throw new NotSupportedException()
 			};
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
