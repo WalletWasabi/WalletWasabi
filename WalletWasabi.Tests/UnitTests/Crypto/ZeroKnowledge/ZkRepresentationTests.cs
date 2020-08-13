@@ -22,7 +22,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		public void End2EndVerifiesSimpleProof(uint scalarSeed1, uint scalarSeed2)
 		{
 			var exponents = new[] { new Scalar(scalarSeed1), new Scalar(scalarSeed2) };
-			var generators = new[] { GroupElement.G, GroupElement.Ga };
+			var generators = new[] { Generators.G, Generators.Ga };
 			var publicPoint = GroupElement.Infinity;
 			for (int i = 0; i < exponents.Length; i++)
 			{

@@ -169,28 +169,28 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 			var expectedInfinity = "Infinity";
 			var expectedTwo = "secp256k1_fe x = { 0x00709EE5UL, 0x03026E57UL, 0x03CA7ABAUL, 0x012E33BCUL, 0x005C778EUL, 0x01701F36UL, 0x005406E9UL, 0x01F5B4C1UL, 0x039441EDUL, 0x0031811FUL, 1, 1 };secp256k1_fe y = { 0x00CFE52AUL, 0x010C6A54UL, 0x010E1236UL, 0x0194C99BUL, 0x02F7F632UL, 0x019B3ABBUL, 0x00584194UL, 0x030CE68FUL, 0x00FEA63DUL, 0x0006B85AUL, 1, 1 };";
 
-			Assert.Equal(expectedGenerator, GroupElement.G.ToString());
+			Assert.Equal(expectedGenerator, Generators.G.ToString());
 			Assert.Equal(expectedInfinity, GroupElement.Infinity.ToString());
 			Assert.Equal(expectedTwo, new GroupElement(EC.G * new Scalar(2)).ToString());
 
-			var expectedOther = $"{nameof(GroupElement.Gw)} Generator, secp256k1_fe x = {{ 0x01013C2FUL, 0x02740389UL, 0x008F54EFUL, 0x0113E5FFUL, 0x01427B04UL, 0x013DC46AUL, 0x024707DBUL, 0x026081FEUL, 0x02E54CCBUL, 0x000E292AUL, 1, 1 }};secp256k1_fe y = {{ 0x011FAF6BUL, 0x00B7E446UL, 0x00391D3CUL, 0x02DC9E83UL, 0x0104B9F8UL, 0x00A538B6UL, 0x0300C87BUL, 0x03B57940UL, 0x0176D2D7UL, 0x00219279UL, 1, 1 }};";
-			Assert.Equal(expectedOther, GroupElement.Gw.ToString());
-			expectedOther = $"{nameof(GroupElement.GV)} Generator, secp256k1_fe x = {{ 0x01C14967UL, 0x032B8C8CUL, 0x00BCF412UL, 0x02990EB3UL, 0x036E253AUL, 0x010A2C08UL, 0x03184692UL, 0x010747EDUL, 0x000F8A3BUL, 0x0008B07BUL, 1, 1 }};secp256k1_fe y = {{ 0x03CE6291UL, 0x016336FEUL, 0x02C3A482UL, 0x03FE0AD3UL, 0x00E48CBCUL, 0x03359AC5UL, 0x027BD948UL, 0x02022579UL, 0x01C5FA64UL, 0x00172057UL, 1, 1 }};";
-			Assert.Equal(expectedOther, GroupElement.GV.ToString());
-			expectedOther = $"{nameof(GroupElement.Ga)} Generator, secp256k1_fe x = {{ 0x0266ABAEUL, 0x0004B9CFUL, 0x02E7378EUL, 0x00EBC73BUL, 0x018E34BDUL, 0x01312796UL, 0x0234D9B7UL, 0x018E7FE4UL, 0x018F3EB9UL, 0x000BDEFCUL, 1, 1 }};secp256k1_fe y = {{ 0x0006FA9BUL, 0x01CE10D2UL, 0x03470431UL, 0x006E8AF0UL, 0x010326A6UL, 0x0175DCEDUL, 0x019B66BFUL, 0x00F74680UL, 0x03D9DD5FUL, 0x002BCC33UL, 1, 1 }};";
-			Assert.Equal(expectedOther, GroupElement.Ga.ToString());
-			expectedOther = $"{nameof(GroupElement.Gg)} Generator, secp256k1_fe x = {{ 0x026C277DUL, 0x00C330E9UL, 0x00EAC3DEUL, 0x0359F156UL, 0x03047FE9UL, 0x00C6F7BAUL, 0x03130E6AUL, 0x01535284UL, 0x00A880CBUL, 0x0011E1F1UL, 1, 1 }};secp256k1_fe y = {{ 0x018C0772UL, 0x00789C4DUL, 0x00C7FBD0UL, 0x02F58835UL, 0x02321AA5UL, 0x0331FF52UL, 0x03063B93UL, 0x02EAD3B9UL, 0x00CD2B17UL, 0x003A8A67UL, 1, 1 }};";
-			Assert.Equal(expectedOther, GroupElement.Gg.ToString());
-			expectedOther = $"{nameof(GroupElement.Gh)} Generator, secp256k1_fe x = {{ 0x03DEAC03UL, 0x02849530UL, 0x006C9A8DUL, 0x03A97B7BUL, 0x02C1B389UL, 0x01F35E2FUL, 0x017513A7UL, 0x01A34B45UL, 0x033B63E0UL, 0x0016BC8EUL, 1, 1 }};secp256k1_fe y = {{ 0x0145B539UL, 0x032AA24FUL, 0x0169F63DUL, 0x02F69B76UL, 0x0267A0ADUL, 0x01D42286UL, 0x00A32FC8UL, 0x01165B84UL, 0x0057FC53UL, 0x001364BFUL, 1, 1 }};";
-			Assert.Equal(expectedOther, GroupElement.Gh.ToString());
-			expectedOther = $"{nameof(GroupElement.Gs)} Generator, secp256k1_fe x = {{ 0x008C7263UL, 0x03D6A57FUL, 0x0367F61CUL, 0x017F373BUL, 0x038D86E3UL, 0x03BF070AUL, 0x02E2F848UL, 0x01997C26UL, 0x0090B66BUL, 0x0006DE19UL, 1, 1 }};secp256k1_fe y = {{ 0x038CCC8BUL, 0x028AAAFEUL, 0x01B21F36UL, 0x0003B3E9UL, 0x01BA251EUL, 0x03B46C48UL, 0x02C48003UL, 0x019FD6C4UL, 0x016C02D3UL, 0x00202E60UL, 1, 1 }};";
-			Assert.Equal(expectedOther, GroupElement.Gs.ToString());
-			expectedOther = $"{nameof(GroupElement.Gwp)} Generator, secp256k1_fe x = {{ 0x03A4F16CUL, 0x01610768UL, 0x017DAC47UL, 0x036A2588UL, 0x019961D9UL, 0x038F8689UL, 0x01B0D71FUL, 0x03266FC3UL, 0x021F53BFUL, 0x00291589UL, 1, 1 }};secp256k1_fe y = {{ 0x0069FEE2UL, 0x03EF9C5DUL, 0x00990987UL, 0x0123332DUL, 0x02BF866AUL, 0x00A2CB4CUL, 0x01DE709CUL, 0x02036AA6UL, 0x01D2B679UL, 0x001F716FUL, 1, 1 }};";
-			Assert.Equal(expectedOther, GroupElement.Gwp.ToString());
-			expectedOther = $"{nameof(GroupElement.Gx0)} Generator, secp256k1_fe x = {{ 0x00282D76UL, 0x00B3C8A0UL, 0x002FCDC6UL, 0x01C2A54BUL, 0x01CCE6D4UL, 0x01531403UL, 0x03250329UL, 0x0098CA40UL, 0x00F60042UL, 0x002079EFUL, 1, 1 }};secp256k1_fe y = {{ 0x02134910UL, 0x015FFE0DUL, 0x028F258DUL, 0x02473F56UL, 0x00B9B563UL, 0x01324EA8UL, 0x037EA618UL, 0x024B4CB2UL, 0x01A9AB0FUL, 0x00179972UL, 1, 1 }};";
-			Assert.Equal(expectedOther, GroupElement.Gx0.ToString());
-			expectedOther = $"{nameof(GroupElement.Gx1)} Generator, secp256k1_fe x = {{ 0x001A5105UL, 0x029F1DCBUL, 0x02C35E8DUL, 0x01D06A6CUL, 0x006748FAUL, 0x0120993CUL, 0x00241D5EUL, 0x000B8FA1UL, 0x02979549UL, 0x00280C7FUL, 1, 1 }};secp256k1_fe y = {{ 0x02601941UL, 0x017DC826UL, 0x0392A4CCUL, 0x000E1939UL, 0x02BDFDB2UL, 0x000D9228UL, 0x01EBCC89UL, 0x00F3257FUL, 0x01312A11UL, 0x000BFA1CUL, 1, 1 }};";
-			Assert.Equal(expectedOther, GroupElement.Gx1.ToString());
+			var expectedOther = $"{nameof(Generators.Gw)} Generator, secp256k1_fe x = {{ 0x01013C2FUL, 0x02740389UL, 0x008F54EFUL, 0x0113E5FFUL, 0x01427B04UL, 0x013DC46AUL, 0x024707DBUL, 0x026081FEUL, 0x02E54CCBUL, 0x000E292AUL, 1, 1 }};secp256k1_fe y = {{ 0x011FAF6BUL, 0x00B7E446UL, 0x00391D3CUL, 0x02DC9E83UL, 0x0104B9F8UL, 0x00A538B6UL, 0x0300C87BUL, 0x03B57940UL, 0x0176D2D7UL, 0x00219279UL, 1, 1 }};";
+			Assert.Equal(expectedOther, Generators.Gw.ToString());
+			expectedOther = $"{nameof(Generators.GV)} Generator, secp256k1_fe x = {{ 0x01C14967UL, 0x032B8C8CUL, 0x00BCF412UL, 0x02990EB3UL, 0x036E253AUL, 0x010A2C08UL, 0x03184692UL, 0x010747EDUL, 0x000F8A3BUL, 0x0008B07BUL, 1, 1 }};secp256k1_fe y = {{ 0x03CE6291UL, 0x016336FEUL, 0x02C3A482UL, 0x03FE0AD3UL, 0x00E48CBCUL, 0x03359AC5UL, 0x027BD948UL, 0x02022579UL, 0x01C5FA64UL, 0x00172057UL, 1, 1 }};";
+			Assert.Equal(expectedOther, Generators.GV.ToString());
+			expectedOther = $"{nameof(Generators.Ga)} Generator, secp256k1_fe x = {{ 0x0266ABAEUL, 0x0004B9CFUL, 0x02E7378EUL, 0x00EBC73BUL, 0x018E34BDUL, 0x01312796UL, 0x0234D9B7UL, 0x018E7FE4UL, 0x018F3EB9UL, 0x000BDEFCUL, 1, 1 }};secp256k1_fe y = {{ 0x0006FA9BUL, 0x01CE10D2UL, 0x03470431UL, 0x006E8AF0UL, 0x010326A6UL, 0x0175DCEDUL, 0x019B66BFUL, 0x00F74680UL, 0x03D9DD5FUL, 0x002BCC33UL, 1, 1 }};";
+			Assert.Equal(expectedOther, Generators.Ga.ToString());
+			expectedOther = $"{nameof(Generators.Gg)} Generator, secp256k1_fe x = {{ 0x026C277DUL, 0x00C330E9UL, 0x00EAC3DEUL, 0x0359F156UL, 0x03047FE9UL, 0x00C6F7BAUL, 0x03130E6AUL, 0x01535284UL, 0x00A880CBUL, 0x0011E1F1UL, 1, 1 }};secp256k1_fe y = {{ 0x018C0772UL, 0x00789C4DUL, 0x00C7FBD0UL, 0x02F58835UL, 0x02321AA5UL, 0x0331FF52UL, 0x03063B93UL, 0x02EAD3B9UL, 0x00CD2B17UL, 0x003A8A67UL, 1, 1 }};";
+			Assert.Equal(expectedOther, Generators.Gg.ToString());
+			expectedOther = $"{nameof(Generators.Gh)} Generator, secp256k1_fe x = {{ 0x03DEAC03UL, 0x02849530UL, 0x006C9A8DUL, 0x03A97B7BUL, 0x02C1B389UL, 0x01F35E2FUL, 0x017513A7UL, 0x01A34B45UL, 0x033B63E0UL, 0x0016BC8EUL, 1, 1 }};secp256k1_fe y = {{ 0x0145B539UL, 0x032AA24FUL, 0x0169F63DUL, 0x02F69B76UL, 0x0267A0ADUL, 0x01D42286UL, 0x00A32FC8UL, 0x01165B84UL, 0x0057FC53UL, 0x001364BFUL, 1, 1 }};";
+			Assert.Equal(expectedOther, Generators.Gh.ToString());
+			expectedOther = $"{nameof(Generators.Gs)} Generator, secp256k1_fe x = {{ 0x008C7263UL, 0x03D6A57FUL, 0x0367F61CUL, 0x017F373BUL, 0x038D86E3UL, 0x03BF070AUL, 0x02E2F848UL, 0x01997C26UL, 0x0090B66BUL, 0x0006DE19UL, 1, 1 }};secp256k1_fe y = {{ 0x038CCC8BUL, 0x028AAAFEUL, 0x01B21F36UL, 0x0003B3E9UL, 0x01BA251EUL, 0x03B46C48UL, 0x02C48003UL, 0x019FD6C4UL, 0x016C02D3UL, 0x00202E60UL, 1, 1 }};";
+			Assert.Equal(expectedOther, Generators.Gs.ToString());
+			expectedOther = $"{nameof(Generators.Gwp)} Generator, secp256k1_fe x = {{ 0x03A4F16CUL, 0x01610768UL, 0x017DAC47UL, 0x036A2588UL, 0x019961D9UL, 0x038F8689UL, 0x01B0D71FUL, 0x03266FC3UL, 0x021F53BFUL, 0x00291589UL, 1, 1 }};secp256k1_fe y = {{ 0x0069FEE2UL, 0x03EF9C5DUL, 0x00990987UL, 0x0123332DUL, 0x02BF866AUL, 0x00A2CB4CUL, 0x01DE709CUL, 0x02036AA6UL, 0x01D2B679UL, 0x001F716FUL, 1, 1 }};";
+			Assert.Equal(expectedOther, Generators.Gwp.ToString());
+			expectedOther = $"{nameof(Generators.Gx0)} Generator, secp256k1_fe x = {{ 0x00282D76UL, 0x00B3C8A0UL, 0x002FCDC6UL, 0x01C2A54BUL, 0x01CCE6D4UL, 0x01531403UL, 0x03250329UL, 0x0098CA40UL, 0x00F60042UL, 0x002079EFUL, 1, 1 }};secp256k1_fe y = {{ 0x02134910UL, 0x015FFE0DUL, 0x028F258DUL, 0x02473F56UL, 0x00B9B563UL, 0x01324EA8UL, 0x037EA618UL, 0x024B4CB2UL, 0x01A9AB0FUL, 0x00179972UL, 1, 1 }};";
+			Assert.Equal(expectedOther, Generators.Gx0.ToString());
+			expectedOther = $"{nameof(Generators.Gx1)} Generator, secp256k1_fe x = {{ 0x001A5105UL, 0x029F1DCBUL, 0x02C35E8DUL, 0x01D06A6CUL, 0x006748FAUL, 0x0120993CUL, 0x00241D5EUL, 0x000B8FA1UL, 0x02979549UL, 0x00280C7FUL, 1, 1 }};secp256k1_fe y = {{ 0x02601941UL, 0x017DC826UL, 0x0392A4CCUL, 0x000E1939UL, 0x02BDFDB2UL, 0x000D9228UL, 0x01EBCC89UL, 0x00F3257FUL, 0x01312A11UL, 0x000BFA1CUL, 1, 1 }};";
+			Assert.Equal(expectedOther, Generators.Gx1.ToString());
 		}
 
 		private byte[] FillByteArray(int length, byte character)
@@ -236,7 +236,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 		[Fact]
 		public void Serialization()
 		{
-			var ge = GroupElement.G;
+			var ge = Generators.G;
 			var ge2 = GroupElement.FromBytes(ge.ToBytes());
 			Assert.Equal(ge, ge2);
 
@@ -285,11 +285,11 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 			var hexG = "0279BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798";
 			var hexGodd = "0379BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798";
 
-			Assert.Equal(hexG, ByteHelpers.ToHex(GroupElement.G.ToBytes()));
-			Assert.Equal(GroupElement.G, GroupElement.FromBytes(ByteHelpers.FromHex(hexG)));
+			Assert.Equal(hexG, ByteHelpers.ToHex(Generators.G.ToBytes()));
+			Assert.Equal(Generators.G, GroupElement.FromBytes(ByteHelpers.FromHex(hexG)));
 
-			Assert.Equal(hexGodd, ByteHelpers.ToHex(GroupElement.G.Negate().ToBytes()));
-			Assert.Equal(GroupElement.G.Negate(), GroupElement.FromBytes(ByteHelpers.FromHex(hexGodd)));
+			Assert.Equal(hexGodd, ByteHelpers.ToHex(Generators.G.Negate().ToBytes()));
+			Assert.Equal(Generators.G.Negate(), GroupElement.FromBytes(ByteHelpers.FromHex(hexGodd)));
 		}
 
 		[Fact]

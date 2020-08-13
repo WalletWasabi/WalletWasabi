@@ -29,56 +29,6 @@ namespace WalletWasabi.Crypto.Groups
 
 		public static GroupElement Infinity { get; } = new GroupElement(GE.Infinity);
 
-		/// <summary>
-		/// The base point defined in the secp256k1 standard used in ECDSA public key derivation.
-		/// </summary>
-		public static GroupElement G { get; } = new GroupElement(EC.G);
-
-		/// <summary>
-		/// Generator for MAC and Show.
-		/// </summary>
-		public static GroupElement Gw { get; } = FromText("Gw");
-
-		/// <summary>
-		/// Generator for MAC and Show.
-		/// </summary>
-		public static GroupElement Gwp { get; } = FromText("Gwp");
-
-		/// <summary>
-		/// Generator for MAC and Show.
-		/// </summary>
-		public static GroupElement Gx0 { get; } = FromText("Gx0");
-
-		/// <summary>
-		/// Generator for MAC and Show.
-		/// </summary>
-		public static GroupElement Gx1 { get; } = FromText("Gx1");
-
-		/// <summary>
-		/// Generator for MAC and Show.
-		/// </summary>
-		public static GroupElement GV { get; } = FromText("GV");
-
-		/// <summary>
-		/// Generator for Pedersen commitments.
-		/// </summary>
-		public static GroupElement Gg { get; } = FromText("Gg");
-
-		/// <summary>
-		/// Generator for Pedersen commitments.
-		/// </summary>
-		public static GroupElement Gh { get; } = FromText("Gh");
-
-		/// <summary>
-		/// Generator for attributes M_{ai}.
-		/// </summary>
-		public static GroupElement Ga { get; } = FromText("Ga");
-
-		/// <summary>
-		/// Generator for serial numbers.
-		/// </summary>
-		public static GroupElement Gs { get; } = FromText("Gs");
-
 		private GE Ge { get; }
 
 		public bool IsInfinity => Ge.IsInfinity;
@@ -120,45 +70,45 @@ namespace WalletWasabi.Crypto.Groups
 			{
 				return "Infinity";
 			}
-			else if (Ge.x == G.Ge.x && Ge.y == G.Ge.y)
+			else if (Ge.x == Generators.G.Ge.x && Ge.y == Generators.G.Ge.y)
 			{
 				return $"Standard Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
 			}
-			else if (Ge.x == Gw.Ge.x && Ge.y == Gw.Ge.y)
+			else if (Ge.x == Generators.Gw.Ge.x && Ge.y == Generators.Gw.Ge.y)
 			{
-				return $"{nameof(Gw)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
+				return $"{nameof(Generators.Gw)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
 			}
-			else if (Ge.x == Gwp.Ge.x && Ge.y == Gwp.Ge.y)
+			else if (Ge.x == Generators.Gwp.Ge.x && Ge.y == Generators.Gwp.Ge.y)
 			{
-				return $"{nameof(Gwp)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
+				return $"{nameof(Generators.Gwp)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
 			}
-			else if (Ge.x == Gx0.Ge.x && Ge.y == Gx0.Ge.y)
+			else if (Ge.x == Generators.Gx0.Ge.x && Ge.y == Generators.Gx0.Ge.y)
 			{
-				return $"{nameof(Gx0)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
+				return $"{nameof(Generators.Gx0)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
 			}
-			else if (Ge.x == Gx1.Ge.x && Ge.y == Gx1.Ge.y)
+			else if (Ge.x == Generators.Gx1.Ge.x && Ge.y == Generators.Gx1.Ge.y)
 			{
-				return $"{nameof(Gx1)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
+				return $"{nameof(Generators.Gx1)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
 			}
-			else if (Ge.x == GV.Ge.x && Ge.y == GV.Ge.y)
+			else if (Ge.x == Generators.GV.Ge.x && Ge.y == Generators.GV.Ge.y)
 			{
-				return $"{nameof(GV)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
+				return $"{nameof(Generators.GV)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
 			}
-			else if (Ge.x == Gg.Ge.x && Ge.y == Gg.Ge.y)
+			else if (Ge.x == Generators.Gg.Ge.x && Ge.y == Generators.Gg.Ge.y)
 			{
-				return $"{nameof(Gg)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
+				return $"{nameof(Generators.Gg)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
 			}
-			else if (Ge.x == Gh.Ge.x && Ge.y == Gh.Ge.y)
+			else if (Ge.x == Generators.Gh.Ge.x && Ge.y == Generators.Gh.Ge.y)
 			{
-				return $"{nameof(Gh)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
+				return $"{nameof(Generators.Gh)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
 			}
-			else if (Ge.x == Ga.Ge.x && Ge.y == Ga.Ge.y)
+			else if (Ge.x == Generators.Ga.Ge.x && Ge.y == Generators.Ga.Ge.y)
 			{
-				return $"{nameof(Ga)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
+				return $"{nameof(Generators.Ga)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
 			}
-			else if (Ge.x == Gs.Ge.x && Ge.y == Gs.Ge.y)
+			else if (Ge.x == Generators.Gs.Ge.x && Ge.y == Generators.Gs.Ge.y)
 			{
-				return $"{nameof(Gs)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
+				return $"{nameof(Generators.Gs)} Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
 			}
 			else
 			{

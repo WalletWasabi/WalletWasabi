@@ -12,11 +12,11 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 		[Fact]
 		public void Addition()
 		{
-			var gen1 = GroupElement.Infinity + GroupElement.G;
-			var gen2 = GroupElement.G + GroupElement.Infinity;
+			var gen1 = GroupElement.Infinity + Generators.G;
+			var gen2 = Generators.G + GroupElement.Infinity;
 			var inf = GroupElement.Infinity + GroupElement.Infinity;
-			Assert.Equal(GroupElement.G, gen1);
-			Assert.Equal(GroupElement.G, gen2);
+			Assert.Equal(Generators.G, gen1);
+			Assert.Equal(Generators.G, gen2);
 			Assert.Equal(GroupElement.Infinity, inf);
 
 			var one = new GroupElement(new Scalar(1) * EC.G);
@@ -24,7 +24,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 			var three = new GroupElement(new Scalar(3) * EC.G);
 			var zero = new GroupElement(Scalar.Zero * EC.G);
 
-			Assert.Equal(GroupElement.G, one);
+			Assert.Equal(Generators.G, one);
 			Assert.True(zero.IsInfinity);
 
 			Assert.Equal(two, one + one);
@@ -41,11 +41,11 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 		[Fact]
 		public void Subtraction()
 		{
-			var minusGen = GroupElement.Infinity - GroupElement.G;
-			var gen = GroupElement.G - GroupElement.Infinity;
+			var minusGen = GroupElement.Infinity - Generators.G;
+			var gen = Generators.G - GroupElement.Infinity;
 			var inf = GroupElement.Infinity - GroupElement.Infinity;
 			Assert.Equal(new GroupElement(EC.G.Negate()), minusGen);
-			Assert.Equal(GroupElement.G, gen);
+			Assert.Equal(Generators.G, gen);
 			Assert.Equal(GroupElement.Infinity, inf);
 
 			var minusOne = new GroupElement(new Scalar(1) * EC.G.Negate());
@@ -55,7 +55,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 			var three = new GroupElement(new Scalar(3) * EC.G);
 			var zero = new GroupElement(Scalar.Zero * EC.G);
 
-			Assert.Equal(GroupElement.G, one);
+			Assert.Equal(Generators.G, one);
 			Assert.True(zero.IsInfinity);
 
 			Assert.Equal(zero, one - one);
@@ -81,7 +81,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 		[Fact]
 		public void Negation()
 		{
-			Assert.Equal(new GroupElement(EC.G.Negate()), GroupElement.G.Negate());
+			Assert.Equal(new GroupElement(EC.G.Negate()), Generators.G.Negate());
 			Scalar one = new Scalar(1);
 			Assert.Equal(new GroupElement(EC.G.Negate() * one), new GroupElement(EC.G * one).Negate());
 			Assert.Equal(GroupElement.Infinity, GroupElement.Infinity.Negate());
@@ -91,7 +91,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 		public void MultiplyByScalar()
 		{
 			// Scalar one.
-			var g = GroupElement.G;
+			var g = Generators.G;
 			var scalar = Scalar.One;
 			var expected = new GroupElement(EC.G * scalar);
 			Assert.Equal(expected, g * scalar);
@@ -149,7 +149,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 		[Fact]
 		public void OverflownScalar()
 		{
-			var g = GroupElement.G;
+			var g = Generators.G;
 
 			// Scalar overflown N.
 			var scalar = EC.N;
