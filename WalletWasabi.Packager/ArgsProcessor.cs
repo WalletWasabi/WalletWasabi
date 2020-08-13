@@ -1,5 +1,3 @@
-#nullable enable
-
 using System;
 
 namespace WalletWasabi.Packager
@@ -9,75 +7,31 @@ namespace WalletWasabi.Packager
 	/// </summary>
 	public class ArgsProcessor
 	{
-		public ArgsProcessor(string[]? args)
+		public ArgsProcessor(string[] args)
 		{
-			if (args == null)
-			{
-				throw new ArgumentNullException(nameof(args));
-			}
-
 			Args = args;
 		}
 
 		public string[] Args { get; }
 
-		public bool IsReduceOnionsMode()
+		public bool IsReduceOnionsMode() => IsOneOf("reduceonions", "reduceonion");
+
+		public bool IsOnlyCreateDigestsMode() => IsOneOf("onlycreatedigests", "onlycreatedigest", "onlydigests", "onlydigest");
+
+		public bool IsOnlyBinariesMode() => IsOneOf("onlybinaries");
+
+		public bool IsGetOnionsMode() => IsOneOf("getonions", "getonion");
+
+		private bool IsOneOf(params string[] values)
 		{
-			foreach (var arg in Args)
+			foreach (var value in values)
 			{
-				string value = arg.Trim().TrimStart('-');
-
-				if (value.Equals("reduceonions", StringComparison.OrdinalIgnoreCase)
-					|| value.Equals("reduceonion", StringComparison.OrdinalIgnoreCase))
+				foreach (var arg in Args)
 				{
-					return true;
-				}
-			}
-
-			return false;
-		}
-
-		public bool IsOnlyCreateDigestsMode()
-		{
-			foreach (var arg in Args)
-			{
-				string value = arg.Trim().TrimStart('-');
-
-				if (value.Equals("onlycreatedigests", StringComparison.OrdinalIgnoreCase)
-					|| value.Equals("onlycreatedigest", StringComparison.OrdinalIgnoreCase)
-					|| value.Equals("onlydigests", StringComparison.OrdinalIgnoreCase)
-					|| value.Equals("onlydigest", StringComparison.OrdinalIgnoreCase))
-				{
-					return true;
-				}
-			}
-
-			return false;
-		}
-
-		public bool IsOnlyBinariesMode()
-		{
-			foreach (var arg in Args)
-			{
-				if (arg.Trim().TrimStart('-').Equals("onlybinaries", StringComparison.OrdinalIgnoreCase))
-				{
-					return true;
-				}
-			}
-
-			return false;
-		}
-
-		public bool IsGetOnionsMode()
-		{
-			foreach (var arg in Args)
-			{
-				string value = arg.Trim().TrimStart('-');
-
-				if (value.Equals("getonions", StringComparison.OrdinalIgnoreCase)
-					|| value.Equals("getonion", StringComparison.OrdinalIgnoreCase))
-				{
-					return true;
+					if (arg.Trim().TrimStart('-').Equals(value, StringComparison.OrdinalIgnoreCase))
+					{
+						return true;
+					}
 				}
 			}
 

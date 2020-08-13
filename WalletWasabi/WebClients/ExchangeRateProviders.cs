@@ -7,9 +7,12 @@ using WalletWasabi.Interfaces;
 using WalletWasabi.Logging;
 using WalletWasabi.WebClients.BlockchainInfo;
 using WalletWasabi.WebClients.Coinbase;
+using WalletWasabi.WebClients.Bitstamp;
+using WalletWasabi.WebClients.CoinGecko;
 using WalletWasabi.WebClients.Gemini;
 using WalletWasabi.WebClients.ItBit;
 using WalletWasabi.WebClients.SmartBit;
+using System.Linq;
 
 namespace WalletWasabi.WebClients
 {
@@ -17,23 +20,22 @@ namespace WalletWasabi.WebClients
 	{
 		private readonly IExchangeRateProvider[] ExchangeRateProviders =
 		{
-			new SmartBitExchangeRateProvider(new SmartBitClient(Network.Main)),
 			new BlockchainInfoExchangeRateProvider(),
+			new BitstampExchangeRateProvider(),
+			new CoinGeckoExchangeRateProvider(),
 			new CoinbaseExchangeRateProvider(),
 			new GeminiExchangeRateProvider(),
-			new ItBitExchangeRateProvider()
+			new ItBitExchangeRateProvider(),
+			new SmartBitExchangeRateProvider(new SmartBitClient(Network.Main))
 		};
 
-		public async Task<List<ExchangeRate>> GetExchangeRateAsync()
+		public async Task<IEnumerable<ExchangeRate>> GetExchangeRateAsync()
 		{
-			List<ExchangeRate> exchangeRates = null;
-
 			foreach (var provider in ExchangeRateProviders)
 			{
 				try
 				{
-					exchangeRates = await provider.GetExchangeRateAsync();
-					break;
+					return await provider.GetExchangeRateAsync();
 				}
 				catch (Exception ex)
 				{
@@ -41,7 +43,7 @@ namespace WalletWasabi.WebClients
 					Logger.LogTrace(ex);
 				}
 			}
-			return exchangeRates;
+			return Enumerable.Empty<ExchangeRate>();
 		}
 	}
 }

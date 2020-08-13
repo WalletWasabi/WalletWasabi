@@ -1,8 +1,8 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui" 
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="WalletWasabi.Gui.Controls.Spinner">
-  <Grid>
-    <Grid.Styles>
+  <Panel>
+    <Panel.Styles>
       <Style Selector="DrawingPresenter">
         <Style.Animations>
           <Animation Duration="0:0:2.5" IterationCount="Infinite">
@@ -12,8 +12,8 @@
           </Animation>
         </Style.Animations>
       </Style>
-    </Grid.Styles>
+    </Panel.Styles>
     <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" 
                       Drawing="{DynamicResource Spinner_Gear}" />
-  </Grid>
+  </Panel>
 </UserControl>
