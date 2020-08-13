@@ -24,11 +24,15 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var secrets = new[] { new Scalar(scalarSeed1), new Scalar(scalarSeed2) };
 			var generators = new[] { Generators.G, Generators.Ga };
 			var publicPoint = GroupElement.Infinity;
+			var secretGeneratorPairs = new List<(Scalar, GroupElement)>();
 			for (int i = 0; i < secrets.Length; i++)
 			{
-				publicPoint += secrets[i] * generators[i];
+				Scalar secret = secrets[i];
+				GroupElement generator = generators[i];
+				publicPoint += secret * generator;
+				secretGeneratorPairs.Add((secret, generator));
 			}
-			var proof = Prover.CreateProof(secrets, publicPoint, generators);
+			var proof = Prover.CreateProof(secretGeneratorPairs, publicPoint);
 			Assert.True(Verifier.Verify(proof, publicPoint, generators));
 		}
 	}

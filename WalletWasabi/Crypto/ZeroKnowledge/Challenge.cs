@@ -23,7 +23,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			return HashToScalar(publicPoint, nonce);
 		}
 
-		public static Scalar HashToScalar(params GroupElement[] transcript)
+		public static Scalar HashToScalar(IEnumerable<GroupElement> transcript)
 		{
 			var concatenation = ByteHelpers.Combine(transcript.Select(x => x.ToBytes()));
 			using var sha256 = System.Security.Cryptography.SHA256.Create();
@@ -31,5 +31,8 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			var challenge = new Scalar(hash);
 			return challenge;
 		}
+
+		public static Scalar HashToScalar(params GroupElement[] transcript)
+			=> HashToScalar(transcript as IEnumerable<GroupElement>);
 	}
 }

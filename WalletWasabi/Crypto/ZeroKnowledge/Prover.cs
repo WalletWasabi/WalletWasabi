@@ -22,30 +22,19 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				throw new InvalidOperationException($"{nameof(publicPoint)} != {nameof(secret)} * {nameof(generator)}");
 			}
 
-			var proof = CreateProof(new[] { secret }, publicPoint, new[] { generator }, random);
+			var proof = CreateProof(new[] { (secret, generator) }, publicPoint, random);
 
 			return new KnowledgeOfExponent(proof.Nonce, proof.Responses.First());
 		}
 
-		public static KnowledgeOfRepresentation CreateProof(IEnumerable<Scalar> secrets, GroupElement publicPoint, IEnumerable<GroupElement> generators, WasabiRandom? random = null)
+		public static KnowledgeOfRepresentation CreateProof(IEnumerable<(Scalar secret, GroupElement generator)> secretGeneratorPairs, GroupElement publicPoint, WasabiRandom? random = null)
 		{
 			Guard.False($"{nameof(publicPoint)}.{nameof(publicPoint.IsInfinity)}", publicPoint.IsInfinity);
 
-			var secretArray = secrets.ToArray();
-			var generatorArray = generators.ToArray();
-
-			if (secretArray.Length != generatorArray.Length)
-			{
-				throw new ArgumentException($"Same number of secrets and generators must be provided. Secrets: {secretArray.Length}, Generators: {generatorArray.Length}");
-			}
-
 			var nonce = GroupElement.Infinity;
 			var randomScalars = new List<Scalar>();
-			for (int i = 0; i < secretArray.Length; i++)
+			foreach (var (secret, generator) in secretGeneratorPairs)
 			{
-				var secret = secretArray[i];
-				var generator = generatorArray[i];
-
 				Guard.False($"{nameof(secret)}.{nameof(secret.IsOverflow)}", secret.IsOverflow);
 				Guard.False($"{nameof(secret)}.{nameof(secret.IsZero)}", secret.IsZero);
 				Guard.False($"{nameof(generator)}.{nameof(generator.IsInfinity)}", generator.IsInfinity);
@@ -57,13 +46,15 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				nonce += randomPoint;
 			}
 
-			var challenge = Challenge.HashToScalar(new[] { publicPoint, nonce }.Concat(generators).ToArray());
+			var challenge = Challenge.HashToScalar(new[] { publicPoint, nonce }.Concat(secretGeneratorPairs.Select(x => x.generator)));
 
+			var secretArray = secretGeneratorPairs.Select(x => x.secret).ToArray();
+			var randomScalarArray = randomScalars.ToArray();
 			var responses = new List<Scalar>();
 			for (int i = 0; i < secretArray.Length; i++)
 			{
 				var secret = secretArray[i];
-				var randomScalar = randomScalars.ToArray()[i];
+				var randomScalar = randomScalarArray[i];
 				var response = randomScalar + secret * challenge;
 				responses.Add(response);
 			}
