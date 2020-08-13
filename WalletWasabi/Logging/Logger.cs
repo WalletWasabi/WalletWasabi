@@ -384,23 +384,21 @@ namespace WalletWasabi.Logging
 		public static void LogError(string message, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) => Log(LogLevel.Error, message, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 
 		/// <summary>
-		/// Logs user message with exception concatenated to it at Error level.
+		/// Logs <paramref name="message"/> with <paramref name="exception"/> using <see cref="Exception.ToString()"/> concatenated to it at <see cref="LogLevel.Error"/> level.
 		///
-		/// For errors and exceptions that cannot be handled.
-		/// These messages indicate a failure in the current activity or operation (such as the current HTTP request), not an application-wide failure.
-		/// Example log message: "Cannot insert record due to duplicate key violation."
+		/// <para>For errors and exceptions that cannot be handled.</para>
 		/// </summary>
+		/// <remarks>These messages indicate a failure in the current activity or operation (such as the current HTTP request), not an application-wide failure.</remarks>
+		/// <example>Log message such as: "Cannot insert record due to duplicate key violation."</example>
 		public static void LogError(string message, Exception ex, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
 			=> Log(message, ex, LogLevel.Error, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 
 		/// <summary>
-		/// Logs the <paramref name="ex"/>.ToString() at Error level.
+		/// Logs the <paramref name="exception"/> using <see cref="Exception.ToString()"/> at <see cref="LogLevel.Error"/> level.
 		///
-		/// For errors and exceptions that cannot be handled.
-		/// These messages indicate a failure in the current activity or operation (such as the current HTTP request), not an application-wide failure.
-		/// Example log message: "Cannot insert record due to duplicate key violation."
+		/// <para>For errors and exceptions that cannot be handled..</para>
 		/// </summary>
-		public static void LogError(Exception ex, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) => Log(ex, LogLevel.Error, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
+		/// <remarks>These messages indicate a failure in the current activity or operation (such as the current HTTP request), not an application-wide failure.</remarks>
 		/// <example>Log message such as: "Cannot insert record due to duplicate key violation."</example>
 		public static void LogError(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) => Log(exception, LogLevel.Error, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 
