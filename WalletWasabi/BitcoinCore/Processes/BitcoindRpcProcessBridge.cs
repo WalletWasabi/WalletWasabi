@@ -38,7 +38,7 @@ namespace WalletWasabi.BitcoinCore.Processes
 		public async Task StartAsync(CancellationToken cancel)
 		{
 			var ptcv = PrintToConsole ? 1 : 0;
-			using var process = Start($"{NetworkTranslator.GetCommandLineArguments(Network)} -datadir={DataDir} -printtoconsole={ptcv}", false);
+			using var process = Start($"{NetworkTranslator.GetCommandLineArguments(Network)} -datadir=\"{DataDir}\" -printtoconsole={ptcv}", false);
 
 			await PidFile.SerializeAsync(process.Id).ConfigureAwait(false);
 			CachedPid = process.Id;
@@ -55,7 +55,7 @@ namespace WalletWasabi.BitcoinCore.Processes
 				else if (latestFailureMessage != ex.Message)
 				{
 					latestFailureMessage = ex.Message;
-					Logger.LogInfo($"Bitcoin Core is not yet ready... Reason: {latestFailureMessage}");
+					Logger.LogInfo($"{Constants.BuiltinBitcoinNodeName} is not yet ready... Reason: {latestFailureMessage}");
 				}
 
 				if (process is null || process.HasExited)

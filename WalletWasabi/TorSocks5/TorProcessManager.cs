@@ -10,10 +10,13 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.TorSocks5.Models.Fields.OctetFields;
-using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.TorSocks5
 {
+	/// <summary>
+	/// Installs, starts and monitors Tor program.
+	/// </summary>
+	/// <seealso href="https://2019.www.torproject.org/docs/tor-manual.html.en"/>
 	public class TorProcessManager
 	{
 		/// <summary>
@@ -76,54 +79,34 @@ namespace WalletWasabi.TorSocks5
 							return;
 						}
 
-						var torDir = Path.Combine(dataDir, "tor");
-						var torDataDir = Path.Combine(dataDir, "tordata");
-						var torPath = "";
-						var hashSourcePath = "";
-						var geoIpPath = "";
-						var geoIp6Path = "";
 						var fullBaseDirectory = EnvironmentHelpers.GetFullBaseDirectory();
-						if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-						{
-							torPath = $@"{torDir}/Tor/tor";
-							hashSourcePath = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
-								? $@"{torDir}/Tor/tor.real"
-								: $@"{torDir}/Tor/tor";
-							geoIpPath = $@"{torDir}/Data/Tor/geoip";
-							geoIp6Path = $@"{torDir}/Data/Tor/geoip6";
-						}
-						else // If Windows
-						{
-							torPath = $@"{torDir}\Tor\tor.exe";
-							hashSourcePath = $@"{torDir}\Tor\tor.exe";
-							geoIpPath = $@"{torDir}\Data\Tor\geoip";
-							geoIp6Path = $@"{torDir}\Data\Tor\geoip6";
-						}
+						var settings = new TorSettings(dataDir);
 
-						if (!File.Exists(torPath))
+						if (!File.Exists(settings.TorPath))
 						{
-							Logger.LogInfo($"Tor instance NOT found at {torPath}. Attempting to acquire it...");
-							InstallTor(torDir);
+							Logger.LogInfo($"Tor instance NOT found at '{settings.TorPath}'. Attempting to acquire it ...");
+							InstallTor(settings.TorDir);
 						}
-						else if (!IoHelpers.CheckExpectedHash(hashSourcePath, Path.Combine(fullBaseDirectory, "TorDaemons")))
+						else if (!IoHelpers.CheckExpectedHash(settings.HashSourcePath, Path.Combine(fullBaseDirectory, "TorDaemons")))
 						{
 							Logger.LogInfo($"Updating Tor...");
 
-							string backupTorDir = $"{torDir}_backup";
+							string backupTorDir = $"{settings.TorDir}_backup";
 							if (Directory.Exists(backupTorDir))
 							{
 								Directory.Delete(backupTorDir, true);
 							}
-							Directory.Move(torDir, backupTorDir);
+							Directory.Move(settings.TorDir, backupTorDir);
 
-							InstallTor(torDir);
+							InstallTor(settings.TorDir);
 						}
 						else
 						{
-							Logger.LogInfo($"Tor instance found at {torPath}.");
+							Logger.LogInfo($"Tor instance found at '{settings.TorPath}'.");
 						}
 
-						string torArguments = $"--SOCKSPort {TorSocks5EndPoint} --DataDirectory {torDataDir} --GeoIPFile {geoIpPath} GeoIPv6File {geoIp6Path}";
+						string torArguments = settings.GetCmdArguments(TorSocks5EndPoint);
+
 						if (!string.IsNullOrEmpty(LogFile))
 						{
 							IoHelpers.EnsureContainingDirectoryExists(LogFile);
@@ -135,7 +118,7 @@ namespace WalletWasabi.TorSocks5
 						{
 							TorProcess = Process.Start(new ProcessStartInfo
 							{
-								FileName = torPath,
+								FileName = settings.TorPath,
 								Arguments = torArguments,
 								UseShellExecute = false,
 								CreateNoWindow = true,
@@ -145,7 +128,7 @@ namespace WalletWasabi.TorSocks5
 						}
 						else // Linux and OSX
 						{
-							string runTorCmd = $"LD_LIBRARY_PATH=$LD_LIBRARY_PATH:={torDir}/Tor && export LD_LIBRARY_PATH && cd {torDir}/Tor && ./tor {torArguments}";
+							string runTorCmd = $"LD_LIBRARY_PATH=$LD_LIBRARY_PATH:='{settings.TorDir}/Tor' && export LD_LIBRARY_PATH && cd '{settings.TorDir}/Tor' && ./tor {torArguments}";
 							EnvironmentHelpers.ShellExecAsync(runTorCmd, false).GetAwaiter().GetResult();
 							Logger.LogInfo($"Started Tor process with shell command: {runTorCmd}.");
 						}
@@ -212,26 +195,6 @@ namespace WalletWasabi.TorSocks5
 		public static async Task<bool> IsTorRunningAsync(EndPoint torSocks5EndPoint)
 		{
 			using var client = new TorSocks5Client(torSocks5EndPoint);
-			try
-			{
-				await client.ConnectAsync().ConfigureAwait(false);
-				await client.HandshakeAsync().ConfigureAwait(false);
-			}
-			catch (ConnectionException)
-			{
-				return false;
-			}
-			return true;
-		}
-
-		public async Task<bool> IsTorRunningAsync()
-		{
-			if (TorSocks5EndPoint is null)
-			{
-				return true;
-			}
-
-			using var client = new TorSocks5Client(TorSocks5EndPoint);
 			try
 			{
 				await client.ConnectAsync().ConfigureAwait(false);

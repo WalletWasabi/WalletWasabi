@@ -19,12 +19,21 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 		private Money _totalOutputValue;
 		private int _inputCount;
 		private int _outputCount;
+		private string _walletName;
+
+		public string WalletName
+		{
+			get => _walletName;
+			set => this.RaiseAndSetIfChanged(ref _walletName, value);
+		}
 
 		public DateTimeOffset DateTime
 		{
 			get => _dateTime;
 			set => this.RaiseAndSetIfChanged(ref _dateTime, value);
 		}
+
+		public bool Confirmed => Confirmations > 0;
 
 		public int Confirmations
 		{
@@ -80,7 +89,7 @@ namespace WalletWasabi.Gui.Controls.TransactionDetails.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _outputCount, value);
 		}
 
-		public Money NetworkFee => TotalInputValue is null || TotalInputValue is null
+		public Money NetworkFee => TotalInputValue is null || TotalOutputValue is null
 			? null
 			: TotalInputValue - TotalOutputValue;
 

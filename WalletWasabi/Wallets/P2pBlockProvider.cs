@@ -277,7 +277,7 @@ namespace WalletWasabi.Wallets
 					finally
 					{
 						LocalBitcoinCoreNode = null;
-						Logger.LogInfo("Local Bitcoin Core node disconnected.");
+						Logger.LogInfo($"Local {Constants.BuiltinBitcoinNodeName} node disconnected.");
 					}
 				}
 			}

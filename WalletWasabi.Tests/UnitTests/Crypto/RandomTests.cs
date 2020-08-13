@@ -1,5 +1,7 @@
+using NBitcoin.Secp256k1;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
@@ -31,11 +33,11 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var pseudoSet = new HashSet<byte[]>();
 			var secureSet = new HashSet<byte[]>();
 			var count = 100;
-			var unsecureRandom = new UnsecureRandom();
+			var insecureRandom = new InsecureRandom();
 			using var secureRandom = new SecureRandom();
 			for (int i = 0; i < count; i++)
 			{
-				pseudoSet.Add(unsecureRandom.GetBytes(10));
+				pseudoSet.Add(insecureRandom.GetBytes(10));
 				secureSet.Add(secureRandom.GetBytes(10));
 			}
 			Assert.Equal(count, pseudoSet.Count);
@@ -45,10 +47,10 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		[Fact]
 		public void GetBytesArgumentTests()
 		{
-			var randoms = new List<IWasabiRandom>
+			var randoms = new List<WasabiRandom>
 			{
 				new SecureRandom(),
-				new UnsecureRandom(),
+				new InsecureRandom(),
 				new MockRandom()
 			};
 
@@ -65,12 +67,91 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 					var r2 = random.GetBytes(2);
 					Assert.Equal(2, r2.Length);
 				}
-
-				if (random is SecureRandom secureRandom)
-				{
-					secureRandom.Dispose();
-				}
 			}
+
+			foreach (var random in randoms.Where(x => x is IDisposable))
+			{
+				(random as IDisposable)?.Dispose();
+			}
+		}
+
+		[Fact]
+		public void ScalarTests()
+		{
+			// Make sure first that scalar equality works within hashset and that the underlying API won't pull the floor out.
+			var singleSet = new HashSet<Scalar>
+			{
+				new Scalar(5),
+				new Scalar(5)
+			};
+			Assert.Single(singleSet);
+
+			var randoms = new List<WasabiRandom>
+			{
+				new SecureRandom(),
+				new InsecureRandom()
+			};
+
+			foreach (var random in randoms)
+			{
+				// It's probabilistically ensured that it never produces the same scalar, so unit test should pass always.
+				var set = new HashSet<Scalar>();
+				var count = 100;
+				for (int i = 0; i < count; i++)
+				{
+					Scalar randomScalar = random.GetScalar();
+					set.Add(randomScalar);
+				}
+				Assert.Equal(count, set.Count);
+			}
+
+			foreach (var random in randoms.Where(x => x is IDisposable))
+			{
+				(random as IDisposable)?.Dispose();
+			}
+		}
+
+		[Fact]
+		public void ScalarInternalTests()
+		{
+			var mockRandom = new MockRandom();
+
+			// The random should not overfow.
+			mockRandom.GetBytesResults.Add(EC.N.ToBytes());
+
+			// The random should not overfow.
+			mockRandom.GetBytesResults.Add(new Scalar(uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue).ToBytes());
+
+			mockRandom.GetBytesResults.Add(Scalar.Zero.ToBytes());
+			var one = new Scalar(1);
+			mockRandom.GetBytesResults.Add(one.ToBytes());
+			var two = new Scalar(2);
+			mockRandom.GetBytesResults.Add(two.ToBytes());
+			var big = new Scalar(int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue);
+			mockRandom.GetBytesResults.Add(big.ToBytes());
+			var biggest = EC.N + one.Negate();
+			mockRandom.GetBytesResults.Add(biggest.ToBytes());
+
+			var randomScalar = mockRandom.GetScalar();
+			Assert.Equal(Scalar.Zero, randomScalar);
+			randomScalar = mockRandom.GetScalar();
+			Assert.Equal(one, randomScalar);
+			randomScalar = mockRandom.GetScalar();
+			Assert.Equal(two, randomScalar);
+			randomScalar = mockRandom.GetScalar();
+			Assert.Equal(big, randomScalar);
+			randomScalar = mockRandom.GetScalar();
+			Assert.Equal(biggest, randomScalar);
+		}
+
+		[Fact]
+		public void RandomStringTests()
+		{
+			var s1 = RandomString.AlphaNumeric(21, true);
+			Assert.Equal(21, s1.Length);
+
+			var s2 = RandomString.CapitalAlphaNumeric(21, false);
+			Assert.Equal(21, s2.Length);
 		}
 	}
 }

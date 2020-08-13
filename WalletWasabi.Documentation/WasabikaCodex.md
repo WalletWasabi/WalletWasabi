@@ -1,21 +1,32 @@
 
 ## Daily routine
 
-*if you have https://github.com/notifications/beta use it instead of the links mentioned below.*
-
-1. Check [open code review requests waiting for you](https://github.com/zkSNACKs/WalletWasabi/pulls/review-requested/@me).
-2. Check [open priority issues and PRs](https://github.com/zkSNACKs/WalletWasabi/labels/priority). Take it or set Assignees and Labels if you can.
-3. Check your [open PRs](https://github.com/zkSNACKs/WalletWasabi/pulls/@me) and answer if necessary.
+1. Check [Valhalla board](https://github.com/orgs/zkSNACKs/projects/4) that contains issues and priorities.
+2. Check [open code review requests waiting for you](https://github.com/zkSNACKs/WalletWasabi/pulls/review-requested/@me).
+3. Check [open priority issues and PRs](https://github.com/zkSNACKs/WalletWasabi/labels/priority). Take it or set Assignees and Labels if you can.
+4. Check your [open PRs](https://github.com/zkSNACKs/WalletWasabi/pulls/@me) and answer if necessary.
    - If you need help use __@mention__.
    - If you need review set __Reviewers__.
-4. Check [open issues assigned to you](https://github.com/zkSNACKs/WalletWasabi/issues/assigned/@me).
-5. Check [open issues and PRs where you are mentioned](https://github.com/zkSNACKs/WalletWasabi/issues?utf8=%E2%9C%93&q=is%3Aopen+mentions%3A%40me+).
-6. Check the [notifications](https://github.com/notifications).
-7. Work on anything you want - assign it to yourself.
+5. Check [open issues assigned to you](https://github.com/zkSNACKs/WalletWasabi/issues/assigned/@me).
+6. Check [open issues and PRs where you are mentioned](https://github.com/zkSNACKs/WalletWasabi/issues?utf8=%E2%9C%93&q=is%3Aopen+mentions%3A%40me+).
+7. Check the [notifications](https://github.com/notifications).
+8. Work on anything you want - assign it to yourself.
+
+| Developer | Assignees |
+| :-------: | :-------: |
+| molnard | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Amolnard) |
+| jmacato | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Ajmacato) |
+| danwalmsley | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Adanwalmsley) |
+| kiminuo | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Akiminuo) |
+| lontivero | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Alontivero) |
+| MaxHillebrand | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3AMaxHillebrand) |
+| nopara73 | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Anopara73) |
+| yahiheb | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Ayahiheb) |
+| soosr | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Asoosr) |
 
 ## Weekly routine
 
-- Wednesday: Developer meeting. Use [dev meeting board](https://github.com/orgs/zkSNACKs/projects/1) to manage tasks.
+- Wednesday 15:00 CEST: Developer meeting.
 - Pair programming hour.
 
 ## Monthly routine
@@ -28,7 +39,7 @@
 
 ## Roadmap
 
-https://github.com/zkSNACKs/WalletWasabi/projects/8
+- There is no RoadMap. 
 
 ## Code review (CR)
 
@@ -60,6 +71,22 @@ __Fact__: code review is one of the few scientifically proven code improvement t
 - If it is UX related always ask Jumar or Dan to review.
 
 ## Visual Studio Tips (Windows)
+
+- Visual Studio 2019 errors:
+  - If you get an error about Visual Studio does not support `WalletWasabi.WindowsInstaller` then you can fix this by installing `WiX Toolset Visual Studio 2019 Extension`. After the the installation reload the `WalletWasabi.WindowsInstaller` project by right click (on it) -> `Reload project`.
+  
+## Git tips
+
+- Scripts  
+  Add these lines to your `C:\Users\{YourUser}\.gitconfig` file.  
+   ```
+   [alias]
+      upd = "!f(){ git fetch upstream && git checkout master && git rebase upstream/master && git push -f origin master && git branch --merged; };f"
+      del = "!f(){ git checkout master && (git branch -D \"$1\"; git push origin --delete \"$1\"); git branch; };f"
+   ```
+  You can use it in console in project libary by the following commands:  
+   - `git upd` -> Update the forked repository  
+   - `git del` -> Delete the current branch remotely and locally  
 
 ### Clever Extensions
 
