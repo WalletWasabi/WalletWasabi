@@ -86,7 +86,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var challenge = ZkChallenge.Build(publicPoint, randomPoint);
 
 			var response = randomScalar + (secret + Scalar.One) * challenge;
-			var proof = new ZkExponentProof(randomPoint, response);
+			var proof = new ZkKnowledgeOfExponent(randomPoint, response);
 			Assert.False(ZkVerifier.Verify(proof, publicPoint, generator));
 
 			// Other false verification tests.
@@ -95,7 +95,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var scalar = new Scalar(11);
 			var gen = GroupElement.G;
 
-			proof = new ZkExponentProof(point1, scalar);
+			proof = new ZkKnowledgeOfExponent(point1, scalar);
 			Assert.False(ZkVerifier.Verify(proof, point2, gen));
 		}
 
@@ -169,12 +169,12 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		public void ExponentProofThrows()
 		{
 			// Demonstrate when it shouldn't throw.
-			new ZkExponentProof(GroupElement.G, Scalar.One);
+			new ZkKnowledgeOfExponent(GroupElement.G, Scalar.One);
 
 			// Infinity or zero cannot pass through.
-			Assert.ThrowsAny<ArgumentException>(() => new ZkExponentProof(GroupElement.G, Scalar.Zero));
-			Assert.ThrowsAny<ArgumentException>(() => new ZkExponentProof(GroupElement.Infinity, Scalar.One));
-			Assert.ThrowsAny<ArgumentException>(() => new ZkExponentProof(GroupElement.Infinity, Scalar.Zero));
+			Assert.ThrowsAny<ArgumentException>(() => new ZkKnowledgeOfExponent(GroupElement.G, Scalar.Zero));
+			Assert.ThrowsAny<ArgumentException>(() => new ZkKnowledgeOfExponent(GroupElement.Infinity, Scalar.One));
+			Assert.ThrowsAny<ArgumentException>(() => new ZkKnowledgeOfExponent(GroupElement.Infinity, Scalar.Zero));
 		}
 
 		[Fact]
@@ -207,7 +207,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		[Fact]
 		public void VerifierThrows()
 		{
-			var proof = new ZkExponentProof(GroupElement.G, Scalar.One);
+			var proof = new ZkKnowledgeOfExponent(GroupElement.G, Scalar.One);
 
 			// Demonstrate when it shouldn't throw.
 			ZkVerifier.Verify(proof, GroupElement.Ga, GroupElement.Gg);

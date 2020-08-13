@@ -6,9 +6,9 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge
 {
-	public class ZkExponentProof
+	public class ZkKnowledgeOfExponent
 	{
-		public ZkExponentProof(GroupElement randomPoint, Scalar response)
+		public ZkKnowledgeOfExponent(GroupElement randomPoint, Scalar response)
 		{
 			Guard.False($"{nameof(randomPoint)}.{nameof(randomPoint.IsInfinity)}", randomPoint.IsInfinity);
 			Guard.False($"{nameof(response)}.{nameof(response.IsZero)}", response.IsZero);

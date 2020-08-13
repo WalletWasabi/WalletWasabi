@@ -1,6 +1,7 @@
 using NBitcoin.Secp256k1;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using WalletWasabi.Helpers;
 
@@ -18,9 +19,12 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				throw new InvalidOperationException($"{nameof(publicPoint)} and {nameof(randomPoint)} should not be equal.");
 			}
 
-			var concatenation = ByteHelpers.Combine(
-				publicPoint.ToBytes(),
-				randomPoint.ToBytes());
+			return HashToScalar(publicPoint, randomPoint);
+		}
+
+		public static Scalar HashToScalar(params GroupElement[] transcript)
+		{
+			var concatenation = ByteHelpers.Combine(transcript.Select(x => x.ToBytes()));
 			using var sha256 = System.Security.Cryptography.SHA256.Create();
 			var hash = sha256.ComputeHash(concatenation);
 			var challenge = new Scalar(hash);

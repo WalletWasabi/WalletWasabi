@@ -1,6 +1,7 @@
 using NBitcoin.Secp256k1;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
@@ -9,7 +10,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 {
 	public static class ZkProver
 	{
-		public static ZkExponentProof CreateProof(Scalar exponent, GroupElement publicPoint, GroupElement generator, WasabiRandom? random = null)
+		public static ZkKnowledgeOfExponent CreateProof(Scalar exponent, GroupElement publicPoint, GroupElement generator, WasabiRandom? random = null)
 		{
 			Guard.False($"{nameof(exponent)}.{nameof(exponent.IsOverflow)}", exponent.IsOverflow);
 			Guard.False($"{nameof(exponent)}.{nameof(exponent.IsZero)}", exponent.IsZero);
@@ -20,13 +21,53 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				throw new InvalidOperationException($"{nameof(publicPoint)} != {nameof(exponent)} * {nameof(generator)}");
 			}
 
-			var randomScalar = GetNonZeroRandomScalar(random);
-			var randomPoint = randomScalar * generator;
-			var challenge = ZkChallenge.Build(publicPoint, randomPoint);
+			var proof = CreateProof(new[] { exponent }, publicPoint, new[] { generator }, random);
 
-			var response = randomScalar + exponent * challenge;
+			return new ZkKnowledgeOfExponent(proof.Randomness, proof.Responses.First());
+		}
 
-			return new ZkExponentProof(randomPoint, response);
+		public static ZkKnowledgeOfRepresentation CreateProof(IEnumerable<Scalar> exponents, GroupElement publicPoint, IEnumerable<GroupElement> generators, WasabiRandom? random = null)
+		{
+			Guard.False($"{nameof(publicPoint)}.{nameof(publicPoint.IsInfinity)}", publicPoint.IsInfinity);
+
+			var exponentArray = exponents.ToArray();
+			var generatorArray = generators.ToArray();
+
+			if (exponentArray.Length != generatorArray.Length)
+			{
+				throw new ArgumentException($"Same number of exponents and generators must be provided. Exponents: {exponentArray.Length}, Generators: {generatorArray.Length}");
+			}
+
+			var randomness = GroupElement.Infinity;
+			var randomScalars = new List<Scalar>();
+			for (int i = 0; i < exponentArray.Length; i++)
+			{
+				var exponent = exponentArray[i];
+				var generator = generatorArray[i];
+
+				Guard.False($"{nameof(exponent)}.{nameof(exponent.IsOverflow)}", exponent.IsOverflow);
+				Guard.False($"{nameof(exponent)}.{nameof(exponent.IsZero)}", exponent.IsZero);
+				Guard.False($"{nameof(generator)}.{nameof(generator.IsInfinity)}", generator.IsInfinity);
+
+				var randomScalar = GetNonZeroRandomScalar(random);
+				randomScalars.Add(randomScalar);
+				var randomPoint = randomScalar * generator;
+
+				randomness += randomPoint;
+			}
+
+			var challenge = ZkChallenge.HashToScalar(new[] { publicPoint, randomness }.Concat(generators).ToArray());
+
+			var responses = new List<Scalar>();
+			for (int i = 0; i < exponentArray.Length; i++)
+			{
+				var exponent = exponentArray[i];
+				var randomScalar = randomScalars.ToArray()[i];
+				var response = randomScalar + exponent * challenge;
+				responses.Add(response);
+			}
+
+			return new ZkKnowledgeOfRepresentation(randomness, responses);
 		}
 
 		private static Scalar GetNonZeroRandomScalar(WasabiRandom? random = null)
