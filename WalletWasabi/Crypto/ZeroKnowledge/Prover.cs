@@ -9,9 +9,9 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge
 {
-	public static class ZkProver
+	public static class Prover
 	{
-		public static ZkKnowledgeOfExponent CreateProof(Scalar exponent, GroupElement publicPoint, GroupElement generator, WasabiRandom? random = null)
+		public static KnowledgeOfExponent CreateProof(Scalar exponent, GroupElement publicPoint, GroupElement generator, WasabiRandom? random = null)
 		{
 			Guard.False($"{nameof(exponent)}.{nameof(exponent.IsOverflow)}", exponent.IsOverflow);
 			Guard.False($"{nameof(exponent)}.{nameof(exponent.IsZero)}", exponent.IsZero);
@@ -24,10 +24,10 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 
 			var proof = CreateProof(new[] { exponent }, publicPoint, new[] { generator }, random);
 
-			return new ZkKnowledgeOfExponent(proof.Nonce, proof.Responses.First());
+			return new KnowledgeOfExponent(proof.Nonce, proof.Responses.First());
 		}
 
-		public static ZkKnowledgeOfRepresentation CreateProof(IEnumerable<Scalar> exponents, GroupElement publicPoint, IEnumerable<GroupElement> generators, WasabiRandom? random = null)
+		public static KnowledgeOfRepresentation CreateProof(IEnumerable<Scalar> exponents, GroupElement publicPoint, IEnumerable<GroupElement> generators, WasabiRandom? random = null)
 		{
 			Guard.False($"{nameof(publicPoint)}.{nameof(publicPoint.IsInfinity)}", publicPoint.IsInfinity);
 
@@ -57,7 +57,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				nonce += randomPoint;
 			}
 
-			var challenge = ZkChallenge.HashToScalar(new[] { publicPoint, nonce }.Concat(generators).ToArray());
+			var challenge = Challenge.HashToScalar(new[] { publicPoint, nonce }.Concat(generators).ToArray());
 
 			var responses = new List<Scalar>();
 			for (int i = 0; i < exponentArray.Length; i++)
@@ -68,7 +68,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				responses.Add(response);
 			}
 
-			return new ZkKnowledgeOfRepresentation(nonce, responses);
+			return new KnowledgeOfRepresentation(nonce, responses);
 		}
 
 		private static Scalar GetNonZeroRandomScalar(WasabiRandom? random = null)

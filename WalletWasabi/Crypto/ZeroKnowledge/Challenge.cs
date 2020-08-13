@@ -8,7 +8,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge
 {
-	public static class ZkChallenge
+	public static class Challenge
 	{
 		public static Scalar Build(GroupElement publicPoint, GroupElement nonce)
 		{

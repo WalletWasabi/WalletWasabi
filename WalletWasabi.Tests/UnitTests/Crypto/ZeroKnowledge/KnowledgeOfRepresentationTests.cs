@@ -8,7 +8,7 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 {
-	public class ZkRepresentationTests
+	public class KnowledgeOfRepresentationTests
 	{
 		[Theory]
 		[InlineData(1, 1)]
@@ -28,8 +28,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			{
 				publicPoint += exponents[i] * generators[i];
 			}
-			var proof = ZkProver.CreateProof(exponents, publicPoint, generators);
-			Assert.True(ZkVerifier.Verify(proof, publicPoint, generators));
+			var proof = Prover.CreateProof(exponents, publicPoint, generators);
+			Assert.True(Verifier.Verify(proof, publicPoint, generators));
 		}
 	}
 }

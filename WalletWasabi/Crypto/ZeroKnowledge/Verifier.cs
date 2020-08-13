@@ -7,9 +7,9 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge
 {
-	public static class ZkVerifier
+	public static class Verifier
 	{
-		public static bool Verify(ZkKnowledgeOfExponent proof, GroupElement publicPoint, GroupElement generator)
+		public static bool Verify(KnowledgeOfExponent proof, GroupElement publicPoint, GroupElement generator)
 		{
 			Guard.False($"{nameof(generator)}.{nameof(generator.IsInfinity)}", generator.IsInfinity);
 			Guard.False($"{nameof(publicPoint)}.{nameof(publicPoint.IsInfinity)}", publicPoint.IsInfinity);
@@ -19,11 +19,11 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				throw new InvalidOperationException($"{nameof(publicPoint)} and {nameof(proof.Nonce)} should not be equal.");
 			}
 
-			var zkor = new ZkKnowledgeOfRepresentation(proof.Nonce, new[] { proof.Response });
-			return Verify(zkor, publicPoint, new[] { generator });
+			var knowledge = new KnowledgeOfRepresentation(proof.Nonce, new[] { proof.Response });
+			return Verify(knowledge, publicPoint, new[] { generator });
 		}
 
-		public static bool Verify(ZkKnowledgeOfRepresentation proof, GroupElement publicPoint, IEnumerable<GroupElement> generators)
+		public static bool Verify(KnowledgeOfRepresentation proof, GroupElement publicPoint, IEnumerable<GroupElement> generators)
 		{
 			foreach (var generator in generators)
 			{
@@ -33,7 +33,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			var nonce = proof.Nonce;
 			var responses = proof.Responses.ToArray();
 
-			var challenge = ZkChallenge.HashToScalar(new[] { publicPoint, nonce }.Concat(generators).ToArray());
+			var challenge = Challenge.HashToScalar(new[] { publicPoint, nonce }.Concat(generators).ToArray());
 			var a = challenge * publicPoint + nonce;
 
 			var b = GroupElement.Infinity;

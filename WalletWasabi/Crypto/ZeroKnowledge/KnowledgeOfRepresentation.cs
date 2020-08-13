@@ -6,9 +6,9 @@ using WalletWasabi.Crypto.Groups;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge
 {
-	public class ZkKnowledgeOfRepresentation
+	public class KnowledgeOfRepresentation
 	{
-		public ZkKnowledgeOfRepresentation(GroupElement nonce, IEnumerable<Scalar> responses)
+		public KnowledgeOfRepresentation(GroupElement nonce, IEnumerable<Scalar> responses)
 		{
 			Nonce = nonce;
 			Responses = responses;
