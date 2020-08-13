@@ -82,7 +82,7 @@ namespace WalletWasabi.Microservices
 			process.StartInfo.FileName = ProcessPath;
 			process.StartInfo.Arguments = arguments;
 			process.StartInfo.RedirectStandardInput = redirectStandardInput;
-			process.StartInfo.UseShellExecute = openConsole;
+			process.StartInfo.UseShellExecute = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 			process.StartInfo.CreateNoWindow = !openConsole;
 			process.StartInfo.WindowStyle = openConsole ? ProcessWindowStyle.Normal : ProcessWindowStyle.Hidden;
 			process.EnableRaisingEvents = true;
