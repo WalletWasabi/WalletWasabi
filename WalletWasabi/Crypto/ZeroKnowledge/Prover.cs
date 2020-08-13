@@ -57,7 +57,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			var responses = new List<Scalar>();
 			foreach (var (secret, randomScalar) in secretGeneratorPairs
 				.Select(x => x.secret)
-				.TupleWith(randomScalars))
+				.ZipForceEqualLength(randomScalars))
 			{
 				var response = randomScalar + secret * challenge;
 				responses.Add(response);

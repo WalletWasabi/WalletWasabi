@@ -25,7 +25,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var secrets = new[] { new Scalar(scalarSeed1), new Scalar(scalarSeed2) };
 			var generators = new[] { Generators.G, Generators.Ga };
 			var publicPoint = GroupElement.Infinity;
-			var secretGeneratorPairs = secrets.TupleWith(generators);
+			var secretGeneratorPairs = secrets.ZipForceEqualLength(generators);
 			foreach (var (secret, generator) in secretGeneratorPairs)
 			{
 				publicPoint += secret * generator;

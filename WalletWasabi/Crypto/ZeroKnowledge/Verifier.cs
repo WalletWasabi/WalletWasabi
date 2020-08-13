@@ -30,7 +30,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			var a = challenge * publicPoint + nonce;
 
 			var b = GroupElement.Infinity;
-			foreach (var (response, generator) in responses.TupleWith(generators))
+			foreach (var (response, generator) in responses.ZipForceEqualLength(generators))
 			{
 				b += response * generator;
 			}
