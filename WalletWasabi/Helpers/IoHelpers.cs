@@ -51,11 +51,7 @@ namespace System.IO
 					// Directory does not exist. So the operation is trivially done.
 					return true;
 				}
-				catch (IOException)
-				{
-					await Task.Delay(millisecondsDelay).ConfigureAwait(false);
-				}
-				catch (UnauthorizedAccessException)
+				catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
 				{
 					await Task.Delay(millisecondsDelay).ConfigureAwait(false);
 				}
@@ -80,14 +76,14 @@ namespace System.IO
 		public static void EnsureContainingDirectoryExists(string fileNameOrPath)
 		{
 			string fullPath = Path.GetFullPath(fileNameOrPath); // No matter if relative or absolute path is given to this.
-			string dir = Path.GetDirectoryName(fullPath);
+			string? dir = Path.GetDirectoryName(fullPath);
 			EnsureDirectoryExists(dir);
 		}
 
 		/// <summary>
 		/// It's like Directory.CreateDirectory, but does not fail when root is given.
 		/// </summary>
-		public static void EnsureDirectoryExists(string dir)
+		public static void EnsureDirectoryExists(string? dir)
 		{
 			if (!string.IsNullOrWhiteSpace(dir)) // If root is given, then do not worry.
 			{
