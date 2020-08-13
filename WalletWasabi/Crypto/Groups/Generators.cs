@@ -6,9 +6,10 @@ using System.Text;
 namespace WalletWasabi.Crypto.Groups
 {
 	public static class Generators
-	{/// <summary>
-	 /// The base point defined in the secp256k1 standard used in ECDSA public key derivation.
-	 /// </summary>
+	{
+		/// <summary>
+		/// The base point defined in the secp256k1 standard used in ECDSA public key derivation.
+		/// </summary>
 		public static GroupElement G { get; } = new GroupElement(EC.G);
 
 		/// <summary>
