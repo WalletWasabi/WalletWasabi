@@ -25,7 +25,10 @@ The main privacy features on the network level:
 and on the blockchain level:
 - Intuitive ZeroLink CoinJoin integration.
 - Superb coin selection and labeling.
+- Opt-in PayJoin.
 - Dust attack protections.
+- Custom change address.
+- Anti wallet fingerprinting.
 
 For more information, please check out the [Wasabi Documentation](https://docs.wasabiwallet.io), an archive of knowledge about the nuances of Bitcoin privacy and how to properly use Wasabi.
 

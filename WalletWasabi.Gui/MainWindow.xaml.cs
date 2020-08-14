@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls.Notifications;
 using Avalonia.Markup.Xaml;
+using AvalonStudio.Documents;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Controls;
@@ -12,6 +13,7 @@ using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
@@ -104,7 +106,11 @@ namespace WalletWasabi.Gui
 						{
 							Global.UiConfig.WindowState = WindowState;
 
-							Global.UiConfig.LastActiveTab = IoC.Get<IShell>().SelectedDocument?.GetType().Name;
+							IDocumentTabViewModel? selectedDocument = IoC.Get<IShell>().SelectedDocument;
+							Global.UiConfig.LastActiveTab = selectedDocument is null
+								? nameof(HistoryTabViewModel)
+								: selectedDocument.GetType().Name;
+
 							Global.UiConfig.ToFile();
 							Logger.LogInfo($"{nameof(Global.UiConfig)} is saved.");
 						}

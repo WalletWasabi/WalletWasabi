@@ -1,7 +1,19 @@
-
 ## Daily routine
 
 1. Check [Valhalla board](https://github.com/orgs/zkSNACKs/projects/4) that contains issues and priorities.
+
+    | Developer | Assigned |
+    | :-------: | :-------: |
+    | molnard | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Amolnard) |
+    | jmacato | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Ajmacato) |
+    | danwalmsley | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Adanwalmsley) |
+    | kiminuo | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Akiminuo) |
+    | lontivero | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Alontivero) |
+    | MaxHillebrand | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3AMaxHillebrand) |
+    | nopara73 | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Anopara73) |
+    | yahiheb | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Ayahiheb) |
+    | soosr | [Show](https://github.com/orgs/zkSNACKs/projects/4?card_filter_query=assignee%3Asoosr) |
+
 2. Check [open code review requests waiting for you](https://github.com/zkSNACKs/WalletWasabi/pulls/review-requested/@me).
 3. Check [open priority issues and PRs](https://github.com/zkSNACKs/WalletWasabi/labels/priority). Take it or set Assignees and Labels if you can.
 4. Check your [open PRs](https://github.com/zkSNACKs/WalletWasabi/pulls/@me) and answer if necessary.
@@ -14,7 +26,7 @@
 
 ## Weekly routine
 
-- Wednesday: Developer meeting. Use [dev meeting board](https://github.com/orgs/zkSNACKs/projects/1) to manage tasks.
+- Wednesday 13:00 UTC: Developer meeting.
 - Pair programming hour.
 
 ## Monthly routine
@@ -27,7 +39,7 @@
 
 ## Roadmap
 
-- There is no RoadMap. 
+- There is no RoadMap.
 
 ## Code review (CR)
 
@@ -66,3 +78,16 @@ __Fact__: code review is one of the few scientifically proven code improvement t
 ### Clever Extensions
 
 - Open [Power Shell or Command Line with hotkey](https://marketplace.visualstudio.com/items?itemName=MadsKristensen.OpenCommandLine). By pressing Alt-Space a cmd prompt will be opened. You can change the default command line tool under Tools/Options/Command Line => Select preset. `Always open at solution` level option is also a useful feature.
+
+## Git tips
+
+- Scripts  
+  Add these lines to your `C:\Users\{YourUser}\.gitconfig` file. (Windows)
+   ```
+   [alias]
+      upd = "!f(){ git fetch upstream && git checkout master && git rebase upstream/master && git push -f origin master && git branch --merged; };f"
+      del = "!f(){ git checkout master && (git branch -D \"$1\"; git push origin --delete \"$1\"); git branch; };f"
+   ```
+  You can use it with the console in the project library by the following commands:  
+   - `git upd` -> Update the forked repository  
+   - `git del` -> Delete the current branch remotely and locally  
