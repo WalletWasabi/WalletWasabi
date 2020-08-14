@@ -248,8 +248,7 @@ namespace WalletWasabi.Logging
 		/// </summary>
 		private static void Log(string message, Exception ex, LogLevel level, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
 		{
-			string formattedMessage = message + " Exception: " + ex.ToString();
-			Log(level, formattedMessage, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
+			Log(level, message: $"{message} Exception: {ex}", callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 		}
 
 		/// <summary>
