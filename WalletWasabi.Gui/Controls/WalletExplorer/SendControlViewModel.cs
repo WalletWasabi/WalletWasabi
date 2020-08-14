@@ -818,7 +818,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			try
 			{
-				if (decimal.TryParse(feeText, NumberStyles.Integer, new CultureInfo("en-US"), out var userFee))
+				if (decimal.TryParse(feeText, NumberStyles.AllowDecimalPoint, new CultureInfo("en-US"), out var userFee))
 				{
 					var userFeeRate = new FeeRate(userFee);
 					userFeeRateAsDecimal = userFeeRate.SatoshiPerByte;
