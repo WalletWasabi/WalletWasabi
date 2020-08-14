@@ -820,7 +820,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					var userFeeRate = new FeeRate(userFee);
 					userFeeRateAsDecimal = userFeeRate.SatoshiPerByte;
-					return userFeeRate > MinRelayTxFeeRate && userFeeRate <= AbsurdlyHighFeeRate;
+					return userFeeRate >= MinRelayTxFeeRate && userFeeRate <= AbsurdlyHighFeeRate;
 				}
 			}
 			catch (OverflowException)
