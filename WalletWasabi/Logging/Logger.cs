@@ -5,7 +5,6 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
-using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Logging
@@ -249,16 +248,16 @@ namespace WalletWasabi.Logging
 		/// </summary>
 		private static void Log(string message, Exception ex, LogLevel level, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
 		{
-			string formattedMessage = message + " Exception: " + (ex?.ToString() ?? "Exception was null.");
+			string formattedMessage = message + " Exception: " + (ex.ToString() ?? "Exception was null.");
 			Log(level, formattedMessage, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 		}
 
 		/// <summary>
 		/// Logs exception string without any user message.
 		/// </summary>
-		private static void Log(Exception ex, LogLevel level, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
+		private static void Log(Exception exception, LogLevel level, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
 		{
-			string message = ex?.ToString() ?? "Exception was null.";
+			string message = exception.ToString() ?? "Exception was null.";
 			Log(level, message, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 		}
 
@@ -390,13 +389,13 @@ namespace WalletWasabi.Logging
 		/// </summary>
 		/// <remarks>These messages indicate a failure in the current activity or operation (such as the current HTTP request), not an application-wide failure.</remarks>
 		/// <example>Log message such as: "Cannot insert record due to duplicate key violation."</example>
-		public static void LogError(string message, Exception ex, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
-			=> Log(message, ex, LogLevel.Error, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
+		public static void LogError(string message, Exception exception, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
+			=> Log(message, exception, LogLevel.Error, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 
 		/// <summary>
 		/// Logs the <paramref name="exception"/> using <see cref="Exception.ToString()"/> at <see cref="LogLevel.Error"/> level.
 		///
-		/// <para>For errors and exceptions that cannot be handled..</para>
+		/// <para>For errors and exceptions that cannot be handled.</para>
 		/// </summary>
 		/// <remarks>These messages indicate a failure in the current activity or operation (such as the current HTTP request), not an application-wide failure.</remarks>
 		/// <example>Log message such as: "Cannot insert record due to duplicate key violation."</example>
