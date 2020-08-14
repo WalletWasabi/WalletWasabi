@@ -62,23 +62,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private const string WaitingForHardwareWalletButtonTextString = "Waiting for Hardware Wallet...";
 
-		private readonly FeeRate MinRelayTxFeeRate = new FeeRate(Money.Satoshis(0), 1);
-		private readonly FeeRate AbsurdlyHighFeeRate = new FeeRate(Money.Satoshis(Constants.MaximumNumberOfSatoshis), 1);
+		private static readonly FeeRate MinRelayTxFeeRate = new FeeRate(Money.Satoshis(0), 1);
+		private static readonly FeeRate AbsurdlyHighFeeRate = new FeeRate(Money.Satoshis(Constants.MaximumNumberOfSatoshis), 1);
 
 		private FeeDisplayFormat _feeDisplayFormat;
 		private bool _isSliderFeeUsed = true;
 		private double _feeControlOpacity;
 
-		protected SendControlViewModel(Wallet wallet, string title, bool testMode = false)
+		protected SendControlViewModel(Wallet wallet, string title)
 			: base(title)
 		{
-
-			// Skip initialization if it's in unit test mode.
-			if(testMode)
-			{
-				return;
-			}
-
 			Global = Locator.Current.GetService<Global>();
 			Wallet = wallet;
 
@@ -819,11 +812,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		public bool TryParseUserFee(out decimal userFeeRateAsDecimal)
+		public bool TryParseUserFee(out decimal userFeeRateAsDecimal) => TryParseUserFeeCore(UserFeeText, out userFeeRateAsDecimal);
+
+		public static bool TryParseUserFeeCore(string feeText, out decimal userFeeRateAsDecimal)
 		{
 			try
 			{
-				if (decimal.TryParse(UserFeeText, NumberStyles.Integer, new CultureInfo("en-US"), out var userFee))
+				if (decimal.TryParse(feeText, NumberStyles.Integer, new CultureInfo("en-US"), out var userFee))
 				{
 					var userFeeRate = new FeeRate(userFee);
 					userFeeRateAsDecimal = userFeeRate.SatoshiPerByte;

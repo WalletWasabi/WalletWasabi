@@ -16,19 +16,6 @@ namespace WalletWasabi.Tests.UnitTests.GUI
 {
 	public class SendControlViewModelTest
 	{
-		class MockSendControlViewModel : SendControlViewModel
-		{
-			public MockSendControlViewModel() : base(null, string.Empty, true)
-			{
-			}
-
-			public override string DoButtonText => throw new NotImplementedException();
-
-			public override string DoingButtonText => throw new NotImplementedException();
-
-			protected override Task BuildTransaction(string password, PaymentIntent payments, FeeStrategy feeStrategy, bool allowUnconfirmed = false, IEnumerable<OutPoint> allowedInputs = null) => throw new NotImplementedException();
-		}
-
 		[Theory]
 		[InlineData(true, "47")]
 		[InlineData(true, "1")]
@@ -39,11 +26,7 @@ namespace WalletWasabi.Tests.UnitTests.GUI
 		[InlineData(false, "0.1")]
 		public async void SendControlViewModel_Check_Test_Fees(bool isValid, string feeText)
 		{
-			var vm = new MockSendControlViewModel();
-
-			vm.UserFeeText = feeText;
-
-			Assert.Equal(isValid, vm.TryParseUserFee(out var _));
+			Assert.Equal(isValid, SendControlViewModel.TryParseUserFeeCore(feeText, out var _));
 		}
 	}
 }
