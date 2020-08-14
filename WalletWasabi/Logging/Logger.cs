@@ -248,7 +248,7 @@ namespace WalletWasabi.Logging
 		/// </summary>
 		private static void Log(string message, Exception ex, LogLevel level, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
 		{
-			string formattedMessage = message + " Exception: " + (ex.ToString() ?? "Exception was null.");
+			string formattedMessage = message + " Exception: " + ex.ToString();
 			Log(level, formattedMessage, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 		}
 
@@ -257,8 +257,7 @@ namespace WalletWasabi.Logging
 		/// </summary>
 		private static void Log(Exception exception, LogLevel level, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
 		{
-			string message = exception.ToString() ?? "Exception was null.";
-			Log(level, message, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
+			Log(level, exception.ToString(), callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 		}
 
 		#endregion ExceptionLoggingMethods
