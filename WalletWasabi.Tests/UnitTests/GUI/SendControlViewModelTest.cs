@@ -1,16 +1,5 @@
-using Mono.Options;
-using System;
-using System.IO;
-using WalletWasabi.Gui.CommandLine;
-using WalletWasabi.Helpers;
-using WalletWasabi.Tests.Helpers;
 using Xunit;
 using WalletWasabi.Gui.Controls.WalletExplorer;
-using System.Threading.Tasks;
-using WalletWasabi.Blockchain.TransactionBuilding;
-using System.Collections.Generic;
-using NBitcoin;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Tests.UnitTests.GUI
 {
