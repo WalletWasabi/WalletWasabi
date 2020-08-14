@@ -62,7 +62,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private const string WaitingForHardwareWalletButtonTextString = "Waiting for Hardware Wallet...";
 
-		private static readonly FeeRate MinRelayTxFeeRate = new FeeRate(Money.Satoshis(0), 1);
+		private static readonly FeeRate MinRelayTxFeeRate = new FeeRate(Money.Satoshis(1), 1);
 		private static readonly FeeRate AbsurdlyHighFeeRate = new FeeRate(Money.Satoshis(Constants.MaximumNumberOfSatoshis), 1);
 
 		private FeeDisplayFormat _feeDisplayFormat;
@@ -822,7 +822,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					var userFeeRate = new FeeRate(userFee);
 					userFeeRateAsDecimal = userFeeRate.SatoshiPerByte;
-					return userFeeRate > MinRelayTxFeeRate && userFeeRate <= AbsurdlyHighFeeRate;
+					return userFeeRate >= MinRelayTxFeeRate && userFeeRate <= AbsurdlyHighFeeRate;
 				}
 			}
 			catch (OverflowException)
