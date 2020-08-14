@@ -57,47 +57,47 @@ namespace WalletWasabi.Crypto.Groups
 		/// </summary>
 		public static GroupElement Gs { get; } = GroupElement.FromText("Gs");
 
-		public static bool TryGetFriendlyGeneratorName(GroupElement ge, out string name)
+		public static bool TryGetFriendlyGeneratorName(GroupElement? ge, out string name)
 		{
 			name = "";
 
-			if (ge.X == G.X && ge.Y == G.Y)
+			if (ge == G)
 			{
 				name = "Standard";
 			}
-			else if (ge.X == Gw.X && ge.Y == Gw.Y)
+			else if (ge == Gw)
 			{
 				name = nameof(Gw);
 			}
-			else if (ge.X == Gwp.X && ge.Y == Gwp.Y)
+			else if (ge == Gwp)
 			{
 				name = nameof(Gwp);
 			}
-			else if (ge.X == Gx0.X && ge.Y == Gx0.Y)
+			else if (ge == Gx0)
 			{
 				name = nameof(Gx0);
 			}
-			else if (ge.X == Gx1.X && ge.Y == Gx1.Y)
+			else if (ge == Gx1)
 			{
 				name = nameof(Gx1);
 			}
-			else if (ge.X == GV.X && ge.Y == GV.Y)
+			else if (ge == GV)
 			{
 				name = nameof(GV);
 			}
-			else if (ge.X == Gg.X && ge.Y == Gg.Y)
+			else if (ge == Gg)
 			{
 				name = nameof(Gg);
 			}
-			else if (ge.X == Gh.X && ge.Y == Gh.Y)
+			else if (ge == Gh)
 			{
 				name = nameof(Gh);
 			}
-			else if (ge.X == Ga.X && ge.Y == Ga.Y)
+			else if (ge == Ga)
 			{
 				name = nameof(Ga);
 			}
-			else if (ge.X == Gs.X && ge.Y == Gs.Y)
+			else if (ge == Gs)
 			{
 				name = nameof(Gs);
 			}

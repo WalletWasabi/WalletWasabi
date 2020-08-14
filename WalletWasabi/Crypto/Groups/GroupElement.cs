@@ -30,8 +30,6 @@ namespace WalletWasabi.Crypto.Groups
 		public static GroupElement Infinity { get; } = new GroupElement(GE.Infinity);
 
 		private GE Ge { get; }
-		public FE X => Ge.x;
-		public FE Y => Ge.y;
 
 		public bool IsInfinity => Ge.IsInfinity;
 

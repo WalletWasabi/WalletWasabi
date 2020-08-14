@@ -40,5 +40,12 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 			Assert.Equal("0281E7BCF60042263290325032954C500DCCE6D470A952C2FCDC62CF2280282D76", ByteHelpers.ToHex(Generators.Gx0.ToBytes()));
 			Assert.Equal("03A031FE97954902E3E84241D5E48264F06748FA741A9B2C35E8DA7C772C1A5105", ByteHelpers.ToHex(Generators.Gx1.ToBytes()));
 		}
+
+		[Fact]
+		public void FriendlyNameNullCheck()
+		{
+			Assert.False(Generators.TryGetFriendlyGeneratorName(null, out string name));
+			Assert.Empty(name);
+		}
 	}
 }
