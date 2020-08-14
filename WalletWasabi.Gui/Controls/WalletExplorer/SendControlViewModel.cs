@@ -69,9 +69,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _isSliderFeeUsed = true;
 		private double _feeControlOpacity;
 
-		protected SendControlViewModel(Wallet wallet, string title)
+		protected SendControlViewModel(Wallet wallet, string title, bool testMode = false)
 			: base(title)
 		{
+
+			// Skip initialization if it's in unit test mode.
+			if(testMode)
+			{
+				return;
+			}
+
 			Global = Locator.Current.GetService<Global>();
 			Wallet = wallet;
 
@@ -812,7 +819,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private bool TryParseUserFee(out decimal userFeeRateAsDecimal)
+		public bool TryParseUserFee(out decimal userFeeRateAsDecimal)
 		{
 			try
 			{
@@ -820,7 +827,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					var userFeeRate = new FeeRate(userFee);
 					userFeeRateAsDecimal = userFeeRate.SatoshiPerByte;
-					return userFeeRate >= MinRelayTxFeeRate && userFeeRate <= AbsurdlyHighFeeRate;
+					return userFeeRate > MinRelayTxFeeRate && userFeeRate <= AbsurdlyHighFeeRate;
 				}
 			}
 			catch (OverflowException)
