@@ -3,7 +3,7 @@
 ## Introduction 
 
 This is a technical document written for Hardware Wallet manufacturers. It describes the steps that need to be done before a hardware wallet can be supported by Wasabi. 
-Wasabi not directly supports Hardware Wallets but it uses [HWI](https://github.com/bitcoin-core/HWI) which is a command-line tool that unifies the commands for many devices. Wasabi includes the HWI binary and calling it every time whenever interacts with the device. 
+Wasabi does not directly support Hardware Wallets, but it uses [Bitcoin Core's Hardware Wallet Interface (HWI)](https://github.com/bitcoin-core/HWI) which is a command-line tool that unifies the commands for many devices. Wasabi includes the HWI binary and calls it every time whenever it interacts with the device. 
 
 Wasabi's main priorities regarding hardware wallets:
 - Compatibility - past, present, future
