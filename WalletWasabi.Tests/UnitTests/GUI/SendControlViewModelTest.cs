@@ -13,7 +13,7 @@ namespace WalletWasabi.Tests.UnitTests.GUI
 		[InlineData(false, "0")]
 		[InlineData(false, "47.0")]
 		[InlineData(false, "0.1")]
-		public async void SendControlViewModel_Check_Test_Fees(bool isValid, string feeText)
+		public void SendControlViewModel_Check_Test_Fees(bool isValid, string feeText)
 		{
 			Assert.Equal(isValid, SendControlViewModel.TryParseUserFeeCore(feeText, out var _));
 		}
