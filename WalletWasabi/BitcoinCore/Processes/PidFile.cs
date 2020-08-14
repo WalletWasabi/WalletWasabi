@@ -55,7 +55,7 @@ namespace WalletWasabi.BitcoinCore.Processes
 		}
 
 		/// <summary>
-		/// Deletes PID file, if it still exists.
+		/// Tries to delete PID file, if it still exists.
 		/// </summary>
 		public void TryDelete()
 		{
