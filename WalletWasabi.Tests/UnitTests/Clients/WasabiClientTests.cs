@@ -1,12 +1,15 @@
 using NBitcoin;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Models;
+using WalletWasabi.Services;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
@@ -19,11 +22,12 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 		{
 			var mempool = Enumerable.Range(0, 1_100).Select(_ => CreateTransaction()).ToArray();
 
-			Task<HttpResponseMessage> FakeServerCode(HttpMethod method, string action, string[] parameters)
+			Task<HttpResponseMessage> FakeServerCode(HttpMethod method, string action, NameValueCollection parameters, string body)
 			{
-				Assert.True(parameters.Length <= 10);
-				var requestedTxId = parameters.Select(p => uint256.Parse(p[(p.IndexOf('=') + 1)..]));
-				var result = mempool.Where(tx => requestedTxId.Contains(tx.GetHash())).Select(tx => tx.ToHex());
+				Assert.True(parameters.Count <= 10);
+
+				IEnumerable<uint256> requestedTxIds = parameters["transactionIds"].Split(",").Select(x => uint256.Parse(x));
+				IEnumerable<string> result = mempool.Where(tx => requestedTxIds.Contains(tx.GetHash())).Select(tx => tx.ToHex());
 
 				var response = new HttpResponseMessage(HttpStatusCode.OK);
 				response.Content = new StringContent(JsonConvert.SerializeObject(result));
@@ -31,7 +35,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			};
 
 			var torHttpClient = new MockTorHttpClient();
-			torHttpClient.OnSendAsync_Method = FakeServerCode;
+			torHttpClient.OnSendAsync = FakeServerCode;
 			var client = new WasabiClient(torHttpClient);
 			Assert.Empty(WasabiClient.TransactionCache);
 
@@ -57,7 +61,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			Assert.Subset(WasabiClient.TransactionCache.Keys.ToHashSet(), txs.TakeLast(1_000).Select(x => x.GetHash()).ToHashSet());
 
 			// Requests transactions that are already in the cache
-			torHttpClient.OnSendAsync_Method = (verb, action, parameters) =>
+			torHttpClient.OnSendAsync = (verb, action, parameters, body) =>
 				Task.FromException<HttpResponseMessage>(
 					new InvalidOperationException("The transaction should already be in the client cache. Http request was unexpected."));
 
@@ -66,7 +70,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			Assert.Equal(expectedTobeCachedTxId, txs.Last().GetHash());
 
 			// Requests fails with Bad Request
-			torHttpClient.OnSendAsync_Method = (verb, action, parameters) =>
+			torHttpClient.OnSendAsync = (verb, action, parameters, body) =>
 			{
 				var response = new HttpResponseMessage(HttpStatusCode.BadRequest);
 				response.Content = new StringContent("\"Some RPC problem...\"");
@@ -100,6 +104,34 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			Assert.True(min <= max);
 
 			int.Parse(WalletWasabi.Helpers.Constants.BackendMajorVersion);
+		}
+
+		[Fact]
+		public async Task SingleInstanceTestsAsync()
+		{
+			// Disposal test.
+			using (SingleInstanceChecker sic = new SingleInstanceChecker(Network.Main))
+			{
+				await sic.CheckAsync();
+			}
+
+			// Check different networks.
+			using (SingleInstanceChecker sic = new SingleInstanceChecker(Network.Main))
+			{
+				await sic.CheckAsync();
+				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sic.CheckAsync());
+
+				using SingleInstanceChecker sic2 = new SingleInstanceChecker(Network.Main);
+				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sic2.CheckAsync());
+
+				using SingleInstanceChecker sicTest = new SingleInstanceChecker(Network.TestNet);
+				await sicTest.CheckAsync();
+				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sicTest.CheckAsync());
+
+				using SingleInstanceChecker sicReg = new SingleInstanceChecker(Network.RegTest);
+				await sicReg.CheckAsync();
+				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sicReg.CheckAsync());
+			}
 		}
 	}
 }

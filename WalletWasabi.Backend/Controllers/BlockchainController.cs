@@ -32,14 +32,14 @@ namespace WalletWasabi.Backend.Controllers
 			Global = global;
 		}
 
-		public IMemoryCache Cache { get; }
-		public Global Global { get; }
 		private IRPCClient RpcClient => Global.RpcClient;
-
 		private Network Network => Global.Config.Network;
 
 		public static Dictionary<uint256, string> TransactionHexCache { get; } = new Dictionary<uint256, string>();
 		public static object TransactionHexCacheLock { get; } = new object();
+
+		public IMemoryCache Cache { get; }
+		public Global Global { get; }
 
 		/// <summary>
 		/// Get fees for the requested confirmation targets based on Bitcoin Core's estimatesmartfee output.
@@ -141,17 +141,12 @@ namespace WalletWasabi.Backend.Controllers
 		internal async Task<AllFeeEstimate> GetAllFeeEstimateAsync(EstimateSmartFeeMode mode)
 		{
 			var cacheKey = $"{nameof(GetAllFeeEstimateAsync)}_{mode}";
+			var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60) };
 
-			if (!Cache.TryGetValue(cacheKey, out AllFeeEstimate allFee))
-			{
-				allFee = await RpcClient.EstimateAllFeeAsync(mode, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: true);
-
-				var cacheEntryOptions = new MemoryCacheEntryOptions()
-					.SetAbsoluteExpiration(TimeSpan.FromSeconds(500));
-
-				Cache.Set(cacheKey, allFee, cacheEntryOptions);
-			}
-			return allFee;
+			return await Cache.AtomicGetOrCreateAsync(
+				cacheKey,
+				cacheOptions,
+				() => RpcClient.EstimateAllFeeAsync(mode, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: true));
 		}
 
 		/// <summary>
@@ -172,7 +167,7 @@ namespace WalletWasabi.Backend.Controllers
 				return BadRequest("Invalid compactness parameter is provided.");
 			}
 
-			IEnumerable<string> fulls = await GetRawMempoolStringsAsync();
+			IEnumerable<string> fulls = await GetRawMempoolStringsWithCacheAsync();
 
 			if (compactness == 64)
 			{
@@ -185,22 +180,21 @@ namespace WalletWasabi.Backend.Controllers
 			}
 		}
 
-		internal async Task<IEnumerable<string>> GetRawMempoolStringsAsync()
+		internal async Task<IEnumerable<string>> GetRawMempoolStringsWithCacheAsync()
 		{
-			var cacheKey = $"{nameof(GetRawMempoolStringsAsync)}";
+			var cacheKey = $"{nameof(GetRawMempoolStringsWithCacheAsync)}";
+			var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(3) };
 
-			if (!Cache.TryGetValue(cacheKey, out IEnumerable<string> hashes))
-			{
-				uint256[] transactionHashes = await Global.RpcClient.GetRawMempoolAsync();
+			return await Cache.AtomicGetOrCreateAsync(
+				cacheKey,
+				cacheOptions,
+				() => GetRawMempoolStringsNoCacheAsync());
+		}
 
-				hashes = transactionHashes.Select(x => x.ToString());
-
-				var cacheEntryOptions = new MemoryCacheEntryOptions()
-					.SetAbsoluteExpiration(TimeSpan.FromSeconds(3));
-
-				Cache.Set(cacheKey, hashes, cacheEntryOptions);
-			}
-			return hashes;
+		private async Task<IEnumerable<string>> GetRawMempoolStringsNoCacheAsync()
+		{
+			uint256[] transactionHashes = await Global.RpcClient.GetRawMempoolAsync();
+			return transactionHashes.Select(x => x.ToString());
 		}
 
 		/// <summary>
@@ -408,18 +402,12 @@ namespace WalletWasabi.Backend.Controllers
 		private async Task<EstimateSmartFeeResponse> GetEstimateSmartFeeAsync(int target, EstimateSmartFeeMode mode)
 		{
 			var cacheKey = $"{nameof(GetEstimateSmartFeeAsync)}_{target}_{mode}";
+			var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60) };
 
-			if (!Cache.TryGetValue(cacheKey, out EstimateSmartFeeResponse feeResponse))
-			{
-				feeResponse = await RpcClient.EstimateSmartFeeAsync(target, mode, simulateIfRegTest: true, tryOtherFeeRates: true);
-
-				var cacheEntryOptions = new MemoryCacheEntryOptions()
-					.SetAbsoluteExpiration(TimeSpan.FromSeconds(300));
-
-				Cache.Set(cacheKey, feeResponse, cacheEntryOptions);
-			}
-
-			return feeResponse;
+			return await Cache.AtomicGetOrCreateAsync(
+				cacheKey,
+				cacheOptions,
+				() => RpcClient.EstimateSmartFeeAsync(target, mode, simulateIfRegTest: true, tryOtherFeeRates: true));
 		}
 
 		[HttpGet("status")]
@@ -429,53 +417,56 @@ namespace WalletWasabi.Backend.Controllers
 			try
 			{
 				var cacheKey = $"{nameof(GetStatusAsync)}";
+				var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(7) };
 
-				if (!Cache.TryGetValue(cacheKey, out StatusResponse status))
-				{
-					status = new StatusResponse();
-
-					// Updating the status of the filters.
-					if (DateTimeOffset.UtcNow - Global.IndexBuilderService.LastFilterBuildTime > FilterTimeout)
-					{
-						// Checking if the last generated filter is created for one of the last two blocks on the blockchain.
-						var lastFilter = Global.IndexBuilderService.GetLastFilter();
-						var lastFilterHash = lastFilter.Header.BlockHash;
-						var bestHash = await RpcClient.GetBestBlockHashAsync();
-						var lastBlockHeader = await RpcClient.GetBlockHeaderAsync(bestHash);
-						var prevHash = lastBlockHeader.HashPrevBlock;
-
-						if (bestHash == lastFilterHash || prevHash == lastFilterHash)
-						{
-							status.FilterCreationActive = true;
-						}
-					}
-					else
-					{
-						status.FilterCreationActive = true;
-					}
-
-					// Updating the status of CoinJoin
-					var validInterval = TimeSpan.FromSeconds(Global.Coordinator.RoundConfig.InputRegistrationTimeout * 2);
-					if (validInterval < TimeSpan.FromHours(1))
-					{
-						validInterval = TimeSpan.FromHours(1);
-					}
-					if (DateTimeOffset.UtcNow - Global.Coordinator.LastSuccessfulCoinJoinTime < validInterval)
-					{
-						status.CoinJoinCreationActive = true;
-					}
-					var cacheEntryOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(30));
-
-					Cache.Set(cacheKey, status, cacheEntryOptions);
-				}
-
-				return status;
+				return await Cache.AtomicGetOrCreateAsync(
+					cacheKey,
+					cacheOptions,
+					() => FetchStatusAsync());
 			}
 			catch (Exception ex)
 			{
 				Logger.LogDebug(ex);
 				throw ex;
 			}
+		}
+
+		private async Task<StatusResponse> FetchStatusAsync()
+		{
+			StatusResponse status = new StatusResponse();
+
+			// Updating the status of the filters.
+			if (DateTimeOffset.UtcNow - Global.IndexBuilderService.LastFilterBuildTime > FilterTimeout)
+			{
+				// Checking if the last generated filter is created for one of the last two blocks on the blockchain.
+				var lastFilter = Global.IndexBuilderService.GetLastFilter();
+				var lastFilterHash = lastFilter.Header.BlockHash;
+				var bestHash = await RpcClient.GetBestBlockHashAsync();
+				var lastBlockHeader = await RpcClient.GetBlockHeaderAsync(bestHash);
+				var prevHash = lastBlockHeader.HashPrevBlock;
+
+				if (bestHash == lastFilterHash || prevHash == lastFilterHash)
+				{
+					status.FilterCreationActive = true;
+				}
+			}
+			else
+			{
+				status.FilterCreationActive = true;
+			}
+
+			// Updating the status of CoinJoin
+			var validInterval = TimeSpan.FromSeconds(Global.Coordinator.RoundConfig.InputRegistrationTimeout * 2);
+			if (validInterval < TimeSpan.FromHours(1))
+			{
+				validInterval = TimeSpan.FromHours(1);
+			}
+			if (DateTimeOffset.UtcNow - Global.Coordinator.LastSuccessfulCoinJoinTime < validInterval)
+			{
+				status.CoinJoinCreationActive = true;
+			}
+
+			return status;
 		}
 	}
 }

@@ -89,7 +89,7 @@ namespace System.Net.Http
 			headers = builder.ToString();
 			if (string.IsNullOrEmpty(headers))
 			{
-				headers = string.Empty;
+				headers = "";
 			}
 
 			return headers;

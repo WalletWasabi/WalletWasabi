@@ -1,0 +1,179 @@
+using NBitcoin;
+using NBitcoin.DataEncoders;
+using Newtonsoft.Json;
+using System;
+using System.IO;
+using System.Linq;
+using System.Numerics;
+using System.Text;
+using WalletWasabi.Crypto;
+using WalletWasabi.JsonConverters;
+using Xunit;
+using static WalletWasabi.Crypto.SchnorrBlinding;
+
+namespace WalletWasabi.Tests.UnitTests.Crypto
+{
+	public class BlindingTests
+	{
+		[Fact]
+		[Trait("UnitTest", "UnitTest")]
+		public void CanParseUnblindedSignature()
+		{
+			var requester = new Requester();
+			var r = new Key(Encoders.Hex.DecodeData("31E151628AED2A6ABF7155809CF4F3C762E7160F38B4DA56B784D9045190CFA0"));
+			var key = new Key(Encoders.Hex.DecodeData("B7E151628AED2A6ABF7158809CF4F3C762E7160F38B4DA56A784D9045190CFEF"));
+			var signer = new Signer(key, r);
+
+			var message = new uint256(Encoders.Hex.DecodeData("243F6A8885A308D313198A2E03707344A4093822299F31D0082EFA98EC4E6C89"), false);
+			var blindedMessage = requester.BlindMessage(message, r.PubKey, key.PubKey);
+			var blindSignature = signer.Sign(blindedMessage);
+			var unblindedSignature = requester.UnblindSignature(blindSignature);
+
+			var str = unblindedSignature.ToString();
+			Assert.True(UnblindedSignature.TryParse(str, out var unblindedSignature2));
+			Assert.Equal(unblindedSignature.C, unblindedSignature2.C);
+			Assert.Equal(unblindedSignature.S, unblindedSignature2.S);
+			str += "o";
+			Assert.False(UnblindedSignature.TryParse(str, out _));
+			Assert.Throws<FormatException>(() => UnblindedSignature.Parse(str));
+			byte[] overflow = new byte[64];
+			overflow.AsSpan().Fill(255);
+			Assert.False(UnblindedSignature.TryParse(overflow, out _));
+			Assert.Throws<FormatException>(() => UnblindedSignature.Parse(overflow));
+		}
+
+		[Fact]
+		[Trait("UnitTest", "UnitTest")]
+		public void BlindingSignature()
+		{
+			// Test with known values
+			var requester = new Requester();
+			var r = new Key(Encoders.Hex.DecodeData("31E151628AED2A6ABF7155809CF4F3C762E7160F38B4DA56B784D9045190CFA0"));
+			var key = new Key(Encoders.Hex.DecodeData("B7E151628AED2A6ABF7158809CF4F3C762E7160F38B4DA56A784D9045190CFEF"));
+			var signer = new Signer(key, r);
+
+			var message = new uint256(Encoders.Hex.DecodeData("243F6A8885A308D313198A2E03707344A4093822299F31D0082EFA98EC4E6C89"), false);
+			var blindedMessage = requester.BlindMessage(message, r.PubKey, key.PubKey);
+			var blindSignature = signer.Sign(blindedMessage);
+			var unblindedSignature = requester.UnblindSignature(blindSignature);
+
+			Assert.True(SchnorrBlinding.VerifySignature(message, unblindedSignature, key.PubKey));
+			Assert.False(SchnorrBlinding.VerifySignature(uint256.Zero, unblindedSignature, key.PubKey));
+			Assert.False(SchnorrBlinding.VerifySignature(uint256.One, unblindedSignature, key.PubKey));
+
+			// Test with unknown values
+			requester = new Requester();
+			signer = new Signer(new Key(), new Key());
+
+			message = NBitcoin.Crypto.Hashes.Hash256(Encoders.ASCII.DecodeData("Hello world!"));
+			blindedMessage = requester.BlindMessage(message, signer.R.PubKey, signer.Key.PubKey);
+
+			blindSignature = signer.Sign(blindedMessage);
+			unblindedSignature = requester.UnblindSignature(blindSignature);
+			Assert.True(SchnorrBlinding.VerifySignature(message, unblindedSignature, signer.Key.PubKey));
+			Assert.False(SchnorrBlinding.VerifySignature(uint256.One, unblindedSignature, signer.Key.PubKey));
+			Assert.False(SchnorrBlinding.VerifySignature(uint256.One, unblindedSignature, signer.Key.PubKey));
+			var newMessage = Encoders.ASCII.DecodeData("Hello, World!");
+			for (var i = 0; i < 1_000; i++)
+			{
+				requester = new Requester();
+				signer = new Signer(new Key());
+				blindedMessage = requester.BlindMessage(newMessage, signer.R.PubKey, signer.Key.PubKey);
+				blindSignature = signer.Sign(blindedMessage);
+				unblindedSignature = requester.UnblindSignature(blindSignature);
+
+				Assert.True(signer.VerifyUnblindedSignature(unblindedSignature, newMessage));
+			}
+
+			var ex = Assert.Throws<ArgumentException>(() => signer.Sign(uint256.Zero));
+			Assert.StartsWith("Invalid blinded message.", ex.Message);
+		}
+
+		[Fact]
+		public void CanBlindSign()
+		{
+			// Generate ECDSA keypairs.
+			var r = new Key();
+			var key = new Key();
+			Signer signer = new Signer(key, r);
+
+			// Generate ECDSA requester.
+			// Get the r's pubkey and the key's pubkey.
+			// Blind messages.
+			Requester requester = new Requester();
+			PubKey rPubKey = r.PubKey;
+			PubKey keyPubKey = key.PubKey;
+
+			byte[] message = Encoding.UTF8.GetBytes("áéóúősing me please~!@#$%^&*())_+");
+			byte[] hashBytes = NBitcoin.Crypto.Hashes.SHA256(message);
+			uint256 hash = new uint256(hashBytes);
+			uint256 blindedMessageHash = requester.BlindMessage(hash, rPubKey, keyPubKey);
+
+			// Sign the blinded message hash.
+			uint256 blindedSignature = signer.Sign(blindedMessageHash);
+
+			// Unblind the signature.
+			UnblindedSignature unblindedSignature = requester.UnblindSignature(blindedSignature);
+
+			// Verify the original data is signed.
+			Assert.True(VerifySignature(hash, unblindedSignature, keyPubKey));
+		}
+
+		[Fact]
+		public void CanEncodeDecodeBlinding()
+		{
+			var key = new Key();
+			var r = new Key();
+			byte[] message = Encoding.UTF8.GetBytes("áéóúősing me please~!@#$%^&*())_+");
+			var hash = new uint256(NBitcoin.Crypto.Hashes.SHA256(message));
+			var requester = new Requester();
+			uint256 blindedHash = requester.BlindMessage(hash, r.PubKey, key.PubKey);
+			string encoded = blindedHash.ToString();
+			uint256 decoded = new uint256(encoded);
+			Assert.Equal(blindedHash, decoded);
+		}
+
+		private static Random Random = new Random(123456);
+
+		[Fact]
+		public void ConvertBackAndForth()
+		{
+			var converter = new UnblindedSignatureJsonConverter();
+			var r = new Key();
+			var key = new Key();
+			var signer = new Signer(key, r);
+
+			foreach (var i in Enumerable.Range(0, 100))
+			{
+				var requester = new Requester();
+
+				var message = new byte[256];
+				Random.NextBytes(message);
+				var blindedMessage = requester.BlindMessage(message, r.PubKey, key.PubKey);
+				var blindSignature = signer.Sign(blindedMessage);
+				var unblindedSignature = requester.UnblindSignature(blindSignature);
+
+				var sb = new StringBuilder();
+				using var writer = new JsonTextWriter(new StringWriter(sb));
+				converter.WriteJson(writer, unblindedSignature, null);
+
+				using var reader = new JsonTextReader(new StringReader(sb.ToString()));
+				var convertedUnblindedSignature = (UnblindedSignature)converter.ReadJson(reader, null, null, null);
+				Assert.Equal(unblindedSignature.C, convertedUnblindedSignature.C);
+				Assert.Equal(unblindedSignature.S, convertedUnblindedSignature.S);
+			}
+		}
+
+		[Fact]
+		public void DetectInvalidSerializedMessage()
+		{
+			var json = "[ '999999999999999999999999999999999999999999999999999999999999999999999999999999'," + // 33 bytes (INVALID)
+						" '999999999999999999999999999']";
+
+			using var reader = new JsonTextReader(new StringReader(json));
+			var converter = new UnblindedSignatureJsonConverter();
+			var ex = Assert.Throws<FormatException>(() => converter.ReadJson(reader, null, null, null));
+			Assert.Contains("longer than 32 bytes", ex.Message);
+		}
+	}
+}

@@ -35,7 +35,7 @@
             <Button Content="{Binding ClearnetLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding ClearnetLink}" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
-            <TextBlock Text="Tor Website: " />
+            <TextBlock Text=".onion Website: " />
             <controls:ExtendedTextBox Text="{Binding TorLink}" Classes="selectableTextBlock hyperLink" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
@@ -47,8 +47,8 @@
             <Button Content="{Binding StatusPageLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding StatusPageLink}" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
-            <TextBlock Text="Customer Support: " />
-            <Button Content="{Binding CustomerSupportLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding CustomerSupportLink}" />
+            <TextBlock Text="User Support: " />
+            <Button Content="{Binding UserSupportLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding UserSupportLink}" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Bug Report: " />

@@ -8,13 +8,9 @@ namespace WalletWasabi.Helpers
 {
 	public static class Constants
 	{
-		public static readonly Version ClientVersion = new Version(1, 1, 11, 1);
 		public const string ClientSupportBackendVersionMin = "3";
 		public const string ClientSupportBackendVersionMax = "4";
 		public const string BackendMajorVersion = "3";
-		public static readonly Version HwiVersion = new Version("1.1.0");
-		public static readonly Version BitcoinCoreVersion = new Version("0.19.1");
-		public static readonly Version LegalDocumentsVersion = new Version(2, 0);
 
 		/// <summary>
 		/// By changing this, we can force to start over the transactions file, so old incorrect transactions would be cleared.
@@ -23,6 +19,50 @@ namespace WalletWasabi.Helpers
 		public const string ConfirmedTransactionsVersion = "2";
 
 		public const uint ProtocolVersionWitnessVersion = 70012;
+
+		public const int P2wpkhInputSizeInBytes = 41;
+		public const int P2wpkhInputVirtualSize = 68;
+		public const int P2pkhInputSizeInBytes = 145;
+		public const int OutputSizeInBytes = 33;
+
+		// https://en.bitcoin.it/wiki/Bitcoin
+		// There are a maximum of 2,099,999,997,690,000 Bitcoin elements (called satoshis), which are currently most commonly measured in units of 100,000,000 known as BTC. Stated another way, no more than 21 million BTC can ever be created.
+		public const long MaximumNumberOfSatoshis = 2099999997690000;
+
+		public const int TwentyMinutesConfirmationTarget = 2;
+		public const int OneDayConfirmationTarget = 144;
+		public const int SevenDaysConfirmationTarget = 1008;
+
+		public const int BigFileReadWriteBufferSize = 1 * 1024 * 1024;
+
+		public const int DefaultTorSocksPort = 9050;
+		public const int DefaultTorBrowserSocksPort = 9150;
+		public const int DefaultTorControlPort = 9051;
+		public const int DefaultTorBrowserControlPort = 9151;
+
+		public const int DefaultMainNetBitcoinP2pPort = 8333;
+		public const int DefaultTestNetBitcoinP2pPort = 18333;
+		public const int DefaultRegTestBitcoinP2pPort = 18444;
+
+		public const int DefaultMainNetBitcoinCoreRpcPort = 8332;
+		public const int DefaultTestNetBitcoinCoreRpcPort = 18332;
+		public const int DefaultRegTestBitcoinCoreRpcPort = 18443;
+
+		public const double TransactionRBFSignalRate = 0.02; // 2% RBF transactions
+
+		public const decimal DefaultDustThreshold = 0.00005m;
+
+		public const long MaxSatoshisSupply = 2_100_000_000_000_000L;
+
+		public const string AlphaNumericCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+		public const string CapitalAlphaNumericCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+		public const string BuiltinBitcoinNodeName = "Bitcoin Knots";
+
+		public static readonly Version ClientVersion = new Version(1, 1, 12, 0);
+		public static readonly Version HwiVersion = new Version("1.1.2");
+		public static readonly Version BitcoinCoreVersion = new Version("0.20.0");
+		public static readonly Version LegalDocumentsVersion = new Version(2, 0);
 
 		public static readonly NodeRequirement NodeRequirements = new NodeRequirement
 		{
@@ -52,41 +92,6 @@ namespace WalletWasabi.Helpers
 				PeerTooOld = true
 			}
 		};
-
-		public const int P2wpkhInputSizeInBytes = 41;
-		public const int P2pkhInputSizeInBytes = 145;
-		public const int OutputSizeInBytes = 33;
-
-		// https://en.bitcoin.it/wiki/Bitcoin
-		// There are a maximum of 2,099,999,997,690,000 Bitcoin elements (called satoshis), which are currently most commonly measured in units of 100,000,000 known as BTC. Stated another way, no more than 21 million BTC can ever be created.
-		public const long MaximumNumberOfSatoshis = 2099999997690000;
-
-		public const int TwentyMinutesConfirmationTarget = 2;
-		public const int OneDayConfirmationTarget = 144;
-		public const int SevenDaysConfirmationTarget = 1008;
-
-		public const int BigFileReadWriteBufferSize = 1 * 1024 * 1024;
-
-		public const int DefaultTorSocksPort = 9050;
-		public const int DefaultTorBrowserSocksPort = 9150;
-		public const int DefaultTorControlPort = 9051;
-		public const int DefaultTorBrowserControlPort = 9151;
-
-		public const int DefaultMainNetBitcoinP2pPort = 8333;
-		public const int DefaultTestNetBitcoinP2pPort = 18333;
-		public const int DefaultRegTestBitcoinP2pPort = 18444;
-
-		public const int DefaultMainNetBitcoinCoreRpcPort = 8332;
-		public const int DefaultTestNetBitcoinCoreRpcPort = 18332;
-		public const int DefaultRegTestBitcoinCoreRpcPort = 18443;
-
-		public const string Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
-		public const double TransactionRBFSignalRate = 0.02; // 2% RBF transactions
-
-		public const decimal DefaultDustThreshold = 0.00005m;
-
-		public const long MaxSatoshisSupply = 2_100_000_000_000_000L;
 
 		public static readonly ExtPubKey FallBackCoordinatorExtPubKey = NBitcoinHelpers.BetterParseExtPubKey("xpub6D2PqhWBAbF3xgfaAUW73KnaCXUroArcgMTzNkNzfVX7ykkSzQGbqaXZeaNyxKbZojAAqDwsne6B7NcVhiTrXbGYrQNq1yF76NkgdonGrEa");
 

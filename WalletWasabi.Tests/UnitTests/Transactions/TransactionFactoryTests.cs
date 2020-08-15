@@ -1,14 +1,19 @@
 using NBitcoin;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
+using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 using Xunit;
 
@@ -212,7 +217,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			}
 
 			var coinsView = new CoinsView(scoins.ToArray());
-			var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, password);
+			var transactionStore = new AllTransactionStoreMock(workFolderPath: ".", Network.Main);
+			var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, transactionStore, password);
 
 			// Two 0.9btc coins are enough
 			var payment = new PaymentIntent(new Key().ScriptPubKey, Money.Coins(1.75m), label: "Sophie");
@@ -529,10 +535,12 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void DoNotSignWatchOnly()
 		{
-			var transactionFactory = CreateTransactionFactory(new[]
-			{
-				("Pablo", 0, 1m, confirmed: true, anonymitySet: 1)
-			}, watchOnly: true);
+			var transactionFactory = CreateTransactionFactory(
+				new[]
+				{
+					("Pablo", 0, 1m, confirmed: true, anonymitySet: 1)
+				},
+				watchOnly: true);
 
 			var payment = new PaymentIntent(new Key().ScriptPubKey, MoneyRequest.CreateAllRemaining(subtractFee: true));
 
@@ -551,10 +559,11 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			dict[lockTimeZero] = 0;
 
 			var curTip = 100_000u;
-			var rnd = new Random(123456);
+			var lockTimeSelector = new LockTimeSelector(new Random(123456));
+
 			foreach (var i in Enumerable.Range(0, samplingSize))
 			{
-				var lt = (uint)Wallet.InternalSelectLockTimeForTransaction(curTip, rnd).Height;
+				var lt = (uint)lockTimeSelector.GetLockTimeBasedOnDistribution(curTip).Height;
 				var diff = lt == 0 ? lockTimeZero : lt - curTip;
 				dict[diff]++;
 			}
@@ -565,28 +574,6 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			var rest = dict.Where(x => x.Key < 0).Select(x => x.Value);
 			Assert.DoesNotContain(rest, x => x > samplingSize * 0.001);
-		}
-
-		private TransactionFactory CreateTransactionFactory(
-			IEnumerable<(string Label, int KeyIndex, decimal Amount, bool Confirmed, int AnonymitySet)> coins,
-			bool allowUnconfirmed = true,
-			bool watchOnly = false)
-		{
-			var (password, keyManager) = watchOnly ? WatchOnlyKeyManager() : DefaultKeyManager();
-
-			keyManager.AssertCleanKeysIndexed();
-
-			var keys = keyManager.GetKeys().Take(10).ToArray();
-			var scoins = coins.Select(x => Coin(x.Label, keys[x.KeyIndex], x.Amount, x.Confirmed, x.AnonymitySet)).ToArray();
-			foreach (var coin in scoins)
-			{
-				foreach (var sameLabelCoin in scoins.Where(c => !c.Label.IsEmpty && c.Label == coin.Label))
-				{
-					sameLabelCoin.Clusters = coin.Clusters;
-				}
-			}
-			var coinsView = new CoinsView(scoins);
-			return new TransactionFactory(Network.Main, keyManager, coinsView, password, allowUnconfirmed);
 		}
 
 		private static (string, KeyManager) DefaultKeyManager()
@@ -613,6 +600,29 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			pubKey.SetLabel(slabel);
 			pubKey.SetKeyState(KeyState.Used);
 			return new SmartCoin(RandomUtils.GetUInt256(), (uint)randomIndex(), pubKey.P2wpkhScript, Money.Coins(amount), spentOutput, height, false, anonymitySet, slabel, pubKey: pubKey);
+		}
+
+		private TransactionFactory CreateTransactionFactory(
+			IEnumerable<(string Label, int KeyIndex, decimal Amount, bool Confirmed, int AnonymitySet)> coins,
+			bool allowUnconfirmed = true,
+			bool watchOnly = false)
+		{
+			var (password, keyManager) = watchOnly ? WatchOnlyKeyManager() : DefaultKeyManager();
+
+			keyManager.AssertCleanKeysIndexed();
+
+			var keys = keyManager.GetKeys().Take(10).ToArray();
+			var scoins = coins.Select(x => Coin(x.Label, keys[x.KeyIndex], x.Amount, x.Confirmed, x.AnonymitySet)).ToArray();
+			foreach (var coin in scoins)
+			{
+				foreach (var sameLabelCoin in scoins.Where(c => !c.Label.IsEmpty && c.Label == coin.Label))
+				{
+					sameLabelCoin.Clusters = coin.Clusters;
+				}
+			}
+			var coinsView = new CoinsView(scoins);
+			var transactionStore = new AllTransactionStoreMock(workFolderPath: ".", Network.Main);
+			return new TransactionFactory(Network.Main, keyManager, coinsView, transactionStore, password, allowUnconfirmed);
 		}
 	}
 }

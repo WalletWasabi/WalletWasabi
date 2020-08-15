@@ -97,7 +97,6 @@ namespace WalletWasabi.BitcoinCore
 					coreNode.Network);
 				coreNode.RpcClient = new CachedRpcClient(rpcClient, coreNodeParams.Cache);
 
-
 				if (coreNodeParams.TryRestart)
 				{
 					await coreNode.TryStopAsync(false).ConfigureAwait(false);
@@ -140,6 +139,16 @@ namespace WalletWasabi.BitcoinCore
 					desiredConfigLines.Add($"{configPrefix}.prune = {coreNodeParams.Prune}");
 				}
 
+				if (coreNodeParams.MempoolReplacement is { })
+				{
+					desiredConfigLines.Add($"{configPrefix}.mempoolreplacement = {coreNodeParams.MempoolReplacement}");
+				}
+
+				if (coreNodeParams.FallbackFee is { })
+				{
+					desiredConfigLines.Add($"{configPrefix}.fallbackfee = {coreNodeParams.FallbackFee.ToString(fplus: false, trimExcessZero: true)}");
+				}
+
 				var sectionComment = $"# The following configuration options were added or modified by Wasabi Wallet.";
 				// If the comment is not already present.
 				// And there would be new config entries added.
@@ -162,13 +171,13 @@ namespace WalletWasabi.BitcoinCore
 				// If it isn't already running, then we run it.
 				if (await coreNode.RpcClient.TestAsync().ConfigureAwait(false) is null)
 				{
-					Logger.LogInfo("Bitcoin Core is already running.");
+					Logger.LogInfo("A Bitcoin node is already running.");
 				}
 				else
 				{
 					coreNode.Bridge = new BitcoindRpcProcessBridge(coreNode.RpcClient, coreNode.DataDir, printToConsole: false);
 					await coreNode.Bridge.StartAsync(cancel).ConfigureAwait(false);
-					Logger.LogInfo("Started Bitcoin Core.");
+					Logger.LogInfo($"Started {Constants.BuiltinBitcoinNodeName}.");
 				}
 				cancel.ThrowIfCancellationRequested();
 
@@ -257,10 +266,10 @@ namespace WalletWasabi.BitcoinCore
 				}
 			}
 
-			Logger.LogInfo("Did not stop Bitcoin Core. Reason:");
+			Logger.LogInfo("Did not stop the Bitcoin node. Reason:");
 			if (exThrown is null)
 			{
-				Logger.LogInfo("Bitcoin Core was started externally.");
+				Logger.LogInfo("The Bitcoin node was started externally.");
 			}
 			else
 			{

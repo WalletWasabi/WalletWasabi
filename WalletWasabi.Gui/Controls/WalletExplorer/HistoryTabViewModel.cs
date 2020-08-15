@@ -14,6 +14,7 @@ using WalletWasabi.Gui.Models.Sorting;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
+using WalletWasabi.Gui.Controls.TransactionDetails.ViewModels;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -107,7 +108,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			base.OnOpen(disposables);
 
-			Observable.FromEventPattern(Wallet, nameof(Wallet.NewBlockProcessed))
+			Observable.FromEventPattern(Wallet, nameof(Wallet.NewFilterProcessed))
 				.Merge(Observable.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)))
 				.Throttle(TimeSpan.FromSeconds(3))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -135,10 +136,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				var rememberSelectedTransactionId = SelectedTransaction?.TransactionId;
 				Transactions?.Clear();
 
-				var trs = txRecordList.Select(txr => new TransactionInfo
+				var trs = txRecordList.Select(txr => new TransactionDetailsViewModel
 				{
+					WalletName = Wallet.WalletName,
 					DateTime = txr.DateTime.ToLocalTime(),
-					Confirmed = txr.Height.Type == HeightType.Chain,
 					Confirmations = txr.Height.Type == HeightType.Chain ? (int)Global.BitcoinStore.SmartHeaderChain.TipHeight - txr.Height.Value + 1 : 0,
 					AmountBtc = $"{txr.Amount.ToString(fplus: true, trimExcessZero: true)}",
 					Label = txr.Label,
@@ -172,7 +173,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	   			& savedCol != nameof(AmountSortDirection)
 				& savedCol != nameof(TransactionSortDirection))
 			{
-				Global.UiConfig.HistoryTabViewSortingPreference = new SortingPreference(SortOrder.Increasing, nameof(DateSortDirection));
+				Global.UiConfig.HistoryTabViewSortingPreference = new SortingPreference(SortOrder.Decreasing, nameof(DateSortDirection));
 			}
 		}
 

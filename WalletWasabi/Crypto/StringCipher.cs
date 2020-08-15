@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using WalletWasabi.Crypto.Randomness;
 
 namespace WalletWasabi.Crypto
 {
@@ -21,9 +22,9 @@ namespace WalletWasabi.Crypto
 			// Salt is randomly generated each time, but is preprended to encrypted cipher text
 			// so that the same Salt value can be used when decrypting.
 			byte[] salt = Generate128BitsOfRandomEntropy();
-			byte[] iv = null;
-			byte[] cipherTextBytes = null;
-			byte[] key = null;
+			byte[] iv;
+			byte[] cipherTextBytes;
+			byte[] key;
 			var plainTextBytes = Encoding.UTF8.GetBytes(plainText);
 
 			using (var password = new Rfc2898DeriveBytes(passPhrase, salt, DerivationIterations))
@@ -67,8 +68,8 @@ namespace WalletWasabi.Crypto
 		public static string Decrypt(string cipherText, string passPhrase)
 		{
 			var cipherTextBytesWithSaltAndIv = Convert.FromBase64String(cipherText);
-			byte[] key = null;
-			byte[] iv = null;
+			byte[] key;
+			byte[] iv;
 
 			using var memoryStream = new MemoryStream(cipherTextBytesWithSaltAndIv);
 			var cipherLength = 0;
@@ -120,12 +121,8 @@ namespace WalletWasabi.Crypto
 
 		private static byte[] Generate128BitsOfRandomEntropy()
 		{
-			var randomBytes = new byte[16]; // 16 Bytes will give us 128 bits.
-			using (var rngCsp = new RNGCryptoServiceProvider())
-			{
-				// Fill the array with cryptographically secure random bytes.
-				rngCsp.GetBytes(randomBytes);
-			}
+			using var secureRandom = new SecureRandom();
+			var randomBytes = secureRandom.GetBytes(16); // 16 Bytes will give us 128 bits.
 			return randomBytes;
 		}
 	}

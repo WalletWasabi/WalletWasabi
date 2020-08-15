@@ -1,6 +1,7 @@
 using Avalonia.Threading;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
+using NBitcoin;
 using NBitcoin.Protocol;
 using Nito.AsyncEx;
 using ReactiveUI;
@@ -58,6 +59,7 @@ namespace WalletWasabi.Gui.ViewModels
 		public StatusBarViewModel()
 		{
 			Global = Locator.Current.GetService<Global>();
+			Network = Global.Network;
 			Backend = BackendStatus.NotConnected;
 			UseTor = false;
 			Tor = TorStatus.NotRunning;
@@ -77,6 +79,8 @@ namespace WalletWasabi.Gui.ViewModels
 		private StatusSet ActiveStatuses { get; }
 
 		public ReactiveCommand<Unit, Unit> UpdateCommand { get; set; }
+
+		public Network Network { get; }
 
 		public bool UseBitcoinCore
 		{
@@ -353,7 +357,7 @@ namespace WalletWasabi.Gui.ViewModels
 						catch (Exception ex)
 						{
 							Logger.LogError(ex);
-							NotificationHelpers.Error($"Could not get Legal Documents!{(ex is ConnectionException ? " Backend not connected." : "")}");
+							NotificationHelpers.Error($"Could not get Legal Documents!{(ex is ConnectionException ? " Backend not connected. Check your internet connection!" : "")}");
 						}
 						finally
 						{

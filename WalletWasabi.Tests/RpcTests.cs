@@ -61,7 +61,7 @@ namespace WalletWasabi.Tests
 				{
 					"Valid request (Notification)",
 					Request(null, "substract", 42, 23),
-					string.Empty
+					""
 				},
 				new[]
 				{
@@ -96,7 +96,7 @@ namespace WalletWasabi.Tests
 		{
 			var handler = new JsonRpcRequestHandler<TestableRpcService>(new TestableRpcService());
 
-			var response = await handler.HandleAsync(request, CancellationToken.None).ConfigureAwait(false);
+			var response = await handler.HandleAsync(request, CancellationToken.None);
 			Assert.Equal(expectedResponse, response);
 		}
 
@@ -133,10 +133,12 @@ namespace WalletWasabi.Tests
 
 		private static string ToJson(object o)
 		{
-			return JsonConvert.SerializeObject(o, new JsonSerializerSettings
-			{
-				DefaultValueHandling = DefaultValueHandling.Ignore
-			});
+			return JsonConvert.SerializeObject(
+				o,
+				new JsonSerializerSettings
+				{
+					DefaultValueHandling = DefaultValueHandling.Ignore
+				});
 		}
 
 		[Fact]

@@ -15,15 +15,22 @@ namespace WalletWasabi.Gui.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
+			decimal money;
+
 			if (value is string moneyString)
 			{
-				var money = decimal.Parse(moneyString);
-				return money < 0 ? Brushes.IndianRed : Brushes.MediumSeaGreen;
+				money = decimal.Parse(moneyString);
+			}
+			else if (value is Money inMoney)
+			{
+				money = inMoney.ToDecimal(MoneyUnit.BTC);
 			}
 			else
 			{
-				throw new TypeArgumentException(value, typeof(string), nameof(value));
+				return Brushes.IndianRed;
 			}
+
+			return money < 0 ? Brushes.IndianRed : Brushes.MediumSeaGreen;
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

@@ -13,6 +13,7 @@ using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
+using WalletWasabi.Gui.Controls.TransactionDetails.ViewModels;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -21,9 +22,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _clipboardNotificationVisible;
 		private double _clipboardNotificationOpacity;
 
-		public TransactionViewModel(TransactionInfo model)
+		public TransactionViewModel(TransactionDetailsViewModel model)
 		{
-			Model = model;
+			TransactionDetails = model;
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;
 
@@ -33,11 +34,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				var shell = IoC.Get<IShell>();
 
-				var transactionInfo = shell.Documents?.OfType<TransactionInfoTabViewModel>()?.FirstOrDefault(x => x.Transaction?.TransactionId == TransactionId);
+				var transactionInfo = shell.Documents?.OfType<TransactionInfoTabViewModel>()?.FirstOrDefault(x => x.Transaction?.TransactionId == TransactionId && x.Transaction?.WalletName == WalletName);
 
 				if (transactionInfo is null)
 				{
-					transactionInfo = new TransactionInfoTabViewModel(Model);
+					transactionInfo = new TransactionInfoTabViewModel(TransactionDetails);
 					shell.AddDocument(transactionInfo);
 				}
 
@@ -55,27 +56,29 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				});
 		}
 
-		private TransactionInfo Model { get; }
+		private TransactionDetailsViewModel TransactionDetails { get; }
 
 		public ReactiveCommand<Unit, Unit> CopyTransactionId { get; }
 
 		public ReactiveCommand<Unit, Unit> OpenTransactionInfo { get; }
 
-		public string DateTime => Model.DateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+		public string DateTime => TransactionDetails.DateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
 
-		public bool Confirmed => Model.Confirmed;
+		public bool Confirmed => Confirmations > 0;
 
-		public int Confirmations => Model.Confirmations;
+		public int Confirmations => TransactionDetails.Confirmations;
 
-		public string AmountBtc => Model.AmountBtc;
+		public string AmountBtc => TransactionDetails.AmountBtc;
 
-		public Money Amount => Money.TryParse(Model.AmountBtc, out Money money) ? money : Money.Zero;
+		public Money Amount => Money.TryParse(TransactionDetails.AmountBtc, out Money money) ? money : Money.Zero;
 
-		public string Label => Model.Label;
+		public string Label => TransactionDetails.Label;
 
-		public int BlockHeight => Model.BlockHeight;
+		public int BlockHeight => TransactionDetails.BlockHeight;
 
-		public string TransactionId => Model.TransactionId;
+		public string TransactionId => TransactionDetails.TransactionId;
+
+		public string WalletName => TransactionDetails.WalletName;
 
 		public bool ClipboardNotificationVisible
 		{
@@ -89,7 +92,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _clipboardNotificationOpacity, value);
 		}
 
-		public CancellationTokenSource CancelClipboardNotification { get; set; }
+		public CancellationTokenSource? CancelClipboardNotification { get; set; }
 
 		public void Refresh()
 		{

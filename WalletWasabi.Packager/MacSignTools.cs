@@ -291,11 +291,6 @@ namespace WalletWasabi.Packager
 			Console.WriteLine("Phase: finish.");
 		}
 
-		public static bool IsMacSignMode()
-		{
-			return RuntimeInformation.IsOSPlatform(OSPlatform.OSX); // For now this is enough. If you run it on macOS you want to sign.
-		}
-
 		private static void Notarize(string appleId, string password, string filePath, string bundleIdentifier)
 		{
 			string uploadId = null;
@@ -449,7 +444,7 @@ namespace WalletWasabi.Packager
 		{
 			// Tor already signed by: The Tor Project, Inc (MADPSAYN6T)
 
-			// Wassabee has to be signed at the end. Otherwise codesing will throw a submodule not signed error.
+			// Wassabee has to be signed at the end. Otherwise codesign will throw a "submodule not signed" error.
 			foreach (var file in files)
 			{
 				var fileName = new FileInfo(file).Name;

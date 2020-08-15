@@ -19,14 +19,13 @@
     <converters:TimeSpanVisibilityConverter x:Key="TimeSpanVisibilityConverter" />
   </UserControl.Resources>
   <DockPanel LastChildFill="True" Margin="10">
-    <Grid DockPanel.Dock="Bottom">
-      <Grid.RowDefinitions>
-        <RowDefinition Height="*" />
-      </Grid.RowDefinitions>
+    <Grid DockPanel.Dock="Bottom" RowDefinitions="*" >
       <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="*" />
-        <ColumnDefinition Width="150" />
-        <ColumnDefinition Width="*" MinWidth="460" />
+        <ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="150" />
+          <ColumnDefinition Width="*" MinWidth="460" />
+        </ColumnDefinitions>
       </Grid.ColumnDefinitions>
       <controls:GroupBox Grid.Row="0" Grid.Column="2" Title="Status" Padding="5" Margin="5 5 0 0">
         <ScrollViewer>
@@ -84,14 +83,7 @@
         </ScrollViewer>
       </controls:GroupBox>
       <controls:GroupBox Grid.Row="0" Grid.Column="0" Title="CoinJoin" Padding="5" Margin="0 5 5 0">
-        <Grid Grid.Row="0" Grid.Column="0" Classes="content">
-          <Grid.RowDefinitions>
-            <RowDefinition Height="150" />
-          </Grid.RowDefinitions>
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
-          </Grid.ColumnDefinitions>
+        <Grid Grid.Row="0" Grid.Column="0" Classes="content" RowDefinitions="150" ColumnDefinitions="*,Auto">
           <StackPanel Grid.Column="0" Spacing="10">
             <controls:TogglePasswordBox Text="{Binding Password}" Margin="0 20 0 0" MinWidth="200">
               <i:Interaction.Behaviors>
@@ -119,11 +111,7 @@
       </controls:GroupBox>
       <controls:GroupBox Grid.Column="1" Title="Target" Padding="5" Margin="5 0">
         <Button Command="{Binding TargetButtonCommand}">
-          <Grid Background="Transparent" DataContext="{Binding CoinJoinUntilAnonymitySet, Converter={StaticResource PrivacyLevelValueConverter}}">
-            <Grid.RowDefinitions>
-              <RowDefinition Height="2*"></RowDefinition>
-              <RowDefinition Height="*"></RowDefinition>
-            </Grid.RowDefinitions>
+          <Grid RowDefinitions="2*,*" Background="Transparent" DataContext="{Binding CoinJoinUntilAnonymitySet, Converter={StaticResource PrivacyLevelValueConverter}}">
             <DrawingPresenter Grid.Row="0" Drawing="{Binding Icon}" VerticalAlignment="Top" Height="100" Width="75" />
             <TextBlock Margin="0 5 0 0" Grid.Row="1" Text="{Binding ToolTip}" TextAlignment="Center" TextWrapping="Wrap" />
           </Grid>

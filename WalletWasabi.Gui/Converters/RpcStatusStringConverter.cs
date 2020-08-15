@@ -15,7 +15,7 @@ namespace WalletWasabi.Gui.Converters
 		{
 			if (value is null)
 			{
-				return string.Empty;
+				return "";
 			}
 			if (value is RpcStatus val)
 			{

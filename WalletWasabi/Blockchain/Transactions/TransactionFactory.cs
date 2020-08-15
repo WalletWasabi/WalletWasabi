@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -21,11 +20,12 @@ namespace WalletWasabi.Blockchain.Transactions
 	public class TransactionFactory
 	{
 		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
-		public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, string password = "", bool allowUnconfirmed = false)
+		public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, AllTransactionStore transactionStore, string password = "", bool allowUnconfirmed = false)
 		{
-			Network = network;
-			KeyManager = keyManager;
-			Coins = coins;
+			Network = Guard.NotNull(nameof(network), network);
+			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
+			Coins = Guard.NotNull(nameof(coins), coins);
+			TransactionStore = Guard.NotNull(nameof(transactionStore), transactionStore);
 			Password = password;
 			AllowUnconfirmed = allowUnconfirmed;
 		}
@@ -35,6 +35,7 @@ namespace WalletWasabi.Blockchain.Transactions
 		public ICoinsView Coins { get; }
 		public string Password { get; }
 		public bool AllowUnconfirmed { get; }
+		private AllTransactionStore TransactionStore { get; }
 
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
@@ -107,6 +108,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			TransactionBuilder builder = Network.CreateTransactionBuilder();
 			builder.SetCoinSelector(new SmartCoinSelector(allowedSmartCoinInputs));
 			builder.AddCoins(allowedSmartCoinInputs.Select(c => c.GetCoin()));
+			builder.SetLockTime(lockTimeSelector());
 
 			foreach (var request in payments.Requests.Where(x => x.Amount.Type == MoneyRequestType.Value))
 			{
@@ -224,7 +226,6 @@ namespace WalletWasabi.Blockchain.Transactions
 			{
 				IEnumerable<ExtKey> signingKeys = KeyManager.GetSecrets(Password, spentCoins.Select(x => x.ScriptPubKey).ToArray());
 				builder = builder.AddKeys(signingKeys.ToArray());
-				builder.SetLockTime(lockTimeSelector());
 				builder.SignPSBT(psbt);
 
 				UpdatePSBTInfo(psbt, spentCoins, changeHdPubKey);
@@ -234,7 +235,7 @@ namespace WalletWasabi.Blockchain.Transactions
 					// Try to pay using payjoin
 					if (payjoinClient is { })
 					{
-						psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt);
+						psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt, changeHdPubKey);
 					}
 				}
 				psbt.Finalize();
@@ -307,7 +308,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			return new BuildTransactionResult(new SmartTransaction(tx, Height.Unknown), psbt, spendsUnconfirmed, sign, fee, feePc, outerWalletOutputs, innerWalletOutputs, spentCoins);
 		}
 
-		private PSBT TryNegotiatePayjoin(IPayjoinClient payjoinClient, TransactionBuilder builder, PSBT psbt)
+		private PSBT TryNegotiatePayjoin(IPayjoinClient payjoinClient, TransactionBuilder builder, PSBT psbt, HdPubKey changeHdPubKey)
 		{
 			try
 			{
@@ -316,6 +317,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				psbt = payjoinClient.RequestPayjoin(psbt,
 					KeyManager.ExtPubKey,
 					new RootedKeyPath(KeyManager.MasterFingerprint.Value, KeyManager.DefaultAccountKeyPath),
+					changeHdPubKey,
 					CancellationToken.None).GetAwaiter().GetResult();
 				builder.SignPSBT(psbt);
 
@@ -354,6 +356,23 @@ namespace WalletWasabi.Blockchain.Transactions
 				{
 					var rootKeyPath = new RootedKeyPath(fp, changeHdPubKey.FullKeyPath);
 					psbt.AddKeyPath(changeHdPubKey.PubKey, rootKeyPath, changeHdPubKey.P2wpkhScript);
+				}
+			}
+
+			foreach (var input in spentCoins)
+			{
+				var coinInputTxID = input.TransactionId;
+				if (TransactionStore.TryGetTransaction(coinInputTxID, out var txn))
+				{
+					var psbtInputs = psbt.Inputs.Where(x => x.PrevOut.Hash == coinInputTxID);
+					foreach (var psbtInput in psbtInputs)
+					{
+						psbtInput.NonWitnessUtxo = txn.Transaction;
+					}
+				}
+				else
+				{
+					Logger.LogWarning($"Transaction id:{coinInputTxID} is missing from the TransactionStore. Ignoring...");
 				}
 			}
 		}
