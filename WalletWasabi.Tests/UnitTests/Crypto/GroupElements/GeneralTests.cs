@@ -126,7 +126,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 			var ge = new GroupElement(EC.G * one);
 
 			// Kinda clunky, but otherwise CodeFactor won't be happy.
-			GroupElement n = null;
+			GroupElement? n = null;
 
 			Assert.False(ge == n);
 			Assert.True(ge != n);
@@ -159,23 +159,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 
 			Assert.Equal(a, b);
 			Assert.Equal(a, c);
-		}
-
-		[Fact]
-		public void GeneratorCorrect()
-		{
-			var generator = new GroupElement(EC.G);
-			var generator2 = new GroupElement(new GE(EC.G.x, EC.G.y));
-			Assert.Equal(GroupElement.G, generator);
-			Assert.Equal(GroupElement.G, generator2);
-
-			Assert.NotEqual(GroupElement.G, GroupElement.Infinity);
-			Assert.NotEqual(GroupElement.G, new GroupElement(EC.G * Scalar.Zero));
-			Assert.NotEqual(GroupElement.G, new GroupElement(EC.G * new Scalar(2)));
-
-			var infinity = new GroupElement(new GE(EC.G.x, EC.G.y, infinity: true));
-			Assert.NotEqual(GroupElement.G, infinity);
-			Assert.True(infinity.IsInfinity);
 		}
 
 		[Fact]
@@ -321,6 +304,19 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 
 			var ge2 = GroupElement.FromBytes(ge.ToBytes());
 			Assert.Equal(ge, ge2);
+		}
+
+		[Theory]
+		[InlineData("", "035FECEB66FFC86F38D952786C6D696C79C2DBC239DD4E91B46729D73A27FB57E9")]
+		[InlineData(" ", "03E12A7E051731CF1DBEEFA2142A8E1ABB1EB5898E2CBE4AA522120829A5588DC7")]
+		[InlineData("  ", "0297D2E845C60987D38F0A97F9E0E0BC9946BF55A499A1F0E5257B0978BBEC85E3")]
+		[InlineData("a", "024E1195DF020DE59E0D65A33A4279F1183E7AE4E5D980E309F8B55ADFF2E61C3E")]
+		[InlineData("12345", "02DD712114FB283417DE4DA3512E17486ADBDA004060D0D1646508C8A2740D29B4")]
+		public void FromText(string text, string expectedHex)
+		{
+			var ge = GroupElement.FromText(text);
+			var hex = ByteHelpers.ToHex(ge.ToBytes());
+			Assert.Equal(expectedHex, hex);
 		}
 	}
 }

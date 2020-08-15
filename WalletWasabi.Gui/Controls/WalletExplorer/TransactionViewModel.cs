@@ -92,7 +92,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _clipboardNotificationOpacity, value);
 		}
 
-		public CancellationTokenSource CancelClipboardNotification { get; set; }
+		public CancellationTokenSource? CancelClipboardNotification { get; set; }
 
 		public void Refresh()
 		{

@@ -106,7 +106,7 @@ namespace WalletWasabi.Helpers
 					}
 					else
 					{
-						throw new DirectoryNotFoundException("Could not find suitable default Bitcoin Core datadir.");
+						throw new DirectoryNotFoundException($"Could not find suitable default {Constants.BuiltinBitcoinNodeName} datadir.");
 					}
 				}
 				else
@@ -120,7 +120,7 @@ namespace WalletWasabi.Helpers
 					}
 					else
 					{
-						throw new DirectoryNotFoundException("Could not find suitable default Bitcoin Core datadir.");
+						throw new DirectoryNotFoundException($"Could not find suitable default {Constants.BuiltinBitcoinNodeName} datadir.");
 					}
 				}
 

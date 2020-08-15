@@ -172,13 +172,13 @@ namespace WalletWasabi.BitcoinCore
 				// If it isn't already running, then we run it.
 				if (await coreNode.RpcClient.TestAsync().ConfigureAwait(false) is null)
 				{
-					Logger.LogInfo("Bitcoin Core is already running.");
+					Logger.LogInfo("A Bitcoin node is already running.");
 				}
 				else
 				{
 					coreNode.Bridge = new BitcoindRpcProcessBridge(coreNode.RpcClient, coreNode.DataDir, printToConsole: false);
 					await coreNode.Bridge.StartAsync(cancel).ConfigureAwait(false);
-					Logger.LogInfo("Started Bitcoin Core.");
+					Logger.LogInfo($"Started {Constants.BuiltinBitcoinNodeName}.");
 				}
 				cancel.ThrowIfCancellationRequested();
 
@@ -269,10 +269,10 @@ namespace WalletWasabi.BitcoinCore
 				}
 			}
 
-			Logger.LogInfo("Did not stop Bitcoin Core. Reason:");
+			Logger.LogInfo("Did not stop the Bitcoin node. Reason:");
 			if (exThrown is null)
 			{
-				Logger.LogInfo("Bitcoin Core was started externally.");
+				Logger.LogInfo("The Bitcoin node was started externally.");
 			}
 			else
 			{
