@@ -84,20 +84,5 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				await coreNode.TryStopAsync();
 			}
 		}
-
-		/// <summary>
-		/// Tests that Bitcoin Node reports correct <see cref="Constants.BitcoinCoreVersion" /> version.
-		/// </summary>
-		/// <remarks>
-		/// A few seconds may be enough for this test to run on a personal computer. However,
-		/// CI using parallelization and all available threads has hard time to finish it in a few seconds.
-		/// </remarks>
-		[Fact]
-		public async Task GetVersionTestsAsync()
-		{
-			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
-			Version version = await CoreNode.GetVersionAsync(cts.Token);
-			Assert.Equal(Constants.BitcoinCoreVersion, version);
-		}
 	}
 }
