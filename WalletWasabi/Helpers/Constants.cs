@@ -110,5 +110,8 @@ namespace WalletWasabi.Helpers
 		public static string ClientSupportBackendVersionText => ClientSupportBackendVersionMin == ClientSupportBackendVersionMax
 				? ClientSupportBackendVersionMin
 				: $"{ClientSupportBackendVersionMin} - {ClientSupportBackendVersionMax}";
+
+		public static readonly FeeRate MinRelayFeeRate = new FeeRate(1m);
+		public static readonly FeeRate AbsurdlyHighFeeRate = new FeeRate(10_000m);
 	}
 }

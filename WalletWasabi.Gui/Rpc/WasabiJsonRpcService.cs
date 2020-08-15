@@ -126,25 +126,20 @@ namespace WalletWasabi.Gui.Rpc
 			Guard.NotNull(nameof(payments), payments);
 			Guard.NotNull(nameof(coins), coins);
 			password = Guard.Correct(password);
+			
+			var argFeeRate = new FeeRate(feeRate);
 
-			FeeStrategy feeStrategy;
+			bool InRange<T>(IComparable<T> a, T b, T c) => 
+				a.CompareTo(b) >= 0 && a.CompareTo(c) <= 0;
 
-			if (feeTarget != 0)
+			var feeStrategy = (feeRate, feeTarget) switch
 			{
-				Guard.InRangeAndNotNull(nameof(feeTarget), feeTarget, 2, Constants.SevenDaysConfirmationTarget);
-				feeStrategy = FeeStrategy.CreateFromConfirmationTarget(feeTarget);
-			}
-			else if (feeRate != 0)
-			{
-				feeStrategy = FeeStrategy.CreateFromFeeRate(new FeeRate(feeRate));
-			}
-			else
-			{
-				throw new Exception($"{nameof(feeTarget)} or {nameof(feeRate)} must be set.");
-			}
+				(_, 0) when InRange(argFeeRate, Constants.MinRelayFeeRate, Constants.AbsurdlyHighFeeRate) => FeeStrategy.CreateFromFeeRate(argFeeRate),
+				(0, _) when InRange(feeTarget, 2, Constants.SevenDaysConfirmationTarget) => FeeStrategy.CreateFromConfirmationTarget(feeTarget),
+				_ => throw new ArgumentException("Fee parameters are missing, inconsistent or out of range.")
+			};
 
 			AssertWalletIsLoaded();
-			var sync = Global.Synchronizer;
 			var payment = new PaymentIntent(payments.Select(p =>
 				new DestinationRequest(p.Sendto.ScriptPubKey, MoneyRequest.Create(p.Amount, p.SubtractFee), new SmartLabel(p.Label))));
 			var result = ActiveWallet.BuildTransaction(

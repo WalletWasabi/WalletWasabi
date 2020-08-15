@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
 using Newtonsoft.Json;
 using WalletWasabi.Gui.Rpc;
 using Xunit;
@@ -135,6 +137,46 @@ namespace WalletWasabi.Tests
 			{
 				DefaultValueHandling = DefaultValueHandling.Ignore
 			});
+		}
+
+		[Fact]
+		public void BuildTransactionWithFees()
+		{
+			var service = new WasabiJsonRpcService(null);
+			var paymentInfo = new PaymentInfo{ 
+				Amount = Money.Coins(1), 
+				Sendto = BitcoinAddress.Create("bc1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7fdevah", Network.Main),
+				Label = "Cesar" };
+
+			void BuildTransaction(int feeTarget = 0, decimal feeRate = 0m) =>
+				service.BuildTransaction(new[] { paymentInfo }, new OutPoint[0], feeTarget, feeRate);
+
+			// No fee information is provided
+			Exception ex = Assert.Throws<ArgumentException>(() => BuildTransaction());
+			Assert.Equal("Fee parameters are missing, inconsistent or out of range.", ex.Message);
+
+			// Invalid feeTarget (out of range)
+			ex = Assert.Throws<ArgumentException>(() => BuildTransaction(feeTarget: -4));
+			Assert.Equal("Fee parameters are missing, inconsistent or out of range.", ex.Message);
+			ex = Assert.Throws<ArgumentException>(() => BuildTransaction(feeTarget: 0));
+			Assert.Equal("Fee parameters are missing, inconsistent or out of range.", ex.Message);
+			ex = Assert.Throws<ArgumentException>(() => BuildTransaction(feeTarget: 2000));
+			Assert.Equal("Fee parameters are missing, inconsistent or out of range.", ex.Message);
+
+			// Invalid feeRate (out of range)
+			ex = Assert.Throws<ArgumentException>(() => BuildTransaction(feeRate: 0m));
+			Assert.Equal("Fee parameters are missing, inconsistent or out of range.", ex.Message);
+			ex = Assert.Throws<ArgumentException>(() => BuildTransaction(feeRate: 20_000m));
+			Assert.Equal("Fee parameters are missing, inconsistent or out of range.", ex.Message);
+
+			// Contradictory fee information (both feeRate and feeTarget are present)
+			ex = Assert.Throws<ArgumentException>(() => BuildTransaction(feeRate: 20m, feeTarget: 8));
+			Assert.Equal("Fee parameters are missing, inconsistent or out of range.", ex.Message);
+
+			ex = Assert.Throws<InvalidOperationException>(() => BuildTransaction(feeRate: 20m)); 
+			Assert.Equal("There is no wallet loaded.", ex.Message);
+			ex = Assert.Throws<InvalidOperationException>(() => BuildTransaction(feeTarget: 1008)); 
+			Assert.Equal("There is no wallet loaded.", ex.Message);
 		}
 	}
 }
