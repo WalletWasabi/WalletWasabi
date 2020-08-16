@@ -31,7 +31,7 @@ namespace WalletWasabi.Gui.Rpc
 		/// Tries to return the metadata for a given procedure name.
 		/// Returns true if found otherwise returns false.
 		/// </summary>
-		public bool TryGetMetadata(string methodName, out JsonRpcMethodMetadata metadata)
+		public bool TryGetMetadata(string methodName, out JsonRpcMethodMetadata? metadata)
 		{
 			if (_proceduresDirectory.Count == 0)
 			{

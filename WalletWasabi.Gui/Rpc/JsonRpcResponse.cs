@@ -15,7 +15,7 @@ namespace WalletWasabi.Gui.Rpc
 			[JsonRpcErrorCodes.InternalError] = "Internal error",
 		};
 
-		private JsonRpcResponse(string id, object result, object error)
+		private JsonRpcResponse(string? id, object? result, object? error)
 		{
 			Id = id;
 			Result = result;
@@ -26,20 +26,23 @@ namespace WalletWasabi.Gui.Rpc
 		public string JsonRpc => "2.0";
 
 		[JsonProperty("result", Order = 1)]
-		public object Result { get; }
+		public object? Result { get; }
 
 		[JsonProperty("error", Order = 1)]
-		public object Error { get; }
+		public object? Error { get; }
 
 		[JsonProperty("id", Order = 3)]
-		public string Id { get; }
+		public string? Id { get; }
 
-		public static JsonRpcResponse CreateResultResponse(string id, object result)
+		public static JsonRpcResponse CreateResultResponse(string id, object? result = null)
 		{
 			return new JsonRpcResponse(id, result, null);
 		}
 
-		public static JsonRpcResponse CreateErrorResponse(string id, JsonRpcErrorCodes code, string message = null)
+		public static JsonRpcResponse CreateParsingErrorResponse() =>
+			CreateErrorResponse(null, JsonRpcErrorCodes.ParseError);
+
+		public static JsonRpcResponse CreateErrorResponse(string? id, JsonRpcErrorCodes code, string? message = null)
 		{
 			var error = new
 			{

@@ -50,10 +50,10 @@ namespace WalletWasabi.Gui.Rpc
 		{
 			if (!JsonRpcRequest.TryParse(body, out var jsonRpcRequests, out var isBatch))
 			{
-				return JsonRpcResponse.CreateErrorResponse(null, JsonRpcErrorCodes.ParseError).ToJson(DefaultSettings);
+				return JsonRpcResponse.CreateParsingErrorResponse().ToJson(DefaultSettings);
 			}
 			var results = new List<string>();
-			foreach (var jsonRpcRequest in jsonRpcRequests)
+			foreach (var jsonRpcRequest in jsonRpcRequests!)
 			{
 				cancellationToken.ThrowIfCancellationRequested();
 				results.Add(await HandleRequestAsync(jsonRpcRequest, cancellationToken));
@@ -72,7 +72,7 @@ namespace WalletWasabi.Gui.Rpc
 
 			try
 			{
-				var methodParameters = prodecureMetadata.Parameters;
+				var methodParameters = prodecureMetadata!.Parameters;
 				var parameters = new List<object>();
 
 				if (jsonRpcRequest.Parameters is JArray jarr)
@@ -122,29 +122,37 @@ namespace WalletWasabi.Gui.Rpc
 					return "";
 				}
 
-				JsonRpcResponse response = null;
-				if (prodecureMetadata.MethodInfo.IsAsync())
+				var isAsync = prodecureMetadata.MethodInfo.ReturnType.IsGenericType;
+				var isGeneric = prodecureMetadata.MethodInfo.IsAsync();
+
+				async Task<JsonRpcResponse> AwaitTaskForError(Task task)
 				{
-					if (!prodecureMetadata.MethodInfo.ReturnType.IsGenericType)
-					{
-						await ((Task)result).ConfigureAwait(false);
-						response = JsonRpcResponse.CreateResultResponse(jsonRpcRequest.Id, null);
-					}
-					else
-					{
-						var ret = await ((dynamic)result).ConfigureAwait(false);
-						response = JsonRpcResponse.CreateResultResponse(jsonRpcRequest.Id, ret);
-					}
+					await task.ConfigureAwait(false);
+					return JsonRpcResponse.CreateResultResponse(jsonRpcRequest.Id);
 				}
-				else
+
+				async Task<JsonRpcResponse> AwaitTaskForResultOrError(Task task)
 				{
-					response = JsonRpcResponse.CreateResultResponse(jsonRpcRequest.Id, result);
+					var ret = await ((dynamic)task).ConfigureAwait(false);
+					return JsonRpcResponse.CreateResultResponse(jsonRpcRequest.Id, ret);
 				}
+
+				JsonRpcResponse response = (result, isAsync, isGeneric) switch {
+					( {}, false, false ) => JsonRpcResponse.CreateResultResponse(jsonRpcRequest.Id, result!),
+					( {}, true, false ) when result is Task task => await AwaitTaskForError(task),
+					( {}, true, true ) when result is Task task => await AwaitTaskForResultOrError(task),
+					( {}, true, _ ) => throw new InvalidOperationException("There is bug. Async task is not a task."),
+					( _, _, _ ) => JsonRpcResponse.CreateResultResponse(jsonRpcRequest.Id)
+				};
+
 				return response.ToJson(DefaultSettings);
 			}
 			catch (TargetInvocationException e)
 			{
-				return Error(JsonRpcErrorCodes.InternalError, e.InnerException.Message, jsonRpcRequest.Id);
+				var message = e.InnerException switch{
+					{ }	inner =>  inner.Message,
+					_ => e.Message };
+				return Error(JsonRpcErrorCodes.InternalError, message, jsonRpcRequest.Id);
 			}
 			catch (Exception e)
 			{
