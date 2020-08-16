@@ -22,14 +22,14 @@ namespace WalletWasabi.Tests.UnitTests.Filters
 		public async Task IndexStoreTestsAsync()
 		{
 			var network = Network.Main;
-			var indexStore = new IndexStore(network, new SmartHeaderChain());
 
 			var dir = (await GetIndexStorePathsAsync()).dir;
 			if (Directory.Exists(dir))
 			{
 				Directory.Delete(dir, true);
 			}
-			await indexStore.InitializeAsync(dir);
+			var indexStore = new IndexStore(dir, network, new SmartHeaderChain());
+			await indexStore.InitializeAsync();
 		}
 
 		[Fact]
@@ -40,7 +40,7 @@ namespace WalletWasabi.Tests.UnitTests.Filters
 			var network = Network.Main;
 			var headersChain = new SmartHeaderChain();
 
-			var indexStore = new IndexStore(network, headersChain);
+			var indexStore = new IndexStore(dir, network, headersChain);
 			var dummyFilter = GolombRiceFilter.Parse("00");
 
 			static DateTimeOffset MinutesAgo(int mins) => DateTimeOffset.UtcNow.Subtract(TimeSpan.FromMinutes(mins));
@@ -52,7 +52,7 @@ namespace WalletWasabi.Tests.UnitTests.Filters
 			};
 			await File.WriteAllLinesAsync(matureFilters, matureIndexStoreContent.Select(x => x.ToLine()));
 
-			await Assert.ThrowsAsync<InvalidOperationException>(async () => await indexStore.InitializeAsync(dir));
+			await Assert.ThrowsAsync<InvalidOperationException>(async () => await indexStore.InitializeAsync());
 			Assert.Equal(new uint256(3), headersChain.TipHash);
 			Assert.Equal(2u, headersChain.TipHeight);
 
@@ -67,7 +67,7 @@ namespace WalletWasabi.Tests.UnitTests.Filters
 
 			var network = Network.Main;
 			var headersChain = new SmartHeaderChain();
-			var indexStore = new IndexStore(network, headersChain);
+			var indexStore = new IndexStore(dir, network, headersChain);
 
 			var dummyFilter = GolombRiceFilter.Parse("00");
 
@@ -82,7 +82,7 @@ namespace WalletWasabi.Tests.UnitTests.Filters
 			};
 			await File.WriteAllLinesAsync(immatureFilters, immatureIndexStoreContent.Select(x => x.ToLine()));
 
-			await Assert.ThrowsAsync<InvalidOperationException>(async () => await indexStore.InitializeAsync(dir));
+			await Assert.ThrowsAsync<InvalidOperationException>(async () => await indexStore.InitializeAsync());
 			Assert.Equal(new uint256(3), headersChain.TipHash);
 			Assert.Equal(startingFilter.Header.Height + 2u, headersChain.TipHeight);
 
@@ -97,7 +97,7 @@ namespace WalletWasabi.Tests.UnitTests.Filters
 
 			var network = Network.Main;
 			var headersChain = new SmartHeaderChain();
-			var indexStore = new IndexStore(network, headersChain);
+			var indexStore = new IndexStore(dir, network, headersChain);
 
 			var dummyFilter = GolombRiceFilter.Parse("00");
 
@@ -115,7 +115,7 @@ namespace WalletWasabi.Tests.UnitTests.Filters
 			};
 			await File.WriteAllLinesAsync(immatureFilters, immatureIndexStoreContent.Select(x => x.ToLine()));
 
-			await Assert.ThrowsAsync<InvalidOperationException>(async () => await indexStore.InitializeAsync(dir));
+			await Assert.ThrowsAsync<InvalidOperationException>(async () => await indexStore.InitializeAsync());
 			Assert.Equal(new uint256(3), headersChain.TipHash);
 			Assert.Equal(2u, headersChain.TipHeight);
 
@@ -130,7 +130,7 @@ namespace WalletWasabi.Tests.UnitTests.Filters
 
 			var network = Network.Main;
 			var headersChain = new SmartHeaderChain();
-			var indexStore = new IndexStore(network, headersChain);
+			var indexStore = new IndexStore(dir, network, headersChain);
 
 			var dummyFilter = GolombRiceFilter.Parse("00");
 
@@ -142,7 +142,7 @@ namespace WalletWasabi.Tests.UnitTests.Filters
 			};
 			await File.WriteAllLinesAsync(matureFilters, matureIndexStoreContent.Select(x => x.ToLine()));
 
-			await indexStore.InitializeAsync(dir);
+			await indexStore.InitializeAsync();
 			Assert.Equal(new uint256(3), headersChain.TipHash);
 			Assert.Equal(2u, headersChain.TipHeight);
 
