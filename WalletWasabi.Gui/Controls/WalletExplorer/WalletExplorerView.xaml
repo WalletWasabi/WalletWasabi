@@ -55,8 +55,7 @@
           <TreeDataTemplate DataType="ViewModels:ClosedWalletViewModel" ItemsSource="{Binding Actions}">
             <StackPanel Classes="TreeViewRoot">
               <i:Interaction.Behaviors>
-                <behaviors:CommandOnDoubleClickBehavior Command="{Binding OpenWalletCommand}" />
-                <behaviors:PreventTooltipStuckBehavior />
+                <behaviors:CommandOnDoubleClickBehavior Command="{Binding OpenWalletCommand}" />                
               </i:Interaction.Behaviors>
               <StackPanel.ContextMenu>
                 <ContextMenu>
@@ -84,10 +83,7 @@
             </StackPanel>
           </TreeDataTemplate>
           <TreeDataTemplate DataType="ViewModels:WalletViewModel" ItemsSource="{Binding Actions}">
-            <StackPanel Classes="TreeViewRoot">
-              <i:Interaction.Behaviors>
-                <behaviors:PreventTooltipStuckBehavior />
-              </i:Interaction.Behaviors>
+            <StackPanel Classes="TreeViewRoot">              
               <StackPanel.DataTemplates>
                 <DataTemplate DataType="ViewModels:HardwareWalletViewModel">
                   <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorer_HardwareWalletOpen}" />
@@ -104,64 +100,43 @@
             </StackPanel>
           </TreeDataTemplate>
           <TreeDataTemplate DataType="ViewModels:SendTabViewModel">
-            <StackPanel Classes="TreeViewRoot">
-              <i:Interaction.Behaviors>
-                <behaviors:PreventTooltipStuckBehavior />
-              </i:Interaction.Behaviors>
+            <StackPanel Classes="TreeViewRoot">              
               <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_Send}" />
               <TextBlock Text="{Binding Title}" />
             </StackPanel>
           </TreeDataTemplate>
           <TreeDataTemplate DataType="ViewModels:BuildTabViewModel">
-            <StackPanel Classes="TreeViewRoot">
-              <i:Interaction.Behaviors>
-                <behaviors:PreventTooltipStuckBehavior />
-              </i:Interaction.Behaviors>
+            <StackPanel Classes="TreeViewRoot">              
               <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_Builder}" />
               <TextBlock Text="{Binding Title}" />
             </StackPanel>
           </TreeDataTemplate>
           <TreeDataTemplate DataType="ViewModels:ReceiveTabViewModel">
-            <StackPanel Classes="TreeViewRoot">
-              <i:Interaction.Behaviors>
-                <behaviors:PreventTooltipStuckBehavior />
-              </i:Interaction.Behaviors>
+            <StackPanel Classes="TreeViewRoot">              
               <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_Receive}" />
               <TextBlock Text="{Binding Title}" />
             </StackPanel>
           </TreeDataTemplate>
           <TreeDataTemplate DataType="ViewModels:CoinJoinTabViewModel">
-            <StackPanel Classes="TreeViewRoot">
-              <i:Interaction.Behaviors>
-                <behaviors:PreventTooltipStuckBehavior />
-              </i:Interaction.Behaviors>
+            <StackPanel Classes="TreeViewRoot">              
               <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_CoinJoin}" />
               <TextBlock Text="{Binding Title}" />
             </StackPanel>
           </TreeDataTemplate>
           <TreeDataTemplate DataType="ViewModels:HistoryTabViewModel">
-            <StackPanel Classes="TreeViewRoot">
-              <i:Interaction.Behaviors>
-                <behaviors:PreventTooltipStuckBehavior />
-              </i:Interaction.Behaviors>
+            <StackPanel Classes="TreeViewRoot">              
               <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_History}" />
               <TextBlock Text="{Binding Title}" />
             </StackPanel>
           </TreeDataTemplate>
           <TreeDataTemplate DataType="ViewModels:WalletInfoViewModel">
-            <StackPanel Classes="TreeViewRoot">
-              <i:Interaction.Behaviors>
-                <behaviors:PreventTooltipStuckBehavior />
-              </i:Interaction.Behaviors>
+            <StackPanel Classes="TreeViewRoot">              
               <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_Info}" />
               <TextBlock Text="Wallet Info" />
             </StackPanel>
           </TreeDataTemplate>
           <TreeDataTemplate DataType="ViewModels:WalletAdvancedViewModel" ItemsSource="{Binding Items}">
-            <StackPanel Classes="TreeViewRoot">
-              <i:Interaction.Behaviors>
-                <behaviors:PreventTooltipStuckBehavior />
-              </i:Interaction.Behaviors>
+            <StackPanel Classes="TreeViewRoot">              
               <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_Advanced}" />
               <TextBlock Text="Advanced" />
             </StackPanel>
