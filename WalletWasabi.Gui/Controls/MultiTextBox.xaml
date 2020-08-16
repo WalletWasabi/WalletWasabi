@@ -18,7 +18,9 @@
               <Panel IsVisible="{TemplateBinding ClipboardNotificationVisible}">
                 <Panel Opacity="{TemplateBinding ClipboardNotificationOpacity}">
                   <Panel.Transitions>
-                    <DoubleTransition Property="Opacity" Easing="CircularEaseIn" Duration="0:0:0.5" />
+                    <Transitions>
+                      <DoubleTransition Property="Opacity" Easing="CircularEaseIn" Duration="0:0:0.5" />
+                    </Transitions>
                   </Panel.Transitions>
                   <TextBlock Text="Copied" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White" FontWeight="Bold" />
                 </Panel>

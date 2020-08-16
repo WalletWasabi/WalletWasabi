@@ -61,7 +61,9 @@
                   <Grid IsVisible="{Binding ClipboardNotificationVisible}" Grid.Column="3">
                     <Grid Opacity="{Binding ClipboardNotificationOpacity}">
                       <Grid.Transitions>
-                        <DoubleTransition Property="Opacity" Easing="CircularEaseIn" Duration="0:0:0.5" />
+                        <Transitions>
+                          <DoubleTransition Property="Opacity" Easing="CircularEaseIn" Duration="0:0:0.5" />
+                        </Transitions>
                       </Grid.Transitions>
                       <TextBlock Text="Copied" Foreground="White" FontWeight="Bold" />
                     </Grid>
