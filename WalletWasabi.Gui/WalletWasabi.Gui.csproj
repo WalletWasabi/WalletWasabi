@@ -66,8 +66,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia.Desktop" Version="0.10.0-preview2" />
-    <PackageReference Include="Avalonia.Diagnostics" Version="0.10.0-preview2" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.10.0-preview3" />
+    <PackageReference Include="Avalonia.Diagnostics" Version="0.10.0-preview3" />
     <PackageReference Include="AvalonStudio.Shell" Version="0.10.0-cibuild0000832-beta" />
     <PackageReference Include="Dock.Avalonia.Themes.Default" Version="0.10.0-preview1" />
     <PackageReference Include="Dock.Avalonia.Themes.Metro" Version="0.10.0-preview1" />
