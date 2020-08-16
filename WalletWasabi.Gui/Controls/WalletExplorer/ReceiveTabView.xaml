@@ -96,7 +96,10 @@
                 <Grid ColumnDefinitions="400, *, 100" Margin="30 0 0 0">
                   <TextBlock Classes="monospaceFont" IsVisible="{Binding !ClipboardNotificationVisible}" Text="{Binding Address, ConverterParameter=27, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}"></TextBlock>
                   <Grid IsVisible="{Binding ClipboardNotificationVisible}">
-                    <Grid Opacity="{Binding ClipboardNotificationOpacity}">                      
+                    <Grid Opacity="{Binding ClipboardNotificationOpacity}">
+                      <Grid.Transitions>
+                        <DoubleTransition Property="Opacity" Easing="CircularEaseIn" Duration="0:0:0.5" />
+                      </Grid.Transitions>
                       <TextBlock Text="Copied" Foreground="White" FontWeight="Bold" />
                     </Grid>
                   </Grid>
