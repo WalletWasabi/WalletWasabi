@@ -393,7 +393,7 @@ namespace WalletWasabi.Packager
 				process.WaitForExit();
 			}
 
-			IoHelpers.DeleteRecursivelyWithMagicDustAsync(path).GetAwaiter().GetResult();
+			IoHelpers.TryDeleteDirectoryAsync(path).GetAwaiter().GetResult();
 		}
 
 		private static void UnlockKeychain()
