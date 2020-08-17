@@ -1,14 +1,17 @@
+using System;
+using System.Diagnostics;
+
 namespace WalletWasabi.Logging
 {
 	public enum LogMode
 	{
-		/// <summary>It uses Console.Write.</summary>
+		/// <summary>It uses <see cref="Console.Write(string)"/>.</summary>
 		Console,
 
-		/// <summary>It uses Debug.Write.</summary>
+		/// <summary>It uses <see cref="Debug.Write(string?)"/>.</summary>
 		Debug,
 
-		/// <summary>Logs into Log.txt, if filename is not specified.</summary>
+		/// <summary>Logs to <see cref="Logger.FilePath"/> file.</summary>
 		File
 	}
 }
