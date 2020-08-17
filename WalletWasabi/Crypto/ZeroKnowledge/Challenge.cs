@@ -33,13 +33,16 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		/// <summary>
 		/// Fiat Shamir heuristic.
 		/// </summary>
-		private static Scalar HashToScalar(IEnumerable<GroupElement> transcript)
+		private static Scalar HashToScalar(IEnumerable<GroupElement> transcript) =>
+			new Scalar(Sha256(transcript.Select(x=>x.ToBytes()).SelectMany(EncodeString).ToArray()));
+
+		private static byte[] EncodeString(byte[] data) =>
+			BitConverter.GetBytes(data.Length).Concat(data).ToArray();  // len(data) || data
+
+		private static byte[] Sha256(byte[] data)
 		{
-			var concatenation = ByteHelpers.Combine(transcript.Select(x => x.ToBytes()));
 			using var sha256 = System.Security.Cryptography.SHA256.Create();
-			var hash = sha256.ComputeHash(concatenation);
-			var challenge = new Scalar(hash);
-			return challenge;
+			return sha256.ComputeHash(data);
 		}
 	}
 }
