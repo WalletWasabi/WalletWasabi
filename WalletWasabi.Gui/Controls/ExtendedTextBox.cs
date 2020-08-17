@@ -208,23 +208,7 @@ namespace WalletWasabi.Gui.Controls
 
 			Disposables?.Dispose();
 		}
-
-		protected override void OnLostFocus(RoutedEventArgs e)
-		{
-			// Dispatch so that if there is a context menu, it can open before the selection gets cleared.
-			Dispatcher.UIThread.PostLogException(() =>
-			{
-				if (ContextMenu != null && ContextMenu.IsOpen)
-				{
-					_presenter?.HideCaret();
-				}
-				else
-				{
-					base.OnLostFocus(e);
-				}
-			});
-		}
-
+		
 		private void CreatePasteItem()
 		{
 			if (_pasteItem != null)
