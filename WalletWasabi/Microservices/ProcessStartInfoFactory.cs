@@ -34,13 +34,15 @@ namespace WalletWasabi.Microservices
 				windowStyle = ProcessWindowStyle.Hidden;
 			}
 
-			var p = new ProcessStartInfo(fileName: processPath, arguments);
-			p.FileName = processPath;
-			p.Arguments = arguments;
-			p.RedirectStandardOutput = !openConsole;
-			p.UseShellExecute = openConsole;
-			p.CreateNoWindow = !openConsole;
-			p.WindowStyle = windowStyle;
+			var p = new ProcessStartInfo(fileName: processPath, arguments)
+			{
+				FileName = processPath,
+				Arguments = arguments,
+				RedirectStandardOutput = !openConsole,
+				UseShellExecute = openConsole,
+				CreateNoWindow = !openConsole,
+				WindowStyle = windowStyle
+			};
 
 			return p;
 		}
