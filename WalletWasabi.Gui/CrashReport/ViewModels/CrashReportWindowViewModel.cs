@@ -32,7 +32,7 @@ namespace WalletWasabi.Gui.CrashReport.ViewModels
 
 		private CrashReporter CrashReporter { get; }
 		public int MinWidth => 520;
-		public int MinHeight => 280;
+		public int MinHeight => 320;
 		public string Title => "Wasabi Wallet - Crash Reporting";
 		public string Details => $"Unfortunately, Wasabi has crashed. For more information, please open the log file. You may report this crash to the support team.{Environment.NewLine}{Environment.NewLine}Please always consider your privacy before sharing any information!";
 		public string Message => CrashReporter?.SerializedException?.Message;
