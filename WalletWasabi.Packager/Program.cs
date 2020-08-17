@@ -55,7 +55,10 @@ namespace WalletWasabi.Packager
 		/// <summary>
 		/// Main entry point.
 		/// </summary>
+#pragma warning disable IDE1006 // Naming Styles
+
 		private static async Task Main(string[] args)
+#pragma warning restore IDE1006 // Naming Styles
 		{
 			var argsProcessor = new ArgsProcessor(args);
 
