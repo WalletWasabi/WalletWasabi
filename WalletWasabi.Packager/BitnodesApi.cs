@@ -60,7 +60,7 @@ namespace WalletWasabi.Packager
 		/// <summary>
 		/// Internal method. Use only in tests.
 		/// </summary>
-		/// <param name="currentOnions">Set of Bitcoin node names containing ".onion".</param>
+		/// <param name="currentOnions">A set of Bitcoin node names containing ".onion".</param>
 		public void ProcessResponse(string response, HashSet<string>? currentOnions)
 		{
 			JObject json = (JObject)JsonConvert.DeserializeObject(response);
