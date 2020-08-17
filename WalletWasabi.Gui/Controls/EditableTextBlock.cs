@@ -221,7 +221,7 @@ namespace WalletWasabi.Gui.Controls
 		{
 			base.OnPropertyChanged(change);
 
-			if(change.Property == InEditModeProperty)
+			if (change.Property == InEditModeProperty)
 			{
 				PseudoClasses.Set(":editing", change.NewValue.GetValueOrDefault<bool>());
 			}
