@@ -36,7 +36,7 @@ namespace WalletWasabi.Packager
 		/// Finds all Bitcoin nodes with ".onion" in their names, sorts by node names and writes to <see cref="TextWriter"/>.
 		/// </summary>
 		/// <remarks>Allows to pre-define a set of Bitcoin node names containing ".onion".</remarks>
-		/// <param name="currentOnions">Set of Bitcoin node names containing ".onion".</param>
+		/// <param name="currentOnions">A set of Bitcoin node names containing ".onion".</param>
 		/// <returns></returns>
 		public async Task PrintOnionsAsync(HashSet<string>? currentOnions)
 		{
