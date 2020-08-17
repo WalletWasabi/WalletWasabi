@@ -30,6 +30,9 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		public static Scalar Build(GroupElement publicPoint, GroupElement nonce, params GroupElement[] generators)
 			=> Build(publicPoint, nonce, generators as IEnumerable<GroupElement>);
 
+		/// <summary>
+		/// Fiat Shamir heuristic.
+		/// </summary>
 		private static Scalar HashToScalar(IEnumerable<GroupElement> transcript)
 		{
 			var concatenation = ByteHelpers.Combine(transcript.Select(x => x.ToBytes()));
