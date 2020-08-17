@@ -33,16 +33,19 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		/// <summary>
 		/// Fiat Shamir heuristic.
 		/// </summary>
-		private static Scalar HashToScalar(IEnumerable<GroupElement> transcript) =>
-			new Scalar(Sha256(transcript.Select(x=>x.ToBytes()).SelectMany(EncodeString).ToArray()));
-
-		private static byte[] EncodeString(byte[] data) =>
-			BitConverter.GetBytes(data.Length).Concat(data).ToArray();  // len(data) || data
-
-		private static byte[] Sha256(byte[] data)
+		private static Scalar HashToScalar(IEnumerable<GroupElement> transcript)
 		{
+			var transcriptBytes = transcript.Select(x => x.ToBytes());
+			// Make sure the length of the data is also committed to: len(data) || data
+			// https://github.com/zkSNACKs/WalletWasabi/pull/4151#discussion_r470334048
+			var concatenation = transcriptBytes
+				.SelectMany(x => ByteHelpers.Combine(BitConverter.GetBytes(x.Length), x))
+				.ToArray();
+
 			using var sha256 = System.Security.Cryptography.SHA256.Create();
-			return sha256.ComputeHash(data);
+			var hash = sha256.ComputeHash(concatenation);
+			var challenge = new Scalar(hash);
+			return challenge;
 		}
 	}
 }
