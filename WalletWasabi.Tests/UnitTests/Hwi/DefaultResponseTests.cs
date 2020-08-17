@@ -2,11 +2,9 @@ using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Hwi;
-using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Hwi.Parsers;
 using WalletWasabi.Hwi.ProcessBridge;
@@ -116,33 +114,6 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			cts.CancelAfter(ReasonableRequestTimeout * tasks.Count);
 
 			await Task.WhenAny(tasks);
-		}
-
-		[Fact]
-		public async void HwiProcessHelpTestAsync()
-		{
-			using var cts = new CancellationTokenSource();
-
-			var processBridge = new HwiProcessBridge(MicroserviceHelpers.GetBinaryPath("hwi"), new ProcessInvoker());
-			(string response, int exitCode) p = await processBridge.SendCommandAsync("--help", openConsole: false, cts.Token);
-
-			Assert.Equal(0, p.exitCode);
-			Assert.Equal("{\"error\": \"Help text requested\", \"code\": -17}" + Environment.NewLine, p.response);
-		}
-
-		[Fact]
-		public async Task HwiProcessBridgeTestAsync()
-		{
-			var pb = new HwiProcessBridge(MicroserviceHelpers.GetBinaryPath("hwi"), new ProcessInvoker());
-
-			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
-			var res = await pb.SendCommandAsync("version", openConsole: false, cts.Token);
-			Assert.NotEmpty(res.response);
-
-			bool stdInputActionCalled = false;
-			res = await pb.SendCommandAsync("version", openConsole: false, cts.Token, (sw) => stdInputActionCalled = true);
-			Assert.NotEmpty(res.response);
-			Assert.True(stdInputActionCalled);
 		}
 
 		[Fact]

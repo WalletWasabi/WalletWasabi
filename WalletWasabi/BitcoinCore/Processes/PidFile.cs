@@ -1,5 +1,3 @@
-#nullable enable
-
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -28,7 +26,7 @@ namespace WalletWasabi.BitcoinCore.Processes
 		}
 
 		/// <summary>
-		/// Gets full path to PID file.
+		/// Full path to PID file.
 		/// </summary>
 		public string FilePath { get; }
 
@@ -57,7 +55,7 @@ namespace WalletWasabi.BitcoinCore.Processes
 		}
 
 		/// <summary>
-		/// Deletes PID file, if it still exists.
+		/// Tries to delete PID file, if it still exists.
 		/// </summary>
 		public void TryDelete()
 		{

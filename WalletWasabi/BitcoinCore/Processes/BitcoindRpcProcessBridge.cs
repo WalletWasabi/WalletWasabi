@@ -1,5 +1,3 @@
-#nullable enable
-
 using NBitcoin;
 using NBitcoin.RPC;
 using System;

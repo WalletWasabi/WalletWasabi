@@ -106,7 +106,7 @@ namespace WalletWasabi.BitcoinCore
 
 				if (coreNodeParams.TryDeleteDataDir)
 				{
-					await IoHelpers.DeleteRecursivelyWithMagicDustAsync(coreNode.DataDir).ConfigureAwait(false);
+					await IoHelpers.TryDeleteDirectoryAsync(coreNode.DataDir).ConfigureAwait(false);
 				}
 				cancel.ThrowIfCancellationRequested();
 
