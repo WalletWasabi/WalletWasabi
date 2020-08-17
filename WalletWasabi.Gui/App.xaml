@@ -16,7 +16,6 @@
     <StyleInclude Source="avares://Dock.Avalonia.Themes.Metro/DefaultTheme.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Gui/Controls/GroupBox.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Gui/Controls/TogglePasswordBox.xaml" />
-    <StyleInclude Source="avares://WalletWasabi.Gui/Controls/MultiTextBox.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Gui/Controls/EditableTextBlock.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Gui/Controls/ExtendedTextBox.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Gui/Controls/Shields.xaml" />

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.Crypto
+namespace WalletWasabi.Crypto.Groups
 {
 	public class GroupElement : IEquatable<GroupElement>
 	{
@@ -28,56 +28,6 @@ namespace WalletWasabi.Crypto
 		}
 
 		public static GroupElement Infinity { get; } = new GroupElement(GE.Infinity);
-
-		/// <summary>
-		/// The base point defined in the secp256k1 standard used in ECDSA public key derivation.
-		/// </summary>
-		public static GroupElement G { get; } = new GroupElement(EC.G);
-
-		/// <summary>
-		/// Generator for MAC and Show.
-		/// </summary>
-		public static GroupElement Gw { get; } = FromText("Gw");
-
-		/// <summary>
-		/// Generator for MAC and Show.
-		/// </summary>
-		public static GroupElement Gwp { get; } = FromText("Gwp");
-
-		/// <summary>
-		/// Generator for MAC and Show.
-		/// </summary>
-		public static GroupElement Gx0 { get; } = FromText("Gx0");
-
-		/// <summary>
-		/// Generator for MAC and Show.
-		/// </summary>
-		public static GroupElement Gx1 { get; } = FromText("Gx1");
-
-		/// <summary>
-		/// Generator for MAC and Show.
-		/// </summary>
-		public static GroupElement GV { get; } = FromText("GV");
-
-		/// <summary>
-		/// Generator for Pedersen commitments.
-		/// </summary>
-		public static GroupElement Gg { get; } = FromText("Gg");
-
-		/// <summary>
-		/// Generator for Pedersen commitments.
-		/// </summary>
-		public static GroupElement Gh { get; } = FromText("Gh");
-
-		/// <summary>
-		/// Generator for attributes M_{ai}.
-		/// </summary>
-		public static GroupElement Ga { get; } = FromText("Ga");
-
-		/// <summary>
-		/// Generator for serial numbers.
-		/// </summary>
-		public static GroupElement Gs { get; } = FromText("Gs");
 
 		private GE Ge { get; }
 
@@ -120,9 +70,9 @@ namespace WalletWasabi.Crypto
 			{
 				return "Infinity";
 			}
-			else if (Ge.x == EC.G.x && Ge.y == EC.G.y)
+			else if (Generators.TryGetFriendlyGeneratorName(this, out string generatorName))
 			{
-				return $"Standard Generator, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
+				return $"{generatorName}, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
 			}
 			else
 			{
