@@ -59,22 +59,22 @@ namespace WalletWasabi.Crypto.Groups
 
 		public static bool TryGetFriendlyGeneratorName(GroupElement? ge, out string name)
 		{
-			string formatName (string generatorName) => $"{generatorName} Generator";
+			static string FormatName(string generatorName) => $"{generatorName} Generator";
 			name = ge switch
 			{
-				_ when ge == G => formatName( "Standard" ),
-				_ when ge == Gw => formatName( nameof(Gw) ),
-				_ when ge == Gwp => formatName( nameof(Gwp) ),
-				_ when ge == Gx0 => formatName( nameof(Gx0) ),
-				_ when ge == Gx1 => formatName( nameof(Gx1) ),
-				_ when ge == GV => formatName( nameof(GV) ),
-				_ when ge == Gg => formatName( nameof(Gg) ),
-				_ when ge == Gh => formatName( nameof(Gh) ),
-				_ when ge == Ga => formatName( nameof(Ga) ),
-				_ when ge == Gs => formatName( nameof(Gs) ),
+				_ when ge == G => FormatName("Standard"),
+				_ when ge == Gw => FormatName(nameof(Gw)),
+				_ when ge == Gwp => FormatName(nameof(Gwp)),
+				_ when ge == Gx0 => FormatName(nameof(Gx0)),
+				_ when ge == Gx1 => FormatName(nameof(Gx1)),
+				_ when ge == GV => FormatName(nameof(GV)),
+				_ when ge == Gg => FormatName(nameof(Gg)),
+				_ when ge == Gh => FormatName(nameof(Gh)),
+				_ when ge == Ga => FormatName(nameof(Ga)),
+				_ when ge == Gs => FormatName(nameof(Gs)),
 				_ => ""
 			};
-			return name != "";
+			return name.Length != 0;
 		}
 	}
 }
