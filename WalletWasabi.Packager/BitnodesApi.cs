@@ -29,7 +29,7 @@ namespace WalletWasabi.Packager
 		/// <returns></returns>
 		public async Task PrintOnionsAsync()
 		{
-			await PrintOnionsAsync(currentOnions: null);
+			await PrintOnionsAsync(currentOnions: null).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -45,14 +45,14 @@ namespace WalletWasabi.Packager
 
 			// List all reachable nodes from a snapshot.
 			// See https://bitnodes.io/api/#list-nodes.
-			using var httpResponse = await httpClient.GetAsync("snapshots/latest/", HttpCompletionOption.ResponseContentRead);
+			using var httpResponse = await httpClient.GetAsync("snapshots/latest/", HttpCompletionOption.ResponseContentRead).ConfigureAwait(false);
 
 			if (httpResponse.StatusCode != HttpStatusCode.OK)
 			{
 				throw new HttpRequestException(httpResponse.StatusCode.ToString());
 			}
 
-			string response = await httpResponse.Content.ReadAsStringAsync();
+			string response = await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
 
 			ProcessResponse(response, currentOnions);
 		}
