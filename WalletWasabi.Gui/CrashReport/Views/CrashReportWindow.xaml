@@ -21,10 +21,10 @@
     <Grid ColumnDefinitions="*,*,*" RowDefinitions="*,*,*" Opacity="0.05">
       <DrawingPresenter Grid.Column="2" Width="200" Height="200" Grid.ColumnSpan="1" Grid.Row="2" Grid.RowSpan="1" Drawing="{DynamicResource WasabiLogo}" />
     </Grid>
-    <Grid ColumnDefinitions="*" RowDefinitions="*,Auto,Auto" Margin="25,0,25,25">
-      <TextBox Grid.Column="0" Grid.Row="0" Text="{Binding Message}" Classes="selectableTextBlock largeHeader" />
-      <TextBlock Grid.Column="0" Grid.Row="1" Text="{Binding Details}" Margin="0 8" TextWrapping="Wrap" />
-      <StackPanel Grid.Column="0" Grid.Row="2"  Orientation="Horizontal" HorizontalAlignment="Right" Spacing="5" Margin="0,25,0,0">
+    <Grid ColumnDefinitions="*" RowDefinitions="Auto,*,Auto" Margin="25,0,25,25">
+      <TextBlock Grid.Column="0" Grid.Row="0" Text="{Binding Details}" Margin="0,8,0,25" TextWrapping="Wrap" />
+      <TextBox Grid.Column="0" Grid.Row="1" Text="{Binding Message}"  Classes="selectableTextBlock largeHeader" />
+      <StackPanel Grid.Column="0" Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="5" Margin="0,8,0,0">
         <Button MinWidth="135" Height="35" Command="{Binding OpenLogCommand}">Open logs</Button>
         <Button MinWidth="135" Height="35" Background="{DynamicResource ThemeAccentBrush}" Command="{Binding OkCommand}">Ok</Button>
       </StackPanel>
