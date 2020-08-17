@@ -1,15 +1,11 @@
 using NSubsys;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 
@@ -59,7 +55,7 @@ namespace WalletWasabi.Packager
 		/// <summary>
 		/// Main entry point.
 		/// </summary>
-		private static void Main(string[] args)
+		private static async Task Main(string[] args)
 		{
 			var argsProcessor = new ArgsProcessor(args);
 
@@ -73,14 +69,21 @@ namespace WalletWasabi.Packager
 			// If I want a list of up to date onions run it with '--getonions'.
 			if (argsProcessor.IsGetOnionsMode())
 			{
-				BitnodesApi.PrintOnions(Console.Out);
+				var api = new BitnodesApi(Console.Out);
+				await api.PrintOnionsAsync();
+
 				return;
 			}
 
 			// If I want a list of up to date onions run it with '--reduceonions'.
 			if (argsProcessor.IsReduceOnionsMode())
 			{
-				ReduceOnions();
+				string onionFilePath = Path.Combine(LibraryProjectDirectory, "OnionSeeds", "MainOnionSeeds.txt");
+				var currentOnions = File.ReadAllLines(onionFilePath).ToHashSet();
+
+				var api = new BitnodesApi(Console.Out);
+				await api.PrintOnionsAsync(currentOnions);
+
 				return;
 			}
 
@@ -116,13 +119,6 @@ namespace WalletWasabi.Packager
 					RestoreProgramCs();
 				}
 			}
-		}
-
-		private static void ReduceOnions()
-		{
-			var onionFile = Path.Combine(LibraryProjectDirectory, "OnionSeeds", "MainOnionSeeds.txt");
-			var currentOnions = File.ReadAllLines(onionFile).ToHashSet();
-			BitnodesApi.PrintOnions(Console.Out, currentOnions);
 		}
 
 		private static void CreateDigests()

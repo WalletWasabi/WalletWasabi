@@ -6,29 +6,64 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace WalletWasabi.Packager
 {
+	/// <summary>
+	/// Implementation for Bitnodes API.
+	/// </summary>
+	/// <seealso href="https://bitnodes.io/api/"/>
 	public class BitnodesApi
 	{
-		public static void PrintOnions(TextWriter textWriter)
+		public BitnodesApi(TextWriter textWriter)
 		{
-			PrintOnions(textWriter, null);
+			TextWriter = textWriter;
 		}
 
-		public static void PrintOnions(TextWriter textWriter, HashSet<string> currentOnions)
+		private TextWriter TextWriter { get; }
+
+		/// <summary>
+		/// Finds all Bitcoin nodes with ".onion" in their names, sorts by node names and writes to <see cref="TextWriter"/>.
+		/// </summary>
+		/// <returns></returns>
+		public async Task PrintOnionsAsync()
+		{
+			await PrintOnionsAsync(currentOnions: null);
+		}
+
+		/// <summary>
+		/// Finds all Bitcoin nodes with ".onion" in their names, sorts by node names and writes to <see cref="TextWriter"/>.
+		/// </summary>
+		/// <remarks>Allows to pre-define set of Bitcoin nodes with ".onion" in their names.</remarks>
+		/// <param name="currentOnions">Set of Bitcoin node names containing ".onion".</param>
+		/// <returns></returns>
+		public async Task PrintOnionsAsync(HashSet<string>? currentOnions)
 		{
 			using var httpClient = new HttpClient();
 			httpClient.BaseAddress = new Uri("https://bitnodes.21.co/api/v1/");
 
-			using var response = httpClient.GetAsync("snapshots/latest/", HttpCompletionOption.ResponseContentRead).GetAwaiter().GetResult();
-			if (response.StatusCode != HttpStatusCode.OK)
+			// List all reachable nodes from a snapshot.
+			// See https://bitnodes.io/api/#list-nodes.
+			using var httpResponse = await httpClient.GetAsync("snapshots/latest/", HttpCompletionOption.ResponseContentRead);
+
+			if (httpResponse.StatusCode != HttpStatusCode.OK)
 			{
-				throw new HttpRequestException(response.StatusCode.ToString());
+				throw new HttpRequestException(httpResponse.StatusCode.ToString());
 			}
 
-			var responseString = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-			JObject json = (JObject)JsonConvert.DeserializeObject(responseString);
+			string response = await httpResponse.Content.ReadAsStringAsync();
+
+			ProcessResponse(response, currentOnions);
+		}
+
+		/// <summary>
+		/// Internal method. Use only in tests.
+		/// </summary>
+		/// <param name="currentOnions">Set of Bitcoin node names containing ".onion".</param>
+		public void ProcessResponse(string response, HashSet<string>? currentOnions)
+		{
+			JObject json = (JObject)JsonConvert.DeserializeObject(response);
 
 			var onions = new List<string>();
 			foreach (JProperty node in json["nodes"])
@@ -58,7 +93,7 @@ namespace WalletWasabi.Packager
 
 			foreach (var onion in onions.OrderBy(x => x))
 			{
-				textWriter.WriteLine(onion);
+				TextWriter.WriteLine(onion);
 			}
 		}
 	}
