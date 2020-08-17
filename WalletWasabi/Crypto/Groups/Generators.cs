@@ -59,56 +59,22 @@ namespace WalletWasabi.Crypto.Groups
 
 		public static bool TryGetFriendlyGeneratorName(GroupElement? ge, out string name)
 		{
-			name = "";
-
-			if (ge == G)
+			static string FormatName(string generatorName) => $"{generatorName} Generator";
+			name = ge switch
 			{
-				name = "Standard";
-			}
-			else if (ge == Gw)
-			{
-				name = nameof(Gw);
-			}
-			else if (ge == Gwp)
-			{
-				name = nameof(Gwp);
-			}
-			else if (ge == Gx0)
-			{
-				name = nameof(Gx0);
-			}
-			else if (ge == Gx1)
-			{
-				name = nameof(Gx1);
-			}
-			else if (ge == GV)
-			{
-				name = nameof(GV);
-			}
-			else if (ge == Gg)
-			{
-				name = nameof(Gg);
-			}
-			else if (ge == Gh)
-			{
-				name = nameof(Gh);
-			}
-			else if (ge == Ga)
-			{
-				name = nameof(Ga);
-			}
-			else if (ge == Gs)
-			{
-				name = nameof(Gs);
-			}
-			else
-			{
-				return false;
-			}
-
-			name += " Generator";
-
-			return true;
+				_ when ge == G => FormatName("Standard"),
+				_ when ge == Gw => FormatName(nameof(Gw)),
+				_ when ge == Gwp => FormatName(nameof(Gwp)),
+				_ when ge == Gx0 => FormatName(nameof(Gx0)),
+				_ when ge == Gx1 => FormatName(nameof(Gx1)),
+				_ when ge == GV => FormatName(nameof(GV)),
+				_ when ge == Gg => FormatName(nameof(Gg)),
+				_ when ge == Gh => FormatName(nameof(Gh)),
+				_ when ge == Ga => FormatName(nameof(Ga)),
+				_ when ge == Gs => FormatName(nameof(Gs)),
+				_ => ""
+			};
+			return name.Length != 0;
 		}
 	}
 }
