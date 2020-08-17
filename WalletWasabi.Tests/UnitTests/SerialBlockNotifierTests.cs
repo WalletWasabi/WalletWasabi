@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
@@ -10,7 +8,13 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests
 {
-	public class BlockNotifierTests
+	/// <summary>
+	/// The test in this collection is time-sensitive, therefore this test collection is run in a special way:
+	/// Parallel-capable test collections will be run first (in parallel), followed by this parallel-disabled test collections (run sequentially).
+	/// </summary>
+	/// <seealso href="https://xunit.net/docs/running-tests-in-parallel.html#parallelism-in-test-frameworks"/>
+	[Collection("Serial unit tests collection")]
+	public class SerialBlockNotifierTests
 	{
 		[Fact]
 		public async Task GenesisBlockOnlyAsync()
@@ -81,7 +85,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var height = 0;
 			string message = string.Empty;
 
-			void OnBlockInv(object blockNotifier, Block b)
+			void OnBlockInv(object? blockNotifier, Block? b)
 			{
 				uint256 h1 = b.GetHash();
 				uint256 h2 = chain.GetBlock(height + 1).HashBlock;
