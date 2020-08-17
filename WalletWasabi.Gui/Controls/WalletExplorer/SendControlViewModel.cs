@@ -101,7 +101,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					if (Money.TryParse(x.TrimStart('~', ' '), out Money amountBtc))
 					{
-						AmountTip = amountBtc.ToUsdString(Wallet.Synchronizer.UsdExchangeRate, Global.UiConfig.LurkingWifeMode);
+						AmountTip = amountBtc.ToUsdString(Wallet.Synchronizer.UsdExchangeRate, false);
 					}
 					else
 					{
