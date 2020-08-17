@@ -66,13 +66,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia.Desktop" Version="0.10.0-preview3" />
-    <PackageReference Include="Avalonia.Diagnostics" Version="0.10.0-preview3" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.10.999-cibuild0009962-beta" />
+    <PackageReference Include="Avalonia.Diagnostics" Version="0.10.999-cibuild0009962-beta" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.999-cibuild0009962-beta" />
     <PackageReference Include="AvalonStudio.Shell" Version="0.10.0-cibuild0000832-beta" />
-    <PackageReference Include="Dock.Avalonia.Themes.Default" Version="0.10.0-preview1" />
-    <PackageReference Include="Dock.Avalonia.Themes.Metro" Version="0.10.0-preview1" />
-    <PackageReference Include="System.Runtime" Version="4.3.1" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.0-preview2" />
+    <PackageReference Include="Dock.Avalonia.Themes.Default" Version="0.10.0-preview3" />
+    <PackageReference Include="Dock.Avalonia.Themes.Metro" Version="0.10.0-preview3" />
+    <PackageReference Include="System.Runtime" Version="4.3.1" />    
   </ItemGroup>
 
   <ItemGroup>
