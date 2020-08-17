@@ -24,7 +24,7 @@
     <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="25,0,25,25">
       <TextBlock Grid.Row="0" Text="{Binding ReportTitle}" FontSize="25" FontWeight="Bold" Margin="0,0,0,12"/>
       <TextBlock Grid.Row="1" Text="{Binding Details}" Margin="0,0,0,2" TextWrapping="Wrap"/>
-      <TextBox Grid.Row="2" Text="{Binding Message}" Classes="selectableTextBlock largeHeader" FontSize="15" FontStyle="Italic" Background="Transparent"/>
+      <TextBox Grid.Row="2" Text="{Binding Message}" Classes="selectableTextBlock largeHeader" FontSize="14" FontStyle="Italic" Background="Transparent"/>
       <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="5" Margin="0,8,0,0">
         <Button MinWidth="135" Height="35" Command="{Binding OpenLogCommand}">Open logs</Button>
         <Button MinWidth="135" Height="35" Background="{DynamicResource ThemeAccentBrush}" Command="{Binding OkCommand}">Ok</Button>
