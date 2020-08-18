@@ -11,25 +11,32 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 {
 	public static class Prover
 	{
-		public static KnowledgeOfDiscreteLog CreateProof(Scalar secret, GroupElement publicPoint, GroupElement generator, WasabiRandom? random = null)
+		public static KnowledgeOfDiscreteLog CreateProof(Scalar secret, Statement statement, WasabiRandom? random = null)
 		{
-			var proof = CreateProof(new[] { (secret, generator) }, publicPoint, random);
+			var proof = CreateProof(new Scalar[] { secret }, statement, random);
 
 			return new KnowledgeOfDiscreteLog(proof.Nonce, proof.Responses.First());
 		}
 
-		public static KnowledgeOfRepresentation CreateProof(IEnumerable<(Scalar secret, GroupElement generator)> secretGeneratorPairs, GroupElement publicPoint, WasabiRandom? random = null)
+		public static KnowledgeOfRepresentation CreateProof(IEnumerable<Scalar> secrets, Statement statement, WasabiRandom? random = null)
 		{
-			Guard.False($"{nameof(publicPoint)}.{nameof(publicPoint.IsInfinity)}", publicPoint.IsInfinity);
+			var secretsCount = secrets.Count();
+			IEnumerable<GroupElement> generators = statement.Generators;
+			var generatorsCount = generators.Count();
+			if (secretsCount != generatorsCount)
+			{
+				const string NameofGenerators = nameof(generators);
+				const string NameofSecrets = nameof(secrets);
+				throw new InvalidOperationException($"Must provide exactly as many {NameofGenerators} as {NameofSecrets}. {NameofGenerators}: {generatorsCount}, {NameofSecrets}: {secretsCount}.");
+			}
 
 			var nonce = GroupElement.Infinity;
 			var randomScalars = new List<Scalar>();
-			var publicPointSanity = publicPoint;
-			foreach (var (secret, generator) in secretGeneratorPairs)
+			var publicPointSanity = statement.PublicPoint;
+			foreach (var (secret, generator) in secrets.ZipForceEqualLength<Scalar, GroupElement>(generators))
 			{
 				Guard.False($"{nameof(secret)}.{nameof(secret.IsOverflow)}", secret.IsOverflow);
 				Guard.False($"{nameof(secret)}.{nameof(secret.IsZero)}", secret.IsZero);
-				Guard.False($"{nameof(generator)}.{nameof(generator.IsInfinity)}", generator.IsInfinity);
 				publicPointSanity -= secret * generator;
 
 				var randomScalar = GetNonZeroRandomScalar(random);
@@ -40,16 +47,13 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 
 			if (publicPointSanity != GroupElement.Infinity)
 			{
-				throw new InvalidOperationException($"{nameof(publicPoint)} was incorrectly constructed.");
+				throw new InvalidOperationException($"{nameof(statement.PublicPoint)} was incorrectly constructed.");
 			}
 
-			var generators = secretGeneratorPairs.Select(x => x.generator);
-			var challenge = Challenge.Build(publicPoint, nonce, generators);
+			var challenge = Challenge.Build(nonce, statement);
 
 			var responses = new List<Scalar>();
-			foreach (var (secret, randomScalar) in secretGeneratorPairs
-				.Select(x => x.secret)
-				.ZipForceEqualLength(randomScalars))
+			foreach (var (secret, randomScalar) in secrets.ZipForceEqualLength(randomScalars))
 			{
 				var response = randomScalar + secret * challenge;
 				responses.Add(response);
@@ -58,7 +62,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			var proof = new KnowledgeOfRepresentation(nonce, responses);
 
 			// Sanity check:
-			if (!Verifier.Verify(proof, publicPoint, generators))
+			if (!Verifier.Verify(proof, statement))
 			{
 				throw new InvalidOperationException($"{nameof(CreateProof)} or {nameof(Verifier.Verify)} is incorrectly implemented. Proof was built, but verification failed.");
 			}
