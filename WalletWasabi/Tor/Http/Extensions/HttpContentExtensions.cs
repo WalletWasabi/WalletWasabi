@@ -17,7 +17,11 @@ namespace WalletWasabi.Tor.Http.Extensions
 
 			var settings = new JsonSerializerSettings
 			{
-				Converters = new[] { new RoundStateResponseJsonConverter(WasabiClient.ApiVersion) }
+				Converters = new JsonConverter[]
+				{ 
+					new RoundStateResponseJsonConverter(WasabiClient.ApiVersion),
+					new FeeRatePerKbJsonConverter()
+				}
 			};
 			var jsonString = await me.ReadAsStringAsync().ConfigureAwait(false);
 			return JsonConvert.DeserializeObject<T>(jsonString, settings);

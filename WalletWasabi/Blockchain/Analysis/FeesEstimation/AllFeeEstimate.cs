@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Helpers;
+using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 {
@@ -12,16 +13,41 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 	public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 	{
 		[JsonConstructor]
-		public AllFeeEstimate(EstimateSmartFeeMode type, IDictionary<int, int> estimations, bool isAccurate)
+		public AllFeeEstimate(EstimateSmartFeeMode type, IDictionary<int, FeeRate> estimations, bool isAccurate)
+		{
+			Create(type, estimations, isAccurate);
+		}
+
+		public AllFeeEstimate(AllFeeEstimate other, bool isAccurate)
+		{
+			Create(other.Type, other.Estimations, isAccurate);
+		}
+
+		[JsonProperty]
+		public EstimateSmartFeeMode Type { get; private set; }
+
+		/// <summary>
+		/// Gets a value indicating whether the fee has been fetched from a fully synced node.
+		/// </summary>
+		[JsonProperty]
+		public bool IsAccurate { get; private set; }
+
+		/// <summary>
+		/// Gets the fee estimations: int: fee target, int: satoshi/vByte
+		/// </summary>
+		[JsonProperty(ItemConverterType = typeof(FeeRatePerKbJsonConverter))]
+		public Dictionary<int, FeeRate> Estimations { get; private set; }
+
+		private void Create(EstimateSmartFeeMode type, IDictionary<int, FeeRate> estimations, bool isAccurate)
 		{
 			Type = type;
 			IsAccurate = isAccurate;
 			Guard.NotNullOrEmpty(nameof(estimations), estimations);
-			Estimations = new Dictionary<int, int>();
+			Estimations = new Dictionary<int, FeeRate>();
 
 			// Make sure values are unique and in the correct order and feerates are consistently decreasing.
-			var lastFeeRate = int.MaxValue;
-			foreach (KeyValuePair<int, int> estimation in estimations.OrderBy(x => x.Key))
+			var lastFeeRate = new FeeRate(Constants.MaximumNumberOfSatoshis);
+			foreach (KeyValuePair<int, FeeRate> estimation in estimations.OrderBy(x => x.Key))
 			{
 				// Otherwise it's inconsistent data.
 				if (lastFeeRate > estimation.Value)
@@ -32,34 +58,12 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 			}
 		}
 
-		public AllFeeEstimate(AllFeeEstimate other, bool isAccurate)
-			: this(other.Type, other.Estimations, isAccurate)
-		{
-		}
-
-		[JsonProperty]
-		public EstimateSmartFeeMode Type { get; }
-
-		/// <summary>
-		/// Gets a value indicating whether the fee has been fetched from a fully synced node.
-		/// </summary>
-		[JsonProperty]
-		public bool IsAccurate { get; }
-
-		/// <summary>
-		/// Gets the fee estimations: int: fee target, int: satoshi/vByte
-		/// </summary>
-		[JsonProperty]
-		public Dictionary<int, int> Estimations { get; }
-
 		public FeeRate GetFeeRate(int feeTarget)
 		{
 			// Where the target is still under or equal to the requested target.
-			decimal satoshiPerByte = Estimations
+			return Estimations
 				.Last(x => x.Key <= feeTarget) // The last should be the largest feeTarget.
 				.Value;
-
-			return new FeeRate(satoshiPerByte);
 		}
 
 		#region Equality
@@ -70,14 +74,14 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 
 		public override int GetHashCode()
 		{
-			int hash = Type.GetHashCode();
-			foreach (KeyValuePair<int, int> est in Estimations)
+			var hashCode = new HashCode();
+			hashCode.Add(Type);
+			hashCode.Add(IsAccurate);
+			foreach (KeyValuePair<int, FeeRate> est in Estimations)
 			{
-				hash ^= est.Key.GetHashCode() ^ est.Value.GetHashCode();
+				hashCode.Add(est);
 			}
-			hash ^= IsAccurate.GetHashCode();
-
-			return hash;
+			return hashCode.ToHashCode();
 		}
 
 		public static bool operator ==(AllFeeEstimate? x, AllFeeEstimate? y)
@@ -108,7 +112,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 				equal = true;
 				foreach (var pair in x.Estimations)
 				{
-					if (y.Estimations.TryGetValue(pair.Key, out int value))
+					if (y.Estimations.TryGetValue(pair.Key, out FeeRate value))
 					{
 						// Require value be equal.
 						if (value != pair.Value)
