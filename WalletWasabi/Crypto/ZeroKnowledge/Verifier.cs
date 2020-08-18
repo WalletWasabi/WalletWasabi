@@ -38,6 +38,33 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			return a == b;
 		}
 
+		public static bool Verify(KnowledgeOfAnd proof, IEnumerable<Statement> statements)
+		{
+			var repProofArray = proof.KnowledgeOfRepresentations.ToArray();
+			var statementArray = statements.ToArray();
+			var res = true;
+			var challenge = Challenge.Build(statements, proof.KnowledgeOfRepresentations.Select(x => x.Nonce));
+			for (int i = 0; i < repProofArray.Length; i++)
+			{
+				var repProof = repProofArray[i];
+				var statement = statementArray[i];
+				var nonce = repProof.Nonce;
+				var responses = repProof.Responses;
+				var publicPoint = statement.PublicPoint;
+				var generators = statement.Generators;
+
+				var a = challenge * publicPoint + nonce;
+
+				var b = GroupElement.Infinity;
+				foreach (var (response, generator) in responses.ZipForceEqualLength(generators))
+				{
+					b += response * generator;
+				}
+				res &= a == b;
+			}
+			return res;
+		}
+
 		public static bool Verify(KnowledgeOfDiscreteLog proof, GroupElement publicPoint, GroupElement generator)
 			=> Verify(proof as KnowledgeOfRepresentation, publicPoint, generator);
 

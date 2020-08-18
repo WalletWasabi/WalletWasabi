@@ -47,5 +47,10 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			var challenge = new Scalar(hash);
 			return challenge;
 		}
+
+		public static Scalar Build(IEnumerable<Statement> statements, IEnumerable<GroupElement> nonces)
+		{
+			return HashToScalar(statements.Select(x => x.PublicPoint).Concat(statements.SelectMany(x => x.Generators)).Concat(nonces));
+		}
 	}
 }

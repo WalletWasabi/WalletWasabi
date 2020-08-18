@@ -31,7 +31,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			{
 				publicPoint += secret * generator;
 			}
-			var proof = Prover.CreateProof(secretGeneratorPairs, publicPoint);
+			var proof = Prover.CreateProof(new KnowledgeOfRepresentationParameters(secretGeneratorPairs, publicPoint));
 			Assert.True(Verifier.Verify(proof, publicPoint, generators));
 		}
 
@@ -51,7 +51,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 					{
 						publicPoint += secret * generator;
 					}
-					var proof = Prover.CreateProof(secretGeneratorPairs, publicPoint);
+					var proof = Prover.CreateProof(new KnowledgeOfRepresentationParameters(secretGeneratorPairs, publicPoint));
 					Assert.True(Verifier.Verify(proof, publicPoint, generators));
 				}
 			}
