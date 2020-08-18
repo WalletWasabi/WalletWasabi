@@ -1,3 +1,4 @@
+using NBitcoin.Protocol;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -16,6 +17,12 @@ namespace WalletWasabi.Packager
 	/// <seealso href="https://bitnodes.io/api/"/>
 	public class BitnodesApi
 	{
+		/// <summary>v2 onion services are always 16 characters long.</summary>
+		private const int OnionV2AddressLength = 16;
+
+		/// <summary>Prefix that is used by Bitcoin Core clients to identify themselves.</summary>
+		private const string BitcoinCoreClientUserAgentPrefix = "Satoshi:";
+
 		public BitnodesApi(TextWriter textWriter)
 		{
 			TextWriter = textWriter;
@@ -23,21 +30,25 @@ namespace WalletWasabi.Packager
 
 		private TextWriter TextWriter { get; }
 
-		/// <summary>
-		/// Finds all Bitcoin nodes with ".onion" in their names, sorts by node names and writes to <see cref="TextWriter"/>.
-		/// </summary>
-		/// <returns></returns>
+		/// <inheritdoc cref="PrintOnionsAsync(HashSet{string}?)"/>
 		public async Task PrintOnionsAsync()
 		{
 			await PrintOnionsAsync(currentOnions: null).ConfigureAwait(false);
 		}
 
 		/// <summary>
-		/// Finds all Bitcoin nodes with ".onion" in their names, sorts by node names and writes to <see cref="TextWriter"/>.
+		/// Finds all Bitcoin nodes that
+		/// <list type="bullet">
+		/// <item>that run as v2 onion services,</item>
+		/// <item>that run Bitcoin Core 0.16+ client, and</item>
+		/// <item>that support witness data and that provide <see cref="NodeServices.Network"/>.</item>
+		/// </list>
+		/// Consequently, it sorts them by node names and writes them to <see cref="TextWriter"/>.
 		/// </summary>
-		/// <remarks>Allows to pre-define a set of Bitcoin node names containing ".onion".</remarks>
 		/// <param name="currentOnions">A set of Bitcoin node names containing ".onion".</param>
-		/// <returns></returns>
+		/// <remarks>Allows to pre-define a set of Bitcoin node names containing ".onion".</remarks>
+		/// <returns><see cref="Task"/>.</returns>
+		/// <seealso href="https://bitnodes.21.co/api/v1/snapshots/latest/"/>
 		public async Task PrintOnionsAsync(HashSet<string>? currentOnions)
 		{
 			using var httpClient = new HttpClient();
@@ -68,26 +79,51 @@ namespace WalletWasabi.Packager
 			var onions = new List<string>();
 			foreach (JProperty node in json["nodes"])
 			{
-				if (!node.Name.Contains(".onion"))
+				// 1) Check onion service version.
+				//
+				// This is to filter only onion v2 services which are 16 characters long, whereas
+				// onion v3 addresses are 56 characters long.
+				if (node.Name.IndexOf(".onion") != OnionV2AddressLength)
 				{
 					continue;
 				}
 
-				var userAgent = ((JArray)node.Value)[1].ToString();
+				JArray value = ((JArray)node.Value);
 
+				// 2) Check node services
+				ulong services = value[3].Value<ulong>();
+
+				// 2.a) Is witness-ready? If not, skip.
+				if ((services & (ulong)NodeServices.NODE_WITNESS) == 0)
+				{
+					continue;
+				}
+
+				// 2.b) Is full node with whole blockchain? If not, skip.
+				if ((services & (ulong)NodeServices.Network) == 0)
+				{
+					continue;
+				}
+
+				// 3) Accept only Bitcoin Core nodes with version >=0.16.
 				try
 				{
-					var verString = userAgent.Substring(userAgent.IndexOf("Satoshi:") + 8, 4);
-					var ver = new Version(verString);
+					string userAgent = value[1].Value<string>();
+
+					// Parse "major.minor" part of version. As Bitcoin Core versions are in form "0.xx.<something>",
+					// the version part is represented by 4 characters.
+					string satoshiClientVersion = userAgent.Substring(userAgent.IndexOf(BitcoinCoreClientUserAgentPrefix) + "Satoshi:".Length, length: 4);
+					var version = new Version(satoshiClientVersion);
 					bool addToResult = currentOnions is null || currentOnions.Contains(node.Name);
 
-					if (ver >= new Version("0.16") && addToResult)
+					if (version >= new Version("0.16") && addToResult)
 					{
 						onions.Add(node.Name);
 					}
 				}
 				catch
 				{
+					continue;
 				}
 			}
 
