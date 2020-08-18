@@ -77,8 +77,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			forked.Key(secret.ToBytes());
 
 			// get randomness from system if no random source specified
-			var fromRng = new byte[32];
-			random.GetBytes(fromRng);
+			var fromRng = random.GetBytes(32);
 
 			// add additional randomness as associated data
 			forked.AssociatedData(fromRng);
