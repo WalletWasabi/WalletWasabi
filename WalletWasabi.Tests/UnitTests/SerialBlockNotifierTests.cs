@@ -85,7 +85,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var height = 0;
 			string message = string.Empty;
 
-			void OnBlockInv(object? blockNotifier, Block? b)
+			void OnBlockInv(object? blockNotifier, Block b)
 			{
 				uint256 h1 = b.GetHash();
 				uint256 h2 = chain.GetBlock(height + 1).HashBlock;
