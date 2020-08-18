@@ -92,6 +92,12 @@ namespace WalletWasabi.Helpers
 
 		public static readonly int RangeProofWidth = (int)Math.Log2(MaximumNumberOfSatoshis);
 
+		public static readonly int[] FeeTargets = new int[]
+		{
+			2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 17, 20, 25, 30, 40, 50, 60, 70, 80,
+			100, 120, 140, 170, 200, 250, 300, 400, 500, 600, 700, 800, 1000
+		};
+
 		public static Money MinimumCredentailAmount = Money.Satoshis(10_000);
 
 		public static Money MaximumCredentailAmount = Money.Satoshis(MaximumNumberOfSatoshis);
