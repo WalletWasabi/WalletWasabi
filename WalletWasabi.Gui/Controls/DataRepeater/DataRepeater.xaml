@@ -65,7 +65,7 @@
   <Style Selector="local|DataRepeaterCellContent">
     <Setter Property="Template">
       <ControlTemplate>
-        <ContentControl Content="{TemplateBinding CellValue}" />
+        <ContentControl Height="32" Content="{TemplateBinding CellValue}" />
       </ControlTemplate>
     </Setter>
   </Style>

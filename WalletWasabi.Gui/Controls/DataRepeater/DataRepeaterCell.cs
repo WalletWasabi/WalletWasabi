@@ -13,6 +13,8 @@ namespace WalletWasabi.Gui.Controls.DataRepeater
     {
         internal string _targetProperty;
         internal DataRepeaterCellContent _cellContent;
+
+        
 		internal object _rowDataContext;
 
         public DataRepeaterCell()

@@ -1,8 +1,9 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui" 
-  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
-  xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui" 
-  xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity" 
-  xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui" 
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
+  xmlns:dr="clr-namespace:WalletWasabi.Gui.Controls.DataRepeater;assembly=WalletWasabi.Gui"
+  xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+  xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
   xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui" x:Class="WalletWasabi.Gui.Controls.WalletExplorer.HistoryTabView">
   <i:Interaction.Behaviors>
     <behaviors:ClearPropertyOnLostFocusBehavior TargetProperty="{Binding SelectedTransaction}" />
@@ -17,7 +18,9 @@
         <Setter Property="FontSize" Value="{DynamicResource FontSizeNormal}" />
       </Style>
     </controls:GroupBox.Styles>
-    <Grid Classes="content">
+    <dr:DataRepeater Items="{Binding Transactions}" />
+
+    <!-- <Grid Classes="content">
       <DockPanel LastChildFill="True">
         <DockPanel LastChildFill="True" DockPanel.Dock="Bottom">
           <Grid ColumnDefinitions="40, 160, 150, *" Margin="10 0 0 0" DockPanel.Dock="Top">
@@ -71,7 +74,7 @@
             </controls:ExtendedListBox.ItemTemplate>
           </controls:ExtendedListBox>
         </DockPanel>
-      </DockPanel>
-    </Grid>
+      </DockPanel> 
+  </Grid>-->
   </controls:GroupBox>
 </UserControl>

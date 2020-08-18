@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.ViewModels;
@@ -64,17 +65,24 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string DateTime => TransactionDetails.DateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
 
+		[DisplayName("Confirmed")]
 		public bool Confirmed => Confirmations > 0;
 
+		[DisplayName("Confirmations")]
 		public int Confirmations => TransactionDetails.Confirmations;
 
 		public string AmountBtc => TransactionDetails.AmountBtc;
 
+
+		[DisplayName("Amount")]
 		public Money Amount => Money.TryParse(TransactionDetails.AmountBtc, out Money money) ? money : Money.Zero;
+
 
 		public string Label => TransactionDetails.Label;
 
 		public int BlockHeight => TransactionDetails.BlockHeight;
+
+		[DisplayName("Transaction ID")]
 
 		public string TransactionId => TransactionDetails.TransactionId;
 

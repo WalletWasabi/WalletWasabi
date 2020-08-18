@@ -11,7 +11,7 @@ using System.Reactive.Linq;
 
 namespace WalletWasabi.Gui.Controls.DataRepeater
 {
-	public class DataRepeaterRow : DataRepeaterDockPanel
+	public class DataRepeaterRow : DockPanel
 	{
 		internal static readonly DirectProperty<DataRepeaterRow, DataRepeaterHeaderDescriptors> HeaderDescriptorsProperty =
 			AvaloniaProperty.RegisterDirect<DataRepeaterRow, DataRepeaterHeaderDescriptors>(
@@ -27,8 +27,11 @@ namespace WalletWasabi.Gui.Controls.DataRepeater
 			set => SetAndRaise(HeaderDescriptorsProperty, ref _headerDescriptors, value);
 		}
 
+
 		public DataRepeaterRow()
 		{
+			this.LastChildFill = true;
+			
 			this.WhenAnyValue(x => x.HeaderDescriptors)
 				.DistinctUntilChanged()
 				.Subscribe(DescriptorsChanged);
