@@ -57,9 +57,11 @@ namespace WalletWasabi.Gui.Rpc
 						using var reader = new StreamReader(request.InputStream);
 						string body = await reader.ReadToEndAsync().ConfigureAwait(false);
 
-						var validCredentials = context.User switch{
+						var validCredentials = context.User switch
+						{
 							{ Identity: {} } user => CheckValidCredentials((HttpListenerBasicIdentity)user.Identity!), // Identity cannot be null here otherwise the pattern wouldn't match
-							_ => false };
+							_ => false 
+						};
 
 						if (!Config.RequiresCredentials || validCredentials)
 						{
@@ -101,7 +103,7 @@ namespace WalletWasabi.Gui.Rpc
 		{
 			var getHttpContextTask = Listener.GetContextAsync();
 			var tcs = new TaskCompletionSource<bool>();
-			void SetResultTrue(object? state)
+			static void SetResultTrue(object? state)
 			{
 				if (state is TaskCompletionSource<bool> completionSource)
 				{

@@ -137,7 +137,8 @@ namespace WalletWasabi.Gui.Rpc
 					return JsonRpcResponse.CreateResultResponse(jsonRpcRequest.Id, ret);
 				}
 
-				JsonRpcResponse response = (result, isAsync, isGeneric) switch {
+				JsonRpcResponse response = (result, isAsync, isGeneric) switch
+				{
 					( {}, false, false ) => JsonRpcResponse.CreateResultResponse(jsonRpcRequest.Id, result!),
 					( {}, true, false ) when result is Task task => await AwaitTaskForError(task),
 					( {}, true, true ) when result is Task task => await AwaitTaskForResultOrError(task),
@@ -149,9 +150,11 @@ namespace WalletWasabi.Gui.Rpc
 			}
 			catch (TargetInvocationException e)
 			{
-				var message = e.InnerException switch{
-					{ }	inner =>  inner.Message,
-					_ => e.Message };
+				var message = e.InnerException switch
+				{
+					{ } inner =>  inner.Message,
+					_ => e.Message 
+				};
 				return Error(JsonRpcErrorCodes.InternalError, message, jsonRpcRequest.Id);
 			}
 			catch (Exception e)
