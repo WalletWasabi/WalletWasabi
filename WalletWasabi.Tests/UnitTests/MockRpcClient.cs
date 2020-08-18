@@ -16,6 +16,8 @@ namespace WalletWasabi.Tests.UnitTests
 		public Func<Task<BlockchainInfo>> OnGetBlockchainInfoAsync { get; set; }
 		public Func<uint256, Task<VerboseBlockInfo>> OnGetVerboseBlockAsync { get; set; }
 		public Func<Task<MemPoolInfo>> OnGetMempoolInfoAsync { get; set; }
+		public Func<int, EstimateSmartFeeMode, Task<EstimateSmartFeeResponse>> OnEstimateSmartFeeAsync { get; set; }
+		public Func<Task<PeerInfo[]>> OnGetPeersInfoAsync { get; set; }
 
 		public Network Network { get; set; } = Network.RegTest;
 		public RPCCredentialString CredentialString => new RPCCredentialString();
@@ -72,7 +74,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 		public Task<PeerInfo[]> GetPeersInfoAsync()
 		{
-			throw new NotImplementedException();
+			return OnGetPeersInfoAsync();
 		}
 
 		public Task<uint256[]> GetRawMempoolAsync()
@@ -102,12 +104,13 @@ namespace WalletWasabi.Tests.UnitTests
 
 		public IRPCClient PrepareBatch()
 		{
-			throw new NotImplementedException();
+			return this;
 		}
 
 		public Task SendBatchAsync()
 		{
-			throw new NotImplementedException();
+			// do nothing here
+			return Task.CompletedTask;
 		}
 
 		public Task<EstimateSmartFeeResponse> TryEstimateSmartFeeAsync(int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative)
@@ -167,7 +170,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 		public Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative)
 		{
-			throw new NotImplementedException();
+			return OnEstimateSmartFeeAsync(confirmationTarget, estimateMode);
 		}
 
 		public Task<uint256[]> GenerateToAddressAsync(int nBlocks, BitcoinAddress address)
