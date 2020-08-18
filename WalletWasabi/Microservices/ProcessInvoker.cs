@@ -8,9 +8,8 @@ namespace WalletWasabi.Microservices
 {
 	public class ProcessInvoker
 	{
-		public async Task<(string response, int exitCode)> SendCommandAsync(ProcessStartInfo startInfo, CancellationToken token, Action<StreamWriter> standardInputWriter = null)
+		public async Task<(string response, int exitCode)> SendCommandAsync(ProcessStartInfo startInfo, CancellationToken token, Action<StreamWriter>? standardInputWriter = null)
 		{
-			// "using" makes sure the process exits at the end of this method.
 			using var processAsync = new ProcessAsync(startInfo);
 
 			if (standardInputWriter is { })

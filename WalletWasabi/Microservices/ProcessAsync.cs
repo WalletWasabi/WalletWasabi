@@ -1,5 +1,3 @@
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -16,9 +14,6 @@ namespace WalletWasabi.Microservices
 	/// <remarks><see cref="IDisposable"/> is implemented. Do not forget to use `using` or dispose any instance of this class.</remarks>
 	public class ProcessAsync : IDisposable
 	{
-		private readonly TaskCompletionSource<bool> TaskCompletionSource;
-		private readonly Process Process;
-
 		/// <summary>
 		/// To detect redundant calls.
 		/// </summary>
@@ -30,12 +25,16 @@ namespace WalletWasabi.Microservices
 
 		private ProcessAsync(Process process)
 		{
-			TaskCompletionSource = new TaskCompletionSource<bool>();
+			ProcessExecutionTcs = new TaskCompletionSource<bool>();
 
 			Process = process;
 			Process.EnableRaisingEvents = true;
 			Process.Exited += OnExited;
 		}
+
+		private TaskCompletionSource<bool> ProcessExecutionTcs { get; }
+
+		private Process Process { get; }
 
 		/// <inheritdoc cref="Process.StartInfo"/>
 		public ProcessStartInfo StartInfo => Process.StartInfo;
@@ -82,11 +81,17 @@ namespace WalletWasabi.Microservices
 			Process.Kill();
 		}
 
+		/// <inheritdoc cref="Process.Kill(bool)"/>
+		public void Kill(bool entireProcessTree)
+		{
+			Process.Kill(entireProcessTree);
+		}
+
 		/// <summary>
 		/// Waits until the process either finishes on its own or when user cancels the action.
 		/// </summary>
 		/// <param name="cancel">Cancellation token.</param>
-		/// <param name="killOnCancel">If <c>true</c> the process will be killed when this asynchronous action is canceled via <paramref name="cancel"/> token.</param>
+		/// <param name="killOnCancel">If <c>true</c> the process will be killed (with entire process tree) when this asynchronous action is canceled via <paramref name="cancel"/> token.</param>
 		/// <returns><see cref="Task"/>.</returns>
 		public async Task WaitForExitAsync(CancellationToken cancel, bool killOnCancel = false)
 		{
@@ -98,9 +103,9 @@ namespace WalletWasabi.Microservices
 			try
 			{
 				// If this token is already in the canceled state, the delegate will be run immediately and synchronously.
-				using (cancel.Register(() => TaskCompletionSource.TrySetCanceled()))
+				using (cancel.Register(() => ProcessExecutionTcs.TrySetCanceled()))
 				{
-					await TaskCompletionSource.Task;
+					await ProcessExecutionTcs.Task;
 				}
 			}
 			catch (OperationCanceledException ex)
@@ -153,7 +158,7 @@ namespace WalletWasabi.Microservices
 
 		private void OnExited(object? sender, EventArgs? e)
 		{
-			TaskCompletionSource.TrySetResult(true);
+			ProcessExecutionTcs.TrySetResult(true);
 		}
 	}
 }
