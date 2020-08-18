@@ -74,23 +74,43 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		[Fact]
 		public void BuildChallenge()
 		{
+			// Mostly superseded by transcript tests, can be removed apart from test vectors
+
 			var point1 = new Scalar(3) * Generators.G;
 			var point2 = new Scalar(7) * Generators.G;
 
+			var mockRandom = new MockRandom();
+			mockRandom.GetBytesResults.Add(new byte[32]);
+			mockRandom.GetBytesResults.Add(new byte[32]);
+			mockRandom.GetBytesResults.Add(new byte[32]);
+
 			var publicPoint = point1;
 			var nonce = Generators.G;
-			var challenge = Challenge.Build(publicPoint, nonce);
-			Assert.Equal("secp256k1_scalar  = { 0x63CB4683UL, 0xE74DC9A9UL, 0x346534D4UL, 0x247AF71FUL, 0xB49BF19DUL, 0x127658B1UL, 0xE80264F6UL, 0xAE87D410UL }", challenge.ToC(""));
+			var tag = Encoding.UTF8.GetBytes("");
+			var transcript = new Transcript();
+			transcript.Statement(tag, publicPoint, Generators.G);
+			Scalar randomScalar = transcript.GenerateNonce(Scalar.One, mockRandom);
+			transcript.NonceCommitment(nonce);
+			var challenge = transcript.GenerateChallenge();
+			Assert.Equal("secp256k1_scalar  = { 0x2A5B1BC7UL, 0xEBF35A1AUL, 0xB996152FUL, 0x3F33139FUL, 0x001C6628UL, 0x976CD8C4UL, 0xC3B77988UL, 0xC692E569UL }", challenge.ToC(""));
 
 			publicPoint = Generators.G;
 			nonce = point2;
-			challenge = Challenge.Build(publicPoint, nonce);
-			Assert.Equal("secp256k1_scalar  = { 0xE2D33BB7UL, 0xA303E090UL, 0x61094B47UL, 0xE689400BUL, 0xE4B97858UL, 0xC92E9B00UL, 0xFE5D6531UL, 0x8F14CF73UL }", challenge.ToC(""));
+			transcript = new Transcript();
+			transcript.Statement(tag, publicPoint, Generators.G);
+			randomScalar = transcript.GenerateNonce(Scalar.One, mockRandom);
+			transcript.NonceCommitment(nonce);
+			challenge = transcript.GenerateChallenge();
+			Assert.Equal("secp256k1_scalar  = { 0x5C135111UL, 0x7C4F01C9UL, 0x56562BCDUL, 0xFCFD7771UL, 0xB1E7BA66UL, 0xF4260CCEUL, 0x12E3DF36UL, 0x23264818UL }", challenge.ToC(""));
 
 			publicPoint = point1;
 			nonce = point2;
-			challenge = Challenge.Build(publicPoint, nonce);
-			Assert.Equal("secp256k1_scalar  = { 0xCBF4E2E0UL, 0xCB4E26D0UL, 0xAD167C64UL, 0x3083BA72UL, 0xD74AB657UL, 0xA1F544D6UL, 0x732BFC65UL, 0xF11CEAABUL }", challenge.ToC(""));
+			transcript = new Transcript();
+			transcript.Statement(tag, publicPoint, Generators.G);
+			randomScalar = transcript.GenerateNonce(Scalar.One, mockRandom);
+			transcript.NonceCommitment(nonce);
+			challenge = transcript.GenerateChallenge();
+			Assert.Equal("secp256k1_scalar  = { 0x935F76BAUL, 0x9BD463EAUL, 0x3930D47BUL, 0x2911ECEEUL, 0xD6C2CCEDUL, 0x725F12DEUL, 0xADEDE8DAUL, 0xADC7FB8FUL }", challenge.ToC(""));
 		}
 
 		[Fact]
