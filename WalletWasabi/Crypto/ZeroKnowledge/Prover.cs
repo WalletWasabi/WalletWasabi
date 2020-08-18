@@ -35,7 +35,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			var generators = secretGeneratorPairs.Select(x => x.generator);
 			var nonce = GroupElement.Infinity;
 			var randomScalars = new List<Scalar>();
-			var publicPointSanity = publicPoint;
+			var publicPointSanity = publicPoint.Negate();
 
 			Guard.False($"{nameof(publicPoint)}.{nameof(publicPoint.IsInfinity)}", publicPoint.IsInfinity);
 
@@ -44,7 +44,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				Guard.False($"{nameof(secret)}.{nameof(secret.IsOverflow)}", secret.IsOverflow);
 				Guard.False($"{nameof(secret)}.{nameof(secret.IsZero)}", secret.IsZero);
 				Guard.False($"{nameof(generator)}.{nameof(generator.IsInfinity)}", generator.IsInfinity);
-				publicPointSanity -= secret * generator;
+				publicPointSanity += secret * generator;
 			}
 
 			if (publicPointSanity != GroupElement.Infinity)
