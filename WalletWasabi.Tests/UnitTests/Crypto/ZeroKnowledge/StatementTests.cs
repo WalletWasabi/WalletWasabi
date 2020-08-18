@@ -10,7 +10,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 	public class StatementTests
 	{
 		[Fact]
-		public void StatementThrows()
+		public void Throws()
 		{
 			// Demonstrate when it shouldn't throw.
 			new Statement(Generators.G, Generators.Ga);

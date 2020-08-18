@@ -11,55 +11,36 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 {
 	public static class Prover
 	{
-		public static KnowledgeOfDiscreteLog CreateProof(Scalar secret, Statement statement, WasabiRandom? random = null)
+		public static KnowledgeOfDlog CreateProof(KnowledgeOfDlogParams parameters, WasabiRandom? random = null)
 		{
-			var proof = CreateProof(new Scalar[] { secret }, statement, random);
+			var proof = CreateProof(parameters as KnowledgeOfRepParams, random);
 
-			return new KnowledgeOfDiscreteLog(proof.Nonce, proof.Responses.First());
+			return new KnowledgeOfDlog(proof.Nonce, proof.Responses.First());
 		}
 
-		public static KnowledgeOfRepresentation CreateProof(IEnumerable<Scalar> secrets, Statement statement, WasabiRandom? random = null)
+		public static KnowledgeOfRep CreateProof(KnowledgeOfRepParams parameters, WasabiRandom? random = null)
 		{
-			var secretsCount = secrets.Count();
-			IEnumerable<GroupElement> generators = statement.Generators;
-			var generatorsCount = generators.Count();
-			if (secretsCount != generatorsCount)
-			{
-				const string NameofGenerators = nameof(generators);
-				const string NameofSecrets = nameof(secrets);
-				throw new InvalidOperationException($"Must provide exactly as many {NameofGenerators} as {NameofSecrets}. {NameofGenerators}: {generatorsCount}, {NameofSecrets}: {secretsCount}.");
-			}
-
 			var nonce = GroupElement.Infinity;
 			var randomScalars = new List<Scalar>();
-			var publicPointSanity = statement.PublicPoint;
-			foreach (var (secret, generator) in secrets.ZipForceEqualLength<Scalar, GroupElement>(generators))
+			foreach (var (secret, generator) in parameters.SecretGeneratorPairs)
 			{
-				Guard.False($"{nameof(secret)}.{nameof(secret.IsOverflow)}", secret.IsOverflow);
-				Guard.False($"{nameof(secret)}.{nameof(secret.IsZero)}", secret.IsZero);
-				publicPointSanity -= secret * generator;
-
 				var randomScalar = GetNonZeroRandomScalar(random);
 				randomScalars.Add(randomScalar);
 				var randomPoint = randomScalar * generator;
 				nonce += randomPoint;
 			}
 
-			if (publicPointSanity != GroupElement.Infinity)
-			{
-				throw new InvalidOperationException($"{nameof(statement.PublicPoint)} was incorrectly constructed.");
-			}
-
+			var statement = parameters.Statement;
 			var challenge = Challenge.Build(nonce, statement);
 
 			var responses = new List<Scalar>();
-			foreach (var (secret, randomScalar) in secrets.ZipForceEqualLength(randomScalars))
+			foreach (var (secret, randomScalar) in parameters.Secrets.ZipForceEqualLength(randomScalars))
 			{
 				var response = randomScalar + secret * challenge;
 				responses.Add(response);
 			}
 
-			var proof = new KnowledgeOfRepresentation(nonce, responses);
+			var proof = new KnowledgeOfRep(nonce, responses);
 
 			// Sanity check:
 			if (!Verifier.Verify(proof, statement))
