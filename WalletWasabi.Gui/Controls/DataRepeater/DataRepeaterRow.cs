@@ -31,7 +31,7 @@ namespace WalletWasabi.Gui.Controls.DataRepeater
 		public DataRepeaterRow()
 		{
 			this.LastChildFill = true;
-			
+
 			this.WhenAnyValue(x => x.HeaderDescriptors)
 				.DistinctUntilChanged()
 				.Subscribe(DescriptorsChanged);
@@ -100,14 +100,14 @@ namespace WalletWasabi.Gui.Controls.DataRepeater
 				var headerDesc = obj[i];
 
 				headerDesc.PropertyChanged += HeaderDescriptorsChanged;
-
+	
 				var cell = new DataRepeaterCell
 				{
 					_targetProperty = headerDesc.PropertyName,
 					_rowDataContext = this.DataContext
 				};
 
-				cell.Classes.Add(headerDesc.PropertyName);
+ 				cell.Classes.Add(headerDesc.PropertyName);
 
 				if (i + 1 == obj.Count)
 				{

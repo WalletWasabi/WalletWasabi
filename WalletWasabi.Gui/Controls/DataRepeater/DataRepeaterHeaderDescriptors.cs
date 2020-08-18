@@ -6,8 +6,9 @@ namespace WalletWasabi.Gui.Controls.DataRepeater
 {
     public class DataRepeaterHeaderDescriptors : AvaloniaList<DataRepeaterHeaderDescriptor>
     {
-        internal delegate void SortHeaderHandler(DataRepeaterHeaderDescriptor target);
-        internal event SortHeaderHandler SortHeader;
+        public delegate void SortHeaderHandler(DataRepeaterHeaderDescriptor target);
+        public event SortHeaderHandler SortHeader;
+        public event EventHandler GotRefresh;
 
         internal void SortDescriptor(DataRepeaterHeaderDescriptor target)
         {
@@ -31,5 +32,14 @@ namespace WalletWasabi.Gui.Controls.DataRepeater
 
             SortHeader?.Invoke(target);
         }
-    }
+
+		internal void Refresh()
+		{
+			foreach(var desc in this)
+            {
+                desc.Refresh();
+
+            }
+		}
+	}
 }
