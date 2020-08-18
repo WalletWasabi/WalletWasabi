@@ -36,15 +36,30 @@
   </i:Interaction.Behaviors>
   <Grid>
     <Grid.Styles>
-      <Style Selector="dr|DataRepeaterCellContent.InCoinJoin">
+      <Style Selector="dr|DataRepeaterCellContent.InCoinJoin, dr|DataRepeaterCellContent.IsSelected">
         <Setter Property="Template">
           <ControlTemplate>
-            <CheckBox Height="40" IsChecked="{TemplateBinding CellValue}" />
+            <CheckBox Height="40" IsChecked="{TemplateBinding CellValue, Mode=TwoWay}" />
           </ControlTemplate>
         </Setter>
       </Style>
+      <Style Selector="dr|DataRepeaterCellContent.AnonymitySet">
+        <Setter Property="Template">
+          <ControlTemplate>
+
+            <Panel VerticalAlignment="Center" HorizontalAlignment="Center" Background="Transparent" DataContext="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=CellValue, Mode=OneWay, Converter={StaticResource PrivacyLevelValueConverter}}" ToolTip.Tip="{Binding ToolTip}">
+              <DrawingPresenter Drawing="{Binding Icon}" Height="16" Width="16" Margin="0 0 15 0" />
+            </Panel>
+ 
+          </ControlTemplate>
+        </Setter>
+      </Style>
+
+
+
     </Grid.Styles>
-    <dr:DataRepeater Items="{Binding Coins}" /> 
+    <dr:DataRepeater Items="{Binding Coins}" />
+    <!--
     <DockPanel LastChildFill="True">
       <Grid DockPanel.Dock="Top">
         <Grid.ColumnDefinitions>
@@ -148,6 +163,6 @@
           </controls:ExtendedListBox.ItemTemplate>
         </controls:ExtendedListBox>
       </controls:BusyIndicator>
-    </DockPanel>
+    </DockPanel>-->
   </Grid>
 </UserControl>

@@ -40,7 +40,13 @@ namespace WalletWasabi.Gui.Controls.DataRepeater
 			_rightThumbResizer = e.NameScope.Find<Thumb>("PART_RightThumbResizer");
 
 			var content = (Content as DataRepeaterHeaderDescriptor);
-			content.HeaderWidth = _contentControl.Bounds.Width;
+
+			_contentControl.WhenAnyValue(x => x.Bounds)
+						   .DistinctUntilChanged()
+						   .Subscribe(x =>
+						   {
+							   content.HeaderWidth = x.Width;
+						   });
 
 			if (_rightThumbResizer is null)
 			{
@@ -48,8 +54,7 @@ namespace WalletWasabi.Gui.Controls.DataRepeater
 			}
 
 			_rightThumbResizer.DragDelta += ResizerDragDelta;
-			_rightThumbResizer.DragStarted += ResizerDragStarted;
-			_rightThumbResizer.DragCompleted += delegate { InvalidateMeasure(); };
+			_rightThumbResizer.DragStarted += ResizerDragStarted; 
 
 			_rightThumbResizer.Cursor = new Cursor(StandardCursorType.SizeWestEast);
 

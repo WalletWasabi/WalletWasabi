@@ -154,6 +154,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			? (int)Global.BitcoinStore.SmartHeaderChain.TipHeight - Model.Height.Value + 1
 			: 0;
 
+
+		[DisplayName("IsSelected")]
 		public bool IsSelected
 		{
 			get => _isSelected;
@@ -189,7 +191,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		[DisplayName("Privacy")]
 		public int AnonymitySet => Model.AnonymitySet;
 
-		[DisplayName(" ")]
 		public string InCoinJoin => Model.CoinJoinInProgress ? "Yes" : "No";
 
 		[DisplayName("Clusters")]

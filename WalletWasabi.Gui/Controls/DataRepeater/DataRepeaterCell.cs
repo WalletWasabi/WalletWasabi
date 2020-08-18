@@ -13,6 +13,7 @@ namespace WalletWasabi.Gui.Controls.DataRepeater
     {
         internal string _targetProperty;
         internal DataRepeaterCellContent _cellContent;
+		internal object _rowDataContext;
 
         public DataRepeaterCell()
         {
@@ -24,6 +25,8 @@ namespace WalletWasabi.Gui.Controls.DataRepeater
             _cellContent = e.NameScope.Find<DataRepeaterCellContent>("PART_CellContent");
 
             _cellContent.Classes.Add(_targetProperty);
+            
+            _cellContent.RowDataContext = _rowDataContext;
 
             var newBind = new Binding(_targetProperty, BindingMode.TwoWay);
 

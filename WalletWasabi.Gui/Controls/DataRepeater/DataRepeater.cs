@@ -56,13 +56,18 @@ namespace WalletWasabi.Gui.Controls.DataRepeater
 				return;
 			}
 
+			if (GetItemType(source) == DataType)
+			{
+				return;
+			}
+
 			int i = 0;
 			var xdghList = new DataRepeaterHeaderDescriptors();
 			var dataType = GetItemType(source);
 			foreach (var property in dataType.GetProperties())
 			{
 				string dName;
-				
+
 				var dispNameAttrib = (DisplayNameAttribute)property
 										.GetCustomAttributes(typeof(DisplayNameAttribute), false)
 										.SingleOrDefault();
@@ -82,7 +87,7 @@ namespace WalletWasabi.Gui.Controls.DataRepeater
 					PropertyName = property.Name,
 				};
 
-				if (typeof(IComparable).IsAssignableFrom(property.PropertyType) && property.CanWrite)
+				if (typeof(IComparable).IsAssignableFrom(property.PropertyType))
 				{
 					xdgh.IsSortable = true;
 					xdgh.GetterDelegate = GeneratePropertyGetter(property, dataType);

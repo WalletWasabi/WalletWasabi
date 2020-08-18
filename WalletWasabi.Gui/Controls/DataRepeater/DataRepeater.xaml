@@ -1,7 +1,7 @@
 ﻿<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.DataRepeater;assembly=WalletWasabi.Gui"
-        xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.DataRepeater;assembly=WalletWasabi.Gui"
+  xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
   <Style Selector="local|DataRepeaterHeaderCell">
     <Setter Property="Template">
       <ControlTemplate>
@@ -10,26 +10,16 @@
     </Setter>
   </Style>
   <Style Selector="local|DataRepeaterHeaderCell">
-    <Setter Property="Background"
-            Value="Transparent" />
+    <Setter Property="Background" Value="Transparent" />
     <Setter Property="Template">
       <ControlTemplate>
         <Grid ColumnDefinitions="Auto,11">
-          <ContentControl Name="PART_ContentControl"
-                          Grid.Column="0"
-                          Grid.ColumnSpan="1"
-                          Content="{TemplateBinding Content}" />
-          <Thumb Grid.Column="1"
-                 Name="PART_RightThumbResizer"
-                 HorizontalAlignment="Stretch">
+          <ContentControl Name="PART_ContentControl" Grid.Column="0" Grid.ColumnSpan="1" Content="{TemplateBinding Content}" />
+          <Thumb Grid.Column="1" Name="PART_RightThumbResizer" HorizontalAlignment="Stretch">
             <Thumb.Template>
               <ControlTemplate>
-                <Grid MinWidth="5"
-                      Background="Transparent">
-                  <local:DataRepeaterBorderLine Grid.Column="1"
-                                                Orientation="Vertical"
-                                                Fill="{DynamicResource ThemeBorderLowBrush}"
-                                                Length="{Binding #PART_RightThumbResizer.Bounds.Height}" />
+                <Grid MinWidth="5" Background="Transparent">
+                  <local:DataRepeaterBorderLine Grid.Column="1" Orientation="Vertical" Fill="{DynamicResource ThemeBorderLowBrush}" Length="{Binding #PART_RightThumbResizer.Bounds.Height}" />
                 </Grid>
               </ControlTemplate>
             </Thumb.Template>
@@ -39,42 +29,28 @@
     </Setter>
   </Style>
   <Style Selector="local|DataRepeaterHeaderCell.LastColumn">
-    <Setter Property="Background"
-            Value="Transparent" />
+    <Setter Property="Background" Value="Transparent" />
     <Setter Property="Template">
       <ControlTemplate>
         <Grid ColumnDefinitions="*,11">
-          <ContentControl Name="PART_ContentControl"
-                          Grid.Column="0"
-                          Grid.ColumnSpan="1"
-                          Content="{TemplateBinding Content}" />
-          <Thumb Grid.Column="1"
-                 Name="PART_RightThumbResizer"
-                 HorizontalAlignment="Stretch"></Thumb>
+          <ContentControl Name="PART_ContentControl" Grid.Column="0" Grid.ColumnSpan="1" Content="{TemplateBinding Content}" />
+          <Thumb Grid.Column="1" Name="PART_RightThumbResizer" HorizontalAlignment="Stretch"></Thumb>
         </Grid>
       </ControlTemplate>
     </Setter>
   </Style>
   <Style Selector="local|DataRepeaterRow">
-    <Setter Property="Background"
-            Value="Transparent" />
+    <Setter Property="Background" Value="Transparent" />
   </Style>
   <Style Selector="local|DataRepeaterRow:pointerover">
-    <Setter Property="Background"
-            Value="{DynamicResource ApplicationAccentBrushLow}" />
+    <Setter Property="Background" Value="{DynamicResource ApplicationAccentBrushLow}" />
   </Style>
   <Style Selector="local|DataRepeaterCell">
     <Setter Property="Template">
       <ControlTemplate>
         <Grid ColumnDefinitions="Auto,11">
-          <local:DataRepeaterCellContent Name="PART_CellContent"
-                                         Grid.Column="0"
-                                         Grid.ColumnSpan="1" />
-          <local:DataRepeaterBorderLine Grid.Column="1"
-                                        IsHitTestVisible="False"
-                                        Orientation="Vertical"
-                                        Fill="{DynamicResource ThemeBorderLowBrush}"
-                                        Length="{Binding #PART_CellContent.Bounds.Height}" />
+          <local:DataRepeaterCellContent Name="PART_CellContent" Grid.Column="0" Grid.ColumnSpan="1" />
+          <local:DataRepeaterBorderLine Grid.Column="1" IsHitTestVisible="False" Orientation="Vertical" Fill="{DynamicResource ThemeBorderLowBrush}" Length="{Binding #PART_CellContent.Bounds.Height}" />
         </Grid>
       </ControlTemplate>
     </Setter>
@@ -94,48 +70,29 @@
     </Setter>
   </Style>
   <Style Selector="local|DataRepeater">
-    <Setter Property="Background"
-            Value="{DynamicResource ThemeBackgroundBrush}" />
-    <Setter Property="BorderThickness"
-            Value="1" />
+    <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
     <Setter Property="Template">
       <ControlTemplate>
-        <Grid Name="PART_RootGrid">
-          <Grid.DataTemplates>
+        <Panel>
+          <Panel.DataTemplates>
             <DataTemplate DataType="local:DataRepeaterHeaderDescriptor">
               <TextBlock Text="{Binding HeaderText}" />
             </DataTemplate>
-          </Grid.DataTemplates>
-          <ScrollViewer Name="PART_HorzScroller"
-                        HorizontalScrollBarVisibility="Auto"
-                        VerticalScrollBarVisibility="Disabled">
-            <DockPanel x:Name="PART_Dock"
-                       LastChildFill="True">
+          </Panel.DataTemplates>
+          <ScrollViewer Name="PART_HorzScroller" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+            <DockPanel x:Name="PART_Dock" LastChildFill="True">
               <Grid DockPanel.Dock="Top">
-                <local:DataRepeaterHeader Name="PART_Header"
-                                          HeaderDescriptors="{TemplateBinding HeaderDescriptors}" />
-                <local:DataRepeaterBorderLine Grid.Row="1"
-                                              Fill="{DynamicResource ThemeBorderLowBrush}"
-                                              VerticalAlignment="Bottom"
-                                              Length="{Binding #PART_VertScroller.Viewport.Width}" />
+                <local:DataRepeaterHeader Name="PART_Header" HeaderDescriptors="{TemplateBinding HeaderDescriptors}" />
+                <local:DataRepeaterBorderLine Grid.Row="1" Fill="{DynamicResource ThemeBorderLowBrush}" VerticalAlignment="Bottom" Length="{Binding #PART_VertScroller.Viewport.Width}" />
               </Grid>
-              <ScrollViewer Name="PART_VertScroller"
-                            HorizontalScrollBarVisibility="Disabled"
-                            VerticalScrollBarVisibility="Visible">
-                <ItemsRepeater Name="PART_Repeater"
-                               Items="{TemplateBinding Items}">
+              <ScrollViewer Name="PART_VertScroller" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible">
+                <ItemsRepeater Name="PART_Repeater" Items="{TemplateBinding Items}">
                   <ItemsRepeater.ItemTemplate>
                     <DataTemplate>
-                      <Grid RowDefinitions="Auto,1"
-                            HorizontalAlignment="Stretch"
-                            ColumnDefinitions="*">
-                        <local:DataRepeaterRow Grid.Row="0"
-                                               Grid.RowSpan="1"
-                                               HeaderDescriptors="{Binding #PART_Header.HeaderDescriptors}"
-                                               HorizontalAlignment="Left" />
-                        <local:DataRepeaterBorderLine Grid.Row="1"
-                                                      Fill="{DynamicResource ThemeBorderLowBrush}"
-                                                      Length="{Binding #PART_VertScroller.Viewport.Width}" />
+                      <Grid RowDefinitions="Auto,1" HorizontalAlignment="Stretch" ColumnDefinitions="*">
+                        <local:DataRepeaterRow Grid.Row="0" Grid.RowSpan="1" HeaderDescriptors="{Binding #PART_Header.HeaderDescriptors}" HorizontalAlignment="Left" />
+                        <local:DataRepeaterBorderLine Grid.Row="1" Fill="{DynamicResource ThemeBorderLowBrush}" Length="{Binding #PART_VertScroller.Viewport.Width}" />
                       </Grid>
                     </DataTemplate>
                   </ItemsRepeater.ItemTemplate>
@@ -146,8 +103,23 @@
               </ScrollViewer>
             </DockPanel>
           </ScrollViewer>
-        </Grid>
+          <Grid RowDefinitions ="*,20"  ColumnDefinitions ="*,20">
+            <ScrollBar Grid.Column="1" Grid.ColumnSpan="1" Grid.Row="0" Grid.RowSpan="1" Orientation="Vertical" LargeChange="{Binding #PART_VertScroller.LargeChange.Height}" SmallChange="{Binding #PART_VertScroller.SmallChange.Height}" Maximum="{Binding #PART_VertScroller.VerticalScrollBarMaximum}" Value="{Binding #PART_VertScroller.VerticalScrollBarValue, Mode=TwoWay}" ViewportSize="{Binding #PART_VertScroller.VerticalScrollBarViewportSize}" IsVisible="True" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
+            <ScrollBar Grid.Column="0" Grid.ColumnSpan="1" Grid.Row="1" Grid.RowSpan="1" Orientation="Horizontal" LargeChange="{Binding #PART_HorzScroller.LargeChange.Height}" SmallChange="{Binding #PART_HorzScroller.SmallChange.Height}" Maximum="{Binding #PART_HorzScroller.HorizontalScrollBarMaximum}" Value="{Binding #PART_HorzScroller.HorizontalScrollBarValue, Mode=TwoWay}" ViewportSize="{Binding #PART_HorzScroller.HorizontalScrollBarViewportSize}" IsVisible="True" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
+          </Grid>
+        </Panel>
       </ControlTemplate>
     </Setter>
   </Style>
+
+  <Style Selector="local|DataRepeater /template/ ScrollViewer#PART_HorzScroller /template/ ScrollBar">
+    <Setter Property="Opacity" Value="0"/>
+    <Setter Property="IsHitTestVisible" Value="False"/>
+  </Style>
+
+  <Style Selector="local|DataRepeater /template/ ScrollViewer#PART_VertScroller /template/ ScrollBar">
+    <Setter Property="Opacity" Value="0"/>
+    <Setter Property="IsHitTestVisible" Value="False"/>
+  </Style>
+
 </Styles>
