@@ -40,12 +40,6 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		// TODO use Statement object from #4201
 		public void Statement(byte[] tag, GroupElement publicPoint, IEnumerable<GroupElement> generators)
 		{
-			// FIXME why does this do an infinite loop?
-			// Statement(tag, publicPoint, generators);
-			//
-			// i expected overloading to distinguish params GE[] and Enumerable<GE>?
-			// above definition copypasted here
-
 			Guard.False($"{nameof(publicPoint)}.{nameof(publicPoint.IsInfinity)}", publicPoint.IsInfinity);
 
 			// TODO add guard to ensure generators is non empty?
