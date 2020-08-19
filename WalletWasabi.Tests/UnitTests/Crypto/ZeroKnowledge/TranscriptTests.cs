@@ -19,18 +19,18 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var t = new Transcript();
 
 			// Demonstrate when it shouldn't throw.
-			t.Statement(tag, Generators.G, Generators.Ga);
-			t.Statement(tag, Generators.G, Generators.Ga, Generators.Gg, Generators.Gh);
+			t.Statement(new Statement(Generators.G, Generators.Ga));
+			t.Statement(new Statement(Generators.G, Generators.Ga, Generators.Gg, Generators.Gh));
 
 			// Infinity cannot pass through.
-			Assert.ThrowsAny<ArgumentException>(() => t.Statement(tag, Generators.G, GroupElement.Infinity));
-			Assert.ThrowsAny<ArgumentException>(() => t.Statement(tag, GroupElement.Infinity, Generators.Ga));
-			Assert.ThrowsAny<ArgumentException>(() => t.Statement(tag, GroupElement.Infinity, GroupElement.Infinity));
+			Assert.ThrowsAny<ArgumentException>(() => t.Statement(new Statement(Generators.G, GroupElement.Infinity)));
+			Assert.ThrowsAny<ArgumentException>(() => t.Statement(new Statement(GroupElement.Infinity, Generators.Ga)));
+			Assert.ThrowsAny<ArgumentException>(() => t.Statement(new Statement(GroupElement.Infinity, GroupElement.Infinity)));
 
-			Assert.ThrowsAny<ArgumentException>(() => t.Statement(tag, GroupElement.Infinity, Generators.Ga, Generators.Gg, Generators.Gh));
-			Assert.ThrowsAny<ArgumentException>(() => t.Statement(tag, Generators.G, GroupElement.Infinity, Generators.Gg, Generators.Gh));
-			Assert.ThrowsAny<ArgumentException>(() => t.Statement(tag, Generators.G, Generators.Ga, GroupElement.Infinity, Generators.Gh));
-			Assert.ThrowsAny<ArgumentException>(() => t.Statement(tag, Generators.G, Generators.Ga, Generators.Gg, GroupElement.Infinity));
+			Assert.ThrowsAny<ArgumentException>(() => t.Statement(new Statement(GroupElement.Infinity, Generators.Ga, Generators.Gg, Generators.Gh)));
+			Assert.ThrowsAny<ArgumentException>(() => t.Statement(new Statement(Generators.G, GroupElement.Infinity, Generators.Gg, Generators.Gh)));
+			Assert.ThrowsAny<ArgumentException>(() => t.Statement(new Statement(Generators.G, Generators.Ga, GroupElement.Infinity, Generators.Gh)));
+			Assert.ThrowsAny<ArgumentException>(() => t.Statement(new Statement(Generators.G, Generators.Ga, Generators.Gg, GroupElement.Infinity)));
 		}
 
 		[Fact]
@@ -39,12 +39,12 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var tag = Encoding.UTF8.GetBytes("statement tag");
 
 			var p = new Transcript();
-			p.Statement(tag, Generators.G, Generators.Ga);
+			p.Statement(new Statement(Generators.G, Generators.Ga));
 			var c = p.GenerateNonce(Scalar.One);
 			p.NonceCommitment(Generators.Gg);
 
 			var v = new Transcript();
-			v.Statement(tag, Generators.G, Generators.Ga);
+			v.Statement(new Statement(Generators.G, Generators.Ga));
 			v.NonceCommitment(Generators.Gg);
 
 			Assert.Equal(p.GenerateChallenge(), v.GenerateChallenge());
@@ -55,12 +55,12 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var tag = Encoding.UTF8.GetBytes("statement tag");
 
 			var a = new Transcript();
-			a.Statement(tag, Generators.G); // set up some initial state
+			a.Statement(new Statement(Generators.G)); // set up some initial state
 			var b = a.Clone();
 
-			a.Statement(tag, Generators.G, Generators.Ga);
+			a.Statement(new Statement(Generators.G, Generators.Ga));
 
-			b.Statement(tag, Generators.G, Generators.Ga);
+			b.Statement(new Statement(Generators.G, Generators.Ga));
 
 			Assert.Equal(a.GenerateChallenge(), b.GenerateChallenge());
 		}
@@ -71,7 +71,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var tag = Encoding.UTF8.GetBytes("statement tag");
 
 			var a = new Transcript();
-			a.Statement(tag, Generators.G, Generators.Ga);
+			a.Statement(new Statement(Generators.G, Generators.Ga));
 
 			var mra = new MockRandom();
 			var rnd1 = new byte[32];
@@ -79,7 +79,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			mra.GetBytesResults.Add(rnd1);
 
 			var b = new Transcript();
-			b.Statement(tag, Generators.G, Generators.Ga);
+			b.Statement(new Statement(Generators.G, Generators.Ga));
 
 			var mrb = new MockRandom();
 
@@ -96,14 +96,14 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var tag = Encoding.UTF8.GetBytes("statement tag");
 
 			var a = new Transcript();
-			a.Statement(tag, Generators.G, Generators.Ga);
+			a.Statement(new Statement(Generators.G, Generators.Ga));
 
 			var mra = new MockRandom();
 			mra.GetBytesResults.Add(new byte[32]);
 			mra.GetBytesResults.Add(new byte[32]);
 
 			var b = new Transcript();
-			b.Statement(tag, Generators.G, Generators.Ga);
+			b.Statement(new Statement(Generators.G, Generators.Ga));
 
 			var mrb = new MockRandom();
 			mra.GetBytesResults.Add(new byte[32]);
@@ -118,13 +118,13 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var tag = Encoding.UTF8.GetBytes("statement tag");
 
 			var a = new Transcript();
-			a.Statement(tag, Generators.G, Generators.Ga);
+			a.Statement(new Statement(Generators.G, Generators.Ga));
 
 			var mra = new MockRandom();
 			mra.GetBytesResults.Add(new byte[32]);
 
 			var b = new Transcript();
-			b.Statement(tag, Generators.Gg, Generators.Ga);
+			b.Statement(new Statement(Generators.Gg, Generators.Ga));
 
 			var mrb = new MockRandom();
 			mrb.GetBytesResults.Add(new byte[32]);
@@ -137,13 +137,13 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var tag = Encoding.UTF8.GetBytes("statement tag");
 
 			var a = new Transcript();
-			a.Statement(tag, Generators.G, Generators.Ga);
+			a.Statement(new Statement(Generators.G, Generators.Ga));
 
 			var mra = new MockRandom();
 			mra.GetBytesResults.Add(new byte[32]);
 
 			var b = new Transcript();
-			b.Statement(tag, Generators.G, Generators.Gg);
+			b.Statement(new Statement(Generators.G, Generators.Gg));
 
 			var mrb = new MockRandom();
 			mrb.GetBytesResults.Add(new byte[32]);

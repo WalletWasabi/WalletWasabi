@@ -26,8 +26,9 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var secret = new Scalar(scalarSeed);
 			var generator = Generators.G;
 			var publicPoint = secret * generator;
-			var proof = Prover.CreateProof(secret, publicPoint, generator);
-			Assert.True(Verifier.Verify(proof, publicPoint, generator));
+			var statement = new Statement(publicPoint, generator);
+			var proof = Prover.CreateProof(secret, statement);
+			Assert.True(Verifier.Verify(proof, statement));
 		}
 
 		[Fact]
@@ -37,8 +38,9 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			{
 				var generator = Generators.G;
 				var publicPoint = secret * generator;
-				var proof = Prover.CreateProof(secret, publicPoint, generator);
-				Assert.True(Verifier.Verify(proof, publicPoint, generator));
+				var statement = new Statement(publicPoint, generator);
+				var proof = Prover.CreateProof(secret, statement);
+				Assert.True(Verifier.Verify(proof, statement));
 			}
 		}
 
@@ -49,68 +51,72 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var gen = new Scalar(4) * Generators.G;
 			var secret = new Scalar(val, val, val, val, val, val, val, val);
 			var p = secret * gen;
-			var proof = Prover.CreateProof(secret, p, gen);
-			Assert.True(Verifier.Verify(proof, p, gen));
+			var statement = new Statement(p, gen);
+			var proof = Prover.CreateProof(secret, statement);
+			Assert.True(Verifier.Verify(proof, statement));
 
 			secret = EC.N + (new Scalar(1)).Negate();
 			p = secret * gen;
-			proof = Prover.CreateProof(secret, p, gen);
-			Assert.True(Verifier.Verify(proof, p, gen));
+			statement = new Statement(p, gen);
+			proof = Prover.CreateProof(secret, statement);
+			Assert.True(Verifier.Verify(proof, statement));
 
 			secret = EC.NC;
 			p = secret * gen;
-			proof = Prover.CreateProof(secret, p, gen);
-			Assert.True(Verifier.Verify(proof, p, gen));
+			statement = new Statement(p, gen);
+			proof = Prover.CreateProof(secret, statement);
+			Assert.True(Verifier.Verify(proof, statement));
 			secret = EC.NC + new Scalar(1);
 			p = secret * gen;
-			proof = Prover.CreateProof(secret, p, gen);
-			Assert.True(Verifier.Verify(proof, p, gen));
+			statement = new Statement(p, gen);
+			proof = Prover.CreateProof(secret, statement);
+			Assert.True(Verifier.Verify(proof, statement));
 			secret = EC.NC + (new Scalar(1)).Negate();
 			p = secret * gen;
-			proof = Prover.CreateProof(secret, p, gen);
-			Assert.True(Verifier.Verify(proof, p, gen));
+			statement = new Statement(p, gen);
+			proof = Prover.CreateProof(secret, statement);
+			Assert.True(Verifier.Verify(proof, statement));
 		}
 
 		[Fact]
 		public void BuildChallenge()
 		{
 			// Mostly superseded by transcript tests, can be removed apart from test vectors
-
-			var point1 = new Scalar(3) * Generators.G;
-			var point2 = new Scalar(7) * Generators.G;
-
 			var mockRandom = new MockRandom();
 			mockRandom.GetBytesResults.Add(new byte[32]);
 			mockRandom.GetBytesResults.Add(new byte[32]);
 			mockRandom.GetBytesResults.Add(new byte[32]);
 
+			var point1 = new Scalar(3) * Generators.G;
+			var point2 = new Scalar(7) * Generators.G;
+			var generator = Generators.Ga;
+
 			var publicPoint = point1;
 			var nonce = Generators.G;
-			var tag = Encoding.UTF8.GetBytes("");
 			var transcript = new Transcript();
-			transcript.Statement(tag, publicPoint, Generators.G);
+			transcript.Statement(new Statement(publicPoint, generator));
 			Scalar randomScalar = transcript.GenerateNonce(Scalar.One, mockRandom);
 			transcript.NonceCommitment(nonce);
 			var challenge = transcript.GenerateChallenge();
-			Assert.Equal("secp256k1_scalar  = { 0x2A5B1BC7UL, 0xEBF35A1AUL, 0xB996152FUL, 0x3F33139FUL, 0x001C6628UL, 0x976CD8C4UL, 0xC3B77988UL, 0xC692E569UL }", challenge.ToC(""));
+			Assert.Equal("secp256k1_scalar  = { 0x0424C37EUL, 0x2B276403UL, 0xF63F4D09UL, 0xBD22FB8EUL, 0xFBABE75CUL, 0x7EFD3E1DUL, 0x3413E1B5UL, 0xC717EFB7UL }", challenge.ToC(""));
 
 			publicPoint = Generators.G;
 			nonce = point2;
 			transcript = new Transcript();
-			transcript.Statement(tag, publicPoint, Generators.G);
+			transcript.Statement(new Statement(publicPoint, generator));
 			randomScalar = transcript.GenerateNonce(Scalar.One, mockRandom);
 			transcript.NonceCommitment(nonce);
 			challenge = transcript.GenerateChallenge();
-			Assert.Equal("secp256k1_scalar  = { 0x5C135111UL, 0x7C4F01C9UL, 0x56562BCDUL, 0xFCFD7771UL, 0xB1E7BA66UL, 0xF4260CCEUL, 0x12E3DF36UL, 0x23264818UL }", challenge.ToC(""));
+			Assert.Equal("secp256k1_scalar  = { 0x846DF9D6UL, 0xED86ED32UL, 0x1F014B12UL, 0x16F2670CUL, 0x567C9019UL, 0xBE1804DBUL, 0x86E81D51UL, 0x3F8ECF84UL }", challenge.ToC(""));
 
 			publicPoint = point1;
 			nonce = point2;
 			transcript = new Transcript();
-			transcript.Statement(tag, publicPoint, Generators.G);
+			transcript.Statement(new Statement(publicPoint, generator));
 			randomScalar = transcript.GenerateNonce(Scalar.One, mockRandom);
 			transcript.NonceCommitment(nonce);
 			challenge = transcript.GenerateChallenge();
-			Assert.Equal("secp256k1_scalar  = { 0x935F76BAUL, 0x9BD463EAUL, 0x3930D47BUL, 0x2911ECEEUL, 0xD6C2CCEDUL, 0x725F12DEUL, 0xADEDE8DAUL, 0xADC7FB8FUL }", challenge.ToC(""));
+			Assert.Equal("secp256k1_scalar  = { 0xC8162314UL, 0x1C11F776UL, 0xC465D40CUL, 0xBF6B870DUL, 0x16C3DFBFUL, 0xCD4F30D8UL, 0x34641937UL, 0x5DEB799EUL }", challenge.ToC(""));
 		}
 
 		[Fact]

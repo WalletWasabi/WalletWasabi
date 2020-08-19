@@ -26,13 +26,14 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var secrets = new[] { new Scalar(scalarSeed1), new Scalar(scalarSeed2) };
 			var generators = new[] { Generators.G, Generators.Ga };
 			var publicPoint = GroupElement.Infinity;
-			var secretGeneratorPairs = secrets.ZipForceEqualLength(generators);
-			foreach (var (secret, generator) in secretGeneratorPairs)
+			foreach (var (secret, generator) in secrets.ZipForceEqualLength(generators))
 			{
 				publicPoint += secret * generator;
 			}
-			var proof = Prover.CreateProof(secretGeneratorPairs, publicPoint);
-			Assert.True(Verifier.Verify(proof, publicPoint, generators));
+
+			Statement statement = new Statement(publicPoint, generators);
+			var proof = Prover.CreateProof(secrets, statement);
+			Assert.True(Verifier.Verify(proof, statement));
 		}
 
 		[Fact]
@@ -46,13 +47,13 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 					var secrets = new[] { secret1, secret2 };
 					var generators = new[] { Generators.G, Generators.Ga };
 					var publicPoint = GroupElement.Infinity;
-					var secretGeneratorPairs = secrets.ZipForceEqualLength(generators);
-					foreach (var (secret, generator) in secretGeneratorPairs)
+					foreach (var (secret, generator) in secrets.ZipForceEqualLength(generators))
 					{
 						publicPoint += secret * generator;
 					}
-					var proof = Prover.CreateProof(secretGeneratorPairs, publicPoint);
-					Assert.True(Verifier.Verify(proof, publicPoint, generators));
+					Statement statement = new Statement(publicPoint, generators);
+					var proof = Prover.CreateProof(secrets, statement);
+					Assert.True(Verifier.Verify(proof, statement));
 				}
 			}
 		}
