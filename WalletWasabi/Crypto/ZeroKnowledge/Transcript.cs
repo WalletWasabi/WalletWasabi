@@ -113,7 +113,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				// modeled after Noise's MixHash operation, in line with reccomendation in
 				// per STROBE paper appendix B, for when not using a Sponge function.
 				// stepping stone towards STROBE with Keccak.
-				h = Hash(h, BitConverter.GetBytes((byte)flags), data);
+				h = Hash(h, new[] { (byte)flags }, data);
 
 			// Absorb arbitrary data into the state
 			public void AssociatedData(byte[] data) =>
