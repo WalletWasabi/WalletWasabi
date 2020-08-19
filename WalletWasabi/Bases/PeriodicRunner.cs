@@ -31,6 +31,7 @@ namespace WalletWasabi.Bases
 		/// <remarks>
 		/// If <see cref="ExecuteAsync(CancellationToken)"/> is not actually in waiting phase, this method call makes
 		/// sure that next waiting process will be omitted altogether.
+		/// <para>Note that when the <see cref="PeriodicRunner"/> has not been started, this call is ignored.</para>
 		/// </remarks>
 		public void TriggerRound()
 		{
@@ -55,19 +56,26 @@ namespace WalletWasabi.Bases
 					// Do user action.
 					await ActionAsync(stoppingToken).ConfigureAwait(false);
 
+					ExceptionInfo? info = ExceptionTracker.LastException;
+
 					// Log previous exception if any.
-					LogLastException(ExceptionTracker.LastException);
+					if (info is { })
+					{
+						Logger.LogInfo($"Exception stopped coming. It came for " +
+							$"{(DateTimeOffset.UtcNow - info.FirstAppeared).TotalSeconds} seconds, " +
+							$"{info.ExceptionCount} times: {info.Exception.ToTypeMessageString()}");
+						ExceptionTracker.Reset();
+					}
 				}
-				catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
+				catch (Exception ex) when (ex is TaskCanceledException || ex is TimeoutException)
 				{
 					Logger.LogTrace(ex);
 				}
 				catch (Exception ex)
 				{
 					// Exception encountered, process it.
-					LogLastException(ExceptionTracker.Process(ex));
-
-					Logger.LogError(ExceptionTracker.LastException!.Exception);
+					ExceptionInfo info = ExceptionTracker.Process(ex);
+					Logger.LogError(info.Exception);
 				}
 
 				// Wait for the next round.
@@ -89,16 +97,6 @@ namespace WalletWasabi.Bases
 				{
 					Logger.LogTrace(ex);
 				}
-			}
-		}
-
-		private void LogLastException(ExceptionInfo? info)
-		{
-			if (info != null)
-			{
-				Logger.LogInfo($"Exception stopped coming. It came for " +
-					$"{(DateTimeOffset.UtcNow - info.FirstAppeared).TotalSeconds} seconds, " +
-					$"{info.ExceptionCount} times: {info.Exception.ToTypeMessageString()}");
 			}
 		}
 	}

@@ -1,16 +1,14 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace WalletWasabi.Bases
 {
 	public class ExceptionInfo
 	{
-		public ExceptionInfo(Exception exception, long exceptionCount, DateTimeOffset firstAppeared)
+		public ExceptionInfo(Exception exception)
 		{
 			Exception = exception;
-			ExceptionCount = exceptionCount;
-			FirstAppeared = firstAppeared;
+			ExceptionCount = 1;
+			FirstAppeared = DateTimeOffset.UtcNow;
 		}
 
 		public Exception Exception { get; }

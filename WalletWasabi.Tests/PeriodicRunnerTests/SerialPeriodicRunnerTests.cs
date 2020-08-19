@@ -22,7 +22,7 @@ namespace WalletWasabi.Tests.PeriodicRunnerTests
 				MaxNextRoundWaitTime = maxNextRoundWaitTime;
 			}
 
-			public SemaphoreSlim Semaphore { get; private set; } = new SemaphoreSlim(initialCount: 0, maxCount: 1);
+			public SemaphoreSlim Semaphore { get; } = new SemaphoreSlim(initialCount: 0, maxCount: 1);
 
 			public int RoundCounter { get; private set; }
 			private TimeSpan MaxNextRoundWaitTime { get; }
@@ -50,7 +50,7 @@ namespace WalletWasabi.Tests.PeriodicRunnerTests
 			TimeSpan period = Scaler * TimeSpan.FromSeconds(1);
 
 			using var runner = new TestRunner(period: period, maxNextRoundWaitTime: TimeSpan.FromSeconds(Scaler * 2));
-			using CancellationTokenSource cts = new CancellationTokenSource();
+			using var cts = new CancellationTokenSource();
 
 			var sw = new Stopwatch();
 			sw.Start();

@@ -11,38 +11,28 @@ namespace WalletWasabi.Tests.UnitTests.Bases
 		{
 			var let = new LastExceptionTracker();
 
-			// No exception was processed at this point.
-			Assert.Null(let.LastException);
-
 			// Process first exception to process.
 			{
-				ExceptionInfo prevExceptionInfo = let.Process(new ArgumentOutOfRangeException())!;
-				Assert.Null(prevExceptionInfo);
+				ExceptionInfo lastException = let.Process(new ArgumentOutOfRangeException());
 
-				Assert.NotNull(let.LastException);
-				Assert.IsType<ArgumentOutOfRangeException>(let.LastException!.Exception);
-				Assert.Equal(1, let.LastException!.ExceptionCount);
+				Assert.IsType<ArgumentOutOfRangeException>(lastException.Exception);
+				Assert.Equal(1, lastException.ExceptionCount);
 			}
 
 			// Same exception encountered.
 			{
-				ExceptionInfo prevExceptionInfo = let.Process(new ArgumentOutOfRangeException())!;
-				Assert.Null(prevExceptionInfo);
+				ExceptionInfo lastException = let.Process(new ArgumentOutOfRangeException());
 
-				Assert.NotNull(let.LastException);
-				Assert.IsType<ArgumentOutOfRangeException>(let.LastException!.Exception);
-				Assert.Equal(2, let.LastException!.ExceptionCount);
+				Assert.IsType<ArgumentOutOfRangeException>(lastException.Exception);
+				Assert.Equal(2, lastException.ExceptionCount);
 			}
 
 			// Different exception encountered.
 			{
-				ExceptionInfo prevExceptionInfo = let.Process(new NotImplementedException())!;
-				Assert.NotNull(prevExceptionInfo);
-				Assert.IsType<ArgumentOutOfRangeException>(prevExceptionInfo.Exception);
+				ExceptionInfo lastException = let.Process(new NotImplementedException());
 
-				Assert.NotNull(let.LastException);
-				Assert.IsType<NotImplementedException>(let.LastException!.Exception);
-				Assert.Equal(1, let.LastException!.ExceptionCount);
+				Assert.IsType<NotImplementedException>(lastException.Exception);
+				Assert.Equal(1, lastException.ExceptionCount);
 			}
 		}
 	}

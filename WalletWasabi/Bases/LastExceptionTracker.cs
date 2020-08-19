@@ -2,31 +2,41 @@ using System;
 
 namespace WalletWasabi.Bases
 {
+	/// <summary>
+	/// Tracker that stores the latest received exception, and increases a counter as long as the same exception type is received.
+	/// </summary>
 	public class LastExceptionTracker
 	{
-		public ExceptionInfo? LastException { get; set; }
+		private ExceptionInfo? LastException { get; set; }
 
 		/// <summary>
-		/// Process encountered exception.
+		/// Process encountered exception and return the latest exception info.
 		/// </summary>
-		/// <returns>Previous exception or <c>null</c>.</returns>
-		public ExceptionInfo? Process(Exception currentException)
+		/// <returns>The latest exception.</returns>
+		public ExceptionInfo Process(Exception currentException)
 		{
 			// Only log one type of exception once.
-			if (LastException is { }
-				&& currentException.GetType() == LastException.Exception.GetType()
-				&& currentException.Message == LastException.Exception.Message)
+			if (LastException is { Exception: { } exception }
+				&& currentException.GetType() == exception.GetType()
+				&& currentException.Message == exception.Message)
 			{
 				// Increment the counter.
 				LastException.ExceptionCount++;
-				return null;
 			}
 			else
 			{
-				var previousException = LastException;
-				LastException = new ExceptionInfo(currentException, exceptionCount: 1, firstAppeared: DateTimeOffset.UtcNow);
-				return previousException;
+				LastException = new ExceptionInfo(currentException);
 			}
+
+			return LastException!;
+		}
+
+		/// <summary>
+		/// Forget the latest exception.
+		/// </summary>
+		public void Reset()
+		{
+			LastException = null;
 		}
 	}
 }
