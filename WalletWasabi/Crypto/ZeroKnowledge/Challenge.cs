@@ -11,16 +11,25 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 	public static class Challenge
 	{
 		public static Scalar Build(GroupElement nonce, Statement statement)
-		{
-			Guard.False($"{nameof(nonce)}.{nameof(nonce.IsInfinity)}", nonce.IsInfinity);
+			=> Build(new[] { nonce }, new[] { statement });
 
-			var publicPoint = statement.PublicPoint;
-			if (publicPoint == nonce)
+		public static Scalar Build(IEnumerable<GroupElement> nonces, IEnumerable<Statement> statements)
+		{
+			var transcript = new List<GroupElement>();
+			foreach (var (nonce, statement) in nonces.ZipForceEqualLength(statements))
 			{
-				throw new InvalidOperationException($"{nameof(publicPoint)} and {nameof(nonce)} should not be equal.");
+				Guard.False($"{nameof(nonce)}.{nameof(nonce.IsInfinity)}", nonce.IsInfinity);
+
+				var publicPoint = statement.PublicPoint;
+				if (publicPoint == nonce)
+				{
+					throw new InvalidOperationException($"{nameof(publicPoint)} and {nameof(nonce)} should not be equal.");
+				}
+
+				transcript.AddRange(new[] { publicPoint, nonce }.Concat(statement.Generators));
 			}
 
-			return HashToScalar(new[] { publicPoint, nonce }.Concat(statement.Generators));
+			return HashToScalar(transcript);
 		}
 
 		/// <summary>

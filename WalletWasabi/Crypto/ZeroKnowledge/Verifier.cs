@@ -1,3 +1,4 @@
+using NBitcoin.Secp256k1;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,19 +10,15 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 {
 	public static class Verifier
 	{
-		public static bool Verify(KnowledgeOfRep proof, Statement statement)
+		private static bool Verify(Statement statement, GroupElement nonce, IEnumerable<Scalar> responses, Scalar challenge)
 		{
 			var publicPoint = statement.PublicPoint;
-			if (publicPoint == proof.Nonce)
+			if (publicPoint == nonce)
 			{
-				throw new InvalidOperationException($"{nameof(publicPoint)} and {nameof(proof.Nonce)} should not be equal.");
+				throw new InvalidOperationException($"{nameof(publicPoint)} and {nameof(nonce)} should not be equal.");
 			}
 
-			var nonce = proof.Nonce;
-			var responses = proof.Responses;
-
-			var challenge = Challenge.Build(nonce, statement);
-			var a = challenge * publicPoint + nonce;
+			var a = challenge * statement.PublicPoint + nonce;
 
 			var b = GroupElement.Infinity;
 			foreach (var (response, generator) in responses.ZipForceEqualLength(statement.Generators))
@@ -29,6 +26,21 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				b += response * generator;
 			}
 			return a == b;
+		}
+
+		public static bool Verify(KnowledgeOfRep proof, Statement statement)
+		{
+			var nonce = proof.Nonce;
+			var challenge = Challenge.Build(nonce, statement);
+			return Verify(statement, nonce, proof.Responses, challenge);
+		}
+
+		public static bool Verify(KnowledgeOfAnd proof, IEnumerable<Statement> statements)
+		{
+			var challenge = Challenge.Build(proof.KnowledgeOfRepresentations.Select(x => x.Nonce), statements);
+			return proof.KnowledgeOfRepresentations
+				.ZipForceEqualLength(statements)
+				.All(x => Verify(x.Item2, x.Item1.Nonce, x.Item1.Responses, challenge));
 		}
 
 		public static bool Verify(KnowledgeOfDlog proof, Statement statement)
