@@ -7,7 +7,7 @@ namespace WalletWasabi.Bases
 	/// </summary>
 	public class LastExceptionTracker
 	{
-		private ExceptionInfo? LastException { get; set; }
+		public ExceptionInfo? LastException { get; set; }
 
 		/// <summary>
 		/// Process encountered exception and return the latest exception info.
