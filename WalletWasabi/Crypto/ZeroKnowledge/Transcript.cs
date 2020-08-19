@@ -16,26 +16,22 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 	// each enforcing a state machine for every sub-proof (statement identifier,
 	// public inputs, nonce generation, challenge, responses, synchronized by some
 	// parent object)
-	public class Transcript {
+	public class Transcript
+	{
 		private State state; // keeps a running hash of the transcript
 
 		public const string DomainSeparator = "WabiSabi v0.0";
 
 		// public constructor always adds domain separator
-		public Transcript() {
-			using var sha256 = System.Security.Cryptography.SHA256.Create();
-			var h = sha256.ComputeHash(Encoding.UTF8.GetBytes(DomainSeparator));
-			state = new State(h);
-		}
+		public Transcript() =>
+			state = new State(Hash(Encoding.UTF8.GetBytes(DomainSeparator)));
 
 		// private constructor used for cloning
-		private Transcript(State s) {
-			state = s;
-		}
+		private Transcript(State state) =>
+			this.state = state;
 
-		public Transcript Clone() {
-			return new Transcript(state.Clone());
-		}
+		public Transcript Clone() =>
+			new Transcript(this.state.Clone());
 
 		public void Statement(Statement statement)
 			// TODO add enum for individual tags?
@@ -46,9 +42,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 
 		public void Statement(byte[] tag, GroupElement publicPoint, IEnumerable<GroupElement> generators) {
 			var concatenation = generators.SelectMany(x => x.ToBytes());
-			var msg = ByteHelpers.Combine(BitConverter.GetBytes(tag.Length), tag, BitConverter.GetBytes(generators.Count()), concatenation.ToArray());
-			using var sha256 = System.Security.Cryptography.SHA256.Create();
-			var hash = sha256.ComputeHash(msg);
+			var hash = Hash(ByteHelpers.Combine(BitConverter.GetBytes(tag.Length), tag, BitConverter.GetBytes(generators.Count()), concatenation.ToArray()));
 
 			state.AssociatedData(Encoding.UTF8.GetBytes("statement"));
 			state.AssociatedData(hash);
@@ -71,15 +65,13 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			forked.Key(secrets.SelectMany(x => x.ToBytes()).ToArray());
 
 			// get randomness from system if no random source specified
-			var fromRng = new byte[32];
 			if (random is null )
 			{
 				random = new SecureRandom();
 			}
 
 			// add additional randomness as associated data
-			random.GetBytes(fromRng);
-			forked.AssociatedData(fromRng);
+			forked.AssociatedData(random.GetBytes(32));
 
 			// generate a new scalar for each secret using this updated state as a seed
 			var randomScalars = new Scalar[secrets.Count()];
@@ -90,50 +82,53 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			return randomScalars;
 		}
 
-		public void NonceCommitment(GroupElement nonce) {
+		public void NonceCommitment(GroupElement nonce)
+		{
 			Guard.False($"{nameof(nonce)}.{nameof(nonce.IsInfinity)}", nonce.IsInfinity);
 			state.AssociatedData(Encoding.UTF8.GetBytes("nonce commitment"));
 			state.AssociatedData(nonce.ToBytes());
 		}
 
 		// generate Fiat Shamir challenges
-		public Scalar GenerateChallenge() {
+		public Scalar GenerateChallenge() =>
 			// generate a new scalar using current state as a seed
-			return new Scalar(state.PRF());
+			new Scalar(state.PRF());
+
+		private static byte[] Hash(params byte[][] data)
+		{
+			using var sha256 = System.Security.Cryptography.SHA256.Create();
+			return sha256.ComputeHash(ByteHelpers.Combine(data));
 		}
 
 		// implements a stepping stone towards STROBE
-		private class State {
+		private class State
+		{
 			private byte[] h;
 
-			public State(byte[] initial) {
+			public State(byte[] initial) =>
 				h = initial;
-			}
 
-			public State Clone() {
-				return new State(h);
-			}
+			public State Clone() =>
+				new State(h);
 
-			private void Absorb(StrobeFlags flags, byte[] data) {
+			private void Absorb(StrobeFlags flags, byte[] data) =>
 				// modeled after Noise's MixHash operation, in line with reccomendation in
 				// per STROBE paper appendix B, for when not using a Sponge function.
 				// stepping stone towards STROBE with Keccak.
-				using var sha256 = System.Security.Cryptography.SHA256.Create();
-				h = sha256.ComputeHash(ByteHelpers.Combine(h, BitConverter.GetBytes((byte)flags), data));
-			}
+				h = Hash(h, new[] { (byte)flags }, data);
 
 			// Absorb arbitrary data into the state
-			public void AssociatedData(byte[] data) {
+			public void AssociatedData(byte[] data) =>
 				Absorb(StrobeFlags.A, data);
-			}
 
 			// Absorb key material into the state
-			public void Key(byte[] newKeyMaterial) {
+			public void Key(byte[] newKeyMaterial)
+			{
 				// is just sha256 enough here instead of HKDF?
 				// This only really has implications for synthetic nonces for the moment
-				var hmac1 = new System.Security.Cryptography.HMACSHA256(h);
+				using var hmac1 = new System.Security.Cryptography.HMACSHA256(h);
 				var key1 = hmac1.ComputeHash(newKeyMaterial);
-				var hmac2 = new System.Security.Cryptography.HMACSHA256(key1);
+				using var hmac2 = new System.Security.Cryptography.HMACSHA256(key1);
 				var key2 = hmac2.ComputeHash(new byte[]{ 0x01 }); // note this is just the first iteration of HKDF since there's no change in key size. could also use STROBE flags here?
 
 				// update state to HKDF output
@@ -143,15 +138,16 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			}
 
 			// Generate pseudo random outputs from state
-			public byte[] PRF() {
-				Absorb(StrobeFlags.I|StrobeFlags.A|StrobeFlags.C, new byte[0]);
+			public byte[] PRF()
+			{
+				Absorb(StrobeFlags.I | StrobeFlags.A | StrobeFlags.C, new byte[0]);
 
 				// only produce chunks of 32 bytes for now
-				using var sha256 = System.Security.Cryptography.SHA256.Create();
-				return sha256.ComputeHash(ByteHelpers.Combine(h, Encoding.UTF8.GetBytes("PRF output")));
+				return Hash(h, Encoding.UTF8.GetBytes("PRF output"));
 			}
 
-			private enum StrobeFlags {
+			private enum StrobeFlags
+			{
 				I = 1,
 				A = 2,
 				C = 4,
