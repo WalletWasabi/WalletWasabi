@@ -162,7 +162,7 @@ namespace WalletWasabi.Helpers
 		}
 
 		/// <summary>
-		/// Executes a command with bash.
+		/// Executes a command with Bash.
 		/// https://stackoverflow.com/a/47918132/2061103
 		/// </summary>
 		public static async Task ShellExecAsync(string cmd, bool waitForExit = true)
@@ -172,7 +172,7 @@ namespace WalletWasabi.Helpers
 			using var process = Process.Start(
 				new ProcessStartInfo
 				{
-					FileName = "/bin/sh",
+					FileName = "/usr/bin/env sh",
 					Arguments = $"-c \"{escapedArgs}\"",
 					RedirectStandardOutput = true,
 					UseShellExecute = false,
@@ -183,10 +183,10 @@ namespace WalletWasabi.Helpers
 			if (waitForExit)
 			{
 				await process.WaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
-				var exitCode = process.ExitCode;
-				if (exitCode != 0)
+
+				if (process.ExitCode != 0)
 				{
-					Logger.LogError($"{nameof(ShellExecAsync)} command: {cmd} exited with exit code: {exitCode}, instead of 0.");
+					Logger.LogError($"{nameof(ShellExecAsync)} command: {cmd} exited with exit code: {process.ExitCode}, instead of 0.");
 				}
 			}
 		}
