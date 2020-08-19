@@ -10,25 +10,18 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 {
 	public static class Challenge
 	{
-		public static Scalar Build(GroupElement publicPoint, GroupElement nonce, IEnumerable<GroupElement> generators)
+		public static Scalar Build(GroupElement nonce, Statement statement)
 		{
-			Guard.False($"{nameof(publicPoint)}.{nameof(publicPoint.IsInfinity)}", publicPoint.IsInfinity);
 			Guard.False($"{nameof(nonce)}.{nameof(nonce.IsInfinity)}", nonce.IsInfinity);
-			foreach (var generator in generators)
-			{
-				Guard.False($"{nameof(generator)}.{nameof(generator.IsInfinity)}", generator.IsInfinity);
-			}
 
+			var publicPoint = statement.PublicPoint;
 			if (publicPoint == nonce)
 			{
 				throw new InvalidOperationException($"{nameof(publicPoint)} and {nameof(nonce)} should not be equal.");
 			}
 
-			return HashToScalar(new[] { publicPoint, nonce }.Concat(generators));
+			return HashToScalar(new[] { publicPoint, nonce }.Concat(statement.Generators));
 		}
-
-		public static Scalar Build(GroupElement publicPoint, GroupElement nonce, params GroupElement[] generators)
-			=> Build(publicPoint, nonce, generators as IEnumerable<GroupElement>);
 
 		/// <summary>
 		/// Fiat Shamir heuristic.
