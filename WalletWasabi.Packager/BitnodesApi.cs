@@ -37,11 +37,12 @@ namespace WalletWasabi.Packager
 		}
 
 		/// <summary>
-		/// Finds all Bitcoin nodes that
+		/// Finds all Bitcoin nodes that:
 		/// <list type="bullet">
-		/// <item>that run as v2 onion services,</item>
-		/// <item>that run Bitcoin Core 0.16+ client, and</item>
-		/// <item>that support witness data and that provide <see cref="NodeServices.Network"/>.</item>
+		/// <item>run as v2 onion services, and</item>
+		/// <item>run Bitcoin Core 0.16+ client, and</item>
+		/// <item>support witness data, and</item>
+		/// <item>provide <see cref="NodeServices.Network"/>.</item>
 		/// </list>
 		/// Consequently, it sorts them by node names and writes them to <see cref="TextWriter"/>.
 		/// </summary>
