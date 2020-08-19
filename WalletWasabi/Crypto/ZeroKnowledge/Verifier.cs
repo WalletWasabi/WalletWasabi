@@ -9,12 +9,12 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 {
 	public static class Verifier
 	{
-		public static bool Verify(KnowledgeOfRepresentation proof, Statement statement)
+		public static bool Verify(KnowledgeOfRep proof, Statement statement)
 		{
 			return Verify(new Transcript(), proof, statement);
 		}
 
-		public static bool Verify(Transcript transcript, KnowledgeOfRepresentation proof, Statement statement)
+		public static bool Verify(Transcript transcript, KnowledgeOfRep proof, Statement statement)
 		{
 			var publicPoint = statement.PublicPoint;
 			if (publicPoint == proof.Nonce)
@@ -39,7 +39,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			return a == b;
 		}
 
-		public static bool Verify(Transcript transcript, KnowledgeOfDiscreteLog proof, Statement statement)
-			=> Verify(transcript, proof as KnowledgeOfRepresentation, statement);
+		public static bool Verify(Transcript transcript, KnowledgeOfDlog proof, Statement statement)
+			=> Verify(transcript, proof as KnowledgeOfRep, statement);
 	}
 }

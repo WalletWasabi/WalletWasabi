@@ -42,7 +42,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var challenge = transcript.GenerateChallenge();
 
 			var response = randomScalar + (secret + Scalar.One) * challenge;
-			var proof = new KnowledgeOfDiscreteLog(nonce, response);
+			var proof = new KnowledgeOfDlog(nonce, response);
 			Assert.False(Verifier.Verify(proof, statement));
 
 			// Other false verification tests.
@@ -51,7 +51,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var scalar = new Scalar(11);
 			var gen = Generators.G;
 
-			proof = new KnowledgeOfDiscreteLog(point1, scalar);
+			proof = new KnowledgeOfDlog(point1, scalar);
 			var statement2 = new Statement(point2, gen);
 			Assert.False(Verifier.Verify(proof, statement2));
 		}
@@ -59,8 +59,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		[Fact]
 		public void Throws()
 		{
-			var dlProof = new KnowledgeOfDiscreteLog(Generators.G, Scalar.One);
-			var repProof = new KnowledgeOfRepresentation(Generators.G, Scalar.One, CryptoHelpers.ScalarThree);
+			var dlProof = new KnowledgeOfDlog(Generators.G, Scalar.One);
+			var repProof = new KnowledgeOfRep(Generators.G, Scalar.One, CryptoHelpers.ScalarThree);
 
 			// Demonstrate when it shouldn't throw.
 			var validStatement1 = new Statement(Generators.Ga, Generators.Gg);

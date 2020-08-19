@@ -11,7 +11,7 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 {
-	public class KnowledgeOfDiscreteLogTests
+	public class KnowledgeOfDLogTests
 	{
 		[Theory]
 		[InlineData(1)]
@@ -27,7 +27,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var generator = Generators.G;
 			var publicPoint = secret * generator;
 			var statement = new Statement(publicPoint, generator);
-			var proof = Prover.CreateProof(secret, statement);
+			var knowledgeParams = new KnowledgeOfDlogParams(secret, statement);
+			var proof = Prover.CreateProof(knowledgeParams);
 			Assert.True(Verifier.Verify(proof, statement));
 		}
 
@@ -39,7 +40,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 				var generator = Generators.G;
 				var publicPoint = secret * generator;
 				var statement = new Statement(publicPoint, generator);
-				var proof = Prover.CreateProof(secret, statement);
+				var knowledgeParams = new KnowledgeOfDlogParams(secret, statement);
+				var proof = Prover.CreateProof(knowledgeParams);
 				Assert.True(Verifier.Verify(proof, statement));
 			}
 		}
@@ -52,29 +54,34 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var secret = new Scalar(val, val, val, val, val, val, val, val);
 			var p = secret * gen;
 			var statement = new Statement(p, gen);
-			var proof = Prover.CreateProof(secret, statement);
+			var knowledgeParams = new KnowledgeOfDlogParams(secret, statement);
+			var proof = Prover.CreateProof(knowledgeParams);
 			Assert.True(Verifier.Verify(proof, statement));
 
 			secret = EC.N + (new Scalar(1)).Negate();
 			p = secret * gen;
 			statement = new Statement(p, gen);
-			proof = Prover.CreateProof(secret, statement);
+			knowledgeParams = new KnowledgeOfDlogParams(secret, statement);
+			proof = Prover.CreateProof(knowledgeParams);
 			Assert.True(Verifier.Verify(proof, statement));
 
 			secret = EC.NC;
 			p = secret * gen;
 			statement = new Statement(p, gen);
-			proof = Prover.CreateProof(secret, statement);
+			knowledgeParams = new KnowledgeOfDlogParams(secret, statement);
+			proof = Prover.CreateProof(knowledgeParams);
 			Assert.True(Verifier.Verify(proof, statement));
 			secret = EC.NC + new Scalar(1);
 			p = secret * gen;
 			statement = new Statement(p, gen);
-			proof = Prover.CreateProof(secret, statement);
+			knowledgeParams = new KnowledgeOfDlogParams(secret, statement);
+			proof = Prover.CreateProof(knowledgeParams);
 			Assert.True(Verifier.Verify(proof, statement));
 			secret = EC.NC + (new Scalar(1)).Negate();
 			p = secret * gen;
 			statement = new Statement(p, gen);
-			proof = Prover.CreateProof(secret, statement);
+			knowledgeParams = new KnowledgeOfDlogParams(secret, statement);
+			proof = Prover.CreateProof(knowledgeParams);
 			Assert.True(Verifier.Verify(proof, statement));
 		}
 
@@ -120,15 +127,36 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		}
 
 		[Fact]
-		public void Throws()
+		public void KnowledgeOfDlogThrows()
 		{
 			// Demonstrate when it shouldn't throw.
-			new KnowledgeOfDiscreteLog(Generators.G, Scalar.One);
+			new KnowledgeOfDlog(Generators.G, Scalar.One);
 
 			// Infinity or zero cannot pass through.
-			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfDiscreteLog(Generators.G, Scalar.Zero));
-			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfDiscreteLog(GroupElement.Infinity, Scalar.One));
-			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfDiscreteLog(GroupElement.Infinity, Scalar.Zero));
+			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfDlog(Generators.G, Scalar.Zero));
+			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfDlog(GroupElement.Infinity, Scalar.One));
+			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfDlog(GroupElement.Infinity, Scalar.Zero));
+		}
+
+		[Fact]
+		public void KnowledgeOfDlogParamsThrows()
+		{
+			var two = new Scalar(2);
+
+			// Demonstrate when it shouldn't throw.
+			new KnowledgeOfDlogParams(two, new Statement(two * Generators.G, Generators.G));
+
+			// Zero cannot pass through.
+			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfDlogParams(Scalar.Zero, new Statement(Generators.G, Generators.G)));
+
+			// Public point must be generator * secret.
+			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfDlogParams(two, new Statement(Generators.G, Generators.G)));
+			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfDlogParams(two, new Statement(new Scalar(3) * Generators.G, Generators.G)));
+			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfDlogParams(two, new Statement(Scalar.One * Generators.G, Generators.G)));
+
+			// Secret cannot overflow.
+			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfDlogParams(EC.N, new Statement(EC.N * Generators.G, Generators.G)));
+			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfDlogParams(CryptoHelpers.ScalarLargestOverflow, new Statement(CryptoHelpers.ScalarLargestOverflow * Generators.G, Generators.G)));
 		}
 	}
 }
