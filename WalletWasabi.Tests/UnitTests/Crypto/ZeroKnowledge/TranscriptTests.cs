@@ -109,7 +109,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			b.Statement(new Statement(Generators.G, Generators.Ga));
 
 			var mrb = new MockRandom();
-			mra.GetBytesResults.Add(new byte[32]);
 			mrb.GetBytesResults.Add(new byte[32]);
 			mrb.GetBytesResults.Add(new byte[32]);
 
