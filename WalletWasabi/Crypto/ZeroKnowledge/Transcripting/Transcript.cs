@@ -18,39 +18,72 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 	// parent object)
 	public class Transcript
 	{
-		public const string DomainSeparator = "WabiSabi_v1.0";
+		public const string DomainSeparator = "WabiSabi v0.0";
 
 		// public constructor always adds domain separator
 		public Transcript()
 		{
-			State = new TranscriptState(ByteHelpers.CombineHash(Encoding.UTF8.GetBytes(DomainSeparator)));
+			Hash = ByteHelpers.CombineHash(Encoding.UTF8.GetBytes(DomainSeparator));
 		}
 
 		// private constructor used for cloning
-		private Transcript(TranscriptState state)
+		public Transcript(byte[] hash)
 		{
-			State = state;
+			Guard.Same($"{nameof(hash)}{nameof(hash).Length}", 32, hash.Length);
+			Hash = hash;
 		}
 
-		private TranscriptState State { get; } // keeps a running hash of the transcript
+		private byte[] Hash { get; }
 
-		public Transcript Clone() =>
-			new Transcript(State.Clone());
+		private Transcript Absorb(StrobeFlags flags, byte[] data) =>
+			// modeled after Noise's MixHash operation, in line with reccomendation in
+			// per STROBE paper appendix B, for when not using a Sponge function.
+			// stepping stone towards STROBE with Keccak.
+			new Transcript(ByteHelpers.CombineHash(Hash, new[] { (byte)flags }, data));
 
-		public void Statement(Statement statement)
-			=> Statement(Encoding.UTF8.GetBytes("Unknown Proof Statement"), statement.PublicPoint, statement.Generators); // TODO add enum for individual tags?
+		// Absorb arbitrary data into the state
+		private Transcript AssociatedData(byte[] data) =>
+			Absorb(StrobeFlags.A, data);
 
-		public void Statement(byte[] tag, GroupElement publicPoint, params GroupElement[] generators)
-			=> Statement(tag, publicPoint, generators as IEnumerable<GroupElement>);
+		// Absorb key material into the state
+		private Transcript Key(byte[] newKeyMaterial)
+		{
+			// is just sha256 enough here instead of HKDF?
+			// This only really has implications for synthetic nonces for the moment
+			using var hmac1 = new System.Security.Cryptography.HMACSHA256(Hash);
+			var key1 = hmac1.ComputeHash(newKeyMaterial);
+			using var hmac2 = new System.Security.Cryptography.HMACSHA256(key1);
+			var key2 = hmac2.ComputeHash(new byte[] { 0x01 }); // note this is just the first iteration of HKDF since there's no change in key size. could also use STROBE flags here?
 
-		public void Statement(byte[] tag, GroupElement publicPoint, IEnumerable<GroupElement> generators)
+			// update state to HKDF output
+			return new Transcript(key2);
+			// should this Absorb instead?
+			//Absorb(StrobeFlags.A|StrobeFlags.C, key2);
+		}
+
+		// Generate pseudo random outputs from state
+		private (Transcript transcript, byte[] random) PRF()
+		{
+			var absorbed = Absorb(StrobeFlags.I | StrobeFlags.A | StrobeFlags.C, Array.Empty<byte>());
+
+			// only produce chunks of 32 bytes for now
+			return (absorbed, ByteHelpers.CombineHash(absorbed.Hash, Encoding.UTF8.GetBytes("PRF output")));
+		}
+
+		public Transcript CommitToStatement(Statement statement)
+			=> CommitToStatement(Encoding.UTF8.GetBytes("Unknown Proof Statement"), statement.PublicPoint, statement.Generators); // TODO add enum for individual tags?
+
+		public Transcript CommitToStatement(byte[] tag, GroupElement publicPoint, params GroupElement[] generators)
+			=> CommitToStatement(tag, publicPoint, generators as IEnumerable<GroupElement>);
+
+		public Transcript CommitToStatement(byte[] tag, GroupElement publicPoint, IEnumerable<GroupElement> generators)
 		{
 			var concatenation = generators.SelectMany(x => x.ToBytes());
 			var hash = ByteHelpers.CombineHash(BitConverter.GetBytes(tag.Length), tag, BitConverter.GetBytes(generators.Count()), concatenation.ToArray());
 
-			State.AssociatedData(Encoding.UTF8.GetBytes("statement"));
-			State.AssociatedData(hash);
-			State.AssociatedData(publicPoint.ToBytes());
+			return AssociatedData(Encoding.UTF8.GetBytes("statement"))
+				.AssociatedData(hash)
+				.AssociatedData(publicPoint.ToBytes());
 		}
 
 		public Scalar GenerateNonce(Scalar secret, WasabiRandom? random = null)
@@ -65,39 +98,49 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 			// generation, first clone the state at the current point in the
 			// transcript, which should already have the statement tag and public
 			// inputs committed.
-			var forked = State.Clone();
-
 			// add secret inputs as key material
-			forked.Key(secrets.SelectMany(x => x.ToBytes()).ToArray());
+			var forked = Key(secrets.SelectMany(x => x.ToBytes()).ToArray());
 
 			// get randomness from system if no random source specified
+			var disposeRandom = false;
 			if (random is null)
 			{
 				random = new SecureRandom();
+				disposeRandom = true;
 			}
 
 			// add additional randomness as associated data
-			forked.AssociatedData(random.GetBytes(32));
+			forked = forked.AssociatedData(random.GetBytes(32));
 
 			// generate a new scalar for each secret using this updated state as a seed
 			var randomScalars = new Scalar[secrets.Count()];
 			for (var i = 0; i < secrets.Count(); i++)
 			{
-				randomScalars[i] = new Scalar(forked.PRF());
+				var prf = forked.PRF();
+				forked = prf.transcript;
+				randomScalars[i] = new Scalar(prf.random);
+			}
+
+			if (disposeRandom)
+			{
+				(random as SecureRandom)?.Dispose();
 			}
 
 			return randomScalars;
 		}
 
-		public void NonceCommitment(GroupElement nonce)
+		public Transcript NonceCommitment(GroupElement nonce)
 		{
 			Guard.False($"{nameof(nonce)}.{nameof(nonce.IsInfinity)}", nonce.IsInfinity);
-			State.AssociatedData(Encoding.UTF8.GetBytes("nonce commitment"));
-			State.AssociatedData(nonce.ToBytes());
+			return AssociatedData(Encoding.UTF8.GetBytes("nonce commitment"))
+				.AssociatedData(nonce.ToBytes());
 		}
 
 		// generate Fiat Shamir challenges
-		public Scalar GenerateChallenge() =>
-			new Scalar(State.PRF()); // generate a new scalar using current state as a seed
+		public (Transcript transcript, Scalar random) GenerateChallenge()
+		{
+			var prf = PRF();
+			return (prf.transcript, new Scalar(prf.random)); // generate a new scalar using current state as a seed
+		}
 	}
 }

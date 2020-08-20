@@ -26,12 +26,8 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 
 		public static KnowledgeOfRep CreateProof(Transcript transcript, KnowledgeOfRepParams parameters, WasabiRandom? random = null)
 		{
-			// before modifying anything, save a copy of the initial transcript state
-			// for the verification check below
-			var transcriptCopy = transcript.Clone();
-
 			var statement = parameters.Statement;
-			transcript.Statement(statement);
+			var t1 = transcript.CommitToStatement(statement);
 
 			// TODO SPLIT HERE
 
@@ -42,11 +38,11 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				var randomPoint = randomScalar * generator;
 				nonce += randomPoint;
 			}
-			transcript.NonceCommitment(nonce);
+			var t2 = t1.NonceCommitment(nonce);
 
 			// TODO SPLIT HERE
 
-			var challenge = transcript.GenerateChallenge();
+			var challenge = t2.GenerateChallenge().random;
 
 			var responses = new List<Scalar>();
 			foreach (var (secret, randomScalar) in parameters.Secrets.ZipForceEqualLength(randomScalars))
@@ -59,7 +55,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			var proof = new KnowledgeOfRep(nonce, responses);
 
 			// Sanity check:
-			if (!Verifier.Verify(transcriptCopy, proof, statement))
+			if (!Verifier.Verify(transcript, proof, statement))
 			{
 				throw new InvalidOperationException($"{nameof(CreateProof)} or {nameof(Verifier.Verify)} is incorrectly implemented. Proof was built, but verification failed.");
 			}

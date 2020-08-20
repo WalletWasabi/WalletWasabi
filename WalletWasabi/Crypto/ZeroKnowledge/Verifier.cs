@@ -26,9 +26,11 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			var nonce = proof.Nonce;
 			var responses = proof.Responses;
 
-			transcript.Statement(statement);
-			transcript.NonceCommitment(nonce);
-			var challenge = transcript.GenerateChallenge();
+			var challenge = transcript
+				.CommitToStatement(statement)
+				.NonceCommitment(nonce)
+				.GenerateChallenge()
+				.random;
 
 			var a = challenge * publicPoint + nonce;
 

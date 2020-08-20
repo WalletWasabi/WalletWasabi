@@ -25,8 +25,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 
 			var statement = new Statement(publicPoint, generator);
 
-			var transcript = new Transcript();
-			transcript.Statement(statement);
+			var transcript = new Transcript().CommitToStatement(statement);
 
 			var mockRandom = new MockRandom();
 			mockRandom.GetBytesResults.Add(new byte[32]);
@@ -38,9 +37,10 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			Assert.NotEqual(randomScalar, secret);
 
 			var nonce = randomScalar * generator;
-			transcript.NonceCommitment(nonce);
 
-			var challenge = transcript.GenerateChallenge();
+			var challenge = transcript
+				.NonceCommitment(nonce)
+				.GenerateChallenge().random;
 
 			var response = randomScalar + (secret + Scalar.One) * challenge;
 			var proof = new KnowledgeOfDlog(nonce, response);
