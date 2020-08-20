@@ -56,7 +56,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			Encoding.UTF8.GetBytes("statement tag");
 
 			var a = new Transcript();
-			a.Statement(new Statement(Generators.G)); // set up some initial state
+			a.Statement(new Statement(Generators.G, Generators.Gh)); // set up some initial state
 			var b = a.Clone();
 
 			a.Statement(new Statement(Generators.G, Generators.Ga));
