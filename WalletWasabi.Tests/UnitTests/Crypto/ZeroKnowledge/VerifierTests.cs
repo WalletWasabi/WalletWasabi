@@ -5,6 +5,7 @@ using System.Text;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
+using WalletWasabi.Crypto.ZeroKnowledge.Transcripting;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 

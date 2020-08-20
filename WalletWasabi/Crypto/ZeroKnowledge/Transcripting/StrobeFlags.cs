@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace WalletWasabi.Crypto.ZeroKnowledge
+namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 {
 	[Flags]
 	public enum StrobeFlags

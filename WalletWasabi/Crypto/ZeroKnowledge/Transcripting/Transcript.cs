@@ -7,7 +7,7 @@ using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.Crypto.ZeroKnowledge
+namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 {
 	// High level API for transcripts of compound Sigma protocol style proofs
 	// implements synthetic nonces and Fiat-Shamir challenges

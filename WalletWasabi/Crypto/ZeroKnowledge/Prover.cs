@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Crypto.ZeroKnowledge.Transcripting;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge
