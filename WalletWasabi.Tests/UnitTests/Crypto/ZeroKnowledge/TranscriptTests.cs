@@ -111,6 +111,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var mrb = new MockRandom();
 			mra.GetBytesResults.Add(new byte[32]);
 			mrb.GetBytesResults.Add(new byte[32]);
+			mrb.GetBytesResults.Add(new byte[32]);
 
 			Assert.Equal(a.GenerateNonce(Scalar.One, mra), b.GenerateNonce(Scalar.One, mrb));
 			Assert.NotEqual(a.GenerateNonce(Scalar.Zero, mra), b.GenerateNonce(Scalar.One, mrb));
