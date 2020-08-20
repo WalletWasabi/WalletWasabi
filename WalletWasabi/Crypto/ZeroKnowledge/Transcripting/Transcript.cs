@@ -38,8 +38,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 			new Transcript(State.Clone());
 
 		public void Statement(Statement statement)
-			// TODO add enum for individual tags?
-			=> Statement(Encoding.UTF8.GetBytes("Unknown Proof Statement"), statement.PublicPoint, statement.Generators);
+			=> Statement(Encoding.UTF8.GetBytes("Unknown Proof Statement"), statement.PublicPoint, statement.Generators); // TODO add enum for individual tags?
 
 		public void Statement(byte[] tag, GroupElement publicPoint, params GroupElement[] generators)
 			=> Statement(tag, publicPoint, generators as IEnumerable<GroupElement>);
@@ -99,7 +98,6 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 
 		// generate Fiat Shamir challenges
 		public Scalar GenerateChallenge() =>
-			// generate a new scalar using current state as a seed
-			new Scalar(State.PRF());
+			new Scalar(State.PRF()); // generate a new scalar using current state as a seed
 	}
 }
