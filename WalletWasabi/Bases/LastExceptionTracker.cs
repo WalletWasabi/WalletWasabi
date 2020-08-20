@@ -17,8 +17,8 @@ namespace WalletWasabi.Bases
 		public void Process(Exception currentException) =>
 			LastException = LastException switch
 			{
-				{ ExceptionCount: 0 } => LastException.Is(currentException),
-				{ Exception: {} ex } when ex.GetType() == currentException.GetType() && ex.Message == currentException.Message => LastException.Again(),
+				{ ExceptionCount: 0 } => LastException.First(currentException),
+				{ Exception: {} ex } when ex.GetType() == currentException.GetType() && ex.Message == currentException.Message => LastException.Repeat(),
 				_ => LastException
 			};
 

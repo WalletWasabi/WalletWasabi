@@ -12,7 +12,7 @@ namespace WalletWasabi.Bases
 		}
 
 		public ExceptionInfo()
-			: this (new Exception(), DateTimeOffset.UtcNow, 0)
+			: this (new Exception(), firstAppeared: DateTimeOffset.UtcNow, count: 0)
 		{
 		}
 
@@ -20,10 +20,10 @@ namespace WalletWasabi.Bases
 		public long ExceptionCount { get; }
 		public DateTimeOffset FirstAppeared { get; }
 
-		public ExceptionInfo Is(Exception exception) =>
+		public ExceptionInfo First(Exception exception) =>
 			new ExceptionInfo(exception, DateTimeOffset.UtcNow, 1);
 
-		public ExceptionInfo Again() =>
+		public ExceptionInfo Repeat() =>
 			new ExceptionInfo(Exception, FirstAppeared, ExceptionCount + 1);
 	}
 }
