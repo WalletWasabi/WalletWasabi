@@ -88,7 +88,7 @@ namespace WalletWasabi.Helpers
 			return false;
 		}
 
-		public static bool TryPassword(KeyManager keyManager, string password, out string compatibilityPasswordUsed)
+		public static bool TryPassword(KeyManager keyManager, string password, out string? compatibilityPasswordUsed)
 		{
 			compatibilityPasswordUsed = null;
 			try
@@ -115,15 +115,15 @@ namespace WalletWasabi.Helpers
 			}
 		}
 
-		public static ExtKey GetMasterExtKey(KeyManager keyManager, string password, out string compatiblityPassword)
+		public static ExtKey GetMasterExtKey(KeyManager keyManager, string password, out string? compatiblityPassword)
 		{
-			password = Helpers.Guard.Correct(password); // Correct the password to ensure compatiblity. User will be notified about this through TogglePasswordBox.
+			password = Helpers.Guard.Correct(password); // Correct the password to ensure compatibility. User will be notified about this through TogglePasswordBox.
 
 			Guard(password);
 
 			compatiblityPassword = null;
 
-			Exception resultException = null;
+			Exception? resultException = null;
 
 			foreach (var pw in GetPossiblePasswords(password))
 			{
@@ -131,7 +131,8 @@ namespace WalletWasabi.Helpers
 				{
 					ExtKey result = keyManager.GetMasterExtKey(pw);
 
-					if (resultException != null) // Now the password is OK but if we had SecurityException before than we used a cmp password.
+					// Now the password is OK but if we had SecurityException before then we used a compatibility password.
+					if (resultException != null)
 					{
 						compatiblityPassword = pw;
 						Logger.LogError(CompatibilityPasswordWarnMessage);
