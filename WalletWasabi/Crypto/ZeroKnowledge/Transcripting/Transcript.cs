@@ -18,24 +18,24 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 	// parent object)
 	public class Transcript
 	{
-		private TranscriptState _state; // keeps a running hash of the transcript
-
 		public const string DomainSeparator = "WabiSabi v0.0";
 
 		// public constructor always adds domain separator
 		public Transcript()
 		{
-			_state = new TranscriptState(ByteHelpers.CombineHash(Encoding.UTF8.GetBytes(DomainSeparator)));
+			State = new TranscriptState(ByteHelpers.CombineHash(Encoding.UTF8.GetBytes(DomainSeparator)));
 		}
 
 		// private constructor used for cloning
 		private Transcript(TranscriptState state)
 		{
-			_state = state;
+			State = state;
 		}
 
+		private TranscriptState State { get; } // keeps a running hash of the transcript
+
 		public Transcript Clone() =>
-			new Transcript(_state.Clone());
+			new Transcript(State.Clone());
 
 		public void Statement(Statement statement)
 			// TODO add enum for individual tags?
@@ -49,9 +49,9 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 			var concatenation = generators.SelectMany(x => x.ToBytes());
 			var hash = ByteHelpers.CombineHash(BitConverter.GetBytes(tag.Length), tag, BitConverter.GetBytes(generators.Count()), concatenation.ToArray());
 
-			_state.AssociatedData(Encoding.UTF8.GetBytes("statement"));
-			_state.AssociatedData(hash);
-			_state.AssociatedData(publicPoint.ToBytes());
+			State.AssociatedData(Encoding.UTF8.GetBytes("statement"));
+			State.AssociatedData(hash);
+			State.AssociatedData(publicPoint.ToBytes());
 		}
 
 		public Scalar GenerateNonce(Scalar secret, WasabiRandom? random = null)
@@ -66,7 +66,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 			// generation, first clone the state at the current point in the
 			// transcript, which should already have the statement tag and public
 			// inputs committed.
-			var forked = _state.Clone();
+			var forked = State.Clone();
 
 			// add secret inputs as key material
 			forked.Key(secrets.SelectMany(x => x.ToBytes()).ToArray());
@@ -93,13 +93,13 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 		public void NonceCommitment(GroupElement nonce)
 		{
 			Guard.False($"{nameof(nonce)}.{nameof(nonce.IsInfinity)}", nonce.IsInfinity);
-			_state.AssociatedData(Encoding.UTF8.GetBytes("nonce commitment"));
-			_state.AssociatedData(nonce.ToBytes());
+			State.AssociatedData(Encoding.UTF8.GetBytes("nonce commitment"));
+			State.AssociatedData(nonce.ToBytes());
 		}
 
 		// generate Fiat Shamir challenges
 		public Scalar GenerateChallenge() =>
 			// generate a new scalar using current state as a seed
-			new Scalar(_state.PRF());
+			new Scalar(State.PRF());
 	}
 }
