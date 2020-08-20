@@ -50,6 +50,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			Assert.Equal(p.GenerateChallenge(), v.GenerateChallenge());
 		}
 
+		[Fact]
 		public void FiatShamirClone()
 		{
 			var tag = Encoding.UTF8.GetBytes("statement tag");
@@ -65,6 +66,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			Assert.Equal(a.GenerateChallenge(), b.GenerateChallenge());
 		}
 
+		[Fact]
 		public void FiatShamirNonces()
 		{
 			// ensure nonce generation does not cause divergence
@@ -91,6 +93,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			Assert.Equal(a.GenerateChallenge(), b.GenerateChallenge());
 		}
 
+		[Fact]
 		public void SyntheticNoncesSecretDependence()
 		{
 			var tag = Encoding.UTF8.GetBytes("statement tag");
@@ -113,6 +116,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			Assert.NotEqual(a.GenerateNonce(Scalar.Zero, mra), b.GenerateNonce(Scalar.One, mrb));
 		}
 
+		[Fact]
 		public void SyntheticNoncesPublicDependence()
 		{
 			var tag = Encoding.UTF8.GetBytes("statement tag");
@@ -132,6 +136,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			Assert.NotEqual(a.GenerateNonce(Scalar.One, mra), b.GenerateNonce(Scalar.One, mrb));
 		}
 
+		[Fact]
 		public void SyntheticNoncesGeneratorDependence()
 		{
 			var tag = Encoding.UTF8.GetBytes("statement tag");
@@ -151,6 +156,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			Assert.NotEqual(a.GenerateNonce(Scalar.One, mra), b.GenerateNonce(Scalar.One, mrb));
 		}
 
+		[Fact]
 		public void SyntheticNoncesStatementDependence()
 		{
 			var tag1 = Encoding.UTF8.GetBytes("statement tag");
