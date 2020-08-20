@@ -18,20 +18,20 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 	// parent object)
 	public class Transcript
 	{
-		private State state; // keeps a running hash of the transcript
+		private State _state; // keeps a running hash of the transcript
 
 		public const string DomainSeparator = "WabiSabi v0.0";
 
 		// public constructor always adds domain separator
 		public Transcript() =>
-			state = new State(Hash(Encoding.UTF8.GetBytes(DomainSeparator)));
+			_state = new State(Hash(Encoding.UTF8.GetBytes(DomainSeparator)));
 
 		// private constructor used for cloning
 		private Transcript(State state) =>
-			this.state = state;
+			_state = state;
 
 		public Transcript Clone() =>
-			new Transcript(this.state.Clone());
+			new Transcript(_state.Clone());
 
 		public void Statement(Statement statement)
 			// TODO add enum for individual tags?
@@ -45,14 +45,14 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			var concatenation = generators.SelectMany(x => x.ToBytes());
 			var hash = Hash(ByteHelpers.Combine(BitConverter.GetBytes(tag.Length), tag, BitConverter.GetBytes(generators.Count()), concatenation.ToArray()));
 
-			state.AssociatedData(Encoding.UTF8.GetBytes("statement"));
-			state.AssociatedData(hash);
-			state.AssociatedData(publicPoint.ToBytes());
+			_state.AssociatedData(Encoding.UTF8.GetBytes("statement"));
+			_state.AssociatedData(hash);
+			_state.AssociatedData(publicPoint.ToBytes());
 		}
 
 		public Scalar GenerateNonce(Scalar secret, WasabiRandom? random = null)
 		{
-			return this.GenerateNonces(new[] { secret }, random)[0];
+			return GenerateNonces(new[] { secret }, random)[0];
 		}
 
 		// generate synthetic nonce using current state combined with additional randomness
@@ -62,7 +62,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			// generation, first clone the state at the current point in the
 			// transcript, which should already have the statement tag and public
 			// inputs committed.
-			var forked = state.Clone();
+			var forked = _state.Clone();
 
 			// add secret inputs as key material
 			forked.Key(secrets.SelectMany(x => x.ToBytes()).ToArray());
@@ -89,14 +89,14 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		public void NonceCommitment(GroupElement nonce)
 		{
 			Guard.False($"{nameof(nonce)}.{nameof(nonce.IsInfinity)}", nonce.IsInfinity);
-			state.AssociatedData(Encoding.UTF8.GetBytes("nonce commitment"));
-			state.AssociatedData(nonce.ToBytes());
+			_state.AssociatedData(Encoding.UTF8.GetBytes("nonce commitment"));
+			_state.AssociatedData(nonce.ToBytes());
 		}
 
 		// generate Fiat Shamir challenges
 		public Scalar GenerateChallenge() =>
 			// generate a new scalar using current state as a seed
-			new Scalar(state.PRF());
+			new Scalar(_state.PRF());
 
 		private static byte[] Hash(params byte[][] data)
 		{
@@ -107,19 +107,19 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		// implements a stepping stone towards STROBE
 		private class State
 		{
-			private byte[] h;
+			private byte[] _h;
 
 			public State(byte[] initial) =>
-				h = initial;
+				_h = initial;
 
 			public State Clone() =>
-				new State(h);
+				new State(_h);
 
 			private void Absorb(StrobeFlags flags, byte[] data) =>
 				// modeled after Noise's MixHash operation, in line with reccomendation in
 				// per STROBE paper appendix B, for when not using a Sponge function.
 				// stepping stone towards STROBE with Keccak.
-				h = Hash(h, new[] { (byte)flags }, data);
+				_h = Hash(_h, new[] { (byte)flags }, data);
 
 			// Absorb arbitrary data into the state
 			public void AssociatedData(byte[] data) =>
@@ -130,13 +130,13 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			{
 				// is just sha256 enough here instead of HKDF?
 				// This only really has implications for synthetic nonces for the moment
-				using var hmac1 = new System.Security.Cryptography.HMACSHA256(h);
+				using var hmac1 = new System.Security.Cryptography.HMACSHA256(_h);
 				var key1 = hmac1.ComputeHash(newKeyMaterial);
 				using var hmac2 = new System.Security.Cryptography.HMACSHA256(key1);
 				var key2 = hmac2.ComputeHash(new byte[] { 0x01 }); // note this is just the first iteration of HKDF since there's no change in key size. could also use STROBE flags here?
 
 				// update state to HKDF output
-				h = key2;
+				_h = key2;
 				// should this Absorb instead?
 				//Absorb(StrobeFlags.A|StrobeFlags.C, key2);
 			}
@@ -147,7 +147,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				Absorb(StrobeFlags.I | StrobeFlags.A | StrobeFlags.C, new byte[0]);
 
 				// only produce chunks of 32 bytes for now
-				return Hash(h, Encoding.UTF8.GetBytes("PRF output"));
+				return Hash(_h, Encoding.UTF8.GetBytes("PRF output"));
 			}
 
 			private enum StrobeFlags
