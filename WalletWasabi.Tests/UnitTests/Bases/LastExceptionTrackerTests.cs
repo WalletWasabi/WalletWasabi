@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.Logging;
 using Xunit;
@@ -10,7 +11,7 @@ namespace WalletWasabi.Tests.UnitTests.Bases
 	public class LastExceptionTrackerTests
 	{
 		[Fact]
-		public void ProcessTest()
+		public async Task ProcessTestAsync()
 		{
 			var consoleOutput = Console.Out;
 			try
@@ -34,11 +35,13 @@ namespace WalletWasabi.Tests.UnitTests.Bases
 
 				// No more exceptions are comming
 				let.FinalizeExceptionsProcessing();
+				await Task.Delay(50);
 				Assert.Matches("It came for [^ ]+ seconds, 2 times: ArgumentOutOfRangeException", log.ToString());
 
 				// Different exception encountered.
 				let.Process(new NotImplementedException());
 				let.FinalizeExceptionsProcessing();
+				await Task.Delay(50);
 				Assert.Matches("It came for [^ ]+ seconds, 1 times: NotImplementedException", log.ToString());
 			}
 			finally
@@ -47,15 +50,6 @@ namespace WalletWasabi.Tests.UnitTests.Bases
 				Logger.SetMinimumLevel(LogLevel.Critical);
 				Console.SetOut(consoleOutput);
 			}
-/*
-			// Different exception encountered.
-			{
-				let.Process(new NotImplementedException());
-
-				Assert.IsType<NotImplementedException>(lastException.Exception);
-				Assert.Equal(1, lastException.ExceptionCount);
-			}
-			*/
 		}
 	}
 }
