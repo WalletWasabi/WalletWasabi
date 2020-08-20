@@ -100,8 +100,8 @@ namespace WalletWasabi.Gui
 			try
 			{
 				SetTheme();
-
-				MainWindowViewModel.Instance = new MainWindowViewModel(Global.Network, Global.UiConfig, Global.WalletManager, new StatusBarViewModel(), IoC.Get<IShell>());
+				var statusBarViewModel = new StatusBarViewModel(Global.DataDir, Global.Network, Global.Config, Global.HostedServices, Global.BitcoinStore, Global.LegalDocuments);
+				MainWindowViewModel.Instance = new MainWindowViewModel(Global.Network, Global.UiConfig, Global.WalletManager, statusBarViewModel, IoC.Get<IShell>());
 
 				await Global.InitializeNoWalletAsync();
 
