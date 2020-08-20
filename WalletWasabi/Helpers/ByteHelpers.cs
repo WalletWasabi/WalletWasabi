@@ -19,6 +19,15 @@ namespace System
 			return Combine(arrays.AsEnumerable());
 		}
 
+		/// <summary>
+		/// Combines and SHA256 hashes.
+		/// </summary>
+		public static byte[] CombineHash(params byte[][] data)
+		{
+			using var sha256 = SHA256.Create();
+			return sha256.ComputeHash(Combine(data));
+		}
+
 		public static byte[] Combine(IEnumerable<byte[]> arrays)
 		{
 			byte[] ret = new byte[arrays.Sum(x => x.Length)];

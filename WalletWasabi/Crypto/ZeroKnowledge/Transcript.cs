@@ -25,7 +25,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		// public constructor always adds domain separator
 		public Transcript()
 		{
-			_state = new State(Hash(Encoding.UTF8.GetBytes(DomainSeparator)));
+			_state = new State(ByteHelpers.CombineHash(Encoding.UTF8.GetBytes(DomainSeparator)));
 		}
 
 		// private constructor used for cloning
@@ -47,7 +47,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		public void Statement(byte[] tag, GroupElement publicPoint, IEnumerable<GroupElement> generators)
 		{
 			var concatenation = generators.SelectMany(x => x.ToBytes());
-			var hash = Hash(ByteHelpers.Combine(BitConverter.GetBytes(tag.Length), tag, BitConverter.GetBytes(generators.Count()), concatenation.ToArray()));
+			var hash = ByteHelpers.CombineHash(BitConverter.GetBytes(tag.Length), tag, BitConverter.GetBytes(generators.Count()), concatenation.ToArray());
 
 			_state.AssociatedData(Encoding.UTF8.GetBytes("statement"));
 			_state.AssociatedData(hash);
@@ -102,12 +102,6 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			// generate a new scalar using current state as a seed
 			new Scalar(_state.PRF());
 
-		private static byte[] Hash(params byte[][] data)
-		{
-			using var sha256 = System.Security.Cryptography.SHA256.Create();
-			return sha256.ComputeHash(ByteHelpers.Combine(data));
-		}
-
 		// implements a stepping stone towards STROBE
 		private class State
 		{
@@ -125,7 +119,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				// modeled after Noise's MixHash operation, in line with reccomendation in
 				// per STROBE paper appendix B, for when not using a Sponge function.
 				// stepping stone towards STROBE with Keccak.
-				_h = Hash(_h, new[] { (byte)flags }, data);
+				_h = ByteHelpers.CombineHash(_h, new[] { (byte)flags }, data);
 
 			// Absorb arbitrary data into the state
 			public void AssociatedData(byte[] data) =>
@@ -153,7 +147,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				Absorb(StrobeFlags.I | StrobeFlags.A | StrobeFlags.C, Array.Empty<byte>());
 
 				// only produce chunks of 32 bytes for now
-				return Hash(_h, Encoding.UTF8.GetBytes("PRF output"));
+				return ByteHelpers.CombineHash(_h, Encoding.UTF8.GetBytes("PRF output"));
 			}
 		}
 	}
