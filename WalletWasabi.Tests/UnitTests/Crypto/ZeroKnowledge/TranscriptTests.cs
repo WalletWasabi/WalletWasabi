@@ -16,8 +16,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		[Fact]
 		public void BuildThrows()
 		{
-			var tag = Encoding.UTF8.GetBytes("statement tag");
-
 			var t = new Transcript();
 
 			// Demonstrate when it shouldn't throw.
@@ -43,39 +41,32 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		[Fact]
 		public void FiatShamir()
 		{
-			Encoding.UTF8.GetBytes("statement tag");
+			var p = new Transcript().CommitToStatement(new Statement(Generators.G, Generators.Ga));
+			var nonce = p.GenerateNonce(Scalar.One);
 
-			var p = new Transcript();
-			p.CommitToStatement(new Statement(Generators.G, Generators.Ga));
-			p.GenerateNonce(Scalar.One);
-			p.NonceCommitment(Generators.Gg);
+			p = p.NonceCommitment(nonce * Generators.Gg);
 
-			var v = new Transcript();
-			v.CommitToStatement(new Statement(Generators.G, Generators.Ga));
-			v.NonceCommitment(Generators.Gg);
+			var v = new Transcript()
+				.CommitToStatement(new Statement(Generators.G, Generators.Ga))
+				.NonceCommitment(nonce * Generators.Gg);
 
-			Assert.Equal(p.GenerateChallenge().random, v.GenerateChallenge().random);
+			Assert.Equal(p.GenerateChallenge().challenge, v.GenerateChallenge().challenge);
 		}
 
 		[Fact]
 		public void FiatShamirClone()
 		{
-			Encoding.UTF8.GetBytes("statement tag");
-
 			var a = new Transcript().CommitToStatement(new Statement(Generators.G, Generators.Gh)); // set up some initial state
 
 			var b = a.CommitToStatement(new Statement(Generators.G, Generators.Ga));
 			var c = a.CommitToStatement(new Statement(Generators.G, Generators.Ga));
 
-			Assert.Equal(c.GenerateChallenge().random, b.GenerateChallenge().random);
+			Assert.Equal(c.GenerateChallenge().challenge, b.GenerateChallenge().challenge);
 		}
 
 		[Fact]
 		public void FiatShamirNonces()
 		{
-			// ensure nonce generation does not cause divergence
-			Encoding.UTF8.GetBytes("statement tag");
-
 			var a = new Transcript();
 			a.CommitToStatement(new Statement(Generators.G, Generators.Ga));
 
@@ -94,14 +85,12 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			mrb.GetBytesResults.Add(rnd2);
 
 			Assert.NotEqual(a.GenerateNonce(Scalar.One, mra), b.GenerateNonce(Scalar.One, mrb));
-			Assert.Equal(a.GenerateChallenge().random, b.GenerateChallenge().random);
+			Assert.Equal(a.GenerateChallenge().challenge, b.GenerateChallenge().challenge);
 		}
 
 		[Fact]
 		public void SyntheticNoncesSecretDependence()
 		{
-			Encoding.UTF8.GetBytes("statement tag");
-
 			var a = new Transcript();
 			a.CommitToStatement(new Statement(Generators.G, Generators.Ga));
 
@@ -123,8 +112,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		[Fact]
 		public void SyntheticNoncesPublicDependence()
 		{
-			Encoding.UTF8.GetBytes("statement tag");
-
 			var a = new Transcript().CommitToStatement(new Statement(Generators.G, Generators.Ga));
 
 			var mra = new MockRandom();
@@ -141,8 +128,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		[Fact]
 		public void SyntheticNoncesGeneratorDependence()
 		{
-			Encoding.UTF8.GetBytes("statement tag");
-
 			var a = new Transcript().CommitToStatement(new Statement(Generators.G, Generators.Ga));
 
 			var mra = new MockRandom();

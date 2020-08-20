@@ -42,7 +42,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 
 			// TODO SPLIT HERE
 
-			var challenge = t2.GenerateChallenge().random;
+			var challenge = t2.GenerateChallenge().challenge;
 
 			var responses = new List<Scalar>();
 			foreach (var (secret, randomScalar) in parameters.Secrets.ZipForceEqualLength(randomScalars))

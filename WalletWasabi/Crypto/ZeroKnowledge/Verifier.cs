@@ -30,7 +30,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				.CommitToStatement(statement)
 				.NonceCommitment(nonce)
 				.GenerateChallenge()
-				.random;
+				.challenge;
 
 			var a = challenge * publicPoint + nonce;
 

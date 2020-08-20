@@ -40,7 +40,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 
 			var challenge = transcript
 				.NonceCommitment(nonce)
-				.GenerateChallenge().random;
+				.GenerateChallenge().challenge;
 
 			var response = randomScalar + (secret + Scalar.One) * challenge;
 			var proof = new KnowledgeOfDlog(nonce, response);

@@ -62,7 +62,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 		}
 
 		// Generate pseudo random outputs from state
-		private (Transcript transcript, byte[] random) PRF()
+		private (Transcript transcript, byte[] challenge) PRF()
 		{
 			var absorbed = Absorb(StrobeFlags.I | StrobeFlags.A | StrobeFlags.C, Array.Empty<byte>());
 
@@ -118,7 +118,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 			{
 				var prf = forked.PRF();
 				forked = prf.transcript;
-				randomScalars[i] = new Scalar(prf.random);
+				randomScalars[i] = new Scalar(prf.challenge);
 			}
 
 			if (disposeRandom)
@@ -137,10 +137,10 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 		}
 
 		// generate Fiat Shamir challenges
-		public (Transcript transcript, Scalar random) GenerateChallenge()
+		public (Transcript transcript, Scalar challenge) GenerateChallenge()
 		{
 			var prf = PRF();
-			return (prf.transcript, new Scalar(prf.random)); // generate a new scalar using current state as a seed
+			return (prf.transcript, new Scalar(prf.challenge)); // generate a new scalar using current state as a seed
 		}
 	}
 }
