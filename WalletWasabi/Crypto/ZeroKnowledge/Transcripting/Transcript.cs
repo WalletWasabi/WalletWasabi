@@ -18,7 +18,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 	// parent object)
 	public class Transcript
 	{
-		public const string DomainSeparator = "WabiSabi_v0.0";
+		public const string DomainSeparator = "WabiSabi_v1.0";
 
 		// public constructor always adds domain separator
 		public Transcript()
