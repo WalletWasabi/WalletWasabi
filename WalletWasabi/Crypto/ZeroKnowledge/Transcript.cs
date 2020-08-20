@@ -40,7 +40,8 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		public void Statement(byte[] tag, GroupElement publicPoint, params GroupElement[] generators)
 			=> Statement(tag, publicPoint, generators as IEnumerable<GroupElement>);
 
-		public void Statement(byte[] tag, GroupElement publicPoint, IEnumerable<GroupElement> generators) {
+		public void Statement(byte[] tag, GroupElement publicPoint, IEnumerable<GroupElement> generators)
+		{
 			var concatenation = generators.SelectMany(x => x.ToBytes());
 			var hash = Hash(ByteHelpers.Combine(BitConverter.GetBytes(tag.Length), tag, BitConverter.GetBytes(generators.Count()), concatenation.ToArray()));
 
@@ -49,12 +50,14 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			state.AssociatedData(publicPoint.ToBytes());
 		}
 
-		public Scalar GenerateNonce(Scalar secret, WasabiRandom? random = null) {
+		public Scalar GenerateNonce(Scalar secret, WasabiRandom? random = null)
+		{
 			return this.GenerateNonces(new[] { secret }, random)[0];
 		}
 
 		// generate synthetic nonce using current state combined with additional randomness
-		public Scalar[] GenerateNonces(IEnumerable<Scalar> secrets, WasabiRandom? random = null) {
+		public Scalar[] GenerateNonces(IEnumerable<Scalar> secrets, WasabiRandom? random = null)
+		{
 			// to integrate prior inputs for deterministic component of nonce
 			// generation, first clone the state at the current point in the
 			// transcript, which should already have the statement tag and public
@@ -65,7 +68,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			forked.Key(secrets.SelectMany(x => x.ToBytes()).ToArray());
 
 			// get randomness from system if no random source specified
-			if (random is null )
+			if (random is null)
 			{
 				random = new SecureRandom();
 			}
@@ -75,7 +78,8 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 
 			// generate a new scalar for each secret using this updated state as a seed
 			var randomScalars = new Scalar[secrets.Count()];
-			for (var i = 0; i < secrets.Count(); i++) {
+			for (var i = 0; i < secrets.Count(); i++)
+			{
 				randomScalars[i] = new Scalar(forked.PRF());
 			}
 
@@ -129,7 +133,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				using var hmac1 = new System.Security.Cryptography.HMACSHA256(h);
 				var key1 = hmac1.ComputeHash(newKeyMaterial);
 				using var hmac2 = new System.Security.Cryptography.HMACSHA256(key1);
-				var key2 = hmac2.ComputeHash(new byte[]{ 0x01 }); // note this is just the first iteration of HKDF since there's no change in key size. could also use STROBE flags here?
+				var key2 = hmac2.ComputeHash(new byte[] { 0x01 }); // note this is just the first iteration of HKDF since there's no change in key size. could also use STROBE flags here?
 
 				// update state to HKDF output
 				h = key2;
