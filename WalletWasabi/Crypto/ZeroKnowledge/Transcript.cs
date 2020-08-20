@@ -23,12 +23,16 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		public const string DomainSeparator = "WabiSabi v0.0";
 
 		// public constructor always adds domain separator
-		public Transcript() =>
+		public Transcript()
+		{
 			_state = new State(Hash(Encoding.UTF8.GetBytes(DomainSeparator)));
+		}
 
 		// private constructor used for cloning
-		private Transcript(State state) =>
+		private Transcript(State state)
+		{
 			_state = state;
+		}
 
 		public Transcript Clone() =>
 			new Transcript(_state.Clone());
@@ -109,8 +113,10 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		{
 			private byte[] _h;
 
-			public State(byte[] initial) =>
+			public State(byte[] initial)
+			{
 				_h = initial;
+			}
 
 			public State Clone() =>
 				new State(_h);
@@ -144,7 +150,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			// Generate pseudo random outputs from state
 			public byte[] PRF()
 			{
-				Absorb(StrobeFlags.I | StrobeFlags.A | StrobeFlags.C, new byte[0]);
+				Absorb(StrobeFlags.I | StrobeFlags.A | StrobeFlags.C, Array.Empty<byte>());
 
 				// only produce chunks of 32 bytes for now
 				return Hash(_h, Encoding.UTF8.GetBytes("PRF output"));

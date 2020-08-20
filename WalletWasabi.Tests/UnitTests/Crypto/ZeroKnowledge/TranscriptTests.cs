@@ -36,11 +36,11 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		[Fact]
 		public void FiatShamir()
 		{
-			var tag = Encoding.UTF8.GetBytes("statement tag");
+			Encoding.UTF8.GetBytes("statement tag");
 
 			var p = new Transcript();
 			p.Statement(new Statement(Generators.G, Generators.Ga));
-			var c = p.GenerateNonce(Scalar.One);
+			p.GenerateNonce(Scalar.One);
 			p.NonceCommitment(Generators.Gg);
 
 			var v = new Transcript();
@@ -53,7 +53,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		[Fact]
 		public void FiatShamirClone()
 		{
-			var tag = Encoding.UTF8.GetBytes("statement tag");
+			Encoding.UTF8.GetBytes("statement tag");
 
 			var a = new Transcript();
 			a.Statement(new Statement(Generators.G)); // set up some initial state
@@ -70,7 +70,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		public void FiatShamirNonces()
 		{
 			// ensure nonce generation does not cause divergence
-			var tag = Encoding.UTF8.GetBytes("statement tag");
+			Encoding.UTF8.GetBytes("statement tag");
 
 			var a = new Transcript();
 			a.Statement(new Statement(Generators.G, Generators.Ga));
@@ -96,7 +96,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		[Fact]
 		public void SyntheticNoncesSecretDependence()
 		{
-			var tag = Encoding.UTF8.GetBytes("statement tag");
+			Encoding.UTF8.GetBytes("statement tag");
 
 			var a = new Transcript();
 			a.Statement(new Statement(Generators.G, Generators.Ga));
@@ -119,7 +119,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		[Fact]
 		public void SyntheticNoncesPublicDependence()
 		{
-			var tag = Encoding.UTF8.GetBytes("statement tag");
+			Encoding.UTF8.GetBytes("statement tag");
 
 			var a = new Transcript();
 			a.Statement(new Statement(Generators.G, Generators.Ga));
@@ -139,7 +139,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		[Fact]
 		public void SyntheticNoncesGeneratorDependence()
 		{
-			var tag = Encoding.UTF8.GetBytes("statement tag");
+			Encoding.UTF8.GetBytes("statement tag");
 
 			var a = new Transcript();
 			a.Statement(new Statement(Generators.G, Generators.Ga));
