@@ -1,4 +1,5 @@
 using System;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Bases
 {
@@ -7,36 +8,33 @@ namespace WalletWasabi.Bases
 	/// </summary>
 	public class LastExceptionTracker
 	{
-		public ExceptionInfo? LastException { get; set; }
+		private ExceptionInfo LastException { get; set; } = new ExceptionInfo();
 
 		/// <summary>
 		/// Process encountered exception and return the latest exception info.
 		/// </summary>
 		/// <returns>The latest exception.</returns>
-		public ExceptionInfo Process(Exception currentException)
-		{
-			// Only log one type of exception once.
-			if (LastException is { Exception: { } exception }
-				&& currentException.GetType() == exception.GetType()
-				&& currentException.Message == exception.Message)
+		public void Process(Exception currentException) =>
+			LastException = LastException switch
 			{
-				// Increment the counter.
-				LastException.ExceptionCount++;
-			}
-			else
-			{
-				LastException = new ExceptionInfo(currentException);
-			}
+				{ ExceptionCount: 0 } => LastException.Is(currentException),
+				{ Exception: {} ex } when ex.GetType() == currentException.GetType() && ex.Message == currentException.Message => LastException.Again(),
+				_ => LastException
+			};
 
-			return LastException!;
-		}
-
-		/// <summary>
-		/// Forget the latest exception.
-		/// </summary>
-		public void Reset()
+		public void FinalizeExceptionsProcessing()
 		{
-			LastException = null;
+			var info = LastException;
+
+			// Log previous exception if any.
+			if (info.ExceptionCount > 0)
+			{
+				Logger.LogInfo($"Exception stopped coming. It came for " +
+					$"{(DateTimeOffset.UtcNow - info.FirstAppeared).TotalSeconds} seconds, " +
+					$"{info.ExceptionCount} times: {info.Exception.ToTypeMessageString()}");
+
+				LastException = new ExceptionInfo();
+			}
 		}
 	}
 }

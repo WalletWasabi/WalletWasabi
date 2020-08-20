@@ -56,16 +56,7 @@ namespace WalletWasabi.Bases
 					// Do user action.
 					await ActionAsync(stoppingToken).ConfigureAwait(false);
 
-					ExceptionInfo? info = ExceptionTracker.LastException;
-
-					// Log previous exception if any.
-					if (info is { })
-					{
-						Logger.LogInfo($"Exception stopped coming. It came for " +
-							$"{(DateTimeOffset.UtcNow - info.FirstAppeared).TotalSeconds} seconds, " +
-							$"{info.ExceptionCount} times: {info.Exception.ToTypeMessageString()}");
-						ExceptionTracker.Reset();
-					}
+					ExceptionTracker.FinalizeExceptionsProcessing();
 				}
 				catch (Exception ex) when (ex is TaskCanceledException || ex is TimeoutException)
 				{
@@ -74,8 +65,8 @@ namespace WalletWasabi.Bases
 				catch (Exception ex)
 				{
 					// Exception encountered, process it.
-					ExceptionInfo info = ExceptionTracker.Process(ex);
-					Logger.LogError(info.Exception);
+					ExceptionTracker.Process(ex);
+					Logger.LogError(ex);
 				}
 
 				// Wait for the next round.
