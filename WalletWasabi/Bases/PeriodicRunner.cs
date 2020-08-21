@@ -1,46 +1,47 @@
 using Microsoft.Extensions.Hosting;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Bases
 {
+	/// <summary>
+	/// <see cref="PeriodicRunner"/> is an extension of <see cref="BackgroundService"/> that is useful for tasks
+	/// that are supposed to repeat regularly.
+	/// </summary>
 	public abstract class PeriodicRunner : BackgroundService
 	{
+		private volatile TaskCompletionSource<bool>? _tcs;
+
 		protected PeriodicRunner(TimeSpan period)
 		{
-			TriggeringCts = new CancellationTokenSource();
-			TriggerLock = new object();
 			Period = period;
-			ResetLastException();
+			ExceptionTracker = new LastExceptionTracker();
 		}
 
-		private CancellationTokenSource TriggeringCts { get; set; }
-		private object TriggerLock { get; }
 		public TimeSpan Period { get; }
-		public Exception LastException { get; set; }
-		public long LastExceptionCount { get; set; }
-		public DateTimeOffset LastExceptionFirstAppeared { get; set; }
 
-		private void ResetLastException()
-		{
-			LastException = null;
-			LastExceptionCount = 0;
-			LastExceptionFirstAppeared = DateTimeOffset.MinValue;
-		}
+		private LastExceptionTracker ExceptionTracker { get; }
 
+		/// <summary>
+		/// Normally, <see cref="ActionAsync(CancellationToken)"/> user-action is called every time that <see cref="Period"/> elapses.
+		/// This method allows to expedite the process by interrupting the waiting process.
+		/// </summary>
+		/// <remarks>
+		/// If <see cref="ExecuteAsync(CancellationToken)"/> is not actually in waiting phase, this method call makes
+		/// sure that next waiting process will be omitted altogether.
+		/// <para>Note that when the <see cref="PeriodicRunner"/> has not been started, this call is ignored.</para>
+		/// </remarks>
 		public void TriggerRound()
 		{
-			lock (TriggerLock)
-			{
-				TriggeringCts?.Cancel();
-			}
+			// Note: All members of TaskCompletionSource<TResult> are thread-safe and may be used from multiple threads concurrently.
+			_tcs?.TrySetResult(true);
 		}
 
+		/// <summary>
+		/// Abstract method that is called every <see cref="Period"/> or sooner when <see cref="TriggerRound"/> is called.
+		/// </summary>
 		protected abstract Task ActionAsync(CancellationToken cancel);
 
 		/// <inheritdoc />
@@ -48,85 +49,55 @@ namespace WalletWasabi.Bases
 		{
 			while (!stoppingToken.IsCancellationRequested)
 			{
+				_tcs = new TaskCompletionSource<bool>();
+
 				try
 				{
+					// Do user action.
 					await ActionAsync(stoppingToken).ConfigureAwait(false);
-					LogAndResetLastExceptionIfNotNull();
+
+					ExceptionInfo? info = ExceptionTracker.LastException;
+
+					// Log previous exception if any.
+					if (info is { })
+					{
+						Logger.LogInfo($"Exception stopped coming. It came for " +
+							$"{(DateTimeOffset.UtcNow - info.FirstAppeared).TotalSeconds} seconds, " +
+							$"{info.ExceptionCount} times: {info.Exception.ToTypeMessageString()}");
+						ExceptionTracker.Reset();
+					}
 				}
-				catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
+				catch (Exception ex) when (ex is TaskCanceledException || ex is TimeoutException)
 				{
 					Logger.LogTrace(ex);
 				}
 				catch (Exception ex)
 				{
-					// Only log one type of exception once.
-					if (LastException is null // If the exception never came.
-						|| ex.GetType() != LastException.GetType() // Or the exception have different type from previous exception.
-						|| ex.Message != LastException.Message) // Or the exception have different message from previous exception.
+					// Exception encountered, process it.
+					ExceptionInfo info = ExceptionTracker.Process(ex);
+					Logger.LogError(info.Exception);
+				}
+
+				// Wait for the next round.
+				try
+				{
+					using var cts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
+					var linkedTcs = _tcs; // Copy reference so it cannot change.
+
+					if (linkedTcs.Task == await Task.WhenAny(linkedTcs.Task, Task.Delay(Period, cts.Token)).ConfigureAwait(false))
 					{
-						// Then log and reset the last exception if another one came before.
-						LogAndResetLastExceptionIfNotNull();
-						// Set new exception and log it.
-						LastException = ex;
-						LastExceptionFirstAppeared = DateTimeOffset.UtcNow;
-						LastExceptionCount = 1;
-						Logger.LogError(ex);
+						cts.Cancel(); // Ensure that the Task.Delay task is cleaned up.
 					}
 					else
 					{
-						// Increment the exception counter.
-						LastExceptionCount++;
+						linkedTcs.TrySetCanceled(); // Ensure that the tcs.Task is cleaned up.
 					}
 				}
-				finally
+				catch (TaskCanceledException ex)
 				{
-					try
-					{
-						CancellationToken? triggeringToken = null;
-						lock (TriggerLock)
-						{
-							triggeringToken = TriggeringCts?.Token;
-						}
-						if (triggeringToken is { })
-						{
-							using var linked = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, triggeringToken.Value);
-							await Task.Delay(Period, linked.Token).ConfigureAwait(false);
-						}
-					}
-					catch (TaskCanceledException ex)
-					{
-						Logger.LogTrace(ex);
-					}
-					finally
-					{
-						lock (TriggerLock)
-						{
-							if (TriggeringCts?.IsCancellationRequested is true)
-							{
-								TriggeringCts?.Dispose();
-								TriggeringCts = new CancellationTokenSource();
-							}
-						}
-					}
+					Logger.LogTrace(ex);
 				}
 			}
-		}
-
-		private void LogAndResetLastExceptionIfNotNull()
-		{
-			if (LastException != null)
-			{
-				Logger.LogInfo($"Exception stopped coming. It came for {(DateTimeOffset.UtcNow - LastExceptionFirstAppeared).TotalSeconds} seconds, {LastExceptionCount} times: {LastException.ToTypeMessageString()}");
-				ResetLastException();
-			}
-		}
-
-		public override void Dispose()
-		{
-			TriggeringCts?.Dispose();
-			TriggeringCts = null;
-
-			base.Dispose();
 		}
 	}
 }
