@@ -25,7 +25,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 
 			var statement = new Statement(publicPoint, generator);
 
-			var transcript = new Transcript().CommitToStatement(statement);
+			var transcript = new Transcript().Commit(statement);
 
 			var mockRandom = new MockRandom();
 			mockRandom.GetBytesResults.Add(new byte[32]);
@@ -39,7 +39,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var nonce = randomScalar * generator;
 
 			var challenge = transcript
-				.NonceCommitment(nonce)
+				.Commit(nonce)
 				.GenerateChallenge().challenge;
 
 			var response = randomScalar + (secret + Scalar.One) * challenge;

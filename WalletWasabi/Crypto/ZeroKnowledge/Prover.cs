@@ -15,7 +15,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		public static KnowledgeOfRep CreateProof(Transcript transcript, KnowledgeOfRepParams parameters, WasabiRandom? random = null)
 		{
 			var statement = parameters.Statement;
-			var t1 = transcript.CommitToStatement(statement);
+			var t1 = transcript.Commit(statement);
 
 			var nonce = GroupElement.Infinity;
 			var randomScalars = transcript.GenerateNonces(parameters.Secrets, random);
@@ -24,7 +24,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				var randomPoint = randomScalar * generator;
 				nonce += randomPoint;
 			}
-			var t2 = t1.NonceCommitment(nonce);
+			var t2 = t1.Commit(nonce);
 
 			var challenge = t2.GenerateChallenge().challenge;
 

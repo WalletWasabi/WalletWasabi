@@ -77,13 +77,13 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 			return (absorbed, ByteHelpers.CombineHash(absorbed.Hash, Encoding.UTF8.GetBytes("prf_output")));
 		}
 
-		public Transcript CommitToStatement(Statement statement)
-			=> CommitToStatement(Encoding.UTF8.GetBytes("unknown_proof_statement"), statement.PublicPoint, statement.Generators); // TODO add enum for individual tags?
+		public Transcript Commit(Statement statement)
+			=> Commit(Encoding.UTF8.GetBytes("unknown_proof_statement"), statement.PublicPoint, statement.Generators); // TODO add enum for individual tags?
 
-		public Transcript CommitToStatement(byte[] tag, GroupElement publicPoint, params GroupElement[] generators)
-			=> CommitToStatement(tag, publicPoint, generators as IEnumerable<GroupElement>);
+		public Transcript Commit(byte[] tag, GroupElement publicPoint, params GroupElement[] generators)
+			=> Commit(tag, publicPoint, generators as IEnumerable<GroupElement>);
 
-		public Transcript CommitToStatement(byte[] tag, GroupElement publicPoint, IEnumerable<GroupElement> generators)
+		public Transcript Commit(byte[] tag, GroupElement publicPoint, IEnumerable<GroupElement> generators)
 		{
 			var concatenation = generators.SelectMany(x => x.ToBytes());
 			var hash = ByteHelpers.CombineHash(BitConverter.GetBytes(tag.Length), tag, BitConverter.GetBytes(generators.Count()), concatenation.ToArray());
@@ -136,7 +136,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 			return randomScalars;
 		}
 
-		public Transcript NonceCommitment(GroupElement nonce)
+		public Transcript Commit(GroupElement nonce)
 		{
 			Guard.False($"{nameof(nonce)}.{nameof(nonce.IsInfinity)}", nonce.IsInfinity);
 			return AssociatedData(Encoding.UTF8.GetBytes("nonce_commitment"))

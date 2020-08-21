@@ -22,8 +22,8 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			var responses = proof.Responses;
 
 			var challenge = transcript
-				.CommitToStatement(statement)
-				.NonceCommitment(nonce)
+				.Commit(statement)
+				.Commit(nonce)
 				.GenerateChallenge()
 				.challenge;
 
