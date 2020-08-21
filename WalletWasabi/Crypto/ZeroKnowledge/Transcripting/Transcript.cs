@@ -87,6 +87,13 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 				.AssociatedData(statement.PublicPoint.ToBytes());
 		}
 
+		public Transcript Commit(GroupElement nonce)
+		{
+			Guard.False($"{nameof(nonce)}.{nameof(nonce.IsInfinity)}", nonce.IsInfinity);
+			return AssociatedData(Encoding.UTF8.GetBytes("nonce"))
+				.AssociatedData(nonce.ToBytes());
+		}
+
 		/// <summary>
 		/// Generate synthetic nonce using current state combined with additional randomness.
 		/// </summary>
@@ -131,13 +138,6 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 			}
 
 			return randomScalars;
-		}
-
-		public Transcript Commit(GroupElement nonce)
-		{
-			Guard.False($"{nameof(nonce)}.{nameof(nonce.IsInfinity)}", nonce.IsInfinity);
-			return AssociatedData(Encoding.UTF8.GetBytes("nonce_commitment"))
-				.AssociatedData(nonce.ToBytes());
 		}
 
 		/// <summary>
