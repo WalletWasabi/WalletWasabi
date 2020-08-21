@@ -29,8 +29,6 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			var statement = parameters.Statement;
 			var t1 = transcript.CommitToStatement(statement);
 
-			// TODO SPLIT HERE
-
 			var nonce = GroupElement.Infinity;
 			var randomScalars = transcript.GenerateNonces(parameters.Secrets, random);
 			foreach (var (randomScalar, generator) in randomScalars.ZipForceEqualLength<Scalar, GroupElement>(parameters.Statement.Generators))
@@ -39,8 +37,6 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				nonce += randomPoint;
 			}
 			var t2 = t1.NonceCommitment(nonce);
-
-			// TODO SPLIT HERE
 
 			var challenge = t2.GenerateChallenge().challenge;
 

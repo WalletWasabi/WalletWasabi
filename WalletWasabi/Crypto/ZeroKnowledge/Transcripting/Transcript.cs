@@ -11,22 +11,21 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 {
 	// High level API for transcripts of compound Sigma protocol style proofs
 	// implements synthetic nonces and Fiat-Shamir challenges
-	//
-	// in the future there should be multiple Transcripts sharing a single state,
+	// If needed there could be multiple Transcripts sharing a single state,
 	// each enforcing a state machine for every sub-proof (statement identifier,
 	// public inputs, nonce generation, challenge, responses, synchronized by some
-	// parent object)
+	// parent object.)
 	public class Transcript
 	{
 		public const string DomainSeparator = "WabiSabi v0.0";
 
-		// public constructor always adds domain separator
+		// Public constructor always adds domain separator.
 		public Transcript()
 		{
 			Hash = ByteHelpers.CombineHash(Encoding.UTF8.GetBytes(DomainSeparator));
 		}
 
-		// private constructor used for cloning
+		// Private constructor used for cloning.
 		public Transcript(byte[] hash)
 		{
 			Guard.Same($"{nameof(hash)}{nameof(hash).Length}", 32, hash.Length);
@@ -35,38 +34,45 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 
 		private byte[] Hash { get; }
 
+		/// <summary>
+		/// Modeled after Noise's MixHash operation, in line with reccomendation in
+		/// per STROBE paper appendix B, for when not using a Sponge function.
+		/// stepping stone towards STROBE with Keccak.
+		/// </summary>
 		private Transcript Absorb(StrobeFlags flags, byte[] data) =>
-			// modeled after Noise's MixHash operation, in line with reccomendation in
-			// per STROBE paper appendix B, for when not using a Sponge function.
-			// stepping stone towards STROBE with Keccak.
 			new Transcript(ByteHelpers.CombineHash(Hash, new[] { (byte)flags }, data));
 
-		// Absorb arbitrary data into the state
+		/// <summary>
+		/// Absorb arbitrary data into the state.
+		/// </summary>
 		private Transcript AssociatedData(byte[] data) =>
 			Absorb(StrobeFlags.A, data);
 
-		// Absorb key material into the state
+		/// <summary>
+		/// Absorb key material into the state.
+		/// </summary>
 		private Transcript Key(byte[] newKeyMaterial)
 		{
-			// is just sha256 enough here instead of HKDF?
-			// This only really has implications for synthetic nonces for the moment
+			// Is just sha256 enough here instead of HKDF?
+			// This only really has implications for synthetic nonces for the moment.
 			using var hmac1 = new System.Security.Cryptography.HMACSHA256(Hash);
 			var key1 = hmac1.ComputeHash(newKeyMaterial);
 			using var hmac2 = new System.Security.Cryptography.HMACSHA256(key1);
-			var key2 = hmac2.ComputeHash(new byte[] { 0x01 }); // note this is just the first iteration of HKDF since there's no change in key size. could also use STROBE flags here?
+			// Note this is just the first iteration of HKDF since there's no change in key size. could also use STROBE flags here?
+			var key2 = hmac2.ComputeHash(new byte[] { 0x01 });
 
-			// update state to HKDF output
+			// Update state to HKDF output.
 			return new Transcript(key2);
-			// should this Absorb instead?
-			//Absorb(StrobeFlags.A|StrobeFlags.C, key2);
+			// Should this Absorb instead?
+			// Absorb(StrobeFlags.A|StrobeFlags.C, key2);
 		}
 
-		// Generate pseudo random outputs from state
+		// Generate pseudo random outputs from state.
 		private (Transcript transcript, byte[] challenge) PRF()
 		{
 			var absorbed = Absorb(StrobeFlags.I | StrobeFlags.A | StrobeFlags.C, Array.Empty<byte>());
 
-			// only produce chunks of 32 bytes for now
+			// Only produce chunks of 32 bytes for now.
 			return (absorbed, ByteHelpers.CombineHash(absorbed.Hash, Encoding.UTF8.GetBytes("PRF output")));
 		}
 
@@ -91,17 +97,17 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 			return GenerateNonces(new[] { secret }, random)[0];
 		}
 
-		// generate synthetic nonce using current state combined with additional randomness
+		// Generate synthetic nonce using current state combined with additional randomness.
 		public Scalar[] GenerateNonces(IEnumerable<Scalar> secrets, WasabiRandom? random = null)
 		{
-			// to integrate prior inputs for deterministic component of nonce
+			// To integrate prior inputs for deterministic component of nonce
 			// generation, first clone the state at the current point in the
 			// transcript, which should already have the statement tag and public
 			// inputs committed.
-			// add secret inputs as key material
+			// Add secret inputs as key material.
 			var forked = Key(secrets.SelectMany(x => x.ToBytes()).ToArray());
 
-			// get randomness from system if no random source specified
+			// Get randomness from system if no random source specified.
 			var disposeRandom = false;
 			if (random is null)
 			{
@@ -109,10 +115,10 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 				disposeRandom = true;
 			}
 
-			// add additional randomness as associated data
+			// Add additional randomness as associated data.
 			forked = forked.AssociatedData(random.GetBytes(32));
 
-			// generate a new scalar for each secret using this updated state as a seed
+			// Generate a new scalar for each secret using this updated state as a seed.
 			var randomScalars = new Scalar[secrets.Count()];
 			for (var i = 0; i < secrets.Count(); i++)
 			{
@@ -136,7 +142,9 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 				.AssociatedData(nonce.ToBytes());
 		}
 
-		// generate Fiat Shamir challenges
+		/// <summary>
+		/// Generate Fiat Shamir challenges.
+		/// </summary>
 		public (Transcript transcript, Scalar challenge) GenerateChallenge()
 		{
 			var prf = PRF();

@@ -89,7 +89,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		[Fact]
 		public void BuildChallenge()
 		{
-			// Mostly superseded by transcript tests, can be removed apart from test vectors
+			// Mostly superseded by transcript tests, can be removed apart from test vectors.
 			var mockRandom = new MockRandom();
 			mockRandom.GetBytesResults.Add(new byte[32]);
 			mockRandom.GetBytesResults.Add(new byte[32]);

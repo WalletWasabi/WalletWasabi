@@ -31,7 +31,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			mockRandom.GetBytesResults.Add(new byte[32]);
 			var randomScalar = transcript.GenerateNonce(secret, mockRandom);
 
-			// synthetic nonce should still include a hash of the state
+			// Synthetic nonce should still include a hash of the state.
 			Assert.NotEqual(randomScalar, Scalar.Zero);
 			Assert.NotEqual(randomScalar, Scalar.One);
 			Assert.NotEqual(randomScalar, secret);
