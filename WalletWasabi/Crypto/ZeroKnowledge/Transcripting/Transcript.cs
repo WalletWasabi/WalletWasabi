@@ -72,7 +72,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 			var absorbed = Absorb(StrobeFlags.I | StrobeFlags.A | StrobeFlags.C, Array.Empty<byte>());
 
 			// Only produce chunks of 32 bytes for now.
-			return (absorbed, ByteHelpers.CombineHash(absorbed.Hash, Encoding.UTF8.GetBytes("PRF output")));
+			return (absorbed, ByteHelpers.CombineHash(absorbed.Hash, Encoding.UTF8.GetBytes("prf_output")));
 		}
 
 		public Transcript CommitToStatement(Statement statement)

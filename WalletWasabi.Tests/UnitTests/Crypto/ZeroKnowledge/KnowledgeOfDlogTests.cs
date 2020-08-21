@@ -106,7 +106,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 				.NonceCommitment(nonce)
 				.GenerateChallenge()
 				.challenge;
-			Assert.Equal("secp256k1_scalar  = { 0x366EA32EUL, 0xF17B8A20UL, 0xE8D4C22DUL, 0x1A601DAFUL, 0xF240A50CUL, 0x12CDF005UL, 0xF04FCEFCUL, 0xFC4B70D3UL }", challenge.ToC(""));
+			Assert.Equal("secp256k1_scalar  = { 0x37D36429UL, 0x8EE0695FUL, 0x2F64F636UL, 0x15A0C0EDUL, 0x42181802UL, 0x14AC3251UL, 0xA42741DAUL, 0x83A2620FUL }", challenge.ToC(""));
 
 			publicPoint = Generators.G;
 			nonce = point2;
@@ -115,7 +115,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 				.NonceCommitment(nonce)
 				.GenerateChallenge()
 				.challenge;
-			Assert.Equal("secp256k1_scalar  = { 0xB8A1ADADUL, 0xD33B6BFEUL, 0x9F3353C3UL, 0x3BFE6AEEUL, 0xDE0769C2UL, 0x36DB9527UL, 0x7954F334UL, 0x591EBDA6UL }", challenge.ToC(""));
+			Assert.Equal("secp256k1_scalar  = { 0x178CFC8EUL, 0xFF981131UL, 0x4AA2BBB3UL, 0xF54A92C9UL, 0x26771AC7UL, 0x350C98E2UL, 0x85018A7CUL, 0x6AC6F364UL }", challenge.ToC(""));
 
 			publicPoint = point1;
 			nonce = point2;
@@ -124,7 +124,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 				.NonceCommitment(nonce)
 				.GenerateChallenge()
 				.challenge;
-			Assert.Equal("secp256k1_scalar  = { 0xBF5A84E4UL, 0xE1E6D5EEUL, 0xD7473C55UL, 0x536B34A7UL, 0xC6435F50UL, 0xE5D7FA77UL, 0xE8E3C8B5UL, 0x84DC7BB2UL }", challenge.ToC(""));
+			Assert.Equal("secp256k1_scalar  = { 0xBE4B4367UL, 0x71241F2CUL, 0x6AD2D560UL, 0x7C9D0302UL, 0xD88214D9UL, 0x26B83492UL, 0xC0FE35A7UL, 0x8BAAF659UL }", challenge.ToC(""));
 		}
 
 		[Fact]
