@@ -8,9 +8,9 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge
 {
-	public class KnowledgeOfDiscreteLog : KnowledgeOfRepresentation
+	public class KnowledgeOfDlog : KnowledgeOfRep
 	{
-		public KnowledgeOfDiscreteLog(GroupElement nonce, Scalar response)
+		public KnowledgeOfDlog(GroupElement nonce, Scalar response)
 			: base(nonce, new[] { response })
 
 		{

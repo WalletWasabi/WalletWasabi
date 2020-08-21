@@ -470,7 +470,7 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private void WalletManager_OnDequeue(object sender, DequeueResult e)
+		private void WalletManager_OnDequeue(object? sender, DequeueResult e)
 		{
 			try
 			{
@@ -506,7 +506,7 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private void WalletManager_WalletRelevantTransactionProcessed(object sender, ProcessedResult e)
+		private void WalletManager_WalletRelevantTransactionProcessed(object? sender, ProcessedResult e)
 		{
 			try
 			{
