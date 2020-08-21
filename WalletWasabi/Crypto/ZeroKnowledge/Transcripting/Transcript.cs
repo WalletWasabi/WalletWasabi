@@ -19,14 +19,13 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 	{
 		public const string DomainSeparator = "WabiSabi v0.0";
 
-		// Public constructor always adds domain separator.
+		// Default constructor always adds domain separator.
 		public Transcript()
 		{
 			Hash = ByteHelpers.CombineHash(Encoding.UTF8.GetBytes(DomainSeparator));
 		}
 
-		// Private constructor used for cloning.
-		public Transcript(byte[] hash)
+		private Transcript(byte[] hash)
 		{
 			Guard.Same($"{nameof(hash)}{nameof(hash).Length}", 32, hash.Length);
 			Hash = hash;
@@ -150,5 +149,9 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 			var prf = PRF();
 			return (prf.transcript, new Scalar(prf.challenge)); // generate a new scalar using current state as a seed
 		}
+
+		public byte[] ToBytes() => Hash;
+
+		public static Transcript FromBytes(byte[] bytes) => new Transcript(bytes);
 	}
 }

@@ -31,11 +31,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			Assert.ThrowsAny<ArgumentException>(() => t.CommitToStatement(new Statement(Generators.G, GroupElement.Infinity, Generators.Gg, Generators.Gh)));
 			Assert.ThrowsAny<ArgumentException>(() => t.CommitToStatement(new Statement(Generators.G, Generators.Ga, GroupElement.Infinity, Generators.Gh)));
 			Assert.ThrowsAny<ArgumentException>(() => t.CommitToStatement(new Statement(Generators.G, Generators.Ga, Generators.Gg, GroupElement.Infinity)));
-
-			// Hash must be 32 bytes.
-			new Transcript(Enumerable.Repeat((byte)0, 32).ToArray());
-			Assert.ThrowsAny<ArgumentException>(() => new Transcript(Enumerable.Repeat((byte)0, 33).ToArray()));
-			Assert.ThrowsAny<ArgumentException>(() => new Transcript(Enumerable.Repeat((byte)0, 31).ToArray()));
 		}
 
 		[Fact]
@@ -158,6 +153,20 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			mrb.GetBytesResults.Add(new byte[32]);
 
 			Assert.NotEqual(a.GenerateNonce(Scalar.One, mra), b.GenerateNonce(Scalar.One, mrb));
+		}
+
+		[Fact]
+		public void Serialization()
+		{
+			// Hash must be 32 bytes.
+			Assert.ThrowsAny<ArgumentException>(() => Transcript.FromBytes(Enumerable.Repeat((byte)0, 33).ToArray()));
+			Assert.ThrowsAny<ArgumentException>(() => Transcript.FromBytes(Enumerable.Repeat((byte)0, 31).ToArray()));
+
+			byte[] feed = Enumerable.Repeat((byte)0, 32).ToArray();
+			var ts = Transcript.FromBytes(feed);
+			var bytes = ts.ToBytes();
+
+			Assert.Equal(feed, bytes);
 		}
 	}
 }
