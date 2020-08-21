@@ -56,7 +56,11 @@ namespace WalletWasabi.Bases
 					// Do user action.
 					await ActionAsync(stoppingToken).ConfigureAwait(false);
 
-					ExceptionTracker.FinalizeExceptionsProcessing();
+					var loggableExceptionsSummary = ExceptionTracker.FinalizeExceptionsProcessing();
+					if (!string.IsNullOrWhiteSpace(loggableExceptionsSummary) )
+					{
+						Logger.LogInfo(loggableExceptionsSummary);
+					}
 				}
 				catch (Exception ex) when (ex is TaskCanceledException || ex is TimeoutException)
 				{

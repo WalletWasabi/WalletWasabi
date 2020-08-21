@@ -22,14 +22,15 @@ namespace WalletWasabi.Bases
 				_ => LastException
 			};
 
-		public void FinalizeExceptionsProcessing()
+		public string FinalizeExceptionsProcessing()
 		{
-			// Log previous exception if any.
 			if (LastException.ExceptionCount > 0)
 			{
-				Logger.LogInfo(LastException.ToString());
+				var msg = LastException.ToString();
 				LastException = new ExceptionInfo();
+				return msg;
 			}
+			return "";
 		}
 	}
 }

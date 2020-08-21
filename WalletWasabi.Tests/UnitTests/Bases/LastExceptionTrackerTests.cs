@@ -13,43 +13,21 @@ namespace WalletWasabi.Tests.UnitTests.Bases
 		[Fact]
 		public void ProcessTest()
 		{
-			var consoleOutput = Console.Out;
-			try
-			{
-				Logger.SetModes(LogMode.Console);
-				Logger.SetMinimumLevel(LogLevel.Info);
+			var let = new LastExceptionTracker();
 
-				var log = new StringBuilder();
-				using var writer = new StringWriter(log);
-				Console.SetOut(writer);
+			// No exception happened
+			Assert.Empty(let.FinalizeExceptionsProcessing());
+			Assert.Empty(let.FinalizeExceptionsProcessing());
 
-				var let = new LastExceptionTracker();
+			// Same exception encountered.
+			let.Process(new InvalidOperationException());
+			Assert.Matches("It came for [^ ]+ seconds, 1 times: InvalidOperationException", let.FinalizeExceptionsProcessing());
 
-				// Process first exception to process.
-				let.Process(new ArgumentOutOfRangeException());
-				Assert.Empty(log.ToString());
-
-				// Same exception encountered.
-				let.Process(new ArgumentOutOfRangeException());
-				Assert.Empty(log.ToString());
-
-				// No more exceptions are comming
-				let.FinalizeExceptionsProcessing();
-				writer.Flush();
-				Assert.Matches("It came for [^ ]+ seconds, 2 times: ArgumentOutOfRangeException", log.ToString());
-
-				// Different exception encountered.
-				let.Process(new NotImplementedException());
-				let.FinalizeExceptionsProcessing();
-				writer.Flush();
-				Assert.Matches("It came for [^ ]+ seconds, 1 times: NotImplementedException", log.ToString());
-			}
-			finally
-			{
-				Logger.SetModes();
-				Logger.SetMinimumLevel(LogLevel.Critical);
-				Console.SetOut(consoleOutput);
-			}
+			// Same exception encountered.
+			let.Process(new ArgumentOutOfRangeException());
+			let.Process(new ArgumentOutOfRangeException());
+			Assert.Matches("It came for [^ ]+ seconds, 2 times: ArgumentOutOfRangeException", let.FinalizeExceptionsProcessing());
+			Assert.Empty(let.FinalizeExceptionsProcessing());
 		}
 	}
 }
