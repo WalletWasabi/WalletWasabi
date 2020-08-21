@@ -11,7 +11,7 @@ namespace WalletWasabi.Tests.UnitTests.Bases
 	public class LastExceptionTrackerTests
 	{
 		[Fact]
-		public async Task ProcessTestAsync()
+		public void ProcessTest()
 		{
 			var consoleOutput = Console.Out;
 			try
@@ -35,13 +35,13 @@ namespace WalletWasabi.Tests.UnitTests.Bases
 
 				// No more exceptions are comming
 				let.FinalizeExceptionsProcessing();
-				await Task.Delay(50);
+				writer.Flush();
 				Assert.Matches("It came for [^ ]+ seconds, 2 times: ArgumentOutOfRangeException", log.ToString());
 
 				// Different exception encountered.
 				let.Process(new NotImplementedException());
 				let.FinalizeExceptionsProcessing();
-				await Task.Delay(50);
+				writer.Flush();
 				Assert.Matches("It came for [^ ]+ seconds, 1 times: NotImplementedException", log.ToString());
 			}
 			finally
