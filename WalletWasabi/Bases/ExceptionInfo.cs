@@ -25,5 +25,10 @@ namespace WalletWasabi.Bases
 
 		public ExceptionInfo Repeat() =>
 			new ExceptionInfo(Exception, FirstAppeared, ExceptionCount + 1);
+
+		public override string ToString() =>
+			$"Exception stopped coming. It came for " +
+			$"{(DateTimeOffset.UtcNow - FirstAppeared).TotalSeconds} seconds, " +
+			$"{ExceptionCount} times: {Exception.ToTypeMessageString()}";
 	}
 }

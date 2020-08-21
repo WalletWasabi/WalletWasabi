@@ -24,15 +24,10 @@ namespace WalletWasabi.Bases
 
 		public void FinalizeExceptionsProcessing()
 		{
-			var info = LastException;
-
 			// Log previous exception if any.
-			if (info.ExceptionCount > 0)
+			if (LastException.ExceptionCount > 0)
 			{
-				Logger.LogInfo($"Exception stopped coming. It came for " +
-					$"{(DateTimeOffset.UtcNow - info.FirstAppeared).TotalSeconds} seconds, " +
-					$"{info.ExceptionCount} times: {info.Exception.ToTypeMessageString()}");
-
+				Logger.LogInfo(LastException.ToString());
 				LastException = new ExceptionInfo();
 			}
 		}
