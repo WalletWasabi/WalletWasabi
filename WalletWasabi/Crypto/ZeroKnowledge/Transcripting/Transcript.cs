@@ -36,7 +36,6 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 		/// <summary>
 		/// Modeled after Noise's MixHash operation, in line with reccomendation in
 		/// per STROBE paper appendix B, for when not using a Sponge function.
-		/// stepping stone towards STROBE with Keccak.
 		/// </summary>
 		private Transcript Absorb(StrobeFlags flags, byte[] data) =>
 			new Transcript(ByteHelpers.CombineHash(Hash, new[] { (byte)flags }, data));
