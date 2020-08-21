@@ -7,9 +7,9 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge
 {
-	public class KnowledgeOfRepresentation
+	public class KnowledgeOfRep
 	{
-		public KnowledgeOfRepresentation(GroupElement nonce, IEnumerable<Scalar> responses)
+		public KnowledgeOfRep(GroupElement nonce, IEnumerable<Scalar> responses)
 		{
 			Guard.False($"{nameof(nonce)}.{nameof(nonce.IsInfinity)}", nonce.IsInfinity);
 			Guard.NotNullOrEmpty(nameof(responses), responses);
@@ -22,7 +22,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			Responses = responses;
 		}
 
-		public KnowledgeOfRepresentation(GroupElement nonce, params Scalar[] responses)
+		public KnowledgeOfRep(GroupElement nonce, params Scalar[] responses)
 			: this(nonce, responses as IEnumerable<Scalar>)
 		{
 		}
