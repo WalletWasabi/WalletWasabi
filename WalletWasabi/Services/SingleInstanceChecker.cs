@@ -43,8 +43,8 @@ namespace WalletWasabi.Services
 
 		/// <summary>
 		/// <list type="bullet">
-		/// <item>Unmanaged resources needs to be released regardless of the value of the <paramref name="disposing"/> parameter.</item>
-		/// <item>Managed resources needs to be released if the value of <paramref name="disposing"/> is <c>true</c>.</item>
+		/// <item>Unmanaged resources need to be released regardless of the value of the <paramref name="disposing"/> parameter.</item>
+		/// <item>Managed resources need to be released if the value of <paramref name="disposing"/> is <c>true</c>.</item>
 		/// </list>
 		/// </summary>
 		/// <param name="disposing">
