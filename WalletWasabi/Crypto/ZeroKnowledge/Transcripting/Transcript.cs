@@ -88,7 +88,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 		}
 
 		public Scalar GenerateNonce(Scalar secret, WasabiRandom? random = null)
-			=> GenerateNonces(new[] { secret }, random)[0];
+			=> GenerateNonces(new[] { secret }, random).First();
 
 		/// <summary>
 		/// Generate synthetic nonce using current state combined with additional randomness.
