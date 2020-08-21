@@ -77,19 +77,14 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 		}
 
 		public Transcript Commit(Statement statement)
-			=> Commit(Encoding.UTF8.GetBytes("unknown_proof_statement"), statement.PublicPoint, statement.Generators); // TODO add enum for individual tags?
-
-		public Transcript Commit(byte[] tag, GroupElement publicPoint, params GroupElement[] generators)
-			=> Commit(tag, publicPoint, generators as IEnumerable<GroupElement>);
-
-		public Transcript Commit(byte[] tag, GroupElement publicPoint, IEnumerable<GroupElement> generators)
 		{
+			var generators = statement.Generators;
 			var concatenation = generators.SelectMany(x => x.ToBytes());
-			var hash = ByteHelpers.CombineHash(BitConverter.GetBytes(tag.Length), tag, BitConverter.GetBytes(generators.Count()), concatenation.ToArray());
+			var hash = ByteHelpers.CombineHash(BitConverter.GetBytes(generators.Count()), concatenation.ToArray());
 
 			return AssociatedData(Encoding.UTF8.GetBytes("statement"))
 				.AssociatedData(hash)
-				.AssociatedData(publicPoint.ToBytes());
+				.AssociatedData(statement.PublicPoint.ToBytes());
 		}
 
 		public Scalar GenerateNonce(Scalar secret, WasabiRandom? random = null)

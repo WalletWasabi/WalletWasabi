@@ -137,25 +137,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		}
 
 		[Fact]
-		public void SyntheticNoncesStatementDependence()
-		{
-			var tag1 = Encoding.UTF8.GetBytes("statement tag");
-			var tag2 = Encoding.UTF8.GetBytes("statement tga");
-
-			var a = new Transcript().Commit(tag1, Generators.G, Generators.Ga);
-
-			var mra = new MockRandom();
-			mra.GetBytesResults.Add(new byte[32]);
-
-			var b = new Transcript().Commit(tag2, Generators.G, Generators.Ga);
-
-			var mrb = new MockRandom();
-			mrb.GetBytesResults.Add(new byte[32]);
-
-			Assert.NotEqual(a.GenerateNonce(Scalar.One, mra), b.GenerateNonce(Scalar.One, mrb));
-		}
-
-		[Fact]
 		public void Serialization()
 		{
 			// Hash must be 32 bytes.
