@@ -87,11 +87,14 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 				.AssociatedData(statement.PublicPoint.ToBytes());
 		}
 
+		/// <summary>
+		/// Generate synthetic nonce using current state combined with additional randomness.
+		/// </summary>
 		public Scalar GenerateNonce(Scalar secret, WasabiRandom? random = null)
 			=> GenerateNonces(new[] { secret }, random).First();
 
 		/// <summary>
-		/// Generate synthetic nonce using current state combined with additional randomness.
+		/// Generate synthetic nonces using current state combined with additional randomness.
 		/// </summary>
 		public Scalar[] GenerateNonces(IEnumerable<Scalar> secrets, WasabiRandom? random = null)
 		{
