@@ -17,7 +17,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 	// parent object.)
 	public class Transcript
 	{
-		public const string DomainSeparator = "WabiSabi v0.0";
+		public const string DomainSeparator = "wabisabi_v1.0";
 
 		// Default constructor always adds domain separator.
 		public Transcript()
@@ -76,7 +76,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 		}
 
 		public Transcript CommitToStatement(Statement statement)
-			=> CommitToStatement(Encoding.UTF8.GetBytes("Unknown Proof Statement"), statement.PublicPoint, statement.Generators); // TODO add enum for individual tags?
+			=> CommitToStatement(Encoding.UTF8.GetBytes("unknown_proof_statement"), statement.PublicPoint, statement.Generators); // TODO add enum for individual tags?
 
 		public Transcript CommitToStatement(byte[] tag, GroupElement publicPoint, params GroupElement[] generators)
 			=> CommitToStatement(tag, publicPoint, generators as IEnumerable<GroupElement>);
@@ -137,7 +137,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 		public Transcript NonceCommitment(GroupElement nonce)
 		{
 			Guard.False($"{nameof(nonce)}.{nameof(nonce.IsInfinity)}", nonce.IsInfinity);
-			return AssociatedData(Encoding.UTF8.GetBytes("nonce commitment"))
+			return AssociatedData(Encoding.UTF8.GetBytes("nonce_commitment"))
 				.AssociatedData(nonce.ToBytes());
 		}
 
