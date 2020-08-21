@@ -67,7 +67,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 		}
 
 		// Generate pseudo random outputs from state.
-		private (Transcript transcript, byte[] challenge) PRF()
+		private (Transcript transcript, byte[] challenge) Prf()
 		{
 			var absorbed = Absorb(StrobeFlags.I | StrobeFlags.A | StrobeFlags.C, Array.Empty<byte>());
 
@@ -121,7 +121,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 			var randomScalars = new Scalar[secrets.Count()];
 			for (var i = 0; i < secrets.Count(); i++)
 			{
-				var prf = forked.PRF();
+				var prf = forked.Prf();
 				forked = prf.transcript;
 				randomScalars[i] = new Scalar(prf.challenge);
 			}
@@ -146,7 +146,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 		/// </summary>
 		public (Transcript transcript, Scalar challenge) GenerateChallenge()
 		{
-			var prf = PRF();
+			var prf = Prf();
 			return (prf.transcript, new Scalar(prf.challenge)); // generate a new scalar using current state as a seed
 		}
 
