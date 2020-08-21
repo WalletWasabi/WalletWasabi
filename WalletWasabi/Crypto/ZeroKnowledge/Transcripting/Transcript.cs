@@ -66,7 +66,9 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 			// Absorb(StrobeFlags.A|StrobeFlags.C, key2);
 		}
 
-		// Generate pseudo random outputs from state.
+		/// <summary>
+		/// Generate pseudo random outputs from state.
+		/// </summary>
 		private (Transcript transcript, byte[] challenge) Prf()
 		{
 			var absorbed = Absorb(StrobeFlags.I | StrobeFlags.A | StrobeFlags.C, Array.Empty<byte>());
@@ -92,11 +94,11 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 		}
 
 		public Scalar GenerateNonce(Scalar secret, WasabiRandom? random = null)
-		{
-			return GenerateNonces(new[] { secret }, random)[0];
-		}
+			=> GenerateNonces(new[] { secret }, random)[0];
 
-		// Generate synthetic nonce using current state combined with additional randomness.
+		/// <summary>
+		/// Generate synthetic nonce using current state combined with additional randomness.
+		/// </summary>
 		public Scalar[] GenerateNonces(IEnumerable<Scalar> secrets, WasabiRandom? random = null)
 		{
 			// To integrate prior inputs for deterministic component of nonce
