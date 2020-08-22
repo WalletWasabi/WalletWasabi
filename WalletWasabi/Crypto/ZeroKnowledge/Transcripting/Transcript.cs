@@ -15,6 +15,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 	// each enforcing a state machine for every sub-proof (statement identifier,
 	// public inputs, nonce generation, challenge, responses, synchronized by some
 	// parent object.)
+	// https://strobe.sourceforge.io/specs/
 	public class Transcript
 	{
 		public const string DomainSeparator = "wabisabi_v1.0";
