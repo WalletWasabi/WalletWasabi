@@ -55,16 +55,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			=> new KnowledgeOfAnd(knowledgeOfRepParams.ZipForceEqualLength(nonceGeneration).Select(x => CreateProof(x.Item1, x.Item2.nonce, x.Item2.randomScalars, challenge)));
 
 		private static KnowledgeOfRep CreateProof(KnowledgeOfRepParams parameters, GroupElement nonce, IEnumerable<Scalar> randomScalars, Scalar challenge)
-		{
-			var responses = new List<Scalar>();
-			foreach (var (secret, randomScalar) in parameters.Secrets.ZipForceEqualLength(randomScalars))
-			{
-				var response = randomScalar + secret * challenge;
-				responses.Add(response);
-			}
-
-			return new KnowledgeOfRep(nonce, responses);
-		}
+			=> new KnowledgeOfRep(nonce, parameters.Secrets.ZipForceEqualLength(randomScalars).Select(x => x.Item2 + x.Item1 * challenge));
 
 		private static IEnumerable<(GroupElement nonce, IEnumerable<Scalar> randomScalars)> GenerateNonces(IEnumerable<KnowledgeOfRepParams> parameters, WasabiRandom? random = null)
 			=> parameters.Select(x => GenerateNonce(x, random)).ToArray();
