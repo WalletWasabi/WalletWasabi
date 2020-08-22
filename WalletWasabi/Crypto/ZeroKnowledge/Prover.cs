@@ -24,15 +24,15 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			var statements = knowledgeOfRepParams.Select(x => x.Statement);
 
 			var challenge = Challenge.Build(nonces, statements);
-			var andProof = CreateAndProof(knowledgeOfRepParams, nonces, randomScalars, challenge);
+			var proof = CreateAndProof(knowledgeOfRepParams, nonces, randomScalars, challenge);
 
 			// Sanity check:
-			if (!Verifier.Verify(andProof, statements))
+			if (!Verifier.Verify(proof, statements))
 			{
 				throw new InvalidOperationException($"{nameof(CreateProof)} or {nameof(Verifier.Verify)} is incorrectly implemented. Proof was built, but verification failed.");
 			}
 
-			return andProof;
+			return proof;
 		}
 
 		public static KnowledgeOfRep CreateProof(KnowledgeOfRepParams parameters, WasabiRandom? random = null)
@@ -47,6 +47,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			{
 				throw new InvalidOperationException($"{nameof(CreateProof)} or {nameof(Verifier.Verify)} is incorrectly implemented. Proof was built, but verification failed.");
 			}
+
 			return proof;
 		}
 
