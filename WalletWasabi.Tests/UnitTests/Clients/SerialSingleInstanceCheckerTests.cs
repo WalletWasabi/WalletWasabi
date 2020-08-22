@@ -1,6 +1,5 @@
 using NBitcoin;
 using System;
-using System.Threading.Tasks;
 using WalletWasabi.Services;
 using Xunit;
 
@@ -15,30 +14,37 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 	public class SerialSingleInstanceCheckerTests
 	{
 		[Fact]
-		public async Task SingleInstanceTestsAsync()
+		public void SingleInstanceTests()
 		{
+			SingleInstanceChecker sic = new SingleInstanceChecker();
+
 			// Disposal test.
-			using (SingleInstanceChecker sic = new SingleInstanceChecker(Network.Main))
+			using (var lockHolder = sic.TryAcquireLock(Network.Main))
 			{
-				await sic.CheckAsync();
 			}
 
 			// Check different networks.
-			using (SingleInstanceChecker sic = new SingleInstanceChecker(Network.Main))
+			using (var _ = sic.TryAcquireLock(Network.Main))
 			{
-				await sic.CheckAsync();
-				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sic.CheckAsync());
+				Assert.Throws<InvalidOperationException>(() =>
+				{
+					using var _ = sic.TryAcquireLock(Network.Main);
+				});
+			}
 
-				using SingleInstanceChecker sicMainNet2 = new SingleInstanceChecker(Network.Main);
-				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sicMainNet2.CheckAsync());
+			using (var _ = sic.TryAcquireLock(Network.TestNet))
+			{
+				Assert.Throws<InvalidOperationException>(() =>
+				{
+					using var _ = sic.TryAcquireLock(Network.TestNet);
+				});
+			}
 
-				using SingleInstanceChecker sicTestNet = new SingleInstanceChecker(Network.TestNet);
-				await sicTestNet.CheckAsync();
-				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sicTestNet.CheckAsync());
-
-				using SingleInstanceChecker sicRegTest = new SingleInstanceChecker(Network.RegTest);
-				await sicRegTest.CheckAsync();
-				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sicRegTest.CheckAsync());
+			using (var _ = sic.TryAcquireLock(Network.RegTest)) {
+				Assert.Throws<InvalidOperationException>(() =>
+				{
+					using var _ = sic.TryAcquireLock(Network.RegTest);
+				});
 			}
 		}
 	}

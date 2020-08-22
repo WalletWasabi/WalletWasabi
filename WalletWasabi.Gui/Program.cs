@@ -15,6 +15,7 @@ using WalletWasabi.Gui.CrashReport;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Services;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui
@@ -23,6 +24,9 @@ namespace WalletWasabi.Gui
 	{
 		private static Global Global;
 
+		/// <summary>Lock holder that prevents the application to be run twice.</summary>
+		private static IDisposable? SingleApplicationLockHolder;
+
 		/// Warning! In Avalonia applications Main must not be async. Otherwise application may not run on OSX.
 		/// see https://github.com/AvaloniaUI/Avalonia/wiki/Unresolved-platform-support-issues
 		private static void Main(string[] args)
@@ -30,13 +34,21 @@ namespace WalletWasabi.Gui
 			bool runGui = false;
 			try
 			{
-				Global = CreateGlobal();
+				string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
+				Directory.CreateDirectory(dataDir);
 
+				var config = new Config(Path.Combine(dataDir, "Config.json"));
+				config.LoadOrCreateDefaultFile();
+				config.CorrectMixUntilAnonymitySet();
+
+				Global = CreateGlobal(dataDir, config);
 				Locator.CurrentMutable.RegisterConstant(Global);
 
 				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+
+				SingleApplicationLockHolder = new SingleInstanceChecker().TryAcquireLock(config.Network);
 
 				runGui = ShouldRunGui(args);
 
@@ -65,20 +77,14 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private static Global CreateGlobal()
+		private static Global CreateGlobal(string dataDir, Config config)
 		{
-			string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
-			Directory.CreateDirectory(dataDir);
-			string torLogsFile = Path.Combine(dataDir, "TorLogs.txt");
-
 			var uiConfig = new UiConfig(Path.Combine(dataDir, "UiConfig.json"));
 			uiConfig.LoadOrCreateDefaultFile();
-			var config = new Config(Path.Combine(dataDir, "Config.json"));
-			config.LoadOrCreateDefaultFile();
-			config.CorrectMixUntilAnonymitySet();
+
 			var walletManager = new WalletManager(config.Network, new WalletDirectories(dataDir));
 
-			return new Global(dataDir, torLogsFile, config, uiConfig, walletManager);
+			return new Global(dataDir, torLogsFile: Path.Combine(dataDir, "TorLogs.txt"), config, uiConfig, walletManager);
 		}
 
 		private static bool ShouldRunGui(string[] args)
@@ -146,13 +152,15 @@ namespace WalletWasabi.Gui
 			AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 			TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
 
+			SingleApplicationLockHolder?.Dispose();
+
 			if (disposeGui)
 			{
 				Logger.LogSoftwareStopped("Wasabi GUI");
 			}
 		}
 
-		private static void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
+		private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
 		{
 			Logger.LogWarning(e?.Exception);
 		}

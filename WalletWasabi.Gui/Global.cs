@@ -108,8 +108,6 @@ namespace WalletWasabi.Gui
 				var mempoolService = new MempoolService();
 
 				BitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService);
-
-				SingleInstanceChecker = new SingleInstanceChecker(Network);
 			}
 		}
 
@@ -119,7 +117,6 @@ namespace WalletWasabi.Gui
 
 		private CancellationTokenSource StoppingCts { get; }
 
-		private SingleInstanceChecker SingleInstanceChecker { get; }
 		public CrashReporter CrashReporter { get; }
 
 		public async Task InitializeNoWalletAsync()
@@ -131,8 +128,6 @@ namespace WalletWasabi.Gui
 
 			try
 			{
-				await SingleInstanceChecker.CheckAsync().ConfigureAwait(false);
-
 				Cache = new MemoryCache(new MemoryCacheOptions
 				{
 					SizeLimit = 1_000,
@@ -775,15 +770,6 @@ namespace WalletWasabi.Gui
 				if (cache is { })
 				{
 					cache.Dispose();
-				}
-
-				try
-				{
-					SingleInstanceChecker?.Dispose();
-				}
-				catch (Exception ex)
-				{
-					Logger.LogError($"Error during the disposal of {nameof(SingleInstanceChecker)}: {ex}");
 				}
 
 				if (AsyncMutex.IsAny)

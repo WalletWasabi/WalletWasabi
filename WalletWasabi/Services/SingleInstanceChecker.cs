@@ -1,77 +1,30 @@
 using NBitcoin;
-using Nito.AsyncEx;
 using System;
-using System.IO;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace WalletWasabi.Services
 {
-	public class SingleInstanceChecker : IDisposable
+	public class SingleInstanceChecker
 	{
 		/// <summary>Unique prefix for global mutex name.</summary>
 		private const string MutexString = "WalletWasabiSingleInstance";
-		private bool _disposedValue;
 
-		public SingleInstanceChecker(Network network)
+		public IDisposable TryAcquireLock(Network network)
 		{
-			Network = network;
-		}
+			// Named mutex represents a system-wide mutex.
+			string mutexName = $"{MutexString}-{network}";
 
-		private IDisposable? SingleApplicationLockHolder { get; set; }
-		private Network Network { get; }
+			var mutex = new Mutex(initiallyOwned: false, mutexName, out bool createdNew);
 
-		public async Task CheckAsync()
-		{
-			if (_disposedValue)
+			if (createdNew)
 			{
-				throw new ObjectDisposedException(nameof(SingleInstanceChecker));
+				return new SingleInstanceLockHolder(mutex);
 			}
-
-			// The disposal of this mutex handled by AsyncMutex.WaitForAllMutexToCloseAsync().
-			var mutex = new AsyncMutex($"{MutexString}-{Network}");
-			try
+			else
 			{
-				using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.Zero);
-				SingleApplicationLockHolder = await mutex.LockAsync(cts.Token).ConfigureAwait(false);
+				mutex.Dispose();
+				throw new InvalidOperationException($"Wasabi is already running on {network}!");
 			}
-			catch (IOException ex)
-			{
-				throw new InvalidOperationException($"Wasabi is already running on {Network}!", ex);
-			}
-		}
-
-		/// <summary>
-		/// <list type="bullet">
-		/// <item>Unmanaged resources need to be released regardless of the value of the <paramref name="disposing"/> parameter.</item>
-		/// <item>Managed resources need to be released if the value of <paramref name="disposing"/> is <c>true</c>.</item>
-		/// </list>
-		/// </summary>
-		/// <param name="disposing">
-		/// Indicates whether the method call comes from a <see cref="Dispose()"/> method
-		/// (its value is <c>true</c>) or from a finalizer (its value is <c>false</c>).
-		/// </param>
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					SingleApplicationLockHolder?.Dispose();
-				}
-				_disposedValue = true;
-			}
-		}
-
-		/// <summary>
-		/// Do not change this code.
-		/// </summary>
-		public void Dispose()
-		{
-			// Dispose of unmanaged resources.
-			Dispose(true);
-			// Suppress finalization.
-			GC.SuppressFinalize(this);
 		}
 	}
 }
