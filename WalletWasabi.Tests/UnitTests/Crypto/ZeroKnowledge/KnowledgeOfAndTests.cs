@@ -54,7 +54,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		}
 
 		[Fact]
-		public void KnowledgeOfRepThrows()
+		public void Throws()
 		{
 			// Demonstrate when it shouldn't throw.
 			var kor = new KnowledgeOfRep(Generators.G, CryptoHelpers.ScalarOne, CryptoHelpers.ScalarTwo);
