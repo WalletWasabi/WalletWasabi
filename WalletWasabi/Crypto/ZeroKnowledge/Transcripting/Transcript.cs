@@ -128,9 +128,9 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 			var randomScalars = new Scalar[secrets.Count()];
 			for (var i = 0; i < secrets.Count(); i++)
 			{
-				var prf = forked.Prf();
-				forked = prf.transcript;
-				randomScalars[i] = new Scalar(prf.challenge);
+				var challengeGeneration = forked.GenerateChallenge();
+				forked = challengeGeneration.transcript;
+				randomScalars[i] = challengeGeneration.challenge;
 			}
 
 			if (disposeRandom)
@@ -147,7 +147,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 		public (Transcript transcript, Scalar challenge) GenerateChallenge()
 		{
 			var prf = Prf();
-			return (prf.transcript, new Scalar(prf.challenge)); // generate a new scalar using current state as a seed
+			return (prf.transcript, new Scalar(prf.challenge)); // Generate a new scalar using current state as a seed.
 		}
 
 		public byte[] ToBytes() => Hash;
