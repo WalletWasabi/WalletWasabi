@@ -89,12 +89,15 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 
 			// Change the order of the statements:
 			Assert.False(Verifier.Verify(proof, new[] { statement2, statement1 }));
+
 			// Change a generator of a statement.
 			Assert.True(Verifier.Verify(proof, new[] { CreateStatement(secrets1, new[] { Generators.G, Generators.Ga }), statement2 }));
 			Assert.False(Verifier.Verify(proof, new[] { CreateStatement(secrets1, new[] { Generators.G, Generators.G }), statement2 }));
+
 			// Change the number of generators.
 			Assert.False(Verifier.Verify(proof, new[] { CreateStatement(secrets1, new[] { Generators.G }), statement2 }));
 			Assert.False(Verifier.Verify(proof, new[] { CreateStatement(secrets1, new[] { Generators.G, Generators.Ga, Generators.Gg }), statement2 }));
+
 			// Change a secret.
 			Assert.True(Verifier.Verify(proof, new[] { CreateStatement(new[] { CryptoHelpers.ScalarOne, CryptoHelpers.ScalarTwo }, generators1), statement2 }));
 			Assert.False(Verifier.Verify(proof, new[] { CreateStatement(new[] { CryptoHelpers.ScalarTwo, CryptoHelpers.ScalarTwo }, generators1), statement2 }));
