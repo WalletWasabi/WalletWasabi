@@ -44,7 +44,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 		/// <summary>
 		/// Absorb arbitrary data into the state.
 		/// </summary>
-		private Transcript AssociatedData(byte[] data) =>
+		private Transcript AssociateData(byte[] data) =>
 			Absorb(StrobeFlags.A, data);
 
 		/// <summary>
@@ -83,16 +83,16 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 			var concatenation = generators.SelectMany(x => x.ToBytes());
 			var hash = ByteHelpers.CombineHash(BitConverter.GetBytes(generators.Count()), concatenation.ToArray());
 
-			return AssociatedData(Encoding.UTF8.GetBytes("statement"))
-				.AssociatedData(hash)
-				.AssociatedData(statement.PublicPoint.ToBytes());
+			return AssociateData(Encoding.UTF8.GetBytes("statement"))
+				.AssociateData(hash)
+				.AssociateData(statement.PublicPoint.ToBytes());
 		}
 
 		public Transcript Commit(GroupElement nonce)
 		{
 			Guard.False($"{nameof(nonce)}.{nameof(nonce.IsInfinity)}", nonce.IsInfinity);
-			return AssociatedData(Encoding.UTF8.GetBytes("nonce"))
-				.AssociatedData(nonce.ToBytes());
+			return AssociateData(Encoding.UTF8.GetBytes("nonce"))
+				.AssociateData(nonce.ToBytes());
 		}
 
 		/// <summary>
@@ -122,7 +122,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 			}
 
 			// Add additional randomness as associated data.
-			forked = forked.AssociatedData(random.GetBytes(32));
+			forked = forked.AssociateData(random.GetBytes(32));
 
 			// Generate a new scalar for each secret using this updated state as a seed.
 			var randomScalars = new Scalar[secrets.Count()];
