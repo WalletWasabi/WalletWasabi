@@ -12,35 +12,60 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 	{
 		private static bool Verify(Statement statement, GroupElement nonce, IEnumerable<Scalar> responses, Scalar challenge)
 		{
-			var publicPoint = statement.PublicPoint;
-			if (publicPoint == nonce)
+			try
 			{
-				throw new InvalidOperationException($"{nameof(publicPoint)} and {nameof(nonce)} should not be equal.");
+				if (responses.Count() != statement.Generators.Count())
+				{
+					return false;
+				}
+
+				var a = challenge * statement.PublicPoint + nonce;
+				var b = GroupElement.Infinity;
+				foreach (var (response, generator) in responses.Zip(statement.Generators))
+				{
+					b += response * generator;
+				}
+				return a == b;
 			}
-
-			var a = challenge * statement.PublicPoint + nonce;
-
-			var b = GroupElement.Infinity;
-			foreach (var (response, generator) in responses.ZipForceEqualLength(statement.Generators))
+			catch
 			{
-				b += response * generator;
+				return false;
 			}
-			return a == b;
 		}
 
 		public static bool Verify(KnowledgeOfRep proof, Statement statement)
 		{
-			var nonce = proof.Nonce;
-			var challenge = Challenge.Build(nonce, statement);
-			return Verify(statement, nonce, proof.Responses, challenge);
+			try
+			{
+				var nonce = proof.Nonce;
+				var challenge = Challenge.Build(nonce, statement);
+				return Verify(statement, nonce, proof.Responses, challenge);
+			}
+			catch
+			{
+				return false;
+			}
 		}
 
 		public static bool Verify(KnowledgeOfAnd proof, IEnumerable<Statement> statements)
 		{
-			var challenge = Challenge.Build(proof.KnowledgeOfRepresentations.Select(x => x.Nonce), statements);
-			return proof.KnowledgeOfRepresentations
-				.ZipForceEqualLength(statements)
-				.All(x => Verify(x.Item2, x.Item1.Nonce, x.Item1.Responses, challenge));
+			try
+			{
+				if (proof.KnowledgeOfRepresentations.Count() != statements.Count())
+				{
+					return false;
+				}
+
+				var challenge = Challenge.Build(proof.KnowledgeOfRepresentations.Select(x => x.Nonce), statements);
+
+				return proof.KnowledgeOfRepresentations
+					.Zip(statements)
+					.All(x => Verify(x.Second, x.First.Nonce, x.First.Responses, challenge));
+			}
+			catch
+			{
+				return false;
+			}
 		}
 
 		public static bool Verify(KnowledgeOfDlog proof, Statement statement)
