@@ -198,8 +198,10 @@ namespace WalletWasabi.BitcoinCore
 		{
 			var invoker = new ProcessInvoker();
 
-			var arguments = "-version";
-			ProcessStartInfo processStartInfo = ProcessStartInfoFactory.Make(MicroserviceHelpers.GetBinaryPath("bitcoind"), arguments);
+			string processPath = MicroserviceHelpers.GetBinaryPath("bitcoind");
+			string arguments = "-version";
+
+			ProcessStartInfo processStartInfo = ProcessStartInfoFactory.Make(processPath, arguments);
 			var (responseString, exitCode) = await invoker.SendCommandAsync(processStartInfo, cancel).ConfigureAwait(false);
 
 			if (exitCode != 0)

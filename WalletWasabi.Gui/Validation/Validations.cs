@@ -16,7 +16,7 @@ namespace WalletWasabi.Gui.Validation
 			ValidationMethods = new Dictionary<string, ValidateMethod>();
 		}
 
-		public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
+		public event EventHandler<DataErrorsChangedEventArgs>? ErrorsChanged;
 
 		private Dictionary<string, ErrorDescriptors> ErrorsByPropertyName { get; }
 
