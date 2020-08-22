@@ -37,7 +37,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 
 		public static KnowledgeOfRep CreateProof(KnowledgeOfRepParams parameters, WasabiRandom? random = null)
 		{
-			var (nonce, randomScalars) = GenerateNonces(parameters, random);
+			var (nonce, randomScalars) = GenerateNonce(parameters, random);
 			var statement = parameters.Statement;
 			var challenge = Challenge.Build(nonce, statement);
 			KnowledgeOfRep proof = CreateProof(parameters, nonce, randomScalars, challenge);
@@ -89,7 +89,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			var randomScalars = new List<IEnumerable<Scalar>>();
 			foreach (var parameter in parameters)
 			{
-				var (nonce, scalars) = GenerateNonces(parameter, random);
+				var (nonce, scalars) = GenerateNonce(parameter, random);
 				nonces.Add(nonce);
 				randomScalars.Add(scalars);
 			}
@@ -97,7 +97,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			return (nonces, randomScalars);
 		}
 
-		private static (GroupElement nonce, IEnumerable<Scalar> randomScalars) GenerateNonces(KnowledgeOfRepParams parameters, WasabiRandom? random = null)
+		private static (GroupElement nonce, IEnumerable<Scalar> randomScalars) GenerateNonce(KnowledgeOfRepParams parameters, WasabiRandom? random = null)
 		{
 			var nonce = GroupElement.Infinity;
 			var randomScalars = new List<Scalar>();
