@@ -337,12 +337,12 @@ namespace WalletWasabi.Packager
 
 			using (var process = Process.Start(new ProcessStartInfo
 			{
-				FileName = "cmd",
+				FileName = "dotnet",
+				Arguments = "clean --configuration Release",
 				RedirectStandardInput = true,
 				WorkingDirectory = GuiProjectDirectory
 			}))
 			{
-				process.StandardInput.WriteLine("dotnet clean --configuration Release && exit");
 				process.WaitForExit();
 			}
 
