@@ -31,7 +31,6 @@ using WalletWasabi.Legal;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
-using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -57,13 +56,13 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private volatile bool _disposedValue = false; // To detect redundant calls
 
-		public StatusBarViewModel(string dataDir, Network network, Config config, HostedServices hostedServices, BitcoinStore bitcoinStore, LegalDocuments? legalDocuments)
+		public StatusBarViewModel(string dataDir, Config config, HostedServices hostedServices, SmartHeaderChain smartHeaderChain, WasabiSynchronizer synchronizer, LegalDocuments? legalDocuments)
 		{
 			DataDir = dataDir;
-			Network = network;
 			Config = config;
 			HostedServices = hostedServices;
-			BitcoinStore = bitcoinStore;
+			SmartHeaderChain = smartHeaderChain;
+			Synchronizer = synchronizer;
 			LegalDocuments = legalDocuments;
 			Backend = BackendStatus.NotConnected;
 			UseTor = false;
@@ -76,7 +75,6 @@ namespace WalletWasabi.Gui.ViewModels
 		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
 		private NodesCollection Nodes { get; set; }
 		private WasabiSynchronizer Synchronizer { get; set; }
-		private SmartHeaderChain HashChain { get; set; }
 
 		private bool UseTor { get; set; }
 
@@ -86,13 +84,11 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public string DataDir { get; }
 
-		private Network Network { get; }
-
 		private Config Config { get; }
 
 		private HostedServices HostedServices { get; }
 
-		private BitcoinStore BitcoinStore { get; }
+		private SmartHeaderChain SmartHeaderChain { get; }
 
 		private LegalDocuments? LegalDocuments { get; }
 
@@ -160,11 +156,9 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _downloadingBlock, value);
 		}
 
-		public void Initialize(NodesCollection nodes, WasabiSynchronizer synchronizer)
+		public void Initialize(NodesCollection nodes)
 		{
 			Nodes = nodes;
-			Synchronizer = synchronizer;
-			HashChain = synchronizer.BitcoinStore.SmartHeaderChain;
 			UseTor = Config.UseTor; // Do not make it dynamic, because if you change this config settings only next time will it activate.
 			UseBitcoinCore = Config.StartLocalBitcoinCoreOnStartup;
 
@@ -217,7 +211,7 @@ namespace WalletWasabi.Gui.ViewModels
 									   var segwitActivationHeight = SmartHeader.GetStartingHeader(wallet.Network).Height;
 									   if (wallet.LastProcessedFilter?.Header?.Height is uint lastProcessedFilterHeight
 											&& lastProcessedFilterHeight > segwitActivationHeight
-											&& BitcoinStore.SmartHeaderChain.TipHeight is uint tipHeight
+											&& SmartHeaderChain.TipHeight is uint tipHeight
 											&& tipHeight > segwitActivationHeight)
 									   {
 										   var allFilters = tipHeight - segwitActivationHeight;
@@ -261,7 +255,7 @@ namespace WalletWasabi.Gui.ViewModels
 				.Subscribe(_ => Backend = Synchronizer.BackendStatus)
 				.DisposeWith(Disposables);
 
-			_filtersLeft = HashChain.WhenAnyValue(x => x.HashesLeft)
+			_filtersLeft = SmartHeaderChain.WhenAnyValue(x => x.HashesLeft)
 				.Throttle(TimeSpan.FromMilliseconds(100))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.ToProperty(this, x => x.FiltersLeft)
