@@ -135,7 +135,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.Transcripting
 
 			if (disposeRandom)
 			{
-				(random as SecureRandom)?.Dispose();
+				(random as IDisposable)?.Dispose();
 			}
 
 			return randomScalars;
