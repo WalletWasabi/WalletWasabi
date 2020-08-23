@@ -95,13 +95,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
 			SetFeesAndTexts();
 
-			this.WhenAnyValue(x => x.AmountText)
+			this.WhenAnyValue(x => x.AmountText).Select(_ => Unit.Default)
+				.Merge(Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Select(_ => Unit.Default))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
+				.Subscribe(_ =>
 				{
-					if (Money.TryParse(x.TrimStart('~', ' '), out Money amountBtc))
+					if (Money.TryParse(AmountText.TrimStart('~', ' '), out Money amountBtc))
 					{
-						AmountTip = amountBtc.ToUsdString(Wallet.Synchronizer.UsdExchangeRate, lurkingWifeMode: false);
+						AmountTip = amountBtc.ToUsdString(Wallet.Synchronizer.UsdExchangeRate, false);
 					}
 					else
 					{
