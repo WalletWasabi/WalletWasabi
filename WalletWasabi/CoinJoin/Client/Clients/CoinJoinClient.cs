@@ -64,10 +64,10 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 			Synchronizer.ResponseArrived += Synchronizer_ResponseArrivedAsync;
 
-			var lastResponse = Synchronizer.LastResponse;
+			SynchronizeResponse? lastResponse = Synchronizer.LastResponse;
 			if (lastResponse != null)
 			{
-				_ = TryProcessStatusAsync(Synchronizer.LastResponse.CcjRoundStates);
+				_ = TryProcessStatusAsync(lastResponse.CcjRoundStates);
 			}
 		}
 
@@ -108,7 +108,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		public bool IsDestinationSame => KeyManager.ExtPubKey == DestinationKeyManager.ExtPubKey;
 
-		private async void Synchronizer_ResponseArrivedAsync(object sender, SynchronizeResponse e)
+		private async void Synchronizer_ResponseArrivedAsync(object? sender, SynchronizeResponse e)
 		{
 			await TryProcessStatusAsync(e?.CcjRoundStates).ConfigureAwait(false);
 		}
