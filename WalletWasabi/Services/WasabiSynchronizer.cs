@@ -41,9 +41,9 @@ namespace WalletWasabi.Services
 			Network = Guard.NotNull(nameof(network), network);
 			WasabiClient = Guard.NotNull(nameof(client), client);
 			LastResponse = null;
+			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
 			_running = 0;
 			Cancel = new CancellationTokenSource();
-			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
 		}
 
 		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Func<Uri> baseUriAction, EndPoint torSocks5EndPoint) 
