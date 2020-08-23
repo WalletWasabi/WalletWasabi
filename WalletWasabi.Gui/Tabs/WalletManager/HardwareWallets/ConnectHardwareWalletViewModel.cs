@@ -25,6 +25,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 {
@@ -51,6 +52,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 				.Subscribe(_ =>
 				{
 					SelectedWallet = Wallets.FirstOrDefault();
+
+					if (SelectedWallet is { })
+					{
+						Wallet wallet = WalletManager.GetWalletByName(SelectedWallet.WalletName);
+						SelectedWallet.IsHardwareWalletLoaded = wallet.State == WalletState.Started;
+					}
+
 					SetLoadButtonText();
 				});
 
@@ -66,7 +74,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => SetLoadButtonText());
 
-			LoadCommand = ReactiveCommand.CreateFromTask(LoadWalletAsync, this.WhenAnyValue(x => x.SelectedWallet, x => x.IsBusy).Select(x => x.Item1 is { } && !x.Item2));
+			LoadCommand = ReactiveCommand.CreateFromTask(LoadWalletAsync, this.WhenAnyValue(x => x.SelectedWallet.IsHardwareWalletLoaded).Select(x => !x));
 			ImportColdcardCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				var ofd = new OpenFileDialog

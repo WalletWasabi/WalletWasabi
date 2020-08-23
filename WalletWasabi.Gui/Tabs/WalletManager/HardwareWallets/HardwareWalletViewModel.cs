@@ -37,6 +37,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 
 		public string WalletName { get; }
 		public HwiEnumerateEntry HardwareWalletInfo { get; }
+		public bool IsHardwareWalletLoaded { get; set; }
 
 		public override string ToString()
 		{
