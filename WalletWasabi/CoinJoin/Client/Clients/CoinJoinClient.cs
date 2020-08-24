@@ -19,6 +19,7 @@ using WalletWasabi.CoinJoin.Client.Rounds;
 using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.Crypto;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -967,7 +968,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			{
 				ingredients ??= "";
 
-				Salt = TokenGenerator.GetUniqueKey(21);
+				Salt = RandomString.AlphaNumeric(21, secureRandom: true);
 				Soup = StringCipher.Encrypt(ingredients, Salt);
 			}
 		}

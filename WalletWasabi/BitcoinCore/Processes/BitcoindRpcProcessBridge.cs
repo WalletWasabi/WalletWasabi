@@ -18,13 +18,15 @@ namespace WalletWasabi.BitcoinCore.Processes
 {
 	public class BitcoindRpcProcessBridge : BitcoindProcessBridge
 	{
+		public const string PidFileName = "bitcoin.pid";
+
 		public BitcoindRpcProcessBridge(IRPCClient rpc, string dataDir, bool printToConsole) : base()
 		{
 			RpcClient = Guard.NotNull(nameof(rpc), rpc);
 			Network = RpcClient.Network;
 			DataDir = Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
 			PrintToConsole = printToConsole;
-			PidFile = new PidFile(DataDir, Network);
+			PidFile = new PidFile(Path.Combine(DataDir, NetworkTranslator.GetDataDirPrefix(Network)), PidFileName);
 			CachedPid = null;
 		}
 
@@ -40,7 +42,7 @@ namespace WalletWasabi.BitcoinCore.Processes
 			var ptcv = PrintToConsole ? 1 : 0;
 			using var process = Start($"{NetworkTranslator.GetCommandLineArguments(Network)} -datadir=\"{DataDir}\" -printtoconsole={ptcv}", false);
 
-			await PidFile.SerializeAsync(process.Id).ConfigureAwait(false);
+			await PidFile.WriteFileAsync(process.Id).ConfigureAwait(false);
 			CachedPid = process.Id;
 
 			string latestFailureMessage = null;
@@ -55,7 +57,7 @@ namespace WalletWasabi.BitcoinCore.Processes
 				else if (latestFailureMessage != ex.Message)
 				{
 					latestFailureMessage = ex.Message;
-					Logger.LogInfo($"Bitcoin Core is not yet ready... Reason: {latestFailureMessage}");
+					Logger.LogInfo($"{Constants.BuiltinBitcoinNodeName} is not yet ready... Reason: {latestFailureMessage}");
 				}
 
 				if (process is null || process.HasExited)

@@ -58,15 +58,15 @@ namespace WalletWasabi.Gui.Models.StatusBarStatuses
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => Equals(obj as Status);
+		public override bool Equals(object? obj) => Equals(obj as Status);
 
-		public bool Equals(Status other) => this == other;
+		public bool Equals(Status? other) => this == other;
 
 		public override int GetHashCode() => (Type, Percentage).GetHashCode();
 
-		public static bool operator ==(Status x, Status y) => y?.Type == x?.Type && y?.Percentage == x?.Percentage;
+		public static bool operator ==(Status? x, Status? y) => y?.Type == x?.Type && y?.Percentage == x?.Percentage;
 
-		public static bool operator !=(Status x, Status y) => !(x == y);
+		public static bool operator !=(Status? x, Status? y) => !(x == y);
 
 		#endregion EqualityAndComparison
 	}

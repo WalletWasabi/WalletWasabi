@@ -228,5 +228,17 @@ namespace System.Linq
 				.GroupBy(x => x.Index / chunkSize)
 				.Select(x => x.Select(v => v.Value));
 		}
+
+		/// <summary>
+		/// Creates a tuple collection from two collections. If lengths differ, exception is thrown.
+		/// </summary>
+		public static IEnumerable<(T1, T2)> ZipForceEqualLength<T1, T2>(this IEnumerable<T1> source, IEnumerable<T2> otherCollection)
+		{
+			if (source.Count() != otherCollection.Count())
+			{
+				throw new InvalidOperationException($"{nameof(source)} and {nameof(otherCollection)} collections must have the same number of elements. {nameof(source)}:{source.Count()}, {nameof(otherCollection)}:{otherCollection.Count()}.");
+			}
+			return source.Zip(otherCollection);
+		}
 	}
 }

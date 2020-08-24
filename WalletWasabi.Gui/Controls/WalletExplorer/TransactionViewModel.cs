@@ -34,7 +34,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				var shell = IoC.Get<IShell>();
 
-				var transactionInfo = shell.Documents?.OfType<TransactionInfoTabViewModel>()?.FirstOrDefault(x => x.Transaction?.TransactionId == TransactionId);
+				var transactionInfo = shell.Documents?.OfType<TransactionInfoTabViewModel>()?.FirstOrDefault(x => x.Transaction?.TransactionId == TransactionId && x.Transaction?.WalletName == WalletName);
 
 				if (transactionInfo is null)
 				{
@@ -78,6 +78,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string TransactionId => TransactionDetails.TransactionId;
 
+		public string WalletName => TransactionDetails.WalletName;
+
 		public bool ClipboardNotificationVisible
 		{
 			get => _clipboardNotificationVisible;
@@ -90,7 +92,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _clipboardNotificationOpacity, value);
 		}
 
-		public CancellationTokenSource CancelClipboardNotification { get; set; }
+		public CancellationTokenSource? CancelClipboardNotification { get; set; }
 
 		public void Refresh()
 		{

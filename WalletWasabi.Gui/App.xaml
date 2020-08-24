@@ -16,7 +16,6 @@
     <StyleInclude Source="avares://Dock.Avalonia.Themes.Metro/DefaultTheme.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Gui/Controls/GroupBox.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Gui/Controls/TogglePasswordBox.xaml" />
-    <StyleInclude Source="avares://WalletWasabi.Gui/Controls/MultiTextBox.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Gui/Controls/EditableTextBlock.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Gui/Controls/ExtendedTextBox.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Gui/Controls/Shields.xaml" />
@@ -25,11 +24,14 @@
     <StyleInclude Source="avares://WalletWasabi.Gui/Controls/BusyIndicator.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Gui/Controls/LockScreen/SlideLock.xaml" />
   </Application.Styles>
+  <Application.Resources>
+    <SolidColorBrush x:Key="Main">#007ACC</SolidColorBrush>
+    <SolidColorBrush x:Key="TestNet">#318522</SolidColorBrush>
+    <SolidColorBrush x:Key="RegTest">#AE6200</SolidColorBrush>
+  </Application.Resources>
   <Application.DataTemplates>
     <DataTemplate DataType="Views:MainView">
-      <Grid>
         <ContentControl Content="{Binding ActiveDockable}" />
-      </Grid>
     </DataTemplate>
     <DataTemplate DataType="id:IDockable">
       <cont:ViewModelViewHost DataContext="{Binding Context}" />

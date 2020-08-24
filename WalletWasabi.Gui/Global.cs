@@ -102,12 +102,12 @@ namespace WalletWasabi.Gui
 				WalletManager.OnDequeue += WalletManager_OnDequeue;
 				WalletManager.WalletRelevantTransactionProcessed += WalletManager_WalletRelevantTransactionProcessed;
 
-				var indexStore = new IndexStore(Network, new SmartHeaderChain());
+				var networkWorkFolderPath = Path.Combine(DataDir, "BitcoinStore", Network.ToString());
+				var transactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
+				var indexStore = new IndexStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, new SmartHeaderChain());
+				var mempoolService = new MempoolService();
 
-				BitcoinStore = new BitcoinStore(
-					Path.Combine(DataDir, "BitcoinStore"), Network,
-					indexStore, new AllTransactionStore(), new MempoolService()
-				);
+				BitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService);
 
 				SingleInstanceChecker = new SingleInstanceChecker(Network);
 			}
@@ -470,7 +470,7 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private void WalletManager_OnDequeue(object sender, DequeueResult e)
+		private void WalletManager_OnDequeue(object? sender, DequeueResult e)
 		{
 			try
 			{
@@ -506,7 +506,7 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private void WalletManager_WalletRelevantTransactionProcessed(object sender, ProcessedResult e)
+		private void WalletManager_WalletRelevantTransactionProcessed(object? sender, ProcessedResult e)
 		{
 			try
 			{

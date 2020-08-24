@@ -24,6 +24,7 @@ using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.P2p;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Microservices;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 
@@ -105,7 +106,7 @@ namespace WalletWasabi.BitcoinCore
 
 				if (coreNodeParams.TryDeleteDataDir)
 				{
-					await IoHelpers.DeleteRecursivelyWithMagicDustAsync(coreNode.DataDir).ConfigureAwait(false);
+					await IoHelpers.TryDeleteDirectoryAsync(coreNode.DataDir).ConfigureAwait(false);
 				}
 				cancel.ThrowIfCancellationRequested();
 
@@ -171,13 +172,13 @@ namespace WalletWasabi.BitcoinCore
 				// If it isn't already running, then we run it.
 				if (await coreNode.RpcClient.TestAsync().ConfigureAwait(false) is null)
 				{
-					Logger.LogInfo("Bitcoin Core is already running.");
+					Logger.LogInfo("A Bitcoin node is already running.");
 				}
 				else
 				{
 					coreNode.Bridge = new BitcoindRpcProcessBridge(coreNode.RpcClient, coreNode.DataDir, printToConsole: false);
 					await coreNode.Bridge.StartAsync(cancel).ConfigureAwait(false);
-					Logger.LogInfo("Started Bitcoin Core.");
+					Logger.LogInfo($"Started {Constants.BuiltinBitcoinNodeName}.");
 				}
 				cancel.ThrowIfCancellationRequested();
 
@@ -195,9 +196,13 @@ namespace WalletWasabi.BitcoinCore
 
 		public static async Task<Version> GetVersionAsync(CancellationToken cancel)
 		{
-			var arguments = "-version";
-			var bridge = new BitcoindProcessBridge();
-			var (responseString, exitCode) = await bridge.SendCommandAsync(arguments, false, cancel).ConfigureAwait(false);
+			var invoker = new ProcessInvoker();
+
+			string processPath = MicroserviceHelpers.GetBinaryPath("bitcoind");
+			string arguments = "-version";
+
+			ProcessStartInfo processStartInfo = ProcessStartInfoFactory.Make(processPath, arguments);
+			var (responseString, exitCode) = await invoker.SendCommandAsync(processStartInfo, cancel).ConfigureAwait(false);
 
 			if (exitCode != 0)
 			{
@@ -266,10 +271,10 @@ namespace WalletWasabi.BitcoinCore
 				}
 			}
 
-			Logger.LogInfo("Did not stop Bitcoin Core. Reason:");
+			Logger.LogInfo("Did not stop the Bitcoin node. Reason:");
 			if (exThrown is null)
 			{
-				Logger.LogInfo("Bitcoin Core was started externally.");
+				Logger.LogInfo("The Bitcoin node was started externally.");
 			}
 			else
 			{

@@ -33,7 +33,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			BackendRegTestNode = TestNodeBuilder.CreateAsync(hostedServices, callerFilePath: "RegTests", callerMemberName: "BitcoinCoreData").GetAwaiter().GetResult();
 
 			var testnetBackendDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Tests", "RegTests", "Backend"));
-			IoHelpers.DeleteRecursivelyWithMagicDustAsync(testnetBackendDir).GetAwaiter().GetResult();
+			IoHelpers.TryDeleteDirectoryAsync(testnetBackendDir).GetAwaiter().GetResult();
 			Thread.Sleep(100);
 			Directory.CreateDirectory(testnetBackendDir);
 			Thread.Sleep(100);

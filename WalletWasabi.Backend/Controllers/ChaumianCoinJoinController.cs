@@ -376,53 +376,44 @@ namespace WalletWasabi.Backend.Controllers
 				return BadRequest();
 			}
 
-			(CoordinatorRound round, Alice alice) = GetRunningRoundAndAliceOrFailureResponse(roundId, uniqueId, RoundPhase.ConnectionConfirmation, out IActionResult returnFailureResponse);
-			if (returnFailureResponse != null)
+			using (await CoordinatorRound.ConnectionConfirmationLock.LockAsync())
 			{
-				return returnFailureResponse;
-			}
+				(CoordinatorRound round, Alice alice) = GetRunningRoundAndAliceOrFailureResponse(roundId, uniqueId, RoundPhase.ConnectionConfirmation, out IActionResult returnFailureResponse);
+				if (returnFailureResponse != null)
+				{
+					return returnFailureResponse;
+				}
 
-			RoundPhase phase = round.Phase;
+				RoundPhase phase = round.Phase;
 
-			// Start building the response.
-			var resp = new ConnectionConfirmationResponse
-			{
-				CurrentPhase = phase
-			};
+				// Start building the response.
+				var resp = new ConnectionConfirmationResponse
+				{
+					CurrentPhase = phase
+				};
 
-			switch (phase)
-			{
-				case RoundPhase.InputRegistration:
-					{
-						round.StartAliceTimeout(alice.UniqueId);
-						break;
-					}
-				case RoundPhase.ConnectionConfirmation:
-					{
-						alice.State = AliceState.ConnectionConfirmed;
-
-						int takeBlindCount = round.EstimateBestMixingLevel(alice);
-
-						alice.BlindedOutputScripts = alice.BlindedOutputScripts[..takeBlindCount];
-						alice.BlindedOutputSignatures = alice.BlindedOutputSignatures[..takeBlindCount];
-						resp.BlindedOutputSignatures = alice.BlindedOutputSignatures; // Do not give back more mixing levels than we'll use.
-
-						// Progress round if needed.
-						if (round.AllAlices(AliceState.ConnectionConfirmed))
+				switch (phase)
+				{
+					case RoundPhase.InputRegistration:
 						{
-							await round.ProgressToOutputRegistrationOrFailAsync();
+							round.StartAliceTimeout(alice.UniqueId);
+							break;
 						}
+					case RoundPhase.ConnectionConfirmation:
+						{
+							resp.BlindedOutputSignatures = await round.ConfirmAliceConnectionAsync(alice);
 
-						break;
-					}
-				default:
-					{
-						TryLogLateRequest(roundId, RoundPhase.ConnectionConfirmation);
-						return Gone($"Participation can be only confirmed from InputRegistration or ConnectionConfirmation phase. Current phase: {phase}.");
-					}
+							break;
+						}
+					default:
+						{
+							TryLogLateRequest(roundId, RoundPhase.ConnectionConfirmation);
+							return Gone($"Participation can be only confirmed from InputRegistration or ConnectionConfirmation phase. Current phase: {phase}.");
+						}
+				}
+
+				return Ok(resp);
 			}
-
-			return Ok(resp);
 		}
 
 		/// <summary>

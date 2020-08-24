@@ -138,6 +138,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				var trs = txRecordList.Select(txr => new TransactionDetailsViewModel
 				{
+					WalletName = Wallet.WalletName,
 					DateTime = txr.DateTime.ToLocalTime(),
 					Confirmations = txr.Height.Type == HeightType.Chain ? (int)Global.BitcoinStore.SmartHeaderChain.TipHeight - txr.Height.Value + 1 : 0,
 					AmountBtc = $"{txr.Amount.ToString(fplus: true, trimExcessZero: true)}",
@@ -172,7 +173,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	   			& savedCol != nameof(AmountSortDirection)
 				& savedCol != nameof(TransactionSortDirection))
 			{
-				Global.UiConfig.HistoryTabViewSortingPreference = new SortingPreference(SortOrder.Increasing, nameof(DateSortDirection));
+				Global.UiConfig.HistoryTabViewSortingPreference = new SortingPreference(SortOrder.Decreasing, nameof(DateSortDirection));
 			}
 		}
 

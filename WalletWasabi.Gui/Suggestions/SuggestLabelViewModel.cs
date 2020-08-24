@@ -5,7 +5,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Suggestions
@@ -18,7 +20,10 @@ namespace WalletWasabi.Gui.Suggestions
 
 		public SuggestLabelViewModel()
 		{
-			Global = Locator.Current.GetService<Global>();
+			var global = Locator.Current.GetService<Global>();
+			WalletManager = global.WalletManager;
+			BitcoinStore = global.BitcoinStore;
+
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
 
 			this.WhenAnyValue(x => x.Label)
@@ -27,7 +32,9 @@ namespace WalletWasabi.Gui.Suggestions
 				.Subscribe(UpdateSuggestions);
 		}
 
-		private Global Global { get; }
+		private WalletManager WalletManager { get; }
+
+		private BitcoinStore BitcoinStore { get; }
 
 		public int CaretIndex
 		{
@@ -89,7 +96,7 @@ namespace WalletWasabi.Gui.Suggestions
 				return;
 			}
 
-			var labels = Global.WalletManager.GetLabels().SelectMany(x => x.Labels).ToHashSet();
+			HashSet<string> labels = GetLabels();
 
 			IEnumerable<string> suggestedWords = labels.Where(w => w.StartsWith(lastWord, StringComparison.InvariantCultureIgnoreCase))
 				.Union(labels.Where(w => w.Contains(lastWord, StringComparison.InvariantCultureIgnoreCase)))
@@ -101,6 +108,22 @@ namespace WalletWasabi.Gui.Suggestions
 			{
 				Suggestions.Add(new SuggestionViewModel(suggestion, OnAddWord));
 			}
+		}
+
+		private HashSet<string> GetLabels()
+		{
+			// Don't refresh wallet list as it may be slow.
+			IEnumerable<SmartLabel> labels = WalletManager.GetWallets(refreshWalletList: false)
+				.Select(x => x.KeyManager)
+				.SelectMany(x => x.GetLabels());
+
+			var txStore = BitcoinStore.TransactionStore;
+			if (txStore is { })
+			{
+				labels = labels.Concat(txStore.GetLabels());
+			}
+
+			return labels.SelectMany(x => x.Labels).ToHashSet();
 		}
 	}
 }

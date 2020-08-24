@@ -46,35 +46,41 @@ namespace WalletWasabi.Packager
 			"osx-x64"
 		};
 
-		public static string PackagerProjectDirectory = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..\\..\\..\\"));
-		public static string SolutionDirectory = Path.GetFullPath(Path.Combine(PackagerProjectDirectory, "..\\"));
-		public static string GuiProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.Gui\\"));
-		public static string LibraryProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi\\"));
-		public static string WixProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.WindowsInstaller\\"));
-		public static string BinDistDirectory = Path.GetFullPath(Path.Combine(GuiProjectDirectory, "bin\\dist"));
+		public static string PackagerProjectDirectory = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", ".."));
+		public static string SolutionDirectory = Path.GetFullPath(Path.Combine(PackagerProjectDirectory, ".."));
+		public static string GuiProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.Gui"));
+		public static string LibraryProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi"));
+		public static string WixProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.WindowsInstaller"));
+		public static string BinDistDirectory = Path.GetFullPath(Path.Combine(GuiProjectDirectory, "bin", "dist"));
 
 		public static string VersionPrefix = Constants.ClientVersion.Revision == 0 ? Constants.ClientVersion.ToString(3) : Constants.ClientVersion.ToString();
 
 		public static bool OnlyBinaries;
 		public static bool OnlyCreateDigests;
 
+		/// <summary>
+		/// Main entry point.
+		/// </summary>
 		private static void Main(string[] args)
 		{
-			if (MacSignTools.IsMacSignMode())
+			var argsProcessor = new ArgsProcessor(args);
+
+			// For now this is enough. If you run it on macOS you want to sign.
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
 				MacSignTools.Sign();
 				return;
 			}
 
 			// If I want a list of up to date onions run it with '--getonions'.
-			if (IsGetOnionsMode(args))
+			if (argsProcessor.IsGetOnionsMode())
 			{
 				GetOnions();
 				return;
 			}
 
-			// If I want a list of up to date onions run it with '--getonions'.
-			if (IsReduceOnionsMode(args))
+			// If I want a list of up to date onions run it with '--reduceonions'.
+			if (argsProcessor.IsReduceOnionsMode())
 			{
 				ReduceOnions();
 				return;
@@ -83,14 +89,14 @@ namespace WalletWasabi.Packager
 			// Start with digest creation and return if only digest creation.
 			CreateDigests();
 
-			OnlyCreateDigests = IsOnlyCreateDigestsMode(args);
+			OnlyCreateDigests = argsProcessor.IsOnlyCreateDigestsMode();
 			if (OnlyCreateDigests)
 			{
 				return;
 			}
 
 			// Only binaries mode is for deterministic builds.
-			OnlyBinaries = IsOnlyBinariesMode(args);
+			OnlyBinaries = argsProcessor.IsOnlyBinariesMode();
 			ReportStatus();
 
 			if (DoPublish || OnlyBinaries)
@@ -174,7 +180,7 @@ namespace WalletWasabi.Packager
 		private static void CreateDigests()
 		{
 			var tempDir = "DigestTempDir";
-			IoHelpers.DeleteRecursivelyWithMagicDustAsync(tempDir).GetAwaiter().GetResult();
+			IoHelpers.TryDeleteDirectoryAsync(tempDir).GetAwaiter().GetResult();
 			Directory.CreateDirectory(tempDir);
 
 			var torDaemonsDir = Path.Combine(LibraryProjectDirectory, "TorDaemons");
@@ -200,7 +206,7 @@ namespace WalletWasabi.Packager
 				Console.WriteLine($"{file.Name}: {hash}");
 			}
 
-			IoHelpers.DeleteRecursivelyWithMagicDustAsync(tempDir).GetAwaiter().GetResult();
+			IoHelpers.TryDeleteDirectoryAsync(tempDir).GetAwaiter().GetResult();
 		}
 
 		private static void ReportStatus()
@@ -228,83 +234,6 @@ namespace WalletWasabi.Packager
 			Console.WriteLine();
 		}
 
-		private static bool IsOnlyBinariesMode(string[] args)
-		{
-			bool onlyBinaries = false;
-			if (args != null)
-			{
-				foreach (var arg in args)
-				{
-					if (arg.Trim().TrimStart('-').Equals("onlybinaries", StringComparison.OrdinalIgnoreCase))
-					{
-						onlyBinaries = true;
-						break;
-					}
-				}
-			}
-
-			return onlyBinaries;
-		}
-
-		private static bool IsOnlyCreateDigestsMode(string[] args)
-		{
-			bool onlyCreateDigests = false;
-			if (args != null)
-			{
-				foreach (var arg in args)
-				{
-					if (arg.Trim().TrimStart('-').Equals("onlycreatedigests", StringComparison.OrdinalIgnoreCase)
-						|| arg.Trim().TrimStart('-').Equals("onlycreatedigest", StringComparison.OrdinalIgnoreCase)
-						|| arg.Trim().TrimStart('-').Equals("onlydigests", StringComparison.OrdinalIgnoreCase)
-						|| arg.Trim().TrimStart('-').Equals("onlydigest", StringComparison.OrdinalIgnoreCase))
-					{
-						onlyCreateDigests = true;
-						break;
-					}
-				}
-			}
-
-			return onlyCreateDigests;
-		}
-
-		private static bool IsGetOnionsMode(string[] args)
-		{
-			bool getOnions = false;
-			if (args != null)
-			{
-				foreach (var arg in args)
-				{
-					if (arg.Trim().TrimStart('-').Equals("getonions", StringComparison.OrdinalIgnoreCase)
-						|| arg.Trim().TrimStart('-').Equals("getonion", StringComparison.OrdinalIgnoreCase))
-					{
-						getOnions = true;
-						break;
-					}
-				}
-			}
-
-			return getOnions;
-		}
-
-		private static bool IsReduceOnionsMode(string[] args)
-		{
-			bool getOnions = false;
-			if (args != null)
-			{
-				foreach (var arg in args)
-				{
-					if (arg.Trim().TrimStart('-').Equals("reduceonions", StringComparison.OrdinalIgnoreCase)
-						|| arg.Trim().TrimStart('-').Equals("reduceonion", StringComparison.OrdinalIgnoreCase))
-					{
-						getOnions = true;
-						break;
-					}
-				}
-			}
-
-			return getOnions;
-		}
-
 		private static void RestoreProgramCs()
 		{
 			using var process = Process.Start(new ProcessStartInfo
@@ -326,7 +255,7 @@ namespace WalletWasabi.Packager
 					string publishedFolder = Path.Combine(BinDistDirectory, target);
 
 					Console.WriteLine("Move created .msi");
-					var msiPath = Path.Combine(WixProjectDirectory, @"bin\Release\Wasabi.msi");
+					var msiPath = Path.Combine(WixProjectDirectory, "bin", "Release", "Wasabi.msi");
 					if (!File.Exists(msiPath))
 					{
 						throw new Exception(".msi does not exist. Expected path: Wasabi.msi.");
@@ -349,7 +278,7 @@ namespace WalletWasabi.Packager
 						process.WaitForExit();
 					}
 
-					IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter().GetResult();
+					IoHelpers.TryDeleteDirectoryAsync(publishedFolder).GetAwaiter().GetResult();
 					Console.WriteLine($"Deleted {publishedFolder}");
 				}
 				else if (target.StartsWith("osx", StringComparison.OrdinalIgnoreCase))
@@ -402,7 +331,7 @@ namespace WalletWasabi.Packager
 		{
 			if (Directory.Exists(BinDistDirectory))
 			{
-				IoHelpers.DeleteRecursivelyWithMagicDustAsync(BinDistDirectory).GetAwaiter().GetResult();
+				IoHelpers.TryDeleteDirectoryAsync(BinDistDirectory).GetAwaiter().GetResult();
 				Console.WriteLine($"Deleted {BinDistDirectory}");
 			}
 
@@ -417,16 +346,16 @@ namespace WalletWasabi.Packager
 				process.WaitForExit();
 			}
 
-			var guiBinReleaseDirectory = Path.GetFullPath(Path.Combine(GuiProjectDirectory, "bin\\Release"));
-			var libraryBinReleaseDirectory = Path.GetFullPath(Path.Combine(LibraryProjectDirectory, "bin\\Release"));
+			var guiBinReleaseDirectory = Path.GetFullPath(Path.Combine(GuiProjectDirectory, "bin", "Release"));
+			var libraryBinReleaseDirectory = Path.GetFullPath(Path.Combine(LibraryProjectDirectory, "bin", "Release"));
 			if (Directory.Exists(guiBinReleaseDirectory))
 			{
-				IoHelpers.DeleteRecursivelyWithMagicDustAsync(guiBinReleaseDirectory).GetAwaiter().GetResult();
+				IoHelpers.TryDeleteDirectoryAsync(guiBinReleaseDirectory).GetAwaiter().GetResult();
 				Console.WriteLine($"Deleted {guiBinReleaseDirectory}");
 			}
 			if (Directory.Exists(libraryBinReleaseDirectory))
 			{
-				IoHelpers.DeleteRecursivelyWithMagicDustAsync(libraryBinReleaseDirectory).GetAwaiter().GetResult();
+				IoHelpers.TryDeleteDirectoryAsync(libraryBinReleaseDirectory).GetAwaiter().GetResult();
 				Console.WriteLine($"Deleted {libraryBinReleaseDirectory}");
 			}
 
@@ -545,7 +474,7 @@ namespace WalletWasabi.Packager
 				{
 					if (!dir.Name.Contains(toNotRemove, StringComparison.OrdinalIgnoreCase))
 					{
-						IoHelpers.DeleteRecursivelyWithMagicDustAsync(dir.FullName).GetAwaiter().GetResult();
+						IoHelpers.TryDeleteDirectoryAsync(dir.FullName).GetAwaiter().GetResult();
 					}
 				}
 
@@ -593,7 +522,7 @@ namespace WalletWasabi.Packager
 
 					ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(BinDistDirectory, $"Wasabi-osx-{VersionPrefix}.zip"));
 
-					IoHelpers.DeleteRecursivelyWithMagicDustAsync(currentBinDistDirectory).GetAwaiter().GetResult();
+					IoHelpers.TryDeleteDirectoryAsync(currentBinDistDirectory).GetAwaiter().GetResult();
 					Console.WriteLine($"Deleted {currentBinDistDirectory}");
 				}
 				else if (target.StartsWith("linux"))
@@ -689,7 +618,7 @@ namespace WalletWasabi.Packager
 						$"License: Open Source (MIT)\n" +
 						$"Installed-Size: {installedSizeKb}\n" +
 						$"Description: open-source, non-custodial, privacy focused Bitcoin wallet\n" +
-						$"  Built-in Tor, CoinJoin and Coin Control features.\n";
+						$"  Built-in Tor, CoinJoin, PayJoin and Coin Control features.\n";
 
 					File.WriteAllText(controlFilePath, controlFileContent, Encoding.ASCII);
 
@@ -741,13 +670,13 @@ namespace WalletWasabi.Packager
 						process.WaitForExit();
 					}
 
-					IoHelpers.DeleteRecursivelyWithMagicDustAsync(debFolderPath).GetAwaiter().GetResult();
+					IoHelpers.TryDeleteDirectoryAsync(debFolderPath).GetAwaiter().GetResult();
 
 					string oldDeb = Path.Combine(BinDistDirectory, $"{ExecutableName}_{VersionPrefix}_amd64.deb");
 					string newDeb = Path.Combine(BinDistDirectory, $"Wasabi-{VersionPrefix}.deb");
 					File.Move(oldDeb, newDeb);
 
-					IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter().GetResult();
+					IoHelpers.TryDeleteDirectoryAsync(publishedFolder).GetAwaiter().GetResult();
 					Console.WriteLine($"Deleted {publishedFolder}");
 				}
 			}
