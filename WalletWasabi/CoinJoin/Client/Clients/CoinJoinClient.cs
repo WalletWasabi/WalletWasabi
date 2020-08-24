@@ -64,10 +64,9 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 			Synchronizer.ResponseArrived += Synchronizer_ResponseArrivedAsync;
 
-			SynchronizeResponse? lastResponse = Synchronizer.LastResponse;
-			if (lastResponse != null)
+			if (Synchronizer.LastResponse is { } response)
 			{
-				_ = TryProcessStatusAsync(lastResponse.CcjRoundStates);
+				_ = TryProcessStatusAsync(response.CcjRoundStates);
 			}
 		}
 
@@ -110,7 +109,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		private async void Synchronizer_ResponseArrivedAsync(object? sender, SynchronizeResponse e)
 		{
-			await TryProcessStatusAsync(e?.CcjRoundStates).ConfigureAwait(false);
+			await TryProcessStatusAsync(e.CcjRoundStates).ConfigureAwait(false);
 		}
 
 		public void Start()
