@@ -231,6 +231,8 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 				{
 					DateTimeOffset start = DateTimeOffset.UtcNow;
 
+					coins.Shuffle();
+
 					coinGroups = coins.GetPermutations(i, amountNeeded).ToList();
 
 					if (DateTimeOffset.UtcNow - start > TimeSpan.FromMilliseconds(10)) // If the permutations took long then then if there's a nextTime, calculating permutations would be too CPU intensive.
