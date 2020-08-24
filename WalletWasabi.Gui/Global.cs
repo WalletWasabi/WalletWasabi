@@ -150,11 +150,11 @@ namespace WalletWasabi.Gui
 
 				if (Config.UseTor)
 				{
-					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint);
+					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint);
 				}
 				else
 				{
-					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, Config.GetFallbackBackendUri(), null);
+					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, Config.GetFallbackBackendUri(), null!);
 				}
 
 				HostedServices.Register(new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
