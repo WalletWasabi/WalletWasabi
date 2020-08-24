@@ -6,9 +6,9 @@ This document lists all the officially supported software and devices by Wasabi 
 
 - Windows 10
 - macOs 10.13+
-- Ubuntu 16.04+
+- Ubuntu 18.04 LTS+
 - Fedora 30+
-- Debian 9+
+- Debian Buster (10)+
 
 # Officially Supported Hardware wallets
 
