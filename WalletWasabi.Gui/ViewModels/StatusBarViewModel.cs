@@ -9,6 +9,7 @@ using Splat;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -56,9 +57,10 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private volatile bool _disposedValue = false; // To detect redundant calls
 
-		public StatusBarViewModel(string dataDir, Config config, HostedServices hostedServices, SmartHeaderChain smartHeaderChain, WasabiSynchronizer synchronizer, LegalDocuments? legalDocuments)
+		public StatusBarViewModel(string dataDir, Network network, Config config, HostedServices hostedServices, SmartHeaderChain smartHeaderChain, WasabiSynchronizer synchronizer, LegalDocuments? legalDocuments)
 		{
 			DataDir = dataDir;
+			Network = network;
 			Config = config;
 			HostedServices = hostedServices;
 			SmartHeaderChain = smartHeaderChain;
@@ -83,6 +85,9 @@ namespace WalletWasabi.Gui.ViewModels
 		public ReactiveCommand<Unit, Unit> UpdateCommand { get; set; }
 
 		public string DataDir { get; }
+
+		[SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "Network affects status bar background color.")]
+		private Network Network { get; }
 
 		private Config Config { get; }
 
