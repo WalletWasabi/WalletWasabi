@@ -46,8 +46,8 @@ namespace WalletWasabi.Services
 			Cancel = new CancellationTokenSource();
 		}
 
-		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Uri baseUri, EndPoint torSocks5EndPoint) :
-			this(network, bitcoinStore, client: new WasabiClient(baseUri, torSocks5EndPoint))
+		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Uri baseUri, EndPoint torSocks5EndPoint)
+			: this(network, bitcoinStore, client: new WasabiClient(baseUri, torSocks5EndPoint))
 		{
 		}
 
