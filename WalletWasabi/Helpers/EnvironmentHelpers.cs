@@ -172,7 +172,7 @@ namespace WalletWasabi.Helpers
 			using var process = Process.Start(
 				new ProcessStartInfo
 				{
-					FileName = "/usr/bin/env sh",
+					FileName = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "/bin/sh" : "/usr/bin/env sh",
 					Arguments = $"-c \"{escapedArgs}\"",
 					RedirectStandardOutput = true,
 					UseShellExecute = false,
