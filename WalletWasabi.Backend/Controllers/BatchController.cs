@@ -36,7 +36,7 @@ namespace WalletWasabi.Backend.Controllers
 		public OffchainController OffchainController { get; }
 
 		[HttpGet("synchronize")]
-		public async Task<IActionResult> GetSynchronizeAsync([FromQuery, Required]string bestKnownBlockHash, [FromQuery, Required]int maxNumberOfFilters, [FromQuery]string estimateSmartFeeMode)
+		public async Task<IActionResult> GetSynchronizeAsync([FromQuery, Required] string bestKnownBlockHash, [FromQuery, Required] int maxNumberOfFilters, [FromQuery] string? estimateSmartFeeMode)
 		{
 			if (!ModelState.IsValid)
 			{
