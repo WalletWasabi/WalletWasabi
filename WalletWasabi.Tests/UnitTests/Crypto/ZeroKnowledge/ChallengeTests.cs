@@ -13,22 +13,18 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		public void BuildThrows()
 		{
 			// Demonstrate when it shouldn't throw.
-			Challenge.Build(Generators.G, Generators.Ga);
-			Challenge.Build(Generators.G, Generators.Ga, Generators.Gg, Generators.Gh);
+			Statement statement1 = new Statement(Generators.Ga, Generators.Gg);
+			Statement statement2 = new Statement(Generators.Ga, Generators.Gg, Generators.Gh);
+			Challenge.Build(Generators.G, statement1);
+			Challenge.Build(Generators.G, statement2);
 
 			// Infinity cannot pass through.
-			Assert.ThrowsAny<ArgumentException>(() => Challenge.Build(Generators.G, GroupElement.Infinity));
-			Assert.ThrowsAny<ArgumentException>(() => Challenge.Build(GroupElement.Infinity, Generators.Ga));
-			Assert.ThrowsAny<ArgumentException>(() => Challenge.Build(GroupElement.Infinity, GroupElement.Infinity));
-
-			Assert.ThrowsAny<ArgumentException>(() => Challenge.Build(GroupElement.Infinity, Generators.Ga, Generators.Gg, Generators.Gh));
-			Assert.ThrowsAny<ArgumentException>(() => Challenge.Build(Generators.G, GroupElement.Infinity, Generators.Gg, Generators.Gh));
-			Assert.ThrowsAny<ArgumentException>(() => Challenge.Build(Generators.G, Generators.Ga, GroupElement.Infinity, Generators.Gh));
-			Assert.ThrowsAny<ArgumentException>(() => Challenge.Build(Generators.G, Generators.Ga, Generators.Gg, GroupElement.Infinity));
+			Assert.ThrowsAny<ArgumentException>(() => Challenge.Build(GroupElement.Infinity, statement1));
+			Assert.ThrowsAny<ArgumentException>(() => Challenge.Build(GroupElement.Infinity, statement2));
 
 			// Public and random points cannot be the same.
-			Assert.ThrowsAny<InvalidOperationException>(() => Challenge.Build(Generators.G, Generators.G));
-			Assert.ThrowsAny<InvalidOperationException>(() => Challenge.Build(Generators.G, Generators.G, Generators.Gg, Generators.Gh));
+			Assert.ThrowsAny<InvalidOperationException>(() => Challenge.Build(Generators.G, new Statement(Generators.G, Generators.Gg)));
+			Assert.ThrowsAny<InvalidOperationException>(() => Challenge.Build(Generators.G, new Statement(Generators.G, Generators.Gg, Generators.Gh)));
 		}
 	}
 }

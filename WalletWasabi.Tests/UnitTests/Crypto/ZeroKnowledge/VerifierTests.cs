@@ -23,11 +23,12 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 
 			Scalar randomScalar = new Scalar(14);
 			var nonce = randomScalar * generator;
-			var challenge = Challenge.Build(publicPoint, nonce);
+			var statement = new Statement(publicPoint, generator);
+			var challenge = Challenge.Build(nonce, statement);
 
 			var response = randomScalar + (secret + Scalar.One) * challenge;
-			var proof = new KnowledgeOfDiscreteLog(nonce, response);
-			Assert.False(Verifier.Verify(proof, publicPoint, generator));
+			var proof = new KnowledgeOfDlog(nonce, response);
+			Assert.False(Verifier.Verify(proof, statement));
 
 			// Other false verification tests.
 			var point1 = new Scalar(3) * Generators.G;
@@ -35,41 +36,31 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var scalar = new Scalar(11);
 			var gen = Generators.G;
 
-			proof = new KnowledgeOfDiscreteLog(point1, scalar);
-			Assert.False(Verifier.Verify(proof, point2, gen));
+			proof = new KnowledgeOfDlog(point1, scalar);
+			var statement2 = new Statement(point2, gen);
+			Assert.False(Verifier.Verify(proof, statement2));
 		}
 
 		[Fact]
 		public void Throws()
 		{
-			var dlProof = new KnowledgeOfDiscreteLog(Generators.G, Scalar.One);
-			var repProof = new KnowledgeOfRepresentation(Generators.G, Scalar.One, CryptoHelpers.ScalarThree);
+			var dlProof = new KnowledgeOfDlog(Generators.G, Scalar.One);
+			var repProof = new KnowledgeOfRep(Generators.G, Scalar.One, CryptoHelpers.ScalarThree);
 
 			// Demonstrate when it shouldn't throw.
-			Verifier.Verify(dlProof, Generators.Ga, Generators.Gg);
-			Verifier.Verify(repProof, Generators.Ga, Generators.Gg, Generators.Ga);
-
-			// At least one generator must be provided.
-			Assert.ThrowsAny<ArgumentException>(() => Verifier.Verify(dlProof, Generators.Ga));
-			Assert.ThrowsAny<ArgumentException>(() => Verifier.Verify(repProof, Generators.Ga));
-
-			// Infinity cannot pass through.
-			Assert.ThrowsAny<ArgumentException>(() => Verifier.Verify(dlProof, GroupElement.Infinity, Generators.Gg));
-			Assert.ThrowsAny<ArgumentException>(() => Verifier.Verify(dlProof, Generators.Ga, GroupElement.Infinity));
-			Assert.ThrowsAny<ArgumentException>(() => Verifier.Verify(dlProof, GroupElement.Infinity, GroupElement.Infinity));
-
-			Assert.ThrowsAny<ArgumentException>(() => Verifier.Verify(repProof, GroupElement.Infinity, Generators.Gg, Generators.Ga));
-			Assert.ThrowsAny<ArgumentException>(() => Verifier.Verify(repProof, Generators.Ga, GroupElement.Infinity, Generators.Ga));
-			Assert.ThrowsAny<ArgumentException>(() => Verifier.Verify(repProof, Generators.Ga, Generators.Gg, GroupElement.Infinity));
+			var validStatement1 = new Statement(Generators.Ga, Generators.Gg);
+			var validStatement2 = new Statement(Generators.Ga, Generators.Gg, Generators.Ga);
+			Verifier.Verify(dlProof, validStatement1);
+			Verifier.Verify(repProof, validStatement2);
 
 			// Public point should not be equal to the random point of the proof.
-			Assert.ThrowsAny<InvalidOperationException>(() => Verifier.Verify(dlProof, Generators.G, Generators.Ga));
-			Assert.ThrowsAny<InvalidOperationException>(() => Verifier.Verify(repProof, Generators.G, Generators.Gg, Generators.Ga));
+			Assert.ThrowsAny<InvalidOperationException>(() => Verifier.Verify(dlProof, new Statement(Generators.G, Generators.Ga)));
+			Assert.ThrowsAny<InvalidOperationException>(() => Verifier.Verify(repProof, new Statement(Generators.G, Generators.Gg, Generators.Ga)));
 
 			// Same number of generators must be provided as the responses.
-			Assert.ThrowsAny<InvalidOperationException>(() => Verifier.Verify(dlProof, Generators.Ga, Generators.Gg, Generators.GV));
-			Assert.ThrowsAny<InvalidOperationException>(() => Verifier.Verify(repProof, Generators.Ga, Generators.Gg));
-			Assert.ThrowsAny<InvalidOperationException>(() => Verifier.Verify(repProof, Generators.Ga, Generators.Gg, Generators.Ga, Generators.GV));
+			Assert.ThrowsAny<InvalidOperationException>(() => Verifier.Verify(dlProof, new Statement(Generators.Ga, Generators.Gg, Generators.GV)));
+			Assert.ThrowsAny<InvalidOperationException>(() => Verifier.Verify(repProof, new Statement(Generators.Ga, Generators.Gg)));
+			Assert.ThrowsAny<InvalidOperationException>(() => Verifier.Verify(repProof, new Statement(Generators.Ga, Generators.Gg, Generators.Ga, Generators.GV)));
 		}
 	}
 }

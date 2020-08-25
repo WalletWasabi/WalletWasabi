@@ -10,7 +10,7 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.BitcoinCore;
+using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Logging;
 
