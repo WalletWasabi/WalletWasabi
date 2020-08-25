@@ -12,6 +12,33 @@ namespace WalletWasabi.Tests.UnitTests
 	public class MemoryTests
 	{
 		[Fact]
+		public async Task AbsoluteExpirationRelativeToNowExpiresCorrectlyAsync()
+		{
+			// This should be buggy but it seems to work for us: https://github.com/alastairtree/LazyCache/issues/84
+			var cache = new MemoryCache(new MemoryCacheOptions());
+
+			var result = await cache.AtomicGetOrCreateAsync(
+				"key",
+				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(20) },
+				() => Task.FromResult("foo"));
+			Assert.Equal("foo", result);
+
+			result = await cache.AtomicGetOrCreateAsync(
+				"key",
+				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(20) },
+				() => Task.FromResult("bar"));
+			Assert.Equal("foo", result);
+
+			await Task.Delay(TimeSpan.FromMilliseconds(20));
+
+			result = await cache.AtomicGetOrCreateAsync(
+				"key",
+				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(20) },
+				() => Task.FromResult("bar"));
+			Assert.Equal("bar", result);
+		}
+
+		[Fact]
 		public async Task MultiplesCachesAsync()
 		{
 			var invoked = 0;
