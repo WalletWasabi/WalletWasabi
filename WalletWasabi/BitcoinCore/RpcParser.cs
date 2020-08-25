@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using NBitcoin;
 using NBitcoin.RPC;
@@ -10,12 +11,23 @@ namespace WalletWasabi.BitcoinCore
 {
 	public static class RpcParser
 	{
+		public const string SpentError1 = "bad-txns-inputs-missingorspent";
+		public const string SpentError2 = "missing-inputs";
+		public const string SpentError3 = "txn-mempool-conflict";
+		public const string TooLongMempoolChainError = "too-long-mempool-chain";
+
+		public const string SpentErrorTranslation = "At least one coin you are trying to spend is already spent.";
+
+		public static bool IsSpentError(string error) => new[] { SpentError1, SpentError2, SpentError3 }.Any(x => error.Contains(x, StringComparison.OrdinalIgnoreCase));
+
+		public static bool IsTooLongMempoolChainError(string error) => error.Contains(TooLongMempoolChainError, StringComparison.OrdinalIgnoreCase);
+
 		public static Dictionary<string, string> ErrorTranslations { get; } = new Dictionary<string, string>
 		{
-			["too-long-mempool-chain"] = "At least one coin you are trying to spend is part of long or heavy chain of unconfirmed transactions. You must wait for some previous transactions to confirm.",
-			["bad-txns-inputs-missingorspent"] = "At least one coin you are trying to spend is already spent.",
-			["missing-inputs"] = "At least one coin you are trying to spend is already spent.",
-			["txn-mempool-conflict"] = "At least one coin you are trying to spend is already spent.",
+			[TooLongMempoolChainError] = "At least one coin you are trying to spend is part of long or heavy chain of unconfirmed transactions. You must wait for some previous transactions to confirm.",
+			[SpentError1] = SpentErrorTranslation,
+			[SpentError2] = SpentErrorTranslation,
+			[SpentError3] = SpentErrorTranslation,
 			["bad-txns-inputs-duplicate"] = "The transaction contains duplicated inputs.",
 			["bad-txns-nonfinal"] = "The transaction is not final and cannot be broadcasted.",
 			["bad-txns-oversize"] = "The transaction is too big.",
