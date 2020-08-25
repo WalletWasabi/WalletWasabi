@@ -5,9 +5,9 @@ using System.Text;
 using NBitcoin;
 using NBitcoin.RPC;
 using Newtonsoft.Json.Linq;
-using WalletWasabi.BitcoinCore.RpcModels;
+using WalletWasabi.BitcoinCore.Rpc.Models;
 
-namespace WalletWasabi.BitcoinCore
+namespace WalletWasabi.BitcoinCore.Rpc
 {
 	public static class RpcParser
 	{
