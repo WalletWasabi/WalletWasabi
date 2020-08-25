@@ -12,11 +12,11 @@
             <StackPanel>
               <TextBlock Text="Select a wallet to test its password!" FontWeight="Bold" />
             </StackPanel>
-            <controls:TogglePasswordBox Text="{Binding Password}">
+            <TextBox Classes="revealPasswordButton" Text="{Binding Password}">
               <i:Interaction.Behaviors>
                 <behaviors:CommandOnEnterBehavior Command="{Binding LoadCommand}" />
               </i:Interaction.Behaviors>
-            </controls:TogglePasswordBox>
+            </TextBox>
           </StackPanel>
         </Grid>
       </controls:GroupBox>

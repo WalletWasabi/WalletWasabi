@@ -23,11 +23,11 @@
                   TextWrapping="Wrap" />
               </StackPanel>
               <TextBox Text="{Binding WalletName}" Watermark="Wallet Name" UseFloatingWatermark="True" />
-              <controls:TogglePasswordBox Text="{Binding Password}">
+              <TextBox Classes="revealPasswordButton" Text="{Binding Password}">
                 <i:Interaction.Behaviors>
                   <behaviors:CommandOnEnterBehavior Command="{Binding RecoverCommand}" />
                 </i:Interaction.Behaviors>
-              </controls:TogglePasswordBox>
+              </TextBox>
               <TextBox Text="{Binding MnemonicWords}" Watermark="Recovery Words"
                                         UseFloatingWatermark="True" CaretIndex="{Binding CaretIndex}">
                 <i:Interaction.Behaviors>

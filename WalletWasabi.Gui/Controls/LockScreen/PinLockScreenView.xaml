@@ -8,11 +8,11 @@
   <Panel Background="{DynamicResource ThemeBackgroundBrush}">
     <controls:GroupBox VerticalAlignment="Center" HorizontalAlignment="Center" TextBlock.FontSize="25" Padding="20" Margin="10">
       <DockPanel LastChildFill="True">
-        <controls:TogglePasswordBox x:Name="InputField" Text="{Binding PinInput}" Width="300" DockPanel.Dock="Top" Margin="4 0 4 20" Watermark="PIN">
+        <TextBox Classes="revealPasswordButton" x:Name="InputField" Text="{Binding PinInput}" Width="300" DockPanel.Dock="Top" Margin="4 0 4 20" Watermark="PIN">
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
           </i:Interaction.Behaviors>
-        </controls:TogglePasswordBox>
+        </TextBox>
         <Grid RowDefinitions="*,*,*,*" ColumnDefinitions="*,*,*">
           <Grid.Styles>
             <Style Selector="Button">

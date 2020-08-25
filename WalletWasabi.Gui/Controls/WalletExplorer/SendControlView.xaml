@@ -97,11 +97,11 @@
             </StackPanel>
           </StackPanel>
           <StackPanel Spacing="10" Orientation="Horizontal">
-            <controls:TogglePasswordBox Text="{Binding Password}" IsVisible="{Binding !IsWatchOnly}" MaxWidth = "600">
+            <TextBox Classes="revealPasswordButton" Text="{Binding Password}" IsVisible="{Binding !IsWatchOnly}" MaxWidth = "600">
               <i:Interaction.Behaviors>
                 <behaviors:CommandOnEnterBehavior Command="{Binding BuildTransactionCommand}" />
               </i:Interaction.Behaviors>
-            </controls:TogglePasswordBox>
+            </TextBox>
             <DockPanel VerticalAlignment="Top" LastChildFill="True">
               <Button Command="{Binding BuildTransactionCommand}" DockPanel.Dock="Right">
                 <StackPanel Orientation="Horizontal">

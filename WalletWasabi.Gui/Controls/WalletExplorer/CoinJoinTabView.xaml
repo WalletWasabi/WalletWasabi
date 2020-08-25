@@ -85,11 +85,11 @@
       <controls:GroupBox Grid.Row="0" Grid.Column="0" Title="CoinJoin" Padding="5" Margin="0 5 5 0">
         <Grid Grid.Row="0" Grid.Column="0" Classes="content" RowDefinitions="150" ColumnDefinitions="*,Auto">
           <StackPanel Grid.Column="0" Spacing="10">
-            <controls:TogglePasswordBox Text="{Binding Password}" Margin="0 20 0 0" MinWidth="200">
+            <TextBox Classes="revealPasswordButton" Text="{Binding Password}" Margin="0 20 0 0" MinWidth="200">
               <i:Interaction.Behaviors>
                 <behaviors:CommandOnEnterBehavior Command="{Binding EnqueueCommand}" />
               </i:Interaction.Behaviors>
-            </controls:TogglePasswordBox>
+            </TextBox>
             <DockPanel Grid.Row="0" Grid.Column="1" LastChildFill="True" IsEnabled="{Binding !IsEnqueueBusy}">
               <Button Command="{Binding EnqueueCommand}" DockPanel.Dock="Right">
                 <StackPanel Orientation="Horizontal">
