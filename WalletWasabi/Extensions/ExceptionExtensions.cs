@@ -49,7 +49,7 @@ namespace System
 					}
 				}
 
-				foreach (KeyValuePair<string, string> pair in RpcParser.ErrorTranslations)
+				foreach (KeyValuePair<string, string> pair in RpcErrorTools.ErrorTranslations)
 				{
 					if (trimmed.Contains(pair.Key, StringComparison.InvariantCultureIgnoreCase))
 					{

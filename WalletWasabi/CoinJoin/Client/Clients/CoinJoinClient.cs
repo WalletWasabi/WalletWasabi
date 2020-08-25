@@ -547,7 +547,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					aliceClient?.Dispose();
 					return;
 				}
-				catch (HttpRequestException ex) when (RpcParser.IsTooLongMempoolChainError(ex.Message))
+				catch (HttpRequestException ex) when (RpcErrorTools.IsTooLongMempoolChainError(ex.Message))
 				{
 					Logger.LogInfo("Coordinator failed because too much unconfirmed parent transactions. Trying again later.");
 					aliceClient?.Dispose();

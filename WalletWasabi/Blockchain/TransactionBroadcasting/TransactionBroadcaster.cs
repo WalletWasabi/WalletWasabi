@@ -97,7 +97,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 				{
 					await client.BroadcastAsync(transaction).ConfigureAwait(false);
 				}
-				catch (HttpRequestException ex2) when (RpcParser.IsSpentError(ex2.Message))
+				catch (HttpRequestException ex2) when (RpcErrorTools.IsSpentError(ex2.Message))
 				{
 					if (transaction.Transaction.Inputs.Count == 1) // If we tried to only spend one coin, then we can mark it as spent. If there were more coins, then we do not know.
 					{
