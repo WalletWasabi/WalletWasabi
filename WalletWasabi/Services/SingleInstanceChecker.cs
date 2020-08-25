@@ -4,6 +4,10 @@ using System.Threading;
 
 namespace WalletWasabi.Services
 {
+	/// <summary>
+	/// Guarantees that application is run at most once.
+	/// </summary>
+	/// <remarks>The class does not use async API in order to prevent possible issues with Avalonia which requires main thread to start the GUI.</remarks>
 	public class SingleInstanceChecker
 	{
 		/// <summary>Unique prefix for global mutex name.</summary>
