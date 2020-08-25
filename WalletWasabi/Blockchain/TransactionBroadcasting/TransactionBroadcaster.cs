@@ -8,7 +8,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.BitcoinCore;
+using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
@@ -97,9 +97,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 				{
 					await client.BroadcastAsync(transaction).ConfigureAwait(false);
 				}
-				catch (HttpRequestException ex2) when (ex2.Message.Contains("bad-txns-inputs-missingorspent", StringComparison.InvariantCultureIgnoreCase)
-					|| ex2.Message.Contains("missing-inputs", StringComparison.InvariantCultureIgnoreCase)
-					|| ex2.Message.Contains("txn-mempool-conflict", StringComparison.InvariantCultureIgnoreCase))
+				catch (HttpRequestException ex2) when (RpcErrorTools.IsSpentError(ex2.Message))
 				{
 					if (transaction.Transaction.Inputs.Count == 1) // If we tried to only spend one coin, then we can mark it as spent. If there were more coins, then we do not know.
 					{
