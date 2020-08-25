@@ -12,23 +12,23 @@
         <StackPanel Orientation="Vertical">
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Current Version: " />
-            <controls:ExtendedTextBox Text="{Binding ClientVersion, Converter={StaticResource VersionStringConverter}}" Classes="selectableTextBlock" />
+            <TextBox Text="{Binding ClientVersion, Converter={StaticResource VersionStringConverter}}" Classes="selectableTextBlock" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Compatible Coordinator Versions: " />
-            <controls:ExtendedTextBox Text="{Binding BackendCompatibleVersions}" Classes="selectableTextBlock" />
+            <TextBox Text="{Binding BackendCompatibleVersions}" Classes="selectableTextBlock" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Current Coordinator Version: " />
-            <controls:ExtendedTextBox Text="{Binding CurrentBackendMajorVersion}" Classes="selectableTextBlock" />
+            <TextBox Text="{Binding CurrentBackendMajorVersion}" Classes="selectableTextBlock" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Compatible Bitcoin Core and Bitcoin Knots Versions: " />
-            <controls:ExtendedTextBox Text="{Binding BitcoinCoreVersion, Converter={StaticResource VersionStringConverter}}" Classes="selectableTextBlock" />
+            <TextBox Text="{Binding BitcoinCoreVersion, Converter={StaticResource VersionStringConverter}}" Classes="selectableTextBlock" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Compatible Hardware Wallet Interface Version: " />
-            <controls:ExtendedTextBox Text="{Binding HwiVersion, Converter={StaticResource VersionStringConverter}}" Classes="selectableTextBlock" />
+            <TextBox Text="{Binding HwiVersion, Converter={StaticResource VersionStringConverter}}" Classes="selectableTextBlock" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Clearnet Website: " />
@@ -36,7 +36,7 @@
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <TextBlock Text=".onion Website: " />
-            <controls:ExtendedTextBox Text="{Binding TorLink}" Classes="selectableTextBlock hyperLink" />
+            <TextBox Text="{Binding TorLink}" Classes="selectableTextBlock hyperLink" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Source Code: " />

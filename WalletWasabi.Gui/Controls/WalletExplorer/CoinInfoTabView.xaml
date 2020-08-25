@@ -10,39 +10,39 @@
       <StackPanel DataContext="{Binding Coin}">
         <Grid ColumnDefinitions="150, *">
           <TextBlock Classes="monospaceFont" Text="Amount:" />
-          <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding AmountBtc}" />
+          <TextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding AmountBtc}" />
         </Grid>
         <Grid ColumnDefinitions="150, *">
           <TextBlock Classes="monospaceFont" Text="Transaction Id:" />
-          <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding TransactionId}" />
+          <TextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding TransactionId}" />
         </Grid>
         <Grid ColumnDefinitions="150, *">
           <TextBlock Classes="monospaceFont" Text="Output Index:" />
-          <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding OutputIndex}" />
+          <TextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding OutputIndex}" />
         </Grid>
         <Grid ColumnDefinitions="150, *">
           <TextBlock Classes="monospaceFont" Text="Address:" />
-          <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Address}" />
+          <TextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Address}" />
         </Grid>
         <Grid ColumnDefinitions="150, *">
           <TextBlock Classes="monospaceFont" Text="Confirmations:" />
-          <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Confirmations}" />
+          <TextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Confirmations}" />
         </Grid>
         <Grid ColumnDefinitions="150, *">
           <TextBlock Classes="monospaceFont" Text="Anonymity Set:" />
-          <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding AnonymitySet}" />
+          <TextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding AnonymitySet}" />
         </Grid>
         <Grid ColumnDefinitions="150, *">
           <TextBlock Classes="monospaceFont" Text="Key Path:" />
-          <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding KeyPath}" />
+          <TextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding KeyPath}" />
         </Grid>
         <Grid ColumnDefinitions="150, *">
           <TextBlock Classes="monospaceFont" Text="Public Key:" />
-          <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding PubKey}" />
+          <TextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding PubKey}" />
         </Grid>
         <Grid ColumnDefinitions="150, *">
           <TextBlock Classes="monospaceFont" Text="Known By:" />
-          <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Clusters}" />
+          <TextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Clusters}" />
         </Grid>
       </StackPanel>
     </controls:GroupBox>

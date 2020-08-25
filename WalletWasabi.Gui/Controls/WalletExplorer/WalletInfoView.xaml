@@ -33,50 +33,50 @@
             
             <StackPanel IsVisible="{Binding !IsWatchOnly}" Spacing="4">
               <TextBlock Text="Extended Master Private Key: " />
-              <controls:ExtendedTextBox Text="{Binding ExtendedMasterPrivateKey}" Foreground="IndianRed" Classes="selectableTextBlock keysTextBlock" />
+              <TextBox Text="{Binding ExtendedMasterPrivateKey}" Foreground="IndianRed" Classes="selectableTextBlock keysTextBlock" />
             </StackPanel>
 
             <StackPanel IsVisible="{Binding !IsWatchOnly}" Spacing="4">
               <TextBlock Text="Extended Master zprv: " />
-              <controls:ExtendedTextBox Text="{Binding ExtendedMasterZprv}" Foreground="IndianRed" Classes="selectableTextBlock keysTextBlock" />
+              <TextBox Text="{Binding ExtendedMasterZprv}" Foreground="IndianRed" Classes="selectableTextBlock keysTextBlock" />
             </StackPanel>
 
             <StackPanel Spacing="4">
               <TextBlock Text="Extended Master Fingerprint: " />
-              <controls:ExtendedTextBox Text="{Binding MasterKeyFingerprint}" Classes="selectableTextBlock keysTextBlock" />
+              <TextBox Text="{Binding MasterKeyFingerprint}" Classes="selectableTextBlock keysTextBlock" />
             </StackPanel>
 
             <StackPanel Spacing="4">
               <TextBlock Text="Account Key Path: " />
-              <controls:ExtendedTextBox Text="{Binding AccountKeyPath}" Classes="selectableTextBlock keysTextBlock" />
+              <TextBox Text="{Binding AccountKeyPath}" Classes="selectableTextBlock keysTextBlock" />
             </StackPanel>
 
             <StackPanel Spacing="4" IsVisible="{Binding !IsWatchOnly}">
               <TextBlock Text="Extended Account Private Key: " />
-              <controls:ExtendedTextBox Text="{Binding ExtendedAccountPrivateKey}" Foreground="IndianRed" Classes="selectableTextBlock keysTextBlock" />
+              <TextBox Text="{Binding ExtendedAccountPrivateKey}" Foreground="IndianRed" Classes="selectableTextBlock keysTextBlock" />
             </StackPanel>
 
             <StackPanel Spacing="4" IsVisible="{Binding !IsWatchOnly}">
               <TextBlock Text="Extended Account zprv: " />
-              <controls:ExtendedTextBox Text="{Binding ExtendedAccountZprv}" Foreground="IndianRed" Classes="selectableTextBlock keysTextBlock" />
+              <TextBox Text="{Binding ExtendedAccountZprv}" Foreground="IndianRed" Classes="selectableTextBlock keysTextBlock" />
             </StackPanel>
 
             <StackPanel Spacing="4">
               <TextBlock Text="Extended Account Public Key: " />
-              <controls:ExtendedTextBox Text="{Binding ExtendedAccountPublicKey, ConverterParameter=60, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Classes="selectableTextBlock keysTextBlock">
+              <TextBox Text="{Binding ExtendedAccountPublicKey, ConverterParameter=60, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Classes="selectableTextBlock keysTextBlock">
                 <ToolTip.Tip>
                   <TextBlock TextWrapping="Wrap" Width="400" Text="Your extended public key can get all your addresses and find out how many coins you have, do not share this with anyone you do not trust." />
                 </ToolTip.Tip>
-              </controls:ExtendedTextBox>
+              </TextBox>
             </StackPanel>
 
             <StackPanel Spacing="4">
               <TextBlock Text="Extended Account zpub: " />
-              <controls:ExtendedTextBox Text="{Binding ExtendedAccountZpub, ConverterParameter=60, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Classes="selectableTextBlock keysTextBlock">
+              <TextBox Text="{Binding ExtendedAccountZpub, ConverterParameter=60, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Classes="selectableTextBlock keysTextBlock">
                 <ToolTip.Tip>
                   <TextBlock TextWrapping="Wrap" Width="400" Text="Your zpub can get all your addresses and find out how many coins you have, do not share this with anyone you do not trust." />
                 </ToolTip.Tip>
-              </controls:ExtendedTextBox>
+              </TextBox>
             </StackPanel>
           </StackPanel>
         </Grid>

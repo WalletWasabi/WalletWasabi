@@ -18,7 +18,7 @@
           <TextBlock FontSize="15" Text="{Binding Instructions}" TextWrapping="Wrap" />
         </Panel>
         <StackPanel Grid.Row="1" Orientation="Vertical" Margin="10">
-          <controls:ExtendedTextBox Text="{Binding TextInput}" Watermark="{Binding Watermark}" />
+          <TextBox Text="{Binding TextInput}" Watermark="{Binding Watermark}" />
         </StackPanel>
       </Grid>
     </DockPanel>

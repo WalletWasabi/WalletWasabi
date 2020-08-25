@@ -15,23 +15,23 @@
       <StackPanel DataContext="{Binding Transaction}">
         <Grid ColumnDefinitions="170, *">
           <TextBlock Classes="monospaceFont" Text="Amount (BTC):" />
-          <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding AmountBtc}" Foreground="{Binding AmountBtc, Converter={StaticResource MoneyBrushConverter}}" />
+          <TextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding AmountBtc}" Foreground="{Binding AmountBtc, Converter={StaticResource MoneyBrushConverter}}" />
         </Grid>
         <Grid ColumnDefinitions="170, *">
           <TextBlock Classes="monospaceFont" Text="Transaction Id:" />
-          <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding TransactionId, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" />
+          <TextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding TransactionId, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" />
         </Grid>
         <Grid ColumnDefinitions="170, *">
           <TextBlock Classes="monospaceFont" Text="Transaction Date:" />
-          <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Path=DateTime, StringFormat=\{0:yyyy-MM-dd HH:mm\}}" />
+          <TextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Path=DateTime, StringFormat=\{0:yyyy-MM-dd HH:mm\}}" />
         </Grid>
         <Grid ColumnDefinitions="170, *" IsVisible="{Binding Confirmed}">
           <TextBlock Classes="monospaceFont" Text="Block Height:" />
-          <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding BlockHeight}" />
+          <TextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding BlockHeight}" />
         </Grid>
         <Grid ColumnDefinitions="170, *">
           <TextBlock Classes="monospaceFont" Text="Confirmations:" />
-          <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Confirmations}" />
+          <TextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Confirmations}" />
         </Grid>
       </StackPanel>
     </controls:GroupBox>

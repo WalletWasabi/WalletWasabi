@@ -87,9 +87,9 @@
                     <controls:QrCode Height="220" Matrix="{Binding QrCode}" SaveCommand="{Binding ExecuteSaveQRCodeCommand, Mode=OneWayToSource}" HorizontalAlignment="Left" />
                     <Grid ColumnDefinitions="140, *" RowDefinitions="22,22" Margin="6">
                       <TextBlock Classes="monospaceFont" Text="Public key:" Grid.Row="0" Grid.Column="0" />
-                      <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding PubKey}" Grid.Row="0" Grid.Column="1" />
+                      <TextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding PubKey}" Grid.Row="0" Grid.Column="1" />
                       <TextBlock Classes="monospaceFont" Text="Key path:" Grid.Row="1" Grid.Column="0" />
-                      <controls:ExtendedTextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding KeyPath}" Grid.Row="1" Grid.Column="1" />
+                      <TextBox Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding KeyPath}" Grid.Row="1" Grid.Column="1" />
                     </Grid>
                   </StackPanel>
                 </Expander>

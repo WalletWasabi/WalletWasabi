@@ -16,27 +16,27 @@
     <StackPanel>
       <Grid ColumnDefinitions="170, *">
         <TextBlock Classes="monospaceFont" Text="Transaction Id:" />
-        <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding TransactionId, Mode=OneWay, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" />
+        <TextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding TransactionId, Mode=OneWay, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" />
       </Grid>
       <Grid ColumnDefinitions="170, *">
         <TextBlock Classes="monospaceFont" Text="Input Amount (BTC):" />
-        <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding TotalInputValue, Mode=OneWay, Converter={StaticResource MoneyStringConverter}}" Foreground="{Binding TotalInputValue, Converter={StaticResource MoneyBrushConverter}}" />
+        <TextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding TotalInputValue, Mode=OneWay, Converter={StaticResource MoneyStringConverter}}" Foreground="{Binding TotalInputValue, Converter={StaticResource MoneyBrushConverter}}" />
       </Grid>
       <Grid ColumnDefinitions="170, *">
         <TextBlock Classes="monospaceFont" Text="Output Amount (BTC):" />
-        <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding TotalOutputValue, Mode=OneWay, Converter={StaticResource MoneyStringConverter}}" Foreground="{Binding TotalOutputValue, Converter={StaticResource MoneyBrushConverter}}" />
+        <TextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding TotalOutputValue, Mode=OneWay, Converter={StaticResource MoneyStringConverter}}" Foreground="{Binding TotalOutputValue, Converter={StaticResource MoneyBrushConverter}}" />
       </Grid>
       <Grid ColumnDefinitions="170, *">
         <TextBlock Classes="monospaceFont" Text="Network Fee (BTC):" />
-        <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding NetworkFee, Mode=OneWay, Converter={StaticResource MoneyStringConverter}}" Foreground="{Binding NetworkFee, Converter={StaticResource MoneyBrushConverter}}" />
+        <TextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding NetworkFee, Mode=OneWay, Converter={StaticResource MoneyStringConverter}}" Foreground="{Binding NetworkFee, Converter={StaticResource MoneyBrushConverter}}" />
       </Grid>
       <Grid ColumnDefinitions="170, *">
         <TextBlock Classes="monospaceFont" Text="Input Count:" />
-        <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Path=InputCount, Mode=OneWay, StringFormat=\{0\} Input(s)}" />
+        <TextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Path=InputCount, Mode=OneWay, StringFormat=\{0\} Input(s)}" />
       </Grid>
       <Grid ColumnDefinitions="170, *">
         <TextBlock Classes="monospaceFont" Text="Output Count:" />
-        <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Path=OutputCount, Mode=OneWay, StringFormat=\{0\} Output(s)}" />
+        <TextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Path=OutputCount, Mode=OneWay, StringFormat=\{0\} Output(s)}" />
       </Grid>
     </StackPanel>
   </Panel>

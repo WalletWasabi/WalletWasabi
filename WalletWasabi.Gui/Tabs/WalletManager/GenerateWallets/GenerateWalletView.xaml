@@ -12,7 +12,7 @@
             <TextBlock Text="Heads Up!" FontWeight="Bold" />
             <TextBlock Text="You cannot recover your wallet without your password. Therefore we strongly advise you to use a password that you will not forget." TextWrapping="Wrap" />
           </StackPanel>
-          <controls:ExtendedTextBox Text="{Binding WalletName}" Watermark="Wallet Name" UseFloatingWatermark="True" />
+          <TextBox Text="{Binding WalletName}" Watermark="Wallet Name" UseFloatingWatermark="True" />
           <controls:TogglePasswordBox Text="{Binding Password}" Watermark="Choose a password">
             <i:Interaction.Behaviors>
               <behaviors:CommandOnEnterBehavior Command="{Binding NextCommand}" />
