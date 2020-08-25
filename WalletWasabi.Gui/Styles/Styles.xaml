@@ -105,6 +105,8 @@
     <Setter Property="InnerRightContent">
       <Template>
         <ToggleButton Classes="PasswordBoxRevealButton"
+                      Background="Transparent"
+                      Cursor="Arrow"
                       IsChecked="{Binding $parent[TextBox].RevealPassword, Mode=TwoWay}" />
       </Template>
     </Setter>
@@ -121,6 +123,7 @@
       <Setter.Value>
         <ControlTemplate TargetType="ToggleButton">
           <Border x:Name="PART_ButtonLayoutBorder"
+                  Background="Transparent"
                   Width="12">
             <Panel>
               <Path x:Name="PART_GlyphElement_Reveal"
