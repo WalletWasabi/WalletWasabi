@@ -59,7 +59,7 @@
               </i:Interaction.Behaviors>
               <ToolTip.Tip>
                 <StackPanel>
-                  <TextBlock Foreground="White" Text="{Binding AmountTip}"></TextBlock>
+                  <TextBlock Foreground="White" Text="{Binding AmountTip}" />
                 </StackPanel>
               </ToolTip.Tip>
             </controls:ExtendedTextBox>
