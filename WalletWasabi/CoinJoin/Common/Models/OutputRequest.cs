@@ -12,14 +12,14 @@ namespace WalletWasabi.CoinJoin.Common.Models
 	{
 		[Required]
 		[JsonConverter(typeof(BitcoinAddressJsonConverter))]
-		public BitcoinAddress OutputAddress { get; set; }
+		public BitcoinAddress OutputAddress { get; set; } = null!;
 
 		[Required]
 		public int Level { get; set; }
 
 		[Required]
 		[JsonConverter(typeof(UnblindedSignatureJsonConverter))]
-		public UnblindedSignature UnblindedSignature { get; set; }
+		public UnblindedSignature UnblindedSignature { get; set; } = null!;
 
 		public StringContent ToHttpStringContent()
 		{

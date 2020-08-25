@@ -9,12 +9,12 @@ namespace WalletWasabi.CoinJoin.Common.Models
 	{
 		[Required]
 		[JsonConverter(typeof(OutPointAsTxoRefJsonConverter))]
-		public OutPoint Input { get; set; }
+		public OutPoint Input { get; set; } = null!;
 
 		[Required]
 		[MinLength(65, ErrorMessage = "Provided proof is invalid")] // Bitcoin compact signatures are 65 bytes length
 		[MaxLength(65, ErrorMessage = "Provided proof is invalid")] // Bitcoin compact signatures are 65 bytes length
 		[JsonConverter(typeof(ByteArrayJsonConverter))]
-		public byte[] Proof { get; set; }
+		public byte[] Proof { get; set; } = null!;
 	}
 }

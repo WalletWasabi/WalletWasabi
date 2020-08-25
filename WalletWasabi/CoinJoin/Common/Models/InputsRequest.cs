@@ -12,6 +12,6 @@ namespace WalletWasabi.CoinJoin.Common.Models
 	{
 		[Required, MinLength(1)]
 		[JsonProperty(ItemConverterType = typeof(Uint256JsonConverter))]
-		public IEnumerable<uint256> BlindedOutputScripts { get; set; }
+		public IEnumerable<uint256> BlindedOutputScripts { get; set; } = null!;
 	}
 }

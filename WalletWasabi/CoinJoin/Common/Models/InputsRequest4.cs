@@ -11,6 +11,6 @@ namespace WalletWasabi.CoinJoin.Common.Models
 	public class InputsRequest4 : InputsRequestBase
 	{
 		[Required, MinLength(1)]
-		public IEnumerable<BlindedOutputWithNonceIndex> BlindedOutputScripts { get; set; }
+		public IEnumerable<BlindedOutputWithNonceIndex> BlindedOutputScripts { get; set; } = null!;
 	}
 }

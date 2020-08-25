@@ -5,6 +5,6 @@ namespace WalletWasabi.Backend.Models.Requests
 	public class BroadcastRequest
 	{
 		[Required]
-		public string Hex { get; set; }
+		public string Hex { get; set; } = null!;
 	}
 }

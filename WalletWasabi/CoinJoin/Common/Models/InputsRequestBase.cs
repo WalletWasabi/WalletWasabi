@@ -14,11 +14,11 @@ namespace WalletWasabi.CoinJoin.Common.Models
 		public long RoundId { get; set; }
 
 		[Required, MinLength(1)]
-		public IEnumerable<InputProofModel> Inputs { get; set; }
+		public IEnumerable<InputProofModel> Inputs { get; set; } = null!;
 
 		[Required]
 		[JsonConverter(typeof(BitcoinAddressJsonConverter))]
-		public BitcoinAddress ChangeOutputAddress { get; set; }
+		public BitcoinAddress ChangeOutputAddress { get; set; } = null!;
 
 		public StringContent ToHttpStringContent()
 		{
