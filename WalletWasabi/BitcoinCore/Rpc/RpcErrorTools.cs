@@ -14,9 +14,11 @@ namespace WalletWasabi.BitcoinCore.Rpc
 
 		public const string SpentErrorTranslation = "At least one coin you are trying to spend is already spent.";
 
-		public static bool IsSpentError(string error) => new[] { SpentError1, SpentError2, SpentError3 }.Any(x => error.Contains(x, StringComparison.OrdinalIgnoreCase));
+		public static bool IsSpentError(string error)
+			=> new[] { SpentError1, SpentError2, SpentError3 }.Any(x => error.Contains(x, StringComparison.OrdinalIgnoreCase));
 
-		public static bool IsTooLongMempoolChainError(string error) => error.Contains(TooLongMempoolChainError, StringComparison.OrdinalIgnoreCase);
+		public static bool IsTooLongMempoolChainError(string error)
+			=> error.Contains(TooLongMempoolChainError, StringComparison.OrdinalIgnoreCase);
 
 		public static Dictionary<string, string> ErrorTranslations { get; } = new Dictionary<string, string>
 		{
