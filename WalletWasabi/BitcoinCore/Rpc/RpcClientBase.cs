@@ -2,10 +2,10 @@ using NBitcoin;
 using NBitcoin.RPC;
 using System;
 using System.Threading.Tasks;
-using WalletWasabi.BitcoinCore.RpcModels;
+using WalletWasabi.BitcoinCore.Rpc.Models;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.BitcoinCore
+namespace WalletWasabi.BitcoinCore.Rpc
 {
 	public class RpcClientBase : IRPCClient
 	{

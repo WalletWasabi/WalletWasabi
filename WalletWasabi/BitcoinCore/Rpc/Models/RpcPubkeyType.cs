@@ -1,4 +1,4 @@
-namespace WalletWasabi.BitcoinCore.RpcModels
+namespace WalletWasabi.BitcoinCore.Rpc.Models
 {
 	public enum RpcPubkeyType
 	{
