@@ -4,6 +4,7 @@ using NBitcoin;
 using NBitcoin.Protocol;
 using ReactiveUI;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reactive;
