@@ -105,7 +105,7 @@
   <Style Selector="TextBox.revealPasswordButton[AcceptsReturn=False][IsReadOnly=False]:not(TextBox:empty)">
     <Setter Property="InnerRightContent">
       <Template>
-        <Panel>
+        <Panel Margin="0,0,4,0">
           <Panel.Styles>
             <Style Selector="ToggleButton[IsChecked=True]">
               <Setter Property="(ToolTip.Tip)" Value="Hide Password" />
@@ -119,10 +119,12 @@
       </Template>
     </Setter>
   </Style>
-  
+
   <!-- TODO: Remove this when we switch to fluent theme. -->
   <Style Selector="TextBox.revealPasswordButton">
     <Setter Property="PasswordChar" Value="*" />
+    <Setter Property="Watermark" Value="Password" />
+    <Setter Property="MinWidth" Value="400" />
   </Style>
 
   <!-- TODO: Remove this when we switch to fluent theme. -->
