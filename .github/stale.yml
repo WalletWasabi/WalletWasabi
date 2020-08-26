@@ -35,11 +35,15 @@ markComment: >
   This issue has been automatically marked as stale because it has not had
   recent activity. It will be closed if no further activity occurs. Thank you
   for your contributions.
+  
 # Comment to post when removing the stale label.
-unmarkComment: >
-  I saw what you did there
+# unmarkComment: >
+#   Your comment here.
+
 # Comment to post when closing a stale Issue or Pull Request.
-closeComment: false
+# closeComment: >
+#   Your comment here.
+
 # Limit the number of actions per hour, from 1-30. Default is 30
 limitPerRun: 30
 
