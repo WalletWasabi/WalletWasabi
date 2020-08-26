@@ -93,7 +93,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Banning
 			foreach (var utxo in toBan)
 			{
 				BannedUtxo foundElem = null;
-				if (BannedUtxos.TryGetValue(utxo, out BannedUtxo fe))
+				if (BannedUtxos.TryGetValue(utxo, out var fe))
 				{
 					foundElem = fe;
 					bool bannedForTheSameRound = foundElem.BannedForRound == bannedForRound;
@@ -161,7 +161,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Banning
 
 		public async Task<BannedUtxo> TryGetBannedAsync(OutPoint outpoint, bool notedToo)
 		{
-			if (BannedUtxos.TryGetValue(outpoint, out BannedUtxo bannedElem))
+			if (BannedUtxos.TryGetValue(outpoint, out var bannedElem))
 			{
 				int maxBan = (int)TimeSpan.FromHours(RoundConfig.DosDurationHours).TotalMinutes;
 				int banLeftMinutes = maxBan - (int)bannedElem.BannedRemaining.TotalMinutes;

@@ -164,7 +164,7 @@ namespace WalletWasabi.Blockchain.Transactions
 		{
 			var hash = tx.GetHash();
 
-			if (Transactions.TryGetValue(hash, out SmartTransaction found))
+			if (Transactions.TryGetValue(hash, out var found))
 			{
 				return found.TryUpdate(tx);
 			}

@@ -71,7 +71,7 @@ namespace WalletWasabi.Blockchain.Blocks
 		{
 			lock (Lock)
 			{
-				if (Chain.TryGetValue(TipHeight, out SmartHeader lastHeader))
+				if (Chain.TryGetValue(TipHeight, out var lastHeader))
 				{
 					if (lastHeader.BlockHash != header.PrevHash)
 					{

@@ -34,7 +34,7 @@ namespace Nito.AsyncEx
 			// If we already have an asynclock with this fullname then just use it and do not create a new one.
 			lock (AsyncMutexesLock)
 			{
-				if (AsyncMutexes.TryGetValue(FullName, out AsyncMutex asyncMutex))
+				if (AsyncMutexes.TryGetValue(FullName, out var asyncMutex))
 				{
 					// Use the already existing lock.
 					AsyncLock = asyncMutex.AsyncLock;

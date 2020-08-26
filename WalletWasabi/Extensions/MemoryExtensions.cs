@@ -25,7 +25,7 @@ namespace Microsoft.Extensions.Caching.Memory
 			lock (AsyncLocksLock)
 			{
 				// If we have no dic for the cache yet then create one.
-				if (!AsyncLocks.TryGetValue(cache, out Dictionary<object, AsyncLock> cacheDic))
+				if (!AsyncLocks.TryGetValue(cache, out var cacheDic))
 				{
 					cacheDic = new Dictionary<object, AsyncLock>();
 					AsyncLocks.Add(cache, cacheDic);

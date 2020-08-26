@@ -247,7 +247,7 @@ namespace WalletWasabi.Backend.Controllers
 				{
 					foreach (var txid in parsedIds)
 					{
-						if (TransactionHexCache.TryGetValue(txid, out string hex))
+						if (TransactionHexCache.TryGetValue(txid, out var hex))
 						{
 							hexes.Add(txid, hex);
 						}
