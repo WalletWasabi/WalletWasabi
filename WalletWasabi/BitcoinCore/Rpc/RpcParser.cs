@@ -1,14 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using NBitcoin;
 using NBitcoin.RPC;
 using Newtonsoft.Json.Linq;
-using WalletWasabi.BitcoinCore.RpcModels;
+using WalletWasabi.BitcoinCore.Rpc.Models;
 
-namespace WalletWasabi.BitcoinCore
+namespace WalletWasabi.BitcoinCore.Rpc
 {
-	public class RpcParser
+	public static class RpcParser
 	{
 		public static RpcPubkeyType ConvertPubkeyType(string pubKeyType)
 		{
