@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -238,7 +239,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		private static bool CompareArguments(string arguments, string desired, bool useStartWith = false)
 			=> CompareArguments(out _, arguments, desired, useStartWith);
 
-		private static bool CompareGetXbpubArguments(string arguments, out string? extPubKey)
+		private static bool CompareGetXbpubArguments(string arguments, [NotNullWhen(returnValue: true)] out string? extPubKey)
 		{
 			extPubKey = null;
 			string command = "getxpub";
@@ -258,7 +259,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				}
 			}
 
-			return extPubKey != null;
+			return extPubKey is { };
 		}
 	}
 }
