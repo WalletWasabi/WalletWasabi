@@ -181,21 +181,15 @@ namespace WalletWasabi.Helpers
 					WindowStyle = ProcessWindowStyle.Hidden
 				}
 			);
+
 			if (waitForExit)
 			{
-				using var process = new ProcessAsync(startInfo);
-				process.Start();
-
 				await process.WaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
 
 				if (process.ExitCode != 0)
 				{
 					Logger.LogError($"{nameof(ShellExecAsync)} command: {cmd} exited with exit code: {process.ExitCode}, instead of 0.");
 				}
-			}
-			else
-			{
-				using var process = Process.Start(startInfo);
 			}
 		}
 
