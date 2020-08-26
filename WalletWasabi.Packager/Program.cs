@@ -422,7 +422,6 @@ namespace WalletWasabi.Packager
 						$"--runtime \"{target}\"",
 						$"--disable-parallel",
 						$"--no-cache",
-						$"/p:WasabiPackagerRuntimeIdentifier=\"{target}\"",
 						$"/p:VersionPrefix={VersionPrefix}",
 						$"/p:DebugType=none",
 						$"/p:DebugSymbols=false",
