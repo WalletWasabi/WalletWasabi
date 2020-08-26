@@ -4,6 +4,7 @@ using NBitcoin;
 using NBitcoin.Protocol;
 using ReactiveUI;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reactive;
@@ -48,13 +49,14 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private volatile bool _disposedValue = false; // To detect redundant calls
 
-		public StatusBarViewModel(string dataDir, Network network, Config config, HostedServices hostedServices, SmartHeaderChain smartHeaderChain, LegalDocuments? legalDocuments)
+		public StatusBarViewModel(string dataDir, Network network, Config config, HostedServices hostedServices, SmartHeaderChain smartHeaderChain, WasabiSynchronizer synchronizer, LegalDocuments? legalDocuments)
 		{
 			DataDir = dataDir;
 			Network = network;
 			Config = config;
 			HostedServices = hostedServices;
 			SmartHeaderChain = smartHeaderChain;
+			Synchronizer = synchronizer;
 			LegalDocuments = legalDocuments;
 			Backend = BackendStatus.NotConnected;
 			UseTor = false;
@@ -76,6 +78,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public string DataDir { get; }
 
+		[SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "Network affects status bar background color.")]
 		private Network Network { get; }
 
 		private Config Config { get; }
@@ -150,10 +153,9 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _downloadingBlock, value);
 		}
 
-		public void Initialize(NodesCollection nodes, WasabiSynchronizer synchronizer)
+		public void Initialize(NodesCollection nodes)
 		{
 			Nodes = nodes;
-			Synchronizer = synchronizer;
 			UseTor = Config.UseTor; // Do not make it dynamic, because if you change this config settings only next time will it activate.
 			UseBitcoinCore = Config.StartLocalBitcoinCoreOnStartup;
 

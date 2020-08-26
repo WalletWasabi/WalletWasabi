@@ -126,9 +126,9 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		public void Initialize(NodesCollection connectedNodes, WasabiSynchronizer synchronizer)
+		public void Initialize(NodesCollection connectedNodes)
 		{
-			StatusBar.Initialize(connectedNodes, synchronizer);
+			StatusBar.Initialize(connectedNodes);
 
 			if (Network != Network.Main)
 			{
