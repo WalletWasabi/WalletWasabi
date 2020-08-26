@@ -4,13 +4,13 @@
 daysUntilStale: 60
 
 # Number of days of inactivity before an issue or a pull request with the stale label is closed
-# Set to false to disable. If disabled, issues still need to be closed manually, but will remain marked as stale.
+# Set to false to disable it. If disabled, issues or pull requests still need to be closed manually, but will remain labeled as stale
 daysUntilClose: 10
 
-# Only issues or pull requests with all of these labels are check if stale. Defaults to `[]` (disabled)
+# Only issues or pull requests with all of these labels are checked if stale. Defaults to `[]` (disabled)
 onlyLabels: []
 
-# Issues or Pull Requests with these labels will never be considered stale. Set to `[]` to disable
+# Issues or pull requests with these labels will never be considered stale. Set to `[]` to disable it
 exemptLabels:
   - question/research
   - feature/enhancement
@@ -27,20 +27,20 @@ exemptMilestones: false
 # Set to true to ignore issues with an assignee (defaults to false)
 exemptAssignees: true
 
-# Label to use when marking as stale
+# Label to use when marking an issue or a pull request as stale
 staleLabel: stale
 
-# Comment to post when marking as stale. Set to `false` to disable
+# Comment to post when marking an issue or a pull request as stale. Set to `false` to disable it
 markComment: >
-  This issue has been automatically marked as stale because it has not had
+  This has been automatically marked as stale because it has not had
   recent activity. It will be closed if no further activity occurs. Thank you
   for your contributions.
 
-# Comment to post when removing the stale label.
+# Comment to post when removing the stale label
 # unmarkComment: >
 #   Your comment here.
 
-# Comment to post when closing a stale Issue or Pull Request.
+# Comment to post when closing a stale issue or pull request
 # closeComment: >
 #   Your comment here.
 
