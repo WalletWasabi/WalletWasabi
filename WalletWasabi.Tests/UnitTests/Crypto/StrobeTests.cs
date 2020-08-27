@@ -1,14 +1,10 @@
-using NBitcoin;
-using NBitcoin.DataEncoders;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Numerics;
 using System.Text;
 using WalletWasabi.Crypto;
-using WalletWasabi.JsonConverters;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Crypto
@@ -97,10 +93,10 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		public static IEnumerable<object[]> GetStrobeTestVectors()
 		{
 			var testVectorFile = File.ReadAllText("./UnitTests/Data/StrobeTestVectors.json");
-			var x = JsonConvert.DeserializeObject<TestVectorsContainer>(testVectorFile);
+			var testSet = JsonConvert.DeserializeObject<StrobeTestSet>(testVectorFile);
 
 			// return all test vectors except the one for streaming because it is not implemented.
-			foreach (var vector in x.TestVectors.Where(x => !x.Name.Contains("streaming")))
+			foreach (var vector in testSet.TestVectors.Where(x => !x.Name.Contains("streaming")))
 			{
 				yield return new object[] { vector };
 			}
@@ -109,47 +105,74 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		private static byte[] ToBytes(string s) => Encoding.UTF8.GetBytes(s);
 	}
 
-	public class TestVectorsContainer
+	public class StrobeTestSet
 	{
 		[JsonProperty(PropertyName = "test_vectors")]
-		public List<TestVector> TestVectors;
+		public List<TestVector> TestVectors { get; }
+
+		[JsonConstructor]
+		public StrobeTestSet(List<TestVector> testVectors)
+		{
+			TestVectors = testVectors;
+		}
 	}
 
 	public class TestVector
 	{
 		[JsonProperty(PropertyName = "name")]
-		public string Name;
+		public string Name { get; }
 		[JsonProperty(PropertyName = "operations")]
-		public List<Operation> Operations;
+		public List<Operation> Operations  { get; }
+
+		[JsonConstructor]
+		public TestVector(string name, List<Operation> operations)
+		{
+			Name = name;
+			Operations = operations;
+		}
 	}
 
 	public class Operation
 	{
 		[JsonProperty(PropertyName = "name")]
-		public string Name;
+		public string Name { get; }
 
 		[JsonProperty(PropertyName = "security")]
-		public int Security;
+		public int Security { get; }
 		
 		[JsonProperty(PropertyName = "custom_string")]
-		public string CustomString;
+		public string CustomString { get; }
 		
 		[JsonProperty(PropertyName = "input_length")]
-		public int InputLength;
+		public int InputLength { get; }
 
 		[JsonProperty(PropertyName = "output")]
-		public string Output;
+		public string Output { get; }
 
 		[JsonProperty(PropertyName = "meta")]
-		public bool IsMeta;
+		public bool IsMeta { get; }
 		
 		[JsonProperty(PropertyName = "input_data")]
-		public string InputData;
+		public string InputData { get; }
 		
 		[JsonProperty(PropertyName = "state_after")]
-		public string StateAfter;
+		public string StateAfter { get; }
 		
 		[JsonProperty(PropertyName = "stream")]
-		public bool IsStream;
+		public bool IsStream { get; }
+
+		[JsonConstructor]
+		public Operation(string name, int security, string customString, int inputLength, string output, bool isMeta, string inputData, string stateAfter, bool isStream)
+		{
+			Name = name;
+			Security = security;
+			CustomString = customString;
+			InputLength = inputLength;
+			Output = output;
+			IsMeta = isMeta;
+			InputData = inputData;
+			StateAfter = stateAfter;
+			IsStream = isStream; 
+		}		
 	}
 }
