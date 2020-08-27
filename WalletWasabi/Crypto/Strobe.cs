@@ -8,7 +8,7 @@ namespace WalletWasabi.Crypto
 	// https://strobe.sourceforge.io/papers/strobe-20170130.pdf
 	// Based on Merlin framework small implementation: https://doc-internal.dalek.rs/src/merlin/strobe.rs.html
 	// https://github.com/dalek-cryptography/merlin/blob/1ed350bbc1d65f0a0697e0c20c48e11ec172c6ff/src/strobe.rs
-	public class Strobe128
+	public sealed class Strobe128
 	{
 		private static readonly byte DDATA = 0x04;
 		private static readonly byte DRATE = 0x80;
@@ -62,10 +62,8 @@ namespace WalletWasabi.Crypto
 			Absorb(data);
 		}
 
-		public byte[] Prf(int count, bool more)
+		public byte[] Prf(uint count, bool more)
 		{
-			Guard.InRangeAndNotNull(nameof(count), count, 0, int.MaxValue);
-
 			BeginOperation(StrobeFlags.I | StrobeFlags.A | StrobeFlags.C, more);
 			return Squeeze(new byte[count]);
 		}
@@ -83,7 +81,7 @@ namespace WalletWasabi.Crypto
 			return new Strobe128(_state, _currentFlags, _beginPosition, _position);
 		}
 
-		public override string ToString()
+		internal string DumpState()
 		{
 			return ByteHelpers.ToHex(_state);
 		}

@@ -50,13 +50,15 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			Assert.Equal(rnd1, rnd2);
 
+			var strobe1State = strobe1.DumpState();
 			var strobe3 = strobe1.MakeCopy();
 
-			Assert.Equal(strobe1.ToString(), strobe3.ToString());
+			Assert.Equal(strobe1.DumpState(), strobe3.DumpState());
 
 			strobe1.AddAssociatedData(ToBytes("Something"), false);
 
-			Assert.NotEqual(strobe1.ToString(), strobe3.ToString());
+			Assert.NotEqual(strobe1.DumpState(), strobe3.DumpState());
+			Assert.NotEqual(strobe1.DumpState(), strobe1State);
 		}
 
 		[Theory]
@@ -66,7 +68,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var init = vector.Operations.First();
 			var strobe = new Strobe128(init.CustomString);
 
-			Assert.Equal(init.StateAfter, strobe.ToString(), ignoreCase: true);
+			Assert.Equal(init.StateAfter, strobe.DumpState(), ignoreCase: true);
 
 			foreach (var operation in vector.Operations.Skip(1).TakeWhile(x => new[] { "KEY", "AD", "PRF" }.Contains(x.Name) ))
 			{
@@ -88,7 +90,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 						Assert.Equal(operation.Output, ByteHelpers.ToHex(output), ignoreCase: true);
 						break;
 				}
-				Assert.Equal(operation.StateAfter, strobe.ToString(), ignoreCase: true);
+				Assert.Equal(operation.StateAfter, strobe.DumpState(), ignoreCase: true);
 			}
 		}
 
