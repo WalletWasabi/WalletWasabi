@@ -6,13 +6,18 @@ namespace WalletWasabi.Tests.UnitTests.GUI
 	public class SendControlViewModelTest
 	{
 		[Theory]
+		[InlineData(false, "0")]
+		[InlineData(false, "0.1")]
+		[InlineData(true, "1.2099999997690000")]
+		[InlineData(true, "1")]
 		[InlineData(true, "47")]
 		[InlineData(true, "47.0")]
-		[InlineData(true, "1")]
-		[InlineData(true, "2099999997690000")]
-		[InlineData(false, "0")]
+		[InlineData(true, "1111111111111")]
+		[InlineData(false, "11111111111111")]
+		[InlineData(false, "2099999997690000")]
 		[InlineData(false, "2099999997690001")]
-		[InlineData(false, "0.1")]
+		[InlineData(false, "111111111111111111111111111")]
+		[InlineData(false, "99999999999999999999999999999999999999999999")]
 		public void SendControlViewModel_Check_Test_Fees(bool isValid, string feeText)
 		{
 			Assert.Equal(isValid, SendControlViewModel.TryParseUserFee(feeText, out var _));

@@ -62,8 +62,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private const string WaitingForHardwareWalletButtonTextString = "Waiting for Hardware Wallet...";
 
-		private static readonly FeeRate MinRelayTxFeeRate = new FeeRate(Money.Satoshis(1), 1);
-		private static readonly FeeRate AbsurdlyHighFeeRate = new FeeRate(Money.Satoshis(Constants.MaximumNumberOfSatoshis), 1);
+		private static readonly decimal MinRelayTxFeeRate = 1m;
+		private static readonly decimal AbsurdlyHighFeeRate = ((decimal)Constants.MaximumNumberOfSatoshis) / 1000;
 
 		private FeeDisplayFormat _feeDisplayFormat;
 		private bool _isSliderFeeUsed = true;
@@ -812,25 +812,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		public static bool TryParseUserFee(string feeText, out decimal userFeeRateAsDecimal)
-		{
-			try
-			{
-				if (decimal.TryParse(feeText, NumberStyles.AllowDecimalPoint, new CultureInfo("en-US"), out var userFee))
-				{
-					var userFeeRate = new FeeRate(userFee);
-					userFeeRateAsDecimal = userFeeRate.SatoshiPerByte;
-					return userFeeRate >= MinRelayTxFeeRate && userFeeRate <= AbsurdlyHighFeeRate;
-				}
-			}
-			catch (OverflowException)
-			{
-				// Ignore OverflowException
-			}
-
-			userFeeRateAsDecimal = 0;
-			return false;
-		}
+		public static bool TryParseUserFee(string feeText, out decimal userFee) 
+			=> decimal.TryParse(feeText, NumberStyles.AllowDecimalPoint, new CultureInfo("en-US"), out userFee)
+			&& userFee >= MinRelayTxFeeRate
+			&& userFee < AbsurdlyHighFeeRate
+			&& new FeeRate(userFee) is var _;
 
 		private void ValidateUserFeeText(IValidationErrors errors)
 		{
