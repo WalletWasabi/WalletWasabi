@@ -543,13 +543,16 @@ namespace WalletWasabi.Packager
 					Directory.Move(publishedFolder, newFolderPath);
 					publishedFolder = newFolderPath;
 
-					var linuxPath = $"/mnt/c/{Tools.LinuxPath(BinDistDirectory.Replace("C:\\", ""))}"; // We assume that it is on drive C:\.
+					var driveLetterUpper = BinDistDirectory[0];
+					var driveLetterLower = char.ToLower(driveLetterUpper);
+
+					var linuxPath = $"/mnt/{driveLetterLower}/{Tools.LinuxPath(BinDistDirectory.Substring(3))}";
 
 					var commands = new[]
 					{
 						"cd ~",
-						"sudo umount /mnt/c",
-						"sudo mount -t drvfs C: /mnt/c -o metadata",
+						$"sudo umount /mnt/{driveLetterLower}",
+						$"sudo mount -t drvfs {driveLetterUpper}: /mnt/{driveLetterLower} -o metadata",
 						$"cd {linuxPath}",
 						$"sudo find ./{newFolderName} -type f -exec chmod 644 {{}} \\;",
 						$"sudo find ./{newFolderName} -type f \\( -name 'wassabee' -o -name 'hwi' -o -name 'bitcoind' \\) -exec chmod +x {{}} \\;",

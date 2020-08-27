@@ -94,7 +94,7 @@
                   </StackPanel>
                 </Expander>
                 <Grid ColumnDefinitions="400, *, 100" Margin="30 0 0 0">
-                  <TextBlock Classes="monospaceFont" IsVisible="{Binding !ClipboardNotificationVisible}" Text="{Binding Address, ConverterParameter=27, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}"></TextBlock>
+                  <TextBlock Classes="monospaceFont" IsVisible="{Binding !ClipboardNotificationVisible}" Text="{Binding Address, ConverterParameter=27, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" />
                   <Grid IsVisible="{Binding ClipboardNotificationVisible}">
                     <Grid Opacity="{Binding ClipboardNotificationOpacity}">
                       <Grid.Transitions>
