@@ -39,6 +39,11 @@ namespace WalletWasabi.Crypto
 			_position = position;
 		}
 
+		~Strobe128()
+		{
+			Array.Clear(_state, 0, _state.Length);
+		}
+
 		public void AddAssociatedMetaData(byte[] data, bool more)
 		{
 			BeginOperation(StrobeFlags.M | StrobeFlags.A, more);
@@ -71,11 +76,6 @@ namespace WalletWasabi.Crypto
 		public override string ToString()
 		{
 			return ByteHelpers.ToHex(_state);
-		}
-
-		~Strobe128()
-		{
-			Array.Clear(_state, 0, _state.Length);
 		}
 
 		private void Absorb(byte[] data)

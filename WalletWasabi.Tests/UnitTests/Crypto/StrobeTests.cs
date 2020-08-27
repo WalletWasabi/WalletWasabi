@@ -15,6 +15,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		[Trait("UnitTest", "UnitTest")]
 		public void BehaiorIsDeterministic()
 		{
+			static byte[] ToBytes(string s) => Encoding.UTF8.GetBytes(s);
+			
 			var strobe1 = new Strobe128("TestProtocol.v0.0.1");
 			var strobe2 = new Strobe128("TestProtocol.v0.0.1");
 
@@ -59,7 +61,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 		[Theory]
 		[MemberData(nameof(GetStrobeTestVectors))]
-		public void TestVectors(TestVector vector)
+		public void TestVectors(StrobeTestVector vector)
 		{
 			var init = vector.Operations.First();
 			var strobe = new Strobe128(init.CustomString);
@@ -101,78 +103,5 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 				yield return new object[] { vector };
 			}
 		}
-
-		private static byte[] ToBytes(string s) => Encoding.UTF8.GetBytes(s);
-	}
-
-	public class StrobeTestSet
-	{
-		[JsonProperty(PropertyName = "test_vectors")]
-		public List<TestVector> TestVectors { get; }
-
-		[JsonConstructor]
-		public StrobeTestSet(List<TestVector> testVectors)
-		{
-			TestVectors = testVectors;
-		}
-	}
-
-	public class TestVector
-	{
-		[JsonProperty(PropertyName = "name")]
-		public string Name { get; }
-		[JsonProperty(PropertyName = "operations")]
-		public List<Operation> Operations  { get; }
-
-		[JsonConstructor]
-		public TestVector(string name, List<Operation> operations)
-		{
-			Name = name;
-			Operations = operations;
-		}
-	}
-
-	public class Operation
-	{
-		[JsonProperty(PropertyName = "name")]
-		public string Name { get; }
-
-		[JsonProperty(PropertyName = "security")]
-		public int Security { get; }
-		
-		[JsonProperty(PropertyName = "custom_string")]
-		public string CustomString { get; }
-		
-		[JsonProperty(PropertyName = "input_length")]
-		public int InputLength { get; }
-
-		[JsonProperty(PropertyName = "output")]
-		public string Output { get; }
-
-		[JsonProperty(PropertyName = "meta")]
-		public bool IsMeta { get; }
-		
-		[JsonProperty(PropertyName = "input_data")]
-		public string InputData { get; }
-		
-		[JsonProperty(PropertyName = "state_after")]
-		public string StateAfter { get; }
-		
-		[JsonProperty(PropertyName = "stream")]
-		public bool IsStream { get; }
-
-		[JsonConstructor]
-		public Operation(string name, int security, string customString, int inputLength, string output, bool isMeta, string inputData, string stateAfter, bool isStream)
-		{
-			Name = name;
-			Security = security;
-			CustomString = customString;
-			InputLength = inputLength;
-			Output = output;
-			IsMeta = isMeta;
-			InputData = inputData;
-			StateAfter = stateAfter;
-			IsStream = isStream; 
-		}		
 	}
 }
