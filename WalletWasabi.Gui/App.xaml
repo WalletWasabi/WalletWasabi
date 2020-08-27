@@ -15,9 +15,7 @@
     <StyleInclude Source="avares://Dock.Avalonia.Themes.Default/DefaultTheme.xaml" />
     <StyleInclude Source="avares://Dock.Avalonia.Themes.Metro/DefaultTheme.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Gui/Controls/GroupBox.xaml" />
-    <StyleInclude Source="avares://WalletWasabi.Gui/Controls/TogglePasswordBox.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Gui/Controls/EditableTextBlock.xaml" />
-    <StyleInclude Source="avares://WalletWasabi.Gui/Controls/ExtendedTextBox.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Gui/Controls/Shields.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Gui/Styles/Styles.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Gui/Icons/Icons.xaml" />
@@ -36,7 +34,7 @@
     <DataTemplate DataType="id:IDockable">
       <cont:ViewModelViewHost DataContext="{Binding Context}" />
     </DataTemplate>
-  </Application.DataTemplates>  
+  </Application.DataTemplates>
   <NativeMenu.Menu>
     <NativeMenu>
       <NativeMenuItem Header="About Wasabi Wallet" Command="{Binding AboutCommand}" />
