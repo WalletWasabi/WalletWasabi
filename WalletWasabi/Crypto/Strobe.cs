@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto
 {
@@ -22,11 +23,12 @@ namespace WalletWasabi.Crypto
 
 		public Strobe128(string procotol)
 		{
-			var V = "STROBEv1.0.2";
-			var S0 = ByteHelpers.Combine(
+			Guard.NotNullOrEmpty(nameof(procotol), procotol);
+
+			var initialState = ByteHelpers.Combine(
 				new byte[] { 1, (byte)(SpongeRate + 2), 1, 0, 1, 12 * 8 },  // F([[1, r/8, 1, 0, 1, 12·8]]
-				Encoding.UTF8.GetBytes(V));
-			Buffer.BlockCopy(S0, 0, _state, 0, S0.Length);
+				Encoding.UTF8.GetBytes("STROBEv1.0.2"));
+			Buffer.BlockCopy(initialState, 0, _state, 0, initialState.Length);
 			KeccakF1600(_state);
 			AddAssociatedMetaData(Encoding.UTF8.GetBytes(procotol), false);
 		}
@@ -46,24 +48,32 @@ namespace WalletWasabi.Crypto
 
 		public void AddAssociatedMetaData(byte[] data, bool more)
 		{
+			Guard.NotNull(nameof(data), data);
+
 			BeginOperation(StrobeFlags.M | StrobeFlags.A, more);
 			Absorb(data);
 		}
 
 		public void AddAssociatedData(byte[] data, bool more)
 		{
+			Guard.NotNull(nameof(data), data);
+
 			BeginOperation(StrobeFlags.A, more);
 			Absorb(data);
 		}
 
 		public byte[] Prf(int count, bool more)
 		{
+			Guard.InRangeAndNotNull(nameof(count), count, 0, int.MaxValue);
+
 			BeginOperation(StrobeFlags.I | StrobeFlags.A | StrobeFlags.C, more);
 			return Squeeze(new byte[count]);
 		}
 
 		public void Key(byte[] data, bool more)
 		{
+			Guard.NotNull(nameof(data), data);
+
 			BeginOperation(StrobeFlags.A | StrobeFlags.C, more);
 			Override(data);
 		}
