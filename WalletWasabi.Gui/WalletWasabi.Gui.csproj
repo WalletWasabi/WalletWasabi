@@ -66,9 +66,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia.Desktop" Version="0.10.999-cibuild0010205-beta" />
-    <PackageReference Include="Avalonia.Diagnostics" Version="0.10.999-cibuild0010205-beta" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.999-cibuild0010205-beta" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.10.999-cibuild0010258-beta" />
+    <PackageReference Include="Avalonia.Diagnostics" Version="0.10.999-cibuild0010258-beta" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.999-cibuild0010258-beta" />
     <PackageReference Include="AvalonStudio.Shell" Version="0.10.0-cibuild0000832-beta" />
     <PackageReference Include="Dock.Avalonia.Themes.Default" Version="0.10.0-preview3" />
     <PackageReference Include="Dock.Avalonia.Themes.Metro" Version="0.10.0-preview3" />
