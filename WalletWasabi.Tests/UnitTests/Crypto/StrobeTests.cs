@@ -55,6 +55,10 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var strobe3 = strobe1.MakeCopy();
 
 			Assert.Equal(strobe1.ToString(), strobe3.ToString());
+
+			strobe1.AddData(ToBytes("Something"), false);
+			
+			Assert.NotEqual(strobe1.ToString(), strobe3.ToString());
 		}
 
 		[Theory]

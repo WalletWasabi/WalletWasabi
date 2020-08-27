@@ -86,7 +86,7 @@ namespace WalletWasabi.Crypto
 
 		private Strobe128(byte[] state, StrobeFlags flags, byte beginPosition, byte position)
 		{
-			_state = state;
+			Buffer.BlockCopy(state, 0, _state, 0, _state.Length);
 			_currentFlags = flags;
 			_beginPosition = beginPosition;
 			_position = position;
