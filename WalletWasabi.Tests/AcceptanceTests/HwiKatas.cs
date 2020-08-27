@@ -24,8 +24,7 @@ namespace WalletWasabi.Tests.AcceptanceTests
 		#region SharedVariables
 
 		// Bottleneck: user action on device.
-		public TimeSpan ReasonableRequestTimeout { get; } = TimeSpan.FromMinutes(3);
-
+		public TimeSpan ReasonableRequestTimeout { get; } = TimeSpan.FromMinutes(10);
 		// The transaction is similar to these transactions:
 		// https://blockstream.info/testnet/tx/580d04a1891bf5b03a972eb63791e57ca39b85476d45f1d82a09732fe4c9214d
 		// https://blockstream.info/testnet/tx/82cd8165a4fb3276354a817ad1b991a0c4af7d6d438f9052f34d58712f873457
@@ -218,11 +217,18 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			// Connect and initialize your Nano S with the following seed phrase:
 			// more maid moon upgrade layer alter marine screen benefit way cover alcohol
 			// Run this test.
-			// displayaddress request: refuse (accept Warning messages)
-			// displayaddress request: confirm
-			// displayaddress request: confirm
-			// signtx request: refuse
-			// signtx request: confirm
+			// displayaddress request(derivation path): approve
+			// displayaddress request: reject
+			// displayaddress request(derivation path): approve
+			// displayaddress request: approve
+			// displayaddress request(derivation path): approve
+			// displayaddress request: approve
+			// signtx request: reject
+			// signtx request: accept
+			// confirm transaction: accept and send
+			// unverified inputs: continue
+			// signtx request: accept
+			// confirm transaction: accept and send
 			//
 			// --- USER INTERACTIONS ---
 
@@ -280,7 +286,11 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			Assert.Equal(HwiErrorCode.BadArgument, ex.ErrorCode);
 
 			// USER: CONFIRM
-			PSBT signedPsbt = await client.SignTxAsync(deviceType, devicePath, Psbt, cts.Token);
+			var nullFailEx = await Assert.ThrowsAsync<PSBTException>(async () => await client.SignTxAsync(deviceType, devicePath, Psbt, cts.Token));
+			Assert.Equal(nullFailEx.Message.Contains("NullFail"), true);
+
+			// USER: CONFIRM
+			PSBT signedPsbt = await Gui.Controls.WalletExplorer.SendTabViewModel.LedgerNanoSHackFixAsync(client, fingerprint, Psbt, cts.Token);
 
 			Transaction signedTx = signedPsbt.GetOriginalTransaction();
 			Assert.Equal(Psbt.GetOriginalTransaction().GetHash(), signedTx.GetHash());
