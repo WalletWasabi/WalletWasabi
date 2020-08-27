@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using WalletWasabi.Packager;
 using Xunit;
@@ -10,13 +11,7 @@ namespace WalletWasabi.Tests.UnitTests.Packager
 	/// </summary>
 	public class BitnodesApiTests
 	{
-		[Fact]
-		public void ProcessResponseTest()
-		{
-			var stringWriter = new StringWriter();
-			var api = new BitnodesApi(stringWriter);
-
-			string response = @"
+		private const string ApiResponse = @"
 			{
 			  ""timestamp"": 1597669414,
 			  ""total_nodes"": 10407,
@@ -29,10 +24,40 @@ namespace WalletWasabi.Tests.UnitTests.Packager
 			  }
 			}";
 
-			api.ProcessResponse(response, null);
+		/// <summary>
+		/// Tests that we process response from Bitnodes API correctly.
+		/// </summary>
+		[Fact]
+		public void ProcessResponseTest()
+		{
+			var stringWriter = new StringWriter();
+			var api = new BitnodesApi(stringWriter);
+			api.ProcessResponse(ApiResponse, currentOnions: null);
 
 			// tep3ddikbopezl4v.onion is skipped because it is not a full node.
 			Assert.Equal($"nesxfmano25clfvn.onion:8333{Environment.NewLine}tg4uwrjmtr2jlbjy.onion:8333{Environment.NewLine}", stringWriter.ToString());
+		}
+
+		/// <summary>
+		/// Tests reduce onions behavior where we set <c>currentOnions</c> and addresses that do not fulfill
+		/// parameters (<see cref="PrintOnionsAsync(HashSet<string>? currentOnions)"/>) are filtered out.
+		/// </summary>
+		[Fact]
+		public void ProcessResponseWithCurrentOnionsTest()
+		{
+			var currentOnions = new HashSet<string>()
+			{
+				"tg4uwrjmtr2jlbjy.onion:8333", // Fulfills all criteria.
+				"tep3ddikbopezl4v.onion:8333", // This one is not a full node, so it should not be in the result.
+				"185.25.48.184:8333", // Not an onion address.
+			};
+
+			var stringWriter = new StringWriter();
+			var api = new BitnodesApi(stringWriter);
+			api.ProcessResponse(ApiResponse, currentOnions);
+
+			// tep3ddikbopezl4v.onion is skipped because it is not a full node.
+			Assert.Equal($"tg4uwrjmtr2jlbjy.onion:8333{Environment.NewLine}", stringWriter.ToString());
 		}
 	}
 }
