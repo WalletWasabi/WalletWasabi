@@ -103,17 +103,6 @@ namespace WalletWasabi.Gui.Behaviors
 					})
 			};
 
-			if (AssociatedObject is ExtendedTextBox extendedTextBox)
-			{
-				Disposables.Add(extendedTextBox.TextPasted
-					.ObserveOn(RxApp.MainThreadScheduler)
-					.Subscribe(text =>
-					{
-						ProcessText(text);
-						MyTextBoxState = TextBoxState.NormalTextBoxOperation;
-					}));
-			}
-
 			Disposables.Add(
 				AssociatedObject.GetObservable(InputElement.PointerReleasedEvent).Subscribe(async pointer =>
 					{
