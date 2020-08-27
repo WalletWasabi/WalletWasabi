@@ -813,7 +813,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public static bool TryParseUserFee(string feeText, out decimal userFee)
-			=> decimal.TryParse(feeText, NumberStyles.AllowDecimalPoint, new CultureInfo("en-US"), out userFee)
+			=> decimal.TryParse(feeText?.Trim(), NumberStyles.AllowDecimalPoint, new CultureInfo("en-US"), out userFee)
 			&& userFee >= MinRelayTxFeeRate
 			&& userFee < AbsurdlyHighFeeRate
 			&& new FeeRate(userFee) is var _;
