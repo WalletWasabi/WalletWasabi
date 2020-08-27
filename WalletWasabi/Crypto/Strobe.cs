@@ -6,17 +6,72 @@ namespace WalletWasabi.Crypto
 {
 	// https://strobe.sourceforge.io/papers/strobe-20170130.pdf
 	// Based on Merlin framework small implementation: https://doc-internal.dalek.rs/src/merlin/strobe.rs.html
+	// https://github.com/dalek-cryptography/merlin/blob/1ed350bbc1d65f0a0697e0c20c48e11ec172c6ff/src/strobe.rs
 	public class Strobe128
 	{
-		private readonly static byte DDATA = 0x04; // for compatibility with cSHAKE (?)
-		private readonly static byte DRATE = 0x80; // for compatibility with cSHAKE (?)
+		/// <summary>
+		/// The behavior of each of Strobe's operations is defined completely by 6 features, called flags.
+		/// </summary>
+		[Flags]
+		enum StrobeFlags : byte 
+		{
+			/// <summary>
+			/// Inbound.
+			/// If set, this flag means that the operation moves data from the transport, to the cipher,
+			/// to the application. An operation without the I flag set is said to be Outbound.
+			/// The I flag is clear on all send operations, and set on all recv operations.
+			/// </summary>
+			I = 1,
 
-		private readonly byte[] _state = new byte[200];
+			/// <summary>
+			/// Application.
+			/// If set, this flag means that the operation has data coming to or from the application side.
+			/// An operation with I and A both set outputs bytes to the application.
+			/// An operation with A set but I clear takes input from the application.
+			/// </summary>
+			A = 2,
+
+			/// <summary>
+			/// Cipher.
+			/// If set, this flag means that the operation's output depends cryptographically on the Strobe cipher state.
+			/// For operations which don't have I or T flags set, neither party produces output with this operation.
+			/// In that case, the C flag instead means that the operation acts as a rekey or ratchet.
+			/// </summary>
+			C = 4,
+
+			/// <summary>
+			/// Transport.
+			/// If set, this flag means that the operation sends or receives data using the transport.
+			/// An operation has T set if and only if it has send or recv in its name.
+			/// An operation with I and T both set receives data from the transport.
+			/// An operation with T set but I clear sends data to the transport.
+			/// </summary>
+			T = 8,
+
+			/// <summary>
+			/// Meta.
+			/// If set, this flag means that the operation is handling framing, transcript comments or some other sort of protocol metadata.
+			/// It doesn't affect how the operation is performed.
+			/// </summary>
+			M = 16,
+
+			/// <summary>
+			/// Keytree.
+			/// This flag is reserved for a certain protocol-level countermeasure against side-channel analysis.
+			/// It does affect how an operation is performed.
+			/// This specification does not describe its use. For all operations in this specification, the K flag must be clear.
+			/// </summary>
+			K = 32
+		}
+
+		private static readonly byte DDATA = 0x04;
+		private static readonly byte DRATE = 0x80;
+
+		private readonly byte[] _state = new byte[25 * 8]; // this is the block size used by keccak-f1600.
 		private byte _position = 0;
 		private byte _beginPosition = 0;
 		private StrobeFlags _currentFlags = 0;
-		private readonly static byte SpongeRate = 166; //Let ˆr=r/8−2.  This is the portion of the rate which is used for user data,measured in bytes.
-		// private readonly static byte SpongeCapacity = 0;
+		private static readonly byte SpongeRate = 166; // Let ˆr=r/8−2. This is the portion of the rate which is used for user data, measured in bytes.
 
 		public Strobe128(string procotol)
 		{
@@ -26,16 +81,24 @@ namespace WalletWasabi.Crypto
 				Encoding.UTF8.GetBytes(V));
 			Buffer.BlockCopy(S0, 0, _state, 0, S0.Length);
 			KeccakF1600(_state);
-			MetaAssociatedData(Encoding.UTF8.GetBytes(procotol), false);
+			AddMetaData(Encoding.UTF8.GetBytes(procotol), false);
 		}
 
-		public void MetaAssociatedData(byte[] data, bool more)
+		private Strobe128(byte[] state, StrobeFlags flags, byte beginPosition, byte position)
+		{
+			_state = state;
+			_currentFlags = flags;
+			_beginPosition = beginPosition;
+			_position = position;
+		}
+
+		public void AddMetaData(byte[] data, bool more)
 		{
 			BeginOperation(StrobeFlags.M | StrobeFlags.A, more);
 			Absorb(data);
 		}
 
-		public void AssociatedData(byte[] data, bool more)
+		public void AddData(byte[] data, bool more)
 		{
 			BeginOperation(StrobeFlags.A, more);
 			Absorb(data);
@@ -51,6 +114,11 @@ namespace WalletWasabi.Crypto
 		{
 			BeginOperation(StrobeFlags.A | StrobeFlags.C, more);
 			Override(data);
+		}
+
+		public Strobe128 MakeCopy()
+		{
+			return new Strobe128(_state, _currentFlags, _beginPosition, _position);
 		}
 
 		public override string ToString()
@@ -140,8 +208,11 @@ namespace WalletWasabi.Crypto
 			_beginPosition = 0;
 		}
 
-
-		private static readonly ulong[] KeccakRoundConstants = new ulong[]{
+		// Taken from Bouncy Castle project.
+		// https://github.com/bcgit/bc-csharp/blob/1cbd476c1eaf32a928a926ebb0ec346821753661/crypto/src/crypto/digests/KeccakDigest.cs
+		// License as MIT https://www.bouncycastle.org/licence.html
+		private static readonly ulong[] KeccakRoundConstants = new ulong[]
+		{
 			0x0000000000000001UL, 0x0000000000008082UL, 0x800000000000808aUL, 0x8000000080008000UL,
 			0x000000000000808bUL, 0x0000000080000001UL, 0x8000000080008081UL, 0x8000000000008009UL,
 			0x000000000000008aUL, 0x0000000000000088UL, 0x0000000080008009UL, 0x000000008000000aUL,
@@ -150,12 +221,12 @@ namespace WalletWasabi.Crypto
 			0x8000000080008081UL, 0x8000000000008080UL, 0x0000000080000001UL, 0x8000000080008008UL
 		};
 
-		static private void KeccakF1600(byte[] state)
+		private static void KeccakF1600(byte[] state)
 		{
 			Span<ulong> A = MemoryMarshal.Cast<byte, ulong>(state);
 
-			ulong a00 = A[ 0], a01 = A[ 1], a02 = A[ 2], a03 = A[ 3], a04 = A[ 4];
-			ulong a05 = A[ 5], a06 = A[ 6], a07 = A[ 7], a08 = A[ 8], a09 = A[ 9];
+			ulong a00 = A[00], a01 = A[01], a02 = A[02], a03 = A[03], a04 = A[04];
+			ulong a05 = A[05], a06 = A[06], a07 = A[07], a08 = A[08], a09 = A[09];
 			ulong a10 = A[10], a11 = A[11], a12 = A[12], a13 = A[13], a14 = A[14];
 			ulong a15 = A[15], a16 = A[16], a17 = A[17], a18 = A[18], a19 = A[19];
 			ulong a20 = A[20], a21 = A[21], a22 = A[22], a23 = A[23], a24 = A[24];
@@ -182,30 +253,30 @@ namespace WalletWasabi.Crypto
 				a04 ^= d0; a09 ^= d0; a14 ^= d0; a19 ^= d0; a24 ^= d0;
 
 				// rho/pi
-				c1  = a01 <<  1 | a01 >> 63;
+				c1  = a01 << 01 | a01 >> 63;
 				a01 = a06 << 44 | a06 >> 20;
 				a06 = a09 << 20 | a09 >> 44;
-				a09 = a22 << 61 | a22 >>  3;
+				a09 = a22 << 61 | a22 >> 03;
 				a22 = a14 << 39 | a14 >> 25;
 				a14 = a20 << 18 | a20 >> 46;
-				a20 = a02 << 62 | a02 >>  2;
+				a20 = a02 << 62 | a02 >> 02;
 				a02 = a12 << 43 | a12 >> 21;
 				a12 = a13 << 25 | a13 >> 39;
-				a13 = a19 <<  8 | a19 >> 56;
-				a19 = a23 << 56 | a23 >>  8;
+				a13 = a19 << 08 | a19 >> 56;
+				a19 = a23 << 56 | a23 >> 08;
 				a23 = a15 << 41 | a15 >> 23;
 				a15 = a04 << 27 | a04 >> 37;
 				a04 = a24 << 14 | a24 >> 50;
-				a24 = a21 <<  2 | a21 >> 62;
-				a21 = a08 << 55 | a08 >>  9;
+				a24 = a21 << 02 | a21 >> 62;
+				a21 = a08 << 55 | a08 >> 09;
 				a08 = a16 << 45 | a16 >> 19;
 				a16 = a05 << 36 | a05 >> 28;
 				a05 = a03 << 28 | a03 >> 36;
 				a03 = a18 << 21 | a18 >> 43;
 				a18 = a17 << 15 | a17 >> 49;
 				a17 = a11 << 10 | a11 >> 54;
-				a11 = a07 <<  6 | a07 >> 58;
-				a07 = a10 <<  3 | a10 >> 61;
+				a11 = a07 << 06 | a07 >> 58;
+				a07 = a10 << 03 | a10 >> 61;
 				a10 = c1;
 
 				// chi
@@ -253,66 +324,11 @@ namespace WalletWasabi.Crypto
 				a00 ^= KeccakRoundConstants[i];
 			}
 
-			A[ 0] = a00; A[ 1] = a01; A[ 2] = a02; A[ 3] = a03; A[ 4] = a04;
-			A[ 5] = a05; A[ 6] = a06; A[ 7] = a07; A[ 8] = a08; A[ 9] = a09;
+			A[00] = a00; A[01] = a01; A[02] = a02; A[03] = a03; A[04] = a04;
+			A[05] = a05; A[06] = a06; A[07] = a07; A[08] = a08; A[09] = a09;
 			A[10] = a10; A[11] = a11; A[12] = a12; A[13] = a13; A[14] = a14;
 			A[15] = a15; A[16] = a16; A[17] = a17; A[18] = a18; A[19] = a19;
 			A[20] = a20; A[21] = a21; A[22] = a22; A[23] = a23; A[24] = a24;
 		}
-	}
-
-	/// <summary>
-	/// The behavior of each of Strobe's operations is defined completely by 6 features, called flags.
-	/// </summary>
-	[Flags]
-	enum StrobeFlags : byte 
-	{
-		/// <summary>
-		/// Inbound.
-		/// If set, this flag means that the operation moves data from the transport, to the cipher,
-		/// to the application. An operation without the I flag set is said to be Outbound.
-		/// The I flag is clear on all send operations, and set on all recv operations.
-		/// </summary>
-		I = 1,
-
-		/// <summary>
-		/// Application.
-		/// If set, this flag means that the operation has data coming to or from the application side.
-		/// An operation with I and A both set outputs bytes to the application.
-		/// An operation with A set but I clear takes input from the application.
-		/// </summary>
-		A = 2,
-
-		/// <summary>
-		/// Cipher.
-		/// If set, this flag means that the operation's output depends cryptographically on the Strobe cipher state.
-		/// For operations which don't have I or T flags set, neither party produces output with this operation.
-		/// In that case, the C flag instead means that the operation acts as a rekey or ratchet.
-		/// </summary>
-		C = 4,
-
-		/// <summary>
-		/// Transport.
-		/// If set, this flag means that the operation sends or receives data using the transport.
-		/// An operation has T set if and only if it has send or recv in its name.
-		/// An operation with I and T both set receives data from the transport.
-		/// An operation with T set but I clear sends data to the transport.
-		/// </summary>
-		T = 8,
-
-		/// <summary>
-		/// Meta.
-		/// If set, this flag means that the operation is handling framing, transcript comments or some other sort of protocol metadata.
-		/// It doesn't affect how the operation is performed.
-		/// </summary>
-		M = 16,
-
-		/// <summary>
-		/// Keytree.
-		/// This flag is reserved for a certain protocol-level countermeasure against side-channel analysis.
-		/// It does affect how an operation is performed.
-		/// This specification does not describe its use. For all operations in this specification, the K flag must be clear.
-		/// </summary>
-		K = 32
 	}
 }

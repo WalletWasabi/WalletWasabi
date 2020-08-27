@@ -22,35 +22,39 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var strobe1 = new Strobe128("TestProtocol.v0.0.1");
 			var strobe2 = new Strobe128("TestProtocol.v0.0.1");
 
-			strobe1.MetaAssociatedData(ToBytes("wabisabi://unitests/"), false);
-			strobe1.MetaAssociatedData(ToBytes("greeting/"), true);
-			strobe1.AssociatedData(ToBytes("hello"), false);
+			strobe1.AddMetaData(ToBytes("wabisabi://unitests/"), false);
+			strobe1.AddMetaData(ToBytes("greeting/"), true);
+			strobe1.AddData(ToBytes("hello"), false);
 
-			strobe2.MetaAssociatedData(ToBytes("wabisabi://unitests/"), false);
-			strobe2.MetaAssociatedData(ToBytes("greeting/"), true);
-			strobe2.AssociatedData(ToBytes("hello"), false);
+			strobe2.AddMetaData(ToBytes("wabisabi://unitests/"), false);
+			strobe2.AddMetaData(ToBytes("greeting/"), true);
+			strobe2.AddData(ToBytes("hello"), false);
 
-			strobe1.MetaAssociatedData(ToBytes("prf"), false);
+			strobe1.AddMetaData(ToBytes("prf"), false);
 			var rnd1 = strobe1.Prf(12, false);
 
-			strobe2.MetaAssociatedData(ToBytes("prf"), false);
+			strobe2.AddMetaData(ToBytes("prf"), false);
 			var rnd2 = strobe2.Prf(12, false);
 
 			Assert.Equal(rnd1, rnd2);
 
-			strobe1.MetaAssociatedData(ToBytes("key"), false);
+			strobe1.AddMetaData(ToBytes("key"), false);
 			strobe1.Key(rnd1, false);
 
-			strobe2.MetaAssociatedData(ToBytes("key"), false);
+			strobe2.AddMetaData(ToBytes("key"), false);
 			strobe2.Key(rnd2, false);
 
-			strobe1.MetaAssociatedData(ToBytes("prf"), false);
+			strobe1.AddMetaData(ToBytes("prf"), false);
 			rnd1 = strobe1.Prf(12, false);
 
-			strobe2.MetaAssociatedData(ToBytes("prf"), false);
+			strobe2.AddMetaData(ToBytes("prf"), false);
 			rnd2 = strobe2.Prf(12, false);
 
 			Assert.Equal(rnd1, rnd2);
+
+			var strobe3 = strobe1.MakeCopy();
+
+			Assert.Equal(strobe1.ToString(), strobe3.ToString());
 		}
 
 		[Theory]
@@ -70,11 +74,11 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 					case "AD":
 						if (operation.IsMeta)
 						{
-							 strobe.MetaAssociatedData(ByteHelpers.FromHex(operation.InputData), false);
+							 strobe.AddMetaData(ByteHelpers.FromHex(operation.InputData), false);
 						}
 						else
 						{
-							 strobe.AssociatedData(ByteHelpers.FromHex(operation.InputData), false); 
+							 strobe.AddData(ByteHelpers.FromHex(operation.InputData), false); 
 						}
 						break;
 					case "PRF": 
