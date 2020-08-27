@@ -40,8 +40,9 @@ namespace WalletWasabi.Tests.UnitTests.Packager
 
 		/// <summary>
 		/// Tests reduce onions behavior where we set <c>currentOnions</c> and addresses that do not fulfill
-		/// parameters (<see cref="PrintOnionsAsync(HashSet<string>? currentOnions)"/>) are filtered out.
+		/// parameters are filtered out.
 		/// </summary>
+		/// <seealso cref="BitnodesApi.PrintOnionsAsync(HashSet{string}?)"/>
 		[Fact]
 		public void ProcessResponseWithCurrentOnionsTest()
 		{
