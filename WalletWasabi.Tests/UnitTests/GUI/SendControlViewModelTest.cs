@@ -18,6 +18,19 @@ namespace WalletWasabi.Tests.UnitTests.GUI
 		[InlineData(false, "2099999997690001")]
 		[InlineData(false, "111111111111111111111111111")]
 		[InlineData(false, "99999999999999999999999999999999999999999999")]
+		[InlineData(false, "abc")]
+		[InlineData(false, "1a2b")]
+		[InlineData(false, "")]
+		[InlineData(false, null)]
+		[InlineData(false, "  ")]
+		[InlineData(false, "     2")]
+		[InlineData(true, "1.1")]
+		[InlineData(false, "1.1 ")]
+		[InlineData(false, "1,1")]
+		[InlineData(false, "1. 1")]
+		[InlineData(false, "1 .1")]
+		[InlineData(false, "0.             1")]
+		[InlineData(false, "csszáőüó@")]
 		public void SendControlViewModel_Check_Test_Fees(bool isValid, string feeText)
 		{
 			Assert.Equal(isValid, SendControlViewModel.TryParseUserFee(feeText, out var _));
