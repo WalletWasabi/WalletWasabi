@@ -71,7 +71,8 @@ namespace WalletWasabi.Crypto
 		private byte _position = 0;
 		private byte _beginPosition = 0;
 		private StrobeFlags _currentFlags = 0;
-		private static readonly byte SpongeRate = 166; // Let ˆr=r/8−2. This is the portion of the rate which is used for user data, measured in bytes.
+		// Let ˆr=r/8−2. This is the portion of the rate which is used for user data, measured in bytes.
+		private static readonly byte SpongeRate = 166;
 
 		public Strobe128(string procotol)
 		{
@@ -81,7 +82,7 @@ namespace WalletWasabi.Crypto
 				Encoding.UTF8.GetBytes(V));
 			Buffer.BlockCopy(S0, 0, _state, 0, S0.Length);
 			KeccakF1600(_state);
-			AddMetaData(Encoding.UTF8.GetBytes(procotol), false);
+			AddAssociatedMetaData(Encoding.UTF8.GetBytes(procotol), false);
 		}
 
 		private Strobe128(byte[] state, StrobeFlags flags, byte beginPosition, byte position)
@@ -92,13 +93,13 @@ namespace WalletWasabi.Crypto
 			_position = position;
 		}
 
-		public void AddMetaData(byte[] data, bool more)
+		public void AddAssociatedMetaData(byte[] data, bool more)
 		{
 			BeginOperation(StrobeFlags.M | StrobeFlags.A, more);
 			Absorb(data);
 		}
 
-		public void AddData(byte[] data, bool more)
+		public void AddAssociatedData(byte[] data, bool more)
 		{
 			BeginOperation(StrobeFlags.A, more);
 			Absorb(data);
@@ -124,6 +125,11 @@ namespace WalletWasabi.Crypto
 		public override string ToString()
 		{
 			return ByteHelpers.ToHex(_state);
+		}
+
+		~Strobe128()
+		{
+			Array.Clear(_state, 0, _state.Length);
 		}
 
 		private void Absorb(byte[] data)
@@ -196,6 +202,7 @@ namespace WalletWasabi.Crypto
 			}
 		}
 
+		// This is the Sponge function responsible for shuffling the internal state.
 		private void RunF()
 		{
 			_state[_position] ^= _beginPosition;
@@ -223,13 +230,13 @@ namespace WalletWasabi.Crypto
 
 		private static void KeccakF1600(byte[] state)
 		{
-			Span<ulong> A = MemoryMarshal.Cast<byte, ulong>(state);
+			Span<ulong> buffer = MemoryMarshal.Cast<byte, ulong>(state);
 
-			ulong a00 = A[00], a01 = A[01], a02 = A[02], a03 = A[03], a04 = A[04];
-			ulong a05 = A[05], a06 = A[06], a07 = A[07], a08 = A[08], a09 = A[09];
-			ulong a10 = A[10], a11 = A[11], a12 = A[12], a13 = A[13], a14 = A[14];
-			ulong a15 = A[15], a16 = A[16], a17 = A[17], a18 = A[18], a19 = A[19];
-			ulong a20 = A[20], a21 = A[21], a22 = A[22], a23 = A[23], a24 = A[24];
+			ulong a00 = buffer[00], a01 = buffer[01], a02 = buffer[02], a03 = buffer[03], a04 = buffer[04];
+			ulong a05 = buffer[05], a06 = buffer[06], a07 = buffer[07], a08 = buffer[08], a09 = buffer[09];
+			ulong a10 = buffer[10], a11 = buffer[11], a12 = buffer[12], a13 = buffer[13], a14 = buffer[14];
+			ulong a15 = buffer[15], a16 = buffer[16], a17 = buffer[17], a18 = buffer[18], a19 = buffer[19];
+			ulong a20 = buffer[20], a21 = buffer[21], a22 = buffer[22], a23 = buffer[23], a24 = buffer[24];
 
 			for (int i = 0; i < 24; i++)
 			{
@@ -324,11 +331,11 @@ namespace WalletWasabi.Crypto
 				a00 ^= KeccakRoundConstants[i];
 			}
 
-			A[00] = a00; A[01] = a01; A[02] = a02; A[03] = a03; A[04] = a04;
-			A[05] = a05; A[06] = a06; A[07] = a07; A[08] = a08; A[09] = a09;
-			A[10] = a10; A[11] = a11; A[12] = a12; A[13] = a13; A[14] = a14;
-			A[15] = a15; A[16] = a16; A[17] = a17; A[18] = a18; A[19] = a19;
-			A[20] = a20; A[21] = a21; A[22] = a22; A[23] = a23; A[24] = a24;
+			buffer[00] = a00; buffer[01] = a01; buffer[02] = a02; buffer[03] = a03; buffer[04] = a04;
+			buffer[05] = a05; buffer[06] = a06; buffer[07] = a07; buffer[08] = a08; buffer[09] = a09;
+			buffer[10] = a10; buffer[11] = a11; buffer[12] = a12; buffer[13] = a13; buffer[14] = a14;
+			buffer[15] = a15; buffer[16] = a16; buffer[17] = a17; buffer[18] = a18; buffer[19] = a19;
+			buffer[20] = a20; buffer[21] = a21; buffer[22] = a22; buffer[23] = a23; buffer[24] = a24;
 		}
 	}
 }
