@@ -666,7 +666,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					// In decimal ',' means order of magnitude.
 					// User could think it is decimal point but 3,5 means 35 Satoshi.
 					// For this reason we treat ',' as an invalid character.
-					if (TryParseUserFee(out decimal userFee))
+					if (TryParseUserFee(UserFeeText, out decimal userFee))
 					{
 						FeeRate = new FeeRate(userFee);
 						feeTarget = Constants.SevenDaysConfirmationTarget;
@@ -812,9 +812,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		public bool TryParseUserFee(out decimal userFeeRateAsDecimal) => TryParseUserFeeCore(UserFeeText, out userFeeRateAsDecimal);
-
-		public static bool TryParseUserFeeCore(string feeText, out decimal userFeeRateAsDecimal)
+		public static bool TryParseUserFee(string feeText, out decimal userFeeRateAsDecimal)
 		{
 			try
 			{
@@ -836,7 +834,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void ValidateUserFeeText(IValidationErrors errors)
 		{
-			if (!TryParseUserFee(out _))
+			if (!TryParseUserFee(UserFeeText, out _))
 			{
 				errors.Add(ErrorSeverity.Error, "Invalid fee.");
 			}

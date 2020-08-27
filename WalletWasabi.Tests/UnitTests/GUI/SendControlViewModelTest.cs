@@ -15,7 +15,7 @@ namespace WalletWasabi.Tests.UnitTests.GUI
 		[InlineData(false, "0.1")]
 		public void SendControlViewModel_Check_Test_Fees(bool isValid, string feeText)
 		{
-			Assert.Equal(isValid, SendControlViewModel.TryParseUserFeeCore(feeText, out var _));
+			Assert.Equal(isValid, SendControlViewModel.TryParseUserFee(feeText, out var _));
 		}
 	}
 }
