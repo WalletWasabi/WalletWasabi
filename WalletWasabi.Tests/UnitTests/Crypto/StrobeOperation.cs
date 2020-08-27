@@ -4,6 +4,20 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 {
 	public class StrobeOperation
 	{
+		[JsonConstructor]
+		public StrobeOperation(string name, int security, string customString, uint inputLength, string output, bool isMeta, string inputData, string stateAfter, bool isStream)
+		{
+			Name = name;
+			Security = security;
+			CustomString = customString;
+			InputLength = inputLength;
+			Output = output;
+			IsMeta = isMeta;
+			InputData = inputData;
+			StateAfter = stateAfter;
+			IsStream = isStream; 
+		}
+
 		[JsonProperty(PropertyName = "name")]
 		public string Name { get; }
 
@@ -30,19 +44,5 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		
 		[JsonProperty(PropertyName = "stream")]
 		public bool IsStream { get; }
-
-		[JsonConstructor]
-		public StrobeOperation(string name, int security, string customString, uint inputLength, string output, bool isMeta, string inputData, string stateAfter, bool isStream)
-		{
-			Name = name;
-			Security = security;
-			CustomString = customString;
-			InputLength = inputLength;
-			Output = output;
-			IsMeta = isMeta;
-			InputData = inputData;
-			StateAfter = stateAfter;
-			IsStream = isStream; 
-		}		
 	}
 }
