@@ -74,8 +74,8 @@
         </StackPanel>
       </StackPanel>
       <controls:BusyIndicator IsBusy="{Binding IsCoinListLoading}" Text="Loading...">
-        <controls:ExtendedListBox Items="{Binding Coins}" SelectedItem="{Binding Path=SelectedCoin, Mode=TwoWay}">
-          <controls:ExtendedListBox.ItemTemplate>
+        <ListBox Items="{Binding Coins}" SelectedItem="{Binding Path=SelectedCoin, Mode=TwoWay}">
+          <ListBox.ItemTemplate>
             <DataTemplate>
               <Grid Classes="CoinItemGrid">
 
@@ -134,8 +134,8 @@
                 <CheckBox HorizontalAlignment="Center" IsChecked="{Binding IsSelected}" Background="{DynamicResource ThemeBackgroundBrush}" />
               </Grid>
             </DataTemplate>
-          </controls:ExtendedListBox.ItemTemplate>
-        </controls:ExtendedListBox>
+          </ListBox.ItemTemplate>
+        </ListBox>
       </controls:BusyIndicator>
     </DockPanel>
   </Grid>

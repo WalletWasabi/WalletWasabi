@@ -35,8 +35,8 @@
     <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" BorderThickness="0">
       <DockPanel LastChildFill="True">
         <Grid Classes="content">
-          <controls:ExtendedListBox Items="{Binding Wallets}" SelectedItem="{Binding SelectedWallet, Mode=TwoWay}">
-            <controls:ExtendedListBox.ItemTemplate>
+          <ListBox Items="{Binding Wallets}" SelectedItem="{Binding SelectedWallet, Mode=TwoWay}">
+            <ListBox.ItemTemplate>
               <DataTemplate>
                 <TextBlock Text="{Binding WalletName}" Background="Transparent">
                   <i:Interaction.Behaviors>
@@ -44,8 +44,8 @@
                   </i:Interaction.Behaviors>
                 </TextBlock>
               </DataTemplate>
-            </controls:ExtendedListBox.ItemTemplate>
-          </controls:ExtendedListBox>
+            </ListBox.ItemTemplate>
+          </ListBox>
         </Grid>
       </DockPanel>
     </controls:GroupBox>
