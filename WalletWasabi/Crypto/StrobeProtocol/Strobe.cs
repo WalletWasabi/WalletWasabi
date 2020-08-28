@@ -13,13 +13,13 @@ namespace WalletWasabi.Crypto.StrobeProtocol
 		private const byte DDATA = 0x04;
 		private const byte DRATE = 0x80;
 
+		// Let ˆr=r/8−2. This is the portion of the rate which is used for user data, measured in bytes.
+		private const byte SpongeRate = 166;
+
 		private readonly byte[] State = new byte[25 * 8]; // this is the block size used by keccak-f1600.
 		private byte _position = 0;
 		private byte _beginPosition = 0;
 		private StrobeFlags _currentFlags = 0;
-
-		// Let ˆr=r/8−2. This is the portion of the rate which is used for user data, measured in bytes.
-		private const byte SpongeRate = 166;
 
 		public Strobe128(string procotol)
 		{
