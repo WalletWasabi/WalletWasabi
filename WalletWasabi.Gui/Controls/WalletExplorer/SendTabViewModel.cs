@@ -54,19 +54,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						try
 						{
-							signedPsbt = await client.SignTxAsync(Wallet.KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token).ConfigureAwait(false);
+							signedPsbt = await client.SignTxAsync(Wallet.KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
 						}
 						catch (PSBTException ex) when (ex.Message.Contains("NullFail"))
 						{
 							NotificationHelpers.Warning("Fall back to Unverified Inputs Mode, trying to sign again.");
 
-							signedPsbt = await SignPsbtWithoutInputTxsAsync(client, Wallet.KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token).ConfigureAwait(false);
+							signedPsbt = await SignPsbtWithoutInputTxsAsync(client, Wallet.KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
 						}
 					}
 					catch (HwiException)
 					{
 						await PinPadViewModel.UnlockAsync();
-						signedPsbt = await client.SignTxAsync(Wallet.KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token).ConfigureAwait(false);
+						signedPsbt = await client.SignTxAsync(Wallet.KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
 					}
 					signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction);
 				}
