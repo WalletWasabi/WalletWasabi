@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Hwi.ProcessBridge;
+using WalletWasabi.Microservices;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Hwi
@@ -19,7 +20,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		[Fact]
 		public async Task HwiProcessBridgeTestAsync()
 		{
-			HwiProcessBridge pb = new HwiProcessBridge();
+			var pb = new HwiProcessBridge(new ProcessInvoker());
 
 			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
 			var res = await pb.SendCommandAsync("version", false, cts.Token);

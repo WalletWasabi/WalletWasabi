@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
+using WalletWasabi.Microservices;
 
 namespace WalletWasabi.Helpers
 {
@@ -180,6 +181,7 @@ namespace WalletWasabi.Helpers
 					WindowStyle = ProcessWindowStyle.Hidden
 				}
 			);
+
 			if (waitForExit)
 			{
 				await process.WaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
