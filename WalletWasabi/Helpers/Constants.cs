@@ -52,8 +52,6 @@ namespace WalletWasabi.Helpers
 
 		public const decimal DefaultDustThreshold = 0.00005m;
 
-		public const long MaxSatoshisSupply = 2_100_000_000_000_000L;
-
 		public const string AlphaNumericCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 		public const string CapitalAlphaNumericCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
