@@ -145,10 +145,12 @@ namespace WalletWasabi.Tests
 		public void BuildTransactionWithFees()
 		{
 			var service = new WasabiJsonRpcService(null);
-			var paymentInfo = new PaymentInfo{ 
-				Amount = Money.Coins(1), 
-				Sendto = BitcoinAddress.Create("bc1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7fdevah", Network.Main),
-				Label = "Cesar" };
+			var paymentInfo = new PaymentInfo
+				{
+					Amount = Money.Coins(1),
+					Sendto = BitcoinAddress.Create("bc1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7fdevah", Network.Main),
+					Label = "Cesar"
+				};
 
 			void BuildTransaction(int feeTarget = 0, decimal feeRate = 0m) =>
 				service.BuildTransaction(new[] { paymentInfo }, new OutPoint[0], feeTarget, feeRate);
