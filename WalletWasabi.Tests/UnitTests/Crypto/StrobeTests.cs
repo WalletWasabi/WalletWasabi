@@ -16,7 +16,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		public void BehaiorIsDeterministic()
 		{
 			static byte[] ToBytes(string s) => Encoding.UTF8.GetBytes(s);
-			
+
 			var strobe1 = new Strobe128("TestProtocol.v0.0.1");
 			var strobe2 = new Strobe128("TestProtocol.v0.0.1");
 
@@ -70,22 +70,23 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			Assert.Equal(init.StateAfter, strobe.DumpState(), ignoreCase: true);
 
-			foreach (var operation in vector.Operations.Skip(1).TakeWhile(x => new[] { "KEY", "AD", "PRF" }.Contains(x.Name) ))
+			foreach (var operation in vector.Operations.Skip(1).TakeWhile(x => new[] { "KEY", "AD", "PRF" }.Contains(x.Name)))
 			{
-				switch(operation.Name)
+				switch (operation.Name)
 				{
 					case "KEY": strobe.Key(ByteHelpers.FromHex(operation.InputData), false); break;
 					case "AD":
 						if (operation.IsMeta)
 						{
-							 strobe.AddAssociatedMetaData(ByteHelpers.FromHex(operation.InputData), false);
+							strobe.AddAssociatedMetaData(ByteHelpers.FromHex(operation.InputData), false);
 						}
 						else
 						{
-							 strobe.AddAssociatedData(ByteHelpers.FromHex(operation.InputData), false); 
+							strobe.AddAssociatedData(ByteHelpers.FromHex(operation.InputData), false);
 						}
 						break;
-					case "PRF": 
+
+					case "PRF":
 						var output = strobe.Prf(operation.InputLength, false);
 						Assert.Equal(operation.Output, ByteHelpers.ToHex(output), ignoreCase: true);
 						break;

@@ -108,7 +108,7 @@ namespace WalletWasabi.Crypto
 					RunF();
 				}
 			}
-		} 
+		}
 
 		private byte[] Squeeze(byte[] data)
 		{
@@ -162,7 +162,7 @@ namespace WalletWasabi.Crypto
 			_state[_position] ^= _beginPosition;
 			_state[_position + 1] ^= DDATA;
 			_state[SpongeRate + 1] ^= DRATE;
-			
+
 			KeccakF1600(_state);
 
 			_position = 0;
@@ -214,7 +214,7 @@ namespace WalletWasabi.Crypto
 				a04 ^= d0; a09 ^= d0; a14 ^= d0; a19 ^= d0; a24 ^= d0;
 
 				// rho/pi
-				c1  = a01 << 01 | a01 >> 63;
+				c1 = a01 << 01 | a01 >> 63;
 				a01 = a06 << 44 | a06 >> 20;
 				a06 = a09 << 20 | a09 >> 44;
 				a09 = a22 << 61 | a22 >> 03;
@@ -296,7 +296,7 @@ namespace WalletWasabi.Crypto
 		/// The behavior of each of Strobe's operations is defined completely by 6 features, called flags.
 		/// </summary>
 		[Flags]
-		private enum StrobeFlags : byte 
+		private enum StrobeFlags : byte
 		{
 			/// <summary>
 			/// Inbound.

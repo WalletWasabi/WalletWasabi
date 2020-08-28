@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 
 namespace WalletWasabi.Tests.UnitTests.Crypto
@@ -14,6 +14,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 		[JsonProperty(PropertyName = "name")]
 		public string Name { get; }
+
 		[JsonProperty(PropertyName = "operations")]
 		public List<StrobeOperation> Operations { get; }
 	}

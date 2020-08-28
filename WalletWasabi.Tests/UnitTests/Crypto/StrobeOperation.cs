@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 
 namespace WalletWasabi.Tests.UnitTests.Crypto
 {
@@ -15,7 +15,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			IsMeta = isMeta;
 			InputData = inputData;
 			StateAfter = stateAfter;
-			IsStream = isStream; 
+			IsStream = isStream;
 		}
 
 		[JsonProperty(PropertyName = "name")]
@@ -23,10 +23,10 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 		[JsonProperty(PropertyName = "security")]
 		public int Security { get; }
-		
+
 		[JsonProperty(PropertyName = "custom_string")]
 		public string CustomString { get; }
-		
+
 		[JsonProperty(PropertyName = "input_length")]
 		public uint InputLength { get; }
 
@@ -35,13 +35,13 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 		[JsonProperty(PropertyName = "meta")]
 		public bool IsMeta { get; }
-		
+
 		[JsonProperty(PropertyName = "input_data")]
 		public string InputData { get; }
-		
+
 		[JsonProperty(PropertyName = "state_after")]
 		public string StateAfter { get; }
-		
+
 		[JsonProperty(PropertyName = "stream")]
 		public bool IsStream { get; }
 	}
