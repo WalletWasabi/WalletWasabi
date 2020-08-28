@@ -41,7 +41,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 			this.WhenAnyValue(x => x.PinInput)
 				.Throttle(TimeSpan.FromSeconds(2.5))
-				.Where(x => !string.IsNullOrWhiteSpace(x))
+				.Where(x => !string.IsNullOrEmpty(x))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
@@ -54,8 +54,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				});
 
 			this.WhenAnyValue(x => x.PinInput)
-				.Select(Guard.Correct)
-				.Where(x => x.Length != 0)
+				.Where(x => !string.IsNullOrEmpty(x) && x.Length != 0)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
