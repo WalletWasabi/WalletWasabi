@@ -10,8 +10,8 @@ namespace WalletWasabi.Crypto
 	// https://github.com/dalek-cryptography/merlin/blob/1ed350bbc1d65f0a0697e0c20c48e11ec172c6ff/src/strobe.rs
 	public sealed class Strobe128
 	{
-		private static readonly byte DDATA = 0x04;
-		private static readonly byte DRATE = 0x80;
+		private const byte DDATA = 0x04;
+		private const byte DRATE = 0x80;
 
 		private readonly byte[] State = new byte[25 * 8]; // this is the block size used by keccak-f1600.
 		private byte _position = 0;
@@ -19,14 +19,14 @@ namespace WalletWasabi.Crypto
 		private StrobeFlags _currentFlags = 0;
 
 		// Let ˆr=r/8−2. This is the portion of the rate which is used for user data, measured in bytes.
-		private static readonly byte SpongeRate = 166;
+		private const byte SpongeRate = 166;
 
 		public Strobe128(string procotol)
 		{
 			Guard.NotNullOrEmpty(nameof(procotol), procotol);
 
 			var initialState = ByteHelpers.Combine(
-				new byte[] { 1, (byte)(SpongeRate + 2), 1, 0, 1, 12 * 8 },  // F([[1, r/8, 1, 0, 1, 12·8]]
+				new byte[] { 1, (SpongeRate + 2), 1, 0, 1, 12 * 8 },  // F([[1, r/8, 1, 0, 1, 12·8]]
 				Encoding.UTF8.GetBytes("STROBEv1.0.2"));
 			Buffer.BlockCopy(initialState, 0, State, 0, initialState.Length);
 			KeccakF1600(State);
