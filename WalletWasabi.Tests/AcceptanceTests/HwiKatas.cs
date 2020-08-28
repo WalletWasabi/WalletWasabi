@@ -290,7 +290,7 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			Assert.Equal(nullFailEx.Message.Contains("NullFail"), true);
 
 			// USER: CONFIRM
-			PSBT signedPsbt = await Gui.Controls.WalletExplorer.SendTabViewModel.LedgerNanoSHackFixAsync(client, fingerprint, Psbt, cts.Token);
+			PSBT signedPsbt = await Gui.Controls.WalletExplorer.SendTabViewModel.SignPsbtWithoutInputTxsAsync(client, fingerprint, Psbt, cts.Token);
 
 			Transaction signedTx = signedPsbt.GetOriginalTransaction();
 			Assert.Equal(Psbt.GetOriginalTransaction().GetHash(), signedTx.GetHash());
