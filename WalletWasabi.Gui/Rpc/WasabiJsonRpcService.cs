@@ -129,8 +129,8 @@ namespace WalletWasabi.Gui.Rpc
 			
 			var argFeeRate = new FeeRate(feeRate);
 
-			bool InRange<T>(IComparable<T> a, T b, T c) => 
-				a.CompareTo(b) >= 0 && a.CompareTo(c) <= 0;
+			static bool InRange<T>(IComparable<T> val, T min, T max) =>
+				val.CompareTo(min) >= 0 && val.CompareTo(max) <= 0;
 
 			var feeStrategy = (feeRate, feeTarget) switch
 			{
