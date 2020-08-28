@@ -207,11 +207,35 @@ namespace WalletWasabi.Crypto.StrobeProtocol
 				ulong d4 = (c4 << 1 | c4 >> -1) ^ c2;
 				ulong d0 = (c0 << 1 | c0 >> -1) ^ c3;
 
-				a00 ^= d1; a05 ^= d1; a10 ^= d1; a15 ^= d1; a20 ^= d1;
-				a01 ^= d2; a06 ^= d2; a11 ^= d2; a16 ^= d2; a21 ^= d2;
-				a02 ^= d3; a07 ^= d3; a12 ^= d3; a17 ^= d3; a22 ^= d3;
-				a03 ^= d4; a08 ^= d4; a13 ^= d4; a18 ^= d4; a23 ^= d4;
-				a04 ^= d0; a09 ^= d0; a14 ^= d0; a19 ^= d0; a24 ^= d0;
+				a00 ^= d1;
+				a05 ^= d1;
+				a10 ^= d1;
+				a15 ^= d1;
+				a20 ^= d1;
+
+				a01 ^= d2;
+				a06 ^= d2;
+				a11 ^= d2;
+				a16 ^= d2;
+				a21 ^= d2;
+
+				a02 ^= d3;
+				a07 ^= d3;
+				a12 ^= d3;
+				a17 ^= d3;
+				a22 ^= d3;
+
+				a03 ^= d4;
+				a08 ^= d4;
+				a13 ^= d4;
+				a18 ^= d4;
+				a23 ^= d4;
+
+				a04 ^= d0;
+				a09 ^= d0;
+				a14 ^= d0;
+				a19 ^= d0;
+				a24 ^= d0;
 
 				// rho/pi
 				c1 = a01 << 01 | a01 >> 63;
@@ -285,11 +309,35 @@ namespace WalletWasabi.Crypto.StrobeProtocol
 				a00 ^= KeccakRoundConstants[i];
 			}
 
-			buffer[00] = a00; buffer[01] = a01; buffer[02] = a02; buffer[03] = a03; buffer[04] = a04;
-			buffer[05] = a05; buffer[06] = a06; buffer[07] = a07; buffer[08] = a08; buffer[09] = a09;
-			buffer[10] = a10; buffer[11] = a11; buffer[12] = a12; buffer[13] = a13; buffer[14] = a14;
-			buffer[15] = a15; buffer[16] = a16; buffer[17] = a17; buffer[18] = a18; buffer[19] = a19;
-			buffer[20] = a20; buffer[21] = a21; buffer[22] = a22; buffer[23] = a23; buffer[24] = a24;
+			buffer[00] = a00;
+			buffer[01] = a01;
+			buffer[02] = a02;
+			buffer[03] = a03;
+			buffer[04] = a04;
+
+			buffer[05] = a05;
+			buffer[06] = a06;
+			buffer[07] = a07;
+			buffer[08] = a08;
+			buffer[09] = a09;
+
+			buffer[10] = a10;
+			buffer[11] = a11;
+			buffer[12] = a12;
+			buffer[13] = a13;
+			buffer[14] = a14;
+
+			buffer[15] = a15;
+			buffer[16] = a16;
+			buffer[17] = a17;
+			buffer[18] = a18;
+			buffer[19] = a19;
+
+			buffer[20] = a20;
+			buffer[21] = a21;
+			buffer[22] = a22;
+			buffer[23] = a23;
+			buffer[24] = a24;
 		}
 	}
 }
