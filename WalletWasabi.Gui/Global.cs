@@ -79,7 +79,7 @@ namespace WalletWasabi.Gui
 
 		public MemoryCache Cache { get; private set; }
 
-		public static JsonRpcServer RpcServer { get; private set; }
+		public static JsonRpcServer? RpcServer { get; private set; }
 
 		public Global(string dataDir, string torLogsFile, Config config, UiConfig uiConfig, WalletManager walletManager)
 		{
@@ -110,6 +110,15 @@ namespace WalletWasabi.Gui
 				BitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService);
 
 				SingleInstanceChecker = new SingleInstanceChecker(Network);
+
+				if (Config.UseTor)
+				{
+					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint);
+				}
+				else
+				{
+					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, Config.GetFallbackBackendUri(), null);
+				}
 			}
 		}
 
@@ -147,15 +156,6 @@ namespace WalletWasabi.Gui
 				var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
 				var userAgent = Constants.UserAgents.RandomElement();
 				var connectionParameters = new NodeConnectionParameters { UserAgent = userAgent };
-
-				if (Config.UseTor)
-				{
-					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint);
-				}
-				else
-				{
-					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, Config.GetFallbackBackendUri(), null);
-				}
 
 				HostedServices.Register(new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
 

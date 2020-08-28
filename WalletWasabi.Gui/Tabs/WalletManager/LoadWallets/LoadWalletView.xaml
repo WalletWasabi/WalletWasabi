@@ -20,17 +20,17 @@
           </StackPanel>
         </Grid>
       </controls:GroupBox>
-      <DockPanel LastChildFill="True" Margin="20 10">
-        <Button IsVisible="{Binding IsPasswordRequired}" Content="Test Password" Command="{Binding TestPasswordCommand}" DockPanel.Dock="Right" Margin="10 0 0 0" />
-        <Button Command="{Binding LoadCommand}" Content="Load Wallet" DockPanel.Dock="Right" />
-        <Button IsVisible="{Binding IsDesktopWallet}" Command="{Binding OpenFolderCommand}" DockPanel.Dock="Right" Margin="0 0 10 0">
+      
+      <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" Margin="20 10">
+      <Button IsVisible="{Binding IsDesktopWallet}" Command="{Binding OpenFolderCommand}">
           <StackPanel Orientation="Horizontal" Spacing="6">
             <DrawingPresenter Drawing="{DynamicResource FolderOpen}" />
             <TextBlock Text="Open Wallets Folder" />
           </StackPanel>
         </Button>
-        <Grid></Grid>
-      </DockPanel>
+        <Button IsVisible="{Binding IsPasswordRequired}" Content="Test Password" Command="{Binding TestPasswordCommand}" />
+        <Button Command="{Binding LoadCommand}" Content="Load Wallet" />
+      </StackPanel>
     </StackPanel>
     <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" BorderThickness="0">
       <DockPanel LastChildFill="True">
