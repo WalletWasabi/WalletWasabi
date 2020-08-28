@@ -13,7 +13,7 @@ namespace WalletWasabi.Crypto
 		private static readonly byte DDATA = 0x04;
 		private static readonly byte DRATE = 0x80;
 
-		private readonly byte[] _state = new byte[25 * 8]; // this is the block size used by keccak-f1600.
+		private readonly byte[] State = new byte[25 * 8]; // this is the block size used by keccak-f1600.
 		private byte _position = 0;
 		private byte _beginPosition = 0;
 		private StrobeFlags _currentFlags = 0;
@@ -28,14 +28,14 @@ namespace WalletWasabi.Crypto
 			var initialState = ByteHelpers.Combine(
 				new byte[] { 1, (byte)(SpongeRate + 2), 1, 0, 1, 12 * 8 },  // F([[1, r/8, 1, 0, 1, 12·8]]
 				Encoding.UTF8.GetBytes("STROBEv1.0.2"));
-			Buffer.BlockCopy(initialState, 0, _state, 0, initialState.Length);
-			KeccakF1600(_state);
+			Buffer.BlockCopy(initialState, 0, State, 0, initialState.Length);
+			KeccakF1600(State);
 			AddAssociatedMetaData(Encoding.UTF8.GetBytes(procotol), false);
 		}
 
 		private Strobe128(byte[] state, StrobeFlags flags, byte beginPosition, byte position)
 		{
-			Buffer.BlockCopy(state, 0, _state, 0, _state.Length);
+			Buffer.BlockCopy(state, 0, State, 0, State.Length);
 			_currentFlags = flags;
 			_beginPosition = beginPosition;
 			_position = position;
@@ -43,7 +43,7 @@ namespace WalletWasabi.Crypto
 
 		~Strobe128()
 		{
-			Array.Clear(_state, 0, _state.Length);
+			Array.Clear(State, 0, State.Length);
 		}
 
 		public void AddAssociatedMetaData(byte[] data, bool more)
@@ -78,19 +78,19 @@ namespace WalletWasabi.Crypto
 
 		public Strobe128 MakeCopy()
 		{
-			return new Strobe128(_state, _currentFlags, _beginPosition, _position);
+			return new Strobe128(State, _currentFlags, _beginPosition, _position);
 		}
 
 		internal string DumpState()
 		{
-			return ByteHelpers.ToHex(_state);
+			return ByteHelpers.ToHex(State);
 		}
 
 		private void Absorb(byte[] data)
 		{
 			foreach (var b in data)
 			{
-				_state[_position++] ^= b;
+				State[_position++] ^= b;
 				if (_position == SpongeRate)
 				{
 					RunF();
@@ -102,7 +102,7 @@ namespace WalletWasabi.Crypto
 		{
 			foreach (var b in data)
 			{
-				_state[_position++] = b;
+				State[_position++] = b;
 				if (_position == SpongeRate)
 				{
 					RunF();
@@ -114,8 +114,8 @@ namespace WalletWasabi.Crypto
 		{
 			for (var i = 0; i < data.Length; i++)
 			{
-				data[i] = _state[_position];
-				_state[_position++] = 0;
+				data[i] = State[_position];
+				State[_position++] = 0;
 				if (_position == SpongeRate)
 				{
 					RunF();
@@ -159,11 +159,11 @@ namespace WalletWasabi.Crypto
 		// This is the Sponge function responsible for shuffling the internal state.
 		private void RunF()
 		{
-			_state[_position] ^= _beginPosition;
-			_state[_position + 1] ^= DDATA;
-			_state[SpongeRate + 1] ^= DRATE;
+			State[_position] ^= _beginPosition;
+			State[_position + 1] ^= DDATA;
+			State[SpongeRate + 1] ^= DRATE;
 
-			KeccakF1600(_state);
+			KeccakF1600(State);
 
 			_position = 0;
 			_beginPosition = 0;
