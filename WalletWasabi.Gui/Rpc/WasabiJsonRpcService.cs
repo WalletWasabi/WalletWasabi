@@ -195,6 +195,7 @@ namespace WalletWasabi.Gui.Rpc
 				@internal = x.IsInternal,
 				keyState = x.KeyState,
 				label = x.Label.ToString(),
+				address = x.GetP2wpkhAddress(Global.Network).ToString(),
 				p2wpkhScript = x.P2wpkhScript.ToString(),
 				pubkey = x.PubKey.ToString(),
 				pubKeyHash = x.PubKeyHash.ToString()
