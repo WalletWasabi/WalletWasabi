@@ -1,17 +1,11 @@
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using NSubsys;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 
@@ -61,7 +55,10 @@ namespace WalletWasabi.Packager
 		/// <summary>
 		/// Main entry point.
 		/// </summary>
-		private static void Main(string[] args)
+#pragma warning disable IDE1006 // Naming Styles
+
+		private static async Task Main(string[] args)
+#pragma warning restore IDE1006 // Naming Styles
 		{
 			var argsProcessor = new ArgsProcessor(args);
 
@@ -75,14 +72,21 @@ namespace WalletWasabi.Packager
 			// If I want a list of up to date onions run it with '--getonions'.
 			if (argsProcessor.IsGetOnionsMode())
 			{
-				GetOnions();
+				var api = new BitnodesApi(Console.Out);
+				await api.PrintOnionsAsync();
+
 				return;
 			}
 
 			// If I want a list of up to date onions run it with '--reduceonions'.
 			if (argsProcessor.IsReduceOnionsMode())
 			{
-				ReduceOnions();
+				string onionFilePath = Path.Combine(LibraryProjectDirectory, "OnionSeeds", "MainOnionSeeds.txt");
+				var currentOnions = File.ReadAllLines(onionFilePath).ToHashSet();
+
+				var api = new BitnodesApi(Console.Out);
+				await api.PrintOnionsAsync(currentOnions);
+
 				return;
 			}
 
@@ -120,67 +124,10 @@ namespace WalletWasabi.Packager
 			}
 		}
 
-		private static void GetOnions()
-		{
-			WriteOnionsToConsole(null);
-		}
-
-		private static void ReduceOnions()
-		{
-			var onionFile = Path.Combine(LibraryProjectDirectory, "OnionSeeds", "MainOnionSeeds.txt");
-			var currentOnions = File.ReadAllLines(onionFile).ToHashSet();
-			WriteOnionsToConsole(currentOnions);
-		}
-
-		private static void WriteOnionsToConsole(HashSet<string> currentOnions)
-		{
-			using var httpClient = new HttpClient();
-			httpClient.BaseAddress = new Uri("https://bitnodes.21.co/api/v1/");
-
-			using var response = httpClient.GetAsync("snapshots/latest/", HttpCompletionOption.ResponseContentRead).GetAwaiter().GetResult();
-			if (response.StatusCode != HttpStatusCode.OK)
-			{
-				throw new HttpRequestException(response.StatusCode.ToString());
-			}
-
-			var responseString = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-			var json = (JObject)JsonConvert.DeserializeObject(responseString);
-			var onions = new List<string>();
-			foreach (JProperty node in json["nodes"])
-			{
-				if (!node.Name.Contains(".onion"))
-				{
-					continue;
-				}
-
-				var userAgent = ((JArray)node.Value)[1].ToString();
-
-				try
-				{
-					var verString = userAgent.Substring(userAgent.IndexOf("Satoshi:") + 8, 4);
-					var ver = new Version(verString);
-					bool addToResult = currentOnions is null || currentOnions.Contains(node.Name);
-
-					if (ver >= new Version("0.16") && addToResult)
-					{
-						onions.Add(node.Name);
-					}
-				}
-				catch
-				{
-				}
-			}
-
-			foreach (var onion in onions.OrderBy(x => x))
-			{
-				Console.WriteLine(onion);
-			}
-		}
-
 		private static void CreateDigests()
 		{
 			var tempDir = "DigestTempDir";
-			IoHelpers.DeleteRecursivelyWithMagicDustAsync(tempDir).GetAwaiter().GetResult();
+			IoHelpers.TryDeleteDirectoryAsync(tempDir).GetAwaiter().GetResult();
 			Directory.CreateDirectory(tempDir);
 
 			var torDaemonsDir = Path.Combine(LibraryProjectDirectory, "TorDaemons");
@@ -206,7 +153,7 @@ namespace WalletWasabi.Packager
 				Console.WriteLine($"{file.Name}: {hash}");
 			}
 
-			IoHelpers.DeleteRecursivelyWithMagicDustAsync(tempDir).GetAwaiter().GetResult();
+			IoHelpers.TryDeleteDirectoryAsync(tempDir).GetAwaiter().GetResult();
 		}
 
 		private static void ReportStatus()
@@ -278,7 +225,7 @@ namespace WalletWasabi.Packager
 						process.WaitForExit();
 					}
 
-					IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter().GetResult();
+					IoHelpers.TryDeleteDirectoryAsync(publishedFolder).GetAwaiter().GetResult();
 					Console.WriteLine($"Deleted {publishedFolder}");
 				}
 				else if (target.StartsWith("osx", StringComparison.OrdinalIgnoreCase))
@@ -331,7 +278,7 @@ namespace WalletWasabi.Packager
 		{
 			if (Directory.Exists(BinDistDirectory))
 			{
-				IoHelpers.DeleteRecursivelyWithMagicDustAsync(BinDistDirectory).GetAwaiter().GetResult();
+				IoHelpers.TryDeleteDirectoryAsync(BinDistDirectory).GetAwaiter().GetResult();
 				Console.WriteLine($"Deleted {BinDistDirectory}");
 			}
 
@@ -350,12 +297,12 @@ namespace WalletWasabi.Packager
 			var libraryBinReleaseDirectory = Path.GetFullPath(Path.Combine(LibraryProjectDirectory, "bin", "Release"));
 			if (Directory.Exists(guiBinReleaseDirectory))
 			{
-				IoHelpers.DeleteRecursivelyWithMagicDustAsync(guiBinReleaseDirectory).GetAwaiter().GetResult();
+				IoHelpers.TryDeleteDirectoryAsync(guiBinReleaseDirectory).GetAwaiter().GetResult();
 				Console.WriteLine($"Deleted {guiBinReleaseDirectory}");
 			}
 			if (Directory.Exists(libraryBinReleaseDirectory))
 			{
-				IoHelpers.DeleteRecursivelyWithMagicDustAsync(libraryBinReleaseDirectory).GetAwaiter().GetResult();
+				IoHelpers.TryDeleteDirectoryAsync(libraryBinReleaseDirectory).GetAwaiter().GetResult();
 				Console.WriteLine($"Deleted {libraryBinReleaseDirectory}");
 			}
 
@@ -474,7 +421,7 @@ namespace WalletWasabi.Packager
 				{
 					if (!dir.Name.Contains(toNotRemove, StringComparison.OrdinalIgnoreCase))
 					{
-						IoHelpers.DeleteRecursivelyWithMagicDustAsync(dir.FullName).GetAwaiter().GetResult();
+						IoHelpers.TryDeleteDirectoryAsync(dir.FullName).GetAwaiter().GetResult();
 					}
 				}
 
@@ -522,7 +469,7 @@ namespace WalletWasabi.Packager
 
 					ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(BinDistDirectory, $"Wasabi-osx-{VersionPrefix}.zip"));
 
-					IoHelpers.DeleteRecursivelyWithMagicDustAsync(currentBinDistDirectory).GetAwaiter().GetResult();
+					IoHelpers.TryDeleteDirectoryAsync(currentBinDistDirectory).GetAwaiter().GetResult();
 					Console.WriteLine($"Deleted {currentBinDistDirectory}");
 				}
 				else if (target.StartsWith("linux"))
@@ -543,13 +490,16 @@ namespace WalletWasabi.Packager
 					Directory.Move(publishedFolder, newFolderPath);
 					publishedFolder = newFolderPath;
 
-					var linuxPath = $"/mnt/c/{Tools.LinuxPath(BinDistDirectory.Replace("C:\\", ""))}"; // We assume that it is on drive C:\.
+					var driveLetterUpper = BinDistDirectory[0];
+					var driveLetterLower = char.ToLower(driveLetterUpper);
+
+					var linuxPath = $"/mnt/{driveLetterLower}/{Tools.LinuxPath(BinDistDirectory.Substring(3))}";
 
 					var commands = new[]
 					{
 						"cd ~",
-						"sudo umount /mnt/c",
-						"sudo mount -t drvfs C: /mnt/c -o metadata",
+						$"sudo umount /mnt/{driveLetterLower}",
+						$"sudo mount -t drvfs {driveLetterUpper}: /mnt/{driveLetterLower} -o metadata",
 						$"cd {linuxPath}",
 						$"sudo find ./{newFolderName} -type f -exec chmod 644 {{}} \\;",
 						$"sudo find ./{newFolderName} -type f \\( -name 'wassabee' -o -name 'hwi' -o -name 'bitcoind' \\) -exec chmod +x {{}} \\;",
@@ -670,13 +620,13 @@ namespace WalletWasabi.Packager
 						process.WaitForExit();
 					}
 
-					IoHelpers.DeleteRecursivelyWithMagicDustAsync(debFolderPath).GetAwaiter().GetResult();
+					IoHelpers.TryDeleteDirectoryAsync(debFolderPath).GetAwaiter().GetResult();
 
 					string oldDeb = Path.Combine(BinDistDirectory, $"{ExecutableName}_{VersionPrefix}_amd64.deb");
 					string newDeb = Path.Combine(BinDistDirectory, $"Wasabi-{VersionPrefix}.deb");
 					File.Move(oldDeb, newDeb);
 
-					IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter().GetResult();
+					IoHelpers.TryDeleteDirectoryAsync(publishedFolder).GetAwaiter().GetResult();
 					Console.WriteLine($"Deleted {publishedFolder}");
 				}
 			}

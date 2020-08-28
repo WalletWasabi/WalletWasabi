@@ -19,7 +19,7 @@ using WalletWasabi.Backend;
 using WalletWasabi.Backend.Controllers;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
-using WalletWasabi.BitcoinCore;
+using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
@@ -80,7 +80,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var mempoolTxId = await rpc.SendToAddressAsync(new Key().PubKey.GetSegwitAddress(network), Money.Coins(1));
 
 			var folder = Common.GetWorkDir();
-			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(folder);
+			await IoHelpers.TryDeleteDirectoryAsync(folder);
 			Directory.CreateDirectory(folder);
 			var cjfile = Path.Combine(folder, $"CoinJoins{network}.txt");
 			File.WriteAllLines(cjfile, new[] { coinbaseTxId.ToString(), offchainTxId.ToString(), mempoolTxId.ToString() });
@@ -93,7 +93,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				Assert.Contains(mempoolTxId.ToString(), txIds);
 				Assert.DoesNotContain(offchainTxId.ToString(), txIds);
 
-				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(folder);
+				await IoHelpers.TryDeleteDirectoryAsync(folder);
 				Directory.CreateDirectory(folder);
 				File.WriteAllLines(cjfile, new[] { coinbaseTxId.ToString(), "This line is invalid (the file is corrupted)", offchainTxId.ToString() });
 

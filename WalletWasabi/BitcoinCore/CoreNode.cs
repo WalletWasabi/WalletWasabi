@@ -19,11 +19,13 @@ using WalletWasabi.BitcoinCore.Configuration.Whitening;
 using WalletWasabi.BitcoinCore.Endpointing;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.BitcoinCore.Processes;
+using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.P2p;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Microservices;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 
@@ -105,7 +107,7 @@ namespace WalletWasabi.BitcoinCore
 
 				if (coreNodeParams.TryDeleteDataDir)
 				{
-					await IoHelpers.DeleteRecursivelyWithMagicDustAsync(coreNode.DataDir).ConfigureAwait(false);
+					await IoHelpers.TryDeleteDirectoryAsync(coreNode.DataDir).ConfigureAwait(false);
 				}
 				cancel.ThrowIfCancellationRequested();
 
@@ -195,9 +197,13 @@ namespace WalletWasabi.BitcoinCore
 
 		public static async Task<Version> GetVersionAsync(CancellationToken cancel)
 		{
-			var arguments = "-version";
-			var bridge = new BitcoindProcessBridge();
-			var (responseString, exitCode) = await bridge.SendCommandAsync(arguments, false, cancel).ConfigureAwait(false);
+			var invoker = new ProcessInvoker();
+
+			string processPath = MicroserviceHelpers.GetBinaryPath("bitcoind");
+			string arguments = "-version";
+
+			ProcessStartInfo processStartInfo = ProcessStartInfoFactory.Make(processPath, arguments);
+			var (responseString, exitCode) = await invoker.SendCommandAsync(processStartInfo, cancel).ConfigureAwait(false);
 
 			if (exitCode != 0)
 			{

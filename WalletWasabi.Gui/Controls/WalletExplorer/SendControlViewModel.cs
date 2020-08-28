@@ -5,6 +5,7 @@ using ReactiveUI;
 using Splat;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive;
@@ -54,12 +55,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _customChangeAddress;
 		private string _labelToolTip;
 		private string _feeToolTip;
-		private string _amountWaterMarkText;
 		private bool _isBusy;
 		private bool _isHardwareBusy;
 		private bool _isCustomFee;
+		private string _amountTip;
 
 		private const string WaitingForHardwareWalletButtonTextString = "Waiting for Hardware Wallet...";
+
+		private static readonly decimal MinRelayTxFeeRate = 1m;
+		private static readonly decimal AbsurdlyHighFeeRate = ((decimal)Constants.MaximumNumberOfSatoshis) / 1000;
 
 		private FeeDisplayFormat _feeDisplayFormat;
 		private bool _isSliderFeeUsed = true;
@@ -80,7 +84,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			this.ValidateProperty(x => x.UserFeeText, ValidateUserFeeText);
 
 			ResetUi();
-			SetAmountWatermark(Money.Zero);
 
 			CoinList = new CoinListViewModel(Wallet, displayCommonOwnershipWarning: true);
 
@@ -96,17 +99,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
 			SetFeesAndTexts();
 
-			this.WhenAnyValue(x => x.AmountText)
+			this.WhenAnyValue(x => x.AmountText).Select(_ => Unit.Default)
+				.Merge(Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Select(_ => Unit.Default))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
+				.Subscribe(_ =>
 				{
-					if (Money.TryParse(x.TrimStart('~', ' '), out Money amountBtc))
+					if (Money.TryParse(AmountText.TrimStart('~', ' '), out Money amountBtc))
 					{
-						SetAmountWatermark(amountBtc);
+						AmountTip = amountBtc.ToUsdString(Wallet.Synchronizer.UsdExchangeRate, lurkingWifeMode: false);
 					}
 					else
 					{
-						SetAmountWatermark(Money.Zero);
+						AmountTip = "0 USD";
 					}
 
 					SetFees();
@@ -558,12 +562,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _feeToolTip, value);
 		}
 
-		public string AmountWatermarkText
-		{
-			get => _amountWaterMarkText;
-			set => this.RaiseAndSetIfChanged(ref _amountWaterMarkText, value);
-		}
-
 		public bool IsSliderFeeUsed
 		{
 			get => _isSliderFeeUsed;
@@ -580,6 +578,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _isCustomFee;
 			private set => this.RaiseAndSetIfChanged(ref _isCustomFee, value);
+		}
+
+		public string AmountTip
+		{
+			get => _amountTip;
+			set => this.RaiseAndSetIfChanged(ref _amountTip, value);
 		}
 
 		public bool IsCustomChangeAddressVisible => Global.UiConfig.IsCustomChangeAddress && !IsMax;
@@ -610,30 +614,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			IsMax = false;
 			LabelToolTip = "Who can link this transaction to you? E.g.: \"Max, BitPay\"";
 			AmountText = "0.0";
-		}
-
-		private void SetAmountWatermark(Money amount)
-		{
-			if (amount == Money.Zero)
-			{
-				AmountWatermarkText = "Amount (BTC)";
-			}
-			else
-			{
-				long amountUsd = 0;
-				try
-				{
-					amountUsd = (long)amount.ToUsd(UsdExchangeRate);
-				}
-				catch (OverflowException ex)
-				{
-					Logger.LogTrace(ex);
-				}
-
-				AmountWatermarkText = amountUsd != 0
-					? $"Amount (BTC) ~ ${amountUsd}"
-					: "Amount (BTC)";
-			}
 		}
 
 		private void ChangeFeeRateDisplay()
@@ -686,7 +666,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					// In decimal ',' means order of magnitude.
 					// User could think it is decimal point but 3,5 means 35 Satoshi.
 					// For this reason we treat ',' as an invalid character.
-					if (TryParseUserFee(out decimal userFee))
+					if (TryParseUserFee(UserFeeText, out decimal userFee))
 					{
 						FeeRate = new FeeRate(userFee);
 						feeTarget = Constants.SevenDaysConfirmationTarget;
@@ -832,21 +812,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private bool TryParseUserFee(out decimal userFee)
-		{
-			userFee = default;
-			var userFeeText = UserFeeText;
-			return
-				userFeeText is { }
-				&& !userFeeText.Contains(",")
-				&& decimal.TryParse(userFeeText, out userFee)
-				&& (userFee * 1_000) < Constants.MaxSatoshisSupply
-				&& userFee > 0;
-		}
+		public static bool TryParseUserFee(string feeText, out decimal userFee)
+			=> decimal.TryParse(feeText?.Trim(), NumberStyles.AllowDecimalPoint, new CultureInfo("en-US"), out userFee)
+			&& userFee >= MinRelayTxFeeRate
+			&& userFee < AbsurdlyHighFeeRate
+			&& new FeeRate(userFee) is var _;
 
 		private void ValidateUserFeeText(IValidationErrors errors)
 		{
-			if (!TryParseUserFee(out _))
+			if (!TryParseUserFee(UserFeeText, out _))
 			{
 				errors.Add(ErrorSeverity.Error, "Invalid fee.");
 			}
