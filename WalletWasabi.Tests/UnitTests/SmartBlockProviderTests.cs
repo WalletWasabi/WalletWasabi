@@ -40,20 +40,5 @@ namespace WalletWasabi.Tests.UnitTests
 
 			Assert.NotEqual(blocks[0], result[1]);
 		}
-
-		private class TestBlockProvider : IBlockProvider
-		{
-			private Dictionary<uint256, Block> Blocks { get; }
-
-			public TestBlockProvider(Dictionary<uint256, Block> blocks)
-			{
-				Blocks = blocks;
-			}
-
-			public Task<Block> GetBlockAsync(uint256 hash, CancellationToken cancel)
-			{
-				return Task.FromResult(Blocks[hash]);
-			}
-		}
 	}
 }
