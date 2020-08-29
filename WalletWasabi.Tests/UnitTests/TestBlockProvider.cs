@@ -8,12 +8,12 @@ namespace WalletWasabi.Tests.UnitTests
 {
 	public class TestBlockProvider : IBlockProvider
 	{
-		private Dictionary<uint256, Block> Blocks { get; }
-
 		public TestBlockProvider(Dictionary<uint256, Block> blocks)
 		{
 			Blocks = blocks;
 		}
+
+		private Dictionary<uint256, Block> Blocks { get; }
 
 		public Task<Block> GetBlockAsync(uint256 hash, CancellationToken cancel)
 		{
