@@ -9,15 +9,10 @@ using WalletWasabi.Crypto.StrobeProtocol;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge
 {
-	// High level API for transcripts of compound Sigma protocol style proofs
-	// implements synthetic nonces and Fiat-Shamir challenges
+	public delegate IEnumerable<Scalar> NoncesSequence();
 
-	// TODO introduce delegates for the same phases as IFSProver for individual
-	// sub-proofs of conjunctions?
-	//
-	// it's probably overkill but this could ensure each individual sigma
-	// protocol's transcript can must proceed in the right order and are
-	// phase-locked (e.g. no statement commitments after nonces were generated)
+	// High level API for transcripts of compound Sigma protocol style proofs
+	// implements synthetic nonces and Fiat-Shamir challenges.
 	public sealed class Transcript
 	{
 		private Strobe128 _strobe;
@@ -25,15 +20,28 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		private const int KeySizeInBytes = 32;
 		private static readonly byte[] StatementTag = Encoding.UTF8.GetBytes("statement");
 		private static readonly byte[] ChallengeTag = Encoding.UTF8.GetBytes("challenge");
-		private static readonly byte[] NonceTag = Encoding.UTF8.GetBytes("nonce_commitment");
+		private static readonly byte[] NonceTag = Encoding.UTF8.GetBytes("nonce-commitment");
+		private static readonly byte[] DomainSeparatorTag = Encoding.UTF8.GetBytes("domain-separator");
 
-		// public constructor always adds domain separator
-		public Transcript()
+
+		/// <summary>
+		/// Initialize a new transcript with the supplied <param>label</param>, which
+		/// is used as a domain separator.
+		/// </summary>
+		/// <remarks>
+		/// This function should be called by a proof library's API consumer 
+		/// (i.e., the application using the proof library), and
+		/// **not by the proof implementation**.  See the [Passing
+		/// Transcripts](https://merlin.cool/use/passing.html) section of
+		/// the Merlin website for more details on why.
+		/// </remarks>
+		public Transcript(byte[] label)
+			: this(new Strobe128("WabiSabi_v1.0"))
 		{
-			_strobe = new Strobe128("WabiSabi_v1.0");
+			AddMessage(DomainSeparatorTag, label);
 		}
 
-		// private constructor used for cloning
+		// Private constructor used for cloning.
 		private Transcript(Strobe128 strobe)
 		{
 			_strobe = strobe;
@@ -43,10 +51,10 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			new Transcript(_strobe.MakeCopy());
 
 
-		// generate synthetic nonce using current state combined with additional randomness
-		public IEnumerable<Scalar> GenerateSecretNonces(IEnumerable<Scalar> secrets, WasabiRandom random)
+		// Generate synthetic nonce using current state combined with additional randomness.
+		public /*Func<IEnumerable<Scalar>>*/ NoncesSequence CreateSyntheticNocesProvider(IEnumerable<Scalar> secrets, WasabiRandom random)
 		{
-			// to integrate prior inputs for deterministic component of nonce
+			// To integrate prior inputs for deterministic component of nonce
 			// generation, first clone the state at the current point in the
 			// transcript, which should already have the statement tag and public
 			// inputs committed.
@@ -58,32 +66,32 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				forked.Key(secret.ToBytes(), false);
 			}
 
-			// add additional randomness
+			// Add additional randomness
 			forked.Key(random.GetBytes(KeySizeInBytes), false);
 
-			// FIXME for the general case we need publicPoints.Count() * Witness.Length
-			// secret nonces per statement.
-			// this method should return a delegate here so that the following lines
-			// can be used repeatedly, or given the number of public inputs it could
-			// just return IEnumerable<IEnumerable<Scalar>> which is probably uglier.
+			IEnumerable<Scalar> NoncesGenerator()
+			{
+				while (true)
+				{
+					yield return new Scalar(forked.Prf(KeySizeInBytes, false));
+				}
+			};
 
-			// generate a new scalar for each secret using this updated state as a seed
-			return Enumerable
-				.Range(0, secrets.Count())
-				.Select( _ => forked.Prf(KeySizeInBytes, false))
-				.Select( rnd => new Scalar(rnd) );
+			// Generate a new scalar for each secret using this updated state as a seed.
+			return NoncesGenerator;
 		}
-
+		
 		public void CommitPublicNonces(IEnumerable<GroupElement> nonces)
 		{
-			// FIXME loop Guard.False($"{nameof(nonce)}.{nameof(nonce.IsInfinity)}", nonce.IsInfinity);
+			CryptoGuard.NotInfinity(nameof(nonces), nonces);
 			AddMessages(NonceTag, nonces.Select(x => x.ToBytes()));
 		}
 
-		// generate Fiat Shamir challenges
+		// Generate Fiat Shamir challenges
 		public Scalar GenerateChallenge()
 		{
 			_strobe.AddAssociatedMetaData(ChallengeTag, false);
+			_strobe.AddAssociatedMetaData(BitConverter.GetBytes(KeySizeInBytes), true); // TODO: does this make sense?
 			return new Scalar(_strobe.Prf(KeySizeInBytes, false));
 		}
 
