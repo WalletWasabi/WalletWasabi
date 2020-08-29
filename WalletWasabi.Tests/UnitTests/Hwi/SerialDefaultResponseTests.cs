@@ -37,7 +37,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		{
 			using var cts = new CancellationTokenSource();
 
-			var processBridge = new HwiProcessBridge(MicroserviceHelpers.GetBinaryPath("hwi"), new ProcessInvoker());
+			var processBridge = new HwiProcessBridge(new ProcessInvoker());
 			(string response, int exitCode) p = await processBridge.SendCommandAsync("--help", openConsole: false, cts.Token);
 
 			Assert.Equal(0, p.exitCode);
