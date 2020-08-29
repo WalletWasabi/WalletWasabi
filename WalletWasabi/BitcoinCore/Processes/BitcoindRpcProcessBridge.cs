@@ -55,7 +55,6 @@ namespace WalletWasabi.BitcoinCore.Processes
 			try
 			{
 				// Try to connect to bitcoin daemon RPC until we succeed.
-				// When somebody StopAsync method is called,
 				while (_process is { })
 				{
 					var ex = await RpcClient.TestAsync().ConfigureAwait(false);
