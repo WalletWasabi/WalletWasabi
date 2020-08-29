@@ -1,9 +1,8 @@
-using System;
+using Microsoft.Extensions.Caching.Memory;
+using NBitcoin;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Caching.Memory;
-using NBitcoin;
 using WalletWasabi.Wallets;
 using Xunit;
 
@@ -51,11 +50,9 @@ namespace WalletWasabi.Tests.UnitTests
 				Blocks = blocks;
 			}
 
-			public async Task<Block> GetBlockAsync(uint256 hash, CancellationToken cancel)
+			public Task<Block> GetBlockAsync(uint256 hash, CancellationToken cancel)
 			{
-				// This does simulate work necessary to actually fetch the block.
-				await Task.Delay(TimeSpan.FromSeconds(0.5));
-				return Blocks[hash];
+				return Task.FromResult(Blocks[hash]);
 			}
 		}
 	}
