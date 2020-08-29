@@ -16,8 +16,6 @@ namespace WalletWasabi.BitcoinCore.Processes
 	{
 		public const string PidFileName = "bitcoin.pid";
 
-		private ProcessAsync? _process = null;
-
 		public BitcoindRpcProcessBridge(IRPCClient rpc, string dataDir, bool printToConsole)
 		{
 			RpcClient = Guard.NotNull(nameof(rpc), rpc);
@@ -26,8 +24,10 @@ namespace WalletWasabi.BitcoinCore.Processes
 			PrintToConsole = printToConsole;
 			PidFile = new PidFile(Path.Combine(DataDir, NetworkTranslator.GetDataDirPrefix(Network)), PidFileName);
 			CachedPid = null;
-		}
+			Process = null;
+ 		}
 
+		private ProcessAsync? Process { get; set; }
 		public Network Network { get; }
 		public IRPCClient RpcClient { get; set; }
 		public string DataDir { get; }
@@ -44,18 +44,18 @@ namespace WalletWasabi.BitcoinCore.Processes
 			string processPath = MicroserviceHelpers.GetBinaryPath("bitcoind");
 			string args = $"{NetworkTranslator.GetCommandLineArguments(Network)} -datadir=\"{DataDir}\" -printtoconsole={ptcv}";
 
-			_process = new ProcessAsync(ProcessStartInfoFactory.Make(processPath, args));
-			_process.Start();
+			Process = new ProcessAsync(ProcessStartInfoFactory.Make(processPath, args));
+			Process.Start();
 
-			await PidFile.WriteFileAsync(_process.Id).ConfigureAwait(false);
-			CachedPid = _process.Id;
+			await PidFile.WriteFileAsync(Process.Id).ConfigureAwait(false);
+			CachedPid = Process.Id;
 
 			string? latestFailureMessage = null;
 
 			try
 			{
 				// Try to connect to bitcoin daemon RPC until we succeed.
-				while (_process is { })
+				while (Process is { })
 				{
 					var ex = await RpcClient.TestAsync().ConfigureAwait(false);
 					if (ex is null)
@@ -69,9 +69,9 @@ namespace WalletWasabi.BitcoinCore.Processes
 						Logger.LogInfo($"{Constants.BuiltinBitcoinNodeName} is not yet ready... Reason: {latestFailureMessage}");
 					}
 
-					if (_process.HasExited)
+					if (Process.HasExited)
 					{
-						throw new BitcoindException($"Failed to start daemon, location: '{_process.StartInfo.FileName} {_process.StartInfo.Arguments}'", ex);
+						throw new BitcoindException($"Failed to start daemon, location: '{Process.StartInfo.FileName} {Process.StartInfo.Arguments}'", ex);
 					}
 
 					if (cancel.IsCancellationRequested)
@@ -85,7 +85,7 @@ namespace WalletWasabi.BitcoinCore.Processes
 			}
 			catch (Exception)
 			{
-				_process?.Dispose();
+				Process?.Dispose();
 				throw;
 			}
 		}
@@ -99,13 +99,13 @@ namespace WalletWasabi.BitcoinCore.Processes
 		{
 			Logger.LogDebug($"> {nameof(onlyOwned)}={onlyOwned}");
 
-			if (_process is null)
+			if (Process is null)
 			{
 				Logger.LogDebug("< Process is null.");
 				return;
 			}
 
-			ProcessAsync process = _process; // process is guaranteed to be non-null.
+			ProcessAsync process = Process; // process is guaranteed to be non-null at this point.
 
 			var rpcRan = false;
 			try
@@ -136,7 +136,7 @@ namespace WalletWasabi.BitcoinCore.Processes
 					finally
 					{
 						process.Dispose();
-						_process = null;
+						Process = null;
 						PidFile.TryDelete();
 					}
 				}
