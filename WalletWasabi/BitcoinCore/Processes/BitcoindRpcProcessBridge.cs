@@ -34,12 +34,12 @@ namespace WalletWasabi.BitcoinCore.Processes
 			Process = null;
  		}
 
-		private ProcessAsync? Process { get; set; }
 		public Network Network { get; }
 		public IRPCClient RpcClient { get; set; }
 		public string DataDir { get; }
 		public bool PrintToConsole { get; }
 		public PidFile PidFile { get; }
+		private ProcessAsync? Process { get; set; }
 		private int? CachedPid { get; set; }
 
 		/// <summary>
