@@ -128,52 +128,40 @@ namespace WalletWasabi.BitcoinCore.Processes
 
 			ProcessAsync process = Process; // process is guaranteed to be non-null at this point.
 
-			var rpcRan = false;
-			try
+			using var cts = new CancellationTokenSource(ReasonableCoreShutdownTimeout);
+			int? pid = await PidFile.TryReadAsync().ConfigureAwait(false);
+
+			// If the cached PID is PID, then we own the process.
+			if (pid.HasValue && (!onlyOwned || CachedPid == pid))
 			{
-				using var cts = new CancellationTokenSource(ReasonableCoreShutdownTimeout);
-				int? pid = await PidFile.TryReadAsync().ConfigureAwait(false);
+				Logger.LogDebug($"User is responsible for the daemon process with PID {pid}. Stop it.");
 
-				// If the cached PID is PID, then we own the process.
-				if (pid.HasValue && (!onlyOwned || CachedPid == pid))
+				try
 				{
-					Logger.LogDebug($"User is responsible for the daemon process with PID {pid}. Stop it.");
-
 					try
 					{
-						try
-						{
-							await RpcClient.StopAsync().ConfigureAwait(false);
-							rpcRan = true;
-						}
-						catch (Exception ex)
-						{
-							Logger.LogWarning(ex);
-							process.Kill();
-						}
-
-						Logger.LogDebug($"Wait until the process is stopped.");
-						await process.WaitForExitAsync(cts.Token).ConfigureAwait(false);
+						await RpcClient.StopAsync().ConfigureAwait(false);
 					}
-					finally
+					catch (Exception ex)
 					{
-						Logger.LogDebug($"Wait until the process is stopped.");
-						process.Dispose();
-						Process = null;
-						PidFile.TryDelete();
+						Logger.LogWarning(ex);
+						process.Kill();
 					}
+
+					Logger.LogDebug($"Wait until the process is stopped.");
+					await process.WaitForExitAsync(cts.Token).ConfigureAwait(false);
 				}
-				else
+				finally
 				{
-					Logger.LogDebug("User is NOT responsible for the daemon process.");
+					Logger.LogDebug($"Wait until the process is stopped.");
+					process.Dispose();
+					Process = null;
+					PidFile.TryDelete();
 				}
 			}
-			catch
+			else
 			{
-				if (!onlyOwned && !rpcRan)
-				{
-					await RpcClient.StopAsync().ConfigureAwait(false);
-				}
+				Logger.LogDebug("User is NOT responsible for the daemon process.");
 			}
 
 			Logger.LogDebug("<");
