@@ -9,16 +9,16 @@ namespace WalletWasabi.Hwi.ProcessBridge
 {
 	public class HwiProcessBridge : IHwiProcessInvoker
 	{
-		public HwiProcessBridge(string processPath, ProcessInvoker processInvoker)
+		public HwiProcessBridge(ProcessInvoker processInvoker)
 		{
-			ProcessPath = processPath;
+			ProcessPath = MicroserviceHelpers.GetBinaryPath("hwi");
 			ProcessInvoker = processInvoker;
 		}
 
 		private string ProcessPath { get; }
 		private ProcessInvoker ProcessInvoker { get; }
 
-		public async Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel, Action<StreamWriter> standardInputWriter = null)
+		public async Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel, Action<StreamWriter>? standardInputWriter = null)
 		{
 			ProcessStartInfo startInfo = ProcessStartInfoFactory.Make(ProcessPath, arguments, openConsole);
 

@@ -23,10 +23,10 @@ namespace WalletWasabi.Hwi
 	{
 		#region ConstructorsAndInitializers
 
-		public HwiClient(Network network, IHwiProcessInvoker bridge = null)
+		public HwiClient(Network network, IHwiProcessInvoker? bridge = null)
 		{
 			Network = Guard.NotNull(nameof(network), network);
-			Bridge = bridge ?? new HwiProcessBridge(MicroserviceHelpers.GetBinaryPath("hwi"), new ProcessInvoker());
+			Bridge = bridge ?? new HwiProcessBridge(new ProcessInvoker());
 		}
 
 		#endregion ConstructorsAndInitializers
@@ -40,7 +40,7 @@ namespace WalletWasabi.Hwi
 
 		#region Commands
 
-		private async Task<string> SendCommandAsync(IEnumerable<HwiOption> options, HwiCommands? command, string commandArguments, bool openConsole, CancellationToken cancel, bool isRecursion = false, Action<StreamWriter> standardInputWriter = null)
+		private async Task<string> SendCommandAsync(IEnumerable<HwiOption> options, HwiCommands? command, string commandArguments, bool openConsole, CancellationToken cancel, bool isRecursion = false, Action<StreamWriter>? standardInputWriter = null)
 		{
 			if (standardInputWriter is { } && !options.Contains(HwiOption.StdIn))
 			{

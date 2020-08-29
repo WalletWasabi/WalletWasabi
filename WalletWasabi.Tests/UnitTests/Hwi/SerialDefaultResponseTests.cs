@@ -20,7 +20,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		[Fact]
 		public async Task HwiProcessBridgeTestAsync()
 		{
-			HwiProcessBridge pb = new HwiProcessBridge(MicroserviceHelpers.GetBinaryPath("hwi"), new ProcessInvoker());
+			var pb = new HwiProcessBridge(new ProcessInvoker());
 
 			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
 			var res = await pb.SendCommandAsync("version", false, cts.Token);

@@ -1,6 +1,7 @@
 using NBitcoin;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,7 +38,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		[Fact]
 		public void ConstructorThrowsArgumentNullException()
 		{
-			Assert.Throws<ArgumentNullException>(() => new HwiClient(null));
+			Assert.Throws<ArgumentNullException>(() => new HwiClient(null!));
 		}
 
 		[Theory]
@@ -84,15 +85,15 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		{
 			var wrongDeviePaths = new[] { "", " " };
 			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
-			foreach (HardwareWalletModels deviceType in Enum.GetValues(typeof(HardwareWalletModels)))
+			foreach (HardwareWalletModels deviceType in Enum.GetValues(typeof(HardwareWalletModels)).Cast<HardwareWalletModels>())
 			{
 				foreach (var wrongDevicePath in wrongDeviePaths)
 				{
 					await Assert.ThrowsAsync<ArgumentException>(async () => await client.WipeAsync(deviceType, wrongDevicePath, cts.Token));
 					await Assert.ThrowsAsync<ArgumentException>(async () => await client.SetupAsync(deviceType, wrongDevicePath, false, cts.Token));
 				}
-				await Assert.ThrowsAsync<ArgumentNullException>(async () => await client.WipeAsync(deviceType, null, cts.Token));
-				await Assert.ThrowsAsync<ArgumentNullException>(async () => await client.SetupAsync(deviceType, null, false, cts.Token));
+				await Assert.ThrowsAsync<ArgumentNullException>(async () => await client.WipeAsync(deviceType, null!, cts.Token));
+				await Assert.ThrowsAsync<ArgumentNullException>(async () => await client.SetupAsync(deviceType, null!, false, cts.Token));
 			}
 		}
 
@@ -119,7 +120,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		[Fact]
 		public async Task OpenConsoleDoesntThrowAsync()
 		{
-			var pb = new HwiProcessBridge(MicroserviceHelpers.GetBinaryPath("hwi"), new ProcessInvoker());
+			var pb = new HwiProcessBridge(new ProcessInvoker());
 
 			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

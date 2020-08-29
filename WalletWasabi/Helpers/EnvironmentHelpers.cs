@@ -181,6 +181,7 @@ namespace WalletWasabi.Helpers
 					WindowStyle = ProcessWindowStyle.Hidden
 				}
 			);
+
 			if (waitForExit)
 			{
 				using var process = new ProcessAsync(startInfo);
