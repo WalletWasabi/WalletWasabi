@@ -23,11 +23,11 @@ namespace WalletWasabi.BitcoinCore.Processes
 		/// <summary>Experimentally found constant.</summary>
 		private readonly TimeSpan ReasonableCoreShutdownTimeout = TimeSpan.FromSeconds(21);
 
-		public BitcoindRpcProcessBridge(IRPCClient rpc, string dataDir, bool printToConsole)
+		public BitcoindRpcProcessBridge(IRPCClient rpcClient, string dataDir, bool printToConsole)
 		{
-			RpcClient = Guard.NotNull(nameof(rpc), rpc);
+			RpcClient = rpcClient;
 			Network = RpcClient.Network;
-			DataDir = Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
+			DataDir = dataDir;
 			PrintToConsole = printToConsole;
 			PidFile = new PidFile(Path.Combine(DataDir, NetworkTranslator.GetDataDirPrefix(Network)), PidFileName);
 			CachedPid = null;
