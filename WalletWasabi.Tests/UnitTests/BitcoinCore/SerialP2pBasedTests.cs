@@ -18,7 +18,13 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 {
-	public class P2pBasedTests
+	/// <summary>
+	/// The tests in this collection are time-sensitive, therefore this test collection is run in a special way:
+	/// Parallel-capable test collections will be run first (in parallel), followed by parallel-disabled test collections (run sequentially) like this one.
+	/// </summary>
+	/// <seealso href="https://xunit.net/docs/running-tests-in-parallel.html#parallelism-in-test-frameworks"/>
+	[Collection("Serial unit tests collection")]
+	public class SerialP2pBasedTests
 	{
 		[Fact]
 		public async Task MempoolNotifiesAsync()
