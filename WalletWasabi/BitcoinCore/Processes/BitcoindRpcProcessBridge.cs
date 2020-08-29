@@ -55,7 +55,7 @@ namespace WalletWasabi.BitcoinCore.Processes
 			try
 			{
 				// Try to connect to bitcoin daemon RPC until we succeed.
-				while (Process is { })
+				while (true)
 				{
 					var ex = await RpcClient.TestAsync().ConfigureAwait(false);
 					if (ex is null)
@@ -69,14 +69,14 @@ namespace WalletWasabi.BitcoinCore.Processes
 						Logger.LogInfo($"{Constants.BuiltinBitcoinNodeName} is not yet ready... Reason: {latestFailureMessage}");
 					}
 
-					if (Process.HasExited)
+					if (Process is { } p && p.HasExited)
 					{
-						throw new BitcoindException($"Failed to start daemon, location: '{Process.StartInfo.FileName} {Process.StartInfo.Arguments}'", ex);
+						throw new BitcoindException($"Failed to start daemon, location: '{p.StartInfo.FileName} {p.StartInfo.Arguments}'", ex);
 					}
 
 					if (cancel.IsCancellationRequested)
 					{
-						await StopAsync(true).ConfigureAwait(false);
+						await StopAsync(onlyOwned: true).ConfigureAwait(false);
 						cancel.ThrowIfCancellationRequested();
 					}
 
