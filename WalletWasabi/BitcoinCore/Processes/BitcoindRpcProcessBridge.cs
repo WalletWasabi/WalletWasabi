@@ -32,7 +32,7 @@ namespace WalletWasabi.BitcoinCore.Processes
 			PidFile = new PidFile(Path.Combine(DataDir, NetworkTranslator.GetDataDirPrefix(Network)), PidFileName);
 			CachedPid = null;
 			Process = null;
- 		}
+		}
 
 		public Network Network { get; }
 		public IRPCClient RpcClient { get; set; }
@@ -83,7 +83,8 @@ namespace WalletWasabi.BitcoinCore.Processes
 						ExceptionInfo exceptionInfo = exceptionTracker.Process(ex);
 
 						// Don't log extensively.
-						if (exceptionInfo.IsFirst) {
+						if (exceptionInfo.IsFirst)
+						{
 							Logger.LogInfo($"{Constants.BuiltinBitcoinNodeName} is not yet ready... Reason: {exceptionInfo.Exception.Message}");
 						}
 
