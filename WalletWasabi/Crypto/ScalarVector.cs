@@ -1,7 +1,9 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin.Secp256k1;
+using WalletWasabi.Crypto.Groups;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto
 {
@@ -9,6 +11,7 @@ namespace WalletWasabi.Crypto
 	{
 		public ScalarVector(IEnumerable<Scalar> scalars)
 		{
+			Guard.NotNull(nameof(scalars), scalars);
 			Scalars = scalars.ToArray();
 		}
 
@@ -18,6 +21,15 @@ namespace WalletWasabi.Crypto
 			Scalars.GetEnumerator();
 
 		public int Count => Scalars.Count();
+
+		public static GroupElement operator * (ScalarVector scalars, GroupElements groupElements)
+		{
+			Guard.NotNull(nameof(scalars), scalars);
+			Guard.NotNull(nameof(groupElements), groupElements);
+			Guard.True(nameof(groupElements.Count), groupElements.Count == scalars.Count);
+
+			return Enumerable.Zip(scalars, groupElements, (s, G) => s * G).Sum();
+		}
 
 		IEnumerator IEnumerable.GetEnumerator() =>
 			GetEnumerator();
