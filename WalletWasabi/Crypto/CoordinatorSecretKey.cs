@@ -29,6 +29,6 @@ namespace WalletWasabi.Crypto
 		public CoordinatorParameters ComputeCoordinatorParameters() =>
 			new CoordinatorParameters(
 				Cw: (W * Generators.Gw + Wp * Generators.Gwp),
-				I: (X0.Negate() * Generators.Gx0) +	(X1.Negate() * Generators.Gx1) + (Ya.Negate() * Generators.Ga ) + Generators.GV );
+				I: Generators.GV - (X0 * Generators.Gx0 + X1 * Generators.Gx1 + Ya * Generators.Ga));
 	}
 }
