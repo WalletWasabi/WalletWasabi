@@ -8,29 +8,30 @@ namespace WalletWasabi.Crypto
 	{
 		public CoordinatorSecretKey(WasabiRandom rng)
 			: this(rng.GetScalar(), rng.GetScalar(), rng.GetScalar(), rng.GetScalar(), rng.GetScalar())
-		{}
+		{
+		}
 
 		private CoordinatorSecretKey(Scalar w, Scalar wp, Scalar x0, Scalar x1, Scalar ya)
 		{
-			this.w  = w;
-			this.wp = wp;
-			this.x0 = x0;
-			this.x1 = x1;
-			this.ya = ya;
+			this.W  = w;
+			this.Wp = wp;
+			this.X0 = x0;
+			this.X1 = x1;
+			this.Ya = ya;
 		}
 
-		public Scalar w { get; }
-		public Scalar wp { get; }
-		public Scalar x0 { get; }
-		public Scalar x1 { get; }
-		public Scalar ya { get; }
+		public Scalar W { get; }
+		public Scalar Wp { get; }
+		public Scalar X0 { get; }
+		public Scalar X1 { get; }
+		public Scalar Ya { get; }
 		
 		public CoordinatorParameters ComputeCoordinatorParameters() =>
 			new CoordinatorParameters(
-				Cw: (w * Generators.Gw + wp * Generators.Gwp),
-				I:  (x0.Negate() * Generators.Gx0) +
-					(x1.Negate() * Generators.Gx1) +
-					(ya.Negate() * Generators.Ga ) +
+				Cw: (W * Generators.Gw + Wp * Generators.Gwp),
+				I: (X0.Negate() * Generators.Gx0) +
+					(X1.Negate() * Generators.Gx1) +
+					(Ya.Negate() * Generators.Ga ) +
 					Generators.GV );
 	}
 }

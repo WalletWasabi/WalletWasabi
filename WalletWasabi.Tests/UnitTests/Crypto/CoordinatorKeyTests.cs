@@ -38,7 +38,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var iparams = key.ComputeCoordinatorParameters();
 			Assert.Equal(Generators.GV, iparams.I);
 
-
 			// Coordinator key is (1, 1, 1, 1, 1)
 			rnd = new MockRandom();
 			rnd.GetScalarResults.AddRange(Enumerable.Repeat(Scalar.One, 5));
