@@ -8,15 +8,13 @@ namespace WalletWasabi.Crypto
 {
 	public class MAC : IEquatable<MAC>
 	{
-		private MAC(Scalar t, GroupElement U, GroupElement V)
+		private MAC(Scalar t, GroupElement V)
 		{
 			this.t = CryptoGuard.NotZero(nameof(t), t);
-			this.U = CryptoGuard.NotNullOrInfinity(nameof(U), U);
 			this.V = CryptoGuard.NotNullOrInfinity(nameof(V), V);
 		}
 
 		public Scalar t { get; }
-		public GroupElement U { get; }
 		public GroupElement V { get; }
 
 		public static bool operator == (MAC a, MAC b) => a.Equals(b);
@@ -29,28 +27,36 @@ namespace WalletWasabi.Crypto
 				(null, {}) => false,
 				({}, null) => false,
 				({} a , {} b) when Object.ReferenceEquals(a, b) => true, 
-				({} a , {} b) => (a.t, a.U, a.V) == (b.t, b.U, b.V)
+				({} a , {} b) => (a.t, a.V) == (b.t, b.V)
 			};
 
 		public override bool Equals(object? obj) =>
 			Equals(obj as MAC);
 
 		public override int GetHashCode() =>
-			HashCode.Combine(t, U, V).GetHashCode();
+			HashCode.Combine(t, V).GetHashCode();
 
 		public static MAC ComputeMAC(CoordinatorSecretKey sk, GroupElement Ma, Scalar t)
 		{
 			Guard.NotNull(nameof(sk), sk);
 			CryptoGuard.NotNullOrInfinity(nameof(Ma), Ma);
 
-			var numsGeneratorSeed = Encoding.UTF8.GetString(t.ToBytes());
-			return ComputeAlgebraicMAC((sk.X0, sk.X1), (sk.W * Generators.Gw) + (sk.Ya * Ma), t, GroupElement.FromText(numsGeneratorSeed));
+			return ComputeAlgebraicMAC((sk.X0, sk.X1), (sk.W * Generators.Gw) + (sk.Ya * Ma), t);
 		}
 
-		public bool VerifyMAC(CoordinatorSecretKey sk, GroupElement Ma)
-			=> ComputeMAC(sk, Ma, t) == this;
+		public bool VerifyMAC(CoordinatorSecretKey sk, GroupElement Ma) =>
+			ComputeMAC(sk, Ma, t) == this;
 
-		private static MAC ComputeAlgebraicMAC((Scalar x0, Scalar x1) sk, GroupElement M, Scalar t, GroupElement U)
-			=> new MAC(t, U, (sk.x0 + sk.x1 * t) * U + M);
+		private static MAC ComputeAlgebraicMAC((Scalar x0, Scalar x1) sk, GroupElement M, Scalar t)
+		{
+			var mac = new MAC(t, (sk.x0 + sk.x1 * t) * GenerateU(t) + M);
+			Scalar.Clear(ref sk.x0);
+			Scalar.Clear(ref sk.x1);
+			Scalar.Clear(ref t);
+			return mac;
+		}
+
+		private static GroupElement GenerateU(Scalar t) =>
+			Generators.FromBuffer(t.ToBytes());
 	}
 }
