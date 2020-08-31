@@ -14,5 +14,6 @@ namespace WalletWasabi.Bases
 		public Exception Exception { get; }
 		public long ExceptionCount { get; set; }
 		public DateTimeOffset FirstAppeared { get; }
+		public bool IsFirst => ExceptionCount == 1;
 	}
 }

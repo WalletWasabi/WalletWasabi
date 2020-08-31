@@ -2,7 +2,9 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Hwi.ProcessBridge;
+using WalletWasabi.Microservices;
 using Xunit;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Tests.UnitTests.Hwi
 {
@@ -16,19 +18,36 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 	{
 		public TimeSpan ReasonableRequestTimeout { get; } = TimeSpan.FromMinutes(1);
 
+		/// <summary>Verify that <c>--version</c> argument returns output as expected.</summary>
 		[Fact]
-		public async Task HwiProcessBridgeTestAsync()
+		public async Task HwiVersionTestAsync()
 		{
-			HwiProcessBridge pb = new HwiProcessBridge();
-
 			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
-			var res = await pb.SendCommandAsync("version", false, cts.Token);
-			Assert.NotEmpty(res.response);
 
+			var pb = new HwiProcessBridge(new ProcessInvoker());
+
+			// Start HWI with "version" argument and test that we get non-empty response.
+			(string response, int exitCode) result = await pb.SendCommandAsync("--version", openConsole: false, cts.Token);
+			Assert.Contains(Constants.HwiVersion.ToString(), result.response);
+
+			// Start HWI with "version" argument and test that we get non-empty response + verify that "standardInputWriter" is actually called.
 			bool stdInputActionCalled = false;
-			res = await pb.SendCommandAsync("version", false, cts.Token, (sw) => stdInputActionCalled = true);
-			Assert.NotEmpty(res.response);
+			result = await pb.SendCommandAsync("--version", openConsole: false, cts.Token, (sw) => stdInputActionCalled = true);
+			Assert.Contains(Constants.HwiVersion.ToString(), result.response);
 			Assert.True(stdInputActionCalled);
+		}
+
+		/// <summary>Verify that <c>--help</c> returns output as expected.</summary>
+		[Fact]
+		public async void HwiHelpTestAsync()
+		{
+			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
+
+			var processBridge = new HwiProcessBridge(new ProcessInvoker());
+			(string response, int exitCode) result = await processBridge.SendCommandAsync("--help", openConsole: false, cts.Token);
+
+			Assert.Equal(0, result.exitCode);
+			Assert.Equal(@"{""error"": ""Help text requested"", ""code"": -17}" + Environment.NewLine, result.response);
 		}
 	}
 }
