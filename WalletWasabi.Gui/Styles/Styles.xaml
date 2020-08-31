@@ -97,7 +97,7 @@
   </Style>
 
   <Style Selector="TextBox.revealPasswordButton">
-    <Setter Property="PasswordChar" Value="*" />
+    <Setter Property="PasswordChar" Value="&#x2022;" />
     <Setter Property="Watermark" Value="Password" />
     <Setter Property="MinWidth" Value="400" />
   </Style>
