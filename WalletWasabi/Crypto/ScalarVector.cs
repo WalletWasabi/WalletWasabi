@@ -11,7 +11,7 @@ namespace WalletWasabi.Crypto
 	{
 		public ScalarVector(IEnumerable<Scalar> scalars)
 		{
-			Guard.NotNull(nameof(scalars), scalars);
+			Guard.NotNullOrEmpty(nameof(scalars), scalars);
 			Scalars = scalars.ToArray();
 		}
 
@@ -22,7 +22,7 @@ namespace WalletWasabi.Crypto
 
 		public int Count => Scalars.Count();
 
-		public static GroupElement operator * (ScalarVector scalars, GroupElements groupElements)
+		public static GroupElement operator * (ScalarVector scalars, GroupElementVector groupElements)
 		{
 			Guard.NotNull(nameof(scalars), scalars);
 			Guard.NotNull(nameof(groupElements), groupElements);
