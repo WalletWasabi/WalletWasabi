@@ -184,7 +184,7 @@ namespace WalletWasabi.Hwi
 			var psbtString = psbt.ToBase64();
 
 			var response = await SendCommandAsync(
-				options: BuildOptions(deviceType, devicePath, fingerprint),
+				options: BuildOptions(deviceType, devicePath, fingerprint, HwiOption.Debug),
 				command: HwiCommands.SignTx,
 				commandArguments: "",
 				openConsole: false,

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Microservices
 {
@@ -29,9 +30,19 @@ namespace WalletWasabi.Microservices
 				? Task.FromResult(string.Empty)
 				: processAsync.StandardOutput.ReadToEndAsync();
 
+			Task<string> readErrorPipeTask = processAsync.StartInfo.UseShellExecute
+				? Task.FromResult(string.Empty)
+				: processAsync.StandardError.ReadToEndAsync();
+
 			await processAsync.WaitForExitAsync(token).ConfigureAwait(false);
 
 			string output = await readPipeTask.ConfigureAwait(false);
+			string error = await readErrorPipeTask.ConfigureAwait(false);
+
+			if (!string.IsNullOrEmpty(error))
+			{
+				throw new InvalidOperationException($"output:{output} error:{error}");
+			}
 
 			return (output, exitCode: processAsync.ExitCode);
 		}

@@ -22,6 +22,9 @@ namespace WalletWasabi.Hwi.ProcessBridge
 		{
 			ProcessStartInfo startInfo = ProcessStartInfoFactory.Make(ProcessPath, arguments, openConsole);
 
+			startInfo.RedirectStandardOutput = true;
+			startInfo.RedirectStandardError = true;
+
 			(string rawResponse, int exitCode) = await ProcessInvoker.SendCommandAsync(startInfo, cancel, standardInputWriter).ConfigureAwait(false);
 
 			string response;
