@@ -28,7 +28,7 @@ namespace WalletWasabi.Crypto
 			Guard.NotNull(nameof(groupElements), groupElements);
 			Guard.True(nameof(groupElements.Count), groupElements.Count == scalars.Count);
 
-			return Enumerable.Zip(scalars, groupElements, (s, G) => s * G).Sum();
+			return Enumerable.Zip(scalars, groupElements, (s, g) => s * g).Sum();
 		}
 
 		IEnumerator IEnumerable.GetEnumerator() =>

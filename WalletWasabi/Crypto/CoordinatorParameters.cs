@@ -4,10 +4,10 @@ namespace WalletWasabi.Crypto
 {
 	public class CoordinatorParameters
 	{
-		public CoordinatorParameters(GroupElement Cw, GroupElement I)
+		public CoordinatorParameters(GroupElement cw, GroupElement i)
 		{
-			this.Cw = CryptoGuard.NotInfinity(nameof(Cw), Cw);
-			this.I = CryptoGuard.NotInfinity(nameof(I), I);
+			Cw = CryptoGuard.NotInfinity(nameof(cw), cw);
+			I = CryptoGuard.NotInfinity(nameof(i), i);
 		}
 
 		public GroupElement Cw { get; }

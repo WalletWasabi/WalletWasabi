@@ -13,11 +13,11 @@ namespace WalletWasabi.Crypto
 
 		private CoordinatorSecretKey(Scalar w, Scalar wp, Scalar x0, Scalar x1, Scalar ya)
 		{
-			this.W = w;
-			this.Wp = wp;
-			this.X0 = x0;
-			this.X1 = x1;
-			this.Ya = ya;
+			W = w;
+			Wp = wp;
+			X0 = x0;
+			X1 = x1;
+			Ya = ya;
 		}
 
 		public Scalar W { get; }
@@ -28,7 +28,7 @@ namespace WalletWasabi.Crypto
 
 		public CoordinatorParameters ComputeCoordinatorParameters() =>
 			new CoordinatorParameters(
-				Cw: (W * Generators.Gw + Wp * Generators.Gwp),
-				I: Generators.GV - (X0 * Generators.Gx0 + X1 * Generators.Gx1 + Ya * Generators.Ga));
+				cw: (W * Generators.Gw + Wp * Generators.Gwp),
+				i: Generators.GV - (X0 * Generators.Gx0 + X1 * Generators.Gx1 + Ya * Generators.Ga));
 	}
 }
