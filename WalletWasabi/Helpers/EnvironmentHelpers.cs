@@ -170,26 +170,31 @@ namespace WalletWasabi.Helpers
 		{
 			var escapedArgs = cmd.Replace("\"", "\\\"");
 
-			using var process = Process.Start(
-				new ProcessStartInfo
-				{
-					FileName = "/usr/bin/env",
-					Arguments = $"sh -c \"{escapedArgs}\"",
-					RedirectStandardOutput = true,
-					UseShellExecute = false,
-					CreateNoWindow = true,
-					WindowStyle = ProcessWindowStyle.Hidden
-				}
-			);
+			var startInfo = new ProcessStartInfo
+			{
+				FileName = "/usr/bin/env",
+				Arguments = $"sh -c \"{escapedArgs}\"",
+				RedirectStandardOutput = true,
+				UseShellExecute = false,
+				CreateNoWindow = true,
+				WindowStyle = ProcessWindowStyle.Hidden
+			};
 
 			if (waitForExit)
 			{
+				using var process = new ProcessAsync(startInfo);
+				process.Start();
+
 				await process.WaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
 
 				if (process.ExitCode != 0)
 				{
 					Logger.LogError($"{nameof(ShellExecAsync)} command: {cmd} exited with exit code: {process.ExitCode}, instead of 0.");
 				}
+			}
+			else
+			{
+				using var process = Process.Start(startInfo);
 			}
 		}
 
