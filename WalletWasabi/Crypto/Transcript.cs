@@ -15,9 +15,10 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 	// implements synthetic nonces and Fiat-Shamir challenges.
 	public sealed class Transcript
 	{
+		private const int KeySizeInBytes = 32;
+
 		private Strobe128 _strobe;
 
-		private const int KeySizeInBytes = 32;
 		private static readonly byte[] StatementTag = Encoding.UTF8.GetBytes("statement");
 		private static readonly byte[] ChallengeTag = Encoding.UTF8.GetBytes("challenge");
 		private static readonly byte[] NonceTag = Encoding.UTF8.GetBytes("nonce-commitment");
@@ -50,9 +51,8 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		public Transcript MakeCopy() =>
 			new Transcript(_strobe.MakeCopy());
 
-
 		// Generate synthetic nonce using current state combined with additional randomness.
-		public /*Func<IEnumerable<Scalar>>*/ NoncesSequence CreateSyntheticNocesProvider(IEnumerable<Scalar> secrets, WasabiRandom random)
+		public NoncesSequence CreateSyntheticNocesProvider(IEnumerable<Scalar> secrets, WasabiRandom random)
 		{
 			// To integrate prior inputs for deterministic component of nonce
 			// generation, first clone the state at the current point in the
@@ -75,7 +75,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				{
 					yield return new Scalar(forked.Prf(KeySizeInBytes, false));
 				}
-			};
+			}
 
 			// Generate a new scalar for each secret using this updated state as a seed.
 			return NoncesGenerator;
@@ -91,7 +91,6 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		public Scalar GenerateChallenge()
 		{
 			_strobe.AddAssociatedMetaData(ChallengeTag, false);
-			_strobe.AddAssociatedMetaData(BitConverter.GetBytes(KeySizeInBytes), true); // TODO: does this make sense?
 			return new Scalar(_strobe.Prf(KeySizeInBytes, false));
 		}
 
