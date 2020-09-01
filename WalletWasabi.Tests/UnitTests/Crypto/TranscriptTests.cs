@@ -70,10 +70,10 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			transcript3.CommitPublicNonces(commitment2);
 			transcript4.CommitPublicNonces(commitment2);
 
-			var nonceGenerator1 = transcript1.CreateSyntheticNocesProvider(witness1, rnd);
-			var nonceGenerator2 = transcript2.CreateSyntheticNocesProvider(witness1, rnd);
-			var nonceGenerator3 = transcript3.CreateSyntheticNocesProvider(witness2, rnd);
-			var nonceGenerator4 = transcript4.CreateSyntheticNocesProvider(witness2, rnd);
+			var nonceGenerator1 = transcript1.CreateSyntheticNoncesProvider(witness1, rnd);
+			var nonceGenerator2 = transcript2.CreateSyntheticNoncesProvider(witness1, rnd);
+			var nonceGenerator3 = transcript3.CreateSyntheticNoncesProvider(witness2, rnd);
+			var nonceGenerator4 = transcript4.CreateSyntheticNoncesProvider(witness2, rnd);
 
 			var nonce1 = nonceGenerator1().First();
 			var nonce2 = nonceGenerator2().First();
