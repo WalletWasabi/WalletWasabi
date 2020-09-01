@@ -54,7 +54,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				});
 
 			this.WhenAnyValue(x => x.PinInput)
-				.Where(x => !string.IsNullOrEmpty(x) && x.Length != 0)
+				.Where(x => !string.IsNullOrEmpty(x))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
