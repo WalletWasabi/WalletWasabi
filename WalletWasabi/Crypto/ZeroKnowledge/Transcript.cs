@@ -29,7 +29,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		/// is used as a domain separator.
 		/// </summary>
 		/// <remarks>
-		/// This function should be called by a proof library's API consumer 
+		/// This function should be called by a proof library's API consumer
 		/// (i.e., the application using the proof library), and
 		/// **not by the proof implementation**.  See the [Passing
 		/// Transcripts](https://merlin.cool/use/passing.html) section of
@@ -79,7 +79,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			// Generate a new scalar for each secret using this updated state as a seed.
 			return NoncesGenerator;
 		}
-		
+
 		public void CommitPublicNonces(IEnumerable<GroupElement> nonces)
 		{
 			CryptoGuard.NotInfinity(nameof(nonces), nonces);
@@ -104,7 +104,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		{
 			_strobe.AddAssociatedMetaData(label, false);
 			_strobe.AddAssociatedMetaData(BitConverter.GetBytes(messages.Count()), true);
-			foreach (var message in messages.Select((m, i) => (Index: i, Payload: m) ))
+			foreach (var message in messages.Select((m, i) => (Index: i, Payload: m)))
 			{
 				AddMessage(BitConverter.GetBytes(message.Index), message.Payload);
 			}
