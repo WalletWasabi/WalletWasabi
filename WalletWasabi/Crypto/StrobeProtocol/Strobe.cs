@@ -133,6 +133,7 @@ namespace WalletWasabi.Crypto.StrobeProtocol
 					throw new InvalidOperationException($"Attempt to continue operation '{_currentFlags}' with new flags '{flags}' is not allowed.");
 				}
 				_currentFlags = flags;
+				return;
 			}
 
 			// Skip adjusting direction information (we just use AD, PRF)
