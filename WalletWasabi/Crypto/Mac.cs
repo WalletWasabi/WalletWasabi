@@ -39,6 +39,7 @@ namespace WalletWasabi.Crypto
 		public static MAC ComputeMAC(CoordinatorSecretKey sk, GroupElement Ma, Scalar t)
 		{
 			Guard.NotNull(nameof(sk), sk);
+			CryptoGuard.NotZero(nameof(t), t);
 			CryptoGuard.NotNullOrInfinity(nameof(Ma), Ma);
 
 			return ComputeAlgebraicMAC((sk.X0, sk.X1), (sk.W * Generators.Gw) + (sk.Ya * Ma), t);
