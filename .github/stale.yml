@@ -16,7 +16,6 @@ exemptLabels:
   - feature/enhancement
   - "waiting for dependency"
   - "good first issue"
-  - priority
 
 # Set to true to ignore issues in a project (defaults to false)
 exemptProjects: false
