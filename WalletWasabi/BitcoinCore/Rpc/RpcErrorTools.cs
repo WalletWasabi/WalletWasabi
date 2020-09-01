@@ -14,12 +14,6 @@ namespace WalletWasabi.BitcoinCore.Rpc
 
 		public const string SpentErrorTranslation = "At least one coin you are trying to spend is already spent.";
 
-		public static bool IsSpentError(string error)
-			=> new[] { SpentError1, SpentError2, SpentError3 }.Any(x => error.Contains(x, StringComparison.OrdinalIgnoreCase));
-
-		public static bool IsTooLongMempoolChainError(string error)
-			=> error.Contains(TooLongMempoolChainError, StringComparison.OrdinalIgnoreCase);
-
 		public static Dictionary<string, string> ErrorTranslations { get; } = new Dictionary<string, string>
 		{
 			[TooLongMempoolChainError] = "At least one coin you are trying to spend is part of long or heavy chain of unconfirmed transactions. You must wait for some previous transactions to confirm.",
@@ -34,5 +28,13 @@ namespace WalletWasabi.BitcoinCore.Rpc
 			["Invalid wallet name"] = "Invalid wallet name.",
 			["Wallet name is already taken"] = "Wallet name is already taken."
 		};
+
+		public static bool IsSpentError(string error)
+		{
+			return new[] { SpentError1, SpentError2, SpentError3 }.Any(x => error.Contains(x, StringComparison.OrdinalIgnoreCase));
+		}
+
+		public static bool IsTooLongMempoolChainError(string error)
+			=> error.Contains(TooLongMempoolChainError, StringComparison.OrdinalIgnoreCase);
 	}
 }
