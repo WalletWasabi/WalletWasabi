@@ -9,7 +9,7 @@ using WalletWasabi.Crypto.StrobeProtocol;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge
 {
-	public delegate IEnumerable<Scalar> NoncesSequence();
+	public delegate IEnumerable<Scalar> PublicNoncesSequence();
 
 	// High level API for transcripts of compound Sigma protocol style proofs
 	// implements synthetic nonces and Fiat-Shamir challenges.
@@ -52,7 +52,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			new Transcript(_strobe.MakeCopy());
 
 		// Generate synthetic nonce using current state combined with additional randomness.
-		public NoncesSequence CreateSyntheticNoncesProvider(IEnumerable<Scalar> secrets, WasabiRandom random)
+		public PublicNoncesSequence CreateSyntheticPublicNoncesProvider(IEnumerable<Scalar> secrets, WasabiRandom random)
 		{
 			// To integrate prior inputs for deterministic component of nonce
 			// generation, first clone the state at the current point in the
