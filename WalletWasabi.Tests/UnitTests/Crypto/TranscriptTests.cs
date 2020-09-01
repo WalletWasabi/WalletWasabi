@@ -37,7 +37,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			realTranscript.CommitPublicNonces(new[] { Generators.G });
 			testTranscript.CommitPublicNonces(new[] { Generators.G });
 
-			for(var i = 0; i < 32; i++)
+			for (var i = 0; i < 32; i++)
 			{
 				var realChallenge = realTranscript.GenerateChallenge();
 				var testChallenge = testTranscript.GenerateChallenge();

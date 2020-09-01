@@ -52,7 +52,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			new Transcript(_strobe.MakeCopy());
 
 		// Generate synthetic nonce using current state combined with additional randomness.
-		public NoncesSequence CreateSyntheticNocesProvider(IEnumerable<Scalar> secrets, WasabiRandom random)
+		public NoncesSequence CreateSyntheticNoncesProvider(IEnumerable<Scalar> secrets, WasabiRandom random)
 		{
 			// To integrate prior inputs for deterministic component of nonce
 			// generation, first clone the state at the current point in the

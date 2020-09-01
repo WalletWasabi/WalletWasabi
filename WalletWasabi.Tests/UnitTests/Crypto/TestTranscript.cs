@@ -29,7 +29,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var metadata = Enumerable.Concat(label, BitConverter.GetBytes(nonceArray.Length)).ToArray();
 			_strobe.AddAssociatedMetaData(metadata, false);
 
-			for( var i = 0; i < nonceArray.Length; i++)
+			for (var i = 0; i < nonceArray.Length; i++)
 			{
 				metadata = Enumerable.Concat(BitConverter.GetBytes(i), BitConverter.GetBytes(33)).ToArray();
 				_strobe.AddAssociatedMetaData(metadata, false);
