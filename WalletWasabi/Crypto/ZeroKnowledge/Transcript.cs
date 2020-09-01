@@ -24,7 +24,6 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		private static readonly byte[] NonceTag = Encoding.UTF8.GetBytes("nonce-commitment");
 		private static readonly byte[] DomainSeparatorTag = Encoding.UTF8.GetBytes("domain-separator");
 
-
 		/// <summary>
 		/// Initialize a new transcript with the supplied <param>label</param>, which
 		/// is used as a domain separator.
