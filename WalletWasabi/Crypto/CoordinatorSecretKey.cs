@@ -1,4 +1,4 @@
-﻿using NBitcoin.Secp256k1;
+using NBitcoin.Secp256k1;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
 
@@ -13,7 +13,7 @@ namespace WalletWasabi.Crypto
 
 		private CoordinatorSecretKey(Scalar w, Scalar wp, Scalar x0, Scalar x1, Scalar ya)
 		{
-			this.W  = w;
+			this.W = w;
 			this.Wp = wp;
 			this.X0 = x0;
 			this.X1 = x1;
@@ -25,7 +25,7 @@ namespace WalletWasabi.Crypto
 		public Scalar X0 { get; }
 		public Scalar X1 { get; }
 		public Scalar Ya { get; }
-		
+
 		public CoordinatorParameters ComputeCoordinatorParameters() =>
 			new CoordinatorParameters(
 				Cw: (W * Generators.Gw + Wp * Generators.Gwp),

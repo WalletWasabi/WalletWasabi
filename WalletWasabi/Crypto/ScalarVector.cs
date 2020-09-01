@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin.Secp256k1;
@@ -22,7 +22,7 @@ namespace WalletWasabi.Crypto
 
 		public int Count => Scalars.Count();
 
-		public static GroupElement operator * (ScalarVector scalars, GroupElementVector groupElements)
+		public static GroupElement operator *(ScalarVector scalars, GroupElementVector groupElements)
 		{
 			Guard.NotNull(nameof(scalars), scalars);
 			Guard.NotNull(nameof(groupElements), groupElements);

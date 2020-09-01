@@ -1,4 +1,4 @@
-﻿using WalletWasabi.Crypto.Groups;
+using WalletWasabi.Crypto.Groups;
 
 namespace WalletWasabi.Crypto
 {
