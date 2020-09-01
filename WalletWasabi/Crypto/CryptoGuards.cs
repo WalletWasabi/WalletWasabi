@@ -8,7 +8,7 @@ namespace WalletWasabi.Crypto
 {
 	public static class CryptoGuard
 	{
-		[DebuggerStepThroughAttribute]
+		[DebuggerStepThrough]
 		public static GroupElement NotInfinity(string parameterName, GroupElement groupElement)
 			=> groupElement.IsInfinity switch
 			{
@@ -16,7 +16,7 @@ namespace WalletWasabi.Crypto
 				false => groupElement
 			};
 
-		[DebuggerStepThroughAttribute]
+		[DebuggerStepThrough]
 		public static IEnumerable<GroupElement> NotInfinity(string parameterName, IEnumerable<GroupElement> groupElements)
 			=> groupElements.Select((ge, i) => NotInfinity($"{parameterName}[{i}]", ge));
 	}
