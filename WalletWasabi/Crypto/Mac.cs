@@ -47,14 +47,8 @@ namespace WalletWasabi.Crypto
 		public bool VerifyMAC(CoordinatorSecretKey sk, GroupElement Ma) =>
 			ComputeMAC(sk, Ma, t) == this;
 
-		private static MAC ComputeAlgebraicMAC((Scalar x0, Scalar x1) sk, GroupElement M, Scalar t)
-		{
-			var mac = new MAC(t, (sk.x0 + sk.x1 * t) * GenerateU(t) + M);
-			Scalar.Clear(ref sk.x0);
-			Scalar.Clear(ref sk.x1);
-			Scalar.Clear(ref t);
-			return mac;
-		}
+		private static MAC ComputeAlgebraicMAC((Scalar x0, Scalar x1) sk, GroupElement M, Scalar t) =>
+			 new MAC(t, (sk.x0 + sk.x1 * t) * GenerateU(t) + M);
 
 		private static GroupElement GenerateU(Scalar t) =>
 			Generators.FromBuffer(t.ToBytes());
