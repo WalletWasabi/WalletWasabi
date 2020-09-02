@@ -61,5 +61,46 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var differentSk = new CoordinatorSecretKey(rnd);
 			Assert.False(mac.VerifyMAC(differentSk, attribute));
 		}
+
+		[Fact]
+		[Trait("UnitTest", "UnitTest")]
+		public void EqualityTests()
+		{
+			var rnd = new SecureRandom();
+			var sk = new CoordinatorSecretKey(rnd);
+
+			var attribute = rnd.GetScalar() * Generators.G;  // any random point
+			var differentAttribute = rnd.GetScalar() * Generators.G;  // any other random point
+			var t = rnd.GetScalar();
+
+			var right = (attribute: rnd.GetScalar() * Generators.G, sk: new CoordinatorSecretKey(rnd), t: rnd.GetScalar());
+			var wrong = (attribute: rnd.GetScalar() * Generators.G, sk: new CoordinatorSecretKey(rnd), t: rnd.GetScalar());
+	
+			var cases = new []
+			{
+				(attribute: right.attribute, sk: right.sk, t: right.t, isEqual: true),
+				(attribute: right.attribute, sk: right.sk, t: wrong.t, isEqual: false),
+				(attribute: right.attribute, sk: wrong.sk, t: right.t, isEqual: false),
+				(attribute: right.attribute, sk: wrong.sk, t: wrong.t, isEqual: false),
+				(attribute: wrong.attribute, sk: right.sk, t: right.t, isEqual: false),
+				(attribute: wrong.attribute, sk: right.sk, t: wrong.t, isEqual: false),
+				(attribute: wrong.attribute, sk: wrong.sk, t: right.t, isEqual: false),
+				(attribute: wrong.attribute, sk: wrong.sk, t: wrong.t, isEqual: false),
+			};
+
+			var mac = MAC.ComputeMAC(right.sk, right.attribute, right.t);
+
+			foreach (var c in cases)
+			{
+				var cmac = MAC.ComputeMAC(c.sk, c.attribute, c.t);
+				Assert.Equal(c.isEqual, mac == cmac);
+				Assert.Equal(c.isEqual, cmac == mac);
+			}
+
+			Assert.True(mac.Equals(mac));
+
+			MAC? nullMac = null;
+			Assert.False(mac.Equals(nullMac));
+		}
 	}
 }
