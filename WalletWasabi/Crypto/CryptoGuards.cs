@@ -18,7 +18,7 @@ namespace WalletWasabi.Crypto
 				false => groupElement
 			};
 
-		//[DebuggerStepThrough]
+		[DebuggerStepThrough]
 		public static IEnumerable<GroupElement> NotNullOrInfinity(string parameterName, IEnumerable<GroupElement> groupElements)
 			=> groupElements switch
 			{
