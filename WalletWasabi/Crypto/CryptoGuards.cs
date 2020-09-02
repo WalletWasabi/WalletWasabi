@@ -18,12 +18,13 @@ namespace WalletWasabi.Crypto
 				false => groupElement
 			};
 
-		[DebuggerStepThrough]
+		//[DebuggerStepThrough]
 		public static IEnumerable<GroupElement> NotNullOrInfinity(string parameterName, IEnumerable<GroupElement> groupElements)
 			=> groupElements switch
 			{
 				null => throw new ArgumentNullException(parameterName),
-				_ => groupElements.Select((ge, i) => NotNullOrInfinity($"{parameterName}[{i}]", ge))
+				_ when !groupElements.Any() => throw new ArgumentException(parameterName), 
+				_ => groupElements.Select((ge, i) => NotNullOrInfinity($"{parameterName}[{i}]", ge)).ToList()
 			};
 
 		[DebuggerStepThrough]
