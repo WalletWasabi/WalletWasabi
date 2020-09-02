@@ -5,6 +5,7 @@ using ReactiveUI;
 using Splat;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive;
@@ -60,6 +61,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _amountTip;
 
 		private const string WaitingForHardwareWalletButtonTextString = "Waiting for Hardware Wallet...";
+
+		private static readonly decimal MinRelayTxFeeRate = 1m;
+		private static readonly decimal AbsurdlyHighFeeRate = ((decimal)Constants.MaximumNumberOfSatoshis) / 1000;
 
 		private FeeDisplayFormat _feeDisplayFormat;
 		private bool _isSliderFeeUsed = true;
@@ -662,7 +666,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					// In decimal ',' means order of magnitude.
 					// User could think it is decimal point but 3,5 means 35 Satoshi.
 					// For this reason we treat ',' as an invalid character.
-					if (TryParseUserFee(out decimal userFee))
+					if (TryParseUserFee(UserFeeText, out decimal userFee))
 					{
 						FeeRate = new FeeRate(userFee);
 						feeTarget = Constants.SevenDaysConfirmationTarget;
@@ -808,21 +812,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private bool TryParseUserFee(out decimal userFee)
-		{
-			userFee = default;
-			var userFeeText = UserFeeText;
-			return
-				userFeeText is { }
-				&& !userFeeText.Contains(",")
-				&& decimal.TryParse(userFeeText, out userFee)
-				&& (userFee * 1_000) < Constants.MaxSatoshisSupply
-				&& userFee > 0;
-		}
+		public static bool TryParseUserFee(string feeText, out decimal userFee)
+			=> decimal.TryParse(feeText?.Trim(), NumberStyles.AllowDecimalPoint, new CultureInfo("en-US"), out userFee)
+			&& userFee >= MinRelayTxFeeRate
+			&& userFee < AbsurdlyHighFeeRate
+			&& new FeeRate(userFee) is var _;
 
 		private void ValidateUserFeeText(IValidationErrors errors)
 		{
-			if (!TryParseUserFee(out _))
+			if (!TryParseUserFee(UserFeeText, out _))
 			{
 				errors.Add(ErrorSeverity.Error, "Invalid fee.");
 			}

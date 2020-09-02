@@ -1,6 +1,7 @@
 using NBitcoin;
+using WalletWasabi.BitcoinCore.Rpc;
 
-namespace WalletWasabi.BitcoinCore.RpcModels
+namespace WalletWasabi.BitcoinCore.Rpc.Models
 {
 	public class VerboseOutputInfo
 	{

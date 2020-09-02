@@ -1,17 +1,11 @@
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using NSubsys;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 
@@ -61,7 +55,10 @@ namespace WalletWasabi.Packager
 		/// <summary>
 		/// Main entry point.
 		/// </summary>
-		private static void Main(string[] args)
+#pragma warning disable IDE1006 // Naming Styles
+
+		private static async Task Main(string[] args)
+#pragma warning restore IDE1006 // Naming Styles
 		{
 			var argsProcessor = new ArgsProcessor(args);
 
@@ -75,14 +72,21 @@ namespace WalletWasabi.Packager
 			// If I want a list of up to date onions run it with '--getonions'.
 			if (argsProcessor.IsGetOnionsMode())
 			{
-				GetOnions();
+				var api = new BitnodesApi(Console.Out);
+				await api.PrintOnionsAsync();
+
 				return;
 			}
 
 			// If I want a list of up to date onions run it with '--reduceonions'.
 			if (argsProcessor.IsReduceOnionsMode())
 			{
-				ReduceOnions();
+				string onionFilePath = Path.Combine(LibraryProjectDirectory, "OnionSeeds", "MainOnionSeeds.txt");
+				var currentOnions = File.ReadAllLines(onionFilePath).ToHashSet();
+
+				var api = new BitnodesApi(Console.Out);
+				await api.PrintOnionsAsync(currentOnions);
+
 				return;
 			}
 
@@ -117,63 +121,6 @@ namespace WalletWasabi.Packager
 				{
 					RestoreProgramCs();
 				}
-			}
-		}
-
-		private static void GetOnions()
-		{
-			WriteOnionsToConsole(null);
-		}
-
-		private static void ReduceOnions()
-		{
-			var onionFile = Path.Combine(LibraryProjectDirectory, "OnionSeeds", "MainOnionSeeds.txt");
-			var currentOnions = File.ReadAllLines(onionFile).ToHashSet();
-			WriteOnionsToConsole(currentOnions);
-		}
-
-		private static void WriteOnionsToConsole(HashSet<string> currentOnions)
-		{
-			using var httpClient = new HttpClient();
-			httpClient.BaseAddress = new Uri("https://bitnodes.21.co/api/v1/");
-
-			using var response = httpClient.GetAsync("snapshots/latest/", HttpCompletionOption.ResponseContentRead).GetAwaiter().GetResult();
-			if (response.StatusCode != HttpStatusCode.OK)
-			{
-				throw new HttpRequestException(response.StatusCode.ToString());
-			}
-
-			var responseString = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-			var json = (JObject)JsonConvert.DeserializeObject(responseString);
-			var onions = new List<string>();
-			foreach (JProperty node in json["nodes"])
-			{
-				if (!node.Name.Contains(".onion"))
-				{
-					continue;
-				}
-
-				var userAgent = ((JArray)node.Value)[1].ToString();
-
-				try
-				{
-					var verString = userAgent.Substring(userAgent.IndexOf("Satoshi:") + 8, 4);
-					var ver = new Version(verString);
-					bool addToResult = currentOnions is null || currentOnions.Contains(node.Name);
-
-					if (ver >= new Version("0.16") && addToResult)
-					{
-						onions.Add(node.Name);
-					}
-				}
-				catch
-				{
-				}
-			}
-
-			foreach (var onion in onions.OrderBy(x => x))
-			{
-				Console.WriteLine(onion);
 			}
 		}
 
@@ -543,13 +490,16 @@ namespace WalletWasabi.Packager
 					Directory.Move(publishedFolder, newFolderPath);
 					publishedFolder = newFolderPath;
 
-					var linuxPath = $"/mnt/c/{Tools.LinuxPath(BinDistDirectory.Replace("C:\\", ""))}"; // We assume that it is on drive C:\.
+					var driveLetterUpper = BinDistDirectory[0];
+					var driveLetterLower = char.ToLower(driveLetterUpper);
+
+					var linuxPath = $"/mnt/{driveLetterLower}/{Tools.LinuxPath(BinDistDirectory.Substring(3))}";
 
 					var commands = new[]
 					{
 						"cd ~",
-						"sudo umount /mnt/c",
-						"sudo mount -t drvfs C: /mnt/c -o metadata",
+						$"sudo umount /mnt/{driveLetterLower}",
+						$"sudo mount -t drvfs {driveLetterUpper}: /mnt/{driveLetterLower} -o metadata",
 						$"cd {linuxPath}",
 						$"sudo find ./{newFolderName} -type f -exec chmod 644 {{}} \\;",
 						$"sudo find ./{newFolderName} -type f \\( -name 'wassabee' -o -name 'hwi' -o -name 'bitcoind' \\) -exec chmod +x {{}} \\;",

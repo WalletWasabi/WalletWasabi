@@ -6,7 +6,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace WalletWasabi.BitcoinCore
+namespace WalletWasabi.BitcoinCore.Rpc
 {
 	public class CachedRpcClient : RpcClientBase
 	{
