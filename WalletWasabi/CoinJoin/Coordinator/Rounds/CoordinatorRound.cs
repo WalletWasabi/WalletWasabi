@@ -55,6 +55,8 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				RegisteredUnblindedSignatures = new List<UnblindedSignature>();
 				RegisteredUnblindedSignaturesLock = new object();
 
+				NonceProvider = new RoundNonceProvider(config.MaximumMixingLevelCount);
+
 				MixingLevels = new MixingLevelCollection(config.Denomination, new Signer(new Key()));
 				for (int i = 0; i < config.MaximumMixingLevelCount - 1; i++)
 				{
@@ -200,6 +202,8 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 		public UtxoReferee UtxoReferee { get; }
 		public CoordinatorRoundConfig RoundConfig { get; }
+
+		public RoundNonceProvider NonceProvider { get; }
 
 		public static ConcurrentDictionary<(long roundId, RoundPhase phase), DateTimeOffset> PhaseTimeoutLog { get; } = new ConcurrentDictionary<(long roundId, RoundPhase phase), DateTimeOffset>();
 
