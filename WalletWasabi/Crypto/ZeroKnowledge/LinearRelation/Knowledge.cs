@@ -1,0 +1,39 @@
+using NBitcoin.Secp256k1;
+using System.Collections.Generic;
+using System.Linq;
+using WalletWasabi.Helpers;
+
+namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
+{
+	public class Knowledge
+	{
+		public Knowledge(Statement statement, ScalarVector witness)
+		{
+			Guard.NotNull(nameof(statement), statement);
+			Guard.NotNullOrEmpty(nameof(witness), witness);
+			Guard.True($"{nameof(witness)} size does not match {nameof(statement)}.{nameof(statement.Equations)}", witness.Count() == statement.Equations.First().Generators.Count());
+
+			// don't try to prove something which isn't true
+			foreach (var equation in statement.Equations)
+			{
+				Guard.True($"{nameof(witness)} is incorrect with respect to {nameof(equation)}.{nameof(equation.PublicPoint)}", equation.PublicPoint == witness * equation.Generators);
+			}
+
+			Statement = statement;
+			Witness = witness;
+		}
+
+		public Statement Statement { get; }
+		public ScalarVector Witness { get; }
+
+		public IEnumerable<ScalarVector> RespondToChallenge(Scalar challenge, IEnumerable<ScalarVector> allSecretNonces)
+		{
+			// allSecretNonces should have the same dimension as the equation matrix
+			Guard.NotNullOrEmpty(nameof(allSecretNonces), allSecretNonces);
+			var n = Statement.Equations.First().Generators.Count();
+			Guard.True(nameof(allSecretNonces), allSecretNonces.All(x => x.Count() == n));
+
+			return Statement.Equations.Zip(allSecretNonces, (equation, secretNonces) => equation.Respond(Witness, secretNonces, challenge));
+		}
+	}
+}
