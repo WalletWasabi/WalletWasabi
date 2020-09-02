@@ -10,6 +10,9 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 	public class EquationTest
 	{
 		[Theory]
+		[InlineData(0, 0)]
+		[InlineData(0, 1)]
+		[InlineData(1, 0)]
 		[InlineData(1, 1)]
 		[InlineData(1, 2)]
 		[InlineData(3, 5)]
@@ -42,10 +45,14 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			Assert.True(simulatedNonce == publicNonce);
 
 			// With a different challenge the nonce should be different
+			// unless the secret is 0, due to the absorption property
 			var otherChallenge = new Scalar(103);
 			var otherSimulatedNonce = eqn.Simulate(otherChallenge, response);
 			Assert.True(eqn.Verify(otherSimulatedNonce, otherChallenge, response));
-			Assert.True(otherSimulatedNonce != publicNonce);
+			if (scalarSeed1 != 0 && scalarSeed2 != 0)
+			{
+				Assert.True(otherSimulatedNonce != publicNonce);
+			}
 
 			// And with a different response the verifier should still accept
 			var otherResponse = new ScalarVector(new[] { new Scalar(2), new Scalar(3) });
@@ -54,9 +61,13 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			Assert.True(thirdSimulatedNonce != otherSimulatedNonce);
 			Assert.True(thirdSimulatedNonce != publicNonce);
 
-			// The verifying should reject invalid transcripts
-			Assert.False(eqn.Verify(simulatedNonce, otherChallenge, response));
-			Assert.False(eqn.Verify(publicNonce, otherChallenge, response));
+			// The verifying should reject invalid transcripts, and this also requires
+			// an exception for when the public input is the point at infinity
+			if (scalarSeed1 != 0 && scalarSeed2 != 0)
+			{
+				Assert.False(eqn.Verify(simulatedNonce, otherChallenge, response));
+				Assert.False(eqn.Verify(publicNonce, otherChallenge, response));
+			}
 		}
 
 		[Fact]
