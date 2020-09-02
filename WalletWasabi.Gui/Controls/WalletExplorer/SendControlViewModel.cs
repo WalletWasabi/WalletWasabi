@@ -55,7 +55,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _address;
 		private string _customChangeAddress;
 		private string _labelToolTip;
-		private ObservableAsPropertyHelper<TransactionFeeInfo> _transactionFeeInfo;
+		private ObservableAsPropertyHelper<TransactionFeeInfo?> _transactionFeeInfo;
 		private bool _isBusy;
 		private bool _isHardwareBusy;
 		private bool _isCustomFee;
