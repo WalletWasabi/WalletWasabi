@@ -82,7 +82,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 
 		public void CommitPublicNonces(IEnumerable<GroupElement> nonces)
 		{
-			CryptoGuard.NotInfinity(nameof(nonces), nonces);
+			CryptoGuard.NotNullOrInfinity(nameof(nonces), nonces);
 			AddMessages(NonceTag, nonces.Select(x => x.ToBytes()));
 		}
 

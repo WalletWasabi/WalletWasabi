@@ -15,47 +15,47 @@ namespace WalletWasabi.Crypto.Groups
 		/// <summary>
 		/// Generator point for MAC and Show.
 		/// </summary>
-		public static GroupElement Gw { get; } = GroupElement.FromText("Gw");
+		public static GroupElement Gw { get; } = FromText("Gw");
 
 		/// <summary>
 		/// Generator point for MAC and Show.
 		/// </summary>
-		public static GroupElement Gwp { get; } = GroupElement.FromText("Gwp");
+		public static GroupElement Gwp { get; } = FromText("Gwp");
 
 		/// <summary>
 		/// Generator point for MAC and Show.
 		/// </summary>
-		public static GroupElement Gx0 { get; } = GroupElement.FromText("Gx0");
+		public static GroupElement Gx0 { get; } = FromText("Gx0");
 
 		/// <summary>
 		/// Generator point for MAC and Show.
 		/// </summary>
-		public static GroupElement Gx1 { get; } = GroupElement.FromText("Gx1");
+		public static GroupElement Gx1 { get; } = FromText("Gx1");
 
 		/// <summary>
 		/// Generator point for MAC and Show.
 		/// </summary>
-		public static GroupElement GV { get; } = GroupElement.FromText("GV");
+		public static GroupElement GV { get; } = FromText("GV");
 
 		/// <summary>
 		/// Generator point for Pedersen commitments.
 		/// </summary>
-		public static GroupElement Gg { get; } = GroupElement.FromText("Gg");
+		public static GroupElement Gg { get; } = FromText("Gg");
 
 		/// <summary>
 		/// Generator point for Pedersen commitments.
 		/// </summary>
-		public static GroupElement Gh { get; } = GroupElement.FromText("Gh");
+		public static GroupElement Gh { get; } = FromText("Gh");
 
 		/// <summary>
 		/// Generator point for attributes M_{ai}.
 		/// </summary>
-		public static GroupElement Ga { get; } = GroupElement.FromText("Ga");
+		public static GroupElement Ga { get; } = FromText("Ga");
 
 		/// <summary>
 		/// Generator point for serial numbers.
 		/// </summary>
-		public static GroupElement Gs { get; } = GroupElement.FromText("Gs");
+		public static GroupElement Gs { get; } = FromText("Gs");
 
 		public static bool TryGetFriendlyGeneratorName(GroupElement? ge, out string name)
 		{
@@ -75,6 +75,30 @@ namespace WalletWasabi.Crypto.Groups
 				_ => ""
 			};
 			return name.Length != 0;
+		}
+
+		/// <summary>
+		/// Deterministically creates a group element from the given text.
+		/// Uniqueness relies on the SHA256 hash function.
+		/// </summary>
+		public static GroupElement FromText(string text)
+			=> FromBuffer(Encoding.UTF8.GetBytes(text));
+
+		/// <summary>
+		/// Deterministically creates a group element from the given text.
+		/// Uniqueness relies on the SHA256 hash function.
+		/// </summary>
+		public static GroupElement FromBuffer(byte[] buffer)
+		{
+			GE ge;
+			using var sha256 = System.Security.Cryptography.SHA256.Create();
+			do
+			{
+				buffer = sha256.ComputeHash(buffer);
+			}
+			while (!GE.TryCreateXQuad(new FE(buffer), out ge));
+
+			return new GroupElement(ge);
 		}
 	}
 }
