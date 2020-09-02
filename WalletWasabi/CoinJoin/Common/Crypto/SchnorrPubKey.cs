@@ -25,15 +25,6 @@ namespace WalletWasabi.CoinJoin.Common.Crypto
 			RpubKey = Guard.NotNull(nameof(rKey), rKey?.PubKey);
 		}
 
-		public SchnorrPubKey(Signer signer)
-		{
-			signer = Guard.NotNull(nameof(signer), signer);
-			var signerKey = signer?.Key;
-			var rKey = signer?.R;
-			SignerPubKey = Guard.NotNull(nameof(signerKey), signerKey?.PubKey);
-			RpubKey = Guard.NotNull(nameof(rKey), rKey?.PubKey);
-		}
-
 		[JsonProperty]
 		[JsonConverter(typeof(PubKeyJsonConverter))]
 		public PubKey SignerPubKey { get; }

@@ -10,7 +10,7 @@ namespace WalletWasabi.Helpers
 	{
 		public const string ClientSupportBackendVersionMin = "3";
 		public const string ClientSupportBackendVersionMax = "4";
-		public const string BackendMajorVersion = "3";
+		public const string BackendMajorVersion = "4";
 
 		/// <summary>
 		/// By changing this, we can force to start over the transactions file, so old incorrect transactions would be cleared.
