@@ -37,7 +37,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 			//   - P = xG is the public input, x is the secret
 			//   - e is the challenge
 			//   - s is the response
-			return (publicNonce + challenge * PublicPoint) == responses * Generators;
+			return responses * Generators == (publicNonce + challenge * PublicPoint);
 		}
 
 		// Simulate a public nonce given a challenge and arbitrary responses (should be random)
