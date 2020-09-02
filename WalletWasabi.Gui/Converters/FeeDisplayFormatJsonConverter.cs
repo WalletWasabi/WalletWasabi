@@ -1,22 +1,12 @@
-using Avalonia.Data.Converters;
 using System;
-using System.Globalization;
-using WalletWasabi.Gui.Models;
-using WalletWasabi.Exceptions;
-using System.Collections.Generic;
 using Newtonsoft.Json;
+using WalletWasabi.Gui.Models;
+using static WalletWasabi.Gui.Models.FeeDisplayFormat;
 
 namespace WalletWasabi.Gui.Converters
 {
 	public class FeeDisplayFormatJsonConverter : JsonConverter
 	{
-		private Dictionary<string, FeeDisplayFormat> Texts { get; } = new Dictionary<string, FeeDisplayFormat>
-		{
-			{ "satoshiperbyte", FeeDisplayFormat.SatoshiPerByte },
-			{ "usd", FeeDisplayFormat.USD },
-			{ "btc", FeeDisplayFormat.BTC },
-			{ "percentage", FeeDisplayFormat.Percentage },
-		};
 
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)
@@ -33,23 +23,28 @@ namespace WalletWasabi.Gui.Converters
 
 				if (string.IsNullOrWhiteSpace(value))
 				{
-					return FeeDisplayFormat.SatoshiPerByte;
+					return SatoshiPerByte;
 				}
 
-				var displayFormatString = value.Trim().ToLower();
+				var displayFormatString = value.Trim();
 
-				return Texts[displayFormatString];
+				if (Enum.TryParse(displayFormatString, true, out FeeDisplayFormat displayFormat))
+				{
+					return displayFormat;
+				}
+
+				return SatoshiPerByte;
 			}
 			catch
 			{
-				return FeeDisplayFormat.SatoshiPerByte;
+				return SatoshiPerByte;
 			}
 		}
 
 		/// <inheritdoc />
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
-			writer.WriteValue(((FeeDisplayFormat)value).ToString());
+			writer.WriteValue(((FeeDisplayFormat)value).ToString().ToLower());
 		}
 	}
 }

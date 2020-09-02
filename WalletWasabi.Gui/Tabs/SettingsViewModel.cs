@@ -204,13 +204,8 @@ namespace WalletWasabi.Gui.Tabs
 			set => this.RaiseAndSetIfChanged(ref _network, value);
 		}
 
-		public IEnumerable<FeeDisplayFormat> FeeDisplayFormats => new[]
-		{
-			Models.FeeDisplayFormat.USD,
-			Models.FeeDisplayFormat.BTC,
-			Models.FeeDisplayFormat.SatoshiPerByte,
-			Models.FeeDisplayFormat.Percentage
-		};
+		public IEnumerable<FeeDisplayFormat> FeeDisplayFormats =>
+			Enum.GetValues(typeof(FeeDisplayFormat)).Cast<FeeDisplayFormat>();
 
 		public FeeDisplayFormat FeeDisplayFormat
 		{

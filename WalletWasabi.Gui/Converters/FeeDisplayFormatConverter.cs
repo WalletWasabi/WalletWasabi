@@ -16,9 +16,11 @@ namespace WalletWasabi.Gui.Converters
 			{
 				FeeDisplayFormat displayFormat = FeeDisplayFormat.SatoshiPerByte;
 
-				if (Enum.IsDefined(typeof(FeeDisplayFormat), Locator.Current.GetService<Global>().UiConfig.FeeDisplayFormat))
+				var configFeeFormat = Locator.Current.GetService<Global>().UiConfig.FeeDisplayFormat;
+
+				if (Enum.IsDefined(typeof(FeeDisplayFormat), configFeeFormat))
 				{
-					displayFormat = (FeeDisplayFormat) Locator.Current.GetService<Global>().UiConfig.FeeDisplayFormat;
+					displayFormat = (FeeDisplayFormat) configFeeFormat;
 				}
 
 				string feeText;
