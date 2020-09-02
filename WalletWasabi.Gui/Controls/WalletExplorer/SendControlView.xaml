@@ -64,7 +64,7 @@
               </ToolTip.Tip>
             </controls:ExtendedTextBox>
             <StackPanel IsEnabled ="{Binding IsEstimateAvailable}" Opacity="{Binding FeeControlOpacity}">
-              <StackPanel Orientation="Horizontal" Spacing="10">
+              <StackPanel IsVisible="{Binding !MinMaxFeeTargetsEqual}" Orientation="Horizontal" Spacing="10">
                 <TextBlock Text="Fee:" />
                 <Panel Height="10" Width="10">
                   <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource SendTabView_Lightning}" />
@@ -112,10 +112,10 @@
                   <TextBlock Text="{Binding BuildTransactionButtonText}" />
                 </StackPanel>
               </Button>
-              <Panel/>
+              <Panel />
             </DockPanel>
           </StackPanel>
-          <Grid ColumnDefinitions="60,100,100,600,100,Auto"/>
+          <Grid ColumnDefinitions="60,100,100,600,100,Auto" />
         </StackPanel>
         <local:CoinListView SelectAllNonPrivateVisible="False" DataContext="{Binding CoinList}" />
       </DockPanel>
