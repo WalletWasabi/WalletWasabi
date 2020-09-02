@@ -17,17 +17,18 @@ namespace WalletWasabi.Crypto
 		public Scalar t { get; }
 		public GroupElement V { get; }
 
-		public static bool operator == (MAC a, MAC b) => a.Equals(b);
-		public static bool operator != (MAC a, MAC b) => !a.Equals(b);
+		public static bool operator ==(MAC a, MAC b) => a.Equals(b);
+
+		public static bool operator !=(MAC a, MAC b) => !a.Equals(b);
 
 		public bool Equals(MAC? other) =>
 			(this, other) switch
 			{
 				(null, null) => true,
-				(null, {}) => false,
-				({}, null) => false,
-				({} a , {} b) when Object.ReferenceEquals(a, b) => true, 
-				({} a , {} b) => (a.t, a.V) == (b.t, b.V)
+				(null, { }) => false,
+				({ }, null) => false,
+				({ } a, { } b) when Object.ReferenceEquals(a, b) => true,
+				({ } a, { } b) => (a.t, a.V) == (b.t, b.V)
 			};
 
 		public override bool Equals(object? obj) =>

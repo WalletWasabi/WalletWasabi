@@ -22,7 +22,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			Assert.StartsWith("Value cannot be zero.", ex.Message);
 		}
 
-
 		[Fact]
 		[Trait("UnitTest", "UnitTest")]
 		public void CanProduceAndVerifyMAC()
