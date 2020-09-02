@@ -23,7 +23,8 @@ namespace WalletWasabi.Crypto
 			=> groupElements switch
 			{
 				null => throw new ArgumentNullException(parameterName),
-				_ => groupElements.Select((ge, i) => NotNullOrInfinity($"{parameterName}[{i}]", ge))
+				_ when !groupElements.Any() => throw new ArgumentException(parameterName), 
+				_ => groupElements.Select((ge, i) => NotNullOrInfinity($"{parameterName}[{i}]", ge)).ToList()
 			};
 
 		[DebuggerStepThrough]
