@@ -15,6 +15,11 @@ namespace WalletWasabi.Crypto
 			Scalars = scalars.ToArray();
 		}
 
+		public ScalarVector(params Scalar[] scalars)
+			: this(scalars as IEnumerable<Scalar>)
+		{
+		}
+
 		private IEnumerable<Scalar> Scalars { get; }
 
 		public IEnumerator<Scalar> GetEnumerator() =>
