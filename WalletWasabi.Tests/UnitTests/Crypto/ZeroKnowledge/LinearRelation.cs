@@ -58,5 +58,41 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			Assert.False(eqn.Verify(simulatedNonce, otherChallenge, response));
 			Assert.False(eqn.Verify(publicNonce, otherChallenge, response));
 		}
+
+		[Fact]
+		public void IgnoredWitnessComponents()
+		{
+			// Sometimes an equation uses the point at infinity as a generator,
+			// effectively canceling out the corresponding component of the witness
+			var generators = new GroupElementVector(new[] { Generators.G, GroupElement.Infinity });
+			var publicPoint = new Scalar(42) * Generators.G;
+			var eqn = new Equation(publicPoint, generators);
+
+			var witness1 = new ScalarVector(new[] { new Scalar(42), new Scalar(23) });
+			var witness2 = new ScalarVector(new[] { new Scalar(42), new Scalar(100) });
+
+			// Generate a single nonce to be shared by both proofs.
+			// note that in normal circumstances this is catastrophic because nonce
+			// reuse with different challenges allows recovery of the witness.
+			// in this case this is intentional, so that the test can compare the
+			// responses which would otherwise be different.
+			var secretNonces = new ScalarVector(new[] { new Scalar(7), new Scalar(11) });
+			var publicNonce = Enumerable.Zip(secretNonces, generators, (s, g) => s * g).Sum();
+			var challenge = new Scalar(13);
+
+			// Derive two responses with the two different witnesses for the same
+			// point, and ensure that both are valid, implying that the second
+			// component in the witness is ignored.
+			var response1 = eqn.Respond(witness1, secretNonces, challenge);
+			Assert.True(eqn.Verify(publicNonce, challenge, response1));
+			var response2 = eqn.Respond(witness2, secretNonces, challenge);
+			Assert.True(eqn.Verify(publicNonce, challenge, response2));
+
+			// With different witnesses the responses should be different even if the
+			// nonces are the same, but since the first part of the witness is the
+			// same that sub-response should be the same for the same nonce
+			Assert.False(response1 == response2);
+			Assert.True(response1.First() == response2.First());
+		}
 	}
 }
