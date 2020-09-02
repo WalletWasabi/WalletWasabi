@@ -8,16 +8,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private decimal _feePercentage;
 		private decimal _usdExchangeRate;
 		private decimal _usdFee;
-		private FeeRate _feeRate;
-		private Money _estimatedBtcFee;
+		private FeeRate? _feeRate;
+		private Money? _estimatedBtcFee;
 
 		public TransactionFeeInfo()
 		{
 			FeePercentage = 0;
 			UsdExchangeRate = 0;
 			UsdFee = 0;
-			FeeRate = new FeeRate(0L);
-			EstimatedBtcFee = new Money(0L);
+			FeeRate = FeeRate.Zero;
+			EstimatedBtcFee = Money.Zero;
 		}
 
 		public TransactionFeeInfo(decimal feePercentage, decimal usdExchangeRate, decimal usdFee, FeeRate feeRate, Money estimatedBtcFee)

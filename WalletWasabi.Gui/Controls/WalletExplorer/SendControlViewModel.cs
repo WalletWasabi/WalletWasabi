@@ -97,7 +97,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			SetFeeTargetLimits();
 			FeeTarget = Global.UiConfig.FeeTarget;
-			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
+
+			if (Enum.IsDefined(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat))
+			{
+				FeeDisplayFormat = (FeeDisplayFormat) Global.UiConfig.FeeDisplayFormat;
+			}
+			else
+			{
+				FeeDisplayFormat = FeeDisplayFormat.SatoshiPerByte;
+			}
+
 			_transactionFeeInfo = this.WhenAnyValue(
 				x => x.UsdFee,
 				x => x.UsdExchangeRate,
@@ -900,8 +909,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global.UiConfig.WhenAnyValue(x => x.FeeDisplayFormat)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(format =>
-					FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), format) ?? FeeDisplayFormat.SatoshiPerByte))
-				.DisposeWith(disposables);
+				{
+					if (Enum.IsDefined(typeof(FeeDisplayFormat), format))
+					{
+						FeeDisplayFormat = (FeeDisplayFormat) format;
+					}
+					else
+					{
+						FeeDisplayFormat = FeeDisplayFormat.SatoshiPerByte;
+					}
+				}).DisposeWith(disposables);
 
 			Observable
 				.Merge(Global.UiConfig.WhenAnyValue(x => x.IsCustomChangeAddress))

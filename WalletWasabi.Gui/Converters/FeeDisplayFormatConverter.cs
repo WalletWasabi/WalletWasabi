@@ -1,6 +1,4 @@
-using Avalonia;
 using Avalonia.Data.Converters;
-using NBitcoin;
 using Splat;
 using System;
 using System.Globalization;
@@ -16,7 +14,12 @@ namespace WalletWasabi.Gui.Converters
 		{
 			if (value is TransactionFeeInfo feeInfo)
 			{
-				FeeDisplayFormat displayFormat = (FeeDisplayFormat)Enum.ToObject(typeof(FeeDisplayFormat), Locator.Current.GetService<Global>().UiConfig.FeeDisplayFormat);
+				FeeDisplayFormat displayFormat = FeeDisplayFormat.SatoshiPerByte;
+
+				if (Enum.IsDefined(typeof(FeeDisplayFormat), Locator.Current.GetService<Global>().UiConfig.FeeDisplayFormat))
+				{
+					displayFormat = (FeeDisplayFormat) Locator.Current.GetService<Global>().UiConfig.FeeDisplayFormat;
+				}
 
 				string feeText;
 				string feeToolTip;

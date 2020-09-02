@@ -56,7 +56,14 @@ namespace WalletWasabi.Gui.Tabs
 			this.ValidateProperty(x => x.BitcoinP2pEndPoint, ValidateBitcoinP2pEndPoint);
 
 			Autocopy = Global.UiConfig.Autocopy;
-			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Global.UiConfig?.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
+			if (Enum.IsDefined(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat))
+			{
+				FeeDisplayFormat = (FeeDisplayFormat) Global.UiConfig.FeeDisplayFormat;
+			}
+			else
+			{
+				FeeDisplayFormat = FeeDisplayFormat.SatoshiPerByte;
+			}
 			CustomFee = Global.UiConfig.IsCustomFee;
 			CustomChangeAddress = Global.UiConfig.IsCustomChangeAddress;
 
