@@ -7,7 +7,6 @@ namespace WalletWasabi.Gui.Converters
 {
 	public class FeeDisplayFormatJsonConverter : JsonConverter
 	{
-
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)
 		{
