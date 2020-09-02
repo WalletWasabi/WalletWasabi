@@ -20,6 +20,7 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Exceptions;
+using WalletWasabi.Gui.Controls;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Models.StatusBarStatuses;
@@ -54,7 +55,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _address;
 		private string _customChangeAddress;
 		private string _labelToolTip;
-		private string _feeToolTip;
+		private ObservableAsPropertyHelper<TransactionFeeInfo> _transactionFeeInfo;
 		private bool _isBusy;
 		private bool _isHardwareBusy;
 		private bool _isCustomFee;
@@ -97,6 +98,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SetFeeTargetLimits();
 			FeeTarget = Global.UiConfig.FeeTarget;
 			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
+			_transactionFeeInfo = this.WhenAnyValue(
+				x => x.UsdFee,
+				x => x.UsdExchangeRate,
+				x => x.FeePercentage,
+				x => x.FeeRate,
+				x => x.EstimatedBtcFee,
+				(a, b, c, d, e) => new TransactionFeeInfo(a, b, c, d, e))
+				.ToProperty(this, x => x.TransactionFeeInfo, scheduler: RxApp.MainThreadScheduler);
 			SetFeesAndTexts();
 
 			this.WhenAnyValue(x => x.AmountText).Select(_ => Unit.Default)
@@ -151,6 +160,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				}
 			});
+
+			this.WhenAnyValue(x => x.FeeDisplayFormat)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(x =>
+				{
+					Global.UiConfig.FeeDisplayFormat = (int)x;
+
+					this.RaisePropertyChanged(nameof(TransactionFeeInfo));
+
+					Global.UiConfig.ToFile();
+				});
 
 			this.WhenAnyValue(x => x.IsBusy, x => x.IsHardwareBusy)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -418,11 +438,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private FeeDisplayFormat FeeDisplayFormat
 		{
 			get => _feeDisplayFormat;
-			set
-			{
-				_feeDisplayFormat = value;
-				Global.UiConfig.FeeDisplayFormat = (int)value;
-			}
+			set => this.RaiseAndSetIfChanged(ref _feeDisplayFormat, value);
 		}
 
 		public abstract string DoButtonText { get; }
@@ -431,6 +447,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public SuggestLabelViewModel LabelSuggestion { get; }
 
 		public CoinListViewModel CoinList { get; }
+
+		public TransactionFeeInfo TransactionFeeInfo => _transactionFeeInfo?.Value ?? new TransactionFeeInfo();
 
 		public bool IsBusy
 		{
@@ -554,12 +572,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _labelToolTip;
 			set => this.RaiseAndSetIfChanged(ref _labelToolTip, value);
-		}
-
-		public string FeeToolTip
-		{
-			get => _feeToolTip;
-			set => this.RaiseAndSetIfChanged(ref _feeToolTip, value);
 		}
 
 		public bool IsSliderFeeUsed
@@ -748,42 +760,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 
 				AllSelectedAmount = Math.Max(Money.Zero, all - EstimatedBtcFee);
-				if (FeeRate is null)
-				{
-					FeeText = "";
-					FeeToolTip = "";
-				}
-				else
-				{
-					switch (FeeDisplayFormat)
-					{
-						case FeeDisplayFormat.SatoshiPerByte:
-							FeeText = $"(~ {FeeRate.SatoshiPerByte} sat/vByte)";
-							FeeToolTip = "Expected fee rate in satoshi/vByte.";
-							break;
-
-						case FeeDisplayFormat.USD:
-							FeeText = $"(~ ${UsdFee:0.##})";
-							FeeToolTip = $"Estimated total fees in USD. Exchange Rate: {(long)UsdExchangeRate} USD/BTC.";
-							break;
-
-						case FeeDisplayFormat.BTC:
-							FeeText = $"(~ {EstimatedBtcFee.ToString(false, false)} BTC)";
-							FeeToolTip = "Estimated total fees in BTC.";
-							break;
-
-						case FeeDisplayFormat.Percentage:
-							FeeText = $"(~ {FeePercentage:0.#} %)";
-							FeeToolTip = "Expected percentage of fees against the amount to be sent.";
-							break;
-
-						default:
-							throw new NotSupportedException("This is impossible.");
-					}
-				}
 			}
 		}
-
 		private void SetAmountIfMax()
 		{
 			if (IsMax)
@@ -918,6 +896,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Where(x => !x)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => IsSliderFeeUsed = true);
+
+			Global.UiConfig.WhenAnyValue(x => x.FeeDisplayFormat)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(format =>
+					FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), format) ?? FeeDisplayFormat.SatoshiPerByte))
+				.DisposeWith(disposables);
 
 			Observable
 				.Merge(Global.UiConfig.WhenAnyValue(x => x.IsCustomChangeAddress))

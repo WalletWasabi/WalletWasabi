@@ -14,6 +14,7 @@ using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
 using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
@@ -35,6 +36,7 @@ namespace WalletWasabi.Gui.Tabs
 		private bool _startLocalBitcoinCoreOnStartup;
 		private bool _stopLocalBitcoinCoreOnShutdown;
 		private bool _isModified;
+		private FeeDisplayFormat _feeDisplayFormat;
 		private string _somePrivacyLevel;
 		private string _finePrivacyLevel;
 		private string _strongPrivacyLevel;
@@ -54,6 +56,7 @@ namespace WalletWasabi.Gui.Tabs
 			this.ValidateProperty(x => x.BitcoinP2pEndPoint, ValidateBitcoinP2pEndPoint);
 
 			Autocopy = Global.UiConfig.Autocopy;
+			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Global.UiConfig?.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
 			CustomFee = Global.UiConfig.IsCustomFee;
 			CustomChangeAddress = Global.UiConfig.IsCustomChangeAddress;
 
@@ -84,6 +87,10 @@ namespace WalletWasabi.Gui.Tabs
 				x => x.StopLocalBitcoinCoreOnShutdown)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(_ => Save());
+
+			this.WhenAnyValue(x => x.FeeDisplayFormat)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(x => Global.UiConfig.FeeDisplayFormat = (int)x);
 
 			this.WhenAnyValue(x => x.Autocopy)
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -188,6 +195,20 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			get => _network;
 			set => this.RaiseAndSetIfChanged(ref _network, value);
+		}
+
+		public IEnumerable<FeeDisplayFormat> FeeDisplayFormats => new[]
+		{
+			Models.FeeDisplayFormat.USD,
+			Models.FeeDisplayFormat.BTC,
+			Models.FeeDisplayFormat.SatoshiPerByte,
+			Models.FeeDisplayFormat.Percentage
+		};
+
+		public FeeDisplayFormat FeeDisplayFormat
+		{
+			get => _feeDisplayFormat;
+			set => this.RaiseAndSetIfChanged(ref _feeDisplayFormat, value);
 		}
 
 		public string TorSocks5EndPoint
@@ -297,10 +318,15 @@ namespace WalletWasabi.Gui.Tabs
 					.DisposeWith(disposables);
 				this.RaisePropertyChanged(nameof(IsPinSet)); // Fire now otherwise the button won't update for restart.
 
-				Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => x.Autocopy, x => x.IsCustomFee, x => x.IsCustomChangeAddress)
+				Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => x.Autocopy, x => x.IsCustomFee, x => x.IsCustomChangeAddress, x => x.FeeDisplayFormat)
 					.Throttle(TimeSpan.FromSeconds(1))
 					.ObserveOn(RxApp.TaskpoolScheduler)
 					.Subscribe(_ => Global.UiConfig.ToFile())
+					.DisposeWith(disposables);
+
+				Global.UiConfig.WhenAnyValue(x => x.FeeDisplayFormat)
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.Subscribe(x => FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), x)))
 					.DisposeWith(disposables);
 
 				base.OnOpen(disposables);

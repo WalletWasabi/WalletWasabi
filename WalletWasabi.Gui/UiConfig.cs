@@ -22,6 +22,7 @@ namespace WalletWasabi.Gui
 	[JsonObject(MemberSerialization.OptIn)]
 	public class UiConfig : ConfigBase
 	{
+		private int _feeDisplayFormat;
 		private bool _lurkingWifeMode;
 		private bool _lockScreenActive;
 		private string _lockScreenPinHash = "";
@@ -45,9 +46,14 @@ namespace WalletWasabi.Gui
 		[JsonProperty(PropertyName = "FeeTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public int FeeTarget { get; internal set; }
 
-		[DefaultValue(0)]
-		[JsonProperty(PropertyName = "FeeDisplayFormat", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public int FeeDisplayFormat { get; internal set; }
+		[DefaultValue(Models.FeeDisplayFormat.SatoshiPerByte)]
+		[JsonProperty(PropertyName = "FeeDisplayFormat")]
+		[JsonConverter(typeof(FeeDisplayFormatJsonConverter))]
+		public int FeeDisplayFormat
+		{
+			get => _feeDisplayFormat;
+			set => RaiseAndSetIfChanged(ref _feeDisplayFormat, value);
+		}
 
 		[DefaultValue("")]
 		[JsonProperty(PropertyName = "LastActiveTab", DefaultValueHandling = DefaultValueHandling.Populate)]
