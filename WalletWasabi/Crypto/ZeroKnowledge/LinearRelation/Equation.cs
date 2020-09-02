@@ -65,5 +65,10 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 			//   s = k + ex
 			return secretNonces + challenge * witness;
 		}
+
+		internal bool VerifySolution(ScalarVector witness)
+		{
+			return PublicPoint == witness * Generators;
+		}
 	}
 }

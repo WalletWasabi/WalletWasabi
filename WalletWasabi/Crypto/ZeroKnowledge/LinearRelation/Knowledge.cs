@@ -16,7 +16,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 			// don't try to prove something which isn't true
 			foreach (var equation in statement.Equations)
 			{
-				Guard.True($"{nameof(witness)} is incorrect with respect to {nameof(equation)}.{nameof(equation.PublicPoint)}", equation.PublicPoint == witness * equation.Generators);
+				Guard.True($"{nameof(witness)} is not solution of the {nameof(equation)}", equation.VerifySolution(witness));
 			}
 
 			Statement = statement;
