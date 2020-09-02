@@ -7,7 +7,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto.Groups
 {
-	public class GroupElement : IEquatable<GroupElement>
+	public class GroupElement : IEquatable<GroupElement>, IByteSerializable
 	{
 		public GroupElement(GE groupElement)
 		{

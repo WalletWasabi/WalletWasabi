@@ -1,6 +1,5 @@
 using NBitcoin.Secp256k1;
 using System.Linq;
-using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Helpers;
 
@@ -17,8 +16,9 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 	{
 		public Equation(GroupElement publicPoint, GroupElementVector generators)
 		{
+			CryptoGuard.NotInfinity(nameof(generators), generators);
 			PublicPoint = CryptoGuard.NotInfinity(nameof(publicPoint), publicPoint);
-			Generators = (GroupElementVector)Guard.NotNullOrEmpty(nameof(generators), generators);
+			Generators = generators;
 		}
 
 		// Knowledge of representation asserts
@@ -50,12 +50,12 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 		}
 
 		// Given a witness and secret nonces, respond to a challenge proving the equation holds w.r.t the witness
-		internal ScalarVector Respond(ScalarVector witness, ScalarVector secretNonces, Scalar challenge)
+		internal ScalarVector Respond(ScalarVector witnesses, ScalarVector secretNonces, Scalar challenge)
 		{
 			// By canceling G on both sides of the verification equation above we can
 			// obtain a formula for the response s given k, e and x:
 			//   s = k + ex
-			return new ScalarVector(witness.Zip(secretNonces, (secret, secretNonce) => secretNonce + challenge * secret));
+			return secretNonces + challenge * witnesses;
 		}
 	}
 }
