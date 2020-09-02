@@ -22,14 +22,7 @@ namespace WalletWasabi.Crypto
 		public static bool operator !=(MAC a, MAC b) => !a.Equals(b);
 
 		public bool Equals(MAC? other) =>
-			(this, other) switch
-			{
-				(null, null) => true,
-				(null, { }) => false,
-				({ }, null) => false,
-				({ } a, { } b) when ReferenceEquals(a, b) => true,
-				({ } a, { } b) => (a.T, a.V) == (b.T, b.V)
-			};
+			(this?.T, this?.V) == (other?.T, other?.V);
 
 		public override bool Equals(object? obj) =>
 			Equals(obj as MAC);
