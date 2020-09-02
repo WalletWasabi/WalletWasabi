@@ -28,7 +28,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 		public GroupElementVector Generators { get; }
 
 		// Evaluate the verification equation corresponding to the one in the statement
-		public bool Verify(GroupElement publicNonce, Scalar challenge, ScalarVector responses)
+		internal bool Verify(GroupElement publicNonce, Scalar challenge, ScalarVector responses)
 		{
 			// the verification equation (for 1 generator case) is:
 			//   sG =? R + eP
@@ -41,7 +41,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 		}
 
 		// Simulate a public nonce given a challenge and arbitrary responses (should be random)
-		public GroupElement Simulate(Scalar challenge, ScalarVector givenResponses)
+		internal GroupElement Simulate(Scalar challenge, ScalarVector givenResponses)
 		{
 			// The verification equation above can be rearranged as a formula for R
 			// given e, P and s by subtracting eP from both sides:
@@ -50,12 +50,12 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 		}
 
 		// Given a witness and secret nonces, respond to a challenge proving the equation holds w.r.t the witness
-		public ScalarVector Respond(ScalarVector witness, ScalarVector secretNonces, Scalar challenge)
+		internal ScalarVector Respond(ScalarVector witness, ScalarVector secretNonces, Scalar challenge)
 		{
 			// By canceling G on both sides of the verification equation above we can
 			// obtain a formula for the response s given k, e and x:
 			//   s = k + ex
-			return new ScalarVector(witness.Zip(secretNonces, (secret, secretNonce) => secretNonce + challenge * secret)); // FIXME ZipForceEqualLength
+			return new ScalarVector(witness.Zip(secretNonces, (secret, secretNonce) => secretNonce + challenge * secret));
 		}
 	}
 }
