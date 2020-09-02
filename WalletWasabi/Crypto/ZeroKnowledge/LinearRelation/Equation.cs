@@ -16,8 +16,8 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 	{
 		public Equation(GroupElement publicPoint, GroupElementVector generators)
 		{
-			CryptoGuard.NotInfinity(nameof(generators), generators);
-			PublicPoint = CryptoGuard.NotInfinity(nameof(publicPoint), publicPoint);
+			CryptoGuard.NotNullOrInfinity(nameof(generators), generators);
+			PublicPoint = CryptoGuard.NotNullOrInfinity(nameof(publicPoint), publicPoint);
 			Generators = generators;
 		}
 
