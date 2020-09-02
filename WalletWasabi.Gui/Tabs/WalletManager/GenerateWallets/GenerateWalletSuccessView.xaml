@@ -23,7 +23,7 @@
     <TextBlock Text="You can recover your wallet on any computer with" />
     <TextBlock Text="- your Recovery Words AND" />
     <TextBlock Text="- your Password." />
-    <CheckBox Margin="0 10 0 0" HorizontalAlignment="Center" IsChecked="{Binding IsConfirmed}" Content="I have written down my recovery words and my password separately." />
+    <CheckBox Margin="0 10 0 0" HorizontalAlignment="Center" IsChecked="{Binding IsConfirmed}" Content="I have written down my recovery words." />
     <Button Margin="0 10 0 0" HorizontalAlignment="Center" Content="Generate Wallet" Command="{Binding ConfirmCommand}" />
   </StackPanel>
 </UserControl>
