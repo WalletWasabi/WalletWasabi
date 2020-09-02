@@ -96,19 +96,19 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var nonce = Generators.G;
 			var statement = new Statement(publicPoint, generator);
 			var challenge = Challenge.Build(nonce, statement);
-			Assert.Equal("secp256k1_scalar  = { 0x8626D370UL, 0x6D18AF98UL, 0xAE71F87DUL, 0x5008741FUL, 0x43515E2BUL, 0x666194D8UL, 0x97CCA524UL, 0x09E82A30UL }", challenge.ToC(""));
+			Assert.Equal("secp256k1_scalar  = { 0x82CF8030UL, 0x5B5AED14UL, 0x91C6BBFEUL, 0x798A4258UL, 0x1971D3ABUL, 0x0BD8C47BUL, 0x791A5ABDUL, 0xC0E7C23EUL }", challenge.ToC(""));
 
 			publicPoint = Generators.G;
 			nonce = point2;
 			statement = new Statement(publicPoint, generator);
 			challenge = Challenge.Build(nonce, statement);
-			Assert.Equal("secp256k1_scalar  = { 0x72CF8E90UL, 0x518E892FUL, 0xA7046699UL, 0x0C21C88FUL, 0xEE3DC26EUL, 0x83F833FBUL, 0x0B21A692UL, 0x404C3D01UL }", challenge.ToC(""));
+			Assert.Equal("secp256k1_scalar  = { 0x3E6A930DUL, 0x04F4CB3FUL, 0xEAAA2D36UL, 0xF303D033UL, 0x8EB4012AUL, 0x2B975875UL, 0x8CFDC425UL, 0x249C3446UL }", challenge.ToC(""));
 
 			publicPoint = point1;
 			nonce = point2;
 			statement = new Statement(publicPoint, generator);
 			challenge = Challenge.Build(nonce, statement);
-			Assert.Equal("secp256k1_scalar  = { 0x333575CAUL, 0x7D400596UL, 0x4C12B718UL, 0xD64F97BBUL, 0x5EBB4EB7UL, 0x2D5DFD8EUL, 0xFB2FE4DCUL, 0x49FD37B6UL }", challenge.ToC(""));
+			Assert.Equal("secp256k1_scalar  = { 0x26BA45F5UL, 0x062AD4B6UL, 0x6C642CF4UL, 0x01677E65UL, 0x68017D1CUL, 0x19B47BBCUL, 0x6AF10CD6UL, 0x8273EA54UL }", challenge.ToC(""));
 		}
 
 		[Fact]

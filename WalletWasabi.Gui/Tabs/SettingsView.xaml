@@ -15,7 +15,7 @@
       <TextBlock Text="Heads Up!" FontWeight="Bold" Classes="warningMessage" Margin="0 0 3 0" />
       <TextBlock Classes="warningMessage">Changes will be applied after restarting the application.</TextBlock>
     </StackPanel>
-    <ScrollViewer>
+    <ScrollViewer HorizontalScrollBarVisibility="Auto">
       <StackPanel Margin="30" Spacing="10">
         <Grid Classes="content">
           <StackPanel Orientation="Vertical" Spacing="30">
