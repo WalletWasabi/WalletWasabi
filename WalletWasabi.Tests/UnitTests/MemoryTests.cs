@@ -168,7 +168,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var greatCalled = 0;
 			var leeCalled = 0;
 
-			async Task<string> Greet(string who) =>
+			async Task<string> Greet(MemoryCache cache, string who) =>
 				await cache.AtomicGetOrCreateAsync(
 					$"{nameof(Greet)}{who}",
 					new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromTicks(1) }, // expires really soon
@@ -178,19 +178,19 @@ namespace WalletWasabi.Tests.UnitTests
 						return Task.FromResult($"Hello Mr. {who}");
 					});
 
-			async Task<string> GreetMrLee() =>
+			async Task<string> GreetMrLee(MemoryCache cache) =>
 				await cache.AtomicGetOrCreateAsync(
 					"key1",
 					new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1) },
 					() =>
 					{
 						leeCalled++;
-						return Greet("Lee");
+						return Greet(cache, "Lee");
 					});
 
 			for (var i = 0; i < 10; i++)
 			{
-				await GreetMrLee();
+				await GreetMrLee(cache);
 			}
 
 			Assert.Equal(1, greatCalled);
