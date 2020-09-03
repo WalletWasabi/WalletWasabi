@@ -29,7 +29,7 @@ namespace WalletWasabi.Tests.UnitTests
 				() => Task.FromResult("bar"));
 			Assert.Equal("foo", result);
 
-			await Task.Delay(TimeSpan.FromMilliseconds(20));
+			await Task.Delay(TimeSpan.FromMilliseconds(21));
 
 			result = await cache.AtomicGetOrCreateAsync(
 				"key",
