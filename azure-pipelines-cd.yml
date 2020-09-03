@@ -1,0 +1,37 @@
+trigger:
+  batch: true
+
+jobs:
+- job: Windows
+  pool:
+    vmImage: 'vs2017-win2016'
+  steps:
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core 3'
+    inputs:
+      version: 3.1.x
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'run'
+      projects: '**/WasabiDeploy.Publish.csproj'
+      arguments: '--cdelivery'
+  - task: CopyFiles@2
+    inputs:
+      contents: '_buildOutput/**'
+      targetFolder: $(Build.ArtifactStagingDirectory)
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathToPublish: $(Build.ArtifactStagingDirectory)
+      artifactName: MyBuildOutputs
+  - task: GitHubRelease@1
+    inputs:
+      gitHubConnection: 'github.com_molnard'
+      repositoryName: 'molnard/WasabiDeploy'
+      action: 'create'
+      target: '$(Build.SourceVersion)'
+      tagSource: 'userSpecifiedTag'
+      tag: '$(Build.BuildNumber)'
+      title: 'Wasabi binaries'
+      isPreRelease: true
+      changeLogCompareToRelease: 'lastFullRelease'
+      changeLogType: 'issueBased'
