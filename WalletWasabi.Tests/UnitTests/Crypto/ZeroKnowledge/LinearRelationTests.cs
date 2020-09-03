@@ -172,10 +172,10 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 				new Equation(b, new GroupElementVector(Generators.Gh))
 			);
 
-			// Wrong size for witness
+			// The witness should have the same number of components as the number of generators in the equations
 			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(statement, new ScalarVector(Scalar.Zero, Scalar.Zero)));
 
-			// Incorrect witness
+			// Incorrect witness (multiplying by generators does not produce the public point)
 			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(statement, new ScalarVector(Scalar.One)));
 
 			// Incorrect statement generators (effectively incorrect witness)
