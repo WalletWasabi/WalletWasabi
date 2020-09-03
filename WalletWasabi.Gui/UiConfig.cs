@@ -39,7 +39,7 @@ namespace WalletWasabi.Gui
 
 		[JsonProperty(PropertyName = "WindowState")]
 		[JsonConverter(typeof(WindowStateAfterStartJsonConverter))]
-		public WindowState WindowState { get; internal set; } = WindowState.Maximized;
+		public WindowState WindowState { get; internal set; } = WindowState.Normal;
 
 		[DefaultValue(2)]
 		[JsonProperty(PropertyName = "FeeTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
