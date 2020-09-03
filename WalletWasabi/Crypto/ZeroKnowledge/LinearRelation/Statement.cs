@@ -9,7 +9,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 	public class Statement
 	{
 		public Statement(params Equation[] equations)
-			: this(equations as IEnumerable<Equation>)
+			: this (equations as IEnumerable<Equation>)
 		{
 		}
 
