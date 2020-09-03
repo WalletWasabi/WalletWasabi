@@ -161,11 +161,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							? DoingButtonText
 							: DoButtonText);
 
-			this.WhenAnyValue(x => x.FeeTarget)
+			Observable
+				.Merge(this.WhenAnyValue(x => x.FeeTarget).Select(_ => true))
+				.Merge(this.WhenAnyValue(x => x.IsEstimateAvailable).Select(_ => true))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
-					IsSliderFeeUsed = true;
+					IsSliderFeeUsed = IsEstimateAvailable;
 					SetFeesAndTexts();
 				});
 
