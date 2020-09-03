@@ -40,7 +40,7 @@ namespace WalletWasabi.Crypto
 		{
 			Guard.NotNull(nameof(scalars), scalars);
 
-			return new ScalarVector( scalars.Select(si => scalar * si));
+			return new ScalarVector(scalars.Select(si => scalar * si));
 		}
 
 		public static ScalarVector operator +(ScalarVector scalars1, ScalarVector scalars2)
@@ -49,7 +49,7 @@ namespace WalletWasabi.Crypto
 			Guard.NotNull(nameof(scalars2), scalars2);
 			Guard.True(nameof(scalars1.Count), scalars1.Count == scalars2.Count);
 
-			return new ScalarVector( Enumerable.Zip(scalars1, scalars2, (s1, s2) => s1 + s2) );
+			return new ScalarVector(Enumerable.Zip(scalars1, scalars2, (s1, s2) => s1 + s2));
 		}
 
 		IEnumerator IEnumerable.GetEnumerator() =>

@@ -33,6 +33,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 		//     P = x_1*G_1 + x_2*G_2 + ...
 		// so we need a single public input and several generators
 		public GroupElement PublicPoint { get; }
+
 		public GroupElementVector Generators { get; }
 
 		// Evaluate the verification equation corresponding to the one in the statement
