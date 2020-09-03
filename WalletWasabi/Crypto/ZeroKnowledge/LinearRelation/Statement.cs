@@ -37,7 +37,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 			Guard.True(nameof(publicNonces), Equations.Count() == publicNonces.Count());
 			Equations.CheckDimesions(allResponses);
 
-			return Equations.Zip(publicNonces, allResponses, (equation, R, s) => equation.Verify(R, challenge, s)).All(x => x);
+			return Equations.Zip(publicNonces, allResponses, (equation, r, s) => equation.Verify(r, challenge, s)).All(x => x);
 		}
 
 		public GroupElementVector SimulatePublicNonces(Scalar challenge, IEnumerable<ScalarVector> allGivenResponses)
