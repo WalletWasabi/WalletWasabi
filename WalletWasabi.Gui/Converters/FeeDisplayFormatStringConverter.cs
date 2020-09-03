@@ -11,7 +11,7 @@ namespace WalletWasabi.Gui.Converters
 	{
 		private Dictionary<FeeDisplayFormat, string> Texts { get; } = new Dictionary<FeeDisplayFormat, string>
 		{
-			{ FeeDisplayFormat.SatoshiPerByte, "Satoshi / vbyte" },
+			{ FeeDisplayFormat.SatoshiPerByte, "sat/vByte" },
 			{ FeeDisplayFormat.USD, "USD" },
 			{ FeeDisplayFormat.BTC, "BTC" },
 			{ FeeDisplayFormat.Percentage, "Percentage" },

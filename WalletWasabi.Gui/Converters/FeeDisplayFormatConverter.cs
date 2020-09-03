@@ -20,7 +20,7 @@ namespace WalletWasabi.Gui.Converters
 
 				if (Enum.IsDefined(typeof(FeeDisplayFormat), configFeeFormat))
 				{
-					displayFormat = (FeeDisplayFormat) configFeeFormat;
+					displayFormat = (FeeDisplayFormat)configFeeFormat;
 				}
 
 				string feeText;
@@ -29,8 +29,8 @@ namespace WalletWasabi.Gui.Converters
 				switch (displayFormat)
 				{
 					case FeeDisplayFormat.SatoshiPerByte:
-						feeText = $"(~ {feeInfo.FeeRate.SatoshiPerByte} sat/vbyte)";
-						feeToolTip = "Expected fee rate in satoshi / vbyte.";
+						feeText = $"(~ {feeInfo.FeeRate.SatoshiPerByte} sat/vByte)";
+						feeToolTip = "Expected fee rate in sat/vByte.";
 						break;
 
 					case FeeDisplayFormat.USD:

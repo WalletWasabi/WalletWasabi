@@ -100,7 +100,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (Enum.IsDefined(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat))
 			{
-				FeeDisplayFormat = (FeeDisplayFormat) Global.UiConfig.FeeDisplayFormat;
+				FeeDisplayFormat = (FeeDisplayFormat)Global.UiConfig.FeeDisplayFormat;
 			}
 			else
 			{
@@ -912,7 +912,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					if (Enum.IsDefined(typeof(FeeDisplayFormat), format))
 					{
-						FeeDisplayFormat = (FeeDisplayFormat) format;
+						FeeDisplayFormat = (FeeDisplayFormat)format;
 					}
 					else
 					{

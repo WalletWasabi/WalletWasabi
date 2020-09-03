@@ -58,7 +58,7 @@ namespace WalletWasabi.Gui.Tabs
 			Autocopy = Global.UiConfig.Autocopy;
 			if (Enum.IsDefined(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat))
 			{
-				FeeDisplayFormat = (FeeDisplayFormat) Global.UiConfig.FeeDisplayFormat;
+				FeeDisplayFormat = (FeeDisplayFormat)Global.UiConfig.FeeDisplayFormat;
 			}
 			else
 			{
