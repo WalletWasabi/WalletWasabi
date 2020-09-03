@@ -210,20 +210,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					this.RaisePropertyChanged(nameof(CustomChangeAddress));
 				});
 
-			this.WhenAnyValue(x => x.IsEstimateAvailable)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(isEstimateAvailable =>
-				{
-					if (isEstimateAvailable)
-					{
-						IsCustomFee = Global.UiConfig.IsCustomFee;
-					}
-					else
-					{
-						IsCustomFee = true;
-					}
-				});
-
 			Observable
 				.FromEventPattern<AllFeeEstimate>(Global.FeeProviders, nameof(Global.FeeProviders.AllFeeEstimateChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -935,9 +921,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => SetFeesAndTexts());
 
-			Global.UiConfig.WhenAnyValue(x => x.IsCustomFee)
+			Observable
+				.Merge(Global.UiConfig.WhenAnyValue(x => x.IsCustomFee))
+				.Merge(this.WhenAnyValue(x => x.IsEstimateAvailable))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => IsCustomFee = x || !IsEstimateAvailable)
+				.Subscribe(_ =>
+				{
+					IsCustomFee = !IsEstimateAvailable || Global.UiConfig.IsCustomFee;
+				})
 				.DisposeWith(disposables);
 
 			this.WhenAnyValue(x => x.IsCustomFee)
