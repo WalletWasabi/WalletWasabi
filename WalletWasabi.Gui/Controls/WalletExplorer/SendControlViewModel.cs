@@ -428,7 +428,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					Logger.LogError(ex);
 				});
 
-			IsEstimateAvailable = Global.FeeProviders.AllFeeEstimate != null;
+			IsEstimateAvailable = Global.FeeProviders.AllFeeEstimate is { };
 		}
 
 		protected Global Global { get; }
