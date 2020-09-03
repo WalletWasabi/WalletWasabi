@@ -33,7 +33,7 @@
   <DockPanel LastChildFill="True">
     <Panel DockPanel.Dock="Top" HorizontalAlignment="Stretch" Background="{DynamicResource ThemeControlLowBrush}">
       <StackPanel Orientation="Horizontal" Spacing="2" Margin="8 1">
-        <Button Background="Transparent" BorderThickness="0" ToolTip.Tip="{Binding IsLurkingWifeMode, StringFormat=\{0\} Lurking Wife Mode, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Disable:Enable}" Command="{Binding LurkingWifeModeCommand}">
+        <Button Background="Transparent" BorderThickness="0" ToolTip.Tip="{Binding IsLurkingWifeMode, StringFormat=\{0\} Sensitive Information, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Show:Hide}" Command="{Binding LurkingWifeModeCommand}">
           <Panel>
             <DrawingPresenter Width="16" Height="16" IsVisible="{Binding !IsLurkingWifeMode}" Drawing="{DynamicResource EyesShow}" />
             <DrawingPresenter Width="16" Height="16" IsVisible="{Binding IsLurkingWifeMode}" Drawing="{DynamicResource EyesHide}" />
