@@ -2,9 +2,9 @@ trigger:
   batch: true
 
 jobs:
-- job: Windows
+- job: CDelivery
   pool:
-    vmImage: 'vs2017-win2016'
+    vmImage: 'windows-latest'
   steps:
   - task: UseDotNet@2
     displayName: 'Install .NET Core 3'
@@ -17,12 +17,12 @@ jobs:
       arguments: '--cdelivery'
   - task: CopyFiles@2
     inputs:
-      contents: '_buildOutput/**'
+      contents: 'WalletWasabi.Gui\bin\dist\cdelivery'
       targetFolder: $(Build.ArtifactStagingDirectory)
   - task: PublishBuildArtifacts@1
     inputs:
       pathToPublish: $(Build.ArtifactStagingDirectory)
-      artifactName: MyBuildOutputs
+      artifactName: WasabiBuildOutputs
   - task: GitHubRelease@1
     inputs:
       gitHubConnection: 'github.com_molnard'
