@@ -8,6 +8,11 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 {
 	public class Statement
 	{
+		public Statement(params Equation[] equations)
+			: this (equations as IEnumerable<Equation>)
+		{
+		}
+
 		public Statement(IEnumerable<Equation> equations)
 		{
 			// The equation matrix should not be jagged

@@ -115,11 +115,10 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var b = x * Generators.Gh;
 
 			// Discrete log equality (Chaum-Pedersen proof)
-			var statement = new Statement(new[]
-			{
+			var statement = new Statement(
 				new Equation(a, new GroupElementVector(Generators.Gg)),
-				new Equation(b, new GroupElementVector(Generators.Gh)),
-			});
+				new Equation(b, new GroupElementVector(Generators.Gh))
+			);
 
 			// Check that simulation produces valid transcripts
 			var challenge = new Scalar(13);
@@ -149,18 +148,16 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		public void StatementThrows()
 		{
 			// Jagged equation matrices are not allowed
-			Assert.ThrowsAny<ArgumentException>(() => new Statement(new[]
-			{
+			Assert.ThrowsAny<ArgumentException>(() => new Statement(
 				new Equation(GroupElement.Infinity, new GroupElementVector(Generators.Gg, Generators.Gh)),
-				new Equation(GroupElement.Infinity, new GroupElementVector(Generators.G)),
-			}));
+				new Equation(GroupElement.Infinity, new GroupElementVector(Generators.G))
+			));
 
 			// Null generators are not allowed
-			Assert.ThrowsAny<ArgumentException>(() => new Statement(new[]
-			{
+			Assert.ThrowsAny<ArgumentException>(() => new Statement(
 				new Equation(GroupElement.Infinity, new GroupElementVector(Generators.Gg, Generators.Gh)),
-				new Equation(GroupElement.Infinity, new GroupElementVector(Generators.G, null!)),
-			}));
+				new Equation(GroupElement.Infinity, new GroupElementVector(Generators.G, null!))
+			));
 		}
 
 		[Fact]
@@ -170,11 +167,10 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var a = x * Generators.Gg;
 			var b = x * Generators.Gh;
 
-			var statement = new Statement(new[]
-			{
+			var statement = new Statement(
 				new Equation(a, new GroupElementVector(Generators.Gg)),
-				new Equation(b, new GroupElementVector(Generators.Gh)),
-			});
+				new Equation(b, new GroupElementVector(Generators.Gh))
+			);
 
 			// Wrong size for witness
 			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(statement, new ScalarVector(Scalar.Zero, Scalar.Zero)));
@@ -183,11 +179,10 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(statement, new ScalarVector(Scalar.One)));
 
 			// Incorrect statement generators (effectively incorrect witness)
-			var badStatement = new Statement(new[]
-			{
+			var badStatement = new Statement(
 				new Equation(a, new GroupElementVector(Generators.Gh)),
-				new Equation(b, new GroupElementVector(Generators.Gg)),
-			});
+				new Equation(b, new GroupElementVector(Generators.Gg))
+			);
 			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(badStatement, new ScalarVector(Scalar.One)));
 		}
 	}
