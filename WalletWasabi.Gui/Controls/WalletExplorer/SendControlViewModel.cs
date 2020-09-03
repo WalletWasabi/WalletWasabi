@@ -212,9 +212,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.IsEstimateAvailable)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
+				.Subscribe(isEstimateAvailable =>
 				{
-					if (_isEstimateAvailable)
+					if (isEstimateAvailable)
 					{
 						IsCustomFee = Global.UiConfig.IsCustomFee;
 					}
@@ -227,7 +227,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Observable
 				.FromEventPattern<AllFeeEstimate>(Global.FeeProviders, nameof(Global.FeeProviders.AllFeeEstimateChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => IsEstimateAvailable = true);
+				.Subscribe(_ => IsEstimateAvailable = Global.FeeProviders.AllFeeEstimate is { });
 
 			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay, outputScheduler: RxApp.MainThreadScheduler);
 
