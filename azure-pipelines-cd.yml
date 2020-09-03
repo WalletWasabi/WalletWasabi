@@ -13,7 +13,7 @@ jobs:
   - task: DotNetCoreCLI@2
     inputs:
       command: 'run'
-      projects: '**/WasabiDeploy.Publish.csproj'
+      projects: '**/WalletWasabi.Packager.csproj'
       arguments: '--cdelivery'
   - task: CopyFiles@2
     inputs:
