@@ -4,12 +4,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
 using WalletWasabi.Services;
-using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 {
+	/// <seealso cref="XunitConfiguration.SerialCollectionDefinition"/>
+	[Collection("Serial unit tests collection")]
 	public class NodeBuildingTests
 	{
 		[Fact]
@@ -83,6 +84,14 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				node.Disconnect();
 				await coreNode.TryStopAsync();
 			}
+		}
+
+		[Fact]
+		public async Task GetNodeVersionTestsAsync()
+		{
+			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+			Version version = await CoreNode.GetVersionAsync(cts.Token);
+			Assert.Equal(WalletWasabi.Helpers.Constants.BitcoinCoreVersion, version);
 		}
 	}
 }
