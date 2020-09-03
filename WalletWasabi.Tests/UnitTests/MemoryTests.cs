@@ -15,7 +15,7 @@ namespace WalletWasabi.Tests.UnitTests
 		public async Task AbsoluteExpirationRelativeToNowExpiresCorrectlyAsync()
 		{
 			// This should be buggy but it seems to work for us: https://github.com/alastairtree/LazyCache/issues/84
-			var cache = new MemoryCache(new MemoryCacheOptions());
+			using var cache = new MemoryCache(new MemoryCacheOptions());
 
 			var result = await cache.AtomicGetOrCreateAsync(
 				"key",
@@ -48,8 +48,8 @@ namespace WalletWasabi.Tests.UnitTests
 				return "Hello " + argument;
 			}
 
-			var cache1 = new MemoryCache(new MemoryCacheOptions());
-			var cache2 = new MemoryCache(new MemoryCacheOptions());
+			using var cache1 = new MemoryCache(new MemoryCacheOptions());
+			using var cache2 = new MemoryCache(new MemoryCacheOptions());
 
 			var result0 = await cache1.AtomicGetOrCreateAsync(
 				"the-same-key",
@@ -95,7 +95,7 @@ namespace WalletWasabi.Tests.UnitTests
 				return "Hello " + argument;
 			}
 
-			var cache = new MemoryCache(new MemoryCacheOptions());
+			using var cache = new MemoryCache(new MemoryCacheOptions());
 			var expireKey1 = new CancellationTokenSource();
 
 			var options = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(10) };
@@ -139,7 +139,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task ExpirationTestsAsync()
 		{
-			var cache = new MemoryCache(new MemoryCacheOptions());
+			using var cache = new MemoryCache(new MemoryCacheOptions());
 
 			var result0 = await cache.AtomicGetOrCreateAsync(
 				"key1",
@@ -164,7 +164,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task CacheTaskTestAsync()
 		{
-			var cache = new MemoryCache(new MemoryCacheOptions());
+			using var cache = new MemoryCache(new MemoryCacheOptions());
 			var greatCalled = 0;
 			var leeCalled = 0;
 
@@ -214,7 +214,7 @@ namespace WalletWasabi.Tests.UnitTests
 				return argument;
 			}
 
-			var cache = new MemoryCache(new MemoryCacheOptions());
+			using var cache = new MemoryCache(new MemoryCacheOptions());
 
 			var task0 = cache.AtomicGetOrCreateAsync(
 				"key1",
