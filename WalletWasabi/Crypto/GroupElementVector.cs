@@ -14,6 +14,11 @@ namespace WalletWasabi.Crypto
 			GroupElements = groupElements.ToArray();
 		}
 
+		public GroupElementVector(params GroupElement[] groupElements)
+			: this(groupElements as IEnumerable<GroupElement>)
+		{
+		}
+
 		private IEnumerable<GroupElement> GroupElements { get; }
 
 		public IEnumerator<GroupElement> GetEnumerator() =>
