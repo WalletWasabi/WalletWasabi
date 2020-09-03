@@ -314,6 +314,7 @@ namespace WalletWasabi.Packager
 			var deliveryPath = IsContinuousDelivery ? Path.Combine(BinDistDirectory, "cdelivery") : BinDistDirectory;
 
 			IoHelpers.EnsureDirectoryExists(deliveryPath);
+			Console.WriteLine($"Binaries will be delivered here: {deliveryPath}");
 
 			foreach (string target in Targets)
 			{
