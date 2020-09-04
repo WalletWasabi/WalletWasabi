@@ -1,3 +1,4 @@
+using NBitcoin.Secp256k1;
 using System.Text;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
@@ -85,6 +86,58 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			Assert.NotEqual(secretNonce2, secretNonce4);
 
 			Assert.NotEqual(secretNonce3, secretNonce4);
+		}
+
+		[Fact]
+		public void SyntheticNoncesSecretDependenceTest()
+		{
+			var protocol = Encoding.UTF8.GetBytes("test TranscriptRng collisions");
+
+			// if all synthetic nonce provider get the same randomness, nonce sequences
+			// with different witnesses or commitments should still diverge
+			var rnd = new MockRandom();
+			rnd.GetBytesResults.Add(new byte[32]);
+			rnd.GetBytesResults.Add(new byte[32]);
+			rnd.GetBytesResults.Add(new byte[32]);
+			rnd.GetBytesResults.Add(new byte[32]);
+
+			var commitment1 = new[] { Generators.Gx0 };
+			var commitment2 = new[] { Generators.Gx1 };
+			var witness1 = new[] { Scalar.One };
+			var witness2 = new[] { Scalar.Zero };
+
+			var transcript1 = new Transcript(protocol);
+			var transcript2 = new Transcript(protocol);
+			var transcript3 = new Transcript(protocol);
+			var transcript4 = new Transcript(protocol);
+
+			transcript1.CommitPublicNonces(commitment1);
+			transcript2.CommitPublicNonces(commitment2);
+			transcript3.CommitPublicNonces(commitment2);
+			transcript4.CommitPublicNonces(commitment2);
+
+			var secretNonceGenerator1 = transcript1.CreateSyntheticSecretNonceProvider(witness1, rnd);
+			var secretNonceGenerator2 = transcript2.CreateSyntheticSecretNonceProvider(witness1, rnd);
+			var secretNonceGenerator3 = transcript3.CreateSyntheticSecretNonceProvider(witness2, rnd);
+			var secretNonceGenerator4 = transcript4.CreateSyntheticSecretNonceProvider(witness2, rnd);
+
+			Assert.Empty(rnd.GetBytesResults);
+
+			var secretNonce1 = secretNonceGenerator1.GetScalar();
+			var secretNonce2 = secretNonceGenerator2.GetScalar();
+			var secretNonce3 = secretNonceGenerator3.GetScalar();
+			var secretNonce4 = secretNonceGenerator4.GetScalar();
+
+			Assert.NotEqual(secretNonce1, secretNonce2);
+			Assert.NotEqual(secretNonce1, secretNonce3);
+			Assert.NotEqual(secretNonce1, secretNonce4);
+
+			Assert.NotEqual(secretNonce2, secretNonce3);
+			Assert.NotEqual(secretNonce2, secretNonce4);
+
+			// Since transcript3 and transcript4 share the same public inputs and
+			// witness, with no randomness they should be identical
+			Assert.Equal(secretNonce3, secretNonce4);
 		}
 	}
 }
