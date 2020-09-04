@@ -34,5 +34,7 @@ jobs:
       tagSource: 'userSpecifiedTag'
       tag: '$(Build.BuildNumber)'
       title: 'Wasabi binaries'
+      releaseNotesSource: 'inline'
+      releaseNotesInline: 'Hello world'
       isPreRelease: true
       addChangeLog: false
