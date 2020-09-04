@@ -32,7 +32,7 @@ jobs:
       action: 'create'
       target: '$(Build.SourceVersion)'
       tagSource: 'userSpecifiedTag'
-      tag: '$(Build.BuildNumber)'
+      tag: 'v1.0'
       title: 'Wasabi binaries'
       releaseNotesSource: 'inline'
       releaseNotesInline: 'Hello world'
