@@ -310,7 +310,7 @@ namespace WalletWasabi.Packager
 				Console.WriteLine($"Deleted {libraryBinReleaseDirectory}");
 			}
 
-			var deterministicFilenameTag = IsContinuousDelivery ? $"{DateTimeOffset.UtcNow:ddMMyyyy}" : VersionPrefix;
+			var deterministicFilenameTag = IsContinuousDelivery ? $"{DateTimeOffset.UtcNow:ddMMyyyy}{DateTimeOffset.UtcNow.TimeOfDay.TotalSeconds}" : VersionPrefix;
 			var deliveryPath = IsContinuousDelivery ? Path.Combine(BinDistDirectory, "cdelivery") : BinDistDirectory;
 
 			IoHelpers.EnsureDirectoryExists(deliveryPath);
