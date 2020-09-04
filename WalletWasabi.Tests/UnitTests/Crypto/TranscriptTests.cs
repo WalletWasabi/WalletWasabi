@@ -1,7 +1,4 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using NBitcoin.Secp256k1;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
@@ -75,10 +72,10 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var publicNonceGenerator3 = transcript3.CreateSyntheticPublicNoncesProvider(witness2, rnd);
 			var publicNonceGenerator4 = transcript4.CreateSyntheticPublicNoncesProvider(witness2, rnd);
 
-			var publicNonce1 = publicNonceGenerator1().First();
-			var publicNonce2 = publicNonceGenerator2().First();
-			var publicNonce3 = publicNonceGenerator3().First();
-			var publicNonce4 = publicNonceGenerator4().First();
+			var publicNonce1 = publicNonceGenerator1.GetScalar();
+			var publicNonce2 = publicNonceGenerator2.GetScalar();
+			var publicNonce3 = publicNonceGenerator3.GetScalar();
+			var publicNonce4 = publicNonceGenerator4.GetScalar();
 
 			Assert.NotEqual(publicNonce1, publicNonce2);
 			Assert.NotEqual(publicNonce1, publicNonce3);

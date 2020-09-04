@@ -9,8 +9,6 @@ using WalletWasabi.Crypto.StrobeProtocol;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge
 {
-	public delegate IEnumerable<Scalar> PublicNoncesSequence();
-
 	// High level API for transcripts of compound Sigma protocol style proofs
 	// implements synthetic nonces and Fiat-Shamir challenges.
 	public sealed class Transcript
@@ -51,40 +49,20 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			new Transcript(_strobe.MakeCopy());
 
 		// Generate synthetic nonce using current state combined with additional randomness.
-		public PublicNoncesSequence CreateSyntheticPublicNoncesProvider(IEnumerable<Scalar> secrets, WasabiRandom random)
-		{
-			// To integrate prior inputs for deterministic component of nonce
-			// generation, first clone the state at the current point in the
-			// transcript, which should already have the statement tag and public
-			// inputs committed.
-			var forked = _strobe.MakeCopy();
-
-			// add secret inputs as key material
-			foreach (var secret in secrets)
-			{
-				forked.Key(secret.ToBytes(), false);
-			}
-
-			// Add additional randomness
-			forked.Key(random.GetBytes(KeySizeInBytes), false);
-
-			IEnumerable<Scalar> NoncesGenerator()
-			{
-				while (true)
-				{
-					yield return new Scalar(forked.Prf(KeySizeInBytes, false));
-				}
-			}
-
-			// Generate a new scalar for each secret using this updated state as a seed.
-			return NoncesGenerator;
-		}
+		public SyntheticPublicNoncesProvider CreateSyntheticPublicNoncesProvider(IEnumerable<Scalar> secrets, WasabiRandom random)
+			=> new SyntheticPublicNoncesProvider(_strobe.MakeCopy(), secrets, random);
 
 		public void CommitPublicNonces(IEnumerable<GroupElement> nonces)
 		{
 			CryptoGuard.NotNullOrInfinity(nameof(nonces), nonces);
 			AddMessages(NonceTag, nonces.Select(x => x.ToBytes()));
 		}
+
+		public void CommitStatement(Statement statement)
+		{
+			CryptoGuard.NotNullOrInfinity(nameof(statement.Generators), statement.Generators);
+			AddMessages(StatementTag, statement.Generators.Select(x => x.ToBytes()));
+ 		}
 
 		// Generate Fiat Shamir challenges
 		public Scalar GenerateChallenge()
