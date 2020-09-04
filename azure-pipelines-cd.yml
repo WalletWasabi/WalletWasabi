@@ -31,7 +31,8 @@ jobs:
       repositoryName: 'molnard/WasabiDeploy'
       action: 'create'
       target: '$(Build.SourceVersion)'
-      tagSource: 'auto'
+      tagSource: 'manual'
+      tag: $(Build.BuildNumber)
       title: 'Wasabi binaries'
       releaseNotesSource: 'input'
       releaseNotes: 'Hello world'
