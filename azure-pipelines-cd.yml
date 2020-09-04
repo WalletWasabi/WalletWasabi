@@ -19,6 +19,7 @@ jobs:
     inputs:
       contents: '**/cdelivery/**'
       targetFolder: $(Build.ArtifactStagingDirectory)
+      flattenFolders: true
   - task: PublishBuildArtifacts@1
     inputs:
       pathToPublish: $(Build.ArtifactStagingDirectory)
