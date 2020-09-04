@@ -33,5 +33,5 @@ jobs:
       tag: '$(Build.BuildNumber)'
       title: 'Wasabi binaries'
       isPreRelease: true
-      changeLogCompareToRelease: 'lastFullRelease'
+      changeLogCompareToRelease: 'lastNonDraftRelease'
       changeLogType: 'issueBased'
