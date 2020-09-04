@@ -25,16 +25,15 @@ jobs:
     inputs:
       pathToPublish: $(Build.ArtifactStagingDirectory)
       artifactName: WasabiBuildOutputs
-  - task: GitHubRelease@1
+  - task: GitHubRelease@0
     inputs:
       gitHubConnection: 'github.com_molnard'
       repositoryName: 'molnard/WasabiDeploy'
       action: 'create'
       target: '$(Build.SourceVersion)'
-      tagSource: 'userSpecifiedTag'
-      tag: 'v1.0'
+      tagSource: 'auto'
       title: 'Wasabi binaries'
-      releaseNotesSource: 'inline'
-      releaseNotesInline: 'Hello world'
+      releaseNotesSource: 'input'
+      releaseNotes: 'Hello world'
       isPreRelease: true
       addChangeLog: false
