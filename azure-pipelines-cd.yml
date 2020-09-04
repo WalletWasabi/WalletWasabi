@@ -15,14 +15,9 @@ jobs:
       command: 'run'
       projects: '**/WalletWasabi.Packager.csproj'
       arguments: '--cdelivery'
-  - task: CopyFiles@2
-    inputs:
-      contents: '**/cdelivery/**'
-      targetFolder: $(Build.ArtifactStagingDirectory)
-      flattenFolders: true
   - task: PublishBuildArtifacts@1
     inputs:
-      pathToPublish: $(Build.ArtifactStagingDirectory)
+      pathToPublish: '**/cdelivery/**'
       artifactName: WasabiBuildOutputs
   - task: GitHubRelease@1
     inputs:
@@ -34,5 +29,4 @@ jobs:
       tag: '$(Build.BuildNumber)'
       title: 'Wasabi binaries'
       isPreRelease: true
-      changeLogCompareToRelease: 'lastNonDraftRelease'
-      changeLogType: 'issueBased'
+      addChangeLog: false
