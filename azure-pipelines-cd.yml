@@ -15,6 +15,11 @@ jobs:
       command: 'run'
       projects: '**/WalletWasabi.Packager.csproj'
       arguments: '--cdelivery'
+  - task: CopyFiles@2
+    inputs:
+      contents: '**/cdelivery/**'
+      targetFolder: $(Build.ArtifactStagingDirectory)
+      flattenFolders: true
   - task: PublishBuildArtifacts@1
     inputs:
       pathToPublish: '**/cdelivery/**'
