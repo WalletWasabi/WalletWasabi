@@ -1,4 +1,6 @@
 using NBitcoin.Secp256k1;
+using System;
+using System.Linq;
 using System.Text;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
@@ -138,6 +140,39 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			// Since transcript3 and transcript4 share the same public inputs and
 			// witness, with no randomness they should be identical
 			Assert.Equal(secretNonce3, secretNonce4);
+		}
+
+		[Theory]
+		[InlineData(1)]
+		[InlineData(3)]
+		[InlineData(5)]
+		[InlineData(7)]
+		public void SyntheticNoncesVectorTest(int size)
+		{
+			var protocol = Encoding.UTF8.GetBytes("witness size");
+
+			var rnd = new SecureRandom();
+
+			var witness = new Scalar[size];
+
+			var transcript = new Transcript(protocol);
+			var secretNonceProvider = transcript.CreateSyntheticSecretNonceProvider(witness, rnd);
+
+			var secretNonce = secretNonceProvider.Sequence.First();
+
+			Assert.Equal(secretNonce.Count(), witness.Length );
+		}
+
+		[Fact]
+		public void SyntheticNoncesThrows()
+		{
+			var protocol = Encoding.UTF8.GetBytes("empty witness not allowed");
+
+			var rnd = new SecureRandom();
+
+			var transcript = new Transcript(protocol);
+
+			Assert.ThrowsAny<ArgumentException>(() => transcript.CreateSyntheticSecretNonceProvider(new Scalar[0], rnd));
 		}
 	}
 }
