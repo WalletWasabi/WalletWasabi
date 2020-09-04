@@ -19,7 +19,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 
 		private static readonly byte[] StatementTag = Encoding.UTF8.GetBytes("statement");
 		private static readonly byte[] ChallengeTag = Encoding.UTF8.GetBytes("challenge");
-		private static readonly byte[] NonceTag = Encoding.UTF8.GetBytes("nonce-commitment");
+		private static readonly byte[] PublicNonceTag = Encoding.UTF8.GetBytes("nonce-commitment");
 		private static readonly byte[] DomainSeparatorTag = Encoding.UTF8.GetBytes("domain-separator");
 
 		/// <summary>
@@ -49,13 +49,13 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			new Transcript(_strobe.MakeCopy());
 
 		// Generate synthetic nonce using current state combined with additional randomness.
-		public SyntheticPublicNoncesProvider CreateSyntheticPublicNoncesProvider(IEnumerable<Scalar> secrets, WasabiRandom random)
-			=> new SyntheticPublicNoncesProvider(_strobe.MakeCopy(), secrets, random);
+		public SyntheticSecretNonceProvider CreateSyntheticSecretNonceProvider(IEnumerable<Scalar> secrets, WasabiRandom random)
+			=> new SyntheticSecretNonceProvider(_strobe.MakeCopy(), secrets, random);
 
-		public void CommitPublicNonces(IEnumerable<GroupElement> nonces)
+		public void CommitPublicNonces(IEnumerable<GroupElement> publicNonces)
 		{
-			CryptoGuard.NotNullOrInfinity(nameof(nonces), nonces);
-			AddMessages(NonceTag, nonces.Select(x => x.ToBytes()));
+			CryptoGuard.NotNullOrInfinity(nameof(publicNonces), publicNonces);
+			AddMessages(PublicNonceTag, publicNonces.Select(x => x.ToBytes()));
 		}
 
 		public void CommitStatement(Statement statement)

@@ -67,24 +67,24 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			transcript3.CommitPublicNonces(commitment2);
 			transcript4.CommitPublicNonces(commitment2);
 
-			var publicNonceGenerator1 = transcript1.CreateSyntheticPublicNoncesProvider(witness1, rnd);
-			var publicNonceGenerator2 = transcript2.CreateSyntheticPublicNoncesProvider(witness1, rnd);
-			var publicNonceGenerator3 = transcript3.CreateSyntheticPublicNoncesProvider(witness2, rnd);
-			var publicNonceGenerator4 = transcript4.CreateSyntheticPublicNoncesProvider(witness2, rnd);
+			var secretNonceProvider1 = transcript1.CreateSyntheticSecretNonceProvider(witness1, rnd);
+			var secretNonceProvider2 = transcript2.CreateSyntheticSecretNonceProvider(witness1, rnd);
+			var secretNonceProvider3 = transcript3.CreateSyntheticSecretNonceProvider(witness2, rnd);
+			var secretNonceProvider4 = transcript4.CreateSyntheticSecretNonceProvider(witness2, rnd);
 
-			var publicNonce1 = publicNonceGenerator1.GetScalar();
-			var publicNonce2 = publicNonceGenerator2.GetScalar();
-			var publicNonce3 = publicNonceGenerator3.GetScalar();
-			var publicNonce4 = publicNonceGenerator4.GetScalar();
+			var secretNonce1 = secretNonceProvider1.GetScalar();
+			var secretNonce2 = secretNonceProvider2.GetScalar();
+			var secretNonce3 = secretNonceProvider3.GetScalar();
+			var secretNonce4 = secretNonceProvider4.GetScalar();
 
-			Assert.NotEqual(publicNonce1, publicNonce2);
-			Assert.NotEqual(publicNonce1, publicNonce3);
-			Assert.NotEqual(publicNonce1, publicNonce4);
+			Assert.NotEqual(secretNonce1, secretNonce2);
+			Assert.NotEqual(secretNonce1, secretNonce3);
+			Assert.NotEqual(secretNonce1, secretNonce4);
 
-			Assert.NotEqual(publicNonce2, publicNonce3);
-			Assert.NotEqual(publicNonce2, publicNonce4);
+			Assert.NotEqual(secretNonce2, secretNonce3);
+			Assert.NotEqual(secretNonce2, secretNonce4);
 
-			Assert.NotEqual(publicNonce3, publicNonce4);
+			Assert.NotEqual(secretNonce3, secretNonce4);
 		}
 	}
 }

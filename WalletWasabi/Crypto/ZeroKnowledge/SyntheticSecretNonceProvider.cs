@@ -6,11 +6,11 @@ using WalletWasabi.Crypto.StrobeProtocol;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge
 {
-	public class SyntheticPublicNoncesProvider
+	public class SyntheticSecretNonceProvider
 	{
 		private readonly Strobe128 _strobe;
 
-		public SyntheticPublicNoncesProvider(Strobe128 strobe, IEnumerable<Scalar> secrets, WasabiRandom random)
+		public SyntheticSecretNonceProvider(Strobe128 strobe, IEnumerable<Scalar> secrets, WasabiRandom random)
 		{
 			_strobe = strobe;
 			
