@@ -17,7 +17,8 @@ jobs:
       arguments: '--cdelivery'
   - task: CopyFiles@2
     inputs:
-      contents: '**/cdelivery/**'
+      SourceFolder: '**/cdelivery/**'
+      contents: '**'
       targetFolder: $(Build.ArtifactStagingDirectory)
       flattenFolders: true
   - task: PublishBuildArtifacts@1
@@ -30,7 +31,7 @@ jobs:
       repositoryName: 'molnard/WasabiDeploy'
       action: 'create'
       target: '$(Build.SourceVersion)'
-      tagSource: 'userSpecifiedTag'
+      tagSource: manual
       tag: '$(Build.BuildNumber)'
       title: 'Wasabi binaries'
       isPreRelease: true
