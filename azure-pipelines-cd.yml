@@ -22,7 +22,7 @@ jobs:
       flattenFolders: true
   - task: PublishBuildArtifacts@1
     inputs:
-      pathToPublish: '**/cdelivery/**'
+      pathToPublish: $(Build.ArtifactStagingDirectory)
       artifactName: WasabiBuildOutputs
   - task: GitHubRelease@1
     inputs:
