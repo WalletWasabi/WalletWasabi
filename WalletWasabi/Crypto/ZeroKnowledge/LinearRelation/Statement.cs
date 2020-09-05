@@ -1,6 +1,7 @@
 using NBitcoin.Secp256k1;
 using System.Collections.Generic;
 using System.Linq;
+using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
@@ -28,6 +29,16 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 		}
 
 		public IEnumerable<Equation> Equations { get; }
+
+		public IEnumerable<GroupElement> PublicPoints
+		{
+			get { return Equations.Select(x => x.PublicPoint); }
+		}
+
+		public IEnumerable<GroupElement> Generators
+		{
+			get { return Equations.SelectMany(x => x.Generators); }
+		}
 
 		public bool CheckVerificationEquation(GroupElementVector publicNonces, Scalar challenge, IEnumerable<ScalarVector> allResponses)
 		{
