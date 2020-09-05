@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Helpers;
+using WalletWasabi.Crypto.ZeroKnowledge;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 {
-	public class Statement
+	public class Statement : IStatementDescription
 	{
 		public Statement(params Equation[] equations)
 			: this(equations as IEnumerable<Equation>)
