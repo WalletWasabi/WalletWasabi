@@ -58,7 +58,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			AddMessages(PublicNonceTag, publicNonces.Select(x => x.ToBytes()));
 		}
 
-		public void CommitStatement(Statement statement)
+		public void CommitStatement(IStatementDescription statement)
 		{
 			CryptoGuard.NotNullOrInfinity(nameof(statement.Generators), statement.Generators);
 			AddMessages(StatementTag, statement.Generators.Select(x => x.ToBytes()));
