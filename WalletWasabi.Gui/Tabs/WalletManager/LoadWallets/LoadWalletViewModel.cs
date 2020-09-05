@@ -48,7 +48,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 
 			RootList = new SourceList<WalletViewModelBase>();
 			RootList.Connect()
-				.AutoRefresh(model => model.WalletState)
 				.Filter(x => (!IsPasswordRequired || !x.Wallet.KeyManager.IsWatchOnly))
 				.Sort(SortExpressionComparer<WalletViewModelBase>
 					.Descending(p => p.Wallet.KeyManager.GetLastAccessTime()),
