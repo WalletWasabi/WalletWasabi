@@ -200,36 +200,37 @@ namespace WalletWasabi.Gui.ViewModels
 						{
 							var wallet = x.Sender as Wallet;
 							walletCheckingInterval = Observable.Interval(TimeSpan.FromSeconds(1))
-							   .ObserveOn(RxApp.MainThreadScheduler)
-							   .Subscribe(_ =>
-							   {
-								   if (wallet is { })
-								   {
-									   var segwitActivationHeight = SmartHeader.GetStartingHeader(wallet.Network).Height;
-									   if (wallet.LastProcessedFilter?.Header?.Height is uint lastProcessedFilterHeight
+								.ObserveOn(RxApp.MainThreadScheduler)
+								.Subscribe(_ =>
+								{
+									if (wallet is { })
+									{
+										var segwitActivationHeight = SmartHeader.GetStartingHeader(wallet.Network).Height;
+										if (wallet.LastProcessedFilter?.Header?.Height is uint lastProcessedFilterHeight
 											&& lastProcessedFilterHeight > segwitActivationHeight
 											&& SmartHeaderChain.TipHeight is uint tipHeight
 											&& tipHeight > segwitActivationHeight)
-									   {
-										   var allFilters = tipHeight - segwitActivationHeight;
-										   var processedFilters = lastProcessedFilterHeight - segwitActivationHeight;
-										   var perc = allFilters == 0 ?
-												100
+										{
+											var allFilters = tipHeight - segwitActivationHeight;
+											var processedFilters = lastProcessedFilterHeight - segwitActivationHeight;
+											var perc = allFilters == 0
+												? 100
 												: ((decimal)processedFilters / allFilters * 100);
-										   TryAddStatus(StatusType.WalletProcessingFilters, (ushort)perc);
-									   }
+											TryAddStatus(StatusType.WalletProcessingFilters, (ushort)perc);
+										}
 
-									   var txProcessor = wallet.TransactionProcessor;
-									   if (txProcessor is { })
-									   {
-										   var txCount = txProcessor.QueuedTxCount;
-										   var perc = txCount == 0 ?
-												100
+										var txProcessor = wallet.TransactionProcessor;
+										if (txProcessor is { })
+										{
+											var txCount = txProcessor.QueuedTxCount;
+											var perc = txCount == 0
+												? 100
 												: ((decimal)txProcessor.QueuedProcessedTxCount / txCount * 100);
-										   TryAddStatus(StatusType.WalletProcessingTransactions, (ushort)perc);
-									   }
-								   }
-							   }).DisposeWith(Disposables);
+											TryAddStatus(StatusType.WalletProcessingTransactions, (ushort)perc);
+										}
+									}
+								})
+								.DisposeWith(Disposables);
 						}
 					}
 					else

@@ -307,11 +307,11 @@ namespace WalletWasabi.Hwi.Parsers
 			const string Prefix = "hwi";
 
 			// Order matters! https://github.com/zkSNACKs/WalletWasabi/pull/1905/commits/cecefcc50af140cc06cb93961cda86f9b21db11b
-			string prefixToTrim = hwiResponse.StartsWith(WinPrefix) ?
-				WinPrefix :
-				hwiResponse.StartsWith(Prefix) ?
-					Prefix :
-					null;
+			string prefixToTrim = hwiResponse.StartsWith(WinPrefix)
+				? WinPrefix
+				: hwiResponse.StartsWith(Prefix)
+					? Prefix
+					: null;
 
 			if (prefixToTrim is null)
 			{

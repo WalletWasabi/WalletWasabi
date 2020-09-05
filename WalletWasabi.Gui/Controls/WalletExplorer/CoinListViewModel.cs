@@ -353,7 +353,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				SelectedColumnPreference = sortPref;
 			}
- 
+
 			AmountSortDirection = sortPref.Match(sortOrder, nameof(AmountSortDirection));
 			PrivacySortDirection = sortPref.Match(sortOrder, nameof(PrivacySortDirection));
 			ClustersSortDirection = sortPref.Match(sortOrder, nameof(ClustersSortDirection));
@@ -431,15 +431,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private void RefreshStatusColumnWidth(CoinViewModel[] coins)
 		{
 			CoinJoinStatusWidth = coins.Any() && coins.All(x => NotVisibleStatuses.Contains(x.Status))
-										 ? new GridLength(0)
-										 : new GridLength(180);
+				? new GridLength(0)
+				: new GridLength(180);
 		}
 
 		private void OnOpen()
 		{
-			Disposables = Disposables is null ?
-				new CompositeDisposable() :
-				throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
+			Disposables = Disposables is null
+				? new CompositeDisposable()
+				: throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			Global.UiConfig
 				.WhenAnyValue(x => x.LurkingWifeMode)
