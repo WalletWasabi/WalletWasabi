@@ -29,7 +29,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 		public IEnumerable<ScalarVector> RespondToChallenge(Scalar challenge, IEnumerable<ScalarVector> allSecretNonces)
 		{
 			// allSecretNonces should have the same dimension as the equation matrix
-			Statement.Equations.CheckDimesions(allSecretNonces);
+			Statement.Equations.CheckDimensions(allSecretNonces);
 
 			return Statement.Equations.Zip(allSecretNonces, (equation, secretNonces) => equation.Respond(Witness, secretNonces, challenge));
 		}
