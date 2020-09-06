@@ -135,7 +135,7 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 			finally
 			{
-				await Global.DisposeAsync().ConfigureAwait(false); 
+				await Global.DisposeAsync().ConfigureAwait(false);
 				Logger.LogInfo($"{nameof(Daemon)} stopped.");
 			}
 		}
