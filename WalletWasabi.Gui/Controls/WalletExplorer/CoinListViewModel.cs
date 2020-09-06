@@ -353,7 +353,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				SelectedColumnPreference = sortPref;
 			}
- 
+
 			AmountSortDirection = sortPref.Match(sortOrder, nameof(AmountSortDirection));
 			PrivacySortDirection = sortPref.Match(sortOrder, nameof(PrivacySortDirection));
 			ClustersSortDirection = sortPref.Match(sortOrder, nameof(ClustersSortDirection));
