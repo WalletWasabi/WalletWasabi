@@ -1,6 +1,6 @@
-﻿using System.Threading;
+﻿using NBitcoin;
+using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
 
 namespace WalletWasabi.Wallets
 {

@@ -1,21 +1,21 @@
 using Avalonia.Diagnostics.ViewModels;
+using ReactiveUI;
+using Splat;
 using System;
-using System.Runtime.InteropServices;
-using System.Diagnostics;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Reactive;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using WalletWasabi.Gui.ViewModels;
-using System.IO;
-using ReactiveUI;
-using System.Reactive;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using System.Reactive.Linq;
-using WalletWasabi.WebClients.Wasabi;
-using System.Reactive.Disposables;
-using Splat;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
+using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Gui.Tabs
 {

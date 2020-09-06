@@ -1,13 +1,13 @@
+using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using NBitcoin;
 using System.Security;
+using System.Text;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Blockchain.Keys;
 
 namespace WalletWasabi.Helpers
 {

@@ -1,3 +1,7 @@
+using Microsoft.AspNetCore.WebUtilities;
+using NBitcoin;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -7,10 +11,6 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.WebUtilities;
-using NBitcoin;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Helpers;
 using WalletWasabi.TorSocks5;

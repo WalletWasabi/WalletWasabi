@@ -1,3 +1,6 @@
+using Avalonia;
+using AvalonStudio.Extensibility;
+using AvalonStudio.Shell;
 using NBitcoin;
 using ReactiveUI;
 using Splat;
@@ -13,11 +16,8 @@ using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Models;
 using WalletWasabi.Logging;
-using AvalonStudio.Extensibility;
-using AvalonStudio.Shell;
-using Avalonia;
+using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer

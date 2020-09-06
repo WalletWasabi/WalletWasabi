@@ -1,19 +1,19 @@
-using System.Security.Cryptography.X509Certificates;
-using System;
 using AvalonStudio.Extensibility;
 using AvalonStudio.MVVM;
 using AvalonStudio.Shell;
 using ReactiveUI;
 using Splat;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Composition;
 using System.Linq;
-using System.Reactive.Linq;
-using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Wallets;
 using System.Reactive;
+using System.Reactive.Linq;
+using System.Security.Cryptography.X509Certificates;
+using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {

@@ -4,6 +4,7 @@ using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -13,13 +14,12 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Models.Sorting;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
-using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Blockchain.TransactionProcessing;
-using Splat;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
@@ -353,7 +353,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				SelectedColumnPreference = sortPref;
 			}
- 
+
 			AmountSortDirection = sortPref.Match(sortOrder, nameof(AmountSortDirection));
 			PrivacySortDirection = sortPref.Match(sortOrder, nameof(PrivacySortDirection));
 			ClustersSortDirection = sortPref.Match(sortOrder, nameof(ClustersSortDirection));

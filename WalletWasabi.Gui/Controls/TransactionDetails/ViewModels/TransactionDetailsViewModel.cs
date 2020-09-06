@@ -1,7 +1,7 @@
-using System;
-using System.Linq;
 using NBitcoin;
 using ReactiveUI;
+using System;
+using System.Linq;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Stores;
 

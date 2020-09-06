@@ -1,19 +1,19 @@
 using Avalonia;
+using AvalonStudio.Extensibility;
+using AvalonStudio.Shell;
 using NBitcoin;
 using ReactiveUI;
 using System;
-using System.Linq;
 using System.Globalization;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Gui.Controls.TransactionDetails.ViewModels;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
-using AvalonStudio.Extensibility;
-using AvalonStudio.Shell;
-using WalletWasabi.Gui.Controls.TransactionDetails.ViewModels;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {

@@ -1,17 +1,17 @@
 using NBitcoin;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Interfaces;
 using WalletWasabi.Logging;
+using WalletWasabi.WebClients.Bitstamp;
 using WalletWasabi.WebClients.BlockchainInfo;
 using WalletWasabi.WebClients.Coinbase;
-using WalletWasabi.WebClients.Bitstamp;
 using WalletWasabi.WebClients.CoinGecko;
 using WalletWasabi.WebClients.Gemini;
 using WalletWasabi.WebClients.ItBit;
-using System.Linq;
 
 namespace WalletWasabi.WebClients
 {

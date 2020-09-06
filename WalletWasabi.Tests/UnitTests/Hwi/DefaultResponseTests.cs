@@ -5,13 +5,13 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Hwi.Parsers;
 using WalletWasabi.Hwi.ProcessBridge;
 using WalletWasabi.Microservices;
 using Xunit;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Tests.UnitTests.Hwi
 {

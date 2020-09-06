@@ -1,5 +1,5 @@
-using System;
 using ReactiveUI;
+using System;
 using System.Reactive.Linq;
 
 namespace WalletWasabi.Gui.Controls.LockScreen

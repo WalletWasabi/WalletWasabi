@@ -1,7 +1,7 @@
-using System;
-using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.RPC;
+using System;
+using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.BitcoinCore.Rpc.Models;
 

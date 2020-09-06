@@ -1,5 +1,5 @@
-using Xunit;
 using WalletWasabi.Gui.Controls.WalletExplorer;
+using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.GUI
 {

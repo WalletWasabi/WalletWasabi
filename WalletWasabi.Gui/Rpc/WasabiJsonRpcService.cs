@@ -1,7 +1,7 @@
+using NBitcoin;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;

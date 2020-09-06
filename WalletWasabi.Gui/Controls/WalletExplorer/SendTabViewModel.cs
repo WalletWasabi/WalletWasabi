@@ -10,14 +10,14 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models.StatusBarStatuses;
+using WalletWasabi.Gui.Validation;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Exceptions;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
-using WalletWasabi.Gui.Validation;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {

@@ -1,8 +1,8 @@
+using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
-using NBitcoin;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Models

@@ -1,9 +1,9 @@
 using Avalonia.Data.Converters;
 using System;
 using System.Globalization;
-using WalletWasabi.Helpers;
-using WalletWasabi.Gui.Models;
 using WalletWasabi.Exceptions;
+using WalletWasabi.Gui.Models;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.Converters
 {

@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using WalletWasabi.Helpers;
+using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.ZeroKnowledge.LinearRelation;
-using WalletWasabi.Crypto;
+using WalletWasabi.Helpers;
 
 namespace System.Linq
 {

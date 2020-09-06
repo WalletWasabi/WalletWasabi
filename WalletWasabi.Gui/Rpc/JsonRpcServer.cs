@@ -1,12 +1,12 @@
+using Microsoft.Extensions.Hosting;
 using System;
 using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Hosting;
-using WalletWasabi.Logging;
 using WalletWasabi.Gui.Models;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Rpc
 {

@@ -1,7 +1,7 @@
+using NBitcoin;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
 using WalletWasabi.Blockchain.Keys;
 
 namespace WalletWasabi.WebClients.PayJoin

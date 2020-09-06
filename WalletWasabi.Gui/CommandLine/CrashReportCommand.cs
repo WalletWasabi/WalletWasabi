@@ -2,8 +2,8 @@ using Mono.Options;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using WalletWasabi.Helpers;
 using WalletWasabi.Gui.CrashReport;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.CommandLine
 {

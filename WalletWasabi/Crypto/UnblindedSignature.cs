@@ -1,6 +1,6 @@
-using System;
 using NBitcoin.DataEncoders;
 using NBitcoin.Secp256k1;
+using System;
 
 namespace WalletWasabi.Crypto
 {

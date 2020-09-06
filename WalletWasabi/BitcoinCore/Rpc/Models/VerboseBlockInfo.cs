@@ -1,6 +1,6 @@
+using NBitcoin;
 using System;
 using System.Collections.Generic;
-using NBitcoin;
 
 namespace WalletWasabi.BitcoinCore.Rpc.Models
 {

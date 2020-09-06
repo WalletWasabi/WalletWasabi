@@ -1,7 +1,7 @@
-using System;
 using NBitcoin;
 using NBitcoin.Crypto;
 using NBitcoin.Secp256k1;
+using System;
 
 namespace WalletWasabi.Crypto
 {

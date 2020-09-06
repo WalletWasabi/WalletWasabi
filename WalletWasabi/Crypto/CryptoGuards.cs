@@ -1,8 +1,8 @@
+using NBitcoin.Secp256k1;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using NBitcoin.Secp256k1;
 using WalletWasabi.Crypto.Groups;
 
 namespace WalletWasabi.Crypto
@@ -23,7 +23,7 @@ namespace WalletWasabi.Crypto
 			=> groupElements switch
 			{
 				null => throw new ArgumentNullException(parameterName),
-				_ when !groupElements.Any() => throw new ArgumentException(parameterName), 
+				_ when !groupElements.Any() => throw new ArgumentException(parameterName),
 				_ => groupElements.Select((ge, i) => NotNullOrInfinity($"{parameterName}[{i}]", ge)).ToList()
 			};
 

@@ -1,26 +1,26 @@
 using NBitcoin;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Collections.Specialized;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Helpers;
+using WalletWasabi.Models;
+using WalletWasabi.Stores;
 using WalletWasabi.Tests.UnitTests.Clients;
 using WalletWasabi.WebClients.PayJoin;
 using Xunit;
-using System.Net.Http;
-using System.Net;
-using System.Text;
-using WalletWasabi.Models;
-using System.IO;
-using WalletWasabi.Helpers;
-using WalletWasabi.Stores;
-using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Blockchain.Mempool;
-using System.Collections.Specialized;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions
 {

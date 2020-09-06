@@ -3,8 +3,8 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Styling;
-using System;
 using ReactiveUI;
+using System;
 using System.Reactive.Linq;
 
 namespace WalletWasabi.Gui.Controls
