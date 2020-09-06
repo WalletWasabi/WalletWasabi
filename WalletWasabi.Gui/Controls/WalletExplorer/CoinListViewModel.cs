@@ -337,7 +337,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			var savedCol = SelectedColumnPreference.ColumnTarget;
 
 			if (savedCol != nameof(AmountSortDirection)
-				   & savedCol != nameof(PrivacySortDirection)
+				& savedCol != nameof(PrivacySortDirection)
 				& savedCol != nameof(ClustersSortDirection)
 				& savedCol != nameof(StatusSortDirection))
 			{
