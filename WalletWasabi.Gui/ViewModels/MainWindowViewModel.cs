@@ -78,6 +78,7 @@ namespace WalletWasabi.Gui.ViewModels
 			get => _menuVisible;
 			set => this.RaiseAndSetIfChanged(ref _menuVisible, value);
 		}
+
 		public Network Network { get; }
 		public UiConfig UiConfig { get; }
 		public IShell Shell { get; }

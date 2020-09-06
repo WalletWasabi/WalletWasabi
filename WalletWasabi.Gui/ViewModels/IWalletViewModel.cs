@@ -1,4 +1,4 @@
-﻿using WalletWasabi.Wallets;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.ViewModels
 {
