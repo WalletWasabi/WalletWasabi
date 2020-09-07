@@ -310,7 +310,7 @@ namespace WalletWasabi.Packager
 				Console.WriteLine($"Deleted {libraryBinReleaseDirectory}");
 			}
 
-			var deterministicFilenameTag = IsContinuousDelivery ? $"{DateTimeOffset.UtcNow:ddMMyyyy}{DateTimeOffset.UtcNow.TimeOfDay.TotalSeconds}" : VersionPrefix;
+			var deterministicFileNameTag = IsContinuousDelivery ? $"{DateTimeOffset.UtcNow:ddMMyyyy}{DateTimeOffset.UtcNow.TimeOfDay.TotalSeconds}" : VersionPrefix;
 			var deliveryPath = IsContinuousDelivery ? Path.Combine(BinDistDirectory, "cdelivery") : BinDistDirectory;
 
 			IoHelpers.EnsureDirectoryExists(deliveryPath);
@@ -469,7 +469,7 @@ namespace WalletWasabi.Packager
 						continue; // In Windows build at this moment it does not matter though.
 					}
 
-					ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(deliveryPath, $"Wasabi-{deterministicFilenameTag}-{target}.zip"));
+					ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(deliveryPath, $"Wasabi-{deterministicFileNameTag}-{target}.zip"));
 
 					if (IsContinuousDelivery)
 					{
@@ -484,7 +484,7 @@ namespace WalletWasabi.Packager
 						continue;
 					}
 
-					ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(deliveryPath, $"Wasabi-{deterministicFilenameTag}-{target}.zip"));
+					ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(deliveryPath, $"Wasabi-{deterministicFileNameTag}-{target}.zip"));
 
 					if (IsContinuousDelivery)
 					{
@@ -504,7 +504,7 @@ namespace WalletWasabi.Packager
 						continue;
 					}
 
-					ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(deliveryPath, $"Wasabi-{deterministicFilenameTag}-{target}.zip"));
+					ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(deliveryPath, $"Wasabi-{deterministicFileNameTag}-{target}.zip"));
 
 					if (IsContinuousDelivery)
 					{
