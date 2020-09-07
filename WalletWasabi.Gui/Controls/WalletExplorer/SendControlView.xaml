@@ -112,8 +112,10 @@
                   <TextBlock Text="{Binding BuildTransactionButtonText}" />
                 </StackPanel>
               </Button>
+              <Panel />
             </DockPanel>
           </StackPanel>
+          <Grid ColumnDefinitions="60,100,100,600,100,Auto" />
         </StackPanel>
         <local:CoinListView SelectAllNonPrivateVisible="False" DataContext="{Binding CoinList}" />
       </DockPanel>
