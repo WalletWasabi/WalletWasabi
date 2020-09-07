@@ -10,7 +10,7 @@ namespace WalletWasabi.Logging
 	{
 		private bool _disposedValue = false; // To detect redundant calls
 
-		private BenchmarkLogger(LogLevel logLevel = LogLevel.Info, [CallerMemberName]string operationName = "", [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
+		private BenchmarkLogger(LogLevel logLevel = LogLevel.Info, [CallerMemberName] string operationName = "", [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
 		{
 			LogLevel = logLevel;
 			OperationName = operationName;
@@ -32,7 +32,7 @@ namespace WalletWasabi.Logging
 		/// Example usage: using(BenchmarkLogger.Measure()){}
 		/// </summary>
 		/// <param name="operationName">Which operation to measure. Default is the caller function name.</param>
-		public static IDisposable Measure(LogLevel logLevel = LogLevel.Info, [CallerMemberName]string operationName = "", [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
+		public static IDisposable Measure(LogLevel logLevel = LogLevel.Info, [CallerMemberName] string operationName = "", [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
 		{
 			return new BenchmarkLogger(logLevel, operationName, callerFilePath, callerLineNumber);
 		}

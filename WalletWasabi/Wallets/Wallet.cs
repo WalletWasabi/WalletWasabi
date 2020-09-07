@@ -240,7 +240,7 @@ namespace WalletWasabi.Wallets
 		}
 
 		/// <inheritdoc/>
-		public async override Task StopAsync(CancellationToken cancel)
+		public override async Task StopAsync(CancellationToken cancel)
 		{
 			try
 			{
