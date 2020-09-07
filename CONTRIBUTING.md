@@ -2,7 +2,7 @@
 
 ## CodeMaid
 
-**DO** use [CodeMaid](http://www.codemaid.net/),  a Visual Studio extension to automatically clean up your code on saving the file.
+**DO** use [CodeMaid](http://www.codemaid.net/), a Visual Studio extension to automatically clean up your code on saving the file.
 CodeMaid is a non-intrusive code cleanup tool.
 
 Wasabi's CodeMaid settings [can be found in the root of the repository](https://github.com/zkSNACKs/WalletWasabi/blob/master/CodeMaid.config). They are automatically picked up by Visual Studio when you open the project, assuming the CodeMaid extension is installed. Unfortunately CodeMaid has no Visual Studio Code extension yet. You can check out the progress on this [under this GitHub issue](https://github.com/codecadwallader/codemaid/issues/273).
@@ -10,6 +10,13 @@ Wasabi's CodeMaid settings [can be found in the root of the repository](https://
 ## .editorconfig
 
 Not only CodeMaid, but Visual Studio also enforces consistent coding style through [`.editorconfig`](https://github.com/zkSNACKs/WalletWasabi/blob/master/.editorconfig) file.
+
+If you are using Visual Studio Code make sure to add the following settings to your settings file:
+
+```json
+    "omnisharp.enableEditorConfigSupport": true,
+    "omnisharp.enableRoslynAnalyzers": true,
+```
 
 If you are using Visual Studio Code, the built-in solution-level [`omnisharp.json`](https://github.com/zkSNACKs/WalletWasabi/blob/master/omnisharp.json) configuration file will be automatically used.
 In order to enforce the code style, just do a `Format Document` command by pressing `Shift` + `Alt` + `F` on Windows, `Shift` + `Option` + `F` on Mac, or `Ctrl` + `Shift` + `I` on Linux.
