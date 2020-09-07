@@ -113,8 +113,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				x => x.FeePercentage,
 				x => x.FeeRate,
 				x => x.EstimatedBtcFee,
-				(a, b, c, d, e) => new TransactionFeeInfo(a, b, c, d, e))
+				(usdFee, usdExchangeRate, feePercentage, feeRate, estimatedBtcFee) => new TransactionFeeInfo(usdFee, usdExchangeRate, feePercentage, feeRate, estimatedBtcFee))
 				.ToProperty(this, x => x.TransactionFeeInfo, scheduler: RxApp.MainThreadScheduler);
+
 			SetFeesAndTexts();
 
 			this.WhenAnyValue(x => x.AmountText).Select(_ => Unit.Default)
@@ -771,6 +772,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				AllSelectedAmount = Math.Max(Money.Zero, all - EstimatedBtcFee);
 			}
 		}
+
 		private void SetAmountIfMax()
 		{
 			if (IsMax)
