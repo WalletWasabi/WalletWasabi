@@ -41,15 +41,15 @@ namespace WalletWasabi.TorSocks5
 		/// </summary>
 		public EndPoint TorSocks5EndPoint { get; }
 
-		public string LogFile { get; }
+		private string LogFile { get; }
 
 		private string DataDir { get; }
 
 		public static bool RequestFallbackAddressUsage { get; private set; } = false;
 
-		public Process TorProcess { get; private set; }
+		private Process TorProcess { get; set; }
 
-		public bool IsRunning => Interlocked.Read(ref _running) == 1;
+		private bool IsRunning => Interlocked.Read(ref _running) == 1;
 
 		private CancellationTokenSource Stop { get; set; }
 
