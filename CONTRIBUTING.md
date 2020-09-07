@@ -16,10 +16,8 @@ If you are using Visual Studio Code make sure to add the following settings to y
 ```json
     "omnisharp.enableEditorConfigSupport": true,
     "omnisharp.enableRoslynAnalyzers": true,
+    "editor.formatOnSave": true,
 ```
-
-If you are using Visual Studio Code, the built-in solution-level [`omnisharp.json`](https://github.com/zkSNACKs/WalletWasabi/blob/master/omnisharp.json) configuration file will be automatically used.
-In order to enforce the code style, just do a `Format Document` command by pressing `Shift` + `Alt` + `F` on Windows, `Shift` + `Option` + `F` on Mac, or `Ctrl` + `Shift` + `I` on Linux.
 
 ## Refactoring
 
