@@ -37,6 +37,8 @@ namespace WalletWasabi.Gui.ViewModels
 {
 	public class StatusBarViewModel : ViewModelBase
 	{
+		private const string LoadingText = "Loading ...";
+
 		private RpcStatus _bitcoinCoreStatus;
 		private UpdateStatus _updateStatus;
 		private bool _updateAvailable;
@@ -62,7 +64,7 @@ namespace WalletWasabi.Gui.ViewModels
 			UseTor = false;
 			Tor = TorStatus.NotRunning;
 			Peers = 0;
-			BtcPrice = "$0";
+			_btcPrice = LoadingText;
 			ActiveStatuses = new StatusSet();
 		}
 
@@ -253,7 +255,17 @@ namespace WalletWasabi.Gui.ViewModels
 
 			Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(usd => BtcPrice = $"${(long)usd}")
+				.Subscribe(usd =>
+				{
+					if (usd == default)
+					{
+						BtcPrice = LoadingText;
+					}
+					else
+					{
+						BtcPrice = $"${(long)usd}";
+					}
+				})
 				.DisposeWith(Disposables);
 
 			if (rpcMonitor is { })
