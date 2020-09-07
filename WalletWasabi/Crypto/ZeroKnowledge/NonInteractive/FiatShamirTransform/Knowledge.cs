@@ -32,7 +32,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.NonInteractive.FiatShamirTransform
 
 			return delegate(WasabiRandom random)
 			{
-				return this.CommitToNonces(transcript, random);
+				return CommitToNonces(transcript, random);
 			};
 		}
 
@@ -60,7 +60,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.NonInteractive.FiatShamirTransform
 
 			return delegate
 			{
-				return this.Respond(transcript, publicNonces, secretNonces);
+				return Respond(transcript, publicNonces, secretNonces);
 			};
 		}
 

@@ -38,7 +38,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.NonInteractive.FiatShamirTransform
 
 			return delegate(Proof proof)
 			{
-				return this.CommitToNonces(transcript, proof);
+				return CommitToNonces(transcript, proof);
 			};
 		}
 
@@ -53,7 +53,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.NonInteractive.FiatShamirTransform
 
 			return delegate
 			{
-				return this.VerifyResponse(transcript, proof);
+				return VerifyResponse(transcript, proof);
 			};
 		}
 
