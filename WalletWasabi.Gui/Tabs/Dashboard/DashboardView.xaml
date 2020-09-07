@@ -1,0 +1,62 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
+             xmlns:cont="clr-namespace:AvalonStudio.Controls;assembly=AvalonStudio.Shell.Extensibility"
+             x:Class="WalletWasabi.Gui.Tabs.Dashboard.DashboardView">
+ <Panel>
+    <Panel.Styles>
+      <Style Selector="TextBlock.Header">
+        <Setter Property="FontWeight" Value="Light" />
+        <Setter Property="FontSize" Value="52" />
+        <Setter Property="Foreground" Value="{DynamicResource HighlightBrush}" />
+      </Style>
+      <Style Selector="TextBlock.Header2">
+        <Setter Property="FontWeight" Value="Light" />
+        <Setter Property="FontSize" Value="30" />
+        <Setter Property="Foreground" Value="{DynamicResource HighlightBrush}" />
+      </Style>
+      <Style Selector="TextBlock.NewsHeader">
+        <Setter Property="FontWeight" Value="Light" />
+        <Setter Property="FontSize" Value="26" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="Foreground" Value="{DynamicResource HighlightBrush}" />
+      </Style>
+      <Style Selector="TextBlock.NewsSummary">
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+      </Style>
+      <Style Selector="TextBlock.NewsDate">
+        <Setter Property="Opacity" Value="0.5" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+      </Style>
+    </Panel.Styles>
+    <Grid ColumnDefinitions="*,*,*" RowDefinitions="*,*,*">
+      <DrawingPresenter Grid.Column="2" Width="600" Height="600" Grid.ColumnSpan="1" Grid.Row="2" Grid.RowSpan="1" Drawing="{DynamicResource Logo}" />
+    </Grid>
+    <Grid ColumnDefinitions="*,*" RowDefinitions="*,*" Margin="20,40">
+      <DockPanel LastChildFill="True" Grid.ColumnSpan="1" Grid.RowSpan="2" Margin="5">
+        <TextBlock Classes="Header" DockPanel.Dock="Top">Wasabi News</TextBlock>
+        <ListBox Items="{Binding NewsItems}" 
+                 BorderThickness="0"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <StackPanel Margin="0,0,0,20" Spacing="6">
+                <TextBlock Classes="NewsHeader" Text="{Binding Title}"/>
+                <TextBlock Classes="NewsSummary" Text="{Binding Content}"/>
+                <TextBlock Classes="NewsDate" Text="{Binding PublishDate, StringFormat=\{0:D\}}"/>
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+      <DockPanel LastChildFill="True" Grid.Column="1" Grid.ColumnSpan="1" Grid.RowSpan="1" Margin="5">
+        <TextBlock Classes="Header2" DockPanel.Dock="Top">Recently Opened</TextBlock>
+      </DockPanel>
+      <DockPanel LastChildFill="True" Grid.Column="1" Grid.ColumnSpan="1" Grid.Row="1" Grid.RowSpan="1" Margin="5">
+        <TextBlock Classes="Header2" DockPanel.Dock="Top">Common Tasks</TextBlock>
+      </DockPanel>
+    </Grid>
+  </Panel>
+</UserControl>

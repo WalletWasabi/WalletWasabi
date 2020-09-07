@@ -12,6 +12,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Controls.LockScreen;
+using WalletWasabi.Gui.Tabs.Dashboard;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Services;
 using WalletWasabi.Wallets;
@@ -149,19 +150,8 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private void DisplayWalletManager()
 		{
-			var walletManagerViewModel = IoC.Get<WalletManagerViewModel>();
+			var walletManagerViewModel = IoC.Get<DashboardViewModel>();
 			Shell.AddDocument(walletManagerViewModel);
-
-			var isAnyDesktopWalletAvailable = WalletManager.WalletDirectories.EnumerateWalletFiles().Any();
-
-			if (isAnyDesktopWalletAvailable)
-			{
-				walletManagerViewModel.SelectLoadWallet();
-			}
-			else
-			{
-				walletManagerViewModel.SelectGenerateWallet();
-			}
 		}
 
 		public async Task<bool> ShowDialogAsync(ModalDialogViewModelBase dialog)
