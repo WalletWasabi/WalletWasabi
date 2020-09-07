@@ -32,17 +32,18 @@
       </Style>
     </Panel.Styles>
     <Grid ColumnDefinitions="*,*,*" RowDefinitions="*,*,*">
-      <DrawingPresenter Grid.Column="2" Width="600" Height="600" Grid.ColumnSpan="1" Grid.Row="2" Grid.RowSpan="1" Drawing="{DynamicResource Logo}" />
+      <DrawingPresenter Opacity="0.2" Grid.Column="0" Width="600" Height="600" Grid.ColumnSpan="1" Grid.Row="2" Grid.RowSpan="1" Drawing="{DynamicResource WasabiLogo}" />
     </Grid>
     <Grid ColumnDefinitions="*,*" RowDefinitions="*,*" Margin="20,40">
       <DockPanel LastChildFill="True" Grid.ColumnSpan="1" Grid.RowSpan="2" Margin="5">
         <TextBlock Classes="Header" DockPanel.Dock="Top">Wasabi News</TextBlock>
         <ListBox Items="{Binding NewsItems}" 
+                 Background="Transparent"
                  BorderThickness="0"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
           <ListBox.ItemTemplate>
             <DataTemplate>
-              <StackPanel Margin="0,0,0,20" Spacing="6">
+              <StackPanel Margin="0,0,0,20" Spacing="6" Background="Transparent">
                 <TextBlock Classes="NewsHeader" Text="{Binding Title}"/>
                 <TextBlock Classes="NewsSummary" Text="{Binding Content}"/>
                 <TextBlock Classes="NewsDate" Text="{Binding PublishDate, StringFormat=\{0:D\}}"/>
