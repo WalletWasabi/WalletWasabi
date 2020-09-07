@@ -9,8 +9,11 @@ namespace WalletWasabi.Wallets
 	public interface IRepository<TID, TElement>
 	{
 		Task<TElement> GetAsync(TID id, CancellationToken cancel);
+
 		Task SaveAsync(TElement element, CancellationToken cancel);
+
 		Task RemoveAsync(TID id, CancellationToken cancel);
+
 		Task<int> CountAsync(CancellationToken cancel);
 	}
 }

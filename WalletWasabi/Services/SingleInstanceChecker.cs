@@ -11,6 +11,7 @@ namespace WalletWasabi.Services
 	{
 		/// <summary>Unique prefix for global mutex name.</summary>
 		private const string MutexString = "WalletWasabiSingleInstance";
+
 		private bool _disposedValue;
 
 		public SingleInstanceChecker(Network network)

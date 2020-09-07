@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,7 +19,7 @@ namespace WalletWasabi.Wallets
 		public IBlockProvider BlockSourceProvider { get; }
 
 		/// <summary>
-		/// Gets a bitcoin block. In case the requested block is not available in the repository it is returned 
+		/// Gets a bitcoin block. In case the requested block is not available in the repository it is returned
 		/// immediately to the caller; otherwise it obtains the block from the source provider and stores it in
 		/// the repository to satisfy future requests.
 		/// </summary>
