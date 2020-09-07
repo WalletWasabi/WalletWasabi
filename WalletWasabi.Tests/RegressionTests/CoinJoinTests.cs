@@ -1106,7 +1106,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			coordinator.RoundConfig.UpdateOrDefault(roundConfig, toFile: true);
 			coordinator.AbortAllRoundsInInputRegistration("");
 
-			var participants = new List<dynamic>();
+			var participants = new List<(SmartCoin, CoinJoinClient)>();
 
 			// 1. Prepare and start services.
 			for (int i = 0; i < anonymitySet; i++)
