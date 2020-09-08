@@ -36,10 +36,7 @@ namespace WalletWasabi.TorSocks5
 			TorProcess = null;
 		}
 
-		/// <summary>
-		/// If null then it's just a mock, clearnet is used.
-		/// </summary>
-		public EndPoint TorSocks5EndPoint { get; }
+		private EndPoint TorSocks5EndPoint { get; }
 
 		public string LogFile { get; }
 
@@ -52,11 +49,6 @@ namespace WalletWasabi.TorSocks5
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
 
 		private CancellationTokenSource Stop { get; set; }
-
-		public static TorProcessManager Mock() // Mock, do not use Tor at all for debug.
-		{
-			return new TorProcessManager(null, null, null);
-		}
 
 		public void Start(bool ensureRunning)
 		{
