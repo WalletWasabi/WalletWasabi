@@ -59,6 +59,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			SelectedCategory = Categories.First(x => x is RecoverWalletViewModel);
 		}
 
+		public void SelectConnectHardwareWallet()
+		{
+			SelectedCategory = Categories.First(x => x is ConnectHardwareWalletViewModel);
+		}
+
 		public void SelectLoadWallet(KeyManager keymanager = null)
 		{
 			SelectedCategory = LoadWalletDesktop;

@@ -57,6 +57,35 @@
       </DockPanel>
       <DockPanel LastChildFill="True" Grid.Column="1" Grid.ColumnSpan="1" Grid.Row="1" Grid.RowSpan="1" Margin="5">
         <TextBlock Classes="Header2" DockPanel.Dock="Top">Common Actions</TextBlock>
+        <Panel>
+          <WrapPanel>
+
+            <Button Margin="5" Command="{Binding RunGenerateWallet}">
+              <Grid RowDefinitions="*,Auto" Margin="5">
+                <DrawingPresenter Grid.RowSpan="1" Margin="5" Width="64" VerticalAlignment="Center" HorizontalAlignment="Center" 
+                      Drawing="{DynamicResource GenerateWallet}" />
+                <TextBlock Grid.Row="1" Grid.RowSpan="1" TextAlignment="Center" Text="Generate Wallet" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+              </Grid>
+            </Button>
+
+            <Button Margin="5" Command="{Binding RunRecoverWallet}">
+              <Grid RowDefinitions="*,Auto" Margin="5">
+                <DrawingPresenter Grid.RowSpan="1" Margin="5" Width="64" VerticalAlignment="Center" HorizontalAlignment="Center" 
+                      Drawing="{DynamicResource RecoverWallet}" />
+                <TextBlock Grid.Row="1" Grid.RowSpan="1" TextAlignment="Center" Text="Recover Wallet" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+              </Grid>
+            </Button>
+
+            <Button Margin="5" Command="{Binding RunConnectHardwareWallet}">
+              <Grid RowDefinitions="*,Auto" Margin="5">
+                <DrawingPresenter Grid.RowSpan="1" Margin="5" Width="64" VerticalAlignment="Center" HorizontalAlignment="Center" 
+                      Drawing="{DynamicResource WalletExplorer_HardwareWalletClosed}" />
+                <TextBlock Grid.Row="1" Grid.RowSpan="1" TextAlignment="Center" Text="Manage&#013;Hardware Wallets" VerticalAlignment="Center" HorizontalAlignment="Center" />
+              </Grid>
+            </Button>           
+            
+          </WrapPanel>
+        </Panel>
       </DockPanel>
     </Grid>
   </Panel>
