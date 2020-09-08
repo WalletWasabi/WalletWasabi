@@ -18,7 +18,7 @@
               <behaviors:CommandOnEnterBehavior Command="{Binding NextCommand}" />
             </i:Interaction.Behaviors>
           </controls:TogglePasswordBox>
-          <Button VerticalAlignment="Center" Classes="greenButton" Content="Next" Command="{Binding NextCommand}" DockPanel.Dock="Right" />
+          <Button HorizontalAlignment="Center" Classes="greenButton" Content="Next" Command="{Binding NextCommand}" DockPanel.Dock="Right" />
         </StackPanel>
       </Grid>
     </controls:GroupBox>
