@@ -14,6 +14,7 @@ using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
 using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
@@ -41,6 +42,7 @@ namespace WalletWasabi.Gui.Tabs
 		private string _dustThreshold;
 		private string _pinBoxText;
 		private ObservableAsPropertyHelper<bool> _isPinSet;
+		private FeeDisplayFormat _selectedFeeDisplayFormat;
 
 		public SettingsViewModel() : base("Settings")
 		{
@@ -161,6 +163,14 @@ namespace WalletWasabi.Gui.Tabs
 				.Merge(TextBoxLostFocusCommand.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
+
+			SelectedFeeDisplayFormat = (Enum.IsDefined(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat)) ? (FeeDisplayFormat)Global.UiConfig.FeeDisplayFormat : FeeDisplayFormat.SatoshiPerByte;
+
+			this.WhenAnyValue(x => x.SelectedFeeDisplayFormat)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				Global.UiConfig.FeeDisplayFormat = (int)x
+				);
 		}
 
 		private bool TabOpened { get; set; }
@@ -280,6 +290,14 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			get => _pinBoxText;
 			set => this.RaiseAndSetIfChanged(ref _pinBoxText, value);
+		}
+
+		public IEnumerable<FeeDisplayFormat> FeeDisplayFormats => Enum.GetValues(typeof(FeeDisplayFormat)).Cast<FeeDisplayFormat>();
+
+		public FeeDisplayFormat SelectedFeeDisplayFormat
+		{
+			get => _selectedFeeDisplayFormat;
+			set => this.RaiseAndSetIfChanged(ref _selectedFeeDisplayFormat, value);
 		}
 
 		public override void OnOpen(CompositeDisposable disposables)
