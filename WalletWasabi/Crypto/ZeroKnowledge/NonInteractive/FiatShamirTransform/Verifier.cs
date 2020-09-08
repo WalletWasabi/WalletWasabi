@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using WalletWasabi.Helpers;
+using WalletWasabi.Crypto.ZeroKnowledge.LinearRelation;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge.NonInteractive.FiatShamirTransform
 {
@@ -10,14 +11,14 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.NonInteractive.FiatShamirTransform
 
 	public class Verifier
 	{
-		public Verifier(LinearRelation.Statement statement)
+		public Verifier(Statement statement)
 		{
 			Statement = statement;
 		}
 
 		// Although in principle this could be an interface type, since only linear
 		// relations are needed for our proofs this is specialized to that type.
-		public LinearRelation.Statement Statement { get; }
+		public Statement Statement { get; }
 
 		// Plug witness data into this statement. The enumerator should have exactly
 		// one vector, corresponding to the sizes of the equations in the base case
@@ -29,7 +30,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.NonInteractive.FiatShamirTransform
 			Guard.NotNullOrEmpty(nameof(witnesses), witnesses);
 			Guard.True(nameof(witnesses), witnesses.Count() == 1);
 			var witness = Guard.NotNull(nameof(witnesses), witnesses.First());
-			return new FiatShamirTransform.Prover(new LinearRelation.Knowledge(Statement, witness));
+			return new FiatShamirTransform.Prover(new Knowledge(Statement, witness));
 		}
 
 		public VerifierCommitToNonces CommitToStatements(Transcript transcript)

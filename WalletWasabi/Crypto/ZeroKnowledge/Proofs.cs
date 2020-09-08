@@ -55,7 +55,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		public static FS.Verifier Representation(GroupElement publicPoint, GroupElementVector generators)
 			=> new FS.Verifier(LinearRelation(publicPoint, generators));
 
-		private static LinearRelation.Statement LinearRelation(GroupElement publicPoint, GroupElementVector generators)
-			=> new LinearRelation.Statement(new Equation(publicPoint, generators));
+		private static Statement LinearRelation(GroupElement publicPoint, GroupElementVector generators)
+			=> new Statement(new Equation(publicPoint, generators));
 	}
 }
