@@ -94,6 +94,21 @@
       </Template>
     </Setter>
   </Style>
+  <Style Selector="Button.greenButton">
+    <Setter Property="Foreground" Value="White" />
+    <Setter Property="Background" Value="DarkGreen" />
+  </Style>
+  <Style Selector="Button.greenButton > TextBlock">
+    <Setter Property="Foreground" Value="White" />
+    <Setter Property="Margin" Value="7" />
+    <Setter Property="FontWeight" Value="Bold" />
+  </Style>
+  <Style Selector="Button.greenButton:pointerover">
+    <Setter Property="Background" Value="Green" />
+  </Style>
+  <Style Selector="Button.greenButton:pressed /template/ ContentPresenter">
+    <Setter Property="Background" Value="DarkGreen" />
+  </Style>
   <Style Selector="TextBox.monospaceFont /template/ TextPresenter#PART_TextPresenter">
     <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
     <Setter Property="FontSize" Value="14" />
