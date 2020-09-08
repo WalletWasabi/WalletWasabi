@@ -35,7 +35,7 @@
       <DrawingPresenter Opacity="0.2" Grid.Column="0" Width="600" Height="600" Grid.ColumnSpan="1" Grid.Row="2" Grid.RowSpan="1" Drawing="{DynamicResource WasabiLogo}" />
     </Grid>
     <Grid ColumnDefinitions="*,*" RowDefinitions="*,*" Margin="20,40">
-      <DockPanel LastChildFill="True" Grid.ColumnSpan="1" Grid.RowSpan="2" Margin="5">
+      <DockPanel LastChildFill="True" Grid.Column="1" Grid.ColumnSpan="1" Grid.RowSpan="2" Margin="5">
         <TextBlock Classes="Header" DockPanel.Dock="Top">Updates</TextBlock>
         <ListBox Items="{Binding NewsItems}" 
                  Background="Transparent"
@@ -52,10 +52,10 @@
           </ListBox.ItemTemplate>
         </ListBox>
       </DockPanel>
-      <DockPanel LastChildFill="True" Grid.Column="1" Grid.ColumnSpan="1" Grid.RowSpan="1" Margin="5">
+      <DockPanel LastChildFill="True" Grid.Column="0" Grid.ColumnSpan="1" Grid.RowSpan="1" Margin="5">
         <TextBlock Classes="Header2" DockPanel.Dock="Top">Recently Opened</TextBlock>
       </DockPanel>
-      <DockPanel LastChildFill="True" Grid.Column="1" Grid.ColumnSpan="1" Grid.Row="1" Grid.RowSpan="1" Margin="5">
+      <DockPanel LastChildFill="True" Grid.Column="0" Grid.ColumnSpan="1" Grid.Row="1" Grid.RowSpan="1" Margin="5">
         <TextBlock Classes="Header2" DockPanel.Dock="Top">Common Actions</TextBlock>
         <Panel>
           <WrapPanel>
