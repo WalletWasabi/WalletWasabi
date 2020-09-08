@@ -2,9 +2,10 @@ using NBitcoin.Secp256k1;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
-using Xunit;
+using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Crypto.ZeroKnowledge.LinearRelation;
 using WalletWasabi.Crypto.ZeroKnowledge.NonInteractive.FiatShamirTransform;
+using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 {
@@ -31,7 +32,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var prover1 = new Prover(new Knowledge(statement1, witness1));
 			var prover2 = new Prover(new Knowledge(statement2, witness2));
 
-			var proverTranscript = new WalletWasabi.Crypto.ZeroKnowledge.Transcript(new byte[0]);
+			var proverTranscript = new Transcript(new byte[0]);
 			var verifierTranscript = proverTranscript.MakeCopy();
 
 			var prover1Nonces = prover1.CommitToStatements(proverTranscript);
