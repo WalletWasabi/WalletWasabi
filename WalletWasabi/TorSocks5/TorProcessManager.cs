@@ -60,11 +60,6 @@ namespace WalletWasabi.TorSocks5
 
 		public void Start(bool ensureRunning)
 		{
-			if (TorSocks5EndPoint is null)
-			{
-				return;
-			}
-
 			new Thread(delegate () // Do not ask. This is the only way it worked on Win10/Ubuntu18.04/Manjuro(1 processor VM)/Fedora(1 processor VM)
 			{
 				try
@@ -214,11 +209,6 @@ namespace WalletWasabi.TorSocks5
 
 		public void StartMonitor(TimeSpan torMisbehaviorCheckPeriod, TimeSpan checkIfRunningAfterTorMisbehavedFor, Uri fallBackTestRequestUri)
 		{
-			if (TorSocks5EndPoint is null)
-			{
-				return;
-			}
-
 			Logger.LogInfo("Starting Tor monitor...");
 			if (Interlocked.CompareExchange(ref _running, 1, 0) != 0)
 			{

@@ -177,16 +177,16 @@ namespace WalletWasabi.Gui
 
 				if (Config.UseTor)
 				{
-					TorManager = new TorProcessManager(Config.TorSocks5EndPoint, DataDir, TorLogsFile);
-					TorManager.Start(ensureRunning: false);
+					TorManager = new TorProcessManager(Config.TorSocks5EndPoint, TorLogsFile);
+					TorManager.Start(ensureRunning: false, DataDir);
+
+					var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
+					TorManager.StartMonitor(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(7), DataDir, fallbackRequestTestUri);
 				}
 				else
 				{
 					TorManager = TorProcessManager.Mock();
 				}
-
-				var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
-				TorManager.StartMonitor(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(7), fallbackRequestTestUri);
 
 				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
 
