@@ -32,7 +32,7 @@
       </Style>
     </Panel.Styles>
     <Grid ColumnDefinitions="*,*,*" RowDefinitions="*,*,*">
-      <DrawingPresenter Opacity="0.2" Grid.Column="0" Width="600" Height="600" Grid.ColumnSpan="1" Grid.Row="2" Grid.RowSpan="1" Drawing="{DynamicResource WasabiLogo}" />
+      <DrawingPresenter Opacity="0.05" Grid.Column="0" Width="600" Height="600" Grid.ColumnSpan="1" Grid.Row="2" Grid.RowSpan="1" Drawing="{DynamicResource WasabiLogo}" />
     </Grid>
     <Grid ColumnDefinitions="*,*" RowDefinitions="*,*" Margin="20,40">
       <DockPanel LastChildFill="True" Grid.Column="1" Grid.ColumnSpan="1" Grid.RowSpan="2" Margin="5">
