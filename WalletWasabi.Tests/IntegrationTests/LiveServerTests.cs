@@ -17,15 +17,23 @@ using Xunit;
 namespace WalletWasabi.Tests.IntegrationTests
 {
 	[Collection("LiveServerTests collection")]
-	public class LiveServerTests
+	public class LiveServerTests : IAsyncLifetime
 	{
 		public LiveServerTests(LiveServerTestsFixture liveServerTestsFixture)
 		{
 			LiveServerTestsFixture = liveServerTestsFixture;
+		}
 
+		public async Task InitializeAsync()
+		{
 			var torManager = new TorProcessManager(Global.Instance.TorSocks5Endpoint, Global.Instance.TorLogsFile);
 			torManager.Start(ensureRunning: true, dataDir: Path.GetFullPath(AppContext.BaseDirectory));
-			Task.Delay(3000).GetAwaiter().GetResult();
+			await Task.Delay(3000);
+		}
+
+		public Task DisposeAsync()
+		{
+			return Task.CompletedTask;
 		}
 
 		private LiveServerTestsFixture LiveServerTestsFixture { get; }
