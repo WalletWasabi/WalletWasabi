@@ -31,7 +31,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 				publicPoint += secret * generator;
 			}
 
-			var statement = new Statement(publicPoint, generators);
+			var statement = new LegacyStatement(publicPoint, generators);
 			var knowledge = new KnowledgeOfRepParams(secrets, statement);
 			var proof = Prover.CreateProof(knowledge);
 			Assert.True(Verifier.Verify(proof, statement));
@@ -52,7 +52,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 					{
 						publicPoint += secret * generator;
 					}
-					Statement statement = new Statement(publicPoint, generators);
+					LegacyStatement statement = new LegacyStatement(publicPoint, generators);
 					var knowledge = new KnowledgeOfRepParams(secrets, statement);
 					var proof = Prover.CreateProof(knowledge);
 					Assert.True(Verifier.Verify(proof, statement));
@@ -79,33 +79,33 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var three = new Scalar(3);
 
 			// Demonstrate when it shouldn't throw.
-			new KnowledgeOfRepParams(new[] { two, three }, new Statement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Ga));
+			new KnowledgeOfRepParams(new[] { two, three }, new LegacyStatement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Ga));
 
 			// Zero cannot pass through.
-			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfRepParams(new[] { Scalar.Zero, three }, new Statement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Ga)));
-			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfRepParams(new[] { two, Scalar.Zero }, new Statement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Ga)));
+			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfRepParams(new[] { Scalar.Zero, three }, new LegacyStatement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Ga)));
+			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfRepParams(new[] { two, Scalar.Zero }, new LegacyStatement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Ga)));
 
 			// Overflow cannot pass through.
-			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfRepParams(new[] { EC.N, three }, new Statement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Ga)));
-			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfRepParams(new[] { two, EC.N }, new Statement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Ga)));
+			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfRepParams(new[] { EC.N, three }, new LegacyStatement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Ga)));
+			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfRepParams(new[] { two, EC.N }, new LegacyStatement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Ga)));
 
 			// Public point must be sum(generator * secret).
-			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfRepParams(new[] { two, three }, new Statement(three * Generators.Ga, Generators.G, Generators.Ga)));
-			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfRepParams(new[] { two, three }, new Statement(two * Generators.G, Generators.G, Generators.Ga)));
-			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfRepParams(new[] { two, three }, new Statement(two * Generators.G + three * Generators.Ga, Generators.Ga, Generators.G)));
-			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfRepParams(new[] { two, three }, new Statement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Gg)));
-			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfRepParams(new[] { two, three }, new Statement(Generators.G + three * Generators.Ga, Generators.G, Generators.Ga)));
-			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfRepParams(new[] { two, three }, new Statement(two * Generators.G + Generators.Ga, Generators.G, Generators.Ga)));
+			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfRepParams(new[] { two, three }, new LegacyStatement(three * Generators.Ga, Generators.G, Generators.Ga)));
+			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfRepParams(new[] { two, three }, new LegacyStatement(two * Generators.G, Generators.G, Generators.Ga)));
+			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfRepParams(new[] { two, three }, new LegacyStatement(two * Generators.G + three * Generators.Ga, Generators.Ga, Generators.G)));
+			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfRepParams(new[] { two, three }, new LegacyStatement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Gg)));
+			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfRepParams(new[] { two, three }, new LegacyStatement(Generators.G + three * Generators.Ga, Generators.G, Generators.Ga)));
+			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfRepParams(new[] { two, three }, new LegacyStatement(two * Generators.G + Generators.Ga, Generators.G, Generators.Ga)));
 
 			// Generators and secrets cannot be empty.
-			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfRepParams(Array.Empty<Scalar>(), new Statement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Ga)));
-			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfRepParams(new[] { two, three }, new Statement(two * Generators.G + three * Generators.Ga)));
+			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfRepParams(Array.Empty<Scalar>(), new LegacyStatement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Ga)));
+			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfRepParams(new[] { two, three }, new LegacyStatement(two * Generators.G + three * Generators.Ga)));
 
 			// Generators and secrets must be equal.
-			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfRepParams(new[] { two }, new Statement(two * Generators.G, Generators.G, Generators.Ga)));
-			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfRepParams(new[] { two, three, new Scalar(4) }, new Statement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Ga)));
-			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfRepParams(new[] { two, three }, new Statement(two * Generators.G + three * Generators.Ga, Generators.G)));
-			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfRepParams(new[] { two, three }, new Statement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Ga, Generators.Gg)));
+			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfRepParams(new[] { two }, new LegacyStatement(two * Generators.G, Generators.G, Generators.Ga)));
+			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfRepParams(new[] { two, three, new Scalar(4) }, new LegacyStatement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Ga)));
+			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfRepParams(new[] { two, three }, new LegacyStatement(two * Generators.G + three * Generators.Ga, Generators.G)));
+			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfRepParams(new[] { two, three }, new LegacyStatement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Ga, Generators.Gg)));
 		}
 	}
 }

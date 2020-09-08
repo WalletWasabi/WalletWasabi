@@ -13,8 +13,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		public void BuildThrows()
 		{
 			// Demonstrate when it shouldn't throw.
-			Statement statement1 = new Statement(Generators.Ga, Generators.Gg);
-			Statement statement2 = new Statement(Generators.Ga, Generators.Gg, Generators.Gh);
+			LegacyStatement statement1 = new LegacyStatement(Generators.Ga, Generators.Gg);
+			LegacyStatement statement2 = new LegacyStatement(Generators.Ga, Generators.Gg, Generators.Gh);
 			Challenge.Build(Generators.G, statement1);
 			Challenge.Build(Generators.G, statement2);
 
@@ -23,8 +23,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			Assert.ThrowsAny<ArgumentException>(() => Challenge.Build(GroupElement.Infinity, statement2));
 
 			// Public and random points cannot be the same.
-			Assert.ThrowsAny<InvalidOperationException>(() => Challenge.Build(Generators.G, new Statement(Generators.G, Generators.Gg)));
-			Assert.ThrowsAny<InvalidOperationException>(() => Challenge.Build(Generators.G, new Statement(Generators.G, Generators.Gg, Generators.Gh)));
+			Assert.ThrowsAny<InvalidOperationException>(() => Challenge.Build(Generators.G, new LegacyStatement(Generators.G, Generators.Gg)));
+			Assert.ThrowsAny<InvalidOperationException>(() => Challenge.Build(Generators.G, new LegacyStatement(Generators.G, Generators.Gg, Generators.Gh)));
 		}
 	}
 }

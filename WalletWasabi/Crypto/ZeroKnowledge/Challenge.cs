@@ -10,7 +10,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 {
 	public static class Challenge
 	{
-		public static Scalar Build(GroupElement nonce, Statement statement)
+		public static Scalar Build(GroupElement nonce, LegacyStatement statement)
 		{
 			Guard.False($"{nameof(nonce)}.{nameof(nonce.IsInfinity)}", nonce.IsInfinity);
 

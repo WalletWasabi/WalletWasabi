@@ -23,7 +23,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 
 			Scalar randomScalar = new Scalar(14);
 			var nonce = randomScalar * generator;
-			var statement = new Statement(publicPoint, generator);
+			var statement = new LegacyStatement(publicPoint, generator);
 			var challenge = Challenge.Build(nonce, statement);
 
 			var response = randomScalar + (secret + Scalar.One) * challenge;
@@ -37,7 +37,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var gen = Generators.G;
 
 			proof = new KnowledgeOfDlog(point1, scalar);
-			var statement2 = new Statement(point2, gen);
+			var statement2 = new LegacyStatement(point2, gen);
 			Assert.False(Verifier.Verify(proof, statement2));
 		}
 
@@ -48,19 +48,19 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var repProof = new KnowledgeOfRep(Generators.G, Scalar.One, CryptoHelpers.ScalarThree);
 
 			// Demonstrate when it shouldn't throw.
-			var validStatement1 = new Statement(Generators.Ga, Generators.Gg);
-			var validStatement2 = new Statement(Generators.Ga, Generators.Gg, Generators.Ga);
+			var validStatement1 = new LegacyStatement(Generators.Ga, Generators.Gg);
+			var validStatement2 = new LegacyStatement(Generators.Ga, Generators.Gg, Generators.Ga);
 			Verifier.Verify(dlProof, validStatement1);
 			Verifier.Verify(repProof, validStatement2);
 
 			// Public point should not be equal to the random point of the proof.
-			Assert.ThrowsAny<InvalidOperationException>(() => Verifier.Verify(dlProof, new Statement(Generators.G, Generators.Ga)));
-			Assert.ThrowsAny<InvalidOperationException>(() => Verifier.Verify(repProof, new Statement(Generators.G, Generators.Gg, Generators.Ga)));
+			Assert.ThrowsAny<InvalidOperationException>(() => Verifier.Verify(dlProof, new LegacyStatement(Generators.G, Generators.Ga)));
+			Assert.ThrowsAny<InvalidOperationException>(() => Verifier.Verify(repProof, new LegacyStatement(Generators.G, Generators.Gg, Generators.Ga)));
 
 			// Same number of generators must be provided as the responses.
-			Assert.ThrowsAny<InvalidOperationException>(() => Verifier.Verify(dlProof, new Statement(Generators.Ga, Generators.Gg, Generators.GV)));
-			Assert.ThrowsAny<InvalidOperationException>(() => Verifier.Verify(repProof, new Statement(Generators.Ga, Generators.Gg)));
-			Assert.ThrowsAny<InvalidOperationException>(() => Verifier.Verify(repProof, new Statement(Generators.Ga, Generators.Gg, Generators.Ga, Generators.GV)));
+			Assert.ThrowsAny<InvalidOperationException>(() => Verifier.Verify(dlProof, new LegacyStatement(Generators.Ga, Generators.Gg, Generators.GV)));
+			Assert.ThrowsAny<InvalidOperationException>(() => Verifier.Verify(repProof, new LegacyStatement(Generators.Ga, Generators.Gg)));
+			Assert.ThrowsAny<InvalidOperationException>(() => Verifier.Verify(repProof, new LegacyStatement(Generators.Ga, Generators.Gg, Generators.Ga, Generators.GV)));
 		}
 	}
 }

@@ -20,7 +20,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			{
 				mockRandom.GetScalarResults.Add(scalar);
 
-				Assert.ThrowsAny<InvalidOperationException>(() => Prover.CreateProof(new KnowledgeOfDlogParams(Scalar.One, new Statement(Scalar.One * Generators.G, Generators.G)), mockRandom));
+				Assert.ThrowsAny<InvalidOperationException>(() => Prover.CreateProof(new KnowledgeOfDlogParams(Scalar.One, new LegacyStatement(Scalar.One * Generators.G, Generators.G)), mockRandom));
 			}
 		}
 
@@ -33,7 +33,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			// Don't tolerate if the second zero scalar random is received.
 			mockRandom.GetScalarResults.Add(Scalar.Zero);
 
-			Assert.ThrowsAny<InvalidOperationException>(() => Prover.CreateProof(new KnowledgeOfDlogParams(Scalar.One, new Statement(Scalar.One * Generators.G, Generators.G)), mockRandom));
+			Assert.ThrowsAny<InvalidOperationException>(() => Prover.CreateProof(new KnowledgeOfDlogParams(Scalar.One, new LegacyStatement(Scalar.One * Generators.G, Generators.G)), mockRandom));
 		}
 	}
 }

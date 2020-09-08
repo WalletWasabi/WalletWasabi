@@ -8,7 +8,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 {
 	public class KnowledgeOfDlogParams : KnowledgeOfRepParams
 	{
-		public KnowledgeOfDlogParams(Scalar secret, Statement statement)
+		public KnowledgeOfDlogParams(Scalar secret, LegacyStatement statement)
 			: base(new[] { secret }, statement)
 		{
 		}

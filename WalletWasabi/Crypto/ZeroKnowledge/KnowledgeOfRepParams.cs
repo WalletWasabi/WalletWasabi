@@ -10,7 +10,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 {
 	public class KnowledgeOfRepParams
 	{
-		public KnowledgeOfRepParams(IEnumerable<Scalar> secrets, Statement statement)
+		public KnowledgeOfRepParams(IEnumerable<Scalar> secrets, LegacyStatement statement)
 		{
 			Guard.NotNullOrEmpty(nameof(secrets), secrets);
 			var secretsCount = secrets.Count();
@@ -41,7 +41,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		}
 
 		public IEnumerable<Scalar> Secrets { get; }
-		public Statement Statement { get; }
+		public LegacyStatement Statement { get; }
 
 		public IEnumerable<(Scalar, GroupElement)> SecretGeneratorPairs => Secrets.ZipForceEqualLength(Statement.Generators);
 	}

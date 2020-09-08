@@ -58,11 +58,11 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			AddMessages(PublicNonceTag, publicNonces.Select(x => x.ToBytes()));
 		}
 
-		public void CommitStatement(IStatementDescription statement)
+		public void CommitStatement(LinearRelation.Statement statement)
 		{
 			CryptoGuard.NotNullOrInfinity(nameof(statement.Generators), statement.Generators);
 			AddMessages(StatementTag, statement.Generators.Select(x => x.ToBytes()));
- 		}
+		}
 
 		// Generate Fiat Shamir challenges
 		public Scalar GenerateChallenge()

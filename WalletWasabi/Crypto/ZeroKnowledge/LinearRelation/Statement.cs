@@ -7,7 +7,7 @@ using WalletWasabi.Crypto.ZeroKnowledge;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 {
-	public class Statement : IStatementDescription
+	public class Statement
 	{
 		public Statement(params Equation[] equations)
 			: this(equations as IEnumerable<Equation>)
@@ -31,15 +31,15 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 
 		public IEnumerable<Equation> Equations { get; }
 
-		public IEnumerable<GroupElement> PublicPoints
-		{
-			get { return Equations.Select(x => x.PublicPoint); }
-		}
+		public IEnumerable<GroupElement> PublicPoints =>
+			Equations.Select(x => x.PublicPoint);
 
-		public IEnumerable<GroupElement> Generators
-		{
-			get { return Equations.SelectMany(x => x.Generators); }
-		}
+		public IEnumerable<GroupElement> Generators =>
+			Equations.SelectMany(x => x.Generators);
+
+		// Plug witness data into this statement. 
+		public Knowledge ToKnowledge(ScalarVector witness) =>
+			new Knowledge(this, witness);
 
 		public bool CheckVerificationEquation(GroupElementVector publicNonces, Scalar challenge, IEnumerable<ScalarVector> allResponses)
 		{
