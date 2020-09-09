@@ -113,7 +113,9 @@ private async void Synchronizer_ResponseArrivedAsync(object sender, EventArgs e)
 
 ## `ConfigureAwait(false)`
 
-Basically every async library method that does not touch the UI should use `ConfigureAwait(false)`
+Basically every async library method should use `ConfigureAwait(false)` except:
+- Methods that touch objects on the UI Thread, like modifying UI controls. 
+- Methods that are unit tests, xUnit [Fact].
 
 ```cs
 await MyMethodAsync().ConfigureAwait(false);
