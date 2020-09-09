@@ -31,15 +31,11 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 
 		public IEnumerable<Equation> Equations { get; }
 
-		public IEnumerable<GroupElement> PublicPoints
-		{
-			get { return Equations.Select(x => x.PublicPoint); }
-		}
+		public IEnumerable<GroupElement> PublicPoints =>
+			Equations.Select(x => x.PublicPoint);
 
-		public IEnumerable<GroupElement> Generators
-		{
-			get { return Equations.SelectMany(x => x.Generators); }
-		}
+		public IEnumerable<GroupElement> Generators =>
+			Equations.SelectMany(x => x.Generators);
 
 		public bool CheckVerificationEquation(GroupElementVector publicNonces, Scalar challenge, IEnumerable<ScalarVector> allResponses)
 		{
