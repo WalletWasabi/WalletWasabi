@@ -19,19 +19,6 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.NonInteractive.FiatShamirTransform
 		// relations are needed for our proofs this is specialized to that type.
 		public LinearRelation.Statement Statement { get; }
 
-		// Plug witness data into this statement. The enumerator should have exactly
-		// one vector, corresponding to the sizes of the equations in the base case
-		// of a linear relation and disjunction, and in the case of conjunction
-		// since we use conjunctive normal form, provide exactly one witness for
-		// each sub-statement.
-		public Prover ToProver(IEnumerable<ScalarVector> witnesses)
-		{
-			Guard.NotNullOrEmpty(nameof(witnesses), witnesses);
-			Guard.True(nameof(witnesses), witnesses.Count() == 1);
-			var witness = Guard.NotNull(nameof(witnesses), witnesses.First());
-			return new FiatShamirTransform.Prover(new LinearRelation.Knowledge(Statement, witness));
-		}
-
 		public VerifierCommitToNonces CommitToStatements(Transcript transcript)
 		{
 			// Before anything else all components in a compound proof commit to the
