@@ -168,9 +168,7 @@ namespace WalletWasabi.Gui.Tabs
 
 			this.WhenAnyValue(x => x.SelectedFeeDisplayFormat)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				Global.UiConfig.FeeDisplayFormat = (int)x
-				);
+				.Subscribe(x => Global.UiConfig.FeeDisplayFormat = (int)x);
 		}
 
 		private bool TabOpened { get; set; }
@@ -319,6 +317,11 @@ namespace WalletWasabi.Gui.Tabs
 					.Throttle(TimeSpan.FromSeconds(1))
 					.ObserveOn(RxApp.TaskpoolScheduler)
 					.Subscribe(_ => Global.UiConfig.ToFile())
+					.DisposeWith(disposables);
+
+				Global.UiConfig.WhenAnyValue(x => x.FeeDisplayFormat)
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.Subscribe(x => SelectedFeeDisplayFormat = (FeeDisplayFormat)x)
 					.DisposeWith(disposables);
 
 				base.OnOpen(disposables);
