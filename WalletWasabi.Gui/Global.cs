@@ -79,7 +79,7 @@ namespace WalletWasabi.Gui
 
 		public MemoryCache Cache { get; private set; }
 
-		public static JsonRpcServer RpcServer { get; private set; }
+		public static JsonRpcServer? RpcServer { get; private set; }
 
 		public Global(string dataDir, string torLogsFile, Config config, UiConfig uiConfig, WalletManager walletManager)
 		{
@@ -102,14 +102,23 @@ namespace WalletWasabi.Gui
 				WalletManager.OnDequeue += WalletManager_OnDequeue;
 				WalletManager.WalletRelevantTransactionProcessed += WalletManager_WalletRelevantTransactionProcessed;
 
-				var indexStore = new IndexStore(Network, new SmartHeaderChain());
+				var networkWorkFolderPath = Path.Combine(DataDir, "BitcoinStore", Network.ToString());
+				var transactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
+				var indexStore = new IndexStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, new SmartHeaderChain());
+				var mempoolService = new MempoolService();
 
-				BitcoinStore = new BitcoinStore(
-					Path.Combine(DataDir, "BitcoinStore"), Network,
-					indexStore, new AllTransactionStore(), new MempoolService()
-				);
+				BitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService);
 
 				SingleInstanceChecker = new SingleInstanceChecker(Network);
+
+				if (Config.UseTor)
+				{
+					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint);
+				}
+				else
+				{
+					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, Config.GetFallbackBackendUri(), null);
+				}
 			}
 		}
 
@@ -147,15 +156,6 @@ namespace WalletWasabi.Gui
 				var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
 				var userAgent = Constants.UserAgents.RandomElement();
 				var connectionParameters = new NodeConnectionParameters { UserAgent = userAgent };
-
-				if (Config.UseTor)
-				{
-					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint);
-				}
-				else
-				{
-					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, Config.GetFallbackBackendUri(), null);
-				}
 
 				HostedServices.Register(new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
 
@@ -470,7 +470,7 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private void WalletManager_OnDequeue(object sender, DequeueResult e)
+		private void WalletManager_OnDequeue(object? sender, DequeueResult e)
 		{
 			try
 			{
@@ -506,7 +506,7 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private void WalletManager_WalletRelevantTransactionProcessed(object sender, ProcessedResult e)
+		private void WalletManager_WalletRelevantTransactionProcessed(object? sender, ProcessedResult e)
 		{
 			try
 			{

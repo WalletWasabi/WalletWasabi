@@ -7,6 +7,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
+using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
@@ -127,18 +128,18 @@ namespace WalletWasabi.Backend
 
 				if (blocks != headers)
 				{
-					throw new NotSupportedException("Bitcoin Core is not fully synchronized.");
+					throw new NotSupportedException($"{Constants.BuiltinBitcoinNodeName} is not fully synchronized.");
 				}
 
-				Logger.LogInfo("Bitcoin Core is fully synchronized.");
+				Logger.LogInfo($"{Constants.BuiltinBitcoinNodeName} is fully synchronized.");
 
 				var estimateSmartFeeResponse = await RpcClient.TryEstimateSmartFeeAsync(2, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true);
 				if (estimateSmartFeeResponse is null)
 				{
-					throw new NotSupportedException("Bitcoin Core cannot estimate network fees yet.");
+					throw new NotSupportedException($"{Constants.BuiltinBitcoinNodeName} cannot estimate network fees yet.");
 				}
 
-				Logger.LogInfo("Bitcoin Core fee estimation is working.");
+				Logger.LogInfo($"{Constants.BuiltinBitcoinNodeName} fee estimation is working.");
 
 				if (Config.Network == Network.RegTest) // Make sure there's at least 101 block, if not generate it
 				{
@@ -147,7 +148,7 @@ namespace WalletWasabi.Backend
 						var generateBlocksResponse = await RpcClient.GenerateAsync(101);
 						if (generateBlocksResponse is null)
 						{
-							throw new NotSupportedException($"Bitcoin Core cannot generate blocks on the {Network.RegTest}.");
+							throw new NotSupportedException($"{Constants.BuiltinBitcoinNodeName} cannot generate blocks on the {Network.RegTest}.");
 						}
 
 						blockchainInfo = await RpcClient.GetBlockchainInfoAsync();
@@ -162,7 +163,7 @@ namespace WalletWasabi.Backend
 			}
 			catch (WebException)
 			{
-				Logger.LogError($"Bitcoin Core is not running, or incorrect RPC credentials, or network is given in the config file: `{Config.FilePath}`.");
+				Logger.LogError($"{Constants.BuiltinBitcoinNodeName} is not running, or incorrect RPC credentials, or network is given in the config file: `{Config.FilePath}`.");
 				throw;
 			}
 		}

@@ -35,7 +35,7 @@
             <Button Content="{Binding ClearnetLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding ClearnetLink}" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
-            <TextBlock Text="Tor Website: " />
+            <TextBlock Text=".onion Website: " />
             <controls:ExtendedTextBox Text="{Binding TorLink}" Classes="selectableTextBlock hyperLink" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">

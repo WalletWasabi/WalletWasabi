@@ -78,6 +78,7 @@ namespace WalletWasabi.Gui.ViewModels
 			get => _menuVisible;
 			set => this.RaiseAndSetIfChanged(ref _menuVisible, value);
 		}
+
 		public Network Network { get; }
 		public UiConfig UiConfig { get; }
 		public IShell Shell { get; }
@@ -126,9 +127,9 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		public void Initialize(NodesCollection connectedNodes, WasabiSynchronizer synchronizer)
+		public void Initialize(NodesCollection connectedNodes)
 		{
-			StatusBar.Initialize(connectedNodes, synchronizer);
+			StatusBar.Initialize(connectedNodes);
 
 			if (Network != Network.Main)
 			{

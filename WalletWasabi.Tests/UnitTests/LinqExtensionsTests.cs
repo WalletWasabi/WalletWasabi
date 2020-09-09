@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
@@ -66,6 +68,25 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal("0, 1, 3, 4", asString[i++]);
 			Assert.Equal("0, 2, 3, 4", asString[i++]);
 			Assert.Equal("1, 2, 3, 4", asString[i++]);
+		}
+
+		[Fact]
+		public void ZippingTests()
+		{
+			var collection1 = new int[] { 1, 3, 5, 14 };
+			var collection2 = new int[] { 7, 11, 13 };
+			Assert.ThrowsAny<InvalidOperationException>(() => collection1.ZipForceEqualLength(collection2));
+			collection1 = new int[] { 1, 3, 5, 14 };
+			collection2 = new int[] { 7, 11, 13, 1, 2 };
+			Assert.ThrowsAny<InvalidOperationException>(() => collection1.ZipForceEqualLength(collection2));
+			collection1 = new int[] { 1, 3, 5, 14, 3 };
+			collection2 = new int[] { 7, 11, 13, 1, 2 };
+			var tuple = collection1.ZipForceEqualLength(collection2).ToArray();
+			for (int i = 0; i < tuple.Length; i++)
+			{
+				Assert.Equal(collection1[i], tuple[i].Item1);
+				Assert.Equal(collection2[i], tuple[i].Item2);
+			}
 		}
 	}
 }

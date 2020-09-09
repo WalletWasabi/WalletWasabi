@@ -5,11 +5,19 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
-using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Logging
 {
+	/// <summary>
+	/// Logging class.
+	///
+	/// <list type="bullet">
+	/// <item>Logger is enabled by default but no <see cref="Modes"/> are set by default, so the logger does not log by default.</item>
+	/// <item>Only <see cref="LogLevel.Critical"/> messages are logged unless set otherwise.</item>
+	/// <item>The logger is thread-safe.</item>
+	/// </list>
+	/// </summary>
 	public static class Logger
 	{
 		#region PropertiesAndMembers
@@ -20,25 +28,26 @@ namespace WalletWasabi.Logging
 
 		private static int LoggingFailedCount = 0;
 
-		public static LogLevel MinimumLevel { get; private set; } = LogLevel.Critical;
+		private static LogLevel MinimumLevel { get; set; } = LogLevel.Critical;
 
-		public static HashSet<LogMode> Modes { get; } = new HashSet<LogMode>();
+		private static HashSet<LogMode> Modes { get; } = new HashSet<LogMode>();
 
 		public static string FilePath { get; private set; } = "Log.txt";
 
 		public static string EntrySeparator { get; private set; } = Environment.NewLine;
 
 		/// <summary>
-		/// Gets the Guid instance.
-		/// You can use it to identify which software instance created a log entry.
-		/// It gets created automatically, but you have to use it manually.
+		/// Gets the GUID instance.
+		///
+		/// <para>You can use it to identify which software instance created a log entry. It gets created automatically, but you have to use it manually.</para>
 		/// </summary>
-		public static Guid InstanceGuid { get; } = Guid.NewGuid();
+		private static Guid InstanceGuid { get; } = Guid.NewGuid();
 
 		/// <summary>
-		/// Gets the maximum log file size in KB
+		/// Gets or sets the maximum log file size in KB.
 		/// </summary>
-		public static long MaximumLogFileSize { get; private set; } = 10_000; // approx 10 MB
+		/// <remarks>Default value is approximately 10 MB.</remarks>
+		private static long MaximumLogFileSize { get; set; } = 10_000;
 
 		#endregion PropertiesAndMembers
 
@@ -46,8 +55,9 @@ namespace WalletWasabi.Logging
 
 		/// <summary>
 		/// Initializes the Logger with default values.
-		/// If RELEASE then minlevel is info, and logs only to file.
-		/// If DEBUG then minlevel is debug, and logs to file, debug and console.
+		///
+		/// <para>If RELEASE then <see cref="MinimumLevel"/> is set to <see cref="LogLevel.Info"/>, and logs only to file.</para>
+		/// <para>If DEBUG then <see cref="MinimumLevel"/> is set to <see cref="LogLevel.Debug"/>, and logs to file, debug and console.</para>
 		/// </summary>
 		public static void InitializeDefaults(string filePath)
 		{
@@ -192,7 +202,7 @@ namespace WalletWasabi.Logging
 						}
 					}
 
-					if (Modes.Contains(LogMode.Console))
+					if (Modes.Contains(LogMode.Debug))
 					{
 						Debug.Write(finalMessage);
 					}
@@ -233,14 +243,20 @@ namespace WalletWasabi.Logging
 
 		#region ExceptionLoggingMethods
 
-		private static void Log(Exception ex, LogLevel level, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
+		/// <summary>
+		/// Logs user message concatenated with exception string.
+		/// </summary>
+		private static void Log(string message, Exception ex, LogLevel level, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
 		{
-			Log(level, ExceptionToStringHandleNull(ex), callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
+			Log(level, message: $"{message} Exception: {ex}", callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 		}
 
-		private static string ExceptionToStringHandleNull(Exception ex)
+		/// <summary>
+		/// Logs exception string without any user message.
+		/// </summary>
+		private static void Log(Exception exception, LogLevel level, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
 		{
-			return ex?.ToString() ?? "Exception was null.";
+			Log(level, exception.ToString(), callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 		}
 
 		#endregion ExceptionLoggingMethods
@@ -248,134 +264,160 @@ namespace WalletWasabi.Logging
 		#region TraceLoggingMethods
 
 		/// <summary>
-		/// For information that is valuable only to a developer debugging an issue.
-		/// These messages may contain sensitive application data and so should not be enabled in a production environment.
-		/// Example: "Credentials: {"User":"someuser", "Password":"P@ssword"}"
+		/// Logs a string message at <see cref="LogLevel.Trace"/> level.
+		///
+		/// <para>For information that is valuable only to a developer debugging an issue.</para>
 		/// </summary>
+		/// <remarks>These messages may contain sensitive application data and so should not be enabled in a production environment.</remarks>
+		/// <example>For example: <c>Credentials: {"User":"SomeUser", "Password":"P@ssword"}</c></example>
 		public static void LogTrace(string message, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) => Log(LogLevel.Trace, message, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 
 		/// <summary>
-		/// Logs the <paramref name="ex"/>.ToString() at Trace level.
+		/// Logs the <paramref name="exception"/> using <see cref="Exception.ToString()"/> at <see cref="LogLevel.Trace"/> level.
 		///
-		/// For information that is valuable only to a developer debugging an issue.
-		/// These messages may contain sensitive application data and so should not be enabled in a production environment.
-		/// Example: "Credentials: {"User":"someuser", "Password":"P@ssword"}"
+		/// <para>For information that is valuable only to a developer debugging an issue.</para>
 		/// </summary>
-		public static void LogTrace(Exception ex, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) => Log(ex, LogLevel.Trace, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
+		/// <remarks>These messages may contain sensitive application data and so should not be enabled in a production environment.</remarks>
+		/// <example>For example: <c>Credentials: {"User":"SomeUser", "Password":"P@ssword"}</c></example>
+		public static void LogTrace(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) => Log(exception, LogLevel.Trace, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 
 		#endregion TraceLoggingMethods
 
 		#region DebugLoggingMethods
 
 		/// <summary>
-		/// For information that has short-term usefulness during development and debugging.
-		/// Example: "Entering method Configure with flag set to true."
-		/// You typically would not enable Debug level logs in production unless you are troubleshooting, due to the high volume of logs.
+		/// Logs a string message at <see cref="LogLevel.Debug"/> level.
+		///
+		/// <para>For information that has short-term usefulness during development and debugging.</para>
 		/// </summary>
+		/// <remarks>You typically would not enable <see cref="LogLevel.Debug"/> level in production unless you are troubleshooting, due to the high volume of generated logs.</remarks>
+		/// <example>For example: <c>Entering method Configure with flag set to true.</c></example>
 		public static void LogDebug(string message, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) => Log(LogLevel.Debug, message, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 
 		/// <summary>
-		/// Logs the <paramref name="ex"/>.ToString() at Debug level, if only Debug level logging is set.
+		/// Logs the <paramref name="exception"/> using <see cref="Exception.ToString()"/> at <see cref="LogLevel.Debug"/> level.
 		///
-		/// For information that is valuable only to a developer debugging an issue.
-		/// These messages may contain sensitive application data and so should not be enabled in a production environment.
-		/// Example: "Credentials: {"User":"someuser", "Password":"P@ssword"}"
+		/// <para>For information that is valuable only to a developer debugging an issue.</para>
 		/// </summary>
-		public static void LogDebug(Exception ex, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) => Log(ex, LogLevel.Debug, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
+		/// <remarks>These messages may contain sensitive application data and so should not be enabled in a production environment.</remarks>
+		/// <example>For example: <c>Credentials: {"User":"SomeUser", "Password":"P@ssword"}</c></example>
+		public static void LogDebug(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) => Log(exception, LogLevel.Debug, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 
 		#endregion DebugLoggingMethods
 
 		#region InfoLoggingMethods
 
 		/// <summary>
-		/// Logs software starting with InstanceGuid and insert three newlines.
+		/// Logs special event: Software has started. Add also <see cref="InstanceGuid"/> identifier and insert three newlines to increase log readability.
 		/// </summary>
-		/// <param name="appName">The name of the app.</param>
+		/// <param name="appName">Name of the application.</param>
 		public static void LogSoftwareStarted(string appName, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
 			=> Log(LogLevel.Info, $"{appName} started ({InstanceGuid}).", additionalEntrySeparators: 3, additionalEntrySeparatorsLogFileOnlyMode: true, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 
 		/// <summary>
-		/// Logs software stopped with InstanceGuid.
+		/// Logs special event: Software has stopped. Add also <see cref="InstanceGuid"/> identifier.
 		/// </summary>
-		/// <param name="appName">The name of the app.</param>
+		/// <param name="appName">Name of the application.</param>
 		public static void LogSoftwareStopped(string appName, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
 			=> Log(LogLevel.Info, $"{appName} stopped gracefully ({InstanceGuid}).", callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 
 		/// <summary>
-		/// For tracking the general flow of the application.
-		/// These logs typically have some long-term value.
-		/// Example: "Request received for path /api/my-controller"
+		/// Logs a string message at <see cref="LogLevel.Info"/> level.
+		///
+		/// <para>For tracking the general flow of the application.</para>
+		/// <remarks>These logs typically have some long-term value.</remarks>
+		/// <example>"Request received for path /api/my-controller"</example>
 		/// </summary>
 		public static void LogInfo(string message, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) => Log(LogLevel.Info, message, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 
 		/// <summary>
-		/// Logs the <paramref name="ex"/>.ToString() at Info level.
+		/// Logs the <paramref name="exception"/> using <see cref="Exception.ToString()"/> at <see cref="LogLevel.Info"/> level.
 		///
-		/// For tracking the general flow of the application.
+		/// <para>For tracking the general flow of the application.</para>
 		/// These logs typically have some long-term value.
 		/// Example: "Request received for path /api/my-controller"
 		/// </summary>
-		public static void LogInfo(Exception ex, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) => Log(ex, LogLevel.Info, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
+		public static void LogInfo(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) => Log(exception, LogLevel.Info, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 
 		#endregion InfoLoggingMethods
 
 		#region WarningLoggingMethods
 
 		/// <summary>
-		/// For abnormal or unexpected events in the application flow.
+		/// Logs a string message at <see cref="LogLevel.Warning"/> level.
+		///
+		/// <para>For abnormal or unexpected events in the application flow.</para>
+		/// <remarks>
 		/// These may include errors or other conditions that do not cause the application to stop, but which may need to be investigated.
 		/// Handled exceptions are a common place to use the Warning log level.
-		/// Example: "FileNotFoundException for file quotes.txt."
+		/// </remarks>
+		/// <example>"FileNotFoundException for file quotes.txt."</example>
 		/// </summary>
 		public static void LogWarning(string message, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) => Log(LogLevel.Warning, message, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 
 		/// <summary>
-		/// Logs the <paramref name="ex"/>.ToString() at Warning level.
+		/// Logs the <paramref name="exception"/> using <see cref="Exception.ToString()"/> at <see cref="LogLevel.Warning"/> level.
 		///
-		/// For abnormal or unexpected events in the application flow.
-		/// These may include errors or other conditions that do not cause the application to stop, but which may need to be investigated.
-		/// Handled exceptions are a common place to use the Warning log level.
-		/// Example: "FileNotFoundException for file quotes.txt."
+		/// <para>For abnormal or unexpected events in the application flow.</para>
 		/// </summary>
-		public static void LogWarning(Exception ex, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) => Log(ex, LogLevel.Warning, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
+		/// <remarks>
+		/// <para>Includes situations when errors or other conditions occur that do not cause the application to stop, but which may need to be investigated.</para>
+		/// <para>Handled exceptions are a common place to use the <see cref="LogLevel.Warning"/> log level.</para>
+		/// </remarks>
+		/// <example>For example: <c>FileNotFoundException for file quotes.txt.</c></example>
+		public static void LogWarning(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) => Log(exception, LogLevel.Warning, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 
 		#endregion WarningLoggingMethods
 
 		#region ErrorLoggingMethods
 
 		/// <summary>
-		/// For errors and exceptions that cannot be handled.
-		/// These messages indicate a failure in the current activity or operation (such as the current HTTP request), not an application-wide failure.
-		/// Example log message: "Cannot insert record due to duplicate key violation."
+		/// Logs a string message at <see cref="LogLevel.Error"/> level.
+		///
+		/// <para>For errors and exceptions that cannot be handled.</para>
 		/// </summary>
+		/// <remarks>These messages indicate a failure in the current activity or operation (such as the current HTTP request), not an application-wide failure.</remarks>
+		/// <example>Log message such as: "Cannot insert record due to duplicate key violation."</example>
 		public static void LogError(string message, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) => Log(LogLevel.Error, message, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 
 		/// <summary>
-		/// Logs the <paramref name="ex"/>.ToString() at Error level.
+		/// Logs <paramref name="message"/> with <paramref name="exception"/> using <see cref="Exception.ToString()"/> concatenated to it at <see cref="LogLevel.Error"/> level.
 		///
-		/// For errors and exceptions that cannot be handled.
-		/// These messages indicate a failure in the current activity or operation (such as the current HTTP request), not an application-wide failure.
-		/// Example log message: "Cannot insert record due to duplicate key violation."
+		/// <para>For errors and exceptions that cannot be handled.</para>
 		/// </summary>
-		public static void LogError(Exception ex, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) => Log(ex, LogLevel.Error, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
+		/// <remarks>These messages indicate a failure in the current activity or operation (such as the current HTTP request), not an application-wide failure.</remarks>
+		/// <example>Log message such as: "Cannot insert record due to duplicate key violation."</example>
+		public static void LogError(string message, Exception exception, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
+			=> Log(message, exception, LogLevel.Error, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
+
+		/// <summary>
+		/// Logs the <paramref name="exception"/> using <see cref="Exception.ToString()"/> at <see cref="LogLevel.Error"/> level.
+		///
+		/// <para>For errors and exceptions that cannot be handled.</para>
+		/// </summary>
+		/// <remarks>These messages indicate a failure in the current activity or operation (such as the current HTTP request), not an application-wide failure.</remarks>
+		/// <example>Log message such as: "Cannot insert record due to duplicate key violation."</example>
+		public static void LogError(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) => Log(exception, LogLevel.Error, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 
 		#endregion ErrorLoggingMethods
 
 		#region CriticalLoggingMethods
 
 		/// <summary>
-		/// For failures that require immediate attention.
-		/// Examples: data loss scenarios, out of disk space.
+		/// Logs a string message at <see cref="LogLevel.Critical"/> level.
+		///
+		/// <para>For failures that require immediate attention.</para>
 		/// </summary>
+		/// <example>Data loss scenarios, out of disk space.</example>
 		public static void LogCritical(string message, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) => Log(LogLevel.Critical, message, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 
 		/// <summary>
-		/// Logs the <paramref name="ex"/>.Message at Critical level.
+		/// Logs the <paramref name="exception"/> using <see cref="Exception.ToString()"/> at <see cref="LogLevel.Critical"/> level.
 		///
-		/// For failures that require immediate attention.
-		/// Examples: data loss scenarios, out of disk space.
+		/// <para>For failures that require immediate attention.</para>
 		/// </summary>
-		public static void LogCritical(Exception ex, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) => Log(ex, LogLevel.Critical, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
+		/// <example>Examples: Data loss scenarios, out of disk space, etc.</example>
+		public static void LogCritical(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) => Log(exception, LogLevel.Critical, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 
 		#endregion CriticalLoggingMethods
 

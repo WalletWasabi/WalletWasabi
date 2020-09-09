@@ -24,7 +24,7 @@ namespace WalletWasabi.Gui
 	{
 		private bool _lurkingWifeMode;
 		private bool _lockScreenActive;
-		private string _lockScreenPinHash;
+		private string _lockScreenPinHash = "";
 		private bool _isCustomFee;
 		private bool _isCustomChangeAddress;
 		private bool _autocopy;
@@ -39,7 +39,7 @@ namespace WalletWasabi.Gui
 
 		[JsonProperty(PropertyName = "WindowState")]
 		[JsonConverter(typeof(WindowStateAfterStartJsonConverter))]
-		public WindowState WindowState { get; internal set; } = WindowState.Maximized;
+		public WindowState WindowState { get; internal set; } = WindowState.Normal;
 
 		[DefaultValue(2)]
 		[JsonProperty(PropertyName = "FeeTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -51,7 +51,7 @@ namespace WalletWasabi.Gui
 
 		[DefaultValue("")]
 		[JsonProperty(PropertyName = "LastActiveTab", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public string LastActiveTab { get; internal set; }
+		public string LastActiveTab { get; internal set; } = "";
 
 		[DefaultValue(true)]
 		[JsonProperty(PropertyName = "Autocopy", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -111,6 +111,6 @@ namespace WalletWasabi.Gui
 
 		[JsonProperty(PropertyName = "HistoryTabViewSortingPreference")]
 		[JsonConverter(typeof(SortingPreferenceJsonConverter))]
-		public SortingPreference HistoryTabViewSortingPreference { get; internal set; } = new SortingPreference(SortOrder.Increasing, "Date");
+		public SortingPreference HistoryTabViewSortingPreference { get; internal set; } = new SortingPreference(SortOrder.Decreasing, "Date");
 	}
 }

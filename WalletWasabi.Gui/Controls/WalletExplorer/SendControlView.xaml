@@ -12,7 +12,6 @@
     <converters:AmountForegroundConverter x:Key="AmountForegroundConverter" />
     <converters:BooleanStringConverter x:Key="BooleanStringConverter" />
     <converters:FeeTargetTimeConverter x:Key="FeeTargetTimeConverter" />
-    <converters:UsdExchangeRateAmountToolTipConverter x:Key="UsdExchangeRateAmountToolTipConverter" />
   </UserControl.Resources>
   <i:Interaction.Behaviors>
     <behaviors:ClearPropertyOnLostFocusBehavior TargetProperty="{Binding SelectedCoin}" />
@@ -52,35 +51,38 @@
               Foreground="{Binding AmountText, Converter={StaticResource AmountForegroundConverter}}"
               IsReadOnly="{Binding IsMax}"
               Text="{Binding AmountText, Mode=TwoWay}"
-              ToolTip.Tip="{Binding UsdExchangeRate, Converter={StaticResource UsdExchangeRateAmountToolTipConverter}}"
-              Watermark="{Binding AmountWatermarkText}"
+              Watermark="Amount (BTC)"
               UseFloatingWatermark="True"
               MinWidth="124">
               <i:Interaction.Behaviors>
                 <behaviors:CommandOnKeyUpBehavior Command="{Binding AmountKeyUpCommand}" />
               </i:Interaction.Behaviors>
+              <ToolTip.Tip>
+                <StackPanel>
+                  <TextBlock Foreground="White" Text="{Binding AmountTip}" />
+                </StackPanel>
+              </ToolTip.Tip>
             </controls:ExtendedTextBox>
             <StackPanel Opacity="{Binding FeeControlOpacity}">
               <StackPanel IsVisible="{Binding !MinMaxFeeTargetsEqual}" Orientation="Horizontal" Spacing="10">
                 <TextBlock Text="Fee:" />
-                <Grid Height="10" Width="10">
+                <Panel Height="10" Width="10">
                   <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource SendTabView_Lightning}" />
-                </Grid>
+                </Panel>
                 <Slider Minimum="{Binding MinimumFeeTarget}" Maximum="{Binding MaximumFeeTarget}" Value="{Binding FeeTarget}" Width="270">
                   <i:Interaction.Behaviors>
                     <behaviors:CommandOnPointerEnterLeaveBehavior Command="{Binding HighLightFeeSliderCommand}" />
                   </i:Interaction.Behaviors>
                 </Slider>
-                <Grid Height="10" Width="10">
+                <Panel Height="10" Width="10">
                   <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource SendTabView_Clock}" />
-                </Grid>
+                </Panel>
               </StackPanel>
               <StackPanel IsVisible="{Binding MinMaxFeeTargetsEqual}" Orientation="Horizontal" Spacing="10">
                 <TextBlock Text="Fees are super low!" VerticalAlignment="Center" />
-
-                <Grid Height="16" Width="16">
+                <Panel Height="16" Width="16">
                   <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource SendTabView_Smiley}" />
-                </Grid>
+                </Panel>
               </StackPanel>
               <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="4">
                 <TextBlock Text="Confirmation Expected In:" VerticalAlignment="Center" />
@@ -110,10 +112,10 @@
                   <TextBlock Text="{Binding BuildTransactionButtonText}" />
                 </StackPanel>
               </Button>
-              <Grid></Grid>
+              <Panel />
             </DockPanel>
           </StackPanel>
-          <Grid ColumnDefinitions="60,100,100,600,100,Auto"></Grid>
+          <Grid ColumnDefinitions="60,100,100,600,100,Auto" />
         </StackPanel>
         <local:CoinListView SelectAllNonPrivateVisible="False" DataContext="{Binding CoinList}" />
       </DockPanel>

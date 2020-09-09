@@ -1,9 +1,7 @@
 using NBitcoin;
 using Nito.AsyncEx;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,7 +9,9 @@ namespace WalletWasabi.Services
 {
 	public class SingleInstanceChecker : IDisposable
 	{
+		/// <summary>Unique prefix for global mutex name.</summary>
 		private const string MutexString = "WalletWasabiSingleInstance";
+
 		private bool _disposedValue;
 
 		public SingleInstanceChecker(Network network)
@@ -19,7 +19,7 @@ namespace WalletWasabi.Services
 			Network = network;
 		}
 
-		private IDisposable SingleApplicationLockHolder { get; set; }
+		private IDisposable? SingleApplicationLockHolder { get; set; }
 		private Network Network { get; }
 
 		public async Task CheckAsync()
@@ -42,6 +42,16 @@ namespace WalletWasabi.Services
 			}
 		}
 
+		/// <summary>
+		/// <list type="bullet">
+		/// <item>Unmanaged resources need to be released regardless of the value of the <paramref name="disposing"/> parameter.</item>
+		/// <item>Managed resources need to be released if the value of <paramref name="disposing"/> is <c>true</c>.</item>
+		/// </list>
+		/// </summary>
+		/// <param name="disposing">
+		/// Indicates whether the method call comes from a <see cref="Dispose()"/> method
+		/// (its value is <c>true</c>) or from a finalizer (its value is <c>false</c>).
+		/// </param>
 		protected virtual void Dispose(bool disposing)
 		{
 			if (!_disposedValue)
@@ -54,9 +64,15 @@ namespace WalletWasabi.Services
 			}
 		}
 
+		/// <summary>
+		/// Do not change this code.
+		/// </summary>
 		public void Dispose()
 		{
-			Dispose(disposing: true);
+			// Dispose of unmanaged resources.
+			Dispose(true);
+			// Suppress finalization.
+			GC.SuppressFinalize(this);
 		}
 	}
 }

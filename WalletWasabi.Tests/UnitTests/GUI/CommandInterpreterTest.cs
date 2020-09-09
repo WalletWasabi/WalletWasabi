@@ -64,7 +64,8 @@ Compatible Hardware Wallet Interface Version: {Constants.HwiVersion}
 				@"wassabee: Unknown command: invalid
 wassabee: Use `wassabee help` for usage.
 ",
-				errorW.ToString());
+				errorW.ToString(),
+				new StringNoWhiteSpaceEqualityComparer());
 		}
 
 		[Fact]
@@ -97,7 +98,8 @@ Available commands are:
 				@"wassabee: Unknown command: invalid
 wassabee: Use `wassabee help` for usage.
 ",
-				errorW.ToString());
+				errorW.ToString(),
+				new StringNoWhiteSpaceEqualityComparer());
 		}
 
 		private static (StringWriter, StringWriter, CommandInterpreter) Make()

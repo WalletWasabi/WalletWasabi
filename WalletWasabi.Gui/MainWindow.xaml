@@ -13,13 +13,13 @@
                   Title="{Binding Title}"
                   MinWidth="1100" MinHeight="530"
                   FontFamily="{DynamicResource UiFont}" FontSize="14"
-                  Foreground="{DynamicResource ThemeForegroundBrush}"                  
+                  Foreground="{DynamicResource ThemeForegroundBrush}"
                   WindowState="{Binding WindowState}"
                   UseLayoutRounding="True"
                   RenderOptions.BitmapInterpolationMode="HighQuality">
   <cont:MetroWindow.TitleBarContent>
     <StackPanel Orientation="Horizontal" IsVisible="{Binding MenuVisible}">
-      <menu:MainMenuView DataContext="{Binding Shell.MainMenu}" Margin="4 0 0 0" Foreground="{DynamicResource ThemeForegroundBrush}" VerticalAlignment="Stretch" FontSize="13" />      
+      <menu:MainMenuView DataContext="{Binding Shell.MainMenu}" Margin="4 0 0 0" Foreground="{DynamicResource ThemeForegroundBrush}" VerticalAlignment="Stretch" FontSize="13" />
     </StackPanel>
   </cont:MetroWindow.TitleBarContent>
 

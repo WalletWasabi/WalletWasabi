@@ -113,7 +113,9 @@ private async void Synchronizer_ResponseArrivedAsync(object sender, EventArgs e)
 
 ## `ConfigureAwait(false)`
 
-Basically every async library method that does not touch the UI should use `ConfigureAwait(false)`
+Basically every async library method should use `ConfigureAwait(false)` except:
+- Methods that touch objects on the UI Thread, like modifying UI controls. 
+- Methods that are unit tests, xUnit [Fact].
 
 ```cs
 await MyMethodAsync().ConfigureAwait(false);
@@ -188,3 +190,6 @@ Some pointers on how to recognise if we are breaking MVVM:
 * Views that depend on more than 1 viewmodel class.
 
 If it seems not possible to implement something without breaking some of this advice please consult with @danwalmsley.
+
+## Avoid using Grid as much as possible, Use Panel instead 
+If you don't need any row or column splitting for your child controls, just use `Panel` as your default container control instead of `Grid` since it is a moderately memory and CPU intensive control.

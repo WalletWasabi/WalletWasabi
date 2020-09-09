@@ -10,7 +10,7 @@ namespace WalletWasabi.Helpers
 	{
 		public const string ClientSupportBackendVersionMin = "3";
 		public const string ClientSupportBackendVersionMax = "4";
-		public const string BackendMajorVersion = "3";
+		public const string BackendMajorVersion = "4";
 
 		/// <summary>
 		/// By changing this, we can force to start over the transactions file, so old incorrect transactions would be cleared.
@@ -36,9 +36,6 @@ namespace WalletWasabi.Helpers
 		public const int BigFileReadWriteBufferSize = 1 * 1024 * 1024;
 
 		public const int DefaultTorSocksPort = 9050;
-		public const int DefaultTorBrowserSocksPort = 9150;
-		public const int DefaultTorControlPort = 9051;
-		public const int DefaultTorBrowserControlPort = 9151;
 
 		public const int DefaultMainNetBitcoinP2pPort = 8333;
 		public const int DefaultTestNetBitcoinP2pPort = 18333;
@@ -48,15 +45,16 @@ namespace WalletWasabi.Helpers
 		public const int DefaultTestNetBitcoinCoreRpcPort = 18332;
 		public const int DefaultRegTestBitcoinCoreRpcPort = 18443;
 
-		public const string Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
 		public const double TransactionRBFSignalRate = 0.02; // 2% RBF transactions
 
 		public const decimal DefaultDustThreshold = 0.00005m;
 
-		public const long MaxSatoshisSupply = 2_100_000_000_000_000L;
+		public const string AlphaNumericCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+		public const string CapitalAlphaNumericCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-		public static readonly Version ClientVersion = new Version(1, 1, 11, 1);
+		public const string BuiltinBitcoinNodeName = "Bitcoin Knots";
+
+		public static readonly Version ClientVersion = new Version(1, 1, 12, 0);
 		public static readonly Version HwiVersion = new Version("1.1.2");
 		public static readonly Version BitcoinCoreVersion = new Version("0.20.0");
 		public static readonly Version LegalDocumentsVersion = new Version(2, 0);
@@ -73,21 +71,6 @@ namespace WalletWasabi.Helpers
 			RequiredServices = NodeServices.NODE_WITNESS,
 			MinVersion = ProtocolVersionWitnessVersion,
 			MinProtocolCapabilities = new ProtocolCapabilities { SupportGetBlock = true, SupportWitness = true }
-		};
-
-		public static readonly NodeRequirement LocalBackendNodeRequirements = new NodeRequirement
-		{
-			RequiredServices = NodeServices.NODE_WITNESS,
-			MinVersion = ProtocolVersionWitnessVersion,
-			MinProtocolCapabilities = new ProtocolCapabilities
-			{
-				SupportGetBlock = true,
-				SupportWitness = true,
-				SupportMempoolQuery = true,
-				SupportSendHeaders = true,
-				SupportPingPong = true,
-				PeerTooOld = true
-			}
 		};
 
 		public static readonly ExtPubKey FallBackCoordinatorExtPubKey = NBitcoinHelpers.BetterParseExtPubKey("xpub6D2PqhWBAbF3xgfaAUW73KnaCXUroArcgMTzNkNzfVX7ykkSzQGbqaXZeaNyxKbZojAAqDwsne6B7NcVhiTrXbGYrQNq1yF76NkgdonGrEa");

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace WalletWasabi.Wallets
 {
 	/// <summary>
-	/// SmartP2pBlockProvider is a block provider that can provide
+	/// <see cref="SmartBlockProvider"/> is a block provider that can provide
 	/// blocks from multiple requesters.
 	/// </summary>
 	public class SmartBlockProvider : IBlockProvider
@@ -21,20 +21,21 @@ namespace WalletWasabi.Wallets
 
 		private IBlockProvider InnerBlockProvider { get; }
 
-		public IMemoryCache Cache { get; }
+		private IMemoryCache Cache { get; }
 
 		public async Task<Block> GetBlockAsync(uint256 blockHash, CancellationToken cancel)
 		{
 			string cacheKey = $"{nameof(SmartBlockProvider)}:{nameof(GetBlockAsync)}:{blockHash}";
+			var cacheOptions = new MemoryCacheEntryOptions
+			{
+				Size = 10,
+				SlidingExpiration = TimeSpan.FromSeconds(4)
+			};
+
 			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
-				entry =>
-				{
-					entry.SetSize(10);
-					entry.SetSlidingExpiration(TimeSpan.FromSeconds(4));
-
-					return InnerBlockProvider.GetBlockAsync(blockHash, cancel);
-				}).ConfigureAwait(false);
+				cacheOptions,
+				() => InnerBlockProvider.GetBlockAsync(blockHash, cancel)).ConfigureAwait(false);
 		}
 	}
 }

@@ -16,8 +16,8 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			var walletsPath = Path.Combine(baseDir, WalletDirectories.WalletsDirName);
 			var walletsBackupPath = Path.Combine(baseDir, WalletDirectories.WalletsBackupDirName);
-			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(walletsPath);
-			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(walletsBackupPath);
+			await IoHelpers.TryDeleteDirectoryAsync(walletsPath);
+			await IoHelpers.TryDeleteDirectoryAsync(walletsBackupPath);
 
 			return (walletsPath, walletsBackupPath);
 		}
@@ -39,7 +39,7 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public async Task CorrestWalletDirectoryNameAsync()
+		public async Task CorrectWalletDirectoryNameAsync()
 		{
 			var baseDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName(), EnvironmentHelpers.GetMethodName());
 			(string walletsPath, string walletsBackupPath) = await CleanupWalletDirectoriesAsync(baseDir);

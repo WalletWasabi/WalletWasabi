@@ -20,7 +20,7 @@
 9. Run tests.
 10. Run packager in publish mode.
 11. Create `.msi`.
-12. Run packager in sign mode. (Set back to publish mode.).
+12. Run packager in sign mode. (Set back to publish mode)
 13. Test asc file for `.msi`.
 14. Final `.msi` test on own computer.
 15. Upload the files to the pre-release.
@@ -32,47 +32,50 @@
 # 3. Packaging
 
 0. Make sure local .NET Core version is up to date.
-1. Update the onion seed list to the most reliable ones: `dotnet run -- --reduceonions`
+1. Update the onion seed list to the most reliable ones: `dotnet run -- --reduceonions`.
 2. Run tests.
 3. Retest every PR since last release on Windows, macOS and Linux.
-4. Dump client version. (WalletWasabi/Helpers/Constants.cs, WalletWasabi.Backend\wwwroot\index.html)
+4. Bump client version. (WalletWasabi/Helpers/Constants.cs, WalletWasabi.Backend\wwwroot\index.html).
 5. Run packager in publish mode.
 6. [mac sign] Copy Wasabi-osx-version.zip to [macOS release environment](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/Guides/MacOsSigning.md) desktop.
 7. [mac sign] Run the packager on macOS.
 8. [mac sign] Copy the final dmg back to dist folder on windows.
-9. Create `.msi`
-10. Run packager in sign mode. (Set back to publish mode.)
+9. Create `.msi`.
+10. Run packager in sign mode. (Set back to publish mode)
 11. Final `.msi` test on own computer.
 
 # 4. GitHub Release
 
-1. Create GitHub Release (Use the previous release as template.)
+1. Create GitHub Release. (Use the previous release as template)
 2. Write Release notes based on commits since last release.
 3. Download and test the binaries on all VMs.
 
 # 5. Notify
 
 1. Refresh website download and signature links.
-2. Update InstallationGuide and DeterministicBuildGuide download links, [here](https://github.com/zkSNACKs/WasabiDoc/blob/master/docs/.vuepress/variables.js)
+2. Update InstallationGuide and DeterministicBuildGuide download links, [here](https://github.com/zkSNACKs/WasabiDoc/blob/master/docs/.vuepress/variables.js).
 3. Make sure CI and CodeFactor checks out.
-4. [Deploy testnet and mainnet backend.](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/BackendDeployment.md#update)
+4. [Deploy testnet and mainnet backend](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/BackendDeployment.md#update).
 
-# 6. Announce
+# 6. Update Docs
+
+1. Bump the client version in [the docs](https://github.com/zkSNACKs/WasabiDoc/blob/master/docs/.vuepress/variables.js).
+
+# 7. Announce
 
 1. [Twitter](https://twitter.com) (tag @wasabiwallet #Bitcoin #Privacy).
 2. Submit to [/r/WasabiWallet](https://old.reddit.com/r/WasabiWallet/) and [/r/Bitcoin](https://old.reddit.com/r/Bitcoin/).
 
-# 7. Backporting
+# 8. Backporting
 
 Backport is a branch. It is used for creating silent releases (hotfixes, small improvements) on top of the last released version. For this reason it has to be maintained with special care.
 
 ## Merge PR into backport
 
 1. There is a PR which is merged to master and selected to backport.
-2. Checkout the current backport branch to a new local branch like bp_whatever: `git checkout -b bp_whatever upstream/backport`
+2. Checkout the current backport branch to a new local branch like bp_whatever: `git checkout -b bp_whatever upstream/backport`.
 3. Go to the merged PR / Commits and copy the hash of the commit.
-4. Cherry pick: 
-`git cherry-pick 35c4db348__hash of the commit__06abcd9278c`
+4. Cherry pick: `git cherry-pick 35c4db348__hash of the commit__06abcd9278c`.
 5. git push origin bp_whatever.
 6. Create a PR into upstream/backport name it as: [Backport] Whatever.
 
@@ -95,6 +98,14 @@ If it's a major release, then the backport branch must be rebased, so we can sta
 ```sh
 git checkout --track upstream/backport
 git rebase upstream/master
-git push -u upstream/backport
+git push -u upstream backport
 ```
 
+## Code signing certificate
+
+Digicert holds our Code Signing Certificate under the name "zkSNACKs Limited".
+- Issuing CA: DigiCert SHA2 Assured ID Code Signing CA
+- Platform: Microsoft Authenticode
+- Type: Code Signing
+
+CSR file for renewal is stored in the secret storage.

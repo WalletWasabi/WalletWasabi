@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
@@ -10,6 +8,8 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests
 {
+	/// <seealso cref="XunitConfiguration.SerialCollectionDefinition"/>
+	[Collection("Serial unit tests collection")]
 	public class BlockNotifierTests
 	{
 		[Fact]
@@ -81,7 +81,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var height = 0;
 			string message = string.Empty;
 
-			void OnBlockInv(object blockNotifier, Block b)
+			void OnBlockInv(object? blockNotifier, Block b)
 			{
 				uint256 h1 = b.GetHash();
 				uint256 h2 = chain.GetBlock(height + 1).HashBlock;
@@ -111,7 +111,7 @@ namespace WalletWasabi.Tests.UnitTests
 			notifier.TriggerRound();
 
 			// Waits at most 1.5s given CancellationTokenSource definition
-			await Task.WhenAny(Task.Delay(Timeout.InfiniteTimeSpan, cts.Token)).ConfigureAwait(false);
+			await Task.WhenAny(Task.Delay(Timeout.InfiniteTimeSpan, cts.Token));
 
 			Assert.True(string.IsNullOrEmpty(message), message);
 
@@ -280,7 +280,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var block = chain.GetBlock(header.GetHash());
 			if (wait)
 			{
-				await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+				await Task.Delay(TimeSpan.FromSeconds(1));
 			}
 			return block;
 		}

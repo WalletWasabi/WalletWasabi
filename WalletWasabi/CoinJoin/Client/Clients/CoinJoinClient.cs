@@ -11,6 +11,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
+using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -19,6 +20,7 @@ using WalletWasabi.CoinJoin.Client.Rounds;
 using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.Crypto;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -545,7 +547,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					aliceClient?.Dispose();
 					return;
 				}
-				catch (HttpRequestException ex) when (ex.Message.Contains("too-long-mempool-chain", StringComparison.InvariantCultureIgnoreCase))
+				catch (HttpRequestException ex) when (RpcErrorTools.IsTooLongMempoolChainError(ex.Message))
 				{
 					Logger.LogInfo("Coordinator failed because too much unconfirmed parent transactions. Trying again later.");
 					aliceClient?.Dispose();
@@ -967,7 +969,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			{
 				ingredients ??= "";
 
-				Salt = TokenGenerator.GetUniqueKey(21);
+				Salt = RandomString.AlphaNumeric(21, secureRandom: true);
 				Soup = StringCipher.Encrypt(ingredients, Salt);
 			}
 		}

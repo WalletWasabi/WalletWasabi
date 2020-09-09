@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
+using WalletWasabi.Microservices;
 
 namespace WalletWasabi.Helpers
 {
@@ -105,7 +106,7 @@ namespace WalletWasabi.Helpers
 					}
 					else
 					{
-						throw new DirectoryNotFoundException("Could not find suitable default Bitcoin Core datadir.");
+						throw new DirectoryNotFoundException($"Could not find suitable default {Constants.BuiltinBitcoinNodeName} datadir.");
 					}
 				}
 				else
@@ -119,7 +120,7 @@ namespace WalletWasabi.Helpers
 					}
 					else
 					{
-						throw new DirectoryNotFoundException("Could not find suitable default Bitcoin Core datadir.");
+						throw new DirectoryNotFoundException($"Could not find suitable default {Constants.BuiltinBitcoinNodeName} datadir.");
 					}
 				}
 
@@ -162,32 +163,38 @@ namespace WalletWasabi.Helpers
 		}
 
 		/// <summary>
-		/// Executes a command with bash.
+		/// Executes a command with Bash.
 		/// https://stackoverflow.com/a/47918132/2061103
 		/// </summary>
 		public static async Task ShellExecAsync(string cmd, bool waitForExit = true)
 		{
 			var escapedArgs = cmd.Replace("\"", "\\\"");
 
-			using var process = Process.Start(
-				new ProcessStartInfo
-				{
-					FileName = "/bin/sh",
-					Arguments = $"-c \"{escapedArgs}\"",
-					RedirectStandardOutput = true,
-					UseShellExecute = false,
-					CreateNoWindow = true,
-					WindowStyle = ProcessWindowStyle.Hidden
-				}
-			);
+			var startInfo = new ProcessStartInfo
+			{
+				FileName = "/usr/bin/env",
+				Arguments = $"sh -c \"{escapedArgs}\"",
+				RedirectStandardOutput = true,
+				UseShellExecute = false,
+				CreateNoWindow = true,
+				WindowStyle = ProcessWindowStyle.Hidden
+			};
+
 			if (waitForExit)
 			{
+				using var process = new ProcessAsync(startInfo);
+				process.Start();
+
 				await process.WaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
-				var exitCode = process.ExitCode;
-				if (exitCode != 0)
+
+				if (process.ExitCode != 0)
 				{
-					Logger.LogError($"{nameof(ShellExecAsync)} command: {cmd} exited with exit code: {exitCode}, instead of 0.");
+					Logger.LogError($"{nameof(ShellExecAsync)} command: {cmd} exited with exit code: {process.ExitCode}, instead of 0.");
 				}
+			}
+			else
+			{
+				using var process = Process.Start(startInfo);
 			}
 		}
 

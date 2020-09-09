@@ -9,7 +9,7 @@ namespace WalletWasabi.WebClients.BlockchainInfo
 {
 	public class BlockchainInfoExchangeRateProvider : IExchangeRateProvider
 	{
-		public async Task<List<ExchangeRate>> GetExchangeRateAsync()
+		public async Task<IEnumerable<ExchangeRate>> GetExchangeRateAsync()
 		{
 			using var httpClient = new HttpClient();
 			httpClient.BaseAddress = new Uri("https://blockchain.info");
