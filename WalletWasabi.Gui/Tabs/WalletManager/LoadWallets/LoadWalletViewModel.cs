@@ -31,7 +31,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 	{
 		private ReadOnlyObservableCollection<WalletViewModelBase> _wallets;
 		private string _password;
-		private WalletViewModelBase _selectedWallet;
+		private WalletViewModelBase? _selectedWallet;
 
 		private bool _disposedValue = false; // To detect redundant calls
 
@@ -41,7 +41,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			Global = Locator.Current.GetService<Global>();
 
 			Owner = owner;
-			Password = "";
+			_password = "";
 			LoadWalletType = loadWalletType;
 
 			this.ValidateProperty(x => x.Password, ValidatePassword);
@@ -116,7 +116,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			set => this.RaiseAndSetIfChanged(ref _password, value);
 		}
 
-		public WalletViewModelBase SelectedWallet
+		public WalletViewModelBase? SelectedWallet
 		{
 			get => _selectedWallet;
 			set => this.RaiseAndSetIfChanged(ref _selectedWallet, value);

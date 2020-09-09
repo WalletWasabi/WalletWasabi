@@ -104,10 +104,10 @@ namespace WalletWasabi.Tests.UnitTests
 			// This should pass
 			Assert.NotNull(PasswordHelper.GetMasterExtKey(keyManager, original, out _));
 
-			Assert.True(PasswordHelper.TryPassword(keyManager, buggy, out string compatiblePasswordNotUsed));
+			Assert.True(PasswordHelper.TryPassword(keyManager, buggy, out string? compatiblePasswordNotUsed));
 			Assert.Null(compatiblePasswordNotUsed);
 
-			Assert.True(PasswordHelper.TryPassword(keyManager, original, out string compatiblePassword));
+			Assert.True(PasswordHelper.TryPassword(keyManager, original, out string? compatiblePassword));
 			Assert.Equal(buggy, compatiblePassword);
 			Logger.TurnOn();
 		}
@@ -116,7 +116,7 @@ namespace WalletWasabi.Tests.UnitTests
 		public void EmptyNullTest()
 		{
 			string emptyPw = "";
-			string nullPw = null;
+			string? nullPw = null;
 
 			Logger.TurnOff();
 			var emptyPws = PasswordHelper.GetPossiblePasswords(emptyPw);

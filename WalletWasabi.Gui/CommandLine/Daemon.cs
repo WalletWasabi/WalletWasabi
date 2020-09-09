@@ -30,9 +30,9 @@ namespace WalletWasabi.Gui.CommandLine
 
 				KeyManager keyManager = Global.WalletManager.GetWalletByName(walletName).KeyManager;
 
-				string password = null;
+				string? password = null;
 				var count = 3;
-				string compatibilityPassword = null;
+				string? compatibilityPassword = null;
 				do
 				{
 					if (password != null)
