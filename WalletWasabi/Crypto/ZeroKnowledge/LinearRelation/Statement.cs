@@ -7,7 +7,7 @@ using WalletWasabi.Crypto.ZeroKnowledge;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 {
-	public class Statement : IStatementDescription
+	public class Statement
 	{
 		public Statement(params Equation[] equations)
 			: this(equations as IEnumerable<Equation>)
