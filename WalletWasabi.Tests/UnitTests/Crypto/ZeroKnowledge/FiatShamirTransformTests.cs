@@ -3,9 +3,8 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
 using Xunit;
-using ZK = WalletWasabi.Crypto.ZeroKnowledge;
-using LR = WalletWasabi.Crypto.ZeroKnowledge.LinearRelation;
-using FS = WalletWasabi.Crypto.ZeroKnowledge.NonInteractive.FiatShamirTransform;
+using WalletWasabi.Crypto.ZeroKnowledge.LinearRelation;
+using WalletWasabi.Crypto.ZeroKnowledge.NonInteractive.FiatShamirTransform;
 
 namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 {
@@ -26,13 +25,13 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var publicPoint1 = witness1 * g;
 			var publicPoint2 = witness2 * g;
 
-			var statement1 = new LR.Statement(new LR.Equation(publicPoint1, g));
-			var statement2 = new LR.Statement(new LR.Equation(publicPoint2, g));
+			var statement1 = new Statement(new Equation(publicPoint1, g));
+			var statement2 = new Statement(new Equation(publicPoint2, g));
 
-			var prover1 = new FS.Prover(new LR.Knowledge(statement1, witness1));
-			var prover2 = new FS.Prover(new LR.Knowledge(statement2, witness2));
+			var prover1 = new Prover(new Knowledge(statement1, witness1));
+			var prover2 = new Prover(new Knowledge(statement2, witness2));
 
-			var proverTranscript = new ZK.Transcript(new byte[0]);
+			var proverTranscript = new WalletWasabi.Crypto.ZeroKnowledge.Transcript(new byte[0]);
 			var verifierTranscript = proverTranscript.MakeCopy();
 
 			var prover1Nonces = prover1.CommitToStatements(proverTranscript);
@@ -44,8 +43,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var proof1 = prover1Respond();
 			var proof2 = prover2Respond();
 
-			var verifier1 = new FS.Verifier(statement1);
-			var verifier2 = new FS.Verifier(statement2);
+			var verifier1 = new Verifier(statement1);
+			var verifier2 = new Verifier(statement2);
 
 			// First, verify as a compound proof
 			var correctVerifierTranscript = verifierTranscript.MakeCopy();
