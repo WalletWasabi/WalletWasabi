@@ -59,6 +59,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _isHardwareBusy;
 		private bool _isCustomFee;
 		private string _amountTip;
+		private ObservableAsPropertyHelper<bool> _isEstimateAvailabe;
 
 		private const string WaitingForHardwareWalletButtonTextString = "Waiting for Hardware Wallet...";
 
@@ -68,7 +69,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private FeeDisplayFormat _feeDisplayFormat;
 		private bool _isSliderFeeUsed = true;
 		private double _feeControlOpacity;
-		private bool _isEstimateAvailable;
 
 		protected SendControlViewModel(Wallet wallet, string title)
 			: base(title)
@@ -211,11 +211,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					this.RaisePropertyChanged(nameof(Address));
 					this.RaisePropertyChanged(nameof(CustomChangeAddress));
 				});
-
-			Observable
-				.FromEventPattern<AllFeeEstimate>(Global.FeeProviders, nameof(Global.FeeProviders.AllFeeEstimateChanged))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => IsEstimateAvailable = Global.FeeProviders.AllFeeEstimate is { });
 
 			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay, outputScheduler: RxApp.MainThreadScheduler);
 
@@ -415,8 +410,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					NotificationHelpers.Error(ex.ToUserFriendlyString());
 					Logger.LogError(ex);
 				});
-
-			IsEstimateAvailable = Global.FeeProviders.AllFeeEstimate is { };
 		}
 
 		protected Global Global { get; }
@@ -590,11 +583,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			private set => this.RaiseAndSetIfChanged(ref _isCustomFee, value);
 		}
 
-		public bool IsEstimateAvailable
-		{
-			get => _isEstimateAvailable;
-			set => this.RaiseAndSetIfChanged(ref _isEstimateAvailable, value);
-		}
+		public bool IsEstimateAvailable => _isEstimateAvailabe?.Value ?? false;
 
 		public string AmountTip
 		{
@@ -654,7 +643,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			AllFeeEstimate allFeeEstimate = Global.FeeProviders?.AllFeeEstimate;
 
 			int feeTarget = -1; // 1 => 10 minutes
-			if (IsSliderFeeUsed && IsEstimateAvailable)
+			if (IsSliderFeeUsed && allFeeEstimate is { })
 			{
 				feeTarget = FeeTarget;
 
@@ -687,7 +676,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					FeeRate = new FeeRate(userFee);
 
-					if (IsEstimateAvailable)
+					if (allFeeEstimate is { })
 					{
 						feeTarget = Constants.SevenDaysConfirmationTarget;
 						foreach (var feeEstimate in allFeeEstimate.Estimations)
@@ -894,6 +883,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override void OnOpen(CompositeDisposable disposables)
 		{
+			_isEstimateAvailabe = Observable
+				.FromEventPattern<AllFeeEstimate>(Global.FeeProviders, nameof(Global.FeeProviders.AllFeeEstimateChanged))
+				.Select(x => x.EventArgs is { })
+				.ToProperty(this, x => x.IsEstimateAvailable, scheduler: RxApp.MainThreadScheduler, initialValue: Global.FeeProviders.AllFeeEstimate is { }).
+				DisposeWith(disposables);
+
+			this.RaisePropertyChanged(nameof(IsEstimateAvailable));
+
 			Observable
 				.FromEventPattern<AllFeeEstimate>(Global.FeeProviders, nameof(Global.FeeProviders.AllFeeEstimateChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
