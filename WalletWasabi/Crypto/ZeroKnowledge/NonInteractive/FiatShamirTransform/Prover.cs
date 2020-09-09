@@ -36,7 +36,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.NonInteractive.FiatShamirTransform
 			return (WasabiRandom random) => CommitToNonces(transcript, random);
 		}
 
-		private RespondToChallenge CommitToNonces(Transcript transcript,  WasabiRandom random)
+		private RespondToChallenge CommitToNonces(Transcript transcript, WasabiRandom random)
 		{
 			// With all the statements committed, generate a vector of random secret
 			// nonces for every equation in underlying proof system. In order to

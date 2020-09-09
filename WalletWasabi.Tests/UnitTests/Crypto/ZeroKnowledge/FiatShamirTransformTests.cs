@@ -93,7 +93,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			Assert.False(incorrectOrderVerifier1Verify());
 			Assert.False(incorrectOrderVerifier2Verify());
 
-			// If the proofs are comitted to the transcript in the right order but
+			// If the proofs are committed to the transcript in the right order but
 			// with the wrong verifier (combination of previous two cases) they should
 			// reject.
 			var incorrectOrderAndProofVerifierTranscript = verifierTranscript.MakeCopy();

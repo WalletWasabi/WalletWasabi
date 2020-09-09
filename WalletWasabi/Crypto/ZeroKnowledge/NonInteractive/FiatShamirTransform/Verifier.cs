@@ -43,7 +43,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.NonInteractive.FiatShamirTransform
 			return (Proof proof) => CommitToNonces(transcript, proof);
 		}
 
-		private VerifyResponse CommitToNonces(Transcript transcript,  Proof proof)
+		private VerifyResponse CommitToNonces(Transcript transcript, Proof proof)
 		{
 			// After all the statements have been committed, the public nonces are
 			// added to the transcript. This is done separately from the statement
@@ -60,7 +60,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.NonInteractive.FiatShamirTransform
 			// After all the public nonces have been committed, a challenge can be
 			// generated based on transcript state. Since challenges are deterministic
 			// outputs of a hash function which depends on the prover commitments, the
-			// verifier obtains the same challenge and then accept if the responses
+			// verifier obtains the same challenge and then accepts if the responses
 			// satisfy the verification equation.
 			var challenge = transcript.GenerateChallenge();
 			return Statement.CheckVerificationEquation(proof.PublicNonces, challenge, proof.Responses);
