@@ -110,6 +110,15 @@
               <TextBlock Text="{Binding Title}" />
             </StackPanel>
           </TreeDataTemplate>
+          <TreeDataTemplate DataType="ViewModels:BasicSendTabViewModel">
+            <StackPanel Classes="TreeViewRoot">
+              <i:Interaction.Behaviors>
+                <behaviors:PreventTooltipStuckBehavior />
+              </i:Interaction.Behaviors>
+              <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_BasicSend}" />
+              <TextBlock Text="{Binding Title}" />
+            </StackPanel>
+          </TreeDataTemplate>
           <TreeDataTemplate DataType="ViewModels:SendTabViewModel">
             <StackPanel Classes="TreeViewRoot">
               <i:Interaction.Behaviors>

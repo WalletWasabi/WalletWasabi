@@ -26,7 +26,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			Actions = new ObservableCollection<ViewModelBase>();
+			AdvancedAction = new WalletAdvancedViewModel();
 
+			Config = Locator.Current.GetService<Global>().Config;
 			UiConfig = Locator.Current.GetService<Global>().UiConfig;
 
 			WalletManager = Locator.Current.GetService<Global>().WalletManager;
@@ -57,13 +59,21 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			if (Wallet.KeyManager.IsHardwareWallet || !Wallet.KeyManager.IsWatchOnly)
 			{
 				SendTab = new SendTabViewModel(Wallet);
-				Actions.Add(SendTab);
+				BasicSendTab = new BasicSendTabViewModel(Wallet);
+				SetSendPositions();
 			}
+
+			Observable.Merge(
+				Observable.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default))
+				.Throttle(TimeSpan.FromSeconds(0.1))
+				.Merge(Config.WhenAnyValue(x => x.MixUntilAnonymitySet).Select(_ => Unit.Default))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => SetSendPositions())
+				.DisposeWith(Disposables);
 
 			ReceiveTab = new ReceiveTabViewModel(Wallet);
 			HistoryTab = new HistoryTabViewModel(Wallet);
 
-			var advancedAction = new WalletAdvancedViewModel();
 			InfoTab = new WalletInfoViewModel(Wallet);
 			BuildTab = new BuildTabViewModel(Wallet);
 
@@ -78,9 +88,54 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Actions.Add(HistoryTab);
 
-			Actions.Add(advancedAction);
-			advancedAction.Items.Add(InfoTab);
-			advancedAction.Items.Add(BuildTab);
+			AdvancedAction.Items.Add(InfoTab);
+			AdvancedAction.Items.Add(BuildTab);
+			Actions.Add(AdvancedAction);
+		}
+
+		private void SetSendPositions()
+		{
+			try
+			{
+				var containsBasicSend = Actions.Any(x => x is BasicSendTabViewModel);
+				var advancedContainsSend = AdvancedAction.Items.Any(x => x is SendTabViewModel);
+				var containsSend = Actions.Any(x => x is SendTabViewModel);
+
+				if (Wallet.Coins.Any(x => x.AnonymitySet >= Config.MixUntilAnonymitySetValue))
+				{
+					if (containsSend)
+					{
+						Actions.Remove(SendTab);
+					}
+					if (!containsBasicSend)
+					{
+						Actions.Insert(0, BasicSendTab);
+					}
+					if (!advancedContainsSend)
+					{
+						AdvancedAction.Items.Insert(0, SendTab);
+					}
+				}
+				else
+				{
+					if (advancedContainsSend)
+					{
+						AdvancedAction.Items.Remove(SendTab);
+					}
+					if (containsBasicSend)
+					{
+						Actions.Remove(BasicSendTab);
+					}
+					if (!containsSend)
+					{
+						Actions.Insert(0, SendTab);
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+			}
 		}
 
 		public static WalletViewModel Create(Wallet wallet)
@@ -92,6 +147,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					: new WalletViewModel(wallet);
 		}
 
+		public WalletAdvancedViewModel AdvancedAction { get; }
+
+		private BasicSendTabViewModel BasicSendTab { get; set; }
 		private SendTabViewModel SendTab { get; set; }
 
 		private ReceiveTabViewModel ReceiveTab { get; set; }
@@ -99,11 +157,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private CoinJoinTabViewModel CoinjoinTab { get; set; }
 
 		private HistoryTabViewModel HistoryTab { get; set; }
-
 		private WalletInfoViewModel InfoTab { get; set; }
 
 		private BuildTabViewModel BuildTab { get; set; }
 
+		private Config Config { get; }
 		private UiConfig UiConfig { get; }
 
 		private WalletManager WalletManager { get; }
