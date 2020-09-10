@@ -889,8 +889,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ToProperty(this, x => x.IsEstimateAvailable, scheduler: RxApp.MainThreadScheduler, initialValue: Global.FeeProviders?.AllFeeEstimate is { }).
 				DisposeWith(disposables);
 
-			this.RaisePropertyChanged(nameof(IsEstimateAvailable));
-
 			Observable
 				.FromEventPattern<AllFeeEstimate>(Global.FeeProviders, nameof(Global.FeeProviders.AllFeeEstimateChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
