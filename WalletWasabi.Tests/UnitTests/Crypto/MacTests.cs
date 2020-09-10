@@ -74,8 +74,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			var right = (attribute: rnd.GetScalar() * Generators.G, sk: new CoordinatorSecretKey(rnd), t: rnd.GetScalar());
 			var wrong = (attribute: rnd.GetScalar() * Generators.G, sk: new CoordinatorSecretKey(rnd), t: rnd.GetScalar());
-	
-			var cases = new []
+
+			var cases = new[]
 			{
 				(attribute: right.attribute, sk: right.sk, t: right.t, isEqual: true),
 				(attribute: right.attribute, sk: right.sk, t: wrong.t, isEqual: false),

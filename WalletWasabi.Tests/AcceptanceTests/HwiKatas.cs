@@ -25,6 +25,7 @@ namespace WalletWasabi.Tests.AcceptanceTests
 
 		// Bottleneck: user action on device.
 		public TimeSpan ReasonableRequestTimeout { get; } = TimeSpan.FromMinutes(10);
+
 		// The transaction is similar to these transactions:
 		// https://blockstream.info/testnet/tx/580d04a1891bf5b03a972eb63791e57ca39b85476d45f1d82a09732fe4c9214d
 		// https://blockstream.info/testnet/tx/82cd8165a4fb3276354a817ad1b991a0c4af7d6d438f9052f34d58712f873457

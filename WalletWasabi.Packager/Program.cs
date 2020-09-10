@@ -51,6 +51,7 @@ namespace WalletWasabi.Packager
 
 		public static bool OnlyBinaries;
 		public static bool OnlyCreateDigests;
+		public static bool IsContinuousDelivery;
 
 		/// <summary>
 		/// Main entry point.
@@ -101,6 +102,9 @@ namespace WalletWasabi.Packager
 
 			// Only binaries mode is for deterministic builds.
 			OnlyBinaries = argsProcessor.IsOnlyBinariesMode();
+
+			IsContinuousDelivery = argsProcessor.IsContinuousDeliveryMode();
+
 			ReportStatus();
 
 			if (DoPublish || OnlyBinaries)
@@ -306,6 +310,12 @@ namespace WalletWasabi.Packager
 				Console.WriteLine($"Deleted {libraryBinReleaseDirectory}");
 			}
 
+			var deterministicFileNameTag = IsContinuousDelivery ? $"{DateTimeOffset.UtcNow:ddMMyyyy}{DateTimeOffset.UtcNow.TimeOfDay.TotalSeconds}" : VersionPrefix;
+			var deliveryPath = IsContinuousDelivery ? Path.Combine(BinDistDirectory, "cdelivery") : BinDistDirectory;
+
+			IoHelpers.EnsureDirectoryExists(deliveryPath);
+			Console.WriteLine($"Binaries will be delivered here: {deliveryPath}");
+
 			foreach (string target in Targets)
 			{
 				string publishedFolder = Path.Combine(BinDistDirectory, target);
@@ -458,11 +468,25 @@ namespace WalletWasabi.Packager
 					{
 						continue; // In Windows build at this moment it does not matter though.
 					}
+
+					ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(deliveryPath, $"Wasabi-{deterministicFileNameTag}-{target}.zip"));
+
+					if (IsContinuousDelivery)
+					{
+						continue;
+					}
 				}
 				else if (target.StartsWith("osx"))
 				{
 					// IF IT'S IN ONLYBINARIES MODE DON'T DO ANYTHING FANCY PACKAGING AFTER THIS!!!
 					if (OnlyBinaries)
+					{
+						continue;
+					}
+
+					ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(deliveryPath, $"Wasabi-{deterministicFileNameTag}-{target}.zip"));
+
+					if (IsContinuousDelivery)
 					{
 						continue;
 					}
@@ -476,6 +500,13 @@ namespace WalletWasabi.Packager
 				{
 					// IF IT'S IN ONLYBINARIES MODE DON'T DO ANYTHING FANCY PACKAGING AFTER THIS!!!
 					if (OnlyBinaries)
+					{
+						continue;
+					}
+
+					ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(deliveryPath, $"Wasabi-{deterministicFileNameTag}-{target}.zip"));
+
+					if (IsContinuousDelivery)
 					{
 						continue;
 					}
