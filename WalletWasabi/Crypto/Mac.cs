@@ -16,6 +16,7 @@ namespace WalletWasabi.Crypto
 
 		public Scalar T { get; }
 		public GroupElement V { get; }
+		public GroupElement U { get => GenerateU(T); }
 
 		public static bool operator ==(MAC a, MAC b) => a.Equals(b);
 
