@@ -67,7 +67,7 @@ namespace System.IO
 			}
 			catch (UnauthorizedAccessException)
 			{
-				await Task.Delay(100);
+				await Task.Delay(100).ConfigureAwait(false);
 				ZipFile.ExtractToDirectory(src, dest);
 			}
 		}

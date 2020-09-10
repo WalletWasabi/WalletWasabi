@@ -59,7 +59,7 @@ namespace WalletWasabi.BitcoinCore.Rpc
 			var cacheOptions = new MemoryCacheEntryOptions
 			{
 				Size = 10,
-				AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(4) // There is a block every 10 minutes in average so, keep in cache for 4 seconds.
+				AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(4) // There is a block every 10 minutes on average so, keep in cache for 4 seconds.
 			};
 
 			return await Cache.AtomicGetOrCreateAsync(
@@ -74,7 +74,7 @@ namespace WalletWasabi.BitcoinCore.Rpc
 			var cacheOptions = new MemoryCacheEntryOptions
 			{
 				Size = 10,
-				AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(4) // There is a block every 10 minutes in average so, keep in cache for 4 seconds.
+				AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(4) // There is a block every 10 minutes on average so, keep in cache for 4 seconds.
 			};
 
 			return await Cache.AtomicGetOrCreateAsync(
@@ -89,7 +89,7 @@ namespace WalletWasabi.BitcoinCore.Rpc
 			var cacheOptions = new MemoryCacheEntryOptions
 			{
 				Size = 2,
-				AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(4) // There is a block every 10 minutes in average so, keep in cache for 4 seconds.
+				AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(4) // There is a block every 10 minutes on average so, keep in cache for 4 seconds.
 			};
 
 			return await Cache.AtomicGetOrCreateAsync(

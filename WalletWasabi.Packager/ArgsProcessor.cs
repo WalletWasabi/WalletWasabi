@@ -22,6 +22,8 @@ namespace WalletWasabi.Packager
 
 		public bool IsGetOnionsMode() => IsOneOf("getonions", "getonion");
 
+		public bool IsContinuousDeliveryMode() => IsOneOf("cdelivery");
+
 		private bool IsOneOf(params string[] values)
 		{
 			foreach (var value in values)

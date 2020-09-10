@@ -19,10 +19,18 @@ namespace WalletWasabi.TorSocks5
 	/// <seealso href="https://2019.www.torproject.org/docs/tor-manual.html.en"/>
 	public class TorProcessManager
 	{
+		private const long StateNotStarted = 0;
+
+		private const long StateRunning = 1;
+
+		private const long StateStopping = 2;
+
+		private const long StateStopped = 3;
+
 		/// <summary>
-		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
+		/// Value can be any of: <see cref="StateNotStarted"/>, <see cref="StateRunning"/>, <see cref="StateStopping"/> and <see cref="StateStopped"/>.
 		/// </summary>
-		private long _running;
+		private long _monitorState;
 
 		/// <param name="torSocks5EndPoint">Opt out Tor with null.</param>
 		/// <param name="logFile">Opt out of logging with null.</param>
@@ -31,7 +39,7 @@ namespace WalletWasabi.TorSocks5
 			TorSocks5EndPoint = torSocks5EndPoint;
 			LogFile = logFile;
 			DataDir = dataDir;
-			_running = 0;
+			_monitorState = StateNotStarted;
 			Stop = new CancellationTokenSource();
 			TorProcess = null;
 		}
@@ -44,9 +52,9 @@ namespace WalletWasabi.TorSocks5
 
 		public static bool RequestFallbackAddressUsage { get; private set; } = false;
 
-		public Process TorProcess { get; private set; }
+		public Process? TorProcess { get; private set; }
 
-		public bool IsRunning => Interlocked.Read(ref _running) == 1;
+		public bool IsRunning => Interlocked.Read(ref _monitorState) == StateRunning;
 
 		private CancellationTokenSource Stop { get; set; }
 
@@ -202,7 +210,7 @@ namespace WalletWasabi.TorSocks5
 		public void StartMonitor(TimeSpan torMisbehaviorCheckPeriod, TimeSpan checkIfRunningAfterTorMisbehavedFor, Uri fallBackTestRequestUri)
 		{
 			Logger.LogInfo("Starting Tor monitor...");
-			if (Interlocked.CompareExchange(ref _running, 1, 0) != 0)
+			if (Interlocked.CompareExchange(ref _monitorState, StateRunning, StateNotStarted) != StateNotStarted)
 			{
 				return;
 			}
@@ -263,22 +271,22 @@ namespace WalletWasabi.TorSocks5
 				}
 				finally
 				{
-					Interlocked.CompareExchange(ref _running, 3, 2); // If IsStopping, make it stopped.
+					Interlocked.CompareExchange(ref _monitorState, StateStopped, StateStopping); // If IsStopping, make it stopped.
 				}
 			});
 		}
 
 		public async Task StopAsync()
 		{
-			Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
+			Interlocked.CompareExchange(ref _monitorState, StateStopping, StateRunning); // If running, make it stopping.
 
 			if (TorSocks5EndPoint is null)
 			{
-				Interlocked.Exchange(ref _running, 3);
+				Interlocked.Exchange(ref _monitorState, StateStopped);
 			}
 
 			Stop?.Cancel();
-			while (Interlocked.CompareExchange(ref _running, 3, 0) == 2)
+			while (Interlocked.CompareExchange(ref _monitorState, StateStopped, StateNotStarted) == StateStopping)
 			{
 				await Task.Delay(50).ConfigureAwait(false);
 			}
