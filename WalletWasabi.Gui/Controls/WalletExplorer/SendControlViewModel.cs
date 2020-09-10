@@ -886,8 +886,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			_isEstimateAvailabe = Observable
 				.FromEventPattern<AllFeeEstimate>(Global.FeeProviders, nameof(Global.FeeProviders.AllFeeEstimateChanged))
 				.Select(x => x.EventArgs is { })
-				.ToProperty(this, x => x.IsEstimateAvailable, scheduler: RxApp.MainThreadScheduler, initialValue: Global.FeeProviders?.AllFeeEstimate is { }).
-				DisposeWith(disposables);
+				.ToProperty(this, x => x.IsEstimateAvailable, scheduler: RxApp.MainThreadScheduler, initialValue: Global.FeeProviders?.AllFeeEstimate is { })
+				.DisposeWith(disposables);
 
 			this.RaisePropertyChanged(nameof(IsEstimateAvailable));
 
@@ -924,10 +924,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(Global.UiConfig.WhenAnyValue(x => x.IsCustomFee))
 				.Merge(this.WhenAnyValue(x => x.IsEstimateAvailable))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					IsCustomFee = !IsEstimateAvailable || Global.UiConfig.IsCustomFee;
-				})
+				.Subscribe(_ => IsCustomFee = !IsEstimateAvailable || Global.UiConfig.IsCustomFee)
 				.DisposeWith(disposables);
 
 			this.WhenAnyValue(x => x.IsCustomFee)
