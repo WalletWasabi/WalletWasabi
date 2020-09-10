@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
@@ -51,17 +51,12 @@
               Foreground="{Binding AmountText, Converter={StaticResource AmountForegroundConverter}}"
               IsReadOnly="{Binding IsMax}"
               Text="{Binding AmountText, Mode=TwoWay}"
-              Watermark="Amount (BTC)"
+              Watermark="{Binding AmountWatermarkText}"
               UseFloatingWatermark="True"
               MinWidth="124">
               <i:Interaction.Behaviors>
                 <behaviors:CommandOnKeyUpBehavior Command="{Binding AmountKeyUpCommand}" />
               </i:Interaction.Behaviors>
-              <ToolTip.Tip>
-                <StackPanel>
-                  <TextBlock Foreground="White" Text="{Binding AmountTip}" />
-                </StackPanel>
-              </ToolTip.Tip>
             </controls:ExtendedTextBox>
             <StackPanel Opacity="{Binding FeeControlOpacity}">
               <StackPanel IsVisible="{Binding !MinMaxFeeTargetsEqual}" Orientation="Horizontal" Spacing="10">
