@@ -28,6 +28,22 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 			Equations = equations;
 		}
 
+		public Statement(GroupElement[,] equations)
+		{
+			// need to have at least one generator and one public point
+			var terms = equations.GetLength(1);
+			Guard.True(nameof(terms), terms >= 2);
+			foreach (var generator in equations)
+			{
+				Guard.NotNull(nameof(generator), generator);
+			}
+
+			// make an equation out of each row taking the first element of each row as the public point
+			var rows = Enumerable.Range(0, equations.GetLength(0));
+			var cols = Enumerable.Range(1, terms - 1);
+			Equations = rows.Select(i => new Equation(equations[i, 0], new GroupElementVector(cols.Select(j => equations[i, j]))));
+		}
+
 		public IEnumerable<Equation> Equations { get; }
 
 		public IEnumerable<GroupElement> PublicPoints =>
