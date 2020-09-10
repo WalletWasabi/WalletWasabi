@@ -55,13 +55,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				})
 				.DisposeWith(Disposables);
 
-			// If hardware wallet or not watch only wallet then we need the Send tab.
-			if (Wallet.KeyManager.IsHardwareWallet || !Wallet.KeyManager.IsWatchOnly)
-			{
-				SendTab = new SendTabViewModel(Wallet);
-				BasicSendTab = new BasicSendTabViewModel(Wallet);
-				SetSendPositions();
-			}
+			SetSendPositions();
 
 			Observable.Merge(
 				Observable.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default))
@@ -97,38 +91,51 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			try
 			{
-				var containsBasicSend = Actions.Any(x => x is BasicSendTabViewModel);
-				var advancedContainsSend = AdvancedAction.Items.Any(x => x is SendTabViewModel);
-				var containsSend = Actions.Any(x => x is SendTabViewModel);
+				// If hardware wallet or not watch only wallet then we need the Send tab.
+				if (Wallet.KeyManager.IsHardwareWallet || !Wallet.KeyManager.IsWatchOnly)
+				{
+					if (SendTab is null)
+					{
+						SendTab = new SendTabViewModel(Wallet);
+					}
+					if (BasicSendTab is null)
+					{
+						BasicSendTab = new BasicSendTabViewModel(Wallet);
+					}
 
-				if (Wallet.Coins.Any(x => x.AnonymitySet >= Config.MixUntilAnonymitySetValue))
-				{
-					if (containsSend)
+					var containsBasicSend = Actions.Any(x => x is BasicSendTabViewModel);
+					var advancedContainsSend = AdvancedAction.Items.Any(x => x is SendTabViewModel);
+					var containsSend = Actions.Any(x => x is SendTabViewModel);
+
+					if (Wallet.Coins.Any(x => x.AnonymitySet >= Config.MixUntilAnonymitySetValue))
 					{
-						Actions.Remove(SendTab);
+						if (containsSend)
+						{
+							Actions.Remove(SendTab);
+						}
+						if (!containsBasicSend)
+						{
+							Actions.Insert(0, BasicSendTab);
+						}
+						if (!advancedContainsSend)
+						{
+							AdvancedAction.Items.Insert(0, SendTab);
+						}
 					}
-					if (!containsBasicSend)
+					else
 					{
-						Actions.Insert(0, BasicSendTab);
-					}
-					if (!advancedContainsSend)
-					{
-						AdvancedAction.Items.Insert(0, SendTab);
-					}
-				}
-				else
-				{
-					if (advancedContainsSend)
-					{
-						AdvancedAction.Items.Remove(SendTab);
-					}
-					if (containsBasicSend)
-					{
-						Actions.Remove(BasicSendTab);
-					}
-					if (!containsSend)
-					{
-						Actions.Insert(0, SendTab);
+						if (advancedContainsSend)
+						{
+							AdvancedAction.Items.Remove(SendTab);
+						}
+						if (containsBasicSend)
+						{
+							Actions.Remove(BasicSendTab);
+						}
+						if (!containsSend)
+						{
+							Actions.Insert(0, SendTab);
+						}
 					}
 				}
 			}
@@ -178,7 +185,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			var shell = IoC.Get<IShell>();
 
-			if (SendTab is { })
+			if (Actions.Any(x => x is BasicSendTabViewModel) && BasicSendTab is { })
+			{
+				shell.AddOrSelectDocument(BasicSendTab);
+			}
+			else if (Actions.Any(x => x is SendTabViewModel) && SendTab is { })
 			{
 				shell.AddOrSelectDocument(SendTab);
 			}
