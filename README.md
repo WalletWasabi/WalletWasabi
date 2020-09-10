@@ -1,7 +1,7 @@
 ![](https://i.imgur.com/4GO7nnY.png)
 
-| Code Quality           | Windows Tests           | Linux Tests             | macOS Tests             | Continuous Delivery     | License                   |
-| :----------------------| :-----------------------| :-----------------------| :-----------------------| :-----------------------| :-------------------------|
+| Code Quality           | Windows Tests           | Linux Tests             | macOS Tests             | Continuous Delivery       | License                   |
+| :----------------------| :-----------------------| :-----------------------| :-----------------------| :-------------------------| :-------------------------|
 | [![CodeFactor][9]][10] | [![Build Status][1]][2] | [![Build Status][3]][4] | [![Build Status][5]][6] | [![Build Status][11]][12] | [![GitHub license][7]][8] |
 
 [1]: https://dev.azure.com/zkSNACKs/Wasabi/_apis/build/status/Wasabi.Windows?branchName=master
