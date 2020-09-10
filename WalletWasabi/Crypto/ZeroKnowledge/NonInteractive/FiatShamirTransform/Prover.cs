@@ -20,6 +20,11 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.NonInteractive.FiatShamirTransform
 
 		public LinearRelation.Knowledge Knowledge { get; }
 
+		public Verifier ToVerifier()
+		{
+			return new FiatShamirTransform.Verifier(Knowledge.Statement);
+		}
+
 		public ProverCommitToNonces CommitToStatements(Transcript transcript)
 		{
 			// Before anything else all components in a compound proof commit to the
