@@ -164,7 +164,9 @@ namespace WalletWasabi.Gui.Tabs
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 
-			SelectedFeeDisplayFormat = (Enum.IsDefined(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat)) ? (FeeDisplayFormat)Global.UiConfig.FeeDisplayFormat : FeeDisplayFormat.SatoshiPerByte;
+			SelectedFeeDisplayFormat = Enum.IsDefined(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat)
+				? (FeeDisplayFormat)Global.UiConfig.FeeDisplayFormat
+				: FeeDisplayFormat.SatoshiPerByte;
 
 			this.WhenAnyValue(x => x.SelectedFeeDisplayFormat)
 				.ObserveOn(RxApp.MainThreadScheduler)
