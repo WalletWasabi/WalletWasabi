@@ -82,7 +82,7 @@ namespace WalletWasabi.Packager
 			// If I want a list of up to date onions run it with '--reduceonions'.
 			if (argsProcessor.IsReduceOnionsMode())
 			{
-				string onionFilePath = Path.Combine(LibraryProjectDirectory, "OnionSeeds", "MainOnionSeeds.txt");
+				string onionFilePath = Path.Combine(LibraryProjectDirectory, "Tor", "OnionSeeds", "MainOnionSeeds.txt");
 				var currentOnions = File.ReadAllLines(onionFilePath).ToHashSet();
 
 				var api = new BitnodesApi(Console.Out);
