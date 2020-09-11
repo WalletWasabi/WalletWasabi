@@ -95,7 +95,7 @@ namespace WalletWasabi.Tor
 						if (!File.Exists(settings.TorPath))
 						{
 							Logger.LogInfo($"Tor instance NOT found at '{settings.TorPath}'. Attempting to acquire it ...");
-							InstallTor(settings.TorDir);
+							TorInstallator.InstallAsync(settings.TorDir).GetAwaiter().GetResult();
 						}
 						else if (!IoHelpers.CheckExpectedHash(settings.HashSourcePath, Path.Combine(fullBaseDirectory, "TorDaemons")))
 						{
@@ -108,7 +108,7 @@ namespace WalletWasabi.Tor
 							}
 							Directory.Move(settings.TorDir, backupTorDir);
 
-							InstallTor(settings.TorDir);
+							TorInstallator.InstallAsync(settings.TorDir).GetAwaiter().GetResult();
 						}
 						else
 						{
@@ -163,42 +163,6 @@ namespace WalletWasabi.Tor
 					Logger.LogError(ex);
 				}
 			}).Start();
-		}
-
-		private static void InstallTor(string torDir)
-		{
-			string torDaemonsDir = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "TorDaemons");
-
-			string dataZip = Path.Combine(torDaemonsDir, "data-folder.zip");
-			IoHelpers.BetterExtractZipToDirectoryAsync(dataZip, torDir).GetAwaiter().GetResult();
-			Logger.LogInfo($"Extracted {dataZip} to {torDir}.");
-
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-			{
-				string torWinZip = Path.Combine(torDaemonsDir, "tor-win64.zip");
-				IoHelpers.BetterExtractZipToDirectoryAsync(torWinZip, torDir).GetAwaiter().GetResult();
-				Logger.LogInfo($"Extracted {torWinZip} to {torDir}.");
-			}
-			else // Linux or OSX
-			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-				{
-					string torLinuxZip = Path.Combine(torDaemonsDir, "tor-linux64.zip");
-					IoHelpers.BetterExtractZipToDirectoryAsync(torLinuxZip, torDir).GetAwaiter().GetResult();
-					Logger.LogInfo($"Extracted {torLinuxZip} to {torDir}.");
-				}
-				else // OSX
-				{
-					string torOsxZip = Path.Combine(torDaemonsDir, "tor-osx64.zip");
-					IoHelpers.BetterExtractZipToDirectoryAsync(torOsxZip, torDir).GetAwaiter().GetResult();
-					Logger.LogInfo($"Extracted {torOsxZip} to {torDir}.");
-				}
-
-				// Make sure there's sufficient permission.
-				string chmodTorDirCmd = $"chmod -R 750 {torDir}";
-				EnvironmentHelpers.ShellExecAsync(chmodTorDirCmd, waitForExit: true).GetAwaiter().GetResult();
-				Logger.LogInfo($"Shell command executed: {chmodTorDirCmd}.");
-			}
 		}
 
 		/// <param name="torSocks5EndPoint">Opt out Tor with null.</param>
