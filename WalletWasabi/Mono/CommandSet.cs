@@ -123,8 +123,8 @@
 //      var p = new OptionSet () {
 //        { "a", s => a = s },
 //      };
-//      p.Parse (new string[]{"-a"});   // sets v != null
-//      p.Parse (new string[]{"-a+"});  // sets v != null
+//      p.Parse (new string[]{"-a"});   // sets v is { }
+//      p.Parse (new string[]{"-a+"});  // sets v is { }
 //      p.Parse (new string[]{"-a-"});  // sets v is null
 //
 
@@ -211,12 +211,12 @@ namespace Mono.Options
 
 		private void AddCommand(Command value)
 		{
-			if (value.CommandSet != null && value.CommandSet != this)
+			if (value.CommandSet is { } && value.CommandSet != this)
 			{
 				throw new ArgumentException($"Command instances can only be added to a single {nameof(CommandSet)}.", nameof(value));
 			}
 			value.CommandSet = this;
-			if (value.Options != null)
+			if (value.Options is { })
 			{
 				value.Options.MessageLocalizer = Options.MessageLocalizer;
 			}
@@ -437,11 +437,11 @@ namespace Mono.Options
 			}
 			if (!Options.Contains("help"))
 			{
-				Options.Add("help", "", v => ShowHelp = v != null, hidden: true);
+				Options.Add("help", "", v => ShowHelp = v is { }, hidden: true);
 			}
 			if (!Options.Contains("?"))
 			{
-				Options.Add("?", "", v => ShowHelp = v != null, hidden: true);
+				Options.Add("?", "", v => ShowHelp = v is { }, hidden: true);
 			}
 			var extra = Options.Parse(arguments);
 			if (extra.Count == 0)
@@ -523,7 +523,7 @@ namespace Mono.Options
 			}
 
 			var command = nestedCommands.GetCommand(extraCopy);
-			if (command != null)
+			if (command is { })
 			{
 				extra.Clear();
 				extra.AddRange(extraCopy);

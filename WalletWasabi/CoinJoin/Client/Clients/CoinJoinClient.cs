@@ -66,7 +66,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			Synchronizer.ResponseArrived += Synchronizer_ResponseArrivedAsync;
 
 			var lastResponse = Synchronizer.LastResponse;
-			if (lastResponse != null)
+			if (lastResponse is { })
 			{
 				_ = TryProcessStatusAsync(Synchronizer.LastResponse.CcjRoundStates);
 			}
@@ -105,7 +105,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		private string Soup { get; set; } = null;
 		private object RefrigeratorLock { get; } = new object();
 
-		public bool HasIngredients => Salt != null && Soup != null;
+		public bool HasIngredients => Salt is { } && Soup is { };
 
 		public bool IsDestinationSame => KeyManager.ExtPubKey == DestinationKeyManager.ExtPubKey;
 
@@ -209,7 +209,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				using (await MixLock.LockAsync().ConfigureAwait(false))
 				{
 					// First, if there's delayed round registration update based on the state.
-					if (DelayedRoundRegistration != null)
+					if (DelayedRoundRegistration is { })
 					{
 						ClientRound roundRegistered = State.GetSingleOrDefaultRound(DelayedRoundRegistration.AliceClient.RoundId);
 						roundRegistered.Registration = DelayedRoundRegistration;
@@ -261,7 +261,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 					await DequeueSpentCoinsFromMixNoLockAsync().ConfigureAwait(false);
 					ClientRound inputRegistrableRound = State.GetRegistrableRoundOrDefault();
-					if (inputRegistrableRound != null)
+					if (inputRegistrableRound is { })
 					{
 						if (inputRegistrableRound.Registration is null) // If did not register already, check what can we register.
 						{
@@ -430,7 +430,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					if (ExposedLinks.ContainsKey(input)) // Should never not contain, but oh well, let's not disrupt the round for this.
 					{
 						var found = ExposedLinks[input].FirstOrDefault(x => x.Key.GetP2wpkhAddress(Network) == activeOutput.Address);
-						if (found != default)
+						if (found is { })
 						{
 							found.IsBlinded = false;
 						}
@@ -666,7 +666,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					{
 						HdPubKeyBlindedPair found = newOutLinks.FirstOrDefault(x => x == link);
 
-						if (found == default)
+						if (found is null)
 						{
 							newOutLinks.Add(link);
 						}

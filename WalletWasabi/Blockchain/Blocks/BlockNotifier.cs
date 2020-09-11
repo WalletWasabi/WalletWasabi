@@ -132,7 +132,7 @@ namespace WalletWasabi.Blockchain.Blocks
 			// Else let's sort out things.
 			var foundPrevBlock = ProcessedBlocks.FirstOrDefault(x => x == arrivedHeader.HashPrevBlock);
 			// Missed notifications on some previous blocks.
-			if (foundPrevBlock != null)
+			if (foundPrevBlock is { })
 			{
 				// Reorg happened.
 				ReorgToBlock(foundPrevBlock);
@@ -181,7 +181,7 @@ namespace WalletWasabi.Blockchain.Blocks
 
 				// If we found the proper chain.
 				var foundPrevBlock = ProcessedBlocks.FirstOrDefault(x => x == currentHeader.HashPrevBlock);
-				if (foundPrevBlock != null)
+				if (foundPrevBlock is { })
 				{
 					// If the last block hash is not what we found, then we missed a reorg also.
 					if (foundPrevBlock != ProcessedBlocks.Last())

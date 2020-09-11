@@ -34,7 +34,7 @@ namespace System.Linq
 			}
 
 			// Return the last bucket with all remaining elements
-			if (bucket != null && count > 0)
+			if (bucket is { } && count > 0)
 			{
 				Array.Resize(ref bucket, count);
 				yield return bucket.Select(x => x);

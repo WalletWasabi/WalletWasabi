@@ -257,7 +257,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			}
 			finally
 			{
-				if (indexBuilderService != null)
+				if (indexBuilderService is { })
 				{
 					await indexBuilderService.StopAsync();
 				}

@@ -382,7 +382,7 @@ namespace Nito.Collections
 				return true;
 			}
 
-			if (value != null)
+			if (value is { })
 			{
 				return false;
 			}

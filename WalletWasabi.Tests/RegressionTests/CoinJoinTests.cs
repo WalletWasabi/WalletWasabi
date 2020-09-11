@@ -1185,7 +1185,7 @@ namespace WalletWasabi.Tests.RegressionTests
 						await Task.Delay(1000);
 					}
 
-					if (chaumianClient != null)
+					if (chaumianClient is { })
 					{
 						await chaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.UserRequested);
 						await chaumianClient.StopAsync(CancellationToken.None);
@@ -1339,11 +1339,11 @@ namespace WalletWasabi.Tests.RegressionTests
 			}
 			finally
 			{
-				if (chaumianClient1 != null)
+				if (chaumianClient1 is { })
 				{
 					await chaumianClient1.StopAsync(CancellationToken.None);
 				}
-				if (chaumianClient2 != null)
+				if (chaumianClient2 is { })
 				{
 					await chaumianClient2.StopAsync(CancellationToken.None);
 				}

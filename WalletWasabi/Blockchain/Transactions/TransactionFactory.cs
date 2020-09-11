@@ -72,7 +72,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			List<SmartCoin> allowedSmartCoinInputs = AllowUnconfirmed // Inputs that can be used to build the transaction.
 					? availableCoinsView.ToList()
 					: availableCoinsView.Confirmed().ToList();
-			if (allowedInputs != null) // If allowedInputs are specified then select the coins from them.
+			if (allowedInputs is { }) // If allowedInputs are specified then select the coins from them.
 			{
 				if (!allowedInputs.Any())
 				{
@@ -166,7 +166,7 @@ namespace WalletWasabi.Blockchain.Transactions
 					(label: t.Label,
 					destination: t.Destination,
 					amount: psbt.Outputs.FirstOrDefault(o => o.ScriptPubKey == t.Destination.ScriptPubKey)?.Value))
-				.Where(i => i.amount != null);
+				.Where(i => i.amount is { });
 
 			if (!psbt.TryGetFee(out var fee))
 			{

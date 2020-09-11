@@ -123,8 +123,8 @@
 //      var p = new OptionSet () {
 //        { "a", s => a = s },
 //      };
-//      p.Parse (new string[]{"-a"});   // sets v != null
-//      p.Parse (new string[]{"-a+"});  // sets v != null
+//      p.Parse (new string[]{"-a"});   // sets v is { }
+//      p.Parse (new string[]{"-a+"});  // sets v is { }
 //      p.Parse (new string[]{"-a-"});  // sets v is null
 //
 
@@ -208,7 +208,7 @@ namespace Mono.Options
 				throw new ArgumentNullException(nameof(Option));
 			}
 
-			if (item.Names != null && item.Names.Length > 0)
+			if (item.Names is { } && item.Names.Length > 0)
 			{
 				return item.Names[0];
 			}
@@ -492,7 +492,7 @@ namespace Mono.Options
 					Unprocessed(unprocessed, def, c, argument);
 				}
 			}
-			if (c.Option != null)
+			if (c.Option is { })
 			{
 				c.Option.Invoke(c);
 			}
@@ -590,7 +590,7 @@ namespace Mono.Options
 
 		protected virtual bool Parse(string argument, OptionContext c)
 		{
-			if (c.Option != null)
+			if (c.Option is { })
 			{
 				ParseValue(argument, c);
 				return true;
@@ -637,9 +637,9 @@ namespace Mono.Options
 
 		private void ParseValue(string option, OptionContext c)
 		{
-			if (option != null)
+			if (option is { })
 			{
-				foreach (string o in c.Option.ValueSeparators != null
+				foreach (string o in c.Option.ValueSeparators is { }
 						? option.Split(c.Option.ValueSeparators, c.Option.MaxValueCount - c.OptionValues.Count, StringSplitOptions.None)
 						: new string[] { option })
 				{
@@ -871,7 +871,7 @@ namespace Mono.Options
 					Write(o, ref written, MessageLocalizer("["));
 				}
 				Write(o, ref written, MessageLocalizer("=" + GetArgumentName(0, p.MaxValueCount, p.Description)));
-				string sep = p.ValueSeparators != null && p.ValueSeparators.Length > 0
+				string sep = p.ValueSeparators is { } && p.ValueSeparators.Length > 0
 					? p.ValueSeparators[0]
 					: " ";
 				for (int c = 1; c < p.MaxValueCount; ++c)

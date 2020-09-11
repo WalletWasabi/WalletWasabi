@@ -50,7 +50,7 @@ namespace WalletWasabi.WebClients.Wasabi
 		public async Task<SynchronizeResponse> GetSynchronizeAsync(uint256 bestKnownBlockHash, int count, EstimateSmartFeeMode? estimateMode = null, CancellationToken cancel = default)
 		{
 			string relativeUri = $"/api/v{ApiVersion}/btc/batch/synchronize?bestKnownBlockHash={bestKnownBlockHash}&maxNumberOfFilters={count}";
-			if (estimateMode != null)
+			if (estimateMode is { })
 			{
 				relativeUri = $"{relativeUri}&estimateSmartFeeMode={estimateMode}";
 			}

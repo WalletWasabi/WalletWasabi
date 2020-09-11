@@ -86,7 +86,7 @@ namespace NBitcoin.RPC
 			if (tryOtherFeeRates)
 			{
 				EstimateSmartFeeResponse response = await rpc.TryEstimateSmartFeeAsync(confirmationTarget, estimateMode);
-				if (response != null)
+				if (response is { })
 				{
 					return response;
 				}
@@ -96,7 +96,7 @@ namespace NBitcoin.RPC
 					for (int i = 2; i <= Constants.SevenDaysConfirmationTarget; i++)
 					{
 						response = await rpc.TryEstimateSmartFeeAsync(i, estimateMode);
-						if (response != null)
+						if (response is { })
 						{
 							return response;
 						}
@@ -286,7 +286,7 @@ namespace NBitcoin.RPC
 			{
 				// Go through all the txIds provided and getmempoolentry to get the dependents and the confirmation status.
 				var entry = await rpc.GetMempoolEntryAsync(txId, throwIfNotFound: false);
-				if (entry != null)
+				if (entry is { })
 				{
 					// If we asked to include the provided transaction hashes into the result then check which ones are confirmed and do so.
 					if (includingProvided)

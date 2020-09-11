@@ -206,7 +206,7 @@ namespace WalletWasabi.Tor
 						{
 							await Task.Delay(torMisbehaviorCheckPeriod, Stop.Token).ConfigureAwait(false);
 
-							if (TorHttpClient.TorDoesntWorkSince != null) // If Tor misbehaves.
+							if (TorHttpClient.TorDoesntWorkSince is { }) // If Tor misbehaves.
 							{
 								TimeSpan torMisbehavedFor = DateTimeOffset.UtcNow - TorHttpClient.TorDoesntWorkSince ?? TimeSpan.Zero;
 
