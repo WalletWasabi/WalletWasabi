@@ -118,10 +118,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 							try
 							{
 								// If we did not yet initialized syncInfo, do so.
-								if (syncInfo is null)
-								{
-									syncInfo = await GetSyncInfoAsync();
-								}
+								syncInfo ??= await GetSyncInfoAsync().ConfigureAwait(false);
 
 								uint currentHeight = 0;
 								uint256 currentHash = null;

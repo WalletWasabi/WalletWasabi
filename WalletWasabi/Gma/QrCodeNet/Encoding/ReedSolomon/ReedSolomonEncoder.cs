@@ -1,4 +1,5 @@
 using System;
+using WalletWasabi.Helpers;
 
 namespace Gma.QrCodeNet.Encoding.ReedSolomon
 {
@@ -14,10 +15,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		internal static byte[] Encode(byte[] dataBytes, int numECBytes, GeneratorPolynomial generatorPoly)
 		{
 			int dataLength = dataBytes.Length;
-			if (generatorPoly is null)
-			{
-				throw new ArgumentNullException("generator", $"{nameof(GeneratorPolynomial)} var is null.");
-			}
+			Guard.NotNull(nameof(generatorPoly), generatorPoly);
 
 			if (dataLength == 0)
 			{

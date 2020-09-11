@@ -136,10 +136,7 @@ namespace WalletWasabi.Stores
 						string line = null;
 						while (lineTask is { })
 						{
-							if (line is null)
-							{
-								line = await lineTask.ConfigureAwait(false);
-							}
+							line ??= await lineTask.ConfigureAwait(false);
 
 							lineTask = sr.EndOfStream ? null : sr.ReadLineAsync();
 
@@ -439,10 +436,7 @@ namespace WalletWasabi.Stores
 									break; // Let's use our the immature filters from here on. The content is the same, just someone else modified the file.
 								}
 
-								if (line is null)
-								{
-									line = await lineTask.ConfigureAwait(false);
-								}
+								line ??= await lineTask.ConfigureAwait(false);
 
 								lineTask = sr.EndOfStream ? null : sr.ReadLineAsync();
 

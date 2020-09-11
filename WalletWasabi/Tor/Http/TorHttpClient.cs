@@ -160,10 +160,7 @@ namespace WalletWasabi.Tor.Http
 
 		private static void SetTorNotWorkingState(Exception ex)
 		{
-			if (TorDoesntWorkSince is null)
-			{
-				TorDoesntWorkSince = DateTimeOffset.UtcNow;
-			}
+			TorDoesntWorkSince ??= DateTimeOffset.UtcNow;
 			LatestTorException = ex;
 		}
 
@@ -253,10 +250,7 @@ namespace WalletWasabi.Tor.Http
 					}
 					else
 					{
-						if (request.Content.Headers.ContentLength is null)
-						{
-							request.Content.Headers.ContentLength = (await request.Content.ReadAsStringAsync().ConfigureAwait(false)).Length;
-						}
+						request.Content.Headers.ContentLength ??= (await request.Content.ReadAsStringAsync().ConfigureAwait(false)).Length;
 					}
 				}
 			}

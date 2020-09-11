@@ -48,21 +48,7 @@ namespace WalletWasabi.Tor.Socks5
 
 		private EndPoint RemoteEndPoint { get; set; }
 
-		public bool IsConnected
-		{
-			get
-			{
-				try
-				{
-					return !(TcpClient is null) && TcpClient.Connected;
-				}
-				catch (Exception ex)
-				{
-					Logger.LogWarning(ex);
-					return false;
-				}
-			}
-		}
+		public bool IsConnected => TcpClient?.Connected is true;
 
 		internal AsyncLock AsyncLock { get; }
 

@@ -163,6 +163,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
+using WalletWasabi.Helpers;
 using MessageLocalizerConverter = System.Converter<string, string>;
 
 namespace Mono.Options
@@ -187,13 +188,10 @@ namespace Mono.Options
 		{
 			ArgumentSources = new ReadOnlyCollection<ArgumentSource>(Sources);
 			MessageLocalizer = localizer;
-			if (MessageLocalizer is null)
+			MessageLocalizer ??= delegate (string f)
 			{
-				MessageLocalizer = delegate (string f)
-				{
-					return f;
-				};
-			}
+				return f;
+			};
 		}
 
 		public MessageLocalizerConverter MessageLocalizer { get; set; }
@@ -203,10 +201,7 @@ namespace Mono.Options
 
 		protected override string GetKeyForItem(Option item)
 		{
-			if (item is null)
-			{
-				throw new ArgumentNullException(nameof(Option));
-			}
+			Guard.NotNull(nameof(item), item);
 
 			if (item.Names is { } && item.Names.Length > 0)
 			{
@@ -215,24 +210,6 @@ namespace Mono.Options
 			// This should never happen, as it's invalid for Option to be
 			// constructed w/o any names.
 			throw new InvalidOperationException($"{nameof(Option)} has no names!");
-		}
-
-		[Obsolete("Use KeyedCollection.this[string]")]
-		protected Option GetOptionForName(string option)
-		{
-			if (option is null)
-			{
-				throw new ArgumentNullException(nameof(option));
-			}
-
-			try
-			{
-				return base[option];
-			}
-			catch (KeyNotFoundException)
-			{
-				return null;
-			}
 		}
 
 		protected override void InsertItem(int index, Option item)
@@ -260,10 +237,7 @@ namespace Mono.Options
 
 		private void AddImpl(Option option)
 		{
-			if (option is null)
-			{
-				throw new ArgumentNullException(nameof(option));
-			}
+			Guard.NotNull(nameof(option), option);
 
 			List<string> added = new List<string>(option.Names.Length);
 			try
@@ -288,10 +262,7 @@ namespace Mono.Options
 
 		public OptionSet Add(string header)
 		{
-			if (header is null)
-			{
-				throw new ArgumentNullException(nameof(header));
-			}
+			Guard.NotNull(nameof(header), header);
 
 			Add(new Category(header));
 			return this;
@@ -352,10 +323,7 @@ namespace Mono.Options
 
 		public OptionSet Add(string prototype, string description, Action<string> action, bool hidden)
 		{
-			if (action is null)
-			{
-				throw new ArgumentNullException(nameof(action));
-			}
+			Guard.NotNull(nameof(action), action);
 
 			Option p = new ActionOption(prototype, description, 1,
 					delegate (OptionValueCollection v) { action(v[0]); }, hidden);
@@ -375,10 +343,7 @@ namespace Mono.Options
 
 		public OptionSet Add(string prototype, string description, OptionAction<string, string> action, bool hidden)
 		{
-			if (action is null)
-			{
-				throw new ArgumentNullException(nameof(action));
-			}
+			Guard.NotNull(nameof(action), action);
 
 			Option p = new ActionOption(prototype, description, 2,
 					delegate (OptionValueCollection v) { action(v[0], v[1]); }, hidden);
@@ -442,10 +407,7 @@ namespace Mono.Options
 
 		public OptionSet Add(ArgumentSource source)
 		{
-			if (source is null)
-			{
-				throw new ArgumentNullException(nameof(source));
-			}
+			Guard.NotNull(nameof(source), source);
 
 			Sources.Add(source);
 			return this;
@@ -458,10 +420,7 @@ namespace Mono.Options
 
 		public List<string> Parse(IEnumerable<string> arguments)
 		{
-			if (arguments is null)
-			{
-				throw new ArgumentNullException(nameof(arguments));
-			}
+			Guard.NotNull(nameof(arguments), arguments);
 
 			OptionContext c = CreateOptionContext();
 			c.OptionIndex = -1;
@@ -567,10 +526,7 @@ namespace Mono.Options
 
 		protected bool GetOptionParts(string argument, out string flag, out string name, out string sep, out string value)
 		{
-			if (argument is null)
-			{
-				throw new ArgumentNullException(nameof(argument));
-			}
+			Guard.NotNull(nameof(argument), argument);
 
 			flag = name = sep = value = null;
 			Match m = ValueOption.Match(argument);
