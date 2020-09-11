@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
@@ -63,7 +63,7 @@
                 </StackPanel>
               </ToolTip.Tip>
             </controls:ExtendedTextBox>
-            <StackPanel Opacity="{Binding FeeControlOpacity}">
+            <StackPanel IsEnabled ="{Binding IsEstimateAvailable}" Opacity="{Binding FeeControlOpacity}">
               <StackPanel IsVisible="{Binding !MinMaxFeeTargetsEqual}" Orientation="Horizontal" Spacing="10">
                 <TextBlock Text="Fee:" />
                 <Panel Height="10" Width="10">
