@@ -149,7 +149,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				Transactions = new ObservableCollection<TransactionViewModel>(trs);
 
-				if (Transactions.Count > 0 && !(rememberSelectedTransactionId is null))
+				if (Transactions.Count > 0 && rememberSelectedTransactionId is { })
 				{
 					var txToSelect = Transactions.FirstOrDefault(x => x.TransactionId == rememberSelectedTransactionId);
 					if (txToSelect is { })

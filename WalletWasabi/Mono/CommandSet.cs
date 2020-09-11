@@ -162,6 +162,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using MessageLocalizerConverter = System.Converter<string, string>;
 
 namespace Mono.Options
@@ -199,10 +200,7 @@ namespace Mono.Options
 
 		public new CommandSet Add(Command value)
 		{
-			if (value is null)
-			{
-				throw new ArgumentNullException(nameof(value));
-			}
+			Guard.NotNull(nameof(value), value);
 
 			AddCommand(value);
 			Options.Add(new CommandOption(value));
@@ -306,15 +304,9 @@ namespace Mono.Options
 
 		public CommandSet Add(CommandSet nestedCommands)
 		{
-			if (nestedCommands is null)
-			{
-				throw new ArgumentNullException(nameof(nestedCommands));
-			}
+			Guard.NotNull(nameof(nestedCommands), nestedCommands);
 
-			if (NestedCommandSets is null)
-			{
-				NestedCommandSets = new List<CommandSet>();
-			}
+			NestedCommandSets ??= new List<CommandSet>();
 
 			if (!AlreadyAdded(nestedCommands))
 			{
@@ -424,10 +416,7 @@ namespace Mono.Options
 
 		public async Task<int> RunAsync(IEnumerable<string> arguments)
 		{
-			if (arguments is null)
-			{
-				throw new ArgumentNullException(nameof(arguments));
-			}
+			Guard.NotNull(nameof(arguments), arguments);
 
 			ShowHelp = false;
 			if (Help is null)

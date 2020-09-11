@@ -103,10 +103,7 @@ namespace WalletWasabi.Io
 					string line = null;
 					while (lineTask is { })
 					{
-						if (line is null)
-						{
-							line = await lineTask.ConfigureAwait(false);
-						}
+						line ??= await lineTask.ConfigureAwait(false);
 
 						lineTask = sr.EndOfStream ? null : sr.ReadLineAsync();
 

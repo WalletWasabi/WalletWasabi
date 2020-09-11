@@ -145,12 +145,7 @@ namespace WalletWasabi.Helpers
 				}
 			}
 
-			if (resultException is null) // This mustn't be null.
-			{
-				throw new InvalidOperationException();
-			}
-
-			throw resultException; // Throw the last exception - Invalid password.
+			throw resultException ?? new InvalidOperationException(); // Throw the last exception - Invalid password.
 		}
 
 		public static void ValidatePassword(IValidationErrors errors, string password)

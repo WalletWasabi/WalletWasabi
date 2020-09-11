@@ -1020,23 +1020,14 @@ namespace WalletWasabi.Tests.RegressionTests
 				coinjoinRequests.Add(user.aliceClient.GetUnsignedCoinJoinAsync());
 			}
 
-			Transaction unsignedCoinJoin = null;
-			foreach (var request in coinjoinRequests)
-			{
-				if (unsignedCoinJoin is null)
-				{
-					unsignedCoinJoin = await request;
-				}
-				else
-				{
-					Assert.Equal(unsignedCoinJoin.ToHex(), (await request).ToHex());
-				}
-			}
+			var unsignedCoinJoin = await coinjoinRequests.First();
+			var unsignedCoinJoinHex = unsignedCoinJoin.ToHex();
+			Assert.All(coinjoinRequests, async x => Assert.Equal(unsignedCoinJoinHex, (await x).ToHex()));
 
 			var signatureRequests = new List<Task>();
 			foreach (var user in users)
 			{
-				var partSignedCj = Transaction.Parse(unsignedCoinJoin.ToHex(), network);
+				var partSignedCj = Transaction.Parse(unsignedCoinJoinHex, network);
 				partSignedCj.Sign(
 					user.userInputData.Select(x => x.key.GetBitcoinSecret(network)),
 					user.userInputData.Select(x => new Coin(x.tx, x.input.N)));

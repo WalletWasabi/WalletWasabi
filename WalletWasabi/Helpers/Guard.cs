@@ -27,13 +27,7 @@ namespace WalletWasabi.Helpers
 		public static T NotNull<T>(string parameterName, T value)
 		{
 			AssertCorrectParameterName(parameterName);
-
-			if (value is null)
-			{
-				throw new ArgumentNullException(parameterName, "Parameter cannot be null.");
-			}
-
-			return value;
+			return value ?? throw new ArgumentNullException(parameterName, "Parameter cannot be null.");
 		}
 
 		private static void AssertCorrectParameterName(string parameterName)
