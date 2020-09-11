@@ -6,6 +6,7 @@ using System.Text;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.StrobeProtocol;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge
 {
@@ -60,7 +61,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 
 		public void CommitStatement(LinearRelation.Statement statement)
 		{
-			//CryptoGuard.NotNullOrInfinity(nameof(statement.Generators), statement.Generators);
+			Guard.NotNull(nameof(statement.Generators), statement.Generators);
 			CryptoGuard.NotNullOrInfinity(nameof(statement.PublicPoints), statement.PublicPoints);
 			AddMessages(StatementTag, statement.PublicPoints.Select(x => x.ToBytes()).Concat(statement.Generators.Select(x => x.ToBytes())));
  		}

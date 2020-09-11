@@ -33,14 +33,14 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var t = rnd.GetScalar();
 			var mac = MAC.ComputeMAC(coordinatorKey, Ma, t);
 
-			var coordinatorStatement = ProofSystem.CreateStatement(coordinatorParameters.Cw, coordinatorParameters.I, mac.V, MAC.GenerateU(t), Ma, t);
-			var proverBuilder = ProofSystem.CreateProver(coordinatorStatement.ToKnowledge(coordinatorKey.GetWitness(t)));
+			var coordinatorStatement = ProofSystem.CreateStatement(coordinatorParameters, mac.V, Ma, t);
+			var proverBuilder = ProofSystem.CreateProver(coordinatorStatement, coordinatorKey);
 			var macProver = proverBuilder(rnd);
 			var proofOfMac = macProver();
 
 			// The client receives the MAC and the proofOfMac which let the client know that the MAC 
 			// was generated with the coordinator's secret key.
-			var clientStatement = ProofSystem.CreateStatement(coordinatorParameters.Cw, coordinatorParameters.I, mac.V, MAC.GenerateU(mac.T), Ma, mac.T);
+			var clientStatement = ProofSystem.CreateStatement(coordinatorParameters, mac.V, Ma, mac.T);
 			var verifierBuilder = ProofSystem.CreateVerifier(clientStatement);
 			var macVerifier = verifierBuilder(proofOfMac);
 			var isValidProof = macVerifier();
