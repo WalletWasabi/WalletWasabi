@@ -43,7 +43,7 @@ namespace WalletWasabi.Crypto
 				var R = rECPubKey.Q.ToGroupElementJacobian();
 				var t = FE.Zero;
 
-				retry:
+			retry:
 
 				RandomUtils.GetBytes(tmp);
 				_v = new Scalar(tmp, out int overflow);
@@ -82,8 +82,8 @@ namespace WalletWasabi.Crypto
 					goto retry;
 				}
 
-				var cp = _c.Add(_w.Negate(), out overflow); // this is sent to the signer (blinded message)
-				if (cp.IsZero || overflow != 0)
+				var cp = _c + _w.Negate(); // this is sent to the signer (blinded message)
+				if (cp.IsZero)
 				{
 					goto retry;
 				}
