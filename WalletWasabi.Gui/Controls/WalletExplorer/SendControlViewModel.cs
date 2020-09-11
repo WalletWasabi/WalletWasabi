@@ -29,6 +29,7 @@ using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
@@ -62,9 +63,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableAsPropertyHelper<bool> _isEstimateAvailabe;
 
 		private const string WaitingForHardwareWalletButtonTextString = "Waiting for Hardware Wallet...";
-
-		private static readonly decimal MinRelayTxFeeRate = 1m;
-		private static readonly decimal AbsurdlyHighFeeRate = ((decimal)Constants.MaximumNumberOfSatoshis) / 1000;
 
 		private FeeDisplayFormat _feeDisplayFormat;
 		private bool _isSliderFeeUsed = true;
@@ -119,37 +117,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			AmountKeyUpCommand = ReactiveCommand.Create((KeyEventArgs key) =>
 			{
-				var amount = AmountText;
 				if (IsMax)
 				{
 					SetFeesAndTexts();
 				}
-				else
+				else if (BitcoinInput.TryCorrectAmount(AmountText, out var betterAmount))
 				{
-					// Correct amount
-					Regex digitsOnly = new Regex(@"[^\d,.]");
-					string betterAmount = digitsOnly.Replace(amount, ""); // Make it digits , and . only.
-
-					betterAmount = betterAmount.Replace(',', '.');
-					int countBetterAmount = betterAmount.Count(x => x == '.');
-					if (countBetterAmount > 1) // Do not enable typing two dots.
-					{
-						var index = betterAmount.IndexOf('.', betterAmount.IndexOf('.') + 1);
-						if (index > 0)
-						{
-							betterAmount = betterAmount.Substring(0, index);
-						}
-					}
-					var dotIndex = betterAmount.IndexOf('.');
-					if (dotIndex != -1 && betterAmount.Length - dotIndex > 8) // Enable max 8 decimals.
-					{
-						betterAmount = betterAmount.Substring(0, dotIndex + 1 + 8);
-					}
-
-					if (betterAmount != amount)
-					{
-						AmountText = betterAmount;
-					}
+					AmountText = betterAmount;
 				}
 			});
 
@@ -702,7 +676,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				// In decimal ',' means order of magnitude.
 				// User could think it is decimal point but 3,5 means 35 Satoshi.
 				// For this reason we treat ',' as an invalid character.
-				if (TryParseUserFee(UserFeeText, out decimal userFee))
+				if (BitcoinInput.TryParseSatoshiFeeText(UserFeeText, out decimal userFee))
 				{
 					FeeRate = new FeeRate(userFee);
 
@@ -845,15 +819,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		public static bool TryParseUserFee(string feeText, out decimal userFee)
-			=> decimal.TryParse(feeText?.Trim(), NumberStyles.AllowDecimalPoint, new CultureInfo("en-US"), out userFee)
-			&& userFee >= MinRelayTxFeeRate
-			&& userFee < AbsurdlyHighFeeRate
-			&& new FeeRate(userFee) is var _;
-
 		private void ValidateUserFeeText(IValidationErrors errors)
 		{
-			if (!TryParseUserFee(UserFeeText, out _))
+			if (!BitcoinInput.TryParseSatoshiFeeText(UserFeeText, out _))
 			{
 				errors.Add(ErrorSeverity.Error, "Invalid fee.");
 			}

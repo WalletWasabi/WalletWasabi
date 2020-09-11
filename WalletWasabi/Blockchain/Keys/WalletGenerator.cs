@@ -2,8 +2,8 @@ using NBitcoin;
 using System;
 using System.IO;
 using System.Linq;
-using WalletWasabi.Helpers;
 using WalletWasabi.Models;
+using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Blockchain.Keys
 {

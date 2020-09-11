@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace WalletWasabi.Helpers
+namespace WalletWasabi.Userfacing
 {
 	public static class PasswordConsole
 	{

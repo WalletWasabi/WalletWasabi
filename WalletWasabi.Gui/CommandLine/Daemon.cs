@@ -5,8 +5,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.CommandLine

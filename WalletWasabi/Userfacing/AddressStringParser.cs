@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
-namespace WalletWasabi.Helpers
+namespace WalletWasabi.Userfacing
 {
 	public static class AddressStringParser
 	{

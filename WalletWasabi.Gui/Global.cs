@@ -41,6 +41,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tor;
+using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui

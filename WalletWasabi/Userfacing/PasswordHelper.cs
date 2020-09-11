@@ -9,7 +9,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Blockchain.Keys;
 
-namespace WalletWasabi.Helpers
+namespace WalletWasabi.Userfacing
 {
 	public static class PasswordHelper
 	{
