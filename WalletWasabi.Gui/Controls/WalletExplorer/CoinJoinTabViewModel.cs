@@ -426,9 +426,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return; // Otherwise NullReferenceException at shutdown.
 			}
 
-			if (registrableRound is null && RequiredBTC is null)
+			if (registrableRound is null)
 			{
-				RequiredBTC = Money.Zero;
+				RequiredBTC ??= Money.Zero;
 			}
 			else
 			{
