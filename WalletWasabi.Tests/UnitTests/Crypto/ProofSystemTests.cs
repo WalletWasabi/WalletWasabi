@@ -47,5 +47,31 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			Assert.True(isValidProof);
 		}
+
+		[Fact]
+		[Trait("UnitTest", "UnitTest")]
+		public void CanProveAndVerifyNULL()
+		{
+			// The client wants to request a zero amount credential and it needs to prove
+			// that the bliended amount is indeed zero.  
+			var rnd = new SecureRandom();
+			var amount = Scalar.Zero;
+			var blindingFactor = rnd.GetScalar();
+			var Ma = amount * Generators.Gg + blindingFactor * Generators.Gh;
+
+			var clientStatement = ProofSystem.CreateStatement(Ma, Generators.Gh);
+			var proverBuilder = ProofSystem.CreateProver(clientStatement, blindingFactor);
+			var nullProver = proverBuilder(rnd);
+			var proofOfNull = nullProver();
+
+
+			// The coordinator must verify the blinded amout is zero
+			var coordinatorStatement = ProofSystem.CreateStatement(Ma, Generators.Gh);
+			var verifierBuilder = ProofSystem.CreateVerifier(coordinatorStatement);
+			var nullVerifier = verifierBuilder(proofOfNull);
+			var isValidProof = nullVerifier();
+
+			Assert.True(isValidProof);
+		}
 	}
 }

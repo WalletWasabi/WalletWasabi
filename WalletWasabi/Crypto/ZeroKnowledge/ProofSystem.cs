@@ -11,6 +11,9 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		private static GroupElement Inf = GroupElement.Infinity;
 		private static Transcript Transcript => new Transcript(Encoding.UTF8.GetBytes("proof-of-parameters"));
 
+		public static LinearRelation.Statement CreateStatement(GroupElement publicPoint, params GroupElement[] generator) =>
+			new LinearRelation.Statement(new Equation(publicPoint, new GroupElementVector(generator)));
+
 		public static LinearRelation.Statement CreateStatement(CoordinatorParameters coordinatorParameters, GroupElement V, GroupElement Ma, Scalar t) =>
 			new LinearRelation.Statement(
 				new GroupElementVector(coordinatorParameters.Cw, Generators.GV - coordinatorParameters.I, V)
@@ -20,7 +23,13 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			new NonInteractive.FiatShamirTransform.Verifier(statement).CommitToStatements(Transcript);
 
 		public static NonInteractive.FiatShamirTransform.ProverCommitToNonces CreateProver(LinearRelation.Statement statement, CoordinatorSecretKey coordinatorSecretKey) =>
-			new NonInteractive.FiatShamirTransform.Prover(statement.ToKnowledge(coordinatorSecretKey)).CommitToStatements(Transcript);
+			CreateProver(statement, coordinatorSecretKey.ToScalarVector());
+
+		public static NonInteractive.FiatShamirTransform.ProverCommitToNonces CreateProver(LinearRelation.Statement statement, params Scalar[] witness) =>
+			CreateProver(statement, new ScalarVector(witness));
+
+		public static NonInteractive.FiatShamirTransform.ProverCommitToNonces CreateProver(LinearRelation.Statement statement, ScalarVector witness) =>
+			new NonInteractive.FiatShamirTransform.Prover(statement.ToKnowledge(witness)).CommitToStatements(Transcript);
 
 		private static GroupElementVector[] ProofOfParametersGenerators(GroupElement U, GroupElement Ma, Scalar t) =>
 			new GroupElementVector[]
@@ -31,12 +40,12 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				new GroupElementVector( Generators.Gw, Inf, U, t * U, Ma )
 			};
 
-		private static LinearRelation.Knowledge ToKnowledge(this LinearRelation.Statement statement, CoordinatorSecretKey coordinatorSecretKey) =>
-			statement.ToKnowledge(new ScalarVector(
+		private static ScalarVector ToScalarVector(this CoordinatorSecretKey coordinatorSecretKey) =>
+			new ScalarVector(
 				coordinatorSecretKey.W,
 				coordinatorSecretKey.Wp,
 				coordinatorSecretKey.X0,
 				coordinatorSecretKey.X1,
-				coordinatorSecretKey.Ya));
+				coordinatorSecretKey.Ya);
 	}
 }
