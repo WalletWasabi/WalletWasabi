@@ -69,6 +69,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private FeeDisplayFormat _feeDisplayFormat;
 		private bool _isSliderFeeUsed = true;
 		private double _feeControlOpacity;
+		private string _amountWaterMarkText;
 
 		protected SendControlViewModel(Wallet wallet, string title)
 			: base(title)
@@ -100,18 +101,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
 			SetFeesAndTexts();
 
-			this.WhenAnyValue(x => x.AmountText).Select(_ => Unit.Default)
-				.Merge(Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Select(_ => Unit.Default))
+			this.WhenAnyValue(x => x.AmountText)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
+				.Subscribe(x =>
 				{
-					if (Money.TryParse(AmountText.TrimStart('~', ' '), out Money amountBtc))
+					if (Money.TryParse(x.TrimStart('~', ' '), out Money amountBtc))
 					{
-						AmountTip = amountBtc.ToUsdString(Wallet.Synchronizer.UsdExchangeRate, lurkingWifeMode: false);
+						SetAmountWatermark(amountBtc);
 					}
 					else
 					{
-						AmountTip = "0 USD";
+						SetAmountWatermark(Money.Zero);
 					}
 
 					SetFees();
@@ -591,6 +591,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _amountTip, value);
 		}
 
+		public string AmountWatermarkText
+		{
+			get => _amountWaterMarkText;
+			set => this.RaiseAndSetIfChanged(ref _amountWaterMarkText, value);
+		}
+
 		public bool IsCustomChangeAddressVisible => Global.UiConfig.IsCustomChangeAddress && !IsMax;
 
 		public ReactiveCommand<Unit, Unit> BuildTransactionCommand { get; }
@@ -608,6 +614,30 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<bool, Unit> HighLightFeeSliderCommand { get; }
 
 		public ReactiveCommand<KeyEventArgs, Unit> AmountKeyUpCommand { get; }
+
+		private void SetAmountWatermark(Money amount)
+		{
+			if (amount == Money.Zero)
+			{
+				AmountWatermarkText = "Amount (BTC)";
+			}
+			else
+			{
+				long amountUsd = 0;
+				try
+				{
+					amountUsd = (long)amount.ToUsd(UsdExchangeRate);
+				}
+				catch (OverflowException ex)
+				{
+					Logger.LogTrace(ex);
+				}
+
+				AmountWatermarkText = amountUsd != 0
+					? $"Amount (BTC) ~ ${amountUsd}"
+					: "Amount (BTC)";
+			}
+		}
 
 		protected virtual void ResetUi()
 		{

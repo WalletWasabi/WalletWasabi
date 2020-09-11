@@ -51,17 +51,12 @@
               Foreground="{Binding AmountText, Converter={StaticResource AmountForegroundConverter}}"
               IsReadOnly="{Binding IsMax}"
               Text="{Binding AmountText, Mode=TwoWay}"
-              Watermark="Amount (BTC)"
+              Watermark="{Binding AmountWatermarkText}"
               UseFloatingWatermark="True"
               MinWidth="124">
               <i:Interaction.Behaviors>
                 <behaviors:CommandOnKeyUpBehavior Command="{Binding AmountKeyUpCommand}" />
               </i:Interaction.Behaviors>
-              <ToolTip.Tip>
-                <StackPanel>
-                  <TextBlock Foreground="White" Text="{Binding AmountTip}" />
-                </StackPanel>
-              </ToolTip.Tip>
             </controls:ExtendedTextBox>
             <StackPanel IsEnabled ="{Binding IsEstimateAvailable}" Opacity="{Binding FeeControlOpacity}">
               <StackPanel IsVisible="{Binding !MinMaxFeeTargetsEqual}" Orientation="Horizontal" Spacing="10">
