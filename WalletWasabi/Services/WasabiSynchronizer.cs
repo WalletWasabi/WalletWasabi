@@ -16,11 +16,11 @@ using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
-using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
+using WalletWasabi.Tor.Exceptions;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
