@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Interfaces;
+using WalletWasabi.Tor.Http.Extensions;
 
 namespace WalletWasabi.WebClients.ItBit
 {

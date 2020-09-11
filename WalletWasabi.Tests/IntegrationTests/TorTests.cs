@@ -6,7 +6,8 @@ using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.XunitConfiguration;
-using WalletWasabi.TorSocks5;
+using WalletWasabi.Tor;
+using WalletWasabi.Tor.Http;
 using Xunit;
 
 namespace WalletWasabi.Tests.IntegrationTests
