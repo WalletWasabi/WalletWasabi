@@ -14,7 +14,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Exceptions;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models.StatusBarStatuses;
@@ -24,6 +23,7 @@ using WalletWasabi.Legal;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
+using WalletWasabi.Tor.Exceptions;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
