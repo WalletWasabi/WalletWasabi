@@ -18,10 +18,10 @@ namespace WalletWasabi.Gui.CommandLine
 				"",
 				"Start mixing without the GUI with the specified wallet.",
 				"eg: ./wassabee mix --wallet:MyWalletName --keepalive",
-				{ "h|help", "Displays help page and exit.", x => ShowHelp = x != null },
+				{ "h|help", "Displays help page and exit.", x => ShowHelp = x is { } },
 				{ "w|wallet=", "The name of the wallet file.", x => WalletName = x },
 				{ "destination=", "The name of the destination wallet file.", x => DestinationWalletName = x },
-				{ "keepalive", "Do not exit the software after mixing has been finished, rather keep mixing when new money arrives.", x => KeepMixAlive = x != null }
+				{ "keepalive", "Do not exit the software after mixing has been finished, rather keep mixing when new money arrives.", x => KeepMixAlive = x is { } }
 			};
 		}
 

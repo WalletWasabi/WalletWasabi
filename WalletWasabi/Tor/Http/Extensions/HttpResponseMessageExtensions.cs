@@ -49,7 +49,7 @@ namespace WalletWasabi.Tor.Http.Extensions
 			response.Content = contentBytes is null ? null : new ByteArrayContent(contentBytes);
 
 			HttpMessageHelper.CopyHeaders(headerStruct.ResponseHeaders, response.Headers);
-			if (response.Content != null)
+			if (response.Content is { })
 			{
 				HttpMessageHelper.CopyHeaders(headerStruct.ContentHeaders, response.Content.Headers);
 			}
@@ -73,7 +73,7 @@ namespace WalletWasabi.Tor.Http.Extensions
 			}
 
 			var messageBody = "";
-			if (me.Content != null)
+			if (me.Content is { })
 			{
 				if (me.Content.Headers.NotNullAndNotEmpty())
 				{

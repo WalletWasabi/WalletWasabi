@@ -132,7 +132,7 @@ namespace WalletWasabi.Helpers
 					ExtKey result = keyManager.GetMasterExtKey(pw);
 
 					// Now the password is OK but if we had SecurityException before then we used a compatibility password.
-					if (resultException != null)
+					if (resultException is { })
 					{
 						compatiblityPassword = pw;
 						Logger.LogError(CompatibilityPasswordWarnMessage);

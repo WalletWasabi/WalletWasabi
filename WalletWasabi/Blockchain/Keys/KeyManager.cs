@@ -115,7 +115,7 @@ namespace WalletWasabi.Blockchain.Keys
 
 		public bool IsWatchOnly => EncryptedSecret is null;
 
-		public bool IsHardwareWallet => EncryptedSecret is null && MasterFingerprint != null;
+		public bool IsHardwareWallet => EncryptedSecret is null && MasterFingerprint is { };
 
 		[JsonProperty(Order = 8)]
 		private BlockchainState BlockchainState { get; }
@@ -794,7 +794,7 @@ namespace WalletWasabi.Blockchain.Keys
 					BlockchainState.Height = 0;
 					ToFileNoBlockchainStateLock();
 
-					if (lastNetwork != null)
+					if (lastNetwork is { })
 					{
 						Logger.LogWarning($"Wallet is opened on {expectedNetwork}. Last time it was opened on {lastNetwork}.");
 					}

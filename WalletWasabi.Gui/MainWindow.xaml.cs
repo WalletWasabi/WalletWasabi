@@ -102,7 +102,7 @@ namespace WalletWasabi.Gui
 				{
 					try
 					{
-						if (Global.UiConfig != null) // UiConfig not yet loaded.
+						if (Global.UiConfig is { }) // UiConfig not yet loaded.
 						{
 							Global.UiConfig.WindowState = WindowState;
 

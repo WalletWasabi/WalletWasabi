@@ -61,7 +61,7 @@ namespace WalletWasabi.Tor.Http
 		public Uri DestinationUri => DestinationUriAction();
 		public Func<Uri> DestinationUriAction { get; private set; }
 		public EndPoint TorSocks5EndPoint { get; private set; }
-		public bool IsTorUsed => TorSocks5EndPoint != null;
+		public bool IsTorUsed => TorSocks5EndPoint is { };
 
 		public bool IsolateStream { get; private set; }
 
@@ -86,7 +86,7 @@ namespace WalletWasabi.Tor.Http
 			relativeUri = Guard.NotNull(nameof(relativeUri), relativeUri);
 			var requestUri = new Uri(DestinationUri, relativeUri);
 			using var request = new HttpRequestMessage(method, requestUri);
-			if (content != null)
+			if (content is { })
 			{
 				request.Content = content;
 			}
@@ -184,7 +184,7 @@ namespace WalletWasabi.Tor.Http
 			// in forwarded messages.
 			request.Version = HttpProtocol.HTTP11.Version;
 
-			if (TorSocks5Client != null && !TorSocks5Client.IsConnected)
+			if (TorSocks5Client is { } && !TorSocks5Client.IsConnected)
 			{
 				TorSocks5Client?.Dispose();
 				TorSocks5Client = null;

@@ -818,7 +818,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 				FeeRate optimalFeeRate = estimateSmartFeeResponse.FeeRate;
 
-				if (optimalFeeRate != null && optimalFeeRate != FeeRate.Zero && currentFeeRate != null && currentFeeRate != FeeRate.Zero) // This would be really strange if it'd happen.
+				if (optimalFeeRate is { } && optimalFeeRate != FeeRate.Zero && currentFeeRate is { } && currentFeeRate != FeeRate.Zero) // This would be really strange if it'd happen.
 				{
 					var sanityFeeRate = new FeeRate(2m); // 2 s/b
 					optimalFeeRate = optimalFeeRate < sanityFeeRate ? sanityFeeRate : optimalFeeRate;
@@ -1090,7 +1090,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				}
 
 				Alice alice = Alices.SingleOrDefault(x => x.UniqueId == uniqueId);
-				foundAlice = alice != default(Alice);
+				foundAlice = alice is { };
 				if (foundAlice)
 				{
 					alice.LastSeen = started;
@@ -1110,7 +1110,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 						if (Status == CoordinatorRoundStatus.Running && Phase == RoundPhase.InputRegistration)
 						{
 							Alice alice = Alices.SingleOrDefault(x => x.UniqueId == uniqueId);
-							if (alice != default(Alice))
+							if (alice is { })
 							{
 								// 4. If LastSeen is not changed by then, remove Alice.
 								// But only if Alice didn't get blind sig yet.
