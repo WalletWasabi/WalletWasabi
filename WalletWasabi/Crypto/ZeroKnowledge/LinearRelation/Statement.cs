@@ -37,6 +37,9 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 		public IEnumerable<GroupElement> Generators =>
 			Equations.SelectMany(x => x.Generators);
 
+		public Knowledge ToKnowledge(ScalarVector witness) =>
+			new Knowledge(this, witness);
+
 		public bool CheckVerificationEquation(GroupElementVector publicNonces, Scalar challenge, IEnumerable<ScalarVector> allResponses)
 		{
 			// The responses matrix should match the generators in the equations and
