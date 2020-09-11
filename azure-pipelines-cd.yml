@@ -1,0 +1,29 @@
+trigger:
+  batch: true
+  branches:
+    include:
+      - master
+
+jobs:
+- job: CDelivery
+  pool:
+    vmImage: 'windows-latest'
+  steps:
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core 3'
+    inputs:
+      version: 3.1.x
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'run'
+      projects: '**/WalletWasabi.Packager.csproj'
+      arguments: '--cdelivery'
+  - task: CopyFiles@2
+    inputs:
+      SourceFolder: 'WalletWasabi.Gui/bin/dist/cdelivery/'
+      contents: '**'
+      targetFolder: $(Build.ArtifactStagingDirectory)
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathToPublish: $(Build.ArtifactStagingDirectory)
+      artifactName: WasabiBuildOutputs

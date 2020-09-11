@@ -16,7 +16,7 @@ using WalletWasabi.Interfaces;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.TorSocks5;
+using WalletWasabi.Tor;
 
 namespace WalletWasabi.Gui
 {

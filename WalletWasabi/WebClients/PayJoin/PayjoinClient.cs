@@ -13,7 +13,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Helpers;
-using WalletWasabi.TorSocks5;
+using WalletWasabi.Tor.Http;
+using WalletWasabi.Tor.Http.Interfaces;
 
 namespace WalletWasabi.WebClients.PayJoin
 {
@@ -63,7 +64,7 @@ namespace WalletWasabi.WebClients.PayJoin
 
 			var originalFee = originalTx.GetFee();
 			// By default, we want to keep same fee rate and a single additional input
-			optionalParameters.MaxAdditionalFeeContribution = originalFeeRate.GetFee(Constants.P2wpkhInputVirtualSize);
+			optionalParameters.MaxAdditionalFeeContribution = originalFeeRate.GetFee(Helpers.Constants.P2wpkhInputVirtualSize);
 			optionalParameters.DisableOutputSubstitution = false;
 
 			var sentBefore = -originalTx.GetBalance(ScriptPubKeyType.Segwit, accountKey, rootedKeyPath);

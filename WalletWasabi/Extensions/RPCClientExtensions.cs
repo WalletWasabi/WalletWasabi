@@ -188,7 +188,7 @@ namespace NBitcoin.RPC
 				var largeTargetFeeResult = await rpc.EstimateSmartFeeAsync(largeTarget, estimateMode, simulateIfRegTest, tolerateBitcoinCoreBrainfuck);
 				largeTargetFee = (int)Math.Ceiling(largeTargetFeeResult.FeeRate.SatoshiPerByte);
 
-				// Blocks should be never larger than the target that we asked for, so it's just a sanity check.
+				// Blocks should never be larger than the target that we asked for, so it's just a sanity check.
 				largeTarget = Math.Min(largeTarget, largeTargetFeeResult.Blocks);
 				newEstimations.TryAdd(largeTarget, largeTargetFee);
 			}
@@ -197,7 +197,7 @@ namespace NBitcoin.RPC
 			var halfFeeResult = await rpc.EstimateSmartFeeAsync(halfTarget, estimateMode, simulateIfRegTest, tolerateBitcoinCoreBrainfuck);
 			int halfTargetFee = (int)Math.Ceiling(halfFeeResult.FeeRate.SatoshiPerByte);
 
-			// Blocks should be never larger than the target that we asked for, so it's just a sanity check.
+			// Blocks should never be larger than the target that we asked for, so it's just a sanity check.
 			halfTarget = Math.Min(halfTarget, halfFeeResult.Blocks);
 			newEstimations.TryAdd(halfTarget, halfTargetFee);
 
