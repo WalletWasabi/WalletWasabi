@@ -17,6 +17,8 @@ namespace WalletWasabi.Tests.UnitTests
 		[InlineData("0", false, null)]
 		[InlineData("0.", false, null)]
 		[InlineData(".1", false, null)]
+		[InlineData(".", false, null)]
+		[InlineData(",", true, ".")]
 		[InlineData("20999999", false, null)]
 		[InlineData("2.1", false, null)]
 		[InlineData("1.11111111", false, null)]
