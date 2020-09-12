@@ -39,7 +39,7 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public async Task CorrestWalletDirectoryNameAsync()
+		public async Task CorrectWalletDirectoryNameAsync()
 		{
 			var baseDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName(), EnvironmentHelpers.GetMethodName());
 			(string walletsPath, string walletsBackupPath) = await CleanupWalletDirectoriesAsync(baseDir);

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using WalletWasabi.Helpers;
 
 namespace Nito.Collections
 {
@@ -8,10 +9,7 @@ namespace Nito.Collections
 	{
 		public static IReadOnlyCollection<T> ReifyCollection<T>(IEnumerable<T> source)
 		{
-			if (source is null)
-			{
-				throw new ArgumentNullException(nameof(source));
-			}
+			Guard.NotNull(nameof(source), source);
 
 			if (source is IReadOnlyCollection<T> result)
 			{

@@ -303,7 +303,7 @@ namespace WalletWasabi.Hwi
 		{
 			var options = new List<HwiOption>();
 
-			var hasDevicePath = devicePath != null;
+			var hasDevicePath = devicePath is { };
 			var hasDeviceType = deviceType.HasValue;
 			var hasFingerprint = fingerprint.HasValue;
 

@@ -132,7 +132,7 @@ namespace WalletWasabi.Helpers
 					ExtKey result = keyManager.GetMasterExtKey(pw);
 
 					// Now the password is OK but if we had SecurityException before then we used a compatibility password.
-					if (resultException != null)
+					if (resultException is { })
 					{
 						compatiblityPassword = pw;
 						Logger.LogError(CompatibilityPasswordWarnMessage);
@@ -145,12 +145,7 @@ namespace WalletWasabi.Helpers
 				}
 			}
 
-			if (resultException is null) // This mustn't be null.
-			{
-				throw new InvalidOperationException();
-			}
-
-			throw resultException; // Throw the last exception - Invalid password.
+			throw resultException ?? new InvalidOperationException(); // Throw the last exception - Invalid password.
 		}
 
 		public static void ValidatePassword(IValidationErrors errors, string password)

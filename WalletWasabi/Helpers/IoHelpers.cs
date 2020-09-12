@@ -17,10 +17,7 @@ namespace System.IO
 		/// <see href="https://stackoverflow.com/questions/329355/cannot-delete-directory-with-directory-deletepath-true/14933880#44324346"/>
 		public static async Task<bool> TryDeleteDirectoryAsync(string directory, int maxRetries = 10, int millisecondsDelay = 100)
 		{
-			if (directory is null)
-			{
-				throw new ArgumentNullException(directory);
-			}
+			Guard.NotNull(nameof(directory), directory);
 
 			if (maxRetries < 1)
 			{
@@ -67,7 +64,7 @@ namespace System.IO
 			}
 			catch (UnauthorizedAccessException)
 			{
-				await Task.Delay(100);
+				await Task.Delay(100).ConfigureAwait(false);
 				ZipFile.ExtractToDirectory(src, dest);
 			}
 		}

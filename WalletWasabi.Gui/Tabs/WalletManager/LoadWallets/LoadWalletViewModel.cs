@@ -164,7 +164,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 					if (PasswordHelper.TryPassword(keyManager, password, out string? compatibilityPasswordUsed))
 					{
 						NotificationHelpers.Success("Correct password.");
-						if (compatibilityPasswordUsed != null)
+						if (compatibilityPasswordUsed is { })
 						{
 							NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
 						}

@@ -35,7 +35,7 @@ namespace WalletWasabi.Gui.CommandLine
 				string? compatibilityPassword = null;
 				do
 				{
-					if (password != null)
+					if (password is { })
 					{
 						if (count > 0)
 						{
@@ -62,7 +62,7 @@ namespace WalletWasabi.Gui.CommandLine
 				}
 				while (!PasswordHelper.TryPassword(keyManager, password, out compatibilityPassword));
 
-				if (compatibilityPassword != null)
+				if (compatibilityPassword is { })
 				{
 					password = compatibilityPassword;
 					Logger.LogInfo(PasswordHelper.CompatibilityPasswordWarnMessage);
