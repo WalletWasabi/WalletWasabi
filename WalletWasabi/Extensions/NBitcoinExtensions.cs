@@ -144,7 +144,7 @@ namespace NBitcoin
 		{
 			Guard.NotNull(nameof(me), me);
 
-			bool notNull = !(me.WitScript is null);
+			bool notNull = me.WitScript is { };
 			bool notEmpty = me.WitScript != WitScript.Empty;
 			return notNull && notEmpty;
 		}
@@ -171,7 +171,7 @@ namespace NBitcoin
 		public static void AddWithOptimize(this TxOutList me, Money money, Script scriptPubKey)
 		{
 			TxOut found = me.FirstOrDefault(x => x.ScriptPubKey == scriptPubKey);
-			if (found != null)
+			if (found is { })
 			{
 				found.Value += money;
 			}

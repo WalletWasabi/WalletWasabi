@@ -10,7 +10,7 @@ using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.XunitConfiguration;
-using WalletWasabi.TorSocks5;
+using WalletWasabi.Tor;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 

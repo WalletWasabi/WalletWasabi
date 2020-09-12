@@ -26,7 +26,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			BitList dataCodewords = new BitList();
 
 			// Eci header
-			if (vcStruct.IsContainECI && !(vcStruct.ECIHeader is null))
+			if (vcStruct.IsContainECI && vcStruct.ECIHeader is { })
 			{
 				dataCodewords.Add(vcStruct.ECIHeader);
 			}

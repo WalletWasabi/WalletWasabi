@@ -41,12 +41,12 @@ namespace WalletWasabi.Gui.Suggestions
 					}
 					else if (e.Key == Key.Down)
 					{
-						if (SuggestionItems != null)
+						if (SuggestionItems is { })
 						{
 							if (SuggestionItems.All(x => !x.IsHighLighted))
 							{
 								var item = SuggestionItems.FirstOrDefault();
-								if (item != null)
+								if (item is { })
 								{
 									item.IsHighLighted = true;
 								}
@@ -54,7 +54,7 @@ namespace WalletWasabi.Gui.Suggestions
 							else
 							{
 								var index = SuggestionItems.Select((v, i) => new { sugg = v, index = i })?.FirstOrDefault(x => x.sugg.IsHighLighted)?.index;
-								if (index != null)
+								if (index is { })
 								{
 									var suggItemsArray = SuggestionItems.ToArray();
 									suggItemsArray[index.Value].IsHighLighted = false;
@@ -72,7 +72,7 @@ namespace WalletWasabi.Gui.Suggestions
 					}
 					else if (e.Key == Key.Up)
 					{
-						if (SuggestionItems != null)
+						if (SuggestionItems is { })
 						{
 							foreach (var item in SuggestionItems)
 							{
@@ -83,7 +83,7 @@ namespace WalletWasabi.Gui.Suggestions
 					}
 					else if (e.Key == Key.Enter)
 					{
-						if (SuggestionItems != null)
+						if (SuggestionItems is { })
 						{
 							foreach (var item in SuggestionItems)
 							{

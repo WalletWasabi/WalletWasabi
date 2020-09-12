@@ -50,7 +50,7 @@ namespace WalletWasabi.CoinJoin.Common.Models
 		{
 			var tried = new List<Money>();
 			Money baseMinimum = Denomination + (FeePerOutputs * 2); // + (Denomination.Percentange(CoordinatorFeePercent) * RequiredPeerCount);
-			if (queuedCoinAmounts != default)
+			if (queuedCoinAmounts is { })
 			{
 				foreach (Money amount in queuedCoinAmounts.OrderByDescending(x => x))
 				{
@@ -72,7 +72,7 @@ namespace WalletWasabi.CoinJoin.Common.Models
 			var tried = new List<Money>();
 			Money baseMinimum = Denomination + (FeePerOutputs * 2); // + (Denomination.Percentange(CoordinatorFeePercent) * RequiredPeerCount);
 
-			if (queuedCoinAmounts != default)
+			if (queuedCoinAmounts is { })
 			{
 				foreach (Money amount in queuedCoinAmounts.OrderByDescending(x => x))
 				{

@@ -61,7 +61,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 				{
 					IFeeProvider provider = providerArray[i];
 					var af = provider.AllFeeEstimate;
-					if (af != null && af.IsAccurate)
+					if (af is { } && af.IsAccurate)
 					{
 						AllFeeEstimate = af;
 						return;
