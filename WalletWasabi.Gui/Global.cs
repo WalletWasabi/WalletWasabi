@@ -40,7 +40,7 @@ using WalletWasabi.Legal;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
-using WalletWasabi.TorSocks5;
+using WalletWasabi.Tor;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui
@@ -177,16 +177,16 @@ namespace WalletWasabi.Gui
 
 				if (Config.UseTor)
 				{
-					TorManager = new TorProcessManager(Config.TorSocks5EndPoint, TorLogsFile);
+					TorManager = new TorProcessManager(Config.TorSocks5EndPoint, DataDir, TorLogsFile);
+					TorManager.Start(ensureRunning: false);
 				}
 				else
 				{
 					TorManager = TorProcessManager.Mock();
 				}
-				TorManager.Start(false, DataDir);
 
 				var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
-				TorManager.StartMonitor(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(7), DataDir, fallbackRequestTestUri);
+				TorManager.StartMonitor(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(7), fallbackRequestTestUri);
 
 				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
 
@@ -458,7 +458,7 @@ namespace WalletWasabi.Gui
 			// Then filtered to include only /Satoshi:0.17.x
 			var fullBaseDirectory = EnvironmentHelpers.GetFullBaseDirectory();
 
-			var onions = await File.ReadAllLinesAsync(Path.Combine(fullBaseDirectory, "OnionSeeds", $"{Network}OnionSeeds.txt")).ConfigureAwait(false);
+			var onions = await File.ReadAllLinesAsync(Path.Combine(fullBaseDirectory, "Tor", "OnionSeeds", $"{Network}OnionSeeds.txt")).ConfigureAwait(false);
 
 			onions.Shuffle();
 			foreach (var onion in onions.Take(60))

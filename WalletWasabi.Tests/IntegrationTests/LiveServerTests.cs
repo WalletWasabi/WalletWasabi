@@ -2,6 +2,7 @@ using NBitcoin;
 using System;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,7 +11,7 @@ using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.XunitConfiguration;
-using WalletWasabi.TorSocks5;
+using WalletWasabi.Tor;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
@@ -26,8 +27,12 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 		public async Task InitializeAsync()
 		{
-			var torManager = new TorProcessManager(Global.Instance.TorSocks5Endpoint, Global.Instance.TorLogsFile);
-			torManager.Start(ensureRunning: true, dataDir: Path.GetFullPath(AppContext.BaseDirectory));
+			EndPoint endpoint = Global.Instance.TorSocks5Endpoint;
+			string dataDir = Path.GetFullPath(AppContext.BaseDirectory);
+			string torLogsFile = Global.Instance.TorLogsFile;
+
+			var torManager = new TorProcessManager(endpoint, dataDir, torLogsFile);
+			torManager.Start(ensureRunning: true);
 			await Task.Delay(3000);
 		}
 

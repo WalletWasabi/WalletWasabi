@@ -4,9 +4,10 @@ using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using WalletWasabi.Bases;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.Helpers;
+using WalletWasabi.Tor.Http.Bases;
+using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.CoinJoin.Client.Clients

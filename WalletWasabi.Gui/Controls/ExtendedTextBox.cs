@@ -214,7 +214,7 @@ namespace WalletWasabi.Gui.Controls
 			// Dispatch so that if there is a context menu, it can open before the selection gets cleared.
 			Dispatcher.UIThread.PostLogException(() =>
 			{
-				if (ContextMenu != null && ContextMenu.IsOpen)
+				if (ContextMenu is { } && ContextMenu.IsOpen)
 				{
 					_presenter?.HideCaret();
 				}
@@ -227,7 +227,7 @@ namespace WalletWasabi.Gui.Controls
 
 		private void CreatePasteItem()
 		{
-			if (_pasteItem != null)
+			if (_pasteItem is { })
 			{
 				return;
 			}

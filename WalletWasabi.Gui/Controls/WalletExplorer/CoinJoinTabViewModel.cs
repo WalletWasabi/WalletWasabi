@@ -263,7 +263,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			ClientRound mostAdvancedRound = Wallet.ChaumianClient?.State?.GetMostAdvancedRoundOrDefault();
 
-			if (mostAdvancedRound != default)
+			if (mostAdvancedRound is { })
 			{
 				RoundId = mostAdvancedRound.State.RoundId;
 				RoundPhaseState = new RoundPhaseState(mostAdvancedRound.State.Phase, Wallet.ChaumianClient?.State.IsInErrorState ?? false);
@@ -347,7 +347,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					PasswordHelper.GetMasterExtKey(Wallet.KeyManager, Password, out string compatiblityPassword); // If the password is not correct we throw.
 
-					if (compatiblityPassword != null)
+					if (compatiblityPassword is { })
 					{
 						Password = compatiblityPassword;
 						NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
@@ -393,13 +393,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			MainWindowViewModel.Instance.CanClose = AmountQueued == Money.Zero;
 
 			var registrableRound = chaumianClient.State.GetRegistrableRoundOrDefault();
-			if (registrableRound != default)
+			if (registrableRound is { })
 			{
 				CoordinatorFeePercent = registrableRound.State.CoordinatorFeePercent.ToString();
 				UpdateRequiredBtcLabel(registrableRound);
 			}
 			var mostAdvancedRound = chaumianClient.State.GetMostAdvancedRoundOrDefault();
-			if (mostAdvancedRound != default)
+			if (mostAdvancedRound is { })
 			{
 				RoundId = mostAdvancedRound.State.RoundId;
 				if (!chaumianClient.State.IsInErrorState)
@@ -426,12 +426,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return; // Otherwise NullReferenceException at shutdown.
 			}
 
-			if (registrableRound == default)
+			if (registrableRound is null)
 			{
-				if (RequiredBTC == default)
-				{
-					RequiredBTC = Money.Zero;
-				}
+				RequiredBTC ??= Money.Zero;
 			}
 			else
 			{

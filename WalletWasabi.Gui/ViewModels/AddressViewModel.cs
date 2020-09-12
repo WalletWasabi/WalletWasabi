@@ -74,7 +74,7 @@ namespace WalletWasabi.Gui.ViewModels
 						KeyManager keyManager = KeyManager;
 						HdPubKey hdPubKey = keyManager.GetKeys(x => Model == x).FirstOrDefault();
 
-						if (hdPubKey != default)
+						if (hdPubKey is { })
 						{
 							hdPubKey.SetLabel(newLabel, kmToFile: keyManager);
 						}
@@ -217,7 +217,7 @@ namespace WalletWasabi.Gui.ViewModels
 			try
 			{
 				CancelClipboardNotification?.Cancel();
-				while (CancelClipboardNotification != null)
+				while (CancelClipboardNotification is { })
 				{
 					await Task.Delay(50);
 				}

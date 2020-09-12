@@ -59,6 +59,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _isHardwareBusy;
 		private bool _isCustomFee;
 		private string _amountTip;
+		private ObservableAsPropertyHelper<bool> _isEstimateAvailabe;
 
 		private const string WaitingForHardwareWalletButtonTextString = "Waiting for Hardware Wallet...";
 
@@ -68,6 +69,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private FeeDisplayFormat _feeDisplayFormat;
 		private bool _isSliderFeeUsed = true;
 		private double _feeControlOpacity;
+		private string _amountWaterMarkText;
 
 		protected SendControlViewModel(Wallet wallet, string title)
 			: base(title)
@@ -99,18 +101,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
 			SetFeesAndTexts();
 
-			this.WhenAnyValue(x => x.AmountText).Select(_ => Unit.Default)
-				.Merge(Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Select(_ => Unit.Default))
+			this.WhenAnyValue(x => x.AmountText)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
+				.Subscribe(x =>
 				{
-					if (Money.TryParse(AmountText.TrimStart('~', ' '), out Money amountBtc))
+					if (Money.TryParse(x.TrimStart('~', ' '), out Money amountBtc))
 					{
-						AmountTip = amountBtc.ToUsdString(Wallet.Synchronizer.UsdExchangeRate, lurkingWifeMode: false);
+						SetAmountWatermark(amountBtc);
 					}
 					else
 					{
-						AmountTip = "0 USD";
+						SetAmountWatermark(Money.Zero);
 					}
 
 					SetFees();
@@ -160,11 +161,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							? DoingButtonText
 							: DoButtonText);
 
-			this.WhenAnyValue(x => x.FeeTarget)
+			Observable
+				.Merge(this.WhenAnyValue(x => x.FeeTarget).Select(_ => true))
+				.Merge(this.WhenAnyValue(x => x.IsEstimateAvailable).Select(_ => true))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
-					IsSliderFeeUsed = true;
+					IsSliderFeeUsed = IsEstimateAvailable;
 					SetFeesAndTexts();
 				});
 
@@ -308,7 +311,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.DequeuingSelectedCoins);
 						OutPoint[] toDequeue = selectedCoinViewModels.Where(x => x.CoinJoinInProgress).Select(x => x.Model.OutPoint).ToArray();
-						if (toDequeue != null && toDequeue.Any())
+						if (toDequeue is { } && toDequeue.Any())
 						{
 							await Wallet.ChaumianClient.DequeueCoinsFromMixAsync(toDequeue, DequeueReason.TransactionBuilding);
 						}
@@ -328,7 +331,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						try
 						{
 							PasswordHelper.GetMasterExtKey(Wallet.KeyManager, Password, out string compatiblityPasswordUsed); // We could use TryPassword but we need the exception.
-							if (compatiblityPasswordUsed != null)
+							if (compatiblityPasswordUsed is { })
 							{
 								Password = compatiblityPasswordUsed; // Overwrite the password for BuildTransaction function.
 								NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
@@ -580,10 +583,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			private set => this.RaiseAndSetIfChanged(ref _isCustomFee, value);
 		}
 
+		public bool IsEstimateAvailable => _isEstimateAvailabe?.Value ?? false;
+
 		public string AmountTip
 		{
 			get => _amountTip;
 			set => this.RaiseAndSetIfChanged(ref _amountTip, value);
+		}
+
+		public string AmountWatermarkText
+		{
+			get => _amountWaterMarkText;
+			set => this.RaiseAndSetIfChanged(ref _amountWaterMarkText, value);
 		}
 
 		public bool IsCustomChangeAddressVisible => Global.UiConfig.IsCustomChangeAddress && !IsMax;
@@ -603,6 +614,30 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<bool, Unit> HighLightFeeSliderCommand { get; }
 
 		public ReactiveCommand<KeyEventArgs, Unit> AmountKeyUpCommand { get; }
+
+		private void SetAmountWatermark(Money amount)
+		{
+			if (amount == Money.Zero)
+			{
+				AmountWatermarkText = "Amount (BTC)";
+			}
+			else
+			{
+				long amountUsd = 0;
+				try
+				{
+					amountUsd = (long)amount.ToUsd(UsdExchangeRate);
+				}
+				catch (OverflowException ex)
+				{
+					Logger.LogTrace(ex);
+				}
+
+				AmountWatermarkText = amountUsd != 0
+					? $"Amount (BTC) ~ ${amountUsd}"
+					: "Amount (BTC)";
+			}
+		}
 
 		protected virtual void ResetUi()
 		{
@@ -637,38 +672,42 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			AllFeeEstimate allFeeEstimate = Global.FeeProviders?.AllFeeEstimate;
 
-			if (allFeeEstimate is { })
+			int feeTarget = -1; // 1 => 10 minutes
+			if (IsSliderFeeUsed && allFeeEstimate is { })
 			{
-				int feeTarget = -1; // 1 => 10 minutes
-				if (IsSliderFeeUsed)
-				{
-					feeTarget = FeeTarget;
+				feeTarget = FeeTarget;
 
-					int prevKey = allFeeEstimate.Estimations.Keys.First();
-					foreach (int target in allFeeEstimate.Estimations.Keys)
+				int prevKey = allFeeEstimate.Estimations.Keys.First();
+				foreach (int target in allFeeEstimate.Estimations.Keys)
+				{
+					if (feeTarget == target)
 					{
-						if (feeTarget == target)
-						{
-							break;
-						}
-						else if (feeTarget < target)
-						{
-							feeTarget = prevKey;
-							break;
-						}
-						prevKey = target;
+						break;
 					}
-				}
-				else
-				{
-					FeeRate = null;
-
-					// In decimal ',' means order of magnitude.
-					// User could think it is decimal point but 3,5 means 35 Satoshi.
-					// For this reason we treat ',' as an invalid character.
-					if (TryParseUserFee(UserFeeText, out decimal userFee))
+					else if (feeTarget < target)
 					{
-						FeeRate = new FeeRate(userFee);
+						feeTarget = prevKey;
+						break;
+					}
+					prevKey = target;
+				}
+
+				FeeRate = allFeeEstimate.GetFeeRate(feeTarget);
+				UserFeeText = FeeRate.SatoshiPerByte.ToString();
+			}
+			else
+			{
+				FeeRate = null;
+
+				// In decimal ',' means order of magnitude.
+				// User could think it is decimal point but 3,5 means 35 Satoshi.
+				// For this reason we treat ',' as an invalid character.
+				if (TryParseUserFee(UserFeeText, out decimal userFee))
+				{
+					FeeRate = new FeeRate(userFee);
+
+					if (allFeeEstimate is { })
+					{
 						feeTarget = Constants.SevenDaysConfirmationTarget;
 						foreach (var feeEstimate in allFeeEstimate.Estimations)
 						{
@@ -682,104 +721,98 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 					}
 				}
+			}
 
-				if (IsSliderFeeUsed)
+			IEnumerable<SmartCoin> selectedCoins = CoinList.Coins.Where(cvm => cvm.IsSelected).Select(x => x.Model);
+
+			int vsize = 150;
+			if (selectedCoins.Any())
+			{
+				if (IsMax)
 				{
-					FeeRate = allFeeEstimate.GetFeeRate(feeTarget);
-					UserFeeText = FeeRate.SatoshiPerByte.ToString();
+					vsize = NBitcoinHelpers.CalculateVsizeAssumeSegwit(selectedCoins.Count(), 1);
 				}
-
-				IEnumerable<SmartCoin> selectedCoins = CoinList.Coins.Where(cvm => cvm.IsSelected).Select(x => x.Model);
-
-				int vsize = 150;
-				if (selectedCoins.Any())
+				else
 				{
-					if (IsMax)
+					if (Money.TryParse(AmountText.TrimStart('~', ' '), out Money amount))
 					{
-						vsize = NBitcoinHelpers.CalculateVsizeAssumeSegwit(selectedCoins.Count(), 1);
-					}
-					else
-					{
-						if (Money.TryParse(AmountText.TrimStart('~', ' '), out Money amount))
+						var inNum = 0;
+						var amountSoFar = Money.Zero;
+						foreach (SmartCoin coin in selectedCoins.OrderByDescending(x => x.Amount))
 						{
-							var inNum = 0;
-							var amountSoFar = Money.Zero;
-							foreach (SmartCoin coin in selectedCoins.OrderByDescending(x => x.Amount))
+							amountSoFar += coin.Amount;
+							inNum++;
+							if (amountSoFar > amount)
 							{
-								amountSoFar += coin.Amount;
-								inNum++;
-								if (amountSoFar > amount)
-								{
-									break;
-								}
+								break;
 							}
-							vsize = NBitcoinHelpers.CalculateVsizeAssumeSegwit(inNum, 2);
 						}
-						// Else whatever, do not change.
+						vsize = NBitcoinHelpers.CalculateVsizeAssumeSegwit(inNum, 2);
 					}
+					// Else whatever, do not change.
 				}
+			}
 
-				if (FeeRate != null)
+			if (FeeRate is { })
+			{
+				EstimatedBtcFee = FeeRate.GetTotalFee(vsize);
+			}
+			else
+			{
+				// This should not happen. Never.
+				// If FeeRate is null we will have problems when building the tx.
+				EstimatedBtcFee = Money.Zero;
+			}
+
+			long all = selectedCoins.Sum(x => x.Amount);
+			long theAmount = (IsMax, Money.TryParse(AmountText.TrimStart('~', ' '), out Money value)) switch
+			{
+				(true, _) => all,
+				(false, true) => value.Satoshi,
+				(false, false) => 0
+			};
+
+			FeePercentage = theAmount != 0
+				? 100 * (decimal)EstimatedBtcFee.Satoshi / theAmount
+				: 0;
+
+			if (UsdExchangeRate != 0)
+			{
+				UsdFee = EstimatedBtcFee.ToUsd(UsdExchangeRate);
+			}
+
+			AllSelectedAmount = Math.Max(Money.Zero, all - EstimatedBtcFee);
+			if (FeeRate is null)
+			{
+				FeeText = "";
+				FeeToolTip = "";
+			}
+			else
+			{
+				switch (FeeDisplayFormat)
 				{
-					EstimatedBtcFee = FeeRate.GetTotalFee(vsize);
-				}
-				else
-				{
-					// This should not happen. Never.
-					// If FeeRate is null we will have problems when building the tx.
-					EstimatedBtcFee = Money.Zero;
-				}
+					case FeeDisplayFormat.SatoshiPerByte:
+						FeeText = $"(~ {FeeRate.SatoshiPerByte} sat/vByte)";
+						FeeToolTip = "Expected fee rate in satoshi/vByte.";
+						break;
 
-				long all = selectedCoins.Sum(x => x.Amount);
-				long theAmount = (IsMax, Money.TryParse(AmountText.TrimStart('~', ' '), out Money value)) switch
-				{
-					(true, _) => all,
-					(false, true) => value.Satoshi,
-					(false, false) => 0
-				};
+					case FeeDisplayFormat.USD:
+						FeeText = $"(~ ${UsdFee:0.##})";
+						FeeToolTip = $"Estimated total fees in USD. Exchange Rate: {(long)UsdExchangeRate} USD/BTC.";
+						break;
 
-				FeePercentage = theAmount != 0
-					? 100 * (decimal)EstimatedBtcFee.Satoshi / theAmount
-					: 0;
+					case FeeDisplayFormat.BTC:
+						FeeText = $"(~ {EstimatedBtcFee.ToString(false, false)} BTC)";
+						FeeToolTip = "Estimated total fees in BTC.";
+						break;
 
-				if (UsdExchangeRate != 0)
-				{
-					UsdFee = EstimatedBtcFee.ToUsd(UsdExchangeRate);
-				}
+					case FeeDisplayFormat.Percentage:
+						FeeText = $"(~ {FeePercentage:0.#} %)";
+						FeeToolTip = "Expected percentage of fees against the amount to be sent.";
+						break;
 
-				AllSelectedAmount = Math.Max(Money.Zero, all - EstimatedBtcFee);
-				if (FeeRate is null)
-				{
-					FeeText = "";
-					FeeToolTip = "";
-				}
-				else
-				{
-					switch (FeeDisplayFormat)
-					{
-						case FeeDisplayFormat.SatoshiPerByte:
-							FeeText = $"(~ {FeeRate.SatoshiPerByte} sat/vByte)";
-							FeeToolTip = "Expected fee rate in satoshi/vByte.";
-							break;
-
-						case FeeDisplayFormat.USD:
-							FeeText = $"(~ ${UsdFee:0.##})";
-							FeeToolTip = $"Estimated total fees in USD. Exchange Rate: {(long)UsdExchangeRate} USD/BTC.";
-							break;
-
-						case FeeDisplayFormat.BTC:
-							FeeText = $"(~ {EstimatedBtcFee.ToString(false, false)} BTC)";
-							FeeToolTip = "Estimated total fees in BTC.";
-							break;
-
-						case FeeDisplayFormat.Percentage:
-							FeeText = $"(~ {FeePercentage:0.#} %)";
-							FeeToolTip = "Expected percentage of fees against the amount to be sent.";
-							break;
-
-						default:
-							throw new NotSupportedException("This is impossible.");
-					}
+					default:
+						throw new NotSupportedException("This is impossible.");
 				}
 			}
 		}
@@ -800,7 +833,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			var allFeeEstimate = Global.FeeProviders?.AllFeeEstimate;
 
-			if (allFeeEstimate != null)
+			if (allFeeEstimate is { })
 			{
 				MinimumFeeTarget = allFeeEstimate.Estimations.Min(x => x.Key); // This should be always 2, but bugs will be seen at least if it is not.
 				MaximumFeeTarget = allFeeEstimate.Estimations.Max(x => x.Key);
@@ -880,6 +913,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override void OnOpen(CompositeDisposable disposables)
 		{
+			_isEstimateAvailabe = Observable
+				.FromEventPattern<AllFeeEstimate>(Global.FeeProviders, nameof(Global.FeeProviders.AllFeeEstimateChanged))
+				.Select(x => x.EventArgs is { })
+				.ToProperty(this, x => x.IsEstimateAvailable, scheduler: RxApp.MainThreadScheduler, initialValue: Global.FeeProviders?.AllFeeEstimate is { })
+				.DisposeWith(disposables);
+
 			Observable
 				.FromEventPattern<AllFeeEstimate>(Global.FeeProviders, nameof(Global.FeeProviders.AllFeeEstimateChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -909,9 +948,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => SetFeesAndTexts());
 
-			Global.UiConfig.WhenAnyValue(x => x.IsCustomFee)
+			Observable
+				.Merge(Global.UiConfig.WhenAnyValue(x => x.IsCustomFee))
+				.Merge(this.WhenAnyValue(x => x.IsEstimateAvailable))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => IsCustomFee = x)
+				.Subscribe(_ => IsCustomFee = !IsEstimateAvailable || Global.UiConfig.IsCustomFee)
 				.DisposeWith(disposables);
 
 			this.WhenAnyValue(x => x.IsCustomFee)
@@ -939,7 +980,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				LabelSuggestion.Label = label;
 			}
 
-			if (url.Amount != null)
+			if (url.Amount is { })
 			{
 				AmountText = url.Amount.ToString(false, true);
 			}

@@ -1,4 +1,5 @@
 using System;
+using WalletWasabi.Helpers;
 
 namespace Gma.QrCodeNet.Encoding.Versions
 {
@@ -40,10 +41,7 @@ namespace Gma.QrCodeNet.Encoding.Versions
 		/// </summary>
 		private void Initialize()
 		{
-			if (ECBlock is null)
-			{
-				throw new ArgumentNullException($"{nameof(ErrorCorrectionBlocks)} array does not contain any value.");
-			}
+			Guard.NotNull(nameof(ECBlock), ECBlock);
 
 			NumBlocks = 0;
 			int blockLength = ECBlock.Length;

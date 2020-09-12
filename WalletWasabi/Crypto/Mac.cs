@@ -45,7 +45,7 @@ namespace WalletWasabi.Crypto
 		private static MAC ComputeAlgebraicMAC((Scalar x0, Scalar x1) sk, GroupElement m, Scalar t) =>
 			 new MAC(t, (sk.x0 + sk.x1 * t) * GenerateU(t) + m);
 
-		private static GroupElement GenerateU(Scalar t) =>
+		public static GroupElement GenerateU(Scalar t) =>
 			Generators.FromBuffer(t.ToBytes());
 	}
 }
