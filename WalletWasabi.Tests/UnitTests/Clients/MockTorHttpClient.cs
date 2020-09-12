@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using NBitcoin;
-using WalletWasabi.TorSocks5;
+using WalletWasabi.Tor.Http.Interfaces;
 
 namespace WalletWasabi.Tests.UnitTests.Clients
 {

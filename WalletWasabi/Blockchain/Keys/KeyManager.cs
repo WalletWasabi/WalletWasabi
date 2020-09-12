@@ -65,10 +65,7 @@ namespace WalletWasabi.Blockchain.Keys
 			BlockchainState = new BlockchainState();
 			BlockchainStateLock = new object();
 
-			if (password is null)
-			{
-				password = "";
-			}
+			password ??= "";
 
 			SetMinGapLimit(minGapLimit);
 
@@ -115,7 +112,7 @@ namespace WalletWasabi.Blockchain.Keys
 
 		public bool IsWatchOnly => EncryptedSecret is null;
 
-		public bool IsHardwareWallet => EncryptedSecret is null && MasterFingerprint != null;
+		public bool IsHardwareWallet => EncryptedSecret is null && MasterFingerprint is { };
 
 		[JsonProperty(Order = 8)]
 		private BlockchainState BlockchainState { get; }
@@ -139,10 +136,7 @@ namespace WalletWasabi.Blockchain.Keys
 
 		public static KeyManager CreateNew(out Mnemonic mnemonic, string password, string filePath = null)
 		{
-			if (password is null)
-			{
-				password = "";
-			}
+			password ??= "";
 
 			mnemonic = new Mnemonic(Wordlist.English, WordCount.Twelve);
 			ExtKey extKey = mnemonic.DeriveExtKey(password);
@@ -167,10 +161,7 @@ namespace WalletWasabi.Blockchain.Keys
 		public static KeyManager Recover(Mnemonic mnemonic, string password, string filePath = null, KeyPath accountKeyPath = null, int minGapLimit = AbsoluteMinGapLimit)
 		{
 			Guard.NotNull(nameof(mnemonic), mnemonic);
-			if (password is null)
-			{
-				password = "";
-			}
+			password ??= "";
 
 			ExtKey extKey = mnemonic.DeriveExtKey(password);
 			var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
@@ -209,10 +200,7 @@ namespace WalletWasabi.Blockchain.Keys
 			}
 
 			// Backwards compatibility:
-			if (km.PasswordVerified is null)
-			{
-				km.PasswordVerified = true;
-			}
+			km.PasswordVerified ??= true;
 
 			return km;
 		}
@@ -576,10 +564,7 @@ namespace WalletWasabi.Blockchain.Keys
 
 		public ExtKey GetMasterExtKey(string password)
 		{
-			if (password is null)
-			{
-				password = "";
-			}
+			password ??= "";
 
 			if (IsWatchOnly)
 			{
@@ -592,10 +577,7 @@ namespace WalletWasabi.Blockchain.Keys
 				var extKey = new ExtKey(secret, ChainCode);
 
 				// Backwards compatibility:
-				if (MasterFingerprint is null)
-				{
-					MasterFingerprint = secret.PubKey.GetHDFingerPrint();
-				}
+				MasterFingerprint ??= secret.PubKey.GetHDFingerPrint();
 
 				return extKey;
 			}
@@ -794,7 +776,7 @@ namespace WalletWasabi.Blockchain.Keys
 					BlockchainState.Height = 0;
 					ToFileNoBlockchainStateLock();
 
-					if (lastNetwork != null)
+					if (lastNetwork is { })
 					{
 						Logger.LogWarning($"Wallet is opened on {expectedNetwork}. Last time it was opened on {lastNetwork}.");
 					}

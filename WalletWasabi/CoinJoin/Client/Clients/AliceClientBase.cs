@@ -8,11 +8,12 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Bases;
 using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.CoinJoin.Common.Models;
-using WalletWasabi.Exceptions;
 using WalletWasabi.Logging;
+using WalletWasabi.Tor.Exceptions;
+using WalletWasabi.Tor.Http.Bases;
+using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.WebClients.Wasabi;
 using static WalletWasabi.Crypto.SchnorrBlinding;
 using UnblindedSignature = WalletWasabi.Crypto.UnblindedSignature;
@@ -174,7 +175,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			Logger.LogInfo($"Round ({RoundId}), Alice ({UniqueId}): Confirmed connection. Phase: {resp.CurrentPhase}.");
 
 			var activeOutputs = new List<ActiveOutput>();
-			if (resp.BlindedOutputSignatures != null && resp.BlindedOutputSignatures.Any())
+			if (resp.BlindedOutputSignatures is { } && resp.BlindedOutputSignatures.Any())
 			{
 				var unblindedSignatures = new List<UnblindedSignature>();
 				var blindedSignatures = resp.BlindedOutputSignatures.ToArray();

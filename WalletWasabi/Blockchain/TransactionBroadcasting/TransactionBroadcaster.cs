@@ -159,7 +159,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 				Logger.LogInfo($"Random node could not broadcast transaction. Reason: {ex.Message}.");
 				Logger.LogDebug(ex);
 
-				if (RpcClient != null)
+				if (RpcClient is { })
 				{
 					try
 					{

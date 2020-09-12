@@ -170,7 +170,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					// If transaction received to any of the wallet keys:
 					var output = tx.Transaction.Outputs[i];
 					HdPubKey foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
-					if (foundKey != default)
+					if (foundKey is { })
 					{
 						foundKey.SetKeyState(KeyState.Used, KeyManager);
 						if (output.Value <= DustThreshold)
