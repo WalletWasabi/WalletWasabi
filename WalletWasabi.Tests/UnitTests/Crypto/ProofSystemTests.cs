@@ -53,7 +53,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		public void CanProveAndVerifyNULL()
 		{
 			// The client wants to request a zero amount credential and it needs to prove
-			// that the bliended amount is indeed zero.  
+			// that the blinded amount is indeed zero.  
 			var rnd = new SecureRandom();
 			var amount = Scalar.Zero;
 			var blindingFactor = rnd.GetScalar();
@@ -64,8 +64,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var nullProver = proverBuilder(rnd);
 			var proofOfNull = nullProver();
 
-
-			// The coordinator must verify the blinded amout is zero
+			// The coordinator must verify the blinded amount is zero
 			var coordinatorStatement = ProofSystem.CreateStatement(Ma, Generators.Gh);
 			var verifierBuilder = ProofSystem.CreateVerifier(coordinatorStatement);
 			var nullVerifier = verifierBuilder(proofOfNull);
