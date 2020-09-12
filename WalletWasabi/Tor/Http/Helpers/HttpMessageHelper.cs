@@ -134,7 +134,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 				return decodedBodyArray;
 			}
 
-			if (contentHeaders?.ContentEncoding != null && contentHeaders.ContentEncoding.Contains("gzip"))
+			if (contentHeaders?.ContentEncoding is { } && contentHeaders.ContentEncoding.Contains("gzip"))
 			{
 				using (var src = new MemoryStream(decodedBodyArray))
 				using (var unzipStream = new GZipStream(src, CompressionMode.Decompress))
@@ -155,7 +155,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 
 		public static async Task<byte[]> GetContentBytesAsync(Stream stream, HttpRequestContentHeaders headerStruct, CancellationToken ctsToken = default)
 		{
-			if (headerStruct.RequestHeaders != null && headerStruct.RequestHeaders.Contains("Transfer-Encoding"))
+			if (headerStruct.RequestHeaders is { } && headerStruct.RequestHeaders.Contains("Transfer-Encoding"))
 			{
 				// https://tools.ietf.org/html/rfc7230#section-4
 				// All transfer-coding names are case-insensitive
@@ -233,7 +233,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 			// transfer coding(Section 4.1) is the final encoding, the message
 			// body length is determined by reading and decoding the chunked
 			// data until the transfer coding indicates the data is complete.
-			if (headerStruct?.ResponseHeaders != null && headerStruct.ResponseHeaders.Contains("Transfer-Encoding"))
+			if (headerStruct?.ResponseHeaders is { } && headerStruct.ResponseHeaders.Contains("Transfer-Encoding"))
 			{
 				// https://tools.ietf.org/html/rfc7230#section-4
 				// All transfer-coding names are case-insensitive
@@ -288,19 +288,13 @@ namespace WalletWasabi.Tor.Http.Helpers
 
 		private static async Task<byte[]> GetDecodedChunkedContentBytesAsync(Stream stream, HttpRequestContentHeaders requestHeaders, HttpResponseContentHeaders responseHeaders, CancellationToken ctsToken = default)
 		{
-			if (responseHeaders is null)
+			if (responseHeaders is null && requestHeaders is null)
 			{
-				if (requestHeaders is null)
-				{
-					throw new ArgumentException("Response and request headers cannot be both null.");
-				}
+				throw new ArgumentException("Response and request headers cannot be both null.");
 			}
-			else
+			else if (responseHeaders is { } && requestHeaders is { })
 			{
-				if (requestHeaders != null)
-				{
-					throw new ArgumentException("Either response or request headers has to be null.");
-				}
+				throw new ArgumentException("Either response or request headers has to be null.");
 			}
 
 			// https://tools.ietf.org/html/rfc7230#section-4.1.3
@@ -363,7 +357,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 			string trailerHeaders = await ReadHeadersAsync(stream, ctsToken);
 			var trailerHeaderSection = await HeaderSection.CreateNewAsync(trailerHeaders);
 			RemoveInvalidTrailers(trailerHeaderSection);
-			if (responseHeaders != null)
+			if (responseHeaders is { })
 			{
 				var trailerHeaderStruct = trailerHeaderSection.ToHttpResponseHeaders();
 				AssertValidHeaders(trailerHeaderStruct.ResponseHeaders, trailerHeaderStruct.ContentHeaders);
@@ -377,7 +371,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 				responseHeaders.ContentHeaders.TryAddWithoutValidation("Content-Length", length.ToString());
 				responseHeaders.ResponseHeaders.Remove("Trailer");
 			}
-			if (requestHeaders != null)
+			if (requestHeaders is { })
 			{
 				var trailerHeaderStruct = trailerHeaderSection.ToHttpRequestHeaders();
 				AssertValidHeaders(trailerHeaderStruct.RequestHeaders, trailerHeaderStruct.ContentHeaders);
@@ -515,15 +509,15 @@ namespace WalletWasabi.Tor.Http.Helpers
 
 		public static void AssertValidHeaders(HttpHeaders messageHeaders, HttpContentHeaders contentHeaders)
 		{
-			if (messageHeaders != null && messageHeaders.Contains("Transfer-Encoding"))
+			if (messageHeaders is { } && messageHeaders.Contains("Transfer-Encoding"))
 			{
-				if (contentHeaders != null && contentHeaders.Contains("Content-Length"))
+				if (contentHeaders is { } && contentHeaders.Contains("Content-Length"))
 				{
 					contentHeaders.Remove("Content-Length");
 				}
 			}
 			// Any Content-Length field value greater than or equal to zero is valid.
-			if (contentHeaders != null && contentHeaders.Contains("Content-Length"))
+			if (contentHeaders is { } && contentHeaders.Contains("Content-Length"))
 			{
 				if (contentHeaders.ContentLength < 0)
 				{

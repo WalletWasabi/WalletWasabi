@@ -237,7 +237,7 @@ namespace WalletWasabi.Services
 								throw;
 							}
 
-							if (response.AllFeeEstimate != null && response.AllFeeEstimate.Estimations.Any())
+							if (response.AllFeeEstimate is { } && response.AllFeeEstimate.Estimations.Any())
 							{
 								lastFeeQueried = DateTimeOffset.UtcNow;
 								AllFeeEstimate = response.AllFeeEstimate;
@@ -254,7 +254,7 @@ namespace WalletWasabi.Services
 
 							hashChain.UpdateServerTipHeight((uint)response.BestHeight);
 							ExchangeRate exchangeRate = response.ExchangeRates.FirstOrDefault();
-							if (exchangeRate != default && exchangeRate.Rate != 0)
+							if (exchangeRate is { } && exchangeRate.Rate != 0)
 							{
 								UsdExchangeRate = exchangeRate.Rate;
 							}

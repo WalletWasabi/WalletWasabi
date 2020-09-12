@@ -22,7 +22,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 			{
 				walletNameBuilder.Append($" - Error: {hwi.Error}");
 			}
-			else if (hwi.Code != null)
+			else if (hwi.Code is { })
 			{
 				walletNameBuilder.Append($" - Error: {hwi.Code}");
 			}

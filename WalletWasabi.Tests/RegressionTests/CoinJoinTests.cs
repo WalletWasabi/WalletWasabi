@@ -1020,23 +1020,14 @@ namespace WalletWasabi.Tests.RegressionTests
 				coinjoinRequests.Add(user.aliceClient.GetUnsignedCoinJoinAsync());
 			}
 
-			Transaction unsignedCoinJoin = null;
-			foreach (var request in coinjoinRequests)
-			{
-				if (unsignedCoinJoin is null)
-				{
-					unsignedCoinJoin = await request;
-				}
-				else
-				{
-					Assert.Equal(unsignedCoinJoin.ToHex(), (await request).ToHex());
-				}
-			}
+			var unsignedCoinJoin = await coinjoinRequests.First();
+			var unsignedCoinJoinHex = unsignedCoinJoin.ToHex();
+			Assert.All(coinjoinRequests, async x => Assert.Equal(unsignedCoinJoinHex, (await x).ToHex()));
 
 			var signatureRequests = new List<Task>();
 			foreach (var user in users)
 			{
-				var partSignedCj = Transaction.Parse(unsignedCoinJoin.ToHex(), network);
+				var partSignedCj = Transaction.Parse(unsignedCoinJoinHex, network);
 				partSignedCj.Sign(
 					user.userInputData.Select(x => x.key.GetBitcoinSecret(network)),
 					user.userInputData.Select(x => new Coin(x.tx, x.input.N)));
@@ -1185,7 +1176,7 @@ namespace WalletWasabi.Tests.RegressionTests
 						await Task.Delay(1000);
 					}
 
-					if (chaumianClient != null)
+					if (chaumianClient is { })
 					{
 						await chaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.UserRequested);
 						await chaumianClient.StopAsync(CancellationToken.None);
@@ -1339,11 +1330,11 @@ namespace WalletWasabi.Tests.RegressionTests
 			}
 			finally
 			{
-				if (chaumianClient1 != null)
+				if (chaumianClient1 is { })
 				{
 					await chaumianClient1.StopAsync(CancellationToken.None);
 				}
-				if (chaumianClient2 != null)
+				if (chaumianClient2 is { })
 				{
 					await chaumianClient2.StopAsync(CancellationToken.None);
 				}
