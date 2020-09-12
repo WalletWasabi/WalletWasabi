@@ -36,11 +36,12 @@ namespace WalletWasabi.Tor
 
 		/// <param name="torSocks5EndPoint">Opt out Tor with null.</param>
 		/// <param name="logFile">Opt out of logging with null.</param>
-		public TorProcessManager(EndPoint torSocks5EndPoint, string logFile)
+		public TorProcessManager(EndPoint torSocks5EndPoint, string dataDir, string logFile)
 		{
 			TorSocks5EndPoint = torSocks5EndPoint;
 			LogFile = logFile;
 			_monitorState = StateNotStarted;
+			DataDir = dataDir;
 			Stop = new CancellationTokenSource();
 			TorProcess = null;
 		}
@@ -52,6 +53,8 @@ namespace WalletWasabi.Tor
 
 		public string LogFile { get; }
 
+		private string DataDir { get; }
+
 		public static bool RequestFallbackAddressUsage { get; private set; } = false;
 
 		public Process TorProcess { get; private set; }
@@ -62,10 +65,10 @@ namespace WalletWasabi.Tor
 
 		public static TorProcessManager Mock() // Mock, do not use Tor at all for debug.
 		{
-			return new TorProcessManager(null, null);
+			return new TorProcessManager(null, null, null);
 		}
 
-		public void Start(bool ensureRunning, string dataDir)
+		public void Start(bool ensureRunning)
 		{
 			if (TorSocks5EndPoint is null)
 			{
@@ -90,7 +93,7 @@ namespace WalletWasabi.Tor
 						}
 
 						var fullBaseDirectory = EnvironmentHelpers.GetFullBaseDirectory();
-						var settings = new TorSettings(dataDir);
+						var settings = new TorSettings(DataDir);
 
 						if (!File.Exists(settings.TorPath))
 						{
@@ -183,7 +186,7 @@ namespace WalletWasabi.Tor
 
 		#region Monitor
 
-		public void StartMonitor(TimeSpan torMisbehaviorCheckPeriod, TimeSpan checkIfRunningAfterTorMisbehavedFor, string dataDirToStartWith, Uri fallBackTestRequestUri)
+		public void StartMonitor(TimeSpan torMisbehaviorCheckPeriod, TimeSpan checkIfRunningAfterTorMisbehavedFor, Uri fallBackTestRequestUri)
 		{
 			if (TorSocks5EndPoint is null)
 			{
@@ -234,7 +237,7 @@ namespace WalletWasabi.Tor
 									else
 									{
 										Logger.LogInfo($"Tor did not work properly for {(int)torMisbehavedFor.TotalSeconds} seconds. Maybe it crashed. Attempting to start it...");
-										Start(true, dataDirToStartWith); // Try starting Tor, if it does not work it'll be another issue.
+										Start(ensureRunning: true); // Try starting Tor, if it does not work it'll be another issue.
 										await Task.Delay(14000, Stop.Token).ConfigureAwait(false);
 									}
 								}

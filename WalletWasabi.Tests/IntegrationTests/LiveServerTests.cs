@@ -23,8 +23,11 @@ namespace WalletWasabi.Tests.IntegrationTests
 		{
 			LiveServerTestsFixture = liveServerTestsFixture;
 
-			var torManager = new TorProcessManager(Global.Instance.TorSocks5Endpoint, Global.Instance.TorLogsFile);
-			torManager.Start(ensureRunning: true, dataDir: Path.GetFullPath(AppContext.BaseDirectory));
+			string dataDir = Path.GetFullPath(AppContext.BaseDirectory);
+			string torLogsFile = Global.Instance.TorLogsFile;
+
+			var torManager = new TorProcessManager(Global.Instance.TorSocks5Endpoint, dataDir, torLogsFile);
+			torManager.Start(ensureRunning: true);
 			Task.Delay(3000).GetAwaiter().GetResult();
 		}
 
