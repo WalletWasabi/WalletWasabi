@@ -19,7 +19,6 @@ namespace WalletWasabi.Wallets
 		public FileSystemBlockRepository(string blocksFolderPath, Network network)
 		{
 			BlocksFolderPath = blocksFolderPath;
-			IoHelpers.EnsureDirectoryExists(blocksFolderPath);
 			Network = network;
 			CreateFolders();
 			EnsureBackwardsCompatibility();
