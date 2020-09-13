@@ -16,12 +16,13 @@ namespace WalletWasabi.Wallets
 	/// </summary>
 	public class FileSystemBlockRepository : IRepository<uint256, Block>
 	{
-		public FileSystemBlockRepository(string blocksFolderPath, Network network)
+		public FileSystemBlockRepository(string blocksFolderPath, Network network, long targetBlocksFolderSizeMb = 300)
 		{
 			BlocksFolderPath = blocksFolderPath;
 			Network = network;
 			CreateFolders();
 			EnsureBackwardsCompatibility();
+			Prune(targetBlocksFolderSizeMb);
 		}
 
 		public string BlocksFolderPath { get; }
@@ -92,6 +93,47 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
+		private void Prune(long targetBlocksFolderSizeMb)
+		{
+			try
+			{
+				using (BenchmarkLogger.Measure())
+				{
+					long sizeSumMb = 0;
+					var prunedCnt = 0;
+					foreach (var blockFile in Directory.EnumerateFiles(BlocksFolderPath).Select(x => new FileInfo(x)).OrderBy(x => x.LastAccessTimeUtc))
+					{
+						try
+						{
+							var sizeMb = blockFile.Length / (1000 * 1000);
+							sizeSumMb += sizeMb;
+
+							if (sizeSumMb > targetBlocksFolderSizeMb)
+							{
+								var blockHash = Path.GetFileNameWithoutExtension(blockFile.Name);
+								blockFile.Delete();
+								Logger.LogTrace($"Pruned {blockHash}");
+								prunedCnt++;
+							}
+						}
+						catch (Exception ex)
+						{
+							Logger.LogWarning(ex);
+						}
+					}
+
+					if (prunedCnt > 0)
+					{
+						Logger.LogInfo($"Blocks folder was over {targetBlocksFolderSizeMb} MB. Deleted {prunedCnt} blocks.");
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning(ex);
+			}
+		}
+
 		/// <summary>
 		/// Gets a bitcoin block from the file system.
 		/// </summary>
@@ -112,6 +154,11 @@ namespace WalletWasabi.Wallets
 					{
 						var blockBytes = await File.ReadAllBytesAsync(filePath, cancellationToken).ConfigureAwait(false);
 						block = Block.Load(blockBytes, Network);
+
+						new FileInfo(filePath)
+						{
+							LastAccessTimeUtc = DateTime.UtcNow
+						};
 					}
 					catch
 					{
