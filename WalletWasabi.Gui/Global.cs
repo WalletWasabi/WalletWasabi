@@ -144,7 +144,7 @@ namespace WalletWasabi.Gui
 				AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
 				var addrManTask = InitializeAddressManagerBehaviorAsync();
 
-				var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
+				var blocksFolderPath = Path.Combine(DataDir, "Blocks", Network.ToString());
 				var userAgent = Constants.UserAgents.RandomElement();
 				var connectionParameters = new NodeConnectionParameters { UserAgent = userAgent };
 

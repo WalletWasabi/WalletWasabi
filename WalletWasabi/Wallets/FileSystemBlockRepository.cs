@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Wallets
@@ -18,8 +19,74 @@ namespace WalletWasabi.Wallets
 		public FileSystemBlockRepository(string blocksFolderPath, Network network)
 		{
 			BlocksFolderPath = blocksFolderPath;
+			IoHelpers.EnsureDirectoryExists(blocksFolderPath);
 			Network = network;
 			CreateFolders();
+			EnsureBackwardsCompatibility();
+		}
+
+		private void EnsureBackwardsCompatibility()
+		{
+			try
+			{
+				// Before Wasabi 1.1.13
+				var wrongBlockFolderPath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), $"Blocks{Network}");
+				if (Directory.Exists(wrongBlockFolderPath))
+				{
+					using (BenchmarkLogger.Measure())
+					{
+						var cntSuccess = 0;
+						var cntRedundant = 0;
+						var cntFailure = 0;
+						foreach (var filePath in Directory.EnumerateFiles(wrongBlockFolderPath))
+						{
+							try
+							{
+								var fileName = Path.GetFileName(filePath);
+								var migrationPath = Path.Combine(BlocksFolderPath, fileName);
+
+								// Unintuitively File.Move overwrite: false throws an IOException if the file already exists.
+								// https://docs.microsoft.com/en-us/dotnet/api/system.io.file.move?view=netcore-3.1
+								if (!File.Exists(migrationPath))
+								{
+									File.Move(filePath, migrationPath, overwrite: false);
+									cntSuccess++;
+								}
+								else
+								{
+									cntRedundant++;
+								}
+							}
+							catch (Exception ex)
+							{
+								Logger.LogDebug(ex);
+								cntFailure++;
+							}
+						}
+
+						Directory.Delete(wrongBlockFolderPath, recursive: true);
+
+						if (cntSuccess > 0)
+						{
+							Logger.LogInfo($"Successfully migrated {cntSuccess} blocks to {BlocksFolderPath}.");
+						}
+						if (cntRedundant > 0)
+						{
+							Logger.LogInfo($"{cntRedundant} blocks were already in {BlocksFolderPath}.");
+						}
+						if (cntFailure > 0)
+						{
+							Logger.LogDebug($"Failed to migrate {cntFailure} blocks to {BlocksFolderPath}.");
+						}
+						Logger.LogInfo($"Deleted {wrongBlockFolderPath}.");
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning("Backwards compatibility could not be ensured.");
+				Logger.LogWarning(ex);
+			}
 		}
 
 		public string BlocksFolderPath { get; }
