@@ -109,6 +109,23 @@
   <Style Selector="Button.greenButton:pressed /template/ ContentPresenter">
     <Setter Property="Background" Value="DarkGreen" />
   </Style>
+  
+  <Style Selector="Button.blueButton">
+    <Setter Property="Foreground" Value="White" />
+    <Setter Property="Background" Value="#1177bb" />
+  </Style>
+  <Style Selector="Button.blueButton > TextBlock">
+    <Setter Property="Foreground" Value="White" />
+    <Setter Property="Margin" Value="7" />
+    <Setter Property="FontWeight" Value="Bold" />
+  </Style>
+  <Style Selector="Button.blueButton:pointerover">
+    <Setter Property="Background" Value="#148edf" />
+  </Style>
+  <Style Selector="Button.blueButton:pressed /template/ ContentPresenter">
+    <Setter Property="Background" Value="#0a4871" />
+  </Style>
+
   <Style Selector="TextBox.monospaceFont /template/ TextPresenter#PART_TextPresenter">
     <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
     <Setter Property="FontSize" Value="14" />
