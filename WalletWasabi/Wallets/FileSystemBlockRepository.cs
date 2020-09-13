@@ -25,6 +25,10 @@ namespace WalletWasabi.Wallets
 			EnsureBackwardsCompatibility();
 		}
 
+		public string BlocksFolderPath { get; }
+		public Network Network { get; }
+		private AsyncLock BlockFolderLock { get; } = new AsyncLock();
+
 		private void EnsureBackwardsCompatibility()
 		{
 			try
@@ -88,10 +92,6 @@ namespace WalletWasabi.Wallets
 				Logger.LogWarning(ex);
 			}
 		}
-
-		public string BlocksFolderPath { get; }
-		public Network Network { get; }
-		private AsyncLock BlockFolderLock { get; } = new AsyncLock();
 
 		/// <summary>
 		/// Gets a bitcoin block from the file system.
