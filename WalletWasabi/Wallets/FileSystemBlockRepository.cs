@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Wallets
@@ -15,16 +16,123 @@ namespace WalletWasabi.Wallets
 	/// </summary>
 	public class FileSystemBlockRepository : IRepository<uint256, Block>
 	{
-		public FileSystemBlockRepository(string blocksFolderPath, Network network)
+		public FileSystemBlockRepository(string blocksFolderPath, Network network, long targetBlocksFolderSizeMb = 300)
 		{
 			BlocksFolderPath = blocksFolderPath;
 			Network = network;
 			CreateFolders();
+			EnsureBackwardsCompatibility();
+			Prune(targetBlocksFolderSizeMb);
 		}
 
 		public string BlocksFolderPath { get; }
 		public Network Network { get; }
 		private AsyncLock BlockFolderLock { get; } = new AsyncLock();
+
+		private void EnsureBackwardsCompatibility()
+		{
+			try
+			{
+				// Before Wasabi 1.1.13
+				var wrongBlockFolderPath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), $"Blocks{Network}");
+				if (Directory.Exists(wrongBlockFolderPath))
+				{
+					using (BenchmarkLogger.Measure())
+					{
+						var cntSuccess = 0;
+						var cntRedundant = 0;
+						var cntFailure = 0;
+						foreach (var filePath in Directory.EnumerateFiles(wrongBlockFolderPath))
+						{
+							try
+							{
+								var fileName = Path.GetFileName(filePath);
+								var migrationPath = Path.Combine(BlocksFolderPath, fileName);
+
+								// Unintuitively File.Move overwrite: false throws an IOException if the file already exists.
+								// https://docs.microsoft.com/en-us/dotnet/api/system.io.file.move?view=netcore-3.1
+								if (!File.Exists(migrationPath))
+								{
+									File.Move(filePath, migrationPath, overwrite: false);
+									cntSuccess++;
+								}
+								else
+								{
+									cntRedundant++;
+								}
+							}
+							catch (Exception ex)
+							{
+								Logger.LogDebug(ex);
+								cntFailure++;
+							}
+						}
+
+						Directory.Delete(wrongBlockFolderPath, recursive: true);
+
+						if (cntSuccess > 0)
+						{
+							Logger.LogInfo($"Successfully migrated {cntSuccess} blocks to {BlocksFolderPath}.");
+						}
+						if (cntRedundant > 0)
+						{
+							Logger.LogInfo($"{cntRedundant} blocks were already in {BlocksFolderPath}.");
+						}
+						if (cntFailure > 0)
+						{
+							Logger.LogDebug($"Failed to migrate {cntFailure} blocks to {BlocksFolderPath}.");
+						}
+						Logger.LogInfo($"Deleted {wrongBlockFolderPath}.");
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning("Backwards compatibility could not be ensured.");
+				Logger.LogWarning(ex);
+			}
+		}
+
+		private void Prune(long targetBlocksFolderSizeMb)
+		{
+			try
+			{
+				using (BenchmarkLogger.Measure())
+				{
+					long sizeSumMb = 0;
+					var prunedCnt = 0;
+					foreach (var blockFile in Directory.EnumerateFiles(BlocksFolderPath).Select(x => new FileInfo(x)).OrderBy(x => x.LastAccessTimeUtc))
+					{
+						try
+						{
+							var sizeMb = blockFile.Length / (1000 * 1000);
+							sizeSumMb += sizeMb;
+
+							if (sizeSumMb > targetBlocksFolderSizeMb)
+							{
+								var blockHash = Path.GetFileNameWithoutExtension(blockFile.Name);
+								blockFile.Delete();
+								Logger.LogTrace($"Pruned {blockHash}");
+								prunedCnt++;
+							}
+						}
+						catch (Exception ex)
+						{
+							Logger.LogWarning(ex);
+						}
+					}
+
+					if (prunedCnt > 0)
+					{
+						Logger.LogInfo($"Blocks folder was over {targetBlocksFolderSizeMb} MB. Deleted {prunedCnt} blocks.");
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning(ex);
+			}
+		}
 
 		/// <summary>
 		/// Gets a bitcoin block from the file system.
@@ -46,6 +154,11 @@ namespace WalletWasabi.Wallets
 					{
 						var blockBytes = await File.ReadAllBytesAsync(filePath, cancellationToken).ConfigureAwait(false);
 						block = Block.Load(blockBytes, Network);
+
+						new FileInfo(filePath)
+						{
+							LastAccessTimeUtc = DateTime.UtcNow
+						};
 					}
 					catch
 					{
