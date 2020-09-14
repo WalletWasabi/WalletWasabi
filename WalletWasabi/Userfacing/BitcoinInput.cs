@@ -62,7 +62,8 @@ namespace WalletWasabi.Helpers
 				corrected = $".{corrected.TrimStart('.')}";
 			}
 
-			if (corrected.Count(x => x == '.') > 1) // Do not enable having two dots.
+			// Do not enable having more than one dot.
+			if (corrected.Count(x => x == '.') > 1)
 			{
 				// Except if it's at the end. Then we might just remove it.
 				corrected = corrected.TrimEnd('.');
