@@ -26,12 +26,12 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 		public Statement Statement { get; }
 		public ScalarVector Witness { get; }
 
-		public IEnumerable<ScalarVector> RespondToChallenge(Scalar challenge, IEnumerable<ScalarVector> allSecretNonces)
+		public ScalarVector RespondToChallenge(Scalar challenge, ScalarVector secretNonces)
 		{
 			// allSecretNonces should have the same dimension as the equation matrix
-			Statement.Equations.CheckDimensions(allSecretNonces);
+			// Statement.Equations.CheckDimensions(allSecretNonces);
 
-			return Statement.Equations.Zip(allSecretNonces, (equation, secretNonces) => equation.Respond(Witness, secretNonces, challenge));
+			return Statement.Equations.First().Respond(Witness, secretNonces, challenge); // FIXME refactor
 		}
 	}
 }

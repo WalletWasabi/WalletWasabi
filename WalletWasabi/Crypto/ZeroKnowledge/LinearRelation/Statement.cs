@@ -39,14 +39,14 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 		public Knowledge ToKnowledge(ScalarVector witness) =>
 			new Knowledge(this, witness);
 
-		public bool CheckVerificationEquation(GroupElementVector publicNonces, Scalar challenge, IEnumerable<ScalarVector> allResponses)
+		public bool CheckVerificationEquation(GroupElementVector publicNonces, Scalar challenge, ScalarVector responses)
 		{
 			// The responses matrix should match the generators in the equations and
 			// there should be once nonce per equation.
 			Guard.True(nameof(publicNonces), Equations.Count() == publicNonces.Count());
-			Equations.CheckDimensions(allResponses);
+			// Equations.CheckDimensions(allResponses);
 
-			return Equations.Zip(publicNonces, allResponses, (equation, r, s) => equation.Verify(r, challenge, s)).All(x => x);
+			return Equations.Zip(publicNonces, (equation, r) => equation.Verify(r, challenge, responses)).All(x => x);
 		}
 	}
 }

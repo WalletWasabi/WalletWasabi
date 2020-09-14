@@ -102,13 +102,14 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 
 			// Create transcripts using a witness to the relation
 			var knowledge = new Knowledge(statement, new ScalarVector(x));
-			var allSecretNonces = new[] { new ScalarVector(new Scalar(7)), new ScalarVector(new Scalar(11)) };
-			var publicNonces = new GroupElementVector(statement.Equations.Zip(allSecretNonces, (equation, secretNonces) => secretNonces * equation.Generators));
-			var allResponses = knowledge.RespondToChallenge(challenge, allSecretNonces);
-			Assert.True(statement.CheckVerificationEquation(publicNonces, challenge, allResponses));
+			var secretNonces = new ScalarVector(new Scalar(7));
+			var publicNonces = new GroupElementVector(statement.Equations.Select(equation => secretNonces * equation.Generators));
+			var responses = knowledge.RespondToChallenge(challenge, secretNonces);
+			Assert.Single(responses);
+			Assert.True(statement.CheckVerificationEquation(publicNonces, challenge, responses));
 
 			// Ensure that verifier rejects invalid transcripts
-			Assert.False(statement.CheckVerificationEquation(publicNonces, new Scalar(17), allResponses));
+			Assert.False(statement.CheckVerificationEquation(publicNonces, new Scalar(17), responses));
 		}
 
 		[Fact]
