@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Tor;
 using WalletWasabi.Tor.Http;
 using Xunit;
@@ -12,18 +13,26 @@ using Xunit;
 namespace WalletWasabi.Tests.IntegrationTests
 {
 	// Tor must be running
-	public class TorTests
+	public class TorTests : IAsyncLifetime
 	{
-		public TorTests()
+		public async Task InitializeAsync()
 		{
-			string dataDir = Path.GetFullPath(AppContext.BaseDirectory);
+			string distributionFolder = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "TorDaemons");
 			string logsFilePath = Global.Instance.TorLogsFile;
+			string dataDir = Path.GetFullPath(AppContext.BaseDirectory);
 
-			var settings = new TorSettings(dataDir: dataDir, logsFilePath);
+			var settings = new TorSettings(dataDir: dataDir, logsFilePath, distributionFolder);
+			var installer = new TorInstallator(settings);
+			Assert.True(await installer.VerifyInstallationAsync());
 
-			var torManager = new TorProcessManager(settings, Global.Instance.TorSocks5Endpoint);
-			torManager.Start(ensureRunning: true);
-			Task.Delay(3000).GetAwaiter().GetResult();
+			var manager = new TorProcessManager(settings, Global.Instance.TorSocks5Endpoint);
+			manager.Start(ensureRunning: true);
+			await Task.Delay(3000);
+		}
+
+		public Task DisposeAsync()
+		{
+			return Task.CompletedTask;
 		}
 
 		[Fact]

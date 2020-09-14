@@ -66,7 +66,8 @@ namespace WalletWasabi.Gui
 		public TransactionBroadcaster TransactionBroadcaster { get; set; }
 		public CoinJoinProcessor CoinJoinProcessor { get; set; }
 		public Node RegTestMempoolServingNode { get; private set; }
-		public TorProcessManager TorManager { get; private set; }
+		public TorProcessManager? TorManager { get; private set; }
+		public EndPoint? TorSocks5EndPoint { get; private set; }
 		public CoreNode BitcoinCoreNode { get; private set; }
 
 		public HostedServices HostedServices { get; }
@@ -90,7 +91,7 @@ namespace WalletWasabi.Gui
 				DataDir = dataDir;
 				Config = config;
 				UiConfig = uiConfig;
-				TorSettings = new TorSettings(DataDir, torLogsFile);
+				TorSettings = new TorSettings(DataDir, torLogsFile, distributionFolder: Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "TorDaemons"));
 
 				Logger.InitializeDefaults(Path.Combine(DataDir, "Logs.txt"));
 
@@ -177,18 +178,39 @@ namespace WalletWasabi.Gui
 
 				if (Config.UseTor)
 				{
+					TorSocks5EndPoint = Config.TorSocks5EndPoint;
 					TorManager = new TorProcessManager(TorSettings, Config.TorSocks5EndPoint);
-					TorManager.Start(ensureRunning: false);
+
+					using (BenchmarkLogger.Measure(operationName: "Tor initialization"))
+					{
+						if (await TorManager.IsRunningAsync().ConfigureAwait(false))
+						{
+							Logger.LogInfo("Tor is already running. No need to run Wasabi internal Tor instance.");
+						}
+						else
+						{
+							var torInstaller = new TorInstallator(TorSettings);
+							bool success = await torInstaller.VerifyInstallationAsync().ConfigureAwait(false);
+
+							if (!success)
+							{
+								Logger.LogError("Failed to install Tor. Giving up.");
+							}
+							else
+							{
+								TorManager.Start(ensureRunning: false);
+
+								var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
+								TorManager.StartMonitor(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(7), fallbackRequestTestUri);
+							}
+						}
+					}
 				}
 				else
 				{
-					TorManager = TorProcessManager.Mock();
+					TorSocks5EndPoint = null;
+					TorManager = null;
 				}
-
-				var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
-				TorManager.StartMonitor(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(7), fallbackRequestTestUri);
-
-				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
 
 				#endregion TorProcessInitialization
 
@@ -764,8 +786,7 @@ namespace WalletWasabi.Gui
 					}
 				}
 
-				var torManager = TorManager;
-				if (torManager is { })
+				if (TorManager is { } torManager)
 				{
 					await torManager.StopAsync().ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(TorManager)} is stopped.");

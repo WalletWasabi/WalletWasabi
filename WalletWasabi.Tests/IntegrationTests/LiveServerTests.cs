@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.CoinJoin.Client.Clients;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Tor;
@@ -17,20 +18,31 @@ using Xunit;
 namespace WalletWasabi.Tests.IntegrationTests
 {
 	[Collection("LiveServerTests collection")]
-	public class LiveServerTests
+	public class LiveServerTests : IAsyncLifetime
 	{
 		public LiveServerTests(LiveServerTestsFixture liveServerTestsFixture)
 		{
 			LiveServerTestsFixture = liveServerTestsFixture;
+		}
 
-			string dataDir = Path.GetFullPath(AppContext.BaseDirectory);
+		public async Task InitializeAsync()
+		{
+			string distributionFolder = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "TorDaemons");
 			string logsFilePath = Global.Instance.TorLogsFile;
+			string dataDir = Path.GetFullPath(AppContext.BaseDirectory);
 
-			var settings = new TorSettings(dataDir: dataDir, logsFilePath);
+			var settings = new TorSettings(dataDir: dataDir, logsFilePath, distributionFolder);
+			var installer = new TorInstallator(settings);
+			Assert.True(await installer.VerifyInstallationAsync());
 
-			var torManager = new TorProcessManager(settings, Global.Instance.TorSocks5Endpoint);
-			torManager.Start(ensureRunning: true);
-			Task.Delay(3000).GetAwaiter().GetResult();
+			var manager = new TorProcessManager(settings, Global.Instance.TorSocks5Endpoint);
+			manager.Start(ensureRunning: true);
+			await Task.Delay(3000);
+		}
+
+		public Task DisposeAsync()
+		{
+			return Task.CompletedTask;
 		}
 
 		private LiveServerTestsFixture LiveServerTestsFixture { get; }

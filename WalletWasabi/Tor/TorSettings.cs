@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
@@ -14,11 +15,13 @@ namespace WalletWasabi.Tor
 		/// </summary>
 		/// <param name="dataDir">Application data directory.</param>
 		/// <param name="logFilePath">Full Tor log file path.</param>
-		public TorSettings(string dataDir, string logFilePath)
+		/// <param name="distributionFolder">Full Tor distribution folder where Tor installation files are located.</param>
+		public TorSettings(string dataDir, string logFilePath, string distributionFolder)
 		{
 			TorDir = Path.Combine(dataDir, "tor");
 			TorDataDir = Path.Combine(dataDir, "tordata");
 			LogFilePath = logFilePath;
+			DistributionFolder = distributionFolder;
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
@@ -47,10 +50,13 @@ namespace WalletWasabi.Tor
 		/// <summary>Full path. Directory may not necessarily exist.</summary>
 		public string LogFilePath { get; }
 
+		/// <summary>Full Tor distribution folder where Tor installation files are located.</summary>
+		public string DistributionFolder { get; }
+
 		/// <summary>Full path to Tor binary that is checked against a check sum.</summary>
 		public string HashSourcePath { get; }
 
-		/// <summary>Full path to executable file that is used to start Tor process.</summary>
+		/// <summary>Tor binary path.</summary>
 		public string TorPath { get; }
 		private string GeoIpPath { get; }
 		private string GeoIp6Path { get; }

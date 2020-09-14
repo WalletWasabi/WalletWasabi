@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -11,39 +12,101 @@ namespace WalletWasabi.Tor
 	/// </summary>
 	public class TorInstallator
 	{
-		public static async Task InstallAsync(string torDir)
+		/// <summary>
+		/// Creates new instance.
+		/// </summary>
+		public TorInstallator(TorSettings settings)
 		{
-			string torDaemonsDir = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "TorDaemons");
+			Settings = settings;
+		}
 
-			string dataZip = Path.Combine(torDaemonsDir, "data-folder.zip");
-			await IoHelpers.BetterExtractZipToDirectoryAsync(dataZip, torDir).ConfigureAwait(false);
-			Logger.LogInfo($"Extracted {dataZip} to {torDir}.");
+		/// <summary>Tor settings containing all necessary settings for Tor installation and running.</summary>
+		public TorSettings Settings { get; }
 
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+		/// <summary>
+		/// Installs Tor for Wasabi Wallet use.
+		/// </summary>
+		/// <returns><see cref="Task"/> instance.</returns>
+		public async Task<bool> InstallAsync()
+		{
+			// Folder where to install Tor to.
+			string destinationFolder = Settings.TorDir;
+
+			try
 			{
-				string torWinZip = Path.Combine(torDaemonsDir, "tor-win64.zip");
-				await IoHelpers.BetterExtractZipToDirectoryAsync(torWinZip, torDir).ConfigureAwait(false);
-				Logger.LogInfo($"Extracted {torWinZip} to {torDir}.");
+				string dataZipPath = Path.Combine(Settings.DistributionFolder, "data-folder.zip");
+				await IoHelpers.BetterExtractZipToDirectoryAsync(dataZipPath, destinationFolder).ConfigureAwait(false);
+				Logger.LogInfo($"Extracted '{dataZipPath}' to '{destinationFolder}'.");
+
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				{
+					string zipPath = Path.Combine(Settings.DistributionFolder, "tor-win64.zip");
+					await IoHelpers.BetterExtractZipToDirectoryAsync(zipPath, destinationFolder).ConfigureAwait(false);
+					Logger.LogInfo($"Extracted '{zipPath}' to '{destinationFolder}'.");
+				}
+				else // Linux or macOS
+				{
+					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+					{
+						string zipPath = Path.Combine(Settings.DistributionFolder, "tor-linux64.zip");
+						await IoHelpers.BetterExtractZipToDirectoryAsync(zipPath, destinationFolder).ConfigureAwait(false);
+						Logger.LogInfo($"Extracted '{zipPath}' to '{destinationFolder}'.");
+					}
+					else // OSX
+					{
+						string zipPath = Path.Combine(Settings.DistributionFolder, "tor-osx64.zip");
+						await IoHelpers.BetterExtractZipToDirectoryAsync(zipPath, destinationFolder).ConfigureAwait(false);
+						Logger.LogInfo($"Extracted '{zipPath}' to '{destinationFolder}'.");
+					}
+
+					// Make sure there's sufficient permission.
+					string chmodTorDirCmd = $"chmod -R 750 {destinationFolder}";
+					await EnvironmentHelpers.ShellExecAsync(chmodTorDirCmd, waitForExit: true).ConfigureAwait(false);
+					Logger.LogInfo($"Shell command executed: '{chmodTorDirCmd}'.");
+				}
+
+				bool verification = File.Exists(Settings.TorPath);
+
+				Logger.LogDebug($"Tor installation finished. Installed correctly? {verification}.");
+				return verification;
 			}
-			else // Linux or OSX
+			catch (Exception e)
 			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+				Logger.LogError("Tor installation failed.", e);
+			}
+
+			return false;
+		}
+
+		/// <summary>
+		/// Verify that Tor is installed and checksums of installed binaries are correct.
+		/// </summary>
+		/// <returns><see cref="Task"/> instance.</returns>
+		public async Task<bool> VerifyInstallationAsync()
+		{
+			if (!File.Exists(Settings.TorPath))
+			{
+				Logger.LogInfo($"Tor instance NOT found at '{Settings.TorPath}'. Attempting to acquire it.");
+				return await InstallAsync().ConfigureAwait(false);
+			}
+			else if (!IoHelpers.CheckExpectedHash(Settings.HashSourcePath, Settings.DistributionFolder))
+			{
+				Logger.LogInfo("Install the latest Tor version.");
+				string backupDir = $"{Settings.TorDir}_backup";
+
+				if (Directory.Exists(backupDir))
 				{
-					string torLinuxZip = Path.Combine(torDaemonsDir, "tor-linux64.zip");
-					await IoHelpers.BetterExtractZipToDirectoryAsync(torLinuxZip, torDir).ConfigureAwait(false);
-					Logger.LogInfo($"Extracted {torLinuxZip} to {torDir}.");
-				}
-				else // OSX
-				{
-					string torOsxZip = Path.Combine(torDaemonsDir, "tor-osx64.zip");
-					await IoHelpers.BetterExtractZipToDirectoryAsync(torOsxZip, torDir).ConfigureAwait(false);
-					Logger.LogInfo($"Extracted {torOsxZip} to {torDir}.");
+					Logger.LogInfo($"Delete backup directory '{backupDir}'.");
+					Directory.Delete(backupDir, true);
 				}
 
-				// Make sure there's sufficient permission.
-				string chmodTorDirCmd = $"chmod -R 750 {torDir}";
-				await EnvironmentHelpers.ShellExecAsync(chmodTorDirCmd, waitForExit: true).ConfigureAwait(false);
-				Logger.LogInfo($"Shell command executed: {chmodTorDirCmd}.");
+				Directory.Move(Settings.TorDir, backupDir);
+				return await InstallAsync().ConfigureAwait(false);
+			}
+			else
+			{
+				Logger.LogInfo($"Tor instance found at '{Settings.TorPath}'.");
+				return true;
 			}
 		}
 	}
