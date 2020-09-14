@@ -51,11 +51,11 @@ namespace WalletWasabi.Tor
 		/// </summary>
 		public EndPoint TorSocks5EndPoint { get; }
 
-		public string LogFile { get; }
+		private string LogFile { get; }
 
 		public static bool RequestFallbackAddressUsage { get; private set; } = false;
 
-		public Process TorProcess { get; private set; }
+		private Process TorProcess { get; set; }
 
 		private TorSettings Settings { get; }
 
