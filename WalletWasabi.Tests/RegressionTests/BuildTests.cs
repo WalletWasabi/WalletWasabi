@@ -65,7 +65,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var blocksFolderPath = Path.Combine(workDir, "Blocks", network.ToString());
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
 				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
-				new FileSystemBlockRepository(blocksFolderPath, network));
+				new FileSystemBlockRepository(workDir, blocksFolderPath, network));
 
 			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer, blockProvider);
 			wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;
@@ -229,7 +229,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var blocksFolderPath = Path.Combine(workDir, "Blocks", network.ToString());
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
 				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
-				new FileSystemBlockRepository(blocksFolderPath, network));
+				new FileSystemBlockRepository(workDir, blocksFolderPath, network));
 			var walletManager = new WalletManager(network, new WalletDirectories(workDir));
 			walletManager.RegisterServices(bitcoinStore, synchronizer, nodes, serviceConfiguration, synchronizer, blockProvider);
 

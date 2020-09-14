@@ -2,11 +2,11 @@ using NBitcoin;
 using NBitcoin.DataEncoders;
 using Nito.AsyncEx;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Wallets
@@ -16,8 +16,18 @@ namespace WalletWasabi.Wallets
 	/// </summary>
 	public class FileSystemBlockRepository : IRepository<uint256, Block>
 	{
-		public FileSystemBlockRepository(string blocksFolderPath, Network network, long targetBlocksFolderSizeMb = 300)
+		private const double MegaByte = 1024 * 1024;
+
+		/// <summary>
+		/// Creates new instance.
+		/// </summary>
+		/// <param name="dataDir">Application data directory.</param>
+		/// <param name="blocksFolderPath">Folder where to store blocks as files.</param>
+		/// <param name="network">Bitcoin network.</param>
+		/// <param name="targetBlocksFolderSizeMb"></param>
+		public FileSystemBlockRepository(string dataDir, string blocksFolderPath, Network network, long targetBlocksFolderSizeMb = 300)
 		{
+			DataDir = dataDir;
 			BlocksFolderPath = blocksFolderPath;
 			Network = network;
 			CreateFolders();
@@ -26,43 +36,59 @@ namespace WalletWasabi.Wallets
 		}
 
 		public string BlocksFolderPath { get; }
-		public Network Network { get; }
+		private string DataDir { get; }
+		private Network Network { get; }
 		private AsyncLock BlockFolderLock { get; } = new AsyncLock();
 
+		/// <summary>
+		/// Copies files from <c>BlocksNETWORK_NAME</c> folder to <c>Blocks/NETWORK_NAME</c> if not already migrated.
+		/// </summary>
 		private void EnsureBackwardsCompatibility()
 		{
+			Logger.LogTrace(">");
+
 			try
 			{
 				// Before Wasabi 1.1.13
-				var wrongBlockFolderPath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), $"Blocks{Network}");
+				var wrongBlockFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
+
+				// Check whether old folder exists.
 				if (Directory.Exists(wrongBlockFolderPath))
 				{
+					Logger.LogTrace($"Initiate migration of '{wrongBlockFolderPath}'");
+
+					// Migrate files one by one from the old path to the new path.
 					using (BenchmarkLogger.Measure())
 					{
-						var cntSuccess = 0;
-						var cntRedundant = 0;
-						var cntFailure = 0;
-						foreach (var filePath in Directory.EnumerateFiles(wrongBlockFolderPath))
+						int cntSuccess = 0;
+						int cntRedundant = 0;
+						int cntFailure = 0;
+
+						foreach (string oldFilePath in Directory.EnumerateFiles(wrongBlockFolderPath))
 						{
 							try
 							{
-								var fileName = Path.GetFileName(filePath);
-								var migrationPath = Path.Combine(BlocksFolderPath, fileName);
+								string fileName = Path.GetFileName(oldFilePath);
+								string newFilePath = Path.Combine(BlocksFolderPath, fileName);
 
-								// Unintuitively File.Move overwrite: false throws an IOException if the file already exists.
-								// https://docs.microsoft.com/en-us/dotnet/api/system.io.file.move?view=netcore-3.1
-								if (!File.Exists(migrationPath))
+								if (!File.Exists(newFilePath))
 								{
-									File.Move(filePath, migrationPath, overwrite: false);
+									Logger.LogTrace($"Migrate '{oldFilePath}' -> '{newFilePath}'.");
+
+									// Unintuitively File.Move overwrite: false throws an IOException if the file already exists.
+									// https://docs.microsoft.com/en-us/dotnet/api/system.io.file.move?view=netcore-3.1
+									File.Move(sourceFileName: oldFilePath,  destFileName: newFilePath, overwrite: false);
 									cntSuccess++;
 								}
 								else
 								{
+									Logger.LogTrace($"'{newFilePath}' already exists. Skip migrating.");
 									cntRedundant++;
 								}
 							}
 							catch (Exception ex)
 							{
+								Logger.LogDebug($"'{oldFilePath}' failed to migrate.");
 								Logger.LogDebug(ex);
 								cntFailure++;
 							}
@@ -72,17 +98,20 @@ namespace WalletWasabi.Wallets
 
 						if (cntSuccess > 0)
 						{
-							Logger.LogInfo($"Successfully migrated {cntSuccess} blocks to {BlocksFolderPath}.");
+							Logger.LogInfo($"Successfully migrated {cntSuccess} blocks to '{BlocksFolderPath}'.");
 						}
+
 						if (cntRedundant > 0)
 						{
-							Logger.LogInfo($"{cntRedundant} blocks were already in {BlocksFolderPath}.");
+							Logger.LogInfo($"{cntRedundant} blocks were already in '{BlocksFolderPath}'.");
 						}
+
 						if (cntFailure > 0)
 						{
-							Logger.LogDebug($"Failed to migrate {cntFailure} blocks to {BlocksFolderPath}.");
+							Logger.LogDebug($"Failed to migrate {cntFailure} blocks to '{BlocksFolderPath}'.");
 						}
-						Logger.LogInfo($"Deleted {wrongBlockFolderPath}.");
+
+						Logger.LogInfo($"Deleted '{wrongBlockFolderPath}' folder.");
 					}
 				}
 			}
@@ -91,29 +120,47 @@ namespace WalletWasabi.Wallets
 				Logger.LogWarning("Backwards compatibility could not be ensured.");
 				Logger.LogWarning(ex);
 			}
+
+			Logger.LogTrace("<");
 		}
 
-		private void Prune(long targetBlocksFolderSizeMb)
+		/// <summary>
+		/// Prunes <see cref="BlocksFolderPath"/> so that its size is at most <paramref name="maxFolderSizeMb"/> MB.
+		/// </summary>
+		/// <param name="maxFolderSizeMb">Max size of folder in mega bytes.</param>
+		private void Prune(long maxFolderSizeMb)
 		{
+			Logger.LogTrace($"> {nameof(maxFolderSizeMb)}={maxFolderSizeMb}");
+
 			try
 			{
 				using (BenchmarkLogger.Measure())
 				{
-					long sizeSumMb = 0;
-					var prunedCnt = 0;
-					foreach (var blockFile in Directory.EnumerateFiles(BlocksFolderPath).Select(x => new FileInfo(x)).OrderBy(x => x.LastAccessTimeUtc))
+					List<FileInfo> fileInfoList = Directory.EnumerateFiles(BlocksFolderPath).Select(x => new FileInfo(x)).ToList();
+
+					// Invalidate file info cache as per:
+					// https://docs.microsoft.com/en-us/dotnet/api/system.io.filesysteminfo.lastaccesstimeutc?view=netcore-3.1#remarks
+					fileInfoList.ForEach(x => x.Refresh());
+
+					double sizeSumMb = 0;
+					int cntPruned = 0;
+
+					foreach (FileInfo blockFile in fileInfoList.OrderBy(x => x.LastAccessTimeUtc))
 					{
 						try
 						{
-							var sizeMb = blockFile.Length / (1000 * 1000);
-							sizeSumMb += sizeMb;
+							double fileSizeMb = blockFile.Length / MegaByte;
 
-							if (sizeSumMb > targetBlocksFolderSizeMb)
+							if (sizeSumMb + fileSizeMb <= maxFolderSizeMb) // The file can stay stored.
 							{
-								var blockHash = Path.GetFileNameWithoutExtension(blockFile.Name);
+								sizeSumMb += fileSizeMb;
+							}
+							else if (sizeSumMb + fileSizeMb > maxFolderSizeMb) // Keeping the file would exceed the limit.
+							{
+								string blockHash = Path.GetFileNameWithoutExtension(blockFile.Name);
 								blockFile.Delete();
-								Logger.LogTrace($"Pruned {blockHash}");
-								prunedCnt++;
+								Logger.LogTrace($"Pruned {blockHash}. {nameof(sizeSumMb)}={sizeSumMb}.");
+								cntPruned++;
 							}
 						}
 						catch (Exception ex)
@@ -122,9 +169,9 @@ namespace WalletWasabi.Wallets
 						}
 					}
 
-					if (prunedCnt > 0)
+					if (cntPruned > 0)
 					{
-						Logger.LogInfo($"Blocks folder was over {targetBlocksFolderSizeMb} MB. Deleted {prunedCnt} blocks.");
+						Logger.LogInfo($"Blocks folder was over {maxFolderSizeMb} MB. Deleted {cntPruned} blocks.");
 					}
 				}
 			}
@@ -132,6 +179,8 @@ namespace WalletWasabi.Wallets
 			{
 				Logger.LogWarning(ex);
 			}
+
+			Logger.LogTrace($"<");
 		}
 
 		/// <summary>
@@ -142,8 +191,8 @@ namespace WalletWasabi.Wallets
 		/// <returns>The requested bitcoin block.</returns>
 		public async Task<Block> GetAsync(uint256 hash, CancellationToken cancellationToken)
 		{
-			// Try get the block
-			Block block = null;
+			// Try get the block.
+			Block? block = null;
 			using (await BlockFolderLock.LockAsync().ConfigureAwait(false))
 			{
 				var encoder = new HexEncoder();
@@ -152,7 +201,7 @@ namespace WalletWasabi.Wallets
 				{
 					try
 					{
-						var blockBytes = await File.ReadAllBytesAsync(filePath, cancellationToken).ConfigureAwait(false);
+						byte[] blockBytes = await File.ReadAllBytesAsync(filePath, cancellationToken).ConfigureAwait(false);
 						block = Block.Load(blockBytes, Network);
 
 						new FileInfo(filePath)
