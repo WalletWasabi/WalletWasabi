@@ -145,7 +145,7 @@ namespace WalletWasabi.Wallets
 					double sizeSumMb = 0;
 					int cntPruned = 0;
 
-					foreach (FileInfo blockFile in fileInfoList.OrderBy(x => x.LastAccessTimeUtc))
+					foreach (FileInfo blockFile in fileInfoList.OrderByDescending(x => x.LastAccessTimeUtc))
 					{
 						try
 						{
