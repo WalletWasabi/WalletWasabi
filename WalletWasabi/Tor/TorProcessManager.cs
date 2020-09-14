@@ -34,16 +34,18 @@ namespace WalletWasabi.Tor
 		/// </summary>
 		private long _monitorState;
 
-		/// <param name="torSocks5EndPoint">Opt out Tor with null.</param>
-		/// <param name="logFile">Opt out of logging with null.</param>
-		public TorProcessManager(EndPoint torSocks5EndPoint, string dataDir, string logFile)
+		/// <summary>
+		/// Creates new instance of the object.
+		/// </summary>
+		/// <param name="settings">Tor settings.</param>
+		/// <param name="torSocks5EndPoint">Valid Tor end point.</param>
+		public TorProcessManager(TorSettings settings, EndPoint torSocks5EndPoint)
 		{
 			TorSocks5EndPoint = torSocks5EndPoint;
-			LogFile = logFile;
 			_monitorState = StateNotStarted;
 			Stop = new CancellationTokenSource();
 			TorProcess = null;
-			Settings = new TorSettings(dataDir);
+			Settings = settings;
 		}
 
 		/// <summary>
@@ -51,11 +53,9 @@ namespace WalletWasabi.Tor
 		/// </summary>
 		public EndPoint TorSocks5EndPoint { get; }
 
-		public string LogFile { get; }
-
 		public static bool RequestFallbackAddressUsage { get; private set; } = false;
 
-		public Process TorProcess { get; private set; }
+		public Process? TorProcess { get; private set; }
 
 		private TorSettings Settings { get; }
 
@@ -65,7 +65,7 @@ namespace WalletWasabi.Tor
 
 		public static TorProcessManager Mock() // Mock, do not use Tor at all for debug.
 		{
-			return new TorProcessManager(null, null, null);
+			return new TorProcessManager(null, null);
 		}
 
 		public void Start(bool ensureRunning)
@@ -119,10 +119,10 @@ namespace WalletWasabi.Tor
 
 						string torArguments = Settings.GetCmdArguments(TorSocks5EndPoint);
 
-						if (!string.IsNullOrEmpty(LogFile))
+						if (Settings.LogFilePath is { })
 						{
-							IoHelpers.EnsureContainingDirectoryExists(LogFile);
-							var logFileFullPath = Path.GetFullPath(LogFile);
+							IoHelpers.EnsureContainingDirectoryExists(Settings.LogFilePath);
+							var logFileFullPath = Path.GetFullPath(Settings.LogFilePath);
 							torArguments += $" --Log \"notice file {logFileFullPath}\"";
 						}
 

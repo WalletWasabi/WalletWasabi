@@ -51,7 +51,7 @@ namespace WalletWasabi.Gui
 		public const string ApplicationAccentForegroundBrushResourceKey = "ApplicationAccentForegroundBrush";
 
 		public string DataDir { get; }
-		public string TorLogsFile { get; }
+		public TorSettings TorSettings { get; }
 		public BitcoinStore BitcoinStore { get; }
 		public LegalDocuments LegalDocuments { get; set; }
 		public Config Config { get; }
@@ -90,7 +90,7 @@ namespace WalletWasabi.Gui
 				DataDir = dataDir;
 				Config = config;
 				UiConfig = uiConfig;
-				TorLogsFile = torLogsFile;
+				TorSettings = new TorSettings(DataDir, torLogsFile);
 
 				Logger.InitializeDefaults(Path.Combine(DataDir, "Logs.txt"));
 
@@ -177,7 +177,7 @@ namespace WalletWasabi.Gui
 
 				if (Config.UseTor)
 				{
-					TorManager = new TorProcessManager(Config.TorSocks5EndPoint, DataDir, TorLogsFile);
+					TorManager = new TorProcessManager(TorSettings, Config.TorSocks5EndPoint);
 					TorManager.Start(ensureRunning: false);
 				}
 				else
