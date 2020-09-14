@@ -40,7 +40,7 @@ namespace WalletWasabi.Helpers
 			if (corrected.StartsWith("0"))
 			{
 				// If zeroless starts with a dot, then leave a zero.
-				// Else trimm all the zeros.
+				// Else trim all the zeros.
 				var zeroless = corrected.TrimStart('0');
 				if (zeroless.Length == 0)
 				{
