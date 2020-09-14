@@ -19,7 +19,8 @@ namespace WalletWasabi.Helpers
 			var corrected = Guard.Correct(original);
 			// Correct amount
 			Regex digitsOnly = new Regex(@"[^\d.,٫٬⎖·\']");
-			corrected = digitsOnly.Replace(corrected, ""); // Make it digits , and . only.
+			// Make it digits and .,٫٬⎖·\ only.
+			corrected = digitsOnly.Replace(corrected, "");
 
 			// https://en.wikipedia.org/wiki/Decimal_separator
 			corrected = corrected.Replace(',', '.');
