@@ -41,20 +41,20 @@ namespace WalletWasabi.Tor
 			TorSocks5EndPoint = torSocks5EndPoint;
 			LogFile = logFile;
 			_monitorState = StateNotStarted;
-			DataDir = dataDir;
 			Stop = new CancellationTokenSource();
 			TorProcess = null;
+			Settings = new TorSettings(dataDir);
 		}
 
 		private EndPoint TorSocks5EndPoint { get; }
 
 		public string LogFile { get; }
 
-		private string DataDir { get; }
-
 		public static bool RequestFallbackAddressUsage { get; private set; } = false;
 
 		public Process? TorProcess { get; private set; }
+
+		private TorSettings Settings { get; }
 
 		public bool IsRunning => Interlocked.Read(ref _monitorState) == StateRunning;
 
@@ -80,32 +80,31 @@ namespace WalletWasabi.Tor
 						}
 
 						var fullBaseDirectory = EnvironmentHelpers.GetFullBaseDirectory();
-						var settings = new TorSettings(DataDir);
 
-						if (!File.Exists(settings.TorPath))
+						if (!File.Exists(Settings.TorPath))
 						{
-							Logger.LogInfo($"Tor instance NOT found at '{settings.TorPath}'. Attempting to acquire it ...");
-							TorInstallator.InstallAsync(settings.TorDir).GetAwaiter().GetResult();
+							Logger.LogInfo($"Tor instance NOT found at '{Settings.TorPath}'. Attempting to acquire it ...");
+							TorInstallator.InstallAsync(Settings.TorDir).GetAwaiter().GetResult();
 						}
-						else if (!IoHelpers.CheckExpectedHash(settings.HashSourcePath, Path.Combine(fullBaseDirectory, "TorDaemons")))
+						else if (!IoHelpers.CheckExpectedHash(Settings.HashSourcePath, Path.Combine(fullBaseDirectory, "TorDaemons")))
 						{
 							Logger.LogInfo($"Updating Tor...");
 
-							string backupTorDir = $"{settings.TorDir}_backup";
+							string backupTorDir = $"{Settings.TorDir}_backup";
 							if (Directory.Exists(backupTorDir))
 							{
 								Directory.Delete(backupTorDir, true);
 							}
-							Directory.Move(settings.TorDir, backupTorDir);
+							Directory.Move(Settings.TorDir, backupTorDir);
 
-							TorInstallator.InstallAsync(settings.TorDir).GetAwaiter().GetResult();
+							TorInstallator.InstallAsync(Settings.TorDir).GetAwaiter().GetResult();
 						}
 						else
 						{
-							Logger.LogInfo($"Tor instance found at '{settings.TorPath}'.");
+							Logger.LogInfo($"Tor instance found at '{Settings.TorPath}'.");
 						}
 
-						string torArguments = settings.GetCmdArguments(TorSocks5EndPoint);
+						string torArguments = Settings.GetCmdArguments(TorSocks5EndPoint);
 
 						if (!string.IsNullOrEmpty(LogFile))
 						{
@@ -118,7 +117,7 @@ namespace WalletWasabi.Tor
 						{
 							TorProcess = Process.Start(new ProcessStartInfo
 							{
-								FileName = settings.TorPath,
+								FileName = Settings.TorPath,
 								Arguments = torArguments,
 								UseShellExecute = false,
 								CreateNoWindow = true,
@@ -128,7 +127,7 @@ namespace WalletWasabi.Tor
 						}
 						else // Linux and OSX
 						{
-							string runTorCmd = $"LD_LIBRARY_PATH=$LD_LIBRARY_PATH:='{settings.TorDir}/Tor' && export LD_LIBRARY_PATH && cd '{settings.TorDir}/Tor' && ./tor {torArguments}";
+							string runTorCmd = $"LD_LIBRARY_PATH=$LD_LIBRARY_PATH:='{Settings.TorDir}/Tor' && export LD_LIBRARY_PATH && cd '{Settings.TorDir}/Tor' && ./tor {torArguments}";
 							EnvironmentHelpers.ShellExecAsync(runTorCmd, waitForExit: false).GetAwaiter().GetResult();
 							Logger.LogInfo($"Started Tor process with shell command: {runTorCmd}.");
 						}
