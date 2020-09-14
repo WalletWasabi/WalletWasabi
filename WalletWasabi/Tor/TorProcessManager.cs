@@ -55,7 +55,7 @@ namespace WalletWasabi.Tor
 
 		public static bool RequestFallbackAddressUsage { get; private set; } = false;
 
-		private Process? TorProcess { get; private set; }
+		private Process? TorProcess { get; set; }
 
 		private TorSettings Settings { get; }
 
