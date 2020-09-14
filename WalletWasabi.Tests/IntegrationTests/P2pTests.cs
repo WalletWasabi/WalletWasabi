@@ -101,7 +101,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			ServiceConfiguration serviceConfig = new ServiceConfiguration(MixUntilAnonymitySet.PrivacyLevelStrong.ToString(), 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
 				new P2pBlockProvider(nodes, null, syncer, serviceConfig, network),
-				new FileSystemBlockRepository(blocksFolderPath, network));
+				new FileSystemBlockRepository(dataDir, blocksFolderPath, network));
 
 			using Wallet wallet = Wallet.CreateAndRegisterServices(
 				network,
