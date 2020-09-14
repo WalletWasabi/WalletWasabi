@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Wallets
@@ -18,25 +19,20 @@ namespace WalletWasabi.Wallets
 	{
 		private const double MegaByte = 1024 * 1024;
 
-		/// <summary>
-		/// Creates new instance.
-		/// </summary>
-		/// <param name="dataDir">Application data directory.</param>
-		/// <param name="blocksFolderPath">Folder where to store blocks as files.</param>
-		/// <param name="network">Bitcoin network.</param>
-		/// <param name="targetBlocksFolderSizeMb"></param>
-		public FileSystemBlockRepository(string dataDir, string blocksFolderPath, Network network, long targetBlocksFolderSizeMb = 300)
+		public FileSystemBlockRepository(string blocksFolderPath, Network network, long targetBlocksFolderSizeMb = 300)
 		{
-			DataDir = dataDir;
-			BlocksFolderPath = blocksFolderPath;
-			Network = network;
-			CreateFolders();
-			EnsureBackwardsCompatibility();
-			Prune(targetBlocksFolderSizeMb);
+			// Migrate files one by one from the old path to the new path.
+			using (BenchmarkLogger.Measure())
+			{
+				BlocksFolderPath = blocksFolderPath;
+				Network = network;
+				CreateFolders();
+				EnsureBackwardsCompatibility();
+				Prune(targetBlocksFolderSizeMb);
+			}
 		}
 
 		public string BlocksFolderPath { get; }
-		private string DataDir { get; }
 		private Network Network { get; }
 		private AsyncLock BlockFolderLock { get; } = new AsyncLock();
 
@@ -50,68 +46,77 @@ namespace WalletWasabi.Wallets
 			try
 			{
 				// Before Wasabi 1.1.13
-				var wrongBlockFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
+				var wrongGlobalBlockFodlerPath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), "Blocks");
+				var wrongBlockFolderPaths = new[]
+				{
+					Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), $"Blocks{Network}"),
+					Path.Combine(wrongGlobalBlockFodlerPath, Network.Name)
+				};
 
-				// Check whether old folder exists.
-				if (Directory.Exists(wrongBlockFolderPath))
+				foreach (var wrongBlockFolderPath in wrongBlockFolderPaths.Where(x => Directory.Exists(x)))
 				{
 					Logger.LogTrace($"Initiate migration of '{wrongBlockFolderPath}'");
 
-					// Migrate files one by one from the old path to the new path.
-					using (BenchmarkLogger.Measure())
+					int cntSuccess = 0;
+					int cntRedundant = 0;
+					int cntFailure = 0;
+
+					foreach (string oldFilePath in Directory.EnumerateFiles(wrongBlockFolderPath))
 					{
-						int cntSuccess = 0;
-						int cntRedundant = 0;
-						int cntFailure = 0;
-
-						foreach (string oldFilePath in Directory.EnumerateFiles(wrongBlockFolderPath))
+						try
 						{
-							try
+							string fileName = Path.GetFileName(oldFilePath);
+							string newFilePath = Path.Combine(BlocksFolderPath, fileName);
+
+							if (!File.Exists(newFilePath))
 							{
-								string fileName = Path.GetFileName(oldFilePath);
-								string newFilePath = Path.Combine(BlocksFolderPath, fileName);
+								Logger.LogTrace($"Migrate '{oldFilePath}' -> '{newFilePath}'.");
 
-								if (!File.Exists(newFilePath))
-								{
-									Logger.LogTrace($"Migrate '{oldFilePath}' -> '{newFilePath}'.");
-
-									// Unintuitively File.Move overwrite: false throws an IOException if the file already exists.
-									// https://docs.microsoft.com/en-us/dotnet/api/system.io.file.move?view=netcore-3.1
-									File.Move(sourceFileName: oldFilePath, destFileName: newFilePath, overwrite: false);
-									cntSuccess++;
-								}
-								else
-								{
-									Logger.LogTrace($"'{newFilePath}' already exists. Skip migrating.");
-									cntRedundant++;
-								}
+								// Unintuitively File.Move overwrite: false throws an IOException if the file already exists.
+								// https://docs.microsoft.com/en-us/dotnet/api/system.io.file.move?view=netcore-3.1
+								File.Move(sourceFileName: oldFilePath, destFileName: newFilePath, overwrite: false);
+								cntSuccess++;
 							}
-							catch (Exception ex)
+							else
 							{
-								Logger.LogDebug($"'{oldFilePath}' failed to migrate.");
-								Logger.LogDebug(ex);
-								cntFailure++;
+								Logger.LogTrace($"'{newFilePath}' already exists. Skip migrating.");
+								cntRedundant++;
 							}
 						}
-
-						Directory.Delete(wrongBlockFolderPath, recursive: true);
-
-						if (cntSuccess > 0)
+						catch (Exception ex)
 						{
-							Logger.LogInfo($"Successfully migrated {cntSuccess} blocks to '{BlocksFolderPath}'.");
+							Logger.LogDebug($"'{oldFilePath}' failed to migrate.");
+							Logger.LogDebug(ex);
+							cntFailure++;
 						}
+					}
 
-						if (cntRedundant > 0)
-						{
-							Logger.LogInfo($"{cntRedundant} blocks were already in '{BlocksFolderPath}'.");
-						}
+					Directory.Delete(wrongBlockFolderPath, recursive: true);
 
-						if (cntFailure > 0)
-						{
-							Logger.LogDebug($"Failed to migrate {cntFailure} blocks to '{BlocksFolderPath}'.");
-						}
+					if (cntSuccess > 0)
+					{
+						Logger.LogInfo($"Successfully migrated {cntSuccess} blocks to '{BlocksFolderPath}'.");
+					}
 
-						Logger.LogInfo($"Deleted '{wrongBlockFolderPath}' folder.");
+					if (cntRedundant > 0)
+					{
+						Logger.LogInfo($"{cntRedundant} blocks were already in '{BlocksFolderPath}'.");
+					}
+
+					if (cntFailure > 0)
+					{
+						Logger.LogDebug($"Failed to migrate {cntFailure} blocks to '{BlocksFolderPath}'.");
+					}
+
+					Logger.LogInfo($"Deleted '{wrongBlockFolderPath}' folder.");
+				}
+
+				if (Directory.Exists(wrongGlobalBlockFodlerPath))
+				{
+					// If all networks successfully migrated, too, then delete the transactions folder, too.
+					if (!Directory.EnumerateFileSystemEntries(wrongGlobalBlockFodlerPath).Any())
+					{
+						Directory.Delete(wrongGlobalBlockFodlerPath, recursive: true);
 					}
 				}
 			}
@@ -134,45 +139,42 @@ namespace WalletWasabi.Wallets
 
 			try
 			{
-				using (BenchmarkLogger.Measure())
+				List<FileInfo> fileInfoList = Directory.EnumerateFiles(BlocksFolderPath).Select(x => new FileInfo(x)).ToList();
+
+				// Invalidate file info cache as per:
+				// https://docs.microsoft.com/en-us/dotnet/api/system.io.filesysteminfo.lastaccesstimeutc?view=netcore-3.1#remarks
+				fileInfoList.ForEach(x => x.Refresh());
+
+				double sizeSumMb = 0;
+				int cntPruned = 0;
+
+				foreach (FileInfo blockFile in fileInfoList.OrderByDescending(x => x.LastAccessTimeUtc))
 				{
-					List<FileInfo> fileInfoList = Directory.EnumerateFiles(BlocksFolderPath).Select(x => new FileInfo(x)).ToList();
-
-					// Invalidate file info cache as per:
-					// https://docs.microsoft.com/en-us/dotnet/api/system.io.filesysteminfo.lastaccesstimeutc?view=netcore-3.1#remarks
-					fileInfoList.ForEach(x => x.Refresh());
-
-					double sizeSumMb = 0;
-					int cntPruned = 0;
-
-					foreach (FileInfo blockFile in fileInfoList.OrderByDescending(x => x.LastAccessTimeUtc))
+					try
 					{
-						try
-						{
-							double fileSizeMb = blockFile.Length / MegaByte;
+						double fileSizeMb = blockFile.Length / MegaByte;
 
-							if (sizeSumMb + fileSizeMb <= maxFolderSizeMb) // The file can stay stored.
-							{
-								sizeSumMb += fileSizeMb;
-							}
-							else if (sizeSumMb + fileSizeMb > maxFolderSizeMb) // Keeping the file would exceed the limit.
-							{
-								string blockHash = Path.GetFileNameWithoutExtension(blockFile.Name);
-								blockFile.Delete();
-								Logger.LogTrace($"Pruned {blockHash}. {nameof(sizeSumMb)}={sizeSumMb}.");
-								cntPruned++;
-							}
-						}
-						catch (Exception ex)
+						if (sizeSumMb + fileSizeMb <= maxFolderSizeMb) // The file can stay stored.
 						{
-							Logger.LogWarning(ex);
+							sizeSumMb += fileSizeMb;
+						}
+						else if (sizeSumMb + fileSizeMb > maxFolderSizeMb) // Keeping the file would exceed the limit.
+						{
+							string blockHash = Path.GetFileNameWithoutExtension(blockFile.Name);
+							blockFile.Delete();
+							Logger.LogTrace($"Pruned {blockHash}. {nameof(sizeSumMb)}={sizeSumMb}.");
+							cntPruned++;
 						}
 					}
-
-					if (cntPruned > 0)
+					catch (Exception ex)
 					{
-						Logger.LogInfo($"Blocks folder was over {maxFolderSizeMb} MB. Deleted {cntPruned} blocks.");
+						Logger.LogWarning(ex);
 					}
+				}
+
+				if (cntPruned > 0)
+				{
+					Logger.LogInfo($"Blocks folder was over {maxFolderSizeMb} MB. Deleted {cntPruned} blocks.");
 				}
 			}
 			catch (Exception ex)
@@ -284,18 +286,19 @@ namespace WalletWasabi.Wallets
 
 		private void CreateFolders()
 		{
-			if (Directory.Exists(BlocksFolderPath))
+			try
 			{
-				if (Network == Network.RegTest)
+				if (Directory.Exists(BlocksFolderPath) && Network == Network.RegTest)
 				{
 					Directory.Delete(BlocksFolderPath, true);
-					Directory.CreateDirectory(BlocksFolderPath);
 				}
 			}
-			else
+			catch (Exception ex)
 			{
-				Directory.CreateDirectory(BlocksFolderPath);
+				Logger.LogDebug(ex);
 			}
+
+			IoHelpers.EnsureDirectoryExists(BlocksFolderPath);
 		}
 	}
 }

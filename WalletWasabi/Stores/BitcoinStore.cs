@@ -1,3 +1,4 @@
+using NBitcoin;
 using System.IO;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Blocks;
@@ -6,6 +7,7 @@ using WalletWasabi.Blockchain.P2p;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Stores
 {
@@ -18,11 +20,13 @@ namespace WalletWasabi.Stores
 		public BitcoinStore(
 			IndexStore indexStore,
 			AllTransactionStore transactionStore,
-			MempoolService mempoolService)
+			MempoolService mempoolService,
+			IRepository<uint256, Block> blocks)
 		{
 			IndexStore = indexStore;
 			TransactionStore = transactionStore;
 			MempoolService = mempoolService;
+			Blocks = blocks;
 		}
 
 		public bool IsInitialized { get; private set; }
@@ -31,6 +35,7 @@ namespace WalletWasabi.Stores
 		public AllTransactionStore TransactionStore { get; }
 		public SmartHeaderChain SmartHeaderChain => IndexStore.SmartHeaderChain;
 		public MempoolService MempoolService { get; }
+		public IRepository<uint256, Block> Blocks { get; }
 
 		/// <summary>
 		/// This should not be a property, but a creator function, because it'll be cloned left and right by NBitcoin later.
