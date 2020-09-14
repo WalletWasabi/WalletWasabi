@@ -30,7 +30,7 @@ namespace WalletWasabi.Helpers
 			corrected = corrected.Replace('·', '.');
 			corrected = corrected.Replace('\'', '.');
 
-			// Can trim second ending dot.
+			// Trim trailing dots except the last one.
 			if (corrected.EndsWith('.'))
 			{
 				corrected = $"{corrected.TrimEnd('.')}.";
