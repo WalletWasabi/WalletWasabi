@@ -65,7 +65,7 @@ namespace WalletWasabi.Helpers
 			// Do not enable having more than one dot.
 			if (corrected.Count(x => x == '.') > 1)
 			{
-				// Except if it's at the end. Then we might just remove it.
+				// Except if it's at the end, we just remove it.
 				corrected = corrected.TrimEnd('.');
 				if (corrected.Count(x => x == '.') > 1)
 				{
