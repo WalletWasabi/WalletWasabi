@@ -56,7 +56,7 @@ namespace WalletWasabi.Helpers
 				}
 			}
 
-			// Starting dot means zero. So if the user wants to type .1, then we make it 0.1.
+			// Trim leading dots except the first one.
 			if (corrected.StartsWith('.'))
 			{
 				corrected = $".{corrected.TrimStart('.')}";
