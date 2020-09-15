@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              x:Class="WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets.GenerateWalletView"
@@ -23,7 +23,7 @@
     </controls:GroupBox>
     <DockPanel LastChildFill="True">
       <Button Content="Next" Command="{Binding NextCommand}" DockPanel.Dock="Right" />
-      <Panel/>
+      <Panel />
     </DockPanel>
   </StackPanel>
 </UserControl>

@@ -52,6 +52,7 @@ namespace WalletWasabi.Tor
 
 		/// <summary>Full path to executable file that is used to start Tor process.</summary>
 		public string TorPath { get; }
+
 		private string GeoIpPath { get; }
 		private string GeoIp6Path { get; }
 

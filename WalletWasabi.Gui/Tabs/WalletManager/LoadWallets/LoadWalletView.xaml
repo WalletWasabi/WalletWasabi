@@ -20,7 +20,7 @@
           </StackPanel>
         </Grid>
       </controls:GroupBox>
-      
+
       <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" Margin="20 10">
       <Button IsVisible="{Binding IsDesktopWallet}" Command="{Binding OpenFolderCommand}">
           <StackPanel Orientation="Horizontal" Spacing="6">

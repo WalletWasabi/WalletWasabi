@@ -160,7 +160,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			var secretNonce = secretNonceProvider.Sequence.First();
 
-			Assert.Equal(secretNonce.Count(), witness.Length );
+			Assert.Equal(secretNonce.Count(), witness.Length);
 		}
 
 		[Fact]
