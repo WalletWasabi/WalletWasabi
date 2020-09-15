@@ -34,25 +34,25 @@ namespace WalletWasabi.Tor
 		/// </summary>
 		private long _monitorState;
 
-		/// <param name="torSocks5EndPoint">Opt out Tor with null.</param>
-		/// <param name="logFile">Opt out of logging with null.</param>
-		public TorProcessManager(EndPoint torSocks5EndPoint, string dataDir, string logFile)
+		/// <summary>
+		/// Creates a new instance of the object.
+		/// </summary>
+		/// <param name="settings">Tor settings.</param>
+		/// <param name="torSocks5EndPoint">Valid Tor end point.</param>
+		public TorProcessManager(TorSettings settings, EndPoint torSocks5EndPoint)
 		{
 			TorSocks5EndPoint = torSocks5EndPoint;
-			LogFile = logFile;
 			_monitorState = StateNotStarted;
 			Stop = new CancellationTokenSource();
 			TorProcess = null;
-			Settings = new TorSettings(dataDir);
+			Settings = settings;
 		}
 
 		private EndPoint TorSocks5EndPoint { get; }
 
-		private string LogFile { get; }
-
 		public static bool RequestFallbackAddressUsage { get; private set; } = false;
 
-		private Process TorProcess { get; set; }
+		private Process? TorProcess { get; set; }
 
 		private TorSettings Settings { get; }
 
@@ -106,10 +106,10 @@ namespace WalletWasabi.Tor
 
 						string torArguments = Settings.GetCmdArguments(TorSocks5EndPoint);
 
-						if (!string.IsNullOrEmpty(LogFile))
+						if (Settings.LogFilePath is { })
 						{
-							IoHelpers.EnsureContainingDirectoryExists(LogFile);
-							var logFileFullPath = Path.GetFullPath(LogFile);
+							IoHelpers.EnsureContainingDirectoryExists(Settings.LogFilePath);
+							var logFileFullPath = Path.GetFullPath(Settings.LogFilePath);
 							torArguments += $" --Log \"notice file {logFileFullPath}\"";
 						}
 

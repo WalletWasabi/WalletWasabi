@@ -1,19 +1,24 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
-using System.Text;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Tor
 {
+	/// <summary>
+	/// All Tor-related settings.
+	/// </summary>
 	public class TorSettings
 	{
-		public TorSettings(string dataDir)
+		/// <summary>
+		/// Creates a new instance.
+		/// </summary>
+		/// <param name="dataDir">Application data directory.</param>
+		/// <param name="logFilePath">Full Tor log file path.</param>
+		public TorSettings(string dataDir, string logFilePath)
 		{
 			TorDir = Path.Combine(dataDir, "tor");
 			TorDataDir = Path.Combine(dataDir, "tordata");
+			LogFilePath = logFilePath;
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
@@ -33,9 +38,19 @@ namespace WalletWasabi.Tor
 			}
 		}
 
+		/// <summary>Full directory path where Tor is installed (or supposed to be installed).</summary>
 		public string TorDir { get; }
+
+		/// <summary>Full directory path where Tor stores its data.</summary>
 		public string TorDataDir { get; }
+
+		/// <summary>Full path. Directory may not necessarily exist.</summary>
+		public string LogFilePath { get; }
+
+		/// <summary>Full path to Tor binary that is checked against a check sum.</summary>
 		public string HashSourcePath { get; }
+
+		/// <summary>Full path to executable file that is used to start Tor process.</summary>
 		public string TorPath { get; }
 		private string GeoIpPath { get; }
 		private string GeoIp6Path { get; }
