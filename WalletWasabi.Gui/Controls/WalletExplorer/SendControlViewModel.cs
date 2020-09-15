@@ -955,6 +955,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(_ => IsCustomFee = !IsEstimateAvailable || Global.UiConfig.IsCustomFee)
 				.DisposeWith(disposables);
 
+			Global.UiConfig.WhenAnyValue(x => x.FeeDisplayFormat)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					FeeDisplayFormat = (FeeDisplayFormat)x;
+					SetFeesAndTexts();
+				})
+				.DisposeWith(disposables);
+
 			this.WhenAnyValue(x => x.IsCustomFee)
 				.Where(x => !x)
 				.ObserveOn(RxApp.MainThreadScheduler)
