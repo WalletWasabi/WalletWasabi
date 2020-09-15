@@ -28,7 +28,7 @@ namespace WalletWasabi.Gui.Helpers
 		}
 
 		[FlagsAttribute]
-		public enum EXECUTION_STATE : uint
+		private enum EXECUTION_STATE : uint
 		{
 			ES_AWAYMODE_REQUIRED = 0x00000040,
 			ES_CONTINUOUS = 0x80000000,
