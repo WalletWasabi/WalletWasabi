@@ -1322,11 +1322,11 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
 				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
-				bitcoinStore.Blocks);
+				bitcoinStore.BlockRepository);
 
 			CachedBlockProvider blockProvider2 = new CachedBlockProvider(
 				new P2pBlockProvider(nodes2, null, synchronizer, serviceConfiguration, network),
-				bitcoinStore.Blocks);
+				bitcoinStore.BlockRepository);
 
 			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer, blockProvider);
 			wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;

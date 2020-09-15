@@ -63,7 +63,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
 				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
-				bitcoinStore.Blocks);
+				bitcoinStore.BlockRepository);
 
 			var walletManager = new WalletManager(network, new WalletDirectories(workDir));
 			walletManager.RegisterServices(bitcoinStore, synchronizer, nodes, serviceConfiguration, synchronizer, blockProvider);
@@ -542,7 +542,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
 				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
-				bitcoinStore.Blocks);
+				bitcoinStore.BlockRepository);
 
 			var walletManager = new WalletManager(network, new WalletDirectories(workDir));
 			walletManager.RegisterServices(bitcoinStore, synchronizer, nodes, serviceConfiguration, synchronizer, blockProvider);
@@ -715,7 +715,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
 				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
-				bitcoinStore.Blocks);
+				bitcoinStore.BlockRepository);
 
 			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer, blockProvider);
 			wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;
