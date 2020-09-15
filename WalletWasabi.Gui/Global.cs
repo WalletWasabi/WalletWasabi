@@ -371,7 +371,7 @@ namespace WalletWasabi.Gui
 					new SmartBlockProvider(
 						new P2pBlockProvider(Nodes, BitcoinCoreNode, Synchronizer, Config.ServiceConfiguration, Network),
 						Cache),
-					BitcoinStore.Blocks);
+					BitcoinStore.BlockRepository);
 
 				#endregion Blocks provider
 
