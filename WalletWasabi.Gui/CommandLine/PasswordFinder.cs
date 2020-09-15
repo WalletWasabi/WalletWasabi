@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Security;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Gui.CommandLine
 {

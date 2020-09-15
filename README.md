@@ -1,8 +1,8 @@
 ![](https://i.imgur.com/4GO7nnY.png)
 
-| Code Quality           | Windows Tests           | Linux Tests             | macOS Tests             | Continuous Delivery       | License                   |
-| :----------------------| :-----------------------| :-----------------------| :-----------------------| :-------------------------| :-------------------------|
-| [![CodeFactor][9]][10] | [![Build Status][1]][2] | [![Build Status][3]][4] | [![Build Status][5]][6] | [![Build Status][11]][12] | [![GitHub license][7]][8] |
+| Code Quality           | Windows Tests           | Linux Tests             | macOS Tests             | Continuous Delivery       | Deterministic builds      | License                   |
+| :----------------------| :-----------------------| :-----------------------| :-----------------------| :-------------------------| :-------------------------| :-------------------------|
+| [![CodeFactor][9]][10] | [![Build Status][1]][2] | [![Build Status][3]][4] | [![Build Status][5]][6] | [![Build Status][11]][12] | [![Build Status][13]][14] | [![GitHub license][7]][8] |
 
 [1]: https://dev.azure.com/zkSNACKs/Wasabi/_apis/build/status/Wasabi.Windows?branchName=master
 [2]: https://dev.azure.com/zkSNACKs/Wasabi/_build?definitionId=3
@@ -16,6 +16,8 @@
 [10]: https://www.codefactor.io/repository/github/zksnacks/walletwasabi
 [11]: https://dev.azure.com/zkSNACKs/Wasabi/_apis/build/status/Wasabi.ContinuousDelivery?branchName=master
 [12]: https://dev.azure.com/zkSNACKs/Wasabi/_build/latest?definitionId=12&branchName=master
+[13]: https://dev.azure.com/zkSNACKs/Wasabi/_apis/build/status/Wasabi.DeterministicBuild?branchName=master
+[14]: https://dev.azure.com/zkSNACKs/Wasabi/_build/latest?definitionId=13&branchName=master
 
 [Wasabi Wallet](https://wasabiwallet.io) is an open-source, non-custodial, privacy-focused Bitcoin wallet for desktop, that implements [Chaumian CoinJoin](https://github.com/nopara73/ZeroLink/#ii-chaumian-coinjoin).
 

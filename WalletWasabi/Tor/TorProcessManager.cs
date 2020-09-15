@@ -48,10 +48,7 @@ namespace WalletWasabi.Tor
 			Settings = settings;
 		}
 
-		/// <summary>
-		/// If null then it's just a mock, clearnet is used.
-		/// </summary>
-		public EndPoint TorSocks5EndPoint { get; }
+		private EndPoint TorSocks5EndPoint { get; }
 
 		public static bool RequestFallbackAddressUsage { get; private set; } = false;
 

@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using WalletWasabi.Helpers;
 
-namespace System.Net
+namespace WalletWasabi.Userfacing
 {
 	public static class EndPointParser
 	{

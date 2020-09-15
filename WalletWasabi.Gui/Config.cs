@@ -17,6 +17,7 @@ using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Tor;
+using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Gui
 {
@@ -84,7 +85,7 @@ namespace WalletWasabi.Gui
 		public bool StopLocalBitcoinCoreOnShutdown { get; internal set; }
 
 		[JsonProperty(PropertyName = "LocalBitcoinCoreDataDir")]
-		public string LocalBitcoinCoreDataDir { get; internal set; } = EnvironmentHelpers.TryGetDefaultBitcoinCoreDataDir() ?? "";
+		public string LocalBitcoinCoreDataDir { get; internal set; } = EnvironmentHelpers.GetDefaultBitcoinCoreDataDirOrEmptyString();
 
 		[JsonProperty(PropertyName = "TorSocks5EndPoint")]
 		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultTorSocksPort)]

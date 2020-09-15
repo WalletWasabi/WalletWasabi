@@ -2,6 +2,7 @@ using NBitcoin;
 using System;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,12 +31,13 @@ namespace WalletWasabi.Tests.IntegrationTests
 			string distributionFolder = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "TorDaemons");
 			string logsFilePath = Global.Instance.TorLogsFile;
 			string dataDir = Path.GetFullPath(AppContext.BaseDirectory);
+			EndPoint endPoint = Global.Instance.TorSocks5Endpoint;
 
 			var settings = new TorSettings(dataDir: dataDir, logsFilePath, distributionFolder);
 			var installer = new TorInstallator(settings);
 			Assert.True(await installer.VerifyInstallationAsync());
 
-			var manager = new TorProcessManager(settings, Global.Instance.TorSocks5Endpoint);
+			var manager = new TorProcessManager(settings, endPoint);
 			manager.Start(ensureRunning: true);
 			await Task.Delay(3000);
 		}
