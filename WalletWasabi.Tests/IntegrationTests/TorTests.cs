@@ -12,16 +12,22 @@ using Xunit;
 namespace WalletWasabi.Tests.IntegrationTests
 {
 	// Tor must be running
-	public class TorTests
+	public class TorTests : IAsyncLifetime
 	{
-		public TorTests()
+		public async Task InitializeAsync()
 		{
+			EndPoint endpoint = Global.Instance.TorSocks5Endpoint;
 			string dataDir = Path.GetFullPath(AppContext.BaseDirectory);
 			string torLogsFile = Global.Instance.TorLogsFile;
 
-			var torManager = new TorProcessManager(Global.Instance.TorSocks5Endpoint, dataDir, torLogsFile);
+			var torManager = new TorProcessManager(endpoint, dataDir, torLogsFile);
 			torManager.Start(ensureRunning: true);
-			Task.Delay(3000).GetAwaiter().GetResult();
+			await Task.Delay(3000);
+		}
+
+		public Task DisposeAsync()
+		{
+			return Task.CompletedTask;
 		}
 
 		[Fact]

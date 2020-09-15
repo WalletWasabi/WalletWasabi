@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace WalletWasabi.Helpers
@@ -171,7 +172,8 @@ namespace WalletWasabi.Helpers
 		/// If the string is null, it'll be empty.
 		/// Trims the string.
 		/// </summary>
-		public static string Correct(string str)
+		[return: NotNull]
+		public static string Correct(string? str)
 		{
 			return string.IsNullOrWhiteSpace(str)
 				? ""
