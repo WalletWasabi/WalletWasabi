@@ -254,6 +254,11 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 				using (await MixLock.LockAsync().ConfigureAwait(false))
 				{
+					if (State.AnyCoinsQueued())
+					{
+						EnvironmentHelpers.KeepSystemAwake();
+					}
+
 					foreach (var ongoingRound in State.GetActivelyMixingRounds())
 					{
 						await TryProcessRoundStateAsync(ongoingRound).ConfigureAwait(false);
