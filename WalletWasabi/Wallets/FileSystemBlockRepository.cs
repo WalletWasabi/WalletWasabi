@@ -37,7 +37,7 @@ namespace WalletWasabi.Wallets
 		private AsyncLock BlockFolderLock { get; } = new AsyncLock();
 
 		/// <summary>
-		/// Copies files from <c>BlocksNETWORK_NAME</c> folder to <c>Blocks/NETWORK_NAME</c> if not already migrated.
+		/// Copies files from <c>BlocksNETWORK_NAME</c> folder to <c>BitcoinStore/NETWORK_NAME/Blocks</c> if not already migrated.
 		/// </summary>
 		private void EnsureBackwardsCompatibility()
 		{
