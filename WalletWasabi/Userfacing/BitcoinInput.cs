@@ -75,7 +75,7 @@ namespace WalletWasabi.Helpers
 
 			// Enable max 8 decimals.
 			var dotIndex = corrected.IndexOf('.');
-			if (dotIndex != -1 && corrected.Length - dotIndex > 8)
+			if (dotIndex != -1 && corrected.Length - (dotIndex + 1) > 8)
 			{
 				corrected = corrected.Substring(0, dotIndex + 1 + 8);
 			}
