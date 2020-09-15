@@ -257,14 +257,7 @@ namespace WalletWasabi.Gui.ViewModels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(usd =>
 				{
-					if (usd == default)
-					{
-						BtcPrice = LoadingText;
-					}
-					else
-					{
-						BtcPrice = $"${(long)usd}";
-					}
+					BtcPrice = usd == default ? LoadingText : $"${(long)usd}";
 				})
 				.DisposeWith(Disposables);
 
