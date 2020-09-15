@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Helpers;
-using WalletWasabi.Crypto.ZeroKnowledge;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 {
@@ -48,14 +47,6 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 			Equations.CheckDimensions(allResponses);
 
 			return Equations.Zip(publicNonces, allResponses, (equation, r, s) => equation.Verify(r, challenge, s)).All(x => x);
-		}
-
-		public GroupElementVector SimulatePublicNonces(Scalar challenge, IEnumerable<ScalarVector> allGivenResponses)
-		{
-			// The responses matrix should match the generators in the equations and
-			Equations.CheckDimensions(allGivenResponses);
-
-			return new GroupElementVector(Enumerable.Zip(Equations, allGivenResponses, (e, r) => e.Simulate(challenge, r)));
 		}
 	}
 }
