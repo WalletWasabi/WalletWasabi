@@ -92,7 +92,7 @@ namespace WalletWasabi.Gui
 				DataDir = dataDir;
 				Config = config;
 				UiConfig = uiConfig;
-				TorSettings = new TorSettings(DataDir, torLogsFile);
+				TorSettings = new TorSettings(DataDir, torLogsFile, distributionFolderPath: Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "TorDaemons"));
 
 				Logger.InitializeDefaults(Path.Combine(DataDir, "Logs.txt"));
 

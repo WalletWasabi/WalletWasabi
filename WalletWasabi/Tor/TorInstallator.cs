@@ -11,21 +11,18 @@ namespace WalletWasabi.Tor
 	/// </summary>
 	public class TorInstallator
 	{
-		public static async Task InstallAsync(string torDir)
+		public static async Task InstallAsync(TorSettings settings)
 		{
-			// Folder containing installation files.
-			string distributionFolder = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "TorDaemons");
-
 			// Common for all platforms.
-			await ExtractZipFileAsync(Path.Combine(distributionFolder, "data-folder.zip"), torDir).ConfigureAwait(false);
+			await ExtractZipFileAsync(Path.Combine(settings.DistributionFolder, "data-folder.zip"), settings.TorDir).ConfigureAwait(false);
 
 			// File differs per platform.
-			await ExtractZipFileAsync(Path.Combine(distributionFolder, $"tor-{GetPlatformIdentifier()}.zip"), torDir).ConfigureAwait(false);
+			await ExtractZipFileAsync(Path.Combine(settings.DistributionFolder, $"tor-{GetPlatformIdentifier()}.zip"), settings.TorDir).ConfigureAwait(false);
 
 			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
 				// Set sufficient file permission.
-				string shellCommand = $"chmod -R 750 {torDir}";
+				string shellCommand = $"chmod -R 750 {settings.TorDir}";
 				await EnvironmentHelpers.ShellExecAsync(shellCommand, waitForExit: true).ConfigureAwait(false);
 				Logger.LogInfo($"Shell command executed: '{shellCommand}'.");
 			}

@@ -84,7 +84,7 @@ namespace WalletWasabi.Tor
 						if (!File.Exists(Settings.TorPath))
 						{
 							Logger.LogInfo($"Tor instance NOT found at '{Settings.TorPath}'. Attempting to acquire it ...");
-							TorInstallator.InstallAsync(Settings.TorDir).GetAwaiter().GetResult();
+							TorInstallator.InstallAsync(Settings).GetAwaiter().GetResult();
 						}
 						else if (!IoHelpers.CheckExpectedHash(Settings.HashSourcePath, Path.Combine(fullBaseDirectory, "TorDaemons")))
 						{
@@ -97,7 +97,7 @@ namespace WalletWasabi.Tor
 							}
 							Directory.Move(Settings.TorDir, backupTorDir);
 
-							TorInstallator.InstallAsync(Settings.TorDir).GetAwaiter().GetResult();
+							TorInstallator.InstallAsync(Settings).GetAwaiter().GetResult();
 						}
 						else
 						{
