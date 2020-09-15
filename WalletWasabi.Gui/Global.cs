@@ -67,8 +67,8 @@ namespace WalletWasabi.Gui
 		public TransactionBroadcaster TransactionBroadcaster { get; set; }
 		public CoinJoinProcessor CoinJoinProcessor { get; set; }
 		public Node RegTestMempoolServingNode { get; private set; }
-		public TorProcessManager? TorManager { get; private set; }
 		public EndPoint? TorSocks5EndPoint { get; private set; }
+		private TorProcessManager? TorManager { get; set; }
 		public CoreNode BitcoinCoreNode { get; private set; }
 
 		public HostedServices HostedServices { get; }

@@ -11,7 +11,7 @@ namespace WalletWasabi.Tor
 	public class TorSettings
 	{
 		/// <summary>
-		/// Creates new instance.
+		/// Creates a new instance.
 		/// </summary>
 		/// <param name="dataDir">Application data directory.</param>
 		/// <param name="logFilePath">Full Tor log file path.</param>

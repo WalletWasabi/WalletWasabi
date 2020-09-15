@@ -35,7 +35,7 @@ namespace WalletWasabi.Tor
 		private long _monitorState;
 
 		/// <summary>
-		/// Creates new instance of the object.
+		/// Creates a new instance of the object.
 		/// </summary>
 		/// <param name="settings">Tor settings.</param>
 		/// <param name="torSocks5EndPoint">Valid Tor end point.</param>
