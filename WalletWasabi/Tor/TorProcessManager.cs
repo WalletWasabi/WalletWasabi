@@ -46,10 +46,7 @@ namespace WalletWasabi.Tor
 			Settings = new TorSettings(dataDir);
 		}
 
-		/// <summary>
-		/// If null then it's just a mock, clearnet is used.
-		/// </summary>
-		public EndPoint TorSocks5EndPoint { get; }
+		private EndPoint TorSocks5EndPoint { get; }
 
 		private string LogFile { get; }
 
@@ -63,18 +60,8 @@ namespace WalletWasabi.Tor
 
 		private CancellationTokenSource Stop { get; set; }
 
-		public static TorProcessManager Mock() // Mock, do not use Tor at all for debug.
-		{
-			return new TorProcessManager(null, null, null);
-		}
-
 		public void Start(bool ensureRunning)
 		{
-			if (TorSocks5EndPoint is null)
-			{
-				return;
-			}
-
 			new Thread(delegate () // Do not ask. This is the only way it worked on Win10/Ubuntu18.04/Manjuro(1 processor VM)/Fedora(1 processor VM)
 			{
 				try
@@ -187,11 +174,6 @@ namespace WalletWasabi.Tor
 
 		public void StartMonitor(TimeSpan torMisbehaviorCheckPeriod, TimeSpan checkIfRunningAfterTorMisbehavedFor, Uri fallBackTestRequestUri)
 		{
-			if (TorSocks5EndPoint is null)
-			{
-				return;
-			}
-
 			Logger.LogInfo("Starting Tor monitor...");
 			if (Interlocked.CompareExchange(ref _monitorState, StateRunning, StateNotStarted) != StateNotStarted)
 			{

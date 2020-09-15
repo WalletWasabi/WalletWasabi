@@ -67,7 +67,8 @@ namespace WalletWasabi.Gui
 		public TransactionBroadcaster TransactionBroadcaster { get; set; }
 		public CoinJoinProcessor CoinJoinProcessor { get; set; }
 		public Node RegTestMempoolServingNode { get; private set; }
-		public TorProcessManager TorManager { get; private set; }
+		public EndPoint? TorSocks5EndPoint { get; private set; }
+		private TorProcessManager? TorManager { get; set; }
 		public CoreNode BitcoinCoreNode { get; private set; }
 
 		public HostedServices HostedServices { get; }
@@ -136,7 +137,6 @@ namespace WalletWasabi.Gui
 		{
 			InitializationStarted = true;
 			AddressManager = null;
-			TorManager = null;
 			var cancel = StoppingCts.Token;
 
 			try
@@ -180,14 +180,14 @@ namespace WalletWasabi.Gui
 				{
 					TorManager = new TorProcessManager(Config.TorSocks5EndPoint, DataDir, TorLogsFile);
 					TorManager.Start(ensureRunning: false);
+
+					var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
+					TorManager.StartMonitor(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(7), fallbackRequestTestUri);
 				}
 				else
 				{
-					TorManager = TorProcessManager.Mock();
+					TorSocks5EndPoint = null;
 				}
-
-				var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
-				TorManager.StartMonitor(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(7), fallbackRequestTestUri);
 
 				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
 
