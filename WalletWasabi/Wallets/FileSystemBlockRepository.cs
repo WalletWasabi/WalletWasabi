@@ -61,31 +61,15 @@ namespace WalletWasabi.Wallets
 					int cntRedundant = 0;
 					int cntFailure = 0;
 
-					foreach (string oldFilePath in Directory.EnumerateFiles(wrongBlockFolderPath))
+					foreach (string oldBlockFilePath in Directory.EnumerateFiles(wrongBlockFolderPath))
 					{
 						try
 						{
-							string fileName = Path.GetFileName(oldFilePath);
-							string newFilePath = Path.Combine(BlocksFolderPath, fileName);
-
-							if (!File.Exists(newFilePath))
-							{
-								Logger.LogTrace($"Migrate '{oldFilePath}' -> '{newFilePath}'.");
-
-								// Unintuitively File.Move overwrite: false throws an IOException if the file already exists.
-								// https://docs.microsoft.com/en-us/dotnet/api/system.io.file.move?view=netcore-3.1
-								File.Move(sourceFileName: oldFilePath, destFileName: newFilePath, overwrite: false);
-								cntSuccess++;
-							}
-							else
-							{
-								Logger.LogTrace($"'{newFilePath}' already exists. Skip migrating.");
-								cntRedundant++;
-							}
+							MigrateBlock(oldBlockFilePath, ref cntSuccess, ref cntRedundant);
 						}
 						catch (Exception ex)
 						{
-							Logger.LogDebug($"'{oldFilePath}' failed to migrate.");
+							Logger.LogDebug($"'{oldBlockFilePath}' failed to migrate.");
 							Logger.LogDebug(ex);
 							cntFailure++;
 						}
@@ -132,6 +116,27 @@ namespace WalletWasabi.Wallets
 			}
 
 			Logger.LogTrace("<");
+		}
+
+		private void MigrateBlock(string blockFilePath, ref int cntSuccess, ref int cntRedundant)
+		{
+			string fileName = Path.GetFileName(blockFilePath);
+			string newFilePath = Path.Combine(BlocksFolderPath, fileName);
+
+			if (!File.Exists(newFilePath))
+			{
+				Logger.LogTrace($"Migrate '{blockFilePath}' -> '{newFilePath}'.");
+
+				// Unintuitively File.Move overwrite: false throws an IOException if the file already exists.
+				// https://docs.microsoft.com/en-us/dotnet/api/system.io.file.move?view=netcore-3.1
+				File.Move(sourceFileName: blockFilePath, destFileName: newFilePath, overwrite: false);
+				cntSuccess++;
+			}
+			else
+			{
+				Logger.LogTrace($"'{newFilePath}' already exists. Skip migrating.");
+				cntRedundant++;
+			}
 		}
 
 		/// <summary>
