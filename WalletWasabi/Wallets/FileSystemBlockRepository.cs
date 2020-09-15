@@ -21,7 +21,6 @@ namespace WalletWasabi.Wallets
 
 		public FileSystemBlockRepository(string blocksFolderPath, Network network, long targetBlocksFolderSizeMb = 300)
 		{
-			// Migrate files one by one from the old path to the new path.
 			using (BenchmarkLogger.Measure())
 			{
 				BlocksFolderPath = blocksFolderPath;
@@ -37,7 +36,7 @@ namespace WalletWasabi.Wallets
 		private AsyncLock BlockFolderLock { get; } = new AsyncLock();
 
 		/// <summary>
-		/// Copies files from <c>BlocksNETWORK_NAME</c> folder to <c>BitcoinStore/NETWORK_NAME/Blocks</c> if not already migrated.
+		/// Copies files one by one from <c>BlocksNETWORK_NAME</c> folder to <c>BitcoinStore/NETWORK_NAME/Blocks</c> if not already migrated.
 		/// </summary>
 		private void EnsureBackwardsCompatibility()
 		{
