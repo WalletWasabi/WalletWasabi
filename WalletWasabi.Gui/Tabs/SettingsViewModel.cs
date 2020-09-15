@@ -14,11 +14,13 @@ using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
 using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Gui.Tabs
 {
@@ -41,6 +43,7 @@ namespace WalletWasabi.Gui.Tabs
 		private string _dustThreshold;
 		private string _pinBoxText;
 		private ObservableAsPropertyHelper<bool> _isPinSet;
+		private FeeDisplayFormat _selectedFeeDisplayFormat;
 
 		public SettingsViewModel() : base("Settings")
 		{
@@ -161,6 +164,14 @@ namespace WalletWasabi.Gui.Tabs
 				.Merge(TextBoxLostFocusCommand.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
+
+			SelectedFeeDisplayFormat = Enum.IsDefined(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat)
+				? (FeeDisplayFormat)Global.UiConfig.FeeDisplayFormat
+				: FeeDisplayFormat.SatoshiPerByte;
+
+			this.WhenAnyValue(x => x.SelectedFeeDisplayFormat)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x => Global.UiConfig.FeeDisplayFormat = (int)x);
 		}
 
 		private bool TabOpened { get; set; }
@@ -282,6 +293,14 @@ namespace WalletWasabi.Gui.Tabs
 			set => this.RaiseAndSetIfChanged(ref _pinBoxText, value);
 		}
 
+		public IEnumerable<FeeDisplayFormat> FeeDisplayFormats => Enum.GetValues(typeof(FeeDisplayFormat)).Cast<FeeDisplayFormat>();
+
+		public FeeDisplayFormat SelectedFeeDisplayFormat
+		{
+			get => _selectedFeeDisplayFormat;
+			set => this.RaiseAndSetIfChanged(ref _selectedFeeDisplayFormat, value);
+		}
+
 		public override void OnOpen(CompositeDisposable disposables)
 		{
 			try
@@ -301,6 +320,11 @@ namespace WalletWasabi.Gui.Tabs
 					.Throttle(TimeSpan.FromSeconds(1))
 					.ObserveOn(RxApp.TaskpoolScheduler)
 					.Subscribe(_ => Global.UiConfig.ToFile())
+					.DisposeWith(disposables);
+
+				Global.UiConfig.WhenAnyValue(x => x.FeeDisplayFormat)
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.Subscribe(x => SelectedFeeDisplayFormat = (FeeDisplayFormat)x)
 					.DisposeWith(disposables);
 
 				base.OnOpen(disposables);

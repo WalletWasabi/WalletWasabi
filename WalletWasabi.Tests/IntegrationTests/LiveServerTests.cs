@@ -2,6 +2,7 @@ using NBitcoin;
 using System;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,20 +18,29 @@ using Xunit;
 namespace WalletWasabi.Tests.IntegrationTests
 {
 	[Collection("LiveServerTests collection")]
-	public class LiveServerTests
+	public class LiveServerTests : IAsyncLifetime
 	{
 		public LiveServerTests(LiveServerTestsFixture liveServerTestsFixture)
 		{
 			LiveServerTestsFixture = liveServerTestsFixture;
+		}
 
+		public async Task InitializeAsync()
+		{
+			EndPoint endpoint = Global.Instance.TorSocks5Endpoint;
 			string dataDir = Path.GetFullPath(AppContext.BaseDirectory);
 			string logFilePath = Global.Instance.TorLogsFile;
 
 			var settings = new TorSettings(dataDir: dataDir, logFilePath);
 
-			var torManager = new TorProcessManager(settings, Global.Instance.TorSocks5Endpoint);
+			var torManager = new TorProcessManager(settings, endpoint);
 			torManager.Start(ensureRunning: true);
-			Task.Delay(3000).GetAwaiter().GetResult();
+			await Task.Delay(3000);
+		}
+
+		public Task DisposeAsync()
+		{
+			return Task.CompletedTask;
 		}
 
 		private LiveServerTestsFixture LiveServerTestsFixture { get; }

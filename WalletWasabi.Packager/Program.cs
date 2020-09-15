@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
+using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Packager
 {
