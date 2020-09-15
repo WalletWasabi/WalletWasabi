@@ -16,7 +16,8 @@ using WalletWasabi.Interfaces;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.TorSocks5;
+using WalletWasabi.Tor;
+using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Gui
 {
@@ -84,7 +85,7 @@ namespace WalletWasabi.Gui
 		public bool StopLocalBitcoinCoreOnShutdown { get; internal set; }
 
 		[JsonProperty(PropertyName = "LocalBitcoinCoreDataDir")]
-		public string LocalBitcoinCoreDataDir { get; internal set; } = EnvironmentHelpers.TryGetDefaultBitcoinCoreDataDir() ?? "";
+		public string LocalBitcoinCoreDataDir { get; internal set; } = EnvironmentHelpers.GetDefaultBitcoinCoreDataDirOrEmptyString();
 
 		[JsonProperty(PropertyName = "TorSocks5EndPoint")]
 		[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultTorSocksPort)]
@@ -130,7 +131,7 @@ namespace WalletWasabi.Gui
 			{
 				if (RaiseAndSetIfChanged(ref _mixUntilAnonymitySet, value))
 				{
-					if (ServiceConfiguration != default)
+					if (ServiceConfiguration is { })
 					{
 						ServiceConfiguration.MixUntilAnonymitySet = value;
 					}
@@ -150,7 +151,7 @@ namespace WalletWasabi.Gui
 				if (_privacyLevelSome != value)
 				{
 					_privacyLevelSome = value;
-					if (ServiceConfiguration != default)
+					if (ServiceConfiguration is { })
 					{
 						ServiceConfiguration.PrivacyLevelSome = value;
 					}
@@ -168,7 +169,7 @@ namespace WalletWasabi.Gui
 				if (_privacyLevelFine != value)
 				{
 					_privacyLevelFine = value;
-					if (ServiceConfiguration != default)
+					if (ServiceConfiguration is { })
 					{
 						ServiceConfiguration.PrivacyLevelFine = value;
 					}
@@ -186,7 +187,7 @@ namespace WalletWasabi.Gui
 				if (_privacyLevelStrong != value)
 				{
 					_privacyLevelStrong = value;
-					if (ServiceConfiguration != default)
+					if (ServiceConfiguration is { })
 					{
 						ServiceConfiguration.PrivacyLevelStrong = value;
 					}
@@ -207,7 +208,7 @@ namespace WalletWasabi.Gui
 				return GetFallbackBackendUri();
 			}
 
-			if (_backendUri != null)
+			if (_backendUri is { })
 			{
 				return _backendUri;
 			}
@@ -234,7 +235,7 @@ namespace WalletWasabi.Gui
 
 		public Uri GetFallbackBackendUri()
 		{
-			if (_fallbackBackendUri != null)
+			if (_fallbackBackendUri is { })
 			{
 				return _fallbackBackendUri;
 			}
@@ -405,7 +406,7 @@ namespace WalletWasabi.Gui
 				var regTestBitcoinCoreHost = jsObject.Value<string>("RegTestBitcoinCoreHost");
 				var regTestBitcoinCorePort = jsObject.Value<int?>("RegTestBitcoinCorePort");
 
-				if (torHost != null)
+				if (torHost is { })
 				{
 					int port = torSocks5Port ?? Constants.DefaultTorSocksPort;
 
@@ -416,7 +417,7 @@ namespace WalletWasabi.Gui
 					}
 				}
 
-				if (mainNetBitcoinCoreHost != null)
+				if (mainNetBitcoinCoreHost is { })
 				{
 					int port = mainNetBitcoinCorePort ?? Constants.DefaultMainNetBitcoinP2pPort;
 
@@ -427,7 +428,7 @@ namespace WalletWasabi.Gui
 					}
 				}
 
-				if (testNetBitcoinCoreHost != null)
+				if (testNetBitcoinCoreHost is { })
 				{
 					int port = testNetBitcoinCorePort ?? Constants.DefaultTestNetBitcoinP2pPort;
 
@@ -438,7 +439,7 @@ namespace WalletWasabi.Gui
 					}
 				}
 
-				if (regTestBitcoinCoreHost != null)
+				if (regTestBitcoinCoreHost is { })
 				{
 					int port = regTestBitcoinCorePort ?? Constants.DefaultRegTestBitcoinP2pPort;
 

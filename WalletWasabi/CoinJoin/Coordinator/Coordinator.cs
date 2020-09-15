@@ -199,7 +199,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 
 				// if coin is not banned
 				var foundElem = await UtxoReferee.TryGetBannedAsync(prevOut, notedToo: true).ConfigureAwait(false);
-				if (foundElem != null)
+				if (foundElem is { })
 				{
 					if (!AnyRunningRoundContainsInput(prevOut, out _))
 					{
@@ -356,7 +356,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 
 					CoordinatorRound nextRound = GetCurrentInputRegisterableRoundOrDefault(syncLock: false);
 
-					if (nextRound != null)
+					if (nextRound is { })
 					{
 						int nextRoundAlicesCount = nextRound.CountAlices(syncLock: false);
 						var alicesSignedCount = round.AnonymitySet - alicesDidntSign.Count();
@@ -493,7 +493,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 				{
 					using (RoundsListLock.Lock())
 					{
-						if (BlockNotifier != null)
+						if (BlockNotifier is { })
 						{
 							BlockNotifier.OnBlock -= BlockNotifier_OnBlockAsync;
 						}

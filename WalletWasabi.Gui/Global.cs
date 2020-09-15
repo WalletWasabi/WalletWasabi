@@ -40,7 +40,8 @@ using WalletWasabi.Legal;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
-using WalletWasabi.TorSocks5;
+using WalletWasabi.Tor;
+using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui
@@ -66,7 +67,8 @@ namespace WalletWasabi.Gui
 		public TransactionBroadcaster TransactionBroadcaster { get; set; }
 		public CoinJoinProcessor CoinJoinProcessor { get; set; }
 		public Node RegTestMempoolServingNode { get; private set; }
-		public TorProcessManager TorManager { get; private set; }
+		public EndPoint? TorSocks5EndPoint { get; private set; }
+		private TorProcessManager? TorManager { get; set; }
 		public CoreNode BitcoinCoreNode { get; private set; }
 
 		public HostedServices HostedServices { get; }
@@ -106,8 +108,9 @@ namespace WalletWasabi.Gui
 				var transactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
 				var indexStore = new IndexStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, new SmartHeaderChain());
 				var mempoolService = new MempoolService();
+				var blocks = new FileSystemBlockRepository(Path.Combine(networkWorkFolderPath, "Blocks"), Network);
 
-				BitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService);
+				BitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService, blocks);
 
 				SingleInstanceChecker = new SingleInstanceChecker(Network);
 
@@ -135,7 +138,6 @@ namespace WalletWasabi.Gui
 		{
 			InitializationStarted = true;
 			AddressManager = null;
-			TorManager = null;
 			var cancel = StoppingCts.Token;
 
 			try
@@ -153,7 +155,6 @@ namespace WalletWasabi.Gui
 				AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
 				var addrManTask = InitializeAddressManagerBehaviorAsync();
 
-				var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
 				var userAgent = Constants.UserAgents.RandomElement();
 				var connectionParameters = new NodeConnectionParameters { UserAgent = userAgent };
 
@@ -177,16 +178,16 @@ namespace WalletWasabi.Gui
 
 				if (Config.UseTor)
 				{
-					TorManager = new TorProcessManager(Config.TorSocks5EndPoint, TorLogsFile);
+					TorManager = new TorProcessManager(Config.TorSocks5EndPoint, DataDir, TorLogsFile);
+					TorManager.Start(ensureRunning: false);
+
+					var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
+					TorManager.StartMonitor(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(7), fallbackRequestTestUri);
 				}
 				else
 				{
-					TorManager = TorProcessManager.Mock();
+					TorSocks5EndPoint = null;
 				}
-				TorManager.Start(false, DataDir);
-
-				var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
-				TorManager.StartMonitor(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(7), DataDir, fallbackRequestTestUri);
 
 				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
 
@@ -371,7 +372,7 @@ namespace WalletWasabi.Gui
 					new SmartBlockProvider(
 						new P2pBlockProvider(Nodes, BitcoinCoreNode, Synchronizer, Config.ServiceConfiguration, Network),
 						Cache),
-					new FileSystemBlockRepository(blocksFolderPath, Network));
+					BitcoinStore.BlockRepository);
 
 				#endregion Blocks provider
 
@@ -458,7 +459,7 @@ namespace WalletWasabi.Gui
 			// Then filtered to include only /Satoshi:0.17.x
 			var fullBaseDirectory = EnvironmentHelpers.GetFullBaseDirectory();
 
-			var onions = await File.ReadAllLinesAsync(Path.Combine(fullBaseDirectory, "OnionSeeds", $"{Network}OnionSeeds.txt")).ConfigureAwait(false);
+			var onions = await File.ReadAllLinesAsync(Path.Combine(fullBaseDirectory, "Tor", "OnionSeeds", $"{Network}OnionSeeds.txt")).ConfigureAwait(false);
 
 			onions.Shuffle();
 			foreach (var onion in onions.Take(60))

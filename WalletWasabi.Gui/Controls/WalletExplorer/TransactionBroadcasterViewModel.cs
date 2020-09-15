@@ -216,13 +216,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
 			var selected = await ofd.ShowAsync(window, fallBack: true);
-
-			if (selected is null || !selected.Any())
-			{
-				return null;
-			}
-
-			return selected.First();
+			return selected?.FirstOrDefault();
 		}
 
 		private async Task<SmartTransaction> ParseTransactionAsync(string path)

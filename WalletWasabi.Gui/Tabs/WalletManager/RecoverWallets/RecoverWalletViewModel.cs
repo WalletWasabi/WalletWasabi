@@ -18,6 +18,7 @@ using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 {

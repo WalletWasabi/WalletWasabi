@@ -79,7 +79,7 @@ namespace WalletWasabi.Blockchain.Mempool
 				var found = BroadcastStore.FirstOrDefault(x => x.TransactionId == transactionHash);
 				entry = found;
 
-				return !(found is null);
+				return found is { };
 			}
 		}
 

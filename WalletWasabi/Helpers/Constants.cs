@@ -29,6 +29,8 @@ namespace WalletWasabi.Helpers
 		// There are a maximum of 2,099,999,997,690,000 Bitcoin elements (called satoshis), which are currently most commonly measured in units of 100,000,000 known as BTC. Stated another way, no more than 21 million BTC can ever be created.
 		public const long MaximumNumberOfSatoshis = 2099999997690000;
 
+		public const long MaximumNumberOfWholeBitcoins = 20999999;
+
 		public const int TwentyMinutesConfirmationTarget = 2;
 		public const int OneDayConfirmationTarget = 144;
 		public const int SevenDaysConfirmationTarget = 1008;

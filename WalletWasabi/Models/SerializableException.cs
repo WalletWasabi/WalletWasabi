@@ -13,7 +13,7 @@ namespace WalletWasabi.Models
 
 		public SerializableException(Exception ex)
 		{
-			if (ex.InnerException != null)
+			if (ex.InnerException is { })
 			{
 				InnerException = new SerializableException(ex.InnerException);
 			}

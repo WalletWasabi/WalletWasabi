@@ -15,10 +15,7 @@ namespace System.Linq
 
 			foreach (var item in source)
 			{
-				if (bucket is null)
-				{
-					bucket = new T[size];
-				}
+				bucket ??= new T[size];
 
 				bucket[count++] = item;
 
@@ -34,7 +31,7 @@ namespace System.Linq
 			}
 
 			// Return the last bucket with all remaining elements
-			if (bucket != null && count > 0)
+			if (bucket is { } && count > 0)
 			{
 				Array.Resize(ref bucket, count);
 				yield return bucket.Select(x => x);
@@ -125,9 +122,7 @@ namespace System.Linq
 		}
 
 		public static bool NotNullAndNotEmpty<T>(this IEnumerable<T> source)
-		{
-			return !(source is null) && source.Any();
-		}
+			=> source?.Any() is true;
 
 		public static IEnumerable<IEnumerable<T>> CombinationsWithoutRepetition<T>(
 			this IEnumerable<T> items,

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace WalletWasabi.Helpers
@@ -27,13 +28,7 @@ namespace WalletWasabi.Helpers
 		public static T NotNull<T>(string parameterName, T value)
 		{
 			AssertCorrectParameterName(parameterName);
-
-			if (value is null)
-			{
-				throw new ArgumentNullException(parameterName, "Parameter cannot be null.");
-			}
-
-			return value;
+			return value ?? throw new ArgumentNullException(parameterName, "Parameter cannot be null.");
 		}
 
 		private static void AssertCorrectParameterName(string parameterName)
@@ -177,7 +172,8 @@ namespace WalletWasabi.Helpers
 		/// If the string is null, it'll be empty.
 		/// Trims the string.
 		/// </summary>
-		public static string Correct(string str)
+		[return: NotNull]
+		public static string Correct(string? str)
 		{
 			return string.IsNullOrWhiteSpace(str)
 				? ""
