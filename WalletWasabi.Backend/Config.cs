@@ -14,6 +14,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
+using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Backend
 {

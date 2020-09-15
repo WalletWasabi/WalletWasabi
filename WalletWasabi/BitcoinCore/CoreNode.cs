@@ -28,6 +28,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
+using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.BitcoinCore
 {
