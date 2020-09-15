@@ -44,15 +44,15 @@ namespace WalletWasabi.Wallets
 
 			try
 			{
-				// Before Wasabi 1.1.13
-				var wrongGlobalBlockFodlerPath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), "Blocks");
-				var wrongBlockFolderPaths = new[]
+				string wrongGlobalBlockFolderPath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), "Blocks");
+				string[] wrongBlockFolderPaths = new[]
 				{
+					// Before Wasabi 1.1.13
 					Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), $"Blocks{Network}"),
-					Path.Combine(wrongGlobalBlockFodlerPath, Network.Name)
+					Path.Combine(wrongGlobalBlockFolderPath, Network.Name)
 				};
 
-				foreach (var wrongBlockFolderPath in wrongBlockFolderPaths.Where(x => Directory.Exists(x)))
+				foreach (string wrongBlockFolderPath in wrongBlockFolderPaths.Where(x => Directory.Exists(x)))
 				{
 					Logger.LogTrace($"Initiate migration of '{wrongBlockFolderPath}'");
 
@@ -110,12 +110,12 @@ namespace WalletWasabi.Wallets
 					Logger.LogInfo($"Deleted '{wrongBlockFolderPath}' folder.");
 				}
 
-				if (Directory.Exists(wrongGlobalBlockFodlerPath))
+				if (Directory.Exists(wrongGlobalBlockFolderPath))
 				{
 					// If all networks successfully migrated, too, then delete the transactions folder, too.
-					if (!Directory.EnumerateFileSystemEntries(wrongGlobalBlockFodlerPath).Any())
+					if (!Directory.EnumerateFileSystemEntries(wrongGlobalBlockFolderPath).Any())
 					{
-						Directory.Delete(wrongGlobalBlockFodlerPath, recursive: true);
+						Directory.Delete(wrongGlobalBlockFolderPath, recursive: true);
 					}
 				}
 			}
