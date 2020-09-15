@@ -44,11 +44,12 @@ namespace WalletWasabi.Wallets
 
 			try
 			{
-				string wrongGlobalBlockFolderPath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), "Blocks");
+				string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
+				string wrongGlobalBlockFolderPath = Path.Combine(dataDir, "Blocks");
 				string[] wrongBlockFolderPaths = new[]
 				{
 					// Before Wasabi 1.1.13
-					Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), $"Blocks{Network}"),
+					Path.Combine(dataDir, $"Blocks{Network}"),
 					Path.Combine(wrongGlobalBlockFolderPath, Network.Name)
 				};
 
@@ -116,6 +117,11 @@ namespace WalletWasabi.Wallets
 					if (!Directory.EnumerateFileSystemEntries(wrongGlobalBlockFolderPath).Any())
 					{
 						Directory.Delete(wrongGlobalBlockFolderPath, recursive: true);
+						Logger.LogInfo($"Deleted '{wrongGlobalBlockFolderPath}' folder.");
+					}
+					else
+					{
+						Logger.LogTrace($"Cannot delete '{wrongGlobalBlockFolderPath}' folder as it is not empty.");
 					}
 				}
 			}
