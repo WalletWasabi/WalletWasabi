@@ -55,44 +55,7 @@ namespace WalletWasabi.Wallets
 
 				foreach (string wrongBlockFolderPath in wrongBlockFolderPaths.Where(x => Directory.Exists(x)))
 				{
-					Logger.LogTrace($"Initiate migration of '{wrongBlockFolderPath}'");
-
-					int cntSuccess = 0;
-					int cntRedundant = 0;
-					int cntFailure = 0;
-
-					foreach (string oldBlockFilePath in Directory.EnumerateFiles(wrongBlockFolderPath))
-					{
-						try
-						{
-							MigrateBlock(oldBlockFilePath, ref cntSuccess, ref cntRedundant);
-						}
-						catch (Exception ex)
-						{
-							Logger.LogDebug($"'{oldBlockFilePath}' failed to migrate.");
-							Logger.LogDebug(ex);
-							cntFailure++;
-						}
-					}
-
-					Directory.Delete(wrongBlockFolderPath, recursive: true);
-
-					if (cntSuccess > 0)
-					{
-						Logger.LogInfo($"Successfully migrated {cntSuccess} blocks to '{BlocksFolderPath}'.");
-					}
-
-					if (cntRedundant > 0)
-					{
-						Logger.LogInfo($"{cntRedundant} blocks were already in '{BlocksFolderPath}'.");
-					}
-
-					if (cntFailure > 0)
-					{
-						Logger.LogDebug($"Failed to migrate {cntFailure} blocks to '{BlocksFolderPath}'.");
-					}
-
-					Logger.LogInfo($"Deleted '{wrongBlockFolderPath}' folder.");
+					MigrateBlocks(wrongBlockFolderPath);
 				}
 
 				if (Directory.Exists(wrongGlobalBlockFolderPath))
@@ -116,6 +79,48 @@ namespace WalletWasabi.Wallets
 			}
 
 			Logger.LogTrace("<");
+		}
+
+		private void MigrateBlocks(string blockFolderPath)
+		{
+			Logger.LogTrace($"Initiate migration of '{blockFolderPath}'");
+
+			int cntSuccess = 0;
+			int cntRedundant = 0;
+			int cntFailure = 0;
+
+			foreach (string oldBlockFilePath in Directory.EnumerateFiles(blockFolderPath))
+			{
+				try
+				{
+					MigrateBlock(oldBlockFilePath, ref cntSuccess, ref cntRedundant);
+				}
+				catch (Exception ex)
+				{
+					Logger.LogDebug($"'{oldBlockFilePath}' failed to migrate.");
+					Logger.LogDebug(ex);
+					cntFailure++;
+				}
+			}
+
+			Directory.Delete(blockFolderPath, recursive: true);
+
+			if (cntSuccess > 0)
+			{
+				Logger.LogInfo($"Successfully migrated {cntSuccess} blocks to '{BlocksFolderPath}'.");
+			}
+
+			if (cntRedundant > 0)
+			{
+				Logger.LogInfo($"{cntRedundant} blocks were already in '{BlocksFolderPath}'.");
+			}
+
+			if (cntFailure > 0)
+			{
+				Logger.LogDebug($"Failed to migrate {cntFailure} blocks to '{BlocksFolderPath}'.");
+			}
+
+			Logger.LogInfo($"Deleted '{blockFolderPath}' folder.");
 		}
 
 		private void MigrateBlock(string blockFilePath, ref int cntSuccess, ref int cntRedundant)
