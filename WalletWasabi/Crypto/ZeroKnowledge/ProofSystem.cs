@@ -52,5 +52,28 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				{ Ca,         Generators.Ga, Generators.Gg,  Generators.Gh },
 				{ S,          O,             O,              Generators.Gs }
 			});
+
+		public static (Knowledge knowledge, RandomizedCommitments randomizedCommitments) MacShow(CoordinatorParameters iparams, MAC mac, Scalar z, Scalar a, Scalar r)
+		{
+			var Ca = z * Generators.Ga + a * Generators.Gg + r * Generators.Gh;
+			var Cx0 = z * Generators.Gx0 + mac.U;
+			var Cx1 = z * Generators.Gx1 + mac.T * mac.U;
+			var CV = z * Generators.GV + mac.V;
+			var Z = z * iparams.I;
+
+			return (new Knowledge(MacShow(iparams, Z, Cx0, Cx1), new ScalarVector(z, (mac.T * z).Negate(), mac.T)), new RandomizedCommitments(Ca, Cx0, Cx1, CV));
+		}
+
+		public static Statement MacShow(CoordinatorParameters iparams, GroupElement Z, GroupElement Cx0, GroupElement Cx1)
+			=> new Statement(new GroupElement[,]
+			{
+				// public                     Witness terms:
+				// point      z               z0              t
+				{ Z,          iparams.I,      O,              O },
+				{ Cx1,        Generators.Gx1, Generators.Gx0, Cx0 }, // Cx1 = z*Gx1 + t*U, z0 cancels t*z*Gx0 out of t*Cx0 leaving z*Gx1 + t*U
+			});
+
+		public static GroupElement ComputeZ(RandomizedCommitments rc, CoordinatorSecretKey sk)
+			=> rc.CV - (sk.W * Generators.Gw + sk.X0 * rc.Cx0 + sk.X1 * rc.Cx1 + sk.Ya * rc.Ca);
 	}
 }

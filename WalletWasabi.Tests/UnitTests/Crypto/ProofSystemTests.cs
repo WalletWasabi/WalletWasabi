@@ -27,8 +27,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			// value 10000 blinded with a random `blindingFactor`. This attribute is sent to
 			// the coordinator.
 			var amount = new Scalar(10_000);
-			var blindingFactor = rnd.GetScalar();
-			var Ma = amount * Generators.G + blindingFactor * Generators.Gh;
+			var r = rnd.GetScalar();
+			var Ma = amount * Generators.G + r * Generators.Gh;
 
 			// The coordinator generates a MAC and a proof that the MAC was generated using the
 			// coordinator's secret key. The coordinator sends the pair (MAC + proofOfMac) back
@@ -43,20 +43,16 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			// was generated with the coordinator's secret key.
 			var clientStatement = ProofSystem.IssuerParameters(coordinatorParameters, mac, Ma);
 			var isValidProof = ProofSystem.Verify(clientStatement, proofOfMac);
-
 			Assert.True(isValidProof);
-			////////
 
 			var corruptedResponses = new ScalarVector(proofOfMac.Responses.Reverse());
 			var invalidProofOfMac = new Proof(proofOfMac.PublicNonces, corruptedResponses);
 			isValidProof = ProofSystem.Verify(clientStatement, invalidProofOfMac);
-
 			Assert.False(isValidProof);
 
 			var corruptedPublicNonces = new GroupElementVector(proofOfMac.PublicNonces.Reverse());
 			invalidProofOfMac = new Proof(corruptedPublicNonces, proofOfMac.Responses);
 			isValidProof = ProofSystem.Verify(clientStatement, invalidProofOfMac);
-
 			Assert.False(isValidProof);
 		}
 
@@ -69,15 +65,65 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var r = rnd.GetScalar();
 			var a = rnd.GetScalar();
 
-			var witness = new ScalarVector(z, a, r);
-			var Ca = z * Generators.Ga + r * Generators.Gh + a * Generators.Gg;
-			var S = r * Generators.Gs;
+			static (GroupElement Ca, GroupElement S) SerialNumberPublicPoints(Scalar z, Scalar a, Scalar r) =>
+				(z * Generators.Ga + r * Generators.Gh + a * Generators.Gg, r * Generators.Gs);
 
-			var statement = ProofSystem.SerialNumber(Ca, S);
-			var proofOfSerialNumber = ProofSystem.Prove(new Knowledge(statement, witness), rnd);
+			{
+				var witness = new ScalarVector(z, a, r);
+				var (Ca, S) = SerialNumberPublicPoints(z, a, r);
+				var statement = ProofSystem.SerialNumber(Ca, S);
+				var proofOfSerialNumber = ProofSystem.Prove(new Knowledge(statement, witness), rnd);
 
-			// The coordinator must verify the blinded amout is zero
-			var isValidProof = ProofSystem.Verify(statement, proofOfSerialNumber);
+				var isValidProof = ProofSystem.Verify(statement, proofOfSerialNumber);
+				Assert.True(isValidProof);
+			}
+
+			// Test zero amount
+			a = Scalar.Zero;
+			{
+				var witness = new ScalarVector(z, a, r);
+				var (Ca, S) = SerialNumberPublicPoints(z, a, r);
+				var statement = ProofSystem.SerialNumber(Ca, S);
+				var proofOfSerialNumber = ProofSystem.Prove(new Knowledge(statement, witness), rnd);
+
+				var isValidProof = ProofSystem.Verify(statement, proofOfSerialNumber);
+				Assert.True(isValidProof);
+			}
+		}
+
+		[Fact]
+		[Trait("UnitTest", "UnitTest")]
+		public void CanProveAndVerifyMacShow()
+		{
+			var rnd = new SecureRandom();
+			var coordinatorKey = new CoordinatorSecretKey(rnd);
+			var coordinatorParameters = coordinatorKey.ComputeCoordinatorParameters();
+
+			// A blinded amount is known as an `attribute`. In this case the attribute Ma is the
+			// value 10000 blinded with a random `blindingFactor`. This attribute is sent to
+			// the coordinator.
+			var amount = new Scalar(10_000);
+			var r = rnd.GetScalar();
+			var Ma = amount * Generators.Gg + r * Generators.Gh;
+
+			// The coordinator generates a MAC and a proof that the MAC was generated using the
+			// coordinator's secret key. The coordinator sends the pair (MAC + proofOfMac) back
+			// to the client.
+			var t = rnd.GetScalar();
+			var mac = MAC.ComputeMAC(coordinatorKey, Ma, t);
+
+			// The client randomizes the commitments before presenting the them to the coordinator
+			// proves to the coordinator that a credential is valid
+			var z = rnd.GetScalar();
+			var (knowledge, randomizedCommitments) = ProofSystem.MacShow(coordinatorParameters, mac, z, amount, r);
+			var proofOfMacShow = ProofSystem.Prove(knowledge, rnd);
+
+			// The coordinator must verify the received "randomized" credential is valid.
+			var Z = ProofSystem.ComputeZ(randomizedCommitments, coordinatorKey);
+			Assert.Equal(Z, z * coordinatorParameters.I);
+
+			var statement = ProofSystem.MacShow(coordinatorParameters, Z, randomizedCommitments.Cx0, randomizedCommitments.Cx1);
+			var isValidProof = ProofSystem.Verify(statement, proofOfMacShow);
 
 			Assert.True(isValidProof);
 		}
