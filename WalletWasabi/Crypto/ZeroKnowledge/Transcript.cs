@@ -64,7 +64,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			Guard.NotNull(nameof(statement.Generators), statement.Generators);
 			CryptoGuard.NotNullOrInfinity(nameof(statement.PublicPoints), statement.PublicPoints);
 			AddMessages(StatementTag, statement.PublicPoints.Select(x => x.ToBytes()).Concat(statement.Generators.Select(x => x.ToBytes())));
- 		}
+		}
 
 		// Generate Fiat Shamir challenges
 		public Scalar GenerateChallenge()

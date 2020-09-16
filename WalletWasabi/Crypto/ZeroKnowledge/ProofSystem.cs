@@ -14,7 +14,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		public static LinearRelation.Statement CreateStatement(CoordinatorParameters coordinatorParameters, GroupElement V, GroupElement Ma, Scalar t) =>
 			new LinearRelation.Statement(
 				new GroupElementVector(coordinatorParameters.Cw, Generators.GV - coordinatorParameters.I, V)
-					.Zip(ProofOfParametersGenerators(MAC.GenerateU(t), Ma, t), (publicPoint, groupElement) => new Equation (publicPoint, groupElement)));
+					.Zip(ProofOfParametersGenerators(MAC.GenerateU(t), Ma, t), (publicPoint, groupElement) => new Equation(publicPoint, groupElement)));
 
 		public static NonInteractive.FiatShamirTransform.VerifierCommitToNonces CreateVerifier(LinearRelation.Statement statement) =>
 			new NonInteractive.FiatShamirTransform.Verifier(statement).CommitToStatements(Transcript);

@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
@@ -31,7 +31,7 @@
         </Button>
         <Button Content="Search Hardware Wallets" Command="{Binding EnumerateHardwareWalletsCommand}" DockPanel.Dock="Right" Margin="0 0 10 0" />
         <Button Content="Import Coldcard" Command="{Binding ImportColdcardCommand}" DockPanel.Dock="Right" Margin="0 0 10 0" />
-        <Panel/>
+        <Panel />
       </DockPanel>
     </StackPanel>
     <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" BorderThickness="0">
