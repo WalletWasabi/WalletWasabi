@@ -174,5 +174,10 @@ namespace System.IO
 				file.CopyTo(Path.Combine(target.FullName, file.Name));
 			}
 		}
+
+		public static void CreateEmptyFile(string path)
+		{
+			using var _ = File.Create(path);
+		}
 	}
 }
