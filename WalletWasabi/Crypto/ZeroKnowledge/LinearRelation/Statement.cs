@@ -8,6 +8,16 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 {
 	public class Statement
 	{
+		public Statement(GroupElement publicPoint, IEnumerable<GroupElement> generators)
+			: this(ToTable(generators.Prepend(publicPoint)))
+		{
+		}
+
+		public Statement(params GroupElement[] equation)
+			: this(ToTable(equation))
+		{
+		}
+
 		public Statement(GroupElement[,] equations)
 		{
 			var terms = equations.GetLength(1);
@@ -38,6 +48,19 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 			Guard.True(nameof(publicNonces), Equations.Count() == publicNonces.Count());
 
 			return Equations.Zip(publicNonces, (equation, r) => equation.Verify(r, challenge, responses)).All(x => x);
+		}
+
+		// Helper function for constructor
+		private static GroupElement[,] ToTable (IEnumerable<GroupElement> equation)
+		{
+			var table = new GroupElement[1, equation.Count()];
+
+			foreach (var (g, i) in equation.Select((x, i) => (x, i)))
+			{
+				table[0, i] = g;
+			}
+
+			return table;
 		}
 	}
 }
