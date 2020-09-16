@@ -268,7 +268,11 @@ namespace WalletWasabi.Helpers
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				SetThreadExecutionState(EXECUTION_STATE.ES_SYSTEM_REQUIRED);
+				var result = SetThreadExecutionState(EXECUTION_STATE.ES_SYSTEM_REQUIRED);
+				if (result == 0)
+				{
+					Logger.LogInfo("SetThreadExecutionState failed.");
+				}
 			}
 		}
 	}
