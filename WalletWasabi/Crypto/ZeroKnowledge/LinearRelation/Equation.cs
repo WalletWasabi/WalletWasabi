@@ -49,15 +49,6 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 			return responses * Generators == (publicNonce + challenge * PublicPoint);
 		}
 
-		// Simulate a public nonce given a challenge and arbitrary responses (should be random)
-		internal GroupElement Simulate(Scalar challenge, ScalarVector givenResponses)
-		{
-			// The verification equation above can be rearranged as a formula for R
-			// given e, P and s by subtracting eP from both sides:
-			//   R = sG - eP
-			return givenResponses * Generators - challenge * PublicPoint;
-		}
-
 		// Given a witness and secret nonces, respond to a challenge proving the equation holds w.r.t the witness
 		internal ScalarVector Respond(ScalarVector witness, ScalarVector secretNonces, Scalar challenge)
 		{

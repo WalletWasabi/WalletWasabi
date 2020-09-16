@@ -158,7 +158,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var transcript = new Transcript(protocol);
 			var secretNonceProvider = transcript.CreateSyntheticSecretNonceProvider(witness, rnd);
 
-			var secretNonce = secretNonceProvider.Sequence.First();
+			var secretNonce = secretNonceProvider.GetScalarVector();
 
 			Assert.Equal(secretNonce.Count(), witness.Length );
 		}

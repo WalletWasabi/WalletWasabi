@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Helpers;
-using WalletWasabi.Crypto.ZeroKnowledge;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 {
@@ -40,22 +39,13 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 		public Knowledge ToKnowledge(ScalarVector witness) =>
 			new Knowledge(this, witness);
 
-		public bool CheckVerificationEquation(GroupElementVector publicNonces, Scalar challenge, IEnumerable<ScalarVector> allResponses)
+		public bool CheckVerificationEquation(GroupElementVector publicNonces, Scalar challenge, ScalarVector responses)
 		{
 			// The responses matrix should match the generators in the equations and
 			// there should be once nonce per equation.
 			Guard.True(nameof(publicNonces), Equations.Count() == publicNonces.Count());
-			Equations.CheckDimensions(allResponses);
 
-			return Equations.Zip(publicNonces, allResponses, (equation, r, s) => equation.Verify(r, challenge, s)).All(x => x);
-		}
-
-		public GroupElementVector SimulatePublicNonces(Scalar challenge, IEnumerable<ScalarVector> allGivenResponses)
-		{
-			// The responses matrix should match the generators in the equations and
-			Equations.CheckDimensions(allGivenResponses);
-
-			return new GroupElementVector(Enumerable.Zip(Equations, allGivenResponses, (e, r) => e.Simulate(challenge, r)));
+			return Equations.Zip(publicNonces, (equation, r) => equation.Verify(r, challenge, responses)).All(x => x);
 		}
 	}
 }

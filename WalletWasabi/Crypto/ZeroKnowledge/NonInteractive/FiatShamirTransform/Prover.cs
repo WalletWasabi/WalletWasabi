@@ -39,24 +39,18 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.NonInteractive.FiatShamirTransform
 			// different challenges which would leak the witness, these are generated
 			// as synthetic nonces that also depend on the witness data.
 			var secretNonceProvider = transcript.CreateSyntheticSecretNonceProvider(Knowledge.Witness, random);
-
-			// Actually generate all of the required nonces and save them in an array
-			// because if the enumerable is evaluated several times the results will
-			// be different.
-			// Note, ToArray() is needed to make sure that secretNonces is captured
-			// once and shared between the phases.
-			var equations = Knowledge.Statement.Equations;
-			var secretNonces = secretNonceProvider.Sequence.Take(equations.Count()).ToArray();
+			var secretNonces = secretNonceProvider.GetScalarVector();
 
 			// The prover then commits to these, adding the corresponding public
 			// points to the transcript.
-			var publicNonces = new GroupElementVector(equations.Zip(secretNonces, (equation, pointSecretNonces) => pointSecretNonces * equation.Generators));
+			var equations = Knowledge.Statement.Equations;
+			var publicNonces = new GroupElementVector(equations.Select(equation => secretNonces * equation.Generators));
 			transcript.CommitPublicNonces(publicNonces);
 
 			return () => Respond(transcript, publicNonces, secretNonces);
 		}
 
-		private Proof Respond(Transcript transcript, GroupElementVector nonces, IEnumerable<ScalarVector> secretNonces)
+		private Proof Respond(Transcript transcript, GroupElementVector nonces, ScalarVector secretNonces)
 		{
 			// With the public nonces committed to the transcript the prover can then
 			// derive a challenge that depend on the transcript state without needing

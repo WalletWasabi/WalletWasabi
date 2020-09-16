@@ -6,23 +6,16 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.NonInteractive
 {
 	public class Proof
 	{
-		public Proof(GroupElementVector publicNonces, IEnumerable<ScalarVector> allResponses)
+		public Proof(GroupElementVector publicNonces, ScalarVector responses)
 		{
 			CryptoGuard.NotNullOrInfinity(nameof(publicNonces), publicNonces);
-			Guard.NotNullOrEmpty(nameof(allResponses), allResponses);
-
-			// Ensure allResponses isn't jagged
-			var n = allResponses.First().Count();
-			Guard.True(nameof(allResponses), allResponses.All(responses => Guard.NotNullOrEmpty(nameof(responses), responses).Count() == n));
-
-			// Ensure there is a vector of response scalars for each public nonce
-			Guard.True(nameof(allResponses), allResponses.Count() == publicNonces.Count());
+			Guard.NotNullOrEmpty(nameof(responses), responses);
 
 			PublicNonces = publicNonces;
-			Responses = allResponses;
+			Responses = responses;
 		}
 
 		public GroupElementVector PublicNonces { get; }
-		public IEnumerable<ScalarVector> Responses { get; }
+		public ScalarVector Responses { get; }
 	}
 }
