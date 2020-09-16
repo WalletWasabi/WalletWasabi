@@ -108,7 +108,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Banning
 				{
 					if (RoundConfig.DosNoteBeforeBan)
 					{
-						if (foundElem != null)
+						if (foundElem is { })
 						{
 							isNoted = false;
 						}

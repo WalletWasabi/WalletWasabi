@@ -64,7 +64,7 @@ namespace WalletWasabi.Gui.Helpers
 			}
 			foreach (var extraPath in extraPaths)
 			{
-				if (extraPath != null)
+				if (extraPath is { })
 				{
 					shellProc.StartInfo.Environment["PATH"] += $"{Path.DirectorySeparatorChar}{extraPath}";
 				}
@@ -94,7 +94,7 @@ namespace WalletWasabi.Gui.Helpers
 
 			shellProc.OutputDataReceived += (s, a) => outputReceivedCallback(s, a);
 
-			if (errorReceivedCallback != null)
+			if (errorReceivedCallback is { })
 			{
 				shellProc.ErrorDataReceived += (s, a) => errorReceivedCallback(s, a);
 			}

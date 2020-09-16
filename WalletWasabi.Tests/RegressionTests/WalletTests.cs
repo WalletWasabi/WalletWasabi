@@ -44,7 +44,6 @@ using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
-using WalletWasabi.TorSocks5;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
@@ -280,11 +279,10 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			// 4. Create wallet service.
 			var workDir = Common.GetWorkDir();
-			var blocksFolderPath = Path.Combine(workDir, "Blocks", network.ToString());
 
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
 				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
-				new FileSystemBlockRepository(blocksFolderPath, network));
+				bitcoinStore.BlockRepository);
 
 			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer, blockProvider);
 			wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;

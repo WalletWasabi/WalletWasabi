@@ -14,7 +14,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Exceptions;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models.StatusBarStatuses;
@@ -24,6 +23,7 @@ using WalletWasabi.Legal;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
+using WalletWasabi.Tor.Exceptions;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -200,36 +200,37 @@ namespace WalletWasabi.Gui.ViewModels
 						{
 							var wallet = x.Sender as Wallet;
 							walletCheckingInterval = Observable.Interval(TimeSpan.FromSeconds(1))
-							   .ObserveOn(RxApp.MainThreadScheduler)
-							   .Subscribe(_ =>
-							   {
-								   if (wallet is { })
-								   {
-									   var segwitActivationHeight = SmartHeader.GetStartingHeader(wallet.Network).Height;
-									   if (wallet.LastProcessedFilter?.Header?.Height is uint lastProcessedFilterHeight
+								.ObserveOn(RxApp.MainThreadScheduler)
+								.Subscribe(_ =>
+								{
+									if (wallet is { })
+									{
+										var segwitActivationHeight = SmartHeader.GetStartingHeader(wallet.Network).Height;
+										if (wallet.LastProcessedFilter?.Header?.Height is uint lastProcessedFilterHeight
 											&& lastProcessedFilterHeight > segwitActivationHeight
 											&& SmartHeaderChain.TipHeight is uint tipHeight
 											&& tipHeight > segwitActivationHeight)
-									   {
-										   var allFilters = tipHeight - segwitActivationHeight;
-										   var processedFilters = lastProcessedFilterHeight - segwitActivationHeight;
-										   var perc = allFilters == 0 ?
-												100
+										{
+											var allFilters = tipHeight - segwitActivationHeight;
+											var processedFilters = lastProcessedFilterHeight - segwitActivationHeight;
+											var perc = allFilters == 0
+												? 100
 												: ((decimal)processedFilters / allFilters * 100);
-										   TryAddStatus(StatusType.WalletProcessingFilters, (ushort)perc);
-									   }
+											TryAddStatus(StatusType.WalletProcessingFilters, (ushort)perc);
+										}
 
-									   var txProcessor = wallet.TransactionProcessor;
-									   if (txProcessor is { })
-									   {
-										   var txCount = txProcessor.QueuedTxCount;
-										   var perc = txCount == 0 ?
-												100
+										var txProcessor = wallet.TransactionProcessor;
+										if (txProcessor is { })
+										{
+											var txCount = txProcessor.QueuedTxCount;
+											var perc = txCount == 0
+												? 100
 												: ((decimal)txProcessor.QueuedProcessedTxCount / txCount * 100);
-										   TryAddStatus(StatusType.WalletProcessingTransactions, (ushort)perc);
-									   }
-								   }
-							   }).DisposeWith(Disposables);
+											TryAddStatus(StatusType.WalletProcessingTransactions, (ushort)perc);
+										}
+									}
+								})
+								.DisposeWith(Disposables);
 						}
 					}
 					else
@@ -394,7 +395,7 @@ namespace WalletWasabi.Gui.ViewModels
 			if (isGenSocksServFail)
 			{
 				// Is close band present?
-				if (MainWindowViewModel.Instance.ModalDialog != null)
+				if (MainWindowViewModel.Instance.ModalDialog is { })
 				{
 					// Do nothing.
 				}
@@ -412,7 +413,7 @@ namespace WalletWasabi.Gui.ViewModels
 			else
 			{
 				// Is close band present?
-				if (MainWindowViewModel.Instance.ModalDialog != null)
+				if (MainWindowViewModel.Instance.ModalDialog is { })
 				{
 					// Is it GenSocksServFail dialog?
 					if (MainWindowViewModel.Instance.ModalDialog is GenSocksServFailDialogViewModel)

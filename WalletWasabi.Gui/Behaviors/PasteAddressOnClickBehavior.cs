@@ -13,7 +13,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Controls;
-using WalletWasabi.Helpers;
+using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Gui.Behaviors
 {

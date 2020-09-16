@@ -53,10 +53,10 @@
     <None Update="Microservices\Binaries\win64\hwi.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="OnionSeeds\MainOnionSeeds.txt">
+    <None Update="Tor\OnionSeeds\MainOnionSeeds.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="OnionSeeds\TestNetOnionSeeds.txt">
+    <None Update="Tor\OnionSeeds\TestNetOnionSeeds.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="TorDaemons\digests.txt">
