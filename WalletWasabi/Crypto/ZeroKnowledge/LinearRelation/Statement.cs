@@ -30,9 +30,8 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 
 		public Statement(GroupElement[,] equations)
 		{
-			// need to have at least one generator and one public point
 			var terms = equations.GetLength(1);
-			Guard.True(nameof(terms), terms >= 2);
+			Guard.True(nameof(terms), terms >= 2, $"Invalid {nameof(terms)}. It needs to have at least one generator and one public point.");
 			foreach (var generator in equations)
 			{
 				Guard.NotNull(nameof(generator), generator);
