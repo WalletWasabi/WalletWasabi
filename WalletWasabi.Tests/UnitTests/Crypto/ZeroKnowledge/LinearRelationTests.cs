@@ -34,7 +34,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var secretNonces = new ScalarVector(new Scalar(23), new Scalar(42));
 			var publicNonce = Enumerable.Zip(secretNonces, generators, (s, g) => s * g).Sum();
 			var challenge = new Scalar(101);
-			var response = equation.Respond(witness, secretNonces, challenge);
+			var response = Equation.Respond(witness, secretNonces, challenge);
 			Assert.True(equation.Verify(publicNonce, challenge, response));
 
 			// With a different challenge the nonce should be different
@@ -73,9 +73,9 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			// Derive two responses with the two different witnesses for the same
 			// point, and ensure that both are valid, implying that the second
 			// component in the witness is ignored.
-			var response1 = equation.Respond(witness1, secretNonces, challenge);
+			var response1 = Equation.Respond(witness1, secretNonces, challenge);
 			Assert.True(equation.Verify(publicNonce, challenge, response1));
-			var response2 = equation.Respond(witness2, secretNonces, challenge);
+			var response2 = Equation.Respond(witness2, secretNonces, challenge);
 			Assert.True(equation.Verify(publicNonce, challenge, response2));
 
 			// With different witnesses the responses should be different even if the

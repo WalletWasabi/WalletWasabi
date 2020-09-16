@@ -31,7 +31,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 			// allSecretNonces should have the same dimension as the equation matrix
 			// Statement.Equations.CheckDimensions(allSecretNonces);
 
-			return Statement.Equations.First().Respond(Witness, secretNonces, challenge); // FIXME refactor
+			return Equation.Respond(Witness, secretNonces, challenge); // FIXME refactor
 		}
 	}
 }

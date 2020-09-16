@@ -50,7 +50,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 		}
 
 		// Given a witness and secret nonces, respond to a challenge proving the equation holds w.r.t the witness
-		internal ScalarVector Respond(ScalarVector witness, ScalarVector secretNonces, Scalar challenge)
+		internal static ScalarVector Respond(ScalarVector witness, ScalarVector secretNonces, Scalar challenge)
 		{
 			// By canceling G on both sides of the verification equation above we can
 			// obtain a formula for the response s given k, e and x:
