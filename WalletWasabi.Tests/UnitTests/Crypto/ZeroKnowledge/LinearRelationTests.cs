@@ -34,7 +34,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var secretNonces = new ScalarVector(new Scalar(23), new Scalar(42));
 			var publicNonce = Enumerable.Zip(secretNonces, generators, (s, g) => s * g).Sum();
 			var challenge = new Scalar(101);
-			var response = equation.Respond(witness, secretNonces, challenge);
+			var response = Equation.Respond(witness, secretNonces, challenge);
 			Assert.True(equation.Verify(publicNonce, challenge, response));
 
 			// With a different challenge the nonce should be different
@@ -73,9 +73,9 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			// Derive two responses with the two different witnesses for the same
 			// point, and ensure that both are valid, implying that the second
 			// component in the witness is ignored.
-			var response1 = equation.Respond(witness1, secretNonces, challenge);
+			var response1 = Equation.Respond(witness1, secretNonces, challenge);
 			Assert.True(equation.Verify(publicNonce, challenge, response1));
-			var response2 = equation.Respond(witness2, secretNonces, challenge);
+			var response2 = Equation.Respond(witness2, secretNonces, challenge);
 			Assert.True(equation.Verify(publicNonce, challenge, response2));
 
 			// With different witnesses the responses should be different even if the
@@ -93,10 +93,11 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var b = x * Generators.Gh;
 
 			// Discrete log equality (Chaum-Pedersen proof)
-			var statement = new Statement(
-				new Equation(a, new GroupElementVector(Generators.Gg)),
-				new Equation(b, new GroupElementVector(Generators.Gh))
-			);
+			var statement = new Statement(new GroupElement [,]
+			{
+				{ a, Generators.Gg },
+				{ b, Generators.Gh },
+			});
 
 			var challenge = new Scalar(13);
 
@@ -115,17 +116,12 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		[Fact]
 		public void StatementThrows()
 		{
-			// Jagged equation matrices are not allowed
-			Assert.ThrowsAny<ArgumentException>(() => new Statement(
-				new Equation(GroupElement.Infinity, new GroupElementVector(Generators.Gg, Generators.Gh)),
-				new Equation(GroupElement.Infinity, new GroupElementVector(Generators.G))
-			));
-
 			// Null generators are not allowed
-			Assert.ThrowsAny<ArgumentException>(() => new Statement(
-				new Equation(GroupElement.Infinity, new GroupElementVector(Generators.Gg, Generators.Gh)),
-				new Equation(GroupElement.Infinity, new GroupElementVector(Generators.G, null!))
-			));
+			Assert.ThrowsAny<ArgumentException>(() => new Statement(new GroupElement[,]
+			{
+				{ GroupElement.Infinity, Generators.Gg, Generators.Gh },
+				{ GroupElement.Infinity, Generators.G, null! },
+			}));
 		}
 
 		[Fact]
@@ -135,10 +131,11 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var a = x * Generators.Gg;
 			var b = x * Generators.Gh;
 
-			var statement = new Statement(
-				new Equation(a, new GroupElementVector(Generators.Gg)),
-				new Equation(b, new GroupElementVector(Generators.Gh))
-			);
+			var statement = new Statement(new GroupElement[,]
+			{
+				{ a, Generators.Gg },
+				{ b, Generators.Gh },
+			});
 
 			// The witness should have the same number of components as the number of generators in the equations
 			var ex = Assert.ThrowsAny<ArgumentException>(() => new Knowledge(statement, new ScalarVector(Scalar.Zero, Scalar.Zero)));
@@ -149,10 +146,11 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			Assert.Contains("witness is not solution of the equation", ex.Message);
 
 			// Incorrect statement generators (effectively incorrect witness)
-			var badStatement = new Statement(
-				new Equation(a, new GroupElementVector(Generators.Gh)),
-				new Equation(b, new GroupElementVector(Generators.Gg))
-			);
+			var badStatement = new Statement(new GroupElement [,]
+			{
+				{ a, Generators.Gh },
+				{ b, Generators.Gg },
+			});
 			ex = Assert.ThrowsAny<ArgumentException>(() => new Knowledge(badStatement, new ScalarVector(Scalar.One)));
 			Assert.Contains("witness is not solution of the equation", ex.Message);
 		}
