@@ -22,6 +22,11 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 	// representation of a specific point.
 	public class Equation
 	{
+		public Equation(GroupElement publicPoint, params GroupElement[] generators)
+			: this(publicPoint, new GroupElementVector(generators))
+		{
+		}
+
 		public Equation(GroupElement publicPoint, GroupElementVector generators)
 		{
 			Guard.NotNullOrEmpty(nameof(generators), generators);
