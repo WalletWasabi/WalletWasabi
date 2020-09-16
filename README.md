@@ -19,6 +19,8 @@
 [13]: https://dev.azure.com/zkSNACKs/Wasabi/_apis/build/status/Wasabi.DeterministicBuild?branchName=master
 [14]: https://dev.azure.com/zkSNACKs/Wasabi/_build/latest?definitionId=13&branchName=master
 
+ [![Dependency](https://img.shields.io/librariesio/github/zkSNACKs/WalletWasabi)](https://libraries.io/github/zkSNACKs/WalletWasabi)
+
 [Wasabi Wallet](https://wasabiwallet.io) is an open-source, non-custodial, privacy-focused Bitcoin wallet for desktop, that implements [Chaumian CoinJoin](https://github.com/nopara73/ZeroLink/#ii-chaumian-coinjoin).
 
 The main privacy features on the network level:
