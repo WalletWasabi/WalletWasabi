@@ -81,10 +81,9 @@ namespace WalletWasabi.Helpers
 			}
 
 			// Make sure you don't send more bitcoins than how much there is in existence.
-			var btc = corrected.Split('.').First();
-			if (btc.Length != 0 && (!long.TryParse(btc, out long btcLong) || btcLong >= Constants.MaximumNumberOfWholeBitcoins))
+			if (corrected.Length != 0 && corrected != "." && (!decimal.TryParse(corrected, out decimal btcDecimal) || btcDecimal > Constants.MaximumNumberOfBitcoins))
 			{
-				corrected = Constants.MaximumNumberOfWholeBitcoins.ToString();
+				corrected = Constants.MaximumNumberOfBitcoins.ToString();
 			}
 
 			if (corrected != original)
