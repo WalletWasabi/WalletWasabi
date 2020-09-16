@@ -1,11 +1,9 @@
 using NBitcoin.Secp256k1;
 using System.Linq;
-using System.Collections.Generic;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge.LinearRelation;
 using WalletWasabi.Crypto.ZeroKnowledge.NonInteractive;
-using System.Diagnostics.CodeAnalysis;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge
 {
@@ -15,26 +13,26 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 
 		public static bool Verify(LinearRelation.Statement statement, Proof proof)
 		{
-			return NonInteractive.Verifier.Verify(new Transcript(new byte[0]), new[] { statement }, new[] { proof });
+			return Verifier.Verify(new Transcript(new byte[0]), new[] { statement }, new[] { proof });
 		}
 
 		public static Proof Prove(Knowledge knowledge, WasabiRandom random)
 		{
-			return NonInteractive.Prover.Prove(new Transcript(new byte[0]), new[] { knowledge }, random).First();
+			return Prover.Prove(new Transcript(new byte[0]), new[] { knowledge }, random).First();
 		}
 
 		// Syntactic sugar used in tests
-		public static Proof Prove(LinearRelation.Statement statement, Scalar witness, WasabiRandom random)
+		public static Proof Prove(Statement statement, Scalar witness, WasabiRandom random)
 			=> Prove(statement, new ScalarVector(witness), random);
 
-		public static Proof Prove(LinearRelation.Statement statement, ScalarVector witness, WasabiRandom random)
+		public static Proof Prove(Statement statement, ScalarVector witness, WasabiRandom random)
 			=> Prove(new Knowledge(statement, witness), random);
 
 		public static Knowledge IssuerParameters(MAC mac, GroupElement ma, CoordinatorSecretKey sk)
 			=> new Knowledge(IssuerParameters(sk.ComputeCoordinatorParameters(), mac, ma), new ScalarVector(sk.W, sk.Wp, sk.X0, sk.X1, sk.Ya));
 
-		public static LinearRelation.Statement IssuerParameters(CoordinatorParameters iparams, MAC mac, GroupElement ma)
-			=> new LinearRelation.Statement(new GroupElement[,]
+		public static Statement IssuerParameters(CoordinatorParameters iparams, MAC mac, GroupElement ma)
+			=> new Statement(new GroupElement[,]
 			{
 				// public                                             Witness terms:
 				// point                     w,             wp,             x0,             x1,             ya
