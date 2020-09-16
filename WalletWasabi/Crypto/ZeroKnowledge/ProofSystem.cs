@@ -11,7 +11,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 	{
 		private static GroupElement O = GroupElement.Infinity;
 
-		public static bool Verify(LinearRelation.Statement statement, Proof proof)
+		public static bool Verify(Statement statement, Proof proof)
 		{
 			return Verifier.Verify(new Transcript(new byte[0]), new[] { statement }, new[] { proof });
 		}
@@ -39,6 +39,18 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				{ mac.V,                     Generators.Gw, O,              mac.U,          mac.T * mac.U,  ma },
 				{ Generators.GV - iparams.I, O,             O,              Generators.Gx0, Generators.Gx1, Generators.Ga },
 				{ iparams.Cw,                Generators.Gw, Generators.Gwp, O,              O,              O },
+			});
+
+		public static Knowledge SerialNumber(GroupElement Ca, GroupElement S, Scalar z, Scalar a, Scalar r)
+			=> new Knowledge(SerialNumber(Ca, S), new ScalarVector(z, a, r));
+
+		public static Statement SerialNumber(GroupElement Ca, GroupElement S)
+			=> new Statement(new GroupElement[,]
+			{
+				// public                    Witness terms:
+				// point      z              a               r
+				{ Ca,         Generators.Ga, Generators.Gg,  Generators.Gh },
+				{ S,          O,             O,              Generators.Gs }
 			});
 	}
 }

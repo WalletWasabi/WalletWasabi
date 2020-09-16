@@ -1,9 +1,12 @@
 using System;
+using System.Linq;
 using NBitcoin.Secp256k1;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
+using WalletWasabi.Crypto.ZeroKnowledge.LinearRelation;
+using WalletWasabi.Crypto.ZeroKnowledge.NonInteractive;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Crypto
@@ -40,6 +43,41 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			// was generated with the coordinator's secret key.
 			var clientStatement = ProofSystem.IssuerParameters(coordinatorParameters, mac, Ma);
 			var isValidProof = ProofSystem.Verify(clientStatement, proofOfMac);
+
+			Assert.True(isValidProof);
+			////////
+
+			var corruptedResponses = new ScalarVector(proofOfMac.Responses.Reverse());
+			var invalidProofOfMac = new Proof(proofOfMac.PublicNonces, corruptedResponses);
+			isValidProof = ProofSystem.Verify(clientStatement, invalidProofOfMac);
+
+			Assert.False(isValidProof);
+
+			var corruptedPublicNonces = new GroupElementVector(proofOfMac.PublicNonces.Reverse());
+			invalidProofOfMac = new Proof(corruptedPublicNonces, proofOfMac.Responses);
+			isValidProof = ProofSystem.Verify(clientStatement, invalidProofOfMac);
+
+			Assert.False(isValidProof);
+		}
+
+		[Fact]
+		[Trait("UnitTest", "UnitTest")]
+		public void CanProveAndVerifySerialNumbers()
+		{
+			var rnd = new SecureRandom();
+			var z = rnd.GetScalar();
+			var r = rnd.GetScalar();
+			var a = rnd.GetScalar();
+
+			var witness = new ScalarVector(z, a, r);
+			var Ca = z * Generators.Ga + r * Generators.Gh + a * Generators.Gg;
+			var S = r * Generators.Gs;
+
+			var statement = ProofSystem.SerialNumber(Ca, S);
+			var proofOfSerialNumber = ProofSystem.Prove(new Knowledge(statement, witness), rnd);
+
+			// The coordinator must verify the blinded amout is zero
+			var isValidProof = ProofSystem.Verify(statement, proofOfSerialNumber);
 
 			Assert.True(isValidProof);
 		}
