@@ -31,7 +31,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.NonInteractive
 				// different challenges which would leak the witness, these are generated
 				// as synthetic nonces that also depend on the witness data.
 				var secretNonceProvider = transcript.CreateSyntheticSecretNonceProvider(k.Witness, random);
-				var secretNonces = secretNonceProvider.GetScalarVector();
+				ScalarVector secretNonces = secretNonceProvider.GetScalarVector();
 
 				// The prover then commits to these, adding the corresponding public
 				// points to the transcript.
@@ -46,7 +46,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.NonInteractive
 			// derive a challenge that depend on the transcript state without needing
 			// to interact with the verifier, but ensuring that they can't know the
 			// challenge before the prover commitments are generated.
-			var challenge = transcript.GenerateChallenge();
+			Scalar challenge = transcript.GenerateChallenge();
 			return deferredResponds.Select(createProof => createProof(challenge));
 		}
 	}

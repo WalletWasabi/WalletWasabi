@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Collections.Generic;
-using WalletWasabi.Crypto.ZeroKnowledge.LinearRelation;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge.NonInteractive

@@ -5,6 +5,7 @@ using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge.LinearRelation;
 using WalletWasabi.Crypto.ZeroKnowledge.NonInteractive;
+using System.Diagnostics.CodeAnalysis;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge
 {
@@ -12,11 +13,13 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 	{
 		private static GroupElement O = GroupElement.Infinity;
 
+#pragma warning disable SA1502 // ElementMustNotBeOnSingleLine
 		public static bool Verify(LinearRelation.Statement statement, Proof proof)
-				=> NonInteractive.Verifier.Verify(new Transcript(new byte[0]), new[] { statement }, new[] { proof });
+			=> NonInteractive.Verifier.Verify(new Transcript(new byte[0]), new[] { statement }, new[] { proof });
 
 		public static Proof Prove(Knowledge knowledge, WasabiRandom random)
 			=> NonInteractive.Prover.Prove(new Transcript(new byte[0]), new[] { knowledge }, random).First();
+#pragma warning restore SA1502 // ElementMustNotBeOnSingleLine
 
 		// Syntactic sugar used in tests
 		public static Proof Prove(LinearRelation.Statement statement, Scalar witness, WasabiRandom random)
@@ -29,8 +32,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			=> new Knowledge(IssuerParameters(sk.ComputeCoordinatorParameters(), mac, ma), new ScalarVector(sk.W, sk.Wp, sk.X0, sk.X1, sk.Ya));
 
 		public static LinearRelation.Statement IssuerParameters(CoordinatorParameters iparams, MAC mac, GroupElement ma)
-		{
-			return new LinearRelation.Statement(new GroupElement[,]
+			=> new LinearRelation.Statement(new GroupElement[,]
 			{
 				// public                                             Witness terms:
 				// point                     w,             wp,             x0,             x1,             ya
@@ -38,6 +40,5 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				{ Generators.GV - iparams.I, O,             O,              Generators.Gx0, Generators.Gx1, Generators.Ga },
 				{ iparams.Cw,                Generators.Gw, Generators.Gwp, O,              O,              O },
 			});
-		}
 	}
 }

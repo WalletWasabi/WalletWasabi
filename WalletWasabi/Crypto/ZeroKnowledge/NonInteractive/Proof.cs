@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge.NonInteractive
