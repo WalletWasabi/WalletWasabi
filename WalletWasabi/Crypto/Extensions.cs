@@ -1,3 +1,4 @@
+using NBitcoin.Secp256k1;
 using System.Collections.Generic;
 using WalletWasabi.Helpers;
 using WalletWasabi.Crypto.Groups;
@@ -8,6 +9,9 @@ namespace System.Linq
 {
 	public static class Extensions
 	{
+		public static Scalar Sum(this IEnumerable<Scalar> scalars) =>
+			scalars.Aggregate(Scalar.Zero, (s, acc) => s + acc);
+
 		public static GroupElement Sum(this IEnumerable<GroupElement> groupElements) =>
 			groupElements.Aggregate(GroupElement.Infinity, (ge, acc) => ge + acc);
 
