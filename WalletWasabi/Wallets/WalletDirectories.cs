@@ -68,13 +68,15 @@ namespace WalletWasabi.Wallets
 			return result.OrderByDescending(t => t.LastAccessTimeUtc);
 		}
 
-		public string GetNextWalletName(string prefix = "Wallet")
+		public string GetNextWalletName(string prefix = "Random Wallet")
 		{
-			int i = 0;
+			int i = 1;
+			var walletNames = EnumerateWalletFiles().Select(x => Path.GetFileNameWithoutExtension(x.Name));
 			while (true)
 			{
-				var walletName = $"{prefix}{i}";
-				if (!File.Exists(GetWalletFilePaths(walletName).walletFilePath))
+				var walletName = i == 1 ? prefix : $"{prefix} {i}";
+
+				if (!walletNames.Contains(walletName))
 				{
 					return walletName;
 				}
