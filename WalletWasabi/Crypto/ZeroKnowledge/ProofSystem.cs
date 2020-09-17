@@ -13,13 +13,15 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 	{
 		private static GroupElement O = GroupElement.Infinity;
 
-#pragma warning disable SA1502 // ElementMustNotBeOnSingleLine
 		public static bool Verify(LinearRelation.Statement statement, Proof proof)
-			=> NonInteractive.Verifier.Verify(new Transcript(new byte[0]), new[] { statement }, new[] { proof });
+		{
+			return NonInteractive.Verifier.Verify(new Transcript(new byte[0]), new[] { statement }, new[] { proof });
+		}
 
 		public static Proof Prove(Knowledge knowledge, WasabiRandom random)
-			=> NonInteractive.Prover.Prove(new Transcript(new byte[0]), new[] { knowledge }, random).First();
-#pragma warning restore SA1502 // ElementMustNotBeOnSingleLine
+		{
+			return NonInteractive.Prover.Prove(new Transcript(new byte[0]), new[] { knowledge }, random).First();
+		}
 
 		// Syntactic sugar used in tests
 		public static Proof Prove(LinearRelation.Statement statement, Scalar witness, WasabiRandom random)
