@@ -175,7 +175,7 @@ namespace System.IO
 			}
 		}
 
-		public static void CreateEmptyFile(string path)
+		public static void CreateOrOverwriteFile(string path)
 		{
 			using var _ = File.Create(path);
 		}
