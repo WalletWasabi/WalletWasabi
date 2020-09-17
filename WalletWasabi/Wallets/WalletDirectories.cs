@@ -71,7 +71,7 @@ namespace WalletWasabi.Wallets
 		public string GetNextWalletName(string prefix = "Random Wallet")
 		{
 			int i = 1;
-			var walletNames = EnumerateWalletFiles(true).Select(x => Path.GetFileNameWithoutExtension(x.Name));
+			var walletNames = EnumerateWalletFiles().Select(x => Path.GetFileNameWithoutExtension(x.Name));
 			while (true)
 			{
 				var walletName = i == 1 ? prefix : $"{prefix} {i}";
