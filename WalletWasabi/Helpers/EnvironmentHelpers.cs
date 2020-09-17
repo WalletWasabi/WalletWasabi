@@ -264,14 +264,24 @@ namespace WalletWasabi.Helpers
 		[DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
 		private static extern EXECUTION_STATE SetThreadExecutionState(EXECUTION_STATE esFlags);
 
-		public static void KeepSystemAwake()
+		public static async Task KeepSystemAwakeAsync()
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
 				var result = SetThreadExecutionState(EXECUTION_STATE.ES_SYSTEM_REQUIRED);
 				if (result == 0)
 				{
-					Logger.LogInfo("SetThreadExecutionState failed.");
+					throw new InvalidOperationException("SetThreadExecutionState failed.");
+				}
+			}
+			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			{
+				ProcessStartInfo startInfo = ProcessStartInfoFactory.Make("caffeinate", "-i -t 120 &");
+				var processInvoker = new ProcessInvoker();
+				(string rawResponse, int exitCode) = await processInvoker.SendCommandAsync(startInfo, CancellationToken.None).ConfigureAwait(false);
+				if (exitCode != 0)
+				{
+					throw new InvalidOperationException($"Caffeinate failed. {rawResponse}");
 				}
 			}
 		}

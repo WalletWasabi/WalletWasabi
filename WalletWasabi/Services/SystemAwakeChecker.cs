@@ -18,14 +18,12 @@ namespace WalletWasabi.Services
 
 		private WalletManager WalletManager { get; }
 
-		protected override Task ActionAsync(CancellationToken cancel)
+		protected override async Task ActionAsync(CancellationToken cancel)
 		{
 			if (WalletManager.IsAnyCoinJoinInProgress())
 			{
-				EnvironmentHelpers.KeepSystemAwake();
+				await EnvironmentHelpers.KeepSystemAwakeAsync().ConfigureAwait(false);
 			}
-
-			return Task.CompletedTask;
 		}
 	}
 }

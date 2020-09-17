@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using Xunit;
 
@@ -6,9 +7,9 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 	public class PreventSleepTests
 	{
 		[Fact]
-		public void PreventSleep()
+		public async Task PreventSleepAsync()
 		{
-			EnvironmentHelpers.KeepSystemAwake();
+			await EnvironmentHelpers.KeepSystemAwakeAsync();
 		}
 	}
 }
