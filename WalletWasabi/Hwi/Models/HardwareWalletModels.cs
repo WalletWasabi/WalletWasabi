@@ -54,7 +54,7 @@ namespace WalletWasabi.Hwi.Models
 
 	public static class EnumExtensions
 	{
-		public static T? GetAttribute<T>(this Enum value) where T : Attribute
+		public static T? GetFirstAttribute<T>(this Enum value) where T : Attribute
 		{
 			var type = value.GetType();
 			var memberInfo = type.GetMember(value.ToString());
@@ -65,7 +65,7 @@ namespace WalletWasabi.Hwi.Models
 
 		public static string FriendlyName(this Enum value)
 		{
-			var attribute = value.GetAttribute<DescriptionAttribute>();
+			var attribute = value.GetFirstAttribute<DescriptionAttribute>();
 
 			return attribute is { } ? attribute.Description : value.ToString();
 		}
