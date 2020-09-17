@@ -136,7 +136,7 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _btcPrice, value);
 		}
 
-		public string Status => _status?.Value ?? "Loading...";
+		public string Status => _status?.Value ?? LoadingText;
 
 		public bool DownloadingBlock
 		{
