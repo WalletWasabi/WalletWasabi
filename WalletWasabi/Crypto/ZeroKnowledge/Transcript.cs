@@ -46,9 +46,6 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			_strobe = strobe;
 		}
 
-		public Transcript MakeCopy() =>
-			new Transcript(_strobe.MakeCopy());
-
 		// Generate synthetic nonce using current state combined with additional randomness.
 		public SyntheticSecretNonceProvider CreateSyntheticSecretNonceProvider(IEnumerable<Scalar> secrets, WasabiRandom random)
 			=> new SyntheticSecretNonceProvider(_strobe.MakeCopy(), secrets, random);
