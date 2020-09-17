@@ -194,7 +194,7 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal("BitBox", HardwareWalletModels.DigitalBitBox_01.FriendlyName());
 			Assert.Equal("BitBox Simulator", HardwareWalletModels.DigitalBitBox_01_Simulator.FriendlyName());
 			Assert.Equal("KeepKey", HardwareWalletModels.KeepKey.FriendlyName());
-			Assert.Equal("KeepKeySimulator", HardwareWalletModels.KeepKey_Simulator.FriendlyName());
+			Assert.Equal("KeepKey Simulator", HardwareWalletModels.KeepKey_Simulator.FriendlyName());
 			Assert.Equal("Ledger Nano S", HardwareWalletModels.Ledger_Nano_S.FriendlyName());
 			Assert.Equal("Trezor One", HardwareWalletModels.Trezor_1.FriendlyName());
 			Assert.Equal("Trezor One Simulator", HardwareWalletModels.Trezor_1_Simulator.FriendlyName());

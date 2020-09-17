@@ -27,7 +27,7 @@ namespace WalletWasabi.Hwi.Models
 		[Description("KeepKey")]
 		KeepKey,
 
-		[Description("KeepKeySimulator")]
+		[Description("KeepKey Simulator")]
 		KeepKey_Simulator,
 
 		[Description("Ledger Nano S")]
