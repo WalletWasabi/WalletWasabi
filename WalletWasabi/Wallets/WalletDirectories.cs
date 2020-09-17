@@ -84,38 +84,5 @@ namespace WalletWasabi.Wallets
 				i++;
 			}
 		}
-
-		public string GetNextHardwareWalletName(HardwareWalletModels model)
-		{
-			string prefix;
-			if (model == HardwareWalletModels.Unknown)
-			{
-				prefix = "Hardware Wallet";
-			}
-			else if (model == HardwareWalletModels.BitBox02_BTCOnly
-				|| model == HardwareWalletModels.BitBox02_Multi
-				|| model == HardwareWalletModels.DigitalBitBox_01)
-			{
-				prefix = "BitBox";
-			}
-			else if (model == HardwareWalletModels.DigitalBitBox_01_Simulator)
-			{
-				prefix = "BitBox Simulator";
-			}
-			else if (model == HardwareWalletModels.Trezor_1)
-			{
-				prefix = "Trezor One";
-			}
-			else if (model == HardwareWalletModels.Trezor_1_Simulator)
-			{
-				prefix = "Trezor One Simulator";
-			}
-			else
-			{
-				prefix = GetNextWalletName(model.ToString().Replace('_', ' '));
-			}
-
-			return GetNextWalletName(prefix);
-		}
 	}
 }

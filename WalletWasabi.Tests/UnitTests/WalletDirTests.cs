@@ -184,58 +184,5 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal("Foo 2", walletDirectories.GetNextWalletName("Foo"));
 			IoHelpers.CreateEmptyFile(Path.Combine(walletDirectories.WalletsDir, "Foo 2.json"));
 		}
-
-		[Fact]
-		public async Task GetNextHardwareWalletNameAsync()
-		{
-			var baseDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName(), EnvironmentHelpers.GetMethodName());
-			await CleanupWalletDirectoriesAsync(baseDir);
-			var walletDirectories = new WalletDirectories(baseDir);
-
-			Assert.Equal("Hardware Wallet", walletDirectories.GetNextHardwareWalletName(HardwareWalletModels.Unknown));
-			IoHelpers.CreateEmptyFile(Path.Combine(walletDirectories.WalletsDir, "Hardware Wallet.json"));
-			Assert.Equal("Hardware Wallet 2", walletDirectories.GetNextHardwareWalletName(HardwareWalletModels.Unknown));
-			IoHelpers.CreateEmptyFile(Path.Combine(walletDirectories.WalletsDir, "Hardware Wallet 2.json"));
-
-			Assert.Equal("Coldcard", walletDirectories.GetNextHardwareWalletName(HardwareWalletModels.Coldcard));
-			IoHelpers.CreateEmptyFile(Path.Combine(walletDirectories.WalletsDir, "Coldcard.json"));
-			Assert.Equal("Coldcard 2", walletDirectories.GetNextHardwareWalletName(HardwareWalletModels.Coldcard));
-			IoHelpers.CreateEmptyFile(Path.Combine(walletDirectories.WalletsDir, "Coldcard 2.json"));
-
-			Assert.Equal("Coldcard Simulator", walletDirectories.GetNextHardwareWalletName(HardwareWalletModels.Coldcard_Simulator));
-			IoHelpers.CreateEmptyFile(Path.Combine(walletDirectories.WalletsDir, "Coldcard Simulator.json"));
-			Assert.Equal("Coldcard Simulator 2", walletDirectories.GetNextHardwareWalletName(HardwareWalletModels.Coldcard_Simulator));
-			IoHelpers.CreateEmptyFile(Path.Combine(walletDirectories.WalletsDir, "Coldcard Simulator 2.json"));
-
-			IoHelpers.CreateEmptyFile(Path.Combine(walletDirectories.WalletsDir, "Trezor T.json"));
-			Assert.Equal("Trezor T 2", walletDirectories.GetNextHardwareWalletName(HardwareWalletModels.Trezor_T));
-			IoHelpers.CreateEmptyFile(Path.Combine(walletDirectories.WalletsDir, "Trezor T 2.json"));
-			Assert.Equal("Trezor T 3", walletDirectories.GetNextHardwareWalletName(HardwareWalletModels.Trezor_T));
-			IoHelpers.CreateEmptyFile(Path.Combine(walletDirectories.WalletsDir, "Trezor T 3.json"));
-
-			Assert.Equal("BitBox", walletDirectories.GetNextHardwareWalletName(HardwareWalletModels.BitBox02_BTCOnly));
-			IoHelpers.CreateEmptyFile(Path.Combine(walletDirectories.WalletsDir, "BitBox.json"));
-			Assert.Equal("BitBox 2", walletDirectories.GetNextHardwareWalletName(HardwareWalletModels.BitBox02_Multi));
-			IoHelpers.CreateEmptyFile(Path.Combine(walletDirectories.WalletsDir, "BitBox 2.json"));
-			Assert.Equal("BitBox 3", walletDirectories.GetNextHardwareWalletName(HardwareWalletModels.BitBox02_BTCOnly));
-			IoHelpers.CreateEmptyFile(Path.Combine(walletDirectories.WalletsDir, "BitBox 3.json"));
-			Assert.Equal("BitBox 4", walletDirectories.GetNextHardwareWalletName(HardwareWalletModels.DigitalBitBox_01));
-			IoHelpers.CreateEmptyFile(Path.Combine(walletDirectories.WalletsDir, "BitBox 4.json"));
-
-			Assert.Equal("BitBox Simulator", walletDirectories.GetNextHardwareWalletName(HardwareWalletModels.DigitalBitBox_01_Simulator));
-			IoHelpers.CreateEmptyFile(Path.Combine(walletDirectories.WalletsDir, "BitBox Simulator.json"));
-			Assert.Equal("BitBox Simulator 2", walletDirectories.GetNextHardwareWalletName(HardwareWalletModels.DigitalBitBox_01_Simulator));
-			IoHelpers.CreateEmptyFile(Path.Combine(walletDirectories.WalletsDir, "BitBox Simulator 2.json"));
-
-			Assert.Equal("Ledger Nano S", walletDirectories.GetNextHardwareWalletName(HardwareWalletModels.Ledger_Nano_S));
-			IoHelpers.CreateEmptyFile(Path.Combine(walletDirectories.WalletsDir, "Ledger Nano S.json"));
-			Assert.Equal("Ledger Nano S 2", walletDirectories.GetNextHardwareWalletName(HardwareWalletModels.Ledger_Nano_S));
-			IoHelpers.CreateEmptyFile(Path.Combine(walletDirectories.WalletsDir, "Ledger Nano S 2.json"));
-
-			Assert.Equal("Trezor One", walletDirectories.GetNextHardwareWalletName(HardwareWalletModels.Trezor_1));
-			IoHelpers.CreateEmptyFile(Path.Combine(walletDirectories.WalletsDir, "Trezor One.json"));
-			Assert.Equal("Trezor One 2", walletDirectories.GetNextHardwareWalletName(HardwareWalletModels.Trezor_1));
-			IoHelpers.CreateEmptyFile(Path.Combine(walletDirectories.WalletsDir, "Trezor One 2.json"));
-		}
 	}
 }
