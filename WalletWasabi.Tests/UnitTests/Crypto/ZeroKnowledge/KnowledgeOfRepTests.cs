@@ -1,12 +1,13 @@
 using NBitcoin.Secp256k1;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Groups;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
+using LR = WalletWasabi.Crypto.ZeroKnowledge.LinearRelation;
 
 namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 {
@@ -23,18 +24,15 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		[InlineData(uint.MaxValue, uint.MaxValue)]
 		public void End2EndVerificationSimple(uint scalarSeed1, uint scalarSeed2)
 		{
-			var secrets = new[] { new Scalar(scalarSeed1), new Scalar(scalarSeed2) };
-			var generators = new[] { Generators.G, Generators.Ga };
-			var publicPoint = GroupElement.Infinity;
-			foreach (var (secret, generator) in secrets.ZipForceEqualLength(generators))
-			{
-				publicPoint += secret * generator;
-			}
+			var secrets = new ScalarVector(new Scalar(scalarSeed1), new Scalar(scalarSeed2));
+			var generators = new GroupElementVector(Generators.G, Generators.Ga);
+			var publicPoint = secrets * generators;
 
-			var statement = new Statement(publicPoint, generators);
-			var knowledge = new KnowledgeOfRepParams(secrets, statement);
-			var proof = Prover.CreateProof(knowledge);
-			Assert.True(Verifier.Verify(proof, statement));
+			var statement = new LR.Statement(publicPoint, generators);
+			var random = new MockRandom();
+			random.GetBytesResults.Add(new byte[32]);
+			var proof = ProofSystem.Prove(statement, secrets, random);
+			Assert.True(ProofSystem.Verify(statement, proof));
 		}
 
 		[Fact]
@@ -45,67 +43,35 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			{
 				foreach (var secret2 in goodScalars.Where(x => x != secret1))
 				{
-					var secrets = new[] { secret1, secret2 };
-					var generators = new[] { Generators.G, Generators.Ga };
-					var publicPoint = GroupElement.Infinity;
-					foreach (var (secret, generator) in secrets.ZipForceEqualLength(generators))
-					{
-						publicPoint += secret * generator;
-					}
-					Statement statement = new Statement(publicPoint, generators);
-					var knowledge = new KnowledgeOfRepParams(secrets, statement);
-					var proof = Prover.CreateProof(knowledge);
-					Assert.True(Verifier.Verify(proof, statement));
+					var secrets = new ScalarVector(secret1, secret2);
+					var generators = new GroupElementVector(Generators.G, Generators.Ga);
+					var publicPoint = secrets * generators;
+					var statement = new LR.Statement(publicPoint, generators);
+					var proof = ProofSystem.Prove(statement, secrets, new SecureRandom());
+					Assert.True(ProofSystem.Verify(statement, proof));
 				}
 			}
 		}
 
 		[Fact]
-		public void KnowledgeOfRepThrows()
-		{
-			// Demonstrate when it shouldn't throw.
-			new KnowledgeOfRep(Generators.G, CryptoHelpers.ScalarOne, CryptoHelpers.ScalarTwo);
-
-			// Infinity or zero cannot pass through.
-			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfRep(Generators.G, Scalar.Zero, CryptoHelpers.ScalarTwo));
-			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfRep(Generators.G, CryptoHelpers.ScalarOne, Scalar.Zero));
-			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfRep(GroupElement.Infinity, CryptoHelpers.ScalarOne, CryptoHelpers.ScalarTwo));
-		}
-
-		[Fact]
-		public void KnowledgeOfRepParamsThrows()
+		public void KnowledgeThrows()
 		{
 			var two = new Scalar(2);
 			var three = new Scalar(3);
 
-			// Demonstrate when it shouldn't throw.
-			new KnowledgeOfRepParams(new[] { two, three }, new Statement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Ga));
-
-			// Zero cannot pass through.
-			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfRepParams(new[] { Scalar.Zero, three }, new Statement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Ga)));
-			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfRepParams(new[] { two, Scalar.Zero }, new Statement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Ga)));
-
-			// Overflow cannot pass through.
-			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfRepParams(new[] { EC.N, three }, new Statement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Ga)));
-			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfRepParams(new[] { two, EC.N }, new Statement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Ga)));
-
 			// Public point must be sum(generator * secret).
-			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfRepParams(new[] { two, three }, new Statement(three * Generators.Ga, Generators.G, Generators.Ga)));
-			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfRepParams(new[] { two, three }, new Statement(two * Generators.G, Generators.G, Generators.Ga)));
-			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfRepParams(new[] { two, three }, new Statement(two * Generators.G + three * Generators.Ga, Generators.Ga, Generators.G)));
-			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfRepParams(new[] { two, three }, new Statement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Gg)));
-			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfRepParams(new[] { two, three }, new Statement(Generators.G + three * Generators.Ga, Generators.G, Generators.Ga)));
-			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfRepParams(new[] { two, three }, new Statement(two * Generators.G + Generators.Ga, Generators.G, Generators.Ga)));
-
-			// Generators and secrets cannot be empty.
-			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfRepParams(Array.Empty<Scalar>(), new Statement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Ga)));
-			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfRepParams(new[] { two, three }, new Statement(two * Generators.G + three * Generators.Ga)));
+			Assert.ThrowsAny<ArgumentException>(() => new LR.Knowledge(new LR.Statement(three * Generators.Ga, Generators.G, Generators.Ga), new ScalarVector(two, three)));
+			Assert.ThrowsAny<ArgumentException>(() => new LR.Knowledge(new LR.Statement(two * Generators.G, Generators.G, Generators.Ga), new ScalarVector(two, three)));
+			Assert.ThrowsAny<ArgumentException>(() => new LR.Knowledge(new LR.Statement(two * Generators.G + three * Generators.Ga, Generators.Ga, Generators.G), new ScalarVector(two, three)));
+			Assert.ThrowsAny<ArgumentException>(() => new LR.Knowledge(new LR.Statement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Gg), new ScalarVector(two, three)));
+			Assert.ThrowsAny<ArgumentException>(() => new LR.Knowledge(new LR.Statement(Generators.G + three * Generators.Ga, Generators.G, Generators.Ga), new ScalarVector(two, three)));
+			Assert.ThrowsAny<ArgumentException>(() => new LR.Knowledge(new LR.Statement(two * Generators.G + Generators.Ga, Generators.G, Generators.Ga), new ScalarVector(two, three)));
 
 			// Generators and secrets must be equal.
-			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfRepParams(new[] { two }, new Statement(two * Generators.G, Generators.G, Generators.Ga)));
-			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfRepParams(new[] { two, three, new Scalar(4) }, new Statement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Ga)));
-			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfRepParams(new[] { two, three }, new Statement(two * Generators.G + three * Generators.Ga, Generators.G)));
-			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfRepParams(new[] { two, three }, new Statement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Ga, Generators.Gg)));
+			Assert.ThrowsAny<ArgumentException>(() => new LR.Knowledge(new LR.Statement(two * Generators.G + three * Generators.Ga, Generators.Gg, Generators.Ga), new ScalarVector(two)));
+			Assert.ThrowsAny<ArgumentException>(() => new LR.Knowledge(new LR.Statement(two * Generators.G + three * Generators.Ga), new ScalarVector(two, three)));
+			Assert.ThrowsAny<ArgumentException>(() => new LR.Knowledge(new LR.Statement(two * Generators.G + three * Generators.Ga, Generators.Gg), new ScalarVector(two, three)));
+			Assert.ThrowsAny<ArgumentException>(() => new LR.Knowledge(new LR.Statement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Ga, Generators.Gg), new ScalarVector(two, three)));
 		}
 	}
 }
