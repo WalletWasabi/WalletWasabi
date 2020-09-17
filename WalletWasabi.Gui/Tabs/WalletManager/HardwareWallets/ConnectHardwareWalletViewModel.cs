@@ -323,8 +323,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 				}
 				else
 				{
-					Logger.LogInfo("Hardware wallet was not used previously on this computer. Creating a new wallet file.");
-					walletName = WalletManager.WalletDirectories.GetNextWalletName(selectedWallet.HardwareWalletInfo?.Model.FriendlyName() ?? HardwareWalletModels.Unknown.FriendlyName());
+					var prefix = selectedWallet.HardwareWalletInfo?.Model.FriendlyName() ?? HardwareWalletModels.Unknown.FriendlyName();
+					walletName = WalletManager.WalletDirectories.GetNextWalletName(prefix);
+					Logger.LogInfo($"Hardware wallet was not used previously on this computer. New wallet was created with name of {walletName}");
+
 					var path = WalletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
 
 					// Get xpub should had triggered passphrase request, so the fingerprint should be available here.
