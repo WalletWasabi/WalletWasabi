@@ -1,12 +1,13 @@
 using System.Linq;
 using System.Collections.Generic;
+using WalletWasabi.Crypto.ZeroKnowledge.LinearRelation;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge.NonInteractive
 {
 	public static class Verifier
 	{
-		public static bool Verify(Transcript transcript, IEnumerable<LinearRelation.Statement> statements, IEnumerable<Proof> proofs)
+		public static bool Verify(Transcript transcript, IEnumerable<Statement> statements, IEnumerable<Proof> proofs)
 		{
 			Guard.Same(nameof(proofs), proofs.Count(), statements.Count());
 

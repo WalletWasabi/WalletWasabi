@@ -5,9 +5,9 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
+using WalletWasabi.Crypto.ZeroKnowledge.LinearRelation;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
-using LR = WalletWasabi.Crypto.ZeroKnowledge.LinearRelation;
 
 namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 {
@@ -28,7 +28,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var generators = new GroupElementVector(Generators.G, Generators.Ga);
 			var publicPoint = secrets * generators;
 
-			var statement = new LR.Statement(publicPoint, generators);
+			var statement = new Statement(publicPoint, generators);
 			var random = new MockRandom();
 			random.GetBytesResults.Add(new byte[32]);
 			var proof = ProofSystem.Prove(statement, secrets, random);
@@ -46,7 +46,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 					var secrets = new ScalarVector(secret1, secret2);
 					var generators = new GroupElementVector(Generators.G, Generators.Ga);
 					var publicPoint = secrets * generators;
-					var statement = new LR.Statement(publicPoint, generators);
+					var statement = new Statement(publicPoint, generators);
 					var proof = ProofSystem.Prove(statement, secrets, new SecureRandom());
 					Assert.True(ProofSystem.Verify(statement, proof));
 				}
@@ -60,18 +60,18 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var three = new Scalar(3);
 
 			// Public point must be sum(generator * secret).
-			Assert.ThrowsAny<ArgumentException>(() => new LR.Knowledge(new LR.Statement(three * Generators.Ga, Generators.G, Generators.Ga), new ScalarVector(two, three)));
-			Assert.ThrowsAny<ArgumentException>(() => new LR.Knowledge(new LR.Statement(two * Generators.G, Generators.G, Generators.Ga), new ScalarVector(two, three)));
-			Assert.ThrowsAny<ArgumentException>(() => new LR.Knowledge(new LR.Statement(two * Generators.G + three * Generators.Ga, Generators.Ga, Generators.G), new ScalarVector(two, three)));
-			Assert.ThrowsAny<ArgumentException>(() => new LR.Knowledge(new LR.Statement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Gg), new ScalarVector(two, three)));
-			Assert.ThrowsAny<ArgumentException>(() => new LR.Knowledge(new LR.Statement(Generators.G + three * Generators.Ga, Generators.G, Generators.Ga), new ScalarVector(two, three)));
-			Assert.ThrowsAny<ArgumentException>(() => new LR.Knowledge(new LR.Statement(two * Generators.G + Generators.Ga, Generators.G, Generators.Ga), new ScalarVector(two, three)));
+			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(three * Generators.Ga, Generators.G, Generators.Ga), new ScalarVector(two, three)));
+			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G, Generators.G, Generators.Ga), new ScalarVector(two, three)));
+			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G + three * Generators.Ga, Generators.Ga, Generators.G), new ScalarVector(two, three)));
+			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Gg), new ScalarVector(two, three)));
+			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(Generators.G + three * Generators.Ga, Generators.G, Generators.Ga), new ScalarVector(two, three)));
+			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G + Generators.Ga, Generators.G, Generators.Ga), new ScalarVector(two, three)));
 
 			// Generators and secrets must be equal.
-			Assert.ThrowsAny<ArgumentException>(() => new LR.Knowledge(new LR.Statement(two * Generators.G + three * Generators.Ga, Generators.Gg, Generators.Ga), new ScalarVector(two)));
-			Assert.ThrowsAny<ArgumentException>(() => new LR.Knowledge(new LR.Statement(two * Generators.G + three * Generators.Ga), new ScalarVector(two, three)));
-			Assert.ThrowsAny<ArgumentException>(() => new LR.Knowledge(new LR.Statement(two * Generators.G + three * Generators.Ga, Generators.Gg), new ScalarVector(two, three)));
-			Assert.ThrowsAny<ArgumentException>(() => new LR.Knowledge(new LR.Statement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Ga, Generators.Gg), new ScalarVector(two, three)));
+			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G + three * Generators.Ga, Generators.Gg, Generators.Ga), new ScalarVector(two)));
+			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G + three * Generators.Ga), new ScalarVector(two, three)));
+			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G + three * Generators.Ga, Generators.Gg), new ScalarVector(two, three)));
+			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Ga, Generators.Gg), new ScalarVector(two, three)));
 		}
 	}
 }
