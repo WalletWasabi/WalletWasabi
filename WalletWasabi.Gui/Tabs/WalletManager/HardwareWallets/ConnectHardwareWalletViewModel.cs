@@ -325,7 +325,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 				{
 					var prefix = selectedWallet.HardwareWalletInfo?.Model.FriendlyName() ?? HardwareWalletModels.Unknown.FriendlyName();
 					walletName = WalletManager.WalletDirectories.GetNextWalletName(prefix);
-					Logger.LogInfo($"Hardware wallet was not used previously on this computer. New wallet was created with name of {walletName}");
+					Logger.LogInfo($"Hardware wallet was not used previously on this computer. New wallet '{walletName}' was created.");
 
 					var path = WalletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
 
