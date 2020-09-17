@@ -17,6 +17,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Extensions;
 using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models.StatusBarStatuses;
