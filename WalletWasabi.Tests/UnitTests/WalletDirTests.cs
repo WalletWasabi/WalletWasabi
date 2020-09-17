@@ -184,5 +184,24 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal("Foo 2", walletDirectories.GetNextWalletName("Foo"));
 			IoHelpers.CreateEmptyFile(Path.Combine(walletDirectories.WalletsDir, "Foo 2.json"));
 		}
+
+		[Fact]
+		public async Task GetFriendlyNameTestAsync()
+		{
+			Assert.Equal("Hardware Wallet", HardwareWalletModels.Unknown.FriendlyName());
+			Assert.Equal("Coldcard", HardwareWalletModels.Coldcard.FriendlyName());
+			Assert.Equal("Coldcard Simulator", HardwareWalletModels.Coldcard_Simulator.FriendlyName());
+			Assert.Equal("BitBox", HardwareWalletModels.DigitalBitBox_01.FriendlyName());
+			Assert.Equal("BitBox Simulator", HardwareWalletModels.DigitalBitBox_01_Simulator.FriendlyName());
+			Assert.Equal("KeepKey", HardwareWalletModels.KeepKey.FriendlyName());
+			Assert.Equal("KeepKeySimulator", HardwareWalletModels.KeepKey_Simulator.FriendlyName());
+			Assert.Equal("Ledger Nano S", HardwareWalletModels.Ledger_Nano_S.FriendlyName());
+			Assert.Equal("Trezor One", HardwareWalletModels.Trezor_1.FriendlyName());
+			Assert.Equal("Trezor One Simulator", HardwareWalletModels.Trezor_1_Simulator.FriendlyName());
+			Assert.Equal("Trezor T", HardwareWalletModels.Trezor_T.FriendlyName());
+			Assert.Equal("Trezor T Simulator", HardwareWalletModels.Trezor_T_Simulator.FriendlyName());
+			Assert.Equal("BitBox", HardwareWalletModels.BitBox02_BTCOnly.FriendlyName());
+			Assert.Equal("BitBox", HardwareWalletModels.BitBox02_Multi.FriendlyName());
+		}
 	}
 }
