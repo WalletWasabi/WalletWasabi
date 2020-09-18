@@ -17,6 +17,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Extensions;
 using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models.StatusBarStatuses;
@@ -323,11 +324,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 				}
 				else
 				{
-					Logger.LogInfo("Hardware wallet was not used previously on this computer. Creating a new wallet file.");
-
-					var prefix = selectedWallet.HardwareWalletInfo is null ? "HardwareWallet" : selectedWallet.HardwareWalletInfo.Model.ToString();
-
+					var prefix = selectedWallet.HardwareWalletInfo?.Model.FriendlyName() ?? HardwareWalletModels.Unknown.FriendlyName();
 					walletName = WalletManager.WalletDirectories.GetNextWalletName(prefix);
+					Logger.LogInfo($"Hardware wallet was not used previously on this computer. New wallet '{walletName}' was created.");
+
 					var path = WalletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
 
 					// Get xpub should had triggered passphrase request, so the fingerprint should be available here.

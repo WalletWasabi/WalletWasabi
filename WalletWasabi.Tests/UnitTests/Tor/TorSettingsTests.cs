@@ -16,7 +16,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor
 		[Fact]
 		public void GetCmdArgumentsTest()
 		{
-			var settings = new TorSettings("temp");
+			var settings = new TorSettings("temp", "temp/Tor.log");
 			var endpoint = new IPEndPoint(IPAddress.Loopback, WalletWasabi.Helpers.Constants.DefaultTorSocksPort);
 
 			string arguments = settings.GetCmdArguments(endpoint);

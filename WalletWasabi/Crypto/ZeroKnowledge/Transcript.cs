@@ -6,6 +6,7 @@ using System.Text;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.StrobeProtocol;
+using WalletWasabi.Crypto.ZeroKnowledge.LinearRelation;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge
@@ -46,9 +47,6 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			_strobe = strobe;
 		}
 
-		public Transcript MakeCopy() =>
-			new Transcript(_strobe.MakeCopy());
-
 		// Generate synthetic nonce using current state combined with additional randomness.
 		public SyntheticSecretNonceProvider CreateSyntheticSecretNonceProvider(IEnumerable<Scalar> secrets, WasabiRandom random)
 			=> new SyntheticSecretNonceProvider(_strobe.MakeCopy(), secrets, random);
@@ -59,12 +57,12 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			AddMessages(PublicNonceTag, publicNonces.Select(x => x.ToBytes()));
 		}
 
-		public void CommitStatement(LinearRelation.Statement statement)
+		public void CommitStatement(Statement statement)
 		{
 			Guard.NotNull(nameof(statement.Generators), statement.Generators);
 			CryptoGuard.NotNullOrInfinity(nameof(statement.PublicPoints), statement.PublicPoints);
 			AddMessages(StatementTag, statement.PublicPoints.Select(x => x.ToBytes()).Concat(statement.Generators.Select(x => x.ToBytes())));
- 		}
+		}
 
 		// Generate Fiat Shamir challenges
 		public Scalar GenerateChallenge()

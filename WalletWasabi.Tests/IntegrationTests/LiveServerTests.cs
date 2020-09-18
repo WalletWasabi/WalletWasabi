@@ -29,9 +29,11 @@ namespace WalletWasabi.Tests.IntegrationTests
 		{
 			EndPoint endpoint = Global.Instance.TorSocks5Endpoint;
 			string dataDir = Path.GetFullPath(AppContext.BaseDirectory);
-			string torLogsFile = Global.Instance.TorLogsFile;
+			string logFilePath = Global.Instance.TorLogsFile;
 
-			var torManager = new TorProcessManager(endpoint, dataDir, torLogsFile);
+			var settings = new TorSettings(dataDir: dataDir, logFilePath);
+
+			var torManager = new TorProcessManager(settings, endpoint);
 			torManager.Start(ensureRunning: true);
 			await Task.Delay(3000);
 		}

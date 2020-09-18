@@ -11,12 +11,12 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 		{
 			Guard.NotNull(nameof(statement), statement);
 			Guard.NotNullOrEmpty(nameof(witness), witness);
-			Guard.True($"{nameof(witness)} size does not match {nameof(statement)}.{nameof(statement.Equations)}", witness.Count() == statement.Equations.First().Generators.Count());
+			Guard.True(nameof(witness), witness.Count() == statement.Equations.First().Generators.Count(), $"{nameof(witness)} size does not match {nameof(statement)}.{nameof(statement.Equations)}");
 
 			// don't try to prove something which isn't true
 			foreach (var equation in statement.Equations)
 			{
-				Guard.True($"{nameof(witness)} is not solution of the {nameof(equation)}", equation.VerifySolution(witness));
+				Guard.True(nameof(witness), equation.VerifySolution(witness), $"{nameof(witness)} is not solution of the {nameof(equation)}");
 			}
 
 			Statement = statement;
@@ -26,12 +26,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 		public Statement Statement { get; }
 		public ScalarVector Witness { get; }
 
-		public IEnumerable<ScalarVector> RespondToChallenge(Scalar challenge, IEnumerable<ScalarVector> allSecretNonces)
-		{
-			// allSecretNonces should have the same dimension as the equation matrix
-			Statement.Equations.CheckDimensions(allSecretNonces);
-
-			return Statement.Equations.Zip(allSecretNonces, (equation, secretNonces) => equation.Respond(Witness, secretNonces, challenge));
-		}
+		internal ScalarVector RespondToChallenge(Scalar challenge, ScalarVector secretNonces) =>
+			Equation.Respond(Witness, secretNonces, challenge);
 	}
 }

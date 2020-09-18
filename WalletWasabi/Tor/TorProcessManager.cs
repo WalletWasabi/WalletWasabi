@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Microservices;
 using WalletWasabi.Tor.Exceptions;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5;
@@ -34,25 +35,25 @@ namespace WalletWasabi.Tor
 		/// </summary>
 		private long _monitorState;
 
-		/// <param name="torSocks5EndPoint">Opt out Tor with null.</param>
-		/// <param name="logFile">Opt out of logging with null.</param>
-		public TorProcessManager(EndPoint torSocks5EndPoint, string dataDir, string logFile)
+		/// <summary>
+		/// Creates a new instance of the object.
+		/// </summary>
+		/// <param name="settings">Tor settings.</param>
+		/// <param name="torSocks5EndPoint">Valid Tor end point.</param>
+		public TorProcessManager(TorSettings settings, EndPoint torSocks5EndPoint)
 		{
 			TorSocks5EndPoint = torSocks5EndPoint;
-			LogFile = logFile;
 			_monitorState = StateNotStarted;
 			Stop = new CancellationTokenSource();
 			TorProcess = null;
-			Settings = new TorSettings(dataDir);
+			Settings = settings;
 		}
 
 		private EndPoint TorSocks5EndPoint { get; }
 
-		private string LogFile { get; }
-
 		public static bool RequestFallbackAddressUsage { get; private set; } = false;
 
-		private Process TorProcess { get; set; }
+		private ProcessAsync? TorProcess { get; set; }
 
 		private TorSettings Settings { get; }
 
@@ -106,31 +107,38 @@ namespace WalletWasabi.Tor
 
 						string torArguments = Settings.GetCmdArguments(TorSocks5EndPoint);
 
-						if (!string.IsNullOrEmpty(LogFile))
+						if (Settings.LogFilePath is { })
 						{
-							IoHelpers.EnsureContainingDirectoryExists(LogFile);
-							var logFileFullPath = Path.GetFullPath(LogFile);
+							IoHelpers.EnsureContainingDirectoryExists(Settings.LogFilePath);
+							var logFileFullPath = Path.GetFullPath(Settings.LogFilePath);
 							torArguments += $" --Log \"notice file {logFileFullPath}\"";
 						}
 
-						if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+						var startInfo = new ProcessStartInfo
 						{
-							TorProcess = Process.Start(new ProcessStartInfo
-							{
-								FileName = Settings.TorPath,
-								Arguments = torArguments,
-								UseShellExecute = false,
-								CreateNoWindow = true,
-								RedirectStandardOutput = true
-							});
-							Logger.LogInfo($"Starting Tor process with Process.Start.");
-						}
-						else // Linux and OSX
+							FileName = Settings.TorPath,
+							Arguments = torArguments,
+							UseShellExecute = false,
+							CreateNoWindow = true,
+							RedirectStandardOutput = true,
+							WorkingDirectory = Settings.TorDir
+						};
+
+						if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						{
-							string runTorCmd = $"LD_LIBRARY_PATH=$LD_LIBRARY_PATH:='{Settings.TorDir}/Tor' && export LD_LIBRARY_PATH && cd '{Settings.TorDir}/Tor' && ./tor {torArguments}";
-							EnvironmentHelpers.ShellExecAsync(runTorCmd, waitForExit: false).GetAwaiter().GetResult();
-							Logger.LogInfo($"Started Tor process with shell command: {runTorCmd}.");
+							var env = startInfo.EnvironmentVariables;
+
+							env["LD_LIBRARY_PATH"] = !env.ContainsKey("LD_LIBRARY_PATH") || string.IsNullOrEmpty(env["LD_LIBRARY_PATH"])
+								? Settings.TorBinaryDir
+								: Settings.TorBinaryDir + Path.PathSeparator + env["LD_LIBRARY_PATH"];
+
+							Logger.LogDebug($"Environment variable 'LD_LIBRARY_PATH' set to: '{env["LD_LIBRARY_PATH"]}'.");
 						}
+
+						TorProcess = new ProcessAsync(startInfo);
+
+						Logger.LogInfo($"Starting Tor process ...");
+						TorProcess.Start();
 
 						if (ensureRunning)
 						{

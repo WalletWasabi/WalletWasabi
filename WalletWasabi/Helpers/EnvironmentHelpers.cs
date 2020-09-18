@@ -162,7 +162,7 @@ namespace WalletWasabi.Helpers
 		}
 
 		/// <summary>
-		/// Executes a command with Bash.
+		/// Executes a command with Bourne shell.
 		/// https://stackoverflow.com/a/47918132/2061103
 		/// </summary>
 		public static async Task ShellExecAsync(string cmd, bool waitForExit = true)
