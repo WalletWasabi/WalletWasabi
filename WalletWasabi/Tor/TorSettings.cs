@@ -26,14 +26,14 @@ namespace WalletWasabi.Tor
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				TorPath = $@"{TorBinaryDir}\tor.exe";
+				TorBinaryFilePath = $@"{TorBinaryDir}\tor.exe";
 				HashSourcePath = $@"{TorBinaryDir}\tor.exe";
 				GeoIpPath = $@"{TorDir}\Data\Tor\geoip";
 				GeoIp6Path = $@"{TorDir}\Data\Tor\geoip6";
 			}
 			else
 			{
-				TorPath = $@"{TorBinaryDir}/tor";
+				TorBinaryFilePath = $@"{TorBinaryDir}/tor";
 				HashSourcePath = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
 					? $@"{TorBinaryDir}/tor.real"
 					: $@"{TorBinaryDir}/tor";
@@ -62,7 +62,7 @@ namespace WalletWasabi.Tor
 		public string HashSourcePath { get; }
 
 		/// <summary>Full path to executable file that is used to start Tor process.</summary>
-		public string TorPath { get; }
+		public string TorBinaryFilePath { get; }
 
 		private string GeoIpPath { get; }
 		private string GeoIp6Path { get; }
