@@ -51,7 +51,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				// public                     Witness terms:
 				// point      z               z0              t               a               r
 				{ Z,          iparams.I,      O,              O,              O,              O },
-				{ c.Cx1,      Generators.Gx1, Generators.Gx0, c.Cx0,          O,              O },
+				{ c.Cx1,      Generators.Gx1, Generators.Gx0, c.Cx0,          O,              O }, // Cx1 = z*Gx1 + t*U, z0 cancels t*z*Gx0 out of t*Cx0 leaving z*Gx1 + t*U
 				{ c.Ca,       Generators.Ga,  O,              O,              Generators.Gg,  Generators.Gh },
 				{ c.S,        O,              O,              O,              O,              Generators.Gs }
 			});

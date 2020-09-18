@@ -28,7 +28,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				Cx0: Randomize(Generators.Gx0, mac.U),
 				Cx1: Randomize(Generators.Gx1, mac.T * mac.U),
 				CV: Randomize(Generators.GV, mac.V),
-				S: r * Generators.Gs);
+				S: r * Generators.Gs); // Note: unlike the commitments S is not randomized
 		}
 
 		public GroupElement ComputeZ(CoordinatorSecretKey sk)
