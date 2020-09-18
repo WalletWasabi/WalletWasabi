@@ -497,7 +497,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				AliceClientBase aliceClient = null;
 				try
 				{
-					aliceClient = await CreateAliceClientAsync(inputRegistrableRound.RoundId, state, registrableCoins, outputAddresses).ConfigureAwait(false);
+					aliceClient = await CreateAliceClientAsync(inputRegistrableRound.RoundId, registrableCoins, outputAddresses).ConfigureAwait(false);
 				}
 				catch (HttpRequestException ex) when (ex.Message.Contains("Input is banned", StringComparison.InvariantCultureIgnoreCase))
 				{
@@ -1043,7 +1043,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			}
 		}
 
-		private async Task<AliceClientBase> CreateAliceClientAsync(long roundId, RoundStateResponseBase stateParam, List<OutPoint> registrableCoins, (HdPubKey change, IEnumerable<HdPubKey> actives) outputAddresses)
+		private async Task<AliceClientBase> CreateAliceClientAsync(long roundId, List<OutPoint> registrableCoins, (HdPubKey change, IEnumerable<HdPubKey> actives) outputAddresses)
 		{
 			RoundStateResponse4 state = null;
 
