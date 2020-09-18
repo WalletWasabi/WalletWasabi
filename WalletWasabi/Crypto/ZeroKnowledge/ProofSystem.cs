@@ -42,9 +42,9 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				{ iparams.Cw,                Generators.Gw, Generators.Gwp, O,              O,              O },
 			});
 
-		public static Knowledge ShowCredential(CredentialPresentation c, Scalar z, Credential credential, CoordinatorParameters iparams)
+		public static Knowledge ShowCredential(CredentialPresentation presentation, Scalar z, Credential credential, CoordinatorParameters iparams)
 			=> new Knowledge(
-				ShowCredential(c, z * iparams.I, iparams), 
+				ShowCredential(presentation, z * iparams.I, iparams), 
 				new ScalarVector(z, (credential.Mac.T * z).Negate(), credential.Mac.T, credential.Amount, credential.Randomness));
 
 		public static Statement ShowCredential(CredentialPresentation c, GroupElement Z, CoordinatorParameters iparams)
