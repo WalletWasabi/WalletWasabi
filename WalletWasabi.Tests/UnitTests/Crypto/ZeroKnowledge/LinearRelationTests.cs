@@ -54,12 +54,13 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			Assert.False(equation.Verify(publicNonce, challenge, modifiedResponse));
 			Assert.True(equation.Verify(publicNonce + Generators.G, challenge, modifiedResponse));
 
-			// A proof made with a different witness must be rejected, unless the
+			// A proof made with a different witness must be rejected. If the
 			// challenge is 0 (negligible probability with Fiat-Shamir under ROM) in
-			// which case any witness satisfies the equation
+			// which case any witness satisfies the equation, but the verifier should
+			// still reject.
 			var badWitness = new ScalarVector(new Scalar(scalarSeed1 + 1), new Scalar(scalarSeed2));
 			Assert.False(equation.Verify(publicNonce, challenge, Equation.Respond(badWitness, secretNonces, challenge)));
-			Assert.True(equation.Verify(publicNonce, Scalar.Zero, Equation.Respond(badWitness, secretNonces, Scalar.Zero)));
+			Assert.False(equation.Verify(publicNonce, Scalar.Zero, Equation.Respond(badWitness, secretNonces, Scalar.Zero)));
 
 			// A proof made with different secret nonces must also be rejected, unless
 			// the public nonce is tweaked (not possible with Fiat-Shamir without a

@@ -39,6 +39,12 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 		// Evaluate the verification equation corresponding to the one in the statement
 		internal bool Verify(GroupElement publicNonce, Scalar challenge, ScalarVector responses)
 		{
+			// A challenge of 0 does not place any constraint on the witness
+			if (challenge == Scalar.Zero)
+			{
+				return false;
+			}
+
 			// the verification equation (for 1 generator case) is:
 			//   sG =? R + eP
 			// where:
