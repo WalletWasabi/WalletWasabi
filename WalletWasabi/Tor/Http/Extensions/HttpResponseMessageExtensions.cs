@@ -3,7 +3,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using WalletWasabi.Logging;
 using WalletWasabi.Tor.Http.Helpers;
 using WalletWasabi.Tor.Http.Models;
 using static WalletWasabi.Tor.Http.Constants;

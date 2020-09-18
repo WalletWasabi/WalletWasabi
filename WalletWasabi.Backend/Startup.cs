@@ -7,7 +7,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using NBitcoin;
-using Swashbuckle.AspNetCore.Swagger;
 using System;
 using System.IO;
 using System.Threading;

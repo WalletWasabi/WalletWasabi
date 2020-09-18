@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Security;
-using System.Text;
 using WalletWasabi.Helpers;
 using Xunit;
 using WalletWasabi.Logging;

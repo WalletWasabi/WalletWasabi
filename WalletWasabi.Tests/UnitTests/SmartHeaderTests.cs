@@ -1,9 +1,5 @@
 using NBitcoin;
-using NBitcoin.DataEncoders;
 using System;
-using System.Collections.Generic;
-using System.Text;
-using WalletWasabi.Blockchain;
 using WalletWasabi.Blockchain.Blocks;
 using Xunit;
 

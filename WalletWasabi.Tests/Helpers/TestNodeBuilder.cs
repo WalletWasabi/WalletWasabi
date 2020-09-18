@@ -1,10 +1,7 @@
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
@@ -12,7 +9,6 @@ using WalletWasabi.BitcoinCore.Endpointing;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Helpers;
 using WalletWasabi.Services;
-using WalletWasabi.Stores;
 
 namespace WalletWasabi.Tests.Helpers
 {

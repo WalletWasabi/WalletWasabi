@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
-using NBitcoin.DataEncoders;
 using NBitcoin.Protocol;
 using Nito.AsyncEx;
 using System;
@@ -9,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;

@@ -1,10 +1,8 @@
 using AvalonStudio.Extensibility.Dialogs;
 using ReactiveUI;
 using System;
-using System.Collections.Generic;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Text;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 

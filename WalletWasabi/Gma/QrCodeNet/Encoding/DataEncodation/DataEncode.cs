@@ -2,7 +2,6 @@ using Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition;
 using Gma.QrCodeNet.Encoding.Terminate;
 using Gma.QrCodeNet.Encoding.Versions;
 using System;
-using System.Collections.Generic;
 
 namespace Gma.QrCodeNet.Encoding.DataEncodation
 {

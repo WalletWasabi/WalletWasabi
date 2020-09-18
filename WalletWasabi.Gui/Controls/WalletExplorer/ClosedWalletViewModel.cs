@@ -6,7 +6,6 @@ using System;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Tabs.WalletManager;

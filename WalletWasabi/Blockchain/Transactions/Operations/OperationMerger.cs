@@ -1,8 +1,6 @@
 using NBitcoin;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace WalletWasabi.Blockchain.Transactions.Operations
 {

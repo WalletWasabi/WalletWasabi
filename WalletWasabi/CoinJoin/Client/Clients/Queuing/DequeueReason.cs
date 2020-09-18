@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace WalletWasabi.CoinJoin.Client.Clients.Queuing
 {
 	public enum DequeueReason

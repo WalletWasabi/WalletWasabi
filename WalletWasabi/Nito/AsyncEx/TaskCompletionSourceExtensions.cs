@@ -1,5 +1,3 @@
-using Nito.AsyncEx.Synchronous;
-using System;
 using System.Threading.Tasks;
 
 namespace Nito.AsyncEx

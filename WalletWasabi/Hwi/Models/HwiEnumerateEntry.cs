@@ -1,8 +1,5 @@
 using NBitcoin;
-using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using WalletWasabi.Hwi.Exceptions;
 
 namespace WalletWasabi.Hwi.Models

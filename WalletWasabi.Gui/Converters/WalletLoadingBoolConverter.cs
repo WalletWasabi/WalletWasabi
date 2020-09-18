@@ -1,8 +1,6 @@
 using Avalonia.Data.Converters;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Wallets;
 
