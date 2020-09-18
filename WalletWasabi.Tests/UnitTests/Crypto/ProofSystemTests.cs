@@ -81,7 +81,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var credential = new Credential(amount, r, mac); 
 			var z = rnd.GetScalar();
 			var randomizedCredential = credential.Present(z);
-			var knowledge = ProofSystem.ShowCredential(randomizedCredential, z, mac.T, amount, r, coordinatorParameters);
+			var knowledge = ProofSystem.ShowCredential(randomizedCredential, z, credential, coordinatorParameters);
 			var proofOfMacShow = ProofSystem.Prove(knowledge, rnd);
 
 			// The coordinator must verify the received randomized credential is valid.

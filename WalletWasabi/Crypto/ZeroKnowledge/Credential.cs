@@ -12,11 +12,19 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			Mac = mac;
 		}
 
-		public Scalar Amount { get; } // could consider uint, but only really makes sense for credential requests because of range proofs
+		public Scalar Amount { get; }
 		public Scalar Randomness { get; }
 		public MAC Mac { get; }
 
 		public CredentialPresentation Present(Scalar z)
-			=> CredentialPresentation.FromMAC(Mac, z, Amount, Randomness);
+		{
+			GroupElement Randomize(GroupElement G, GroupElement M) => M + z * G;
+			return new CredentialPresentation(
+				Ca: Randomize(Generators.Ga, Amount * Generators.Gg + Randomness * Generators.Gh),
+				Cx0: Randomize(Generators.Gx0, Mac.U),
+				Cx1: Randomize(Generators.Gx1, Mac.T * Mac.U),
+				CV: Randomize(Generators.GV, Mac.V),
+				S: Randomness * Generators.Gs);
+		}
 	}
 }
