@@ -5,7 +5,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 {
 	public class CredentialPresentation
 	{
-		private CredentialPresentation(GroupElement Ca, GroupElement Cx0, GroupElement Cx1, GroupElement CV, GroupElement S)
+		public CredentialPresentation(GroupElement Ca, GroupElement Cx0, GroupElement Cx1, GroupElement CV, GroupElement S)
 		{
 			this.Ca = Ca;
 			this.Cx0 = Cx0;
