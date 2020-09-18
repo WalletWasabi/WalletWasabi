@@ -255,10 +255,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 			Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(usd =>
-				{
-					BtcPrice = usd == default ? LoadingText : $"${(long)usd}";
-				})
+				.Subscribe(usd => BtcPrice = usd == default ? LoadingText : $"${(long)usd}")
 				.DisposeWith(Disposables);
 
 			if (rpcMonitor is { })
