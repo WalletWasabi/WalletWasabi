@@ -22,7 +22,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		[InlineData(short.MaxValue, uint.MaxValue)]
 		[InlineData(int.MaxValue, uint.MaxValue)]
 		[InlineData(uint.MaxValue, uint.MaxValue)]
-		public void VerifyResponsesAndSimulations(uint scalarSeed1, uint scalarSeed2)
+		public void VerifyResponses(uint scalarSeed1, uint scalarSeed2)
 		{
 			var witness = new ScalarVector(new Scalar(scalarSeed1), new Scalar(scalarSeed2));
 			var generators = new GroupElementVector(Generators.G, Generators.Ga);
@@ -34,39 +34,17 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var secretNonces = new ScalarVector(new Scalar(23), new Scalar(42));
 			var publicNonce = Enumerable.Zip(secretNonces, generators, (s, g) => s * g).Sum();
 			var challenge = new Scalar(101);
-			var response = equation.Respond(witness, secretNonces, challenge);
+			var response = Equation.Respond(witness, secretNonces, challenge);
 			Assert.True(equation.Verify(publicNonce, challenge, response));
-
-			// Even without a witness, simulated proofs with the same response should still verify
-			var simulatedNonce = equation.Simulate(challenge, response);
-			Assert.True(equation.Verify(simulatedNonce, challenge, response));
-
-			// And the simulated prover commitment should be the same as the real one
-			// even if its discrete log w.r.t. the generators is not known
-			Assert.True(simulatedNonce == publicNonce);
 
 			// With a different challenge the nonce should be different
 			// unless the secret is 0, due to the absorption property
 			var otherChallenge = new Scalar(103);
-			var otherSimulatedNonce = equation.Simulate(otherChallenge, response);
-			Assert.True(equation.Verify(otherSimulatedNonce, otherChallenge, response));
-			if (scalarSeed1 != 0 && scalarSeed2 != 0)
-			{
-				Assert.True(otherSimulatedNonce != publicNonce);
-			}
-
-			// And with a different response the verifier should still accept
-			var otherResponse = new ScalarVector(new Scalar(2), new Scalar(3));
-			var thirdSimulatedNonce = equation.Simulate(challenge, otherResponse);
-			Assert.True(equation.Verify(thirdSimulatedNonce, challenge, otherResponse));
-			Assert.True(thirdSimulatedNonce != otherSimulatedNonce);
-			Assert.True(thirdSimulatedNonce != publicNonce);
 
 			// The verifying should reject invalid transcripts, and this also requires
 			// an exception for when the public input is the point at infinity
 			if (scalarSeed1 != 0 && scalarSeed2 != 0)
 			{
-				Assert.False(equation.Verify(simulatedNonce, otherChallenge, response));
 				Assert.False(equation.Verify(publicNonce, otherChallenge, response));
 			}
 		}
@@ -95,9 +73,9 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			// Derive two responses with the two different witnesses for the same
 			// point, and ensure that both are valid, implying that the second
 			// component in the witness is ignored.
-			var response1 = equation.Respond(witness1, secretNonces, challenge);
+			var response1 = Equation.Respond(witness1, secretNonces, challenge);
 			Assert.True(equation.Verify(publicNonce, challenge, response1));
-			var response2 = equation.Respond(witness2, secretNonces, challenge);
+			var response2 = Equation.Respond(witness2, secretNonces, challenge);
 			Assert.True(equation.Verify(publicNonce, challenge, response2));
 
 			// With different witnesses the responses should be different even if the
@@ -115,49 +93,35 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var b = x * Generators.Gh;
 
 			// Discrete log equality (Chaum-Pedersen proof)
-			var statement = new Statement(
-				new Equation(a, new GroupElementVector(Generators.Gg)),
-				new Equation(b, new GroupElementVector(Generators.Gh))
-			);
-
-			// Check that simulation produces valid transcripts
-			var challenge = new Scalar(13);
-			var simulatedResponses = new[]
+			var statement = new Statement(new GroupElement [,]
 			{
-				new ScalarVector(Scalar.One),
-				new ScalarVector(Scalar.One),
-			};
+				{ a, Generators.Gg },
+				{ b, Generators.Gh },
+			});
 
-			var simulatedPublicNonces = statement.SimulatePublicNonces(challenge, simulatedResponses);
-			Assert.True(statement.CheckVerificationEquation(simulatedPublicNonces, challenge, simulatedResponses));
+			var challenge = new Scalar(13);
 
 			// Create transcripts using a witness to the relation
 			var knowledge = new Knowledge(statement, new ScalarVector(x));
-			var allSecretNonces = new[] { new ScalarVector(new Scalar(7)), new ScalarVector(new Scalar(11)) };
-			var publicNonces = new GroupElementVector(statement.Equations.Zip(allSecretNonces, (equation, secretNonces) => secretNonces * equation.Generators));
-			var allResponses = knowledge.RespondToChallenge(challenge, allSecretNonces);
-			Assert.True(statement.CheckVerificationEquation(publicNonces, challenge, allResponses));
+			var secretNonces = new ScalarVector(new Scalar(7));
+			var publicNonces = new GroupElementVector(statement.Equations.Select(equation => secretNonces * equation.Generators));
+			var responses = knowledge.RespondToChallenge(challenge, secretNonces);
+			Assert.Single(responses);
+			Assert.True(statement.CheckVerificationEquation(publicNonces, challenge, responses));
 
 			// Ensure that verifier rejects invalid transcripts
-			Assert.False(statement.CheckVerificationEquation(publicNonces, new Scalar(17), allResponses));
-			Assert.False(statement.CheckVerificationEquation(simulatedPublicNonces, challenge, allResponses));
-			Assert.False(statement.CheckVerificationEquation(publicNonces, challenge, simulatedResponses));
+			Assert.False(statement.CheckVerificationEquation(publicNonces, new Scalar(17), responses));
 		}
 
 		[Fact]
 		public void StatementThrows()
 		{
-			// Jagged equation matrices are not allowed
-			Assert.ThrowsAny<ArgumentException>(() => new Statement(
-				new Equation(GroupElement.Infinity, new GroupElementVector(Generators.Gg, Generators.Gh)),
-				new Equation(GroupElement.Infinity, new GroupElementVector(Generators.G))
-			));
-
 			// Null generators are not allowed
-			Assert.ThrowsAny<ArgumentException>(() => new Statement(
-				new Equation(GroupElement.Infinity, new GroupElementVector(Generators.Gg, Generators.Gh)),
-				new Equation(GroupElement.Infinity, new GroupElementVector(Generators.G, null!))
-			));
+			Assert.ThrowsAny<ArgumentException>(() => new Statement(new GroupElement[,]
+			{
+				{ GroupElement.Infinity, Generators.Gg, Generators.Gh },
+				{ GroupElement.Infinity, Generators.G, null! },
+			}));
 		}
 
 		[Fact]
@@ -167,23 +131,28 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var a = x * Generators.Gg;
 			var b = x * Generators.Gh;
 
-			var statement = new Statement(
-				new Equation(a, new GroupElementVector(Generators.Gg)),
-				new Equation(b, new GroupElementVector(Generators.Gh))
-			);
+			var statement = new Statement(new GroupElement[,]
+			{
+				{ a, Generators.Gg },
+				{ b, Generators.Gh },
+			});
 
 			// The witness should have the same number of components as the number of generators in the equations
-			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(statement, new ScalarVector(Scalar.Zero, Scalar.Zero)));
+			var ex = Assert.ThrowsAny<ArgumentException>(() => new Knowledge(statement, new ScalarVector(Scalar.Zero, Scalar.Zero)));
+			Assert.Contains("size does not match", ex.Message);
 
 			// Incorrect witness (multiplying by generators does not produce the public point)
-			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(statement, new ScalarVector(Scalar.One)));
+			ex = Assert.ThrowsAny<ArgumentException>(() => new Knowledge(statement, new ScalarVector(Scalar.One)));
+			Assert.Contains("witness is not solution of the equation", ex.Message);
 
 			// Incorrect statement generators (effectively incorrect witness)
-			var badStatement = new Statement(
-				new Equation(a, new GroupElementVector(Generators.Gh)),
-				new Equation(b, new GroupElementVector(Generators.Gg))
-			);
-			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(badStatement, new ScalarVector(Scalar.One)));
+			var badStatement = new Statement(new GroupElement [,]
+			{
+				{ a, Generators.Gh },
+				{ b, Generators.Gg },
+			});
+			ex = Assert.ThrowsAny<ArgumentException>(() => new Knowledge(badStatement, new ScalarVector(Scalar.One)));
+			Assert.Contains("witness is not solution of the equation", ex.Message);
 		}
 	}
 }
