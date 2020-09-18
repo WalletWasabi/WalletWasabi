@@ -78,16 +78,17 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			// The client randomizes the commitments before presenting them to the coordinator proving to
 			// the coordinator that a credential is valid (prover knows a valid MAC on non-randomized attribute)
+			var credential = new Credential(amount, r, mac); 
 			var z = rnd.GetScalar();
-			var credential = CredentialPresentation.FromMAC(mac, z, amount, r);
-			var knowledge = ProofSystem.ShowCredential(credential, z, mac.T, amount, r, coordinatorParameters);
+			var randomizedCredential = credential.Present(z);
+			var knowledge = ProofSystem.ShowCredential(randomizedCredential, z, mac.T, amount, r, coordinatorParameters);
 			var proofOfMacShow = ProofSystem.Prove(knowledge, rnd);
 
 			// The coordinator must verify the received randomized credential is valid.
-			var Z = credential.ComputeZ(coordinatorKey);
+			var Z = randomizedCredential.ComputeZ(coordinatorKey);
 			Assert.Equal(Z, z * coordinatorParameters.I);
 
-			var statement = ProofSystem.ShowCredential(credential, Z, coordinatorParameters);
+			var statement = ProofSystem.ShowCredential(randomizedCredential, Z, coordinatorParameters);
 			var isValidProof = ProofSystem.Verify(statement, proofOfMacShow);
 
 			Assert.True(isValidProof);
