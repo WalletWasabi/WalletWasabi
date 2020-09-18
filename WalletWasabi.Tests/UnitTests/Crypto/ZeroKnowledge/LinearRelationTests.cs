@@ -143,7 +143,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			// Ensure that verifier rejects invalid transcripts
 			Assert.False(statement.CheckVerificationEquation(publicNonces, new Scalar(17), responses));
 
-			// Ensure that verifiers rejects when proofs have been altered but not
+			// Ensure that verifier rejects when proofs have been altered but not
 			// when they are valid (which are prevented using Fiat-Shamir transform)
 			var modifiedNonces = new GroupElementVector(publicNonces.First() + Generators.Gg, publicNonces.Last() + Generators.Gh);
 			var modifiedResponses = new ScalarVector(responses.Select(x => x + Scalar.One));
