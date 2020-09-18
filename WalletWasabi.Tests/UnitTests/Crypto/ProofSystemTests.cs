@@ -58,38 +58,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 		[Fact]
 		[Trait("UnitTest", "UnitTest")]
-		public void CanProveAndVerifySerialNumbers()
-		{
-			var rnd = new SecureRandom();
-			var z = rnd.GetScalar();
-			var r = rnd.GetScalar();
-			var a = rnd.GetScalar();
-
-			{
-				var witness = new ScalarVector(z, a, r);
-				var (Ca, S) = ProofSystem.SerialNumberPublicPoints(z, a, r);
-				var statement = ProofSystem.SerialNumber(Ca, S);
-				var proofOfSerialNumber = ProofSystem.Prove(new Knowledge(statement, witness), rnd);
-
-				var isValidProof = ProofSystem.Verify(statement, proofOfSerialNumber);
-				Assert.True(isValidProof);
-			}
-
-			// Test zero amount
-			a = Scalar.Zero;
-			{
-				var witness = new ScalarVector(z, a, r);
-				var (Ca, S) = ProofSystem.SerialNumberPublicPoints(z, a, r);
-				var statement = ProofSystem.SerialNumber(Ca, S);
-				var proofOfSerialNumber = ProofSystem.Prove(new Knowledge(statement, witness), rnd);
-
-				var isValidProof = ProofSystem.Verify(statement, proofOfSerialNumber);
-				Assert.True(isValidProof);
-			}
-		}
-
-		[Fact]
-		[Trait("UnitTest", "UnitTest")]
 		public void CanProveAndVerifyMacShow()
 		{
 			var rnd = new SecureRandom();
@@ -112,15 +80,15 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			// The client randomizes the commitments before presenting them to the coordinator proving to
 			// the coordinator that a credential is valid (prover knows a valid MAC on non-randomized attribute)
 			var z = rnd.GetScalar();
-			var randomizedCommitments = RandomizedCommitments.RandomizeMAC(mac, z, Ma);
-			var knowledge = ProofSystem.MacShow(coordinatorParameters, randomizedCommitments, z, mac.T);
+			var randomizedCommitments = RandomizedCommitments.RandomizeMAC(mac, z, amount, r);
+			var knowledge = ProofSystem.ShowCredential(coordinatorParameters, randomizedCommitments, z, mac.T, amount, r);
 			var proofOfMacShow = ProofSystem.Prove(knowledge, rnd);
 
 			// The coordinator must verify the received randomized credential is valid.
-			var Z = ProofSystem.ComputeZ(randomizedCommitments, coordinatorKey);
+			var Z = randomizedCommitments.ComputeZ(coordinatorKey);
 			Assert.Equal(Z, z * coordinatorParameters.I);
 
-			var statement = ProofSystem.MacShow(coordinatorParameters, Z, randomizedCommitments.Cx0, randomizedCommitments.Cx1);
+			var statement = ProofSystem.ShowCredential(coordinatorParameters, Z, randomizedCommitments);
 			var isValidProof = ProofSystem.Verify(statement, proofOfMacShow);
 
 			Assert.True(isValidProof);

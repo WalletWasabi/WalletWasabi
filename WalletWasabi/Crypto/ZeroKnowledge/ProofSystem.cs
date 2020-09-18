@@ -42,34 +42,18 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				{ iparams.Cw,                Generators.Gw, Generators.Gwp, O,              O,              O },
 			});
 
-		public static Knowledge SerialNumber(GroupElement Ca, GroupElement S, Scalar z, Scalar a, Scalar r)
-			=> new Knowledge(SerialNumber(Ca, S), new ScalarVector(z, a, r));
+		public static Knowledge ShowCredential(CoordinatorParameters iparams, RandomizedCommitments c, Scalar z, Scalar t, Scalar a, Scalar r)
+			=> new Knowledge(ShowCredential(iparams, z * iparams.I, c), new ScalarVector(z, (t * z).Negate(), t, a, r));
 
-		public static Statement SerialNumber(GroupElement Ca, GroupElement S)
-			=> new Statement(new GroupElement[,]
-			{
-				// public                    Witness terms:
-				// point      z              a               r
-				{ Ca,         Generators.Ga, Generators.Gg,  Generators.Gh },
-				{ S,          O,             O,              Generators.Gs }
-			});
-
-		public static (GroupElement Ca, GroupElement S) SerialNumberPublicPoints(Scalar z, Scalar a, Scalar r)
-			=> (z * Generators.Ga + r * Generators.Gh + a * Generators.Gg, r * Generators.Gs);
-
-		public static Knowledge MacShow(CoordinatorParameters iparams, RandomizedCommitments c, Scalar z, Scalar t)
-			=> new Knowledge(MacShow(iparams, z * iparams.I, c.Cx0, c.Cx1), new ScalarVector(z, (t * z).Negate(), t));
-
-		public static Statement MacShow(CoordinatorParameters iparams, GroupElement Z, GroupElement Cx0, GroupElement Cx1)
+		public static Statement ShowCredential(CoordinatorParameters iparams, GroupElement Z, RandomizedCommitments c)
 			=> new Statement(new GroupElement[,]
 			{
 				// public                     Witness terms:
-				// point      z               z0              t
-				{ Z,          iparams.I,      O,              O },
-				{ Cx1,        Generators.Gx1, Generators.Gx0, Cx0 }, // Cx1 = z*Gx1 + t*U, z0 cancels t*z*Gx0 out of t*Cx0 leaving z*Gx1 + t*U
+				// point      z               z0              t               a               r
+				{ Z,          iparams.I,      O,              O,              O,              O },
+				{ c.Cx1,      Generators.Gx1, Generators.Gx0, c.Cx0,          O,              O },
+				{ c.Ca,       Generators.Ga,  O,              O,              Generators.Gg,  Generators.Gh },
+				{ c.S,        O,              O,              O,              O,              Generators.Gs }
 			});
-
-		public static GroupElement ComputeZ(RandomizedCommitments rc, CoordinatorSecretKey sk)
-			=> rc.CV - (sk.W * Generators.Gw + sk.X0 * rc.Cx0 + sk.X1 * rc.Cx1 + sk.Ya * rc.Ca);
 	}
 }
