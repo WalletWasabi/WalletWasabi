@@ -42,15 +42,15 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				{ iparams.Cw,                Generators.Gw, Generators.Gwp, O,              O,              O },
 			});
 
-		public static Knowledge ShowCredential(CoordinatorParameters iparams, RandomizedCommitments c, Scalar z, Scalar t, Scalar a, Scalar r)
-			=> new Knowledge(ShowCredential(iparams, z * iparams.I, c), new ScalarVector(z, (t * z).Negate(), t, a, r));
+		public static Knowledge ShowCredential(RandomizedCommitments c, Scalar z, Scalar t, Scalar a, Scalar r, CoordinatorParameters iparams)
+			=> new Knowledge(ShowCredential(c, iparams), new ScalarVector(z, (t * z).Negate(), t, a, r));
 
-		public static Statement ShowCredential(CoordinatorParameters iparams, GroupElement Z, RandomizedCommitments c)
+		public static Statement ShowCredential(RandomizedCommitments c, CoordinatorParameters iparams)
 			=> new Statement(new GroupElement[,]
 			{
 				// public                     Witness terms:
 				// point      z               z0              t               a               r
-				{ Z,          iparams.I,      O,              O,              O,              O },
+				{ c.Z,        iparams.I,      O,              O,              O,              O },
 				{ c.Cx1,      Generators.Gx1, Generators.Gx0, c.Cx0,          O,              O },
 				{ c.Ca,       Generators.Ga,  O,              O,              Generators.Gg,  Generators.Gh },
 				{ c.S,        O,              O,              O,              O,              Generators.Gs }
