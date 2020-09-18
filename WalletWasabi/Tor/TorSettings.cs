@@ -19,30 +19,35 @@ namespace WalletWasabi.Tor
 		public TorSettings(string dataDir, string logFilePath, string distributionFolderPath)
 		{
 			TorDir = Path.Combine(dataDir, "tor");
+			TorBinaryDir = Path.Combine(TorDir, "Tor");
 			TorDataDir = Path.Combine(dataDir, "tordata");
 			LogFilePath = logFilePath;
 			DistributionFolder = distributionFolderPath;
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				TorPath = $@"{TorDir}\Tor\tor.exe";
-				HashSourcePath = $@"{TorDir}\Tor\tor.exe";
+				TorPath = $@"{TorBinaryDir}\tor.exe";
+				HashSourcePath = $@"{TorBinaryDir}\tor.exe";
 				GeoIpPath = $@"{TorDir}\Data\Tor\geoip";
 				GeoIp6Path = $@"{TorDir}\Data\Tor\geoip6";
 			}
 			else
 			{
-				TorPath = $@"{TorDir}/Tor/tor";
+				TorPath = $@"{TorBinaryDir}/tor";
 				HashSourcePath = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
-					? $@"{TorDir}/Tor/tor.real"
-					: $@"{TorDir}/Tor/tor";
+					? $@"{TorBinaryDir}/tor.real"
+					: $@"{TorBinaryDir}/tor";
 				GeoIpPath = $@"{TorDir}/Data/Tor/geoip";
 				GeoIp6Path = $@"{TorDir}/Data/Tor/geoip6";
 			}
 		}
 
 		/// <summary>Full directory path where Tor is installed (or supposed to be installed).</summary>
+		/// <remarks>Folder contains <c>Data</c> and <c>Tor</c> (see <see cref="TorBinaryDir"/>) sub-folders.</remarks>
 		public string TorDir { get; }
+
+		/// <summary>Full directory path where Tor binaries are placed.</summary>
+		public string TorBinaryDir { get; }
 
 		/// <summary>Full directory path where Tor stores its data.</summary>
 		public string TorDataDir { get; }
@@ -58,6 +63,7 @@ namespace WalletWasabi.Tor
 
 		/// <summary>Full path to executable file that is used to start Tor process.</summary>
 		public string TorPath { get; }
+
 		private string GeoIpPath { get; }
 		private string GeoIp6Path { get; }
 

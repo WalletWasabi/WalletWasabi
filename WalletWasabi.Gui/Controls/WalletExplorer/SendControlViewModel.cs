@@ -59,7 +59,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _isBusy;
 		private bool _isHardwareBusy;
 		private bool _isCustomFee;
-		private string _amountTip;
 		private ObservableAsPropertyHelper<bool> _isEstimateAvailabe;
 
 		private const string WaitingForHardwareWalletButtonTextString = "Waiting for Hardware Wallet...";
@@ -558,12 +557,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public bool IsEstimateAvailable => _isEstimateAvailabe?.Value ?? false;
-
-		public string AmountTip
-		{
-			get => _amountTip;
-			set => this.RaiseAndSetIfChanged(ref _amountTip, value);
-		}
 
 		public string AmountWatermarkText
 		{
