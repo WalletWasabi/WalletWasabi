@@ -58,6 +58,13 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 		// Given a witness and secret nonces, respond to a challenge proving the equation holds w.r.t the witness
 		internal static ScalarVector Respond(ScalarVector witness, ScalarVector secretNonces, Scalar challenge)
 		{
+			// blinding terms are required in order to protect the witness (unless the
+			// challenge is 0), so only respond if that is the case
+			foreach (var secretNonce in secretNonces)
+			{
+				CryptoGuard.NotZero(nameof(secretNonce), secretNonce);
+			}
+
 			// By canceling G on both sides of the verification equation above we can
 			// obtain a formula for the response s given k, e and x:
 			//   s = k + ex

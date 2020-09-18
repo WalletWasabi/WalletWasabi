@@ -72,6 +72,15 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		}
 
 		[Fact]
+		public void UnsafeSecretNoncesThrow()
+		{
+			var x = new Scalar(42);
+			var a = x * Generators.Gg;
+			var knowledge = new Knowledge(new Statement(a, Generators.Gg), new ScalarVector(x));
+			Assert.ThrowsAny<ArgumentException>(() => knowledge.RespondToChallenge(Scalar.One, new ScalarVector(Scalar.Zero)));
+		}
+
+		[Fact]
 		public void IgnoredWitnessComponents()
 		{
 			// Sometimes an equation uses the point at infinity as a generator,
