@@ -71,8 +71,6 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 		}
 
 		internal bool VerifySolution(ScalarVector witness)
-		{
-			return PublicPoint == witness * Generators;
-		}
+			=> PublicPoint == witness * Generators;
 	}
 }
