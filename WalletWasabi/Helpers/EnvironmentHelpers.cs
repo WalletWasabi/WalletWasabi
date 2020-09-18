@@ -276,13 +276,8 @@ namespace WalletWasabi.Helpers
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
-				ProcessStartInfo startInfo = ProcessStartInfoFactory.Make("caffeinate", "-i -t 120 &");
-				var processInvoker = new ProcessInvoker();
-				(string rawResponse, int exitCode) = await processInvoker.SendCommandAsync(startInfo, CancellationToken.None).ConfigureAwait(false);
-				if (exitCode != 0)
-				{
-					throw new InvalidOperationException($"Caffeinate failed. {rawResponse}");
-				}
+				string shellCommand = $"caffeinate -i -t 60 &";
+				await ShellExecAsync(shellCommand, waitForExit: false).ConfigureAwait(false);
 			}
 		}
 	}
