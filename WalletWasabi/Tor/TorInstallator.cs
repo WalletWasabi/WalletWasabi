@@ -13,7 +13,7 @@ namespace WalletWasabi.Tor
 	public class TorInstallator
 	{
 		/// <summary>
-		/// Creates new instance.
+		/// Creates a new instance.
 		/// </summary>
 		public TorInstallator(TorSettings settings)
 		{
