@@ -65,12 +65,9 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var r = rnd.GetScalar();
 			var a = rnd.GetScalar();
 
-			static (GroupElement Ca, GroupElement S) SerialNumberPublicPoints(Scalar z, Scalar a, Scalar r) =>
-				(z * Generators.Ga + r * Generators.Gh + a * Generators.Gg, r * Generators.Gs);
-
 			{
 				var witness = new ScalarVector(z, a, r);
-				var (Ca, S) = SerialNumberPublicPoints(z, a, r);
+				var (Ca, S) = ProofSystem.SerialNumberPublicPoints(z, a, r);
 				var statement = ProofSystem.SerialNumber(Ca, S);
 				var proofOfSerialNumber = ProofSystem.Prove(new Knowledge(statement, witness), rnd);
 
@@ -82,7 +79,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			a = Scalar.Zero;
 			{
 				var witness = new ScalarVector(z, a, r);
-				var (Ca, S) = SerialNumberPublicPoints(z, a, r);
+				var (Ca, S) = ProofSystem.SerialNumberPublicPoints(z, a, r);
 				var statement = ProofSystem.SerialNumber(Ca, S);
 				var proofOfSerialNumber = ProofSystem.Prove(new Knowledge(statement, witness), rnd);
 
@@ -107,18 +104,19 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var Ma = amount * Generators.Gg + r * Generators.Gh;
 
 			// The coordinator generates a MAC and a proof that the MAC was generated using the
-			// coordinator's secret key. The coordinator sends the pair (MAC + proofOfMac) back
+			// coordinator's secret key. The coordinator sends the pair (MAC, proofOfMac) back
 			// to the client.
 			var t = rnd.GetScalar();
 			var mac = MAC.ComputeMAC(coordinatorKey, Ma, t);
 
-			// The client randomizes the commitments before presenting the them to the coordinator
-			// proves to the coordinator that a credential is valid
+			// The client randomizes the commitments before presenting them to the coordinator proving to
+			// the coordinator that a credential is valid (prover knows a valid MAC on non-randomized attribute)
 			var z = rnd.GetScalar();
-			var (knowledge, randomizedCommitments) = ProofSystem.MacShow(coordinatorParameters, mac, z, amount, r);
+			var randomizedCommitments = RandomizedCommitments.RandomizeMAC(mac, z, Ma);
+			var knowledge = ProofSystem.MacShow(coordinatorParameters, randomizedCommitments, z, mac.T);
 			var proofOfMacShow = ProofSystem.Prove(knowledge, rnd);
 
-			// The coordinator must verify the received "randomized" credential is valid.
+			// The coordinator must verify the received randomized credential is valid.
 			var Z = ProofSystem.ComputeZ(randomizedCommitments, coordinatorKey);
 			Assert.Equal(Z, z * coordinatorParameters.I);
 

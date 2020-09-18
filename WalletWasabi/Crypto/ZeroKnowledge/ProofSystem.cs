@@ -1,4 +1,5 @@
 using NBitcoin.Secp256k1;
+using System;
 using System.Linq;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
@@ -53,16 +54,11 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				{ S,          O,             O,              Generators.Gs }
 			});
 
-		public static (Knowledge knowledge, RandomizedCommitments randomizedCommitments) MacShow(CoordinatorParameters iparams, MAC mac, Scalar z, Scalar a, Scalar r)
-		{
-			var Ca = z * Generators.Ga + a * Generators.Gg + r * Generators.Gh;
-			var Cx0 = z * Generators.Gx0 + mac.U;
-			var Cx1 = z * Generators.Gx1 + mac.T * mac.U;
-			var CV = z * Generators.GV + mac.V;
-			var Z = z * iparams.I;
+		public static (GroupElement Ca, GroupElement S) SerialNumberPublicPoints(Scalar z, Scalar a, Scalar r)
+			=> (z * Generators.Ga + r * Generators.Gh + a * Generators.Gg, r * Generators.Gs);
 
-			return (new Knowledge(MacShow(iparams, Z, Cx0, Cx1), new ScalarVector(z, (mac.T * z).Negate(), mac.T)), new RandomizedCommitments(Ca, Cx0, Cx1, CV));
-		}
+		public static Knowledge MacShow(CoordinatorParameters iparams, RandomizedCommitments c, Scalar z, Scalar t)
+			=> new Knowledge(MacShow(iparams, z * iparams.I, c.Cx0, c.Cx1), new ScalarVector(z, (t * z).Negate(), t));
 
 		public static Statement MacShow(CoordinatorParameters iparams, GroupElement Z, GroupElement Cx0, GroupElement Cx1)
 			=> new Statement(new GroupElement[,]
