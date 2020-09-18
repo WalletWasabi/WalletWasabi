@@ -1,4 +1,5 @@
 using NBitcoin.Secp256k1;
+using System;
 using System.Linq;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
@@ -11,7 +12,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 	{
 		private static GroupElement O = GroupElement.Infinity;
 
-		public static bool Verify(LinearRelation.Statement statement, Proof proof)
+		public static bool Verify(Statement statement, Proof proof)
 		{
 			return Verifier.Verify(new Transcript(new byte[0]), new[] { statement }, new[] { proof });
 		}
@@ -39,6 +40,22 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				{ mac.V,                     Generators.Gw, O,              mac.U,          mac.T * mac.U,  ma },
 				{ Generators.GV - iparams.I, O,             O,              Generators.Gx0, Generators.Gx1, Generators.Ga },
 				{ iparams.Cw,                Generators.Gw, Generators.Gwp, O,              O,              O },
+			});
+
+		public static Knowledge ShowCredential(CredentialPresentation presentation, Scalar z, Credential credential, CoordinatorParameters iparams)
+			=> new Knowledge(
+				ShowCredential(presentation, z * iparams.I, iparams), 
+				new ScalarVector(z, (credential.Mac.T * z).Negate(), credential.Mac.T, credential.Amount, credential.Randomness));
+
+		public static Statement ShowCredential(CredentialPresentation c, GroupElement Z, CoordinatorParameters iparams)
+			=> new Statement(new GroupElement[,]
+			{
+				// public                     Witness terms:
+				// point      z               z0              t               a               r
+				{ Z,          iparams.I,      O,              O,              O,              O },
+				{ c.Cx1,      Generators.Gx1, Generators.Gx0, c.Cx0,          O,              O },
+				{ c.Ca,       Generators.Ga,  O,              O,              Generators.Gg,  Generators.Gh },
+				{ c.S,        O,              O,              O,              O,              Generators.Gs }
 			});
 	}
 }
