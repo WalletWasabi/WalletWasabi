@@ -276,8 +276,8 @@ namespace WalletWasabi.Helpers
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
-				string shellCommand = $"caffeinate -i -t 60 &";
-				await ShellExecAsync(shellCommand, waitForExit: false).ConfigureAwait(false);
+				string shellCommand = $"caffeinate -i -t 1";
+				await ShellExecAsync(shellCommand, waitForExit: true).ConfigureAwait(false);
 			}
 		}
 	}
