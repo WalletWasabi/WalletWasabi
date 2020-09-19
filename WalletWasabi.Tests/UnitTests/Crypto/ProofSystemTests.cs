@@ -98,22 +98,25 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		[Trait("UnitTest", "UnitTest")]
 		public void CanProveAndVerifyPresentedBalance()
 		{
-			int delta = -10_000;
 			var rnd = new SecureRandom();
 
-			var a = new Scalar((uint)(-1 * delta));
+			var a = new Scalar(10_000u);
 			var r = rnd.GetScalar();
 			var z = rnd.GetScalar();
 			var Ca = z * Generators.Ga + a * Generators.Gg + r * Generators.Gh;
+			var delta = a.Negate();
 
-			var knowledge = ProofSystem.BalanceProof(delta, new[] { (Ca, r, z) }, new (GroupElement, Scalar)[0]);
-
+			var knowledge = ProofSystem.BalanceProof(delta, Ca, z, r);
 			var proofOfBalance = ProofSystem.Prove(knowledge, rnd);
 
-			var statement = ProofSystem.BalanceProof(delta, new[] { Ca }, new GroupElement[0]);
+			var statement = ProofSystem.BalanceProof(delta, Ca);
 			Assert.True(ProofSystem.Verify(statement, proofOfBalance));
 
-			var badStatement = ProofSystem.BalanceProof(delta + 1, new[] { Ca }, new GroupElement[0]);
+			var badDelta = delta + Scalar.One;
+			var badStatement = ProofSystem.BalanceProof(badDelta, Ca);
+			Assert.False(ProofSystem.Verify(badStatement, proofOfBalance));
+
+			badStatement = ProofSystem.BalanceProof(Scalar.Zero, Ca);
 			Assert.False(ProofSystem.Verify(badStatement, proofOfBalance));
 		}
 
@@ -121,21 +124,21 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		[Trait("UnitTest", "UnitTest")]
 		public void CanProveAndVerifyRequestedBalance()
 		{
-			int delta = 10_000;
 			var rnd = new SecureRandom();
 
-			var a = new Scalar((uint)delta);
+			var a = new Scalar(10_000u);
 			var r = rnd.GetScalar();
 			var Ma = a * Generators.Gg + r * Generators.Gh;
 
-			var knowledge = ProofSystem.BalanceProof(delta, new (GroupElement, Scalar, Scalar)[0], new[] { (Ma, r) });
-
+			var delta = a;
+			var knowledge = ProofSystem.BalanceProof(delta, Ma.Negate(), Scalar.Zero, r.Negate());
 			var proofOfBalance = ProofSystem.Prove(knowledge, rnd);
 
-			var statement = ProofSystem.BalanceProof(delta, new GroupElement[0], new[] { Ma });
+			var statement = ProofSystem.BalanceProof(delta, Ma.Negate() );
 			Assert.True(ProofSystem.Verify(statement, proofOfBalance));
 
-			var badStatement = ProofSystem.BalanceProof(delta + 1, new GroupElement[0], new[] { Ma });
+			var badDelta = delta + Scalar.One;
+			var badStatement = ProofSystem.BalanceProof(badDelta, Ma.Negate());
 			Assert.False(ProofSystem.Verify(badStatement, proofOfBalance));
 		}
 
@@ -155,7 +158,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		[Trait("UnitTest", "UnitTest")]
 		public void CanProveAndVerifyBalance(int presentedAmount, int requestedAmount)
 		{
-			int delta = requestedAmount - presentedAmount;
 			var rnd = new SecureRandom();
 
 			var a = new Scalar((uint)presentedAmount);
@@ -167,14 +169,16 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var rp = rnd.GetScalar();
 			var Ma = ap * Generators.Gg + rp * Generators.Gh;
 
-			var knowledge = ProofSystem.BalanceProof(delta, new[] { (Ca, r, z) }, new[] { (Ma, rp) });
+			var delta = new Scalar((uint)Math.Abs(presentedAmount - requestedAmount));
+			delta = presentedAmount > requestedAmount ? delta.Negate() : delta;
+			var knowledge = ProofSystem.BalanceProof(delta, Ca - Ma, z, r + rp.Negate());
 
 			var proofOfBalance = ProofSystem.Prove(knowledge, rnd);
 
-			var statement = ProofSystem.BalanceProof(delta, new GroupElement[] { Ca }, new[] { Ma });
+			var statement = ProofSystem.BalanceProof(delta, Ca - Ma);
 			Assert.True(ProofSystem.Verify(statement, proofOfBalance));
 
-			var badStatement = ProofSystem.BalanceProof(delta - 1, new GroupElement[] { Ca }, new[] { Ma });
+			var badStatement = ProofSystem.BalanceProof(delta + Scalar.One, Ca - Ma);
 			Assert.False(ProofSystem.Verify(badStatement, proofOfBalance));
 		}
 	}

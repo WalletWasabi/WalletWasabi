@@ -59,29 +59,12 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				{ c.S,        O,              O,              O,              O,              Generators.Gs }
 			});
 
-		private static Scalar IntToScalar(int n)
-		{
-			// refactor int or long constructor for Scalar?
-			// should really be long, not int but there's no ulong constructor either
-			var s = new Scalar((uint)Math.Abs(n));
-			return (n < 0) ? s.Negate() : s;
-		}
+		public static Knowledge BalanceProof(Scalar delta, GroupElement deltaCredentialSum, Scalar sumZ, Scalar deltaR)
+			=> new Knowledge(
+				BalanceProof(delta, deltaCredentialSum),
+				new ScalarVector(sumZ, deltaR));
 
-		public static Knowledge BalanceProof(int delta, IEnumerable<(GroupElement Ca, Scalar r, Scalar z)> presented, IEnumerable<(GroupElement Ma, Scalar r)> requested)
-			=> new Knowledge(BalanceProof(delta, presented.Select(x => x.Ca), requested.Select(x => x.Ma)),
-											 new ScalarVector(presented.Select(x => x.z).Sum(), presented.Select(x => x.r).Concat(requested.Select(x => x.r.Negate())).Sum()));
-
-		public static Statement BalanceProof(int delta, IEnumerable<GroupElement> presented, IEnumerable<GroupElement> requested)
-		{
-			var delta_a = IntToScalar(delta);
-
-			var credentialAmounts = presented.Sum() - requested.Sum();
-			var balanceCommitment = delta_a * Generators.Gg + credentialAmounts;
-
-			// balanceCommitment must be a commitment to 0, with randomness in Gh
-			// and additional randomness from attribute randomization in Show
-			// protocol, using generator Ga. Witness terms: (\sum z, \sum r_i - r'_i)
-			return new Statement(balanceCommitment, Generators.Ga, Generators.Gh);
-		}
+		public static Statement BalanceProof(Scalar delta, GroupElement deltaCredentialSum)
+			=> new Statement(delta * Generators.Gg + deltaCredentialSum, Generators.Ga, Generators.Gh);
 	}
 }
