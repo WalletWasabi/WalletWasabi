@@ -1045,7 +1045,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		private async Task<AliceClientBase> CreateAliceClientAsync(long roundId, List<OutPoint> registrableCoins, (HdPubKey change, IEnumerable<HdPubKey> actives) outputAddresses)
 		{
-			RoundStateResponse4 state = null;
+			RoundStateResponse4 state;
 
 			var torClient = Synchronizer.WasabiClient.TorClient;
 			using (var satoshiClient = new SatoshiClient(torClient.DestinationUriAction, torClient.TorSocks5EndPoint))
