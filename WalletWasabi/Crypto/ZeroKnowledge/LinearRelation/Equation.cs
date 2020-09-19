@@ -64,8 +64,9 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 				CryptoGuard.NotZero(nameof(secretNonce), secretNonce);
 			}
 
-			// By canceling G on both sides of the verification equation above we can
-			// obtain a formula for the response s given k, e and x:
+			// Taking the discrete logarithms of both sides of the verification
+			// equation with respect to G results in a formula for the response s
+			// given k, e and x:
 			//   s = k + ex
 			return secretNonces + challenge * witness;
 		}
