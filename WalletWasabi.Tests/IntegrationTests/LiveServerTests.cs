@@ -28,8 +28,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		public async Task InitializeAsync()
 		{
 			var torManager = new TorProcessManager(Global.Instance.TorSettings, Global.Instance.TorSocks5Endpoint);
-			torManager.Start(ensureRunning: true);
-			await Task.Delay(3000);
+			await torManager.StartAsync(ensureRunning: true);
 		}
 
 		public Task DisposeAsync()
