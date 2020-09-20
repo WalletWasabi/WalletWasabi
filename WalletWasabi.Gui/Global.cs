@@ -30,6 +30,7 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client;
 using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
+using WalletWasabi.Extensions;
 using WalletWasabi.Gui.CrashReport;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
@@ -486,7 +487,7 @@ namespace WalletWasabi.Gui
 					if (reason != DequeueReason.Spent)
 					{
 						var type = reason == DequeueReason.UserRequested ? NotificationType.Information : NotificationType.Warning;
-						var message = reason == DequeueReason.UserRequested ? "" : reason.ToFriendlyString();
+						var message = reason == DequeueReason.UserRequested ? "" : reason.FriendlyName();
 						var title = success.Value.Count() == 1 ? $"Coin ({success.Value.First().Amount.ToString(false, true)}) Dequeued" : $"{success.Value.Count()} Coins Dequeued";
 						NotificationHelpers.Notify(message, title, type, sender: sender);
 					}
@@ -496,7 +497,7 @@ namespace WalletWasabi.Gui
 				{
 					DequeueReason reason = failure.Key;
 					var type = NotificationType.Warning;
-					var message = reason.ToFriendlyString();
+					var message = reason.FriendlyName();
 					var title = failure.Value.Count() == 1 ? $"Couldn't Dequeue Coin ({failure.Value.First().Amount.ToString(false, true)})" : $"Couldn't Dequeue {failure.Value.Count()} Coins";
 					NotificationHelpers.Notify(message, title, type, sender: sender);
 				}
