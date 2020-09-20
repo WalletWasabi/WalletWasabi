@@ -51,7 +51,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 		}
 
 		// Helper function for constructor
-		private static GroupElement[,] ToTable (IEnumerable<GroupElement> equation)
+		private static GroupElement[,] ToTable(IEnumerable<GroupElement> equation)
 		{
 			var table = new GroupElement[1, equation.Count()];
 

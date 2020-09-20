@@ -1,6 +1,3 @@
-using System.Threading.Tasks;
-using WalletWasabi.Bases;
-
 namespace WalletWasabi.Interfaces
 {
 	public interface IConfig

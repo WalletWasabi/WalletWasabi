@@ -93,7 +93,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var b = x * Generators.Gh;
 
 			// Discrete log equality (Chaum-Pedersen proof)
-			var statement = new Statement(new GroupElement [,]
+			var statement = new Statement(new GroupElement[,]
 			{
 				{ a, Generators.Gg },
 				{ b, Generators.Gh },
@@ -146,7 +146,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			Assert.Contains("witness is not solution of the equation", ex.Message);
 
 			// Incorrect statement generators (effectively incorrect witness)
-			var badStatement = new Statement(new GroupElement [,]
+			var badStatement = new Statement(new GroupElement[,]
 			{
 				{ a, Generators.Gh },
 				{ b, Generators.Gg },

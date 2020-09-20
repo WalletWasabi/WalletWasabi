@@ -21,9 +21,6 @@
         </StackPanel>
       </Grid>
     </controls:GroupBox>
-    <DockPanel LastChildFill="True">
-      <Button Content="Next" Command="{Binding NextCommand}" DockPanel.Dock="Right" />
-      <Panel />
-    </DockPanel>
+    <Button Content="Next" Command="{Binding NextCommand}" HorizontalAlignment="Right" />
   </StackPanel>
 </UserControl>

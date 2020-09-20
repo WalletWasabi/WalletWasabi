@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using WalletWasabi.Models;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Converters
 {

@@ -1,7 +1,5 @@
 using NBitcoin.RPC;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Blockchain.BlockFilters
