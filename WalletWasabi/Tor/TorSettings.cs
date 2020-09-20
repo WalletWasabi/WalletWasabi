@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
@@ -14,23 +15,25 @@ namespace WalletWasabi.Tor
 		/// </summary>
 		/// <param name="dataDir">Application data directory.</param>
 		/// <param name="logFilePath">Full Tor log file path.</param>
-		public TorSettings(string dataDir, string logFilePath)
+		/// <param name="distributionFolderPath">Full path to folder containing Tor installation files.</param>
+		public TorSettings(string dataDir, string logFilePath, string distributionFolderPath)
 		{
 			TorDir = Path.Combine(dataDir, "tor");
 			TorBinaryDir = Path.Combine(TorDir, "Tor");
 			TorDataDir = Path.Combine(dataDir, "tordata");
 			LogFilePath = logFilePath;
+			DistributionFolder = distributionFolderPath;
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				TorPath = $@"{TorBinaryDir}\tor.exe";
+				TorBinaryFilePath = $@"{TorBinaryDir}\tor.exe";
 				HashSourcePath = $@"{TorBinaryDir}\tor.exe";
 				GeoIpPath = $@"{TorDir}\Data\Tor\geoip";
 				GeoIp6Path = $@"{TorDir}\Data\Tor\geoip6";
 			}
 			else
 			{
-				TorPath = $@"{TorBinaryDir}/tor";
+				TorBinaryFilePath = $@"{TorBinaryDir}/tor";
 				HashSourcePath = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
 					? $@"{TorBinaryDir}/tor.real"
 					: $@"{TorBinaryDir}/tor";
@@ -52,11 +55,14 @@ namespace WalletWasabi.Tor
 		/// <summary>Full path. Directory may not necessarily exist.</summary>
 		public string LogFilePath { get; }
 
+		/// <summary>Full Tor distribution folder where Tor installation files are located.</summary>
+		public string DistributionFolder { get; }
+
 		/// <summary>Full path to Tor binary that is checked against a check sum.</summary>
 		public string HashSourcePath { get; }
 
 		/// <summary>Full path to executable file that is used to start Tor process.</summary>
-		public string TorPath { get; }
+		public string TorBinaryFilePath { get; }
 
 		private string GeoIpPath { get; }
 		private string GeoIp6Path { get; }
