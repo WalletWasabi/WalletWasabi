@@ -6,7 +6,7 @@ namespace WalletWasabi.Helpers
 {
 	public static class Constants
 	{
-		public const string ClientSupportBackendVersionMin = "3";
+		public const string ClientSupportBackendVersionMin = "4";
 		public const string ClientSupportBackendVersionMax = "4";
 		public const string BackendMajorVersion = "4";
 
