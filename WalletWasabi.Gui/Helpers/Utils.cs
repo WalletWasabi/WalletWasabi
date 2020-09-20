@@ -1,8 +1,3 @@
-using Avalonia.Threading;
-using System;
-using System.IO;
-using System.Threading.Tasks;
-
 namespace WalletWasabi.Gui.Helpers
 {
 	public static class Utils

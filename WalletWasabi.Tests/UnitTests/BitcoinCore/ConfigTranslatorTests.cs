@@ -1,8 +1,5 @@
 using NBitcoin;
-using System;
-using System.Collections.Generic;
 using System.Net;
-using System.Text;
 using WalletWasabi.BitcoinCore.Configuration;
 using WalletWasabi.BitcoinCore.Configuration.Whitening;
 using Xunit;

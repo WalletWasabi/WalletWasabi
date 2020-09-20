@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
 using WalletWasabi.Blockchain.Blocks;
 using Xunit;
 using Xunit.Sdk;

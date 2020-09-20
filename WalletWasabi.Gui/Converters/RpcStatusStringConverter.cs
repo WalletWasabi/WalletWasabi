@@ -1,11 +1,8 @@
 using Avalonia.Data.Converters;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.Exceptions;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.Converters
 {

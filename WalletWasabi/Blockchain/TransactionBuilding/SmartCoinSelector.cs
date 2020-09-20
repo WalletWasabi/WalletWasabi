@@ -2,10 +2,8 @@ using NBitcoin;
 using System.Linq;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 

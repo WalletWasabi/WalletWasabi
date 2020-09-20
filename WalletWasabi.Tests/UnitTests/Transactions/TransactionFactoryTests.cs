@@ -1,19 +1,14 @@
 using NBitcoin;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
-using WalletWasabi.Helpers;
 using WalletWasabi.Models;
-using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 using Xunit;
 

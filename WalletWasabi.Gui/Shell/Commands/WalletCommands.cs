@@ -1,12 +1,10 @@
 using AvalonStudio.Commands;
-using System.Linq;
 using System;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using ReactiveUI;
 using System.Composition;
 using WalletWasabi.Gui.Tabs.WalletManager;
-using Avalonia;
 using System.Reactive.Linq;
 using WalletWasabi.Logging;
 

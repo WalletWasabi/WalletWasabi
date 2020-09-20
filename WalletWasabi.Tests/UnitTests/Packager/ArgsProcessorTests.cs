@@ -1,4 +1,3 @@
-using System;
 using WalletWasabi.Packager;
 using Xunit;
 

@@ -1,10 +1,6 @@
 using NBitcoin;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Text;
-using WalletWasabi.Helpers;
 using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.BitcoinCore.Configuration.Whitening
