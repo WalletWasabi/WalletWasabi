@@ -9,6 +9,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
+using WalletWasabi.Tor;
 
 namespace WalletWasabi.Tests
 {
@@ -19,7 +20,11 @@ namespace WalletWasabi.Tests
 			TorSocks5Endpoint = new IPEndPoint(IPAddress.Loopback, 9050);
 
 			DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Tests"));
-			TorLogsFile = Path.Combine(DataDir, "TorLogs.txt");
+
+			string torLogsFile = Path.Combine(DataDir, "TorLogs.txt");
+			string torDistributionFolder = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "TorDaemons");
+
+			TorSettings = new TorSettings(DataDir, torLogsFile, torDistributionFolder);
 
 			Logger.SetFilePath(Path.Combine(DataDir, "Logs.txt"));
 			Logger.SetMinimumLevel(LogLevel.Info);
@@ -30,9 +35,9 @@ namespace WalletWasabi.Tests
 
 		public EndPoint TorSocks5Endpoint { get; }
 
-		public string DataDir { get; }
+		public TorSettings TorSettings { get; }
 
-		public string TorLogsFile { get; }
+		public string DataDir { get; }
 
 		public static SmartTransaction GenerateRandomSmartTransaction()
 		{
