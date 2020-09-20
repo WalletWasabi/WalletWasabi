@@ -5,7 +5,6 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
-using NBitcoin;
 using WalletWasabi.Tor.Http.Interfaces;
 
 namespace WalletWasabi.Tests.UnitTests.Clients

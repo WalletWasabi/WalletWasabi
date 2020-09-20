@@ -1,12 +1,5 @@
 using AvalonStudio.Documents;
-using AvalonStudio.Shell;
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Text;
 using AvalonStudio.Extensibility;
-using Avalonia.Threading;
-using System.Threading.Tasks;
 using ReactiveUI;
 using AvalonStudio.Commands;
 using System.Reactive;

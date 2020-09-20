@@ -1,5 +1,3 @@
-using NBitcoin;
-using NBitcoin.Crypto;
 using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Blockchain.TransactionOutputs;

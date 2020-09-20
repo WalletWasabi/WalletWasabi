@@ -1,10 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Interactivity;
-using System;
-using System.Collections.Generic;
 using System.Reactive.Disposables;
-using System.Text;
 
 namespace WalletWasabi.Gui.Behaviors
 {

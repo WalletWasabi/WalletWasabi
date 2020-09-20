@@ -1,10 +1,7 @@
-using NBitcoin;
-using System;
 using System.Security.Cryptography;
 using System.Text;
 using WalletWasabi.Crypto;
 using WalletWasabi.Logging;
-using WalletWasabi.Tests.XunitConfiguration;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Crypto

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Gma.QrCodeNet.Encoding
 {
 	public class QrEncoder

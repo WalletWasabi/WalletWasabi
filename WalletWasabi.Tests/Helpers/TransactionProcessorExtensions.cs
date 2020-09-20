@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
 using WalletWasabi.Blockchain.Keys;
 
 namespace WalletWasabi.Blockchain.TransactionProcessing

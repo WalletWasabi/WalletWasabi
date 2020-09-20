@@ -1,9 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
 using NBitcoin.RPC;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinCore.Rpc;

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Text;
 using WalletWasabi.BitcoinCore.Configuration;
 using Xunit;

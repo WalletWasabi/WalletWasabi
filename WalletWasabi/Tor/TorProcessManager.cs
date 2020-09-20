@@ -82,10 +82,10 @@ namespace WalletWasabi.Tor
 
 						var fullBaseDirectory = EnvironmentHelpers.GetFullBaseDirectory();
 
-						if (!File.Exists(Settings.TorPath))
+						if (!File.Exists(Settings.TorBinaryFilePath))
 						{
-							Logger.LogInfo($"Tor instance NOT found at '{Settings.TorPath}'. Attempting to acquire it ...");
-							TorInstallator.InstallAsync(Settings.TorDir).GetAwaiter().GetResult();
+							Logger.LogInfo($"Tor instance NOT found at '{Settings.TorBinaryFilePath}'. Attempting to acquire it ...");
+							new TorInstallator(Settings).InstallAsync().GetAwaiter().GetResult();
 						}
 						else if (!IoHelpers.CheckExpectedHash(Settings.HashSourcePath, Path.Combine(fullBaseDirectory, "TorDaemons")))
 						{
@@ -98,11 +98,11 @@ namespace WalletWasabi.Tor
 							}
 							Directory.Move(Settings.TorDir, backupTorDir);
 
-							TorInstallator.InstallAsync(Settings.TorDir).GetAwaiter().GetResult();
+							new TorInstallator(Settings).InstallAsync().GetAwaiter().GetResult();
 						}
 						else
 						{
-							Logger.LogInfo($"Tor instance found at '{Settings.TorPath}'.");
+							Logger.LogInfo($"Tor instance found at '{Settings.TorBinaryFilePath}'.");
 						}
 
 						string torArguments = Settings.GetCmdArguments(TorSocks5EndPoint);
@@ -116,7 +116,7 @@ namespace WalletWasabi.Tor
 
 						var startInfo = new ProcessStartInfo
 						{
-							FileName = Settings.TorPath,
+							FileName = Settings.TorBinaryFilePath,
 							Arguments = torArguments,
 							UseShellExecute = false,
 							CreateNoWindow = true,

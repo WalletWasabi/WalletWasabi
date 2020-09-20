@@ -1,4 +1,3 @@
-using NBitcoin;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
