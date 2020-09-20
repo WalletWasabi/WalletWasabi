@@ -26,7 +26,7 @@ namespace WalletWasabi.Tor
 		/// <summary>
 		/// Installs Tor for Wasabi Wallet use.
 		/// </summary>
-		/// <returns><see cref="Task"/> instance.</returns>
+		/// <returns>Returns <c>true</c> if <see cref="TorSettings.TorBinaryFilePath"/> is present after installation, <c>false</c> otherwise.</returns>
 		public async Task<bool> InstallAsync()
 		{
 			try
@@ -56,6 +56,45 @@ namespace WalletWasabi.Tor
 			}
 
 			return false;
+		}
+
+		/// <summary>
+		/// Verifies that Tor is installed and checksums of installed binaries are correct.
+		/// </summary>
+		/// <returns>Returns <c>true</c> if <see cref="TorSettings.TorBinaryFilePath"/> is present, <c>false</c> otherwise.</returns>
+		public async Task<bool> VerifyInstallationAsync()
+		{
+			try
+			{
+				if (!File.Exists(Settings.TorBinaryFilePath))
+				{
+					Logger.LogInfo($"Tor instance NOT found at '{Settings.TorBinaryFilePath}'. Attempting to acquire it.");
+					return await InstallAsync().ConfigureAwait(false);
+				}
+				else if (!IoHelpers.CheckExpectedHash(Settings.HashSourcePath, Settings.DistributionFolder))
+				{
+					Logger.LogInfo("Install the latest Tor version.");
+					string backupDir = $"{Settings.TorDir}_backup";
+
+					if (Directory.Exists(backupDir))
+					{
+						Directory.Delete(backupDir, recursive: true);
+					}
+
+					Directory.Move(Settings.TorDir, backupDir);
+					return await InstallAsync().ConfigureAwait(false);
+				}
+				else
+				{
+					Logger.LogInfo($"Tor instance found at '{Settings.TorBinaryFilePath}'.");
+					return true;
+				}
+			}
+			catch (Exception e)
+			{
+				Logger.LogError("Verification of Tor installation failed.", e);
+				return false;
+			}
 		}
 
 		private async Task ExtractZipFileAsync(string zipFilePath, string destinationPath)
