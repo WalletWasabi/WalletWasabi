@@ -37,8 +37,6 @@ namespace WalletWasabi.Gui.ViewModels
 {
 	public class StatusBarViewModel : ViewModelBase
 	{
-		private const string LoadingText = "Loading ...";
-
 		private RpcStatus _bitcoinCoreStatus;
 		private UpdateStatus _updateStatus;
 		private bool _updateAvailable;
@@ -49,7 +47,8 @@ namespace WalletWasabi.Gui.ViewModels
 		private TorStatus _tor;
 		private int _peers;
 		private ObservableAsPropertyHelper<int> _filtersLeft;
-		private string _btcPrice;
+		private string _exchangeRate;
+		private bool _isExchangeRateAvailable;
 		private ObservableAsPropertyHelper<string> _status;
 		private bool _downloadingBlock;
 
@@ -64,7 +63,8 @@ namespace WalletWasabi.Gui.ViewModels
 			UseTor = false;
 			Tor = TorStatus.NotRunning;
 			Peers = 0;
-			_btcPrice = LoadingText;
+			ExchangeRate = "";
+			IsExchangeRateAvailable = false;
 			ActiveStatuses = new StatusSet();
 		}
 
@@ -130,13 +130,19 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _criticalUpdateAvailable, value);
 		}
 
-		public string BtcPrice
+		public string ExchangeRate
 		{
-			get => _btcPrice;
-			set => this.RaiseAndSetIfChanged(ref _btcPrice, value);
+			get => _exchangeRate;
+			set => this.RaiseAndSetIfChanged(ref _exchangeRate, value);
 		}
 
-		public string Status => _status?.Value ?? LoadingText;
+		public bool IsExchangeRateAvailable
+		{
+			get => _isExchangeRateAvailable;
+			set => this.RaiseAndSetIfChanged(ref _isExchangeRateAvailable, value);
+		}
+
+		public string Status => _status?.Value ?? "Loading...";
 
 		public bool DownloadingBlock
 		{
@@ -255,7 +261,13 @@ namespace WalletWasabi.Gui.ViewModels
 
 			Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(usd => BtcPrice = usd == default ? LoadingText : $"${(long)usd}")
+				.Subscribe(usd => ExchangeRate = $"${(long)usd}")
+				.DisposeWith(Disposables);
+
+			Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
+				.Select(x => x != default)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x => IsExchangeRateAvailable = x)
 				.DisposeWith(Disposables);
 
 			if (rpcMonitor is { })

@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
@@ -69,9 +69,9 @@
             <TextBlock Text="{Binding Peers, StringFormat=Peers: \{0\}}" Foreground="{Binding Peers, ConverterParameter=Peers, Converter={StaticResource StatusColorConverter}}" />
           </StackPanel>
         </Panel>
-        <StackPanel Orientation="Horizontal" Spacing="0">
+        <StackPanel IsVisible="{Binding IsExchangeRateAvailable}" Orientation="Horizontal" Spacing="0">
           <TextBlock Text="Price: " />
-          <TextBlock Text="{Binding BtcPrice}" />
+          <TextBlock Text="{Binding ExchangeRate}" />
         </StackPanel>
       </StackPanel>
 
