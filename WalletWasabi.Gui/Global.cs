@@ -178,7 +178,7 @@ namespace WalletWasabi.Gui
 					using (BenchmarkLogger.Measure(operationName: "TorProcessManager.Start"))
 					{
 						TorManager = new TorProcessManager(TorSettings, Config.TorSocks5EndPoint);
-						await TorManager.StartAsync(ensureRunning: false).ConfigureAwait(false);
+						await TorManager.StartAsync(ensureRunning: true).ConfigureAwait(false);
 					}
 
 					var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
