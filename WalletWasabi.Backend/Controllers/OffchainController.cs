@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.DeveloperNews;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 
@@ -17,14 +18,16 @@ namespace WalletWasabi.Backend.Controllers
 	[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
 	public class OffchainController : Controller
 	{
-		public OffchainController(IMemoryCache memoryCache, IExchangeRateProvider exchangeRateProvider)
+		public OffchainController(IMemoryCache memoryCache, IExchangeRateProvider exchangeRateProvider, Global global)
 		{
 			Cache = memoryCache;
 			ExchangeRateProvider = exchangeRateProvider;
+			Global = global;
 		}
 
 		private IMemoryCache Cache { get; }
 		private IExchangeRateProvider ExchangeRateProvider { get; }
+		public Global Global { get; }
 
 		/// <summary>
 		/// Gets exchange rates for one Bitcoin.
@@ -65,5 +68,21 @@ namespace WalletWasabi.Backend.Controllers
 			}
 			return exchangeRates;
 		}
+
+		/// <summary>
+		/// Gets news.
+		/// </summary>
+		/// <returns>NewsItem[]</returns>
+		/// <response code="200">Returns an array of news items.</response>
+		[HttpGet("news")]
+		[ProducesResponseType(200)]
+		public IActionResult GetNewsAsync()
+		{
+			IEnumerable<NewsItem> exchangeRates = GetNewsItems();
+
+			return Ok(exchangeRates);
+		}
+
+		internal IEnumerable<NewsItem> GetNewsItems() => Global.News.Items;
 	}
 }

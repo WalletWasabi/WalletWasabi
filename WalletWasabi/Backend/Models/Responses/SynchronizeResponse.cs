@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.CoinJoin.Common.Models;
+using WalletWasabi.DeveloperNews;
 using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.Backend.Models.Responses
@@ -24,5 +25,7 @@ namespace WalletWasabi.Backend.Models.Responses
 
 		[JsonProperty(ItemConverterType = typeof(Uint256JsonConverter))]
 		public IEnumerable<uint256> UnconfirmedCoinJoins { get; set; }
+
+		public IEnumerable<NewsItem> News { get; set; }
 	}
 }

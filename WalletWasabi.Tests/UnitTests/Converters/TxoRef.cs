@@ -5,7 +5,6 @@ using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.Tests.UnitTests.Converters
 {
-	[JsonObject(MemberSerialization.OptIn)]
 	public class TxoRef
 	{
 		[JsonConstructor]
@@ -15,7 +14,6 @@ namespace WalletWasabi.Tests.UnitTests.Converters
 			Index = index;
 		}
 
-		[Required]
 		[JsonProperty(Order = 1)]
 		[JsonConverter(typeof(Uint256JsonConverter))]
 		public uint256 TransactionId { get; }
