@@ -16,8 +16,8 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			var item = new NewsItem(new Date(2020, 9, 3), "Wasabi V4 Hard Fork", "Fixed a Denial of Service attack vector.", new Uri("https://blog.wasabiwallet.io/responsible-disclosure-v4-hard-fork/"));
 			var items = new[] { item };
-			var serialized = JsonConvert.SerializeObject(items, Formatting.Indented);
-			var expected = "[\r\n  {\r\n    \"Date\": \"2020-9-3\",\r\n    \"Title\": \"Wasabi V4 Hard Fork\",\r\n    \"Description\": \"Fixed a Denial of Service attack vector.\",\r\n    \"Link\": \"https://blog.wasabiwallet.io/responsible-disclosure-v4-hard-fork/\"\r\n  }\r\n]";
+			var serialized = JsonConvert.SerializeObject(items);
+			var expected = "[{\"Date\":\"2020-9-3\",\"Title\":\"Wasabi V4 Hard Fork\",\"Description\":\"Fixed a Denial of Service attack vector.\",\"Link\":\"https://blog.wasabiwallet.io/responsible-disclosure-v4-hard-fork/\"}]";
 			Assert.Equal(expected, serialized);
 		}
 
@@ -25,7 +25,7 @@ namespace WalletWasabi.Tests.UnitTests
 		public void CanDeserialize()
 		{
 			var expected = new NewsItem(new Date(2020, 9, 3), "Wasabi V4 Hard Fork", "Fixed a Denial of Service attack vector.", new Uri("https://blog.wasabiwallet.io/responsible-disclosure-v4-hard-fork/"));
-			var serialized = "[\r\n  {\r\n    \"Date\": \"2020-9-3\",\r\n    \"Title\": \"Wasabi V4 Hard Fork\",\r\n    \"Description\": \"Fixed a Denial of Service attack vector.\",\r\n    \"Link\": \"https://blog.wasabiwallet.io/responsible-disclosure-v4-hard-fork/\"\r\n  }\r\n]";
+			var serialized = "[{\"Date\":\"2020-9-3\",\"Title\":\"Wasabi V4 Hard Fork\",\"Description\":\"Fixed a Denial of Service attack vector.\",\"Link\":\"https://blog.wasabiwallet.io/responsible-disclosure-v4-hard-fork/\"}]";
 			var deserialized = JsonConvert.DeserializeObject<IEnumerable<NewsItem>>(serialized);
 			var first = deserialized.First();
 			Assert.Equal(expected.Date, first.Date);
