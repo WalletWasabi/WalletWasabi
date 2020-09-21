@@ -277,3 +277,4 @@ lcov.info
 # WindowsInstaller generated files
 /WalletWasabi.WindowsInstaller/ComponentsGenerated.wxs
 /WalletWasabi.WindowsInstaller/*.wixobj
+.ionide/symbolCache.db
