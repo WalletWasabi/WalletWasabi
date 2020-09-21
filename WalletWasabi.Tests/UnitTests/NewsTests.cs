@@ -33,5 +33,17 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal(expected.Description, first.Description);
 			Assert.Equal(expected.Link.ToString(), first.Link.ToString());
 		}
+
+		[Fact]
+		public void CanComputeHash()
+		{
+			var item = new NewsItem(new Date(2020, 9, 3), "Wasabi V4 Hard Fork", "Fixed a Denial of Service attack vector.", new Uri("https://blog.wasabiwallet.io/responsible-disclosure-v4-hard-fork/"));
+			var item2 = new NewsItem(new Date(2021, 2, 3), "Foo", "Bar.", new Uri("https://blog.wasabiwallet.io/responsible-disclosure-v4-hard-fork/"));
+			var items = new[] { item, item2 };
+			var news = new News(items);
+			var hash = news.Hash;
+			var expected = "0E3BA6ED406F187ADB5DABD87B66ED295D4D5983C070493530CBB6FDDFB78B2D";
+			Assert.Equal(expected, hash);
+		}
 	}
 }

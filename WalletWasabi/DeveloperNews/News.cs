@@ -24,7 +24,7 @@ namespace WalletWasabi.DeveloperNews
 		public string Hash { get; }
 
 		private string ComputeHash()
-			=> HashHelpers.GenerateSha256Hash(JsonConvert.SerializeObject(Items));
+			=> HashHelpers.GenerateSha256Hash(string.Join("", Items.Select(x => x.ComputeHash())));
 
 		public static News Default { get; } = FromFile(Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), nameof(DeveloperNews), "News.json"));
 

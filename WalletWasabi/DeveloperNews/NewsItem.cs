@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using WalletWasabi.Crypto;
 
 namespace WalletWasabi.DeveloperNews
 {
@@ -29,5 +30,8 @@ namespace WalletWasabi.DeveloperNews
 
 		[JsonProperty(PropertyName = "Link")]
 		public Uri Link { get; }
+
+		public string ComputeHash()
+			=> HashHelpers.GenerateSha256Hash($"{Date}{Description}{Link}{Title}");
 	}
 }
