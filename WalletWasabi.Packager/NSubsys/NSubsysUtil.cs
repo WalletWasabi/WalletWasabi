@@ -19,8 +19,8 @@ namespace NSubsys
 			SubSystemType subsysVal;
 			var subsysOffset = peFile.MainHeaderOffset;
 
-			subsysVal = (SubSystemType)peFile.OptionalHeader.Subsystem;
-			subsysOffset += Marshal.OffsetOf<ImageOptionalHeader>(nameof(ImageOptionalHeader.Subsystem)).ToInt32();
+			subsysVal = (SubSystemType)peFile.OptionalHeader._subsystem;
+			subsysOffset += Marshal.OffsetOf<ImageOptionalHeader>(nameof(ImageOptionalHeader._subsystem)).ToInt32();
 
 			switch (subsysVal)
 			{

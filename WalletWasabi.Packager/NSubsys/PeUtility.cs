@@ -17,7 +17,7 @@ namespace NSubsys
 			var dosHeader = FromBinaryReader<ImageDosHeader>(reader);
 
 			// Seek the new PE Header and skip NtHeadersSignature (4 bytes) & IMAGE_FILE_HEADER struct (20bytes).
-			Stream.Seek(dosHeader.FileAddressNew + 4 + 20, SeekOrigin.Begin);
+			Stream.Seek(dosHeader._fileAddressNew + 4 + 20, SeekOrigin.Begin);
 
 			MainHeaderOffset = Stream.Position;
 
@@ -67,22 +67,18 @@ namespace NSubsys
 			InternalBinReader?.Dispose();
 		}
 
-#pragma warning disable IDE1006 // Naming Styles
-
 		[StructLayout(LayoutKind.Explicit)]
 		public struct ImageDosHeader
 		{
 			[FieldOffset(60)]
-			public uint FileAddressNew;
+			internal uint _fileAddressNew;
 		}
 
 		[StructLayout(LayoutKind.Explicit)]
 		public struct ImageOptionalHeader
 		{
 			[FieldOffset(68)]
-			public ushort Subsystem;
+			internal ushort _subsystem;
 		}
-
-#pragma warning restore IDE1006 // Naming Styles
 	}
 }
