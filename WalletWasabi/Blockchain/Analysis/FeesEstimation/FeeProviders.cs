@@ -50,8 +50,9 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 				}
 
 				AllFeeEstimate = feeEstimateToSet ?? providerArray[^1].AllFeeEstimate;
-				AllFeeEstimateChanged?.Invoke(this, AllFeeEstimate);
 			}
+
+			AllFeeEstimateChanged?.Invoke(this, AllFeeEstimate);
 		}
 
 		#region IDisposable Support
