@@ -1,4 +1,5 @@
 using NBitcoin.Secp256k1;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
@@ -46,6 +47,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				ShowCredential(presentation, z * iparams.I, iparams),
 				new ScalarVector(z, (credential.Mac.T * z).Negate(), credential.Mac.T, credential.Amount, credential.Randomness));
 
+		[SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Crypto naming")]
 		public static Statement ShowCredential(CredentialPresentation c, GroupElement Z, CoordinatorParameters iparams)
 			=> new Statement(new GroupElement[,]
 			{

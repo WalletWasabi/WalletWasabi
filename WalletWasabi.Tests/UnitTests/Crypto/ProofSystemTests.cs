@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using NBitcoin.Secp256k1;
 using WalletWasabi.Crypto;
@@ -10,6 +11,7 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Crypto
 {
+	[SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Crypto naming")]
 	public class ProofSystemTests
 	{
 		[Fact]

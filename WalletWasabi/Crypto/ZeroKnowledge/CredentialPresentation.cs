@@ -1,9 +1,11 @@
-﻿using WalletWasabi.Crypto.Groups;
+using System.Diagnostics.CodeAnalysis;
+using WalletWasabi.Crypto.Groups;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge
 {
 	public class CredentialPresentation
 	{
+		[SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Crypto naming")]
 		public CredentialPresentation(GroupElement Ca, GroupElement Cx0, GroupElement Cx1, GroupElement CV, GroupElement S)
 		{
 			this.Ca = Ca;

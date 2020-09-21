@@ -1,4 +1,5 @@
-﻿using NBitcoin.Secp256k1;
+using NBitcoin.Secp256k1;
+using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Crypto.Groups;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge
@@ -16,6 +17,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		public Scalar Randomness { get; }
 		public MAC Mac { get; }
 
+		[SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Crypto naming")]
 		public CredentialPresentation Present(Scalar z)
 		{
 			GroupElement Randomize(GroupElement G, GroupElement M) => M + z * G;
