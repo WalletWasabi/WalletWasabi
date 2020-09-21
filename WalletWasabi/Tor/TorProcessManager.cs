@@ -46,6 +46,8 @@ namespace WalletWasabi.Tor
 			Stop = new CancellationTokenSource();
 			TorProcess = null;
 			Settings = settings;
+
+			IoHelpers.EnsureContainingDirectoryExists(Settings.LogFilePath);
 		}
 
 		private EndPoint TorSocks5EndPoint { get; }
@@ -71,7 +73,10 @@ namespace WalletWasabi.Tor
 
 					if (isAlreadyRunning)
 					{
-						Logger.LogInfo("Tor is already running.");
+						string msg = TorSocks5EndPoint is IPEndPoint endpoint
+							? $"Tor is already running on {endpoint.Address}:{endpoint.Port}."
+							: "Tor is already running.";
+						Logger.LogInfo(msg);
 						return;
 					}
 
@@ -80,18 +85,11 @@ namespace WalletWasabi.Tor
 
 					if (!verified)
 					{
-						Logger.LogInfo("Failed to verify Tor instalation.");
+						Logger.LogInfo("Failed to verify Tor installation.");
 						return;
 					}
 
-					string torArguments = Settings.GetCmdArguments(TorSocks5EndPoint);
-
-					if (Settings.LogFilePath is { })
-					{
-						IoHelpers.EnsureContainingDirectoryExists(Settings.LogFilePath);
-						var logFileFullPath = Path.GetFullPath(Settings.LogFilePath);
-						torArguments += $" --Log \"notice file {logFileFullPath}\"";
-					}
+					string torArguments = Settings.GetCmdArguments(TorSocks5EndPoint) + $" --Log \"notice file {Settings.LogFilePath}\"";
 
 					var startInfo = new ProcessStartInfo
 					{
