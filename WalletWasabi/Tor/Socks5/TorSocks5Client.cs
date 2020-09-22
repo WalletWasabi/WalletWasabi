@@ -29,7 +29,6 @@ namespace WalletWasabi.Tor.Socks5
 		{
 			TorSocks5EndPoint = endPoint;
 			TcpClient = endPoint is null ? new TcpClient() : new TcpClient(endPoint.AddressFamily);
-			AsyncLock = new AsyncLock();
 		}
 
 		#endregion Constructors
@@ -50,8 +49,6 @@ namespace WalletWasabi.Tor.Socks5
 
 		public bool IsConnected => TcpClient?.Connected is true;
 
-		internal AsyncLock AsyncLock { get; }
-
 		#endregion PropertiesAndMembers
 
 		#region Initializers
@@ -63,23 +60,20 @@ namespace WalletWasabi.Tor.Socks5
 				return;
 			}
 
-			using (await AsyncLock.LockAsync().ConfigureAwait(false))
+			string host = TorSocks5EndPoint.GetHostOrDefault();
+			int? port = TorSocks5EndPoint.GetPortOrDefault();
+			try
 			{
-				string host = TorSocks5EndPoint.GetHostOrDefault();
-				int? port = TorSocks5EndPoint.GetPortOrDefault();
-				try
-				{
-					await TcpClient.ConnectAsync(host, port.Value).ConfigureAwait(false);
-				}
-				catch (Exception ex) when (IsConnectionRefused(ex))
-				{
-					throw new ConnectionException(
-						$"Could not connect to Tor SOCKSPort at {host}:{port}. Is Tor running?", ex);
-				}
-
-				Stream = TcpClient.GetStream();
-				RemoteEndPoint = TcpClient.Client.RemoteEndPoint;
+				await TcpClient.ConnectAsync(host, port.Value).ConfigureAwait(false);
 			}
+			catch (Exception ex) when (IsConnectionRefused(ex))
+			{
+				throw new ConnectionException(
+					$"Could not connect to Tor SOCKSPort at {host}:{port}. Is Tor running?", ex);
+			}
+
+			Stream = TcpClient.GetStream();
+			RemoteEndPoint = TcpClient.Client.RemoteEndPoint;
 		}
 
 		/// <summary>
@@ -185,14 +179,11 @@ namespace WalletWasabi.Tor.Socks5
 				{
 					Logger.LogDebug($"Tor is NOT enabled.");
 
-					using (await AsyncLock.LockAsync().ConfigureAwait(false))
-					{
-						TcpClient?.Dispose();
-						TcpClient = IPAddress.TryParse(host, out IPAddress ip) ? new TcpClient(ip.AddressFamily) : new TcpClient();
-						await TcpClient.ConnectAsync(host, port).ConfigureAwait(false);
-						Stream = TcpClient.GetStream();
-						RemoteEndPoint = TcpClient.Client.RemoteEndPoint;
-					}
+					TcpClient?.Dispose();
+					TcpClient = IPAddress.TryParse(host, out IPAddress ip) ? new TcpClient(ip.AddressFamily) : new TcpClient();
+					await TcpClient.ConnectAsync(host, port).ConfigureAwait(false);
+					Stream = TcpClient.GetStream();
+					RemoteEndPoint = TcpClient.Client.RemoteEndPoint;
 				}
 				else
 				{
@@ -326,52 +317,49 @@ namespace WalletWasabi.Tor.Socks5
 					await AssertConnectedAsync(isRecursiveCall: true).ConfigureAwait(false);
 				}
 
-				using (await AsyncLock.LockAsync().ConfigureAwait(false))
+				var stream = TcpClient.GetStream();
+
+				// Write data to the stream
+				await stream.WriteAsync(sendBuffer, 0, sendBuffer.Length).ConfigureAwait(false);
+				await stream.FlushAsync().ConfigureAwait(false);
+
+				// If receiveBufferSize is null, zero or negative or bigger than TcpClient.ReceiveBufferSize
+				// then work with TcpClient.ReceiveBufferSize
+				var tcpReceiveBuffSize = TcpClient.ReceiveBufferSize;
+				var actualReceiveBufferSize = receiveBufferSize is null || receiveBufferSize <= 0 || receiveBufferSize > tcpReceiveBuffSize
+					? tcpReceiveBuffSize
+					: (int)receiveBufferSize;
+
+				// Receive the response
+				var receiveBuffer = new byte[actualReceiveBufferSize];
+
+				int receiveCount = await stream.ReadAsync(receiveBuffer, 0, actualReceiveBufferSize).ConfigureAwait(false);
+
+				if (receiveCount <= 0)
 				{
-					var stream = TcpClient.GetStream();
+					throw new ConnectionException($"Not connected to Tor SOCKS5 proxy: {TorSocks5EndPoint}.");
+				}
+				// if we could fit everything into our buffer, then return it
+				if (!stream.DataAvailable)
+				{
+					return receiveBuffer[..receiveCount];
+				}
 
-					// Write data to the stream
-					await stream.WriteAsync(sendBuffer, 0, sendBuffer.Length).ConfigureAwait(false);
-					await stream.FlushAsync().ConfigureAwait(false);
-
-					// If receiveBufferSize is null, zero or negative or bigger than TcpClient.ReceiveBufferSize
-					// then work with TcpClient.ReceiveBufferSize
-					var tcpReceiveBuffSize = TcpClient.ReceiveBufferSize;
-					var actualReceiveBufferSize = receiveBufferSize is null || receiveBufferSize <= 0 || receiveBufferSize > tcpReceiveBuffSize
-						? tcpReceiveBuffSize
-						: (int)receiveBufferSize;
-
-					// Receive the response
-					var receiveBuffer = new byte[actualReceiveBufferSize];
-
-					int receiveCount = await stream.ReadAsync(receiveBuffer, 0, actualReceiveBufferSize).ConfigureAwait(false);
-
+				// while we have data available, start building a byte array
+				var builder = new ByteArrayBuilder();
+				builder.Append(receiveBuffer[..receiveCount]);
+				while (stream.DataAvailable)
+				{
+					Array.Clear(receiveBuffer, 0, receiveBuffer.Length);
+					receiveCount = await stream.ReadAsync(receiveBuffer, 0, actualReceiveBufferSize).ConfigureAwait(false);
 					if (receiveCount <= 0)
 					{
 						throw new ConnectionException($"Not connected to Tor SOCKS5 proxy: {TorSocks5EndPoint}.");
 					}
-					// if we could fit everything into our buffer, then return it
-					if (!stream.DataAvailable)
-					{
-						return receiveBuffer[..receiveCount];
-					}
-
-					// while we have data available, start building a byte array
-					var builder = new ByteArrayBuilder();
 					builder.Append(receiveBuffer[..receiveCount]);
-					while (stream.DataAvailable)
-					{
-						Array.Clear(receiveBuffer, 0, receiveBuffer.Length);
-						receiveCount = await stream.ReadAsync(receiveBuffer, 0, actualReceiveBufferSize).ConfigureAwait(false);
-						if (receiveCount <= 0)
-						{
-							throw new ConnectionException($"Not connected to Tor SOCKS5 proxy: {TorSocks5EndPoint}.");
-						}
-						builder.Append(receiveBuffer[..receiveCount]);
-					}
-
-					return builder.ToArray();
 				}
+
+				return builder.ToArray();
 			}
 			catch (IOException ex)
 			{

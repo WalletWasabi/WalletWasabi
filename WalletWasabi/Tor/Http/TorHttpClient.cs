@@ -67,8 +67,6 @@ namespace WalletWasabi.Tor.Http
 
 		public TorSocks5Client TorSocks5Client { get; private set; }
 
-		private static AsyncLock AsyncLock { get; } = new AsyncLock(); // We make everything synchronous, so slow, but at least stable.
-
 		private void Create(EndPoint torSocks5EndPoint, bool isolateStream, Func<Uri> baseUriAction)
 		{
 			DestinationUriAction = Guard.NotNull(nameof(baseUriAction), baseUriAction);
@@ -94,56 +92,53 @@ namespace WalletWasabi.Tor.Http
 
 			try
 			{
-				using (await AsyncLock.LockAsync(cancel).ConfigureAwait(false))
+				try
 				{
+					HttpResponseMessage ret = await SendAsync(request).ConfigureAwait(false);
+					TorDoesntWorkSince = null;
+					return ret;
+				}
+				catch (Exception ex)
+				{
+					Logger.LogTrace(ex);
+
+					TorSocks5Client?.Dispose(); // rebuild the connection and retry
+					TorSocks5Client = null;
+
+					cancel.ThrowIfCancellationRequested();
 					try
 					{
-						HttpResponseMessage ret = await SendAsync(request).ConfigureAwait(false);
+						HttpResponseMessage ret2 = await SendAsync(request).ConfigureAwait(false);
 						TorDoesntWorkSince = null;
-						return ret;
+						return ret2;
 					}
-					catch (Exception ex)
+					// If we get ttlexpired then wait and retry again linux often do this.
+					catch (TorSocks5FailureResponseException ex2) when (ex2.RepField == RepField.TtlExpired)
 					{
 						Logger.LogTrace(ex);
 
 						TorSocks5Client?.Dispose(); // rebuild the connection and retry
 						TorSocks5Client = null;
 
-						cancel.ThrowIfCancellationRequested();
 						try
 						{
-							HttpResponseMessage ret2 = await SendAsync(request).ConfigureAwait(false);
-							TorDoesntWorkSince = null;
-							return ret2;
+							await Task.Delay(1000, cancel).ConfigureAwait(false);
 						}
-						// If we get ttlexpired then wait and retry again linux often do this.
-						catch (TorSocks5FailureResponseException ex2) when (ex2.RepField == RepField.TtlExpired)
+						catch (TaskCanceledException tce)
 						{
-							Logger.LogTrace(ex);
-
-							TorSocks5Client?.Dispose(); // rebuild the connection and retry
-							TorSocks5Client = null;
-
-							try
-							{
-								await Task.Delay(1000, cancel).ConfigureAwait(false);
-							}
-							catch (TaskCanceledException tce)
-							{
-								throw new OperationCanceledException(tce.Message, tce, cancel);
-							}
+							throw new OperationCanceledException(tce.Message, tce, cancel);
 						}
-						catch (SocketException ex3) when (ex3.ErrorCode == (int)SocketError.ConnectionRefused)
-						{
-							throw new ConnectionException("Connection was refused.", ex3);
-						}
-
-						cancel.ThrowIfCancellationRequested();
-
-						HttpResponseMessage ret3 = await SendAsync(request).ConfigureAwait(false);
-						TorDoesntWorkSince = null;
-						return ret3;
 					}
+					catch (SocketException ex3) when (ex3.ErrorCode == (int)SocketError.ConnectionRefused)
+					{
+						throw new ConnectionException("Connection was refused.", ex3);
+					}
+
+					cancel.ThrowIfCancellationRequested();
+
+					HttpResponseMessage ret3 = await SendAsync(request).ConfigureAwait(false);
+					TorDoesntWorkSince = null;
+					return ret3;
 				}
 			}
 			catch (TaskCanceledException ex)
