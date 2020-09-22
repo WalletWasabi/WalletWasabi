@@ -39,7 +39,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 		internal bool Verify(GroupElement publicNonce, Scalar challenge, ScalarVector responses)
 		{
 			// A challenge of 0 does not place any constraint on the witness
-			if (challenge == Scalar.Zero)
+			if (challenge.IsZero)
 			{
 				return false;
 			}
