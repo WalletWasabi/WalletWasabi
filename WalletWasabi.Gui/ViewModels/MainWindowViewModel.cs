@@ -5,7 +5,6 @@ using AvalonStudio.Shell;
 using NBitcoin;
 using NBitcoin.Protocol;
 using ReactiveUI;
-using Splat;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +13,6 @@ using System.Threading.Tasks;
 using WalletWasabi.Gui.Controls.LockScreen;
 using WalletWasabi.Gui.Tabs.Dashboard;
 using WalletWasabi.Gui.Tabs.WalletManager;
-using WalletWasabi.Services;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.ViewModels

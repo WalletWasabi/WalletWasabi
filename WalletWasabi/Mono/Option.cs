@@ -123,8 +123,8 @@
 //      var p = new OptionSet () {
 //        { "a", s => a = s },
 //      };
-//      p.Parse (new string[]{"-a"});   // sets v != null
-//      p.Parse (new string[]{"-a+"});  // sets v != null
+//      p.Parse (new string[]{"-a"});   // sets v is { }
+//      p.Parse (new string[]{"-a+"});  // sets v is { }
 //      p.Parse (new string[]{"-a-"});  // sets v is null
 //
 
@@ -158,7 +158,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text;
 using WalletWasabi.Helpers;
 
 namespace Mono.Options
@@ -263,7 +262,7 @@ namespace Mono.Options
 			T t = default;
 			try
 			{
-				if (value != null)
+				if (value is { })
 				{
 					TypeConverter conv = TypeDescriptor.GetConverter(targetType);
 					t = (T)conv.ConvertFromString(value);

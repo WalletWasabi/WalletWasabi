@@ -1,4 +1,3 @@
-using WalletWasabi.Gui.Controls.TransactionDetails;
 using WalletWasabi.Gui.Controls.TransactionDetails.ViewModels;
 using WalletWasabi.Gui.ViewModels;
 

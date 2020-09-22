@@ -1,26 +1,20 @@
 using NBitcoin;
 using NBitcoin.RPC;
-using Nito.AsyncEx;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
-using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
+using WalletWasabi.Tor.Exceptions;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
@@ -237,7 +231,7 @@ namespace WalletWasabi.Services
 								throw;
 							}
 
-							if (response.AllFeeEstimate != null && response.AllFeeEstimate.Estimations.Any())
+							if (response.AllFeeEstimate is { } && response.AllFeeEstimate.Estimations.Any())
 							{
 								lastFeeQueried = DateTimeOffset.UtcNow;
 								AllFeeEstimate = response.AllFeeEstimate;
@@ -254,7 +248,7 @@ namespace WalletWasabi.Services
 
 							hashChain.UpdateServerTipHeight((uint)response.BestHeight);
 							ExchangeRate exchangeRate = response.ExchangeRates.FirstOrDefault();
-							if (exchangeRate != default && exchangeRate.Rate != 0)
+							if (exchangeRate is { } && exchangeRate.Rate != 0)
 							{
 								UsdExchangeRate = exchangeRate.Rate;
 							}

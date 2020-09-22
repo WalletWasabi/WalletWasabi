@@ -1,19 +1,14 @@
 using NBitcoin;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
-using WalletWasabi.Helpers;
 using WalletWasabi.Models;
-using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 using Xunit;
 
@@ -323,7 +318,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var destination2Output = Assert.Single(tx.Outputs, x => x.ScriptPubKey == destination2);
 			Assert.Equal(Money.Coins(0.3m), destination2Output.Value + result.Fee);
 
-			var changeOutput = Assert.Single(tx.Outputs, x => transactionFactory.KeyManager.GetKeyForScriptPubKey(x.ScriptPubKey) != null);
+			var changeOutput = Assert.Single(tx.Outputs, x => transactionFactory.KeyManager.GetKeyForScriptPubKey(x.ScriptPubKey) is { });
 			Assert.Equal(Money.Coins(0.1m), changeOutput.Value);
 		}
 

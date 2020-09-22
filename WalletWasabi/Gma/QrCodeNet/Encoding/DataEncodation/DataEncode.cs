@@ -2,7 +2,6 @@ using Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition;
 using Gma.QrCodeNet.Encoding.Terminate;
 using Gma.QrCodeNet.Encoding.Versions;
 using System;
-using System.Collections.Generic;
 
 namespace Gma.QrCodeNet.Encoding.DataEncodation
 {
@@ -26,7 +25,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			BitList dataCodewords = new BitList();
 
 			// Eci header
-			if (vcStruct.IsContainECI && !(vcStruct.ECIHeader is null))
+			if (vcStruct.IsContainECI && vcStruct.ECIHeader is { })
 			{
 				dataCodewords.Add(vcStruct.ECIHeader);
 			}

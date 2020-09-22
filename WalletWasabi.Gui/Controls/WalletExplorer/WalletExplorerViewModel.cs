@@ -1,4 +1,3 @@
-using System.Security.Cryptography.X509Certificates;
 using System;
 using AvalonStudio.Extensibility;
 using AvalonStudio.MVVM;
@@ -70,9 +69,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(wallet =>
 				{
-					WalletViewModelBase vm = (wallet.State <= WalletState.Starting) ?
-						ClosedWalletViewModel.Create(wallet) :
-						WalletViewModel.Create(wallet);
+					WalletViewModelBase vm = (wallet.State <= WalletState.Starting)
+						? ClosedWalletViewModel.Create(wallet)
+						: WalletViewModel.Create(wallet);
 
 					InsertWallet(vm);
 				});
@@ -89,7 +88,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(CollapseAllCommand.ThrownExceptions)
 				.Merge(LurkingWifeModeCommand.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(ex => Logger.LogError(ex)); ;
+				.Subscribe(ex => Logger.LogError(ex));
 
 			var shell = IoC.Get<IShell>();
 

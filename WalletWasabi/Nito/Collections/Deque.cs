@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using WalletWasabi.Helpers;
 
 namespace Nito.Collections
 {
@@ -48,10 +49,7 @@ namespace Nito.Collections
 		/// <param name="collection">The collection. May not be <c>null</c>.</param>
 		public Deque(IEnumerable<T> collection)
 		{
-			if (collection is null)
-			{
-				throw new ArgumentNullException(nameof(collection));
-			}
+			Guard.NotNull(nameof(collection), collection);
 
 			var source = CollectionHelpers.ReifyCollection(collection);
 			var count = source.Count;
@@ -287,10 +285,7 @@ namespace Nito.Collections
 		/// </exception>
 		void ICollection<T>.CopyTo(T[] array, int arrayIndex)
 		{
-			if (array is null)
-			{
-				throw new ArgumentNullException(nameof(array));
-			}
+			Guard.NotNull(nameof(array), array);
 
 			int count = Count;
 			CheckRangeArguments(array.Length, arrayIndex, count);
@@ -304,10 +299,7 @@ namespace Nito.Collections
 		/// <param name="arrayIndex">The optional index in the destination array at which to begin writing.</param>
 		private void CopyToArray(Array array, int arrayIndex = 0)
 		{
-			if (array is null)
-			{
-				throw new ArgumentNullException(nameof(array));
-			}
+			Guard.NotNull(nameof(array), array);
 
 			if (IsSplit)
 			{
@@ -382,7 +374,7 @@ namespace Nito.Collections
 				return true;
 			}
 
-			if (value != null)
+			if (value is { })
 			{
 				return false;
 			}
@@ -441,10 +433,7 @@ namespace Nito.Collections
 
 		void ICollection.CopyTo(Array array, int index)
 		{
-			if (array is null)
-			{
-				throw new ArgumentNullException(nameof(array), "Destination array cannot be null.");
-			}
+			Guard.NotNull(nameof(array), array);
 
 			CheckRangeArguments(array.Length, index, Count);
 

@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -14,7 +13,6 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Io;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Services;
 
 namespace WalletWasabi.Stores
 {
@@ -134,12 +132,9 @@ namespace WalletWasabi.Stores
 					{
 						var lineTask = sr.ReadLineAsync();
 						string line = null;
-						while (lineTask != null)
+						while (lineTask is { })
 						{
-							if (line is null)
-							{
-								line = await lineTask.ConfigureAwait(false);
-							}
+							line ??= await lineTask.ConfigureAwait(false);
 
 							lineTask = sr.EndOfStream ? null : sr.ReadLineAsync();
 
@@ -432,17 +427,14 @@ namespace WalletWasabi.Stores
 							var lineTask = sr.ReadLineAsync();
 							Task tTask = Task.CompletedTask;
 							string line = null;
-							while (lineTask != null)
+							while (lineTask is { })
 							{
 								if (firstImmatureHeight == height)
 								{
 									break; // Let's use our the immature filters from here on. The content is the same, just someone else modified the file.
 								}
 
-								if (line is null)
-								{
-									line = await lineTask.ConfigureAwait(false);
-								}
+								line ??= await lineTask.ConfigureAwait(false);
 
 								lineTask = sr.EndOfStream ? null : sr.ReadLineAsync();
 

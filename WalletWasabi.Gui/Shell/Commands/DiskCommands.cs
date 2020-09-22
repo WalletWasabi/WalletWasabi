@@ -94,7 +94,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 		private async Task OnOpenTorLogFileAsync()
 		{
 			var global = Locator.Current.GetService<Global>();
-			await FileHelpers.OpenFileInTextEditorAsync(global.TorLogsFile);
+			await FileHelpers.OpenFileInTextEditorAsync(global.TorSettings.LogFilePath);
 		}
 
 		private async Task OnOpenConfigFileAsync()

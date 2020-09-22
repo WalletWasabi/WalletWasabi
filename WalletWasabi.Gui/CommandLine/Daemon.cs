@@ -1,12 +1,10 @@
 using NBitcoin;
 using System;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.CoinJoin.Client.Clients.Queuing;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.CommandLine
@@ -35,7 +33,7 @@ namespace WalletWasabi.Gui.CommandLine
 				string compatibilityPassword = null;
 				do
 				{
-					if (password != null)
+					if (password is { })
 					{
 						if (count > 0)
 						{
@@ -62,7 +60,7 @@ namespace WalletWasabi.Gui.CommandLine
 				}
 				while (!PasswordHelper.TryPassword(keyManager, password, out compatibilityPassword));
 
-				if (compatibilityPassword != null)
+				if (compatibilityPassword is { })
 				{
 					password = compatibilityPassword;
 					Logger.LogInfo(PasswordHelper.CompatibilityPasswordWarnMessage);

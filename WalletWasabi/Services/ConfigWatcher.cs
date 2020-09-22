@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Services
 {

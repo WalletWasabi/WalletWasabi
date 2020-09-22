@@ -1,8 +1,5 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace WalletWasabi.Gui.Controls
 {

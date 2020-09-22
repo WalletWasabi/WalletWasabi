@@ -12,17 +12,16 @@ using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.Helpers;
-using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
@@ -48,7 +47,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 
 			RootList = new SourceList<WalletViewModelBase>();
 			RootList.Connect()
-				.AutoRefresh(model => model.WalletState)
 				.Filter(x => (!IsPasswordRequired || !x.Wallet.KeyManager.IsWatchOnly))
 				.Sort(SortExpressionComparer<WalletViewModelBase>
 					.Descending(p => p.Wallet.KeyManager.GetLastAccessTime()),
@@ -164,7 +162,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 					if (PasswordHelper.TryPassword(keyManager, password, out string compatibilityPasswordUsed))
 					{
 						NotificationHelpers.Success("Correct password.");
-						if (compatibilityPasswordUsed != null)
+						if (compatibilityPasswordUsed is { })
 						{
 							NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
 						}

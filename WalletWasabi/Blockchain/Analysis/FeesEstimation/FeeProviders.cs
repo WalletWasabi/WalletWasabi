@@ -1,13 +1,6 @@
-using NBitcoin;
-using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using WalletWasabi.Bases;
-using WalletWasabi.Logging;
-using WalletWasabi.Services;
 
 namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 {
@@ -61,7 +54,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 				{
 					IFeeProvider provider = providerArray[i];
 					var af = provider.AllFeeEstimate;
-					if (af != null && af.IsAccurate)
+					if (af is { } && af.IsAccurate)
 					{
 						AllFeeEstimate = af;
 						return;

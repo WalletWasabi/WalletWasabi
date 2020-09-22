@@ -1,9 +1,7 @@
 using NBitcoin;
 using NBitcoin.Protocol;
-using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -60,11 +58,10 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			// 5. Create wallet service.
 			var workDir = Common.GetWorkDir();
-			var blocksFolderPath = Path.Combine(workDir, "Blocks", network.ToString());
 
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
 				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
-				new FileSystemBlockRepository(blocksFolderPath, network));
+				bitcoinStore.BlockRepository);
 
 			var walletManager = new WalletManager(network, new WalletDirectories(workDir));
 			walletManager.RegisterServices(bitcoinStore, synchronizer, nodes, serviceConfiguration, synchronizer, blockProvider);
@@ -540,11 +537,10 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			// 5. Create wallet service.
 			var workDir = Common.GetWorkDir();
-			var blocksFolderPath = Path.Combine(workDir, "Blocks", network.ToString());
 
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
 				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
-				new FileSystemBlockRepository(blocksFolderPath, network));
+				bitcoinStore.BlockRepository);
 
 			var walletManager = new WalletManager(network, new WalletDirectories(workDir));
 			walletManager.RegisterServices(bitcoinStore, synchronizer, nodes, serviceConfiguration, synchronizer, blockProvider);
@@ -714,11 +710,10 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			// 5. Create wallet service.
 			var workDir = Common.GetWorkDir();
-			var blocksFolderPath = Path.Combine(workDir, "Blocks", network.ToString());
 
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
 				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
-				new FileSystemBlockRepository(blocksFolderPath, network));
+				bitcoinStore.BlockRepository);
 
 			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer, blockProvider);
 			wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;

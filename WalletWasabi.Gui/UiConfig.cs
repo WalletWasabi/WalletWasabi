@@ -1,21 +1,9 @@
 using Avalonia.Controls;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using ReactiveUI;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
-using System.Runtime.CompilerServices;
-using System.Text;
 using WalletWasabi.Bases;
-using WalletWasabi.Gui.Controls;
 using WalletWasabi.Gui.Converters;
-using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Models.Sorting;
-using WalletWasabi.Helpers;
-using WalletWasabi.Interfaces;
-using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.Gui
 {
@@ -28,6 +16,7 @@ namespace WalletWasabi.Gui
 		private bool _isCustomFee;
 		private bool _isCustomChangeAddress;
 		private bool _autocopy;
+		private int _feeDisplayFormat;
 
 		public UiConfig() : base()
 		{
@@ -47,7 +36,11 @@ namespace WalletWasabi.Gui
 
 		[DefaultValue(0)]
 		[JsonProperty(PropertyName = "FeeDisplayFormat", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public int FeeDisplayFormat { get; internal set; }
+		public int FeeDisplayFormat
+		{
+			get => _feeDisplayFormat;
+			set => RaiseAndSetIfChanged(ref _feeDisplayFormat, value);
+		}
 
 		[DefaultValue("")]
 		[JsonProperty(PropertyName = "LastActiveTab", DefaultValueHandling = DefaultValueHandling.Populate)]

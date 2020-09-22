@@ -1,5 +1,4 @@
 using System;
-using System.Text;
 using NBitcoin.Secp256k1;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Helpers;
@@ -16,6 +15,7 @@ namespace WalletWasabi.Crypto
 
 		public Scalar T { get; }
 		public GroupElement V { get; }
+		public GroupElement U { get => GenerateU(T); }
 
 		public static bool operator ==(MAC a, MAC b) => a.Equals(b);
 
@@ -45,7 +45,7 @@ namespace WalletWasabi.Crypto
 		private static MAC ComputeAlgebraicMAC((Scalar x0, Scalar x1) sk, GroupElement m, Scalar t) =>
 			 new MAC(t, (sk.x0 + sk.x1 * t) * GenerateU(t) + m);
 
-		private static GroupElement GenerateU(Scalar t) =>
+		public static GroupElement GenerateU(Scalar t) =>
 			Generators.FromBuffer(t.ToBytes());
 	}
 }

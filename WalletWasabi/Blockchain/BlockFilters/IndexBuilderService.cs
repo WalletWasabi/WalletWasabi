@@ -1,5 +1,4 @@
 using NBitcoin;
-using NBitcoin.RPC;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
@@ -118,10 +117,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 							try
 							{
 								// If we did not yet initialized syncInfo, do so.
-								if (syncInfo is null)
-								{
-									syncInfo = await GetSyncInfoAsync();
-								}
+								syncInfo ??= await GetSyncInfoAsync().ConfigureAwait(false);
 
 								uint currentHeight = 0;
 								uint256 currentHash = null;
@@ -350,7 +346,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 
 		public async Task StopAsync()
 		{
-			if (BlockNotifier != null)
+			if (BlockNotifier is { })
 			{
 				BlockNotifier.OnBlock -= BlockNotifier_OnBlock;
 			}

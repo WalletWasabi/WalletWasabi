@@ -1,6 +1,5 @@
-using System;
-using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 
 namespace Nito.AsyncEx.Synchronous
 {
@@ -17,10 +16,7 @@ namespace Nito.AsyncEx.Synchronous
 		/// <returns>The result of the task.</returns>
 		public static TResult WaitAndUnwrapException<TResult>(this Task<TResult> task)
 		{
-			if (task is null)
-			{
-				throw new ArgumentNullException(nameof(task));
-			}
+			Guard.NotNull(nameof(task), task);
 
 			return task.GetAwaiter().GetResult();
 		}

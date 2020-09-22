@@ -260,7 +260,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 
 				IEnumerable<SmartCoin> best = coinGroups.FirstOrDefault();
 
-				if (best != default)
+				if (best is { })
 				{
 					var bestSet = best.ToHashSet();
 
@@ -304,20 +304,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 		{
 			lock (StateLock)
 			{
-				if (WaitingList.Any())
-				{
-					return true;
-				}
-
-				foreach (var coins in Rounds.Select(x => x.CoinsRegistered))
-				{
-					if (coins.Any())
-					{
-						return true;
-					}
-				}
-
-				return false;
+				return WaitingList.Any() || Rounds.SelectMany(x => x.CoinsRegistered).Any();
 			}
 		}
 
@@ -366,7 +353,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 			lock (StateLock)
 			{
 				var foundAdvanced = Rounds.FirstOrDefault(x => x.State.Phase != RoundPhase.InputRegistration);
-				if (foundAdvanced != default)
+				if (foundAdvanced is { })
 				{
 					return foundAdvanced;
 				}
@@ -414,7 +401,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 				foreach (ClientRound round in Rounds.Where(x => roundsToRemove.Contains(x.State.RoundId)))
 				{
 					var newSuccessfulRoundCount = allRunningRoundsStates.FirstOrDefault()?.SuccessfulRoundCount;
-					bool roundFailed = newSuccessfulRoundCount != null && round.State.SuccessfulRoundCount == newSuccessfulRoundCount;
+					bool roundFailed = newSuccessfulRoundCount is { } && round.State.SuccessfulRoundCount == newSuccessfulRoundCount;
 					if (roundFailed)
 					{
 						IsInErrorState = true;

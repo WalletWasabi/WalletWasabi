@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Nito.AsyncEx;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -101,12 +100,9 @@ namespace WalletWasabi.Io
 					var lineTask = sr.ReadLineAsync();
 					Task wTask = Task.CompletedTask;
 					string line = null;
-					while (lineTask != null)
+					while (lineTask is { })
 					{
-						if (line is null)
-						{
-							line = await lineTask.ConfigureAwait(false);
-						}
+						line ??= await lineTask.ConfigureAwait(false);
 
 						lineTask = sr.EndOfStream ? null : sr.ReadLineAsync();
 

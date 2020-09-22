@@ -5,20 +5,25 @@ using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using WalletWasabi.Tests.XunitConfiguration;
-using WalletWasabi.TorSocks5;
+using WalletWasabi.Tor;
+using WalletWasabi.Tor.Http;
 using Xunit;
 
 namespace WalletWasabi.Tests.IntegrationTests
 {
 	// Tor must be running
-	public class TorTests
+	public class TorTests : IAsyncLifetime
 	{
-		public TorTests()
+		public async Task InitializeAsync()
 		{
-			var torManager = new TorProcessManager(Global.Instance.TorSocks5Endpoint, Global.Instance.TorLogsFile);
-			torManager.Start(ensureRunning: true, dataDir: Path.GetFullPath(AppContext.BaseDirectory));
-			Task.Delay(3000).GetAwaiter().GetResult();
+			var torManager = new TorProcessManager(Global.Instance.TorSettings, Global.Instance.TorSocks5Endpoint);
+			torManager.Start(ensureRunning: true);
+			await Task.Delay(3000);
+		}
+
+		public Task DisposeAsync()
+		{
+			return Task.CompletedTask;
 		}
 
 		[Fact]
@@ -51,13 +56,13 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[Fact]
 		public async Task CanDoBasicPostHttpsRequestAsync()
 		{
-			using var client = new TorHttpClient(new Uri("https://api.smartbit.com.au"), Global.Instance.TorSocks5Endpoint);
-			HttpContent content = new StringContent("{\"hex\": \"01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff2d03a58605204d696e656420627920416e74506f6f6c20757361311f10b53620558903d80272a70c0000724c0600ffffffff010f9e5096000000001976a9142ef12bd2ac1416406d0e132e5bc8d0b02df3861b88ac00000000\"}");
+			using var client = new TorHttpClient(new Uri("https://postman-echo.com"), Global.Instance.TorSocks5Endpoint);
+			HttpContent content = new StringContent("This is expected to be sent back as part of response body.");
 
-			HttpResponseMessage message = await client.SendAsync(HttpMethod.Post, "/v1/blockchain/decodetx", content);
+			HttpResponseMessage message = await client.SendAsync(HttpMethod.Post, "post", content);
 			var responseContentString = await message.Content.ReadAsStringAsync();
 
-			Assert.Equal("{\"success\":true,\"transaction\":{\"Version\":\"1\",\"LockTime\":\"0\",\"Vin\":[{\"TxId\":null,\"Vout\":null,\"ScriptSig\":null,\"CoinBase\":\"03a58605204d696e656420627920416e74506f6f6c20757361311f10b53620558903d80272a70c0000724c0600\",\"TxInWitness\":null,\"Sequence\":\"4294967295\"}],\"Vout\":[{\"Value\":25.21865743,\"N\":0,\"ScriptPubKey\":{\"Asm\":\"OP_DUP OP_HASH160 2ef12bd2ac1416406d0e132e5bc8d0b02df3861b OP_EQUALVERIFY OP_CHECKSIG\",\"Hex\":\"76a9142ef12bd2ac1416406d0e132e5bc8d0b02df3861b88ac\",\"ReqSigs\":1,\"Type\":\"pubkeyhash\",\"Addresses\":[\"15HCzh8AoKRnTWMtmgAsT9TKUPrQ6oh9HQ\"]}}],\"TxId\":\"a02b9bd4264ab5d7c43ee18695141452b23b230b2a8431b28bbe446bf2b2f595\"}}", responseContentString);
+			Assert.Contains("{\"args\":{},\"data\":\"This is expected to be sent back as part of response body.\"", responseContentString);
 		}
 
 		[Fact]
@@ -89,10 +94,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[Fact]
 		public async Task CanDoHttpsAsync()
 		{
-			using var client = new TorHttpClient(new Uri("https://slack.com"), Global.Instance.TorSocks5Endpoint);
-			var content = await (await client.SendAsync(HttpMethod.Get, "api/api.test")).Content.ReadAsStringAsync();
+			using var client = new TorHttpClient(new Uri("https://postman-echo.com"), Global.Instance.TorSocks5Endpoint);
+			var content = await (await client.SendAsync(HttpMethod.Get, "get?foo1=bar1&foo2=bar2")).Content.ReadAsStringAsync();
 
-			Assert.Equal("{\"ok\":true}", content);
+			Assert.Contains("{\"args\":{\"foo1\":\"bar1\",\"foo2\":\"bar2\"}", content);
 		}
 
 		[Fact]
@@ -128,7 +133,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[Fact]
 		public async Task CanRequestOnionV3Async()
 		{
-			using var client = new TorHttpClient(new Uri("http://dds6qkxpwdeubwucdiaord2xgbbeyds25rbsgr73tbfpqpt4a6vjwsyd.onion"), Global.Instance.TorSocks5Endpoint);
+			using var client = new TorHttpClient(new Uri("http://www.dds6qkxpwdeubwucdiaord2xgbbeyds25rbsgr73tbfpqpt4a6vjwsyd.onion"), Global.Instance.TorSocks5Endpoint);
 			HttpResponseMessage response = await client.SendAsync(HttpMethod.Get, "");
 			var content = await response.Content.ReadAsStringAsync();
 

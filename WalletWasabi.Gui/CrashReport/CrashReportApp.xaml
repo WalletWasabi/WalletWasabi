@@ -1,4 +1,4 @@
-﻿<Application xmlns="https://github.com/avaloniaui"
+<Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="WalletWasabi.Gui.CrashReport.CrashReportApp">
   <Application.Styles>
@@ -9,6 +9,5 @@
     <StyleInclude Source="avares://AvalonStudio.Shell/Controls/MetroWindowTheme.paml" />
     <StyleInclude Source="avares://WalletWasabi.Gui/Styles/Styles.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Gui/Icons/Icons.xaml" />
-
   </Application.Styles>
 </Application>

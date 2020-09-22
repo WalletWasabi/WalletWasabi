@@ -111,7 +111,7 @@
     <Setter Property="TextBlock.FontSize" Value="14" />
   </Style>
   <Style Selector=":is(TextBox).Transparent">
-    <Setter Property="Background" Value="Transparent" /> 
+    <Setter Property="Background" Value="Transparent" />
   </Style>
   <Style Selector="TextBox.largeHeader">
     <Setter Property="FontWeight" Value="Bold" />

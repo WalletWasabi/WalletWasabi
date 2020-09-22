@@ -43,7 +43,7 @@ namespace WalletWasabi.Helpers
 		// Do not change the output of this function. Backwards compatibility depends on it.
 		public static string GetDataDir(string appName)
 		{
-			if (DataDirDict.TryGetValue(appName, out string dataDir))
+			if (DataDirDict.TryGetValue(appName, out string? dataDir))
 			{
 				return dataDir;
 			}
@@ -90,45 +90,44 @@ namespace WalletWasabi.Helpers
 			return directory;
 		}
 
-		public static string TryGetDefaultBitcoinCoreDataDir()
+		/// <summary>
+		/// Gets Bitcoin <c>datadir</c> parameter from:
+		/// <list type="bullet">
+		/// <item><c>APPDATA</c> environment variable on Windows, and</item>
+		/// <item><c>HOME</c> environment variable on other platforms.</item>
+		/// </list>
+		/// </summary>
+		/// <returns><c>datadir</c> or empty string.</returns>
+		/// <seealso href="https://en.bitcoin.it/wiki/Data_directory"/>
+		public static string GetDefaultBitcoinCoreDataDirOrEmptyString()
 		{
-			string directory = null;
+			string directory = "";
 
-			// https://en.bitcoin.it/wiki/Data_directory
-			try
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				var localAppData = Environment.GetEnvironmentVariable("APPDATA");
+				if (!string.IsNullOrEmpty(localAppData))
 				{
-					var localAppData = Environment.GetEnvironmentVariable("APPDATA");
-					if (!string.IsNullOrEmpty(localAppData))
-					{
-						directory = Path.Combine(localAppData, "Bitcoin");
-					}
-					else
-					{
-						throw new DirectoryNotFoundException($"Could not find suitable default {Constants.BuiltinBitcoinNodeName} datadir.");
-					}
+					directory = Path.Combine(localAppData, "Bitcoin");
 				}
 				else
 				{
-					var home = Environment.GetEnvironmentVariable("HOME");
-					if (!string.IsNullOrEmpty(home))
-					{
-						directory = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
-							? Path.Combine(home, "Library", "Application Support", "Bitcoin")
-							: Path.Combine(home, ".bitcoin"); // Linux
-					}
-					else
-					{
-						throw new DirectoryNotFoundException($"Could not find suitable default {Constants.BuiltinBitcoinNodeName} datadir.");
-					}
+					Logger.LogDebug($"Could not find suitable default {Constants.BuiltinBitcoinNodeName} datadir.");
 				}
-
-				return directory;
 			}
-			catch (Exception ex)
+			else
 			{
-				Logger.LogDebug(ex);
+				var home = Environment.GetEnvironmentVariable("HOME");
+				if (!string.IsNullOrEmpty(home))
+				{
+					directory = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+						? Path.Combine(home, "Library", "Application Support", "Bitcoin")
+						: Path.Combine(home, ".bitcoin"); // Linux
+				}
+				else
+				{
+					Logger.LogDebug($"Could not find suitable default {Constants.BuiltinBitcoinNodeName} datadir.");
+				}
 			}
 
 			return directory;
@@ -163,7 +162,7 @@ namespace WalletWasabi.Helpers
 		}
 
 		/// <summary>
-		/// Executes a command with Bash.
+		/// Executes a command with Bourne shell.
 		/// https://stackoverflow.com/a/47918132/2061103
 		/// </summary>
 		public static async Task ShellExecAsync(string cmd, bool waitForExit = true)
@@ -211,10 +210,10 @@ namespace WalletWasabi.Helpers
 
 			using (RegistryKey key = Registry.ClassesRoot.OpenSubKey($".{fileExtension}"))
 			{
-				if (key != null)
+				if (key is { })
 				{
 					object val = key.GetValue(null); // Read the (Default) value.
-					if (val != null)
+					if (val is { })
 					{
 						return true;
 					}

@@ -10,7 +10,6 @@ using System.Reactive.Linq;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.CoinJoin.Client.Rounds;
 using WalletWasabi.CoinJoin.Common.Models;
-using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
@@ -213,7 +212,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return SmartCoinStatus.MixingBanned;
 			}
 
-			if (Model.CoinJoinInProgress && Wallet.ChaumianClient != null)
+			if (Model.CoinJoinInProgress && Wallet.ChaumianClient is { })
 			{
 				ClientState clientState = Wallet.ChaumianClient.State;
 				foreach (var round in clientState.GetAllMixingRounds())

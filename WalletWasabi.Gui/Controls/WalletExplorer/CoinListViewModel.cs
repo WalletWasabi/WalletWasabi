@@ -1,5 +1,4 @@
 using Avalonia.Controls;
-using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
@@ -7,7 +6,6 @@ using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -431,15 +429,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private void RefreshStatusColumnWidth(CoinViewModel[] coins)
 		{
 			CoinJoinStatusWidth = coins.Any() && coins.All(x => NotVisibleStatuses.Contains(x.Status))
-										 ? new GridLength(0)
-										 : new GridLength(180);
+				? new GridLength(0)
+				: new GridLength(180);
 		}
 
 		private void OnOpen()
 		{
-			Disposables = Disposables is null ?
-				new CompositeDisposable() :
-				throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
+			Disposables = Disposables is null
+				? new CompositeDisposable()
+				: throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			Global.UiConfig
 				.WhenAnyValue(x => x.LurkingWifeMode)

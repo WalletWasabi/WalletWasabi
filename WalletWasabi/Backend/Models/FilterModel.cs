@@ -1,15 +1,9 @@
 using NBitcoin;
 using NBitcoin.DataEncoders;
-using Newtonsoft.Json;
 using System;
-using System.IO;
-using System.Linq;
 using System.Text;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
-using WalletWasabi.Interfaces;
-using WalletWasabi.JsonConverters;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Backend.Models
 {

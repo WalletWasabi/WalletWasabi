@@ -123,8 +123,8 @@
 //      var p = new OptionSet () {
 //        { "a", s => a = s },
 //      };
-//      p.Parse (new string[]{"-a"});   // sets v != null
-//      p.Parse (new string[]{"-a+"});  // sets v != null
+//      p.Parse (new string[]{"-a"});   // sets v is { }
+//      p.Parse (new string[]{"-a+"});  // sets v is { }
 //      p.Parse (new string[]{"-a-"});  // sets v is null
 //
 
@@ -160,8 +160,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using MessageLocalizerConverter = System.Converter<string, string>;
 
 namespace Mono.Options
@@ -199,10 +199,7 @@ namespace Mono.Options
 
 		public new CommandSet Add(Command value)
 		{
-			if (value is null)
-			{
-				throw new ArgumentNullException(nameof(value));
-			}
+			Guard.NotNull(nameof(value), value);
 
 			AddCommand(value);
 			Options.Add(new CommandOption(value));
@@ -211,12 +208,12 @@ namespace Mono.Options
 
 		private void AddCommand(Command value)
 		{
-			if (value.CommandSet != null && value.CommandSet != this)
+			if (value.CommandSet is { } && value.CommandSet != this)
 			{
 				throw new ArgumentException($"Command instances can only be added to a single {nameof(CommandSet)}.", nameof(value));
 			}
 			value.CommandSet = this;
-			if (value.Options != null)
+			if (value.Options is { })
 			{
 				value.Options.MessageLocalizer = Options.MessageLocalizer;
 			}
@@ -306,15 +303,9 @@ namespace Mono.Options
 
 		public CommandSet Add(CommandSet nestedCommands)
 		{
-			if (nestedCommands is null)
-			{
-				throw new ArgumentNullException(nameof(nestedCommands));
-			}
+			Guard.NotNull(nameof(nestedCommands), nestedCommands);
 
-			if (NestedCommandSets is null)
-			{
-				NestedCommandSets = new List<CommandSet>();
-			}
+			NestedCommandSets ??= new List<CommandSet>();
 
 			if (!AlreadyAdded(nestedCommands))
 			{
@@ -424,10 +415,7 @@ namespace Mono.Options
 
 		public async Task<int> RunAsync(IEnumerable<string> arguments)
 		{
-			if (arguments is null)
-			{
-				throw new ArgumentNullException(nameof(arguments));
-			}
+			Guard.NotNull(nameof(arguments), arguments);
 
 			ShowHelp = false;
 			if (Help is null)
@@ -437,11 +425,11 @@ namespace Mono.Options
 			}
 			if (!Options.Contains("help"))
 			{
-				Options.Add("help", "", v => ShowHelp = v != null, hidden: true);
+				Options.Add("help", "", v => ShowHelp = v is { }, hidden: true);
 			}
 			if (!Options.Contains("?"))
 			{
-				Options.Add("?", "", v => ShowHelp = v != null, hidden: true);
+				Options.Add("?", "", v => ShowHelp = v is { }, hidden: true);
 			}
 			var extra = Options.Parse(arguments);
 			if (extra.Count == 0)
@@ -523,7 +511,7 @@ namespace Mono.Options
 			}
 
 			var command = nestedCommands.GetCommand(extraCopy);
-			if (command != null)
+			if (command is { })
 			{
 				extra.Clear();
 				extra.AddRange(extraCopy);

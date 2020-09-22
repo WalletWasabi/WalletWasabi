@@ -1,19 +1,13 @@
 using NBitcoin;
-using NBitcoin.RPC;
-using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinCore;
 using WalletWasabi.BitcoinCore.Rpc;
-using WalletWasabi.Blockchain.P2p;
 using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
-using WalletWasabi.Services;
 
 namespace WalletWasabi.Blockchain.Blocks
 {
@@ -132,7 +126,7 @@ namespace WalletWasabi.Blockchain.Blocks
 			// Else let's sort out things.
 			var foundPrevBlock = ProcessedBlocks.FirstOrDefault(x => x == arrivedHeader.HashPrevBlock);
 			// Missed notifications on some previous blocks.
-			if (foundPrevBlock != null)
+			if (foundPrevBlock is { })
 			{
 				// Reorg happened.
 				ReorgToBlock(foundPrevBlock);
@@ -181,7 +175,7 @@ namespace WalletWasabi.Blockchain.Blocks
 
 				// If we found the proper chain.
 				var foundPrevBlock = ProcessedBlocks.FirstOrDefault(x => x == currentHeader.HashPrevBlock);
-				if (foundPrevBlock != null)
+				if (foundPrevBlock is { })
 				{
 					// If the last block hash is not what we found, then we missed a reorg also.
 					if (foundPrevBlock != ProcessedBlocks.Last())

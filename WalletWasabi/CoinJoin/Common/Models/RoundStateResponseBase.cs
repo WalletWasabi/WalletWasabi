@@ -4,7 +4,6 @@ using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.CoinJoin.Common.Models
@@ -50,7 +49,7 @@ namespace WalletWasabi.CoinJoin.Common.Models
 		{
 			var tried = new List<Money>();
 			Money baseMinimum = Denomination + (FeePerOutputs * 2); // + (Denomination.Percentange(CoordinatorFeePercent) * RequiredPeerCount);
-			if (queuedCoinAmounts != default)
+			if (queuedCoinAmounts is { })
 			{
 				foreach (Money amount in queuedCoinAmounts.OrderByDescending(x => x))
 				{
@@ -72,7 +71,7 @@ namespace WalletWasabi.CoinJoin.Common.Models
 			var tried = new List<Money>();
 			Money baseMinimum = Denomination + (FeePerOutputs * 2); // + (Denomination.Percentange(CoordinatorFeePercent) * RequiredPeerCount);
 
-			if (queuedCoinAmounts != default)
+			if (queuedCoinAmounts is { })
 			{
 				foreach (Money amount in queuedCoinAmounts.OrderByDescending(x => x))
 				{

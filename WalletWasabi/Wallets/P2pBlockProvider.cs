@@ -254,7 +254,7 @@ namespace WalletWasabi.Wallets
 
 		private void DisconnectDisposeNullLocalBitcoinCoreNode()
 		{
-			if (LocalBitcoinCoreNode != null)
+			if (LocalBitcoinCoreNode is { })
 			{
 				try
 				{

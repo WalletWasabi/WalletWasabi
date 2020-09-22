@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
@@ -237,7 +236,7 @@ namespace Nito.AsyncEx
 			lock (LatestHoldLockExceptionLock)
 			{
 				// If we had an exception then throw it.
-				if (LatestHoldLockException != null)
+				if (LatestHoldLockException is { })
 				{
 					throw LatestHoldLockException;
 				}

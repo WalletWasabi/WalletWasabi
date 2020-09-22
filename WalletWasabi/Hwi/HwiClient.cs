@@ -1,13 +1,8 @@
 using NBitcoin;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
@@ -303,7 +298,7 @@ namespace WalletWasabi.Hwi
 		{
 			var options = new List<HwiOption>();
 
-			var hasDevicePath = devicePath != null;
+			var hasDevicePath = devicePath is { };
 			var hasDeviceType = deviceType.HasValue;
 			var hasFingerprint = fingerprint.HasValue;
 
