@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.DeveloperNews
 {
@@ -56,6 +57,7 @@ namespace WalletWasabi.DeveloperNews
 				Items.Clear();
 				Items.AddRange(items);
 				ToFile();
+				Logger.LogInfo($"Updated {nameof(News)}.");
 			}
 		}
 
