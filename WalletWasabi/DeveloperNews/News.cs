@@ -12,7 +12,7 @@ using WalletWasabi.Helpers;
 namespace WalletWasabi.DeveloperNews
 {
 	[JsonObject(MemberSerialization.OptIn)]
-	public class News
+	public class News : IEquatable<News>
 	{
 		public News(IEnumerable<NewsItem> items)
 		{
@@ -34,5 +34,30 @@ namespace WalletWasabi.DeveloperNews
 			var items = JsonConvert.DeserializeObject<IEnumerable<NewsItem>>(jsonString);
 			return new News(items);
 		}
+
+		public static News FromFileOrDefault(string filePath)
+		{
+			if (!File.Exists(filePath))
+			{
+				Default.ToFile(filePath);
+			}
+			return FromFile(filePath);
+		}
+
+		public void ToFile(string filePath)
+		{
+			var content = JsonConvert.SerializeObject(Items, Formatting.Indented);
+			File.WriteAllText(filePath, content);
+		}
+
+		public override bool Equals(object? obj) => Equals(obj as News);
+
+		public bool Equals(News? other) => this == other;
+
+		public override int GetHashCode() => Hash.GetHashCode();
+
+		public static bool operator ==(News? x, News? y) => x?.Hash == y?.Hash;
+
+		public static bool operator !=(News? x, News? y) => !(x == y);
 	}
 }

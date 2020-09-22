@@ -1,6 +1,7 @@
 using NBitcoin;
 using NBitcoin.RPC;
 using System;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -10,6 +11,7 @@ using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.DeveloperNews;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -25,6 +27,8 @@ namespace WalletWasabi.Services
 
 		private AllFeeEstimate _allFeeEstimate;
 
+		private News _news;
+
 		private TorStatus _torStatus;
 
 		private BackendStatus _backendStatus;
@@ -36,21 +40,21 @@ namespace WalletWasabi.Services
 
 		private long _blockRequests; // There are priority requests in queue.
 
-		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, WasabiClient client)
+		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, WasabiClient client, string newsFilePath)
 		{
-			CreateNew(network, bitcoinStore, client);
+			CreateNew(network, bitcoinStore, client, newsFilePath);
 		}
 
-		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Func<Uri> baseUriAction, EndPoint torSocks5EndPoint)
+		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Func<Uri> baseUriAction, EndPoint torSocks5EndPoint, string newsFilePath)
 		{
 			var client = new WasabiClient(baseUriAction, torSocks5EndPoint);
-			CreateNew(network, bitcoinStore, client);
+			CreateNew(network, bitcoinStore, client, newsFilePath);
 		}
 
-		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Uri baseUri, EndPoint torSocks5EndPoint)
+		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Uri baseUri, EndPoint torSocks5EndPoint, string newsFilePath)
 		{
 			var client = new WasabiClient(baseUri, torSocks5EndPoint);
-			CreateNew(network, bitcoinStore, client);
+			CreateNew(network, bitcoinStore, client, newsFilePath);
 		}
 
 		#region EventsPropertiesMembers
@@ -88,6 +92,14 @@ namespace WalletWasabi.Services
 			}
 		}
 
+		public string NewsFilePath { get; private set; }
+
+		public News News
+		{
+			get => _news;
+			private set => RaiseAndSetIfChanged(ref _news, value);
+		}
+
 		public TorStatus TorStatus
 		{
 			get => _torStatus;
@@ -118,7 +130,7 @@ namespace WalletWasabi.Services
 
 		#region Initializers
 
-		private void CreateNew(Network network, BitcoinStore bitcoinStore, WasabiClient client)
+		private void CreateNew(Network network, BitcoinStore bitcoinStore, WasabiClient client, string newsFilePath)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 			WasabiClient = Guard.NotNull(nameof(client), client);
@@ -126,6 +138,8 @@ namespace WalletWasabi.Services
 			_running = 0;
 			Cancel = new CancellationTokenSource();
 			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
+			NewsFilePath = newsFilePath;
+			News = News.FromFileOrDefault(newsFilePath);
 		}
 
 		public void Start(TimeSpan requestInterval, TimeSpan feeQueryRequestInterval, int maxFiltersToSyncAtInitialization)
@@ -175,7 +189,7 @@ namespace WalletWasabi.Services
 									return;
 								}
 
-								response = await WasabiClient.GetSynchronizeAsync(hashChain.TipHash, maxFiltersToSyncAtInitialization, estimateMode, Cancel.Token).WithAwaitCancellationAsync(Cancel.Token, 300);
+								response = await WasabiClient.GetSynchronizeAsync(hashChain.TipHash, maxFiltersToSyncAtInitialization, estimateMode, News.Hash, Cancel.Token).WithAwaitCancellationAsync(Cancel.Token, 300);
 
 								// NOT GenSocksServErr
 								BackendStatus = BackendStatus.Connected;
@@ -235,6 +249,16 @@ namespace WalletWasabi.Services
 							{
 								lastFeeQueried = DateTimeOffset.UtcNow;
 								AllFeeEstimate = response.AllFeeEstimate;
+							}
+
+							if (response.News is { })
+							{
+								var news = new News(response.News);
+								if (news.Hash != News.Hash)
+								{
+									News = new News(response.News);
+									News.ToFile(NewsFilePath);
+								}
 							}
 
 							if (response.Filters.Count() == maxFiltersToSyncAtInitialization)

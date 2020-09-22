@@ -111,13 +111,14 @@ namespace WalletWasabi.Gui
 
 				SingleInstanceChecker = new SingleInstanceChecker(Network);
 
+				var newsFilePath = Path.Combine(DataDir, "News.json");
 				if (Config.UseTor)
 				{
-					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint);
+					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint, newsFilePath);
 				}
 				else
 				{
-					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, Config.GetFallbackBackendUri(), null);
+					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, Config.GetFallbackBackendUri(), null, newsFilePath);
 				}
 			}
 		}
