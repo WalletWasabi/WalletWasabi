@@ -22,6 +22,7 @@ using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.CoinJoin.Coordinator;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Crypto;
+using WalletWasabi.DeveloperNews;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
@@ -1071,7 +1072,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		{
 			(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
-			var synchronizer = new WasabiSynchronizer(network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null, Path.Combine(Common.GetWorkDir(), "News.json"));
+			var synchronizer = new WasabiSynchronizer(network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null, News.Default);
 			synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
 
 			Money denomination = Money.Coins(0.9m);
@@ -1174,7 +1175,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		{
 			(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
-			var synchronizer = new WasabiSynchronizer(network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null, Path.Combine(Common.GetWorkDir(), "News.json"));
+			var synchronizer = new WasabiSynchronizer(network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null, News.Default);
 			synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
 
 			Money denomination = Money.Coins(0.1m);
@@ -1355,10 +1356,10 @@ namespace WalletWasabi.Tests.RegressionTests
 			node2.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 			// 3. Create wasabi synchronizer service.
-			var synchronizer = new WasabiSynchronizer(network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null, Path.Combine(Common.GetWorkDir(), "News.json"));
+			var synchronizer = new WasabiSynchronizer(network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null, News.Default);
 
 			var indexFilePath2 = Path.Combine(Common.GetWorkDir(), $"Index{network}2.dat");
-			var synchronizer2 = new WasabiSynchronizer(network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null, Path.Combine(Common.GetWorkDir(), "News.json"));
+			var synchronizer2 = new WasabiSynchronizer(network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null, News.Default);
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);

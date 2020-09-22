@@ -27,8 +27,6 @@ namespace WalletWasabi.Services
 
 		private AllFeeEstimate _allFeeEstimate;
 
-		private News _news;
-
 		private TorStatus _torStatus;
 
 		private BackendStatus _backendStatus;
@@ -40,21 +38,21 @@ namespace WalletWasabi.Services
 
 		private long _blockRequests; // There are priority requests in queue.
 
-		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, WasabiClient client, string newsFilePath)
+		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, WasabiClient client, News news)
 		{
-			CreateNew(network, bitcoinStore, client, newsFilePath);
+			CreateNew(network, bitcoinStore, client, news);
 		}
 
-		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Func<Uri> baseUriAction, EndPoint torSocks5EndPoint, string newsFilePath)
+		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Func<Uri> baseUriAction, EndPoint torSocks5EndPoint, News news)
 		{
 			var client = new WasabiClient(baseUriAction, torSocks5EndPoint);
-			CreateNew(network, bitcoinStore, client, newsFilePath);
+			CreateNew(network, bitcoinStore, client, news);
 		}
 
-		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Uri baseUri, EndPoint torSocks5EndPoint, string newsFilePath)
+		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Uri baseUri, EndPoint torSocks5EndPoint, News news)
 		{
 			var client = new WasabiClient(baseUri, torSocks5EndPoint);
-			CreateNew(network, bitcoinStore, client, newsFilePath);
+			CreateNew(network, bitcoinStore, client, news);
 		}
 
 		#region EventsPropertiesMembers
@@ -92,13 +90,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public string NewsFilePath { get; private set; }
-
-		public News News
-		{
-			get => _news;
-			private set => RaiseAndSetIfChanged(ref _news, value);
-		}
+		private News News { get; set; }
 
 		public TorStatus TorStatus
 		{
@@ -130,7 +122,7 @@ namespace WalletWasabi.Services
 
 		#region Initializers
 
-		private void CreateNew(Network network, BitcoinStore bitcoinStore, WasabiClient client, string newsFilePath)
+		private void CreateNew(Network network, BitcoinStore bitcoinStore, WasabiClient client, News news)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 			WasabiClient = Guard.NotNull(nameof(client), client);
@@ -138,8 +130,7 @@ namespace WalletWasabi.Services
 			_running = 0;
 			Cancel = new CancellationTokenSource();
 			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
-			NewsFilePath = newsFilePath;
-			News = News.FromFileOrDefault(newsFilePath);
+			News = news;
 		}
 
 		public void Start(TimeSpan requestInterval, TimeSpan feeQueryRequestInterval, int maxFiltersToSyncAtInitialization)
@@ -253,12 +244,7 @@ namespace WalletWasabi.Services
 
 							if (response.News is { })
 							{
-								var news = new News(response.News);
-								if (news.Hash != News.Hash)
-								{
-									News = new News(response.News);
-									News.ToFile(NewsFilePath);
-								}
+								News.Update(response.News);
 							}
 
 							if (response.Filters.Count() == maxFiltersToSyncAtInitialization)

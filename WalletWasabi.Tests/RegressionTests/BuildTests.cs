@@ -15,6 +15,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Coordinator;
+using WalletWasabi.DeveloperNews;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -55,7 +56,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 			// 3. Create wasabi synchronizer service.
-			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null, Path.Combine(Common.GetWorkDir(), "News.json"));
+			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null, News.Default);
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
@@ -218,7 +219,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 			// 3. Create wasabi synchronizer service.
-			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null, Path.Combine(Common.GetWorkDir(), "News.json"));
+			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null, News.Default);
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);

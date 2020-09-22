@@ -14,40 +14,49 @@ namespace WalletWasabi.DeveloperNews
 	[JsonObject(MemberSerialization.OptIn)]
 	public class News : IEquatable<News>
 	{
-		public News(IEnumerable<NewsItem> items)
+		public News(string filePath)
 		{
-			Items = items;
-			Hash = ComputeHash();
+			FilePath = filePath;
+			if (File.Exists(FilePath))
+			{
+				var jsonString = File.ReadAllText(filePath, Encoding.UTF8);
+				var items = JsonConvert.DeserializeObject<IEnumerable<NewsItem>>(jsonString);
+				Items = new List<NewsItem>(items);
+			}
+			else
+			{
+				Items = new List<NewsItem>(Default.Items);
+				ToFile();
+			}
 		}
 
-		public IEnumerable<NewsItem> Items { get; }
-		public string Hash { get; }
+		public List<NewsItem> Items { get; }
+		public string Hash => ComputeHash();
 
 		private string ComputeHash()
-			=> HashHelpers.GenerateSha256Hash(string.Join("", Items.Select(x => x.ComputeHash())));
+			=> ComputeHash(Items);
 
-		public static News Default { get; } = FromFile(Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), nameof(DeveloperNews), "News.json"));
+		public static string ComputeHash(IEnumerable<NewsItem> items)
+			=> HashHelpers.GenerateSha256Hash(string.Join("", items.Select(x => x.ComputeHash())));
 
-		public static News FromFile(string filePath)
-		{
-			var jsonString = File.ReadAllText(filePath, Encoding.UTF8);
-			var items = JsonConvert.DeserializeObject<IEnumerable<NewsItem>>(jsonString);
-			return new News(items);
-		}
+		public static News Default { get; } = new News(Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), nameof(DeveloperNews), "News.json"));
+		public string FilePath { get; }
 
-		public static News FromFileOrDefault(string filePath)
-		{
-			if (!File.Exists(filePath))
-			{
-				Default.ToFile(filePath);
-			}
-			return FromFile(filePath);
-		}
-
-		public void ToFile(string filePath)
+		public void ToFile()
 		{
 			var content = JsonConvert.SerializeObject(Items, Formatting.Indented);
-			File.WriteAllText(filePath, content);
+			File.WriteAllText(FilePath, content);
+		}
+
+		public void Update(IEnumerable<NewsItem> items)
+		{
+			var hash = ComputeHash(items);
+			if (hash != Hash)
+			{
+				Items.Clear();
+				Items.AddRange(items);
+				ToFile();
+			}
 		}
 
 		public override bool Equals(object? obj) => Equals(obj as News);

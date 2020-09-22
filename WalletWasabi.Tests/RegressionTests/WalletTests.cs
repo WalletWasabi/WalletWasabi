@@ -12,6 +12,7 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.CoinJoin.Coordinator;
+using WalletWasabi.DeveloperNews;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
@@ -55,7 +56,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		{
 			(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
-			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null, Path.Combine(Common.GetWorkDir(), "News.json"));
+			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null, News.Default);
 			try
 			{
 				synchronizer.Start(requestInterval: TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5), 1000);
@@ -140,7 +141,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			var node = RegTestFixture.BackendRegTestNode;
 
-			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null, Path.Combine(Common.GetWorkDir(), "News.json"));
+			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null, News.Default);
 
 			try
 			{
@@ -244,7 +245,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 			// 2. Create wasabi synchronizer service.
-			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null, Path.Combine(Common.GetWorkDir(), "News.json"));
+			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null, News.Default);
 
 			// 3. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
