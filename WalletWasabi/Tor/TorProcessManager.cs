@@ -136,7 +136,7 @@ namespace WalletWasabi.Tor
 							break;
 						}
 
-						const int MaxAttempts = 15;
+						const int MaxAttempts = 25;
 
 						if (i >= MaxAttempts)
 						{
@@ -144,8 +144,8 @@ namespace WalletWasabi.Tor
 							return false;
 						}
 
-						// Wait 750 milliseconds between attempts.
-						await Task.Delay(500).ConfigureAwait(false);
+						// Wait 250 milliseconds between attempts.
+						await Task.Delay(250).ConfigureAwait(false);
 					}
 
 					Logger.LogInfo("Tor is running.");
