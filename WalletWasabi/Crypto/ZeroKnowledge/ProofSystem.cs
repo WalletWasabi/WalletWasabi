@@ -60,10 +60,10 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		public static Knowledge BalanceProof(Scalar zSum, Scalar rDeltaSum)
 			=> new Knowledge(BalanceProof(zSum * Generators.Ga + rDeltaSum * Generators.Gh), new ScalarVector(zSum, rDeltaSum));
 
+		// Balance commitment must be a commitment to 0, with randomness in Gh and
+		// additional randomness from attribute randomization in Show protocol,
+		// using generator Ga. Witness terms: (\sum z, \sum r_i - r'_i)
 		public static Statement BalanceProof(GroupElement balanceCommitment)
-			// Balance commitment must be a commitment to 0, with randomness in Gh and
-			// additional randomness from attribute randomization in Show protocol,
-			// using generator Ga. Witness terms: (\sum z, \sum r_i - r'_i)
 			=> new Statement(balanceCommitment, Generators.Ga, Generators.Gh);
 	}
 }
