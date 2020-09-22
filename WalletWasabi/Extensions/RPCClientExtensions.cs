@@ -14,29 +14,6 @@ namespace NBitcoin.RPC
 {
 	public static class RPCClientExtensions
 	{
-		/// <summary>
-		/// Waits for a specific new block and returns useful info about it.
-		/// </summary>
-		/// <param name="timeout">Time in milliseconds to wait for a response. 0 indicates no timeout.</param>
-		/// <returns>Returns the current block on timeout or exit</returns>
-		public static async Task<(Height height, uint256 hash)> WaitForNewBlockAsync(this RPCClient rpc, long timeout = 0)
-		{
-			var resp = await rpc.SendCommandAsync("waitfornewblock", timeout);
-			return (int.Parse(resp.Result["height"].ToString()), uint256.Parse(resp.Result["hash"].ToString()));
-		}
-
-		/// <summary>
-		/// Waits for a specific new block and returns useful info about it.
-		/// </summary>
-		/// <param name="blockHash">Block hash to wait for</param>
-		/// <param name="timeout">Time in milliseconds to wait for a response. 0 indicates no timeout.</param>
-		/// <returns>Returns the current block on timeout or exit</returns>
-		public static async Task<(Height height, uint256 hash)> WaitForBlockAsync(this RPCClient rpc, uint256 blockHash, long timeout = 0)
-		{
-			var resp = await rpc.SendCommandAsync("waitforblock", blockHash, timeout);
-			return (int.Parse(resp.Result["height"].ToString()), uint256.Parse(resp.Result["hash"].ToString()));
-		}
-
 		public static async Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(this IRPCClient rpc, int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false, bool tryOtherFeeRates = true)
 		{
 			if (simulateIfRegTest && rpc.Network == Network.RegTest)
@@ -72,39 +49,6 @@ namespace NBitcoin.RPC
 			}
 
 			return await rpc.EstimateSmartFeeAsync(confirmationTarget, estimateMode);
-		}
-
-		public static async Task<EstimateSmartFeeResponse> TryEstimateSmartFeeAsync(this IRPCClient rpc, int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false, bool tryOtherFeeRates = false)
-		{
-			if (simulateIfRegTest && rpc.Network == Network.RegTest)
-			{
-				return SimulateRegTestFeeEstimation(confirmationTarget, estimateMode);
-			}
-
-			if (tryOtherFeeRates)
-			{
-				EstimateSmartFeeResponse response = await rpc.TryEstimateSmartFeeAsync(confirmationTarget, estimateMode);
-				if (response is { })
-				{
-					return response;
-				}
-				else
-				{
-					// Hopefully Bitcoin Core brainfart: https://github.com/bitcoin/bitcoin/issues/14431
-					for (int i = 2; i <= Constants.SevenDaysConfirmationTarget; i++)
-					{
-						response = await rpc.TryEstimateSmartFeeAsync(i, estimateMode);
-						if (response is { })
-						{
-							return response;
-						}
-					}
-				}
-
-				// Let's try one more time, whatever.
-			}
-
-			return await rpc.TryEstimateSmartFeeAsync(confirmationTarget, estimateMode);
 		}
 
 		private static EstimateSmartFeeResponse SimulateRegTestFeeEstimation(int confirmationTarget, EstimateSmartFeeMode estimateMode)

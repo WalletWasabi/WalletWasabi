@@ -894,10 +894,6 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			try
 			{
 				var estimateSmartFeeResponse = await rpc.EstimateSmartFeeAsync(confirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true).ConfigureAwait(false);
-				if (estimateSmartFeeResponse is null)
-				{
-					throw new InvalidOperationException($"{nameof(FeeRate)} is not yet initialized.");
-				}
 
 				var feeRate = estimateSmartFeeResponse.FeeRate;
 				Money feePerBytes = feeRate.FeePerK / 1000;
