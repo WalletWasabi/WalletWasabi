@@ -1,0 +1,1 @@
+Add news to the `News.json` file. After the backend is restarted, the news will be synchronized to the clients.

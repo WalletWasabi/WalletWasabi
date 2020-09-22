@@ -36,7 +36,7 @@ namespace WalletWasabi.Backend.Controllers
 		public OffchainController OffchainController { get; }
 
 		[HttpGet("synchronize")]
-		public async Task<IActionResult> GetSynchronizeAsync([FromQuery, Required] string bestKnownBlockHash, [FromQuery, Required] int maxNumberOfFilters, [FromQuery] string? estimateSmartFeeMode = nameof(EstimateSmartFeeMode.Conservative))
+		public async Task<IActionResult> GetSynchronizeAsync([FromQuery, Required] string bestKnownBlockHash, [FromQuery, Required] int maxNumberOfFilters, [FromQuery] string? estimateSmartFeeMode = nameof(EstimateSmartFeeMode.Conservative), [FromQuery] string? knownNewsHash = null)
 		{
 			if (!ModelState.IsValid)
 			{
@@ -86,6 +86,11 @@ namespace WalletWasabi.Backend.Controllers
 			response.ExchangeRates = await OffchainController.GetExchangeRatesCollectionAsync();
 
 			response.UnconfirmedCoinJoins = await ChaumianCoinJoinController.GetUnconfirmedCoinJoinCollectionAsync();
+
+			if (knownNewsHash is { } && knownNewsHash != Global.News.Hash)
+			{
+				response.News = OffchainController.GetNewsItems();
+			}
 
 			return Ok(response);
 		}

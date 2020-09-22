@@ -1,0 +1,8 @@
+[
+  {
+    "Date": "2020-9-3",
+    "Title": "Wasabi V4 Hard Fork",
+    "Description": "Fixed a Denial of Service attack vector.",
+    "Link": "https://blog.wasabiwallet.io/responsible-disclosure-v4-hard-fork/"
+  }
+]

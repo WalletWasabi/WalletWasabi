@@ -12,6 +12,7 @@ using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.CoinJoin.Coordinator;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
+using WalletWasabi.DeveloperNews;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
@@ -27,11 +28,12 @@ namespace WalletWasabi.Backend
 		public Global(string dataDir)
 		{
 			DataDir = dataDir ?? EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));
+			News = News.Default;
 			HostedServices = new HostedServices();
 		}
 
 		public string DataDir { get; }
-
+		public News News { get; }
 		public IRPCClient RpcClient { get; private set; }
 
 		public P2pNode P2pNode { get; private set; }

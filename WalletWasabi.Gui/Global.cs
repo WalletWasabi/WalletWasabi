@@ -27,6 +27,7 @@ using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
+using WalletWasabi.DeveloperNews;
 using WalletWasabi.Extensions;
 using WalletWasabi.Gui.CrashReport;
 using WalletWasabi.Gui.Helpers;
@@ -111,13 +112,14 @@ namespace WalletWasabi.Gui
 
 				SingleInstanceChecker = new SingleInstanceChecker(Network);
 
+				News = new News(Path.Combine(DataDir, "News.json"));
 				if (Config.UseTor)
 				{
-					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint);
+					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint, News);
 				}
 				else
 				{
-					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, Config.GetFallbackBackendUri(), null);
+					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, Config.GetFallbackBackendUri(), null, News);
 				}
 			}
 		}
@@ -129,6 +131,7 @@ namespace WalletWasabi.Gui
 		private CancellationTokenSource StoppingCts { get; }
 
 		private SingleInstanceChecker SingleInstanceChecker { get; }
+		public News News { get; }
 		public CrashReporter CrashReporter { get; }
 
 		public async Task InitializeNoWalletAsync()

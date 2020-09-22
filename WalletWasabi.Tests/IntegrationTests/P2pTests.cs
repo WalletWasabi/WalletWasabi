@@ -11,6 +11,7 @@ using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.DeveloperNews;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -92,7 +93,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			using var nodes = new NodesGroup(network, connectionParameters, requirements: Constants.NodeRequirements);
 
 			KeyManager keyManager = KeyManager.CreateNew(out _, "password");
-			WasabiSynchronizer syncer = new WasabiSynchronizer(network, bitcoinStore, new Uri("http://localhost:12345"), Global.Instance.TorSocks5Endpoint);
+			WasabiSynchronizer syncer = new WasabiSynchronizer(network, bitcoinStore, new Uri("http://localhost:12345"), Global.Instance.TorSocks5Endpoint, News.Default);
 			ServiceConfiguration serviceConfig = new ServiceConfiguration(MixUntilAnonymitySet.PrivacyLevelStrong.ToString(), 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
 				new P2pBlockProvider(nodes, null, syncer, serviceConfig, network),
