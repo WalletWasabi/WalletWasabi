@@ -1,12 +1,8 @@
 using NBitcoin;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using WalletWasabi.Bases;
-using WalletWasabi.Helpers;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.Blocks
 {

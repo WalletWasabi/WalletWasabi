@@ -1,11 +1,7 @@
 using NBitcoin;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Exceptions;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.BlockFilters
 {

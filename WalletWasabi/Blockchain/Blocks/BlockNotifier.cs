@@ -1,19 +1,13 @@
 using NBitcoin;
-using NBitcoin.RPC;
-using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinCore;
 using WalletWasabi.BitcoinCore.Rpc;
-using WalletWasabi.Blockchain.P2p;
 using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
-using WalletWasabi.Services;
 
 namespace WalletWasabi.Blockchain.Blocks
 {

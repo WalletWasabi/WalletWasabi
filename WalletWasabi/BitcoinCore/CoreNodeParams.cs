@@ -1,13 +1,9 @@
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using WalletWasabi.BitcoinCore.Endpointing;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Helpers;
 using WalletWasabi.Services;
-using WalletWasabi.Stores;
 
 namespace WalletWasabi.BitcoinCore
 {

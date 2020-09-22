@@ -1,13 +1,9 @@
 using NBitcoin;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
-using WalletWasabi.Stores;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions
 {

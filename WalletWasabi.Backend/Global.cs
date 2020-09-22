@@ -1,5 +1,4 @@
 using NBitcoin;
-using NBitcoin.Protocol;
 using NBitcoin.RPC;
 using System;
 using System.IO;
@@ -11,7 +10,6 @@ using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
-using WalletWasabi.Blockchain.P2p;
 using WalletWasabi.CoinJoin.Coordinator;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Helpers;

@@ -43,7 +43,7 @@ namespace WalletWasabi.Crypto
 				var R = rECPubKey.Q.ToGroupElementJacobian();
 				var t = FE.Zero;
 
-			retry:
+				retry:
 
 				RandomUtils.GetBytes(tmp);
 				_v = new Scalar(tmp, out int overflow);

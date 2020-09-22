@@ -1,5 +1,4 @@
 using Mono.Options;
-using System;
 using System.IO;
 using WalletWasabi.Gui.CommandLine;
 using WalletWasabi.Helpers;

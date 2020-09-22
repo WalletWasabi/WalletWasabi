@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
@@ -28,9 +28,9 @@
                 </i:Interaction.Behaviors>
               </TextBox>
 
-              <Button VerticalAlignment="Top" Content="{Binding ShowSensitiveKeys, StringFormat=\{0\} Sensitive Keys, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Hide:Show}" Command="{Binding ToggleSensitiveKeysCommand}" DockPanel.Dock="Right" />
+              <Button Content="{Binding ShowSensitiveKeys, StringFormat=\{0\} Sensitive Keys, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Hide:Show}" Command="{Binding ToggleSensitiveKeysCommand}" DockPanel.Dock="Right" />
             </StackPanel>
-            
+
             <StackPanel IsVisible="{Binding !IsWatchOnly}" Spacing="4">
               <TextBlock Text="Extended Master Private Key: " />
               <TextBox Text="{Binding ExtendedMasterPrivateKey}" Foreground="IndianRed" Classes="selectableTextBlock keysTextBlock" />

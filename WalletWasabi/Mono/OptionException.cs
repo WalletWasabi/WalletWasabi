@@ -156,10 +156,7 @@
 //
 
 using System;
-using System.Collections.Generic;
 using System.Runtime.Serialization;
-using System.Security.Permissions;
-using System.Text;
 
 namespace Mono.Options
 {

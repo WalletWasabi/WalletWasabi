@@ -1,14 +1,10 @@
 using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
-using AvalonStudio.Commands;
 using Splat;
 using System;
 using System.Collections.Generic;
-using System.Composition;
-using System.Drawing;
 using System.Globalization;
-using WalletWasabi.Exceptions;
 
 namespace WalletWasabi.Gui.Converters
 {

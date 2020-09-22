@@ -1,9 +1,5 @@
-using System;
-using System.ComponentModel;
 using Avalonia;
 using Avalonia.Markup.Xaml;
-using AvalonStudio.Shell.Controls;
-using Splat;
 
 namespace WalletWasabi.Gui.CrashReport.Views
 {
