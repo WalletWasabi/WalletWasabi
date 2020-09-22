@@ -57,7 +57,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _isBusy;
 		private bool _isHardwareBusy;
 		private bool _isCustomFee;
-		private ObservableAsPropertyHelper<bool> _isEstimateAvailabe;
 
 		private const string WaitingForHardwareWalletButtonTextString = "Waiting for Hardware Wallet...";
 
@@ -554,7 +553,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			private set => this.RaiseAndSetIfChanged(ref _isCustomFee, value);
 		}
 
-		public bool IsEstimateAvailable => _isEstimateAvailabe?.Value ?? false;
+		public bool IsEstimateAvailable => Global.FeeProviders?.AllFeeEstimate is { };
 
 		public string AmountWatermarkText
 		{
@@ -872,11 +871,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override void OnOpen(CompositeDisposable disposables)
 		{
-			_isEstimateAvailabe = Observable
+			Observable
 				.FromEventPattern<AllFeeEstimate>(Global.FeeProviders, nameof(Global.FeeProviders.AllFeeEstimateChanged))
 				.Select(x => x.EventArgs is { })
-				.ToProperty(this, x => x.IsEstimateAvailable, scheduler: RxApp.MainThreadScheduler)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => this.RaisePropertyChanged(nameof(IsEstimateAvailable)))
 				.DisposeWith(disposables);
+
 			this.RaisePropertyChanged(nameof(IsEstimateAvailable));
 
 			Observable
