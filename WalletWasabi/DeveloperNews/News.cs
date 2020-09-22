@@ -32,16 +32,16 @@ namespace WalletWasabi.DeveloperNews
 		}
 
 		public List<NewsItem> Items { get; }
-		public string Hash => ComputeHash();
 
-		private string ComputeHash()
-			=> ComputeHash(Items);
+		public static News Default { get; } = new News(Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), nameof(DeveloperNews), "News.json"));
+		public string FilePath { get; }
+		public string Hash => ComputeHash();
 
 		public static string ComputeHash(IEnumerable<NewsItem> items)
 			=> HashHelpers.GenerateSha256Hash(string.Join("", items.Select(x => x.ComputeHash())));
 
-		public static News Default { get; } = new News(Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), nameof(DeveloperNews), "News.json"));
-		public string FilePath { get; }
+		private string ComputeHash()
+			=> ComputeHash(Items);
 
 		public void ToFile()
 		{
