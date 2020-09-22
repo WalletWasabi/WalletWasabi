@@ -21,7 +21,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var rnd = new SecureRandom();
 			var sk = new CoordinatorSecretKey(rnd);
 
-			var issuer = new Issuer(sk, rnd);
+			var issuer = new RoundCoordinator(sk, rnd);
 
 			Assert.Equal(0, issuer.Ledger.Count);
 			Assert.Equal(0, issuer.Balance);
@@ -77,14 +77,14 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		// TODO public Scalar TNonce { get; }
 	}
 
-	public class Request
+	public class RegistrationRequest
 	{
-		public Request(IEnumerable<CredentialRequest> requested, IEnumerable<Proof> proofs)
+		public RegistrationRequest(IEnumerable<CredentialRequest> requested, IEnumerable<Proof> proofs)
 			: this(0, new CredentialPresentation[0], requested, proofs)
 		{
 		}
 
-		public Request(int balance, IEnumerable<CredentialPresentation> presented, IEnumerable<CredentialRequest> requested, IEnumerable<Proof> proofs)
+		public RegistrationRequest(int balance, IEnumerable<CredentialPresentation> presented, IEnumerable<CredentialRequest> requested, IEnumerable<Proof> proofs)
 		{
 			Balance = balance;
 			Presented = presented;
@@ -102,9 +102,9 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		public IEnumerable<GroupElement> Nullifiers { get => Presented.Select(x => x.S); }
 	}
 
-	public class Response
+	public class RegistrationResponse
 	{
-		public Response(IEnumerable<MAC> issuedCredentials, IEnumerable<Proof> proofs)
+		public RegistrationResponse(IEnumerable<MAC> issuedCredentials, IEnumerable<Proof> proofs)
 		{
 			IssuedCredentials = issuedCredentials;
 			Proofs = proofs;
@@ -117,28 +117,28 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 
 	public class StateTransition
 	{
-		public StateTransition(Request request, Response response)
+		public StateTransition(RegistrationRequest request, RegistrationResponse response)
 		{
 			Request = request;
 			Response = response;
 		}
 
-		public Request Request { get; }
+		public RegistrationRequest Request { get; }
 
-		public Response Response { get; }
+		public RegistrationResponse Response { get; }
 	}
 
-	public interface IPublicIssuerAPI
+	public interface IPublicRoundAPI
 	{
 		public CoordinatorParameters CoordinatorParameters { get; }
 		public int K { get; } // number of presentations/requests per registration
 		public int Bits { get; } // width of range proofs
-		public Response HandleRequest(Request request); // throws on errors
+		public RegistrationResponse HandleRequest(RegistrationRequest request); // throws on errors
 	}
 
-	public class Issuer : IPublicIssuerAPI
+	public class RoundCoordinator : IPublicRoundAPI
 	{
-		public Issuer(CoordinatorSecretKey sk, WasabiRandom random)
+		public RoundCoordinator(CoordinatorSecretKey sk, WasabiRandom random)
 		{
 			Ledger = new List<StateTransition>();
 			CoordinatorSecretKey = sk;
@@ -160,7 +160,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		public CoordinatorParameters CoordinatorParameters { get => CoordinatorSecretKey.ComputeCoordinatorParameters(); }
 		public IEnumerable<GroupElement> Nullifiers { get => Ledger.SelectMany(x => x.Request.Nullifiers); } // FIXME This should be probably optimized using a HashSet or something.
 
-		public Response HandleRequest(Request registrationRequest)
+		public RegistrationResponse HandleRequest(RegistrationRequest registrationRequest)
 		{
 			// TODO DoS protection - verify PoW on t = H(H(roundId, tNonce)). H(roundId, tNonce) should be small (only if isNullRequest? always?)
 
@@ -229,7 +229,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			// Construct response.
 			var proofs = Prover.Prove(transcript, credentials.Select(x => x.Knowledge), Random);
 			var macs = credentials.Select(x => x.Mac);
-			var response = new Response(macs, proofs);
+			var response = new RegistrationResponse(macs, proofs);
 
 			// Log response.
 			Ledger.Add(new StateTransition(registrationRequest, response)); // TODO fsync ;-)
@@ -248,7 +248,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 
 	public class Client
 	{
-		public Client(IPublicIssuerAPI issuer, WasabiRandom random)
+		public Client(IPublicRoundAPI issuer, WasabiRandom random)
 		{
 			Issuer = issuer;
 
@@ -259,7 +259,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var Ma = r * Generators.Gh;
 			var proofs = Prover.Prove(transcript, new[] { ProofSystem.ZeroProof(Ma, r) }, random);
 
-			var nullRequest = new Request(new[] { new CredentialRequest(Ma) }, proofs);
+			var nullRequest = new RegistrationRequest(new[] { new CredentialRequest(Ma) }, proofs);
 
 			var response = issuer.HandleRequest(nullRequest);
 
@@ -273,7 +273,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 
 		public WasabiRandom Random { get; }
 
-		public IPublicIssuerAPI Issuer { get; }
+		public IPublicRoundAPI Issuer { get; }
 
 		public CoordinatorParameters CoordinatorParameters { get => Issuer.CoordinatorParameters; }
 
@@ -307,7 +307,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var proofs = Prover.Prove(transcript, new[] { showKnowledge, rangeKnowledge, balanceKnowledge
 				}, Random);
 
-			var request = new Request(difference, new[] { credentialPresentation }, new[] { credentialRequest }, proofs);
+			var request = new RegistrationRequest(difference, new[] { credentialPresentation }, new[] { credentialRequest }, proofs);
 
 			// issue a new request and update the credential
 			var response = Issuer.HandleRequest(request);
