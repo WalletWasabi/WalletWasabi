@@ -220,7 +220,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					LabelSuggestion.Label = label;
 					if (!IsMax && label.IsEmpty)
 					{
-						NotificationHelpers.Warning("Known By is required.", "");
+						NotificationHelpers.Warning("Label is required.", "");
 						return;
 					}
 

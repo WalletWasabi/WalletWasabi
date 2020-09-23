@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -11,7 +11,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Gui.Suggestions.SuggestLabelView">
   <StackPanel Spacing="8">
-    <controls:ExtendedTextBox x:Name="LabelTextBox" Text="{Binding Label}" Watermark="Known By" UseFloatingWatermark="True" IsReadOnly="{Binding IsMax}" ToolTip.Tip="{Binding LabelToolTip}" CaretIndex="{Binding CaretIndex}">
+    <controls:ExtendedTextBox x:Name="LabelTextBox" Text="{Binding Label}" Watermark="Label" UseFloatingWatermark="True" IsReadOnly="{Binding IsMax}" ToolTip.Tip="{Binding LabelToolTip}" CaretIndex="{Binding CaretIndex}">
       <i:Interaction.Behaviors>
         <suggestions:SuggestionBehavior SuggestionItems="{Binding Suggestions}" />
         <behaviors:CommandOnEnterBehavior Command="{Binding GenerateCommand}" />
