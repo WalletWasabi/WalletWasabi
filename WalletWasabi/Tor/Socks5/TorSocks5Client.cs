@@ -42,10 +42,6 @@ namespace WalletWasabi.Tor.Socks5
 
 		public Stream Stream { get; internal set; }
 
-		public string DestinationHost { get; private set; }
-
-		public int DestinationPort { get; private set; }
-
 		private EndPoint RemoteEndPoint { get; set; }
 
 		public bool IsConnected => TcpClient?.Connected is true;
@@ -199,10 +195,7 @@ namespace WalletWasabi.Tor.Socks5
 					Logger.LogDebug($"Tor is enabled.");
 
 					var dstAddr = new AddrField(host);
-					DestinationHost = dstAddr.DomainOrIPv4;
-
 					var dstPort = new PortField(port);
-					DestinationPort = dstPort.DstPort;
 
 					var connectionRequest = new TorSocks5Request(cmd: CmdField.Connect, dstAddr, dstPort);
 					var sendBuffer = connectionRequest.ToBytes();
@@ -393,82 +386,6 @@ namespace WalletWasabi.Tor.Socks5
 					return await SendAsync(sendBuffer, receiveBufferSize, isRecursiveCall: true).ConfigureAwait(false);
 				}
 			}
-		}
-
-		/// <summary>
-		/// When Tor receives a "RESOLVE" SOCKS command, it initiates
-		/// a remote lookup of the hostname provided as the target address in the SOCKS
-		/// request.
-		/// </summary>
-		internal async Task<IPAddress> ResolveAsync(string host)
-		{
-			// https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt#n44
-
-			host = Guard.NotNullOrEmptyOrWhitespace(nameof(host), host, true);
-
-			if (TorSocks5EndPoint is null)
-			{
-				var hostAddresses = await Dns.GetHostAddressesAsync(host).ConfigureAwait(false);
-				return hostAddresses.First();
-			}
-
-			var cmd = CmdField.Resolve;
-
-			var dstAddr = new AddrField(host);
-
-			var dstPort = new PortField(0);
-
-			var resolveRequest = new TorSocks5Request(cmd, dstAddr, dstPort);
-			var sendBuffer = resolveRequest.ToBytes();
-
-			var receiveBuffer = await SendAsync(sendBuffer).ConfigureAwait(false);
-
-			var resolveResponse = new TorSocks5Response();
-			resolveResponse.FromBytes(receiveBuffer);
-
-			if (resolveResponse.Rep != RepField.Succeeded)
-			{
-				throw new TorSocks5FailureResponseException(resolveResponse.Rep);
-			}
-			return IPAddress.Parse(resolveResponse.BndAddr.DomainOrIPv4);
-		}
-
-		/// <summary>
-		/// Tor attempts to find the canonical hostname for that IPv4 record
-		/// </summary>
-		internal async Task<string> ReverseResolveAsync(IPAddress iPv4)
-		{
-			// https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt#n55
-
-			Guard.NotNull(nameof(iPv4), iPv4);
-
-			if (TorSocks5EndPoint is null) // Only Tor is iPv4 dependent
-			{
-				var host = await Dns.GetHostEntryAsync(iPv4).ConfigureAwait(false);
-				return host.HostName;
-			}
-
-			Guard.Same($"{nameof(iPv4)}.{nameof(iPv4.AddressFamily)}", AddressFamily.InterNetwork, iPv4.AddressFamily);
-
-			var cmd = CmdField.ResolvePtr;
-
-			var dstAddr = new AddrField(iPv4.ToString());
-
-			var dstPort = new PortField(0);
-
-			var resolveRequest = new TorSocks5Request(cmd, dstAddr, dstPort);
-			var sendBuffer = resolveRequest.ToBytes();
-
-			var receiveBuffer = await SendAsync(sendBuffer).ConfigureAwait(false);
-
-			var resolveResponse = new TorSocks5Response();
-			resolveResponse.FromBytes(receiveBuffer);
-
-			if (resolveResponse.Rep != RepField.Succeeded)
-			{
-				throw new TorSocks5FailureResponseException(resolveResponse.Rep);
-			}
-			return resolveResponse.BndAddr.DomainOrIPv4;
 		}
 
 		#endregion Methods
