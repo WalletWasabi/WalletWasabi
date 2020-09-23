@@ -93,5 +93,92 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			Assert.True(isValidProof);
 		}
+
+		[Fact]
+		[Trait("UnitTest", "UnitTest")]
+		public void CanProveAndVerifyPresentedBalance()
+		{
+			var rnd = new SecureRandom();
+
+			var a = new Scalar(10_000u);
+			var r = rnd.GetScalar();
+			var z = rnd.GetScalar();
+			var Ca = z * Generators.Ga + a * Generators.Gg + r * Generators.Gh;
+			var delta = a.Negate();
+
+			var knowledge = ProofSystem.BalanceProof(z, r);
+			var proofOfBalance = ProofSystem.Prove(knowledge, rnd);
+
+			var statement = ProofSystem.BalanceProof(Ca - a * Generators.Gg);
+			Assert.True(ProofSystem.Verify(statement, proofOfBalance));
+
+			var badStatement = ProofSystem.BalanceProof(Ca + Generators.Gg - a * Generators.Gg);
+			Assert.False(ProofSystem.Verify(badStatement, proofOfBalance));
+
+			badStatement = ProofSystem.BalanceProof(Ca);
+			Assert.False(ProofSystem.Verify(badStatement, proofOfBalance));
+		}
+
+		[Fact]
+		[Trait("UnitTest", "UnitTest")]
+		public void CanProveAndVerifyRequestedBalance()
+		{
+			var rnd = new SecureRandom();
+
+			var a = new Scalar(10_000u);
+			var r = rnd.GetScalar();
+			var Ma = a * Generators.Gg + r * Generators.Gh;
+
+			var delta = a;
+			var knowledge = ProofSystem.BalanceProof(Scalar.Zero, r.Negate());
+			var proofOfBalance = ProofSystem.Prove(knowledge, rnd);
+
+			var statement = ProofSystem.BalanceProof(a * Generators.Gg - Ma);
+			Assert.True(ProofSystem.Verify(statement, proofOfBalance));
+
+			var badDelta = delta + Scalar.One;
+			var badStatement = ProofSystem.BalanceProof(Ma);
+			Assert.False(ProofSystem.Verify(badStatement, proofOfBalance));
+		}
+
+		[Theory]
+		[InlineData(0, 0)]
+		[InlineData(0, 1)]
+		[InlineData(1, 0)]
+		[InlineData(1, 1)]
+		[InlineData(7, 11)]
+		[InlineData(11, 7)]
+		[InlineData(10_000, 0)]
+		[InlineData(0, 10_000)]
+		[InlineData(10_000, 10_000)]
+		[InlineData(int.MaxValue, int.MaxValue)]
+		[InlineData(int.MaxValue - 1, int.MaxValue)]
+		[InlineData(int.MaxValue, int.MaxValue - 1)]
+		[Trait("UnitTest", "UnitTest")]
+		public void CanProveAndVerifyBalance(int presentedAmount, int requestedAmount)
+		{
+			var rnd = new SecureRandom();
+
+			var a = new Scalar((uint)presentedAmount);
+			var r = rnd.GetScalar();
+			var z = rnd.GetScalar();
+			var Ca = z * Generators.Ga + a * Generators.Gg + r * Generators.Gh;
+
+			var ap = new Scalar((uint)requestedAmount);
+			var rp = rnd.GetScalar();
+			var Ma = ap * Generators.Gg + rp * Generators.Gh;
+
+			var delta = new Scalar((uint)Math.Abs(presentedAmount - requestedAmount));
+			delta = presentedAmount > requestedAmount ? delta.Negate() : delta;
+			var knowledge = ProofSystem.BalanceProof(z, r + rp.Negate());
+
+			var proofOfBalance = ProofSystem.Prove(knowledge, rnd);
+
+			var statement = ProofSystem.BalanceProof(Ca + delta * Generators.Gg - Ma);
+			Assert.True(ProofSystem.Verify(statement, proofOfBalance));
+
+			var badStatement = ProofSystem.BalanceProof(Ca  + (delta + Scalar.One) * Generators.Gg - Ma);
+			Assert.False(ProofSystem.Verify(badStatement, proofOfBalance));
+		}
 	}
 }

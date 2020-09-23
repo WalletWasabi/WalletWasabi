@@ -131,14 +131,6 @@ namespace WalletWasabi.Backend
 
 				Logger.LogInfo($"{Constants.BuiltinBitcoinNodeName} is fully synchronized.");
 
-				var estimateSmartFeeResponse = await RpcClient.TryEstimateSmartFeeAsync(2, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true);
-				if (estimateSmartFeeResponse is null)
-				{
-					throw new NotSupportedException($"{Constants.BuiltinBitcoinNodeName} cannot estimate network fees yet.");
-				}
-
-				Logger.LogInfo($"{Constants.BuiltinBitcoinNodeName} fee estimation is working.");
-
 				if (Config.Network == Network.RegTest) // Make sure there's at least 101 block, if not generate it
 				{
 					if (blocks < 101)
