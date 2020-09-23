@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Backend.Controllers
@@ -80,7 +81,14 @@ namespace WalletWasabi.Backend.Controllers
 
 			if (estimateSmartFee)
 			{
-				response.AllFeeEstimate = await BlockchainController.GetAllFeeEstimateAsync(mode);
+				try
+				{
+					response.AllFeeEstimate = await BlockchainController.GetAllFeeEstimateAsync(mode);
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError(ex);
+				}
 			}
 
 			response.ExchangeRates = await OffchainController.GetExchangeRatesCollectionAsync();
