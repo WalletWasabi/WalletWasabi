@@ -32,7 +32,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 			Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GE(one, largest)));
 			Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GE(largest, largest)));
 
-			Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GEJ(FE.Zero, FE.Zero, FE.Zero)));
+			////Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GEJ(FE.Zero, FE.Zero, FE.Zero)));
 			Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GEJ(one, FE.Zero, FE.Zero)));
 			Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GEJ(one, one, one)));
 			Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GEJ(one, one, two)));
