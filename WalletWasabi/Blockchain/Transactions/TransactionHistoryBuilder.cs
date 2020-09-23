@@ -60,7 +60,6 @@ namespace WalletWasabi.Blockchain.Transactions
 				{
 					found.DateTime = dateTime;
 					found.Amount += coin.Amount;
-					found.Label = SmartLabel.Merge(found.Label, coin.Label);
 				}
 				else
 				{
@@ -69,7 +68,7 @@ namespace WalletWasabi.Blockchain.Transactions
 						DateTime = dateTime,
 						Height = coin.Height,
 						Amount = coin.Amount,
-						Label = coin.Label,
+						Label = foundTransaction.Label,
 						TransactionId = coin.TransactionId,
 						BlockIndex = foundTransaction.BlockIndex,
 						IsLikelyCoinJoinOutput = coin.IsLikelyCoinJoinOutput is true

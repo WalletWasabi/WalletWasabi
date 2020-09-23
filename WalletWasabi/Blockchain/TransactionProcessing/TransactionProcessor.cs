@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
@@ -172,6 +173,11 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					HdPubKey foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
 					if (foundKey != default)
 					{
+						if (!foundKey.IsInternal)
+						{
+							tx.Label = SmartLabel.Merge(tx.Label, foundKey.Label);
+						}
+
 						foundKey.SetKeyState(KeyState.Used, KeyManager);
 						if (output.Value <= DustThreshold)
 						{
