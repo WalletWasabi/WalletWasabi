@@ -1,12 +1,15 @@
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using ReactiveUI;
+using Splat;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Composition;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using WalletWasabi.DeveloperNews;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets;
 using WalletWasabi.Gui.Tabs.WalletManager.LoadWallets;
@@ -23,9 +26,13 @@ namespace WalletWasabi.Gui.Tabs.Dashboard
 		public DashboardViewModel() : base("Dashboard")
 		{
 			Shell = IoC.Get<IShell>();
+			Global = Locator.Current.GetService<Global>();
 		}
 
 		public IShell Shell { get; }
+		public Global Global { get; }
+
+		public List<NewsItem> News => Global.News.Items;
 
 		private void InitializeWalletManagerVM()
 		{
