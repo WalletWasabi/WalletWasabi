@@ -31,6 +31,9 @@ namespace WalletWasabi.DeveloperNews
 		[JsonProperty(PropertyName = "Link")]
 		public Uri Link { get; }
 
+		[JsonIgnore]
+		public string LinkString => Link.ToString();
+
 		public string ComputeHash()
 			=> HashHelpers.GenerateSha256Hash($"{Date}{Description}{Link}{Title}");
 	}

@@ -6,7 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Composition;
+using System.IO;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.DeveloperNews;
@@ -14,6 +16,7 @@ using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets;
 using WalletWasabi.Gui.Tabs.WalletManager.LoadWallets;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Tabs.Dashboard
 {
@@ -27,8 +30,14 @@ namespace WalletWasabi.Gui.Tabs.Dashboard
 		{
 			Shell = IoC.Get<IShell>();
 			Global = Locator.Current.GetService<Global>();
+			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
+
+			OpenBrowserCommand.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
 		}
 
+		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
 		public IShell Shell { get; }
 		public Global Global { get; }
 

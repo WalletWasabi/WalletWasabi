@@ -21,7 +21,7 @@
         <Setter Property="TextWrapping" Value="Wrap" />
         <Setter Property="Foreground" Value="{DynamicResource HighlightBrush}" />
       </Style>
-      <Style Selector="TextBlock.NewsSummary">
+      <Style Selector="TextBlock.NewsDescription">
         <Setter Property="FontSize" Value="16" />
         <Setter Property="TextWrapping" Value="Wrap" />
       </Style>
@@ -37,17 +37,19 @@
     <Grid ColumnDefinitions="*,*" RowDefinitions="*,*" Margin="20,40">
       <DockPanel LastChildFill="True" Grid.Column="1" Grid.ColumnSpan="1" Grid.RowSpan="2" Margin="5">
         <TextBlock Classes="Header" DockPanel.Dock="Top">Updates</TextBlock>
-        <ListBox Items="{Binding NewsItems}" 
+        <ListBox Items="{Binding News}" 
                  Background="Transparent"
                  BorderThickness="0"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
           <ListBox.ItemTemplate>
             <DataTemplate>
-              <StackPanel Margin="0,0,0,20" Spacing="6" Background="Transparent">
-                <TextBlock Classes="NewsHeader" Text="{Binding Title}"/>
-                <TextBlock Classes="NewsSummary" Text="{Binding Content}"/>
-                <TextBlock Classes="NewsDate" Text="{Binding PublishDate, StringFormat=\{0:D\}}"/>
-              </StackPanel>
+              <Button Command="{Binding $parent[UserControl].DataContext.OpenBrowserCommand}" CommandParameter="{Binding LinkString}" >
+                <StackPanel Margin="0,0,0,20" Spacing="6" Background="Transparent">
+                  <TextBlock Classes="NewsHeader" Text="{Binding Title}"/>
+                  <TextBlock Classes="NewsDescription" Text="{Binding Description}"/>
+                  <TextBlock Classes="NewsDate" Text="{Binding Date, StringFormat=\{0:D\}}"/>
+                </StackPanel>
+              </Button>
             </DataTemplate>
           </ListBox.ItemTemplate>
         </ListBox>
