@@ -6,91 +6,90 @@ using WalletWasabi.Services;
 
 namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 {
-	public class FeeProviders : IFeeProvider, IDisposable
-	{
-		public FeeProviders(WasabiSynchronizer synchronizer, params IFeeProvider[] extraFeeProviders)
-		{
-			Lock = new object();
+    public class FeeProviders : IFeeProvider, IDisposable
+    {
+        public FeeProviders(IFeeProvider baseProvider, params IFeeProvider[]? feeProviders)
+        {
+            Lock = new object();
 
-			Providers = new List<IFeeProvider>
-			{
-				synchronizer
-			};
+            Providers = new List<IFeeProvider>();
 
-			foreach (var provider in extraFeeProviders.Where(x => x is { }))
-			{
-				// Backend(synchronizer) fee provider is always the last provider.
-				Providers.Insert(0, provider);
-			}
+            if (feeProviders is { })
+            {
+                Providers.AddRange(feeProviders.Where(x => x is { }));
+            }
 
-			foreach (var provider in Providers)
-			{
-				provider.AllFeeEstimateChanged += Provider_AllFeeEstimateChanged;
-			}
+            // Backend(synchronizer) fee provider is always the last provider.
+            Providers.Add(baseProvider);
 
-			SetAllFeeEstimate();
-		}
+            foreach (var provider in Providers)
+            {
+                provider.AllFeeEstimateChanged += Provider_AllFeeEstimateChanged;
+            }
 
-		public event EventHandler<AllFeeEstimate> AllFeeEstimateChanged;
+            SetAllFeeEstimate();
+        }
 
-		public AllFeeEstimate AllFeeEstimate { get; private set; }
+        public event EventHandler<AllFeeEstimate> AllFeeEstimateChanged;
 
-		private List<IFeeProvider> Providers { get; }
+        public AllFeeEstimate AllFeeEstimate { get; private set; }
 
-		private object Lock { get; }
+        private List<IFeeProvider> Providers { get; }
 
-		private void Provider_AllFeeEstimateChanged(object sender, AllFeeEstimate e)
-		{
-			SetAllFeeEstimate();
-		}
+        private object Lock { get; }
 
-		private void SetAllFeeEstimate()
-		{
-			lock (Lock)
-			{
-				AllFeeEstimate? feeEstimateToSet = null;
-				foreach (IFeeProvider provider in Providers.SkipLast(1))
-				{
-					if (provider.AllFeeEstimate is { IsAccurate: bool isAccurate } af && isAccurate)
-					{
-						feeEstimateToSet = af;
-						break;
-					}
-				}
+        private void Provider_AllFeeEstimateChanged(object sender, AllFeeEstimate e)
+        {
+            SetAllFeeEstimate();
+        }
 
-				AllFeeEstimate = feeEstimateToSet ?? Providers.Last().AllFeeEstimate;
-			}
+        private void SetAllFeeEstimate()
+        {
+            lock (Lock)
+            {
+                AllFeeEstimate? feeEstimateToSet = null;
+                foreach (IFeeProvider provider in Providers.SkipLast(1))
+                {
+                    if (provider.AllFeeEstimate is { IsAccurate: bool isAccurate } af && isAccurate)
+                    {
+                        feeEstimateToSet = af;
+                        break;
+                    }
+                }
 
-			AllFeeEstimateChanged?.Invoke(this, AllFeeEstimate);
-		}
+                AllFeeEstimate = feeEstimateToSet ?? Providers.Last().AllFeeEstimate;
+            }
 
-		#region IDisposable Support
+            AllFeeEstimateChanged?.Invoke(this, AllFeeEstimate);
+        }
 
-		private volatile bool _disposedValue = false; // To detect redundant calls
+        #region IDisposable Support
 
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					foreach (var provider in Providers)
-					{
-						provider.AllFeeEstimateChanged -= Provider_AllFeeEstimateChanged;
-					}
-				}
+        private volatile bool _disposedValue = false; // To detect redundant calls
 
-				_disposedValue = true;
-			}
-		}
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    foreach (var provider in Providers)
+                    {
+                        provider.AllFeeEstimateChanged -= Provider_AllFeeEstimateChanged;
+                    }
+                }
 
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-		}
+                _disposedValue = true;
+            }
+        }
 
-		#endregion IDisposable Support
-	}
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+        }
+
+        #endregion IDisposable Support
+    }
 }
