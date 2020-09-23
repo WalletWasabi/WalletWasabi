@@ -2,6 +2,7 @@ using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Models;
@@ -57,10 +58,9 @@ namespace WalletWasabi.Blockchain.Transactions
 				var found = txRecordList.FirstOrDefault(x => x.TransactionId == coin.TransactionId);
 				if (found != null) // if found then update
 				{
-					var label = !string.IsNullOrEmpty(found.Label) ? found.Label + ", " : "";
 					found.DateTime = dateTime;
 					found.Amount += coin.Amount;
-					found.Label = $"{label}{coin.Label}";
+					found.Label = SmartLabel.Merge(found.Label, coin.Label);
 				}
 				else
 				{
@@ -112,7 +112,7 @@ namespace WalletWasabi.Blockchain.Transactions
 							DateTime = dateTime,
 							Height = foundSpenderTransaction.Height,
 							Amount = Money.Zero - coin.Amount,
-							Label = "",
+							Label = SmartLabel.Empty,
 							TransactionId = coin.SpenderTransactionId,
 							BlockIndex = foundSpenderTransaction.BlockIndex,
 							IsLikelyCoinJoinOutput = coin.IsLikelyCoinJoinOutput is true
