@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using WalletWasabi.BitcoinCore.Monitoring;
-using WalletWasabi.Services;
 
 namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 {
