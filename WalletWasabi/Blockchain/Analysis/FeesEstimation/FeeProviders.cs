@@ -1,29 +1,41 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using WalletWasabi.BitcoinCore.Monitoring;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 {
 	public class FeeProviders : IFeeProvider, IDisposable
 	{
-		public FeeProviders(IEnumerable<IFeeProvider> feeProviders)
+		public FeeProviders(WasabiSynchronizer synchronizer, params IFeeProvider[] extraFeeProviders)
 		{
-			Providers = feeProviders;
 			Lock = new object();
 
-			SetAllFeeEstimate();
+			Providers = new List<IFeeProvider>
+			{
+				synchronizer
+			};
+
+			foreach (var provider in extraFeeProviders.Where(x => x is { }))
+			{
+				// Backend(synchronizer) fee provider is always the last provider.
+				Providers.Insert(0, provider);
+			}
 
 			foreach (var provider in Providers)
 			{
 				provider.AllFeeEstimateChanged += Provider_AllFeeEstimateChanged;
 			}
+
+			SetAllFeeEstimate();
 		}
 
 		public event EventHandler<AllFeeEstimate> AllFeeEstimateChanged;
 
 		public AllFeeEstimate AllFeeEstimate { get; private set; }
 
-		private IEnumerable<IFeeProvider> Providers { get; }
+		private List<IFeeProvider> Providers { get; }
 
 		private object Lock { get; }
 
