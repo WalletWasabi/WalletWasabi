@@ -37,10 +37,8 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 			lock (Lock)
 			{
 				AllFeeEstimate? feeEstimateToSet = null;
-				IFeeProvider[] providerArray = Providers.ToArray();
-				for (int i = 0; i < providerArray.Length - 1; i++)
+				foreach (IFeeProvider provider in Providers.SkipLast(1))
 				{
-					IFeeProvider provider = providerArray[i];
 					if (provider.AllFeeEstimate is { IsAccurate: bool isAccurate } af && isAccurate)
 					{
 						feeEstimateToSet = af;
@@ -48,7 +46,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 					}
 				}
 
-				AllFeeEstimate = feeEstimateToSet ?? providerArray[^1].AllFeeEstimate;
+				AllFeeEstimate = feeEstimateToSet ?? Providers.Last().AllFeeEstimate;
 			}
 
 			AllFeeEstimateChanged?.Invoke(this, AllFeeEstimate);
