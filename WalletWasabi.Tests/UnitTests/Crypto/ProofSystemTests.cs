@@ -104,7 +104,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var r = rnd.GetScalar();
 			var z = rnd.GetScalar();
 			var Ca = z * Generators.Ga + a * Generators.Gg + r * Generators.Gh;
-			var delta = a.Negate();
 
 			var knowledge = ProofSystem.BalanceProof(z, r);
 			var proofOfBalance = ProofSystem.Prove(knowledge, rnd);
@@ -136,7 +135,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var statement = ProofSystem.BalanceProof(a * Generators.Gg - Ma);
 			Assert.True(ProofSystem.Verify(statement, proofOfBalance));
 
-			var badDelta = delta + Scalar.One;
 			var badStatement = ProofSystem.BalanceProof(Ma);
 			Assert.False(ProofSystem.Verify(badStatement, proofOfBalance));
 		}
@@ -177,7 +175,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var statement = ProofSystem.BalanceProof(Ca + delta * Generators.Gg - Ma);
 			Assert.True(ProofSystem.Verify(statement, proofOfBalance));
 
-			var badStatement = ProofSystem.BalanceProof(Ca  + (delta + Scalar.One) * Generators.Gg - Ma);
+			var badStatement = ProofSystem.BalanceProof(Ca + (delta + Scalar.One) * Generators.Gg - Ma);
 			Assert.False(ProofSystem.Verify(badStatement, proofOfBalance));
 		}
 	}
