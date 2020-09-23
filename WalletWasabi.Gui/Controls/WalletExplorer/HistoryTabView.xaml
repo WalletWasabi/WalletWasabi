@@ -20,16 +20,17 @@
     <Grid Classes="content">
       <DockPanel LastChildFill="True">
         <DockPanel LastChildFill="True" DockPanel.Dock="Bottom">
-          <Grid ColumnDefinitions="40, 160, 150, *" Margin="10 0 0 0" DockPanel.Dock="Top">
+          <Grid ColumnDefinitions="40, 160, 150, 540, *" Margin="10 0 0 0" DockPanel.Dock="Top">
             <TextBlock Text="" />
             <controls:SortingArrow Grid.Column="1" Command="{Binding SortCommand}" Text="Date" SortDirection="{Binding DateSortDirection}" />
             <controls:SortingArrow Grid.Column="2" Command="{Binding SortCommand}" Text="Amount (BTC)" SortDirection="{Binding AmountSortDirection}" />
             <controls:SortingArrow Grid.Column="3" Command="{Binding SortCommand}" Text="Transaction ID" SortDirection="{Binding TransactionSortDirection}" />
+            <controls:SortingArrow Grid.Column="4" Command="{Binding SortCommand}" Text="Label" SortDirection="{Binding LabelSortDirection}" />
           </Grid>
           <controls:ExtendedListBox Items="{Binding Transactions}" SelectedItem="{Binding SelectedTransaction, Mode=TwoWay}">
             <controls:ExtendedListBox.ItemTemplate>
               <DataTemplate>
-                <Grid ColumnDefinitions="40, 160, 150, *" Background="Transparent">
+                <Grid ColumnDefinitions="40, 160, 150, 540, *" Background="Transparent">
                   <i:Interaction.Behaviors>
                     <behaviors:CommandOnDoubleClickBehavior Command="{Binding OpenTransactionInfo}" />
                   </i:Interaction.Behaviors>
@@ -58,6 +59,7 @@
                   <TextBlock Classes="monospaceFont" Text="{Binding DateTime, ConverterParameter=11, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Grid.Column="1" />
                   <TextBlock Classes="monospaceFont" Text="{Binding AmountBtc, ConverterParameter=8, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Grid.Column="2" Foreground="{Binding AmountBtc, Converter={StaticResource MoneyBrushConverter}}" />
                   <TextBlock Classes="monospaceFont" IsVisible="{Binding !ClipboardNotificationVisible}" Text="{Binding TransactionId, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Grid.Column="3" />
+                  <TextBlock Classes="monospaceFont" Text="{Binding Label, ConverterParameter=11, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Grid.Column="4" />
                   <Grid IsVisible="{Binding ClipboardNotificationVisible}" Grid.Column="3">
                     <Grid Opacity="{Binding ClipboardNotificationOpacity}">
                       <Grid.Transitions>

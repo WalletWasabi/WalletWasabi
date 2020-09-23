@@ -97,6 +97,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			this.RaisePropertyChanged(nameof(AmountBtc));
 			this.RaisePropertyChanged(nameof(TransactionId));
 			this.RaisePropertyChanged(nameof(DateTime));
+			this.RaisePropertyChanged(nameof(Label));
 		}
 
 		public async Task TryCopyTxIdToClipboardAsync()
