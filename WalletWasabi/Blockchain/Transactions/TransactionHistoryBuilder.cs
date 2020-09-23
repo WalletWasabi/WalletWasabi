@@ -38,28 +38,13 @@ namespace WalletWasabi.Blockchain.Transactions
 					continue;
 				}
 
-				DateTimeOffset dateTime;
-				if (foundTransaction.Height.Type == HeightType.Chain)
-				{
-					if (wallet.BitcoinStore.SmartHeaderChain.TryGetHeader((uint)foundTransaction.Height.Value, out SmartHeader header))
-					{
-						dateTime = header.BlockTime;
-					}
-					else
-					{
-						dateTime = DateTimeOffset.UtcNow;
-					}
-				}
-				else
-				{
-					dateTime = foundTransaction.FirstSeen;
-				}
-
+				var dateTime = foundTransaction.FirstSeen;
 				var found = txRecordList.FirstOrDefault(x => x.TransactionId == coin.TransactionId);
 				if (found != null) // if found then update
 				{
-					found.DateTime = dateTime;
+					found.DateTime = found.DateTime < dateTime ? found.DateTime : dateTime;
 					found.Amount += coin.Amount;
+					found.Label = SmartLabel.Merge(found.Label, foundTransaction.Label);
 				}
 				else
 				{
@@ -82,26 +67,11 @@ namespace WalletWasabi.Blockchain.Transactions
 						throw new InvalidOperationException($"Transaction {coin.SpenderTransactionId} not found.");
 					}
 
-					if (foundSpenderTransaction.Height.Type == HeightType.Chain)
-					{
-						if (wallet.BitcoinStore.SmartHeaderChain.TryGetHeader((uint)foundSpenderTransaction.Height.Value, out SmartHeader header))
-						{
-							dateTime = header.BlockTime;
-						}
-						else
-						{
-							dateTime = DateTimeOffset.UtcNow;
-						}
-					}
-					else
-					{
-						dateTime = foundSpenderTransaction.FirstSeen;
-					}
-
+					dateTime = foundSpenderTransaction.FirstSeen;
 					var foundSpenderCoin = txRecordList.FirstOrDefault(x => x.TransactionId == coin.SpenderTransactionId);
 					if (foundSpenderCoin != null) // if found
 					{
-						foundSpenderCoin.DateTime = dateTime;
+						foundSpenderCoin.DateTime = foundSpenderCoin.DateTime < dateTime ? foundSpenderCoin.DateTime : dateTime;
 						foundSpenderCoin.Amount -= coin.Amount;
 					}
 					else
@@ -111,7 +81,7 @@ namespace WalletWasabi.Blockchain.Transactions
 							DateTime = dateTime,
 							Height = foundSpenderTransaction.Height,
 							Amount = Money.Zero - coin.Amount,
-							Label = SmartLabel.Empty,
+							Label = foundSpenderTransaction.Label,
 							TransactionId = coin.SpenderTransactionId,
 							BlockIndex = foundSpenderTransaction.BlockIndex,
 							IsLikelyCoinJoinOutput = coin.IsLikelyCoinJoinOutput is true
