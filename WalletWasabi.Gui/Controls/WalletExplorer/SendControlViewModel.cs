@@ -873,7 +873,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Observable
 				.FromEventPattern<AllFeeEstimate>(Global.FeeProviders, nameof(Global.FeeProviders.AllFeeEstimateChanged))
-				.Select(x => x.EventArgs is { })
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(IsEstimateAvailable)))
 				.DisposeWith(disposables);
