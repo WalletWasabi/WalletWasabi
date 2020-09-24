@@ -182,6 +182,32 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		}
 
 		[Theory]
+		[InlineData(0, 2, true)]
+		[InlineData(1, 2, true)]
+		[InlineData(2, 2, true)]
+		[InlineData(3, 2, true)]
+		[InlineData(4, 2, false)]
+		public void CanProveAndVerifySpecificCommitmentRange(ulong amountLong, int width, bool pass)
+		{
+			var maskedLong = amountLong &  ((1ul << width) - 1);
+			var overflow = amountLong > maskedLong;
+
+			var rnd = new SecureRandom();
+			var amount = new Scalar(maskedLong);
+			var randomness = rnd.GetScalar();
+
+			var (knowledge, bitCommitments) = ProofSystem.RangeProof(amount, randomness, width, rnd);
+
+			var rangeProof = ProofSystem.Prove(knowledge, rnd);
+
+			amount = !overflow ? amount : new Scalar(amountLong);
+			var commitment = amount * Generators.Gg + randomness * Generators.Gh;
+			
+			Assert.Equal(pass, ProofSystem.Verify(ProofSystem.RangeProof(commitment, bitCommitments), rangeProof));
+		}
+
+
+		[Theory]
 		[InlineData(0)]
 		[InlineData(1)]
 		[InlineData(2)]

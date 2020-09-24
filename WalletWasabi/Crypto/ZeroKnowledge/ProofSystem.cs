@@ -98,20 +98,18 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			});
 
 			var columns = width * 3 + 1; // three witnesses per bit and one for the commitment
-			static int b_(int i) => 3 * i + 1;
-			static int r_(int i) => 3 * i + 2;
-			static int rb_(int i) => 3 * i + 3;
 
 			// Construct witness vector. First term is r from Ma = a*Gg + r*Gh. This
 			// is followed by 3 witness terms per bit commitment, the bit b_i, the
 			// randomness in its bit commitment r_i, and their product rb_i (0 or r).
 			var witness = new Scalar[columns];
 			witness[0] = r;
-			foreach ((Scalar b_i, Scalar r_i, int i) in bits.Zip(randomness, Enumerable.Range(0, width), (x, y, z) => (x, y, z)))
+			var index = 1;
+			foreach ((Scalar b_i, Scalar r_i) in bits.Zip(randomness))
 			{
-				witness[b_(i)] = b_i;
-				witness[r_(i)] = r_i;
-				witness[rb_(i)] = r_i * b_i;
+				witness[index++] = b_i;
+				witness[index++] = r_i;
+				witness[index++] = r_i * b_i;
 			}
 
 			return (new Knowledge(RangeProof(ma, bitCommitments), new ScalarVector(witness)), bitCommitments);
@@ -133,7 +131,6 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			var columns = width * 3 + 1 + 1; // three witness components per bit and one for the Ma randomness, plus one for the public inputs
 
 			// Initialize everything to O
-			// FIXME yuck!
 			var equations = new GroupElement[rows, columns];
 			for (int i = 0; i < rows; i++)
 			{
@@ -148,7 +145,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			// subsequent equations), are a decomposition of the amount committed in
 			// Ma, proven by showing that the public input is a commitment to 0 (only
 			// Gh term required to represent it).
-			var bitsTotal = bitCommitments.Select((B, i) => new Scalar(1u << i) * B).Sum();
+			var bitsTotal = bitCommitments.Select((Bi, i) => new Scalar(1ul << i) * Bi).Sum();
 			equations[0, 0] = ma - bitsTotal;
 			equations[0, 1] = Generators.Gh; // first witness term is r in Ma = a*Gg + r*Gh
 			// remaining terms added in loop
@@ -161,40 +158,46 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			// as a generator for a -1 term ) and the remaining are generators to
 			// be used with 1+3n terms:
 			//   ( r, b_0, r_0, rb_0, b_1, r_1, rb_1, ..., b_n, r_n, rb_n)
-			static int b_(int i) => 3 * i + 2; // column for b_i witness term
-			static int r_(int i) => 3 * i + 3; // column for r_i witness term
-			static int rb_(int i) => 3 * i + 4; // column for rb_i witness term
-			static int B_(int i) => 2 * i + 1; // row for B_i representation proof
-			static int O_(int i) => 2 * i + 2; // row for [ b*(B_i-Gg) - rb*Gh <=> b = b*b ] proof
 
 			var negatedGh = Generators.Gh.Negate();
+
+			// Add equation proving B is a Pedersen commitment to b:
+			//   [ B = b*Gg + r*Gh ]
+			void AddEquationProvingB(GroupElement B, int i)
+			{
+				var row = 2 * i + 1;
+				equations[row, (0)] = B;
+				equations[row, (3 * i + 2)] = Generators.Gg;
+				equations[row, (3 * i + 3)] = Generators.Gh;
+			}
+
+			// Add an equation:
+			//   [ O = b*(B - Gg) - rb*Gh ]
+			// which proves that b is a bit:
+			//   [ b = b*b  <=>  b \in {0,1} ]
+			// assuming [ B = b*Gg + r*Gh ] as proven in the previous equation.
+			//
+			// This works because the following will be a commitment to 0 if and
+			// only if b is a bit:
+			//   [ b*(B-Gg) == b*((b*Gg)-Gg) + r*Gh == b*b*Gg - b*Gg + r*b*Gh =?= rb * Gh ]
+			//
+			// in the verification equation we require that the following terms
+			// cancel out (public input point is O):
+			void AddEquationProvingBit(GroupElement B, int i)
+			{
+				var row = 2 * i + 2;
+				equations[row, (3 * i + 2)] = B - Generators.Gg;
+				equations[row, (3 * i + 4)] = negatedGh;
+			}
 
 			// For each bit, add two equations and one term to the first equation.
 			for (int i = 0; i < bitCommitments.Count(); i++)
 			{
 				// Add [ -r_i * 2^i * Gh ] term to first equation.
-				equations[0, r_(i)] = new Scalar(1u << i) * negatedGh;
+				equations[0, 3 * i + 3] = new Scalar(1ul << i) * negatedGh;
 
-				// Add equation proving B is a Pedersen commitment to b:
-				//   [ B = b*Gg + r*Gh ]
-				equations[B_(i), 0] = B[i];
-				equations[B_(i), b_(i)] = Generators.Gg;
-				equations[B_(i), r_(i)] = Generators.Gh;
-
-				// Add an equation:
-				//   [ O = b*(B - Gg) - rb*Gh ]
-				// which proves that b is a bit:
-				//   [ b = b*b  <=>  b \in {0,1} ]
-				// assuming [ B = b*Gg + r*Gh ] as proven in the previous equation.
-				//
-				// This works because the following will be a commitment to 0 if and
-				// only if b is a bit:
-				//   [ b*(B-Gg) == b*((b*Gg)-Gg) + r*Gh == b*b*Gg - b*Gg + r*b*Gh =?= rb * Gh ]
-				//
-				// in the verification equation we require that the following terms
-				// cancel out (public input point is O):
-				equations[O_(i), b_(i)] = B[i] - Generators.Gg;
-				equations[O_(i), rb_(i)] = negatedGh;
+				AddEquationProvingB(B[i], i);
+				AddEquationProvingBit(B[i], i);
 			}
 
 			return new Statement(equations);
