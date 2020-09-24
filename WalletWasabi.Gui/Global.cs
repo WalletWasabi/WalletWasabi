@@ -160,7 +160,7 @@ namespace WalletWasabi.Gui
 
 				HostedServices.Register(new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
 
-				HostedServices.Register(new SystemAwakeChecker(TimeSpan.FromMinutes(0.1), WalletManager), "System Awake Checker");
+				HostedServices.Register(new SystemAwakeChecker(WalletManager), "System Awake Checker");
 
 				#region ProcessKillSubscription
 

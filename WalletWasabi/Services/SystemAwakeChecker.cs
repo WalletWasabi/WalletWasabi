@@ -11,7 +11,7 @@ namespace WalletWasabi.Services
 {
 	public class SystemAwakeChecker : PeriodicRunner
 	{
-		public SystemAwakeChecker(TimeSpan period, WalletManager walletManager) : base(period)
+		public SystemAwakeChecker(WalletManager walletManager) : base(TimeSpan.FromMinutes(1))
 		{
 			WalletManager = walletManager;
 		}
