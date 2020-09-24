@@ -16,10 +16,10 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 			Assert.Equal(Generators.G, gen2);
 			Assert.Equal(GroupElement.Infinity, inf);
 
-			var one = new GroupElement(new Scalar(1) * EC.G);
-			var two = new GroupElement(new Scalar(2) * EC.G);
-			var three = new GroupElement(new Scalar(3) * EC.G);
-			var zero = new GroupElement(Scalar.Zero * EC.G);
+			var one = new GroupElement(EC.G) * new Scalar(1);
+			var two = new GroupElement(EC.G) * new Scalar(2);
+			var three = new GroupElement(EC.G) * new Scalar(3);
+			var zero = new GroupElement(EC.G) * Scalar.Zero;
 
 			Assert.Equal(Generators.G, one);
 			Assert.True(zero.IsInfinity);
@@ -45,12 +45,12 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 			Assert.Equal(Generators.G, gen);
 			Assert.Equal(GroupElement.Infinity, inf);
 
-			var minusOne = new GroupElement(new Scalar(1) * EC.G.Negate());
-			var minusTwo = new GroupElement(new Scalar(2) * EC.G.Negate());
-			var one = new GroupElement(new Scalar(1) * EC.G);
-			var two = new GroupElement(new Scalar(2) * EC.G);
-			var three = new GroupElement(new Scalar(3) * EC.G);
-			var zero = new GroupElement(Scalar.Zero * EC.G);
+			var minusOne = new GroupElement(EC.G.Negate()) * new Scalar(1);
+			var minusTwo = new GroupElement(EC.G.Negate()) * new Scalar(2);
+			var one = new GroupElement(EC.G) * new Scalar(1);
+			var two = new GroupElement(EC.G) * new Scalar(2);
+			var three = new GroupElement(EC.G) * new Scalar(3);
+			var zero = new GroupElement(EC.G) * Scalar.Zero;
 
 			Assert.Equal(Generators.G, one);
 			Assert.True(zero.IsInfinity);
@@ -80,7 +80,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 		{
 			Assert.Equal(new GroupElement(EC.G.Negate()), Generators.G.Negate());
 			Scalar one = new Scalar(1);
-			Assert.Equal(new GroupElement(EC.G.Negate() * one), new GroupElement(EC.G * one).Negate());
+			Assert.Equal(new GroupElement(EC.G.Negate()) * one, (new GroupElement(EC.G) * one).Negate());
 			Assert.Equal(GroupElement.Infinity, GroupElement.Infinity.Negate());
 		}
 
@@ -90,7 +90,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 			// Scalar one.
 			var g = Generators.G;
 			var scalar = Scalar.One;
-			var expected = new GroupElement(EC.G * scalar);
+			var expected = new GroupElement(EC.G) * scalar;
 			Assert.Equal(expected, g * scalar);
 
 			// Can switch order.
@@ -98,32 +98,32 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 
 			// Scalar two.
 			scalar = new Scalar(2);
-			expected = new GroupElement(EC.G * scalar);
+			expected = new GroupElement(EC.G) * scalar;
 			Assert.Equal(expected, g * scalar);
 
 			// Scalar three.
 			scalar = new Scalar(3);
-			expected = new GroupElement(EC.G * scalar);
+			expected = new GroupElement(EC.G) * scalar;
 			Assert.Equal(expected, g * scalar);
 
 			// Scalar NC.
 			scalar = EC.NC;
-			expected = new GroupElement(EC.G * scalar);
+			expected = new GroupElement(EC.G) * scalar;
 			Assert.Equal(expected, g * scalar);
 
 			// Scalar big.
 			scalar = new Scalar(int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue);
-			expected = new GroupElement(EC.G * scalar);
+			expected = new GroupElement(EC.G) * scalar;
 			Assert.Equal(expected, g * scalar);
 
 			// Scalar biggest.
 			scalar = EC.N + Scalar.One.Negate();
-			expected = new GroupElement(EC.G * scalar);
+			expected = new GroupElement(EC.G) * scalar;
 			Assert.Equal(expected, g * scalar);
 
 			// Scalar zero.
 			scalar = Scalar.Zero;
-			expected = new GroupElement(EC.G * scalar);
+			expected = new GroupElement(EC.G) * scalar;
 			var result = g * scalar;
 			Assert.Equal(expected, result);
 			Assert.True(result.IsInfinity);
@@ -150,19 +150,19 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 
 			// Scalar overflown N.
 			var scalar = EC.N;
-			var expected = new GroupElement(EC.G * scalar);
+			var expected = new GroupElement(EC.G) * scalar;
 			Assert.Equal(expected, g * scalar);
 			Assert.Equal(g * Scalar.Zero, g * scalar);
 
 			// Scalar overflown N+1.
 			scalar = EC.N + Scalar.One;
-			expected = new GroupElement(EC.G * scalar);
+			expected = new GroupElement(EC.G) * scalar;
 			Assert.Equal(expected, g * scalar);
 			Assert.Equal(g * Scalar.One, g * scalar);
 
 			// Scalar overflown uint.Max
 			scalar = new Scalar(uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue);
-			expected = new GroupElement(EC.G * scalar);
+			expected = new GroupElement(EC.G) * scalar;
 			Assert.Equal(expected, g * scalar);
 		}
 	}
