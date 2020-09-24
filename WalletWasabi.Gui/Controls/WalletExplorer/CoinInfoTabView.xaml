@@ -42,7 +42,7 @@
             <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding PubKey}" />
           </Grid>
           <Grid ColumnDefinitions="150, *">
-            <TextBlock Classes="monospaceFont" Text="Labels:" />
+            <TextBlock Classes="monospaceFont" Text="Cluster:" />
             <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Clusters}" />
           </Grid>
         </StackPanel>
