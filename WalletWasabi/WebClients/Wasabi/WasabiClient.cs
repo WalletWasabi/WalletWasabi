@@ -142,21 +142,6 @@ namespace WalletWasabi.WebClients.Wasabi
 			return allTxs.ToDependencyGraph().OrderByDependency();
 		}
 
-		public async Task<IDictionary<int, FeeEstimationPair>> GetFeesAsync(params int[] confirmationTargets)
-		{
-			var confirmationTargetsString = string.Join(",", confirmationTargets);
-
-			using var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, $"/api/v{ApiVersion}/btc/blockchain/fees/{confirmationTargetsString}");
-			if (response.StatusCode != HttpStatusCode.OK)
-			{
-				await response.ThrowRequestExceptionFromContentAsync();
-			}
-
-			using HttpContent content = response.Content;
-			var ret = await content.ReadAsJsonAsync<IDictionary<int, FeeEstimationPair>>();
-			return ret;
-		}
-
 		public async Task BroadcastAsync(string hex)
 		{
 			using var content = new StringContent($"'{hex}'", Encoding.UTF8, "application/json");

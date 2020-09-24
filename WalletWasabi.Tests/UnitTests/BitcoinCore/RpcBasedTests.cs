@@ -158,17 +158,12 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			try
 			{
 				var rpc = coreNode.RpcClient;
-				var estimations = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: true);
+				var estimations = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative, simulateIfRegTest: true);
 				Assert.Equal(WalletWasabi.Helpers.Constants.OneDayConfirmationTarget, estimations.Estimations.Count);
 				Assert.True(estimations.Estimations.First().Key < estimations.Estimations.Last().Key);
 				Assert.True(estimations.Estimations.First().Value > estimations.Estimations.Last().Value);
 				Assert.Equal(EstimateSmartFeeMode.Conservative, estimations.Type);
-				estimations = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Economical, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: true);
-				Assert.Equal(145, estimations.Estimations.Count);
-				Assert.True(estimations.Estimations.First().Key < estimations.Estimations.Last().Key);
-				Assert.True(estimations.Estimations.First().Value > estimations.Estimations.Last().Value);
-				Assert.Equal(EstimateSmartFeeMode.Economical, estimations.Type);
-				estimations = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Economical, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: false);
+				estimations = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Economical, simulateIfRegTest: true);
 				Assert.Equal(145, estimations.Estimations.Count);
 				Assert.True(estimations.Estimations.First().Key < estimations.Estimations.Last().Key);
 				Assert.True(estimations.Estimations.First().Value > estimations.Estimations.Last().Value);

@@ -277,4 +277,6 @@ lcov.info
 # WindowsInstaller generated files
 /WalletWasabi.WindowsInstaller/ComponentsGenerated.wxs
 /WalletWasabi.WindowsInstaller/*.wixobj
+
+# This file is created by an F# VS Code plugin
 .ionide/symbolCache.db

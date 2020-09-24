@@ -44,17 +44,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[Theory]
 		[InlineData(NetworkType.Mainnet)]
 		[InlineData(NetworkType.Testnet)]
-		public async Task GetFeesAsync(NetworkType networkType)
-		{
-			using var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType], Global.Instance.TorSocks5Endpoint);
-			var feeEstimationPairs = await client.GetFeesAsync(1000);
-
-			Assert.True(feeEstimationPairs.NotNullAndNotEmpty());
-		}
-
-		[Theory]
-		[InlineData(NetworkType.Mainnet)]
-		[InlineData(NetworkType.Testnet)]
 		public async Task GetFiltersAsync(NetworkType networkType)
 		{
 			Network network = (networkType == NetworkType.Mainnet) ? Network.Main : Network.TestNet;
