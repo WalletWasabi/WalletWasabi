@@ -46,13 +46,11 @@ namespace WalletWasabi.Gui.Validation
 
 		public void ValidateProperty(string propertyName)
 		{
-			if (ValidationMethods.ContainsKey(propertyName))
+			if (ValidationMethods.TryGetValue(propertyName, out ValidateMethod? validationMethod))
 			{
 				ClearErrors(propertyName);
 
-				var method = ValidationMethods[propertyName];
-
-				method(ErrorsByPropertyName[propertyName]);
+				validationMethod(ErrorsByPropertyName[propertyName]);
 
 				OnErrorsChanged(propertyName);
 			}

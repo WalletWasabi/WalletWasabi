@@ -10,9 +10,9 @@ namespace WalletWasabi.Gui.Validation
 	{
 		public static void ValidateProperty<TSender, TRet>(this TSender viewModel, Expression<Func<TSender, TRet>> property, ValidateMethod validateMethod) where TSender : IRegisterValidationMethod
 		{
-			var expression = (MemberExpression)property.Body;
+			string propertyName = ((MemberExpression)property.Body).Member.Name;
 
-			viewModel.RegisterValidationMethod(expression.Member.Name, validateMethod);
+			viewModel.RegisterValidationMethod(propertyName, validateMethod);
 		}
 	}
 }
