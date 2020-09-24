@@ -264,10 +264,15 @@ namespace WalletWasabi.Helpers
 		[DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
 		private static extern EXECUTION_STATE SetThreadExecutionState(EXECUTION_STATE esFlags);
 
+		/// <summary>
+		/// Reset the system sleep timer, this method has to be called from time to time to prevent sleep.
+		/// It does not prevent the display to turn off.
+		/// </summary>
 		public static async Task ProlongSystemAwakeAsync()
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
+				// Reset the system sleep timer.
 				var result = SetThreadExecutionState(EXECUTION_STATE.ES_SYSTEM_REQUIRED);
 				if (result == 0)
 				{
@@ -276,6 +281,7 @@ namespace WalletWasabi.Helpers
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
+				// Prevent macOS system from idle sleep and keep it for 1 second. This will reset the idle sleep timer.
 				string shellCommand = $"caffeinate -i -t 1";
 				await ShellExecAsync(shellCommand, waitForExit: true).ConfigureAwait(false);
 			}
