@@ -264,7 +264,7 @@ namespace WalletWasabi.Helpers
 		[DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
 		private static extern EXECUTION_STATE SetThreadExecutionState(EXECUTION_STATE esFlags);
 
-		public static async Task KeepSystemAwakeAsync()
+		public static async Task ProlongSystemAwakeAsync()
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{

@@ -7,9 +7,9 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 	public class PreventSleepTests
 	{
 		[Fact]
-		public async Task PreventSleepAsync()
+		public async Task ProlongSystemAwakeCanBeExecutedAsync()
 		{
-			await EnvironmentHelpers.KeepSystemAwakeAsync();
+			await EnvironmentHelpers.ProlongSystemAwakeAsync();
 		}
 	}
 }

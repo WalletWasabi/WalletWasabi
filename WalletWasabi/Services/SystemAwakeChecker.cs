@@ -22,7 +22,7 @@ namespace WalletWasabi.Services
 		{
 			if (WalletManager.IsAnyCoinJoinInProgress())
 			{
-				await EnvironmentHelpers.KeepSystemAwakeAsync().ConfigureAwait(false);
+				await EnvironmentHelpers.ProlongSystemAwakeAsync().ConfigureAwait(false);
 			}
 		}
 	}
