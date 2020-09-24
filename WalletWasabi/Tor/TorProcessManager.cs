@@ -67,7 +67,7 @@ namespace WalletWasabi.Tor
 		/// </summary>
 		/// <param name="ensureRunning">
 		/// If <c>false</c>, Tor is started but no attempt to verify that it actually runs is made.
-		/// <para>If <c>true</c>, we start Tor and attempt to connect to it to verify it is running (at most 10 attempts).</para>
+		/// <para>If <c>true</c>, we start Tor and attempt to connect to it to verify it is running (at most 25 attempts).</para>
 		/// </param>
 		public async Task<bool> StartAsync(bool ensureRunning)
 		{
