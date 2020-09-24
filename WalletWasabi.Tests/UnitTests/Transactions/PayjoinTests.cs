@@ -459,7 +459,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			{
 				foreach (var sameLabelCoin in scoins.Where(c => !c.Label.IsEmpty && c.Label == coin.Label))
 				{
-					sameLabelCoin.Clusters = coin.Clusters;
+					sameLabelCoin.Cluster = coin.Cluster;
 				}
 			}
 			var coinsView = new CoinsView(scoins);

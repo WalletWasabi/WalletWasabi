@@ -62,9 +62,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.DisposeWith(Disposables);
 
 			_cluster = Model
-				.WhenAnyValue(x => x.Clusters, x => x.Clusters.Labels)
+				.WhenAnyValue(x => x.Cluster, x => x.Cluster.Labels)
 				.Select(x => x.Item2.ToString())
-				.ToProperty(this, x => x.Clusters, scheduler: RxApp.MainThreadScheduler)
+				.ToProperty(this, x => x.Cluster, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
 
 			_unavailable = Model
@@ -97,7 +97,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(_ =>
 				{
 					this.RaisePropertyChanged(nameof(AmountBtc));
-					this.RaisePropertyChanged(nameof(Clusters));
+					this.RaisePropertyChanged(nameof(Cluster));
 				}).DisposeWith(Disposables);
 
 			DequeueCoin = ReactiveCommand.Create(() => Owner.PressDequeue(Model), this.WhenAnyValue(x => x.CoinJoinInProgress));
@@ -117,12 +117,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				shell.Select(coinInfo);
 			});
 
-			CopyClusters = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(Clusters));
+			CopyCluster = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(Cluster));
 
 			Observable
 				.Merge(DequeueCoin.ThrownExceptions) // Don't notify about it. Dequeue failure (and success) is notified by other mechanism.
 				.Merge(OpenCoinInfo.ThrownExceptions)
-				.Merge(CopyClusters.ThrownExceptions)
+				.Merge(CopyCluster.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 		}
@@ -135,7 +135,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public bool CanBeDequeued => Owner.CanDequeueCoins;
 		public ReactiveCommand<Unit, Unit> DequeueCoin { get; }
 		public ReactiveCommand<Unit, Unit> OpenCoinInfo { get; }
-		public ReactiveCommand<Unit, Unit> CopyClusters { get; }
+		public ReactiveCommand<Unit, Unit> CopyCluster { get; }
 
 		public SmartCoin Model { get; }
 
@@ -188,7 +188,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string InCoinJoin => Model.CoinJoinInProgress ? "Yes" : "No";
 
-		public string Clusters => _cluster?.Value ?? "";
+		public string Cluster => _cluster?.Value ?? "";
 
 		public string PubKey => Model.HdPubKey?.PubKey?.ToString() ?? "";
 

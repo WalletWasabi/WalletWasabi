@@ -43,7 +43,7 @@
           </Grid>
           <Grid ColumnDefinitions="150, *">
             <TextBlock Classes="monospaceFont" Text="Cluster:" />
-            <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Clusters}" />
+            <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Cluster}" />
           </Grid>
         </StackPanel>
       </ScrollViewer>

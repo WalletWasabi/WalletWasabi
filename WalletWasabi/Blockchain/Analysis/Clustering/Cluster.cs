@@ -36,7 +36,7 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 		private List<SmartCoin> Coins { get; set; }
 		private HashSet<SmartCoin> CoinsSet { get; set; }
 
-		public void Merge(Cluster clusters) => Merge(clusters.Coins);
+		public void Merge(Cluster cluster) => Merge(cluster.Coins);
 
 		public void Merge(IEnumerable<SmartCoin> coins)
 		{
@@ -49,7 +49,7 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 					{
 						Coins.Insert(insertPosition++, coin);
 					}
-					coin.Clusters = this;
+					coin.Cluster = this;
 				}
 				if (insertPosition > 0) // at least one element was inserted
 				{
