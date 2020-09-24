@@ -21,7 +21,8 @@ namespace WalletWasabi.Crypto.Groups
 			Gej = Ge.ToGroupElementJacobian(); // eagerly initialize Ge property
 		}
 
-		public GroupElement(GEJ groupElementJacobian)
+		// Since GEJ.IsValidVariable, this constructor is private
+		private GroupElement(GEJ groupElementJacobian)
 		{
 			if (groupElementJacobian.IsInfinity)
 			{
@@ -30,7 +31,6 @@ namespace WalletWasabi.Crypto.Groups
 			}
 			else
 			{
-				Guard.True($"{nameof(groupElementJacobian)}.{nameof(groupElementJacobian.IsValidVariable)}", groupElementJacobian.IsValidVariable);
 				GE computeAffineCoordinates()
 				{
 					var groupElement = groupElementJacobian.ToGroupElement();
@@ -101,7 +101,7 @@ namespace WalletWasabi.Crypto.Groups
 			}
 		}
 
-		// Adding affine to Jacobian is the most efficient
+		// GEJ.AddVariable(GE) is more efficient than GEJ.AddVariable(GEJ).
 		public static GroupElement operator +(GroupElement a, GroupElement b)
 		{
 			if (b.IsGeCreated)
