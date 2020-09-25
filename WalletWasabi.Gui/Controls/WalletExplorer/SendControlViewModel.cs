@@ -42,7 +42,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _feeTarget;
 		private int _minimumFeeTarget;
 		private int _maximumFeeTarget;
-		private ObservableAsPropertyHelper<bool> _minMaxFeeTargetsEqual;		
+		private ObservableAsPropertyHelper<bool> _minMaxFeeTargetsEqual;
 		private string _feeText;
 		private decimal _usdFee;
 		private Money _estimatedBtcFee;
@@ -325,7 +325,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				catch (InsufficientBalanceException ex)
 				{
-					//ex.Minimum sometimes contains the fee sometimes does not
+					// ex.Minimum sometimes contains the fee sometimes does not.
 					Money needed = (_amount + EstimatedBtcFee) - ex.Actual;
 					NotificationHelpers.Error($"Not enough coins selected. You need an estimated {needed.ToString(false, true)} BTC more to make this transaction.", "");
 				}
