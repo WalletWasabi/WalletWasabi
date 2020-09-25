@@ -8,18 +8,13 @@ using WalletWasabi.Fluent.ViewModels.Dialog;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialog
 {
-	public class DialogViewModelBase : ReactiveObject
+	public abstract class DialogViewModelBase : ReactiveObject
 	{
-		private MainViewModel MainView { get; }
+		public MainViewModel MainView { get; }
 
 		public DialogViewModelBase(MainViewModel mainViewModel)
 		{
 			this.MainView = mainViewModel;
-		}
-
-		public void Close()
-		{
-			MainView?.CloseDialog();
 		}
 	}
 }
