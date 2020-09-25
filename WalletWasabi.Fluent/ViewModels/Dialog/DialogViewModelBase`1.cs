@@ -10,8 +10,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 {
 	public abstract class DialogViewModelBase<TResult> : DialogViewModelBase
 	{
-		public abstract TResult Result { get; }
-
 		public abstract void DialogShown(TaskCompletionSource<TResult> tcs);
 
 		public DialogViewModelBase(MainViewModel mainViewModel) : base(mainViewModel)
