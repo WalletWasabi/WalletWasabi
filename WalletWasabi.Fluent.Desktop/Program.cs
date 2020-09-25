@@ -194,7 +194,8 @@ namespace WalletWasabi.Fluent.Desktop
 		{
 			bool useGpuLinux = true;
 
-			var result = AppBuilder.Configure<App>(()=>new App(Global));
+			var result = AppBuilder.Configure<App>(()=>new App(Global))
+				.UseReactiveUI();
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
