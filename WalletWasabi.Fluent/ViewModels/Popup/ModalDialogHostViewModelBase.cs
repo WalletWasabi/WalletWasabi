@@ -4,20 +4,20 @@ using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ReactiveUI;
-using WalletWasabi.Fluent.ViewModels.Popup;
+using WalletWasabi.Fluent.ViewModels.Dialog;
 
-namespace WalletWasabi.Fluent.ViewModels
+namespace WalletWasabi.Fluent.ViewModels.Dialog
 {
-	public class ModalDialogHostViewModelBase : ReactiveObject, IPopupHost
+	public class ModalDialogHostViewModelBase : ReactiveObject, IDialogHost
 	{
-		private static IPopupHost _host;
-		private IPopupView _currentPopupView;
-		public IPopupHost DialogHost => _host;
+		private static IDialogHost _host;
+		private IDialogView _currentPopupView;
+		public IDialogHost DialogHost => _host;
 
 		private readonly ObservableAsPropertyHelper<bool> _canDisplayDialog;
 		public bool CanDisplayDialog => _canDisplayDialog?.Value ?? false;
 
-		public void SetHost(IPopupHost host)
+		public void SetHost(IDialogHost host)
 		{
 			if (_host is null)
 			{
@@ -37,13 +37,13 @@ namespace WalletWasabi.Fluent.ViewModels
 				.ToProperty(this, x => x.CanDisplayDialog);
 		}
 
-		public IPopupView CurrentPopupView
+		public IDialogView CurrentPopupView
 		{
 			get => _currentPopupView;
 			set => this.RaiseAndSetIfChanged(ref _currentPopupView, value, nameof(CurrentPopupView));
 		}
 
-		public void SetDialog(IPopupView targetView)
+		public void SetDialog(IDialogView targetView)
 		{
 			if (CanDisplayDialog)
 			{
