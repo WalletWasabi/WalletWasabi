@@ -8,10 +8,11 @@ using WalletWasabi.Fluent.ViewModels.Popup;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
-    public class MainWindowViewModel : ViewModelBase
-    {
-        public MainWindowViewModel()
-        {
-        }
-    }
+	public class MainViewModel : ModalDialogHostViewModelBase
+	{
+		public MainViewModel()
+		{
+            base.SetHost(this);
+		}
+	}
 }
