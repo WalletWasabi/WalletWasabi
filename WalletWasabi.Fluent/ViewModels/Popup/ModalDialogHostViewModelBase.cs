@@ -12,7 +12,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 	{
 		private static IDialogHost _host;
 		private IDialogView _currentPopupView;
-		public IDialogHost DialogHost => _host;
+		public static IDialogHost DialogHost => _host;
 
 		private readonly ObservableAsPropertyHelper<bool> _canDisplayDialog;
 		public bool CanDisplayDialog => _canDisplayDialog?.Value ?? false;
