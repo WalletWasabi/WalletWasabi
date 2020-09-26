@@ -4,6 +4,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 	{
 		void CloseDialog();
 		void ShowDialog<TDialog>(TDialog dialogViewModel) where TDialog : DialogViewModelBase;
-		DialogViewModelBase CurrentDialog { get; set; }
+		DialogViewModelBase CurrentDialog { get; internal set; }
 	}
 }
