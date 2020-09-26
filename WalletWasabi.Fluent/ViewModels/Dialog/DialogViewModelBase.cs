@@ -10,11 +10,11 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 {
 	public abstract class DialogViewModelBase : ReactiveObject
 	{
-		public MainViewModel MainView { get; }
+		public IDialogHost DialogHost { get; }
 
-		public DialogViewModelBase(MainViewModel mainViewModel)
+		public DialogViewModelBase(IDialogHost dialogHost)
 		{
-			this.MainView = mainViewModel;
+			this.DialogHost = dialogHost;
 		}
 	}
 }

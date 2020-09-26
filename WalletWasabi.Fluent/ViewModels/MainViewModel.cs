@@ -8,14 +8,14 @@ using WalletWasabi.Fluent.ViewModels.Dialog;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
-	public class MainViewModel : ViewModelBase
+	public class MainViewModel : ViewModelBase, IDialogHost
 	{
 		private DialogViewModelBase _currentDialog;
 
-		public DialogViewModelBase CurrentDialog
+		DialogViewModelBase IDialogHost.CurrentDialog
 		{
 			get => _currentDialog;
-			private set => this.RaiseAndSetIfChanged(ref _currentDialog, value, nameof(CurrentDialog));
+			set => this.RaiseAndSetIfChanged(ref _currentDialog, value, nameof(IDialogHost.CurrentDialog));
 		}
 
 		public MainViewModel()
@@ -23,14 +23,14 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		}
 
-		public void ShowDialog<TDialog>(TDialog dialogViewModel) where TDialog : DialogViewModelBase
+		void IDialogHost.ShowDialog<TDialog>(TDialog dialogViewModel)
 		{
-			CurrentDialog = dialogViewModel;
+			(this as IDialogHost).CurrentDialog = dialogViewModel;
 		}
 
-		public void CloseDialog()
+		void IDialogHost.CloseDialog()
 		{
-			CurrentDialog = null;
+			(this as IDialogHost).CurrentDialog = null;
 		}
 	}
 }
