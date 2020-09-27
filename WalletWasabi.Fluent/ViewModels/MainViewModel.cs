@@ -10,18 +10,20 @@ namespace WalletWasabi.Fluent.ViewModels
 {
 	public class MainViewModel : ViewModelBase, IDialogHost
 	{
+		private DialogViewModelBase _currentDialog;
+		
 		public MainViewModel()
 		{
-
 		}
 
-		private DialogViewModelBase _currentDialog;
 		DialogViewModelBase IDialogHost.CurrentDialog => _currentDialog;
 
 		private void SetDialog(DialogViewModelBase target)
 		{
 			this.RaiseAndSetIfChanged(ref _currentDialog, target, nameof(IDialogHost.CurrentDialog));
 		}
+
+
 
 		void IDialogHost.ShowDialog<TDialog>(TDialog dialogViewModel)
 		{

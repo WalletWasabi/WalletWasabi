@@ -6,6 +6,11 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 	public interface IDialogHost
 	{
 		/// <summary>
+		/// The currently active dialog. The modal dialog UI should close when this is null.
+		/// </summary>
+		DialogViewModelBase CurrentDialog { get; }
+
+		/// <summary>
 		/// Close the currently displayed dialog.
 		/// </summary>
 		void CloseDialog();
@@ -15,10 +20,5 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 		/// </summary>
 		/// <param name="dialogViewModel">The instance of the Dialog ViewModel to be displayed</param>
 		void ShowDialog<TDialog>(TDialog dialogViewModel) where TDialog : DialogViewModelBase;
-		
-		/// <summary>
-		/// The currently active dialog. The modal dialog UI should close when this is null.
-		/// </summary>
-		DialogViewModelBase CurrentDialog { get; }
 	}
 }

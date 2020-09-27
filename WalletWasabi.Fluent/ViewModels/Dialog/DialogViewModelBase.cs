@@ -15,14 +15,15 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 	/// </summary>	
 	public abstract class DialogViewModelBase : ReactiveObject
 	{
+		public DialogViewModelBase(IDialogHost dialogHost)
+		{
+			this.DialogHost = dialogHost;
+		}
+
 		/// <summary>
 		/// An instance of <see cref="IDialogHost"/> that owns this dialog.
 		/// </summary>
 		public IDialogHost DialogHost { get; }
 
-		public DialogViewModelBase(IDialogHost dialogHost)
-		{
-			this.DialogHost = dialogHost;
-		}
 	}
 }
