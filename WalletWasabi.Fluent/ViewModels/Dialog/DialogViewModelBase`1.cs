@@ -12,13 +12,12 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 	/// <typeparam name="TResult">The type of the value to be returned when the dialog is finished.</typeparam>
 	public abstract class DialogViewModelBase<TResult> : DialogViewModelBase
 	{
-		private TaskCompletionSource<TResult> _tcs { get; set; } 
+		public DialogViewModelBase(MainViewModel mainViewModel) : base(mainViewModel)
+		{
 
-		/// <summary>
-		/// Method that is triggered when the dialog
-		/// is to be shown.
-		/// </summary>
-		public abstract void DialogShown();
+		}
+
+		private TaskCompletionSource<TResult> _tcs { get; set; } 
 
 		/// <summary>
 		/// Method to be called when the dialog is finished
@@ -29,11 +28,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 		{
 			_tcs.SetResult(value);
 			_tcs = null;
-		}
-
-		public DialogViewModelBase(MainViewModel mainViewModel) : base(mainViewModel)
-		{
-
 		}
 
 		/// <summary>
@@ -49,5 +43,11 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 
 			return _tcs.Task;
 		}
+
+		/// <summary>
+		/// Method that is triggered when the dialog
+		/// is to be shown.
+		/// </summary>
+		public abstract void DialogShown();
 	}
 }
