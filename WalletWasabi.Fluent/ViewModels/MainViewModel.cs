@@ -23,8 +23,6 @@ namespace WalletWasabi.Fluent.ViewModels
 			this.RaiseAndSetIfChanged(ref _currentDialog, target, nameof(IDialogHost.CurrentDialog));
 		}
 
-
-
 		void IDialogHost.ShowDialog<TDialog>(TDialog dialogViewModel)
 		{
 			SetDialog(dialogViewModel);

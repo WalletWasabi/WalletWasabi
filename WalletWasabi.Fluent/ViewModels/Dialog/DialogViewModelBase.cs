@@ -24,6 +24,5 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 		/// An instance of <see cref="IDialogHost"/> that owns this dialog.
 		/// </summary>
 		public IDialogHost DialogHost { get; }
-
 	}
 }
