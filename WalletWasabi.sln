@@ -32,10 +32,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WalletWasabi.Packager", "Wa
 EndProject
 Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "WalletWasabi.WindowsInstaller", "WalletWasabi.WindowsInstaller\WalletWasabi.WindowsInstaller.wixproj", "{54654468-4F58-4253-84BD-6F53A8D3D2C4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WalletWasabi.Fluent", "WalletWasabi.Fluent\WalletWasabi.Fluent.csproj", "{DE9557A0-4D2E-435B-8B9E-D49AB0422209}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WalletWasabi.Fluent.Desktop", "WalletWasabi.Fluent.Desktop\WalletWasabi.Fluent.Desktop.csproj", "{1F0663DB-679B-4044-BF79-9CB294445C04}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -89,22 +85,6 @@ Global
 		{54654468-4F58-4253-84BD-6F53A8D3D2C4}.Release|Any CPU.ActiveCfg = Release|x64
 		{54654468-4F58-4253-84BD-6F53A8D3D2C4}.Release|x64.ActiveCfg = Release|x64
 		{54654468-4F58-4253-84BD-6F53A8D3D2C4}.Release|x64.Build.0 = Debug|x64
-		{DE9557A0-4D2E-435B-8B9E-D49AB0422209}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DE9557A0-4D2E-435B-8B9E-D49AB0422209}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DE9557A0-4D2E-435B-8B9E-D49AB0422209}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{DE9557A0-4D2E-435B-8B9E-D49AB0422209}.Debug|x64.Build.0 = Debug|Any CPU
-		{DE9557A0-4D2E-435B-8B9E-D49AB0422209}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DE9557A0-4D2E-435B-8B9E-D49AB0422209}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DE9557A0-4D2E-435B-8B9E-D49AB0422209}.Release|x64.ActiveCfg = Release|Any CPU
-		{DE9557A0-4D2E-435B-8B9E-D49AB0422209}.Release|x64.Build.0 = Release|Any CPU
-		{1F0663DB-679B-4044-BF79-9CB294445C04}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1F0663DB-679B-4044-BF79-9CB294445C04}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1F0663DB-679B-4044-BF79-9CB294445C04}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{1F0663DB-679B-4044-BF79-9CB294445C04}.Debug|x64.Build.0 = Debug|Any CPU
-		{1F0663DB-679B-4044-BF79-9CB294445C04}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1F0663DB-679B-4044-BF79-9CB294445C04}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1F0663DB-679B-4044-BF79-9CB294445C04}.Release|x64.ActiveCfg = Release|Any CPU
-		{1F0663DB-679B-4044-BF79-9CB294445C04}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
