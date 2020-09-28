@@ -1,4 +1,4 @@
-﻿// Copyright (c) The Avalonia Project. All rights reserved.
+// Copyright (c) The Avalonia Project. All rights reserved.
 // Licensed under the MIT license. See licence.md file in the project root for full license information.
 
 using System;
@@ -16,7 +16,7 @@ namespace WalletWasabi.Fluent
 
 			if (type != null)
 			{
-				return (Control)Activator.CreateInstance(type) as IViewFor;
+				return (IViewFor)Activator.CreateInstance(type);
 			}
 
 			return null;
