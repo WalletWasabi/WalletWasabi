@@ -105,7 +105,7 @@ namespace WalletWasabi.Fluent.Desktop
 			{
 				await Global.InitializeNoWalletAsync();
 
-				MainViewModel.Instance.Initialize();				
+				MainViewModel.Instance.Initialize();
 
 				Dispatcher.UIThread.Post(GC.Collect);
 			}
