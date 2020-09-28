@@ -103,9 +103,6 @@ namespace WalletWasabi.Fluent.Desktop
 		{
 			try
 			{
-				var statusBarViewModel = new StatusBarViewModel(Global.DataDir, Global.Network, Global.Config, Global.HostedServices, Global.BitcoinStore.SmartHeaderChain, Global.Synchronizer, Global.LegalDocuments);
-				//MainWindowViewModel.Instance = new MainWindowViewModel(Global.Network, Global.UiConfig, Global.WalletManager, statusBarViewModel, IoC.Get<IShell>());
-
 				await Global.InitializeNoWalletAsync();
 
 				MainViewModel.Instance.Initialize();				
