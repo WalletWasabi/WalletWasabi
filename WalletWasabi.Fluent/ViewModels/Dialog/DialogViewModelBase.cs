@@ -17,7 +17,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 	{
 		public DialogViewModelBase(IDialogHost dialogHost)
 		{
-			this.DialogHost = dialogHost;
+			DialogHost = dialogHost;
 		}
 
 		/// <summary>
