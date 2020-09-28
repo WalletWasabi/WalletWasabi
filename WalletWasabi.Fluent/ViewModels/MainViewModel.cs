@@ -18,8 +18,6 @@ namespace WalletWasabi.Fluent.ViewModels
 		private StatusBarViewModel _statusBar;
 		private string _title = "Wasabi Wallet";
 
-		public static MainViewModel Instance { get; internal set; }
-
 		public MainViewModel(Global global)
 		{
 			_global = global;
@@ -34,20 +32,9 @@ namespace WalletWasabi.Fluent.ViewModels
 
 				Router.Navigate.Execute(new HomeViewModel(this));
 			});
-		}
+		}		
 
-		public void Initialize()
-		{
-			/// Temporary to keep things running without VM modifications.
-			MainWindowViewModel.Instance = new MainWindowViewModel(_global.Network, _global.UiConfig, _global.WalletManager, null, null, false);
-
-			StatusBar.Initialize(_global.Nodes.ConnectedNodes);
-
-			if (Network != Network.Main)
-			{
-				Title += $" - {Network}";
-			}
-		}
+		public static MainViewModel Instance { get; internal set; }
 
 		public RoutingState Router { get; } = new RoutingState();
 		
@@ -67,6 +54,19 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			get => _title;
 			internal set => this.RaiseAndSetIfChanged(ref _title, value);
+		}
+
+		public void Initialize()
+		{
+			// Temporary to keep things running without VM modifications.
+			MainWindowViewModel.Instance = new MainWindowViewModel(_global.Network, _global.UiConfig, _global.WalletManager, null, null, false);
+
+			StatusBar.Initialize(_global.Nodes.ConnectedNodes);
+
+			if (Network != Network.Main)
+			{
+				Title += $" - {Network}";
+			}
 		}
 	}
 }
