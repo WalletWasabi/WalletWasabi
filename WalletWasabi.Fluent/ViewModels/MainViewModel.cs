@@ -38,6 +38,9 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public void Initialize()
 		{
+			/// Temporary to keep things running without VM modifications.
+			MainWindowViewModel.Instance = new MainWindowViewModel(_global.Network, _global.UiConfig, _global.WalletManager, null, null, false);
+
 			StatusBar.Initialize(_global.Nodes.ConnectedNodes);
 
 			if (Network != Network.Main)
