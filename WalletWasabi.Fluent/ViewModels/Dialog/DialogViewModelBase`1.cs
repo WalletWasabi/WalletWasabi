@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reactive.Linq;
 using System.Text;
@@ -35,7 +35,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 		/// <returns>The value to be returned when the dialog is finished.</returns>
 		public Task<TResult> ShowDialogAsync()
 		{
-			this._tcs = new TaskCompletionSource<TResult>();
+			_tcs = new TaskCompletionSource<TResult>();
 
 			DialogHost.ShowDialog(this);
 			DialogShown();

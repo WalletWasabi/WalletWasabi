@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reactive.Linq;
 using System.Text;
@@ -20,7 +20,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		private void SetDialog(DialogViewModelBase target)
 		{
-			this.RaiseAndSetIfChanged(ref _currentDialog, target, nameof(IDialogHost.CurrentDialog));
+			RaiseAndSetIfChanged(ref _currentDialog, target, nameof(IDialogHost.CurrentDialog));
 		}
 
 		void IDialogHost.ShowDialog<TDialog>(TDialog dialogViewModel)
