@@ -14,10 +14,6 @@
         ExtendClientAreaChromeHints="PreferSystemChrome"        
         Title="Wasabi Wallet">
 
-  <Window.Resources>
-    <FontFamily x:Key="ContentControlThemeFontFamily">Segoe UI</FontFamily>
-  </Window.Resources>
-
   <Panel Margin="{Binding #MainWindow.OffScreenMargin}">
     <local:MainView />
   </Panel>
