@@ -13,56 +13,80 @@
       <Setter Property="Margin" Value="{DynamicResource MenuFlyoutSeparatorThemePadding}" />
       <Setter Property="Height" Value="{DynamicResource MenuFlyoutSeparatorThemeHeight}" />
     </Style>
+    <Style Selector="ListBox">
+      <Setter Property="Margin" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
   </UserControl.Styles>
-  <DockPanel Margin="1">
-    <StackPanel DockPanel.Dock="Top" Margin="0 20 0 0">
-      <TextBlock Text="Wasabi Wallet" Foreground="White" FontSize="16" Margin="15 10 0 10" />
+  <UserControl.DataTemplates>
+    <DataTemplate DataType="vm:HomePageViewModel">
       <c:NavBarItem>
         <StackPanel Orientation="Horizontal" Spacing="20">
           <PathIcon Data="{StaticResource home_regular}" />
           <TextBlock Text="Home" />
         </StackPanel>
       </c:NavBarItem>
-      <Separator />
-    </StackPanel>
-
-    <StackPanel DockPanel.Dock="Bottom">
-      <Separator />
+    </DataTemplate>
+    <DataTemplate DataType="vm:SettingsPageViewModel">
       <c:NavBarItem>
         <StackPanel Orientation="Horizontal" Spacing="20">
           <PathIcon Data="{StaticResource settings_regular}" />
           <TextBlock Text="Settings" />
         </StackPanel>
       </c:NavBarItem>
-    </StackPanel>
-
-    <DockPanel>
-      <c:NavBarItem DockPanel.Dock="Top">
+    </DataTemplate>
+    <DataTemplate DataType="vm:AddWalletPageViewModel">
+      <c:NavBarItem>
         <StackPanel Orientation="Horizontal" Spacing="20">
           <PathIcon Data="{StaticResource add_circle_regular}" />
           <TextBlock Text="Add Wallet" />
         </StackPanel>
       </c:NavBarItem>
-      <ListBox Items="{Binding Items}" Background="Transparent" Margin="0" Padding="0">
-        <ListBox.Styles>
-          <Style Selector="ListBoxItem">
-            <Setter Property="Padding" Value="0" />
-          </Style>
-          <Style Selector="ListBoxItem:pressed /template/ Rectangle#PressedBackground, ListBoxItem:selected /template/ Rectangle#PressedBackground, ListBoxItem:pointerover /template/ Rectangle#PressedBackground">
-            <Setter Property="Fill" Value="Transparent"/>
-          </Style>
-        </ListBox.Styles>
-        <ListBox.DataTemplates>
-          <DataTemplate DataType="vm:ClosedWalletViewModel">
+    </DataTemplate>
+    <DataTemplate DataType="vm:ClosedWalletViewModel">
+      <StackPanel>
+        <c:NavBarItem>
+          <StackPanel Orientation="Horizontal" Spacing="20">
+            <PathIcon Data="{StaticResource web_asset_regular}" />
+            <TextBlock Text="{Binding Title}" />
+          </StackPanel>
+        </c:NavBarItem>
+        <ListBox>
+          <ListBoxItem>
             <c:NavBarItem>
               <StackPanel Orientation="Horizontal" Spacing="20">
-                <PathIcon Data="{StaticResource web_asset_regular}" />
-                <TextBlock Text="{Binding Title}" />
+                <PathIcon Data="{StaticResource add_circle_regular}" />
+                <TextBlock Text="Send" />
               </StackPanel>
             </c:NavBarItem>
-          </DataTemplate>
-        </ListBox.DataTemplates>
-      </ListBox>
-    </DockPanel>
+          </ListBoxItem>
+          <ListBoxItem>
+            <c:NavBarItem>
+              <StackPanel Orientation="Horizontal" Spacing="20">
+                <PathIcon Data="{StaticResource add_circle_regular}" />
+                <TextBlock Text="Receive" />
+              </StackPanel>
+            </c:NavBarItem>
+          </ListBoxItem>
+        </ListBox>
+      </StackPanel>
+    </DataTemplate>
+  </UserControl.DataTemplates>
+  <DockPanel Margin="1">
+    <StackPanel DockPanel.Dock="Top" Margin="0 20 0 0">
+      <TextBlock Text="Wasabi Wallet" Foreground="White" FontSize="16" Margin="15 10 0 10" />
+
+      <ListBox Items="{Binding TopItems}" SelectedItem="{Binding SelectedItem}" />
+
+      <Separator />
+    </StackPanel>
+
+    <StackPanel DockPanel.Dock="Bottom">
+      <Separator />
+      <ListBox Items="{Binding BottomItems}" SelectedItem="{Binding SelectedItem}" />
+    </StackPanel>
+
+    <ListBox Items="{Binding Items}" SelectedItem="{Binding SelectedItem}" />
   </DockPanel>
 </UserControl>

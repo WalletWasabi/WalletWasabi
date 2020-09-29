@@ -13,14 +13,23 @@ namespace WalletWasabi.Fluent.ViewModels
 	public class NavBarViewModel : ViewModelBase
 	{
 		private ObservableCollection<NavBarItemViewModel> _items;
+		private ObservableCollection<NavBarItemViewModel> _topItems;
+		private ObservableCollection<NavBarItemViewModel> _bottomItems;
 		private NavBarItemViewModel _selectedItem;
 		private Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
 		private bool _anyWalletStarted;
 
 		public NavBarViewModel(WalletManager walletManager, UiConfig uiConfig)
 		{
+			_topItems = new ObservableCollection<NavBarItemViewModel>();
 			_items = new ObservableCollection<NavBarItemViewModel>();
+			_bottomItems = new ObservableCollection<NavBarItemViewModel>();
+
 			_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
+			
+			_topItems.Add(new HomePageViewModel());
+			_bottomItems.Add(new AddWalletPageViewModel());
+			_bottomItems.Add(new SettingsPageViewModel());
 
 			Observable
 				.FromEventPattern<WalletState>(walletManager, nameof(WalletManager.WalletStateChanged))
@@ -68,18 +77,38 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			get => _anyWalletStarted;
 			set => this.RaiseAndSetIfChanged(ref _anyWalletStarted, value);
+		}		
+
+		public ObservableCollection<NavBarItemViewModel> TopItems
+		{
+			get { return _topItems; }
+			set { this.RaiseAndSetIfChanged(ref _topItems, value); }
 		}
+
 
 		public ObservableCollection<NavBarItemViewModel> Items
 		{
 			get { return _items; }
 			set { this.RaiseAndSetIfChanged(ref _items, value); }
+		}		
+
+		public ObservableCollection<NavBarItemViewModel> BottomItems
+		{
+			get { return _bottomItems; }
+			set { this.RaiseAndSetIfChanged(ref _bottomItems, value); }
 		}
 
 		public NavBarItemViewModel SelectedItem
 		{
 			get { return _selectedItem; }
-			set { this.RaiseAndSetIfChanged(ref _selectedItem, value); }
+			set
+			{
+				_selectedItem = null;
+
+				this.RaisePropertyChanged();
+
+				this.RaiseAndSetIfChanged(ref _selectedItem, value);
+			}
 		}
 
 		private void LoadWallets(WalletManager walletManager)
