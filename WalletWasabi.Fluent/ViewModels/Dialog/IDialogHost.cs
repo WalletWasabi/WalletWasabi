@@ -1,3 +1,5 @@
+#nullable enable
+
 namespace WalletWasabi.Fluent.ViewModels.Dialog
 {
 	/// <summary>
@@ -8,7 +10,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 		/// <summary>
 		/// The currently active dialog. The modal dialog UI should close when this is null.
 		/// </summary>
-		DialogViewModelBase CurrentDialog { get; }
+		DialogViewModelBase? CurrentDialog { get; set; }
 
 		/// <summary>
 		/// Close the currently displayed dialog.

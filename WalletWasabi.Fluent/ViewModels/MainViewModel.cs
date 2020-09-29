@@ -1,3 +1,4 @@
+#nullable enable
 using Avalonia.Threading;
 using NBitcoin;
 using NBitcoin.Protocol;
@@ -14,13 +15,13 @@ using Global = WalletWasabi.Gui.Global;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
-    public class MainViewModel : ViewModelBase, IScreen, IDialogHost
-    {
+	public class MainViewModel : ViewModelBase, IScreen, IDialogHost
+	{
 		private Global _global;
 		private StatusBarViewModel _statusBar;
 		private string _title = "Wasabi Wallet";
-		private DialogViewModelBase _currentDialog;
-		
+		private DialogViewModelBase? _currentDialog;
+
 
 		public MainViewModel(Global global)
 		{
@@ -36,19 +37,23 @@ namespace WalletWasabi.Fluent.ViewModels
 
 				Router.Navigate.Execute(new HomeViewModel(this));
 			});
-		}		
+		}
 
 		public static MainViewModel Instance { get; internal set; }
 
 		public RoutingState Router { get; } = new RoutingState();
-		
+
 		public ReactiveCommand<Unit, IRoutableViewModel> GoNext { get; }
-		
+
 		public ReactiveCommand<Unit, Unit> GoBack => Router.NavigateBack;
 
 		public Network Network { get; }
 
-		DialogViewModelBase IDialogHost.CurrentDialog => _currentDialog;
+		DialogViewModelBase? IDialogHost.CurrentDialog
+		{
+			get => _currentDialog;
+			set => this.RaiseAndSetIfChanged(ref _currentDialog, value);
+		}
 
 		public StatusBarViewModel StatusBar
 		{
@@ -77,17 +82,16 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		private void SetDialog(DialogViewModelBase target)
 		{
-			RaiseAndSetIfChanged(ref _currentDialog, target, nameof(IDialogHost.CurrentDialog));
 		}
 
 		void IDialogHost.ShowDialog<TDialog>(TDialog dialogViewModel)
 		{
-			SetDialog(dialogViewModel);
+			(this as IDialogHost).CurrentDialog = dialogViewModel;
 		}
 
 		void IDialogHost.CloseDialog()
 		{
-			SetDialog(null);
+			(this as IDialogHost).CurrentDialog = null;
 		}
 	}
 }
