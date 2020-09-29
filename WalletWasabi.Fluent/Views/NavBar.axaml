@@ -6,45 +6,63 @@
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.NavBar">
-  <DockPanel Margin="10 20">
-    <StackPanel Spacing="20" DockPanel.Dock="Top">
-      <TextBlock Text="Wasabi Wallet" Foreground="White" FontSize="16" />
+  <UserControl.Styles>
+    <Style Selector="Separator">
+      <Setter Property="Background" Value="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="Margin" Value="{DynamicResource MenuFlyoutSeparatorThemePadding}" />
+      <Setter Property="Height" Value="{DynamicResource MenuFlyoutSeparatorThemeHeight}" />
+    </Style>
+  </UserControl.Styles>
+  <DockPanel Margin="1">
+    <StackPanel DockPanel.Dock="Top" Margin="0 20 0 0">
+      <TextBlock Text="Wasabi Wallet" Foreground="White" FontSize="16" Margin="15 10 0 10" />
       <c:NavBarItem>
-        <StackPanel Orientation="Horizontal" Spacing="10">
+        <StackPanel Orientation="Horizontal" Spacing="20">
           <PathIcon Data="{StaticResource home_regular}" />
           <TextBlock Text="Home" />
         </StackPanel>
       </c:NavBarItem>
+      <Separator />
     </StackPanel>
 
-    <c:NavBarItem DockPanel.Dock="Bottom">
-      <StackPanel Orientation="Horizontal" Spacing="10">
-        <PathIcon Data="{StaticResource settings_regular}" />
-        <TextBlock Text="Settings" />
-      </StackPanel>
-    </c:NavBarItem>
+    <StackPanel DockPanel.Dock="Bottom">
+      <Separator />
+      <c:NavBarItem>
+        <StackPanel Orientation="Horizontal" Spacing="20">
+          <PathIcon Data="{StaticResource settings_regular}" />
+          <TextBlock Text="Settings" />
+        </StackPanel>
+      </c:NavBarItem>
+    </StackPanel>
 
-    <TreeView Items="{Binding Items}">
-      <TreeView.Styles>
-        <Style Selector="TreeViewItem /template/ Border#PART_LayoutRoot:pointerover">
-          <Setter Property="Background" Value="Transparent" />
-        </Style>
-        <Style Selector="TreeViewItem:selected /template/ Border#PART_LayoutRoot">
-          <Setter Property="Background" Value="Transparent" />
-        </Style>
-      </TreeView.Styles>
-      <TreeView.DataTemplates>
-        <TreeDataTemplate DataType="vm:ClosedWalletViewModel">
-          <c:NavBarItem>
-            <StackPanel>
-              <StackPanel Orientation="Horizontal" Spacing="10">
+    <DockPanel>
+      <c:NavBarItem DockPanel.Dock="Top">
+        <StackPanel Orientation="Horizontal" Spacing="20">
+          <PathIcon Data="{StaticResource add_circle_regular}" />
+          <TextBlock Text="Add Wallet" />
+        </StackPanel>
+      </c:NavBarItem>
+      <ListBox Items="{Binding Items}" Background="Transparent" Margin="0" Padding="0">
+        <ListBox.Styles>
+          <Style Selector="ListBoxItem">
+            <Setter Property="Padding" Value="0" />
+          </Style>
+          <Style Selector="ListBoxItem:pressed /template/ Rectangle#PressedBackground, ListBoxItem:selected /template/ Rectangle#PressedBackground, ListBoxItem:pointerover /template/ Rectangle#PressedBackground">
+            <Setter Property="Fill" Value="Transparent"/>
+          </Style>
+        </ListBox.Styles>
+        <ListBox.DataTemplates>
+          <DataTemplate DataType="vm:ClosedWalletViewModel">
+            <c:NavBarItem>
+              <StackPanel Orientation="Horizontal" Spacing="20">
                 <PathIcon Data="{StaticResource web_asset_regular}" />
                 <TextBlock Text="{Binding Title}" />
               </StackPanel>
-            </StackPanel>
-          </c:NavBarItem>
-        </TreeDataTemplate>
-      </TreeView.DataTemplates>
-    </TreeView>
+            </c:NavBarItem>
+          </DataTemplate>
+        </ListBox.DataTemplates>
+      </ListBox>
+    </DockPanel>
   </DockPanel>
 </UserControl>
