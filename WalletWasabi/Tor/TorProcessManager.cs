@@ -160,7 +160,7 @@ namespace WalletWasabi.Tor
 			return false;
 		}
 
-		/// <param name="torSocks5EndPoint">Opt out Tor with null.</param>
+		/// <param name="torSocks5EndPoint">Valid Tor end point.</param>
 		public static async Task<bool> IsTorRunningAsync(EndPoint torSocks5EndPoint)
 		{
 			using var client = new TorSocks5Client(torSocks5EndPoint);
