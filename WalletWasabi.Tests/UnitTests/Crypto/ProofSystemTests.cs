@@ -128,7 +128,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var r = rnd.GetScalar();
 			var Ma = a * Generators.Gg + r * Generators.Gh;
 
-			var delta = a;
 			var knowledge = ProofSystem.BalanceProof(Scalar.Zero, r.Negate());
 			var proofOfBalance = ProofSystem.Prove(knowledge, rnd);
 
