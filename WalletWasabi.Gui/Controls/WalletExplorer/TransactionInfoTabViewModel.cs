@@ -17,6 +17,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Title = $"Transaction ({transaction.TransactionId[0..10]}) Details";
 		}
 
+		protected Global Global { get; }
+
+		public TransactionDetailsViewModel Transaction { get; }
+
 		public override void OnOpen(CompositeDisposable disposables)
 		{
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
@@ -26,9 +30,5 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			base.OnOpen(disposables);
 		}
-
-		protected Global Global { get; }
-
-		public TransactionDetailsViewModel Transaction { get; }
 	}
 }
