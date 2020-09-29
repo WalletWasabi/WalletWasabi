@@ -14,6 +14,10 @@
         ExtendClientAreaChromeHints="PreferSystemChrome"        
         Title="Wasabi Wallet">
 
+  <Design.DataContext>
+    <vm:MainWindowViewModel/>
+  </Design.DataContext>
+
   <Panel Margin="{Binding #MainWindow.OffScreenMargin}">
     <local:MainView />
   </Panel>
