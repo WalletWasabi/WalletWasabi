@@ -8,7 +8,6 @@ using AvalonStudio.Shell.Extensibility.Platforms;
 using Splat;
 using System;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.CommandLine;
@@ -17,10 +16,6 @@ using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
-
-// This is temporary and to facilitate the migration to new UI.
-[assembly: InternalsVisibleTo("WalletWasabi.Fluent")]
-[assembly: InternalsVisibleTo("WalletWasabi.Fluent.Desktop")]
 
 namespace WalletWasabi.Gui
 {
