@@ -9,10 +9,11 @@ using Global = WalletWasabi.Gui.Global;
 namespace WalletWasabi.Fluent.ViewModels
 {
 	public class MainViewModel : ViewModelBase, IScreen
-    {
+	{
 		private Global _global;
 		private StatusBarViewModel _statusBar;
 		private string _title = "Wasabi Wallet";
+		private NavBarViewModel _navBar;
 
 		public MainViewModel(Global global)
 		{
@@ -22,23 +23,31 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			StatusBar = new StatusBarViewModel(global.DataDir, global.Network, global.Config, global.HostedServices, global.BitcoinStore.SmartHeaderChain, global.Synchronizer, global.LegalDocuments);
 
+			NavBar = new NavBarViewModel(global.WalletManager, global.UiConfig);
+
 			Dispatcher.UIThread.Post(async () =>
 			{
 				await Task.Delay(5000);
 
 				Router.Navigate.Execute(new HomeViewModel(this));
 			});
-		}		
+		}
 
 		public static MainViewModel Instance { get; internal set; }
 
 		public RoutingState Router { get; } = new RoutingState();
-		
+
 		public ReactiveCommand<Unit, IRoutableViewModel> GoNext { get; }
-		
+
 		public ReactiveCommand<Unit, Unit> GoBack => Router.NavigateBack;
 
 		public Network Network { get; }		
+
+		public NavBarViewModel NavBar
+		{
+			get { return _navBar; }
+			set { this.RaiseAndSetIfChanged(ref _navBar, value); }
+		}
 
 		public StatusBarViewModel StatusBar
 		{
