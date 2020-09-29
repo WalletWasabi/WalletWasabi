@@ -4,6 +4,45 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
+	public class HomePageViewModel : NavBarItemViewModel
+	{
+		public HomePageViewModel()
+		{
+			Title = "Home";
+		}
+
+		public override int CompareTo([AllowNull] NavBarItemViewModel other)
+		{
+			return 0;
+		}
+	}
+
+	public class SettingsPageViewModel : NavBarItemViewModel
+	{
+		public SettingsPageViewModel()
+		{
+			Title = "Settings";
+		}
+
+		public override int CompareTo([AllowNull] NavBarItemViewModel other)
+		{
+			return 0;
+		}
+	}
+
+	public class AddWalletPageViewModel : NavBarItemViewModel
+	{
+		public AddWalletPageViewModel()
+		{
+			Title = "Add Wallet";
+		}
+
+		public override int CompareTo([AllowNull] NavBarItemViewModel other)
+		{
+			return -1;
+		}
+	}
+
 	public abstract class NavBarItemViewModel : ViewModelBase, IComparable<NavBarItemViewModel>
 	{		
 		private bool _isSelected;
