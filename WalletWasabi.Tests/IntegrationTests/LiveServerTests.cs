@@ -28,8 +28,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 		public async Task InitializeAsync()
 		{
 			var torManager = new TorProcessManager(Global.Instance.TorSettings, Global.Instance.TorSocks5Endpoint);
-			torManager.Start(ensureRunning: true);
-			await Task.Delay(3000);
+			bool started = await torManager.StartAsync(ensureRunning: true);
+			Assert.True(started, "Tor failed to start.");
 		}
 
 		public Task DisposeAsync()
@@ -40,17 +40,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 		private LiveServerTestsFixture LiveServerTestsFixture { get; }
 
 		#region Blockchain
-
-		[Theory]
-		[InlineData(NetworkType.Mainnet)]
-		[InlineData(NetworkType.Testnet)]
-		public async Task GetFeesAsync(NetworkType networkType)
-		{
-			using var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType], Global.Instance.TorSocks5Endpoint);
-			var feeEstimationPairs = await client.GetFeesAsync(1000);
-
-			Assert.True(feeEstimationPairs.NotNullAndNotEmpty());
-		}
 
 		[Theory]
 		[InlineData(NetworkType.Mainnet)]

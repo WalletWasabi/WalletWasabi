@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
@@ -17,8 +16,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 		public async Task InitializeAsync()
 		{
 			var torManager = new TorProcessManager(Global.Instance.TorSettings, Global.Instance.TorSocks5Endpoint);
-			torManager.Start(ensureRunning: true);
-			await Task.Delay(3000);
+			bool started = await torManager.StartAsync(ensureRunning: true);
+			Assert.True(started, "Tor failed to start.");
 		}
 
 		public Task DisposeAsync()

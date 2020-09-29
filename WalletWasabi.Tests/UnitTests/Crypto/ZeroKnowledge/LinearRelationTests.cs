@@ -37,16 +37,47 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var response = Equation.Respond(witness, secretNonces, challenge);
 			Assert.True(equation.Verify(publicNonce, challenge, response));
 
-			// With a different challenge the nonce should be different
-			// unless the secret is 0, due to the absorption property
 			var otherChallenge = new Scalar(103);
 
-			// The verifying should reject invalid transcripts, and this also requires
-			// an exception for when the public input is the point at infinity
+			// The verifier should reject invalid transcripts. This requires
+			// an exception for when the public input is the point at infinity,
+			// because with a different challenge the nonce should be different
+			// but if the secret is 0, due to the absorption property the response
+			// will be the same with the same nonce.
 			if (scalarSeed1 != 0 && scalarSeed2 != 0)
 			{
 				Assert.False(equation.Verify(publicNonce, otherChallenge, response));
 			}
+
+			// Modifying the response should invalidate the equation
+			var modifiedResponse = new ScalarVector(response.Select((x, i) => i == 0 ? x + Scalar.One : x));
+			Assert.False(equation.Verify(publicNonce, challenge, modifiedResponse));
+			Assert.True(equation.Verify(publicNonce + Generators.G, challenge, modifiedResponse));
+
+			// A proof made with a different witness must be rejected. If the
+			// challenge is 0 (negligible probability with Fiat-Shamir under ROM) in
+			// which case any witness satisfies the equation, but the verifier should
+			// still reject.
+			var badWitness = new ScalarVector(new Scalar(scalarSeed1 + 1), new Scalar(scalarSeed2));
+			Assert.False(equation.Verify(publicNonce, challenge, Equation.Respond(badWitness, secretNonces, challenge)));
+			Assert.False(equation.Verify(publicNonce, Scalar.Zero, Equation.Respond(badWitness, secretNonces, Scalar.Zero)));
+
+			// A proof made with different secret nonces must also be rejected, unless
+			// the public nonce is tweaked (not possible with Fiat-Shamir without a
+			// 2nd pre-image attack on the hash function).
+			var modifiedSecretNonces = new ScalarVector(secretNonces.Select((x, i) => i == 0 ? x + Scalar.One : x));
+			var modifiedNonceResponse = Equation.Respond(witness, modifiedSecretNonces, challenge);
+			Assert.False(equation.Verify(publicNonce, challenge, modifiedNonceResponse));
+			Assert.True(equation.Verify(publicNonce + Generators.G, challenge, modifiedNonceResponse));
+		}
+
+		[Fact]
+		public void UnsafeSecretNoncesThrow()
+		{
+			var x = new Scalar(42);
+			var a = x * Generators.Gg;
+			var knowledge = new Knowledge(new Statement(a, Generators.Gg), new ScalarVector(x));
+			Assert.ThrowsAny<ArgumentException>(() => knowledge.RespondToChallenge(Scalar.One, new ScalarVector(Scalar.Zero)));
 		}
 
 		[Fact]
@@ -111,6 +142,14 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 
 			// Ensure that verifier rejects invalid transcripts
 			Assert.False(statement.CheckVerificationEquation(publicNonces, new Scalar(17), responses));
+
+			// Ensure that verifier rejects when proofs have been altered but not
+			// when they are valid (which are prevented using Fiat-Shamir transform)
+			var modifiedNonces = new GroupElementVector(publicNonces.First() + Generators.Gg, publicNonces.Last() + Generators.Gh);
+			var modifiedResponses = new ScalarVector(responses.Select(x => x + Scalar.One));
+			Assert.True(statement.CheckVerificationEquation(modifiedNonces, challenge, modifiedResponses));
+			Assert.False(statement.CheckVerificationEquation(modifiedNonces, challenge, responses));
+			Assert.False(statement.CheckVerificationEquation(publicNonces, challenge, modifiedResponses));
 		}
 
 		[Fact]
