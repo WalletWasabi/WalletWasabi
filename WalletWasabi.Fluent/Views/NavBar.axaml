@@ -1,0 +1,22 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Views.NavBar">
+  <Panel>
+    <TreeView Items="{Binding Items}">
+      <TreeView.DataTemplates>
+        <TreeDataTemplate DataType="vm:ClosedWalletViewModel">
+          <TextBlock Text="{Binding Title}" />
+        </TreeDataTemplate>
+      </TreeView.DataTemplates>
+    </TreeView>
+    <StackPanel Margin="20">
+      <TextBlock Text=" " Foreground="White" FontSize="22" />
+      <TextBlock Text="Wasabi Wallet" Foreground="White" FontSize="16" />
+    </StackPanel>
+    <PathIcon Data="{StaticResource settings_regular}" />
+  </Panel>
+</UserControl>
