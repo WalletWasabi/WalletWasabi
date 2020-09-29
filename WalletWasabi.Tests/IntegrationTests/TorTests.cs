@@ -184,7 +184,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[Fact]
 		public async Task TorRunningAsync()
 		{
-			Assert.True(await TorProcessManager.IsTorRunningAsync(null));
 			Assert.True(await TorProcessManager.IsTorRunningAsync(new IPEndPoint(IPAddress.Loopback, 9050)));
 			Assert.False(await TorProcessManager.IsTorRunningAsync(new IPEndPoint(IPAddress.Loopback, 9054)));
 		}
