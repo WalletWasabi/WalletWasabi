@@ -8,12 +8,12 @@
 		<Authors>nopara73;lontivero;danwalmsley</Authors>
 		<Company>zkSNACKs</Company>
 		<NeutralLanguage>en-US</NeutralLanguage>
-		<AssemblyTitle>Wasabi Wallet</AssemblyTitle>
+		<AssemblyTitle>Wasabi Wallet Fluent</AssemblyTitle>
 		<Description>
 			Open-source, non-custodial, privacy focused Bitcoin wallet for Windows, Linux, and Mac. Built-in Tor, CoinJoin, PayJoin and coin control features.
 		</Description>
 		<Copyright>MIT</Copyright>
-		<PackageId>Wasabi Wallet</PackageId>
+		<PackageId>Wasabi Wallet Fluent</PackageId>
 		<AssemblyTitle>Privacy focused Bitcoin wallet.</AssemblyTitle>
 		<Company>zkSNACKs</Company>
 		<PackageTags>bitcoin-wallet;privacy;bitcoin;dotnet;nbitcoin;cross-platform;zerolink;wallet;tumbler;coin;tor</PackageTags>
@@ -23,7 +23,7 @@
 		<RepositoryUrl>https://github.com/zkSNACKs/WalletWasabi/</RepositoryUrl>
 		<ApplicationIcon>Assets\WasabiLogo.ico</ApplicationIcon>
 		<PackageIcon>Assets\WasabiLogo.ico</PackageIcon>
-		<Product>Wasabi Wallet</Product>
+		<Product>Wasabi Wallet Fluent</Product>
 		<!-- owners is not supported in MSBuild -->
 	</PropertyGroup>
 	
@@ -42,5 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\WalletWasabi.Fluent\WalletWasabi.Fluent.csproj" />
+    <ProjectReference Include="..\WalletWasabi.Gui\WalletWasabi.Gui.csproj" />
+    <ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
   </ItemGroup>
 </Project>

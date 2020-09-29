@@ -28,7 +28,7 @@ namespace WalletWasabi.Gui.ViewModels
 		private Stack<LockScreenViewModelBase> _lockScreens;
 		private bool _menuVisible;
 
-		public MainWindowViewModel(Network network, UiConfig uiConfig, WalletManager walletManager, StatusBarViewModel statusBarViewModel, IShell shell)
+		public MainWindowViewModel(Network network, UiConfig uiConfig, WalletManager walletManager, StatusBarViewModel statusBarViewModel, IShell shell, bool initWalletManager = true)
 		{
 			Network = network;
 			UiConfig = uiConfig;
@@ -44,7 +44,10 @@ namespace WalletWasabi.Gui.ViewModels
 
 			StatusBar = statusBarViewModel;
 
-			DisplayWalletManager();
+			if (initWalletManager)
+			{
+				DisplayWalletManager();
+			}
 		}
 
 		public string Title
