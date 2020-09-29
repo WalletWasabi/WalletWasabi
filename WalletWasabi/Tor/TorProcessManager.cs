@@ -46,6 +46,7 @@ namespace WalletWasabi.Tor
 			Stop = new CancellationTokenSource();
 			TorProcess = null;
 			Settings = settings;
+			TorSocks5Client = new TorSocks5Client(torSocks5EndPoint);
 
 			IoHelpers.EnsureContainingDirectoryExists(Settings.LogFilePath);
 		}
@@ -57,6 +58,8 @@ namespace WalletWasabi.Tor
 		private ProcessAsync? TorProcess { get; set; }
 
 		private TorSettings Settings { get; }
+
+		private TorSocks5Client TorSocks5Client { get; }
 
 		public bool IsRunning => Interlocked.Read(ref _monitorState) == StateRunning;
 
@@ -74,7 +77,7 @@ namespace WalletWasabi.Tor
 			try
 			{
 				// Is Tor already running? Either our Tor process from previous Wasabi Wallet run or possibly user's own Tor.
-				bool isAlreadyRunning = await IsTorRunningAsync(TorSocks5EndPoint).ConfigureAwait(false);
+				bool isAlreadyRunning = await TorSocks5Client.IsTorRunningAsync().ConfigureAwait(false);
 
 				if (isAlreadyRunning)
 				{
@@ -129,7 +132,7 @@ namespace WalletWasabi.Tor
 					{
 						i++;
 
-						bool isRunning = await IsTorRunningAsync(TorSocks5EndPoint).ConfigureAwait(false);
+						bool isRunning = await TorSocks5Client.IsTorRunningAsync().ConfigureAwait(false);
 
 						if (isRunning)
 						{
@@ -158,22 +161,6 @@ namespace WalletWasabi.Tor
 			}
 
 			return false;
-		}
-
-		/// <param name="torSocks5EndPoint">Valid Tor end point.</param>
-		public static async Task<bool> IsTorRunningAsync(EndPoint torSocks5EndPoint)
-		{
-			using var client = new TorSocks5Client(torSocks5EndPoint);
-			try
-			{
-				await client.ConnectAsync().ConfigureAwait(false);
-				await client.HandshakeAsync().ConfigureAwait(false);
-			}
-			catch (ConnectionException)
-			{
-				return false;
-			}
-			return true;
 		}
 
 		#region Monitor

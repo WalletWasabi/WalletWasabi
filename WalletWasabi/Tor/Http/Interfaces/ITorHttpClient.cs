@@ -14,7 +14,7 @@ namespace WalletWasabi.Tor.Http.Interfaces
 
 		bool IsTorUsed { get; }
 
-		Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent content = null, CancellationToken cancel = default);
+		Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken cancel = default);
 
 		Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancel = default);
 	}

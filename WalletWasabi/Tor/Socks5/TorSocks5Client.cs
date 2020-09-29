@@ -1,7 +1,6 @@
 using Nito.AsyncEx;
 using System;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
@@ -24,11 +23,11 @@ namespace WalletWasabi.Tor.Socks5
 
 		#region Constructors
 
-		/// <param name="endPoint">Opt out Tor with null.</param>
+		/// <param name="endPoint">Valid Tor end point.</param>
 		internal TorSocks5Client(EndPoint endPoint)
 		{
 			TorSocks5EndPoint = endPoint;
-			TcpClient = endPoint is null ? new TcpClient() : new TcpClient(endPoint.AddressFamily);
+			TcpClient = new TcpClient(endPoint.AddressFamily);
 			AsyncLock = new AsyncLock();
 		}
 
@@ -54,11 +53,6 @@ namespace WalletWasabi.Tor.Socks5
 
 		internal async Task ConnectAsync()
 		{
-			if (TorSocks5EndPoint is null)
-			{
-				return;
-			}
-
 			using (await AsyncLock.LockAsync().ConfigureAwait(false))
 			{
 				string host = TorSocks5EndPoint.GetHostOrDefault();
@@ -79,6 +73,24 @@ namespace WalletWasabi.Tor.Socks5
 		}
 
 		/// <summary>
+		/// Checks whether communication can be established with Tor over <see cref="TorSocks5EndPoint"/> endpoint.
+		/// </summary>
+		/// <returns></returns>
+		public async Task<bool> IsTorRunningAsync()
+		{
+			try
+			{
+				await ConnectAsync().ConfigureAwait(false);
+				await HandshakeAsync(isolateStream: true).ConfigureAwait(false);
+			}
+			catch (ConnectionException)
+			{
+				return false;
+			}
+			return true;
+		}
+
+		/// <summary>
 		/// IsolateSOCKSAuth must be on (on by default)
 		/// https://www.torproject.org/docs/tor-manual.html.en
 		/// https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt#n35
@@ -94,29 +106,25 @@ namespace WalletWasabi.Tor.Socks5
 		/// https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt#n35
 		/// </summary>
 		/// <param name="identity">Isolates streams by identity. If identity is empty string, it won't isolate stream.</param>
-		internal async Task HandshakeAsync(string identity)
+		private async Task HandshakeAsync(string identity)
 		{
-			if (TorSocks5EndPoint is null)
-			{
-				return;
-			}
-
-			Guard.NotNull(nameof(identity), identity);
+			Logger.LogDebug($"> {nameof(identity)}={identity}");
 
 			MethodsField methods = string.IsNullOrWhiteSpace(identity)
 				? new MethodsField(MethodField.NoAuthenticationRequired)
 				: new MethodsField(MethodField.UsernamePassword);
 
-			var sendBuffer = new VersionMethodRequest(methods).ToBytes();
-
-			var receiveBuffer = await SendAsync(sendBuffer, 2).ConfigureAwait(false);
+			byte[] sendBuffer = new VersionMethodRequest(methods).ToBytes();
+			byte[] receiveBuffer = await SendAsync(sendBuffer, receiveBufferSize: 2).ConfigureAwait(false);
 
 			var methodSelection = new MethodSelectionResponse();
 			methodSelection.FromBytes(receiveBuffer);
+
 			if (methodSelection.Ver != VerField.Socks5)
 			{
 				throw new NotSupportedException($"SOCKS{methodSelection.Ver.Value} not supported. Only SOCKS5 is supported.");
 			}
+
 			if (methodSelection.Method == MethodField.NoAcceptableMethods)
 			{
 				// https://www.ietf.org/rfc/rfc1928.txt
@@ -125,6 +133,7 @@ namespace WalletWasabi.Tor.Socks5
 				DisposeTcpClient();
 				throw new NotSupportedException("Tor's SOCKS5 proxy does not support any of the client's authentication methods.");
 			}
+
 			if (methodSelection.Method == MethodField.UsernamePassword)
 			{
 				// https://tools.ietf.org/html/rfc1929#section-2
@@ -132,10 +141,8 @@ namespace WalletWasabi.Tor.Socks5
 				// Username / Password Authentication protocol, the Username / Password
 				// sub-negotiation begins. This begins with the client producing a
 				// Username / Password request:
-				var username = identity;
-				var password = identity;
-				var uName = new UNameField(username);
-				var passwd = new PasswdField(password);
+				var uName = new UNameField(uName: identity);
+				var passwd = new PasswdField(passwd: identity);
 				var usernamePasswordRequest = new UsernamePasswordRequest(uName, passwd);
 				sendBuffer = usernamePasswordRequest.ToBytes();
 
@@ -159,6 +166,8 @@ namespace WalletWasabi.Tor.Socks5
 					throw new InvalidOperationException("Wrong username and/or password.");
 				}
 			}
+
+			Logger.LogDebug("<");
 		}
 
 		internal async Task ConnectToDestinationAsync(EndPoint destination, bool isRecursiveCall = false)
