@@ -24,6 +24,7 @@
             <TextBlock Text=" " Foreground="White" FontSize="22" />
             <TextBlock Text="Wasabi Wallet" Foreground="White" FontSize="16" />
           </StackPanel>
+          <PathIcon Data="{StaticResource settings_regular}" />
         </Panel>
       </ExperimentalAcrylicBorder>
     </SplitView.Pane>

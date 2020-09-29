@@ -1,18 +1,14 @@
 using Avalonia.Threading;
 using NBitcoin;
-using NBitcoin.Protocol;
 using ReactiveUI;
-using System;
-using System.Collections.Generic;
 using System.Reactive;
-using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.ViewModels;
 using Global = WalletWasabi.Gui.Global;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
-    public class MainViewModel : ViewModelBase, IScreen
+	public class MainViewModel : ViewModelBase, IScreen
     {
 		private Global _global;
 		private StatusBarViewModel _statusBar;
