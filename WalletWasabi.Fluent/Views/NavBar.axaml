@@ -23,7 +23,8 @@
       <Setter Property="Padding" Value="0" />
     </Style>
     <Style Selector="TreeViewItem">
-      <Setter Property="IsExpanded" Value="{Binding IsExpanded}" />      
+      <Setter Property="IsExpanded" Value="{Binding IsExpanded}" />
+      <Setter Property="BorderThickness" Value="0" />
     </Style>
     <Style Selector="c|NavBarItem TextBlock">
       <Setter Property="VerticalAlignment" Value="Center" />
