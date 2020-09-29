@@ -9,7 +9,7 @@
 
   <Style Selector="SplitView">
     <Setter Property="CompactPaneLength" Value="46" />
-    <Setter Property="OpenPaneLength" Value="256" />
+    <Setter Property="OpenPaneLength" Value="260" />
     <Setter Property="DisplayMode" Value="CompactInline" />
     <Setter Property="IsPaneOpen" Value="True" />
     <Setter Property="PaneBackground" Value="{x:Null}" />
