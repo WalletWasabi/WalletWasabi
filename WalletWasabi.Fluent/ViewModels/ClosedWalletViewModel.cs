@@ -1,5 +1,6 @@
 using ReactiveUI;
 using System;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -12,8 +13,23 @@ namespace WalletWasabi.Fluent.ViewModels
 {
 	public class ClosedWalletViewModel : WalletViewModelBase
 	{
+		private ObservableCollection<NavBarItemViewModel> _items;
+
+		public ObservableCollection<NavBarItemViewModel> Items
+		{
+			get { return _items; }
+			set { this.RaiseAndSetIfChanged(ref _items, value); }
+		}
+
 		protected ClosedWalletViewModel(WalletManager walletManager, Wallet wallet) : base(wallet)
 		{
+			_items = new ObservableCollection<NavBarItemViewModel>
+			{
+				new HomePageViewModel()
+			};
+
+			IsExpanded = true;
+
 			OpenWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{

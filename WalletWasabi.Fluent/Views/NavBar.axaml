@@ -18,6 +18,20 @@
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="Padding" Value="0" />
     </Style>
+    <Style Selector="ListBoxItem">
+      <Setter Property="Margin" Value="0" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="TreeViewItem">
+      <Setter Property="IsExpanded" Value="{Binding IsExpanded}" />      
+    </Style>
+    <Style Selector="c|NavBarItem TextBlock">
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="TreeView > TreeViewItem /template/ Panel">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
   </UserControl.Styles>
   <UserControl.DataTemplates>
     <DataTemplate DataType="vm:HomePageViewModel">
@@ -44,34 +58,14 @@
         </StackPanel>
       </c:NavBarItem>
     </DataTemplate>
-    <DataTemplate DataType="vm:ClosedWalletViewModel">
-      <StackPanel>
-        <c:NavBarItem>
-          <StackPanel Orientation="Horizontal" Spacing="20">
-            <PathIcon Data="{StaticResource web_asset_regular}" />
-            <TextBlock Text="{Binding Title}" />
-          </StackPanel>
-        </c:NavBarItem>
-        <ListBox>
-          <ListBoxItem>
-            <c:NavBarItem>
-              <StackPanel Orientation="Horizontal" Spacing="20">
-                <PathIcon Data="{StaticResource add_circle_regular}" />
-                <TextBlock Text="Send" />
-              </StackPanel>
-            </c:NavBarItem>
-          </ListBoxItem>
-          <ListBoxItem>
-            <c:NavBarItem>
-              <StackPanel Orientation="Horizontal" Spacing="20">
-                <PathIcon Data="{StaticResource add_circle_regular}" />
-                <TextBlock Text="Receive" />
-              </StackPanel>
-            </c:NavBarItem>
-          </ListBoxItem>
-        </ListBox>
-      </StackPanel>
-    </DataTemplate>
+    <TreeDataTemplate DataType="vm:ClosedWalletViewModel" ItemsSource="{Binding Items}">
+      <c:NavBarItem>
+        <StackPanel Orientation="Horizontal" Spacing="20">
+          <PathIcon Data="{StaticResource web_asset_regular}" />
+          <TextBlock Text="{Binding Title}" />
+        </StackPanel>
+      </c:NavBarItem>
+    </TreeDataTemplate>
   </UserControl.DataTemplates>
   <DockPanel Margin="1">
     <StackPanel DockPanel.Dock="Top" Margin="0 20 0 0">
@@ -87,6 +81,6 @@
       <ListBox Items="{Binding BottomItems}" SelectedItem="{Binding SelectedItem}" />
     </StackPanel>
 
-    <ListBox Items="{Binding Items}" SelectedItem="{Binding SelectedItem}" />
+    <TreeView Items="{Binding Items}" SelectedItem="{Binding SelectedItem}" />
   </DockPanel>
 </UserControl>
