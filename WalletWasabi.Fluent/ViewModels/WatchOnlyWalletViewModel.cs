@@ -1,0 +1,12 @@
+﻿using WalletWasabi.Gui;
+using WalletWasabi.Wallets;
+
+namespace WalletWasabi.Fluent.ViewModels
+{
+	public class WatchOnlyWalletViewModel : WalletViewModel
+	{
+		internal WatchOnlyWalletViewModel(UiConfig uiConfig, Wallet wallet) : base(uiConfig, wallet)
+		{
+		}
+	}
+}
