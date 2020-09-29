@@ -8,10 +8,12 @@ using WalletWasabi.Fluent.ViewModels.Dialog;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
-    public class MainWindowViewModel : ViewModelBase
-    {
-        public MainWindowViewModel()
-        {
-        }
-    }
+	public class MainWindowViewModel : ViewModelBase
+	{
+		public string Greeting => "Hello World!";
+        
+		public MainWindowViewModel()
+		{
+		}
+	}
 }

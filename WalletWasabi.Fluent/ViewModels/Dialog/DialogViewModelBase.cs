@@ -13,7 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 	/// Don't use this class directly since it doesn't provide the
 	/// functionality required for Dialogs.
 	/// </summary>	
-	public abstract class DialogViewModelBase : ReactiveObject
+	public abstract class DialogViewModelBase : ViewModelBase
 	{
 		public DialogViewModelBase(IDialogHost dialogHost)
 		{
@@ -23,6 +23,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 		/// <summary>
 		/// An instance of <see cref="IDialogHost"/> that owns this dialog.
 		/// </summary>
-		public IDialogHost DialogHost { get; }
+		protected IDialogHost DialogHost { get; }
 	}
 }

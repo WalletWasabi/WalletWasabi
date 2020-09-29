@@ -16,7 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 		{
 		}
 
-		private TaskCompletionSource<TResult> _tcs { get; set; } 
+		private TaskCompletionSource<TResult>? _tcs { get; set; } 
 
 		/// <summary>
 		/// Method to be called when the dialog is finished
@@ -47,6 +47,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 		/// Method that is triggered when the dialog
 		/// is to be shown.
 		/// </summary>
-		public abstract void DialogShown();
+		protected abstract void DialogShown();
 	}
 }
