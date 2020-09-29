@@ -3,20 +3,48 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.NavBar">
-  <Panel>
+  <DockPanel Margin="10 20">
+    <StackPanel Spacing="20" DockPanel.Dock="Top">
+      <TextBlock Text="Wasabi Wallet" Foreground="White" FontSize="16" />
+      <c:NavBarItem>
+        <StackPanel Orientation="Horizontal" Spacing="10">
+          <PathIcon Data="{StaticResource home_regular}" />
+          <TextBlock Text="Home" />
+        </StackPanel>
+      </c:NavBarItem>
+    </StackPanel>
+
+    <c:NavBarItem DockPanel.Dock="Bottom">
+      <StackPanel Orientation="Horizontal" Spacing="10">
+        <PathIcon Data="{StaticResource settings_regular}" />
+        <TextBlock Text="Settings" />
+      </StackPanel>
+    </c:NavBarItem>
+
     <TreeView Items="{Binding Items}">
+      <TreeView.Styles>
+        <Style Selector="TreeViewItem /template/ Border#PART_LayoutRoot:pointerover">
+          <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="TreeViewItem:selected /template/ Border#PART_LayoutRoot">
+          <Setter Property="Background" Value="Transparent" />
+        </Style>
+      </TreeView.Styles>
       <TreeView.DataTemplates>
         <TreeDataTemplate DataType="vm:ClosedWalletViewModel">
-          <TextBlock Text="{Binding Title}" />
+          <c:NavBarItem>
+            <StackPanel>
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <PathIcon Data="{StaticResource web_asset_regular}" />
+                <TextBlock Text="{Binding Title}" />
+              </StackPanel>
+            </StackPanel>
+          </c:NavBarItem>
         </TreeDataTemplate>
       </TreeView.DataTemplates>
     </TreeView>
-    <StackPanel Margin="20">
-      <TextBlock Text=" " Foreground="White" FontSize="22" />
-      <TextBlock Text="Wasabi Wallet" Foreground="White" FontSize="16" />
-    </StackPanel>
-    <PathIcon Data="{StaticResource settings_regular}" />
-  </Panel>
+  </DockPanel>
 </UserControl>
