@@ -1,10 +1,12 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-  xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels"
-  xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
-  xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors;assembly=WalletWasabi.Fluent" mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450" x:Class="WalletWasabi.Fluent.Views.NavBar">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors;assembly=WalletWasabi.Fluent"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Views.NavBar">
   <UserControl.Styles>
     <Style Selector="Separator">
       <Setter Property="Background" Value="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" />
