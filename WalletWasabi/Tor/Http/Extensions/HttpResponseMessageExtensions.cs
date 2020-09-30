@@ -55,11 +55,6 @@ namespace WalletWasabi.Tor.Http.Extensions
 			return response;
 		}
 
-		public static async Task<Stream> ToStreamAsync(this HttpResponseMessage me)
-		{
-			return new MemoryStream(Encoding.UTF8.GetBytes(await me.ToHttpStringAsync().ConfigureAwait(false)));
-		}
-
 		public static async Task<string> ToHttpStringAsync(this HttpResponseMessage me)
 		{
 			var startLine = new StatusLine(new HttpProtocol($"HTTP/{me.Version.Major}.{me.Version.Minor}"), me.StatusCode).ToString();
