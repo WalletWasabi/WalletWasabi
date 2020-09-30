@@ -10,7 +10,7 @@ namespace WalletWasabi.Fluent.ViewModels
 {
 	public abstract class WalletViewModelBase : NavBarItemViewModel, IComparable<WalletViewModelBase>, IDisposable
 	{
-		
+
 		private string _titleTip;
 		private WalletState _walletState;
 		private CompositeDisposable _disposables;
@@ -41,7 +41,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			private set => this.RaiseAndSetIfChanged(ref _walletState, value);
 		}
 
-		public Wallet Wallet { get; }		
+		public Wallet Wallet { get; }
 
 		public string TitleTip
 		{
@@ -66,14 +66,14 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public override int CompareTo([AllowNull] NavBarItemViewModel other)
 		{
-			if(other is WalletViewModelBase wvmb)
+			if (other is WalletViewModelBase wvmb)
 			{
 				return CompareTo(wvmb);
 			}
 			else
 			{
 				return -1;
-			}			
+			}
 		}
 
 		public override string ToString() => WalletName;
