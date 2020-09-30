@@ -10,7 +10,6 @@ namespace WalletWasabi.Fluent.ViewModels
 {
 	public abstract class WalletViewModelBase : NavBarItemViewModel, IComparable<WalletViewModelBase>, IDisposable
 	{
-
 		private string _titleTip;
 		private WalletState _walletState;
 		private CompositeDisposable _disposables;

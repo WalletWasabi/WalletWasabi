@@ -1,10 +1,5 @@
-using System;
-using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
-using System.Reactive;
-using System.Reactive.Linq;
-using System.Threading.Tasks;
 using WalletWasabi.Gui.ViewModels;
 using Global = WalletWasabi.Gui.Global;
 
