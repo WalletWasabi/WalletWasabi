@@ -9,7 +9,7 @@ using Global = WalletWasabi.Gui.Global;
 namespace WalletWasabi.Fluent.ViewModels
 {
 	public class MainViewModel : ViewModelBase, IScreen
-    {
+	{
 		private Global _global;
 		private StatusBarViewModel _statusBar;
 		private string _title = "Wasabi Wallet";
@@ -42,8 +42,8 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public StatusBarViewModel StatusBar
 		{
-			get { return _statusBar; }
-			set { this.RaiseAndSetIfChanged(ref _statusBar, value); }
+			get => _statusBar;
+			set => this.RaiseAndSetIfChanged(ref _statusBar, value);
 		}
 
 		public string Title

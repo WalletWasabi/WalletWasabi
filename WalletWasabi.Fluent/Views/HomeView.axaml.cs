@@ -10,7 +10,7 @@ namespace WalletWasabi.Fluent.Views
 	{
 		public HomeView()
 		{
-			this.InitializeComponent();
+			InitializeComponent();
 		}
 
 		public HomeViewModel ViewModel { get; set; }
