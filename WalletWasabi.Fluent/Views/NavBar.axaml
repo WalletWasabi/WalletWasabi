@@ -105,6 +105,6 @@
       <ListBox Items="{Binding BottomItems}" SelectedItem="{Binding SelectedItem}" />
     </StackPanel>
 
-    <TreeView Items="{Binding Items}" SelectedItem="{Binding SelectedItem}" />
+    <TreeView Items="{Binding Items}" SelectedItem="{Binding SelectedItem}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
   </DockPanel>
 </UserControl>
