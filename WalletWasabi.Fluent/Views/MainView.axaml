@@ -21,7 +21,7 @@
                                          TintColor="Black"
                                          TintOpacity="1"
                                          FallbackColor="#1F1F1F"
-                                         MaterialOpacity="0.6" />
+                                         MaterialOpacity="0.55" />
           </ExperimentalAcrylicBorder.Material>          
 
         </ExperimentalAcrylicBorder>
