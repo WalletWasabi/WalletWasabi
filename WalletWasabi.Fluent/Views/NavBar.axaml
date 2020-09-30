@@ -33,6 +33,21 @@
     <Style Selector="TreeView > TreeViewItem /template/ Panel">
       <Setter Property="IsVisible" Value="False" />
     </Style>
+    
+    <Style Selector="ToggleButton.NavButton">
+      <Setter Property="Width" Value="46" />
+      <Setter Property="Height" Value="46" />
+    </Style>
+    
+    <Style Selector="ToggleButton:checked.NavButton /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent" /> 
+      <Setter Property="BorderBrush" Value="Transparent" />  
+    </Style>
+    
+    <Style Selector="ToggleButton:unchecked.NavButton /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent" /> 
+      <Setter Property="BorderBrush" Value="Transparent" />  
+    </Style>    
   </UserControl.Styles>
   <UserControl.DataTemplates>
     <DataTemplate DataType="vm:HomePageViewModel">
@@ -69,11 +84,15 @@
     </TreeDataTemplate>
   </UserControl.DataTemplates>
   <DockPanel Margin="1">
-    <StackPanel DockPanel.Dock="Top" Margin="0 20 0 0">
-      <TextBlock Text="Wasabi Wallet" Foreground="White" FontSize="16" Margin="15 10 0 10" />
-
+    <StackPanel DockPanel.Dock="Top" Margin="0 0 0 0">
+       <StackPanel Orientation="Horizontal" Spacing="5">
+          <ToggleButton Classes="NavButton" IsChecked="{Binding $parent[SplitView].IsPaneOpen}">
+             <PathIcon Data="{StaticResource navigation_regular}" />
+          </ToggleButton>
+          <TextBlock Text="Wasabi Wallet" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
+          
+       </StackPanel>
       <ListBox Items="{Binding TopItems}" SelectedItem="{Binding SelectedItem}" />
-
       <Separator />
     </StackPanel>
 

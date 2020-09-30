@@ -85,7 +85,6 @@ namespace WalletWasabi.Fluent.ViewModels
 			set { this.RaiseAndSetIfChanged(ref _topItems, value); }
 		}
 
-
 		public ObservableCollection<NavBarItemViewModel> Items
 		{
 			get { return _items; }
