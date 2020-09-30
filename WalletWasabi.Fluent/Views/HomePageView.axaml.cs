@@ -6,14 +6,14 @@ using WalletWasabi.Fluent.ViewModels;
 
 namespace WalletWasabi.Fluent.Views
 {
-	public class HomeView : UserControl, IViewFor<HomeViewModel>
+	public class HomePageView : UserControl, IViewFor<HomePageViewModel>
 	{
-		public HomeView()
+		public HomePageView()
 		{
 			this.InitializeComponent();
 		}
 
-		public HomeViewModel ViewModel { get; set; }
+		public HomePageViewModel ViewModel { get; set; }
 
 		object IViewFor.ViewModel { get; set; }
 

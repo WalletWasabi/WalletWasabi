@@ -21,9 +21,6 @@ namespace WalletWasabi.Fluent.ViewModels
 			StatusBar = new StatusBarViewModel(global.DataDir, global.Network, global.Config, global.HostedServices, global.BitcoinStore.SmartHeaderChain, global.Synchronizer, global.LegalDocuments);
 
 			NavBar = new NavBarViewModel(this, Router, global.WalletManager, global.UiConfig);
-
-			Router.Navigate.Execute(new HomeViewModel(this)); // for testing
-			Router.Navigate.Execute(new HomeViewModel(this)); // for testing
 		}
 
 		public static MainViewModel Instance { get; internal set; }

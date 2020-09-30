@@ -21,6 +21,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		private bool _anyWalletStarted;
 		private bool _isBackButtonVisible;
 		private IScreen _screen;
+		private bool _isNavigating;
 
 		public NavBarViewModel(IScreen screen, RoutingState router, WalletManager walletManager, UiConfig uiConfig)
 		{
@@ -31,10 +32,33 @@ namespace WalletWasabi.Fluent.ViewModels
 			_bottomItems = new ObservableCollection<NavBarItemViewModel>();
 
 			_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
-			
-			_topItems.Add(new HomePageViewModel(screen));
+
+			SelectedItem = new HomePageViewModel(screen);
+			_topItems.Add(_selectedItem);
 			_bottomItems.Add(new AddWalletPageViewModel(screen));
 			_bottomItems.Add(new SettingsPageViewModel(screen));
+
+			Router.CurrentViewModel
+				.OfType<NavBarItemViewModel>()
+				.Subscribe(x=>
+			{				
+				if(_items.Contains(x) || _topItems.Contains(x) || _bottomItems.Contains(x))
+				{
+					_isNavigating = true;
+					SelectedItem = x;
+					_isNavigating = false;
+				}
+			});
+
+			this.WhenAnyValue(x => x.SelectedItem)
+				.OfType<IRoutableViewModel>()				
+				.Subscribe(x =>
+				{
+					if (!_isNavigating)
+					{
+						Router.NavigateAndReset.Execute(x);
+					}
+				});
 
 			Observable.FromEventPattern(Router.NavigationStack, nameof(Router.NavigationStack.CollectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -74,7 +98,7 @@ namespace WalletWasabi.Fluent.ViewModels
 						: WalletViewModel.Create(screen, uiConfig, wallet);
 
 					InsertWallet(vm);
-				});
+				});			
 
 			Dispatcher.UIThread.Post(() =>
 			{
@@ -116,20 +140,25 @@ namespace WalletWasabi.Fluent.ViewModels
 			get { return _selectedItem; }
 			set
 			{
-				if (_selectedItem is { })
+				if (_selectedItem != value)
 				{
-					_selectedItem.IsSelected = false;					
-				}
+					if (_selectedItem is { })
+					{
+						_selectedItem.IsSelected = false;
+					}
 
-				_selectedItem = null;
+					_selectedItem = null;
 
-				this.RaisePropertyChanged();
+					this.RaisePropertyChanged();
 
-				this.RaiseAndSetIfChanged(ref _selectedItem, value);
+					_selectedItem = value;
 
-				if(_selectedItem is { })
-				{
-					_selectedItem.IsSelected = true;
+					this.RaisePropertyChanged();
+
+					if (_selectedItem is { })
+					{
+						_selectedItem.IsSelected = true;
+					}
 				}
 			}
 		}
