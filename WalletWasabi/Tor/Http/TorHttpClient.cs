@@ -98,7 +98,7 @@ namespace WalletWasabi.Tor.Http
 			// Use clearnet HTTP client when Tor is disabled.
 			if (TorSocks5EndPoint is null)
 			{
-				var response = await ClearnetHttpClient.SendAsync(request);
+				var response = await ClearnetHttpClient.SendAsync(request).ConfigureAwait(false);
 				return response;
 			}
 
@@ -184,7 +184,7 @@ namespace WalletWasabi.Tor.Http
 			// Use clearnet HTTP client when Tor is disabled.
 			if (TorSocks5EndPoint is null)
 			{
-				var response = await ClearnetHttpClient.SendAsync(request);
+				var response = await ClearnetHttpClient.SendAsync(request).ConfigureAwait(false);
 				return response;
 			}
 
