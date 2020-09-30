@@ -21,6 +21,9 @@
         <Panel>
           <!-- TODO Move to SideBar -->
           <StackPanel Margin="20">
+            <Button Command="{Binding GoBack}" Background="Transparent" IsVisible="{Binding IsBackButtonVisible}">
+              <PathIcon Data="{StaticResource arrow_left_regular}" />
+            </Button>
             <TextBlock Text=" " Foreground="White" FontSize="22" />
             <TextBlock Text="Wasabi Wallet" Foreground="White" FontSize="16" />
           </StackPanel>
