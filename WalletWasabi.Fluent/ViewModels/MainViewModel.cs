@@ -1,5 +1,6 @@
 using NBitcoin;
 using ReactiveUI;
+using System.Reactive;
 using WalletWasabi.Gui.ViewModels;
 using Global = WalletWasabi.Gui.Global;
 
