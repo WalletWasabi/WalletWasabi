@@ -13,6 +13,15 @@ namespace WalletWasabi.Fluent.Behaviors
 	{
 		private CompositeDisposable Disposables { get; set; }
 
+		public static readonly StyledProperty<double> CollapseThresholdProperty =
+			AvaloniaProperty.Register<SplitViewAutoBehavior, double>(nameof(CollapseThreshold));
+
+		public double CollapseThreshold
+		{
+			get => GetValue(CollapseThresholdProperty);
+			set => SetValue(CollapseThresholdProperty, value);
+		}
+
 		protected override void OnAttached()
 		{
 			Disposables = new CompositeDisposable();
@@ -31,7 +40,7 @@ namespace WalletWasabi.Fluent.Behaviors
 				return;
 			}
 			
-			if (x.Width <= 650)
+			if (x.Width <= CollapseThreshold)
 			{
 				AssociatedObject.DisplayMode = SplitViewDisplayMode.CompactOverlay;
 

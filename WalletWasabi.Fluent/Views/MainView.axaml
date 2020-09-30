@@ -11,7 +11,7 @@
              x:Class="WalletWasabi.Fluent.Views.MainView" TextBlock.Foreground="#A3A3A3">
   <SplitView>
     <i:Interaction.Behaviors>
-        <behaviors:SplitViewAutoBehavior />
+        <behaviors:SplitViewAutoBehavior CollapseThreshold="{StaticResource SplitViewCollapseThreshold}"/>
     </i:Interaction.Behaviors>
     <SplitView.Pane>
       <Panel>

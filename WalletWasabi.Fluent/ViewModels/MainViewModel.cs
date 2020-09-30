@@ -41,7 +41,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public ReactiveCommand<Unit, Unit> GoBack => Router.NavigateBack;
 
-		public Network Network { get; }		
+		public Network Network { get; }
 
 		public NavBarViewModel NavBar
 		{
