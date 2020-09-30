@@ -71,10 +71,7 @@
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemControlHighlightAltBaseHighBrush}"/>
   </Style>
 
-  <!-- Selected Unfocused State -->
-  <Style Selector="c|NavBarItem:selected:not(:focus) /template/ Rectangle#PressedBackground">
-    <Setter Property="Fill" Value="{DynamicResource SystemControlHighlightListAccentLowBrush}"/>
-  </Style>
+  <!-- Selected Unfocused State -->  
   <Style Selector="c|NavBarItem:selected:not(:focus) /template/ ContentPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemControlHighlightAltBaseHighBrush}"/>
   </Style>
