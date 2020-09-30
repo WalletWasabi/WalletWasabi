@@ -59,19 +59,15 @@ namespace WalletWasabi.Fluent.Behaviors
 			{
 				AssociatedObject.DisplayMode = SplitViewDisplayMode.CompactOverlay;
 
-				if (IsExpanded)
+				if (AssociatedObject.IsPaneOpen)
 				{
-					IsExpanded = false;
+					AssociatedObject.IsPaneOpen = false;
 				}
 			}
 			else
 			{
 				AssociatedObject.DisplayMode = SplitViewDisplayMode.CompactInline;
-
-				if (!AssociatedObject.IsPaneOpen & !IsExpanded)
-				{
-					AssociatedObject.IsPaneOpen = true;
-				}
+				AssociatedObject.IsPaneOpen = IsExpanded;
 			}
 		}
 
