@@ -48,11 +48,11 @@
   </Style>
 
   <!-- PointerOver State -->
-  <Style Selector="c|NavBarItem:pointerover /template/ Border">
-    <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}"/>
-  </Style>
   <Style Selector="c|NavBarItem:pointerover /template/ ContentPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemControlHighlightAltBaseHighBrush}"/>
+  </Style>
+  <Style Selector="c|NavBarItem:pointerover /template/ Rectangle#PressedBackground">
+    <Setter Property="Fill" Value="{DynamicResource SystemControlHighlightListLowBrush}"/>
   </Style>
 
   <!-- Pressed State -->
@@ -61,6 +61,17 @@
   </Style>
   <Style Selector="c|NavBarItem:pressed /template/ ContentPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemControlHighlightAltBaseHighBrush}"/>
+  </Style>
+  <Style Selector="c|NavBarItem">
+    <Setter Property="RenderTransform" Value="none" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:.075" />
+      </Transitions>
+    </Setter>
+  </Style>
+  <Style Selector="c|NavBarItem:pressed">
+    <Setter Property="RenderTransform" Value="scale(0.98)" />
   </Style>
 
   <!-- Selected State -->
@@ -71,7 +82,7 @@
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemControlHighlightAltBaseHighBrush}"/>
   </Style>
 
-  <!-- Selected Unfocused State -->  
+  <!-- Selected Unfocused State -->
   <Style Selector="c|NavBarItem:selected:not(:focus) /template/ ContentPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemControlHighlightAltBaseHighBrush}"/>
   </Style>
