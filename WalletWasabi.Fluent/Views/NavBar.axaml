@@ -21,10 +21,17 @@
     <Style Selector="ListBoxItem">
       <Setter Property="Margin" Value="0" />
       <Setter Property="Padding" Value="0" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    </Style>
+    <Style Selector="ListBoxItem:pointerover /template/ Rectangle#PressedBackground, ListBoxItem:selected /template/ Rectangle#PressedBackground">
+      <Setter Property="Fill" Value="Transparent"/>
     </Style>
     <Style Selector="TreeViewItem">
       <Setter Property="IsExpanded" Value="{Binding IsExpanded}" />
       <Setter Property="BorderThickness" Value="0" />
+    </Style>
+    <Style Selector="TreeViewItem /template/ Border#PART_LayoutRoot:pointerover, TreeViewItem:selected /template/ Border#PART_LayoutRoot">
+      <Setter Property="Background" Value="Transparent" />
     </Style>
     <Style Selector="c|NavBarItem TextBlock">
       <Setter Property="VerticalAlignment" Value="Center" />
@@ -33,13 +40,13 @@
     <Style Selector="TreeView > TreeViewItem /template/ Panel">
       <Setter Property="IsVisible" Value="False" />
     </Style>
-    <Style Selector="TreeViewItem > TreeViewItem">      
+    <Style Selector="TreeViewItem > TreeViewItem">
       <Setter Property="Margin" Value="-16 0 0 0" />
     </Style>
   </UserControl.Styles>
   <UserControl.DataTemplates>
     <DataTemplate DataType="vm:HomePageViewModel">
-      <c:NavBarItem>
+      <c:NavBarItem IsSelected="{Binding IsSelected}">
         <StackPanel Orientation="Horizontal" Spacing="20">
           <PathIcon Data="{StaticResource home_regular}" />
           <TextBlock Text="Home" />
@@ -47,7 +54,7 @@
       </c:NavBarItem>
     </DataTemplate>
     <DataTemplate DataType="vm:SettingsPageViewModel">
-      <c:NavBarItem>
+      <c:NavBarItem IsSelected="{Binding IsSelected}">
         <StackPanel Orientation="Horizontal" Spacing="20">
           <PathIcon Data="{StaticResource settings_regular}" />
           <TextBlock Text="Settings" />
@@ -55,7 +62,7 @@
       </c:NavBarItem>
     </DataTemplate>
     <DataTemplate DataType="vm:AddWalletPageViewModel">
-      <c:NavBarItem>
+      <c:NavBarItem IsSelected="{Binding IsSelected}">
         <StackPanel Orientation="Horizontal" Spacing="20">
           <PathIcon Data="{StaticResource add_circle_regular}" />
           <TextBlock Text="Add Wallet" />
@@ -63,7 +70,7 @@
       </c:NavBarItem>
     </DataTemplate>
     <TreeDataTemplate DataType="vm:ClosedWalletViewModel" ItemsSource="{Binding Items}">
-      <c:NavBarItem>
+      <c:NavBarItem IsSelected="{Binding IsSelected}">
         <StackPanel Orientation="Horizontal" Spacing="20">
           <PathIcon Data="{StaticResource web_asset_regular}" />
           <TextBlock Text="{Binding Title}" />

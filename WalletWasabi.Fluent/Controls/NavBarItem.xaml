@@ -50,7 +50,7 @@
   <!-- PointerOver State -->
   <Style Selector="c|NavBarItem:pointerover /template/ Border">
     <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}"/>
-  </Style>  
+  </Style>
   <Style Selector="c|NavBarItem:pointerover /template/ ContentPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemControlHighlightAltBaseHighBrush}"/>
   </Style>
@@ -64,8 +64,8 @@
   </Style>
 
   <!-- Selected State -->
-  <Style Selector="c|NavBarItem:selected /template/ Rectangle#PressedBackground">
-    <Setter Property="Fill" Value="{DynamicResource SystemControlHighlightListAccentLowBrush}"/>
+  <Style Selector="c|NavBarItem:selected /template/ Border">
+    <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}"/>
   </Style>
   <Style Selector="c|NavBarItem:selected /template/ ContentPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemControlHighlightAltBaseHighBrush}"/>
@@ -80,16 +80,16 @@
   </Style>
 
   <!-- Selected PointerOver State -->
-  <Style Selector="c|NavBarItem:selected:pointerover /template/ Rectangle#PressedBackground">
-    <Setter Property="Fill" Value="{DynamicResource SystemControlHighlightListAccentMediumBrush}"/>
+  <Style Selector="c|NavBarItem:selected:pointerover /template/ Border">
+    <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}"/>
   </Style>
   <Style Selector="c|NavBarItem:selected:pointerover /template/ ContentPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemControlHighlightAltBaseHighBrush}"/>
   </Style>
 
   <!-- Selected Pressed State -->
-  <Style Selector="c|NavBarItem:selected:pressed /template/ Rectangle#PressedBackground">
-    <Setter Property="Fill" Value="{DynamicResource SystemControlHighlightListAccentHighBrush}"/>
+  <Style Selector="c|NavBarItem:selected:pressed /template/ Border">
+    <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColorLight1}"/>
   </Style>
   <Style Selector="c|NavBarItem:selected:pressed /template/ ContentPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemControlHighlightAltBaseHighBrush}"/>

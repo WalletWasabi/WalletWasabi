@@ -103,11 +103,21 @@ namespace WalletWasabi.Fluent.ViewModels
 			get { return _selectedItem; }
 			set
 			{
+				if (_selectedItem is { })
+				{
+					_selectedItem.IsSelected = false;					
+				}
+
 				_selectedItem = null;
 
 				this.RaisePropertyChanged();
 
 				this.RaiseAndSetIfChanged(ref _selectedItem, value);
+
+				if(_selectedItem is { })
+				{
+					_selectedItem.IsSelected = true;
+				}
 			}
 		}
 
