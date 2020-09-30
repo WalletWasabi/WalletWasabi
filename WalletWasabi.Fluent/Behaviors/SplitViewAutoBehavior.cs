@@ -17,7 +17,7 @@ namespace WalletWasabi.Fluent.Behaviors
 			AvaloniaProperty.Register<SplitViewAutoBehavior, double>(nameof(CollapseThreshold));
 
 		public static readonly StyledProperty<bool> IsExpandedProperty =
-			AvaloniaProperty.Register<SplitViewAutoBehavior, bool>(nameof(IsExpanded));
+			AvaloniaProperty.Register<SplitViewAutoBehavior, bool>(nameof(IsExpanded), true);
 
 		public double CollapseThreshold
 		{
@@ -28,10 +28,7 @@ namespace WalletWasabi.Fluent.Behaviors
 		public bool IsExpanded
 		{
 			get => GetValue(IsExpandedProperty);
-			set
-			{
-				SetValue(IsExpandedProperty, value);
-			}
+			set => SetValue(IsExpandedProperty, value);
 		}
 
 		protected override void OnAttached()
@@ -48,9 +45,9 @@ namespace WalletWasabi.Fluent.Behaviors
 		}
 		private void OnIsExpandedChanged(bool x)
 		{
-			AssociatedObject.IsPaneOpen = x; 
+			AssociatedObject.IsPaneOpen = x;
 		}
- 
+
 		private void SplitViewBoundsChanged(Rect x)
 		{
 			if (AssociatedObject is null)
@@ -62,9 +59,9 @@ namespace WalletWasabi.Fluent.Behaviors
 			{
 				AssociatedObject.DisplayMode = SplitViewDisplayMode.CompactOverlay;
 
-				if (AssociatedObject.IsPaneOpen & !IsExpanded)
+				if (IsExpanded)
 				{
-					AssociatedObject.IsPaneOpen = false;
+					IsExpanded = false;
 				}
 			}
 			else

@@ -18,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		private NavBarItemViewModel _selectedItem;
 		private Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
 		private bool _anyWalletStarted;		
-		private bool _isExpanded;
+		private bool _isExpanded = true;
 		
 
 		public NavBarViewModel(WalletManager walletManager, UiConfig uiConfig)
