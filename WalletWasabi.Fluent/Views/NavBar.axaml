@@ -51,7 +51,7 @@
     <Style Selector="ToggleButton:unchecked.NavButton /template/ ContentPresenter">
       <Setter Property="Background" Value="Transparent" /> 
       <Setter Property="BorderBrush" Value="Transparent" />  
-    </Style>    
+    </Style>
   </UserControl.Styles>
   <UserControl.DataTemplates>
     <DataTemplate DataType="vm:HomePageViewModel">
