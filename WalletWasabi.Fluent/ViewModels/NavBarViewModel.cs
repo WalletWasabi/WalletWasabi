@@ -18,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		private ObservableCollection<NavBarItemViewModel> _bottomItems;
 		private NavBarItemViewModel _selectedItem;
 		private Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
-    private bool _anyWalletStarted;
+		private bool _anyWalletStarted;
 		private bool _isBackButtonVisible;
 		private bool _isExpanded = true;
 
@@ -30,7 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			_bottomItems = new ObservableCollection<NavBarItemViewModel>();
 
 			_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
-			
+
 			_topItems.Add(new HomePageViewModel());
 			_bottomItems.Add(new AddWalletPageViewModel());
 			_bottomItems.Add(new SettingsPageViewModel());
@@ -89,7 +89,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			get => _anyWalletStarted;
 			set => this.RaiseAndSetIfChanged(ref _anyWalletStarted, value);
-		}		
+		}
 
 		public ObservableCollection<NavBarItemViewModel> TopItems
 		{
@@ -101,7 +101,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			get { return _items; }
 			set { this.RaiseAndSetIfChanged(ref _items, value); }
-		}		
+		}
 
 		public ObservableCollection<NavBarItemViewModel> BottomItems
 		{
@@ -116,7 +116,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			{
 				if (_selectedItem is { })
 				{
-					_selectedItem.IsSelected = false;					
+					_selectedItem.IsSelected = false;
 				}
 
 				_selectedItem = null;
@@ -125,14 +125,14 @@ namespace WalletWasabi.Fluent.ViewModels
 
 				this.RaiseAndSetIfChanged(ref _selectedItem, value);
 
-				if(_selectedItem is { })
+				if (_selectedItem is { })
 				{
 					_selectedItem.IsSelected = true;
 				}
 			}
 		}
- 
- 		public bool IsExpanded
+
+		public bool IsExpanded
 		{
 			get { return _isExpanded; }
 			set { this.RaiseAndSetIfChanged(ref _isExpanded, value); }
