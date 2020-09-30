@@ -34,6 +34,10 @@
       <Setter Property="IsVisible" Value="False" />
     </Style>
     
+    <Style Selector="TreeViewItem > TreeViewItem">      
+      <Setter Property="Margin" Value="-16 0 0 0" />
+    </Style>
+    
     <Style Selector="ToggleButton.NavButton">
       <Setter Property="Width" Value="46" />
       <Setter Property="Height" Value="46" />
@@ -48,9 +52,6 @@
       <Setter Property="Background" Value="Transparent" /> 
       <Setter Property="BorderBrush" Value="Transparent" />  
     </Style>    
-    <Style Selector="TreeViewItem > TreeViewItem">      
-      <Setter Property="Margin" Value="-16 0 0 0" />
-    </Style>
   </UserControl.Styles>
   <UserControl.DataTemplates>
     <DataTemplate DataType="vm:HomePageViewModel">
