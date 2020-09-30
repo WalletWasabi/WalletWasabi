@@ -17,7 +17,9 @@ namespace WalletWasabi.Fluent.ViewModels
 		private ObservableCollection<NavBarItemViewModel> _bottomItems;
 		private NavBarItemViewModel _selectedItem;
 		private Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
-		private bool _anyWalletStarted;
+		private bool _anyWalletStarted;		
+		private bool _isExpanded;
+		
 
 		public NavBarViewModel(WalletManager walletManager, UiConfig uiConfig)
 		{
@@ -108,6 +110,12 @@ namespace WalletWasabi.Fluent.ViewModels
 
 				this.RaiseAndSetIfChanged(ref _selectedItem, value);
 			}
+		}
+ 
+ 		public bool IsExpanded
+		{
+			get { return _isExpanded; }
+			set { this.RaiseAndSetIfChanged(ref _isExpanded, value); }
 		}
 
 		private void LoadWallets(WalletManager walletManager)

@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors;assembly=WalletWasabi.Fluent"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.NavBar">
   <UserControl.Styles>
@@ -90,7 +91,7 @@
   <DockPanel Margin="1">
     <StackPanel DockPanel.Dock="Top" Margin="0 0 0 0">
        <StackPanel Orientation="Horizontal" Spacing="5">
-          <ToggleButton Classes="NavButton" IsChecked="{Binding $parent[SplitView].IsPaneOpen}">
+          <ToggleButton Classes="NavButton" IsChecked="{Binding $parent[behaviors:SplitViewAutoBehavior].IsExpanded}">
              <PathIcon Data="{StaticResource navigation_regular}" />
           </ToggleButton>
           <TextBlock Text="Wasabi Wallet" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
