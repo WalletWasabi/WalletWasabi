@@ -10,7 +10,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class TransactionInfoTabViewModel : WasabiDocumentTabViewModel
 	{
-		public TransactionInfoTabViewModel(TransactionDetailsViewModel transaction, UiConfig uiConfig) : base("")
+		public TransactionInfoTabViewModel(TransactionDetailsViewModel transaction, UiConfig uiConfig) : base(title: "")
 		{
 			Transaction = transaction;
 			UiConfig = uiConfig;
