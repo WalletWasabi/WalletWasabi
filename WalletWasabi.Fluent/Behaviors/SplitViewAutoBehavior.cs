@@ -28,7 +28,7 @@ namespace WalletWasabi.Fluent.Behaviors
 		public bool IsExpanded
 		{
 			get => GetValue(IsExpandedProperty);
-			set 
+			set
 			{
 				SetValue(IsExpandedProperty, value);
 			}
@@ -42,9 +42,15 @@ namespace WalletWasabi.Fluent.Behaviors
 				.DistinctUntilChanged()
 				.Subscribe(SplitViewBoundsChanged));
 
+			Disposables.Add(this.GetObservable(IsExpandedProperty).Subscribe(OnIsExpandedChanged));
+
 			base.OnAttached();
 		}
-
+		private void OnIsExpandedChanged(bool x)
+		{
+			AssociatedObject.IsPaneOpen = x; 
+		}
+ 
 		private void SplitViewBoundsChanged(Rect x)
 		{
 			if (AssociatedObject is null)
@@ -56,7 +62,7 @@ namespace WalletWasabi.Fluent.Behaviors
 			{
 				AssociatedObject.DisplayMode = SplitViewDisplayMode.CompactOverlay;
 
-				if (AssociatedObject.IsPaneOpen)
+				if (AssociatedObject.IsPaneOpen & !IsExpanded)
 				{
 					AssociatedObject.IsPaneOpen = false;
 				}
@@ -64,6 +70,11 @@ namespace WalletWasabi.Fluent.Behaviors
 			else
 			{
 				AssociatedObject.DisplayMode = SplitViewDisplayMode.CompactInline;
+
+				if (!AssociatedObject.IsPaneOpen & !IsExpanded)
+				{
+					AssociatedObject.IsPaneOpen = true;
+				}
 			}
 		}
 

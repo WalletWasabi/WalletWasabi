@@ -91,7 +91,7 @@
   <DockPanel Margin="1">
     <StackPanel DockPanel.Dock="Top" Margin="0 0 0 0">
        <StackPanel Orientation="Horizontal" Spacing="5">
-          <ToggleButton Classes="NavButton" IsChecked="{Binding $parent[behaviors:SplitViewAutoBehavior].IsExpanded}">
+          <ToggleButton Classes="NavButton" IsChecked="{Binding IsExpanded}">
              <PathIcon Data="{StaticResource navigation_regular}" />
           </ToggleButton>
           <TextBlock Text="Wasabi Wallet" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
