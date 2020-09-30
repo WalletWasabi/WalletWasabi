@@ -33,6 +33,9 @@
     <Style Selector="TreeView > TreeViewItem /template/ Panel">
       <Setter Property="IsVisible" Value="False" />
     </Style>
+    <Style Selector="TreeViewItem > TreeViewItem">      
+      <Setter Property="Margin" Value="-16 0 0 0" />
+    </Style>
   </UserControl.Styles>
   <UserControl.DataTemplates>
     <DataTemplate DataType="vm:HomePageViewModel">
