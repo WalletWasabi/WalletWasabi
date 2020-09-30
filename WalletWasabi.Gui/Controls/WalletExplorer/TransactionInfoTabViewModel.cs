@@ -10,20 +10,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class TransactionInfoTabViewModel : WasabiDocumentTabViewModel
 	{
-		public TransactionInfoTabViewModel(TransactionDetailsViewModel transaction) : base("")
+		public TransactionInfoTabViewModel(TransactionDetailsViewModel transaction, UiConfig uiConfig) : base("")
 		{
-			Global = Locator.Current.GetService<Global>();
 			Transaction = transaction;
+			UiConfig = uiConfig;
 			Title = $"Transaction ({transaction.TransactionId[0..10]}) Details";
 		}
 
-		protected Global Global { get; }
-
 		public TransactionDetailsViewModel Transaction { get; }
+		public UiConfig UiConfig { get; }
 
 		public override void OnOpen(CompositeDisposable disposables)
 		{
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
+			UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => Transaction.RaisePropertyChanged(nameof(Transaction.TransactionId)))
 				.DisposeWith(disposables);
