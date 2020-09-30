@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
 using WalletWasabi.Gui;
 using WalletWasabi.Wallets;
@@ -17,12 +18,13 @@ namespace WalletWasabi.Fluent.ViewModels
 		private ObservableCollection<NavBarItemViewModel> _bottomItems;
 		private NavBarItemViewModel _selectedItem;
 		private Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
-		private bool _anyWalletStarted;		
+    private bool _anyWalletStarted;
+		private bool _isBackButtonVisible;
 		private bool _isExpanded = true;
-		
 
-		public NavBarViewModel(WalletManager walletManager, UiConfig uiConfig)
+		public NavBarViewModel(RoutingState router, WalletManager walletManager, UiConfig uiConfig)
 		{
+			Router = router;
 			_topItems = new ObservableCollection<NavBarItemViewModel>();
 			_items = new ObservableCollection<NavBarItemViewModel>();
 			_bottomItems = new ObservableCollection<NavBarItemViewModel>();
@@ -32,6 +34,10 @@ namespace WalletWasabi.Fluent.ViewModels
 			_topItems.Add(new HomePageViewModel());
 			_bottomItems.Add(new AddWalletPageViewModel());
 			_bottomItems.Add(new SettingsPageViewModel());
+
+			Observable.FromEventPattern(Router.NavigationStack, nameof(Router.NavigationStack.CollectionChanged))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => IsBackButtonVisible = Router.NavigationStack.Count > 1);
 
 			Observable
 				.FromEventPattern<WalletState>(walletManager, nameof(WalletManager.WalletStateChanged))
@@ -75,6 +81,10 @@ namespace WalletWasabi.Fluent.ViewModels
 			});
 		}
 
+		public ReactiveCommand<Unit, IRoutableViewModel> GoNext { get; }
+
+		public ReactiveCommand<Unit, Unit> GoBack => Router.NavigateBack;
+
 		public bool AnyWalletStarted
 		{
 			get => _anyWalletStarted;
@@ -104,11 +114,21 @@ namespace WalletWasabi.Fluent.ViewModels
 			get { return _selectedItem; }
 			set
 			{
+				if (_selectedItem is { })
+				{
+					_selectedItem.IsSelected = false;					
+				}
+
 				_selectedItem = null;
 
 				this.RaisePropertyChanged();
 
 				this.RaiseAndSetIfChanged(ref _selectedItem, value);
+
+				if(_selectedItem is { })
+				{
+					_selectedItem.IsSelected = true;
+				}
 			}
 		}
  
@@ -117,6 +137,14 @@ namespace WalletWasabi.Fluent.ViewModels
 			get { return _isExpanded; }
 			set { this.RaiseAndSetIfChanged(ref _isExpanded, value); }
 		}
+
+		public bool IsBackButtonVisible
+		{
+			get => _isBackButtonVisible;
+			set => this.RaiseAndSetIfChanged(ref _isBackButtonVisible, value);
+		}
+
+		public RoutingState Router { get; }
 
 		private void LoadWallets(WalletManager walletManager)
 		{

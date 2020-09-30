@@ -1,8 +1,5 @@
-using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
-using System.Reactive;
-using System.Threading.Tasks;
 using WalletWasabi.Gui.ViewModels;
 using Global = WalletWasabi.Gui.Global;
 
@@ -23,14 +20,10 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			StatusBar = new StatusBarViewModel(global.DataDir, global.Network, global.Config, global.HostedServices, global.BitcoinStore.SmartHeaderChain, global.Synchronizer, global.LegalDocuments);
 
-			NavBar = new NavBarViewModel(global.WalletManager, global.UiConfig);
+			NavBar = new NavBarViewModel(Router, global.WalletManager, global.UiConfig);
 
-			Dispatcher.UIThread.Post(async () =>
-			{
-				await Task.Delay(5000);
-
-				Router.Navigate.Execute(new HomeViewModel(this));
-			});
+			Router.Navigate.Execute(new HomeViewModel(this)); // for testing
+			Router.Navigate.Execute(new HomeViewModel(this)); // for testing
 		}
 
 		public static MainViewModel Instance { get; internal set; }

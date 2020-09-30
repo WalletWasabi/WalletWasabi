@@ -391,7 +391,7 @@ namespace WalletWasabi.Services
 			Cancel?.Cancel();
 			while (Interlocked.CompareExchange(ref _running, 3, 0) == 2)
 			{
-				await Task.Delay(50);
+				await Task.Delay(50).ConfigureAwait(false);
 			}
 
 			Cancel?.Dispose();
