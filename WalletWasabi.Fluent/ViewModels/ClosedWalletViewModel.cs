@@ -21,11 +21,11 @@ namespace WalletWasabi.Fluent.ViewModels
 			set { this.RaiseAndSetIfChanged(ref _items, value); }
 		}
 
-		protected ClosedWalletViewModel(WalletManager walletManager, Wallet wallet) : base(wallet)
+		protected ClosedWalletViewModel(IScreen screen, WalletManager walletManager, Wallet wallet) : base(screen, wallet)
 		{
 			_items = new ObservableCollection<NavBarItemViewModel>
 			{
-				new HomePageViewModel()
+				new HomePageViewModel(screen)
 			};
 
 			IsExpanded = true;
@@ -57,13 +57,13 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public ReactiveCommand<Unit, Unit> OpenWalletCommand { get; }
 
-		public static WalletViewModelBase Create(WalletManager walletManager, Wallet wallet)
+		public static WalletViewModelBase Create(IScreen screen, WalletManager walletManager, Wallet wallet)
 		{
 			return wallet.KeyManager.IsHardwareWallet
-				? new ClosedHardwareWalletViewModel(walletManager, wallet)
+				? new ClosedHardwareWalletViewModel(screen, walletManager, wallet)
 				: wallet.KeyManager.IsWatchOnly
-					? new ClosedWatchOnlyWalletViewModel(walletManager, wallet)
-					: new ClosedWalletViewModel(walletManager, wallet);
+					? new ClosedWatchOnlyWalletViewModel(screen, walletManager, wallet)
+					: new ClosedWalletViewModel(screen, walletManager, wallet);
 		}
 	}
 }

@@ -1,53 +1,46 @@
 using ReactiveUI;
 using System;
-using System.Diagnostics.CodeAnalysis;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
 	public class HomePageViewModel : NavBarItemViewModel
 	{
-		public HomePageViewModel()
+		public HomePageViewModel(IScreen screen) : base(screen)
 		{
 			Title = "Home";
-		}
-
-		public override int CompareTo([AllowNull] NavBarItemViewModel other)
-		{
-			return 0;
 		}
 	}
 
 	public class SettingsPageViewModel : NavBarItemViewModel
 	{
-		public SettingsPageViewModel()
+		public SettingsPageViewModel(IScreen screen) : base(screen)
 		{
 			Title = "Settings";
-		}
-
-		public override int CompareTo([AllowNull] NavBarItemViewModel other)
-		{
-			return 0;
 		}
 	}
 
 	public class AddWalletPageViewModel : NavBarItemViewModel
 	{
-		public AddWalletPageViewModel()
+		public AddWalletPageViewModel(IScreen screen) : base(screen)
 		{
 			Title = "Add Wallet";
 		}
-
-		public override int CompareTo([AllowNull] NavBarItemViewModel other)
-		{
-			return -1;
-		}
 	}
 
-	public abstract class NavBarItemViewModel : ViewModelBase, IComparable<NavBarItemViewModel>
-	{		
+	public abstract class NavBarItemViewModel : ViewModelBase, IRoutableViewModel
+	{
 		private bool _isSelected;
 		private bool _isExpanded;
 		private string _title;
+
+		public NavBarItemViewModel(IScreen screen)
+		{
+			HostScreen = screen;
+		}
+
+		public string UrlPathSegment { get; } = Guid.NewGuid().ToString().Substring(0, 5);
+
+		public IScreen HostScreen { get; }
 
 		public bool IsExpanded
 		{
@@ -66,7 +59,5 @@ namespace WalletWasabi.Fluent.ViewModels
 			get { return _isSelected; }
 			set { this.RaiseAndSetIfChanged(ref _isSelected, value); }
 		}
-
-		public abstract int CompareTo([AllowNull] NavBarItemViewModel other);
 	}
 }
