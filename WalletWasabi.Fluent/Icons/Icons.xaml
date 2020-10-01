@@ -6,6 +6,7 @@
       <PathIcon Data="{StaticResource web_asset_regular}" />
       <PathIcon Data="{StaticResource home_regular}" />
       <PathIcon Data="{StaticResource add_circle_regular}" />
+      <PathIcon Data="{StaticResource navigation_regular}" />
       <PathIcon Data="{StaticResource arrow_left_regular}" />
     </StackPanel>
   </Design.PreviewWith>

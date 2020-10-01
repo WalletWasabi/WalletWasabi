@@ -6,8 +6,11 @@
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors;assembly=WalletWasabi.Fluent"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="WalletWasabi.Fluent.Views.NavBar">
+             x:Class="WalletWasabi.Fluent.Views.NavBar" UseLayoutRounding="False">
   <UserControl.Styles>
+    <Style Selector="PathIcon">
+      <Setter Property="Margin" Value="1 0 0 0" />
+    </Style>
     <Style Selector="Separator">
       <Setter Property="Background" Value="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" />
       <Setter Property="HorizontalAlignment" Value="Stretch" />
@@ -44,8 +47,8 @@
       <Setter Property="Margin" Value="-16 0 0 0" />
     </Style>
     <Style Selector=":is(Button).NavButton">
-      <Setter Property="Width" Value="46" />
-      <Setter Property="Height" Value="46" />
+      <Setter Property="Width" Value="45" />
+      <Setter Property="Height" Value="45" />
     </Style>
     <Style Selector=":is(Button).NavButton /template/ ContentPresenter">
       <Setter Property="Background" Value="Transparent" />
@@ -59,49 +62,44 @@
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="BorderBrush" Value="Transparent" />
     </Style>
+    <Style Selector="c|NavBarItem">
+      <Setter Property="IsSelected" Value="{Binding IsSelected}" />
+      <Setter Property="Header" Value="{Binding Title}" />
+    </Style>
   </UserControl.Styles>
   <UserControl.DataTemplates>
     <DataTemplate DataType="vm:HomePageViewModel">
-      <c:NavBarItem IsSelected="{Binding IsSelected}">
-        <StackPanel Orientation="Horizontal" Spacing="20">
+      <c:NavBarItem>
+        <c:NavBarItem.Icon>
           <PathIcon Data="{StaticResource home_regular}" />
-          <TextBlock Text="Home" />
-        </StackPanel>
+        </c:NavBarItem.Icon>
       </c:NavBarItem>
     </DataTemplate>
     <DataTemplate DataType="vm:SettingsPageViewModel">
-      <c:NavBarItem IsSelected="{Binding IsSelected}">
-        <StackPanel Orientation="Horizontal" Spacing="20">
+      <c:NavBarItem>
+        <c:NavBarItem.Icon>
           <PathIcon Data="{StaticResource settings_regular}" />
-          <TextBlock Text="Settings" />
-        </StackPanel>
+        </c:NavBarItem.Icon>
       </c:NavBarItem>
     </DataTemplate>
     <DataTemplate DataType="vm:AddWalletPageViewModel">
-      <c:NavBarItem IsSelected="{Binding IsSelected}">
-        <StackPanel Orientation="Horizontal" Spacing="20">
-          <PathIcon Data="{StaticResource add_circle_regular}" />
-          <TextBlock Text="Add Wallet" />
-        </StackPanel>
+      <c:NavBarItem>
+        <c:NavBarItem.Icon>
+          <PathIcon Data="{StaticResource home_regular}" />
+        </c:NavBarItem.Icon>
       </c:NavBarItem>
     </DataTemplate>
     <TreeDataTemplate DataType="vm:ClosedWalletViewModel" ItemsSource="{Binding Items}">
-      <c:NavBarItem IsSelected="{Binding IsSelected}">
-        <StackPanel Orientation="Horizontal" Spacing="20">
+      <c:NavBarItem>
+        <c:NavBarItem.Icon>
           <PathIcon Data="{StaticResource web_asset_regular}" />
-          <TextBlock Text="{Binding Title}" />
-        </StackPanel>
+        </c:NavBarItem.Icon>        
       </c:NavBarItem>
     </TreeDataTemplate>
   </UserControl.DataTemplates>
-  <DockPanel Margin="1">
+  <DockPanel>
     <StackPanel DockPanel.Dock="Top">
-      <Button Classes="NavButton" Command="{Binding GoBack}" IsVisible="{Binding IsBackButtonVisible}">
-        <PathIcon Data="{StaticResource arrow_left_regular}" />
-      </Button>
-    </StackPanel>
-    <StackPanel DockPanel.Dock="Top">
-      <StackPanel Orientation="Horizontal" Spacing="5">
+      <StackPanel Orientation="Horizontal" Spacing="10">
         <Button Classes="NavButton" Command="{Binding DoToggleAction}">
           <PathIcon Data="{StaticResource navigation_regular}" />
         </Button>
