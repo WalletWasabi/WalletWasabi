@@ -60,7 +60,7 @@ namespace WalletWasabi.Core
 
 			services.AddLogging(logging => logging.AddFilter((s, level) => level >= Microsoft.Extensions.Logging.LogLevel.Warning));
 
-			services.AddSingleton(new Global());
+			services.AddSingleton(new Global(Configuration["datadir"]));
 			services.AddStartupTask<InitConfigStartupTask>();
 		}
 

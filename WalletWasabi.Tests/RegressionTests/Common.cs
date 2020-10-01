@@ -48,11 +48,6 @@ namespace WalletWasabi.Tests.RegressionTests
 			Interlocked.Increment(ref FiltersProcessedByWalletCount);
 		}
 
-		public static string GetWorkDir([CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerMemberName = null)
-		{
-			return Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName);
-		}
-
 		private static async Task AssertFiltersInitializedAsync(RegTestFixture regTestFixture, Backend.Global global)
 		{
 			var firstHash = await global.RpcClient.GetBlockHashAsync(0);
@@ -91,7 +86,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var network = global.RpcClient.Network;
 			var serviceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.PrivacyLevelSome.ToString(), 2, 21, 50, regTestFixture.BackendRegTestNode.P2pEndPoint, Money.Coins(Constants.DefaultDustThreshold));
 
-			var dir = GetWorkDir(callerFilePath, callerMemberName);
+			var dir = Global.Instance.GetWorkDir(callerFilePath, callerMemberName);
 			var indexStore = new IndexStore(Path.Combine(dir, "indexStore"), network, new SmartHeaderChain());
 			var transactionStore = new AllTransactionStore(Path.Combine(dir, "transactionStore"), network);
 			var mempoolService = new MempoolService();

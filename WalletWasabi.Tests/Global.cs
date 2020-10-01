@@ -1,6 +1,7 @@
 using NBitcoin;
 using System.IO;
 using System.Net;
+using System.Runtime.CompilerServices;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -41,6 +42,11 @@ namespace WalletWasabi.Tests
 			var tx = Transaction.Create(Network.Main);
 			tx.Outputs.Add(Money.Coins(1), new Key());
 			return new SmartTransaction(tx, Height.Mempool);
+		}
+
+		public string GetWorkDir([CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerMemberName = null)
+		{
+			return Path.Combine(DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName);
 		}
 	}
 }

@@ -9,9 +9,9 @@ namespace WalletWasabi.Core
 {
 	public class Global
 	{
-		public Global()
+		public Global(string dataDir)
 		{
-			DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
+			DataDir = dataDir ?? EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
 		}
 
 		public string DataDir { get; }
