@@ -101,7 +101,7 @@
     <StackPanel DockPanel.Dock="Top">
       <StackPanel Orientation="Horizontal" Spacing="10">
         <Button Classes="NavButton" Command="{Binding DoToggleAction}">
-          <PathIcon Data="{StaticResource navigation_regular}" />
+          <PathIcon Data="{StaticResource navigation_regular}" Width="16" />
         </Button>
         <TextBlock Text="Wasabi Wallet" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
       </StackPanel>
