@@ -2,7 +2,6 @@ using NBitcoin;
 using NBitcoin.RPC;
 using System;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,19 +35,14 @@ namespace WalletWasabi.Services
 
 		private long _blockRequests; // There are priority requests in queue.
 
-		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Func<Uri> baseUriAction, EndPoint torSocks5EndPoint)
+		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, WasabiClientFactory wasabiClientFactory)
 		{
-			WasabiClient = new WasabiClient(baseUriAction, torSocks5EndPoint);
-			Network = Guard.NotNull(nameof(network), network);			
+			Network = network;
 			LastResponse = null;
 			_running = 0;
+			BitcoinStore = bitcoinStore;
+			WasabiClientFactory = wasabiClientFactory;
 			Cancel = new CancellationTokenSource();
-			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
-		}
-
-		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Uri baseUri, EndPoint torSocks5EndPoint):
-			this(network, bitcoinStore, () => baseUri, torSocks5EndPoint)
-		{
 		}
 
 		#region EventsPropertiesMembers
@@ -61,7 +55,7 @@ namespace WalletWasabi.Services
 
 		public SynchronizeResponse LastResponse { get; private set; }
 
-		public WasabiClient WasabiClient { get; private set; }
+		public WasabiClientFactory WasabiClientFactory { get; }
 
 		public Network Network { get; private set; }
 
@@ -163,7 +157,8 @@ namespace WalletWasabi.Services
 									return;
 								}
 
-								response = await WasabiClient.GetSynchronizeAsync(hashChain.TipHash, maxFiltersToSyncAtInitialization, estimateMode, Cancel.Token)
+								using WasabiClient wasabiClient = WasabiClientFactory.NewBackendClient();
+								response = await wasabiClient.GetSynchronizeAsync(hashChain.TipHash, maxFiltersToSyncAtInitialization, estimateMode, Cancel.Token)
 									.WithAwaitCancellationAsync(Cancel.Token, 300)
 									.ConfigureAwait(false);
 
@@ -192,8 +187,9 @@ namespace WalletWasabi.Services
 								BackendStatus = BackendStatus.NotConnected;
 								try
 								{
+									using WasabiClient wasabiClient = WasabiClientFactory.NewBackendClient();
 									// Backend API version might be updated meanwhile. Trying to update the versions.
-									var result = await WasabiClient.CheckUpdatesAsync(Cancel.Token).ConfigureAwait(false);
+									var result = await wasabiClient.CheckUpdatesAsync(Cancel.Token).ConfigureAwait(false);
 
 									// If the backend is compatible and the Api version updated then we just used the wrong API.
 									if (result.BackendCompatible && lastUsedApiVersion != WasabiClient.ApiVersion)
@@ -385,9 +381,6 @@ namespace WalletWasabi.Services
 			}
 
 			Cancel?.Dispose();
-			Cancel = null;
-			WasabiClient?.Dispose();
-			WasabiClient = null;
 
 			EnableRequests(); // Enable requests (it's possible something is being blocked outside the class by AreRequestsBlocked.
 		}

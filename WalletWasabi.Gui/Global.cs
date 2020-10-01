@@ -39,6 +39,7 @@ using WalletWasabi.Stores;
 using WalletWasabi.Tor;
 using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
+using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Gui
 {
@@ -112,11 +113,13 @@ namespace WalletWasabi.Gui
 
 				if (Config.UseTor)
 				{
-					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint);
+					var wasabiClientFactory = new WasabiClientFactory(Config.TorSocks5EndPoint, backendUriGetter: () => Config.GetCurrentBackendUri());
+					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, wasabiClientFactory);
 				}
 				else
 				{
-					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, Config.GetFallbackBackendUri(), null);
+					var wasabiClientFactory = new WasabiClientFactory(torEndPoint: null, backendUriGetter: () => Config.GetFallbackBackendUri());
+					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, wasabiClientFactory);
 				}
 			}
 		}

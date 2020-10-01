@@ -16,17 +16,14 @@ namespace WalletWasabi.Services
 		public UpdateChecker(TimeSpan period, WasabiSynchronizer synchronizer) : base(period)
 		{
 			Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
-			WasabiClient = synchronizer.WasabiClient;
-			UpdateStatus = new UpdateStatus(true, true, new Version(), 0);
+			_updateStatus = new UpdateStatus(true, true, new Version(), 0);
 
 			Synchronizer.PropertyChanged += Synchronizer_PropertyChanged;
 		}
 
 		public event EventHandler<UpdateStatus>? UpdateStatusChanged;
 
-		public WasabiClient WasabiClient { get; }
-
-		public WasabiSynchronizer Synchronizer { get; }
+		private WasabiSynchronizer Synchronizer { get; }
 
 		public UpdateStatus UpdateStatus
 		{
@@ -53,7 +50,8 @@ namespace WalletWasabi.Services
 
 		protected override async Task ActionAsync(CancellationToken cancel)
 		{
-			UpdateStatus = await WasabiClient.CheckUpdatesAsync(cancel).ConfigureAwait(false);
+			using WasabiClient wasabiClient = Synchronizer.WasabiClientFactory.NewBackendClient();
+			UpdateStatus = await wasabiClient.CheckUpdatesAsync(cancel).ConfigureAwait(false);
 		}
 
 		public override void Dispose()

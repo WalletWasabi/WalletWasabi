@@ -47,8 +47,8 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			DestinationKeyManager = KeyManager;
 			Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
-			CcjHostUriAction = Synchronizer.WasabiClient.TorClient.DestinationUriAction;
-			TorSocks5EndPoint = Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint;
+			CcjHostUriAction = Synchronizer.WasabiClientFactory.BackendUriGetter;
+			TorSocks5EndPoint = Synchronizer.WasabiClientFactory.TorEndpoint;
 			CoordinatorFeepercentToCheck = null;
 
 			ExposedLinks = new ConcurrentDictionary<OutPoint, IEnumerable<HdPubKeyBlindedPair>>();
@@ -84,7 +84,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		public Func<Uri> CcjHostUriAction { get; private set; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
-		protected EndPoint TorSocks5EndPoint { get; set; }
+		protected EndPoint? TorSocks5EndPoint { get; set; }
 
 		private decimal? CoordinatorFeepercentToCheck { get; set; }
 
@@ -1064,9 +1064,9 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		private async Task<AliceClientBase> CreateAliceClientAsync(long roundId, List<OutPoint> registrableCoins, (HdPubKey change, IEnumerable<HdPubKey> actives) outputAddresses)
 		{
 			RoundStateResponse4 state;
+			WasabiClientFactory factory = Synchronizer.WasabiClientFactory;
 
-			var torClient = Synchronizer.WasabiClient.TorClient;
-			using (var satoshiClient = new SatoshiClient(torClient.DestinationUriAction, torClient.TorSocks5EndPoint))
+			using (var satoshiClient = new SatoshiClient(factory.BackendUriGetter, factory.TorEndpoint))
 			{
 				state = (RoundStateResponse4)await satoshiClient.GetRoundStateAsync(roundId).ConfigureAwait(false);
 			}
