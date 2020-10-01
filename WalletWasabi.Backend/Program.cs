@@ -6,7 +6,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Backend
 {
-	public class Program
+	public static class Program
 	{
 #pragma warning disable IDE1006 // Naming Styles
 
@@ -15,20 +15,19 @@ namespace WalletWasabi.Backend
 		{
 			try
 			{
-				var endPoint = "http://localhost:37127/";
-
-				using var host = Host.CreateDefaultBuilder(args)
-					.ConfigureWebHostDefaults(webBuilder => webBuilder
-							.UseStartup<Startup>()
-							.UseUrls(endPoint))
-					.Build();
-
+				using var host = CreateHostBuilder(args).Build();
 				await host.RunWithTasksAsync();
 			}
 			catch (Exception ex)
 			{
 				Logger.LogCritical(ex);
 			}
+		}
+
+		public static IHostBuilder CreateHostBuilder(string[] args)
+		{
+			return Host.CreateDefaultBuilder(args)
+				.ConfigureWebHostDefaults(webBuilder => webBuilder.UseStartup<Startup>());
 		}
 	}
 }
