@@ -37,9 +37,7 @@
         <Panel Margin="20 10 20 0">
           <DockPanel>
             <StackPanel Orientation="Horizontal" Spacing="20" DockPanel.Dock="Top">
-              <Button Command="{Binding NavBar.GoBack}" Background="Transparent" IsVisible="{Binding NavBar.IsBackButtonVisible}">
-                <PathIcon Data="{StaticResource arrow_left_regular}" />
-              </Button>
+              
               <TextBlock Text="{Binding NavBar.SelectedItem.Title}" FontSize="28" />
             </StackPanel>
             <rxui:RoutedViewHost Router="{Binding Router}">

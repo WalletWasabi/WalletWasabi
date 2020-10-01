@@ -47,8 +47,11 @@
       <Setter Property="Margin" Value="-16 0 0 0" />
     </Style>
     <Style Selector=":is(Button).NavButton">
-      <Setter Property="Width" Value="45" />
-      <Setter Property="Height" Value="45" />
+      <Setter Property="Width" Value="46" />
+      <Setter Property="Padding" Value="12,9,12,12" />
+    </Style>
+    <Style Selector=":is(Button).NavButton:disabled > PathIcon">
+      <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
     </Style>
     <Style Selector=":is(Button).NavButton /template/ ContentPresenter">
       <Setter Property="Background" Value="Transparent" />
@@ -62,6 +65,12 @@
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="BorderBrush" Value="Transparent" />
     </Style>
+    <Style Selector=":is(Button):disabled /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector=":is(Button):pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListLowBrush}" />
+    </Style>    
     <Style Selector="c|NavBarItem">
       <Setter Property="IsSelected" Value="{Binding IsSelected}" />
       <Setter Property="Header" Value="{Binding Title}" />
@@ -99,12 +108,18 @@
   </UserControl.DataTemplates>
   <DockPanel>
     <StackPanel DockPanel.Dock="Top">
+      <StackPanel.Resources>
+        <Thickness x:Key="ControlCornerRadius">0</Thickness>
+      </StackPanel.Resources>
       <StackPanel Orientation="Horizontal" Spacing="10">
-        <Button Classes="NavButton" Command="{Binding DoToggleAction}">
-          <PathIcon Data="{StaticResource navigation_regular}" Width="16" />
+        <Button Classes="NavButton" Command="{Binding GoBack}" Background="Transparent" IsEnabled="{Binding IsBackButtonVisible}">
+          <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
         </Button>
-        <TextBlock Text="Wasabi Wallet" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
+        <TextBlock Text="Wasabi Wallet" Foreground="White" VerticalAlignment="Center"/>
       </StackPanel>
+      <Button Classes="NavButton" Command="{Binding DoToggleAction}">
+        <PathIcon Data="{StaticResource navigation_regular}" Width="16" />
+      </Button>      
       <ListBox Items="{Binding TopItems}" SelectedItem="{Binding SelectedItem}" />
       <Separator />
     </StackPanel>
