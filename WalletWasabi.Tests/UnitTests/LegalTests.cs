@@ -39,7 +39,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public void CantLoadNotAgreed()
 		{
-			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName());
+			var dir = Global.GetWorkDir();
 			if (Directory.Exists(dir))
 			{
 				Directory.Delete(dir, true);
@@ -57,7 +57,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task LeavesTrashAloneAsync()
 		{
-			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName());
+			var dir = Global.GetWorkDir();
 			if (Directory.Exists(dir))
 			{
 				Directory.Delete(dir, true);
@@ -89,7 +89,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task ResolvesConflictsAsync()
 		{
-			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName());
+			var dir = Global.GetWorkDir();
 			if (Directory.Exists(dir))
 			{
 				Directory.Delete(dir, true);
@@ -125,7 +125,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task CanLoadLegalDocsAsync()
 		{
-			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName());
+			var dir = Global.GetWorkDir();
 			if (Directory.Exists(dir))
 			{
 				Directory.Delete(dir, true);
@@ -151,7 +151,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task CanSerializeFileAsync()
 		{
-			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName());
+			var dir = Global.GetWorkDir();
 			if (Directory.Exists(dir))
 			{
 				Directory.Delete(dir, true);

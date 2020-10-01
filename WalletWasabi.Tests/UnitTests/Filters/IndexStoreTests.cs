@@ -162,9 +162,9 @@ namespace WalletWasabi.Tests.UnitTests.Filters
 			Assert.Equal(3u, headersChain.TipHeight);
 		}
 
-		private async Task<(string dir, string matureFilters, string immatureFilters)> GetIndexStorePathsAsync([CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerName = "")
+		private async Task<(string dir, string matureFilters, string immatureFilters)> GetIndexStorePathsAsync([CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerMemberName = "")
 		{
-			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerName, "IndexStore");
+			var dir = Path.Combine(Global.GetWorkDir(callerFilePath, callerMemberName), "IndexStore");
 			await IoHelpers.TryDeleteDirectoryAsync(dir);
 			var matureFilters = Path.Combine(dir, "MatureIndex.dat");
 			var immatureFilters = Path.Combine(dir, "ImmatureIndex.dat");

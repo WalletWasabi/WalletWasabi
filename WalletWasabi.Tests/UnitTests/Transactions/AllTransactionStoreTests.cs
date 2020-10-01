@@ -45,7 +45,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 		private string PrepareWorkDir([CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerMemberName = null)
 		{
-			string dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName);
+			string dir = Global.GetWorkDir(callerFilePath, callerMemberName);
 			if (Directory.Exists(dir))
 			{
 				Directory.Delete(dir, true);

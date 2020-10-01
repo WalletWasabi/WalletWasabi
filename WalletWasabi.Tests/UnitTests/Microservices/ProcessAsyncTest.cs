@@ -20,7 +20,7 @@ namespace WalletWasabi.Tests.UnitTests.Microservices
 		{
 			await Assert.ThrowsAsync<TaskCanceledException>(async () =>
 			{
-				using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+				using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(5));
 
 				var startInfo = new ProcessStartInfo()
 				{

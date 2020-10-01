@@ -17,7 +17,7 @@ namespace WalletWasabi.Tests.UnitTests.WasabiCore
 		public async Task HelloAsync()
 		{
 			using var appFactory = new WebApplicationFactory<Startup>()
-				.WithWebHostBuilder(builder => builder.UseSetting("datadir", Global.Instance.GetWorkDir()));
+				.WithWebHostBuilder(builder => builder.UseSetting("datadir", Global.GetWorkDir()));
 
 			using var client = appFactory.CreateClient();
 			var response = await client.GetAsync("api/v" + Constants.CoreMajorVersion + "/Test/hello");

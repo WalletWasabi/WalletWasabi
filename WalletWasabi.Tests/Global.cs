@@ -11,9 +11,9 @@ using WalletWasabi.Tor;
 
 namespace WalletWasabi.Tests
 {
-	public class Global
+	public static class Global
 	{
-		public Global()
+		static Global()
 		{
 			TorSocks5Endpoint = new IPEndPoint(IPAddress.Loopback, 9050);
 
@@ -29,13 +29,11 @@ namespace WalletWasabi.Tests
 			Logger.SetModes(LogMode.Debug, LogMode.Console, LogMode.File);
 		}
 
-		public static Global Instance { get; } = new Global();
+		public static string DataDir { get; }
 
-		public EndPoint TorSocks5Endpoint { get; }
+		public static EndPoint TorSocks5Endpoint { get; }
 
-		public TorSettings TorSettings { get; }
-
-		public string DataDir { get; }
+		public static TorSettings TorSettings { get; }
 
 		public static SmartTransaction GenerateRandomSmartTransaction()
 		{
@@ -44,7 +42,7 @@ namespace WalletWasabi.Tests
 			return new SmartTransaction(tx, Height.Mempool);
 		}
 
-		public string GetWorkDir([CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerMemberName = null)
+		public static string GetWorkDir([CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerMemberName = null)
 		{
 			return Path.Combine(DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName);
 		}
