@@ -29,17 +29,24 @@
     <Style Selector="StackPanel.TreeViewRoot > :is(Control)">
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
+    <Style Selector="Button">
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button:pointerover">
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
   </UserControl.Styles>
   <DockPanel LastChildFill="True">
     <Panel DockPanel.Dock="Top" HorizontalAlignment="Stretch" Background="{DynamicResource ThemeControlLowBrush}">
       <StackPanel Orientation="Horizontal" Spacing="2" Margin="8 1">
-        <Button Background="Transparent" BorderThickness="0" ToolTip.Tip="{Binding IsLurkingWifeMode, StringFormat=\{0\} Lurking Wife Mode, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Disable:Enable}" Command="{Binding LurkingWifeModeCommand}">
+        <Button ToolTip.Tip="{Binding IsLurkingWifeMode, StringFormat=\{0\} Sensitive Information, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Show:Hide}" Command="{Binding LurkingWifeModeCommand}">
           <Panel>
             <DrawingPresenter Width="16" Height="16" IsVisible="{Binding !IsLurkingWifeMode}" Drawing="{DynamicResource EyesShow}" />
             <DrawingPresenter Width="16" Height="16" IsVisible="{Binding IsLurkingWifeMode}" Drawing="{DynamicResource EyesHide}" />
           </Panel>
         </Button>
-        <Button Background="Transparent" BorderThickness="0" ToolTip.Tip="Collapse All" Command="{Binding CollapseAllCommand}">
+        <Button ToolTip.Tip="Collapse All" Command="{Binding CollapseAllCommand}">
           <DrawingPresenter Width="16" Height="16" Drawing="{DynamicResource WalletExplorerView_CollapseTree}" />
         </Button>
       </StackPanel>

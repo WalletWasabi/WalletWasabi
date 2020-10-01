@@ -123,8 +123,8 @@
 //      var p = new OptionSet () {
 //        { "a", s => a = s },
 //      };
-//      p.Parse (new string[]{"-a"});   // sets v != null
-//      p.Parse (new string[]{"-a+"});  // sets v != null
+//      p.Parse (new string[]{"-a"});   // sets v is { }
+//      p.Parse (new string[]{"-a+"});  // sets v is { }
 //      p.Parse (new string[]{"-a-"});  // sets v is null
 //
 
@@ -156,8 +156,6 @@
 //
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Mono.Options
 {

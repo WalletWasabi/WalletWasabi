@@ -3,7 +3,6 @@ using NBitcoin.Payment;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -123,7 +122,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				}
 
-				return new PayjoinClient(payjoinEndPointUri, Global.TorManager.TorSocks5EndPoint);
+				return new PayjoinClient(payjoinEndPointUri, Global.TorSocks5EndPoint);
 			}
 
 			return null;

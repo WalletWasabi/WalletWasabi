@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
-using NBitcoin.DataEncoders;
 using NBitcoin.Protocol;
 using Nito.AsyncEx;
 using System;
@@ -9,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -38,7 +36,7 @@ namespace WalletWasabi.Wallets
 
 		public Wallet(string dataDir, Network network, KeyManager keyManager)
 		{
-			DataDir = Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
+			Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
 			Network = Guard.NotNull(nameof(network), network);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 
@@ -75,7 +73,6 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-		public string DataDir { get; }
 		public BitcoinStore BitcoinStore { get; private set; }
 		public KeyManager KeyManager { get; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
@@ -240,7 +237,7 @@ namespace WalletWasabi.Wallets
 		}
 
 		/// <inheritdoc/>
-		public async override Task StopAsync(CancellationToken cancel)
+		public override async Task StopAsync(CancellationToken cancel)
 		{
 			try
 			{
@@ -401,7 +398,7 @@ namespace WalletWasabi.Wallets
 			// Go through the filters and queue to download the matches.
 			await BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) =>
 			{
-				if (filterModel.Filter != null) // Filter can be null if there is no bech32 tx.
+				if (filterModel.Filter is { }) // Filter can be null if there is no bech32 tx.
 				{
 					await ProcessFilterModelAsync(filterModel, cancel).ConfigureAwait(false);
 				}

@@ -1,5 +1,4 @@
 using NBitcoin;
-using WalletWasabi.BitcoinCore.Rpc;
 
 namespace WalletWasabi.BitcoinCore.Rpc.Models
 {

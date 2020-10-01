@@ -1,4 +1,3 @@
-using NBitcoin;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -8,7 +7,6 @@ using WalletWasabi.WebClients.CoinGecko;
 using WalletWasabi.WebClients.Bitstamp;
 using WalletWasabi.WebClients.Gemini;
 using WalletWasabi.WebClients.ItBit;
-using WalletWasabi.WebClients.SmartBit;
 using Xunit;
 using WalletWasabi.Interfaces;
 
@@ -16,10 +14,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 {
 	public class ExternalApiTests
 	{
-		[Fact]
-		public async Task SmartBitExchangeRateProviderTestAsync() =>
-			await AssertProviderAsync(new SmartBitExchangeRateProvider(new SmartBitClient(Network.Main)));
-
 		[Fact]
 		public async Task CoinbaseExchangeRateProviderTestsAsync() =>
 			await AssertProviderAsync(new CoinbaseExchangeRateProvider());

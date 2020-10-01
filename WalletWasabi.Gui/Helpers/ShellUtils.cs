@@ -1,11 +1,9 @@
-using Avalonia;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
-using WalletWasabi.Gui.Models;
 
 namespace WalletWasabi.Gui.Helpers
 {
@@ -64,7 +62,7 @@ namespace WalletWasabi.Gui.Helpers
 			}
 			foreach (var extraPath in extraPaths)
 			{
-				if (extraPath != null)
+				if (extraPath is { })
 				{
 					shellProc.StartInfo.Environment["PATH"] += $"{Path.DirectorySeparatorChar}{extraPath}";
 				}
@@ -94,7 +92,7 @@ namespace WalletWasabi.Gui.Helpers
 
 			shellProc.OutputDataReceived += (s, a) => outputReceivedCallback(s, a);
 
-			if (errorReceivedCallback != null)
+			if (errorReceivedCallback is { })
 			{
 				shellProc.ErrorDataReceived += (s, a) => errorReceivedCallback(s, a);
 			}

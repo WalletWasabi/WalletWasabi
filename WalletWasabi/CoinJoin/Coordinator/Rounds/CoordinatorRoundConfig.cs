@@ -1,16 +1,9 @@
 using NBitcoin;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
 using System.ComponentModel;
-using System.IO;
-using System.Text;
-using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
-using WalletWasabi.Interfaces;
 using WalletWasabi.JsonConverters;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 {

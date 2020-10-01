@@ -2,8 +2,8 @@ using NBitcoin;
 using System;
 using System.IO;
 using System.Linq;
-using WalletWasabi.Helpers;
 using WalletWasabi.Models;
+using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Blockchain.Keys
 {
@@ -39,7 +39,8 @@ namespace WalletWasabi.Blockchain.Keys
 				throw new ArgumentException("Wallet name is already taken.");
 			}
 
-			PasswordHelper.Guard(password); // Here we are not letting anything that will be autocorrected later. We need to generate the wallet exactly with the entered password bacause of compatibility.
+			// Here we are not letting anything that will be autocorrected later. We need to generate the wallet exactly with the entered password because of compatibility.
+			PasswordHelper.Guard(password);
 
 			var km = KeyManager.CreateNew(out Mnemonic mnemonic, password);
 			km.SetNetwork(Network);

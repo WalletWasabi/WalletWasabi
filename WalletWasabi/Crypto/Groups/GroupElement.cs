@@ -1,8 +1,5 @@
 using NBitcoin.Secp256k1;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto.Groups
@@ -142,26 +139,6 @@ namespace WalletWasabi.Crypto.Groups
 				GE.SECP256K1_TAG_PUBKEY_EVEN => Parse(bytes[1..], isOdd: false),
 				_ => throw new ArgumentException($"Argument is not a well-formatted group element.", nameof(bytes))
 			};
-		}
-
-		/// <summary>
-		/// Deterministically creates a group element from the given text.
-		/// Uniqueness relies on the SHA256 hash function.
-		/// </summary>
-		public static GroupElement FromText(string text)
-		{
-			FE x;
-			GE ge;
-			int nonce = 0;
-			using var sha256 = System.Security.Cryptography.SHA256.Create();
-			do
-			{
-				x = new FE(sha256.ComputeHash(Encoding.UTF8.GetBytes(text + nonce)));
-				nonce++;
-			}
-			while (!GE.TryCreateXQuad(x, out ge));
-
-			return new GroupElement(ge);
 		}
 	}
 }

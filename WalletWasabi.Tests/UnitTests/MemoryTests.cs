@@ -1,21 +1,22 @@
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Primitives;
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests
 {
+	/// <seealso cref="XunitConfiguration.SerialCollectionDefinition"/>
+	[Collection("Serial unit tests collection")]
 	public class MemoryTests
 	{
 		[Fact]
 		public async Task AbsoluteExpirationRelativeToNowExpiresCorrectlyAsync()
 		{
 			// This should be buggy but it seems to work for us: https://github.com/alastairtree/LazyCache/issues/84
-			var cache = new MemoryCache(new MemoryCacheOptions());
+			using var cache = new MemoryCache(new MemoryCacheOptions());
 
 			var result = await cache.AtomicGetOrCreateAsync(
 				"key",
@@ -29,7 +30,7 @@ namespace WalletWasabi.Tests.UnitTests
 				() => Task.FromResult("bar"));
 			Assert.Equal("foo", result);
 
-			await Task.Delay(TimeSpan.FromMilliseconds(20));
+			await Task.Delay(TimeSpan.FromMilliseconds(21));
 
 			result = await cache.AtomicGetOrCreateAsync(
 				"key",
@@ -48,8 +49,8 @@ namespace WalletWasabi.Tests.UnitTests
 				return "Hello " + argument;
 			}
 
-			var cache1 = new MemoryCache(new MemoryCacheOptions());
-			var cache2 = new MemoryCache(new MemoryCacheOptions());
+			using var cache1 = new MemoryCache(new MemoryCacheOptions());
+			using var cache2 = new MemoryCache(new MemoryCacheOptions());
 
 			var result0 = await cache1.AtomicGetOrCreateAsync(
 				"the-same-key",
@@ -95,7 +96,7 @@ namespace WalletWasabi.Tests.UnitTests
 				return "Hello " + argument;
 			}
 
-			var cache = new MemoryCache(new MemoryCacheOptions());
+			using var cache = new MemoryCache(new MemoryCacheOptions());
 			var expireKey1 = new CancellationTokenSource();
 
 			var options = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(10) };
@@ -139,36 +140,56 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task ExpirationTestsAsync()
 		{
-			var cache = new MemoryCache(new MemoryCacheOptions());
+			const string Key = "key";
 
-			var result0 = await cache.AtomicGetOrCreateAsync(
-				"key1",
-				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(1) },
-				() => Task.FromResult("This will be expired"));
+			const string Value1 = "This will be expired";
+			const string Value2 = "Foo";
+			const string Value3 = "Should not change to this";
 
-			await Task.Delay(1);
+			using var cache = new MemoryCache(new MemoryCacheOptions());
 
-			var result1 = await cache.AtomicGetOrCreateAsync(
-				"key1",
+			// First value should expire in 20 ms.
+			string result0 = await cache.AtomicGetOrCreateAsync(
+				Key,
+				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(20) },
+				() => Task.FromResult(Value1));
+
+			Stopwatch stopwatch = Stopwatch.StartNew();
+
+			// Wait 30 ms to let first value expire.
+			await Task.Delay(30);
+
+			// Measure how long we have waited.
+			long elapsedMilliseconds = stopwatch.ElapsedMilliseconds;
+
+			// Set Value2 to be in the cache.
+			string result1 = await cache.AtomicGetOrCreateAsync(
+				Key,
 				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60) },
-				() => Task.FromResult("Foo"));
+				() => Task.FromResult(Value2));
 
-			var result2 = await cache.AtomicGetOrCreateAsync(
-				"key1",
+			// Value3 is not supposed to be used as Value2 could not expire.
+			string result2 = await cache.AtomicGetOrCreateAsync(
+				Key,
 				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60) },
-				() => Task.FromResult("Should not change to this"));
+				() => Task.FromResult(Value3));
 
-			Assert.Equal("Foo", result2);
+			if (result2 != Value2)
+			{
+				Assert.False(true, $"{nameof(result2)} value is '{result2}' instead of '{Value2}'. " +
+					$"Debug info: Wait time was: {elapsedMilliseconds} ms. " +
+					$"Previous values: {nameof(result0)}='{result0}', {nameof(result1)}='{result1}'");
+			}
 		}
 
 		[Fact]
 		public async Task CacheTaskTestAsync()
 		{
-			var cache = new MemoryCache(new MemoryCacheOptions());
+			using var cache = new MemoryCache(new MemoryCacheOptions());
 			var greatCalled = 0;
 			var leeCalled = 0;
 
-			async Task<string> Greet(string who) =>
+			async Task<string> Greet(MemoryCache cache, string who) =>
 				await cache.AtomicGetOrCreateAsync(
 					$"{nameof(Greet)}{who}",
 					new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromTicks(1) }, // expires really soon
@@ -178,23 +199,88 @@ namespace WalletWasabi.Tests.UnitTests
 						return Task.FromResult($"Hello Mr. {who}");
 					});
 
-			async Task<string> GreetMrLee() =>
+			async Task<string> GreetMrLee(MemoryCache cache) =>
 				await cache.AtomicGetOrCreateAsync(
 					"key1",
 					new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1) },
 					() =>
 					{
 						leeCalled++;
-						return Greet("Lee");
+						return Greet(cache, "Lee");
 					});
 
 			for (var i = 0; i < 10; i++)
 			{
-				await GreetMrLee();
+				await GreetMrLee(cache);
 			}
 
 			Assert.Equal(1, greatCalled);
 			Assert.Equal(1, leeCalled);
+		}
+
+		[Fact]
+		public async Task LockTestsAsync()
+		{
+			TimeSpan timeout = TimeSpan.FromSeconds(10);
+			using SemaphoreSlim trigger = new SemaphoreSlim(0, 1);
+			using SemaphoreSlim signal = new SemaphoreSlim(0, 1);
+
+			async Task<string> WaitUntilTrigger(string argument)
+			{
+				signal.Release();
+				if (!await trigger.WaitAsync(timeout))
+				{
+					throw new TimeoutException();
+				}
+				return argument;
+			}
+
+			using var cache = new MemoryCache(new MemoryCacheOptions());
+
+			var task0 = cache.AtomicGetOrCreateAsync(
+				"key1",
+				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60) },
+				() => WaitUntilTrigger("World!"));
+
+			if (!await signal.WaitAsync(timeout))
+			{
+				throw new TimeoutException();
+			}
+
+			var task1 = cache.AtomicGetOrCreateAsync(
+				"key1",
+				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(60) },
+				() => Task.FromResult("Should not change to this"));
+
+			var task2 = cache.AtomicGetOrCreateAsync(
+				"key1",
+				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(60) },
+				() => Task.FromResult("Should not change to this either"));
+
+			var task3 = cache.AtomicGetOrCreateAsync(
+				"key2",
+				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(60) },
+				() => Task.FromResult("Key2"));
+
+			// Different key should immediately added.
+			await task3.WithAwaitCancellationAsync(timeout);
+			Assert.True(task3.IsCompletedSuccessfully);
+
+			// Tasks are waiting for the factory method.
+			Assert.False(task0.IsCompleted);
+			Assert.False(task1.IsCompleted);
+			Assert.False(task2.IsCompleted);
+
+			// Let the factory method finish.
+			trigger.Release();
+			string result0 = await task0.WithAwaitCancellationAsync(timeout);
+			Assert.Equal(TaskStatus.RanToCompletion, task0.Status);
+			string result1 = await task1.WithAwaitCancellationAsync(timeout);
+			string result2 = await task2.WithAwaitCancellationAsync(timeout);
+			Assert.Equal(TaskStatus.RanToCompletion, task1.Status);
+			Assert.Equal(TaskStatus.RanToCompletion, task2.Status);
+			Assert.Equal(result0, result1);
+			Assert.Equal(result0, result2);
 		}
 	}
 }

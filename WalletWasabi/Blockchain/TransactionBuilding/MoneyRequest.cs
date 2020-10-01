@@ -1,7 +1,5 @@
 using NBitcoin;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding
 {
@@ -11,7 +9,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 		{
 			if (type == MoneyRequestType.AllRemaining || type == MoneyRequestType.Change)
 			{
-				if (amount != null)
+				if (amount is { })
 				{
 					throw new ArgumentException($"{nameof(amount)} must be null.");
 				}

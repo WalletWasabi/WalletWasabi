@@ -1,10 +1,8 @@
 using NBitcoin;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -164,7 +162,7 @@ namespace WalletWasabi.Tests.UnitTests.Filters
 			Assert.Equal(3u, headersChain.TipHeight);
 		}
 
-		private async Task<(string dir, string matureFilters, string immatureFilters)> GetIndexStorePathsAsync([CallerFilePath]string callerFilePath = null, [CallerMemberName] string callerName = "")
+		private async Task<(string dir, string matureFilters, string immatureFilters)> GetIndexStorePathsAsync([CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerName = "")
 		{
 			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerName, "IndexStore");
 			await IoHelpers.TryDeleteDirectoryAsync(dir);

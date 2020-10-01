@@ -1,10 +1,7 @@
 using NBitcoin;
 using NBitcoin.Protocol;
 using System;
-using System.Collections.Generic;
 using System.Net;
-using System.Text;
-using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
 

@@ -1,11 +1,8 @@
 using NBitcoin;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
-using static WalletWasabi.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.CoinJoin.Common.Crypto
 {
@@ -21,15 +18,6 @@ namespace WalletWasabi.CoinJoin.Common.Crypto
 
 		public SchnorrPubKey(Key signerKey, Key rKey)
 		{
-			SignerPubKey = Guard.NotNull(nameof(signerKey), signerKey?.PubKey);
-			RpubKey = Guard.NotNull(nameof(rKey), rKey?.PubKey);
-		}
-
-		public SchnorrPubKey(Signer signer)
-		{
-			signer = Guard.NotNull(nameof(signer), signer);
-			var signerKey = signer?.Key;
-			var rKey = signer?.R;
 			SignerPubKey = Guard.NotNull(nameof(signerKey), signerKey?.PubKey);
 			RpubKey = Guard.NotNull(nameof(rKey), rKey?.PubKey);
 		}

@@ -1,5 +1,4 @@
 using NBitcoin;
-using NBitcoin.Protocol;
 using NBitcoin.RPC;
 using System;
 using System.IO;
@@ -11,7 +10,6 @@ using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
-using WalletWasabi.Blockchain.P2p;
 using WalletWasabi.CoinJoin.Coordinator;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Helpers;
@@ -60,7 +58,7 @@ namespace WalletWasabi.Backend
 			// Make sure P2P works.
 			await InitializeP2pAsync(config.Network, config.GetBitcoinP2pEndPoint(), cancel);
 
-			if (roundConfig.FilePath != null)
+			if (roundConfig.FilePath is { })
 			{
 				HostedServices.Register(
 					new ConfigWatcher(
@@ -132,14 +130,6 @@ namespace WalletWasabi.Backend
 				}
 
 				Logger.LogInfo($"{Constants.BuiltinBitcoinNodeName} is fully synchronized.");
-
-				var estimateSmartFeeResponse = await RpcClient.TryEstimateSmartFeeAsync(2, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true);
-				if (estimateSmartFeeResponse is null)
-				{
-					throw new NotSupportedException($"{Constants.BuiltinBitcoinNodeName} cannot estimate network fees yet.");
-				}
-
-				Logger.LogInfo($"{Constants.BuiltinBitcoinNodeName} fee estimation is working.");
 
 				if (Config.Network == Network.RegTest) // Make sure there's at least 101 block, if not generate it
 				{

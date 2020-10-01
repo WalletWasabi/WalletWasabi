@@ -123,8 +123,8 @@
 //      var p = new OptionSet () {
 //        { "a", s => a = s },
 //      };
-//      p.Parse (new string[]{"-a"});   // sets v != null
-//      p.Parse (new string[]{"-a+"});  // sets v != null
+//      p.Parse (new string[]{"-a"});   // sets v is { }
+//      p.Parse (new string[]{"-a+"});  // sets v is { }
 //      p.Parse (new string[]{"-a-"});  // sets v is null
 //
 
@@ -155,9 +155,6 @@
 // with `--help` as an option.
 //
 
-using System;
-using System.Collections.Generic;
-using System.Text;
 using MessageLocalizerConverter = System.Converter<string, string>;
 
 namespace Mono.Options

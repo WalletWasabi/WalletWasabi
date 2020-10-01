@@ -1,7 +1,5 @@
-using NBitcoin.Crypto;
 using NBitcoin.DataEncoders;
 using NBitcoin.Protocol;
-using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -9,7 +7,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.Helpers;
@@ -144,7 +141,7 @@ namespace NBitcoin
 		{
 			Guard.NotNull(nameof(me), me);
 
-			bool notNull = !(me.WitScript is null);
+			bool notNull = me.WitScript is { };
 			bool notEmpty = me.WitScript != WitScript.Empty;
 			return notNull && notEmpty;
 		}
@@ -165,20 +162,13 @@ namespace NBitcoin
 			return pubKey.WitHash == address.Hash;
 		}
 
-		public static Signer CreateSigner(this SchnorrKey schnorrKey)
-		{
-			var k = Guard.NotNull(nameof(schnorrKey.SignerKey), schnorrKey.SignerKey);
-			var r = Guard.NotNull(nameof(schnorrKey.Rkey), schnorrKey.Rkey);
-			return new Signer(k, r);
-		}
-
 		/// <summary>
 		/// If scriptpubkey is already present, just add the value.
 		/// </summary>
 		public static void AddWithOptimize(this TxOutList me, Money money, Script scriptPubKey)
 		{
 			TxOut found = me.FirstOrDefault(x => x.ScriptPubKey == scriptPubKey);
-			if (found != null)
+			if (found is { })
 			{
 				found.Value += money;
 			}
@@ -214,8 +204,6 @@ namespace NBitcoin
 				me.AddWithOptimize(txOut);
 			}
 		}
-
-		public static SchnorrPubKey GetSchnorrPubKey(this Signer signer) => new SchnorrPubKey(signer);
 
 		public static uint256 BlindMessage(this Requester requester, uint256 messageHash, SchnorrPubKey schnorrPubKey) => requester.BlindMessage(messageHash, schnorrPubKey.RpubKey, schnorrPubKey.SignerPubKey);
 

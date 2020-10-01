@@ -25,6 +25,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private SortOrder _dateSortDirection;
 		private SortOrder _amountSortDirection;
 		private SortOrder _transactionSortDirection;
+		private SortOrder _labelSortDirection;
 
 		public HistoryTabViewModel(Wallet wallet)
 			: base("History")
@@ -56,6 +57,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Where(x => x != SortOrder.None)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => SortColumn(x, nameof(TransactionSortDirection)));
+
+			this.WhenAnyValue(x => x.LabelSortDirection)
+				.Where(x => x != SortOrder.None)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x => SortColumn(x, nameof(LabelSortDirection)));
 
 			SortCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -104,6 +110,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _transactionSortDirection, value);
 		}
 
+		public SortOrder LabelSortDirection
+		{
+			get => _labelSortDirection;
+			set => this.RaiseAndSetIfChanged(ref _labelSortDirection, value);
+		}
+
 		public override void OnOpen(CompositeDisposable disposables)
 		{
 			base.OnOpen(disposables);
@@ -145,14 +157,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					Label = txr.Label,
 					BlockHeight = txr.Height.Type == HeightType.Chain ? txr.Height.Value : 0,
 					TransactionId = txr.TransactionId.ToString()
-				}).Select(ti => new TransactionViewModel(ti));
+				}).Select(ti => new TransactionViewModel(ti, Global.UiConfig));
 
 				Transactions = new ObservableCollection<TransactionViewModel>(trs);
 
-				if (Transactions.Count > 0 && !(rememberSelectedTransactionId is null))
+				if (Transactions.Count > 0 && rememberSelectedTransactionId is { })
 				{
 					var txToSelect = Transactions.FirstOrDefault(x => x.TransactionId == rememberSelectedTransactionId);
-					if (txToSelect != null)
+					if (txToSelect is { })
 					{
 						SelectedTransaction = txToSelect;
 					}
@@ -170,8 +182,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			var savedCol = Global.UiConfig.HistoryTabViewSortingPreference.ColumnTarget;
 
 			if (savedCol != nameof(DateSortDirection)
-	   			& savedCol != nameof(AmountSortDirection)
-				& savedCol != nameof(TransactionSortDirection))
+				& savedCol != nameof(AmountSortDirection)
+				& savedCol != nameof(TransactionSortDirection)
+				& savedCol != nameof(LabelSortDirection))
 			{
 				Global.UiConfig.HistoryTabViewSortingPreference = new SortingPreference(SortOrder.Decreasing, nameof(DateSortDirection));
 			}
@@ -189,11 +202,25 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			DateSortDirection = sortPref.Match(sortOrder, nameof(DateSortDirection));
 			AmountSortDirection = sortPref.Match(sortOrder, nameof(AmountSortDirection));
 			TransactionSortDirection = sortPref.Match(sortOrder, nameof(TransactionSortDirection));
+			LabelSortDirection = sortPref.Match(sortOrder, nameof(LabelSortDirection));
 		}
 
 		private void RefreshOrdering()
 		{
-			if (TransactionSortDirection != SortOrder.None)
+			if (LabelSortDirection != SortOrder.None)
+			{
+				switch (LabelSortDirection)
+				{
+					case SortOrder.Increasing:
+						Transactions = new ObservableCollection<TransactionViewModel>(_transactions.OrderBy(t => t.Label));
+						break;
+
+					case SortOrder.Decreasing:
+						Transactions = new ObservableCollection<TransactionViewModel>(_transactions.OrderByDescending(t => t.Label));
+						break;
+				}
+			}
+			else if (TransactionSortDirection != SortOrder.None)
 			{
 				switch (TransactionSortDirection)
 				{

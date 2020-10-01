@@ -82,8 +82,8 @@ namespace WalletWasabi.Crypto
 					goto retry;
 				}
 
-				var cp = _c.Add(_w.Negate(), out overflow); // this is sent to the signer (blinded message)
-				if (cp.IsZero || overflow != 0)
+				var cp = _c + _w.Negate(); // this is sent to the signer (blinded message)
+				if (cp.IsZero)
 				{
 					goto retry;
 				}
@@ -121,25 +121,14 @@ namespace WalletWasabi.Crypto
 		public class Signer
 		{
 			public Signer(Key key)
-				: this(key, new Key())
 			{
-			}
-
-			public Signer(Key key, Key r)
-			{
-				R = r;
 				Key = key;
 			}
-
-			// The random generated r value. It is used to derivate an R point where
-			// R = r*G that has to be sent to the requester in order to allow him to
-			// blind the message to be signed.
-			public Key R { get; }
 
 			// The signer key used for signing
 			public Key Key { get; }
 
-			public uint256 Sign(uint256 blindedMessage)
+			public uint256 Sign(uint256 blindedMessage, Key rKey)
 			{
 				Span<byte> tmp = stackalloc byte[32];
 				blindedMessage.ToBytes(tmp);
@@ -149,7 +138,7 @@ namespace WalletWasabi.Crypto
 					throw new ArgumentException("Invalid blinded message.", nameof(blindedMessage));
 				}
 
-				if (!Context.Instance.TryCreateECPrivKey(R.ToBytes(), out var r))
+				if (!Context.Instance.TryCreateECPrivKey(rKey.ToBytes(), out var r))
 				{
 					throw new FormatException("Invalid key.");
 				}

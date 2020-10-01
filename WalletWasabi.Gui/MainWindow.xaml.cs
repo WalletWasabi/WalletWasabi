@@ -10,7 +10,6 @@ using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Controls.WalletExplorer;
@@ -102,7 +101,7 @@ namespace WalletWasabi.Gui
 				{
 					try
 					{
-						if (Global.UiConfig != null) // UiConfig not yet loaded.
+						if (Global.UiConfig is { }) // UiConfig not yet loaded.
 						{
 							Global.UiConfig.WindowState = WindowState;
 

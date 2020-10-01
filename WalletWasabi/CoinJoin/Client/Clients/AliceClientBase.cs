@@ -8,11 +8,12 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Bases;
 using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.CoinJoin.Common.Models;
-using WalletWasabi.Exceptions;
 using WalletWasabi.Logging;
+using WalletWasabi.Tor.Exceptions;
+using WalletWasabi.Tor.Http.Bases;
+using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.WebClients.Wasabi;
 using static WalletWasabi.Crypto.SchnorrBlinding;
 using UnblindedSignature = WalletWasabi.Crypto.UnblindedSignature;
@@ -43,65 +44,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		public BitcoinAddress[] RegisteredAddresses { get; }
 		public Requester[] Requesters { get; }
-
-		public static async Task<AliceClient> CreateNewAsync(
-			long roundId,
-			IEnumerable<BitcoinAddress> registeredAddresses,
-			IEnumerable<SchnorrPubKey> schnorrPubKeys,
-			IEnumerable<Requester> requesters,
-			Network network,
-			BitcoinAddress changeOutput,
-			IEnumerable<uint256> blindedOutputScriptHashes,
-			IEnumerable<InputProofModel> inputs,
-			Func<Uri> baseUriAction,
-			EndPoint torSocks5EndPoint)
-		{
-			var request = new InputsRequest
-			{
-				RoundId = roundId,
-				BlindedOutputScripts = blindedOutputScriptHashes,
-				ChangeOutputAddress = changeOutput,
-				Inputs = inputs
-			};
-			AliceClient client = new AliceClient(roundId, registeredAddresses, schnorrPubKeys, requesters, network, baseUriAction, torSocks5EndPoint);
-			try
-			{
-				// Correct it if forgot to set.
-				if (request.RoundId != roundId)
-				{
-					if (request.RoundId == 0)
-					{
-						request.RoundId = roundId;
-					}
-					else
-					{
-						throw new NotSupportedException($"InputRequest {nameof(roundId)} does not match to the provided {nameof(roundId)}: {request.RoundId} != {roundId}.");
-					}
-				}
-				using HttpResponseMessage response = await client.TorClient.SendAsync(HttpMethod.Post, $"/api/v{WasabiClient.ApiVersion}/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()).ConfigureAwait(false);
-				if (response.StatusCode != HttpStatusCode.OK)
-				{
-					await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
-				}
-
-				var inputsResponse = await response.Content.ReadAsJsonAsync<InputsResponse>().ConfigureAwait(false);
-
-				if (inputsResponse.RoundId != roundId) // This should never happen. If it does, that's a bug in the coordinator.
-				{
-					throw new NotSupportedException($"Coordinator assigned us to the wrong round: {inputsResponse.RoundId}. Requested round: {roundId}.");
-				}
-
-				client.UniqueId = inputsResponse.UniqueId;
-				Logger.LogInfo($"Round ({client.RoundId}), Alice ({client.UniqueId}): Registered {request.Inputs.Count()} inputs.");
-
-				return client;
-			}
-			catch
-			{
-				client?.Dispose();
-				throw;
-			}
-		}
 
 		public static async Task<AliceClient4> CreateNewAsync(
 			long roundId,
@@ -174,7 +116,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			Logger.LogInfo($"Round ({RoundId}), Alice ({UniqueId}): Confirmed connection. Phase: {resp.CurrentPhase}.");
 
 			var activeOutputs = new List<ActiveOutput>();
-			if (resp.BlindedOutputSignatures != null && resp.BlindedOutputSignatures.Any())
+			if (resp.BlindedOutputSignatures is { } && resp.BlindedOutputSignatures.Any())
 			{
 				var unblindedSignatures = new List<UnblindedSignature>();
 				var blindedSignatures = resp.BlindedOutputSignatures.ToArray();

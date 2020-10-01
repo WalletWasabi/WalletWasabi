@@ -1,24 +1,25 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace WalletWasabi.Helpers
 {
 	public static class Guard
 	{
-		public static bool True(string parameterName, bool? value)
-			=> AssertBool(parameterName, true, value);
+		public static bool True(string parameterName, bool? value, string? description = null)
+			=> AssertBool(parameterName, true, value, description);
 
-		public static bool False(string parameterName, bool? value)
-			=> AssertBool(parameterName, false, value);
+		public static bool False(string parameterName, bool? value, string? description = null)
+			=> AssertBool(parameterName, false, value, description);
 
-		private static bool AssertBool(string parameterName, bool expectedValue, bool? value)
+		private static bool AssertBool(string parameterName, bool expectedValue, bool? value, string? description = null)
 		{
 			NotNull(parameterName, value);
 
 			if (value != expectedValue)
 			{
-				throw new ArgumentOutOfRangeException(parameterName, value, $"Parameter must be {expectedValue}.");
+				throw new ArgumentOutOfRangeException(parameterName, value, description ?? $"Parameter must be {expectedValue}.");
 			}
 
 			return (bool)value;
@@ -27,13 +28,7 @@ namespace WalletWasabi.Helpers
 		public static T NotNull<T>(string parameterName, T value)
 		{
 			AssertCorrectParameterName(parameterName);
-
-			if (value is null)
-			{
-				throw new ArgumentNullException(parameterName, "Parameter cannot be null.");
-			}
-
-			return value;
+			return value ?? throw new ArgumentNullException(parameterName, "Parameter cannot be null.");
 		}
 
 		private static void AssertCorrectParameterName(string parameterName)
@@ -177,7 +172,8 @@ namespace WalletWasabi.Helpers
 		/// If the string is null, it'll be empty.
 		/// Trims the string.
 		/// </summary>
-		public static string Correct(string str)
+		[return: NotNull]
+		public static string Correct(string? str)
 		{
 			return string.IsNullOrWhiteSpace(str)
 				? ""

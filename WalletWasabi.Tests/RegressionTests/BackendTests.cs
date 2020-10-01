@@ -1,51 +1,26 @@
 using NBitcoin;
-using NBitcoin.Crypto;
-using NBitcoin.Protocol;
-using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Security;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Backend;
 using WalletWasabi.Backend.Controllers;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.BitcoinCore.Rpc;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Blockchain.TransactionBroadcasting;
-using WalletWasabi.Blockchain.TransactionBuilding;
-using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Blockchain.TransactionProcessing;
-using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.CoinJoin.Client.Clients;
-using WalletWasabi.CoinJoin.Client.Clients.Queuing;
-using WalletWasabi.CoinJoin.Client.Rounds;
-using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.CoinJoin.Coordinator;
-using WalletWasabi.CoinJoin.Coordinator.Rounds;
-using WalletWasabi.Crypto;
-using WalletWasabi.Exceptions;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
-using WalletWasabi.TorSocks5;
-using WalletWasabi.Wallets;
+using WalletWasabi.Tor.Http;
+using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
@@ -69,7 +44,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		public async Task GetExchangeRatesAsync()
 		{
 			using var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint), null);
-			using var response = await client.SendAsync(HttpMethod.Get, $"/api/v{Constants.BackendMajorVersion}/btc/offchain/exchange-rates");
+			using var response = await client.SendAsync(HttpMethod.Get, $"/api/v{WalletWasabi.Helpers.Constants.BackendMajorVersion}/btc/offchain/exchange-rates");
 			Assert.True(response.StatusCode == HttpStatusCode.OK);
 
 			var exchangeRates = await response.Content.ReadAsJsonAsync<List<ExchangeRate>>();
@@ -101,7 +76,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			Logger.TurnOff();
 			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint), null))
-			using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v{Constants.BackendMajorVersion}/btc/blockchain/broadcast", content))
+			using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v{WalletWasabi.Helpers.Constants.BackendMajorVersion}/btc/blockchain/broadcast", content))
 			{
 				Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 				Assert.Equal("Transaction is already in the blockchain.", await response.Content.ReadAsJsonAsync<string>());
@@ -118,7 +93,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			Logger.TurnOff();
 			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint), null))
-			using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v{Constants.BackendMajorVersion}/btc/blockchain/broadcast", content))
+			using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v{WalletWasabi.Helpers.Constants.BackendMajorVersion}/btc/blockchain/broadcast", content))
 			{
 				Assert.NotEqual(HttpStatusCode.OK, response.StatusCode);
 				Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -198,7 +173,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		[Fact]
 		public async Task StatusRequestTestAsync()
 		{
-			const string Request = "/api/v3/btc/Blockchain/status";
+			string request = $"/api/v{WasabiClient.ApiVersion}/btc/Blockchain/status";
 			(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 			var indexBuilderService = global.IndexBuilderService;
@@ -219,7 +194,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				}
 
 				using var client = new WasabiClient(new Uri(RegTestFixture.BackendEndPoint), null);
-				var response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, Request);
+				var response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, request);
 				using (HttpContent content = response.Content)
 				{
 					var resp = await content.ReadAsJsonAsync<StatusResponse>();
@@ -232,7 +207,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 				await rpc.GenerateAsync(1);
 
-				response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, Request);
+				response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, request);
 				using (HttpContent content = response.Content)
 				{
 					var resp = await content.ReadAsJsonAsync<StatusResponse>();
@@ -247,7 +222,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				// Set back the time to trigger timeout in BlockchainController.GetStatusAsync.
 				global.IndexBuilderService.LastFilterBuildTime = DateTimeOffset.UtcNow - BlockchainController.FilterTimeout;
 
-				response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, Request);
+				response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, request);
 				using (HttpContent content = response.Content)
 				{
 					var resp = await content.ReadAsJsonAsync<StatusResponse>();
@@ -256,7 +231,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			}
 			finally
 			{
-				if (indexBuilderService != null)
+				if (indexBuilderService is { })
 				{
 					await indexBuilderService.StopAsync();
 				}

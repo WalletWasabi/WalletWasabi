@@ -1,7 +1,5 @@
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 
 namespace WalletWasabi.JsonConverters

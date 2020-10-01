@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
@@ -19,7 +19,7 @@
     <converters:TimeSpanVisibilityConverter x:Key="TimeSpanVisibilityConverter" />
   </UserControl.Resources>
   <DockPanel LastChildFill="True" Margin="10">
-    <Grid DockPanel.Dock="Bottom" RowDefinitions="*" >
+    <Grid DockPanel.Dock="Bottom" RowDefinitions="*">
       <Grid.ColumnDefinitions>
         <ColumnDefinitions>
           <ColumnDefinition Width="*" />

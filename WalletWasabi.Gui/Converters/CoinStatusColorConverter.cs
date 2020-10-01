@@ -1,11 +1,8 @@
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
 using WalletWasabi.Exceptions;
-using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.Models;
 
 namespace WalletWasabi.Gui.Converters

@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
@@ -22,17 +22,16 @@
           </StackPanel>
         </Grid>
       </controls:GroupBox>
-      <DockPanel LastChildFill="True" Margin="20 10">
-        <Button Command="{Binding LoadCommand}" DockPanel.Dock="Right">
+      <StackPanel Margin="20 10" Spacing="10" Orientation="Horizontal" HorizontalAlignment="Right">
+        <Button Content="Import Coldcard" Command="{Binding ImportColdcardCommand}" />
+        <Button Content="Search Hardware Wallets" Command="{Binding EnumerateHardwareWalletsCommand}" />
+        <Button Command="{Binding LoadCommand}">
           <StackPanel Orientation="Horizontal">
             <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsBusy}" Margin="0 0 8 0" />
             <TextBlock Text="{Binding LoadButtonText}" />
           </StackPanel>
         </Button>
-        <Button Content="Search Hardware Wallets" Command="{Binding EnumerateHardwareWalletsCommand}" DockPanel.Dock="Right" Margin="0 0 10 0" />
-        <Button Content="Import Coldcard" Command="{Binding ImportColdcardCommand}" DockPanel.Dock="Right" Margin="0 0 10 0" />
-        <Panel/>
-      </DockPanel>
+      </StackPanel>
     </StackPanel>
     <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" BorderThickness="0">
       <DockPanel LastChildFill="True">

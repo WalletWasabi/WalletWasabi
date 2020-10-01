@@ -1,7 +1,6 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <PlatformTarget>x64</PlatformTarget>
+  <PropertyGroup>    
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <LangVersion>latest</LangVersion>
@@ -27,9 +26,9 @@
 
   <ItemGroup>
 	  <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.1" />
-	  <PackageReference Include="NBitcoin" Version="5.0.47" />
+	  <PackageReference Include="NBitcoin" Version="5.0.57" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
-    <PackageReference Include="NBitcoin.Secp256k1" Version="1.0.3" />
+    <PackageReference Include="NBitcoin.Secp256k1" Version="1.0.8" />
   </ItemGroup>
 
   <ItemGroup>
@@ -54,10 +53,10 @@
     <None Update="Microservices\Binaries\win64\hwi.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="OnionSeeds\MainOnionSeeds.txt">
+    <None Update="Tor\OnionSeeds\MainOnionSeeds.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="OnionSeeds\TestNetOnionSeeds.txt">
+    <None Update="Tor\OnionSeeds\TestNetOnionSeeds.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="TorDaemons\digests.txt">

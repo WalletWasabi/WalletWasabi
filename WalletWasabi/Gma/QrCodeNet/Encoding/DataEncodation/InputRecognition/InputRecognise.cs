@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using WalletWasabi.Helpers;
 
 namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 {
@@ -13,10 +14,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 
 		private static string EightBitByteRecognision(string content, int startPos, int contentLength)
 		{
-			if (string.IsNullOrEmpty(content))
-			{
-				throw new ArgumentNullException(nameof(content), "Input content is null or empty");
-			}
+			Guard.NotNullOrEmpty(nameof(content), content);
 
 			var eciSets = new ECISet(ECISet.AppendOption.NameToValue);
 

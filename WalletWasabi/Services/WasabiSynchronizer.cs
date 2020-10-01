@@ -1,26 +1,20 @@
 using NBitcoin;
 using NBitcoin.RPC;
-using Nito.AsyncEx;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
-using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
+using WalletWasabi.Tor.Exceptions;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
@@ -42,21 +36,19 @@ namespace WalletWasabi.Services
 
 		private long _blockRequests; // There are priority requests in queue.
 
-		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, WasabiClient client)
-		{
-			CreateNew(network, bitcoinStore, client);
-		}
-
 		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Func<Uri> baseUriAction, EndPoint torSocks5EndPoint)
 		{
-			var client = new WasabiClient(baseUriAction, torSocks5EndPoint);
-			CreateNew(network, bitcoinStore, client);
+			WasabiClient = new WasabiClient(baseUriAction, torSocks5EndPoint);
+			Network = Guard.NotNull(nameof(network), network);			
+			LastResponse = null;
+			_running = 0;
+			Cancel = new CancellationTokenSource();
+			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
 		}
 
-		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Uri baseUri, EndPoint torSocks5EndPoint)
+		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Uri baseUri, EndPoint torSocks5EndPoint):
+			this(network, bitcoinStore, () => baseUri, torSocks5EndPoint)
 		{
-			var client = new WasabiClient(baseUri, torSocks5EndPoint);
-			CreateNew(network, bitcoinStore, client);
 		}
 
 		#region EventsPropertiesMembers
@@ -123,16 +115,6 @@ namespace WalletWasabi.Services
 		#endregion EventsPropertiesMembers
 
 		#region Initializers
-
-		private void CreateNew(Network network, BitcoinStore bitcoinStore, WasabiClient client)
-		{
-			Network = Guard.NotNull(nameof(network), network);
-			WasabiClient = Guard.NotNull(nameof(client), client);
-			LastResponse = null;
-			_running = 0;
-			Cancel = new CancellationTokenSource();
-			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
-		}
 
 		public void Start(TimeSpan requestInterval, TimeSpan feeQueryRequestInterval, int maxFiltersToSyncAtInitialization)
 		{
@@ -237,7 +219,7 @@ namespace WalletWasabi.Services
 								throw;
 							}
 
-							if (response.AllFeeEstimate != null && response.AllFeeEstimate.Estimations.Any())
+							if (response.AllFeeEstimate is { } && response.AllFeeEstimate.Estimations.Any())
 							{
 								lastFeeQueried = DateTimeOffset.UtcNow;
 								AllFeeEstimate = response.AllFeeEstimate;
@@ -254,7 +236,7 @@ namespace WalletWasabi.Services
 
 							hashChain.UpdateServerTipHeight((uint)response.BestHeight);
 							ExchangeRate exchangeRate = response.ExchangeRates.FirstOrDefault();
-							if (exchangeRate != default && exchangeRate.Rate != 0)
+							if (exchangeRate is { } && exchangeRate.Rate != 0)
 							{
 								UsdExchangeRate = exchangeRate.Rate;
 							}
@@ -397,7 +379,7 @@ namespace WalletWasabi.Services
 			Cancel?.Cancel();
 			while (Interlocked.CompareExchange(ref _running, 3, 0) == 2)
 			{
-				await Task.Delay(50);
+				await Task.Delay(50).ConfigureAwait(false);
 			}
 
 			Cancel?.Dispose();

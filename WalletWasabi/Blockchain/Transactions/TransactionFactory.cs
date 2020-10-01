@@ -13,6 +13,7 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Tor.Exceptions;
 using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Blockchain.Transactions
@@ -71,7 +72,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			List<SmartCoin> allowedSmartCoinInputs = AllowUnconfirmed // Inputs that can be used to build the transaction.
 					? availableCoinsView.ToList()
 					: availableCoinsView.Confirmed().ToList();
-			if (allowedInputs != null) // If allowedInputs are specified then select the coins from them.
+			if (allowedInputs is { }) // If allowedInputs are specified then select the coins from them.
 			{
 				if (!allowedInputs.Any())
 				{
@@ -165,7 +166,7 @@ namespace WalletWasabi.Blockchain.Transactions
 					(label: t.Label,
 					destination: t.Destination,
 					amount: psbt.Outputs.FirstOrDefault(o => o.ScriptPubKey == t.Destination.ScriptPubKey)?.Value))
-				.Where(i => i.amount != null);
+				.Where(i => i.amount is { });
 
 			if (!psbt.TryGetFee(out var fee))
 			{
@@ -305,7 +306,8 @@ namespace WalletWasabi.Blockchain.Transactions
 			Logger.LogInfo($"Transaction is successfully built: {tx.GetHash()}.");
 			var sign = !KeyManager.IsWatchOnly;
 			var spendsUnconfirmed = spentCoins.Any(c => !c.Confirmed);
-			return new BuildTransactionResult(new SmartTransaction(tx, Height.Unknown), psbt, spendsUnconfirmed, sign, fee, feePc, outerWalletOutputs, innerWalletOutputs, spentCoins);
+			SmartTransaction smartTransaction = new SmartTransaction(tx, Height.Unknown, label: SmartLabel.Merge(payments.Requests.Select(x => x.Label)));
+			return new BuildTransactionResult(smartTransaction, psbt, spendsUnconfirmed, sign, fee, feePc, outerWalletOutputs, innerWalletOutputs, spentCoins);
 		}
 
 		private PSBT TryNegotiatePayjoin(IPayjoinClient payjoinClient, TransactionBuilder builder, PSBT psbt, HdPubKey changeHdPubKey)

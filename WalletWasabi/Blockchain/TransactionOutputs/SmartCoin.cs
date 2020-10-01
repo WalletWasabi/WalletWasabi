@@ -1,8 +1,5 @@
 using NBitcoin;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
@@ -33,7 +30,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		private ISecret _secret;
 
-		private Cluster _clusters;
+		private Cluster _cluster;
 
 		private bool _confirmed;
 		private bool _unavailable;
@@ -192,10 +189,10 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			set => RaiseAndSetIfChanged(ref _secret, value);
 		}
 
-		public Cluster Clusters
+		public Cluster Cluster
 		{
-			get => _clusters;
-			set => RaiseAndSetIfChanged(ref _clusters, value);
+			get => _cluster;
+			set => RaiseAndSetIfChanged(ref _cluster, value);
 		}
 
 		#region DependentProperties
@@ -287,7 +284,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 			Label = SmartLabel.Merge(HdPubKey?.Label, label);
 
-			Clusters = new Cluster(this);
+			Cluster = new Cluster(this);
 
 			SetConfirmed();
 			SetUnspent();

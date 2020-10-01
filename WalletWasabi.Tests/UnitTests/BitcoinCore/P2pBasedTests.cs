@@ -3,10 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.BitcoinCore;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
@@ -14,10 +12,13 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Wallets;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 {
+	/// <seealso cref="XunitConfiguration.SerialCollectionDefinition"/>
+	[Collection("Serial unit tests collection")]
 	public class P2pBasedTests
 	{
 		[Fact]
@@ -35,7 +36,8 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				var indexStore = new IndexStore(Path.Combine(dir, "indexStore"), network, new SmartHeaderChain());
 				var transactionStore = new AllTransactionStore(Path.Combine(dir, "transactionStore"), network);
 				var mempoolService = new MempoolService();
-				var bitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService);
+				var blocks = new FileSystemBlockRepository(Path.Combine(dir, "blocks"), network);
+				var bitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService, blocks);
 				await bitcoinStore.InitializeAsync();
 
 				await rpc.GenerateAsync(101);

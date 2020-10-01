@@ -55,6 +55,8 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				RegisteredUnblindedSignatures = new List<UnblindedSignature>();
 				RegisteredUnblindedSignaturesLock = new object();
 
+				NonceProvider = new RoundNonceProvider(config.MaximumMixingLevelCount);
+
 				MixingLevels = new MixingLevelCollection(config.Denomination, new Signer(new Key()));
 				for (int i = 0; i < config.MaximumMixingLevelCount - 1; i++)
 				{
@@ -200,6 +202,8 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 		public UtxoReferee UtxoReferee { get; }
 		public CoordinatorRoundConfig RoundConfig { get; }
+
+		public RoundNonceProvider NonceProvider { get; }
 
 		public static ConcurrentDictionary<(long roundId, RoundPhase phase), DateTimeOffset> PhaseTimeoutLog { get; } = new ConcurrentDictionary<(long roundId, RoundPhase phase), DateTimeOffset>();
 
@@ -806,7 +810,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				}
 
 				// 7.2. Get the most optimal FeeRate.
-				EstimateSmartFeeResponse estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(AdjustedConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true).ConfigureAwait(false);
+				EstimateSmartFeeResponse estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(AdjustedConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true).ConfigureAwait(false);
 				if (estimateSmartFeeResponse is null)
 				{
 					throw new InvalidOperationException($"{nameof(FeeRate)} is not yet initialized.");
@@ -814,7 +818,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 				FeeRate optimalFeeRate = estimateSmartFeeResponse.FeeRate;
 
-				if (optimalFeeRate != null && optimalFeeRate != FeeRate.Zero && currentFeeRate != null && currentFeeRate != FeeRate.Zero) // This would be really strange if it'd happen.
+				if (optimalFeeRate is { } && optimalFeeRate != FeeRate.Zero && currentFeeRate is { } && currentFeeRate != FeeRate.Zero) // This would be really strange if it'd happen.
 				{
 					var sanityFeeRate = new FeeRate(2m); // 2 s/b
 					optimalFeeRate = optimalFeeRate < sanityFeeRate ? sanityFeeRate : optimalFeeRate;
@@ -889,11 +893,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			var outputSizeInBytes = Constants.OutputSizeInBytes;
 			try
 			{
-				var estimateSmartFeeResponse = await rpc.EstimateSmartFeeAsync(confirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true).ConfigureAwait(false);
-				if (estimateSmartFeeResponse is null)
-				{
-					throw new InvalidOperationException($"{nameof(FeeRate)} is not yet initialized.");
-				}
+				var estimateSmartFeeResponse = await rpc.EstimateSmartFeeAsync(confirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true).ConfigureAwait(false);
 
 				var feeRate = estimateSmartFeeResponse.FeeRate;
 				Money feePerBytes = feeRate.FeePerK / 1000;
@@ -1086,7 +1086,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				}
 
 				Alice alice = Alices.SingleOrDefault(x => x.UniqueId == uniqueId);
-				foundAlice = alice != default(Alice);
+				foundAlice = alice is { };
 				if (foundAlice)
 				{
 					alice.LastSeen = started;
@@ -1106,7 +1106,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 						if (Status == CoordinatorRoundStatus.Running && Phase == RoundPhase.InputRegistration)
 						{
 							Alice alice = Alices.SingleOrDefault(x => x.UniqueId == uniqueId);
-							if (alice != default(Alice))
+							if (alice is { })
 							{
 								// 4. If LastSeen is not changed by then, remove Alice.
 								// But only if Alice didn't get blind sig yet.

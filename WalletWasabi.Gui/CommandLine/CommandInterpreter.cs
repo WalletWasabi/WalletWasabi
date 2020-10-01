@@ -1,5 +1,4 @@
 using Mono.Options;
-using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -34,8 +33,8 @@ namespace WalletWasabi.Gui.CommandLine
 				"Usage: wassabee [OPTIONS]+",
 				"Launches Wasabi Wallet.",
 				"",
-				{ "h|help", "Displays help page and exit.", x => showHelp = x != null },
-				{ "v|version", "Displays Wasabi version and exit.", x => showVersion = x != null },
+				{ "h|help", "Displays help page and exit.", x => showHelp = x is { } },
+				{ "v|version", "Displays Wasabi version and exit.", x => showVersion = x is { } },
 				"",
 				"Available commands are:",
 				"",

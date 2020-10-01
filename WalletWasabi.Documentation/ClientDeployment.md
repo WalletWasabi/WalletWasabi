@@ -101,3 +101,11 @@ git rebase upstream/master
 git push -u upstream backport
 ```
 
+## Code signing certificate
+
+Digicert holds our Code Signing Certificate under the name "zkSNACKs Limited".
+- Issuing CA: DigiCert SHA2 Assured ID Code Signing CA
+- Platform: Microsoft Authenticode
+- Type: Code Signing
+
+CSR file for renewal is stored in the secret storage.

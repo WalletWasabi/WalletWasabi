@@ -1,11 +1,8 @@
 using NBitcoin.Secp256k1;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
+using WalletWasabi.Crypto.ZeroKnowledge.LinearRelation;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 
@@ -27,9 +24,10 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var generator = Generators.G;
 			var publicPoint = secret * generator;
 			var statement = new Statement(publicPoint, generator);
-			var knowledgeParams = new KnowledgeOfDlogParams(secret, statement);
-			var proof = Prover.CreateProof(knowledgeParams);
-			Assert.True(Verifier.Verify(proof, statement));
+			var random = new MockRandom();
+			random.GetBytesResults.Add(new byte[32]);
+			var proof = ProofSystem.Prove(statement, secret, random);
+			Assert.True(ProofSystem.Verify(statement, proof));
 		}
 
 		[Fact]
@@ -39,109 +37,48 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			{
 				var generator = Generators.G;
 				var publicPoint = secret * generator;
-				var statement = new Statement(publicPoint, generator);
-				var knowledgeParams = new KnowledgeOfDlogParams(secret, statement);
-				var proof = Prover.CreateProof(knowledgeParams);
-				Assert.True(Verifier.Verify(proof, statement));
+				var statement = new Statement(publicPoint, Generators.G);
+				var proof = ProofSystem.Prove(statement, secret, new SecureRandom());
+				Assert.True(ProofSystem.Verify(statement, proof));
 			}
 		}
 
 		[Fact]
 		public void End2EndVerificationLargeScalar()
 		{
+			var random = new SecureRandom();
 			uint val = int.MaxValue;
 			var gen = new Scalar(4) * Generators.G;
+
 			var secret = new Scalar(val, val, val, val, val, val, val, val);
 			var p = secret * gen;
 			var statement = new Statement(p, gen);
-			var knowledgeParams = new KnowledgeOfDlogParams(secret, statement);
-			var proof = Prover.CreateProof(knowledgeParams);
-			Assert.True(Verifier.Verify(proof, statement));
+			var proof = ProofSystem.Prove(statement, secret, random);
+			Assert.True(ProofSystem.Verify(statement, proof));
 
-			secret = EC.N + (new Scalar(1)).Negate();
+			secret = EC.N + Scalar.One.Negate();
 			p = secret * gen;
 			statement = new Statement(p, gen);
-			knowledgeParams = new KnowledgeOfDlogParams(secret, statement);
-			proof = Prover.CreateProof(knowledgeParams);
-			Assert.True(Verifier.Verify(proof, statement));
+			proof = ProofSystem.Prove(statement, secret, random);
+			Assert.True(ProofSystem.Verify(statement, proof));
 
 			secret = EC.NC;
 			p = secret * gen;
 			statement = new Statement(p, gen);
-			knowledgeParams = new KnowledgeOfDlogParams(secret, statement);
-			proof = Prover.CreateProof(knowledgeParams);
-			Assert.True(Verifier.Verify(proof, statement));
-			secret = EC.NC + new Scalar(1);
+			proof = ProofSystem.Prove(statement, secret, random);
+			Assert.True(ProofSystem.Verify(statement, proof));
+
+			secret = EC.NC + Scalar.One;
 			p = secret * gen;
 			statement = new Statement(p, gen);
-			knowledgeParams = new KnowledgeOfDlogParams(secret, statement);
-			proof = Prover.CreateProof(knowledgeParams);
-			Assert.True(Verifier.Verify(proof, statement));
-			secret = EC.NC + (new Scalar(1)).Negate();
+			proof = ProofSystem.Prove(statement, secret, random);
+			Assert.True(ProofSystem.Verify(statement, proof));
+
+			secret = EC.NC + Scalar.One.Negate();
 			p = secret * gen;
 			statement = new Statement(p, gen);
-			knowledgeParams = new KnowledgeOfDlogParams(secret, statement);
-			proof = Prover.CreateProof(knowledgeParams);
-			Assert.True(Verifier.Verify(proof, statement));
-		}
-
-		[Fact]
-		public void BuildChallenge()
-		{
-			var point1 = new Scalar(3) * Generators.G;
-			var point2 = new Scalar(7) * Generators.G;
-			var generator = Generators.Ga;
-
-			var publicPoint = point1;
-			var nonce = Generators.G;
-			var statement = new Statement(publicPoint, generator);
-			var challenge = Challenge.Build(nonce, statement);
-			Assert.Equal("secp256k1_scalar  = { 0x8626D370UL, 0x6D18AF98UL, 0xAE71F87DUL, 0x5008741FUL, 0x43515E2BUL, 0x666194D8UL, 0x97CCA524UL, 0x09E82A30UL }", challenge.ToC(""));
-
-			publicPoint = Generators.G;
-			nonce = point2;
-			statement = new Statement(publicPoint, generator);
-			challenge = Challenge.Build(nonce, statement);
-			Assert.Equal("secp256k1_scalar  = { 0x72CF8E90UL, 0x518E892FUL, 0xA7046699UL, 0x0C21C88FUL, 0xEE3DC26EUL, 0x83F833FBUL, 0x0B21A692UL, 0x404C3D01UL }", challenge.ToC(""));
-
-			publicPoint = point1;
-			nonce = point2;
-			statement = new Statement(publicPoint, generator);
-			challenge = Challenge.Build(nonce, statement);
-			Assert.Equal("secp256k1_scalar  = { 0x333575CAUL, 0x7D400596UL, 0x4C12B718UL, 0xD64F97BBUL, 0x5EBB4EB7UL, 0x2D5DFD8EUL, 0xFB2FE4DCUL, 0x49FD37B6UL }", challenge.ToC(""));
-		}
-
-		[Fact]
-		public void KnowledgeOfDlogThrows()
-		{
-			// Demonstrate when it shouldn't throw.
-			new KnowledgeOfDlog(Generators.G, Scalar.One);
-
-			// Infinity or zero cannot pass through.
-			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfDlog(Generators.G, Scalar.Zero));
-			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfDlog(GroupElement.Infinity, Scalar.One));
-			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfDlog(GroupElement.Infinity, Scalar.Zero));
-		}
-
-		[Fact]
-		public void KnowledgeOfDlogParamsThrows()
-		{
-			var two = new Scalar(2);
-
-			// Demonstrate when it shouldn't throw.
-			new KnowledgeOfDlogParams(two, new Statement(two * Generators.G, Generators.G));
-
-			// Zero cannot pass through.
-			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfDlogParams(Scalar.Zero, new Statement(Generators.G, Generators.G)));
-
-			// Public point must be generator * secret.
-			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfDlogParams(two, new Statement(Generators.G, Generators.G)));
-			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfDlogParams(two, new Statement(new Scalar(3) * Generators.G, Generators.G)));
-			Assert.ThrowsAny<InvalidOperationException>(() => new KnowledgeOfDlogParams(two, new Statement(Scalar.One * Generators.G, Generators.G)));
-
-			// Secret cannot overflow.
-			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfDlogParams(EC.N, new Statement(EC.N * Generators.G, Generators.G)));
-			Assert.ThrowsAny<ArgumentException>(() => new KnowledgeOfDlogParams(CryptoHelpers.ScalarLargestOverflow, new Statement(CryptoHelpers.ScalarLargestOverflow * Generators.G, Generators.G)));
+			proof = ProofSystem.Prove(statement, secret, random);
+			Assert.True(ProofSystem.Verify(statement, proof));
 		}
 	}
 }

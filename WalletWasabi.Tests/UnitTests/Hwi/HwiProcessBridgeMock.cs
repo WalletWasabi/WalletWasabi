@@ -182,8 +182,8 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				if (Model == HardwareWalletModels.Trezor_T || Model == HardwareWalletModels.Coldcard || Model == HardwareWalletModels.Trezor_1 || Model == HardwareWalletModels.Ledger_Nano_S)
 				{
 					response = t1
-					   ? "{\"address\": \"tb1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7rtzlxy\"}\r\n"
-					   : "{\"address\": \"bc1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7fdevah\"}\r\n";
+						? "{\"address\": \"tb1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7rtzlxy\"}\r\n"
+						: "{\"address\": \"bc1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7fdevah\"}\r\n";
 				}
 			}
 			else if (CompareArguments(out bool t2, arguments, $"{devicePathAndTypeArgumentString} displayaddress --path m/84h/0h/0h/1 --wpkh", false))
@@ -191,8 +191,8 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				if (Model == HardwareWalletModels.Trezor_T || Model == HardwareWalletModels.Coldcard || Model == HardwareWalletModels.Trezor_1 || Model == HardwareWalletModels.Ledger_Nano_S)
 				{
 					response = t2
-					   ? "{\"address\": \"tb1qmaveee425a5xjkjcv7m6d4gth45jvtnjqhj3l6\"}\r\n"
-					   : "{\"address\": \"bc1qmaveee425a5xjkjcv7m6d4gth45jvtnj23fzyf\"}\r\n";
+						? "{\"address\": \"tb1qmaveee425a5xjkjcv7m6d4gth45jvtnjqhj3l6\"}\r\n"
+						: "{\"address\": \"bc1qmaveee425a5xjkjcv7m6d4gth45jvtnj23fzyf\"}\r\n";
 				}
 			}
 

@@ -2,32 +2,39 @@ using NBitcoin;
 using System;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.CoinJoin.Client.Clients;
-using WalletWasabi.Legal;
 using WalletWasabi.Models;
-using WalletWasabi.Services;
 using WalletWasabi.Tests.XunitConfiguration;
-using WalletWasabi.TorSocks5;
+using WalletWasabi.Tor;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
 namespace WalletWasabi.Tests.IntegrationTests
 {
 	[Collection("LiveServerTests collection")]
-	public class LiveServerTests
+	public class LiveServerTests : IAsyncLifetime
 	{
 		public LiveServerTests(LiveServerTestsFixture liveServerTestsFixture)
 		{
 			LiveServerTestsFixture = liveServerTestsFixture;
+		}
 
-			var torManager = new TorProcessManager(Global.Instance.TorSocks5Endpoint, Global.Instance.TorLogsFile);
-			torManager.Start(ensureRunning: true, dataDir: Path.GetFullPath(AppContext.BaseDirectory));
-			Task.Delay(3000).GetAwaiter().GetResult();
+		public async Task InitializeAsync()
+		{
+			var torManager = new TorProcessManager(Global.Instance.TorSettings, Global.Instance.TorSocks5Endpoint);
+			bool started = await torManager.StartAsync(ensureRunning: true);
+			Assert.True(started, "Tor failed to start.");
+		}
+
+		public Task DisposeAsync()
+		{
+			return Task.CompletedTask;
 		}
 
 		private LiveServerTestsFixture LiveServerTestsFixture { get; }
@@ -37,21 +44,12 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[Theory]
 		[InlineData(NetworkType.Mainnet)]
 		[InlineData(NetworkType.Testnet)]
-		public async Task GetFeesAsync(NetworkType networkType)
-		{
-			using var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType], Global.Instance.TorSocks5Endpoint);
-			var feeEstimationPairs = await client.GetFeesAsync(1000);
-
-			Assert.True(feeEstimationPairs.NotNullAndNotEmpty());
-		}
-
-		[Theory]
-		[InlineData(NetworkType.Mainnet)]
-		[InlineData(NetworkType.Testnet)]
 		public async Task GetFiltersAsync(NetworkType networkType)
 		{
+			Network network = (networkType == NetworkType.Mainnet) ? Network.Main : Network.TestNet;
+
 			using var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType], Global.Instance.TorSocks5Endpoint);
-			var filterModel = StartingFilters.GetStartingFilter(Network.GetNetwork(networkType.ToString()));
+			var filterModel = StartingFilters.GetStartingFilter(network);
 
 			FiltersResponse filtersResponse = await client.GetFiltersAsync(filterModel.Header.BlockHash, 2);
 
@@ -119,7 +117,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			var versions = await client.GetVersionsAsync(CancellationToken.None);
 			Assert.InRange(versions.ClientVersion, new Version(1, 1, 10), new Version(1, 2));
 			Assert.InRange(versions.ClientVersion, new Version(1, 1, 10), WalletWasabi.Helpers.Constants.ClientVersion);
-			Assert.Equal(3, versions.BackendMajorVersion);
+			Assert.Equal(4, versions.BackendMajorVersion);
 			Assert.Equal(new Version(2, 0), versions.LegalDocumentsVersion);
 		}
 
@@ -133,7 +131,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			var updateStatus = await client.CheckUpdatesAsync(CancellationToken.None);
 
 			var expectedVersion = new Version(2, 0);
-			ushort backendVersion = 3;
+			ushort backendVersion = 4;
 			Assert.Equal(new UpdateStatus(true, true, expectedVersion, backendVersion), updateStatus);
 			Assert.True(updateStatus.BackendCompatible);
 			Assert.True(updateStatus.ClientUpToDate);

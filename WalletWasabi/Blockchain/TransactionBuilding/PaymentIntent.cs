@@ -2,7 +2,6 @@ using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Helpers;
 
@@ -91,14 +90,14 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 		{
 			request = Requests.SingleOrDefault(x => x.Amount.Type == MoneyRequestType.Change || x.Amount.Type == MoneyRequestType.AllRemaining);
 
-			return request != null;
+			return request is { };
 		}
 
 		public bool TryGetFeeSubtractionRequest(out DestinationRequest request)
 		{
 			request = Requests.SingleOrDefault(x => x.Amount.SubtractFee);
 
-			return request != null;
+			return request is { };
 		}
 	}
 }

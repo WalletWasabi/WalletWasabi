@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace WalletWasabi.Blockchain.Analysis.Clustering
 {
@@ -43,7 +42,7 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 
 			IEnumerable<string> labelStrings = labels
 				.SelectMany(x => x?.Labels ?? Enumerable.Empty<string>())
-				.Where(x => x != null);
+				.Where(x => x is { });
 
 			return new SmartLabel(labelStrings);
 		}

@@ -1,4 +1,3 @@
-using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -11,7 +10,6 @@ using WalletWasabi.WebClients.Bitstamp;
 using WalletWasabi.WebClients.CoinGecko;
 using WalletWasabi.WebClients.Gemini;
 using WalletWasabi.WebClients.ItBit;
-using WalletWasabi.WebClients.SmartBit;
 using System.Linq;
 
 namespace WalletWasabi.WebClients
@@ -25,8 +23,7 @@ namespace WalletWasabi.WebClients
 			new CoinGeckoExchangeRateProvider(),
 			new CoinbaseExchangeRateProvider(),
 			new GeminiExchangeRateProvider(),
-			new ItBitExchangeRateProvider(),
-			new SmartBitExchangeRateProvider(new SmartBitClient(Network.Main))
+			new ItBitExchangeRateProvider()
 		};
 
 		public async Task<IEnumerable<ExchangeRate>> GetExchangeRateAsync()

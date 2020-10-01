@@ -16,7 +16,6 @@ exemptLabels:
   - feature/enhancement
   - "waiting for dependency"
   - "good first issue"
-  - priority
 
 # Set to true to ignore issues in a project (defaults to false)
 exemptProjects: false
@@ -45,7 +44,7 @@ markComment: >
 #   Your comment here.
 
 # Limit the number of actions per hour, from 1-30. Default is 30
-limitPerRun: 1
+limitPerRun: 4
 
 # Limit to only `issues` or `pulls`
 # only: issues

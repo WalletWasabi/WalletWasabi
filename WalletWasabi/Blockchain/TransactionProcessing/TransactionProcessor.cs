@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
@@ -170,8 +171,13 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					// If transaction received to any of the wallet keys:
 					var output = tx.Transaction.Outputs[i];
 					HdPubKey foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
-					if (foundKey != default)
+					if (foundKey is { })
 					{
+						if (!foundKey.IsInternal)
+						{
+							tx.Label = SmartLabel.Merge(tx.Label, foundKey.Label);
+						}
+
 						foundKey.SetKeyState(KeyState.Used, KeyManager);
 						if (output.Value <= DustThreshold)
 						{
@@ -186,7 +192,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 						// If we provided inputs to the transaction.
 						if (spentOwnCoins.Count != 0)
 						{
-							// Take the input that we provided with the the smallest anonset.
+							// Take the input that we provided with the smallest anonset.
 							// And add that to the base anonset from the tx.
 							// Our smallest anonset input is the relevant here, because this way the common input ownership heuristic is considered.
 							// Take minus 1, because we do not want to count own into the anonset, so...

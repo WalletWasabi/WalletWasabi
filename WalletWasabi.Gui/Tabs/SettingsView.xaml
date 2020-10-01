@@ -9,13 +9,14 @@
     <converters:BooleanStringConverter x:Key="BooleanStringConverter" />
     <converters:NetworkStringConverter x:Key="NetworkStringConverter" />
     <converters:VersionStringConverter x:Key="VersionStringConverter" />
+    <converters:FeeDisplayFormatStringConverter x:Key="FeeDisplayFormatStringConverter" />
   </UserControl.Resources>
   <DockPanel LastChildFill="true">
     <StackPanel DockPanel.Dock="Top" IsVisible="{Binding IsModified}" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 5 10 5">
       <TextBlock Text="Heads Up!" FontWeight="Bold" Classes="warningMessage" Margin="0 0 3 0" />
       <TextBlock Classes="warningMessage">Changes will be applied after restarting the application.</TextBlock>
     </StackPanel>
-    <ScrollViewer>
+    <ScrollViewer HorizontalScrollBarVisibility="Auto">
       <StackPanel Margin="30" Spacing="10">
         <Grid Classes="content">
           <StackPanel Orientation="Vertical" Spacing="30">
@@ -99,9 +100,15 @@
                   <ToggleButton IsChecked="{Binding CustomChangeAddress}" Content="{Binding CustomChangeAddress, Converter={StaticResource BooleanStringConverter}, ConverterParameter=On:Off}" Margin="0 0 10 0" />
                   <TextBlock VerticalAlignment="Center">Custom change address.</TextBlock>
                 </StackPanel>
-                <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5">
-                  <ToggleButton IsChecked="{Binding LurkingWifeMode}" Content="{Binding LurkingWifeMode, Converter={StaticResource BooleanStringConverter}, ConverterParameter=On:Off}" Margin="0 0 10 0" Command="{Binding LurkingWifeModeCommand}" />
-                  <TextBlock VerticalAlignment="Center">Lurking Wife Mode, hides sensitive content.</TextBlock>
+                <StackPanel Margin="0 10" Orientation="Vertical" Spacing="5">
+                  <TextBlock>Fee Display Format</TextBlock>
+                  <DropDown Items="{Binding FeeDisplayFormats}" SelectedItem="{Binding SelectedFeeDisplayFormat}">
+                    <DropDown.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding Converter={StaticResource FeeDisplayFormatStringConverter}}" />
+                      </DataTemplate>
+                    </DropDown.ItemTemplate>
+                  </DropDown>
                 </StackPanel>
               </StackPanel>
             </controls:GroupBox>

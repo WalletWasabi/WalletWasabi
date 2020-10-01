@@ -1,7 +1,6 @@
 using ReactiveUI;
 using System.Collections.ObjectModel;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {

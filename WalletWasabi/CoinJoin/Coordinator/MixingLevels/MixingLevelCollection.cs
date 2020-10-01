@@ -3,8 +3,6 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.Helpers;
 using static WalletWasabi.Crypto.SchnorrBlinding;
 
@@ -13,7 +11,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.MixingLevels
 	[JsonObject(MemberSerialization.OptIn)]
 	public class MixingLevelCollection
 	{
-		private IEnumerable<SchnorrPubKey> _schnorrPubKeys;
+		private IEnumerable<PubKey> _signerPubKeys;
 
 		[JsonConstructor]
 		public MixingLevelCollection(IEnumerable<MixingLevel> levels)
@@ -26,7 +24,6 @@ namespace WalletWasabi.CoinJoin.Coordinator.MixingLevels
 			baseDenomination = Guard.MinimumAndNotNull(nameof(baseDenomination), baseDenomination, Money.Zero);
 			signer = Guard.NotNull(nameof(signer), signer);
 			Guard.NotNull(nameof(signer.Key), signer.Key);
-			Guard.NotNull(nameof(signer.R), signer.R);
 
 			Create(new List<MixingLevel> { new MixingLevel(baseDenomination, signer) });
 		}
@@ -34,17 +31,17 @@ namespace WalletWasabi.CoinJoin.Coordinator.MixingLevels
 		[JsonProperty]
 		public List<MixingLevel> Levels { get; private set; }
 
-		public IEnumerable<SchnorrPubKey> SchnorrPubKeys
+		public IEnumerable<PubKey> SignerPubKeys
 		{
 			get
 			{
-				if (_schnorrPubKeys?.Count() != Levels?.Count) // Signing keys do not change, but more levels may be added. (Although even that's unlikely.)
+				if (_signerPubKeys?.Count() != Levels?.Count) // Signing keys do not change, but more levels may be added. (Although even that's unlikely.)
 				{
-					_schnorrPubKeys = Levels.Select(x => x.Signer.GetSchnorrPubKey());
+					_signerPubKeys = Levels.Select(x => x.Signer.Key.PubKey);
 				}
-				return _schnorrPubKeys;
+				return _signerPubKeys;
 			}
-			set => _schnorrPubKeys = value;
+			set => _signerPubKeys = value;
 		}
 
 		private void Create(IEnumerable<MixingLevel> levels)
