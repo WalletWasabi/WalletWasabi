@@ -20,7 +20,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		private Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
 		private bool _anyWalletStarted;
 		private bool _isBackButtonVisible;
-		private bool _isExpanded = true;
+		private Action _toggleAction;
 		private IScreen _screen;
 		private bool _isNavigating;
 
@@ -107,6 +107,11 @@ namespace WalletWasabi.Fluent.ViewModels
 			});
 		}
 
+		public void DoToggleAction()
+		{
+			ToggleAction?.Invoke();
+		}
+
 		public ReactiveCommand<Unit, IRoutableViewModel> GoNext { get; }
 
 		public ReactiveCommand<Unit, Unit> GoBack => Router.NavigateBack;
@@ -163,10 +168,10 @@ namespace WalletWasabi.Fluent.ViewModels
 			}
 		}
 
-		public bool IsExpanded
+		public Action ToggleAction
 		{
-			get { return _isExpanded; }
-			set { this.RaiseAndSetIfChanged(ref _isExpanded, value); }
+			get { return _toggleAction; }
+			set { this.RaiseAndSetIfChanged(ref _toggleAction, value); }
 		}
 
 		public bool IsBackButtonVisible

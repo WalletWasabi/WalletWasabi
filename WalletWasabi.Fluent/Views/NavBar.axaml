@@ -102,9 +102,9 @@
     </StackPanel>
     <StackPanel DockPanel.Dock="Top">
       <StackPanel Orientation="Horizontal" Spacing="5">
-        <ToggleButton Classes="NavButton" IsChecked="{Binding IsExpanded, Mode=TwoWay}">
+        <Button Classes="NavButton" Command="{Binding DoToggleAction}">
           <PathIcon Data="{StaticResource navigation_regular}" />
-        </ToggleButton>
+        </Button>
         <TextBlock Text="Wasabi Wallet" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
       </StackPanel>
       <ListBox Items="{Binding TopItems}" SelectedItem="{Binding SelectedItem}" />

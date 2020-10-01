@@ -16,8 +16,8 @@ namespace WalletWasabi.Fluent.Behaviors
 		public static readonly StyledProperty<double> CollapseThresholdProperty =
 			AvaloniaProperty.Register<SplitViewAutoBehavior, double>(nameof(CollapseThreshold));
 
-		public static readonly StyledProperty<bool> IsExpandedProperty =
-			AvaloniaProperty.Register<SplitViewAutoBehavior, bool>(nameof(IsExpanded), true);
+		public static readonly StyledProperty<Action> ToggleActionProperty =
+			AvaloniaProperty.Register<SplitViewAutoBehavior, Action>(nameof(ToggleAction));
 
 		public double CollapseThreshold
 		{
@@ -25,10 +25,10 @@ namespace WalletWasabi.Fluent.Behaviors
 			set => SetValue(CollapseThresholdProperty, value);
 		}
 
-		public bool IsExpanded
+		public Action ToggleAction
 		{
-			get => GetValue(IsExpandedProperty);
-			set => SetValue(IsExpandedProperty, value);
+			get => GetValue(ToggleActionProperty);
+			set => SetValue(ToggleActionProperty, value);
 		}
 
 		protected override void OnAttached()
@@ -39,13 +39,14 @@ namespace WalletWasabi.Fluent.Behaviors
 				.DistinctUntilChanged()
 				.Subscribe(SplitViewBoundsChanged));
 
-			Disposables.Add(this.GetObservable(IsExpandedProperty).Subscribe(OnIsExpandedChanged));
+			ToggleAction = OnToggleAction;
 
 			base.OnAttached();
 		}
-		private void OnIsExpandedChanged(bool x)
+
+		private void OnToggleAction()
 		{
-			AssociatedObject.IsPaneOpen = x;
+
 		}
 
 		private void SplitViewBoundsChanged(Rect x)
@@ -67,7 +68,7 @@ namespace WalletWasabi.Fluent.Behaviors
 			else
 			{
 				AssociatedObject.DisplayMode = SplitViewDisplayMode.CompactInline;
-				AssociatedObject.IsPaneOpen = IsExpanded;
+				// AssociatedObject.IsPaneOpen = ToggleAction;
 			}
 		}
 
