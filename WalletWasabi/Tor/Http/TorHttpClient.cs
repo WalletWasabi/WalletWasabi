@@ -23,6 +23,9 @@ using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 
 namespace WalletWasabi.Tor.Http
 {
+	/// <summary>
+	/// TODO: What about request timeout?
+	/// </summary>
 	public class TorHttpClient : ITorHttpClient, IDisposable
 	{
 		private static DateTimeOffset? TorDoesntWorkSinceBacking = null;
