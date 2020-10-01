@@ -21,6 +21,9 @@ namespace WalletWasabi.Fluent.Behaviors
 		public static readonly StyledProperty<Action> ToggleActionProperty =
 			AvaloniaProperty.Register<SplitViewAutoBehavior, Action>(nameof(ToggleAction));
 
+		public static readonly StyledProperty<Action> CollapseOnClickActionProperty =
+			AvaloniaProperty.Register<SplitViewAutoBehavior, Action>(nameof(CollapseOnClickAction));
+
 		public double CollapseThreshold
 		{
 			get => GetValue(CollapseThresholdProperty);
@@ -33,6 +36,12 @@ namespace WalletWasabi.Fluent.Behaviors
 			set => SetValue(ToggleActionProperty, value);
 		}
 
+		public Action CollapseOnClickAction
+		{
+			get => GetValue(CollapseOnClickActionProperty);
+			set => SetValue(CollapseOnClickActionProperty, value);
+		}
+
 		protected override void OnAttached()
 		{
 			Disposables = new CompositeDisposable();
@@ -42,8 +51,17 @@ namespace WalletWasabi.Fluent.Behaviors
 				.Subscribe(SplitViewBoundsChanged));
 
 			ToggleAction = OnToggleAction;
+			CollapseOnClickAction = OnCollapseOnClickAction;
 
 			base.OnAttached();
+		}
+
+		private void OnCollapseOnClickAction()
+		{
+			if (AssociatedObject.Bounds.Width <= CollapseThreshold & AssociatedObject.IsPaneOpen)
+			{
+				AssociatedObject.IsPaneOpen = false;
+			}
 		}
 
 		private void OnToggleAction()

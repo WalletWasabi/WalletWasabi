@@ -20,9 +20,11 @@ namespace WalletWasabi.Fluent.ViewModels
 		private Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
 		private bool _anyWalletStarted;
 		private bool _isBackButtonVisible;
-		private Action _toggleAction;
 		private IScreen _screen;
 		private bool _isNavigating;
+
+		private Action _toggleAction;
+		private Action _collapseOnClickAction;
 
 		public NavBarViewModel(IScreen screen, RoutingState router, WalletManager walletManager, UiConfig uiConfig)
 		{
@@ -58,6 +60,7 @@ namespace WalletWasabi.Fluent.ViewModels
 					if (!_isNavigating)
 					{
 						Router.NavigateAndReset.Execute(x);
+						CollapseOnClickAction?.Invoke();
 					}
 				});
 
@@ -172,6 +175,13 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			get { return _toggleAction; }
 			set { this.RaiseAndSetIfChanged(ref _toggleAction, value); }
+		}
+
+
+		public Action CollapseOnClickAction
+		{
+			get { return _collapseOnClickAction; }
+			set { this.RaiseAndSetIfChanged(ref _collapseOnClickAction, value); }
 		}
 
 		public bool IsBackButtonVisible
