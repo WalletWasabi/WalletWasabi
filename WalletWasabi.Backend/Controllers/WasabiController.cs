@@ -8,9 +8,10 @@ namespace WalletWasabi.Backend.Controllers
 	/// <summary>
 	/// To acquire Wasabi software related data.
 	/// </summary>
+	[ApiController]
 	[Produces("application/json")]
 	[Route("api/v" + Constants.BackendMajorVersion + "/[controller]")]
-	public class WasabiController : Controller
+	public class WasabiController : ControllerBase
 	{
 		/// <summary>
 		/// Gets the latest legal documents.

@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+		<PlatformTarget>x64</PlatformTarget>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+		<LangVersion>latest</LangVersion>
+    <Copyright>MIT</Copyright>
+    <RepositoryUrl>https://github.com/zkSNACKs/WalletWasabi/</RepositoryUrl>
+    <Product>WalletWasabiCore</Product>
+    <RepositoryType>Git</RepositoryType>
+		<Nullable>enable</Nullable>
+		<RuntimeIdentifiers>win7-x64;linux-x64;osx-x64</RuntimeIdentifiers>
+		<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi.Core</PathMap>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>bin\Debug\netcoreapp3.1\WalletWasabi.Core.xml</DocumentationFile>
+    <NoWarn>1701;1702;1591</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <!-- Needed for Swagger! -->
+    <DocumentationFile>bin\Release\netcoreapp3.1\WalletWasabi.Core.xml</DocumentationFile>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <ErrorReport>none</ErrorReport>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
+  </ItemGroup>
+
+	<ItemGroup>
+    <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
+  </ItemGroup>
+
+</Project>

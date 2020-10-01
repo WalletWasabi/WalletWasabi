@@ -17,9 +17,10 @@ namespace WalletWasabi.Backend.Controllers
 	/// <summary>
 	/// To make batched requests.
 	/// </summary>
+	[ApiController]
 	[Produces("application/json")]
 	[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
-	public class BatchController : Controller
+	public class BatchController : ControllerBase
 	{
 		public BatchController(BlockchainController blockchainController, ChaumianCoinJoinController chaumianCoinJoinController, HomeController homeController, OffchainController offchainController, Global global)
 		{

@@ -26,9 +26,10 @@ namespace WalletWasabi.Backend.Controllers
 	/// <summary>
 	/// To interact with the Chaumian CoinJoin Coordinator.
 	/// </summary>
+	[ApiController]
 	[Produces("application/json")]
 	[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
-	public class ChaumianCoinJoinController : Controller
+	public class ChaumianCoinJoinController : ControllerBase
 	{
 		public ChaumianCoinJoinController(IMemoryCache memoryCache, Global global)
 		{

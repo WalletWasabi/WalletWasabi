@@ -7,9 +7,10 @@ namespace WalletWasabi.Backend.Controllers
 	/// <summary>
 	/// To acquire administrative data about the software.
 	/// </summary>
+	[ApiController]
 	[Produces("application/json")]
 	[Route("api/[controller]")]
-	public class SoftwareController : Controller
+	public class SoftwareController : ControllerBase
 	{
 		private readonly VersionsResponse VersionsResponse = new VersionsResponse
 		{

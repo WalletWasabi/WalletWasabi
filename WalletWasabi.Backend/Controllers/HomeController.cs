@@ -3,8 +3,9 @@ using System;
 
 namespace WalletWasabi.Backend.Controllers
 {
+	[ApiController]
 	[Route("")]
-	public class HomeController : Controller
+	public class HomeController : ControllerBase
 	{
 		[HttpGet("")]
 		public IActionResult Index()
