@@ -33,7 +33,7 @@
               <vl:ScreenViewLocator />
             </rxui:RoutedViewHost.ViewLocator>
             <rxui:RoutedViewHost.PageTransition>
-              <PageSlide Duration="0:0:0.25" />
+              <CrossFade Duration="0:0:0.25" />
             </rxui:RoutedViewHost.PageTransition>
             <rxui:RoutedViewHost.DefaultContent>
               <TextBlock Text="Default content"
