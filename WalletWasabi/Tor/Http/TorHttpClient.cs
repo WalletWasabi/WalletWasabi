@@ -1,6 +1,7 @@
 using Nito.AsyncEx;
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -30,7 +31,10 @@ namespace WalletWasabi.Tor.Http
 		private static readonly SslProtocols SupportedSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
 
 		/// <summary>Predefined HTTP client that handles HTTP requests when Tor is disabled.</summary>
-		private static readonly HttpClient ClearnetHttpClient = new HttpClient(new HttpClientHandler() { SslProtocols = SupportedSslProtocols });
+		private static readonly HttpClient ClearnetHttpClient = new HttpClient(new HttpClientHandler() {
+			AutomaticDecompression = DecompressionMethods.GZip,
+			SslProtocols = SupportedSslProtocols
+		});
 
 		private volatile bool _disposedValue = false; // To detect redundant calls
 
@@ -79,6 +83,17 @@ namespace WalletWasabi.Tor.Http
 
 		private static AsyncLock AsyncLock { get; } = new AsyncLock(); // We make everything synchronous, so slow, but at least stable.
 
+		private static async Task<HttpResponseMessage> ClearnetRequestAsync(HttpRequestMessage request)
+		{
+			request.Version = HttpProtocol.HTTP11.Version;
+			request.Headers.AcceptCharset.Add(new StringWithQualityHeaderValue("utf-8"));
+
+			//request.Headers.TransferEncodingChunked = true;
+			var response = await ClearnetHttpClient.SendAsync(request).ConfigureAwait(false);
+			
+			return response;
+		}
+
 		/// <remarks>
 		/// Throws <see cref="OperationCanceledException"/> if <paramref name="cancel"/> is set.
 		/// </remarks>
@@ -98,8 +113,7 @@ namespace WalletWasabi.Tor.Http
 			// Use clearnet HTTP client when Tor is disabled.
 			if (TorSocks5EndPoint is null)
 			{
-				var response = await ClearnetHttpClient.SendAsync(request).ConfigureAwait(false);
-				return response;
+				return await ClearnetRequestAsync(request).ConfigureAwait(false);
 			}
 
 			try
@@ -184,8 +198,7 @@ namespace WalletWasabi.Tor.Http
 			// Use clearnet HTTP client when Tor is disabled.
 			if (TorSocks5EndPoint is null)
 			{
-				var response = await ClearnetHttpClient.SendAsync(request).ConfigureAwait(false);
-				return response;
+				return await ClearnetRequestAsync(request).ConfigureAwait(false);
 			}
 
 			// https://tools.ietf.org/html/rfc7230#section-2.7.1
