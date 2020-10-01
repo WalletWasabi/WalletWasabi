@@ -47,9 +47,12 @@ namespace WalletWasabi.Fluent.ViewModels
 			{				
 				if(_items.Contains(x) || _topItems.Contains(x) || _bottomItems.Contains(x))
 				{
-					_isNavigating = true;
-					SelectedItem = x;
-					_isNavigating = false;
+					if (!_isNavigating)
+					{
+						_isNavigating = true;
+						SelectedItem = x;
+						_isNavigating = false;
+					}
 				}
 			});
 
@@ -59,8 +62,10 @@ namespace WalletWasabi.Fluent.ViewModels
 				{
 					if (!_isNavigating)
 					{
+						_isNavigating = true;												
 						Router.NavigateAndReset.Execute(x);
 						CollapseOnClickAction?.Invoke();
+						_isNavigating = false;
 					}
 				});
 

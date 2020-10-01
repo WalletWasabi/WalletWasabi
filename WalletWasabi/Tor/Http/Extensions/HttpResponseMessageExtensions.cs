@@ -1,11 +1,9 @@
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Tor.Http.Helpers;
 using WalletWasabi.Tor.Http.Models;
-using static WalletWasabi.Tor.Http.Constants;
 
 namespace WalletWasabi.Tor.Http.Extensions
 {
@@ -55,41 +53,11 @@ namespace WalletWasabi.Tor.Http.Extensions
 			return response;
 		}
 
-		public static async Task<Stream> ToStreamAsync(this HttpResponseMessage me)
-		{
-			return new MemoryStream(Encoding.UTF8.GetBytes(await me.ToHttpStringAsync().ConfigureAwait(false)));
-		}
-
-		public static async Task<string> ToHttpStringAsync(this HttpResponseMessage me)
-		{
-			var startLine = new StatusLine(new HttpProtocol($"HTTP/{me.Version.Major}.{me.Version.Minor}"), me.StatusCode).ToString();
-
-			var headers = "";
-			if (me.Headers.NotNullAndNotEmpty())
-			{
-				var headerSection = HeaderSection.CreateNew(me.Headers);
-				headers += headerSection.ToString(endWithTwoCRLF: false);
-			}
-
-			var messageBody = "";
-			if (me.Content is { })
-			{
-				if (me.Content.Headers.NotNullAndNotEmpty())
-				{
-					var headerSection = HeaderSection.CreateNew(me.Content.Headers);
-					headers += headerSection.ToString(endWithTwoCRLF: false);
-				}
-
-				messageBody = await me.Content.ReadAsStringAsync().ConfigureAwait(false);
-			}
-
-			return startLine + headers + CRLF + messageBody;
-		}
-
 		public static async Task ThrowRequestExceptionFromContentAsync(this HttpResponseMessage me)
 		{
 			var errorMessage = "";
-			if (me?.Content is { })
+
+			if (me.Content is { })
 			{
 				var contentString = await me.Content.ReadAsStringAsync().ConfigureAwait(false);
 

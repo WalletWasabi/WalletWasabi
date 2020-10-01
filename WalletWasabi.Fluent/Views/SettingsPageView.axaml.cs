@@ -2,16 +2,15 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
-using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels;
 
 namespace WalletWasabi.Fluent.Views
 {
-	public class HomePageView : ReactiveUserControl<HomePageViewModel>
+	public class SettingsPageView : ReactiveUserControl<SettingsPageViewModel>
 	{
-		public HomePageView()
+		public SettingsPageView()
 		{
-			InitializeComponent();
+			this.InitializeComponent();
 		}
 
 		private void InitializeComponent()

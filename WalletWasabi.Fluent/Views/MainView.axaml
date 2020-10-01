@@ -34,19 +34,29 @@
       <Border Background="#212121" BoxShadow="0 1 4 #131313" IsHitTestVisible="False" />
       <DockPanel>
         <local:StatusBar DockPanel.Dock="Bottom" DataContext="{Binding StatusBar}" VerticalAlignment="Bottom" Height="32" TextBlock.FontSize="12" />
-        <rxui:RoutedViewHost Router="{Binding Router}">
-          <rxui:RoutedViewHost.ViewLocator>
-            <vl:ScreenViewLocator />
-          </rxui:RoutedViewHost.ViewLocator>
-          <rxui:RoutedViewHost.PageTransition>
-            <PageSlide Duration="0:0:0.25" />
-          </rxui:RoutedViewHost.PageTransition>
-          <rxui:RoutedViewHost.DefaultContent>
-            <TextBlock Text="Default content"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center" />
-          </rxui:RoutedViewHost.DefaultContent>
-        </rxui:RoutedViewHost>
+        <Panel Margin="20 20 20 0">
+          <DockPanel>
+            <StackPanel Orientation="Horizontal" Spacing="20" VerticalAlignment="Top">
+              <Button Command="{Binding NavBar.GoBack}" Background="Transparent" IsVisible="{Binding NavBar.IsBackButtonVisible}">
+                <PathIcon Data="{StaticResource arrow_left_regular}" />
+              </Button>
+              <TextBlock Text="{Binding NavBar.SelectedItem.Title}" FontSize="28" />
+            </StackPanel>
+            <rxui:RoutedViewHost Router="{Binding Router}">
+              <rxui:RoutedViewHost.ViewLocator>
+                <vl:ScreenViewLocator />
+              </rxui:RoutedViewHost.ViewLocator>
+              <rxui:RoutedViewHost.PageTransition>
+                <CrossFade Duration="0:0:0.1" />
+              </rxui:RoutedViewHost.PageTransition>
+              <rxui:RoutedViewHost.DefaultContent>
+                <TextBlock Text="Default content"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center" />
+              </rxui:RoutedViewHost.DefaultContent>
+            </rxui:RoutedViewHost>
+          </DockPanel>          
+        </Panel>        
       </DockPanel>
     </Panel>    
   </SplitView>
