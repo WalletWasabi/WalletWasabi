@@ -89,7 +89,8 @@ namespace WalletWasabi.Tor.Http.Extensions
 		public static async Task ThrowRequestExceptionFromContentAsync(this HttpResponseMessage me)
 		{
 			var errorMessage = "";
-			if (me?.Content is { })
+
+			if (me.Content is { })
 			{
 				var contentString = await me.Content.ReadAsStringAsync().ConfigureAwait(false);
 
