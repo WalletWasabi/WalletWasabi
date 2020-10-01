@@ -44,9 +44,9 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			Router.CurrentViewModel
 				.OfType<NavBarItemViewModel>()
-				.Subscribe(x=>
-			{				
-				if(_items.Contains(x) || _topItems.Contains(x) || _bottomItems.Contains(x))
+				.Subscribe(x =>
+			{
+				if (_items.Contains(x) || _topItems.Contains(x) || _bottomItems.Contains(x))
 				{
 					if (!_isNavigating)
 					{
@@ -58,12 +58,12 @@ namespace WalletWasabi.Fluent.ViewModels
 			});
 
 			this.WhenAnyValue(x => x.SelectedItem)
-				.OfType<IRoutableViewModel>()				
+				.OfType<IRoutableViewModel>()
 				.Subscribe(x =>
 				{
 					if (!_isNavigating)
 					{
-						_isNavigating = true;												
+						_isNavigating = true;
 						Router.NavigateAndReset.Execute(x);
 						CollapseOnClickAction?.Invoke();
 
@@ -112,11 +112,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				});
 
 			this.WhenAnyValue(x => x.IsOpen)
-				.Where(x => x == false)
-				.Subscribe(x =>
-				{
-					SelectedItem.IsExpanded = false;					
-				});
+				.Subscribe(x => SelectedItem.IsExpanded = x);
 
 			Dispatcher.UIThread.Post(() =>
 			{
@@ -181,7 +177,7 @@ namespace WalletWasabi.Fluent.ViewModels
 					if (_selectedItem is { })
 					{
 						_selectedItem.IsSelected = true;
-						_selectedItem.IsExpanded = true;
+						_selectedItem.IsExpanded = IsOpen;
 					}
 				}
 			}
@@ -203,7 +199,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			get => _isBackButtonVisible;
 			set => this.RaiseAndSetIfChanged(ref _isBackButtonVisible, value);
-		}		
+		}
 
 		public bool IsOpen
 		{

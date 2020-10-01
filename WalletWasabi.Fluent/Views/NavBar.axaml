@@ -94,7 +94,7 @@
     <DataTemplate DataType="vm:AddWalletPageViewModel">
       <c:NavBarItem>
         <c:NavBarItem.Icon>
-          <PathIcon Data="{StaticResource home_regular}" />
+          <PathIcon Data="{StaticResource add_circle_regular}" />
         </c:NavBarItem.Icon>
       </c:NavBarItem>
     </DataTemplate>

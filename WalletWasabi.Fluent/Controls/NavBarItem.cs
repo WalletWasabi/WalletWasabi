@@ -22,7 +22,7 @@ namespace WalletWasabi.Fluent.Controls
 		/// <summary>
 		/// Initializes static members of the <see cref="NavBarItem"/> class.
 		/// </summary>
-		static NavBarItem ()
+		static NavBarItem()
 		{
 			SelectableMixin.Attach<NavBarItem>(IsSelectedProperty);
 			PressedMixin.Attach<NavBarItem>();
