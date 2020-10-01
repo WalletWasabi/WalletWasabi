@@ -71,6 +71,10 @@ namespace WalletWasabi.Gui
 		public bool UseTor { get; internal set; }
 
 		[DefaultValue(false)]
+		[JsonProperty(PropertyName = "CloseTor", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool CloseTor { get; internal set; }
+
+		[DefaultValue(false)]
 		[JsonProperty(PropertyName = "StartLocalBitcoinCoreOnStartup", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public bool StartLocalBitcoinCoreOnStartup { get; internal set; }
 
