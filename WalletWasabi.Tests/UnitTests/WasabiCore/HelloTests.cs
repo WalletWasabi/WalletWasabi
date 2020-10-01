@@ -12,18 +12,12 @@ namespace WalletWasabi.Tests.UnitTests.WasabiCore
 {
 	public class HelloTests
 	{
-		public HelloTests()
-		{
-			var appFactory = new WebApplicationFactory<Startup>();
-			Client = appFactory.CreateClient();
-		}
-
-		public HttpClient Client { get; }
-
 		[Fact]
 		public async Task HelloAsync()
 		{
-			var response = await Client.GetAsync("api/v" + Constants.CoreMajorVersion + "/Test/hello");
+			using var appFactory = new WebApplicationFactory<Startup>();
+			using var client = appFactory.CreateClient();
+			var response = await client.GetAsync("api/v" + Constants.CoreMajorVersion + "/Test/hello");
 			var responseString = await response.Content.ReadAsStringAsync();
 			var expected = "\"World\"";
 			Assert.Equal(expected, responseString);
