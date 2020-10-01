@@ -36,10 +36,7 @@
         <local:StatusBar DockPanel.Dock="Bottom" DataContext="{Binding StatusBar}" VerticalAlignment="Bottom" Height="32" TextBlock.FontSize="12" />
         <Panel Margin="20 10 20 0">
           <DockPanel>
-            <StackPanel Orientation="Horizontal" Spacing="20" DockPanel.Dock="Top">
-              
-              <TextBlock Text="{Binding NavBar.SelectedItem.Title}" FontSize="28" />
-            </StackPanel>
+              <TextBlock Text="{Binding NavBar.SelectedItem.Title}" DockPanel.Dock="Top" FontSize="28" IsHitTestVisible="False" />            
             <rxui:RoutedViewHost Router="{Binding Router}">
               <rxui:RoutedViewHost.ViewLocator>
                 <vl:ScreenViewLocator />
