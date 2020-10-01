@@ -42,13 +42,15 @@ namespace WalletWasabi.Core
 			// Register the Swagger generator, defining one or more Swagger documents
 			services.AddSwaggerGen(c =>
 			{
-				c.SwaggerDoc($"v{Constants.CoreMajorVersion}", new OpenApiInfo
-				{
-					Version = $"v{Constants.CoreMajorVersion}",
-					Title = "Wasabi Wallet Core",
-					Description = "Privacy focused Bitcoin wallet.",
-					License = new OpenApiLicense { Name = "Use under MIT.", Url = new Uri("https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md") }
-				});
+				c.SwaggerDoc(
+					$"v{Constants.CoreMajorVersion}",
+					new OpenApiInfo
+					{
+						Version = $"v{Constants.CoreMajorVersion}",
+						Title = "Wasabi Wallet Core",
+						Description = "Privacy focused Bitcoin wallet.",
+						License = new OpenApiLicense { Name = "Use under MIT.", Url = new Uri("https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md") }
+					});
 
 				// Set the comments path for the Swagger JSON and UI.
 				var basePath = AppContext.BaseDirectory;
