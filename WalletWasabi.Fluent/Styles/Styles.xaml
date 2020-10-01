@@ -4,7 +4,7 @@
   xmlns:local="clr-namespace:AvalonStudio.Controls.Standard.CodeEditor;assembly=AvalonStudio.Controls.Standard">
   <Styles.Resources>
     <sys:Double x:Key="IconElementThemeHeight">16</sys:Double>
-    <sys:Double x:Key="SplitViewCollapseThreshold">650</sys:Double>
+    <sys:Double x:Key="SplitViewCollapseThreshold">750</sys:Double>
   </Styles.Resources>
 
   <Style Selector="SplitView">

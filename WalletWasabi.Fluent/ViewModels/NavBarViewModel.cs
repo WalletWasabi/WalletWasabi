@@ -22,6 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		private bool _isBackButtonVisible;
 		private IScreen _screen;
 		private bool _isNavigating;
+		private bool _isOpen;
 
 		private Action _toggleAction;
 		private Action _collapseOnClickAction;
@@ -65,6 +66,7 @@ namespace WalletWasabi.Fluent.ViewModels
 						_isNavigating = true;												
 						Router.NavigateAndReset.Execute(x);
 						CollapseOnClickAction?.Invoke();
+
 						_isNavigating = false;
 					}
 				});
@@ -107,7 +109,14 @@ namespace WalletWasabi.Fluent.ViewModels
 						: WalletViewModel.Create(screen, uiConfig, wallet);
 
 					InsertWallet(vm);
-				});			
+				});
+
+			this.WhenAnyValue(x => x.IsOpen)
+				.Where(x => x == false)
+				.Subscribe(x =>
+				{
+					SelectedItem.IsExpanded = false;					
+				});
 
 			Dispatcher.UIThread.Post(() =>
 			{
@@ -158,6 +167,7 @@ namespace WalletWasabi.Fluent.ViewModels
 					if (_selectedItem is { })
 					{
 						_selectedItem.IsSelected = false;
+						_selectedItem.IsExpanded = false;
 					}
 
 					_selectedItem = null;
@@ -171,6 +181,7 @@ namespace WalletWasabi.Fluent.ViewModels
 					if (_selectedItem is { })
 					{
 						_selectedItem.IsSelected = true;
+						_selectedItem.IsExpanded = true;
 					}
 				}
 			}
@@ -182,7 +193,6 @@ namespace WalletWasabi.Fluent.ViewModels
 			set { this.RaiseAndSetIfChanged(ref _toggleAction, value); }
 		}
 
-
 		public Action CollapseOnClickAction
 		{
 			get { return _collapseOnClickAction; }
@@ -193,6 +203,12 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			get => _isBackButtonVisible;
 			set => this.RaiseAndSetIfChanged(ref _isBackButtonVisible, value);
+		}		
+
+		public bool IsOpen
+		{
+			get { return _isOpen; }
+			set { this.RaiseAndSetIfChanged(ref _isOpen, value); }
 		}
 
 		public RoutingState Router { get; }

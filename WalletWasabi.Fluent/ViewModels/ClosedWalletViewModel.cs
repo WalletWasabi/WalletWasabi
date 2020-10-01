@@ -28,8 +28,6 @@ namespace WalletWasabi.Fluent.ViewModels
 				new HomePageViewModel(screen)
 			};
 
-			IsExpanded = true;
-
 			OpenWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{
