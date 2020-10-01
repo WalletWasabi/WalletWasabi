@@ -79,10 +79,7 @@
     </TreeDataTemplate>
   </UserControl.DataTemplates>
   <DockPanel Margin="1">
-    <StackPanel DockPanel.Dock="Top" Margin="0 20 0 0">
-      <Button Command="{Binding GoBack}" Background="Transparent" IsVisible="{Binding IsBackButtonVisible}">
-        <PathIcon Data="{StaticResource arrow_left_regular}" />
-      </Button>
+    <StackPanel DockPanel.Dock="Top" Margin="0 20 0 0">      
       <TextBlock Text="Wasabi Wallet" Foreground="White" FontSize="16" Margin="15 10 0 10" />
 
       <ListBox Items="{Binding TopItems}" SelectedItem="{Binding SelectedItem}" />
