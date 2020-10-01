@@ -1,7 +1,9 @@
+using System;
 using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
 using System.Reactive;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.ViewModels;
 using Global = WalletWasabi.Gui.Global;
@@ -13,6 +15,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		private Global _global;
 		private StatusBarViewModel _statusBar;
 		private string _title = "Wasabi Wallet";
+		private bool _isBackButtonVisible;
 
 		public MainViewModel(Global global)
 		{
@@ -28,13 +31,18 @@ namespace WalletWasabi.Fluent.ViewModels
 
 				Router.Navigate.Execute(new HomeViewModel(this));
 			});
-		}		
+
+			Observable.FromEventPattern(Router.NavigationStack, nameof(Router.NavigationStack.CollectionChanged))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => IsBackButtonVisible = Router.NavigationStack.Count > 1);
+
+			Router.Navigate.Execute(new HomeViewModel(this)); // for testing
+			Router.Navigate.Execute(new HomeViewModel(this)); // for testing
+		}
 
 		public static MainViewModel Instance { get; internal set; }
 
 		public RoutingState Router { get; } = new RoutingState();
-		
-		public ReactiveCommand<Unit, IRoutableViewModel> GoNext { get; }
 		
 		public ReactiveCommand<Unit, Unit> GoBack => Router.NavigateBack;
 
@@ -50,6 +58,12 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			get => _title;
 			internal set => this.RaiseAndSetIfChanged(ref _title, value);
+		}
+
+		public bool IsBackButtonVisible
+		{
+			get => _isBackButtonVisible;
+			set => this.RaiseAndSetIfChanged(ref _isBackButtonVisible, value);
 		}
 
 		public void Initialize()
