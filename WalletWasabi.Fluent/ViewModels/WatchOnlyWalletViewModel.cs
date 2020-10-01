@@ -1,11 +1,12 @@
-﻿using WalletWasabi.Gui;
+using ReactiveUI;
+using WalletWasabi.Gui;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
 	public class WatchOnlyWalletViewModel : WalletViewModel
 	{
-		internal WatchOnlyWalletViewModel(UiConfig uiConfig, Wallet wallet) : base(uiConfig, wallet)
+		internal WatchOnlyWalletViewModel(IScreen screen, UiConfig uiConfig, Wallet wallet) : base(screen, uiConfig, wallet)
 		{
 		}
 	}

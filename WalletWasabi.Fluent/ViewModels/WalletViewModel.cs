@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using ReactiveUI;
 using Splat;
 using System;
@@ -17,7 +17,7 @@ namespace WalletWasabi.Fluent.ViewModels
 	{
 		private ObservableCollection<ViewModelBase> _actions;
 
-		protected WalletViewModel(UiConfig uiConfig, Wallet wallet) : base(wallet)
+		protected WalletViewModel(IScreen screen, UiConfig uiConfig, Wallet wallet) : base(screen, wallet)
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
@@ -77,13 +77,13 @@ namespace WalletWasabi.Fluent.ViewModels
 			//advancedAction.Items.Add(BuildTab);
 		}
 
-		public static WalletViewModel Create(UiConfig uiConfig, Wallet wallet)
+		public static WalletViewModel Create(IScreen screen, UiConfig uiConfig, Wallet wallet)
 		{
 			return wallet.KeyManager.IsHardwareWallet
-				? new HardwareWalletViewModel(uiConfig, wallet)
+				? new HardwareWalletViewModel(screen, uiConfig, wallet)
 				: wallet.KeyManager.IsWatchOnly
-					? new WatchOnlyWalletViewModel(uiConfig, wallet)
-					: new WalletViewModel(uiConfig, wallet);
+					? new WatchOnlyWalletViewModel(screen, uiConfig, wallet)
+					: new WalletViewModel(screen, uiConfig, wallet);
 		}
 
 		public ObservableCollection<ViewModelBase> Actions

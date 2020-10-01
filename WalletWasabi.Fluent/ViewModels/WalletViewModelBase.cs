@@ -15,7 +15,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		private CompositeDisposable _disposables;
 		private bool _disposedValue;
 
-		public WalletViewModelBase(Wallet wallet)
+		public WalletViewModelBase(IScreen screen, Wallet wallet) : base(screen)
 		{
 			Wallet = Guard.NotNull(nameof(wallet), wallet);
 
@@ -61,18 +61,6 @@ namespace WalletWasabi.Fluent.ViewModels
 			}
 
 			return Title.CompareTo(other.Title);
-		}
-
-		public override int CompareTo([AllowNull] NavBarItemViewModel other)
-		{
-			if (other is WalletViewModelBase wvmb)
-			{
-				return CompareTo(wvmb);
-			}
-			else
-			{
-				return -1;
-			}
 		}
 
 		public override string ToString() => WalletName;

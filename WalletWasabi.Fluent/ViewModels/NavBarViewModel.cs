@@ -13,7 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels
 {
 	public class NavBarViewModel : ViewModelBase
 	{
-		private ObservableCollection<NavBarItemViewModel> _items;
+		private ObservableCollection<WalletViewModelBase> _items;
 		private ObservableCollection<NavBarItemViewModel> _topItems;
 		private ObservableCollection<NavBarItemViewModel> _bottomItems;
 		private NavBarItemViewModel _selectedItem;
@@ -21,19 +21,45 @@ namespace WalletWasabi.Fluent.ViewModels
 		private bool _anyWalletStarted;
 		private bool _isBackButtonVisible;
 		private bool _isExpanded = true;
+		private IScreen _screen;
+		private bool _isNavigating;
 
-		public NavBarViewModel(RoutingState router, WalletManager walletManager, UiConfig uiConfig)
+		public NavBarViewModel(IScreen screen, RoutingState router, WalletManager walletManager, UiConfig uiConfig)
 		{
+			_screen = screen;
 			Router = router;
 			_topItems = new ObservableCollection<NavBarItemViewModel>();
-			_items = new ObservableCollection<NavBarItemViewModel>();
+			_items = new ObservableCollection<WalletViewModelBase>();
 			_bottomItems = new ObservableCollection<NavBarItemViewModel>();
 
 			_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
 
-			_topItems.Add(new HomePageViewModel());
-			_bottomItems.Add(new AddWalletPageViewModel());
-			_bottomItems.Add(new SettingsPageViewModel());
+			SelectedItem = new HomePageViewModel(screen);
+			_topItems.Add(_selectedItem);
+			_bottomItems.Add(new AddWalletPageViewModel(screen));
+			_bottomItems.Add(new SettingsPageViewModel(screen));
+
+			Router.CurrentViewModel
+				.OfType<NavBarItemViewModel>()
+				.Subscribe(x=>
+			{				
+				if(_items.Contains(x) || _topItems.Contains(x) || _bottomItems.Contains(x))
+				{
+					_isNavigating = true;
+					SelectedItem = x;
+					_isNavigating = false;
+				}
+			});
+
+			this.WhenAnyValue(x => x.SelectedItem)
+				.OfType<IRoutableViewModel>()				
+				.Subscribe(x =>
+				{
+					if (!_isNavigating)
+					{
+						Router.NavigateAndReset.Execute(x);
+					}
+				});
 
 			Observable.FromEventPattern(Router.NavigationStack, nameof(Router.NavigationStack.CollectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -69,11 +95,11 @@ namespace WalletWasabi.Fluent.ViewModels
 				.Subscribe(wallet =>
 				{
 					WalletViewModelBase vm = (wallet.State <= WalletState.Starting)
-						? ClosedWalletViewModel.Create(walletManager, wallet)
-						: WalletViewModel.Create(uiConfig, wallet);
+						? ClosedWalletViewModel.Create(screen, walletManager, wallet)
+						: WalletViewModel.Create(screen, uiConfig, wallet);
 
 					InsertWallet(vm);
-				});
+				});			
 
 			Dispatcher.UIThread.Post(() =>
 			{
@@ -97,7 +123,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			set { this.RaiseAndSetIfChanged(ref _topItems, value); }
 		}
 
-		public ObservableCollection<NavBarItemViewModel> Items
+		public ObservableCollection<WalletViewModelBase> Items
 		{
 			get { return _items; }
 			set { this.RaiseAndSetIfChanged(ref _items, value); }
@@ -114,20 +140,25 @@ namespace WalletWasabi.Fluent.ViewModels
 			get { return _selectedItem; }
 			set
 			{
-				if (_selectedItem is { })
+				if (_selectedItem != value)
 				{
-					_selectedItem.IsSelected = false;
-				}
+					if (_selectedItem is { })
+					{
+						_selectedItem.IsSelected = false;
+					}
 
-				_selectedItem = null;
+					_selectedItem = null;
 
-				this.RaisePropertyChanged();
+					this.RaisePropertyChanged();
 
-				this.RaiseAndSetIfChanged(ref _selectedItem, value);
+					_selectedItem = value;
 
-				if (_selectedItem is { })
-				{
-					_selectedItem.IsSelected = true;
+					this.RaisePropertyChanged();
+
+					if (_selectedItem is { })
+					{
+						_selectedItem.IsSelected = true;
+					}
 				}
 			}
 		}
@@ -150,7 +181,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			foreach (var wallet in walletManager.GetWallets())
 			{
-				InsertWallet(ClosedWalletViewModel.Create(walletManager, wallet));
+				InsertWallet(ClosedWalletViewModel.Create(_screen, walletManager, wallet));
 			}
 		}
 
@@ -175,7 +206,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				throw new Exception("Wallet already opened.");
 			}
 
-			var walletViewModel = WalletViewModel.Create(uiConfig, wallet);
+			var walletViewModel = WalletViewModel.Create(_screen, uiConfig, wallet);
 
 			InsertWallet(walletViewModel);
 
