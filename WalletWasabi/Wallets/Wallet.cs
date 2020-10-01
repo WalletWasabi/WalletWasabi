@@ -36,7 +36,7 @@ namespace WalletWasabi.Wallets
 
 		public Wallet(string dataDir, Network network, KeyManager keyManager)
 		{
-			DataDir = Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
+			Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
 			Network = Guard.NotNull(nameof(network), network);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 
@@ -73,7 +73,6 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-		public string DataDir { get; }
 		public BitcoinStore BitcoinStore { get; private set; }
 		public KeyManager KeyManager { get; }
 		public WasabiSynchronizer Synchronizer { get; private set; }

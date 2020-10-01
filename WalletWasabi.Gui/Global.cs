@@ -175,8 +175,11 @@ namespace WalletWasabi.Gui
 
 				if (Config.UseTor)
 				{
-					TorManager = new TorProcessManager(TorSettings, Config.TorSocks5EndPoint);
-					TorManager.Start(ensureRunning: false);
+					using (BenchmarkLogger.Measure(operationName: "TorProcessManager.Start"))
+					{
+						TorManager = new TorProcessManager(TorSettings, Config.TorSocks5EndPoint);
+						await TorManager.StartAsync(ensureRunning: true).ConfigureAwait(false);
+					}
 
 					var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
 					TorManager.StartMonitor(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(7), fallbackRequestTestUri);
@@ -237,18 +240,9 @@ namespace WalletWasabi.Gui
 
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
 
-				var feeProviderList = new List<IFeeProvider>
-				{
-					Synchronizer
-				};
-
 				var rpcFeeProvider = HostedServices.FirstOrDefault<RpcFeeProvider>();
-				if (rpcFeeProvider is { })
-				{
-					feeProviderList.Insert(0, rpcFeeProvider);
-				}
 
-				FeeProviders = new FeeProviders(feeProviderList);
+				FeeProviders = new FeeProviders(Synchronizer, rpcFeeProvider);
 
 				#endregion BitcoinCoreInitialization
 

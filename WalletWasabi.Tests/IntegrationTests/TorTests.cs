@@ -1,24 +1,23 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using WalletWasabi.Tor;
 using WalletWasabi.Tor.Http;
+using WalletWasabi.Tor.Socks5;
 using Xunit;
 
 namespace WalletWasabi.Tests.IntegrationTests
 {
-	// Tor must be running
 	public class TorTests : IAsyncLifetime
 	{
 		public async Task InitializeAsync()
 		{
 			var torManager = new TorProcessManager(Global.Instance.TorSettings, Global.Instance.TorSocks5Endpoint);
-			torManager.Start(ensureRunning: true);
-			await Task.Delay(3000);
+			bool started = await torManager.StartAsync(ensureRunning: true);
+			Assert.True(started, "Tor failed to start.");
 		}
 
 		public Task DisposeAsync()
@@ -185,9 +184,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[Fact]
 		public async Task TorRunningAsync()
 		{
-			Assert.True(await TorProcessManager.IsTorRunningAsync(null));
-			Assert.True(await TorProcessManager.IsTorRunningAsync(new IPEndPoint(IPAddress.Loopback, 9050)));
-			Assert.False(await TorProcessManager.IsTorRunningAsync(new IPEndPoint(IPAddress.Loopback, 9054)));
+			Assert.True(await new TorSocks5Client(new IPEndPoint(IPAddress.Loopback, 9050)).IsTorRunningAsync());
+			Assert.False(await new TorSocks5Client(new IPEndPoint(IPAddress.Loopback, 9054)).IsTorRunningAsync());
 		}
 
 		private static async Task<List<string>> QBitTestAsync(TorHttpClient client, int times, bool alterRequests = false)

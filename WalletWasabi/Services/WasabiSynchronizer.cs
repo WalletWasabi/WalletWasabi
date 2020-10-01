@@ -36,11 +36,6 @@ namespace WalletWasabi.Services
 
 		private long _blockRequests; // There are priority requests in queue.
 
-		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, WasabiClient client)
-		{
-			CreateNew(network, bitcoinStore, client);
-		}
-
 		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Func<Uri> baseUriAction, EndPoint torSocks5EndPoint)
 		{
 			var client = new WasabiClient(baseUriAction, torSocks5EndPoint);
@@ -391,7 +386,7 @@ namespace WalletWasabi.Services
 			Cancel?.Cancel();
 			while (Interlocked.CompareExchange(ref _running, 3, 0) == 2)
 			{
-				await Task.Delay(50);
+				await Task.Delay(50).ConfigureAwait(false);
 			}
 
 			Cancel?.Dispose();
