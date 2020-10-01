@@ -8,7 +8,7 @@ namespace WalletWasabi.Fluent.Views
 	{
 		public StatusBar()
 		{
-			this.InitializeComponent();
+			InitializeComponent();
 		}
 
 		private void InitializeComponent()

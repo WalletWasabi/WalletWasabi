@@ -37,8 +37,8 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public StatusBarViewModel StatusBar
 		{
-			get { return _statusBar; }
-			set { this.RaiseAndSetIfChanged(ref _statusBar, value); }
+			get => _statusBar;
+			set => this.RaiseAndSetIfChanged(ref _statusBar, value);
 		}
 
 		public string Title

@@ -52,11 +52,8 @@ namespace WalletWasabi.Fluent.Desktop
 					Logger.LogSoftwareStarted("Wasabi GUI");
 
 					BuildAvaloniaApp()
-						.AfterSetup(_ =>
-						{
-							AppMainAsync(args);
-						})
-					.StartWithClassicDesktopLifetime(args);
+						.AfterSetup(_ => AppMainAsync(args))
+						.StartWithClassicDesktopLifetime(args);
 				}
 			}
 			catch (Exception ex)
