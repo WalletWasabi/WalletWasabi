@@ -11,6 +11,8 @@ namespace WalletWasabi.Fluent.Behaviors
 {
 	public class SplitViewAutoBehavior : Behavior<SplitView>
 	{
+		private bool _userSidebarIsExpanded = true;
+
 		private CompositeDisposable Disposables { get; set; }
 
 		public static readonly StyledProperty<double> CollapseThresholdProperty =
@@ -46,7 +48,9 @@ namespace WalletWasabi.Fluent.Behaviors
 
 		private void OnToggleAction()
 		{
+			_userSidebarIsExpanded = !_userSidebarIsExpanded;
 
+			AssociatedObject.IsPaneOpen = _userSidebarIsExpanded;
 		}
 
 		private void SplitViewBoundsChanged(Rect x)
@@ -68,7 +72,7 @@ namespace WalletWasabi.Fluent.Behaviors
 			else
 			{
 				AssociatedObject.DisplayMode = SplitViewDisplayMode.CompactInline;
-				// AssociatedObject.IsPaneOpen = ToggleAction;
+				AssociatedObject.IsPaneOpen = _userSidebarIsExpanded;
 			}
 		}
 
