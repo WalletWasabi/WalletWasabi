@@ -436,7 +436,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _amountText, value);
 		}
 
-		public Money Amount { get; set; }
+		public Money Amount { get; private set; }
 
 		public string UserFeeText
 		{
@@ -731,18 +731,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				EstimatedBtcFee = Money.Zero;
 			}
 
-			long all = selectedCoins.Sum(x => x.Amount);
-			long theAmount = (IsMax, Money.TryParse(AmountText.TrimStart('~', ' '), out Money value)) switch
+			Money all = selectedCoins.Sum(x => x.Amount);
+			Money theAmount = (IsMax, Money.TryParse(AmountText.TrimStart('~', ' '), out Money value)) switch
 			{
 				(true, _) => all,
-				(false, true) => value.Satoshi,
-				(false, false) => 0
+				(false, true) => value,
+				(false, false) => Money.Zero
 			};
-			Amount = new Money(theAmount);
 
-			FeePercentage = theAmount != 0
-				? 100 * (decimal)EstimatedBtcFee.Satoshi / theAmount
+			FeePercentage = theAmount != Money.Zero
+				? 100 * (decimal)EstimatedBtcFee.Satoshi / theAmount.Satoshi
 				: 0;
+			Amount = theAmount;
 
 			if (UsdExchangeRate != 0)
 			{
