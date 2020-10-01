@@ -20,7 +20,7 @@ namespace WalletWasabi.Tests.UnitTests.WasabiCore
 				.WithWebHostBuilder(builder => builder.UseSetting("datadir", Global.GetWorkDir()));
 
 			using var client = appFactory.CreateClient();
-			var response = await client.GetAsync("api/v" + Constants.CoreMajorVersion + "/Test/hello");
+			var response = await client.GetAsync("api/v" + Constants.WasabiCoreMajorVersion + "/Test/hello");
 			var responseString = await response.Content.ReadAsStringAsync();
 			var expected = "\"World\"";
 			Assert.Equal(expected, responseString);

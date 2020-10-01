@@ -43,10 +43,10 @@ namespace WalletWasabi.Core
 			services.AddSwaggerGen(c =>
 			{
 				c.SwaggerDoc(
-					$"v{Constants.CoreMajorVersion}",
+					$"v{Constants.WasabiCoreMajorVersion}",
 					new OpenApiInfo
 					{
-						Version = $"v{Constants.CoreMajorVersion}",
+						Version = $"v{Constants.WasabiCoreMajorVersion}",
 						Title = "Wasabi Wallet Core",
 						Description = "Privacy focused Bitcoin wallet.",
 						License = new OpenApiLicense { Name = "Use under MIT.", Url = new Uri("https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md") }
@@ -74,7 +74,7 @@ namespace WalletWasabi.Core
 			app.UseSwagger();
 
 			// Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), specifying the Swagger JSON endpoint.
-			app.UseSwaggerUI(c => c.SwaggerEndpoint($"/swagger/v{Constants.CoreMajorVersion}/swagger.json", $"Wasabi Core API V{Constants.CoreMajorVersion}"));
+			app.UseSwaggerUI(c => c.SwaggerEndpoint($"/swagger/v{Constants.WasabiCoreMajorVersion}/swagger.json", $"Wasabi Core API V{Constants.WasabiCoreMajorVersion}"));
 
 			app.UseRouting();
 

@@ -13,7 +13,7 @@ namespace WalletWasabi.Core.Controllers
 	/// </summary>
 	[ApiController]
 	[Produces("application/json")]
-	[Route("api/v" + Constants.CoreMajorVersion + "/[controller]")]
+	[Route("api/v" + Constants.WasabiCoreMajorVersion + "/[controller]")]
 	public class TestController : ControllerBase
 	{
 		/// <summary>
