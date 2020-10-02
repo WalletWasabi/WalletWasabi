@@ -222,19 +222,6 @@ namespace WalletWasabi.Helpers
 			return false;
 		}
 
-		/// <summary>
-		/// Gets the name of the current method.
-		/// </summary>
-		public static string GetMethodName([CallerMemberName] string callerName = "")
-		{
-			return callerName;
-		}
-
-		public static string GetCallerFileName([CallerFilePath] string callerFilePath = "")
-		{
-			return ExtractFileName(callerFilePath);
-		}
-
 		public static string GetFullBaseDirectory()
 		{
 			var fullBaseDirectory = Path.GetFullPath(AppContext.BaseDirectory);

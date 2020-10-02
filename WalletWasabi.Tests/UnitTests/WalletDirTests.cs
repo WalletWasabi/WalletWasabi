@@ -26,7 +26,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task CreatesWalletDirectoriesAsync()
 		{
-			var baseDir = Path.Combine(Common.DataDir, EnvironmentHelpers.GetCallerFileName(), EnvironmentHelpers.GetMethodName());
+			var baseDir = Common.GetWorkDir();
 			(string walletsPath, string walletsBackupPath) = await CleanupWalletDirectoriesAsync(baseDir);
 
 			new WalletDirectories(baseDir);
@@ -42,7 +42,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task CorrectWalletDirectoryNameAsync()
 		{
-			var baseDir = Path.Combine(Common.DataDir, EnvironmentHelpers.GetCallerFileName(), EnvironmentHelpers.GetMethodName());
+			var baseDir = Common.GetWorkDir();
 			(string walletsPath, string walletsBackupPath) = await CleanupWalletDirectoriesAsync(baseDir);
 
 			var walletDirectories = new WalletDirectories($" {baseDir} ");
@@ -54,7 +54,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task ServesWalletFilesAsync()
 		{
-			var baseDir = Path.Combine(Common.DataDir, EnvironmentHelpers.GetCallerFileName(), EnvironmentHelpers.GetMethodName());
+			var baseDir = Common.GetWorkDir();
 			await CleanupWalletDirectoriesAsync(baseDir);
 
 			var walletDirectories = new WalletDirectories(baseDir);
@@ -69,7 +69,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task EnsuresJsonAsync()
 		{
-			var baseDir = Path.Combine(Common.DataDir, EnvironmentHelpers.GetCallerFileName(), EnvironmentHelpers.GetMethodName());
+			var baseDir = Common.GetWorkDir();
 			await CleanupWalletDirectoriesAsync(baseDir);
 
 			var walletDirectories = new WalletDirectories(baseDir);
@@ -85,7 +85,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task EnumerateFilesAsync()
 		{
-			var baseDir = Path.Combine(Common.DataDir, EnvironmentHelpers.GetCallerFileName(), EnvironmentHelpers.GetMethodName());
+			var baseDir = Common.GetWorkDir();
 			await CleanupWalletDirectoriesAsync(baseDir);
 
 			var walletDirectories = new WalletDirectories(baseDir);
@@ -114,7 +114,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task EnumerateOrdersByAccessAsync()
 		{
-			var baseDir = Path.Combine(Common.DataDir, EnvironmentHelpers.GetCallerFileName(), EnvironmentHelpers.GetMethodName());
+			var baseDir = Common.GetWorkDir();
 			await CleanupWalletDirectoriesAsync(baseDir);
 
 			var walletDirectories = new WalletDirectories(baseDir);
@@ -139,7 +139,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task EnumerateMissingDirAsync()
 		{
-			var baseDir = Path.Combine(Common.DataDir, EnvironmentHelpers.GetCallerFileName(), EnvironmentHelpers.GetMethodName());
+			var baseDir = Common.GetWorkDir();
 			(string walletsPath, string walletsBackupPath) = await CleanupWalletDirectoriesAsync(baseDir);
 
 			var walletDirectories = new WalletDirectories(baseDir);
@@ -156,7 +156,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task GetNextWalletTestAsync()
 		{
-			var baseDir = Path.Combine(Common.DataDir, EnvironmentHelpers.GetCallerFileName(), EnvironmentHelpers.GetMethodName());
+			var baseDir = Common.GetWorkDir();
 			await CleanupWalletDirectoriesAsync(baseDir);
 			var walletDirectories = new WalletDirectories(baseDir);
 			IoHelpers.CreateOrOverwriteFile(Path.Combine(walletDirectories.WalletsDir, "Random Wallet 3.json"));

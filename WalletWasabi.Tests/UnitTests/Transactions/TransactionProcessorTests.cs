@@ -1103,12 +1103,12 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			return new OutPoint(RandomUtils.GetUInt256(), 0);
 		}
 
-		private async Task<TransactionProcessor> CreateTransactionProcessorAsync([CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerName = "")
+		private async Task<TransactionProcessor> CreateTransactionProcessorAsync([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
 		{
 			var keyManager = KeyManager.CreateNew(out _, "password");
 			keyManager.AssertCleanKeysIndexed();
 
-			var dir = Path.Combine(Common.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerName, "TransactionStore");
+			var dir = Path.Combine(Common.GetWorkDir(callerFilePath, callerMemberName), "TransactionStore");
 			await IoHelpers.TryDeleteDirectoryAsync(dir);
 			var txStore = new AllTransactionStore(dir, Network.RegTest);
 			await txStore.InitializeAsync();
