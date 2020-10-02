@@ -442,7 +442,7 @@ namespace WalletWasabi.Wallets
 		{
 			lock (Lock)
 			{
-				return Wallets.Keys.Any(x => x.Coins?.Any(c => c.CoinJoinInProgress) is true);
+				return Wallets.Keys.Any(x => x.ChaumianClient?.State.AnyCoinsQueued() is true);
 			}
 		}
 	}
