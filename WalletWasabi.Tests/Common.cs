@@ -34,15 +34,12 @@ namespace WalletWasabi.Tests
 
 		public static string DataDir => EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Tests"));
 
-		public static SmartTransaction RandomSmartTransaction
+		public static SmartTransaction GetRandomSmartTransaction()
 		{
-			get
-			{
-				var tx = Transaction.Create(Network.Main);
-				tx.Outputs.Add(Money.Coins(1), new Key());
-				var stx = new SmartTransaction(tx, Height.Mempool);
-				return stx;
-			}
+			var tx = Transaction.Create(Network.Main);
+			tx.Outputs.Add(Money.Coins(1), new Key());
+			var stx = new SmartTransaction(tx, Height.Mempool);
+			return stx;
 		}
 	}
 }
