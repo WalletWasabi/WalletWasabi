@@ -53,6 +53,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						try
 						{
+							var res = result.Psbt.ToBase64();
 							signedPsbt = await client.SignTxAsync(Wallet.KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
 						}
 						catch (PSBTException ex) when (ex.Message.Contains("NullFail"))
