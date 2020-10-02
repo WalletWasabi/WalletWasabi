@@ -254,9 +254,18 @@ namespace WalletWasabi.Tor
 			{
 				Logger.LogInfo($"Killing Tor process.");
 
-				TorProcess.Kill();
-				using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
-				await TorProcess.WaitForExitAsync(cts.Token, killOnCancel: true).ConfigureAwait(false);
+				try
+				{
+					TorProcess.Kill();
+					using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+					await TorProcess.WaitForExitAsync(cts.Token, killOnCancel: true).ConfigureAwait(false);
+
+					Logger.LogInfo($"Tor process killed successfully.");
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError($"Could not kill Tor process: {ex.Message}.");
+				}
 			}
 
 			TorProcess?.Dispose();
