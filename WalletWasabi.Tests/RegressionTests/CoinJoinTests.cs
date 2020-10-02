@@ -150,7 +150,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var requesters = Array.Empty<Requester>();
 
 			HttpRequestException httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await CreateNewAliceClientAsync(roundId, registeredAddresses, signerPubKeys, requesters, inputsRequest));
-			Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nInvalid request.", httpRequestException.Message);
+			Assert.Contains(HttpStatusCode.BadRequest.ToReasonString(), httpRequestException.Message);
 
 			byte[] dummySignature = new byte[65];
 
@@ -483,7 +483,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{WalletWasabi.Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?uniqueId={aliceClient.UniqueId}&roundId=bar"))
 				{
 					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-					Assert.Null(await response.Content.ReadAsJsonAsync<string>());
+					Assert.Contains("\"roundId\":[\"The value 'bar' is not valid.\"", await response.Content.ReadAsStringAsync());
 				}
 
 				roundConfig.ConnectionConfirmationTimeout = 60;
