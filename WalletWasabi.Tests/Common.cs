@@ -20,18 +20,9 @@ namespace WalletWasabi.Tests
 		}
 
 		public static EndPoint TorSocks5Endpoint => new IPEndPoint(IPAddress.Loopback, 9050);
-
-		public static TorSettings TorSettings
-		{
-			get
-			{
-				string torLogsFile = Path.Combine(DataDir, "TorLogs.txt");
-				string torDistributionFolder = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "TorDaemons");
-				var torSettings = new TorSettings(DataDir, torLogsFile, torDistributionFolder);
-				return torSettings;
-			}
-		}
-
+		public static string TorLogsFile => Path.Combine(DataDir, "TorLogs.txt");
+		public static string TorDistributionFolder => Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "TorDaemons");
+		public static TorSettings TorSettings => new TorSettings(DataDir, TorLogsFile, TorDistributionFolder);
 		public static string DataDir => EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Tests"));
 
 		public static SmartTransaction GetRandomSmartTransaction()
