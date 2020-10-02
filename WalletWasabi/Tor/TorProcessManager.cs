@@ -256,7 +256,7 @@ namespace WalletWasabi.Tor
 
 				TorProcess.Kill();
 				using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
-				await TorProcess.WaitForExitAsync(cts.Token, true).ConfigureAwait(false);
+				await TorProcess.WaitForExitAsync(cts.Token, killOnCancel: true).ConfigureAwait(false);
 			}
 
 			TorProcess?.Dispose();
