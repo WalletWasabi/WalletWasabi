@@ -84,7 +84,7 @@
                     </i:Interaction.Behaviors>
                   </TextBox>
                 </StackPanel>
-                <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5">
+                <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5" IsVisible="{Binding UseTor}">
                   <ToggleButton IsChecked="{Binding CloseTor}" Content="{Binding CloseTor, Converter={StaticResource BooleanStringConverter}, ConverterParameter=On:Off}" Margin="0 0 10 0" />
                   <TextBlock VerticalAlignment="Center">Close Tor instance after quit.</TextBlock>
                 </StackPanel>
