@@ -1,21 +1,18 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using Avalonia.ReactiveUI;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels;
 
 namespace WalletWasabi.Fluent.Views
 {
-	public class HomeView : UserControl, IViewFor<HomeViewModel>
+	public class NavBar : UserControl
 	{
-		public HomeView()
+		public NavBar()
 		{
 			this.InitializeComponent();
 		}
-
-		public HomeViewModel ViewModel { get; set; }
-
-		object IViewFor.ViewModel { get; set; }
 
 		private void InitializeComponent()
 		{

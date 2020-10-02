@@ -1,0 +1,134 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors;assembly=WalletWasabi.Fluent"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Views.NavBar" UseLayoutRounding="False">
+  <UserControl.Styles>
+    <Style Selector="PathIcon">
+      <Setter Property="Margin" Value="1 0 0 0" />
+    </Style>
+    <Style Selector="Separator">
+      <Setter Property="Background" Value="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="Margin" Value="{DynamicResource MenuFlyoutSeparatorThemePadding}" />
+      <Setter Property="Height" Value="{DynamicResource MenuFlyoutSeparatorThemeHeight}" />
+    </Style>
+    <Style Selector="ListBox">
+      <Setter Property="Margin" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="ListBoxItem">
+      <Setter Property="Margin" Value="0" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    </Style>
+    <Style Selector="ListBoxItem:pointerover /template/ Rectangle#PressedBackground, ListBoxItem:selected /template/ Rectangle#PressedBackground">
+      <Setter Property="Fill" Value="Transparent"/>
+    </Style>
+    <Style Selector="TreeViewItem">
+      <Setter Property="IsExpanded" Value="{Binding IsExpanded}" />
+      <Setter Property="BorderThickness" Value="0" />
+    </Style>
+    <Style Selector="TreeViewItem /template/ Border#PART_LayoutRoot:pointerover, TreeViewItem:selected /template/ Border#PART_LayoutRoot">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="c|NavBarItem TextBlock">
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TreeView > TreeViewItem /template/ Panel">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="TreeViewItem > TreeViewItem">
+      <Setter Property="Margin" Value="-16 0 0 0" />
+    </Style>
+    <Style Selector=":is(Button).NavButton">
+      <Setter Property="Width" Value="{StaticResource SplitViewCompactPaneLength}" />
+      <Setter Property="Padding" Value="12,9,12,12" />
+    </Style>
+    <Style Selector=":is(Button).NavButton:disabled > PathIcon">
+      <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
+    </Style>
+    <Style Selector=":is(Button).NavButton /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+    <Style Selector=":is(Button):checked.NavButton /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+    <Style Selector=":is(Button):unchecked.NavButton /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+    <Style Selector=":is(Button):disabled /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector=":is(Button):pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListLowBrush}" />
+    </Style>    
+    <Style Selector="c|NavBarItem">
+      <Setter Property="IsSelected" Value="{Binding IsSelected}" />
+      <Setter Property="Header" Value="{Binding Title}" />
+    </Style>
+  </UserControl.Styles>
+  <UserControl.DataTemplates>
+    <DataTemplate DataType="vm:HomePageViewModel">
+      <c:NavBarItem>
+        <c:NavBarItem.Icon>
+          <PathIcon Data="{StaticResource home_regular}" />
+        </c:NavBarItem.Icon>
+      </c:NavBarItem>
+    </DataTemplate>
+    <DataTemplate DataType="vm:SettingsPageViewModel">
+      <c:NavBarItem>
+        <c:NavBarItem.Icon>
+          <PathIcon Data="{StaticResource settings_regular}" />
+        </c:NavBarItem.Icon>
+      </c:NavBarItem>
+    </DataTemplate>
+    <DataTemplate DataType="vm:AddWalletPageViewModel">
+      <c:NavBarItem>
+        <c:NavBarItem.Icon>
+          <PathIcon Data="{StaticResource add_circle_regular}" />
+        </c:NavBarItem.Icon>
+      </c:NavBarItem>
+    </DataTemplate>
+    <TreeDataTemplate DataType="vm:ClosedWalletViewModel" ItemsSource="{Binding Items}">
+      <c:NavBarItem>
+        <c:NavBarItem.Icon>
+          <PathIcon Data="{StaticResource web_asset_regular}" />
+        </c:NavBarItem.Icon>        
+      </c:NavBarItem>
+    </TreeDataTemplate>
+  </UserControl.DataTemplates>
+  <DockPanel>
+    <StackPanel DockPanel.Dock="Top">
+      <StackPanel.Resources>
+        <Thickness x:Key="ControlCornerRadius">0</Thickness>
+      </StackPanel.Resources>
+      <StackPanel Orientation="Horizontal" Spacing="10">
+        <Button Classes="NavButton" Command="{Binding GoBack}" Background="Transparent" IsEnabled="{Binding IsBackButtonVisible}">
+          <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
+        </Button>
+        <TextBlock Text="Wasabi Wallet" Foreground="White" VerticalAlignment="Center"/>
+      </StackPanel>
+      <Button Classes="NavButton" Command="{Binding DoToggleAction}">
+        <PathIcon Data="{StaticResource navigation_regular}" Width="16" />
+      </Button>      
+      <ListBox Items="{Binding TopItems}" SelectedItem="{Binding SelectedItem}" />
+      <Separator />
+    </StackPanel>
+
+    <StackPanel DockPanel.Dock="Bottom">
+      <Separator />
+      <ListBox Items="{Binding BottomItems}" SelectedItem="{Binding SelectedItem}" />
+    </StackPanel>
+
+    <TreeView Items="{Binding Items}" SelectedItem="{Binding SelectedItem}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
+  </DockPanel>
+</UserControl>

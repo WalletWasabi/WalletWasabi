@@ -18,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		private StatusBarViewModel _statusBar;
 		private string _title = "Wasabi Wallet";
 		private DialogViewModelBase? _currentDialog;
-
+		private NavBarViewModel _navBar;
 
 		public MainViewModel(Global global)
 		{
@@ -28,12 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			StatusBar = new StatusBarViewModel(global.DataDir, global.Network, global.Config, global.HostedServices, global.BitcoinStore.SmartHeaderChain, global.Synchronizer, global.LegalDocuments);
 
-			Dispatcher.UIThread.Post(async () =>
-			{
-				await Task.Delay(5000);
-
-				Router.Navigate.Execute(new HomeViewModel(this));
-			});
+			NavBar = new NavBarViewModel(this, Router, global.WalletManager, global.UiConfig);
 		}
 
 		public static MainViewModel Instance { get; internal set; }
@@ -51,11 +46,17 @@ namespace WalletWasabi.Fluent.ViewModels
 			get => _currentDialog;
 			set => this.RaiseAndSetIfChanged(ref _currentDialog, value);
 		}
+		
+		public NavBarViewModel NavBar
+		{
+			get => _navBar;
+			set => this.RaiseAndSetIfChanged(ref _navBar, value);
+		}
 
 		public StatusBarViewModel StatusBar
 		{
-			get { return _statusBar; }
-			set { this.RaiseAndSetIfChanged(ref _statusBar, value); }
+			get => _statusBar;
+			set => this.RaiseAndSetIfChanged(ref _statusBar, value);
 		}
 
 		public string Title

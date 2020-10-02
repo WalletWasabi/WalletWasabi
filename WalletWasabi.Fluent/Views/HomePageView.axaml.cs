@@ -1,12 +1,15 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using Avalonia.ReactiveUI;
+using ReactiveUI;
+using WalletWasabi.Fluent.ViewModels;
 
 namespace WalletWasabi.Fluent.Views
 {
-	public class StatusBar : UserControl
+	public class HomePageView : ReactiveUserControl<HomePageViewModel>
 	{
-		public StatusBar()
+		public HomePageView()
 		{
 			InitializeComponent();
 		}

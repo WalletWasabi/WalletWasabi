@@ -157,7 +157,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					Label = txr.Label,
 					BlockHeight = txr.Height.Type == HeightType.Chain ? txr.Height.Value : 0,
 					TransactionId = txr.TransactionId.ToString()
-				}).Select(ti => new TransactionViewModel(ti));
+				}).Select(ti => new TransactionViewModel(ti, Global.UiConfig));
 
 				Transactions = new ObservableCollection<TransactionViewModel>(trs);
 
