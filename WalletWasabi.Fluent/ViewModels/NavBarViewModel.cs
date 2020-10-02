@@ -167,6 +167,12 @@ namespace WalletWasabi.Fluent.ViewModels
 					{
 						_selectedItem.IsSelected = false;
 						_selectedItem.IsExpanded = false;
+
+						if (_selectedItem.Parent is { })
+						{
+							_selectedItem.Parent.IsSelected = false;
+							_selectedItem.Parent.IsExpanded = false;
+						}
 					}
 
 					_selectedItem = null;
@@ -181,6 +187,12 @@ namespace WalletWasabi.Fluent.ViewModels
 					{
 						_selectedItem.IsSelected = true;
 						_selectedItem.IsExpanded = IsOpen;
+
+						if (_selectedItem.Parent is { })
+						{
+							_selectedItem.Parent.IsSelected = true;
+							_selectedItem.Parent.IsExpanded = true;
+						}
 					}
 				}
 			}
