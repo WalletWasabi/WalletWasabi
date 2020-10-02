@@ -22,7 +22,7 @@ namespace WalletWasabi.Backend.Controllers
 	/// </summary>
 	[Produces("application/json")]
 	[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
-	public class BlockchainController : Controller
+	public class BlockchainController : ControllerBase
 	{
 		public static readonly TimeSpan FilterTimeout = TimeSpan.FromMinutes(20);
 
