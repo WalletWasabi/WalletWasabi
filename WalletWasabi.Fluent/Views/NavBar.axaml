@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors;assembly=WalletWasabi.Fluent"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.NavBar" UseLayoutRounding="False">
@@ -14,7 +15,11 @@
           <DataTemplate>
             <Panel>
               <Panel Width="45" HorizontalAlignment="Left">
-                <PathIcon HorizontalAlignment="Left" Data="{StaticResource add_circle_regular}" />
+                <PathIcon HorizontalAlignment="Left">
+                  <PathIcon.Data>
+                    <Binding Path="." Converter="{x:Static conv:NavBarIconConverter.Instance}" />
+                  </PathIcon.Data>
+                </PathIcon>
               </Panel>
               <TextBlock Text="{Binding Title}" Margin="35 0 0 0" />
             </Panel>
@@ -37,7 +42,7 @@
       <Setter Property="Padding" Value="0" />
     </Style>
     <Style Selector="c|NavBarTreeItem">
-      <Setter Property="IsExpanded" Value="{Binding IsExpanded}" />      
+      <Setter Property="IsExpanded" Value="{Binding IsExpanded}" />
     </Style>
     <Style Selector=":is(Button).NavButton">
       <Setter Property="Width" Value="{StaticResource SplitViewCompactPaneLength}" />
@@ -63,11 +68,11 @@
     </Style>
     <Style Selector=":is(Button):pointerover /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListLowBrush}" />
-    </Style>    
-    <Style Selector="c|NavBarItem">      
+    </Style>
+    <Style Selector="c|NavBarItem">
       <Setter Property="Header" Value="{Binding Title}" />
     </Style>
-  </UserControl.Styles>  
+  </UserControl.Styles>
   <DockPanel>
     <StackPanel DockPanel.Dock="Top">
       <StackPanel.Resources>
@@ -81,7 +86,7 @@
       </StackPanel>
       <Button Classes="NavButton" Command="{Binding DoToggleAction}">
         <PathIcon Data="{StaticResource navigation_regular}" Width="16" />
-      </Button>      
+      </Button>
       <c:NavBarListBox Items="{Binding TopItems}" SelectedItem="{Binding SelectedItem}" />
       <Separator />
     </StackPanel>
@@ -96,12 +101,16 @@
         <TreeDataTemplate ItemsSource="{Binding Items}">
           <Panel>
             <Panel Width="45" HorizontalAlignment="Left">
-              <PathIcon HorizontalAlignment="Left" Data="{StaticResource add_circle_regular}" />
+              <PathIcon HorizontalAlignment="Left">
+                <PathIcon.Data>
+                  <Binding Path="." Converter="{x:Static conv:NavBarIconConverter.Instance}" />
+                </PathIcon.Data>
+              </PathIcon>
             </Panel>
             <TextBlock Text="{Binding Title}" Margin="35 0 0 0" />
           </Panel>
         </TreeDataTemplate>
       </c:NavBarTreeView.ItemTemplate>
-    </c:NavBarTreeView>      
+    </c:NavBarTreeView>
   </DockPanel>
 </UserControl>

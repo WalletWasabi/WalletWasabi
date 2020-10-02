@@ -15,6 +15,8 @@ namespace WalletWasabi.Fluent.ViewModels
 {
 	public class WalletViewModel : WalletViewModelBase
 	{
+		public override string IconName => "web_asset_regular";
+
 		private ObservableCollection<ViewModelBase> _actions;
 
 		protected WalletViewModel(IScreen screen, UiConfig uiConfig, Wallet wallet) : base(screen, wallet)

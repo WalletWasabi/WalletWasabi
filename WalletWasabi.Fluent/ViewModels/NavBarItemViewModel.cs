@@ -14,6 +14,8 @@ namespace WalletWasabi.Fluent.ViewModels
 			HostScreen = screen;
 		}
 
+		public abstract string IconName { get; }
+
 		public string UrlPathSegment { get; } = Guid.NewGuid().ToString().Substring(0, 5);
 
 		public IScreen HostScreen { get; }
