@@ -11,6 +11,9 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
+	/// <summary>
+	/// The ViewModel that represents the structure of the sidebar.
+	/// </summary>
 	public class NavBarViewModel : ViewModelBase
 	{
 		private ObservableCollection<WalletViewModelBase> _items;
