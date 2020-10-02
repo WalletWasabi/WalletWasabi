@@ -35,7 +35,7 @@ namespace WalletWasabi.Gui.Tabs
 		private bool _startLocalBitcoinCoreOnStartup;
 		private bool _stopLocalBitcoinCoreOnShutdown;
 		private bool _isModified;
-		private bool _closeTor;
+		private bool _terminateTorOnExit;
 		private string _somePrivacyLevel;
 		private string _finePrivacyLevel;
 		private string _strongPrivacyLevel;
@@ -65,7 +65,7 @@ namespace WalletWasabi.Gui.Tabs
 			Network = config.Network;
 			TorSocks5EndPoint = config.TorSocks5EndPoint.ToString(-1);
 			UseTor = config.UseTor;
-			CloseTor = config.CloseTor;
+			TerminateTorOnExit = config.TerminateTorOnExit;
 			StartLocalBitcoinCoreOnStartup = config.StartLocalBitcoinCoreOnStartup;
 			StopLocalBitcoinCoreOnShutdown = config.StopLocalBitcoinCoreOnShutdown;
 
@@ -83,7 +83,7 @@ namespace WalletWasabi.Gui.Tabs
 			this.WhenAnyValue(
 				x => x.Network,
 				x => x.UseTor,
-				x => x.CloseTor,
+				x => x.TerminateTorOnExit,
 				x => x.StartLocalBitcoinCoreOnStartup,
 				x => x.StopLocalBitcoinCoreOnShutdown)
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -254,10 +254,10 @@ namespace WalletWasabi.Gui.Tabs
 			set => this.RaiseAndSetIfChanged(ref _useTor, value);
 		}
 
-		public bool CloseTor
+		public bool TerminateTorOnExit
 		{
-			get => _closeTor;
-			set => this.RaiseAndSetIfChanged(ref _closeTor, value);
+			get => _terminateTorOnExit;
+			set => this.RaiseAndSetIfChanged(ref _terminateTorOnExit, value);
 		}
 
 		public string SomePrivacyLevel
@@ -372,7 +372,7 @@ namespace WalletWasabi.Gui.Tabs
 							config.SetP2PEndpoint(p2pEp);
 						}
 						config.UseTor = UseTor;
-						config.CloseTor = CloseTor;
+						config.TerminateTorOnExit = TerminateTorOnExit;
 						config.StartLocalBitcoinCoreOnStartup = StartLocalBitcoinCoreOnStartup;
 						config.StopLocalBitcoinCoreOnShutdown = StopLocalBitcoinCoreOnShutdown;
 						config.LocalBitcoinCoreDataDir = Guard.Correct(LocalBitcoinCoreDataDir);
