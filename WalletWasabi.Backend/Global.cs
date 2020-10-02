@@ -20,10 +20,6 @@ namespace WalletWasabi.Backend
 {
 	public class Global
 	{
-		public Global() : this(null)
-		{
-		}
-
 		public Global(string dataDir)
 		{
 			DataDir = dataDir ?? EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));
