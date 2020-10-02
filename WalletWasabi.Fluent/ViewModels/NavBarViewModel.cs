@@ -137,25 +137,25 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public ObservableCollection<NavBarItemViewModel> TopItems
 		{
-			get { return _topItems; }
-			set { this.RaiseAndSetIfChanged(ref _topItems, value); }
+			get => _topItems;
+			set => this.RaiseAndSetIfChanged(ref _topItems, value);
 		}
 
 		public ObservableCollection<WalletViewModelBase> Items
 		{
-			get { return _items; }
-			set { this.RaiseAndSetIfChanged(ref _items, value); }
+			get => _items;
+			set => this.RaiseAndSetIfChanged(ref _items, value);
 		}
 
 		public ObservableCollection<NavBarItemViewModel> BottomItems
 		{
-			get { return _bottomItems; }
-			set { this.RaiseAndSetIfChanged(ref _bottomItems, value); }
+			get => _bottomItems;
+			set => this.RaiseAndSetIfChanged(ref _bottomItems, value);
 		}
 
 		public NavBarItemViewModel SelectedItem
 		{
-			get { return _selectedItem; }
+			get => _selectedItem;
 			set
 			{
 				if (_selectedItem != value)
@@ -185,14 +185,14 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public Action ToggleAction
 		{
-			get { return _toggleAction; }
-			set { this.RaiseAndSetIfChanged(ref _toggleAction, value); }
+			get => _toggleAction;
+			set => this.RaiseAndSetIfChanged(ref _toggleAction, value);
 		}
 
 		public Action CollapseOnClickAction
 		{
-			get { return _collapseOnClickAction; }
-			set { this.RaiseAndSetIfChanged(ref _collapseOnClickAction, value); }
+			get => _collapseOnClickAction;
+			set => this.RaiseAndSetIfChanged(ref _collapseOnClickAction, value);
 		}
 
 		public bool IsBackButtonVisible
@@ -203,8 +203,8 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public bool IsOpen
 		{
-			get { return _isOpen; }
-			set { this.RaiseAndSetIfChanged(ref _isOpen, value); }
+			get => _isOpen;
+			set => this.RaiseAndSetIfChanged(ref _isOpen, value);
 		}
 
 		public RoutingState Router { get; }

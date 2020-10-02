@@ -36,8 +36,8 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public NavBarViewModel NavBar
 		{
-			get { return _navBar; }
-			set { this.RaiseAndSetIfChanged(ref _navBar, value); }
+			get => _navBar;
+			set => this.RaiseAndSetIfChanged(ref _navBar, value);
 		}
 
 		public StatusBarViewModel StatusBar
