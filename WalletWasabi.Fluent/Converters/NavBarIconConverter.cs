@@ -14,7 +14,7 @@ namespace WalletWasabi.Fluent.Converters
 
 		private NavBarIconConverter()
 		{
-		}		
+		}
 
 		object IValueConverter.Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{

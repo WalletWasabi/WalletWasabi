@@ -55,6 +55,8 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public ReactiveCommand<Unit, Unit> OpenWalletCommand { get; }
 
+		public override string IconName => "web_asset_regular";
+
 		public static WalletViewModelBase Create(IScreen screen, WalletManager walletManager, Wallet wallet)
 		{
 			return wallet.KeyManager.IsHardwareWallet
@@ -63,7 +65,5 @@ namespace WalletWasabi.Fluent.ViewModels
 					? new ClosedWatchOnlyWalletViewModel(screen, walletManager, wallet)
 					: new ClosedWalletViewModel(screen, walletManager, wallet);
 		}
-
-		public override string IconName => "web_asset_regular";
 	}
 }
