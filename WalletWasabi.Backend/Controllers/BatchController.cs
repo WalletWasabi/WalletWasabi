@@ -39,11 +39,6 @@ namespace WalletWasabi.Backend.Controllers
 		[HttpGet("synchronize")]
 		public async Task<IActionResult> GetSynchronizeAsync([FromQuery, Required] string bestKnownBlockHash, [FromQuery, Required] int maxNumberOfFilters, [FromQuery] string? estimateSmartFeeMode = nameof(EstimateSmartFeeMode.Conservative))
 		{
-			if (!ModelState.IsValid)
-			{
-				return BadRequest("Wrong body is provided.");
-			}
-
 			bool estimateSmartFee = !string.IsNullOrWhiteSpace(estimateSmartFeeMode);
 			EstimateSmartFeeMode mode = EstimateSmartFeeMode.Conservative;
 			if (estimateSmartFee)
