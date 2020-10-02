@@ -97,7 +97,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			{
 				Assert.NotEqual(HttpStatusCode.OK, response.StatusCode);
 				Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-				Assert.Equal("Invalid hex.", await response.Content.ReadAsJsonAsync<string>());
+				Assert.Contains("The hex field is required.", await response.Content.ReadAsStringAsync());
 			}
 			Logger.TurnOn();
 		}
