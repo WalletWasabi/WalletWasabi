@@ -50,7 +50,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 		public static string GetWorkDir([CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerMemberName = null)
 		{
-			return Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName);
+			return Path.Combine(Tests.Common.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName);
 		}
 
 		private static async Task AssertFiltersInitializedAsync(RegTestFixture regTestFixture, Backend.Global global)

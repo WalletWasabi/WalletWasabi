@@ -22,7 +22,7 @@ namespace WalletWasabi.Tests.Helpers
 					network,
 					mempoolService ?? new MempoolService(),
 					hostedServices,
-					Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName, additionalFolder ?? ""),
+					Path.Combine(Common.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName, additionalFolder ?? ""),
 					tryRestart: true,
 					tryDeleteDataDir: true,
 					EndPointStrategy.Random,
