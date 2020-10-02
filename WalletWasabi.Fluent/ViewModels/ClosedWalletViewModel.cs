@@ -47,7 +47,6 @@ namespace WalletWasabi.Fluent.ViewModels
 				this.WhenAnyValue(x => x.WalletState).Select(x => x == WalletState.Uninitialized));
 		}
 
-
 		public ObservableCollection<NavBarItemViewModel> Items
 		{
 			get => _items;
