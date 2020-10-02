@@ -47,34 +47,21 @@ namespace WalletWasabi.Fluent.ViewModels
 				})
 				.DisposeWith(Disposables);
 
-			// If hardware wallet or not watch only wallet then we need the Send tab.
 			if (Wallet.KeyManager.IsHardwareWallet || !Wallet.KeyManager.IsWatchOnly)
 			{
-				//SendTab = new SendTabViewModel(Wallet);
-				//Actions.Add(SendTab);
 			}
-
-			//ReceiveTab = new ReceiveTabViewModel(Wallet);
-			//HistoryTab = new HistoryTabViewModel(Wallet);
-
-			//var advancedAction = new WalletAdvancedViewModel();
-			//InfoTab = new WalletInfoViewModel(Wallet);
-			//BuildTab = new BuildTabViewModel(Wallet);
-
-			//Actions.Add(ReceiveTab);
-
-			// If not watch only wallet (not hww) then we need the CoinJoin tab.
+			
 			if (!Wallet.KeyManager.IsWatchOnly)
 			{
-				//CoinjoinTab = new CoinJoinTabViewModel(Wallet);
-				//Actions.Add(CoinjoinTab);
 			}
+		}
 
-			//Actions.Add(HistoryTab);
+		private CompositeDisposable Disposables { get; set; }
 
-			//Actions.Add(advancedAction);
-			//advancedAction.Items.Add(InfoTab);
-			//advancedAction.Items.Add(BuildTab);
+		public ObservableCollection<ViewModelBase> Actions
+		{
+			get => _actions;
+			set => this.RaiseAndSetIfChanged(ref _actions, value);
 		}
 
 		public static WalletViewModel Create(IScreen screen, UiConfig uiConfig, Wallet wallet)
@@ -86,58 +73,9 @@ namespace WalletWasabi.Fluent.ViewModels
 					: new WalletViewModel(screen, uiConfig, wallet);
 		}
 
-		public ObservableCollection<ViewModelBase> Actions
-		{
-			get => _actions;
-			set => this.RaiseAndSetIfChanged(ref _actions, value);
-		}
-
-		private CompositeDisposable Disposables { get; set; }
-
 		public void OpenWalletTabs()
 		{
 			// TODO: Implement.
-			//var shell = IoC.Get<IShell>();
-
-			//if (SendTab is { })
-			//{
-			//	shell.AddOrSelectDocument(SendTab);
-			//}
-
-			//shell.AddOrSelectDocument(ReceiveTab);
-
-			//if (CoinjoinTab is { })
-			//{
-			//	shell.AddOrSelectDocument(CoinjoinTab);
-			//}
-
-			//shell.AddOrSelectDocument(HistoryTab);
-
-			//SelectTab(shell);
 		}
-
-		//private void SelectTab(IShell shell)
-		//{
-		//	if (Wallet.Coins.Any())
-		//	{
-		//		WasabiDocumentTabViewModel tabToOpen = UiConfig.LastActiveTab switch
-		//		{
-		//			nameof(SendTabViewModel) => SendTab,
-		//			nameof(ReceiveTabViewModel) => ReceiveTab,
-		//			nameof(CoinJoinTabViewModel) => CoinjoinTab,
-		//			nameof(BuildTabViewModel) => BuildTab,
-		//			_ => HistoryTab
-		//		};
-
-		//		if (tabToOpen is { })
-		//		{
-		//			shell.AddOrSelectDocument(tabToOpen);
-		//		}
-		//	}
-		//	else
-		//	{
-		//		shell.AddOrSelectDocument(ReceiveTab);
-		//	}
-		//}
 	}
 }

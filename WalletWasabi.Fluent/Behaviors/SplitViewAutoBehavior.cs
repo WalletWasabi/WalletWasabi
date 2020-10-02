@@ -11,9 +11,9 @@ namespace WalletWasabi.Fluent.Behaviors
 {
 	public class SplitViewAutoBehavior : Behavior<SplitView>
 	{
-		private bool m_wasForceClosed;
+		private bool _sidebarWasForceClosed;
 
-		private CompositeDisposable Disposables { get; set; }
+	private CompositeDisposable Disposables { get; set; }
 
 		public static readonly StyledProperty<double> CollapseThresholdProperty =
 			AvaloniaProperty.Register<SplitViewAutoBehavior, double>(nameof(CollapseThreshold));
@@ -69,14 +69,18 @@ namespace WalletWasabi.Fluent.Behaviors
 			if (AssociatedObject.IsPaneOpen)
 			{
 				if (AssociatedObject.Bounds.Width > CollapseThreshold)
-					m_wasForceClosed = true;
+				{
+					_sidebarWasForceClosed = true;
+				}
 
 				AssociatedObject.IsPaneOpen = false;
 			}
 			else
 			{
 				if (AssociatedObject.Bounds.Width > CollapseThreshold)
-					m_wasForceClosed = false;
+				{
+					_sidebarWasForceClosed = false;
+				}
 
 				AssociatedObject.IsPaneOpen = true;
 			}
@@ -93,7 +97,7 @@ namespace WalletWasabi.Fluent.Behaviors
 			{
 				AssociatedObject.DisplayMode = SplitViewDisplayMode.CompactOverlay;
 
-				if (!m_wasForceClosed & AssociatedObject.IsPaneOpen)
+				if (!_sidebarWasForceClosed & AssociatedObject.IsPaneOpen)
 				{
 					AssociatedObject.IsPaneOpen = false;
 				}
@@ -102,11 +106,10 @@ namespace WalletWasabi.Fluent.Behaviors
 			{
 				AssociatedObject.DisplayMode = SplitViewDisplayMode.CompactInline;
 
-				if (!m_wasForceClosed & !AssociatedObject.IsPaneOpen)
+				if (!_sidebarWasForceClosed & !AssociatedObject.IsPaneOpen)
 				{
 					AssociatedObject.IsPaneOpen = true;
 				}
-
 			}
 		}
 

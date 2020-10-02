@@ -15,12 +15,6 @@ namespace WalletWasabi.Fluent.ViewModels
 	{
 		private ObservableCollection<NavBarItemViewModel> _items;
 
-		public ObservableCollection<NavBarItemViewModel> Items
-		{
-			get { return _items; }
-			set { this.RaiseAndSetIfChanged(ref _items, value); }
-		}
-
 		protected ClosedWalletViewModel(IScreen screen, WalletManager walletManager, Wallet wallet) : base(screen, wallet)
 		{
 			_items = new ObservableCollection<NavBarItemViewModel>
@@ -51,6 +45,13 @@ namespace WalletWasabi.Fluent.ViewModels
 					}
 				},
 				this.WhenAnyValue(x => x.WalletState).Select(x => x == WalletState.Uninitialized));
+		}
+
+
+		public ObservableCollection<NavBarItemViewModel> Items
+		{
+			get => _items;
+			set => this.RaiseAndSetIfChanged(ref _items, value);
 		}
 
 		public ReactiveCommand<Unit, Unit> OpenWalletCommand { get; }
