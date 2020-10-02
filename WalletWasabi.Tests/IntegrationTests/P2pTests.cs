@@ -48,20 +48,20 @@ namespace WalletWasabi.Tests.IntegrationTests
 			{
 				throw new NotSupportedNetworkException(network);
 			}
-			var dataDir = Path.Combine(Common.DataDir, EnvironmentHelpers.GetCallerFileName());
 
-			var dir = Path.Combine(dataDir, EnvironmentHelpers.GetMethodName());
-			var indexStore = new IndexStore(Path.Combine(dir, "indexStore"), network, new SmartHeaderChain());
-			var transactionStore = new AllTransactionStore(Path.Combine(dir, "transactionStore"), network);
+			var dataDir = Common.GetWorkDir();
+
+			var indexStore = new IndexStore(Path.Combine(dataDir, "indexStore"), network, new SmartHeaderChain());
+			var transactionStore = new AllTransactionStore(Path.Combine(dataDir, "transactionStore"), network);
 			var mempoolService = new MempoolService();
-			var blocks = new FileSystemBlockRepository(Path.Combine(dir, "blocks"), network);
+			var blocks = new FileSystemBlockRepository(Path.Combine(dataDir, "blocks"), network);
 			BitcoinStore bitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService, blocks);
 			await bitcoinStore.InitializeAsync();
 
 			var addressManagerFolderPath = Path.Combine(dataDir, "AddressManager");
 			var addressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{network}.dat");
 			var connectionParameters = new NodeConnectionParameters();
-			AddressManager addressManager = null;
+			AddressManager addressManager;
 			try
 			{
 				addressManager = await NBitcoinHelpers.LoadAddressManagerFromPeerFileAsync(addressManagerFilePath);
