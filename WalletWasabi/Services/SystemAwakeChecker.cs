@@ -20,7 +20,7 @@ namespace WalletWasabi.Services
 
 		protected override async Task ActionAsync(CancellationToken cancel)
 		{
-			if (WalletManager.IsAnyCoinJoinInProgress())
+			if (WalletManager.AnyCoinJoinInProgress())
 			{
 				await EnvironmentHelpers.ProlongSystemAwakeAsync().ConfigureAwait(false);
 			}

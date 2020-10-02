@@ -436,7 +436,7 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-		public bool IsAnyCoinJoinInProgress()
+		public bool AnyCoinJoinInProgress()
 		{
 			lock (Lock)
 			{
