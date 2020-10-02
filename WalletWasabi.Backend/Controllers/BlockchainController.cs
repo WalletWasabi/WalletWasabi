@@ -44,12 +44,6 @@ namespace WalletWasabi.Backend.Controllers
 		/// <summary>
 		/// Get all fees.
 		/// </summary>
-		/// <remarks>
-		/// Sample request:
-		///
-		///     GET /fees/ECONOMICAL
-		///
-		/// </remarks>
 		/// <param name="estimateSmartFeeMode">Bitcoin Core's estimatesmartfee mode: ECONOMICAL/CONSERVATIVE.</param>
 		/// <returns>A dictionary of fee targets and estimations.</returns>
 		/// <response code="200">A dictionary of fee targets and estimations.</response>
