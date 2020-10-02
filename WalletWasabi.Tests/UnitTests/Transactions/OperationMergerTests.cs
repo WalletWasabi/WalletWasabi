@@ -9,7 +9,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void CanMergeSingleOperations()
 		{
-			var tx = Global.GenerateRandomSmartTransaction();
+			var tx = Common.GenerateRandomSmartTransaction();
 
 			var append = new Append(tx);
 			var unmergedAppendOperations = new[] { append };
@@ -39,14 +39,14 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void CanMergeComplexOperations()
 		{
-			var tx1 = Global.GenerateRandomSmartTransaction();
-			var tx2 = Global.GenerateRandomSmartTransaction();
-			var tx3 = Global.GenerateRandomSmartTransaction();
-			var tx4 = Global.GenerateRandomSmartTransaction();
-			var tx5 = Global.GenerateRandomSmartTransaction();
-			var tx6 = Global.GenerateRandomSmartTransaction();
-			var tx7 = Global.GenerateRandomSmartTransaction();
-			var tx8 = Global.GenerateRandomSmartTransaction();
+			var tx1 = Common.GenerateRandomSmartTransaction();
+			var tx2 = Common.GenerateRandomSmartTransaction();
+			var tx3 = Common.GenerateRandomSmartTransaction();
+			var tx4 = Common.GenerateRandomSmartTransaction();
+			var tx5 = Common.GenerateRandomSmartTransaction();
+			var tx6 = Common.GenerateRandomSmartTransaction();
+			var tx7 = Common.GenerateRandomSmartTransaction();
+			var tx8 = Common.GenerateRandomSmartTransaction();
 
 			var a1 = new Append(tx1, tx2);
 			var a2 = new Append(tx3, tx4, tx5);

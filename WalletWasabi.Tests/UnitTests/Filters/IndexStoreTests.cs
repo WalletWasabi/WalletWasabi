@@ -164,7 +164,7 @@ namespace WalletWasabi.Tests.UnitTests.Filters
 
 		private async Task<(string dir, string matureFilters, string immatureFilters)> GetIndexStorePathsAsync([CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerName = "")
 		{
-			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerName, "IndexStore");
+			var dir = Path.Combine(Common.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerName, "IndexStore");
 			await IoHelpers.TryDeleteDirectoryAsync(dir);
 			var matureFilters = Path.Combine(dir, "MatureIndex.dat");
 			var immatureFilters = Path.Combine(dir, "ImmatureIndex.dat");

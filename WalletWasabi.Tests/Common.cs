@@ -10,31 +10,20 @@ using WalletWasabi.Tor;
 
 namespace WalletWasabi.Tests
 {
-	public class Global
+	public static class Common
 	{
-		public Global()
+		static Common()
 		{
-			TorSocks5Endpoint = new IPEndPoint(IPAddress.Loopback, 9050);
-
-			DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Tests"));
-
-			string torLogsFile = Path.Combine(DataDir, "TorLogs.txt");
-			string torDistributionFolder = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "TorDaemons");
-
-			TorSettings = new TorSettings(DataDir, torLogsFile, torDistributionFolder);
-
 			Logger.SetFilePath(Path.Combine(DataDir, "Logs.txt"));
 			Logger.SetMinimumLevel(LogLevel.Info);
 			Logger.SetModes(LogMode.Debug, LogMode.Console, LogMode.File);
 		}
 
-		public static Global Instance { get; } = new Global();
+		public static EndPoint TorSocks5Endpoint => new IPEndPoint(IPAddress.Loopback, 9050);
 
-		public EndPoint TorSocks5Endpoint { get; }
+		public static TorSettings TorSettings => new TorSettings(DataDir, Path.Combine(DataDir, "TorLogs.txt"), Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "TorDaemons"));
 
-		public TorSettings TorSettings { get; }
-
-		public string DataDir { get; }
+		public static string DataDir => EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Tests"));
 
 		public static SmartTransaction GenerateRandomSmartTransaction()
 		{

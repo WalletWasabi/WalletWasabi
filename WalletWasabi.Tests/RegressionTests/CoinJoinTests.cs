@@ -106,7 +106,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			coordinator.RoundConfig.UpdateOrDefault(roundConfig, toFile: true);
 			coordinator.AbortAllRoundsInInputRegistration("");
 
-			using var torClient = new TorHttpClient(BaseUri, Global.Instance.TorSocks5Endpoint);
+			using var torClient = new TorHttpClient(BaseUri, Tests.Common.TorSocks5Endpoint);
 			using var satoshiClient = new SatoshiClient(BaseUri, null);
 
 			#region PostInputsGetStates
@@ -706,7 +706,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			coordinator.AbortAllRoundsInInputRegistration("");
 
 			Uri baseUri = new Uri(RegTestFixture.BackendEndPoint);
-			using var torClient = new TorHttpClient(baseUri, Global.Instance.TorSocks5Endpoint);
+			using var torClient = new TorHttpClient(baseUri, Tests.Common.TorSocks5Endpoint);
 			using var satoshiClient = new SatoshiClient(baseUri, null);
 			var round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 			var roundId = round.RoundId;

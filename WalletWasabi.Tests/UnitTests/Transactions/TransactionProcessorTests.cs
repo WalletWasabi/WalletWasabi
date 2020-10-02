@@ -1108,7 +1108,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var keyManager = KeyManager.CreateNew(out _, "password");
 			keyManager.AssertCleanKeysIndexed();
 
-			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerName, "TransactionStore");
+			var dir = Path.Combine(Common.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerName, "TransactionStore");
 			await IoHelpers.TryDeleteDirectoryAsync(dir);
 			var txStore = new AllTransactionStore(dir, Network.RegTest);
 			await txStore.InitializeAsync();

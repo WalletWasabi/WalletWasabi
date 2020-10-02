@@ -12,7 +12,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		public TransactionStoreMock([CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerMemberName = null)
 		{
 			// Make sure starts with clear state.
-			var filePath = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName, "Transactions.dat");
+			var filePath = Path.Combine(Common.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName, "Transactions.dat");
 			if (File.Exists(filePath))
 			{
 				File.Delete(filePath);
@@ -21,7 +21,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 		public async Task InitializeAsync(Network network, [CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerMemberName = null)
 		{
-			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName);
+			var dir = Path.Combine(Common.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName);
 			await InitializeAsync(dir, network, $"{nameof(TransactionStoreMock)}.{nameof(TransactionStoreMock.InitializeAsync)}");
 		}
 	}
