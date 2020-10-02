@@ -6,7 +6,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Backend
 {
-	public class Program
+	public static class Program
 	{
 #pragma warning disable IDE1006 // Naming Styles
 
