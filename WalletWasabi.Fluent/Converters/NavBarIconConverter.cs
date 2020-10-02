@@ -10,12 +10,11 @@ namespace WalletWasabi.Fluent.Converters
 {
 	public class NavBarIconConverter : IValueConverter
 	{
+		public static readonly NavBarIconConverter Instance = new NavBarIconConverter();
+
 		private NavBarIconConverter()
 		{
-
-		}
-
-		public static readonly NavBarIconConverter Instance = new NavBarIconConverter();
+		}		
 
 		object IValueConverter.Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{

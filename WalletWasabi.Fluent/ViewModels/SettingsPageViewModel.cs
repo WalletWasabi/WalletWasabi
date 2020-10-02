@@ -5,8 +5,6 @@ namespace WalletWasabi.Fluent.ViewModels
 {
 	public class SettingsPageViewModel : NavBarItemViewModel
 	{
-		public override string IconName => "settings_regular";
-
 		public SettingsPageViewModel(IScreen screen) : base(screen)
 		{
 			Title = "Settings";
@@ -18,5 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		}
 
 		public ICommand NextCommand { get; }
+
+		public override string IconName => "settings_regular";
 	}
 }

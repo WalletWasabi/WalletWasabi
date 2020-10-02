@@ -13,8 +13,6 @@ namespace WalletWasabi.Fluent.ViewModels
 {
 	public class ClosedWalletViewModel : WalletViewModelBase
 	{
-		public override string IconName => "web_asset_regular";
-
 		private ObservableCollection<NavBarItemViewModel> _items;
 
 		protected ClosedWalletViewModel(IScreen screen, WalletManager walletManager, Wallet wallet) : base(screen, wallet)
@@ -65,5 +63,7 @@ namespace WalletWasabi.Fluent.ViewModels
 					? new ClosedWatchOnlyWalletViewModel(screen, walletManager, wallet)
 					: new ClosedWalletViewModel(screen, walletManager, wallet);
 		}
+
+		public override string IconName => "web_asset_regular";
 	}
 }

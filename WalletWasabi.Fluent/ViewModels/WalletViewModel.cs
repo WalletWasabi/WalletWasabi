@@ -15,8 +15,6 @@ namespace WalletWasabi.Fluent.ViewModels
 {
 	public class WalletViewModel : WalletViewModelBase
 	{
-		public override string IconName => "web_asset_regular";
-
 		private ObservableCollection<ViewModelBase> _actions;
 
 		protected WalletViewModel(IScreen screen, UiConfig uiConfig, Wallet wallet) : base(screen, wallet)
@@ -52,7 +50,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			if (Wallet.KeyManager.IsHardwareWallet || !Wallet.KeyManager.IsWatchOnly)
 			{
 			}
-			
+
 			if (!Wallet.KeyManager.IsWatchOnly)
 			{
 			}
@@ -79,5 +77,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			// TODO: Implement.
 		}
+
+		public override string IconName => "web_asset_regular";
 	}
 }
