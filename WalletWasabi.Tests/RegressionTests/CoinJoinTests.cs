@@ -4,31 +4,17 @@ using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Security;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Backend;
-using WalletWasabi.Backend.Controllers;
-using WalletWasabi.Backend.Models;
-using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.BitcoinCore.Rpc;
-using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Blockchain.TransactionBroadcasting;
-using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Blockchain.TransactionProcessing;
-using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.CoinJoin.Client.Rounds;
@@ -36,8 +22,6 @@ using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.CoinJoin.Coordinator;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Crypto;
-using WalletWasabi.Exceptions;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
@@ -79,7 +63,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var offchainTxId = network.Consensus.ConsensusFactory.CreateTransaction().GetHash();
 			var mempoolTxId = await rpc.SendToAddressAsync(new Key().PubKey.GetSegwitAddress(network), Money.Coins(1));
 
-			var folder = Common.GetWorkDir();
+			var folder = Tests.Common.GetWorkDir();
 			await IoHelpers.TryDeleteDirectoryAsync(folder);
 			Directory.CreateDirectory(folder);
 			var cjfile = Path.Combine(folder, $"CoinJoins{network}.txt");
@@ -122,7 +106,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			coordinator.RoundConfig.UpdateOrDefault(roundConfig, toFile: true);
 			coordinator.AbortAllRoundsInInputRegistration("");
 
-			using var torClient = new TorHttpClient(BaseUri, Global.Instance.TorSocks5Endpoint);
+			using var torClient = new TorHttpClient(BaseUri, Tests.Common.TorSocks5Endpoint);
 			using var satoshiClient = new SatoshiClient(BaseUri, null);
 
 			#region PostInputsGetStates
@@ -722,7 +706,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			coordinator.AbortAllRoundsInInputRegistration("");
 
 			Uri baseUri = new Uri(RegTestFixture.BackendEndPoint);
-			using var torClient = new TorHttpClient(baseUri, Global.Instance.TorSocks5Endpoint);
+			using var torClient = new TorHttpClient(baseUri, Tests.Common.TorSocks5Endpoint);
 			using var satoshiClient = new SatoshiClient(baseUri, null);
 			var round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 			var roundId = round.RoundId;
@@ -1066,7 +1050,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			}
 
 			FeeRate feeRateTx = finalCoinjoin.GetFeeRate(coins.ToArray());
-			var esr = await rpc.EstimateSmartFeeAsync(roundConfig.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true);
+			var esr = await rpc.EstimateSmartFeeAsync(roundConfig.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true);
 			FeeRate feeRateReal = esr.FeeRate;
 
 			Assert.True(feeRateReal.FeePerK - feeRateReal.FeePerK / 2 < feeRateTx.FeePerK); // Max 50% mistake.
@@ -1373,7 +1357,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			// 3. Create wasabi synchronizer service.
 			var synchronizer = new WasabiSynchronizer(network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
 
-			var indexFilePath2 = Path.Combine(Common.GetWorkDir(), $"Index{network}2.dat");
+			var indexFilePath2 = Path.Combine(Tests.Common.GetWorkDir(), $"Index{network}2.dat");
 			var synchronizer2 = new WasabiSynchronizer(network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
 
 			// 4. Create key manager service.
@@ -1382,7 +1366,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var keyManager2 = KeyManager.CreateNew(out _, password);
 
 			// 5. Create wallet service.
-			var workDir = Common.GetWorkDir();
+			var workDir = Tests.Common.GetWorkDir();
 
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
 				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
@@ -1395,7 +1379,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer, blockProvider);
 			wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;
 
-			var workDir2 = Path.Combine(Common.GetWorkDir(), "2");
+			var workDir2 = Path.Combine(Tests.Common.GetWorkDir(), "2");
 			using var wallet2 = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager2, synchronizer2, nodes2, workDir2, serviceConfiguration, synchronizer2, blockProvider2);
 
 			// Get some money, make it confirm.

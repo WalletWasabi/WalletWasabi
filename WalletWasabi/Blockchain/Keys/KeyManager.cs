@@ -7,9 +7,7 @@ using System.Linq;
 using System.Security;
 using System.Text;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
-using WalletWasabi.Hwi.Models;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -413,7 +411,7 @@ namespace WalletWasabi.Blockchain.Keys
 		{
 			if (label.IsEmpty)
 			{
-				throw new InvalidOperationException("Known By is required.");
+				throw new InvalidOperationException("Label is required.");
 			}
 
 			minGapLimitIncreased = false;

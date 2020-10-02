@@ -2,7 +2,6 @@ using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.RPC;
 using System;
-using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -61,7 +60,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var keyManager = KeyManager.CreateNew(out _, password);
 
 			// 5. Create wallet service.
-			var workDir = Common.GetWorkDir();
+			var workDir = Tests.Common.GetWorkDir();
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
 				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
 				bitcoinStore.BlockRepository);
@@ -224,7 +223,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var keyManager = KeyManager.CreateNew(out _, password);
 
 			// 5. Create wallet service.
-			var workDir = Common.GetWorkDir();
+			var workDir = Tests.Common.GetWorkDir();
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
 				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
 				bitcoinStore.BlockRepository);

@@ -1,8 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Legal;
@@ -14,7 +10,7 @@ namespace WalletWasabi.Backend.Controllers
 	/// </summary>
 	[Produces("application/json")]
 	[Route("api/v" + Constants.BackendMajorVersion + "/[controller]")]
-	public class WasabiController : Controller
+	public class WasabiController : ControllerBase
 	{
 		/// <summary>
 		/// Gets the latest legal documents.

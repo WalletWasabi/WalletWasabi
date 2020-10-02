@@ -1,11 +1,7 @@
-using NBitcoin;
 using NBitcoin.RPC;
 using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.Text;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
-using WalletWasabi.Blockchain.Blocks;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests

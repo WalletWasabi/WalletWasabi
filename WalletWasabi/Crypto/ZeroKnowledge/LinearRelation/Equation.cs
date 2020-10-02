@@ -1,5 +1,4 @@
 using NBitcoin.Secp256k1;
-using System.Linq;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Helpers;
 
@@ -39,6 +38,12 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 		// Evaluate the verification equation corresponding to the one in the statement
 		internal bool Verify(GroupElement publicNonce, Scalar challenge, ScalarVector responses)
 		{
+			// A challenge of 0 does not place any constraint on the witness
+			if (challenge.IsZero)
+			{
+				return false;
+			}
+
 			// the verification equation (for 1 generator case) is:
 			//   sG =? R + eP
 			// where:
@@ -49,27 +54,24 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 			return responses * Generators == (publicNonce + challenge * PublicPoint);
 		}
 
-		// Simulate a public nonce given a challenge and arbitrary responses (should be random)
-		internal GroupElement Simulate(Scalar challenge, ScalarVector givenResponses)
-		{
-			// The verification equation above can be rearranged as a formula for R
-			// given e, P and s by subtracting eP from both sides:
-			//   R = sG - eP
-			return givenResponses * Generators - challenge * PublicPoint;
-		}
-
 		// Given a witness and secret nonces, respond to a challenge proving the equation holds w.r.t the witness
-		internal ScalarVector Respond(ScalarVector witness, ScalarVector secretNonces, Scalar challenge)
+		internal static ScalarVector Respond(ScalarVector witness, ScalarVector secretNonces, Scalar challenge)
 		{
-			// By canceling G on both sides of the verification equation above we can
-			// obtain a formula for the response s given k, e and x:
+			// blinding terms are required in order to protect the witness (unless the
+			// challenge is 0), so only respond if that is the case
+			foreach (var secretNonce in secretNonces)
+			{
+				CryptoGuard.NotZero(nameof(secretNonce), secretNonce);
+			}
+
+			// Taking the discrete logarithms of both sides of the verification
+			// equation with respect to G results in a formula for the response s
+			// given k, e and x:
 			//   s = k + ex
 			return secretNonces + challenge * witness;
 		}
 
 		internal bool VerifySolution(ScalarVector witness)
-		{
-			return PublicPoint == witness * Generators;
-		}
+			=> PublicPoint == witness * Generators;
 	}
 }

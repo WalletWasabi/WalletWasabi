@@ -2,7 +2,6 @@ using NBitcoin.Secp256k1;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using Xunit;

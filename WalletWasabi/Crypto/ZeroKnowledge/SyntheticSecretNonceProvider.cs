@@ -9,50 +9,36 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 {
 	public class SyntheticSecretNonceProvider
 	{
-		private readonly Strobe128 _strobe;
+		private readonly Strobe128 Strobe;
+		private readonly int SecretCount;
 
 		public SyntheticSecretNonceProvider(Strobe128 strobe, IEnumerable<Scalar> secrets, WasabiRandom random)
 		{
 			Guard.NotNullOrEmpty(nameof(secrets), secrets);
-
-			_strobe = strobe;
+			Strobe = strobe;
+			SecretCount = secrets.Count();
 
 			// add secret inputs as key material
 			foreach (var secret in secrets)
 			{
-				_strobe.Key(secret.ToBytes(), false);
+				Strobe.Key(secret.ToBytes(), false);
 			}
 
-			// add randomness as key material
-			_strobe.Key(random.GetBytes(32), false);
-
-			// Set up a generator of vectors of scalars the size as secrets vector
-			Sequence = VectorGenerator(secrets.Count());
+			Strobe.Key(random.GetBytes(32), false);
 		}
 
-		public IEnumerable<ScalarVector> Sequence { get; }
-
-		public Scalar GetScalar()
-		{
-			return new Scalar(_strobe.Prf(32, false));
-		}
-
-		private IEnumerable<Scalar> ScalarGenerator()
+		private IEnumerable<Scalar> Sequence()
 		{
 			while (true)
 			{
-				yield return GetScalar();
+				yield return new Scalar(Strobe.Prf(32, false));
 			}
 		}
 
-		private IEnumerable<ScalarVector> VectorGenerator(int len)
-		{
-			while (true)
-			{
-				// ScalarVector's constructor will call ToArray internally, hopefully
-				// minimizing copying
-				yield return new ScalarVector(ScalarGenerator().Take(len));
-			}
-		}
+		public Scalar GetScalar() =>
+			Sequence().First();
+
+		public ScalarVector GetScalarVector() =>
+			new ScalarVector(Sequence().Take(SecretCount));
 	}
 }

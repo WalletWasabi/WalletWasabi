@@ -304,20 +304,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 		{
 			lock (StateLock)
 			{
-				if (WaitingList.Any())
-				{
-					return true;
-				}
-
-				foreach (var coins in Rounds.Select(x => x.CoinsRegistered))
-				{
-					if (coins.Any())
-					{
-						return true;
-					}
-				}
-
-				return false;
+				return WaitingList.Any() || Rounds.SelectMany(x => x.CoinsRegistered).Any();
 			}
 		}
 

@@ -22,7 +22,7 @@ namespace WalletWasabi.Backend.Controllers
 	/// </summary>
 	[Produces("application/json")]
 	[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
-	public class BlockchainController : Controller
+	public class BlockchainController : ControllerBase
 	{
 		public static readonly TimeSpan FilterTimeout = TimeSpan.FromMinutes(20);
 
@@ -42,82 +42,8 @@ namespace WalletWasabi.Backend.Controllers
 		public Global Global { get; }
 
 		/// <summary>
-		/// Get fees for the requested confirmation targets based on Bitcoin Core's estimatesmartfee output.
-		/// </summary>
-		/// <remarks>
-		/// Sample request:
-		///
-		///     GET /fees/2,144,1008
-		///
-		/// </remarks>
-		/// <param name="confirmationTargets">Confirmation targets in blocks wit comma separation. (2 - 1008)</param>
-		/// <returns>Array of fee estimations for the requested confirmation targets. A fee estimation contains estimation mode (Conservative/Economical) and byte per satoshi pairs.</returns>
-		/// <response code="200">Returns array of fee estimations for the requested confirmation targets.</response>
-		/// <response code="400">If invalid conformation targets were provided. (2 - 1008 integers)</response>
-		[HttpGet("fees/{confirmationTargets}")]
-		[ProducesResponseType(200)] // Note: If you add typeof(SortedDictionary<int, FeeEstimationPair>) then swagger UI will visualize incorrectly.
-		[ProducesResponseType(400)]
-		[ResponseCache(Duration = 300, Location = ResponseCacheLocation.Client)]
-		public async Task<IActionResult> GetFeesAsync(string confirmationTargets)
-		{
-			if (string.IsNullOrWhiteSpace(confirmationTargets) || !ModelState.IsValid)
-			{
-				return BadRequest($"Invalid {nameof(confirmationTargets)} are provided.");
-			}
-
-			var confirmationTargetsInts = new HashSet<int>();
-			foreach (var targetParam in confirmationTargets.Split(',', StringSplitOptions.RemoveEmptyEntries))
-			{
-				if (int.TryParse(targetParam, out var target))
-				{
-					if (target < 2 || target > Constants.SevenDaysConfirmationTarget)
-					{
-						return BadRequest($"All requested confirmation target must be >= 2 AND <= {Constants.SevenDaysConfirmationTarget}.");
-					}
-
-					if (confirmationTargetsInts.Contains(target))
-					{
-						continue;
-					}
-
-					confirmationTargetsInts.Add(target);
-				}
-				else
-				{
-					return BadRequest($"Invalid {nameof(confirmationTargets)} are provided.");
-				}
-			}
-
-			var feeEstimations = new SortedDictionary<int, FeeEstimationPair>();
-
-			foreach (int target in confirmationTargetsInts)
-			{
-				// 1. Use the sanity check that under 2 satoshi per byte should not be displayed. To correct possible rounding errors.
-				// 2. Use the RPCResponse.Blocks output to avoid redundant RPC queries.
-				// 3. Use caching.
-				var conservativeResponse = await GetEstimateSmartFeeAsync(target, EstimateSmartFeeMode.Conservative);
-				var economicalResponse = await GetEstimateSmartFeeAsync(target, EstimateSmartFeeMode.Economical);
-				var conservativeFee = conservativeResponse.FeeRate.FeePerK.Satoshi / 1000;
-				var economicalFee = economicalResponse.FeeRate.FeePerK.Satoshi / 1000;
-
-				conservativeFee = Math.Max(conservativeFee, 2);
-				economicalFee = Math.Max(economicalFee, 2);
-
-				feeEstimations.Add(target, new FeeEstimationPair() { Conservative = conservativeFee, Economical = economicalFee });
-			}
-
-			return Ok(feeEstimations);
-		}
-
-		/// <summary>
 		/// Get all fees.
 		/// </summary>
-		/// <remarks>
-		/// Sample request:
-		///
-		///     GET /fees/ECONOMICAL
-		///
-		/// </remarks>
 		/// <param name="estimateSmartFeeMode">Bitcoin Core's estimatesmartfee mode: ECONOMICAL/CONSERVATIVE.</param>
 		/// <returns>A dictionary of fee targets and estimations.</returns>
 		/// <response code="200">A dictionary of fee targets and estimations.</response>
@@ -128,7 +54,7 @@ namespace WalletWasabi.Backend.Controllers
 		[ResponseCache(Duration = 300, Location = ResponseCacheLocation.Client)]
 		public async Task<IActionResult> GetAllFeesAsync([FromQuery, Required] string estimateSmartFeeMode)
 		{
-			if (!ModelState.IsValid || !Enum.TryParse(estimateSmartFeeMode, ignoreCase: true, out EstimateSmartFeeMode mode))
+			if (!Enum.TryParse(estimateSmartFeeMode, ignoreCase: true, out EstimateSmartFeeMode mode))
 			{
 				return BadRequest("Invalid estimation mode is provided, possible values: ECONOMICAL/CONSERVATIVE.");
 			}
@@ -146,7 +72,7 @@ namespace WalletWasabi.Backend.Controllers
 			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
 				cacheOptions,
-				() => RpcClient.EstimateAllFeeAsync(mode, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: true));
+				() => RpcClient.EstimateAllFeeAsync(mode, simulateIfRegTest: true));
 		}
 
 		/// <summary>
@@ -162,7 +88,7 @@ namespace WalletWasabi.Backend.Controllers
 		[ResponseCache(Duration = 3, Location = ResponseCacheLocation.Client)]
 		public async Task<IActionResult> GetMempoolHashesAsync([FromQuery] int compactness = 64)
 		{
-			if (compactness < 1 || compactness > 64 || !ModelState.IsValid)
+			if (compactness < 1 || compactness > 64)
 			{
 				return BadRequest("Invalid compactness parameter is provided.");
 			}
@@ -209,11 +135,6 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(400)]
 		public async Task<IActionResult> GetTransactionsAsync([FromQuery, Required] IEnumerable<string> transactionIds)
 		{
-			if (!ModelState.IsValid)
-			{
-				return BadRequest("Invalid transaction Ids.");
-			}
-
 			var maxTxToRequest = 10;
 			if (transactionIds.Count() > maxTxToRequest)
 			{
@@ -313,11 +234,6 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(400)]
 		public async Task<IActionResult> BroadcastAsync([FromBody, Required] string hex)
 		{
-			if (!ModelState.IsValid)
-			{
-				return BadRequest("Invalid hex.");
-			}
-
 			Transaction transaction;
 			try
 			{
@@ -371,7 +287,7 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(404)]
 		public IActionResult GetFilters([FromQuery, Required] string bestKnownBlockHash, [FromQuery, Required] int count)
 		{
-			if (count <= 0 || !ModelState.IsValid)
+			if (count <= 0)
 			{
 				return BadRequest("Invalid block hash or count is provided.");
 			}
@@ -397,17 +313,6 @@ namespace WalletWasabi.Backend.Controllers
 			};
 
 			return Ok(response);
-		}
-
-		private async Task<EstimateSmartFeeResponse> GetEstimateSmartFeeAsync(int target, EstimateSmartFeeMode mode)
-		{
-			var cacheKey = $"{nameof(GetEstimateSmartFeeAsync)}_{target}_{mode}";
-			var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60) };
-
-			return await Cache.AtomicGetOrCreateAsync(
-				cacheKey,
-				cacheOptions,
-				() => RpcClient.EstimateSmartFeeAsync(target, mode, simulateIfRegTest: true, tryOtherFeeRates: true));
 		}
 
 		[HttpGet("status")]

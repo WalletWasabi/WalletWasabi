@@ -22,7 +22,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _clipboardNotificationVisible;
 		private double _clipboardNotificationOpacity;
 
-		public TransactionViewModel(TransactionDetailsViewModel model)
+		public TransactionViewModel(TransactionDetailsViewModel model, UiConfig uiConfig)
 		{
 			TransactionDetails = model;
 			ClipboardNotificationVisible = false;
@@ -38,7 +38,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				if (transactionInfo is null)
 				{
-					transactionInfo = new TransactionInfoTabViewModel(TransactionDetails);
+					transactionInfo = new TransactionInfoTabViewModel(TransactionDetails, uiConfig);
 					shell.AddDocument(transactionInfo);
 				}
 
@@ -99,6 +99,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			this.RaisePropertyChanged(nameof(AmountBtc));
 			this.RaisePropertyChanged(nameof(TransactionId));
 			this.RaisePropertyChanged(nameof(DateTime));
+			this.RaisePropertyChanged(nameof(Label));
 		}
 
 		public async Task TryCopyTxIdToClipboardAsync()

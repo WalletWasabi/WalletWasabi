@@ -3,7 +3,6 @@ using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Xaml.Interactivity;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;

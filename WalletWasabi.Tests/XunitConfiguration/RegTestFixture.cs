@@ -1,14 +1,11 @@
-using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
-using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend;
@@ -27,7 +24,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 
 		public RegTestFixture()
 		{
-			RuntimeParams.SetDataDir(Path.Combine(Tests.Global.Instance.DataDir, "RegTests", "Backend"));
+			RuntimeParams.SetDataDir(Path.Combine(Common.DataDir, "RegTests", "Backend"));
 			RuntimeParams.LoadAsync().GetAwaiter().GetResult();
 			var hostedServices = new HostedServices();
 			BackendRegTestNode = TestNodeBuilder.CreateAsync(hostedServices, callerFilePath: "RegTests", callerMemberName: "BitcoinCoreData").GetAwaiter().GetResult();

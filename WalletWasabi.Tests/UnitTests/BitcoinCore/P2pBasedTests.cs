@@ -3,10 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.BitcoinCore;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
@@ -34,7 +32,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			{
 				var network = coreNode.Network;
 				var rpc = coreNode.RpcClient;
-				var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName(), EnvironmentHelpers.GetMethodName());
+				var dir = Common.GetWorkDir();
 				var indexStore = new IndexStore(Path.Combine(dir, "indexStore"), network, new SmartHeaderChain());
 				var transactionStore = new AllTransactionStore(Path.Combine(dir, "transactionStore"), network);
 				var mempoolService = new MempoolService();
@@ -92,7 +90,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				await rpc.GenerateAsync(101);
 				var network = rpc.Network;
 
-				var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName(), EnvironmentHelpers.GetMethodName());
+				var dir = Common.GetWorkDir();
 
 				var addr = new Key().PubKey.GetSegwitAddress(network);
 				var notifier = coreNode.MempoolService;

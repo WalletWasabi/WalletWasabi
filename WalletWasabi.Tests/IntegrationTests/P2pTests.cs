@@ -1,29 +1,22 @@
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
-using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.CoinJoin.Client.Clients;
-using WalletWasabi.Crypto;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
-using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Wallets;
 using Xunit;
 
@@ -55,20 +48,20 @@ namespace WalletWasabi.Tests.IntegrationTests
 			{
 				throw new NotSupportedNetworkException(network);
 			}
-			var dataDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName());
 
-			var dir = Path.Combine(dataDir, EnvironmentHelpers.GetMethodName());
-			var indexStore = new IndexStore(Path.Combine(dir, "indexStore"), network, new SmartHeaderChain());
-			var transactionStore = new AllTransactionStore(Path.Combine(dir, "transactionStore"), network);
+			var dataDir = Common.GetWorkDir();
+
+			var indexStore = new IndexStore(Path.Combine(dataDir, "indexStore"), network, new SmartHeaderChain());
+			var transactionStore = new AllTransactionStore(Path.Combine(dataDir, "transactionStore"), network);
 			var mempoolService = new MempoolService();
-			var blocks = new FileSystemBlockRepository(Path.Combine(dir, "blocks"), network);
+			var blocks = new FileSystemBlockRepository(Path.Combine(dataDir, "blocks"), network);
 			BitcoinStore bitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService, blocks);
 			await bitcoinStore.InitializeAsync();
 
 			var addressManagerFolderPath = Path.Combine(dataDir, "AddressManager");
 			var addressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{network}.dat");
 			var connectionParameters = new NodeConnectionParameters();
-			AddressManager addressManager = null;
+			AddressManager addressManager;
 			try
 			{
 				addressManager = await NBitcoinHelpers.LoadAddressManagerFromPeerFileAsync(addressManagerFilePath);
@@ -99,7 +92,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			using var nodes = new NodesGroup(network, connectionParameters, requirements: Constants.NodeRequirements);
 
 			KeyManager keyManager = KeyManager.CreateNew(out _, "password");
-			WasabiSynchronizer syncer = new WasabiSynchronizer(network, bitcoinStore, new Uri("http://localhost:12345"), Global.Instance.TorSocks5Endpoint);
+			WasabiSynchronizer syncer = new WasabiSynchronizer(network, bitcoinStore, new Uri("http://localhost:12345"), Common.TorSocks5Endpoint);
 			ServiceConfiguration serviceConfig = new ServiceConfiguration(MixUntilAnonymitySet.PrivacyLevelStrong.ToString(), 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
 				new P2pBlockProvider(nodes, null, syncer, serviceConfig, network),

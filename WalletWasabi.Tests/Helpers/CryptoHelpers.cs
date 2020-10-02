@@ -2,7 +2,6 @@ using NBitcoin.Secp256k1;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace WalletWasabi.Tests.Helpers
 {

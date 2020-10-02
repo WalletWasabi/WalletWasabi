@@ -1,7 +1,5 @@
-using NBitcoin.Crypto;
 using NBitcoin.DataEncoders;
 using NBitcoin.Protocol;
-using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -9,7 +7,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.Helpers;

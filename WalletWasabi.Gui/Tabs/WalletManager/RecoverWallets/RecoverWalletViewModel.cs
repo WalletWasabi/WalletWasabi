@@ -1,5 +1,3 @@
-using AvalonStudio.Extensibility;
-using AvalonStudio.Shell;
 using NBitcoin;
 using ReactiveUI;
 using Splat;

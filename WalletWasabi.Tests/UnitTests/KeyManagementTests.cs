@@ -8,7 +8,6 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Tests.XunitConfiguration;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests
@@ -105,7 +104,7 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			string password = "password";
 
-			var filePath = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName(), EnvironmentHelpers.GetMethodName(), "Wallet.json");
+			var filePath = Path.Combine(Common.GetWorkDir(), "Wallet.json");
 			DeleteFileAndDirectoryIfExists(filePath);
 
 			Logger.TurnOff();

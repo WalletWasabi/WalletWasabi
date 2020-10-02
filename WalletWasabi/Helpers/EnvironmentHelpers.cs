@@ -173,7 +173,7 @@ namespace WalletWasabi.Helpers
 		}
 
 		/// <summary>
-		/// Executes a command with Bash.
+		/// Executes a command with Bourne shell.
 		/// https://stackoverflow.com/a/47918132/2061103
 		/// </summary>
 		public static async Task ShellExecAsync(string cmd, bool waitForExit = true)
@@ -231,19 +231,6 @@ namespace WalletWasabi.Helpers
 				}
 			}
 			return false;
-		}
-
-		/// <summary>
-		/// Gets the name of the current method.
-		/// </summary>
-		public static string GetMethodName([CallerMemberName] string callerName = "")
-		{
-			return callerName;
-		}
-
-		public static string GetCallerFileName([CallerFilePath] string callerFilePath = "")
-		{
-			return ExtractFileName(callerFilePath);
 		}
 
 		public static string GetFullBaseDirectory()

@@ -6,7 +6,6 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Security;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -29,15 +28,20 @@ namespace WalletWasabi.Tor.Http
 
 		private volatile bool _disposedValue = false; // To detect redundant calls
 
-		public TorHttpClient(Uri baseUri, EndPoint torSocks5EndPoint, bool isolateStream = false)
+		public TorHttpClient(Uri baseUri, EndPoint? torSocks5EndPoint, bool isolateStream = false):
+			this(() => baseUri, torSocks5EndPoint, isolateStream)
 		{
 			baseUri = Guard.NotNull(nameof(baseUri), baseUri);
-			Create(torSocks5EndPoint, isolateStream, () => baseUri);
 		}
 
-		public TorHttpClient(Func<Uri> baseUriAction, EndPoint torSocks5EndPoint, bool isolateStream = false)
+		public TorHttpClient(Func<Uri> baseUriAction, EndPoint? torSocks5EndPoint, bool isolateStream = false)
 		{
-			Create(torSocks5EndPoint, isolateStream, baseUriAction);
+			DestinationUriAction = Guard.NotNull(nameof(baseUriAction), baseUriAction);
+
+			// Connecting to loopback's URIs cannot be done via Tor.
+			TorSocks5EndPoint = DestinationUri.IsLoopback ? null : torSocks5EndPoint;
+			TorSocks5Client = null;
+			IsolateStream = isolateStream;
 		}
 
 		public static DateTimeOffset? TorDoesntWorkSince
@@ -56,11 +60,11 @@ namespace WalletWasabi.Tor.Http
 			}
 		}
 
-		public static Exception LatestTorException { get; private set; } = null;
+		public static Exception? LatestTorException { get; private set; } = null;
 
 		public Uri DestinationUri => DestinationUriAction();
-		public Func<Uri> DestinationUriAction { get; private set; }
-		public EndPoint TorSocks5EndPoint { get; private set; }
+		public Func<Uri> DestinationUriAction { get; }
+		public EndPoint? TorSocks5EndPoint { get; private set; }
 		public bool IsTorUsed => TorSocks5EndPoint is { };
 
 		public bool IsolateStream { get; private set; }
@@ -69,18 +73,10 @@ namespace WalletWasabi.Tor.Http
 
 		private static AsyncLock AsyncLock { get; } = new AsyncLock(); // We make everything synchronous, so slow, but at least stable.
 
-		private void Create(EndPoint torSocks5EndPoint, bool isolateStream, Func<Uri> baseUriAction)
-		{
-			DestinationUriAction = Guard.NotNull(nameof(baseUriAction), baseUriAction);
-			TorSocks5EndPoint = DestinationUri.IsLoopback ? null : torSocks5EndPoint;
-			TorSocks5Client = null;
-			IsolateStream = isolateStream;
-		}
-
 		/// <remarks>
-		/// Throws OperationCancelledException if <paramref name="cancel"/> is set.
+		/// Throws <see cref="OperationCanceledException"/> if <paramref name="cancel"/> is set.
 		/// </remarks>
-		public async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent content = null, CancellationToken cancel = default)
+		public async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken cancel = default)
 		{
 			Guard.NotNull(nameof(method), method);
 			relativeUri = Guard.NotNull(nameof(relativeUri), relativeUri);
@@ -165,7 +161,7 @@ namespace WalletWasabi.Tor.Http
 		}
 
 		/// <remarks>
-		/// Throws OperationCancelledException if <paramref name="cancel"/> is set.
+		/// Throws <see cref="OperationCanceledException"/> if <paramref name="cancel"/> is set.
 		/// </remarks>
 		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancel = default)
 		{
@@ -173,7 +169,7 @@ namespace WalletWasabi.Tor.Http
 
 			// https://tools.ietf.org/html/rfc7230#section-2.7.1
 			// A sender MUST NOT generate an "http" URI with an empty host identifier.
-			var host = Guard.NotNullOrEmptyOrWhitespace($"{nameof(request)}.{nameof(request.RequestUri)}.{nameof(request.RequestUri.DnsSafeHost)}", request.RequestUri.DnsSafeHost, trim: true);
+			string host = Guard.NotNullOrEmptyOrWhitespace($"{nameof(request)}.{nameof(request.RequestUri)}.{nameof(request.RequestUri.DnsSafeHost)}", request.RequestUri.DnsSafeHost, trim: true);
 
 			// https://tools.ietf.org/html/rfc7230#section-2.6
 			// Intermediaries that process HTTP messages (i.e., all intermediaries
@@ -197,25 +193,7 @@ namespace WalletWasabi.Tor.Http
 				Stream stream = TorSocks5Client.TcpClient.GetStream();
 				if (request.RequestUri.Scheme == "https")
 				{
-					SslStream sslStream;
-					// On Linux and OSX ignore certificate, because of a .NET Core bug
-					// This is a security vulnerability, has to be fixed as soon as the bug get fixed
-					// Details:
-					// https://github.com/dotnet/corefx/issues/21761
-					// https://github.com/nopara73/DotNetTor/issues/4
-					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-					{
-						sslStream = new SslStream(
-							stream,
-							leaveInnerStreamOpen: true);
-					}
-					else
-					{
-						sslStream = new SslStream(
-							stream,
-							leaveInnerStreamOpen: true,
-							userCertificateValidationCallback: (a, b, c, d) => true);
-					}
+					SslStream sslStream = new SslStream(stream, leaveInnerStreamOpen: true);
 
 					await sslStream
 						.AuthenticateAsClientAsync(

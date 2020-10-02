@@ -1,6 +1,5 @@
 using Avalonia.Threading;
 using NBitcoin;
-using Nito.AsyncEx;
 using ReactiveUI;
 using Splat;
 using System;
@@ -10,7 +9,6 @@ using System.Net;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
 using WalletWasabi.Gui.Helpers;
@@ -102,12 +100,6 @@ namespace WalletWasabi.Gui.Tabs
 
 			OpenConfigFileCommand = ReactiveCommand.CreateFromTask(OpenConfigFileAsync);
 
-			LurkingWifeModeCommand = ReactiveCommand.Create(() =>
-			{
-				Global.UiConfig.LurkingWifeMode = !LurkingWifeMode;
-				Global.UiConfig.ToFile();
-			});
-
 			SetClearPinCommand = ReactiveCommand.Create(() =>
 			{
 				var pinBoxText = PinBoxText;
@@ -159,7 +151,6 @@ namespace WalletWasabi.Gui.Tabs
 
 			Observable
 				.Merge(OpenConfigFileCommand.ThrownExceptions)
-				.Merge(LurkingWifeModeCommand.ThrownExceptions)
 				.Merge(SetClearPinCommand.ThrownExceptions)
 				.Merge(TextBoxLostFocusCommand.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -182,7 +173,6 @@ namespace WalletWasabi.Gui.Tabs
 		private object ConfigLock { get; } = new object();
 
 		public ReactiveCommand<Unit, Unit> OpenConfigFileCommand { get; }
-		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
 		public ReactiveCommand<Unit, Unit> SetClearPinCommand { get; }
 		public ReactiveCommand<Unit, Unit> TextBoxLostFocusCommand { get; }
 
@@ -285,8 +275,6 @@ namespace WalletWasabi.Gui.Tabs
 			set => this.RaiseAndSetIfChanged(ref _dustThreshold, value);
 		}
 
-		public bool LurkingWifeMode => Global.UiConfig.LurkingWifeMode;
-
 		public string PinBoxText
 		{
 			get => _pinBoxText;
@@ -305,11 +293,6 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			try
 			{
-				Global.UiConfig
-					.WhenAnyValue(x => x.LurkingWifeMode)
-					.Subscribe(_ => this.RaisePropertyChanged(nameof(LurkingWifeMode)))
-					.DisposeWith(disposables);
-
 				_isPinSet = Global.UiConfig
 					.WhenAnyValue(x => x.LockScreenPinHash, x => !string.IsNullOrWhiteSpace(x))
 					.ToProperty(this, x => x.IsPinSet, scheduler: RxApp.MainThreadScheduler)

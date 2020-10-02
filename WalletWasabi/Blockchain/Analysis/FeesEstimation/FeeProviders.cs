@@ -1,49 +1,38 @@
-using NBitcoin;
-using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using WalletWasabi.Bases;
-using WalletWasabi.Logging;
-using WalletWasabi.Services;
 
 namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 {
 	public class FeeProviders : IFeeProvider, IDisposable
 	{
-		private AllFeeEstimate _allFeeEstimate;
-
-		public FeeProviders(IEnumerable<IFeeProvider> feeProviders)
+		public FeeProviders(IFeeProvider baseProvider, params IFeeProvider[]? feeProviders)
 		{
-			Providers = feeProviders;
 			Lock = new object();
 
-			SetAllFeeEstimate();
+			Providers = new List<IFeeProvider>();
+
+			if (feeProviders is { })
+			{
+				Providers.AddRange(feeProviders.Where(x => x is { }));
+			}
+
+			// Backend(synchronizer) fee provider is always the last provider.
+			Providers.Add(baseProvider);
 
 			foreach (var provider in Providers)
 			{
 				provider.AllFeeEstimateChanged += Provider_AllFeeEstimateChanged;
 			}
+
+			SetAllFeeEstimate();
 		}
 
 		public event EventHandler<AllFeeEstimate> AllFeeEstimateChanged;
 
-		public AllFeeEstimate AllFeeEstimate
-		{
-			get => _allFeeEstimate;
-			private set
-			{
-				if (value != _allFeeEstimate)
-				{
-					_allFeeEstimate = value;
-					AllFeeEstimateChanged?.Invoke(this, value);
-				}
-			}
-		}
+		public AllFeeEstimate AllFeeEstimate { get; private set; }
 
-		private IEnumerable<IFeeProvider> Providers { get; }
+		private List<IFeeProvider> Providers { get; }
 
 		private object Lock { get; }
 
@@ -56,20 +45,20 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 		{
 			lock (Lock)
 			{
-				IFeeProvider[] providerArray = Providers.ToArray();
-				for (int i = 0; i < providerArray.Length - 1; i++)
+				AllFeeEstimate? feeEstimateToSet = null;
+				foreach (IFeeProvider provider in Providers.SkipLast(1))
 				{
-					IFeeProvider provider = providerArray[i];
-					var af = provider.AllFeeEstimate;
-					if (af is { } && af.IsAccurate)
+					if (provider.AllFeeEstimate is { IsAccurate: bool isAccurate } af && isAccurate)
 					{
-						AllFeeEstimate = af;
-						return;
+						feeEstimateToSet = af;
+						break;
 					}
 				}
 
-				AllFeeEstimate = providerArray[^1].AllFeeEstimate;
+				AllFeeEstimate = feeEstimateToSet ?? Providers.Last().AllFeeEstimate;
 			}
+
+			AllFeeEstimateChanged?.Invoke(this, AllFeeEstimate);
 		}
 
 		#region IDisposable Support

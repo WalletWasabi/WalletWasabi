@@ -1,19 +1,12 @@
-using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
-using NBitcoin;
-using NBitcoin.RPC;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Backend
 {
-	public class Program
+	public static class Program
 	{
 #pragma warning disable IDE1006 // Naming Styles
 
@@ -22,14 +15,7 @@ namespace WalletWasabi.Backend
 		{
 			try
 			{
-				var endPoint = "http://localhost:37127/";
-
-				using var host = Host.CreateDefaultBuilder(args)
-					.ConfigureWebHostDefaults(webBuilder => webBuilder
-							.UseStartup<Startup>()
-							.UseUrls(endPoint))
-					.Build();
-
+				using var host = CreateHostBuilder(args).Build();
 				await host.RunWithTasksAsync();
 			}
 			catch (Exception ex)
@@ -37,5 +23,8 @@ namespace WalletWasabi.Backend
 				Logger.LogCritical(ex);
 			}
 		}
+
+		public static IHostBuilder CreateHostBuilder(string[] args) =>
+			Host.CreateDefaultBuilder(args).ConfigureWebHostDefaults(webBuilder => webBuilder.UseStartup<Startup>());
 	}
 }

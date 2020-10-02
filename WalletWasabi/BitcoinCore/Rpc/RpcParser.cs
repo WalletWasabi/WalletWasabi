@@ -1,9 +1,5 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using NBitcoin;
-using NBitcoin.RPC;
 using Newtonsoft.Json.Linq;
 using WalletWasabi.BitcoinCore.Rpc.Models;
 

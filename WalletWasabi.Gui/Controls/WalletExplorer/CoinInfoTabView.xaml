@@ -42,8 +42,8 @@
             <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding PubKey}" />
           </Grid>
           <Grid ColumnDefinitions="150, *">
-            <TextBlock Classes="monospaceFont" Text="Known By:" />
-            <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Clusters}" />
+            <TextBlock Classes="monospaceFont" Text="Cluster:" />
+            <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding Cluster}" />
           </Grid>
         </StackPanel>
       </ScrollViewer>

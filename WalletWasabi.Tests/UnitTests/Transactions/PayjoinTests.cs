@@ -15,11 +15,6 @@ using System.Net.Http;
 using System.Net;
 using System.Text;
 using WalletWasabi.Models;
-using System.IO;
-using WalletWasabi.Helpers;
-using WalletWasabi.Stores;
-using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Blockchain.Mempool;
 using System.Collections.Specialized;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions
@@ -459,7 +454,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			{
 				foreach (var sameLabelCoin in scoins.Where(c => !c.Label.IsEmpty && c.Label == coin.Label))
 				{
-					sameLabelCoin.Clusters = coin.Clusters;
+					sameLabelCoin.Cluster = coin.Cluster;
 				}
 			}
 			var coinsView = new CoinsView(scoins);

@@ -1,9 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
 using NBitcoin.RPC;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinCore.Rpc;
@@ -42,7 +39,7 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 		{
 			try
 			{
-				var allFeeEstimate = await RpcClient.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative, true, true).ConfigureAwait(false);
+				var allFeeEstimate = await RpcClient.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative, true).ConfigureAwait(false);
 				AllFeeEstimate = allFeeEstimate;
 			}
 			catch

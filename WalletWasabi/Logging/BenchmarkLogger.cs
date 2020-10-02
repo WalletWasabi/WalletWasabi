@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace WalletWasabi.Logging
 {
@@ -47,16 +45,16 @@ namespace WalletWasabi.Logging
 				{
 					Stopwatch.Stop();
 
-					var min = Stopwatch.Elapsed.TotalMinutes;
-					var sec = Stopwatch.Elapsed.TotalSeconds;
+					double min = Stopwatch.Elapsed.TotalMinutes;
+					double sec = Stopwatch.Elapsed.TotalSeconds;
 					string message;
 					if (min > 1)
 					{
-						message = $"{OperationName} finished in {(int)min} minutes.";
+						message = $"{OperationName} finished in {min:#.##} minutes.";
 					}
 					else if (sec > 1)
 					{
-						message = $"{OperationName} finished in {(int)sec} seconds.";
+						message = $"{OperationName} finished in {sec:#.##} seconds.";
 					}
 					else
 					{

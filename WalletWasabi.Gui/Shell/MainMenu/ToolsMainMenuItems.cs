@@ -1,9 +1,6 @@
 using AvalonStudio.MainMenu;
 using AvalonStudio.Menus;
-using System;
-using System.Collections.Generic;
 using System.Composition;
-using System.Text;
 
 namespace WalletWasabi.Gui.Shell.MainMenu
 {

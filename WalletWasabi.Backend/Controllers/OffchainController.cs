@@ -3,7 +3,6 @@ using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Helpers;
@@ -16,7 +15,7 @@ namespace WalletWasabi.Backend.Controllers
 	/// </summary>
 	[Produces("application/json")]
 	[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
-	public class OffchainController : Controller
+	public class OffchainController : ControllerBase
 	{
 		public OffchainController(IMemoryCache memoryCache, IExchangeRateProvider exchangeRateProvider)
 		{

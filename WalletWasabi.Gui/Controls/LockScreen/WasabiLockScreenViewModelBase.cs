@@ -1,7 +1,5 @@
-using ReactiveUI;
 using Splat;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
 
 namespace WalletWasabi.Gui.Controls.LockScreen
 {

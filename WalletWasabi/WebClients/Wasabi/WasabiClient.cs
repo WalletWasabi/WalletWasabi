@@ -5,16 +5,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Helpers;
 using WalletWasabi.Models;
-using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Bases;
 using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.Tor.Http.Interfaces;
@@ -55,14 +52,15 @@ namespace WalletWasabi.WebClients.Wasabi
 				relativeUri = $"{relativeUri}&estimateSmartFeeMode={estimateMode}";
 			}
 
-			using var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, relativeUri, cancel: cancel);
+			using var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, relativeUri, cancel: cancel).ConfigureAwait(false);
+
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
-				await response.ThrowRequestExceptionFromContentAsync();
+				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
 			}
 
 			using HttpContent content = response.Content;
-			var ret = await content.ReadAsJsonAsync<SynchronizeResponse>();
+			var ret = await content.ReadAsJsonAsync<SynchronizeResponse>().ConfigureAwait(false);
 			return ret;
 		}
 
@@ -79,18 +77,19 @@ namespace WalletWasabi.WebClients.Wasabi
 				HttpMethod.Get,
 				HttpStatusCode.OK,
 				$"/api/v{ApiVersion}/btc/blockchain/filters?bestKnownBlockHash={bestKnownBlockHash}&count={count}",
-				cancel: cancel);
+				cancel: cancel).ConfigureAwait(false);
+
 			if (response.StatusCode == HttpStatusCode.NoContent)
 			{
 				return null;
 			}
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
-				await response.ThrowRequestExceptionFromContentAsync();
+				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
 			}
 
 			using HttpContent content = response.Content;
-			var ret = await content.ReadAsJsonAsync<FiltersResponse>();
+			var ret = await content.ReadAsJsonAsync<FiltersResponse>().ConfigureAwait(false);
 			return ret;
 		}
 
@@ -113,14 +112,15 @@ namespace WalletWasabi.WebClients.Wasabi
 					HttpMethod.Get,
 					HttpStatusCode.OK,
 					$"/api/v{ApiVersion}/btc/blockchain/transaction-hexes?&transactionIds={string.Join("&transactionIds=", chunk.Select(x => x.ToString()))}",
-					cancel: cancel);
+					cancel: cancel).ConfigureAwait(false);
+
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
-					await response.ThrowRequestExceptionFromContentAsync();
+					await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
 				}
 
 				using HttpContent content = response.Content;
-				var retString = await content.ReadAsJsonAsync<IEnumerable<string>>();
+				var retString = await content.ReadAsJsonAsync<IEnumerable<string>>().ConfigureAwait(false);
 				var ret = retString.Select(x => Transaction.Parse(x, network)).ToList();
 
 				lock (TransactionCacheLock)
@@ -145,39 +145,24 @@ namespace WalletWasabi.WebClients.Wasabi
 			return allTxs.ToDependencyGraph().OrderByDependency();
 		}
 
-		public async Task<IDictionary<int, FeeEstimationPair>> GetFeesAsync(params int[] confirmationTargets)
-		{
-			var confirmationTargetsString = string.Join(",", confirmationTargets);
-
-			using var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, $"/api/v{ApiVersion}/btc/blockchain/fees/{confirmationTargetsString}");
-			if (response.StatusCode != HttpStatusCode.OK)
-			{
-				await response.ThrowRequestExceptionFromContentAsync();
-			}
-
-			using HttpContent content = response.Content;
-			var ret = await content.ReadAsJsonAsync<IDictionary<int, FeeEstimationPair>>();
-			return ret;
-		}
-
 		public async Task BroadcastAsync(string hex)
 		{
 			using var content = new StringContent($"'{hex}'", Encoding.UTF8, "application/json");
-			using var response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v{ApiVersion}/btc/blockchain/broadcast", content);
+			using var response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v{ApiVersion}/btc/blockchain/broadcast", content).ConfigureAwait(false);
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
-				await response.ThrowRequestExceptionFromContentAsync();
+				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
 			}
 		}
 
 		public async Task BroadcastAsync(Transaction transaction)
 		{
-			await BroadcastAsync(transaction.ToHex());
+			await BroadcastAsync(transaction.ToHex()).ConfigureAwait(false);
 		}
 
 		public async Task BroadcastAsync(SmartTransaction transaction)
 		{
-			await BroadcastAsync(transaction.Transaction);
+			await BroadcastAsync(transaction.Transaction).ConfigureAwait(false);
 		}
 
 		public async Task<IEnumerable<uint256>> GetMempoolHashesAsync(CancellationToken cancel = default)
@@ -186,14 +171,15 @@ namespace WalletWasabi.WebClients.Wasabi
 				HttpMethod.Get,
 				HttpStatusCode.OK,
 				$"/api/v{ApiVersion}/btc/blockchain/mempool-hashes",
-				cancel: cancel);
+				cancel: cancel).ConfigureAwait(false);
+
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
-				await response.ThrowRequestExceptionFromContentAsync();
+				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
 			}
 
 			using HttpContent content = response.Content;
-			var strings = await content.ReadAsJsonAsync<IEnumerable<string>>();
+			var strings = await content.ReadAsJsonAsync<IEnumerable<string>>().ConfigureAwait(false);
 			var ret = strings.Select(x => new uint256(x));
 			return ret;
 		}
@@ -208,14 +194,15 @@ namespace WalletWasabi.WebClients.Wasabi
 				HttpMethod.Get,
 				HttpStatusCode.OK,
 				$"/api/v{ApiVersion}/btc/blockchain/mempool-hashes?compactness={compactness}",
-				cancel: cancel);
+				cancel: cancel).ConfigureAwait(false);
+
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
-				await response.ThrowRequestExceptionFromContentAsync();
+				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
 			}
 
 			using HttpContent content = response.Content;
-			var strings = await content.ReadAsJsonAsync<ISet<string>>();
+			var strings = await content.ReadAsJsonAsync<ISet<string>>().ConfigureAwait(false);
 			return strings;
 		}
 
@@ -225,14 +212,15 @@ namespace WalletWasabi.WebClients.Wasabi
 
 		public async Task<IEnumerable<ExchangeRate>> GetExchangeRatesAsync()
 		{
-			using var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, $"/api/v{ApiVersion}/btc/offchain/exchange-rates");
+			using var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, $"/api/v{ApiVersion}/btc/offchain/exchange-rates").ConfigureAwait(false);
+
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
-				await response.ThrowRequestExceptionFromContentAsync();
+				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
 			}
 
 			using HttpContent content = response.Content;
-			var ret = await content.ReadAsJsonAsync<IEnumerable<ExchangeRate>>();
+			var ret = await content.ReadAsJsonAsync<IEnumerable<ExchangeRate>>().ConfigureAwait(false);
 			return ret;
 		}
 
@@ -242,22 +230,22 @@ namespace WalletWasabi.WebClients.Wasabi
 
 		public async Task<(Version ClientVersion, ushort BackendMajorVersion, Version LegalDocumentsVersion)> GetVersionsAsync(CancellationToken cancel)
 		{
-			using var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, "/api/software/versions", cancel: cancel);
+			using var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, "/api/software/versions", cancel: cancel).ConfigureAwait(false);
 
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
-				await response.ThrowRequestExceptionFromContentAsync();
+				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
 			}
 
 			using HttpContent content = response.Content;
-			var resp = await content.ReadAsJsonAsync<VersionsResponse>();
+			var resp = await content.ReadAsJsonAsync<VersionsResponse>().ConfigureAwait(false);
 
 			return (Version.Parse(resp.ClientVersion), ushort.Parse(resp.BackendMajorVersion), Version.Parse(resp.LegalDocumentsVersion));
 		}
 
 		public async Task<UpdateStatus> CheckUpdatesAsync(CancellationToken cancel)
 		{
-			var versions = await GetVersionsAsync(cancel);
+			var versions = await GetVersionsAsync(cancel).ConfigureAwait(false);
 			var clientUpToDate = Helpers.Constants.ClientVersion >= versions.ClientVersion; // If the client version locally is greater than or equal to the backend's reported client version, then good.
 			var backendCompatible = int.Parse(Helpers.Constants.ClientSupportBackendVersionMax) >= versions.BackendMajorVersion && versions.BackendMajorVersion >= int.Parse(Helpers.Constants.ClientSupportBackendVersionMin); // If ClientSupportBackendVersionMin <= backend major <= ClientSupportBackendVersionMax, then our software is compatible.
 			var currentBackendMajorVersion = versions.BackendMajorVersion;
@@ -282,9 +270,10 @@ namespace WalletWasabi.WebClients.Wasabi
 				HttpStatusCode.OK,
 				$"/api/v{ApiVersion}/wasabi/legaldocuments",
 				cancel: cancel).ConfigureAwait(false);
+
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
-				await response.ThrowRequestExceptionFromContentAsync();
+				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
 			}
 
 			using HttpContent content = response.Content;

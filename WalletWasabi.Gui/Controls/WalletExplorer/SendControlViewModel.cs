@@ -5,14 +5,12 @@ using ReactiveUI;
 using Splat;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Security;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
@@ -59,8 +57,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _isBusy;
 		private bool _isHardwareBusy;
 		private bool _isCustomFee;
-		private string _amountTip;
-		private ObservableAsPropertyHelper<bool> _isEstimateAvailabe;
 
 		private const string WaitingForHardwareWalletButtonTextString = "Waiting for Hardware Wallet...";
 
@@ -201,7 +197,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					LabelSuggestion.Label = label;
 					if (!IsMax && label.IsEmpty)
 					{
-						NotificationHelpers.Warning("Known By is required.", "");
+						NotificationHelpers.Warning("Label is required.", "");
 						return;
 					}
 
@@ -557,13 +553,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			private set => this.RaiseAndSetIfChanged(ref _isCustomFee, value);
 		}
 
-		public bool IsEstimateAvailable => _isEstimateAvailabe?.Value ?? false;
-
-		public string AmountTip
-		{
-			get => _amountTip;
-			set => this.RaiseAndSetIfChanged(ref _amountTip, value);
-		}
+		public bool IsEstimateAvailable => Global.FeeProviders?.AllFeeEstimate is { };
 
 		public string AmountWatermarkText
 		{
@@ -881,11 +871,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override void OnOpen(CompositeDisposable disposables)
 		{
-			_isEstimateAvailabe = Observable
+			Observable
 				.FromEventPattern<AllFeeEstimate>(Global.FeeProviders, nameof(Global.FeeProviders.AllFeeEstimateChanged))
-				.Select(x => x.EventArgs is { })
-				.ToProperty(this, x => x.IsEstimateAvailable, scheduler: RxApp.MainThreadScheduler, initialValue: Global.FeeProviders?.AllFeeEstimate is { })
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => this.RaisePropertyChanged(nameof(IsEstimateAvailable)))
 				.DisposeWith(disposables);
+
+			this.RaisePropertyChanged(nameof(IsEstimateAvailable));
 
 			Observable
 				.FromEventPattern<AllFeeEstimate>(Global.FeeProviders, nameof(Global.FeeProviders.AllFeeEstimateChanged))

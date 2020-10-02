@@ -6,8 +6,8 @@ using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Microservices;
 using WalletWasabi.Tor.Exceptions;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5;
@@ -46,128 +46,121 @@ namespace WalletWasabi.Tor
 			Stop = new CancellationTokenSource();
 			TorProcess = null;
 			Settings = settings;
+			TorSocks5Client = new TorSocks5Client(torSocks5EndPoint);
+
+			IoHelpers.EnsureContainingDirectoryExists(Settings.LogFilePath);
 		}
 
 		private EndPoint TorSocks5EndPoint { get; }
 
 		public static bool RequestFallbackAddressUsage { get; private set; } = false;
 
-		private Process? TorProcess { get; set; }
+		private ProcessAsync? TorProcess { get; set; }
 
 		private TorSettings Settings { get; }
+
+		private TorSocks5Client TorSocks5Client { get; }
 
 		public bool IsRunning => Interlocked.Read(ref _monitorState) == StateRunning;
 
 		private CancellationTokenSource Stop { get; set; }
 
-		public void Start(bool ensureRunning)
+		/// <summary>
+		/// Installs Tor if it is not installed, then it starts Tor.
+		/// </summary>
+		/// <param name="ensureRunning">
+		/// If <c>false</c>, Tor is started but no attempt to verify that it actually runs is made.
+		/// <para>If <c>true</c>, we start Tor and attempt to connect to it to verify it is running (at most 25 attempts).</para>
+		/// </param>
+		public async Task<bool> StartAsync(bool ensureRunning)
 		{
-			new Thread(delegate () // Do not ask. This is the only way it worked on Win10/Ubuntu18.04/Manjuro(1 processor VM)/Fedora(1 processor VM)
-			{
-				try
-				{
-					// 1. Is it already running?
-					// 2. Can I simply run it from output directory?
-					// 3. Can I copy and unzip it from assets?
-					// 4. Throw exception.
-
-					try
-					{
-						if (IsTorRunningAsync(TorSocks5EndPoint).GetAwaiter().GetResult())
-						{
-							Logger.LogInfo("Tor is already running.");
-							return;
-						}
-
-						var fullBaseDirectory = EnvironmentHelpers.GetFullBaseDirectory();
-
-						if (!File.Exists(Settings.TorPath))
-						{
-							Logger.LogInfo($"Tor instance NOT found at '{Settings.TorPath}'. Attempting to acquire it ...");
-							TorInstallator.InstallAsync(Settings.TorDir).GetAwaiter().GetResult();
-						}
-						else if (!IoHelpers.CheckExpectedHash(Settings.HashSourcePath, Path.Combine(fullBaseDirectory, "TorDaemons")))
-						{
-							Logger.LogInfo($"Updating Tor...");
-
-							string backupTorDir = $"{Settings.TorDir}_backup";
-							if (Directory.Exists(backupTorDir))
-							{
-								Directory.Delete(backupTorDir, true);
-							}
-							Directory.Move(Settings.TorDir, backupTorDir);
-
-							TorInstallator.InstallAsync(Settings.TorDir).GetAwaiter().GetResult();
-						}
-						else
-						{
-							Logger.LogInfo($"Tor instance found at '{Settings.TorPath}'.");
-						}
-
-						string torArguments = Settings.GetCmdArguments(TorSocks5EndPoint);
-
-						if (Settings.LogFilePath is { })
-						{
-							IoHelpers.EnsureContainingDirectoryExists(Settings.LogFilePath);
-							var logFileFullPath = Path.GetFullPath(Settings.LogFilePath);
-							torArguments += $" --Log \"notice file {logFileFullPath}\"";
-						}
-
-						if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-						{
-							TorProcess = Process.Start(new ProcessStartInfo
-							{
-								FileName = Settings.TorPath,
-								Arguments = torArguments,
-								UseShellExecute = false,
-								CreateNoWindow = true,
-								RedirectStandardOutput = true
-							});
-							Logger.LogInfo($"Starting Tor process with Process.Start.");
-						}
-						else // Linux and OSX
-						{
-							string runTorCmd = $"LD_LIBRARY_PATH=$LD_LIBRARY_PATH:='{Settings.TorDir}/Tor' && export LD_LIBRARY_PATH && cd '{Settings.TorDir}/Tor' && ./tor {torArguments}";
-							EnvironmentHelpers.ShellExecAsync(runTorCmd, waitForExit: false).GetAwaiter().GetResult();
-							Logger.LogInfo($"Started Tor process with shell command: {runTorCmd}.");
-						}
-
-						if (ensureRunning)
-						{
-							Task.Delay(3000).ConfigureAwait(false).GetAwaiter().GetResult(); // dotnet brainfart, ConfigureAwait(false) IS NEEDED HERE otherwise (only on) Manjuro Linux fails, WTF?!!
-							if (!IsTorRunningAsync(TorSocks5EndPoint).GetAwaiter().GetResult())
-							{
-								throw new TorException("Attempted to start Tor, but it is not running.");
-							}
-							Logger.LogInfo("Tor is running.");
-						}
-					}
-					catch (Exception ex)
-					{
-						throw new TorException("Could not automatically start Tor. Try running Tor manually.", ex);
-					}
-				}
-				catch (Exception ex)
-				{
-					Logger.LogError(ex);
-				}
-			}).Start();
-		}
-
-		/// <param name="torSocks5EndPoint">Opt out Tor with null.</param>
-		public static async Task<bool> IsTorRunningAsync(EndPoint torSocks5EndPoint)
-		{
-			using var client = new TorSocks5Client(torSocks5EndPoint);
 			try
 			{
-				await client.ConnectAsync().ConfigureAwait(false);
-				await client.HandshakeAsync().ConfigureAwait(false);
+				// Is Tor already running? Either our Tor process from previous Wasabi Wallet run or possibly user's own Tor.
+				bool isAlreadyRunning = await TorSocks5Client.IsTorRunningAsync().ConfigureAwait(false);
+
+				if (isAlreadyRunning)
+				{
+					string msg = TorSocks5EndPoint is IPEndPoint endpoint
+						? $"Tor is already running on {endpoint.Address}:{endpoint.Port}."
+						: "Tor is already running.";
+					Logger.LogInfo(msg);
+					return true;
+				}
+
+				// Install Tor if it is not installed and verify Tor is not tampered with (using hash/checksum).
+				bool verified = await new TorInstallator(Settings).VerifyInstallationAsync().ConfigureAwait(false);
+
+				if (!verified)
+				{
+					Logger.LogInfo("Failed to verify Tor installation.");
+					return false;
+				}
+
+				string torArguments = Settings.GetCmdArguments(TorSocks5EndPoint) + $" --Log \"notice file {Settings.LogFilePath}\"";
+
+				var startInfo = new ProcessStartInfo
+				{
+					FileName = Settings.TorBinaryFilePath,
+					Arguments = torArguments,
+					UseShellExecute = false,
+					CreateNoWindow = true,
+					RedirectStandardOutput = true,
+					WorkingDirectory = Settings.TorDir
+				};
+
+				if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				{
+					var env = startInfo.EnvironmentVariables;
+
+					env["LD_LIBRARY_PATH"] = !env.ContainsKey("LD_LIBRARY_PATH") || string.IsNullOrEmpty(env["LD_LIBRARY_PATH"])
+						? Settings.TorBinaryDir
+						: Settings.TorBinaryDir + Path.PathSeparator + env["LD_LIBRARY_PATH"];
+
+					Logger.LogDebug($"Environment variable 'LD_LIBRARY_PATH' set to: '{env["LD_LIBRARY_PATH"]}'.");
+				}
+
+				TorProcess = new ProcessAsync(startInfo);
+
+				Logger.LogInfo($"Starting Tor process ...");
+				TorProcess.Start();
+
+				if (ensureRunning)
+				{
+					int i = 0;
+					while (true)
+					{
+						i++;
+
+						bool isRunning = await TorSocks5Client.IsTorRunningAsync().ConfigureAwait(false);
+
+						if (isRunning)
+						{
+							break;
+						}
+
+						const int MaxAttempts = 25;
+
+						if (i >= MaxAttempts)
+						{
+							Logger.LogError($"All {MaxAttempts} attempts to connect to Tor failed.");
+							return false;
+						}
+
+						// Wait 250 milliseconds between attempts.
+						await Task.Delay(250).ConfigureAwait(false);
+					}
+
+					Logger.LogInfo("Tor is running.");
+					return true;
+				}
 			}
-			catch (ConnectionException)
+			catch (Exception ex)
 			{
-				return false;
+				Logger.LogError("Could not automatically start Tor. Try running Tor manually.", ex);
 			}
-			return true;
+
+			return false;
 		}
 
 		#region Monitor
@@ -218,8 +211,7 @@ namespace WalletWasabi.Tor
 									else
 									{
 										Logger.LogInfo($"Tor did not work properly for {(int)torMisbehavedFor.TotalSeconds} seconds. Maybe it crashed. Attempting to start it...");
-										Start(ensureRunning: true); // Try starting Tor, if it does not work it'll be another issue.
-										await Task.Delay(14000, Stop.Token).ConfigureAwait(false);
+										await StartAsync(ensureRunning: true).ConfigureAwait(false); // Try starting Tor, if it does not work it'll be another issue.
 									}
 								}
 							}

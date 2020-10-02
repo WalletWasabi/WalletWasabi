@@ -5,7 +5,6 @@ using AvalonStudio.Shell;
 using NBitcoin;
 using NBitcoin.Protocol;
 using ReactiveUI;
-using Splat;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +12,6 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Controls.LockScreen;
 using WalletWasabi.Gui.Tabs.WalletManager;
-using WalletWasabi.Services;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.ViewModels
@@ -30,7 +28,7 @@ namespace WalletWasabi.Gui.ViewModels
 		private Stack<LockScreenViewModelBase> _lockScreens;
 		private bool _menuVisible;
 
-		public MainWindowViewModel(Network network, UiConfig uiConfig, WalletManager walletManager, StatusBarViewModel statusBarViewModel, IShell shell)
+		public MainWindowViewModel(Network network, UiConfig uiConfig, WalletManager walletManager, StatusBarViewModel statusBarViewModel, IShell shell, bool initWalletManager = true)
 		{
 			Network = network;
 			UiConfig = uiConfig;
@@ -46,7 +44,10 @@ namespace WalletWasabi.Gui.ViewModels
 
 			StatusBar = statusBarViewModel;
 
-			DisplayWalletManager();
+			if (initWalletManager)
+			{
+				DisplayWalletManager();
+			}
 		}
 
 		public string Title

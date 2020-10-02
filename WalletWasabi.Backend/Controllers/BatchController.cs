@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Backend.Controllers
@@ -18,7 +19,7 @@ namespace WalletWasabi.Backend.Controllers
 	/// </summary>
 	[Produces("application/json")]
 	[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
-	public class BatchController : Controller
+	public class BatchController : ControllerBase
 	{
 		public BatchController(BlockchainController blockchainController, ChaumianCoinJoinController chaumianCoinJoinController, HomeController homeController, OffchainController offchainController, Global global)
 		{
@@ -38,11 +39,6 @@ namespace WalletWasabi.Backend.Controllers
 		[HttpGet("synchronize")]
 		public async Task<IActionResult> GetSynchronizeAsync([FromQuery, Required] string bestKnownBlockHash, [FromQuery, Required] int maxNumberOfFilters, [FromQuery] string? estimateSmartFeeMode = nameof(EstimateSmartFeeMode.Conservative))
 		{
-			if (!ModelState.IsValid)
-			{
-				return BadRequest("Wrong body is provided.");
-			}
-
 			bool estimateSmartFee = !string.IsNullOrWhiteSpace(estimateSmartFeeMode);
 			EstimateSmartFeeMode mode = EstimateSmartFeeMode.Conservative;
 			if (estimateSmartFee)
@@ -80,7 +76,14 @@ namespace WalletWasabi.Backend.Controllers
 
 			if (estimateSmartFee)
 			{
-				response.AllFeeEstimate = await BlockchainController.GetAllFeeEstimateAsync(mode);
+				try
+				{
+					response.AllFeeEstimate = await BlockchainController.GetAllFeeEstimateAsync(mode);
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError(ex);
+				}
 			}
 
 			response.ExchangeRates = await OffchainController.GetExchangeRatesCollectionAsync();

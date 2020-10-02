@@ -231,12 +231,14 @@ namespace WalletWasabi.Blockchain.Transactions
 
 				UpdatePSBTInfo(psbt, spentCoins, changeHdPubKey);
 
+				var isPayjoin = false;
 				if (!KeyManager.IsWatchOnly)
 				{
 					// Try to pay using payjoin
 					if (payjoinClient is { })
 					{
 						psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt, changeHdPubKey);
+						isPayjoin = true;
 					}
 				}
 				psbt.Finalize();
@@ -248,13 +250,16 @@ namespace WalletWasabi.Blockchain.Transactions
 					throw new InvalidOperationException("Impossible to get the fee rate of the PSBT, this should never happen.");
 				}
 
-				// Manually check the feerate, because some inaccuracy is possible.
-				var sb1 = feeRate.SatoshiPerByte;
-				var sb2 = actualFeeRate.SatoshiPerByte;
-				if (Math.Abs(sb1 - sb2) > 2) // 2s/b inaccuracy ok.
+				if (!isPayjoin)
 				{
-					// So it'll generate a transactionpolicy error thrown below.
-					checkResults.Add(new NotEnoughFundsPolicyError("Fees different than expected"));
+					// Manually check the feerate, because some inaccuracy is possible.
+					var sb1 = feeRate.SatoshiPerByte;
+					var sb2 = actualFeeRate.SatoshiPerByte;
+					if (Math.Abs(sb1 - sb2) > 2) // 2s/b inaccuracy ok.
+					{
+						// So it'll generate a transactionpolicy error thrown below.
+						checkResults.Add(new NotEnoughFundsPolicyError("Fees different than expected"));
+					}
 				}
 				if (checkResults.Count > 0)
 				{
@@ -306,7 +311,8 @@ namespace WalletWasabi.Blockchain.Transactions
 			Logger.LogInfo($"Transaction is successfully built: {tx.GetHash()}.");
 			var sign = !KeyManager.IsWatchOnly;
 			var spendsUnconfirmed = spentCoins.Any(c => !c.Confirmed);
-			return new BuildTransactionResult(new SmartTransaction(tx, Height.Unknown), psbt, spendsUnconfirmed, sign, fee, feePc, outerWalletOutputs, innerWalletOutputs, spentCoins);
+			SmartTransaction smartTransaction = new SmartTransaction(tx, Height.Unknown, label: SmartLabel.Merge(payments.Requests.Select(x => x.Label)));
+			return new BuildTransactionResult(smartTransaction, psbt, spendsUnconfirmed, sign, fee, feePc, outerWalletOutputs, innerWalletOutputs, spentCoins);
 		}
 
 		private PSBT TryNegotiatePayjoin(IPayjoinClient payjoinClient, TransactionBuilder builder, PSBT psbt, HdPubKey changeHdPubKey)

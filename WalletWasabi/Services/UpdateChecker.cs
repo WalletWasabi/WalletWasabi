@@ -3,9 +3,7 @@ using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
-using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.WebClients.Wasabi;
 

@@ -21,21 +21,18 @@ using WalletWasabi.BitcoinCore.Endpointing;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client;
-using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
+using WalletWasabi.Extensions;
 using WalletWasabi.Gui.CrashReport;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Rpc;
 using WalletWasabi.Helpers;
-using WalletWasabi.Hwi.Models;
 using WalletWasabi.Legal;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
@@ -92,7 +89,7 @@ namespace WalletWasabi.Gui
 				DataDir = dataDir;
 				Config = config;
 				UiConfig = uiConfig;
-				TorSettings = new TorSettings(DataDir, torLogsFile);
+				TorSettings = new TorSettings(DataDir, torLogsFile, distributionFolderPath: Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "TorDaemons"));
 
 				Logger.InitializeDefaults(Path.Combine(DataDir, "Logs.txt"));
 
@@ -180,8 +177,11 @@ namespace WalletWasabi.Gui
 
 				if (Config.UseTor)
 				{
-					TorManager = new TorProcessManager(TorSettings, Config.TorSocks5EndPoint);
-					TorManager.Start(ensureRunning: false);
+					using (BenchmarkLogger.Measure(operationName: "TorProcessManager.Start"))
+					{
+						TorManager = new TorProcessManager(TorSettings, Config.TorSocks5EndPoint);
+						await TorManager.StartAsync(ensureRunning: true).ConfigureAwait(false);
+					}
 
 					var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
 					TorManager.StartMonitor(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(7), fallbackRequestTestUri);
@@ -242,18 +242,9 @@ namespace WalletWasabi.Gui
 
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
 
-				var feeProviderList = new List<IFeeProvider>
-				{
-					Synchronizer
-				};
-
 				var rpcFeeProvider = HostedServices.FirstOrDefault<RpcFeeProvider>();
-				if (rpcFeeProvider is { })
-				{
-					feeProviderList.Insert(0, rpcFeeProvider);
-				}
 
-				FeeProviders = new FeeProviders(feeProviderList);
+				FeeProviders = new FeeProviders(Synchronizer, rpcFeeProvider);
 
 				#endregion BitcoinCoreInitialization
 
@@ -488,7 +479,7 @@ namespace WalletWasabi.Gui
 					if (reason != DequeueReason.Spent)
 					{
 						var type = reason == DequeueReason.UserRequested ? NotificationType.Information : NotificationType.Warning;
-						var message = reason == DequeueReason.UserRequested ? "" : reason.ToFriendlyString();
+						var message = reason == DequeueReason.UserRequested ? "" : reason.FriendlyName();
 						var title = success.Value.Count() == 1 ? $"Coin ({success.Value.First().Amount.ToString(false, true)}) Dequeued" : $"{success.Value.Count()} Coins Dequeued";
 						NotificationHelpers.Notify(message, title, type, sender: sender);
 					}
@@ -498,7 +489,7 @@ namespace WalletWasabi.Gui
 				{
 					DequeueReason reason = failure.Key;
 					var type = NotificationType.Warning;
-					var message = reason.ToFriendlyString();
+					var message = reason.FriendlyName();
 					var title = failure.Value.Count() == 1 ? $"Couldn't Dequeue Coin ({failure.Value.First().Amount.ToString(false, true)})" : $"Couldn't Dequeue {failure.Value.Count()} Coins";
 					NotificationHelpers.Notify(message, title, type, sender: sender);
 				}

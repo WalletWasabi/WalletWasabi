@@ -2,9 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
+using WalletWasabi.Hwi.Models;
 using WalletWasabi.Wallets;
 using Xunit;
 
@@ -25,7 +26,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task CreatesWalletDirectoriesAsync()
 		{
-			var baseDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName(), EnvironmentHelpers.GetMethodName());
+			var baseDir = Common.GetWorkDir();
 			(string walletsPath, string walletsBackupPath) = await CleanupWalletDirectoriesAsync(baseDir);
 
 			new WalletDirectories(baseDir);
@@ -41,7 +42,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task CorrectWalletDirectoryNameAsync()
 		{
-			var baseDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName(), EnvironmentHelpers.GetMethodName());
+			var baseDir = Common.GetWorkDir();
 			(string walletsPath, string walletsBackupPath) = await CleanupWalletDirectoriesAsync(baseDir);
 
 			var walletDirectories = new WalletDirectories($" {baseDir} ");
@@ -53,7 +54,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task ServesWalletFilesAsync()
 		{
-			var baseDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName(), EnvironmentHelpers.GetMethodName());
+			var baseDir = Common.GetWorkDir();
 			await CleanupWalletDirectoriesAsync(baseDir);
 
 			var walletDirectories = new WalletDirectories(baseDir);
@@ -68,7 +69,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task EnsuresJsonAsync()
 		{
-			var baseDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName(), EnvironmentHelpers.GetMethodName());
+			var baseDir = Common.GetWorkDir();
 			await CleanupWalletDirectoriesAsync(baseDir);
 
 			var walletDirectories = new WalletDirectories(baseDir);
@@ -84,7 +85,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task EnumerateFilesAsync()
 		{
-			var baseDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName(), EnvironmentHelpers.GetMethodName());
+			var baseDir = Common.GetWorkDir();
 			await CleanupWalletDirectoriesAsync(baseDir);
 
 			var walletDirectories = new WalletDirectories(baseDir);
@@ -113,7 +114,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task EnumerateOrdersByAccessAsync()
 		{
-			var baseDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName(), EnvironmentHelpers.GetMethodName());
+			var baseDir = Common.GetWorkDir();
 			await CleanupWalletDirectoriesAsync(baseDir);
 
 			var walletDirectories = new WalletDirectories(baseDir);
@@ -138,7 +139,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task EnumerateMissingDirAsync()
 		{
-			var baseDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName(), EnvironmentHelpers.GetMethodName());
+			var baseDir = Common.GetWorkDir();
 			(string walletsPath, string walletsBackupPath) = await CleanupWalletDirectoriesAsync(baseDir);
 
 			var walletDirectories = new WalletDirectories(baseDir);
@@ -155,23 +156,52 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task GetNextWalletTestAsync()
 		{
-			var baseDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName(), EnvironmentHelpers.GetMethodName());
+			var baseDir = Common.GetWorkDir();
 			await CleanupWalletDirectoriesAsync(baseDir);
-
 			var walletDirectories = new WalletDirectories(baseDir);
+			IoHelpers.CreateOrOverwriteFile(Path.Combine(walletDirectories.WalletsDir, "Random Wallet 3.json"));
 
-			Assert.Equal("Wallet0", walletDirectories.GetNextWalletName());
+			Assert.Equal("Random Wallet", walletDirectories.GetNextWalletName());
+			IoHelpers.CreateOrOverwriteFile(Path.Combine(walletDirectories.WalletsDir, "Random Wallet.json"));
+			Assert.Equal("Random Wallet 2", walletDirectories.GetNextWalletName());
+			IoHelpers.CreateOrOverwriteFile(Path.Combine(walletDirectories.WalletsDir, "Random Wallet 2.json"));
+			Assert.Equal("Random Wallet 4", walletDirectories.GetNextWalletName());
 
-			await File.Create(Path.Combine(walletDirectories.WalletsDir, $"Wallet0.json")).DisposeAsync();
-			await File.Create(Path.Combine(walletDirectories.WalletsDir, $"Wallet1.json")).DisposeAsync();
-			await File.Create(Path.Combine(walletDirectories.WalletsDir, $"Wallet3.json")).DisposeAsync();
+			IoHelpers.CreateOrOverwriteFile(Path.Combine(walletDirectories.WalletsDir, "Random Wallet 4.dat"));
+			IoHelpers.CreateOrOverwriteFile(Path.Combine(walletDirectories.WalletsDir, "Random Wallet 4"));
+			Assert.Equal("Random Wallet 4", walletDirectories.GetNextWalletName());
 
-			// This should not matter.
-			await File.Create(Path.Combine(walletDirectories.WalletsBackupDir, $"Wallet2.json")).DisposeAsync();
+			File.Delete(Path.Combine(walletDirectories.WalletsDir, "Random Wallet.json"));
+			File.Delete(Path.Combine(walletDirectories.WalletsDir, "Random Wallet 3.json"));
+			Assert.Equal("Random Wallet", walletDirectories.GetNextWalletName());
+			IoHelpers.CreateOrOverwriteFile(Path.Combine(walletDirectories.WalletsDir, "Random Wallet.json"));
+			Assert.Equal("Random Wallet 3", walletDirectories.GetNextWalletName());
+			IoHelpers.CreateOrOverwriteFile(Path.Combine(walletDirectories.WalletsDir, "Random Wallet 3.json"));
+			File.Delete(Path.Combine(walletDirectories.WalletsDir, "Random Wallet 3.json"));
 
-			Assert.Equal("Wallet2", walletDirectories.GetNextWalletName());
+			Assert.Equal("Foo", walletDirectories.GetNextWalletName("Foo"));
+			IoHelpers.CreateOrOverwriteFile(Path.Combine(walletDirectories.WalletsDir, "Foo.json"));
+			Assert.Equal("Foo 2", walletDirectories.GetNextWalletName("Foo"));
+			IoHelpers.CreateOrOverwriteFile(Path.Combine(walletDirectories.WalletsDir, "Foo 2.json"));
+		}
 
-			Assert.Equal("Foo0", walletDirectories.GetNextWalletName("Foo"));
+		[Fact]
+		public async Task GetFriendlyNameTestAsync()
+		{
+			Assert.Equal("Hardware Wallet", HardwareWalletModels.Unknown.FriendlyName());
+			Assert.Equal("Coldcard", HardwareWalletModels.Coldcard.FriendlyName());
+			Assert.Equal("Coldcard Simulator", HardwareWalletModels.Coldcard_Simulator.FriendlyName());
+			Assert.Equal("BitBox", HardwareWalletModels.DigitalBitBox_01.FriendlyName());
+			Assert.Equal("BitBox Simulator", HardwareWalletModels.DigitalBitBox_01_Simulator.FriendlyName());
+			Assert.Equal("KeepKey", HardwareWalletModels.KeepKey.FriendlyName());
+			Assert.Equal("KeepKey Simulator", HardwareWalletModels.KeepKey_Simulator.FriendlyName());
+			Assert.Equal("Ledger Nano S", HardwareWalletModels.Ledger_Nano_S.FriendlyName());
+			Assert.Equal("Trezor One", HardwareWalletModels.Trezor_1.FriendlyName());
+			Assert.Equal("Trezor One Simulator", HardwareWalletModels.Trezor_1_Simulator.FriendlyName());
+			Assert.Equal("Trezor T", HardwareWalletModels.Trezor_T.FriendlyName());
+			Assert.Equal("Trezor T Simulator", HardwareWalletModels.Trezor_T_Simulator.FriendlyName());
+			Assert.Equal("BitBox", HardwareWalletModels.BitBox02_BTCOnly.FriendlyName());
+			Assert.Equal("BitBox", HardwareWalletModels.BitBox02_Multi.FriendlyName());
 		}
 	}
 }

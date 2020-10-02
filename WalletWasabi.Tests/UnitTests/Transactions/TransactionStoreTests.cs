@@ -1,9 +1,5 @@
 using NBitcoin;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Transactions;
 using Xunit;
@@ -38,7 +34,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			Assert.True(txStore.IsEmpty());
 
-			var stx = Global.GenerateRandomSmartTransaction();
+			var stx = Common.GetRandomSmartTransaction();
 			var operation = txStore.TryAddOrUpdate(stx);
 			Assert.True(operation.isAdded);
 			Assert.False(operation.isUpdated);

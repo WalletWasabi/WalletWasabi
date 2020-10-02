@@ -10,8 +10,6 @@ using System.IO;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using WalletWasabi.Gui.Helpers;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Controls
 {

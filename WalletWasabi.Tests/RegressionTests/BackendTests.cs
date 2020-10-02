@@ -1,52 +1,26 @@
 using NBitcoin;
-using NBitcoin.Crypto;
-using NBitcoin.Protocol;
-using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Security;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Backend;
 using WalletWasabi.Backend.Controllers;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.BitcoinCore.Rpc;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Blockchain.TransactionBroadcasting;
-using WalletWasabi.Blockchain.TransactionBuilding;
-using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Blockchain.TransactionProcessing;
-using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.CoinJoin.Client.Clients;
-using WalletWasabi.CoinJoin.Client.Clients.Queuing;
-using WalletWasabi.CoinJoin.Client.Rounds;
-using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.CoinJoin.Coordinator;
-using WalletWasabi.CoinJoin.Coordinator.Rounds;
-using WalletWasabi.Crypto;
-using WalletWasabi.Exceptions;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
-using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
@@ -123,7 +97,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			{
 				Assert.NotEqual(HttpStatusCode.OK, response.StatusCode);
 				Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-				Assert.Equal("Invalid hex.", await response.Content.ReadAsJsonAsync<string>());
+				Assert.Contains("The hex field is required.", await response.Content.ReadAsStringAsync());
 			}
 			Logger.TurnOn();
 		}
@@ -133,7 +107,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		{
 			(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
-			var indexBuilderServiceDir = Common.GetWorkDir();
+			var indexBuilderServiceDir = Tests.Common.GetWorkDir();
 			var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{rpc.Network}.dat");
 
 			var indexBuilderService = new IndexBuilderService(rpc, global.HostedServices.FirstOrDefault<BlockNotifier>(), indexFilePath);
