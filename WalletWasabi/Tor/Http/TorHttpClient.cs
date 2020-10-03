@@ -34,7 +34,8 @@ namespace WalletWasabi.Tor.Http
 		private static readonly SslProtocols SupportedSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
 
 		/// <summary>Predefined HTTP client that handles HTTP requests when Tor is disabled.</summary>
-		private static readonly HttpClient ClearnetHttpClient = new HttpClient(new HttpClientHandler() {
+		private static readonly HttpClient ClearnetHttpClient = new HttpClient(new HttpClientHandler()
+		{
 			AutomaticDecompression = DecompressionMethods.GZip,
 			SslProtocols = SupportedSslProtocols
 		});
