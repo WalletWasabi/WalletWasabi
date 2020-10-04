@@ -33,7 +33,7 @@ namespace WalletWasabi.Services
 			var mutex = new AsyncMutex($"{MutexString}-{Network}");
 			try
 			{
-				using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.Zero);
+				using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(200));
 				SingleApplicationLockHolder = await mutex.LockAsync(cts.Token).ConfigureAwait(false);
 			}
 			catch (IOException ex)
