@@ -20,11 +20,11 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 		}
 
 		/// <summary>
-		/// Method to be called when the dialog is finished
+		/// Method to be called when the dialog intends to close
 		/// and ready to pass a value back to the caller.
 		/// </summary>
 		/// <param name="value">The return value of the dialog</param>
-		public void DialogFinished(TResult value)
+		public void CloseDialog(TResult value)
 		{
 			_tcs.SetResult(value);
 			_tcs = null;
