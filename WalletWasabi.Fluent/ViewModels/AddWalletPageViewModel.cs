@@ -8,5 +8,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			Title = "Add Wallet";
 		}
+
+		public override string IconName => "add_circle_regular";
 	}
 }

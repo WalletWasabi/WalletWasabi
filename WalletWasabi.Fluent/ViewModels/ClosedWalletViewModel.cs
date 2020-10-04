@@ -19,7 +19,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			_items = new ObservableCollection<NavBarItemViewModel>
 			{
-				new HomePageViewModel(screen)
+				new HomePageViewModel(screen) { Parent = this }
 			};
 
 			OpenWalletCommand = ReactiveCommand.CreateFromTask(
@@ -54,6 +54,8 @@ namespace WalletWasabi.Fluent.ViewModels
 		}
 
 		public ReactiveCommand<Unit, Unit> OpenWalletCommand { get; }
+
+		public override string IconName => "web_asset_regular";
 
 		public static WalletViewModelBase Create(IScreen screen, WalletManager walletManager, Wallet wallet)
 		{

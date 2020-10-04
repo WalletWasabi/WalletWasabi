@@ -8,5 +8,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			Title = "Home";
 		}
+
+		public override string IconName => "home_regular";
 	}
 }

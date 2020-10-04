@@ -26,7 +26,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			return new SmartTransaction(tx, new Height(height), blockHash);
 		}
 
-		private void PrepareTestEnv(out string dir, out Network network, out string mempoolFile, out string txFile, out SmartTransaction uTx1, out SmartTransaction uTx2, out SmartTransaction uTx3, out SmartTransaction cTx1, out SmartTransaction cTx2, out SmartTransaction cTx3, [CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerMemberName = null)
+		private void PrepareTestEnv(out string dir, out Network network, out string mempoolFile, out string txFile, out SmartTransaction uTx1, out SmartTransaction uTx2, out SmartTransaction uTx3, out SmartTransaction cTx1, out SmartTransaction cTx2, out SmartTransaction cTx3, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
 		{
 			dir = PrepareWorkDir(EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName);
 			network = Network.TestNet;
@@ -43,9 +43,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			cTx3 = SmartTransaction.FromLine("ebcef423f6b03ef89dce076b53e624c966381f76e5d8b2b5034d3615ae950b2f:01000000000101296d58df626f1e250c661bd45497d159647526eb8166aec86852eb37104c37950100000000ffffffff01facb100300000000160014d5461e0e7077d62c4cf9c18a4e9ba10efd4930340247304402206d2c5b2b182474531ed07587e44ea22b136a37d5ddbd35aa2d984da7be5f7e5202202abd8435d9856e3d0892dbd54e9c05f2a20d9d5f333247314b925947a480a2eb01210321dd0574c773a35d4a7ebf17bf8f974b5665c0183598f1db53153e74c876768500000000:1580673:0000000017b09a77b815f3df513ff698d1f3b0e8c5e16ac0d6558e2d831f3bf9:130::1570462988:False", network);
 		}
 
-		private string PrepareWorkDir([CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerMemberName = null)
+		private string PrepareWorkDir([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
 		{
-			string dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName);
+			string dir = Path.Combine(Common.GetWorkDir(callerFilePath, callerMemberName));
 			if (Directory.Exists(dir))
 			{
 				Directory.Delete(dir, true);
@@ -88,7 +88,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Empty(txStore.ConfirmedStore.GetTransactions());
 			Assert.Empty(txStore.ConfirmedStore.GetTransactionHashes());
 
-			uint256 txHash = Global.GenerateRandomSmartTransaction().GetHash();
+			uint256 txHash = Common.GetRandomSmartTransaction().GetHash();
 			Assert.False(txStore.Contains(txHash));
 			Assert.True(txStore.IsEmpty());
 			Assert.False(txStore.TryGetTransaction(txHash, out _));
@@ -147,7 +147,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Equal(3, txStore.ConfirmedStore.GetTransactionHashes().Count());
 			Assert.False(txStore.IsEmpty());
 
-			uint256 doesntContainTxHash = Global.GenerateRandomSmartTransaction().GetHash();
+			uint256 doesntContainTxHash = Common.GetRandomSmartTransaction().GetHash();
 			Assert.False(txStore.Contains(doesntContainTxHash));
 			Assert.False(txStore.TryGetTransaction(doesntContainTxHash, out _));
 
@@ -350,7 +350,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var txStore = new AllTransactionStore(PrepareWorkDir(), network);
 			await txStore.InitializeAsync(ensureBackwardsCompatibility: false);
 
-			var tx = Global.GenerateRandomSmartTransaction();
+			var tx = Common.GetRandomSmartTransaction();
 			Assert.False(txStore.TryUpdate(tx));
 
 			// Assert TryUpdate didn't modify anything.
@@ -364,7 +364,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Empty(txStore.ConfirmedStore.GetTransactions());
 			Assert.Empty(txStore.ConfirmedStore.GetTransactionHashes());
 
-			uint256 txHash = Global.GenerateRandomSmartTransaction().GetHash();
+			uint256 txHash = Common.GetRandomSmartTransaction().GetHash();
 			Assert.False(txStore.Contains(txHash));
 			Assert.True(txStore.IsEmpty());
 			Assert.False(txStore.TryGetTransaction(txHash, out _));

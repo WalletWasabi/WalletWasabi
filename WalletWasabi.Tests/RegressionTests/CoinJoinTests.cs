@@ -63,7 +63,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var offchainTxId = network.Consensus.ConsensusFactory.CreateTransaction().GetHash();
 			var mempoolTxId = await rpc.SendToAddressAsync(new Key().PubKey.GetSegwitAddress(network), Money.Coins(1));
 
-			var folder = Common.GetWorkDir();
+			var folder = Tests.Common.GetWorkDir();
 			await IoHelpers.TryDeleteDirectoryAsync(folder);
 			Directory.CreateDirectory(folder);
 			var cjfile = Path.Combine(folder, $"CoinJoins{network}.txt");
@@ -106,7 +106,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			coordinator.RoundConfig.UpdateOrDefault(roundConfig, toFile: true);
 			coordinator.AbortAllRoundsInInputRegistration("");
 
-			using var torClient = new TorHttpClient(BaseUri, Global.Instance.TorSocks5Endpoint);
+			using var torClient = new TorHttpClient(BaseUri, Tests.Common.TorSocks5Endpoint);
 			using var satoshiClient = new SatoshiClient(BaseUri, null);
 
 			#region PostInputsGetStates
@@ -150,7 +150,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var requesters = Array.Empty<Requester>();
 
 			HttpRequestException httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await CreateNewAliceClientAsync(roundId, registeredAddresses, signerPubKeys, requesters, inputsRequest));
-			Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nInvalid request.", httpRequestException.Message);
+			Assert.Contains(HttpStatusCode.BadRequest.ToReasonString(), httpRequestException.Message);
 
 			byte[] dummySignature = new byte[65];
 
@@ -483,7 +483,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{WalletWasabi.Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?uniqueId={aliceClient.UniqueId}&roundId=bar"))
 				{
 					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-					Assert.Null(await response.Content.ReadAsJsonAsync<string>());
+					Assert.Contains("\"roundId\":[\"The value 'bar' is not valid.\"", await response.Content.ReadAsStringAsync());
 				}
 
 				roundConfig.ConnectionConfirmationTimeout = 60;
@@ -706,7 +706,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			coordinator.AbortAllRoundsInInputRegistration("");
 
 			Uri baseUri = new Uri(RegTestFixture.BackendEndPoint);
-			using var torClient = new TorHttpClient(baseUri, Global.Instance.TorSocks5Endpoint);
+			using var torClient = new TorHttpClient(baseUri, Tests.Common.TorSocks5Endpoint);
 			using var satoshiClient = new SatoshiClient(baseUri, null);
 			var round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 			var roundId = round.RoundId;
@@ -1357,7 +1357,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			// 3. Create wasabi synchronizer service.
 			var synchronizer = new WasabiSynchronizer(network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
 
-			var indexFilePath2 = Path.Combine(Common.GetWorkDir(), $"Index{network}2.dat");
+			var indexFilePath2 = Path.Combine(Tests.Common.GetWorkDir(), $"Index{network}2.dat");
 			var synchronizer2 = new WasabiSynchronizer(network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
 
 			// 4. Create key manager service.
@@ -1366,7 +1366,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var keyManager2 = KeyManager.CreateNew(out _, password);
 
 			// 5. Create wallet service.
-			var workDir = Common.GetWorkDir();
+			var workDir = Tests.Common.GetWorkDir();
 
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
 				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
@@ -1379,7 +1379,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer, blockProvider);
 			wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;
 
-			var workDir2 = Path.Combine(Common.GetWorkDir(), "2");
+			var workDir2 = Path.Combine(Tests.Common.GetWorkDir(), "2");
 			using var wallet2 = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager2, synchronizer2, nodes2, workDir2, serviceConfiguration, synchronizer2, blockProvider2);
 
 			// Get some money, make it confirm.

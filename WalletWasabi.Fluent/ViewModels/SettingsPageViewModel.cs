@@ -16,5 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		}
 
 		public ICommand NextCommand { get; }
+
+		public override string IconName => "settings_regular";
 	}
 }

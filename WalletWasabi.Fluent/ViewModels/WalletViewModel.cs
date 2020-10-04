@@ -50,7 +50,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			if (Wallet.KeyManager.IsHardwareWallet || !Wallet.KeyManager.IsWatchOnly)
 			{
 			}
-			
+
 			if (!Wallet.KeyManager.IsWatchOnly)
 			{
 			}
@@ -77,5 +77,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			// TODO: Implement.
 		}
+
+		public override string IconName => "web_asset_regular";
 	}
 }

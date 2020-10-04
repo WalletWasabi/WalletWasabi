@@ -4,10 +4,29 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors;assembly=WalletWasabi.Fluent"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.NavBar" UseLayoutRounding="False">
   <UserControl.Styles>
+    <Style Selector=":is(ListBox)">
+      <Setter Property="ItemTemplate">
+        <Setter.Value>
+          <DataTemplate>
+            <Panel>
+              <Panel Width="45" HorizontalAlignment="Left">
+                <PathIcon HorizontalAlignment="Left">
+                  <PathIcon.Data>
+                    <Binding Path="." Converter="{x:Static conv:NavBarIconConverter.Instance}" />
+                  </PathIcon.Data>
+                </PathIcon>
+              </Panel>
+              <TextBlock Text="{Binding Title}" Margin="35 0 0 0" />
+            </Panel>
+          </DataTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
     <Style Selector="PathIcon">
       <Setter Property="Margin" Value="1 0 0 0" />
     </Style>
@@ -22,29 +41,8 @@
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="Padding" Value="0" />
     </Style>
-    <Style Selector="ListBoxItem">
-      <Setter Property="Margin" Value="0" />
-      <Setter Property="Padding" Value="0" />
-      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-    </Style>
-    <Style Selector="ListBoxItem:pointerover /template/ Rectangle#PressedBackground, ListBoxItem:selected /template/ Rectangle#PressedBackground">
-      <Setter Property="Fill" Value="Transparent"/>
-    </Style>
-    <Style Selector="TreeViewItem">
+    <Style Selector="c|NavBarTreeItem">
       <Setter Property="IsExpanded" Value="{Binding IsExpanded}" />
-      <Setter Property="BorderThickness" Value="0" />
-    </Style>
-    <Style Selector="TreeViewItem /template/ Border#PART_LayoutRoot:pointerover, TreeViewItem:selected /template/ Border#PART_LayoutRoot">
-      <Setter Property="Background" Value="Transparent" />
-    </Style>
-    <Style Selector="c|NavBarItem TextBlock">
-      <Setter Property="VerticalAlignment" Value="Center" />
-    </Style>
-    <Style Selector="TreeView > TreeViewItem /template/ Panel">
-      <Setter Property="IsVisible" Value="False" />
-    </Style>
-    <Style Selector="TreeViewItem > TreeViewItem">
-      <Setter Property="Margin" Value="-16 0 0 0" />
     </Style>
     <Style Selector=":is(Button).NavButton">
       <Setter Property="Width" Value="{StaticResource SplitViewCompactPaneLength}" />
@@ -71,41 +69,7 @@
     <Style Selector=":is(Button):pointerover /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListLowBrush}" />
     </Style>    
-    <Style Selector="c|NavBarItem">
-      <Setter Property="IsSelected" Value="{Binding IsSelected}" />
-      <Setter Property="Header" Value="{Binding Title}" />
-    </Style>
   </UserControl.Styles>
-  <UserControl.DataTemplates>
-    <DataTemplate DataType="vm:HomePageViewModel">
-      <c:NavBarItem>
-        <c:NavBarItem.Icon>
-          <PathIcon Data="{StaticResource home_regular}" />
-        </c:NavBarItem.Icon>
-      </c:NavBarItem>
-    </DataTemplate>
-    <DataTemplate DataType="vm:SettingsPageViewModel">
-      <c:NavBarItem>
-        <c:NavBarItem.Icon>
-          <PathIcon Data="{StaticResource settings_regular}" />
-        </c:NavBarItem.Icon>
-      </c:NavBarItem>
-    </DataTemplate>
-    <DataTemplate DataType="vm:AddWalletPageViewModel">
-      <c:NavBarItem>
-        <c:NavBarItem.Icon>
-          <PathIcon Data="{StaticResource add_circle_regular}" />
-        </c:NavBarItem.Icon>
-      </c:NavBarItem>
-    </DataTemplate>
-    <TreeDataTemplate DataType="vm:ClosedWalletViewModel" ItemsSource="{Binding Items}">
-      <c:NavBarItem>
-        <c:NavBarItem.Icon>
-          <PathIcon Data="{StaticResource web_asset_regular}" />
-        </c:NavBarItem.Icon>        
-      </c:NavBarItem>
-    </TreeDataTemplate>
-  </UserControl.DataTemplates>
   <DockPanel>
     <StackPanel DockPanel.Dock="Top">
       <StackPanel.Resources>
@@ -119,16 +83,31 @@
       </StackPanel>
       <Button Classes="NavButton" Command="{Binding DoToggleAction}">
         <PathIcon Data="{StaticResource navigation_regular}" Width="16" />
-      </Button>      
-      <ListBox Items="{Binding TopItems}" SelectedItem="{Binding SelectedItem}" />
+      </Button>
+      <c:NavBarListBox Items="{Binding TopItems}" SelectedItem="{Binding SelectedItem}" />
       <Separator />
     </StackPanel>
 
     <StackPanel DockPanel.Dock="Bottom">
       <Separator />
-      <ListBox Items="{Binding BottomItems}" SelectedItem="{Binding SelectedItem}" />
+      <c:NavBarListBox Items="{Binding BottomItems}" SelectedItem="{Binding SelectedItem}" />
     </StackPanel>
 
-    <TreeView Items="{Binding Items}" SelectedItem="{Binding SelectedItem}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
+    <c:NavBarTreeView Items="{Binding Items}" SelectedItem="{Binding SelectedItem}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+      <c:NavBarTreeView.ItemTemplate>
+        <TreeDataTemplate ItemsSource="{Binding Items}">
+          <Panel>
+            <Panel Width="45" HorizontalAlignment="Left">
+              <PathIcon HorizontalAlignment="Left">
+                <PathIcon.Data>
+                  <Binding Path="." Converter="{x:Static conv:NavBarIconConverter.Instance}" />
+                </PathIcon.Data>
+              </PathIcon>
+            </Panel>
+            <TextBlock Text="{Binding Title}" Margin="35 0 0 0" />
+          </Panel>
+        </TreeDataTemplate>
+      </c:NavBarTreeView.ItemTemplate>
+    </c:NavBarTreeView>
   </DockPanel>
 </UserControl>

@@ -24,7 +24,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui
 {
-	internal class Program
+	public static class Program
 	{
 		private static Global Global;
 
