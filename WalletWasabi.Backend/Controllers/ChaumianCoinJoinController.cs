@@ -28,7 +28,7 @@ namespace WalletWasabi.Backend.Controllers
 	/// </summary>
 	[Produces("application/json")]
 	[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
-	public class ChaumianCoinJoinController : Controller
+	public class ChaumianCoinJoinController : ControllerBase
 	{
 		public ChaumianCoinJoinController(IMemoryCache memoryCache, Global global)
 		{
@@ -104,7 +104,7 @@ namespace WalletWasabi.Backend.Controllers
 		public async Task<IActionResult> PostInputsAsync([FromBody, Required] InputsRequest4 request)
 		{
 			// Validate request.
-			if (request.RoundId < 0 || !ModelState.IsValid)
+			if (request.RoundId < 0)
 			{
 				return BadRequest("Invalid request.");
 			}
@@ -366,7 +366,7 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(410)]
 		public async Task<IActionResult> PostConfirmationAsync([FromQuery, Required] string uniqueId, [FromQuery, Required] long roundId)
 		{
-			if (roundId < 0 || !ModelState.IsValid)
+			if (roundId < 0)
 			{
 				return BadRequest();
 			}
@@ -427,7 +427,7 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(410)]
 		public IActionResult PostUnconfimation([FromQuery, Required] string uniqueId, [FromQuery, Required] long roundId)
 		{
-			if (roundId < 0 || !ModelState.IsValid)
+			if (roundId < 0)
 			{
 				return BadRequest();
 			}
@@ -488,9 +488,7 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(410)]
 		public async Task<IActionResult> PostOutputAsync([FromQuery, Required] long roundId, [FromBody, Required] OutputRequest request)
 		{
-			if (roundId < 0
-				|| request.Level < 0
-				|| !ModelState.IsValid)
+			if (roundId < 0 || request.Level < 0)
 			{
 				return BadRequest();
 			}
@@ -585,7 +583,7 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(410)]
 		public IActionResult GetCoinJoin([FromQuery, Required] string uniqueId, [FromQuery, Required] long roundId)
 		{
-			if (roundId < 0 || !ModelState.IsValid)
+			if (roundId < 0)
 			{
 				return BadRequest();
 			}
@@ -641,8 +639,7 @@ namespace WalletWasabi.Backend.Controllers
 		{
 			if (roundId < 0
 				|| !signatures.Any()
-				|| signatures.Any(x => x.Key < 0 || string.IsNullOrWhiteSpace(x.Value))
-				|| !ModelState.IsValid)
+				|| signatures.Any(x => x.Key < 0 || string.IsNullOrWhiteSpace(x.Value)))
 			{
 				return BadRequest();
 			}
@@ -746,7 +743,7 @@ namespace WalletWasabi.Backend.Controllers
 		private Guid GetGuidOrFailureResponse(string uniqueId, out IActionResult returnFailureResponse)
 		{
 			returnFailureResponse = null;
-			if (string.IsNullOrWhiteSpace(uniqueId) || !ModelState.IsValid)
+			if (string.IsNullOrWhiteSpace(uniqueId))
 			{
 				returnFailureResponse = BadRequest($"Invalid {nameof(uniqueId)} provided.");
 			}

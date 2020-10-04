@@ -97,7 +97,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			{
 				Assert.NotEqual(HttpStatusCode.OK, response.StatusCode);
 				Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-				Assert.Equal("Invalid hex.", await response.Content.ReadAsJsonAsync<string>());
+				Assert.Contains("The hex field is required.", await response.Content.ReadAsStringAsync());
 			}
 			Logger.TurnOn();
 		}
@@ -107,7 +107,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		{
 			(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
-			var indexBuilderServiceDir = Common.GetWorkDir();
+			var indexBuilderServiceDir = Tests.Common.GetWorkDir();
 			var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{rpc.Network}.dat");
 
 			var indexBuilderService = new IndexBuilderService(rpc, global.HostedServices.FirstOrDefault<BlockNotifier>(), indexFilePath);
