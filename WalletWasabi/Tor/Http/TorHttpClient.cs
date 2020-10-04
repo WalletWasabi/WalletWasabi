@@ -23,22 +23,9 @@ using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 
 namespace WalletWasabi.Tor.Http
 {
-	/// <summary>
-	/// TODO: What about request timeout?
-	/// </summary>
 	public class TorHttpClient : ITorHttpClient, IDisposable
 	{
 		private static DateTimeOffset? TorDoesntWorkSinceBacking = null;
-
-		/// <summary>TLS protocols we support for both clearnet and Tor proxy.</summary>
-		private static readonly SslProtocols SupportedSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
-
-		/// <summary>Predefined HTTP client that handles HTTP requests when Tor is disabled.</summary>
-		private static readonly HttpClient ClearnetHttpClient = new HttpClient(new HttpClientHandler()
-		{
-			AutomaticDecompression = DecompressionMethods.GZip,
-			SslProtocols = SupportedSslProtocols
-		});
 
 		private volatile bool _disposedValue = false; // To detect redundant calls
 
@@ -89,13 +76,7 @@ namespace WalletWasabi.Tor.Http
 
 		private static async Task<HttpResponseMessage> ClearnetRequestAsync(HttpRequestMessage request)
 		{
-			request.Version = HttpProtocol.HTTP11.Version;
-			request.Headers.AcceptCharset.Add(new StringWithQualityHeaderValue("utf-8"));
-
-			//request.Headers.TransferEncodingChunked = true;
-			var response = await ClearnetHttpClient.SendAsync(request).ConfigureAwait(false);
-			
-			return response;
+			return await ClearnetHttpClient.Instance.SendAsync(request).ConfigureAwait(false);
 		}
 
 		/// <remarks>
@@ -237,7 +218,7 @@ namespace WalletWasabi.Tor.Http
 						.AuthenticateAsClientAsync(
 							host,
 							new X509CertificateCollection(),
-							SupportedSslProtocols,
+							IHttpClient.SupportedSslProtocols,
 							checkCertificateRevocation: true).ConfigureAwait(false);
 					stream = sslStream;
 				}
@@ -271,7 +252,7 @@ namespace WalletWasabi.Tor.Http
 				}
 			}
 
-			var requestString = await request.ToHttpStringAsync().ConfigureAwait(false);
+			string requestString = await request.ToHttpStringAsync().ConfigureAwait(false);
 
 			var bytes = Encoding.UTF8.GetBytes(requestString);
 
