@@ -12,6 +12,8 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 		/// </summary>
 		DialogViewModelBase? CurrentDialog { get; set; }
 
+		bool IsDialogOpen { get; set; }
+
 		/// <summary>
 		/// Close the currently displayed dialog.
 		/// </summary>

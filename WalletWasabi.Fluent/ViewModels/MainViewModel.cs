@@ -19,6 +19,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		private string _title = "Wasabi Wallet";
 		private DialogViewModelBase? _currentDialog;
 		private NavBarViewModel _navBar;
+		private bool _isDialogOpen;
 
 		public MainViewModel(Global global)
 		{
@@ -65,6 +66,12 @@ namespace WalletWasabi.Fluent.ViewModels
 			internal set => this.RaiseAndSetIfChanged(ref _title, value);
 		}
 
+		bool IDialogHost.IsDialogOpen
+		{
+			get => _isDialogOpen;
+			set => this.RaiseAndSetIfChanged(ref _isDialogOpen, value);
+		}
+
 		public void Initialize()
 		{
 			// Temporary to keep things running without VM modifications.
@@ -80,12 +87,15 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		void IDialogHost.ShowDialog<TDialog>(TDialog dialogViewModel)
 		{
-			(this as IDialogHost).CurrentDialog = dialogViewModel;
+			var dialogHost = (this as IDialogHost);
+			dialogHost.CurrentDialog = dialogViewModel;
+			dialogHost.IsDialogOpen = true;
 		}
 
 		void IDialogHost.CloseDialog()
 		{
-			(this as IDialogHost).CurrentDialog = null;
+			(this as IDialogHost).IsDialogOpen = false;
+			// (this as IDialogHost).CurrentDialog = null;
 		}
 	}
 }
