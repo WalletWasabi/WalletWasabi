@@ -35,9 +35,9 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 		/// <returns>The value to be returned when the dialog is finished.</returns>
 		public Task<TResult> ShowDialogAsync()
 		{
-			if (CurrentTaskCompletionSource != null)
+			if (CurrentTaskCompletionSource is { })
 			{
-				throw  new InvalidOperationException("Can't open a new dialog since there's already one active.");
+				throw new InvalidOperationException("Can't open a new dialog since there's already one active.");
 			}
 			
 			CurrentTaskCompletionSource = new TaskCompletionSource<TResult>();
