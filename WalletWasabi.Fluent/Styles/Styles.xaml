@@ -9,6 +9,8 @@
     <!-- <FontFamily x:Key="ContentControlThemeFontFamily">avares://WalletWasabi.Fluent/Assets#Inter</FontFamily> -->
     <SolidColorBrush x:Key="TextBoxBackground">#2F2F2F</SolidColorBrush>
     <SolidColorBrush x:Key="TextBoxForeground">#ACACAC</SolidColorBrush>
+    <SolidColorBrush x:Key="TextBoxBorderBrush">#0078D4</SolidColorBrush>
+    <SolidColorBrush x:Key="TextBoxPointOverBorderBrush">#47AFFF</SolidColorBrush>
   </Styles.Resources>
   <Style Selector="SplitView">
     <Setter Property="CompactPaneLength" Value="{StaticResource SplitViewCompactPaneLength}" />
@@ -20,10 +22,15 @@
 
   <Style Selector="TextBox">
     <Setter Property="BorderThickness" Value="0 0 0 2" />
-    <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
+    <Setter Property="BorderBrush" Value="{StaticResource TextBoxBorderBrush}" />
     <Setter Property="Background" Value="{StaticResource TextBoxBackground}" />
     <Setter Property="Foreground" Value="{StaticResource TextBoxForeground}" />
     <Setter Property="Padding" Value="15 10 15 8" />
+  </Style>
+
+  <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+    <Setter Property="BorderBrush" Value="{StaticResource TextBoxPointOverBorderBrush}" />
+    <Setter Property="TextBox.Background" Value="{StaticResource TextBoxBackground}" />
   </Style>
 
   <!--TODO: not working, debug-->
