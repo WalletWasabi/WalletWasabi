@@ -19,12 +19,10 @@
       </ControlTemplate>
     </Setter>
   </Style>
-
-
   <Style Selector="c|DialogContentHost /template/ Panel#PART_Overlay">
     <Setter Property="Transitions">
       <Transitions>
-        <DoubleTransition Property="Opacity" Duration="0:0:1" Easing="0.1,0.9,0.2,1.0" />
+        <DoubleTransition Property="Opacity" Duration="0:0:0.4" />
       </Transitions>
     </Setter>
     <Setter Property="IsHitTestVisible" Value="False"/>
@@ -33,8 +31,8 @@
   <Style Selector="c|DialogContentHost /template/ Panel#PART_DialogHost">
     <Setter Property="Transitions">
       <Transitions>
-        <TransformOperationsTransition Property="RenderTransform"  Duration="0:0:5" Easing="0.1,0.9,0.2,1.0"  />
-        <DoubleTransition Property="Opacity" Duration="0:0:1" Easing="0.1,0.9,0.2,1.0" />
+        <TransformOperationsTransition Property="RenderTransform"  Duration="0:0:0.5" Easing="0.1,0.9,0.2,1.0"  />
+        <DoubleTransition Property="Opacity" Duration="0:0:0.75" Easing="0.1,0.9,0.2,1.0" />
       </Transitions>
     </Setter> 
     <Setter Property="Opacity" Value="0"/>
@@ -43,10 +41,12 @@
   <Style Selector="c|DialogContentHost:open /template/ Panel#PART_DialogHost">
     <Setter Property="RenderTransform" Value="scaleX(1) scaleY(1)" />
     <Setter Property="Opacity" Value="1"/>
+    <Setter Property="IsHitTestVisible" Value="True"/>
   </Style>
   <Style Selector="c|DialogContentHost:not(:open) /template/ Panel#PART_DialogHost">
     <Setter Property="RenderTransform" Value="scaleX(0.9) scaleY(0.9)" />
     <Setter Property="Opacity" Value="0"/>
+    <Setter Property="IsHitTestVisible" Value="False"/>
   </Style>  
   <Style Selector="c|DialogContentHost:open /template/ Panel#PART_Overlay">
     <Setter Property="IsHitTestVisible" Value="True"/>

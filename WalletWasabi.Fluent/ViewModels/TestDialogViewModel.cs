@@ -6,7 +6,7 @@ namespace WalletWasabi.Fluent.ViewModels
 {
 	public class TestDialogViewModel : DialogViewModelBase<string>
 	{
-		public TestDialogViewModel(MainViewModel mainViewModel) : base(mainViewModel)
+		public TestDialogViewModel(IDialogHost dialogViewModel) : base(dialogViewModel)
 		{
 		}
 

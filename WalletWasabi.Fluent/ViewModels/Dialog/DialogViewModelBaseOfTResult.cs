@@ -12,7 +12,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 	/// <typeparam name="TResult">The type of the value to be returned when the dialog is finished.</typeparam>
 	public abstract class DialogViewModelBase<TResult> : DialogViewModelBase
 	{
-		public DialogViewModelBase(MainViewModel mainViewModel) : base(mainViewModel)
+		public DialogViewModelBase(IDialogHost dialogViewModel) : base(dialogViewModel)
 		{
 		}
 
