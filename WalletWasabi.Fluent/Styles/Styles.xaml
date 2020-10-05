@@ -28,9 +28,11 @@
     <Setter Property="Padding" Value="15 10 15 8" />
   </Style>
 
-  <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+  <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement, TextBox:focus /template/ Border#PART_BorderElement">
+    <Setter Property="BorderThickness" Value="0 0 0 3" />
     <Setter Property="BorderBrush" Value="{StaticResource TextBoxPointOverBorderBrush}" />
     <Setter Property="TextBox.Background" Value="{StaticResource TextBoxBackground}" />
+    <Setter Property="TextBox.Foreground" Value="{StaticResource TextBoxForeground}" />
   </Style>
 
   <!--TODO: not working, debug-->
