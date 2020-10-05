@@ -78,10 +78,6 @@ namespace WalletWasabi.Fluent.ViewModels
 			}
 		}
 
-		private void SetDialog(DialogViewModelBase target)
-		{
-		}
-
 		void IDialogHost.ShowDialog<TDialog>(TDialog dialogViewModel)
 		{
 			(this as IDialogHost).CurrentDialog = dialogViewModel;

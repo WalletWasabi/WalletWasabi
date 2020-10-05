@@ -12,12 +12,12 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 	/// <typeparam name	="TResult">The type of the value to be returned when the dialog is finished.</typeparam>
 	public abstract class DialogViewModelBase<TResult> : DialogViewModelBase
 	{
-		private TaskCompletionSource<TResult>? _tcs { get; set; } 
-
 		public DialogViewModelBase(MainViewModel mainViewModel) : base(mainViewModel)
 		{
 		}
 
+		private TaskCompletionSource<TResult> CurrentTaskCompletionSource { get; set; } 
+		
 		/// <summary>
 		/// Method to be called when the dialog intends to close
 		/// and ready to pass a value back to the caller.
@@ -25,8 +25,8 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 		/// <param name="value">The return value of the dialog</param>
 		public void CloseDialog(TResult value)
 		{
-			_tcs.SetResult(value);
-			_tcs = null;
+			CurrentTaskCompletionSource.SetResult(value);
+			CurrentTaskCompletionSource = null;
 		}
 
 		/// <summary>
@@ -35,12 +35,17 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 		/// <returns>The value to be returned when the dialog is finished.</returns>
 		public Task<TResult> ShowDialogAsync()
 		{
-			_tcs = new TaskCompletionSource<TResult>();
+			if (CurrentTaskCompletionSource != null)
+			{
+				throw  new InvalidOperationException("Can't open a new dialog since there's already one active.");
+			}
+			
+			CurrentTaskCompletionSource = new TaskCompletionSource<TResult>();
 
 			DialogHost.ShowDialog(this);
 			DialogShown();
 
-			return _tcs.Task;
+			return CurrentTaskCompletionSource.Task;
 		}
 
 		/// <summary>
