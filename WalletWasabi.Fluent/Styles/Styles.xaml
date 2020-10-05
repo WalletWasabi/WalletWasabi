@@ -11,6 +11,8 @@
     <SolidColorBrush x:Key="TextBoxForeground">#ACACAC</SolidColorBrush>
     <SolidColorBrush x:Key="TextBoxBorderBrush">#0078D4</SolidColorBrush>
     <SolidColorBrush x:Key="TextBoxFocusBorderBrush">#47AFFF</SolidColorBrush>
+    <Thickness x:Key="TextBoxBorderDefaultThickness">0,0,0,2</Thickness>
+    <Thickness x:Key="TextBoxBorderFocusedThickness">0,0,0,3</Thickness>
   </Styles.Resources>
   <Style Selector="SplitView">
     <Setter Property="CompactPaneLength" Value="{StaticResource SplitViewCompactPaneLength}" />
@@ -21,7 +23,7 @@
   </Style>
 
   <Style Selector="TextBox">
-    <Setter Property="BorderThickness" Value="0 0 0 2" />
+    <Setter Property="BorderThickness" Value="{StaticResource TextBoxBorderDefaultThickness}" />
     <Setter Property="BorderBrush" Value="{StaticResource TextBoxBorderBrush}" />
     <Setter Property="Background" Value="{StaticResource TextBoxBackground}" />
     <Setter Property="Foreground" Value="{StaticResource TextBoxForeground}" />
@@ -39,13 +41,13 @@
   <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
     <Setter Property="Background" Value="{StaticResource TextBoxBackground}"/>
     <Setter Property="BorderBrush" Value="{StaticResource TextBoxBorderBrush}"/>
-    <Setter Property="BorderThickness" Value="0 0 0 3" />
+    <Setter Property="BorderThickness" Value="{StaticResource TextBoxBorderFocusedThickness}" />
   </Style>
 
   <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
     <Setter Property="Background" Value="{StaticResource TextBoxBackground}"/>
     <Setter Property="BorderBrush" Value="{StaticResource TextBoxFocusBorderBrush}"/>
-    <Setter Property="BorderThickness" Value="0 0 0 3" />
+    <Setter Property="BorderThickness" Value="{StaticResource TextBoxBorderFocusedThickness}" />
   </Style>
 
   <!--TODO: not working, debug-->
