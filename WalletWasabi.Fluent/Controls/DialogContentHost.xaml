@@ -1,0 +1,30 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
+  <Design.PreviewWith> 
+  </Design.PreviewWith>
+  <Styles.Resources>
+  </Styles.Resources>
+  <Style Selector="c|DialogContentHost">
+    <Style.Animations>
+      <Animation Duration="2" Delay="2">
+        <KeyFrame Cue="0%">
+          <Setter Property="Opacity" Value="0"/>
+        </KeyFrame>
+        <KeyFrame Cue="100%">
+          <Setter Property="Opacity" Value="100"/>
+        </KeyFrame>
+      </Animation>
+    </Style.Animations>
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Panel>
+          <Panel Background="#3A3A3A" Opacity="0.8" />
+          <Border MaxWidth="300" MaxHeight="200" CornerRadius="5" BoxShadow="4 11 30 1 #90000000" Background="#212121" >
+            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Bold" FontSize="25">Hello World!</TextBlock>
+          </Border>
+        </Panel>
+      </ControlTemplate>
+    </Setter>
+  </Style> 
+</Styles>
