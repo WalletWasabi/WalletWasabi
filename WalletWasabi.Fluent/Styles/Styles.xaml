@@ -14,5 +14,16 @@
     <Setter Property="DisplayMode" Value="CompactInline" />
     <Setter Property="IsPaneOpen" Value="True" />
     <Setter Property="PaneBackground" Value="{x:Null}" />
-  </Style>  
+  </Style>
+
+  <Style Selector="TextBox">
+    <Setter Property="BorderThickness" Value="0 0 0 2" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
+  </Style>
+
+  <!--TODO: not working, debug-->
+  <Style Selector="TextBox /template/ Border#PART_BorderElement">
+    <Setter Property="CornerRadius" Value="0" />
+  </Style>
+
 </Styles>

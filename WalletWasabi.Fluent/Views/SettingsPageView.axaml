@@ -4,8 +4,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.SettingsPageView">
-  <Panel>
+  <StackPanel Spacing="10">
     <TextBlock Text="Settings" FontSize="22" VerticalAlignment="Center" HorizontalAlignment="Center" />
     <Button Command="{Binding NextCommand}" Content="Next" />
-  </Panel>
+    <TextBox Watermark="Type here..."/>
+  </StackPanel>
 </UserControl>
