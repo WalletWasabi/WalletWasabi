@@ -1,16 +1,16 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using NBitcoin;
 using NBitcoin.Crypto;
 using NBitcoin.Secp256k1;
 
 namespace WalletWasabi.Crypto
 {
+	[SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Crypto naming")]
 	public class SchnorrBlinding
 	{
 		public class Requester
 		{
-#pragma warning disable IDE1006 // Naming Styles
-
 			private Scalar _v = Scalar.Zero;
 			private Scalar _c = Scalar.Zero;
 			private Scalar _w = Scalar.Zero;
@@ -43,7 +43,7 @@ namespace WalletWasabi.Crypto
 				var R = rECPubKey.Q.ToGroupElementJacobian();
 				var t = FE.Zero;
 
-				retry:
+			retry:
 
 				RandomUtils.GetBytes(tmp);
 				_v = new Scalar(tmp, out int overflow);
@@ -187,7 +187,5 @@ namespace WalletWasabi.Crypto
 			sha.GetHash(tmp);
 			return new Scalar(tmp) == signature.C;
 		}
-
-#pragma warning restore IDE1006 // Naming Styles
 	}
 }
