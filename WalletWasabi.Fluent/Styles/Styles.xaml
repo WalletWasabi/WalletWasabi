@@ -7,6 +7,8 @@
     <sys:Double x:Key="SplitViewCollapseThreshold">750</sys:Double>
     <sys:Double x:Key="SplitViewCompactPaneLength">46</sys:Double>
     <!-- <FontFamily x:Key="ContentControlThemeFontFamily">avares://WalletWasabi.Fluent/Assets#Inter</FontFamily> -->
+    <SolidColorBrush x:Key="TextBoxBackground">#2F2F2F</SolidColorBrush>
+    <SolidColorBrush x:Key="TextBoxForeground">#ACACAC</SolidColorBrush>
   </Styles.Resources>
   <Style Selector="SplitView">
     <Setter Property="CompactPaneLength" Value="{StaticResource SplitViewCompactPaneLength}" />
@@ -19,6 +21,8 @@
   <Style Selector="TextBox">
     <Setter Property="BorderThickness" Value="0 0 0 2" />
     <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
+    <Setter Property="Background" Value="{StaticResource TextBoxBackground}" />
+    <Setter Property="Foreground" Value="{StaticResource TextBoxForeground}" />
   </Style>
 
   <!--TODO: not working, debug-->
