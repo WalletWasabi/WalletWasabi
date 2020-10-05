@@ -181,11 +181,6 @@ namespace WalletWasabi.Wallets
 							localNode.VersionHandshake(Constants.LocalNodeRequirements, handshakeTimeout.Token);
 							var peerServices = localNode.PeerVersion.Services;
 
-							//if (!peerServices.HasFlag(NodeServices.Network) && !peerServices.HasFlag(NodeServices.NODE_NETWORK_LIMITED))
-							//{
-							//	throw new InvalidOperationException("Wasabi cannot use the local node because it does not provide blocks.");
-							//}
-
 							Logger.LogInfo("Handshake completed successfully.");
 
 							if (!localNode.IsConnected)

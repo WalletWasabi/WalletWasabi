@@ -157,6 +157,8 @@ namespace WalletWasabi.Gui
 
 				HostedServices.Register(new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
 
+				HostedServices.Register(new SystemAwakeChecker(WalletManager), "System Awake Checker");
+
 				#region ProcessKillSubscription
 
 				AppDomain.CurrentDomain.ProcessExit += async (s, e) => await DisposeAsync().ConfigureAwait(false);
@@ -240,18 +242,9 @@ namespace WalletWasabi.Gui
 
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
 
-				var feeProviderList = new List<IFeeProvider>
-				{
-					Synchronizer
-				};
-
 				var rpcFeeProvider = HostedServices.FirstOrDefault<RpcFeeProvider>();
-				if (rpcFeeProvider is { })
-				{
-					feeProviderList.Insert(0, rpcFeeProvider);
-				}
 
-				FeeProviders = new FeeProviders(feeProviderList);
+				FeeProviders = new FeeProviders(Synchronizer, rpcFeeProvider);
 
 				#endregion BitcoinCoreInitialization
 

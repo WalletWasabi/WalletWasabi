@@ -36,21 +36,19 @@ namespace WalletWasabi.Services
 
 		private long _blockRequests; // There are priority requests in queue.
 
-		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, WasabiClient client)
-		{
-			CreateNew(network, bitcoinStore, client);
-		}
-
 		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Func<Uri> baseUriAction, EndPoint torSocks5EndPoint)
 		{
-			var client = new WasabiClient(baseUriAction, torSocks5EndPoint);
-			CreateNew(network, bitcoinStore, client);
+			WasabiClient = new WasabiClient(baseUriAction, torSocks5EndPoint);
+			Network = Guard.NotNull(nameof(network), network);			
+			LastResponse = null;
+			_running = 0;
+			Cancel = new CancellationTokenSource();
+			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
 		}
 
-		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Uri baseUri, EndPoint torSocks5EndPoint)
+		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Uri baseUri, EndPoint torSocks5EndPoint):
+			this(network, bitcoinStore, () => baseUri, torSocks5EndPoint)
 		{
-			var client = new WasabiClient(baseUri, torSocks5EndPoint);
-			CreateNew(network, bitcoinStore, client);
 		}
 
 		#region EventsPropertiesMembers
@@ -117,16 +115,6 @@ namespace WalletWasabi.Services
 		#endregion EventsPropertiesMembers
 
 		#region Initializers
-
-		private void CreateNew(Network network, BitcoinStore bitcoinStore, WasabiClient client)
-		{
-			Network = Guard.NotNull(nameof(network), network);
-			WasabiClient = Guard.NotNull(nameof(client), client);
-			LastResponse = null;
-			_running = 0;
-			Cancel = new CancellationTokenSource();
-			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
-		}
 
 		public void Start(TimeSpan requestInterval, TimeSpan feeQueryRequestInterval, int maxFiltersToSyncAtInitialization)
 		{
@@ -391,7 +379,7 @@ namespace WalletWasabi.Services
 			Cancel?.Cancel();
 			while (Interlocked.CompareExchange(ref _running, 3, 0) == 2)
 			{
-				await Task.Delay(50);
+				await Task.Delay(50).ConfigureAwait(false);
 			}
 
 			Cancel?.Dispose();

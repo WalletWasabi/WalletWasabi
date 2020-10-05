@@ -9,7 +9,7 @@ namespace WalletWasabi.Backend.Controllers
 	/// </summary>
 	[Produces("application/json")]
 	[Route("api/[controller]")]
-	public class SoftwareController : Controller
+	public class SoftwareController : ControllerBase
 	{
 		private readonly VersionsResponse VersionsResponse = new VersionsResponse
 		{

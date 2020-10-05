@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <Compile Update="**\*.xaml.cs">
@@ -12,6 +12,14 @@
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
   <ItemGroup>    
-    <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.999-cibuild0010848-beta" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.999-cibuild0011008-beta" />
+		<PackageReference Include="Avalonia.Diagnostics" Version="0.10.999-cibuild0011008-beta" />
+		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.0-preview5" />
+		<PackageReference Include="Avalonia.Xaml.Interactions.Custom" Version="0.10.0-preview5" />
+		<PackageReference Include="Avalonia.Xaml.Interactivity" Version="0.10.0-preview5" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\WalletWasabi.Gui\WalletWasabi.Gui.csproj" />
+    <ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
   </ItemGroup>
 </Project>

@@ -1,6 +1,7 @@
 using NSubsys;
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -57,10 +58,8 @@ namespace WalletWasabi.Packager
 		/// <summary>
 		/// Main entry point.
 		/// </summary>
-#pragma warning disable IDE1006 // Naming Styles
-
+		[SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "The Main method is the entry point of a C# application")]
 		private static async Task Main(string[] args)
-#pragma warning restore IDE1006 // Naming Styles
 		{
 			var argsProcessor = new ArgsProcessor(args);
 
