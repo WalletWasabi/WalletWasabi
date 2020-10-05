@@ -60,7 +60,20 @@
             Event="NewDialog"
             Value="WelcomeDlg"
             Order="99">1</Publish>
+      <UIRef Id="WixUI_Minimal" />
+      <Publish Dialog="ExitDialog"
+            Control="Finish"
+            Event="DoAction"
+            Value="LaunchApplication">WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed</Publish>
     </UI>
+
+    <!-- Add custom action To launch the application after install -->
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch Wasabi Wallet" />
+    <Property Id="WixShellExecTarget" Value="[#wassabee.exe]" />
+    <CustomAction Id="LaunchApplication"
+      BinaryKey="WixCA"
+      DllEntry="WixShellExec"
+      Impersonate="yes" />
 
     <!-- Define components, shortcuts, files, etc... for instealler. -->
     <Feature Id="ProductFeature" Title="Wasabi" Level="1">
