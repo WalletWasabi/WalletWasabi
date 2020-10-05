@@ -27,6 +27,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 		{
 			CurrentTaskCompletionSource.SetResult(value);
 			CurrentTaskCompletionSource = null;
+			DialogHost.CloseDialog();
 		}
 
 		/// <summary>

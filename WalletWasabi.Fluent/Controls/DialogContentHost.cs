@@ -1,3 +1,4 @@
+using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Mixins;
@@ -17,9 +18,14 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<bool> IsDialogOpenProperty =
 			AvaloniaProperty.Register<DialogContentHost, bool>(nameof(IsDialogOpen));
 
-		public DialogContentHost()
+		static DialogContentHost()
 		{
-            PseudoClasses.Set(":open", IsDialogOpen);
+			IsDialogOpenProperty.Changed.AddClassHandler<DialogContentHost>(UpdatePseudoClasses);
+		}
+
+		private static void UpdatePseudoClasses(DialogContentHost arg1, AvaloniaPropertyChangedEventArgs arg2)
+		{
+			arg1.PseudoClasses.Set(":open", (bool)arg2.NewValue);
 		}
 
 		/// <summary>
@@ -38,6 +44,6 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(IsDialogOpenProperty);
 			set => SetValue(IsDialogOpenProperty, value);
-		} 
+		}
 	}
 }

@@ -42,7 +42,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public Network Network { get; }
 
-		DialogViewModelBase? IDialogHost.CurrentDialog
+		public DialogViewModelBase? CurrentDialog
 		{
 			get => _currentDialog;
 			set => this.RaiseAndSetIfChanged(ref _currentDialog, value);
@@ -66,7 +66,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			internal set => this.RaiseAndSetIfChanged(ref _title, value);
 		}
 
-		bool IDialogHost.IsDialogOpen
+		public bool IsDialogOpen
 		{
 			get => _isDialogOpen;
 			set => this.RaiseAndSetIfChanged(ref _isDialogOpen, value);
