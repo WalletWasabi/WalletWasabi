@@ -9,7 +9,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 	/// <summary>
 	/// Base ViewModel class for Dialogs that returns a value back.
 	/// </summary>
-	/// <typeparam name	="TResult">The type of the value to be returned when the dialog is finished.</typeparam>
+	/// <typeparam name="TResult">The type of the value to be returned when the dialog is finished.</typeparam>
 	public abstract class DialogViewModelBase<TResult> : DialogViewModelBase
 	{
 		public DialogViewModelBase(MainViewModel mainViewModel) : base(mainViewModel)
