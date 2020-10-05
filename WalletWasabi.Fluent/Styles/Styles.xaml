@@ -23,6 +23,7 @@
     <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
     <Setter Property="Background" Value="{StaticResource TextBoxBackground}" />
     <Setter Property="Foreground" Value="{StaticResource TextBoxForeground}" />
+    <Setter Property="Padding" Value="15 10 15 8" />
   </Style>
 
   <!--TODO: not working, debug-->
