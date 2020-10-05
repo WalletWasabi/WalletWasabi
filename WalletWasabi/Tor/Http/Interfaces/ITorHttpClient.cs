@@ -16,33 +16,33 @@ namespace WalletWasabi.Tor.Http.Interfaces
 
 		Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken cancel = default);
 
-		Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancel = default);
-
-		/// <remarks>
-		/// Throws <see cref="OperationCanceledException"/> if <paramref name="cancel"/> is set.
-		/// </remarks>
-		public async Task<HttpResponseMessage?> SendAndRetryAsync(HttpMethod method, HttpStatusCode expectedCode, string relativeUri, int retry = 2, HttpContent? content = null, CancellationToken cancel = default)
+		/// <summary>
+		/// Sends HTTP request (up to <paramref name="retry"/> times) to get HTTP response.
+		/// </summary>
+		/// <param name="retry">Maximum number of attempts to do to get HTTP response.</param>
+		/// <exception cref="OperationCanceledException">When <paramref name="token"/> is used to cancel operation.</exception>
+		public async Task<HttpResponseMessage?> SendAndRetryAsync(HttpMethod method, string relativeUri, int retry = 2, HttpContent? content = null, CancellationToken token = default)
 		{
 			HttpResponseMessage? response = null;
 
 			while (retry-- > 0)
 			{
 				response?.Dispose();
-				cancel.ThrowIfCancellationRequested();
-				response = await SendAsync(method, relativeUri, content, cancel: cancel).ConfigureAwait(false);
+				token.ThrowIfCancellationRequested();
+				response = await SendAsync(method, relativeUri, content, cancel: token).ConfigureAwait(false);
 
-				if (response.StatusCode == expectedCode)
+				if (response.StatusCode == HttpStatusCode.OK)
 				{
 					break;
 				}
 
 				try
 				{
-					await Task.Delay(1000, cancel).ConfigureAwait(false);
+					await Task.Delay(1000, token).ConfigureAwait(false);
 				}
 				catch (TaskCanceledException ex)
 				{
-					throw new OperationCanceledException(ex.Message, ex, cancel);
+					throw new OperationCanceledException(ex.Message, ex, token);
 				}
 			}
 			return response;
