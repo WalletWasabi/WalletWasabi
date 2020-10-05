@@ -10,7 +10,7 @@
     <SolidColorBrush x:Key="TextBoxBackground">#2F2F2F</SolidColorBrush>
     <SolidColorBrush x:Key="TextBoxForeground">#ACACAC</SolidColorBrush>
     <SolidColorBrush x:Key="TextBoxBorderBrush">#0078D4</SolidColorBrush>
-    <SolidColorBrush x:Key="TextBoxPointOverBorderBrush">#47AFFF</SolidColorBrush>
+    <SolidColorBrush x:Key="TextBoxFocusBorderBrush">#47AFFF</SolidColorBrush>
   </Styles.Resources>
   <Style Selector="SplitView">
     <Setter Property="CompactPaneLength" Value="{StaticResource SplitViewCompactPaneLength}" />
@@ -28,11 +28,24 @@
     <Setter Property="Padding" Value="15 10 15 8" />
   </Style>
 
-  <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement, TextBox:focus /template/ Border#PART_BorderElement">
+  <Style Selector="TextBox:focus, TextBox:pointerover">
+    <Setter Property="Foreground" Value="{StaticResource TextBoxForeground}" />
+  </Style>
+
+  <Style Selector="TextBox:focus /template/ TextBlock#PART_Watermark, TextBox:focus /template/ TextBlock#PART_FloatingWatermark,TextBox:pointerover /template/ TextBlock#PART_Watermark, TextBox:pointerover /template/ TextBlock#PART_FloatingWatermark">
+    <Setter Property="Foreground" Value="{StaticResource TextBoxForeground}" />
+  </Style>
+
+  <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+    <Setter Property="Background" Value="{StaticResource TextBoxBackground}"/>
+    <Setter Property="BorderBrush" Value="{StaticResource TextBoxBorderBrush}"/>
     <Setter Property="BorderThickness" Value="0 0 0 3" />
-    <Setter Property="BorderBrush" Value="{StaticResource TextBoxPointOverBorderBrush}" />
-    <Setter Property="TextBox.Background" Value="{StaticResource TextBoxBackground}" />
-    <Setter Property="TextBox.Foreground" Value="{StaticResource TextBoxForeground}" />
+  </Style>
+
+  <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+    <Setter Property="Background" Value="{StaticResource TextBoxBackground}"/>
+    <Setter Property="BorderBrush" Value="{StaticResource TextBoxFocusBorderBrush}"/>
+    <Setter Property="BorderThickness" Value="0 0 0 3" />
   </Style>
 
   <!--TODO: not working, debug-->
