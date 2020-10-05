@@ -94,7 +94,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		private AsyncLock MixLock { get; set; }
 
-		public ClientState State { get; private set; }
+		public ClientState State { get; }
 
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
 
