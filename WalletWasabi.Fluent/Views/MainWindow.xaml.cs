@@ -14,6 +14,7 @@ namespace WalletWasabi.Fluent.Views
 		private void InitializeComponent()
 		{
 			AvaloniaXamlLoader.Load(this);
+			this.AttachDevTools();
 		}
 	}
 }
