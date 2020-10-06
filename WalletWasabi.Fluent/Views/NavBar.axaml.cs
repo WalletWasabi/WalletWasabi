@@ -11,7 +11,7 @@ namespace WalletWasabi.Fluent.Views
 	{
 		public NavBar()
 		{
-			this.InitializeComponent();
+			InitializeComponent();
 		}
 
 		private void InitializeComponent()

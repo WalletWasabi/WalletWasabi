@@ -24,7 +24,7 @@
                                          TintOpacity="1"
                                          FallbackColor="#1F1F1F"
                                          MaterialOpacity="0.55" />
-          </ExperimentalAcrylicBorder.Material>          
+          </ExperimentalAcrylicBorder.Material>
 
         </ExperimentalAcrylicBorder>
         <local:NavBar DataContext="{Binding NavBar}" />
@@ -36,7 +36,7 @@
         <local:StatusBar DockPanel.Dock="Bottom" DataContext="{Binding StatusBar}" VerticalAlignment="Bottom" Height="32" TextBlock.FontSize="12" />
         <Panel Margin="20 10 20 0">
           <DockPanel>
-              <TextBlock Text="{Binding NavBar.SelectedItem.Title}" DockPanel.Dock="Top" FontSize="28" IsHitTestVisible="False" />            
+              <TextBlock Text="{Binding NavBar.SelectedItem.Title}" DockPanel.Dock="Top" FontSize="28" IsHitTestVisible="False" />
             <rxui:RoutedViewHost Router="{Binding Router}">
               <rxui:RoutedViewHost.ViewLocator>
                 <vl:ScreenViewLocator />
@@ -50,9 +50,9 @@
                            VerticalAlignment="Center" />
               </rxui:RoutedViewHost.DefaultContent>
             </rxui:RoutedViewHost>
-          </DockPanel>          
-        </Panel>        
+          </DockPanel>
+        </Panel>
       </DockPanel>
-    </Panel>    
+    </Panel>
   </SplitView>
 </UserControl>
