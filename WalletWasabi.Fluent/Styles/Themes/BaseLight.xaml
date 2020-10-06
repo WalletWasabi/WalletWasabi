@@ -7,6 +7,7 @@
     <SolidColorBrush x:Key="TextControlForeground">#737373</SolidColorBrush>
     <SolidColorBrush x:Key="TextControlBorderBrush">#0B7ED5</SolidColorBrush>
     <SolidColorBrush x:Key="TextControlBorderBrushFocused">#2A9CF4</SolidColorBrush>
+    <Color x:Key="RegionColor">#FF212121</Color>
   </Styles.Resources>
   <StyleInclude Source="avares://Avalonia.Themes.Fluent/Accents/FluentLight.xaml"/>
 </Styles>
