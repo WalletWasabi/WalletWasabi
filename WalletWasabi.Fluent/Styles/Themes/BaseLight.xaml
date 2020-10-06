@@ -5,4 +5,5 @@
   <Styles.Resources>
     
   </Styles.Resources>
+  <StyleInclude Source="avares://Avalonia.Themes.Fluent/Accents/FluentLight.xaml"/>
 </Styles>
