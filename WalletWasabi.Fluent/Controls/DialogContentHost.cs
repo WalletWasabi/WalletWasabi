@@ -1,14 +1,11 @@
-using System;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Mixins;
 using Avalonia.Controls.Primitives;
-using Avalonia.Metadata;
 
 namespace WalletWasabi.Fluent.Controls
 {
 	/// <summary>
-	/// Container for NavBarItems.
+	/// Manages and hosts dialogs when it's bound to <see cref="IDialogHost"/> objects.
 	/// </summary>
 	public class DialogContentHost : TemplatedControl
 	{
