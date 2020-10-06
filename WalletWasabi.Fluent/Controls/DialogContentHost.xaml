@@ -22,7 +22,7 @@
   <Style Selector="c|DialogContentHost /template/ Panel#PART_Overlay">
     <Setter Property="Transitions">
       <Transitions>
-        <DoubleTransition Property="Opacity" Duration="0:0:0.4" />
+        <DoubleTransition Property="Opacity" Duration="0:0:0.25" />
       </Transitions>
     </Setter>
     <Setter Property="IsHitTestVisible" Value="False"/>
@@ -31,8 +31,8 @@
   <Style Selector="c|DialogContentHost /template/ Panel#PART_DialogHost">
     <Setter Property="Transitions">
       <Transitions>
-        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.5" Easing="0.1,0.9,0.2,1.0" />
-        <DoubleTransition Property="Opacity" Duration="0:0:0.75" Easing="0.1,0.9,0.2,1.0" />
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.35" Easing="0.1,0.9,0.2,1.0" />
+        <DoubleTransition Property="Opacity" Duration="0:0:0.50" Easing="0.1,0.9,0.2,1.0" />
       </Transitions>
     </Setter> 
     <Setter Property="Opacity" Value="0"/>
