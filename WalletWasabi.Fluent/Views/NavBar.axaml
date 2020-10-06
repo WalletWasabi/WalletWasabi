@@ -76,14 +76,14 @@
       <StackPanel.Resources>
         <Thickness x:Key="ControlCornerRadius">0</Thickness>
       </StackPanel.Resources>
-      <Panel Height="40" IsVisible="{x:Static h:Platform.IsOSX}" />
+      <Panel Height="40" IsVisible="{h:Platform {x:Static h:Const.False}, Osx={x:Static h:Const.True}}" />
       <StackPanel Orientation="Horizontal" Spacing="10">
         <Button Classes="NavButton" Command="{Binding GoBack}" Background="Transparent" IsEnabled="{Binding IsBackButtonVisible}">
           <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
         </Button>
         <TextBlock Text="Wasabi Wallet" Foreground="White" VerticalAlignment="Center"/>
       </StackPanel>
-      <Button Classes="NavButton" Command="{Binding DoToggleAction}">
+      <Button Classes="NavButton" Command="{Binding DoToggleAction}" IsVisible="{h:Platform {x:Static h:Const.True}, OSX={x:Static h:Const.False}}">
         <PathIcon Data="{StaticResource navigation_regular}" Width="16" />
       </Button>
       <c:NavBarListBox Items="{Binding TopItems}" SelectedItem="{Binding SelectedItem}" />
