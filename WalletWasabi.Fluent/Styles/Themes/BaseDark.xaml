@@ -8,6 +8,7 @@
     <SolidColorBrush x:Key="TextControlBorderBrush">#0078D4</SolidColorBrush>
     <SolidColorBrush x:Key="TextControlBorderBrushFocused">#47AFFF</SolidColorBrush>
     <SolidColorBrush x:Key="StatusBarControlBackground">#191919</SolidColorBrush>
+    <SolidColorBrush x:Key="StatusBarControlForeground">#A3A3A3</SolidColorBrush>
     <Color x:Key="RegionColor">#FF212121</Color>
   </Styles.Resources>
   <StyleInclude Source="avares://Avalonia.Themes.Fluent/Accents/FluentDark.xaml"/>
