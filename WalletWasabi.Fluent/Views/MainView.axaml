@@ -20,7 +20,7 @@
         <ExperimentalAcrylicBorder DockPanel.Dock="Left" IsHitTestVisible="False">
           <ExperimentalAcrylicBorder.Material>
             <ExperimentalAcrylicMaterial BackgroundSource="Digger"
-                                         TintColor="Black"
+                                         TintColor="{DynamicResource SystemAltHighColor}"
                                          TintOpacity="1"
                                          FallbackColor="#1F1F1F"
                                          MaterialOpacity="0.55" />
