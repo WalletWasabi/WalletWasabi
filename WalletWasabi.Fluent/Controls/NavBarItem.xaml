@@ -15,7 +15,7 @@
     <Setter Property="Template">
       <ControlTemplate>
         <Panel>
-          <Border x:Name="Indicator" BorderThickness="2 0 0 0" />
+          <Border x:Name="Indicator" Margin="4 0 0 0" BorderThickness="2 0 0 0" />
           <ContentPresenter Name="PART_ContentPresenter"
                         Background="{TemplateBinding Background}"
                         BorderBrush="{TemplateBinding BorderBrush}"
