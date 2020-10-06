@@ -92,6 +92,12 @@ namespace WalletWasabi.Helpers
 			"/Satoshi:0.16.0/",
 		};
 
+		public static readonly int RangeProofWidth = (int)Math.Log2(MaximumNumberOfSatoshis);
+
+		public static Money MinimumCredentailAmount = Money.Satoshis(10_000);
+
+		public static Money MaximumCredentailAmount = Money.Satoshis(Constants.MaximumNumberOfSatoshis);
+
 		public static string ClientSupportBackendVersionText => ClientSupportBackendVersionMin == ClientSupportBackendVersionMax
 				? ClientSupportBackendVersionMin
 				: $"{ClientSupportBackendVersionMin} - {ClientSupportBackendVersionMax}";
