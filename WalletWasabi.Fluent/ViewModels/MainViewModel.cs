@@ -1,11 +1,7 @@
 #nullable enable
-using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
-using System.Reactive;
-using System.Reactive.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Reactive; 
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Dialog;
 using Global = WalletWasabi.Gui.Global;
