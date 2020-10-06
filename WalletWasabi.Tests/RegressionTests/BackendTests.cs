@@ -29,8 +29,6 @@ namespace WalletWasabi.Tests.RegressionTests
 	[Collection("RegTest collection")]
 	public class BackendTests
 	{
-#pragma warning disable IDE0059 // Value assigned to symbol is never used
-
 		public BackendTests(RegTestFixture regTestFixture)
 		{
 			RegTestFixture = regTestFixture;
@@ -67,7 +65,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		[Fact]
 		public async Task BroadcastReplayTxAsync()
 		{
-			(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+			(_, IRPCClient rpc, _, _, _, _, _) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 			var utxos = await rpc.ListUnspentAsync();
 			var utxo = utxos[0];
@@ -87,7 +85,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		[Fact]
 		public async Task BroadcastInvalidTxAsync()
 		{
-			(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+			await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 			var content = new StringContent($"''", Encoding.UTF8, "application/json");
 
@@ -105,7 +103,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		[Fact]
 		public async Task FilterBuilderTestAsync()
 		{
-			(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+			(_, IRPCClient rpc, _, _, _, _, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 			var indexBuilderServiceDir = Tests.Common.GetWorkDir();
 			var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{rpc.Network}.dat");
@@ -174,7 +172,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		public async Task StatusRequestTestAsync()
 		{
 			string request = $"/api/v{WasabiClient.ApiVersion}/btc/Blockchain/status";
-			(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+			(_, IRPCClient rpc, _, _, _, _, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 			var indexBuilderService = global.IndexBuilderService;
 			try
@@ -239,7 +237,5 @@ namespace WalletWasabi.Tests.RegressionTests
 		}
 
 		#endregion BackendTests
-
-#pragma warning restore IDE0059 // Value assigned to symbol is never used
 	}
 }
