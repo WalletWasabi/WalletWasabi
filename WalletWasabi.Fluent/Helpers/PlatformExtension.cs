@@ -6,6 +6,10 @@ namespace WalletWasabi.Fluent.Helpers
 {
 	public class PlatformExtension : MarkupExtension
 	{
+		public PlatformExtension()
+		{
+		}
+
 		public PlatformExtension(object defaultValue)
 		{
 			Default = defaultValue;

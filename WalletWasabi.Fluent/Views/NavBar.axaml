@@ -83,7 +83,7 @@
         </Button>
         <TextBlock Text="Wasabi Wallet" Foreground="White" VerticalAlignment="Center"/>
       </StackPanel>
-      <Button Classes="NavButton" Command="{Binding DoToggleAction}" IsVisible="{h:Platform {x:Static h:Const.True}, OSX={x:Static h:Const.False}}">
+      <Button Classes="NavButton" Command="{Binding DoToggleAction}" IsVisible="{h:Platform {x:Static h:Const.True}, Osx={x:Static h:Const.False}}">
         <PathIcon Data="{StaticResource navigation_regular}" Width="16" />
       </Button>
       <c:NavBarListBox Items="{Binding TopItems}" SelectedItem="{Binding SelectedItem}" />
