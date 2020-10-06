@@ -1,6 +1,5 @@
 using NBitcoin;
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -41,8 +40,10 @@ namespace WalletWasabi.Tests.RegressionTests
 			}
 		}
 
-		[SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Must match delegate")]
+#pragma warning disable IDE0060 // Remove unused parameter
+
 		public static void Wallet_NewFilterProcessed(object sender, FilterModel e)
+#pragma warning restore IDE0060 // Remove unused parameter
 		{
 			Interlocked.Increment(ref FiltersProcessedByWalletCount);
 		}
