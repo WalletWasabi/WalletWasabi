@@ -27,8 +27,8 @@ namespace WalletWasabi.Tor
 			LogFilePath = logFilePath;
 			DistributionFolder = distributionFolderPath;
 
-			GeoIpPath = Path.Combine(TorDir, "Data", "Tor", "geoip");
-			GeoIp6Path = Path.Combine(TorDir, "Data", "Tor", "geoip6");
+			GeoIpPath = Path.Combine(DistributionFolder, "Tor", "Geoip", "geoip");
+			GeoIp6Path = Path.Combine(DistributionFolder, "Tor", "Geoip", "geoip6");
 		}
 
 		/// <summary>Full directory path where Tor is installed (or supposed to be installed).</summary>

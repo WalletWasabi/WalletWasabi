@@ -62,6 +62,12 @@
     <None Update="Microservices\Binaries\win64\hwi.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Tor\Geoip\geoip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Tor\Geoip\geoip6">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Tor\OnionSeeds\MainOnionSeeds.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

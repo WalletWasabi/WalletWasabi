@@ -88,15 +88,6 @@ namespace WalletWasabi.Tor
 					return true;
 				}
 
-				// Install Tor if it is not installed and verify Tor is not tampered with (using hash/checksum).
-				bool verified = await new TorInstallator(Settings).VerifyInstallationAsync().ConfigureAwait(false);
-
-				if (!verified)
-				{
-					Logger.LogInfo("Failed to verify Tor installation.");
-					return false;
-				}
-
 				string torArguments = Settings.GetCmdArguments(TorSocks5EndPoint) + $" --Log \"notice file {Settings.LogFilePath}\"";
 
 				var startInfo = new ProcessStartInfo
