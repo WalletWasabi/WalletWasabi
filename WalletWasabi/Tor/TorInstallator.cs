@@ -34,18 +34,7 @@ namespace WalletWasabi.Tor
 				// Common for all platforms.
 				await ExtractZipFileAsync(Path.Combine(Settings.DistributionFolder, "data-folder.zip"), Settings.TorDir).ConfigureAwait(false);
 
-				// File differs per platform.
-				await ExtractZipFileAsync(Path.Combine(Settings.DistributionFolder, $"tor-{GetPlatformIdentifier()}.zip"), Settings.TorDir).ConfigureAwait(false);
-
-				if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-				{
-					// Set sufficient file permission.
-					string shellCommand = $"chmod -R 750 {Settings.TorDir}";
-					await EnvironmentHelpers.ShellExecAsync(shellCommand, waitForExit: true).ConfigureAwait(false);
-					Logger.LogInfo($"Shell command executed: '{shellCommand}'.");
-				}
-
-				bool verification = File.Exists(Settings.TorBinaryFilePath);
+				bool verification = File.Exists(Settings.TorDataDir);
 
 				Logger.LogDebug($"Tor installation finished. Installed correctly? {verification}.");
 				return verification;
@@ -59,34 +48,21 @@ namespace WalletWasabi.Tor
 		}
 
 		/// <summary>
-		/// Verifies that Tor is installed and checksums of installed binaries are correct.
+		/// Verifies that Tor datadir is exists.
 		/// </summary>
-		/// <returns>Returns <c>true</c> if <see cref="TorSettings.TorBinaryFilePath"/> is present, <c>false</c> otherwise.</returns>
+		/// <returns>Returns <c>true</c> if <see cref="TorSettings.TorDataDir"/> is present, <c>false</c> otherwise.</returns>
 		public async Task<bool> VerifyInstallationAsync()
 		{
 			try
 			{
-				if (!File.Exists(Settings.TorBinaryFilePath))
+				if (!Directory.Exists(Settings.TorDataDir))
 				{
-					Logger.LogInfo($"Tor instance NOT found at '{Settings.TorBinaryFilePath}'. Attempting to acquire it.");
-					return await InstallAsync().ConfigureAwait(false);
-				}
-				else if (!IoHelpers.CheckExpectedHash(Settings.HashSourcePath, Settings.DistributionFolder))
-				{
-					Logger.LogInfo("Install the latest Tor version.");
-					string backupDir = $"{Settings.TorDir}_backup";
-
-					if (Directory.Exists(backupDir))
-					{
-						Directory.Delete(backupDir, recursive: true);
-					}
-
-					Directory.Move(Settings.TorDir, backupDir);
+					Logger.LogInfo($"Tor datadir NOT found at '{Settings.TorDataDir}'. Attempting to extract it.");
 					return await InstallAsync().ConfigureAwait(false);
 				}
 				else
 				{
-					Logger.LogInfo($"Tor instance found at '{Settings.TorBinaryFilePath}'.");
+					Logger.LogInfo($"Tor datadir found at '{Settings.TorDataDir}'.");
 					return true;
 				}
 			}
