@@ -5,6 +5,7 @@
              xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:h="clr-namespace:WalletWasabi.Fluent.Helpers"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors;assembly=WalletWasabi.Fluent"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.NavBar" UseLayoutRounding="False">
@@ -75,6 +76,7 @@
       <StackPanel.Resources>
         <Thickness x:Key="ControlCornerRadius">0</Thickness>
       </StackPanel.Resources>
+      <Panel Height="40" IsVisible="{x:Static h:Platform.IsOSX}" />
       <StackPanel Orientation="Horizontal" Spacing="10">
         <Button Classes="NavButton" Command="{Binding GoBack}" Background="Transparent" IsEnabled="{Binding IsBackButtonVisible}">
           <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
