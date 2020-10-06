@@ -95,7 +95,6 @@ namespace WalletWasabi.Fluent.ViewModels
 		void IDialogHost.CloseDialog()
 		{
 			(this as IDialogHost).IsDialogOpen = false;
-			// (this as IDialogHost).CurrentDialog = null;
 		}
 	}
 }
