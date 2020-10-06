@@ -6,7 +6,7 @@
     <SolidColorBrush x:Key="TextControlBackground">#2F2F2F</SolidColorBrush>
     <SolidColorBrush x:Key="TextControlForeground">#ACACAC</SolidColorBrush>
     <SolidColorBrush x:Key="TextControlBorderBrush">#0078D4</SolidColorBrush>
-    <SolidColorBrush x:Key="TextControlFocusedBorderBrush">#47AFFF</SolidColorBrush>
+    <SolidColorBrush x:Key="TextControlBorderBrushFocused">#47AFFF</SolidColorBrush>
   </Styles.Resources>
   <StyleInclude Source="avares://Avalonia.Themes.Fluent/Accents/FluentDark.xaml"/>
 </Styles>
