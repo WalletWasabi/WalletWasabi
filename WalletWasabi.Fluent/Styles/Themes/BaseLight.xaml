@@ -3,7 +3,10 @@
   xmlns:sys="clr-namespace:System;assembly=netstandard"
   xmlns:local="clr-namespace:AvalonStudio.Controls.Standard.CodeEditor;assembly=AvalonStudio.Controls.Standard">
   <Styles.Resources>
-    
+    <SolidColorBrush x:Key="TextControlBackground">#EFEFEF</SolidColorBrush>
+    <SolidColorBrush x:Key="TextControlForeground">#737373</SolidColorBrush>
+    <SolidColorBrush x:Key="TextControlBorderBrush">#0B7ED5</SolidColorBrush>
+    <SolidColorBrush x:Key="TextControlFocusedBorderBrush">#2A9CF4</SolidColorBrush>
   </Styles.Resources>
   <StyleInclude Source="avares://Avalonia.Themes.Fluent/Accents/FluentLight.xaml"/>
 </Styles>
