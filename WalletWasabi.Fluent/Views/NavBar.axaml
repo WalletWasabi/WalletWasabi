@@ -79,7 +79,7 @@
         <Button Classes="NavButton" Command="{Binding GoBack}" Background="Transparent" IsEnabled="{Binding IsBackButtonVisible}">
           <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
         </Button>
-        <TextBlock Text="Wasabi Wallet" Foreground="White" VerticalAlignment="Center"/>
+        <TextBlock Text="Wasabi Wallet" Foreground="{DynamicResource SystemControlHighlightAltBaseHighBrush}" VerticalAlignment="Center"/>
       </StackPanel>
       <Button Classes="NavButton" Command="{Binding DoToggleAction}">
         <PathIcon Data="{StaticResource navigation_regular}" Width="16" />
