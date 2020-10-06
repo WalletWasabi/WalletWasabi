@@ -9,10 +9,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			Title = "Settings";
 
-			NextCommand = ReactiveCommand.Create(() =>
-			{
-				screen.Router.Navigate.Execute(new HomePageViewModel(screen));
-			});
+			NextCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new HomePageViewModel(screen)));
 		}
 
 		public ICommand NextCommand { get; }

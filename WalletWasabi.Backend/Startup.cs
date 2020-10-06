@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using NBitcoin;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -70,11 +71,8 @@ namespace WalletWasabi.Backend
 			services.AddResponseCompression();
 		}
 
-		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-#pragma warning disable IDE0060 // Remove unused parameter
-
+		[SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "This method gets called by the runtime. Use this method to configure the HTTP request pipeline")]
 		public void Configure(IApplicationBuilder app, IWebHostEnvironment env, Global global)
-#pragma warning restore IDE0060 // Remove unused parameter
 		{
 			app.UseStaticFiles();
 

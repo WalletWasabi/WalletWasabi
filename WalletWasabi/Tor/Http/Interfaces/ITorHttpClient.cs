@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace WalletWasabi.Tor.Http.Interfaces
 {
-	public interface ITorHttpClient : IDisposable
+	public interface ITorHttpClient : IHttpClient, IDisposable
 	{
 		Uri DestinationUri { get; }
 		Func<Uri> DestinationUriAction { get; }
@@ -15,8 +15,6 @@ namespace WalletWasabi.Tor.Http.Interfaces
 		bool IsTorUsed { get; }
 
 		Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken cancel = default);
-
-		Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancel = default);
 
 		/// <summary>
 		/// Sends HTTP request (up to <paramref name="retry"/> times) to get HTTP response.

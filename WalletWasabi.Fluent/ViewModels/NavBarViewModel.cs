@@ -48,17 +48,17 @@ namespace WalletWasabi.Fluent.ViewModels
 			Router.CurrentViewModel
 				.OfType<NavBarItemViewModel>()
 				.Subscribe(x =>
-			{
-				if (_items.Contains(x) || _topItems.Contains(x) || _bottomItems.Contains(x))
 				{
-					if (!_isNavigating)
+					if (_items.Contains(x) || _topItems.Contains(x) || _bottomItems.Contains(x))
 					{
-						_isNavigating = true;
-						SelectedItem = x;
-						_isNavigating = false;
+						if (!_isNavigating)
+						{
+							_isNavigating = true;
+							SelectedItem = x;
+							_isNavigating = false;
+						}
 					}
-				}
-			});
+				});
 
 			this.WhenAnyValue(x => x.SelectedItem)
 				.OfType<IRoutableViewModel>()
@@ -117,15 +117,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			this.WhenAnyValue(x => x.IsOpen)
 				.Subscribe(x => SelectedItem.IsExpanded = x);
 
-			Dispatcher.UIThread.Post(() =>
-			{
-				LoadWallets(walletManager);
-			});
-		}
-
-		public void DoToggleAction()
-		{
-			ToggleAction?.Invoke();
+			Dispatcher.UIThread.Post(() => LoadWallets(walletManager));
 		}
 
 		public ReactiveCommand<Unit, IRoutableViewModel> GoNext { get; }
@@ -223,6 +215,11 @@ namespace WalletWasabi.Fluent.ViewModels
 		}
 
 		public RoutingState Router { get; }
+
+		public void DoToggleAction()
+		{
+			ToggleAction?.Invoke();
+		}
 
 		private void LoadWallets(WalletManager walletManager)
 		{
