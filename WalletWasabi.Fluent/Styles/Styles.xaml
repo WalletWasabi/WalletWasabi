@@ -15,4 +15,7 @@
     <Setter Property="IsPaneOpen" Value="True" />
     <Setter Property="PaneBackground" Value="{x:Null}" />
   </Style>
+  <Style Selector="TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource TextForeground}"></Setter>
+  </Style>
 </Styles>
