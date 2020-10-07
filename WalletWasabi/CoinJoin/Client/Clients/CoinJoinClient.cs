@@ -16,7 +16,6 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.CoinJoin.Client.Rounds;
-using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
@@ -24,7 +23,6 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
-using WalletWasabi.WebClients.Wasabi;
 using static WalletWasabi.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.CoinJoin.Client.Clients
