@@ -11,6 +11,7 @@
     <SolidColorBrush x:Key="StatusBarControlForeground">#A3A3A3</SolidColorBrush>
     <SolidColorBrush x:Key="TextForeground">#FFFFFF</SolidColorBrush>
     <SolidColorBrush x:Key="AcrylicFallbackColor">#1F1F1F</SolidColorBrush>
+    <SolidColorBrush x:Key="BoxShadowColor">#131313</SolidColorBrush>
     <Color x:Key="RegionColor">#FF212121</Color>
   </Styles.Resources>
   <StyleInclude Source="avares://Avalonia.Themes.Fluent/Accents/FluentDark.xaml"/>
