@@ -23,11 +23,11 @@ namespace WalletWasabi.Tor.Socks5
 
 		#region Constructors
 
-		/// <param name="endPoint">Opt out Tor with null.</param>
+		/// <param name="endPoint">Valid Tor end point.</param>
 		internal TorSocks5Client(EndPoint endPoint)
 		{
 			TorSocks5EndPoint = endPoint;
-			TcpClient = endPoint is null ? new TcpClient() : new TcpClient(endPoint.AddressFamily);
+			TcpClient = new TcpClient(endPoint.AddressFamily);
 			AsyncLock = new AsyncLock();
 		}
 
@@ -53,11 +53,6 @@ namespace WalletWasabi.Tor.Socks5
 
 		internal async Task ConnectAsync()
 		{
-			if (TorSocks5EndPoint is null)
-			{
-				return;
-			}
-
 			using (await AsyncLock.LockAsync().ConfigureAwait(false))
 			{
 				if (!TorSocks5EndPoint.TryGetHostAndPort(out string? host, out int? port))
@@ -114,24 +109,16 @@ namespace WalletWasabi.Tor.Socks5
 		/// https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt#n35
 		/// </summary>
 		/// <param name="identity">Isolates streams by identity. If identity is empty string, it won't isolate stream.</param>
-		internal async Task HandshakeAsync(string identity)
+		private async Task HandshakeAsync(string identity)
 		{
 			Logger.LogDebug($"> {nameof(identity)}={identity}");
-
-			if (TorSocks5EndPoint is null)
-			{
-				return;
-			}
-
-			Guard.NotNull(nameof(identity), identity);
 
 			MethodsField methods = string.IsNullOrWhiteSpace(identity)
 				? new MethodsField(MethodField.NoAuthenticationRequired)
 				: new MethodsField(MethodField.UsernamePassword);
 
-			var sendBuffer = new VersionMethodRequest(methods).ToBytes();
-
-			var receiveBuffer = await SendAsync(sendBuffer, 2).ConfigureAwait(false);
+			byte[] sendBuffer = new VersionMethodRequest(methods).ToBytes();
+			byte[] receiveBuffer = await SendAsync(sendBuffer, receiveBufferSize: 2).ConfigureAwait(false);
 
 			var methodSelection = new MethodSelectionResponse();
 			methodSelection.FromBytes(receiveBuffer);

@@ -64,6 +64,8 @@ namespace WalletWasabi.Fluent.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _actions, value);
 		}
 
+		public override string IconName => "web_asset_regular";
+
 		public static WalletViewModel Create(IScreen screen, UiConfig uiConfig, Wallet wallet)
 		{
 			return wallet.KeyManager.IsHardwareWallet
@@ -77,7 +79,5 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			// TODO: Implement.
 		}
-
-		public override string IconName => "web_asset_regular";
 	}
 }

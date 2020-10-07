@@ -22,8 +22,6 @@ namespace WalletWasabi.Tests.RegressionTests
 	[Collection("RegTest collection")]
 	public class DosTests
 	{
-#pragma warning disable IDE0059 // Value assigned to symbol is never used
-
 		public DosTests(RegTestFixture regTestFixture)
 		{
 			RegTestFixture = regTestFixture;
@@ -49,7 +47,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		[Fact]
 		public async Task BanningTestsAsync()
 		{
-			(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+			(_, IRPCClient rpc, Network network, Coordinator coordinator, _, _, _) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 			Money denomination = Money.Coins(0.1m);
 			decimal coordinatorFeePercent = 0.1m;
@@ -253,7 +251,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		[Fact]
 		public async Task NotingTestsAsync()
 		{
-			(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+			(_, IRPCClient rpc, Network network, Coordinator coordinator, _, _, _) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 			Money denomination = Money.Coins(1m);
 			decimal coordinatorFeePercent = 0.1m;
@@ -315,7 +313,5 @@ namespace WalletWasabi.Tests.RegressionTests
 			notedCount = coordinator.UtxoReferee.CountBanned(true);
 			Assert.Equal(anonymitySet, notedCount);
 		}
-
-#pragma warning restore IDE0059 // Value assigned to symbol is never used
 	}
 }

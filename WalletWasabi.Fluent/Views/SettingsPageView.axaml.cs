@@ -10,7 +10,7 @@ namespace WalletWasabi.Fluent.Views
 	{
 		public SettingsPageView()
 		{
-			this.InitializeComponent();
+			InitializeComponent();
 		}
 
 		private void InitializeComponent()
