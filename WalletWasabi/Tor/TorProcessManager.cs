@@ -97,7 +97,7 @@ namespace WalletWasabi.Tor
 					UseShellExecute = false,
 					CreateNoWindow = true,
 					RedirectStandardOutput = true,
-					WorkingDirectory = Settings.TorDir
+					WorkingDirectory = Settings.TorBinaryDir
 				};
 
 				if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

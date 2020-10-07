@@ -19,7 +19,6 @@ namespace WalletWasabi.Tor
 		/// <param name="distributionFolderPath">Full path to folder containing Tor installation files.</param>
 		public TorSettings(string dataDir, string logFilePath, string distributionFolderPath)
 		{
-			TorDir = Path.Combine(dataDir, "tor");
 			TorBinaryFilePath = MicroserviceHelpers.GetBinaryPath(Path.Combine("Tor", "tor"));
 			TorBinaryDir = Path.Combine(MicroserviceHelpers.GetBinaryFolder(), "Tor");
 
@@ -30,10 +29,6 @@ namespace WalletWasabi.Tor
 			GeoIpPath = Path.Combine(DistributionFolder, "Tor", "Geoip", "geoip");
 			GeoIp6Path = Path.Combine(DistributionFolder, "Tor", "Geoip", "geoip6");
 		}
-
-		/// <summary>Full directory path where Tor is installed (or supposed to be installed).</summary>
-		/// <remarks>Folder contains <c>Data</c> and <c>Tor</c> (see <see cref="TorBinaryDir"/>) sub-folders.</remarks>
-		public string TorDir { get; }
 
 		/// <summary>Full directory path where Tor binaries are placed.</summary>
 		public string TorBinaryDir { get; }
