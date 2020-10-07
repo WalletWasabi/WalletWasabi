@@ -10,21 +10,7 @@ namespace System.Net
 		/// <returns><c>true</c> when port can be returned for <paramref name="endPoint"/>, <c>false</c> otherwise.</returns>
 		public static bool TryGetPort(this EndPoint endPoint, [NotNullWhen(true)] out int? port)
 		{
-			if (endPoint is DnsEndPoint dnsEndPoint)
-			{
-				port = dnsEndPoint.Port;
-				return true;
-			}
-			else if (endPoint is IPEndPoint ipEndPoint)
-			{
-				port = ipEndPoint.Port;
-				return true;
-			}
-			else
-			{
-				port = null;
-				return false;
-			}
+			return TryGetHostAndPort(endPoint, out var _, out port);
 		}
 
 		/// <summary>
@@ -33,21 +19,7 @@ namespace System.Net
 		/// <returns><c>true</c> when host can be returned for <paramref name="endPoint"/>, <c>false</c> otherwise.</returns>
 		public static bool TryGetHost(this EndPoint endPoint, [NotNullWhen(true)] out string? host)
 		{
-			if (endPoint is DnsEndPoint dnsEndPoint)
-			{
-				host = dnsEndPoint.Host;
-				return true;
-			}
-			else if (endPoint is IPEndPoint ipEndPoint)
-			{
-				host = ipEndPoint.Address.ToString();
-				return true;
-			}
-			else
-			{
-				host = null;
-				return false;
-			}
+			return TryGetHostAndPort(endPoint, out host, out var _);
 		}
 
 		/// <summary>
