@@ -22,7 +22,7 @@
             <ExperimentalAcrylicMaterial BackgroundSource="Digger"
                                          TintColor="{DynamicResource SystemAltHighColor}"
                                          TintOpacity="1"
-                                         FallbackColor="#1F1F1F"
+                                         FallbackColor="{DynamicResource AcrylicFallbackColor}"
                                          MaterialOpacity="0.55" />
           </ExperimentalAcrylicBorder.Material>
 
