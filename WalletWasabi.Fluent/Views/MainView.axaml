@@ -31,11 +31,11 @@
       </Panel>
     </SplitView.Pane>
     <Panel>
-      <Border Background="{DynamicResource RegionColor}" BoxShadow="0 1 4 #131313" IsHitTestVisible="False" />
       <DockPanel>
         <local:StatusBar DockPanel.Dock="Bottom" DataContext="{Binding StatusBar}" VerticalAlignment="Bottom" Height="32" TextBlock.FontSize="12" />
-        <Panel Margin="20 10 20 0">
-          <DockPanel>
+        <Panel>
+          <Border Background="{DynamicResource RegionColor}" BoxShadow="0 1 4 #131313" IsHitTestVisible="False" />
+          <DockPanel Margin="20 10 20 0">
               <TextBlock Text="{Binding NavBar.SelectedItem.Title}" DockPanel.Dock="Top" FontSize="28" IsHitTestVisible="False" />
             <rxui:RoutedViewHost Router="{Binding Router}">
               <rxui:RoutedViewHost.ViewLocator>
