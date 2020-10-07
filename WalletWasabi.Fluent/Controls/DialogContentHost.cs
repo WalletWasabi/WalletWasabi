@@ -20,11 +20,6 @@ namespace WalletWasabi.Fluent.Controls
 			IsDialogOpenProperty.Changed.AddClassHandler<DialogContentHost>(UpdatePseudoClasses);
 		}
 
-		private static void UpdatePseudoClasses(DialogContentHost arg1, AvaloniaPropertyChangedEventArgs arg2)
-		{
-			arg1.PseudoClasses.Set(":open", (bool)arg2.NewValue);
-		}
-
 		/// <summary>
 		/// The object to be displayed as a dialog.
 		/// </summary>
@@ -41,6 +36,11 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(IsDialogOpenProperty);
 			set => SetValue(IsDialogOpenProperty, value);
+		}
+
+		private static void UpdatePseudoClasses(DialogContentHost arg1, AvaloniaPropertyChangedEventArgs arg2)
+		{
+			arg1.PseudoClasses.Set(":open", (bool)arg2.NewValue);
 		}
 	}
 }
