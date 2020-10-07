@@ -88,7 +88,7 @@ namespace WalletWasabi.Tor
 					return true;
 				}
 
-				string torArguments = Settings.GetCmdArguments(TorSocks5EndPoint) + $" --Log \"notice file {Settings.LogFilePath}\"";
+				string torArguments = Settings.GetCmdArguments(TorSocks5EndPoint);
 
 				var startInfo = new ProcessStartInfo
 				{

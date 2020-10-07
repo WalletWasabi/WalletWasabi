@@ -50,9 +50,12 @@ namespace WalletWasabi.Tor
 
 		public string GetCmdArguments(EndPoint torSocks5EndPoint)
 		{
-			return $"--SOCKSPort {torSocks5EndPoint} " +
-				$"--DataDirectory \"{TorDataDir}\" " +
-				$"--GeoIPFile \"{GeoIpPath}\" GeoIPv6File \"{GeoIp6Path}\"";
+			return string.Join(" ",
+				$"--SOCKSPort {torSocks5EndPoint}",
+				$"--DataDirectory \"{TorDataDir}\"",
+				$"--GeoIPFile \"{GeoIpPath}\"",
+				$"--GeoIPv6File \"{GeoIp6Path}\"",
+				$"--Log \"notice file {LogFilePath}\"");
 		}
 	}
 }
