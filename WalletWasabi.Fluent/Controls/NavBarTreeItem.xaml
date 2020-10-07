@@ -67,7 +67,7 @@
   <!--  Pressed state  -->
   <Style Selector="c|NavBarTreeItem:pressed /template/ Border#Indicator">
     <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColorLight1}"/>
-  </Style>  
+  </Style>
   <Style Selector="c|NavBarTreeItem:pressed /template/ Border#PART_LayoutRoot:pointerover > ContentPresenter#PART_HeaderPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource TreeViewItemForegroundPressed}" />
   </Style>
@@ -83,7 +83,7 @@
     <Setter Property="RenderTransform" Value="scale(0.98)" />
   </Style>
 
-  <!--  Disabled state  -->  
+  <!--  Disabled state  -->
   <Style Selector="c|NavBarTreeItem:disabled /template/ Border#PART_LayoutRoot > ContentPresenter#PART_HeaderPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource TreeViewItemForegroundDisabled}" />
   </Style>
@@ -91,22 +91,22 @@
   <!--  Selected state  -->
   <Style Selector="c|NavBarTreeItem:selected /template/ Border#Indicator">
     <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}"/>
-  </Style>  
+  </Style>
   <Style Selector="c|NavBarTreeItem:selected /template/ Border#PART_LayoutRoot > ContentPresenter#PART_HeaderPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource TreeViewItemForegroundSelected}" />
   </Style>
 
-  <!--  Selected PointerOver state  -->  
+  <!--  Selected PointerOver state  -->
   <Style Selector="c|NavBarTreeItem:selected /template/ Border#PART_LayoutRoot:pointerover > ContentPresenter#PART_HeaderPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource TreeViewItemForegroundSelectedPointerOver}" />
   </Style>
 
-  <!--  Selected Pressed state  -->  
+  <!--  Selected Pressed state  -->
   <Style Selector="c|NavBarTreeItem:pressed:selected /template/ Border#PART_LayoutRoot:pointerover > ContentPresenter#PART_HeaderPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource TreeViewItemForegroundSelectedPressed}" />
   </Style>
 
-  <!--  Disabled Selected state  -->  
+  <!--  Disabled Selected state  -->
   <Style Selector="c|NavBarTreeItem:disabled:selected /template/ Border#PART_LayoutRoot > ContentPresenter#PART_HeaderPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource TreeViewItemForegroundSelectedDisabled}" />
   </Style>

@@ -1,6 +1,5 @@
 using ReactiveUI;
 using System.Windows.Input;
-using WalletWasabi.Fluent.ViewModels.Dialog;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -10,10 +9,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			Title = "Settings";
 
-			NextCommand = ReactiveCommand.Create(() =>
-			{
-				screen.Router.Navigate.Execute(new HomePageViewModel(screen));
-			});
+			NextCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new HomePageViewModel(screen)));
 
 			OpenDialogCommand = ReactiveCommand.Create(async () =>
 			{

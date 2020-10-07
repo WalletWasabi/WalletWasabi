@@ -14,5 +14,5 @@
     <Setter Property="DisplayMode" Value="CompactInline" />
     <Setter Property="IsPaneOpen" Value="True" />
     <Setter Property="PaneBackground" Value="{x:Null}" />
-  </Style>  
+  </Style>
 </Styles>
