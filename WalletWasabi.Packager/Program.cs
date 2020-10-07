@@ -91,15 +91,6 @@ namespace WalletWasabi.Packager
 				return;
 			}
 
-			// Start with digest creation and return if only digest creation.
-			CreateDigests();
-
-			OnlyCreateDigests = argsProcessor.IsOnlyCreateDigestsMode();
-			if (OnlyCreateDigests)
-			{
-				return;
-			}
-
 			// Only binaries mode is for deterministic builds.
 			OnlyBinaries = argsProcessor.IsOnlyBinariesMode();
 
@@ -126,38 +117,6 @@ namespace WalletWasabi.Packager
 					RestoreProgramCs();
 				}
 			}
-		}
-
-		private static void CreateDigests()
-		{
-			var tempDir = "DigestTempDir";
-			IoHelpers.TryDeleteDirectoryAsync(tempDir).GetAwaiter().GetResult();
-			Directory.CreateDirectory(tempDir);
-
-			var torDaemonsDir = Path.Combine(LibraryProjectDirectory, "TorDaemons");
-			string torWinZip = Path.Combine(torDaemonsDir, "tor-win64.zip");
-			IoHelpers.BetterExtractZipToDirectoryAsync(torWinZip, tempDir).GetAwaiter().GetResult();
-			File.Move(Path.Combine(tempDir, "Tor", "tor.exe"), Path.Combine(tempDir, "TorWin"));
-
-			string torLinuxZip = Path.Combine(torDaemonsDir, "tor-linux64.zip");
-			IoHelpers.BetterExtractZipToDirectoryAsync(torLinuxZip, tempDir).GetAwaiter().GetResult();
-			File.Move(Path.Combine(tempDir, "Tor", "tor"), Path.Combine(tempDir, "TorLin"));
-
-			string torOsxZip = Path.Combine(torDaemonsDir, "tor-osx64.zip");
-			IoHelpers.BetterExtractZipToDirectoryAsync(torOsxZip, tempDir).GetAwaiter().GetResult();
-			File.Move(Path.Combine(tempDir, "Tor", "tor.real"), Path.Combine(tempDir, "TorOsx"));
-
-			var tempDirInfo = new DirectoryInfo(tempDir);
-			var binaries = tempDirInfo.GetFiles();
-			Console.WriteLine("Digests:");
-			foreach (var file in binaries)
-			{
-				var filePath = file.FullName;
-				var hash = ByteHelpers.ToHex(IoHelpers.GetHashFile(filePath)).ToLowerInvariant();
-				Console.WriteLine($"{file.Name}: {hash}");
-			}
-
-			IoHelpers.TryDeleteDirectoryAsync(tempDir).GetAwaiter().GetResult();
 		}
 
 		private static void ReportStatus()
