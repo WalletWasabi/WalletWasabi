@@ -9,7 +9,6 @@ using NBitcoin.Protocol.Behaviors;
 using NBitcoin.Protocol.Connectors;
 using Nito.AsyncEx;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
