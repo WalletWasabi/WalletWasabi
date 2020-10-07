@@ -34,7 +34,7 @@
       <DockPanel>
         <local:StatusBar DockPanel.Dock="Bottom" DataContext="{Binding StatusBar}" VerticalAlignment="Bottom" Height="32" TextBlock.FontSize="12" />
         <Panel>
-          <Border Background="{DynamicResource RegionColor}" BoxShadow="0 1 4 #131313" IsHitTestVisible="False" />
+          <Border Background="{DynamicResource RegionColor}" BoxShadow="{DynamicResource BoxShadow}" IsHitTestVisible="False" />
           <DockPanel Margin="20 10 20 0">
               <TextBlock Text="{Binding NavBar.SelectedItem.Title}" DockPanel.Dock="Top" FontSize="28" IsHitTestVisible="False" />
             <rxui:RoutedViewHost Router="{Binding Router}">
