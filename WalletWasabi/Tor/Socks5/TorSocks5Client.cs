@@ -85,12 +85,13 @@ namespace WalletWasabi.Tor.Socks5
 			{
 				await ConnectAsync().ConfigureAwait(false);
 				await HandshakeAsync(isolateStream: true).ConfigureAwait(false);
+
+				return true;
 			}
-			catch (ConnectionException)
+			catch (Exception e) when (e is ConnectionException || e is SocketException)
 			{
 				return false;
 			}
-			return true;
 		}
 
 		/// <summary>
