@@ -19,7 +19,8 @@ namespace WalletWasabi.Tests.UnitTests.Tor
 
 			string arguments = settings.GetCmdArguments(endpoint);
 
-			string expected = string.Join(" ",
+			string expected = string.Join(
+				" ",
 				$"--SOCKSPort 127.0.0.1:9050",
 				$"--DataDirectory \"{Path.Combine("temp", "tempdata", "tordata")}\"",
 				$"--GeoIPFile \"{Path.Combine("tempdist", "Tor", "Geoip", "geoip")}\"",
