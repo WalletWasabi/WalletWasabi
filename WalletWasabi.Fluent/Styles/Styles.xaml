@@ -7,12 +7,12 @@
     <sys:Double x:Key="SplitViewCollapseThreshold">750</sys:Double>
     <sys:Double x:Key="SplitViewCompactPaneLength">46</sys:Double>
     <!-- <FontFamily x:Key="ContentControlThemeFontFamily">avares://WalletWasabi.Fluent/Assets#Inter</FontFamily> -->
-    <SolidColorBrush x:Key="TextBoxBackground">#2F2F2F</SolidColorBrush>
-    <SolidColorBrush x:Key="TextBoxForeground">#ACACAC</SolidColorBrush>
-    <SolidColorBrush x:Key="TextBoxBorderBrush">#0078D4</SolidColorBrush>
-    <SolidColorBrush x:Key="TextBoxFocusBorderBrush">#47AFFF</SolidColorBrush>
     <Thickness x:Key="TextBoxBorderDefaultThickness">0,0,0,2</Thickness>
     <Thickness x:Key="TextBoxBorderFocusedThickness">0,0,0,3</Thickness>
+    <Thickness x:Key="TextControlBorderThemeThickness">0,0,0,2</Thickness>
+    <Thickness x:Key="TextControlBorderThemeThicknessFocused">0,0,0,2</Thickness>
+    <Thickness x:Key="TextControlThemePadding">15,10,15,8</Thickness>
+  <CornerRadius x:Key="ControlCornerRadius">0</CornerRadius>
   </Styles.Resources>
   <Style Selector="SplitView">
     <Setter Property="CompactPaneLength" Value="{StaticResource SplitViewCompactPaneLength}" />
@@ -23,33 +23,6 @@
   </Style>
   <Style Selector="TextBlock">
     <Setter Property="Foreground" Value="{DynamicResource TextForeground}"/>
-  </Style>
-  <Style Selector="TextBox">
-    <Setter Property="BorderThickness" Value="{StaticResource TextBoxBorderDefaultThickness}" />
-    <Setter Property="BorderBrush" Value="{StaticResource TextBoxBorderBrush}" />
-    <Setter Property="Background" Value="{StaticResource TextBoxBackground}" />
-    <Setter Property="Foreground" Value="{StaticResource TextBoxForeground}" />
-    <Setter Property="Padding" Value="15 10 15 8" />
-  </Style>
-
-  <Style Selector="TextBox:focus, TextBox:pointerover">
-    <Setter Property="Foreground" Value="{StaticResource TextBoxForeground}" />
-  </Style>
-
-  <Style Selector="TextBox:focus /template/ TextBlock#PART_Watermark, TextBox:focus /template/ TextBlock#PART_FloatingWatermark,TextBox:pointerover /template/ TextBlock#PART_Watermark, TextBox:pointerover /template/ TextBlock#PART_FloatingWatermark">
-    <Setter Property="Foreground" Value="{StaticResource TextBoxForeground}" />
-  </Style>
-
-  <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
-    <Setter Property="Background" Value="{StaticResource TextBoxBackground}"/>
-    <Setter Property="BorderBrush" Value="{StaticResource TextBoxBorderBrush}"/>
-    <Setter Property="BorderThickness" Value="{StaticResource TextBoxBorderFocusedThickness}" />
-  </Style>
-
-  <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
-    <Setter Property="Background" Value="{StaticResource TextBoxBackground}"/>
-    <Setter Property="BorderBrush" Value="{StaticResource TextBoxFocusBorderBrush}"/>
-    <Setter Property="BorderThickness" Value="{StaticResource TextBoxBorderFocusedThickness}" />
   </Style>
 
   <!--TODO: not working, debug-->

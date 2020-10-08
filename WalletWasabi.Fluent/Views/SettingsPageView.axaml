@@ -9,5 +9,6 @@
     <Button Command="{Binding NextCommand}" Content="Next" />
     <TextBox Watermark="Type here..."/>
     <TextBox Watermark="Type here... #2"/>
+    <TextBox Watermark="Type here... #3"/>
   </StackPanel>
 </UserControl>
