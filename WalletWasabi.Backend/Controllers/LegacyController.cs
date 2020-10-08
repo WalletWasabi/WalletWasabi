@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace WalletWasabi.Backend.Controllers
 {
+	/// <summary>
+	/// Provides legacy, never changing API for legacy applications.
+	/// </summary>
 	[Produces("application/json")]
 	public class LegacyController : ControllerBase
 	{
