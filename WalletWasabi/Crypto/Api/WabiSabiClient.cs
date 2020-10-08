@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using NBitcoin;
 using NBitcoin.Secp256k1;
 using WalletWasabi.Crypto.Groups;
@@ -33,11 +34,18 @@ namespace WalletWasabi.Crypto.Api
 
 		private int NumberOfCredentials { get; set; } = 1;
 
+		private Transcript Transcript { get; set; }
+
 		public List<Credential> Credentials { get; } = new List<Credential>();
 
-		public void HandleResponse(RegistrationResponse registrationResponse, Transcript transcript)
+		public void HandleResponse(RegistrationResponse registrationResponse)
 		{
 			Guard.NotNull(nameof(registrationResponse), registrationResponse);
+			
+			if (Transcript is null)
+			{
+				throw new InvalidOperationException("No transcript was initialised.");
+			}
 
 			var requestedCredentials = CredentialsRequested;
 			var issuedCredentials = registrationResponse.IssuedCredentials;
@@ -59,7 +67,7 @@ namespace WalletWasabi.Crypto.Api
 			var statements = credentials
 				.Select(x => ProofSystem.IssuerParameters(CoordinatorParameters, x.Issued, x.Requested.Credential.Ma));
 
-			var areCorrectlyIssued = Verifier.Verify(transcript, statements, registrationResponse.Proofs);
+			var areCorrectlyIssued = Verifier.Verify(Transcript, statements, registrationResponse.Proofs);
 			if (!areCorrectlyIssued)
 			{
 				throw new WabiSabiException(WabiSabiErrorCode.ClientReceivedInvalidProofs);
@@ -110,7 +118,7 @@ namespace WalletWasabi.Crypto.Api
 			return this;
 		}
 
-		RegistrationRequest ICredentialRequestBuilder.Build(Transcript transcript)
+		RegistrationRequest ICredentialRequestBuilder.Build()
 		{
 			// Make sure we request always the same number of credentials
 			var missingCredentialRequests = NumberOfCredentials - CredentialsToRequest.Count();
@@ -124,13 +132,13 @@ namespace WalletWasabi.Crypto.Api
 
 			if (!IsNullRequest && missingCredentialPresent > 0)
 			{
-				var zeroCredentials = Credentials.Where(x=>x.Amount.IsZero);
-				var alreadyPresentedZeroCredentials = CredentialsToPresent.Select(x=>x.Credential).Where(x=>x.Amount.IsZero);
+				var zeroCredentials = Credentials.Where(x => x.Amount.IsZero);
+				var alreadyPresentedZeroCredentials = CredentialsToPresent.Select(x => x.Credential).Where(x => x.Amount.IsZero);
 				var availableZeroCredentials = zeroCredentials.Except(alreadyPresentedZeroCredentials); 
 
 				// This should not be possible 
 				var availableZeroCredentialCount = availableZeroCredentials.Count(); 
-				if ( availableZeroCredentialCount < missingCredentialPresent)
+				if (availableZeroCredentialCount < missingCredentialPresent)
 				{
 					throw new WabiSabiException(
 						WabiSabiErrorCode.NotEnoughZeroCredentialToFillTheRequest, 
@@ -182,14 +190,15 @@ namespace WalletWasabi.Crypto.Api
 
 			if (!IsNullRequest)
 			{
-				knowledgeToProve = knowledgeToProve.Concat(new []{ balanceKnowledge });
+				knowledgeToProve = knowledgeToProve.Append(balanceKnowledge);
 			}
 
+			Transcript = BuildTransnscript();
 			return new RegistrationRequest(
 				Balance, 
 				CredentialsToPresent.Select(x => x.Credential.Present(x.z)), 
 				CredentialsRequested.Select(x => x.Credential),
-				Prover.Prove(transcript, knowledgeToProve, Random));
+				Prover.Prove(Transcript, knowledgeToProve, Random));
 		}
 
 		private (Scalar SumOfZ, Scalar DeltaR) ComputeBalanceData()
@@ -199,6 +208,13 @@ namespace WalletWasabi.Crypto.Api
 			var r = CredentialsRequested.Select(x => x.r).Sum();
 			var deltaR = cr + r.Negate();
 			return (sumOfZ, deltaR);
+		}
+
+		private Transcript BuildTransnscript()
+		{
+			var label =  $"UnifiedRegistration/{NumberOfCredentials}/{IsNullRequest}";
+			var encodedLabel = Encoding.UTF8.GetBytes(label);
+			return new Transcript(encodedLabel);
 		}
 	}
 }

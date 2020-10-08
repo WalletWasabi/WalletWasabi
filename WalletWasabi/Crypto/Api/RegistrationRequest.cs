@@ -15,17 +15,17 @@ namespace WalletWasabi.Crypto.Api
 			IEnumerable<CredentialIssuanceRequest> requested, 
 			IEnumerable<Proof> proofs)
 		{
-			Balance = balance;
+			DeltaAmount = balance;
 			Presented = presented;
 			Requested = requested;
 			Proofs = proofs;
 		}
 
-		public Money Balance { get; }
+		public Money DeltaAmount { get; }
 		public IEnumerable<CredentialPresentation> Presented { get; }
 		public IEnumerable<CredentialIssuanceRequest> Requested { get; }
 		public IEnumerable<Proof> Proofs { get; }
 
-		public bool IsNullRequest => Balance == Money.Zero && !Presented.Any();
+		public bool IsNullRequest => DeltaAmount == Money.Zero && !Presented.Any();
 	} 
 }

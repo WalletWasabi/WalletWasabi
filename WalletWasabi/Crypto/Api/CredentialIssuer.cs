@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using NBitcoin;
 using NBitcoin.Secp256k1;
 using WalletWasabi.Crypto.Groups;
@@ -14,6 +15,14 @@ namespace WalletWasabi.Crypto.Api
 {
 	public class CredentialIssuer
 	{
+		public CredentialIssuer(CoordinatorSecretKey sk, int numberOfCredentials, WasabiRandom random)
+		{
+			CoordinatorSecretKey = Guard.NotNull(nameof(sk), sk);
+			NumberOfCredentials = Guard.InRangeAndNotNull(nameof(numberOfCredentials), numberOfCredentials, 1, 100);
+			CoordinatorParameters = CoordinatorSecretKey.ComputeCoordinatorParameters();
+			Random = random;
+		}
+
 		// Keeps track of the used serial numbers. This is part of 
 		// the double-spending prevention mechanism.
 		private HashSet<GroupElement> SerialNumbers { get; } = new HashSet<GroupElement>();
@@ -29,14 +38,6 @@ namespace WalletWasabi.Crypto.Api
 
 		public int NumberOfCredentials { get; }
 
-		public CredentialIssuer(CoordinatorSecretKey sk, int numberOfCredentials, WasabiRandom random)
-		{
-			CoordinatorSecretKey = Guard.NotNull(nameof(sk), sk);
-			NumberOfCredentials = Guard.InRangeAndNotNull(nameof(numberOfCredentials), numberOfCredentials, 1, 100);
-			CoordinatorParameters = CoordinatorSecretKey.ComputeCoordinatorParameters();
-			Random = random;
-		}
-
 		public RegistrationResponse HandleRequest(RegistrationRequest registrationRequest)
 		{
 			Guard.NotNull(nameof(registrationRequest), registrationRequest);
@@ -45,21 +46,21 @@ namespace WalletWasabi.Crypto.Api
 
 			// Don't allow balance to go negative. In case this goes below zero 
 			// then there is a problem somewhere because this should not be possible.
-			if (Balance + registrationRequest.Balance < Money.Zero)
+			if (Balance + registrationRequest.DeltaAmount < Money.Zero)
 			{
 				throw new WabiSabiException(WabiSabiErrorCode.NegativeBalance);
 			}
 
-			// Check all the bit commitments have the correct length. Null requests need zero-length rangeproofs 
+			// Check all the bit commitments have the correct length. Null requests need zero-length rangeproofs.
 			var rangeProofWidth = registrationRequest.IsNullRequest ? 0 : Constants.RangeProofWidth;
-			var allRangeProofsAreCorrentSize = registrationRequest.Requested.All(x => x.BitCommitments.Count() == rangeProofWidth);
-			if (!allRangeProofsAreCorrentSize)
+			var allRangeProofsAreCorrectSize = registrationRequest.Requested.All(x => x.BitCommitments.Count() == rangeProofWidth);
+			if (!allRangeProofsAreCorrectSize)
 			{
 				throw new WabiSabiException(WabiSabiErrorCode.InvalidBitCommitment);
 			} 
 
-			var sn = SerialNumbers.ToArray(); 
-			if (sn.Distinct().Count() < sn.Count())
+			// Check all the serial numbers are unique.
+			if (SerialNumbers.Distinct().Count() < SerialNumbers.Count())
 			{
 				throw new WabiSabiException(WabiSabiErrorCode.SerialNumberDuplicated);
 			}
@@ -67,7 +68,7 @@ namespace WalletWasabi.Crypto.Api
 			var statements = new List<Statement>();
 			foreach (var presentation in registrationRequest.Presented)
 			{
-				// Calculate Z using coordinator secret
+				// Calculate Z using coordinator secret.
 				var Z = presentation.ComputeZ(CoordinatorSecretKey);
 
 				statements.Add(ProofSystem.ShowCredential(presentation, Z, CoordinatorParameters));
@@ -97,16 +98,17 @@ namespace WalletWasabi.Crypto.Api
 
 				// A positive Delta_a means the requested credential amounts are larger
 				// than the presented ones (i.e. input registration, and a negative
-				// balance corresponds to output registration). The equation requires a
+				// balance correspond to output registration). The equation requires a
 				// commitment to 0, so the sum of the presented attributes and the
-				// negated requested attributes is tweaked by delta_a.
-				var absAmountDelta = new Scalar(registrationRequest.Balance.Abs());
-				var deltaA = registrationRequest.Balance < Money.Zero ? absAmountDelta.Negate() : absAmountDelta;
+				// negated requested attributes are tweaked by delta_a.
+				var absAmountDelta = new Scalar(registrationRequest.DeltaAmount.Abs());
+				var deltaA = registrationRequest.DeltaAmount < Money.Zero ? absAmountDelta.Negate() : absAmountDelta;
 				var balanceTweak = deltaA * Generators.Gg;
 				statements.Add(ProofSystem.BalanceProof(balanceTweak + presented - requested));
 			}
 
-			var transcript = new Transcript(new byte[0]); // FIXME label unified registration, K, isNullRequest
+			// Construct response.
+			var transcript = BuildTransnscript(registrationRequest.IsNullRequest);
 
 			// Verify all statements.
 			var areProofsValid = Verifier.Verify(transcript, statements, registrationRequest.Proofs);
@@ -118,10 +120,7 @@ namespace WalletWasabi.Crypto.Api
 			// Issue credentials.
 			var credentials = registrationRequest.Requested.Select(x => IssueCredential(x.Ma, Random.GetScalar())).ToArray();
 
-			// Construct response.
-			var responseTranscript = new Transcript(new byte[0]); // FIXME label unified registration, K, isNullRequest
-
-			var proofs = Prover.Prove(responseTranscript, credentials.Select(x => x.Knowledge), Random);
+			var proofs = Prover.Prove(transcript, credentials.Select(x => x.Knowledge), Random);
 			var macs = credentials.Select(x => x.Mac);
 			var response = new RegistrationResponse(macs, proofs);
 
@@ -130,7 +129,7 @@ namespace WalletWasabi.Crypto.Api
 			{
 				SerialNumbers.Add(presentation.S);
 			}
-			Balance += registrationRequest.Balance;
+			Balance += registrationRequest.DeltaAmount;
 
 			return response;
 		}
@@ -141,6 +140,13 @@ namespace WalletWasabi.Crypto.Api
 			var mac = MAC.ComputeMAC(sk, ma, t);
 			var knowledge = ProofSystem.IssuerParameters(mac, ma, sk);
 			return (mac, knowledge);
+		}
+
+		private Transcript BuildTransnscript(bool isNullRequest)
+		{
+			var label = $"UnifiedRegistration/{NumberOfCredentials}/{isNullRequest}";
+			var encodedLabel = Encoding.UTF8.GetBytes(label);
+			return new Transcript(encodedLabel);
 		}
 	}
 }

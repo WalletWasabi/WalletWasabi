@@ -9,6 +9,6 @@ namespace WalletWasabi.Crypto.Api
 
 		ICredentialRequestBuilder PresentCredentials(params Credential[] credential);
 
-		RegistrationRequest Build(Transcript transcript);
+		RegistrationRequest Build();
 	}
 }

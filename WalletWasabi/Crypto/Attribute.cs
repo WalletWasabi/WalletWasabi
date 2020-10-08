@@ -13,10 +13,10 @@ namespace WalletWasabi.Crypto
 			Ma = amount * Generators.Gg + randomness * Generators.Gh;
 		}
 
-		public static Attribute FromMoney(Money money, WasabiRandom rng)
-			=> new Attribute(new Scalar((ulong)money.Satoshi), rng.GetScalar(allowZero: false));
-
 		public Scalar Randomness { get; }
 		public GroupElement Ma { get; }
+
+		public static Attribute FromMoney(Money money, WasabiRandom rng)
+			=> new Attribute(new Scalar((ulong)money.Satoshi), rng.GetScalar(allowZero: false));
 	}
 }
