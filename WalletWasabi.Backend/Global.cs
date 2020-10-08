@@ -1,5 +1,4 @@
 using NBitcoin;
-using NBitcoin.RPC;
 using System;
 using System.IO;
 using System.Net;

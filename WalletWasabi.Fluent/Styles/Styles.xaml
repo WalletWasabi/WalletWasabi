@@ -21,7 +21,9 @@
     <Setter Property="IsPaneOpen" Value="True" />
     <Setter Property="PaneBackground" Value="{x:Null}" />
   </Style>
-
+  <Style Selector="TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource TextForeground}"/>
+  </Style>
   <Style Selector="TextBox">
     <Setter Property="BorderThickness" Value="{StaticResource TextBoxBorderDefaultThickness}" />
     <Setter Property="BorderBrush" Value="{StaticResource TextBoxBorderBrush}" />

@@ -65,7 +65,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 							.UseUrls(BackendEndPoint))
 					.Build();
 
-			Global = (Backend.Global)BackendHost.Services.GetService(typeof(Backend.Global));
+			Global = (Global)BackendHost.Services.GetService(typeof(Global));
 			Global.HostedServices = hostedServices;
 			var hostInitializationTask = BackendHost.RunWithTasksAsync();
 			Logger.LogInfo($"Started Backend webhost: {BackendEndPoint}");
@@ -77,7 +77,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 		public string BackendEndPoint { get; internal set; }
 		public IHost BackendHost { get; internal set; }
 		public CoreNode BackendRegTestNode { get; internal set; }
-		public Backend.Global Global { get; }
+		public Global Global { get; }
 
 		public static CoordinatorRoundConfig CreateRoundConfig(
 			Money denomination,

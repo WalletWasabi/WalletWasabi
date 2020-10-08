@@ -14,7 +14,15 @@
     <converters:PascalToPhraseConverter x:Key="PascalToPhraseConverter" />
     <converters:RpcStatusStringConverter x:Key="RpcStatusStringConverter" />
   </UserControl.Resources>
-  <Panel Background="#191919" Cursor="{Binding UpdateAvailable, Converter={StaticResource ShowCursorConverter}}">
+  
+  <Panel Background="{DynamicResource StatusBarControlBackground}" Cursor="{Binding UpdateAvailable, Converter={StaticResource ShowCursorConverter}}">
+    <Panel.Styles>
+      <Styles>
+        <Style Selector="TextBlock">
+          <Setter Property="Foreground" Value="{DynamicResource StatusBarControlForeground}"/>
+        </Style>
+      </Styles>
+    </Panel.Styles>
     <!--
     <i:Interaction.Behaviors>
       <behaviors:CommandOnClickBehavior Command="{Binding UpdateCommand}" />
