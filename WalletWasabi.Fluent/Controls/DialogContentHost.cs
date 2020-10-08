@@ -35,5 +35,10 @@ namespace WalletWasabi.Fluent.Controls
 			get => GetValue(DialogHostProperty);
 			set => SetValue(DialogHostProperty, value);
 		}
+
+		public void CloseDialog()
+		{
+			DialogHost?.CloseDialog();
+		}
 	}
 }

@@ -15,4 +15,19 @@
     <Setter Property="IsPaneOpen" Value="True" />
     <Setter Property="PaneBackground" Value="{x:Null}" />
   </Style>
+  
+  <Style Selector="Button.invisible"> 
+    <Setter Property="VerticalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+  </Style>
+  <Style Selector="Button.invisible /template/ ContentPresenter"> 
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="Button.invisible:pointerover /template/ ContentPresenter"> 
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="Button.invisible:pressed /template/ ContentPresenter"> 
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  
 </Styles>

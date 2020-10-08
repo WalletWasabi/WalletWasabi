@@ -11,12 +11,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		}
 
 		protected override void DialogShown()
-		{
-			Task.Run(async () =>
-			{
-				await Task.Delay(5000);
-				CloseDialog("Done");
-			});
+		{ 
 		}
 	}
 }
