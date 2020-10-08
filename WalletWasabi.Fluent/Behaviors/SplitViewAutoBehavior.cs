@@ -13,7 +13,7 @@ namespace WalletWasabi.Fluent.Behaviors
 	{
 		private bool _sidebarWasForceClosed;
 
-	private CompositeDisposable Disposables { get; set; }
+		private CompositeDisposable Disposables { get; set; }
 
 		public static readonly StyledProperty<double> CollapseThresholdProperty =
 			AvaloniaProperty.Register<SplitViewAutoBehavior, double>(nameof(CollapseThreshold));
@@ -44,11 +44,12 @@ namespace WalletWasabi.Fluent.Behaviors
 
 		protected override void OnAttached()
 		{
-			Disposables = new CompositeDisposable();
-
-			Disposables.Add(AssociatedObject.WhenAnyValue(x => x.Bounds)
+			Disposables = new CompositeDisposable
+			{
+				AssociatedObject.WhenAnyValue(x => x.Bounds)
 				.DistinctUntilChanged()
-				.Subscribe(SplitViewBoundsChanged));
+				.Subscribe(SplitViewBoundsChanged)
+			};
 
 			ToggleAction = OnToggleAction;
 			CollapseOnClickAction = OnCollapseOnClickAction;
@@ -66,24 +67,12 @@ namespace WalletWasabi.Fluent.Behaviors
 
 		private void OnToggleAction()
 		{
-			if (AssociatedObject.IsPaneOpen)
+			if (AssociatedObject.Bounds.Width > CollapseThreshold)
 			{
-				if (AssociatedObject.Bounds.Width > CollapseThreshold)
-				{
-					_sidebarWasForceClosed = true;
-				}
-
-				AssociatedObject.IsPaneOpen = false;
+				_sidebarWasForceClosed = AssociatedObject.IsPaneOpen;
 			}
-			else
-			{
-				if (AssociatedObject.Bounds.Width > CollapseThreshold)
-				{
-					_sidebarWasForceClosed = false;
-				}
 
-				AssociatedObject.IsPaneOpen = true;
-			}
+			AssociatedObject.IsPaneOpen = !AssociatedObject.IsPaneOpen;
 		}
 
 		private void SplitViewBoundsChanged(Rect x)

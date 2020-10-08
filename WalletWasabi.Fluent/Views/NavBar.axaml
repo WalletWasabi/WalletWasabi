@@ -68,7 +68,7 @@
     </Style>
     <Style Selector=":is(Button):pointerover /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListLowBrush}" />
-    </Style>    
+    </Style>
   </UserControl.Styles>
   <DockPanel>
     <StackPanel DockPanel.Dock="Top">

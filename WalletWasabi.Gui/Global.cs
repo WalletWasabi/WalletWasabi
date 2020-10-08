@@ -157,6 +157,8 @@ namespace WalletWasabi.Gui
 
 				HostedServices.Register(new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
 
+				HostedServices.Register(new SystemAwakeChecker(WalletManager), "System Awake Checker");
+
 				#region ProcessKillSubscription
 
 				AppDomain.CurrentDomain.ProcessExit += async (s, e) => await DisposeAsync().ConfigureAwait(false);
