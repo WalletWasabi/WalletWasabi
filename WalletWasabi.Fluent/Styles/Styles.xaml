@@ -22,12 +22,6 @@
     <Setter Property="PaneBackground" Value="{x:Null}" />
   </Style>
   <Style Selector="TextBlock">
-    <Setter Property="Foreground" Value="{DynamicResource TextForeground}"/>
+    <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}"/>
   </Style>
-
-  <!--TODO: not working, debug-->
-  <Style Selector="TextBox /template/ Border#PART_BorderElement">
-    <Setter Property="CornerRadius" Value="0" />
-  </Style>
-
 </Styles>

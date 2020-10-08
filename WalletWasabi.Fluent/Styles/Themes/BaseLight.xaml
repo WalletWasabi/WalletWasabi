@@ -12,7 +12,6 @@
     <SolidColorBrush x:Key="TextControlBorderBrushPointerOver">#0C7ED6</SolidColorBrush>
     <SolidColorBrush x:Key="StatusBarControlBackground">#ECECEC</SolidColorBrush>
     <SolidColorBrush x:Key="StatusBarControlForeground">#777777</SolidColorBrush>
-    <SolidColorBrush x:Key="TextForeground">#212121</SolidColorBrush>
     <SolidColorBrush x:Key="AcrylicFallbackColor">#E2E2E2</SolidColorBrush>
     <Color x:Key="RegionColor">#FFFAFAFA</Color>
     <BoxShadows x:Key="BoxShadow">0 1 4 #D1D1D1</BoxShadows>
