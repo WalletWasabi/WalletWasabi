@@ -153,17 +153,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 		}
 
 		[Fact]
-		public void StatementThrows()
-		{
-			// Null generators are not allowed
-			Assert.ThrowsAny<ArgumentException>(() => new Statement(new GroupElement[,]
-			{
-				{ GroupElement.Infinity, Generators.Gg, Generators.Gh },
-				{ GroupElement.Infinity, Generators.G, null! },
-			}));
-		}
-
-		[Fact]
 		public void KnowledgeThrows()
 		{
 			var x = new Scalar(42);

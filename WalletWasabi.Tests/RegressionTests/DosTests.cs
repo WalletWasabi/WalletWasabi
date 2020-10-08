@@ -10,8 +10,6 @@ using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.CoinJoin.Coordinator;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
-using WalletWasabi.Models;
-using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
 using Xunit;
 using static WalletWasabi.Crypto.SchnorrBlinding;

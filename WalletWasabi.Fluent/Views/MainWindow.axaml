@@ -13,7 +13,7 @@
         Background="{x:Null}"
         TransparencyLevelHint="AcrylicBlur"
         ExtendClientAreaToDecorationsHint="True"
-        ExtendClientAreaChromeHints="PreferSystemChrome"
+        ExtendClientAreaChromeHints="PreferSystemChrome, OSXThickTitleBar"
         Title="Wasabi Wallet">
 
   <Panel Margin="{Binding #MainWindow.OffScreenMargin}">

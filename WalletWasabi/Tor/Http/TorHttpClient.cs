@@ -1,13 +1,11 @@
 using Nito.AsyncEx;
 using System;
 using System.IO;
-using System.IO.Compression;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Security;
 using System.Net.Sockets;
-using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
@@ -23,7 +21,7 @@ using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 
 namespace WalletWasabi.Tor.Http
 {
-	public class TorHttpClient : ITorHttpClient, IDisposable
+	public class TorHttpClient : ITorHttpClient
 	{
 		private static DateTimeOffset? TorDoesntWorkSinceBacking = null;
 

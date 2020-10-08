@@ -37,7 +37,7 @@
                   TemplatedControl.IsTemplateFocusTarget="True">
             <Grid Name="PART_Header"
                   Margin="{TemplateBinding Level, Mode=OneWay, Converter={StaticResource TreeViewItemLeftMarginConverter}}">
-              <Border x:Name="Indicator" BorderThickness="2 0 0 0" />
+              <Border x:Name="Indicator" Margin="4 0 0 0" BorderThickness="2 0 0 0" />
               <ContentPresenter Name="PART_HeaderPresenter"
                                 Focusable="False"
                                 Content="{TemplateBinding Header}"

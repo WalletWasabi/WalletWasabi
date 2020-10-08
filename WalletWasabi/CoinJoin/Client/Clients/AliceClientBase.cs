@@ -8,7 +8,6 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Exceptions;
