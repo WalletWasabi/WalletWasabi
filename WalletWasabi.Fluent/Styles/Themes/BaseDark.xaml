@@ -12,7 +12,7 @@
     <SolidColorBrush x:Key="TextForeground">#FFFFFF</SolidColorBrush>
     <SolidColorBrush x:Key="AcrylicFallbackColor">#1F1F1F</SolidColorBrush>
     <Color x:Key="RegionColor">#FF212121</Color>
-    <BoxShadow x:Key="BoxShadow">0 1 4 #121212</BoxShadow>
+    <BoxShadows x:Key="BoxShadow">0 1 4 #121212</BoxShadows>
   </Styles.Resources>
   <StyleInclude Source="avares://Avalonia.Themes.Fluent/Accents/FluentDark.xaml"/>
 </Styles>
