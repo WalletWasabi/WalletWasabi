@@ -29,14 +29,6 @@ namespace WalletWasabi.Fluent.Controls
 			CloseDialogCommand = ReactiveCommand.Create(() => Content?.CloseDialog());
 		}
 
-		private static void OnContentPropertyChanged(DialogContentHost arg1, AvaloniaPropertyChangedEventArgs arg2)
-		{
-			(arg2.NewValue as DialogViewModelBase)?.WhenAnyValue(x => x.IsDialogOpen).Subscribe(x =>
-			{
-				arg1.PseudoClasses.Set(":open", x);
-			});
-		}
-
 		/// <summary>
 		/// Gets or sets the VM that implements <see cref="IContent"/>
 		/// </summary>
@@ -50,6 +42,14 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(CloseDialogCommandProperty);
 			set => SetValue(CloseDialogCommandProperty, value);
+		}
+
+		private static void OnContentPropertyChanged(DialogContentHost arg1, AvaloniaPropertyChangedEventArgs arg2)
+		{
+			(arg2.NewValue as DialogViewModelBase)?.WhenAnyValue(x => x.IsDialogOpen).Subscribe(x =>
+			{
+				arg1.PseudoClasses.Set(":open", x);
+			});
 		}
 	}
 }
