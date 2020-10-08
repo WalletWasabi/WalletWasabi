@@ -30,6 +30,7 @@
     </Style>
     <Style Selector="PathIcon">
       <Setter Property="Margin" Value="1 0 0 0" />
+      <Setter Property="Foreground" Value="{DynamicResource TextForeground}" />
     </Style>
     <Style Selector="Separator">
       <Setter Property="Background" Value="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" />
@@ -79,9 +80,9 @@
       <Panel Height="40" IsVisible="{h:Platform {x:Static h:Const.False}, Osx={x:Static h:Const.True}}" />
       <StackPanel Orientation="Horizontal" Spacing="10">
         <Button Classes="NavButton" Command="{Binding GoBack}" Background="Transparent" IsEnabled="{Binding IsBackButtonVisible}">
-          <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
+          <PathIcon Data="{StaticResource arrow_left_regular}" Width="16"/>
         </Button>
-        <TextBlock Text="Wasabi Wallet" Foreground="White" VerticalAlignment="Center"/>
+        <TextBlock Text="Wasabi Wallet" VerticalAlignment="Center"/>
       </StackPanel>
       <Button Classes="NavButton" Command="{Binding DoToggleAction}" IsVisible="{h:Platform {x:Static h:Const.True}, Osx={x:Static h:Const.False}}">
         <PathIcon Data="{StaticResource navigation_regular}" Width="16" />
