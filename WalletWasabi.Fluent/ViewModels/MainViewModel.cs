@@ -4,8 +4,8 @@ using ReactiveUI;
 using System.Reactive;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Dialog;
-using Global = WalletWasabi.Gui.Global;
 using System;
+using Global = WalletWasabi.Gui.Global;
 
 namespace WalletWasabi.Fluent.ViewModels
 {

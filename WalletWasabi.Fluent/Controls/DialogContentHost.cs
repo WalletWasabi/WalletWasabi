@@ -19,14 +19,6 @@ namespace WalletWasabi.Fluent.Controls
 			DialogHostProperty.Changed.AddClassHandler<DialogContentHost>(OnDialogHostPropertyChanged);
 		}
 
-		private static void OnDialogHostPropertyChanged(DialogContentHost arg1, AvaloniaPropertyChangedEventArgs arg2)
-		{
-			(arg2.NewValue as IDialogHost)?.SetDialogStateListener(x => 
-			{
-				arg1.PseudoClasses.Set(":open", x);
-			});
-		}
- 
 		/// <summary>
 		/// Gets or sets the VM that implements <see cref="IDialogHost"/>
 		/// </summary>
@@ -34,6 +26,14 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(DialogHostProperty);
 			set => SetValue(DialogHostProperty, value);
+		}
+
+		private static void OnDialogHostPropertyChanged(DialogContentHost arg1, AvaloniaPropertyChangedEventArgs arg2)
+		{
+			(arg2.NewValue as IDialogHost)?.SetDialogStateListener(x =>
+			{
+				arg1.PseudoClasses.Set(":open", x);
+			});
 		}
 
 		public void CloseDialog()
