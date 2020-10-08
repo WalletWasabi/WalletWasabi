@@ -21,7 +21,7 @@ namespace WalletWasabi.Fluent.Controls
 
 		private static void OnDialogHostPropertyChanged(DialogContentHost arg1, AvaloniaPropertyChangedEventArgs arg2)
 		{
-			(arg2.NewValue as IDialogHost).SetDialogStateListener(x => 
+			(arg2.NewValue as IDialogHost)?.SetDialogStateListener(x => 
 			{
 				arg1.PseudoClasses.Set(":open", x);
 			});
