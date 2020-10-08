@@ -13,8 +13,8 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			OpenDialogCommand = ReactiveCommand.Create(async () =>
 			{
-				var x = new TestDialogViewModel(MainViewModel.Instance);
-				var result = await x.ShowDialogAsync();
+				var x = new TestDialogViewModel();
+				var result = await x.ShowDialogAsync(MainViewModel.Instance);
 			});
 		}
 

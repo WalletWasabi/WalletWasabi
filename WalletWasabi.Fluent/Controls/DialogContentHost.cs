@@ -1,44 +1,60 @@
 using System;
+using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialog;
 
 namespace WalletWasabi.Fluent.Controls
 {
 	/// <summary>
-	/// Manages and hosts dialogs when it's bound to <see cref="IDialogHost"/> objects.
+	/// Manages and hosts dialogs when it's bound to <see cref="IContent"/> objects.
 	/// </summary>
 	public class DialogContentHost : TemplatedControl
 	{
-		public static readonly StyledProperty<IDialogHost> DialogHostProperty =
-			AvaloniaProperty.Register<DialogContentHost, IDialogHost>(nameof(DialogHost));
+		public static readonly StyledProperty<DialogViewModelBase> ContentProperty =
+			AvaloniaProperty.Register<DialogContentHost, DialogViewModelBase>(nameof(Content));
+
+		public static readonly StyledProperty<ICommand> CloseDialogCommandProperty =
+			AvaloniaProperty.Register<DialogContentHost, ICommand>(nameof(CloseDialogCommand));
 
 		static DialogContentHost()
 		{
-			DialogHostProperty.Changed.AddClassHandler<DialogContentHost>(OnDialogHostPropertyChanged);
+			ContentProperty.Changed.AddClassHandler<DialogContentHost>(OnContentPropertyChanged);
 		}
 
-		/// <summary>
-		/// Gets or sets the VM that implements <see cref="IDialogHost"/>
-		/// </summary>
-		public IDialogHost DialogHost
+		public DialogContentHost()
 		{
-			get => GetValue(DialogHostProperty);
-			set => SetValue(DialogHostProperty, value);
+			CloseDialogCommand = ReactiveCommand.Create(() => Content.IsDialogOpen = false);
 		}
 
-		private static void OnDialogHostPropertyChanged(DialogContentHost arg1, AvaloniaPropertyChangedEventArgs arg2)
+		private static void OnContentPropertyChanged(DialogContentHost arg1, AvaloniaPropertyChangedEventArgs arg2)
 		{
-			(arg2.NewValue as IDialogHost)?.SetDialogStateListener(x =>
+			(arg2.NewValue as DialogViewModelBase)?.WhenAnyValue(x => x.IsDialogOpen).Subscribe(x =>
 			{
 				arg1.PseudoClasses.Set(":open", x);
 			});
 		}
 
-		public void CloseDialog()
+		/// <summary>
+		/// Gets or sets the VM that implements <see cref="IContent"/>
+		/// </summary>
+		public DialogViewModelBase Content
 		{
-			DialogHost?.CloseDialog();
+			get => GetValue(ContentProperty);
+			set => SetValue(ContentProperty, value);
+		}
+
+		public ICommand CloseDialogCommand
+		{
+			get => GetValue(CloseDialogCommandProperty);
+			set => SetValue(CloseDialogCommandProperty, value);
+		}
+ 
+ 		public void CloseDialog()
+		{
+			Content.IsDialogOpen = false;
 		}
 	}
 }

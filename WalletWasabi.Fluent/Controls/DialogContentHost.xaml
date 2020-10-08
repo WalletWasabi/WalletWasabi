@@ -10,11 +10,11 @@
       <ControlTemplate>
         <Panel>
           <Panel Background="#272727" Name="PART_Overlay">
-            <Button Classes="invisible" Command="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=CloseDialog}"/>
+            <Button Classes="invisible" Command="{TemplateBinding CloseDialogCommand}"/>
           </Panel> 
           <Panel Name="PART_DialogHost" VerticalAlignment="Center" HorizontalAlignment="Center">
             <Border CornerRadius="5" BoxShadow="4 11 30 1 #90000000" Background="#323232" >
-              <ContentPresenter Content="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=DialogHost.CurrentDialog}"/>
+              <ContentPresenter Content="{TemplateBinding Content}"/>
             </Border>
           </Panel>
         </Panel>

@@ -1,4 +1,6 @@
-﻿namespace WalletWasabi.Fluent.ViewModels.Dialog
+﻿using ReactiveUI;
+
+namespace WalletWasabi.Fluent.ViewModels.Dialog
 {
 	/// <summary>
 	/// Foundational class for <see cref="DialogViewModelBase{TResult}"/>.
@@ -7,14 +9,12 @@
 	/// </summary>	
 	public abstract class DialogViewModelBase : ViewModelBase
 	{
-		public DialogViewModelBase(IDialogHost dialogHost)
+		private bool _isDialogOpen;
+ 
+		public bool IsDialogOpen
 		{
-			DialogHost = dialogHost;
+			get => _isDialogOpen;
+			set => this.RaiseAndSetIfChanged(ref _isDialogOpen, value);
 		}
-
-		/// <summary>
-		/// An instance of <see cref="IDialogHost"/> that owns this dialog.
-		/// </summary>
-		protected IDialogHost DialogHost { get; }
 	}
 }
