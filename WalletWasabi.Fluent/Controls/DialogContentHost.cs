@@ -26,7 +26,7 @@ namespace WalletWasabi.Fluent.Controls
 
 		public DialogContentHost()
 		{
-			CloseDialogCommand = ReactiveCommand.Create(() => Content.IsDialogOpen = false);
+			CloseDialogCommand = ReactiveCommand.Create(() => Content?.CloseDialog());
 		}
 
 		private static void OnContentPropertyChanged(DialogContentHost arg1, AvaloniaPropertyChangedEventArgs arg2)
@@ -50,11 +50,6 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(CloseDialogCommandProperty);
 			set => SetValue(CloseDialogCommandProperty, value);
-		}
- 
- 		public void CloseDialog()
-		{
-			Content.IsDialogOpen = false;
 		}
 	}
 }

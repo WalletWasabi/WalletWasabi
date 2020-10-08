@@ -4,8 +4,13 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" Width="450" Height="200"
              x:Class="WalletWasabi.Fluent.Views.TestDialogView">
-  <StackPanel HorizontalAlignment="Center"
-              VerticalAlignment="Center">
-    <TextBlock Text="Hi, I'm a dialog and will close in 5 seconds!" />
-  </StackPanel>
+  <Panel Margin="10">
+    <Button Classes="invisible" Command="{Binding CloseDialog}" HorizontalAlignment="Left" VerticalAlignment="Top">
+      <PathIcon Data="{StaticResource arrow_left_regular}" />
+    </Button>
+    <StackPanel HorizontalAlignment="Center"
+                VerticalAlignment="Center">
+      <TextBlock Text="Hi, I'm a dialog and will close in 15 seconds!" />
+    </StackPanel>
+  </Panel>
 </UserControl>
