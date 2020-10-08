@@ -1,10 +1,11 @@
 #nullable enable
 using NBitcoin;
 using ReactiveUI;
-using System.Reactive; 
+using System.Reactive;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Dialog;
 using Global = WalletWasabi.Gui.Global;
+using System;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -16,7 +17,6 @@ namespace WalletWasabi.Fluent.ViewModels
 		private DialogViewModelBase? _currentDialog;
 		private NavBarViewModel _navBar;
 		private bool _isDialogOpen;
-
 		public MainViewModel(Global global)
 		{
 			_global = global;
@@ -27,6 +27,8 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			NavBar = new NavBarViewModel(this, Router, global.WalletManager, global.UiConfig);
 		}
+
+		private Action<bool> DialogStateListener { get; set; }
 
 		public static MainViewModel Instance { get; internal set; }
 
@@ -43,7 +45,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			get => _currentDialog;
 			set => this.RaiseAndSetIfChanged(ref _currentDialog, value);
 		}
-		
+
 		public NavBarViewModel NavBar
 		{
 			get => _navBar;
@@ -85,12 +87,17 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			var dialogHost = (this as IDialogHost);
 			dialogHost.CurrentDialog = dialogViewModel;
-			dialogHost.IsDialogOpen = true;
+			DialogStateListener(true);
 		}
 
 		void IDialogHost.CloseDialog()
 		{
-			(this as IDialogHost).IsDialogOpen = false;
+			DialogStateListener(false);
+		}
+
+		public void SetDialogStateListener(Action<bool> listener)
+		{
+			this.DialogStateListener = listener;
 		}
 	}
 }

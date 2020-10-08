@@ -1,6 +1,8 @@
+using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using WalletWasabi.Fluent.ViewModels.Dialog;
 
 namespace WalletWasabi.Fluent.Controls
 {
@@ -9,38 +11,29 @@ namespace WalletWasabi.Fluent.Controls
 	/// </summary>
 	public class DialogContentHost : TemplatedControl
 	{
-		public static readonly StyledProperty<object> ContentProperty =
-			AvaloniaProperty.Register<DialogContentHost, object>(nameof(Content));
-
-		public static readonly StyledProperty<bool> IsDialogOpenProperty =
-			AvaloniaProperty.Register<DialogContentHost, bool>(nameof(IsDialogOpen));
+		public static readonly StyledProperty<IDialogHost> DialogHostProperty =
+			AvaloniaProperty.Register<DialogContentHost, IDialogHost>(nameof(DialogHost));
 
 		static DialogContentHost()
 		{
-			IsDialogOpenProperty.Changed.AddClassHandler<DialogContentHost>(UpdatePseudoClasses);
+			DialogHostProperty.Changed.AddClassHandler<DialogContentHost>(OnDialogHostPropertyChanged);
 		}
 
+		private static void OnDialogHostPropertyChanged(DialogContentHost arg1, AvaloniaPropertyChangedEventArgs arg2)
+		{
+			(arg2.NewValue as IDialogHost).SetDialogStateListener(x => 
+			{
+				arg1.PseudoClasses.Set(":open", x);
+			});
+		}
+ 
 		/// <summary>
-		/// The object to be displayed as a dialog.
+		/// Gets or sets the VM that implements <see cref="IDialogHost"/>
 		/// </summary>
-		public object Content
+		public IDialogHost DialogHost
 		{
-			get => GetValue(ContentProperty);
-			set => SetValue(ContentProperty, value);
-		}
-
-		/// <summary>
-		/// Gets or sets the activation state of the dialog.
-		/// </summary>
-		public bool IsDialogOpen
-		{
-			get => GetValue(IsDialogOpenProperty);
-			set => SetValue(IsDialogOpenProperty, value);
-		}
-
-		private static void UpdatePseudoClasses(DialogContentHost arg1, AvaloniaPropertyChangedEventArgs arg2)
-		{
-			arg1.PseudoClasses.Set(":open", (bool)arg2.NewValue);
+			get => GetValue(DialogHostProperty);
+			set => SetValue(DialogHostProperty, value);
 		}
 	}
 }

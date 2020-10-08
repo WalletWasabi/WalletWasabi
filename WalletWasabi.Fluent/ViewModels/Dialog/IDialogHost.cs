@@ -1,5 +1,7 @@
 #nullable enable
 
+using System;
+
 namespace WalletWasabi.Fluent.ViewModels.Dialog
 {
 	/// <summary>
@@ -11,9 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 		/// The currently active dialog. The modal dialog UI should close when this is null.
 		/// </summary>
 		DialogViewModelBase? CurrentDialog { get; set; }
-
-		bool IsDialogOpen { get; set; }
-
+ 
 		/// <summary>
 		/// Close the currently displayed dialog.
 		/// </summary>
@@ -24,5 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 		/// </summary>
 		/// <param name="dialogViewModel">The instance of the Dialog ViewModel to be displayed</param>
 		void ShowDialog<TDialog>(TDialog dialogViewModel) where TDialog : DialogViewModelBase;
+
+		void SetDialogStateListener(Action<bool> listener);		
 	}
 }

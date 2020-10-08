@@ -18,7 +18,7 @@
 
   <Panel Margin="{Binding #MainWindow.OffScreenMargin}">
     <local:MainView />
-    <c:DialogContentHost IsDialogOpen="{Binding IsDialogOpen}" Content="{Binding CurrentDialog}"/>
+    <c:DialogContentHost DialogHost="{Binding .}"/>
   </Panel>
 
 </Window>
