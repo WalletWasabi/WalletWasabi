@@ -75,22 +75,5 @@ namespace WalletWasabi.Fluent.ViewModels
 				Title += $" - {Network}";
 			}
 		}
-
-		// void IDialogHost.ShowDialog<TDialog>(TDialog dialogViewModel)
-		// {
-		// 	var dialogHost = (this as IDialogHost);
-		// 	dialogHost.CurrentDialog = dialogViewModel;
-		// 	DialogStateListener(true);
-		// }
-
-		// void IDialogHost.CloseDialog()
-		// {
-		// 	DialogStateListener(false);
-		// }
-
-		// public void SetDialogStateListener(Action<bool> listener)
-		// {
-		// 	this.DialogStateListener = listener;
-		// }
 	}
 }

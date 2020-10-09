@@ -18,6 +18,11 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 		/// <param name="value">The return value of the dialog</param>
 		public void CloseDialog(TResult value)
 		{
+			if (CurrentTaskCompletionSource is null)
+			{
+				throw new InvalidOperationException("CloseDialog with value return method failed due to missing TCS.");
+			}
+
 			CurrentTaskCompletionSource.SetResult(value);
 			CurrentTaskCompletionSource = null;
 
@@ -38,9 +43,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 			}
 
 			CurrentTaskCompletionSource = new TaskCompletionSource<TResult>();
-
-			DialogShowing();
-
+ 
 			IsDialogOpen = true;
 
 			return CurrentTaskCompletionSource.Task;

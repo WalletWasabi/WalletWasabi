@@ -17,18 +17,12 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 			get => _isDialogOpen;
 			set => this.RaiseAndSetIfChanged(ref _isDialogOpen, value);
 		}
-
-		/// <summary>
-		/// Method that is triggered when the dialog
-		/// is to be shown.
-		/// </summary>
-		protected abstract void DialogShowing();
-
+ 
 		/// <summary>
 		/// Method that is triggered when the dialog
 		/// is about to close.
 		/// </summary>
-		protected abstract void DialogClosing();
+		protected abstract void OnDialogClosed();
 
 		/// <summary>
 		/// Method to be called when the dialog intends to close
@@ -41,8 +35,8 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 				throw new InvalidOperationException("Dialog was already closed.");
 			} 
 
-			DialogClosing();
 			IsDialogOpen = false;
+			OnDialogClosed();
 		}
 	}
 }

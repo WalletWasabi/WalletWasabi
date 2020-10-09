@@ -10,7 +10,7 @@
     <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/BaseDark.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Icons/Icons.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Styles.xaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/DialogContentHost.xaml" />
+    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/Dialog.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/NavBarItem.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/NavBarTreeItem.xaml" />
   </Application.Styles>

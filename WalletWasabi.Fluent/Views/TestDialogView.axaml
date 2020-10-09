@@ -10,7 +10,7 @@
     </Button>
     <StackPanel HorizontalAlignment="Center"
                 VerticalAlignment="Center">
-      <TextBlock Text="Hi, I'm a dialog and will close in 15 seconds!" />
+      <TextBlock Text="Hi, I'm a dialog!" />
     </StackPanel>
   </Panel>
 </UserControl>
