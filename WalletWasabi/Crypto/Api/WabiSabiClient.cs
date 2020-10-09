@@ -36,7 +36,7 @@ namespace WalletWasabi.Crypto.Api
 
 		private bool IsNullRequest => Balance == Money.Zero && !CredentialsToPresent.Any();
 
-		private int NumberOfCredentials { get; set; } = 1;
+		private int NumberOfCredentials { get; }
 
 		private Transcript? Transcript { get; set; }
 
