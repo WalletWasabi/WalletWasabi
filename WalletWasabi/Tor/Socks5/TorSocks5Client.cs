@@ -55,8 +55,11 @@ namespace WalletWasabi.Tor.Socks5
 		{
 			using (await AsyncLock.LockAsync().ConfigureAwait(false))
 			{
-				string host = TorSocks5EndPoint.GetHostOrDefault();
-				int? port = TorSocks5EndPoint.GetPortOrDefault();
+				if (!TorSocks5EndPoint.TryGetHostAndPort(out string? host, out int? port))
+				{
+					throw new ArgumentException("Endpoint type is not supported.", nameof(TorSocks5EndPoint));
+				}
+
 				try
 				{
 					await TcpClient.ConnectAsync(host, port.Value).ConfigureAwait(false);
@@ -80,14 +83,17 @@ namespace WalletWasabi.Tor.Socks5
 		{
 			try
 			{
-				await ConnectAsync().ConfigureAwait(false);
-				await HandshakeAsync(isolateStream: true).ConfigureAwait(false);
+				// Internal TCP client may close, so we need a new instance here.
+				using var client = new TorSocks5Client(TorSocks5EndPoint);
+				await client.ConnectAsync().ConfigureAwait(false);
+				await client.HandshakeAsync(isolateStream: true).ConfigureAwait(false);
+
+				return true;
 			}
 			catch (ConnectionException)
 			{
 				return false;
 			}
-			return true;
 		}
 
 		/// <summary>
@@ -172,8 +178,12 @@ namespace WalletWasabi.Tor.Socks5
 
 		internal async Task ConnectToDestinationAsync(EndPoint destination, bool isRecursiveCall = false)
 		{
-			Guard.NotNull(nameof(destination), destination);
-			await ConnectToDestinationAsync(destination.GetHostOrDefault(), destination.GetPortOrDefault().Value, isRecursiveCall: isRecursiveCall).ConfigureAwait(false);
+			if (!destination.TryGetHostAndPort(out string? host, out int? port))
+			{
+				throw new ArgumentException("Endpoint type is not supported.", nameof(destination));
+			}
+
+			await ConnectToDestinationAsync(host, port.Value, isRecursiveCall: isRecursiveCall).ConfigureAwait(false);
 		}
 
 		/// <param name="host">IPv4 or domain</param>

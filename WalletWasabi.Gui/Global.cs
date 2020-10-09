@@ -9,7 +9,6 @@ using NBitcoin.Protocol.Behaviors;
 using NBitcoin.Protocol.Connectors;
 using Nito.AsyncEx;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -350,7 +349,7 @@ namespace WalletWasabi.Gui
 					{
 						await RpcServer.StartAsync(cancel).ConfigureAwait(false);
 					}
-					catch (System.Net.HttpListenerException e)
+					catch (HttpListenerException e)
 					{
 						Logger.LogWarning($"Failed to start {nameof(JsonRpcServer)} with error: {e.Message}.");
 						RpcServer = null;
