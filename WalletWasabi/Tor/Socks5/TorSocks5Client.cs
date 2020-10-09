@@ -193,12 +193,7 @@ namespace WalletWasabi.Tor.Socks5
 
 			try
 			{
-				Logger.LogDebug($"Tor is enabled.");
-
-				var dstAddr = new AddrField(host);
-				var dstPort = new PortField(port);
-
-				var connectionRequest = new TorSocks5Request(cmd: CmdField.Connect, dstAddr, dstPort);
+				var connectionRequest = new TorSocks5Request(cmd: CmdField.Connect, new AddrField(host), new PortField(port));
 				var sendBuffer = connectionRequest.ToBytes();
 
 				var receiveBuffer = await SendAsync(sendBuffer, isRecursiveCall: isRecursiveCall).ConfigureAwait(false);
@@ -267,7 +262,7 @@ namespace WalletWasabi.Tor.Socks5
 
 		private bool IsConnectionRefused(Exception exc)
 		{
-			Exception error = null;
+			Exception? error = null;
 			try
 			{
 				throw exc;
