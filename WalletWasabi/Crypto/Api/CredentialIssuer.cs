@@ -56,7 +56,8 @@ namespace WalletWasabi.Crypto.Api
 			var requiredNumberOfPresentations = registrationRequest.IsNullRequest ? 0 : NumberOfCredentials;
 			if (presentedCount != requiredNumberOfPresentations)
 			{
-				throw new WabiSabiException(WabiSabiErrorCode.InvalidNumberOfPresentedCredentials, 
+				throw new WabiSabiException(
+					WabiSabiErrorCode.InvalidNumberOfPresentedCredentials, 
 					$"{requiredNumberOfPresentations} credential presentations were expected but {presentedCount} were received.");
 			}
 
@@ -67,7 +68,9 @@ namespace WalletWasabi.Crypto.Api
 				throw new WabiSabiException(WabiSabiErrorCode.NegativeBalance);
 			}
 
-			// Check all the bit commitments have the correct length. Null requests need zero-length rangeproofs.
+			// Check all the serial numbers are unique. Note that this is checked separately from
+			// ensuring that they haven't been used before, because even presenting a previously
+			// unused credential more than once in the same request is still a double spend.
 			var rangeProofWidth = registrationRequest.IsNullRequest ? 0 : Constants.RangeProofWidth;
 			var allRangeProofsAreCorrectSize = requested.All(x => x.BitCommitments.Count() == rangeProofWidth);
 			if (!allRangeProofsAreCorrectSize)
@@ -87,6 +90,7 @@ namespace WalletWasabi.Crypto.Api
 				// Calculate Z using coordinator secret.
 				var Z = presentation.ComputeZ(CoordinatorSecretKey);
 
+				// Add the credential presentation to the statements to be verified.
 				statements.Add(ProofSystem.ShowCredential(presentation, Z, CoordinatorParameters));
 
 				// Check if the serial numbers have been used before. Note that

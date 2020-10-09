@@ -240,7 +240,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.Api
 				invalidCredentialRequest = new RegistrationRequest(
 					validCredentialRequest.DeltaAmount,
 					validCredentialRequest.Presented,
-					new[] { requested[0], requested[1], new CredentialIssuanceRequest(requested[2].Ma, new[] { GroupElement.Infinity })},
+					new[] { requested[0], requested[1], new CredentialIssuanceRequest(requested[2].Ma, new[] { GroupElement.Infinity } )},
 					validCredentialRequest.Proofs );
 
 				ex = Assert.Throws<WabiSabiException>(() => issuer.HandleRequest(invalidCredentialRequest));
@@ -264,7 +264,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.Api
 
 				var ex = Assert.Throws<WabiSabiException>(() => issuer.HandleRequest(invalidCredentialRequest));
 				Assert.Equal(WabiSabiErrorCode.CoordinatorReceivedInvalidProofs, ex.ErrorCode);
-
 			}
 
 			{
