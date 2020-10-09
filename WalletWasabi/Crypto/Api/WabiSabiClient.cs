@@ -15,12 +15,6 @@ namespace WalletWasabi.Crypto.Api
 {
 	public class WabiSabiClient : ICredentialRequestBuilder
 	{
-		private CoordinatorParameters CoordinatorParameters { get; }
-		private readonly WasabiRandom Random;
-		private readonly List<Money> CredentialsToRequest = new List<Money>(); 
-		private readonly List<(Money Amount, CredentialIssuanceRequest Credential, Scalar r, Knowledge Knowledge)> CredentialsRequested = new List<(Money, CredentialIssuanceRequest, Scalar, Knowledge)>(); 
-		private readonly List<(Credential Credential, Scalar z, Knowledge Knowledge)> CredentialsToPresent = new List<(Credential, Scalar, Knowledge)>();
-
 		public WabiSabiClient(CoordinatorParameters coordinatorParameters, int numberOfCredentials, WasabiRandom rnd)
 		{
 			Random = Guard.NotNull(nameof(rnd), rnd);
@@ -28,13 +22,23 @@ namespace WalletWasabi.Crypto.Api
 			CoordinatorParameters = Guard.NotNull(nameof(coordinatorParameters), coordinatorParameters);
 		}
 
+		private CoordinatorParameters CoordinatorParameters { get; }
+
+		private WasabiRandom Random { get; }
+
+		private List<Money> CredentialsToRequest { get; } = new List<Money>(); 
+
+		private List<(Money Amount, CredentialIssuanceRequest Credential, Scalar r, Knowledge Knowledge)> CredentialsRequested { get; } = new List<(Money, CredentialIssuanceRequest, Scalar, Knowledge)>(); 
+
+		private List<(Credential Credential, Scalar z, Knowledge Knowledge)> CredentialsToPresent { get; } = new List<(Credential, Scalar, Knowledge)>();
+
 		private Money Balance => CredentialsToRequest.Sum() - Credentials.Sum(x => x.Amount.ToMoney());
 
 		private bool IsNullRequest => Balance == Money.Zero && !CredentialsToPresent.Any();
 
 		private int NumberOfCredentials { get; set; } = 1;
 
-		private Transcript Transcript { get; set; }
+		private Transcript? Transcript { get; set; }
 
 		public List<Credential> Credentials { get; } = new List<Credential>();
 
@@ -81,6 +85,7 @@ namespace WalletWasabi.Crypto.Api
 			CredentialsToPresent.Clear();
 			CredentialsRequested.Clear();
 			CredentialsToRequest.Clear();
+			Transcript = null;
 
 			var credentialReceived = credentials.Select(x => 
 				new Credential(new Scalar((ulong)x.Requested.Amount.Satoshi), x.Requested.r, x.Issued));
@@ -212,7 +217,7 @@ namespace WalletWasabi.Crypto.Api
 
 		private Transcript BuildTransnscript()
 		{
-			var label =  $"UnifiedRegistration/{NumberOfCredentials}/{IsNullRequest}";
+			var label = $"UnifiedRegistration/{NumberOfCredentials}/{IsNullRequest}";
 			var encodedLabel = Encoding.UTF8.GetBytes(label);
 			return new Transcript(encodedLabel);
 		}

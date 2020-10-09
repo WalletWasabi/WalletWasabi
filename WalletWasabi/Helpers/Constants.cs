@@ -75,7 +75,7 @@ namespace WalletWasabi.Helpers
 
 		public static readonly ExtPubKey FallBackCoordinatorExtPubKey = NBitcoinHelpers.BetterParseExtPubKey("xpub6D2PqhWBAbF3xgfaAUW73KnaCXUroArcgMTzNkNzfVX7ykkSzQGbqaXZeaNyxKbZojAAqDwsne6B7NcVhiTrXbGYrQNq1yF76NkgdonGrEa");
 
-		public static string[] UserAgents = new[]
+		public static readonly string[] UserAgents = new[]
 		{
 			"/Satoshi:0.20.0/",
 			"/Satoshi:0.19.1/",

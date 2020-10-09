@@ -14,6 +14,8 @@ namespace WalletWasabi.Crypto.Api
 		IssuedCredentialNumberMismatch = 6,
 		SerialNumberDuplicated = 7,
 		NotEnoughZeroCredentialToFillTheRequest = 8,
+		InvalidNumberOfRequestedCredentials = 9,
+		InvalidNumberOfPresentedCredentials = 10,
 	}
 
 	[Serializable]

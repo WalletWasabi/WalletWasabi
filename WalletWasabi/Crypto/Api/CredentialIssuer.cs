@@ -41,8 +41,24 @@ namespace WalletWasabi.Crypto.Api
 		public RegistrationResponse HandleRequest(RegistrationRequest registrationRequest)
 		{
 			Guard.NotNull(nameof(registrationRequest), registrationRequest);
-			Guard.Same(nameof(registrationRequest), NumberOfCredentials, registrationRequest.Requested.Count());
-			Guard.Same(nameof(registrationRequest), registrationRequest.IsNullRequest ? 0 : NumberOfCredentials, registrationRequest.Presented.Count());
+
+			var requested = registrationRequest.Requested;
+			var presented = registrationRequest.Presented;
+
+			var requestedCount = requested is null ? 0 : requested.Count();  
+			if (requestedCount != NumberOfCredentials)
+			{
+				throw new WabiSabiException(WabiSabiErrorCode.InvalidNumberOfRequestedCredentials, 
+					$"{NumberOfCredentials} credential requests were expected but {requestedCount} were received.");
+			}
+
+			var presentedCount = presented is null ? 0 : presented.Count();
+			var requiredNumberOfPresentations = registrationRequest.IsNullRequest ? 0 : NumberOfCredentials;
+			if (presentedCount != requiredNumberOfPresentations)
+			{
+				throw new WabiSabiException(WabiSabiErrorCode.InvalidNumberOfPresentedCredentials, 
+					$"{requiredNumberOfPresentations} credential presentations were expected but {presentedCount} were received.");
+			}
 
 			// Don't allow balance to go negative. In case this goes below zero 
 			// then there is a problem somewhere because this should not be possible.
@@ -53,20 +69,20 @@ namespace WalletWasabi.Crypto.Api
 
 			// Check all the bit commitments have the correct length. Null requests need zero-length rangeproofs.
 			var rangeProofWidth = registrationRequest.IsNullRequest ? 0 : Constants.RangeProofWidth;
-			var allRangeProofsAreCorrectSize = registrationRequest.Requested.All(x => x.BitCommitments.Count() == rangeProofWidth);
+			var allRangeProofsAreCorrectSize = requested.All(x => x.BitCommitments.Count() == rangeProofWidth);
 			if (!allRangeProofsAreCorrectSize)
 			{
 				throw new WabiSabiException(WabiSabiErrorCode.InvalidBitCommitment);
 			} 
 
 			// Check all the serial numbers are unique.
-			if (SerialNumbers.Distinct().Count() < SerialNumbers.Count())
+			if (registrationRequest.SerialNumbers.Distinct().Count() < registrationRequest.SerialNumbers.Count())
 			{
 				throw new WabiSabiException(WabiSabiErrorCode.SerialNumberDuplicated);
 			}
 
 			var statements = new List<Statement>();
-			foreach (var presentation in registrationRequest.Presented)
+			foreach (var presentation in presented)
 			{
 				// Calculate Z using coordinator secret.
 				var Z = presentation.ComputeZ(CoordinatorSecretKey);
@@ -83,7 +99,7 @@ namespace WalletWasabi.Crypto.Api
 				}
 			}
 
-			foreach (var credentialRequest in registrationRequest.Requested)
+			foreach (var credentialRequest in requested)
 			{
 				statements.Add(registrationRequest.IsNullRequest
 					? ProofSystem.ZeroProof(credentialRequest.Ma)
@@ -93,8 +109,8 @@ namespace WalletWasabi.Crypto.Api
 			// Balance proof
 			if (!registrationRequest.IsNullRequest)
 			{
-				var presented = registrationRequest.Presented.Select(x => x.Ca).Sum();
-				var requested = registrationRequest.Requested.Select(x => x.Ma).Sum();
+				var sumCa = presented.Select(x => x.Ca).Sum();
+				var sumMa = requested.Select(x => x.Ma).Sum();
 
 				// A positive Delta_a means the requested credential amounts are larger
 				// than the presented ones (i.e. input registration, and a negative
@@ -104,7 +120,7 @@ namespace WalletWasabi.Crypto.Api
 				var absAmountDelta = new Scalar(registrationRequest.DeltaAmount.Abs());
 				var deltaA = registrationRequest.DeltaAmount < Money.Zero ? absAmountDelta.Negate() : absAmountDelta;
 				var balanceTweak = deltaA * Generators.Gg;
-				statements.Add(ProofSystem.BalanceProof(balanceTweak + presented - requested));
+				statements.Add(ProofSystem.BalanceProof(balanceTweak + sumCa - sumMa));
 			}
 
 			// Construct response.
@@ -118,14 +134,14 @@ namespace WalletWasabi.Crypto.Api
 			}
 
 			// Issue credentials.
-			var credentials = registrationRequest.Requested.Select(x => IssueCredential(x.Ma, Random.GetScalar())).ToArray();
+			var credentials = requested.Select(x => IssueCredential(x.Ma, Random.GetScalar())).ToArray();
 
 			var proofs = Prover.Prove(transcript, credentials.Select(x => x.Knowledge), Random);
 			var macs = credentials.Select(x => x.Mac);
 			var response = new RegistrationResponse(macs, proofs);
 
 			// Register the serial numbers to prevent credential reuse.
-			foreach (var presentation in registrationRequest.Presented)
+			foreach (var presentation in presented)
 			{
 				SerialNumbers.Add(presentation.S);
 			}

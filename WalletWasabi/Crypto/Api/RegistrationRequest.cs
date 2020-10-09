@@ -22,10 +22,15 @@ namespace WalletWasabi.Crypto.Api
 		}
 
 		public Money DeltaAmount { get; }
+
 		public IEnumerable<CredentialPresentation> Presented { get; }
+		
 		public IEnumerable<CredentialIssuanceRequest> Requested { get; }
+		
 		public IEnumerable<Proof> Proofs { get; }
 
 		public bool IsNullRequest => DeltaAmount == Money.Zero && !Presented.Any();
+		
+		public IEnumerable<GroupElement> SerialNumbers => Presented.Select(x => x.S);
 	} 
 }
