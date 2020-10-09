@@ -360,7 +360,6 @@ namespace WalletWasabi.Packager
 				Tools.ClearSha512Tags(currentBinDistDirectory);
 
 				// Remove Tor binaries that are not relevant to the platform.
-				var torFolder = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "TorDaemons"));
 				var toNotRemove = "";
 				if (target.StartsWith("win"))
 				{
@@ -373,14 +372,6 @@ namespace WalletWasabi.Packager
 				else if (target.StartsWith("osx"))
 				{
 					toNotRemove = "osx";
-				}
-
-				foreach (var file in torFolder.EnumerateFiles())
-				{
-					if (!file.Name.Contains("data", StringComparison.OrdinalIgnoreCase) && !file.Name.Contains(toNotRemove, StringComparison.OrdinalIgnoreCase))
-					{
-						File.Delete(file.FullName);
-					}
 				}
 
 				// Remove binaries that are not relevant to the platform.
