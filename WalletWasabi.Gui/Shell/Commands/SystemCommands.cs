@@ -45,7 +45,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnExit()
 		{
-			(Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow.Close();
+			(Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow.Close();
 		}
 	}
 }
