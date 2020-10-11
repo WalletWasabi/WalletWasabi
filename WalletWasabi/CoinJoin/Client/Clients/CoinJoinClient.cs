@@ -609,6 +609,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				}
 			}
 
+			CleanNonLockedExposedKeys();
 			var keysToSurelyRegister = ExposedLinks.Where(x => coinsToRegister.Contains(x.Key)).SelectMany(x => x.Value).Select(x => x.Key).ToArray();
 			var keysTryNotToRegister = ExposedLinks.SelectMany(x => x.Value).Select(x => x.Key).Except(keysToSurelyRegister).ToArray();
 
@@ -684,6 +685,19 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			// Save our modifications in the keymanager before we give back the selected keys.
 			DestinationKeyManager.ToFile();
 			return (change, actives);
+		}
+
+		private void CleanNonLockedExposedKeys()
+		{
+			// Remove non-locked exposed keys.
+			foreach (var key in ExposedLinks.Keys.ToArray())
+			{
+				ExposedLinks[key] = ExposedLinks[key].Where(x => x.Key.KeyState == KeyState.Locked).ToArray();
+				if (!ExposedLinks[key].Any())
+				{
+					ExposedLinks.TryRemove(key, out _);
+				}
+			}
 		}
 
 		public async Task QueueCoinsToMixAsync(params SmartCoin[] coins)
