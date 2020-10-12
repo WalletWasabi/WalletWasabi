@@ -8,12 +8,6 @@ namespace WalletWasabi.Tor.Socks5.Models.Messages
 {
 	public class TorSocks5Request : ByteArraySerializableBase
 	{
-		#region Constructors
-
-		public TorSocks5Request()
-		{
-		}
-
 		public TorSocks5Request(CmdField cmd, AddrField dstAddr, PortField dstPort)
 		{
 			Cmd = Guard.NotNull(nameof(cmd), cmd);
@@ -23,8 +17,6 @@ namespace WalletWasabi.Tor.Socks5.Models.Messages
 			Rsv = RsvField.X00;
 			Atyp = dstAddr.Atyp;
 		}
-
-		#endregion Constructors
 
 		#region PropertiesAndMembers
 
