@@ -37,7 +37,9 @@
                   TemplatedControl.IsTemplateFocusTarget="True">
             <Grid Name="PART_Header"
                   Margin="{TemplateBinding Level, Mode=OneWay, Converter={StaticResource TreeViewItemLeftMarginConverter}}">
-              <Border x:Name="Indicator" Margin="4 0 0 0" BorderThickness="2 0 0 0" />
+              <Border CornerRadius="2" x:Name="Indicator_Backdrop" Margin="4 0" Focusable="False">
+                <Border Width="2" x:Name="Indicator" CornerRadius="2" VerticalAlignment="Stretch" HorizontalAlignment="Left" />
+              </Border>              
               <ContentPresenter Name="PART_HeaderPresenter"
                                 Focusable="False"
                                 Content="{TemplateBinding Header}"
@@ -55,18 +57,21 @@
     </Setter>
   </Style>
 
-  <!--  PointerOver state  -->
-  <Style Selector="c|NavBarTreeItem /template/ Border#PART_LayoutRoot:pointerover">
-    <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListLowBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource TreeViewItemBorderBrushPointerOver}" />
-  </Style>
+  <!-- Normal State -->
+  <Style Selector="c|NavBarTreeItem /template/ Border#PART_LayoutRoot Border#Indicator_Backdrop">
+    <Setter Property="Background" Value="Transparent"/>
+  </Style>  
+  <!--  PointerOver state  -->  
   <Style Selector="c|NavBarTreeItem /template/ Border#PART_LayoutRoot:pointerover > ContentPresenter#PART_HeaderPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource TreeViewItemForegroundPointerOver}" />
+  </Style>
+  <Style Selector="c|NavBarTreeItem /template/ Border#PART_LayoutRoot:pointerover Border#Indicator_Backdrop">
+    <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListLowBrush}"/>
   </Style>
 
   <!--  Pressed state  -->
   <Style Selector="c|NavBarTreeItem:pressed /template/ Border#Indicator">
-    <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColorLight1}"/>
+    <Setter Property="Background" Value="{DynamicResource SystemAccentColorLight1}"/>
   </Style>
   <Style Selector="c|NavBarTreeItem:pressed /template/ Border#PART_LayoutRoot:pointerover > ContentPresenter#PART_HeaderPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource TreeViewItemForegroundPressed}" />
@@ -90,7 +95,7 @@
 
   <!--  Selected state  -->
   <Style Selector="c|NavBarTreeItem:selected /template/ Border#Indicator">
-    <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}"/>
+    <Setter Property="Background" Value="{DynamicResource SystemAccentColor}"/>
   </Style>
   <Style Selector="c|NavBarTreeItem:selected /template/ Border#PART_LayoutRoot > ContentPresenter#PART_HeaderPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource TreeViewItemForegroundSelected}" />
