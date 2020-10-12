@@ -11,7 +11,7 @@
     <converters:CoinStatusBorderBrushConverter x:Key="CoinStatusBorderBrushConverter" />
     <converters:CoinStatusForegroundConverter x:Key="CoinStatusForegroundConverter" />
     <converters:CoinItemExpanderColorConverter x:Key="CoinItemExpanderColorConverter" />
-    <converters:LurkingWifeModeStringConverter x:Key="LurkingWifeModeStringConverter" />
+    <converters:PrivacyModeStringConverter x:Key="PrivacyModeStringConverter" />
   </UserControl.Resources>
   <UserControl.Styles>
     <Style Selector="TextBlock">
@@ -68,7 +68,7 @@
         <StackPanel Spacing="10" Orientation="Horizontal" IsVisible="{Binding IsAnyCoinSelected}">
           <TextBlock Text="|" />
           <TextBlock Text="Selected Amount:" />
-          <TextBlock Foreground="YellowGreen" Text="{Binding SelectedAmount, ConverterParameter=8, Converter={StaticResource LurkingWifeModeStringConverter}}" />
+          <TextBlock Foreground="YellowGreen" Text="{Binding SelectedAmount, ConverterParameter=8, Converter={StaticResource PrivacyModeStringConverter}}" />
           <TextBlock Text="BTC" />
           <TextBlock Text="Merging unmixed coins with mixed ones undoes the mixes." Classes="warningMessage" IsVisible="{Binding LabelExposeCommonOwnershipWarning}" />
         </StackPanel>
@@ -106,8 +106,8 @@
                   <ColumnDefinition Width="80" />
                   <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="3" Text="{Binding AmountBtc, ConverterParameter=8, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" />
-                <TextBlock Grid.Column="5" Text="{Binding Cluster, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" />
+                <TextBlock Grid.Column="3" Text="{Binding AmountBtc, ConverterParameter=8, Converter={StaticResource PrivacyModeStringConverter}, Mode=OneWay}" />
+                <TextBlock Grid.Column="5" Text="{Binding Cluster, ConverterParameter=50, Converter={StaticResource PrivacyModeStringConverter}, Mode=OneWay}" />
                 <Panel Background="Transparent" Grid.Column="0" Grid.ColumnSpan="6" VerticalAlignment="Stretch">
                   <i:Interaction.Behaviors>
                     <behaviors:CommandOnDoubleClickBehavior Command="{Binding OpenCoinInfo}" />

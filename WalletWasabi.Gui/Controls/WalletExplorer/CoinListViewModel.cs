@@ -440,7 +440,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				: throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			Global.UiConfig
-				.WhenAnyValue(x => x.LurkingWifeMode)
+				.WhenAnyValue(x => x.PrivacyMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedAmount)))
 				.DisposeWith(Disposables);

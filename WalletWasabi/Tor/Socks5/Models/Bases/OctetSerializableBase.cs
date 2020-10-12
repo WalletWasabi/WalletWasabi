@@ -6,19 +6,7 @@ namespace WalletWasabi.Tor.Socks5.Models.Bases
 {
 	public abstract class OctetSerializableBase : IByteSerializable, IEquatable<OctetSerializableBase>, IEquatable<byte>
 	{
-		#region ConstructorsAndInitializers
-
-		protected OctetSerializableBase()
-		{
-		}
-
-		#endregion ConstructorsAndInitializers
-
-		#region PropertiesAndMembers
-
 		protected byte ByteValue { get; set; }
-
-		#endregion PropertiesAndMembers
 
 		#region Serialization
 
