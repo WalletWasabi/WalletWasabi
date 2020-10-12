@@ -14,7 +14,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor
 		[Fact]
 		public void GetCmdArgumentsTest()
 		{
-			var settings = new TorSettings(Path.Combine("temp", "tempdata"), Path.Combine("temp", "Tor.log"), "tempdist");
+			var settings = new TorSettings(Path.Combine("temp", "tempDataDir"), Path.Combine("temp", "Tor.log"), "tempDistributionDir");
 			var endpoint = new IPEndPoint(IPAddress.Loopback, WalletWasabi.Helpers.Constants.DefaultTorSocksPort);
 
 			string arguments = settings.GetCmdArguments(endpoint);
@@ -22,9 +22,9 @@ namespace WalletWasabi.Tests.UnitTests.Tor
 			string expected = string.Join(
 				" ",
 				$"--SOCKSPort 127.0.0.1:9050",
-				$"--DataDirectory \"{Path.Combine("temp", "tempdata", "tordata")}\"",
-				$"--GeoIPFile \"{Path.Combine("tempdist", "Tor", "Geoip", "geoip")}\"",
-				$"--GeoIPv6File \"{Path.Combine("tempdist", "Tor", "Geoip", "geoip6")}\"",
+				$"--DataDirectory \"{Path.Combine("temp", "tempDataDir", "tordata")}\"",
+				$"--GeoIPFile \"{Path.Combine("tempDistributionDir", "Tor", "Geoip", "geoip")}\"",
+				$"--GeoIPv6File \"{Path.Combine("tempDistributionDir", "Tor", "Geoip", "geoip6")}\"",
 				$"--Log \"notice file {Path.Combine("temp", "Tor.log")}\"");
 
 			Assert.Equal(expected, arguments);
