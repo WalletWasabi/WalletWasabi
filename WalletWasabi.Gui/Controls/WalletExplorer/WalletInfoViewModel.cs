@@ -166,7 +166,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Closing = new CancellationTokenSource();
 
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
+			Global.UiConfig.WhenAnyValue(x => x.PrivacyMode).Subscribe(_ =>
 				{
 					this.RaisePropertyChanged(nameof(ExtendedAccountPublicKey));
 					this.RaisePropertyChanged(nameof(ExtendedAccountZpub));
