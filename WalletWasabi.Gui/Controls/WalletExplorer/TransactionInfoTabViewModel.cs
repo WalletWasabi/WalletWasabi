@@ -21,7 +21,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override void OnOpen(CompositeDisposable disposables)
 		{
-			UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
+			UiConfig.WhenAnyValue(x => x.PrivacyMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => Transaction.RaisePropertyChanged(nameof(Transaction.TransactionId)))
 				.DisposeWith(disposables);
