@@ -2,7 +2,7 @@
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:sys="clr-namespace:System;assembly=netstandard"
   xmlns:local="clr-namespace:AvalonStudio.Controls.Standard.CodeEditor;assembly=AvalonStudio.Controls.Standard">
-  <Styles.Resources>    
+  <Styles.Resources>
     <SolidColorBrush x:Key="TextControlBackground">#2F2F2F</SolidColorBrush>
     <SolidColorBrush x:Key="TextControlForeground">#ACACAC</SolidColorBrush>
     <SolidColorBrush x:Key="TextControlBorderBrush">#0078D4</SolidColorBrush>
@@ -13,7 +13,7 @@
     <SolidColorBrush x:Key="AcrylicFallbackColor">#1F1F1F</SolidColorBrush>
     <Color x:Key="RegionColor">#FF212121</Color>
     <BoxShadows x:Key="BoxShadow">0 1 4 #121212</BoxShadows>
-  </Styles.Resources>  
+  </Styles.Resources>
   <StyleInclude Source="avares://Avalonia.Themes.Fluent/Accents/FluentDark.xaml"/>
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Base.xaml" />
 </Styles>
