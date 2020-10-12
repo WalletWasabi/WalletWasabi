@@ -15,8 +15,15 @@
     <Setter Property="Template">
       <ControlTemplate>
         <Panel>
-          <Border CornerRadius="2" x:Name="Indicator_Backdrop" Margin="4 0">
-            <Border Width="2" x:Name="Indicator" CornerRadius="2" VerticalAlignment="Stretch" HorizontalAlignment="Left" />
+          <Border CornerRadius="3" x:Name="Indicator_Backdrop" Margin="4 0">
+            <Border Width="3" x:Name="Indicator" CornerRadius="6" VerticalAlignment="Stretch" HorizontalAlignment="Left">
+              <Border.Transitions>
+                <Transitions>
+                  <DoubleTransition Property="Opacity" Duration="0:0:0.175" />
+                  <TransformOperationsTransition Property="RenderTransform" Duration="0:0:.175" />
+                </Transitions>
+              </Border.Transitions>
+            </Border>
           </Border>
           
           <ContentPresenter Name="PART_ContentPresenter"
@@ -33,7 +40,13 @@
     </Setter>
   </Style>
 
-  <Style Selector="c|NavBarItem /template/ ContentPresenter#PART_ContentPresenter">
+  <Style Selector="c|NavBarItem /template/ Border#Indicator">
+    <Setter Property="Background" Value="{DynamicResource SystemAccentColor}" />
+    <Setter Property="Opacity" Value="0" />
+    <Setter Property="RenderTransform" Value="scale(0)" />
+  </Style>
+
+    <Style Selector="c|NavBarItem /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="TextBlock.FontWeight" Value="Normal" />
     <Setter Property="TextBlock.FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
   </Style>
@@ -71,8 +84,9 @@
   </Style>
 
   <!-- Selected State -->
-  <Style Selector="c|NavBarItem:selected /template/ Border#Indicator">
-    <Setter Property="Background" Value="{DynamicResource SystemAccentColor}"/>
+  <Style Selector="c|NavBarItem:selected /template/ Border#Indicator">    
+    <Setter Property="Opacity" Value="1" />
+    <Setter Property="RenderTransform" Value="scale(1)" />
   </Style>
   <Style Selector="c|NavBarItem:selected /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemControlHighlightAltBaseHighBrush}"/>
