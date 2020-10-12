@@ -475,7 +475,7 @@ namespace WalletWasabi.Packager
 			return files;
 		}
 
-		static string ExecuteBashCommand(string command)
+		private static string ExecuteBashCommand(string command)
 		{
 			// according to: https://stackoverflow.com/a/15262019/637142
 			// thans to this we will pass everything as one command
@@ -491,10 +491,8 @@ namespace WalletWasabi.Packager
 				CreateNoWindow = true
 			});
 
-			var reader = process.StandardOutput.ReadToEndAsync();
-
+			var result = process.StandardOutput.ReadToEnd();
 			process.WaitForExit();
-			var result = reader.GetAwaiter().GetResult();
 
 			return result;
 		}
