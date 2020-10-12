@@ -79,7 +79,7 @@ namespace WalletWasabi.Hwi
 
 				// Build options without fingerprint with device model and device path.
 				var newOptions = BuildOptions(firstNoFingerprintEntry.Model, firstNoFingerprintEntry.Path, fingerprint: null, options.Where(x => x.Type != HwiOptions.Fingerprint).ToArray());
-				return await SendCommandAsync(newOptions, command, arguments, openConsole, cancel, isRecursion: true);
+				return await SendCommandAsync(newOptions, command, commandArguments, openConsole, cancel, isRecursion: true);
 			}
 			catch (HwiException ex) when (Network != Network.Main && ex.ErrorCode == HwiErrorCode.UnknownError && ex.Message?.Contains("DataError: Forbidden key path") is true)
 			{
