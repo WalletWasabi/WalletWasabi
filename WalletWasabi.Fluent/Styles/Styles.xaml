@@ -7,9 +7,13 @@
     <sys:Double x:Key="SplitViewCollapseThreshold">750</sys:Double>
     <sys:Double x:Key="SplitViewCompactPaneLength">46</sys:Double>
     <!-- <FontFamily x:Key="ContentControlThemeFontFamily">avares://WalletWasabi.Fluent/Assets#Inter</FontFamily> -->
-    <Thickness x:Key="TextControlBorderThemeThickness">0</Thickness>
+    <Thickness x:Key="TextControlBorderThemeThickness">0,0,0,2</Thickness>
     <Thickness x:Key="TextControlBorderThemeThicknessFocused">0,0,0,2</Thickness>
     <Thickness x:Key="TextControlThemePadding">15,10,15,8</Thickness>
+    <Color x:Key="SystemAccentColor">#72BD81</Color>
+    <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="{StaticResource SystemAccentColor}"/>
+    <SolidColorBrush x:Key="TextControlBorderBrush">#33323232</SolidColorBrush>
+    <SolidColorBrush x:Key="TextControlBorderBrushPointerOver">#33323232</SolidColorBrush>
   </Styles.Resources>
   <Style Selector="SplitView">
     <Setter Property="CompactPaneLength" Value="{StaticResource SplitViewCompactPaneLength}" />
