@@ -692,10 +692,17 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			// Remove non-locked exposed keys.
 			foreach (var key in ExposedLinks.Keys.ToArray())
 			{
-				ExposedLinks[key] = ExposedLinks[key].Where(x => x.Key.KeyState == KeyState.Locked).ToArray();
-				if (!ExposedLinks[key].Any())
+				if (ExposedLinks.TryGetValue(key, out var links))
 				{
-					ExposedLinks.TryRemove(key, out _);
+					var lockedKeys = links.Where(x => x.Key.KeyState == KeyState.Locked).ToArray();
+					if (lockedKeys.Any())
+					{
+						ExposedLinks.AddOrReplace(key, lockedKeys);
+					}
+					else
+					{
+						ExposedLinks.TryRemove(key, out _);
+					}
 				}
 			}
 		}
