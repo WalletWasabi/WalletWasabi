@@ -8,7 +8,7 @@
   x:Class="WalletWasabi.Gui.Controls.TransactionDetails.Views.TransactionDetails">
   <UserControl.Resources>
     <converters:BooleanStringConverter x:Key="BooleanStringConverter" />
-    <converters:PrivacyStringConverter x:Key="PrivacyStringConverter" />
+    <converters:PrivacyModeStringConverter x:Key="PrivacyModeStringConverter" />
     <converters:MoneyBrushConverter x:Key="MoneyBrushConverter" />
     <converters:MoneyStringConverter x:Key="MoneyStringConverter" />
   </UserControl.Resources>
