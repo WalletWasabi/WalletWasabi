@@ -71,7 +71,7 @@ namespace WalletWasabi.Gui
 		}
 
 		[DefaultValue(false)]
-		[JsonProperty(PropertyName = "LurkingWifeMode", DefaultValueHandling = DefaultValueHandling.Populate)]
+		[JsonProperty(PropertyName = "PrivacyMode", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public bool PrivacyMode
 		{
 			get => _privacyMode;
