@@ -760,7 +760,7 @@ namespace WalletWasabi.Gui
 				var torManager = TorManager;
 				if (torManager is { })
 				{
-					await torManager.StopAsync().ConfigureAwait(false);
+					await torManager.StopAsync(Config.TerminateTorOnExit).ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(TorManager)} is stopped.");
 				}
 
