@@ -478,7 +478,7 @@ namespace WalletWasabi.Packager
 		private static string ExecuteBashCommand(string command)
 		{
 			// according to: https://stackoverflow.com/a/15262019/637142
-			// thans to this we will pass everything as one command
+			// Thanks to this we will pass everything as one command.
 			command = command.Replace("\"", "\"\"");
 
 			using var process = Process.Start(new ProcessStartInfo
