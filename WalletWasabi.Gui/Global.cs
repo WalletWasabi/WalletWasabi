@@ -467,7 +467,7 @@ namespace WalletWasabi.Gui
 		{
 			try
 			{
-				if (UiConfig.LurkingWifeMode)
+				if (UiConfig.PrivacyMode)
 				{
 					return;
 				}
@@ -503,9 +503,9 @@ namespace WalletWasabi.Gui
 		{
 			try
 			{
-				// In lurking wife mode no notification is raised.
+				// In Privacy mode no notification is raised.
 				// If there are no news, then don't bother too.
-				if (UiConfig.LurkingWifeMode || !e.IsNews || (sender as Wallet).State != WalletState.Started)
+				if (UiConfig.PrivacyMode || !e.IsNews || (sender as Wallet).State != WalletState.Started)
 				{
 					return;
 				}
@@ -760,7 +760,7 @@ namespace WalletWasabi.Gui
 				var torManager = TorManager;
 				if (torManager is { })
 				{
-					await torManager.StopAsync().ConfigureAwait(false);
+					await torManager.StopAsync(Config.TerminateTorOnExit).ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(TorManager)} is stopped.");
 				}
 

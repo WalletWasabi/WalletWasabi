@@ -103,7 +103,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand<Unit, Unit> CopyBase64Psbt { get; set; }
 		public ReactiveCommand<Unit, Unit> OpenTransactionBroadcaster { get; set; }
 
-		public bool? IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode;
+		public bool? IsPrivacyMode => Global.UiConfig.PrivacyMode;
 
 		public string TransactionHexText
 		{
@@ -133,11 +133,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			base.OnOpen(disposables);
 
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
+			Global.UiConfig.WhenAnyValue(x => x.PrivacyMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
-					this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
+					this.RaisePropertyChanged(nameof(IsPrivacyMode));
 					this.RaisePropertyChanged(nameof(TransactionDetails));
 				}).DisposeWith(disposables);
 		}

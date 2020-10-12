@@ -40,10 +40,10 @@
   <DockPanel LastChildFill="True">
     <Panel DockPanel.Dock="Top" HorizontalAlignment="Stretch" Background="{DynamicResource ThemeControlLowBrush}">
       <StackPanel Orientation="Horizontal" Spacing="2" Margin="8 1">
-        <Button ToolTip.Tip="{Binding IsLurkingWifeMode, StringFormat=\{0\} Sensitive Information, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Show:Hide}" Command="{Binding LurkingWifeModeCommand}">
+        <Button ToolTip.Tip="{Binding IsPrivacyMode, StringFormat=\{0\} Sensitive Information, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Show:Hide}" Command="{Binding PrivacyModeCommand}">
           <Panel>
-            <DrawingPresenter Width="16" Height="16" IsVisible="{Binding !IsLurkingWifeMode}" Drawing="{DynamicResource EyesShow}" />
-            <DrawingPresenter Width="16" Height="16" IsVisible="{Binding IsLurkingWifeMode}" Drawing="{DynamicResource EyesHide}" />
+            <DrawingPresenter Width="16" Height="16" IsVisible="{Binding !IsPrivacyMode}" Drawing="{DynamicResource EyesShow}" />
+            <DrawingPresenter Width="16" Height="16" IsVisible="{Binding IsPrivacyMode}" Drawing="{DynamicResource EyesHide}" />
           </Panel>
         </Button>
         <Button ToolTip.Tip="Collapse All" Command="{Binding CollapseAllCommand}">
