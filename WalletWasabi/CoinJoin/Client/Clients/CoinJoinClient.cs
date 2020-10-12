@@ -621,7 +621,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			allLockedInternalKeys = keysToSurelyRegister.Concat(allLockedInternalKeys).Distinct();
 
 			// Prefer not to bloat the wallet:
-			if (allLockedInternalKeys.Count() <= maximumMixingLevelCount)
+			if (keysTryNotToRegister.Length >= DestinationKeyManager.MinGapLimit / 2)
 			{
 				allLockedInternalKeys = allLockedInternalKeys.Concat(keysTryNotToRegister).Distinct();
 			}
