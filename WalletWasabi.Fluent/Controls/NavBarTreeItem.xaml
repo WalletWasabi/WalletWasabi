@@ -42,7 +42,7 @@
                   <Border.Transitions>
                     <Transitions>
                       <DoubleTransition Property="Opacity" Duration="0:0:0.175" />
-                      <TransformOperationsTransition Property="RenderTransform" Duration="0:0:.175" />
+                      <TransformOperationsTransition Property="RenderTransform" Duration="0:0:.135" Easing="QuadraticEaseIn" />
                     </Transitions>
                   </Border.Transitions>
                 </Border>
@@ -72,7 +72,8 @@
   <Style Selector="c|NavBarTreeItem /template/ Border#PART_LayoutRoot Border#Indicator">
     <Setter Property="Background" Value="{DynamicResource SystemAccentColor}"/>
     <Setter Property="Opacity" Value="0" />
-    <Setter Property="RenderTransform" Value="scale(0)" />
+    <Setter Property="RenderTransformOrigin" Value="50%,0%" />
+    <Setter Property="RenderTransform" Value="scaleY(0)" />
   </Style>
 
   <!--  PointerOver state  -->  
@@ -110,7 +111,8 @@
   <!--  Selected state  -->
   <Style Selector="c|NavBarTreeItem:selected /template/ Border#Indicator">
     <Setter Property="Opacity" Value="1" />
-    <Setter Property="RenderTransform" Value="scale(1)" />
+    <Setter Property="RenderTransformOrigin" Value="50%,100%" />
+    <Setter Property="RenderTransform" Value="scaleY(1)" />
   </Style>
   <Style Selector="c|NavBarTreeItem:selected /template/ Border#PART_LayoutRoot > ContentPresenter#PART_HeaderPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource TreeViewItemForegroundSelected}" />
