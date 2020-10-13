@@ -168,6 +168,11 @@ namespace WalletWasabi.Gui
 					await DisposeAsync().ConfigureAwait(false);
 				};
 
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				{
+					Microsoft.Win32.SystemEvents.SessionEnding += (s, e) => DisposeAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+				}
+
 				#endregion ProcessKillSubscription
 
 				cancel.ThrowIfCancellationRequested();
@@ -642,6 +647,8 @@ namespace WalletWasabi.Gui
 			try
 			{
 				StoppingCts?.Cancel();
+
+				await Task.Delay(30000).ConfigureAwait(false);
 
 				if (!InitializationStarted)
 				{
