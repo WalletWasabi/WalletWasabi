@@ -14,6 +14,7 @@
     <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="{StaticResource SystemAccentColor}"/>
     <SolidColorBrush x:Key="TextControlBorderBrush">#33323232</SolidColorBrush>
     <SolidColorBrush x:Key="TextControlBorderBrushPointerOver">#33323232</SolidColorBrush>
+    <SolidColorBrush x:Key="TextControlErrorBorderBrush">#D85050</SolidColorBrush>
   </Styles.Resources>
   <Style Selector="SplitView">
     <Setter Property="CompactPaneLength" Value="{StaticResource SplitViewCompactPaneLength}" />
@@ -27,5 +28,8 @@
   </Style>
   <Style Selector="TextBox /template/ Border#PART_BorderElement">
     <Setter Property="CornerRadius" Value="0" />
+  </Style>
+  <Style Selector="TextBox:error /template/ Border#PART_BorderElement">
+    <Setter Property="BorderBrush" Value="{StaticResource TextControlErrorBorderBrush}"/>
   </Style>
 </Styles>
