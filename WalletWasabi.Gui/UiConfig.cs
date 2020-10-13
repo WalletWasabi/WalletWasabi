@@ -10,7 +10,7 @@ namespace WalletWasabi.Gui
 	[JsonObject(MemberSerialization.OptIn)]
 	public class UiConfig : ConfigBase
 	{
-		private bool _lurkingWifeMode;
+		private bool _privacyMode;
 		private bool _lockScreenActive;
 		private string _lockScreenPinHash = "";
 		private bool _isCustomFee;
@@ -71,11 +71,11 @@ namespace WalletWasabi.Gui
 		}
 
 		[DefaultValue(false)]
-		[JsonProperty(PropertyName = "LurkingWifeMode", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public bool LurkingWifeMode
+		[JsonProperty(PropertyName = "PrivacyMode", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool PrivacyMode
 		{
-			get => _lurkingWifeMode;
-			set => RaiseAndSetIfChanged(ref _lurkingWifeMode, value);
+			get => _privacyMode;
+			set => RaiseAndSetIfChanged(ref _privacyMode, value);
 		}
 
 		[DefaultValue(false)]

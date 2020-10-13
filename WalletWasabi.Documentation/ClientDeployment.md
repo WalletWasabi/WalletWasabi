@@ -108,4 +108,15 @@ Digicert holds our Code Signing Certificate under the name "zkSNACKs Limited".
 - Platform: Microsoft Authenticode
 - Type: Code Signing
 
-CSR file for renewal is stored in the secret storage.
+**Renewal**
+
+1. Issue a renewal on digicert website with the CSR file: `secret-ssl/mainnet/wasabiserver.csr`.
+2. Wait for `zksnacks_limited.p7b` file put it into `c:\temp`.
+3. Copy `secret-ssl/mainnet/wasabiserver.key` to `c:\temp`.
+4. Open Windows Linux Subsystem and navigate into folder `c:\temp`.
+5. Run command `openssl pkcs7 -print_certs -in zksnacks_limited.p7b -out certificatename.cer`.
+6. Run command `openssl pkcs12 -export -in certificatename.cer -inkey wasabiserver.key -out digicert.pfx`.
+7. Apply the default password from `secret-ssl/codesigning/windows/password.txt`.
+8. Packager needs the codesigning certificate file to be here: `c:\digicert.pfx`.
+
+

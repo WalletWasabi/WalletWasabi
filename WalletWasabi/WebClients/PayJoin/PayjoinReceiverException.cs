@@ -13,10 +13,5 @@ namespace WalletWasabi.WebClients.PayJoin
 		public int HttpCode { get; }
 		public string ErrorCode { get; }
 		public string ErrorMessage { get; }
-
-		private static string FormatMessage(in int httpCode, string errorCode, string message)
-		{
-			return $"{errorCode}: {message} (HTTP: {httpCode})";
-		}
 	}
 }

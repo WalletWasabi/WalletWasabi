@@ -25,7 +25,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableCollection<WalletViewModelBase> _wallets;
 		private ViewModelBase _selectedItem;
 		private Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
-		private ObservableAsPropertyHelper<bool> _isLurkingWifeMode;
+		private ObservableAsPropertyHelper<bool> _isPrivacyMode;
 		private bool _anyWalletStarted;
 		private bool _inSelecting;
 
@@ -78,15 +78,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			CollapseAllCommand = ReactiveCommand.Create(CollapseWallets, this.WhenAnyValue(x => x.AnyWalletStarted));
 
-			LurkingWifeModeCommand = ReactiveCommand.Create(ToggleLurkingWifeMode);
+			PrivacyModeCommand = ReactiveCommand.Create(TogglePrivacyMode);
 
-			_isLurkingWifeMode = UiConfig
-				.WhenAnyValue(x => x.LurkingWifeMode)
-				.ToProperty(this, x => x.IsLurkingWifeMode, scheduler: RxApp.MainThreadScheduler);
+			_isPrivacyMode = UiConfig
+				.WhenAnyValue(x => x.PrivacyMode)
+				.ToProperty(this, x => x.IsPrivacyMode, scheduler: RxApp.MainThreadScheduler);
 
 			Observable
 				.Merge(CollapseAllCommand.ThrownExceptions)
-				.Merge(LurkingWifeModeCommand.ThrownExceptions)
+				.Merge(PrivacyModeCommand.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 
@@ -113,7 +113,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override Location DefaultLocation => Location.Right;
 
-		public bool IsLurkingWifeMode => _isLurkingWifeMode?.Value ?? false;
+		public bool IsPrivacyMode => _isPrivacyMode?.Value ?? false;
 
 		private WalletManager WalletManager { get; }
 
@@ -139,7 +139,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public ReactiveCommand<Unit, Unit> CollapseAllCommand { get; }
 
-		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
+		public ReactiveCommand<Unit, Unit> PrivacyModeCommand { get; }
 
 		private void OnShellDocumentSelected(ViewModelBase document)
 		{
@@ -160,9 +160,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private void ToggleLurkingWifeMode()
+		private void TogglePrivacyMode()
 		{
-			UiConfig.LurkingWifeMode = !UiConfig.LurkingWifeMode;
+			UiConfig.PrivacyMode = !UiConfig.PrivacyMode;
 			UiConfig.ToFile();
 		}
 

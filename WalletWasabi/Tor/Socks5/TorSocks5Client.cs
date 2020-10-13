@@ -37,7 +37,7 @@ namespace WalletWasabi.Tor.Socks5
 
 		public TcpClient TcpClient { get; private set; }
 
-		public EndPoint TorSocks5EndPoint { get; private set; }
+		private EndPoint TorSocks5EndPoint { get; }
 
 		public Stream Stream { get; internal set; }
 
@@ -83,14 +83,17 @@ namespace WalletWasabi.Tor.Socks5
 		{
 			try
 			{
-				await ConnectAsync().ConfigureAwait(false);
-				await HandshakeAsync(isolateStream: true).ConfigureAwait(false);
+				// Internal TCP client may close, so we need a new instance here.
+				using var client = new TorSocks5Client(TorSocks5EndPoint);
+				await client.ConnectAsync().ConfigureAwait(false);
+				await client.HandshakeAsync(isolateStream: true).ConfigureAwait(false);
+
+				return true;
 			}
 			catch (ConnectionException)
 			{
 				return false;
 			}
-			return true;
 		}
 
 		/// <summary>
@@ -193,58 +196,37 @@ namespace WalletWasabi.Tor.Socks5
 
 			try
 			{
-				if (TorSocks5EndPoint is null)
+				var connectionRequest = new TorSocks5Request(cmd: CmdField.Connect, new AddrField(host), new PortField(port));
+				var sendBuffer = connectionRequest.ToBytes();
+
+				var receiveBuffer = await SendAsync(sendBuffer, isRecursiveCall: isRecursiveCall).ConfigureAwait(false);
+
+				var connectionResponse = new TorSocks5Response();
+				connectionResponse.FromBytes(receiveBuffer);
+
+				if (connectionResponse.Rep != RepField.Succeeded)
 				{
-					Logger.LogDebug($"Tor is NOT enabled.");
-
-					using (await AsyncLock.LockAsync().ConfigureAwait(false))
-					{
-						TcpClient?.Dispose();
-						TcpClient = IPAddress.TryParse(host, out IPAddress ip) ? new TcpClient(ip.AddressFamily) : new TcpClient();
-						await TcpClient.ConnectAsync(host, port).ConfigureAwait(false);
-						Stream = TcpClient.GetStream();
-						RemoteEndPoint = TcpClient.Client.RemoteEndPoint;
-					}
+					// https://www.ietf.org/rfc/rfc1928.txt
+					// When a reply(REP value other than X'00') indicates a failure, the
+					// SOCKS server MUST terminate the TCP connection shortly after sending
+					// the reply.This must be no more than 10 seconds after detecting the
+					// condition that caused a failure.
+					DisposeTcpClient();
+					Logger.LogWarning($"Connection response indicates a failure. Actual response is: '{connectionResponse.Rep}'.");
+					throw new TorSocks5FailureResponseException(connectionResponse.Rep);
 				}
-				else
-				{
-					Logger.LogDebug($"Tor is enabled.");
 
-					var dstAddr = new AddrField(host);
-					var dstPort = new PortField(port);
+				// Do not check the Bnd. Address and Bnd. Port. because Tor does not seem to return any, ever. It returns zeros instead.
+				// Generally also do not check anything but the success response, according to Socks5 RFC
 
-					var connectionRequest = new TorSocks5Request(cmd: CmdField.Connect, dstAddr, dstPort);
-					var sendBuffer = connectionRequest.ToBytes();
-
-					var receiveBuffer = await SendAsync(sendBuffer, isRecursiveCall: isRecursiveCall).ConfigureAwait(false);
-
-					var connectionResponse = new TorSocks5Response();
-					connectionResponse.FromBytes(receiveBuffer);
-
-					if (connectionResponse.Rep != RepField.Succeeded)
-					{
-						// https://www.ietf.org/rfc/rfc1928.txt
-						// When a reply(REP value other than X'00') indicates a failure, the
-						// SOCKS server MUST terminate the TCP connection shortly after sending
-						// the reply.This must be no more than 10 seconds after detecting the
-						// condition that caused a failure.
-						DisposeTcpClient();
-						Logger.LogWarning($"Connection response indicates a failure. Actual response is: '{connectionResponse.Rep}'.");
-						throw new TorSocks5FailureResponseException(connectionResponse.Rep);
-					}
-
-					// Do not check the Bnd. Address and Bnd. Port. because Tor does not seem to return any, ever. It returns zeros instead.
-					// Generally also do not check anything but the success response, according to Socks5 RFC
-
-					// If the reply code(REP value of X'00') indicates a success, and the
-					// request was either a BIND or a CONNECT, the client may now start
-					// passing data. If the selected authentication method supports
-					// encapsulation for the purposes of integrity, authentication and / or
-					// confidentiality, the data are encapsulated using the method-dependent
-					// encapsulation.Similarly, when data arrives at the SOCKS server for
-					// the client, the server MUST encapsulate the data as appropriate for
-					// the authentication method in use.
-				}
+				// If the reply code(REP value of X'00') indicates a success, and the
+				// request was either a BIND or a CONNECT, the client may now start
+				// passing data. If the selected authentication method supports
+				// encapsulation for the purposes of integrity, authentication and / or
+				// confidentiality, the data are encapsulated using the method-dependent
+				// encapsulation.Similarly, when data arrives at the SOCKS server for
+				// the client, the server MUST encapsulate the data as appropriate for
+				// the authentication method in use.
 			}
 			catch (Exception e)
 			{
@@ -283,7 +265,7 @@ namespace WalletWasabi.Tor.Socks5
 
 		private bool IsConnectionRefused(Exception exc)
 		{
-			Exception error = null;
+			Exception? error = null;
 			try
 			{
 				throw exc;
