@@ -386,20 +386,20 @@ namespace NBitcoin
 			NumberDecimalDigits = 0
 		};
 
-		private static string ToCurrency(this Money btc, string currency, decimal exchangeRate, bool lurkingWifeMode = false)
+		private static string ToCurrency(this Money btc, string currency, decimal exchangeRate, bool privacyMode = false)
 		{
 			var dollars = exchangeRate * btc.ToDecimal(MoneyUnit.BTC);
 
-			return lurkingWifeMode
+			return privacyMode
 				? $"### {currency}"
 				: exchangeRate == default
 					? $"??? {currency}"
 					: $"{dollars.ToString("N", CurrencyNumberFormat)} {currency}";
 		}
 
-		public static string ToUsdString(this Money btc, decimal usdExchangeRate, bool lurkingWifeMode = false)
+		public static string ToUsdString(this Money btc, decimal usdExchangeRate, bool privacyMode = false)
 		{
-			return ToCurrency(btc, "USD", usdExchangeRate, lurkingWifeMode);
+			return ToCurrency(btc, "USD", usdExchangeRate, privacyMode);
 		}
 	}
 }

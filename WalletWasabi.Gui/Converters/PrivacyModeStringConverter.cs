@@ -8,12 +8,12 @@ using System.Linq;
 
 namespace WalletWasabi.Gui.Converters
 {
-	public class LurkingWifeModeStringConverter : IValueConverter
+	public class PrivacyModeStringConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			var uiConfig = Locator.Current.GetService<Global>().UiConfig;
-			if (uiConfig.LurkingWifeMode)
+			if (uiConfig.PrivacyMode)
 			{
 				int len = 10;
 				if (int.TryParse(parameter.ToString(), out int newLength))
