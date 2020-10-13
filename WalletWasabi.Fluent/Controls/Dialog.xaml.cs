@@ -8,26 +8,41 @@ using WalletWasabi.Fluent.ViewModels.Dialog;
 
 namespace WalletWasabi.Fluent.Controls
 {
-	/// <summary>
-	/// Manages and hosts dialogs when it's bound to <see cref="IContent"/> objects.
-	/// </summary>
-	public class Dialog : ContentControl
-	{
-		public static readonly StyledProperty<bool> IsDialogOpenProperty =
-			AvaloniaProperty.Register<Dialog, bool>(nameof(IsDialogOpen));
+    /// <summary>
+    /// Manages and hosts dialogs when it's bound to <see cref="IContent"/> objects.
+    /// </summary>
+    public class Dialog : ContentControl
+    {
+        public static readonly StyledProperty<bool> IsDialogOpenProperty =
+            AvaloniaProperty.Register<Dialog, bool>(nameof(IsDialogOpen));
 
-		public bool IsDialogOpen
-		{
-			get => GetValue(IsDialogOpenProperty);
-			set => SetValue(IsDialogOpenProperty, value);
-		}
- 
-		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
-		{
-			base.OnApplyTemplate(e);
+        public bool IsDialogOpen
+        {
+            get => GetValue(IsDialogOpenProperty);
+            set => SetValue(IsDialogOpenProperty, value);
+        }
 
-			var overlayButton = e.NameScope.Find<Button>("PART_OverlayButton");
-			overlayButton.Click += delegate { IsDialogOpen = false; };
-		}
-	}
+        static Dialog()
+        {
+            IsDialogOpenProperty.Changed.AddClassHandler<Dialog>((x, e) => x.OnIsDialogOpenChanged(e));
+        }
+
+        private void OnIsDialogOpenChanged(AvaloniaPropertyChangedEventArgs e)
+        {
+            UpdatePseudoClasses();
+        }
+
+        private void UpdatePseudoClasses()
+        {
+            PseudoClasses.Set(":open", IsDialogOpen);
+        }
+
+        protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
+        {
+            base.OnApplyTemplate(e);
+
+            var overlayButton = e.NameScope.Find<Button>("PART_OverlayButton");
+            overlayButton.Click += delegate { IsDialogOpen = false; };
+        }
+    }
 }

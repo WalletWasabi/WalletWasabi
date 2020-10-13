@@ -14,7 +14,15 @@
           </Panel> 
           <Panel Name="PART_DialogHost" VerticalAlignment="Center" HorizontalAlignment="Center">
             <Border CornerRadius="5" BoxShadow="{DynamicResource DialogBoxShadow}" Background="{DynamicResource DialogBackground}" >
-              <ContentPresenter Content="{TemplateBinding Content}"/>
+              <ContentPresenter Name="PART_ContentPresenter"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                Content="{TemplateBinding Content}"
+                                Padding="{TemplateBinding Padding}"
+                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"/>
             </Border>
           </Panel>
         </Panel>
@@ -40,21 +48,21 @@
     <Setter Property="Opacity" Value="0"/>
   </Style>
 
-  <Style Selector="c|Dialog[IsDialogOpen=true] /template/ Panel#PART_DialogHost">
+  <Style Selector="c|Dialog:open /template/ Panel#PART_DialogHost">
     <Setter Property="RenderTransform" Value="scaleX(1) scaleY(1)" />
     <Setter Property="Opacity" Value="1"/>
     <Setter Property="IsHitTestVisible" Value="True"/>
   </Style>
-  <Style Selector="c|Dialog[IsDialogOpen=false] /template/ Panel#PART_DialogHost">
+  <Style Selector="c|Dialog:not(:open) /template/ Panel#PART_DialogHost">
     <Setter Property="RenderTransform" Value="scaleX(0.9) scaleY(0.9)" />
     <Setter Property="Opacity" Value="0"/>
     <Setter Property="IsHitTestVisible" Value="False"/>
   </Style>
-  <Style Selector="c|Dialog[IsDialogOpen=true] /template/ Panel#PART_Overlay">
+  <Style Selector="c|Dialog:open /template/ Panel#PART_Overlay">
     <Setter Property="IsHitTestVisible" Value="True"/>
     <Setter Property="Opacity" Value="0.8"/>
   </Style>
-  <Style Selector="c|Dialog[IsDialogOpen=false] /template/ Panel#PART_Overlay">
+  <Style Selector="c|Dialog:not(:open) /template/ Panel#PART_Overlay">
     <Setter Property="IsHitTestVisible" Value="False"/>
     <Setter Property="Opacity" Value="0"/> 
   </Style>
