@@ -8,7 +8,6 @@ using System.Reactive;
 using System.Reactive.Linq;
 using WalletWasabi.Gui;
 using WalletWasabi.Wallets;
-using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
