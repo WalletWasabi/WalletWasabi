@@ -15,4 +15,5 @@
     <BoxShadows x:Key="BoxShadow">0 1 4 #D1D1D1</BoxShadows>
   </Styles.Resources>
   <StyleInclude Source="avares://Avalonia.Themes.Fluent/Accents/FluentLight.xaml"/>
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Base.xaml" />
 </Styles>
