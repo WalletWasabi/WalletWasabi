@@ -88,16 +88,7 @@ namespace WalletWasabi.Tor
 					return true;
 				}
 
-				// Install Tor if it is not installed and verify Tor is not tampered with (using hash/checksum).
-				bool verified = await new TorInstallator(Settings).VerifyInstallationAsync().ConfigureAwait(false);
-
-				if (!verified)
-				{
-					Logger.LogInfo("Failed to verify Tor installation.");
-					return false;
-				}
-
-				string torArguments = Settings.GetCmdArguments(TorSocks5EndPoint) + $" --Log \"notice file {Settings.LogFilePath}\"";
+				string torArguments = Settings.GetCmdArguments(TorSocks5EndPoint);
 
 				var startInfo = new ProcessStartInfo
 				{
@@ -106,7 +97,7 @@ namespace WalletWasabi.Tor
 					UseShellExecute = false,
 					CreateNoWindow = true,
 					RedirectStandardOutput = true,
-					WorkingDirectory = Settings.TorDir
+					WorkingDirectory = Settings.TorBinaryDir
 				};
 
 				if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

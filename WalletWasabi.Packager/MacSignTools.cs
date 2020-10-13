@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -46,8 +47,6 @@ namespace WalletWasabi.Packager
 			var contentsPath = Path.GetFullPath(Path.Combine(Program.PackagerProjectDirectory.Replace("\\", "//"), "Content", "Osx"));
 			var entitlementsPath = Path.Combine(contentsPath, "entitlements.plist");
 			var dmgContentsDir = Path.Combine(contentsPath, "Dmg");
-			var torZipDirPath = Path.Combine(appMacOsPath, "TorDaemons", "tor-osx64");
-			var torZipPath = $"{torZipDirPath}.zip";
 			var desktopDmgFilePath = Path.Combine(desktopPath, dmgFileName);
 
 			var signArguments = $"--sign \"L233B2JQ68\" --verbose --force --options runtime --timestamp";
@@ -116,7 +115,7 @@ namespace WalletWasabi.Packager
 				process.WaitForExit();
 			}
 
-			var filesToCheck = new[] { entitlementsPath, torZipPath };
+			var filesToCheck = new[] { entitlementsPath };
 
 			foreach (var file in filesToCheck)
 			{
@@ -134,6 +133,8 @@ namespace WalletWasabi.Packager
 			IoHelpers.EnsureDirectoryExists(appMacOsPath);
 
 			var executables = GetExecutables(appPath);
+
+			// The main executable needs to be signed last.
 			var filesToSignInOrder = Directory.GetFiles(appPath, "*.*", SearchOption.AllDirectories)
 				.OrderBy(file => executables.Contains(file))
 				.OrderBy(file => new FileInfo(file).Name == "wassabee")
@@ -420,6 +421,12 @@ namespace WalletWasabi.Packager
 			{
 				throw new InvalidOperationException(result);
 			}
+
+			if (result.Contains("xcrun: error: invalid active developer path"))
+			{
+				throw new InvalidOperationException($"{result}\ntip: run xcode-select --install");
+			}
+
 			Console.WriteLine(result.Trim());
 		}
 
@@ -458,11 +465,36 @@ namespace WalletWasabi.Packager
 			}
 		}
 
-		private static string[] GetExecutables(string workingDir)
+		private static IEnumerable<string> GetExecutables(string appPath)
 		{
-			// Can be implemented as: find -H YourAppBundle -print0 | xargs -0 file | grep "Mach-O .*executable"
+			string result = ExecuteBashCommand($"find -H \"{appPath}\" -print0 | xargs -0 file | grep \"Mach-O.* executable\"");
 
-			return Directory.GetFiles(workingDir, "*.", SearchOption.AllDirectories);
+			var lines = result.Split("\n").Where(x => !string.IsNullOrWhiteSpace(x));
+			var files = lines.Select(line => line.Split(":").First());
+
+			return files;
+		}
+
+		private static string ExecuteBashCommand(string command)
+		{
+			// according to: https://stackoverflow.com/a/15262019/637142
+			// Thanks to this we will pass everything as one command.
+			command = command.Replace("\"", "\"\"");
+
+			using var process = Process.Start(new ProcessStartInfo
+			{
+				FileName = "/bin/bash",
+				Arguments = $"-c \"{command}\"",
+				UseShellExecute = false,
+				RedirectStandardError = true,
+				RedirectStandardOutput = true,
+				CreateNoWindow = true
+			});
+
+			var result = process.StandardOutput.ReadToEnd();
+			process.WaitForExit();
+
+			return result;
 		}
 	}
 }
