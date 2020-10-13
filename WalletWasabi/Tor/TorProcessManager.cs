@@ -233,7 +233,7 @@ namespace WalletWasabi.Tor
 			});
 		}
 
-		public async Task StopAsync()
+		public async Task StopAsync(bool killTor = false)
 		{
 			Interlocked.CompareExchange(ref _monitorState, StateStopping, StateRunning); // If running, make it stopping.
 
@@ -249,6 +249,25 @@ namespace WalletWasabi.Tor
 			}
 			Stop?.Dispose();
 			Stop = null;
+
+			if (TorProcess is { } && killTor)
+			{
+				Logger.LogInfo($"Killing Tor process.");
+
+				try
+				{
+					TorProcess.Kill();
+					using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+					await TorProcess.WaitForExitAsync(cts.Token, killOnCancel: true).ConfigureAwait(false);
+
+					Logger.LogInfo($"Tor process killed successfully.");
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError($"Could not kill Tor process: {ex.Message}.");
+				}
+			}
+
 			TorProcess?.Dispose();
 			TorProcess = null;
 		}
