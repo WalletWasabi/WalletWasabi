@@ -20,10 +20,10 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 
         private void OnIsDialogOpenChanged(bool obj)
         {
-			// Trigger when closed abruptly (via the Overlay or the back button).
+            // Trigger when closed abruptly (via the Overlay or the back button).
             if (!obj & CurrentTaskCompletionSource is { } & !DialogReturnedWithValue)
             {
-				 Close();
+                Close();
             }
         }
 
@@ -31,28 +31,10 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 
         /// <summary>
         /// Method to be called when the dialog intends to close
-        /// without returning a value.
-        /// </summary>
-        protected void Close()
-        {
-            if (CurrentTaskCompletionSource is null)
-            {
-                throw new InvalidOperationException("CloseDialog with value return method failed due to missing TCS.");
-            }
-
-            CurrentTaskCompletionSource.SetResult(default);
-            CurrentTaskCompletionSource = null;
-            IsDialogOpen = false;
-
-            OnDialogClosed();
-        }
-
-        /// <summary>
-        /// Method to be called when the dialog intends to close
         /// and ready to pass a value back to the caller.
         /// </summary>
         /// <param name="value">The return value of the dialog</param>
-        protected void Close(TResult value)
+        protected void Close(TResult value = default)
         {
             if (CurrentTaskCompletionSource is null)
             {
@@ -61,7 +43,12 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 
             CurrentTaskCompletionSource.SetResult(value);
             CurrentTaskCompletionSource = null;
-            DialogReturnedWithValue = true;
+
+            if (!(value?.Equals(default(TResult)) ?? true))
+            {
+                DialogReturnedWithValue = true;
+            }
+
             IsDialogOpen = false;
 
             OnDialogClosed();
