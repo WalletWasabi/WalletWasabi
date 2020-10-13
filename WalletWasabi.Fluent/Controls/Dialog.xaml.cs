@@ -13,6 +13,11 @@ namespace WalletWasabi.Fluent.Controls
     /// </summary>
     public class Dialog : ContentControl
     {
+        static Dialog()
+        {
+            IsDialogOpenProperty.Changed.AddClassHandler<Dialog>((x, e) => x.OnIsDialogOpenChanged(e));
+        }
+
         public static readonly StyledProperty<bool> IsDialogOpenProperty =
             AvaloniaProperty.Register<Dialog, bool>(nameof(IsDialogOpen));
 
@@ -20,11 +25,6 @@ namespace WalletWasabi.Fluent.Controls
         {
             get => GetValue(IsDialogOpenProperty);
             set => SetValue(IsDialogOpenProperty, value);
-        }
-
-        static Dialog()
-        {
-            IsDialogOpenProperty.Changed.AddClassHandler<Dialog>((x, e) => x.OnIsDialogOpenChanged(e));
         }
 
         private void OnIsDialogOpenChanged(AvaloniaPropertyChangedEventArgs e)
@@ -42,7 +42,7 @@ namespace WalletWasabi.Fluent.Controls
             base.OnApplyTemplate(e);
 
             var overlayButton = e.NameScope.Find<Panel>("PART_Overlay");
-            overlayButton.PointerPressed += (_,__) => IsDialogOpen = false;
+            overlayButton.PointerPressed += (_, __) => IsDialogOpen = false;
         }
     }
 }

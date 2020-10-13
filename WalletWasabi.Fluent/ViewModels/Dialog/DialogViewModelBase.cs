@@ -37,6 +37,5 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
         /// is about to close.
         /// </summary>
         protected abstract void OnDialogClosed();
-
     }
 }
