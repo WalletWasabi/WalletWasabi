@@ -41,8 +41,8 @@ namespace WalletWasabi.Fluent.Controls
         {
             base.OnApplyTemplate(e);
 
-            var overlayButton = e.NameScope.Find<Button>("PART_OverlayButton");
-            overlayButton.Click += delegate { IsDialogOpen = false; };
+            var overlayButton = e.NameScope.Find<Panel>("PART_Overlay");
+            overlayButton.PointerPressed += (_,__) => IsDialogOpen = false;
         }
     }
 }
