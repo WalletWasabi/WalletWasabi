@@ -1,7 +1,11 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
-  <Design.PreviewWith> 
+        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+        xmlns:vm="clr-namespace:WalletWasabi.Fluent.Controls">
+  <Design.PreviewWith>
+    <c:Dialog Width="400" Height="200">
+      <vm:TestDialogViewModel/>
+    </c:Dialog>
   </Design.PreviewWith>
   <Styles.Resources>
   </Styles.Resources>
@@ -46,19 +50,22 @@
     <Setter Property="Opacity" Value="0"/>
   </Style>
 
+  <!-- Dialog Opened State -->
   <Style Selector="c|Dialog:open /template/ Panel#PART_DialogHost">
     <Setter Property="RenderTransform" Value="scaleX(1) scaleY(1)" />
     <Setter Property="Opacity" Value="1"/>
     <Setter Property="IsHitTestVisible" Value="True"/>
   </Style>
+  <Style Selector="c|Dialog:open /template/ Panel#PART_Overlay">
+    <Setter Property="IsHitTestVisible" Value="True"/>
+    <Setter Property="Opacity" Value="0.8"/>
+  </Style>
+
+  <!-- Dialog Unopened State -->
   <Style Selector="c|Dialog:not(:open) /template/ Panel#PART_DialogHost">
     <Setter Property="RenderTransform" Value="scaleX(0.9) scaleY(0.9)" />
     <Setter Property="Opacity" Value="0"/>
     <Setter Property="IsHitTestVisible" Value="False"/>
-  </Style>
-  <Style Selector="c|Dialog:open /template/ Panel#PART_Overlay">
-    <Setter Property="IsHitTestVisible" Value="True"/>
-    <Setter Property="Opacity" Value="0.8"/>
   </Style>
   <Style Selector="c|Dialog:not(:open) /template/ Panel#PART_Overlay">
     <Setter Property="IsHitTestVisible" Value="False"/>
