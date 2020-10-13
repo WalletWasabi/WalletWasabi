@@ -27,8 +27,6 @@ namespace WalletWasabi.Fluent.ViewModels
 			NavBar = new NavBarViewModel(this, Router, global.WalletManager, global.UiConfig);
 		}
 
-		private Action<bool> DialogStateListener { get; set; }
-
 		public static MainViewModel Instance { get; internal set; }
 
 		public RoutingState Router { get; } = new RoutingState();
