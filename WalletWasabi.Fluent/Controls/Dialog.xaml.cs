@@ -13,7 +13,6 @@ namespace WalletWasabi.Fluent.Controls
     /// </summary>
     public class Dialog : ContentControl
     {
-
         public static readonly StyledProperty<bool> IsDialogOpenProperty =
             AvaloniaProperty.Register<Dialog, bool>(nameof(IsDialogOpen));
 
