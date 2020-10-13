@@ -134,18 +134,8 @@ namespace WalletWasabi.Gui
 		{
 			InitializationStarted = true;
 
-			#region ProcessKillSubscription
-
-			AppDomain.CurrentDomain.ProcessExit += (s, e) => DisposeAsync().ConfigureAwait(false).GetAwaiter().GetResult();
-
-			Console.CancelKeyPress += async (s, e) =>
-			{
-				e.Cancel = true;
-				Logger.LogWarning("Process was signaled for killing.", nameof(Global));
-				await DisposeAsync().ConfigureAwait(false);
-			};
-
-			#endregion ProcessKillSubscription
+			AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
+			Console.CancelKeyPress += Console_CancelKeyPressAsync;
 
 			AddressManager = null;
 			var cancel = StoppingCts.Token;
@@ -376,6 +366,19 @@ namespace WalletWasabi.Gui
 			{
 				InitializationCompleted = true;
 			}
+		}
+
+		private async void Console_CancelKeyPressAsync(object sender, ConsoleCancelEventArgs e)
+		{
+			e.Cancel = true;
+			Logger.LogWarning("Process was signaled for termination.");
+			await DisposeAsync().ConfigureAwait(false);
+		}
+
+		private void CurrentDomain_ProcessExit(object? sender, EventArgs e)
+		{
+			// Do not use async here. The event has to be blocking in order to prevent the OS to terminate the application.
+			DisposeAsync().ConfigureAwait(false).GetAwaiter().GetResult();
 		}
 
 		private async Task<AddressManagerBehavior> InitializeAddressManagerBehaviorAsync()
@@ -659,6 +662,9 @@ namespace WalletWasabi.Gui
 				{
 					Logger.LogError($"Error during {nameof(WaitForInitializationCompletedAsync)}: {ex}");
 				}
+
+				AppDomain.CurrentDomain.ProcessExit -= CurrentDomain_ProcessExit;
+				Console.CancelKeyPress -= Console_CancelKeyPressAsync;
 
 				try
 				{
