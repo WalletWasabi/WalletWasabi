@@ -9,11 +9,11 @@
     <Setter Property="Template">
       <ControlTemplate>
         <Panel>
-          <Panel Background="#272727" Name="PART_Overlay">
+          <Panel Background="{DynamicResource DialogOverlayColor}" Name="PART_Overlay">
             <Button Name="PART_OverlayButton" Classes="invisible" />
           </Panel> 
           <Panel Name="PART_DialogHost" VerticalAlignment="Center" HorizontalAlignment="Center">
-            <Border CornerRadius="5" BoxShadow="4 11 30 1 #90000000" Background="#323232" >
+            <Border CornerRadius="5" BoxShadow="{DynamicResource DialogBoxShadow}" Background="{DynamicResource DialogBackground}" >
               <ContentPresenter Content="{TemplateBinding Content}"/>
             </Border>
           </Panel>
@@ -33,8 +33,8 @@
   <Style Selector="c|Dialog /template/ Panel#PART_DialogHost">
     <Setter Property="Transitions">
       <Transitions>
-        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.35" Easing="0.1,0.9,0.2,1.0" />
-        <DoubleTransition Property="Opacity" Duration="0:0:0.50" Easing="0.1,0.9,0.2,1.0" />
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.35" Easing="{StaticResource FluentDefaultEasing}" />
+        <DoubleTransition Property="Opacity" Duration="0:0:0.50" Easing="{StaticResource FluentDefaultEasing}" />
       </Transitions>
     </Setter> 
     <Setter Property="Opacity" Value="0"/>
