@@ -29,16 +29,16 @@ namespace WalletWasabi.Gui.Helpers
 				titles.Add(title);
 			}
 
-			string walletname = sender switch
+			string walletName = sender switch
 			{
 				Wallet wallet => wallet.WalletName,
 				WalletViewModelBase walletViewModelBase => walletViewModelBase.WalletName,
 				_ => ""
 			};
 
-			if (!string.IsNullOrEmpty(walletname))
+			if (!string.IsNullOrEmpty(walletName))
 			{
-				titles.Add(walletname);
+				titles.Add(walletName);
 			}
 
 			var fullTitle = string.Join(" - ", titles);

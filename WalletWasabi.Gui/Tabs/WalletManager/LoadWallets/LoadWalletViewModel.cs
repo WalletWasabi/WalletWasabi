@@ -224,13 +224,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 
 		public void SelectWallet(string walletName)
 		{
-			var keyman = Wallets.FirstOrDefault(w => w.Wallet.WalletName == walletName)?.Wallet.KeyManager;
-			SelectWallet(keyman);
+			var keyManager = Wallets.FirstOrDefault(w => w.Wallet.WalletName == walletName)?.Wallet.KeyManager;
+			SelectWallet(keyManager);
 		}
 
-		public void SelectWallet(KeyManager keymanager)
+		public void SelectWallet(KeyManager keyManager)
 		{
-			var wallet = Wallets.FirstOrDefault(w => w.Wallet.KeyManager == keymanager);
+			var wallet = Wallets.FirstOrDefault(w => w.Wallet.KeyManager == keyManager);
 			SelectedWallet = wallet;
 		}
 
