@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
@@ -648,7 +649,11 @@ namespace WalletWasabi.Gui
 			{
 				StoppingCts?.Cancel();
 
-				await Task.Delay(30000).ConfigureAwait(false);
+				while (true)
+				{
+					Logger.LogInfo("I am still alive!");
+					await Task.Delay(500).ConfigureAwait(false);
+				}
 
 				if (!InitializationStarted)
 				{
