@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using ReactiveUI;
 using System.Windows.Input;
 using Avalonia;
@@ -15,16 +16,19 @@ namespace WalletWasabi.Fluent.ViewModels
 			NextCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new HomePageViewModel(screen)));
 			ChangeThemeCommand = ReactiveCommand.Create(() =>
 			{
-				var light = new StyleInclude(new Uri("avares://WalletWasabi.Fluent/App.xaml"))
-				{
-					Source = new Uri("avares://WalletWasabi.Fluent/Styles/Themes/BaseLight.xaml")
-				};
-				var dark = new StyleInclude(new Uri("avares://WalletWasabi.Fluent/App.xaml"))
-				{
-					Source = new Uri("avares://WalletWasabi.Fluent/Styles/Themes/BaseDark.xaml")
-				};
+				var currentTheme = Application.Current.Styles.Select(x => (StyleInclude) x).FirstOrDefault(x => x.Source is { } && x.Source.AbsolutePath.Contains("Themes"));
 
-				Application.Current.Styles[0] = ((StyleInclude)Application.Current.Styles[0]).Source.AbsolutePath == light.Source.AbsolutePath ? dark : light;
+				if (currentTheme?.Source is { })
+				{
+					var themeIndex = Application.Current.Styles.IndexOf(currentTheme);
+
+					var newTheme = new StyleInclude(new Uri("avares://WalletWasabi.Fluent/App.xaml"))
+					{
+						Source = new Uri($"avares://WalletWasabi.Fluent/Styles/Themes/{(currentTheme.Source.AbsolutePath.Contains("Light") ? "BaseDark" : "BaseLight")}.xaml")
+					};
+
+					Application.Current.Styles[themeIndex] = newTheme;
+				}
 			});
 		}
 
