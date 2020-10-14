@@ -98,7 +98,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		{
 			using var services = new HostedServices();
 			var coreNode = await TestNodeBuilder.CreateAsync(services);
-			await services.StartAllAsync(CancellationToken.None);
+			await services.StartAllAsync();
 			try
 			{
 				var rpc = coreNode.RpcClient;
@@ -135,7 +135,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			}
 			finally
 			{
-				await services.StopAllAsync(CancellationToken.None);
+				await services.StopAllAsync();
 				await coreNode.TryStopAsync();
 			}
 		}
@@ -145,7 +145,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		{
 			using var services = new HostedServices();
 			var coreNode = await TestNodeBuilder.CreateAsync(services);
-			await services.StartAllAsync(CancellationToken.None);
+			await services.StartAllAsync();
 			try
 			{
 				var rpc = coreNode.RpcClient;
@@ -214,7 +214,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			}
 			finally
 			{
-				await services.StopAllAsync(CancellationToken.None);
+				await services.StopAllAsync();
 				await coreNode.TryStopAsync();
 			}
 		}
