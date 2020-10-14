@@ -122,7 +122,7 @@ namespace WalletWasabi.Gui
 							Logger.LogInfo($"{nameof(WalletManagerViewModel)} closed.");
 						}
 
-						await Global.DisposeAsync();
+						await Global.TerminateService.DoTerminateAsync();
 					}
 					catch (Exception ex)
 					{

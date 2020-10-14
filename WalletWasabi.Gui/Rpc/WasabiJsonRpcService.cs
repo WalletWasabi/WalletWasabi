@@ -245,7 +245,7 @@ namespace WalletWasabi.Gui.Rpc
 		[JsonRpcMethod("stop")]
 		public async Task StopAsync()
 		{
-			await Global.DisposeAsync().ConfigureAwait(false);
+			await Global.TerminateService.DoTerminateAsync().ConfigureAwait(false);
 		}
 
 		private void AssertWalletIsLoaded()

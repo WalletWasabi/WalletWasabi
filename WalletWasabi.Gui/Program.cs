@@ -16,6 +16,7 @@ using WalletWasabi.Gui.CrashReport;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Services.Terminate;
 using WalletWasabi.Wallets;
 
 // This is temporary and to facilitate the migration to new UI.
@@ -33,9 +34,11 @@ namespace WalletWasabi.Gui
 		private static void Main(string[] args)
 		{
 			bool runGui = false;
+			var terminateService = new TerminateService();
+			terminateService.Terminate += TerminateService_Terminate;
 			try
 			{
-				Global = CreateGlobal();
+				Global = CreateGlobal(terminateService);
 
 				Locator.CurrentMutable.RegisterConstant(Global);
 
@@ -62,15 +65,21 @@ namespace WalletWasabi.Gui
 			{
 				Logger.LogCritical(ex);
 				Global.CrashReporter.SetException(ex);
-				throw;
 			}
 			finally
 			{
-				DisposeAsync().GetAwaiter().GetResult();
+				terminateService.DoTerminateAsync().GetAwaiter().GetResult();
+				terminateService.Terminate -= TerminateService_Terminate;
+				terminateService.Dispose();
 			}
 		}
 
-		private static Global CreateGlobal()
+		private static void TerminateService_Terminate(TerminateEventSourceEnum source)
+		{
+			DisposeAsync().GetAwaiter().GetResult();
+		}
+
+		private static Global CreateGlobal(TerminateService terminateService)
 		{
 			string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
 			Directory.CreateDirectory(dataDir);
@@ -83,7 +92,7 @@ namespace WalletWasabi.Gui
 			config.CorrectMixUntilAnonymitySet();
 			var walletManager = new WalletManager(config.Network, new WalletDirectories(dataDir));
 
-			return new Global(dataDir, torLogsFile, config, uiConfig, walletManager);
+			return new Global(dataDir, torLogsFile, config, uiConfig, walletManager, terminateService);
 		}
 
 		private static bool ShouldRunGui(string[] args)
@@ -141,11 +150,6 @@ namespace WalletWasabi.Gui
 			{
 				// Trigger the CrashReport process.
 				Global.CrashReporter.TryInvokeCrashReport();
-			}
-
-			if (Global is { } global)
-			{
-				await global.DisposeAsync().ConfigureAwait(false);
 			}
 
 			AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;

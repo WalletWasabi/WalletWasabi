@@ -1,22 +1,52 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
-using WalletWasabi.Services.SystemEventWatcher;
+using WalletWasabi.Services.Terminate;
 
-namespace WalletWasabi.Services.TerminateWatcher
+namespace WalletWasabi.Services.Terminate
 {
-	public class TerminateWatcher : IDisposable
+	public class TerminateService : IDisposable
 	{
+		private static long TerminateStatusIdle = 0;
+		private static long TerminateStatusInProgress = 1;
+		private static long TerminateStatusDone = 2;
+
+		private long _terminateStatus = TerminateStatusIdle; // To detect redundant calls
+
 		// Do not use async here. The event has to be blocking in order to prevent the OS to terminate the application.
 		public event TerminateEventHandlerDelegate? Terminate;
 
-		public TerminateWatcher()
+		public TerminateService()
 		{
 			AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
 			Console.CancelKeyPress += Console_CancelKeyPress;
 		}
+
+		public async Task DoTerminateAsync()
+		{
+			var compareRes = Interlocked.CompareExchange(ref _terminateStatus, TerminateStatusInProgress, TerminateStatusIdle);
+			if (compareRes == TerminateStatusInProgress)
+			{
+				while (Interlocked.Read(ref _terminateStatus) != TerminateStatusDone)
+				{
+					await Task.Delay(50).ConfigureAwait(false);
+				}
+				return;
+			}
+			else if (compareRes == TerminateStatusDone)
+			{
+				return;
+			}
+
+			Terminate?.Invoke(TerminateEventSourceEnum.Internal);
+
+			Interlocked.Exchange(ref _terminateStatus, TerminateStatusDone);
+		}
+
+		public bool KillRequested => Interlocked.Read(ref _terminateStatus) > TerminateStatusIdle;
 
 		private void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
 		{

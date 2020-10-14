@@ -35,8 +35,10 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Legal;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
-using WalletWasabi.Services.SystemEventWatcher;
-using WalletWasabi.Services.TerminateWatcher;
+using WalletWasabi.Services.Terminate;
+
+using WalletWasabi.Services.Terminate;
+
 using WalletWasabi.Stores;
 using WalletWasabi.Tor;
 using WalletWasabi.Userfacing;
@@ -71,8 +73,6 @@ namespace WalletWasabi.Gui
 
 		public HostedServices HostedServices { get; }
 
-		public bool KillRequested => Interlocked.Read(ref _dispose) > 0;
-
 		public UiConfig UiConfig { get; }
 
 		public Network Network => Config.Network;
@@ -81,10 +81,13 @@ namespace WalletWasabi.Gui
 
 		public static JsonRpcServer? RpcServer { get; private set; }
 
-		public Global(string dataDir, string torLogsFile, Config config, UiConfig uiConfig, WalletManager walletManager)
+		public Global(string dataDir, string torLogsFile, Config config, UiConfig uiConfig, WalletManager walletManager, TerminateService terminateService)
 		{
 			using (BenchmarkLogger.Measure())
 			{
+				TerminateService = terminateService;
+				TerminateService.Terminate += Terminate;
+
 				CrashReporter = new CrashReporter();
 				StoppingCts = new CancellationTokenSource();
 				DataDir = dataDir;
@@ -112,8 +115,6 @@ namespace WalletWasabi.Gui
 
 				SingleInstanceChecker = new SingleInstanceChecker(Network);
 
-				SystemEventWatcher = new TerminateWatcher();
-
 				if (Config.UseTor)
 				{
 					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint);
@@ -132,14 +133,12 @@ namespace WalletWasabi.Gui
 		private CancellationTokenSource StoppingCts { get; }
 
 		private SingleInstanceChecker SingleInstanceChecker { get; }
-		private TerminateWatcher SystemEventWatcher { get; }
 		public CrashReporter CrashReporter { get; }
+		public TerminateService TerminateService { get; }
 
 		public async Task InitializeNoWalletAsync()
 		{
 			InitializationStarted = true;
-
-			SystemEventWatcher.Terminate += SystemEventWatcher_Terminate;
 
 			AddressManager = null;
 			var cancel = StoppingCts.Token;
@@ -372,7 +371,7 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private void SystemEventWatcher_Terminate(TerminateEventSourceEnum source)
+		private void Terminate(TerminateEventSourceEnum source)
 		{
 			Logger.LogWarning($"Process was signaled for termination. Source {source}");
 			DisposeAsync().GetAwaiter().GetResult();
@@ -617,29 +616,11 @@ namespace WalletWasabi.Gui
 			Logger.LogInfo($"Transaction Notification ({notificationType}): {title} - {message} - {e.Transaction.GetHash()}");
 		}
 
-		/// <summary>
-		/// 0: nobody called
-		/// 1: somebody called
-		/// 2: call finished
-		/// </summary>
-		private long _dispose = 0; // To detect redundant calls
-
-		public async Task DisposeAsync()
+		private async Task DisposeAsync()
 		{
-			var compareRes = Interlocked.CompareExchange(ref _dispose, 1, 0);
-			if (compareRes == 1)
-			{
-				while (Interlocked.Read(ref _dispose) != 2)
-				{
-					await Task.Delay(50).ConfigureAwait(false);
-				}
-				return;
-			}
-			else if (compareRes == 2)
-			{
-				return;
-			}
 			Logger.LogWarning("Process is exiting.", nameof(Global));
+
+			TerminateService.Terminate -= Terminate;
 
 			try
 			{
@@ -658,13 +639,6 @@ namespace WalletWasabi.Gui
 				catch (Exception ex)
 				{
 					Logger.LogError($"Error during {nameof(WaitForInitializationCompletedAsync)}: {ex}");
-				}
-
-				if (SystemEventWatcher is { } systemEventWatcher)
-				{
-					systemEventWatcher.Terminate -= SystemEventWatcher_Terminate;
-					systemEventWatcher.Dispose();
-					Logger.LogInfo($"Disposed {nameof(SystemEventWatcher)}.");
 				}
 
 				try
@@ -797,7 +771,6 @@ namespace WalletWasabi.Gui
 			finally
 			{
 				StoppingCts?.Dispose();
-				Interlocked.Exchange(ref _dispose, 2);
 				Logger.LogSoftwareStopped("Wasabi");
 			}
 		}
