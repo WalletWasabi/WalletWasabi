@@ -58,7 +58,7 @@
   </Style>
   <Style Selector="c|Dialog:open /template/ Panel#PART_Overlay">
     <Setter Property="IsHitTestVisible" Value="True"/>
-    <Setter Property="Opacity" Value="0.8"/>
+    <Setter Property="Opacity" Value="1"/>
   </Style>
 
   <!-- Dialog Unopened State -->
