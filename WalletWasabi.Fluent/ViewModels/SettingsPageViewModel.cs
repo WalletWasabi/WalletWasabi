@@ -26,7 +26,6 @@ namespace WalletWasabi.Fluent.ViewModels
 
 				Application.Current.Styles[0] = ((StyleInclude)Application.Current.Styles[0]).Source.AbsolutePath == light.Source.AbsolutePath ? dark : light;
 			});
-
 		}
 
 		public ICommand NextCommand { get; }
