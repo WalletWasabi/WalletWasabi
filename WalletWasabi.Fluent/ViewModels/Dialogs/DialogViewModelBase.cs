@@ -50,7 +50,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
         /// and ready to pass a value back to the caller.
         /// </summary>
         /// <param name="value">The return value of the dialog</param>
-        private void Close(TResult value = default)
+        public void Close(TResult value = default)
         {
             if (!IsDialogOpen)
             {
