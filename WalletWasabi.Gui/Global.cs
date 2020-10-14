@@ -677,37 +677,32 @@ namespace WalletWasabi.Gui
 				WalletManager.OnDequeue -= WalletManager_OnDequeue;
 				WalletManager.WalletRelevantTransactionProcessed -= WalletManager_WalletRelevantTransactionProcessed;
 
-				var rpcServer = RpcServer;
-				if (rpcServer is { })
+				if (RpcServer is { } rpcServer)
 				{
 					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
 					await rpcServer.StopAsync(cts.Token).ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(RpcServer)} is stopped.", nameof(Global));
 				}
 
-				var feeProviders = FeeProviders;
-				if (feeProviders is { })
+				if (FeeProviders is { } feeProviders)
 				{
 					feeProviders.Dispose();
 					Logger.LogInfo($"Disposed {nameof(FeeProviders)}.");
 				}
 
-				var coinJoinProcessor = CoinJoinProcessor;
-				if (coinJoinProcessor is { })
+				if (CoinJoinProcessor is { } coinJoinProcessor)
 				{
 					coinJoinProcessor.Dispose();
 					Logger.LogInfo($"{nameof(CoinJoinProcessor)} is disposed.");
 				}
 
-				var synchronizer = Synchronizer;
-				if (synchronizer is { })
+				if (Synchronizer is { } synchronizer)
 				{
 					await synchronizer.StopAsync().ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(Synchronizer)} is stopped.");
 				}
 
-				var backgroundServices = HostedServices;
-				if (backgroundServices is { })
+				if (HostedServices is { } backgroundServices)
 				{
 					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
 					await backgroundServices.StopAllAsync(cts.Token).ConfigureAwait(false);
@@ -715,8 +710,7 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo("Stopped background services.");
 				}
 
-				var addressManagerFilePath = AddressManagerFilePath;
-				if (addressManagerFilePath is { })
+				if (AddressManagerFilePath is { } addressManagerFilePath)
 				{
 					IoHelpers.EnsureContainingDirectoryExists(addressManagerFilePath);
 					var addressManager = AddressManager;
@@ -727,8 +721,7 @@ namespace WalletWasabi.Gui
 					}
 				}
 
-				var nodes = Nodes;
-				if (nodes is { })
+				if (Nodes is { } nodes)
 				{
 					nodes.Disconnect();
 					while (nodes.ConnectedNodes.Any(x => x.IsConnected))
@@ -739,15 +732,13 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo($"{nameof(Nodes)} are disposed.");
 				}
 
-				var regTestMempoolServingNode = RegTestMempoolServingNode;
-				if (regTestMempoolServingNode is { })
+				if (RegTestMempoolServingNode is { } regTestMempoolServingNode)
 				{
 					regTestMempoolServingNode.Disconnect();
 					Logger.LogInfo($"{nameof(RegTestMempoolServingNode)} is disposed.");
 				}
 
-				var bitcoinCoreNode = BitcoinCoreNode;
-				if (bitcoinCoreNode is { })
+				if (BitcoinCoreNode is { } bitcoinCoreNode)
 				{
 					await bitcoinCoreNode.DisposeAsync().ConfigureAwait(false);
 
@@ -757,15 +748,13 @@ namespace WalletWasabi.Gui
 					}
 				}
 
-				var torManager = TorManager;
-				if (torManager is { })
+				if (TorManager is { } torManager)
 				{
 					await torManager.StopAsync(Config.TerminateTorOnExit).ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(TorManager)} is stopped.");
 				}
 
-				var cache = Cache;
-				if (cache is { })
+				if (Cache is { } cache)
 				{
 					cache.Dispose();
 				}
