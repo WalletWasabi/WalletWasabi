@@ -14,7 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
     public abstract class DialogViewModelBase<TResult> : ViewModelBase, IDialogViewModel
     {
         private bool _isDialogOpen;
-        private IDisposable _disposable;
+        private readonly IDisposable _disposable;
 
         protected DialogViewModelBase()
         {
@@ -23,6 +23,17 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
                               .DistinctUntilChanged()
                               .Subscribe(OnIsDialogOpenChanged);
         }
+
+        /// <summary>
+        /// Gets or sets if the dialog is opened/closed.
+        /// </summary>
+        public bool IsDialogOpen
+        {
+            get => _isDialogOpen;
+            set => this.RaiseAndSetIfChanged(ref _isDialogOpen, value);
+        }
+
+        private TaskCompletionSource<TResult>? CurrentTaskCompletionSource { get; set; } 
 
         private void OnIsDialogOpenChanged(bool dialogState)
         {
@@ -33,14 +44,12 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
             }
         }
 
-        private TaskCompletionSource<TResult>? CurrentTaskCompletionSource { get; set; } 
-
         /// <summary>
         /// Method to be called when the dialog intends to close
         /// and ready to pass a value back to the caller.
         /// </summary>
         /// <param name="value">The return value of the dialog</param>
-        protected void Close(TResult value = default)
+        private void Close(TResult value = default)
         {
             if (CurrentTaskCompletionSource is null)
             {
@@ -68,15 +77,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
             IsDialogOpen = true;
 
             return CurrentTaskCompletionSource.Task;
-        }
-
-        /// <summary>
-        /// Gets or sets if the dialog is opened/closed.
-        /// </summary>
-        public bool IsDialogOpen
-        {
-            get => _isDialogOpen;
-            set => this.RaiseAndSetIfChanged(ref _isDialogOpen, value);
         }
 
         /// <summary>
