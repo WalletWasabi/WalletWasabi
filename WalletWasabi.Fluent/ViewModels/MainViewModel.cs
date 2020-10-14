@@ -2,7 +2,7 @@ using NBitcoin;
 using ReactiveUI;
 using System.Reactive;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Fluent.ViewModels.Dialog;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
 using System;
 using Global = WalletWasabi.Gui.Global;
 

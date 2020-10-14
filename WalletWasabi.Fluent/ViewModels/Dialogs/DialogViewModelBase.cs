@@ -3,7 +3,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using ReactiveUI;
 
-namespace WalletWasabi.Fluent.ViewModels.Dialog
+namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
     /// <summary>
     /// Base ViewModel class for Dialogs that returns a value back.
@@ -18,21 +18,22 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 
         protected DialogViewModelBase()
         {
-            this._disposable = this.WhenAnyValue(x => x.IsDialogOpen)
-                                   .DistinctUntilChanged()
-                                   .Subscribe(OnIsDialogOpenChanged);
+            _disposable = this.WhenAnyValue(x => x.IsDialogOpen)
+                              .Skip(1) // Skip the initial value change (which is false).
+                              .DistinctUntilChanged()
+                              .Subscribe(OnIsDialogOpenChanged);
         }
 
-        private void OnIsDialogOpenChanged(bool obj)
+        private void OnIsDialogOpenChanged(bool dialogState)
         {
-            // Trigger when closed abruptly (via the Overlay or the back button).
-            if (!obj & CurrentTaskCompletionSource is { })
+            // Triggered when closed abruptly (via the dialog overlay or the back button).
+            if (!dialogState)
             {
-                Close(default(TResult));
+                Close();
             }
         }
 
-        private TaskCompletionSource<TResult> CurrentTaskCompletionSource { get; set; }
+        private TaskCompletionSource<TResult>? CurrentTaskCompletionSource { get; set; } 
 
         /// <summary>
         /// Method to be called when the dialog intends to close
@@ -43,11 +44,10 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
         {
             if (CurrentTaskCompletionSource is null)
             {
-                throw new InvalidOperationException("CloseDialog with value return method failed due to missing TCS.");
+                throw new InvalidOperationException("Dialog tried to return a value but failed due to missing TaskCompletionSource instance.");
             }
 
             CurrentTaskCompletionSource.SetResult(value);
-            CurrentTaskCompletionSource = null;
 
             _disposable?.Dispose();
 
@@ -62,11 +62,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
         /// <returns>The value to be returned when the dialog is finished.</returns>
         public Task<TResult> ShowDialogAsync(IDialogHost host)
         {
-            if (CurrentTaskCompletionSource is { })
-            {
-                throw new InvalidOperationException("Can't open a new dialog since there's already one active.");
-            }
-
             CurrentTaskCompletionSource = new TaskCompletionSource<TResult>();
 
             host.CurrentDialog = this;

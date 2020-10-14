@@ -3,7 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" Width="450" Height="200"
-             x:Class="WalletWasabi.Fluent.Views.TestDialogView">
+             x:Class="WalletWasabi.Fluent.Views.Dialogs.TestDialogView">
   <Panel Margin="10">
     <Button Classes="invisible" Command="{Binding Close}" HorizontalAlignment="Left" VerticalAlignment="Top">
       <PathIcon Data="{StaticResource arrow_left_regular}" />
