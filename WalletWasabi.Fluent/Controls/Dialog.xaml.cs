@@ -12,25 +12,20 @@ namespace WalletWasabi.Fluent.Controls
         public static readonly StyledProperty<bool> IsDialogOpenProperty =
             AvaloniaProperty.Register<Dialog, bool>(nameof(IsDialogOpen));
 
-        static Dialog()
-        {
-            IsDialogOpenProperty.Changed.AddClassHandler<Dialog>((x, e) => x.OnIsDialogOpenChanged(e));
-        }
-
         public bool IsDialogOpen
         {
             get => GetValue(IsDialogOpenProperty);
             set => SetValue(IsDialogOpenProperty, value);
         }
 
-        private void OnIsDialogOpenChanged(AvaloniaPropertyChangedEventArgs e)
+        protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
         {
-            UpdatePseudoClasses();
-        }
+	        base.OnPropertyChanged(change);
 
-        private void UpdatePseudoClasses()
-        {
-            PseudoClasses.Set(":open", IsDialogOpen);
+	        if (change.Property == IsDialogOpenProperty)
+	        {
+		        PseudoClasses.Set(":open", change.NewValue.GetValueOrDefault<bool>());
+	        }
         }
 
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
