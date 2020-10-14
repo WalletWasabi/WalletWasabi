@@ -15,7 +15,7 @@
         <Panel>
           <Panel Background="{DynamicResource DialogOverlayColor}" Name="PART_Overlay" /> 
           <Panel Name="PART_DialogHost" VerticalAlignment="Center" HorizontalAlignment="Center">
-            <Border CornerRadius="5" BoxShadow="{DynamicResource DialogBoxShadow}" Background="{DynamicResource DialogBackground}" >
+            <Border CornerRadius="4" BoxShadow="{DynamicResource DialogBoxShadow}" Background="{DynamicResource DialogBackground}" >
               <ContentPresenter Name="PART_ContentPresenter"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
