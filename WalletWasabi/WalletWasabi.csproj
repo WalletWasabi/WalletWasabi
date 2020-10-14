@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>    
+	<PropertyGroup>
 		<TargetFramework>netcoreapp3.1</TargetFramework>
 		<TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
 		<LangVersion>latest</LangVersion>
