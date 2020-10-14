@@ -1,10 +1,6 @@
-using System;
-using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using ReactiveUI;
-using WalletWasabi.Fluent.ViewModels.Dialog;
 
 namespace WalletWasabi.Fluent.Controls
 {
