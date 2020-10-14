@@ -16,7 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			NextCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new HomePageViewModel(screen)));
 			ChangeThemeCommand = ReactiveCommand.Create(() =>
 			{
-				var currentTheme = Application.Current.Styles.Select(x => (StyleInclude) x).FirstOrDefault(x => x.Source is { } && x.Source.AbsolutePath.Contains("Themes"));
+				var currentTheme = Application.Current.Styles.Select(x => (StyleInclude)x).FirstOrDefault(x => x.Source is { } && x.Source.AbsolutePath.Contains("Themes"));
 
 				if (currentTheme?.Source is { })
 				{
