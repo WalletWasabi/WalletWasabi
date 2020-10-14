@@ -1,5 +1,6 @@
 using ReactiveUI;
 using System.Windows.Input;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
 namespace WalletWasabi.Fluent.ViewModels
@@ -17,8 +18,11 @@ namespace WalletWasabi.Fluent.ViewModels
 			{
 				var x = new TestDialogViewModel();
 				var result = await x.ShowDialogAsync(MainViewModel.Instance);
-			});			this.ValidateProperty(x => x.RandomString, (IValidationErrors errors) => errors.Add(ErrorSeverity.Error, "Random Error Message"));
-			this.RaisePropertyChanged(nameof(RandomString));		}
+			});
+
+			this.ValidateProperty(x => x.RandomString, (IValidationErrors errors) => errors.Add(ErrorSeverity.Error, "Random Error Message"));
+			this.RaisePropertyChanged(nameof(RandomString));
+		}
 
 		public string RandomString
 		{
