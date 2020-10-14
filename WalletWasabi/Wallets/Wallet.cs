@@ -375,7 +375,7 @@ namespace WalletWasabi.Wallets
 					}
 				} while (Synchronizer.AreRequestsBlocked()); // If requests are blocked, delay mempool cleanup, because coinjoin answers are always priority.
 
-				var task = BitcoinStore.MempoolService?.TryPerformMempoolCleanupAsync(Synchronizer.WasabiClientFactory.BackendUriGetter, Synchronizer.WasabiClientFactory.TorEndpoint);
+				var task = BitcoinStore.MempoolService?.TryPerformMempoolCleanupAsync(Synchronizer.WasabiClientFactory);
 
 				if (task is { })
 				{
