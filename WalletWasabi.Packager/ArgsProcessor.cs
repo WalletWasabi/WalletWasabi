@@ -16,8 +16,6 @@ namespace WalletWasabi.Packager
 
 		public bool IsReduceOnionsMode() => IsOneOf("reduceonions", "reduceonion");
 
-		public bool IsOnlyCreateDigestsMode() => IsOneOf("onlycreatedigests", "onlycreatedigest", "onlydigests", "onlydigest");
-
 		public bool IsOnlyBinariesMode() => IsOneOf("onlybinaries");
 
 		public bool IsGetOnionsMode() => IsOneOf("getonions", "getonion");
