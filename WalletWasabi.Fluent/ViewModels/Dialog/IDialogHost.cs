@@ -1,5 +1,3 @@
-#nullable enable
-
 using System;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialog
