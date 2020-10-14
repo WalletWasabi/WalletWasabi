@@ -11,11 +11,13 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
     /// <typeparam name="TResult">The type of the value to be returned when the dialog is finished.</typeparam>
     public abstract class DialogViewModelBase<TResult> : DialogViewModelBase
     {
+        private IDisposable _disposable;
+
         protected DialogViewModelBase()
         {
-            this.WhenAnyValue(x => x.IsDialogOpen)
-                .DistinctUntilChanged()
-                .Subscribe(OnIsDialogOpenChanged);
+            this._disposable = this.WhenAnyValue(x => x.IsDialogOpen)
+                                   .DistinctUntilChanged()
+                                   .Subscribe(OnIsDialogOpenChanged);
         }
 
         private void OnIsDialogOpenChanged(bool obj)
@@ -50,6 +52,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
             }
 
             IsDialogOpen = false;
+            _disposable?.Dispose();
 
             OnDialogClosed();
         }
