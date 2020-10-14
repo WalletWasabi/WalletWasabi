@@ -13,7 +13,8 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			Title = "Settings";
 
-			NextCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new HomePageViewModel(screen)));			OpenDialogCommand = ReactiveCommand.Create(async () =>
+			NextCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new HomePageViewModel(screen)));
+			OpenDialogCommand = ReactiveCommand.Create(async () =>
 			{
 				var x = new TestDialogViewModel();
 				var result = await x.ShowDialogAsync(MainViewModel.Instance);
@@ -37,6 +38,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		}
 
 		public ICommand NextCommand { get; }
+		public ICommand OpenDialogCommand { get; }
 		public ICommand ChangeThemeCommand { get; }
 
 		public override string IconName => "settings_regular";
