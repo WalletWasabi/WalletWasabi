@@ -301,7 +301,6 @@ namespace WalletWasabi.Tor.Socks5
 		/// </summary>
 		/// <param name="sendBuffer">Sent data</param>
 		/// <param name="receiveBufferSize">Maximum number of bytes expected to be received in the reply</param>
-		/// <exception cref="ConnectionException"></exception>
 		/// <returns>Reply</returns>
 		public async Task<byte[]> SendAsync(byte[] sendBuffer, int? receiveBufferSize = null)
 		{
