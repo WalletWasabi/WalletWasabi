@@ -1,4 +1,3 @@
-#nullable enable
 using NBitcoin;
 using ReactiveUI;
 using System.Reactive;
