@@ -11,6 +11,9 @@
     <SolidColorBrush x:Key="StatusBarControlForeground">#A3A3A3</SolidColorBrush>
     <SolidColorBrush x:Key="TextForeground">#FFFFFF</SolidColorBrush>
     <SolidColorBrush x:Key="AcrylicFallbackColor">#1F1F1F</SolidColorBrush>
+    <SolidColorBrush x:Key="InvisibleButtonBackgroundColor">Transparent</SolidColorBrush>
+    <SolidColorBrush x:Key="InvisibleButtonPointerOverBackgroundColor">#3FFFFFFF</SolidColorBrush>
+    <SolidColorBrush x:Key="InvisibleButtonPressedBackgroundColor">#3FFFFFFF</SolidColorBrush>
 
     <SolidColorBrush x:Key="DialogOverlayColor">#7F2E2E2E</SolidColorBrush>
     <SolidColorBrush x:Key="DialogBackground">#323232</SolidColorBrush>
