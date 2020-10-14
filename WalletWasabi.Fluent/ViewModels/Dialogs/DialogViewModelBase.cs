@@ -15,9 +15,12 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
     {
         private readonly IDisposable _disposable;
         private bool _isDialogOpen;
+        private readonly TaskCompletionSource<TResult> _currentTaskCompletionSource;
 
         protected DialogViewModelBase()
         {
+	        _currentTaskCompletionSource = new TaskCompletionSource<TResult>();
+
             _disposable = this.WhenAnyValue(x => x.IsDialogOpen)
                               .Skip(1) // Skip the initial value change (which is false).
                               .DistinctUntilChanged()
@@ -32,8 +35,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
             get => _isDialogOpen;
             set => this.RaiseAndSetIfChanged(ref _isDialogOpen, value);
         }
-
-        private TaskCompletionSource<TResult>? CurrentTaskCompletionSource { get; set; } 
 
         private void OnIsDialogOpenChanged(bool dialogState)
         {
@@ -51,14 +52,14 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
         /// <param name="value">The return value of the dialog</param>
         private void Close(TResult value = default)
         {
-            if (CurrentTaskCompletionSource is null)
+            if (!IsDialogOpen)
             {
-                throw new InvalidOperationException("Dialog tried to return a value but failed due to missing TaskCompletionSource instance.");
+                throw new InvalidOperationException("Dialog is already closed.");
             }
 
-            CurrentTaskCompletionSource.SetResult(value);
+            _currentTaskCompletionSource.SetResult(value);
 
-            _disposable?.Dispose();
+            _disposable.Dispose();
 
             IsDialogOpen = false;
 
@@ -71,12 +72,10 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
         /// <returns>The value to be returned when the dialog is finished.</returns>
         public Task<TResult> ShowDialogAsync(IDialogHost host)
         {
-            CurrentTaskCompletionSource = new TaskCompletionSource<TResult>();
-
             host.CurrentDialog = this;
             IsDialogOpen = true;
 
-            return CurrentTaskCompletionSource.Task;
+            return _currentTaskCompletionSource.Task;
         }
 
         /// <summary>
