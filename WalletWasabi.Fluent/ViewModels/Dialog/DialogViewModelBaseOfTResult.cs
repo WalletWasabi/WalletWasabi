@@ -23,7 +23,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
         private void OnIsDialogOpenChanged(bool obj)
         {
             // Trigger when closed abruptly (via the Overlay or the back button).
-            if (!obj & CurrentTaskCompletionSource is { } & !DialogReturnedWithValue)
+            if (!obj & CurrentTaskCompletionSource is { })
             {
                 Close();
             }
@@ -48,11 +48,10 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 
             if (!(value?.Equals(default(TResult)) ?? true))
             {
-                DialogReturnedWithValue = true;
+                _disposable?.Dispose();
             }
 
             IsDialogOpen = false;
-            _disposable?.Dispose();
 
             OnDialogClosed();
         }

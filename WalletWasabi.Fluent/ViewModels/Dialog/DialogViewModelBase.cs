@@ -10,7 +10,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
     public abstract class DialogViewModelBase : ViewModelBase
     { 
         private bool _isDialogOpen;
-        private bool _dialogReturnedWithValue;
 
         /// <summary>
         /// Gets or sets if the dialog is opened/closed.
@@ -19,15 +18,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
         {
             get => _isDialogOpen;
             set => this.RaiseAndSetIfChanged(ref _isDialogOpen, value);
-        }
-
-        /// <summary>
-        /// Gets or sets if the dialog returned with a value or not.
-        /// </summary>
-        public bool DialogReturnedWithValue
-        {
-            get => _dialogReturnedWithValue;
-            set => this.RaiseAndSetIfChanged(ref _dialogReturnedWithValue, value);
         }
 
         /// <summary>
