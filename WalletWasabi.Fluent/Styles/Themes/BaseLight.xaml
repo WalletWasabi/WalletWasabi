@@ -12,7 +12,7 @@
     <SolidColorBrush x:Key="TextForeground">#212121</SolidColorBrush>
     <SolidColorBrush x:Key="AcrylicFallbackColor">#E2E2E2</SolidColorBrush>
     <SolidColorBrush x:Key="InvisibleButtonBackgroundColor">Transparent</SolidColorBrush>
-    <SolidColorBrush x:Key="InvisibleButtonPointerOverBackgroundColor">#3F000000</SolidColorBrush>
+    <SolidColorBrush x:Key="InvisibleButtonPointerOverBackgroundColor">#2F000000</SolidColorBrush>
     <SolidColorBrush x:Key="InvisibleButtonPressedBackgroundColor">#3F000000</SolidColorBrush>
 
     <SolidColorBrush x:Key="DialogOverlayColor">#7F7A7A7A</SolidColorBrush>
