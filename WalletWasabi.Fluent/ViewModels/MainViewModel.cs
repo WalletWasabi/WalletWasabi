@@ -13,7 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		private Global _global;
 		private StatusBarViewModel _statusBar;
 		private string _title = "Wasabi Wallet";
-		private IDialogViewModel _currentDialog;
+		private DialogViewModelBase _currentDialog;
 		private NavBarViewModel _navBar;
 		public MainViewModel(Global global)
 		{
@@ -36,7 +36,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public Network Network { get; }
 
-		public IDialogViewModel CurrentDialog
+		public DialogViewModelBase CurrentDialog
 		{
 			get => _currentDialog;
 			set => this.RaiseAndSetIfChanged(ref _currentDialog, value);

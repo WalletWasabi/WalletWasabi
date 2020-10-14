@@ -5,13 +5,21 @@ using ReactiveUI;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
-    /// <summary>
-    /// Base ViewModel class for Dialogs that returns a value back.
-    /// Do not reuse all types derived from this after calling ShowDialogAsync.
-    /// Spawn a new instance instead after that.
-    /// </summary>
-    /// <typeparam name="TResult">The type of the value to be returned when the dialog is finished.</typeparam>
-    public abstract class DialogViewModelBase<TResult> : ViewModelBase, IDialogViewModel
+	/// <summary>
+	/// CommonBase class.
+	/// </summary>
+	public abstract class DialogViewModelBase : ViewModelBase
+	{
+		// Intended to be empty.
+	}
+
+	/// <summary>
+	/// Base ViewModel class for Dialogs that returns a value back.
+	/// Do not reuse all types derived from this after calling ShowDialogAsync.
+	/// Spawn a new instance instead after that.
+	/// </summary>
+	/// <typeparam name="TResult">The type of the value to be returned when the dialog is finished.</typeparam>
+	public abstract class DialogViewModelBase<TResult> : DialogViewModelBase
     {
 		private readonly IDisposable _disposable;
         private bool _isDialogOpen;
