@@ -2,9 +2,9 @@ using System;
 using System.Linq;
 using ReactiveUI;
 using System.Windows.Input;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
 using Avalonia;
 using Avalonia.Markup.Xaml.Styling;
-
 namespace WalletWasabi.Fluent.ViewModels
 {
 	public class SettingsPageViewModel : NavBarItemViewModel
@@ -13,7 +13,11 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			Title = "Settings";
 
-			NextCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new HomePageViewModel(screen)));
+			NextCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new HomePageViewModel(screen)));			OpenDialogCommand = ReactiveCommand.Create(async () =>
+			{
+				var x = new TestDialogViewModel();
+				var result = await x.ShowDialogAsync(MainViewModel.Instance);
+			});
 			ChangeThemeCommand = ReactiveCommand.Create(() =>
 			{
 				var currentTheme = Application.Current.Styles.Select(x => (StyleInclude)x).FirstOrDefault(x => x.Source is { } && x.Source.AbsolutePath.Contains("Themes"));
