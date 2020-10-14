@@ -59,7 +59,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 
 						var newAddress = new AddressViewModel(newKey, Wallet.KeyManager, this);
-						if (Addresses.Count == 0)
+						if (Addresses.Count == 0 && !Global.UiConfig.PrivacyMode)
 						{
 							newAddress.IsExpanded = true;
 						}
