@@ -13,7 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
     /// <typeparam name="TResult">The type of the value to be returned when the dialog is finished.</typeparam>
     public abstract class DialogViewModelBase<TResult> : ViewModelBase, IDialogViewModel
     {
-        private readonly IDisposable _disposable;
+		private readonly IDisposable _disposable;
         private bool _isDialogOpen;
         private readonly TaskCompletionSource<TResult> _currentTaskCompletionSource;
 
@@ -50,9 +50,9 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
         /// and ready to pass a value back to the caller.
         /// </summary>
         /// <param name="value">The return value of the dialog</param>
-        public void Close(TResult value = default)
+        protected void Close(TResult value = default)
         {
-            if (!IsDialogOpen)
+            if (_currentTaskCompletionSource.Task.IsCompleted)
             {
                 throw new InvalidOperationException("Dialog is already closed.");
             }
