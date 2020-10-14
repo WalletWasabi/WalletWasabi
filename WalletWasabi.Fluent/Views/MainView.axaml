@@ -14,8 +14,8 @@
     <SplitView IsPaneOpen="{Binding NavBar.IsOpen, Mode=TwoWay}">
       <i:Interaction.Behaviors>
           <behaviors:SplitViewAutoBehavior ToggleAction="{Binding NavBar.ToggleAction, Mode=OneWayToSource}"
-                                           CollapseOnClickAction="{Binding NavBar.CollapseOnClickAction, Mode=OneWayToSource}"
-                                           CollapseThreshold="{StaticResource SplitViewCollapseThreshold}"/>
+                                          CollapseOnClickAction="{Binding NavBar.CollapseOnClickAction, Mode=OneWayToSource}"
+                                          CollapseThreshold="{StaticResource SplitViewCollapseThreshold}"/>
       </i:Interaction.Behaviors>
       <SplitView.Pane>
         <Panel>
@@ -38,7 +38,7 @@
           <Panel>
             <Border Background="{DynamicResource RegionColor}" BoxShadow="{DynamicResource BoxShadow}" IsHitTestVisible="False" />
             <DockPanel Margin="20 10 20 0">
-                <TextBlock Text="{Binding NavBar.SelectedItem.Title}" DockPanel.Dock="Top" FontSize="28" IsHitTestVisible="False" />
+                <TextBlock Text="{Binding NavBar.SelectedItem.Title}" DockPanel.Dock="Top" FontSize="28" IsHitTestVisible="False" Margin="0 22 0 0" />
               <rxui:RoutedViewHost Router="{Binding Router}">
                 <rxui:RoutedViewHost.ViewLocator>
                   <vl:ScreenViewLocator />

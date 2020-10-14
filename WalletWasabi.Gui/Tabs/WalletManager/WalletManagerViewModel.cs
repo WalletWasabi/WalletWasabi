@@ -59,16 +59,16 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			SelectedCategory = Categories.First(x => x is RecoverWalletViewModel);
 		}
 
-		public void SelectLoadWallet(KeyManager keymanager = null)
+		public void SelectLoadWallet(KeyManager keyManager = null)
 		{
 			SelectedCategory = LoadWalletDesktop;
-			LoadWalletDesktop.SelectWallet(keymanager);
+			LoadWalletDesktop.SelectWallet(keyManager);
 		}
 
-		public void SelectTestPassword(string walletname)
+		public void SelectTestPassword(string walletName)
 		{
 			SelectedCategory = LoadWalletPassword;
-			LoadWalletPassword.SelectWallet(walletname);
+			LoadWalletPassword.SelectWallet(walletName);
 		}
 
 		public override void OnOpen(CompositeDisposable disposables)
