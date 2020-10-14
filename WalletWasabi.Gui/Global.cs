@@ -651,6 +651,8 @@ namespace WalletWasabi.Gui
 					return;
 				}
 
+				Logger.LogDebug($"Step #1: Wait for initialization to complete.", nameof(Global));
+
 				try
 				{
 					using var initCts = new CancellationTokenSource(TimeSpan.FromMinutes(6));
@@ -660,6 +662,8 @@ namespace WalletWasabi.Gui
 				{
 					Logger.LogError($"Error during {nameof(WaitForInitializationCompletedAsync)}: {ex}");
 				}
+
+				Logger.LogDebug($"Step #2: {nameof(WalletManager)}.", nameof(Global));
 
 				try
 				{
@@ -671,6 +675,8 @@ namespace WalletWasabi.Gui
 					Logger.LogError($"Error during {nameof(WalletManager.RemoveAndStopAllAsync)}: {ex}");
 				}
 
+				Logger.LogDebug($"Step #2: Application's MainWindow.", nameof(Global));
+
 				Dispatcher.UIThread.PostLogException(() =>
 				{
 					var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
@@ -680,6 +686,8 @@ namespace WalletWasabi.Gui
 				WalletManager.OnDequeue -= WalletManager_OnDequeue;
 				WalletManager.WalletRelevantTransactionProcessed -= WalletManager_WalletRelevantTransactionProcessed;
 
+				Logger.LogDebug($"Step #3: {nameof(RpcServer)}.", nameof(Global));
+
 				if (RpcServer is { } rpcServer)
 				{
 					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
@@ -687,17 +695,23 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo($"{nameof(RpcServer)} is stopped.", nameof(Global));
 				}
 
+				Logger.LogDebug($"Step #4: {nameof(FeeProviders)}.", nameof(Global));
+
 				if (FeeProviders is { } feeProviders)
 				{
 					feeProviders.Dispose();
 					Logger.LogInfo($"Disposed {nameof(FeeProviders)}.");
 				}
 
+				Logger.LogDebug($"Step #5: {nameof(CoinJoinProcessor)}.", nameof(Global));
+
 				if (CoinJoinProcessor is { } coinJoinProcessor)
 				{
 					coinJoinProcessor.Dispose();
 					Logger.LogInfo($"{nameof(CoinJoinProcessor)} is disposed.");
 				}
+
+				Logger.LogDebug($"Step #6: {nameof(HostedServices)}.", nameof(Global));
 
 				if (HostedServices is { } backgroundServices)
 				{
@@ -707,11 +721,15 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo("Stopped background services.");
 				}
 
+				Logger.LogDebug($"Step #7: {nameof(Synchronizer)}.", nameof(Global));
+
 				if (Synchronizer is { } synchronizer)
 				{
 					await synchronizer.StopAsync().ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(Synchronizer)} is stopped.");
 				}
+
+				Logger.LogDebug($"Step #8: {nameof(AddressManagerFilePath)}.", nameof(Global));
 
 				if (AddressManagerFilePath is { } addressManagerFilePath)
 				{
@@ -724,6 +742,8 @@ namespace WalletWasabi.Gui
 					}
 				}
 
+				Logger.LogDebug($"Step #9: {nameof(Nodes)}.", nameof(Global));
+
 				if (Nodes is { } nodes)
 				{
 					nodes.Disconnect();
@@ -735,11 +755,15 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo($"{nameof(Nodes)} are disposed.");
 				}
 
+				Logger.LogDebug($"Step #10: {nameof(RegTestMempoolServingNode)}.", nameof(Global));
+
 				if (RegTestMempoolServingNode is { } regTestMempoolServingNode)
 				{
 					regTestMempoolServingNode.Disconnect();
 					Logger.LogInfo($"{nameof(RegTestMempoolServingNode)} is disposed.");
 				}
+
+				Logger.LogDebug($"Step #11: {nameof(BitcoinCoreNode)}.", nameof(Global));
 
 				if (BitcoinCoreNode is { } bitcoinCoreNode)
 				{
@@ -751,16 +775,22 @@ namespace WalletWasabi.Gui
 					}
 				}
 
+				Logger.LogDebug($"Step #12: {nameof(TorManager)}.", nameof(Global));
+
 				if (TorManager is { } torManager)
 				{
 					await torManager.StopAsync(Config.TerminateTorOnExit).ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(TorManager)} is stopped.");
 				}
 
+				Logger.LogDebug($"Step #13: {nameof(Cache)}.", nameof(Global));
+
 				if (Cache is { } cache)
 				{
 					cache.Dispose();
 				}
+
+				Logger.LogDebug($"Step #14: {nameof(SingleInstanceChecker)}.", nameof(Global));
 
 				try
 				{
@@ -770,6 +800,8 @@ namespace WalletWasabi.Gui
 				{
 					Logger.LogError($"Error during the disposal of {nameof(SingleInstanceChecker)}: {ex}");
 				}
+
+				Logger.LogDebug($"Step #15: {nameof(AsyncMutex)}.", nameof(Global));
 
 				if (AsyncMutex.IsAny)
 				{
