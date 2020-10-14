@@ -11,8 +11,9 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
     /// Spawn a new instance instead after that.
     /// </summary>
     /// <typeparam name="TResult">The type of the value to be returned when the dialog is finished.</typeparam>
-    public abstract class DialogViewModelBase<TResult> : DialogViewModelBase
+    public abstract class DialogViewModelBase<TResult> : ViewModelBase, IDialogViewModel
     {
+        private bool _isDialogOpen;
         private IDisposable _disposable;
 
         protected DialogViewModelBase()
@@ -27,7 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
             // Trigger when closed abruptly (via the Overlay or the back button).
             if (!obj & CurrentTaskCompletionSource is { })
             {
-                Close();
+                Close(default(TResult));
             }
         }
 
@@ -48,10 +49,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
             CurrentTaskCompletionSource.SetResult(value);
             CurrentTaskCompletionSource = null;
 
-            if (!(value?.Equals(default(TResult)) ?? true))
-            {
-                _disposable?.Dispose();
-            }
+            _disposable?.Dispose();
 
             IsDialogOpen = false;
 
@@ -76,5 +74,19 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 
             return CurrentTaskCompletionSource.Task;
         }
+
+        /// <summary>
+        /// Gets or sets if the dialog is opened/closed.
+        /// </summary>
+        public bool IsDialogOpen
+        {
+            get => _isDialogOpen;
+            set => this.RaiseAndSetIfChanged(ref _isDialogOpen, value);
+        }
+
+        /// <summary>
+        /// Method that is triggered when the dialog is closed.
+        /// </summary>
+        protected abstract void OnDialogClosed();
     }
 }
