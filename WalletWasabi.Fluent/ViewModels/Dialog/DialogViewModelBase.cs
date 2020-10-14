@@ -31,8 +31,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
         }
 
         /// <summary>
-        /// Method that is triggered when the dialog
-        /// is about to close.
+        /// Method that is triggered when the dialog is closed.
         /// </summary>
         protected abstract void OnDialogClosed();
     }
