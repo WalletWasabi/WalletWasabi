@@ -35,6 +35,8 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Legal;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
+using WalletWasabi.Services.SystemEventWatcher;
+using WalletWasabi.Services.TerminateWatcher;
 using WalletWasabi.Stores;
 using WalletWasabi.Tor;
 using WalletWasabi.Userfacing;
@@ -110,6 +112,8 @@ namespace WalletWasabi.Gui
 
 				SingleInstanceChecker = new SingleInstanceChecker(Network);
 
+				SystemEventWatcher = new TerminateWatcher();
+
 				if (Config.UseTor)
 				{
 					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, () => Config.GetCurrentBackendUri(), Config.TorSocks5EndPoint);
@@ -128,11 +132,15 @@ namespace WalletWasabi.Gui
 		private CancellationTokenSource StoppingCts { get; }
 
 		private SingleInstanceChecker SingleInstanceChecker { get; }
+		private TerminateWatcher SystemEventWatcher { get; }
 		public CrashReporter CrashReporter { get; }
 
 		public async Task InitializeNoWalletAsync()
 		{
 			InitializationStarted = true;
+
+			SystemEventWatcher.Terminate += SystemEventWatcher_Terminate;
+
 			AddressManager = null;
 			var cancel = StoppingCts.Token;
 
@@ -157,18 +165,6 @@ namespace WalletWasabi.Gui
 				HostedServices.Register(new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
 
 				HostedServices.Register(new SystemAwakeChecker(WalletManager), "System Awake Checker");
-
-				#region ProcessKillSubscription
-
-				AppDomain.CurrentDomain.ProcessExit += async (s, e) => await DisposeAsync().ConfigureAwait(false);
-				Console.CancelKeyPress += async (s, e) =>
-				{
-					e.Cancel = true;
-					Logger.LogWarning("Process was signaled for killing.", nameof(Global));
-					await DisposeAsync().ConfigureAwait(false);
-				};
-
-				#endregion ProcessKillSubscription
 
 				cancel.ThrowIfCancellationRequested();
 
@@ -374,6 +370,12 @@ namespace WalletWasabi.Gui
 			{
 				InitializationCompleted = true;
 			}
+		}
+
+		private void SystemEventWatcher_Terminate(TerminateEventSourceEnum source)
+		{
+			Logger.LogWarning($"Process was signaled for termination. Source {source}");
+			DisposeAsync().GetAwaiter().GetResult();
 		}
 
 		private async Task<AddressManagerBehavior> InitializeAddressManagerBehaviorAsync()
@@ -658,6 +660,13 @@ namespace WalletWasabi.Gui
 					Logger.LogError($"Error during {nameof(WaitForInitializationCompletedAsync)}: {ex}");
 				}
 
+				if (SystemEventWatcher is { } systemEventWatcher)
+				{
+					systemEventWatcher.Terminate -= SystemEventWatcher_Terminate;
+					systemEventWatcher.Dispose();
+					Logger.LogInfo($"Disposed {nameof(SystemEventWatcher)}.");
+				}
+
 				try
 				{
 					using var dequeueCts = new CancellationTokenSource(TimeSpan.FromMinutes(6));
@@ -677,37 +686,32 @@ namespace WalletWasabi.Gui
 				WalletManager.OnDequeue -= WalletManager_OnDequeue;
 				WalletManager.WalletRelevantTransactionProcessed -= WalletManager_WalletRelevantTransactionProcessed;
 
-				var rpcServer = RpcServer;
-				if (rpcServer is { })
+				if (RpcServer is { } rpcServer)
 				{
 					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
 					await rpcServer.StopAsync(cts.Token).ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(RpcServer)} is stopped.", nameof(Global));
 				}
 
-				var feeProviders = FeeProviders;
-				if (feeProviders is { })
+				if (FeeProviders is { } feeProviders)
 				{
 					feeProviders.Dispose();
 					Logger.LogInfo($"Disposed {nameof(FeeProviders)}.");
 				}
 
-				var coinJoinProcessor = CoinJoinProcessor;
-				if (coinJoinProcessor is { })
+				if (CoinJoinProcessor is { } coinJoinProcessor)
 				{
 					coinJoinProcessor.Dispose();
 					Logger.LogInfo($"{nameof(CoinJoinProcessor)} is disposed.");
 				}
 
-				var synchronizer = Synchronizer;
-				if (synchronizer is { })
+				if (Synchronizer is { } synchronizer)
 				{
 					await synchronizer.StopAsync().ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(Synchronizer)} is stopped.");
 				}
 
-				var backgroundServices = HostedServices;
-				if (backgroundServices is { })
+				if (HostedServices is { } backgroundServices)
 				{
 					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
 					await backgroundServices.StopAllAsync(cts.Token).ConfigureAwait(false);
@@ -715,8 +719,7 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo("Stopped background services.");
 				}
 
-				var addressManagerFilePath = AddressManagerFilePath;
-				if (addressManagerFilePath is { })
+				if (AddressManagerFilePath is { } addressManagerFilePath)
 				{
 					IoHelpers.EnsureContainingDirectoryExists(addressManagerFilePath);
 					var addressManager = AddressManager;
@@ -727,8 +730,7 @@ namespace WalletWasabi.Gui
 					}
 				}
 
-				var nodes = Nodes;
-				if (nodes is { })
+				if (Nodes is { } nodes)
 				{
 					nodes.Disconnect();
 					while (nodes.ConnectedNodes.Any(x => x.IsConnected))
@@ -739,15 +741,13 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo($"{nameof(Nodes)} are disposed.");
 				}
 
-				var regTestMempoolServingNode = RegTestMempoolServingNode;
-				if (regTestMempoolServingNode is { })
+				if (RegTestMempoolServingNode is { } regTestMempoolServingNode)
 				{
 					regTestMempoolServingNode.Disconnect();
 					Logger.LogInfo($"{nameof(RegTestMempoolServingNode)} is disposed.");
 				}
 
-				var bitcoinCoreNode = BitcoinCoreNode;
-				if (bitcoinCoreNode is { })
+				if (BitcoinCoreNode is { } bitcoinCoreNode)
 				{
 					await bitcoinCoreNode.DisposeAsync().ConfigureAwait(false);
 
@@ -757,15 +757,13 @@ namespace WalletWasabi.Gui
 					}
 				}
 
-				var torManager = TorManager;
-				if (torManager is { })
+				if (TorManager is { } torManager)
 				{
 					await torManager.StopAsync(Config.TerminateTorOnExit).ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(TorManager)} is stopped.");
 				}
 
-				var cache = Cache;
-				if (cache is { })
+				if (Cache is { } cache)
 				{
 					cache.Dispose();
 				}
