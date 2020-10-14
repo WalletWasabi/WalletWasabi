@@ -24,7 +24,7 @@ namespace WalletWasabi.Blockchain.Mempool
 			TrustedNodeMode = false;
 		}
 
-		public event EventHandler<SmartTransaction> TransactionReceived;
+		public event EventHandler<SmartTransaction>? TransactionReceived;
 
 		private HashSet<uint256> ProcessedTransactionHashes { get; }
 		private object ProcessedLock { get; }
@@ -166,7 +166,8 @@ namespace WalletWasabi.Blockchain.Mempool
 
 		public void Process(Transaction tx)
 		{
-			SmartTransaction txAdded = null;
+			SmartTransaction? txAdded = null;
+
 			lock (ProcessedLock)
 			{
 				if (ProcessedTransactionHashes.Add(tx.GetHash()))
@@ -179,6 +180,7 @@ namespace WalletWasabi.Blockchain.Mempool
 				}
 				Interlocked.Increment(ref _totalReceives);
 			}
+
 			if (txAdded is { })
 			{
 				TransactionReceived?.Invoke(this, txAdded);
