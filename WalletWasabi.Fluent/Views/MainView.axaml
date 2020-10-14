@@ -57,6 +57,6 @@
         </DockPanel>
       </Panel>
     </SplitView>
-    <c:Dialog Content="{Binding CurrentDialog}" IsDialogOpen="{Binding CurrentDialog.IsDialogOpen, Mode=TwoWay}"/>
+    <c:Dialog DataContext="{Binding CurrentDialog}" Content="{Binding }" IsDialogOpen="{Binding IsDialogOpen}" />
   </Panel>
 </UserControl>
