@@ -1,10 +1,13 @@
 using Avalonia.Input;
+using Emgu.CV;
+using Emgu.CV.Structure;
 using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
 using Splat;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive;
@@ -347,6 +350,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				(isMax, amount, address, busy) => (isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy)
 				.ObserveOn(RxApp.MainThreadScheduler));
 
+			CaptureImageCommand = ReactiveCommand.Create(CaptureImage, outputScheduler: RxApp.MainThreadScheduler);
+
 			UserFeeTextKeyUpCommand = ReactiveCommand.Create((KeyEventArgs key) =>
 			{
 				IsSliderFeeUsed = !IsCustomFee;
@@ -370,6 +375,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(FeeRateCommand.ThrownExceptions)
 				.Merge(OnAddressPasteCommand.ThrownExceptions)
 				.Merge(BuildTransactionCommand.ThrownExceptions)
+				.Merge(CaptureImageCommand.ThrownExceptions)
 				.Merge(UserFeeTextKeyUpCommand.ThrownExceptions)
 				.Merge(FeeSliderClickedCommand.ThrownExceptions)
 				.Merge(HighLightFeeSliderCommand.ThrownExceptions)
@@ -428,6 +434,33 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _isMax;
 			set => this.RaiseAndSetIfChanged(ref _isMax, value);
 		}
+
+		private Bitmap _testImage;
+
+		public Bitmap TestImage
+		{
+			get
+			{
+				Bitmap result = new Bitmap(300, 300, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+				return result;
+			}
+			//	set => this.RaisePropertyChanged(nameof(TestImage));
+		}
+
+		//private Image _imageOpenClose;
+
+		//public Image ImageOpenClose
+		//{
+		//	get
+		//	{
+		//		return _imageOpenClose;
+		//	}
+		//	set
+		//	{
+		//		_imageOpenClose = value;
+		//		OnPropertyChanged();
+		//	}
+		//}
 
 		public string AmountText
 		{
@@ -565,6 +598,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public ReactiveCommand<Unit, Unit> BuildTransactionCommand { get; }
 
+		public ReactiveCommand<Unit, Unit> CaptureImageCommand { get; }
+
 		public ReactiveCommand<Unit, bool> MaxCommand { get; }
 
 		public ReactiveCommand<Unit, Unit> FeeRateCommand { get; }
@@ -623,6 +658,29 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						   select val).DefaultIfEmpty().First();
 			FeeDisplayFormat = nextval;
 			SetFeesAndTexts();
+		}
+
+		private VideoCapture _videocapture;
+		private Mat _frame;
+
+		private void CaptureImage()
+		{
+			_videocapture = new VideoCapture();
+			_videocapture.ImageGrabbed += ProcessFrame;
+			_frame = new Mat();
+
+			_videocapture.Start();
+		}
+
+		private void ProcessFrame(object? sender, EventArgs e)
+		{
+			VideoCapture videocapture = (VideoCapture)sender;
+
+			if (_videocapture != null && _videocapture.Ptr != IntPtr.Zero)
+			{
+				videocapture.Retrieve(_frame, 0);
+				//TestImage = new Bitmap(300, 300);
+			}
 		}
 
 		private void SetFeesAndTexts()

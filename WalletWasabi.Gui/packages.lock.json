@@ -63,6 +63,17 @@
           "Dock.Model": "0.9.9"
         }
       },
+      "Emgu.CV": {
+        "type": "Direct",
+        "requested": "[4.4.0.4099, )",
+        "resolved": "4.4.0.4099",
+        "contentHash": "aEZQiPobTIkd5oG2q+qgO/bAsocnplq8jU70e/PqlkBAMfshlwFk6c/IOkoEAtx4PANvdx72fOE0vhe+frLsnA==",
+        "dependencies": {
+          "System.Drawing.Primitives": "4.3.0",
+          "System.Runtime": "4.3.1",
+          "System.Runtime.InteropServices.RuntimeInformation": "4.3.0"
+        }
+      },
       "System.Runtime": {
         "type": "Direct",
         "requested": "[4.3.1, )",
@@ -1175,6 +1186,15 @@
         "dependencies": {
           "Microsoft.NETCore.Platforms": "2.0.0",
           "Microsoft.Win32.SystemEvents": "4.5.0"
+        }
+      },
+      "System.Drawing.Primitives": {
+        "type": "Transitive",
+        "resolved": "4.3.0",
+        "contentHash": "1QU/c35gwdhvj77fkScXQQbjiVAqIL3fEYn/19NE0CV/ic5TN5PyWAft8HsrbRd4SBLEoErNCkWSzMDc0MmbRw==",
+        "dependencies": {
+          "System.Runtime": "4.3.0",
+          "System.Runtime.Extensions": "4.3.0"
         }
       },
       "System.Dynamic.Runtime": {

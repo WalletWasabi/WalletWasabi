@@ -28,6 +28,7 @@
     <Grid Classes="content">
       <DockPanel LastChildFill="True" Margin="20">
         <StackPanel DockPanel.Dock="Bottom" Margin="0 10" Spacing="10" HorizontalAlignment="Left">
+
           <TextBlock>Select coins you want to spend.</TextBlock>
           <controls:ExtendedTextBox Classes="monospaceFont" Text="{Binding Address}" Watermark="Address" UseFloatingWatermark="True">
             <i:Interaction.Behaviors>
@@ -104,6 +105,15 @@
               <StackPanel Orientation="Horizontal">
                 <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsBusy}" Margin="0 0 8 0" />
                 <TextBlock Text="{Binding BuildTransactionButtonText}" />
+              </StackPanel>
+            </Button>
+
+            <Image Source="{Binding TestImage}" Width="500" Height="500" Name="image1" />
+
+            <Button Command="{Binding CaptureImageCommand}">
+              <StackPanel Orientation="Horizontal">
+                <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsBusy}" Margin="0 0 8 0" />
+                <TextBlock Text="CaptureImage" />
               </StackPanel>
             </Button>
           </StackPanel>
