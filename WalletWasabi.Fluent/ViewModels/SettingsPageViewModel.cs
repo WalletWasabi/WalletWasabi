@@ -20,7 +20,8 @@ namespace WalletWasabi.Fluent.ViewModels
 				var result = await x.ShowDialogAsync(MainViewModel.Instance);
 			});
 
-			this.ValidateProperty(x => x.RandomString, (IValidationErrors errors) => errors.Add(ErrorSeverity.Error, "Random Error Message"));
+			// For TextBox error look
+			this.ValidateProperty(x => x.RandomString, (errors) => errors.Add(ErrorSeverity.Error, "Random Error Message"));
 			this.RaisePropertyChanged(nameof(RandomString));
 		}
 
