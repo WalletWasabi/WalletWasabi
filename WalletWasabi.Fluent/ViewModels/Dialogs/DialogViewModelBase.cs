@@ -21,11 +21,11 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 	/// <typeparam name="TResult">The type of the value to be returned when the dialog is finished.</typeparam>
 	public abstract class DialogViewModelBase<TResult> : DialogViewModelBase
     {
-		private readonly IDisposable _disposable;
-        private bool _isDialogOpen;
+		private readonly IDisposable _disposable;        
         private readonly TaskCompletionSource<TResult> _currentTaskCompletionSource;
+		private bool _isDialogOpen;
 
-        protected DialogViewModelBase()
+		protected DialogViewModelBase()
         {
 	        _currentTaskCompletionSource = new TaskCompletionSource<TResult>();
 
