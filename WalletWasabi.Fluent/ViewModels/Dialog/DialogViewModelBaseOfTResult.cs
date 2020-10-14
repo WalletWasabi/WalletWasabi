@@ -7,6 +7,8 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 {
     /// <summary>
     /// Base ViewModel class for Dialogs that returns a value back.
+    /// Do not reuse all types derived from this after calling ShowDialogAsync.
+    /// Spawn a new instance instead after that.
     /// </summary>
     /// <typeparam name="TResult">The type of the value to be returned when the dialog is finished.</typeparam>
     public abstract class DialogViewModelBase<TResult> : DialogViewModelBase
@@ -71,7 +73,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialog
 
             host.CurrentDialog = this;
             IsDialogOpen = true;
-            DialogReturnedWithValue = false;
 
             return CurrentTaskCompletionSource.Task;
         }
