@@ -72,7 +72,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				Task rpcBatchTask = rpcBatch.SendBatchAsync();
 
 				// Wait until the mempool service receives all the sent transactions.
-				IEnumerable<SmartTransaction> mempoolSmartTxs = await eventAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
+				IEnumerable<SmartTransaction> mempoolSmartTxs = await eventAwaiter.WaitAsync(TimeSpan.FromSeconds(30));
 
 				await rpcBatchTask;
 
