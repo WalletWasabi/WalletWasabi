@@ -3,7 +3,7 @@
         xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
         xmlns:dialogs="clr-namespace:WalletWasabi.Fluent.ViewModels.Dialogs">
   <Design.PreviewWith>
-    <c:Dialog Width="400" Height="200">
+    <c:Dialog Width="400" Height="200" IsDialogOpen="True">
       <dialogs:TestDialogViewModel/>
     </c:Dialog>
   </Design.PreviewWith>
