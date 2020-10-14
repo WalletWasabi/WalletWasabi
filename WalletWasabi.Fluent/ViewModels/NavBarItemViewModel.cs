@@ -1,5 +1,6 @@
 using ReactiveUI;
 using System;
+using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
