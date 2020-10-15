@@ -4,12 +4,12 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.SettingsPageView">
-  <Panel>
+  <StackPanel Spacing="10">
     <TextBlock Text="Settings" FontSize="22" VerticalAlignment="Center" HorizontalAlignment="Center" />
-    <StackPanel>
-      <Button Command="{Binding NextCommand}" Content="Next" />
-      <Button Command="{Binding OpenDialogCommand}" Content="Open Dialog" />
-      <Button Command="{Binding CreateWalletCommand}" Content="Create Wallet" />
-    </StackPanel>
-  </Panel>
-</UserControl>
+    <Button Command="{Binding NextCommand}" Content="Next" />
+    <Button Command="{Binding OpenDialogCommand}" Content="Open Dialog" />
+    <Button Command="{Binding ChangeThemeCommand}" Content="Change Theme" />
+    <Button Command="{Binding CreateWalletCommand}" Content="Create Wallet" />
+    <TextBox Watermark="Type here..."/>
+    <TextBox Watermark="Type here... #2"/>
+    <TextBox Watermark="Type here... #3" Text="{Binding RandomString}"/></UserControl>

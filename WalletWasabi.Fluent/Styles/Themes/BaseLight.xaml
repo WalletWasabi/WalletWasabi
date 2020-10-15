@@ -4,12 +4,13 @@
   xmlns:local="clr-namespace:AvalonStudio.Controls.Standard.CodeEditor;assembly=AvalonStudio.Controls.Standard">
   <Styles.Resources>
     <SolidColorBrush x:Key="TextControlBackground">#EFEFEF</SolidColorBrush>
-    <SolidColorBrush x:Key="TextControlForeground">#737373</SolidColorBrush>
-    <SolidColorBrush x:Key="TextControlBorderBrush">#0B7ED5</SolidColorBrush>
-    <SolidColorBrush x:Key="TextControlBorderBrushFocused">#2A9CF4</SolidColorBrush>
+    <SolidColorBrush x:Key="TextControlBackgroundFocused">#EFEFEF</SolidColorBrush>
+    <SolidColorBrush x:Key="TextControlBackgroundPointerOver">#EFEFEF</SolidColorBrush>
+    <SolidColorBrush x:Key="TextControlForeground">#212121</SolidColorBrush>
+    <SolidColorBrush x:Key="TextControlBorderBrush">#33323232</SolidColorBrush>
+    <SolidColorBrush x:Key="TextControlBorderBrushPointerOver">#33323232</SolidColorBrush>
     <SolidColorBrush x:Key="StatusBarControlBackground">#ECECEC</SolidColorBrush>
     <SolidColorBrush x:Key="StatusBarControlForeground">#777777</SolidColorBrush>
-    <SolidColorBrush x:Key="TextForeground">#212121</SolidColorBrush>
     <SolidColorBrush x:Key="AcrylicFallbackColor">#E2E2E2</SolidColorBrush>
     <SolidColorBrush x:Key="InvisibleButtonBackgroundColor">Transparent</SolidColorBrush>
     <SolidColorBrush x:Key="InvisibleButtonPointerOverBackgroundColor">#2F000000</SolidColorBrush>
