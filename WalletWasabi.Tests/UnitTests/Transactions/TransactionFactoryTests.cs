@@ -32,9 +32,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			var ex = Assert.Throws<NotEnoughFundsException>(() => transactionFactory.BuildTransaction(payment, new FeeRate(2m)));
 
-			Assert.Equal(ex.Missing, expectedMissing);
-			//Assert.Equal(ex.Minimum, amount);
-			//Assert.Equal(ex.Actual, transactionFactory.Coins.Select(x => x.Amount).Sum());
+			Assert.Equal(expectedMissing, ex.Missing);
 		}
 
 		[Fact]
@@ -493,8 +491,6 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				transactionFactory.BuildTransaction(payment, new FeeRate(2m), allowedCoins.Select(x => x.OutPoint)));
 
 			Assert.Equal(expectedMissing, ex.Missing);
-			//Assert.Equal(ex.Minimum, amount);
-			//Assert.Equal(ex.Actual, allowedCoins[0].Amount);
 		}
 
 		[Fact]
