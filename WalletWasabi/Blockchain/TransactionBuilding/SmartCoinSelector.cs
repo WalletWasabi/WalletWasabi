@@ -25,7 +25,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 			long available = UnspentCoins.Sum(x => x.Amount);
 			if (available < targetMoney)
 			{
-				//every error should be communicated with returning null
+				// Every error should be communicated with returning null.
 				return null;
 			}
 
