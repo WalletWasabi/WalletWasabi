@@ -53,7 +53,7 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			HwiEnumerateEntry entry = enumerate.Single();
 			Assert.NotNull(entry.Path);
 			Assert.Equal(HardwareWalletModels.Trezor_T, entry.Model);
-			Assert.True(entry.Fingerprint.HasValue);
+			Assert.NotNull(entry.Fingerprint);
 
 			string devicePath = entry.Path;
 			HardwareWalletModels deviceType = entry.Model;
