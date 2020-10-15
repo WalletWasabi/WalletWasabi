@@ -65,6 +65,7 @@ namespace WalletWasabi.Gui
 		public Node RegTestMempoolServingNode { get; private set; }
 		public EndPoint? TorSocks5EndPoint { get; private set; }
 		private TorProcessManager? TorManager { get; set; }
+		private TorMonitor? TorMonitor { get; set; }
 		public CoreNode BitcoinCoreNode { get; private set; }
 
 		public HostedServices HostedServices { get; }
@@ -183,7 +184,9 @@ namespace WalletWasabi.Gui
 					}
 
 					var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
-					TorManager.StartMonitor(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(7), fallbackRequestTestUri);
+					
+					TorMonitor = new TorMonitor(TorManager);
+					TorMonitor.StartMonitor(fallbackRequestTestUri, Config.TorSocks5EndPoint);
 				}
 				else
 				{
@@ -746,6 +749,12 @@ namespace WalletWasabi.Gui
 					{
 						await bitcoinCoreNode.TryStopAsync().ConfigureAwait(false);
 					}
+				}
+
+				if (TorMonitor is { } torMonitor)
+				{
+					await torMonitor.StopAsync().ConfigureAwait(false);
+					Logger.LogInfo($"{nameof(TorMonitor)} is stopped.");
 				}
 
 				if (TorManager is { } torManager)
