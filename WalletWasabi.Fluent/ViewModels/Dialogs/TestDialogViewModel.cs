@@ -5,10 +5,12 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
 	public class TestDialogViewModel : DialogViewModelBase<bool>
 	{
+		private IScreen _screen;
 		private string _message;
 
-		public TestDialogViewModel(string message)
+		public TestDialogViewModel(IScreen screen, string message)
 		{
+			_screen = screen;
 			_message = message;
 
 			CancelCommand = ReactiveCommand.Create(() => Close(false));
@@ -26,6 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 		protected override void OnDialogClosed()
 		{
+			_screen.Router.NavigateAndReset.Execute(new HomePageViewModel(_screen));
 		}
 	}
 }

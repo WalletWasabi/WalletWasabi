@@ -4,6 +4,7 @@ using System.Windows.Input;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
+
 namespace WalletWasabi.Fluent.ViewModels
 {
 	public class SettingsPageViewModel : NavBarItemViewModel
@@ -23,7 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			ConfirmSetting.RegisterHandler(
 				async interaction =>
 				{
-					var x = new TestDialogViewModel(interaction.Input);
+					var x = new TestDialogViewModel(screen, interaction.Input);
 					var result = await x.ShowDialogAsync(MainViewModel.Instance);
 					interaction.SetOutput(result);
 				});
