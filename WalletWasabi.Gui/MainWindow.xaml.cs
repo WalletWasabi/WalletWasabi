@@ -52,7 +52,7 @@ namespace WalletWasabi.Gui
 
 		private int _closingState;
 
-		private async void MainWindow_ClosingAsync(object sender, CancelEventArgs e)
+		private async void MainWindow_ClosingAsync(object? sender, CancelEventArgs e)
 		{
 			try
 			{

@@ -32,9 +32,9 @@ namespace WalletWasabi.Stores
 
 		private int _throttleId;
 
-		public event EventHandler<FilterModel> Reorged;
+		public event EventHandler<FilterModel>? Reorged;
 
-		public event EventHandler<FilterModel> NewFilter;
+		public event EventHandler<FilterModel>? NewFilter;
 
 		private string WorkFolderPath { get; set; }
 		private Network Network { get; }

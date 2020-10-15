@@ -8,7 +8,7 @@ namespace WalletWasabi.Bases
 	{
 		#region Events
 
-		public event PropertyChangedEventHandler PropertyChanged;
+		public event PropertyChangedEventHandler? PropertyChanged;
 
 		protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
 		{
