@@ -1,6 +1,7 @@
 using ReactiveUI;
 using System.Windows.Input;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
+using WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -11,6 +12,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			Title = "Settings";
 
 			NextCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new HomePageViewModel(screen)));
+			CreateWalletCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new RecoveryWordsViewModel(screen)));
 
 			OpenDialogCommand = ReactiveCommand.Create(async () =>
 			{
@@ -21,6 +23,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public ICommand NextCommand { get; }
 		public ICommand OpenDialogCommand { get; }
+		public ICommand CreateWalletCommand { get; }
 
 		public override string IconName => "settings_regular";
 	}

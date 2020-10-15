@@ -1,0 +1,39 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="500"
+             Width="600" Height="500"
+             x:Class="WalletWasabi.Fluent.Views.Dialogs.CreateWallet.RecoveryWordsView">
+  <Panel Margin="10">
+    
+    <DockPanel>
+      
+      <Button Classes="invisible" Command="{Binding Close}" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Top">
+        <PathIcon Data="{StaticResource arrow_left_regular}" />
+      </Button>
+      
+      <TextBlock Text="Recovery words" FontSize="20" DockPanel.Dock="Top" FontWeight="SemiBold" Classes=""/>
+      <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" FontSize="12" Margin="0 10 0 0" 
+                 Text="Write down the following numbered security words in order. These can be used to recover your wallet in the future. It is very important you keep them in a safe place." />
+    </DockPanel>
+
+    <ItemsControl Items="{Binding MnemonicWords}" HorizontalAlignment="Center" VerticalAlignment="Center">
+      <ItemsControl.Styles>
+        <Style Selector="TextBlock">
+          <Setter Property="FontSize" Value="16" />
+          <Setter Property="Margin" Value="40 0 40 0" />
+          <Setter Property="Height" Value="42" />
+        </Style>
+      </ItemsControl.Styles>
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <WrapPanel MaxHeight="168" Orientation="Vertical" />
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+    </ItemsControl>
+    
+    <Button Content="Cancel" Classes="invisible" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
+    <Button Content="Continue" Classes="action" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+  </Panel>
+</UserControl>

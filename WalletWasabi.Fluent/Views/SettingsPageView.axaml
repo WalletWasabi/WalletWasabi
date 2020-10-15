@@ -9,6 +9,7 @@
     <StackPanel>
       <Button Command="{Binding NextCommand}" Content="Next" />
       <Button Command="{Binding OpenDialogCommand}" Content="Open Dialog" />
+      <Button Command="{Binding CreateWalletCommand}" Content="Create Wallet" />
     </StackPanel>
   </Panel>
 </UserControl>
