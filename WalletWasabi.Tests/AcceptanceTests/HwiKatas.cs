@@ -40,7 +40,8 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			// displayaddress request: refuse 1 time
 			// displayaddress request: confirm 2 times
 			// displayaddress request: confirm 1 time
-			// signtx request: confirm 23 times + Hold to confirm
+			// signtx request: refuse 1 time
+			// signtx request: confirm 1 times + Hold to confirm
 			//
 			// --- USER INTERACTIONS ---
 
@@ -78,9 +79,9 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			// USER SHOULD REFUSE ACTION
 			await Assert.ThrowsAsync<HwiException>(async () => await client.DisplayAddressAsync(deviceType, devicePath, keyPath1, cts.Token));
 
-			// USER: CONFIRM 2 TIMES
+			// USER: CONFIRM
 			BitcoinWitPubKeyAddress address1 = await client.DisplayAddressAsync(deviceType, devicePath, keyPath1, cts.Token);
-			// USER: CONFIRM 1 TIME
+			// USER: CONFIRM
 			BitcoinWitPubKeyAddress address2 = await client.DisplayAddressAsync(fingerprint, keyPath2, cts.Token);
 			Assert.NotNull(address1);
 			Assert.NotNull(address2);
@@ -90,8 +91,11 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			Assert.Equal(expectedAddress1, address1);
 			Assert.Equal(expectedAddress2, address2);
 
-			// USER: CONFIRM 23 TIMES + Hold to confirm
-			// The user has to confirm multiple times because this transaction spends 22 inputs.
+			// USER SHOULD REFUSE ACTION
+			var result = await Assert.ThrowsAsync<HwiException>(async () => await client.SignTxAsync(deviceType, devicePath, Psbt, cts.Token));
+			Assert.Equal(HwiErrorCode.ActionCanceled, result.ErrorCode);
+
+			// USER: CONFIRM transaction
 			PSBT signedPsbt = await client.SignTxAsync(deviceType, devicePath, Psbt, cts.Token);
 
 			Transaction signedTx = signedPsbt.GetOriginalTransaction();
