@@ -6,6 +6,7 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using System.Diagnostics.CodeAnalysis;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding
 {
@@ -18,6 +19,8 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 
 		private IEnumerable<SmartCoin> UnspentCoins { get; }
 
+		// ICoinSelector expects every error to be communicated with returning null.
+		[return: MaybeNull]
 		public IEnumerable<ICoin> Select(IEnumerable<ICoin> coins, IMoney target)
 		{
 			Money targetMoney = target as Money;
@@ -25,7 +28,6 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 			long available = UnspentCoins.Sum(x => x.Amount);
 			if (available < targetMoney)
 			{
-				// Every error should be communicated with returning null.
 				return null;
 			}
 
