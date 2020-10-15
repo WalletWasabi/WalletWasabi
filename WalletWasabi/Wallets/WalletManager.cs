@@ -41,22 +41,22 @@ namespace WalletWasabi.Wallets
 		/// <summary>
 		/// Triggered if any of the Wallets processes a transaction. The sender of the event will be the Wallet.
 		/// </summary>
-		public event EventHandler<ProcessedResult> WalletRelevantTransactionProcessed;
+		public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
 
 		/// <summary>
 		/// Triggered if any of the Wallets dequeues one or more coins. The sender of the event will be the Wallet.
 		/// </summary>
-		public event EventHandler<DequeueResult> OnDequeue;
+		public event EventHandler<DequeueResult>? OnDequeue;
 
 		/// <summary>
 		/// Triggered if any of the Wallets changes its state. The sender of the event will be the Wallet.
 		/// </summary>
-		public event EventHandler<WalletState> WalletStateChanged;
+		public event EventHandler<WalletState>? WalletStateChanged;
 
 		/// <summary>
 		/// Triggered if a wallet added to the Wallet collection. The sender of the event will be the WalletManager and the argument is the added Wallet.
 		/// </summary>
-		public event EventHandler<Wallet> WalletAdded;
+		public event EventHandler<Wallet>? WalletAdded;
 
 		private CancellationTokenSource CancelAllInitialization { get; }
 
@@ -276,17 +276,17 @@ namespace WalletWasabi.Wallets
 			await Task.WhenAll(tasks).ConfigureAwait(false);
 		}
 
-		private void ChaumianClient_OnDequeue(object sender, DequeueResult e)
+		private void ChaumianClient_OnDequeue(object? sender, DequeueResult e)
 		{
 			OnDequeue?.Invoke(sender, e);
 		}
 
-		private void TransactionProcessor_WalletRelevantTransactionProcessed(object sender, ProcessedResult e)
+		private void TransactionProcessor_WalletRelevantTransactionProcessed(object? sender, ProcessedResult e)
 		{
 			WalletRelevantTransactionProcessed?.Invoke(sender, e);
 		}
 
-		private void Wallet_StateChanged(object sender, WalletState e)
+		private void Wallet_StateChanged(object? sender, WalletState e)
 		{
 			WalletStateChanged?.Invoke(sender, e);
 		}

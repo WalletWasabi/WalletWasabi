@@ -100,7 +100,7 @@ namespace WalletWasabi.Gui.Controls
 			Click += SortingArrow_Click;
 		}
 
-		private void SortingArrow_Click(object sender, RoutedEventArgs e)
+		private void SortingArrow_Click(object? sender, RoutedEventArgs e)
 		{
 			switch (SortDirection)
 			{

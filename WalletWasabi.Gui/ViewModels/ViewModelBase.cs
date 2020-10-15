@@ -28,7 +28,7 @@ namespace WalletWasabi.Gui.ViewModels
 			ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(e.PropertyName));
 		}
 
-		private void ViewModelBase_PropertyChanged(object sender, PropertyChangedEventArgs e)
+		private void ViewModelBase_PropertyChanged(object? sender, PropertyChangedEventArgs e)
 		{
 			if (string.IsNullOrWhiteSpace(e.PropertyName))
 			{

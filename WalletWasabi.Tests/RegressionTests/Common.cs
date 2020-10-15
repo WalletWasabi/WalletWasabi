@@ -42,7 +42,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		}
 
 		[SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Must match delegate")]
-		public static void Wallet_NewFilterProcessed(object sender, FilterModel e)
+		public static void Wallet_NewFilterProcessed(object? sender, FilterModel e)
 		{
 			Interlocked.Increment(ref FiltersProcessedByWalletCount);
 		}

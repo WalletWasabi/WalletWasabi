@@ -175,11 +175,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(ex => Logger.LogError(ex));
 		}
 
-		public event EventHandler<SmartCoin> DequeueCoinsPressed;
+		public event EventHandler<SmartCoin>? DequeueCoinsPressed;
 
-		public event EventHandler CoinListShown;
+		public event EventHandler? CoinListShown;
 
-		public event EventHandler SelectionChanged;
+		public event EventHandler? SelectionChanged;
 
 		private CompositeDisposable Disposables { get; set; }
 

@@ -47,17 +47,17 @@ namespace WalletWasabi.Wallets
 			KeyManager.AssertLockedInternalKeysIndexed(14);
 		}
 
-		public event EventHandler<ProcessedResult> WalletRelevantTransactionProcessed;
+		public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
 
-		public event EventHandler<DequeueResult> OnDequeue;
+		public event EventHandler<DequeueResult>? OnDequeue;
 
-		public static event EventHandler<bool> InitializingChanged;
+		public static event EventHandler<bool>? InitializingChanged;
 
-		public event EventHandler<FilterModel> NewFilterProcessed;
+		public event EventHandler<FilterModel>? NewFilterProcessed;
 
-		public event EventHandler<Block> NewBlockProcessed;
+		public event EventHandler<Block>? NewBlockProcessed;
 
-		public event EventHandler<WalletState> StateChanged;
+		public event EventHandler<WalletState>? StateChanged;
 
 		public WalletState State
 		{
@@ -264,7 +264,7 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-		private async void TransactionProcessor_WalletRelevantTransactionProcessedAsync(object sender, ProcessedResult e)
+		private async void TransactionProcessor_WalletRelevantTransactionProcessedAsync(object? sender, ProcessedResult e)
 		{
 			try
 			{
@@ -308,12 +308,12 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-		private void ChaumianClient_OnDequeue(object sender, DequeueResult e)
+		private void ChaumianClient_OnDequeue(object? sender, DequeueResult e)
 		{
 			OnDequeue?.Invoke(this, e);
 		}
 
-		private void Mempool_TransactionReceived(object sender, SmartTransaction tx)
+		private void Mempool_TransactionReceived(object? sender, SmartTransaction tx)
 		{
 			try
 			{
@@ -325,7 +325,7 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-		private async void IndexDownloader_ReorgedAsync(object sender, FilterModel invalidFilter)
+		private async void IndexDownloader_ReorgedAsync(object? sender, FilterModel invalidFilter)
 		{
 			try
 			{
@@ -348,7 +348,7 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-		private async void IndexDownloader_NewFilterAsync(object sender, FilterModel filterModel)
+		private async void IndexDownloader_NewFilterAsync(object? sender, FilterModel filterModel)
 		{
 			try
 			{

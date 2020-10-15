@@ -18,7 +18,7 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 			RpcClient = Guard.NotNull(nameof(rpcClient), rpcClient);
 		}
 
-		public event EventHandler<RpcStatus> RpcStatusChanged;
+		public event EventHandler<RpcStatus>? RpcStatusChanged;
 
 		public IRPCClient RpcClient { get; set; }
 
