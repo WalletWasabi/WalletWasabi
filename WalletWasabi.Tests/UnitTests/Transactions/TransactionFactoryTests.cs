@@ -27,12 +27,14 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// We try to spend 100btc but we only have 0.03
 			var amount = Money.Coins(100m);
+			var expectedMissing = Money.Coins(99.97000000m);
 			var payment = new PaymentIntent(new Key().ScriptPubKey, amount);
 
-			var ex = Assert.Throws<InsufficientBalanceException>(() => transactionFactory.BuildTransaction(payment, new FeeRate(2m)));
+			var ex = Assert.Throws<NotEnoughFundsException>(() => transactionFactory.BuildTransaction(payment, new FeeRate(2m)));
 
-			Assert.Equal(ex.Minimum, amount);
-			Assert.Equal(ex.Actual, transactionFactory.Coins.Select(x => x.Amount).Sum());
+			Assert.Equal(ex.Missing, expectedMissing);
+			//Assert.Equal(ex.Minimum, amount);
+			//Assert.Equal(ex.Actual, transactionFactory.Coins.Select(x => x.Amount).Sum());
 		}
 
 		[Fact]
@@ -483,14 +485,16 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				transactionFactory.Coins.Single(x => x.Label == "Pablo")
 			}.ToArray();
 
+			var expectedMissing = Money.Coins(0.49m);
 			var amount = Money.Coins(0.5m); // it is not enough
 			var payment = new PaymentIntent(new Key().ScriptPubKey, amount);
 
-			var ex = Assert.Throws<InsufficientBalanceException>(() =>
+			var ex = Assert.Throws<NotEnoughFundsException>(() =>
 				transactionFactory.BuildTransaction(payment, new FeeRate(2m), allowedCoins.Select(x => x.OutPoint)));
 
-			Assert.Equal(ex.Minimum, amount);
-			Assert.Equal(ex.Actual, allowedCoins[0].Amount);
+			Assert.Equal(expectedMissing, ex.Missing);
+			//Assert.Equal(ex.Minimum, amount);
+			//Assert.Equal(ex.Actual, allowedCoins[0].Amount);
 		}
 
 		[Fact]

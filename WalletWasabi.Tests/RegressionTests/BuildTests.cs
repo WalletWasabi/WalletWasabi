@@ -144,21 +144,21 @@ namespace WalletWasabi.Tests.RegressionTests
 				var operations = new PaymentIntent(
 					new DestinationRequest(scp, Money.Coins(1m), subtractFee: true),
 					new DestinationRequest(scp, Money.Coins(0.5m)));
-				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, false));
+				Assert.Throws<NotEnoughFundsException>(() => wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, false));
 
 				// No enough money (only one confirmed coin, no unconfirmed allowed)
 				operations = new PaymentIntent(scp, Money.Coins(1.5m));
-				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(null, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy));
+				Assert.Throws<NotEnoughFundsException>(() => wallet.BuildTransaction(null, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy));
 
 				// No enough money (only one confirmed coin, unconfirmed allowed)
-				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(null, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, true));
+				Assert.Throws<NotEnoughFundsException>(() => wallet.BuildTransaction(null, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, true));
 
 				// Add new money with no confirmation
 				var txId2 = await rpc.SendToAddressAsync(keyManager.GetNextReceiveKey("bar", out _).GetP2wpkhAddress(network), Money.Coins(2m));
 				await Task.Delay(1000); // Wait tx to arrive and get processed.
 
 				// Enough money (one confirmed coin and one unconfirmed coin, unconfirmed are NOT allowed)
-				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(null, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, false));
+				Assert.Throws<NotEnoughFundsException>(() => wallet.BuildTransaction(null, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, false));
 
 				// Enough money (one unconfirmed coin, unconfirmed are allowed)
 				var btx = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, true);

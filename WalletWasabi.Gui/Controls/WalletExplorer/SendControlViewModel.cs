@@ -322,11 +322,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					await BuildTransaction(Password, intent, feeStrategy, allowUnconfirmed: true, allowedInputs: selectedCoinReferences);
 				}
-				catch (InsufficientBalanceException ex)
+				catch (NotEnoughFundsException ex)
 				{
 					// SmartCoinSelector.Select ran for multiple times by NBitcoin - for the first time ex.Minimum does not contain the fee.
-					Money needed = (Amount + EstimatedBtcFee) - ex.Actual;
-					NotificationHelpers.Error($"Not enough coins selected. You need an estimated {needed.ToString(false, true)} BTC more to make this transaction.", "");
+					Money needed = Amount - AllSelectedAmount;
+					NotificationHelpers.Error($"Not enough coins selected. You need an estimated ~{needed.ToString(false, true)} BTC more to make this transaction.", "");
 				}
 				catch (HttpRequestException ex)
 				{

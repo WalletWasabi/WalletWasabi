@@ -25,7 +25,8 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 			long available = UnspentCoins.Sum(x => x.Amount);
 			if (available < targetMoney)
 			{
-				throw new InsufficientBalanceException(targetMoney, available);
+				//every error should be communicated with returning null
+				return null;
 			}
 
 			// Get unique clusters.
