@@ -11,6 +11,7 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Security;
+using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
@@ -324,9 +325,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				catch (NotEnoughFundsException ex)
 				{
-					// SmartCoinSelector.Select ran for multiple times by NBitcoin - for the first time ex.Minimum does not contain the fee.
-					Money needed = Amount - AllSelectedAmount;
-					NotificationHelpers.Error($"Not enough coins selected. You need an estimated ~{needed.ToString(false, true)} BTC more to make this transaction.", "");
+					var messageBuilder = new StringBuilder("Not enough coins selected.");
+					if (ex.Missing is { })
+					{
+						messageBuilder.Append($" Missing: {((Money)ex.Missing).ToString(false, true)} BTC");
+					}
+					NotificationHelpers.Error(messageBuilder.ToString());
 				}
 				catch (HttpRequestException ex)
 				{
@@ -435,8 +439,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _amountText;
 			set => this.RaiseAndSetIfChanged(ref _amountText, value);
 		}
-
-		public Money Amount { get; private set; }
 
 		public string UserFeeText
 		{
@@ -701,7 +703,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				else
 				{
-					if (Money.TryParse(AmountText.TrimStart('~', ' '), out Money amount))
+					if (Money.TryParse(AmountText.TrimStart('~', ' '), out Money a))
 					{
 						var inNum = 0;
 						var amountSoFar = Money.Zero;
@@ -709,7 +711,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						{
 							amountSoFar += coin.Amount;
 							inNum++;
-							if (amountSoFar > amount)
+							if (amountSoFar > a)
 							{
 								break;
 							}
@@ -732,15 +734,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			Money all = selectedCoins.Sum(x => x.Amount);
-			Amount = (IsMax, Money.TryParse(AmountText.TrimStart('~', ' '), out Money value)) switch
+			var amount = (IsMax, Money.TryParse(AmountText.TrimStart('~', ' '), out Money value)) switch
 			{
 				(true, _) => all,
 				(false, true) => value,
 				(false, false) => Money.Zero
 			};
 
-			FeePercentage = Amount != Money.Zero
-				? 100 * (decimal)EstimatedBtcFee.Satoshi / Amount.Satoshi
+			FeePercentage = amount != Money.Zero
+				? 100 * (decimal)EstimatedBtcFee.Satoshi / amount.Satoshi
 				: 0;
 
 			if (UsdExchangeRate != 0)
