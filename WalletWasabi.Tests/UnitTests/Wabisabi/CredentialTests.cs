@@ -2,13 +2,13 @@ using System.Linq;
 using NBitcoin;
 using NBitcoin.Secp256k1;
 using WalletWasabi.Crypto;
-using WalletWasabi.Crypto.Api;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
+using WalletWasabi.Wabisabi;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.Crypto.Api
+namespace WalletWasabi.Tests.UnitTests.Wabisabi
 {
 	public class CredentialTests
 	{
@@ -24,52 +24,32 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.Api
 
 			{
 				// Null request. This requests `numberOfCredentials` zero-value credentials.
-				var credentialRequest = client.AsCredentialRequestBuilder()
-					.Build();
+				var requestFactory = client.GetCredentialRegistrationFactory();
+				var (credentialRequest, validationData) = requestFactory.CreateRequestForZeroAmount();
 
 				Assert.True(credentialRequest.IsNullRequest);
 				Assert.Equal(numberOfCredentials, credentialRequest.Requested.Count());
-				var requested = credentialRequest.Requested.First();
-				Assert.Empty(requested.BitCommitments);
+				var requested = credentialRequest.Requested.ToArray();
+				Assert.Empty(requested[0].BitCommitments);
+				Assert.Empty(requested[1].BitCommitments);
+				Assert.Empty(requested[2].BitCommitments);
 				Assert.Equal(Money.Zero, credentialRequest.DeltaAmount);
 
 				// Issuer part
 				var issuer = new CredentialIssuer(sk, numberOfCredentials, rnd);
 
 				var credentialResponse = issuer.HandleRequest(credentialRequest);
-				client.HandleResponse(credentialResponse);
-				Assert.Equal(numberOfCredentials, client.Credentials.Count());
-				var issuedCredential = client.Credentials.First();
+				client.HandleResponse(credentialResponse, validationData);
+				Assert.Equal(numberOfCredentials, client.Credentials.ZeroValue.Count());
+				Assert.Empty(client.Credentials.Valuable);
+				var issuedCredential = client.Credentials.ZeroValue.First();
 				Assert.True(issuedCredential.Amount.IsZero);
 			}
 
 			{
-				var credentialRequest = client.AsCredentialRequestBuilder()
-					.RequestCredentialFor(Money.Zero)
-					.RequestCredentialFor(Money.Zero)
-					.Build();
-
-				Assert.True(credentialRequest.IsNullRequest);
-				var requested = credentialRequest.Requested.ToArray();
-				Assert.Equal(numberOfCredentials, requested.Count());
-				Assert.Empty(requested[0].BitCommitments);
-				Assert.Empty(requested[1].BitCommitments);
-				Assert.Equal(Money.Zero, credentialRequest.DeltaAmount);
-
-				// Issuer part
-				var issuer = new CredentialIssuer(sk, numberOfCredentials, rnd);
-
-				var credentialResponse = issuer.HandleRequest(credentialRequest);
-				client.HandleResponse(credentialResponse);
-				var credentials = client.Credentials.ToArray();
-				Assert.NotEmpty(credentials);
-				Assert.Equal(6, credentials.Count());
-				Assert.All(credentials, x => Assert.True(x.Amount.IsZero));
-
-				credentialRequest = client.AsCredentialRequestBuilder()
-					.RequestCredentialFor(Money.Coins(1))
-					.RequestCredentialFor(Money.Zero)
-					.Build();
+				var requestFactory = client.GetCredentialRegistrationFactory();
+				var present = client.Credentials.ZeroValue.Take(numberOfCredentials);
+				var (credentialRequest, validationData) = requestFactory.CreateRequest(new[] { Money.Coins(1)}, present);
 
 				Assert.False(credentialRequest.IsNullRequest);
 				var credentialRequested = credentialRequest.Requested.ToArray();
@@ -77,26 +57,24 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.Api
 				Assert.NotEmpty(credentialRequested[0].BitCommitments);
 				Assert.NotEmpty(credentialRequested[1].BitCommitments);
 
-				credentialResponse = issuer.HandleRequest(credentialRequest);
-				client.HandleResponse(credentialResponse);
-				credentials = client.Credentials.ToArray();
-				Assert.NotEmpty(credentials);
-				Assert.Equal(6, credentials.Count());
-				Assert.True(credentials[0].Amount.IsZero);
-				Assert.True(credentials[1].Amount.IsZero);
-				Assert.True(credentials[2].Amount.IsZero);
-				Assert.Equal(new Scalar(100_000_000), credentials[3].Amount);
-				Assert.True(credentials[4].Amount.IsZero);
+				// Issuer part
+				var issuer = new CredentialIssuer(sk, numberOfCredentials, rnd);
+
+				var credentialResponse = issuer.HandleRequest(credentialRequest);
+				client.HandleResponse(credentialResponse, validationData);
+				var issuedCredential = Assert.Single(client.Credentials.Valuable);
+				Assert.Equal(new Scalar(100_000_000), issuedCredential.Amount);
+
+				Assert.Equal(2, client.Credentials.ZeroValue.Count());
+				Assert.Equal(3, client.Credentials.All.Count());
 			}
 
 			{
-				var availableCredentials = client.Credentials.ToArray();
 
-				var credentialRequest = client.AsCredentialRequestBuilder()
-					.RequestCredentialFor(Money.Coins(0.5m))
-					.RequestCredentialFor(Money.Coins(0.5m))
-					.PresentCredentials(availableCredentials.Single(x => !x.Amount.IsZero))
-					.Build();
+				var requestFactory = client.GetCredentialRegistrationFactory();
+				var valueableCredential = client.Credentials.Valuable.Take(1);
+				var amounts = Enumerable.Repeat(Money.Coins(0.5m), 2);
+				var (credentialRequest, validationData) = requestFactory.CreateRequest(amounts, valueableCredential);
 
 				Assert.False(credentialRequest.IsNullRequest);
 				var requested = credentialRequest.Requested.ToArray();
@@ -109,46 +87,40 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.Api
 				var issuer = new CredentialIssuer(sk, numberOfCredentials, rnd);
 
 				var credentialResponse = issuer.HandleRequest(credentialRequest);
-				client.HandleResponse(credentialResponse);
-				var credentials = client.Credentials.ToArray();
+				client.HandleResponse(credentialResponse, validationData);
+				var credentials = client.Credentials.All.ToArray();
 				Assert.NotEmpty(credentials);
-				Assert.Equal(6, credentials.Count());
+				Assert.Equal(3, credentials.Count());
 
-				var nonNullCredentials = client.Credentials.Where(x => !x.Amount.IsZero).ToArray();
-				Assert.Equal(new Scalar(50_000_000), nonNullCredentials[0].Amount);
-				Assert.Equal(new Scalar(50_000_000), nonNullCredentials[1].Amount);
+				var valuableCredentials = client.Credentials.Valuable.ToArray();
+				Assert.Equal(new Scalar(50_000_000), valuableCredentials[0].Amount);
+				Assert.Equal(new Scalar(50_000_000), valuableCredentials[1].Amount);
 			}
 
 			{
 				var client0 = new WabiSabiClient(sk.ComputeCoordinatorParameters(), numberOfCredentials, rnd);
-				var credentialRequest = client0.AsCredentialRequestBuilder()
-					.Build();
+				var requestFactory = client0.GetCredentialRegistrationFactory();
+				
+				var (credentialRequest, validationData) = requestFactory.CreateRequestForZeroAmount();
 
 				var issuer = new CredentialIssuer(sk, numberOfCredentials, rnd);
 				var credentialResponse = issuer.HandleRequest(credentialRequest);
-				client0.HandleResponse(credentialResponse);
+				client0.HandleResponse(credentialResponse, validationData);
 
-				credentialRequest = client0.AsCredentialRequestBuilder()
-					.RequestCredentialFor(Money.Coins(1))
-					.Build();
+				(credentialRequest, validationData) = requestFactory.CreateRequest(new[]{ Money.Coins(1m) }, Enumerable.Empty<Credential>());
 
 				credentialResponse = issuer.HandleRequest(credentialRequest);
-				client0.HandleResponse(credentialResponse);
+				client0.HandleResponse(credentialResponse, validationData);
 
-				var nonNullCredentials = client0.Credentials.Where(x => !x.Amount.IsZero).ToArray();
+				(credentialRequest, validationData) = requestFactory.CreateRequest(new Money[0], client0.Credentials.Valuable);
 
-				credentialRequest = client0.AsCredentialRequestBuilder()
-					.PresentCredentials(nonNullCredentials)
-					.Build();
-
-				// Issuer part
 				credentialResponse = issuer.HandleRequest(credentialRequest);
-				client0.HandleResponse(credentialResponse);
-				var credentials = client0.Credentials.ToArray();
-				Assert.NotEmpty(credentials);
-				Assert.Equal(numberOfCredentials, credentials.Count());
+				client0.HandleResponse(credentialResponse, validationData);
+				Assert.NotEmpty(client0.Credentials.All);
+				Assert.Equal(numberOfCredentials, client0.Credentials.All.Count());
 			}
 		}
+
 
 		[Fact]
 		[Trait("UnitTest", "UnitTest")]
@@ -163,36 +135,23 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.Api
 				var client = new WabiSabiClient(sk.ComputeCoordinatorParameters(), numberOfCredentials, rnd);
 
 				// Null request. This requests `numberOfCredentials` zero-value credentials.
-				var credentialRequest = client.AsCredentialRequestBuilder()
-					.Build();
+				var factory = client.GetCredentialRegistrationFactory();
+				var (credentialRequest, validationData) = factory.CreateRequestForZeroAmount();
 
 				var credentialResponse = issuer.HandleRequest(credentialRequest);
-				client.HandleResponse(credentialResponse);
+				client.HandleResponse(credentialResponse, validationData);
 
-				var validCredentialRequest = client.AsCredentialRequestBuilder()
-					.PresentCredentials(client.Credentials.First())
-					.Build();
-
-				// Test duplicated serial numbers
-				var presented = credentialRequest.Presented.ToArray();
-				var invalidCredentialRequest = new RegistrationRequest(
-					validCredentialRequest.DeltaAmount,
-					new[] { presented[0], presented[0], presented[0] }, // dupliacted
-					validCredentialRequest.Requested,
-					validCredentialRequest.Proofs);
-
-				var ex = Assert.Throws<WabiSabiException>(() => issuer.HandleRequest(invalidCredentialRequest));
-				Assert.Equal(WabiSabiErrorCode.SerialNumberDuplicated, ex.ErrorCode);
+				var (validCredentialRequest, _) = factory.CreateRequest(new Money[0], client.Credentials.ZeroValue.Take(1));
 
 				// Test incorrect number of presentations (one instead of 3)
-				presented = credentialRequest.Presented.ToArray();
-				invalidCredentialRequest = new RegistrationRequest(
+				var presented = validCredentialRequest.Presented.ToArray();
+				var invalidCredentialRequest = new RegistrationRequest(
 					validCredentialRequest.DeltaAmount,
 					new[] { presented[0] }, // Should present 3 credentials
 					validCredentialRequest.Requested,
 					validCredentialRequest.Proofs);
 
-				ex = Assert.Throws<WabiSabiException>(() => issuer.HandleRequest(invalidCredentialRequest));
+				var ex = Assert.Throws<WabiSabiException>(() => issuer.HandleRequest(invalidCredentialRequest));
 				Assert.Equal(WabiSabiErrorCode.InvalidNumberOfPresentedCredentials, ex.ErrorCode);
 				Assert.Equal("3 credential presentations were expected but 1 were received.", ex.Message);
 
@@ -208,9 +167,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.Api
 				Assert.Equal(WabiSabiErrorCode.InvalidNumberOfPresentedCredentials, ex.ErrorCode);
 				Assert.Equal("3 credential presentations were expected but 0 were received.", ex.Message);
 
-				validCredentialRequest = client.AsCredentialRequestBuilder()
-					.PresentCredentials(client.Credentials.ToArray())
-					.Build();
+
+				(validCredentialRequest, _) = factory.CreateRequest(new Money[0], client.Credentials.All);
 
 				// Test incorrect number of credential requests
 				invalidCredentialRequest = new RegistrationRequest(
@@ -240,7 +198,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.Api
 				invalidCredentialRequest = new RegistrationRequest(
 					validCredentialRequest.DeltaAmount,
 					validCredentialRequest.Presented,
-					new[] { requested[0], requested[1], new CredentialIssuanceRequest(requested[2].Ma, new[] { GroupElement.Infinity } )},
+					new[] { requested[0], requested[1], new IssuanceRequest(requested[2].Ma, new[] { GroupElement.Infinity } )},
 					validCredentialRequest.Proofs );
 
 				ex = Assert.Throws<WabiSabiException>(() => issuer.HandleRequest(invalidCredentialRequest));
@@ -249,9 +207,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.Api
 
 			{
 				var client = new WabiSabiClient(sk.ComputeCoordinatorParameters(), numberOfCredentials, rnd);
-
-				var validCredentialRequest = client.AsCredentialRequestBuilder()
-					.Build();
+				var factory = client.GetCredentialRegistrationFactory();
+				var (validCredentialRequest, validationData) = factory.CreateRequestForZeroAmount();
 
 				// Test invalid proofs
 				var proofs = validCredentialRequest.Proofs.ToArray();
@@ -268,21 +225,18 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.Api
 
 			{
 				var client = new WabiSabiClient(sk.ComputeCoordinatorParameters(), numberOfCredentials, rnd);
+				var factory = client.GetCredentialRegistrationFactory();
+				var (validCredentialRequest, validationData) = factory.CreateRequestForZeroAmount();
 
-				var credentialRequest = client.AsCredentialRequestBuilder()
-					.Build();
+				var credentialResponse = issuer.HandleRequest(validCredentialRequest);
+				client.HandleResponse(credentialResponse, validationData);
 
-				var credentialResponse = issuer.HandleRequest(credentialRequest);
-				client.HandleResponse(credentialResponse);
+				(validCredentialRequest, validationData) = factory.CreateRequest(Enumerable.Empty<Money>(), client.Credentials.All);
 
-				credentialRequest = client.AsCredentialRequestBuilder()
-					.PresentCredentials(client.Credentials.ToArray())
-					.Build();
-
-				issuer.HandleRequest(credentialRequest);
-				var ex = Assert.Throws<WabiSabiException>(() => issuer.HandleRequest(credentialRequest));
+				issuer.HandleRequest(validCredentialRequest);
+				var ex = Assert.Throws<WabiSabiException>(() => issuer.HandleRequest(validCredentialRequest));
 				Assert.Equal(WabiSabiErrorCode.SerialNumberAlreadyUsed, ex.ErrorCode);
 			}
-		}
+ 		}
 	}
 }

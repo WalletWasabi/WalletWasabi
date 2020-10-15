@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
+using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.ZeroKnowledge.NonInteractive;
 
-namespace WalletWasabi.Crypto.Api
+namespace WalletWasabi.Wabisabi
 {
 	public class RegistrationResponse
 	{

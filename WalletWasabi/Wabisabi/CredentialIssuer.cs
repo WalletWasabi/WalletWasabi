@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using NBitcoin;
 using NBitcoin.Secp256k1;
+using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
@@ -11,7 +12,7 @@ using WalletWasabi.Crypto.ZeroKnowledge.LinearRelation;
 using WalletWasabi.Crypto.ZeroKnowledge.NonInteractive;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.Crypto.Api
+namespace WalletWasabi.Wabisabi
 {
 	public class CredentialIssuer
 	{
@@ -36,23 +37,25 @@ namespace WalletWasabi.Crypto.Api
 		
 		private CoordinatorParameters CoordinatorParameters { get; }
 
+		// Gets the number of credential that has to be requested/presented
+		// This parameter is called `k` in the wabisabi paper.
 		public int NumberOfCredentials { get; }
 
 		public RegistrationResponse HandleRequest(RegistrationRequest registrationRequest)
 		{
 			Guard.NotNull(nameof(registrationRequest), registrationRequest);
 
-			var requested = registrationRequest.Requested;
-			var presented = registrationRequest.Presented;
+			var requested = registrationRequest.Requested ?? Enumerable.Empty<IssuanceRequest>();
+			var presented = registrationRequest.Presented ?? Enumerable.Empty<CredentialPresentation>();
 
-			var requestedCount = requested is null ? 0 : requested.Count();  
+			var requestedCount = requested.Count();  
 			if (requestedCount != NumberOfCredentials)
 			{
 				throw new WabiSabiException(WabiSabiErrorCode.InvalidNumberOfRequestedCredentials, 
 					$"{NumberOfCredentials} credential requests were expected but {requestedCount} were received.");
 			}
 
-			var presentedCount = presented is null ? 0 : presented.Count();
+			var presentedCount = presented.Count();
 			var requiredNumberOfPresentations = registrationRequest.IsNullRequest ? 0 : NumberOfCredentials;
 			if (presentedCount != requiredNumberOfPresentations)
 			{
@@ -79,7 +82,7 @@ namespace WalletWasabi.Crypto.Api
 			} 
 
 			// Check all the serial numbers are unique.
-			if (registrationRequest.SerialNumbers.Distinct().Count() < registrationRequest.SerialNumbers.Count())
+			if (registrationRequest.AreThereDuplicatedSerialNumbers)
 			{
 				throw new WabiSabiException(WabiSabiErrorCode.SerialNumberDuplicated);
 			}
