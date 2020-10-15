@@ -12,4 +12,6 @@
     <Button Command="{Binding CreateWalletCommand}" Content="Create Wallet" />
     <TextBox Watermark="Type here..."/>
     <TextBox Watermark="Type here... #2"/>
-    <TextBox Watermark="Type here... #3" Text="{Binding RandomString}"/></UserControl>
+    <TextBox Watermark="Type here... #3" Text="{Binding RandomString}"/>
+  </StackPanel>
+</UserControl>
