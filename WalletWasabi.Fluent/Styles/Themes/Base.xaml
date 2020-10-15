@@ -10,5 +10,7 @@
     <Color x:Key="SystemAccentColorDark2">#FF449556</Color>
     <Color x:Key="SystemAccentColorDark3">#FF2E8041</Color>
     <Color x:Key="SystemAccentColor">#FF72BD81</Color>
+    <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="{StaticResource SystemAccentColor}"/>
+    <SolidColorBrush x:Key="TextControlErrorBorderBrush">#D85050</SolidColorBrush>
   </Styles.Resources>
 </Styles>
