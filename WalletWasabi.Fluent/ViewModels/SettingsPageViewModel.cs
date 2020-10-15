@@ -17,7 +17,6 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			ConfirmSetting = new Interaction<string, bool>();
 
-			// NOTE: In ReactiveUI docs this is registered in view ctor.
 			ConfirmSetting.RegisterHandler(
 				async interaction =>
 				{
