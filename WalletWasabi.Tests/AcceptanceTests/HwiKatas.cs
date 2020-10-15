@@ -156,7 +156,7 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			HwiEnumerateEntry entry = enumerate.Single();
 			Assert.NotNull(entry.Path);
 			Assert.Equal(HardwareWalletModels.Coldcard, entry.Model);
-			Assert.True(entry.Fingerprint.HasValue);
+			Assert.NotNull(entry.Fingerprint);
 
 			string devicePath = entry.Path;
 			HardwareWalletModels deviceType = entry.Model;
@@ -240,7 +240,7 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			HwiEnumerateEntry entry = Assert.Single(enumerate);
 			Assert.NotNull(entry.Path);
 			Assert.Equal(HardwareWalletModels.Ledger_Nano_S, entry.Model);
-			Assert.True(entry.Fingerprint.HasValue);
+			Assert.NotNull(entry.Fingerprint);
 			Assert.Null(entry.Code);
 			Assert.Null(entry.Error);
 			Assert.Null(entry.SerialNumber);
