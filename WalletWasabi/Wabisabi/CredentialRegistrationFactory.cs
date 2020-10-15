@@ -51,12 +51,6 @@ namespace WalletWasabi.Wabisabi
 				validationData[i] = new IssuanceValidationData(amount, attribute.Randomness, attribute.Ma);
 			}
 
-			// Generate Balance Proof
-			// var r = Random.GetScalar();
-			// var Ma = r * Generators.Gh;
-			// var balanceKnowledge = ProofSystem.ZeroProof(Ma, r);
-			var knowledgeToProve = knowledge; //.Append(balanceKnowledge);
-
 			var transcript = BuildTransnscript(isNullRequest: true);
 
 			return (
@@ -64,7 +58,7 @@ namespace WalletWasabi.Wabisabi
 					Money.Zero,
 					Enumerable.Empty<CredentialPresentation>(),
 					credentialsToRequest,
-					Prover.Prove(transcript, knowledgeToProve, Random)),
+					Prover.Prove(transcript, knowledge, Random)),
 				new RegistrationValidationData(
 					transcript,
 					Enumerable.Empty<Credential>(),

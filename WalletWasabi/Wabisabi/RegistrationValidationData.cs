@@ -5,7 +5,7 @@ namespace WalletWasabi.Wabisabi
 {
 	public class RegistrationValidationData
 	{
-		public RegistrationValidationData(Transcript transcript, IEnumerable<Credential> presented, IssuanceValidationData[] requested)
+		internal RegistrationValidationData(Transcript transcript, IEnumerable<Credential> presented, IssuanceValidationData[] requested)
 		{
 			Transcript = transcript;
 			Presented = presented; 

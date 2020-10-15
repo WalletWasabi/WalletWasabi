@@ -5,7 +5,7 @@ namespace WalletWasabi.Wabisabi
 {
 	public class IssuanceRequest
 	{
-		public IssuanceRequest(GroupElement ma, IEnumerable<GroupElement> bitCommitments)
+		internal IssuanceRequest(GroupElement ma, IEnumerable<GroupElement> bitCommitments)
 		{
 			Ma = ma;
 			BitCommitments = bitCommitments;

@@ -36,6 +36,5 @@ namespace WalletWasabi.Wabisabi
 		public IEnumerable<GroupElement> SerialNumbers => Presented.Select(x => x.S);
 
 		public bool AreThereDuplicatedSerialNumbers => SerialNumbers.Distinct().Count() < SerialNumbers.Count();
-
-	} 
+	}
 }

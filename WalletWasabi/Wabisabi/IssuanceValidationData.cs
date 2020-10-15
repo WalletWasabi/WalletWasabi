@@ -6,7 +6,7 @@ namespace WalletWasabi.Wabisabi
 {
 	public class IssuanceValidationData
 	{
-		public IssuanceValidationData(Money amount, Scalar r, GroupElement ma)
+		internal IssuanceValidationData(Money amount, Scalar r, GroupElement ma)
 		{
 			Amount = amount;
 			Randomness = r;
