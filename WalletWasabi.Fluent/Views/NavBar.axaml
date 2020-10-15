@@ -30,7 +30,6 @@
     </Style>
     <Style Selector="PathIcon">
       <Setter Property="Margin" Value="1 0 0 0" />
-      <Setter Property="Foreground" Value="{DynamicResource TextForeground}" />
     </Style>
     <Style Selector="Separator">
       <Setter Property="Background" Value="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" />

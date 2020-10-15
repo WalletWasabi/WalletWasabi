@@ -6,8 +6,10 @@
     <sys:Double x:Key="IconElementThemeHeight">16</sys:Double>
     <sys:Double x:Key="SplitViewCollapseThreshold">750</sys:Double>
     <sys:Double x:Key="SplitViewCompactPaneLength">46</sys:Double>
-    <Easing x:Key="FluentDefaultEasing">0.1,0.9,0.2,1.0</Easing>  
-  </Styles.Resources>
+    <Thickness x:Key="TextControlBorderThemeThickness">0,0,0,2</Thickness>
+    <Thickness x:Key="TextControlBorderThemeThicknessFocused">0,0,0,2</Thickness>
+    <Thickness x:Key="TextControlThemePadding">15,10,15,8</Thickness>
+    <Easing x:Key="FluentDefaultEasing">0.1,0.9,0.2,1.0</Easing>  </Styles.Resources>
   <Style Selector="SplitView">
     <Setter Property="CompactPaneLength" Value="{StaticResource SplitViewCompactPaneLength}" />
     <Setter Property="OpenPaneLength" Value="320" />
@@ -29,6 +31,12 @@
     <Setter Property="Background" Value="{DynamicResource InvisibleButtonPressedBackgroundColor}" />
   </Style>
   <Style Selector="TextBlock">
-    <Setter Property="Foreground" Value="{DynamicResource TextForeground}"/>
+    <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}"/>
+  </Style>
+  <Style Selector="TextBox /template/ Border#PART_BorderElement">
+    <Setter Property="CornerRadius" Value="0" />
+  </Style>
+  <Style Selector="TextBox:error /template/ Border#PART_BorderElement">
+    <Setter Property="BorderBrush" Value="{StaticResource TextControlErrorBorderBrush}"/>
   </Style>
 </Styles>
