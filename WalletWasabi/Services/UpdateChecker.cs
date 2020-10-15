@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
-using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -15,9 +14,9 @@ namespace WalletWasabi.Services
 
 		public UpdateChecker(TimeSpan period, WasabiSynchronizer synchronizer) : base(period)
 		{
-			Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
+			Synchronizer = synchronizer;
 			WasabiClient = synchronizer.WasabiClient;
-			UpdateStatus = new UpdateStatus(true, true, new Version(), 0);
+			_updateStatus = new UpdateStatus(true, true, new Version(), 0);
 
 			Synchronizer.PropertyChanged += Synchronizer_PropertyChanged;
 		}
