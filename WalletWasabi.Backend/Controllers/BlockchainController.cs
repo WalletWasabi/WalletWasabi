@@ -22,7 +22,7 @@ namespace WalletWasabi.Backend.Controllers
 	/// </summary>
 	[Produces("application/json")]
 	[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
-	public class BlockchainController : Controller
+	public class BlockchainController : ControllerBase
 	{
 		public static readonly TimeSpan FilterTimeout = TimeSpan.FromMinutes(20);
 
@@ -44,12 +44,6 @@ namespace WalletWasabi.Backend.Controllers
 		/// <summary>
 		/// Get all fees.
 		/// </summary>
-		/// <remarks>
-		/// Sample request:
-		///
-		///     GET /fees/ECONOMICAL
-		///
-		/// </remarks>
 		/// <param name="estimateSmartFeeMode">Bitcoin Core's estimatesmartfee mode: ECONOMICAL/CONSERVATIVE.</param>
 		/// <returns>A dictionary of fee targets and estimations.</returns>
 		/// <response code="200">A dictionary of fee targets and estimations.</response>
@@ -60,7 +54,7 @@ namespace WalletWasabi.Backend.Controllers
 		[ResponseCache(Duration = 300, Location = ResponseCacheLocation.Client)]
 		public async Task<IActionResult> GetAllFeesAsync([FromQuery, Required] string estimateSmartFeeMode)
 		{
-			if (!ModelState.IsValid || !Enum.TryParse(estimateSmartFeeMode, ignoreCase: true, out EstimateSmartFeeMode mode))
+			if (!Enum.TryParse(estimateSmartFeeMode, ignoreCase: true, out EstimateSmartFeeMode mode))
 			{
 				return BadRequest("Invalid estimation mode is provided, possible values: ECONOMICAL/CONSERVATIVE.");
 			}
@@ -94,7 +88,7 @@ namespace WalletWasabi.Backend.Controllers
 		[ResponseCache(Duration = 3, Location = ResponseCacheLocation.Client)]
 		public async Task<IActionResult> GetMempoolHashesAsync([FromQuery] int compactness = 64)
 		{
-			if (compactness < 1 || compactness > 64 || !ModelState.IsValid)
+			if (compactness < 1 || compactness > 64)
 			{
 				return BadRequest("Invalid compactness parameter is provided.");
 			}
@@ -141,11 +135,6 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(400)]
 		public async Task<IActionResult> GetTransactionsAsync([FromQuery, Required] IEnumerable<string> transactionIds)
 		{
-			if (!ModelState.IsValid)
-			{
-				return BadRequest("Invalid transaction Ids.");
-			}
-
 			var maxTxToRequest = 10;
 			if (transactionIds.Count() > maxTxToRequest)
 			{
@@ -245,11 +234,6 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(400)]
 		public async Task<IActionResult> BroadcastAsync([FromBody, Required] string hex)
 		{
-			if (!ModelState.IsValid)
-			{
-				return BadRequest("Invalid hex.");
-			}
-
 			Transaction transaction;
 			try
 			{
@@ -303,7 +287,7 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(404)]
 		public IActionResult GetFilters([FromQuery, Required] string bestKnownBlockHash, [FromQuery, Required] int count)
 		{
-			if (count <= 0 || !ModelState.IsValid)
+			if (count <= 0)
 			{
 				return BadRequest("Invalid block hash or count is provided.");
 			}

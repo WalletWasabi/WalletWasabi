@@ -1,22 +1,20 @@
-using System;
-using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
 using System.Reactive;
-using System.Reactive.Linq;
-using System.Threading.Tasks;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
+using System;
 using Global = WalletWasabi.Gui.Global;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
-	public class MainViewModel : ViewModelBase, IScreen
+	public class MainViewModel : ViewModelBase, IScreen, IDialogHost
 	{
 		private Global _global;
 		private StatusBarViewModel _statusBar;
 		private string _title = "Wasabi Wallet";
-		private bool _isBackButtonVisible;
-
+		private DialogViewModelBase _currentDialog;
+		private NavBarViewModel _navBar;
 		public MainViewModel(Global global)
 		{
 			_global = global;
@@ -25,28 +23,30 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			StatusBar = new StatusBarViewModel(global.DataDir, global.Network, global.Config, global.HostedServices, global.BitcoinStore.SmartHeaderChain, global.Synchronizer, global.LegalDocuments);
 
-			Dispatcher.UIThread.Post(async () =>
-			{
-				await Task.Delay(5000);
-
-				Router.Navigate.Execute(new HomeViewModel(this));
-			});
-
-			Observable.FromEventPattern(Router.NavigationStack, nameof(Router.NavigationStack.CollectionChanged))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => IsBackButtonVisible = Router.NavigationStack.Count > 1);
-
-			Router.Navigate.Execute(new HomeViewModel(this)); // for testing
-			Router.Navigate.Execute(new HomeViewModel(this)); // for testing
+			NavBar = new NavBarViewModel(this, Router, global.WalletManager, global.UiConfig);
 		}
 
 		public static MainViewModel Instance { get; internal set; }
 
 		public RoutingState Router { get; } = new RoutingState();
-		
+
+		public ReactiveCommand<Unit, IRoutableViewModel> GoNext { get; }
+
 		public ReactiveCommand<Unit, Unit> GoBack => Router.NavigateBack;
 
-		public Network Network { get; }		
+		public Network Network { get; }
+
+		public DialogViewModelBase CurrentDialog
+		{
+			get => _currentDialog;
+			set => this.RaiseAndSetIfChanged(ref _currentDialog, value);
+		}
+
+		public NavBarViewModel NavBar
+		{
+			get => _navBar;
+			set => this.RaiseAndSetIfChanged(ref _navBar, value);
+		}
 
 		public StatusBarViewModel StatusBar
 		{
@@ -58,12 +58,6 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			get => _title;
 			internal set => this.RaiseAndSetIfChanged(ref _title, value);
-		}
-
-		public bool IsBackButtonVisible
-		{
-			get => _isBackButtonVisible;
-			set => this.RaiseAndSetIfChanged(ref _isBackButtonVisible, value);
 		}
 
 		public void Initialize()

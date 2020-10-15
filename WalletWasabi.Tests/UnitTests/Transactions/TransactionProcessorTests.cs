@@ -9,7 +9,6 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using Xunit;
 
@@ -1103,12 +1102,12 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			return new OutPoint(RandomUtils.GetUInt256(), 0);
 		}
 
-		private async Task<TransactionProcessor> CreateTransactionProcessorAsync([CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerName = "")
+		private async Task<TransactionProcessor> CreateTransactionProcessorAsync([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
 		{
 			var keyManager = KeyManager.CreateNew(out _, "password");
 			keyManager.AssertCleanKeysIndexed();
 
-			var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerName, "TransactionStore");
+			var dir = Path.Combine(Common.GetWorkDir(callerFilePath, callerMemberName), "TransactionStore");
 			await IoHelpers.TryDeleteDirectoryAsync(dir);
 			var txStore = new AllTransactionStore(dir, Network.RegTest);
 			await txStore.InitializeAsync();

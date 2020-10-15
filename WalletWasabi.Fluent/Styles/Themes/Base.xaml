@@ -1,0 +1,16 @@
+<Styles xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:sys="clr-namespace:System;assembly=netstandard"
+  xmlns:local="clr-namespace:AvalonStudio.Controls.Standard.CodeEditor;assembly=AvalonStudio.Controls.Standard">
+  <Styles.Resources>
+    <Color x:Key="SystemAccentColorLight1">#FF82C690</Color>
+    <Color x:Key="SystemAccentColorLight2">#FF92CF9E</Color>
+    <Color x:Key="SystemAccentColorLight3">#FFA2D8AD</Color>
+    <Color x:Key="SystemAccentColorDark1">#FF5BA96C</Color>
+    <Color x:Key="SystemAccentColorDark2">#FF449556</Color>
+    <Color x:Key="SystemAccentColorDark3">#FF2E8041</Color>
+    <Color x:Key="SystemAccentColor">#FF72BD81</Color>
+    <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="{StaticResource SystemAccentColor}"/>
+    <SolidColorBrush x:Key="TextControlErrorBorderBrush">#D85050</SolidColorBrush>
+  </Styles.Resources>
+</Styles>

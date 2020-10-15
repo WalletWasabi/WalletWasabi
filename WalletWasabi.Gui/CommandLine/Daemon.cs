@@ -138,10 +138,7 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 		}
 
-		private bool AnyCoinsQueued()
-		{
-			return Wallet.ChaumianClient.State.AnyCoinsQueued();
-		}
+		private bool AnyCoinsQueued() => Global.WalletManager.AnyCoinJoinInProgress();
 
 		private async Task TryQueueCoinsToMixAsync(string password, int minAnonset = int.MinValue, int maxAnonset = int.MaxValue)
 		{

@@ -2,6 +2,7 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Helpers;
@@ -64,9 +65,8 @@ namespace WalletWasabi.Blockchain.Transactions
 		[JsonProperty(PropertyName = "FirstSeenIfMempoolTime")]
 		[JsonConverter(typeof(BlockCypherDateTimeOffsetJsonConverter))]
 		[Obsolete("This property exists only for json backwards compatibility. If someone tries to set it, it'll set the FirstSeen. https://stackoverflow.com/a/43715009/2061103", error: true)]
-#pragma warning disable IDE0051 // Remove unused private members
+		[SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "json backwards compatibility")]
 		private DateTimeOffset? FirstSeenCompatibility
-#pragma warning restore IDE0051 // Remove unused private members
 		{
 			set
 			{

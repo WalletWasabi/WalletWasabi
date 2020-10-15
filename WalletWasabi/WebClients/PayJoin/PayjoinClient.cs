@@ -93,7 +93,7 @@ namespace WalletWasabi.WebClients.PayJoin
 
 			var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
 			{
-				Content = new StringContent(cloned.ToHex(), Encoding.UTF8, "text/plain")
+				Content = new StringContent(cloned.ToBase64(), Encoding.UTF8, "text/plain")
 			};
 
 			HttpResponseMessage bpuResponse = await TorHttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);

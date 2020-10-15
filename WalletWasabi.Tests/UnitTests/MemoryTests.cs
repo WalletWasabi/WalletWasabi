@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Primitives;
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -59,7 +60,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var result1 = await cache2.AtomicGetOrCreateAsync(
 				"the-same-other-key",
 				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(10) },
-				() => Task.FromResult(ExpensiveComputation("Lurking Wife!")));
+				() => Task.FromResult(ExpensiveComputation("Loving Wife!")));
 
 			var result2 = await cache1.AtomicGetOrCreateAsync(
 				"the-same-key",
@@ -108,7 +109,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var result1 = await cache.AtomicGetOrCreateAsync(
 				"key2",
 				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(10) },
-				() => Task.FromResult(ExpensiveComputation("Lurking Wife!")));
+				() => Task.FromResult(ExpensiveComputation("Loving Wife!")));
 
 			var result2 = await cache.AtomicGetOrCreateAsync(
 				"key1",
@@ -139,26 +140,46 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task ExpirationTestsAsync()
 		{
+			const string Key = "key";
+
+			const string Value1 = "This will be expired";
+			const string Value2 = "Foo";
+			const string Value3 = "Should not change to this";
+
 			using var cache = new MemoryCache(new MemoryCacheOptions());
 
-			var result0 = await cache.AtomicGetOrCreateAsync(
-				"key1",
-				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(1) },
-				() => Task.FromResult("This will be expired"));
+			// First value should expire in 20 ms.
+			string result0 = await cache.AtomicGetOrCreateAsync(
+				Key,
+				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(20) },
+				() => Task.FromResult(Value1));
 
-			await Task.Delay(1);
+			Stopwatch stopwatch = Stopwatch.StartNew();
 
-			var result1 = await cache.AtomicGetOrCreateAsync(
-				"key1",
+			// Wait 30 ms to let first value expire.
+			await Task.Delay(30);
+
+			// Measure how long we have waited.
+			long elapsedMilliseconds = stopwatch.ElapsedMilliseconds;
+
+			// Set Value2 to be in the cache.
+			string result1 = await cache.AtomicGetOrCreateAsync(
+				Key,
 				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60) },
-				() => Task.FromResult("Foo"));
+				() => Task.FromResult(Value2));
 
-			var result2 = await cache.AtomicGetOrCreateAsync(
-				"key1",
+			// Value3 is not supposed to be used as Value2 could not expire.
+			string result2 = await cache.AtomicGetOrCreateAsync(
+				Key,
 				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60) },
-				() => Task.FromResult("Should not change to this"));
+				() => Task.FromResult(Value3));
 
-			Assert.Equal("Foo", result2);
+			if (result2 != Value2)
+			{
+				Assert.False(true, $"{nameof(result2)} value is '{result2}' instead of '{Value2}'. " +
+					$"Debug info: Wait time was: {elapsedMilliseconds} ms. " +
+					$"Previous values: {nameof(result0)}='{result0}', {nameof(result1)}='{result1}'");
+			}
 		}
 
 		[Fact]

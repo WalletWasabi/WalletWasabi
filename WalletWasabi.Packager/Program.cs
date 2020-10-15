@@ -1,6 +1,7 @@
 using NSubsys;
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -57,10 +58,8 @@ namespace WalletWasabi.Packager
 		/// <summary>
 		/// Main entry point.
 		/// </summary>
-#pragma warning disable IDE1006 // Naming Styles
-
+		[SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "The Main method is the entry point of a C# application")]
 		private static async Task Main(string[] args)
-#pragma warning restore IDE1006 // Naming Styles
 		{
 			var argsProcessor = new ArgsProcessor(args);
 
@@ -92,15 +91,6 @@ namespace WalletWasabi.Packager
 				return;
 			}
 
-			// Start with digest creation and return if only digest creation.
-			CreateDigests();
-
-			OnlyCreateDigests = argsProcessor.IsOnlyCreateDigestsMode();
-			if (OnlyCreateDigests)
-			{
-				return;
-			}
-
 			// Only binaries mode is for deterministic builds.
 			OnlyBinaries = argsProcessor.IsOnlyBinariesMode();
 
@@ -127,38 +117,6 @@ namespace WalletWasabi.Packager
 					RestoreProgramCs();
 				}
 			}
-		}
-
-		private static void CreateDigests()
-		{
-			var tempDir = "DigestTempDir";
-			IoHelpers.TryDeleteDirectoryAsync(tempDir).GetAwaiter().GetResult();
-			Directory.CreateDirectory(tempDir);
-
-			var torDaemonsDir = Path.Combine(LibraryProjectDirectory, "TorDaemons");
-			string torWinZip = Path.Combine(torDaemonsDir, "tor-win64.zip");
-			IoHelpers.BetterExtractZipToDirectoryAsync(torWinZip, tempDir).GetAwaiter().GetResult();
-			File.Move(Path.Combine(tempDir, "Tor", "tor.exe"), Path.Combine(tempDir, "TorWin"));
-
-			string torLinuxZip = Path.Combine(torDaemonsDir, "tor-linux64.zip");
-			IoHelpers.BetterExtractZipToDirectoryAsync(torLinuxZip, tempDir).GetAwaiter().GetResult();
-			File.Move(Path.Combine(tempDir, "Tor", "tor"), Path.Combine(tempDir, "TorLin"));
-
-			string torOsxZip = Path.Combine(torDaemonsDir, "tor-osx64.zip");
-			IoHelpers.BetterExtractZipToDirectoryAsync(torOsxZip, tempDir).GetAwaiter().GetResult();
-			File.Move(Path.Combine(tempDir, "Tor", "tor.real"), Path.Combine(tempDir, "TorOsx"));
-
-			var tempDirInfo = new DirectoryInfo(tempDir);
-			var binaries = tempDirInfo.GetFiles();
-			Console.WriteLine("Digests:");
-			foreach (var file in binaries)
-			{
-				var filePath = file.FullName;
-				var hash = ByteHelpers.ToHex(IoHelpers.GetHashFile(filePath)).ToLowerInvariant();
-				Console.WriteLine($"{file.Name}: {hash}");
-			}
-
-			IoHelpers.TryDeleteDirectoryAsync(tempDir).GetAwaiter().GetResult();
 		}
 
 		private static void ReportStatus()
@@ -402,7 +360,6 @@ namespace WalletWasabi.Packager
 				Tools.ClearSha512Tags(currentBinDistDirectory);
 
 				// Remove Tor binaries that are not relevant to the platform.
-				var torFolder = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "TorDaemons"));
 				var toNotRemove = "";
 				if (target.StartsWith("win"))
 				{
@@ -415,14 +372,6 @@ namespace WalletWasabi.Packager
 				else if (target.StartsWith("osx"))
 				{
 					toNotRemove = "osx";
-				}
-
-				foreach (var file in torFolder.EnumerateFiles())
-				{
-					if (!file.Name.Contains("data", StringComparison.OrdinalIgnoreCase) && !file.Name.Contains(toNotRemove, StringComparison.OrdinalIgnoreCase))
-					{
-						File.Delete(file.FullName);
-					}
 				}
 
 				// Remove binaries that are not relevant to the platform.

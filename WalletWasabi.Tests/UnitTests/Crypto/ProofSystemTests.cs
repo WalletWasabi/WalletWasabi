@@ -177,5 +177,45 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var badStatement = ProofSystem.BalanceProof(Ca + (delta + Scalar.One) * Generators.Gg - Ma);
 			Assert.False(ProofSystem.Verify(badStatement, proofOfBalance));
 		}
+
+		[Theory]
+		[InlineData(0, 0, true)]
+		[InlineData(0, 1, true)]
+		[InlineData(1, 0, false)]
+		[InlineData(1, 1, true)]
+		[InlineData(1, 2, true)]
+		[InlineData(2, 0, false)]
+		[InlineData(2, 1, false)]
+		[InlineData(2, 2, true)]
+		[InlineData(3, 1, false)]
+		[InlineData(3, 2, true)]
+		[InlineData(4, 2, false)]
+		[InlineData(4, 3, true)]
+		[InlineData(7, 2, false)]
+		[InlineData(7, 3, true)]
+		[InlineData((ulong)uint.MaxValue + 1, 32, false)]
+		[InlineData((ulong)uint.MaxValue + 1, 33, true)]
+		[InlineData(2099999997690000ul, 50, false)]
+		[InlineData(2099999997690000ul, 51, true)]
+		public void CanProveAndVerifyCommitmentRange(ulong amount, int width, bool pass)
+		{
+			var rnd = new SecureRandom();
+
+			var amountScalar = new Scalar(amount);
+			var randomness = rnd.GetScalar();
+			var commitment = amountScalar * Generators.Gg + randomness * Generators.Gh;
+
+			var maskedScalar = new Scalar(amount & ((1ul << width) - 1));
+			var (knowledge, bitCommitments) = ProofSystem.RangeProof(maskedScalar, randomness, width, rnd);
+
+			var rangeProof = ProofSystem.Prove(knowledge, rnd);
+
+			Assert.Equal(pass, ProofSystem.Verify(ProofSystem.RangeProof(commitment, bitCommitments), rangeProof));
+
+			if (!pass)
+			{
+				Assert.Throws<ArgumentOutOfRangeException>(() => ProofSystem.RangeProof(amountScalar, randomness, width, rnd));
+			}
+		}
 	}
 }

@@ -13,7 +13,6 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.CoinJoin.Coordinator;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -29,8 +28,6 @@ namespace WalletWasabi.Tests.RegressionTests
 	[Collection("RegTest collection")]
 	public class BuildTests
 	{
-#pragma warning disable IDE0059 // Value assigned to symbol is never used
-
 		public BuildTests(RegTestFixture regTestFixture)
 		{
 			RegTestFixture = regTestFixture;
@@ -41,7 +38,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		[Fact]
 		public async Task BuildTransactionValidationsTestAsync()
 		{
-			(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+			(string password, IRPCClient rpc, Network network, _, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 			// Create the services.
 			// 1. Create connection service.
@@ -60,7 +57,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var keyManager = KeyManager.CreateNew(out _, password);
 
 			// 5. Create wallet service.
-			var workDir = Common.GetWorkDir();
+			var workDir = Tests.Common.GetWorkDir();
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
 				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
 				bitcoinStore.BlockRepository);
@@ -204,7 +201,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		[Fact]
 		public async Task BuildTransactionReorgsTestAsync()
 		{
-			(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+			(string password, IRPCClient rpc, Network network, _, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 			bitcoinStore.IndexStore.NewFilter += Common.Wallet_NewFilterProcessed;
 			// Create the services.
 			// 1. Create connection service.
@@ -223,7 +220,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var keyManager = KeyManager.CreateNew(out _, password);
 
 			// 5. Create wallet service.
-			var workDir = Common.GetWorkDir();
+			var workDir = Tests.Common.GetWorkDir();
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
 				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
 				bitcoinStore.BlockRepository);
@@ -416,7 +413,5 @@ namespace WalletWasabi.Tests.RegressionTests
 				node?.Disconnect();
 			}
 		}
-
-#pragma warning restore IDE0059 // Value assigned to symbol is never used
 	}
 }

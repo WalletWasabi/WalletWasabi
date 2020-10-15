@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
 
@@ -67,12 +68,11 @@ namespace NSubsys
 			InternalBinReader?.Dispose();
 		}
 
-#pragma warning disable IDE1006 // Naming Styles
-
 		[StructLayout(LayoutKind.Explicit)]
 		public struct ImageDosHeader
 		{
 			[FieldOffset(60)]
+			[SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Public fields are not allowed")]
 			public uint FileAddressNew;
 		}
 
@@ -80,9 +80,8 @@ namespace NSubsys
 		public struct ImageOptionalHeader
 		{
 			[FieldOffset(68)]
+			[SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Public fields are not allowed")]
 			public ushort Subsystem;
 		}
-
-#pragma warning restore IDE1006 // Naming Styles
 	}
 }

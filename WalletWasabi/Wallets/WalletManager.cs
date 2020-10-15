@@ -435,5 +435,13 @@ namespace WalletWasabi.Wallets
 				return Wallets.Keys.Single(x => x.KeyManager.WalletName == walletName);
 			}
 		}
+
+		public bool AnyCoinJoinInProgress()
+		{
+			lock (Lock)
+			{
+				return Wallets.Keys.Any(x => x.ChaumianClient?.State.AnyCoinsQueued() is true);
+			}
+		}
 	}
 }

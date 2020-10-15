@@ -3,51 +3,60 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vl="clr-namespace:WalletWasabi.Fluent"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:local="clr-namespace:WalletWasabi.Fluent.Views"
              xmlns:rxui="clr-namespace:Avalonia.ReactiveUI;assembly=Avalonia.ReactiveUI"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors;assembly=WalletWasabi.Fluent"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="WalletWasabi.Fluent.Views.MainView" TextBlock.Foreground="#A3A3A3">  
-  <SplitView OpenPaneLength="220" CompactPaneLength="20" IsPaneOpen="True" DisplayMode="CompactInline">
-    <SplitView.Pane>
-      <ExperimentalAcrylicBorder DockPanel.Dock="Left">
-        <ExperimentalAcrylicBorder.Material>
-          <ExperimentalAcrylicMaterial BackgroundSource="Digger"
-                                       TintColor="Black"
-                                       TintOpacity="1"
-                                       FallbackColor="#1F1F1F"
-                                       MaterialOpacity="0.6" />
-        </ExperimentalAcrylicBorder.Material>
-
+             x:Class="WalletWasabi.Fluent.Views.MainView">
+  <Panel>
+    <SplitView IsPaneOpen="{Binding NavBar.IsOpen, Mode=TwoWay}">
+      <i:Interaction.Behaviors>
+          <behaviors:SplitViewAutoBehavior ToggleAction="{Binding NavBar.ToggleAction, Mode=OneWayToSource}"
+                                          CollapseOnClickAction="{Binding NavBar.CollapseOnClickAction, Mode=OneWayToSource}"
+                                          CollapseThreshold="{StaticResource SplitViewCollapseThreshold}"/>
+      </i:Interaction.Behaviors>
+      <SplitView.Pane>
         <Panel>
-          <!-- TODO Move to SideBar -->
-          <StackPanel Margin="20">
-            <Button Command="{Binding GoBack}" Background="Transparent" IsVisible="{Binding IsBackButtonVisible}">
-              <PathIcon Data="{StaticResource arrow_left_regular}" />
-            </Button>
-            <TextBlock Text=" " Foreground="White" FontSize="22" />
-            <TextBlock Text="Wasabi Wallet" Foreground="White" FontSize="16" />
-          </StackPanel>
-          <PathIcon Data="{StaticResource settings_regular}" />
+          <ExperimentalAcrylicBorder DockPanel.Dock="Left" IsHitTestVisible="False">
+            <ExperimentalAcrylicBorder.Material>
+              <ExperimentalAcrylicMaterial BackgroundSource="Digger"
+                                          TintColor="{DynamicResource SystemAltHighColor}"
+                                          TintOpacity="1"
+                                          FallbackColor="{DynamicResource AcrylicFallbackColor}"
+                                          MaterialOpacity="0.55" />
+            </ExperimentalAcrylicBorder.Material>
+
+          </ExperimentalAcrylicBorder>
+          <local:NavBar DataContext="{Binding NavBar}" />
         </Panel>
-      </ExperimentalAcrylicBorder>
-    </SplitView.Pane>
-    <DockPanel>
-      <local:StatusBar DockPanel.Dock="Bottom" DataContext="{Binding StatusBar}" VerticalAlignment="Bottom" Height="32" TextBlock.FontSize="12" />
-      <Border Background="#212121" BoxShadow="0 1 4 #131313">
-        <rxui:RoutedViewHost Router="{Binding Router}">
-          <rxui:RoutedViewHost.ViewLocator>
-            <vl:ScreenViewLocator />
-          </rxui:RoutedViewHost.ViewLocator>
-          <rxui:RoutedViewHost.PageTransition>            
-              <PageSlide Duration="0:0:0.25" />            
-          </rxui:RoutedViewHost.PageTransition>
-          <rxui:RoutedViewHost.DefaultContent>
-            <TextBlock Text="Default content"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center" />
-          </rxui:RoutedViewHost.DefaultContent>
-        </rxui:RoutedViewHost>
-      </Border>
-    </DockPanel>
-  </SplitView>
+      </SplitView.Pane>
+      <Panel>
+        <DockPanel>
+          <local:StatusBar DockPanel.Dock="Bottom" DataContext="{Binding StatusBar}" VerticalAlignment="Bottom" Height="32" TextBlock.FontSize="12" />
+          <Panel>
+            <Border Background="{DynamicResource RegionColor}" BoxShadow="{DynamicResource BoxShadow}" IsHitTestVisible="False" />
+            <DockPanel Margin="20 10 20 0">
+                <TextBlock Text="{Binding NavBar.SelectedItem.Title}" DockPanel.Dock="Top" FontSize="28" IsHitTestVisible="False" Margin="0 22 0 0" />
+              <rxui:RoutedViewHost Router="{Binding Router}">
+                <rxui:RoutedViewHost.ViewLocator>
+                  <vl:ScreenViewLocator />
+                </rxui:RoutedViewHost.ViewLocator>
+                <rxui:RoutedViewHost.PageTransition>
+                  <CrossFade Duration="0:0:0.25" />
+                </rxui:RoutedViewHost.PageTransition>
+                <rxui:RoutedViewHost.DefaultContent>
+                  <TextBlock Text="Default content"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center" />
+                </rxui:RoutedViewHost.DefaultContent>
+              </rxui:RoutedViewHost>
+            </DockPanel>
+          </Panel>
+        </DockPanel>
+      </Panel>
+    </SplitView>
+    <c:Dialog DataContext="{Binding CurrentDialog}" Content="{Binding }" IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}" />
+  </Panel>
 </UserControl>

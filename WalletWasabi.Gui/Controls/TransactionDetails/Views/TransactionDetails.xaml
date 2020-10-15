@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
   xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
@@ -8,7 +8,7 @@
   x:Class="WalletWasabi.Gui.Controls.TransactionDetails.Views.TransactionDetails">
   <UserControl.Resources>
     <converters:BooleanStringConverter x:Key="BooleanStringConverter" />
-    <converters:LurkingWifeModeStringConverter x:Key="LurkingWifeModeStringConverter" />
+    <converters:PrivacyModeStringConverter x:Key="PrivacyModeStringConverter" />
     <converters:MoneyBrushConverter x:Key="MoneyBrushConverter" />
     <converters:MoneyStringConverter x:Key="MoneyStringConverter" />
   </UserControl.Resources>
@@ -16,7 +16,7 @@
     <StackPanel>
       <Grid ColumnDefinitions="170, *">
         <TextBlock Classes="monospaceFont" Text="Transaction Id:" />
-        <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding TransactionId, Mode=OneWay, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" />
+        <controls:ExtendedTextBox Grid.Column="1" Classes="selectableTextBlock monospaceFont Transparent" Text="{Binding TransactionId, Mode=OneWay, ConverterParameter=50, Converter={StaticResource PrivacyModeStringConverter}, Mode=OneWay}" />
       </Grid>
       <Grid ColumnDefinitions="170, *">
         <TextBlock Classes="monospaceFont" Text="Input Amount (BTC):" />

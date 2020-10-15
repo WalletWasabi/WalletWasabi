@@ -6,7 +6,6 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Security;
 using System.Net.Sockets;
-using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
@@ -22,7 +21,7 @@ using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 
 namespace WalletWasabi.Tor.Http
 {
-	public class TorHttpClient : ITorHttpClient, IDisposable
+	public class TorHttpClient : ITorHttpClient
 	{
 		private static DateTimeOffset? TorDoesntWorkSinceBacking = null;
 
@@ -67,11 +66,16 @@ namespace WalletWasabi.Tor.Http
 		public EndPoint? TorSocks5EndPoint { get; private set; }
 		public bool IsTorUsed => TorSocks5EndPoint is { };
 
-		public bool IsolateStream { get; private set; }
+		private bool IsolateStream { get; }
 
-		public TorSocks5Client TorSocks5Client { get; private set; }
+		private TorSocks5Client? TorSocks5Client { get; set; }
 
 		private static AsyncLock AsyncLock { get; } = new AsyncLock(); // We make everything synchronous, so slow, but at least stable.
+
+		private static async Task<HttpResponseMessage> ClearnetRequestAsync(HttpRequestMessage request)
+		{
+			return await ClearnetHttpClient.Instance.SendAsync(request).ConfigureAwait(false);
+		}
 
 		/// <remarks>
 		/// Throws <see cref="OperationCanceledException"/> if <paramref name="cancel"/> is set.
@@ -82,11 +86,18 @@ namespace WalletWasabi.Tor.Http
 			relativeUri = Guard.NotNull(nameof(relativeUri), relativeUri);
 			var requestUri = new Uri(DestinationUri, relativeUri);
 			using var request = new HttpRequestMessage(method, requestUri);
+			request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
+
 			if (content is { })
 			{
 				request.Content = content;
 			}
-			request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
+
+			// Use clearnet HTTP client when Tor is disabled.
+			if (TorSocks5EndPoint is null)
+			{
+				return await ClearnetRequestAsync(request).ConfigureAwait(false);
+			}
 
 			try
 			{
@@ -167,6 +178,12 @@ namespace WalletWasabi.Tor.Http
 		{
 			Guard.NotNull(nameof(request), request);
 
+			// Use clearnet HTTP client when Tor is disabled.
+			if (TorSocks5EndPoint is null)
+			{
+				return await ClearnetRequestAsync(request).ConfigureAwait(false);
+			}
+
 			// https://tools.ietf.org/html/rfc7230#section-2.7.1
 			// A sender MUST NOT generate an "http" URI with an empty host identifier.
 			string host = Guard.NotNullOrEmptyOrWhitespace($"{nameof(request)}.{nameof(request.RequestUri)}.{nameof(request.RequestUri.DnsSafeHost)}", request.RequestUri.DnsSafeHost, trim: true);
@@ -199,7 +216,7 @@ namespace WalletWasabi.Tor.Http
 						.AuthenticateAsClientAsync(
 							host,
 							new X509CertificateCollection(),
-							SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12,
+							IHttpClient.SupportedSslProtocols,
 							checkCertificateRevocation: true).ConfigureAwait(false);
 					stream = sslStream;
 				}
@@ -233,7 +250,7 @@ namespace WalletWasabi.Tor.Http
 				}
 			}
 
-			var requestString = await request.ToHttpStringAsync().ConfigureAwait(false);
+			string requestString = await request.ToHttpStringAsync().ConfigureAwait(false);
 
 			var bytes = Encoding.UTF8.GetBytes(requestString);
 

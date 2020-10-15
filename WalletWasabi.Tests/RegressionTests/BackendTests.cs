@@ -14,10 +14,7 @@ using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.CoinJoin.Coordinator;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
-using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
@@ -29,8 +26,6 @@ namespace WalletWasabi.Tests.RegressionTests
 	[Collection("RegTest collection")]
 	public class BackendTests
 	{
-#pragma warning disable IDE0059 // Value assigned to symbol is never used
-
 		public BackendTests(RegTestFixture regTestFixture)
 		{
 			RegTestFixture = regTestFixture;
@@ -67,7 +62,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		[Fact]
 		public async Task BroadcastReplayTxAsync()
 		{
-			(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+			(_, IRPCClient rpc, _, _, _, _, _) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 			var utxos = await rpc.ListUnspentAsync();
 			var utxo = utxos[0];
@@ -87,7 +82,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		[Fact]
 		public async Task BroadcastInvalidTxAsync()
 		{
-			(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+			await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 			var content = new StringContent($"''", Encoding.UTF8, "application/json");
 
@@ -97,7 +92,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			{
 				Assert.NotEqual(HttpStatusCode.OK, response.StatusCode);
 				Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-				Assert.Equal("Invalid hex.", await response.Content.ReadAsJsonAsync<string>());
+				Assert.Contains("The hex field is required.", await response.Content.ReadAsStringAsync());
 			}
 			Logger.TurnOn();
 		}
@@ -105,9 +100,9 @@ namespace WalletWasabi.Tests.RegressionTests
 		[Fact]
 		public async Task FilterBuilderTestAsync()
 		{
-			(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+			(_, IRPCClient rpc, _, _, _, _, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
-			var indexBuilderServiceDir = Common.GetWorkDir();
+			var indexBuilderServiceDir = Tests.Common.GetWorkDir();
 			var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{rpc.Network}.dat");
 
 			var indexBuilderService = new IndexBuilderService(rpc, global.HostedServices.FirstOrDefault<BlockNotifier>(), indexFilePath);
@@ -174,7 +169,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		public async Task StatusRequestTestAsync()
 		{
 			string request = $"/api/v{WasabiClient.ApiVersion}/btc/Blockchain/status";
-			(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+			(_, IRPCClient rpc, _, _, _, _, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 			var indexBuilderService = global.IndexBuilderService;
 			try
@@ -194,7 +189,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				}
 
 				using var client = new WasabiClient(new Uri(RegTestFixture.BackendEndPoint), null);
-				var response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, request);
+				var response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, request);
 				using (HttpContent content = response.Content)
 				{
 					var resp = await content.ReadAsJsonAsync<StatusResponse>();
@@ -207,7 +202,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 				await rpc.GenerateAsync(1);
 
-				response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, request);
+				response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, request);
 				using (HttpContent content = response.Content)
 				{
 					var resp = await content.ReadAsJsonAsync<StatusResponse>();
@@ -222,7 +217,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				// Set back the time to trigger timeout in BlockchainController.GetStatusAsync.
 				global.IndexBuilderService.LastFilterBuildTime = DateTimeOffset.UtcNow - BlockchainController.FilterTimeout;
 
-				response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, request);
+				response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, request);
 				using (HttpContent content = response.Content)
 				{
 					var resp = await content.ReadAsJsonAsync<StatusResponse>();
@@ -239,7 +234,5 @@ namespace WalletWasabi.Tests.RegressionTests
 		}
 
 		#endregion BackendTests
-
-#pragma warning restore IDE0059 // Value assigned to symbol is never used
 	}
 }

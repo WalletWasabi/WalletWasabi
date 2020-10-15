@@ -8,13 +8,21 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.StatusBar">
   <UserControl.Resources>
-    <converters:FilterLeftStatusConverter x:Key="FilterLeftStatusConverter" />    
+    <converters:FilterLeftStatusConverter x:Key="FilterLeftStatusConverter" />
     <converters:ShowCursorConverter x:Key="ShowCursorConverter" />
     <converters:ShouldDisplayValueConverter x:Key="ShouldDisplayValueConverter" />
     <converters:PascalToPhraseConverter x:Key="PascalToPhraseConverter" />
-    <converters:RpcStatusStringConverter x:Key="RpcStatusStringConverter" />    
+    <converters:RpcStatusStringConverter x:Key="RpcStatusStringConverter" />
   </UserControl.Resources>
-  <Panel Background="#191919" Cursor="{Binding UpdateAvailable, Converter={StaticResource ShowCursorConverter}}">
+  
+  <Panel Background="{DynamicResource StatusBarControlBackground}" Cursor="{Binding UpdateAvailable, Converter={StaticResource ShowCursorConverter}}">
+    <Panel.Styles>
+      <Styles>
+        <Style Selector="TextBlock">
+          <Setter Property="Foreground" Value="{DynamicResource StatusBarControlForeground}"/>
+        </Style>
+      </Styles>
+    </Panel.Styles>
     <!--
     <i:Interaction.Behaviors>
       <behaviors:CommandOnClickBehavior Command="{Binding UpdateCommand}" />
@@ -41,7 +49,7 @@
             <Panel Height="10" Width="10">
               <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource StatusBar_Filter}" />
             </Panel>
-            <TextBlock Text="{Binding FiltersLeft, Converter={StaticResource FilterLeftStatusConverter}}"  />
+            <TextBlock Text="{Binding FiltersLeft, Converter={StaticResource FilterLeftStatusConverter}}" />
           </StackPanel>
         </Panel>
         <StackPanel Orientation="Horizontal" Spacing="4">

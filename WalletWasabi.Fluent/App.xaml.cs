@@ -8,8 +8,8 @@ using Global = WalletWasabi.Gui.Global;
 
 namespace WalletWasabi.Fluent
 {
-    public class App : Application
-    {
+	public class App : Application
+	{
 		private Global _global;
 
 		public App()
@@ -22,13 +22,13 @@ namespace WalletWasabi.Fluent
 			_global = global;			
 		}
 
-        public override void Initialize()
-        {
-            AvaloniaXamlLoader.Load(this);
-        }
+		public override void Initialize()
+		{
+			AvaloniaXamlLoader.Load(this);
+		}
 
-        public override void OnFrameworkInitializationCompleted()
-        {
+		public override void OnFrameworkInitializationCompleted()
+		{
 			if (!Design.IsDesignMode)
 			{
 				MainViewModel.Instance = new MainViewModel(_global);
@@ -42,7 +42,7 @@ namespace WalletWasabi.Fluent
 				}
 			}
 
-            base.OnFrameworkInitializationCompleted();
-        }
-    }
+			base.OnFrameworkInitializationCompleted();
+		}
+	}
 }

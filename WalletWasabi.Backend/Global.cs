@@ -1,5 +1,4 @@
 using NBitcoin;
-using NBitcoin.RPC;
 using System;
 using System.IO;
 using System.Net;
@@ -20,10 +19,6 @@ namespace WalletWasabi.Backend
 {
 	public class Global
 	{
-		public Global() : this(null)
-		{
-		}
-
 		public Global(string dataDir)
 		{
 			DataDir = dataDir ?? EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));

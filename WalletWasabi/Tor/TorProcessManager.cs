@@ -88,16 +88,7 @@ namespace WalletWasabi.Tor
 					return true;
 				}
 
-				// Install Tor if it is not installed and verify Tor is not tampered with (using hash/checksum).
-				bool verified = await new TorInstallator(Settings).VerifyInstallationAsync().ConfigureAwait(false);
-
-				if (!verified)
-				{
-					Logger.LogInfo("Failed to verify Tor installation.");
-					return false;
-				}
-
-				string torArguments = Settings.GetCmdArguments(TorSocks5EndPoint) + $" --Log \"notice file {Settings.LogFilePath}\"";
+				string torArguments = Settings.GetCmdArguments(TorSocks5EndPoint);
 
 				var startInfo = new ProcessStartInfo
 				{
@@ -106,7 +97,7 @@ namespace WalletWasabi.Tor
 					UseShellExecute = false,
 					CreateNoWindow = true,
 					RedirectStandardOutput = true,
-					WorkingDirectory = Settings.TorDir
+					WorkingDirectory = Settings.TorBinaryDir
 				};
 
 				if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -233,7 +224,7 @@ namespace WalletWasabi.Tor
 			});
 		}
 
-		public async Task StopAsync()
+		public async Task StopAsync(bool killTor = false)
 		{
 			Interlocked.CompareExchange(ref _monitorState, StateStopping, StateRunning); // If running, make it stopping.
 
@@ -249,6 +240,25 @@ namespace WalletWasabi.Tor
 			}
 			Stop?.Dispose();
 			Stop = null;
+
+			if (TorProcess is { } && killTor)
+			{
+				Logger.LogInfo($"Killing Tor process.");
+
+				try
+				{
+					TorProcess.Kill();
+					using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+					await TorProcess.WaitForExitAsync(cts.Token, killOnCancel: true).ConfigureAwait(false);
+
+					Logger.LogInfo($"Tor process killed successfully.");
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError($"Could not kill Tor process: {ex.Message}.");
+				}
+			}
+
 			TorProcess?.Dispose();
 			TorProcess = null;
 		}

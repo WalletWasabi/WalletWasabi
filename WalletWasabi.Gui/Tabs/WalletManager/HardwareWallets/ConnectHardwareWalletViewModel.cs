@@ -122,9 +122,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 					Logger.LogInfo("Creating a new wallet file.");
 					var walletName = WalletManager.WalletDirectories.GetNextWalletName("Coldcard");
 					var walletFullPath = WalletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
-					var keymanager = KeyManager.CreateNewHardwareWalletWatchOnly(mfp, extPubKey, walletFullPath);
-					WalletManager.AddWallet(keymanager);
-					owner.SelectLoadWallet(keymanager);
+					var keyManager = KeyManager.CreateNewHardwareWalletWatchOnly(mfp, extPubKey, walletFullPath);
+					WalletManager.AddWallet(keyManager);
+					owner.SelectLoadWallet(keyManager);
 				}
 			});
 			EnumerateHardwareWalletsCommand = ReactiveCommand.CreateFromTask(async () => await EnumerateIfHardwareWalletsAsync());

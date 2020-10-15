@@ -14,9 +14,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.MixingLevels
 		{
 			Denomination = Guard.NotNull(nameof(denomination), denomination);
 			Signer = Guard.NotNull(nameof(signer), signer);
-			var signerKey = Guard.NotNull(nameof(signer.Key), signer.Key);
-
-			SignerKey = signer.Key;
+			SignerKey = Guard.NotNull(nameof(signer.Key), signer.Key);
 		}
 
 		[JsonConstructor]
@@ -24,7 +22,6 @@ namespace WalletWasabi.CoinJoin.Coordinator.MixingLevels
 		{
 			Denomination = Guard.NotNull(nameof(denomination), denomination);
 			SignerKey = Guard.NotNull(nameof(signerKey), signerKey);
-
 			Signer = new Signer(signerKey);
 		}
 

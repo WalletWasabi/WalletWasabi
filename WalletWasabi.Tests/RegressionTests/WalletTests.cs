@@ -10,7 +10,6 @@ using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.CoinJoin.Coordinator;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
@@ -24,8 +23,6 @@ namespace WalletWasabi.Tests.RegressionTests
 	[Collection("RegTest collection")]
 	public class WalletTests
 	{
-#pragma warning disable IDE0059 // Value assigned to symbol is never used
-
 		public WalletTests(RegTestFixture regTestFixture)
 		{
 			RegTestFixture = regTestFixture;
@@ -52,7 +49,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		[Fact]
 		public async Task FilterDownloaderTestAsync()
 		{
-			(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+			(_, IRPCClient rpc, _, _, _, BitcoinStore bitcoinStore, _) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
 			try
@@ -121,7 +118,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		[Fact]
 		public async Task ReorgTestAsync()
 		{
-			(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+			(string password, IRPCClient rpc, Network network, _, _, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 			var keyManager = KeyManager.CreateNew(out _, password);
 
@@ -232,7 +229,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		[Fact]
 		public async Task WalletTestsAsync()
 		{
-			(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+			(string password, IRPCClient rpc, Network network, _, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 			// Create the services.
 			// 1. Create connection service.
@@ -249,7 +246,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var keyManager = KeyManager.CreateNew(out _, password);
 
 			// 4. Create wallet service.
-			var workDir = Common.GetWorkDir();
+			var workDir = Tests.Common.GetWorkDir();
 
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
 				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
@@ -423,7 +420,5 @@ namespace WalletWasabi.Tests.RegressionTests
 				node?.Disconnect();
 			}
 		}
-
-#pragma warning restore IDE0059 // Value assigned to symbol is never used
 	}
 }

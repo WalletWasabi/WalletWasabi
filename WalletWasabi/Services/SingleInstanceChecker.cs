@@ -12,11 +12,28 @@ namespace WalletWasabi.Services
 		/// <summary>Unique prefix for global mutex name.</summary>
 		private const string MutexString = "WalletWasabiSingleInstance";
 
+		/// <summary>Name of system-wide mutex.</summary>
+		private readonly string LockName;
+
 		private bool _disposedValue;
 
-		public SingleInstanceChecker(Network network)
+		/// <summary>
+		/// Creates a new instance of the object where lock name is based on <paramref name="network"/> name. 
+		/// </summary>
+		/// <param name="network">Bitcoin network selected when Wasabi Wallet was started.</param>
+		public SingleInstanceChecker(Network network): this(network, network.ToString())
+		{			
+		}
+
+		/// <summary>
+		/// Use this constructor only for testing.
+		/// </summary>
+		/// <param name="network">Bitcoin network selected when Wasabi Wallet was started.</param>
+		/// <param name="lockName">Name of system-wide mutex.</param>
+		public SingleInstanceChecker(Network network, string lockName)
 		{
 			Network = network;
+			LockName = $"{MutexString}-{lockName}";
 		}
 
 		private IDisposable? SingleApplicationLockHolder { get; set; }
@@ -30,10 +47,10 @@ namespace WalletWasabi.Services
 			}
 
 			// The disposal of this mutex handled by AsyncMutex.WaitForAllMutexToCloseAsync().
-			var mutex = new AsyncMutex($"{MutexString}-{Network}");
+			var mutex = new AsyncMutex(LockName);
 			try
 			{
-				using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.Zero);
+				using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(200));
 				SingleApplicationLockHolder = await mutex.LockAsync(cts.Token).ConfigureAwait(false);
 			}
 			catch (IOException ex)

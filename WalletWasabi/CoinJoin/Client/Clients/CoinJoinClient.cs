@@ -16,7 +16,6 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.CoinJoin.Client.Rounds;
-using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
@@ -24,7 +23,6 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
-using WalletWasabi.WebClients.Wasabi;
 using static WalletWasabi.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.CoinJoin.Client.Clients
@@ -94,7 +92,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		private AsyncLock MixLock { get; set; }
 
-		public ClientState State { get; private set; }
+		public ClientState State { get; }
 
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
 
@@ -610,6 +608,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				}
 			}
 
+			CleanNonLockedExposedKeys();
 			var keysToSurelyRegister = ExposedLinks.Where(x => coinsToRegister.Contains(x.Key)).SelectMany(x => x.Value).Select(x => x.Key).ToArray();
 			var keysTryNotToRegister = ExposedLinks.SelectMany(x => x.Value).Select(x => x.Key).Except(keysToSurelyRegister).ToArray();
 
@@ -621,7 +620,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			allLockedInternalKeys = keysToSurelyRegister.Concat(allLockedInternalKeys).Distinct();
 
 			// Prefer not to bloat the wallet:
-			if (allLockedInternalKeys.Count() <= maximumMixingLevelCount)
+			if (keysTryNotToRegister.Length >= DestinationKeyManager.MinGapLimit / 2)
 			{
 				allLockedInternalKeys = allLockedInternalKeys.Concat(keysTryNotToRegister).Distinct();
 			}
@@ -685,6 +684,26 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			// Save our modifications in the keymanager before we give back the selected keys.
 			DestinationKeyManager.ToFile();
 			return (change, actives);
+		}
+
+		private void CleanNonLockedExposedKeys()
+		{
+			// Remove non-locked exposed keys.
+			foreach (var key in ExposedLinks.Keys.ToArray())
+			{
+				if (ExposedLinks.TryGetValue(key, out var links))
+				{
+					var lockedKeys = links.Where(x => x.Key.KeyState == KeyState.Locked).ToArray();
+					if (lockedKeys.Any())
+					{
+						ExposedLinks.AddOrReplace(key, lockedKeys);
+					}
+					else
+					{
+						ExposedLinks.TryRemove(key, out _);
+					}
+				}
+			}
 		}
 
 		public async Task QueueCoinsToMixAsync(params SmartCoin[] coins)

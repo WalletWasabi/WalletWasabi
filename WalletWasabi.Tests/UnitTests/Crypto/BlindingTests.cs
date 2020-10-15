@@ -61,8 +61,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			Assert.False(SchnorrBlinding.VerifySignature(uint256.One, unblindedSignature, key.PubKey));
 
 			// Test with unknown values
-			requester = new SchnorrBlinding.Requester();
-			signer = new SchnorrBlinding.Signer(new Key());
+			requester = new Requester();
+			signer = new Signer(new Key());
 
 			message = NBitcoin.Crypto.Hashes.Hash256(Encoders.ASCII.DecodeData("Hello world!"));
 			blindedMessage = requester.BlindMessage(message, r.PubKey, signer.Key.PubKey);

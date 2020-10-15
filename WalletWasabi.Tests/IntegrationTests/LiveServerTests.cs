@@ -1,8 +1,6 @@
 using NBitcoin;
 using System;
-using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,7 +25,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 		public async Task InitializeAsync()
 		{
-			var torManager = new TorProcessManager(Global.Instance.TorSettings, Global.Instance.TorSocks5Endpoint);
+			var torManager = new TorProcessManager(Common.TorSettings, Common.TorSocks5Endpoint);
 			bool started = await torManager.StartAsync(ensureRunning: true);
 			Assert.True(started, "Tor failed to start.");
 		}
@@ -48,7 +46,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		{
 			Network network = (networkType == NetworkType.Mainnet) ? Network.Main : Network.TestNet;
 
-			using var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType], Global.Instance.TorSocks5Endpoint);
+			using var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType], Common.TorSocks5Endpoint);
 			var filterModel = StartingFilters.GetStartingFilter(network);
 
 			FiltersResponse filtersResponse = await client.GetFiltersAsync(filterModel.Header.BlockHash, 2);
@@ -62,7 +60,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[InlineData(NetworkType.Testnet)]
 		public async Task GetAllRoundStatesAsync(NetworkType networkType)
 		{
-			using var client = new SatoshiClient(LiveServerTestsFixture.UriMappings[networkType], Global.Instance.TorSocks5Endpoint);
+			using var client = new SatoshiClient(LiveServerTestsFixture.UriMappings[networkType], Common.TorSocks5Endpoint);
 			var states = await client.GetAllRoundStatesAsync();
 			Assert.True(states.NotNullAndNotEmpty());
 			Assert.True(states.Count() >= 1);
@@ -73,7 +71,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[InlineData(NetworkType.Testnet)]
 		public async Task GetTransactionsAsync(NetworkType networkType)
 		{
-			using var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType], Global.Instance.TorSocks5Endpoint);
+			using var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType], Common.TorSocks5Endpoint);
 			var randomTxIds = Enumerable.Range(0, 20).Select(_ => RandomUtils.GetUInt256());
 			var network = networkType == NetworkType.Mainnet ? Network.Main : Network.TestNet;
 
@@ -97,7 +95,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[InlineData(NetworkType.Testnet)]
 		public async Task GetExchangeRateAsync(NetworkType networkType) // xunit wtf: If this function is called GetExchangeRatesAsync, it'll stuck on 1 CPU VMs (Manjuro, Fedora)
 		{
-			using var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType], Global.Instance.TorSocks5Endpoint);
+			using var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType], Common.TorSocks5Endpoint);
 			var exchangeRates = await client.GetExchangeRatesAsync();
 
 			Assert.True(exchangeRates.NotNullAndNotEmpty());
@@ -112,7 +110,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[InlineData(NetworkType.Testnet)]
 		public async Task GetVersionsTestsAsync(NetworkType networkType)
 		{
-			using var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType], Global.Instance.TorSocks5Endpoint);
+			using var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType], Common.TorSocks5Endpoint);
 
 			var versions = await client.GetVersionsAsync(CancellationToken.None);
 			Assert.InRange(versions.ClientVersion, new Version(1, 1, 10), new Version(1, 2));
@@ -126,7 +124,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[InlineData(NetworkType.Testnet)]
 		public async Task CheckUpdatesTestsAsync(NetworkType networkType)
 		{
-			using var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType], Global.Instance.TorSocks5Endpoint);
+			using var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType], Common.TorSocks5Endpoint);
 
 			var updateStatus = await client.CheckUpdatesAsync(CancellationToken.None);
 
@@ -151,7 +149,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[InlineData(NetworkType.Testnet)]
 		public async Task GetLegalDocumentsTestsAsync(NetworkType networkType)
 		{
-			using var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType], Global.Instance.TorSocks5Endpoint);
+			using var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType], Common.TorSocks5Endpoint);
 
 			var content = await client.GetLegalDocumentsAsync(CancellationToken.None);
 

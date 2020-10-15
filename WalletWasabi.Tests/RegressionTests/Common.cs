@@ -1,5 +1,6 @@
 using NBitcoin;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -40,17 +41,10 @@ namespace WalletWasabi.Tests.RegressionTests
 			}
 		}
 
-#pragma warning disable IDE0060 // Remove unused parameter
-
+		[SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Must match delegate")]
 		public static void Wallet_NewFilterProcessed(object sender, FilterModel e)
-#pragma warning restore IDE0060 // Remove unused parameter
 		{
 			Interlocked.Increment(ref FiltersProcessedByWalletCount);
-		}
-
-		public static string GetWorkDir([CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerMemberName = null)
-		{
-			return Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName);
 		}
 
 		private static async Task AssertFiltersInitializedAsync(RegTestFixture regTestFixture, Backend.Global global)
@@ -77,8 +71,8 @@ namespace WalletWasabi.Tests.RegressionTests
 		public static async Task<(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global)> InitializeTestEnvironmentAsync(
 			RegTestFixture regTestFixture,
 			int numberOfBlocksToGenerate,
-			[CallerFilePath] string callerFilePath = null,
-			[CallerMemberName] string callerMemberName = null)
+			[CallerFilePath] string callerFilePath = "",
+			[CallerMemberName] string callerMemberName = "")
 		{
 			var global = regTestFixture.Global;
 			await AssertFiltersInitializedAsync(regTestFixture, global); // Make sure filters are created on the server side.
@@ -91,7 +85,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var network = global.RpcClient.Network;
 			var serviceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.PrivacyLevelSome.ToString(), 2, 21, 50, regTestFixture.BackendRegTestNode.P2pEndPoint, Money.Coins(Constants.DefaultDustThreshold));
 
-			var dir = GetWorkDir(callerFilePath, callerMemberName);
+			var dir = Tests.Common.GetWorkDir(callerFilePath, callerMemberName);
 			var indexStore = new IndexStore(Path.Combine(dir, "indexStore"), network, new SmartHeaderChain());
 			var transactionStore = new AllTransactionStore(Path.Combine(dir, "transactionStore"), network);
 			var mempoolService = new MempoolService();

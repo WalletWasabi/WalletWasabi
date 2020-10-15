@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.Helpers;
 using WalletWasabi.Io;
 using Xunit;
 
@@ -17,8 +16,8 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task IoManagerTestsAsync()
 		{
-			var file1 = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName(), EnvironmentHelpers.GetMethodName(), $"file1.dat");
-			var file2 = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName(), EnvironmentHelpers.GetMethodName(), $"file2.dat");
+			var file1 = Path.Combine(Common.GetWorkDir(), $"file1.dat");
+			var file2 = Path.Combine(Common.GetWorkDir(), $"file2.dat");
 
 			Random random = new Random();
 			List<string> lines = new List<string>();
@@ -192,7 +191,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task IoTestsAsync()
 		{
-			var file = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName(), EnvironmentHelpers.GetMethodName(), $"file.dat");
+			var file = Path.Combine(Common.GetWorkDir(), $"file.dat");
 
 			DigestableSafeMutexIoManager ioman = new DigestableSafeMutexIoManager(file);
 			ioman.DeleteMe();

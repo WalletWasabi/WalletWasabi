@@ -122,7 +122,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				}
 
-				return new PayjoinClient(payjoinEndPointUri, Global.TorSocks5EndPoint);
+				return new PayjoinClient(payjoinEndPointUri, Global.Config.TorSocks5EndPoint);
 			}
 
 			return null;

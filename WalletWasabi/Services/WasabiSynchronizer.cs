@@ -38,14 +38,17 @@ namespace WalletWasabi.Services
 
 		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Func<Uri> baseUriAction, EndPoint torSocks5EndPoint)
 		{
-			var client = new WasabiClient(baseUriAction, torSocks5EndPoint);
-			CreateNew(network, bitcoinStore, client);
+			WasabiClient = new WasabiClient(baseUriAction, torSocks5EndPoint);
+			Network = Guard.NotNull(nameof(network), network);			
+			LastResponse = null;
+			_running = 0;
+			Cancel = new CancellationTokenSource();
+			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
 		}
 
-		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Uri baseUri, EndPoint torSocks5EndPoint)
+		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Uri baseUri, EndPoint torSocks5EndPoint):
+			this(network, bitcoinStore, () => baseUri, torSocks5EndPoint)
 		{
-			var client = new WasabiClient(baseUri, torSocks5EndPoint);
-			CreateNew(network, bitcoinStore, client);
 		}
 
 		#region EventsPropertiesMembers
@@ -113,16 +116,6 @@ namespace WalletWasabi.Services
 
 		#region Initializers
 
-		private void CreateNew(Network network, BitcoinStore bitcoinStore, WasabiClient client)
-		{
-			Network = Guard.NotNull(nameof(network), network);
-			WasabiClient = Guard.NotNull(nameof(client), client);
-			LastResponse = null;
-			_running = 0;
-			Cancel = new CancellationTokenSource();
-			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
-		}
-
 		public void Start(TimeSpan requestInterval, TimeSpan feeQueryRequestInterval, int maxFiltersToSyncAtInitialization)
 		{
 			Guard.NotNull(nameof(requestInterval), requestInterval);
@@ -150,7 +143,7 @@ namespace WalletWasabi.Services
 						{
 							while (AreRequestsBlocked())
 							{
-								await Task.Delay(3000, Cancel.Token);
+								await Task.Delay(3000, Cancel.Token).ConfigureAwait(false);
 							}
 
 							EstimateSmartFeeMode? estimateMode = null;
@@ -170,7 +163,9 @@ namespace WalletWasabi.Services
 									return;
 								}
 
-								response = await WasabiClient.GetSynchronizeAsync(hashChain.TipHash, maxFiltersToSyncAtInitialization, estimateMode, Cancel.Token).WithAwaitCancellationAsync(Cancel.Token, 300);
+								response = await WasabiClient.GetSynchronizeAsync(hashChain.TipHash, maxFiltersToSyncAtInitialization, estimateMode, Cancel.Token)
+									.WithAwaitCancellationAsync(Cancel.Token, 300)
+									.ConfigureAwait(false);
 
 								// NOT GenSocksServErr
 								BackendStatus = BackendStatus.Connected;
@@ -266,11 +261,11 @@ namespace WalletWasabi.Services
 										$"{nameof(firstFilter)}.{nameof(firstFilter.Header)}.{nameof(firstFilter.Header.BlockHash)}:{firstFilter.Header.BlockHash}{Environment.NewLine}" +
 										$"{nameof(firstFilter)}.{nameof(firstFilter.Header)}.{nameof(firstFilter.Header.Height)}:{firstFilter.Header.Height}");
 
-									await BitcoinStore.IndexStore.RemoveAllImmmatureFiltersAsync(Cancel.Token, deleteAndCrashIfMature: true);
+									await BitcoinStore.IndexStore.RemoveAllImmmatureFiltersAsync(Cancel.Token, deleteAndCrashIfMature: true).ConfigureAwait(false);
 								}
 								else
 								{
-									await BitcoinStore.IndexStore.AddNewFiltersAsync(filters, Cancel.Token);
+									await BitcoinStore.IndexStore.AddNewFiltersAsync(filters, Cancel.Token).ConfigureAwait(false);
 
 									if (filters.Count() == 1)
 									{
@@ -286,7 +281,7 @@ namespace WalletWasabi.Services
 							{
 								// Reorg happened
 								// 1. Rollback index
-								FilterModel reorgedFilter = await BitcoinStore.IndexStore.RemoveLastFilterAsync(Cancel.Token);
+								FilterModel reorgedFilter = await BitcoinStore.IndexStore.RemoveLastFilterAsync(Cancel.Token).ConfigureAwait(false);
 								Logger.LogInfo($"REORG Invalid Block: {reorgedFilter.Header.BlockHash}.");
 
 								ignoreRequestInterval = true;
@@ -298,7 +293,7 @@ namespace WalletWasabi.Services
 								if (response.BestHeight > hashChain.TipHeight) // If the server's tip height is larger than ours, we're missing a filter, our index got corrupted.
 								{
 									// If still bad delete filters and crash the software?
-									await BitcoinStore.IndexStore.RemoveAllImmmatureFiltersAsync(Cancel.Token, deleteAndCrashIfMature: true);
+									await BitcoinStore.IndexStore.RemoveAllImmmatureFiltersAsync(Cancel.Token, deleteAndCrashIfMature: true).ConfigureAwait(false);
 								}
 							}
 
@@ -310,7 +305,7 @@ namespace WalletWasabi.Services
 							Logger.LogError(ex);
 							try
 							{
-								await Task.Delay(3000, Cancel.Token); // Give other threads time to do stuff.
+								await Task.Delay(3000, Cancel.Token).ConfigureAwait(false); // Give other threads time to do stuff.
 							}
 							catch (TaskCanceledException ex2)
 							{
@@ -332,7 +327,7 @@ namespace WalletWasabi.Services
 								try
 								{
 									int delay = (int)Math.Min(requestInterval.TotalMilliseconds, MaxRequestIntervalForMixing.TotalMilliseconds);
-									await Task.Delay(delay, Cancel.Token); // Ask for new index in every requestInterval.
+									await Task.Delay(delay, Cancel.Token).ConfigureAwait(false); // Ask for new index in every requestInterval.
 								}
 								catch (TaskCanceledException ex)
 								{

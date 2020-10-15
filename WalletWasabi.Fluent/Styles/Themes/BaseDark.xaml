@@ -1,0 +1,28 @@
+<Styles xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:sys="clr-namespace:System;assembly=netstandard"
+  xmlns:local="clr-namespace:AvalonStudio.Controls.Standard.CodeEditor;assembly=AvalonStudio.Controls.Standard">
+  <Styles.Resources>
+    <SolidColorBrush x:Key="TextControlBackground">#2F2F2F</SolidColorBrush>
+    <SolidColorBrush x:Key="TextControlBackgroundFocused">#2F2F2F</SolidColorBrush>
+    <SolidColorBrush x:Key="TextControlBackgroundPointerOver">#2F2F2F</SolidColorBrush>
+    <SolidColorBrush x:Key="TextControlForeground">#FFFFFF</SolidColorBrush>
+    <SolidColorBrush x:Key="TextControlBorderBrush">#434343</SolidColorBrush>
+    <SolidColorBrush x:Key="TextControlBorderBrushPointerOver">#434343</SolidColorBrush>
+    <SolidColorBrush x:Key="StatusBarControlBackground">#191919</SolidColorBrush>
+    <SolidColorBrush x:Key="StatusBarControlForeground">#A3A3A3</SolidColorBrush>
+    <SolidColorBrush x:Key="AcrylicFallbackColor">#1F1F1F</SolidColorBrush>
+    <SolidColorBrush x:Key="InvisibleButtonBackgroundColor">Transparent</SolidColorBrush>
+    <SolidColorBrush x:Key="InvisibleButtonPointerOverBackgroundColor">#2FFFFFFF</SolidColorBrush>
+    <SolidColorBrush x:Key="InvisibleButtonPressedBackgroundColor">#3FFFFFFF</SolidColorBrush>
+
+    <SolidColorBrush x:Key="DialogOverlayColor">#7F2E2E2E</SolidColorBrush>
+    <SolidColorBrush x:Key="DialogBackground">#323232</SolidColorBrush>
+    <BoxShadows x:Key="DialogBoxShadow">4 11 30 1 #3F000000</BoxShadows>
+
+    <Color x:Key="RegionColor">#FF212121</Color>
+    <BoxShadows x:Key="BoxShadow">0 1 4 #121212</BoxShadows>
+  </Styles.Resources>
+  <StyleInclude Source="avares://Avalonia.Themes.Fluent/Accents/FluentDark.xaml"/>
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Base.xaml" />
+</Styles>

@@ -8,6 +8,8 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 {
 	public class Statement
 	{
+		private static GroupElement O = GroupElement.Infinity;
+
 		public Statement(GroupElement publicPoint, IEnumerable<GroupElement> generators)
 			: this(ToTable(generators.Prepend(publicPoint)))
 		{
@@ -22,15 +24,11 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 		{
 			var terms = equations.GetLength(1);
 			Guard.True(nameof(terms), terms >= 2, $"Invalid {nameof(terms)}. It needs to have at least one generator and one public point.");
-			foreach (var generator in equations)
-			{
-				Guard.NotNull(nameof(generator), generator);
-			}
 
 			// make an equation out of each row taking the first element of each row as the public point
 			var rows = Enumerable.Range(0, equations.GetLength(0));
 			var cols = Enumerable.Range(1, terms - 1);
-			Equations = rows.Select(i => new Equation(equations[i, 0], new GroupElementVector(cols.Select(j => equations[i, j]))));
+			Equations = rows.Select(i => new Equation(equations[i, 0] ?? O, new GroupElementVector(cols.Select(j => equations[i, j] ?? O))));
 		}
 
 		public IEnumerable<Equation> Equations { get; }

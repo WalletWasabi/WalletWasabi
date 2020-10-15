@@ -14,7 +14,7 @@ namespace WalletWasabi.Tests.Helpers
 {
 	public static class TestNodeBuilder
 	{
-		public static async Task<CoreNode> CreateAsync(HostedServices hostedServices, [CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerMemberName = null, string additionalFolder = null, MempoolService mempoolService = null)
+		public static async Task<CoreNode> CreateAsync(HostedServices hostedServices, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", string additionalFolder = "", MempoolService? mempoolService = null)
 		{
 			var network = Network.RegTest;
 			return await CoreNode.CreateAsync(
@@ -22,7 +22,7 @@ namespace WalletWasabi.Tests.Helpers
 					network,
 					mempoolService ?? new MempoolService(),
 					hostedServices,
-					Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName, additionalFolder ?? ""),
+					Path.Combine(Common.GetWorkDir(callerFilePath, callerMemberName), additionalFolder),
 					tryRestart: true,
 					tryDeleteDataDir: true,
 					EndPointStrategy.Random,

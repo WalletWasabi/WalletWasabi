@@ -46,8 +46,7 @@ namespace WalletWasabi.Tor.Socks5.Models.Messages
 			Guard.NotNullOrEmpty(nameof(bytes), bytes);
 			Guard.InRangeAndNotNull($"{nameof(bytes)}.{nameof(bytes.Length)}", bytes.Length, 3, 257);
 
-			Ver = new VerField();
-			Ver.FromByte(bytes[0]);
+			Ver = new VerField(bytes[0]);
 
 			NMethods = new NMethodsField();
 			NMethods.FromByte(bytes[1]);
