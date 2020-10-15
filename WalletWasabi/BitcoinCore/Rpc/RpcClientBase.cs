@@ -113,7 +113,7 @@ namespace WalletWasabi.BitcoinCore.Rpc
 
 		#region For Testing Only
 
-		public virtual async Task<uint256> SendToAddressAsync(BitcoinAddress address, Money amount, string commentTx = null, string commentDest = null, bool subtractFeeFromAmount = false, bool replaceable = false)
+		public virtual async Task<uint256> SendToAddressAsync(BitcoinAddress address, Money amount, string? commentTx = null, string? commentDest = null, bool subtractFeeFromAmount = false, bool replaceable = false)
 		{
 			return await Rpc.SendToAddressAsync(address, amount, commentTx, commentDest, subtractFeeFromAmount, replaceable).ConfigureAwait(false);
 		}

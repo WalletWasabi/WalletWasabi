@@ -43,7 +43,7 @@ namespace WalletWasabi.BitcoinCore.Rpc
 
 		IRPCClient PrepareBatch();
 
-		Task<uint256> SendToAddressAsync(BitcoinAddress address, Money amount, string commentTx = null, string commentDest = null, bool subtractFeeFromAmount = false, bool replaceable = false);
+		Task<uint256> SendToAddressAsync(BitcoinAddress address, Money amount, string? commentTx = null, string? commentDest = null, bool subtractFeeFromAmount = false, bool replaceable = false);
 
 		Task<uint256> GetBlockHashAsync(int height);
 

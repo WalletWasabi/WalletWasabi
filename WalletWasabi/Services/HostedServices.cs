@@ -31,7 +31,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public async Task StartAllAsync(CancellationToken token)
+		public async Task StartAllAsync(CancellationToken token = default)
 		{
 			if (IsStartAllAsyncStarted)
 			{
@@ -69,7 +69,7 @@ namespace WalletWasabi.Services
 			IsStartAllAsyncCompleted = true;
 		}
 
-		public async Task StopAllAsync(CancellationToken token)
+		public async Task StopAllAsync(CancellationToken token = default)
 		{
 			var tasks = CloneServices().Select(x => x.Service.StopAsync(token).ContinueWith(y =>
 			{
