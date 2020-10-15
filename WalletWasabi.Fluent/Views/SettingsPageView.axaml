@@ -8,6 +8,7 @@
     <TextBlock Text="Settings" FontSize="22" VerticalAlignment="Center" HorizontalAlignment="Center" />
     <Button Command="{Binding NextCommand}" Content="Next" />
     <Button Command="{Binding OpenDialogCommand}" Content="Open Dialog" />
+    <Button Command="{Binding ChangeThemeCommand}" Content="Change Theme" />
     <TextBox Watermark="Type here..."/>
     <TextBox Watermark="Type here... #2"/>
     <TextBox Watermark="Type here... #3" Text="{Binding RandomString}"/>
