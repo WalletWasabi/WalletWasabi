@@ -386,6 +386,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					NotificationHelpers.Error(ex.ToUserFriendlyString());
 					Logger.LogError(ex);
 				});
+
+			this.RaisePropertyChanged(nameof(TestImage));
 		}
 
 		protected Global Global { get; }

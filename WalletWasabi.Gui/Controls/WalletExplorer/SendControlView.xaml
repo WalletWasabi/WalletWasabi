@@ -9,6 +9,7 @@
              xmlns:suggestions="clr-namespace:WalletWasabi.Gui.Suggestions;assembly=WalletWasabi.Gui"
              x:Class="WalletWasabi.Gui.Controls.WalletExplorer.SendControlView">
   <UserControl.Resources>
+    <converters:SampleConverter x:Key="variableImage" />
     <converters:AmountForegroundConverter x:Key="AmountForegroundConverter" />
     <converters:BooleanStringConverter x:Key="BooleanStringConverter" />
     <converters:FeeTargetTimeConverter x:Key="FeeTargetTimeConverter" />
@@ -108,7 +109,11 @@
               </StackPanel>
             </Button>
 
-            <Image Source="{Binding TestImage}" Width="500" Height="500" Name="image1" />
+            <Image Source="{Binding TestImage}" Width="75" Height="75" Name="image1" />
+
+            <Image Width="75"
+                   Height="73"
+                   Source="{Binding PlaySource, Converter={StaticResource variableImage}}" />
 
             <Button Command="{Binding CaptureImageCommand}">
               <StackPanel Orientation="Horizontal">
