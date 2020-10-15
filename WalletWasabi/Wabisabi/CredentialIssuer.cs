@@ -51,7 +51,8 @@ namespace WalletWasabi.Wabisabi
 			var requestedCount = requested.Count();  
 			if (requestedCount != NumberOfCredentials)
 			{
-				throw new WabiSabiException(WabiSabiErrorCode.InvalidNumberOfRequestedCredentials, 
+				throw new WabiSabiException(
+					WabiSabiErrorCode.InvalidNumberOfRequestedCredentials, 
 					$"{NumberOfCredentials} credential requests were expected but {requestedCount} were received.");
 			}
 

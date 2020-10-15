@@ -49,7 +49,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 			{
 				var requestFactory = client.GetCredentialRegistrationFactory();
 				var present = client.Credentials.ZeroValue.Take(numberOfCredentials);
-				var (credentialRequest, validationData) = requestFactory.CreateRequest(new[] { Money.Coins(1)}, present);
+				var (credentialRequest, validationData) = requestFactory.CreateRequest(new[] { Money.Coins(1) }, present);
 
 				Assert.False(credentialRequest.IsNullRequest);
 				var credentialRequested = credentialRequest.Requested.ToArray();
@@ -70,7 +70,6 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 			}
 
 			{
-
 				var requestFactory = client.GetCredentialRegistrationFactory();
 				var valueableCredential = client.Credentials.Valuable.Take(1);
 				var amounts = Enumerable.Repeat(Money.Coins(0.5m), 2);
@@ -107,7 +106,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 				var credentialResponse = issuer.HandleRequest(credentialRequest);
 				client0.HandleResponse(credentialResponse, validationData);
 
-				(credentialRequest, validationData) = requestFactory.CreateRequest(new[]{ Money.Coins(1m) }, Enumerable.Empty<Credential>());
+				(credentialRequest, validationData) = requestFactory.CreateRequest(new[] { Money.Coins(1m) }, Enumerable.Empty<Credential>());
 
 				credentialResponse = issuer.HandleRequest(credentialRequest);
 				client0.HandleResponse(credentialResponse, validationData);
@@ -120,7 +119,6 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 				Assert.Equal(numberOfCredentials, client0.Credentials.All.Count());
 			}
 		}
-
 
 		[Fact]
 		[Trait("UnitTest", "UnitTest")]
@@ -167,7 +165,6 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 				Assert.Equal(WabiSabiErrorCode.InvalidNumberOfPresentedCredentials, ex.ErrorCode);
 				Assert.Equal("3 credential presentations were expected but 0 were received.", ex.Message);
 
-
 				(validCredentialRequest, _) = factory.CreateRequest(new Money[0], client.Credentials.All);
 
 				// Test incorrect number of credential requests
@@ -198,7 +195,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 				invalidCredentialRequest = new RegistrationRequest(
 					validCredentialRequest.DeltaAmount,
 					validCredentialRequest.Presented,
-					new[] { requested[0], requested[1], new IssuanceRequest(requested[2].Ma, new[] { GroupElement.Infinity } )},
+					new[] { requested[0], requested[1], new IssuanceRequest(requested[2].Ma, new[] { GroupElement.Infinity }) },
 					validCredentialRequest.Proofs );
 
 				ex = Assert.Throws<WabiSabiException>(() => issuer.HandleRequest(invalidCredentialRequest));

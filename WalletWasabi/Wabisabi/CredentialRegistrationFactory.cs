@@ -62,8 +62,7 @@ namespace WalletWasabi.Wabisabi
 				new RegistrationValidationData(
 					transcript,
 					Enumerable.Empty<Credential>(),
-					validationData
-				));
+					validationData));
 		}
 
 		public (RegistrationRequest, RegistrationValidationData) CreateRequest(
@@ -148,8 +147,7 @@ namespace WalletWasabi.Wabisabi
 				new RegistrationValidationData(
 					transcript,
 					credentialsToPresent,
-					validationData
-				));
+					validationData));
 		}
 
 		private Transcript BuildTransnscript(bool isNullRequest)
