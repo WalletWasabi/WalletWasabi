@@ -7,6 +7,8 @@
     <SolidColorBrush x:Key="TextControlBackgroundFocused">#EFEFEF</SolidColorBrush>
     <SolidColorBrush x:Key="TextControlBackgroundPointerOver">#EFEFEF</SolidColorBrush>
     <SolidColorBrush x:Key="TextControlForeground">#212121</SolidColorBrush>
+    <SolidColorBrush x:Key="TextControlBorderBrush">#33323232</SolidColorBrush>
+    <SolidColorBrush x:Key="TextControlBorderBrushPointerOver">#33323232</SolidColorBrush>
     <SolidColorBrush x:Key="StatusBarControlBackground">#ECECEC</SolidColorBrush>
     <SolidColorBrush x:Key="StatusBarControlForeground">#777777</SolidColorBrush>
     <SolidColorBrush x:Key="AcrylicFallbackColor">#E2E2E2</SolidColorBrush>
