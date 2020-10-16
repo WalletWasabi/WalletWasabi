@@ -234,13 +234,7 @@ namespace WalletWasabi.Tor
 
 			Interlocked.CompareExchange(ref _monitorState, StateStopping, StateRunning); // If running, make it stopping.
 
-			if (TorSocks5EndPoint is null)
-			{
-				Interlocked.Exchange(ref _monitorState, StateStopped);
-			}
-
 			MonitorCts.Cancel();
-
 			while (Interlocked.CompareExchange(ref _monitorState, StateStopped, StateNotStarted) == StateStopping)
 			{
 				await Task.Delay(50).ConfigureAwait(false);

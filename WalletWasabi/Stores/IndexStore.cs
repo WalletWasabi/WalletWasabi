@@ -21,6 +21,8 @@ namespace WalletWasabi.Stores
 	/// </summary>
 	public class IndexStore
 	{
+		private int _throttleId;
+
 		public IndexStore(string workFolderPath, Network network, SmartHeaderChain hashChain)
 		{
 			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
@@ -29,8 +31,6 @@ namespace WalletWasabi.Stores
 			Network = Guard.NotNull(nameof(network), network);
 			SmartHeaderChain = Guard.NotNull(nameof(hashChain), hashChain);
 		}
-
-		private int _throttleId;
 
 		public event EventHandler<FilterModel>? Reorged;
 
