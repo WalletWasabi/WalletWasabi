@@ -35,7 +35,7 @@ namespace WalletWasabi.Tor.Http.Bases
 			{
 				if (disposing)
 				{
-					TorClient?.Dispose();
+					(TorClient as IDisposable)?.Dispose();
 				}
 
 				_disposedValue = true;
