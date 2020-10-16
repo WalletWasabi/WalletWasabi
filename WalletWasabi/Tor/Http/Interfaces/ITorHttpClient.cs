@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace WalletWasabi.Tor.Http.Interfaces
 {
-	public interface ITorHttpClient : IHttpClient, IDisposable
+	public interface ITorHttpClient : IHttpClient
 	{
 		Uri DestinationUri { get; }
 		Func<Uri> DestinationUriAction { get; }
