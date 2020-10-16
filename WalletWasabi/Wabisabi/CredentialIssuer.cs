@@ -16,12 +16,12 @@ namespace WalletWasabi.Wabisabi
 {
 	public class CredentialIssuer
 	{
-		public CredentialIssuer(CoordinatorSecretKey sk, int numberOfCredentials, WasabiRandom random)
+		public CredentialIssuer(CoordinatorSecretKey sk, int numberOfCredentials, WasabiRandom randomNumberGenerator)
 		{
 			CoordinatorSecretKey = Guard.NotNull(nameof(sk), sk);
 			NumberOfCredentials = Guard.InRangeAndNotNull(nameof(numberOfCredentials), numberOfCredentials, 1, 100);
 			CoordinatorParameters = CoordinatorSecretKey.ComputeCoordinatorParameters();
-			Random = random;
+			RandomNumberGenerator = Guard.NotNull(nameof(randomNumberGenerator), randomNumberGenerator);
 		}
 
 		// Keeps track of the used serial numbers. This is part of 
@@ -31,7 +31,7 @@ namespace WalletWasabi.Wabisabi
 		// Canary test check to ensure credential balance is never negative
 		private Money Balance { get; set; } = Money.Zero;
 
-		private WasabiRandom Random { get; }
+		private WasabiRandom RandomNumberGenerator { get; }
 
 		private CoordinatorSecretKey CoordinatorSecretKey { get; }
 		
@@ -142,9 +142,9 @@ namespace WalletWasabi.Wabisabi
 			}
 
 			// Issue credentials.
-			var credentials = requested.Select(x => IssueCredential(x.Ma, Random.GetScalar())).ToArray();
+			var credentials = requested.Select(x => IssueCredential(x.Ma, RandomNumberGenerator.GetScalar())).ToArray();
 
-			var proofs = Prover.Prove(transcript, credentials.Select(x => x.Knowledge), Random);
+			var proofs = Prover.Prove(transcript, credentials.Select(x => x.Knowledge), RandomNumberGenerator);
 			var macs = credentials.Select(x => x.Mac);
 			var response = new RegistrationResponse(macs, proofs);
 

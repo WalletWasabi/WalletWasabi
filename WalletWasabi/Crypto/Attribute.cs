@@ -1,7 +1,6 @@
 using NBitcoin;
 using NBitcoin.Secp256k1;
 using WalletWasabi.Crypto.Groups;
-using WalletWasabi.Crypto.Randomness;
 
 namespace WalletWasabi.Crypto
 {
@@ -16,7 +15,7 @@ namespace WalletWasabi.Crypto
 		public Scalar Randomness { get; }
 		public GroupElement Ma { get; }
 
-		public static Attribute FromMoney(Money money, WasabiRandom rng)
-			=> new Attribute(new Scalar((ulong)money.Satoshi), rng.GetScalar(allowZero: false));
+		public static Attribute FromMoney(Money money, Scalar randomness)
+			=> new Attribute(new Scalar((ulong)money.Satoshi), randomness);
 	}
 }

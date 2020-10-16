@@ -19,10 +19,10 @@ namespace WalletWasabi.Wabisabi
 			int numberOfCredentials, 
 			CredentialPool credentialPool, 
 			CoordinatorParameters coordinatorParameters, 
-			WasabiRandom random)
+			WasabiRandom randomNumberGenerator)
 		{
 			NumberOfCredentials = numberOfCredentials;
-			Random = random;
+			RandomNumberGenerator = randomNumberGenerator;
 			CoordinatorParameters = coordinatorParameters;
 			CredentialPool = credentialPool;
 		}
@@ -33,7 +33,7 @@ namespace WalletWasabi.Wabisabi
 
 		private CredentialPool CredentialPool { get; }
 		 
-		private WasabiRandom Random { get; }
+		private WasabiRandom RandomNumberGenerator { get; }
 
 		public (RegistrationRequest, RegistrationValidationData) CreateRequestForZeroAmount()
 		{
@@ -44,7 +44,7 @@ namespace WalletWasabi.Wabisabi
 			for (var i = 0; i < NumberOfCredentials; i++)
 			{
 				var amount = Money.Zero;
-				var attribute = Attribute.FromMoney(amount, Random);
+				var attribute = Attribute.FromMoney(amount, RandomNumberGenerator.GetScalar(allowZero: false));
 
 				knowledge[i] = ProofSystem.ZeroProof(attribute.Ma, attribute.Randomness);
 				credentialsToRequest[i] = new IssuanceRequest(attribute.Ma, Enumerable.Empty<GroupElement>());
@@ -58,7 +58,7 @@ namespace WalletWasabi.Wabisabi
 					Money.Zero,
 					Enumerable.Empty<CredentialPresentation>(),
 					credentialsToRequest,
-					Prover.Prove(transcript, knowledge, Random)),
+					Prover.Prove(transcript, knowledge, RandomNumberGenerator)),
 				new RegistrationValidationData(
 					transcript,
 					Enumerable.Empty<Credential>(),
@@ -104,7 +104,7 @@ namespace WalletWasabi.Wabisabi
 			var presentations = new List<CredentialPresentation>();
 			foreach (var credential in credentialsToPresent)
 			{
-				var z = Random.GetScalar();
+				var z = RandomNumberGenerator.GetScalar();
 				var presentation = credential.Present(z);
 				presentations.Add(presentation);
 				knowledgeToProve.Add(ProofSystem.ShowCredential(presentation, z, credential, CoordinatorParameters));
@@ -117,10 +117,10 @@ namespace WalletWasabi.Wabisabi
 			for (var i = 0; i < NumberOfCredentials; i++)
 			{
 				var amount = credentialAmountsToRequest[i];
-				var attribute = Attribute.FromMoney(amount, Random);
+				var attribute = Attribute.FromMoney(amount, RandomNumberGenerator.GetScalar(allowZero: false));
 				var scalarAmount = new Scalar((ulong)amount.Satoshi);
 
-				var (rangeKnowledge, bitCommitments) = ProofSystem.RangeProof(scalarAmount, attribute.Randomness, Constants.RangeProofWidth, Random);
+				var (rangeKnowledge, bitCommitments) = ProofSystem.RangeProof(scalarAmount, attribute.Randomness, Constants.RangeProofWidth, RandomNumberGenerator);
 				knowledgeToProve.Add(rangeKnowledge);
 
 				var credentialRequest = new IssuanceRequest(attribute.Ma, bitCommitments);
@@ -143,7 +143,7 @@ namespace WalletWasabi.Wabisabi
 					amountsToRequest.Sum() - credentialsToPresent.Sum(x => x.Amount.ToMoney()),
 					presentations,
 					credentialsToRequest,
-					Prover.Prove(transcript, knowledgeToProve, Random)),
+					Prover.Prove(transcript, knowledgeToProve, RandomNumberGenerator)),
 				new RegistrationValidationData(
 					transcript,
 					credentialsToPresent,

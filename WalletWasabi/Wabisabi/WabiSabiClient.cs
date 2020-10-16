@@ -12,23 +12,23 @@ namespace WalletWasabi.Wabisabi
 {
 	public class WabiSabiClient
 	{
-		public WabiSabiClient(CoordinatorParameters coordinatorParameters, int numberOfCredentials, WasabiRandom rnd)
+		public WabiSabiClient(CoordinatorParameters coordinatorParameters, int numberOfCredentials, WasabiRandom randomNumberGenerator)
 		{
-			Random = Guard.NotNull(nameof(rnd), rnd);
+			RandomNumberGenerator = Guard.NotNull(nameof(randomNumberGenerator), randomNumberGenerator);
 			NumberOfCredentials = Guard.InRangeAndNotNull(nameof(numberOfCredentials), numberOfCredentials, 1, 100);
 			CoordinatorParameters = Guard.NotNull(nameof(coordinatorParameters), coordinatorParameters);
 		}
 
 		private CoordinatorParameters CoordinatorParameters { get; }
 
-		private WasabiRandom Random { get; }
+		private WasabiRandom RandomNumberGenerator { get; }
 
 		private int NumberOfCredentials { get; }
 
 		public CredentialPool Credentials { get; } = new CredentialPool();
 
 		public CredentialRegistrationFactory GetCredentialRegistrationFactory()
-			=> new CredentialRegistrationFactory(NumberOfCredentials, Credentials, CoordinatorParameters, Random);
+			=> new CredentialRegistrationFactory(NumberOfCredentials, Credentials, CoordinatorParameters, RandomNumberGenerator);
 
 		public void HandleResponse(RegistrationResponse registrationResponse, RegistrationValidationData registrationValidationData)
 		{
