@@ -1,0 +1,22 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
+ 
+ <Style Selector="c|TagBox">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Panel>
+          <WrapPanel Name="PART_Container">
+            <AutoCompleteBox Name="PART_InputBox" MinimumPrefixLength="{TemplateBinding MinimumPrefixLength}"
+            Items="{TemplateBinding Suggestions}"/>
+          </WrapPanel>
+        </Panel>
+      </ControlTemplate>
+    </Setter>
+  </Style> 
+
+  <Style Selector="c|TagBox /template/ TextBox#PART_InputBox">
+     <Setter Property="Opacity" Value="1"/>
+  </Style> 
+  
+</Styles>
