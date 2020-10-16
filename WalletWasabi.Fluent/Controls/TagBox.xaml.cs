@@ -41,10 +41,10 @@ namespace WalletWasabi.Fluent.Controls
         {
             base.OnPropertyChanged(change);
 
-            if (change.Property == IsDialogOpenProperty)
-            {
-                PseudoClasses.Set(":open", change.NewValue.GetValueOrDefault<bool>());
-            }
+            // if (change.Property == IsDialogOpenProperty)
+            // {
+            //     PseudoClasses.Set(":open", change.NewValue.GetValueOrDefault<bool>());
+            // }
         }
 
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
