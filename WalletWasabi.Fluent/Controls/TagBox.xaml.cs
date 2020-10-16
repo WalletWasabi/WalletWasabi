@@ -83,7 +83,7 @@ namespace WalletWasabi.Fluent.Controls
 
         private void OnKeyPress(object? sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Back && string.IsNullOrEmpty(_tb.Text.Trim()) && _wp.Children.Count > 1)
+            if (e.Key == Key.Back && _tb.Text.Length == 0 && _wp.Children.Count > 1)
             {
                 _wp.Children.RemoveAt(_wp.Children.Count - 2);
             }
