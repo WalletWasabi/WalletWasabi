@@ -9,7 +9,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
 {
 	public class ConfirmRecoveryWordsViewModel : ViewModelBase, IRoutableViewModel
 	{
-		public ConfirmRecoveryWordsViewModel(IScreen screen, List<string> mnemonicWords)
+		public ConfirmRecoveryWordsViewModel(IScreen screen, List<RecoveryWord> mnemonicWords)
 		{
 			HostScreen = screen;
 			ConfirmationWords = new List<RecoveryWord>();
@@ -21,7 +21,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
 		public IScreen HostScreen { get; }
 		public List<RecoveryWord> ConfirmationWords { get; }
 
-		private void SetConfirmationWords(List<string> mnemonicWords)
+		private void SetConfirmationWords(List<RecoveryWord> mnemonicWords)
 		{
 			var random = new Random();
 			var unsortedConfWords = new List<RecoveryWord>();
@@ -39,7 +39,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
 					}
 				}
 
-				unsortedConfWords.Add(new RecoveryWord(index + 1, mnemonicWords[index]));
+				unsortedConfWords.Add(mnemonicWords[index]);
 			}
 
 			ConfirmationWords.AddRange(unsortedConfWords.OrderBy(x => x.Index));

@@ -11,6 +11,7 @@ namespace WalletWasabi.Fluent.Models
 	public class RecoveryWord : ViewModelBase
 	{
 		private string _input;
+		private bool _isConfirmed;
 
 		public RecoveryWord(int index, string word)
 		{
@@ -26,6 +27,12 @@ namespace WalletWasabi.Fluent.Models
 			set => this.RaiseAndSetIfChanged(ref _input, value);
 		}
 
+		public bool IsConfirmed
+		{
+			get => _isConfirmed;
+			set => this.RaiseAndSetIfChanged(ref _isConfirmed, value);
+		}
+
 		public int Index { get; }
 		public string Word { get; }
 
@@ -38,6 +45,7 @@ namespace WalletWasabi.Fluent.Models
 
 			if (Input == Word)
 			{
+				IsConfirmed = true;
 				return;
 			}
 

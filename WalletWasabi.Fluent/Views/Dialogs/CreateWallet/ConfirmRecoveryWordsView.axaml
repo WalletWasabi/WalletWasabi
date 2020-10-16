@@ -23,8 +23,8 @@
             <StackPanel>
               <TextBlock Text="{Binding Index, StringFormat=Recovery word {0}}" Margin="0 20 0 8"/>
               <StackPanel Orientation="Horizontal">
-                <TextBox Watermark="Type the word here..." Text="{Binding Input}" Width="280" FontSize="12"/>
-                <PathIcon Foreground="Green" Data="{StaticResource checkmark_filled}" VerticalAlignment="Center" Width="12" Height="12" Margin="15 0 0 0"/>
+                <TextBox Watermark="Type the word here..." Text="{Binding Input}" IsEnabled="{Binding !IsConfirmed}" Width="280" FontSize="12"/>
+                <PathIcon Foreground="Green" IsVisible="{Binding IsConfirmed}" Data="{StaticResource checkmark_filled}" VerticalAlignment="Center" Width="12" Height="12" Margin="15 0 0 0"/>
               </StackPanel>
             </StackPanel>
           </DataTemplate>

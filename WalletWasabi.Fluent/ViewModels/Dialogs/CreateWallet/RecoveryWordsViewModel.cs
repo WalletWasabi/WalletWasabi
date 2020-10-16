@@ -4,22 +4,23 @@ using System.Reactive;
 using System.Text;
 using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
 {
 	public class RecoveryWordsViewModel : ViewModelBase, IRoutableViewModel
 	{
-		private List<string> _mnemonicWords;
+		private List<RecoveryWord> _mnemonicWords;
 
 		public RecoveryWordsViewModel(IScreen screen)
 		{
 			HostScreen = screen;
-			MnemonicWords = new List<string>();
+			MnemonicWords = new List<RecoveryWord>();
 
 			for (int i = 0; i < 12; i++)
 			{
-				MnemonicWords.Add($"{i + 1}. Random");
+				MnemonicWords.Add(new RecoveryWord(i + 1,"Nothing"));
 			}
 
 			ContinueCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new ConfirmRecoveryWordsViewModel(HostScreen, MnemonicWords)));
@@ -28,7 +29,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
 		public ICommand GoBackCommand => HostScreen.Router.NavigateBack;
 		public ICommand ContinueCommand { get; }
 
-		public List<string> MnemonicWords
+		public List<RecoveryWord> MnemonicWords
 		{
 			get => _mnemonicWords;
 			set => this.RaiseAndSetIfChanged(ref _mnemonicWords, value);
