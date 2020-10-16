@@ -39,6 +39,7 @@
     <Style Selector=":is(Control).italic">
         <Setter Property="(TextBlock.FontStyle)" Value="Italic" />
     </Style>
+
     <Style Selector=":is(Control).vcenter">
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
@@ -56,18 +57,6 @@
     </Style>
     <Style Selector=":is(Control).hright">
         <Setter Property="HorizontalAlignment" Value="Right" />
-    </Style>
-    <Style Selector=":is(Control).dptop">
-        <Setter Property="DockPanel.Dock" Value="Top" />
-    </Style>
-    <Style Selector=":is(Control).dpbottom">
-        <Setter Property="DockPanel.Dock" Value="Bottom" />
-    </Style>
-    <Style Selector=":is(Control).dpleft">
-        <Setter Property="DockPanel.Dock" Value="Left" />
-    </Style>
-    <Style Selector=":is(Control).dpright">
-        <Setter Property="DockPanel.Dock" Value="Right" />
     </Style>
 
     <Style Selector="SplitView">
