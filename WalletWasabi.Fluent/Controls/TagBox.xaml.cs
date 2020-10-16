@@ -15,15 +15,6 @@ namespace WalletWasabi.Fluent.Controls
     /// </summary>
     public class TagBox : ContentControl
     {
-        public static readonly StyledProperty<bool> IsDialogOpenProperty =
-            AvaloniaProperty.Register<TagBox, bool>(nameof(IsDialogOpen));
-
-        public bool IsDialogOpen
-        {
-            get => GetValue(IsDialogOpenProperty);
-            set => SetValue(IsDialogOpenProperty, value);
-        }
-
         public static readonly StyledProperty<int> MinimumPrefixLengthProperty =
             AvaloniaProperty.Register<TagBox, int>(nameof(MinimumPrefixLength));
 
