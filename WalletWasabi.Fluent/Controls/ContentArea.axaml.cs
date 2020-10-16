@@ -16,7 +16,7 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(TitleProperty);
 			set => SetValue(TitleProperty, value);
-		}		
+		}
 
 		public object Caption
 		{
@@ -28,7 +28,7 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			var result = base.RegisterContentPresenter(presenter);
 
-			switch(presenter.Name)
+			switch (presenter.Name)
 			{
 				case "PART_TitlePresenter":
 				case "PART_CaptionPresenter":
