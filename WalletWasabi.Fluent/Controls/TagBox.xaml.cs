@@ -2,9 +2,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Avalonia;
+using Avalonia.Layout;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
+using Avalonia.Media;
 using Avalonia.Threading;
 
 namespace WalletWasabi.Fluent.Controls
@@ -23,7 +25,7 @@ namespace WalletWasabi.Fluent.Controls
         }
 
         public static readonly StyledProperty<int> MinimumPrefixLengthProperty =
-            AvaloniaProperty.Register<TagBox, int>(nameof(MinimumPrefixLength));    
+            AvaloniaProperty.Register<TagBox, int>(nameof(MinimumPrefixLength));
 
         public int MinimumPrefixLength
         {
@@ -32,7 +34,7 @@ namespace WalletWasabi.Fluent.Controls
         }
 
         public static readonly StyledProperty<IEnumerable> SuggestionsProperty =
-            AvaloniaProperty.Register<TagBox, IEnumerable>(nameof(Suggestions));    
+            AvaloniaProperty.Register<TagBox, IEnumerable>(nameof(Suggestions));
 
         public IEnumerable Suggestions
         {
@@ -68,11 +70,25 @@ namespace WalletWasabi.Fluent.Controls
             {
                 var index = _wp.Children.Count - 1;
 
-                _wp.Children.Insert(index, new TextBlock() { Text = obj.Trim(), Margin = new Thickness(5) });
+                _wp.Children.Insert(index, GenerateTag(obj, index));
 
                 Dispatcher.UIThread.InvokeAsync(() => { _tb.Text = string.Empty; });
             }
         }
+
+        public IControl GenerateTag(string Text, int index) => new Border()
+        {
+            BorderThickness = new Thickness(1),
+            Margin = new Thickness(5),
+            Padding = new Thickness(5),
+            BorderBrush = new SolidColorBrush(Colors.LightGreen),
+            Child = new TextBlock() 
+            {
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                Text = Text.Trim()
+            }
+        };
 
         private void OnKeyPress(object? sender, KeyEventArgs e)
         {
@@ -84,7 +100,7 @@ namespace WalletWasabi.Fluent.Controls
             {
                 var index = _wp.Children.Count - 1;
 
-                _wp.Children.Insert(index, new TextBlock() { Text = _tb.Text.Trim(), Margin = new Thickness(5) });
+                _wp.Children.Insert(index, GenerateTag(_tb.Text, index));
 
                 Dispatcher.UIThread.InvokeAsync(() => { _tb.Text = string.Empty; });
             }
