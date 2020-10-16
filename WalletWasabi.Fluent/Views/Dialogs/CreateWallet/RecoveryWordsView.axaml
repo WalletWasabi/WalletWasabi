@@ -5,16 +5,15 @@
              mc:Ignorable="d"
              d:DesignWidth="600" d:DesignHeight="500"
              Width="600" Height="500"
-             x:Class="WalletWasabi.Fluent.Views.Dialogs.CreateWallet.RecoveryWordsView"
-             Background="LightGray">
+             x:Class="WalletWasabi.Fluent.Views.Dialogs.CreateWallet.RecoveryWordsView">
   <Panel Margin="25 35 25 20">
     
-     <Button Classes="invisible" Command="{Binding Close}" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Top">
+     <Button Classes="invisible" Command="{Binding GoBackCommand}" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Top">
         <PathIcon Data="{StaticResource arrow_left_regular}" />
       </Button>
         
     <DockPanel Margin="64 0 64 0">
-      <TextBlock Text="Recovery words" FontSize="20" DockPanel.Dock="Top" FontWeight="SemiBold" Classes=""/>
+      <TextBlock Text="Recovery words" FontSize="20" DockPanel.Dock="Top" FontWeight="SemiBold"/>
       <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" FontSize="12" Margin="0 10 0 0" Opacity="0.6"
                  Text="Write down the following numbered security words in order. These can be used to recover your wallet in the future. It is very important you keep them in a safe place." />
 
@@ -34,7 +33,7 @@
       </ItemsControl>
     </DockPanel>
     
-    <Button Content="Cancel" Classes="invisible" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
-    <Button Content="Continue" Classes="action" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+    <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="invisible" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
+    <Button Content="Continue" Command="{Binding ContinueCommand}" Classes="action" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
   </Panel>
 </UserControl>

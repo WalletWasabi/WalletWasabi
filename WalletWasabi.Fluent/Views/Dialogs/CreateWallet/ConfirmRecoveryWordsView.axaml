@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignWidth="600" d:DesignHeight="500"
+             Width="600" Height="500"
+             x:Class="WalletWasabi.Fluent.Views.Dialogs.CreateWallet.ConfirmRecoveryWordsView">
+  <Panel Margin="25 35 25 20">
+
+    <Button Classes="invisible" Command="{Binding GoBackCommand}" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Top">
+      <PathIcon Data="{StaticResource arrow_left_regular}" />
+    </Button>
+
+    <StackPanel Margin="64 0 64 0">
+      <TextBlock Text="Confirm recovery words" FontSize="20" DockPanel.Dock="Top" FontWeight="SemiBold"/>
+      <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" FontSize="12" Margin="0 10 0 0" Opacity="0.6"
+                 Text="Type the required recovery words" />
+
+      <ItemsControl Items="{Binding ConfirmationWords}" VerticalAlignment="Center" >
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <StackPanel>
+              <TextBlock Text="{Binding Index, StringFormat=Recovery word {0}}" Margin="0 20 0 8"/>
+              <StackPanel Orientation="Horizontal">
+                <TextBox Watermark="Type the word here..." Text="{Binding Input}" Width="280" FontSize="12"/>
+                <PathIcon Foreground="Green" Data="{StaticResource checkmark_filled}" VerticalAlignment="Center" Width="12" Height="12" Margin="15 0 0 0"/>
+              </StackPanel>
+            </StackPanel>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+
+    </StackPanel>
+
+    <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="invisible" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
+    <Button Content="Finish" Command="{Binding ContinueCommand}" Classes="action" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+  </Panel>
+</UserControl>

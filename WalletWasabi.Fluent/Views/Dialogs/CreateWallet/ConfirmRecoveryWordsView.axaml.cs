@@ -4,9 +4,9 @@ using WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet;
 
 namespace WalletWasabi.Fluent.Views.Dialogs.CreateWallet
 {
-	public class RecoveryWordsView : ReactiveUserControl<RecoveryWordsViewModel>
+	public class ConfirmRecoveryWordsView : ReactiveUserControl<ConfirmRecoveryWordsViewModel>
 	{
-		public RecoveryWordsView()
+		public ConfirmRecoveryWordsView()
 		{
 			InitializeComponent();
 		}

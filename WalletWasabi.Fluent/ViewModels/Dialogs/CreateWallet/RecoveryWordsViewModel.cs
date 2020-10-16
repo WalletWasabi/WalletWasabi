@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Reactive;
 using System.Text;
+using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Gui.ViewModels;
 
@@ -19,7 +21,12 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
 			{
 				MnemonicWords.Add($"{i + 1}. Random");
 			}
+
+			ContinueCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new ConfirmRecoveryWordsViewModel(HostScreen, MnemonicWords)));
 		}
+
+		public ICommand GoBackCommand => HostScreen.Router.NavigateBack;
+		public ICommand ContinueCommand { get; }
 
 		public List<string> MnemonicWords
 		{
