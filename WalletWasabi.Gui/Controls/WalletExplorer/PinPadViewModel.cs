@@ -29,7 +29,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				DialogResult = true;
 				OnClose();
 			},
-				this.WhenAny(x => x.MaskedPin, (maskedPin) => !string.IsNullOrWhiteSpace(maskedPin.Value)));
+			this.WhenAny(x => x.MaskedPin, (maskedPin) => !string.IsNullOrWhiteSpace(maskedPin.Value)));
 
 			KeyPadCommand = ReactiveCommand.Create<string>((arg) => MaskedPin += arg);
 
