@@ -5,7 +5,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.SettingsPageView">
   <StackPanel Spacing="10">
-    <TextBlock Text="Settings" FontSize="22" VerticalAlignment="Center" HorizontalAlignment="Center" />
+    <TextBlock Classes="vcenter hcenter h3" Text="Settings" />
     <Button Command="{Binding NextCommand}" Content="Next" />
     <Button Command="{Binding OpenDialogCommand}" Content="Open Dialog" />
     <Button Command="{Binding ChangeThemeCommand}" Content="Change Theme" />
