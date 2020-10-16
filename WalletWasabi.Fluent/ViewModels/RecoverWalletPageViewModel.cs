@@ -14,6 +14,6 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public override string IconName => "home_regular";
 
-		public IEnumerable MnemonicSuggestions => Wordlist.English.GetWords();
+		public IEnumerable MnemonicSuggestions => new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 	}
 }
