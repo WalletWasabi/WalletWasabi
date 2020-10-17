@@ -71,9 +71,9 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 
 			{
 				var requestFactory = client.GetCredentialRegistrationFactory();
-				var valueableCredential = client.Credentials.Valuable.Take(1);
+				var valuableCredential = client.Credentials.Valuable.Take(1);
 				var amounts = Enumerable.Repeat(Money.Coins(0.5m), 2);
-				var (credentialRequest, validationData) = requestFactory.CreateRequest(amounts, valueableCredential);
+				var (credentialRequest, validationData) = requestFactory.CreateRequest(amounts, valuableCredential);
 
 				Assert.False(credentialRequest.IsNullRequest);
 				var requested = credentialRequest.Requested.ToArray();

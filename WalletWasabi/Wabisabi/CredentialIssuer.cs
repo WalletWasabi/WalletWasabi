@@ -37,7 +37,7 @@ namespace WalletWasabi.Wabisabi
 		
 		private CoordinatorParameters CoordinatorParameters { get; }
 
-		// Gets the number of credential that has to be requested/presented
+		// Gets the number of credentials that have to be requested/presented
 		// This parameter is called `k` in the wabisabi paper.
 		public int NumberOfCredentials { get; }
 
