@@ -62,8 +62,7 @@ namespace WalletWasabi.Tor.Socks5
 				}
 				catch (Exception ex) when (IsConnectionRefused(ex))
 				{
-					throw new ConnectionException(
-						$"Could not connect to Tor SOCKSPort at {host}:{port}. Is Tor running?", ex);
+					throw new ConnectionException($"Could not connect to Tor SOCKSPort at {host}:{port}. Is Tor running?", ex);
 				}
 
 				Stream = TcpClient.GetStream();
@@ -208,7 +207,7 @@ namespace WalletWasabi.Tor.Socks5
 					// the reply.This must be no more than 10 seconds after detecting the
 					// condition that caused a failure.
 					DisposeTcpClient();
-					Logger.LogWarning($"Connection response indicates a failure. Actual response is: '{connectionResponse.Rep}'.");
+					Logger.LogWarning($"Connection response indicates a failure. Actual response is: '{connectionResponse.Rep}'. Request: {host}:{port}.");
 					throw new TorSocks5FailureResponseException(connectionResponse.Rep);
 				}
 
@@ -226,7 +225,7 @@ namespace WalletWasabi.Tor.Socks5
 			}
 			catch (Exception e)
 			{
-				Logger.LogError("Exception was thrown when connecting to destination.", e);
+				Logger.LogError($"Exception was thrown when connecting to destination ({host}:{port})", e);
 				throw;
 			}
 			finally
