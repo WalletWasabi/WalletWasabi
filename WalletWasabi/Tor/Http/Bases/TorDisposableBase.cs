@@ -20,14 +20,7 @@ namespace WalletWasabi.Tor.Http.Bases
 			TorClient = new TorHttpClient(baseUriAction, torSocks5EndPoint, isolateStream: true);
 		}
 
-		protected TorDisposableBase(ITorHttpClient torClient)
-		{
-			TorClient = torClient;
-		}
-
 		public ITorHttpClient TorClient { get; }
-
-		#region IDisposable Support
 
 		protected virtual void Dispose(bool disposing)
 		{
@@ -48,7 +41,5 @@ namespace WalletWasabi.Tor.Http.Bases
 			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
 			Dispose(true);
 		}
-
-		#endregion IDisposable Support
 	}
 }
