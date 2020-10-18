@@ -43,7 +43,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 			Global = Locator.Current.GetService<Global>();
 			WalletManager = Global.WalletManager;
 			Owner = owner;
-			Wallets = new ObservableCollection<HardwareWalletViewModel>();
+			_wallets = new ObservableCollection<HardwareWalletViewModel>();
 			IsHwWalletSearchTextVisible = false;
 
 			this.WhenAnyValue(x => x.SelectedWallet)
