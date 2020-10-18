@@ -12,18 +12,18 @@ namespace Avalonia.Controls
 {
 	public static class AvaloniaControlsExtensions
 	{
-		public static async Task<string> ShowAsync(this SaveFileDialog me, Window? parent, bool fallBack)
+		public static async Task<string> ShowAsync(this SaveFileDialog me, Window parent, bool fallBack)
 		{
 			var ret = await ShowAsync(me as FileDialog, parent, fallBack);
 			return Guard.Correct(ret?.FirstOrDefault());
 		}
 
-		public static async Task<string[]> ShowAsync(this OpenFileDialog me, Window? parent, bool fallBack)
+		public static async Task<string[]> ShowAsync(this OpenFileDialog me, Window parent, bool fallBack)
 		{
 			return await ShowAsync(me as FileDialog, parent, fallBack);
 		}
 
-		private static async Task<string[]> ShowAsync(this FileDialog me, Window? parent, bool fallBack)
+		private static async Task<string[]> ShowAsync(this FileDialog me, Window parent, bool fallBack)
 		{
 			if (fallBack)
 			{
@@ -83,7 +83,7 @@ namespace Avalonia.Controls
 			}
 		}
 
-		private static async Task<string[]> ShowOpenSaveFileDialogAsync(FileDialog me, Window? parent)
+		private static async Task<string[]> ShowOpenSaveFileDialogAsync(FileDialog me, Window parent)
 		{
 			if (me is OpenFileDialog ofd)
 			{

@@ -85,7 +85,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 					ofd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 				}
 
-				var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+				var window = ((IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime).MainWindow;
 				var selected = await ofd.ShowAsync(window, fallBack: true);
 				if (selected is { } && selected.Any())
 				{
