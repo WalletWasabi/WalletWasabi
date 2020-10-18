@@ -392,13 +392,13 @@ namespace WalletWasabi.Tor.Socks5
 		{
 			try
 			{
-				if (TcpClient is { })
+				if (TcpClient is { } tcpClient)
 				{
-					if (TcpClient.Connected)
+					if (tcpClient.Connected)
 					{
 						Stream?.Dispose();
 					}
-					TcpClient?.Dispose();
+					tcpClient.Dispose();
 				}
 			}
 			catch (Exception ex)

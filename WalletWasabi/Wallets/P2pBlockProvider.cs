@@ -31,7 +31,7 @@ namespace WalletWasabi.Wallets
 			Network = network;
 		}
 
-		public static event EventHandler<bool> DownloadingBlockChanged;
+		public static event EventHandler<bool>? DownloadingBlockChanged;
 
 		public NodesGroup Nodes { get; }
 		public CoreNode CoreNode { get; }

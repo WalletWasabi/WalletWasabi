@@ -22,7 +22,7 @@ namespace WalletWasabi.Services
 			Synchronizer.PropertyChanged += Synchronizer_PropertyChanged;
 		}
 
-		public event EventHandler<UpdateStatus> UpdateStatusChanged;
+		public event EventHandler<UpdateStatus>? UpdateStatusChanged;
 
 		public WasabiClient WasabiClient { get; }
 
@@ -41,7 +41,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		private void Synchronizer_PropertyChanged(object sender, PropertyChangedEventArgs e)
+		private void Synchronizer_PropertyChanged(object? sender, PropertyChangedEventArgs e)
 		{
 			if (e.PropertyName == nameof(WasabiSynchronizer.BackendStatus) &&
 				Synchronizer.BackendStatus == BackendStatus.Connected)

@@ -13,7 +13,7 @@ namespace WalletWasabi.Blockchain.P2p
 		{
 		}
 
-		public event EventHandler<uint256> BlockInv;
+		public event EventHandler<uint256>? BlockInv;
 
 		protected override bool ProcessInventoryVector(InventoryVector inv, EndPoint remoteSocketEndpoint)
 		{

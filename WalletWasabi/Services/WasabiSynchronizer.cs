@@ -53,11 +53,11 @@ namespace WalletWasabi.Services
 
 		#region EventsPropertiesMembers
 
-		public event EventHandler<AllFeeEstimate> AllFeeEstimateChanged;
+		public event EventHandler<AllFeeEstimate>? AllFeeEstimateChanged;
 
-		public event EventHandler<bool> ResponseArrivedIsGenSocksServFail;
+		public event EventHandler<bool>? ResponseArrivedIsGenSocksServFail;
 
-		public event EventHandler<SynchronizeResponse> ResponseArrived;
+		public event EventHandler<SynchronizeResponse>? ResponseArrived;
 
 		public SynchronizeResponse LastResponse { get; private set; }
 

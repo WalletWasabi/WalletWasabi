@@ -28,7 +28,7 @@ namespace WalletWasabi.BitcoinCore
 			ReconnectorLock = new AsyncLock();
 		}
 
-		public event EventHandler<uint256> BlockInv;
+		public event EventHandler<uint256>? BlockInv;
 
 		private Node Node { get; set; }
 		private TrustedP2pBehavior TrustedP2pBehavior { get; set; }
@@ -110,7 +110,7 @@ namespace WalletWasabi.BitcoinCore
 			}
 		}
 
-		private void TrustedP2pBehavior_BlockInv(object sender, uint256 e)
+		private void TrustedP2pBehavior_BlockInv(object? sender, uint256 e)
 		{
 			BlockInv?.Invoke(this, e);
 		}
