@@ -21,17 +21,13 @@ namespace WalletWasabi.Tor.Socks5
 	{
 		private volatile bool _disposedValue = false; // To detect redundant calls
 
-		#region Constructors
-
 		/// <param name="endPoint">Valid Tor end point.</param>
-		internal TorSocks5Client(EndPoint endPoint)
+		public TorSocks5Client(EndPoint endPoint)
 		{
 			TorSocks5EndPoint = endPoint;
 			TcpClient = new TcpClient(endPoint.AddressFamily);
 			AsyncLock = new AsyncLock();
 		}
-
-		#endregion Constructors
 
 		#region PropertiesAndMembers
 
@@ -176,20 +172,20 @@ namespace WalletWasabi.Tor.Socks5
 			Logger.LogDebug("<");
 		}
 
-		internal async Task ConnectToDestinationAsync(EndPoint destination, bool isRecursiveCall = false)
+		internal async Task ConnectToDestinationAsync(EndPoint destination)
 		{
 			if (!destination.TryGetHostAndPort(out string? host, out int? port))
 			{
 				throw new ArgumentException("Endpoint type is not supported.", nameof(destination));
 			}
 
-			await ConnectToDestinationAsync(host, port.Value, isRecursiveCall: isRecursiveCall).ConfigureAwait(false);
+			await ConnectToDestinationAsync(host, port.Value).ConfigureAwait(false);
 		}
 
 		/// <param name="host">IPv4 or domain</param>
-		internal async Task ConnectToDestinationAsync(string host, int port, bool isRecursiveCall = false)
+		internal async Task ConnectToDestinationAsync(string host, int port)
 		{
-			Logger.LogDebug($"> {nameof(host)}={host}, {nameof(port)}={port}, {nameof(isRecursiveCall)}={isRecursiveCall}");
+			Logger.LogDebug($"> {nameof(host)}={host}, {nameof(port)}={port}");
 
 			host = Guard.NotNullOrEmptyOrWhitespace(nameof(host), host, true);
 			Guard.MinimumAndNotNull(nameof(port), port, 0);
@@ -199,7 +195,7 @@ namespace WalletWasabi.Tor.Socks5
 				var connectionRequest = new TorSocks5Request(cmd: CmdField.Connect, new AddrField(host), new PortField(port));
 				var sendBuffer = connectionRequest.ToBytes();
 
-				var receiveBuffer = await SendAsync(sendBuffer, isRecursiveCall: isRecursiveCall).ConfigureAwait(false);
+				var receiveBuffer = await SendAsync(sendBuffer).ConfigureAwait(false);
 
 				var connectionResponse = new TorSocks5Response();
 				connectionResponse.FromBytes(receiveBuffer);
@@ -239,14 +235,14 @@ namespace WalletWasabi.Tor.Socks5
 			}
 		}
 
-		public async Task AssertConnectedAsync(bool isRecursiveCall = false)
+		public async Task AssertConnectedAsync()
 		{
 			if (!IsConnected)
 			{
 				// try reconnect, maybe the server came online already
 				try
 				{
-					await ConnectToDestinationAsync(RemoteEndPoint, isRecursiveCall: isRecursiveCall).ConfigureAwait(false);
+					await ConnectToDestinationAsync(RemoteEndPoint).ConfigureAwait(false);
 				}
 				catch (Exception ex) when (IsConnectionRefused(ex))
 				{
@@ -306,16 +302,13 @@ namespace WalletWasabi.Tor.Socks5
 		/// <param name="sendBuffer">Sent data</param>
 		/// <param name="receiveBufferSize">Maximum number of bytes expected to be received in the reply</param>
 		/// <returns>Reply</returns>
-		public async Task<byte[]> SendAsync(byte[] sendBuffer, int? receiveBufferSize = null, bool isRecursiveCall = false)
+		public async Task<byte[]> SendAsync(byte[] sendBuffer, int? receiveBufferSize = null)
 		{
 			Guard.NotNullOrEmpty(nameof(sendBuffer), sendBuffer);
 
 			try
 			{
-				if (!isRecursiveCall) // Because AssertConnectedAsync would be calling it again.
-				{
-					await AssertConnectedAsync(isRecursiveCall: true).ConfigureAwait(false);
-				}
+				await AssertConnectedAsync().ConfigureAwait(false);
 
 				using (await AsyncLock.LockAsync().ConfigureAwait(false))
 				{
@@ -366,23 +359,7 @@ namespace WalletWasabi.Tor.Socks5
 			}
 			catch (IOException ex)
 			{
-				if (isRecursiveCall)
-				{
-					throw new ConnectionException($"{nameof(TorSocks5Client)} is not connected to {RemoteEndPoint}.", ex);
-				}
-				else
-				{
-					// try reconnect, maybe the server came online already
-					try
-					{
-						await ConnectToDestinationAsync(RemoteEndPoint, isRecursiveCall: true).ConfigureAwait(false);
-					}
-					catch (Exception ex2) when (IsConnectionRefused(ex2))
-					{
-						throw new ConnectionException($"{nameof(TorSocks5Client)} is not connected to {RemoteEndPoint}.", ex2);
-					}
-					return await SendAsync(sendBuffer, receiveBufferSize, isRecursiveCall: true).ConfigureAwait(false);
-				}
+				throw new ConnectionException($"{nameof(TorSocks5Client)} is not connected to {RemoteEndPoint}.", ex);
 			}
 		}
 
@@ -415,13 +392,13 @@ namespace WalletWasabi.Tor.Socks5
 		{
 			try
 			{
-				if (TcpClient is { })
+				if (TcpClient is { } tcpClient)
 				{
-					if (TcpClient.Connected)
+					if (tcpClient.Connected)
 					{
 						Stream?.Dispose();
 					}
-					TcpClient?.Dispose();
+					tcpClient.Dispose();
 				}
 			}
 			catch (Exception ex)

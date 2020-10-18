@@ -1,48 +1,51 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>netcoreapp3.1</TargetFramework>
+		<Nullable>enable</Nullable>
+		<LangVersion>latest</LangVersion>
+		<NoWarn>1701;1702;1705;1591;1573;CA1031</NoWarn>
+	</PropertyGroup>
 
-  <PropertyGroup>
-    <Authors>nopara73;lontivero;danwalmsley</Authors>
-    <Company>zkSNACKs</Company>
-    <NeutralLanguage>en-US</NeutralLanguage>
-    <AssemblyTitle>Wasabi Wallet Fluent</AssemblyTitle>
-    <Description>
-      Open-source, non-custodial, privacy focused Bitcoin wallet for Windows, Linux, and Mac. Built-in Tor, CoinJoin, PayJoin and coin control features.
-    </Description>
-    <Copyright>MIT</Copyright>
-    <PackageId>Wasabi Wallet Fluent</PackageId>
-    <AssemblyTitle>Privacy focused Bitcoin wallet.</AssemblyTitle>
-    <Company>zkSNACKs</Company>
-    <PackageTags>bitcoin-wallet;privacy;bitcoin;dotnet;nbitcoin;cross-platform;zerolink;wallet;tumbler;coin;tor</PackageTags>
-    <PackageProjectUrl>https://github.com/zkSNACKs/WalletWasabi/</PackageProjectUrl>
-    <PackageLicenseUrl>https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md</PackageLicenseUrl>
-    <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/zkSNACKs/WalletWasabi/</RepositoryUrl>
-    <ApplicationIcon>Assets\WasabiLogo.ico</ApplicationIcon>
-    <PackageIcon>Assets\WasabiLogo.ico</PackageIcon>
-    <Product>Wasabi Wallet Fluent</Product>
-    <!-- owners is not supported in MSBuild -->
-  </PropertyGroup>
+	<PropertyGroup>
+		<Authors>nopara73;lontivero;danwalmsley</Authors>
+		<Company>zkSNACKs</Company>
+		<NeutralLanguage>en-US</NeutralLanguage>
+		<AssemblyTitle>Wasabi Wallet Fluent</AssemblyTitle>
+		<Description>
+			Open-source, non-custodial, privacy focused Bitcoin wallet for Windows, Linux, and Mac. Built-in Tor, CoinJoin, PayJoin and coin control features.
+		</Description>
+		<Copyright>MIT</Copyright>
+		<PackageId>Wasabi Wallet Fluent</PackageId>
+		<AssemblyTitle>Privacy focused Bitcoin wallet.</AssemblyTitle>
+		<Company>zkSNACKs</Company>
+		<PackageTags>bitcoin-wallet;privacy;bitcoin;dotnet;nbitcoin;cross-platform;zerolink;wallet;tumbler;coin;tor</PackageTags>
+		<PackageProjectUrl>https://github.com/zkSNACKs/WalletWasabi/</PackageProjectUrl>
+		<PackageLicenseUrl>https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md</PackageLicenseUrl>
+		<RepositoryType>git</RepositoryType>
+		<RepositoryUrl>https://github.com/zkSNACKs/WalletWasabi/</RepositoryUrl>
+		<ApplicationIcon>Assets\WasabiLogo.ico</ApplicationIcon>
+		<PackageIcon>Assets\WasabiLogo.ico</PackageIcon>
+		<Product>Wasabi Wallet Fluent</Product>
+		<!-- owners is not supported in MSBuild -->
+	</PropertyGroup>
 
-  <ItemGroup>
-    <Compile Update="**\*.xaml.cs">
-      <DependentUpon>%(Filename)</DependentUpon>
-    </Compile>
-    <AvaloniaResource Include="**\*.xaml">
-      <SubType>Designer</SubType>
-    </AvaloniaResource>
-    <AvaloniaResource Include="Assets\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Avalonia.Desktop" Version="0.10.999-cibuild0011197-beta" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.999-cibuild0011197-beta" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\WalletWasabi.Fluent\WalletWasabi.Fluent.csproj" />
-    <ProjectReference Include="..\WalletWasabi.Gui\WalletWasabi.Gui.csproj" />
-    <ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<Compile Update="**\*.xaml.cs">
+			<DependentUpon>%(Filename)</DependentUpon>
+		</Compile>
+		<AvaloniaResource Include="**\*.xaml">
+			<SubType>Designer</SubType>
+		</AvaloniaResource>
+		<AvaloniaResource Include="Assets\**" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Avalonia.Desktop" Version="0.10.999-cibuild0011371-beta" />
+		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.999-cibuild0011371-beta" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\WalletWasabi.Fluent\WalletWasabi.Fluent.csproj" />
+		<ProjectReference Include="..\WalletWasabi.Gui\WalletWasabi.Gui.csproj" />
+		<ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
+	</ItemGroup>
 </Project>

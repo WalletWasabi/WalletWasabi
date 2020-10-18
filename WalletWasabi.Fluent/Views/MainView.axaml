@@ -3,40 +3,40 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vl="clr-namespace:WalletWasabi.Fluent"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:local="clr-namespace:WalletWasabi.Fluent.Views"
              xmlns:rxui="clr-namespace:Avalonia.ReactiveUI;assembly=Avalonia.ReactiveUI"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors;assembly=WalletWasabi.Fluent"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.MainView">
-  <SplitView IsPaneOpen="{Binding NavBar.IsOpen, Mode=TwoWay}">
-    <i:Interaction.Behaviors>
+  <Panel>
+    <SplitView IsPaneOpen="{Binding NavBar.IsOpen, Mode=TwoWay}">
+      <i:Interaction.Behaviors>
         <behaviors:SplitViewAutoBehavior ToggleAction="{Binding NavBar.ToggleAction, Mode=OneWayToSource}"
-                                         CollapseOnClickAction="{Binding NavBar.CollapseOnClickAction, Mode=OneWayToSource}"
-                                         CollapseThreshold="{StaticResource SplitViewCollapseThreshold}"/>
-    </i:Interaction.Behaviors>
-    <SplitView.Pane>
-      <Panel>
-        <ExperimentalAcrylicBorder DockPanel.Dock="Left" IsHitTestVisible="False">
-          <ExperimentalAcrylicBorder.Material>
-            <ExperimentalAcrylicMaterial BackgroundSource="Digger"
-                                         TintColor="{DynamicResource SystemAltHighColor}"
-                                         TintOpacity="1"
-                                         FallbackColor="{DynamicResource AcrylicFallbackColor}"
-                                         MaterialOpacity="0.55" />
-          </ExperimentalAcrylicBorder.Material>
-
-        </ExperimentalAcrylicBorder>
-        <local:NavBar DataContext="{Binding NavBar}" />
-      </Panel>
-    </SplitView.Pane>
-    <Panel>
-      <DockPanel>
-        <local:StatusBar DockPanel.Dock="Bottom" DataContext="{Binding StatusBar}" VerticalAlignment="Bottom" Height="32" TextBlock.FontSize="12" />
+                                        CollapseOnClickAction="{Binding NavBar.CollapseOnClickAction, Mode=OneWayToSource}"
+                                        CollapseThreshold="{StaticResource SplitViewCollapseThreshold}"/>
+      </i:Interaction.Behaviors>
+      <SplitView.Pane>
         <Panel>
-          <Border Background="{DynamicResource RegionColor}" BoxShadow="{DynamicResource BoxShadow}" IsHitTestVisible="False" />
-          <DockPanel Margin="20 10 20 0">
-              <TextBlock Text="{Binding NavBar.SelectedItem.Title}" DockPanel.Dock="Top" FontSize="28" IsHitTestVisible="False" />
+          <ExperimentalAcrylicBorder DockPanel.Dock="Left" IsHitTestVisible="False">
+            <ExperimentalAcrylicBorder.Material>
+              <ExperimentalAcrylicMaterial BackgroundSource="Digger"
+                                          TintColor="{DynamicResource SystemAltHighColor}"
+                                          TintOpacity="1"
+                                          FallbackColor="{DynamicResource AcrylicFallbackColor}"
+                                          MaterialOpacity="0.55" />
+            </ExperimentalAcrylicBorder.Material>
+
+          </ExperimentalAcrylicBorder>
+          <local:NavBar DataContext="{Binding NavBar}" />
+        </Panel>
+      </SplitView.Pane>
+      <Panel>
+        <DockPanel>
+          <local:StatusBar DockPanel.Dock="Bottom" DataContext="{Binding StatusBar}" VerticalAlignment="Bottom" Height="32" TextBlock.FontSize="12" />
+          <Panel>
+            <Border Background="{DynamicResource RegionColor}" BoxShadow="{DynamicResource BoxShadow}" IsHitTestVisible="False" />
             <rxui:RoutedViewHost Router="{Binding Router}">
               <rxui:RoutedViewHost.ViewLocator>
                 <vl:ScreenViewLocator />
@@ -46,13 +46,14 @@
               </rxui:RoutedViewHost.PageTransition>
               <rxui:RoutedViewHost.DefaultContent>
                 <TextBlock Text="Default content"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center" />
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center" />
               </rxui:RoutedViewHost.DefaultContent>
             </rxui:RoutedViewHost>
-          </DockPanel>
-        </Panel>
-      </DockPanel>
-    </Panel>
-  </SplitView>
+          </Panel>
+        </DockPanel>
+      </Panel>
+    </SplitView>
+    <c:Dialog DataContext="{Binding CurrentDialog}" Content="{Binding }" IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}" />
+  </Panel>
 </UserControl>

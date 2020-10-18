@@ -2,17 +2,19 @@ using NBitcoin;
 using ReactiveUI;
 using System.Reactive;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
+using System;
 using Global = WalletWasabi.Gui.Global;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
-	public class MainViewModel : ViewModelBase, IScreen
+	public class MainViewModel : ViewModelBase, IScreen, IDialogHost
 	{
 		private Global _global;
 		private StatusBarViewModel _statusBar;
 		private string _title = "Wasabi Wallet";
+		private DialogViewModelBase _currentDialog;
 		private NavBarViewModel _navBar;
-
 		public MainViewModel(Global global)
 		{
 			_global = global;
@@ -33,6 +35,12 @@ namespace WalletWasabi.Fluent.ViewModels
 		public ReactiveCommand<Unit, Unit> GoBack => Router.NavigateBack;
 
 		public Network Network { get; }
+
+		public DialogViewModelBase CurrentDialog
+		{
+			get => _currentDialog;
+			set => this.RaiseAndSetIfChanged(ref _currentDialog, value);
+		}
 
 		public NavBarViewModel NavBar
 		{

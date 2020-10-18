@@ -30,7 +30,6 @@
     </Style>
     <Style Selector="PathIcon">
       <Setter Property="Margin" Value="1 0 0 0" />
-      <Setter Property="Foreground" Value="{DynamicResource TextForeground}" />
     </Style>
     <Style Selector="Separator">
       <Setter Property="Background" Value="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" />
@@ -72,19 +71,17 @@
       <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListLowBrush}" />
     </Style>
   </UserControl.Styles>
-  <DockPanel>
-    <StackPanel DockPanel.Dock="Top">
-      <StackPanel.Resources>
-        <Thickness x:Key="ControlCornerRadius">0</Thickness>
-      </StackPanel.Resources>
+  <DockPanel Margin="0 0 0 4">
+    <StackPanel DockPanel.Dock="Top" Spacing="5">      
       <Panel Height="40" IsVisible="{h:Platform {x:Static h:Const.False}, Osx={x:Static h:Const.True}}" />
-      <StackPanel Orientation="Horizontal" Spacing="10">
-        <Button Classes="NavButton" Command="{Binding GoBack}" Background="Transparent" IsEnabled="{Binding IsBackButtonVisible}">
-          <PathIcon Data="{StaticResource arrow_left_regular}" Width="16"/>
-        </Button>
-        <TextBlock Text="Wasabi Wallet" VerticalAlignment="Center"/>
+      <Button Classes="NavButton" Command="{Binding GoBack}" Background="Transparent" IsEnabled="{Binding IsBackButtonVisible}">
+        <PathIcon Data="{StaticResource arrow_left_regular}" Width="16"/>
+      </Button>
+      <StackPanel Orientation="Horizontal" Spacing="16" Margin="0 -10 0 0">
+        <PathIcon Data="{StaticResource wasabi_logo}" Height="40" Width="18" Margin="14 0 0 0" />
+        <TextBlock Text="Wasabi Wallet" VerticalAlignment="Center" FontSize="14" FontWeight="SemiBold"/>
       </StackPanel>
-      <Button Classes="NavButton" Command="{Binding DoToggleAction}" IsVisible="{h:Platform {x:Static h:Const.True}, Osx={x:Static h:Const.False}}">
+      <Button Classes="NavButton" Command="{Binding DoToggleAction}" IsVisible="{h:Platform {x:Static h:Const.False}, Osx={x:Static h:Const.False}}">
         <PathIcon Data="{StaticResource navigation_regular}" Width="16" />
       </Button>
       <c:NavBarListBox Items="{Binding TopItems}" SelectedItem="{Binding SelectedItem}" />

@@ -20,7 +20,7 @@ namespace WalletWasabi.Gui.Helpers
 			return Locator.Current.GetService<INotificationManager>() ?? NullNotificationManager;
 		}
 
-		public static void Notify(string message, string title, NotificationType type, Action onClick = null, object sender = null)
+		public static void Notify(string message, string title, NotificationType type, Action? onClick = null, object? sender = null)
 		{
 			List<string> titles = new List<string>();
 
@@ -29,16 +29,16 @@ namespace WalletWasabi.Gui.Helpers
 				titles.Add(title);
 			}
 
-			string walletname = sender switch
+			string walletName = sender switch
 			{
 				Wallet wallet => wallet.WalletName,
 				WalletViewModelBase walletViewModelBase => walletViewModelBase.WalletName,
 				_ => ""
 			};
 
-			if (!string.IsNullOrEmpty(walletname))
+			if (!string.IsNullOrEmpty(walletName))
 			{
-				titles.Add(walletname);
+				titles.Add(walletName);
 			}
 
 			var fullTitle = string.Join(" - ", titles);
@@ -50,22 +50,22 @@ namespace WalletWasabi.Gui.Helpers
 				.Show(new Notification(fullTitle, message, type, TimeSpan.FromSeconds(DefaultNotificationTimeout), onClick)));
 		}
 
-		public static void Success(string message, string title = "Success!", object sender = null)
+		public static void Success(string message, string title = "Success!", object? sender = null)
 		{
 			Notify(message, title, NotificationType.Success, sender: sender);
 		}
 
-		public static void Information(string message, string title = "Info", object sender = null)
+		public static void Information(string message, string title = "Info", object? sender = null)
 		{
 			Notify(message, title, NotificationType.Information, sender: sender);
 		}
 
-		public static void Warning(string message, string title = "Warning!", object sender = null)
+		public static void Warning(string message, string title = "Warning!", object? sender = null)
 		{
 			Notify(message, title, NotificationType.Warning, sender: sender);
 		}
 
-		public static void Error(string message, string title = "Error!", object sender = null)
+		public static void Error(string message, string title = "Error!", object? sender = null)
 		{
 			Notify(message, title, NotificationType.Error, sender: sender);
 		}

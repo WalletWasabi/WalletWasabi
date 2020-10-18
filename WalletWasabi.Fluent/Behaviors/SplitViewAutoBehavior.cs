@@ -58,7 +58,7 @@ namespace WalletWasabi.Fluent.Behaviors
 
 		private void OnCollapseOnClickAction()
 		{
-			if (AssociatedObject.Bounds.Width <= CollapseThreshold & AssociatedObject.IsPaneOpen)
+			if (AssociatedObject.Bounds.Width <= CollapseThreshold && AssociatedObject.IsPaneOpen)
 			{
 				AssociatedObject.IsPaneOpen = false;
 			}
@@ -85,7 +85,7 @@ namespace WalletWasabi.Fluent.Behaviors
 			{
 				AssociatedObject.DisplayMode = SplitViewDisplayMode.CompactOverlay;
 
-				if (!_sidebarWasForceClosed & AssociatedObject.IsPaneOpen)
+				if (!_sidebarWasForceClosed && AssociatedObject.IsPaneOpen)
 				{
 					AssociatedObject.IsPaneOpen = false;
 				}
@@ -94,7 +94,7 @@ namespace WalletWasabi.Fluent.Behaviors
 			{
 				AssociatedObject.DisplayMode = SplitViewDisplayMode.CompactInline;
 
-				if (!_sidebarWasForceClosed & !AssociatedObject.IsPaneOpen)
+				if (!_sidebarWasForceClosed && !AssociatedObject.IsPaneOpen)
 				{
 					AssociatedObject.IsPaneOpen = true;
 				}

@@ -175,11 +175,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(ex => Logger.LogError(ex));
 		}
 
-		public event EventHandler<SmartCoin> DequeueCoinsPressed;
+		public event EventHandler<SmartCoin>? DequeueCoinsPressed;
 
-		public event EventHandler CoinListShown;
+		public event EventHandler? CoinListShown;
 
-		public event EventHandler SelectionChanged;
+		public event EventHandler? SelectionChanged;
 
 		private CompositeDisposable Disposables { get; set; }
 
@@ -440,7 +440,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				: throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			Global.UiConfig
-				.WhenAnyValue(x => x.LurkingWifeMode)
+				.WhenAnyValue(x => x.PrivacyMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedAmount)))
 				.DisposeWith(Disposables);

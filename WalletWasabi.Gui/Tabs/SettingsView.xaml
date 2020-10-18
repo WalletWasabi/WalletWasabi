@@ -84,6 +84,10 @@
                     </i:Interaction.Behaviors>
                   </TextBox>
                 </StackPanel>
+                <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5" IsVisible="{Binding UseTor}">
+                  <ToggleButton IsChecked="{Binding TerminateTorOnExit}" Content="{Binding TerminateTorOnExit, Converter={StaticResource BooleanStringConverter}, ConverterParameter=On:Off}" Margin="0 0 10 0" />
+                  <TextBlock VerticalAlignment="Center">Terminate Tor process on exit.</TextBlock>
+                </StackPanel>
               </StackPanel>
             </controls:GroupBox>
             <controls:GroupBox Title="UI" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">

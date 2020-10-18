@@ -82,11 +82,11 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			}
 		}
 
-		public event EventHandler<RoundPhase> PhaseChanged;
+		public event EventHandler<RoundPhase>? PhaseChanged;
 
-		public event EventHandler<CoordinatorRoundStatus> StatusChanged;
+		public event EventHandler<CoordinatorRoundStatus>? StatusChanged;
 
-		public event EventHandler<Transaction> CoinJoinBroadcasted;
+		public event EventHandler<Transaction>? CoinJoinBroadcasted;
 
 		public long RoundId { get; }
 
@@ -521,7 +521,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 					}
 				}
 
-				if (changeAmount > Money.Zero) // If the coordinator fee would make change amount to be negative or zero then no need to pay it.
+				if (changeAmount > Money.Zero)
 				{
 					Money minimumOutputAmount = Money.Coins(0.0001m); // If the change would be less than about $1 then add it to the coordinator.
 					Money somePercentOfDenomination = newDenomination.Percentage(0.3m); // If the change is less than about 0.3% of the newDenomination then add it to the coordinator fee.
@@ -537,7 +537,8 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				}
 				else
 				{
-					// Alice has no money enough to pay the coordinator fee then allow her to pay what she can.
+					// If the coordinator fee would make change amount to be negative or zero,
+					// i.e. Alice has no money enough to pay the coordinator fee then allow her to pay what she can.
 					coordinatorFee += changeAmount;
 				}
 			}

@@ -34,7 +34,7 @@ namespace WalletWasabi.CoinJoin.Client
 		public IRPCClient RpcClient { get; private set; }
 		private AsyncLock ProcessLock { get; }
 
-		private async void Synchronizer_ResponseArrivedAsync(object sender, SynchronizeResponse response)
+		private async void Synchronizer_ResponseArrivedAsync(object? sender, SynchronizeResponse response)
 		{
 			try
 			{

@@ -127,7 +127,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(async _ => await TryRewriteTableAsync())
 				.DisposeWith(disposables);
 
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+			Global.UiConfig.WhenAnyValue(x => x.PrivacyMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 				{
 					foreach (var transaction in Transactions)
 					{

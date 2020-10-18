@@ -1,5 +1,6 @@
 using ReactiveUI;
 using System;
+using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -25,7 +26,15 @@ namespace WalletWasabi.Fluent.ViewModels
 		public bool IsExpanded
 		{
 			get => _isExpanded;
-			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _isExpanded, value);
+
+				if (Parent != null)
+				{
+					Parent.IsExpanded = value;
+				}
+			}
 		}
 
 		public string Title

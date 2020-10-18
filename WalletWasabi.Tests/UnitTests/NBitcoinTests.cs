@@ -87,9 +87,9 @@ namespace WalletWasabi.Tests.UnitTests
 		[InlineData("1 234 567 890 USD", 123456789, 10, false)]
 		[InlineData("1 235 USD", 1234.6, 1, false)]
 		[InlineData("1 234 USD", 1234.3, 1, false)]
-		public void ToUsdStringTests(string expected, decimal coins, decimal exchangeRate, bool lurkingWifeMode)
+		public void ToUsdStringTests(string expected, decimal coins, decimal exchangeRate, bool privacyMode)
 		{
-			Assert.Equal(expected, Money.Coins(coins).ToUsdString(exchangeRate, lurkingWifeMode));
+			Assert.Equal(expected, Money.Coins(coins).ToUsdString(exchangeRate, privacyMode));
 		}
 	}
 }

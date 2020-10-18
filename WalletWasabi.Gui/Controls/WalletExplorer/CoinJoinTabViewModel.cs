@@ -231,7 +231,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public bool IsWatchOnly => Wallet.KeyManager.IsWatchOnly;
 		public bool IsHardwareWallet => Wallet.KeyManager.IsHardwareWallet;
 
-		public bool IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode;
+		public bool IsPrivacyMode => Global.UiConfig.PrivacyMode;
 
 		public ReactiveCommand<Unit, Unit> EnqueueCommand { get; }
 
@@ -280,10 +280,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				PeersNeeded = 100;
 			}
 
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+			Global.UiConfig.WhenAnyValue(x => x.PrivacyMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(AmountQueued));
-				this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
+				this.RaisePropertyChanged(nameof(IsPrivacyMode));
 			}).DisposeWith(disposables);
 
 			Observable.Interval(TimeSpan.FromSeconds(1))

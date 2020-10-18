@@ -7,7 +7,7 @@
     </Border>
   </Design.PreviewWith>
   <Styles.Resources>
-    <Thickness x:Key="ListBoxItemPadding">12,9,12,12</Thickness>
+    <Thickness x:Key="ListBoxItemPadding">12</Thickness>
   </Styles.Resources>
   <Style Selector="c|NavBarItem">
     <Setter Property="Background" Value="Transparent" />
@@ -15,7 +15,17 @@
     <Setter Property="Template">
       <ControlTemplate>
         <Panel>
-          <Border x:Name="Indicator" Margin="4 0 0 0" BorderThickness="2 0 0 0" />
+          <Border CornerRadius="3" x:Name="Indicator_Backdrop" Margin="4 0">
+            <Border Width="3" x:Name="Indicator" CornerRadius="6" VerticalAlignment="Stretch" HorizontalAlignment="Left">
+              <Border.Transitions>
+                <Transitions>
+                  <DoubleTransition Property="Opacity" Duration="0:0:0.175" />
+                  <TransformOperationsTransition Property="RenderTransform" Duration="0:0:.135" Easing="QuadraticEaseIn" />
+                </Transitions>
+              </Border.Transitions>
+            </Border>
+          </Border>
+          
           <ContentPresenter Name="PART_ContentPresenter"
                         Background="{TemplateBinding Background}"
                         BorderBrush="{TemplateBinding BorderBrush}"
@@ -30,7 +40,14 @@
     </Setter>
   </Style>
 
-  <Style Selector="c|NavBarItem /template/ ContentPresenter#PART_ContentPresenter">
+  <Style Selector="c|NavBarItem /template/ Border#Indicator">
+    <Setter Property="Background" Value="{DynamicResource SystemAccentColor}" />
+    <Setter Property="Opacity" Value="0" />
+    <Setter Property="RenderTransformOrigin" Value="50%,0%" />
+    <Setter Property="RenderTransform" Value="scaleY(0)" />
+  </Style>
+
+    <Style Selector="c|NavBarItem /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="TextBlock.FontWeight" Value="Normal" />
     <Setter Property="TextBlock.FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
   </Style>
@@ -44,13 +61,13 @@
   <Style Selector="c|NavBarItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemControlHighlightAltBaseHighBrush}"/>
   </Style>
-  <Style Selector="c|NavBarItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+  <Style Selector="c|NavBarItem:pointerover /template/ Border#Indicator_Backdrop">
     <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListLowBrush}"/>
   </Style>
 
   <!-- Pressed State -->
   <Style Selector="c|NavBarItem:pressed /template/ Border#Indicator">
-    <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColorLight1}"/>
+    <Setter Property="Background" Value="{DynamicResource SystemAccentColorLight1}"/>
   </Style>
   <Style Selector="c|NavBarItem:pressed /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemControlHighlightAltBaseHighBrush}"/>
@@ -68,8 +85,10 @@
   </Style>
 
   <!-- Selected State -->
-  <Style Selector="c|NavBarItem:selected /template/ Border#Indicator">
-    <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}"/>
+  <Style Selector="c|NavBarItem:selected /template/ Border#Indicator">    
+    <Setter Property="Opacity" Value="1" />
+    <Setter Property="RenderTransformOrigin" Value="50%,100%" />
+    <Setter Property="RenderTransform" Value="scaleY(1)" />
   </Style>
   <Style Selector="c|NavBarItem:selected /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemControlHighlightAltBaseHighBrush}"/>

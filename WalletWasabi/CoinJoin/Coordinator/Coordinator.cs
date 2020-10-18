@@ -130,7 +130,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 			BlockNotifier.OnBlock += BlockNotifier_OnBlockAsync;
 		}
 
-		public event EventHandler<Transaction> CoinJoinBroadcasted;
+		public event EventHandler<Transaction>? CoinJoinBroadcasted;
 
 		public DateTimeOffset LastSuccessfulCoinJoinTime { get; private set; }
 
@@ -155,7 +155,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 
 		public UtxoReferee UtxoReferee { get; }
 
-		private async void BlockNotifier_OnBlockAsync(object sender, Block block)
+		private async void BlockNotifier_OnBlockAsync(object? sender, Block block)
 		{
 			try
 			{
@@ -279,12 +279,12 @@ namespace WalletWasabi.CoinJoin.Coordinator
 			}
 		}
 
-		private void Round_CoinJoinBroadcasted(object sender, Transaction transaction)
+		private void Round_CoinJoinBroadcasted(object? sender, Transaction transaction)
 		{
 			CoinJoinBroadcasted?.Invoke(sender, transaction);
 		}
 
-		private async void Round_StatusChangedAsync(object sender, CoordinatorRoundStatus status)
+		private async void Round_StatusChangedAsync(object? sender, CoordinatorRoundStatus status)
 		{
 			try
 			{

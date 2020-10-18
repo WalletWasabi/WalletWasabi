@@ -10,6 +10,7 @@ using System.Reactive.Linq;
 using WalletWasabi.Gui;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
+using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -28,7 +29,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			Observable.Merge(
 				Observable.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default))
 				.Throttle(TimeSpan.FromSeconds(0.1))
-				.Merge(uiConfig.WhenAnyValue(x => x.LurkingWifeMode).Select(_ => Unit.Default))
+				.Merge(uiConfig.WhenAnyValue(x => x.PrivacyMode).Select(_ => Unit.Default))
 				.Merge(Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Select(_ => Unit.Default))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
@@ -36,9 +37,9 @@ namespace WalletWasabi.Fluent.ViewModels
 					try
 					{
 						var balance = Wallet.Coins.TotalAmount();
-						Title = $"{WalletName} ({(uiConfig.LurkingWifeMode ? "#########" : balance.ToString(false, true))} BTC)";
+						Title = $"{WalletName} ({(uiConfig.PrivacyMode ? "#########" : balance.ToString(false, true))} BTC)";
 
-						TitleTip = balance.ToUsdString(Wallet.Synchronizer.UsdExchangeRate, uiConfig.LurkingWifeMode);
+						TitleTip = balance.ToUsdString(Wallet.Synchronizer.UsdExchangeRate, uiConfig.PrivacyMode);
 					}
 					catch (Exception ex)
 					{
