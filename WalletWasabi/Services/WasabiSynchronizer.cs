@@ -133,7 +133,7 @@ namespace WalletWasabi.Services
 
 			Task.Run(async () =>
 			{
-				Logger.LogTrace("> Starting Wasabi synchronizer thread starts.");
+				Logger.LogTrace("> Wasabi synchronizer thread starts.");
 
 				try
 				{
