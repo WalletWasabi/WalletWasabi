@@ -204,20 +204,14 @@ namespace WalletWasabi.Tor.Http
 			{
 				TorSocks5Client = new TorSocks5Client(TorSocks5EndPoint);
 				await TorSocks5Client.ConnectAsync().ConfigureAwait(false);
-				await TorSocks5Client.HandshakeAsync(IsolateStream).ConfigureAwait(false);
-				await TorSocks5Client.ConnectToDestinationAsync(host, request.RequestUri.Port).ConfigureAwait(false);
+				await TorSocks5Client.HandshakeAsync(IsolateStream, cancel).ConfigureAwait(false);
+				await TorSocks5Client.ConnectToDestinationAsync(host, request.RequestUri.Port, cancel).ConfigureAwait(false);
 
 				Stream stream = TorSocks5Client.TcpClient.GetStream();
 				if (request.RequestUri.Scheme == "https")
 				{
 					SslStream sslStream = new SslStream(stream, leaveInnerStreamOpen: true);
-
-					await sslStream
-						.AuthenticateAsClientAsync(
-							host,
-							new X509CertificateCollection(),
-							IHttpClient.SupportedSslProtocols,
-							checkCertificateRevocation: true).ConfigureAwait(false);
+					await sslStream.AuthenticateAsClientAsync(host, new X509CertificateCollection(), IHttpClient.SupportedSslProtocols, true).ConfigureAwait(false);
 					stream = sslStream;
 				}
 
