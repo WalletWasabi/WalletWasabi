@@ -30,5 +30,11 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		{
 			_screen.Router.NavigateAndReset.Execute(new HomePageViewModel(_screen));
 		}
+
+		public void Close()
+		{
+			// TODO: Dialog.xaml back Button binding to Close() method on base class which is protected so exception is thrown.
+			base.Close(false);
+		}
 	}
 }
