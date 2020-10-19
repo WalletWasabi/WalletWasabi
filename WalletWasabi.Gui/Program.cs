@@ -11,6 +11,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Gui.CommandLine;
 using WalletWasabi.Gui.CrashReport;
 using WalletWasabi.Gui.ViewModels;
@@ -33,6 +34,7 @@ namespace WalletWasabi.Gui
 		private static void Main(string[] args)
 		{
 			bool runGui = false;
+			bool cliException = false;
 			try
 			{
 				Global = CreateGlobal();
@@ -43,7 +45,15 @@ namespace WalletWasabi.Gui
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-				runGui = ShouldRunGui(args);
+				try
+				{
+					runGui = ShouldRunGui(args);
+				}
+				catch (Exception)
+				{
+					cliException = true;
+					throw;
+				}
 
 				if (Global.CrashReporter.IsReport)
 				{
@@ -65,7 +75,10 @@ namespace WalletWasabi.Gui
 			catch (Exception ex)
 			{
 				Logger.LogCritical(ex);
-				Global.CrashReporter.SetException(ex);
+				if (!cliException)
+				{
+					Global.CrashReporter.SetException(ex);
+				}
 				throw;
 			}
 			finally
