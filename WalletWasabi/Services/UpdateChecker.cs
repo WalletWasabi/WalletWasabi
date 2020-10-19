@@ -16,7 +16,7 @@ namespace WalletWasabi.Services
 		public UpdateChecker(TimeSpan period, WasabiSynchronizer synchronizer) : base(period)
 		{
 			Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
-			_updateStatus = new UpdateStatus(true, true, new Version(), 0);
+			UpdateStatus = new UpdateStatus(true, true, new Version(), 0);
 
 			Synchronizer.PropertyChanged += Synchronizer_PropertyChanged;
 		}
