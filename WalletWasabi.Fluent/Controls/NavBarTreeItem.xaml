@@ -76,7 +76,7 @@
     <Setter Property="RenderTransform" Value="scaleY(0)" />
   </Style>
 
-  <!--  PointerOver state  -->  
+  <!--  PointerOver state  -->
   <Style Selector="c|NavBarTreeItem /template/ Border#PART_LayoutRoot:pointerover > ContentPresenter#PART_HeaderPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource TreeViewItemForegroundPointerOver}" />
   </Style>

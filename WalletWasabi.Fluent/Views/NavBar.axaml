@@ -72,7 +72,7 @@
     </Style>
   </UserControl.Styles>
   <DockPanel Margin="0 0 0 4">
-    <StackPanel DockPanel.Dock="Top" Spacing="5">      
+    <StackPanel DockPanel.Dock="Top" Spacing="5">
       <Panel Height="40" IsVisible="{h:Platform {x:Static h:Const.False}, Osx={x:Static h:Const.True}}" />
       <Button Classes="NavButton" Command="{Binding GoBack}" Background="Transparent" IsEnabled="{Binding IsBackButtonVisible}">
         <PathIcon Data="{StaticResource arrow_left_regular}" Width="16"/>

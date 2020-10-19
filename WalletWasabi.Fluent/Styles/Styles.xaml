@@ -9,7 +9,8 @@
     <Thickness x:Key="TextControlBorderThemeThickness">0,0,0,2</Thickness>
     <Thickness x:Key="TextControlBorderThemeThicknessFocused">0,0,0,2</Thickness>
     <Thickness x:Key="TextControlThemePadding">15,10,15,8</Thickness>
-    <Easing x:Key="FluentDefaultEasing">0.1,0.9,0.2,1.0</Easing>  </Styles.Resources>
+    <Easing x:Key="FluentDefaultEasing">0.1,0.9,0.2,1.0</Easing>
+  </Styles.Resources>
   <Style Selector="SplitView">
     <Setter Property="CompactPaneLength" Value="{StaticResource SplitViewCompactPaneLength}" />
     <Setter Property="OpenPaneLength" Value="320" />

@@ -39,14 +39,14 @@ namespace WalletWasabi.Services
 		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Func<Uri> baseUriAction, EndPoint torSocks5EndPoint)
 		{
 			WasabiClient = new WasabiClient(baseUriAction, torSocks5EndPoint);
-			Network = Guard.NotNull(nameof(network), network);			
+			Network = Guard.NotNull(nameof(network), network);
 			LastResponse = null;
 			_running = 0;
 			Cancel = new CancellationTokenSource();
 			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
 		}
 
-		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Uri baseUri, EndPoint torSocks5EndPoint):
+		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, Uri baseUri, EndPoint torSocks5EndPoint) :
 			this(network, bitcoinStore, () => baseUri, torSocks5EndPoint)
 		{
 		}

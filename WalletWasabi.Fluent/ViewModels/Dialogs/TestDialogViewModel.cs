@@ -4,6 +4,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 	{
 		protected override void OnDialogClosed()
 		{
-		} 
+		}
 	}
 }
