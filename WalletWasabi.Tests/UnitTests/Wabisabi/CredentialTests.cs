@@ -24,8 +24,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 
 			{
 				// Null request. This requests `numberOfCredentials` zero-value credentials.
-				var requestFactory = client.GetCredentialRegistrationFactory();
-				var (credentialRequest, validationData) = requestFactory.CreateRequestForZeroAmount();
+				var (credentialRequest, validationData) = client.CreateRequestForZeroAmount();
 
 				Assert.True(credentialRequest.IsNullRequest);
 				Assert.Equal(numberOfCredentials, credentialRequest.Requested.Count());
@@ -47,9 +46,8 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 			}
 
 			{
-				var requestFactory = client.GetCredentialRegistrationFactory();
 				var present = client.Credentials.ZeroValue.Take(numberOfCredentials);
-				var (credentialRequest, validationData) = requestFactory.CreateRequest(new[] { Money.Coins(1) }, present);
+				var (credentialRequest, validationData) = client.CreateRequest(new[] { Money.Coins(1) }, present);
 
 				Assert.False(credentialRequest.IsNullRequest);
 				var credentialRequested = credentialRequest.Requested.ToArray();
@@ -70,10 +68,9 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 			}
 
 			{
-				var requestFactory = client.GetCredentialRegistrationFactory();
 				var valuableCredential = client.Credentials.Valuable.Take(1);
 				var amounts = Enumerable.Repeat(Money.Coins(0.5m), 2);
-				var (credentialRequest, validationData) = requestFactory.CreateRequest(amounts, valuableCredential);
+				var (credentialRequest, validationData) = client.CreateRequest(amounts, valuableCredential);
 
 				Assert.False(credentialRequest.IsNullRequest);
 				var requested = credentialRequest.Requested.ToArray();
@@ -97,21 +94,19 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 			}
 
 			{
-				var client0 = new WabiSabiClient(sk.ComputeCoordinatorParameters(), numberOfCredentials, rnd);
-				var requestFactory = client0.GetCredentialRegistrationFactory();
-				
-				var (credentialRequest, validationData) = requestFactory.CreateRequestForZeroAmount();
+				var client0 = new WabiSabiClient(sk.ComputeCoordinatorParameters(), numberOfCredentials, rnd);				
+				var (credentialRequest, validationData) = client0.CreateRequestForZeroAmount();
 
 				var issuer = new CredentialIssuer(sk, numberOfCredentials, rnd);
 				var credentialResponse = issuer.HandleRequest(credentialRequest);
 				client0.HandleResponse(credentialResponse, validationData);
 
-				(credentialRequest, validationData) = requestFactory.CreateRequest(new[] { Money.Coins(1m) }, Enumerable.Empty<Credential>());
+				(credentialRequest, validationData) = client0.CreateRequest(new[] { Money.Coins(1m) }, Enumerable.Empty<Credential>());
 
 				credentialResponse = issuer.HandleRequest(credentialRequest);
 				client0.HandleResponse(credentialResponse, validationData);
 
-				(credentialRequest, validationData) = requestFactory.CreateRequest(new Money[0], client0.Credentials.Valuable);
+				(credentialRequest, validationData) = client0.CreateRequest(new Money[0], client0.Credentials.Valuable);
 
 				credentialResponse = issuer.HandleRequest(credentialRequest);
 				client0.HandleResponse(credentialResponse, validationData);
@@ -133,13 +128,12 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 				var client = new WabiSabiClient(sk.ComputeCoordinatorParameters(), numberOfCredentials, rnd);
 
 				// Null request. This requests `numberOfCredentials` zero-value credentials.
-				var factory = client.GetCredentialRegistrationFactory();
-				var (credentialRequest, validationData) = factory.CreateRequestForZeroAmount();
+				var (credentialRequest, validationData) = client.CreateRequestForZeroAmount();
 
 				var credentialResponse = issuer.HandleRequest(credentialRequest);
 				client.HandleResponse(credentialResponse, validationData);
 
-				var (validCredentialRequest, _) = factory.CreateRequest(new Money[0], client.Credentials.ZeroValue.Take(1));
+				var (validCredentialRequest, _) = client.CreateRequest(new Money[0], client.Credentials.ZeroValue.Take(1));
 
 				// Test incorrect number of presentations (one instead of 3)
 				var presented = validCredentialRequest.Presented.ToArray();
@@ -165,7 +159,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 				Assert.Equal(WabiSabiErrorCode.InvalidNumberOfPresentedCredentials, ex.ErrorCode);
 				Assert.Equal("3 credential presentations were expected but 0 were received.", ex.Message);
 
-				(validCredentialRequest, _) = factory.CreateRequest(new Money[0], client.Credentials.All);
+				(validCredentialRequest, _) = client.CreateRequest(new Money[0], client.Credentials.All);
 
 				// Test incorrect number of credential requests
 				invalidCredentialRequest = new RegistrationRequest(
@@ -204,8 +198,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 
 			{
 				var client = new WabiSabiClient(sk.ComputeCoordinatorParameters(), numberOfCredentials, rnd);
-				var factory = client.GetCredentialRegistrationFactory();
-				var (validCredentialRequest, validationData) = factory.CreateRequestForZeroAmount();
+				var (validCredentialRequest, validationData) = client.CreateRequestForZeroAmount();
 
 				// Test invalid proofs
 				var proofs = validCredentialRequest.Proofs.ToArray();
@@ -222,13 +215,12 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 
 			{
 				var client = new WabiSabiClient(sk.ComputeCoordinatorParameters(), numberOfCredentials, rnd);
-				var factory = client.GetCredentialRegistrationFactory();
-				var (validCredentialRequest, validationData) = factory.CreateRequestForZeroAmount();
+				var (validCredentialRequest, validationData) = client.CreateRequestForZeroAmount();
 
 				var credentialResponse = issuer.HandleRequest(validCredentialRequest);
 				client.HandleResponse(credentialResponse, validationData);
 
-				(validCredentialRequest, validationData) = factory.CreateRequest(Enumerable.Empty<Money>(), client.Credentials.All);
+				(validCredentialRequest, validationData) = client.CreateRequest(Enumerable.Empty<Money>(), client.Credentials.All);
 
 				issuer.HandleRequest(validCredentialRequest);
 				var ex = Assert.Throws<WabiSabiException>(() => issuer.HandleRequest(validCredentialRequest));

@@ -13,25 +13,24 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Wabisabi
 {
-	public class CredentialRegistrationFactory
+	public class WabiSabiClient
 	{
-		internal CredentialRegistrationFactory(
-			int numberOfCredentials, 
-			CredentialPool credentialPool, 
+		public WabiSabiClient(
 			CoordinatorParameters coordinatorParameters, 
+			int numberOfCredentials, 
 			WasabiRandom randomNumberGenerator)
 		{
-			NumberOfCredentials = numberOfCredentials;
-			RandomNumberGenerator = randomNumberGenerator;
-			CoordinatorParameters = coordinatorParameters;
-			CredentialPool = credentialPool;
+			RandomNumberGenerator = Guard.NotNull(nameof(randomNumberGenerator), randomNumberGenerator);
+			NumberOfCredentials = Guard.InRangeAndNotNull(nameof(numberOfCredentials), numberOfCredentials, 1, 100);
+			CoordinatorParameters = Guard.NotNull(nameof(coordinatorParameters), coordinatorParameters);
+			Credentials = new CredentialPool();
 		}
 
 		private int NumberOfCredentials { get; }
 
 		private CoordinatorParameters CoordinatorParameters { get; }
 
-		private CredentialPool CredentialPool { get; }
+		public CredentialPool Credentials { get; }
 		 
 		private WasabiRandom RandomNumberGenerator { get; }
 
@@ -81,7 +80,7 @@ namespace WalletWasabi.Wabisabi
 			var missingCredentialPresent = NumberOfCredentials - credentialsToPresent.Count();
 
 			var alreadyPresentedZeroCredentials = credentialsToPresent.Where(x => x.Amount.IsZero);
-			var availableZeroCredentials = CredentialPool.ZeroValue.Except(alreadyPresentedZeroCredentials);
+			var availableZeroCredentials = Credentials.ZeroValue.Except(alreadyPresentedZeroCredentials);
 
 			// This should not be possible 
 			var availableZeroCredentialCount = availableZeroCredentials.Count();
@@ -150,6 +149,40 @@ namespace WalletWasabi.Wabisabi
 					transcript,
 					credentialsToPresent,
 					validationData));
+		}
+
+		public void HandleResponse(RegistrationResponse registrationResponse, RegistrationValidationData registrationValidationData)
+		{
+			Guard.NotNull(nameof(registrationResponse), registrationResponse);
+			Guard.NotNull(nameof(registrationValidationData), registrationValidationData);
+
+			var issuedCredentialCount = registrationResponse.IssuedCredentials.Count();
+			var requestedCredentialCount = registrationValidationData.Requested.Count();
+			if (issuedCredentialCount != NumberOfCredentials)
+			{
+				throw new WabiSabiException(
+					WabiSabiErrorCode.IssuedCredentialNumberMismatch, 
+					$"{issuedCredentialCount} issued but {requestedCredentialCount} were requested.");
+			}
+
+			var credentials = Enumerable
+				.Zip(registrationValidationData.Requested, registrationResponse.IssuedCredentials)
+				.Select(x => (Requested: x.First, Issued: x.Second))
+				.ToArray();
+
+			var statements = credentials
+				.Select(x => ProofSystem.IssuerParameters(CoordinatorParameters, x.Issued, x.Requested.Ma));
+
+			var areCorrectlyIssued = Verifier.Verify(registrationValidationData.Transcript, statements, registrationResponse.Proofs);
+			if (!areCorrectlyIssued)
+			{
+				throw new WabiSabiException(WabiSabiErrorCode.ClientReceivedInvalidProofs);
+			}
+
+			var credentialReceived = credentials.Select(x => 
+				new Credential(new Scalar((ulong)x.Requested.Amount.Satoshi), x.Requested.Randomness, x.Issued));
+
+			Credentials.UpdateCredentials(credentialReceived, registrationValidationData.Presented);
 		}
 
 		private Transcript BuildTransnscript(bool isNullRequest)
