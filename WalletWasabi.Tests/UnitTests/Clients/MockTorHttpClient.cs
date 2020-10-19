@@ -11,8 +11,6 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 {
 	public class MockTorHttpClient : ITorHttpClient
 	{
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
 		public Uri DestinationUri => new Uri("https://payment.server.org/pj");
 
 		public Func<Uri> DestinationUriAction => () => DestinationUri;
@@ -23,10 +21,10 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 
 		public Func<HttpMethod, string, NameValueCollection, string, Task<HttpResponseMessage>> OnSendAsync { get; set; }
 
-		public async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent content = null, CancellationToken cancel = default)
+		public async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken cancel = default)
 		{
 			string body = (content is { })
-				? await content.ReadAsStringAsync()
+				? await content.ReadAsStringAsync().ConfigureAwait(false)
 				: "";
 
 			// It does not matter which URI is actually used here, we just need to construct absolute URI to be able to access `uri.Query`.
@@ -34,13 +32,13 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			Uri uri = new Uri(baseUri, relativeUri);
 			NameValueCollection parameters = HttpUtility.ParseQueryString(uri.Query);
 
-			return await OnSendAsync(method, uri.AbsolutePath, parameters, body);
+			return await OnSendAsync(method, uri.AbsolutePath, parameters, body).ConfigureAwait(false);
 		}
 
 		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancel = default)
 		{
 			string body = (request.Content is { })
-				? await request.Content.ReadAsStringAsync()
+				? await request.Content.ReadAsStringAsync().ConfigureAwait(false)
 				: "";
 
 			Uri uri = request.RequestUri;
@@ -48,28 +46,5 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 
 			return await OnSendAsync(request.Method, uri.AbsolutePath, parameters, body);
 		}
-
-		#region IDisposable Support
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-				}
-
-				_disposedValue = true;
-			}
-		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-		}
-
-		#endregion IDisposable Support
 	}
 }

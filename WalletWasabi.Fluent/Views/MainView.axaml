@@ -13,9 +13,9 @@
   <Panel>
     <SplitView IsPaneOpen="{Binding NavBar.IsOpen, Mode=TwoWay}">
       <i:Interaction.Behaviors>
-          <behaviors:SplitViewAutoBehavior ToggleAction="{Binding NavBar.ToggleAction, Mode=OneWayToSource}"
-                                          CollapseOnClickAction="{Binding NavBar.CollapseOnClickAction, Mode=OneWayToSource}"
-                                          CollapseThreshold="{StaticResource SplitViewCollapseThreshold}"/>
+        <behaviors:SplitViewAutoBehavior ToggleAction="{Binding NavBar.ToggleAction, Mode=OneWayToSource}"
+                                        CollapseOnClickAction="{Binding NavBar.CollapseOnClickAction, Mode=OneWayToSource}"
+                                        CollapseThreshold="{StaticResource SplitViewCollapseThreshold}"/>
       </i:Interaction.Behaviors>
       <SplitView.Pane>
         <Panel>
@@ -37,22 +37,19 @@
           <local:StatusBar DockPanel.Dock="Bottom" Classes="vbottom h7" DataContext="{Binding StatusBar}" Height="32" />
           <Panel>
             <Border Background="{DynamicResource RegionColor}" BoxShadow="{DynamicResource BoxShadow}" IsHitTestVisible="False" />
-            <DockPanel Margin="20 10 20 0">
-                <TextBlock Text="{Binding NavBar.SelectedItem.Title}" DockPanel.Dock="Top" FontSize="28" IsHitTestVisible="False" Margin="0 22 0 0" />
-              <rxui:RoutedViewHost Router="{Binding Router}">
-                <rxui:RoutedViewHost.ViewLocator>
-                  <vl:ScreenViewLocator />
-                </rxui:RoutedViewHost.ViewLocator>
-                <rxui:RoutedViewHost.PageTransition>
-                  <CrossFade Duration="0:0:0.25" />
-                </rxui:RoutedViewHost.PageTransition>
-                <rxui:RoutedViewHost.DefaultContent>
-                  <TextBlock Text="Default content"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center" />
-                </rxui:RoutedViewHost.DefaultContent>
-              </rxui:RoutedViewHost>
-            </DockPanel>
+            <rxui:RoutedViewHost Router="{Binding Router}">
+              <rxui:RoutedViewHost.ViewLocator>
+                <vl:ScreenViewLocator />
+              </rxui:RoutedViewHost.ViewLocator>
+              <rxui:RoutedViewHost.PageTransition>
+                <CrossFade Duration="0:0:0.25" />
+              </rxui:RoutedViewHost.PageTransition>
+              <rxui:RoutedViewHost.DefaultContent>
+                <TextBlock Text="Default content"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center" />
+              </rxui:RoutedViewHost.DefaultContent>
+            </rxui:RoutedViewHost>
           </Panel>
         </DockPanel>
       </Panel>
