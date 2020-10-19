@@ -40,25 +40,6 @@
         <Setter Property="(TextBlock.FontStyle)" Value="Italic" />
     </Style>
 
-    <Style Selector=":is(Control).vcenter">
-        <Setter Property="VerticalAlignment" Value="Center" />
-    </Style>
-    <Style Selector=":is(Control).vtop">
-        <Setter Property="VerticalAlignment" Value="Top" />
-    </Style>
-    <Style Selector=":is(Control).vbottom">
-        <Setter Property="VerticalAlignment" Value="Bottom" />
-    </Style>
-    <Style Selector=":is(Control).hcenter">
-        <Setter Property="HorizontalAlignment" Value="Center" />
-    </Style>
-    <Style Selector=":is(Control).hleft">
-        <Setter Property="HorizontalAlignment" Value="Left" />
-    </Style>
-    <Style Selector=":is(Control).hright">
-        <Setter Property="HorizontalAlignment" Value="Right" />
-    </Style>
-
     <Style Selector="SplitView">
         <Setter Property="CompactPaneLength" Value="{StaticResource SplitViewCompactPaneLength}" />
         <Setter Property="OpenPaneLength" Value="320" />

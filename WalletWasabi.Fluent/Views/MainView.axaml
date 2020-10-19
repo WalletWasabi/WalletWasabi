@@ -34,7 +34,7 @@
       </SplitView.Pane>
       <Panel>
         <DockPanel>
-          <local:StatusBar DockPanel.Dock="Bottom" Classes="vbottom h7" DataContext="{Binding StatusBar}" Height="32" />
+          <local:StatusBar DockPanel.Dock="Bottom" Classes="h7" DataContext="{Binding StatusBar}" Height="32" />
           <Panel>
             <Border Background="{DynamicResource RegionColor}" BoxShadow="{DynamicResource BoxShadow}" IsHitTestVisible="False" />
             <rxui:RoutedViewHost Router="{Binding Router}">
