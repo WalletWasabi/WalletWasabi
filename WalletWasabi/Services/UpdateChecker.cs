@@ -15,6 +15,7 @@ namespace WalletWasabi.Services
 		{
 			Synchronizer = synchronizer;
 			WasabiClient = synchronizer.WasabiClient;
+			UpdateStatus = new UpdateStatus(true, true, new Version(), 0);
 
 			Synchronizer.PropertyChanged += Synchronizer_PropertyChanged;
 		}
@@ -25,7 +26,7 @@ namespace WalletWasabi.Services
 
 		public WasabiSynchronizer Synchronizer { get; }
 
-		public UpdateStatus UpdateStatus { get; set; } = new UpdateStatus(true, true, new Version(), 0);
+		public UpdateStatus UpdateStatus { get; set; }
 
 		private void Synchronizer_PropertyChanged(object? sender, PropertyChangedEventArgs e)
 		{
