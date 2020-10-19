@@ -30,7 +30,7 @@ namespace WalletWasabi.Gui
 
 		/// Warning! In Avalonia applications Main must not be async. Otherwise application may not run on OSX.
 		/// see https://github.com/AvaloniaUI/Avalonia/wiki/Unresolved-platform-support-issues
-		private static int Main(string[] args)
+		private static void Main(string[] args)
 		{
 			bool runGui = false;
 			Exception? appException = null;
@@ -64,9 +64,7 @@ namespace WalletWasabi.Gui
 				Global?.CrashReporter?.SetException(ex);
 			}
 
-			DisposeAsync().GetAwaiter().GetResult();
-
-			return appException is { } ? 1 : 0;
+			TerminateApplicationAsync(appException).GetAwaiter().GetResult();
 		}
 
 		private static Global CreateGlobal()
@@ -115,21 +113,21 @@ namespace WalletWasabi.Gui
 			}
 			catch (Exception ex)
 			{
-				if (!(ex is OperationCanceledException))
-				{
-					Logger.LogCritical(ex);
-					Global.CrashReporter.SetException(ex);
-				}
-
-				await DisposeAsync();
+				var criticalException = ex is OperationCanceledException ? null : ex;
 
 				// There is no other way to stop the creation of the WasabiWindow.
-				Environment.Exit(1);
+				await TerminateApplicationAsync(criticalException);
 			}
 		}
 
-		private static async Task DisposeAsync()
+		private static async Task TerminateApplicationAsync(Exception? criticalException = null)
 		{
+			if (criticalException is { })
+			{
+				Logger.LogCritical(criticalException);
+				Global?.CrashReporter?.SetException(criticalException);
+			}
+
 			var mainViewModel = MainWindowViewModel.Instance;
 			if (mainViewModel is { })
 			{
@@ -154,6 +152,8 @@ namespace WalletWasabi.Gui
 			{
 				Logger.LogSoftwareStopped("Wasabi GUI");
 			}
+
+			Environment.Exit(criticalException is { } ? 1 : 0);
 		}
 
 		private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
