@@ -111,16 +111,11 @@ namespace WalletWasabi.Gui
 
 				SingleInstanceChecker = new SingleInstanceChecker(Network);
 
-				if (Config.UseTor)
-				{
-					var wasabiClientFactory = new WasabiClientFactory(Config.TorSocks5EndPoint, backendUriGetter: () => Config.GetCurrentBackendUri());
-					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, wasabiClientFactory);
-				}
-				else
-				{
-					var wasabiClientFactory = new WasabiClientFactory(torEndPoint: null, backendUriGetter: () => Config.GetFallbackBackendUri());
-					Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, wasabiClientFactory);
-				}
+				WasabiClientFactory wasabiClientFactory = Config.UseTor
+					? new WasabiClientFactory(Config.TorSocks5EndPoint, backendUriGetter: () => Config.GetCurrentBackendUri())
+					: new WasabiClientFactory(torEndPoint: null, backendUriGetter: () => Config.GetFallbackBackendUri());
+
+				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, wasabiClientFactory);
 			}
 		}
 
