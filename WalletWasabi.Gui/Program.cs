@@ -30,9 +30,11 @@ namespace WalletWasabi.Gui
 
 		/// Warning! In Avalonia applications Main must not be async. Otherwise application may not run on OSX.
 		/// see https://github.com/AvaloniaUI/Avalonia/wiki/Unresolved-platform-support-issues
-		private static void Main(string[] args)
+		private static int Main(string[] args)
 		{
 			bool runGui = false;
+			Exception? appException = null;
+
 			try
 			{
 				Global = CreateGlobal();
@@ -48,26 +50,23 @@ namespace WalletWasabi.Gui
 				if (Global.CrashReporter.IsReport)
 				{
 					StartCrashReporter(args);
-					return;
 				}
-
-				if (runGui)
+				else if (runGui)
 				{
 					Logger.LogSoftwareStarted("Wasabi GUI");
-
 					BuildAvaloniaApp().StartShellApp("Wasabi Wallet", AppMainAsync, args);
 				}
 			}
 			catch (Exception ex)
 			{
+				appException = ex;
 				Logger.LogCritical(ex);
-				Global.CrashReporter.SetException(ex);
-				throw;
+				Global?.CrashReporter?.SetException(ex);
 			}
-			finally
-			{
-				DisposeAsync().GetAwaiter().GetResult();
-			}
+
+			DisposeAsync().GetAwaiter().GetResult();
+
+			return appException is { } ? 1 : 0;
 		}
 
 		private static Global CreateGlobal()
@@ -131,10 +130,10 @@ namespace WalletWasabi.Gui
 
 		private static async Task DisposeAsync()
 		{
-			var disposeGui = MainWindowViewModel.Instance is { };
-			if (disposeGui)
+			var mainViewModel = MainWindowViewModel.Instance;
+			if (mainViewModel is { })
 			{
-				MainWindowViewModel.Instance.Dispose();
+				mainViewModel.Dispose();
 			}
 
 			if (Global?.CrashReporter?.IsInvokeRequired is true)
@@ -151,7 +150,7 @@ namespace WalletWasabi.Gui
 			AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 			TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
 
-			if (disposeGui)
+			if (mainViewModel is { })
 			{
 				Logger.LogSoftwareStopped("Wasabi GUI");
 			}
