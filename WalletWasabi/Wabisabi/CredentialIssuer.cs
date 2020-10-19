@@ -72,9 +72,7 @@ namespace WalletWasabi.Wabisabi
 				throw new WabiSabiException(WabiSabiErrorCode.NegativeBalance);
 			}
 
-			// Check all the serial numbers are unique. Note that this is checked separately from
-			// ensuring that they haven't been used before, because even presenting a previously
-			// unused credential more than once in the same request is still a double spend.
+			// Check that the range proofs are of the appropriate bitwidth
 			var rangeProofWidth = registrationRequest.IsNullRequest ? 0 : Constants.RangeProofWidth;
 			var allRangeProofsAreCorrectSize = requested.All(x => x.BitCommitments.Count() == rangeProofWidth);
 			if (!allRangeProofsAreCorrectSize)
@@ -82,7 +80,9 @@ namespace WalletWasabi.Wabisabi
 				throw new WabiSabiException(WabiSabiErrorCode.InvalidBitCommitment);
 			} 
 
-			// Check all the serial numbers are unique.
+			// Check all the serial numbers are unique. Note that this is checked separately from
+			// ensuring that they haven't been used before, because even presenting a previously
+			// unused credential more than once in the same request is still a double spend.
 			if (registrationRequest.AreThereDuplicatedSerialNumbers)
 			{
 				throw new WabiSabiException(WabiSabiErrorCode.SerialNumberDuplicated);
@@ -131,7 +131,6 @@ namespace WalletWasabi.Wabisabi
 				statements.Add(ProofSystem.BalanceProof(balanceTweak + sumCa - sumMa));
 			}
 
-			// Construct response.
 			var transcript = BuildTransnscript(registrationRequest.IsNullRequest);
 
 			// Verify all statements.
@@ -144,6 +143,7 @@ namespace WalletWasabi.Wabisabi
 			// Issue credentials.
 			var credentials = requested.Select(x => IssueCredential(x.Ma, RandomNumberGenerator.GetScalar())).ToArray();
 
+			// Construct response.
 			var proofs = Prover.Prove(transcript, credentials.Select(x => x.Knowledge), RandomNumberGenerator);
 			var macs = credentials.Select(x => x.Mac);
 			var response = new RegistrationResponse(macs, proofs);
