@@ -28,6 +28,9 @@ namespace WalletWasabi.Gui
 	{
 		private static Global Global;
 
+		// This is only used to pass CrashReporter to AppMainAsync.
+		private static CrashReporter CrashReporter = new CrashReporter();
+
 		/// Warning! In Avalonia applications Main must not be async. Otherwise application may not run on OSX.
 		/// see https://github.com/AvaloniaUI/Avalonia/wiki/Unresolved-platform-support-issues
 		private static void Main(string[] args)
@@ -38,8 +41,8 @@ namespace WalletWasabi.Gui
 			try
 			{
 				Global = CreateGlobal();
-
 				Locator.CurrentMutable.RegisterConstant(Global);
+				Locator.CurrentMutable.RegisterConstant(CrashReporter);
 
 				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
@@ -47,7 +50,7 @@ namespace WalletWasabi.Gui
 
 				runGui = ShouldRunGui(args);
 
-				if (Global.CrashReporter.IsReport)
+				if (CrashReporter.IsReport)
 				{
 					StartCrashReporter(args);
 				}
@@ -61,7 +64,7 @@ namespace WalletWasabi.Gui
 			{
 				appException = ex;
 				Logger.LogCritical(ex);
-				Global?.CrashReporter?.SetException(ex);
+				CrashReporter.SetException(ex);
 			}
 
 			TerminateApplicationAsync(appException).GetAwaiter().GetResult();
@@ -91,7 +94,7 @@ namespace WalletWasabi.Gui
 				args,
 				new MixerCommand(daemon),
 				new PasswordFinderCommand(Global.WalletManager),
-				new CrashReportCommand(Global.CrashReporter));
+				new CrashReportCommand(CrashReporter));
 			return executionTask.GetAwaiter().GetResult();
 		}
 
@@ -125,7 +128,7 @@ namespace WalletWasabi.Gui
 			if (criticalException is { })
 			{
 				Logger.LogCritical(criticalException);
-				Global?.CrashReporter?.SetException(criticalException);
+				CrashReporter.SetException(criticalException);
 			}
 
 			var mainViewModel = MainWindowViewModel.Instance;
@@ -134,10 +137,10 @@ namespace WalletWasabi.Gui
 				mainViewModel.Dispose();
 			}
 
-			if (Global?.CrashReporter?.IsInvokeRequired is true)
+			if (CrashReporter.IsInvokeRequired is true)
 			{
 				// Trigger the CrashReport process.
-				Global.CrashReporter.TryInvokeCrashReport();
+				CrashReporter.TryInvokeCrashReport();
 			}
 
 			if (Global is { } global)
