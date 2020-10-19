@@ -28,7 +28,7 @@ namespace WalletWasabi.Gui
 	{
 		private static Global Global;
 
-		// This is only used to pass CrashReporter to AppMainAsync.
+		// This is only needed to pass CrashReporter to AppMainAsync otherwise it could be a local variable in Main().
 		private static CrashReporter CrashReporter = new CrashReporter();
 
 		/// Warning! In Avalonia applications Main must not be async. Otherwise application may not run on OSX.
