@@ -79,7 +79,7 @@
       </Button>
       <StackPanel Orientation="Horizontal" Spacing="16" Margin="0 -10 0 0">
         <PathIcon Data="{StaticResource wasabi_logo}" Height="40" Width="18" Margin="14 0 0 0" />
-        <TextBlock Text="Wasabi Wallet" VerticalAlignment="Center" FontSize="14" FontWeight="SemiBold"/>
+        <TextBlock Text="Wasabi Wallet" Classes="h8" VerticalAlignment="Center" FontWeight="SemiBold"/>
       </StackPanel>
       <Button Classes="NavButton" Command="{Binding DoToggleAction}" IsVisible="{h:Platform {x:Static h:Const.False}, Osx={x:Static h:Const.False}}">
         <PathIcon Data="{StaticResource navigation_regular}" Width="16" />

@@ -31,6 +31,9 @@
         <Setter Property="(TextBlock.FontSize)" Value="16" />
     </Style>
     <Style Selector=":is(Control).h7">
+        <Setter Property="(TextBlock.FontSize)" Value="14" />
+    </Style>
+    <Style Selector=":is(Control).h8">
         <Setter Property="(TextBlock.FontSize)" Value="12" />
     </Style>
     <Style Selector=":is(Control).bold">
