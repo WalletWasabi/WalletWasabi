@@ -7,7 +7,7 @@
   </Application.DataTemplates>
 
   <Application.Styles>
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/BaseDark.xaml" />
+    <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/BaseLight.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Icons/Icons.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Styles.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/ContentArea.axaml" />
