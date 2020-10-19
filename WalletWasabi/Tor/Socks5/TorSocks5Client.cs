@@ -62,8 +62,7 @@ namespace WalletWasabi.Tor.Socks5
 				}
 				catch (Exception ex) when (IsConnectionRefused(ex))
 				{
-					throw new ConnectionException(
-						$"Could not connect to Tor SOCKSPort at {host}:{port}. Is Tor running?", ex);
+					throw new ConnectionException($"Could not connect to Tor SOCKSPort at {host}:{port}. Is Tor running?", ex);
 				}
 
 				Stream = TcpClient.GetStream();
@@ -392,13 +391,13 @@ namespace WalletWasabi.Tor.Socks5
 		{
 			try
 			{
-				if (TcpClient is { })
+				if (TcpClient is { } tcpClient)
 				{
-					if (TcpClient.Connected)
+					if (tcpClient.Connected)
 					{
 						Stream?.Dispose();
 					}
-					TcpClient?.Dispose();
+					tcpClient.Dispose();
 				}
 			}
 			catch (Exception ex)
