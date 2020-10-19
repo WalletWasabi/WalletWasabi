@@ -3,7 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors;assembly=WalletWasabi.Fluent"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
              mc:Ignorable="d"
              d:DesignWidth="600" d:DesignHeight="500"
              Width="600" Height="500"
@@ -27,7 +27,7 @@
               <StackPanel Orientation="Horizontal">
                 <TextBox Watermark="Type the word here..." Text="{Binding Input}" IsEnabled="{Binding !IsConfirmed}" Width="280" FontSize="12">
                   <i:Interaction.Behaviors>
-                    <behaviors:MoveFocusOnDisabledBehavior />
+                    <behaviors:FocusBehavior IsFocused="{Binding IsFocused}"/>
                   </i:Interaction.Behaviors>
                 </TextBox>
                 <PathIcon Foreground="Green" IsVisible="{Binding IsConfirmed}" Data="{StaticResource checkmark_filled}" VerticalAlignment="Center" Width="12" Height="12" Margin="15 0 0 0"/>
@@ -40,6 +40,6 @@
     </StackPanel>
 
     <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="invisible" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
-    <Button Content="Finish" Command="{Binding ContinueCommand}" Classes="action" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+    <Button Content="Finish" Command="{Binding FinishCommand}" Classes="action" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
   </Panel>
 </UserControl>

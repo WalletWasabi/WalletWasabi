@@ -10,7 +10,7 @@
       <Button Command="{Binding NextCommand}" Content="Next" />
       <Button Command="{Binding OpenDialogCommand}" Content="Open Dialog" />
       <Button Command="{Binding ChangeThemeCommand}" Content="Change Theme" />
-      <Button Command="{Binding CreateWalletCommand}" Content="Create Wallet" /
+      <Button Command="{Binding CreateWalletCommand}" Content="Create Wallet" />
       <TextBox Watermark="Type here..."/>
       <TextBox Watermark="Type here... #2"/>
       <TextBox Watermark="Type here... #3" Text="{Binding RandomString}"/>

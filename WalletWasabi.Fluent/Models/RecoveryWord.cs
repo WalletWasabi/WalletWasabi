@@ -13,6 +13,7 @@ namespace WalletWasabi.Fluent.Models
 	{
 		private string _input;
 		private bool _isConfirmed;
+		private bool _isFocused;
 
 		public RecoveryWord(int index, string word)
 		{
@@ -34,8 +35,20 @@ namespace WalletWasabi.Fluent.Models
 			set => this.RaiseAndSetIfChanged(ref _isConfirmed, value);
 		}
 
+		public bool IsFocused
+		{
+			get => _isFocused;
+			set => this.RaiseAndSetIfChanged(ref _isFocused, value);
+		}
+
 		public int Index { get; }
 		public string Word { get; }
+
+		public void Reset()
+		{
+			Input = "";
+			IsConfirmed = false;
+		}
 
 		private void ValidateWord(IValidationErrors errors)
 		{
