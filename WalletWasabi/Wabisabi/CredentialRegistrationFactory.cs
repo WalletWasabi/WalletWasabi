@@ -43,12 +43,12 @@ namespace WalletWasabi.Wabisabi
 
 			for (var i = 0; i < NumberOfCredentials; i++)
 			{
-				var amount = Money.Zero;
-				var attribute = Attribute.FromMoney(amount, RandomNumberGenerator.GetScalar(allowZero: false));
+				var randomness = RandomNumberGenerator.GetScalar(allowZero: false);
+				var Ma = randomness * Generators.Gh;
 
-				knowledge[i] = ProofSystem.ZeroProof(attribute.Ma, attribute.Randomness);
-				credentialsToRequest[i] = new IssuanceRequest(attribute.Ma, Enumerable.Empty<GroupElement>());
-				validationData[i] = new IssuanceValidationData(amount, attribute.Randomness, attribute.Ma);
+				knowledge[i] = ProofSystem.ZeroProof(Ma, randomness);
+				credentialsToRequest[i] = new IssuanceRequest(Ma, Enumerable.Empty<GroupElement>());
+				validationData[i] = new IssuanceValidationData(Money.Zero, randomness, Ma);
 			}
 
 			var transcript = BuildTransnscript(isNullRequest: true);
@@ -117,15 +117,17 @@ namespace WalletWasabi.Wabisabi
 			for (var i = 0; i < NumberOfCredentials; i++)
 			{
 				var amount = credentialAmountsToRequest[i];
-				var attribute = Attribute.FromMoney(amount, RandomNumberGenerator.GetScalar(allowZero: false));
 				var scalarAmount = new Scalar((ulong)amount.Satoshi);
 
-				var (rangeKnowledge, bitCommitments) = ProofSystem.RangeProof(scalarAmount, attribute.Randomness, Constants.RangeProofWidth, RandomNumberGenerator);
+				var randomness = RandomNumberGenerator.GetScalar(allowZero: false);
+				var Ma = scalarAmount * Generators.Gg + randomness * Generators.Gh;
+
+				var (rangeKnowledge, bitCommitments) = ProofSystem.RangeProof(scalarAmount, randomness, Constants.RangeProofWidth, RandomNumberGenerator);
 				knowledgeToProve.Add(rangeKnowledge);
 
-				var credentialRequest = new IssuanceRequest(attribute.Ma, bitCommitments);
+				var credentialRequest = new IssuanceRequest(Ma, bitCommitments);
 				credentialsToRequest[i] = credentialRequest;
-				validationData[i] = new IssuanceValidationData(amount, attribute.Randomness, credentialRequest.Ma);
+				validationData[i] = new IssuanceValidationData(amount, randomness, Ma);
 			}
 
 			// Generate Balance Proof

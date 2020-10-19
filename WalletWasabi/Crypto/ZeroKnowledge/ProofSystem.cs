@@ -123,7 +123,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		public static Statement RangeProof(GroupElement ma, IEnumerable<GroupElement> bitCommitments)
 		{
 			var width = bitCommitments.Count(); // can be 0
-			Guard.InRangeAndNotNull(nameof(width), width, 0, Constants.RangeProofWidth); // TODO ulong support
+			Guard.InRangeAndNotNull(nameof(width), width, 0, Constants.RangeProofWidth);
 
 			var rows = width * 2 + 1; // two equations per bit, and one for the sum
 			var columns = width * 3 + 1 + 1; // three witness components per bit and one for the Ma randomness, plus one for the public inputs
