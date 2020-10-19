@@ -12,27 +12,31 @@ using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
-using WalletWasabi.Tor.Http.Bases;
+using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.Tor.Http.Interfaces;
 
 namespace WalletWasabi.WebClients.Wasabi
 {
-	public class WasabiClient : TorDisposableBase
+	public class WasabiClient : IDisposable
 	{
-		/// <inheritdoc/>
-		public WasabiClient(Func<Uri> baseUriAction, EndPoint? torSocks5EndPoint) : base(baseUriAction, torSocks5EndPoint)
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		public WasabiClient(Func<Uri> baseUriAction, EndPoint? torSocks5EndPoint)
+		{
+			TorClient = new TorHttpClient(baseUriAction, torSocks5EndPoint, isolateStream: true);
+		}
+
+		public WasabiClient(Uri baseUri, EndPoint? torSocks5EndPoint) : this(() => baseUri, torSocks5EndPoint)
 		{
 		}
 
-		/// <inheritdoc/>
-		public WasabiClient(Uri baseUri, EndPoint? torSocks5EndPoint) : base(baseUri, torSocks5EndPoint)
+		public WasabiClient(ITorHttpClient torHttpClient)
 		{
+			TorClient = torHttpClient;
 		}
 
-		public WasabiClient(ITorHttpClient torHttpClient) : base(torHttpClient)
-		{
-		}
+		public ITorHttpClient TorClient { get; }
 
 		public static Dictionary<uint256, Transaction> TransactionCache { get; } = new Dictionary<uint256, Transaction>();
 		private static Queue<uint256> TransactionIdQueue { get; } = new Queue<uint256>();
@@ -277,5 +281,25 @@ namespace WalletWasabi.WebClients.Wasabi
 		}
 
 		#endregion wasabi
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					(TorClient as IDisposable)?.Dispose();
+				}
+
+				_disposedValue = true;
+			}
+		}
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose()
+		{
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(true);
+		}
 	}
 }
