@@ -103,7 +103,7 @@ IoHelpers.DeleteRecursivelyWithMagicDustAsync(Folder).GetAwaiter().GetResult();
 }
 
 // GOOD
-private async void Synchronizer_ResponseArrivedAsync(object sender, EventArgs e)
+private async void Synchronizer_ResponseArrivedAsync(object? sender, EventArgs e)
 {
 	try
 	{

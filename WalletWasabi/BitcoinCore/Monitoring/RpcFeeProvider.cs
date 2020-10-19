@@ -18,7 +18,7 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 			RpcClient = Guard.NotNull(nameof(rpcClient), rpcClient);
 		}
 
-		public event EventHandler<AllFeeEstimate> AllFeeEstimateChanged;
+		public event EventHandler<AllFeeEstimate>? AllFeeEstimateChanged;
 
 		public AllFeeEstimate AllFeeEstimate
 		{

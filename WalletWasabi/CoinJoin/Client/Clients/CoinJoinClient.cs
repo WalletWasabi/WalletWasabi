@@ -69,11 +69,11 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			}
 		}
 
-		public event EventHandler StateUpdated;
+		public event EventHandler? StateUpdated;
 
-		public event EventHandler<SmartCoin> CoinQueued;
+		public event EventHandler<SmartCoin>? CoinQueued;
 
-		public event EventHandler<DequeueResult> OnDequeue;
+		public event EventHandler<DequeueResult>? OnDequeue;
 
 		public Network Network { get; private set; }
 		public KeyManager KeyManager { get; }
@@ -106,7 +106,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		public bool IsDestinationSame => KeyManager.ExtPubKey == DestinationKeyManager.ExtPubKey;
 
-		private async void Synchronizer_ResponseArrivedAsync(object sender, SynchronizeResponse e)
+		private async void Synchronizer_ResponseArrivedAsync(object? sender, SynchronizeResponse e)
 		{
 			await TryProcessStatusAsync(e?.CcjRoundStates).ConfigureAwait(false);
 		}

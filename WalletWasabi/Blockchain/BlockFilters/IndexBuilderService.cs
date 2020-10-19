@@ -287,7 +287,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 			return pbcinfo;
 		}
 
-		private void BlockNotifier_OnBlock(object sender, Block e)
+		private void BlockNotifier_OnBlock(object? sender, Block e)
 		{
 			try
 			{

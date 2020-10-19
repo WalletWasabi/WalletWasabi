@@ -47,7 +47,8 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			// For TextBox error look
 			this.ValidateProperty(x => x.RandomString, (errors) => errors.Add(ErrorSeverity.Error, "Random Error Message"));
-			this.RaisePropertyChanged(nameof(RandomString));		}
+			this.RaisePropertyChanged(nameof(RandomString));
+		}
 
 		public string RandomString
 		{

@@ -25,7 +25,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 			Coins = new CoinsRegistry(privacyLevelThreshold);
 		}
 
-		public event EventHandler<ProcessedResult> WalletRelevantTransactionProcessed;
+		public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
 
 		private static object Lock { get; } = new object();
 		public AllTransactionStore TransactionStore { get; }
