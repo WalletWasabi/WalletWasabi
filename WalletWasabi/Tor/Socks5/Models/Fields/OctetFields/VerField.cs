@@ -1,4 +1,3 @@
-using WalletWasabi.Helpers;
 using WalletWasabi.Tor.Socks5.Models.Bases;
 
 namespace WalletWasabi.Tor.Socks5.Models.Fields.OctetFields
