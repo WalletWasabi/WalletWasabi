@@ -58,6 +58,10 @@ namespace WalletWasabi.Gui
 					BuildAvaloniaApp().StartShellApp("Wasabi Wallet", AppMainAsync, args);
 				}
 			}
+			catch (OperationCanceledException ex)
+			{
+				Logger.LogDebug(ex);
+			}
 			catch (Exception ex)
 			{
 				Logger.LogCritical(ex);
