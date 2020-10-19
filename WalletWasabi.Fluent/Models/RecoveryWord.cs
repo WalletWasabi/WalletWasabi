@@ -65,5 +65,10 @@ namespace WalletWasabi.Fluent.Models
 
 			errors.Add(ErrorSeverity.Error, $"The input does not match to to the recovery word {Index}.");
 		}
+
+		public override string ToString()
+		{
+			return $"{Index}. {Word}";
+		}
 	}
 }

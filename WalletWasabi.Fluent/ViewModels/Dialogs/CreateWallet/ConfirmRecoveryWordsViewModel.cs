@@ -14,6 +14,8 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
 {
 	public class ConfirmRecoveryWordsViewModel : ViewModelBase, IRoutableViewModel
 	{
+		private bool _isConfirmationFinished;
+
 		public ConfirmRecoveryWordsViewModel(IScreen screen, List<RecoveryWord> mnemonicWords)
 		{
 			HostScreen = screen;
@@ -26,6 +28,11 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
 			SetConfirmationWords(mnemonicWords);
 		}
 
+		public bool IsConfirmationFinished
+		{
+			get => _isConfirmationFinished;
+			set => this.RaiseAndSetIfChanged(ref _isConfirmationFinished, value);
+		}
 		public string UrlPathSegment { get; }
 		public IScreen HostScreen { get; }
 		public ObservableCollection<RecoveryWord> ConfirmationWords { get; }
@@ -53,6 +60,12 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
 		{
 			if (e.PropertyName == nameof(RecoveryWord.IsConfirmed))
 			{
+				// Finally. TODO: Refactor
+				foreach (var item in ConfirmationWords)
+				{
+					item.IsFocused = false;
+				}
+
 				var nextToFocus = ConfirmationWords.FirstOrDefault(x => x.IsConfirmed == false);
 
 				if (nextToFocus is { })
@@ -61,7 +74,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
 				}
 				else
 				{
-					// Every item is confirmed
+					IsConfirmationFinished = true;
 				}
 			}
 		}
@@ -91,7 +104,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
 			foreach (RecoveryWord item in unsortedConfWords.OrderBy(x => x.Index))
 			{
 				ConfirmationWords.Add(item);
-			} 
+			}
 		}
 	}
 }

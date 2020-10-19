@@ -40,6 +40,10 @@
     </StackPanel>
 
     <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="invisible" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
-    <Button Content="Finish" Command="{Binding FinishCommand}" Classes="action" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+    <Button Content="Finish" Command="{Binding FinishCommand}" Classes="action" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+      <i:Interaction.Behaviors>
+        <behaviors:FocusBehavior IsFocused="{Binding IsConfirmationFinished}"/>
+      </i:Interaction.Behaviors>
+    </Button>
   </Panel>
 </UserControl>
