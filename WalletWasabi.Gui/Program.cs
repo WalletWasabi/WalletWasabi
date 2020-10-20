@@ -34,7 +34,9 @@ namespace WalletWasabi.Gui
 		private static void Main(string[] args)
 		{
 			bool runGui = false;
+			Exception? appException = null;
 			bool cliException = false;
+
 			try
 			{
 				Global = CreateGlobal();
@@ -58,13 +60,10 @@ namespace WalletWasabi.Gui
 				if (Global.CrashReporter.IsReport)
 				{
 					StartCrashReporter(args);
-					return;
 				}
-
-				if (runGui)
+				else if (runGui)
 				{
 					Logger.LogSoftwareStarted("Wasabi GUI");
-
 					BuildAvaloniaApp().StartShellApp("Wasabi Wallet", AppMainAsync, args);
 				}
 			}
@@ -74,17 +73,15 @@ namespace WalletWasabi.Gui
 			}
 			catch (Exception ex)
 			{
+				appException = ex;
 				Logger.LogCritical(ex);
 				if (!cliException)
 				{
 					Global.CrashReporter.SetException(ex);
 				}
-				throw;
 			}
-			finally
-			{
-				DisposeAsync().GetAwaiter().GetResult();
-			}
+
+			TerminateApplicationAsync(appException).GetAwaiter().GetResult();
 		}
 
 		private static Global CreateGlobal()
@@ -133,25 +130,25 @@ namespace WalletWasabi.Gui
 			}
 			catch (Exception ex)
 			{
-				if (!(ex is OperationCanceledException))
-				{
-					Logger.LogCritical(ex);
-					Global.CrashReporter.SetException(ex);
-				}
-
-				await DisposeAsync();
+				var criticalException = ex is OperationCanceledException ? null : ex;
 
 				// There is no other way to stop the creation of the WasabiWindow.
-				Environment.Exit(1);
+				await TerminateApplicationAsync(criticalException);
 			}
 		}
 
-		private static async Task DisposeAsync()
+		private static async Task TerminateApplicationAsync(Exception? criticalException = null)
 		{
-			var disposeGui = MainWindowViewModel.Instance is { };
-			if (disposeGui)
+			if (criticalException is { })
 			{
-				MainWindowViewModel.Instance.Dispose();
+				Logger.LogCritical(criticalException);
+				Global?.CrashReporter?.SetException(criticalException);
+			}
+
+			var mainViewModel = MainWindowViewModel.Instance;
+			if (mainViewModel is { })
+			{
+				mainViewModel.Dispose();
 			}
 
 			if (Global?.CrashReporter?.IsInvokeRequired is true)
@@ -168,10 +165,12 @@ namespace WalletWasabi.Gui
 			AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 			TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
 
-			if (disposeGui)
+			if (mainViewModel is { })
 			{
 				Logger.LogSoftwareStopped("Wasabi GUI");
 			}
+
+			Environment.Exit(criticalException is { } ? 1 : 0);
 		}
 
 		private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
