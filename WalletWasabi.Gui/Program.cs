@@ -5,6 +5,7 @@ using Avalonia.Threading;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Extensibility.Platforms;
+using Serilog.Configuration;
 using Splat;
 using System;
 using System.IO;
@@ -67,22 +68,12 @@ namespace WalletWasabi.Gui
 					BuildAvaloniaApp().StartShellApp("Wasabi Wallet", AppMainAsync, args);
 				}
 			}
-			catch (OperationCanceledException ex)
-			{
-				Logger.LogDebug(ex);
-			}
 			catch (Exception ex)
 			{
 				appException = ex;
-				Logger.LogCritical(ex);
-
-				if (runGui)
-				{
-					CrashReporter.SetException(ex);
-				}
 			}
 
-			TerminateService.Terminate(appException);
+			TerminateAppAndHandleException(appException, runGui);
 		}
 
 		private static Global CreateGlobal()
@@ -131,21 +122,37 @@ namespace WalletWasabi.Gui
 			}
 			catch (Exception ex)
 			{
-				var criticalException = ex is OperationCanceledException ? null : ex;
-
-				// There is no other way to stop the creation of the WasabiWindow.
-				TerminateService.Terminate(criticalException);
+				// There is no other way to stop the creation of the WasabiWindow, we have to exit the application here instead of return to Main.
+				TerminateAppAndHandleException(ex, true);
 			}
 		}
 
-		private static async Task TerminateApplicationAsync(Exception? criticalException = null)
+		/// <summary>
+		/// This is a helper method until the creation of the window in AppMainAsync cannot be aborted without Environment.Exit().
+		/// </summary>
+		private static void TerminateAppAndHandleException(Exception? ex, bool runGui)
 		{
-			if (criticalException is { })
+			if (ex is OperationCanceledException)
 			{
-				Logger.LogCritical(criticalException);
-				CrashReporter.SetException(criticalException);
+				Logger.LogDebug(ex);
+			}
+			else if (ex is { })
+			{
+				Logger.LogCritical(ex);
+				if (runGui)
+				{
+					CrashReporter.SetException(ex);
+				}
 			}
 
+			TerminateService.Terminate(ex is { } ? 1 : 0);
+		}
+
+		/// <summary>
+		/// Do not call this method it should only be called by TerminateService.
+		/// </summary>
+		private static async Task TerminateApplicationAsync()
+		{
 			var mainViewModel = MainWindowViewModel.Instance;
 			if (mainViewModel is { })
 			{

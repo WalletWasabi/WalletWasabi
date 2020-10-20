@@ -10,11 +10,11 @@ namespace WalletWasabi.Services.Terminate
 	public class TerminateService : IDisposable
 	{
 		private bool _disposedValue;
-		private Func<Exception?, Task> _terminateApplication;
+		private Func<Task> _terminateApplicationAsync;
 
-		public TerminateService(Func<Exception?, Task> terminateApplication)
+		public TerminateService(Func<Task> terminateApplicationAsync)
 		{
-			_terminateApplication = terminateApplication;
+			_terminateApplicationAsync = terminateApplicationAsync;
 			AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
 			Console.CancelKeyPress += Console_CancelKeyPress;
 		}
@@ -44,8 +44,7 @@ namespace WalletWasabi.Services.Terminate
 		/// <summary>
 		/// This will terminate the application. This is a blocking method and no return after this call as it will exit the application.
 		/// </summary>
-		/// <param name="criticalException"></param>
-		public void Terminate(Exception? criticalException = null)
+		public void Terminate(int exitCode = 0)
 		{
 			var prevValue = Interlocked.CompareExchange(ref _terminateStatus, TerminateStatusInProgress, TerminateStatusIdle);
 			if (prevValue != TerminateStatusIdle)
@@ -61,14 +60,15 @@ namespace WalletWasabi.Services.Terminate
 			Logger.LogDebug("Terminate application was started.");
 
 			// Async termination has to be started on another thread otherwise there is a possibility of deadlock.
-			// We still need to block the caller so
+			// We still need to block the caller so ManualResetEvent applied.
 			using ManualResetEvent resetEvent = new ManualResetEvent(false);
-			Task.Run(async () => await _terminateApplication.Invoke(criticalException).ContinueWith((ex) => resetEvent.Set()));
+			Task.Run(async () => await _terminateApplicationAsync.Invoke().ContinueWith((ex) => resetEvent.Set()));
 			resetEvent.WaitOne();
 
+			// Indicate that the termination procedure finished. So other callers can return.
 			Interlocked.Exchange(ref _terminateStatus, TerminateFinished);
 
-			Environment.Exit(criticalException is { } ? 1 : 0);
+			Environment.Exit(exitCode);
 		}
 
 		protected virtual void Dispose(bool disposing)
