@@ -7,7 +7,9 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Input;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.Gui;
 using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
@@ -16,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
 	{
 		private bool _isConfirmationFinished;
 
-		public ConfirmRecoveryWordsViewModel(IScreen screen, List<RecoveryWord> mnemonicWords)
+		public ConfirmRecoveryWordsViewModel(IScreen screen, List<RecoveryWord> mnemonicWords, KeyManager keyManager, Global global)
 		{
 			HostScreen = screen;
 
@@ -24,6 +26,11 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
 			ConfirmationWords.CollectionChanged += OnConfirmationWordCollectionChanged;
 
 			FinishCommand = ReactiveCommand.Create(() => screen.Router.NavigationStack.Clear());
+			//FinishCommand = ReactiveCommand.Create(() =>
+			//{
+			//	global.WalletManager.AddWallet(keyManager);
+			//	screen.Router.NavigationStack.Clear();
+			//});
 
 			SetConfirmationWords(mnemonicWords);
 		}
@@ -40,14 +47,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
 
 		private void OnConfirmationWordCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
-			if (e.Action == NotifyCollectionChangedAction.Remove)
-			{
-				foreach (RecoveryWord item in e.OldItems)
-				{
-					item.PropertyChanged -= JumpFocus;
-				}
-			}
-			else if (e.Action == NotifyCollectionChangedAction.Add)
+			if (e.Action == NotifyCollectionChangedAction.Add)
 			{
 				foreach (RecoveryWord item in e.NewItems)
 				{

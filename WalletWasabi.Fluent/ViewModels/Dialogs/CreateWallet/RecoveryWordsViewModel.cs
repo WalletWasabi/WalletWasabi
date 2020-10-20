@@ -3,17 +3,18 @@ using System.Collections.Generic;
 using System.Reactive;
 using System.Text;
 using System.Windows.Input;
+using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.Gui;
 using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
 {
 	public class RecoveryWordsViewModel : ViewModelBase, IRoutableViewModel
 	{
-		private List<RecoveryWord> _mnemonicWords;
-
-		public RecoveryWordsViewModel(IScreen screen, Blockchain.Keys.KeyManager km, NBitcoin.Mnemonic mnemonic)
+		public RecoveryWordsViewModel(IScreen screen, KeyManager keyManager, Mnemonic mnemonic, Global global)
 		{
 			HostScreen = screen;
 			MnemonicWords = new List<RecoveryWord>();
@@ -23,17 +24,13 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
 				MnemonicWords.Add(new RecoveryWord(i + 1, mnemonic.Words[i]));
 			}
 
-			ContinueCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new ConfirmRecoveryWordsViewModel(HostScreen, MnemonicWords)));
+			ContinueCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new ConfirmRecoveryWordsViewModel(HostScreen, MnemonicWords, keyManager, global)));
 		}
 
 		public ICommand GoBackCommand => HostScreen.Router.NavigateBack;
 		public ICommand ContinueCommand { get; }
 
-		public List<RecoveryWord> MnemonicWords
-		{
-			get => _mnemonicWords;
-			set => this.RaiseAndSetIfChanged(ref _mnemonicWords, value);
-		}
+		public List<RecoveryWord> MnemonicWords { get; set; }
 
 		public string UrlPathSegment { get; }
 		public IScreen HostScreen { get; }

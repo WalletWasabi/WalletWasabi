@@ -32,7 +32,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				walletGenerator.TipHeight = global.BitcoinStore.SmartHeaderChain.TipHeight;
 				var (km, mnemonic) = walletGenerator.GenerateWallet("TestWallet", "12345");
 
-				screen.Router.Navigate.Execute(new RecoveryWordsViewModel(screen, km, mnemonic));
+				screen.Router.Navigate.Execute(new RecoveryWordsViewModel(screen, km, mnemonic, global));
 			});
 
 			OpenDialogCommand = ReactiveCommand.CreateFromTask(async () => await ConfirmSetting.Handle("Please confirm the setting:").ToTask());
