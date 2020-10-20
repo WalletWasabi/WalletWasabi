@@ -1,23 +1,20 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
+        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+
+        xmlns:vmt="clr-namespace:WalletWasabi.Fluent.ViewModels.TagsBox">
 
     <Style Selector="c|TagBox">
         <Setter Property="Template">
             <ControlTemplate>
-                <StackPanel>
-
-                    <ItemsRepeater Items="{Binding CombinedContent}">
-                        <ItemsRepeater.ItemTemplate>
-                            <DataTemplate>
-                                <ContentControl Content="{Binding .}" />
-                                
-                            </DataTemplate>
-                        </ItemsRepeater.ItemTemplate>
-                        <ItemsRepeater.Layout>
-                            <UniformGridLayout></UniformGridLayout>
-                        </ItemsRepeater.Layout>
-                    </ItemsRepeater>
+                <StackPanel x:DataType="vmt:TagBoxViewModel">
+                    <ItemsControl Items="{CompiledBinding CombinedContent}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
                     <Button Command="{Binding AddTag}">Add</Button>
                     <Button Command="{Binding RemoveTag}">Sub</Button>
                 </StackPanel>

@@ -6,18 +6,22 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
 {
     public class TagInputViewModel : ViewModelBase
     {
-        private readonly TagBoxViewModel _parent;
-        private IEnumerable _suggestions;
+        private readonly ObservableAsPropertyHelper<IEnumerable> _suggestions;
 
-        public IEnumerable Suggestions
-        {
-            get => _suggestions;
-            set => this.RaiseAndSetIfChanged(ref _suggestions, value);
-        }
+        private string _inputText;
+
+        public IEnumerable Suggestions => _suggestions.Value;
 
         public TagInputViewModel(TagBoxViewModel parent)
         {
-            _parent = parent;
+            _suggestions = parent.WhenAnyValue(x => x.Suggestions)
+                .ToProperty(this, x => x.Suggestions);
+        }
+
+        public string InputText
+        {
+            get => _inputText;
+            set => this.RaiseAndSetIfChanged(ref _inputText, value);
         }
     }
 }

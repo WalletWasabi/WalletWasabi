@@ -11,12 +11,11 @@ namespace WalletWasabi.Fluent.ViewModels
 		public RecoveryPageViewModel(IScreen screen) : base(screen)
 		{
 			Title = "Recovery";
+			RecoveryWordsTagBox.Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 		}
 
 		public override string IconName => "home_regular";
 
 		public TagBoxViewModel RecoveryWordsTagBox { get; } = new TagBoxViewModel();
-		
-		public IEnumerable MnemonicSuggestions { get; } = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 	}
 }

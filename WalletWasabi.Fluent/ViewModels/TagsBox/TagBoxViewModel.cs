@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -12,20 +13,34 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
 {
     public class TagBoxViewModel : ViewModelBase
     {
-        private TagInputViewModel _tagInput;
-
         private ObservableAsPropertyHelper<IEnumerable<object>> _combinedContent;
         private ObservableCollection<TagViewModel> _tags;
+        public TagInputViewModel TagInput { get; }
 
         public TagBoxViewModel()
         {
-            this.WhenAnyValue(x => x.Tags)
-                .Where(x => x is { })
-                .Subscribe(AddTagHandler);
+            _tags = new ObservableCollection<TagViewModel>();
 
-            Tags = new ObservableCollection<TagViewModel>();
             TagInput = new TagInputViewModel(this);
+
+            _combinedContent = Tags
+                     .ToObservableChangeSet(x => x)
+                     .ToCollection()
+                     .Select(x => x.Append((object)TagInput))
+                     .ToProperty(this, x => x.CombinedContent);
+            
+            // This is here just to activate/initialize the above rxui stuff. 
+            Tags.Clear();
         }
+        
+        private IEnumerable _suggestions;
+
+        public IEnumerable Suggestions
+        {
+            get => _suggestions;
+            set => this.RaiseAndSetIfChanged(ref _suggestions, value);
+        }
+
 
         public IEnumerable<object> CombinedContent => _combinedContent.Value;
 
@@ -35,24 +50,6 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
             set => this.RaiseAndSetIfChanged(ref _tags, value);
         }
 
-        public TagInputViewModel TagInput
-        {
-            get => _tagInput;
-            set => this.RaiseAndSetIfChanged(ref _tagInput, value);
-        }
-
-        private void AddTagHandler(ObservableCollection<TagViewModel> tags)
-        {
-            _combinedContent = tags
-                .ToObservableChangeSet(x => x)
-                .ToCollection()
-                .Select(x => x.Count != 0)
-                .Merge(this.WhenAnyValue(x => x.Tags).Select(x => x is { }))
-                .Merge(this.WhenAnyValue(x => x.TagInput).Select(x => x is { }))
-                .Select(x => Tags.Append((object)TagInput))
-                .ToProperty(this, x => x.CombinedContent);
-        }
-
         public void AddTag()
         {
             Tags.Add(new TagViewModel(this, "Test"));
@@ -60,8 +57,10 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
 
         public void RemoveTag()
         {
-            if (Tags.Count > 0)
+            if (Tags.Any())
+            {
                 Tags.Remove(Tags.Last());
+            }
         }
     }
 }
