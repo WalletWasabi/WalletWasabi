@@ -35,6 +35,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Legal;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
+using WalletWasabi.Services.Terminate;
 using WalletWasabi.Stores;
 using WalletWasabi.Tor;
 using WalletWasabi.Userfacing;
@@ -69,7 +70,7 @@ namespace WalletWasabi.Gui
 
 		public HostedServices HostedServices { get; }
 
-		public bool KillRequested => Interlocked.Read(ref _dispose) > 0;
+		public bool KillRequested => false;
 
 		public UiConfig UiConfig { get; }
 
@@ -128,7 +129,7 @@ namespace WalletWasabi.Gui
 
 		private SingleInstanceChecker SingleInstanceChecker { get; }
 
-		public async Task InitializeNoWalletAsync()
+		public async Task InitializeNoWalletAsync(TerminateService terminateService)
 		{
 			InitializationStarted = true;
 			AddressManager = null;
@@ -155,18 +156,6 @@ namespace WalletWasabi.Gui
 				HostedServices.Register(new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
 
 				HostedServices.Register(new SystemAwakeChecker(WalletManager), "System Awake Checker");
-
-				#region ProcessKillSubscription
-
-				AppDomain.CurrentDomain.ProcessExit += async (s, e) => await DisposeAsync().ConfigureAwait(false);
-				Console.CancelKeyPress += async (s, e) =>
-				{
-					e.Cancel = true;
-					Logger.LogWarning("Process was signaled for killing.", nameof(Global));
-					await DisposeAsync().ConfigureAwait(false);
-				};
-
-				#endregion ProcessKillSubscription
 
 				cancel.ThrowIfCancellationRequested();
 
@@ -342,7 +331,7 @@ namespace WalletWasabi.Gui
 				var jsonRpcServerConfig = new JsonRpcServerConfiguration(Config);
 				if (jsonRpcServerConfig.IsEnabled)
 				{
-					RpcServer = new JsonRpcServer(this, jsonRpcServerConfig);
+					RpcServer = new JsonRpcServer(this, jsonRpcServerConfig, terminateService);
 					try
 					{
 						await RpcServer.StartAsync(cancel).ConfigureAwait(false);
@@ -613,28 +602,8 @@ namespace WalletWasabi.Gui
 			Logger.LogInfo($"Transaction Notification ({notificationType}): {title} - {message} - {e.Transaction.GetHash()}");
 		}
 
-		/// <summary>
-		/// 0: nobody called
-		/// 1: somebody called
-		/// 2: call finished
-		/// </summary>
-		private long _dispose = 0; // To detect redundant calls
-
 		public async Task DisposeAsync()
 		{
-			var compareRes = Interlocked.CompareExchange(ref _dispose, 1, 0);
-			if (compareRes == 1)
-			{
-				while (Interlocked.Read(ref _dispose) != 2)
-				{
-					await Task.Delay(50).ConfigureAwait(false);
-				}
-				return;
-			}
-			else if (compareRes == 2)
-			{
-				return;
-			}
 			Logger.LogWarning("Process is exiting.", nameof(Global));
 
 			try
@@ -786,8 +755,6 @@ namespace WalletWasabi.Gui
 			finally
 			{
 				StoppingCts?.Dispose();
-				Interlocked.Exchange(ref _dispose, 2);
-				Logger.LogSoftwareStopped("Wasabi");
 			}
 		}
 	}

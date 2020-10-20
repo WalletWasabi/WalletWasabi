@@ -17,6 +17,7 @@ using WalletWasabi.Gui.CrashReport;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Services.Terminate;
 using WalletWasabi.Wallets;
 
 // This is temporary and to facilitate the migration to new UI.
@@ -32,6 +33,8 @@ namespace WalletWasabi.Gui
 		// This is only needed to pass CrashReporter to AppMainAsync otherwise it could be a local variable in Main().
 		private static CrashReporter CrashReporter;
 
+		private static TerminateService TerminateService;
+
 		/// Warning! In Avalonia applications Main must not be async. Otherwise application may not run on OSX.
 		/// see https://github.com/AvaloniaUI/Avalonia/wiki/Unresolved-platform-support-issues
 		private static void Main(string[] args)
@@ -41,6 +44,7 @@ namespace WalletWasabi.Gui
 
 			try
 			{
+				TerminateService = new TerminateService(TerminateApplication);
 				CrashReporter = new CrashReporter();
 				Global = CreateGlobal();
 				Locator.CurrentMutable.RegisterConstant(Global);
@@ -77,7 +81,7 @@ namespace WalletWasabi.Gui
 				}
 			}
 
-			TerminateApplicationAsync(appException).GetAwaiter().GetResult();
+			TerminateService.Terminate(appException);
 		}
 
 		private static Global CreateGlobal()
@@ -98,7 +102,7 @@ namespace WalletWasabi.Gui
 
 		private static bool ProcessCliCommands(string[] args)
 		{
-			var daemon = new Daemon(Global);
+			var daemon = new Daemon(Global, TerminateService);
 			var interpreter = new CommandInterpreter(Console.Out, Console.Error);
 			var executionTask = interpreter.ExecuteCommandsAsync(
 				args,
@@ -118,7 +122,7 @@ namespace WalletWasabi.Gui
 				var statusBarViewModel = new StatusBarViewModel(Global.DataDir, Global.Network, Global.Config, Global.HostedServices, Global.BitcoinStore.SmartHeaderChain, Global.Synchronizer, Global.LegalDocuments);
 				MainWindowViewModel.Instance = new MainWindowViewModel(Global.Network, Global.UiConfig, Global.WalletManager, statusBarViewModel, IoC.Get<IShell>());
 
-				await Global.InitializeNoWalletAsync();
+				await Global.InitializeNoWalletAsync(TerminateService);
 
 				MainWindowViewModel.Instance.Initialize(Global.Nodes.ConnectedNodes);
 
@@ -129,11 +133,11 @@ namespace WalletWasabi.Gui
 				var criticalException = ex is OperationCanceledException ? null : ex;
 
 				// There is no other way to stop the creation of the WasabiWindow.
-				await TerminateApplicationAsync(criticalException);
+				TerminateService.Terminate(criticalException);
 			}
 		}
 
-		private static async Task TerminateApplicationAsync(Exception? criticalException = null)
+		private static void TerminateApplication(Exception? criticalException = null)
 		{
 			if (criticalException is { })
 			{
@@ -155,7 +159,7 @@ namespace WalletWasabi.Gui
 
 			if (Global is { } global)
 			{
-				await global.DisposeAsync().ConfigureAwait(false);
+				global.DisposeAsync().ConfigureAwait(false).GetAwaiter().GetResult();
 			}
 
 			AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
@@ -166,7 +170,9 @@ namespace WalletWasabi.Gui
 				Logger.LogSoftwareStopped("Wasabi GUI");
 			}
 
-			Environment.Exit(criticalException is { } ? 1 : 0);
+			Logger.LogSoftwareStopped("Wasabi");
+
+			TerminateService?.Dispose();
 		}
 
 		private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)

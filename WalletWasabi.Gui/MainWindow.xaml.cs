@@ -121,8 +121,6 @@ namespace WalletWasabi.Gui
 							wm.OnClose();
 							Logger.LogInfo($"{nameof(WalletManagerViewModel)} closed.");
 						}
-
-						await Global.DisposeAsync();
 					}
 					catch (Exception ex)
 					{

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Logging;
+using WalletWasabi.Services.Terminate;
 using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 
@@ -11,13 +12,14 @@ namespace WalletWasabi.Gui.CommandLine
 {
 	public class Daemon
 	{
-		public Daemon(Global global)
+		public Daemon(Global global, TerminateService terminateService)
 		{
 			Global = global;
+			TerminateService = terminateService;
 		}
 
 		private Global Global { get; }
-
+		public TerminateService TerminateService { get; }
 		private Wallet Wallet { get; set; }
 
 		internal async Task RunAsync(string walletName, string destinationWalletName, bool keepMixAlive)
@@ -68,7 +70,7 @@ namespace WalletWasabi.Gui.CommandLine
 
 				Logger.LogInfo("Correct password.");
 
-				await Global.InitializeNoWalletAsync();
+				await Global.InitializeNoWalletAsync(TerminateService);
 				if (Global.KillRequested)
 				{
 					return;
@@ -133,7 +135,6 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 			finally
 			{
-				await Global.DisposeAsync().ConfigureAwait(false);
 				Logger.LogInfo($"{nameof(Daemon)} stopped.");
 			}
 		}
