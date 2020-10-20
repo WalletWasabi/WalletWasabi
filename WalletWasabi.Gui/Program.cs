@@ -29,7 +29,7 @@ namespace WalletWasabi.Gui
 		private static Global Global;
 
 		// This is only needed to pass CrashReporter to AppMainAsync otherwise it could be a local variable in Main().
-		private static CrashReporter CrashReporter = new CrashReporter();
+		private static CrashReporter CrashReporter;
 
 		/// Warning! In Avalonia applications Main must not be async. Otherwise application may not run on OSX.
 		/// see https://github.com/AvaloniaUI/Avalonia/wiki/Unresolved-platform-support-issues
@@ -40,6 +40,7 @@ namespace WalletWasabi.Gui
 
 			try
 			{
+				CrashReporter = new CrashReporter();
 				Global = CreateGlobal();
 				Locator.CurrentMutable.RegisterConstant(Global);
 				Locator.CurrentMutable.RegisterConstant(CrashReporter);
