@@ -82,11 +82,11 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			}
 		}
 
-		public event EventHandler<RoundPhase> PhaseChanged;
+		public event EventHandler<RoundPhase>? PhaseChanged;
 
-		public event EventHandler<CoordinatorRoundStatus> StatusChanged;
+		public event EventHandler<CoordinatorRoundStatus>? StatusChanged;
 
-		public event EventHandler<Transaction> CoinJoinBroadcasted;
+		public event EventHandler<Transaction>? CoinJoinBroadcasted;
 
 		public long RoundId { get; }
 

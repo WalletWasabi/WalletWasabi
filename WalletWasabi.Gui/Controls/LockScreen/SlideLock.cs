@@ -163,7 +163,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			_thumb.DragCompleted += OnThumb_DragCompletedAsync;
 		}
 
-		private async void OnThumb_DragCompletedAsync(object sender, VectorEventArgs e)
+		private async void OnThumb_DragCompletedAsync(object? sender, VectorEventArgs e)
 		{
 			if (CanSlide)
 			{
@@ -189,7 +189,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			return (Bounds.Height / 100) * value;
 		}
 
-		private void OnThumb_DragDelta(object sender, VectorEventArgs e)
+		private void OnThumb_DragDelta(object? sender, VectorEventArgs e)
 		{
 			if (CanSlide && Bounds.Height > 0)
 			{

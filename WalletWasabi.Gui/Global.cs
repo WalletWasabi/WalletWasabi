@@ -670,7 +670,7 @@ namespace WalletWasabi.Gui
 
 				Dispatcher.UIThread.PostLogException(() =>
 				{
-					var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
+					var window = ((IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime).MainWindow;
 					window?.Close();
 				});
 
@@ -696,18 +696,18 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo($"{nameof(CoinJoinProcessor)} is disposed.");
 				}
 
-				if (Synchronizer is { } synchronizer)
-				{
-					await synchronizer.StopAsync().ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(Synchronizer)} is stopped.");
-				}
-
 				if (HostedServices is { } backgroundServices)
 				{
 					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
 					await backgroundServices.StopAllAsync(cts.Token).ConfigureAwait(false);
 					backgroundServices.Dispose();
 					Logger.LogInfo("Stopped background services.");
+				}
+
+				if (Synchronizer is { } synchronizer)
+				{
+					await synchronizer.StopAsync().ConfigureAwait(false);
+					Logger.LogInfo($"{nameof(Synchronizer)} is stopped.");
 				}
 
 				if (AddressManagerFilePath is { } addressManagerFilePath)

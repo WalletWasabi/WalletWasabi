@@ -28,7 +28,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 			SetAllFeeEstimate();
 		}
 
-		public event EventHandler<AllFeeEstimate> AllFeeEstimateChanged;
+		public event EventHandler<AllFeeEstimate>? AllFeeEstimateChanged;
 
 		public AllFeeEstimate AllFeeEstimate { get; private set; }
 
@@ -36,7 +36,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 
 		private object Lock { get; }
 
-		private void Provider_AllFeeEstimateChanged(object sender, AllFeeEstimate e)
+		private void Provider_AllFeeEstimateChanged(object? sender, AllFeeEstimate e)
 		{
 			SetAllFeeEstimate();
 		}
