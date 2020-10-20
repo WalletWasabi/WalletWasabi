@@ -12,7 +12,7 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
         public TagViewModel(TagBoxViewModel parent, string tag)
         {
             _parent = parent;
-            Tag = tag;
+            _tag = tag;
         }
 
         public string Tag

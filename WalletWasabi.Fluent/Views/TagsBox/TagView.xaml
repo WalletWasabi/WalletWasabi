@@ -2,10 +2,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels.TagsBox"
              mc:Ignorable="d" 
              x:Class="WalletWasabi.Fluent.Views.TagsBox.TagView">
     <Border BorderBrush="Green" BorderThickness="1" Margin="5" CornerRadius="4">
-        <TextBlock Text="{Binding Tag}" Margin="5"/>
+        <TextBlock x:DataType="vm:TagViewModel" Text="{CompiledBinding Tag}" Margin="5"/>
     </Border>
 </UserControl>

@@ -1,9 +1,7 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
-
         xmlns:vmt="clr-namespace:WalletWasabi.Fluent.ViewModels.TagsBox">
-
     <Style Selector="c|TagBox">
         <Setter Property="Template">
             <ControlTemplate>
@@ -17,9 +15,4 @@
             </ControlTemplate>
         </Setter>
     </Style>
-
-    <Style Selector="c|TagBox /template/ AutoCompleteBox">
-        <Setter Property="Opacity" Value="0.5" />
-    </Style>
-
 </Styles>

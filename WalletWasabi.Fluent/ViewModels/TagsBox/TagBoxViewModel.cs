@@ -29,7 +29,7 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
                 .Select(x => x.Append((object) TagInput))
                 .ToProperty(this, x => x.CombinedContent);
 
-            // This is here just to activate/initialize the above rxui stuff. 
+            // This is here just to activate/initialize the above RxUI stuff. 
             Tags.Clear();
         }
 
@@ -40,7 +40,6 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
             get => _suggestions;
             set => this.RaiseAndSetIfChanged(ref _suggestions, value);
         }
-
 
         public IEnumerable<object> CombinedContent => _combinedContent.Value;
 
