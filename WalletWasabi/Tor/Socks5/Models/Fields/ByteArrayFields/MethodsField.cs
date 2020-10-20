@@ -38,8 +38,7 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields
 			{
 				foreach (var b in Bytes)
 				{
-					var method = new MethodField();
-					method.FromByte(b);
+					var method = new MethodField(b);
 					yield return method;
 				}
 			}
