@@ -674,7 +674,7 @@ namespace WalletWasabi.Gui
 
 				Dispatcher.UIThread.PostLogException(() =>
 				{
-					var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
+					var window = ((IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime).MainWindow;
 					window?.Close();
 				});
 

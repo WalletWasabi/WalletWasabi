@@ -112,6 +112,8 @@ namespace WalletWasabi.Services
 
 		public void Start(TimeSpan requestInterval, TimeSpan feeQueryRequestInterval, int maxFiltersToSyncAtInitialization)
 		{
+			Logger.LogTrace($"> {nameof(requestInterval)}={requestInterval}, {nameof(feeQueryRequestInterval)}={feeQueryRequestInterval}, {nameof(maxFiltersToSyncAtInitialization)}={maxFiltersToSyncAtInitialization}");
+
 			Guard.NotNull(nameof(requestInterval), requestInterval);
 			Guard.MinimumAndNotNull(nameof(feeQueryRequestInterval), feeQueryRequestInterval, requestInterval);
 			Guard.MinimumAndNotNull(nameof(maxFiltersToSyncAtInitialization), maxFiltersToSyncAtInitialization, 0);
@@ -125,6 +127,8 @@ namespace WalletWasabi.Services
 
 			Task.Run(async () =>
 			{
+				Logger.LogTrace("> Wasabi synchronizer thread starts.");
+
 				try
 				{
 					DateTimeOffset lastFeeQueried = DateTimeOffset.UtcNow - feeQueryRequestInterval;
@@ -296,6 +300,10 @@ namespace WalletWasabi.Services
 							LastResponse = response;
 							ResponseArrived?.Invoke(this, response);
 						}
+						catch (OperationCanceledException)
+						{
+							Logger.LogInfo("Wasabi Synchronizer execution was canceled.");
+						}
 						catch (ConnectionException ex)
 						{
 							Logger.LogError(ex);
@@ -308,7 +316,7 @@ namespace WalletWasabi.Services
 								Logger.LogTrace(ex2);
 							}
 						}
-						catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
+						catch (TimeoutException ex)
 						{
 							Logger.LogTrace(ex);
 						}
@@ -337,7 +345,11 @@ namespace WalletWasabi.Services
 				{
 					Interlocked.CompareExchange(ref _running, 3, 2); // If IsStopping, make it stopped.
 				}
+
+				Logger.LogTrace("< Wasabi synchronizer thread ends.");
 			});
+
+			Logger.LogTrace("<");
 		}
 
 		#endregion Initializers
@@ -373,6 +385,8 @@ namespace WalletWasabi.Services
 
 		public async Task StopAsync()
 		{
+			Logger.LogTrace(">");
+
 			Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
 			Cancel?.Cancel();
 			while (Interlocked.CompareExchange(ref _running, 3, 0) == 2)
@@ -383,6 +397,8 @@ namespace WalletWasabi.Services
 			Cancel?.Dispose();
 
 			EnableRequests(); // Enable requests (it's possible something is being blocked outside the class by AreRequestsBlocked.
+
+			Logger.LogTrace("<");
 		}
 	}
 }
