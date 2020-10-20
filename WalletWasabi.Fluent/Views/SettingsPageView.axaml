@@ -14,6 +14,7 @@
       <TextBox Watermark="Type here..."/>
       <TextBox Watermark="Type here... #2"/>
       <TextBox Watermark="Type here... #3" Text="{Binding RandomString}"/>
+      <Button Classes="action" Content="continue"/>
     </StackPanel>
   </c:ContentArea>
 </UserControl>
