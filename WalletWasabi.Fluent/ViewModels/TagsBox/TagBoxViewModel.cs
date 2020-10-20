@@ -65,7 +65,10 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
 
         public void RemoveTag()
         {
-            if (Tags.Any()) Tags.Remove(Tags.Last());
+            if (Tags.Any()) 
+            {
+                Tags.Remove(Tags.Last()); 
+            }
         }
     }
 }

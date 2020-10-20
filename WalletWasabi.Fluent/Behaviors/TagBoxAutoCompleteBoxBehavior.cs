@@ -34,6 +34,7 @@ namespace WalletWasabi.Fluent.Behaviors
         {
             AssociatedObject.KeyUp += OnKeyUp;
             AssociatedObject.TextChanged += OnTextChanged;
+            AssociatedObject.DropDownClosed += OnDropDownClosed;
 
             Dispatcher.UIThread.InvokeAsync(() =>
             {
@@ -45,11 +46,32 @@ namespace WalletWasabi.Fluent.Behaviors
             base.OnAttached();
         }
 
+        private void OnDropDownClosed(object? sender, EventArgs e)
+        {
+            var currentText = AssociatedObject?.Text ?? "";
+            var selItem = AssociatedObject?.SelectedItem as string;
+
+            if (currentText.Length == 0)
+            {
+                return;
+            }
+
+            if (selItem is null || selItem.Length == 0) return;
+
+            CommitTextAction?.Invoke(AssociatedObject?.Text?.Trim() ?? "");
+            AssociatedObject?.ClearValue(AutoCompleteBox.SelectedItemProperty);
+
+            Dispatcher.UIThread.Post(() =>
+            {
+                AssociatedObject?.ClearValue(AutoCompleteBox.TextProperty);
+            });
+        }
+
         private void OnTextChanged(object? sender, EventArgs e)
         {
-            var obj = AssociatedObject?.Text ?? "";
+            var currentText = AssociatedObject?.Text ?? "";
 
-            if (obj.Length > 1 && !string.IsNullOrEmpty(obj.Trim()) && obj.EndsWith(' '))
+            if (currentText.Length >= 1 && !string.IsNullOrEmpty(currentText.Trim()) && currentText.EndsWith(' '))
             {
                 CommitTextAction?.Invoke(AssociatedObject?.Text?.Trim() ?? "");
                 Dispatcher.UIThread.Post(() => { AssociatedObject?.ClearValue(AutoCompleteBox.TextProperty); });
@@ -58,7 +80,7 @@ namespace WalletWasabi.Fluent.Behaviors
 
         private void OnKeyUp(object? sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Back && AssociatedObject?.Text.Length == 0)
+            if (e.Key == Key.Back && (AssociatedObject?.Text?.Length == 0 || AssociatedObject?.Text is null))
             {
                 BackspaceAndEmptyTextAction?.Invoke();
             }
@@ -72,6 +94,7 @@ namespace WalletWasabi.Fluent.Behaviors
         protected override void OnDetaching()
         {
             base.OnDetaching();
+            AssociatedObject.DropDownClosed -= OnDropDownClosed;
             AssociatedObject.KeyUp -= OnKeyUp;
             AssociatedObject.TextChanged -= OnTextChanged;
         }
