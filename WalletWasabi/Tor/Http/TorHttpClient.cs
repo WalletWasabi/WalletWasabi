@@ -72,9 +72,9 @@ namespace WalletWasabi.Tor.Http
 
 		private static AsyncLock AsyncLock { get; } = new AsyncLock(); // We make everything synchronous, so slow, but at least stable.
 
-		private static async Task<HttpResponseMessage> ClearnetRequestAsync(HttpRequestMessage request)
+		private static async Task<HttpResponseMessage> ClearnetRequestAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
 		{
-			return await ClearnetHttpClient.Instance.SendAsync(request).ConfigureAwait(false);
+			return await ClearnetHttpClient.Instance.SendAsync(request, cancellationToken).ConfigureAwait(false);
 		}
 
 		/// <remarks>
@@ -96,7 +96,7 @@ namespace WalletWasabi.Tor.Http
 			// Use clearnet HTTP client when Tor is disabled.
 			if (TorSocks5EndPoint is null)
 			{
-				return await ClearnetRequestAsync(request).ConfigureAwait(false);
+				return await ClearnetRequestAsync(request, cancel).ConfigureAwait(false);
 			}
 
 			try
@@ -181,7 +181,7 @@ namespace WalletWasabi.Tor.Http
 			// Use clearnet HTTP client when Tor is disabled.
 			if (TorSocks5EndPoint is null)
 			{
-				return await ClearnetRequestAsync(request).ConfigureAwait(false);
+				return await ClearnetRequestAsync(request, cancel).ConfigureAwait(false);
 			}
 
 			// https://tools.ietf.org/html/rfc7230#section-2.7.1
