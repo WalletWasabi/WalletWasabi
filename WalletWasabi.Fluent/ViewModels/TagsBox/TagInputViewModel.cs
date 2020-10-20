@@ -35,6 +35,7 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
         private void OnEnterKeyOrSpacePressedAction()
         {
             _parent.AddTag(InputText.Trim());
+            InputText = string.Empty;
         }
 
         public string InputText

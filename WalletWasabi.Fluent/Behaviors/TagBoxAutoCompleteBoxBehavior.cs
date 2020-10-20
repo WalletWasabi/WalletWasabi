@@ -53,8 +53,7 @@ namespace WalletWasabi.Fluent.Behaviors
 
             if (obj.Length > 1 && !string.IsNullOrEmpty(obj.Trim()) && obj.EndsWith(' '))
             {
-                EnterKeyOrSpacePressedAction?.Invoke();
-                Dispatcher.UIThread.InvokeAsync(() => { AssociatedObject.Text = ""; });
+                EnterKeyOrSpacePressedAction?.Invoke(); 
             }
         }
 
@@ -67,7 +66,6 @@ namespace WalletWasabi.Fluent.Behaviors
             else if (e.Key == Key.Enter && !string.IsNullOrEmpty(AssociatedObject?.Text.Trim() ?? ""))
             {
                 EnterKeyOrSpacePressedAction?.Invoke();
-                Dispatcher.UIThread.InvokeAsync(() => { AssociatedObject.Text = ""; });
             }
         }
 
