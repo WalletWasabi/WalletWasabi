@@ -49,7 +49,7 @@ namespace WalletWasabi.Gui
 
 				try
 				{
-					runGui = ShouldRunGui(args);
+					runGui = ProcessCliCommands(args);
 				}
 				catch (Exception)
 				{
@@ -100,7 +100,7 @@ namespace WalletWasabi.Gui
 			return new Global(dataDir, torLogsFile, config, uiConfig, walletManager);
 		}
 
-		private static bool ShouldRunGui(string[] args)
+		private static bool ProcessCliCommands(string[] args)
 		{
 			var daemon = new Daemon(Global);
 			var interpreter = new CommandInterpreter(Console.Out, Console.Error);
