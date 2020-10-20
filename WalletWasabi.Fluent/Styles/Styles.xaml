@@ -9,6 +9,7 @@
         <Thickness x:Key="TextControlBorderThemeThickness">0,0,0,2</Thickness>
         <Thickness x:Key="TextControlBorderThemeThicknessFocused">0,0,0,2</Thickness>
         <Thickness x:Key="TextControlThemePadding">15,10,15,8</Thickness>
+        <Thickness x:Key="ActionButtonPadding">20,10</Thickness>
         <Easing x:Key="FluentDefaultEasing">0.1,0.9,0.2,1.0</Easing>
     </Styles.Resources>
  
@@ -63,8 +64,16 @@
     <Style Selector="Button.invisible:pressed /template/ ContentPresenter">
         <Setter Property="Background" Value="{DynamicResource InvisibleButtonPressedBackgroundColor}" />
     </Style>
-    <Style Selector="TextBlock">
-        <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
+    <Style Selector="Button.action /template/ ContentPresenter"> 
+        <Setter Property="Background" Value="{StaticResource ActionButtonBackgroundColor}" />
+        <Setter Property="Padding" Value="{StaticResource ActionButtonPadding}" />
+        <Setter Property="TextBlock.Foreground" Value="{StaticResource ActionButtonForegroundColor}" />
+    </Style>
+        <Style Selector="Button.action:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource ActionButtonPointerOverBackgroundColor}" />
+    </Style>
+    <Style Selector="Button.action:pressed /template/ ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource ActionButtonPressedBackgroundColor}" />
     </Style>
     <Style Selector="TextBox /template/ Border#PART_BorderElement">
         <Setter Property="CornerRadius" Value="0" />

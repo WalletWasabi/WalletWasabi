@@ -12,5 +12,9 @@
     <Color x:Key="SystemAccentColor">#FF72BD81</Color>
     <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="{StaticResource SystemAccentColor}"/>
     <SolidColorBrush x:Key="TextControlErrorBorderBrush">#D85050</SolidColorBrush>
+    <SolidColorBrush x:Key="ActionButtonForegroundColor">#FFFFFF</SolidColorBrush>
+    <SolidColorBrush x:Key="ActionButtonBackgroundColor" Color="{StaticResource SystemAccentColor}"/>
+    <SolidColorBrush x:Key="ActionButtonPressedBackgroundColor" Color="#8F72BD81"/>
+    <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Color="#6F72BD81"/>
   </Styles.Resources>
 </Styles>
