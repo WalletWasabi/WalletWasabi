@@ -83,7 +83,6 @@ namespace WalletWasabi.Gui
 		{
 			using (BenchmarkLogger.Measure())
 			{
-				CrashReporter = new CrashReporter();
 				StoppingCts = new CancellationTokenSource();
 				DataDir = dataDir;
 				Config = config;
@@ -128,7 +127,6 @@ namespace WalletWasabi.Gui
 		private CancellationTokenSource StoppingCts { get; }
 
 		private SingleInstanceChecker SingleInstanceChecker { get; }
-		public CrashReporter CrashReporter { get; }
 
 		public async Task InitializeNoWalletAsync()
 		{
@@ -670,7 +668,7 @@ namespace WalletWasabi.Gui
 
 				Dispatcher.UIThread.PostLogException(() =>
 				{
-					var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
+					var window = ((IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime).MainWindow;
 					window?.Close();
 				});
 

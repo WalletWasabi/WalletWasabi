@@ -64,8 +64,7 @@ namespace WalletWasabi.Tor.Socks5
 				}
 				catch (Exception ex) when (IsConnectionRefused(ex))
 				{
-					throw new ConnectionException(
-						$"Could not connect to Tor SOCKSPort at {host}:{port}. Is Tor running?", ex);
+					throw new ConnectionException($"Could not connect to Tor SOCKSPort at {host}:{port}. Is Tor running?", ex);
 				}
 
 				Stream = TcpClient.GetStream();

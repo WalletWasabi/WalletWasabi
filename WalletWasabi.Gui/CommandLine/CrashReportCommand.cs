@@ -34,7 +34,7 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 			catch (Exception ex)
 			{
-				Task.FromException(ex);
+				return Task.FromException<int>(ex);
 			}
 
 			return Task.FromResult(0);
