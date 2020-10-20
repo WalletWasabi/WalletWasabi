@@ -33,9 +33,10 @@ namespace WalletWasabi.Fluent.ViewModels
 			_topItems = new ObservableCollection<NavBarItemViewModel>();
 			_bottomItems = new ObservableCollection<NavBarItemViewModel>();
 
-			SelectedItem = new HomePageViewModel(screen, walletManager);
+			var addWalletPage = new AddWalletPageViewModel(screen);
+			SelectedItem = new HomePageViewModel(screen, walletManager, addWalletPage);
 			_topItems.Add(_selectedItem);
-			_bottomItems.Add(new AddWalletPageViewModel(screen));
+			_bottomItems.Add(addWalletPage);
 			_bottomItems.Add(new SettingsPageViewModel(screen));
 
 			Router.CurrentViewModel

@@ -10,12 +10,12 @@ namespace WalletWasabi.Fluent.ViewModels
 	{
 		private readonly ReadOnlyObservableCollection<NavBarItemViewModel> _items;
 
-		public HomePageViewModel(IScreen screen, WalletManagerViewModel walletManager) : base(screen)
+		public HomePageViewModel(IScreen screen, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage) : base(screen)
 		{
 			Title = "Home";
 
 			var list = new SourceList<NavBarItemViewModel>();
-			list.Add(new AddWalletPageViewModel(screen));
+			list.Add(addWalletPage);
 
 			walletManager.Items.ToObservableChangeSet()
 				.Cast(x => x as NavBarItemViewModel)
