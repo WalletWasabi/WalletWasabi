@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using ReactiveUI;
+using System.Reactive.Threading.Tasks;
 using System.Windows.Input;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Gui.Validation;
@@ -20,11 +21,17 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			NextCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new HomePageViewModel(screen)));
 
-			OpenDialogCommand = ReactiveCommand.Create(async () =>
-			{
-				var x = new TestDialogViewModel();
-				var result = await x.ShowDialogAsync(MainViewModel.Instance);
-			});
+			OpenDialogCommand = ReactiveCommand.CreateFromTask(async () => await ConfirmSetting.Handle("Please confirm the setting:").ToTask());
+
+			ConfirmSetting = new Interaction<string, bool>();
+
+			ConfirmSetting.RegisterHandler(
+				async interaction =>
+				{
+					var x = new TestDialogViewModel(screen, interaction.Input);
+					var result = await x.ShowDialogAsync(MainViewModel.Instance);
+					interaction.SetOutput(result);
+				});
 
 			ChangeThemeCommand = ReactiveCommand.Create(() =>
 			{
@@ -56,6 +63,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public ICommand NextCommand { get; }
 		public ICommand OpenDialogCommand { get; }
+		public Interaction<string, bool> ConfirmSetting { get; }
 		public ICommand ChangeThemeCommand { get; }
 
 		public override string IconName => "settings_regular";
