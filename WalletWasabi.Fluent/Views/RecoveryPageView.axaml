@@ -6,6 +6,6 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.RecoveryPageView">
   <Panel>
-    <c:TagBox DataContext="{Binding RecoveryWordsTagBoxViewModel}" />
+    <c:TagBox DataContext="{Binding RecoveryWordsTagBox}" />
   </Panel>
 </UserControl>

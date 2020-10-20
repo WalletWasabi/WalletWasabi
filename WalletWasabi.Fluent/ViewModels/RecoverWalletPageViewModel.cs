@@ -15,7 +15,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public override string IconName => "home_regular";
 
-		public TagBoxViewModel RecoveryWordsTagBoxViewModel { get; } = new TagBoxViewModel();
+		public TagBoxViewModel RecoveryWordsTagBox { get; } = new TagBoxViewModel();
 		
 		public IEnumerable MnemonicSuggestions { get; } = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 	}
