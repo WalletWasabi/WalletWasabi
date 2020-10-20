@@ -12,13 +12,13 @@ namespace WalletWasabi.Fluent.Behaviors
 {
     public class TagBoxAutoCompleteBoxBehavior : Behavior<AutoCompleteBox>
     {
-        public static readonly StyledProperty<Action> CommitTextActionProperty =
-            AvaloniaProperty.Register<SplitViewAutoBehavior, Action>(nameof(CommitTextAction));
+        public static readonly StyledProperty<Action<string>> CommitTextActionProperty =
+            AvaloniaProperty.Register<SplitViewAutoBehavior, Action<string>>(nameof(CommitTextAction));
 
         public static readonly StyledProperty<Action> BackspaceAndEmptyTextActionProperty =
             AvaloniaProperty.Register<SplitViewAutoBehavior, Action>(nameof(BackspaceAndEmptyTextAction));
 
-        public Action CommitTextAction
+        public Action<string> CommitTextAction
         {
             get => GetValue(CommitTextActionProperty);
             set => SetValue(CommitTextActionProperty, value);
@@ -42,7 +42,6 @@ namespace WalletWasabi.Fluent.Behaviors
                 AssociatedObject.Focus();
             });
 
-
             base.OnAttached();
         }
 
@@ -52,7 +51,8 @@ namespace WalletWasabi.Fluent.Behaviors
 
             if (obj.Length > 1 && !string.IsNullOrEmpty(obj.Trim()) && obj.EndsWith(' '))
             {
-                CommitTextAction?.Invoke(); 
+                CommitTextAction?.Invoke(AssociatedObject?.Text?.Trim() ?? "");
+                Dispatcher.UIThread.Post(() => { AssociatedObject?.ClearValue(AutoCompleteBox.TextProperty); });
             }
         }
 
@@ -62,17 +62,19 @@ namespace WalletWasabi.Fluent.Behaviors
             {
                 BackspaceAndEmptyTextAction?.Invoke();
             }
-            else if (e.Key == Key.Enter && !string.IsNullOrEmpty(AssociatedObject?.Text.Trim() ?? ""))
+            else if (e.Key == Key.Enter && !string.IsNullOrEmpty(AssociatedObject?.Text?.Trim() ?? ""))
             {
-                CommitTextAction?.Invoke();
+                CommitTextAction?.Invoke(AssociatedObject?.Text?.Trim() ?? "");
+                Dispatcher.UIThread.Post(() => { AssociatedObject?.ClearValue(AutoCompleteBox.TextProperty); });
             }
         }
 
         protected override void OnDetaching()
         {
             base.OnDetaching();
-            AssociatedObject.TextChanged -= OnTextChanged;
+
             AssociatedObject.KeyUp -= OnKeyUp;
+            AssociatedObject.TextChanged -= OnTextChanged;
         }
     }
 }

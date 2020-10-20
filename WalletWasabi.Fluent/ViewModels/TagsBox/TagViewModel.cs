@@ -1,4 +1,3 @@
-using System;
 using ReactiveUI;
 using WalletWasabi.Gui.ViewModels;
 

@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using AvalonStudio.MVVM;
 using ReactiveUI;
 using WalletWasabi.Gui.ViewModels;
 
@@ -8,14 +7,10 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
 {
     public class TagInputViewModel : ViewModelBase
     {
+        private readonly TagBoxViewModel _parent;
         private readonly ObservableAsPropertyHelper<IEnumerable> _suggestions;
-
-        private string _inputText;
-        private Action _CommitTextAction;
         private Action _backspaceAndEmptyTextAction;
-        private TagBoxViewModel _parent;
-
-        public IEnumerable Suggestions => _suggestions.Value;
+        private Action<string> _commitTextAction;
 
         public TagInputViewModel(TagBoxViewModel parent)
         {
@@ -23,8 +18,22 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
             _suggestions = _parent.WhenAnyValue(x => x.Suggestions)
                 .ToProperty(this, x => x.Suggestions);
 
-            this.CommitTextAction += OnCommitTextAction;
-            this.BackspaceAndEmptyTextAction += OnBackspaceAndEmptyTextAction;
+            CommitTextAction += OnCommitTextAction;
+            BackspaceAndEmptyTextAction += OnBackspaceAndEmptyTextAction;
+        }
+
+        public IEnumerable Suggestions => _suggestions.Value;
+
+        public Action<string> CommitTextAction
+        {
+            get => _commitTextAction;
+            set => this.RaiseAndSetIfChanged(ref _commitTextAction, value);
+        }
+
+        public Action BackspaceAndEmptyTextAction
+        {
+            get => _backspaceAndEmptyTextAction;
+            set => this.RaiseAndSetIfChanged(ref _backspaceAndEmptyTextAction, value);
         }
 
         private void OnBackspaceAndEmptyTextAction()
@@ -32,28 +41,9 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
             _parent.RemoveTag();
         }
 
-        private void OnCommitTextAction()
+        private void OnCommitTextAction(string tagString)
         {
-            _parent.AddTag(InputText.Trim());
-            InputText = string.Empty;
-        }
-
-        public string InputText
-        {
-            get => _inputText;
-            set => this.RaiseAndSetIfChanged(ref _inputText, value);
-        }
-
-        public Action CommitTextAction
-        {
-            get => _CommitTextAction;
-            set => this.RaiseAndSetIfChanged(ref _CommitTextAction, value);
-        }
-
-        public Action BackspaceAndEmptyTextAction
-        {
-            get => _backspaceAndEmptyTextAction;
-            set => this.RaiseAndSetIfChanged(ref _backspaceAndEmptyTextAction, value);
+            _parent.AddTag(tagString);
         }
     }
 }

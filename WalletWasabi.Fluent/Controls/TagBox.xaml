@@ -15,15 +15,13 @@
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                     </ItemsControl>
-                    <Button Command="{Binding AddTag}">Add</Button>
-                    <Button Command="{Binding RemoveTag}">Sub</Button>
                 </StackPanel>
             </ControlTemplate>
         </Setter>
     </Style>
 
-    <Style Selector="c|TagBox /template/ TextBox#PART_InputBox">
-        <Setter Property="Opacity" Value="1" />
+    <Style Selector="c|TagBox /template/ AutoCompleteBox">
+        <Setter Property="Opacity" Value="0.5" />
     </Style>
 
 </Styles>

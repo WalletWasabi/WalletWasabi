@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -13,9 +12,10 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
 {
     public class TagBoxViewModel : ViewModelBase
     {
-        private ObservableAsPropertyHelper<IEnumerable<object>> _combinedContent;
+        private readonly ObservableAsPropertyHelper<IEnumerable<object>> _combinedContent;
+
+        private IEnumerable _suggestions;
         private ObservableCollection<TagViewModel> _tags;
-        public TagInputViewModel TagInput { get; }
 
         public TagBoxViewModel()
         {
@@ -24,16 +24,16 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
             TagInput = new TagInputViewModel(this);
 
             _combinedContent = Tags
-                     .ToObservableChangeSet(x => x)
-                     .ToCollection()
-                     .Select(x => x.Append((object)TagInput))
-                     .ToProperty(this, x => x.CombinedContent);
-            
+                .ToObservableChangeSet(x => x)
+                .ToCollection()
+                .Select(x => x.Append((object) TagInput))
+                .ToProperty(this, x => x.CombinedContent);
+
             // This is here just to activate/initialize the above rxui stuff. 
             Tags.Clear();
         }
-        
-        private IEnumerable _suggestions;
+
+        public TagInputViewModel TagInput { get; }
 
         public IEnumerable Suggestions
         {
@@ -57,10 +57,7 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
 
         public void RemoveTag()
         {
-            if (Tags.Any())
-            {
-                Tags.Remove(Tags.Last());
-            }
+            if (Tags.Any()) Tags.Remove(Tags.Last());
         }
     }
 }
