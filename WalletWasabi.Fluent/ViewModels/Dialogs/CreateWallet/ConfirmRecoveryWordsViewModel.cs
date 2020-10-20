@@ -60,20 +60,23 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
 		{
 			if (e.PropertyName == nameof(RecoveryWord.IsConfirmed))
 			{
-				// Finally. TODO: Refactor
-				foreach (var item in ConfirmationWords)
+				// This will prevent that case when the control only once can get the focus
+				foreach (var item in ConfirmationWords.Where(x => !x.IsConfirmed))
 				{
 					item.IsFocused = false;
 				}
 
+				// Find the next control
 				var nextToFocus = ConfirmationWords.FirstOrDefault(x => x.IsConfirmed == false);
 
 				if (nextToFocus is { })
 				{
+					// Give the focus to the next TextBlock
 					nextToFocus.IsFocused = true;
 				}
 				else
 				{
+					// All word is confirmed, give the focus to the finish button
 					IsConfirmationFinished = true;
 				}
 			}
@@ -82,7 +85,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
 		private void SetConfirmationWords(List<RecoveryWord> mnemonicWords)
 		{
 			var random = new Random();
-			var unsortedConfWords = new ObservableCollection<RecoveryWord>();
+			var unsortedConfWords = new List<RecoveryWord>();
 
 			for (int i = 0; i < 4; i++)
 			{
