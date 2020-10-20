@@ -12,7 +12,6 @@ namespace WalletWasabi.Fluent.Behaviors
 {
     public class TagBoxAutoCompleteBoxBehavior : Behavior<AutoCompleteBox>
     {
-        private int _lastSelectedIndex;
         public static readonly StyledProperty<Action> EnterKeyOrSpacePressedActionProperty =
             AvaloniaProperty.Register<SplitViewAutoBehavior, Action>(nameof(EnterKeyOrSpacePressedAction));
 
