@@ -10,9 +10,9 @@ namespace WalletWasabi.Services.Terminate
 	public class TerminateService : IDisposable
 	{
 		private bool _disposedValue;
-		private Action<Exception?> _terminateApplication;
+		private Func<Exception?, Task> _terminateApplication;
 
-		public TerminateService(Action<Exception?> terminateApplication)
+		public TerminateService(Func<Exception?, Task> terminateApplication)
 		{
 			_terminateApplication = terminateApplication;
 			AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
@@ -42,7 +42,7 @@ namespace WalletWasabi.Services.Terminate
 		private long _terminateStatus;
 
 		/// <summary>
-		/// This will terminate the application.
+		/// This will terminate the application. This is a blocking method and no return after this call as it will exit the application.
 		/// </summary>
 		/// <param name="criticalException"></param>
 		public void Terminate(Exception? criticalException = null)
@@ -50,13 +50,21 @@ namespace WalletWasabi.Services.Terminate
 			var prevValue = Interlocked.CompareExchange(ref _terminateStatus, TerminateStatusInProgress, TerminateStatusIdle);
 			if (prevValue != TerminateStatusIdle)
 			{
+				// Secondary callers will be blocked until the end of the termination.
 				while (_terminateStatus != TerminateFinished)
 				{
 				}
 				return;
 			}
+
+			// First caller starts the terminate procedure.
 			Logger.LogDebug("Terminate application was started.");
-			_terminateApplication.Invoke(criticalException);
+
+			// Async termination has to be started on another thread otherwise there is a possibility of deadlock.
+			// We still need to block the caller so
+			using ManualResetEvent resetEvent = new ManualResetEvent(false);
+			Task.Run(async () => await _terminateApplication.Invoke(criticalException).ContinueWith((ex) => resetEvent.Set()));
+			resetEvent.WaitOne();
 
 			Interlocked.Exchange(ref _terminateStatus, TerminateFinished);
 

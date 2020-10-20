@@ -10,6 +10,7 @@ using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Gui.CommandLine;
@@ -44,7 +45,7 @@ namespace WalletWasabi.Gui
 
 			try
 			{
-				TerminateService = new TerminateService(TerminateApplication);
+				TerminateService = new TerminateService(TerminateApplicationAsync);
 				CrashReporter = new CrashReporter();
 				Global = CreateGlobal();
 				Locator.CurrentMutable.RegisterConstant(Global);
@@ -137,7 +138,7 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private static void TerminateApplication(Exception? criticalException = null)
+		private static async Task TerminateApplicationAsync(Exception? criticalException = null)
 		{
 			if (criticalException is { })
 			{
@@ -159,7 +160,7 @@ namespace WalletWasabi.Gui
 
 			if (Global is { } global)
 			{
-				global.DisposeAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+				await global.DisposeAsync().ConfigureAwait(false);
 			}
 
 			AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
