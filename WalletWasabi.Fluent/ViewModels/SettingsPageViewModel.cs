@@ -9,6 +9,8 @@ using Avalonia;
 using Avalonia.Markup.Xaml.Styling;
 using WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Gui;
+using Splat;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -23,12 +25,13 @@ namespace WalletWasabi.Fluent.ViewModels
 			NextCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new HomePageViewModel(screen)));
 			CreateWalletCommand = ReactiveCommand.Create(() =>
 			{
-				//var walletGenerator = new WalletGenerator(Global.WalletManager.WalletDirectories.WalletsDir, Global.Network);
-				//walletGenerator.TipHeight = Global.BitcoinStore.SmartHeaderChain.TipHeight;
-				//var (km, mnemonic) = walletGenerator.GenerateWallet(WalletName, Password);
-				//new GenerateWalletSuccessViewModel(Owner, km, mnemonic);
+				var global = Locator.Current.GetService<Global>();
 
-				screen.Router.Navigate.Execute(new RecoveryWordsViewModel(screen));
+				var walletGenerator = new WalletGenerator(global.WalletManager.WalletDirectories.WalletsDir, global.Network);
+				walletGenerator.TipHeight = global.BitcoinStore.SmartHeaderChain.TipHeight;
+				var (km, mnemonic) = walletGenerator.GenerateWallet("TestWallet", "12345");
+
+				screen.Router.Navigate.Execute(new RecoveryWordsViewModel(screen, km, mnemonic));
 			});
 
 			OpenDialogCommand = ReactiveCommand.Create(async () =>
@@ -41,13 +44,13 @@ namespace WalletWasabi.Fluent.ViewModels
 			{
 				var currentTheme = Application.Current.Styles.Select(x => (StyleInclude)x).FirstOrDefault(x => x.Source is { } && x.Source.AbsolutePath.Contains("Themes"));
 
-				if (currentTheme?.Source is { })
+				if (currentTheme?.Source is { } src)
 				{
 					var themeIndex = Application.Current.Styles.IndexOf(currentTheme);
 
 					var newTheme = new StyleInclude(new Uri("avares://WalletWasabi.Fluent/App.xaml"))
 					{
-						Source = new Uri($"avares://WalletWasabi.Fluent/Styles/Themes/{(currentTheme.Source.AbsolutePath.Contains("Light") ? "BaseDark" : "BaseLight")}.xaml")
+						Source = new Uri($"avares://WalletWasabi.Fluent/Styles/Themes/{(src.AbsolutePath.Contains("Light") ? "BaseDark" : "BaseLight")}.xaml")
 					};
 
 					Application.Current.Styles[themeIndex] = newTheme;

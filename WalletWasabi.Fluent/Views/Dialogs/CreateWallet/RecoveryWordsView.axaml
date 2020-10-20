@@ -2,22 +2,23 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d"
              d:DesignWidth="600" d:DesignHeight="500"
              Width="600" Height="500"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.CreateWallet.RecoveryWordsView">
-  <Panel Margin="25 35 25 20">
+  <Panel>
     
-     <Button Classes="invisible" Command="{Binding GoBackCommand}" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Top">
+    <Button Classes="invisible" Width="20" Margin="27 35 0 0" Command="{Binding GoBackCommand}" HorizontalAlignment="Left" VerticalAlignment="Top">
         <PathIcon Data="{StaticResource arrow_left_regular}" />
-      </Button>
-        
-    <DockPanel Margin="64 0 64 0">
-      <TextBlock Text="Recovery words" FontSize="20" DockPanel.Dock="Top" FontWeight="SemiBold"/>
-      <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" FontSize="12" Margin="0 10 0 0" Opacity="0.6"
-                 Text="Write down the following numbered security words in order. These can be used to recover your wallet in the future. It is very important you keep them in a safe place." />
+    </Button>
 
-      <ItemsControl Items="{Binding MnemonicWords}" VerticalAlignment="Center" >
+    <c:ContentArea Title="Recovery words"
+                   Caption="Write down the following numbered security words in order. These can be used to recover your wallet in the future. It is very important you keep them in a safe place."
+                   Margin="44 0 21 0">     
+    </c:ContentArea>
+
+    <ItemsControl Items="{Binding MnemonicWords}">
         <ItemsControl.Styles>
           <Style Selector="TextBlock">
             <Setter Property="FontSize" Value="16" />
@@ -26,21 +27,23 @@
         </ItemsControl.Styles>
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>
-            <WrapPanel MaxHeight="168" Orientation="Vertical" />
+            <WrapPanel MaxHeight="168" Orientation="Vertical" HorizontalAlignment="Center"/>
           </ItemsPanelTemplate>
         </ItemsControl.ItemsPanel>
         <ItemsControl.ItemTemplate>
           <DataTemplate>
-            <StackPanel Width="155" Orientation="Horizontal">
-              <TextBlock Text="{Binding Index, StringFormat={}{0}.}" />
-              <TextBlock Text="{Binding Word}" FontWeight="SemiBold" Margin="5 0 0 0"/>
-            </StackPanel>
+            <Panel Width="185">
+              <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                <TextBlock Text="{Binding Index, StringFormat={}{0}.}" />
+                <TextBlock Text="{Binding Word}" FontWeight="SemiBold" Margin="5 0 0 0"/>
+              </StackPanel>
+            </Panel>
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>
-    </DockPanel>
     
-    <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="invisible" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
-    <Button Content="Continue" Command="{Binding ContinueCommand}" Classes="action" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+    <Button Content="Cancel" Margin="31 0 0 20" Command="{Binding CancelCommand}" Classes="invisible" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
+    <Button Content="Continue" Margin="0 0 25 20" Command="{Binding ContinueCommand}" Classes="action" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+
   </Panel>
 </UserControl>

@@ -13,14 +13,14 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
 	{
 		private List<RecoveryWord> _mnemonicWords;
 
-		public RecoveryWordsViewModel(IScreen screen)
+		public RecoveryWordsViewModel(IScreen screen, Blockchain.Keys.KeyManager km, NBitcoin.Mnemonic mnemonic)
 		{
 			HostScreen = screen;
 			MnemonicWords = new List<RecoveryWord>();
 
-			for (int i = 0; i < 12; i++)
+			for (int i = 0; i < mnemonic.Words.Length; i++)
 			{
-				MnemonicWords.Add(new RecoveryWord(i + 1,"Nothing"));
+				MnemonicWords.Add(new RecoveryWord(i + 1, mnemonic.Words[i]));
 			}
 
 			ContinueCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new ConfirmRecoveryWordsViewModel(HostScreen, MnemonicWords)));
