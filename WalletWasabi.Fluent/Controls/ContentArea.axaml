@@ -3,10 +3,9 @@
         xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
   <Design.PreviewWith>
     <Panel Background="{DynamicResource RegionColor}">
-      <c:ContentArea
-      Width="400" Height="200"
-      Title="Add a Wallet"
-      Caption="Type in your Wallets name and select an option below:">
+      <c:ContentArea Width="400" Height="200"
+                     Title="Add a Wallet"
+                     Caption="Type in your Wallets name and select an option below:">
         This is the content.
       </c:ContentArea>
     </Panel>
@@ -16,10 +15,10 @@
   <Style Selector="c|ContentArea">
     <Setter Property="Template">
       <ControlTemplate>
-        <DockPanel Margin="20 36 20 0">
-          <StackPanel DockPanel.Dock="Top" Spacing="10" Margin="0 0 0 40">
+        <DockPanel Name="PART_DockPanel" >
+          <StackPanel Name="PART_StackPanel" DockPanel.Dock="Top" Spacing="10">
             <ContentPresenter Name="PART_TitlePresenter" Content="{TemplateBinding Title}" />
-            <ContentPresenter Name="PART_CaptionPresenter" Content="{TemplateBinding Caption}" />
+            <TextBlock Name="PART_CaptionPresenter" Text="{TemplateBinding Caption}" />
           </StackPanel>
           <ContentPresenter Name="PART_ContentPresenter"                            
                                 Background="{TemplateBinding Background}"
@@ -38,9 +37,25 @@
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextControlForeground}" />
     <Setter Property="TextBlock.FontSize" Value="24" />    
   </Style>
-  <Style Selector="c|ContentArea /template/ ContentPresenter#PART_CaptionPresenter">
-    <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextControlForeground}" />
-    <Setter Property="TextBlock.FontSize" Value="14" />    
+  <Style Selector="c|ContentArea /template/ TextBlock#PART_CaptionPresenter">
+    <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
+    <Setter Property="FontSize" Value="14" />    
+    <Setter Property="TextWrapping" Value="Wrap" />    
     <Setter Property="Opacity" Value="0.6" />
   </Style>
+  <Style Selector="c|ContentArea /template/ DockPanel#PART_DockPanel">
+    <Setter Property="Margin" Value="17 39 17 0" />    
+  </Style>
+  <Style Selector="c|ContentArea /template/ StackPanel#PART_StackPanel">
+    <Setter Property="Margin" Value="0 0 0 20" />    
+  </Style>
+
+  <!--Dialog class-->
+  <Style Selector=":is(c|ContentArea).dialog /template/ DockPanel#PART_DockPanel">
+    <Setter Property="Margin" Value="64 35 64 0" />    
+  </Style>
+  <Style Selector=":is(c|ContentArea).dialog /template/ StackPanel#PART_StackPanel">
+    <Setter Property="Margin" Value="0 0 0 28" />    
+  </Style>
+
 </Styles>
