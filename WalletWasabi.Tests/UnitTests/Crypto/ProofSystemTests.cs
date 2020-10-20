@@ -195,7 +195,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		[InlineData(7, 3, true)]
 		[InlineData((ulong)uint.MaxValue + 1, 32, false)]
 		[InlineData((ulong)uint.MaxValue + 1, 33, true)]
-		[InlineData(2099999997690000ul, 50, false)]
 		public void CanProveAndVerifyCommitmentRange(ulong amount, int width, bool pass)
 		{
 			var rnd = new SecureRandom();
