@@ -10,8 +10,8 @@
     <AutoCompleteBox Items="{Binding Suggestions}">
         <i:Interaction.Behaviors>
             <behaviors:TagBoxAutoCompleteBoxBehavior
-                CommitTextAction="{Binding CommitTextAction, Mode=TwoWay}"
-                BackspaceAndEmptyTextAction="{Binding BackspaceAndEmptyTextAction, Mode=TwoWay}" />
+                CommitTextAction="{Binding CommitTextAction}"
+                BackspaceAndEmptyTextAction="{Binding BackspaceAndEmptyTextAction}" />
         </i:Interaction.Behaviors>
     </AutoCompleteBox>
 </UserControl>

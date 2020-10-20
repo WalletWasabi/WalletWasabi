@@ -7,15 +7,13 @@
     <Style Selector="c|TagBox">
         <Setter Property="Template">
             <ControlTemplate>
-                <StackPanel x:DataType="vmt:TagBoxViewModel">
-                    <ItemsControl Items="{CompiledBinding CombinedContent}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <WrapPanel />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                    </ItemsControl>
-                </StackPanel>
+                <ItemsControl x:DataType="vmt:TagBoxViewModel" Items="{CompiledBinding CombinedContent}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                </ItemsControl>
             </ControlTemplate>
         </Setter>
     </Style>
