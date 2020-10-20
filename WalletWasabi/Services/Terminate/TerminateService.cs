@@ -7,7 +7,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Services.Terminate
 {
-	public class TerminateService : IDisposable
+	public class TerminateService
 	{
 		private bool _disposedValue;
 		private Func<Task> _terminateApplicationAsync;
@@ -68,26 +68,14 @@ namespace WalletWasabi.Services.Terminate
 			// Indicate that the termination procedure finished. So other callers can return.
 			Interlocked.Exchange(ref _terminateStatus, TerminateFinished);
 
+			Dispose();
 			Environment.Exit(exitCode);
 		}
 
-		protected virtual void Dispose(bool disposing)
+		private void Dispose()
 		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					AppDomain.CurrentDomain.ProcessExit -= CurrentDomain_ProcessExit;
-					Console.CancelKeyPress -= Console_CancelKeyPress;
-				}
-
-				_disposedValue = true;
-			}
-		}
-
-		public void Dispose()
-		{
-			Dispose(disposing: true);
+			AppDomain.CurrentDomain.ProcessExit -= CurrentDomain_ProcessExit;
+			Console.CancelKeyPress -= Console_CancelKeyPress;
 			GC.SuppressFinalize(this);
 		}
 	}

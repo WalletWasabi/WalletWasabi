@@ -179,8 +179,6 @@ namespace WalletWasabi.Gui
 			}
 
 			Logger.LogSoftwareStopped("Wasabi");
-
-			TerminateService?.Dispose();
 		}
 
 		private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
