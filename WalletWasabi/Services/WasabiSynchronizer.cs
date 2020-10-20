@@ -42,6 +42,7 @@ namespace WalletWasabi.Services
 			_running = 0;
 			BitcoinStore = bitcoinStore;
 			WasabiClientFactory = wasabiClientFactory;
+			WasabiClient = wasabiClientFactory.NewBackendClient();
 			Cancel = new CancellationTokenSource();
 		}
 
@@ -56,6 +57,8 @@ namespace WalletWasabi.Services
 		public SynchronizeResponse LastResponse { get; private set; }
 
 		public WasabiClientFactory WasabiClientFactory { get; }
+
+		public WasabiClient WasabiClient { get; }
 
 		public Network Network { get; private set; }
 
@@ -161,8 +164,7 @@ namespace WalletWasabi.Services
 									return;
 								}
 
-								using WasabiClient wasabiClient = WasabiClientFactory.NewBackendClient();
-								response = await wasabiClient.GetSynchronizeAsync(hashChain.TipHash, maxFiltersToSyncAtInitialization, estimateMode, Cancel.Token)
+								response = await WasabiClient.GetSynchronizeAsync(hashChain.TipHash, maxFiltersToSyncAtInitialization, estimateMode, Cancel.Token)
 									.WithAwaitCancellationAsync(Cancel.Token, 300)
 									.ConfigureAwait(false);
 
@@ -191,9 +193,8 @@ namespace WalletWasabi.Services
 								BackendStatus = BackendStatus.NotConnected;
 								try
 								{
-									using WasabiClient wasabiClient = WasabiClientFactory.NewBackendClient();
 									// Backend API version might be updated meanwhile. Trying to update the versions.
-									var result = await wasabiClient.CheckUpdatesAsync(Cancel.Token).ConfigureAwait(false);
+									var result = await WasabiClient.CheckUpdatesAsync(Cancel.Token).ConfigureAwait(false);
 
 									// If the backend is compatible and the Api version updated then we just used the wrong API.
 									if (result.BackendCompatible && lastUsedApiVersion != WasabiClient.ApiVersion)
@@ -394,6 +395,7 @@ namespace WalletWasabi.Services
 				await Task.Delay(50).ConfigureAwait(false);
 			}
 
+			WasabiClient.Dispose();
 			Cancel?.Dispose();
 
 			EnableRequests(); // Enable requests (it's possible something is being blocked outside the class by AreRequestsBlocked.

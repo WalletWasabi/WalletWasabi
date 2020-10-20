@@ -14,15 +14,14 @@ namespace WalletWasabi.Services
 		{
 			Synchronizer = synchronizer;
 			UpdateStatus = new UpdateStatus(true, true, new Version(), 0);
-
+			WasabiClient = Synchronizer.WasabiClientFactory.NewBackendClient();
 			Synchronizer.PropertyChanged += Synchronizer_PropertyChanged;
 		}
 
 		public event EventHandler<UpdateStatus>? UpdateStatusChanged;
-
 		private WasabiSynchronizer Synchronizer { get; }
-
 		public UpdateStatus UpdateStatus { get; private set; }
+		public WasabiClient WasabiClient { get; }
 
 		private void Synchronizer_PropertyChanged(object? sender, PropertyChangedEventArgs e)
 		{
@@ -36,8 +35,7 @@ namespace WalletWasabi.Services
 
 		protected override async Task ActionAsync(CancellationToken cancel)
 		{
-			using WasabiClient wasabiClient = Synchronizer.WasabiClientFactory.NewBackendClient();
-			var newUpdateStatus = await wasabiClient.CheckUpdatesAsync(cancel).ConfigureAwait(false);
+			var newUpdateStatus = await WasabiClient.CheckUpdatesAsync(cancel).ConfigureAwait(false);
 			if (newUpdateStatus != UpdateStatus)
 			{
 				UpdateStatus = newUpdateStatus;
@@ -48,6 +46,7 @@ namespace WalletWasabi.Services
 		public override void Dispose()
 		{
 			Synchronizer.PropertyChanged -= Synchronizer_PropertyChanged;
+			WasabiClient.Dispose();
 			base.Dispose();
 		}
 	}
