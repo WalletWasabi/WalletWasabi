@@ -12,16 +12,16 @@ namespace WalletWasabi.Fluent.Behaviors
 {
     public class TagBoxAutoCompleteBoxBehavior : Behavior<AutoCompleteBox>
     {
-        public static readonly StyledProperty<Action> EnterKeyOrSpacePressedActionProperty =
-            AvaloniaProperty.Register<SplitViewAutoBehavior, Action>(nameof(EnterKeyOrSpacePressedAction));
+        public static readonly StyledProperty<Action> CommitTextActionProperty =
+            AvaloniaProperty.Register<SplitViewAutoBehavior, Action>(nameof(CommitTextAction));
 
         public static readonly StyledProperty<Action> BackspaceAndEmptyTextActionProperty =
             AvaloniaProperty.Register<SplitViewAutoBehavior, Action>(nameof(BackspaceAndEmptyTextAction));
 
-        public Action EnterKeyOrSpacePressedAction
+        public Action CommitTextAction
         {
-            get => GetValue(EnterKeyOrSpacePressedActionProperty);
-            set => SetValue(EnterKeyOrSpacePressedActionProperty, value);
+            get => GetValue(CommitTextActionProperty);
+            set => SetValue(CommitTextActionProperty, value);
         }
 
         public Action BackspaceAndEmptyTextAction
@@ -52,7 +52,7 @@ namespace WalletWasabi.Fluent.Behaviors
 
             if (obj.Length > 1 && !string.IsNullOrEmpty(obj.Trim()) && obj.EndsWith(' '))
             {
-                EnterKeyOrSpacePressedAction?.Invoke(); 
+                CommitTextAction?.Invoke(); 
             }
         }
 
@@ -64,7 +64,7 @@ namespace WalletWasabi.Fluent.Behaviors
             }
             else if (e.Key == Key.Enter && !string.IsNullOrEmpty(AssociatedObject?.Text.Trim() ?? ""))
             {
-                EnterKeyOrSpacePressedAction?.Invoke();
+                CommitTextAction?.Invoke();
             }
         }
 

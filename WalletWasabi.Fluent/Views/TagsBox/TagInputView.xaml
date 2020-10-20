@@ -10,7 +10,7 @@
     <AutoCompleteBox Text="{Binding InputText, Mode=TwoWay}" Items="{Binding Suggestions}">
         <i:Interaction.Behaviors>
             <behaviors:TagBoxAutoCompleteBoxBehavior
-                EnterKeyOrSpacePressedAction="{Binding EnterKeyOrSpacePressedAction, Mode=TwoWay}"
+                CommitTextAction="{Binding CommitTextAction, Mode=TwoWay}"
                 BackspaceAndEmptyTextAction="{Binding BackspaceAndEmptyTextAction, Mode=TwoWay}" />
         </i:Interaction.Behaviors>
     </AutoCompleteBox>

@@ -11,7 +11,7 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
         private readonly ObservableAsPropertyHelper<IEnumerable> _suggestions;
 
         private string _inputText;
-        private Action _EnterKeyOrSpacePressedAction;
+        private Action _CommitTextAction;
         private Action _backspaceAndEmptyTextAction;
         private TagBoxViewModel _parent;
 
@@ -23,7 +23,7 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
             _suggestions = _parent.WhenAnyValue(x => x.Suggestions)
                 .ToProperty(this, x => x.Suggestions);
 
-            this.EnterKeyOrSpacePressedAction += OnEnterKeyOrSpacePressedAction;
+            this.CommitTextAction += OnCommitTextAction;
             this.BackspaceAndEmptyTextAction += OnBackspaceAndEmptyTextAction;
         }
 
@@ -32,7 +32,7 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
             _parent.RemoveTag();
         }
 
-        private void OnEnterKeyOrSpacePressedAction()
+        private void OnCommitTextAction()
         {
             _parent.AddTag(InputText.Trim());
             InputText = string.Empty;
@@ -44,10 +44,10 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
             set => this.RaiseAndSetIfChanged(ref _inputText, value);
         }
 
-        public Action EnterKeyOrSpacePressedAction
+        public Action CommitTextAction
         {
-            get => _EnterKeyOrSpacePressedAction;
-            set => this.RaiseAndSetIfChanged(ref _EnterKeyOrSpacePressedAction, value);
+            get => _CommitTextAction;
+            set => this.RaiseAndSetIfChanged(ref _CommitTextAction, value);
         }
 
         public Action BackspaceAndEmptyTextAction
