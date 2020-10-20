@@ -38,7 +38,6 @@ namespace WalletWasabi.Gui
 		{
 			bool runGui = false;
 			Exception? appException = null;
-			bool cliException = false;
 
 			try
 			{
@@ -51,15 +50,7 @@ namespace WalletWasabi.Gui
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-				try
-				{
-					runGui = ProcessCliCommands(args);
-				}
-				catch (Exception)
-				{
-					cliException = true;
-					throw;
-				}
+				runGui = ProcessCliCommands(args);
 
 				if (CrashReporter.IsReport)
 				{
@@ -79,7 +70,8 @@ namespace WalletWasabi.Gui
 			{
 				appException = ex;
 				Logger.LogCritical(ex);
-				if (!cliException)
+
+				if (runGui)
 				{
 					CrashReporter.SetException(ex);
 				}
