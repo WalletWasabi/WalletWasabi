@@ -7,12 +7,18 @@ using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Gui.ViewModels;
+using ReactiveUI;
+using System.Collections.ObjectModel;
+using System.Reactive.Linq;
+using DynamicData;
+using DynamicData.Binding;
 
 namespace WalletWasabi.Fluent.ViewModels.TagsBox
 {
     public class TagBoxViewModel : ViewModelBase
     {
-        private readonly ObservableAsPropertyHelper<IEnumerable<object>> _combinedContent;
+        private readonly ReadOnlyObservableCollection<object> _combinedContent;
+
 
         private IEnumerable _suggestions;
         private ObservableCollection<TagViewModel> _tags;
@@ -23,15 +29,20 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
 
             TagInput = new TagInputViewModel(this);
 
-            _combinedContent = Tags
-                .ToObservableChangeSet(x => x)
-                .ToCollection()
-                .Select(x => x.Append((object) TagInput))
-                .ToProperty(this, x => x.CombinedContent);
+            var list = new SourceList<object>();
+            list.Add(TagInput);
 
-            // This is here just to activate/initialize the above RxUI stuff. 
-            Tags.Clear();
+            Tags.ToObservableChangeSet()
+                .Cast(x => x as object)
+                .Or(list.Connect())
+                .Sort(SortExpressionComparer<object>.Ascending(i => i == TagInput ? 1 : 0))
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Bind(out _combinedContent)
+                .AsObservableList();
         }
+
+
+        public ReadOnlyObservableCollection<object> CombinedContent => _combinedContent;
 
         public TagInputViewModel TagInput { get; }
 
@@ -40,8 +51,6 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
             get => _suggestions;
             set => this.RaiseAndSetIfChanged(ref _suggestions, value);
         }
-
-        public IEnumerable<object> CombinedContent => _combinedContent.Value;
 
         public ObservableCollection<TagViewModel> Tags
         {
