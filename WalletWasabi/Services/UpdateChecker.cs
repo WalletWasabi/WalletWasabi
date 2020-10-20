@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
-using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -11,11 +10,9 @@ namespace WalletWasabi.Services
 {
 	public class UpdateChecker : PeriodicRunner
 	{
-		private UpdateStatus _updateStatus;
-
 		public UpdateChecker(TimeSpan period, WasabiSynchronizer synchronizer) : base(period)
 		{
-			Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
+			Synchronizer = synchronizer;
 			WasabiClient = synchronizer.WasabiClient;
 			UpdateStatus = new UpdateStatus(true, true, new Version(), 0);
 
@@ -28,18 +25,7 @@ namespace WalletWasabi.Services
 
 		public WasabiSynchronizer Synchronizer { get; }
 
-		public UpdateStatus UpdateStatus
-		{
-			get => _updateStatus;
-			private set
-			{
-				if (value != _updateStatus)
-				{
-					_updateStatus = value;
-					UpdateStatusChanged?.Invoke(this, value);
-				}
-			}
-		}
+		public UpdateStatus UpdateStatus { get; private set; }
 
 		private void Synchronizer_PropertyChanged(object? sender, PropertyChangedEventArgs e)
 		{
@@ -53,7 +39,12 @@ namespace WalletWasabi.Services
 
 		protected override async Task ActionAsync(CancellationToken cancel)
 		{
-			UpdateStatus = await WasabiClient.CheckUpdatesAsync(cancel).ConfigureAwait(false);
+			var newUpdateStatus = await WasabiClient.CheckUpdatesAsync(cancel).ConfigureAwait(false);
+			if (newUpdateStatus != UpdateStatus)
+			{
+				UpdateStatus = newUpdateStatus;
+				UpdateStatusChanged?.Invoke(this, newUpdateStatus);
+			}
 		}
 
 		public override void Dispose()
