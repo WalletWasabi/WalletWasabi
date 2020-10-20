@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:HomePageViewModel"
              x:Class="WalletWasabi.Fluent.Views.HomePageView">
@@ -23,7 +24,11 @@
                     Height="150" Width="150">
               <Panel>
                 <TextBlock Text="{Binding Title}" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0 0 0 15" />
-                <PathIcon Width="28" Height="28" Opacity="0.8" Foreground="#212121" Data="M22.1 3C24.2539 3 26 4.74609 26 6.9V20.7C26 22.8539 24.2539 24.6 22.1 24.6H5.9C3.74609 24.6 2 22.8539 2 20.7V6.9C2 4.74609 3.74609 3 5.9 3H22.1ZM22.1 4.8H5.9C4.7402 4.8 3.8 5.7402 3.8 6.9V20.7C3.8 21.8598 4.7402 22.8 5.9 22.8H22.1C23.2598 22.8 24.2 21.8598 24.2 20.7V6.9C24.2 5.7402 23.2598 4.8 22.1 4.8ZM7.69802 7.2H20.3052C20.8022 7.2 21.2052 7.60294 21.2052 8.1C21.2052 8.55563 20.8666 8.93219 20.4273 8.99178L20.3052 9H7.69802C7.20097 9 6.79803 8.59706 6.79803 8.1C6.79803 7.64437 7.13661 7.26781 7.5759 7.20822L7.69802 7.2H20.3052H7.69802Z" />
+                <PathIcon Width="28" Height="28" Opacity="0.8" Foreground="#212121">
+                  <PathIcon.Data>
+                    <Binding Converter="{x:Static conv:NavBarIconConverter.Instance}" />
+                  </PathIcon.Data>
+                </PathIcon>
               </Panel>
             </Border>
           </DataTemplate>
