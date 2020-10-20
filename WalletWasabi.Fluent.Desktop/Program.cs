@@ -29,8 +29,8 @@ namespace WalletWasabi.Fluent.Desktop
 		public static void Main(string[] args)
 		{
 			bool runGui = false;
-			try
-			{
+			// try
+			// {
 				Global = CreateGlobal();
 
 				Locator.CurrentMutable.RegisterConstant(Global);
@@ -55,17 +55,17 @@ namespace WalletWasabi.Fluent.Desktop
 						.AfterSetup(_ => AppMainAsync(args))
 						.StartWithClassicDesktopLifetime(args);
 				}
-			}
-			catch (Exception ex)
-			{
-				Logger.LogCritical(ex);
-				Global.CrashReporter.SetException(ex);
-				throw;
-			}
-			finally
-			{
-				DisposeAsync().GetAwaiter().GetResult();
-			}
+			// }
+			// catch (Exception ex)
+			// {
+			// 	Logger.LogCritical(ex);
+			// 	Global.CrashReporter.SetException(ex);
+			// 	throw;
+			// }
+			// finally
+			// {
+			// 	DisposeAsync().GetAwaiter().GetResult();
+			// }
 		}
 
 		private static Global CreateGlobal()

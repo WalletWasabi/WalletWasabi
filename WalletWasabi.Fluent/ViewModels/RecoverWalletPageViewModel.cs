@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.ViewModels.TagsBox;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -14,6 +15,8 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public override string IconName => "home_regular";
 
-		public IEnumerable MnemonicSuggestions => new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
+		public TagBoxViewModel RecoveryWordsTagBoxViewModel { get; } = new TagBoxViewModel();
+		
+		public IEnumerable MnemonicSuggestions { get; } = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 	}
 }

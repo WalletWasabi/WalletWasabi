@@ -3,9 +3,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="WalletWasabi.Fluent.Views.RecoveryPageView">
-  <Panel>
-    <c:TagBox DataContext="{Binding RecoveryWordsTagBoxViewModel}" />
-  </Panel>
+             mc:Ignorable="d" 
+             x:Class="WalletWasabi.Fluent.Views.TagsBox.TagView">
+    <Border BorderBrush="Green" BorderThickness="1" Margin="5" CornerRadius="4">
+        <TextBlock Text="{Binding Tag}" Margin="5"/>
+    </Border>
 </UserControl>
