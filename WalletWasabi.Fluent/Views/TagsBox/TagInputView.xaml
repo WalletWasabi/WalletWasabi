@@ -3,7 +3,15 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Views.TagsBox"
-             mc:Ignorable="d" 
+             mc:Ignorable="d"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors;assembly=WalletWasabi.Fluent"
              x:Class="WalletWasabi.Fluent.Views.TagsBox.TagInputView">
-    <AutoCompleteBox Text="{Binding InputText, Mode=TwoWay}" Items="{Binding Suggestions}"/>
+    <AutoCompleteBox Text="{Binding InputText, Mode=TwoWay}" Items="{Binding Suggestions}">
+        <i:Interaction.Behaviors>
+            <behaviors:TagBoxAutoCompleteBoxBehavior
+                EnterKeyOrSpacePressedAction="{Binding EnterKeyOrSpacePressedAction, Mode=TwoWay}"
+                BackspaceAndEmptyTextAction="{Binding BackspaceAndEmptyTextAction, Mode=TwoWay}" />
+        </i:Interaction.Behaviors>
+    </AutoCompleteBox>
 </UserControl>

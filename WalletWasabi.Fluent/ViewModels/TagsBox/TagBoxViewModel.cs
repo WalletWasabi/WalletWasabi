@@ -50,9 +50,9 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
             set => this.RaiseAndSetIfChanged(ref _tags, value);
         }
 
-        public void AddTag()
+        public void AddTag(string tagString)
         {
-            Tags.Add(new TagViewModel(this, "Test"));
+            Tags.Add(new TagViewModel(this, tagString));
         }
 
         public void RemoveTag()
