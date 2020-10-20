@@ -72,7 +72,6 @@ namespace WalletWasabi.Fluent.Behaviors
         protected override void OnDetaching()
         {
             base.OnDetaching();
-
             AssociatedObject.KeyUp -= OnKeyUp;
             AssociatedObject.TextChanged -= OnTextChanged;
         }
