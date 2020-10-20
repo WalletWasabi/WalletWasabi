@@ -13,8 +13,7 @@ namespace WalletWasabi.Gui.CrashReport.ViewModels
 	{
 		public CrashReportWindowViewModel()
 		{
-			var global = Locator.Current.GetService<Global>();
-			CrashReporter = global.CrashReporter;
+			CrashReporter = Locator.Current.GetService<CrashReporter>();
 
 			OpenLogCommand = ReactiveCommand.CreateFromTask(async () => await FileHelpers.OpenFileInTextEditorAsync(Logger.FilePath));
 
@@ -36,7 +35,7 @@ namespace WalletWasabi.Gui.CrashReport.ViewModels
 		public string Title => "Wasabi Wallet - Crash Reporting";
 		public string ReportTitle => "Wasabi has crashed";
 		public string Details => $"Unfortunately, Wasabi has crashed. For more information, please open the log file. You may report this crash to the support team.{Environment.NewLine}{Environment.NewLine}Please always consider your privacy before sharing any information!{Environment.NewLine}{Environment.NewLine}Exception information:";
-		public string Message => CrashReporter?.SerializedException?.Message;
+		public string? Message => CrashReporter?.SerializedException?.Message;
 
 		public ReactiveCommand<Unit, Unit> OpenLogCommand { get; }
 		public ReactiveCommand<Unit, Unit> OkCommand { get; }
