@@ -69,8 +69,6 @@ namespace WalletWasabi.Gui
 			catch (Exception ex)
 			{
 				appException = ex;
-				Logger.LogCritical(ex);
-
 				if (runGui)
 				{
 					CrashReporter.SetException(ex);
@@ -128,6 +126,11 @@ namespace WalletWasabi.Gui
 			{
 				var criticalException = ex is OperationCanceledException ? null : ex;
 
+				if (criticalException is { })
+				{
+					CrashReporter.SetException(ex);
+				}
+
 				// There is no other way to stop the creation of the WasabiWindow.
 				await TerminateApplicationAsync(criticalException);
 			}
@@ -138,7 +141,6 @@ namespace WalletWasabi.Gui
 			if (criticalException is { })
 			{
 				Logger.LogCritical(criticalException);
-				CrashReporter.SetException(criticalException);
 			}
 
 			var mainViewModel = MainWindowViewModel.Instance;
