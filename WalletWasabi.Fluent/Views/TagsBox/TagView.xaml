@@ -3,9 +3,17 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels.TagsBox"
-             mc:Ignorable="d" 
+             mc:Ignorable="d"
              x:Class="WalletWasabi.Fluent.Views.TagsBox.TagView">
-    <Border BorderBrush="Green" BorderThickness="1" Margin="5" CornerRadius="4">
-        <TextBlock x:DataType="vm:TagViewModel" Text="{CompiledBinding Tag}" Margin="5"/>
-    </Border>
+    <Panel>
+        <Border BorderBrush="{DynamicResource TagBoxControlForeground}"
+                BorderThickness="1"
+                CornerRadius="4"
+                Margin="4,0"
+                VerticalAlignment="Center">
+            <TextBlock x:DataType="vm:TagViewModel"
+                       Text="{CompiledBinding Tag}"
+                       Margin="8,4" />
+        </Border> 
+    </Panel>
 </UserControl>

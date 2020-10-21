@@ -3,16 +3,67 @@
         xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
         xmlns:vmt="clr-namespace:WalletWasabi.Fluent.ViewModels.TagsBox">
     <Style Selector="c|TagBox">
+        <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
+        <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrush}" />
+        <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThickness}" />
+        <Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
+        <Setter Property="MinHeight" Value="{DynamicResource TextControlThemeMinHeight}" />
+        <Setter Property="MinWidth" Value="{DynamicResource TextControlThemeMinWidth}" />
+        <Setter Property="Padding" Value="{DynamicResource TextControlThemePadding}" />
+        <Setter Property="FocusAdorner" Value="{x:Null}" />
         <Setter Property="Template">
             <ControlTemplate>
-                <ItemsControl x:DataType="vmt:TagBoxViewModel" Items="{CompiledBinding CombinedContent}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <WrapPanel />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                </ItemsControl>
+                <Panel>
+                    <Border
+                        Name="PART_BorderElement"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        MinWidth="{TemplateBinding MinWidth}"
+                        MinHeight="{TemplateBinding MinHeight}" />
+                    <Border
+                        Margin="{TemplateBinding BorderThickness}">
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <DockPanel x:Name="PART_InnerDockPanel" Grid.Column="1" Grid.ColumnSpan="1"
+                                       Margin="{TemplateBinding Padding}">
+                                <DataValidationErrors>
+                                    <ScrollViewer
+                                        HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
+                                        VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
+                                        <Panel>
+                                            <ItemsControl x:DataType="vmt:TagBoxViewModel"
+                                                          Items="{CompiledBinding CombinedContent}">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <WrapPanel />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                            </ItemsControl>
+                                        </Panel>
+                                    </ScrollViewer>
+                                </DataValidationErrors>
+                            </DockPanel>
+                        </Grid>
+                    </Border>
+                </Panel>
             </ControlTemplate>
         </Setter>
     </Style>
+    
+    <Style Selector="c|TagBox:pointerover /template/ Border#PART_BorderElement">
+        <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushPointerOver}" />
+        <Setter Property="Background" Value="{DynamicResource TextControlBackgroundPointerOver}" />
+    </Style>
+
+    <Style Selector="c|TagBox AutoCompleteBox">
+        <Setter Property="Padding" Value="3,10,0, 10" />
+        <Setter Property="Margin" Value="0" />
+    </Style>
+
+    <Style Selector="c|TagBox AutoCompleteBox /template/ TextBox /template/ Border#PART_BorderElement">
+        <Setter Property="IsVisible" Value="False" />
+    </Style>
+
+
 </Styles>
