@@ -2,9 +2,14 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Xaml.Interactivity;
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Threading;
 using ReactiveUI;
 
@@ -12,11 +17,23 @@ namespace WalletWasabi.Fluent.Behaviors
 {
     public class TagBoxAutoCompleteBoxBehavior : Behavior<AutoCompleteBox>
     {
+        public static readonly StyledProperty<IEnumerable<string>> SuggestionsProperty =
+            AvaloniaProperty.Register<SplitViewAutoBehavior, IEnumerable<string>>(nameof(Suggestions));
+
         public static readonly StyledProperty<Action<string>> CommitTextActionProperty =
             AvaloniaProperty.Register<SplitViewAutoBehavior, Action<string>>(nameof(CommitTextAction));
 
         public static readonly StyledProperty<Action> BackspaceAndEmptyTextActionProperty =
             AvaloniaProperty.Register<SplitViewAutoBehavior, Action>(nameof(BackspaceAndEmptyTextAction));
+
+        private IDisposable _disposable;
+        private bool _disableEntry;
+
+        public IEnumerable<string> Suggestions
+        {
+            get => GetValue(SuggestionsProperty);
+            set => SetValue(SuggestionsProperty, value);
+        }
 
         public Action<string> CommitTextAction
         {
@@ -32,9 +49,18 @@ namespace WalletWasabi.Fluent.Behaviors
 
         protected override void OnAttached()
         {
+            if (AssociatedObject is null)
+            {
+                return;
+            }
+
             AssociatedObject.KeyUp += OnKeyUp;
             AssociatedObject.TextChanged += OnTextChanged;
             AssociatedObject.DropDownClosed += OnDropDownClosed;
+            _disposable =
+                AssociatedObject.AddDisposableHandler(InputElement.TextInputEvent, OnTextInput,
+                    RoutingStrategies.Tunnel);
+
 
             Dispatcher.UIThread.InvokeAsync(() =>
             {
@@ -44,6 +70,31 @@ namespace WalletWasabi.Fluent.Behaviors
             });
 
             base.OnAttached();
+        }
+
+        private void OnTextInput(object? sender, TextInputEventArgs e)
+        {
+            _disableEntry = false;
+            var k = sender as AutoCompleteBox;
+
+            if (k is null)
+            {
+                return;
+            }
+            //
+            // var ki = k.SearchText ?? "";
+            // var kv = k.Text ?? "";
+            //
+            // if (Math.Abs(ki.Length - kv.Length) == 1)
+            // {
+            //     ki = kv.Substring(0, ki.Length + 1);
+            // }
+
+            if (!Suggestions.Any(x => x.StartsWith(k.SearchText ?? "", true, CultureInfo.CurrentCulture)))
+            {
+                e.Handled = true;
+                _disableEntry = true;
+            }
         }
 
         private void OnDropDownClosed(object? sender, EventArgs e)
@@ -56,47 +107,79 @@ namespace WalletWasabi.Fluent.Behaviors
                 return;
             }
 
-            if (selItem is null || selItem.Length == 0) return;
+            if (selItem is null || selItem.Length == 0 || currentText != selItem) return;
 
-            CommitTextAction?.Invoke(AssociatedObject?.Text?.Trim() ?? "");
+            CommitTextAction?.Invoke(currentText.Trim());
             AssociatedObject?.ClearValue(AutoCompleteBox.SelectedItemProperty);
 
-            Dispatcher.UIThread.Post(() =>
-            {
-                AssociatedObject?.ClearValue(AutoCompleteBox.TextProperty);
-            });
+            Dispatcher.UIThread.Post(() => { AssociatedObject?.ClearValue(AutoCompleteBox.TextProperty); });
         }
 
         private void OnTextChanged(object? sender, EventArgs e)
         {
-            var currentText = AssociatedObject?.Text ?? "";
-
-            if (currentText.Length >= 1 && !string.IsNullOrEmpty(currentText.Trim()) && currentText.EndsWith(' '))
+            if (AssociatedObject is null)
             {
-                CommitTextAction?.Invoke(AssociatedObject?.Text?.Trim() ?? "");
-                Dispatcher.UIThread.Post(() => { AssociatedObject?.ClearValue(AutoCompleteBox.TextProperty); });
+                return;
             }
+
+            var currentText = AssociatedObject.Text ?? "";
+            var currentTextTrimmed = currentText.Trim();
+
+            if (currentText.Length < 1 || string.IsNullOrEmpty(currentTextTrimmed) || !currentText.EndsWith(' ') ||
+                !Suggestions.Any(x => x.Equals(currentTextTrimmed,
+                    StringComparison.InvariantCultureIgnoreCase)))
+            {
+                return;
+            }
+
+            CommitTextAction?.Invoke(currentTextTrimmed);
+            Dispatcher.UIThread.Post(() => { AssociatedObject?.ClearValue(AutoCompleteBox.TextProperty); });
         }
+
 
         private void OnKeyUp(object? sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Back && (AssociatedObject?.Text?.Length == 0 || AssociatedObject?.Text is null))
+            if (AssociatedObject is null)
             {
-                BackspaceAndEmptyTextAction?.Invoke();
+                return;
             }
-            else if (e.Key == Key.Enter && !string.IsNullOrEmpty(AssociatedObject?.Text?.Trim() ?? ""))
+
+            var str = AssociatedObject?.Text ?? "";
+            var strTrimmed = str.Trim();
+            
+            // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
+            switch (e.Key)
             {
-                CommitTextAction?.Invoke(AssociatedObject?.Text?.Trim() ?? "");
-                Dispatcher.UIThread.Post(() => { AssociatedObject?.ClearValue(AutoCompleteBox.TextProperty); });
+                case Key.Back when string.IsNullOrEmpty(str):
+                    BackspaceAndEmptyTextAction?.Invoke();
+                    break;
+                case Key.Enter when !string.IsNullOrEmpty(strTrimmed):
+
+                    if (!Suggestions.Any(x => x.Equals(strTrimmed,StringComparison.InvariantCultureIgnoreCase)))
+                    {
+                        break;
+                    }
+
+                    CommitTextAction?.Invoke(strTrimmed);
+                    Dispatcher.UIThread.Post(() => { AssociatedObject?.ClearValue(AutoCompleteBox.TextProperty); });
+                    break;
             }
         }
 
         protected override void OnDetaching()
         {
+            if (AssociatedObject is null)
+            {
+                return;
+            }
+
             base.OnDetaching();
+
             AssociatedObject.DropDownClosed -= OnDropDownClosed;
             AssociatedObject.KeyUp -= OnKeyUp;
             AssociatedObject.TextChanged -= OnTextChanged;
+
+            _disposable?.Dispose();
         }
     }
 }

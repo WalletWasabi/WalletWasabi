@@ -58,6 +58,11 @@ namespace WalletWasabi.Fluent.Behaviors
 
 		private void OnCollapseOnClickAction()
 		{
+			if (AssociatedObject is null)
+			{
+				return;
+			}
+			
 			if (AssociatedObject.Bounds.Width <= CollapseThreshold && AssociatedObject.IsPaneOpen)
 			{
 				AssociatedObject.IsPaneOpen = false;
@@ -66,6 +71,11 @@ namespace WalletWasabi.Fluent.Behaviors
 
 		private void OnToggleAction()
 		{
+			if (AssociatedObject is null)
+			{
+				return;
+			}
+			
 			if (AssociatedObject.Bounds.Width > CollapseThreshold)
 			{
 				_sidebarWasForceClosed = AssociatedObject.IsPaneOpen;

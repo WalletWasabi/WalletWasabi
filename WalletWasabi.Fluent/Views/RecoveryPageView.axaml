@@ -8,10 +8,10 @@
     <Panel Margin="25 0 25 20">
         <Button Classes="invisible" Margin="0 35 0 0" Command="{Binding GoBackCommand}" DockPanel.Dock="Left"
                 HorizontalAlignment="Left" VerticalAlignment="Top">
-            <PathIcon Data="{StaticResource arrow_left_regular}" />
+            <PathIcon Data="{DynamicResource arrow_left_regular}" />
         </Button>
         <c:ContentArea Title="Enter recovery words" Caption="Type in your 12 recovery words and click continue"
-                       Margin="44 0 44 0">
+                       Margin="44 0">
             <Grid RowDefinitions="Auto,30,Auto" VerticalAlignment="Top" >
                 <TextBlock Classes="h7 bold"  Text="Type in your recovery words here:"/>
                 <c:TagBox Grid.Row="2" 

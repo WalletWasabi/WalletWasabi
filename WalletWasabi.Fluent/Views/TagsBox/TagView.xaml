@@ -9,7 +9,7 @@
         <Border BorderBrush="{DynamicResource TagBoxControlForeground}"
                 BorderThickness="1"
                 CornerRadius="4"
-                Margin="4,0"
+                Margin="4"
                 VerticalAlignment="Center">
             <TextBlock x:DataType="vm:TagViewModel"
                        Text="{CompiledBinding Tag}"

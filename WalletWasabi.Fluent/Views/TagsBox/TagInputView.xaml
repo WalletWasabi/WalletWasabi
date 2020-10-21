@@ -10,6 +10,7 @@
     <AutoCompleteBox x:DataType="vm:TagInputViewModel" IsTextCompletionEnabled="True" Items="{CompiledBinding Suggestions}">
         <i:Interaction.Behaviors>
             <behaviors:TagBoxAutoCompleteBoxBehavior
+                Suggestions="{CompiledBinding Suggestions}"
                 CommitTextAction="{CompiledBinding CommitTextAction}"
                 BackspaceAndEmptyTextAction="{CompiledBinding BackspaceAndEmptyTextAction}" />
         </i:Interaction.Behaviors>
