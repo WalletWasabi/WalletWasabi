@@ -1,17 +1,14 @@
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Xaml.Interactivity;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
+using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
-using ReactiveUI;
+using Avalonia.Xaml.Interactivity;
+using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Behaviors
 {
@@ -27,8 +24,8 @@ namespace WalletWasabi.Fluent.Behaviors
             AvaloniaProperty.Register<SplitViewAutoBehavior, Action>(nameof(BackspaceAndEmptyTextAction));
 
         private IDisposable _disposable;
-        private bool _disableEntry;
-        private bool _disableBackspace;
+
+        private readonly DropOutStack<string> op = new DropOutStack<string>(2);
 
         public IEnumerable<string> Suggestions
         {
@@ -50,10 +47,7 @@ namespace WalletWasabi.Fluent.Behaviors
 
         protected override void OnAttached()
         {
-            if (AssociatedObject is null)
-            {
-                return;
-            }
+            if (AssociatedObject is null) return;
 
             AssociatedObject.KeyUp += OnKeyUp;
             AssociatedObject.TextChanged += OnTextChanged;
@@ -75,36 +69,36 @@ namespace WalletWasabi.Fluent.Behaviors
 
         private void OnTextInput(object? sender, TextInputEventArgs e)
         {
-            _disableEntry = false;
-            var k = sender as AutoCompleteBox;
-
-            if (k is null)
+            if (AssociatedObject is null)
             {
                 return;
             }
- 
-            if (!Suggestions.Any(x => x.StartsWith(k.SearchText ?? "", true, CultureInfo.CurrentCulture)))
+
+            if (!Suggestions.Any(x =>
+                x.StartsWith(AssociatedObject.SearchText ?? "", true, CultureInfo.CurrentCulture)))
             {
-                e.Handled = true; 
+                e.Handled = true;
             }
         }
 
         private void OnDropDownClosed(object? sender, EventArgs e)
         {
-            var currentText = AssociatedObject?.Text ?? "";
-            var selItem = AssociatedObject?.SelectedItem as string;
-
-            if (currentText.Length == 0)
+            if (AssociatedObject is null)
             {
                 return;
             }
 
+            var currentText = AssociatedObject.Text ?? "";
+            var selItem = AssociatedObject.SelectedItem as string;
+
+            if (currentText.Length == 0) return;
+
             if (selItem is null || selItem.Length == 0 || currentText != selItem) return;
 
             CommitTextAction?.Invoke(currentText.Trim());
-            AssociatedObject?.ClearValue(AutoCompleteBox.SelectedItemProperty);
+            AssociatedObject.ClearValue(AutoCompleteBox.SelectedItemProperty);
 
-            Dispatcher.UIThread.Post(() => { AssociatedObject?.ClearValue(AutoCompleteBox.TextProperty); });
+            Dispatcher.UIThread.Post(() => { AssociatedObject.ClearValue(AutoCompleteBox.TextProperty); });
         }
 
         private void OnTextChanged(object? sender, EventArgs e)
@@ -115,44 +109,43 @@ namespace WalletWasabi.Fluent.Behaviors
             }
 
             var currentText = AssociatedObject.Text ?? "";
+
             var currentTextTrimmed = currentText.Trim();
 
             if (currentText.Length < 1 || string.IsNullOrEmpty(currentTextTrimmed) || !currentText.EndsWith(' ') ||
                 !Suggestions.Any(x => x.Equals(currentTextTrimmed,
                     StringComparison.InvariantCultureIgnoreCase)))
-            {
                 return;
-            }
 
             CommitTextAction?.Invoke(currentTextTrimmed);
             Dispatcher.UIThread.Post(() => { AssociatedObject?.ClearValue(AutoCompleteBox.TextProperty); });
         }
 
-
         private void OnKeyUp(object? sender, KeyEventArgs e)
         {
-            if (AssociatedObject is null)
-            {
-                return;
-            }
-            
+            if (AssociatedObject is null) return;
 
             var str = AssociatedObject?.Text ?? "";
+
+            op.Push(str);
+
             var strTrimmed = str.Trim();
-            
+
+            var p1 = op.Items.Length >= 2 ? op.Items[0] : "";
+            var p2 = op.Items.Length >= 2 ? op.Items[1] : "";
+
             // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
             switch (e.Key)
             {
-                case Key.Back when string.IsNullOrEmpty(str) :
+                case Key.Back when string.IsNullOrEmpty(p1) && string.IsNullOrEmpty(p2):
                     BackspaceAndEmptyTextAction?.Invoke();
                     break;
                 case Key.Enter when !string.IsNullOrEmpty(strTrimmed):
-
-                    if (!Suggestions.Any(x => x.Equals(strTrimmed,StringComparison.InvariantCultureIgnoreCase)))
+                    if (!Suggestions.Any(x => x.Equals(strTrimmed, StringComparison.InvariantCultureIgnoreCase)))
                     {
                         break;
                     }
-
+                    op.Clear();
                     CommitTextAction?.Invoke(strTrimmed);
                     Dispatcher.UIThread.Post(() => { AssociatedObject?.ClearValue(AutoCompleteBox.TextProperty); });
                     break;
@@ -161,10 +154,7 @@ namespace WalletWasabi.Fluent.Behaviors
 
         protected override void OnDetaching()
         {
-            if (AssociatedObject is null)
-            {
-                return;
-            }
+            if (AssociatedObject is null) return;
 
             base.OnDetaching();
 
