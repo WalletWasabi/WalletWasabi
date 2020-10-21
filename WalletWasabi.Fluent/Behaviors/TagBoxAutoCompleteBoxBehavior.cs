@@ -23,9 +23,9 @@ namespace WalletWasabi.Fluent.Behaviors
         public static readonly StyledProperty<Action> BackspaceAndEmptyTextActionProperty =
             AvaloniaProperty.Register<SplitViewAutoBehavior, Action>(nameof(BackspaceAndEmptyTextAction));
 
-        private IDisposable _disposable;
-
-        private readonly DropOutStack<string> op = new DropOutStack<string>(2);
+        private IDisposable? _disposable;
+        private const int BackspaceStackCapacity = 2;
+        private readonly DropOutStack<string> _backspaceStack = new DropOutStack<string>(BackspaceStackCapacity);
 
         public IEnumerable<string> Suggestions
         {
@@ -109,7 +109,6 @@ namespace WalletWasabi.Fluent.Behaviors
             }
 
             var currentText = AssociatedObject.Text ?? "";
-
             var currentTextTrimmed = currentText.Trim();
 
             if (currentText.Length < 1 || string.IsNullOrEmpty(currentTextTrimmed) || !currentText.EndsWith(' ') ||
@@ -118,6 +117,9 @@ namespace WalletWasabi.Fluent.Behaviors
                 return;
 
             CommitTextAction?.Invoke(currentTextTrimmed);
+            
+            _backspaceStack.Clear();
+
             Dispatcher.UIThread.Post(() => { AssociatedObject?.ClearValue(AutoCompleteBox.TextProperty); });
         }
 
@@ -127,12 +129,12 @@ namespace WalletWasabi.Fluent.Behaviors
 
             var str = AssociatedObject?.Text ?? "";
 
-            op.Push(str);
+            _backspaceStack.Push(str);
 
             var strTrimmed = str.Trim();
-
-            var p1 = op.Items.Length >= 2 ? op.Items[0] : "";
-            var p2 = op.Items.Length >= 2 ? op.Items[1] : "";
+            var containsTwoItems = _backspaceStack.Items.Length >= BackspaceStackCapacity;
+            var p1 = containsTwoItems ? _backspaceStack.Items[0] : "";
+            var p2 = containsTwoItems ? _backspaceStack.Items[1] : "";
 
             // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
             switch (e.Key)
@@ -145,7 +147,9 @@ namespace WalletWasabi.Fluent.Behaviors
                     {
                         break;
                     }
-                    op.Clear();
+                    
+                    _backspaceStack.Clear();
+                    
                     CommitTextAction?.Invoke(strTrimmed);
                     Dispatcher.UIThread.Post(() => { AssociatedObject?.ClearValue(AutoCompleteBox.TextProperty); });
                     break;
@@ -161,7 +165,6 @@ namespace WalletWasabi.Fluent.Behaviors
             AssociatedObject.DropDownClosed -= OnDropDownClosed;
             AssociatedObject.KeyUp -= OnKeyUp;
             AssociatedObject.TextChanged -= OnTextChanged;
-
             _disposable?.Dispose();
         }
     }
