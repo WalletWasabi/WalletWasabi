@@ -10,10 +10,11 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.ViewModels;
 
-namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
+namespace WalletWasabi.Fluent.AddWallet.CreateWallet
 {
 	public class ConfirmRecoveryWordsViewModel : ViewModelBase, IDisposable, IRoutableViewModel
 	{

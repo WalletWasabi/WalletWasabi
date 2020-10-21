@@ -8,10 +8,11 @@ using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
 using Avalonia;
 using Avalonia.Markup.Xaml.Styling;
-using WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Gui;
 using Splat;
+using WalletWasabi.Fluent.AddWallet.CreateWallet;
+using WalletWasabi.Fluent.AddWallet.Common;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -28,11 +29,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			{
 				var global = Locator.Current.GetService<Global>();
 
-				var walletGenerator = new WalletGenerator(global.WalletManager.WalletDirectories.WalletsDir, global.Network);
-				walletGenerator.TipHeight = global.BitcoinStore.SmartHeaderChain.TipHeight;
-				var (km, mnemonic) = walletGenerator.GenerateWallet("TestWallet", "12345");
-
-				screen.Router.Navigate.Execute(new RecoveryWordsViewModel(screen, km, mnemonic, global));
+				screen.Router.Navigate.Execute(new EnterPasswordViewModel(screen, global));
 			});
 
 			OpenDialogCommand = ReactiveCommand.CreateFromTask(async () => await ConfirmSetting.Handle("Please confirm the setting:").ToTask());
