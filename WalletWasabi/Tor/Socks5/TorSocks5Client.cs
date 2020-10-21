@@ -47,7 +47,7 @@ namespace WalletWasabi.Tor.Socks5
 
 		#region Initializers
 
-		internal async Task ConnectAsync()
+		public async Task ConnectAsync()
 		{
 			using (await AsyncLock.LockAsync().ConfigureAwait(false))
 			{
@@ -96,7 +96,7 @@ namespace WalletWasabi.Tor.Socks5
 		/// https://www.torproject.org/docs/tor-manual.html.en
 		/// https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt#n35
 		/// </summary>
-		internal async Task HandshakeAsync(bool isolateStream = true)
+		public async Task HandshakeAsync(bool isolateStream = true)
 		{
 			await HandshakeAsync(isolateStream ? RandomString.CapitalAlphaNumeric(21) : "").ConfigureAwait(false);
 		}
@@ -171,7 +171,7 @@ namespace WalletWasabi.Tor.Socks5
 			Logger.LogDebug("<");
 		}
 
-		internal async Task ConnectToDestinationAsync(EndPoint destination)
+		public async Task ConnectToDestinationAsync(EndPoint destination)
 		{
 			if (!destination.TryGetHostAndPort(out string? host, out int? port))
 			{
@@ -182,7 +182,7 @@ namespace WalletWasabi.Tor.Socks5
 		}
 
 		/// <param name="host">IPv4 or domain</param>
-		internal async Task ConnectToDestinationAsync(string host, int port)
+		public async Task ConnectToDestinationAsync(string host, int port)
 		{
 			Logger.LogDebug($"> {nameof(host)}={host}, {nameof(port)}={port}");
 
@@ -234,7 +234,7 @@ namespace WalletWasabi.Tor.Socks5
 			}
 		}
 
-		public async Task AssertConnectedAsync()
+		private async Task AssertConnectedAsync()
 		{
 			if (!IsConnected)
 			{
@@ -301,7 +301,7 @@ namespace WalletWasabi.Tor.Socks5
 		/// <param name="sendBuffer">Sent data</param>
 		/// <param name="receiveBufferSize">Maximum number of bytes expected to be received in the reply</param>
 		/// <returns>Reply</returns>
-		public async Task<byte[]> SendAsync(byte[] sendBuffer, int? receiveBufferSize = null)
+		private async Task<byte[]> SendAsync(byte[] sendBuffer, int? receiveBufferSize = null)
 		{
 			Guard.NotNullOrEmpty(nameof(sendBuffer), sendBuffer);
 
