@@ -9,18 +9,18 @@
              d:DesignWidth="600" d:DesignHeight="500"
              Width="600" Height="500"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.CreateWallet.ConfirmRecoveryWordsView">
-  <Panel Margin="25 0 25 20">
+  <Panel>
 
-    <Button Classes="invisible" Margin="0 35 0 0" Command="{Binding GoBackCommand}" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Top">
-      <PathIcon Data="{StaticResource arrow_left_regular}" />
+    <Button Classes="invisible" Margin="25 35 0 0" Command="{Binding GoBackCommand}" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Top">
+      <PathIcon Data="{StaticResource arrow_left_regular}" Width="20"/>
     </Button>
 
     <c:ContentArea Title="Confirm recovery words" Caption="Type the required recovery words"
-                   Margin="44 0 44 0">
+                   Classes="dialog">
       <ItemsControl Items="{Binding ConfirmationWords}">
         <ItemsControl.ItemTemplate>
           <DataTemplate>
-            <StackPanel Margin="0 0 0 24">
+            <StackPanel Margin="0 0 0 20">
               <TextBlock Text="{Binding Index, StringFormat=Recovery word {0}}" Margin="0 0 0 8"/>
               <StackPanel Orientation="Horizontal">
                 <TextBox Watermark="Type the word here..." Text="{Binding Input}" IsEnabled="{Binding !IsConfirmed}" Width="280" FontSize="12">
@@ -28,7 +28,7 @@
                     <behaviors:FocusBehavior IsFocused="{Binding IsFocused}"/>
                   </i:Interaction.Behaviors>
                 </TextBox>
-                <PathIcon Foreground="Green" IsVisible="{Binding IsConfirmed}" Data="{StaticResource checkmark_filled}" VerticalAlignment="Center" Width="12" Height="12" Margin="15 0 0 0"/>
+                <PathIcon Foreground="{StaticResource SystemAccentColor}" IsVisible="{Binding IsConfirmed}" Data="{StaticResource checkmark_filled}" VerticalAlignment="Center" Width="12" Height="12" Margin="15 0 0 0"/>
               </StackPanel>
             </StackPanel>
           </DataTemplate>
@@ -36,8 +36,8 @@
       </ItemsControl>
     </c:ContentArea>
 
-    <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="invisible" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
-    <Button Content="Finish" Command="{Binding FinishCommand}" Classes="action" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+    <Button Content="Cancel" Margin="31 0 0 20" Command="{Binding CancelCommand}" Classes="invisible" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
+    <Button Content="Finish" Margin="0 0 25 20" Command="{Binding FinishCommand}" IsEnabled="{Binding IsConfirmationFinished}" Classes="action" HorizontalAlignment="Right" VerticalAlignment="Bottom">
       <i:Interaction.Behaviors>
         <behaviors:FocusBehavior IsFocused="{Binding IsConfirmationFinished}"/>
       </i:Interaction.Behaviors>

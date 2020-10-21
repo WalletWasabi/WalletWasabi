@@ -1,3 +1,4 @@
+using Avalonia.Input;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
@@ -31,6 +32,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
 			//	global.WalletManager.AddWallet(keyManager);
 			//	screen.Router.NavigationStack.Clear();
 			//});
+			CancelCommand = ReactiveCommand.Create(() => HostScreen.Router.NavigateAndReset.Execute(new SettingsPageViewModel(screen)));
 
 			SetConfirmationWords(mnemonicWords);
 		}
@@ -44,6 +46,9 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
 		public IScreen HostScreen { get; }
 		public ObservableCollection<RecoveryWord> ConfirmationWords { get; }
 		public ICommand FinishCommand { get; }
+		public ICommand CancelCommand { get; }
+		public ICommand GoBackCommand => HostScreen.Router.NavigateBack;
+
 
 		private void OnConfirmationWordCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
