@@ -35,6 +35,10 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
 			CancelCommand = ReactiveCommand.Create(() => HostScreen.Router.NavigateAndReset.Execute(new SettingsPageViewModel(screen)));
 
 			SetConfirmationWords(mnemonicWords);
+
+			#if DEBUG
+				IsConfirmationFinished = true;
+			#endif
 		}
 
 		public bool IsConfirmationFinished
