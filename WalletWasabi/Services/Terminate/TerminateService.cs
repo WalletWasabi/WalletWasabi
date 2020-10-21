@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
@@ -9,8 +7,13 @@ namespace WalletWasabi.Services.Terminate
 {
 	public class TerminateService
 	{
-		private bool _disposedValue;
 		private Func<Task> _terminateApplicationAsync;
+
+		private const long TerminateStatusIdle = 0;
+		private const long TerminateStatusInProgress = 1;
+		private const long TerminateFinished = 2;
+
+		private long _terminateStatus;
 
 		public TerminateService(Func<Task> terminateApplicationAsync)
 		{
@@ -27,19 +30,13 @@ namespace WalletWasabi.Services.Terminate
 			Terminate();
 		}
 
-		private void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
+		private void Console_CancelKeyPress(object? sender, ConsoleCancelEventArgs e)
 		{
 			Logger.LogWarning("Process was signaled for termination.");
 			// This must be a blocking call because after this the OS will terminate Wasabi process if exists.
 			// In some cases CurrentDomain_ProcessExit is called after this by the OS.
 			Terminate();
 		}
-
-		private const long TerminateStatusIdle = 0;
-		private const long TerminateStatusInProgress = 1;
-		private const long TerminateFinished = 2;
-
-		private long _terminateStatus;
 
 		/// <summary>
 		/// This will terminate the application. This is a blocking method and no return after this call as it will exit the application.
