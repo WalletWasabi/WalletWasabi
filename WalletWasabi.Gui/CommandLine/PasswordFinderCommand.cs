@@ -56,7 +56,7 @@ namespace WalletWasabi.Gui.CommandLine
 				}
 				else if (!PasswordFinder.Charsets.ContainsKey(Language))
 				{
-					throw new InvalidOperationException($"`{Language}` is not available language, try with `en, es, pt, it or fr`. Use `findpassword--help` for details.");
+					throw new InvalidOperationException($"`{Language}` is not available language, try with `en, es, pt, it or fr`. Use `findpassword --help` for details.");
 				}
 				else if (!string.IsNullOrWhiteSpace(WalletName))
 				{
