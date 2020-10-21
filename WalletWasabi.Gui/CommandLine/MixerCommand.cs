@@ -25,40 +25,28 @@ namespace WalletWasabi.Gui.CommandLine
 			};
 		}
 
-		public string WalletName { get; set; }
-		public string DestinationWalletName { get; set; }
+		public string? WalletName { get; set; }
+		public string? DestinationWalletName { get; set; }
 		public bool KeepMixAlive { get; set; }
 		public bool ShowHelp { get; set; }
 		public Daemon Daemon { get; }
 
 		public override async Task<int> InvokeAsync(IEnumerable<string> args)
 		{
-			var error = false;
-			try
+			Options.Parse(args);
+			if (ShowHelp)
 			{
-				var extra = Options.Parse(args);
-				if (ShowHelp)
+				Options.WriteOptionDescriptions(CommandSet.Out);
+			}
+			else
+			{
+				if (WalletName is null)
 				{
-					Options.WriteOptionDescriptions(CommandSet.Out);
+					throw new ArgumentNullException($"Argument {nameof(WalletName)} must be set.");
 				}
 
-				if (!error && !ShowHelp)
-				{
-					await Daemon.RunAsync(WalletName, DestinationWalletName ?? WalletName, KeepMixAlive);
-				}
+				await Daemon.RunAsync(WalletName, DestinationWalletName ?? WalletName, KeepMixAlive).ConfigureAwait(false);
 			}
-			catch (Exception ex)
-			{
-				if (!(ex is OperationCanceledException))
-				{
-					Logger.LogCritical(ex);
-				}
-
-				Console.WriteLine($"commands: There was a problem interpreting the command, please review it.");
-				Logger.LogDebug(ex);
-				error = true;
-			}
-			Environment.Exit(error ? 1 : 0);
 			return 0;
 		}
 	}
