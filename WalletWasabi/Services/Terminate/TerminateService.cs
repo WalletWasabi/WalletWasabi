@@ -65,10 +65,11 @@ namespace WalletWasabi.Services.Terminate
 			Task.Run(async () => await _terminateApplicationAsync.Invoke().ContinueWith((ex) => resetEvent.Set()));
 			resetEvent.WaitOne();
 
+			Dispose();
+
 			// Indicate that the termination procedure finished. So other callers can return.
 			Interlocked.Exchange(ref _terminateStatus, TerminateFinished);
 
-			Dispose();
 			Environment.Exit(exitCode);
 		}
 
@@ -78,7 +79,6 @@ namespace WalletWasabi.Services.Terminate
 		{
 			AppDomain.CurrentDomain.ProcessExit -= CurrentDomain_ProcessExit;
 			Console.CancelKeyPress -= Console_CancelKeyPress;
-			GC.SuppressFinalize(this);
 		}
 	}
 }
