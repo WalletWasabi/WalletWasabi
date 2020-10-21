@@ -28,6 +28,7 @@ namespace WalletWasabi.Fluent.Behaviors
 
         private IDisposable _disposable;
         private bool _disableEntry;
+        private bool _disableBackspace;
 
         public IEnumerable<string> Suggestions
         {
@@ -81,19 +82,10 @@ namespace WalletWasabi.Fluent.Behaviors
             {
                 return;
             }
-            //
-            // var ki = k.SearchText ?? "";
-            // var kv = k.Text ?? "";
-            //
-            // if (Math.Abs(ki.Length - kv.Length) == 1)
-            // {
-            //     ki = kv.Substring(0, ki.Length + 1);
-            // }
-
+ 
             if (!Suggestions.Any(x => x.StartsWith(k.SearchText ?? "", true, CultureInfo.CurrentCulture)))
             {
-                e.Handled = true;
-                _disableEntry = true;
+                e.Handled = true; 
             }
         }
 
@@ -143,6 +135,7 @@ namespace WalletWasabi.Fluent.Behaviors
             {
                 return;
             }
+            
 
             var str = AssociatedObject?.Text ?? "";
             var strTrimmed = str.Trim();
@@ -150,7 +143,7 @@ namespace WalletWasabi.Fluent.Behaviors
             // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
             switch (e.Key)
             {
-                case Key.Back when string.IsNullOrEmpty(str):
+                case Key.Back when string.IsNullOrEmpty(str) :
                     BackspaceAndEmptyTextAction?.Invoke();
                     break;
                 case Key.Enter when !string.IsNullOrEmpty(strTrimmed):
