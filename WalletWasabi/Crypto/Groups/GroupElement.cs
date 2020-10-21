@@ -43,7 +43,7 @@ namespace WalletWasabi.Crypto.Groups
 
 		public static GroupElement Infinity { get; } = new GroupElement(GE.Infinity);
 
-		private GEJ Gej { get; }
+		internal GEJ Gej { get; }
 		private Lazy<GE> lazyGe { get; }
 		private GE Ge { get => lazyGe.Value; }
 		private bool IsGeCreated { get => lazyGe.IsValueCreated; }

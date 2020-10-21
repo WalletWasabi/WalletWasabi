@@ -28,7 +28,10 @@
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.1" />
 		<PackageReference Include="NBitcoin" Version="5.0.57" />
 		<PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
+<!--
 		<PackageReference Include="NBitcoin.Secp256k1" Version="1.0.8" />
+-->
+		<ProjectReference Include="..\..\nbitcoin\NBitcoin.Secp256k1\NBitcoin.Secp256k1.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

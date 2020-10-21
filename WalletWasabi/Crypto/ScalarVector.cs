@@ -33,8 +33,9 @@ namespace WalletWasabi.Crypto
 			Guard.NotNull(nameof(groupElements), groupElements);
 			Guard.True(nameof(groupElements.Count), groupElements.Count == scalars.Count);
 
-			// TODO https://github.com/ElementsProject/secp256k1-zkp/blob/6f3b0c05c2b561bcba6ae7a276699b86414ed1cc/src/ecmult.h#L35-L46
-			return Enumerable.Zip(scalars, groupElements, (s, g) => s * g).Sum();
+			var gej = ECMultContext.Instance.Mult(groupElements.Select(x => x.Gej).ToArray(), scalars.ToArray());
+			return new GroupElement(gej.ToGroupElement());
+			//return Enumerable.Zip(scalars, groupElements, (s, g) => s * g).Sum();
 		}
 
 		public static ScalarVector operator *(Scalar scalar, ScalarVector scalars)
