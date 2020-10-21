@@ -15,7 +15,7 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
 {
-	public class ConfirmRecoveryWordsViewModel : ViewModelBase, IRoutableViewModel
+	public class ConfirmRecoveryWordsViewModel : ViewModelBase, IDisposable, IRoutableViewModel
 	{
 		private bool _isConfirmationFinished;
 
@@ -42,6 +42,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
 			get => _isConfirmationFinished;
 			set => this.RaiseAndSetIfChanged(ref _isConfirmationFinished, value);
 		}
+
 		public string UrlPathSegment { get; }
 		public IScreen HostScreen { get; }
 		public ObservableCollection<RecoveryWord> ConfirmationWords { get; }
@@ -49,40 +50,38 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
 		public ICommand CancelCommand { get; }
 		public ICommand GoBackCommand => HostScreen.Router.NavigateBack;
 
-
 		private void OnConfirmationWordCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
 			if (e.Action == NotifyCollectionChangedAction.Add)
 			{
 				foreach (RecoveryWord item in e.NewItems)
 				{
-					item.PropertyChanged += JumpFocus;
+					item.PropertyChanged += RecoveryWordOnPropertyChanged;
 				}
 			}
 		}
 
-		private void JumpFocus(object sender, PropertyChangedEventArgs e)
+		private void RecoveryWordOnPropertyChanged(object sender, PropertyChangedEventArgs e)
 		{
-			if (e.PropertyName == nameof(RecoveryWord.IsConfirmed))
+			if (e.PropertyName == nameof(RecoveryWord.IsConfirmed) && FocusManager.Instance.Current is { } focusManager && sender is RecoveryWord recoveryWord)
 			{
-				// This will prevent that case when the control only once can get the focus
-				foreach (var item in ConfirmationWords.Where(x => !x.IsConfirmed))
+				var nextToFocus = KeyboardNavigationHandler.GetNext(focusManager, NavigationDirection.Next);
+				var prevToFocus = KeyboardNavigationHandler.GetNext(focusManager, NavigationDirection.Previous);
+
+				var currentWordIndex = recoveryWord.Index;
+
+				if (ConfirmationWords.Where(x => !x.IsConfirmed).Any(x => x.Index < currentWordIndex))
 				{
-					item.IsFocused = false;
+					prevToFocus?.Focus();
 				}
-
-				// Find the next control
-				var nextToFocus = ConfirmationWords.FirstOrDefault(x => x.IsConfirmed == false);
-
-				if (nextToFocus is { })
+				else if (ConfirmationWords.Where(x => !x.IsConfirmed).Any(x => x.Index > currentWordIndex))
 				{
-					// Give the focus to the next TextBlock
-					nextToFocus.IsFocused = true;
+					nextToFocus?.Focus();
 				}
 				else
 				{
-					// All word is confirmed, give the focus to the finish button
 					IsConfirmationFinished = true;
+					nextToFocus?.Focus();
 				}
 			}
 		}
@@ -113,6 +112,16 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
 			{
 				ConfirmationWords.Add(item);
 			}
+		}
+
+		public void Dispose()
+		{
+			foreach (RecoveryWord item in ConfirmationWords)
+			{
+				item.PropertyChanged -= RecoveryWordOnPropertyChanged;
+			}
+
+			ConfirmationWords.CollectionChanged -= OnConfirmationWordCollectionChanged;
 		}
 	}
 }

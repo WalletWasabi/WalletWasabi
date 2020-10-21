@@ -1,8 +1,4 @@
-using Avalonia.Input;
 using ReactiveUI;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
