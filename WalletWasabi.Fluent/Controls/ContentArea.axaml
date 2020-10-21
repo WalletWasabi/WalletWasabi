@@ -52,7 +52,7 @@
 
   <!--Dialog class-->
   <Style Selector=":is(c|ContentArea).dialog /template/ DockPanel#PART_DockPanel">
-    <Setter Property="Margin" Value="64 35 64 0" />    
+    <Setter Property="Margin" Value="64 35 64 75" />    
   </Style>
   <Style Selector=":is(c|ContentArea).dialog /template/ StackPanel#PART_StackPanel">
     <Setter Property="Margin" Value="0 0 0 28" />    
