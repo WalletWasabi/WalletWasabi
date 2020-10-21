@@ -43,11 +43,11 @@ namespace WalletWasabi.Gui
 		{
 			bool runGui = false;
 			Exception? appException = null;
+			CrashReporter = new CrashReporter();
 
 			try
 			{
 				TerminateService = new TerminateService(TerminateApplicationAsync);
-				CrashReporter = new CrashReporter();
 				Global = CreateGlobal();
 				Locator.CurrentMutable.RegisterConstant(Global);
 				Locator.CurrentMutable.RegisterConstant(CrashReporter);
