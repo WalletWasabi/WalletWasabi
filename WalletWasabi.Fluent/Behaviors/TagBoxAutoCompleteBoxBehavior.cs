@@ -97,6 +97,8 @@ namespace WalletWasabi.Fluent.Behaviors
 
             CommitTextAction?.Invoke(currentText.Trim());
             AssociatedObject.ClearValue(AutoCompleteBox.SelectedItemProperty);
+            
+            _backspaceStack.Clear();
 
             Dispatcher.UIThread.Post(() => { AssociatedObject.ClearValue(AutoCompleteBox.TextProperty); });
         }
@@ -166,6 +168,8 @@ namespace WalletWasabi.Fluent.Behaviors
             AssociatedObject.KeyUp -= OnKeyUp;
             AssociatedObject.TextChanged -= OnTextChanged;
             _disposable?.Dispose();
+            
+            _backspaceStack.Clear();
         }
     }
 }
