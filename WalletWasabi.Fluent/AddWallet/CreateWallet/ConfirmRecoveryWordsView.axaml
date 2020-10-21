@@ -7,7 +7,7 @@
              mc:Ignorable="d"
              d:DesignWidth="600" d:DesignHeight="500"
              Width="600" Height="500"
-             x:Class="WalletWasabi.Fluent.Views.Dialogs.CreateWallet.ConfirmRecoveryWordsView">
+             x:Class="WalletWasabi.Fluent.AddWallet.CreateWallet.ConfirmRecoveryWordsView">
   <Panel>
 
     <Button Classes="invisible" Margin="25 35 0 0" Command="{Binding GoBackCommand}" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Top">
