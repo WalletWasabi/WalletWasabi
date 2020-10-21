@@ -70,8 +70,6 @@ namespace WalletWasabi.Gui
 
 		public HostedServices HostedServices { get; }
 
-		public bool KillRequested => false;
-
 		public UiConfig UiConfig { get; }
 
 		public Network Network => Config.Network;

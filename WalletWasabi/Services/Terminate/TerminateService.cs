@@ -72,6 +72,8 @@ namespace WalletWasabi.Services.Terminate
 			Environment.Exit(exitCode);
 		}
 
+		public bool IsTerminateRequested => Interlocked.Read(ref _terminateStatus) > TerminateStatusIdle;
+
 		private void Dispose()
 		{
 			AppDomain.CurrentDomain.ProcessExit -= CurrentDomain_ProcessExit;

@@ -71,13 +71,13 @@ namespace WalletWasabi.Gui.CommandLine
 				Logger.LogInfo("Correct password.");
 
 				await Global.InitializeNoWalletAsync(TerminateService);
-				if (Global.KillRequested)
+				if (TerminateService.IsTerminateRequested)
 				{
 					return;
 				}
 
 				Wallet = await Global.WalletManager.StartWalletAsync(keyManager);
-				if (Global.KillRequested)
+				if (TerminateService.IsTerminateRequested)
 				{
 					return;
 				}
@@ -91,7 +91,7 @@ namespace WalletWasabi.Gui.CommandLine
 
 				do
 				{
-					if (Global.KillRequested)
+					if (TerminateService.IsTerminateRequested)
 					{
 						break;
 					}
@@ -103,7 +103,7 @@ namespace WalletWasabi.Gui.CommandLine
 						await TryQueueCoinsToMixAsync(password, minAnonset: Wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue());
 					}
 
-					if (Global.KillRequested)
+					if (TerminateService.IsTerminateRequested)
 					{
 						break;
 					}
@@ -115,7 +115,7 @@ namespace WalletWasabi.Gui.CommandLine
 						await TryQueueCoinsToMixAsync(password, maxAnonset: Wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue() - 1);
 					}
 
-					if (Global.KillRequested)
+					if (TerminateService.IsTerminateRequested)
 					{
 						break;
 					}
@@ -128,7 +128,7 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 			catch
 			{
-				if (!Global.KillRequested)
+				if (!TerminateService.IsTerminateRequested)
 				{
 					throw;
 				}
