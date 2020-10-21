@@ -20,8 +20,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			walletManager.Items.ToObservableChangeSet()
 				.Cast(x => x as NavBarItemViewModel)
 				.Sort(SortExpressionComparer<NavBarItemViewModel>.Ascending(i=>i.Title))
-				.Or(list.Connect())
-				.Sort(SortExpressionComparer<NavBarItemViewModel>.Ascending(i => i is AddWalletPageViewModel ? 1 : 0))
+				.Merge(list.Connect())
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Bind(out _items)
 				.AsObservableList();
