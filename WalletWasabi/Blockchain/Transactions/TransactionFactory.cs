@@ -360,7 +360,7 @@ namespace WalletWasabi.Blockchain.Transactions
 					var coinPubkey = coin.HdPubKey.PubKey;
 					psbt.AddKeyPath(coinPubkey, rootKeyPath, coin.ScriptPubKey);
 
-					// In case of multisig address the keyPath is added to both inputs and outputs which is a bug. The following code removes the output in that case. https://github.com/zkSNACKs/WalletWasabi/pull/4600
+					// In case of multisig address the keyPath is added to both inputs and outputs which is a bug. The following code removes the output in that case. https://github.com/MetacoSA/NBitcoin/issues/927
 					if (psbt.Outputs.SelectMany(output => output.HDKeyPaths.Keys).Contains(coinPubkey) && psbt.Inputs.SelectMany(input => input.HDKeyPaths.Keys).Contains(coinPubkey))
 					{
 						foreach (var output in psbt.Outputs)
