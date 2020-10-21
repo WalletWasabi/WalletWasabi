@@ -22,9 +22,7 @@ namespace WalletWasabi.Tor.Socks5.Models.Messages
 			Ver = VerField.Socks5;
 
 			// The NMETHODS field contains the number of method identifier octets that appear in the METHODS field.
-			var nMethods = new NMethodsField();
-			nMethods.FromMethodsField(methods);
-			NMethods = nMethods;
+			NMethods = new NMethodsField(methods);
 		}
 
 		#endregion Constructors
@@ -47,9 +45,7 @@ namespace WalletWasabi.Tor.Socks5.Models.Messages
 			Guard.InRangeAndNotNull($"{nameof(bytes)}.{nameof(bytes.Length)}", bytes.Length, 3, 257);
 
 			Ver = new VerField(bytes[0]);
-
-			NMethods = new NMethodsField();
-			NMethods.FromByte(bytes[1]);
+			NMethods = new NMethodsField(bytes[1]);
 
 			if (NMethods.Value != bytes.Length - 2)
 			{
