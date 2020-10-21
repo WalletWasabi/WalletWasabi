@@ -11,10 +11,6 @@ namespace WalletWasabi.Tor.Socks5.Models.Messages
 	{
 		#region Constructors
 
-		public VersionMethodRequest()
-		{
-		}
-
 		public VersionMethodRequest(MethodsField methods)
 		{
 			Methods = Guard.NotNull(nameof(methods), methods);
