@@ -359,6 +359,13 @@ namespace WalletWasabi.Blockchain.Transactions
 					var rootKeyPath = new RootedKeyPath(fp, coin.HdPubKey.FullKeyPath);
 					psbt.AddKeyPath(coin.HdPubKey.PubKey, rootKeyPath, coin.ScriptPubKey);
 				}
+
+				// Hack around NBitcoin bug: https://github.com/zkSNACKs/WalletWasabi/issues/4460
+				foreach (var o in psbt.Outputs)
+				{
+					o.HDKeyPaths.Clear();
+				}
+
 				if (changeHdPubKey is { })
 				{
 					var rootKeyPath = new RootedKeyPath(fp, changeHdPubKey.FullKeyPath);
