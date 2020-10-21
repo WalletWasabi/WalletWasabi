@@ -18,6 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
 	public class ConfirmRecoveryWordsViewModel : ViewModelBase, IDisposable, IRoutableViewModel
 	{
 		private bool _isConfirmationFinished;
+		private bool _disposedValue;
 
 		public ConfirmRecoveryWordsViewModel(IScreen screen, List<RecoveryWord> mnemonicWords, KeyManager keyManager, Global global)
 		{
@@ -26,12 +27,11 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
 			ConfirmationWords = new ObservableCollection<RecoveryWord>();
 			ConfirmationWords.CollectionChanged += OnConfirmationWordCollectionChanged;
 
-			FinishCommand = ReactiveCommand.Create(() => screen.Router.NavigationStack.Clear());
-			//FinishCommand = ReactiveCommand.Create(() =>
-			//{
-			//	global.WalletManager.AddWallet(keyManager);
-			//	screen.Router.NavigationStack.Clear();
-			//});
+			FinishCommand = ReactiveCommand.Create(() =>
+			{
+				global.WalletManager.AddWallet(keyManager);
+				screen.Router.NavigationStack.Clear();
+			});
 			CancelCommand = ReactiveCommand.Create(() => HostScreen.Router.NavigateAndReset.Execute(new SettingsPageViewModel(screen)));
 
 			SetConfirmationWords(mnemonicWords);
@@ -43,7 +43,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
 			set => this.RaiseAndSetIfChanged(ref _isConfirmationFinished, value);
 		}
 
-		public string UrlPathSegment { get; }
+		public string UrlPathSegment { get; } = null!;
 		public IScreen HostScreen { get; }
 		public ObservableCollection<RecoveryWord> ConfirmationWords { get; }
 		public ICommand FinishCommand { get; }
@@ -54,9 +54,12 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
 		{
 			if (e.Action == NotifyCollectionChangedAction.Add)
 			{
-				foreach (RecoveryWord item in e.NewItems)
+				foreach (var item in e.NewItems)
 				{
-					item.PropertyChanged += RecoveryWordOnPropertyChanged;
+					if (item is RecoveryWord recoveryWord)
+					{
+						recoveryWord.PropertyChanged += RecoveryWordOnPropertyChanged;
+					}
 				}
 			}
 		}
@@ -114,14 +117,29 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.CreateWallet
 			}
 		}
 
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					foreach (RecoveryWord item in ConfirmationWords)
+					{
+						item.PropertyChanged -= RecoveryWordOnPropertyChanged;
+					}
+
+					ConfirmationWords.CollectionChanged -= OnConfirmationWordCollectionChanged;
+				}
+
+				_disposedValue = true;
+			}
+		}
+
 		public void Dispose()
 		{
-			foreach (RecoveryWord item in ConfirmationWords)
-			{
-				item.PropertyChanged -= RecoveryWordOnPropertyChanged;
-			}
-
-			ConfirmationWords.CollectionChanged -= OnConfirmationWordCollectionChanged;
+			// Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+			Dispose(disposing: true);
+			GC.SuppressFinalize(this);
 		}
 	}
 }
