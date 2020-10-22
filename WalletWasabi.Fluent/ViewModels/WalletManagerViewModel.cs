@@ -136,13 +136,11 @@ namespace WalletWasabi.Fluent.ViewModels
 			_walletDictionary.Remove(walletVM.Wallet);
 		}
 
-		private async Task LoadWallets(WalletManager walletManager)
+		private void LoadWallets(WalletManager walletManager)
 		{
 			foreach (var wallet in walletManager.GetWallets())
 			{
-				InsertWallet(ClosedWalletViewModel.Create(_screen, walletManager, wallet));
-
-				await Task.Delay(2500);
+				InsertWallet(ClosedWalletViewModel.Create(_screen, walletManager, wallet));				
 			}
 		}
 	}
