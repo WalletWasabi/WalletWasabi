@@ -27,7 +27,7 @@ namespace WalletWasabi.Tor.Http
 
 		private volatile bool _disposedValue = false; // To detect redundant calls
 
-		public TorHttpClient(Uri baseUri, EndPoint? torSocks5EndPoint, bool isolateStream = false):
+		public TorHttpClient(Uri baseUri, EndPoint? torSocks5EndPoint, bool isolateStream = false) :
 			this(() => baseUri, torSocks5EndPoint, isolateStream)
 		{
 			baseUri = Guard.NotNull(nameof(baseUri), baseUri);

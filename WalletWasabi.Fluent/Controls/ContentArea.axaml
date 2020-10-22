@@ -21,7 +21,7 @@
             <ContentPresenter Name="PART_TitlePresenter" Content="{TemplateBinding Title}" />
             <ContentPresenter Name="PART_CaptionPresenter" Content="{TemplateBinding Caption}" />
           </StackPanel>
-          <ContentPresenter Name="PART_ContentPresenter"                            
+          <ContentPresenter Name="PART_ContentPresenter"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
@@ -36,11 +36,11 @@
   </Style>
   <Style Selector="c|ContentArea /template/ ContentPresenter#PART_TitlePresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextControlForeground}" />
-    <Setter Property="TextBlock.FontSize" Value="24" />    
+    <Setter Property="TextBlock.FontSize" Value="24" />
   </Style>
   <Style Selector="c|ContentArea /template/ ContentPresenter#PART_CaptionPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextControlForeground}" />
-    <Setter Property="TextBlock.FontSize" Value="14" />    
+    <Setter Property="TextBlock.FontSize" Value="14" />
     <Setter Property="Opacity" Value="0.6" />
   </Style>
 </Styles>
