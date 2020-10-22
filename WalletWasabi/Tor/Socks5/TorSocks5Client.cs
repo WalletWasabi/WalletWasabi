@@ -171,7 +171,7 @@ namespace WalletWasabi.Tor.Socks5
 			Logger.LogDebug("<");
 		}
 
-		public async Task ConnectToDestinationAsync(EndPoint destination)
+		private async Task ConnectToDestinationAsync(EndPoint destination)
 		{
 			if (!destination.TryGetHostAndPort(out string? host, out int? port))
 			{
