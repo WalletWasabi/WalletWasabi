@@ -15,6 +15,7 @@ using WalletWasabi.Gui.CrashReport;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Services.Terminate;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Desktop
@@ -26,6 +27,8 @@ namespace WalletWasabi.Fluent.Desktop
 		// This is only needed to pass CrashReporter to AppMainAsync otherwise it could be a local variable in Main().
 		private static CrashReporter CrashReporter;
 
+		private static TerminateService TerminateService;
+
 		// Initialization code. Don't use any Avalonia, third-party APIs or any
 		// SynchronizationContext-reliant code before AppMain is called: things aren't initialized
 		// yet and stuff might break.
@@ -33,10 +36,11 @@ namespace WalletWasabi.Fluent.Desktop
 		{
 			bool runGui = false;
 			Exception? appException = null;
+			CrashReporter = new CrashReporter();
 
 			try
 			{
-				CrashReporter = new CrashReporter();
+				TerminateService = new TerminateService(TerminateApplicationAsync);
 				Global = CreateGlobal();
 				Locator.CurrentMutable.RegisterConstant(Global);
 				Locator.CurrentMutable.RegisterConstant(CrashReporter);
@@ -45,7 +49,7 @@ namespace WalletWasabi.Fluent.Desktop
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-				runGui = ShouldRunGui(args);
+				runGui = ProcessCliCommands(args);
 
 				if (CrashReporter.IsReport)
 				{
@@ -64,14 +68,11 @@ namespace WalletWasabi.Fluent.Desktop
 			}
 			catch (Exception ex)
 			{
-				Logger.LogCritical(ex);
-				CrashReporter.SetException(ex);
+				appException = ex;
 				throw;
 			}
-			finally
-			{
-				DisposeAsync().GetAwaiter().GetResult();
-			}
+
+			TerminateAppAndHandleException(appException, runGui);
 		}
 
 		private static Global CreateGlobal()
@@ -90,9 +91,9 @@ namespace WalletWasabi.Fluent.Desktop
 			return new Global(dataDir, torLogsFile, config, uiConfig, walletManager);
 		}
 
-		private static bool ShouldRunGui(string[] args)
+		private static bool ProcessCliCommands(string[] args)
 		{
-			var daemon = new Daemon(Global);
+			var daemon = new Daemon(Global, TerminateService);
 			var interpreter = new CommandInterpreter(Console.Out, Console.Error);
 			var executionTask = interpreter.ExecuteCommandsAsync(
 				args,
@@ -106,7 +107,7 @@ namespace WalletWasabi.Fluent.Desktop
 		{
 			try
 			{
-				await Global.InitializeNoWalletAsync();
+				await Global.InitializeNoWalletAsync(TerminateService);
 
 				MainViewModel.Instance.Initialize();
 
@@ -114,25 +115,41 @@ namespace WalletWasabi.Fluent.Desktop
 			}
 			catch (Exception ex)
 			{
-				if (!(ex is OperationCanceledException))
-				{
-					Logger.LogCritical(ex);
-					CrashReporter.SetException(ex);
-				}
-
-				await DisposeAsync();
-
-				// There is no other way to stop the creation of the WasabiWindow.
-				Environment.Exit(1);
+				// There is no other way to stop the creation of the WasabiWindow, we have to exit the application here instead of return to Main.
+				TerminateAppAndHandleException(ex, true);
 			}
 		}
 
-		private static async Task DisposeAsync()
+		/// <summary>
+		/// This is a helper method until the creation of the window in AppMainAsync cannot be aborted without Environment.Exit().
+		/// </summary>
+		private static void TerminateAppAndHandleException(Exception? ex, bool runGui)
 		{
-			var disposeGui = MainWindowViewModel.Instance is { };
-			if (disposeGui)
+			if (ex is OperationCanceledException)
 			{
-				MainWindowViewModel.Instance.Dispose();
+				Logger.LogDebug(ex);
+			}
+			else if (ex is { })
+			{
+				Logger.LogCritical(ex);
+				if (runGui)
+				{
+					CrashReporter.SetException(ex);
+				}
+			}
+
+			TerminateService.Terminate(ex is { } ? 1 : 0);
+		}
+
+		/// <summary>
+		/// Do not call this method it should only be called by TerminateService.
+		/// </summary>
+		private static async Task TerminateApplicationAsync()
+		{
+			var mainViewModel = MainWindowViewModel.Instance;
+			if (mainViewModel is { })
+			{
+				mainViewModel.Dispose();
 			}
 
 			if (CrashReporter.IsInvokeRequired is true)
@@ -149,10 +166,12 @@ namespace WalletWasabi.Fluent.Desktop
 			AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 			TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
 
-			if (disposeGui)
+			if (mainViewModel is { })
 			{
 				Logger.LogSoftwareStopped("Wasabi GUI");
 			}
+
+			Logger.LogSoftwareStopped("Wasabi");
 		}
 
 		private static void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
