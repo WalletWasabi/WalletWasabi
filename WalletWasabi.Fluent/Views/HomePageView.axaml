@@ -8,7 +8,18 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:HomePageViewModel"
              x:Class="WalletWasabi.Fluent.Views.HomePageView">
-  <c:ContentArea Title="Home" Caption="Select a Wallet below to continue or create a new one:">
+  <c:ContentArea Title="Home">
+    <c:ContentArea.Caption>
+      <DockPanel>
+        <Button Classes="invisible" DockPanel.Dock="Right" Command="{Binding OpenWalletsFolderCommand}">
+          <StackPanel Orientation="Horizontal" Spacing="20">
+            <PathIcon Data="{StaticResource open_regular}" />
+            <TextBlock Text="Open Wallets folder" />
+          </StackPanel>
+        </Button>
+        <TextBlock Text="Select a wallet below to continue or create a new one:" />
+      </DockPanel>
+    </c:ContentArea.Caption>
     <ScrollViewer HorizontalScrollBarVisibility="Disabled">
       <ItemsControl HorizontalAlignment="Center" Items="{Binding Items}">
         <ItemsControl.ItemsPanel>
