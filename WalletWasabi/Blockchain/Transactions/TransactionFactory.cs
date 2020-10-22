@@ -218,7 +218,9 @@ namespace WalletWasabi.Blockchain.Transactions
 			Logger.LogInfo("Signing transaction...");
 			// It must be watch only, too, because if we have the key and also hardware wallet, we do not care we can sign.
 
-			Transaction tx = null;
+			psbt.AddPrevTxs(TransactionStore);
+
+			Transaction tx;
 			if (KeyManager.IsWatchOnly)
 			{
 				tx = psbt.GetGlobalTransaction();
@@ -228,8 +230,6 @@ namespace WalletWasabi.Blockchain.Transactions
 				IEnumerable<ExtKey> signingKeys = KeyManager.GetSecrets(Password, spentCoins.Select(x => x.ScriptPubKey).ToArray());
 				builder = builder.AddKeys(signingKeys.ToArray());
 				builder.SignPSBT(psbt);
-
-				psbt.Boost(KeyManager.MasterFingerprint, spentCoins.Select(x => (x.HdPubKey, x.ScriptPubKey)), innerWalletOutputs.Select(x => (x.HdPubKey, x.ScriptPubKey)), TransactionStore);
 
 				var isPayjoin = false;
 				if (!KeyManager.IsWatchOnly)
@@ -267,6 +267,8 @@ namespace WalletWasabi.Blockchain.Transactions
 				}
 			}
 
+			psbt.AddKeyPaths(KeyManager);
+
 			var label = SmartLabel.Merge(payments.Requests.Select(x => x.Label).Concat(spentCoins.Select(x => x.Label)));
 			var outerWalletOutputs = new List<SmartCoin>();
 			var innerWalletOutputs = new List<SmartCoin>();
@@ -287,8 +289,6 @@ namespace WalletWasabi.Blockchain.Transactions
 					innerWalletOutputs.Add(coin);
 				}
 			}
-
-			psbt.Boost(KeyManager.MasterFingerprint, spentCoins.Select(x => (x.HdPubKey, x.ScriptPubKey)), innerWalletOutputs.Select(x => (x.HdPubKey, x.ScriptPubKey)), TransactionStore);
 
 			foreach (var coin in outerWalletOutputs.Concat(innerWalletOutputs))
 			{
