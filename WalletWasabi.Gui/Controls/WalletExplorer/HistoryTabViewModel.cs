@@ -172,7 +172,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	   			& savedCol != nameof(AmountSortDirection)
 				& savedCol != nameof(TransactionSortDirection))
 			{
-				Global.UiConfig.HistoryTabViewSortingPreference = new SortingPreference(SortOrder.Increasing, nameof(DateSortDirection));
+				Global.UiConfig.HistoryTabViewSortingPreference = new SortingPreference(SortOrder.Decreasing, nameof(DateSortDirection));
 			}
 		}
 
