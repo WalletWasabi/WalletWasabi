@@ -44,6 +44,12 @@
         <Setter Property="(TextBlock.FontStyle)" Value="Italic" />
     </Style>
 
+  <Style Selector=":is(Control).label">
+    <Setter Property="(TextBlock.FontSize)" Value="14" />
+    <Setter Property="(TextBlock.FontWeight)" Value="Bold" />
+    <Setter Property="Margin" Value="0 0 0 10" />
+  </Style>
+
     <Style Selector="SplitView">
         <Setter Property="CompactPaneLength" Value="{StaticResource SplitViewCompactPaneLength}" />
         <Setter Property="OpenPaneLength" Value="320" />
