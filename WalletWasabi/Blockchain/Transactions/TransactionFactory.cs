@@ -229,7 +229,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				builder = builder.AddKeys(signingKeys.ToArray());
 				builder.SignPSBT(psbt);
 
-				UpdatePSBTInfo(psbt, spentCoins, changeHdPubKey);
+				psbt.Boost(KeyManager.MasterFingerprint, spentCoins.Select(x => (x.HdPubKey, x.ScriptPubKey)), innerWalletOutputs.Select(x => (x.HdPubKey, x.ScriptPubKey)), TransactionStore);
 
 				var isPayjoin = false;
 				if (!KeyManager.IsWatchOnly)
@@ -267,8 +267,6 @@ namespace WalletWasabi.Blockchain.Transactions
 				}
 			}
 
-			UpdatePSBTInfo(psbt, spentCoins, changeHdPubKey);
-
 			var label = SmartLabel.Merge(payments.Requests.Select(x => x.Label).Concat(spentCoins.Select(x => x.Label)));
 			var outerWalletOutputs = new List<SmartCoin>();
 			var innerWalletOutputs = new List<SmartCoin>();
@@ -289,6 +287,8 @@ namespace WalletWasabi.Blockchain.Transactions
 					innerWalletOutputs.Add(coin);
 				}
 			}
+
+			psbt.Boost(KeyManager.MasterFingerprint, spentCoins.Select(x => (x.HdPubKey, x.ScriptPubKey)), innerWalletOutputs.Select(x => (x.HdPubKey, x.ScriptPubKey)), TransactionStore);
 
 			foreach (var coin in outerWalletOutputs.Concat(innerWalletOutputs))
 			{
@@ -348,51 +348,6 @@ namespace WalletWasabi.Blockchain.Transactions
 			}
 
 			return psbt;
-		}
-
-		private void UpdatePSBTInfo(PSBT psbt, SmartCoin[] spentCoins, HdPubKey changeHdPubKey)
-		{
-			if (KeyManager.MasterFingerprint is HDFingerprint fp)
-			{
-				foreach (var coin in spentCoins)
-				{
-					var rootKeyPath = new RootedKeyPath(fp, coin.HdPubKey.FullKeyPath);
-					var coinPubkey = coin.HdPubKey.PubKey;
-					psbt.AddKeyPath(coinPubkey, rootKeyPath, coin.ScriptPubKey);
-
-					// In case of multisig address the keyPath is added to both inputs and outputs which is a bug. The following code removes the output in that case. https://github.com/MetacoSA/NBitcoin/issues/927
-					if (psbt.Outputs.SelectMany(output => output.HDKeyPaths.Keys).Contains(coinPubkey) && psbt.Inputs.SelectMany(input => input.HDKeyPaths.Keys).Contains(coinPubkey))
-					{
-						foreach (var output in psbt.Outputs)
-						{
-							output.HDKeyPaths.Remove(coinPubkey);
-						}
-					}
-				}
-
-				if (changeHdPubKey is { })
-				{
-					var rootKeyPath = new RootedKeyPath(fp, changeHdPubKey.FullKeyPath);
-					psbt.AddKeyPath(changeHdPubKey.PubKey, rootKeyPath, changeHdPubKey.P2wpkhScript);
-				}
-			}
-
-			foreach (var input in spentCoins)
-			{
-				var coinInputTxID = input.TransactionId;
-				if (TransactionStore.TryGetTransaction(coinInputTxID, out var txn))
-				{
-					var psbtInputs = psbt.Inputs.Where(x => x.PrevOut.Hash == coinInputTxID);
-					foreach (var psbtInput in psbtInputs)
-					{
-						psbtInput.NonWitnessUtxo = txn.Transaction;
-					}
-				}
-				else
-				{
-					Logger.LogWarning($"Transaction id:{coinInputTxID} is missing from the TransactionStore. Ignoring...");
-				}
-			}
 		}
 	}
 }

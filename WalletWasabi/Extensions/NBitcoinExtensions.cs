@@ -7,9 +7,11 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using static WalletWasabi.Crypto.SchnorrBlinding;
 
@@ -400,6 +402,63 @@ namespace NBitcoin
 		public static string ToUsdString(this Money btc, decimal usdExchangeRate, bool privacyMode = false)
 		{
 			return ToCurrency(btc, "USD", usdExchangeRate, privacyMode);
+		}
+
+		/// <summary>
+		/// Boost PSBT with various data.
+		/// </summary>
+		/// <param name="fp">If not null we'll try to fill the input and output paths on best effort.</param>
+		/// <param name="transactionStore">If not null, we'll try to fill the input txs on best effort.</param>
+		public static void Boost(
+			this PSBT psbt,
+			HDFingerprint? fp,
+			IEnumerable<(HdPubKey hdPubKey, Script script)> innerWalletInputs,
+			IEnumerable<(HdPubKey hdPubKey, Script script)> innerWalletOutputs,
+			AllTransactionStore? transactionStore)
+		{
+			// Add input and outut keypaths.
+			if (fp.HasValue)
+			{
+				// Add input keypaths.
+				foreach ((HdPubKey hdPubKey, Script script) in innerWalletInputs)
+				{
+					AddKeyPath(psbt, fp.Value, hdPubKey, script);
+				}
+
+				// Hack around NBitcoin bug: https://github.com/zkSNACKs/WalletWasabi/issues/4460
+				foreach (var o in psbt.Outputs)
+				{
+					o.HDKeyPaths.Clear();
+				}
+
+				// Add output keypaths.
+				foreach ((HdPubKey hdPubKey, Script script) in innerWalletOutputs)
+				{
+					AddKeyPath(psbt, fp.Value, hdPubKey, script);
+				}
+			}
+
+			// Fill out previous transactions.
+			if (transactionStore is { })
+			{
+				foreach (var psbtInput in psbt.Inputs)
+				{
+					if (transactionStore.TryGetTransaction(psbtInput.PrevOut.Hash, out var tx))
+					{
+						psbtInput.NonWitnessUtxo = tx.Transaction;
+					}
+					else
+					{
+						Logger.LogInfo($"Transaction id: {psbtInput.PrevOut.Hash} is missing from the {nameof(transactionStore)}. Ignoring...");
+					}
+				}
+			}
+		}
+
+		private static void AddKeyPath(PSBT psbt, HDFingerprint fp, HdPubKey hdPubKey, Script script)
+		{
+			var rootKeyPath = new RootedKeyPath(fp, hdPubKey.FullKeyPath);
+			psbt.AddKeyPath(hdPubKey.PubKey, rootKeyPath, script);
 		}
 	}
 }
