@@ -3,14 +3,22 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.ZeroKnowledge.LinearRelation;
 using WalletWasabi.Crypto;
+using NBitcoin.Secp256k1;
+using NBitcoin;
 
 namespace System.Linq
 {
 	public static class Extensions
 	{
+		public static Scalar Sum(this IEnumerable<Scalar> scalars) =>
+			scalars.Aggregate(Scalar.Zero, (s, acc) => s + acc);
+			
 		public static GroupElement Sum(this IEnumerable<GroupElement> groupElements) =>
 			groupElements.Aggregate(GroupElement.Infinity, (ge, acc) => ge + acc);
 
+		public static Money ToMoney(this Scalar scalar) =>
+			Money.Satoshis(((ulong)scalar.d1 << 32) | scalar.d0);
+			
 		public static IEnumerable<TResult> Zip<TFirst, TSecond, TThird, TResult>(this IEnumerable<TFirst> first, IEnumerable<TSecond> second, IEnumerable<TThird> third, Func<TFirst, TSecond, TThird, TResult> resultSelector)
 		{
 			Guard.NotNull(nameof(first), first);
