@@ -444,7 +444,7 @@ namespace NBitcoin
 		}
 
 		/// <summary>
-		/// Tries to equip the PSBT with previous transactionf with best effort.
+		/// Tries to equip the PSBT with previous transactions with best effort.
 		/// </summary>
 		public static void AddPrevTxs(this PSBT psbt, AllTransactionStore transactionStore)
 		{
