@@ -6,34 +6,16 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.OctetFields
 {
 	public class NMethodsField : OctetSerializableBase
 	{
-		#region Constructors
-
-		public NMethodsField()
+		public NMethodsField(byte value)
 		{
+			ByteValue = value;
 		}
 
-		public NMethodsField(int value)
+		public NMethodsField(MethodsField methods)
 		{
-			ByteValue = (byte)Guard.InRangeAndNotNull(nameof(value), value, 0, 255);
-		}
-
-		#endregion Constructors
-
-		#region PropertiesAndMembers
-
-		public int Value => ByteValue;
-
-		#endregion PropertiesAndMembers
-
-		#region Serialization
-
-		public void FromMethodsField(MethodsField methods)
-		{
-			Guard.NotNull(nameof(methods), methods);
-
 			ByteValue = (byte)methods.ToBytes().Length;
 		}
 
-		#endregion Serialization
+		public int Value => ByteValue;
 	}
 }

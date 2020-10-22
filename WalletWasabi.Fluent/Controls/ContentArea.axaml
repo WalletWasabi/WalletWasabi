@@ -1,0 +1,46 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
+  <Design.PreviewWith>
+    <Panel Background="{DynamicResource RegionColor}">
+      <c:ContentArea
+      Width="400" Height="200"
+      Title="Add a Wallet"
+      Caption="Type in your Wallets name and select an option below:">
+        This is the content.
+      </c:ContentArea>
+    </Panel>
+  </Design.PreviewWith>
+  <Styles.Resources>
+  </Styles.Resources>
+  <Style Selector="c|ContentArea">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <DockPanel Margin="20 36 20 0">
+          <StackPanel DockPanel.Dock="Top" Spacing="10" Margin="0 0 0 40">
+            <ContentPresenter Name="PART_TitlePresenter" Content="{TemplateBinding Title}" />
+            <ContentPresenter Name="PART_CaptionPresenter" Content="{TemplateBinding Caption}" />
+          </StackPanel>
+          <ContentPresenter Name="PART_ContentPresenter"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                Content="{TemplateBinding Content}"
+                                Padding="{TemplateBinding Padding}"
+                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+        </DockPanel>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+  <Style Selector="c|ContentArea /template/ ContentPresenter#PART_TitlePresenter">
+    <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextControlForeground}" />
+    <Setter Property="TextBlock.FontSize" Value="24" />
+  </Style>
+  <Style Selector="c|ContentArea /template/ ContentPresenter#PART_CaptionPresenter">
+    <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextControlForeground}" />
+    <Setter Property="TextBlock.FontSize" Value="14" />
+    <Setter Property="Opacity" Value="0.6" />
+  </Style>
+</Styles>

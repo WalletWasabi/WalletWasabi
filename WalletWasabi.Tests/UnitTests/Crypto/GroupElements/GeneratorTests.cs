@@ -16,8 +16,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 			Assert.Equal(Generators.G, generator2);
 
 			Assert.NotEqual(Generators.G, GroupElement.Infinity);
-			Assert.NotEqual(Generators.G, new GroupElement(EC.G * Scalar.Zero));
-			Assert.NotEqual(Generators.G, new GroupElement(EC.G * new Scalar(2)));
+			Assert.NotEqual(Generators.G, new GroupElement(EC.G) * Scalar.Zero);
+			Assert.NotEqual(Generators.G, new GroupElement(EC.G) * new Scalar(2));
 
 			var infinity = new GroupElement(new GE(EC.G.x, EC.G.y, infinity: true));
 			Assert.NotEqual(Generators.G, infinity);

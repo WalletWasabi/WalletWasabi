@@ -149,6 +149,7 @@ namespace WalletWasabi.Tor
 				}
 			}
 
+			// Dispose Tor process resources (does not stop/kill Tor process).
 			TorProcess?.Dispose();
 		}
 	}

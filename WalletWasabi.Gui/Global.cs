@@ -84,7 +84,6 @@ namespace WalletWasabi.Gui
 		{
 			using (BenchmarkLogger.Measure())
 			{
-				CrashReporter = new CrashReporter();
 				StoppingCts = new CancellationTokenSource();
 				DataDir = dataDir;
 				Config = config;
@@ -129,7 +128,6 @@ namespace WalletWasabi.Gui
 		private CancellationTokenSource StoppingCts { get; }
 
 		private SingleInstanceChecker SingleInstanceChecker { get; }
-		public CrashReporter CrashReporter { get; }
 
 		public async Task InitializeNoWalletAsync()
 		{
@@ -610,7 +608,7 @@ namespace WalletWasabi.Gui
 			return !StoppingCts.IsCancellationRequested;
 		}
 
-		private static void NotifyAndLog(string message, string title, NotificationType notificationType, ProcessedResult e, object sender)
+		private static void NotifyAndLog(string message, string title, NotificationType notificationType, ProcessedResult e, object? sender)
 		{
 			message = Guard.Correct(message);
 			title = Guard.Correct(title);
@@ -673,7 +671,7 @@ namespace WalletWasabi.Gui
 
 				Dispatcher.UIThread.PostLogException(() =>
 				{
-					var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
+					var window = ((IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime).MainWindow;
 					window?.Close();
 				});
 
@@ -699,18 +697,18 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo($"{nameof(CoinJoinProcessor)} is disposed.");
 				}
 
-				if (Synchronizer is { } synchronizer)
-				{
-					await synchronizer.StopAsync().ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(Synchronizer)} is stopped.");
-				}
-
 				if (HostedServices is { } backgroundServices)
 				{
 					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
 					await backgroundServices.StopAllAsync(cts.Token).ConfigureAwait(false);
 					backgroundServices.Dispose();
 					Logger.LogInfo("Stopped background services.");
+				}
+
+				if (Synchronizer is { } synchronizer)
+				{
+					await synchronizer.StopAsync().ConfigureAwait(false);
+					Logger.LogInfo($"{nameof(Synchronizer)} is stopped.");
 				}
 
 				if (AddressManagerFilePath is { } addressManagerFilePath)

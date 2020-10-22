@@ -31,7 +31,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 #if DEBUG
 			var devToolsCommand = ReactiveCommand.Create(() =>
-				DevToolsExtensions.OpenDevTools((Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow));
+				DevToolsExtensions.OpenDevTools(((IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime).MainWindow));
 #endif
 			Observable
 				.Merge(walletManagerCommand.ThrownExceptions)
