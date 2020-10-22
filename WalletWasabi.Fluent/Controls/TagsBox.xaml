@@ -27,10 +27,10 @@
                         MinWidth="{TemplateBinding MinWidth}"
                         MinHeight="{TemplateBinding MinHeight}"
                         Focusable="False" />
-                    <Panel Name="PART_RootPanel" Background="Transparent">
+                    <Panel Name="PART_FocusPanel" Background="Transparent">
                         <i:Interaction.Behaviors>
                             <ia:EventTriggerBehavior EventName="PointerReleased"
-                                                     SourceObject="{Binding #PART_RootPanel}">
+                                                     SourceObject="{Binding #PART_FocusPanel}">
                                 <ia:InvokeCommandAction Command="{Binding GrabFocusCommand}" />
                             </ia:EventTriggerBehavior>
                         </i:Interaction.Behaviors>
