@@ -224,6 +224,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			if (KeyManager.IsWatchOnly)
 			{
 				tx = psbt.GetGlobalTransaction();
+				psbt.AddKeyPaths(KeyManager);
 			}
 			else
 			{
@@ -232,15 +233,15 @@ namespace WalletWasabi.Blockchain.Transactions
 				builder.SignPSBT(psbt);
 
 				var isPayjoin = false;
-				if (!KeyManager.IsWatchOnly)
+				// Try to pay using payjoin
+				if (payjoinClient is { })
 				{
-					// Try to pay using payjoin
-					if (payjoinClient is { })
-					{
-						psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt, changeHdPubKey);
-						isPayjoin = true;
-					}
+					psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt, changeHdPubKey);
+					isPayjoin = true;
 				}
+
+				// Do NOT add keypaths before payjoin.
+				psbt.AddKeyPaths(KeyManager);
 				psbt.Finalize();
 				tx = psbt.ExtractTransaction();
 
@@ -266,8 +267,6 @@ namespace WalletWasabi.Blockchain.Transactions
 					throw new InvalidTxException(tx, checkResults);
 				}
 			}
-
-			psbt.AddKeyPaths(KeyManager);
 
 			var label = SmartLabel.Merge(payments.Requests.Select(x => x.Label).Concat(spentCoins.Select(x => x.Label)));
 			var outerWalletOutputs = new List<SmartCoin>();
@@ -325,7 +324,7 @@ namespace WalletWasabi.Blockchain.Transactions
 					KeyManager.ExtPubKey,
 					new RootedKeyPath(KeyManager.MasterFingerprint.Value, KeyManager.DefaultAccountKeyPath),
 					changeHdPubKey,
-					CancellationToken.None).GetAwaiter().GetResult();
+					CancellationToken.None).GetAwaiter().GetResult(); // WTF??!
 				builder.SignPSBT(psbt);
 
 				Logger.LogInfo($"Payjoin payment was negotiated successfully.");
