@@ -13,6 +13,7 @@ using WalletWasabi.Gui;
 using Splat;
 using WalletWasabi.Fluent.AddWallet.CreateWallet;
 using WalletWasabi.Fluent.AddWallet.Common;
+using System.IO;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -29,7 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			{
 				var global = Locator.Current.GetService<Global>();
 
-				screen.Router.Navigate.Execute(new EnterPasswordViewModel(screen, global));
+				screen.Router.Navigate.Execute(new EnterPasswordViewModel(screen, global, Path.GetRandomFileName()));
 			});
 
 			OpenDialogCommand = ReactiveCommand.CreateFromTask(async () => await ConfirmSetting.Handle("Please confirm the setting:").ToTask());
