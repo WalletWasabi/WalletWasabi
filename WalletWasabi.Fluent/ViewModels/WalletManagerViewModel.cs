@@ -23,6 +23,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public WalletManagerViewModel(IScreen screen, WalletManager walletManager, UiConfig uiConfig)
 		{
+			Model = walletManager;
 			_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
 			_items = new ObservableCollection<WalletViewModelBase>();
 			_screen = screen;
@@ -65,6 +66,8 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			Dispatcher.UIThread.Post(() => LoadWallets(walletManager));
 		}
+
+		public WalletManager Model { get; }
 
 		public WalletViewModelBase SelectedItem
 		{

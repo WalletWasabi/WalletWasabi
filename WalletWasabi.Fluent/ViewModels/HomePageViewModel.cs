@@ -3,6 +3,8 @@ using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using DynamicData;
 using DynamicData.Binding;
+using System.Reactive;
+using System.IO;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -24,10 +26,14 @@ namespace WalletWasabi.Fluent.ViewModels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Bind(out _items)
 				.AsObservableList();
+
+			OpenWalletsFolderCommand = ReactiveCommand.Create(() => IoHelpers.OpenFolderInFileExplorer(walletManager.Model.WalletDirectories.WalletsDir));			
 		}
 
 		public override string IconName => "home_regular";
 
 		public ReadOnlyObservableCollection<NavBarItemViewModel> Items => _items;
+
+		public ReactiveCommand<Unit, Unit> OpenWalletsFolderCommand { get; }
 	}
 }
