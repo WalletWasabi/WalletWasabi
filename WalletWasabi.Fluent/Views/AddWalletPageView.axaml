@@ -5,10 +5,58 @@
              xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+                          xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:HomePageViewModel"
              x:Class="WalletWasabi.Fluent.Views.AddWalletPageView">
   <c:ContentArea Title="Add Wallet" Caption="Type in your wallets name and select an option:">
-    Add Wallet Page
+    <StackPanel Spacing="40">
+      <StackPanel>
+        <TextBlock Text="Wallet Name:" Classes="label" />
+        <TextBox x:Name="Test" Text="{Binding WalletName}" Watermark="(e.g. My Wallet)">
+          <i:Interaction.Behaviors>
+            <behaviors:FocusOnAttachedBehavior />
+          </i:Interaction.Behaviors>
+        </TextBox>
+      </StackPanel>
+      <StackPanel Spacing="10">
+        <Button Classes="invisible" Padding="0">
+          <Border BorderThickness="1" BorderBrush="#7F000000" CornerRadius="4" Height="70">
+            <StackPanel Orientation="Horizontal">
+              <PathIcon DockPanel.Dock="Left" Margin="20" Data="{StaticResource add_regular}" Width="16" VerticalAlignment="Center"/>
+              <TextBlock Text="Create a new wallet" VerticalAlignment="Center" />
+            </StackPanel>
+          </Border>
+        </Button>
+
+        <Button Classes="invisible" Padding="0">
+          <Border BorderThickness="1" BorderBrush="#7F000000" CornerRadius="4" Height="70">
+            <StackPanel Orientation="Horizontal">
+              <PathIcon DockPanel.Dock="Left" Margin="20" Data="{StaticResource recover_arrow_right_regular}" Width="16" VerticalAlignment="Center"/>
+              <TextBlock Text="Recover a wallet" VerticalAlignment="Center" />
+            </StackPanel>
+          </Border>
+        </Button>
+
+        <Button Classes="invisible" Padding="0">
+          <Border BorderThickness="1" BorderBrush="#7F000000" CornerRadius="4" Height="70">
+            <StackPanel Orientation="Horizontal">
+              <PathIcon DockPanel.Dock="Left" Margin="20" Data="{StaticResource import_regular}" Width="16" VerticalAlignment="Center"/>
+              <TextBlock Text="Import a wallet" VerticalAlignment="Center" />
+            </StackPanel>
+          </Border>
+        </Button>
+
+        <Button Classes="invisible" Padding="0">
+          <Border BorderThickness="1" BorderBrush="#7F000000" CornerRadius="4" Height="70">
+            <StackPanel Orientation="Horizontal">
+              <PathIcon DockPanel.Dock="Left" Margin="20" Data="{StaticResource web_asset_regular}" Width="16" VerticalAlignment="Center"/>
+              <TextBlock Text="Connect to hardware wallet" VerticalAlignment="Center" />
+            </StackPanel>
+          </Border>
+        </Button>
+      </StackPanel>
+    </StackPanel>
   </c:ContentArea>
 </UserControl>
