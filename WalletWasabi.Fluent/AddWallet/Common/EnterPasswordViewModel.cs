@@ -101,7 +101,7 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 
 			if (PasswordHelper.IsTrimable(password, out _))
 			{
-				errors.Add(ErrorSeverity.Error, "Leading and trailing white spaces are not allowed!");
+				errors.Add(ErrorSeverity.Error, PasswordHelper.WhitespaceMessage);
 				return;
 			}
 
@@ -113,7 +113,7 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 
 			if (!string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(ConfirmPassword) && Password != ConfirmPassword)
 			{
-				errors.Add(ErrorSeverity.Error, "Passwords don’t match, check any spelling miskates and try again.");
+				errors.Add(ErrorSeverity.Error, PasswordHelper.MatchingMessage);
 				return;
 			}
 
