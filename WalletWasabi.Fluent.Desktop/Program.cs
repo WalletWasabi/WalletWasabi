@@ -23,17 +23,23 @@ namespace WalletWasabi.Fluent.Desktop
 	{
 		private static Global Global;
 
+		// This is only needed to pass CrashReporter to AppMainAsync otherwise it could be a local variable in Main().
+		private static CrashReporter CrashReporter;
+
 		// Initialization code. Don't use any Avalonia, third-party APIs or any
 		// SynchronizationContext-reliant code before AppMain is called: things aren't initialized
 		// yet and stuff might break.
 		public static void Main(string[] args)
 		{
 			bool runGui = false;
+			Exception? appException = null;
+
 			try
 			{
+				CrashReporter = new CrashReporter();
 				Global = CreateGlobal();
-
 				Locator.CurrentMutable.RegisterConstant(Global);
+				Locator.CurrentMutable.RegisterConstant(CrashReporter);
 
 				//Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
@@ -41,7 +47,7 @@ namespace WalletWasabi.Fluent.Desktop
 
 				runGui = ShouldRunGui(args);
 
-				if (Global.CrashReporter.IsReport)
+				if (CrashReporter.IsReport)
 				{
 					StartCrashReporter(args);
 					return;
@@ -59,7 +65,7 @@ namespace WalletWasabi.Fluent.Desktop
 			catch (Exception ex)
 			{
 				Logger.LogCritical(ex);
-				Global.CrashReporter.SetException(ex);
+				CrashReporter.SetException(ex);
 				throw;
 			}
 			finally
@@ -92,7 +98,7 @@ namespace WalletWasabi.Fluent.Desktop
 				args,
 				new MixerCommand(daemon),
 				new PasswordFinderCommand(Global.WalletManager),
-				new CrashReportCommand(Global.CrashReporter));
+				new CrashReportCommand(CrashReporter));
 			return executionTask.GetAwaiter().GetResult();
 		}
 
@@ -111,7 +117,7 @@ namespace WalletWasabi.Fluent.Desktop
 				if (!(ex is OperationCanceledException))
 				{
 					Logger.LogCritical(ex);
-					Global.CrashReporter.SetException(ex);
+					CrashReporter.SetException(ex);
 				}
 
 				await DisposeAsync();
@@ -129,10 +135,10 @@ namespace WalletWasabi.Fluent.Desktop
 				MainWindowViewModel.Instance.Dispose();
 			}
 
-			if (Global?.CrashReporter?.IsInvokeRequired is true)
+			if (CrashReporter.IsInvokeRequired is true)
 			{
 				// Trigger the CrashReport process.
-				Global.CrashReporter.TryInvokeCrashReport();
+				CrashReporter.TryInvokeCrashReport();
 			}
 
 			if (Global is { } global)
@@ -149,12 +155,12 @@ namespace WalletWasabi.Fluent.Desktop
 			}
 		}
 
-		private static void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
+		private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
 		{
 			Logger.LogWarning(e?.Exception);
 		}
 
-		private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+		private static void CurrentDomain_UnhandledException(object? sender, UnhandledExceptionEventArgs e)
 		{
 			Logger.LogWarning(e?.ExceptionObject as Exception);
 		}
