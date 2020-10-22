@@ -10,25 +10,45 @@ namespace WalletWasabi.Crypto.Groups
 		{
 			if (groupElement.IsInfinity)
 			{
-				Ge = GE.Infinity;
+				LazyGe = new Lazy<GE>(() => GE.Infinity);
 			}
 			else
 			{
 				Guard.True($"{nameof(groupElement)}.{nameof(groupElement.IsValidVariable)}", groupElement.IsValidVariable);
-				Ge = new GE(groupElement.x.Normalize(), groupElement.y.Normalize());
+				LazyGe = new Lazy<GE>(() => new GE(groupElement.x.Normalize(), groupElement.y.Normalize()));
 			}
+
+			Gej = Ge.ToGroupElementJacobian(); // eagerly initialize Ge property
 		}
 
-		public GroupElement(GEJ groupElement)
-			: this(groupElement.ToGroupElement())
+		// Since GEJ.IsValidVariable, this constructor is private
+		private GroupElement(GEJ groupElementJacobian)
 		{
+			if (groupElementJacobian.IsInfinity)
+			{
+				LazyGe = new Lazy<GE>(() => GE.Infinity);
+				Gej = Ge.ToGroupElementJacobian(); // eagerly initialize Ge property
+			}
+			else
+			{
+				GE ComputeAffineCoordinates()
+				{
+					var groupElement = groupElementJacobian.ToGroupElement();
+					return new GE(groupElement.x.Normalize(), groupElement.y.Normalize());
+				}
+				LazyGe = new Lazy<GE>(ComputeAffineCoordinates); // avoid computing affine coordinates until needed
+				Gej = groupElementJacobian;
+			}
 		}
 
 		public static GroupElement Infinity { get; } = new GroupElement(GE.Infinity);
 
-		private GE Ge { get; }
+		private GEJ Gej { get; }
+		private Lazy<GE> LazyGe { get; }
+		private GE Ge => LazyGe.Value;
+		private bool IsGeCreated => LazyGe.IsValueCreated;
 
-		public bool IsInfinity => Ge.IsInfinity;
+		public bool IsInfinity => Gej.IsInfinity;
 
 		public override bool Equals(object? obj) => Equals(obj as GroupElement);
 
@@ -50,9 +70,13 @@ namespace WalletWasabi.Crypto.Groups
 			{
 				return true;
 			}
-			else
+			else if (a.IsGeCreated || b.IsGeCreated)
 			{
 				return a.IsInfinity == b.IsInfinity && a.Ge.x == b.Ge.x && a.Ge.y == b.Ge.y;
+			}
+			else
+			{
+				return (a - b).IsInfinity;
 			}
 		}
 
@@ -77,11 +101,25 @@ namespace WalletWasabi.Crypto.Groups
 			}
 		}
 
+		// GEJ.AddVariable(GE) is more efficient than GEJ.AddVariable(GEJ).
 		public static GroupElement operator +(GroupElement a, GroupElement b)
-			=> new GroupElement(a.Ge.ToGroupElementJacobian().AddVariable(b.Ge, out _));
+		{
+			if (b.IsGeCreated)
+			{
+				return new GroupElement(a.Gej.AddVariable(b.Ge, out _));
+			}
+			else if (a.IsGeCreated)
+			{
+				return new GroupElement(b.Gej.AddVariable(a.Ge, out _));
+			}
+			else
+			{
+				return new GroupElement(a.Gej.AddVariable(b.Gej, out _));
+			}
+		}
 
 		public static GroupElement operator -(GroupElement a, GroupElement b)
-			=> a + new GroupElement(b.Ge.Negate());
+			=> a + b.Negate();
 
 		/// <param name="scalar">It's ok for the scalar to overflow.</param>
 		public static GroupElement operator *(Scalar scalar, GroupElement groupElement)
@@ -99,7 +137,7 @@ namespace WalletWasabi.Crypto.Groups
 		/// <param name="scalar">It's ok for the scalar to overflow.</param>
 		public static GroupElement operator *(GroupElement groupElement, Scalar scalar) => scalar * groupElement;
 
-		public GroupElement Negate() => new GroupElement(Ge.Negate());
+		public GroupElement Negate() => IsGeCreated ? new GroupElement(Ge.Negate()) : new GroupElement(Gej.Negate());
 
 		public byte[] ToBytes()
 		{

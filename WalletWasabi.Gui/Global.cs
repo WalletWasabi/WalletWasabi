@@ -603,7 +603,7 @@ namespace WalletWasabi.Gui
 			return !StoppingCts.IsCancellationRequested;
 		}
 
-		private static void NotifyAndLog(string message, string title, NotificationType notificationType, ProcessedResult e, object sender)
+		private static void NotifyAndLog(string message, string title, NotificationType notificationType, ProcessedResult e, object? sender)
 		{
 			message = Guard.Correct(message);
 			title = Guard.Correct(title);
