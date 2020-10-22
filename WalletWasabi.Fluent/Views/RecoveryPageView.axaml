@@ -3,7 +3,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450" 
+             
              x:Class="WalletWasabi.Fluent.Views.RecoveryPageView">
     <Panel Margin="25 0 25 20">
         <Button Classes="invisible" Margin="0 35 0 0" Command="{Binding GoBackCommand}" DockPanel.Dock="Left"
@@ -14,8 +16,8 @@
                        Margin="44 0">
             <Grid RowDefinitions="Auto,20,Auto" VerticalAlignment="Top" >
                 <TextBlock Classes="h7 bold"  Text="Type in your recovery words here:"/>
-                <c:TagsBox Grid.Row="2" 
-                          DataContext="{Binding RecoveryWordsTagsBox}"
+                <c:TagsBox Grid.Row="2" x:DataType="{x:Type vm:RecoveryPageViewModel}"
+                           DataContext="{CompiledBinding RecoveryWordsTagsBox}"
                           MinHeight="60"
                           MaxHeight="120"
                           ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
