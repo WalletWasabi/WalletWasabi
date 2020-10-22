@@ -25,6 +25,9 @@ namespace WalletWasabi.Fluent.Behaviors
         public static readonly StyledProperty<Action> BackspaceAndEmptyTextActionProperty =
             AvaloniaProperty.Register<TagsBoxAutoCompleteBoxBehavior, Action>(nameof(BackspaceAndEmptyTextAction));
 
+        public static readonly StyledProperty<Action> GrabFocusActionProperty =
+            AvaloniaProperty.Register<TagsBoxAutoCompleteBoxBehavior, Action>(nameof(GrabFocusActionProperty));
+
         private IDisposable? _disposable;
 
         private bool _bs1;
@@ -54,6 +57,13 @@ namespace WalletWasabi.Fluent.Behaviors
             set => SetValue(BackspaceAndEmptyTextActionProperty, value);
         }
 
+
+        public Action GrabFocusAction
+        {
+            get => GetValue(GrabFocusActionProperty);
+            set => SetValue(GrabFocusActionProperty, value);
+        }
+
         protected override void OnAttached()
         {
             if (AssociatedObject is null) return;
@@ -61,18 +71,24 @@ namespace WalletWasabi.Fluent.Behaviors
             AssociatedObject.KeyUp += OnKeyUp;
             AssociatedObject.TextChanged += OnTextChanged;
             AssociatedObject.DropDownClosed += OnDropDownClosed;
+            GrabFocusAction += DoGrabFocus;
             _disposable =
                 AssociatedObject.AddDisposableHandler(InputElement.TextInputEvent, OnTextInput,
                     RoutingStrategies.Tunnel);
 
-            Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                // Refocus because the old control is destroyed
-                // when the tag list changes.
-                AssociatedObject.Focus();
-            });
+            // Refocus because the old control is destroyed
+            // when the tag list changes.
+            DoGrabFocus();
 
             base.OnAttached();
+        }
+
+        private void DoGrabFocus()
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                if(!AssociatedObject?.IsFocused ?? false) AssociatedObject?.Focus();
+            });
         }
 
         private void OnTextInput(object? sender, TextInputEventArgs e)
@@ -168,6 +184,8 @@ namespace WalletWasabi.Fluent.Behaviors
             AssociatedObject.DropDownClosed -= OnDropDownClosed;
             AssociatedObject.KeyUp -= OnKeyUp;
             AssociatedObject.TextChanged -= OnTextChanged;
+            GrabFocusAction -= DoGrabFocus;
+
             _disposable?.Dispose();
 
             BackspaceLogicClear();

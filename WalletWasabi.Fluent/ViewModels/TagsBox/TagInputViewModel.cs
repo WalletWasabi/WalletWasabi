@@ -13,6 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
 
         private Action _backspaceAndEmptyTextAction;
         private Action<string> _commitTextAction;
+        private Action _grabFocusAction;
 
         public TagInputViewModel(TagsBoxViewModel parent)
         {
@@ -29,8 +30,6 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
 
         public IEnumerable Suggestions => _suggestions.Value;
         public bool RestrictInputToSuggestions => _restrictInputToSuggestions.Value;
-
-
         
         public Action<string> CommitTextAction
         {
@@ -42,6 +41,12 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
         {
             get => _backspaceAndEmptyTextAction;
             set => this.RaiseAndSetIfChanged(ref _backspaceAndEmptyTextAction, value);
+        }
+
+        public Action GrabFocusAction
+        {
+            get => _grabFocusAction;
+            set => this.RaiseAndSetIfChanged(ref _grabFocusAction, value);
         }
 
         private void OnBackspaceAndEmptyTextAction()

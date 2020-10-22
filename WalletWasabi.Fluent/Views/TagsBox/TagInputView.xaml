@@ -12,6 +12,7 @@
             <behaviors:TagsBoxAutoCompleteBoxBehavior
                 RestrictInputToSuggestions="{CompiledBinding RestrictInputToSuggestions}"
                 Suggestions="{CompiledBinding Suggestions}"
+                GrabFocusAction="{CompiledBinding GrabFocusAction, Mode=OneWayToSource}"
                 CommitTextAction="{CompiledBinding CommitTextAction}"
                 BackspaceAndEmptyTextAction="{CompiledBinding BackspaceAndEmptyTextAction}" />
         </i:Interaction.Behaviors>

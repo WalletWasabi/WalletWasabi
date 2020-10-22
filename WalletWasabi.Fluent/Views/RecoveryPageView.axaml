@@ -16,8 +16,8 @@
                        Margin="44 0">
             <Grid RowDefinitions="Auto,20,Auto" VerticalAlignment="Top" >
                 <TextBlock Classes="h7 bold"  Text="Type in your recovery words here:"/>
-                <c:TagsBox Grid.Row="2" x:DataType="{x:Type vm:RecoveryPageViewModel}"
-                           DataContext="{CompiledBinding RecoveryWordsTagsBox}"
+                <c:TagsBox Grid.Row="2" 
+                           DataContext="{Binding RecoveryWordsTagsBox}"
                           MinHeight="60"
                           MaxHeight="120"
                           ScrollViewer.HorizontalScrollBarVisibility="Disabled" />

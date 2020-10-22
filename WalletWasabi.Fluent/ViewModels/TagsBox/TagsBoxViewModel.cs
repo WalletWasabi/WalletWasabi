@@ -9,6 +9,7 @@ using ReactiveUI;
 using WalletWasabi.Gui.ViewModels;
 using ReactiveUI;
 using System.Collections.ObjectModel;
+using System.Reactive;
 using System.Reactive.Linq;
 using DynamicData;
 using DynamicData.Binding;
@@ -18,8 +19,6 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
     public class TagsBoxViewModel : ViewModelBase
     {
         private readonly ReadOnlyObservableCollection<object> _combinedContent;
-
-
         private IEnumerable _suggestions;
         private ObservableCollection<TagViewModel> _tags;
 
@@ -41,8 +40,13 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Bind(out _combinedContent)
                 .AsObservableList();
-        }
 
+            GrabFocusCommand = ReactiveCommand.Create((object x) =>
+            {
+                TagInput?.GrabFocusAction?.Invoke();
+                return new object();
+            });
+        }
 
         public ReadOnlyObservableCollection<object> CombinedContent => _combinedContent;
 
@@ -53,7 +57,7 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
             get => _restrictInputToSuggestions;
             set => this.RaiseAndSetIfChanged(ref _restrictInputToSuggestions, value);
         }
-        
+
         public IEnumerable Suggestions
         {
             get => _suggestions;
@@ -66,6 +70,8 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
             set => this.RaiseAndSetIfChanged(ref _tags, value);
         }
 
+        public ReactiveCommand<object, object> GrabFocusCommand { get; }
+
         public void AddTag(string tagString)
         {
             Tags.Add(new TagViewModel(this, tagString));
@@ -73,9 +79,9 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
 
         public void RemoveTag()
         {
-            if (Tags.Any()) 
+            if (Tags.Any())
             {
-                Tags.Remove(Tags.Last()); 
+                Tags.Remove(Tags.Last());
             }
         }
     }
