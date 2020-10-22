@@ -173,7 +173,7 @@ namespace WalletWasabi.TorSocks5
 
 			// https://tools.ietf.org/html/rfc7230#section-2.7.1
 			// A sender MUST NOT generate an "http" URI with an empty host identifier.
-			var host = Guard.NotNullOrEmptyOrWhitespace($"{nameof(request)}.{nameof(request.RequestUri)}.{nameof(request.RequestUri.DnsSafeHost)}", request.RequestUri.DnsSafeHost, trim: true);
+			string host = Guard.NotNullOrEmptyOrWhitespace($"{nameof(request)}.{nameof(request.RequestUri)}.{nameof(request.RequestUri.DnsSafeHost)}", request.RequestUri.DnsSafeHost, trim: true);
 
 			// https://tools.ietf.org/html/rfc7230#section-2.6
 			// Intermediaries that process HTTP messages (i.e., all intermediaries
@@ -197,25 +197,7 @@ namespace WalletWasabi.TorSocks5
 				Stream stream = TorSocks5Client.TcpClient.GetStream();
 				if (request.RequestUri.Scheme == "https")
 				{
-					SslStream sslStream;
-					// On Linux and OSX ignore certificate, because of a .NET Core bug
-					// This is a security vulnerability, has to be fixed as soon as the bug get fixed
-					// Details:
-					// https://github.com/dotnet/corefx/issues/21761
-					// https://github.com/nopara73/DotNetTor/issues/4
-					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-					{
-						sslStream = new SslStream(
-							stream,
-							leaveInnerStreamOpen: true);
-					}
-					else
-					{
-						sslStream = new SslStream(
-							stream,
-							leaveInnerStreamOpen: true,
-							userCertificateValidationCallback: (a, b, c, d) => true);
-					}
+					SslStream sslStream = new SslStream(stream, leaveInnerStreamOpen: true);
 
 					await sslStream
 						.AuthenticateAsClientAsync(

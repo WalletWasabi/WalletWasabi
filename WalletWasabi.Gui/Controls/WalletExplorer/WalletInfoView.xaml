@@ -28,7 +28,7 @@
                 </i:Interaction.Behaviors>
               </controls:TogglePasswordBox>
 
-              <Button VerticalAlignment="Top" Content="{Binding ShowSensitiveKeys, StringFormat=\{0\} Sensitive Keys, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Hide:Show}" Command="{Binding ToggleSensitiveKeysCommand}" DockPanel.Dock="Right" />
+              <Button Content="{Binding ShowSensitiveKeys, StringFormat=\{0\} Sensitive Keys, Converter={StaticResource BooleanStringConverter}, ConverterParameter=Hide:Show}" Command="{Binding ToggleSensitiveKeysCommand}" DockPanel.Dock="Right" />
             </StackPanel>
             
             <StackPanel IsVisible="{Binding !IsWatchOnly}" Spacing="4">
