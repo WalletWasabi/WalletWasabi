@@ -109,7 +109,7 @@
               </StackPanel>
             </Button>
 
-            <Image Source="{Binding TestImage}" Width="75" Height="75" Name="image1" />
+            <Image Source="{Binding TestImage}" Width="300" Height="300" Name="image1" />
 
             <Image Width="75"
                    Height="73"

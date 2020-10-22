@@ -1,4 +1,6 @@
+using Avalonia;
 using Avalonia.Input;
+using Avalonia.Media.Imaging;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using NBitcoin;
@@ -7,6 +9,7 @@ using ReactiveUI;
 using Splat;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Net.Http;
@@ -32,6 +35,8 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
+
+using Emgu.CV;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -437,14 +442,47 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _isMax, value);
 		}
 
-		private Bitmap _testImage;
+		private Avalonia.Media.Imaging.Bitmap _testImage;
 
-		public Bitmap TestImage
+		public Avalonia.Media.Imaging.Bitmap TestImage
 		{
 			get
 			{
-				Bitmap result = new Bitmap(300, 300, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
-				return result;
+				#region bitmap
+
+				//			System.Drawing.Bitmap bmp = new System.Drawing.Bitmap(@"c:\image\Lenna.jpg");
+
+				//			System.Drawing.Bitmap clone = new System.Drawing.Bitmap(bmp.Width, bmp.Height,
+				//System.Drawing.Imaging.PixelFormat.Format32bppPArgb);
+
+				//			using (Graphics gr = Graphics.FromImage(clone))
+				//			{
+				//				gr.DrawImage(bmp, new Rectangle(0, 0, clone.Width, clone.Height));
+				//			}
+
+				//			Rectangle rect = new Rectangle(0, 0, clone.Width, clone.Height);
+				//			System.Drawing.Imaging.BitmapData bmpData =
+				//				clone.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadWrite,
+				//				clone.PixelFormat);
+				//Avalonia.Media.Imaging.Bitmap avaloniaBitmap = new Avalonia.Media.Imaging.Bitmap(Avalonia.Platform.PixelFormat.Bgra8888, data: bmpData.Scan0, new PixelSize(225, 225), new Vector(225, 225), bmpData.Stride);
+
+				#endregion bitmap
+
+				//if (_testCvImage == null)
+				//{
+				//	_testCvImage = new Image<Bgr565, byte>(@"c:\image\Lenna.jpg");
+				//}
+
+				Image<Rgba, byte> temp = new Image<Rgba, byte>(@"c:\image\Lenna.jpg");
+				Avalonia.Media.Imaging.Bitmap avaloniaBitmap = new Avalonia.Media.Imaging.Bitmap(Avalonia.Platform.PixelFormat.Rgba8888, data: temp.Ptr, new PixelSize(225, 225), new Vector(225, 225), temp.Mat.Step);
+
+				//avaloniaBitmap = new Avalonia.Media.Imaging.Bitmap(@"c:\image\Lenna.jpg");
+
+				//WriteableBitmap a = (WriteableBitmap)avaloniaBitmap;
+
+				return avaloniaBitmap;
+
+				//return new WriteableBitmap(new PixelSize(300, 300), new Vector(), Avalonia.Platform.PixelFormat.Rgb565);
 			}
 			//	set => this.RaisePropertyChanged(nameof(TestImage));
 		}
@@ -662,6 +700,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SetFeesAndTexts();
 		}
 
+		private Emgu.CV.Image<Rgb, byte> _testCvImage;
 		private VideoCapture _videocapture;
 		private Mat _frame;
 
@@ -681,7 +720,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			if (_videocapture != null && _videocapture.Ptr != IntPtr.Zero)
 			{
 				videocapture.Retrieve(_frame, 0);
-				//TestImage = new Bitmap(300, 300);
+
+				_testCvImage = _frame.ToImage<Rgb, byte>();
+				this.RaisePropertyChanged(nameof(TestImage));
+				_videocapture.Stop();
+				_videocapture.Dispose();
 			}
 		}
 
