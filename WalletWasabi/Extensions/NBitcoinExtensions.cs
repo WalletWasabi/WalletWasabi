@@ -425,12 +425,6 @@ namespace NBitcoin
 					}
 				}
 
-				// Hack around NBitcoin bug: https://github.com/zkSNACKs/WalletWasabi/issues/4460
-				foreach (var o in psbt.Outputs)
-				{
-					o.HDKeyPaths.Clear();
-				}
-
 				// Add output keypaths.
 				foreach (var script in psbt.Outputs.Select(x => x.ScriptPubKey).ToArray())
 				{
