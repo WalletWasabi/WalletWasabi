@@ -10,12 +10,12 @@ namespace WalletWasabi.Crypto.Groups
 		{
 			if (groupElement.IsInfinity)
 			{
-				lazyGe = new Lazy<GE>(() => GE.Infinity);
+				LazyGe = new Lazy<GE>(() => GE.Infinity);
 			}
 			else
 			{
 				Guard.True($"{nameof(groupElement)}.{nameof(groupElement.IsValidVariable)}", groupElement.IsValidVariable);
-				lazyGe = new Lazy<GE>(() => new GE(groupElement.x.Normalize(), groupElement.y.Normalize()));
+				LazyGe = new Lazy<GE>(() => new GE(groupElement.x.Normalize(), groupElement.y.Normalize()));
 			}
 
 			Gej = Ge.ToGroupElementJacobian(); // eagerly initialize Ge property
@@ -26,17 +26,17 @@ namespace WalletWasabi.Crypto.Groups
 		{
 			if (groupElementJacobian.IsInfinity)
 			{
-				lazyGe = new Lazy<GE>(() => GE.Infinity);
+				LazyGe = new Lazy<GE>(() => GE.Infinity);
 				Gej = Ge.ToGroupElementJacobian(); // eagerly initialize Ge property
 			}
 			else
 			{
-				GE computeAffineCoordinates()
+				GE ComputeAffineCoordinates()
 				{
 					var groupElement = groupElementJacobian.ToGroupElement();
 					return new GE(groupElement.x.Normalize(), groupElement.y.Normalize());
 				}
-				lazyGe = new Lazy<GE>(computeAffineCoordinates); // avoid computing affine coordinates until needed
+				LazyGe = new Lazy<GE>(ComputeAffineCoordinates); // avoid computing affine coordinates until needed
 				Gej = groupElementJacobian;
 			}
 		}
@@ -44,9 +44,9 @@ namespace WalletWasabi.Crypto.Groups
 		public static GroupElement Infinity { get; } = new GroupElement(GE.Infinity);
 
 		private GEJ Gej { get; }
-		private Lazy<GE> lazyGe { get; }
-		private GE Ge { get => lazyGe.Value; }
-		private bool IsGeCreated { get => lazyGe.IsValueCreated; }
+		private Lazy<GE> LazyGe { get; }
+		private GE Ge => LazyGe.Value;
+		private bool IsGeCreated => LazyGe.IsValueCreated;
 
 		public bool IsInfinity => Gej.IsInfinity;
 

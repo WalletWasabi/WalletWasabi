@@ -19,7 +19,7 @@ namespace WalletWasabi.Fluent
 
 		public App(Global global) : this()
 		{
-			_global = global;			
+			_global = global;
 		}
 
 		public override void Initialize()

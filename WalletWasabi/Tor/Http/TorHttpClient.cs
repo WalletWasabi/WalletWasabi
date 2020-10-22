@@ -27,7 +27,7 @@ namespace WalletWasabi.Tor.Http
 
 		private volatile bool _disposedValue = false; // To detect redundant calls
 
-		public TorHttpClient(Uri baseUri, EndPoint? torSocks5EndPoint, bool isolateStream = false):
+		public TorHttpClient(Uri baseUri, EndPoint? torSocks5EndPoint, bool isolateStream = false) :
 			this(() => baseUri, torSocks5EndPoint, isolateStream)
 		{
 			baseUri = Guard.NotNull(nameof(baseUri), baseUri);
@@ -72,9 +72,9 @@ namespace WalletWasabi.Tor.Http
 
 		private static AsyncLock AsyncLock { get; } = new AsyncLock(); // We make everything synchronous, so slow, but at least stable.
 
-		private static async Task<HttpResponseMessage> ClearnetRequestAsync(HttpRequestMessage request)
+		private static async Task<HttpResponseMessage> ClearnetRequestAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
 		{
-			return await ClearnetHttpClient.Instance.SendAsync(request).ConfigureAwait(false);
+			return await ClearnetHttpClient.Instance.SendAsync(request, cancellationToken).ConfigureAwait(false);
 		}
 
 		/// <remarks>
@@ -96,7 +96,7 @@ namespace WalletWasabi.Tor.Http
 			// Use clearnet HTTP client when Tor is disabled.
 			if (TorSocks5EndPoint is null)
 			{
-				return await ClearnetRequestAsync(request).ConfigureAwait(false);
+				return await ClearnetRequestAsync(request, cancel).ConfigureAwait(false);
 			}
 
 			try
@@ -181,7 +181,7 @@ namespace WalletWasabi.Tor.Http
 			// Use clearnet HTTP client when Tor is disabled.
 			if (TorSocks5EndPoint is null)
 			{
-				return await ClearnetRequestAsync(request).ConfigureAwait(false);
+				return await ClearnetRequestAsync(request, cancel).ConfigureAwait(false);
 			}
 
 			// https://tools.ietf.org/html/rfc7230#section-2.7.1
@@ -204,20 +204,14 @@ namespace WalletWasabi.Tor.Http
 			{
 				TorSocks5Client = new TorSocks5Client(TorSocks5EndPoint);
 				await TorSocks5Client.ConnectAsync().ConfigureAwait(false);
-				await TorSocks5Client.HandshakeAsync(IsolateStream).ConfigureAwait(false);
-				await TorSocks5Client.ConnectToDestinationAsync(host, request.RequestUri.Port).ConfigureAwait(false);
+				await TorSocks5Client.HandshakeAsync(IsolateStream, cancel).ConfigureAwait(false);
+				await TorSocks5Client.ConnectToDestinationAsync(host, request.RequestUri.Port, cancel).ConfigureAwait(false);
 
 				Stream stream = TorSocks5Client.TcpClient.GetStream();
 				if (request.RequestUri.Scheme == "https")
 				{
 					SslStream sslStream = new SslStream(stream, leaveInnerStreamOpen: true);
-
-					await sslStream
-						.AuthenticateAsClientAsync(
-							host,
-							new X509CertificateCollection(),
-							IHttpClient.SupportedSslProtocols,
-							checkCertificateRevocation: true).ConfigureAwait(false);
+					await sslStream.AuthenticateAsClientAsync(host, new X509CertificateCollection(), IHttpClient.SupportedSslProtocols, true).ConfigureAwait(false);
 					stream = sslStream;
 				}
 
