@@ -8,7 +8,6 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
-using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Behaviors
 {
@@ -24,8 +23,9 @@ namespace WalletWasabi.Fluent.Behaviors
             AvaloniaProperty.Register<SplitViewAutoBehavior, Action>(nameof(BackspaceAndEmptyTextAction));
 
         private IDisposable? _disposable;
-        private const int BackspaceStackCapacity = 2;
-        private readonly DropOutStack<string> _backspaceStack = new DropOutStack<string>(BackspaceStackCapacity);
+
+        private bool _bs1;
+        private bool _bs2;
 
         public IEnumerable<string> Suggestions
         {
@@ -69,24 +69,16 @@ namespace WalletWasabi.Fluent.Behaviors
 
         private void OnTextInput(object? sender, TextInputEventArgs e)
         {
-            if (AssociatedObject is null)
-            {
-                return;
-            }
+            if (AssociatedObject is null) return;
 
             if (!Suggestions.Any(x =>
                 x.StartsWith(AssociatedObject.SearchText ?? "", true, CultureInfo.CurrentCulture)))
-            {
                 e.Handled = true;
-            }
         }
 
         private void OnDropDownClosed(object? sender, EventArgs e)
         {
-            if (AssociatedObject is null)
-            {
-                return;
-            }
+            if (AssociatedObject is null) return;
 
             var currentText = AssociatedObject.Text ?? "";
             var selItem = AssociatedObject.SelectedItem as string;
@@ -97,18 +89,21 @@ namespace WalletWasabi.Fluent.Behaviors
 
             CommitTextAction?.Invoke(currentText.Trim());
             AssociatedObject.ClearValue(AutoCompleteBox.SelectedItemProperty);
-            
-            _backspaceStack.Clear();
+
+            BackspaceLogicClear();
 
             Dispatcher.UIThread.Post(() => { AssociatedObject.ClearValue(AutoCompleteBox.TextProperty); });
         }
 
+        private void BackspaceLogicClear()
+        {
+            _bs1 = false;
+            _bs2 = false;
+        }
+
         private void OnTextChanged(object? sender, EventArgs e)
         {
-            if (AssociatedObject is null)
-            {
-                return;
-            }
+            if (AssociatedObject is null) return;
 
             var currentText = AssociatedObject.Text ?? "";
             var currentTextTrimmed = currentText.Trim();
@@ -119,8 +114,8 @@ namespace WalletWasabi.Fluent.Behaviors
                 return;
 
             CommitTextAction?.Invoke(currentTextTrimmed);
-            
-            _backspaceStack.Clear();
+
+            BackspaceLogicClear();
 
             Dispatcher.UIThread.Post(() => { AssociatedObject?.ClearValue(AutoCompleteBox.TextProperty); });
         }
@@ -131,27 +126,22 @@ namespace WalletWasabi.Fluent.Behaviors
 
             var str = AssociatedObject?.Text ?? "";
 
-            _backspaceStack.Push(str);
+            _bs2 = _bs1;
+            _bs1 = str.Length == 0;
 
             var strTrimmed = str.Trim();
-            var containsTwoItems = _backspaceStack.Items.Length >= BackspaceStackCapacity;
-            var p1 = containsTwoItems ? _backspaceStack.Items[0] : "";
-            var p2 = containsTwoItems ? _backspaceStack.Items[1] : "";
 
             // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
             switch (e.Key)
             {
-                case Key.Back when string.IsNullOrEmpty(p1) && string.IsNullOrEmpty(p2):
+                case Key.Back when _bs1 && _bs2:
                     BackspaceAndEmptyTextAction?.Invoke();
                     break;
                 case Key.Enter when !string.IsNullOrEmpty(strTrimmed):
-                    if (!Suggestions.Any(x => x.Equals(strTrimmed, StringComparison.InvariantCultureIgnoreCase)))
-                    {
-                        break;
-                    }
-                    
-                    _backspaceStack.Clear();
-                    
+                    if (!Suggestions.Any(x => x.Equals(strTrimmed, StringComparison.InvariantCultureIgnoreCase))) break;
+
+                    BackspaceLogicClear();
+
                     CommitTextAction?.Invoke(strTrimmed);
                     Dispatcher.UIThread.Post(() => { AssociatedObject?.ClearValue(AutoCompleteBox.TextProperty); });
                     break;
@@ -168,8 +158,8 @@ namespace WalletWasabi.Fluent.Behaviors
             AssociatedObject.KeyUp -= OnKeyUp;
             AssociatedObject.TextChanged -= OnTextChanged;
             _disposable?.Dispose();
-            
-            _backspaceStack.Clear();
+
+            BackspaceLogicClear();
         }
     }
 }
