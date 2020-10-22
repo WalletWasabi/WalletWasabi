@@ -48,7 +48,7 @@ namespace WalletWasabi.Tor.Socks5
 
 		#region Initializers
 
-		internal async Task ConnectAsync()
+		public async Task ConnectAsync()
 		{
 			using (await AsyncLock.LockAsync().ConfigureAwait(false))
 			{
@@ -98,7 +98,7 @@ namespace WalletWasabi.Tor.Socks5
 		/// https://www.torproject.org/docs/tor-manual.html.en
 		/// https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt#n35
 		/// </summary>
-		internal async Task HandshakeAsync(bool isolateStream = true, CancellationToken cancellationToken = default)
+		public async Task HandshakeAsync(bool isolateStream = true, CancellationToken cancellationToken = default)
 		{
 			string identity = isolateStream ? RandomString.CapitalAlphaNumeric(21) : "";
 			await HandshakeAsync(identity, cancellationToken).ConfigureAwait(false);
@@ -174,7 +174,7 @@ namespace WalletWasabi.Tor.Socks5
 			Logger.LogDebug("<");
 		}
 
-		internal async Task ConnectToDestinationAsync(EndPoint destination, CancellationToken cancellationToken = default)
+		private async Task ConnectToDestinationAsync(EndPoint destination, CancellationToken cancellationToken = default)
 		{
 			if (!destination.TryGetHostAndPort(out string? host, out int? port))
 			{
@@ -185,7 +185,7 @@ namespace WalletWasabi.Tor.Socks5
 		}
 
 		/// <param name="host">IPv4 or domain</param>
-		internal async Task ConnectToDestinationAsync(string host, int port, CancellationToken cancellationToken = default)
+		public async Task ConnectToDestinationAsync(string host, int port, CancellationToken cancellationToken = default)
 		{
 			Logger.LogDebug($"> {nameof(host)}={host}, {nameof(port)}={port}");
 
@@ -242,7 +242,7 @@ namespace WalletWasabi.Tor.Socks5
 			}
 		}
 
-		public async Task AssertConnectedAsync()
+		private async Task AssertConnectedAsync()
 		{
 			if (!IsConnected)
 			{
@@ -310,7 +310,7 @@ namespace WalletWasabi.Tor.Socks5
 		/// <param name="receiveBufferSize">Maximum number of bytes expected to be received in the reply</param>
 		/// <param name="cancellationToken">Cancellation token to cancel sending.</param>
 		/// <returns>Reply</returns>
-		public async Task<byte[]> SendAsync(byte[] sendBuffer, int? receiveBufferSize = null, CancellationToken cancellationToken = default)
+		private async Task<byte[]> SendAsync(byte[] sendBuffer, int? receiveBufferSize = null, CancellationToken cancellationToken = default)
 		{
 			Guard.NotNullOrEmpty(nameof(sendBuffer), sendBuffer);
 
