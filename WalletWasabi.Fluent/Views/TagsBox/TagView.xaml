@@ -6,7 +6,7 @@
              mc:Ignorable="d"
              x:Class="WalletWasabi.Fluent.Views.TagsBox.TagView">
     <Panel>
-        <Border BorderBrush="{DynamicResource TagBoxControlForeground}"
+        <Border BorderBrush="{DynamicResource TagsBoxControlForeground}"
                 BorderThickness="1"
                 CornerRadius="4"
                 Margin="4"

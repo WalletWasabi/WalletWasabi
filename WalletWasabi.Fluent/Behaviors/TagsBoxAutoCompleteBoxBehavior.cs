@@ -11,21 +11,30 @@ using Avalonia.Xaml.Interactivity;
 
 namespace WalletWasabi.Fluent.Behaviors
 {
-    public class TagBoxAutoCompleteBoxBehavior : Behavior<AutoCompleteBox>
+    public class TagsBoxAutoCompleteBoxBehavior : Behavior<AutoCompleteBox>
     {
+        public static readonly StyledProperty<bool> RestrictInputToSuggestionsProperty =
+            AvaloniaProperty.Register<TagsBoxAutoCompleteBoxBehavior, bool>(nameof(RestrictInputToSuggestions));
+
         public static readonly StyledProperty<IEnumerable<string>> SuggestionsProperty =
-            AvaloniaProperty.Register<SplitViewAutoBehavior, IEnumerable<string>>(nameof(Suggestions));
+            AvaloniaProperty.Register<TagsBoxAutoCompleteBoxBehavior, IEnumerable<string>>(nameof(Suggestions));
 
         public static readonly StyledProperty<Action<string>> CommitTextActionProperty =
-            AvaloniaProperty.Register<SplitViewAutoBehavior, Action<string>>(nameof(CommitTextAction));
+            AvaloniaProperty.Register<TagsBoxAutoCompleteBoxBehavior, Action<string>>(nameof(CommitTextAction));
 
         public static readonly StyledProperty<Action> BackspaceAndEmptyTextActionProperty =
-            AvaloniaProperty.Register<SplitViewAutoBehavior, Action>(nameof(BackspaceAndEmptyTextAction));
+            AvaloniaProperty.Register<TagsBoxAutoCompleteBoxBehavior, Action>(nameof(BackspaceAndEmptyTextAction));
 
         private IDisposable? _disposable;
 
         private bool _bs1;
         private bool _bs2;
+
+        public bool RestrictInputToSuggestions
+        {
+            get => GetValue(RestrictInputToSuggestionsProperty);
+            set => SetValue(RestrictInputToSuggestionsProperty, value);
+        }
 
         public IEnumerable<string> Suggestions
         {
@@ -56,7 +65,6 @@ namespace WalletWasabi.Fluent.Behaviors
                 AssociatedObject.AddDisposableHandler(InputElement.TextInputEvent, OnTextInput,
                     RoutingStrategies.Tunnel);
 
-
             Dispatcher.UIThread.InvokeAsync(() =>
             {
                 // Refocus because the old control is destroyed
@@ -71,7 +79,7 @@ namespace WalletWasabi.Fluent.Behaviors
         {
             if (AssociatedObject is null) return;
 
-            if (!Suggestions.Any(x =>
+            if (RestrictInputToSuggestions && !Suggestions.Any(x =>
                 x.StartsWith(AssociatedObject.SearchText ?? "", true, CultureInfo.CurrentCulture)))
                 e.Handled = true;
         }
@@ -81,13 +89,14 @@ namespace WalletWasabi.Fluent.Behaviors
             if (AssociatedObject is null) return;
 
             var currentText = AssociatedObject.Text ?? "";
-            var selItem = AssociatedObject.SelectedItem as string;
 
-            if (currentText.Length == 0) return;
+            if (currentText.Length == 0 || !(AssociatedObject.SelectedItem is string selItem) || selItem.Length == 0 ||
+                currentText != selItem)
+            {
+                return;
+            }
 
-            if (selItem is null || selItem.Length == 0 || currentText != selItem) return;
-
-            CommitTextAction?.Invoke(currentText.Trim());
+            CommitTextAction.Invoke(currentText.Trim());
             AssociatedObject.ClearValue(AutoCompleteBox.SelectedItemProperty);
 
             BackspaceLogicClear();
@@ -109,8 +118,8 @@ namespace WalletWasabi.Fluent.Behaviors
             var currentTextTrimmed = currentText.Trim();
 
             if (currentText.Length < 1 || string.IsNullOrEmpty(currentTextTrimmed) || !currentText.EndsWith(' ') ||
-                !Suggestions.Any(x => x.Equals(currentTextTrimmed,
-                    StringComparison.InvariantCultureIgnoreCase)))
+                (RestrictInputToSuggestions && !Suggestions.Any(x => x.Equals(currentTextTrimmed,
+                    StringComparison.InvariantCultureIgnoreCase))))
                 return;
 
             CommitTextAction?.Invoke(currentTextTrimmed);
@@ -138,7 +147,9 @@ namespace WalletWasabi.Fluent.Behaviors
                     BackspaceAndEmptyTextAction?.Invoke();
                     break;
                 case Key.Enter when !string.IsNullOrEmpty(strTrimmed):
-                    if (!Suggestions.Any(x => x.Equals(strTrimmed, StringComparison.InvariantCultureIgnoreCase))) break;
+                    if (RestrictInputToSuggestions && !Suggestions.Any(x =>
+                        x.Equals(strTrimmed, StringComparison.InvariantCultureIgnoreCase)))
+                        break;
 
                     BackspaceLogicClear();
 

@@ -15,7 +15,7 @@ using DynamicData.Binding;
 
 namespace WalletWasabi.Fluent.ViewModels.TagsBox
 {
-    public class TagBoxViewModel : ViewModelBase
+    public class TagsBoxViewModel : ViewModelBase
     {
         private readonly ReadOnlyObservableCollection<object> _combinedContent;
 
@@ -23,7 +23,9 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
         private IEnumerable _suggestions;
         private ObservableCollection<TagViewModel> _tags;
 
-        public TagBoxViewModel()
+        private bool _restrictInputToSuggestions;
+
+        public TagsBoxViewModel()
         {
             _tags = new ObservableCollection<TagViewModel>();
 
@@ -46,6 +48,12 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
 
         public TagInputViewModel TagInput { get; }
 
+        public bool RestrictInputToSuggestions
+        {
+            get => _restrictInputToSuggestions;
+            set => this.RaiseAndSetIfChanged(ref _restrictInputToSuggestions, value);
+        }
+        
         public IEnumerable Suggestions
         {
             get => _suggestions;

@@ -5,11 +5,11 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
 {
     public class TagViewModel : ViewModelBase
     {
-        private readonly TagBoxViewModel _parent;
+        private readonly TagsBoxViewModel _parent;
 
         private string _tag;
 
-        public TagViewModel(TagBoxViewModel parent, string tag)
+        public TagViewModel(TagsBoxViewModel parent, string tag)
         {
             _parent = parent;
             _tag = tag;

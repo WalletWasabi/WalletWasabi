@@ -7,23 +7,31 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
 {
     public class TagInputViewModel : ViewModelBase
     {
-        private readonly TagBoxViewModel _parent;
+        private readonly TagsBoxViewModel _parent;
         private readonly ObservableAsPropertyHelper<IEnumerable> _suggestions;
+        private readonly ObservableAsPropertyHelper<bool> _restrictInputToSuggestions;
+
         private Action _backspaceAndEmptyTextAction;
         private Action<string> _commitTextAction;
 
-        public TagInputViewModel(TagBoxViewModel parent)
+        public TagInputViewModel(TagsBoxViewModel parent)
         {
             _parent = parent;
             _suggestions = _parent.WhenAnyValue(x => x.Suggestions)
                 .ToProperty(this, x => x.Suggestions);
-
+            
+            _restrictInputToSuggestions = _parent.WhenAnyValue(x => x.RestrictInputToSuggestions)
+                .ToProperty(this, x => x.RestrictInputToSuggestions);
+            
             CommitTextAction += OnCommitTextAction;
             BackspaceAndEmptyTextAction += OnBackspaceAndEmptyTextAction;
         }
 
         public IEnumerable Suggestions => _suggestions.Value;
+        public bool RestrictInputToSuggestions => _restrictInputToSuggestions.Value;
 
+
+        
         public Action<string> CommitTextAction
         {
             get => _commitTextAction;

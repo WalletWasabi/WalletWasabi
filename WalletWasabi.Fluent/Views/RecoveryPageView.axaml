@@ -12,10 +12,10 @@
         </Button>
         <c:ContentArea Title="Enter recovery words" Caption="Type in your 12 recovery words and click continue"
                        Margin="44 0">
-            <Grid RowDefinitions="Auto,30,Auto" VerticalAlignment="Top" >
+            <Grid RowDefinitions="Auto,20,Auto" VerticalAlignment="Top" >
                 <TextBlock Classes="h7 bold"  Text="Type in your recovery words here:"/>
-                <c:TagBox Grid.Row="2" 
-                          DataContext="{Binding RecoveryWordsTagBox}"
+                <c:TagsBox Grid.Row="2" 
+                          DataContext="{Binding RecoveryWordsTagsBox}"
                           MinHeight="60"
                           MaxHeight="120"
                           ScrollViewer.HorizontalScrollBarVisibility="Disabled" />

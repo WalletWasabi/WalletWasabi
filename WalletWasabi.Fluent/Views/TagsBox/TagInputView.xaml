@@ -9,7 +9,8 @@
              x:Class="WalletWasabi.Fluent.Views.TagsBox.TagInputView">
     <AutoCompleteBox x:DataType="vm:TagInputViewModel" IsTextCompletionEnabled="True" Items="{CompiledBinding Suggestions}">
         <i:Interaction.Behaviors>
-            <behaviors:TagBoxAutoCompleteBoxBehavior
+            <behaviors:TagsBoxAutoCompleteBoxBehavior
+                RestrictInputToSuggestions="{CompiledBinding RestrictInputToSuggestions}"
                 Suggestions="{CompiledBinding Suggestions}"
                 CommitTextAction="{CompiledBinding CommitTextAction}"
                 BackspaceAndEmptyTextAction="{CompiledBinding BackspaceAndEmptyTextAction}" />

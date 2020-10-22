@@ -12,7 +12,7 @@ namespace WalletWasabi.Fluent.Behaviors
 	{
 		private bool _sidebarWasForceClosed;
 
-		private CompositeDisposable Disposables { get; set; }
+		private CompositeDisposable? Disposables { get; set; }
 
 		public static readonly StyledProperty<double> CollapseThresholdProperty =
 			AvaloniaProperty.Register<SplitViewAutoBehavior, double>(nameof(CollapseThreshold));

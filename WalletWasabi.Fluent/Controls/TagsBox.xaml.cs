@@ -4,7 +4,7 @@ namespace WalletWasabi.Fluent.Controls
 {
     /// <summary>
     /// </summary>
-    public class TagBox : ContentControl
+    public class TagsBox : ContentControl
     {
          
     }
