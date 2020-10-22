@@ -218,12 +218,11 @@ namespace WalletWasabi.Blockchain.Transactions
 			Logger.LogInfo("Signing transaction...");
 			// It must be watch only, too, because if we have the key and also hardware wallet, we do not care we can sign.
 
-			psbt.AddPrevTxs(TransactionStore);
-
 			Transaction tx;
 			if (KeyManager.IsWatchOnly)
 			{
 				tx = psbt.GetGlobalTransaction();
+				psbt.AddPrevTxs(TransactionStore);
 				psbt.AddKeyPaths(KeyManager);
 			}
 			else
@@ -236,11 +235,13 @@ namespace WalletWasabi.Blockchain.Transactions
 				// Try to pay using payjoin
 				if (payjoinClient is { })
 				{
+					psbt.AddPrevTxs(TransactionStore);
+					psbt.AddKeyPaths(KeyManager); // The negotiation strips it so no privacy leak, but for some reason it still needs it.
 					psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt, changeHdPubKey);
 					isPayjoin = true;
 				}
 
-				// Do NOT add keypaths before payjoin.
+				psbt.AddPrevTxs(TransactionStore);
 				psbt.AddKeyPaths(KeyManager);
 				psbt.Finalize();
 				tx = psbt.ExtractTransaction();
