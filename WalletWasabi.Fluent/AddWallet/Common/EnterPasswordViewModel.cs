@@ -120,6 +120,12 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 			if (!string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(ConfirmPassword))
 			{
 				IsPasswordConfirmed = true;
+
+				if (Validations is Validations validations)
+				{
+					validations.ClearErrors(nameof(Password));
+					validations.ClearErrors(nameof(ConfirmPassword));
+				}
 			}
 		}
 	}

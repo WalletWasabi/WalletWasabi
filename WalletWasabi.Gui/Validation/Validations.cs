@@ -74,9 +74,9 @@ namespace WalletWasabi.Gui.Validation
 				: ErrorDescriptors.Empty;
 		}
 
-		private void ClearErrors(string propertyName)
+		public void ClearErrors(string propertyName)
 		{
-			if (ErrorsByPropertyName.ContainsKey(propertyName))
+			if (ErrorsByPropertyName.ContainsKey(propertyName) && ErrorsByPropertyName[propertyName].Any())
 			{
 				ErrorsByPropertyName[propertyName].Clear();
 
