@@ -72,7 +72,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Wallet = wallet;
 
 			LabelSuggestion = new SuggestLabelViewModel();
-			BuildTransactionButtonText = DoButtonText;
+			_buildTransactionButtonText = DoButtonText;
 
 			this.ValidateProperty(x => x.Address, ValidateAddress);
 			this.ValidateProperty(x => x.CustomChangeAddress, ValidateCustomChangeAddress);

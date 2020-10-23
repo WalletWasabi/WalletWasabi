@@ -20,7 +20,7 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 			Lock = new object();
 			Coins = coins.ToList();
 			CoinsSet = Coins.ToHashSet();
-			Labels = SmartLabel.Merge(Coins.Select(x => x.Label));
+			_labels = SmartLabel.Merge(Coins.Select(x => x.Label));
 		}
 
 		public SmartLabel Labels

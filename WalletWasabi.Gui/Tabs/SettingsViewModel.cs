@@ -62,21 +62,21 @@ namespace WalletWasabi.Gui.Tabs
 			var config = new Config(Global.Config.FilePath);
 			config.LoadOrCreateDefaultFile();
 
-			Network = config.Network;
-			TorSocks5EndPoint = config.TorSocks5EndPoint.ToString(-1);
+			_network = config.Network;
+			_torSocks5EndPoint = config.TorSocks5EndPoint.ToString(-1);
 			UseTor = config.UseTor;
 			TerminateTorOnExit = config.TerminateTorOnExit;
 			StartLocalBitcoinCoreOnStartup = config.StartLocalBitcoinCoreOnStartup;
 			StopLocalBitcoinCoreOnShutdown = config.StopLocalBitcoinCoreOnShutdown;
 
-			SomePrivacyLevel = config.PrivacyLevelSome.ToString();
-			FinePrivacyLevel = config.PrivacyLevelFine.ToString();
-			StrongPrivacyLevel = config.PrivacyLevelStrong.ToString();
+			_somePrivacyLevel = config.PrivacyLevelSome.ToString();
+			_finePrivacyLevel = config.PrivacyLevelFine.ToString();
+			_strongPrivacyLevel = config.PrivacyLevelStrong.ToString();
 
-			DustThreshold = config.DustThreshold.ToString();
+			_dustThreshold = config.DustThreshold.ToString();
 
-			BitcoinP2pEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
-			LocalBitcoinCoreDataDir = config.LocalBitcoinCoreDataDir;
+			_bitcoinP2pEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
+			_localBitcoinCoreDataDir = config.LocalBitcoinCoreDataDir;
 
 			IsModified = !Global.Config.AreDeepEqual(config);
 
