@@ -30,10 +30,18 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 {
 	public class CoinJoinClient
 	{
+		private const long StateNotStarted = 0;
+
+		private const long StateRunning = 1;
+
+		private const long StateStopping = 2;
+
+		private const long StateStopped = 3;
+
 		private long _frequentStatusProcessingIfNotMixing;
 
 		/// <summary>
-		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
+		/// Value can be any of: <see cref="StateNotStarted"/>, <see cref="StateRunning"/>, <see cref="StateStopping"/> and <see cref="StateStopped"/>.
 		/// </summary>
 		private long _running;
 
@@ -53,7 +61,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			CoordinatorFeepercentToCheck = null;
 
 			ExposedLinks = new ConcurrentDictionary<OutPoint, IEnumerable<HdPubKeyBlindedPair>>();
-			_running = 0;
+			_running = StateNotStarted;
 			Cancel = new CancellationTokenSource();
 			_frequentStatusProcessingIfNotMixing = 0;
 			State = new ClientState();
@@ -95,7 +103,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		public ClientState State { get; }
 
-		public bool IsRunning => Interlocked.Read(ref _running) == 1;
+		public bool IsRunning => Interlocked.Read(ref _running) == StateRunning;
 
 		private CancellationTokenSource Cancel { get; set; }
 
@@ -114,7 +122,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		public void Start()
 		{
-			if (Interlocked.CompareExchange(ref _running, 1, 0) != 0)
+			if (Interlocked.CompareExchange(ref _running, StateRunning, StateNotStarted) != StateNotStarted)
 			{
 				return;
 			}
@@ -185,7 +193,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				}
 				finally
 				{
-					Interlocked.CompareExchange(ref _running, 3, 2); // If IsStopping, make it stopped.
+					Interlocked.CompareExchange(ref _running, StateStopped, StateStopping); // If IsStopping, make it stopped.
 				}
 			});
 		}
@@ -999,15 +1007,15 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 			Synchronizer.ResponseArrived -= Synchronizer_ResponseArrivedAsync;
 
-			Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
-			Cancel?.Cancel();
-			while (Interlocked.CompareExchange(ref _running, 3, 0) == 2)
+			Interlocked.CompareExchange(ref _running, StateStopping, StateRunning); // If running, make it stopping.
+			Cancel.Cancel();
+
+			while (Interlocked.CompareExchange(ref _running, StateStopped, StateNotStarted) == StateStopping)
 			{
 				await Task.Delay(50, cancel).ConfigureAwait(false);
 			}
 
-			Cancel?.Dispose();
-			Cancel = null;
+			Cancel.Dispose();
 
 			using (await MixLock.LockAsync(cancel).ConfigureAwait(false))
 			{

@@ -63,7 +63,7 @@ namespace WalletWasabi.Gui.ViewModels
 			UseTor = false;
 			Tor = TorStatus.NotRunning;
 			Peers = 0;
-			ExchangeRate = "";
+			_exchangeRate = "";
 			IsExchangeRateAvailable = false;
 			ActiveStatuses = new StatusSet();
 		}

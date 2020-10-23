@@ -33,7 +33,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global = Locator.Current.GetService<Global>();
 			Wallet = wallet;
 
-			Transactions = new ObservableCollection<TransactionViewModel>();
+			_transactions = new ObservableCollection<TransactionViewModel>();
 
 			ValidateSavedColumnConfig();
 

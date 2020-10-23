@@ -44,7 +44,7 @@ namespace WalletWasabi.Gui.Controls
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => FinalMatrix = AddPaddingToMatrix(x));
 
-			SaveCommand = ReactiveCommand.CreateFromTask<string, Unit>(SaveQRCodeAsync);
+			_saveCommand = ReactiveCommand.CreateFromTask<string, Unit>(SaveQRCodeAsync);
 
 			SaveCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)

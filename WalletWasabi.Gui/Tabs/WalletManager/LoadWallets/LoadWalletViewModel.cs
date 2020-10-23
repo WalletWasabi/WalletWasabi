@@ -40,7 +40,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			Global = Locator.Current.GetService<Global>();
 
 			Owner = owner;
-			Password = "";
+			_password = "";
 			LoadWalletType = loadWalletType;
 
 			this.ValidateProperty(x => x.Password, ValidatePassword);

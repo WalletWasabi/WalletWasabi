@@ -20,6 +20,14 @@ namespace WalletWasabi.Services
 {
 	public class WasabiSynchronizer : NotifyPropertyChangedBase, IFeeProvider
 	{
+		private const long StateNotStarted = 0;
+
+		private const long StateRunning = 1;
+
+		private const long StateStopping = 2;
+
+		private const long StateStopped = 3;
+
 		private decimal _usdExchangeRate;
 
 		private AllFeeEstimate _allFeeEstimate;
@@ -29,7 +37,7 @@ namespace WalletWasabi.Services
 		private BackendStatus _backendStatus;
 
 		/// <summary>
-		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
+		/// Value can be any of: <see cref="StateNotStarted"/>, <see cref="StateRunning"/>, <see cref="StateStopping"/> and <see cref="StateStopped"/>.
 		/// </summary>
 		private long _running;
 
@@ -39,10 +47,11 @@ namespace WalletWasabi.Services
 		{
 			Network = network;
 			LastResponse = null;
-			_running = 0;
+			_running = StateNotStarted;
 			BitcoinStore = bitcoinStore;
 			WasabiClientFactory = wasabiClientFactory;
 			WasabiClient = wasabiClientFactory.NewBackendClient();
+
 			Cancel = new CancellationTokenSource();
 		}
 
@@ -54,7 +63,7 @@ namespace WalletWasabi.Services
 
 		public event EventHandler<SynchronizeResponse>? ResponseArrived;
 
-		public SynchronizeResponse LastResponse { get; private set; }
+		public SynchronizeResponse? LastResponse { get; private set; }
 
 		public WasabiClientFactory WasabiClientFactory { get; }
 
@@ -99,7 +108,7 @@ namespace WalletWasabi.Services
 
 		public BitcoinStore BitcoinStore { get; private set; }
 
-		public bool IsRunning => Interlocked.Read(ref _running) == 1;
+		public bool IsRunning => Interlocked.Read(ref _running) == StateRunning;
 
 		private CancellationTokenSource Cancel { get; set; }
 
@@ -123,7 +132,7 @@ namespace WalletWasabi.Services
 
 			MaxRequestIntervalForMixing = requestInterval; // Let's start with this, it'll be modified from outside.
 
-			if (Interlocked.CompareExchange(ref _running, 1, 0) != 0)
+			if (Interlocked.CompareExchange(ref _running, StateRunning, StateNotStarted) != StateNotStarted)
 			{
 				return;
 			}
@@ -344,7 +353,7 @@ namespace WalletWasabi.Services
 				}
 				finally
 				{
-					Interlocked.CompareExchange(ref _running, 3, 2); // If IsStopping, make it stopped.
+					Interlocked.CompareExchange(ref _running, StateStopped, StateStopping); // If IsStopping, make it stopped.
 				}
 
 				Logger.LogTrace("< Wasabi synchronizer thread ends.");
@@ -388,9 +397,10 @@ namespace WalletWasabi.Services
 		{
 			Logger.LogTrace(">");
 
-			Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
-			Cancel?.Cancel();
-			while (Interlocked.CompareExchange(ref _running, 3, 0) == 2)
+			Interlocked.CompareExchange(ref _running, StateStopping, StateRunning); // If running, make it stopping.
+			Cancel.Cancel();
+
+			while (Interlocked.CompareExchange(ref _running, StateStopped, StateNotStarted) == StateStopping)
 			{
 				await Task.Delay(50).ConfigureAwait(false);
 			}
