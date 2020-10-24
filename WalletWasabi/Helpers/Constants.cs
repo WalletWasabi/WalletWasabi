@@ -96,7 +96,7 @@ namespace WalletWasabi.Helpers
 
 		public static Money MinimumCredentailAmount = Money.Satoshis(10_000);
 
-		public static Money MaximumCredentailAmount = Money.Satoshis(Constants.MaximumNumberOfSatoshis);
+		public static Money MaximumCredentailAmount = Money.Satoshis(MaximumNumberOfSatoshis);
 
 		public static string ClientSupportBackendVersionText => ClientSupportBackendVersionMin == ClientSupportBackendVersionMax
 				? ClientSupportBackendVersionMin

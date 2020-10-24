@@ -56,9 +56,9 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var blindSignature = signer.Sign(blindedMessage, r);
 			var unblindedSignature = requester.UnblindSignature(blindSignature);
 
-			Assert.True(SchnorrBlinding.VerifySignature(message, unblindedSignature, key.PubKey));
-			Assert.False(SchnorrBlinding.VerifySignature(uint256.Zero, unblindedSignature, key.PubKey));
-			Assert.False(SchnorrBlinding.VerifySignature(uint256.One, unblindedSignature, key.PubKey));
+			Assert.True(VerifySignature(message, unblindedSignature, key.PubKey));
+			Assert.False(VerifySignature(uint256.Zero, unblindedSignature, key.PubKey));
+			Assert.False(VerifySignature(uint256.One, unblindedSignature, key.PubKey));
 
 			// Test with unknown values
 			requester = new Requester();
@@ -69,9 +69,9 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			blindSignature = signer.Sign(blindedMessage, r);
 			unblindedSignature = requester.UnblindSignature(blindSignature);
-			Assert.True(SchnorrBlinding.VerifySignature(message, unblindedSignature, signer.Key.PubKey));
-			Assert.False(SchnorrBlinding.VerifySignature(uint256.One, unblindedSignature, signer.Key.PubKey));
-			Assert.False(SchnorrBlinding.VerifySignature(uint256.One, unblindedSignature, signer.Key.PubKey));
+			Assert.True(VerifySignature(message, unblindedSignature, signer.Key.PubKey));
+			Assert.False(VerifySignature(uint256.One, unblindedSignature, signer.Key.PubKey));
+			Assert.False(VerifySignature(uint256.One, unblindedSignature, signer.Key.PubKey));
 			var newMessage = Encoders.ASCII.DecodeData("Hello, World!");
 			for (var i = 0; i < 1_000; i++)
 			{
