@@ -31,7 +31,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Global = Locator.Current.GetService<Global>();
 
-			ButtonText = "Broadcast Transaction";
+			_buttonText = "Broadcast Transaction";
 
 			this.WhenAnyValue(x => x.FinalTransaction)
 				.ObserveOn(RxApp.MainThreadScheduler)

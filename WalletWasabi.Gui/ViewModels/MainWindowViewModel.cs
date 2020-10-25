@@ -42,7 +42,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 			InitializeLockScreen();
 
-			StatusBar = statusBarViewModel;
+			_statusBar = statusBarViewModel;
 
 			if (initWalletManager)
 			{

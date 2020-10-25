@@ -11,6 +11,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Gui.CommandLine;
 using WalletWasabi.Gui.CrashReport;
 using WalletWasabi.Gui.ViewModels;
@@ -37,10 +38,10 @@ namespace WalletWasabi.Gui
 		{
 			bool runGui = false;
 			Exception? appException = null;
+			CrashReporter = new CrashReporter();
 
 			try
 			{
-				CrashReporter = new CrashReporter();
 				Global = CreateGlobal();
 				Locator.CurrentMutable.RegisterConstant(Global);
 				Locator.CurrentMutable.RegisterConstant(CrashReporter);
@@ -49,7 +50,7 @@ namespace WalletWasabi.Gui
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-				runGui = ShouldRunGui(args);
+				runGui = ProcessCliCommands(args);
 
 				if (CrashReporter.IsReport)
 				{
@@ -61,11 +62,17 @@ namespace WalletWasabi.Gui
 					BuildAvaloniaApp().StartShellApp("Wasabi Wallet", AppMainAsync, args);
 				}
 			}
+			catch (OperationCanceledException ex)
+			{
+				Logger.LogDebug(ex);
+			}
 			catch (Exception ex)
 			{
 				appException = ex;
-				Logger.LogCritical(ex);
-				CrashReporter.SetException(ex);
+				if (runGui)
+				{
+					CrashReporter.SetException(ex);
+				}
 			}
 
 			TerminateApplicationAsync(appException).GetAwaiter().GetResult();
@@ -87,7 +94,7 @@ namespace WalletWasabi.Gui
 			return new Global(dataDir, torLogsFile, config, uiConfig, walletManager);
 		}
 
-		private static bool ShouldRunGui(string[] args)
+		private static bool ProcessCliCommands(string[] args)
 		{
 			var daemon = new Daemon(Global);
 			var interpreter = new CommandInterpreter(Console.Out, Console.Error);
@@ -119,6 +126,11 @@ namespace WalletWasabi.Gui
 			{
 				var criticalException = ex is OperationCanceledException ? null : ex;
 
+				if (criticalException is { })
+				{
+					CrashReporter.SetException(ex);
+				}
+
 				// There is no other way to stop the creation of the WasabiWindow.
 				await TerminateApplicationAsync(criticalException);
 			}
@@ -129,7 +141,6 @@ namespace WalletWasabi.Gui
 			if (criticalException is { })
 			{
 				Logger.LogCritical(criticalException);
-				CrashReporter.SetException(criticalException);
 			}
 
 			var mainViewModel = MainWindowViewModel.Instance;

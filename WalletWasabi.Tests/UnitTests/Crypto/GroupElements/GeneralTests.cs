@@ -31,27 +31,13 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 			Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GE(large, large)));
 			Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GE(one, largest)));
 			Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GE(largest, largest)));
-
-			Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GEJ(FE.Zero, FE.Zero, FE.Zero)));
-			Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GEJ(one, FE.Zero, FE.Zero)));
-			Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GEJ(one, one, one)));
-			Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GEJ(one, one, two)));
-			Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GEJ(two, two, two)));
-			Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GEJ(one, one, large)));
-			Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GEJ(large, large, large)));
-			Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GEJ(one, one, largest)));
-			Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GEJ(largest, largest, largest)));
 		}
 
 		[Fact]
 		public void ConstructorDoesntThrow()
 		{
 			new GroupElement(GE.Infinity);
-			new GroupElement(GEJ.Infinity);
 			new GroupElement(EC.G);
-			new GroupElement(EC.G * new Scalar(1));
-			new GroupElement(EC.G * new Scalar(uint.MaxValue));
-			new GroupElement(EC.G * new Scalar(int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue));
 		}
 
 		[Fact]
@@ -61,41 +47,25 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 			var b = new GroupElement(GE.Infinity);
 			var c = new GroupElement(new GE(FE.Zero, FE.Zero, infinity: true));
 			var d = new GroupElement(new GE(new FE(1), new FE(1), infinity: true));
-			var e = new GroupElement(GEJ.Infinity);
-			var f = new GroupElement(new GEJ(FE.Zero, FE.Zero, FE.Zero, infinity: true));
-			var g = new GroupElement(new GEJ(new FE(1), new FE(1), new FE(1), infinity: true));
-			var h = new GroupElement(new GE(EC.G.x, EC.G.y, infinity: true));
-			var i = new GroupElement(EC.G * Scalar.Zero);
+			var e = new GroupElement(new GE(EC.G.x, EC.G.y, infinity: true));
 
 			Assert.True(a.IsInfinity);
 			Assert.True(b.IsInfinity);
 			Assert.True(c.IsInfinity);
 			Assert.True(d.IsInfinity);
 			Assert.True(e.IsInfinity);
-			Assert.True(f.IsInfinity);
-			Assert.True(g.IsInfinity);
-			Assert.True(h.IsInfinity);
-			Assert.True(i.IsInfinity);
 
 			Assert.Equal(a, b);
 			Assert.Equal(a, c);
 			Assert.Equal(a, d);
 			Assert.Equal(a, e);
-			Assert.Equal(a, f);
-			Assert.Equal(a, g);
-			Assert.Equal(a, h);
-			Assert.Equal(a, i);
 
 			Assert.Equal(a.GetHashCode(), b.GetHashCode());
 			Assert.Equal(a.GetHashCode(), c.GetHashCode());
 			Assert.Equal(a.GetHashCode(), d.GetHashCode());
 			Assert.Equal(a.GetHashCode(), e.GetHashCode());
-			Assert.Equal(a.GetHashCode(), f.GetHashCode());
-			Assert.Equal(a.GetHashCode(), g.GetHashCode());
-			Assert.Equal(a.GetHashCode(), h.GetHashCode());
-			Assert.Equal(a.GetHashCode(), i.GetHashCode());
 
-			var singleSet = new HashSet<GroupElement> { a, b, c, d, e, f, g, h, i };
+			var singleSet = new HashSet<GroupElement> { a, b, c, d, e };
 			Assert.Single(singleSet);
 		}
 
@@ -103,8 +73,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 		public void OneEqualsOne()
 		{
 			var one = new Scalar(1);
-			var a = new GroupElement(EC.G * one);
-			var b = new GroupElement(EC.G * one);
+			var a = new GroupElement(EC.G) * one;
+			var b = new GroupElement(EC.G) * one;
 			Assert.Equal(a, b);
 		}
 
@@ -113,8 +83,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 		{
 			var one = new Scalar(1);
 			var two = new Scalar(2);
-			var a = new GroupElement(EC.G * one);
-			var b = new GroupElement(EC.G * two);
+			var a = new GroupElement(EC.G) * one;
+			var b = new GroupElement(EC.G) * two;
 			Assert.NotEqual(a, b);
 		}
 
@@ -122,7 +92,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 		public void NullEquality()
 		{
 			var one = new Scalar(1);
-			var ge = new GroupElement(EC.G * one);
+			var ge = new GroupElement(EC.G) * one;
 
 			// Kinda clunky, but otherwise CodeFactor won't be happy.
 			GroupElement? n = null;
@@ -140,7 +110,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 		public void InfinityDoesntEqualNotInfinity()
 		{
 			var one = new Scalar(1);
-			var a = new GroupElement(EC.G * one);
+			var a = new GroupElement(EC.G) * one;
 			Assert.NotEqual(a, GroupElement.Infinity);
 		}
 
@@ -150,14 +120,11 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 			var one = new Scalar(1);
 			var gej = EC.G * one;
 			var ge = gej.ToGroupElement();
-			var sameGej = ge.ToGroupElementJacobian();
 
 			var a = new GroupElement(ge);
-			var b = new GroupElement(gej);
-			var c = new GroupElement(sameGej);
+			var b = new GroupElement(EC.G) * one;
 
 			Assert.Equal(a, b);
-			Assert.Equal(a, c);
 		}
 
 		[Fact]
@@ -169,7 +136,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 
 			Assert.Equal(expectedGenerator, Generators.G.ToString());
 			Assert.Equal(expectedInfinity, GroupElement.Infinity.ToString());
-			Assert.Equal(expectedTwo, new GroupElement(EC.G * new Scalar(2)).ToString());
+			Assert.Equal(expectedTwo, (new GroupElement(EC.G) * new Scalar(2)).ToString());
 
 			var expectedOther = $"{nameof(Generators.Gw)} Generator, secp256k1_fe x = {{ 0x039DDC14UL, 0x020074B1UL, 0x00B3D361UL, 0x027B3B02UL, 0x02C12FE3UL, 0x004D2976UL, 0x00CF2867UL, 0x0282C917UL, 0x01B623A8UL, 0x002D37D2UL, 1, 1 }};secp256k1_fe y = {{ 0x02503CC2UL, 0x00E8B971UL, 0x0292D707UL, 0x00A80377UL, 0x010F1698UL, 0x017B2B88UL, 0x020E37DCUL, 0x0092BF3FUL, 0x00D655C0UL, 0x0015FE20UL, 1, 1 }};";
 			Assert.Equal(expectedOther, Generators.Gw.ToString());
@@ -252,27 +219,27 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 			// 2. Try defining non-infinity with zero coordinates should not work.
 			Assert.ThrowsAny<ArgumentException>(() => new GroupElement(new GE(FE.Zero, FE.Zero, infinity: false)));
 
-			ge = new GroupElement(EC.G * new Scalar(1));
+			ge = new GroupElement(EC.G) * new Scalar(1);
 			ge2 = GroupElement.FromBytes(ge.ToBytes());
 			Assert.Equal(ge, ge2);
 
-			ge = new GroupElement(EC.G * new Scalar(2));
+			ge = new GroupElement(EC.G) * new Scalar(2);
 			ge2 = GroupElement.FromBytes(ge.ToBytes());
 			Assert.Equal(ge, ge2);
 
-			ge = new GroupElement(EC.G * new Scalar(3));
+			ge = new GroupElement(EC.G) * new Scalar(3);
 			ge2 = GroupElement.FromBytes(ge.ToBytes());
 			Assert.Equal(ge, ge2);
 
-			ge = new GroupElement(EC.G * new Scalar(21));
+			ge = new GroupElement(EC.G) * new Scalar(21);
 			ge2 = GroupElement.FromBytes(ge.ToBytes());
 			Assert.Equal(ge, ge2);
 
-			ge = new GroupElement(EC.G * EC.NC);
+			ge = new GroupElement(EC.G) * EC.NC;
 			ge2 = GroupElement.FromBytes(ge.ToBytes());
 			Assert.Equal(ge, ge2);
 
-			ge = new GroupElement(EC.G * EC.N);
+			ge = new GroupElement(EC.G) * EC.N;
 			ge2 = GroupElement.FromBytes(ge.ToBytes());
 			Assert.Equal(ge, ge2);
 		}
