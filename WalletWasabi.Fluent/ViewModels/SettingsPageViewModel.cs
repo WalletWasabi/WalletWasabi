@@ -15,11 +15,11 @@ namespace WalletWasabi.Fluent.ViewModels
 	{
 		private string _randomString;
 
-		public SettingsPageViewModel(IScreen screen) : base(screen)
+		public SettingsPageViewModel(NavigationStateViewModel navigationState) : base(navigationState)
 		{
 			Title = "Settings";
 
-			NextCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new HomePageViewModel(screen)));
+			NextCommand = ReactiveCommand.Create(() => navigationState.Screen().Router.Navigate.Execute(new HomePageViewModel(navigationState)));
 
 			OpenDialogCommand = ReactiveCommand.CreateFromTask(async () => await ConfirmSetting.Handle("Please confirm the setting:").ToTask());
 
@@ -28,7 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			ConfirmSetting.RegisterHandler(
 				async interaction =>
 				{
-					var x = new TestDialogViewModel(screen, interaction.Input);
+					var x = new TestDialogViewModel(navigationState, interaction.Input);
 					var result = await x.ShowDialogAsync(MainViewModel.Instance);
 					interaction.SetOutput(result);
 				});

@@ -4,7 +4,7 @@ namespace WalletWasabi.Fluent.ViewModels
 {
 	public class HomePageViewModel : NavBarItemViewModel
 	{
-		public HomePageViewModel(IScreen screen) : base(screen)
+		public HomePageViewModel(NavigationStateViewModel navigationState) : base(navigationState)
 		{
 			Title = "Home";
 		}

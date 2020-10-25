@@ -5,7 +5,7 @@ namespace WalletWasabi.Fluent.ViewModels
 {
 	public class ClosedHardwareWalletViewModel : ClosedWalletViewModel
 	{
-		internal ClosedHardwareWalletViewModel(IScreen screen, WalletManager walletManager, Wallet wallet) : base(screen, walletManager, wallet)
+		internal ClosedHardwareWalletViewModel(NavigationStateViewModel navigationState, WalletManager walletManager, Wallet wallet) : base(navigationState, walletManager, wallet)
 		{
 		}
 	}

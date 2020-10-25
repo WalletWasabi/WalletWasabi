@@ -24,16 +24,16 @@ namespace WalletWasabi.Fluent.ViewModels
 		private Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
 		private bool _anyWalletStarted;
 		private bool _isBackButtonVisible;
-		private IScreen _screen;
+		private NavigationStateViewModel _navigationState;
 		private bool _isNavigating;
 		private bool _isOpen;
 
 		private Action _toggleAction;
 		private Action _collapseOnClickAction;
 
-		public NavBarViewModel(IScreen screen, RoutingState router, WalletManager walletManager, UiConfig uiConfig)
+		public NavBarViewModel(NavigationStateViewModel navigationState, RoutingState router, WalletManager walletManager, UiConfig uiConfig)
 		{
-			_screen = screen;
+			_navigationState = navigationState;
 			Router = router;
 			_topItems = new ObservableCollection<NavBarItemViewModel>();
 			_items = new ObservableCollection<WalletViewModelBase>();
@@ -41,10 +41,10 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
 
-			SelectedItem = new HomePageViewModel(screen);
+			SelectedItem = new HomePageViewModel(_navigationState);
 			_topItems.Add(_selectedItem);
-			_bottomItems.Add(new AddWalletPageViewModel(screen));
-			_bottomItems.Add(new SettingsPageViewModel(screen));
+			_bottomItems.Add(new AddWalletPageViewModel(_navigationState));
+			_bottomItems.Add(new SettingsPageViewModel(_navigationState));
 
 			Router.CurrentViewModel
 				.OfType<NavBarItemViewModel>()
@@ -109,8 +109,8 @@ namespace WalletWasabi.Fluent.ViewModels
 				.Subscribe(wallet =>
 				{
 					WalletViewModelBase vm = (wallet.State <= WalletState.Starting)
-						? ClosedWalletViewModel.Create(screen, walletManager, wallet)
-						: WalletViewModel.Create(screen, uiConfig, wallet);
+						? ClosedWalletViewModel.Create(_navigationState, walletManager, wallet)
+						: WalletViewModel.Create(_navigationState, uiConfig, wallet);
 
 					InsertWallet(vm);
 				});
@@ -226,7 +226,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			foreach (var wallet in walletManager.GetWallets())
 			{
-				InsertWallet(ClosedWalletViewModel.Create(_screen, walletManager, wallet));
+				InsertWallet(ClosedWalletViewModel.Create(_navigationState, walletManager, wallet));
 			}
 		}
 
@@ -251,7 +251,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				throw new Exception("Wallet already opened.");
 			}
 
-			var walletViewModel = WalletViewModel.Create(_screen, uiConfig, wallet);
+			var walletViewModel = WalletViewModel.Create(_navigationState, uiConfig, wallet);
 
 			InsertWallet(walletViewModel);
 

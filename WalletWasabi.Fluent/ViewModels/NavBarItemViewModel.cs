@@ -4,15 +4,17 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
+
 	public abstract class NavBarItemViewModel : ViewModelBase, IRoutableViewModel
 	{
+		private NavigationStateViewModel _navigationState;
 		private bool _isSelected;
 		private bool _isExpanded;
 		private string _title;
 
-		public NavBarItemViewModel(IScreen screen)
+		public NavBarItemViewModel(NavigationStateViewModel navigationState)
 		{
-			HostScreen = screen;
+			_navigationState = navigationState;
 		}
 
 		public NavBarItemViewModel Parent { get; set; }
@@ -21,7 +23,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public string UrlPathSegment { get; } = Guid.NewGuid().ToString().Substring(0, 5);
 
-		public IScreen HostScreen { get; }
+		public IScreen HostScreen => _navigationState.Screen();
 
 		public bool IsExpanded
 		{

@@ -11,6 +11,7 @@ namespace WalletWasabi.Fluent.ViewModels
 	public class MainViewModel : ViewModelBase, IScreen, IDialogHost
 	{
 		private Global _global;
+		private NavigationStateViewModel _navigationState;
 		private StatusBarViewModel _statusBar;
 		private string _title = "Wasabi Wallet";
 		private DialogViewModelBase _currentDialog;
@@ -19,11 +20,20 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			_global = global;
 
+			_navigationState = new NavigationStateViewModel()
+			{
+				Screen = () => this,
+				// TODO: Add IScreen implementation to Dialog from main view
+				Dialog = () => this
+				// TODO: NextView
+				// TODO: CancelView
+			};
+
 			Network = global.Network;
 
 			StatusBar = new StatusBarViewModel(global.DataDir, global.Network, global.Config, global.HostedServices, global.BitcoinStore.SmartHeaderChain, global.Synchronizer, global.LegalDocuments);
 
-			NavBar = new NavBarViewModel(this, Router, global.WalletManager, global.UiConfig);
+			NavBar = new NavBarViewModel(_navigationState, Router, global.WalletManager, global.UiConfig);
 		}
 
 		public static MainViewModel Instance { get; internal set; }

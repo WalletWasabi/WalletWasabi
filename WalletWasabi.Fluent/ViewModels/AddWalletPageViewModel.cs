@@ -4,7 +4,7 @@ namespace WalletWasabi.Fluent.ViewModels
 {
 	public class AddWalletPageViewModel : NavBarItemViewModel
 	{
-		public AddWalletPageViewModel(IScreen screen) : base(screen)
+		public AddWalletPageViewModel(NavigationStateViewModel navigationState) : base(navigationState)
 		{
 			Title = "Add Wallet";
 		}
