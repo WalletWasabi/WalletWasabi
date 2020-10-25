@@ -4,7 +4,6 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
-
 	public abstract class NavBarItemViewModel : ViewModelBase, IRoutableViewModel
 	{
 		private NavigationStateViewModel _navigationState;
