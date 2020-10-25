@@ -18,9 +18,9 @@
         <DockPanel Name="PART_DockPanel" >
           <StackPanel Name="PART_StackPanel" DockPanel.Dock="Top" Spacing="10">
             <ContentPresenter Name="PART_TitlePresenter" Content="{TemplateBinding Title}" />
-            <TextBlock Name="PART_CaptionPresenter" Text="{TemplateBinding Caption}" />
+            <ContentPresenter Name="PART_CaptionPresenter" Content="{TemplateBinding Caption}" />
           </StackPanel>
-          <ContentPresenter Name="PART_ContentPresenter"                            
+          <ContentPresenter Name="PART_ContentPresenter"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
@@ -35,27 +35,27 @@
   </Style>
   <Style Selector="c|ContentArea /template/ ContentPresenter#PART_TitlePresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextControlForeground}" />
-    <Setter Property="TextBlock.FontSize" Value="24" />    
+    <Setter Property="TextBlock.FontSize" Value="24" />
   </Style>
-  <Style Selector="c|ContentArea /template/ TextBlock#PART_CaptionPresenter">
+  <Style Selector="c|ContentArea :is(Control).caption TextBlock, c|ContentArea :is(TextBlock).caption">
     <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
-    <Setter Property="FontSize" Value="14" />    
-    <Setter Property="TextWrapping" Value="Wrap" />    
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="TextWrapping" Value="Wrap" />
     <Setter Property="Opacity" Value="0.6" />
   </Style>
   <Style Selector="c|ContentArea /template/ DockPanel#PART_DockPanel">
-    <Setter Property="Margin" Value="17 39 17 0" />    
+    <Setter Property="Margin" Value="17 39 17 0" />
   </Style>
   <Style Selector="c|ContentArea /template/ StackPanel#PART_StackPanel">
-    <Setter Property="Margin" Value="0 0 0 20" />    
+    <Setter Property="Margin" Value="0 0 0 20" />
   </Style>
 
   <!--Dialog class-->
   <Style Selector=":is(c|ContentArea).dialog /template/ DockPanel#PART_DockPanel">
-    <Setter Property="Margin" Value="64 35 64 75" />    
+    <Setter Property="Margin" Value="64 35 64 75" />
   </Style>
   <Style Selector=":is(c|ContentArea).dialog /template/ StackPanel#PART_StackPanel">
-    <Setter Property="Margin" Value="0 0 0 28" />    
+    <Setter Property="Margin" Value="0 0 0 28" />
   </Style>
 
 </Styles>
