@@ -44,7 +44,7 @@
     <Setter Property="(TextBlock.FontStyle)" Value="Italic" />
   </Style>
 
-  <Style Selector=":is(Control).label">
+  <Style Selector="Label">
     <Setter Property="(TextBlock.FontSize)" Value="14" />
     <Setter Property="(TextBlock.FontWeight)" Value="Bold" />
     <Setter Property="Margin" Value="0 0 0 10" />
