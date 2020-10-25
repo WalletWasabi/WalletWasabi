@@ -22,7 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			Actions = new ObservableCollection<ViewModelBase>();
+			_actions = new ObservableCollection<ViewModelBase>();
 
 			uiConfig = Locator.Current.GetService<Global>().UiConfig;
 

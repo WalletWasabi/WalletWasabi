@@ -145,7 +145,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 
 		private static uint256 BlockHashFromHeight(uint height)
 		{
-			return Hashes.Hash256(BitConverter.GetBytes(height));
+			return Hashes.DoubleSHA256(BitConverter.GetBytes(height));
 		}
 	}
 }
