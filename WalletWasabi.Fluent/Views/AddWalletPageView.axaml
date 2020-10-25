@@ -13,8 +13,8 @@
   <c:ContentArea Title="Add Wallet" Caption="Type in your wallets name and select an option:">
     <StackPanel Spacing="40">
       <StackPanel>
-        <TextBlock Text="Wallet Name:" Classes="label" />
-        <TextBox x:Name="Test" Text="{Binding WalletName}" Watermark="(e.g. My Wallet)">
+        <Label Content="Wallet _Name:" Target="walletNameTb" />
+        <TextBox x:Name="walletNameTb" Text="{Binding WalletName}" Watermark="(e.g. My Wallet)">
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
           </i:Interaction.Behaviors>
