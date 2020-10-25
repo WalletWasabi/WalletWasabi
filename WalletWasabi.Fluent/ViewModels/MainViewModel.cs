@@ -20,13 +20,12 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			_global = global;
 
+			// TODO: Set Dialog with IScreen implementation
+			// TODO: Set default NextView
+			// TODO: Set default CancelView
 			_navigationState = new NavigationStateViewModel()
 			{
-				Screen = () => this,
-				// TODO: Add IScreen implementation to Dialog from main view
-				Dialog = () => this
-				// TODO: NextView
-				// TODO: CancelView
+				Screen = () => this
 			};
 
 			Network = global.Network;
