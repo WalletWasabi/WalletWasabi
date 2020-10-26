@@ -7,16 +7,6 @@ namespace WalletWasabi.Tor.Socks5.Models.Bases
 {
 	public abstract class ByteArraySerializableBase : IByteArraySerializable, IEquatable<ByteArraySerializableBase>, IEquatable<byte[]>
 	{
-		#region ConstructorsAndInitializers
-
-		protected ByteArraySerializableBase()
-		{
-		}
-
-		#endregion ConstructorsAndInitializers
-
-		#region Serialization
-
 		public abstract byte[] ToBytes();
 
 		public abstract void FromBytes(byte[] bytes);
@@ -49,10 +39,6 @@ namespace WalletWasabi.Tor.Socks5.Models.Bases
 		{
 			return ToHex(xhhSyntax: true);
 		}
-
-		#endregion Serialization
-
-		#region EqualityAndComparison
 
 		public static bool operator ==(ByteArraySerializableBase x, ByteArraySerializableBase y) => ByteHelpers.CompareFastUnsafe(x?.ToBytes(), y?.ToBytes());
 
@@ -92,7 +78,5 @@ namespace WalletWasabi.Tor.Socks5.Models.Bases
 		}
 
 		public bool Equals(byte[] other) => ByteHelpers.CompareFastUnsafe(ToBytes(), other);
-
-		#endregion EqualityAndComparison
 	}
 }

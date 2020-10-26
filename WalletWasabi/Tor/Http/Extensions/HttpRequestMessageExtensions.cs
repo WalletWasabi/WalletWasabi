@@ -54,6 +54,6 @@ namespace WalletWasabi.Tor.Http.Extensions
 			}
 
 			return startLine + headers + CRLF + messageBody;
-		}	
+		}
 	}
 }
