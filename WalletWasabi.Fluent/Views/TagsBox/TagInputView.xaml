@@ -10,6 +10,7 @@
     <AutoCompleteBox x:DataType="vm:TagInputViewModel" IsTextCompletionEnabled="True" Items="{CompiledBinding Suggestions}">
         <i:Interaction.Behaviors>
             <behaviors:TagsBoxAutoCompleteBoxBehavior
+                IsInputEnabled="{CompiledBinding IsInputEnabled}"
                 RestrictInputToSuggestions="{CompiledBinding RestrictInputToSuggestions}"
                 Suggestions="{CompiledBinding Suggestions}"
                 GrabFocusAction="{CompiledBinding GrabFocusAction, Mode=OneWayToSource}"

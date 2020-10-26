@@ -1,5 +1,8 @@
 using System;
 using System.Collections;
+using System.Reactive.Linq;
+using DynamicData;
+using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Gui.ViewModels;
 
@@ -8,29 +11,38 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
     public class TagInputViewModel : ViewModelBase
     {
         private readonly TagsBoxViewModel _parent;
-        private readonly ObservableAsPropertyHelper<IEnumerable> _suggestions;
         private readonly ObservableAsPropertyHelper<bool> _restrictInputToSuggestions;
+        private readonly ObservableAsPropertyHelper<IEnumerable> _suggestions;
 
         private Action _backspaceAndEmptyTextAction;
         private Action<string> _commitTextAction;
         private Action _grabFocusAction;
+        private readonly ObservableAsPropertyHelper<bool> _isInputEnabled;
 
         public TagInputViewModel(TagsBoxViewModel parent)
         {
             _parent = parent;
             _suggestions = _parent.WhenAnyValue(x => x.Suggestions)
                 .ToProperty(this, x => x.Suggestions);
-            
+
             _restrictInputToSuggestions = _parent.WhenAnyValue(x => x.RestrictInputToSuggestions)
                 .ToProperty(this, x => x.RestrictInputToSuggestions);
-            
+
+            _isInputEnabled = _parent.Tags
+                .ToObservableChangeSet()
+                .ToCollection()
+                .Where(x => _parent.TagCountLimit > 0)
+                .Select(x => x.Count <= _parent.TagCountLimit)
+                .ToProperty(this, x => x.IsInputEnabled, true);
+
             CommitTextAction += OnCommitTextAction;
             BackspaceAndEmptyTextAction += OnBackspaceAndEmptyTextAction;
         }
 
         public IEnumerable Suggestions => _suggestions.Value;
         public bool RestrictInputToSuggestions => _restrictInputToSuggestions.Value;
-        
+        public bool IsInputEnabled => _isInputEnabled.Value;
+
         public Action<string> CommitTextAction
         {
             get => _commitTextAction;
@@ -48,6 +60,7 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
             get => _grabFocusAction;
             set => this.RaiseAndSetIfChanged(ref _grabFocusAction, value);
         }
+
 
         private void OnBackspaceAndEmptyTextAction()
         {

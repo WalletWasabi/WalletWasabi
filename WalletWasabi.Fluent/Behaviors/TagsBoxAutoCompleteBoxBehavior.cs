@@ -15,7 +15,10 @@ namespace WalletWasabi.Fluent.Behaviors
     {
         public static readonly StyledProperty<bool> RestrictInputToSuggestionsProperty =
             AvaloniaProperty.Register<TagsBoxAutoCompleteBoxBehavior, bool>(nameof(RestrictInputToSuggestions));
-
+        
+        public static readonly StyledProperty<bool> IsInputEnabledProperty =
+            AvaloniaProperty.Register<TagsBoxAutoCompleteBoxBehavior, bool>(nameof(IsInputEnabled));
+        
         public static readonly StyledProperty<IEnumerable<string>> SuggestionsProperty =
             AvaloniaProperty.Register<TagsBoxAutoCompleteBoxBehavior, IEnumerable<string>>(nameof(Suggestions));
 
@@ -37,6 +40,13 @@ namespace WalletWasabi.Fluent.Behaviors
         {
             get => GetValue(RestrictInputToSuggestionsProperty);
             set => SetValue(RestrictInputToSuggestionsProperty, value);
+        }
+        
+        
+        public bool IsInputEnabled
+        {
+            get => GetValue(IsInputEnabledProperty);
+            set => SetValue(IsInputEnabledProperty, value);
         }
 
         public IEnumerable<string> Suggestions
@@ -94,6 +104,12 @@ namespace WalletWasabi.Fluent.Behaviors
         private void OnTextInput(object? sender, TextInputEventArgs e)
         {
             if (AssociatedObject is null) return;
+
+            if (!IsInputEnabled)
+            {
+                e.Handled = true;
+                return;
+            }
 
             if (RestrictInputToSuggestions && !Suggestions.Any(x =>
                 x.StartsWith(AssociatedObject.SearchText ?? "", true, CultureInfo.CurrentCulture)))
