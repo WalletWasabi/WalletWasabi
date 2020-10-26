@@ -29,7 +29,7 @@
                                Padding="{TemplateBinding Padding}"
                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"/>
-              </DockPanel>                                              
+              </DockPanel>
             </Border>
           </Panel>
         </Panel>

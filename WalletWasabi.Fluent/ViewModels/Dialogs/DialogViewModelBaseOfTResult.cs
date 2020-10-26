@@ -13,15 +13,15 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 	/// <typeparam name="TResult">The type of the value to be returned when the dialog is finished.</typeparam>
 	public abstract class DialogViewModelBase<TResult> : DialogViewModelBase
 	{
-		private readonly IDisposable _disposable;
-		private readonly TaskCompletionSource<TResult> _currentTaskCompletionSource;
+		private readonly IDisposable Disposable;
+		private readonly TaskCompletionSource<TResult> CurrentTaskCompletionSource;
 		private bool _isDialogOpen;
 
 		protected DialogViewModelBase()
 		{
-			_currentTaskCompletionSource = new TaskCompletionSource<TResult>();
+			CurrentTaskCompletionSource = new TaskCompletionSource<TResult>();
 
-			_disposable = this.WhenAnyValue(x => x.IsDialogOpen)
+			Disposable = this.WhenAnyValue(x => x.IsDialogOpen)
 							  .Skip(1) // Skip the initial value change (which is false).
 							  .DistinctUntilChanged()
 							  .Subscribe(OnIsDialogOpenChanged);
@@ -52,14 +52,14 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		/// <param name="value">The return value of the dialog</param>
 		protected void Close(TResult value = default)
 		{
-			if (_currentTaskCompletionSource.Task.IsCompleted)
+			if (CurrentTaskCompletionSource.Task.IsCompleted)
 			{
 				throw new InvalidOperationException("Dialog is already closed.");
 			}
 
-			_currentTaskCompletionSource.SetResult(value);
+			CurrentTaskCompletionSource.SetResult(value);
 
-			_disposable.Dispose();
+			Disposable.Dispose();
 
 			IsDialogOpen = false;
 
@@ -75,7 +75,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			host.CurrentDialog = this;
 			IsDialogOpen = true;
 
-			return _currentTaskCompletionSource.Task;
+			return CurrentTaskCompletionSource.Task;
 		}
 
 		/// <summary>

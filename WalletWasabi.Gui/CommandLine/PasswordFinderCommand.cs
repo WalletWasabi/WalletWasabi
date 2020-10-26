@@ -33,8 +33,8 @@ namespace WalletWasabi.Gui.CommandLine
 			};
 		}
 
-		public string WalletName { get; set; }
-		public string EncryptedSecret { get; set; }
+		public string? WalletName { get; set; }
+		public string? EncryptedSecret { get; set; }
 		public WalletManager WalletManager { get; }
 		public string Language { get; set; }
 		public bool UseNumbers { get; set; }
@@ -43,25 +43,20 @@ namespace WalletWasabi.Gui.CommandLine
 
 		public override Task<int> InvokeAsync(IEnumerable<string> args)
 		{
-			var error = false;
 			try
 			{
-				var extra = Options.Parse(args);
+				Options.Parse(args);
 				if (ShowHelp)
 				{
 					Options.WriteOptionDescriptions(CommandSet.Out);
 				}
 				else if (string.IsNullOrWhiteSpace(WalletName) && string.IsNullOrWhiteSpace(EncryptedSecret))
 				{
-					Logger.LogCritical("Missing required argument `--wallet=WalletName`.");
-					Logger.LogCritical("Use `findpassword --help` for details.");
-					error = true;
+					throw new InvalidOperationException("Missing required argument `--wallet=WalletName`. Use `findpassword --help` for details.");
 				}
 				else if (!PasswordFinder.Charsets.ContainsKey(Language))
 				{
-					Logger.LogCritical($"`{Language}` is not available language, try with `en, es, pt, it or fr`.");
-					Logger.LogCritical("Use `findpassword --help` for details.");
-					error = true;
+					throw new InvalidOperationException($"`{Language}` is not available language, try with `en, es, pt, it or fr`. Use `findpassword --help` for details.");
 				}
 				else if (!string.IsNullOrWhiteSpace(WalletName))
 				{
@@ -73,12 +68,10 @@ namespace WalletWasabi.Gui.CommandLine
 					PasswordFinder.Find(EncryptedSecret, Language, UseNumbers, UseSymbols);
 				}
 			}
-			catch
+			catch (Exception ex)
 			{
-				Logger.LogCritical($"There was a problem interpreting the command, please review it.");
-				error = true;
+				return Task.FromException<int>(ex);
 			}
-			Environment.Exit(error ? 1 : 0);
 			return Task.FromResult(0);
 		}
 	}

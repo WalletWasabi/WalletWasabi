@@ -21,8 +21,8 @@ namespace WalletWasabi.Services
 		/// Creates a new instance of the object where lock name is based on <paramref name="network"/> name. 
 		/// </summary>
 		/// <param name="network">Bitcoin network selected when Wasabi Wallet was started.</param>
-		public SingleInstanceChecker(Network network): this(network, network.ToString())
-		{			
+		public SingleInstanceChecker(Network network) : this(network, network.ToString())
+		{
 		}
 
 		/// <summary>

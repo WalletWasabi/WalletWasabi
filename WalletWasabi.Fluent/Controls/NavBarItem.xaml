@@ -85,7 +85,7 @@
   </Style>
 
   <!-- Selected State -->
-  <Style Selector="c|NavBarItem:selected /template/ Border#Indicator">    
+  <Style Selector="c|NavBarItem:selected /template/ Border#Indicator">
     <Setter Property="Opacity" Value="1" />
     <Setter Property="RenderTransformOrigin" Value="50%,100%" />
     <Setter Property="RenderTransform" Value="scaleY(1)" />
