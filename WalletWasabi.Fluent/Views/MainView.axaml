@@ -54,6 +54,24 @@
         </DockPanel>
       </Panel>
     </SplitView>
+    <Panel DataContext="{Binding DialogScreen}" IsVisible="{Binding IsDialogVisible}">
+      <Panel Background="{DynamicResource DialogOverlayColor}"/>
+      <Border Background="{DynamicResource DialogBackground}" VerticalAlignment="Center" HorizontalAlignment="Center" MinWidth="750" MinHeight="450">
+        <rxui:RoutedViewHost Router="{Binding Router}">
+          <rxui:RoutedViewHost.ViewLocator>
+            <vl:ScreenViewLocator />
+          </rxui:RoutedViewHost.ViewLocator>
+          <rxui:RoutedViewHost.PageTransition>
+            <CrossFade Duration="0:0:0.25" />
+          </rxui:RoutedViewHost.PageTransition>
+          <rxui:RoutedViewHost.DefaultContent>
+            <TextBlock Text="Default content"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Center" />
+          </rxui:RoutedViewHost.DefaultContent>
+        </rxui:RoutedViewHost>
+      </Border>
+    </Panel>
     <c:Dialog DataContext="{Binding CurrentDialog}" Content="{Binding }" IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}" />
   </Panel>
 </UserControl>

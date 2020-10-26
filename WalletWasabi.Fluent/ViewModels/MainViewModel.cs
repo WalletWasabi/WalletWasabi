@@ -3,7 +3,6 @@ using ReactiveUI;
 using System.Reactive;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
-using System;
 using Global = WalletWasabi.Gui.Global;
 
 namespace WalletWasabi.Fluent.ViewModels
@@ -14,11 +13,14 @@ namespace WalletWasabi.Fluent.ViewModels
 		private NavigationStateViewModel _navigationState;
 		private StatusBarViewModel _statusBar;
 		private string _title = "Wasabi Wallet";
+		private DialogScreenViewModel _dialogScreen;
 		private DialogViewModelBase _currentDialog;
 		private NavBarViewModel _navBar;
 		public MainViewModel(Global global)
 		{
 			_global = global;
+
+			_dialogScreen = new DialogScreenViewModel();
 
 			// TODO: Set Dialog with IScreen implementation
 			// TODO: Set default NextView
@@ -26,7 +28,8 @@ namespace WalletWasabi.Fluent.ViewModels
 			_navigationState = new NavigationStateViewModel()
 			{
 				DialogHost = () => this,
-				Screen = () => this
+				Screen = () => this,
+				Dialog = () => _dialogScreen
 			};
 
 			Network = global.Network;
@@ -45,6 +48,12 @@ namespace WalletWasabi.Fluent.ViewModels
 		public ReactiveCommand<Unit, Unit> GoBack => Router.NavigateBack;
 
 		public Network Network { get; }
+
+		public DialogScreenViewModel DialogScreen
+		{
+			get => _dialogScreen;
+			set => this.RaiseAndSetIfChanged(ref _dialogScreen, value);
+		}
 
 		public DialogViewModelBase CurrentDialog
 		{
