@@ -60,22 +60,24 @@ namespace WalletWasabi.Services.Terminate
 			// Async termination has to be started on another thread otherwise there is a possibility of deadlock.
 			// We still need to block the caller so ManualResetEvent applied.
 			using ManualResetEvent resetEvent = new ManualResetEvent(false);
-			Task.Run(async () => 
+			Task.Run(async () =>
 			{
 				try
 				{
 					await _terminateApplicationAsync();
 				}
-				catch(Exception ex)
+				catch (Exception ex)
 				{
 					Logger.LogWarning(ex.ToTypeMessageString());
 				}
 
 				resetEvent.Set();
-			}));
+			});
+
 			resetEvent.WaitOne();
 
-			Dispose();
+			AppDomain.CurrentDomain.ProcessExit -= CurrentDomain_ProcessExit;
+			Console.CancelKeyPress -= Console_CancelKeyPress;
 
 			// Indicate that the termination procedure finished. So other callers can return.
 			Interlocked.Exchange(ref _terminateStatus, TerminateFinished);
@@ -84,11 +86,5 @@ namespace WalletWasabi.Services.Terminate
 		}
 
 		public bool IsTerminateRequested => Interlocked.Read(ref _terminateStatus) > TerminateStatusIdle;
-
-		private void Dispose()
-		{
-			AppDomain.CurrentDomain.ProcessExit -= CurrentDomain_ProcessExit;
-			Console.CancelKeyPress -= Console_CancelKeyPress;
-		}
 	}
 }
