@@ -60,9 +60,13 @@ namespace WalletWasabi.Services.Terminate
 			// Async termination has to be started on another thread otherwise there is a possibility of deadlock.
 			// We still need to block the caller so ManualResetEvent applied.
 			using ManualResetEvent resetEvent = new ManualResetEvent(false);
-			Task.Run(async () => await _terminateApplicationAsync.Invoke().ContinueWith((arg) =>
+			Task.Run(async () => 
 			{
-				if (arg?.Exception is { } ex)
+				try
+				{
+					await _terminateApplicationAsync();
+				}
+				catch(Exception ex)
 				{
 					Logger.LogWarning(ex.ToTypeMessageString());
 				}
