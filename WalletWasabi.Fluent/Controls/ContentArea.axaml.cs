@@ -12,6 +12,18 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<object> CaptionProperty =
 			AvaloniaProperty.Register<ContentArea, object>(nameof(Caption));
 
+		public static readonly StyledProperty<bool> EnableCancelProperty =
+			AvaloniaProperty.Register<ContentArea, bool>(nameof(EnableCancel));
+
+		public static readonly StyledProperty<bool> EnableNextProperty =
+			AvaloniaProperty.Register<ContentArea, bool>(nameof(EnableNext));
+
+		public static readonly StyledProperty<object> CancelContentProperty =
+			AvaloniaProperty.Register<ContentArea, object>(nameof(CancelContent), "Cancel");
+
+		public static readonly StyledProperty<object> NextContentProperty =
+			AvaloniaProperty.Register<ContentArea, object>(nameof(NextContent), "Next");
+
 		public object Title
 		{
 			get => GetValue(TitleProperty);
@@ -22,6 +34,30 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(CaptionProperty);
 			set => SetValue(CaptionProperty, value);
+		}
+
+		public bool EnableCancel
+		{
+			get => GetValue(EnableCancelProperty);
+			set => SetValue(EnableCancelProperty, value);
+		}
+
+		public bool EnableNext
+		{
+			get => GetValue(EnableNextProperty);
+			set => SetValue(EnableNextProperty, value);
+		}
+
+		public object CancelContent
+		{
+			get => GetValue(CancelContentProperty);
+			set => SetValue(CancelContentProperty, value);
+		}
+
+		public object NextContent
+		{
+			get => GetValue(NextContentProperty);
+			set => SetValue(NextContentProperty, value);
 		}
 
 		protected override bool RegisterContentPresenter(IContentPresenter presenter)
