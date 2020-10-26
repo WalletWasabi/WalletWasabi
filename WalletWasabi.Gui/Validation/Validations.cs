@@ -48,11 +48,14 @@ namespace WalletWasabi.Gui.Validation
 		{
 			if (ValidationMethods.TryGetValue(propertyName, out ValidateMethod? validationMethod))
 			{
-				ClearErrors(propertyName);
+				// Copy the current errors
+				var oldErrors = new List<ErrorDescriptor>(ErrorsByPropertyName[propertyName]);
 
+				// Validate
 				validationMethod(ErrorsByPropertyName[propertyName]);
 
-				OnErrorsChanged(propertyName);
+				// Clear obsoleted errors and notify properties that changed
+				ClearAndNotify(propertyName, oldErrors);
 			}
 		}
 
@@ -74,24 +77,47 @@ namespace WalletWasabi.Gui.Validation
 				: ErrorDescriptors.Empty;
 		}
 
-		private void ClearErrors(string propertyName)
+		private void ClearAndNotify(string propertyName, List<ErrorDescriptor> oldErrors)
 		{
 			if (ErrorsByPropertyName.ContainsKey(propertyName))
 			{
-				ErrorsByPropertyName[propertyName].Clear();
+				// Current errors
+				var errorsList = ErrorsByPropertyName[propertyName];
 
-				OnErrorsChanged(propertyName);
+				// Severities of the new errors
+				var categoriesToNotify = errorsList.Where(x => !oldErrors.Any(y => x.Message == y.Message && x.Severity == y.Severity)).Select(x => x.Severity).ToList();
+
+				// Remove the old errors
+				oldErrors.ForEach(x => errorsList.Remove(x));
+
+				// Severities of the obsoleted errors
+				categoriesToNotify.AddRange(oldErrors.Where(x => !errorsList.Any(y => x.Message == y.Message && x.Severity == y.Severity)).Select(x => x.Severity).ToList());
+
+				var propertiesToNotify = categoriesToNotify.Select(GetPropertyNameBySeverity).ToList();
+
+				OnErrorsChanged(propertyName, propertiesToNotify);
 			}
 		}
 
-		private void OnErrorsChanged(string propertyName)
+		private string GetPropertyNameBySeverity(ErrorSeverity severity)
 		{
-			ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
+			return severity switch
+			{
+				ErrorSeverity.Info => nameof(AnyInfos),
+				ErrorSeverity.Warning => nameof(AnyWarnings),
+				ErrorSeverity.Error => nameof(AnyErrors),
+				_ => nameof(Any),
+			};
+		}
 
-			this.RaisePropertyChanged(nameof(Any));
-			this.RaisePropertyChanged(nameof(AnyErrors));
-			this.RaisePropertyChanged(nameof(AnyWarnings));
-			this.RaisePropertyChanged(nameof(AnyInfos));
+		private void OnErrorsChanged(string propertyName, List<string> propertiesToNotify)
+		{
+			if (propertiesToNotify.Any())
+			{
+				ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
+			}
+
+			propertiesToNotify.ForEach(x => this.RaisePropertyChanged(x));
 		}
 	}
 }
