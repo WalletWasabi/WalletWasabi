@@ -32,7 +32,7 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
                 .ToObservableChangeSet()
                 .ToCollection()
                 .Where(x => _parent.TagCountLimit > 0)
-                .Select(x => x.Count <= _parent.TagCountLimit)
+                .Select(x => x.Count < _parent.TagCountLimit)
                 .ToProperty(this, x => x.IsInputEnabled, true);
 
             CommitTextAction += OnCommitTextAction;
