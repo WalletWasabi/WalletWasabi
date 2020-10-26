@@ -44,6 +44,7 @@ namespace WalletWasabi.Services.Terminate
 		public void Terminate(int exitCode = 0)
 		{
 			var prevValue = Interlocked.CompareExchange(ref _terminateStatus, TerminateStatusInProgress, TerminateStatusIdle);
+			Logger.LogTrace($"Terminate was called from ThreadId: {Thread.CurrentThread.ManagedThreadId}");
 			if (prevValue != TerminateStatusIdle)
 			{
 				// Secondary callers will be blocked until the end of the termination.
