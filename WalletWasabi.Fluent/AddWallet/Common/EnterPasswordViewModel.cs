@@ -28,7 +28,7 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 			HostScreen = screen;
 
 			this.ValidateProperty(x => x.Password, ValidatePassword);
-			this.ValidateProperty(x => x.ConfirmPassword, ValidatePassword);
+			this.ValidateProperty(x => x.ConfirmPassword, ValidateConfirmPassword);
 
 			ContinueCommand = ReactiveCommand.Create(() =>
 			{
@@ -44,10 +44,20 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 				!Validations.Any)
 			);
 
+			this.WhenAnyValue(x => x.Password)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => this.RaisePropertyChanged(nameof(ConfirmPassword)));
+
+			this.WhenAnyValue(x => x.ConfirmPassword)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => this.RaisePropertyChanged(nameof(Password)));
+
 			CancelCommand = ReactiveCommand.Create(() => screen.Router.NavigateAndReset.Execute(new SettingsPageViewModel(screen)));
 
 			ErrorsChanged += OnErrorsChanged;
 		}
+
+
 
 		public string ErrorMessage
 		{
@@ -78,7 +88,10 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 		{
 			if (Validations is Validations validations)
 			{
-				var errors = (List<ErrorDescriptor>)validations.GetErrors(e.PropertyName);
+				var errors = new List<ErrorDescriptor>();
+
+				errors.AddRange((List<ErrorDescriptor>)validations.GetErrors(nameof(Password)));
+				errors.AddRange((List<ErrorDescriptor>)validations.GetErrors(nameof(ConfirmPassword)));
 
 				if (errors.Any())
 				{
@@ -91,6 +104,14 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 			}
 		}
 
+		private void ValidateConfirmPassword(IValidationErrors errors)
+		{
+			if (!string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(ConfirmPassword) && Password != ConfirmPassword)
+			{
+				errors.Add(ErrorSeverity.Error, PasswordHelper.MatchingMessage);
+			}
+		}
+
 		private void ValidatePassword(IValidationErrors errors)
 		{
 			string password = Password;
@@ -98,25 +119,11 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 			if (PasswordHelper.IsTrimable(password, out _))
 			{
 				errors.Add(ErrorSeverity.Error, PasswordHelper.WhitespaceMessage);
-				return;
 			}
 
 			if (PasswordHelper.IsTooLong(password, out _))
 			{
 				errors.Add(ErrorSeverity.Error, PasswordHelper.PasswordTooLongMessage);
-				return;
-			}
-
-			if (!string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(ConfirmPassword) && Password != ConfirmPassword)
-			{
-				errors.Add(ErrorSeverity.Error, PasswordHelper.MatchingMessage);
-				return;
-			}
-
-			if (!string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(ConfirmPassword) && Validations is Validations validations)
-			{
-				validations.ClearErrors(nameof(Password));
-				validations.ClearErrors(nameof(ConfirmPassword));
 			}
 		}
 	}
