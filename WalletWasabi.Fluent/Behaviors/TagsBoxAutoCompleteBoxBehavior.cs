@@ -149,7 +149,8 @@ namespace WalletWasabi.Fluent.Behaviors
             var currentText = AssociatedObject.Text ?? "";
             var currentTextTrimmed = currentText.Trim();
 
-            if (!IsInputEnabled || currentText.Length < 1 || string.IsNullOrEmpty(currentTextTrimmed) || !currentText.EndsWith(' ') ||
+            if (!IsInputEnabled ||
+                currentText.Length < 1 || string.IsNullOrEmpty(currentTextTrimmed) || !currentText.EndsWith(' ') ||
                 (RestrictInputToSuggestions && !Suggestions.Any(x => x.Equals(currentTextTrimmed,
                     StringComparison.InvariantCultureIgnoreCase))))
                 return;
