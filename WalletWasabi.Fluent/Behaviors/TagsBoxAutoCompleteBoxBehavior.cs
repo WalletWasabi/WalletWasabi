@@ -149,7 +149,7 @@ namespace WalletWasabi.Fluent.Behaviors
             var currentText = AssociatedObject.Text ?? "";
             var currentTextTrimmed = currentText.Trim();
 
-            if (currentText.Length < 1 || string.IsNullOrEmpty(currentTextTrimmed) || !currentText.EndsWith(' ') ||
+            if (!IsInputEnabled || currentText.Length < 1 || string.IsNullOrEmpty(currentTextTrimmed) || !currentText.EndsWith(' ') ||
                 (RestrictInputToSuggestions && !Suggestions.Any(x => x.Equals(currentTextTrimmed,
                     StringComparison.InvariantCultureIgnoreCase))))
                 return;
@@ -164,7 +164,7 @@ namespace WalletWasabi.Fluent.Behaviors
         private void OnKeyUp(object? sender, KeyEventArgs e)
         {
             if (AssociatedObject is null) return;
-
+ 
             var str = AssociatedObject?.Text ?? "";
 
             _bs2 = _bs1;
@@ -178,7 +178,7 @@ namespace WalletWasabi.Fluent.Behaviors
                 case Key.Back when _bs1 && _bs2:
                     BackspaceAndEmptyTextAction?.Invoke();
                     break;
-                case Key.Enter when !string.IsNullOrEmpty(strTrimmed):
+                case Key.Enter when !string.IsNullOrEmpty(strTrimmed) && IsInputEnabled:
                     if (RestrictInputToSuggestions && !Suggestions.Any(x =>
                         x.Equals(strTrimmed, StringComparison.InvariantCultureIgnoreCase)))
                         break;
