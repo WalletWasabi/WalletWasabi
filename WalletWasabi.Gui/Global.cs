@@ -102,12 +102,13 @@ namespace WalletWasabi.Gui
 				WalletManager.OnDequeue += WalletManager_OnDequeue;
 				WalletManager.WalletRelevantTransactionProcessed += WalletManager_WalletRelevantTransactionProcessed;
 
-				var indexStore = new IndexStore(Network, new SmartHeaderChain());
+				var networkWorkFolderPath = Path.Combine(DataDir, "BitcoinStore", Network.ToString());
+				var transactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
+				var indexStore = new IndexStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, new SmartHeaderChain());
+				var mempoolService = new MempoolService();
+				var blocks = new FileSystemBlockRepository(Path.Combine(networkWorkFolderPath, "Blocks"), Network);
 
-				BitcoinStore = new BitcoinStore(
-					Path.Combine(DataDir, "BitcoinStore"), Network,
-					indexStore, new AllTransactionStore(), new MempoolService()
-				);
+				BitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService, blocks);
 
 				SingleInstanceChecker = new SingleInstanceChecker(Network);
 			}
@@ -144,7 +145,6 @@ namespace WalletWasabi.Gui
 				AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
 				var addrManTask = InitializeAddressManagerBehaviorAsync();
 
-				var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
 				var userAgent = Constants.UserAgents.RandomElement();
 				var connectionParameters = new NodeConnectionParameters { UserAgent = userAgent };
 
@@ -371,7 +371,7 @@ namespace WalletWasabi.Gui
 					new SmartBlockProvider(
 						new P2pBlockProvider(Nodes, BitcoinCoreNode, Synchronizer, Config.ServiceConfiguration, Network),
 						Cache),
-					new FileSystemBlockRepository(blocksFolderPath, Network));
+					BitcoinStore.BlockRepository);
 
 				#endregion Blocks provider
 

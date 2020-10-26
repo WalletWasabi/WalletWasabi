@@ -459,14 +459,13 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			{
 				foreach (var sameLabelCoin in scoins.Where(c => !c.Label.IsEmpty && c.Label == coin.Label))
 				{
-					sameLabelCoin.Clusters = coin.Clusters;
+					sameLabelCoin.Cluster = coin.Cluster;
 				}
 			}
 			var coinsView = new CoinsView(scoins);
+			var transactionStore = new AllTransactionStoreMock(workFolderPath: ".", Network.Main);
 
-			var bitcoinStore = new BitcoinStoreMock();
-
-			return new TransactionFactory(Network.Main, keyManager, coinsView, bitcoinStore, password, allowUnconfirmed);
+			return new TransactionFactory(Network.Main, keyManager, coinsView, transactionStore, password, allowUnconfirmed);
 		}
 	}
 }

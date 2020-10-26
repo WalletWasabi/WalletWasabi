@@ -57,14 +57,16 @@ namespace WalletWasabi.Tests.IntegrationTests
 			}
 			var dataDir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName());
 
-			BitcoinStore bitcoinStore = new BitcoinStore(Path.Combine(dataDir, EnvironmentHelpers.GetMethodName()), network,
-				new IndexStore(network, new SmartHeaderChain()), new AllTransactionStore(), new MempoolService());
-			
+			var dir = Path.Combine(dataDir, EnvironmentHelpers.GetMethodName());
+			var indexStore = new IndexStore(Path.Combine(dir, "indexStore"), network, new SmartHeaderChain());
+			var transactionStore = new AllTransactionStore(Path.Combine(dir, "transactionStore"), network);
+			var mempoolService = new MempoolService();
+			var blocks = new FileSystemBlockRepository(Path.Combine(dir, "blocks"), network);
+			BitcoinStore bitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService, blocks);
 			await bitcoinStore.InitializeAsync();
 
 			var addressManagerFolderPath = Path.Combine(dataDir, "AddressManager");
 			var addressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{network}.dat");
-			var blocksFolderPath = Path.Combine(dataDir, "Blocks", network.ToString());
 			var connectionParameters = new NodeConnectionParameters();
 			AddressManager addressManager = null;
 			try
@@ -101,7 +103,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			ServiceConfiguration serviceConfig = new ServiceConfiguration(MixUntilAnonymitySet.PrivacyLevelStrong.ToString(), 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
 				new P2pBlockProvider(nodes, null, syncer, serviceConfig, network),
-				new FileSystemBlockRepository(blocksFolderPath, network));
+				bitcoinStore.BlockRepository);
 
 			using Wallet wallet = Wallet.CreateAndRegisterServices(
 				network,
@@ -113,7 +115,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				new ServiceConfiguration(MixUntilAnonymitySet.PrivacyLevelStrong.ToString(), 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold)),
 				syncer,
 				blockProvider);
-			Assert.True(Directory.Exists(blocksFolderPath));
+			Assert.True(Directory.Exists(blocks.BlocksFolderPath));
 
 			try
 			{
@@ -142,7 +144,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				var hashArray = blocksToDownload.ToArray();
 				foreach (var block in await Task.WhenAll(downloadTasks))
 				{
-					Assert.True(File.Exists(Path.Combine(blocksFolderPath, hashArray[i].ToString())));
+					Assert.True(File.Exists(Path.Combine(blocks.BlocksFolderPath, hashArray[i].ToString())));
 					i++;
 				}
 
@@ -160,9 +162,9 @@ namespace WalletWasabi.Tests.IntegrationTests
 					await wallet.StopAsync(CancellationToken.None);
 				}
 
-				if (Directory.Exists(blocksFolderPath))
+				if (Directory.Exists(blocks.BlocksFolderPath))
 				{
-					Directory.Delete(blocksFolderPath, recursive: true);
+					Directory.Delete(blocks.BlocksFolderPath, recursive: true);
 				}
 
 				IoHelpers.EnsureContainingDirectoryExists(addressManagerFilePath);

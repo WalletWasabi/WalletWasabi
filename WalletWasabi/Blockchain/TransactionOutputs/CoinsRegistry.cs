@@ -87,11 +87,11 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 					{
 						if (ClustersByScriptPubKey.TryGetValue(coin.ScriptPubKey, out var cluster))
 						{
-							coin.Clusters = cluster;
+							coin.Cluster = cluster;
 						}
 						else
 						{
-							ClustersByScriptPubKey.Add(coin.ScriptPubKey, coin.Clusters);
+							ClustersByScriptPubKey.Add(coin.ScriptPubKey, coin.Cluster);
 						}
 
 						foreach (var spentOutPoint in coin.SpentOutputs)
@@ -175,9 +175,9 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 					{
 						if (newCoin.AnonymitySet < PrivacyLevelThreshold)
 						{
-							spentCoin.Clusters.Merge(newCoin.Clusters);
-							newCoin.Clusters = spentCoin.Clusters;
-							ClustersByScriptPubKey.AddOrReplace(newCoin.ScriptPubKey, newCoin.Clusters);
+							spentCoin.Cluster.Merge(newCoin.Cluster);
+							newCoin.Cluster = spentCoin.Cluster;
+							ClustersByScriptPubKey.AddOrReplace(newCoin.ScriptPubKey, newCoin.Cluster);
 						}
 					}
 				}

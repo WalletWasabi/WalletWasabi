@@ -42,7 +42,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool? _selectPrivateCheckBoxState;
 		private bool? _selectNonPrivateCheckBoxState;
 		private GridLength _coinJoinStatusWidth;
-		private SortOrder _clustersSortDirection;
+		private SortOrder _clusterSortDirection;
 		private Money _selectedAmount;
 		private bool _isAnyCoinSelected;
 		private bool _labelExposeCommonOwnershipWarning;
@@ -95,10 +95,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => SortColumn(x, nameof(AmountSortDirection)));
 
-			this.WhenAnyValue(x => x.ClustersSortDirection)
+			this.WhenAnyValue(x => x.ClusterSortDirection)
 				.Where(x => x != SortOrder.None)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => SortColumn(x, nameof(ClustersSortDirection)));
+				.Subscribe(x => SortColumn(x, nameof(ClusterSortDirection)));
 
 			this.WhenAnyValue(x => x.StatusSortDirection)
 				.Where(x => x != SortOrder.None)
@@ -245,10 +245,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _privacySortDirection, value);
 		}
 
-		public SortOrder ClustersSortDirection
+		public SortOrder ClusterSortDirection
 		{
-			get => _clustersSortDirection;
-			set => this.RaiseAndSetIfChanged(ref _clustersSortDirection, value);
+			get => _clusterSortDirection;
+			set => this.RaiseAndSetIfChanged(ref _clusterSortDirection, value);
 		}
 
 		public Money SelectedAmount
@@ -338,7 +338,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (savedCol != nameof(AmountSortDirection)
 	   			& savedCol != nameof(PrivacySortDirection)
-				& savedCol != nameof(ClustersSortDirection)
+				& savedCol != nameof(ClusterSortDirection)
 				& savedCol != nameof(StatusSortDirection))
 			{
 				SelectedColumnPreference = new SortingPreference(SortOrder.Increasing, nameof(AmountSortDirection));
@@ -356,7 +356,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
  
 			AmountSortDirection = sortPref.Match(sortOrder, nameof(AmountSortDirection));
 			PrivacySortDirection = sortPref.Match(sortOrder, nameof(PrivacySortDirection));
-			ClustersSortDirection = sortPref.Match(sortOrder, nameof(ClustersSortDirection));
+			ClusterSortDirection = sortPref.Match(sortOrder, nameof(ClusterSortDirection));
 			StatusSortDirection = sortPref.Match(sortOrder, nameof(StatusSortDirection));
 		}
 
@@ -375,11 +375,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					? sortExpression.ThenByAscending(cvm => cvm.AnonymitySet)
 					: sortExpression.ThenByDescending(cvm => cvm.AnonymitySet);
 			}
-			else if (ClustersSortDirection != SortOrder.None)
+			else if (ClusterSortDirection != SortOrder.None)
 			{
-				MyComparer = ClustersSortDirection == SortOrder.Increasing
-					? sortExpression.ThenByAscending(cvm => cvm.Clusters)
-					: sortExpression.ThenByDescending(cvm => cvm.Clusters);
+				MyComparer = ClusterSortDirection == SortOrder.Increasing
+					? sortExpression.ThenByAscending(cvm => cvm.Cluster)
+					: sortExpression.ThenByDescending(cvm => cvm.Cluster);
 			}
 			else if (StatusSortDirection != SortOrder.None)
 			{

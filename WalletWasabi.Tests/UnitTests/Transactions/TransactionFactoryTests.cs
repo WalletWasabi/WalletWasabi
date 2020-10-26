@@ -205,7 +205,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var cluster1 = new Cluster(coinsCluster1);
 			foreach (var coin in coinsCluster1)
 			{
-				coin.Clusters = cluster1;
+				coin.Cluster = cluster1;
 			}
 
 			// cluster 2 is known by 6 people: Julio, Lee, Jean, Donald, Onur and Satoshi
@@ -213,14 +213,12 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var cluster2 = new Cluster(coinsCluster2);
 			foreach (var coin in coinsCluster2)
 			{
-				coin.Clusters = cluster2;
+				coin.Cluster = cluster2;
 			}
 
 			var coinsView = new CoinsView(scoins.ToArray());
-			
-			var bitcoinStore = new BitcoinStoreMock();
-			
-			var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, bitcoinStore, password);
+			var transactionStore = new AllTransactionStoreMock(workFolderPath: ".", Network.Main);
+			var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, transactionStore, password);
 
 			// Two 0.9btc coins are enough
 			var payment = new PaymentIntent(new Key().ScriptPubKey, Money.Coins(1.75m), label: "Sophie");
@@ -228,7 +226,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var result = transactionFactory.BuildTransaction(payment, feeRate);
 
 			Assert.Equal(2, result.SpentCoins.Count());
-			Assert.All(result.SpentCoins, c => Assert.Equal(c.Clusters, cluster2));
+			Assert.All(result.SpentCoins, c => Assert.Equal(c.Cluster, cluster2));
 			Assert.Contains(coinsByLabel["Julio"], result.SpentCoins);
 			Assert.Contains(coinsByLabel["Donald, Jean, Lee, Onur"], result.SpentCoins);
 
@@ -238,7 +236,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			result = transactionFactory.BuildTransaction(payment, feeRate);
 
 			Assert.Equal(3, result.SpentCoins.Count());
-			Assert.All(result.SpentCoins, c => Assert.Equal(c.Clusters, cluster2));
+			Assert.All(result.SpentCoins, c => Assert.Equal(c.Cluster, cluster2));
 			Assert.Contains(coinsByLabel["Julio"], result.SpentCoins);
 			Assert.Contains(coinsByLabel["Donald, Jean, Lee, Onur"], result.SpentCoins);
 			Assert.Contains(coinsByLabel["Satoshi"], result.SpentCoins);
@@ -250,7 +248,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			result = transactionFactory.BuildTransaction(payment, feeRate);
 
 			Assert.Equal(4, result.SpentCoins.Count());
-			Assert.All(result.SpentCoins, c => Assert.Equal(c.Clusters, cluster1));
+			Assert.All(result.SpentCoins, c => Assert.Equal(c.Cluster, cluster1));
 			Assert.Contains(coinsByLabel["Pablo"], result.SpentCoins);
 			Assert.Contains(coinsByLabel["Daniel"], result.SpentCoins);
 			Assert.Contains(coinsByLabel["Adolf"], result.SpentCoins);
@@ -618,16 +616,12 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			{
 				foreach (var sameLabelCoin in scoins.Where(c => !c.Label.IsEmpty && c.Label == coin.Label))
 				{
-					sameLabelCoin.Clusters = coin.Clusters;
+					sameLabelCoin.Cluster = coin.Cluster;
 				}
 			}
 			var coinsView = new CoinsView(scoins);
- 
-			var bitcoinStore = new BitcoinStoreMock();
- 
-			var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, bitcoinStore, password);
-
-			return new TransactionFactory(Network.Main, keyManager, coinsView, bitcoinStore, password, allowUnconfirmed);
+			var transactionStore = new AllTransactionStoreMock(workFolderPath: ".", Network.Main);
+			return new TransactionFactory(Network.Main, keyManager, coinsView, transactionStore, password, allowUnconfirmed);
 		}
 	}
 }
