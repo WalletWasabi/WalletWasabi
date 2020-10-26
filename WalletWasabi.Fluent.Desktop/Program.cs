@@ -34,8 +34,8 @@ namespace WalletWasabi.Fluent.Desktop
 			bool runGui = false;
 			Exception? appException = null;
 
-			try
-			{
+			// try
+			// {
 				CrashReporter = new CrashReporter();
 				Global = CreateGlobal();
 				Locator.CurrentMutable.RegisterConstant(Global);
@@ -61,17 +61,17 @@ namespace WalletWasabi.Fluent.Desktop
 						.AfterSetup(_ => AppMainAsync(args))
 						.StartWithClassicDesktopLifetime(args);
 				}
-			}
-			catch (Exception ex)
-			{
-				Logger.LogCritical(ex);
-				CrashReporter.SetException(ex);
-				throw;
-			}
-			finally
-			{
-				DisposeAsync().GetAwaiter().GetResult();
-			}
+			// }
+			// catch (Exception ex)
+			// {
+			// 	Logger.LogCritical(ex);
+			// 	CrashReporter.SetException(ex);
+			// 	throw;
+			// }
+			// finally
+			// {
+			// 	DisposeAsync().GetAwaiter().GetResult();
+			// }
 		}
 
 		private static Global CreateGlobal()
