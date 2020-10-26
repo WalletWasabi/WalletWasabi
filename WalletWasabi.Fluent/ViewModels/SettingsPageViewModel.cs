@@ -29,7 +29,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				async interaction =>
 				{
 					var x = new TestDialogViewModel(navigationState, interaction.Input);
-					var result = await x.ShowDialogAsync(MainViewModel.Instance);
+					var result = await x.ShowDialogAsync(navigationState.DialogHost());
 					interaction.SetOutput(result);
 				});
 

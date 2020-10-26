@@ -25,6 +25,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			// TODO: Set default CancelView
 			_navigationState = new NavigationStateViewModel()
 			{
+				DialogHost = () => this,
 				Screen = () => this
 			};
 
