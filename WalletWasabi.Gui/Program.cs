@@ -25,24 +25,20 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui
 {
-	public static class Program
+	public class Program
 	{
-		private static Global Global;
+		private readonly Global Global;
 
 		// This is only needed to pass CrashReporter to AppMainAsync otherwise it could be a local variable in Main().
-		private static CrashReporter CrashReporter;
+		private readonly CrashReporter CrashReporter;
 
-		/// Warning! In Avalonia applications Main must not be async. Otherwise application may not run on OSX.
-		/// see https://github.com/AvaloniaUI/Avalonia/wiki/Unresolved-platform-support-issues
-		private static void Main(string[] args)
+		private void Start(string[] args)
 		{
 			bool runGui = false;
 			Exception? appException = null;
-			CrashReporter = new CrashReporter();
 
 			try
 			{
-				Global = CreateGlobal();
 				Locator.CurrentMutable.RegisterConstant(Global);
 				Locator.CurrentMutable.RegisterConstant(CrashReporter);
 
@@ -78,6 +74,20 @@ namespace WalletWasabi.Gui
 			TerminateApplicationAsync(appException).GetAwaiter().GetResult();
 		}
 
+		/// Warning! In Avalonia applications Main must not be async. Otherwise application may not run on OSX.
+		/// see https://github.com/AvaloniaUI/Avalonia/wiki/Unresolved-platform-support-issues
+		private static void Main(string[] args)
+		{
+			var program = new Program();
+			program.Start(args);
+		}
+
+		public Program()
+		{
+			CrashReporter = new CrashReporter();
+			Global = CreateGlobal();
+		}
+
 		private static Global CreateGlobal()
 		{
 			string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
@@ -94,7 +104,7 @@ namespace WalletWasabi.Gui
 			return new Global(dataDir, torLogsFile, config, uiConfig, walletManager);
 		}
 
-		private static bool ProcessCliCommands(string[] args)
+		private bool ProcessCliCommands(string[] args)
 		{
 			var daemon = new Daemon(Global);
 			var interpreter = new CommandInterpreter(Console.Out, Console.Error);
@@ -108,7 +118,7 @@ namespace WalletWasabi.Gui
 
 		private static void SetTheme() => AvalonStudio.Extensibility.Theme.ColorTheme.LoadTheme(AvalonStudio.Extensibility.Theme.ColorTheme.VisualStudioDark);
 
-		private static async void AppMainAsync(string[] args)
+		private async void AppMainAsync(string[] args)
 		{
 			try
 			{
@@ -136,7 +146,7 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private static async Task TerminateApplicationAsync(Exception? criticalException = null)
+		private async Task TerminateApplicationAsync(Exception? criticalException = null)
 		{
 			if (criticalException is { })
 			{
