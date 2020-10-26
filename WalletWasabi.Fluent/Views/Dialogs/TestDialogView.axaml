@@ -11,7 +11,7 @@
       <TextBlock Text="{Binding Message}" />
       <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
         <Button Content="Cancel" Margin="10" Command="{Binding CancelCommand}" />
-        <Button Content="Confirm" Margin="10" Command="{Binding ConfirmCommand}" />
+        <Button Content="Confirm" Margin="10" Command="{Binding NextCommand}" />
       </StackPanel>
     </StackPanel>
   </c:ContentArea>

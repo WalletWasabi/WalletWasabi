@@ -14,7 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			_message = message;
 
 			CancelCommand = ReactiveCommand.Create(() => Close(false));
-			ConfirmCommand = ReactiveCommand.Create(() => Close(true));
+			NextCommand = ReactiveCommand.Create(() => Close(true));
 		}
 
 		public string Message
@@ -24,7 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		}
 
 		public ICommand CancelCommand { get; }
-		public ICommand ConfirmCommand { get; }
+		public ICommand NextCommand { get; }
 
 		protected override void OnDialogClosed()
 		{
