@@ -15,7 +15,7 @@ namespace WalletWasabi.Userfacing
 		public const string CompatibilityPasswordWarnMessage = "Compatibility password was used! Please consider generating a new wallet to ensure recoverability!";
 		public static readonly string PasswordTooLongMessage = $"Password is too long (Max {MaxPasswordLength} characters).";
 		public const string TrimWarnMessage = "Leading and trailing white spaces will be removed!";
-		public const string MatchingMessage = "Passwords don’t match, check any spelling miskates and try again.";
+		public const string MatchingMessage = "Passwords don't match, check any spelling mistakes and try again.";
 		public const string WhitespaceMessage = "Leading and trailing white spaces are not allowed!";
 
 		public static string[] GetPossiblePasswords(string originalPassword)
