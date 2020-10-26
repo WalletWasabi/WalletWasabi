@@ -56,16 +56,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.ValidateProperty(x => x.Password, ValidatePassword);
 
-			Password = "";
+			_password = "";
 			TimeLeftTillRoundTimeout = TimeSpan.Zero;
 
-			CoinsList = new CoinListViewModel(Wallet, canDequeueCoins: true);
+			CoinsList = new CoinListViewModel(Wallet, Global.Config, Global.UiConfig, canDequeueCoins: true);
 
 			Observable
 				.FromEventPattern<SmartCoin>(CoinsList, nameof(CoinsList.DequeueCoinsPressed))
 				.Subscribe(async x => await DoDequeueAsync(x.EventArgs));
 
-			AmountQueued = Money.Zero; // Global.ChaumianClient.State.SumAllQueuedCoinAmounts();
+			_amountQueued = Money.Zero;
 
 			EnqueueCommand = ReactiveCommand.CreateFromTask(async () => await DoEnqueueAsync(CoinsList.Coins.Where(c => c.IsSelected).Select(c => c.Model)));
 

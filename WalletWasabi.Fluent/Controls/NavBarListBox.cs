@@ -13,8 +13,8 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			return new ItemContainerGenerator<NavBarItem>(
 				this,
-				ListBoxItem.ContentProperty,
-				ListBoxItem.ContentTemplateProperty);
+				ContentControl.ContentProperty,
+				ContentControl.ContentTemplateProperty);
 		}
 	}
 }

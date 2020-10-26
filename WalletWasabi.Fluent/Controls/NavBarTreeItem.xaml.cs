@@ -22,10 +22,10 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			return new TreeItemContainerGenerator<NavBarTreeItem>(
 				this,
-				TreeViewItem.HeaderProperty,
-				TreeViewItem.ItemTemplateProperty,
-				TreeViewItem.ItemsProperty,
-				TreeViewItem.IsExpandedProperty);
+				HeaderProperty,
+				ItemTemplateProperty,
+				ItemsProperty,
+				IsExpandedProperty);
 		}
 	}
 }

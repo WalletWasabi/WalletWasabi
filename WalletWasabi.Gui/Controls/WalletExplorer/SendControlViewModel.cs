@@ -72,7 +72,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Wallet = wallet;
 
 			LabelSuggestion = new SuggestLabelViewModel();
-			BuildTransactionButtonText = DoButtonText;
+			_buildTransactionButtonText = DoButtonText;
 
 			this.ValidateProperty(x => x.Address, ValidateAddress);
 			this.ValidateProperty(x => x.CustomChangeAddress, ValidateCustomChangeAddress);
@@ -81,7 +81,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			ResetUi();
 
-			CoinList = new CoinListViewModel(Wallet, displayCommonOwnershipWarning: true);
+			CoinList = new CoinListViewModel(Wallet, Global.Config, Global.UiConfig, displayCommonOwnershipWarning: true);
 
 			Observable.FromEventPattern(CoinList, nameof(CoinList.SelectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
