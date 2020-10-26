@@ -7,6 +7,13 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.OctetFields
 {
 	public class AtypField : OctetSerializableBase
 	{
+		// https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt
+		// IPv6 is not supported in CONNECT commands.
+
+		public static readonly AtypField IPv4 = new AtypField(0x01);
+
+		public static readonly AtypField DomainName = new AtypField(0x03);
+
 		public AtypField(byte value)
 		{
 			ByteValue = value;
@@ -27,12 +34,5 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.OctetFields
 				ByteValue = DomainName.ToByte();
 			}
 		}
-
-		// https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt
-		// IPv6 is not supported in CONNECT commands.
-
-		public static readonly AtypField IPv4 = new AtypField(0x01);
-
-		public static AtypField DomainName = new AtypField(0x03);
 	}
 }
