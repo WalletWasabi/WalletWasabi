@@ -77,6 +77,9 @@
     <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox /template/ Border#PART_BorderElement">
         <Setter Property="IsVisible" Value="False" />
     </Style>
-
+    
+    <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox">
+        <Setter Property="IsReadOnly" Value="{Binding !IsInputEnabled}" />
+    </Style>
 
 </Styles>
