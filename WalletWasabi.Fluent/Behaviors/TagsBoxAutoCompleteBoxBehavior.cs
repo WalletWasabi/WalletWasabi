@@ -15,10 +15,10 @@ namespace WalletWasabi.Fluent.Behaviors
     {
         public static readonly StyledProperty<bool> RestrictInputToSuggestionsProperty =
             AvaloniaProperty.Register<TagsBoxAutoCompleteBoxBehavior, bool>(nameof(RestrictInputToSuggestions));
-        
+
         public static readonly StyledProperty<bool> IsInputEnabledProperty =
             AvaloniaProperty.Register<TagsBoxAutoCompleteBoxBehavior, bool>(nameof(IsInputEnabled));
-        
+
         public static readonly StyledProperty<IEnumerable<string>> SuggestionsProperty =
             AvaloniaProperty.Register<TagsBoxAutoCompleteBoxBehavior, IEnumerable<string>>(nameof(Suggestions));
 
@@ -41,8 +41,8 @@ namespace WalletWasabi.Fluent.Behaviors
             get => GetValue(RestrictInputToSuggestionsProperty);
             set => SetValue(RestrictInputToSuggestionsProperty, value);
         }
-        
-        
+
+
         public bool IsInputEnabled
         {
             get => GetValue(IsInputEnabledProperty);
@@ -97,7 +97,7 @@ namespace WalletWasabi.Fluent.Behaviors
         {
             Dispatcher.UIThread.Post(() =>
             {
-                if(!AssociatedObject?.IsFocused ?? false) AssociatedObject?.Focus();
+                if (!AssociatedObject?.IsFocused ?? false) AssociatedObject?.Focus();
             });
         }
 
@@ -150,7 +150,9 @@ namespace WalletWasabi.Fluent.Behaviors
             var currentTextTrimmed = currentText.Trim();
 
             if (!IsInputEnabled ||
-                currentText.Length < 1 || string.IsNullOrEmpty(currentTextTrimmed) || !currentText.EndsWith(' ') ||
+                currentText.Length < 1 ||
+                string.IsNullOrEmpty(currentTextTrimmed) ||
+                !currentText.EndsWith(' ') ||
                 (RestrictInputToSuggestions && !Suggestions.Any(x => x.Equals(currentTextTrimmed,
                     StringComparison.InvariantCultureIgnoreCase))))
                 return;
@@ -165,7 +167,7 @@ namespace WalletWasabi.Fluent.Behaviors
         private void OnKeyUp(object? sender, KeyEventArgs e)
         {
             if (AssociatedObject is null) return;
- 
+
             var str = AssociatedObject?.Text ?? "";
 
             _bs2 = _bs1;
@@ -179,7 +181,7 @@ namespace WalletWasabi.Fluent.Behaviors
                 case Key.Back when _bs1 && _bs2:
                     BackspaceAndEmptyTextAction?.Invoke();
                     break;
-                case Key.Enter when !string.IsNullOrEmpty(strTrimmed) && IsInputEnabled:
+                case Key.Enter when IsInputEnabled && !string.IsNullOrEmpty(strTrimmed) :
                     if (RestrictInputToSuggestions && !Suggestions.Any(x =>
                         x.Equals(strTrimmed, StringComparison.InvariantCultureIgnoreCase)))
                         break;
