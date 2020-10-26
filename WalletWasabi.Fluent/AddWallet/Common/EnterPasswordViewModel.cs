@@ -22,7 +22,6 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 		private string _password;
 		private string _confirmPassword;
 		private string _errorMessage;
-		private bool _isPasswordConfirmed;
 
 		public EnterPasswordViewModel(IScreen screen, Global global, string walletName)
 		{
@@ -30,6 +29,12 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 
 			this.ValidateProperty(x => x.Password, ValidatePassword);
 			this.ValidateProperty(x => x.ConfirmPassword, ValidatePassword);
+
+			var canExecute =
+				this.WhenAnyValue(x => x.Password, x => x.ConfirmPassword, (password, confirmPassword) =>
+				!string.IsNullOrEmpty(password) &&
+				!string.IsNullOrEmpty(confirmPassword) &&
+				!Validations.Any);
 
 			ContinueCommand = ReactiveCommand.Create(() =>
 			{
@@ -39,17 +44,11 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 				var (km, mnemonic) = walletGenerator.GenerateWallet(walletName, Password);
 
 				screen.Router.Navigate.Execute(new RecoveryWordsViewModel(screen, km, mnemonic, global));
-			});
+			},canExecute);
 
 			CancelCommand = ReactiveCommand.Create(() => screen.Router.NavigateAndReset.Execute(new SettingsPageViewModel(screen)));
 
 			ErrorsChanged += OnErrorsChanged;
-		}
-
-		public bool IsPasswordConfirmed
-		{
-			get => _isPasswordConfirmed;
-			set => this.RaiseAndSetIfChanged(ref _isPasswordConfirmed, value);
 		}
 
 		public string ErrorMessage
@@ -96,7 +95,6 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 
 		private void ValidatePassword(IValidationErrors errors)
 		{
-			IsPasswordConfirmed = false;
 			string password = Password;
 
 			if (PasswordHelper.IsTrimable(password, out _))
@@ -119,8 +117,6 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 
 			if (!string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(ConfirmPassword))
 			{
-				IsPasswordConfirmed = true;
-
 				if (Validations is Validations validations)
 				{
 					validations.ClearErrors(nameof(Password));
