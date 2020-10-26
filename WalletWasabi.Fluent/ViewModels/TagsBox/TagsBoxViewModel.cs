@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
@@ -23,6 +25,7 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
         private ObservableCollection<TagViewModel> _tags;
 
         private bool _restrictInputToSuggestions;
+        private int _tagCountLimit = 12;
 
         public TagsBoxViewModel()
         {
@@ -62,6 +65,22 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
         {
             get => _suggestions;
             set => this.RaiseAndSetIfChanged(ref _suggestions, value);
+        }
+
+        public IReadOnlyList<string> GetTagsAsListOfStrings()
+        {
+            return Tags.Select(x => x.Tag).ToImmutableList();
+        }
+
+        public int TagCountLimit
+        {
+            get => _tagCountLimit;
+            set => this.RaiseAndSetIfChanged(ref _tagCountLimit, value);
+        }
+        
+        public string GetTagsAsConcatString()
+        {
+            return string.Join(' ', Tags.Select(x => x.Tag));
         }
 
         public ObservableCollection<TagViewModel> Tags
