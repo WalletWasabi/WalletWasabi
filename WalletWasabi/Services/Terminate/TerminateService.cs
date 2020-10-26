@@ -64,7 +64,7 @@ namespace WalletWasabi.Services.Terminate
 			{
 				try
 				{
-					await _terminateApplicationAsync();
+					await _terminateApplicationAsync().ConfigureAwait(false);
 				}
 				catch (Exception ex)
 				{
