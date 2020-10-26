@@ -136,7 +136,7 @@ namespace WalletWasabi.Helpers
 				hash = new byte[32];
 				await fs.ReadAsync(hash, 0, 32);
 			}
-			var actual = Hashes.Hash256(data);
+			var actual = Hashes.DoubleSHA256(data);
 			var expected = new uint256(hash);
 			if (expected != actual)
 			{
