@@ -7,8 +7,8 @@ namespace WalletWasabi.Fluent.ViewModels
 	public class NavigationStateViewModel
 	{
 		public Func<IDialogHost> DialogHost { get; set; }
-		public Func<IScreen> Screen { get; set; }
-		public Func<IScreen> Dialog { get; set; }
+		public Func<IScreen> MainScreen { get; set; }
+		public Func<IScreen> DialogScreen { get; set; }
 		public Func<IRoutableViewModel> CancelView { get; set; }
 		public Func<IRoutableViewModel> NextView { get; set; }
 	}

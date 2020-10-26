@@ -22,7 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public string UrlPathSegment { get; } = Guid.NewGuid().ToString().Substring(0, 5);
 
-		public IScreen HostScreen => _navigationState.Screen();
+		public IScreen HostScreen => _navigationState.MainScreen();
 
 		public bool IsExpanded
 		{
