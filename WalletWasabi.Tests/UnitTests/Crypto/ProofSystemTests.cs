@@ -195,8 +195,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		[InlineData(7, 3, true)]
 		[InlineData((ulong)uint.MaxValue + 1, 32, false)]
 		[InlineData((ulong)uint.MaxValue + 1, 33, true)]
-		[InlineData(2099999997690000ul, 50, false)]
-		[InlineData(2099999997690000ul, 51, true)]
 		public void CanProveAndVerifyCommitmentRange(ulong amount, int width, bool pass)
 		{
 			var rnd = new SecureRandom();
@@ -216,6 +214,37 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			{
 				Assert.Throws<ArgumentOutOfRangeException>(() => ProofSystem.RangeProof(amountScalar, randomness, width, rnd));
 			}
+		}
+
+		[Fact]
+		[Trait("UnitTest", "UnitTest")]
+		public void CanProveAndVerifyZeroProofs()
+		{
+			var rnd = new SecureRandom();
+
+			var a0 = Scalar.Zero;
+			var r0 = rnd.GetScalar();
+			var Ma0 = a0 * Generators.Gg + r0 * Generators.Gh;
+
+			var a1 = Scalar.Zero;
+			var r1 = rnd.GetScalar();
+			var Ma1 = a1 * Generators.Gg + r1 * Generators.Gh;
+
+			var knowledge = new[] 
+			{
+				ProofSystem.ZeroProof(Ma0, r0),
+				ProofSystem.ZeroProof(Ma1, r1)
+			};
+
+			var proofs = Prover.Prove(new Transcript(new byte[0]), knowledge, rnd);
+
+			var statements = new[]
+			{
+				ProofSystem.ZeroProof(Ma0),
+				ProofSystem.ZeroProof(Ma1)
+			};
+
+			Assert.True(Verifier.Verify(new Transcript(new byte[0]), statements, proofs));
 		}
 	}
 }

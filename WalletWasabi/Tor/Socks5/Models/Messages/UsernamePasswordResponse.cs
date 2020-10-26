@@ -6,29 +6,13 @@ namespace WalletWasabi.Tor.Socks5.Models.Messages
 {
 	public class UsernamePasswordResponse : ByteArraySerializableBase
 	{
-		#region Constructors
-
 		public UsernamePasswordResponse()
 		{
 		}
 
-		public UsernamePasswordResponse(AuthStatusField status)
-		{
-			Status = Guard.NotNull(nameof(status), status);
-			Ver = AuthVerField.Version1;
-		}
-
-		#endregion Constructors
-
-		#region PropertiesAndMembers
-
 		public AuthVerField Ver { get; set; }
 
 		public AuthStatusField Status { get; set; }
-
-		#endregion PropertiesAndMembers
-
-		#region Serialization
 
 		public override void FromBytes(byte[] bytes)
 		{
@@ -47,7 +31,5 @@ namespace WalletWasabi.Tor.Socks5.Models.Messages
 				Ver.ToByte(),
 				Status.ToByte()
 			};
-
-		#endregion Serialization
 	}
 }
