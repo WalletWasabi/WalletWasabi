@@ -248,6 +248,7 @@ namespace WalletWasabi.Gui.Rpc
 		[JsonRpcMethod("stop")]
 		public async Task StopAsync()
 		{
+			// RPC terminating itself so it should not block this call until the RPC interface disposed.
 			await Task.Run(() => TerminateService.Terminate());
 		}
 
