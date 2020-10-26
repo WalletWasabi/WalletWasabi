@@ -30,21 +30,19 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 			this.ValidateProperty(x => x.Password, ValidatePassword);
 			this.ValidateProperty(x => x.ConfirmPassword, ValidatePassword);
 
-			var canExecute =
-				this.WhenAnyValue(x => x.Password, x => x.ConfirmPassword, (password, confirmPassword) =>
-				!string.IsNullOrEmpty(password) &&
-				!string.IsNullOrEmpty(confirmPassword) &&
-				!Validations.Any);
-
 			ContinueCommand = ReactiveCommand.Create(() =>
 			{
 				var walletGenerator = new WalletGenerator(global.WalletManager.WalletDirectories.WalletsDir, global.Network);
 				walletGenerator.TipHeight = global.BitcoinStore.SmartHeaderChain.TipHeight;
-
 				var (km, mnemonic) = walletGenerator.GenerateWallet(walletName, Password);
-
 				screen.Router.Navigate.Execute(new RecoveryWordsViewModel(screen, km, mnemonic, global));
-			},canExecute);
+			},
+				// Can Execute
+				this.WhenAnyValue(x => x.Password, x => x.ConfirmPassword, (password, confirmPassword) =>
+				!string.IsNullOrEmpty(password) &&
+				!string.IsNullOrEmpty(confirmPassword) &&
+				!Validations.Any)
+			);
 
 			CancelCommand = ReactiveCommand.Create(() => screen.Router.NavigateAndReset.Execute(new SettingsPageViewModel(screen)));
 
@@ -115,13 +113,10 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 				return;
 			}
 
-			if (!string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(ConfirmPassword))
+			if (!string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(ConfirmPassword) && Validations is Validations validations)
 			{
-				if (Validations is Validations validations)
-				{
-					validations.ClearErrors(nameof(Password));
-					validations.ClearErrors(nameof(ConfirmPassword));
-				}
+				validations.ClearErrors(nameof(Password));
+				validations.ClearErrors(nameof(ConfirmPassword));
 			}
 		}
 	}
