@@ -39,8 +39,10 @@ namespace WalletWasabi.Services.Terminate
 		}
 
 		/// <summary>
-		/// This will terminate the application. This is a blocking method and no return after this call as it will exit the application.
+		/// Terminates the application.
 		/// </summary>
+		/// <remark>This is a blocking method. Note that program execution ends at the end of this method due to <see cref="Environment.Exit(int)"/> call.</remark>
+
 		public void Terminate(int exitCode = 0)
 		{
 			var prevValue = Interlocked.CompareExchange(ref _terminateStatus, TerminateStatusInProgress, TerminateStatusIdle);
