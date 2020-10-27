@@ -46,16 +46,16 @@ namespace WalletWasabi.Gui.Validation
 
 		public void ValidateProperty(string propertyName)
 		{
-			if (ValidationMethods.TryGetValue(propertyName, out ValidateMethod? validationMethod))
+			if (ValidationMethods.TryGetValue(propertyName, out ValidateMethod? validationMethod) && ErrorsByPropertyName.TryGetValue(propertyName, out ErrorDescriptors? errors))
 			{
 				// Copy the current errors
-				var oldErrors = new List<ErrorDescriptor>(ErrorsByPropertyName[propertyName]);
+				var oldErrors = new List<ErrorDescriptor>(errors);
 
 				// Validate
-				validationMethod(ErrorsByPropertyName[propertyName]);
+				validationMethod(errors);
 
 				// Clear obsoleted errors and notify properties that changed
-				ClearAndNotify(propertyName, oldErrors);
+				ClearAndNotify(errors, oldErrors, propertyName);
 			}
 		}
 
@@ -77,26 +77,20 @@ namespace WalletWasabi.Gui.Validation
 				: ErrorDescriptors.Empty;
 		}
 
-		private void ClearAndNotify(string propertyName, List<ErrorDescriptor> oldErrors)
+		private void ClearAndNotify(List<ErrorDescriptor> errors, List<ErrorDescriptor> oldErrors, string propertyName)
 		{
-			if (ErrorsByPropertyName.ContainsKey(propertyName))
-			{
-				// Current errors
-				var errorsList = ErrorsByPropertyName[propertyName];
+			// Severities of the new errors
+			var categoriesToNotify = errors.Where(x => !oldErrors.Any(y => x.Message == y.Message && x.Severity == y.Severity)).Select(x => x.Severity).ToList();
 
-				// Severities of the new errors
-				var categoriesToNotify = errorsList.Where(x => !oldErrors.Any(y => x.Message == y.Message && x.Severity == y.Severity)).Select(x => x.Severity).ToList();
+			// Remove the old errors
+			oldErrors.ForEach(x => errors.Remove(x));
 
-				// Remove the old errors
-				oldErrors.ForEach(x => errorsList.Remove(x));
+			// Severities of the obsoleted errors
+			categoriesToNotify.AddRange(oldErrors.Where(x => !errors.Any(y => x.Message == y.Message && x.Severity == y.Severity)).Select(x => x.Severity).ToList());
 
-				// Severities of the obsoleted errors
-				categoriesToNotify.AddRange(oldErrors.Where(x => !errorsList.Any(y => x.Message == y.Message && x.Severity == y.Severity)).Select(x => x.Severity).ToList());
+			var propertiesToNotify = categoriesToNotify.Select(GetPropertyNameBySeverity).ToList();
 
-				var propertiesToNotify = categoriesToNotify.Select(GetPropertyNameBySeverity).ToList();
-
-				OnErrorsChanged(propertyName, propertiesToNotify);
-			}
+			OnErrorsChanged(propertyName, propertiesToNotify);
 		}
 
 		private string GetPropertyNameBySeverity(ErrorSeverity severity)
