@@ -56,13 +56,13 @@ namespace WalletWasabi.Fluent.ViewModels
 				});
 
 			this.WhenAnyValue(x => x.SelectedItem)
-				.OfType<IRoutableViewModel>()
+				.OfType<NavBarItemViewModel>()
 				.Subscribe(x =>
 				{
 					if (!_isNavigating)
 					{
 						_isNavigating = true;
-						Router.NavigateAndReset.Execute(x);
+						x.NavigateAndReset();
 						CollapseOnClickAction?.Invoke();
 
 						_isNavigating = false;

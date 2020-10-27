@@ -8,6 +8,7 @@ namespace WalletWasabi.Fluent.ViewModels
 	public abstract class NavBarItemViewModel : ViewModelBase, IRoutableViewModel
 	{
 		private NavigationStateViewModel _navigationState;
+		private NavigationTarget _navigationTarget;
 		private bool _isSelected;
 		private bool _isExpanded;
 		private string _title;
@@ -16,19 +17,9 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			_navigationState = navigationState;
 
-			OpenCommand = ReactiveCommand.Create(() =>
-			{
-				switch (navigationTarget)
-				{
-					case NavigationTarget.Default:
-					case NavigationTarget.Home:
-						_navigationState.HomeScreen().Router.Navigate.Execute(this);
-						break;
-					case NavigationTarget.Dialog:
-						_navigationState.DialogScreen().Router.Navigate.Execute(this);
-						break;
-				}
-			});
+			_navigationTarget = navigationTarget;
+
+			OpenCommand = ReactiveCommand.Create(() => Navigate());
 		}
 
 		public NavBarItemViewModel Parent { get; set; }
@@ -66,5 +57,33 @@ namespace WalletWasabi.Fluent.ViewModels
 		}
 
 		public ReactiveCommand<Unit, Unit> OpenCommand { get; }
+
+		public void Navigate()
+		{
+			switch (_navigationTarget)
+			{
+				case NavigationTarget.Default:
+				case NavigationTarget.Home:
+					_navigationState.HomeScreen().Router.Navigate.Execute(this);
+					break;
+				case NavigationTarget.Dialog:
+					_navigationState.DialogScreen().Router.Navigate.Execute(this);
+					break;
+			}
+		}
+
+		public void NavigateAndReset()
+		{
+			switch (_navigationTarget)
+			{
+				case NavigationTarget.Default:
+				case NavigationTarget.Home:
+					_navigationState.HomeScreen().Router.Navigate.Execute(this);
+					break;
+				case NavigationTarget.Dialog:
+					_navigationState.DialogScreen().Router.Navigate.Execute(this);
+					break;
+			}
+		}
 	}
 }
