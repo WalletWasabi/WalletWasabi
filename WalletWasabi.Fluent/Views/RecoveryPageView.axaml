@@ -18,9 +18,8 @@
                 <Label Classes="h7 bold"  Content="_Type in your recovery words here:" Target="seedTagsBox"/>
                 <c:TagsBox x:Name="seedTagsBox"  Grid.Row="2" 
                            DataContext="{Binding RecoveryWordsTagsBox}"
-                          MinHeight="60"
-                          MaxHeight="120"
-                          ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
+                           MinHeight="60"
+                           ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
             </Grid>
         </c:ContentArea>
         <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="invisible" HorizontalAlignment="Left"

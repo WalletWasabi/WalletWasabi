@@ -1,8 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
-using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using DynamicData;
@@ -14,7 +11,6 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.TagsBox;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.Helpers;
-using WalletWasabi.Gui.Suggestions;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -26,6 +22,9 @@ namespace WalletWasabi.Fluent.ViewModels
 {
     public class RecoveryPageViewModel : NavBarItemViewModel
     {
+        private readonly ObservableAsPropertyHelper<Mnemonic?> _currentMnemonic;
+
+        private readonly ObservableAsPropertyHelper<bool> _isMnemonicValid;
         private string _accountKeyPath;
 
         private int _caretIndex;
@@ -71,10 +70,7 @@ namespace WalletWasabi.Fluent.ViewModels
             //     .Subscribe(ex => Logger.LogError(ex));
         }
 
-        private readonly ObservableAsPropertyHelper<Mnemonic?> _currentMnemonic;
         public Mnemonic CurrentMnemonics => _currentMnemonic.Value;
-
-        private readonly ObservableAsPropertyHelper<bool> _isMnemonicValid;
         public bool IsMnemonicValid => _isMnemonicValid.Value;
 
         public override string IconName => "home_regular";
