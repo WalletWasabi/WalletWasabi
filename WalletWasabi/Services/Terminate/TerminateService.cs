@@ -11,7 +11,7 @@ namespace WalletWasabi.Services.Terminate
 
 		private const long TerminateStatusIdle = 0;
 		private const long TerminateStatusInProgress = 1;
-		private const long TerminateFinished = 2;
+		private const long TerminateStatusFinished = 2;
 
 		private long _terminateStatus;
 
