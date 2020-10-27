@@ -33,14 +33,5 @@ namespace System.Linq
 				yield return resultSelector(e1.Current, e2.Current, e3.Current);
 			}
 		}
-
-		internal static void CheckDimensions(this IEnumerable<Equation> equations, IEnumerable<ScalarVector> allResponses)
-		{
-			if (equations.Count() != allResponses.Count() ||
-				Enumerable.Zip(equations, allResponses).Any(x => x.First.Generators.Count() != x.Second.Count()))
-			{
-				throw new ArgumentException("The number of responses and the number of generators in the equations do not match.");
-			}
-		}
 	}
 }
