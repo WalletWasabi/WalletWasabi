@@ -218,7 +218,10 @@ namespace WalletWasabi.Blockchain.Transactions
 			Logger.LogInfo("Signing transaction...");
 			// It must be watch only, too, because if we have the key and also hardware wallet, we do not care we can sign.
 
-			Transaction tx = null;
+			psbt.AddPrevTxs(TransactionStore);
+			psbt.AddKeyPaths(KeyManager);
+
+			Transaction tx;
 			if (KeyManager.IsWatchOnly)
 			{
 				tx = psbt.GetGlobalTransaction();
@@ -229,18 +232,16 @@ namespace WalletWasabi.Blockchain.Transactions
 				builder = builder.AddKeys(signingKeys.ToArray());
 				builder.SignPSBT(psbt);
 
-				UpdatePSBTInfo(psbt, spentCoins, changeHdPubKey);
-
 				var isPayjoin = false;
-				if (!KeyManager.IsWatchOnly)
+				// Try to pay using payjoin
+				if (payjoinClient is { })
 				{
-					// Try to pay using payjoin
-					if (payjoinClient is { })
-					{
-						psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt, changeHdPubKey);
-						isPayjoin = true;
-					}
+					psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt, changeHdPubKey);
+					isPayjoin = true;
+					psbt.AddPrevTxs(TransactionStore);
+					psbt.AddKeyPaths(KeyManager);
 				}
+
 				psbt.Finalize();
 				tx = psbt.ExtractTransaction();
 
@@ -266,8 +267,6 @@ namespace WalletWasabi.Blockchain.Transactions
 					throw new InvalidTxException(tx, checkResults);
 				}
 			}
-
-			UpdatePSBTInfo(psbt, spentCoins, changeHdPubKey);
 
 			var label = SmartLabel.Merge(payments.Requests.Select(x => x.Label).Concat(spentCoins.Select(x => x.Label)));
 			var outerWalletOutputs = new List<SmartCoin>();
@@ -325,7 +324,7 @@ namespace WalletWasabi.Blockchain.Transactions
 					KeyManager.ExtPubKey,
 					new RootedKeyPath(KeyManager.MasterFingerprint.Value, KeyManager.DefaultAccountKeyPath),
 					changeHdPubKey,
-					CancellationToken.None).GetAwaiter().GetResult();
+					CancellationToken.None).GetAwaiter().GetResult(); // WTF??!
 				builder.SignPSBT(psbt);
 
 				Logger.LogInfo($"Payjoin payment was negotiated successfully.");
@@ -348,51 +347,6 @@ namespace WalletWasabi.Blockchain.Transactions
 			}
 
 			return psbt;
-		}
-
-		private void UpdatePSBTInfo(PSBT psbt, SmartCoin[] spentCoins, HdPubKey changeHdPubKey)
-		{
-			if (KeyManager.MasterFingerprint is HDFingerprint fp)
-			{
-				foreach (var coin in spentCoins)
-				{
-					var rootKeyPath = new RootedKeyPath(fp, coin.HdPubKey.FullKeyPath);
-					var coinPubkey = coin.HdPubKey.PubKey;
-					psbt.AddKeyPath(coinPubkey, rootKeyPath, coin.ScriptPubKey);
-
-					// In case of multisig address the keyPath is added to both inputs and outputs which is a bug. The following code removes the output in that case. https://github.com/MetacoSA/NBitcoin/issues/927
-					if (psbt.Outputs.SelectMany(output => output.HDKeyPaths.Keys).Contains(coinPubkey) && psbt.Inputs.SelectMany(input => input.HDKeyPaths.Keys).Contains(coinPubkey))
-					{
-						foreach (var output in psbt.Outputs)
-						{
-							output.HDKeyPaths.Remove(coinPubkey);
-						}
-					}
-				}
-
-				if (changeHdPubKey is { })
-				{
-					var rootKeyPath = new RootedKeyPath(fp, changeHdPubKey.FullKeyPath);
-					psbt.AddKeyPath(changeHdPubKey.PubKey, rootKeyPath, changeHdPubKey.P2wpkhScript);
-				}
-			}
-
-			foreach (var input in spentCoins)
-			{
-				var coinInputTxID = input.TransactionId;
-				if (TransactionStore.TryGetTransaction(coinInputTxID, out var txn))
-				{
-					var psbtInputs = psbt.Inputs.Where(x => x.PrevOut.Hash == coinInputTxID);
-					foreach (var psbtInput in psbtInputs)
-					{
-						psbtInput.NonWitnessUtxo = txn.Transaction;
-					}
-				}
-				else
-				{
-					Logger.LogWarning($"Transaction id:{coinInputTxID} is missing from the TransactionStore. Ignoring...");
-				}
-			}
 		}
 	}
 }
