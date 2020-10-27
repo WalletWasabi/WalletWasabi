@@ -14,7 +14,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 	public class SatoshiClient : TorDisposableBase
 	{
 		/// <inheritdoc/>
-		public SatoshiClient(Func<Uri> baseUriAction, EndPoint torSocks5EndPoint) : base(baseUriAction, torSocks5EndPoint)
+		public SatoshiClient(Func<Uri> baseUriAction, EndPoint? torSocks5EndPoint) : base(baseUriAction, torSocks5EndPoint)
 		{
 		}
 

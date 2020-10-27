@@ -22,12 +22,12 @@ namespace WalletWasabi.WebClients.Wasabi
 	{
 		private volatile bool _disposedValue = false; // To detect redundant calls
 
-		public WasabiClient(Func<Uri> baseUriAction, EndPoint torSocks5EndPoint)
+		public WasabiClient(Func<Uri> baseUriAction, EndPoint? torSocks5EndPoint)
 		{
 			TorClient = new TorHttpClient(baseUriAction, torSocks5EndPoint, isolateStream: true);
 		}
 
-		public WasabiClient(Uri baseUri, EndPoint torSocks5EndPoint) : this(() => baseUri, torSocks5EndPoint)
+		public WasabiClient(Uri baseUri, EndPoint? torSocks5EndPoint) : this(() => baseUri, torSocks5EndPoint)
 		{
 		}
 
