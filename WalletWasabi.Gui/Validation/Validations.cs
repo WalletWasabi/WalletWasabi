@@ -46,16 +46,16 @@ namespace WalletWasabi.Gui.Validation
 
 		public void ValidateProperty(string propertyName)
 		{
-			if (ValidationMethods.TryGetValue(propertyName, out ValidateMethod? validationMethod) && ErrorsByPropertyName.TryGetValue(propertyName, out ErrorDescriptors? errors))
+			if (ValidationMethods.TryGetValue(propertyName, out ValidateMethod? validationMethod) && ErrorsByPropertyName.TryGetValue(propertyName, out ErrorDescriptors? currentErrors))
 			{
 				// Copy the current errors
-				var oldErrors = new List<ErrorDescriptor>(errors);
+				var previousErrors = currentErrors.ToList();
 
 				// Validate
-				validationMethod(errors);
+				validationMethod(currentErrors);
 
 				// Clear obsoleted errors and notify properties that changed
-				ClearAndNotify(errors, oldErrors, propertyName);
+				ClearAndNotify(currentErrors, previousErrors, propertyName);
 			}
 		}
 
@@ -77,16 +77,16 @@ namespace WalletWasabi.Gui.Validation
 				: ErrorDescriptors.Empty;
 		}
 
-		private void ClearAndNotify(List<ErrorDescriptor> errors, List<ErrorDescriptor> oldErrors, string propertyName)
+		private void ClearAndNotify(List<ErrorDescriptor> currentErrors, List<ErrorDescriptor> previousErrors, string propertyName)
 		{
 			// Severities of the new errors
-			var categoriesToNotify = errors.Where(x => !oldErrors.Any(y => x.Message == y.Message && x.Severity == y.Severity)).Select(x => x.Severity).ToList();
+			var categoriesToNotify = currentErrors.Where(x => !previousErrors.Any(y => x.Message == y.Message && x.Severity == y.Severity)).Select(x => x.Severity).ToList();
 
 			// Remove the old errors
-			oldErrors.ForEach(x => errors.Remove(x));
+			previousErrors.ForEach(x => currentErrors.Remove(x));
 
 			// Severities of the obsoleted errors
-			categoriesToNotify.AddRange(oldErrors.Where(x => !errors.Any(y => x.Message == y.Message && x.Severity == y.Severity)).Select(x => x.Severity).ToList());
+			categoriesToNotify.AddRange(previousErrors.Where(x => !currentErrors.Any(y => x.Message == y.Message && x.Severity == y.Severity)).Select(x => x.Severity).ToList());
 
 			var propertiesToNotify = categoriesToNotify.Select(GetPropertyNameBySeverity).ToList();
 
