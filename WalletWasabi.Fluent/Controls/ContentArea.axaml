@@ -18,7 +18,7 @@
   <Style Selector="c|ContentArea">
     <Setter Property="Template">
       <ControlTemplate>
-        <DockPanel Margin="40">
+        <DockPanel Margin="40,0,40,0">
           <StackPanel DockPanel.Dock="Top" Spacing="10" Margin="0 0 0 40">
             <DockPanel>
               <Button Margin="-40,0,0,0" Command="{Binding BackCommand}" IsVisible="{TemplateBinding EnableBack}" Background="Transparent">
