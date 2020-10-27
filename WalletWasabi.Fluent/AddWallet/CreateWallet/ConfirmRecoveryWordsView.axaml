@@ -16,7 +16,7 @@
     </Button>
 
     <c:ContentArea Title="Confirm recovery words" Caption="Type the required recovery words"
-                   Classes="dialog">
+                   Margin="64 35 64 20">
       <ItemsControl Items="{Binding ConfirmationWords}">
         <i:Interaction.Behaviors>
           <behaviors:FocusFirstTextBoxInItemsControlBehavior />

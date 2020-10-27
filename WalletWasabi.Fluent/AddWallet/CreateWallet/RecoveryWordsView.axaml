@@ -15,7 +15,7 @@
 
     <c:ContentArea Title="Recovery words"
                    Caption="Write down the following numbered security words in order. These can be used to recover your wallet in the future. It is very important you keep them in a safe place."
-                   Classes="dialog">
+                   Margin="64 35 64 20">
       <ItemsControl Items="{Binding MnemonicWords}">
         <ItemsControl.Styles>
           <Style Selector="TextBlock">
