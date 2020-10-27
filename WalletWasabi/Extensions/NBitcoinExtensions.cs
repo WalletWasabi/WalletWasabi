@@ -137,9 +137,9 @@ namespace NBitcoin
 
 		public static int GetAnonymitySet(this Transaction me, uint outputIndex) => GetAnonymitySet(me, (int)outputIndex);
 
-		public static int GetAnonymitySet(this Transaction me, int outputIndex, ICoinsView coins)
+		public static int GetAnonymitySet(this Transaction me, int outputIndex, ICoinsView allWalletCoins)
 		{
-			var spentOwnCoins = coins.OutPoints(me.Inputs.Select(x => x.PrevOut)).ToList();
+			var spentOwnCoins = allWalletCoins.OutPoints(me.Inputs.Select(x => x.PrevOut)).ToList();
 
 			// Get the anonymity set of i-th output in the transaction.
 			var anonset = me.GetAnonymitySet(outputIndex);
@@ -167,7 +167,7 @@ namespace NBitcoin
 			return anonset;
 		}
 
-		public static int GetAnonymitySet(this Transaction me, uint outputIndex, ICoinsView coins) => GetAnonymitySet(me, (int)outputIndex, coins);
+		public static int GetAnonymitySet(this Transaction me, uint outputIndex, ICoinsView allWalletCoins) => GetAnonymitySet(me, (int)outputIndex, allWalletCoins);
 
 		/// <summary>
 		/// Careful, if it's in a legacy block then this won't work.
