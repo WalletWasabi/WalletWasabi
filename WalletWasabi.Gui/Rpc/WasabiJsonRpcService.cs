@@ -9,18 +9,21 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
+using WalletWasabi.Services.Terminate;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Rpc
 {
 	public partial class WasabiJsonRpcService
 	{
-		public WasabiJsonRpcService(Global global)
+		public WasabiJsonRpcService(Global global, TerminateService terminateService)
 		{
 			Global = global;
+			TerminateService = terminateService;
 		}
 
 		private Global Global { get; }
+		public TerminateService TerminateService { get; }
 		private Wallet ActiveWallet { get; set; }
 
 		[JsonRpcMethod("listunspentcoins")]
@@ -245,7 +248,8 @@ namespace WalletWasabi.Gui.Rpc
 		[JsonRpcMethod("stop")]
 		public async Task StopAsync()
 		{
-			await Global.DisposeAsync().ConfigureAwait(false);
+			// RPC terminating itself so it should not block this call while the RPC interface is stopping.
+			await Task.Run(() => TerminateService.Terminate());
 		}
 
 		private void AssertWalletIsLoaded()
