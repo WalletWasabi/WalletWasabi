@@ -21,7 +21,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 	// Note that some of the generators for an equation can be the point at
 	// infinity when a term in the witness does not play a part in the
 	// representation of a specific point.
-	class Equation
+	internal class Equation
 	{
 		public Equation(GroupElement publicPoint, GroupElementVector generators)
 		{
