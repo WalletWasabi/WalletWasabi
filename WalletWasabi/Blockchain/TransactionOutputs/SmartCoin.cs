@@ -116,7 +116,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		public int AnonymitySet
 		{
 			get => _anonymitySet;
-			private set => RaiseAndSetIfChanged(ref _anonymitySet, value);
+			set => RaiseAndSetIfChanged(ref _anonymitySet, value);
 		}
 
 		public uint256 SpenderTransactionId

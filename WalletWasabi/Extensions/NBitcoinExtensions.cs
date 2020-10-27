@@ -164,6 +164,14 @@ namespace NBitcoin
 				anonset += sanityCheckedEstimation;
 			}
 
+			// Factor in script reuse.
+			var output = me.Outputs[outputIndex];
+			foreach (var coin in allWalletCoins.FilterBy(x => x.ScriptPubKey == output.ScriptPubKey))
+			{
+				anonset = Math.Min(anonset, coin.AnonymitySet);
+				coin.AnonymitySet = anonset;
+			}
+
 			return anonset;
 		}
 
