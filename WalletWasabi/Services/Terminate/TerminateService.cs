@@ -7,7 +7,7 @@ namespace WalletWasabi.Services.Terminate
 {
 	public class TerminateService
 	{
-		private Func<Task> _terminateApplicationAsync;
+		private readonly Func<Task> _terminateApplicationAsync;
 
 		private const long TerminateStatusIdle = 0;
 		private const long TerminateStatusInProgress = 1;
