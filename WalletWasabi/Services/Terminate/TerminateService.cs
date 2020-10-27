@@ -7,7 +7,7 @@ namespace WalletWasabi.Services.Terminate
 {
 	public class TerminateService
 	{
-		private readonly Func<Task> _terminateApplicationAsync;
+		private readonly Func<Task> TerminateApplicationAsync;
 
 		private const long TerminateStatusIdle = 0;
 		private const long TerminateStatusInProgress = 1;
@@ -17,7 +17,7 @@ namespace WalletWasabi.Services.Terminate
 
 		public TerminateService(Func<Task> terminateApplicationAsync)
 		{
-			_terminateApplicationAsync = terminateApplicationAsync;
+			TerminateApplicationAsync = terminateApplicationAsync;
 			AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
 			Console.CancelKeyPress += Console_CancelKeyPress;
 		}
@@ -50,7 +50,7 @@ namespace WalletWasabi.Services.Terminate
 			if (prevValue != TerminateStatusIdle)
 			{
 				// Secondary callers will be blocked until the end of the termination.
-				while (_terminateStatus != TerminateFinished)
+				while (_terminateStatus != TerminateStatusFinished)
 				{
 				}
 				return;
@@ -66,7 +66,7 @@ namespace WalletWasabi.Services.Terminate
 			{
 				try
 				{
-					await _terminateApplicationAsync().ConfigureAwait(false);
+					await TerminateApplicationAsync().ConfigureAwait(false);
 				}
 				catch (Exception ex)
 				{
@@ -82,7 +82,7 @@ namespace WalletWasabi.Services.Terminate
 			Console.CancelKeyPress -= Console_CancelKeyPress;
 
 			// Indicate that the termination procedure finished. So other callers can return.
-			Interlocked.Exchange(ref _terminateStatus, TerminateFinished);
+			Interlocked.Exchange(ref _terminateStatus, TerminateStatusFinished);
 
 			Environment.Exit(exitCode);
 		}
