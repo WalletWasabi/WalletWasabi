@@ -12,6 +12,9 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<object> CaptionProperty =
 			AvaloniaProperty.Register<ContentArea, object>(nameof(Caption));
 
+		private IContentPresenter? _titlePresenter;
+		private IContentPresenter? _captionPresenter;
+
 		public object Title
 		{
 			get => GetValue(TitleProperty);
@@ -31,12 +34,47 @@ namespace WalletWasabi.Fluent.Controls
 			switch (presenter.Name)
 			{
 				case "PART_TitlePresenter":
+					if (_titlePresenter is {})
+					{
+						_titlePresenter.PropertyChanged -= PresenterOnPropertyChanged;
+					}
+
+					_titlePresenter = presenter;
+					_titlePresenter.PropertyChanged += PresenterOnPropertyChanged;
+					result = true;
+					break;
+
 				case "PART_CaptionPresenter":
+					if (_captionPresenter is {})
+					{
+						_captionPresenter.PropertyChanged -= PresenterOnPropertyChanged;
+					}
+
+					_captionPresenter = presenter;
+					_captionPresenter.PropertyChanged += PresenterOnPropertyChanged;
 					result = true;
 					break;
 			}
 
 			return result;
+		}
+
+		private void PresenterOnPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+		{
+			if (e.Property == ContentPresenter.ChildProperty)
+			{
+				var className = sender == _captionPresenter ? "caption" : "title";
+
+				if (e.OldValue is IStyledElement oldValue)
+				{
+					oldValue.Classes.Remove(className);
+				}
+
+				if (e.NewValue is IStyledElement newValue)
+				{
+					newValue.Classes.Add(className);
+				}
+			}
 		}
 	}
 }
