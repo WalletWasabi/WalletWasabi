@@ -149,7 +149,7 @@ namespace NBitcoin
 
 				// Punish consilidation exponenetially.
 				// If there is only a single input then the exponent should be zero to divide by 1 thus retain the input coin anonset.
-				var consolidatePenalty = (2 ^ (numberOfOwnInputs - 1));
+				var consolidatePenalty = 2 ^ (numberOfOwnInputs - 1);
 				var privacyBonus = (decimal)smallestInputAnon / consolidatePenalty;
 
 				// If the privacy bonus is <=1 then we are not adding any privacy to the coin.
