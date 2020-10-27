@@ -37,9 +37,9 @@ namespace WalletWasabi.Fluent.AddWallet.CreateWallet
 
 			SetConfirmationWords(mnemonicWords);
 
-			#if DEBUG
-				IsConfirmationFinished = true;
-			#endif
+#if DEBUG
+			IsConfirmationFinished = true;
+#endif
 		}
 
 		public bool IsConfirmationFinished
