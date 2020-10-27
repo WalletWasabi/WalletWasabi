@@ -147,7 +147,7 @@ namespace NBitcoin
 				// Our smallest anonset input is the relevant here, because this way the common input ownership heuristic is considered.
 				var smallestInputAnon = spentOwnCoins.Min(x => x.AnonymitySet);
 
-				// Punish consilidation exponenetially.
+				// Punish consilidation exponentially.
 				// If there is only a single input then the exponent should be zero to divide by 1 thus retain the input coin anonset.
 				var consolidatePenalty = Math.Pow(2, numberOfOwnInputs - 1);
 				var privacyBonus = smallestInputAnon / consolidatePenalty;
