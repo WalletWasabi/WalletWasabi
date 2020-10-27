@@ -22,9 +22,6 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			_dialogScreen = new DialogScreenViewModel();
 
-			// TODO: Set Dialog with IScreen implementation
-			// TODO: Set default NextView
-			// TODO: Set default CancelView
 			_navigationState = new NavigationStateViewModel()
 			{
 				MainScreen = () => this,
