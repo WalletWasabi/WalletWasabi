@@ -29,20 +29,15 @@
         </ItemsControl.ItemsPanel>
         <ItemsControl.ItemTemplate>
           <DataTemplate>
-            <Button Classes="invisible" Command="{Binding OpenCommand}">
-              <Border Background="White"
-                      BoxShadow="0 2 2 #aaaaaa"
-                      CornerRadius="4" Margin="8"
-                      Height="150" Width="150">
-                <Panel>
+            <Button Classes="option" Command="{Binding OpenCommand}" Height="150" Width="150" Margin="8">
+              <Panel>
                   <TextBlock Text="{Binding Title}" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0 0 0 15" />
-                  <PathIcon Width="28" Height="28" Opacity="0.8" Foreground="#212121">
+                  <PathIcon Width="28" Height="28" Opacity="0.8">
                     <PathIcon.Data>
                       <Binding Converter="{x:Static conv:NavBarIconConverter.Instance}" />
                     </PathIcon.Data>
                   </PathIcon>
                 </Panel>
-              </Border>
             </Button>
           </DataTemplate>
         </ItemsControl.ItemTemplate>

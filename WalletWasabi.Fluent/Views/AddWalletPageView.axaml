@@ -10,53 +10,58 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:HomePageViewModel"
              x:Class="WalletWasabi.Fluent.Views.AddWalletPageView">
-  <c:ContentArea Title="Add Wallet" Caption="Type in your wallets name and select an option:">
-    <StackPanel Spacing="40">
-      <StackPanel>
-        <Label Content="Wallet _Name:" Target="walletNameTb" />
-        <TextBox x:Name="walletNameTb" Text="{Binding WalletName}" Watermark="(e.g. My Wallet)">
-          <i:Interaction.Behaviors>
-            <behaviors:FocusOnAttachedBehavior />
-          </i:Interaction.Behaviors>
-        </TextBox>
-      </StackPanel>
-      <StackPanel Spacing="10">
-        <Button Classes="invisible" Padding="0">
-          <Border BorderThickness="1" BorderBrush="#7F000000" CornerRadius="4" Height="70">
-            <StackPanel Orientation="Horizontal">
-              <PathIcon DockPanel.Dock="Left" Margin="20" Data="{StaticResource add_regular}" Width="16" VerticalAlignment="Center"/>
-              <TextBlock Text="Create a new wallet" VerticalAlignment="Center" />
+    <c:ContentArea Title="Add Wallet" Caption="Type in your wallets name and select an option:">
+        <StackPanel Spacing="40">
+            <StackPanel>
+                <Label Content="Wallet _Name:" Target="walletNameTb" />
+                <TextBox x:Name="walletNameTb" Text="{Binding WalletName}" Watermark="(e.g. My Wallet)">
+                    <i:Interaction.Behaviors>
+                        <behaviors:FocusOnAttachedBehavior />
+                    </i:Interaction.Behaviors>
+                </TextBox>
             </StackPanel>
-          </Border>
-        </Button>
+            <StackPanel Spacing="10">
+                <StackPanel.Styles>
+                    <Style Selector="Button">
+                        <Setter Property="HorizontalAlignment" Value="Stretch" />
+                        <Setter Property="BorderThickness" Value="1" />
+                        <Setter Property="Padding" Value="0" />
+                    </Style>
+                </StackPanel.Styles>
+                <Button Classes="option">
+                    <StackPanel Orientation="Horizontal">
+                        <PathIcon DockPanel.Dock="Left" Margin="20" Data="{StaticResource add_regular}" Width="16"
+                                  VerticalAlignment="Center" />
+                        <TextBlock Text="Create a new wallet" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
 
-        <Button Classes="invisible" Padding="0">
-          <Border BorderThickness="1" BorderBrush="#7F000000" CornerRadius="4" Height="70">
-            <StackPanel Orientation="Horizontal">
-              <PathIcon DockPanel.Dock="Left" Margin="20" Data="{StaticResource recover_arrow_right_regular}" Width="16" VerticalAlignment="Center"/>
-              <TextBlock Text="Recover a wallet" VerticalAlignment="Center" />
-            </StackPanel>
-          </Border>
-        </Button>
+                <Button Classes="option">
 
-        <Button Classes="invisible" Padding="0">
-          <Border BorderThickness="1" BorderBrush="#7F000000" CornerRadius="4" Height="70">
-            <StackPanel Orientation="Horizontal">
-              <PathIcon DockPanel.Dock="Left" Margin="20" Data="{StaticResource import_regular}" Width="16" VerticalAlignment="Center"/>
-              <TextBlock Text="Import a wallet" VerticalAlignment="Center" />
-            </StackPanel>
-          </Border>
-        </Button>
+                    <StackPanel Orientation="Horizontal">
+                        <PathIcon DockPanel.Dock="Left" Margin="20" Data="{StaticResource recover_arrow_right_regular}"
+                                  Width="16" VerticalAlignment="Center" />
+                        <TextBlock Text="Recover a wallet" VerticalAlignment="Center" />
+                    </StackPanel>
 
-        <Button Classes="invisible" Padding="0">
-          <Border BorderThickness="1" BorderBrush="#7F000000" CornerRadius="4" Height="70">
-            <StackPanel Orientation="Horizontal">
-              <PathIcon DockPanel.Dock="Left" Margin="20" Data="{StaticResource web_asset_regular}" Width="16" VerticalAlignment="Center"/>
-              <TextBlock Text="Connect to hardware wallet" VerticalAlignment="Center" />
+                </Button>
+
+                <Button Classes="option">
+                    <StackPanel Orientation="Horizontal">
+                        <PathIcon DockPanel.Dock="Left" Margin="20" Data="{StaticResource import_regular}" Width="16"
+                                  VerticalAlignment="Center" />
+                        <TextBlock Text="Import a wallet" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+
+                <Button Classes="option">
+                    <StackPanel Orientation="Horizontal">
+                        <PathIcon DockPanel.Dock="Left" Margin="20" Data="{StaticResource web_asset_regular}"
+                                  Width="16" VerticalAlignment="Center" />
+                        <TextBlock Text="Connect to hardware wallet" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
             </StackPanel>
-          </Border>
-        </Button>
-      </StackPanel>
-    </StackPanel>
-  </c:ContentArea>
+        </StackPanel>
+    </c:ContentArea>
 </UserControl>
