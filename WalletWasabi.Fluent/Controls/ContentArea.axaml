@@ -43,10 +43,4 @@
     <Setter Property="TextWrapping" Value="Wrap" />
     <Setter Property="Opacity" Value="0.6" />
   </Style>
-  <Style Selector="c|ContentArea /template/ DockPanel#PART_DockPanel">
-    <Setter Property="Margin" Value="17 39 17 0" />
-  </Style>
-  <Style Selector="c|ContentArea /template/ StackPanel#PART_StackPanel">
-    <Setter Property="Margin" Value="0 0 0 20" />
-  </Style>
 </Styles>
