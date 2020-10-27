@@ -50,8 +50,9 @@ namespace WalletWasabi.Services.Terminate
 			if (prevValue != TerminateStatusIdle)
 			{
 				// Secondary callers will be blocked until the end of the termination.
-				while (_terminateStatus != TerminateStatusFinished)
+				while (Interlocked.Read(ref _terminateStatus) != TerminateStatusFinished)
 				{
+					Thread.Sleep(50);
 				}
 				return;
 			}
