@@ -4,8 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450" 
-             
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+
              x:Class="WalletWasabi.Fluent.Views.RecoveryPageView">
     <Panel Margin="25 0 25 20">
         <Button Classes="invisible" Margin="0 35 0 0" Command="{Binding GoBackCommand}" DockPanel.Dock="Left"
@@ -16,8 +16,9 @@
                        Margin="44 0">
             <Grid RowDefinitions="Auto,20,Auto" VerticalAlignment="Top" >
                 <Label Classes="h7 bold"  Content="_Type in your recovery words here:" Target="seedTagsBox"/>
-                <c:TagsBox x:Name="seedTagsBox"  Grid.Row="2" 
+                <c:TagsBox x:Name="seedTagsBox"  Grid.Row="2"
                            DataContext="{Binding RecoveryWordsTagsBox}"
+                           Items="{Binding Tags}"
                            MinHeight="60"
                            ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
             </Grid>

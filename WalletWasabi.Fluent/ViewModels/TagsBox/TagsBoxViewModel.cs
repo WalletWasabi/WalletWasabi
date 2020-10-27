@@ -49,6 +49,12 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
                 TagInput?.GrabFocusAction?.Invoke();
                 return new object();
             });
+
+            AddTag("Test1");
+            AddTag("Test2");
+            AddTag("Test3");
+            AddTag("Test4");
+            AddTag("Test5");
         }
 
         public ReadOnlyObservableCollection<object> CombinedContent => _combinedContent;

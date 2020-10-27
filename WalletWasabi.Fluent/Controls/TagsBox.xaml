@@ -5,81 +5,38 @@
         xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
         xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
         xmlns:iac="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions.Custom">
-    <Style Selector="c|TagsBox">
-        <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
-        <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrush}" />
-        <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThickness}" />
-        <Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
-        <Setter Property="MinHeight" Value="{DynamicResource TextControlThemeMinHeight}" />
-        <Setter Property="MinWidth" Value="{DynamicResource TextControlThemeMinWidth}" />
-        <Setter Property="Padding" Value="{DynamicResource TextControlThemePadding}" />
-        <Setter Property="Cursor" Value="IBeam" />
-        <Setter Property="FocusAdorner" Value="{x:Null}" />
-        <Setter Property="Template">
-            <ControlTemplate>
-                <Panel>
-                    <Border
-                        Name="PART_BorderElement"
-                        Background="{TemplateBinding Background}"
-                        BorderBrush="{TemplateBinding BorderBrush}"
-                        BorderThickness="{TemplateBinding BorderThickness}"
-                        MinWidth="{TemplateBinding MinWidth}"
-                        MinHeight="{TemplateBinding MinHeight}"
-                        Focusable="False" />
-                    <Panel Name="PART_FocusPanel" Background="Transparent">
-                        <i:Interaction.Behaviors>
-                            <ia:EventTriggerBehavior EventName="PointerReleased"
-                                                     SourceObject="{Binding #PART_FocusPanel}">
-                                <ia:InvokeCommandAction Command="{Binding GrabFocusCommand}" />
-                            </ia:EventTriggerBehavior>
-                        </i:Interaction.Behaviors>
-                    </Panel>
-                    <Panel Margin="{TemplateBinding BorderThickness}">
-                        <Grid ColumnDefinitions="Auto,*,Auto">
-                            <DockPanel Background="{x:Null}" x:Name="PART_InnerDockPanel" Grid.Column="1"
-                                       Margin="{TemplateBinding Padding}">
-                                <DataValidationErrors>
-                                    <ScrollViewer Background="{x:Null}"
-                                                  HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
-                                                  VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
-                                        <Panel>
-                                            <ItemsControl x:DataType="vmt:TagsBoxViewModel"
-                                                          Items="{CompiledBinding CombinedContent}">
-                                                <ItemsControl.ItemsPanel>
-                                                    <ItemsPanelTemplate>
-                                                        <WrapPanel />
-                                                    </ItemsPanelTemplate>
-                                                </ItemsControl.ItemsPanel>
-                                            </ItemsControl>
-                                        </Panel>
-                                    </ScrollViewer>
-                                </DataValidationErrors>
-                            </DockPanel>
-                        </Grid>
-                    </Panel>
-                </Panel>
-            </ControlTemplate>
-        </Setter>
-    </Style>
-
-    <Style Selector="c|TagsBox:pointerover /template/ Border#PART_BorderElement">
-        <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushPointerOver}" />
-        <Setter Property="Background" Value="{DynamicResource TextControlBackgroundPointerOver}" />
-    </Style>
-
-    <Style Selector="c|TagsBox AutoCompleteBox">
-        <Setter Property="Background" Value="{x:Null}" />
-        <Setter Property="Padding" Value="3,10,0, 10" />
-        <Setter Property="Margin" Value="0" />
-    </Style>
-
-    <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox /template/ Border#PART_BorderElement">
-        <Setter Property="IsVisible" Value="False" />
-    </Style>
-    
-    <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox">
-        <Setter Property="IsReadOnly" Value="{Binding !IsInputEnabled}" />
-    </Style>
-
+  <Style Selector="c|TagsBox">
+    <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
+    <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrush}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThickness}" />
+    <Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
+    <Setter Property="MinHeight" Value="{DynamicResource TextControlThemeMinHeight}" />
+    <Setter Property="MinWidth" Value="{DynamicResource TextControlThemeMinWidth}" />
+    <Setter Property="Padding" Value="{DynamicResource TextControlThemePadding}" />
+    <Setter Property="Cursor" Value="IBeam" />
+    <Setter Property="FocusAdorner" Value="{x:Null}" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                Padding="{TemplateBinding Padding}">
+          <ItemsPresenter Name="PART_ItemsPresenter"
+                          Items="{TemplateBinding Items}"
+                          ItemTemplate="{TemplateBinding ItemTemplate}">
+            <ItemsPresenter.ItemsPanel>
+              <ItemsPanelTemplate>
+                <c:ConcatenatingWrapPanel>
+                  <c:ConcatenatingWrapPanel.ConcatenatedChildren>
+                    <TextBox Text="test" />
+                  </c:ConcatenatingWrapPanel.ConcatenatedChildren>
+                </c:ConcatenatingWrapPanel>
+              </ItemsPanelTemplate>
+            </ItemsPresenter.ItemsPanel>
+          </ItemsPresenter>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </Style>
 </Styles>

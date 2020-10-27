@@ -2,9 +2,10 @@ using Avalonia.Controls;
 
 namespace WalletWasabi.Fluent.Controls
 {
-    /// <summary>
+	/// <summary>
     /// </summary>
-    public class TagsBox : ContentControl
-    { 
+    public class TagsBox : ItemsControl
+    {
+
     }
 }
