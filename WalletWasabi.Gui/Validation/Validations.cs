@@ -93,22 +93,19 @@ namespace WalletWasabi.Gui.Validation
 			OnErrorsChanged(propertyName, propertiesToNotify);
 		}
 
-		private string GetPropertyNameBySeverity(ErrorSeverity severity)
+		private string GetPropertyNameBySeverity(ErrorSeverity severity) => severity switch
 		{
-			return severity switch
-			{
-				ErrorSeverity.Info => nameof(AnyInfos),
-				ErrorSeverity.Warning => nameof(AnyWarnings),
-				ErrorSeverity.Error => nameof(AnyErrors),
-				_ => nameof(Any),
-			};
-		}
+			ErrorSeverity.Info => nameof(AnyInfos),
+			ErrorSeverity.Warning => nameof(AnyWarnings),
+			ErrorSeverity.Error => nameof(AnyErrors),
+		};
 
 		private void OnErrorsChanged(string propertyName, List<string> propertiesToNotify)
 		{
 			if (propertiesToNotify.Any())
 			{
 				ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
+				this.RaisePropertyChanged(nameof(Any));
 			}
 
 			propertiesToNotify.ForEach(x => this.RaisePropertyChanged(x));
