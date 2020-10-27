@@ -1,3 +1,5 @@
+using System;
+using System.Diagnostics;
 using NBitcoin.Secp256k1;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Helpers;
@@ -71,7 +73,13 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 			return secretNonces + challenge * witness;
 		}
 
-		internal bool VerifySolution(ScalarVector witness)
-			=> PublicPoint == witness * Generators;
+		[Conditional("DEBUG")]
+		internal void CheckSolution(ScalarVector witness)
+		{
+			if (PublicPoint != witness * Generators)
+			{
+				throw new ArgumentException($"{nameof(witness)} is not solution of the equation");
+			}
+		}
 	}
 }

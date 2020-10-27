@@ -211,7 +211,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			if (!pass)
 			{
-				Assert.Throws<ArgumentOutOfRangeException>(() => ProofSystem.RangeProof(amountScalar, randomness, width, rnd));
+				Assert.Throws<ArgumentException>(() => ProofSystem.RangeProof(amountScalar, randomness, width, rnd));
 			}
 		}
 
