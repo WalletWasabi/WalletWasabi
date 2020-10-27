@@ -3,7 +3,7 @@
         xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
   <Design.PreviewWith>
     <Panel Background="{DynamicResource RegionColor}">
-      <c:ContentArea Width="500" Height="400"
+      <c:ContentArea Width="500" Height="300"
                      Title="Add a Wallet"
                      EnableBack="True"
                      EnableCancel="True" CancelContent="Cancel"
