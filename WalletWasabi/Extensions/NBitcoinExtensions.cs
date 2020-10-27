@@ -152,7 +152,7 @@ namespace NBitcoin
 				var consolidatePenalty = Math.Pow(2, numberOfOwnInputs - 1);
 				var privacyBonus = smallestInputAnon / consolidatePenalty;
 
-				// If the privacy bonus is <=1 then we are not adding any privacy to the coin.
+				// If the privacy bonus is <=1 then we are not inheriting any privacy from the inputs.
 				var normalizedBonus = privacyBonus - 1;
 				int sanityCheckedEstimation = (int)Math.Max(0d, normalizedBonus);
 
