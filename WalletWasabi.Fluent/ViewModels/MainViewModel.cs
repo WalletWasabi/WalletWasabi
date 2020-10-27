@@ -25,7 +25,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			_navigationState = new NavigationStateViewModel()
 			{
-				MainScreen = () => this,
+				HomeScreen = () => this,
 				DialogScreen = () => _dialogScreen,
 				DialogHost = () => this
 			};

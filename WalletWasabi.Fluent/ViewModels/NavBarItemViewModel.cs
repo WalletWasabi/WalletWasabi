@@ -18,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			OpenCommand = ReactiveCommand.Create(() =>
 			{
-				_navigationState.MainScreen().Router.Navigate.Execute(this);
+				_navigationState.HomeScreen().Router.Navigate.Execute(this);
 			});
 		}
 
@@ -28,7 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public string UrlPathSegment { get; } = Guid.NewGuid().ToString().Substring(0, 5);
 
-		public IScreen HostScreen => _navigationState.MainScreen();
+		public IScreen HostScreen => _navigationState.HomeScreen();
 
 		public bool IsExpanded
 		{
