@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.Helpers;
@@ -133,6 +134,36 @@ namespace NBitcoin
 		}
 
 		public static int GetAnonymitySet(this Transaction me, uint outputIndex) => GetAnonymitySet(me, (int)outputIndex);
+
+		public static int GetAnonymitySet(this Transaction me, int outputIndex, IEnumerable<SmartCoin> spentOwnCoins)
+		{
+			// Get the anonymity set of i-th output in the transaction.
+			var anonset = me.GetAnonymitySet(outputIndex);
+			var numberOfOwnInputs = spentOwnCoins.Count();
+			// If we provided inputs to the transaction.
+			if (numberOfOwnInputs > 0)
+			{
+				// Take the input that we provided with the smallest anonset.
+				// Our smallest anonset input is the relevant here, because this way the common input ownership heuristic is considered.
+				var smallestInputAnon = spentOwnCoins.Min(x => x.AnonymitySet);
+
+				// Punish consilidation exponenetially.
+				// If there is only a single input then the exponent should be zero to divide by 1 thus retain the input coin anonset.
+				var consolidatePenalty = (2 ^ (numberOfOwnInputs - 1));
+				var privacyBonus = (decimal)smallestInputAnon / consolidatePenalty;
+
+				// If the privacy bonus is <=1 then we are not adding any privacy to the coin.
+				var normalizedBonus = privacyBonus - 1;
+				int sanityCheckedEstimation = (int)Math.Max(0m, normalizedBonus);
+
+				// And add that to the base anonset from the tx.
+				anonset += sanityCheckedEstimation;
+			}
+
+			return anonset;
+		}
+
+		public static int GetAnonymitySet(this Transaction me, uint outputIndex, IEnumerable<SmartCoin> spentOwnCoins) => GetAnonymitySet(me, (int)outputIndex, spentOwnCoins);
 
 		/// <summary>
 		/// Careful, if it's in a legacy block then this won't work.
