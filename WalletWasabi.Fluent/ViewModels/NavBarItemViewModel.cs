@@ -78,10 +78,10 @@ namespace WalletWasabi.Fluent.ViewModels
 			{
 				case NavigationTarget.Default:
 				case NavigationTarget.Home:
-					_navigationState.HomeScreen().Router.Navigate.Execute(this);
+					_navigationState.HomeScreen().Router.NavigateAndReset.Execute(this);
 					break;
 				case NavigationTarget.Dialog:
-					_navigationState.DialogScreen().Router.Navigate.Execute(this);
+					_navigationState.DialogScreen().Router.NavigateAndReset.Execute(this);
 					break;
 			}
 		}
