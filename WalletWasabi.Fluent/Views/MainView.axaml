@@ -37,7 +37,7 @@
           <local:StatusBar DockPanel.Dock="Bottom" Classes="h8" DataContext="{Binding StatusBar}" VerticalAlignment="Bottom" Height="32"/>
           <Panel>
             <Border Background="{DynamicResource RegionColor}" BoxShadow="{DynamicResource BoxShadow}" IsHitTestVisible="False" />
-            <rxui:RoutedViewHost Router="{Binding Router}">
+            <rxui:RoutedViewHost Router="{Binding Router}" Margin="20 36 20 0">
               <rxui:RoutedViewHost.ViewLocator>
                 <vl:ScreenViewLocator />
               </rxui:RoutedViewHost.ViewLocator>
