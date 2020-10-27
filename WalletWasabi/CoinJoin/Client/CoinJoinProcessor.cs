@@ -12,7 +12,6 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Wallets;
-using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.CoinJoin.Client
 {
@@ -48,7 +47,7 @@ namespace WalletWasabi.CoinJoin.Client
 
 					var txsNotKnownByAWallet = WalletManager.FilterUnknownCoinjoins(unconfirmedCoinJoinHashes);
 
-					using var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint);
+					using var client = Synchronizer.WasabiClientFactory.NewBackendClient();
 
 					var unconfirmedCoinJoins = await client.GetTransactionsAsync(Synchronizer.Network, txsNotKnownByAWallet, CancellationToken.None).ConfigureAwait(false);
 

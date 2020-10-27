@@ -7,12 +7,13 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using WalletWasabi.Logging;
 using WalletWasabi.Gui.Models;
+using WalletWasabi.Services.Terminate;
 
 namespace WalletWasabi.Gui.Rpc
 {
 	public class JsonRpcServer : BackgroundService
 	{
-		public JsonRpcServer(Global global, JsonRpcServerConfiguration config)
+		public JsonRpcServer(Global global, JsonRpcServerConfiguration config, TerminateService terminateService)
 		{
 			Config = config;
 			Listener = new HttpListener();
@@ -21,7 +22,7 @@ namespace WalletWasabi.Gui.Rpc
 			{
 				Listener.Prefixes.Add(prefix);
 			}
-			Service = new WasabiJsonRpcService(global);
+			Service = new WasabiJsonRpcService(global, terminateService);
 		}
 
 		private HttpListener Listener { get; }
