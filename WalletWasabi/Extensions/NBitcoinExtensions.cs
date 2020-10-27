@@ -149,12 +149,12 @@ namespace NBitcoin
 
 				// Punish consilidation exponenetially.
 				// If there is only a single input then the exponent should be zero to divide by 1 thus retain the input coin anonset.
-				var consolidatePenalty = 2 ^ (numberOfOwnInputs - 1);
-				var privacyBonus = (decimal)smallestInputAnon / consolidatePenalty;
+				var consolidatePenalty = Math.Pow(2, numberOfOwnInputs - 1);
+				var privacyBonus = smallestInputAnon / consolidatePenalty;
 
 				// If the privacy bonus is <=1 then we are not adding any privacy to the coin.
 				var normalizedBonus = privacyBonus - 1;
-				int sanityCheckedEstimation = (int)Math.Max(0m, normalizedBonus);
+				int sanityCheckedEstimation = (int)Math.Max(0d, normalizedBonus);
 
 				// And add that to the base anonset from the tx.
 				anonset += sanityCheckedEstimation;
