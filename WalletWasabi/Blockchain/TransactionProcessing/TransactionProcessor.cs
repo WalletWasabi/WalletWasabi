@@ -165,7 +165,6 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					}
 				}
 
-				List<SmartCoin> spentOwnCoins = null;
 				for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 				{
 					// If transaction received to any of the wallet keys:
@@ -185,8 +184,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 							continue;
 						}
 
-						spentOwnCoins ??= Coins.OutPoints(tx.Transaction.Inputs).ToList();
-						int anonset = tx.Transaction.GetAnonymitySet(i, spentOwnCoins);
+						int anonset = tx.Transaction.GetAnonymitySet(i, Coins);
 
 						SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToOutPoints().ToArray(), tx.Height, tx.IsRBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
 
