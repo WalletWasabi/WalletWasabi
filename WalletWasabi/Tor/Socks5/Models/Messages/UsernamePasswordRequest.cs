@@ -8,12 +8,6 @@ namespace WalletWasabi.Tor.Socks5.Models.Messages
 {
 	public class UsernamePasswordRequest : ByteArraySerializableBase
 	{
-		#region Constructors
-
-		public UsernamePasswordRequest()
-		{
-		}
-
 		public UsernamePasswordRequest(UNameField uName, PasswdField passwd)
 		{
 			Ver = AuthVerField.Version1;
@@ -28,10 +22,6 @@ namespace WalletWasabi.Tor.Socks5.Models.Messages
 			ULen = uLen;
 		}
 
-		#endregion Constructors
-
-		#region PropertiesAndMembers
-
 		public AuthVerField Ver { get; set; }
 
 		public ULenField ULen { get; set; }
@@ -42,17 +32,12 @@ namespace WalletWasabi.Tor.Socks5.Models.Messages
 
 		public PasswdField Passwd { get; set; }
 
-		#endregion PropertiesAndMembers
-
-		#region Serialization
-
 		public override void FromBytes(byte[] bytes)
 		{
 			Guard.NotNullOrEmpty(nameof(bytes), bytes);
 			Guard.InRangeAndNotNull($"{nameof(bytes)}.{nameof(bytes.Length)}", bytes.Length, 6, 513);
 
-			Ver = new AuthVerField();
-			Ver.FromByte(bytes[0]);
+			Ver = new AuthVerField(bytes[0]);
 
 			ULen = new ULenField();
 			ULen.FromByte(bytes[1]);
@@ -71,7 +56,5 @@ namespace WalletWasabi.Tor.Socks5.Models.Messages
 		}
 
 		public override byte[] ToBytes() => ByteHelpers.Combine(new byte[] { Ver.ToByte(), ULen.ToByte() }, UName.ToBytes(), new byte[] { PLen.ToByte() }, Passwd.ToBytes());
-
-		#endregion Serialization
 	}
 }

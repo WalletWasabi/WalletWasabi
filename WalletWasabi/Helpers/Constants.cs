@@ -54,7 +54,7 @@ namespace WalletWasabi.Helpers
 
 		public const string BuiltinBitcoinNodeName = "Bitcoin Knots";
 
-		public static readonly Version ClientVersion = new Version(1, 1, 12, 1);
+		public static readonly Version ClientVersion = new Version(1, 1, 12, 2);
 		public static readonly Version HwiVersion = new Version("1.1.2");
 		public static readonly Version BitcoinCoreVersion = new Version("0.20.0");
 		public static readonly Version LegalDocumentsVersion = new Version(2, 0);
@@ -96,7 +96,7 @@ namespace WalletWasabi.Helpers
 
 		public static Money MinimumCredentailAmount = Money.Satoshis(10_000);
 
-		public static Money MaximumCredentailAmount = Money.Satoshis(Constants.MaximumNumberOfSatoshis);
+		public static Money MaximumCredentailAmount = Money.Satoshis(MaximumNumberOfSatoshis);
 
 		public static string ClientSupportBackendVersionText => ClientSupportBackendVersionMin == ClientSupportBackendVersionMax
 				? ClientSupportBackendVersionMin
