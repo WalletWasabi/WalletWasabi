@@ -9,13 +9,14 @@ namespace WalletWasabi.Fluent.ViewModels
 {
 	public class MainViewModel : ViewModelBase, IScreen, IDialogHost
 	{
-		private Global _global;
-		private NavigationStateViewModel _navigationState;
+		private readonly Global _global;
 		private StatusBarViewModel _statusBar;
 		private string _title = "Wasabi Wallet";
+		private DialogViewModelBase? _currentDialog;
+		private NavigationStateViewModel _navigationState;
 		private DialogScreenViewModel _dialogScreen;
-		private DialogViewModelBase _currentDialog;
 		private NavBarViewModel _navBar;
+
 		public MainViewModel(Global global)
 		{
 			_global = global;
@@ -31,20 +32,21 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			Network = global.Network;
 
-			StatusBar = new StatusBarViewModel(global.DataDir, global.Network, global.Config, global.HostedServices, global.BitcoinStore.SmartHeaderChain, global.Synchronizer, global.LegalDocuments);
+			_currentDialog = null;
 
-			NavBar = new NavBarViewModel(_navigationState, Router, global.WalletManager, global.UiConfig);
+			_statusBar = new StatusBarViewModel(global.DataDir, global.Network, global.Config, global.HostedServices, global.BitcoinStore.SmartHeaderChain, global.Synchronizer, global.LegalDocuments);
+
+			var walletManager = new WalletManagerViewModel(this, global.WalletManager, global.UiConfig);
+			_navBar = new NavBarViewModel(_navigationState, Router, walletManager);
 		}
 
-		public static MainViewModel Instance { get; internal set; }
+		public static MainViewModel? Instance { get; internal set; }
 
 		public RoutingState Router { get; } = new RoutingState();
 
-		public ReactiveCommand<Unit, IRoutableViewModel> GoNext { get; }
-
 		public ReactiveCommand<Unit, Unit> GoBack => Router.NavigateBack;
 
-		public Network Network { get; }
+		private Network Network { get; }
 
 		public DialogScreenViewModel DialogScreen
 		{
@@ -52,7 +54,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _dialogScreen, value);
 		}
 
-		public DialogViewModelBase CurrentDialog
+		public DialogViewModelBase? CurrentDialog
 		{
 			get => _currentDialog;
 			set => this.RaiseAndSetIfChanged(ref _currentDialog, value);
@@ -79,7 +81,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		public void Initialize()
 		{
 			// Temporary to keep things running without VM modifications.
-			MainWindowViewModel.Instance = new MainWindowViewModel(_global.Network, _global.UiConfig, _global.WalletManager, null, null, false);
+			MainWindowViewModel.Instance = new MainWindowViewModel(_global.Network, _global.UiConfig, _global.WalletManager, null!, null!, false);
 
 			StatusBar.Initialize(_global.Nodes.ConnectedNodes);
 
