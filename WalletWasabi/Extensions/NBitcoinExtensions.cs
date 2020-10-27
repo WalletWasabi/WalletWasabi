@@ -140,10 +140,19 @@ namespace NBitcoin
 		public static int GetAnonymitySet(this Transaction me, int outputIndex, ICoinsView allWalletCoins)
 		{
 			var spentOwnCoins = allWalletCoins.OutPoints(me.Inputs.Select(x => x.PrevOut)).ToList();
+			var numberOfOwnInputs = spentOwnCoins.Count();
+			// If it's a normal tx that isn't self spent, nor a coinjoin, then anonymity should stripped if there was any and start from zero.
+			// Note: this is only a good idea from WWII, with WWI we calculate anonsets from the point the coin first hit the wallet.
+			// Note: a bit optimization to calculate this would be to actually use own output data, but that's a bit harder to get and this'll do it:
+			// If all our inputs are ours and there are more than 1 outputs then it's not a self-spent and it's not a coinjoin.
+			// This'll work, because we are only calculating anonset for our own coins and Wasabi doesn't generate tx that has more than one own outputs.
+			if (numberOfOwnInputs == me.Inputs.Count && me.Outputs.Count > 1)
+			{
+				return 1;
+			}
 
 			// Get the anonymity set of i-th output in the transaction.
 			var anonset = me.GetAnonymitySet(outputIndex);
-			var numberOfOwnInputs = spentOwnCoins.Count();
 			// If we provided inputs to the transaction.
 			if (numberOfOwnInputs > 0)
 			{
