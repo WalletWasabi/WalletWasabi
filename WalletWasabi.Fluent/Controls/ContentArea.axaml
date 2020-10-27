@@ -3,10 +3,9 @@
         xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
   <Design.PreviewWith>
     <Panel Background="{DynamicResource RegionColor}">
-      <c:ContentArea
-      Width="400" Height="200"
-      Title="Add a Wallet"
-      Caption="Type in your Wallets name and select an option below:">
+      <c:ContentArea Width="400" Height="200"
+                     Title="Add a Wallet"
+                     Caption="Type in your Wallets name and select an option below:">
         This is the content.
       </c:ContentArea>
     </Panel>
@@ -16,7 +15,7 @@
   <Style Selector="c|ContentArea">
     <Setter Property="Template">
       <ControlTemplate>
-        <DockPanel Margin="20 36 20 0">
+        <DockPanel>
           <StackPanel DockPanel.Dock="Top" Spacing="10" Margin="0 0 0 40">
             <ContentPresenter Name="PART_TitlePresenter" Content="{TemplateBinding Title}" />
             <ContentPresenter Name="PART_CaptionPresenter" Content="{TemplateBinding Caption}" />
@@ -29,7 +28,7 @@
                                 Content="{TemplateBinding Content}"
                                 Padding="{TemplateBinding Padding}"
                                 VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
         </DockPanel>
       </ControlTemplate>
     </Setter>
@@ -38,9 +37,10 @@
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextControlForeground}" />
     <Setter Property="TextBlock.FontSize" Value="24" />
   </Style>
-  <Style Selector="c|ContentArea /template/ ContentPresenter#PART_CaptionPresenter">
-    <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextControlForeground}" />
-    <Setter Property="TextBlock.FontSize" Value="14" />
+  <Style Selector="c|ContentArea :is(Control).caption TextBlock, c|ContentArea :is(TextBlock).caption">
+    <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="TextWrapping" Value="Wrap" />
     <Setter Property="Opacity" Value="0.6" />
   </Style>
 </Styles>
