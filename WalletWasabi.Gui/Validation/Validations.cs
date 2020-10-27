@@ -80,7 +80,7 @@ namespace WalletWasabi.Gui.Validation
 		private void ClearAndNotify(List<ErrorDescriptor> currentErrors, List<ErrorDescriptor> previousErrors, string propertyName)
 		{
 			// Severities of the new errors
-			var categoriesToNotify = currentErrors.Where(x => !previousErrors.Any(y => x.Message == y.Message && x.Severity == y.Severity)).Select(x => x.Severity).ToList();
+			var categoriesToNotify = currentErrors.Except(previousErrors).Select(x => x.Severity).ToList();
 
 			// Remove the old errors
 			previousErrors.ForEach(x => currentErrors.Remove(x));
