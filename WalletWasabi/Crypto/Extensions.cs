@@ -34,7 +34,7 @@ namespace System.Linq
 			}
 		}
 
-		public static void CheckDimensions(this IEnumerable<Equation> equations, IEnumerable<ScalarVector> allResponses)
+		internal static void CheckDimensions(this IEnumerable<Equation> equations, IEnumerable<ScalarVector> allResponses)
 		{
 			if (equations.Count() != allResponses.Count() ||
 				Enumerable.Zip(equations, allResponses).Any(x => x.First.Generators.Count() != x.Second.Count()))
