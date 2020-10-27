@@ -88,6 +88,11 @@ namespace WalletWasabi.Gui.Validation
 			// Severities of the obsoleted errors
 			categoriesToNotify.AddRange(previousErrors.Except(currentErrors).Select(x => x.Severity).Distinct().ToList());
 
+			OnErrorsChanged(propertyName, categoriesToNotify);
+		}
+
+		private void OnErrorsChanged(string propertyName, List<ErrorSeverity> categoriesToNotify)
+		{
 			var propertiesToNotify = categoriesToNotify.Select(x => x switch
 			{
 				ErrorSeverity.Info => nameof(AnyInfos),
@@ -95,11 +100,6 @@ namespace WalletWasabi.Gui.Validation
 				ErrorSeverity.Error => nameof(AnyErrors),
 			}).ToList();
 
-			OnErrorsChanged(propertyName, propertiesToNotify);
-		}
-
-		private void OnErrorsChanged(string propertyName, List<string> propertiesToNotify)
-		{
 			if (propertiesToNotify.Any())
 			{
 				ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
