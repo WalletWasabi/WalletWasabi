@@ -32,7 +32,7 @@ namespace WalletWasabi.Services.Terminate
 
 		private void Console_CancelKeyPress(object? sender, ConsoleCancelEventArgs e)
 		{
-			Logger.LogWarning("Process was signaled for termination.");
+			Logger.LogWarning($"Process termination was requested using '{e.SpecialKey}' keyboard shortcut.");
 			// This must be a blocking call because after this the OS will terminate Wasabi process if exists.
 			// In some cases CurrentDomain_ProcessExit is called after this by the OS.
 			Terminate();
