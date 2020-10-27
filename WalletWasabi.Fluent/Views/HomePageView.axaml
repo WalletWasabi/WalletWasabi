@@ -11,7 +11,7 @@
   <c:ContentArea Title="Home">
     <c:ContentArea.Caption>
       <DockPanel>
-        <Button VerticalAlignment="Top" Padding="0" Classes="invisible" DockPanel.Dock="Right" Command="{Binding OpenWalletsFolderCommand}" Margin="40 0 0 0">
+        <Button VerticalAlignment="Top" Padding="0" Classes="plain" DockPanel.Dock="Right" Command="{Binding OpenWalletsFolderCommand}" Margin="40 0 0 0">
           <StackPanel Orientation="Horizontal" Spacing="20">
             <PathIcon Data="{StaticResource open_regular}" />
             <TextBlock Text="Open Wallets folder" />
