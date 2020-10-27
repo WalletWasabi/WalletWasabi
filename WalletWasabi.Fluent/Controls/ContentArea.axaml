@@ -15,8 +15,8 @@
   <Style Selector="c|ContentArea">
     <Setter Property="Template">
       <ControlTemplate>
-        <DockPanel Name="PART_DockPanel" >
-          <StackPanel Name="PART_StackPanel" DockPanel.Dock="Top" Spacing="10">
+        <DockPanel>
+          <StackPanel DockPanel.Dock="Top" Spacing="10" Margin="0 0 0 40">
             <ContentPresenter Name="PART_TitlePresenter" Content="{TemplateBinding Title}" />
             <ContentPresenter Name="PART_CaptionPresenter" Content="{TemplateBinding Caption}" />
           </StackPanel>
@@ -28,7 +28,7 @@
                                 Content="{TemplateBinding Content}"
                                 Padding="{TemplateBinding Padding}"
                                 VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
         </DockPanel>
       </ControlTemplate>
     </Setter>
@@ -43,19 +43,4 @@
     <Setter Property="TextWrapping" Value="Wrap" />
     <Setter Property="Opacity" Value="0.6" />
   </Style>
-  <Style Selector="c|ContentArea /template/ DockPanel#PART_DockPanel">
-    <Setter Property="Margin" Value="17 39 17 0" />
-  </Style>
-  <Style Selector="c|ContentArea /template/ StackPanel#PART_StackPanel">
-    <Setter Property="Margin" Value="0 0 0 20" />
-  </Style>
-
-  <!--Dialog class-->
-  <Style Selector=":is(c|ContentArea).dialog /template/ DockPanel#PART_DockPanel">
-    <Setter Property="Margin" Value="64 35 64 75" />
-  </Style>
-  <Style Selector=":is(c|ContentArea).dialog /template/ StackPanel#PART_StackPanel">
-    <Setter Property="Margin" Value="0 0 0 28" />
-  </Style>
-
 </Styles>
