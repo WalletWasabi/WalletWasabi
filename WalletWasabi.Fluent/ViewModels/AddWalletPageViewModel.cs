@@ -9,7 +9,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		private string _walletName = "";
 		private bool _optionsEnabled;
 
-		public AddWalletPageViewModel(NavigationStateViewModel navigationState) : base(navigationState)
+		public AddWalletPageViewModel(NavigationStateViewModel navigationState) : base(navigationState, NavigationTarget.Dialog)
 		{
 			Title = "Add Wallet";
 

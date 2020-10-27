@@ -12,13 +12,22 @@ namespace WalletWasabi.Fluent.ViewModels
 		private bool _isExpanded;
 		private string _title;
 
-		public NavBarItemViewModel(NavigationStateViewModel navigationState)
+		public NavBarItemViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget)
 		{
 			_navigationState = navigationState;
 
 			OpenCommand = ReactiveCommand.Create(() =>
 			{
-				_navigationState.HomeScreen().Router.Navigate.Execute(this);
+				switch (navigationTarget)
+				{
+					case NavigationTarget.Default:
+					case NavigationTarget.Home:
+						_navigationState.HomeScreen().Router.Navigate.Execute(this);
+						break;
+					case NavigationTarget.Dialog:
+						_navigationState.DialogScreen().Router.Navigate.Execute(this);
+						break;
+				}
 			});
 		}
 
