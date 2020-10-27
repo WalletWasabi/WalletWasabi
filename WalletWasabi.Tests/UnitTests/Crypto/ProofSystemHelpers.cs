@@ -5,7 +5,6 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Crypto.ZeroKnowledge.LinearRelation;
-using WalletWasabi.Crypto.ZeroKnowledge.NonInteractive;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Crypto
