@@ -9,26 +9,83 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge
 {
-	public static class ProofSystem
+	public static partial class ProofSystem
 	{
 		private static GroupElement O = GroupElement.Infinity;
 
-		public static bool Verify(Statement statement, Proof proof)
+		private delegate Proof DeferredProofCreator(Scalar challenge);
+
+		public static IEnumerable<Proof> Prove(Transcript transcript, IEnumerable<Knowledge> knowledge, WasabiRandom random)
 		{
-			return Verifier.Verify(new Transcript(new byte[0]), new[] { statement }, new[] { proof });
+			// Before anything else all components in a compound proof commit to the
+			// individual sub-statement that will be proven, ensuring that the
+			// challenges and therefore the responses depend on the statement as a
+			// whole.
+			foreach (var k in knowledge)
+			{
+				transcript.CommitStatement(k.Statement);
+			}
+
+			var deferredResponds = new List<DeferredProofCreator>();
+			foreach (var k in knowledge)
+			{
+				// With all the statements committed, generate a vector of random secret
+				// nonces for every equation in underlying proof system. In order to
+				// ensure that nonces are never reused (e.g. due to an insecure RNG) with
+				// different challenges which would leak the witness, these are generated
+				// as synthetic nonces that also depend on the witness data.
+				var secretNonceProvider = transcript.CreateSyntheticSecretNonceProvider(k.Witness, random);
+				ScalarVector secretNonces = secretNonceProvider.GetScalarVector();
+
+				// The prover then commits to these, adding the corresponding public
+				// points to the transcript.
+				var equations = k.Statement.Equations;
+				var publicNonces = new GroupElementVector(equations.Select(equation => secretNonces * equation.Generators));
+				transcript.CommitPublicNonces(publicNonces);
+
+				deferredResponds.Add((challenge) => new Proof(publicNonces, k.RespondToChallenge(challenge, secretNonces)));
+			}
+
+			// With the public nonces committed to the transcript the prover can then
+			// derive a challenge that depend on the transcript state without needing
+			// to interact with the verifier, but ensuring that they can't know the
+			// challenge before the prover commitments are generated.
+			Scalar challenge = transcript.GenerateChallenge();
+			return deferredResponds.Select(createProof => createProof(challenge));
 		}
 
-		public static Proof Prove(Knowledge knowledge, WasabiRandom random)
+		public static bool Verify(Transcript transcript, IEnumerable<Statement> statements, IEnumerable<Proof> proofs)
 		{
-			return Prover.Prove(new Transcript(new byte[0]), new[] { knowledge }, random).First();
+			Guard.Same(nameof(proofs), proofs.Count(), statements.Count());
+
+			// Before anything else all components in a compound proof commit to the
+			// individual sub-statement that will be proven, ensuring that the
+			// challenges and therefore the responses depend on the statement as a
+			// whole.
+			foreach (var statement in statements)
+			{
+				transcript.CommitStatement(statement);
+			}
+
+			// After all the statements have been committed, the public nonces are
+			// added to the transcript. This is done separately from the statement
+			// commitments because the prover derives these based on the compound
+			// statements, and the verifier must add data to the transcript in the
+			// same order as the prover.
+			foreach (var proof in proofs)
+			{
+				transcript.CommitPublicNonces(proof.PublicNonces);
+			}
+
+			// After all the public nonces have been committed, a challenge can be
+			// generated based on transcript state. Since challenges are deterministic
+			// outputs of a hash function which depends on the prover commitments, the
+			// verifier obtains the same challenge and then accepts if the responses
+			// satisfy the verification equation.
+			var challenge = transcript.GenerateChallenge();
+
+			return Enumerable.Zip(statements, proofs, (s, p) => s.CheckVerificationEquation(p.PublicNonces, challenge, p.Responses)).All(x => x);
 		}
-
-		// Syntactic sugar used in tests
-		public static Proof Prove(Statement statement, Scalar witness, WasabiRandom random)
-			=> Prove(statement, new ScalarVector(witness), random);
-
-		public static Proof Prove(Statement statement, ScalarVector witness, WasabiRandom random)
-			=> Prove(new Knowledge(statement, witness), random);
 
 		public static Knowledge IssuerParameters(MAC mac, GroupElement ma, CoordinatorSecretKey sk)
 			=> new Knowledge(IssuerParameters(sk.ComputeCoordinatorParameters(), mac, ma), new ScalarVector(sk.W, sk.Wp, sk.X0, sk.X1, sk.Ya));

@@ -134,7 +134,7 @@ namespace WalletWasabi.Wabisabi
 			var transcript = BuildTransnscript(registrationRequest.IsNullRequest);
 
 			// Verify all statements.
-			var areProofsValid = Verifier.Verify(transcript, statements, registrationRequest.Proofs);
+			var areProofsValid = ProofSystem.Verify(transcript, statements, registrationRequest.Proofs);
 			if (!areProofsValid)
 			{
 				throw new WabiSabiException(WabiSabiErrorCode.CoordinatorReceivedInvalidProofs);
@@ -144,7 +144,7 @@ namespace WalletWasabi.Wabisabi
 			var credentials = requested.Select(x => IssueCredential(x.Ma, RandomNumberGenerator.GetScalar())).ToArray();
 
 			// Construct response.
-			var proofs = Prover.Prove(transcript, credentials.Select(x => x.Knowledge), RandomNumberGenerator);
+			var proofs = ProofSystem.Prove(transcript, credentials.Select(x => x.Knowledge), RandomNumberGenerator);
 			var macs = credentials.Select(x => x.Mac);
 			var response = new RegistrationResponse(macs, proofs);
 
