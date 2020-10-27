@@ -52,7 +52,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var firstHash = await global.RpcClient.GetBlockHashAsync(0);
 			while (true)
 			{
-				using var client = new WasabiClient(new Uri(regTestFixture.BackendEndPoint), null);
+				using var client = new WasabiClient(new Uri(regTestFixture.BackendEndPoint), torSocks5EndPoint: null);
 				FiltersResponse filtersResponse = await client.GetFiltersAsync(firstHash, 1000);
 				Assert.NotNull(filtersResponse);
 
