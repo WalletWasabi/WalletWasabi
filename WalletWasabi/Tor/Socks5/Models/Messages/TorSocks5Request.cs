@@ -49,8 +49,7 @@ namespace WalletWasabi.Tor.Socks5.Models.Messages
 			Rsv = new RsvField();
 			Rsv.FromByte(bytes[2]);
 
-			Atyp = new AtypField();
-			Atyp.FromByte(bytes[3]);
+			Atyp = new AtypField(bytes[3]);
 
 			DstAddr = new AddrField();
 			DstAddr.FromBytes(bytes[4..^2]);

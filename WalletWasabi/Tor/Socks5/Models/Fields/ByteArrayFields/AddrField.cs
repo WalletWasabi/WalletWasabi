@@ -20,8 +20,7 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields
 		{
 			dstAddr = Guard.NotNullOrEmptyOrWhitespace(nameof(dstAddr), dstAddr, true);
 
-			var atyp = new AtypField();
-			atyp.FromDstAddr(dstAddr);
+			var atyp = new AtypField(dstAddr);
 
 			Atyp = atyp;
 
