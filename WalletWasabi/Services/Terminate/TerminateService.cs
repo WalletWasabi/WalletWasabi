@@ -57,7 +57,7 @@ namespace WalletWasabi.Services.Terminate
 			}
 
 			// First caller starts the terminate procedure.
-			Logger.LogDebug("Terminate application was started.");
+			Logger.LogDebug("Start shutting down the application.");
 
 			// Async termination has to be started on another thread otherwise there is a possibility of deadlock.
 			// We still need to block the caller so ManualResetEvent applied.
