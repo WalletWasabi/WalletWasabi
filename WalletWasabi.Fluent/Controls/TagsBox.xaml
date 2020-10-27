@@ -18,7 +18,7 @@
     <Setter Property="FocusAdorner" Value="{x:Null}" />
     <Setter Property="Template">
       <ControlTemplate>
-        <Border Background="{TemplateBinding Background}"
+        <Border x:Name="PART_Border" Background="{TemplateBinding Background}"
                 BorderBrush="{TemplateBinding BorderBrush}"
                 BorderThickness="{TemplateBinding BorderThickness}"
                 Padding="{TemplateBinding Padding}">
@@ -29,7 +29,7 @@
               <ItemsPanelTemplate>
                 <c:ConcatenatingWrapPanel>
                   <c:ConcatenatingWrapPanel.ConcatenatedChildren>
-                    <TextBox Text="test" />
+                    <AutoCompleteBox x:Name="PART_AutoCompleteBox" Items="{Binding #PART_Border.TemplatedParent.Suggestions}" />
                   </c:ConcatenatingWrapPanel.ConcatenatedChildren>
                 </c:ConcatenatingWrapPanel>
               </ItemsPanelTemplate>

@@ -19,6 +19,7 @@
                 <c:TagsBox x:Name="seedTagsBox"  Grid.Row="2"
                            DataContext="{Binding RecoveryWordsTagsBox}"
                            Items="{Binding Tags}"
+                           Suggestions="{Binding Suggestions, Mode=TwoWay}"
                            MinHeight="60"
                            ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
             </Grid>

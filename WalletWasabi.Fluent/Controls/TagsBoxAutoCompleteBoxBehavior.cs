@@ -9,7 +9,7 @@ using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
 
-namespace WalletWasabi.Fluent.Behaviors
+namespace WalletWasabi.Fluent.Controls
 {
     public class TagsBoxAutoCompleteBoxBehavior : Behavior<AutoCompleteBox>
     {

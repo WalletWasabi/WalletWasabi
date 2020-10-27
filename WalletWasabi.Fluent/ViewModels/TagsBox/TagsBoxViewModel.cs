@@ -20,7 +20,6 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
 {
     public class TagsBoxViewModel : ViewModelBase
     {
-        private readonly ReadOnlyObservableCollection<object> _combinedContent;
         private IEnumerable _suggestions;
         private ObservableCollection<TagViewModel> _tags;
 
@@ -36,14 +35,6 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
             var list = new SourceList<object>();
             list.Add(TagInput);
 
-            Tags.ToObservableChangeSet()
-                .Cast(x => x as object)
-                .Or(list.Connect())
-                .Sort(SortExpressionComparer<object>.Ascending(i => i == TagInput ? 1 : 0))
-                .ObserveOn(RxApp.MainThreadScheduler)
-                .Bind(out _combinedContent)
-                .AsObservableList();
-
             GrabFocusCommand = ReactiveCommand.Create((object x) =>
             {
                 TagInput?.GrabFocusAction?.Invoke();
@@ -56,8 +47,6 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
             AddTag("Test4");
             AddTag("Test5");
         }
-
-        public ReadOnlyObservableCollection<object> CombinedContent => _combinedContent;
 
         public TagInputViewModel TagInput { get; }
 
@@ -83,7 +72,7 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
             get => _tagCountLimit;
             set => this.RaiseAndSetIfChanged(ref _tagCountLimit, value);
         }
-        
+
         public string GetTagsAsConcatString()
         {
             return string.Join(' ', Tags.Select(x => x.Tag));

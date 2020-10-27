@@ -8,14 +8,6 @@
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors;assembly=WalletWasabi.Fluent"
              x:Class="WalletWasabi.Fluent.Views.TagsBox.TagInputView">
     <AutoCompleteBox x:DataType="vm:TagInputViewModel" IsTextCompletionEnabled="True" Items="{CompiledBinding Suggestions}">
-        <i:Interaction.Behaviors>
-            <behaviors:TagsBoxAutoCompleteBoxBehavior
-                IsInputEnabled="{CompiledBinding IsInputEnabled}"
-                RestrictInputToSuggestions="{CompiledBinding RestrictInputToSuggestions}"
-                Suggestions="{CompiledBinding Suggestions}"
-                GrabFocusAction="{CompiledBinding GrabFocusAction, Mode=OneWayToSource}"
-                CommitTextAction="{CompiledBinding CommitTextAction}"
-                BackspaceAndEmptyTextAction="{CompiledBinding BackspaceAndEmptyTextAction}" />
-        </i:Interaction.Behaviors>
+
     </AutoCompleteBox>
 </UserControl>
