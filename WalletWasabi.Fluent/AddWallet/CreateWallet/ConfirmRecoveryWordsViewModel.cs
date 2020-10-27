@@ -16,23 +16,22 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.AddWallet.CreateWallet
 {
-	public class ConfirmRecoveryWordsViewModel : ViewModelBase, IDisposable, IRoutableViewModel
+	public class ConfirmRecoveryWordsViewModel : ViewModelBase, IRoutableViewModel
 	{
 		private bool _isConfirmationFinished;
-		private bool _disposedValue;
 
 		public ConfirmRecoveryWordsViewModel(IScreen screen, List<RecoveryWord> mnemonicWords, KeyManager keyManager, Global global)
 		{
 			HostScreen = screen;
 
 			ConfirmationWords = new ObservableCollection<RecoveryWord>();
-			ConfirmationWords.CollectionChanged += OnConfirmationWordCollectionChanged;
 
 			FinishCommand = ReactiveCommand.Create(() =>
 			{
 				global.WalletManager.AddWallet(keyManager);
 				screen.Router.NavigationStack.Clear();
 			});
+
 			CancelCommand = ReactiveCommand.Create(() => HostScreen.Router.NavigateAndReset.Execute(new SettingsPageViewModel(screen)));
 
 			SetConfirmationWords(mnemonicWords);
@@ -49,50 +48,16 @@ namespace WalletWasabi.Fluent.AddWallet.CreateWallet
 		}
 
 		public string UrlPathSegment { get; } = null!;
+
 		public IScreen HostScreen { get; }
+
 		public ObservableCollection<RecoveryWord> ConfirmationWords { get; }
+
 		public ICommand FinishCommand { get; }
+
 		public ICommand CancelCommand { get; }
+
 		public ICommand GoBackCommand => HostScreen.Router.NavigateBack;
-
-		private void OnConfirmationWordCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-		{
-			if (e.Action == NotifyCollectionChangedAction.Add)
-			{
-				foreach (var item in e.NewItems)
-				{
-					if (item is RecoveryWord recoveryWord)
-					{
-						recoveryWord.PropertyChanged += RecoveryWordOnPropertyChanged;
-					}
-				}
-			}
-		}
-
-		private void RecoveryWordOnPropertyChanged(object sender, PropertyChangedEventArgs e)
-		{
-			if (e.PropertyName == nameof(RecoveryWord.IsConfirmed) && FocusManager.Instance.Current is { } focusManager && sender is RecoveryWord recoveryWord)
-			{
-				var nextToFocus = KeyboardNavigationHandler.GetNext(focusManager, NavigationDirection.Next);
-				var prevToFocus = KeyboardNavigationHandler.GetNext(focusManager, NavigationDirection.Previous);
-
-				var currentWordIndex = recoveryWord.Index;
-
-				if (ConfirmationWords.Where(x => !x.IsConfirmed).Any(x => x.Index < currentWordIndex))
-				{
-					prevToFocus?.Focus();
-				}
-				else if (ConfirmationWords.Where(x => !x.IsConfirmed).Any(x => x.Index > currentWordIndex))
-				{
-					nextToFocus?.Focus();
-				}
-				else
-				{
-					IsConfirmationFinished = true;
-					nextToFocus?.Focus();
-				}
-			}
-		}
 
 		private void SetConfirmationWords(List<RecoveryWord> mnemonicWords)
 		{
@@ -120,31 +85,6 @@ namespace WalletWasabi.Fluent.AddWallet.CreateWallet
 			{
 				ConfirmationWords.Add(item);
 			}
-		}
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					foreach (RecoveryWord item in ConfirmationWords)
-					{
-						item.PropertyChanged -= RecoveryWordOnPropertyChanged;
-					}
-
-					ConfirmationWords.CollectionChanged -= OnConfirmationWordCollectionChanged;
-				}
-
-				_disposedValue = true;
-			}
-		}
-
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-			Dispose(disposing: true);
-			GC.SuppressFinalize(this);
 		}
 	}
 }

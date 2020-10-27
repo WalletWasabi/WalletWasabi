@@ -26,7 +26,11 @@
             <StackPanel Margin="0 0 0 20">
               <TextBlock Text="{Binding Index, StringFormat=Recovery word {0}}" Margin="0 0 0 8" />
               <StackPanel Orientation="Horizontal">
-                <TextBox Watermark="Type the word here..." Text="{Binding Input}" IsEnabled="{Binding !IsConfirmed}" Width="280" FontSize="12" />
+                <TextBox Watermark="Type the word here..." Text="{Binding Input}" IsEnabled="{Binding !IsConfirmed}" Width="280" FontSize="12">
+                  <i:Interaction.Behaviors>
+                    <behaviors:FocusNextItemBehavior IsFocused="{Binding !IsConfirmed}" />
+                  </i:Interaction.Behaviors>
+                </TextBox>
                 <PathIcon Foreground="{StaticResource SystemAccentColor}" IsVisible="{Binding IsConfirmed}" Data="{StaticResource checkmark_filled}" VerticalAlignment="Center" Width="12" Height="12" Margin="15 0 0 0" />
               </StackPanel>
             </StackPanel>
