@@ -19,7 +19,7 @@ namespace WalletWasabi.Gui.CommandLine
 		}
 
 		private Global Global { get; }
-		public TerminateService TerminateService { get; }
+		private TerminateService TerminateService { get; }
 		private Wallet Wallet { get; set; }
 
 		internal async Task RunAsync(string walletName, string destinationWalletName, bool keepMixAlive)
