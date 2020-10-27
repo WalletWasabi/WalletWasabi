@@ -19,7 +19,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			_items = new ObservableCollection<NavBarItemViewModel>
 			{
-				new SettingsPageViewModel(screen) { Parent = this }
+				new SettingsPageViewModel(navigationState) { Parent = this }
 			};
 
 			OpenWalletCommand = ReactiveCommand.CreateFromTask(

@@ -36,7 +36,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			_statusBar = new StatusBarViewModel(global.DataDir, global.Network, global.Config, global.HostedServices, global.BitcoinStore.SmartHeaderChain, global.Synchronizer, global.LegalDocuments);
 
-			var walletManager = new WalletManagerViewModel(this, global.WalletManager, global.UiConfig);
+			var walletManager = new WalletManagerViewModel(_navigationState, global.WalletManager, global.UiConfig);
 			_navBar = new NavBarViewModel(_navigationState, Router, walletManager);
 		}
 
