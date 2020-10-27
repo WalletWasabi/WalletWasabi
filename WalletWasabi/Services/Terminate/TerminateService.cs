@@ -9,7 +9,7 @@ namespace WalletWasabi.Services.Terminate
 	{
 		private readonly Func<Task> TerminateApplicationAsync;
 
-		private const long TerminateStatusIdle = 0;
+		private const long TerminateStatusNotStarted = 0;
 		private const long TerminateStatusInProgress = 1;
 		private const long TerminateStatusFinished = 2;
 
@@ -45,9 +45,9 @@ namespace WalletWasabi.Services.Terminate
 
 		public void Terminate(int exitCode = 0)
 		{
-			var prevValue = Interlocked.CompareExchange(ref _terminateStatus, TerminateStatusInProgress, TerminateStatusIdle);
+			var prevValue = Interlocked.CompareExchange(ref _terminateStatus, TerminateStatusInProgress, TerminateStatusNotStarted);
 			Logger.LogTrace($"Terminate was called from ThreadId: {Thread.CurrentThread.ManagedThreadId}");
-			if (prevValue != TerminateStatusIdle)
+			if (prevValue != TerminateStatusNotStarted)
 			{
 				// Secondary callers will be blocked until the end of the termination.
 				while (Interlocked.Read(ref _terminateStatus) != TerminateStatusFinished)
@@ -88,6 +88,6 @@ namespace WalletWasabi.Services.Terminate
 			Environment.Exit(exitCode);
 		}
 
-		public bool IsTerminateRequested => Interlocked.Read(ref _terminateStatus) > TerminateStatusIdle;
+		public bool IsTerminateRequested => Interlocked.Read(ref _terminateStatus) > TerminateStatusNotStarted;
 	}
 }
