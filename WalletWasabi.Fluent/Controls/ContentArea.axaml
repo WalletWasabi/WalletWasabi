@@ -3,8 +3,11 @@
         xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
   <Design.PreviewWith>
     <Panel Background="{DynamicResource RegionColor}">
-      <c:ContentArea Width="400" Height="200"
+      <c:ContentArea Width="500" Height="400"
                      Title="Add a Wallet"
+                     EnableBack="True"
+                     EnableCancel="True" CancelContent="Cancel"
+                     EnableNext="True" NextContent="Continue"
                      Caption="Type in your Wallets name and select an option below:">
         This is the content.
       </c:ContentArea>
@@ -15,9 +18,14 @@
   <Style Selector="c|ContentArea">
     <Setter Property="Template">
       <ControlTemplate>
-        <DockPanel>
+        <DockPanel Margin="40">
           <StackPanel DockPanel.Dock="Top" Spacing="10" Margin="0 0 0 40">
-            <ContentPresenter Name="PART_TitlePresenter" Content="{TemplateBinding Title}" />
+            <DockPanel>
+              <Button Margin="-40,0,0,0" Command="{Binding BackCommand}" IsVisible="{TemplateBinding EnableBack}" Background="Transparent">
+                <PathIcon Data="{StaticResource arrow_left_regular}" Width="16"/>
+              </Button>
+              <ContentPresenter Name="PART_TitlePresenter" Content="{TemplateBinding Title}" />
+            </DockPanel>
             <ContentPresenter Name="PART_CaptionPresenter" Content="{TemplateBinding Caption}" />
           </StackPanel>
           <Panel DockPanel.Dock="Bottom">

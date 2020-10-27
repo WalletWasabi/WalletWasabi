@@ -12,6 +12,9 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<object> CaptionProperty =
 			AvaloniaProperty.Register<ContentArea, object>(nameof(Caption));
 
+		public static readonly StyledProperty<bool> EnableBackProperty =
+			AvaloniaProperty.Register<ContentArea, bool>(nameof(EnableBack));
+
 		public static readonly StyledProperty<bool> EnableCancelProperty =
 			AvaloniaProperty.Register<ContentArea, bool>(nameof(EnableCancel));
 
@@ -37,6 +40,12 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(CaptionProperty);
 			set => SetValue(CaptionProperty, value);
+		}
+
+		public bool EnableBack
+		{
+			get => GetValue(EnableBackProperty);
+			set => SetValue(EnableBackProperty, value);
 		}
 
 		public bool EnableCancel
