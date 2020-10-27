@@ -11,20 +11,14 @@ namespace WalletWasabi.Fluent.Behaviors
 		{
 			base.OnAttached();
 
-			if (AssociatedObject is { } ao)
-			{
-				ao.LayoutUpdated += OnLayoutUpdated;
-			}
+			AssociatedObject!.LayoutUpdated += OnLayoutUpdated;
 		}
 
 		protected override void OnDetaching()
 		{
 			base.OnDetaching();
 
-			if (AssociatedObject is { } ao)
-			{
-				ao.LayoutUpdated -= OnLayoutUpdated;
-			}
+			AssociatedObject!.LayoutUpdated -= OnLayoutUpdated;
 		}
 
 		private void OnLayoutUpdated(object? sender, EventArgs e)
