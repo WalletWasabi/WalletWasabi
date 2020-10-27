@@ -170,7 +170,7 @@ namespace WalletWasabi.Wabisabi
 				.ToArray();
 
 			var statements = credentials
-				.Select(x => ProofSystem.IssuerParameters(CoordinatorParameters, x.Issued, x.Requested.Ma));
+				.Select(x => ProofSystem.IssuerParametersStmt(CoordinatorParameters, x.Issued, x.Requested.Ma));
 
 			var areCorrectlyIssued = ProofSystem.Verify(registrationValidationData.Transcript, statements, registrationResponse.Proofs);
 			if (!areCorrectlyIssued)

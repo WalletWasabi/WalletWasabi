@@ -39,7 +39,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			// The client receives the MAC and the proofOfMac which let the client know that the MAC
 			// was generated with the coordinator's secret key.
-			var clientStatement = ProofSystem.IssuerParameters(coordinatorParameters, mac, Ma);
+			var clientStatement = ProofSystem.IssuerParametersStmt(coordinatorParameters, mac, Ma);
 			var isValidProof = ProofSystemHelpers.Verify(clientStatement, proofOfMac);
 			Assert.True(isValidProof);
 
@@ -87,7 +87,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var Z = randomizedCredential.ComputeZ(coordinatorKey);
 			Assert.Equal(Z, z * coordinatorParameters.I);
 
-			var statement = ProofSystem.ShowCredential(randomizedCredential, Z, coordinatorParameters);
+			var statement = ProofSystem.ShowCredentialStmt(randomizedCredential, Z, coordinatorParameters);
 			var isValidProof = ProofSystemHelpers.Verify(statement, proofOfMacShow);
 
 			Assert.True(isValidProof);
@@ -107,13 +107,13 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var knowledge = ProofSystem.BalanceProof(z, r);
 			var proofOfBalance = ProofSystemHelpers.Prove(knowledge, rnd);
 
-			var statement = ProofSystem.BalanceProof(Ca - a * Generators.Gg);
+			var statement = ProofSystem.BalanceProofStmt(Ca - a * Generators.Gg);
 			Assert.True(ProofSystemHelpers.Verify(statement, proofOfBalance));
 
-			var badStatement = ProofSystem.BalanceProof(Ca + Generators.Gg - a * Generators.Gg);
+			var badStatement = ProofSystem.BalanceProofStmt(Ca + Generators.Gg - a * Generators.Gg);
 			Assert.False(ProofSystemHelpers.Verify(badStatement, proofOfBalance));
 
-			badStatement = ProofSystem.BalanceProof(Ca);
+			badStatement = ProofSystem.BalanceProofStmt(Ca);
 			Assert.False(ProofSystemHelpers.Verify(badStatement, proofOfBalance));
 		}
 
@@ -130,10 +130,10 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var knowledge = ProofSystem.BalanceProof(Scalar.Zero, r.Negate());
 			var proofOfBalance = ProofSystemHelpers.Prove(knowledge, rnd);
 
-			var statement = ProofSystem.BalanceProof(a * Generators.Gg - Ma);
+			var statement = ProofSystem.BalanceProofStmt(a * Generators.Gg - Ma);
 			Assert.True(ProofSystemHelpers.Verify(statement, proofOfBalance));
 
-			var badStatement = ProofSystem.BalanceProof(Ma);
+			var badStatement = ProofSystem.BalanceProofStmt(Ma);
 			Assert.False(ProofSystemHelpers.Verify(badStatement, proofOfBalance));
 		}
 
@@ -170,10 +170,10 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			var proofOfBalance = ProofSystemHelpers.Prove(knowledge, rnd);
 
-			var statement = ProofSystem.BalanceProof(Ca + delta * Generators.Gg - Ma);
+			var statement = ProofSystem.BalanceProofStmt(Ca + delta * Generators.Gg - Ma);
 			Assert.True(ProofSystemHelpers.Verify(statement, proofOfBalance));
 
-			var badStatement = ProofSystem.BalanceProof(Ca + (delta + Scalar.One) * Generators.Gg - Ma);
+			var badStatement = ProofSystem.BalanceProofStmt(Ca + (delta + Scalar.One) * Generators.Gg - Ma);
 			Assert.False(ProofSystemHelpers.Verify(badStatement, proofOfBalance));
 		}
 
@@ -207,7 +207,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			var rangeProof = ProofSystemHelpers.Prove(knowledge, rnd);
 
-			Assert.Equal(pass, ProofSystemHelpers.Verify(ProofSystem.RangeProof(commitment, bitCommitments), rangeProof));
+			Assert.Equal(pass, ProofSystemHelpers.Verify(ProofSystem.RangeProofStmt(commitment, bitCommitments), rangeProof));
 
 			if (!pass)
 			{
@@ -239,8 +239,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			var statements = new[]
 			{
-				ProofSystem.ZeroProof(Ma0),
-				ProofSystem.ZeroProof(Ma1)
+				ProofSystem.ZeroProofStmt(Ma0),
+				ProofSystem.ZeroProofStmt(Ma1)
 			};
 
 			Assert.True(ProofSystem.Verify(new Transcript(new byte[0]), statements, proofs));
