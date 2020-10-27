@@ -42,6 +42,7 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 				!string.IsNullOrEmpty(password) &&
 				!string.IsNullOrEmpty(confirmPassword) &&
 				!Validations.Any)
+				.ObserveOn(RxApp.MainThreadScheduler)
 			);
 
 			this.WhenAnyValue(x => x.Password)
