@@ -23,7 +23,7 @@
           </StackPanel>
           <Panel DockPanel.Dock="Bottom">
             <Button Name="PART_CancelButton" IsVisible="{TemplateBinding EnableCancel}" Content="{TemplateBinding CancelContent}" Margin="0,10,10,10" HorizontalAlignment="Left" Command="{Binding CancelCommand}" />
-            <Button Name="PART_BextButton" IsVisible="{TemplateBinding EnableNext}" Content="{TemplateBinding NextContent}" Margin="10,10,0,10" HorizontalAlignment="Right" Command="{Binding NextCommand}" />
+            <Button Name="PART_NextButton" IsVisible="{TemplateBinding EnableNext}" Content="{TemplateBinding NextContent}" Margin="10,10,0,10" HorizontalAlignment="Right" Command="{Binding NextCommand}" />
           </Panel>
           <ContentPresenter Name="PART_ContentPresenter"
                                 Background="{TemplateBinding Background}"
