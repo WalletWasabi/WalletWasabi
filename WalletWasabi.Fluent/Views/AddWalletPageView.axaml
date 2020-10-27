@@ -26,6 +26,7 @@
                         <Setter Property="HorizontalAlignment" Value="Stretch" />
                         <Setter Property="BorderThickness" Value="1" />
                         <Setter Property="Padding" Value="0" />
+                        <Setter Property="IsVisible" Value="{Binding OptionsEnabled}" />
                     </Style>
                 </StackPanel.Styles>
                 <Button Classes="option">
