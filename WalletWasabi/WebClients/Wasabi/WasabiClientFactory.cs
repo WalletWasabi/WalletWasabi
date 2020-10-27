@@ -36,9 +36,9 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// For privacy reasons, it is advisable to create a new instance of <see cref="WasabiClient"/>
 		/// for each HTTP request instead of reusing one instance for multiple HTTP requests.
 		/// </remarks>
-		public WasabiClient NewBackendClient()
+		public WasabiClient NewBackendClient(bool isolateStream = false)
 		{
-			TorHttpClient torHttpClient = new TorHttpClient(BackendUriGetter.Invoke(), TorEndpoint, isolateStream: false);
+			TorHttpClient torHttpClient = new TorHttpClient(BackendUriGetter.Invoke(), TorEndpoint, isolateStream: isolateStream);
 			return new WasabiClient(torHttpClient);
 		}
 	}

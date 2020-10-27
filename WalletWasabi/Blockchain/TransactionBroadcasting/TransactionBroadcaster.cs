@@ -85,7 +85,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 		private async Task BroadcastTransactionToBackendAsync(SmartTransaction transaction)
 		{
 			Logger.LogInfo("Broadcasting with backend...");
-			using (WasabiClient client = Synchronizer.WasabiClientFactory.NewBackendClient())
+			using (WasabiClient client = Synchronizer.WasabiClientFactory.NewBackendClient(true))
 			{
 				try
 				{
