@@ -80,25 +80,23 @@ namespace WalletWasabi.Gui.Validation
 		private void ClearAndNotify(List<ErrorDescriptor> currentErrors, List<ErrorDescriptor> previousErrors, string propertyName)
 		{
 			// Severities of the new errors
-			var categoriesToNotify = currentErrors.Except(previousErrors).Select(x => x.Severity).ToList();
+			var categoriesToNotify = currentErrors.Except(previousErrors).Select(x => x.Severity).Distinct().ToList();
 
 			// Remove the old errors
 			previousErrors.ForEach(x => currentErrors.Remove(x));
 
 			// Severities of the obsoleted errors
-			categoriesToNotify.AddRange(previousErrors.Where(x => !currentErrors.Any(y => x.Message == y.Message && x.Severity == y.Severity)).Select(x => x.Severity).ToList());
+			categoriesToNotify.AddRange(previousErrors.Except(currentErrors).Select(x => x.Severity).Distinct().ToList());
 
-			var propertiesToNotify = categoriesToNotify.Select(GetPropertyNameBySeverity).ToList();
+			var propertiesToNotify = categoriesToNotify.Select(x => x switch
+			{
+				ErrorSeverity.Info => nameof(AnyInfos),
+				ErrorSeverity.Warning => nameof(AnyWarnings),
+				ErrorSeverity.Error => nameof(AnyErrors),
+			}).ToList();
 
 			OnErrorsChanged(propertyName, propertiesToNotify);
 		}
-
-		private string GetPropertyNameBySeverity(ErrorSeverity severity) => severity switch
-		{
-			ErrorSeverity.Info => nameof(AnyInfos),
-			ErrorSeverity.Warning => nameof(AnyWarnings),
-			ErrorSeverity.Error => nameof(AnyErrors),
-		};
 
 		private void OnErrorsChanged(string propertyName, List<string> propertiesToNotify)
 		{
