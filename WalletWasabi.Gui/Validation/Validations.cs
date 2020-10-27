@@ -48,13 +48,13 @@ namespace WalletWasabi.Gui.Validation
 		{
 			if (ValidationMethods.TryGetValue(propertyName, out ValidateMethod? validationMethod) && ErrorsByPropertyName.TryGetValue(propertyName, out ErrorDescriptors? currentErrors))
 			{
-				// Copy the current errors
+				// Copy the current errors.
 				var previousErrors = currentErrors.ToList();
 
-				// Validate
+				// Validate.
 				validationMethod(currentErrors);
 
-				// Clear obsoleted errors and notify properties that changed
+				// Clear obsoleted errors and notify properties that changed.
 				ClearAndNotify(currentErrors, previousErrors, propertyName);
 			}
 		}
@@ -79,13 +79,13 @@ namespace WalletWasabi.Gui.Validation
 
 		private void ClearAndNotify(List<ErrorDescriptor> currentErrors, List<ErrorDescriptor> previousErrors, string propertyName)
 		{
-			// Severities of the new errors
+			// Severities of the new errors.
 			var categoriesToNotify = currentErrors.Except(previousErrors).Select(x => x.Severity).Distinct().ToList();
 
-			// Remove the old errors
+			// Remove the old errors.
 			previousErrors.ForEach(x => currentErrors.Remove(x));
 
-			// Severities of the obsoleted errors
+			// Severities of the obsoleted errors.
 			categoriesToNotify.AddRange(previousErrors.Except(currentErrors).Select(x => x.Severity).Distinct().ToList());
 
 			OnErrorsChanged(propertyName, categoriesToNotify);
