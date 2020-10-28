@@ -7,10 +7,10 @@
              d:DesignWidth="600" d:DesignHeight="500"
              x:Class="WalletWasabi.Fluent.AddWallet.CreateWallet.RecoveryWordsView">
   <Panel>
-    
+
     <c:ContentArea Title="Recovery words"
                    Caption="Write down the following numbered security words in order. These can be used to recover your wallet in the future. It is very important you keep them in a safe place.">
-      <ItemsControl Items="{Binding MnemonicWords}">
+      <ItemsControl Items="{Binding MnemonicWords}" HorizontalAlignment="Stretch">
         <ItemsControl.Styles>
           <Style Selector="TextBlock">
             <Setter Property="FontSize" Value="16" />
@@ -19,17 +19,15 @@
         </ItemsControl.Styles>
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>
-            <WrapPanel MaxHeight="168" Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center" />
+            <WrapPanel MaxHeight="168" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center" />
           </ItemsPanelTemplate>
         </ItemsControl.ItemsPanel>
         <ItemsControl.ItemTemplate>
           <DataTemplate>
-            <Panel Width="185">
-              <StackPanel Orientation="Horizontal">
+            <StackPanel Orientation="Horizontal" Margin="20 0">
                 <TextBlock Text="{Binding Index, StringFormat={}{0}.}" />
                 <TextBlock Text="{Binding Word}" FontWeight="SemiBold" Margin="5 0 0 0" />
               </StackPanel>
-            </Panel>
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>
