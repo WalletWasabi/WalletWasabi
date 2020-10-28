@@ -41,16 +41,12 @@ namespace WalletWasabi.Fluent.AddWallet.CreateWallet
 			_confirmationWordsSourceList
 				.Connect()
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.OnItemAdded(x => x.Reset());
-
-			SetConfirmationWords(mnemonicWords);
-
-			_confirmationWordsSourceList
-				.Connect()
+				.OnItemAdded(x => x.Reset())
 				.Sort(SortExpressionComparer<RecoveryWord>.Ascending(x => x.Index))
-				.ObserveOn(RxApp.MainThreadScheduler)
 				.Bind(out _confirmationWords)
 				.Subscribe();
+
+			SetConfirmationWords(mnemonicWords);
 		}
 
 		public string UrlPathSegment { get; } = null!;
