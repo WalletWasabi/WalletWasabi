@@ -26,8 +26,8 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 		/// <returns>Dictionary of own output indexes and their calculated anonymity sets.</returns>
 		public static IDictionary<uint, int> EstimateAnonymitySets(Transaction tx, IEnumerable<uint> ownOutputIndices, ICoinsView allWalletCoins)
 		{
-			var numberOfOwnOutputs = ownOutputIndices.Count();
 			// Estimation of anonymity sets only makes sense for own outputs.
+			var numberOfOwnOutputs = ownOutputIndices.Count();
 			if (numberOfOwnOutputs == 0)
 			{
 				return new Dictionary<uint, int>();
