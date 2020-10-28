@@ -1,5 +1,6 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
         xmlns:sys="clr-namespace:System;assembly=netstandard">
   <Styles.Resources>
     <sys:Double x:Key="IconElementThemeHeight">16</sys:Double>
@@ -19,6 +20,9 @@
     <sys:Double x:Key="FontSizeH6">16</sys:Double>
     <sys:Double x:Key="FontSizeH7">14</sys:Double>
     <sys:Double x:Key="FontSizeH8">12</sys:Double>
+
+    <converters:ErrorSeverityColorConverter x:Key="ErrorSeverityColorConverter" />
+    <converters:ErrorDescriptorToBorderColorConverter x:Key="ErrorDescriptorToBorderColorConverter" />
   </Styles.Resources>
 
   <Style Selector=":is(Control).h1">
@@ -121,5 +125,113 @@
     <Setter Property="(TextBlock.FontWeight)" Value="Bold" />
     <Setter Property="Margin" Value="0 0 0 10" />
   </Style>
+
+  <Style Selector="DataValidationErrors">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <DockPanel LastChildFill="True">
+          <ContentControl
+            DockPanel.Dock="Bottom"
+            ContentTemplate="{TemplateBinding ErrorTemplate}"
+            DataContext="{TemplateBinding Owner}"
+            Content="{Binding (DataValidationErrors.Errors)}"
+            IsVisible="{Binding (DataValidationErrors.HasErrors)}" />
+          <ContentPresenter
+            Name="PART_ContentPresenter"
+            Background="{TemplateBinding Background}"
+            BorderThickness="{TemplateBinding BorderThickness}"
+            ContentTemplate="{TemplateBinding ContentTemplate}"
+            Content="{TemplateBinding Content}"
+            Padding="{TemplateBinding Padding}" />
+        </DockPanel>
+      </ControlTemplate>
+    </Setter>
+    <Setter Property="ErrorTemplate">
+      <DataTemplate>
+        <ItemsControl Items="{Binding}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding Message}" Foreground="{Binding Severity, Converter={StaticResource ErrorSeverityColorConverter}}" TextWrapping="Wrap" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </DataTemplate>
+    </Setter>
+  </Style>
+
+  <Style Selector="TextBox">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <DockPanel>
+
+          <!-- TODO bind Content -> Header and ContentTemplate -> HeaderTemplate -->
+          <ContentPresenter x:Name="PART_HeaderContentPresenter"
+                            DockPanel.Dock="Top"
+                            TextBlock.FontWeight="Normal"
+                            TextBlock.Foreground="{DynamicResource TextControlHeaderForeground}"
+                            IsVisible="False"
+                            Margin="{DynamicResource TextBoxTopHeaderMargin}" />
+
+          <DataValidationErrors DockPanel.Dock="Bottom" Margin="0 10 0 0" />
+
+          <Panel>
+            <Border
+              Name="PART_BorderElement"
+              Background="{TemplateBinding Background}"
+              BorderBrush="{TemplateBinding BorderBrush}"
+              BorderThickness="{TemplateBinding BorderThickness}"
+              MinWidth="{TemplateBinding MinWidth}"
+              MinHeight="{TemplateBinding MinHeight}">
+            </Border>
+
+            <Border
+              Margin="{TemplateBinding BorderThickness}">
+              <Grid ColumnDefinitions="Auto,*,Auto" >
+                <ContentPresenter Grid.Column="0" Grid.ColumnSpan="1" Content="{TemplateBinding InnerLeftContent}"/>
+                <DockPanel x:Name="PART_InnerDockPanel" Grid.Column="1" Grid.ColumnSpan="1" Margin="{TemplateBinding Padding}">
+                  <TextBlock Name="PART_FloatingWatermark"
+                             Foreground="{DynamicResource SystemAccentColor}"
+                             FontSize="{TemplateBinding FontSize}"
+                             Text="{TemplateBinding Watermark}"
+                             DockPanel.Dock="Top" />
+                  <ScrollViewer HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
+                                  VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
+                      <Panel>
+                        <TextBlock Name="PART_Watermark"
+                                Opacity="0.5"
+                                Text="{TemplateBinding Watermark}"
+                                TextAlignment="{TemplateBinding TextAlignment}"
+                                TextWrapping="{TemplateBinding TextWrapping}"
+                                IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNullOrEmpty}}"
+                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        <!-- TODO eliminate this margin... text layout issue? -->
+                        <TextPresenter Name="PART_TextPresenter"
+                                      Margin="0 1 0 0"
+                                      Text="{TemplateBinding Text, Mode=TwoWay}"
+                                      CaretIndex="{TemplateBinding CaretIndex}"
+                                      SelectionStart="{TemplateBinding SelectionStart}"
+                                      SelectionEnd="{TemplateBinding SelectionEnd}"
+                                      TextAlignment="{TemplateBinding TextAlignment}"
+                                      TextWrapping="{TemplateBinding TextWrapping}"
+                                      PasswordChar="{TemplateBinding PasswordChar}"
+                                      RevealPassword="{TemplateBinding RevealPassword}"
+                                      SelectionBrush="{TemplateBinding SelectionBrush}"
+                                      SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
+                                      CaretBrush="{TemplateBinding CaretBrush}"
+                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                      </Panel>
+                    </ScrollViewer>
+                </DockPanel>
+                <ContentPresenter Grid.Column="2" Grid.ColumnSpan="1" Content="{TemplateBinding InnerRightContent}"/>
+              </Grid>
+            </Border>
+          </Panel>
+        </DockPanel>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/OptionButton.xaml" />
 </Styles>
