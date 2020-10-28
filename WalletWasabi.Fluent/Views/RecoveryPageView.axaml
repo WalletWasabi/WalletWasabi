@@ -16,7 +16,7 @@
                        Margin="44 0">
             <Grid RowDefinitions="Auto,20,Auto" VerticalAlignment="Top" >
                 <Label Classes="h7 bold"  Content="_Type in your recovery words here:" Target="seedTagsBox"/>
-                <c:TagsBox x:Name="seedTagsBox"  Grid.Row="2" ItemCountLimit="7"
+                <c:TagsBox x:Name="seedTagsBox"  Grid.Row="2" ItemCountLimit="7" RestrictInputToSuggestions="True"
                            DataContext="{Binding RecoveryWordsTagsBox}"
                            Items="{Binding Tags}"
                            Suggestions="{Binding Suggestions, Mode=TwoWay}"
