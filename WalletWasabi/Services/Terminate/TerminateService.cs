@@ -94,6 +94,7 @@ namespace WalletWasabi.Services.Terminate
 
 			AppDomain.CurrentDomain.ProcessExit -= CurrentDomain_ProcessExit;
 			Console.CancelKeyPress -= Console_CancelKeyPress;
+			SystemEvents.SessionEnding -= Windows_SystemEvents_SessionEnding;
 
 			// Indicate that the termination procedure finished. So other callers can return.
 			Interlocked.Exchange(ref _terminateStatus, TerminateStatusFinished);
