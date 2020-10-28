@@ -1,7 +1,9 @@
 using DynamicData;
+using DynamicData.Binding;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Input;
@@ -14,13 +16,14 @@ namespace WalletWasabi.Fluent.AddWallet.CreateWallet
 {
 	public class ConfirmRecoveryWordsViewModel : ViewModelBase, IRoutableViewModel
 	{
-		private SourceList<RecoveryWord> _confirmationWords;
+		private ReadOnlyObservableCollection<RecoveryWord> _confirmationWords;
+		private SourceList<RecoveryWord> _confirmationWordsSourceList;
 
 		public ConfirmRecoveryWordsViewModel(IScreen screen, List<RecoveryWord> mnemonicWords, KeyManager keyManager, Global global)
 		{
 			HostScreen = screen;
 
-			_confirmationWords = new SourceList<RecoveryWord>();
+			_confirmationWordsSourceList = new SourceList<RecoveryWord>();
 
 			FinishCommand = ReactiveCommand.Create(() =>
 			{
@@ -28,26 +31,33 @@ namespace WalletWasabi.Fluent.AddWallet.CreateWallet
 				screen.Router.NavigationStack.Clear();
 			},
 				// CanExecute
-				_confirmationWords
+				_confirmationWordsSourceList
 				.Connect()
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.WhenValueChanged(x => x.IsConfirmed)
-				.Select(x => !ConfirmationWords.Any(x => !x.IsConfirmed))
+				.Select(x => !_confirmationWordsSourceList.Items.Any(x => !x.IsConfirmed))
 			);
 
-			_confirmationWords
+			_confirmationWordsSourceList
 				.Connect()
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.OnItemAdded(x => x.Reset());
 
 			SetConfirmationWords(mnemonicWords);
+
+			_confirmationWordsSourceList
+				.Connect()
+				.Sort(SortExpressionComparer<RecoveryWord>.Ascending(x => x.Index))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Bind(out _confirmationWords)
+				.Subscribe();
 		}
 
 		public string UrlPathSegment { get; } = null!;
 
 		public IScreen HostScreen { get; }
 
-		public IEnumerable<RecoveryWord> ConfirmationWords => _confirmationWords.Items;
+		public ReadOnlyObservableCollection<RecoveryWord> ConfirmationWords => _confirmationWords;
 
 		public ICommand FinishCommand { get; }
 
@@ -58,7 +68,6 @@ namespace WalletWasabi.Fluent.AddWallet.CreateWallet
 		private void SetConfirmationWords(List<RecoveryWord> mnemonicWords)
 		{
 			var random = new Random();
-			var unsortedConfWords = new List<RecoveryWord>();
 
 			for (int i = 0; i < 4; i++)
 			{
@@ -67,16 +76,14 @@ namespace WalletWasabi.Fluent.AddWallet.CreateWallet
 				{
 					index = random.Next(0, 12);
 
-					if (!unsortedConfWords.Any(x => x.Index == index + 1))
+					if (!_confirmationWordsSourceList.Items.Any(x => x.Index == index + 1))
 					{
 						break;
 					}
 				}
 
-				unsortedConfWords.Add(mnemonicWords[index]);
+				_confirmationWordsSourceList.Add(mnemonicWords[index]);
 			}
-
-			_confirmationWords.AddRange(unsortedConfWords.OrderBy(x => x.Index));
 		}
 	}
 }
