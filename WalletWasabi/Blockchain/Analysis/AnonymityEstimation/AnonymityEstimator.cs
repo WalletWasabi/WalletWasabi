@@ -29,6 +29,7 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 		{
 			var spentOwnCoins = allWalletCoins.OutPoints(tx.Inputs.Select(x => x.PrevOut)).ToList();
 			var numberOfOwnInputs = spentOwnCoins.Count();
+
 			// If it's a normal tx that isn't self spent, nor a coinjoin, then anonymity should stripped if there was any and start from zero.
 			// Note: this is only a good idea from WWII, with WWI we calculate anonsets from the point the coin first hit the wallet.
 			// If all our inputs are ours and there are more than 1 outputs then it's not a self-spent and it's not a coinjoin.
