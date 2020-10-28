@@ -19,7 +19,6 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 	{
 		private string _password;
 		private string _confirmPassword;
-		private string _errorMessage;
 
 		public EnterPasswordViewModel(IScreen screen, Global global, string walletName)
 		{
@@ -50,14 +49,6 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 			this.WhenAnyValue(x => x.ConfirmPassword)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(Password)));
-
-			ErrorsChanged += OnErrorsChanged;
-		}
-
-		public string ErrorMessage
-		{
-			get => _errorMessage;
-			set => this.RaiseAndSetIfChanged(ref _errorMessage, value);
 		}
 
 		public string Password
@@ -78,19 +69,6 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 
 		public string? UrlPathSegment => throw new NotImplementedException();
 		public IScreen HostScreen { get; }
-
-		private void OnErrorsChanged(object? sender, DataErrorsChangedEventArgs e)
-		{
-			if (Validations is Validations validations)
-			{
-				var errors = new List<ErrorDescriptor>();
-
-				errors.AddRange((List<ErrorDescriptor>)validations.GetErrors(nameof(Password)));
-				errors.AddRange((List<ErrorDescriptor>)validations.GetErrors(nameof(ConfirmPassword)));
-
-				ErrorMessage = errors.FirstOrDefault() is { } error ? error.Message : null;
-			}
-		}
 
 		private void ValidateConfirmPassword(IValidationErrors errors)
 		{
