@@ -209,7 +209,7 @@ namespace WalletWasabi.Wallets
 			IEnumerable<OutPoint> allowedInputs = null,
 			IPayjoinClient payjoinClient = null)
 		{
-			var builder = new TransactionFactory(Network, KeyManager, Coins, BitcoinStore.TransactionStore, password, allowUnconfirmed);
+			var builder = new TransactionFactory(Network, KeyManager, TransactionProcessor.Coins.AsAllCoinsView(), BitcoinStore.TransactionStore, password, allowUnconfirmed);
 			return builder.BuildTransaction(
 				payments,
 				feeRateFetcher: () =>

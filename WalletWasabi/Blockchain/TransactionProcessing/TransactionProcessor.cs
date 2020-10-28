@@ -178,7 +178,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					}
 				}
 
-				var anonsets = AnonymityEstimator.EstimateAnonymitySets(tx.Transaction, ownOutputs.Keys, Coins);
+				var anonsets = AnonymityEstimator.EstimateAnonymitySets(tx.Transaction, ownOutputs.Keys, Coins.AsAllCoinsView());
 
 				foreach (var outputEntry in ownOutputs)
 				{
