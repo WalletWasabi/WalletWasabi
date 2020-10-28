@@ -53,8 +53,6 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(Password)));
 
-			CancelCommand = ReactiveCommand.Create(() => screen.Router.NavigateAndReset.Execute(new SettingsPageViewModel(screen)));
-
 			ErrorsChanged += OnErrorsChanged;
 		}
 

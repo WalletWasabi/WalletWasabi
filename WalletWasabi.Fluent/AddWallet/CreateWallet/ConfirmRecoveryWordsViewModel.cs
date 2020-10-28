@@ -32,8 +32,6 @@ namespace WalletWasabi.Fluent.AddWallet.CreateWallet
 				screen.Router.NavigationStack.Clear();
 			});
 
-			CancelCommand = ReactiveCommand.Create(() => HostScreen.Router.NavigateAndReset.Execute(new SettingsPageViewModel(screen)));
-
 			SetConfirmationWords(mnemonicWords);
 
 #if DEBUG
