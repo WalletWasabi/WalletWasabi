@@ -9,7 +9,7 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 {
 	public static class AnonymityEstimator
 	{
-		public static int EstimateAnonymitySet(Transaction tx, int outputIndex)
+		public static int EstimateAnonymitySet(Transaction tx, uint outputIndex)
 		{
 			// 1. Get the output corresponting to the output index.
 			var output = tx.Outputs[outputIndex];
@@ -23,58 +23,70 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 			return anonSet;
 		}
 
-		public static int EstimateAnonymitySet(Transaction tx, uint outputIndex) => EstimateAnonymitySet(tx, (int)outputIndex);
-
-		public static int EstimateAnonymitySet(Transaction tx, int outputIndex, ICoinsView allWalletCoins)
+		/// <returns>Dictionary of own output indexes and their calculated anonymity sets.</returns>
+		public static IDictionary<uint, int> EstimateAnonymitySets(Transaction tx, IEnumerable<uint> ownOutputIndices, ICoinsView allWalletCoins)
 		{
+			var numberOfOwnOutputs = ownOutputIndices.Count();
+			// Estimation of anonymity sets only makes sense for own outputs.
+			if (numberOfOwnOutputs == 0)
+			{
+				return new Dictionary<uint, int>();
+			}
+
 			var spentOwnCoins = allWalletCoins.OutPoints(tx.Inputs.Select(x => x.PrevOut)).ToList();
 			var numberOfOwnInputs = spentOwnCoins.Count();
 
-			// If it's a normal tx that isn't self spent, nor a coinjoin, then anonymity should stripped if there was any and start from zero.
+			// In normal payments we expose things to our counterparties.
+			// If it's a normal tx (that isn't self spent, nor a coinjoin,) then anonymity should be stripped.
+			// All the inputs must be ours AND there must be at least one output that isn't ours.
 			// Note: this is only a good idea from WWII, with WWI we calculate anonsets from the point the coin first hit the wallet.
-			// If all our inputs are ours and there are more than 1 outputs then it's not a self-spent and it's not a coinjoin.
-			// This'll work, because we are only calculating anonset for our own coins and Wasabi doesn't generate tx that has more than one own outputs.
-			// Note: a bit optimization to calculate this would be to actually use own output data, but that's a bit harder to get. Anyway the new algo would be as follows:
-			// ... all the inputs must be ours AND there must be at least one output that isn't ours.
-			if (numberOfOwnInputs == tx.Inputs.Count && tx.Outputs.Count > 1)
+			if (numberOfOwnInputs == tx.Inputs.Count && tx.Outputs.Count > numberOfOwnOutputs)
 			{
-				return 1;
+				var ret = new Dictionary<uint, int>();
+				foreach (var outputIndex in ownOutputIndices)
+				{
+					ret.Add(outputIndex, 1);
+				}
+				return ret;
 			}
 
-			// Get the anonymity set of i-th output in the transaction.
-			var anonset = EstimateAnonymitySet(tx, outputIndex);
-
-			// If we provided inputs to the transaction.
-			if (numberOfOwnInputs > 0)
+			var anonsets = new Dictionary<uint, int>();
+			foreach (var outputIndex in ownOutputIndices)
 			{
-				// Take the input that we provided with the smallest anonset.
-				// Our smallest anonset input is the relevant here, because this way the common input ownership heuristic is considered.
-				var smallestInputAnon = spentOwnCoins.Min(x => x.AnonymitySet);
+				// Get the anonymity set of i-th output in the transaction.
+				var anonset = EstimateAnonymitySet(tx, outputIndex);
 
-				// Punish consolidation exponentially.
-				// If there is only a single input then the exponent should be zero to divide by 1 thus retain the input coin anonset.
-				var consolidatePenalty = Math.Pow(2, numberOfOwnInputs - 1);
-				var privacyBonus = smallestInputAnon / consolidatePenalty;
+				// If we provided inputs to the transaction.
+				if (numberOfOwnInputs > 0)
+				{
+					// Take the input that we provided with the smallest anonset.
+					// Our smallest anonset input is the relevant here, because this way the common input ownership heuristic is considered.
+					var smallestInputAnon = spentOwnCoins.Min(x => x.AnonymitySet);
 
-				// If the privacy bonus is <=1 then we are not inheriting any privacy from the inputs.
-				var normalizedBonus = privacyBonus - 1;
-				int sanityCheckedEstimation = (int)Math.Max(0d, normalizedBonus);
+					// Punish consolidation exponentially.
+					// If there is only a single input then the exponent should be zero to divide by 1 thus retain the input coin anonset.
+					var consolidatePenalty = Math.Pow(2, numberOfOwnInputs - 1);
+					var privacyBonus = smallestInputAnon / consolidatePenalty;
 
-				// And add that to the base anonset from the tx.
-				anonset += sanityCheckedEstimation;
+					// If the privacy bonus is <=1 then we are not inheriting any privacy from the inputs.
+					var normalizedBonus = privacyBonus - 1;
+					int sanityCheckedEstimation = (int)Math.Max(0d, normalizedBonus);
+
+					// And add that to the base anonset from the tx.
+					anonset += sanityCheckedEstimation;
+				}
+
+				// Factor in script reuse.
+				var output = tx.Outputs[outputIndex];
+				foreach (var coin in allWalletCoins.FilterBy(x => x.ScriptPubKey == output.ScriptPubKey))
+				{
+					anonset = Math.Min(anonset, coin.AnonymitySet);
+					coin.AnonymitySet = anonset;
+				}
+
+				anonsets.Add(outputIndex, anonset);
 			}
-
-			// Factor in script reuse.
-			var output = tx.Outputs[outputIndex];
-			foreach (var coin in allWalletCoins.FilterBy(x => x.ScriptPubKey == output.ScriptPubKey))
-			{
-				anonset = Math.Min(anonset, coin.AnonymitySet);
-				coin.AnonymitySet = anonset;
-			}
-
-			return anonset;
+			return anonsets;
 		}
-
-		public static int EstimateAnonymitySet(Transaction tx, uint outputIndex, ICoinsView allWalletCoins) => EstimateAnonymitySet(tx, (int)outputIndex, allWalletCoins);
 	}
 }

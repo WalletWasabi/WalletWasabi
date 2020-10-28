@@ -166,6 +166,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					}
 				}
 
+				var ownOutputs = new Dictionary<uint, (TxOut output, HdPubKey hdPubKey)>();
 				for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 				{
 					// If transaction received to any of the wallet keys:
@@ -173,47 +174,57 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					HdPubKey foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
 					if (foundKey is { })
 					{
-						if (!foundKey.IsInternal)
+						ownOutputs.Add(i, (output, foundKey));
+					}
+				}
+
+				var anonsets = AnonymityEstimator.EstimateAnonymitySets(tx.Transaction, ownOutputs.Keys, Coins);
+
+				foreach (var outputEntry in ownOutputs)
+				{
+					var index = outputEntry.Key;
+					var output = outputEntry.Value.output;
+					var foundKey = outputEntry.Value.hdPubKey;
+					if (!foundKey.IsInternal)
+					{
+						tx.Label = SmartLabel.Merge(tx.Label, foundKey.Label);
+					}
+
+					foundKey.SetKeyState(KeyState.Used, KeyManager);
+					if (output.Value <= DustThreshold)
+					{
+						result.ReceivedDusts.Add(output);
+						continue;
+					}
+
+					int anonset = anonsets[index];
+
+					SmartCoin newCoin = new SmartCoin(txId, index, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToOutPoints().ToArray(), tx.Height, tx.IsRBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
+
+					result.ReceivedCoins.Add(newCoin);
+					// If we did not have it.
+					if (Coins.TryAdd(newCoin))
+					{
+						result.NewlyReceivedCoins.Add(newCoin);
+
+						// Make sure there's always 21 clean keys generated and indexed.
+						KeyManager.AssertCleanKeysIndexed(isInternal: foundKey.IsInternal);
+
+						if (foundKey.IsInternal)
 						{
-							tx.Label = SmartLabel.Merge(tx.Label, foundKey.Label);
+							// Make sure there's always 14 internal locked keys generated and indexed.
+							KeyManager.AssertLockedInternalKeysIndexed(14);
 						}
-
-						foundKey.SetKeyState(KeyState.Used, KeyManager);
-						if (output.Value <= DustThreshold)
+					}
+					else // If we had this coin already.
+					{
+						if (newCoin.Height != Height.Mempool) // Update the height of this old coin we already had.
 						{
-							result.ReceivedDusts.Add(output);
-							continue;
-						}
-
-						int anonset = AnonymityEstimator.EstimateAnonymitySet(tx.Transaction, i, Coins);
-
-						SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToOutPoints().ToArray(), tx.Height, tx.IsRBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
-
-						result.ReceivedCoins.Add(newCoin);
-						// If we did not have it.
-						if (Coins.TryAdd(newCoin))
-						{
-							result.NewlyReceivedCoins.Add(newCoin);
-
-							// Make sure there's always 21 clean keys generated and indexed.
-							KeyManager.AssertCleanKeysIndexed(isInternal: foundKey.IsInternal);
-
-							if (foundKey.IsInternal)
+							SmartCoin oldCoin = Coins.AsAllCoinsView().GetByOutPoint(new OutPoint(txId, index));
+							if (oldCoin is { }) // Just to be sure, it is a concurrent collection.
 							{
-								// Make sure there's always 14 internal locked keys generated and indexed.
-								KeyManager.AssertLockedInternalKeysIndexed(14);
-							}
-						}
-						else // If we had this coin already.
-						{
-							if (newCoin.Height != Height.Mempool) // Update the height of this old coin we already had.
-							{
-								SmartCoin oldCoin = Coins.AsAllCoinsView().GetByOutPoint(new OutPoint(txId, i));
-								if (oldCoin is { }) // Just to be sure, it is a concurrent collection.
-								{
-									result.NewlyConfirmedReceivedCoins.Add(newCoin);
-									oldCoin.Height = newCoin.Height;
-								}
+								result.NewlyConfirmedReceivedCoins.Add(newCoin);
+								oldCoin.Height = newCoin.Height;
 							}
 						}
 					}
