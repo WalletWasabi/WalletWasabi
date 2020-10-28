@@ -1,4 +1,6 @@
+using Microsoft.Win32;
 using System;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
@@ -20,6 +22,17 @@ namespace WalletWasabi.Services.Terminate
 			TerminateApplicationAsync = terminateApplicationAsync;
 			AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
 			Console.CancelKeyPress += Console_CancelKeyPress;
+
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				SystemEvents.SessionEnding += Windows_SystemEvents_SessionEnding;
+			}
+		}
+
+		private void Windows_SystemEvents_SessionEnding(object sender, SessionEndingEventArgs e)
+		{
+			e.Cancel = true;
+			Logger.LogInfo("Windows_SystemEvents_SessionEnding cancelled");
 		}
 
 		private void CurrentDomain_ProcessExit(object? sender, EventArgs e)
