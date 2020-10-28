@@ -7,7 +7,7 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="WalletWasabi.Fluent.Views.MainWindow"
         x:Name="MainWindow"
-        MinWidth="500" MinHeight="380"
+        MinWidth="500" MinHeight="420"
         WindowStartupLocation="CenterScreen"
         Background="{x:Null}"
         TransparencyLevelHint="AcrylicBlur"
