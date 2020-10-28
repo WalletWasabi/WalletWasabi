@@ -13,8 +13,10 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 		{
 			// 1. Get the output corresponting to the output index.
 			var output = tx.Outputs[outputIndex];
+
 			// 2. Get the number of equal outputs.
 			int equalOutputs = tx.GetIndistinguishableOutputs(includeSingle: true).Single(x => x.value == output.Value).count;
+
 			// 3. Anonymity set cannot be larger than the number of inputs.
 			var inputCount = tx.Inputs.Count;
 			var anonSet = Math.Min(equalOutputs, inputCount);
@@ -40,6 +42,7 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 
 			// Get the anonymity set of i-th output in the transaction.
 			var anonset = EstimateAnonymitySet(tx, outputIndex);
+
 			// If we provided inputs to the transaction.
 			if (numberOfOwnInputs > 0)
 			{
