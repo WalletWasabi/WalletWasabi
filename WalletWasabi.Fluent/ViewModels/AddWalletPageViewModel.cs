@@ -44,6 +44,5 @@ namespace WalletWasabi.Fluent.ViewModels
 		}
 
 		public ICommand CreateWalletCommand { get; }
-
 	}
 }

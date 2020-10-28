@@ -25,18 +25,17 @@ namespace WalletWasabi.Fluent.AddWallet.CreateWallet
 
 			_confirmationWordsSourceList = new SourceList<RecoveryWord>();
 
-			FinishCommand = ReactiveCommand.Create(() =>
-			{
-				global.WalletManager.AddWallet(keyManager);
-				screen.Router.NavigationStack.Clear();
-			},
-				// CanExecute
+			FinishCommand = ReactiveCommand.Create(
+				() =>
+				{
+					global.WalletManager.AddWallet(keyManager);
+					screen.Router.NavigationStack.Clear();
+				},
 				_confirmationWordsSourceList
 				.Connect()
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.WhenValueChanged(x => x.IsConfirmed)
-				.Select(x => !_confirmationWordsSourceList.Items.Any(x => !x.IsConfirmed))
-			);
+				.Select(x => !_confirmationWordsSourceList.Items.Any(x => !x.IsConfirmed)));
 
 			_confirmationWordsSourceList
 				.Connect()
@@ -49,7 +48,7 @@ namespace WalletWasabi.Fluent.AddWallet.CreateWallet
 			SelectRandomConfirmationWords(mnemonicWords);
 		}
 
-		public string UrlPathSegment { get; } = null!;
+		public string UrlPathSegment { get; } = "";
 		public IScreen HostScreen { get; }
 
 		public ReadOnlyObservableCollection<RecoveryWord> ConfirmationWords => _confirmationWords;
