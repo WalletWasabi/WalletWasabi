@@ -98,6 +98,7 @@ namespace WalletWasabi.Gui.Validation
 				ErrorSeverity.Info => nameof(AnyInfos),
 				ErrorSeverity.Warning => nameof(AnyWarnings),
 				ErrorSeverity.Error => nameof(AnyErrors),
+				_ => throw new NotImplementedException(),
 			}).ToList();
 
 			if (propertiesToNotify.Any())
