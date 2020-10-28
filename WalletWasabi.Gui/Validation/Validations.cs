@@ -55,7 +55,7 @@ namespace WalletWasabi.Gui.Validation
 				validationMethod(currentErrors);
 
 				// Clear obsoleted errors and notify properties that changed.
-				ClearAndNotify(currentErrors, previousErrors, propertyName);
+				UpdateAndNotify(currentErrors, previousErrors, propertyName);
 			}
 		}
 
@@ -77,7 +77,7 @@ namespace WalletWasabi.Gui.Validation
 				: ErrorDescriptors.Empty;
 		}
 
-		private void ClearAndNotify(List<ErrorDescriptor> currentErrors, List<ErrorDescriptor> previousErrors, string propertyName)
+		private void UpdateAndNotify(List<ErrorDescriptor> currentErrors, List<ErrorDescriptor> previousErrors, string propertyName)
 		{
 			// Severities of the new errors.
 			var categoriesToNotify = currentErrors.Except(previousErrors).Select(x => x.Severity).Distinct().ToList();
