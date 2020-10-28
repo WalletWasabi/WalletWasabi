@@ -29,7 +29,7 @@
         <ItemsControl.ItemTemplate>
           <DataTemplate>
             <Panel Width="185">
-              <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+              <StackPanel Orientation="Horizontal">
                 <TextBlock Text="{Binding Index, StringFormat={}{0}.}" />
                 <TextBlock Text="{Binding Word}" FontWeight="SemiBold" Margin="5 0 0 0"/>
               </StackPanel>
