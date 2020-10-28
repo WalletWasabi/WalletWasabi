@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
+using WalletWasabi.Blockchain.Analysis.AnonymityEstimation;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -184,7 +185,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 							continue;
 						}
 
-						int anonset = tx.Transaction.GetAnonymitySet(i, Coins);
+						int anonset = AnonymityEstimator.EstimateAnonymitySet(tx.Transaction, i, Coins);
 
 						SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToOutPoints().ToArray(), tx.Height, tx.IsRBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
 
