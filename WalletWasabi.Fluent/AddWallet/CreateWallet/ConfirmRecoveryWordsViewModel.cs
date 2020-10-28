@@ -46,7 +46,7 @@ namespace WalletWasabi.Fluent.AddWallet.CreateWallet
 				.Bind(out _confirmationWords)
 				.Subscribe();
 
-			SetConfirmationWords(mnemonicWords);
+			SelectRandomConfirmationWords(mnemonicWords);
 		}
 
 		public string UrlPathSegment { get; } = null!;
@@ -61,7 +61,7 @@ namespace WalletWasabi.Fluent.AddWallet.CreateWallet
 
 		public ICommand GoBackCommand => HostScreen.Router.NavigateBack;
 
-		private void SetConfirmationWords(List<RecoveryWord> mnemonicWords)
+		private void SelectRandomConfirmationWords(List<RecoveryWord> mnemonicWords)
 		{
 			var random = new Random();
 
