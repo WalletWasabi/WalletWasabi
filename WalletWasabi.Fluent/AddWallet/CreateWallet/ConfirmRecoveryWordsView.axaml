@@ -7,16 +7,14 @@
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d"
              d:DesignWidth="600" d:DesignHeight="500"
-             Width="600" Height="500"
              x:Class="WalletWasabi.Fluent.AddWallet.CreateWallet.ConfirmRecoveryWordsView">
   <Panel>
 
-    <Button Classes="invisible" Margin="25 35 0 0" Command="{Binding GoBackCommand}" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Top">
+    <!--<Button Classes="invisible" Command="{Binding GoBackCommand}" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Top">
       <PathIcon Data="{StaticResource arrow_left_regular}" Width="20" />
-    </Button>
+    </Button>-->
 
-    <c:ContentArea Title="Confirm recovery words" Caption="Type the required recovery words"
-                   Margin="64 35 64 20">
+    <c:ContentArea Title="Confirm recovery words" Caption="Type the required recovery words">
       <ItemsControl Items="{Binding ConfirmationWords}">
         <i:Interaction.Behaviors>
           <behaviors:FocusFirstTextBoxInItemsControlBehavior />
@@ -39,7 +37,7 @@
       </ItemsControl>
     </c:ContentArea>
 
-    <Button Content="Cancel" Margin="31 0 0 20" Command="{Binding CancelCommand}" Classes="invisible" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
-    <Button Content="Finish" Margin="0 0 25 20" Command="{Binding FinishCommand}" IsEnabled="{Binding IsConfirmationFinished}" Classes="action" HorizontalAlignment="Right" VerticalAlignment="Bottom" />
+    <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="invisible" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
+    <Button Content="Finish" Command="{Binding FinishCommand}" IsEnabled="{Binding IsConfirmationFinished}" Classes="action" HorizontalAlignment="Right" VerticalAlignment="Bottom" />
   </Panel>
 </UserControl>

@@ -5,17 +5,15 @@
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d"
              d:DesignWidth="600" d:DesignHeight="500"
-             Width="600" Height="500"
              x:Class="WalletWasabi.Fluent.AddWallet.CreateWallet.RecoveryWordsView">
   <Panel>
     
-    <Button Classes="invisible" Margin="25 35 0 0" Command="{Binding GoBackCommand}" HorizontalAlignment="Left" VerticalAlignment="Top">
+    <!--<Button Classes="invisible" Command="{Binding GoBackCommand}" HorizontalAlignment="Left" VerticalAlignment="Top">
         <PathIcon Data="{StaticResource arrow_left_regular}" Width="20" />
-    </Button>
+    </Button>-->
 
     <c:ContentArea Title="Recovery words"
-                   Caption="Write down the following numbered security words in order. These can be used to recover your wallet in the future. It is very important you keep them in a safe place."
-                   Margin="64 35 64 20">
+                   Caption="Write down the following numbered security words in order. These can be used to recover your wallet in the future. It is very important you keep them in a safe place.">
       <ItemsControl Items="{Binding MnemonicWords}">
         <ItemsControl.Styles>
           <Style Selector="TextBlock">
@@ -41,8 +39,8 @@
       </ItemsControl>
     </c:ContentArea>
     
-    <Button Content="Cancel" Margin="31 0 0 20" Command="{Binding CancelCommand}" Classes="invisible" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
-    <Button Content="Continue" Margin="0 0 25 20" Command="{Binding ContinueCommand}" Classes="action" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+    <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="invisible" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
+    <Button Content="Continue" Command="{Binding ContinueCommand}" Classes="action" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
 
   </Panel>
 </UserControl>
