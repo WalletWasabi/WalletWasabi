@@ -30,7 +30,7 @@
                             <Setter Property="IsVisible" Value="{Binding OptionsEnabled}" />
                         </Style>
                     </StackPanel.Styles>
-                    <Button Classes="option">
+                    <Button Classes="option" Command="{Binding CreateWalletCommand}">
                         <StackPanel Orientation="Horizontal">
                             <PathIcon DockPanel.Dock="Left" Margin="20" Data="{StaticResource add_regular}" Width="16"
                                       VerticalAlignment="Center" />

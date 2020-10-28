@@ -1,6 +1,10 @@
 using System.Reactive.Linq;
 using ReactiveUI;
 using System;
+using System.Windows.Input;
+using Splat;
+using WalletWasabi.Gui;
+using WalletWasabi.Fluent.AddWallet.Common;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -16,6 +20,13 @@ namespace WalletWasabi.Fluent.ViewModels
 			this.WhenAnyValue(x => x.WalletName)
 				.Select(x => !string.IsNullOrWhiteSpace(x))
 				.Subscribe(x => OptionsEnabled = x);
+
+			CreateWalletCommand = ReactiveCommand.Create(() =>
+			{
+				var global = Locator.Current.GetService<Global>();
+
+				screen.Router.Navigate.Execute(new EnterPasswordViewModel(screen, global, WalletName));
+			});
 		}
 
 		public override string IconName => "add_circle_regular";
@@ -31,5 +42,8 @@ namespace WalletWasabi.Fluent.ViewModels
 			get => _optionsEnabled;
 			set => this.RaiseAndSetIfChanged(ref _optionsEnabled, value);
 		}
+
+		public ICommand CreateWalletCommand { get; }
+
 	}
 }

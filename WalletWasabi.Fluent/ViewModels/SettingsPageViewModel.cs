@@ -8,12 +8,6 @@ using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
 using Avalonia;
 using Avalonia.Markup.Xaml.Styling;
-using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Gui;
-using Splat;
-using WalletWasabi.Fluent.AddWallet.CreateWallet;
-using WalletWasabi.Fluent.AddWallet.Common;
-using System.IO;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -26,13 +20,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			Title = "Settings";
 
 			NextCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new AddWalletPageViewModel(screen)));
-			CreateWalletCommand = ReactiveCommand.Create(() =>
-			{
-				var global = Locator.Current.GetService<Global>();
-
-				screen.Router.Navigate.Execute(new EnterPasswordViewModel(screen, global, Path.GetRandomFileName()));
-			});
-
+			
 			OpenDialogCommand = ReactiveCommand.CreateFromTask(async () => await ConfirmSetting.Handle("Please confirm the setting:").ToTask());
 
 			ConfirmSetting = new Interaction<string, bool>();
@@ -77,7 +65,6 @@ namespace WalletWasabi.Fluent.ViewModels
 		public ICommand OpenDialogCommand { get; }
 		public Interaction<string, bool> ConfirmSetting { get; }
 		public ICommand ChangeThemeCommand { get; }
-		public ICommand CreateWalletCommand { get; }
 
 		public override string IconName => "settings_regular";
 	}
