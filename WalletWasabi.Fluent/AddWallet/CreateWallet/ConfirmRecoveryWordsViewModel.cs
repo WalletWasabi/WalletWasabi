@@ -1,17 +1,12 @@
-using Avalonia.Input;
 using DynamicData;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Models;
-using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.ViewModels;
 
@@ -39,6 +34,11 @@ namespace WalletWasabi.Fluent.AddWallet.CreateWallet
 				.WhenValueChanged(x => x.IsConfirmed)
 				.Select(x => !ConfirmationWords.Any(x => !x.IsConfirmed))
 			);
+
+			_confirmationWords
+				.Connect()
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.OnItemAdded(x => x.Reset());
 
 			SetConfirmationWords(mnemonicWords);
 		}
@@ -73,16 +73,10 @@ namespace WalletWasabi.Fluent.AddWallet.CreateWallet
 					}
 				}
 
-				var word = mnemonicWords[index];
-
-				word.Reset();
-				unsortedConfWords.Add(word);
+				unsortedConfWords.Add(mnemonicWords[index]);
 			}
 
-			foreach (RecoveryWord item in unsortedConfWords.OrderBy(x => x.Index))
-			{
-				_confirmationWords.Add(item);
-			}
+			_confirmationWords.AddRange(unsortedConfWords.OrderBy(x => x.Index));
 		}
 	}
 }
