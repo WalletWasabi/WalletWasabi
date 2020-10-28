@@ -10,10 +10,6 @@
              x:Class="WalletWasabi.Fluent.AddWallet.CreateWallet.ConfirmRecoveryWordsView">
   <Panel>
 
-    <!--<Button Classes="invisible" Command="{Binding GoBackCommand}" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Top">
-      <PathIcon Data="{StaticResource arrow_left_regular}" Width="20" />
-    </Button>-->
-
     <c:ContentArea Title="Confirm recovery words" Caption="Type the required recovery words">
       <ItemsControl Items="{Binding ConfirmationWords}">
         <i:Interaction.Behaviors>

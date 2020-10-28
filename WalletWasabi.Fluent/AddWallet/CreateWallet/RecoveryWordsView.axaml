@@ -7,11 +7,7 @@
              d:DesignWidth="600" d:DesignHeight="500"
              x:Class="WalletWasabi.Fluent.AddWallet.CreateWallet.RecoveryWordsView">
   <Panel>
-
-    <!--<Button Classes="invisible" Command="{Binding GoBackCommand}" HorizontalAlignment="Left" VerticalAlignment="Top">
-        <PathIcon Data="{StaticResource arrow_left_regular}" Width="20" />
-    </Button>-->
-
+    
     <c:ContentArea Title="Recovery words"
                    Caption="Write down the following numbered security words in order. These can be used to recover your wallet in the future. It is very important you keep them in a safe place.">
       <ItemsControl Items="{Binding MnemonicWords}">
