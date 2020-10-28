@@ -111,14 +111,12 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 
 		private void ValidatePassword(IValidationErrors errors)
 		{
-			string password = Password;
-
-			if (PasswordHelper.IsTrimable(password, out _))
+			if (PasswordHelper.IsTrimable(Password, out _))
 			{
 				errors.Add(ErrorSeverity.Error, PasswordHelper.WhitespaceMessage);
 			}
 
-			if (PasswordHelper.IsTooLong(password, out _))
+			if (PasswordHelper.IsTooLong(Password, out _))
 			{
 				errors.Add(ErrorSeverity.Error, PasswordHelper.PasswordTooLongMessage);
 			}
