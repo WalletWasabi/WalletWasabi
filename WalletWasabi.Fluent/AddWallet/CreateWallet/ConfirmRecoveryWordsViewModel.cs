@@ -65,20 +65,14 @@ namespace WalletWasabi.Fluent.AddWallet.CreateWallet
 		{
 			var random = new Random();
 
-			for (int i = 0; i < 4; i++)
+			while (_confirmationWordsSourceList.Count != 4)
 			{
-				int index;
-				while (true)
+				var word = mnemonicWords[random.Next(0, 12)];
+
+				if (!_confirmationWordsSourceList.Items.Contains(word))
 				{
-					index = random.Next(0, 12);
-
-					if (!_confirmationWordsSourceList.Items.Any(x => x.Index == index + 1))
-					{
-						break;
-					}
+					_confirmationWordsSourceList.Add(word);
 				}
-
-				_confirmationWordsSourceList.Add(mnemonicWords[index]);
 			}
 		}
 	}
