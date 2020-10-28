@@ -88,14 +88,7 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 				errors.AddRange((List<ErrorDescriptor>)validations.GetErrors(nameof(Password)));
 				errors.AddRange((List<ErrorDescriptor>)validations.GetErrors(nameof(ConfirmPassword)));
 
-				if (errors.Any())
-				{
-					ErrorMessage = errors.First().Message;
-				}
-				else
-				{
-					ErrorMessage = null!;
-				}
+				ErrorMessage = errors.FirstOrDefault() is { } error ? error.Message : null;
 			}
 		}
 
