@@ -17,5 +17,10 @@ namespace WalletWasabi.Models
 		{
 			return (Severity == other.Severity && Message == other.Message);
 		}
+
+		public override string ToString()
+		{
+			return Message;
+		}
 	}
 }
