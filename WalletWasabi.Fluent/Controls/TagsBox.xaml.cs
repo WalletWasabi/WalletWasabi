@@ -1,19 +1,22 @@
-using System.Collections;
-using System.Linq;
-using Avalonia.Controls;
-using Avalonia;
-using Avalonia.Controls.Primitives;
 using System;
-using System.Collections.Generic;
+using System.Collections;
 using System.Globalization;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
-using Avalonia.Xaml.Interactivity;
+using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.TagsBox;
+using System;
+using System.Collections;
+using System.Reactive.Linq;
+using DynamicData;
+using DynamicData.Binding;
+using ReactiveUI;
+using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.Controls
 {
@@ -21,8 +24,61 @@ namespace WalletWasabi.Fluent.Controls
     /// </summary>
     public class TagsBox : ItemsControl
     {
-        private IEnumerable _suggestionsEnumerable;
+        public static readonly StyledProperty<bool> RestrictInputToSuggestionsProperty =
+            AvaloniaProperty.Register<TagsBox, bool>(nameof(RestrictInputToSuggestions));
+
+        public static readonly StyledProperty<int> ItemCountLimitProperty =
+            AvaloniaProperty.Register<TagsBox, int>(nameof(ItemCountLimit));
+
+        public static readonly DirectProperty<TagsBox, IEnumerable> SuggestionsProperty =
+            AvaloniaProperty.RegisterDirect<TagsBox, IEnumerable>(
+                nameof(Suggestions),
+                o => o.Suggestions,
+                (o, v) => o.Suggestions = v);
+
         private AutoCompleteBox? _autoCompleteBox;
+
+        private bool _bs1;
+        private bool _bs2;
+
+
+        private IDisposable? _disposable;
+
+        private bool _isInputEnabled = true;
+        private IEnumerable _suggestionsEnumerable;
+
+        public TagsBox()
+        {
+            this.WhenAnyValue(x => x.Items)
+                .Subscribe(RegisterIsInputEnabledListener);
+  
+            
+        }
+
+        private void RegisterIsInputEnabledListener(IEnumerable enumerable)
+        { 
+            if(Items is null || ItemCountLimit == 0) return;
+
+            _isInputEnabled = Items.Cast<object>().Count() < ItemCountLimit;
+        }
+
+        public bool RestrictInputToSuggestions
+        {
+            get => GetValue(RestrictInputToSuggestionsProperty);
+            set => SetValue(RestrictInputToSuggestionsProperty, value);
+        }
+
+        public int ItemCountLimit
+        {
+            get => GetValue(ItemCountLimitProperty);
+            set => SetValue(ItemCountLimitProperty, value);
+        }
+
+        public IEnumerable Suggestions
+        {
+            get => _suggestionsEnumerable;
+            set => SetAndRaise(SuggestionsProperty, ref _suggestionsEnumerable, value);
+        }
 
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
         {
@@ -33,64 +89,26 @@ namespace WalletWasabi.Fluent.Controls
             _autoCompleteBox = (Presenter.Panel as ConcatenatingWrapPanel)?.ConcatenatedChildren
                 .OfType<AutoCompleteBox>().FirstOrDefault();
 
+            if (_autoCompleteBox is null) return;
 
             _autoCompleteBox.KeyUp += OnKeyUp;
             _autoCompleteBox.TextChanged += OnTextChanged;
             _autoCompleteBox.DropDownClosed += OnDropDownClosed;
 
             _disposable =
-                _autoCompleteBox.AddDisposableHandler(InputElement.TextInputEvent, OnTextInput,
+                _autoCompleteBox.AddDisposableHandler(TextInputEvent, OnTextInput,
                     RoutingStrategies.Tunnel);
-            
+
             _autoCompleteBox?.Focus();
+            
+            
         }
-
-        public static readonly DirectProperty<TagsBox, IEnumerable> SuggestionsProperty =
-            AvaloniaProperty.RegisterDirect<TagsBox, IEnumerable>(
-                nameof(Suggestions),
-                o => o.Suggestions,
-                (o, v) => o.Suggestions = v);
-
-        public IEnumerable Suggestions
-        {
-            get => _suggestionsEnumerable;
-            set => SetAndRaise(SuggestionsProperty, ref _suggestionsEnumerable, value);
-        }
-
-
-        private IDisposable? _disposable;
-
-        private bool _bs1;
-        private bool _bs2;
-
-        public bool RestrictInputToSuggestions { get; set; }
-
-        public bool IsInputEnabled { get; set; } = true;
-
-
-        // public Action GrabFocusAction()
-        // {
-        //     if (!_autoCompleteBox?.IsFocused ?? false) _autoCompleteBox?.Focus();
-        // }
-
-        // protected override void OnAttached()
-        // {
-        //     // if (_autoCompleteBox is null) return;
-        //     //
-        //     //
-        //     // // Refocus because the old control is destroyed
-        //     // // when the tag list changes.
-        //     // DoGrabFocus();
-        //     //
-        //     // base.OnAttached();
-        // }
-        //
 
         private void OnTextInput(object? sender, TextInputEventArgs e)
         {
             if (_autoCompleteBox is null) return;
 
-            if (!IsInputEnabled)
+            if (!_isInputEnabled)
             {
                 e.Handled = true;
                 return;
@@ -109,9 +127,7 @@ namespace WalletWasabi.Fluent.Controls
 
             if (currentText.Length == 0 || !(_autoCompleteBox.SelectedItem is string selItem) || selItem.Length == 0 ||
                 currentText != selItem)
-            {
                 return;
-            }
 
             AddTag(currentText.Trim());
             _autoCompleteBox.ClearValue(AutoCompleteBox.SelectedItemProperty);
@@ -134,12 +150,12 @@ namespace WalletWasabi.Fluent.Controls
             var currentText = _autoCompleteBox.Text ?? "";
             var currentTextTrimmed = currentText.Trim();
 
-            if (!IsInputEnabled ||
+            if (!_isInputEnabled ||
                 currentText.Length < 1 ||
                 string.IsNullOrEmpty(currentTextTrimmed) ||
                 !currentText.EndsWith(' ') ||
-                (RestrictInputToSuggestions && !Suggestions.Cast<string>().Any(x => x.Equals(currentTextTrimmed,
-                    StringComparison.InvariantCultureIgnoreCase))))
+                RestrictInputToSuggestions && !Suggestions.Cast<string>().Any(x => x.Equals(currentTextTrimmed,
+                    StringComparison.InvariantCultureIgnoreCase)))
                 return;
 
             AddTag(currentTextTrimmed);
@@ -166,7 +182,7 @@ namespace WalletWasabi.Fluent.Controls
                 case Key.Back when _bs1 && _bs2:
                     RemoveTag();
                     break;
-                case Key.Enter when IsInputEnabled && !string.IsNullOrEmpty(strTrimmed):
+                case Key.Enter when _isInputEnabled && !string.IsNullOrEmpty(strTrimmed):
                     if (RestrictInputToSuggestions && !Suggestions.Cast<string>().Any(x =>
                         x.Equals(strTrimmed, StringComparison.InvariantCultureIgnoreCase)))
                         break;
@@ -188,7 +204,8 @@ namespace WalletWasabi.Fluent.Controls
 
         private void AddTag(string strTrimmed)
         {
-            Items = Items.Cast<object>().Concat(new[] {new TagViewModel((TagsBoxViewModel) this.DataContext,strTrimmed)});
+            Items = Items.Cast<object>()
+                .Concat(new[] {new TagViewModel((TagsBoxViewModel) DataContext, strTrimmed)});
         }
 
         // protected override void OnDetaching()

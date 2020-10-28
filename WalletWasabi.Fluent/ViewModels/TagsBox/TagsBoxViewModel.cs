@@ -29,27 +29,8 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
         public TagsBoxViewModel()
         {
             _tags = new ObservableCollection<TagViewModel>();
-
-            TagInput = new TagInputViewModel(this);
-
-            var list = new SourceList<object>();
-            list.Add(TagInput);
-
-            GrabFocusCommand = ReactiveCommand.Create((object x) =>
-            {
-                TagInput?.GrabFocusAction?.Invoke();
-                return new object();
-            });
-
-            AddTag("Test1");
-            AddTag("Test2");
-            AddTag("Test3");
-            AddTag("Test4");
-            AddTag("Test5");
         }
-
-        public TagInputViewModel TagInput { get; }
-
+ 
         public bool RestrictInputToSuggestions
         {
             get => _restrictInputToSuggestions;
@@ -82,21 +63,6 @@ namespace WalletWasabi.Fluent.ViewModels.TagsBox
         {
             get => _tags;
             set => this.RaiseAndSetIfChanged(ref _tags, value);
-        }
-
-        public ReactiveCommand<object, object> GrabFocusCommand { get; }
-
-        public void AddTag(string tagString)
-        {
-            Tags.Add(new TagViewModel(this, tagString));
-        }
-
-        public void RemoveTag()
-        {
-            if (Tags.Any())
-            {
-                Tags.Remove(Tags.Last());
-            }
         }
     }
 }
