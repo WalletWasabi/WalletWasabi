@@ -1,13 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Reactive;
-using System.Text;
-using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
+using System.Collections.Generic;
+using System.Windows.Input;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Models;
-using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.ViewModels;
 

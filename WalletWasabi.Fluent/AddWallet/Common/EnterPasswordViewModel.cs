@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Server.IIS.Core;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
@@ -8,7 +7,6 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.AddWallet.CreateWallet;
-using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Gui.ViewModels;

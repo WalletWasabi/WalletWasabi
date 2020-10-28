@@ -7,7 +7,7 @@
              d:DesignWidth="600" d:DesignHeight="500"
              x:Class="WalletWasabi.Fluent.AddWallet.CreateWallet.RecoveryWordsView">
   <Panel>
-    
+
     <!--<Button Classes="invisible" Command="{Binding GoBackCommand}" HorizontalAlignment="Left" VerticalAlignment="Top">
         <PathIcon Data="{StaticResource arrow_left_regular}" Width="20" />
     </Button>-->
@@ -23,7 +23,7 @@
         </ItemsControl.Styles>
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>
-            <WrapPanel MaxHeight="168" Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <WrapPanel MaxHeight="168" Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center" />
           </ItemsPanelTemplate>
         </ItemsControl.ItemsPanel>
         <ItemsControl.ItemTemplate>
@@ -31,16 +31,15 @@
             <Panel Width="185">
               <StackPanel Orientation="Horizontal">
                 <TextBlock Text="{Binding Index, StringFormat={}{0}.}" />
-                <TextBlock Text="{Binding Word}" FontWeight="SemiBold" Margin="5 0 0 0"/>
+                <TextBlock Text="{Binding Word}" FontWeight="SemiBold" Margin="5 0 0 0" />
               </StackPanel>
             </Panel>
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>
     </c:ContentArea>
-    
-    <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="invisible" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
-    <Button Content="Continue" Command="{Binding ContinueCommand}" Classes="action" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
 
+    <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="invisible" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
+    <Button Content="Continue" Command="{Binding ContinueCommand}" Classes="action" HorizontalAlignment="Right" VerticalAlignment="Bottom" />
   </Panel>
 </UserControl>
