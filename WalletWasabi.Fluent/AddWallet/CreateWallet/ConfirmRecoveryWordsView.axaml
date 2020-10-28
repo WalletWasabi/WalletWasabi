@@ -38,6 +38,6 @@
     </c:ContentArea>
 
     <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="invisible" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
-    <Button Content="Finish" Command="{Binding FinishCommand}" IsEnabled="{Binding IsConfirmationFinished}" Classes="action" HorizontalAlignment="Right" VerticalAlignment="Bottom" />
+    <Button Content="Finish" Command="{Binding FinishCommand}" Classes="action" HorizontalAlignment="Right" VerticalAlignment="Bottom" />
   </Panel>
 </UserControl>

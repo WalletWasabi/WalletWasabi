@@ -1,4 +1,5 @@
 using Avalonia.Input;
+using DynamicData;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
@@ -18,38 +19,35 @@ namespace WalletWasabi.Fluent.AddWallet.CreateWallet
 {
 	public class ConfirmRecoveryWordsViewModel : ViewModelBase, IRoutableViewModel
 	{
-		private bool _isConfirmationFinished;
+		private SourceList<RecoveryWord> _confirmationWords;
 
 		public ConfirmRecoveryWordsViewModel(IScreen screen, List<RecoveryWord> mnemonicWords, KeyManager keyManager, Global global)
 		{
 			HostScreen = screen;
 
-			ConfirmationWords = new ObservableCollection<RecoveryWord>();
+			_confirmationWords = new SourceList<RecoveryWord>();
 
 			FinishCommand = ReactiveCommand.Create(() =>
 			{
 				global.WalletManager.AddWallet(keyManager);
 				screen.Router.NavigationStack.Clear();
-			});
+			},
+				// CanExecute
+				_confirmationWords
+				.Connect()
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.WhenValueChanged(x => x.IsConfirmed)
+				.Select(x => !ConfirmationWords.Any(x => !x.IsConfirmed))
+			);
 
 			SetConfirmationWords(mnemonicWords);
-
-#if DEBUG
-			IsConfirmationFinished = true;
-#endif
-		}
-
-		public bool IsConfirmationFinished
-		{
-			get => _isConfirmationFinished;
-			set => this.RaiseAndSetIfChanged(ref _isConfirmationFinished, value);
 		}
 
 		public string UrlPathSegment { get; } = null!;
 
 		public IScreen HostScreen { get; }
 
-		public ObservableCollection<RecoveryWord> ConfirmationWords { get; }
+		public IEnumerable<RecoveryWord> ConfirmationWords => _confirmationWords.Items;
 
 		public ICommand FinishCommand { get; }
 
@@ -75,13 +73,15 @@ namespace WalletWasabi.Fluent.AddWallet.CreateWallet
 					}
 				}
 
-				mnemonicWords[index].Reset();
-				unsortedConfWords.Add(mnemonicWords[index]);
+				var word = mnemonicWords[index];
+
+				word.Reset();
+				unsortedConfWords.Add(word);
 			}
 
 			foreach (RecoveryWord item in unsortedConfWords.OrderBy(x => x.Index))
 			{
-				ConfirmationWords.Add(item);
+				_confirmationWords.Add(item);
 			}
 		}
 	}
