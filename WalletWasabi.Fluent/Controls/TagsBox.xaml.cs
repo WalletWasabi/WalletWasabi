@@ -13,6 +13,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
+using WalletWasabi.Fluent.ViewModels.TagsBox;
 
 namespace WalletWasabi.Fluent.Controls
 {
@@ -31,9 +32,8 @@ namespace WalletWasabi.Fluent.Controls
 
             _autoCompleteBox = (Presenter.Panel as ConcatenatingWrapPanel)?.ConcatenatedChildren
                 .OfType<AutoCompleteBox>().FirstOrDefault();
-            
-            
-            
+
+
             _autoCompleteBox.KeyUp += OnKeyUp;
             _autoCompleteBox.TextChanged += OnTextChanged;
             _autoCompleteBox.DropDownClosed += OnDropDownClosed;
@@ -41,6 +41,8 @@ namespace WalletWasabi.Fluent.Controls
             _disposable =
                 _autoCompleteBox.AddDisposableHandler(InputElement.TextInputEvent, OnTextInput,
                     RoutingStrategies.Tunnel);
+            
+            _autoCompleteBox?.Focus();
         }
 
         public static readonly DirectProperty<TagsBox, IEnumerable> SuggestionsProperty =
@@ -62,37 +64,27 @@ namespace WalletWasabi.Fluent.Controls
         private bool _bs2;
 
         public bool RestrictInputToSuggestions { get; set; }
-        
-        public bool IsInputEnabled { get; set; }
 
-        public void CommitTextAction(string str)
-        {
-            
-        }
+        public bool IsInputEnabled { get; set; } = true;
 
-        public void BackspaceAndEmptyTextAction()
-        {
-            
-        }
 
-        public Action GrabFocusAction()
-        {
-            if (!_autoCompleteBox?.IsFocused ?? false) _autoCompleteBox?.Focus();
+        // public Action GrabFocusAction()
+        // {
+        //     if (!_autoCompleteBox?.IsFocused ?? false) _autoCompleteBox?.Focus();
+        // }
 
-        }
-        
-        protected override void OnAttached()
-        {
-            // if (_autoCompleteBox is null) return;
-            //
-            //
-            // // Refocus because the old control is destroyed
-            // // when the tag list changes.
-            // DoGrabFocus();
-            //
-            // base.OnAttached();
-        }
- 
+        // protected override void OnAttached()
+        // {
+        //     // if (_autoCompleteBox is null) return;
+        //     //
+        //     //
+        //     // // Refocus because the old control is destroyed
+        //     // // when the tag list changes.
+        //     // DoGrabFocus();
+        //     //
+        //     // base.OnAttached();
+        // }
+        //
 
         private void OnTextInput(object? sender, TextInputEventArgs e)
         {
@@ -121,7 +113,7 @@ namespace WalletWasabi.Fluent.Controls
                 return;
             }
 
-            CommitTextAction.Invoke(currentText.Trim());
+            AddTag(currentText.Trim());
             _autoCompleteBox.ClearValue(AutoCompleteBox.SelectedItemProperty);
 
             BackspaceLogicClear();
@@ -146,11 +138,11 @@ namespace WalletWasabi.Fluent.Controls
                 currentText.Length < 1 ||
                 string.IsNullOrEmpty(currentTextTrimmed) ||
                 !currentText.EndsWith(' ') ||
-                (RestrictInputToSuggestions && !Suggestions.Any(x => x.Equals(currentTextTrimmed,
+                (RestrictInputToSuggestions && !Suggestions.Cast<string>().Any(x => x.Equals(currentTextTrimmed,
                     StringComparison.InvariantCultureIgnoreCase))))
                 return;
 
-            CommitTextAction?.Invoke(currentTextTrimmed);
+            AddTag(currentTextTrimmed);
 
             BackspaceLogicClear();
 
@@ -172,35 +164,47 @@ namespace WalletWasabi.Fluent.Controls
             switch (e.Key)
             {
                 case Key.Back when _bs1 && _bs2:
-                    BackspaceAndEmptyTextAction?.Invoke();
+                    RemoveTag();
                     break;
                 case Key.Enter when IsInputEnabled && !string.IsNullOrEmpty(strTrimmed):
-                    if (RestrictInputToSuggestions && !Suggestions.Any(x =>
+                    if (RestrictInputToSuggestions && !Suggestions.Cast<string>().Any(x =>
                         x.Equals(strTrimmed, StringComparison.InvariantCultureIgnoreCase)))
                         break;
 
                     BackspaceLogicClear();
 
-                    CommitTextAction?.Invoke(strTrimmed);
+                    AddTag(strTrimmed);
                     Dispatcher.UIThread.Post(() => { _autoCompleteBox?.ClearValue(AutoCompleteBox.TextProperty); });
                     break;
             }
         }
 
-        protected override void OnDetaching()
+        private void RemoveTag()
         {
-            if (_autoCompleteBox is null) return;
-
-            base.OnDetaching();
-
-            _autoCompleteBox.DropDownClosed -= OnDropDownClosed;
-            _autoCompleteBox.KeyUp -= OnKeyUp;
-            _autoCompleteBox.TextChanged -= OnTextChanged;
-            GrabFocusAction -= DoGrabFocus;
-
-            _disposable?.Dispose();
-
-            BackspaceLogicClear();
+            var total = Items.Cast<object>().Count();
+            var targetIndex = Math.Max(0, total - 1);
+            Items = Items.Cast<object>().Where((car, index) => index != targetIndex);
         }
+
+        private void AddTag(string strTrimmed)
+        {
+            Items = Items.Cast<object>().Concat(new[] {new TagViewModel((TagsBoxViewModel) this.DataContext,strTrimmed)});
+        }
+
+        // protected override void OnDetaching()
+        // {
+        //     if (_autoCompleteBox is null) return;
+        //
+        //     base.OnDetaching();
+        //
+        //     _autoCompleteBox.DropDownClosed -= OnDropDownClosed;
+        //     _autoCompleteBox.KeyUp -= OnKeyUp;
+        //     _autoCompleteBox.TextChanged -= OnTextChanged;
+        //     GrabFocusAction -= DoGrabFocus;
+        //
+        //     _disposable?.Dispose();
+        //
+        //     BackspaceLogicClear();
+        // }
     }
 }
