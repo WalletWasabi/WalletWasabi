@@ -56,8 +56,6 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 			ErrorsChanged += OnErrorsChanged;
 		}
 
-
-
 		public string ErrorMessage
 		{
 			get => _errorMessage;

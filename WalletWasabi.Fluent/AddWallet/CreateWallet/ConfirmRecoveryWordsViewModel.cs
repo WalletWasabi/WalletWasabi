@@ -50,15 +50,12 @@ namespace WalletWasabi.Fluent.AddWallet.CreateWallet
 		}
 
 		public string UrlPathSegment { get; } = null!;
-
 		public IScreen HostScreen { get; }
 
 		public ReadOnlyObservableCollection<RecoveryWord> ConfirmationWords => _confirmationWords;
 
 		public ICommand FinishCommand { get; }
-
 		public ICommand CancelCommand { get; }
-
 		public ICommand GoBackCommand => HostScreen.Router.NavigateBack;
 
 		private void SelectRandomConfirmationWords(List<RecoveryWord> mnemonicWords)
