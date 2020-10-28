@@ -83,7 +83,7 @@ namespace WalletWasabi.Tor.Socks5
 				// Internal TCP client may close, so we need a new instance here.
 				using var client = new TorSocks5Client(TorSocks5EndPoint);
 				await client.ConnectAsync().ConfigureAwait(false);
-				await client.HandshakeAsync(isolateStream: true).ConfigureAwait(false);
+				await client.HandshakeAsync(isolateStream: false).ConfigureAwait(false);
 
 				return true;
 			}
