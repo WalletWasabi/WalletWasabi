@@ -1,7 +1,6 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:sys="clr-namespace:System;assembly=netstandard"
-        xmlns:local="clr-namespace:AvalonStudio.Controls.Standard.CodeEditor;assembly=AvalonStudio.Controls.Standard">
+        xmlns:sys="clr-namespace:System;assembly=netstandard">
   <Styles.Resources>
     <sys:Double x:Key="IconElementThemeHeight">16</sys:Double>
     <sys:Double x:Key="SplitViewCollapseThreshold">750</sys:Double>
@@ -52,6 +51,13 @@
   <Style Selector=":is(Control).italic">
     <Setter Property="(TextBlock.FontStyle)" Value="Italic" />
   </Style>
+
+  <Style Selector="Label">
+    <Setter Property="(TextBlock.FontSize)" Value="14" />
+    <Setter Property="(TextBlock.FontWeight)" Value="Bold" />
+    <Setter Property="Margin" Value="0 0 0 10" />
+  </Style>
+
   <Style Selector="SplitView">
     <Setter Property="CompactPaneLength" Value="{StaticResource SplitViewCompactPaneLength}" />
     <Setter Property="OpenPaneLength" Value="320" />
@@ -60,10 +66,23 @@
     <Setter Property="PaneBackground" Value="{x:Null}" />
   </Style>
 
+  <!--Plain Button-->
+  <Style Selector="Button.plain">
+    <Setter Property="VerticalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Padding" Value="0" />
+  </Style>
+  <Style Selector="Button.plain /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource InvisibleButtonBackgroundColor}" />
+  </Style>
+
   <!--Invisible button style-->
   <Style Selector="Button.invisible">
     <Setter Property="VerticalAlignment" Value="Stretch" />
     <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Padding" Value="0" />
   </Style>
   <Style Selector="Button.invisible /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource InvisibleButtonBackgroundColor}" />
@@ -102,4 +121,5 @@
     <Setter Property="(TextBlock.FontWeight)" Value="Bold" />
     <Setter Property="Margin" Value="0 0 0 10" />
   </Style>
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/OptionButton.xaml" />
 </Styles>
