@@ -62,14 +62,17 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 			// If it's a normal tx (that isn't self spent, nor a coinjoin,) then anonymity should be stripped.
 			// All the inputs must be ours AND there must be at least one output that isn't ours.
 			// Note: this is only a good idea from WWII, with WWI we calculate anonsets from the point the coin first hit the wallet.
-			if (numberOfOwnInputs == tx.Inputs.Count && tx.Outputs.Count > numberOfOwnOutputs)
+			if (numberOfOwnInputs == tx.Inputs.Count)
 			{
-				var ret = new Dictionary<uint, int>();
-				foreach (var outputIndex in ownOutputIndices)
+				if (tx.Outputs.Count > numberOfOwnOutputs)
 				{
-					ret.Add(outputIndex, 1);
+					var ret = new Dictionary<uint, int>();
+					foreach (var outputIndex in ownOutputIndices)
+					{
+						ret.Add(outputIndex, 1);
+					}
+					return ret;
 				}
-				return ret;
 			}
 
 			var anonsets = new Dictionary<uint, int>();

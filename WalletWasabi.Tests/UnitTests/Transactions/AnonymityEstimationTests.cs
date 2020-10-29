@@ -49,6 +49,75 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Empty(anonsets);
 		}
 
+		[Fact]
+		public void AnonsetRetainedMaybeIncreasedBitBySelfSpend()
+		{
+			// Anonset gets retained for a single input and a single output tx.
+			// Maybe it should be increased a bit because of deniability?
+			GetNewServices(out KeyManager keyManager, out CoinsRegistry registry, out AnonymityEstimator estimator);
+			var inputCoin = GetNewCoin(keyManager, registry, Money.Coins(1), 10);
+			Transaction tx = GetNewTransaction(inputCoin, 0);
+			AddOwnOutput(tx, Money.Coins(0.999m), keyManager);
+
+			var anonsets = estimator.EstimateAnonymitySets(tx);
+
+			var anonset = Assert.Single(anonsets).Value;
+			Assert.InRange(anonset, 10, 11);
+		}
+
+		[Fact]
+		public void ChangeAnonsetResets()
+		{
+			// In a normal tx, the change must get anonset 1, because we exposed it already.
+			GetNewServices(out KeyManager keyManager, out CoinsRegistry registry, out AnonymityEstimator estimator);
+			var inputCoin = GetNewCoin(keyManager, registry, Money.Coins(1), 10);
+			Transaction tx = GetNewTransaction(inputCoin, 0);
+			AddOwnOutput(tx, Money.Coins(0.999m), keyManager);
+			AddRandomOutput(tx, Money.Coins(0.999m));
+
+			var anonsets = estimator.EstimateAnonymitySets(tx);
+
+			var anonset = Assert.Single(anonsets).Value;
+			Assert.Equal(1, anonset);
+		}
+
+		[Fact]
+		public void InputMergeIsPunished()
+		{
+			// Merging inputs results in lower anonsets.
+			GetNewServices(out KeyManager keyManager, out CoinsRegistry registry, out AnonymityEstimator estimator);
+			var inputCoin1 = GetNewCoin(keyManager, registry, Money.Coins(1), 10);
+			var inputCoin2 = GetNewCoin(keyManager, registry, Money.Coins(1), 10);
+			Transaction tx = GetNewTransaction(new[] { inputCoin1, inputCoin2 }, 0);
+			AddOwnOutput(tx, Money.Coins(0.999m), keyManager);
+
+			var anonsets = estimator.EstimateAnonymitySets(tx);
+
+			var anonset = Assert.Single(anonsets).Value;
+			Assert.InRange(anonset, 1, 9);
+		}
+
+		[Fact]
+		public void InputMergeIsPunishedMore()
+		{
+			// The more inputs merged, the lower the anonset is.
+			GetNewServices(out KeyManager keyManager, out CoinsRegistry registry, out AnonymityEstimator estimator);
+			var inputCoin1 = GetNewCoin(keyManager, registry, Money.Coins(1), 10);
+			var inputCoin2 = GetNewCoin(keyManager, registry, Money.Coins(1), 10);
+			var inputCoin3 = GetNewCoin(keyManager, registry, Money.Coins(1), 10);
+			Transaction tx1 = GetNewTransaction(new[] { inputCoin1, inputCoin2 }, 0);
+			Transaction tx2 = GetNewTransaction(new[] { inputCoin1, inputCoin2, inputCoin3 }, 0);
+			AddOwnOutput(tx1, Money.Coins(0.999m), keyManager);
+			AddOwnOutput(tx2, Money.Coins(0.999m), keyManager);
+
+			var anonsets1 = estimator.EstimateAnonymitySets(tx1);
+			var anonsets2 = estimator.EstimateAnonymitySets(tx2);
+
+			var anonset1 = Assert.Single(anonsets1).Value;
+			var anonset2 = Assert.Single(anonsets2).Value;
+			Assert.True(anonset1 > anonset2);
+		}
+
 		private void AddRandomOutput(Transaction tx, Money value)
 		{
 			tx.Outputs.Add(value, new Key().PubKey.WitHash.ScriptPubKey);
