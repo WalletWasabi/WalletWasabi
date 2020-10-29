@@ -81,7 +81,7 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 				// If we provided inputs to the transaction.
 				if (numberOfOwnInputs > 0)
 				{
-					var privacyBonus = Intersect(spentOwnCoins.Select(x => x.AnonymitySet), numberOfOwnInputs / tx.Inputs.Count());
+					var privacyBonus = Intersect(spentOwnCoins.Select(x => x.AnonymitySet), (double)numberOfOwnInputs / tx.Inputs.Count());
 
 					// If the privacy bonus is <=1 then we are not inheriting any privacy from the inputs.
 					var normalizedBonus = privacyBonus - 1;
