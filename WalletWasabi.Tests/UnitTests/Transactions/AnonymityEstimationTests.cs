@@ -144,7 +144,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		}
 
 		private static Transaction GetNewTransaction(SmartCoin inputCoin, int randomInputs)
-			=> GetNewTransaction(new[] { inputCoin }, randomInputs);
+			=> GetNewTransaction(
+				new[] { inputCoin },
+				randomInputs);
 
 		private static Transaction GetNewTransaction(IEnumerable<SmartCoin> inputCoins, int randomInputs)
 		{
