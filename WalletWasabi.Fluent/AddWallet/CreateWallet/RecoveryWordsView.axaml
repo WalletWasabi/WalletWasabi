@@ -4,6 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors;assembly=WalletWasabi.Fluent"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              d:DesignWidth="600" d:DesignHeight="500"
              x:Class="WalletWasabi.Fluent.AddWallet.CreateWallet.RecoveryWordsView">
   <Panel>
@@ -25,15 +27,19 @@
         <ItemsControl.ItemTemplate>
           <DataTemplate>
             <StackPanel Orientation="Horizontal" Margin="20 0">
-                <TextBlock Text="{Binding Index, StringFormat={}{0}.}" />
-                <TextBlock Text="{Binding Word}" FontWeight="SemiBold" Margin="5 0 0 0" />
-              </StackPanel>
+              <TextBlock Text="{Binding Index, StringFormat={}{0}.}" />
+              <TextBlock Text="{Binding Word}" FontWeight="SemiBold" Margin="5 0 0 0" />
+            </StackPanel>
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>
     </c:ContentArea>
 
     <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="invisible" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
-    <Button Content="Continue" Command="{Binding ContinueCommand}" Classes="action" HorizontalAlignment="Right" VerticalAlignment="Bottom" />
+    <Button Content="Continue" Command="{Binding ContinueCommand}" Classes="action" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+      <i:Interaction.Behaviors>
+        <behaviors:FocusOnAttachedBehavior />
+      </i:Interaction.Behaviors>
+    </Button>
   </Panel>
 </UserControl>
