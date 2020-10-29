@@ -7,7 +7,7 @@ using Avalonia.Input;
 
 namespace WalletWasabi.Fluent.Behaviors
 {
-	public class FocusOnEnableBehavior : DisposingBehavior<Control>
+	public class FocusOnEnableBehavior : DisposingBehavior<Button>
 	{
 		protected override void OnAttached(CompositeDisposable disposables)
 		{
