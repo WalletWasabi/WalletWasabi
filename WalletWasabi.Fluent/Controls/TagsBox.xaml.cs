@@ -5,18 +5,11 @@ using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using ReactiveUI;
-using WalletWasabi.Fluent.ViewModels.TagsBox;
-using System;
-using System.Collections;
-using System.Reactive.Linq;
-using DynamicData;
-using DynamicData.Binding;
-using ReactiveUI;
-using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.Controls
 {
@@ -38,8 +31,8 @@ namespace WalletWasabi.Fluent.Controls
 
         private AutoCompleteBox? _autoCompleteBox;
 
-        private bool _bs1;
-        private bool _bs2;
+        private bool _backspaceEmptyField1;
+        private bool _backspaceEmptyField2;
 
 
         private IDisposable? _disposable;
@@ -51,15 +44,6 @@ namespace WalletWasabi.Fluent.Controls
         {
             this.WhenAnyValue(x => x.Items)
                 .Subscribe(RegisterIsInputEnabledListener);
-  
-            
-        }
-
-        private void RegisterIsInputEnabledListener(IEnumerable enumerable)
-        { 
-            if(Items is null || ItemCountLimit == 0) return;
-
-            _isInputEnabled = Items.Cast<object>().Count() < ItemCountLimit;
         }
 
         public bool RestrictInputToSuggestions
@@ -78,6 +62,14 @@ namespace WalletWasabi.Fluent.Controls
         {
             get => _suggestionsEnumerable;
             set => SetAndRaise(SuggestionsProperty, ref _suggestionsEnumerable, value);
+        }
+
+        private void RegisterIsInputEnabledListener(IEnumerable enumerable)
+        {
+            if (Items is null || ItemCountLimit == 0) return;
+
+            if (Items is IList x)
+                _isInputEnabled = x.Count < ItemCountLimit;
         }
 
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
@@ -99,9 +91,7 @@ namespace WalletWasabi.Fluent.Controls
                 _autoCompleteBox.AddDisposableHandler(TextInputEvent, OnTextInput,
                     RoutingStrategies.Tunnel);
 
-            _autoCompleteBox?.Focus();
-            
-            
+            _autoCompleteBox.Focus();
         }
 
         private void OnTextInput(object? sender, TextInputEventArgs e)
@@ -119,6 +109,12 @@ namespace WalletWasabi.Fluent.Controls
                 e.Handled = true;
         }
 
+        protected override void UpdateDataValidation<T>(AvaloniaProperty<T> property, BindingValue<T> value)
+        {
+            if (property == ItemsProperty) 
+                DataValidationErrors.SetError(this, value.Error);
+        }
+
         private void OnDropDownClosed(object? sender, EventArgs e)
         {
             if (_autoCompleteBox is null) return;
@@ -130,17 +126,16 @@ namespace WalletWasabi.Fluent.Controls
                 return;
 
             AddTag(currentText.Trim());
-            _autoCompleteBox.ClearValue(AutoCompleteBox.SelectedItemProperty);
-
+            
             BackspaceLogicClear();
-
-            Dispatcher.UIThread.Post(() => { _autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); });
+            
+            _autoCompleteBox.SelectedItem = null;
+            _autoCompleteBox.Text = string.Empty;
         }
 
         private void BackspaceLogicClear()
         {
-            _bs1 = false;
-            _bs2 = false;
+            _backspaceEmptyField2 = _backspaceEmptyField1 = false;
         }
 
         private void OnTextChanged(object? sender, EventArgs e)
@@ -171,15 +166,15 @@ namespace WalletWasabi.Fluent.Controls
 
             var str = _autoCompleteBox?.Text ?? "";
 
-            _bs2 = _bs1;
-            _bs1 = str.Length == 0;
+            _backspaceEmptyField2 = _backspaceEmptyField1;
+            _backspaceEmptyField1 = str.Length == 0;
 
             var strTrimmed = str.Trim();
 
             // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
             switch (e.Key)
             {
-                case Key.Back when _bs1 && _bs2:
+                case Key.Back when _backspaceEmptyField1 && _backspaceEmptyField2:
                     RemoveTag();
                     break;
                 case Key.Enter when _isInputEnabled && !string.IsNullOrEmpty(strTrimmed):
@@ -190,38 +185,20 @@ namespace WalletWasabi.Fluent.Controls
                     BackspaceLogicClear();
 
                     AddTag(strTrimmed);
-                    Dispatcher.UIThread.Post(() => { _autoCompleteBox?.ClearValue(AutoCompleteBox.TextProperty); });
+                    if (_autoCompleteBox is null) break;
+                    _autoCompleteBox.Text = string.Empty;
                     break;
             }
         }
 
         private void RemoveTag()
         {
-            var total = Items.Cast<object>().Count();
-            var targetIndex = Math.Max(0, total - 1);
-            Items = Items.Cast<object>().Where((car, index) => index != targetIndex);
+            if (Items is IList x) x.RemoveAt(Math.Max(0, x.Count - 1));
         }
 
         private void AddTag(string strTrimmed)
         {
-            Items = Items.Cast<object>()
-                .Concat(new[] {new TagViewModel((TagsBoxViewModel) DataContext, strTrimmed)});
+            if (Items is IList x) x.Add(strTrimmed);
         }
-
-        // protected override void OnDetaching()
-        // {
-        //     if (_autoCompleteBox is null) return;
-        //
-        //     base.OnDetaching();
-        //
-        //     _autoCompleteBox.DropDownClosed -= OnDropDownClosed;
-        //     _autoCompleteBox.KeyUp -= OnKeyUp;
-        //     _autoCompleteBox.TextChanged -= OnTextChanged;
-        //     GrabFocusAction -= DoGrabFocus;
-        //
-        //     _disposable?.Dispose();
-        //
-        //     BackspaceLogicClear();
-        // }
     }
 }

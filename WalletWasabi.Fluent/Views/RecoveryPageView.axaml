@@ -13,15 +13,16 @@
             <PathIcon Data="{DynamicResource arrow_left_regular}" />
         </Button>
         <c:ContentArea Title="Enter recovery words" Caption="Type in your 12 recovery words and click continue"
+                       x:DataType="vm:RecoveryPageViewModel"
                        Margin="44 0">
-            <Grid RowDefinitions="Auto,20,Auto" VerticalAlignment="Top" >
-                <Label Classes="h7 bold"  Content="_Type in your recovery words here:" Target="seedTagsBox"/>
-                <c:TagsBox x:Name="seedTagsBox"  Grid.Row="2" ItemCountLimit="7" RestrictInputToSuggestions="True"
-                           DataContext="{Binding RecoveryWordsTagsBox}"
-                           Items="{Binding Tags}"
-                           Suggestions="{Binding Suggestions, Mode=TwoWay}"
-                           MinHeight="60"
-                           ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
+            <Grid RowDefinitions="Auto,20,Auto" VerticalAlignment="Top">
+                <Label Classes="h7 bold" Content="_Type in your recovery words here:" Target="seedTagsBox" />
+                <c:TagsBox x:Name="seedTagsBox" 
+                           Grid.Row="2"
+                           ItemCountLimit="{CompiledBinding ItemCountLimit}"
+                           RestrictInputToSuggestions="{CompiledBinding RestrictInputToSuggestions}"
+                           Items="{CompiledBinding Mnemonics}"
+                           Suggestions="{CompiledBinding Suggestions}" />
             </Grid>
         </c:ContentArea>
         <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="invisible" HorizontalAlignment="Left"

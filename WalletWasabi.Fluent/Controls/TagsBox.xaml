@@ -5,38 +5,96 @@
         xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
         xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
         xmlns:iac="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions.Custom">
-  <Style Selector="c|TagsBox">
-    <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
-    <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrush}" />
-    <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThickness}" />
-    <Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
-    <Setter Property="MinHeight" Value="{DynamicResource TextControlThemeMinHeight}" />
-    <Setter Property="MinWidth" Value="{DynamicResource TextControlThemeMinWidth}" />
-    <Setter Property="Padding" Value="{DynamicResource TextControlThemePadding}" />
-    <Setter Property="Cursor" Value="IBeam" />
-    <Setter Property="FocusAdorner" Value="{x:Null}" />
-    <Setter Property="Template">
-      <ControlTemplate>
-        <Border x:Name="PART_Border" Background="{TemplateBinding Background}"
-                BorderBrush="{TemplateBinding BorderBrush}"
-                BorderThickness="{TemplateBinding BorderThickness}"
-                Padding="{TemplateBinding Padding}">
-          <ItemsPresenter Name="PART_ItemsPresenter"
-                          Items="{TemplateBinding Items}"
-                          ItemTemplate="{TemplateBinding ItemTemplate}">
-            <ItemsPresenter.ItemsPanel>
-              <ItemsPanelTemplate>
-                <c:ConcatenatingWrapPanel>
-                  <c:ConcatenatingWrapPanel.ConcatenatedChildren>
-                    <AutoCompleteBox x:Name="PART_AutoCompleteBox" Items="{Binding #PART_Border.TemplatedParent.Suggestions}" />
-                  </c:ConcatenatingWrapPanel.ConcatenatedChildren>
-                </c:ConcatenatingWrapPanel>
-              </ItemsPanelTemplate>
-            </ItemsPresenter.ItemsPanel>
-          </ItemsPresenter>
-        </Border>
-      </ControlTemplate>
-    </Setter>
-  </Style>
+    <Style Selector="c|TagsBox">
+        <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
+        <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrush}" />
+        <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThickness}" />
+        <Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
+        <Setter Property="MinHeight" Value="{DynamicResource TextControlThemeMinHeight}" />
+        <Setter Property="MinWidth" Value="{DynamicResource TextControlThemeMinWidth}" />
+        <Setter Property="Padding" Value="{DynamicResource TextControlThemePadding}" />
+        <Setter Property="Cursor" Value="IBeam" />
+        <Setter Property="FocusAdorner" Value="{x:Null}" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border x:Name="PART_Border" Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        Padding="{TemplateBinding Padding}" Focusable="False">
+                    <DataValidationErrors>
+                        <ItemsPresenter Name="PART_ItemsPresenter"
+                                        Items="{TemplateBinding Items}"
+                                        ItemTemplate="{TemplateBinding ItemTemplate}">
+
+                            <ItemsPresenter.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <c:ConcatenatingWrapPanel>
+                                        <c:ConcatenatingWrapPanel.ConcatenatedChildren>
+                                            <AutoCompleteBox x:Name="PART_AutoCompleteBox"
+                                                             Items="{Binding #PART_Border.TemplatedParent.Suggestions}"
+                                                             TemplatedControl.IsTemplateFocusTarget="True" />
+                                        </c:ConcatenatingWrapPanel.ConcatenatedChildren>
+                                    </c:ConcatenatingWrapPanel>
+                                </ItemsPanelTemplate>
+                            </ItemsPresenter.ItemsPanel>
+                        </ItemsPresenter>
+                    </DataValidationErrors>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    
+    <Style Selector="c|TagsBox">
+        <Setter Property="(ScrollViewer.HorizontalScrollBarVisibility)" Value="Disabled" />
+        <Setter Property="MinHeight" Value="60" />
+        <Setter Property="ItemTemplate">
+            <DataTemplate DataType="x:String">
+                <Panel>
+                    <Border BorderBrush="{DynamicResource TagsBoxControlForeground}"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Margin="4"
+                            VerticalAlignment="Center">
+                        <TextBlock Text="{Binding .}"
+                                   Margin="8,4" />
+                    </Border>
+                </Panel>
+            </DataTemplate>
+        </Setter>
+    </Style>
+
+
+    <Style Selector="c|TagsBox:focus">
+        <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundFocused}" />
+    </Style>
+
+    <Style Selector="c|TagsBox /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{DynamicResource TextControlBackgroundFocused}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushFocused}" />
+        <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThicknessFocused}" />
+    </Style>
+
+    <Style Selector="c|TagsBox:error /template/ Border#PART_BorderElement">
+        <Setter Property="BorderBrush" Value="{DynamicResource SystemControlErrorTextForegroundBrush}" />
+    </Style>
+
+    <Style Selector="c|TagsBox:pointerover /template/ Border#PART_BorderElement">
+        <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushPointerOver}" />
+        <Setter Property="Background" Value="{DynamicResource TextControlBackgroundPointerOver}" />
+    </Style>
+
+    <Style Selector="c|TagsBox AutoCompleteBox">
+        <Setter Property="Background" Value="{x:Null}" />
+        <Setter Property="Padding" Value="3,10,0, 10" />
+        <Setter Property="Margin" Value="0" />
+    </Style>
+
+    <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox /template/ Border#PART_BorderElement">
+        <Setter Property="IsVisible" Value="False" />
+    </Style>
+
+    <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox">
+        <Setter Property="IsReadOnly" Value="{Binding !IsInputEnabled}" />
+    </Style>
 </Styles>
