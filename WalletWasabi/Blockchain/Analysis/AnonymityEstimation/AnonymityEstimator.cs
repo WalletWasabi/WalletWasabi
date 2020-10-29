@@ -3,20 +3,45 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Transactions;
 
 namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 {
 	public class AnonymityEstimator
 	{
-		public AnonymityEstimator(ICoinsView allWalletCoins, Money dustThreshold)
+		public AnonymityEstimator(CoinsRegistry allWalletCoins, AllTransactionStore transactionStore, KeyManager keyManager, Money dustThreshold)
 		{
 			AllWalletCoins = allWalletCoins;
+			TransactionStore = transactionStore;
+			KeyManager = keyManager;
 			DustThreshold = dustThreshold;
 		}
 
-		public ICoinsView AllWalletCoins { get; }
+		public CoinsRegistry AllWalletCoins { get; }
+		public AllTransactionStore TransactionStore { get; }
+		public KeyManager KeyManager { get; }
 		public Money DustThreshold { get; }
+
+		/// <param name="updateOtherCoins">Only estimate -> does not touch other coins' anonsets.</param>
+		/// <returns>Dictionary of own output indexes and their calculated anonymity sets.</returns>
+		public IDictionary<uint, int> EstimateAnonymitySets(Transaction tx, bool updateOtherCoins = false)
+		{
+			var ownOutputs = new List<uint>();
+			for (var i = 0U; i < tx.Outputs.Count; i++)
+			{
+				// If transaction received to any of the wallet keys:
+				var output = tx.Outputs[i];
+				HdPubKey foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
+				if (foundKey is { })
+				{
+					ownOutputs.Add(i);
+				}
+			}
+
+			return EstimateAnonymitySets(tx, ownOutputs, updateOtherCoins);
+		}
 
 		/// <param name="updateOtherCoins">Only estimate -> does not touch other coins' anonsets.</param>
 		/// <returns>Dictionary of own output indexes and their calculated anonymity sets.</returns>
@@ -29,7 +54,8 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 				return new Dictionary<uint, int>();
 			}
 
-			var spentOwnCoins = AllWalletCoins.OutPoints(tx.Inputs.Select(x => x.PrevOut)).ToList();
+			var allWalletCoinsView = AllWalletCoins.AsAllCoinsView();
+			var spentOwnCoins = allWalletCoinsView.OutPoints(tx.Inputs.Select(x => x.PrevOut)).ToList();
 			var numberOfOwnInputs = spentOwnCoins.Count();
 
 			// In normal payments we expose things to our counterparties.
@@ -66,7 +92,7 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 
 				// Factor in script reuse.
 				var output = tx.Outputs[outputIndex];
-				var reusedCoins = AllWalletCoins.FilterBy(x => x.ScriptPubKey == output.ScriptPubKey).ToList();
+				var reusedCoins = allWalletCoinsView.FilterBy(x => x.ScriptPubKey == output.ScriptPubKey).ToList();
 				anonset = Intersect(reusedCoins.Select(x => x.AnonymitySet).Append(anonset));
 
 				// Dust attack could ruin the anonset of our existing mixed coins, so it's better not to do that.
@@ -74,13 +100,37 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 				{
 					foreach (var coin in reusedCoins)
 					{
-						coin.AnonymitySet = anonset;
+						UpdateAnonset(coin, anonset);
 					}
 				}
 
 				anonsets.Add(outputIndex, anonset);
 			}
 			return anonsets;
+		}
+
+		private void UpdateAnonset(SmartCoin coin, int anonset)
+		{
+			if (coin.AnonymitySet == anonset)
+			{
+				return;
+			}
+
+			coin.AnonymitySet = anonset;
+
+			if (coin.SpenderTransactionId is { } && TransactionStore.TryGetTransaction(coin.SpenderTransactionId, out SmartTransaction childTx))
+			{
+				var anonymitySets = EstimateAnonymitySets(childTx.Transaction, updateOtherCoins: false);
+				for (uint i = 0; i < childTx.Transaction.Outputs.Count; i++)
+				{
+					var allWalletCoinsView = AllWalletCoins.AsAllCoinsView();
+					var childCoin = allWalletCoinsView.GetByOutPoint(new OutPoint(childTx.GetHash(), i));
+					if (childCoin is { })
+					{
+						UpdateAnonset(childCoin, anonymitySets[i]);
+					}
+				}
+			}
 		}
 
 		private int Intersect(IEnumerable<int> anonsets)

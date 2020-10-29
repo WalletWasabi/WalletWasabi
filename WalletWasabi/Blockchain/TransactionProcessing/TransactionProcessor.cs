@@ -24,7 +24,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
 			Coins = new CoinsRegistry(privacyLevelThreshold);
-			AnonymityEstimator = new AnonymityEstimator(Coins.AsAllCoinsView(), dustThreshold);
+			AnonymityEstimator = new AnonymityEstimator(Coins, TransactionStore, KeyManager, dustThreshold);
 		}
 
 		public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
