@@ -43,9 +43,7 @@ namespace WalletWasabi.Fluent.Controls
         private bool _isFocused;
 
         public TagsBox()
-        {
-            this.WhenAnyValue(x => x.Items)
-                .Subscribe(RegisterIsInputEnabledListener);
+        { 
         }
 
         public bool RestrictInputToSuggestions
@@ -66,7 +64,7 @@ namespace WalletWasabi.Fluent.Controls
             set => SetAndRaise(SuggestionsProperty, ref _suggestionsEnumerable, value);
         }
 
-        private void RegisterIsInputEnabledListener(IEnumerable enumerable)
+        private void CheckIsInputEnabled()
         {
             if (Items is null || ItemCountLimit == 0) return;
 
@@ -212,7 +210,9 @@ namespace WalletWasabi.Fluent.Controls
 
             var currentText = _autoCompleteBox.Text ?? "";
 
-            if (currentText.Length == 0 || !(_autoCompleteBox.SelectedItem is string selItem) || selItem.Length == 0 ||
+            if (currentText.Length == 0 || 
+                !(_autoCompleteBox.SelectedItem is string selItem) ||
+                selItem.Length == 0 ||
                 currentText != selItem)
                 return;
 
@@ -285,11 +285,13 @@ namespace WalletWasabi.Fluent.Controls
 
         private void RemoveTag()
         {
+            CheckIsInputEnabled();
             if (Items is IList x && x.Count > 0) x.RemoveAt(Math.Max(0, x.Count - 1));
         }
 
         private void AddTag(string strTrimmed)
         {
+            CheckIsInputEnabled();
             if (Items is IList x) x.Add(strTrimmed);
         }
     }
