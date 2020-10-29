@@ -1,3 +1,5 @@
+using System;
+using System.Net;
 using System.Net.Http;
 using System.Security.Authentication;
 using System.Threading;
@@ -15,5 +17,17 @@ namespace WalletWasabi.Tor.Http
 
 		/// <inheritdoc cref="HttpClient.SendAsync(HttpRequestMessage, CancellationToken)"/>
 		Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default);
+
+		Task<HttpResponseMessage> SendAsync(HttpMethod method, Uri requestUri, HttpContent? content = null, CancellationToken token = default)
+		{
+			var httpRequestMessage = new HttpRequestMessage(method, requestUri);
+
+			if (content is { })
+			{
+				httpRequestMessage.Content = content;
+			}
+
+			return SendAsync(httpRequestMessage);
+		}
 	}
 }
