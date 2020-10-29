@@ -22,7 +22,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// and 1 output that equals to one other output, then its anonset should be 2.
 			GetNewServices(out KeyManager keyManager, out CoinsRegistry registry, out AnonymityEstimator estimator);
 			var inputCoin = GetNewCoin(keyManager, registry, Money.Coins(1), 1);
-			Transaction tx = GetNewTransaction(inputCoin, 10);
+			Transaction tx = GetNewInputTransaction(inputCoin, 10);
 			AddOwnOutput(tx, Money.Coins(0.999m), keyManager);
 			AddRandomOutput(tx, Money.Coins(0.999m));
 
@@ -41,7 +41,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// When we have no output in a tx, anonsets aren't calculated.
 			GetNewServices(out KeyManager keyManager, out CoinsRegistry registry, out AnonymityEstimator estimator);
 			var inputCoin = GetNewCoin(keyManager, registry, Money.Coins(1), 1);
-			Transaction tx = GetNewTransaction(inputCoin, 10);
+			Transaction tx = GetNewInputTransaction(inputCoin, 10);
 			AddRandomOutput(tx, Money.Coins(0.999m));
 
 			var anonsets = estimator.EstimateAnonymitySets(tx);
@@ -56,7 +56,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// Maybe it should be increased a bit because of deniability?
 			GetNewServices(out KeyManager keyManager, out CoinsRegistry registry, out AnonymityEstimator estimator);
 			var inputCoin = GetNewCoin(keyManager, registry, Money.Coins(1), 10);
-			Transaction tx = GetNewTransaction(inputCoin, 0);
+			Transaction tx = GetNewInputTransaction(inputCoin, 0);
 			AddOwnOutput(tx, Money.Coins(0.999m), keyManager);
 
 			var anonsets = estimator.EstimateAnonymitySets(tx);
@@ -71,7 +71,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// In a normal tx, the change must get anonset 1, because we exposed it already.
 			GetNewServices(out KeyManager keyManager, out CoinsRegistry registry, out AnonymityEstimator estimator);
 			var inputCoin = GetNewCoin(keyManager, registry, Money.Coins(1), 10);
-			Transaction tx = GetNewTransaction(inputCoin, 0);
+			Transaction tx = GetNewInputTransaction(inputCoin, 0);
 			AddOwnOutput(tx, Money.Coins(0.999m), keyManager);
 			AddRandomOutput(tx, Money.Coins(0.999m));
 
@@ -88,7 +88,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			GetNewServices(out KeyManager keyManager, out CoinsRegistry registry, out AnonymityEstimator estimator);
 			var inputCoin1 = GetNewCoin(keyManager, registry, Money.Coins(1), 10);
 			var inputCoin2 = GetNewCoin(keyManager, registry, Money.Coins(1), 10);
-			Transaction tx = GetNewTransaction(new[] { inputCoin1, inputCoin2 }, 0);
+			Transaction tx = GetNewInputTransaction(new[] { inputCoin1, inputCoin2 }, 0);
 			AddOwnOutput(tx, Money.Coins(0.999m), keyManager);
 
 			var anonsets = estimator.EstimateAnonymitySets(tx);
@@ -105,8 +105,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var inputCoin1 = GetNewCoin(keyManager, registry, Money.Coins(1), 10);
 			var inputCoin2 = GetNewCoin(keyManager, registry, Money.Coins(1), 10);
 			var inputCoin3 = GetNewCoin(keyManager, registry, Money.Coins(1), 10);
-			Transaction tx1 = GetNewTransaction(new[] { inputCoin1, inputCoin2 }, 0);
-			Transaction tx2 = GetNewTransaction(new[] { inputCoin1, inputCoin2, inputCoin3 }, 0);
+			Transaction tx1 = GetNewInputTransaction(new[] { inputCoin1, inputCoin2 }, 0);
+			Transaction tx2 = GetNewInputTransaction(new[] { inputCoin1, inputCoin2, inputCoin3 }, 0);
 			AddOwnOutput(tx1, Money.Coins(0.999m), keyManager);
 			AddOwnOutput(tx2, Money.Coins(0.999m), keyManager);
 
@@ -143,12 +143,12 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			estimator = new AnonymityEstimator(registry, txStore, keyManager, Money.Satoshis(1));
 		}
 
-		private static Transaction GetNewTransaction(SmartCoin inputCoin, int randomInputs)
-			=> GetNewTransaction(
-				new[] { inputCoin },
-				randomInputs);
+		private static Transaction GetNewInputTransaction(SmartCoin inputCoin, int randomInputs)
+		{
+			return GetNewInputTransaction(new[] { inputCoin }, randomInputs);
+		}
 
-		private static Transaction GetNewTransaction(IEnumerable<SmartCoin> inputCoins, int randomInputs)
+		private static Transaction GetNewInputTransaction(IEnumerable<SmartCoin> inputCoins, int randomInputs)
 		{
 			var tx = Transaction.Create(Network.Main);
 			foreach (var inputCoin in inputCoins)
