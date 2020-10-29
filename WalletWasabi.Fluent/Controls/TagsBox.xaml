@@ -15,7 +15,6 @@
         <Setter Property="MinWidth" Value="{DynamicResource TextControlThemeMinWidth}" />
         <Setter Property="Padding" Value="{DynamicResource TextControlThemePadding}" />
         <Setter Property="Cursor" Value="IBeam" />
-        <Setter Property="FocusAdorner" Value="{x:Null}" />
         <Setter Property="Template">
             <ControlTemplate>
                 <Border x:Name="PART_Border" Background="{TemplateBinding Background}"
@@ -69,7 +68,7 @@
         <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundFocused}" />
     </Style>
 
-    <Style Selector="c|TagsBox /template/ Border#PART_BorderElement">
+    <Style Selector="c|TagsBox:focus /template/ Border#PART_Border">
         <Setter Property="Background" Value="{DynamicResource TextControlBackgroundFocused}" />
         <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushFocused}" />
         <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThicknessFocused}" />

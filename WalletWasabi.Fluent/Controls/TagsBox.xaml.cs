@@ -9,6 +9,7 @@ using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Controls
@@ -39,6 +40,7 @@ namespace WalletWasabi.Fluent.Controls
 
         private bool _isInputEnabled = true;
         private IEnumerable _suggestionsEnumerable;
+        private bool _isFocused;
 
         public TagsBox()
         {
@@ -87,11 +89,27 @@ namespace WalletWasabi.Fluent.Controls
             _autoCompleteBox.TextChanged += OnTextChanged;
             _autoCompleteBox.DropDownClosed += OnDropDownClosed;
 
+            _autoCompleteBox.GotFocus += OnACBGotFocus;
+            _autoCompleteBox.LostFocus += OnACBGLostFocus;
+
             _disposable =
                 _autoCompleteBox.AddDisposableHandler(TextInputEvent, OnTextInput,
                     RoutingStrategies.Tunnel);
 
             _autoCompleteBox.Focus();
+            
+            
+        }
+
+        private void OnACBGLostFocus(object? sender, RoutedEventArgs e)
+        {
+            PseudoClasses.Set(":focus", false);
+        }
+
+        private void OnACBGotFocus(object? sender, GotFocusEventArgs e)
+        {
+            PseudoClasses.Set(":focus", true);
+
         }
 
         private void OnTextInput(object? sender, TextInputEventArgs e)
@@ -111,8 +129,85 @@ namespace WalletWasabi.Fluent.Controls
 
         protected override void UpdateDataValidation<T>(AvaloniaProperty<T> property, BindingValue<T> value)
         {
-            if (property == ItemsProperty) 
+            if (property == ItemsProperty)
                 DataValidationErrors.SetError(this, value.Error);
+        }
+
+        /// <summary>
+        /// Provides handling for the
+        /// <see cref="E:Avalonia.UIElement.GotFocus" /> event.
+        /// </summary>
+        /// <param name="e">A <see cref="T:Avalonia.RoutedEventArgs" />
+        /// that contains the event data.</param>
+        protected override void OnGotFocus(GotFocusEventArgs e)
+        {
+            base.OnGotFocus(e);
+            FocusChanged(HasFocus());
+        }
+
+        /// <summary>
+        /// Provides handling for the
+        /// <see cref="E:Avalonia.UIElement.LostFocus" /> event.
+        /// </summary>
+        /// <param name="e">A <see cref="T:Avalonia.RoutedEventArgs" />
+        /// that contains the event data.</param>
+        protected override void OnLostFocus(RoutedEventArgs e)
+        {
+            base.OnLostFocus(e);
+            FocusChanged(HasFocus());
+        }
+
+        private bool HasFocus()
+        {
+            IVisual? focused = FocusManager.Instance.Current;
+
+            while (focused != null)
+            {
+                if (ReferenceEquals(focused, this))
+                {
+                    return true;
+                }
+
+                // This helps deal with popups that may not be in the same
+                // visual tree
+                IVisual parent = focused.GetVisualParent();
+                if (parent == null)
+                {
+                    // Try the logical parent.
+                    if (focused is IControl element)
+                    {
+                        parent = element.Parent;
+                    }
+                }
+
+                focused = parent;
+            }
+
+            return false;
+        }
+
+        private void FocusChanged(bool hasFocus)
+        {
+            // The OnGotFocus & OnLostFocus are asynchronously and cannot
+            // reliably tell you that have the focus.  All they do is let you
+            // know that the focus changed sometime in the past.  To determine
+            // if you currently have the focus you need to do consult the
+            // FocusManager (see HasFocus()).
+
+            var wasFocused = _isFocused;
+            _isFocused = hasFocus;
+
+
+            if (hasFocus)
+            {
+                if (!wasFocused)
+                {
+                    _autoCompleteBox?.Focus();
+                }
+            }
+            PseudoClasses.Set(":focus", hasFocus);
+
+            _isFocused = hasFocus;
         }
 
         private void OnDropDownClosed(object? sender, EventArgs e)
@@ -126,11 +221,14 @@ namespace WalletWasabi.Fluent.Controls
                 return;
 
             AddTag(currentText.Trim());
-            
+
             BackspaceLogicClear();
-            
-            _autoCompleteBox.SelectedItem = null;
-            _autoCompleteBox.Text = string.Empty;
+            _autoCompleteBox.ClearValue(AutoCompleteBox.SelectedItemProperty);
+
+            Dispatcher.UIThread.Post((() =>
+            {
+                _autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); 
+            }));
         }
 
         private void BackspaceLogicClear()
@@ -157,7 +255,7 @@ namespace WalletWasabi.Fluent.Controls
 
             BackspaceLogicClear();
 
-            Dispatcher.UIThread.Post(() => { _autoCompleteBox?.ClearValue(AutoCompleteBox.TextProperty); });
+            Dispatcher.UIThread.Post(() => { _autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); });
         }
 
         private void OnKeyUp(object? sender, KeyEventArgs e)
@@ -185,15 +283,16 @@ namespace WalletWasabi.Fluent.Controls
                     BackspaceLogicClear();
 
                     AddTag(strTrimmed);
-                    if (_autoCompleteBox is null) break;
-                    _autoCompleteBox.Text = string.Empty;
+                    
+                    Dispatcher.UIThread.Post(() => { _autoCompleteBox?.ClearValue(AutoCompleteBox.TextProperty); });
+
                     break;
             }
         }
 
         private void RemoveTag()
         {
-            if (Items is IList x) x.RemoveAt(Math.Max(0, x.Count - 1));
+            if (Items is IList x && x.Count > 0) x.RemoveAt(Math.Max(0, x.Count - 1));
         }
 
         private void AddTag(string strTrimmed)
