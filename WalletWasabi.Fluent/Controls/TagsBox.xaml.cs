@@ -95,9 +95,7 @@ namespace WalletWasabi.Fluent.Controls
             _disposable =
                 _autoCompleteBox.AddDisposableHandler(TextInputEvent, OnTextInput,
                     RoutingStrategies.Tunnel);
-
-            _autoCompleteBox.Focus();
-            
+ 
             
         }
 
@@ -109,7 +107,6 @@ namespace WalletWasabi.Fluent.Controls
         private void OnACBGotFocus(object? sender, GotFocusEventArgs e)
         {
             PseudoClasses.Set(":focus", true);
-
         }
 
         private void OnTextInput(object? sender, TextInputEventArgs e)
@@ -196,8 +193,7 @@ namespace WalletWasabi.Fluent.Controls
 
             var wasFocused = _isFocused;
             _isFocused = hasFocus;
-
-
+            
             if (hasFocus)
             {
                 if (!wasFocused)
@@ -205,8 +201,8 @@ namespace WalletWasabi.Fluent.Controls
                     _autoCompleteBox?.Focus();
                 }
             }
+            
             PseudoClasses.Set(":focus", hasFocus);
-
             _isFocused = hasFocus;
         }
 
@@ -223,12 +219,9 @@ namespace WalletWasabi.Fluent.Controls
             AddTag(currentText.Trim());
 
             BackspaceLogicClear();
-            _autoCompleteBox.ClearValue(AutoCompleteBox.SelectedItemProperty);
 
-            Dispatcher.UIThread.Post((() =>
-            {
-                _autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); 
-            }));
+            _autoCompleteBox.ClearValue(AutoCompleteBox.SelectedItemProperty);
+            Dispatcher.UIThread.Post(() => { _autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); });
         }
 
         private void BackspaceLogicClear()
@@ -273,19 +266,19 @@ namespace WalletWasabi.Fluent.Controls
             switch (e.Key)
             {
                 case Key.Back when _backspaceEmptyField1 && _backspaceEmptyField2:
+                    
                     RemoveTag();
+                    
                     break;
                 case Key.Enter when _isInputEnabled && !string.IsNullOrEmpty(strTrimmed):
+                    
                     if (RestrictInputToSuggestions && !Suggestions.Cast<string>().Any(x =>
                         x.Equals(strTrimmed, StringComparison.InvariantCultureIgnoreCase)))
                         break;
 
                     BackspaceLogicClear();
-
                     AddTag(strTrimmed);
-                    
                     Dispatcher.UIThread.Post(() => { _autoCompleteBox?.ClearValue(AutoCompleteBox.TextProperty); });
-
                     break;
             }
         }

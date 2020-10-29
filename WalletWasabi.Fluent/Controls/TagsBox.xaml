@@ -1,10 +1,6 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
-        xmlns:vmt="clr-namespace:WalletWasabi.Fluent.ViewModels.TagsBox"
-        xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-        xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
-        xmlns:iac="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions.Custom">
+        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
     <Style Selector="c|TagsBox">
         <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
         <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
@@ -14,6 +10,7 @@
         <Setter Property="MinHeight" Value="{DynamicResource TextControlThemeMinHeight}" />
         <Setter Property="MinWidth" Value="{DynamicResource TextControlThemeMinWidth}" />
         <Setter Property="Padding" Value="{DynamicResource TextControlThemePadding}" />
+        <Setter Property="Focusable" Value="True" />
         <Setter Property="Cursor" Value="IBeam" />
         <Setter Property="Template">
             <ControlTemplate>
@@ -74,15 +71,10 @@
         <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThicknessFocused}" />
     </Style>
 
-    <Style Selector="c|TagsBox:error /template/ Border#PART_BorderElement">
+    <Style Selector="c|TagsBox:error /template/ Border#PART_Border">
         <Setter Property="BorderBrush" Value="{DynamicResource SystemControlErrorTextForegroundBrush}" />
     </Style>
-
-    <Style Selector="c|TagsBox:pointerover /template/ Border#PART_BorderElement">
-        <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushPointerOver}" />
-        <Setter Property="Background" Value="{DynamicResource TextControlBackgroundPointerOver}" />
-    </Style>
-
+ 
     <Style Selector="c|TagsBox AutoCompleteBox">
         <Setter Property="Background" Value="{x:Null}" />
         <Setter Property="Padding" Value="3,10,0, 10" />
