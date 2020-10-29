@@ -185,7 +185,7 @@ namespace WalletWasabi.Fluent.Controls
 
         private void FocusChanged(bool hasFocus)
         {
-            // The OnGotFocus & OnLostFocus are asynchronously and cannot
+            // The OnGotFocus & OnLostFocus are asynchronously called and cannot
             // reliably tell you that have the focus.  All they do is let you
             // know that the focus changed sometime in the past.  To determine
             // if you currently have the focus you need to do consult the
