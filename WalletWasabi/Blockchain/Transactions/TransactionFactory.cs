@@ -273,19 +273,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 			var label = SmartLabel.Merge(payments.Requests.Select(x => x.Label).Concat(spentCoins.Select(x => x.Label)));
 
-			var ownOutputs = new Dictionary<uint, HdPubKey>();
-			for (var i = 0U; i < tx.Outputs.Count; i++)
-			{
-				// If transaction received to any of the wallet keys:
-				var output = tx.Outputs[i];
-				HdPubKey foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
-				if (foundKey is { })
-				{
-					ownOutputs.Add(i, foundKey);
-				}
-			}
-
-			var anonsets = AnonymityEstimator.EstimateAnonymitySets(tx, ownOutputs.Keys);
+			var anonsets = AnonymityEstimator.EstimateAnonymitySets(tx);
 
 			var outerWalletOutputs = new List<SmartCoin>();
 			var innerWalletOutputs = new List<SmartCoin>();
@@ -298,10 +286,7 @@ namespace WalletWasabi.Blockchain.Transactions
 					anonset = tx.GetAnonymitySet(i);
 				}
 
-				if (!ownOutputs.TryGetValue(i, out var foundKey))
-				{
-					foundKey = null;
-				}
+				var foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
 
 				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToOutPoints().ToArray(), Height.Unknown, tx.RBF, anonset, pubKey: foundKey);
 				label = SmartLabel.Merge(label, coin.Label); // foundKey's label is already added to the coinlabel.
