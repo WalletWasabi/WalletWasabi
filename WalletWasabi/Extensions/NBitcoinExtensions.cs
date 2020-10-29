@@ -123,6 +123,18 @@ namespace NBitcoin
 				.Where(x => includeSingle || x.Value > 1);
 		}
 
+		public static int GetAnonymitySet(this Transaction me, uint outputIndex)
+		{
+			// 1. Get the output corresponting to the output index.
+			var output = me.Outputs[outputIndex];
+			// 2. Get the number of equal outputs.
+			int equalOutputs = me.GetIndistinguishableOutputs(includeSingle: true).Single(x => x.value == output.Value).count;
+			// 3. Anonymity set cannot be larger than the number of inputs.
+			var inputCount = me.Inputs.Count;
+			var anonSet = Math.Min(equalOutputs, inputCount);
+			return anonSet;
+		}
+
 		/// <summary>
 		/// Careful, if it's in a legacy block then this won't work.
 		/// </summary>

@@ -24,6 +24,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
 			Coins = new CoinsRegistry(privacyLevelThreshold);
+			AnonymityEstimator = new AnonymityEstimator(Coins.AsAllCoinsView(), dustThreshold);
 		}
 
 		public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
@@ -34,6 +35,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 		public KeyManager KeyManager { get; }
 
 		public CoinsRegistry Coins { get; }
+		public AnonymityEstimator AnonymityEstimator { get; }
 		public Money DustThreshold { get; }
 
 		#region Progress
@@ -178,7 +180,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					}
 				}
 
-				var anonsets = AnonymityEstimator.EstimateAnonymitySets(tx.Transaction, ownOutputs.Keys, Coins.AsAllCoinsView());
+				var anonsets = AnonymityEstimator.EstimateAnonymitySets(tx.Transaction, ownOutputs.Keys, updateOtherCoins: true);
 
 				foreach (var outputEntry in ownOutputs)
 				{

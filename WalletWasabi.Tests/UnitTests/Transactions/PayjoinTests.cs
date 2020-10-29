@@ -16,6 +16,7 @@ using System.Net;
 using System.Text;
 using WalletWasabi.Models;
 using System.Collections.Specialized;
+using WalletWasabi.Blockchain.Analysis.AnonymityEstimation;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions
 {
@@ -459,8 +460,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			}
 			var coinsView = new CoinsView(scoins);
 			var transactionStore = new AllTransactionStoreMock(workFolderPath: ".", Network.Main);
-
-			return new TransactionFactory(Network.Main, keyManager, coinsView, transactionStore, password, allowUnconfirmed);
+			var anonimityEstimator = new AnonymityEstimator(coinsView, Money.Satoshis(1));
+			return new TransactionFactory(Network.Main, keyManager, coinsView, anonimityEstimator, transactionStore, password, allowUnconfirmed);
 		}
 	}
 }

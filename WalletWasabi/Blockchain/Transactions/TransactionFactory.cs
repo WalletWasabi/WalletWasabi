@@ -22,12 +22,13 @@ namespace WalletWasabi.Blockchain.Transactions
 	public class TransactionFactory
 	{
 		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
-		public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, AllTransactionStore transactionStore, string password = "", bool allowUnconfirmed = false)
+		public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, AnonymityEstimator anonymityEstimator, AllTransactionStore transactionStore, string password = "", bool allowUnconfirmed = false)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			Coins = Guard.NotNull(nameof(coins), coins);
 			TransactionStore = Guard.NotNull(nameof(transactionStore), transactionStore);
+			AnonymityEstimator = anonymityEstimator;
 			Password = password;
 			AllowUnconfirmed = allowUnconfirmed;
 		}
@@ -35,6 +36,7 @@ namespace WalletWasabi.Blockchain.Transactions
 		public Network Network { get; }
 		public KeyManager KeyManager { get; }
 		public ICoinsView Coins { get; }
+		public AnonymityEstimator AnonymityEstimator { get; }
 		public string Password { get; }
 		public bool AllowUnconfirmed { get; }
 		private AllTransactionStore TransactionStore { get; }
@@ -283,7 +285,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				}
 			}
 
-			var anonsets = AnonymityEstimator.EstimateAnonymitySets(tx, ownOutputs.Keys, Coins);
+			var anonsets = AnonymityEstimator.EstimateAnonymitySets(tx, ownOutputs.Keys);
 
 			var outerWalletOutputs = new List<SmartCoin>();
 			var innerWalletOutputs = new List<SmartCoin>();
@@ -293,7 +295,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 				if (!anonsets.TryGetValue(i, out var anonset))
 				{
-					anonset = AnonymityEstimator.EstimateAnonymitySet(tx, i);
+					anonset = tx.GetAnonymitySet(i);
 				}
 
 				if (!ownOutputs.TryGetValue(i, out var foundKey))

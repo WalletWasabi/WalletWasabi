@@ -7,24 +7,20 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 
 namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 {
-	public static class AnonymityEstimator
+	public class AnonymityEstimator
 	{
-		public static int EstimateAnonymitySet(Transaction tx, uint outputIndex)
+		public AnonymityEstimator(ICoinsView allWalletCoins, Money dustThreshold)
 		{
-			// 1. Get the output corresponting to the output index.
-			var output = tx.Outputs[outputIndex];
-
-			// 2. Get the number of equal outputs.
-			int equalOutputs = tx.GetIndistinguishableOutputs(includeSingle: true).Single(x => x.value == output.Value).count;
-
-			// 3. Anonymity set cannot be larger than the number of inputs.
-			var inputCount = tx.Inputs.Count;
-			var anonSet = Math.Min(equalOutputs, inputCount);
-			return anonSet;
+			AllWalletCoins = allWalletCoins;
+			DustThreshold = dustThreshold;
 		}
 
+		public ICoinsView AllWalletCoins { get; }
+		public Money DustThreshold { get; }
+
+		/// <param name="updateOtherCoins">Only estimate -> does not touch other coins' anonsets.</param>
 		/// <returns>Dictionary of own output indexes and their calculated anonymity sets.</returns>
-		public static IDictionary<uint, int> EstimateAnonymitySets(Transaction tx, IEnumerable<uint> ownOutputIndices, ICoinsView allWalletCoins)
+		public IDictionary<uint, int> EstimateAnonymitySets(Transaction tx, IEnumerable<uint> ownOutputIndices, bool updateOtherCoins = false)
 		{
 			// Estimation of anonymity sets only makes sense for own outputs.
 			var numberOfOwnOutputs = ownOutputIndices.Count();
@@ -33,7 +29,7 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 				return new Dictionary<uint, int>();
 			}
 
-			var spentOwnCoins = allWalletCoins.OutPoints(tx.Inputs.Select(x => x.PrevOut)).ToList();
+			var spentOwnCoins = AllWalletCoins.OutPoints(tx.Inputs.Select(x => x.PrevOut)).ToList();
 			var numberOfOwnInputs = spentOwnCoins.Count();
 
 			// In normal payments we expose things to our counterparties.
@@ -54,7 +50,7 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 			foreach (var outputIndex in ownOutputIndices)
 			{
 				// Get the anonymity set of i-th output in the transaction.
-				var anonset = EstimateAnonymitySet(tx, outputIndex);
+				var anonset = tx.GetAnonymitySet(outputIndex);
 
 				// If we provided inputs to the transaction.
 				if (numberOfOwnInputs > 0)
@@ -76,12 +72,18 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 					anonset += sanityCheckedEstimation;
 				}
 
-				// Factor in script reuse.
 				var output = tx.Outputs[outputIndex];
-				foreach (var coin in allWalletCoins.FilterBy(x => x.ScriptPubKey == output.ScriptPubKey))
+
+				// Factor in script reuse.
+				foreach (var coin in AllWalletCoins.FilterBy(x => x.ScriptPubKey == output.ScriptPubKey))
 				{
 					anonset = Math.Min(anonset, coin.AnonymitySet);
-					coin.AnonymitySet = anonset;
+
+					// Dust attack could ruin the anonset of our existing mixed coins, so it's better not to do that.
+					if (updateOtherCoins && output.Value > DustThreshold)
+					{
+						coin.AnonymitySet = anonset;
+					}
 				}
 
 				anonsets.Add(outputIndex, anonset);
