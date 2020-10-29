@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Runtime.CompilerServices;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -32,6 +33,14 @@ namespace WalletWasabi.Tests
 			tx.Outputs.Add(Money.Coins(1), new Key());
 			var stx = new SmartTransaction(tx, Height.Mempool);
 			return stx;
+		}
+
+		public static uint256 GetRandomUint256()
+		{
+			var random = new InsecureRandom();
+			var randomBytes = random.GetBytes(32);
+
+			return new uint256(randomBytes);
 		}
 
 		public static string GetWorkDir([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
