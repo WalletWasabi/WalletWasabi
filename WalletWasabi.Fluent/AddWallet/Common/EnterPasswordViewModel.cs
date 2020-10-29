@@ -64,7 +64,6 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 			set => this.RaiseAndSetIfChanged(ref _confirmPassword, value);
 		}
 
-		public ICommand GoBackCommand => HostScreen.Router.NavigateBack;
 		public ICommand ContinueCommand { get; }
 		public ICommand CancelCommand { get; }
 

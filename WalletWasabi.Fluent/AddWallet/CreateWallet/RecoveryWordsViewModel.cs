@@ -24,7 +24,6 @@ namespace WalletWasabi.Fluent.AddWallet.CreateWallet
 			ContinueCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new ConfirmRecoveryWordsViewModel(HostScreen, MnemonicWords, keyManager, global)));
 		}
 
-		public ICommand GoBackCommand => HostScreen.Router.NavigateBack;
 		public ICommand ContinueCommand { get; }
 		public ICommand CancelCommand { get; }
 

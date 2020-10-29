@@ -58,7 +58,6 @@ namespace WalletWasabi.Fluent.AddWallet.CreateWallet
 
 		public ICommand FinishCommand { get; }
 		public ICommand CancelCommand { get; }
-		public ICommand GoBackCommand => HostScreen.Router.NavigateBack;
 
 		private void SelectRandomConfirmationWords(List<RecoveryWord> mnemonicWords)
 		{
