@@ -147,7 +147,7 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 			// Punish intersection exponentially.
 			// If there is only a single anonset then the exponent should be zero to divide by 1 thus retain the input coin anonset.
 			var intersectPenalty = Math.Pow(2, anonsets.Count() - 1);
-			var intersectionAnonset = smallestAnon / Math.Min(1, intersectPenalty * coefficient);
+			var intersectionAnonset = smallestAnon / Math.Max(1, intersectPenalty * coefficient);
 
 			// Sanity check.
 			var normalizedIntersectionAnonset = (int)Math.Max(1d, intersectionAnonset);
