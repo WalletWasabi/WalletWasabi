@@ -1,5 +1,6 @@
 using ReactiveUI;
 using System;
+using System.Reactive;
 using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.ViewModels
@@ -13,6 +14,11 @@ namespace WalletWasabi.Fluent.ViewModels
 		public NavBarItemViewModel(IScreen screen)
 		{
 			HostScreen = screen;
+
+			OpenCommand = ReactiveCommand.Create(() =>
+			{
+				screen.Router.Navigate.Execute(this);
+			});
 		}
 
 		public NavBarItemViewModel Parent { get; set; }
@@ -48,5 +54,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			get => _isSelected;
 			set => this.RaiseAndSetIfChanged(ref _isSelected, value);
 		}
+
+		public ReactiveCommand<Unit, Unit> OpenCommand { get; }
 	}
 }

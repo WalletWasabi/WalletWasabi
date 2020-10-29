@@ -31,7 +31,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 			Equations = rows.Select(i => new Equation(equations[i, 0] ?? O, new GroupElementVector(cols.Select(j => equations[i, j] ?? O))));
 		}
 
-		public IEnumerable<Equation> Equations { get; }
+		internal IEnumerable<Equation> Equations { get; }
 
 		public IEnumerable<GroupElement> PublicPoints =>
 			Equations.Select(x => x.PublicPoint);

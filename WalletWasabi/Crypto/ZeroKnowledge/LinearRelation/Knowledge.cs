@@ -15,7 +15,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 			// don't try to prove something which isn't true
 			foreach (var equation in statement.Equations)
 			{
-				Guard.True(nameof(witness), equation.VerifySolution(witness), $"{nameof(witness)} is not solution of the {nameof(equation)}");
+				equation.CheckSolution(witness);
 			}
 
 			Statement = statement;

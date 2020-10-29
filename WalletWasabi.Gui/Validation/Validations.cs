@@ -46,13 +46,16 @@ namespace WalletWasabi.Gui.Validation
 
 		public void ValidateProperty(string propertyName)
 		{
-			if (ValidationMethods.TryGetValue(propertyName, out ValidateMethod? validationMethod))
+			if (ValidationMethods.TryGetValue(propertyName, out ValidateMethod? validationMethod) && ErrorsByPropertyName.TryGetValue(propertyName, out ErrorDescriptors? currentErrors))
 			{
-				ClearErrors(propertyName);
+				// Copy the current errors.
+				var previousErrors = currentErrors.ToList();
 
-				validationMethod(ErrorsByPropertyName[propertyName]);
+				// Validate.
+				validationMethod(currentErrors);
 
-				OnErrorsChanged(propertyName);
+				// Clear obsoleted errors and notify properties that changed.
+				UpdateAndNotify(currentErrors, previousErrors, propertyName);
 			}
 		}
 
@@ -74,24 +77,37 @@ namespace WalletWasabi.Gui.Validation
 				: ErrorDescriptors.Empty;
 		}
 
-		private void ClearErrors(string propertyName)
+		private void UpdateAndNotify(List<ErrorDescriptor> currentErrors, List<ErrorDescriptor> previousErrors, string propertyName)
 		{
-			if (ErrorsByPropertyName.ContainsKey(propertyName))
-			{
-				ErrorsByPropertyName[propertyName].Clear();
+			// Severities of the new errors.
+			var categoriesToNotify = currentErrors.Except(previousErrors).Select(x => x.Severity).Distinct().ToList();
 
-				OnErrorsChanged(propertyName);
-			}
+			// Remove the old errors.
+			previousErrors.ForEach(x => currentErrors.Remove(x));
+
+			// Severities of the obsoleted errors.
+			categoriesToNotify.AddRange(previousErrors.Except(currentErrors).Select(x => x.Severity).Distinct().ToList());
+
+			OnErrorsChanged(propertyName, categoriesToNotify);
 		}
 
-		private void OnErrorsChanged(string propertyName)
+		private void OnErrorsChanged(string propertyName, List<ErrorSeverity> categoriesToNotify)
 		{
-			ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
+			var propertiesToNotify = categoriesToNotify.Select(x => x switch
+			{
+				ErrorSeverity.Info => nameof(AnyInfos),
+				ErrorSeverity.Warning => nameof(AnyWarnings),
+				ErrorSeverity.Error => nameof(AnyErrors),
+				_ => throw new NotImplementedException(),
+			}).ToList();
 
-			this.RaisePropertyChanged(nameof(Any));
-			this.RaisePropertyChanged(nameof(AnyErrors));
-			this.RaisePropertyChanged(nameof(AnyWarnings));
-			this.RaisePropertyChanged(nameof(AnyInfos));
+			if (propertiesToNotify.Any())
+			{
+				ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
+				this.RaisePropertyChanged(nameof(Any));
+			}
+
+			propertiesToNotify.ForEach(x => this.RaisePropertyChanged(x));
 		}
 	}
 }
