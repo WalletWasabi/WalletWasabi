@@ -41,11 +41,7 @@ namespace WalletWasabi.Fluent.Controls
         private bool _isInputEnabled = true;
         private IEnumerable _suggestionsEnumerable;
         private bool _isFocused;
-
-        public TagsBox()
-        { 
-        }
-
+        
         public bool RestrictInputToSuggestions
         {
             get => GetValue(RestrictInputToSuggestionsProperty);
