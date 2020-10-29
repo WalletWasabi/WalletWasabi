@@ -28,7 +28,8 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 			this.ValidateProperty(x => x.ConfirmPassword, ValidateConfirmPassword);
 
 			var continueCommandCanExecute = this.WhenAnyValue(
-				x => x.Password, x => x.ConfirmPassword,
+				x => x.Password,
+				x => x.ConfirmPassword,
 				(password, confirmPassword) =>
 					!string.IsNullOrEmpty(password) &&
 					!string.IsNullOrEmpty(confirmPassword) &&
