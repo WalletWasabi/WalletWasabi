@@ -14,7 +14,8 @@ namespace WalletWasabi.Fluent.Behaviors
 
 			Observable.
 				FromEventPattern<AvaloniaPropertyChangedEventArgs>(AssociatedObject, nameof(AssociatedObject.PropertyChanged))
-				.Where(x => x.EventArgs.Property.Name == nameof(AssociatedObject.IsEffectivelyEnabled) && x.EventArgs.NewValue is { } newValue && (bool)newValue == true)
+				.Select(x => x.EventArgs)
+				.Where(x => x.Property.Name == nameof(AssociatedObject.IsEffectivelyEnabled) && x.NewValue is { } && (bool)x.NewValue == true)
 				.Subscribe(_ => AssociatedObject!.Focus());
 		}
 
