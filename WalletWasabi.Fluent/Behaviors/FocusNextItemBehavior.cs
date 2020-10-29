@@ -1,16 +1,15 @@
 using System;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Xaml.Interactivity;
 using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Behaviors
 {
-	internal class FocusNextItemBehavior : Behavior<Control>
+	internal class FocusNextItemBehavior : DisposingBehavior<Control>
 	{
-		private IDisposable _disposable;
-
 		public static readonly StyledProperty<bool> IsFocusedProperty =
 			AvaloniaProperty.Register<FocusNextItemBehavior, bool>(nameof(IsFocused), true);
 
@@ -20,28 +19,16 @@ namespace WalletWasabi.Fluent.Behaviors
 			set => SetValue(IsFocusedProperty, value);
 		}
 
-		protected override void OnAttached()
+		protected override void OnAttached(CompositeDisposable disposables)
 		{
-			base.OnAttached();
-
-			_disposable?.Dispose();
-
-			_disposable = this.WhenAnyValue(x => x.IsFocused)
-				.Subscribe(x =>
+			this.WhenAnyValue(x => x.IsFocused)
+				.Where(x => x == false)
+				.Subscribe(
+					_ =>
 				{
-					if (!x)
-					{
-						var nextToFocus = KeyboardNavigationHandler.GetNext(AssociatedObject, NavigationDirection.Next);
-						nextToFocus.Focus();
-					}
-				});
-		}
-
-		protected override void OnDetaching()
-		{
-			base.OnDetaching();
-
-			_disposable?.Dispose();
+					KeyboardNavigationHandler.GetNext(AssociatedObject!, NavigationDirection.Next)?.Focus();
+				})
+				.DisposeWith(disposables);
 		}
 	}
 }
