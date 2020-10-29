@@ -55,32 +55,24 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 				// If we provided inputs to the transaction.
 				if (numberOfOwnInputs > 0)
 				{
-					// Take the input that we provided with the smallest anonset.
-					// Our smallest anonset input is the relevant here, because this way the common input ownership heuristic is considered.
-					var smallestInputAnon = spentOwnCoins.Min(x => x.AnonymitySet);
-
-					// Punish consolidation exponentially.
-					// If there is only a single input then the exponent should be zero to divide by 1 thus retain the input coin anonset.
-					var consolidatePenalty = Math.Pow(2, numberOfOwnInputs - 1);
-					var privacyBonus = smallestInputAnon / consolidatePenalty;
+					var privacyBonus = Intersect(spentOwnCoins.Select(x => x.AnonymitySet));
 
 					// If the privacy bonus is <=1 then we are not inheriting any privacy from the inputs.
 					var normalizedBonus = privacyBonus - 1;
-					int sanityCheckedEstimation = (int)Math.Max(0d, normalizedBonus);
 
 					// And add that to the base anonset from the tx.
-					anonset += sanityCheckedEstimation;
+					anonset += normalizedBonus;
 				}
 
-				var output = tx.Outputs[outputIndex];
-
 				// Factor in script reuse.
-				foreach (var coin in AllWalletCoins.FilterBy(x => x.ScriptPubKey == output.ScriptPubKey))
-				{
-					anonset = Math.Min(anonset, coin.AnonymitySet);
+				var output = tx.Outputs[outputIndex];
+				var reusedCoins = AllWalletCoins.FilterBy(x => x.ScriptPubKey == output.ScriptPubKey).ToList();
+				anonset = Intersect(reusedCoins.Select(x => x.AnonymitySet).Append(anonset));
 
-					// Dust attack could ruin the anonset of our existing mixed coins, so it's better not to do that.
-					if (updateOtherCoins && output.Value > DustThreshold)
+				// Dust attack could ruin the anonset of our existing mixed coins, so it's better not to do that.
+				if (updateOtherCoins && output.Value > DustThreshold)
+				{
+					foreach (var coin in reusedCoins)
 					{
 						coin.AnonymitySet = anonset;
 					}
@@ -89,6 +81,20 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 				anonsets.Add(outputIndex, anonset);
 			}
 			return anonsets;
+		}
+
+		private int Intersect(IEnumerable<int> anonsets)
+		{
+			// Our smallest anonset is the relevant here, because anonsets cannot grow by intersection punishments.
+			var smallestAnon = anonsets.Min();
+			// Punish intersection exponentially.
+			// If there is only a single anonset then the exponent should be zero to divide by 1 thus retain the input coin anonset.
+			var intersectPenalty = Math.Pow(2, anonsets.Count() - 1);
+			var intersectionAnonset = smallestAnon / intersectPenalty;
+
+			// Sanity check.
+			var normalizedIntersectionAnonset = (int)Math.Max(1d, intersectionAnonset);
+			return normalizedIntersectionAnonset;
 		}
 	}
 }
