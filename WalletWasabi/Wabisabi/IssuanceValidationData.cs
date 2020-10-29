@@ -13,10 +13,19 @@ namespace WalletWasabi.Wabisabi
 			Ma = ma;
 		}
 
+		/// <summary>
+		/// Amount committed in the pedersen commitment (<see cref="Ma">Ma</see>).
+		/// </summary>
 		public Money Amount { get; }
 
+		/// <summary>
+		/// Randomness used as blinding factor in the pedersen commitment (<see cref="Ma">Ma</see>).
+		/// </summary>
 		public Scalar Randomness { get; }
 
+		/// <summary>
+		/// Pedersen committed amount used to request the credential.
+		/// </summary>
 		public GroupElement Ma { get; }
 	}
 }

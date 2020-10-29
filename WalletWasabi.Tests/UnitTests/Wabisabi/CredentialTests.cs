@@ -137,7 +137,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 
 				// Test incorrect number of presentations (one instead of 3)
 				var presented = validCredentialRequest.Presented.ToArray();
-				var invalidCredentialRequest = new RegistrationRequest(
+				var invalidCredentialRequest = new RegistrationRequestMessage(
 					validCredentialRequest.DeltaAmount,
 					new[] { presented[0] }, // Should present 3 credentials
 					validCredentialRequest.Requested,
@@ -149,7 +149,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 
 				// Test incorrect number of presentations (0 instead of 3)
 				presented = credentialRequest.Presented.ToArray();
-				invalidCredentialRequest = new RegistrationRequest(
+				invalidCredentialRequest = new RegistrationRequestMessage(
 					Money.Coins(2),
 					new CredentialPresentation[0], // Should present 3 credentials
 					validCredentialRequest.Requested,
@@ -162,8 +162,8 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 				(validCredentialRequest, _) = client.CreateRequest(new Money[0], client.Credentials.All);
 
 				// Test incorrect number of credential requests
-				invalidCredentialRequest = new RegistrationRequest(
-					validCredentialRequest.DeltaAmount,
+				invalidCredentialRequest = new RegistrationRequestMessage(
+					validCredentialRequest.DeltaAmount, 
 					validCredentialRequest.Presented,
 					validCredentialRequest.Requested.Take(1),
 					validCredentialRequest.Proofs);
@@ -173,8 +173,8 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 				Assert.Equal("3 credential requests were expected but 1 were received.", ex.Message);
 
 				// Test incorrect number of credential requests
-				invalidCredentialRequest = new RegistrationRequest(
-					Money.Coins(2),
+				invalidCredentialRequest = new RegistrationRequestMessage(
+					Money.Coins(2), 
 					new CredentialPresentation[0],
 					validCredentialRequest.Requested.Take(1),
 					validCredentialRequest.Proofs);
@@ -186,7 +186,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 				// Test invalid range proof
 				var requested = validCredentialRequest.Requested.ToArray();
 
-				invalidCredentialRequest = new RegistrationRequest(
+				invalidCredentialRequest = new RegistrationRequestMessage(
 					validCredentialRequest.DeltaAmount,
 					validCredentialRequest.Presented,
 					new[] { requested[0], requested[1], new IssuanceRequest(requested[2].Ma, new[] { GroupElement.Infinity }) },
@@ -203,7 +203,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 				// Test invalid proofs
 				var proofs = validCredentialRequest.Proofs.ToArray();
 				proofs[0] = proofs[1];
-				var invalidCredentialRequest = new RegistrationRequest(
+				var invalidCredentialRequest = new RegistrationRequestMessage(
 					validCredentialRequest.DeltaAmount,
 					validCredentialRequest.Presented,
 					validCredentialRequest.Requested,
