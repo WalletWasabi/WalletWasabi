@@ -458,10 +458,15 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 					sameLabelCoin.Cluster = coin.Cluster;
 				}
 			}
-			var coinsView = new CoinsView(scoins);
+
+			var coinsRegistry = new CoinsRegistry(100);
+			foreach (var c in scoins)
+			{
+				coinsRegistry.TryAdd(c);
+			}
 			var transactionStore = new AllTransactionStoreMock(workFolderPath: ".", Network.Main);
-			var anonimityEstimator = new AnonymityEstimator(coinsView, Money.Satoshis(1));
-			return new TransactionFactory(Network.Main, keyManager, coinsView, anonimityEstimator, transactionStore, password, allowUnconfirmed);
+			var anonimityEstimator = new AnonymityEstimator(coinsRegistry, transactionStore, keyManager, Money.Satoshis(1));
+			return new TransactionFactory(Network.Main, keyManager, coinsRegistry, anonimityEstimator, transactionStore, password, allowUnconfirmed);
 		}
 	}
 }

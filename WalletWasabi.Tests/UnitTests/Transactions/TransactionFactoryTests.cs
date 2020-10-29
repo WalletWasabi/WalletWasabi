@@ -212,10 +212,14 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				coin.Cluster = cluster2;
 			}
 
-			var coinsView = new CoinsView(scoins.ToArray());
+			var coinsRegistry = new CoinsRegistry(100);
+			foreach (var c in scoins)
+			{
+				coinsRegistry.TryAdd(c);
+			}
 			var transactionStore = new AllTransactionStoreMock(workFolderPath: ".", Network.Main);
-			var anonimityEstimator = new AnonymityEstimator(coinsView, Money.Satoshis(1));
-			var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, anonimityEstimator, transactionStore, password);
+			var anonimityEstimator = new AnonymityEstimator(coinsRegistry, transactionStore, keyManager, Money.Satoshis(1));
+			var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsRegistry, anonimityEstimator, transactionStore, password);
 
 			// Two 0.9btc coins are enough
 			var payment = new PaymentIntent(new Key().ScriptPubKey, Money.Coins(1.75m), label: "Sophie");
@@ -617,10 +621,15 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 					sameLabelCoin.Cluster = coin.Cluster;
 				}
 			}
-			var coinsView = new CoinsView(scoins);
+
+			var coinsRegistry = new CoinsRegistry(100);
+			foreach (var c in scoins)
+			{
+				coinsRegistry.TryAdd(c);
+			}
 			var transactionStore = new AllTransactionStoreMock(workFolderPath: ".", Network.Main);
-			var anonimityEstimator = new AnonymityEstimator(coinsView, Money.Satoshis(1));
-			return new TransactionFactory(Network.Main, keyManager, coinsView, anonimityEstimator, transactionStore, password, allowUnconfirmed);
+			var anonimityEstimator = new AnonymityEstimator(coinsRegistry, transactionStore, keyManager, Money.Satoshis(1));
+			return new TransactionFactory(Network.Main, keyManager, coinsRegistry, anonimityEstimator, transactionStore, password, allowUnconfirmed);
 		}
 	}
 }
