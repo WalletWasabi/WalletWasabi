@@ -59,7 +59,11 @@
             </DataTemplate>
         </Setter>
     </Style>
-
+    
+    <Style Selector="c|TagsBox:pointerover /template/ Border#PART_Border">
+        <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushPointerOver}"/>
+        <Setter Property="Background" Value="{DynamicResource TextControlBackgroundPointerOver}" />
+    </Style>
 
     <Style Selector="c|TagsBox:focus">
         <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundFocused}" />
@@ -70,7 +74,7 @@
         <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushFocused}" />
         <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThicknessFocused}" />
     </Style>
-
+    
     <Style Selector="c|TagsBox:error /template/ Border#PART_Border">
         <Setter Property="BorderBrush" Value="{DynamicResource SystemControlErrorTextForegroundBrush}" />
     </Style>
