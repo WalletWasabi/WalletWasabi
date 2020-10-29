@@ -135,6 +135,12 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 
 		private int Intersect(IEnumerable<int> anonsets)
 		{
+			// Sanity check.
+			if (!anonsets.Any())
+			{
+				return 1;
+			}
+
 			// Our smallest anonset is the relevant here, because anonsets cannot grow by intersection punishments.
 			var smallestAnon = anonsets.Min();
 			// Punish intersection exponentially.
