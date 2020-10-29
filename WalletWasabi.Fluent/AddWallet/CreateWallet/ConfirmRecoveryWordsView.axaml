@@ -17,17 +17,15 @@
         </i:Interaction.Behaviors>
         <ItemsControl.ItemTemplate>
           <DataTemplate>
-            <StackPanel Margin="0 0 0 20">
-              <Label Content="{Binding Index, StringFormat=Recovery word {0}}" />
-              <StackPanel Orientation="Horizontal">
-                <TextBox Watermark="Type the word here..." Text="{Binding Input}" IsEnabled="{Binding !IsConfirmed}" Width="280" FontSize="12">
-                  <i:Interaction.Behaviors>
-                    <behaviors:FocusNextItemBehavior IsFocused="{Binding !IsConfirmed}" />
-                  </i:Interaction.Behaviors>
-                </TextBox>
-                <PathIcon Foreground="{StaticResource SystemAccentColor}" IsVisible="{Binding IsConfirmed}" Data="{StaticResource checkmark_filled}" VerticalAlignment="Center" Width="12" Height="12" Margin="15 0 0 0" />
-              </StackPanel>
-            </StackPanel>
+            <DockPanel Margin="0 0 0 20" HorizontalAlignment="Left">
+              <PathIcon Classes="textBoxCheckMark" Margin="15 45 0 0" VerticalAlignment="Top" DockPanel.Dock="Right"/>
+              <Label Content="{Binding Index, StringFormat=Recovery word {0}}" DockPanel.Dock="Top"/>
+              <TextBox Watermark="Type the word here..." Text="{Binding Input}" DockPanel.Dock="Top" IsEnabled="{Binding !IsConfirmed}" Width="280" FontSize="12">
+                <i:Interaction.Behaviors>
+                  <behaviors:FocusNextItemBehavior IsFocused="{Binding !IsConfirmed}" />
+                </i:Interaction.Behaviors>
+              </TextBox>
+            </DockPanel>
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>
