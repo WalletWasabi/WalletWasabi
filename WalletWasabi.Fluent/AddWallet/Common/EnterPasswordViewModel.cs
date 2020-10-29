@@ -27,20 +27,23 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 			this.ValidateProperty(x => x.Password, ValidatePassword);
 			this.ValidateProperty(x => x.ConfirmPassword, ValidateConfirmPassword);
 
-			var continueCommandCanExecute =
-				this.WhenAnyValue(x => x.Password, x => x.ConfirmPassword, (password, confirmPassword) =>
-				!string.IsNullOrEmpty(password) &&
-				!string.IsNullOrEmpty(confirmPassword) &&
-				!Validations.Any)
+			var continueCommandCanExecute = this.WhenAnyValue(
+				x => x.Password, x => x.ConfirmPassword,
+				(password, confirmPassword) =>
+					!string.IsNullOrEmpty(password) &&
+					!string.IsNullOrEmpty(confirmPassword) &&
+					!Validations.Any)
 				.ObserveOn(RxApp.MainThreadScheduler);
 
-			ContinueCommand = ReactiveCommand.Create(() =>
-			{
-				var walletGenerator = new WalletGenerator(global.WalletManager.WalletDirectories.WalletsDir, global.Network);
-				walletGenerator.TipHeight = global.BitcoinStore.SmartHeaderChain.TipHeight;
-				var (km, mnemonic) = walletGenerator.GenerateWallet(walletName, Password);
-				screen.Router.Navigate.Execute(new RecoveryWordsViewModel(screen, km, mnemonic, global));
-			}, continueCommandCanExecute);
+			ContinueCommand = ReactiveCommand.Create(
+				() =>
+				{
+					var walletGenerator = new WalletGenerator(global.WalletManager.WalletDirectories.WalletsDir, global.Network);
+					walletGenerator.TipHeight = global.BitcoinStore.SmartHeaderChain.TipHeight;
+					var (km, mnemonic) = walletGenerator.GenerateWallet(walletName, Password);
+					screen.Router.Navigate.Execute(new RecoveryWordsViewModel(screen, km, mnemonic, global));
+				},
+				continueCommandCanExecute);
 
 			this.WhenAnyValue(x => x.Password)
 				.ObserveOn(RxApp.MainThreadScheduler)

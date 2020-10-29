@@ -32,11 +32,13 @@ namespace WalletWasabi.Fluent.AddWallet.CreateWallet
 				.WhenValueChanged(x => x.IsConfirmed)
 				.Select(x => !_confirmationWordsSourceList.Items.Any(x => !x.IsConfirmed));
 
-			FinishCommand = ReactiveCommand.Create(() =>
-			{
-				global.WalletManager.AddWallet(keyManager);
-				screen.Router.NavigationStack.Clear();
-			}, finishCommandCanExecute);
+			FinishCommand = ReactiveCommand.Create(
+				() =>
+				{
+					global.WalletManager.AddWallet(keyManager);
+					screen.Router.NavigationStack.Clear();
+				},
+				finishCommandCanExecute);
 
 			_confirmationWordsSourceList
 				.Connect()
