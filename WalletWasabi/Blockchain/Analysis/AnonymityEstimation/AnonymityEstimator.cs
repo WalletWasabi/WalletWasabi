@@ -81,7 +81,7 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 				// If we provided inputs to the transaction.
 				if (numberOfOwnInputs > 0)
 				{
-					var privacyBonus = Intersect(spentOwnCoins.Select(x => x.AnonymitySet));
+					var privacyBonus = Intersect(spentOwnCoins.Select(x => x.AnonymitySet), numberOfOwnInputs / tx.Inputs.Count());
 
 					// If the privacy bonus is <=1 then we are not inheriting any privacy from the inputs.
 					var normalizedBonus = privacyBonus - 1;
@@ -93,7 +93,7 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 				// Factor in script reuse.
 				var output = tx.Outputs[outputIndex];
 				var reusedCoins = allWalletCoinsView.FilterBy(x => x.ScriptPubKey == output.ScriptPubKey).ToList();
-				anonset = Intersect(reusedCoins.Select(x => x.AnonymitySet).Append(anonset));
+				anonset = Intersect(reusedCoins.Select(x => x.AnonymitySet).Append(anonset), 1);
 
 				// Dust attack could ruin the anonset of our existing mixed coins, so it's better not to do that.
 				if (updateOtherCoins && output.Value > DustThreshold)
@@ -133,7 +133,8 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 			}
 		}
 
-		private int Intersect(IEnumerable<int> anonsets)
+		/// <param name="coefficient">If larger than 1, then penalty is larger, if smaller than 1 then penalty is smaller.</param>
+		private int Intersect(IEnumerable<int> anonsets, double coefficient)
 		{
 			// Sanity check.
 			if (!anonsets.Any())
@@ -146,7 +147,7 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 			// Punish intersection exponentially.
 			// If there is only a single anonset then the exponent should be zero to divide by 1 thus retain the input coin anonset.
 			var intersectPenalty = Math.Pow(2, anonsets.Count() - 1);
-			var intersectionAnonset = smallestAnon / intersectPenalty;
+			var intersectionAnonset = smallestAnon / Math.Min(1, intersectPenalty * coefficient);
 
 			// Sanity check.
 			var normalizedIntersectionAnonset = (int)Math.Max(1d, intersectionAnonset);
