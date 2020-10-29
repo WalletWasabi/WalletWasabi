@@ -34,12 +34,12 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var t = rnd.GetScalar();
 			var mac = MAC.ComputeMAC(coordinatorKey, Ma, t);
 
-			var coordinatorKnowledge = ProofSystem.IssuerParameters(mac, Ma, coordinatorKey);
+			var coordinatorKnowledge = ProofSystem.IssuerParametersKnowledge(mac, Ma, coordinatorKey);
 			var proofOfMac = ProofSystemHelpers.Prove(coordinatorKnowledge, rnd);
 
 			// The client receives the MAC and the proofOfMac which let the client know that the MAC
 			// was generated with the coordinator's secret key.
-			var clientStatement = ProofSystem.IssuerParametersStmt(coordinatorParameters, mac, Ma);
+			var clientStatement = ProofSystem.IssuerParametersStatement(coordinatorParameters, mac, Ma);
 			var isValidProof = ProofSystemHelpers.Verify(clientStatement, proofOfMac);
 			Assert.True(isValidProof);
 
@@ -80,14 +80,14 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var credential = new Credential(amount, r, mac);
 			var z = rnd.GetScalar();
 			var randomizedCredential = credential.Present(z);
-			var knowledge = ProofSystem.ShowCredential(randomizedCredential, z, credential, coordinatorParameters);
+			var knowledge = ProofSystem.ShowCredentialKnowledge(randomizedCredential, z, credential, coordinatorParameters);
 			var proofOfMacShow = ProofSystemHelpers.Prove(knowledge, rnd);
 
 			// The coordinator must verify the received randomized credential is valid.
 			var Z = randomizedCredential.ComputeZ(coordinatorKey);
 			Assert.Equal(Z, z * coordinatorParameters.I);
 
-			var statement = ProofSystem.ShowCredentialStmt(randomizedCredential, Z, coordinatorParameters);
+			var statement = ProofSystem.ShowCredentialStatement(randomizedCredential, Z, coordinatorParameters);
 			var isValidProof = ProofSystemHelpers.Verify(statement, proofOfMacShow);
 
 			Assert.True(isValidProof);
@@ -104,16 +104,16 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var z = rnd.GetScalar();
 			var Ca = z * Generators.Ga + a * Generators.Gg + r * Generators.Gh;
 
-			var knowledge = ProofSystem.BalanceProof(z, r);
+			var knowledge = ProofSystem.BalanceProofKnowledge(z, r);
 			var proofOfBalance = ProofSystemHelpers.Prove(knowledge, rnd);
 
-			var statement = ProofSystem.BalanceProofStmt(Ca - a * Generators.Gg);
+			var statement = ProofSystem.BalanceProofStatement(Ca - a * Generators.Gg);
 			Assert.True(ProofSystemHelpers.Verify(statement, proofOfBalance));
 
-			var badStatement = ProofSystem.BalanceProofStmt(Ca + Generators.Gg - a * Generators.Gg);
+			var badStatement = ProofSystem.BalanceProofStatement(Ca + Generators.Gg - a * Generators.Gg);
 			Assert.False(ProofSystemHelpers.Verify(badStatement, proofOfBalance));
 
-			badStatement = ProofSystem.BalanceProofStmt(Ca);
+			badStatement = ProofSystem.BalanceProofStatement(Ca);
 			Assert.False(ProofSystemHelpers.Verify(badStatement, proofOfBalance));
 		}
 
@@ -127,13 +127,13 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var r = rnd.GetScalar();
 			var Ma = a * Generators.Gg + r * Generators.Gh;
 
-			var knowledge = ProofSystem.BalanceProof(Scalar.Zero, r.Negate());
+			var knowledge = ProofSystem.BalanceProofKnowledge(Scalar.Zero, r.Negate());
 			var proofOfBalance = ProofSystemHelpers.Prove(knowledge, rnd);
 
-			var statement = ProofSystem.BalanceProofStmt(a * Generators.Gg - Ma);
+			var statement = ProofSystem.BalanceProofStatement(a * Generators.Gg - Ma);
 			Assert.True(ProofSystemHelpers.Verify(statement, proofOfBalance));
 
-			var badStatement = ProofSystem.BalanceProofStmt(Ma);
+			var badStatement = ProofSystem.BalanceProofStatement(Ma);
 			Assert.False(ProofSystemHelpers.Verify(badStatement, proofOfBalance));
 		}
 
@@ -166,14 +166,14 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			var delta = new Scalar((uint)Math.Abs(presentedAmount - requestedAmount));
 			delta = presentedAmount > requestedAmount ? delta.Negate() : delta;
-			var knowledge = ProofSystem.BalanceProof(z, r + rp.Negate());
+			var knowledge = ProofSystem.BalanceProofKnowledge(z, r + rp.Negate());
 
 			var proofOfBalance = ProofSystemHelpers.Prove(knowledge, rnd);
 
-			var statement = ProofSystem.BalanceProofStmt(Ca + delta * Generators.Gg - Ma);
+			var statement = ProofSystem.BalanceProofStatement(Ca + delta * Generators.Gg - Ma);
 			Assert.True(ProofSystemHelpers.Verify(statement, proofOfBalance));
 
-			var badStatement = ProofSystem.BalanceProofStmt(Ca + (delta + Scalar.One) * Generators.Gg - Ma);
+			var badStatement = ProofSystem.BalanceProofStatement(Ca + (delta + Scalar.One) * Generators.Gg - Ma);
 			Assert.False(ProofSystemHelpers.Verify(badStatement, proofOfBalance));
 		}
 
@@ -203,15 +203,15 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var commitment = amountScalar * Generators.Gg + randomness * Generators.Gh;
 
 			var maskedScalar = new Scalar(amount & ((1ul << width) - 1));
-			var (knowledge, bitCommitments) = ProofSystem.RangeProof(maskedScalar, randomness, width, rnd);
+			var (knowledge, bitCommitments) = ProofSystem.RangeProofKnowledge(maskedScalar, randomness, width, rnd);
 
 			var rangeProof = ProofSystemHelpers.Prove(knowledge, rnd);
 
-			Assert.Equal(pass, ProofSystemHelpers.Verify(ProofSystem.RangeProofStmt(commitment, bitCommitments), rangeProof));
+			Assert.Equal(pass, ProofSystemHelpers.Verify(ProofSystem.RangeProofStatement(commitment, bitCommitments), rangeProof));
 
 			if (!pass)
 			{
-				Assert.Throws<ArgumentException>(() => ProofSystem.RangeProof(amountScalar, randomness, width, rnd));
+				Assert.Throws<ArgumentException>(() => ProofSystem.RangeProofKnowledge(amountScalar, randomness, width, rnd));
 			}
 		}
 
@@ -231,16 +231,16 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			var knowledge = new[]
 			{
-				ProofSystem.ZeroProof(Ma0, r0),
-				ProofSystem.ZeroProof(Ma1, r1)
+				ProofSystem.ZeroProofKnowledge(Ma0, r0),
+				ProofSystem.ZeroProofKnowledge(Ma1, r1)
 			};
 
 			var proofs = ProofSystem.Prove(new Transcript(new byte[0]), knowledge, rnd);
 
 			var statements = new[]
 			{
-				ProofSystem.ZeroProofStmt(Ma0),
-				ProofSystem.ZeroProofStmt(Ma1)
+				ProofSystem.ZeroProofStatement(Ma0),
+				ProofSystem.ZeroProofStatement(Ma1)
 			};
 
 			Assert.True(ProofSystem.Verify(new Transcript(new byte[0]), statements, proofs));
