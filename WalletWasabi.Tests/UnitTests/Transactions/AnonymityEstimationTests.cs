@@ -79,7 +79,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var anonsets = estimator.EstimateAnonymitySets(tx);
 
 			var anonset = Assert.Single(anonsets).Value;
-			Assert.Equal(1, anonset);
+			Assert.True(anonset < 2);
 		}
 
 		[Fact]
