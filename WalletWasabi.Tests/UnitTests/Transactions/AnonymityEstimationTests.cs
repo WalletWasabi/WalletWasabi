@@ -106,6 +106,42 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		}
 
 		[Fact]
+		public void ChangeAnonSetIncreasesInPayToMany()
+		{
+			// Suppose user has an input UTXO with anonset 1
+			// Spends the coin in a PayToMany tx: creates 2 output UTXO and 1 change
+			// Neither of the counterparties know which other coin is the change UTXO.
+			GetNewServices(out KeyManager keyManager, out CoinsRegistry registry, out AnonymityEstimator estimator);
+			var inputCoin = GetNewCoin(keyManager, registry, Money.Coins(1), 1);
+			Transaction tx = GetNewInputTransaction(inputCoin, 0);
+			AddOwnOutput(tx, Money.Coins(0.99947654m), keyManager);
+			AddRandomOutput(tx, Money.Coins(0.43654687m));
+			AddRandomOutput(tx, Money.Coins(0.87644321m));
+
+			var anonsets = estimator.EstimateAnonymitySets(tx);
+
+			var anonset = Assert.Single(anonsets).Value;
+			Assert.True(anonset == 2);
+		}
+
+		[Fact]
+		public void ChangeAnonSetResetsInPayToManyByChangeRoundingHeuristic()
+		{
+			// If there is a single 8-decimal digit UTXO value, then that's most likely the change UTXO.
+			GetNewServices(out KeyManager keyManager, out CoinsRegistry registry, out AnonymityEstimator estimator);
+			var inputCoin = GetNewCoin(keyManager, registry, Money.Coins(1), 1);
+			Transaction tx = GetNewInputTransaction(inputCoin, 0);
+			AddOwnOutput(tx, Money.Coins(0.99947654m), keyManager);
+			AddRandomOutput(tx, Money.Coins(500m));
+			AddRandomOutput(tx, Money.Coins(0.1234567m));
+
+			var anonsets = estimator.EstimateAnonymitySets(tx);
+
+			var anonset = Assert.Single(anonsets).Value;
+			Assert.True(anonset < 2);
+		}
+
+		[Fact]
 		public void InputMergeIsPunished()
 		{
 			// Merging inputs results in lower anonsets.
