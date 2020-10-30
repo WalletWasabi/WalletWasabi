@@ -19,7 +19,30 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		public void BasicAnonsetCalculation()
 		{
 			// In a transaction where we have one input with anonset 1
-			// and 1 output that equals to one other output, then its anonset should be 2.
+			// and 1 output that equals to two others output, then its anonset should be 2.
+			// Previously it was 3, but that's only against blockchain analysis,
+			// against any participant of the coinjoin it should be 2.
+			GetNewServices(out KeyManager keyManager, out CoinsRegistry registry, out AnonymityEstimator estimator);
+			var inputCoin = GetNewCoin(keyManager, registry, Money.Coins(1), 1);
+			Transaction tx = GetNewInputTransaction(inputCoin, 10);
+			AddOwnOutput(tx, Money.Coins(0.999m), keyManager);
+			AddRandomOutput(tx, Money.Coins(0.999m));
+			AddRandomOutput(tx, Money.Coins(0.999m));
+
+			var anonsets = estimator.EstimateAnonymitySets(tx);
+
+			var result = Assert.Single(anonsets);
+			var index = result.Key;
+			var anonset = result.Value;
+			Assert.Equal(0u, index);
+			Assert.Equal(2, anonset);
+		}
+
+		[Fact]
+		public void TwoParticipantCoinjoin()
+		{
+			// In a transaction where we have one input with anonset 1
+			// and 1 output that equals to one other output, then its anonset should be less than 2.
 			GetNewServices(out KeyManager keyManager, out CoinsRegistry registry, out AnonymityEstimator estimator);
 			var inputCoin = GetNewCoin(keyManager, registry, Money.Coins(1), 1);
 			Transaction tx = GetNewInputTransaction(inputCoin, 10);
@@ -32,7 +55,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var index = result.Key;
 			var anonset = result.Value;
 			Assert.Equal(0u, index);
-			Assert.Equal(2, anonset);
+			Assert.True(anonset < 2);
 		}
 
 		[Fact]
