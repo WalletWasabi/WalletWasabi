@@ -33,9 +33,7 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 					this.RaisePropertyChanged(nameof(Password));
 					this.RaisePropertyChanged(nameof(ConfirmPassword));
 
-					return !string.IsNullOrEmpty(password) &&
-					!string.IsNullOrEmpty(confirmPassword) &&
-					!Validations.Any;
+					return (string.IsNullOrEmpty(password) && string.IsNullOrEmpty(confirmPassword)) || (!string.IsNullOrEmpty(password) && !string.IsNullOrEmpty(confirmPassword) && !Validations.Any);
 				})
 				.ObserveOn(RxApp.MainThreadScheduler);
 
