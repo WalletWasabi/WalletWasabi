@@ -66,7 +66,6 @@ namespace WalletWasabi.Gui
 		public Node RegTestMempoolServingNode { get; private set; }
 		public EndPoint? TorSocks5EndPoint { get; private set; }
 		private TorProcessManager? TorManager { get; set; }
-		private TorMonitor? TorMonitor { get; set; }
 		public CoreNode BitcoinCoreNode { get; private set; }
 
 		public HostedServices HostedServices { get; }
@@ -167,8 +166,7 @@ namespace WalletWasabi.Gui
 
 					var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
 
-					TorMonitor = new TorMonitor(TorManager);
-					TorMonitor.StartMonitor(fallbackRequestTestUri, Config.TorSocks5EndPoint);
+					HostedServices.Register(new TorMonitor(period: TimeSpan.FromSeconds(3), fallbackRequestTestUri, Config.TorSocks5EndPoint, TorManager), nameof(TorMonitor));
 				}
 				else
 				{
@@ -737,15 +735,7 @@ namespace WalletWasabi.Gui
 					}
 				}
 
-				Logger.LogDebug($"Step #13: {nameof(TorMonitor)}.", nameof(Global));
-
-				if (TorMonitor is { } torMonitor)
-				{
-					await torMonitor.StopAsync().ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(TorMonitor)} is stopped.");
-				}
-
-				Logger.LogDebug($"Step #14: {nameof(TorManager)}.", nameof(Global));
+				Logger.LogDebug($"Step #12: {nameof(TorManager)}.", nameof(Global));
 
 				if (TorManager is { } torManager)
 				{
@@ -753,14 +743,14 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo($"{nameof(TorManager)} is stopped.");
 				}
 
-				Logger.LogDebug($"Step #15: {nameof(Cache)}.", nameof(Global));
+				Logger.LogDebug($"Step #13: {nameof(Cache)}.", nameof(Global));
 
 				if (Cache is { } cache)
 				{
 					cache.Dispose();
 				}
 
-				Logger.LogDebug($"Step #16: {nameof(SingleInstanceChecker)}.", nameof(Global));
+				Logger.LogDebug($"Step #14: {nameof(SingleInstanceChecker)}.", nameof(Global));
 
 				try
 				{
@@ -771,7 +761,7 @@ namespace WalletWasabi.Gui
 					Logger.LogError($"Error during the disposal of {nameof(SingleInstanceChecker)}: {ex}");
 				}
 
-				Logger.LogDebug($"Step #17: {nameof(AsyncMutex)}.", nameof(Global));
+				Logger.LogDebug($"Step #15: {nameof(AsyncMutex)}.", nameof(Global));
 
 				if (AsyncMutex.IsAny)
 				{
