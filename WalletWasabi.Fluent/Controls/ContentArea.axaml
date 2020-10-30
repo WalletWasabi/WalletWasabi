@@ -5,7 +5,7 @@
     <Panel Background="{DynamicResource RegionColor}">
       <c:ContentArea Width="400" Height="200"
                      Title="Add a Wallet"
-                     Caption="Type in your Wallets name and select an option below:">
+                     Caption="Type in your Wallet's name and select an option below:">
         This is the content.
       </c:ContentArea>
     </Panel>
