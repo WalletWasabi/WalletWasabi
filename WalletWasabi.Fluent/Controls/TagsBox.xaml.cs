@@ -40,7 +40,7 @@ namespace WalletWasabi.Fluent.Controls
         private IDisposable? _disposable;
 
         private bool _isInputEnabled = true;
-        private IEnumerable _suggestionsEnumerable;
+        private IEnumerable _suggestions;
         private bool _isFocused;
 
         public bool RestrictInputToSuggestions
@@ -57,8 +57,8 @@ namespace WalletWasabi.Fluent.Controls
 
         public IEnumerable Suggestions
         {
-            get => _suggestionsEnumerable;
-            set => SetAndRaise(SuggestionsProperty, ref _suggestionsEnumerable, value);
+            get => _suggestions;
+            set => SetAndRaise(SuggestionsProperty, ref _suggestions, value);
         }
 
         private void CheckIsInputEnabled()
@@ -84,20 +84,20 @@ namespace WalletWasabi.Fluent.Controls
             _autoCompleteBox.TextChanged += OnTextChanged;
             _autoCompleteBox.DropDownClosed += OnDropDownClosed;
 
-            _autoCompleteBox.GotFocus += OnACBGotFocus;
-            _autoCompleteBox.LostFocus += OnACBGLostFocus;
+            _autoCompleteBox.GotFocus += OnAutoCompleteBoxGotFocus;
+            _autoCompleteBox.LostFocus += OnAutoCompleteBoxLostFocus;
 
             _disposable =
                 _autoCompleteBox.AddDisposableHandler(TextInputEvent, OnTextInput,
                     RoutingStrategies.Tunnel);
         }
 
-        private void OnACBGLostFocus(object? sender, RoutedEventArgs e)
+        private void OnAutoCompleteBoxLostFocus(object? sender, RoutedEventArgs e)
         {
             PseudoClasses.Set(":focus", false);
         }
 
-        private void OnACBGotFocus(object? sender, GotFocusEventArgs e)
+        private void OnAutoCompleteBoxGotFocus(object? sender, GotFocusEventArgs e)
         {
             PseudoClasses.Set(":focus", true);
         }
@@ -106,15 +106,24 @@ namespace WalletWasabi.Fluent.Controls
         {
             if (_autoCompleteBox is null) return;
 
+            CheckIsInputEnabled();
+
             if (!_isInputEnabled)
             {
                 e.Handled = true;
                 return;
             }
 
-            if (RestrictInputToSuggestions && !Suggestions.Cast<string>().Any(x =>
-                x.StartsWith(_autoCompleteBox.SearchText ?? "", true, CultureInfo.CurrentCulture)))
-                e.Handled = true;
+            if (RestrictInputToSuggestions && Suggestions is IList<string> suggestions)
+            {
+                var keywordIsInSuggestions = suggestions.Any(x => x.Equals(_autoCompleteBox.SearchText ?? "",
+                    StringComparison.InvariantCultureIgnoreCase));
+
+                if (!keywordIsInSuggestions)
+                {
+                    e.Handled = true;
+                }
+            }
         }
 
         protected override void UpdateDataValidation<T>(AvaloniaProperty<T> property, BindingValue<T> value)
@@ -197,11 +206,13 @@ namespace WalletWasabi.Fluent.Controls
 
             PseudoClasses.Set(":focus", hasFocus);
             _isFocused = hasFocus;
+            CheckIsInputEnabled();
         }
 
         private void OnDropDownClosed(object? sender, EventArgs e)
         {
             if (_autoCompleteBox is null) return;
+            CheckIsInputEnabled();
 
             var currentText = _autoCompleteBox.Text ?? "";
 
@@ -227,7 +238,7 @@ namespace WalletWasabi.Fluent.Controls
         private void OnTextChanged(object? sender, EventArgs e)
         {
             if (_autoCompleteBox is null) return;
-
+            CheckIsInputEnabled();
             var currentText = _autoCompleteBox.Text ?? "";
             var currentTextTrimmed = currentText.Trim();
 
@@ -258,6 +269,7 @@ namespace WalletWasabi.Fluent.Controls
         private void OnKeyUp(object? sender, KeyEventArgs e)
         {
             if (_autoCompleteBox is null) return;
+            CheckIsInputEnabled();
 
             var str = _autoCompleteBox?.Text ?? "";
 
@@ -265,7 +277,7 @@ namespace WalletWasabi.Fluent.Controls
             _backspaceEmptyField1 = str.Length == 0;
 
             var strTrimmed = str.Trim();
- 
+
             // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
             switch (e.Key)
             {
@@ -289,14 +301,14 @@ namespace WalletWasabi.Fluent.Controls
 
         private void RemoveTag()
         {
-            CheckIsInputEnabled();
             if (Items is IList x && x.Count > 0) x.RemoveAt(Math.Max(0, x.Count - 1));
+            CheckIsInputEnabled();
         }
 
         private void AddTag(string strTrimmed)
         {
-            CheckIsInputEnabled();
             if (Items is IList x) x.Add(strTrimmed);
+            CheckIsInputEnabled();
         }
     }
 }
