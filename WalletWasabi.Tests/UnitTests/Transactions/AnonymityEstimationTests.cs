@@ -120,6 +120,30 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.True(anonset1 > anonset2);
 		}
 
+		[Fact]
+		public void LargeCoinjoinMergeIsPunishedLess()
+		{
+			// Don't punish input merge in a large coinjoin as much as in a normal transaction.
+			GetNewServices(out KeyManager keyManager, out CoinsRegistry registry, out AnonymityEstimator estimator);
+			var inputCoin1 = GetNewCoin(keyManager, registry, Money.Coins(1), 10);
+			var inputCoin2 = GetNewCoin(keyManager, registry, Money.Coins(1), 10);
+			Transaction tx1 = GetNewInputTransaction(new[] { inputCoin1, inputCoin2 }, 0);
+			Transaction tx2 = GetNewInputTransaction(new[] { inputCoin1, inputCoin2, }, 100);
+			AddOwnOutput(tx1, Money.Coins(0.999m), keyManager);
+			AddOwnOutput(tx2, Money.Coins(0.999m), keyManager);
+			AddRandomOutput(tx1, Money.Coins(0.1m));
+			AddRandomOutput(tx2, Money.Coins(0.1m));
+			AddRandomOutput(tx2, Money.Coins(0.1m));
+			AddRandomOutput(tx2, Money.Coins(0.1m));
+
+			var anonsets1 = estimator.EstimateAnonymitySets(tx1);
+			var anonsets2 = estimator.EstimateAnonymitySets(tx2);
+
+			var anonset1 = Assert.Single(anonsets1).Value;
+			var anonset2 = Assert.Single(anonsets2).Value;
+			Assert.True(anonset1 < anonset2);
+		}
+
 		private void AddRandomOutput(Transaction tx, Money value)
 		{
 			tx.Outputs.Add(value, new Key().PubKey.WitHash.ScriptPubKey);
