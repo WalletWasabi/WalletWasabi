@@ -67,10 +67,17 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 			// Note: this is only a good idea from WWII, with WWI we calculate anonsets from the point the coin first hit the wallet.
 			if (ownInputCount == inputCount && outputCount > ownOutputCount)
 			{
+				var changeAnonset = 1;
+
+				// If we have one output and all the outputs in the tx have all the decimal places, then our change can gain anonymity.
+				if (tx.Outputs.All(x => x.Value.Satoshi % 10 != 0))
+				{
+					changeAnonset = outputCount - ownInputCount;
+				}
 				var ret = new Dictionary<uint, double>();
 				foreach (var outputIndex in ownOutputIndices)
 				{
-					ret.Add(outputIndex, 1);
+					ret.Add(outputIndex, changeAnonset);
 				}
 				return ret;
 			}
