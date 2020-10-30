@@ -132,6 +132,19 @@
     <Setter Property="Width" Value="15" />
     <Setter Property="Height" Value="15" />
     <Setter Property="Data" Value="{StaticResource checkmark_filled}" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <DoubleTransition Property="Opacity" Duration="0:0:0.3"/>
+      </Transitions>
+    </Setter>
+  </Style>
+
+  <Style Selector="PathIcon[IsVisible=true]">
+    <Setter Property="Opacity" Value="1" />
+  </Style>
+
+  <Style Selector="PathIcon[IsVisible=false]">
+    <Setter Property="Opacity" Value="0" />
   </Style>
 
   <Style Selector="DataValidationErrors">
