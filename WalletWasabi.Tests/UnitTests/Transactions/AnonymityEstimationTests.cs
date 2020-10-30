@@ -95,7 +95,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var anonsets = estimator.EstimateAnonymitySets(tx);
 
 			var anonset = Assert.Single(anonsets).Value;
-			Assert.InRange(anonset, 1, 9);
+			Assert.True(anonset > 1);
+			Assert.True(anonset < 10);
 		}
 
 		[Fact]
