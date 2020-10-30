@@ -28,10 +28,17 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 				x => x.Password,
 				x => x.ConfirmPassword,
 				(password, confirmPassword) =>
-					!string.IsNullOrEmpty(password) &&
+				{
+					// This will fire validations before return canExecute value.
+					this.RaisePropertyChanged(nameof(Password));
+					this.RaisePropertyChanged(nameof(ConfirmPassword));
+
+					return !string.IsNullOrEmpty(password) &&
 					!string.IsNullOrEmpty(confirmPassword) &&
-					!Validations.Any)
+					!Validations.Any;
+				})
 				.ObserveOn(RxApp.MainThreadScheduler);
+
 
 			ContinueCommand = ReactiveCommand.Create(
 				() =>
