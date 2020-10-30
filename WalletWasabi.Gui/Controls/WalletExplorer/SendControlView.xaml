@@ -118,7 +118,7 @@
             <Button Command="{Binding CaptureImageCommand}">
               <StackPanel Orientation="Horizontal">
                 <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsBusy}" Margin="0 0 8 0" />
-                <TextBlock Text="CaptureImage" />
+                <TextBlock Text="{Binding QRCodeValue}" />
               </StackPanel>
             </Button>
           </StackPanel>

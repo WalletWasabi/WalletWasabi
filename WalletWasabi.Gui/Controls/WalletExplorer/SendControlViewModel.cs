@@ -66,6 +66,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _isHardwareBusy;
 		private bool _isCustomFee;
 
+		private string _qrCodeValue = "NA";
+
 		private const string WaitingForHardwareWalletButtonTextString = "Waiting for Hardware Wallet...";
 
 		private FeeDisplayFormat _feeDisplayFormat;
@@ -450,7 +452,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				#region bitmap
 
-				//			System.Drawing.Bitmap bmp = new System.Drawing.Bitmap(@"c:\image\Lenna.jpg");
+				//			System.Drawing.Bitmap bmp;
+
+				//			if (_testCvImage != null)
+				//			{
+				//				bmp = _testCvImage.ToBitmap();
+				//			}
+				//			else
+				//			{
+				//				bmp = new System.Drawing.Bitmap(@"c:\image\Lenna.jpg");
+				//			}
 
 				//			System.Drawing.Bitmap clone = new System.Drawing.Bitmap(bmp.Width, bmp.Height,
 				//System.Drawing.Imaging.PixelFormat.Format32bppPArgb);
@@ -464,19 +475,28 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				//			System.Drawing.Imaging.BitmapData bmpData =
 				//				clone.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadWrite,
 				//				clone.PixelFormat);
-				//Avalonia.Media.Imaging.Bitmap avaloniaBitmap = new Avalonia.Media.Imaging.Bitmap(Avalonia.Platform.PixelFormat.Bgra8888, data: bmpData.Scan0, new PixelSize(225, 225), new Vector(225, 225), bmpData.Stride);
+				//			Avalonia.Media.Imaging.Bitmap avaloniaBitmap = new Avalonia.Media.Imaging.Bitmap(Avalonia.Platform.PixelFormat.Bgra8888, data: bmpData.Scan0, new PixelSize(225, 225), new Vector(225, 225), bmpData.Stride);
 
 				#endregion bitmap
 
 				//if (_testCvImage == null)
 				//{
-				//	_testCvImage = new Image<Bgr565, byte>(@"c:\image\Lenna.jpg");
+				//	_testCvImage = new Image<Rgb, byte>(@"c:\image\Lenna.jpg");
 				//}
 
-				Image<Rgba, byte> temp = new Image<Rgba, byte>(@"c:\image\Lenna.jpg");
-				Avalonia.Media.Imaging.Bitmap avaloniaBitmap = new Avalonia.Media.Imaging.Bitmap(Avalonia.Platform.PixelFormat.Rgba8888, data: temp.Ptr, new PixelSize(225, 225), new Vector(225, 225), temp.Mat.Step);
+				Image<Rgb, byte> temp;
 
-				//avaloniaBitmap = new Avalonia.Media.Imaging.Bitmap(@"c:\image\Lenna.jpg");
+				if (_testCvImage is null)
+				{
+					temp = new Image<Rgb, byte>(@"c:\image\Lenna.jpg");
+				}
+				else
+				{
+					temp = _testCvImage;
+				}
+				Avalonia.Media.Imaging.Bitmap avaloniaBitmap = new Avalonia.Media.Imaging.Bitmap(Avalonia.Platform.PixelFormat.Rgb565, data: temp.Ptr, new PixelSize(225, 225), new Vector(225, 225), temp.Mat.Step);
+
+				Avalonia.Media.Imaging.Bitmap avaloniaBitmap2 = new Avalonia.Media.Imaging.Bitmap(@"c:\image\Lenna.jpg");
 
 				//WriteableBitmap a = (WriteableBitmap)avaloniaBitmap;
 
@@ -626,6 +646,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			private set => this.RaiseAndSetIfChanged(ref _isCustomFee, value);
 		}
 
+		public string QRCodeValue
+		{
+			get => _qrCodeValue;
+			private set => this.RaiseAndSetIfChanged(ref _qrCodeValue, value);
+		}
+
 		public bool IsEstimateAvailable => Global.FeeProviders?.AllFeeEstimate is { };
 
 		public string AmountWatermarkText
@@ -710,7 +736,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			_videocapture.ImageGrabbed += ProcessFrame;
 			_frame = new Mat();
 
-			_videocapture.Start();
+			_videocapture.Grab();
 		}
 
 		private void ProcessFrame(object? sender, EventArgs e)
@@ -721,11 +747,50 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				videocapture.Retrieve(_frame, 0);
 
-				_testCvImage = _frame.ToImage<Rgb, byte>();
-				this.RaisePropertyChanged(nameof(TestImage));
-				_videocapture.Stop();
-				_videocapture.Dispose();
+				Image<Rgb, byte> image = _frame.ToImage<Rgb, byte>();
+				_testCvImage = image;
+
+				QRCodeValue = GetQRcodeValueFromImage(image);
 			}
+		}
+
+		private QRCodeDetector _qrCodeDetector;
+
+		private object _lockObject = new object();
+		private bool _isLocked = false;
+
+		private string GetQRcodeValueFromImage(IInputArray image)
+		{
+			string qrCodeStr = "NA";
+
+			if (_isLocked)
+			{
+				return qrCodeStr;
+			}
+
+			lock (_lockObject)
+			{
+				_isLocked = true;
+
+				if (_qrCodeDetector is null)
+				{
+					_qrCodeDetector = new QRCodeDetector();
+				}
+
+				bool succ = false;
+
+				IOutputArray result = new Mat();
+				IOutputArray resultImg = new Mat();
+				succ = _qrCodeDetector.Detect(image, result);
+				if (succ)
+				{
+					qrCodeStr = _qrCodeDetector.Decode(image, result, resultImg);
+				}
+
+				_isLocked = false;
+			}
+
+			return qrCodeStr;
 		}
 
 		private void SetFeesAndTexts()

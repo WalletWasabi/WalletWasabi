@@ -63,15 +63,22 @@
           "Dock.Model": "0.9.9"
         }
       },
-      "Emgu.CV": {
+      "Emgu.CV.runtime.ubuntu": {
         "type": "Direct",
         "requested": "[4.4.0.4099, )",
         "resolved": "4.4.0.4099",
-        "contentHash": "aEZQiPobTIkd5oG2q+qgO/bAsocnplq8jU70e/PqlkBAMfshlwFk6c/IOkoEAtx4PANvdx72fOE0vhe+frLsnA==",
+        "contentHash": "a6Ox6+gfv/3aGDizj/Eyk6X0ZaTxzvUtM2BIU47qbGQDovzSJ7Dq3dRrBifvOJRVWjRKHBnCpXo3Rv8AybwL+A==",
         "dependencies": {
-          "System.Drawing.Primitives": "4.3.0",
-          "System.Runtime": "4.3.1",
-          "System.Runtime.InteropServices.RuntimeInformation": "4.3.0"
+          "Emgu.CV": "[4.4.0.4099]"
+        }
+      },
+      "Emgu.CV.runtime.windows": {
+        "type": "Direct",
+        "requested": "[4.4.0.4099, )",
+        "resolved": "4.4.0.4099",
+        "contentHash": "KHcHWrnUJinUxvjMXFrbiITg/YXycZMXnaXX0KC011oEiQbJWQV6vXNuZSVhtkWaW9tQoErjc2irfvGMEwqG9g==",
+        "dependencies": {
+          "Emgu.CV": "[4.4.0, 4.4.1)"
         }
       },
       "System.Runtime": {
@@ -258,6 +265,16 @@
         "contentHash": "0fp+XzK80VdsrONdzkusXd2NrNqWRYFixCuGD6mK7mQir2M+t+h6MeiV4sutCnlsg31N10I8Y1wHadmGiJx3iw==",
         "dependencies": {
           "System.Reactive": "4.1.6"
+        }
+      },
+      "Emgu.CV": {
+        "type": "Transitive",
+        "resolved": "4.4.0.4099",
+        "contentHash": "aEZQiPobTIkd5oG2q+qgO/bAsocnplq8jU70e/PqlkBAMfshlwFk6c/IOkoEAtx4PANvdx72fOE0vhe+frLsnA==",
+        "dependencies": {
+          "System.Drawing.Primitives": "4.3.0",
+          "System.Runtime": "4.3.1",
+          "System.Runtime.InteropServices.RuntimeInformation": "4.3.0"
         }
       },
       "JetBrains.Annotations": {

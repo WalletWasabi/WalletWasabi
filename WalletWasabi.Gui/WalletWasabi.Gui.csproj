@@ -69,7 +69,8 @@
     <PackageReference Include="AvalonStudio.Shell" Version="0.9.9" />
     <PackageReference Include="Dock.Avalonia.Themes.Default" Version="0.9.9" />
     <PackageReference Include="Dock.Avalonia.Themes.Metro" Version="0.9.9" />
-    <PackageReference Include="Emgu.CV" Version="4.4.0.4099" />
+    <PackageReference Include="Emgu.CV.runtime.ubuntu" Version="4.4.0.4099" />
+    <PackageReference Include="Emgu.CV.runtime.windows" Version="4.4.0.4099" />
     <PackageReference Include="System.Runtime" Version="4.3.1" />
   </ItemGroup>
 
