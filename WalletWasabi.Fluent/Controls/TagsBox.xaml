@@ -29,6 +29,7 @@
                                         <c:ConcatenatingWrapPanel.ConcatenatedChildren>
                                             <!-- ReSharper disable once InconsistentNaming -->
                                             <AutoCompleteBox x:Name="PART_AutoCompleteBox"
+                                                             MinimumPrefixLength="1"
                                                              IsTextCompletionEnabled="True"
                                                              Items="{Binding #PART_Border.TemplatedParent.Suggestions}"/>
                                         </c:ConcatenatingWrapPanel.ConcatenatedChildren>
