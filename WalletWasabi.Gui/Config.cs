@@ -201,7 +201,7 @@ namespace WalletWasabi.Gui
 
 		public Uri GetCurrentBackendUri()
 		{
-			if (TorProcessManager.RequestFallbackAddressUsage)
+			if (TorMonitor.RequestFallbackAddressUsage)
 			{
 				return GetFallbackBackendUri();
 			}
