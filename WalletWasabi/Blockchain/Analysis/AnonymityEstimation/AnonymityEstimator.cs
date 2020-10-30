@@ -72,7 +72,7 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 				// If we have one output and all the outputs in the tx have all the decimal places, then our change can gain anonymity.
 				if (tx.Outputs.All(x => x.Value.Satoshi % 10 != 0))
 				{
-					changeAnonset = outputCount - ownInputCount;
+					changeAnonset = outputCount - ownOutputCount;
 				}
 				var ret = new Dictionary<uint, double>();
 				foreach (var outputIndex in ownOutputIndices)
