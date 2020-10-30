@@ -27,9 +27,10 @@
                                 <ItemsPanelTemplate>
                                     <c:ConcatenatingWrapPanel>
                                         <c:ConcatenatingWrapPanel.ConcatenatedChildren>
+                                            <!-- ReSharper disable once InconsistentNaming -->
                                             <AutoCompleteBox x:Name="PART_AutoCompleteBox"
-                                                             Items="{Binding #PART_Border.TemplatedParent.Suggestions}"
-                                                             TemplatedControl.IsTemplateFocusTarget="True" />
+                                                             IsTextCompletionEnabled="True"
+                                                             Items="{Binding #PART_Border.TemplatedParent.Suggestions}"/>
                                         </c:ConcatenatingWrapPanel.ConcatenatedChildren>
                                     </c:ConcatenatingWrapPanel>
                                 </ItemsPanelTemplate>
