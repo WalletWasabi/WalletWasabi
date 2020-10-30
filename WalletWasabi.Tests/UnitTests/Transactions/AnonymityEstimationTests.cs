@@ -73,10 +73,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		}
 
 		[Fact]
-		public void AnonsetRetainedMaybeIncreasedBitBySelfSpend()
+		public void AnonsetIncreasedBitBySelfSpend()
 		{
-			// Anonset gets retained for a single input and a single output tx.
-			// Maybe it should be increased a bit because of deniability?
+			// Anonset gets increases a bit for a single input and a single output tx.
 			GetNewServices(out KeyManager keyManager, out CoinsRegistry registry, out AnonymityEstimator estimator);
 			var inputCoin = GetNewCoin(keyManager, registry, Money.Coins(1), 10);
 			Transaction tx = GetNewInputTransaction(inputCoin, 0);
@@ -121,7 +120,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var anonsets = estimator.EstimateAnonymitySets(tx);
 
 			var anonset = Assert.Single(anonsets).Value;
-			Assert.True(anonset == 2);
+			Assert.Equal(2, anonset);
 		}
 
 		[Fact]

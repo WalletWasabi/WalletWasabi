@@ -48,31 +48,40 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 		public IDictionary<uint, double> EstimateAnonymitySets(Transaction tx, IEnumerable<uint> ownOutputIndices, bool updateOtherCoins = false)
 		{
 			// Estimation of anonymity sets only makes sense for own outputs.
-			var numberOfOwnOutputs = ownOutputIndices.Count();
-			if (numberOfOwnOutputs == 0)
+			var ownOutputCount = ownOutputIndices.Count();
+			if (ownOutputCount == 0)
 			{
 				return new Dictionary<uint, double>();
 			}
 
 			var allWalletCoinsView = AllWalletCoins.AsAllCoinsView();
 			var spentOwnCoins = allWalletCoinsView.OutPoints(tx.Inputs.Select(x => x.PrevOut)).ToList();
-			var numberOfOwnInputs = spentOwnCoins.Count();
+			var ownInputCount = spentOwnCoins.Count;
+
+			var inputCount = tx.Inputs.Count;
+			var outputCount = tx.Outputs.Count;
 
 			// In normal payments we expose things to our counterparties.
 			// If it's a normal tx (that isn't self spent, nor a coinjoin,) then anonymity should be stripped.
 			// All the inputs must be ours AND there must be at least one output that isn't ours.
 			// Note: this is only a good idea from WWII, with WWI we calculate anonsets from the point the coin first hit the wallet.
-			if (numberOfOwnInputs == tx.Inputs.Count)
+			if (ownInputCount == inputCount && outputCount > ownOutputCount)
 			{
-				if (tx.Outputs.Count > numberOfOwnOutputs)
+				var ret = new Dictionary<uint, double>();
+				foreach (var outputIndex in ownOutputIndices)
 				{
-					var ret = new Dictionary<uint, double>();
-					foreach (var outputIndex in ownOutputIndices)
-					{
-						ret.Add(outputIndex, 1);
-					}
-					return ret;
+					ret.Add(outputIndex, 1);
 				}
+				return ret;
+			}
+
+			// 1 in, 1 out self spend tx is at least deniable.
+			if (ownInputCount == inputCount && ownOutputCount == outputCount && inputCount == 1 && outputCount == 1)
+			{
+				return new Dictionary<uint, double>
+				{
+					{ 0, spentOwnCoins.First().AnonymitySet + 0.2 }
+				};
 			}
 
 			var anonsets = new Dictionary<uint, double>();
@@ -81,10 +90,13 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 				// Get the anonymity set of i-th output in the transaction.
 				var anonset = tx.GetAnonymitySet(outputIndex);
 
+				// Let's assume the blockchain analyser also participates in the transaction.
+				anonset = Math.Max(1, anonset - 1);
+
 				// If we provided inputs to the transaction.
-				if (numberOfOwnInputs > 0)
+				if (ownInputCount > 0)
 				{
-					var privacyBonus = Intersect(spentOwnCoins.Select(x => x.AnonymitySet), (double)numberOfOwnInputs / tx.Inputs.Count());
+					var privacyBonus = Intersect(spentOwnCoins.Select(x => x.AnonymitySet), (double)ownInputCount / inputCount);
 
 					// If the privacy bonus is <=1 then we are not inheriting any privacy from the inputs.
 					var normalizedBonus = privacyBonus - 1;
