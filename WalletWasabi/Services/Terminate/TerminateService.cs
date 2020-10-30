@@ -34,6 +34,8 @@ namespace WalletWasabi.Services.Terminate
 			// This event will only be triggered if you run Wasabi from the published package. Use the packager with --onlybinaries option.
 			Logger.LogInfo($"Process termination was requested by the OS, reason {e.Reason}");
 			e.Cancel = true;
+
+			// This must be a blocking call because after this the OS will terminate Wasabi process if exists.
 			Terminate();
 		}
 
