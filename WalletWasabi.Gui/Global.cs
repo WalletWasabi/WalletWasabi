@@ -77,7 +77,7 @@ namespace WalletWasabi.Gui
 
 		public MemoryCache Cache { get; private set; }
 
-		public static JsonRpcServer? RpcServer { get; private set; }
+		public JsonRpcServer? RpcServer { get; private set; }
 
 		public Global(string dataDir, string torLogsFile, Config config, UiConfig uiConfig, WalletManager walletManager)
 		{
@@ -592,7 +592,7 @@ namespace WalletWasabi.Gui
 			return !StoppingCts.IsCancellationRequested;
 		}
 
-		private static void NotifyAndLog(string message, string title, NotificationType notificationType, ProcessedResult e, object? sender)
+		private void NotifyAndLog(string message, string title, NotificationType notificationType, ProcessedResult e, object? sender)
 		{
 			message = Guard.Correct(message);
 			title = Guard.Correct(title);
