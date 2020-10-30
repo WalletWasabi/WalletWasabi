@@ -26,7 +26,7 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 
 		/// <param name="updateOtherCoins">Only estimate -> does not touch other coins' anonsets.</param>
 		/// <returns>Dictionary of own output indexes and their calculated anonymity sets.</returns>
-		public IDictionary<uint, int> EstimateAnonymitySets(Transaction tx, bool updateOtherCoins = false)
+		public IDictionary<uint, double> EstimateAnonymitySets(Transaction tx, bool updateOtherCoins = false)
 		{
 			var ownOutputs = new List<uint>();
 			for (var i = 0U; i < tx.Outputs.Count; i++)
@@ -45,13 +45,13 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 
 		/// <param name="updateOtherCoins">Only estimate -> does not touch other coins' anonsets.</param>
 		/// <returns>Dictionary of own output indexes and their calculated anonymity sets.</returns>
-		public IDictionary<uint, int> EstimateAnonymitySets(Transaction tx, IEnumerable<uint> ownOutputIndices, bool updateOtherCoins = false)
+		public IDictionary<uint, double> EstimateAnonymitySets(Transaction tx, IEnumerable<uint> ownOutputIndices, bool updateOtherCoins = false)
 		{
 			// Estimation of anonymity sets only makes sense for own outputs.
 			var numberOfOwnOutputs = ownOutputIndices.Count();
 			if (numberOfOwnOutputs == 0)
 			{
-				return new Dictionary<uint, int>();
+				return new Dictionary<uint, double>();
 			}
 
 			var allWalletCoinsView = AllWalletCoins.AsAllCoinsView();
@@ -66,7 +66,7 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 			{
 				if (tx.Outputs.Count > numberOfOwnOutputs)
 				{
-					var ret = new Dictionary<uint, int>();
+					var ret = new Dictionary<uint, double>();
 					foreach (var outputIndex in ownOutputIndices)
 					{
 						ret.Add(outputIndex, 1);
@@ -75,7 +75,7 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 				}
 			}
 
-			var anonsets = new Dictionary<uint, int>();
+			var anonsets = new Dictionary<uint, double>();
 			foreach (var outputIndex in ownOutputIndices)
 			{
 				// Get the anonymity set of i-th output in the transaction.
@@ -112,7 +112,7 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 			return anonsets;
 		}
 
-		private void UpdateAnonset(SmartCoin coin, int anonset)
+		private void UpdateAnonset(SmartCoin coin, double anonset)
 		{
 			if (coin.AnonymitySet == anonset)
 			{
@@ -137,7 +137,7 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 		}
 
 		/// <param name="coefficient">If larger than 1, then penalty is larger, if smaller than 1 then penalty is smaller.</param>
-		private int Intersect(IEnumerable<int> anonsets, double coefficient)
+		private double Intersect(IEnumerable<double> anonsets, double coefficient)
 		{
 			// Sanity check.
 			if (!anonsets.Any())
@@ -153,7 +153,7 @@ namespace WalletWasabi.Blockchain.Analysis.AnonymityEstimation
 			var intersectionAnonset = smallestAnon / Math.Max(1, intersectPenalty * coefficient);
 
 			// Sanity check.
-			var normalizedIntersectionAnonset = (int)Math.Max(1d, intersectionAnonset);
+			var normalizedIntersectionAnonset = Math.Max(1d, intersectionAnonset);
 			return normalizedIntersectionAnonset;
 		}
 	}

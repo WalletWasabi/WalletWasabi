@@ -199,7 +199,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 						continue;
 					}
 
-					int anonset = anonsets[index];
+					var anonset = anonsets[index];
 
 					SmartCoin newCoin = new SmartCoin(txId, index, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToOutPoints().ToArray(), tx.Height, tx.IsRBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
 
