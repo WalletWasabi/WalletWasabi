@@ -26,8 +26,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var statement = new Statement(publicPoint, generator);
 			var random = new MockRandom();
 			random.GetBytesResults.Add(new byte[32]);
-			var proof = ProofSystem.Prove(statement, secret, random);
-			Assert.True(ProofSystem.Verify(statement, proof));
+			var proof = ProofSystemHelpers.Prove(statement, secret, random);
+			Assert.True(ProofSystemHelpers.Verify(statement, proof));
 		}
 
 		[Fact]
@@ -38,8 +38,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 				var generator = Generators.G;
 				var publicPoint = secret * generator;
 				var statement = new Statement(publicPoint, Generators.G);
-				var proof = ProofSystem.Prove(statement, secret, new SecureRandom());
-				Assert.True(ProofSystem.Verify(statement, proof));
+				var proof = ProofSystemHelpers.Prove(statement, secret, new SecureRandom());
+				Assert.True(ProofSystemHelpers.Verify(statement, proof));
 			}
 		}
 
@@ -53,32 +53,32 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var secret = new Scalar(val, val, val, val, val, val, val, val);
 			var p = secret * gen;
 			var statement = new Statement(p, gen);
-			var proof = ProofSystem.Prove(statement, secret, random);
-			Assert.True(ProofSystem.Verify(statement, proof));
+			var proof = ProofSystemHelpers.Prove(statement, secret, random);
+			Assert.True(ProofSystemHelpers.Verify(statement, proof));
 
 			secret = EC.N + Scalar.One.Negate();
 			p = secret * gen;
 			statement = new Statement(p, gen);
-			proof = ProofSystem.Prove(statement, secret, random);
-			Assert.True(ProofSystem.Verify(statement, proof));
+			proof = ProofSystemHelpers.Prove(statement, secret, random);
+			Assert.True(ProofSystemHelpers.Verify(statement, proof));
 
 			secret = EC.NC;
 			p = secret * gen;
 			statement = new Statement(p, gen);
-			proof = ProofSystem.Prove(statement, secret, random);
-			Assert.True(ProofSystem.Verify(statement, proof));
+			proof = ProofSystemHelpers.Prove(statement, secret, random);
+			Assert.True(ProofSystemHelpers.Verify(statement, proof));
 
 			secret = EC.NC + Scalar.One;
 			p = secret * gen;
 			statement = new Statement(p, gen);
-			proof = ProofSystem.Prove(statement, secret, random);
-			Assert.True(ProofSystem.Verify(statement, proof));
+			proof = ProofSystemHelpers.Prove(statement, secret, random);
+			Assert.True(ProofSystemHelpers.Verify(statement, proof));
 
 			secret = EC.NC + Scalar.One.Negate();
 			p = secret * gen;
 			statement = new Statement(p, gen);
-			proof = ProofSystem.Prove(statement, secret, random);
-			Assert.True(ProofSystem.Verify(statement, proof));
+			proof = ProofSystemHelpers.Prove(statement, secret, random);
+			Assert.True(ProofSystemHelpers.Verify(statement, proof));
 		}
 	}
 }

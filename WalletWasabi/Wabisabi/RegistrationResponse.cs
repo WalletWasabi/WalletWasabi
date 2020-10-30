@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using WalletWasabi.Crypto;
-using WalletWasabi.Crypto.ZeroKnowledge.NonInteractive;
+using WalletWasabi.Crypto.ZeroKnowledge;
 
 namespace WalletWasabi.Wabisabi
 {

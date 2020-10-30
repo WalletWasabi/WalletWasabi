@@ -83,7 +83,7 @@ namespace WalletWasabi.Tor.Socks5
 				// Internal TCP client may close, so we need a new instance here.
 				using var client = new TorSocks5Client(TorSocks5EndPoint);
 				await client.ConnectAsync().ConfigureAwait(false);
-				await client.HandshakeAsync(isolateStream: true).ConfigureAwait(false);
+				await client.HandshakeAsync().ConfigureAwait(false);
 
 				return true;
 			}
@@ -98,7 +98,7 @@ namespace WalletWasabi.Tor.Socks5
 		/// https://www.torproject.org/docs/tor-manual.html.en
 		/// https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt#n35
 		/// </summary>
-		public async Task HandshakeAsync(bool isolateStream = true, CancellationToken cancellationToken = default)
+		public async Task HandshakeAsync(bool isolateStream = false, CancellationToken cancellationToken = default)
 		{
 			// https://github.com/torproject/torspec/blob/master/socks-extensions.txt
 			// The "NO AUTHENTICATION REQUIRED" (SOCKS5) authentication method [00] is
