@@ -1,31 +1,27 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using WalletWasabi.CoinJoin.Common.Models;
-using WalletWasabi.Tor.Http.Bases;
+using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.CoinJoin.Client.Clients
 {
-	public class SatoshiClient : TorDisposableBase
+	public class SatoshiClient
 	{
-		/// <inheritdoc/>
-		public SatoshiClient(Func<Uri> baseUriAction, EndPoint? torSocks5EndPoint) : base(baseUriAction, torSocks5EndPoint)
+		public SatoshiClient(IRelativeHttpClient httpClient)
 		{
+			HttpClient = httpClient;
 		}
 
-		/// <inheritdoc/>
-		public SatoshiClient(Uri baseUri, EndPoint torSocks5EndPoint) : base(baseUri, torSocks5EndPoint)
-		{
-		}
+		private IRelativeHttpClient HttpClient { get; }
 
 		public async Task<IEnumerable<RoundStateResponseBase>> GetAllRoundStatesAsync()
 		{
-			using var response = await TorClient.SendAsync(HttpMethod.Get, $"/api/v{WasabiClient.ApiVersion}/btc/chaumiancoinjoin/states/").ConfigureAwait(false);
+			using var response = await HttpClient.SendAsync(HttpMethod.Get, $"/api/v{WasabiClient.ApiVersion}/btc/chaumiancoinjoin/states/").ConfigureAwait(false);
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
 				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
