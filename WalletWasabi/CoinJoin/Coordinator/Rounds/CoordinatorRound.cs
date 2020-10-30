@@ -784,7 +784,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			return acceptedBlindedOutputScriptsCount;
 		}
 
-		private async Task TryOptimizeFeesAsync(Transaction transaction, IEnumerable<Coin> spentCoins)
+		internal async Task TryOptimizeFeesAsync(Transaction transaction, IEnumerable<Coin> spentCoins)
 		{
 			try
 			{
@@ -812,16 +812,20 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 				// 7.2. Get the most optimal FeeRate.
 				EstimateSmartFeeResponse estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(AdjustedConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true).ConfigureAwait(false);
+				
 				if (estimateSmartFeeResponse is null)
 				{
 					throw new InvalidOperationException($"{nameof(FeeRate)} is not yet initialized.");
 				}
 
-				FeeRate optimalFeeRate = estimateSmartFeeResponse.FeeRate;
+				FeeRate optimalFeeRate =  estimateSmartFeeResponse.FeeRate;
 
 				if (optimalFeeRate is { } && optimalFeeRate != FeeRate.Zero && currentFeeRate is { } && currentFeeRate != FeeRate.Zero) // This would be really strange if it'd happen.
 				{
-					var sanityFeeRate = new FeeRate(2m); // 2 s/b
+					MemPoolInfo mempoolInfo = await RpcClient.GetMempoolAsync().ConfigureAwait(false);
+					FeeRate minMempoolFee = new FeeRate(Money.Coins((decimal)mempoolInfo.MemPoolMinFee)); 
+
+					var sanityFeeRate = FeeRate.Max(minMempoolFee, new FeeRate(2m)); // 2 s/b
 					optimalFeeRate = optimalFeeRate < sanityFeeRate ? sanityFeeRate : optimalFeeRate;
 					if (optimalFeeRate < currentFeeRate)
 					{
@@ -831,9 +835,10 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 						Money toSave = fee - feeShouldBePaid;
 
 						// 7.2.2. Get the outputs to divide the savings between.
-						int maxMixCount = transaction.GetIndistinguishableOutputs(includeSingle: true).Max(x => x.count);
-						Money bestMixAmount = transaction.GetIndistinguishableOutputs(includeSingle: true).Where(x => x.count == maxMixCount).Max(x => x.value);
-						int bestMixCount = transaction.GetIndistinguishableOutputs(includeSingle: true).First(x => x.value == bestMixAmount).count;
+						var indistinguishableOutputs = transaction.GetIndistinguishableOutputs(includeSingle: true).ToArray();
+						int maxMixCount = indistinguishableOutputs.Max(x => x.count);
+						Money bestMixAmount = indistinguishableOutputs.Where(x => x.count == maxMixCount).Max(x => x.value);
+						int bestMixCount = indistinguishableOutputs.First(x => x.value == bestMixAmount).count;
 
 						// 7.2.3. Get the savings per best mix outputs.
 						long toSavePerBestMixOutputs = toSave.Satoshi / bestMixCount;
@@ -894,14 +899,16 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			var outputSizeInBytes = Constants.OutputSizeInBytes;
 			try
 			{
+				var mempoolInfo = await rpc.GetMempoolAsync().ConfigureAwait(false);
+				var minMempoolFee = new FeeRate(Money.Coins((decimal)mempoolInfo.MemPoolMinFee)); 
+				var sanityFeeRate = FeeRate.Max(minMempoolFee, new FeeRate(2m));
+
 				var estimateSmartFeeResponse = await rpc.EstimateSmartFeeAsync(confirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true).ConfigureAwait(false);
 
-				var feeRate = estimateSmartFeeResponse.FeeRate;
-				Money feePerBytes = feeRate.FeePerK / 1000;
+				var feeRate = FeeRate.Max(estimateSmartFeeResponse.FeeRate, sanityFeeRate);
 
-				// Make sure min relay fee (1000 sat) is hit.
-				feePerInputs = Math.Max(feePerBytes * inputSizeInBytes, Money.Satoshis(500));
-				feePerOutputs = Math.Max(feePerBytes * outputSizeInBytes, Money.Satoshis(250));
+				feePerInputs = feeRate.GetFee(inputSizeInBytes);
+				feePerOutputs = feeRate.GetFee(outputSizeInBytes);
 			}
 			catch (Exception ex)
 			{

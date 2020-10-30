@@ -55,6 +55,11 @@ namespace WalletWasabi.BitcoinCore.Rpc
 			return await Rpc.GetMempoolEntryAsync(txid, throwIfNotFound).ConfigureAwait(false);
 		}
 
+		public virtual async Task<MemPoolInfo> GetMempoolAsync()
+		{
+			return await Rpc.GetMemPoolAsync();
+		}
+
 		public virtual async Task<uint256[]> GetRawMempoolAsync()
 		{
 			return await Rpc.GetRawMempoolAsync().ConfigureAwait(false);
