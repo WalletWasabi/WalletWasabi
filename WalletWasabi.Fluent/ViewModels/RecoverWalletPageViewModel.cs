@@ -55,7 +55,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
             Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
             RestrictInputToSuggestions = true;
-            ItemCountLimit = 12;
+            ItemCountLimit = (int)WordCount.Twelve;
             
             Mnemonics = new ObservableCollection<string>();
 
@@ -81,11 +81,11 @@ namespace WalletWasabi.Fluent.ViewModels
 
         private void ValidateMnemonics(IValidationErrors errors)
         {
-            // example code only
-            if (Mnemonics?.Contains("machine") ?? false)
-            {
+            // // example code only
+            // if (Mnemonics?.Contains("machine") ?? false)
+            // {
                 errors.Add(ErrorSeverity.Error, "Example Error");
-            }
+            // }
         }
 
         public string GetTagsAsConcatString()
