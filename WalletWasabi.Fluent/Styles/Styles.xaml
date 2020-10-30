@@ -126,11 +126,11 @@
     <Setter Property="Margin" Value="0 0 0 10" />
   </Style>
 
-  <!--Label-->
+  <!--Check mark-->
   <Style Selector=":is(PathIcon).checkMark">
     <Setter Property="Foreground" Value="{StaticResource SystemControlBackgroundAccentBrush}" />
-    <Setter Property="Width" Value="12" />
-    <Setter Property="Height" Value="12" />
+    <Setter Property="Width" Value="15" />
+    <Setter Property="Height" Value="15" />
     <Setter Property="Data" Value="{StaticResource checkmark_filled}" />
   </Style>
 
