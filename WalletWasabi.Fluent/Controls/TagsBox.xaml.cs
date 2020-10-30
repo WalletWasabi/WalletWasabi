@@ -25,6 +25,9 @@ namespace WalletWasabi.Fluent.Controls
         public static readonly StyledProperty<int> ItemCountLimitProperty =
             AvaloniaProperty.Register<TagsBox, int>(nameof(ItemCountLimit));
 
+        public static readonly StyledProperty<object> SelectedTagProperty =
+            AvaloniaProperty.Register<TagsBox, object>(nameof(SelectedTag), defaultBindingMode: BindingMode.TwoWay);
+
         public static readonly DirectProperty<TagsBox, IEnumerable> SuggestionsProperty =
             AvaloniaProperty.RegisterDirect<TagsBox, IEnumerable>(
                 nameof(Suggestions),
@@ -35,18 +38,22 @@ namespace WalletWasabi.Fluent.Controls
 
         private bool _backspaceEmptyField1;
         private bool _backspaceEmptyField2;
-
-
         private IDisposable? _disposable;
 
         private bool _isInputEnabled = true;
-        private IEnumerable _suggestionsEnumerable;
+        private IEnumerable _suggestions;
         private bool _isFocused;
 
         public bool RestrictInputToSuggestions
         {
             get => GetValue(RestrictInputToSuggestionsProperty);
             set => SetValue(RestrictInputToSuggestionsProperty, value);
+        }
+
+        public object SelectedTag
+        {
+            get => GetValue(SelectedTagProperty);
+            set => SetValue(SelectedTagProperty, value);
         }
 
         public int ItemCountLimit
@@ -57,8 +64,8 @@ namespace WalletWasabi.Fluent.Controls
 
         public IEnumerable Suggestions
         {
-            get => _suggestionsEnumerable;
-            set => SetAndRaise(SuggestionsProperty, ref _suggestionsEnumerable, value);
+            get => _suggestions;
+            set => SetAndRaise(SuggestionsProperty, ref _suggestions, value);
         }
 
         private void CheckIsInputEnabled()
@@ -265,7 +272,7 @@ namespace WalletWasabi.Fluent.Controls
             _backspaceEmptyField1 = str.Length == 0;
 
             var strTrimmed = str.Trim();
- 
+
             // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
             switch (e.Key)
             {
@@ -295,8 +302,8 @@ namespace WalletWasabi.Fluent.Controls
 
         private void AddTag(string strTrimmed)
         {
+            SelectedTag = strTrimmed;
             CheckIsInputEnabled();
-            if (Items is IList x) x.Add(strTrimmed);
         }
     }
 }

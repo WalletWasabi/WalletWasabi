@@ -15,15 +15,16 @@
         <c:ContentArea Title="Enter recovery words" Caption="Type in your 12 recovery words and click continue"
                        x:DataType="vm:RecoveryPageViewModel"
                        Margin="44 0">
-            <Grid RowDefinitions="Auto,20,Auto" VerticalAlignment="Top">
+            <StackPanel>
                 <Label Classes="h7 bold" Content="_Type in your recovery words here:" Target="seedTagsBox" />
                 <c:TagsBox x:Name="seedTagsBox" 
                            Grid.Row="2"
                            ItemCountLimit="{CompiledBinding ItemCountLimit}"
                            RestrictInputToSuggestions="{CompiledBinding RestrictInputToSuggestions}"
                            Items="{CompiledBinding Mnemonics}"
-                           Suggestions="{CompiledBinding Suggestions}" />
-            </Grid>
+                           Suggestions="{CompiledBinding Suggestions}"
+                           SelectedTag="{CompiledBinding  SelectedTag}"/>
+            </StackPanel>
         </c:ContentArea>
         <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="invisible" HorizontalAlignment="Left"
                 VerticalAlignment="Bottom" />

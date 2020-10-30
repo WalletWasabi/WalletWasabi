@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -22,6 +23,7 @@ namespace WalletWasabi.Fluent.ViewModels
         private IEnumerable _suggestions;
         private int _itemCountLimit;
         private bool _restrictInputToSuggestions;
+        private object _selectedTag;
 
         public ObservableCollection<string> Mnemonics
         {
@@ -33,7 +35,7 @@ namespace WalletWasabi.Fluent.ViewModels
         {
             get => _suggestions;
             set => this.RaiseAndSetIfChanged(ref _suggestions, value);
-        } 
+        }
 
         public int ItemCountLimit
         {
@@ -47,6 +49,12 @@ namespace WalletWasabi.Fluent.ViewModels
             set => this.RaiseAndSetIfChanged(ref _restrictInputToSuggestions, value);
         }
 
+        public object? SelectedTag
+        {
+            get => _selectedTag;
+            set => this.RaiseAndSetIfChanged(ref _selectedTag, value);
+        }
+
         public RecoveryPageViewModel(IScreen screen) : base(screen)
         {
             Global = Locator.Current.GetService<Global>();
@@ -55,8 +63,8 @@ namespace WalletWasabi.Fluent.ViewModels
 
             Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
             RestrictInputToSuggestions = true;
-            ItemCountLimit = (int)WordCount.Twelve;
-            
+            ItemCountLimit = (int) WordCount.Twelve;
+
             Mnemonics = new ObservableCollection<string>();
 
             _currentMnemonic = Mnemonics.ToObservableChangeSet().ToCollection()
@@ -67,10 +75,21 @@ namespace WalletWasabi.Fluent.ViewModels
                 .Select(x => x?.WordList?.WordCount == 12 && (x?.IsValidChecksum ?? false))
                 .ToProperty(this, x => x.IsMnemonicValid);
 
+            this.WhenAnyValue(x => x.SelectedTag)
+                .Where(x => x is string s && !string.IsNullOrEmpty(s))
+                .Select(x => x as string)
+                .Subscribe(AddTag);
+
             this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);
 
             // A hack for validations system...
             Mnemonics.CollectionChanged += MnemonicsChanged;
+        }
+
+        public void AddTag(string tagString)
+        {
+            Mnemonics.Add(tagString);
+            SelectedTag = null;
         }
 
         // ugly hack
@@ -84,7 +103,7 @@ namespace WalletWasabi.Fluent.ViewModels
             // // example code only
             // if (Mnemonics?.Contains("machine") ?? false)
             // {
-                errors.Add(ErrorSeverity.Error, "Example Error");
+            errors.Add(ErrorSeverity.Error, "Example Error");
             // }
         }
 
