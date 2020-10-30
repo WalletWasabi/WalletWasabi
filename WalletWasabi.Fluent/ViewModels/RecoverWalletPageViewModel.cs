@@ -11,7 +11,6 @@ using Splat;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -49,7 +48,7 @@ namespace WalletWasabi.Fluent.ViewModels
             set => this.RaiseAndSetIfChanged(ref _restrictInputToSuggestions, value);
         }
 
-        public object? SelectedTag
+        public object SelectedTag
         {
             get => _selectedTag;
             set => this.RaiseAndSetIfChanged(ref _selectedTag, value);
@@ -78,7 +77,7 @@ namespace WalletWasabi.Fluent.ViewModels
             this.WhenAnyValue(x => x.SelectedTag)
                 .Where(x => x is string s && !string.IsNullOrEmpty(s))
                 .Select(x => x as string)
-                .Subscribe(AddTag);
+                .Subscribe(AddTag!);
 
             this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);
 
@@ -86,10 +85,10 @@ namespace WalletWasabi.Fluent.ViewModels
             Mnemonics.CollectionChanged += MnemonicsChanged;
         }
 
-        public void AddTag(string tagString)
+        private void AddTag(string tagString)
         {
             Mnemonics.Add(tagString);
-            SelectedTag = null;
+            SelectedTag = null!;
         }
 
         // ugly hack
@@ -107,7 +106,7 @@ namespace WalletWasabi.Fluent.ViewModels
             // }
         }
 
-        public string GetTagsAsConcatString()
+        private string GetTagsAsConcatString()
         {
             return string.Join(' ', Mnemonics);
         }

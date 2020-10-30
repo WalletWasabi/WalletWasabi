@@ -5,7 +5,7 @@
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-
+             x:DataType="vm:RecoveryPageViewModel"
              x:Class="WalletWasabi.Fluent.Views.RecoveryPageView">
     <Panel Margin="25 0 25 20">
         <Button Classes="invisible" Margin="0 35 0 0" Command="{Binding GoBackCommand}" DockPanel.Dock="Left"
@@ -13,7 +13,6 @@
             <PathIcon Data="{DynamicResource arrow_left_regular}" />
         </Button>
         <c:ContentArea Title="Enter recovery words" Caption="Type in your 12 recovery words and click continue"
-                       x:DataType="vm:RecoveryPageViewModel"
                        Margin="44 0">
             <StackPanel>
                 <Label Classes="h7 bold" Content="_Type in your recovery words here:" Target="seedTagsBox" />
