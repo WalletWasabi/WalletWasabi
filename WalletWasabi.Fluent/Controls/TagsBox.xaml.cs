@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Avalonia;
@@ -41,7 +42,7 @@ namespace WalletWasabi.Fluent.Controls
         private bool _isInputEnabled = true;
         private IEnumerable _suggestionsEnumerable;
         private bool _isFocused;
-        
+
         public bool RestrictInputToSuggestions
         {
             get => GetValue(RestrictInputToSuggestionsProperty);
@@ -89,8 +90,6 @@ namespace WalletWasabi.Fluent.Controls
             _disposable =
                 _autoCompleteBox.AddDisposableHandler(TextInputEvent, OnTextInput,
                     RoutingStrategies.Tunnel);
- 
-            
         }
 
         private void OnACBGLostFocus(object? sender, RoutedEventArgs e)
@@ -187,7 +186,7 @@ namespace WalletWasabi.Fluent.Controls
 
             var wasFocused = _isFocused;
             _isFocused = hasFocus;
-            
+
             if (hasFocus)
             {
                 if (!wasFocused)
@@ -195,7 +194,7 @@ namespace WalletWasabi.Fluent.Controls
                     _autoCompleteBox?.Focus();
                 }
             }
-            
+
             PseudoClasses.Set(":focus", hasFocus);
             _isFocused = hasFocus;
         }
@@ -206,7 +205,7 @@ namespace WalletWasabi.Fluent.Controls
 
             var currentText = _autoCompleteBox.Text ?? "";
 
-            if (currentText.Length == 0 || 
+            if (currentText.Length == 0 ||
                 !(_autoCompleteBox.SelectedItem is string selItem) ||
                 selItem.Length == 0 ||
                 currentText != selItem)
@@ -232,12 +231,21 @@ namespace WalletWasabi.Fluent.Controls
             var currentText = _autoCompleteBox.Text ?? "";
             var currentTextTrimmed = currentText.Trim();
 
+            if (RestrictInputToSuggestions && Suggestions is IList<string> suggestions)
+            {
+                var keywordIsInSuggestions = suggestions.Any(x => x.Equals(currentTextTrimmed,
+                    StringComparison.InvariantCultureIgnoreCase));
+
+                if (!keywordIsInSuggestions)
+                {
+                    return;
+                }
+            }
+
             if (!_isInputEnabled ||
                 currentText.Length < 1 ||
                 string.IsNullOrEmpty(currentTextTrimmed) ||
-                !currentText.EndsWith(' ') ||
-                RestrictInputToSuggestions && !Suggestions.Cast<string>().Any(x => x.Equals(currentTextTrimmed,
-                    StringComparison.InvariantCultureIgnoreCase)))
+                !currentText.EndsWith(' '))
                 return;
 
             AddTag(currentTextTrimmed);
@@ -257,17 +265,17 @@ namespace WalletWasabi.Fluent.Controls
             _backspaceEmptyField1 = str.Length == 0;
 
             var strTrimmed = str.Trim();
-
+ 
             // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
             switch (e.Key)
             {
                 case Key.Back when _backspaceEmptyField1 && _backspaceEmptyField2:
-                    
+
                     RemoveTag();
-                    
+
                     break;
                 case Key.Enter when _isInputEnabled && !string.IsNullOrEmpty(strTrimmed):
-                    
+
                     if (RestrictInputToSuggestions && !Suggestions.Cast<string>().Any(x =>
                         x.Equals(strTrimmed, StringComparison.InvariantCultureIgnoreCase)))
                         break;
