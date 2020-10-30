@@ -83,7 +83,7 @@ namespace WalletWasabi.Tor.Socks5
 				// Internal TCP client may close, so we need a new instance here.
 				using var client = new TorSocks5Client(TorSocks5EndPoint);
 				await client.ConnectAsync().ConfigureAwait(false);
-				await client.HandshakeAsync(isolateStream: true).ConfigureAwait(false);
+				await client.HandshakeAsync().ConfigureAwait(false);
 
 				return true;
 			}
@@ -98,9 +98,19 @@ namespace WalletWasabi.Tor.Socks5
 		/// https://www.torproject.org/docs/tor-manual.html.en
 		/// https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt#n35
 		/// </summary>
-		public async Task HandshakeAsync(bool isolateStream = true, CancellationToken cancellationToken = default)
+		public async Task HandshakeAsync(bool isolateStream = false, CancellationToken cancellationToken = default)
 		{
-			string identity = isolateStream ? RandomString.CapitalAlphaNumeric(21) : "";
+			// https://github.com/torproject/torspec/blob/master/socks-extensions.txt
+			// The "NO AUTHENTICATION REQUIRED" (SOCKS5) authentication method [00] is
+			// supported; and as of Tor 0.2.3.2 - alpha, the "USERNAME/PASSWORD"(SOCKS5)
+			// authentication method[02] is supported too, and used as a method to
+			// implement stream isolation.As an extension to support some broken clients,
+			// we allow clients to pass "USERNAME/PASSWORD" authentication message to us
+			// even if no authentication was selected.Furthermore, we allow
+			// username / password fields of this message to be empty. This technically
+			// violates RFC1929[4], but ensures interoperability with somewhat broken
+			// SOCKS5 client implementations.
+			string identity = isolateStream ? RandomString.CapitalAlphaNumeric(21) : "default";
 			await HandshakeAsync(identity, cancellationToken).ConfigureAwait(false);
 		}
 
@@ -210,7 +220,7 @@ namespace WalletWasabi.Tor.Socks5
 					// the reply.This must be no more than 10 seconds after detecting the
 					// condition that caused a failure.
 					DisposeTcpClient();
-					Logger.LogWarning($"Connection response indicates a failure. Actual response is: '{connectionResponse.Rep}'.");
+					Logger.LogWarning($"Connection response indicates a failure. Actual response is: '{connectionResponse.Rep}'. Request: {host}:{port}.");
 					throw new TorSocks5FailureResponseException(connectionResponse.Rep);
 				}
 
@@ -233,7 +243,7 @@ namespace WalletWasabi.Tor.Socks5
 			}
 			catch (Exception e)
 			{
-				Logger.LogError("Exception was thrown when connecting to destination.", e);
+				Logger.LogError($"Exception was thrown when connecting to destination ({host}:{port})", e);
 				throw;
 			}
 			finally
