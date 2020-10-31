@@ -52,7 +52,7 @@ namespace WalletWasabi.Fluent.ViewModels
                 .ToProperty(this, x => x.CurrentMnemonics);
 
             _isMnemonicValid = this.WhenAnyValue(x => x.CurrentMnemonics)
-                .Select(x => x?.WordList?.WordCount == 12 && (x?.IsValidChecksum ?? false))
+                .Select(x => x?.WordList?.WordCount == 12 && x.IsValidChecksum)
                 .Do(x => this.RaisePropertyChanged(nameof(Mnemonics)))
                 .ToProperty(this, x => x.IsMnemonicValid);
 

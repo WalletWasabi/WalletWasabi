@@ -14,11 +14,11 @@
         <Setter Property="Cursor" Value="IBeam" />
         <Setter Property="Template">
             <ControlTemplate>
-                <Border x:Name="PART_Border" Background="{TemplateBinding Background}"
-                        BorderBrush="{TemplateBinding BorderBrush}"
-                        BorderThickness="{TemplateBinding BorderThickness}"
-                        Padding="{TemplateBinding Padding}" Focusable="False">
-                    <DataValidationErrors>
+                <DataValidationErrors>
+                    <Border x:Name="PART_Border" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            Padding="{TemplateBinding Padding}" Focusable="False">
                         <ItemsPresenter Name="PART_ItemsPresenter"
                                         Items="{TemplateBinding Items}"
                                         ItemTemplate="{TemplateBinding ItemTemplate}">
@@ -31,18 +31,18 @@
                                             <AutoCompleteBox x:Name="PART_AutoCompleteBox"
                                                              MinimumPrefixLength="1"
                                                              IsTextCompletionEnabled="True"
-                                                             Items="{Binding #PART_Border.TemplatedParent.Suggestions}"/>
+                                                             Items="{Binding #PART_Border.TemplatedParent.Suggestions}" />
                                         </c:ConcatenatingWrapPanel.ConcatenatedChildren>
                                     </c:ConcatenatingWrapPanel>
                                 </ItemsPanelTemplate>
                             </ItemsPresenter.ItemsPanel>
                         </ItemsPresenter>
-                    </DataValidationErrors>
-                </Border>
+                    </Border>
+                </DataValidationErrors>
             </ControlTemplate>
         </Setter>
     </Style>
-    
+
     <Style Selector="c|TagsBox">
         <Setter Property="(ScrollViewer.HorizontalScrollBarVisibility)" Value="Disabled" />
         <Setter Property="MinHeight" Value="60" />
@@ -61,9 +61,9 @@
             </DataTemplate>
         </Setter>
     </Style>
-    
+
     <Style Selector="c|TagsBox:pointerover /template/ Border#PART_Border">
-        <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushPointerOver}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushPointerOver}" />
         <Setter Property="Background" Value="{DynamicResource TextControlBackgroundPointerOver}" />
     </Style>
 
@@ -76,11 +76,11 @@
         <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushFocused}" />
         <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThicknessFocused}" />
     </Style>
-    
+
     <Style Selector="c|TagsBox:error /template/ Border#PART_Border">
         <Setter Property="BorderBrush" Value="{DynamicResource SystemControlErrorTextForegroundBrush}" />
     </Style>
- 
+
     <Style Selector="c|TagsBox AutoCompleteBox">
         <Setter Property="Background" Value="{x:Null}" />
         <Setter Property="Padding" Value="3,10,0, 10" />
