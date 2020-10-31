@@ -256,7 +256,7 @@ namespace WalletWasabi.Fluent.Controls
 			BackspaceLogicClear();
 
 			autoCompleteBox.ClearValue(AutoCompleteBox.SelectedItemProperty);
-			Dispatcher.UIThread.Post(() => { autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); });
+			Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
 		}
 
 		private void BackspaceLogicClear()
@@ -297,7 +297,7 @@ namespace WalletWasabi.Fluent.Controls
 
 			BackspaceLogicClear();
 
-			Dispatcher.UIThread.Post(() => { autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); });
+			Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
 		}
 
 		private void OnKeyUp(object? sender, KeyEventArgs e)
@@ -331,7 +331,7 @@ namespace WalletWasabi.Fluent.Controls
 
 					BackspaceLogicClear();
 					AddTag(strTrimmed);
-					Dispatcher.UIThread.Post(() => { autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); });
+					Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
 					break;
 			}
 		}
