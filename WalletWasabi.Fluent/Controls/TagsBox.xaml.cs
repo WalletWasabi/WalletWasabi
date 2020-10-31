@@ -41,7 +41,7 @@ namespace WalletWasabi.Fluent.Controls
 				defaultBindingMode: BindingMode.TwoWay,
 				enableDataValidation: true);
 
-		private readonly CompositeDisposable _compositeDisposable = new CompositeDisposable();
+		private readonly CompositeDisposable CompositeDisposable = new CompositeDisposable();
 
 		private bool _backspaceEmptyField1;
 		private bool _backspaceEmptyField2;
@@ -101,7 +101,7 @@ namespace WalletWasabi.Fluent.Controls
 
 			_autoCompleteBox
 				.AddDisposableHandler(TextInputEvent, OnTextInput, RoutingStrategies.Tunnel)
-				.DisposeWith(_compositeDisposable);
+				.DisposeWith(CompositeDisposable);
 		}
 
 		protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
@@ -115,7 +115,7 @@ namespace WalletWasabi.Fluent.Controls
 				_autoCompleteBox.LostFocus -= OnAutoCompleteBoxLostFocus;
 			}
 
-			_compositeDisposable.Dispose();
+			CompositeDisposable.Dispose();
 			base.OnDetachedFromVisualTree(e);
 		}
 

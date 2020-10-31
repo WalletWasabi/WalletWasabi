@@ -13,7 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels
 {
 	public class RecoveryPageViewModel : NavBarItemViewModel
 	{
-		private readonly ObservableAsPropertyHelper<Mnemonic?> _currentMnemonic;
+		private readonly ObservableAsPropertyHelper<Mnemonic?> CurrentMnemonic;
 		private ObservableCollection<string> _mnemonics;
 		private IEnumerable<string> _suggestions;
 		private string _selectedTag;
@@ -23,7 +23,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 			Mnemonics = new ObservableCollection<string>();
 
-			_currentMnemonic = Mnemonics.ToObservableChangeSet().ToCollection()
+			CurrentMnemonic = Mnemonics.ToObservableChangeSet().ToCollection()
 				.Select(x => x.Count == 12 ? new Mnemonic(GetTagsAsConcatString()) : default)
 				.ToProperty(this, x => x.CurrentMnemonics);
 
@@ -56,7 +56,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _selectedTag, value);
 		}
 
-		public Mnemonic? CurrentMnemonics => _currentMnemonic.Value;
+		public Mnemonic? CurrentMnemonics => CurrentMnemonic.Value;
 		public override string IconName => "settings_regular";
 
 		private void ValidateMnemonics(IValidationErrors errors)
