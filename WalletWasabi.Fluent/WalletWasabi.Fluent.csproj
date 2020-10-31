@@ -25,7 +25,4 @@
 		<ProjectReference Include="..\WalletWasabi.Gui\WalletWasabi.Gui.csproj" />
 		<ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
 	</ItemGroup>
-	<ItemGroup>
-	  <UpToDateCheckInput Remove="Views\TagsBox\TagView.xaml" />
-	</ItemGroup>
 </Project>
