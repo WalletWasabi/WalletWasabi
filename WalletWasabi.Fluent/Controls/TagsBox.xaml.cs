@@ -22,7 +22,7 @@ namespace WalletWasabi.Fluent.Controls
             AvaloniaProperty.Register<TagsBox, bool>(nameof(RestrictInputToSuggestions));
 
         public static readonly StyledProperty<int> ItemCountLimitProperty =
-            AvaloniaProperty.Register<TagsBox, int>(nameof(ItemCountLimit));
+            AvaloniaProperty.Register<TagsBox, int>(nameof(ItemCountLimit) );
 
         public static readonly StyledProperty<object> SelectedTagProperty =
             AvaloniaProperty.Register<TagsBox, object>(nameof(SelectedTag), defaultBindingMode: BindingMode.TwoWay);
@@ -34,12 +34,19 @@ namespace WalletWasabi.Fluent.Controls
                 o => o.Suggestions,
                 (o, v) => o.Suggestions = v);
 
+        public new static readonly DirectProperty<TagsBox, IEnumerable> ItemsProperty =
+            ItemsControl.ItemsProperty.AddOwnerWithDataValidation<TagsBox>(
+                o => o.Items,
+                (o, v) => o.Items = v,
+                defaultBindingMode: BindingMode.TwoWay,
+                enableDataValidation: true);
+        
         private AutoCompleteBox? _autoCompleteBox;
 
         private bool _backspaceEmptyField1;
         private bool _backspaceEmptyField2;
         private IDisposable? _disposable;
-
+        private IEnumerable _items;
         private bool _isInputEnabled = true;
         private IEnumerable? _suggestions;
         private bool _isFocused;
@@ -55,13 +62,18 @@ namespace WalletWasabi.Fluent.Controls
             get => GetValue(SelectedTagProperty);
             set => SetValue(SelectedTagProperty, value);
         }
+        
+        public new IEnumerable Items
+        {
+            get => _items;
+            set => SetAndRaise(ItemsProperty, ref _items, value);
+        }
 
         public int ItemCountLimit
         {
             get => GetValue(ItemCountLimitProperty);
             set => SetValue(ItemCountLimitProperty, value);
-        }
-
+        } 
         public IEnumerable? Suggestions
         {
             get => _suggestions;
