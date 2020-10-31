@@ -19,7 +19,6 @@ namespace WalletWasabi.Fluent.ViewModels
     public class RecoveryPageViewModel : NavBarItemViewModel
     {
         private readonly ObservableAsPropertyHelper<Mnemonic?> _currentMnemonic;
-        private readonly ObservableAsPropertyHelper<bool> _isMnemonicValid;
         private ObservableCollection<string> _mnemonics;
         private IEnumerable<string> _suggestions;
         private string _selectedTag;
@@ -50,25 +49,23 @@ namespace WalletWasabi.Fluent.ViewModels
             _currentMnemonic = Mnemonics.ToObservableChangeSet().ToCollection()
                 .Select(x => x.Count == 12 ? new Mnemonic(GetTagsAsConcatString()) : default)
                 .ToProperty(this, x => x.CurrentMnemonics);
-
-            _isMnemonicValid = this.WhenAnyValue(x => x.CurrentMnemonics)
-                .Select(x => x?.WordList?.WordCount == 12 && x.IsValidChecksum)
-                .Do(x => this.RaisePropertyChanged(nameof(Mnemonics)))
-                .ToProperty(this, x => x.IsMnemonicValid);
-
+ 
             this.WhenAnyValue(x => x.SelectedTag)
                 .Where(x => !string.IsNullOrEmpty(x))
                 .Subscribe(AddTag);
+            
+            // TODO: Will try to find ways of doing this better...
+            this.WhenAnyValue(x => x.CurrentMnemonics)
+                .Subscribe(x => this.RaisePropertyChanged(nameof(Mnemonics)));
 
             this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);
         }
 
         private void ValidateMnemonics(IValidationErrors errors)
         {
-            if (!IsMnemonicValid && Mnemonics.Count == 12)
+            if (CurrentMnemonics is { } && !CurrentMnemonics.IsValidChecksum)
             {
                 errors.Add(ErrorSeverity.Error, "Invalid recovery seed phrase.");
-
             }
         }
 
@@ -83,12 +80,7 @@ namespace WalletWasabi.Fluent.ViewModels
             return string.Join(' ', Mnemonics);
         }
 
-        public Mnemonic? CurrentMnemonics => _currentMnemonic?.Value;
-        public bool IsMnemonicValid => _isMnemonicValid.Value;
-
-
+        public Mnemonic? CurrentMnemonics => _currentMnemonic.Value;
         public override string IconName => "settings_regular";
-        public string? UrlPathSegment { get; }
-        public IScreen HostScreen { get; }
     }
 }

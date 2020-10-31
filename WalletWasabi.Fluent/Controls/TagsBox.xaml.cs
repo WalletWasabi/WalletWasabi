@@ -27,8 +27,7 @@ namespace WalletWasabi.Fluent.Controls
 
         public static readonly StyledProperty<object> SelectedTagProperty =
             AvaloniaProperty.Register<TagsBox, object>(nameof(SelectedTag), defaultBindingMode: BindingMode.TwoWay);
-
-        // ReSharper disable once MemberCanBePrivate.Global
+        
         public static readonly DirectProperty<TagsBox, IEnumerable?> SuggestionsProperty =
             AvaloniaProperty.RegisterDirect<TagsBox, IEnumerable?>(
                 nameof(Suggestions),
@@ -277,7 +276,6 @@ namespace WalletWasabi.Fluent.Controls
 
             var strTrimmed = str.Trim();
 
-            // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
             switch (e.Key)
             {
                 case Key.Back when _backspaceEmptyField1 && _backspaceEmptyField2:
@@ -298,8 +296,8 @@ namespace WalletWasabi.Fluent.Controls
 
         private void RemoveTag()
         {
-            CheckIsInputEnabled();
             if (Items is IList x && x.Count > 0) x.RemoveAt(Math.Max(0, x.Count - 1));
+            CheckIsInputEnabled();
         }
 
         private void AddTag(string strTrimmed)

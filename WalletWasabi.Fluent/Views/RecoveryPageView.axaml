@@ -15,7 +15,7 @@
         <c:ContentArea Title="Enter recovery words" Caption="Type in your 12 recovery words and click continue"
                        Margin="44 0">
             <StackPanel>
-                <Label Classes="h7 bold" Content="_Type in your recovery words here:" Target="seedTagsBox" />
+                <Label Content="_Type in your recovery words here:" Target="seedTagsBox" />
                 <c:TagsBox x:Name="seedTagsBox"
                            ItemCountLimit="12"
                            RestrictInputToSuggestions="True"
