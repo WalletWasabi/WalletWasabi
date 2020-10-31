@@ -12,7 +12,7 @@ namespace WalletWasabi.Fluent.Behaviors
 	{
 		private bool _sidebarWasForceClosed;
 
-		private CompositeDisposable? Disposables { get; set; }
+		private CompositeDisposable Disposables { get; set; }
 
 		public static readonly StyledProperty<double> CollapseThresholdProperty =
 			AvaloniaProperty.Register<SplitViewAutoBehavior, double>(nameof(CollapseThreshold));
@@ -58,11 +58,6 @@ namespace WalletWasabi.Fluent.Behaviors
 
 		private void OnCollapseOnClickAction()
 		{
-			if (AssociatedObject is null)
-			{
-				return;
-			}
-			
 			if (AssociatedObject.Bounds.Width <= CollapseThreshold && AssociatedObject.IsPaneOpen)
 			{
 				AssociatedObject.IsPaneOpen = false;
@@ -71,11 +66,6 @@ namespace WalletWasabi.Fluent.Behaviors
 
 		private void OnToggleAction()
 		{
-			if (AssociatedObject is null)
-			{
-				return;
-			}
-			
 			if (AssociatedObject.Bounds.Width > CollapseThreshold)
 			{
 				_sidebarWasForceClosed = AssociatedObject.IsPaneOpen;
