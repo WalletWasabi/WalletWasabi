@@ -44,14 +44,15 @@ namespace WalletWasabi.Fluent.Controls
 
         private readonly CompositeDisposable _compositeDisposable = new CompositeDisposable();
 
-        private AutoCompleteBox? _autoCompleteBox;
-
         private bool _backspaceEmptyField1;
         private bool _backspaceEmptyField2;
         private bool _isFocused;
         private bool _isInputEnabled = true;
         private IEnumerable? _items;
         private IEnumerable? _suggestions;
+
+        private AutoCompleteBox? _autoCompleteBox;
+        // private AutoCompleteBox? _autoCompleteBox;
 
         public bool RestrictInputToSuggestions
         {
@@ -83,18 +84,6 @@ namespace WalletWasabi.Fluent.Controls
             set => SetAndRaise(SuggestionsProperty, ref _suggestions, value);
         }
 
-        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
-        {
-            if (_autoCompleteBox is null) return;
-            _autoCompleteBox.KeyUp -= OnKeyUp;
-            _autoCompleteBox.TextChanged -= OnTextChanged;
-            _autoCompleteBox.DropDownClosed -= OnDropDownClosed;
-            _autoCompleteBox.GotFocus -= OnOnAutoCompleteBoxGotFocus;
-            _autoCompleteBox.LostFocus -= OnAutoCompleteBoxLostFocus;
-            _compositeDisposable.Dispose();
-            base.OnDetachedFromVisualTree(e);
-        }
-
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
         {
             base.OnApplyTemplate(e);
@@ -103,9 +92,9 @@ namespace WalletWasabi.Fluent.Controls
 
             _autoCompleteBox = (Presenter.Panel as ConcatenatingWrapPanel)?.ConcatenatedChildren
                 .OfType<AutoCompleteBox>().FirstOrDefault();
-
+            
             if (_autoCompleteBox is null) return;
-
+            
             _autoCompleteBox.KeyUp += OnKeyUp;
             _autoCompleteBox.TextChanged += OnTextChanged;
             _autoCompleteBox.DropDownClosed += OnDropDownClosed;
@@ -117,6 +106,21 @@ namespace WalletWasabi.Fluent.Controls
                 .DisposeWith(_compositeDisposable);
         }
 
+        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            if (_autoCompleteBox is { })
+            {
+                _autoCompleteBox.KeyUp -= OnKeyUp;
+                _autoCompleteBox.TextChanged -= OnTextChanged;
+                _autoCompleteBox.DropDownClosed -= OnDropDownClosed;
+                _autoCompleteBox.GotFocus -= OnOnAutoCompleteBoxGotFocus;
+                _autoCompleteBox.LostFocus -= OnAutoCompleteBoxLostFocus;
+            }
+
+            _compositeDisposable.Dispose();
+            base.OnDetachedFromVisualTree(e);
+        }
+        
         private void CheckIsInputEnabled()
         {
             if (Items is IList x &&
@@ -124,20 +128,20 @@ namespace WalletWasabi.Fluent.Controls
                 _isInputEnabled = x.Count < ItemCountLimit;
         }
 
-        private void OnAutoCompleteBoxLostFocus(object? sender, RoutedEventArgs e)
+        private void OnAutoCompleteBoxLostFocus(object? _, RoutedEventArgs e)
         {
             PseudoClasses.Set(":focus", false);
         }
 
-        private void OnOnAutoCompleteBoxGotFocus(object? sender, GotFocusEventArgs e)
+        private void OnOnAutoCompleteBoxGotFocus(object? _, GotFocusEventArgs e)
         {
             PseudoClasses.Set(":focus", true);
         }
 
         private void OnTextInput(object? sender, TextInputEventArgs e)
         {
-            if (_autoCompleteBox is null) return;
-
+            if (!(sender is AutoCompleteBox autoCompleteBox)) return;
+            
             if (!_isInputEnabled)
             {
                 e.Handled = true;
@@ -147,7 +151,7 @@ namespace WalletWasabi.Fluent.Controls
             if (RestrictInputToSuggestions &&
                 Suggestions is IList<string> suggestions &&
                 !suggestions.Any(x =>
-                    x.StartsWith(_autoCompleteBox.SearchText ?? "", true, CultureInfo.CurrentCulture)))
+                    x.StartsWith(autoCompleteBox.SearchText ?? "", true, CultureInfo.CurrentCulture)))
                 e.Handled = true;
         }
 
@@ -211,12 +215,12 @@ namespace WalletWasabi.Fluent.Controls
 
         private void OnDropDownClosed(object? sender, EventArgs e)
         {
-            if (_autoCompleteBox is null) return;
-
-            var currentText = _autoCompleteBox.Text ?? "";
+            if (!(sender is AutoCompleteBox autoCompleteBox)) return;
+            
+            var currentText = autoCompleteBox.Text ?? "";
 
             if (currentText.Length == 0 ||
-                !(_autoCompleteBox.SelectedItem is string selItem) ||
+                !(autoCompleteBox.SelectedItem is string selItem) ||
                 selItem.Length == 0 ||
                 currentText != selItem)
                 return;
@@ -225,8 +229,8 @@ namespace WalletWasabi.Fluent.Controls
 
             BackspaceLogicClear();
 
-            _autoCompleteBox.ClearValue(AutoCompleteBox.SelectedItemProperty);
-            Dispatcher.UIThread.Post(() => { _autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); });
+            autoCompleteBox.ClearValue(AutoCompleteBox.SelectedItemProperty);
+            Dispatcher.UIThread.Post(() => { autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); });
         }
 
         private void BackspaceLogicClear()
@@ -236,9 +240,9 @@ namespace WalletWasabi.Fluent.Controls
 
         private void OnTextChanged(object? sender, EventArgs e)
         {
-            if (_autoCompleteBox is null) return;
+            if (!(sender is AutoCompleteBox autoCompleteBox)) return;
 
-            var currentText = _autoCompleteBox.Text ?? "";
+            var currentText = autoCompleteBox.Text ?? "";
             var currentTextTrimmed = currentText.Trim();
 
             if (RestrictInputToSuggestions && Suggestions is IList<string> suggestions)
@@ -259,14 +263,15 @@ namespace WalletWasabi.Fluent.Controls
 
             BackspaceLogicClear();
 
-            Dispatcher.UIThread.Post(() => { _autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); });
+            Dispatcher.UIThread.Post(() => { autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); });
         }
 
         private void OnKeyUp(object? sender, KeyEventArgs e)
         {
-            if (_autoCompleteBox is null) return;
+            var autoCompleteBox = sender as AutoCompleteBox;
+            if (autoCompleteBox is null) return;
 
-            var str = _autoCompleteBox?.Text ?? "";
+            var str = autoCompleteBox.Text ?? "";
 
             _backspaceEmptyField2 = _backspaceEmptyField1;
             _backspaceEmptyField1 = str.Length == 0;
@@ -287,7 +292,7 @@ namespace WalletWasabi.Fluent.Controls
                         break;
                     BackspaceLogicClear();
                     AddTag(strTrimmed);
-                    Dispatcher.UIThread.Post(() => { _autoCompleteBox?.ClearValue(AutoCompleteBox.TextProperty); });
+                    Dispatcher.UIThread.Post(() => { autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); });
                     break;
             }
         }
