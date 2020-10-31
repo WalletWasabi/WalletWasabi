@@ -52,7 +52,6 @@ namespace WalletWasabi.Fluent.Controls
         private IEnumerable? _suggestions;
 
         private AutoCompleteBox? _autoCompleteBox;
-        // private AutoCompleteBox? _autoCompleteBox;
 
         public bool RestrictInputToSuggestions
         {
