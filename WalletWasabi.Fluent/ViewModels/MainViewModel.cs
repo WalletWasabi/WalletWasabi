@@ -10,7 +10,7 @@ namespace WalletWasabi.Fluent.ViewModels
 {
 	public class MainViewModel : ViewModelBase, IScreen, IDialogHost
 	{
-		private readonly Global _global;
+		private readonly Global Global;
 		private StatusBarViewModel _statusBar;
 		private string _title = "Wasabi Wallet";
 		private DialogViewModelBase? _currentDialog;
@@ -18,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public MainViewModel(Global global)
 		{
-			_global = global;
+			Global = global;
 			Network = global.Network;
 
 			_currentDialog = null;
@@ -64,9 +64,9 @@ namespace WalletWasabi.Fluent.ViewModels
 		public void Initialize()
 		{
 			// Temporary to keep things running without VM modifications.
-			MainWindowViewModel.Instance = new MainWindowViewModel(_global.Network, _global.UiConfig, _global.WalletManager, null!, null!, false);
+			MainWindowViewModel.Instance = new MainWindowViewModel(Global.Network, Global.UiConfig, Global.WalletManager, null!, null!, false);
 
-			StatusBar.Initialize(_global.Nodes.ConnectedNodes);
+			StatusBar.Initialize(Global.Nodes.ConnectedNodes);
 
 			if (Network != Network.Main)
 			{

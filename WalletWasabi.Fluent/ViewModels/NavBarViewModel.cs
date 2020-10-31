@@ -18,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		private ObservableCollection<NavBarItemViewModel> _topItems;
 		private ObservableCollection<NavBarItemViewModel> _bottomItems;
 		private NavBarItemViewModel _selectedItem;
-		private readonly WalletManagerViewModel _walletManager;
+		private readonly WalletManagerViewModel WalletManager;
 		private bool _isBackButtonVisible;
 		private bool _isNavigating;
 		private bool _isOpen;
@@ -29,7 +29,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		public NavBarViewModel(IScreen screen, RoutingState router, WalletManagerViewModel walletManager)
 		{
 			Router = router;
-			_walletManager = walletManager;
+			WalletManager = walletManager;
 			_topItems = new ObservableCollection<NavBarItemViewModel>();
 			_bottomItems = new ObservableCollection<NavBarItemViewModel>();
 
@@ -86,7 +86,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _topItems, value);
 		}
 
-		public ObservableCollection<WalletViewModelBase> Items => _walletManager.Items;
+		public ObservableCollection<WalletViewModelBase> Items => WalletManager.Items;
 
 		public ObservableCollection<NavBarItemViewModel> BottomItems
 		{

@@ -10,7 +10,7 @@ namespace WalletWasabi.Fluent.ViewModels
 {
 	public class HomePageViewModel : NavBarItemViewModel
 	{
-		private readonly ReadOnlyObservableCollection<NavBarItemViewModel> _items;
+		private readonly ReadOnlyObservableCollection<NavBarItemViewModel> NavBarItems;
 
 		public HomePageViewModel(IScreen screen, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage) : base(screen)
 		{
@@ -24,7 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				.Sort(SortExpressionComparer<NavBarItemViewModel>.Ascending(i => i.Title))
 				.Merge(list.Connect())
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Bind(out _items)
+				.Bind(out NavBarItems)
 				.AsObservableList();
 
 			OpenWalletsFolderCommand = ReactiveCommand.Create(() => IoHelpers.OpenFolderInFileExplorer(walletManager.Model.WalletDirectories.WalletsDir));			
@@ -32,7 +32,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public override string IconName => "home_regular";
 
-		public ReadOnlyObservableCollection<NavBarItemViewModel> Items => _items;
+		public ReadOnlyObservableCollection<NavBarItemViewModel> Items => NavBarItems;
 
 		public ReactiveCommand<Unit, Unit> OpenWalletsFolderCommand { get; }
 	}

@@ -17,16 +17,16 @@ namespace WalletWasabi.Fluent.ViewModels
 	{
 		private WalletViewModelBase _selectedItem;
 		private ObservableCollection<WalletViewModelBase> _items;
-		private readonly Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
-		private readonly IScreen _screen;
+		private readonly Dictionary<Wallet, WalletViewModelBase> WalletDictionary;
+		private readonly IScreen Screen;
 		private bool _anyWalletStarted;
 
 		public WalletManagerViewModel(IScreen screen, WalletManager walletManager, UiConfig uiConfig)
 		{
 			Model = walletManager;
-			_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
+			WalletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
 			_items = new ObservableCollection<WalletViewModelBase>();
-			_screen = screen;
+			Screen = screen;
 
 			Observable
 				.FromEventPattern<WalletState>(walletManager, nameof(WalletManager.WalletStateChanged))
@@ -35,13 +35,13 @@ namespace WalletWasabi.Fluent.ViewModels
 				{
 					var wallet = x.Sender as Wallet;
 
-					if (wallet is { } && _walletDictionary.ContainsKey(wallet))
+					if (wallet is { } && WalletDictionary.ContainsKey(wallet))
 					{
 						if (wallet.State == WalletState.Stopping)
 						{
-							RemoveWallet(_walletDictionary[wallet]);
+							RemoveWallet(WalletDictionary[wallet]);
 						}
-						else if (_walletDictionary[wallet] is ClosedWalletViewModel cwvm && wallet.State == WalletState.Started)
+						else if (WalletDictionary[wallet] is ClosedWalletViewModel cwvm && wallet.State == WalletState.Started)
 						{
 							OpenClosedWallet(walletManager, uiConfig, cwvm);
 						}
@@ -108,7 +108,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				throw new Exception("Wallet already opened.");
 			}
 
-			var walletViewModel = WalletViewModel.Create(_screen, uiConfig, wallet);
+			var walletViewModel = WalletViewModel.Create(Screen, uiConfig, wallet);
 
 			InsertWallet(walletViewModel);
 
@@ -125,7 +125,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		private void InsertWallet(WalletViewModelBase walletVM)
 		{
 			Items.InsertSorted(walletVM);
-			_walletDictionary.Add(walletVM.Wallet, walletVM);
+			WalletDictionary.Add(walletVM.Wallet, walletVM);
 		}
 
 		private void RemoveWallet(WalletViewModelBase walletVM)
@@ -133,14 +133,14 @@ namespace WalletWasabi.Fluent.ViewModels
 			walletVM.Dispose();
 
 			_items.Remove(walletVM);
-			_walletDictionary.Remove(walletVM.Wallet);
+			WalletDictionary.Remove(walletVM.Wallet);
 		}
 
 		private void LoadWallets(WalletManager walletManager)
 		{
 			foreach (var wallet in walletManager.GetWallets())
 			{
-				InsertWallet(ClosedWalletViewModel.Create(_screen, walletManager, wallet));				
+				InsertWallet(ClosedWalletViewModel.Create(Screen, walletManager, wallet));
 			}
 		}
 	}
