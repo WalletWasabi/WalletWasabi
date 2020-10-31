@@ -302,8 +302,7 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void OnKeyUp(object? sender, KeyEventArgs e)
 		{
-			var autoCompleteBox = sender as AutoCompleteBox;
-			if (autoCompleteBox is null)
+			if (!(sender is AutoCompleteBox autoCompleteBox))
 			{
 				return;
 			}
