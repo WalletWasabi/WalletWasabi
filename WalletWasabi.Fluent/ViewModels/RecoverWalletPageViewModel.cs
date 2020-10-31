@@ -18,24 +18,6 @@ namespace WalletWasabi.Fluent.ViewModels
 		private IEnumerable<string> _suggestions;
 		private string _selectedTag;
 
-		public ObservableCollection<string> Mnemonics
-		{
-			get => _mnemonics;
-			set => this.RaiseAndSetIfChanged(ref _mnemonics, value);
-		}
-
-		public IEnumerable<string> Suggestions
-		{
-			get => _suggestions;
-			set => this.RaiseAndSetIfChanged(ref _suggestions, value);
-		}
-
-		public string SelectedTag
-		{
-			get => _selectedTag;
-			set => this.RaiseAndSetIfChanged(ref _selectedTag, value);
-		}
-
 		public RecoveryPageViewModel(IScreen screen) : base(screen)
 		{
 			Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
@@ -56,6 +38,27 @@ namespace WalletWasabi.Fluent.ViewModels
 			this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);
 		}
 
+		public ObservableCollection<string> Mnemonics
+		{
+			get => _mnemonics;
+			set => this.RaiseAndSetIfChanged(ref _mnemonics, value);
+		}
+
+		public IEnumerable<string> Suggestions
+		{
+			get => _suggestions;
+			set => this.RaiseAndSetIfChanged(ref _suggestions, value);
+		}
+
+		public string SelectedTag
+		{
+			get => _selectedTag;
+			set => this.RaiseAndSetIfChanged(ref _selectedTag, value);
+		}
+
+		public Mnemonic? CurrentMnemonics => _currentMnemonic.Value;
+		public override string IconName => "settings_regular";
+
 		private void ValidateMnemonics(IValidationErrors errors)
 		{
 			if (CurrentMnemonics is { } && !CurrentMnemonics.IsValidChecksum)
@@ -74,8 +77,5 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			return string.Join(' ', Mnemonics);
 		}
-
-		public Mnemonic? CurrentMnemonics => _currentMnemonic.Value;
-		public override string IconName => "settings_regular";
 	}
 }
