@@ -234,7 +234,7 @@ namespace WalletWasabi.Fluent.Controls
 
         private void BackspaceLogicClear()
         {
-            _backspaceEmptyField2 = _backspaceEmptyField1 = false;
+            _backspaceEmptyField2 = _backspaceEmptyField1 = true;
         }
 
         private void OnTextChanged(object? sender, EventArgs e)
