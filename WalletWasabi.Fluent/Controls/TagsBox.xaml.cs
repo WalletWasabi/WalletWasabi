@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Reactive.Disposables;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -22,7 +23,7 @@ namespace WalletWasabi.Fluent.Controls
             AvaloniaProperty.Register<TagsBox, bool>(nameof(RestrictInputToSuggestions));
 
         public static readonly StyledProperty<int> ItemCountLimitProperty =
-            AvaloniaProperty.Register<TagsBox, int>(nameof(ItemCountLimit) );
+            AvaloniaProperty.Register<TagsBox, int>(nameof(ItemCountLimit));
 
         public static readonly StyledProperty<object> SelectedTagProperty =
             AvaloniaProperty.Register<TagsBox, object>(nameof(SelectedTag), defaultBindingMode: BindingMode.TwoWay);
@@ -34,22 +35,23 @@ namespace WalletWasabi.Fluent.Controls
                 o => o.Suggestions,
                 (o, v) => o.Suggestions = v);
 
-        public new static readonly DirectProperty<TagsBox, IEnumerable> ItemsProperty =
+        public new static readonly DirectProperty<TagsBox, IEnumerable?> ItemsProperty =
             ItemsControl.ItemsProperty.AddOwnerWithDataValidation<TagsBox>(
                 o => o.Items,
                 (o, v) => o.Items = v,
                 defaultBindingMode: BindingMode.TwoWay,
                 enableDataValidation: true);
-        
+
+        private readonly CompositeDisposable _compositeDisposable = new CompositeDisposable();
+
         private AutoCompleteBox? _autoCompleteBox;
 
         private bool _backspaceEmptyField1;
         private bool _backspaceEmptyField2;
-        private IDisposable? _disposable;
-        private IEnumerable _items;
-        private bool _isInputEnabled = true;
-        private IEnumerable? _suggestions;
         private bool _isFocused;
+        private bool _isInputEnabled = true;
+        private IEnumerable? _items;
+        private IEnumerable? _suggestions;
 
         public bool RestrictInputToSuggestions
         {
@@ -62,36 +64,35 @@ namespace WalletWasabi.Fluent.Controls
             get => GetValue(SelectedTagProperty);
             set => SetValue(SelectedTagProperty, value);
         }
-        
-        public new IEnumerable Items
-        {
-            get => _items;
-            set => SetAndRaise(ItemsProperty, ref _items, value);
-        }
 
         public int ItemCountLimit
         {
             get => GetValue(ItemCountLimitProperty);
             set => SetValue(ItemCountLimitProperty, value);
-        } 
+        }
+
+        public new IEnumerable? Items
+        {
+            get => _items;
+            set => SetAndRaise(ItemsProperty, ref _items, value);
+        }
+
         public IEnumerable? Suggestions
         {
             get => _suggestions;
             set => SetAndRaise(SuggestionsProperty, ref _suggestions, value);
         }
 
-        private void CheckIsInputEnabled()
-        {
-            if (Items is { } && ItemCountLimit > 0 && Items is IList x)
-            {
-                _isInputEnabled = x.Count < ItemCountLimit;
-            }
-        }
-
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
         {
+            if (_autoCompleteBox is null) return;
+            _autoCompleteBox.KeyUp -= OnKeyUp;
+            _autoCompleteBox.TextChanged -= OnTextChanged;
+            _autoCompleteBox.DropDownClosed -= OnDropDownClosed;
+            _autoCompleteBox.GotFocus -= OnOnAutoCompleteBoxGotFocus;
+            _autoCompleteBox.LostFocus -= OnAutoCompleteBoxLostFocus;
+            _compositeDisposable.Dispose();
             base.OnDetachedFromVisualTree(e);
-            _disposable?.Dispose();
         }
 
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
@@ -108,13 +109,19 @@ namespace WalletWasabi.Fluent.Controls
             _autoCompleteBox.KeyUp += OnKeyUp;
             _autoCompleteBox.TextChanged += OnTextChanged;
             _autoCompleteBox.DropDownClosed += OnDropDownClosed;
-
             _autoCompleteBox.GotFocus += OnOnAutoCompleteBoxGotFocus;
             _autoCompleteBox.LostFocus += OnAutoCompleteBoxLostFocus;
 
-            _disposable =
-                _autoCompleteBox.AddDisposableHandler(TextInputEvent, OnTextInput,
-                    RoutingStrategies.Tunnel);
+            _autoCompleteBox
+                .AddDisposableHandler(TextInputEvent, OnTextInput, RoutingStrategies.Tunnel)
+                .DisposeWith(_compositeDisposable);
+        }
+
+        private void CheckIsInputEnabled()
+        {
+            if (Items is IList x &&
+                ItemCountLimit > 0)
+                _isInputEnabled = x.Count < ItemCountLimit;
         }
 
         private void OnAutoCompleteBoxLostFocus(object? sender, RoutedEventArgs e)
@@ -129,10 +136,7 @@ namespace WalletWasabi.Fluent.Controls
 
         private void OnTextInput(object? sender, TextInputEventArgs e)
         {
-            if (_autoCompleteBox is null)
-            {
-                return;
-            }
+            if (_autoCompleteBox is null) return;
 
             if (!_isInputEnabled)
             {
@@ -141,19 +145,15 @@ namespace WalletWasabi.Fluent.Controls
             }
 
             if (RestrictInputToSuggestions &&
-                Suggestions is { } &&
-                !Suggestions.Cast<string>().Any(x => x.StartsWith(_autoCompleteBox.SearchText ?? "", true, CultureInfo.CurrentCulture)))
-            {
+                Suggestions is IList<string> suggestions &&
+                !suggestions.Any(x =>
+                    x.StartsWith(_autoCompleteBox.SearchText ?? "", true, CultureInfo.CurrentCulture)))
                 e.Handled = true;
-            }
         }
 
         protected override void UpdateDataValidation<T>(AvaloniaProperty<T> property, BindingValue<T> value)
         {
-            if (property == ItemsProperty)
-            {
-                DataValidationErrors.SetError(this, value.Error);
-            }
+            if (property == ItemsProperty) DataValidationErrors.SetError(this, value.Error);
         }
 
         protected override void OnGotFocus(GotFocusEventArgs e)
@@ -174,22 +174,15 @@ namespace WalletWasabi.Fluent.Controls
 
             while (focused != null)
             {
-                if (ReferenceEquals(focused, this))
-                {
-                    return true;
-                }
+                if (ReferenceEquals(focused, this)) return true;
 
                 // This helps deal with popups that may not be in the same
                 // visual tree
                 IVisual parent = focused.GetVisualParent();
-                if (parent == null)
-                {
+                if (parent is null)
                     // Try the logical parent.
                     if (focused is IControl element)
-                    {
                         parent = element.Parent;
-                    }
-                }
 
                 focused = parent;
             }
@@ -209,12 +202,8 @@ namespace WalletWasabi.Fluent.Controls
             _isFocused = hasFocus;
 
             if (hasFocus)
-            {
                 if (!wasFocused)
-                {
                     _autoCompleteBox?.Focus();
-                }
-            }
 
             PseudoClasses.Set(":focus", hasFocus);
             _isFocused = hasFocus;
@@ -222,10 +211,7 @@ namespace WalletWasabi.Fluent.Controls
 
         private void OnDropDownClosed(object? sender, EventArgs e)
         {
-            if (_autoCompleteBox is null)
-            {
-                return;
-            }
+            if (_autoCompleteBox is null) return;
 
             var currentText = _autoCompleteBox.Text ?? "";
 
@@ -233,9 +219,7 @@ namespace WalletWasabi.Fluent.Controls
                 !(_autoCompleteBox.SelectedItem is string selItem) ||
                 selItem.Length == 0 ||
                 currentText != selItem)
-            {
                 return;
-            }
 
             AddTag(currentText.Trim());
 
@@ -252,10 +236,7 @@ namespace WalletWasabi.Fluent.Controls
 
         private void OnTextChanged(object? sender, EventArgs e)
         {
-            if (_autoCompleteBox is null)
-            {
-                return;
-            }
+            if (_autoCompleteBox is null) return;
 
             var currentText = _autoCompleteBox.Text ?? "";
             var currentTextTrimmed = currentText.Trim();
@@ -265,19 +246,14 @@ namespace WalletWasabi.Fluent.Controls
                 var keywordIsInSuggestions = suggestions.Any(x => x.Equals(currentTextTrimmed,
                     StringComparison.InvariantCultureIgnoreCase));
 
-                if (!keywordIsInSuggestions)
-                {
-                    return;
-                }
+                if (!keywordIsInSuggestions) return;
             }
 
             if (!_isInputEnabled ||
                 currentText.Length < 1 ||
                 string.IsNullOrEmpty(currentTextTrimmed) ||
                 !currentText.EndsWith(' '))
-            {
                 return;
-            }
 
             AddTag(currentTextTrimmed);
 
@@ -301,20 +277,14 @@ namespace WalletWasabi.Fluent.Controls
             switch (e.Key)
             {
                 case Key.Back when _backspaceEmptyField1 && _backspaceEmptyField2:
-
                     RemoveTag();
-
                     break;
                 case Key.Enter when _isInputEnabled && !string.IsNullOrEmpty(strTrimmed):
-
                     if (RestrictInputToSuggestions &&
                         Suggestions is { } &&
                         !Suggestions.Cast<string>().Any(x =>
                             x.Equals(strTrimmed, StringComparison.InvariantCultureIgnoreCase)))
-                    {
                         break;
-                    }
-
                     BackspaceLogicClear();
                     AddTag(strTrimmed);
                     Dispatcher.UIThread.Post(() => { _autoCompleteBox?.ClearValue(AutoCompleteBox.TextProperty); });
