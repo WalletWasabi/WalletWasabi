@@ -55,8 +55,8 @@ namespace WalletWasabi.Fluent.Controls
 		/// </summary>
 		public Orientation Orientation
 		{
-			get => GetValue(OrientationProperty);
-			set => SetValue(OrientationProperty, value);
+			get { return GetValue(OrientationProperty); }
+			set { SetValue(OrientationProperty, value); }
 		}
 
 		/// <summary>
@@ -64,8 +64,8 @@ namespace WalletWasabi.Fluent.Controls
 		/// </summary>
 		public double ItemWidth
 		{
-			get => GetValue(ItemWidthProperty);
-			set => SetValue(ItemWidthProperty, value);
+			get { return GetValue(ItemWidthProperty); }
+			set { SetValue(ItemWidthProperty, value); }
 		}
 
 		/// <summary>
@@ -73,8 +73,8 @@ namespace WalletWasabi.Fluent.Controls
 		/// </summary>
 		public double ItemHeight
 		{
-			get => GetValue(ItemHeightProperty);
-			set => SetValue(ItemHeightProperty, value);
+			get { return GetValue(ItemHeightProperty); }
+			set { SetValue(ItemHeightProperty, value); }
 		}
 
 		/// <summary>
@@ -307,33 +307,13 @@ namespace WalletWasabi.Fluent.Controls
 
 			internal double Width
 			{
-				get => _orientation == Orientation.Horizontal ? U : V;
-				set
-				{
-					if (_orientation == Orientation.Horizontal)
-					{
-						U = value;
-					}
-					else
-					{
-						V = value;
-					}
-				}
+				get { return _orientation == Orientation.Horizontal ? U : V; }
+				set { if (_orientation == Orientation.Horizontal) U = value; else V = value; }
 			}
 			internal double Height
 			{
-				get => _orientation == Orientation.Horizontal ? V : U;
-				set
-				{
-					if (_orientation == Orientation.Horizontal)
-					{
-						V = value;
-					}
-					else
-					{
-						U = value;
-					}
-				}
+				get { return _orientation == Orientation.Horizontal ? V : U; }
+				set { if (_orientation == Orientation.Horizontal) V = value; else U = value; }
 			}
 		}
 	}
