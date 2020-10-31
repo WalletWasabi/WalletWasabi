@@ -1,3 +1,4 @@
+using System;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tor.Socks5.Models.Bases;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
@@ -6,22 +7,22 @@ namespace WalletWasabi.Tor.Socks5.Models.Messages
 {
 	public class UsernamePasswordResponse : ByteArraySerializableBase
 	{
-		public UsernamePasswordResponse()
+		/// <param name="bytes">2 bytes are required to be passed in.</param>
+		public UsernamePasswordResponse(byte[] bytes)
 		{
-		}
-
-		public AuthVerField Ver { get; set; }
-
-		public AuthStatusField Status { get; set; }
-
-		public override void FromBytes(byte[] bytes)
-		{
-			Guard.NotNullOrEmpty(nameof(bytes), bytes);
 			Guard.Same($"{nameof(bytes)}.{nameof(bytes.Length)}", 2, bytes.Length);
 
 			Ver = new AuthVerField(bytes[0]);
-
 			Status = new AuthStatusField(bytes[1]);
+		}
+
+		public AuthVerField Ver { get; }
+
+		public AuthStatusField Status { get; }
+
+		public override void FromBytes(byte[] bytes)
+		{
+			throw new NotSupportedException("This method is no longer supported.");
 		}
 
 		public override byte[] ToBytes() => new byte[]

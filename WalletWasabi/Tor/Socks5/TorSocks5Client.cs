@@ -121,15 +121,13 @@ namespace WalletWasabi.Tor.Socks5
 			byte[] sendBuffer = new VersionMethodRequest(methods).ToBytes();
 			byte[] receiveBuffer = await SendAsync(sendBuffer, receiveBufferSize: 2, cancellationToken).ConfigureAwait(false);
 
-			var methodSelection = new MethodSelectionResponse();
-			methodSelection.FromBytes(receiveBuffer);
+			var methodSelection = new MethodSelectionResponse(receiveBuffer);
 
 			if (methodSelection.Ver != VerField.Socks5)
 			{
 				throw new NotSupportedException($"SOCKS{methodSelection.Ver.Value} not supported. Only SOCKS5 is supported.");
 			}
-
-			if (methodSelection.Method == MethodField.NoAcceptableMethods)
+			else if (methodSelection.Method == MethodField.NoAcceptableMethods)
 			{
 				// https://www.ietf.org/rfc/rfc1928.txt
 				// If the selected METHOD is X'FF', none of the methods listed by the
@@ -137,8 +135,7 @@ namespace WalletWasabi.Tor.Socks5
 				DisposeTcpClient();
 				throw new NotSupportedException("Tor's SOCKS5 proxy does not support any of the client's authentication methods.");
 			}
-
-			if (methodSelection.Method == MethodField.UsernamePassword)
+			else if (methodSelection.Method == MethodField.UsernamePassword)
 			{
 				// https://tools.ietf.org/html/rfc1929#section-2
 				// Once the SOCKS V5 server has started, and the client has selected the
@@ -153,8 +150,8 @@ namespace WalletWasabi.Tor.Socks5
 				Array.Clear(receiveBuffer, 0, receiveBuffer.Length);
 				receiveBuffer = await SendAsync(sendBuffer, receiveBufferSize: 2, cancellationToken).ConfigureAwait(false);
 
-				var userNamePasswordResponse = new UsernamePasswordResponse();
-				userNamePasswordResponse.FromBytes(receiveBuffer);
+				var userNamePasswordResponse = new UsernamePasswordResponse(receiveBuffer);
+
 				if (userNamePasswordResponse.Ver != usernamePasswordRequest.Ver)
 				{
 					throw new NotSupportedException($"Authentication version {userNamePasswordResponse.Ver.Value} not supported. Only version {usernamePasswordRequest.Ver} is supported.");
