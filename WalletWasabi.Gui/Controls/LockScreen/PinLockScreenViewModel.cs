@@ -1,5 +1,4 @@
 using ReactiveUI;
-using Splat;
 using System;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -14,7 +13,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 	{
 		private string _pinInput;
 
-		public PinLockScreenViewModel() : base()
+		public PinLockScreenViewModel(UiConfig uiConfig) : base()
 		{
 			KeyPadCommand = ReactiveCommand.Create<string>((arg) =>
 			{
@@ -45,9 +44,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
-					var global = Locator.Current.GetService<Global>();
-
-					if (global.UiConfig.LockScreenPinHash != HashHelpers.GenerateSha256Hash(x))
+					if (uiConfig.LockScreenPinHash != HashHelpers.GenerateSha256Hash(x))
 					{
 						NotificationHelpers.Error("PIN is incorrect.");
 					}
@@ -59,9 +56,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
-					var global = Locator.Current.GetService<Global>();
-
-					if (global.UiConfig.LockScreenPinHash == HashHelpers.GenerateSha256Hash(x))
+					if (uiConfig.LockScreenPinHash == HashHelpers.GenerateSha256Hash(x))
 					{
 						Close();
 						PinInput = "";
