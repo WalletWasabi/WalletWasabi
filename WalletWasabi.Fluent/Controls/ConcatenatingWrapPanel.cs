@@ -308,12 +308,32 @@ namespace WalletWasabi.Fluent.Controls
 			internal double Width
 			{
 				get { return _orientation == Orientation.Horizontal ? U : V; }
-				set { if (_orientation == Orientation.Horizontal) U = value; else V = value; }
+				set
+				{
+					if (_orientation == Orientation.Horizontal)
+					{
+						U = value;
+					}
+					else
+					{
+						V = value;
+					}
+				}
 			}
 			internal double Height
 			{
 				get { return _orientation == Orientation.Horizontal ? V : U; }
-				set { if (_orientation == Orientation.Horizontal) V = value; else U = value; }
+				set
+				{
+					if (_orientation == Orientation.Horizontal)
+					{
+						V = value;
+					}
+					else
+					{
+						U = value;
+					}
+				}
 			}
 		}
 	}
