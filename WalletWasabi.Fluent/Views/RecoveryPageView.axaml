@@ -16,10 +16,9 @@
                        Margin="44 0">
             <StackPanel>
                 <Label Classes="h7 bold" Content="_Type in your recovery words here:" Target="seedTagsBox" />
-                <c:TagsBox x:Name="seedTagsBox" 
-                           Grid.Row="2"
-                           ItemCountLimit="{CompiledBinding ItemCountLimit}"
-                           RestrictInputToSuggestions="{CompiledBinding RestrictInputToSuggestions}"
+                <c:TagsBox x:Name="seedTagsBox"
+                           ItemCountLimit="12"
+                           RestrictInputToSuggestions="True"
                            Items="{CompiledBinding Mnemonics}"
                            Suggestions="{CompiledBinding Suggestions}"
                            SelectedTag="{CompiledBinding  SelectedTag}"/>

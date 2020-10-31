@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Reactive.Linq;
@@ -10,6 +11,7 @@ using ReactiveUI;
 using Splat;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.Validation;
+using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels
@@ -19,10 +21,8 @@ namespace WalletWasabi.Fluent.ViewModels
         private readonly ObservableAsPropertyHelper<Mnemonic?> _currentMnemonic;
         private readonly ObservableAsPropertyHelper<bool> _isMnemonicValid;
         private ObservableCollection<string> _mnemonics;
-        private IEnumerable _suggestions;
-        private int _itemCountLimit;
-        private bool _restrictInputToSuggestions;
-        private object _selectedTag;
+        private IEnumerable<string> _suggestions;
+        private string _selectedTag;
 
         public ObservableCollection<string> Mnemonics
         {
@@ -30,25 +30,13 @@ namespace WalletWasabi.Fluent.ViewModels
             set => this.RaiseAndSetIfChanged(ref _mnemonics, value);
         }
 
-        public IEnumerable Suggestions
+        public IEnumerable<string> Suggestions
         {
             get => _suggestions;
             set => this.RaiseAndSetIfChanged(ref _suggestions, value);
         }
 
-        public int ItemCountLimit
-        {
-            get => _itemCountLimit;
-            set => this.RaiseAndSetIfChanged(ref _itemCountLimit, value);
-        }
-
-        public bool RestrictInputToSuggestions
-        {
-            get => _restrictInputToSuggestions;
-            set => this.RaiseAndSetIfChanged(ref _restrictInputToSuggestions, value);
-        }
-
-        public object SelectedTag
+        public string SelectedTag
         {
             get => _selectedTag;
             set => this.RaiseAndSetIfChanged(ref _selectedTag, value);
@@ -56,14 +44,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
         public RecoveryPageViewModel(IScreen screen) : base(screen)
         {
-            Global = Locator.Current.GetService<Global>();
-
-            Title = "Recovery";
-
             Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
-            RestrictInputToSuggestions = true;
-            ItemCountLimit = (int) WordCount.Twelve;
-
             Mnemonics = new ObservableCollection<string>();
 
             _currentMnemonic = Mnemonics.ToObservableChangeSet().ToCollection()
@@ -72,38 +53,29 @@ namespace WalletWasabi.Fluent.ViewModels
 
             _isMnemonicValid = this.WhenAnyValue(x => x.CurrentMnemonics)
                 .Select(x => x?.WordList?.WordCount == 12 && (x?.IsValidChecksum ?? false))
+                .Do(x => this.RaisePropertyChanged(nameof(Mnemonics)))
                 .ToProperty(this, x => x.IsMnemonicValid);
 
             this.WhenAnyValue(x => x.SelectedTag)
-                .Where(x => x is string s && !string.IsNullOrEmpty(s))
-                .Select(x => x as string)
-                .Subscribe(AddTag!);
+                .Where(x => !string.IsNullOrEmpty(x))
+                .Subscribe(AddTag);
 
             this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);
+        }
 
-            // A hack for validations system...
-            Mnemonics.CollectionChanged += MnemonicsChanged;
+        private void ValidateMnemonics(IValidationErrors errors)
+        {
+            if (!IsMnemonicValid && Mnemonics.Count == 12)
+            {
+                errors.Add(ErrorSeverity.Error, "Invalid recovery seed phrase.");
+
+            }
         }
 
         private void AddTag(string tagString)
         {
             Mnemonics.Add(tagString);
-            SelectedTag = null!;
-        }
-
-        // ugly hack
-        private void MnemonicsChanged(object sender, NotifyCollectionChangedEventArgs e)
-        {
-            this.RaisePropertyChanged(nameof(Mnemonics));
-        }
-
-        private void ValidateMnemonics(IValidationErrors errors)
-        {
-            // // example code only
-            // if (Mnemonics?.Contains("machine") ?? false)
-            // {
-            errors.Add(ErrorSeverity.Error, "Example Error");
-            // }
+            SelectedTag = string.Empty;
         }
 
         private string GetTagsAsConcatString()
@@ -113,7 +85,10 @@ namespace WalletWasabi.Fluent.ViewModels
 
         public Mnemonic? CurrentMnemonics => _currentMnemonic?.Value;
         public bool IsMnemonicValid => _isMnemonicValid.Value;
-        public override string IconName => "home_regular";
-        private Global Global { get; }
+
+
+        public override string IconName => "settings_regular";
+        public string? UrlPathSegment { get; }
+        public IScreen HostScreen { get; }
     }
 }
