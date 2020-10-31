@@ -100,6 +100,8 @@ namespace WalletWasabi.Tor.Socks5
 		/// </summary>
 		public async Task HandshakeAsync(bool isolateStream = false, CancellationToken cancellationToken = default)
 		{
+			Logger.LogDebug($"> {nameof(isolateStream)}={isolateStream}");
+
 			// https://github.com/torproject/torspec/blob/master/socks-extensions.txt
 			// The "NO AUTHENTICATION REQUIRED" (SOCKS5) authentication method [00] is
 			// supported; and as of Tor 0.2.3.2 - alpha, the "USERNAME/PASSWORD"(SOCKS5)
@@ -111,18 +113,6 @@ namespace WalletWasabi.Tor.Socks5
 			// violates RFC1929[4], but ensures interoperability with somewhat broken
 			// SOCKS5 client implementations.
 			string identity = isolateStream ? RandomString.CapitalAlphaNumeric(21) : "default";
-			await HandshakeAsync(identity, cancellationToken).ConfigureAwait(false);
-		}
-
-		/// <summary>
-		/// IsolateSOCKSAuth must be on (on by default)
-		/// https://www.torproject.org/docs/tor-manual.html.en
-		/// https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt#n35
-		/// </summary>
-		/// <param name="identity">Isolates streams by identity. If identity is empty string, it won't isolate stream.</param>
-		private async Task HandshakeAsync(string identity, CancellationToken cancellationToken = default)
-		{
-			Logger.LogDebug($"> {nameof(identity)}={identity}");
 
 			MethodsField methods = string.IsNullOrWhiteSpace(identity)
 				? new MethodsField(MethodField.NoAuthenticationRequired)
