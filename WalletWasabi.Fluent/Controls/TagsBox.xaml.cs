@@ -15,295 +15,295 @@ using Avalonia.VisualTree;
 
 namespace WalletWasabi.Fluent.Controls
 {
-    /// <summary>
-    /// </summary>
-    public class TagsBox : ItemsControl
-    {
-        public static readonly StyledProperty<bool> RestrictInputToSuggestionsProperty =
-            AvaloniaProperty.Register<TagsBox, bool>(nameof(RestrictInputToSuggestions));
+	/// <summary>
+	/// </summary>
+	public class TagsBox : ItemsControl
+	{
+		public static readonly StyledProperty<bool> RestrictInputToSuggestionsProperty =
+			AvaloniaProperty.Register<TagsBox, bool>(nameof(RestrictInputToSuggestions));
 
-        public static readonly StyledProperty<int> ItemCountLimitProperty =
-            AvaloniaProperty.Register<TagsBox, int>(nameof(ItemCountLimit));
+		public static readonly StyledProperty<int> ItemCountLimitProperty =
+			AvaloniaProperty.Register<TagsBox, int>(nameof(ItemCountLimit));
 
-        public static readonly StyledProperty<object> SelectedTagProperty =
-            AvaloniaProperty.Register<TagsBox, object>(nameof(SelectedTag), defaultBindingMode: BindingMode.TwoWay);
-        
-        public static readonly DirectProperty<TagsBox, IEnumerable?> SuggestionsProperty =
-            AvaloniaProperty.RegisterDirect<TagsBox, IEnumerable?>(
-                nameof(Suggestions),
-                o => o.Suggestions,
-                (o, v) => o.Suggestions = v);
+		public static readonly StyledProperty<object> SelectedTagProperty =
+			AvaloniaProperty.Register<TagsBox, object>(nameof(SelectedTag), defaultBindingMode: BindingMode.TwoWay);
 
-        public new static readonly DirectProperty<TagsBox, IEnumerable?> ItemsProperty =
-            ItemsControl.ItemsProperty.AddOwnerWithDataValidation<TagsBox>(
-                o => o.Items,
-                (o, v) => o.Items = v,
-                defaultBindingMode: BindingMode.TwoWay,
-                enableDataValidation: true);
+		public static readonly DirectProperty<TagsBox, IEnumerable?> SuggestionsProperty =
+			AvaloniaProperty.RegisterDirect<TagsBox, IEnumerable?>(
+				nameof(Suggestions),
+				o => o.Suggestions,
+				(o, v) => o.Suggestions = v);
 
-        private readonly CompositeDisposable _compositeDisposable = new CompositeDisposable();
+		public new static readonly DirectProperty<TagsBox, IEnumerable?> ItemsProperty =
+			ItemsControl.ItemsProperty.AddOwnerWithDataValidation<TagsBox>(
+				o => o.Items,
+				(o, v) => o.Items = v,
+				defaultBindingMode: BindingMode.TwoWay,
+				enableDataValidation: true);
 
-        private bool _backspaceEmptyField1;
-        private bool _backspaceEmptyField2;
-        private bool _isFocused;
-        private bool _isInputEnabled = true;
-        private IEnumerable? _items;
-        private IEnumerable? _suggestions;
+		private readonly CompositeDisposable _compositeDisposable = new CompositeDisposable();
 
-        private AutoCompleteBox? _autoCompleteBox;
+		private bool _backspaceEmptyField1;
+		private bool _backspaceEmptyField2;
+		private bool _isFocused;
+		private bool _isInputEnabled = true;
+		private IEnumerable? _items;
+		private IEnumerable? _suggestions;
 
-        public bool RestrictInputToSuggestions
-        {
-            get => GetValue(RestrictInputToSuggestionsProperty);
-            set => SetValue(RestrictInputToSuggestionsProperty, value);
-        }
+		private AutoCompleteBox? _autoCompleteBox;
 
-        public object SelectedTag
-        {
-            get => GetValue(SelectedTagProperty);
-            set => SetValue(SelectedTagProperty, value);
-        }
+		public bool RestrictInputToSuggestions
+		{
+			get => GetValue(RestrictInputToSuggestionsProperty);
+			set => SetValue(RestrictInputToSuggestionsProperty, value);
+		}
 
-        public int ItemCountLimit
-        {
-            get => GetValue(ItemCountLimitProperty);
-            set => SetValue(ItemCountLimitProperty, value);
-        }
+		public object SelectedTag
+		{
+			get => GetValue(SelectedTagProperty);
+			set => SetValue(SelectedTagProperty, value);
+		}
 
-        public new IEnumerable? Items
-        {
-            get => _items;
-            set => SetAndRaise(ItemsProperty, ref _items, value);
-        }
+		public int ItemCountLimit
+		{
+			get => GetValue(ItemCountLimitProperty);
+			set => SetValue(ItemCountLimitProperty, value);
+		}
 
-        public IEnumerable? Suggestions
-        {
-            get => _suggestions;
-            set => SetAndRaise(SuggestionsProperty, ref _suggestions, value);
-        }
+		public new IEnumerable? Items
+		{
+			get => _items;
+			set => SetAndRaise(ItemsProperty, ref _items, value);
+		}
 
-        protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
-        {
-            base.OnApplyTemplate(e);
+		public IEnumerable? Suggestions
+		{
+			get => _suggestions;
+			set => SetAndRaise(SuggestionsProperty, ref _suggestions, value);
+		}
 
-            Presenter.ApplyTemplate();
+		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
+		{
+			base.OnApplyTemplate(e);
 
-            _autoCompleteBox = (Presenter.Panel as ConcatenatingWrapPanel)?.ConcatenatedChildren
-                .OfType<AutoCompleteBox>().FirstOrDefault();
-            
-            if (_autoCompleteBox is null) return;
-            
-            _autoCompleteBox.KeyUp += OnKeyUp;
-            _autoCompleteBox.TextChanged += OnTextChanged;
-            _autoCompleteBox.DropDownClosed += OnDropDownClosed;
-            _autoCompleteBox.GotFocus += OnOnAutoCompleteBoxGotFocus;
-            _autoCompleteBox.LostFocus += OnAutoCompleteBoxLostFocus;
+			Presenter.ApplyTemplate();
 
-            _autoCompleteBox
-                .AddDisposableHandler(TextInputEvent, OnTextInput, RoutingStrategies.Tunnel)
-                .DisposeWith(_compositeDisposable);
-        }
+			_autoCompleteBox = (Presenter.Panel as ConcatenatingWrapPanel)?.ConcatenatedChildren
+				.OfType<AutoCompleteBox>().FirstOrDefault();
 
-        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
-        {
-            if (_autoCompleteBox is { })
-            {
-                _autoCompleteBox.KeyUp -= OnKeyUp;
-                _autoCompleteBox.TextChanged -= OnTextChanged;
-                _autoCompleteBox.DropDownClosed -= OnDropDownClosed;
-                _autoCompleteBox.GotFocus -= OnOnAutoCompleteBoxGotFocus;
-                _autoCompleteBox.LostFocus -= OnAutoCompleteBoxLostFocus;
-            }
+			if (_autoCompleteBox is null) return;
 
-            _compositeDisposable.Dispose();
-            base.OnDetachedFromVisualTree(e);
-        }
-        
-        private void CheckIsInputEnabled()
-        {
-            if (Items is IList x &&
-                ItemCountLimit > 0)
-                _isInputEnabled = x.Count < ItemCountLimit;
-        }
+			_autoCompleteBox.KeyUp += OnKeyUp;
+			_autoCompleteBox.TextChanged += OnTextChanged;
+			_autoCompleteBox.DropDownClosed += OnDropDownClosed;
+			_autoCompleteBox.GotFocus += OnOnAutoCompleteBoxGotFocus;
+			_autoCompleteBox.LostFocus += OnAutoCompleteBoxLostFocus;
 
-        private void OnAutoCompleteBoxLostFocus(object? _, RoutedEventArgs e)
-        {
-            PseudoClasses.Set(":focus", false);
-        }
+			_autoCompleteBox
+				.AddDisposableHandler(TextInputEvent, OnTextInput, RoutingStrategies.Tunnel)
+				.DisposeWith(_compositeDisposable);
+		}
 
-        private void OnOnAutoCompleteBoxGotFocus(object? _, GotFocusEventArgs e)
-        {
-            PseudoClasses.Set(":focus", true);
-        }
+		protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+		{
+			if (_autoCompleteBox is { })
+			{
+				_autoCompleteBox.KeyUp -= OnKeyUp;
+				_autoCompleteBox.TextChanged -= OnTextChanged;
+				_autoCompleteBox.DropDownClosed -= OnDropDownClosed;
+				_autoCompleteBox.GotFocus -= OnOnAutoCompleteBoxGotFocus;
+				_autoCompleteBox.LostFocus -= OnAutoCompleteBoxLostFocus;
+			}
 
-        private void OnTextInput(object? sender, TextInputEventArgs e)
-        {
-            if (!(sender is AutoCompleteBox autoCompleteBox)) return;
-            
-            if (!_isInputEnabled)
-            {
-                e.Handled = true;
-                return;
-            }
+			_compositeDisposable.Dispose();
+			base.OnDetachedFromVisualTree(e);
+		}
 
-            if (RestrictInputToSuggestions &&
-                Suggestions is IList<string> suggestions &&
-                !suggestions.Any(x =>
-                    x.StartsWith(autoCompleteBox.SearchText ?? "", true, CultureInfo.CurrentCulture)))
-                e.Handled = true;
-        }
+		private void CheckIsInputEnabled()
+		{
+			if (Items is IList x &&
+				ItemCountLimit > 0)
+				_isInputEnabled = x.Count < ItemCountLimit;
+		}
 
-        protected override void UpdateDataValidation<T>(AvaloniaProperty<T> property, BindingValue<T> value)
-        {
-            if (property == ItemsProperty) DataValidationErrors.SetError(this, value.Error);
-        }
+		private void OnAutoCompleteBoxLostFocus(object? _, RoutedEventArgs e)
+		{
+			PseudoClasses.Set(":focus", false);
+		}
 
-        protected override void OnGotFocus(GotFocusEventArgs e)
-        {
-            base.OnGotFocus(e);
-            FocusChanged(HasFocus());
-        }
+		private void OnOnAutoCompleteBoxGotFocus(object? _, GotFocusEventArgs e)
+		{
+			PseudoClasses.Set(":focus", true);
+		}
 
-        protected override void OnLostFocus(RoutedEventArgs e)
-        {
-            base.OnLostFocus(e);
-            FocusChanged(HasFocus());
-        }
+		private void OnTextInput(object? sender, TextInputEventArgs e)
+		{
+			if (!(sender is AutoCompleteBox autoCompleteBox)) return;
 
-        private bool HasFocus()
-        {
-            IVisual? focused = FocusManager.Instance.Current;
+			if (!_isInputEnabled)
+			{
+				e.Handled = true;
+				return;
+			}
 
-            while (focused != null)
-            {
-                if (ReferenceEquals(focused, this)) return true;
+			if (RestrictInputToSuggestions &&
+				Suggestions is IList<string> suggestions &&
+				!suggestions.Any(x =>
+					x.StartsWith(autoCompleteBox.SearchText ?? "", true, CultureInfo.CurrentCulture)))
+				e.Handled = true;
+		}
 
-                // This helps deal with popups that may not be in the same
-                // visual tree
-                IVisual parent = focused.GetVisualParent();
-                if (parent is null)
-                    // Try the logical parent.
-                    if (focused is IControl element)
-                        parent = element.Parent;
+		protected override void UpdateDataValidation<T>(AvaloniaProperty<T> property, BindingValue<T> value)
+		{
+			if (property == ItemsProperty) DataValidationErrors.SetError(this, value.Error);
+		}
 
-                focused = parent;
-            }
+		protected override void OnGotFocus(GotFocusEventArgs e)
+		{
+			base.OnGotFocus(e);
+			FocusChanged(HasFocus());
+		}
 
-            return false;
-        }
+		protected override void OnLostFocus(RoutedEventArgs e)
+		{
+			base.OnLostFocus(e);
+			FocusChanged(HasFocus());
+		}
 
-        private void FocusChanged(bool hasFocus)
-        {
-            // The OnGotFocus & OnLostFocus are asynchronously called and cannot
-            // reliably tell you that have the focus.  All they do is let you
-            // know that the focus changed sometime in the past.  To determine
-            // if you currently have the focus you need to do consult the
-            // FocusManager (see HasFocus()).
+		private bool HasFocus()
+		{
+			IVisual? focused = FocusManager.Instance.Current;
 
-            var wasFocused = _isFocused;
-            _isFocused = hasFocus;
+			while (focused != null)
+			{
+				if (ReferenceEquals(focused, this)) return true;
 
-            if (hasFocus)
-                if (!wasFocused)
-                    _autoCompleteBox?.Focus();
+				// This helps deal with popups that may not be in the same
+				// visual tree
+				IVisual parent = focused.GetVisualParent();
+				if (parent is null)
+					// Try the logical parent.
+					if (focused is IControl element)
+						parent = element.Parent;
 
-            PseudoClasses.Set(":focus", hasFocus);
-            _isFocused = hasFocus;
-        }
+				focused = parent;
+			}
 
-        private void OnDropDownClosed(object? sender, EventArgs e)
-        {
-            if (!(sender is AutoCompleteBox autoCompleteBox)) return;
-            
-            var currentText = autoCompleteBox.Text ?? "";
+			return false;
+		}
 
-            if (currentText.Length == 0 ||
-                !(autoCompleteBox.SelectedItem is string selItem) ||
-                selItem.Length == 0 ||
-                currentText != selItem)
-                return;
+		private void FocusChanged(bool hasFocus)
+		{
+			// The OnGotFocus & OnLostFocus are asynchronously called and cannot
+			// reliably tell you that have the focus. All they do is let you
+			// know that the focus changed sometime in the past. To determine
+			// if you currently have the focus you need to do consult the
+			// FocusManager (see HasFocus()).
 
-            AddTag(currentText.Trim());
+			var wasFocused = _isFocused;
+			_isFocused = hasFocus;
 
-            BackspaceLogicClear();
+			if (hasFocus)
+				if (!wasFocused)
+					_autoCompleteBox?.Focus();
 
-            autoCompleteBox.ClearValue(AutoCompleteBox.SelectedItemProperty);
-            Dispatcher.UIThread.Post(() => { autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); });
-        }
+			PseudoClasses.Set(":focus", hasFocus);
+			_isFocused = hasFocus;
+		}
 
-        private void BackspaceLogicClear()
-        {
-            _backspaceEmptyField2 = _backspaceEmptyField1 = true;
-        }
+		private void OnDropDownClosed(object? sender, EventArgs e)
+		{
+			if (!(sender is AutoCompleteBox autoCompleteBox)) return;
 
-        private void OnTextChanged(object? sender, EventArgs e)
-        {
-            if (!(sender is AutoCompleteBox autoCompleteBox)) return;
+			var currentText = autoCompleteBox.Text ?? "";
 
-            var currentText = autoCompleteBox.Text ?? "";
-            var currentTextTrimmed = currentText.Trim();
+			if (currentText.Length == 0 ||
+				!(autoCompleteBox.SelectedItem is string selItem) ||
+				selItem.Length == 0 ||
+				currentText != selItem)
+				return;
 
-            if (RestrictInputToSuggestions && Suggestions is IList<string> suggestions)
-            {
-                var keywordIsInSuggestions = suggestions.Any(x => x.Equals(currentTextTrimmed,
-                    StringComparison.InvariantCultureIgnoreCase));
+			AddTag(currentText.Trim());
 
-                if (!keywordIsInSuggestions) return;
-            }
+			BackspaceLogicClear();
 
-            if (!_isInputEnabled ||
-                currentText.Length < 1 ||
-                string.IsNullOrEmpty(currentTextTrimmed) ||
-                !currentText.EndsWith(' '))
-                return;
+			autoCompleteBox.ClearValue(AutoCompleteBox.SelectedItemProperty);
+			Dispatcher.UIThread.Post(() => { autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); });
+		}
 
-            AddTag(currentTextTrimmed);
+		private void BackspaceLogicClear()
+		{
+			_backspaceEmptyField2 = _backspaceEmptyField1 = true;
+		}
 
-            BackspaceLogicClear();
+		private void OnTextChanged(object? sender, EventArgs e)
+		{
+			if (!(sender is AutoCompleteBox autoCompleteBox)) return;
 
-            Dispatcher.UIThread.Post(() => { autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); });
-        }
+			var currentText = autoCompleteBox.Text ?? "";
+			var currentTextTrimmed = currentText.Trim();
 
-        private void OnKeyUp(object? sender, KeyEventArgs e)
-        {
-            var autoCompleteBox = sender as AutoCompleteBox;
-            if (autoCompleteBox is null) return;
+			if (RestrictInputToSuggestions && Suggestions is IList<string> suggestions)
+			{
+				var keywordIsInSuggestions = suggestions.Any(x => x.Equals(currentTextTrimmed,
+					StringComparison.InvariantCultureIgnoreCase));
 
-            var str = autoCompleteBox.Text ?? "";
+				if (!keywordIsInSuggestions) return;
+			}
 
-            _backspaceEmptyField2 = _backspaceEmptyField1;
-            _backspaceEmptyField1 = str.Length == 0;
+			if (!_isInputEnabled ||
+				currentText.Length < 1 ||
+				string.IsNullOrEmpty(currentTextTrimmed) ||
+				!currentText.EndsWith(' '))
+				return;
 
-            var strTrimmed = str.Trim();
+			AddTag(currentTextTrimmed);
 
-            switch (e.Key)
-            {
-                case Key.Back when _backspaceEmptyField1 && _backspaceEmptyField2:
-                    RemoveTag();
-                    break;
-                case Key.Enter when _isInputEnabled && !string.IsNullOrEmpty(strTrimmed):
-                    if (RestrictInputToSuggestions &&
-                        Suggestions is { } &&
-                        !Suggestions.Cast<string>().Any(x =>
-                            x.Equals(strTrimmed, StringComparison.InvariantCultureIgnoreCase)))
-                        break;
-                    BackspaceLogicClear();
-                    AddTag(strTrimmed);
-                    Dispatcher.UIThread.Post(() => { autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); });
-                    break;
-            }
-        }
+			BackspaceLogicClear();
 
-        private void RemoveTag()
-        {
-            if (Items is IList x && x.Count > 0) x.RemoveAt(Math.Max(0, x.Count - 1));
-            CheckIsInputEnabled();
-        }
+			Dispatcher.UIThread.Post(() => { autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); });
+		}
 
-        private void AddTag(string strTrimmed)
-        {
-            SelectedTag = strTrimmed;
-            CheckIsInputEnabled();
-        }
-    }
+		private void OnKeyUp(object? sender, KeyEventArgs e)
+		{
+			var autoCompleteBox = sender as AutoCompleteBox;
+			if (autoCompleteBox is null) return;
+
+			var str = autoCompleteBox.Text ?? "";
+
+			_backspaceEmptyField2 = _backspaceEmptyField1;
+			_backspaceEmptyField1 = str.Length == 0;
+
+			var strTrimmed = str.Trim();
+
+			switch (e.Key)
+			{
+				case Key.Back when _backspaceEmptyField1 && _backspaceEmptyField2:
+					RemoveTag();
+					break;
+				case Key.Enter when _isInputEnabled && !string.IsNullOrEmpty(strTrimmed):
+					if (RestrictInputToSuggestions &&
+						Suggestions is { } &&
+						!Suggestions.Cast<string>().Any(x =>
+							x.Equals(strTrimmed, StringComparison.InvariantCultureIgnoreCase)))
+						break;
+					BackspaceLogicClear();
+					AddTag(strTrimmed);
+					Dispatcher.UIThread.Post(() => { autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); });
+					break;
+			}
+		}
+
+		private void RemoveTag()
+		{
+			if (Items is IList x && x.Count > 0) x.RemoveAt(Math.Max(0, x.Count - 1));
+			CheckIsInputEnabled();
+		}
+
+		private void AddTag(string strTrimmed)
+		{
+			SelectedTag = strTrimmed;
+			CheckIsInputEnabled();
+		}
+	}
 }
