@@ -52,11 +52,17 @@
                     <Border BorderBrush="{DynamicResource TagsBoxControlForeground}"
                             BorderThickness="1"
                             CornerRadius="4"
-                            Margin="4"
+                            Margin="4,4,4,5"
+                            Opacity="0.25"
+                            Height="{Binding #PART_DummyPanel.Bounds.Height}"
                             VerticalAlignment="Center">
-                        <TextBlock Text="{Binding .}"
-                                   Margin="8,4" />
                     </Border>
+                    <Panel Name="PART_DummyPanel"
+                           Margin="5,5,5,6"
+                           VerticalAlignment="Center">
+                        <TextBlock Text="{Binding .}"
+                                   Margin="8,5" />
+                    </Panel>
                 </Panel>
             </DataTemplate>
         </Setter>
