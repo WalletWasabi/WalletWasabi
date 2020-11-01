@@ -8,7 +8,6 @@ using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Crypto.ZeroKnowledge.LinearRelation;
-using WalletWasabi.Crypto.ZeroKnowledge.NonInteractive;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Wabisabi
@@ -57,7 +56,7 @@ namespace WalletWasabi.Wabisabi
 					Money.Zero,
 					Enumerable.Empty<CredentialPresentation>(),
 					credentialsToRequest,
-					Prover.Prove(transcript, knowledge, RandomNumberGenerator)),
+					ProofSystem.Prove(transcript, knowledge, RandomNumberGenerator)),
 				new RegistrationValidationData(
 					transcript,
 					Enumerable.Empty<Credential>(),
@@ -144,7 +143,7 @@ namespace WalletWasabi.Wabisabi
 					amountsToRequest.Sum() - credentialsToPresent.Sum(x => x.Amount.ToMoney()),
 					presentations,
 					credentialsToRequest,
-					Prover.Prove(transcript, knowledgeToProve, RandomNumberGenerator)),
+					ProofSystem.Prove(transcript, knowledgeToProve, RandomNumberGenerator)),
 				new RegistrationValidationData(
 					transcript,
 					credentialsToPresent,
@@ -171,9 +170,9 @@ namespace WalletWasabi.Wabisabi
 				.ToArray();
 
 			var statements = credentials
-				.Select(x => ProofSystem.IssuerParameters(CoordinatorParameters, x.Issued, x.Requested.Ma));
+				.Select(x => ProofSystem.IssuerParametersStmt(CoordinatorParameters, x.Issued, x.Requested.Ma));
 
-			var areCorrectlyIssued = Verifier.Verify(registrationValidationData.Transcript, statements, registrationResponse.Proofs);
+			var areCorrectlyIssued = ProofSystem.Verify(registrationValidationData.Transcript, statements, registrationResponse.Proofs);
 			if (!areCorrectlyIssued)
 			{
 				throw new WabiSabiException(WabiSabiErrorCode.ClientReceivedInvalidProofs);

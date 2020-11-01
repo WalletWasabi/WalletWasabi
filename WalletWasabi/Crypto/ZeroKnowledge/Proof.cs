@@ -1,6 +1,6 @@
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.Crypto.ZeroKnowledge.NonInteractive
+namespace WalletWasabi.Crypto.ZeroKnowledge
 {
 	public class Proof
 	{
