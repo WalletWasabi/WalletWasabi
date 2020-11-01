@@ -28,7 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public string UrlPathSegment { get; } = Guid.NewGuid().ToString().Substring(0, 5);
 
-		public IScreen HostScreen => _navigationState.HomeScreen();
+		public IScreen HostScreen => _navigationState.HomeScreen?.Invoke();
 
 		public bool IsExpanded
 		{
@@ -64,10 +64,10 @@ namespace WalletWasabi.Fluent.ViewModels
 			{
 				case NavigationTarget.Default:
 				case NavigationTarget.Home:
-					_navigationState.HomeScreen().Router.Navigate.Execute(this);
+					_navigationState.HomeScreen?.Invoke().Router.Navigate.Execute(this);
 					break;
 				case NavigationTarget.Dialog:
-					_navigationState.DialogScreen().Router.Navigate.Execute(this);
+					_navigationState.DialogScreen?.Invoke().Router.Navigate.Execute(this);
 					break;
 			}
 		}
@@ -78,10 +78,10 @@ namespace WalletWasabi.Fluent.ViewModels
 			{
 				case NavigationTarget.Default:
 				case NavigationTarget.Home:
-					_navigationState.HomeScreen().Router.NavigateAndReset.Execute(this);
+					_navigationState.HomeScreen?.Invoke().Router.NavigateAndReset.Execute(this);
 					break;
 				case NavigationTarget.Dialog:
-					_navigationState.DialogScreen().Router.NavigateAndReset.Execute(this);
+					_navigationState.DialogScreen?.Invoke().Router.NavigateAndReset.Execute(this);
 					break;
 			}
 		}

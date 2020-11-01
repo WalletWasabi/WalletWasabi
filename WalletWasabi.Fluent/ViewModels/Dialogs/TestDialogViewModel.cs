@@ -28,7 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 		protected override void OnDialogClosed()
 		{
-			_navigationState.HomeScreen().Router.NavigateAndReset.Execute(new AddWalletPageViewModel(_navigationState));
+			_navigationState.HomeScreen?.Invoke().Router.NavigateAndReset.Execute(new AddWalletPageViewModel(_navigationState));
 		}
 
 		public void Close()
