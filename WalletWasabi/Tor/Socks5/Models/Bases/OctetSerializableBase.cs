@@ -45,7 +45,7 @@ namespace WalletWasabi.Tor.Socks5.Models.Bases
 
 		#region EqualityAndComparison
 
-		public static bool operator ==(OctetSerializableBase x, OctetSerializableBase y) => x?.ByteValue == y?.ByteValue;
+		public static bool operator ==(OctetSerializableBase x, OctetSerializableBase y) => x.Equals(y);
 
 		public static bool operator !=(OctetSerializableBase x, OctetSerializableBase y) => !(x == y);
 
@@ -57,9 +57,23 @@ namespace WalletWasabi.Tor.Socks5.Models.Bases
 
 		public static bool operator !=(OctetSerializableBase x, byte y) => !(x == y);
 
-		public override bool Equals(object obj) => Equals(obj as OctetSerializableBase);
+		/// <inheritdoc/>
+		public override bool Equals(object? obj)
+		{
+			if (obj == null)
+			{
+				return false;
+			}
+			else if (obj is OctetSerializableBase other)
+			{
+				return Equals(other);
+			}
 
-		public bool Equals(OctetSerializableBase other) => this == other;
+			return false;
+		}
+
+		/// <inheritdoc/>
+		public bool Equals(OctetSerializableBase? other) => other is { } && ToByte() == other.ToByte();
 
 		public override int GetHashCode() => ByteValue;
 
