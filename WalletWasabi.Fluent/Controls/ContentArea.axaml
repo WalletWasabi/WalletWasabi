@@ -21,7 +21,7 @@
         <DockPanel Margin="40,0,40,0">
           <StackPanel DockPanel.Dock="Top" Spacing="10" Margin="0 0 0 40">
             <DockPanel>
-              <Button Margin="-40,0,0,0" Command="{Binding BackCommand}" IsVisible="{TemplateBinding EnableBack}" Background="Transparent">
+              <Button Margin="-40,0,0,0" Classes="invisible" Command="{Binding BackCommand}" IsVisible="{TemplateBinding EnableBack}" Background="Transparent">
                 <PathIcon Data="{StaticResource arrow_left_regular}" Width="16"/>
               </Button>
               <ContentPresenter Name="PART_TitlePresenter" Content="{TemplateBinding Title}" />
@@ -29,8 +29,8 @@
             <ContentPresenter Name="PART_CaptionPresenter" Content="{TemplateBinding Caption}" />
           </StackPanel>
           <Panel DockPanel.Dock="Bottom">
-            <Button Name="PART_CancelButton" IsVisible="{TemplateBinding EnableCancel}" Content="{TemplateBinding CancelContent}" Margin="0,10,10,10" HorizontalAlignment="Left" Command="{Binding CancelCommand}" />
-            <Button Name="PART_NextButton" IsVisible="{TemplateBinding EnableNext}" Content="{TemplateBinding NextContent}" Margin="10,10,0,10" HorizontalAlignment="Right" Command="{Binding NextCommand}" />
+            <Button Name="PART_CancelButton" Classes="invisible" IsVisible="{TemplateBinding EnableCancel}" Content="{TemplateBinding CancelContent}" Margin="0,10,10,10" HorizontalAlignment="Left" Command="{Binding CancelCommand}" />
+            <Button Name="PART_NextButton" Classes="action" IsVisible="{TemplateBinding EnableNext}" Content="{TemplateBinding NextContent}" Margin="10,10,0,10" HorizontalAlignment="Right" Command="{Binding NextCommand}" />
           </Panel>
           <ContentPresenter Name="PART_ContentPresenter"
                                 Background="{TemplateBinding Background}"
