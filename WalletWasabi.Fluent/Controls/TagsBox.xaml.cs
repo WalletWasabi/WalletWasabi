@@ -92,6 +92,15 @@ namespace WalletWasabi.Fluent.Controls
             _autoCompleteBox
                 .AddDisposableHandler(TextInputEvent, OnTextInput, RoutingStrategies.Tunnel)
                 .DisposeWith(_compositeDisposable);
+
+            if (_isFocused)
+            {
+	            Dispatcher.UIThread.Post(
+		            () =>
+		            {
+			            _autoCompleteBox.Focus();
+		            });
+            }
         }
 
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
@@ -152,9 +161,12 @@ namespace WalletWasabi.Fluent.Controls
 
         private void FocusChanged()
         {
-	        if (IsKeyboardFocusWithin != _isFocused)
+	        if (_autoCompleteBox is {})
 	        {
-		        _autoCompleteBox?.Focus();
+		        if (IsKeyboardFocusWithin && !_autoCompleteBox.IsKeyboardFocusWithin)
+		        {
+			        _autoCompleteBox?.Focus();
+		        }
 	        }
 
 	        _isFocused = IsKeyboardFocusWithin;
