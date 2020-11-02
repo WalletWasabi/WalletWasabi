@@ -18,7 +18,7 @@
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource ButtonForegroundPointerOver}" />
   </Style>
 
-  <Style Selector="Button.option:pressed  /template/ ContentPresenter#PART_ContentPresenter">
+  <Style Selector="Button.option:pressed /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource ButtonForegroundPressed}" />
   </Style>
 

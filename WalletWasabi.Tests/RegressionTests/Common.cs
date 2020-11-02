@@ -53,7 +53,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			while (true)
 			{
 				using var client = new WasabiClient(new Uri(regTestFixture.BackendEndPoint), torSocks5EndPoint: null);
-				FiltersResponse filtersResponse = await client.GetFiltersAsync(firstHash, 1000);
+				FiltersResponse? filtersResponse = await client.GetFiltersAsync(firstHash, 1000);
 				Assert.NotNull(filtersResponse);
 
 				var filterCount = filtersResponse.Filters.Count();

@@ -2,38 +2,21 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
-using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
-using WalletWasabi.Tor.Exceptions;
-using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5;
-using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 
 namespace WalletWasabi.Tor
 {
 	/// <summary>
-	/// Starts and monitors Tor program.
+	/// Manages lifetime of Tor process.
 	/// </summary>
 	/// <seealso href="https://2019.www.torproject.org/docs/tor-manual.html.en"/>
 	public class TorProcessManager
 	{
-		private const long StateNotStarted = 0;
-
-		private const long StateRunning = 1;
-
-		private const long StateStopping = 2;
-
-		private const long StateStopped = 3;
-
-		/// <summary>
-		/// Value can be any of: <see cref="StateNotStarted"/>, <see cref="StateRunning"/>, <see cref="StateStopping"/> and <see cref="StateStopped"/>.
-		/// </summary>
-		private long _monitorState;
-
 		/// <summary>
 		/// Creates a new instance of the object.
 		/// </summary>
@@ -42,8 +25,6 @@ namespace WalletWasabi.Tor
 		public TorProcessManager(TorSettings settings, EndPoint torSocks5EndPoint)
 		{
 			TorSocks5EndPoint = torSocks5EndPoint;
-			_monitorState = StateNotStarted;
-			MonitorCts = new CancellationTokenSource();
 			TorProcess = null;
 			Settings = settings;
 			TorSocks5Client = new TorSocks5Client(torSocks5EndPoint);
@@ -53,17 +34,11 @@ namespace WalletWasabi.Tor
 
 		private EndPoint TorSocks5EndPoint { get; }
 
-		public static bool RequestFallbackAddressUsage { get; private set; } = false;
-
 		private ProcessAsync? TorProcess { get; set; }
 
 		private TorSettings Settings { get; }
 
 		private TorSocks5Client TorSocks5Client { get; }
-
-		public bool IsRunning => Interlocked.Read(ref _monitorState) == StateRunning;
-
-		private CancellationTokenSource MonitorCts { get; set; }
 
 		/// <summary>
 		/// Installs Tor if it is not installed, then it starts Tor.
@@ -154,99 +129,8 @@ namespace WalletWasabi.Tor
 			return false;
 		}
 
-		#region Monitor
-
-		public void StartMonitor(TimeSpan torMisbehaviorCheckPeriod, TimeSpan checkIfRunningAfterTorMisbehavedFor, Uri fallBackTestRequestUri)
-		{
-			Logger.LogInfo("Starting Tor monitor...");
-			if (Interlocked.CompareExchange(ref _monitorState, StateRunning, StateNotStarted) != StateNotStarted)
-			{
-				return;
-			}
-
-			Task.Run(async () =>
-			{
-				try
-				{
-					while (IsRunning)
-					{
-						try
-						{
-							await Task.Delay(torMisbehaviorCheckPeriod, MonitorCts.Token).ConfigureAwait(false);
-
-							if (TorHttpClient.TorDoesntWorkSince is { }) // If Tor misbehaves.
-							{
-								TimeSpan torMisbehavedFor = DateTimeOffset.UtcNow - TorHttpClient.TorDoesntWorkSince ?? TimeSpan.Zero;
-
-								if (torMisbehavedFor > checkIfRunningAfterTorMisbehavedFor)
-								{
-									if (TorHttpClient.LatestTorException is TorSocks5FailureResponseException torEx)
-									{
-										if (torEx.RepField == RepField.HostUnreachable)
-										{
-											Uri baseUri = new Uri($"{fallBackTestRequestUri.Scheme}://{fallBackTestRequestUri.DnsSafeHost}");
-											using (var client = new TorHttpClient(baseUri, TorSocks5EndPoint))
-											{
-												var message = new HttpRequestMessage(HttpMethod.Get, fallBackTestRequestUri);
-												await client.SendAsync(message, MonitorCts.Token).ConfigureAwait(false);
-											}
-
-											// Check if it changed in the meantime...
-											if (TorHttpClient.LatestTorException is TorSocks5FailureResponseException torEx2 && torEx2.RepField == RepField.HostUnreachable)
-											{
-												// Fallback here...
-												RequestFallbackAddressUsage = true;
-											}
-										}
-									}
-									else
-									{
-										Logger.LogInfo($"Tor did not work properly for {(int)torMisbehavedFor.TotalSeconds} seconds. Maybe it crashed. Attempting to start it...");
-										await StartAsync(ensureRunning: true).ConfigureAwait(false); // Try starting Tor, if it does not work it'll be another issue.
-									}
-								}
-							}
-						}
-						catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
-						{
-							Logger.LogTrace(ex);
-						}
-						catch (Exception ex)
-						{
-							Logger.LogDebug(ex);
-						}
-					}
-				}
-				finally
-				{
-					Interlocked.CompareExchange(ref _monitorState, StateStopped, StateStopping); // If IsStopping, make it stopped.
-				}
-			});
-		}
-
-		/// <summary>
-		/// Stops Tor monitor, TCP connection with Tor and Tor process (if it was started).
-		/// </summary>
-		/// <param name="killTor">Whether to kill Tor process or whether it should continue running for privacy reasons.</param>
 		public async Task StopAsync(bool killTor = false)
 		{
-			Logger.LogTrace($"> {nameof(killTor)}={killTor}");
-
-			Interlocked.CompareExchange(ref _monitorState, StateStopping, StateRunning); // If running, make it stopping.
-
-			MonitorCts.Cancel();
-			while (Interlocked.CompareExchange(ref _monitorState, StateStopped, StateNotStarted) == StateStopping)
-			{
-				await Task.Delay(50).ConfigureAwait(false);
-			}
-
-			// Stop Tor monitor.
-			MonitorCts.Dispose();
-
-			// Stop TCP connection with Tor.
-			TorSocks5Client.Dispose();
-
-			// Stop Tor itself, if the option is selected by the user.
 			if (TorProcess is { } && killTor)
 			{
 				Logger.LogInfo($"Killing Tor process.");
@@ -267,10 +151,6 @@ namespace WalletWasabi.Tor
 
 			// Dispose Tor process resources (does not stop/kill Tor process).
 			TorProcess?.Dispose();
-
-			Logger.LogTrace("<");
 		}
-
-		#endregion Monitor
 	}
 }

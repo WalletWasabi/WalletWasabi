@@ -19,7 +19,6 @@ namespace WalletWasabi.Gui.ViewModels
 	public class MainWindowViewModel : ViewModelBase, IDisposable
 	{
 		private ModalDialogViewModelBase _modalDialog;
-		private bool _canClose = true;
 		private string _title = "Wasabi Wallet";
 		private WindowState _windowState;
 		private StatusBarViewModel _statusBar;
@@ -92,12 +91,6 @@ namespace WalletWasabi.Gui.ViewModels
 			private set => this.RaiseAndSetIfChanged(ref _modalDialog, value);
 		}
 
-		public bool CanClose
-		{
-			get => _canClose;
-			set => this.RaiseAndSetIfChanged(ref _canClose, value);
-		}
-
 		public void PushLockScreen(LockScreenViewModelBase lockScreen)
 		{
 			if (LockScreen is { })
@@ -146,7 +139,7 @@ namespace WalletWasabi.Gui.ViewModels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => PushLockScreen(UiConfig.LockScreenPinHash.Length == 0
 						? (WasabiLockScreenViewModelBase)new SlideLockScreenViewModel()
-						: new PinLockScreenViewModel()));
+						: new PinLockScreenViewModel(UiConfig)));
 		}
 
 		private void DisplayWalletManager()

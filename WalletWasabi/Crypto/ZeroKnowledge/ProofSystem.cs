@@ -1,39 +1,95 @@
-using NBitcoin.Secp256k1;
-using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Generic;
+using NBitcoin.Secp256k1;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge.LinearRelation;
-using WalletWasabi.Crypto.ZeroKnowledge.NonInteractive;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge
 {
-	public static class ProofSystem
+	public partial class ProofSystem
 	{
 		private static GroupElement O = GroupElement.Infinity;
 
-		public static bool Verify(Statement statement, Proof proof)
+		private delegate Proof DeferredProofCreator(Scalar challenge);
+
+		public static IEnumerable<Proof> Prove(Transcript transcript, IEnumerable<Knowledge> knowledge, WasabiRandom random)
 		{
-			return Verifier.Verify(new Transcript(new byte[0]), new[] { statement }, new[] { proof });
+			// Before anything else all components in a compound proof commit to the
+			// individual sub-statement that will be proven, ensuring that the
+			// challenges and therefore the responses depend on the statement as a
+			// whole.
+			foreach (var k in knowledge)
+			{
+				transcript.CommitStatement(k.Statement);
+			}
+
+			var deferredResponds = new List<DeferredProofCreator>();
+			foreach (var k in knowledge)
+			{
+				// With all the statements committed, generate a vector of random secret
+				// nonces for every equation in underlying proof system. In order to
+				// ensure that nonces are never reused (e.g. due to an insecure RNG) with
+				// different challenges which would leak the witness, these are generated
+				// as synthetic nonces that also depend on the witness data.
+				var secretNonceProvider = transcript.CreateSyntheticSecretNonceProvider(k.Witness, random);
+				ScalarVector secretNonces = secretNonceProvider.GetScalarVector();
+
+				// The prover then commits to these, adding the corresponding public
+				// points to the transcript.
+				var equations = k.Statement.Equations;
+				var publicNonces = new GroupElementVector(equations.Select(equation => secretNonces * equation.Generators));
+				transcript.CommitPublicNonces(publicNonces);
+
+				deferredResponds.Add((challenge) => new Proof(publicNonces, k.RespondToChallenge(challenge, secretNonces)));
+			}
+
+			// With the public nonces committed to the transcript the prover can then
+			// derive a challenge that depend on the transcript state without needing
+			// to interact with the verifier, but ensuring that they can't know the
+			// challenge before the prover commitments are generated.
+			Scalar challenge = transcript.GenerateChallenge();
+			return deferredResponds.Select(createProof => createProof(challenge));
 		}
 
-		public static Proof Prove(Knowledge knowledge, WasabiRandom random)
+		public static bool Verify(Transcript transcript, IEnumerable<Statement> statements, IEnumerable<Proof> proofs)
 		{
-			return Prover.Prove(new Transcript(new byte[0]), new[] { knowledge }, random).First();
+			Guard.Same(nameof(proofs), proofs.Count(), statements.Count());
+
+			// Before anything else all components in a compound proof commit to the
+			// individual sub-statement that will be proven, ensuring that the
+			// challenges and therefore the responses depend on the statement as a
+			// whole.
+			foreach (var statement in statements)
+			{
+				transcript.CommitStatement(statement);
+			}
+
+			// After all the statements have been committed, the public nonces are
+			// added to the transcript. This is done separately from the statement
+			// commitments because the prover derives these based on the compound
+			// statements, and the verifier must add data to the transcript in the
+			// same order as the prover.
+			foreach (var proof in proofs)
+			{
+				transcript.CommitPublicNonces(proof.PublicNonces);
+			}
+
+			// After all the public nonces have been committed, a challenge can be
+			// generated based on transcript state. Since challenges are deterministic
+			// outputs of a hash function which depends on the prover commitments, the
+			// verifier obtains the same challenge and then accepts if the responses
+			// satisfy the verification equation.
+			var challenge = transcript.GenerateChallenge();
+
+			return Enumerable.Zip(statements, proofs, (s, p) => s.CheckVerificationEquation(p.PublicNonces, challenge, p.Responses)).All(x => x);
 		}
-
-		// Syntactic sugar used in tests
-		public static Proof Prove(Statement statement, Scalar witness, WasabiRandom random)
-			=> Prove(statement, new ScalarVector(witness), random);
-
-		public static Proof Prove(Statement statement, ScalarVector witness, WasabiRandom random)
-			=> Prove(new Knowledge(statement, witness), random);
 
 		public static Knowledge IssuerParameters(MAC mac, GroupElement ma, CoordinatorSecretKey sk)
-			=> new Knowledge(IssuerParameters(sk.ComputeCoordinatorParameters(), mac, ma), new ScalarVector(sk.W, sk.Wp, sk.X0, sk.X1, sk.Ya));
+			=> new Knowledge(IssuerParametersStmt(sk.ComputeCoordinatorParameters(), mac, ma), new ScalarVector(sk.W, sk.Wp, sk.X0, sk.X1, sk.Ya));
 
-		public static Statement IssuerParameters(CoordinatorParameters iparams, MAC mac, GroupElement ma)
+		public static Statement IssuerParametersStmt(CoordinatorParameters iparams, MAC mac, GroupElement ma)
 			=> new Statement(new GroupElement[,]
 			{
 				// public                                             Witness terms:
@@ -45,10 +101,10 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 
 		public static Knowledge ShowCredential(CredentialPresentation presentation, Scalar z, Credential credential, CoordinatorParameters iparams)
 			=> new Knowledge(
-				ShowCredential(presentation, z * iparams.I, iparams),
+				ShowCredentialStmt(presentation, z * iparams.I, iparams),
 				new ScalarVector(z, (credential.Mac.T * z).Negate(), credential.Mac.T, credential.Amount, credential.Randomness));
 
-		public static Statement ShowCredential(CredentialPresentation c, GroupElement Z, CoordinatorParameters iparams)
+		public static Statement ShowCredentialStmt(CredentialPresentation c, GroupElement Z, CoordinatorParameters iparams)
 			=> new Statement(new GroupElement[,]
 			{
 				// public                     Witness terms:
@@ -60,19 +116,19 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			});
 
 		public static Knowledge BalanceProof(Scalar zSum, Scalar rDeltaSum)
-			=> new Knowledge(BalanceProof(zSum * Generators.Ga + rDeltaSum * Generators.Gh), new ScalarVector(zSum, rDeltaSum));
+			=> new Knowledge(BalanceProofStmt(zSum * Generators.Ga + rDeltaSum * Generators.Gh), new ScalarVector(zSum, rDeltaSum));
 
 		// Balance commitment must be a commitment to 0, with randomness in Gh and
 		// additional randomness from attribute randomization in Show protocol,
 		// using generator Ga. Witness terms: (\sum z, \sum r_i - r'_i)
-		public static Statement BalanceProof(GroupElement balanceCommitment)
+		public static Statement BalanceProofStmt(GroupElement balanceCommitment)
 			=> new Statement(balanceCommitment, Generators.Ga, Generators.Gh);
 
 		// overload for bootstrap credential request proofs.
 		// this is just a range proof with width=0
 		// equivalent to proof of representation w/ Gh
 		public static Knowledge ZeroProof(GroupElement ma, Scalar r)
-			=> new Knowledge(ZeroProof(ma), new ScalarVector(r));
+			=> new Knowledge(ZeroProofStmt(ma), new ScalarVector(r));
 
 		// TODO swap return value order, remove GroupElement argument
 		// expect nonce provider instead of WasabiRandom?
@@ -111,16 +167,16 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				witness[ProductColumn(i)] = r_i * b_i;
 			}
 
-			return (new Knowledge(RangeProof(ma, bitCommitments), new ScalarVector(witness)), bitCommitments);
+			return (new Knowledge(RangeProofStmt(ma, bitCommitments), new ScalarVector(witness)), bitCommitments);
 		}
 
 		// overload for bootstrap credential request proofs.
 		// this is just a range proof with width=0
 		// equivalent to new Statement(ma, Generators.Gh)
-		public static Statement ZeroProof(GroupElement ma)
-			=> RangeProof(ma, new GroupElement[0]);
+		public static Statement ZeroProofStmt(GroupElement ma)
+			=> RangeProofStmt(ma, new GroupElement[0]);
 
-		public static Statement RangeProof(GroupElement ma, IEnumerable<GroupElement> bitCommitments)
+		public static Statement RangeProofStmt(GroupElement ma, IEnumerable<GroupElement> bitCommitments)
 		{
 			var width = bitCommitments.Count(); // can be 0
 			Guard.InRangeAndNotNull(nameof(width), width, 0, Constants.RangeProofWidth);
