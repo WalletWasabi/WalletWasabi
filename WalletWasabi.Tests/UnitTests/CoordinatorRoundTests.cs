@@ -65,7 +65,7 @@ namespace WalletWasabi.Tests.UnitTests
 		public async Task XxAsync()
 		{
 			const double DefaultMinMemPoolFee = 0.00001000; // 1 s/b (default value)
-			const double HighertMinMemPoolFee = 0.00200000; // 200 s/b
+			const double HighestMinMemPoolFee = 0.00200000; // 200 s/b
 			const int InputSizeInBytes = 67;
 			const int OutputSizeInBytes = 33;
 
@@ -86,12 +86,12 @@ namespace WalletWasabi.Tests.UnitTests
 			{
 				rpc.OnGetMempoolInfoAsync = () => Task.FromResult(new MemPoolInfo
 				{
-					MemPoolMinFee = HighertMinMemPoolFee
+					MemPoolMinFee = HighestMinMemPoolFee
 				});
 
 				var (feePerInputs, feePerOutputs) = await CoordinatorRound.CalculateFeesAsync(rpc, 12);
 
-				var higherMinMemPoolFeeRate = new FeeRate(Money.Coins((decimal)HighertMinMemPoolFee));
+				var higherMinMemPoolFeeRate = new FeeRate(Money.Coins((decimal)HighestMinMemPoolFee));
 				Assert.True(feePerInputs == higherMinMemPoolFeeRate.GetFee(InputSizeInBytes));
 				Assert.True(feePerOutputs == higherMinMemPoolFeeRate.GetFee(OutputSizeInBytes));
 			}
