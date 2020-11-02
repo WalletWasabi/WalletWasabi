@@ -35,6 +35,9 @@
                             <Setter Property="IsEnabled" Value="{Binding OptionsEnabled}" />
                             <Setter Property="Opacity" Value="{Binding OptionsEnabled, Converter={StaticResource BoolToOpacityConverter}}" />
                         </Style>
+                        <Style Selector="Button.option:disabled /template/ ContentPresenter#PART_ContentPresenter">
+                          <Setter Property="Background" Value="{DynamicResource OptionButtonBackground}" />
+                        </Style>
                     </StackPanel.Styles>
                     <Button Classes="option" Command="{Binding CreateWalletCommand}">
                         <StackPanel Orientation="Horizontal">
