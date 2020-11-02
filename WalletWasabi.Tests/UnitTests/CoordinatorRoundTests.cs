@@ -91,9 +91,9 @@ namespace WalletWasabi.Tests.UnitTests
 
 				var (feePerInputs, feePerOutputs) = await CoordinatorRound.CalculateFeesAsync(rpc, 12);
 
-				var higherMinMemPoolFeeRate = new FeeRate(Money.Coins((decimal)HighestMinMemPoolFee));
-				Assert.True(feePerInputs == higherMinMemPoolFeeRate.GetFee(InputSizeInBytes));
-				Assert.True(feePerOutputs == higherMinMemPoolFeeRate.GetFee(OutputSizeInBytes));
+				var highestMinMemPoolFeeRate = new FeeRate(Money.Coins((decimal)HighestMinMemPoolFee));
+				Assert.True(feePerInputs == highestMinMemPoolFeeRate.GetFee(InputSizeInBytes));
+				Assert.True(feePerOutputs == highestMinMemPoolFeeRate.GetFee(OutputSizeInBytes));
 			}
 		}
 	}
