@@ -20,7 +20,7 @@ namespace WalletWasabi.Wabisabi
 		public GroupElement Ma { get; }
 		
 		/// <summary>
-		/// Commitments the the value's bits decomposed amount.
+		/// Commitments to the amount's individual bits.
 		/// </summary>
 		public IEnumerable<GroupElement> BitCommitments { get; }
 	}
