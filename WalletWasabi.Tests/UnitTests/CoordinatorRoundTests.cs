@@ -31,7 +31,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			// Under normal circunstances
 			{
-				rpc.OnGetMempoolAsync = () => Task.FromResult(new MemPoolInfo
+				rpc.OnGetMempoolInfoAsync = () => Task.FromResult(new MemPoolInfo
 				{
 					MemPoolMinFee = 0.00001000 // 1 s/b (default value)
 				});
@@ -46,7 +46,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			// Under heavy mempool pressure
 			{
-				rpc.OnGetMempoolAsync = () => Task.FromResult(new MemPoolInfo
+				rpc.OnGetMempoolInfoAsync = () => Task.FromResult(new MemPoolInfo
 				{
 					MemPoolMinFee = 0.0028 // 280 s/b
 				});
@@ -71,7 +71,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			var rpc = new MockRpcClient();
 			{
-				rpc.OnGetMempoolAsync = () => Task.FromResult(new MemPoolInfo
+				rpc.OnGetMempoolInfoAsync = () => Task.FromResult(new MemPoolInfo
 				{
 					MemPoolMinFee = DefaultMinMemPoolFee
 				});
@@ -84,7 +84,7 @@ namespace WalletWasabi.Tests.UnitTests
 			}
 
 			{
-				rpc.OnGetMempoolAsync = () => Task.FromResult(new MemPoolInfo
+				rpc.OnGetMempoolInfoAsync = () => Task.FromResult(new MemPoolInfo
 				{
 					MemPoolMinFee = HighertMinMemPoolFee
 				});
