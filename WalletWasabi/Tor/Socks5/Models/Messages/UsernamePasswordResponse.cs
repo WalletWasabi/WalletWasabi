@@ -21,6 +21,10 @@ namespace WalletWasabi.Tor.Socks5.Models.Messages
 		public AuthStatusField Status { get; }
 
 		public override byte[] ToBytes()
-			=> new byte[] { Ver.ToByte(), Status.ToByte() };
+			=> new byte[]
+			{
+				Ver.ToByte(),
+				Status.ToByte()
+			};
 	}
 }

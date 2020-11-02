@@ -21,6 +21,10 @@ namespace WalletWasabi.Tor.Socks5.Models.Messages
 		public MethodField Method { get; }
 
 		public override byte[] ToBytes()
-			=> new byte[] { Ver.ToByte(), Method.ToByte() };
+			=> new byte[]
+			{
+				Ver.ToByte(),
+				Method.ToByte()
+			};
 	}
 }
