@@ -1,13 +1,8 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Input;
-using Avalonia.Xaml.Interactivity;
 using ReactiveUI;
 using System;
-using System.Collections.Generic;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Text;
 
 namespace WalletWasabi.Fluent.Behaviors
 {
@@ -55,7 +50,9 @@ namespace WalletWasabi.Fluent.Behaviors
 				x => x.HasErrors,
 				x => x.IsFocused,
 				x => x.Text)
-				.Subscribe(_ => AssociatedObject!.IsVisible = !HasErrors && !IsFocused && !string.IsNullOrEmpty(Text));
+				.Throttle(TimeSpan.FromMilliseconds(100))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => AssociatedObject!.Opacity = !HasErrors && !IsFocused && !string.IsNullOrEmpty(Text) ? 1 : 0);
 
 			Observable
 				.FromEventPattern<AvaloniaPropertyChangedEventArgs>(OwnerTextBox, nameof(OwnerTextBox.PropertyChanged))
