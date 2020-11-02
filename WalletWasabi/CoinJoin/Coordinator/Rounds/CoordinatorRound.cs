@@ -898,8 +898,9 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				var estimateSmartFeeResponse = await rpc.EstimateSmartFeeAsync(confirmationTarget, sanityFeeRate, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true).ConfigureAwait(false);
 				var feeRate = estimateSmartFeeResponse.FeeRate;
 
-				feePerInputs = feeRate.GetFee(inputSizeInBytes);
-				feePerOutputs = feeRate.GetFee(outputSizeInBytes);
+				// Make sure min relay fee (1000 sat) is hit.
+				feePerInputs = Math.Max(feeRate.GetFee(inputSizeInBytes), Money.Satoshis(500));
+				feePerOutputs = Math.Max(feeRate.GetFee(outputSizeInBytes), Money.Satoshis(250));
 			}
 			catch (Exception ex)
 			{
