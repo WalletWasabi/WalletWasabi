@@ -47,14 +47,6 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 					screen.Router.Navigate.Execute(new RecoveryWordsViewModel(screen, km, mnemonic, global));
 				},
 				continueCommandCanExecute);
-
-			this.WhenAnyValue(x => x.Password)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => this.RaisePropertyChanged(nameof(ConfirmPassword)));
-
-			this.WhenAnyValue(x => x.ConfirmPassword)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => this.RaisePropertyChanged(nameof(Password)));
 		}
 
 		public string Password
