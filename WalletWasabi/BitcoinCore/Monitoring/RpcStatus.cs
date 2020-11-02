@@ -50,15 +50,15 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => Equals(obj as RpcStatus);
+		public override bool Equals(object? obj) => Equals(obj as RpcStatus);
 
-		public bool Equals(RpcStatus other) => this == other;
+		public bool Equals(RpcStatus? other) => this == other;
 
 		public override int GetHashCode() => Status.GetHashCode();
 
-		public static bool operator ==(RpcStatus x, RpcStatus y) => y?.Status == x?.Status;
+		public static bool operator ==(RpcStatus? x, RpcStatus? y) => y?.Status == x?.Status;
 
-		public static bool operator !=(RpcStatus x, RpcStatus y) => !(x == y);
+		public static bool operator !=(RpcStatus? x, RpcStatus? y) => !(x == y);
 
 		#endregion EqualityAndComparison
 	}

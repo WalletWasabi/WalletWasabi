@@ -37,7 +37,7 @@ namespace System
 		/// <summary>
 		/// Fastest byte array comparison in C#
 		/// </summary>
-		public static unsafe bool CompareFastUnsafe(byte[] array1, byte[] array2)
+		public static unsafe bool CompareFastUnsafe(byte[]? array1, byte[]? array2)
 		{
 			if (array1 == array2)
 			{
