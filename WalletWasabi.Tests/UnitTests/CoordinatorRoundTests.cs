@@ -57,7 +57,7 @@ namespace WalletWasabi.Tests.UnitTests
 				await round.TryOptimizeFeesAsync(tx1, spentCoins);
 				var txFeeAfterOptimization = tx1.GetFee(spentCoins.ToArray());
 
-				Assert.True(txFeeAfterOptimization == txFeeBeforeOptimization);
+				Assert.Equal(txFeeAfterOptimization, txFeeBeforeOptimization);
 			}
 		}
 
@@ -92,8 +92,8 @@ namespace WalletWasabi.Tests.UnitTests
 				var (feePerInputs, feePerOutputs) = await CoordinatorRound.CalculateFeesAsync(rpc, 12);
 
 				var highestMinMemPoolFeeRate = new FeeRate(Money.Coins((decimal)HighestMinMemPoolFee));
-				Assert.True(feePerInputs == highestMinMemPoolFeeRate.GetFee(InputSizeInBytes));
-				Assert.True(feePerOutputs == highestMinMemPoolFeeRate.GetFee(OutputSizeInBytes));
+				Assert.Equal(highestMinMemPoolFeeRate.GetFee(InputSizeInBytes), feePerInputs);
+				Assert.Equal(highestMinMemPoolFeeRate.GetFee(OutputSizeInBytes), feePerOutputs);
 			}
 		}
 	}
