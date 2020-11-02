@@ -68,7 +68,7 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 
 		private void ValidateConfirmPassword(IValidationErrors errors)
 		{
-			if (!string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(ConfirmPassword) && Password != ConfirmPassword)
+			if (!string.IsNullOrEmpty(ConfirmPassword) && Password != ConfirmPassword)
 			{
 				errors.Add(ErrorSeverity.Error, PasswordHelper.MatchingMessage);
 			}

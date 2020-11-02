@@ -12,6 +12,9 @@
   <UserControl.Resources>
     <converters:BoolToOpacityConverter x:Key="BoolToOpacityConverter" />
   </UserControl.Resources>
+    <UserControl.KeyBindings>
+    <KeyBinding Gesture="Enter" Command="{Binding FinishCommand}" />
+  </UserControl.KeyBindings>
   <Panel>
 
     <c:ContentArea Title="Confirm recovery words" Caption="Type the required recovery words">
