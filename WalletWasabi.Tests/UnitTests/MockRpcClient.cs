@@ -15,6 +15,7 @@ namespace WalletWasabi.Tests.UnitTests
 		public Func<uint256, Task<BlockHeader>> OnGetBlockHeaderAsync { get; set; }
 		public Func<Task<BlockchainInfo>> OnGetBlockchainInfoAsync { get; set; }
 		public Func<uint256, Task<VerboseBlockInfo>> OnGetVerboseBlockAsync { get; set; }
+		public Func<Task<MemPoolInfo>> OnGetMempoolInfoAsync { get; set; }
 
 		public Network Network { get; set; } = Network.RegTest;
 		public RPCCredentialString CredentialString => new RPCCredentialString();
@@ -57,6 +58,11 @@ namespace WalletWasabi.Tests.UnitTests
 		public Task<MempoolEntry> GetMempoolEntryAsync(uint256 txid, bool throwIfNotFound = true)
 		{
 			throw new NotImplementedException();
+		}
+
+		public Task<MemPoolInfo> GetMempoolInfoAsync()
+		{
+			return OnGetMempoolInfoAsync();
 		}
 
 		public Task<BitcoinAddress> GetNewAddressAsync()

@@ -79,7 +79,7 @@ namespace WalletWasabi.Fluent.Controls
 			switch (presenter.Name)
 			{
 				case "PART_TitlePresenter":
-					if (_titlePresenter is {})
+					if (_titlePresenter is { })
 					{
 						_titlePresenter.PropertyChanged -= PresenterOnPropertyChanged;
 					}
@@ -90,7 +90,7 @@ namespace WalletWasabi.Fluent.Controls
 					break;
 
 				case "PART_CaptionPresenter":
-					if (_captionPresenter is {})
+					if (_captionPresenter is { })
 					{
 						_captionPresenter.PropertyChanged -= PresenterOnPropertyChanged;
 					}

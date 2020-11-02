@@ -20,12 +20,12 @@ namespace WalletWasabi.Wabisabi
 			ErrorCode = errorCode;
 		}
 
-		public WabiSabiException(string? message, Exception? innerException) 
+		public WabiSabiException(string? message, Exception? innerException)
 			: base(message, innerException)
 		{
 		}
 
-		protected WabiSabiException(SerializationInfo info, StreamingContext context) 
+		protected WabiSabiException(SerializationInfo info, StreamingContext context)
 			: base(info, context)
 		{
 		}

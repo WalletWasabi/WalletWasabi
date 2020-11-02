@@ -461,5 +461,16 @@ namespace NBitcoin
 				}
 			}
 		}
+
+		public static FeeRate GetSanityFeeRate(this MemPoolInfo me)
+		{
+			var mempoolMinFee = (decimal)me.MemPoolMinFee;
+
+			// Make sure to be prepare for mempool spikes.
+			var spikeSanity = mempoolMinFee * 1.5m;
+
+			var sanityFee = FeeRate.Max(new FeeRate(Money.Coins(spikeSanity)), new FeeRate(2m));
+			return sanityFee;
+		}
 	}
 }
