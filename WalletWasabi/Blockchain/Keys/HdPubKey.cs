@@ -119,15 +119,15 @@ namespace WalletWasabi.Blockchain.Keys
 
 		#region Equality
 
-		public override bool Equals(object obj) => Equals(obj as HdPubKey);
+		public override bool Equals(object? obj) => Equals(obj as HdPubKey);
 
-		public bool Equals(HdPubKey other) => this == other;
+		public bool Equals(HdPubKey? other) => this == other;
 
 		public override int GetHashCode() => HashCode;
 
-		public static bool operator ==(HdPubKey x, HdPubKey y) => x?.PubKeyHash == y?.PubKeyHash;
+		public static bool operator ==(HdPubKey? x, HdPubKey? y) => x?.PubKeyHash == y?.PubKeyHash;
 
-		public static bool operator !=(HdPubKey x, HdPubKey y) => !(x == y);
+		public static bool operator !=(HdPubKey? x, HdPubKey? y) => !(x == y);
 
 		#endregion Equality
 	}

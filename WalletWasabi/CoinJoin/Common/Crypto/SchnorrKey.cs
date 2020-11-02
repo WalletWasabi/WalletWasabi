@@ -28,15 +28,15 @@ namespace WalletWasabi.CoinJoin.Common.Crypto
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => Equals(obj as SchnorrKey);
+		public override bool Equals(object? obj) => Equals(obj as SchnorrKey);
 
-		public bool Equals(SchnorrKey other) => this == other;
+		public bool Equals(SchnorrKey? other) => this == other;
 
 		public override int GetHashCode() => (SignerKey, Rkey).GetHashCode();
 
-		public static bool operator ==(SchnorrKey x, SchnorrKey y) => y?.SignerKey == x?.SignerKey && y?.Rkey == x?.Rkey;
+		public static bool operator ==(SchnorrKey? x, SchnorrKey? y) => (x?.SignerKey, x?.Rkey) == (y?.SignerKey, y?.Rkey);
 
-		public static bool operator !=(SchnorrKey x, SchnorrKey y) => !(x == y);
+		public static bool operator !=(SchnorrKey? x, SchnorrKey? y) => !(x == y);
 
 		#endregion EqualityAndComparison
 	}

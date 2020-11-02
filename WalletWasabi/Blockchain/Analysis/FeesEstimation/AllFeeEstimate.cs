@@ -69,9 +69,9 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 
 		#region Equality
 
-		public override bool Equals(object obj) => Equals(obj as AllFeeEstimate);
+		public override bool Equals(object? obj) => Equals(obj as AllFeeEstimate);
 
-		public bool Equals(AllFeeEstimate other) => this == other;
+		public bool Equals(AllFeeEstimate? other) => this == other;
 
 		public override int GetHashCode()
 		{
@@ -85,14 +85,14 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 			return hash;
 		}
 
-		public static bool operator ==(AllFeeEstimate x, AllFeeEstimate y)
+		public static bool operator ==(AllFeeEstimate? x, AllFeeEstimate? y)
 		{
 			if (ReferenceEquals(x, y))
 			{
 				return true;
 			}
 
-			if (x is null ^ y is null)
+			if (x is null || y is null)
 			{
 				return false;
 			}
@@ -134,7 +134,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 			return equal;
 		}
 
-		public static bool operator !=(AllFeeEstimate x, AllFeeEstimate y) => !(x == y);
+		public static bool operator !=(AllFeeEstimate? x, AllFeeEstimate? y) => !(x == y);
 
 		#endregion Equality
 	}
