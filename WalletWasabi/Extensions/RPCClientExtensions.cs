@@ -22,7 +22,7 @@ namespace NBitcoin.RPC
 			}
 			else
 			{
-				result = await rpc.EstimateSmartFeeAsync(confirmationTarget, estimateMode);
+				result = await rpc.EstimateSmartFeeAsync(confirmationTarget, estimateMode).ConfigureAwait(false);
 			}
 
 			result.FeeRate = FeeRate.Max(sanityFeeRate, result.FeeRate);
