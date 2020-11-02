@@ -812,18 +812,18 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 				// 7.2. Get the most optimal FeeRate.
 				EstimateSmartFeeResponse estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(AdjustedConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true).ConfigureAwait(false);
-				
+
 				if (estimateSmartFeeResponse is null)
 				{
 					throw new InvalidOperationException($"{nameof(FeeRate)} is not yet initialized.");
 				}
 
-				FeeRate optimalFeeRate =  estimateSmartFeeResponse.FeeRate;
+				FeeRate optimalFeeRate = estimateSmartFeeResponse.FeeRate;
 
 				if (optimalFeeRate is { } && optimalFeeRate != FeeRate.Zero && currentFeeRate is { } && currentFeeRate != FeeRate.Zero) // This would be really strange if it'd happen.
 				{
 					MemPoolInfo mempoolInfo = await RpcClient.GetMempoolAsync().ConfigureAwait(false);
-					FeeRate minMempoolFee = new FeeRate(Money.Coins((decimal)mempoolInfo.MemPoolMinFee)); 
+					FeeRate minMempoolFee = new FeeRate(Money.Coins((decimal)mempoolInfo.MemPoolMinFee));
 
 					var sanityFeeRate = FeeRate.Max(minMempoolFee, new FeeRate(2m)); // 2 s/b
 					optimalFeeRate = optimalFeeRate < sanityFeeRate ? sanityFeeRate : optimalFeeRate;
@@ -900,7 +900,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			try
 			{
 				var mempoolInfo = await rpc.GetMempoolAsync().ConfigureAwait(false);
-				var minMempoolFee = new FeeRate(Money.Coins((decimal)mempoolInfo.MemPoolMinFee)); 
+				var minMempoolFee = new FeeRate(Money.Coins((decimal)mempoolInfo.MemPoolMinFee));
 				var sanityFeeRate = FeeRate.Max(minMempoolFee, new FeeRate(2m));
 
 				var estimateSmartFeeResponse = await rpc.EstimateSmartFeeAsync(confirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true).ConfigureAwait(false);

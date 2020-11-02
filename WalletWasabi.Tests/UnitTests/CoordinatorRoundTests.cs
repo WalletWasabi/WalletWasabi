@@ -39,7 +39,7 @@ namespace WalletWasabi.Tests.UnitTests
 				var tx0 = tx.Clone();
 				var spentCoins = tx0.Inputs.Select(x => new Coin(x.PrevOut, new TxOut(Money.Coins(1), new Key().ScriptPubKey)));
 				var txFeeBeforeOptimization = tx0.GetFee(spentCoins.ToArray());
-				await round.TryOptimizeFeesAsync(tx0, spentCoins );
+				await round.TryOptimizeFeesAsync(tx0, spentCoins);
 				var txFeeAfterOptimization = tx0.GetFee(spentCoins.ToArray());
 				Assert.True(txFeeAfterOptimization < txFeeBeforeOptimization);
 			}
@@ -54,7 +54,7 @@ namespace WalletWasabi.Tests.UnitTests
 				var tx1 = tx.Clone();
 				var spentCoins = tx1.Inputs.Select(x => new Coin(x.PrevOut, new TxOut(Money.Coins(1), new Key().ScriptPubKey)));
 				var txFeeBeforeOptimization = tx1.GetFee(spentCoins.ToArray());
-				await round.TryOptimizeFeesAsync(tx1, spentCoins );
+				await round.TryOptimizeFeesAsync(tx1, spentCoins);
 				var txFeeAfterOptimization = tx1.GetFee(spentCoins.ToArray());
 
 				Assert.True(txFeeAfterOptimization == txFeeBeforeOptimization);
@@ -65,7 +65,7 @@ namespace WalletWasabi.Tests.UnitTests
 		public async Task xxAsync()
 		{
 			const double DefaultMinMemPoolFee = 0.00001000; // 1 s/b (default value)
-			const double HighertMinMemPoolFee = 0.00200000; // 200 s/b 
+			const double HighertMinMemPoolFee = 0.00200000; // 200 s/b
 			const int InputSizeInBytes = 67;
 			const int OutputSizeInBytes = 33;
 
@@ -73,7 +73,7 @@ namespace WalletWasabi.Tests.UnitTests
 			{
 				rpc.OnGetMempoolAsync = () => Task.FromResult(new MemPoolInfo
 				{
-					MemPoolMinFee = DefaultMinMemPoolFee 
+					MemPoolMinFee = DefaultMinMemPoolFee
 				});
 
 				var (feePerInputs, feePerOutputs) = await CoordinatorRound.CalculateFeesAsync(rpc, 12);
@@ -86,7 +86,7 @@ namespace WalletWasabi.Tests.UnitTests
 			{
 				rpc.OnGetMempoolAsync = () => Task.FromResult(new MemPoolInfo
 				{
-					MemPoolMinFee = HighertMinMemPoolFee 
+					MemPoolMinFee = HighertMinMemPoolFee
 				});
 
 				var (feePerInputs, feePerOutputs) = await CoordinatorRound.CalculateFeesAsync(rpc, 12);
