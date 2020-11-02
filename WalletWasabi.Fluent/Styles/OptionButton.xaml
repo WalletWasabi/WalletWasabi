@@ -26,12 +26,4 @@
     <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
     <Setter Property="BoxShadow" Value="{DynamicResource OptionButtonShadow}" />
   </Style>
-
-  <Style Selector="Button.option[IsVisible=true]">
-    <Setter Property="Opacity" Value="1" />
-  </Style>
-
-  <Style Selector="Button.option[IsVisible=false]">
-    <Setter Property="Opacity" Value="0" />
-  </Style>
 </Styles>
