@@ -35,6 +35,8 @@ namespace WalletWasabi.BitcoinCore.Rpc
 
 		Task<uint256[]> GetRawMempoolAsync();
 
+		Task<MemPoolInfo> GetMempoolInfoAsync();
+
 		Task<MempoolAcceptResult> TestMempoolAcceptAsync(Transaction transaction, bool allowHighFees = false);
 
 		Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative);
