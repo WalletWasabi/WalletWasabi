@@ -21,7 +21,7 @@
                            RestrictInputToSuggestions="True"
                            Items="{CompiledBinding Mnemonics}"
                            Suggestions="{CompiledBinding Suggestions}"
-                           SelectedTag="{CompiledBinding  SelectedTag}"/>
+                           SelectedTag="{CompiledBinding SelectedTag}"/>
             </StackPanel>
         </c:ContentArea>
         <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="invisible" HorizontalAlignment="Left"

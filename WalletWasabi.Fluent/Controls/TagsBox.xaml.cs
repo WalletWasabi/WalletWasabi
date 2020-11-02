@@ -15,8 +15,6 @@ using Avalonia.VisualTree;
 
 namespace WalletWasabi.Fluent.Controls
 {
-    /// <summary>
-    /// </summary>
     public class TagsBox : ItemsControl
     {
         public static readonly StyledProperty<bool> RestrictInputToSuggestionsProperty =
@@ -209,7 +207,7 @@ namespace WalletWasabi.Fluent.Controls
                 return;
             }
 
-            var currentText = autoCompleteBox.Text.Trim();
+            var currentText = (autoCompleteBox.Text ?? "").Trim();
 
             if (currentText.Length == 0 ||
                 !(autoCompleteBox.SelectedItem is string selItem) ||
@@ -270,29 +268,29 @@ namespace WalletWasabi.Fluent.Controls
             var autoCompleteBox = sender as AutoCompleteBox;
             if (autoCompleteBox is null) return;
 
-            var str = autoCompleteBox.Text ?? "";
+            var currentText = autoCompleteBox.Text ?? "";
 
             _backspaceEmptyField2 = _backspaceEmptyField1;
-            _backspaceEmptyField1 = str.Length == 0;
+            _backspaceEmptyField1 = currentText.Length == 0;
 
-            var strTrimmed = str.Trim();
+            currentText = currentText.Trim();
 
             switch (e.Key)
             {
                 case Key.Back when _backspaceEmptyField1 && _backspaceEmptyField2:
                     RemoveTag();
                     break;
-                case Key.Enter when _isInputEnabled && !string.IsNullOrEmpty(strTrimmed):
+                case Key.Enter when _isInputEnabled && !string.IsNullOrEmpty(currentText):
                     if (RestrictInputToSuggestions &&
                         Suggestions is { } &&
                         !Suggestions.Cast<string>().Any(x =>
-                            x.Equals(strTrimmed, StringComparison.InvariantCultureIgnoreCase)))
+                            x.Equals(currentText, StringComparison.InvariantCultureIgnoreCase)))
                     {
                         break;
                     }
                     
                     BackspaceLogicClear();
-                    SelectTag(strTrimmed);
+                    SelectTag(currentText);
                     Dispatcher.UIThread.Post(() => { autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); });
                     break;
             }
@@ -304,9 +302,9 @@ namespace WalletWasabi.Fluent.Controls
             CheckIsInputEnabled();
         }
 
-        private void SelectTag(string strTrimmed)
+        private void SelectTag(string tagString)
         {
-            SelectedTag = strTrimmed;
+            SelectedTag = tagString;
             CheckIsInputEnabled();
         }
     }

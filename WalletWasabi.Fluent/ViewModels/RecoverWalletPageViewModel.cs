@@ -1,17 +1,12 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.Reactive.Linq;
 using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
-using Splat;
-using WalletWasabi.Gui;
 using WalletWasabi.Gui.Validation;
-using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels

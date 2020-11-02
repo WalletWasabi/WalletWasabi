@@ -8,8 +8,8 @@ using Avalonia.Utilities;
 
 namespace WalletWasabi.Fluent.Controls
 {
-	/// Note: Most of this class is a copy paste from Avalonia. So the code style and standard should
-	/// be kept as is to allow for future maintenance.
+	// Note: Most of this class is a copy paste from Avalonia. So the code style and standard should
+	// be kept as is to allow for future maintenance.
 
 	/// <summary>
 	/// Works like a wrap panel.. but concatenates the Items in ConcatenatedChildren.
