@@ -67,9 +67,9 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => Equals(obj as Cluster);
+		public override bool Equals(object? obj) => Equals(obj as Cluster);
 
-		public bool Equals(Cluster other) => this == other;
+		public bool Equals(Cluster? other) => this == other;
 
 		public override int GetHashCode()
 		{
@@ -87,7 +87,7 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 			}
 		}
 
-		public static bool operator ==(Cluster x, Cluster y)
+		public static bool operator ==(Cluster? x, Cluster? y)
 		{
 			if (ReferenceEquals(x, y))
 			{
@@ -111,7 +111,7 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 			}
 		}
 
-		public static bool operator !=(Cluster x, Cluster y) => !(x == y);
+		public static bool operator !=(Cluster? x, Cluster? y) => !(x == y);
 
 		#endregion EqualityAndComparison
 	}

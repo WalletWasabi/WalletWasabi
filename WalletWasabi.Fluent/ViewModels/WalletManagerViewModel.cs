@@ -140,7 +140,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			foreach (var wallet in walletManager.GetWallets())
 			{
-				InsertWallet(ClosedWalletViewModel.Create(_screen, walletManager, wallet));				
+				InsertWallet(ClosedWalletViewModel.Create(_screen, walletManager, wallet));
 			}
 		}
 	}

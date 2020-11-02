@@ -26,14 +26,14 @@ namespace WalletWasabi.Wabisabi
 		// Keeps track of the used serial numbers. This is part of 
 		// the double-spending prevention mechanism.
 		private HashSet<GroupElement> SerialNumbers { get; } = new HashSet<GroupElement>();
-		
+
 		// Canary test check to ensure credential balance is never negative
 		private Money Balance { get; set; } = Money.Zero;
 
 		private WasabiRandom RandomNumberGenerator { get; }
 
 		private CoordinatorSecretKey CoordinatorSecretKey { get; }
-		
+
 		private CoordinatorParameters CoordinatorParameters { get; }
 
 		// Gets the number of credentials that have to be requested/presented
@@ -47,11 +47,11 @@ namespace WalletWasabi.Wabisabi
 			var requested = registrationRequest.Requested ?? Enumerable.Empty<IssuanceRequest>();
 			var presented = registrationRequest.Presented ?? Enumerable.Empty<CredentialPresentation>();
 
-			var requestedCount = requested.Count();  
+			var requestedCount = requested.Count();
 			if (requestedCount != NumberOfCredentials)
 			{
 				throw new WabiSabiException(
-					WabiSabiErrorCode.InvalidNumberOfRequestedCredentials, 
+					WabiSabiErrorCode.InvalidNumberOfRequestedCredentials,
 					$"{NumberOfCredentials} credential requests were expected but {requestedCount} were received.");
 			}
 
@@ -60,7 +60,7 @@ namespace WalletWasabi.Wabisabi
 			if (presentedCount != requiredNumberOfPresentations)
 			{
 				throw new WabiSabiException(
-					WabiSabiErrorCode.InvalidNumberOfPresentedCredentials, 
+					WabiSabiErrorCode.InvalidNumberOfPresentedCredentials,
 					$"{requiredNumberOfPresentations} credential presentations were expected but {presentedCount} were received.");
 			}
 
@@ -77,7 +77,7 @@ namespace WalletWasabi.Wabisabi
 			if (!allRangeProofsAreCorrectSize)
 			{
 				throw new WabiSabiException(WabiSabiErrorCode.InvalidBitCommitment);
-			} 
+			}
 
 			// Check all the serial numbers are unique. Note that this is checked separately from
 			// ensuring that they haven't been used before, because even presenting a previously
@@ -157,7 +157,7 @@ namespace WalletWasabi.Wabisabi
 			return response;
 		}
 
-		private (MAC Mac, Knowledge Knowledge) IssueCredential(GroupElement ma,  Scalar t)
+		private (MAC Mac, Knowledge Knowledge) IssueCredential(GroupElement ma, Scalar t)
 		{
 			var sk = CoordinatorSecretKey;
 			var mac = MAC.ComputeMAC(sk, ma, t);
