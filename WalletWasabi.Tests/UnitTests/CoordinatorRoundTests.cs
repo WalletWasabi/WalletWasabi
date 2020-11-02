@@ -13,7 +13,7 @@ namespace WalletWasabi.Tests.UnitTests
 	public class CoordinatorRoundTests
 	{
 		[Fact]
-		public async Task ssAsync()
+		public async Task SsAsync()
 		{
 			var rpc = new MockRpcClient();
 			var roundConfig = new CoordinatorRoundConfig();
@@ -62,7 +62,7 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public async Task xxAsync()
+		public async Task XxAsync()
 		{
 			const double DefaultMinMemPoolFee = 0.00001000; // 1 s/b (default value)
 			const double HighertMinMemPoolFee = 0.00200000; // 200 s/b
