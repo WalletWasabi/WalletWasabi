@@ -811,7 +811,9 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				}
 
 				// 7.2. Get the most optimal FeeRate.
-				EstimateSmartFeeResponse estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(AdjustedConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true).ConfigureAwait(false);
+				MemPoolInfo mempoolInfo = await RpcClient.GetMempoolInfoAsync().ConfigureAwait(false);
+				var sanityFeeRate = mempoolInfo.GetSanityFeeRate();
+				EstimateSmartFeeResponse estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(AdjustedConfirmationTarget, sanityFeeRate, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true).ConfigureAwait(false);
 
 				if (estimateSmartFeeResponse is null)
 				{
@@ -820,35 +822,28 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 				FeeRate optimalFeeRate = estimateSmartFeeResponse.FeeRate;
 
-				if (optimalFeeRate is { } && optimalFeeRate != FeeRate.Zero && currentFeeRate is { } && currentFeeRate != FeeRate.Zero) // This would be really strange if it'd happen.
+				if (optimalFeeRate is { } && optimalFeeRate != FeeRate.Zero && currentFeeRate is { } && currentFeeRate != FeeRate.Zero && optimalFeeRate < currentFeeRate) // This would be really strange if it'd happen.
 				{
-					MemPoolInfo mempoolInfo = await RpcClient.GetMempoolInfoAsync().ConfigureAwait(false);
+					// 7.2 If the fee can be lowered, lower it.
+					// 7.2.1. How much fee can we save?
+					Money feeShouldBePaid = Money.Satoshis(estimatedFinalTxSize * (int)optimalFeeRate.SatoshiPerByte);
+					Money toSave = fee - feeShouldBePaid;
 
-					var sanityFeeRate = mempoolInfo.GetSanityFeeRate();
-					optimalFeeRate = optimalFeeRate < sanityFeeRate ? sanityFeeRate : optimalFeeRate;
-					if (optimalFeeRate < currentFeeRate)
+					// 7.2.2. Get the outputs to divide the savings between.
+					var indistinguishableOutputs = transaction.GetIndistinguishableOutputs(includeSingle: true).ToArray();
+					int maxMixCount = indistinguishableOutputs.Max(x => x.count);
+					Money bestMixAmount = indistinguishableOutputs.Where(x => x.count == maxMixCount).Max(x => x.value);
+					int bestMixCount = indistinguishableOutputs.First(x => x.value == bestMixAmount).count;
+
+					// 7.2.3. Get the savings per best mix outputs.
+					long toSavePerBestMixOutputs = toSave.Satoshi / bestMixCount;
+
+					// 7.2.4. Modify the best mix outputs in the transaction.
+					if (toSavePerBestMixOutputs > 0)
 					{
-						// 7.2 If the fee can be lowered, lower it.
-						// 7.2.1. How much fee can we save?
-						Money feeShouldBePaid = Money.Satoshis(estimatedFinalTxSize * (int)optimalFeeRate.SatoshiPerByte);
-						Money toSave = fee - feeShouldBePaid;
-
-						// 7.2.2. Get the outputs to divide the savings between.
-						var indistinguishableOutputs = transaction.GetIndistinguishableOutputs(includeSingle: true).ToArray();
-						int maxMixCount = indistinguishableOutputs.Max(x => x.count);
-						Money bestMixAmount = indistinguishableOutputs.Where(x => x.count == maxMixCount).Max(x => x.value);
-						int bestMixCount = indistinguishableOutputs.First(x => x.value == bestMixAmount).count;
-
-						// 7.2.3. Get the savings per best mix outputs.
-						long toSavePerBestMixOutputs = toSave.Satoshi / bestMixCount;
-
-						// 7.2.4. Modify the best mix outputs in the transaction.
-						if (toSavePerBestMixOutputs > 0)
+						foreach (TxOut output in transaction.Outputs.Where(x => x.Value == bestMixAmount))
 						{
-							foreach (TxOut output in transaction.Outputs.Where(x => x.Value == bestMixAmount))
-							{
-								output.Value += toSavePerBestMixOutputs;
-							}
+							output.Value += toSavePerBestMixOutputs;
 						}
 					}
 				}
@@ -900,10 +895,8 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			{
 				var mempoolInfo = await rpc.GetMempoolInfoAsync().ConfigureAwait(false);
 				var sanityFeeRate = mempoolInfo.GetSanityFeeRate();
-
-				var estimateSmartFeeResponse = await rpc.EstimateSmartFeeAsync(confirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true).ConfigureAwait(false);
-
-				var feeRate = FeeRate.Max(estimateSmartFeeResponse.FeeRate, sanityFeeRate);
+				var estimateSmartFeeResponse = await rpc.EstimateSmartFeeAsync(confirmationTarget, sanityFeeRate, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true).ConfigureAwait(false);
+				var feeRate = estimateSmartFeeResponse.FeeRate;
 
 				feePerInputs = feeRate.GetFee(inputSizeInBytes);
 				feePerOutputs = feeRate.GetFee(outputSizeInBytes);
