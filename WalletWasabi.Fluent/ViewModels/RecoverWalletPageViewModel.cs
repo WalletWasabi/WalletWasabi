@@ -14,18 +14,18 @@ namespace WalletWasabi.Fluent.ViewModels
     public class RecoveryPageViewModel : NavBarItemViewModel
     {
         private readonly ObservableAsPropertyHelper<Mnemonic?> _currentMnemonic;
-        private IEnumerable<string> _suggestions;
-        private string _selectedTag;
+        private IEnumerable<string>? _suggestions;
+        private string? _selectedTag;
 
         public ObservableCollection<string> Mnemonics { get; } = new ObservableCollection<string>();
 
-        public IEnumerable<string> Suggestions
+        public IEnumerable<string>? Suggestions
         {
             get => _suggestions;
             set => this.RaiseAndSetIfChanged(ref _suggestions, value);
         }
 
-        public string SelectedTag
+        public string? SelectedTag
         {
             get => _selectedTag;
             set => this.RaiseAndSetIfChanged(ref _selectedTag, value);
@@ -34,16 +34,15 @@ namespace WalletWasabi.Fluent.ViewModels
         public RecoveryPageViewModel(IScreen screen) : base(screen)
         {
             Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
-            
+
             _currentMnemonic = Mnemonics.ToObservableChangeSet().ToCollection()
                 .Select(x => x.Count == 12 ? new Mnemonic(GetTagsAsConcatString()) : default)
                 .ToProperty(this, x => x.CurrentMnemonics);
- 
+
             this.WhenAnyValue(x => x.SelectedTag)
                 .Where(x => !string.IsNullOrEmpty(x))
                 .Subscribe(AddMnemonic);
-            
-            // TODO: Will try to find ways of doing this better...
+
             this.WhenAnyValue(x => x.CurrentMnemonics)
                 .Subscribe(x => this.RaisePropertyChanged(nameof(Mnemonics)));
 
@@ -58,10 +57,14 @@ namespace WalletWasabi.Fluent.ViewModels
             }
         }
 
-        private void AddMnemonic(string tagString)
+        private void AddMnemonic(string? tagString)
         {
-            Mnemonics.Add(tagString);
-            SelectedTag = string.Empty;
+	        if (!string.IsNullOrWhiteSpace(tagString))
+	        {
+		        Mnemonics.Add(tagString);
+	        }
+
+	        SelectedTag = string.Empty;
         }
 
         private string GetTagsAsConcatString()
@@ -69,8 +72,8 @@ namespace WalletWasabi.Fluent.ViewModels
             return string.Join(' ', Mnemonics);
         }
 
-        public Mnemonic? CurrentMnemonics => _currentMnemonic.Value;
-        
+        private Mnemonic? CurrentMnemonics => _currentMnemonic.Value;
+
         public override string IconName => "settings_regular";
     }
 }
