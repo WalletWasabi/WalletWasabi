@@ -11,7 +11,6 @@ using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
-using Avalonia.VisualTree;
 
 namespace WalletWasabi.Fluent.Controls
 {
@@ -125,8 +124,7 @@ namespace WalletWasabi.Fluent.Controls
 
             if (RestrictInputToSuggestions &&
                 Suggestions is IList<string> suggestions &&
-                !suggestions.Any(x =>
-                    x.StartsWith(autoCompleteBox.SearchText ?? "", true, CultureInfo.CurrentCulture)))
+                !suggestions.Any(x => x.StartsWith(autoCompleteBox.SearchText ?? "", true, CultureInfo.CurrentCulture)))
             {
                 e.Handled = true;
             }
@@ -193,7 +191,10 @@ namespace WalletWasabi.Fluent.Controls
 
         private void OnTextChanged(object? sender, EventArgs e)
         {
-            if (!(sender is AutoCompleteBox autoCompleteBox)) return;
+            if (!(sender is AutoCompleteBox autoCompleteBox))
+            {
+	            return;
+            }
 
             var currentText = autoCompleteBox.Text ?? "";
             var endsWithSpace = currentText.EndsWith(' ');
@@ -201,8 +202,9 @@ namespace WalletWasabi.Fluent.Controls
 
             if (RestrictInputToSuggestions && Suggestions is IList<string> suggestions)
             {
-                var keywordIsInSuggestions = suggestions.Any(x => x.Equals(currentText,
-                    StringComparison.InvariantCultureIgnoreCase));
+                var keywordIsInSuggestions =
+	                suggestions.Any(
+		                x => x.Equals(currentText, StringComparison.InvariantCultureIgnoreCase));
 
                 if (!keywordIsInSuggestions)
                 {
@@ -228,7 +230,11 @@ namespace WalletWasabi.Fluent.Controls
         private void OnKeyUp(object? sender, KeyEventArgs e)
         {
             var autoCompleteBox = sender as AutoCompleteBox;
-            if (autoCompleteBox is null) return;
+
+            if (autoCompleteBox is null)
+            {
+	            return;
+            }
 
             var currentText = autoCompleteBox.Text ?? "";
 
@@ -245,8 +251,8 @@ namespace WalletWasabi.Fluent.Controls
                 case Key.Enter when _isInputEnabled && !string.IsNullOrEmpty(currentText):
                     if (RestrictInputToSuggestions &&
                         Suggestions is { } &&
-                        !Suggestions.Cast<string>().Any(x =>
-                            x.Equals(currentText, StringComparison.InvariantCultureIgnoreCase)))
+                        !Suggestions.Cast<string>().Any(
+	                        x => x.Equals(currentText, StringComparison.InvariantCultureIgnoreCase)))
                     {
                         break;
                     }
@@ -260,7 +266,11 @@ namespace WalletWasabi.Fluent.Controls
 
         private void RemoveTag()
         {
-            if (Items is IList x && x.Count > 0) x.RemoveAt(Math.Max(0, x.Count - 1));
+            if (Items is IList x && x.Count > 0)
+            {
+	            x.RemoveAt(Math.Max(0, x.Count - 1));
+            }
+
             CheckIsInputEnabled();
         }
 
