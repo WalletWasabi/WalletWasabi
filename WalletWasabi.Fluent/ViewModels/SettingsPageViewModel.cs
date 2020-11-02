@@ -1,13 +1,11 @@
+using Avalonia;
+using Avalonia.Markup.Xaml.Styling;
+using ReactiveUI;
 using System;
 using System.Linq;
-using ReactiveUI;
 using System.Reactive.Threading.Tasks;
 using System.Windows.Input;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
-using WalletWasabi.Gui.Validation;
-using WalletWasabi.Models;
-using Avalonia;
-using Avalonia.Markup.Xaml.Styling;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -20,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			Title = "Settings";
 
 			NextCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new AddWalletPageViewModel(screen)));
-			
+
 			OpenDialogCommand = ReactiveCommand.CreateFromTask(async () => await ConfirmSetting.Handle("Please confirm the setting:").ToTask());
 
 			ConfirmSetting = new Interaction<string, bool>();
@@ -49,16 +47,6 @@ namespace WalletWasabi.Fluent.ViewModels
 					Application.Current.Styles[themeIndex] = newTheme;
 				}
 			});
-
-			// For TextBox error look
-			this.ValidateProperty(x => x.RandomString, (errors) => errors.Add(ErrorSeverity.Error, "Random Error Message"));
-			this.RaisePropertyChanged(nameof(RandomString));
-		}
-
-		public string RandomString
-		{
-			get => _randomString;
-			set => this.RaiseAndSetIfChanged(ref _randomString, value);
 		}
 
 		public ICommand NextCommand { get; }

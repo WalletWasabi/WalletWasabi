@@ -37,7 +37,6 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 				})
 				.ObserveOn(RxApp.MainThreadScheduler);
 
-
 			ContinueCommand = ReactiveCommand.Create(
 				() =>
 				{

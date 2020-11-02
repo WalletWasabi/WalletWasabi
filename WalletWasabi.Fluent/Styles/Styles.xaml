@@ -135,7 +135,7 @@
     <Setter Property="Opacity" Value="0" />
     <Setter Property="Transitions">
       <Transitions>
-        <DoubleTransition Property="Opacity" Duration="0:0:0.3"/>
+        <DoubleTransition Property="Opacity" Duration="0:0:0.3" />
       </Transitions>
     </Setter>
   </Style>
@@ -200,8 +200,8 @@
 
             <Border
               Margin="{TemplateBinding BorderThickness}">
-              <Grid ColumnDefinitions="Auto,*,Auto" >
-                <ContentPresenter Grid.Column="0" Grid.ColumnSpan="1" Content="{TemplateBinding InnerLeftContent}"/>
+              <Grid ColumnDefinitions="Auto,*,Auto">
+                <ContentPresenter Grid.Column="0" Grid.ColumnSpan="1" Content="{TemplateBinding InnerLeftContent}" />
                 <DockPanel x:Name="PART_InnerDockPanel" Grid.Column="1" Grid.ColumnSpan="1" Margin="{TemplateBinding Padding}">
                   <TextBlock Name="PART_FloatingWatermark"
                              Foreground="{DynamicResource SystemAccentColor}"
@@ -218,7 +218,7 @@
                                 TextWrapping="{TemplateBinding TextWrapping}"
                                 IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNullOrEmpty}}"
                                 HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                         <!-- TODO eliminate this margin... text layout issue? -->
                         <TextPresenter Name="PART_TextPresenter"
                                       Margin="0 1 0 0"
@@ -234,11 +234,11 @@
                                       SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
                                       CaretBrush="{TemplateBinding CaretBrush}"
                                       HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                       </Panel>
                     </ScrollViewer>
                 </DockPanel>
-                <ContentPresenter Grid.Column="2" Grid.ColumnSpan="1" Content="{TemplateBinding InnerRightContent}"/>
+                <ContentPresenter Grid.Column="2" Grid.ColumnSpan="1" Content="{TemplateBinding InnerRightContent}" />
               </Grid>
             </Border>
           </Panel>

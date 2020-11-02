@@ -14,7 +14,7 @@
   <UserControl.Resources>
     <converters:BoolToOpacityConverter x:Key="BoolToOpacityConverter" />
   </UserControl.Resources>
-  
+
     <c:ContentArea Title="Add Wallet" Caption="Type in your wallets name and select an option:">
         <DockPanel>
             <StackPanel DockPanel.Dock="Top" Margin="0 0 0 40">

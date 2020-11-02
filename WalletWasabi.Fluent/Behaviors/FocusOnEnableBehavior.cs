@@ -1,9 +1,9 @@
 using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Input;
 using System;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using Avalonia.Controls;
-using Avalonia.Input;
 
 namespace WalletWasabi.Fluent.Behaviors
 {

@@ -18,5 +18,4 @@
   <Panel Margin="{Binding #MainWindow.OffScreenMargin}">
     <local:MainView />
   </Panel>
-
 </Window>

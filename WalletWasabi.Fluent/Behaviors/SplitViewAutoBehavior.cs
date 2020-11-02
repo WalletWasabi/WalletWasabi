@@ -1,9 +1,9 @@
 using Avalonia;
 using Avalonia.Controls;
+using ReactiveUI;
 using System;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Behaviors
 {
@@ -44,7 +44,6 @@ namespace WalletWasabi.Fluent.Behaviors
 				.DistinctUntilChanged()
 				.Subscribe(SplitViewBoundsChanged)
 				.DisposeWith(disposables);
-
 
 			ToggleAction = OnToggleAction;
 			CollapseOnClickAction = OnCollapseOnClickAction;

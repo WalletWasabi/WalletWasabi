@@ -1,6 +1,6 @@
-using System.Reactive.Disposables;
 using Avalonia;
 using Avalonia.Xaml.Interactivity;
+using System.Reactive.Disposables;
 
 namespace WalletWasabi.Fluent.Behaviors
 {

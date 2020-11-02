@@ -1,10 +1,10 @@
-using System.Reactive.Linq;
 using ReactiveUI;
-using System;
-using System.Windows.Input;
 using Splat;
-using WalletWasabi.Gui;
+using System;
+using System.Reactive.Linq;
+using System.Windows.Input;
 using WalletWasabi.Fluent.AddWallet.Common;
+using WalletWasabi.Gui;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
