@@ -8,7 +8,7 @@
                      EnableBack="True"
                      EnableCancel="True" CancelContent="Cancel"
                      EnableNext="True" NextContent="Continue"
-                     Caption="Type in your Wallets name and select an option below:">
+                     Caption="Type in your Wallet's name and select an option below:">
         This is the content.
       </c:ContentArea>
     </Panel>

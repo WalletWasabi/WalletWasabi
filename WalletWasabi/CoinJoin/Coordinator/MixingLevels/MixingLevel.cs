@@ -36,15 +36,15 @@ namespace WalletWasabi.CoinJoin.Coordinator.MixingLevels
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => Equals(obj as MixingLevel);
+		public override bool Equals(object? obj) => Equals(obj as MixingLevel);
 
-		public bool Equals(MixingLevel other) => this == other;
+		public bool Equals(MixingLevel? other) => this == other;
 
 		public override int GetHashCode() => (Denomination, SignerKey).GetHashCode();
 
-		public static bool operator ==(MixingLevel x, MixingLevel y) => y?.Denomination == x?.Denomination && y?.SignerKey == x?.SignerKey;
+		public static bool operator ==(MixingLevel? x, MixingLevel? y) => (x?.Denomination, x?.SignerKey) == (y?.Denomination, y?.SignerKey);
 
-		public static bool operator !=(MixingLevel x, MixingLevel y) => !(x == y);
+		public static bool operator !=(MixingLevel? x, MixingLevel? y) => !(x == y);
 
 		#endregion EqualityAndComparison
 	}

@@ -55,15 +55,15 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 
 		#region Equality
 
-		public override bool Equals(object obj) => Equals(obj as SmartLabel) || Equals(obj as string);
+		public override bool Equals(object? obj) => Equals(obj as SmartLabel) || Equals(obj as string);
 
-		public bool Equals(SmartLabel other) => this == other;
+		public bool Equals(SmartLabel? other) => this == other;
 
-		public bool Equals(string other) => this == other;
+		public bool Equals(string? other) => this == other;
 
 		public override int GetHashCode() => ((IStructuralEquatable)Labels).GetHashCode(EqualityComparer<string>.Default);
 
-		public static bool operator ==(SmartLabel x, SmartLabel y)
+		public static bool operator ==(SmartLabel? x, SmartLabel? y)
 		{
 			if (x is null)
 			{
@@ -89,7 +89,7 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 			}
 		}
 
-		public static bool operator ==(string x, SmartLabel y)
+		public static bool operator ==(string? x, SmartLabel? y)
 		{
 			if (x is null)
 			{
@@ -115,13 +115,13 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 			}
 		}
 
-		public static bool operator ==(SmartLabel x, string y) => y == x;
+		public static bool operator ==(SmartLabel? x, string? y) => y == x;
 
-		public static bool operator !=(SmartLabel x, SmartLabel y) => !(x == y);
+		public static bool operator !=(SmartLabel? x, SmartLabel? y) => !(x == y);
 
-		public static bool operator !=(string x, SmartLabel y) => !(x == y);
+		public static bool operator !=(string? x, SmartLabel? y) => !(x == y);
 
-		public static bool operator !=(SmartLabel x, string y) => !(x == y);
+		public static bool operator !=(SmartLabel? x, string? y) => !(x == y);
 
 		public static implicit operator SmartLabel(string labels) => new SmartLabel(labels);
 
