@@ -1,8 +1,10 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Input;
+using Avalonia.LogicalTree;
+using Avalonia.VisualTree;
 using ReactiveUI;
 using System;
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 
@@ -25,7 +27,18 @@ namespace WalletWasabi.Fluent.Behaviors
 				.Where(x => x == false)
 				.Subscribe(_ =>
 				{
-					KeyboardNavigationHandler.GetNext(AssociatedObject!, NavigationDirection.Next)?.Focus();
+					var parentControl = AssociatedObject.FindAncestorOfType<ItemsControl>();
+
+					foreach (var item in parentControl.GetLogicalChildren())
+					{
+						var nextToFocus = item.FindLogicalDescendantOfType<TextBox>();
+
+						if (nextToFocus.IsEnabled)
+						{
+							nextToFocus.Focus();
+							return;
+						}
+					}
 				})
 				.DisposeWith(disposables);
 		}
