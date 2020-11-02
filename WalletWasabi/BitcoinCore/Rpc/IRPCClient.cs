@@ -35,7 +35,7 @@ namespace WalletWasabi.BitcoinCore.Rpc
 
 		Task<uint256[]> GetRawMempoolAsync();
 
-		Task<MemPoolInfo> GetMempoolAsync();
+		Task<MemPoolInfo> GetMempoolInfoAsync();
 
 		Task<MempoolAcceptResult> TestMempoolAcceptAsync(Transaction transaction, bool allowHighFees = false);
 

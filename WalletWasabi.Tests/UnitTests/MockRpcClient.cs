@@ -60,7 +60,7 @@ namespace WalletWasabi.Tests.UnitTests
 			throw new NotImplementedException();
 		}
 
-		public Task<MemPoolInfo> GetMempoolAsync()
+		public Task<MemPoolInfo> GetMempoolInfoAsync()
 		{
 			return OnGetMempoolAsync();
 		}
