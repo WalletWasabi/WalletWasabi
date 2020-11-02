@@ -19,15 +19,10 @@ namespace WalletWasabi.Fluent.ViewModels
     public class RecoveryPageViewModel : NavBarItemViewModel
     {
         private readonly ObservableAsPropertyHelper<Mnemonic?> _currentMnemonic;
-        private ObservableCollection<string> _mnemonics;
         private IEnumerable<string> _suggestions;
         private string _selectedTag;
 
-        public ObservableCollection<string> Mnemonics
-        {
-            get => _mnemonics;
-            set => this.RaiseAndSetIfChanged(ref _mnemonics, value);
-        }
+        public ObservableCollection<string> Mnemonics { get; } = new ObservableCollection<string>();
 
         public IEnumerable<string> Suggestions
         {
@@ -44,15 +39,14 @@ namespace WalletWasabi.Fluent.ViewModels
         public RecoveryPageViewModel(IScreen screen) : base(screen)
         {
             Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
-            Mnemonics = new ObservableCollection<string>();
-
+            
             _currentMnemonic = Mnemonics.ToObservableChangeSet().ToCollection()
                 .Select(x => x.Count == 12 ? new Mnemonic(GetTagsAsConcatString()) : default)
                 .ToProperty(this, x => x.CurrentMnemonics);
  
             this.WhenAnyValue(x => x.SelectedTag)
                 .Where(x => !string.IsNullOrEmpty(x))
-                .Subscribe(AddTag);
+                .Subscribe(AddMnemonic);
             
             // TODO: Will try to find ways of doing this better...
             this.WhenAnyValue(x => x.CurrentMnemonics)
@@ -69,7 +63,7 @@ namespace WalletWasabi.Fluent.ViewModels
             }
         }
 
-        private void AddTag(string tagString)
+        private void AddMnemonic(string tagString)
         {
             Mnemonics.Add(tagString);
             SelectedTag = string.Empty;
@@ -81,6 +75,7 @@ namespace WalletWasabi.Fluent.ViewModels
         }
 
         public Mnemonic? CurrentMnemonics => _currentMnemonic.Value;
+        
         public override string IconName => "settings_regular";
     }
 }
