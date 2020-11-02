@@ -13,6 +13,7 @@
              x:Class="WalletWasabi.Fluent.Views.AddWalletPageView">
   <UserControl.Resources>
     <converters:BoolToOpacityConverter x:Key="BoolToOpacityConverter" />
+    <converters:OpacityToBoolConverter x:Key="OpacityToBoolConverter" />
   </UserControl.Resources>
 
   <c:ContentArea Title="Add Wallet" Caption="Type in your wallets name and select an option:">
@@ -34,6 +35,7 @@
               <Setter Property="Padding" Value="0" />
               <Setter Property="IsEnabled" Value="{Binding OptionsEnabled}" />
               <Setter Property="Opacity" Value="{Binding OptionsEnabled, Converter={StaticResource BoolToOpacityConverter}}" />
+              <Setter Property="IsVisible" Value="{Binding $self.Opacity, Converter={StaticResource OpacityToBoolConverter}}}" />
             </Style>
             <Style Selector="Button.option:disabled /template/ ContentPresenter#PART_ContentPresenter">
               <Setter Property="Background" Value="{DynamicResource OptionButtonBackground}" />
