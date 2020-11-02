@@ -143,61 +143,23 @@ namespace WalletWasabi.Fluent.Controls
         protected override void OnGotFocus(GotFocusEventArgs e)
         {
             base.OnGotFocus(e);
-            FocusChanged(HasFocus());
+            FocusChanged();
         }
 
         protected override void OnLostFocus(RoutedEventArgs e)
         {
             base.OnLostFocus(e);
-            FocusChanged(HasFocus());
+            FocusChanged();
         }
 
-        private bool HasFocus()
+        private void FocusChanged()
         {
-            IVisual? focused = FocusManager.Instance.Current;
+	        if (IsKeyboardFocusWithin != _isFocused)
+	        {
+		        _autoCompleteBox?.Focus();
+	        }
 
-            while (focused != null)
-            {
-                if (ReferenceEquals(focused, this)) return true;
-
-                // This helps deal with popups that may not be in the same
-                // visual tree
-                IVisual parent = focused.GetVisualParent();
-                if (parent is null)
-                {
-                    // Try the logical parent.
-                    if (focused is IControl element)
-                    {
-                        parent = element.Parent;
-                    }
-                }
-
-                focused = parent;
-            }
-
-            return false;
-        }
-
-        private void FocusChanged(bool hasFocus)
-        {
-            // The OnGotFocus & OnLostFocus are asynchronously called and cannot
-            // reliably tell you that have the focus.  All they do is let you
-            // know that the focus changed sometime in the past.  To determine
-            // if you currently have the focus you need to do consult the
-            // FocusManager (see HasFocus()).
-
-            var wasFocused = _isFocused;
-            _isFocused = hasFocus;
-
-            if (hasFocus)
-            {
-                if (!wasFocused)
-                {
-                    _autoCompleteBox?.Focus();
-                }
-            }
-
-            _isFocused = hasFocus;
+	        _isFocused = IsKeyboardFocusWithin;
         }
 
         private void OnDropDownClosed(object? sender, EventArgs e)
@@ -220,7 +182,7 @@ namespace WalletWasabi.Fluent.Controls
             SelectTag(currentText);
             BackspaceLogicClear();
             autoCompleteBox.ClearValue(AutoCompleteBox.SelectedItemProperty);
-            
+
             Dispatcher.UIThread.Post(() => { autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); });
         }
 
@@ -288,7 +250,7 @@ namespace WalletWasabi.Fluent.Controls
                     {
                         break;
                     }
-                    
+
                     BackspaceLogicClear();
                     SelectTag(currentText);
                     Dispatcher.UIThread.Post(() => { autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); });
