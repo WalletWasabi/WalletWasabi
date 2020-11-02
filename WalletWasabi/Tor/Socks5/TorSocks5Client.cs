@@ -196,8 +196,7 @@ namespace WalletWasabi.Tor.Socks5
 
 				var receiveBuffer = await SendAsync(sendBuffer, receiveBufferSize: null, cancellationToken).ConfigureAwait(false);
 
-				var connectionResponse = new TorSocks5Response();
-				connectionResponse.FromBytes(receiveBuffer);
+				var connectionResponse = new TorSocks5Response(receiveBuffer);
 
 				if (connectionResponse.Rep != RepField.Succeeded)
 				{

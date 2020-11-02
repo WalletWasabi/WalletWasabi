@@ -20,15 +20,6 @@ namespace WalletWasabi.Tor.Socks5.Models.Messages
 
 		public AuthStatusField Status { get; }
 
-		public override void FromBytes(byte[] bytes)
-		{
-			throw new NotSupportedException("This method is no longer supported.");
-		}
-
-		public override byte[] ToBytes() => new byte[]
-			{
-				Ver.ToByte(),
-				Status.ToByte()
-			};
+		public override byte[] ToBytes() => new byte[] { Ver.ToByte(), Status.ToByte() };
 	}
 }
