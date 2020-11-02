@@ -86,7 +86,7 @@ namespace WalletWasabi.Gui
 				// Indicate -> do not add any more alices to the coinjoin.
 				Global.WalletManager.SignalQuitPending(true);
 
-				if (!MainWindowViewModel.Instance.CanClose)
+				if (Global.WalletManager.AnyCoinJoinInProgress())
 				{
 					var dialog = new CannotCloseDialogViewModel();
 

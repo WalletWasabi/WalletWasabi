@@ -390,7 +390,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			AmountQueued = chaumianClient.State.SumAllQueuedCoinAmounts();
-			MainWindowViewModel.Instance.CanClose = AmountQueued == Money.Zero;
 
 			var registrableRound = chaumianClient.State.GetRegistrableRoundOrDefault();
 			if (registrableRound is { })

@@ -8,14 +8,14 @@ namespace WalletWasabi.Wabisabi
 		internal RegistrationValidationData(Transcript transcript, IEnumerable<Credential> presented, IssuanceValidationData[] requested)
 		{
 			Transcript = transcript;
-			Presented = presented; 
+			Presented = presented;
 			Requested = requested;
 		}
 
 		public Transcript Transcript { get; }
 
 		public IEnumerable<Credential> Presented { get; }
-		
+
 		public IssuanceValidationData[] Requested { get; }
 	}
 }

@@ -229,7 +229,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var r1 = rnd.GetScalar();
 			var Ma1 = a1 * Generators.Gg + r1 * Generators.Gh;
 
-			var knowledge = new[] 
+			var knowledge = new[]
 			{
 				ProofSystem.ZeroProof(Ma0, r0),
 				ProofSystem.ZeroProof(Ma1, r1)
