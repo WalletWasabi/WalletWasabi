@@ -822,7 +822,11 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 				FeeRate optimalFeeRate = estimateSmartFeeResponse.FeeRate;
 
-				if (optimalFeeRate is { } && optimalFeeRate != FeeRate.Zero && currentFeeRate is { } && currentFeeRate != FeeRate.Zero && optimalFeeRate < currentFeeRate) // This would be really strange if it'd happen.
+				if (optimalFeeRate is null || optimalFeeRate == FeeRate.Zero || currentFeeRate is null || currentFeeRate == FeeRate.Zero) // This would be really strange if it'd happen.
+				{
+					Logger.LogError($"Round ({RoundId}): This is impossible. {nameof(optimalFeeRate)}: {optimalFeeRate}, {nameof(currentFeeRate)}: {currentFeeRate}.");
+				}
+				else if (optimalFeeRate < currentFeeRate)
 				{
 					// 7.2 If the fee can be lowered, lower it.
 					// 7.2.1. How much fee can we save?
@@ -846,10 +850,6 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 							output.Value += toSavePerBestMixOutputs;
 						}
 					}
-				}
-				else
-				{
-					Logger.LogError($"Round ({RoundId}): This is impossible. {nameof(optimalFeeRate)}: {optimalFeeRate}, {nameof(currentFeeRate)}: {currentFeeRate}.");
 				}
 			}
 			catch (Exception ex)
