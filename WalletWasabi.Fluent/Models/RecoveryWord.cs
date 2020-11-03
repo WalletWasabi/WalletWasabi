@@ -52,7 +52,7 @@ namespace WalletWasabi.Fluent.Models
 				return;
 			}
 
-			errors.Add(ErrorSeverity.Error, $"The input does not match the recovery word {Index}.");
+			errors.Add(ErrorSeverity.Error, $"The input does not match recovery word {Index}.");
 		}
 
 		public override string ToString()
