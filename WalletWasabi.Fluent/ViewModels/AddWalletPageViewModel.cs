@@ -22,9 +22,9 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			Title = "Add Wallet";
 
-			BackCommand = ReactiveCommand.Create(() => navigationState.DialogScreen?.Invoke().Router.NavigationStack.Clear());
+			BackCommand = ReactiveCommand.Create(() => ClearNavigation());
 
-			CancelCommand = ReactiveCommand.Create(() => navigationState.DialogScreen?.Invoke().Router.NavigationStack.Clear());
+			CancelCommand = ReactiveCommand.Create(() => ClearNavigation());
 
 			this.WhenAnyValue(x => x.WalletName)
 				.Select(x => !string.IsNullOrWhiteSpace(x))

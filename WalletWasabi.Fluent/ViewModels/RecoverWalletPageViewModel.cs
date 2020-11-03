@@ -26,16 +26,16 @@ namespace WalletWasabi.Fluent.ViewModels
 				.Select(x => x.Count == 12 ? new Mnemonic(GetTagsAsConcatString()) : default)
 				.ToProperty(this, x => x.CurrentMnemonics);
 
-			BackCommand = ReactiveCommand.Create(() => navigationState.DialogScreen?.Invoke().Router.NavigationStack.Clear());
+			BackCommand = ReactiveCommand.Create(() => ClearNavigation());
 
 			NextCommand = ReactiveCommand.Create(
 				() =>
 				{
 					// TODO: Recover wallet, add canExecute
-					navigationState.DialogScreen?.Invoke().Router.NavigationStack.Clear();
+					ClearNavigation();
 				});
 
-			CancelCommand = ReactiveCommand.Create(() => navigationState.DialogScreen?.Invoke().Router.NavigationStack.Clear());
+			CancelCommand = ReactiveCommand.Create(() => ClearNavigation());
 
 			this.WhenAnyValue(x => x.SelectedTag)
 				.Where(x => !string.IsNullOrEmpty(x))

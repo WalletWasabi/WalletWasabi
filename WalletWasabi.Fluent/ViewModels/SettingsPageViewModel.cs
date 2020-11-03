@@ -17,7 +17,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			Title = "Settings";
 
-			BackCommand = ReactiveCommand.Create(() => navigationState.DialogScreen?.Invoke().Router.NavigationStack.Clear());
+			BackCommand = ReactiveCommand.Create(() => ClearNavigation());
 
 			NextCommand = ReactiveCommand.Create(() => navigationState.HomeScreen?.Invoke().Router.Navigate.Execute(new SettingsPageViewModel(navigationState)));
 
