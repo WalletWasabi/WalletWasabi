@@ -38,6 +38,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				},
 				finishCommandCanExecute);
 
+			CancelCommand = ReactiveCommand.Create(() => navigationState.DialogScreen?.Invoke().Router.NavigationStack.Clear());
+
 			_confirmationWordsSourceList
 				.Connect()
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -52,6 +54,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		public ReadOnlyObservableCollection<RecoveryWordViewModel> ConfirmationWords => _confirmationWords;
 
 		public ICommand FinishCommand { get; }
+
+		public ICommand CancelCommand { get; }
 
 		private void SelectRandomConfirmationWords(List<RecoveryWordViewModel> mnemonicWords)
 		{
