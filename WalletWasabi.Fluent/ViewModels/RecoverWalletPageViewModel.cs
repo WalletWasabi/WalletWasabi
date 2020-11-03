@@ -53,7 +53,7 @@ namespace WalletWasabi.Fluent.ViewModels
         {
             if (CurrentMnemonics is { } && !CurrentMnemonics.IsValidChecksum)
             {
-                errors.Add(ErrorSeverity.Error, "Invalid recovery seed phrase.");
+                errors.Add(ErrorSeverity.Error, "Recovery words are not valid.");
             }
         }
 
