@@ -4,11 +4,10 @@ using System.Collections.Generic;
 using System.Windows.Input;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Models;
-using WalletWasabi.Gui;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.AddWallet.CreateWallet
+namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
 	public class RecoveryWordsViewModel : ViewModelBase, IRoutableViewModel
 	{

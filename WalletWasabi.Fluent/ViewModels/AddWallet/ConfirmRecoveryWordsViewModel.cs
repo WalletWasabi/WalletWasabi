@@ -13,7 +13,7 @@ using WalletWasabi.Gui;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.AddWallet.CreateWallet
+namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
 	public class ConfirmRecoveryWordsViewModel : ViewModelBase, IRoutableViewModel
 	{

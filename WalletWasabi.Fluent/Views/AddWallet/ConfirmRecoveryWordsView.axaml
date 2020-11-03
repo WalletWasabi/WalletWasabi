@@ -8,7 +8,7 @@
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d"
              d:DesignWidth="600" d:DesignHeight="500"
-             x:Class="WalletWasabi.Fluent.AddWallet.CreateWallet.ConfirmRecoveryWordsView">
+             x:Class="WalletWasabi.Fluent.Views.AddWallet.ConfirmRecoveryWordsView">
   <UserControl.Resources>
     <converters:BoolToOpacityConverter x:Key="BoolToOpacityConverter" />
   </UserControl.Resources>

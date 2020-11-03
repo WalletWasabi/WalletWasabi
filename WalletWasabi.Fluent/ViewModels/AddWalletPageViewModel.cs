@@ -4,11 +4,11 @@ using System.Windows.Input;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Fluent.AddWallet.CreateWallet;
 using WalletWasabi.Wallets;
 using WalletWasabi.Stores;
 using NBitcoin;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
+using WalletWasabi.Fluent.ViewModels.AddWallet;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
