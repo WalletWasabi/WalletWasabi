@@ -33,6 +33,7 @@ namespace WalletWasabi.Tor
 		private EndPoint TorSocks5EndPoint { get; }
 		private TorProcessManager TorProcessManager { get; }
 
+		/// <inheritdoc/>
 		protected override async Task ActionAsync(CancellationToken token)
 		{
 			try
