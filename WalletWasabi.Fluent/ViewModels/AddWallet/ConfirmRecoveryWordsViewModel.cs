@@ -49,9 +49,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			SelectRandomConfirmationWords(mnemonicWords);
 		}
 
-		public string UrlPathSegment { get; } = "";
-		public IScreen HostScreen { get; }
-
 		public ReadOnlyObservableCollection<RecoveryWordViewModel> ConfirmationWords => _confirmationWords;
 
 		public ICommand FinishCommand { get; }
