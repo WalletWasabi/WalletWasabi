@@ -12,37 +12,39 @@
   <UserControl.Resources>
     <converters:BoolToOpacityConverter x:Key="BoolToOpacityConverter" />
   </UserControl.Resources>
-    <UserControl.KeyBindings>
+  <UserControl.KeyBindings>
     <KeyBinding Gesture="Enter" Command="{Binding FinishCommand}" />
   </UserControl.KeyBindings>
-  <Panel>
-
+  <DockPanel>
+    <DockPanel DockPanel.Dock="Bottom">
+      <Button DockPanel.Dock="Left" Content="Cancel" Command="{Binding CancelCommand}" Classes="invisible"
+              HorizontalAlignment="Left" VerticalAlignment="Bottom" />
+      <Button DockPanel.Dock="Right" Content="Continue" Command="{Binding ContinueCommand}" Classes="action"
+              HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+    </DockPanel>
+    
     <c:ContentArea Title="Confirm recovery words" Caption="Type the required recovery words">
-      <ItemsControl Items="{Binding ConfirmationWords}">
-        <i:Interaction.Behaviors>
-          <behaviors:FocusFirstTextBoxInItemsControlBehavior />
-        </i:Interaction.Behaviors>
-        <ItemsControl.ItemTemplate>
-          <DataTemplate>
-            <DockPanel Margin="0 0 0 20" HorizontalAlignment="Left">
-              <PathIcon Classes="checkMark" Margin="15 42 0 0" Opacity="{Binding IsConfirmed, Converter={StaticResource BoolToOpacityConverter}}" VerticalAlignment="Top" DockPanel.Dock="Right" />
-              <Label Content="{Binding Index, StringFormat=Recovery word {0}}" DockPanel.Dock="Top" />
-              <TextBox Watermark="Type the word here..." Text="{Binding Input}" IsEnabled="{Binding !IsConfirmed}" DockPanel.Dock="Top" Width="350" FontSize="12">
-                <i:Interaction.Behaviors>
-                  <behaviors:FocusNextItemBehavior IsFocused="{Binding !IsConfirmed}" />
-                </i:Interaction.Behaviors>
-              </TextBox>
-            </DockPanel>
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
-    </c:ContentArea>
-
-    <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="invisible" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
-    <Button Content="Finish" Command="{Binding FinishCommand}" Classes="action" HorizontalAlignment="Right" VerticalAlignment="Bottom">
-      <i:Interaction.Behaviors>
-        <behaviors:FocusOnEnableBehavior />
-      </i:Interaction.Behaviors>
-    </Button>
-  </Panel>
+      <ScrollViewer>
+        <ItemsControl HorizontalAlignment="Center" Items="{Binding ConfirmationWords}">
+          <i:Interaction.Behaviors>
+            <behaviors:FocusFirstTextBoxInItemsControlBehavior />
+          </i:Interaction.Behaviors>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <DockPanel Margin="0 0 0 20" HorizontalAlignment="Left">
+                <PathIcon Classes="checkMark" Margin="15 42 0 0" Opacity="{Binding IsConfirmed, Converter={StaticResource BoolToOpacityConverter}}" VerticalAlignment="Top" DockPanel.Dock="Right" />
+                <Label Content="{Binding Index, StringFormat=Recovery word {0}}" DockPanel.Dock="Top" />
+                <TextBox Watermark="Type the word here..." Text="{Binding Input}" IsEnabled="{Binding !IsConfirmed}" DockPanel.Dock="Top" Width="350" FontSize="12">
+                  <i:Interaction.Behaviors>
+                    <behaviors:FocusNextItemBehavior IsFocused="{Binding !IsConfirmed}" />
+                  </i:Interaction.Behaviors>
+                </TextBox>
+              </DockPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+          1234567
+        </ItemsControl>
+      </ScrollViewer>
+    </c:ContentArea>    
+  </DockPanel>
 </UserControl>
