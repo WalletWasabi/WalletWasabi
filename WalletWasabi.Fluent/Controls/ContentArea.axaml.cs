@@ -21,6 +21,12 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<bool> EnableNextProperty =
 			AvaloniaProperty.Register<ContentArea, bool>(nameof(EnableNext));
 
+		public static readonly StyledProperty<bool> FocusNextProperty =
+			AvaloniaProperty.Register<ContentArea, bool>(nameof(FocusNext));
+
+		public static readonly StyledProperty<bool> FocusCancelProperty =
+			AvaloniaProperty.Register<ContentArea, bool>(nameof(FocusCancel));
+
 		public static readonly StyledProperty<object> CancelContentProperty =
 			AvaloniaProperty.Register<ContentArea, object>(nameof(CancelContent), "Cancel");
 
@@ -58,6 +64,18 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(EnableNextProperty);
 			set => SetValue(EnableNextProperty, value);
+		}
+
+		public bool FocusNext
+		{
+			get => GetValue(FocusNextProperty);
+			set => SetValue(FocusNextProperty, value);
+		}
+
+		public bool FocusCancel
+		{
+			get => GetValue(FocusCancelProperty);
+			set => SetValue(FocusCancelProperty, value);
 		}
 
 		public object CancelContent
