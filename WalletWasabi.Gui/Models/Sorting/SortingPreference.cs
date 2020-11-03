@@ -20,7 +20,7 @@ namespace WalletWasabi.Gui.Models.Sorting
 
 		public static bool operator !=(SortingPreference x, SortingPreference y) => !(x == y);
 
-		public override bool Equals(object obj)
+		public override bool Equals(object? obj)
 		{
 			if (obj is SortingPreference sp)
 			{
