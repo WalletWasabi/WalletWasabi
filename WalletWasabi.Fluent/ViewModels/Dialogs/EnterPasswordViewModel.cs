@@ -1,12 +1,11 @@
 using ReactiveUI;
 using System.Reactive.Linq;
 using System.Windows.Input;
-using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
 
-namespace WalletWasabi.Fluent.AddWallet.Common
+namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
 	public class EnterPasswordViewModel : DialogViewModelBase<string>
 	{
