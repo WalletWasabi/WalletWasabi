@@ -5,6 +5,9 @@ using System.Windows.Input;
 using System.Reactive.Linq;
 using WalletWasabi.Fluent.AddWallet.Common;
 using WalletWasabi.Gui;
+using System.Reactive.Threading.Tasks;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.AddWallet.CreateWallet;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -23,12 +26,28 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			RecoverWalletCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new RecoveryPageViewModel(screen)));
 
-			CreateWalletCommand = ReactiveCommand.Create(() =>
-			{
-				var global = Locator.Current.GetService<Global>();
 
-				screen.Router.Navigate.Execute(new EnterPasswordViewModel(screen, global, WalletName));
+			var global = Locator.Current.GetService<Global>();
+
+			CreateWalletCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				var result = await PasswordInteraction.Handle("").ToTask();
+
+				if (result is { } password)
+				{
+					var walletGenerator = new WalletGenerator(global.WalletManager.WalletDirectories.WalletsDir, global.Network);
+					walletGenerator.TipHeight = global.BitcoinStore.SmartHeaderChain.TipHeight;
+					var (km, mnemonic) = walletGenerator.GenerateWallet(WalletName, password);
+					await screen.Router.Navigate.Execute(new RecoveryWordsViewModel(screen, km, mnemonic, global));
+				}
 			});
+			PasswordInteraction = new Interaction<string, string>();
+			PasswordInteraction.RegisterHandler(
+				async interaction =>
+				{
+					var result = await new EnterPasswordViewModel(screen, global, WalletName).ShowDialogAsync(MainViewModel.Instance);
+					interaction.SetOutput(result);
+				});
 		}
 
 		public override string IconName => "add_circle_regular";
@@ -44,6 +63,8 @@ namespace WalletWasabi.Fluent.ViewModels
 			get => _optionsEnabled;
 			set => this.RaiseAndSetIfChanged(ref _optionsEnabled, value);
 		}
+
+		public Interaction<string, string> PasswordInteraction { get; }
 
 		public ICommand CreateWalletCommand { get; }
 		public ICommand RecoverWalletCommand { get; }

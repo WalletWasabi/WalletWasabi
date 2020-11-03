@@ -4,6 +4,8 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.AddWallet.CreateWallet;
+using WalletWasabi.Fluent.ViewModels;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Gui.ViewModels;
@@ -12,14 +14,15 @@ using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.AddWallet.Common
 {
-	public class EnterPasswordViewModel : ViewModelBase, IRoutableViewModel
+	public class EnterPasswordViewModel : DialogViewModelBase<string>
 	{
+		private IScreen _screen;
 		private string _password;
 		private string _confirmPassword;
 
 		public EnterPasswordViewModel(IScreen screen, Global global, string walletName)
 		{
-			HostScreen = screen;
+			_screen = screen;
 
 			this.ValidateProperty(x => x.Password, ValidatePassword);
 			this.ValidateProperty(x => x.ConfirmPassword, ValidateConfirmPassword);
@@ -37,15 +40,8 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 				})
 				.ObserveOn(RxApp.MainThreadScheduler);
 
-			ContinueCommand = ReactiveCommand.Create(
-				() =>
-				{
-					var walletGenerator = new WalletGenerator(global.WalletManager.WalletDirectories.WalletsDir, global.Network);
-					walletGenerator.TipHeight = global.BitcoinStore.SmartHeaderChain.TipHeight;
-					var (km, mnemonic) = walletGenerator.GenerateWallet(walletName, Password);
-					screen.Router.Navigate.Execute(new RecoveryWordsViewModel(screen, km, mnemonic, global));
-				},
-				continueCommandCanExecute);
+			ContinueCommand = ReactiveCommand.Create(() => Close(Password), continueCommandCanExecute);
+			CancelCommand = ReactiveCommand.Create(() => Close(null!));
 		}
 
 		public string Password
@@ -63,8 +59,10 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 		public ICommand ContinueCommand { get; }
 		public ICommand CancelCommand { get; }
 
-		public string? UrlPathSegment => throw new NotImplementedException();
-		public IScreen HostScreen { get; }
+		protected override void OnDialogClosed()
+		{
+			_screen.Router.NavigateAndReset.Execute(new AddWalletPageViewModel(_screen));
+		}
 
 		private void ValidateConfirmPassword(IValidationErrors errors)
 		{
