@@ -50,8 +50,11 @@ namespace WalletWasabi.Fluent.ViewModels
 		}
 
 		public ICommand NextCommand { get; }
+
 		public ICommand OpenDialogCommand { get; }
+
 		public Interaction<string, bool> ConfirmSetting { get; }
+
 		public ICommand ChangeThemeCommand { get; }
 
 		public override string IconName => "settings_regular";
