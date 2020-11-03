@@ -15,8 +15,8 @@ namespace WalletWasabi.Wabisabi
 	public class WabiSabiClient
 	{
 		public WabiSabiClient(
-			CoordinatorParameters coordinatorParameters, 
-			int numberOfCredentials, 
+			CoordinatorParameters coordinatorParameters,
+			int numberOfCredentials,
 			WasabiRandom randomNumberGenerator)
 		{
 			RandomNumberGenerator = Guard.NotNull(nameof(randomNumberGenerator), randomNumberGenerator);
@@ -30,7 +30,7 @@ namespace WalletWasabi.Wabisabi
 		private CoordinatorParameters CoordinatorParameters { get; }
 
 		public CredentialPool Credentials { get; }
-		 
+
 		private WasabiRandom RandomNumberGenerator { get; }
 
 		public (RegistrationRequest, RegistrationValidationData) CreateRequestForZeroAmount()
@@ -160,7 +160,7 @@ namespace WalletWasabi.Wabisabi
 			if (issuedCredentialCount != NumberOfCredentials)
 			{
 				throw new WabiSabiException(
-					WabiSabiErrorCode.IssuedCredentialNumberMismatch, 
+					WabiSabiErrorCode.IssuedCredentialNumberMismatch,
 					$"{issuedCredentialCount} issued but {requestedCredentialCount} were requested.");
 			}
 
@@ -178,7 +178,7 @@ namespace WalletWasabi.Wabisabi
 				throw new WabiSabiException(WabiSabiErrorCode.ClientReceivedInvalidProofs);
 			}
 
-			var credentialReceived = credentials.Select(x => 
+			var credentialReceived = credentials.Select(x =>
 				new Credential(new Scalar((ulong)x.Requested.Amount.Satoshi), x.Requested.Randomness, x.Issued));
 
 			Credentials.UpdateCredentials(credentialReceived, registrationValidationData.Presented);

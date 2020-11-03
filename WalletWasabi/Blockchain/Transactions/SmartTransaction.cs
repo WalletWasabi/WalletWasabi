@@ -255,15 +255,15 @@ namespace WalletWasabi.Blockchain.Transactions
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => Equals(obj as SmartTransaction);
+		public override bool Equals(object? obj) => Equals(obj as SmartTransaction);
 
-		public bool Equals(SmartTransaction other) => this == other;
+		public bool Equals(SmartTransaction? other) => this == other;
 
 		public override int GetHashCode() => GetHash().GetHashCode();
 
-		public static bool operator ==(SmartTransaction x, SmartTransaction y) => y?.GetHash() == x?.GetHash();
+		public static bool operator ==(SmartTransaction? x, SmartTransaction? y) => y?.GetHash() == x?.GetHash();
 
-		public static bool operator !=(SmartTransaction x, SmartTransaction y) => !(x == y);
+		public static bool operator !=(SmartTransaction? x, SmartTransaction? y) => !(x == y);
 
 		#endregion EqualityAndComparison
 	}

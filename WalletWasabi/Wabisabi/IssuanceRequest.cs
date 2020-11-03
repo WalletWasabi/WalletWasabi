@@ -12,7 +12,7 @@ namespace WalletWasabi.Wabisabi
 		}
 
 		public GroupElement Ma { get; }
-		
+
 		public IEnumerable<GroupElement> BitCommitments { get; }
 	}
 }
