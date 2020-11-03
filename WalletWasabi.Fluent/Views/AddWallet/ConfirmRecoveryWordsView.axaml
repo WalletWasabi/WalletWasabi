@@ -16,7 +16,7 @@
     <DockPanel DockPanel.Dock="Bottom">
       <Button DockPanel.Dock="Left" Content="Cancel" Command="{Binding CancelCommand}" Classes="invisible"
               HorizontalAlignment="Left" VerticalAlignment="Bottom" />
-      <Button DockPanel.Dock="Right" Content="Continue" Command="{Binding ContinueCommand}" Classes="action"
+      <Button DockPanel.Dock="Right" Content="Continue" Command="{Binding FinishCommand}" Classes="action"
               HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
     </DockPanel>
 
