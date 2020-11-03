@@ -34,10 +34,12 @@ namespace WalletWasabi.Fluent.ViewModels
 				{
 					var global = Locator.Current.GetService<Global>();
 
-					var walletGenerator = new WalletGenerator(global.WalletManager.WalletDirectories.WalletsDir, global.Network);
-					walletGenerator.TipHeight = global.BitcoinStore.SmartHeaderChain.TipHeight;
+					var walletGenerator = new WalletGenerator(global.WalletManager.WalletDirectories.WalletsDir, global.Network)
+					{
+						TipHeight = global.BitcoinStore.SmartHeaderChain.TipHeight
+					};
 					var (km, mnemonic) = walletGenerator.GenerateWallet(WalletName, password);
-					await screen.Router.Navigate.Execute(new RecoveryWordsViewModel(screen, km, mnemonic, global));
+					await screen.Router.Navigate.Execute(new RecoveryWordsViewModel(screen, km, mnemonic, global.WalletManager));
 				}
 			});
 

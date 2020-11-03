@@ -6,12 +6,13 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.AddWallet.CreateWallet
 {
 	public class RecoveryWordsViewModel : ViewModelBase, IRoutableViewModel
 	{
-		public RecoveryWordsViewModel(IScreen screen, KeyManager keyManager, Mnemonic mnemonic, Global global)
+		public RecoveryWordsViewModel(IScreen screen, KeyManager keyManager, Mnemonic mnemonic, WalletManager walletManager)
 		{
 			HostScreen = screen;
 			MnemonicWords = new List<RecoveryWord>();
@@ -21,7 +22,7 @@ namespace WalletWasabi.Fluent.AddWallet.CreateWallet
 				MnemonicWords.Add(new RecoveryWord(i + 1, mnemonic.Words[i]));
 			}
 
-			ContinueCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new ConfirmRecoveryWordsViewModel(HostScreen, MnemonicWords, keyManager, global)));
+			ContinueCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new ConfirmRecoveryWordsViewModel(HostScreen, MnemonicWords, keyManager, walletManager)));
 		}
 
 		public ICommand ContinueCommand { get; }

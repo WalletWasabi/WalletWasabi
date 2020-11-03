@@ -11,6 +11,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.AddWallet.CreateWallet
 {
@@ -19,7 +20,7 @@ namespace WalletWasabi.Fluent.AddWallet.CreateWallet
 		private ReadOnlyObservableCollection<RecoveryWord> _confirmationWords;
 		private SourceList<RecoveryWord> _confirmationWordsSourceList;
 
-		public ConfirmRecoveryWordsViewModel(IScreen screen, List<RecoveryWord> mnemonicWords, KeyManager keyManager, Global global)
+		public ConfirmRecoveryWordsViewModel(IScreen screen, List<RecoveryWord> mnemonicWords, KeyManager keyManager, WalletManager walletManager)
 		{
 			HostScreen = screen;
 
@@ -35,7 +36,7 @@ namespace WalletWasabi.Fluent.AddWallet.CreateWallet
 			FinishCommand = ReactiveCommand.Create(
 				() =>
 				{
-					global.WalletManager.AddWallet(keyManager);
+					walletManager.AddWallet(keyManager);
 					screen.Router.NavigationStack.Clear();
 				},
 				finishCommandCanExecute);
