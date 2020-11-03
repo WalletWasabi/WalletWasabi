@@ -1,5 +1,4 @@
 using Avalonia;
-using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
 
 namespace WalletWasabi.Fluent.Behaviors
@@ -10,7 +9,7 @@ namespace WalletWasabi.Fluent.Behaviors
 		{
 			base.OnAttached();
 
-			AssociatedObject.AttachedToVisualTree += AssociatedObjectOnAttachedToVisualTree;
+			AssociatedObject!.AttachedToVisualTree += AssociatedObjectOnAttachedToVisualTree;
 		}
 
 		private void AssociatedObjectOnAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
@@ -24,7 +23,7 @@ namespace WalletWasabi.Fluent.Behaviors
 		{
 			base.OnDetaching();
 
-			AssociatedObject.AttachedToVisualTree -= AssociatedObjectOnAttachedToVisualTree;
+			AssociatedObject!.AttachedToVisualTree -= AssociatedObjectOnAttachedToVisualTree;
 		}
 	}
 }

@@ -3,7 +3,6 @@ using ReactiveUI;
 using System.Reactive;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
-using System;
 using Global = WalletWasabi.Gui.Global;
 
 namespace WalletWasabi.Fluent.ViewModels
@@ -26,7 +25,10 @@ namespace WalletWasabi.Fluent.ViewModels
 			_statusBar = new StatusBarViewModel(global.DataDir, global.Network, global.Config, global.HostedServices, global.BitcoinStore.SmartHeaderChain, global.Synchronizer, global.LegalDocuments);
 
 			var walletManager = new WalletManagerViewModel(this, global.WalletManager, global.UiConfig);
-			_navBar = new NavBarViewModel(this, Router, walletManager);
+
+			var addWalletPage = new AddWalletPageViewModel(this, global.WalletManager, global.BitcoinStore, global.Network);
+
+			_navBar = new NavBarViewModel(this, Router, walletManager, addWalletPage);
 		}
 
 		public static MainViewModel? Instance { get; internal set; }
