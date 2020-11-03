@@ -58,5 +58,20 @@ namespace WalletWasabi.Fluent.ViewModels
 					break;
 			}
 		}
+
+		public void NavigateBack()
+		{
+			switch (_navigationTarget)
+			{
+				case NavigationTarget.Default:
+				case NavigationTarget.Home:
+					_navigationState.HomeScreen?.Invoke().Router.NavigateBack.Execute();
+					break;
+
+				case NavigationTarget.Dialog:
+					_navigationState.DialogScreen?.Invoke().Router.NavigateBack.Execute();
+					break;
+			}
+		}
 	}
 }
