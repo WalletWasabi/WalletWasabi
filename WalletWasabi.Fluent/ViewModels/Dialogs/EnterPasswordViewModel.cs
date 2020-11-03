@@ -14,6 +14,8 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 		public EnterPasswordViewModel(IScreen screen)
 		{
+			_password = "";
+
 			this.ValidateProperty(x => x.Password, ValidatePassword);
 			this.ValidateProperty(x => x.ConfirmPassword, ValidateConfirmPassword);
 
