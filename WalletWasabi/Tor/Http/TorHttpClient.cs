@@ -46,7 +46,7 @@ namespace WalletWasabi.Tor.Http
 		public static DateTimeOffset? TorDoesntWorkSince
 		{
 			get => TorDoesntWorkSinceBacking;
-			set
+			private set
 			{
 				if (value != TorDoesntWorkSinceBacking)
 				{
