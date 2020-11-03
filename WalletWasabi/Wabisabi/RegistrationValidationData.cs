@@ -20,7 +20,7 @@ namespace WalletWasabi.Wabisabi
 		}
 
 		/// <summary>
-		/// The transcript in the correct state that must be use to validate the proofs presented by the coordinator.
+		/// The transcript in the correct state that must be used to validate the proofs presented by the coordinator.
 		/// </summary>
 		public Transcript Transcript { get; }
 
@@ -30,7 +30,7 @@ namespace WalletWasabi.Wabisabi
 		public IEnumerable<Credential> Presented { get; }
 		
 		/// <summary>
-		/// The data state that has to be use to validate the issued credentials.
+		/// The data state that has to be used to validate the issued credentials.
 		/// </summary>
 		public IEnumerable<IssuanceValidationData> Requested { get; }
 	}

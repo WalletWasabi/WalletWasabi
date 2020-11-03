@@ -11,7 +11,7 @@ namespace WalletWasabi.Wabisabi
 	/// </summary>
 	/// <remarks>
 	/// RegistrationRequestMessage message is the unified protocol message used in both phases,
-	/// inputs registration and outputs registration and it is designed to supports
+	/// inputs registration and outputs registration and it is designed to support
 	/// credentials reissuance.
 	/// </remarks>
 	public class RegistrationRequestMessage
@@ -39,7 +39,7 @@ namespace WalletWasabi.Wabisabi
 		public Money DeltaAmount { get; }
 
 		/// <summary>
-		/// Randomized credentials that will be presented for output registration or reissuance.
+		/// Randomized credentials presented for output registration or reissuance.
 		/// </summary>
 		public IEnumerable<CredentialPresentation> Presented { get; }
 		
@@ -63,6 +63,9 @@ namespace WalletWasabi.Wabisabi
 		/// </summary>
 		public IEnumerable<GroupElement> SerialNumbers => Presented.Select(x => x.S);
 
+		/// <summary>
+		/// Indicates whether the message contains duplicated serial number or not. 
+		/// </summary>
 		internal bool AreThereDuplicatedSerialNumbers => SerialNumbers.Distinct().Count() < SerialNumbers.Count();
 	}
 }

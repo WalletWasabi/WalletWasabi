@@ -184,7 +184,7 @@ namespace WalletWasabi.Wabisabi
 		/// finally updates the credentials pool by removing those credentials that were presented and by adding 
 		/// those that were issued. 
 		/// </remarks>
-		/// <param name="registrationResponse">The registration response message receive from the coordinator.</param>
+		/// <param name="registrationResponse">The registration response message received from the coordinator.</param>
 		/// <param name="registrationValidationData">The state data required to validate the issued credentials and the proofs.</param>
 		public void HandleResponse(RegistrationResponseMessage registrationResponse, RegistrationValidationData registrationValidationData)
 		{

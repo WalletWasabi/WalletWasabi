@@ -24,7 +24,7 @@ namespace WalletWasabi.Wabisabi
 		public Scalar Randomness { get; }
 
 		/// <summary>
-		/// Pedersen committed amount used to request the credential.
+		/// Pedersen commitment to the amount used to request the credential.
 		/// </summary>
 		public GroupElement Ma { get; }
 	}
