@@ -1,0 +1,46 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors;assembly=WalletWasabi.Fluent"
+             xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             mc:Ignorable="d"
+             d:DesignWidth="600" d:DesignHeight="500"
+             x:Class="WalletWasabi.Fluent.Views.AddWallet.ConfirmRecoveryWordsView">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Enter" Command="{Binding FinishCommand}" />
+  </UserControl.KeyBindings>
+  <DockPanel>
+    <DockPanel DockPanel.Dock="Bottom">
+      <Button DockPanel.Dock="Left" Content="Cancel" Command="{Binding CancelCommand}" Classes="invisible"
+              HorizontalAlignment="Left" VerticalAlignment="Bottom" />
+      <Button DockPanel.Dock="Right" Content="Continue" Command="{Binding FinishCommand}" Classes="action"
+              HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+    </DockPanel>
+
+    <c:ContentArea Title="Confirm recovery words" Caption="Type the required recovery words">
+      <ScrollViewer>
+        <ItemsControl HorizontalAlignment="Center" Items="{Binding ConfirmationWords}">
+          <i:Interaction.Behaviors>
+            <behaviors:FocusFirstTextBoxInItemsControlBehavior />
+          </i:Interaction.Behaviors>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <DockPanel Margin="0 0 0 20" HorizontalAlignment="Left">
+                <PathIcon Classes="checkMark" Margin="15 42 0 0" Opacity="{Binding IsConfirmed, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}" VerticalAlignment="Top" DockPanel.Dock="Right" />
+                <Label Content="{Binding Index, StringFormat=Recovery word {0}}" DockPanel.Dock="Top" />
+                <TextBox Watermark="Type the word here..." Text="{Binding Input}" IsEnabled="{Binding !IsConfirmed}" DockPanel.Dock="Top" Width="350" FontSize="12">
+                  <i:Interaction.Behaviors>
+                    <behaviors:FocusNextItemBehavior IsFocused="{Binding !IsConfirmed}" />
+                  </i:Interaction.Behaviors>
+                </TextBox>
+              </DockPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ScrollViewer>
+    </c:ContentArea>
+  </DockPanel>
+</UserControl>

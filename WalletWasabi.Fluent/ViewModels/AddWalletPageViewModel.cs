@@ -1,7 +1,15 @@
-using System.Reactive.Linq;
 using ReactiveUI;
 using System;
 using System.Windows.Input;
+using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Wallets;
+using WalletWasabi.Stores;
+using NBitcoin;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
+using WalletWasabi.Fluent.ViewModels.AddWallet;
+using System.Threading.Tasks;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -10,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		private string _walletName = "";
 		private bool _optionsEnabled;
 
-		public AddWalletPageViewModel(NavigationStateViewModel navigationState) : base(navigationState, NavigationTarget.Dialog)
+		public AddWalletPageViewModel(NavigationStateViewModel navigationState, WalletManager walletManager, BitcoinStore store, Network network) : base(navigationState, NavigationTarget.Dialog)
 		{
 			Title = "Add Wallet";
 
@@ -21,6 +29,34 @@ namespace WalletWasabi.Fluent.ViewModels
 			this.WhenAnyValue(x => x.WalletName)
 				.Select(x => !string.IsNullOrWhiteSpace(x))
 				.Subscribe(x => OptionsEnabled = x);
+
+			RecoverWalletCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new RecoveryPageViewModel(screen)));
+
+			CreateWalletCommand = ReactiveCommand.CreateFromTask(
+				async () =>
+				{
+					var result = await PasswordInteraction.Handle("").ToTask();
+
+					if (result is { } password)
+					{
+						var (km, mnemonic) = await Task.Run(
+							() =>
+							{
+								var walletGenerator = new WalletGenerator(walletManager.WalletDirectories.WalletsDir,network)
+								{
+									TipHeight = store.SmartHeaderChain.TipHeight
+								};
+								return walletGenerator.GenerateWallet(WalletName, password);
+							});
+
+						await screen.Router.Navigate.Execute(
+							new RecoveryWordsViewModel(screen, km, mnemonic, walletManager));
+					}
+				});
+
+			PasswordInteraction = new Interaction<string, string?>();
+			PasswordInteraction.RegisterHandler(
+				async interaction => interaction.SetOutput(await new EnterPasswordViewModel().ShowDialogAsync()));
 		}
 
 		public override string IconName => "add_circle_regular";
@@ -39,5 +75,10 @@ namespace WalletWasabi.Fluent.ViewModels
 			get => _optionsEnabled;
 			set => this.RaiseAndSetIfChanged(ref _optionsEnabled, value);
 		}
+
+		private Interaction<string, string?> PasswordInteraction { get; }
+
+		public ICommand CreateWalletCommand { get; }
+		public ICommand RecoverWalletCommand { get; }
 	}
 }

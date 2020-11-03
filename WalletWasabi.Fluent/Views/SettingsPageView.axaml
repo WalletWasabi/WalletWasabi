@@ -12,10 +12,6 @@
       <Button Command="{Binding OpenDialogCommand}" Content="Open Dialog" />
       <Button Command="{Binding OpenDialogScreenCommand}" Content="Open Dialog Screen" />
       <Button Command="{Binding ChangeThemeCommand}" Content="Change Theme" />
-      <TextBox Watermark="Type here..."/>
-      <TextBox Watermark="Type here... #2"/>
-      <TextBox Watermark="Type here... #3" Text="{Binding RandomString}"/>
-      <Button Classes="action" Content="continue"/>
     </StackPanel>
   </c:ContentArea>
 </UserControl>

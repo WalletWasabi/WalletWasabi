@@ -1,19 +1,17 @@
 using ReactiveUI;
-using System;
-using System.Reactive;
-using WalletWasabi.Gui.ViewModels;
+using System.Windows.Input;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
-	public abstract class NavBarItemViewModel : ViewModelBase, IRoutableViewModel
+	public abstract class NavBarItemViewModel : RoutableViewModel
 	{
 		private NavigationStateViewModel _navigationState;
 		private NavigationTarget _navigationTarget;
 		private bool _isSelected;
 		private bool _isExpanded;
-		private string _title;
+		private string? _title;
 
-		public NavBarItemViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget)
+		protected NavBarItemViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget) : base(navigationState)
 		{
 			_navigationState = navigationState;
 
@@ -22,7 +20,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			OpenCommand = ReactiveCommand.Create(() => Navigate());
 		}
 
-		public NavBarItemViewModel Parent { get; set; }
+		public NavBarItemViewModel? Parent { get; set; }
 
 		public abstract string IconName { get; }
 
@@ -44,7 +42,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			}
 		}
 
-		public string Title
+		public string? Title
 		{
 			get => _title;
 			set => this.RaiseAndSetIfChanged(ref _title, value);
@@ -56,7 +54,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _isSelected, value);
 		}
 
-		public ReactiveCommand<Unit, Unit> OpenCommand { get; }
+		public ICommand OpenCommand { get; }
 
 		public void Navigate()
 		{

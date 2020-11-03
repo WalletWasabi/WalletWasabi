@@ -9,8 +9,9 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields
 	{
 		#region Constructors
 
-		public PortField()
+		public PortField(byte[] bytes)
 		{
+			Bytes = Guard.NotNullOrEmpty(nameof(bytes), bytes);
 		}
 
 		public PortField(int dstPort)
@@ -32,15 +33,13 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields
 
 		#region PropertiesAndMembers
 
-		private byte[] Bytes { get; set; }
+		private byte[] Bytes { get; }
 
 		public int DstPort => BitConverter.ToInt16(Bytes.Reverse().ToArray(), 0);
 
 		#endregion PropertiesAndMembers
 
 		#region Serialization
-
-		public override void FromBytes(byte[] bytes) => Bytes = Guard.NotNullOrEmpty(nameof(bytes), bytes);
 
 		public override byte[] ToBytes() => Bytes;
 
