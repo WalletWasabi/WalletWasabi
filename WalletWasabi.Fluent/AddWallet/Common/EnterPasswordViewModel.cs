@@ -1,14 +1,8 @@
 using ReactiveUI;
-using System;
 using System.Reactive.Linq;
 using System.Windows.Input;
-using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Fluent.AddWallet.CreateWallet;
-using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
-using WalletWasabi.Gui;
 using WalletWasabi.Gui.Validation;
-using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
 

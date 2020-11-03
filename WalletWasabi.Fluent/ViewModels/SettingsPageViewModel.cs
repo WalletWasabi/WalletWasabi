@@ -17,7 +17,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			Title = "Settings";
 
-			NextCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new AddWalletPageViewModel(screen)));
+			NextCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new SettingsPageViewModel(screen)));
 
 			OpenDialogCommand = ReactiveCommand.CreateFromTask(async () => await ConfirmSetting.Handle("Please confirm the setting:").ToTask());
 
