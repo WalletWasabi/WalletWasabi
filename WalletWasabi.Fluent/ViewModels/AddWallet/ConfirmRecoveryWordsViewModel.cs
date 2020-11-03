@@ -9,7 +9,6 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Models;
-using WalletWasabi.Gui;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Wallets;
 
@@ -17,8 +16,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
 	public class ConfirmRecoveryWordsViewModel : ViewModelBase, IRoutableViewModel
 	{
-		private ReadOnlyObservableCollection<RecoveryWord> _confirmationWords;
-		private SourceList<RecoveryWord> _confirmationWordsSourceList;
+		private readonly ReadOnlyObservableCollection<RecoveryWord> _confirmationWords;
+		private readonly SourceList<RecoveryWord> _confirmationWordsSourceList;
 
 		public ConfirmRecoveryWordsViewModel(IScreen screen, List<RecoveryWord> mnemonicWords, KeyManager keyManager, WalletManager walletManager)
 		{
@@ -58,7 +57,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		public ReadOnlyObservableCollection<RecoveryWord> ConfirmationWords => _confirmationWords;
 
 		public ICommand FinishCommand { get; }
-		public ICommand CancelCommand { get; }
 
 		private void SelectRandomConfirmationWords(List<RecoveryWord> mnemonicWords)
 		{

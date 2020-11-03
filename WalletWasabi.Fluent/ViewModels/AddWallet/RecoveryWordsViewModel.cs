@@ -4,16 +4,19 @@ using System.Collections.Generic;
 using System.Windows.Input;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Models;
-using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
-	public class RecoveryWordsViewModel : ViewModelBase, IRoutableViewModel
+	public class RecoveryWordsViewModel : RoutableViewModel
 	{
-		public RecoveryWordsViewModel(IScreen screen, KeyManager keyManager, Mnemonic mnemonic, WalletManager walletManager)
+		public RecoveryWordsViewModel(
+			IScreen screen,
+			KeyManager keyManager,
+			Mnemonic mnemonic,
+			WalletManager walletManager)
+			: base(screen)
 		{
-			HostScreen = screen;
 			MnemonicWords = new List<RecoveryWord>();
 
 			for (int i = 0; i < mnemonic.Words.Length; i++)
@@ -21,15 +24,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				MnemonicWords.Add(new RecoveryWord(i + 1, mnemonic.Words[i]));
 			}
 
-			ContinueCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new ConfirmRecoveryWordsViewModel(HostScreen, MnemonicWords, keyManager, walletManager)));
+			ContinueCommand = ReactiveCommand.Create(
+				() => screen.Router.Navigate.Execute(
+					new ConfirmRecoveryWordsViewModel(HostScreen, MnemonicWords, keyManager, walletManager)));
 		}
 
 		public ICommand ContinueCommand { get; }
-		public ICommand CancelCommand { get; }
 
 		public List<RecoveryWord> MnemonicWords { get; set; }
-
-		public string UrlPathSegment { get; }
-		public IScreen HostScreen { get; }
 	}
 }

@@ -7,16 +7,13 @@ using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
-	public class EnterPasswordViewModel : DialogViewModelBase<string>
+	public class EnterPasswordViewModel : DialogViewModelBase<string?>
 	{
-		private IScreen _screen;
-		private string _password;
-		private string _confirmPassword;
+		private string? _password;
+		private string? _confirmPassword;
 
-		public EnterPasswordViewModel(IScreen screen)
+		public EnterPasswordViewModel()
 		{
-			_screen = screen;
-
 			this.ValidateProperty(x => x.Password, ValidatePassword);
 			this.ValidateProperty(x => x.ConfirmPassword, ValidateConfirmPassword);
 
@@ -34,16 +31,16 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 				.ObserveOn(RxApp.MainThreadScheduler);
 
 			ContinueCommand = ReactiveCommand.Create(() => Close(Password), continueCommandCanExecute);
-			CancelCommand = ReactiveCommand.Create(() => Close(null!));
+			CancelCommand = ReactiveCommand.Create(() => Close());
 		}
 
-		public string Password
+		public string? Password
 		{
 			get => _password;
 			set => this.RaiseAndSetIfChanged(ref _password, value);
 		}
 
-		public string ConfirmPassword
+		public string? ConfirmPassword
 		{
 			get => _confirmPassword;
 			set => this.RaiseAndSetIfChanged(ref _confirmPassword, value);
