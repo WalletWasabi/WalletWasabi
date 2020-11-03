@@ -46,7 +46,7 @@ namespace WalletWasabi.Userfacing
 			return text.Substring(0, myString.Length);
 		}
 
-		public static bool IsTooLong(string password, out string limitedPassword)
+		public static bool IsTooLong(string? password, out string? limitedPassword)
 		{
 			limitedPassword = password;
 			if (password is null)
@@ -68,7 +68,7 @@ namespace WalletWasabi.Userfacing
 			return length > MaxPasswordLength;
 		}
 
-		public static bool IsTrimable(string password, out string trimmedPassword)
+		public static bool IsTrimable(string? password, out string? trimmedPassword)
 		{
 			trimmedPassword = password;
 			if (password is null)
