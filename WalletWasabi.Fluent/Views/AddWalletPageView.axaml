@@ -49,7 +49,7 @@
             </StackPanel>
           </Button>
 
-          <Button Classes="option">
+          <Button Classes="option" Command="{Binding RecoverWalletCommand}">
             <StackPanel Orientation="Horizontal">
               <PathIcon DockPanel.Dock="Left" Margin="20"
                         Data="{StaticResource recover_arrow_right_regular}"

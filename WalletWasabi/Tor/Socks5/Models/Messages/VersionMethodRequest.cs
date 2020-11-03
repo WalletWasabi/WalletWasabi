@@ -11,6 +11,22 @@ namespace WalletWasabi.Tor.Socks5.Models.Messages
 	{
 		#region Constructors
 
+		public VersionMethodRequest(byte[] bytes)
+		{
+			Guard.NotNullOrEmpty(nameof(bytes), bytes);
+			Guard.InRangeAndNotNull($"{nameof(bytes)}.{nameof(bytes.Length)}", bytes.Length, 3, 257);
+
+			Ver = new VerField(bytes[0]);
+			NMethods = new NMethodsField(bytes[1]);
+
+			if (NMethods.Value != bytes.Length - 2)
+			{
+				throw new FormatException($"{nameof(NMethods)}.{nameof(NMethods.Value)} must be {nameof(bytes)}.{nameof(bytes.Length)} - 2 = {bytes.Length - 2}. Actual: {NMethods.Value}.");
+			}
+
+			Methods = new MethodsField(bytes.Skip(2).ToArray());
+		}
+
 		public VersionMethodRequest(MethodsField methods)
 		{
 			Methods = Guard.NotNull(nameof(methods), methods);
@@ -25,32 +41,15 @@ namespace WalletWasabi.Tor.Socks5.Models.Messages
 
 		#region PropertiesAndMembers
 
-		public VerField Ver { get; set; }
+		public VerField Ver { get; }
 
-		public NMethodsField NMethods { get; set; }
+		public NMethodsField NMethods { get; }
 
-		public MethodsField Methods { get; set; }
+		public MethodsField Methods { get; }
 
 		#endregion PropertiesAndMembers
 
 		#region Serialization
-
-		public override void FromBytes(byte[] bytes)
-		{
-			Guard.NotNullOrEmpty(nameof(bytes), bytes);
-			Guard.InRangeAndNotNull($"{nameof(bytes)}.{nameof(bytes.Length)}", bytes.Length, 3, 257);
-
-			Ver = new VerField(bytes[0]);
-			NMethods = new NMethodsField(bytes[1]);
-
-			if (NMethods.Value != bytes.Length - 2)
-			{
-				throw new FormatException($"{nameof(NMethods)}.{nameof(NMethods.Value)} must be {nameof(bytes)}.{nameof(bytes.Length)} - 2 = {bytes.Length - 2}. Actual: {NMethods.Value}.");
-			}
-
-			Methods = new MethodsField();
-			Methods.FromBytes(bytes.Skip(2).ToArray());
-		}
 
 		public override byte[] ToBytes() => ByteHelpers.Combine(
 			new byte[]

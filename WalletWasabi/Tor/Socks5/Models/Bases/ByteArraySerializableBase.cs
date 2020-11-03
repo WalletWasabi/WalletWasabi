@@ -9,8 +9,6 @@ namespace WalletWasabi.Tor.Socks5.Models.Bases
 	{
 		public abstract byte[] ToBytes();
 
-		public abstract void FromBytes(byte[] bytes);
-
 		public string ToHex(bool xhhSyntax = false)
 		{
 			if (xhhSyntax)
@@ -18,14 +16,6 @@ namespace WalletWasabi.Tor.Socks5.Models.Bases
 				return $"X'{ByteHelpers.ToHex(ToBytes())}'";
 			}
 			return ByteHelpers.ToHex(ToBytes());
-		}
-
-		public void FromHex(string hex)
-		{
-			hex = Guard.NotNullOrEmptyOrWhitespace(nameof(hex), hex, true);
-
-			var bytes = ByteHelpers.FromHex(hex);
-			FromBytes(bytes);
 		}
 
 		public string ToString(Encoding encoding)
@@ -40,21 +30,21 @@ namespace WalletWasabi.Tor.Socks5.Models.Bases
 			return ToHex(xhhSyntax: true);
 		}
 
-		public static bool operator ==(ByteArraySerializableBase x, ByteArraySerializableBase y) => ByteHelpers.CompareFastUnsafe(x?.ToBytes(), y?.ToBytes());
+		public static bool operator ==(ByteArraySerializableBase? x, ByteArraySerializableBase? y) => ByteHelpers.CompareFastUnsafe(x?.ToBytes(), y?.ToBytes());
 
-		public static bool operator !=(ByteArraySerializableBase x, ByteArraySerializableBase y) => !(x == y);
+		public static bool operator !=(ByteArraySerializableBase? x, ByteArraySerializableBase? y) => !(x == y);
 
-		public static bool operator ==(byte[] x, ByteArraySerializableBase y) => ByteHelpers.CompareFastUnsafe(x, y?.ToBytes());
+		public static bool operator ==(byte[]? x, ByteArraySerializableBase? y) => ByteHelpers.CompareFastUnsafe(x, y?.ToBytes());
 
-		public static bool operator ==(ByteArraySerializableBase x, byte[] y) => ByteHelpers.CompareFastUnsafe(x?.ToBytes(), y);
+		public static bool operator ==(ByteArraySerializableBase? x, byte[]? y) => ByteHelpers.CompareFastUnsafe(x?.ToBytes(), y);
 
-		public static bool operator !=(byte[] x, ByteArraySerializableBase y) => !(x == y);
+		public static bool operator !=(byte[]? x, ByteArraySerializableBase? y) => !(x == y);
 
-		public static bool operator !=(ByteArraySerializableBase x, byte[] y) => !(x == y);
+		public static bool operator !=(ByteArraySerializableBase? x, byte[]? y) => !(x == y);
 
-		public override bool Equals(object obj) => Equals(obj as ByteArraySerializableBase);
+		public override bool Equals(object? obj) => Equals(obj as ByteArraySerializableBase);
 
-		public bool Equals(ByteArraySerializableBase other) => this == other;
+		public bool Equals(ByteArraySerializableBase? other) => this == other;
 
 		public override int GetHashCode()
 		{
@@ -77,6 +67,6 @@ namespace WalletWasabi.Tor.Socks5.Models.Bases
 			return hash;
 		}
 
-		public bool Equals(byte[] other) => ByteHelpers.CompareFastUnsafe(ToBytes(), other);
+		public bool Equals(byte[]? other) => ByteHelpers.CompareFastUnsafe(ToBytes(), other);
 	}
 }

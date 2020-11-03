@@ -17,15 +17,13 @@ namespace WalletWasabi.Crypto
 		public GroupElement V { get; }
 		public GroupElement U => GenerateU(T);
 
-		public static bool operator ==(MAC a, MAC b) => a.Equals(b);
+		public static bool operator ==(MAC? a, MAC? b) => (a?.T, a?.V) == (b?.T, b?.V);
 
-		public static bool operator !=(MAC a, MAC b) => !a.Equals(b);
+		public static bool operator !=(MAC? a, MAC? b) => !(a == b);
 
-		public bool Equals(MAC? other) =>
-			(this?.T, this?.V) == (other?.T, other?.V);
+		public override bool Equals(object? obj) => Equals(obj as MAC);
 
-		public override bool Equals(object? obj) =>
-			Equals(obj as MAC);
+		public bool Equals(MAC? other) => this == other;
 
 		public override int GetHashCode() =>
 			HashCode.Combine(T, V).GetHashCode();

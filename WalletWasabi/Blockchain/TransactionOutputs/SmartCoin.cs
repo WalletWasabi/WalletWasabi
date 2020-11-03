@@ -301,13 +301,13 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => Equals(obj as SmartCoin);
+		public override bool Equals(object? obj) => Equals(obj as SmartCoin);
 
-		public bool Equals(SmartCoin other) => this == other;
+		public bool Equals(SmartCoin? other) => this == other;
 
 		public override int GetHashCode() => HashCode;
 
-		public static bool operator ==(SmartCoin x, SmartCoin y)
+		public static bool operator ==(SmartCoin? x, SmartCoin? y)
 		{
 			if (ReferenceEquals(x, y))
 			{
@@ -324,7 +324,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			}
 		}
 
-		public static bool operator !=(SmartCoin x, SmartCoin y) => !(x == y);
+		public static bool operator !=(SmartCoin? x, SmartCoin? y) => !(x == y);
 
 		#endregion EqualityAndComparison
 	}

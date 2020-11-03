@@ -25,9 +25,9 @@ namespace WalletWasabi.Fluent.Desktop
 		private static Global Global;
 
 		// This is only needed to pass CrashReporter to AppMainAsync otherwise it could be a local variable in Main().
-		private static CrashReporter CrashReporter;
+		private static CrashReporter CrashReporter = new CrashReporter();
 
-		private static TerminateService TerminateService;
+		private static TerminateService TerminateService = new TerminateService(TerminateApplicationAsync);
 
 		// Initialization code. Don't use any Avalonia, third-party APIs or any
 		// SynchronizationContext-reliant code before AppMain is called: things aren't initialized
@@ -36,11 +36,9 @@ namespace WalletWasabi.Fluent.Desktop
 		{
 			bool runGui = false;
 			Exception? appException = null;
-			CrashReporter = new CrashReporter();
 
 			try
 			{
-				TerminateService = new TerminateService(TerminateApplicationAsync);
 				Global = CreateGlobal();
 				Locator.CurrentMutable.RegisterConstant(Global);
 				Locator.CurrentMutable.RegisterConstant(CrashReporter);
