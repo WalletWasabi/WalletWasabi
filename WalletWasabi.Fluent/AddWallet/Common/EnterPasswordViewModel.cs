@@ -20,7 +20,7 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 		private string _password;
 		private string _confirmPassword;
 
-		public EnterPasswordViewModel(IScreen screen, Global global, string walletName)
+		public EnterPasswordViewModel(IScreen screen)
 		{
 			_screen = screen;
 

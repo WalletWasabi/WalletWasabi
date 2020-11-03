@@ -27,7 +27,6 @@ namespace WalletWasabi.Fluent.ViewModels
 			RecoverWalletCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new RecoveryPageViewModel(screen)));
 
 
-			var global = Locator.Current.GetService<Global>();
 
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -35,6 +34,8 @@ namespace WalletWasabi.Fluent.ViewModels
 
 				if (result is { } password)
 				{
+					var global = Locator.Current.GetService<Global>();
+
 					var walletGenerator = new WalletGenerator(global.WalletManager.WalletDirectories.WalletsDir, global.Network);
 					walletGenerator.TipHeight = global.BitcoinStore.SmartHeaderChain.TipHeight;
 					var (km, mnemonic) = walletGenerator.GenerateWallet(WalletName, password);
@@ -45,7 +46,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			PasswordInteraction.RegisterHandler(
 				async interaction =>
 				{
-					var result = await new EnterPasswordViewModel(screen, global, WalletName).ShowDialogAsync(MainViewModel.Instance);
+					var result = await new EnterPasswordViewModel(screen).ShowDialogAsync(MainViewModel.Instance);
 					interaction.SetOutput(result);
 				});
 		}
