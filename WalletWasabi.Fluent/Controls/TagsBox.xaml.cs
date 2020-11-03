@@ -31,7 +31,7 @@ namespace WalletWasabi.Fluent.Controls
                 o => o.Suggestions,
                 (o, v) => o.Suggestions = v);
 
-        private readonly CompositeDisposable _compositeDisposable = new CompositeDisposable();
+        private CompositeDisposable? _compositeDisposable;
 
         private AutoCompleteBox? _autoCompleteBox;
 
@@ -77,6 +77,10 @@ namespace WalletWasabi.Fluent.Controls
 
             Presenter.ApplyTemplate();
 
+            _compositeDisposable?.Dispose();
+
+            _compositeDisposable = new CompositeDisposable();
+
             _autoCompleteBox = (Presenter.Panel as ConcatenatingWrapPanel)?.ConcatenatedChildren
                 .OfType<AutoCompleteBox>().FirstOrDefault();
 
@@ -88,6 +92,15 @@ namespace WalletWasabi.Fluent.Controls
             _autoCompleteBox.KeyUp += OnKeyUp;
             _autoCompleteBox.TextChanged += OnTextChanged;
             _autoCompleteBox.DropDownClosed += OnDropDownClosed;
+
+            Disposable.Create(
+	            () =>
+	            {
+		            _autoCompleteBox.KeyUp -= OnKeyUp;
+		            _autoCompleteBox.TextChanged -= OnTextChanged;
+		            _autoCompleteBox.DropDownClosed -= OnDropDownClosed;
+	            })
+	            .DisposeWith(_compositeDisposable);
 
             _autoCompleteBox
                 .AddDisposableHandler(TextInputEvent, OnTextInput, RoutingStrategies.Tunnel)
@@ -101,12 +114,6 @@ namespace WalletWasabi.Fluent.Controls
 			            _autoCompleteBox.Focus();
 		            });
             }
-        }
-
-        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
-        {
-            _compositeDisposable.Dispose();
-            base.OnDetachedFromVisualTree(e);
         }
 
         private void CheckIsInputEnabled()
