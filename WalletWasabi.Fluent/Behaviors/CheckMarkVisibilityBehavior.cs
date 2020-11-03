@@ -2,49 +2,27 @@ using Avalonia;
 using Avalonia.Controls;
 using ReactiveUI;
 using System;
+using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using Avalonia.Input;
 
 namespace WalletWasabi.Fluent.Behaviors
 {
-	public class CheckMarkVisibilityBehavior : AttachedToVisualTreeBehavior<PathIcon>
+	public class CheckMarkVisibilityBehavior : DisposingBehavior<PathIcon>
 	{
-		public static readonly StyledProperty<bool> HasErrorsProperty =
-			AvaloniaProperty.Register<CheckMarkVisibilityBehavior, bool>(nameof(HasErrors), false);
-
-		public static readonly StyledProperty<bool> IsFocusedProperty =
-			AvaloniaProperty.Register<CheckMarkVisibilityBehavior, bool>(nameof(IsFocused), false);
-
-		public static readonly StyledProperty<string> TextProperty =
-			AvaloniaProperty.Register<CheckMarkVisibilityBehavior, string>(nameof(Text), "");
-
-		public bool HasErrors
-		{
-			get => GetValue(HasErrorsProperty);
-			set => SetValue(HasErrorsProperty, value);
-		}
-
-		public bool IsFocused
-		{
-			get => GetValue(IsFocusedProperty);
-			set => SetValue(IsFocusedProperty, value);
-		}
-
-		public string Text
-		{
-			get => GetValue(TextProperty);
-			set => SetValue(TextProperty, value);
-		}
-
 		public static readonly StyledProperty<TextBox> OwnerTextBoxProperty =
 			AvaloniaProperty.Register<CheckMarkVisibilityBehavior, TextBox>(nameof(OwnerTextBox), null!);
 
+		[ResolveByName]
 		public TextBox OwnerTextBox
 		{
 			get => GetValue(OwnerTextBoxProperty);
 			set => SetValue(OwnerTextBoxProperty, value);
 		}
 
-		protected override void OnAttachedToVisualTree()
+
+		protected override void OnAttached(CompositeDisposable disposables)
 		{
 			this.WhenAnyValue(
 				x => x.HasErrors,
