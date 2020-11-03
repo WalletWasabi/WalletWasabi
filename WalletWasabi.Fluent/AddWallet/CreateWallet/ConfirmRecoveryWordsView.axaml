@@ -22,7 +22,7 @@
       <Button DockPanel.Dock="Right" Content="Continue" Command="{Binding ContinueCommand}" Classes="action"
               HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
     </DockPanel>
-    
+
     <c:ContentArea Title="Confirm recovery words" Caption="Type the required recovery words">
       <ScrollViewer>
         <ItemsControl HorizontalAlignment="Center" Items="{Binding ConfirmationWords}">
@@ -42,9 +42,8 @@
               </DockPanel>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
-          1234567
         </ItemsControl>
       </ScrollViewer>
-    </c:ContentArea>    
+    </c:ContentArea>
   </DockPanel>
 </UserControl>
