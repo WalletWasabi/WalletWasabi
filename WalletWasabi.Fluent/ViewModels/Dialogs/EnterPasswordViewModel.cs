@@ -9,11 +9,15 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
 	public class EnterPasswordViewModel : DialogViewModelBase<string?>
 	{
-		private string _password;
-		private string _confirmPassword;
+		private string? _password;
+		private string? _confirmPassword;
 
 		public EnterPasswordViewModel()
 		{
+			// This means pressing continue will make the password empty string.
+			// pressing cancel will return null.
+			_password = "";
+
 			this.ValidateProperty(x => x.Password, ValidatePassword);
 			this.ValidateProperty(x => x.ConfirmPassword, ValidateConfirmPassword);
 
@@ -47,6 +51,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		}
 
 		public ICommand ContinueCommand { get; }
+
 		public ICommand CancelCommand { get; }
 
 		protected override void OnDialogClosed()
