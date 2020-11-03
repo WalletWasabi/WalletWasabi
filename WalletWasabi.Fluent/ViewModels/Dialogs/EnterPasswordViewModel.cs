@@ -9,14 +9,11 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
 	public class EnterPasswordViewModel : DialogViewModelBase<string>
 	{
-		private IScreen _screen;
 		private string _password;
 		private string _confirmPassword;
 
 		public EnterPasswordViewModel(IScreen screen)
 		{
-			_screen = screen;
-
 			this.ValidateProperty(x => x.Password, ValidatePassword);
 			this.ValidateProperty(x => x.ConfirmPassword, ValidateConfirmPassword);
 

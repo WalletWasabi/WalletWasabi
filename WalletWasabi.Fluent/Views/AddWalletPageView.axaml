@@ -6,16 +6,11 @@
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters;assembly=WalletWasabi.Fluent"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:HomePageViewModel"
              x:Class="WalletWasabi.Fluent.Views.AddWalletPageView">
-  <UserControl.Resources>
-    <converters:BoolToOpacityConverter x:Key="BoolToOpacityConverter" />
-    <converters:OpacityToBoolConverter x:Key="OpacityToBoolConverter" />
-  </UserControl.Resources>
-
+ 
   <c:ContentArea Title="Add Wallet" Caption="Type in your wallets name and select an option:">
     <DockPanel>
       <StackPanel DockPanel.Dock="Top" Margin="0 0 0 40">
@@ -34,8 +29,8 @@
               <Setter Property="BorderThickness" Value="1" />
               <Setter Property="Padding" Value="0" />
               <Setter Property="IsEnabled" Value="{Binding OptionsEnabled}" />
-              <Setter Property="Opacity" Value="{Binding OptionsEnabled, Converter={StaticResource BoolToOpacityConverter}}" />
-              <Setter Property="IsVisible" Value="{Binding $self.Opacity, Converter={StaticResource OpacityToBoolConverter}}}" />
+              <Setter Property="Opacity" Value="{Binding OptionsEnabled, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}" />
+              <Setter Property="IsVisible" Value="{Binding $self.Opacity, Converter={x:Static conv:BoolOpacityConverters.OpacityToBool}}" />
             </Style>
             <Style Selector="Button.option:disabled /template/ ContentPresenter#PART_ContentPresenter">
               <Setter Property="Background" Value="{DynamicResource OptionButtonBackground}" />
