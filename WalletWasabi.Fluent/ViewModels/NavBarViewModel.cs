@@ -35,7 +35,6 @@ namespace WalletWasabi.Fluent.ViewModels
 			var addWalletPage = new AddWalletPageViewModel(screen);
 			SelectedItem = new HomePageViewModel(screen, walletManager, addWalletPage);
 			_topItems.Add(_selectedItem);
-			_topItems.Add(new RecoveryPageViewModel(screen));
 			_bottomItems.Add(addWalletPage);
 			_bottomItems.Add(new SettingsPageViewModel(screen));
 
