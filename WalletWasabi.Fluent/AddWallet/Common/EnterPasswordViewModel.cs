@@ -61,7 +61,7 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 
 		protected override void OnDialogClosed()
 		{
-			_screen.Router.NavigateAndReset.Execute(new AddWalletPageViewModel(_screen));
+			
 		}
 
 		private void ValidateConfirmPassword(IValidationErrors errors)
