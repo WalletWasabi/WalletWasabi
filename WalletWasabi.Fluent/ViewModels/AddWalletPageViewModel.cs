@@ -30,7 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				.Select(x => !string.IsNullOrWhiteSpace(x))
 				.Subscribe(x => OptionsEnabled = x);
 
-			RecoverWalletCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new RecoveryPageViewModel(screen)));
+			RecoverWalletCommand = ReactiveCommand.Create(() => navigationState.DialogScreen?.Invoke().Router.Navigate.Execute(new RecoveryPageViewModel(navigationState)));
 
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>
@@ -42,15 +42,15 @@ namespace WalletWasabi.Fluent.ViewModels
 						var (km, mnemonic) = await Task.Run(
 							() =>
 							{
-								var walletGenerator = new WalletGenerator(walletManager.WalletDirectories.WalletsDir,network)
+								var walletGenerator = new WalletGenerator(walletManager.WalletDirectories.WalletsDir, network)
 								{
 									TipHeight = store.SmartHeaderChain.TipHeight
 								};
 								return walletGenerator.GenerateWallet(WalletName, password);
 							});
 
-						await screen.Router.Navigate.Execute(
-							new RecoveryWordsViewModel(screen, km, mnemonic, walletManager));
+						await navigationState.DialogScreen?.Invoke().Router.Navigate.Execute(
+							new RecoveryWordsViewModel(navigationState, km, mnemonic, walletManager));
 					}
 				});
 
