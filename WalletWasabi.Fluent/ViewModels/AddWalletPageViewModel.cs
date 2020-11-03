@@ -3,7 +3,6 @@ using Splat;
 using System;
 using System.Windows.Input;
 using System.Reactive.Linq;
-using System.Windows.Input;
 using WalletWasabi.Fluent.AddWallet.Common;
 using WalletWasabi.Gui;
 
@@ -21,7 +20,9 @@ namespace WalletWasabi.Fluent.ViewModels
 			this.WhenAnyValue(x => x.WalletName)
 				.Select(x => !string.IsNullOrWhiteSpace(x))
 				.Subscribe(x => OptionsEnabled = x);
+
 			RecoverWalletCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new RecoveryPageViewModel(screen)));
+
 			CreateWalletCommand = ReactiveCommand.Create(() =>
 			{
 				var global = Locator.Current.GetService<Global>();
