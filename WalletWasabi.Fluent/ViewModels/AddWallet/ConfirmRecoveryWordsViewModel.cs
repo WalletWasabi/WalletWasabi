@@ -30,7 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				.WhenValueChanged(x => x.IsConfirmed)
 				.Select(x => !_confirmationWordsSourceList.Items.Any(x => !x.IsConfirmed));
 
-			FinishCommand = ReactiveCommand.Create(
+			NextCommand = ReactiveCommand.Create(
 				() =>
 				{
 					walletManager.AddWallet(keyManager);
@@ -53,7 +53,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		public ReadOnlyObservableCollection<RecoveryWordViewModel> ConfirmationWords => _confirmationWords;
 
-		public ICommand FinishCommand { get; }
+		public ICommand NextCommand { get; }
 
 		public ICommand CancelCommand { get; }
 
