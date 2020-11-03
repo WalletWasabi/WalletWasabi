@@ -17,17 +17,11 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public string UrlPathSegment { get; } = Guid.NewGuid().ToString().Substring(0, 5);
 
-		public IScreen HostScreen
+		public IScreen HostScreen => _navigationTarget switch
 		{
-			get
-			{
-				return _navigationTarget switch
-				{
-					NavigationTarget.Dialog => _navigationState.DialogScreen?.Invoke(),
-					_ => _navigationState.HomeScreen?.Invoke(),
-				};
-			}
-		}
+			NavigationTarget.Dialog => _navigationState.DialogScreen?.Invoke(),
+			_ => _navigationState.HomeScreen?.Invoke(),
+		};
 
 		public void Navigate()
 		{
