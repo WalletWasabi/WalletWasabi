@@ -1,10 +1,8 @@
 using ReactiveUI;
-using Splat;
 using System;
 using System.Windows.Input;
 using System.Reactive.Linq;
 using WalletWasabi.Fluent.AddWallet.Common;
-using WalletWasabi.Gui;
 using System.Reactive.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.AddWallet.CreateWallet;
@@ -29,23 +27,26 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			RecoverWalletCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new RecoveryPageViewModel(screen)));
 
-			CreateWalletCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				var result = await PasswordInteraction.Handle("").ToTask();
-
-				if (result is { } password)
+			CreateWalletCommand = ReactiveCommand.CreateFromTask(
+				async () =>
 				{
-					var walletGenerator = new WalletGenerator(walletManager.WalletDirectories.WalletsDir, network)
+					var result = await PasswordInteraction.Handle("").ToTask();
+
+					if (result is { } password)
 					{
-						TipHeight = store.SmartHeaderChain.TipHeight
-					};
-					var (km, mnemonic) = walletGenerator.GenerateWallet(WalletName, password);
-					await screen.Router.Navigate.Execute(new RecoveryWordsViewModel(screen, km, mnemonic, walletManager));
-				}
-			});
+						var walletGenerator = new WalletGenerator(walletManager.WalletDirectories.WalletsDir, network)
+						{
+							TipHeight = store.SmartHeaderChain.TipHeight
+						};
+						var (km, mnemonic) = walletGenerator.GenerateWallet(WalletName, password);
+						await screen.Router.Navigate.Execute(
+							new RecoveryWordsViewModel(screen, km, mnemonic, walletManager));
+					}
+				});
 
 			PasswordInteraction = new Interaction<string, string>();
-			PasswordInteraction.RegisterHandler(async interaction => interaction.SetOutput(await new EnterPasswordViewModel(screen).ShowDialogAsync(MainViewModel.Instance)));
+			PasswordInteraction.RegisterHandler(
+				async interaction => interaction.SetOutput(await new EnterPasswordViewModel(screen).ShowDialogAsync()));
 		}
 
 		public override string IconName => "add_circle_regular";
