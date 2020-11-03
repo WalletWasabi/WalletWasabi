@@ -42,12 +42,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			});
 
 			PasswordInteraction = new Interaction<string, string>();
-			PasswordInteraction.RegisterHandler(
-				async interaction =>
-				{
-					var result = await new EnterPasswordViewModel(screen).ShowDialogAsync(MainViewModel.Instance);
-					interaction.SetOutput(result);
-				});
+			PasswordInteraction.RegisterHandler(async interaction => interaction.SetOutput(await new EnterPasswordViewModel(screen).ShowDialogAsync(MainViewModel.Instance)));
 		}
 
 		public override string IconName => "add_circle_regular";
