@@ -9,8 +9,8 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
 	public class EnterPasswordViewModel : DialogViewModelBase<string?>
 	{
-		private string? _password;
-		private string? _confirmPassword;
+		private string _password;
+		private string _confirmPassword;
 
 		public EnterPasswordViewModel()
 		{
