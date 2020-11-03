@@ -26,8 +26,6 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			RecoverWalletCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new RecoveryPageViewModel(screen)));
 
-
-
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				var result = await PasswordInteraction.Handle("").ToTask();
@@ -42,6 +40,7 @@ namespace WalletWasabi.Fluent.ViewModels
 					await screen.Router.Navigate.Execute(new RecoveryWordsViewModel(screen, km, mnemonic, global));
 				}
 			});
+
 			PasswordInteraction = new Interaction<string, string>();
 			PasswordInteraction.RegisterHandler(
 				async interaction =>
