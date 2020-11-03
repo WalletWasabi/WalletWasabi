@@ -1,0 +1,38 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="vm:RecoveryPageViewModel"
+             x:Class="WalletWasabi.Fluent.Views.RecoveryPageView">
+    <Panel Margin="25 0 25 20">
+        <Button Classes="invisible" Margin="0 35 0 0" Command="{Binding GoBackCommand}" DockPanel.Dock="Left"
+                HorizontalAlignment="Left" VerticalAlignment="Top">
+            <PathIcon Data="{DynamicResource arrow_left_regular}" />
+        </Button>
+        <c:ContentArea Title="Enter recovery words" Caption="Type in your 12 recovery words and click continue"
+                       Margin="44 0">
+            <StackPanel>
+                <Label Content="_Type in your recovery words here:" Target="seedTagsBox" />
+                <c:TagsBox x:Name="seedTagsBox"
+                           ItemCountLimit="12"
+                           RestrictInputToSuggestions="True"
+                           Items="{CompiledBinding Mnemonics}"
+                           Suggestions="{CompiledBinding Suggestions}"
+                           SelectedTag="{CompiledBinding SelectedTag}">
+                    <i:Interaction.Behaviors>
+                        <behaviors:FocusOnAttachedBehavior />
+                    </i:Interaction.Behaviors>
+                </c:TagsBox>
+            </StackPanel>
+        </c:ContentArea>
+        <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="invisible" HorizontalAlignment="Left"
+                VerticalAlignment="Bottom" />
+        <Button Content="Continue" Command="{Binding FinishCommand}" Classes="action" HorizontalAlignment="Right"
+                VerticalAlignment="Bottom" />
+    </Panel>
+</UserControl>

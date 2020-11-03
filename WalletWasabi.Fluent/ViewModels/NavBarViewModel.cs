@@ -25,7 +25,6 @@ namespace WalletWasabi.Fluent.ViewModels
 		private Action _toggleAction;
 		private Action _collapseOnClickAction;
 
-
 		public NavBarViewModel(IScreen screen, RoutingState router, WalletManagerViewModel walletManager)
 		{
 			Router = router;
