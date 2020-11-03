@@ -3,7 +3,6 @@ using ReactiveUI;
 using System.Reactive;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
-using System;
 using Global = WalletWasabi.Gui.Global;
 
 namespace WalletWasabi.Fluent.ViewModels
