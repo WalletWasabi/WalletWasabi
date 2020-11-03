@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
+using System.Windows.Input;
 using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
@@ -24,6 +25,17 @@ namespace WalletWasabi.Fluent.ViewModels
 			_currentMnemonic = Mnemonics.ToObservableChangeSet().ToCollection()
 				.Select(x => x.Count == 12 ? new Mnemonic(GetTagsAsConcatString()) : default)
 				.ToProperty(this, x => x.CurrentMnemonics);
+
+			BackCommand = ReactiveCommand.Create(() => navigationState.DialogScreen?.Invoke().Router.NavigationStack.Clear());
+
+			NextCommand = ReactiveCommand.Create(
+				() =>
+				{
+					// TODO: Recover wallet, add canExecute
+					navigationState.DialogScreen?.Invoke().Router.NavigationStack.Clear();
+				});
+
+			CancelCommand = ReactiveCommand.Create(() => navigationState.DialogScreen?.Invoke().Router.NavigationStack.Clear());
 
 			this.WhenAnyValue(x => x.SelectedTag)
 				.Where(x => !string.IsNullOrEmpty(x))
@@ -73,6 +85,12 @@ namespace WalletWasabi.Fluent.ViewModels
 		}
 
 		private Mnemonic? CurrentMnemonics => _currentMnemonic.Value;
+
+		public ICommand BackCommand { get; }
+
+		public ICommand NextCommand { get; }
+
+		public ICommand CancelCommand { get; }
 
 		public override string IconName => "settings_regular";
 	}
