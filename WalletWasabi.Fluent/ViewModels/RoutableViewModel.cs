@@ -59,7 +59,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			}
 		}
 
-		public void NavigateBack()
+		public void GoBack()
 		{
 			switch (_navigationTarget)
 			{
