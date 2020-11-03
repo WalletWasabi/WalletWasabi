@@ -3,7 +3,6 @@ using ReactiveUI;
 using System.Collections.Generic;
 using System.Windows.Input;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Fluent.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet

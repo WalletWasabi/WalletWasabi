@@ -8,7 +8,6 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Fluent.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Wallets;
 

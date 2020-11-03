@@ -3,11 +3,11 @@ using WalletWasabi.Gui.Validation;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Fluent.ViewModels
+namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
 	public class RecoveryWordViewModel : ViewModelBase
 	{
-		private string _input;
+		private string? _input;
 		private bool _isConfirmed;
 
 		public RecoveryWordViewModel(int index, string word)
@@ -18,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			this.ValidateProperty(x => x.Input, ValidateWord);
 		}
 
-		public string Input
+		public string? Input
 		{
 			get => _input;
 			set => this.RaiseAndSetIfChanged(ref _input, value);
