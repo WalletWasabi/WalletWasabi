@@ -61,7 +61,8 @@ namespace WalletWasabi.Fluent.AddWallet.Common
 
 		protected override void OnDialogClosed()
 		{
-			
+			Password = "";
+			ConfirmPassword = "";
 		}
 
 		private void ValidateConfirmPassword(IValidationErrors errors)
