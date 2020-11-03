@@ -6,7 +6,7 @@ namespace WalletWasabi.Fluent.Behaviors
 	{
 		protected override void OnAttachedToVisualTree()
 		{
-			AssociatedObject.Focus();
+			AssociatedObject?.Focus();
 		}
 	}
 }

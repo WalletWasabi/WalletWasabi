@@ -18,7 +18,8 @@ namespace WalletWasabi.Fluent.Behaviors
 
 				KeyboardDevice.Instance.WhenAnyValue(x => x.FocusedElement)
 				.OfType<IControl>()
-				.Subscribe(x =>
+				.Subscribe(
+					x =>
 				{
 					static void BringParentToView(IInputElement ie)
 					{

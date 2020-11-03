@@ -4,7 +4,6 @@ using Avalonia.LogicalTree;
 using Avalonia.VisualTree;
 using ReactiveUI;
 using System;
-using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 
@@ -25,7 +24,8 @@ namespace WalletWasabi.Fluent.Behaviors
 		{
 			this.WhenAnyValue(x => x.IsFocused)
 				.Where(x => x == false)
-				.Subscribe(_ =>
+				.Subscribe(
+					_ =>
 				{
 					var parentControl = AssociatedObject.FindAncestorOfType<ItemsControl>();
 
