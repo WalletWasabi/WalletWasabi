@@ -100,6 +100,8 @@ namespace WalletWasabi.Tor.Socks5
 		/// </summary>
 		public async Task HandshakeAsync(bool isolateStream = false, CancellationToken cancellationToken = default)
 		{
+			Logger.LogDebug($"> {nameof(isolateStream)}={isolateStream}");
+
 			// https://github.com/torproject/torspec/blob/master/socks-extensions.txt
 			// The "NO AUTHENTICATION REQUIRED" (SOCKS5) authentication method [00] is
 			// supported; and as of Tor 0.2.3.2 - alpha, the "USERNAME/PASSWORD"(SOCKS5)
@@ -111,18 +113,6 @@ namespace WalletWasabi.Tor.Socks5
 			// violates RFC1929[4], but ensures interoperability with somewhat broken
 			// SOCKS5 client implementations.
 			string identity = isolateStream ? RandomString.CapitalAlphaNumeric(21) : "default";
-			await HandshakeAsync(identity, cancellationToken).ConfigureAwait(false);
-		}
-
-		/// <summary>
-		/// IsolateSOCKSAuth must be on (on by default)
-		/// https://www.torproject.org/docs/tor-manual.html.en
-		/// https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt#n35
-		/// </summary>
-		/// <param name="identity">Isolates streams by identity. If identity is empty string, it won't isolate stream.</param>
-		private async Task HandshakeAsync(string identity, CancellationToken cancellationToken = default)
-		{
-			Logger.LogDebug($"> {nameof(identity)}={identity}");
 
 			MethodsField methods = string.IsNullOrWhiteSpace(identity)
 				? new MethodsField(MethodField.NoAuthenticationRequired)
@@ -131,15 +121,13 @@ namespace WalletWasabi.Tor.Socks5
 			byte[] sendBuffer = new VersionMethodRequest(methods).ToBytes();
 			byte[] receiveBuffer = await SendAsync(sendBuffer, receiveBufferSize: 2, cancellationToken).ConfigureAwait(false);
 
-			var methodSelection = new MethodSelectionResponse();
-			methodSelection.FromBytes(receiveBuffer);
+			var methodSelection = new MethodSelectionResponse(receiveBuffer);
 
 			if (methodSelection.Ver != VerField.Socks5)
 			{
 				throw new NotSupportedException($"SOCKS{methodSelection.Ver.Value} not supported. Only SOCKS5 is supported.");
 			}
-
-			if (methodSelection.Method == MethodField.NoAcceptableMethods)
+			else if (methodSelection.Method == MethodField.NoAcceptableMethods)
 			{
 				// https://www.ietf.org/rfc/rfc1928.txt
 				// If the selected METHOD is X'FF', none of the methods listed by the
@@ -147,8 +135,7 @@ namespace WalletWasabi.Tor.Socks5
 				DisposeTcpClient();
 				throw new NotSupportedException("Tor's SOCKS5 proxy does not support any of the client's authentication methods.");
 			}
-
-			if (methodSelection.Method == MethodField.UsernamePassword)
+			else if (methodSelection.Method == MethodField.UsernamePassword)
 			{
 				// https://tools.ietf.org/html/rfc1929#section-2
 				// Once the SOCKS V5 server has started, and the client has selected the
@@ -163,8 +150,8 @@ namespace WalletWasabi.Tor.Socks5
 				Array.Clear(receiveBuffer, 0, receiveBuffer.Length);
 				receiveBuffer = await SendAsync(sendBuffer, receiveBufferSize: 2, cancellationToken).ConfigureAwait(false);
 
-				var userNamePasswordResponse = new UsernamePasswordResponse();
-				userNamePasswordResponse.FromBytes(receiveBuffer);
+				var userNamePasswordResponse = new UsernamePasswordResponse(receiveBuffer);
+
 				if (userNamePasswordResponse.Ver != usernamePasswordRequest.Ver)
 				{
 					throw new NotSupportedException($"Authentication version {userNamePasswordResponse.Ver.Value} not supported. Only version {usernamePasswordRequest.Ver} is supported.");
@@ -209,8 +196,7 @@ namespace WalletWasabi.Tor.Socks5
 
 				var receiveBuffer = await SendAsync(sendBuffer, receiveBufferSize: null, cancellationToken).ConfigureAwait(false);
 
-				var connectionResponse = new TorSocks5Response();
-				connectionResponse.FromBytes(receiveBuffer);
+				var connectionResponse = new TorSocks5Response(receiveBuffer);
 
 				if (connectionResponse.Rep != RepField.Succeeded)
 				{

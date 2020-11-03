@@ -25,15 +25,13 @@ namespace WalletWasabi.Fluent.ViewModels
 		private Action _toggleAction;
 		private Action _collapseOnClickAction;
 
-
-		public NavBarViewModel(IScreen screen, RoutingState router, WalletManagerViewModel walletManager)
+		public NavBarViewModel(IScreen screen, RoutingState router, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage)
 		{
 			Router = router;
 			_walletManager = walletManager;
 			_topItems = new ObservableCollection<NavBarItemViewModel>();
 			_bottomItems = new ObservableCollection<NavBarItemViewModel>();
-
-			var addWalletPage = new AddWalletPageViewModel(screen);
+			
 			SelectedItem = new HomePageViewModel(screen, walletManager, addWalletPage);
 			_topItems.Add(_selectedItem);
 			_bottomItems.Add(addWalletPage);

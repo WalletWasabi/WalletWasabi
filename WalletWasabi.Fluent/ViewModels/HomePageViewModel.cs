@@ -27,7 +27,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				.Bind(out _items)
 				.AsObservableList();
 
-			OpenWalletsFolderCommand = ReactiveCommand.Create(() => IoHelpers.OpenFolderInFileExplorer(walletManager.Model.WalletDirectories.WalletsDir));			
+			OpenWalletsFolderCommand = ReactiveCommand.Create(() => IoHelpers.OpenFolderInFileExplorer(walletManager.Model.WalletDirectories.WalletsDir));
 		}
 
 		public override string IconName => "home_regular";

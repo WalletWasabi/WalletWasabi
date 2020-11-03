@@ -77,7 +77,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 				Assert.Equal(numberOfCredentials, requested.Count());
 				Assert.NotEmpty(requested[0].BitCommitments);
 				Assert.NotEmpty(requested[1].BitCommitments);
-				Assert.Equal(Money.Zero, credentialRequest.DeltaAmount); 
+				Assert.Equal(Money.Zero, credentialRequest.DeltaAmount);
 
 				// Issuer part
 				var issuer = new CredentialIssuer(sk, numberOfCredentials, rnd);
@@ -94,7 +94,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 			}
 
 			{
-				var client0 = new WabiSabiClient(sk.ComputeCoordinatorParameters(), numberOfCredentials, rnd);				
+				var client0 = new WabiSabiClient(sk.ComputeCoordinatorParameters(), numberOfCredentials, rnd);
 				var (credentialRequest, validationData) = client0.CreateRequestForZeroAmount();
 
 				var issuer = new CredentialIssuer(sk, numberOfCredentials, rnd);
@@ -137,7 +137,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 
 				// Test incorrect number of presentations (one instead of 3)
 				var presented = validCredentialRequest.Presented.ToArray();
-				var invalidCredentialRequest = new RegistrationRequest(
+				var invalidCredentialRequest = new RegistrationRequestMessage(
 					validCredentialRequest.DeltaAmount,
 					new[] { presented[0] }, // Should present 3 credentials
 					validCredentialRequest.Requested,
@@ -149,7 +149,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 
 				// Test incorrect number of presentations (0 instead of 3)
 				presented = credentialRequest.Presented.ToArray();
-				invalidCredentialRequest = new RegistrationRequest(
+				invalidCredentialRequest = new RegistrationRequestMessage(
 					Money.Coins(2),
 					new CredentialPresentation[0], // Should present 3 credentials
 					validCredentialRequest.Requested,
@@ -162,7 +162,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 				(validCredentialRequest, _) = client.CreateRequest(new Money[0], client.Credentials.All);
 
 				// Test incorrect number of credential requests
-				invalidCredentialRequest = new RegistrationRequest(
+				invalidCredentialRequest = new RegistrationRequestMessage(
 					validCredentialRequest.DeltaAmount, 
 					validCredentialRequest.Presented,
 					validCredentialRequest.Requested.Take(1),
@@ -173,7 +173,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 				Assert.Equal("3 credential requests were expected but 1 were received.", ex.Message);
 
 				// Test incorrect number of credential requests
-				invalidCredentialRequest = new RegistrationRequest(
+				invalidCredentialRequest = new RegistrationRequestMessage(
 					Money.Coins(2), 
 					new CredentialPresentation[0],
 					validCredentialRequest.Requested.Take(1),
@@ -186,11 +186,11 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 				// Test invalid range proof
 				var requested = validCredentialRequest.Requested.ToArray();
 
-				invalidCredentialRequest = new RegistrationRequest(
+				invalidCredentialRequest = new RegistrationRequestMessage(
 					validCredentialRequest.DeltaAmount,
 					validCredentialRequest.Presented,
 					new[] { requested[0], requested[1], new IssuanceRequest(requested[2].Ma, new[] { GroupElement.Infinity }) },
-					validCredentialRequest.Proofs );
+					validCredentialRequest.Proofs);
 
 				ex = Assert.Throws<WabiSabiException>(() => issuer.HandleRequest(invalidCredentialRequest));
 				Assert.Equal(WabiSabiErrorCode.InvalidBitCommitment, ex.ErrorCode);
@@ -203,11 +203,11 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 				// Test invalid proofs
 				var proofs = validCredentialRequest.Proofs.ToArray();
 				proofs[0] = proofs[1];
-				var invalidCredentialRequest = new RegistrationRequest(
+				var invalidCredentialRequest = new RegistrationRequestMessage(
 					validCredentialRequest.DeltaAmount,
 					validCredentialRequest.Presented,
 					validCredentialRequest.Requested,
-					proofs );
+					proofs);
 
 				var ex = Assert.Throws<WabiSabiException>(() => issuer.HandleRequest(invalidCredentialRequest));
 				Assert.Equal(WabiSabiErrorCode.CoordinatorReceivedInvalidProofs, ex.ErrorCode);
@@ -226,6 +226,6 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 				var ex = Assert.Throws<WabiSabiException>(() => issuer.HandleRequest(validCredentialRequest));
 				Assert.Equal(WabiSabiErrorCode.SerialNumberAlreadyUsed, ex.ErrorCode);
 			}
- 		}
+		}
 	}
 }
