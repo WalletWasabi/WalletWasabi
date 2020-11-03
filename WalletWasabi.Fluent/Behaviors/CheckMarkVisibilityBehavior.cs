@@ -5,14 +5,14 @@ using System;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using Avalonia.Input;
+using Avalonia.Xaml.Interactivity;
 
 namespace WalletWasabi.Fluent.Behaviors
 {
-	public class CheckMarkVisibilityBehavior : DisposingBehavior<PathIcon>
+	public class CheckMarkVisibilityBehavior : Behavior<PathIcon>
 	{
 		public static readonly StyledProperty<TextBox> OwnerTextBoxProperty =
-			AvaloniaProperty.Register<CheckMarkVisibilityBehavior, TextBox>(nameof(OwnerTextBox), null!);
+			AvaloniaProperty.Register<CheckMarkVisibilityBehavior, TextBox>(nameof(OwnerTextBox));
 
 		[ResolveByName]
 		public TextBox OwnerTextBox
@@ -21,23 +21,42 @@ namespace WalletWasabi.Fluent.Behaviors
 			set => SetValue(OwnerTextBoxProperty, value);
 		}
 
+		private CompositeDisposable? _disposables;
 
-		protected override void OnAttached(CompositeDisposable disposables)
+		protected override void OnAttached()
 		{
-			this.WhenAnyValue(
-				x => x.HasErrors,
-				x => x.IsFocused,
-				x => x.Text)
-				.Throttle(TimeSpan.FromMilliseconds(100))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Where(_ => AssociatedObject is { })
-				.Subscribe(_ => AssociatedObject!.Opacity = !HasErrors && !IsFocused && !string.IsNullOrEmpty(Text) ? 1 : 0);
+			this.WhenAnyValue(x => x.OwnerTextBox)
+				.Subscribe(
+					x =>
+					{
+						_disposables?.Dispose();
 
-			Observable
-				.FromEventPattern<AvaloniaPropertyChangedEventArgs>(OwnerTextBox, nameof(OwnerTextBox.PropertyChanged))
-				.Select(x => x.EventArgs)
-				.Where(x => x.Property.Name == "HasErrors")
-				.Subscribe(x => HasErrors = (bool)x.NewValue!);
+						if (x != null)
+						{
+							_disposables = new CompositeDisposable();
+
+							var hasErrors = OwnerTextBox.GetObservable(DataValidationErrors.HasErrorsProperty);
+							var text = OwnerTextBox.GetObservable(TextBox.TextProperty);
+
+							hasErrors.Select(_ => Unit.Default)
+								.Merge(text.Select(_ => Unit.Default))
+								.Throttle(TimeSpan.FromMilliseconds(100))
+								.ObserveOn(RxApp.MainThreadScheduler)
+								.Subscribe(
+									_ =>
+									{
+										if (AssociatedObject is { })
+										{
+											AssociatedObject.Opacity =
+												!DataValidationErrors.GetHasErrors(OwnerTextBox) &&
+												!string.IsNullOrEmpty(OwnerTextBox.Text)
+													? 1
+													: 0;
+										}
+									})
+								.DisposeWith(_disposables);
+						}
+					});
 		}
 	}
 }
