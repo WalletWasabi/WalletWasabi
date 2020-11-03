@@ -16,14 +16,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
 	public class ConfirmRecoveryWordsViewModel : ViewModelBase, IRoutableViewModel
 	{
-		private readonly ReadOnlyObservableCollection<RecoveryWord> _confirmationWords;
-		private readonly SourceList<RecoveryWord> _confirmationWordsSourceList;
+		private readonly ReadOnlyObservableCollection<RecoveryWordViewModel> _confirmationWords;
+		private readonly SourceList<RecoveryWordViewModel> _confirmationWordsSourceList;
 
-		public ConfirmRecoveryWordsViewModel(IScreen screen, List<RecoveryWord> mnemonicWords, KeyManager keyManager, WalletManager walletManager)
+		public ConfirmRecoveryWordsViewModel(IScreen screen, List<RecoveryWordViewModel> mnemonicWords, KeyManager keyManager, WalletManager walletManager)
 		{
 			HostScreen = screen;
 
-			_confirmationWordsSourceList = new SourceList<RecoveryWord>();
+			_confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
 
 			var finishCommandCanExecute =
 				_confirmationWordsSourceList
@@ -44,7 +44,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				.Connect()
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.OnItemAdded(x => x.Reset())
-				.Sort(SortExpressionComparer<RecoveryWord>.Ascending(x => x.Index))
+				.Sort(SortExpressionComparer<RecoveryWordViewModel>.Ascending(x => x.Index))
 				.Bind(out _confirmationWords)
 				.Subscribe();
 
@@ -54,11 +54,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		public string UrlPathSegment { get; } = "";
 		public IScreen HostScreen { get; }
 
-		public ReadOnlyObservableCollection<RecoveryWord> ConfirmationWords => _confirmationWords;
+		public ReadOnlyObservableCollection<RecoveryWordViewModel> ConfirmationWords => _confirmationWords;
 
 		public ICommand FinishCommand { get; }
 
-		private void SelectRandomConfirmationWords(List<RecoveryWord> mnemonicWords)
+		private void SelectRandomConfirmationWords(List<RecoveryWordViewModel> mnemonicWords)
 		{
 			var random = new Random();
 

@@ -17,11 +17,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			WalletManager walletManager)
 			: base(screen)
 		{
-			MnemonicWords = new List<RecoveryWord>();
+			MnemonicWords = new List<RecoveryWordViewModel>();
 
 			for (int i = 0; i < mnemonic.Words.Length; i++)
 			{
-				MnemonicWords.Add(new RecoveryWord(i + 1, mnemonic.Words[i]));
+				MnemonicWords.Add(new RecoveryWordViewModel(i + 1, mnemonic.Words[i]));
 			}
 
 			ContinueCommand = ReactiveCommand.Create(
@@ -31,6 +31,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		public ICommand ContinueCommand { get; }
 
-		public List<RecoveryWord> MnemonicWords { get; set; }
+		public List<RecoveryWordViewModel> MnemonicWords { get; set; }
 	}
 }

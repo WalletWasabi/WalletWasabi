@@ -3,14 +3,14 @@ using WalletWasabi.Gui.Validation;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Fluent.Models
+namespace WalletWasabi.Fluent.ViewModels
 {
-	public class RecoveryWord : ViewModelBase
+	public class RecoveryWordViewModel : ViewModelBase
 	{
 		private string _input;
 		private bool _isConfirmed;
 
-		public RecoveryWord(int index, string word)
+		public RecoveryWordViewModel(int index, string word)
 		{
 			Index = index;
 			Word = word;
