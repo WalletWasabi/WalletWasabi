@@ -24,7 +24,7 @@ namespace WalletWasabi.Fluent.Behaviors
 		private void OnLayoutUpdated(object? sender, EventArgs e)
 		{
 			AssociatedObject!.LayoutUpdated -= OnLayoutUpdated;
-			AssociatedObject.FindLogicalDescendantOfType<TextBox>().Focus();
+			AssociatedObject.FindLogicalDescendantOfType<TextBox>()?.Focus();
 		}
 	}
 }
