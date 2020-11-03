@@ -29,15 +29,20 @@ namespace WalletWasabi.Fluent.Behaviors
 				{
 					var parentControl = AssociatedObject.FindAncestorOfType<ItemsControl>();
 
-					foreach (var item in parentControl.GetLogicalChildren())
+					if (parentControl is { })
 					{
-						var nextToFocus = item.FindLogicalDescendantOfType<TextBox>();
-
-						if (nextToFocus.IsEnabled)
+						foreach (var item in parentControl.GetLogicalChildren())
 						{
-							nextToFocus.Focus();
-							return;
+							var nextToFocus = item.FindLogicalDescendantOfType<TextBox>();
+
+							if (nextToFocus.IsEnabled)
+							{
+								nextToFocus.Focus();
+								return;
+							}
 						}
+
+						AssociatedObject?.Focus();
 					}
 				})
 				.DisposeWith(disposables);
