@@ -9,8 +9,6 @@ namespace WalletWasabi.Tor.Socks5.Models.Bases
 	{
 		public abstract byte[] ToBytes();
 
-		public abstract void FromBytes(byte[] bytes);
-
 		public string ToHex(bool xhhSyntax = false)
 		{
 			if (xhhSyntax)
@@ -18,14 +16,6 @@ namespace WalletWasabi.Tor.Socks5.Models.Bases
 				return $"X'{ByteHelpers.ToHex(ToBytes())}'";
 			}
 			return ByteHelpers.ToHex(ToBytes());
-		}
-
-		public void FromHex(string hex)
-		{
-			hex = Guard.NotNullOrEmptyOrWhitespace(nameof(hex), hex, true);
-
-			var bytes = ByteHelpers.FromHex(hex);
-			FromBytes(bytes);
 		}
 
 		public string ToString(Encoding encoding)

@@ -6,17 +6,19 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields
 {
 	public class PasswdField : ByteArraySerializableBase
 	{
-		public PasswdField(string passwd)
+		public PasswdField(byte[] bytes)
 		{
-			Guard.NotNullOrEmpty(nameof(passwd), passwd);
-			Bytes = Encoding.UTF8.GetBytes(passwd);
+			Bytes = Guard.NotNullOrEmpty(nameof(bytes), bytes);
 		}
 
-		private byte[] Bytes { get; set; }
+		public PasswdField(string passwd)
+			: this(Encoding.UTF8.GetBytes(passwd))
+		{
+		}
+
+		private byte[] Bytes { get; }
 
 		public string Passwd => Encoding.UTF8.GetString(Bytes); // Tor accepts UTF8 encoded passwd
-
-		public override void FromBytes(byte[] bytes) => Bytes = Guard.NotNullOrEmpty(nameof(bytes), bytes);
 
 		public override byte[] ToBytes() => Bytes;
 	}
