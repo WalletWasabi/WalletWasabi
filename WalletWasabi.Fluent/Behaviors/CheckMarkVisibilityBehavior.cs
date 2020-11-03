@@ -50,9 +50,6 @@ namespace WalletWasabi.Fluent.Behaviors
 				x => x.HasErrors,
 				x => x.IsFocused,
 				x => x.Text)
-				.Throttle(TimeSpan.FromMilliseconds(100))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Where(_ => AssociatedObject is { })
 				.Subscribe(_ => AssociatedObject!.Opacity = !HasErrors && !IsFocused && !string.IsNullOrEmpty(Text) ? 1 : 0);
 
 			Observable
