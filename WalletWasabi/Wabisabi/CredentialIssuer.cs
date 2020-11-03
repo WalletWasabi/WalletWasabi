@@ -13,11 +13,44 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Wabisabi
 {
+	/// <summary>
+	/// Issues anonymous credentials using the coordinator's secret key.
+	/// </summary>
+	/// <remarks>
+	/// CredentialIssuer is the coordinator's component used to issue anonymous credentials 
+	/// requested by a WabiSabi client. This means this component abstracts receives  
+	/// <see cref="RegistrationRequestMessage">RegistrationRequests</see>, validates the requested
+	/// amounts are in the valid range, serial numbers are not duplicated nor reused,
+	/// and finally issues the credentials using the coordinator's secret key (and also
+	/// proving to the WabiSabi client that the credentials were issued with the right 
+	/// key).
+	///
+	/// Note that this is a stateful component because it needs to keep track of the 
+	/// presented credentials' serial numbers in order to prevent credential reuse.
+	/// Additionally it keeps also track of the `balance` in order to make sure it never 
+	/// issues credentials for more money than the total presented amount. All this means
+	/// that the same instance has to be used for a given round (the coordinator needs to
+	/// maintain only one instances of this class per round)
+	/// 
+	/// About replay requests: a replay request is a <see cref="RegistrationRequestMessage">request</see>
+	/// that has already been seen before. These kind of requests can be the result of misbehaving
+	/// clients or simply clients using a retry communication mechanism. 
+	/// Reply requests are not handled by this component and they have to be handled by a different
+	/// component. A good solution is to use a caching feature where the request fingerprint is
+	/// used as a key, in this way using a standard solution it is possible to respond with the exact
+	/// same valid credentials to the client without performance penalties.
+	/// </remarks>
 	public class CredentialIssuer
 	{
-		public CredentialIssuer(CoordinatorSecretKey sk, int numberOfCredentials, WasabiRandom randomNumberGenerator)
+		/// <summary>
+		/// Initializes a new instance of the CredentialIssuer class.
+		/// </summary>
+		/// <param name="coordinatorSecretKey">The <see cref="CoordinatorSecretKey">coordinator's secret key</see> used to issue the credentials.</param>
+		/// <param name="numberOfCredentials">The number of credentials that the protocol handles in each request/response.</param>
+		/// <param name="randomNumberGenerator">The random number generator.</param>
+		public CredentialIssuer(CoordinatorSecretKey coordinatorSecretKey, int numberOfCredentials, WasabiRandom randomNumberGenerator)
 		{
-			CoordinatorSecretKey = Guard.NotNull(nameof(sk), sk);
+			CoordinatorSecretKey = Guard.NotNull(nameof(coordinatorSecretKey), coordinatorSecretKey);
 			NumberOfCredentials = Guard.InRangeAndNotNull(nameof(numberOfCredentials), numberOfCredentials, 1, 100);
 			CoordinatorParameters = CoordinatorSecretKey.ComputeCoordinatorParameters();
 			RandomNumberGenerator = Guard.NotNull(nameof(randomNumberGenerator), randomNumberGenerator);
@@ -36,11 +69,20 @@ namespace WalletWasabi.Wabisabi
 
 		private CoordinatorParameters CoordinatorParameters { get; }
 
-		// Gets the number of credentials that have to be requested/presented
-		// This parameter is called `k` in the wabisabi paper.
+		/// <summary>
+		/// Gets the number of credentials that have to be requested/presented
+		/// This parameter is called `k` in the WabiSabi paper.
+		/// </summary>
 		public int NumberOfCredentials { get; }
 
-		public RegistrationResponse HandleRequest(RegistrationRequest registrationRequest)
+		/// <summary>
+		/// Process the <see cref="RegistrationRequestMessage">credentials registration requests</see> and
+		/// issues the credentials.
+		/// </summary>
+		/// <param name="registrationRequest">The request containing the credentials presentations, credential requests and the proofs.</param>
+		/// <returns>The <see cref="RegistrationResponseMessage">registration response</see> containing the requested credentials and the proofs.</returns>
+		/// <exception cref="WabiSabiException">Error code: <see cref="WabiSabiErrorCode">WabiSabiErrorCode</see></exception>
+		public RegistrationResponseMessage HandleRequest(RegistrationRequestMessage registrationRequest)
 		{
 			Guard.NotNull(nameof(registrationRequest), registrationRequest);
 
@@ -145,7 +187,7 @@ namespace WalletWasabi.Wabisabi
 			// Construct response.
 			var proofs = ProofSystem.Prove(transcript, credentials.Select(x => x.Knowledge), RandomNumberGenerator);
 			var macs = credentials.Select(x => x.Mac);
-			var response = new RegistrationResponse(macs, proofs);
+			var response = new RegistrationResponseMessage(macs, proofs);
 
 			// Register the serial numbers to prevent credential reuse.
 			foreach (var presentation in presented)
