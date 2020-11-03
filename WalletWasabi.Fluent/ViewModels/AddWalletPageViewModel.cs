@@ -9,6 +9,7 @@ using WalletWasabi.Stores;
 using NBitcoin;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
+using System.Threading.Tasks;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -34,11 +35,16 @@ namespace WalletWasabi.Fluent.ViewModels
 
 					if (result is { } password)
 					{
-						var walletGenerator = new WalletGenerator(walletManager.WalletDirectories.WalletsDir, network)
-						{
-							TipHeight = store.SmartHeaderChain.TipHeight
-						};
-						var (km, mnemonic) = walletGenerator.GenerateWallet(WalletName, password);
+						var (km, mnemonic) = await Task.Run(
+							() =>
+							{
+								var walletGenerator = new WalletGenerator(walletManager.WalletDirectories.WalletsDir,network)
+								{
+									TipHeight = store.SmartHeaderChain.TipHeight
+								};
+								return walletGenerator.GenerateWallet(WalletName, password);
+							});
+
 						await screen.Router.Navigate.Execute(
 							new RecoveryWordsViewModel(screen, km, mnemonic, walletManager));
 					}
