@@ -173,9 +173,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string Cluster => _cluster?.Value ?? "";
 
-		public string PubKey => Model.HdPubKey?.PubKey?.ToString() ?? "";
+		public string PubKey => Model.HdPubKey.PubKey.ToString();
 
-		public string KeyPath => Model.HdPubKey?.FullKeyPath?.ToString() ?? "";
+		public string KeyPath => Model.HdPubKey.FullKeyPath.ToString();
 
 		public SmartCoinStatus Status
 		{
