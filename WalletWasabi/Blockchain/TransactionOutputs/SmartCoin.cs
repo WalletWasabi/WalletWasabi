@@ -41,20 +41,41 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		#region Constructors
 
-		public SmartCoin(uint256 transactionId, uint index, Script scriptPubKey, Money amount, OutPoint[] spentOutputs, Height height, bool replaceable, int anonymitySet, SmartLabel label = null, uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false, HdPubKey pubKey = null)
+		public SmartCoin(Coin coin, OutPoint[] spentOutputs, Height height, bool replaceable, int anonymitySet, SmartLabel label = null, uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false, HdPubKey pubKey = null)
+			: this(coin.Outpoint.Hash, coin.Outpoint.N, coin.ScriptPubKey, coin.Amount, spentOutputs, height, replaceable, anonymitySet, label, spenderTransactionId, coinJoinInProgress, bannedUntilUtc, spentAccordingToBackend, pubKey)
 		{
-			Create(transactionId, index, scriptPubKey, amount, spentOutputs, height, replaceable, anonymitySet, label, spenderTransactionId, coinJoinInProgress, bannedUntilUtc, spentAccordingToBackend, pubKey);
 		}
 
-		public SmartCoin(Coin coin, OutPoint[] spentOutputs, Height height, bool replaceable, int anonymitySet, SmartLabel label = null, uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false, HdPubKey pubKey = null)
+		public SmartCoin(uint256 transactionId, uint index, Script scriptPubKey, Money amount, OutPoint[] spentOutputs, Height height, bool replaceable, int anonymitySet, SmartLabel label = null, uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false, HdPubKey pubKey = null)
 		{
-			OutPoint outpoint = Guard.NotNull($"{coin}.{coin?.Outpoint}", coin?.Outpoint);
-			uint256 transactionId = outpoint.Hash;
-			uint index = outpoint.N;
-			Script scriptPubKey = Guard.NotNull($"{coin}.{coin?.ScriptPubKey}", coin?.ScriptPubKey);
-			Money amount = Guard.NotNull($"{coin}.{coin?.Amount}", coin?.Amount);
+			Guard.NotNull(nameof(transactionId), transactionId);
+			Guard.NotNull(nameof(index), index);
+			OutPoint = new OutPoint(transactionId, index);
+			HashCode = (TransactionId, Index).GetHashCode();
+			ScriptPubKey = Guard.NotNull(nameof(scriptPubKey), scriptPubKey);
+			Amount = Guard.NotNull(nameof(amount), amount);
+			Height = height;
+			SpentOutputs = Guard.NotNullOrEmpty(nameof(spentOutputs), spentOutputs);
+			IsReplaceable = replaceable;
+			AnonymitySet = Guard.InRangeAndNotNull(nameof(anonymitySet), anonymitySet, 1, int.MaxValue);
+			IsLikelyCoinJoinOutput = null;
 
-			Create(transactionId, index, scriptPubKey, amount, spentOutputs, height, replaceable, anonymitySet, label, spenderTransactionId, coinJoinInProgress, bannedUntilUtc, spentAccordingToBackend, pubKey);
+			SpenderTransactionId = spenderTransactionId;
+
+			CoinJoinInProgress = coinJoinInProgress;
+			BannedUntilUtc = bannedUntilUtc;
+			SpentAccordingToBackend = spentAccordingToBackend;
+
+			HdPubKey = pubKey;
+
+			Label = SmartLabel.Merge(HdPubKey?.Label, label);
+
+			Cluster = new Cluster(this);
+
+			SetConfirmed();
+			SetUnspent();
+			SetIsBanned();
+			SetUnavailable();
 		}
 
 		#endregion Constructors
@@ -259,38 +280,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		#endregion Properties
 
 		#region Methods
-
-		private void Create(uint256 transactionId, uint index, Script scriptPubKey, Money amount, OutPoint[] spentOutputs, Height height, bool replaceable, int anonymitySet, SmartLabel label, uint256 spenderTransactionId, bool coinJoinInProgress, DateTimeOffset? bannedUntilUtc, bool spentAccordingToBackend, HdPubKey pubKey)
-		{
-			Guard.NotNull(nameof(transactionId), transactionId);
-			Guard.NotNull(nameof(index), index);
-			OutPoint = new OutPoint(transactionId, index);
-			HashCode = (TransactionId, Index).GetHashCode();
-			ScriptPubKey = Guard.NotNull(nameof(scriptPubKey), scriptPubKey);
-			Amount = Guard.NotNull(nameof(amount), amount);
-			Height = height;
-			SpentOutputs = Guard.NotNullOrEmpty(nameof(spentOutputs), spentOutputs);
-			IsReplaceable = replaceable;
-			AnonymitySet = Guard.InRangeAndNotNull(nameof(anonymitySet), anonymitySet, 1, int.MaxValue);
-			IsLikelyCoinJoinOutput = null;
-
-			SpenderTransactionId = spenderTransactionId;
-
-			CoinJoinInProgress = coinJoinInProgress;
-			BannedUntilUtc = bannedUntilUtc;
-			SpentAccordingToBackend = spentAccordingToBackend;
-
-			HdPubKey = pubKey;
-
-			Label = SmartLabel.Merge(HdPubKey?.Label, label);
-
-			Cluster = new Cluster(this);
-
-			SetConfirmed();
-			SetUnspent();
-			SetIsBanned();
-			SetUnavailable();
-		}
 
 		public Coin GetCoin()
 		{
