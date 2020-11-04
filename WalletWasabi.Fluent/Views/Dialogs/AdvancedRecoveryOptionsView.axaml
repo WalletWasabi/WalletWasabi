@@ -23,7 +23,7 @@
         </DockPanel>
 
         <c:ContentArea Title="Advanced Recovery Options"
-                       Caption="Type your wallet specific recovery options and click Continue">
+                       Caption="Type your wallet-specific recovery options and click Continue.">
             <StackPanel HorizontalAlignment="Center" Spacing="40" MinWidth="380" Margin="30 0 0 0">
 
                 <DockPanel>
@@ -32,7 +32,7 @@
                             <behaviors:CheckMarkVisibilityBehavior OwnerTextBox="TbKeyPath" />
                         </i:Interaction.Behaviors>
                     </PathIcon>
-                    <Label Content="Type the Account _Key Derivation Path" Target="TbKeyPath" DockPanel.Dock="Top" />
+                    <Label Content="Type the Account Key _Derivation Path:" Target="TbKeyPath" DockPanel.Dock="Top" />
                     <TextBox Name="TbKeyPath" Watermark="e.g., m/84'/0'/0'" Text="{Binding AccountKeyPath}"
                              DockPanel.Dock="Top" Width="350">
                         <i:Interaction.Behaviors>

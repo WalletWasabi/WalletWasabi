@@ -12,6 +12,7 @@ using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -21,7 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels
         private IEnumerable<string>? _suggestions;
         private string? _selectedTag;
 
-        public RecoveryPageViewModel(IScreen screen) : base(screen)
+        public RecoveryPageViewModel(IScreen screen, string walletName, string password, WalletManager walletManager) : base(screen)
         {
             Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
@@ -38,36 +39,33 @@ namespace WalletWasabi.Fluent.ViewModels
 
             this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);
             
-            
             AdvancedOptionsInteraction = new Interaction<object, (string?, string?)>();
             AdvancedOptionsInteraction.RegisterHandler(
-                async interaction => interaction.SetOutput(await new AdvancedRecoveryOptionsViewModel().ShowDialogAsync()));
-            
-            
-            
-            TestDialogCommand = ReactiveCommand.CreateFromTask(
+                async interaction =>
+                    interaction.SetOutput(await new AdvancedRecoveryOptionsViewModel().ShowDialogAsync()));
+
+            AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
                 async () =>
                 {
                     var result = await AdvancedOptionsInteraction.Handle("").ToTask();
- 
                 });
-        }
-
-        public ICommand TestDialogCommand { get; }
+        } 
+        public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
+        
         private Interaction<object, (string?, string?)> AdvancedOptionsInteraction { get; }
-
+        
         public ObservableCollection<string> Mnemonics { get; } = new ObservableCollection<string>();
 
         public IEnumerable<string>? Suggestions
         {
-	        get => _suggestions;
-	        set => this.RaiseAndSetIfChanged(ref _suggestions, value);
+            get => _suggestions;
+            set => this.RaiseAndSetIfChanged(ref _suggestions, value);
         }
 
         public string? SelectedTag
         {
-	        get => _selectedTag;
-	        set => this.RaiseAndSetIfChanged(ref _selectedTag, value);
+            get => _selectedTag;
+            set => this.RaiseAndSetIfChanged(ref _selectedTag, value);
         }
 
         private void ValidateMnemonics(IValidationErrors errors)
@@ -80,12 +78,12 @@ namespace WalletWasabi.Fluent.ViewModels
 
         private void AddMnemonic(string? tagString)
         {
-	        if (!string.IsNullOrWhiteSpace(tagString))
-	        {
-		        Mnemonics.Add(tagString);
-	        }
+            if (!string.IsNullOrWhiteSpace(tagString))
+            {
+                Mnemonics.Add(tagString);
+            }
 
-	        SelectedTag = string.Empty;
+            SelectedTag = string.Empty;
         }
 
         private string GetTagsAsConcatString()
@@ -94,6 +92,5 @@ namespace WalletWasabi.Fluent.ViewModels
         }
 
         private Mnemonic? CurrentMnemonics => _currentMnemonic.Value;
- 
     }
 }

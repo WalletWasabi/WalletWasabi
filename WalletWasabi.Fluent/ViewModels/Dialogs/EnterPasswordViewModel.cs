@@ -12,8 +12,9 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		private string? _password;
 		private string? _confirmPassword;
 
-		public EnterPasswordViewModel()
+		public EnterPasswordViewModel(string subtitle = "Type your super-secret password in the blanks below and click Continue")
 		{
+			Subtitle = subtitle;
 			// This means pressing continue will make the password empty string.
 			// pressing cancel will return null.
 			_password = "";
@@ -53,6 +54,8 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		public ICommand ContinueCommand { get; }
 
 		public ICommand CancelCommand { get; }
+		
+		public string Subtitle { get; }
 
 		protected override void OnDialogClosed()
 		{

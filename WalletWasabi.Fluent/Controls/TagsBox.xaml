@@ -88,7 +88,7 @@
 
     <Style Selector="c|TagsBox AutoCompleteBox">
         <Setter Property="Background" Value="{x:Null}" />
-        <Setter Property="Padding" Value="3,10,0, 10" />
+        <!-- <Setter Property="Padding" Value="3,10,0, 10" /> -->
         <Setter Property="Margin" Value="0" />
     </Style>
 

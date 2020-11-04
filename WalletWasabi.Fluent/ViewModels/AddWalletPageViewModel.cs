@@ -26,12 +26,21 @@ namespace WalletWasabi.Fluent.ViewModels
 				.Select(x => !string.IsNullOrWhiteSpace(x))
 				.Subscribe(x => OptionsEnabled = x);
 
-			RecoverWalletCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new RecoveryPageViewModel(screen)));
+			RecoverWalletCommand = ReactiveCommand.Create(async () =>
+			{
+				var result = await RecoveryPagePasswordInteraction.Handle("").ToTask();
+
+				if (result is { } password)
+				{ 
+					await screen.Router.Navigate.Execute(
+						new RecoveryPageViewModel(screen, WalletName, password, walletManager));
+				}
+			});
 
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{
-					var result = await PasswordInteraction.Handle("").ToTask();
+					var result = await CreateWalletPagePasswordInteraction.Handle("").ToTask();
 
 					if (result is { } password)
 					{
@@ -50,10 +59,17 @@ namespace WalletWasabi.Fluent.ViewModels
 					}
 				});
 
-			PasswordInteraction = new Interaction<string, string?>();
-			PasswordInteraction.RegisterHandler(
+			CreateWalletPagePasswordInteraction = new Interaction<string, string?>();
+			RecoveryPagePasswordInteraction = new Interaction<string, string?>();
+
+			CreateWalletPagePasswordInteraction.RegisterHandler(
 				async interaction => interaction.SetOutput(await new EnterPasswordViewModel().ShowDialogAsync()));
+			
+			RecoveryPagePasswordInteraction.RegisterHandler(
+				async interaction => interaction.SetOutput(await new EnterPasswordViewModel("Type the password of the wallet you intend to recover and click Continue.").ShowDialogAsync()));
+            
 		}
+
 
 		public override string IconName => "add_circle_regular";
 
@@ -69,7 +85,8 @@ namespace WalletWasabi.Fluent.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _optionsEnabled, value);
 		}
 
-		private Interaction<string, string?> PasswordInteraction { get; }
+		private Interaction<string, string?> CreateWalletPagePasswordInteraction { get; }
+		public Interaction<string, string?> RecoveryPagePasswordInteraction { get; }
 
 		public ICommand CreateWalletCommand { get; }
 		public ICommand RecoverWalletCommand { get; }

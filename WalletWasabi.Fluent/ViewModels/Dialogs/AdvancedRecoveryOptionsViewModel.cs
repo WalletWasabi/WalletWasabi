@@ -9,7 +9,7 @@ using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
-    public class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<(string? keypath, string? gaplimit)>
+    public class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<(string? accountKeyPath, string? minGapLimit)>
     {
         private string? _accountKeyPath;
         private string? _minGapLimit;

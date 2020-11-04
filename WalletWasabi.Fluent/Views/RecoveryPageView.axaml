@@ -15,24 +15,29 @@
         <!--         HorizontalAlignment="Left" VerticalAlignment="Top"> -->
         <!--     <PathIcon Data="{DynamicResource arrow_left_regular}" /> -->
         <!-- </Button> -->
-        <c:ContentArea Title="Enter recovery words" Caption="Type in your 12 recovery words and click continue"
+        <c:ContentArea Title="Enter recovery words" Caption="Type in your 12 recovery words and click Continue."
                        Margin="44 0">
             <StackPanel>
                 <Label Content="_Type in your recovery words here:" Target="seedTagsBox" />
                 <c:TagsBox x:Name="seedTagsBox"
                            ItemCountLimit="12"
                            RestrictInputToSuggestions="True"
-                           Items="{CompiledBinding Mnemonics}"
-                           Suggestions="{CompiledBinding Suggestions}"
-                           SelectedTag="{CompiledBinding SelectedTag}">
+                           Items="{Binding Mnemonics}"
+                           Suggestions="{Binding Suggestions}"
+                           SelectedTag="{Binding SelectedTag}">
                     <i:Interaction.Behaviors>
                         <behaviors:FocusOnAttachedBehavior />
                     </i:Interaction.Behaviors>
                 </c:TagsBox>
+                <Button HorizontalAlignment="Left" Classes="plain" Margin="0,20,0,0" Command="{Binding AdvancedRecoveryOptionsDialogCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="20">
+                        <PathIcon Data="{StaticResource options_regular}" />
+                        <TextBlock Text="Advanced Recovery Options..." />
+                    </StackPanel>
+                </Button>
             </StackPanel>
         </c:ContentArea>
-        <Button Content="Cancel" Command="{Binding TestDialogCommand}" Classes="action" HorizontalAlignment="Left"
-                VerticalAlignment="Bottom" />
+ 
         <!-- <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="invisible" HorizontalAlignment="Left" -->
         <!--         VerticalAlignment="Bottom" /> -->
         <!-- <Button Content="Continue" Command="{Binding FinishCommand}" Classes="action" HorizontalAlignment="Right" -->
