@@ -110,16 +110,11 @@ export DOTNET_CLI_TELEMETRY_OPTOUT=1
 sudo apt-get install tor
 ```
 
-Check if Tor is already running in the background:
+Check if Tor is running properly and stop it before creating config:
 
 ```sh
-pgrep -ilfa tor
-sudo killall tor
-```
-
-Verify Tor is properly running:
-```sh
-tor
+systemctl status tor@default
+sudo systemctl stop tor@default
 ```
 
 Create torrc:
@@ -131,7 +126,7 @@ sudo pico /etc/tor/torrc
 ```sh
 Log notice file /home/user/.walletwasabi/notices.log
 
-HiddenServiceDir /home/user/.hidden_service_v3
+HiddenServiceDir /home/user/.hidden_service_v3 #Make sure tor have permission if you are using arbitrary file
 HiddenServiceVersion 3
 HiddenServicePort 80 127.0.0.1:37127
 
@@ -230,7 +225,6 @@ pico .walletwasabi/backend/CcjRoundConfig.json
 dotnet WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp3.1/publish/WalletWasabi.Backend.dll
 cat .walletwasabi/backend/Logs.txt
 ```
-
 # 7. Monitor the Apps
 
 ## WalletWasabi.Backend
@@ -268,7 +262,7 @@ tail -10000 .walletwasabi/backend/Logs.txt
 ## Tor
 
 ```sh
-tor
+systemctl status tor
 pgrep -ilfa tor
 ```
 
