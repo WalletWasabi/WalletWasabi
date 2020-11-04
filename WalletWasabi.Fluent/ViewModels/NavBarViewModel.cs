@@ -7,6 +7,7 @@ using System.Reactive.Linq;
 using WalletWasabi.Gui.ViewModels;
 using DynamicData;
 using DynamicData.Binding;
+using WalletWasabi.Fluent.ViewModels.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels
 {

@@ -12,7 +12,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 using WalletWasabi.Gui.ViewModels;
 
-namespace WalletWasabi.Fluent.ViewModels
+namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
 	public class WalletViewModel : WalletViewModelBase
 	{
