@@ -10,7 +10,6 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			HostScreen = screen;
 		}
- 
 
 		public string UrlPathSegment { get; } = Guid.NewGuid().ToString().Substring(0, 5);
 
