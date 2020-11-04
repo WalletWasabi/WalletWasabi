@@ -1,12 +1,13 @@
 using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
 using WalletWasabi.Fluent.ViewModels;
+using WalletWasabi.Fluent.ViewModels.RecoverWallet;
 
-namespace WalletWasabi.Fluent.Views
+namespace WalletWasabi.Fluent.Views.RecoverWallet
 {
-	public class RecoveryPageView : ReactiveUserControl<RecoveryPageViewModel>
+	public class RecoverWalletView : ReactiveUserControl<RecoverWalletViewModel>
 	{
-		public RecoveryPageView()
+		public RecoverWalletView()
 		{
 			InitializeComponent();
 		}

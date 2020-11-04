@@ -10,19 +10,18 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Gui.Validation;
-using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels
+namespace WalletWasabi.Fluent.ViewModels.RecoverWallet
 {
-    public class RecoveryPageViewModel : RoutableViewModel
+    public class RecoverWalletViewModel : RoutableViewModel
     {
         private readonly ObservableAsPropertyHelper<Mnemonic?> _currentMnemonic;
         private IEnumerable<string>? _suggestions;
         private string? _selectedTag;
 
-        public RecoveryPageViewModel(IScreen screen, string walletName, string password, WalletManager walletManager) : base(screen)
+        public RecoverWalletViewModel(IScreen screen, string walletName, string password, WalletManager walletManager) : base(screen)
         {
             Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 

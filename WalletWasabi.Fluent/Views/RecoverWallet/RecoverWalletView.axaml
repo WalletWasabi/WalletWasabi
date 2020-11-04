@@ -6,10 +6,11 @@
              xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             xmlns:recoverWallet="clr-namespace:WalletWasabi.Fluent.ViewModels.RecoverWallet"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="vm:RecoveryPageViewModel"
+             x:DataType="recoverWallet:RecoverWalletViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.RecoveryPageView">
+             x:Class="WalletWasabi.Fluent.Views.RecoverWallet.RecoverWalletView">
     <Panel Margin="25 0 25 20">
         <!-- <Button Classes="invisible" Margin="0 35 0 0" Command="{Binding GoBackCommand}" DockPanel.Dock="Left" -->
         <!--         HorizontalAlignment="Left" VerticalAlignment="Top"> -->
