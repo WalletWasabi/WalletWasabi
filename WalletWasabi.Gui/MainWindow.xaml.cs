@@ -110,10 +110,12 @@ namespace WalletWasabi.Gui
 						return;
 					}
 
-					await ClosingAsync(tryToDequeue);
-				});
+					await ClosingAsync(tryToDequeue).ConfigureAwait(false);
+				}).ConfigureAwait(false);
 				return;
 			}
+
+			// We are on the UI Thread now, do not use ConfigureAwait(false) after this line.
 
 			bool closeApplication = true;
 			try
@@ -159,7 +161,7 @@ namespace WalletWasabi.Gui
 						foreach (var doc in docs.OfType<WasabiDocumentTabViewModel>().ToArray())
 						{
 							doc.OnClose();
-							Logger.LogInfo($"{doc.Title} closed.");
+							Logger.LogInfo($"ViewModel {doc.Title} was closed.");
 						}
 					}
 				}
