@@ -14,22 +14,17 @@
       <ControlTemplate>
         <Panel>
           <Panel Background="{DynamicResource DialogOverlayColor}" Name="PART_Overlay" />
-          <Panel Name="PART_DialogHost" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="40">
+          <Panel Name="PART_DialogHost" VerticalAlignment="{TemplateBinding VerticalAlignment}" HorizontalAlignment="{TemplateBinding HorizontalAlignment}" Margin="40">
             <Border CornerRadius="4" BoxShadow="{DynamicResource DialogBoxShadow}" Background="{DynamicResource DialogBackground}">
-              <DockPanel Margin="20 0">
-                <Button DockPanel.Dock="Left" Margin="0 35 0 0" Classes="invisible" Command="{Binding Close}" HorizontalAlignment="Left" VerticalAlignment="Top">
-                  <PathIcon Data="{StaticResource arrow_left_regular}" />
-                </Button>
-                <ContentPresenter Name="PART_ContentPresenter" Margin="20 36 20 0"
-                               Background="{TemplateBinding Background}"
-                               BorderBrush="{TemplateBinding BorderBrush}"
-                               BorderThickness="{TemplateBinding BorderThickness}"
-                               ContentTemplate="{TemplateBinding ContentTemplate}"
-                               Content="{TemplateBinding Content}"
-                               Padding="{TemplateBinding Padding}"
-                               VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                               HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"/>
-              </DockPanel>
+              <ContentPresenter Name="PART_ContentPresenter" Margin="20 36 20 0"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                Content="{TemplateBinding Content}"
+                                Padding="{TemplateBinding Padding}"
+                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"/>
             </Border>
           </Panel>
         </Panel>

@@ -44,44 +44,23 @@
               <rxui:RoutedViewHost.PageTransition>
                 <CrossFade Duration="0:0:0.25" />
               </rxui:RoutedViewHost.PageTransition>
-              <rxui:RoutedViewHost.DefaultContent>
-                <TextBlock Text="Default content"
-                          HorizontalAlignment="Center"
-                          VerticalAlignment="Center" />
-              </rxui:RoutedViewHost.DefaultContent>
             </rxui:RoutedViewHost>
           </Panel>
         </DockPanel>
       </Panel>
     </SplitView>
-    <Panel DataContext="{Binding DialogScreen}" IsVisible="{Binding IsDialogVisible}">
-      <Panel Background="{DynamicResource DialogOverlayColor}">
-        <i:Interaction.Behaviors>
-          <ia:EventTriggerBehavior EventName="PointerPressed">
-            <ia:CallMethodAction TargetObject="{Binding}" MethodName="Close" />
-          </ia:EventTriggerBehavior>
-        </i:Interaction.Behaviors>
-      </Panel>
-      <Border Padding="0,20,0,20" CornerRadius="4"
-              Background="{DynamicResource DialogBackground}"
-              MaxWidth="800" MaxHeight="700"
-              Margin="40">
-        <rxui:RoutedViewHost Router="{Binding Router}">
-          <rxui:RoutedViewHost.ViewLocator>
-            <vl:ScreenViewLocator />
-          </rxui:RoutedViewHost.ViewLocator>
-          <rxui:RoutedViewHost.PageTransition>
-            <CrossFade Duration="0:0:0.25" />
-          </rxui:RoutedViewHost.PageTransition>
-          <rxui:RoutedViewHost.DefaultContent>
-            <TextBlock Text="Default content"
-                      HorizontalAlignment="Center"
-                      VerticalAlignment="Center" />
-          </rxui:RoutedViewHost.DefaultContent>
-        </rxui:RoutedViewHost>
-      </Border>
-    </Panel>
-    <c:Dialog DataContext="{Binding CurrentDialog}"
+    <c:Dialog DataContext="{Binding DialogScreen}" IsDialogOpen="{Binding IsDialogVisible, Mode=TwoWay}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+      <rxui:RoutedViewHost Router="{Binding Router}" MaxWidth="800" MaxHeight="700" Margin="40">
+        <rxui:RoutedViewHost.ViewLocator>
+          <vl:ScreenViewLocator />
+        </rxui:RoutedViewHost.ViewLocator>
+        <rxui:RoutedViewHost.PageTransition>
+          <CrossFade Duration="0:0:0.25" />
+        </rxui:RoutedViewHost.PageTransition>
+      </rxui:RoutedViewHost>
+    </c:Dialog>
+    <c:Dialog HorizontalAlignment="Center" VerticalAlignment="Center"
+      DataContext="{Binding CurrentDialog}"
               Content="{Binding }"
               IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}" />
   </Panel>
