@@ -3,6 +3,7 @@ using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
 using Xunit;
 
@@ -17,28 +18,22 @@ namespace WalletWasabi.Tests.UnitTests
 			var txId = tx.GetHash();
 			var index = 0U;
 			var km = KeyManager.CreateNew(out _, "");
-			var hdpk = km.GenerateNewKey(SmartLabel.Empty, KeyState.Clean, false);
-			tx.Outputs[0].ScriptPubKey = hdpk.P2wpkhScript;
-			var output = tx.Outputs[0];
-			var scriptPubKey = output.ScriptPubKey;
-			var amount = output.Value;
-			var spentOutputs = tx.Inputs.ToOutPoints().ToArray();
+			var hdpk1 = km.GenerateNewKey(SmartLabel.Empty, KeyState.Clean, false);
+			var hdpk2 = km.GenerateNewKey(SmartLabel.Empty, KeyState.Clean, false);
+			tx.Outputs[0].ScriptPubKey = hdpk1.P2wpkhScript;
+			tx.Outputs[1].ScriptPubKey = hdpk2.P2wpkhScript;
 
 			var height = Height.Mempool;
+			var stx = new SmartTransaction(tx, height);
 			var label = "foo";
 
-			var coin = new SmartCoin(new Coin(txId, index, amount, scriptPubKey), hdpk, spentOutputs, height, tx.RBF, tx.GetAnonymitySet(index), label, txId);
+			var coin = new SmartCoin(stx, index, hdpk1, tx.GetAnonymitySet(index), label, txId);
 
 			// If the txId or the index differ, equality should think it's a different coin.
-			var differentCoin = new SmartCoin(new Coin(txId, index + 1, amount, scriptPubKey), hdpk, spentOutputs, height, tx.RBF, tx.GetAnonymitySet(index + 1), label, txId);
-			var differentOutput = tx.Outputs[1];
-			var differentSpentOutputs = new[]
-			{
-				new OutPoint(txId, 0)
-			};
+			var differentCoin = new SmartCoin(stx, index + 1, hdpk2, tx.GetAnonymitySet(index + 1), label, txId);
 
 			// If the txId and the index are the same, equality should think it's the same coin.
-			var sameCoin = new SmartCoin(new Coin(txId, index, differentOutput.Value, differentOutput.ScriptPubKey), hdpk, differentSpentOutputs, Height.Unknown, tx.RBF, tx.GetAnonymitySet(index), "boo");
+			var sameCoin = new SmartCoin(stx, index, hdpk1, tx.GetAnonymitySet(index), "boo");
 
 			Assert.Equal(coin, sameCoin);
 			Assert.NotEqual(coin, differentCoin);

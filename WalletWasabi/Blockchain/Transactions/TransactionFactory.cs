@@ -271,20 +271,21 @@ namespace WalletWasabi.Blockchain.Transactions
 			var label = SmartLabel.Merge(payments.Requests.Select(x => x.Label).Concat(spentCoins.Select(x => x.Label)));
 			var outerWalletOutputs = new List<Coin>();
 			var innerWalletOutputs = new List<SmartCoin>();
+			var smartTransaction = new SmartTransaction(tx, Height.Unknown, label: SmartLabel.Merge(payments.Requests.Select(x => x.Label)));
 			for (var i = 0U; i < tx.Outputs.Count; i++)
 			{
 				TxOut output = tx.Outputs[i];
-				var coin = new Coin(tx.GetHash(), i, output.Value, output.ScriptPubKey);
 				var foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
 				if (foundKey is { })
 				{
 					var anonset = tx.GetAnonymitySet(i) + spentCoins.Min(x => x.AnonymitySet) - 1; // Minus 1, because count own only once.
-					var smartCoin = new SmartCoin(coin, foundKey, tx.Inputs.ToOutPoints().ToArray(), Height.Unknown, tx.RBF, anonset);
+					var smartCoin = new SmartCoin(smartTransaction, i, foundKey, anonset);
 					label = SmartLabel.Merge(label, smartCoin.Label); // foundKey's label is already added to the coinlabel.
 					innerWalletOutputs.Add(smartCoin);
 				}
 				else
 				{
+					var coin = new Coin(tx.GetHash(), i, output.Value, output.ScriptPubKey);
 					outerWalletOutputs.Add(coin);
 				}
 			}
@@ -309,7 +310,6 @@ namespace WalletWasabi.Blockchain.Transactions
 			Logger.LogInfo($"Transaction is successfully built: {tx.GetHash()}.");
 			var sign = !KeyManager.IsWatchOnly;
 			var spendsUnconfirmed = spentCoins.Any(c => !c.Confirmed);
-			SmartTransaction smartTransaction = new SmartTransaction(tx, Height.Unknown, label: SmartLabel.Merge(payments.Requests.Select(x => x.Label)));
 			return new BuildTransactionResult(smartTransaction, psbt, spendsUnconfirmed, sign, fee, feePc, outerWalletOutputs, innerWalletOutputs, spentCoins);
 		}
 

@@ -1,8 +1,10 @@
 using NBitcoin;
 using System;
+using System.Linq;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 
@@ -34,13 +36,14 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		#region Constructors
 
-		public SmartCoin(Coin coin, HdPubKey pubKey, OutPoint[] spentOutputs, Height height, bool replaceable, int anonymitySet, SmartLabel label = null, uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false)
+		public SmartCoin(SmartTransaction transaction, uint outputIndex, HdPubKey pubKey, int anonymitySet, SmartLabel label = null, uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false)
 		{
-			Coin = coin;
+			Transaction = transaction;
+			Coin = new Coin(transaction.Transaction, outputIndex);
 			HashCode = (TransactionId, Index).GetHashCode();
-			Height = height;
-			SpentOutputs = Guard.NotNullOrEmpty(nameof(spentOutputs), spentOutputs);
-			WasReplaceable = replaceable;
+			Height = transaction.Height;
+			SpentOutputs = Transaction.Transaction.Inputs.ToOutPoints().ToArray();
+			WasReplaceable = Transaction.IsRBF;
 			AnonymitySet = Guard.InRangeAndNotNull(nameof(anonymitySet), anonymitySet, 1, int.MaxValue);
 
 			SpenderTransactionId = spenderTransactionId;
@@ -61,6 +64,8 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		#endregion Constructors
 
 		#region Properties
+
+		public SmartTransaction Transaction { get; }
 
 		public Coin Coin { get; }
 

@@ -182,16 +182,16 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			HdPubKey NewKey() => keyManager.GenerateNewKey("", KeyState.Used, true, false);
 			var scoins = new[]
 			{
-				Coin("Pablo",  NewKey(), 0.9m),
-				Coin("Daniel", NewKey(), 0.9m),
-				Coin("Adolf",  NewKey(), 0.9m),
-				Coin("Maria",  NewKey(), 0.9m),
-				Coin("Ding",   NewKey(), 0.9m),
-				Coin("Joseph", NewKey(), 0.9m),
-				Coin("Eve",    NewKey(), 0.9m),
-				Coin("Julio",  NewKey(), 0.9m),
-				Coin("Donald, Jean, Lee, Onur", NewKey(), 0.9m),
-				Coin("Satoshi", NewKey(), 0.9m)
+				Common.GetRandomSmartCoin("Pablo",  NewKey(), 0.9m),
+				Common.GetRandomSmartCoin("Daniel", NewKey(), 0.9m),
+				Common.GetRandomSmartCoin("Adolf",  NewKey(), 0.9m),
+				Common.GetRandomSmartCoin("Maria",  NewKey(), 0.9m),
+				Common.GetRandomSmartCoin("Ding",   NewKey(), 0.9m),
+				Common.GetRandomSmartCoin("Joseph", NewKey(), 0.9m),
+				Common.GetRandomSmartCoin("Eve",    NewKey(), 0.9m),
+				Common.GetRandomSmartCoin("Julio",  NewKey(), 0.9m),
+				Common.GetRandomSmartCoin("Donald, Jean, Lee, Onur", NewKey(), 0.9m),
+				Common.GetRandomSmartCoin("Satoshi", NewKey(), 0.9m)
 			};
 			var coinsByLabel = scoins.ToDictionary(x => x.Label);
 
@@ -583,20 +583,6 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			return (password, KeyManager.CreateNewWatchOnly(keyManager.ExtPubKey));
 		}
 
-		private static SmartCoin Coin(string label, HdPubKey pubKey, decimal amount, bool confirmed = true, int anonymitySet = 1)
-		{
-			var randomIndex = new Func<int>(() => new Random().Next(0, 200));
-			var height = confirmed ? new Height(randomIndex()) : Height.Mempool;
-			SmartLabel slabel = label;
-			var spentOutput = new[]
-			{
-				new OutPoint(RandomUtils.GetUInt256(), (uint)randomIndex())
-			};
-			pubKey.SetLabel(slabel);
-			pubKey.SetKeyState(KeyState.Used);
-			return new SmartCoin(new Coin(RandomUtils.GetUInt256(), (uint)randomIndex(), Money.Coins(amount), pubKey.P2wpkhScript), pubKey, spentOutput, height, false, anonymitySet, slabel);
-		}
-
 		private TransactionFactory CreateTransactionFactory(
 			IEnumerable<(string Label, int KeyIndex, decimal Amount, bool Confirmed, int AnonymitySet)> coins,
 			bool allowUnconfirmed = true,
@@ -607,7 +593,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			keyManager.AssertCleanKeysIndexed();
 
 			var keys = keyManager.GetKeys().Take(10).ToArray();
-			var scoins = coins.Select(x => Coin(x.Label, keys[x.KeyIndex], x.Amount, x.Confirmed, x.AnonymitySet)).ToArray();
+			var scoins = coins.Select(x => Common.GetRandomSmartCoin(x.Label, keys[x.KeyIndex], x.Amount, x.Confirmed, x.AnonymitySet)).ToArray();
 			foreach (var coin in scoins)
 			{
 				foreach (var sameLabelCoin in scoins.Where(c => !c.Label.IsEmpty && c.Label == coin.Label))

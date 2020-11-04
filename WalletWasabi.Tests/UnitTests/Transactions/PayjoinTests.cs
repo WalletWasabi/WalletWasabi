@@ -33,20 +33,6 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			return (password, KeyManager.CreateNewWatchOnly(keyManager.ExtPubKey));
 		}
 
-		private static SmartCoin Coin(string label, HdPubKey pubKey, decimal amount, bool confirmed = true, int anonymitySet = 1)
-		{
-			var randomIndex = new Func<int>(() => new Random().Next(0, 200));
-			var height = confirmed ? new Height(randomIndex()) : Height.Mempool;
-			SmartLabel slabel = label;
-			var spentOutput = new[]
-			{
-				new OutPoint(RandomUtils.GetUInt256(), (uint)randomIndex())
-			};
-			pubKey.SetLabel(slabel);
-			pubKey.SetKeyState(KeyState.Used);
-			return new SmartCoin(new Coin(RandomUtils.GetUInt256(), (uint)randomIndex(), Money.Coins(amount), pubKey.P2wpkhScript), pubKey, spentOutput, height, false, anonymitySet, slabel);
-		}
-
 		public static PSBT GenerateRandomTransaction()
 		{
 			var key = new Key();
@@ -449,7 +435,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			keyManager.AssertCleanKeysIndexed();
 
 			var keys = keyManager.GetKeys().Take(10).ToArray();
-			var scoins = coins.Select(x => Coin(x.Label, keys[x.KeyIndex], x.Amount, x.Confirmed, x.AnonymitySet)).ToArray();
+			var scoins = coins.Select(x => Common.GetRandomSmartCoin(x.Label, keys[x.KeyIndex], x.Amount, x.Confirmed, x.AnonymitySet)).ToArray();
 			foreach (var coin in scoins)
 			{
 				foreach (var sameLabelCoin in scoins.Where(c => !c.Label.IsEmpty && c.Label == coin.Label))
