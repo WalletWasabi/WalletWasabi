@@ -138,18 +138,7 @@ namespace WalletWasabi.Gui
 
 				try
 				{
-					if (Global.UiConfig is { } uiConfig)
-					{
-						uiConfig.WindowState = WindowState;
-
-						IDocumentTabViewModel? selectedDocument = IoC.Get<IShell>().SelectedDocument;
-						uiConfig.LastActiveTab = selectedDocument is null
-							? nameof(HistoryTabViewModel)
-							: selectedDocument.GetType().Name;
-
-						uiConfig.ToFile();
-						Logger.LogInfo($"{nameof(uiConfig)} is saved.");
-					}
+					SaveUiConfig();
 
 					Hide();
 
@@ -189,6 +178,22 @@ namespace WalletWasabi.Gui
 					// Re-enable enqueuing coins.
 					Global.WalletManager.SignalQuitPending(false);
 				}
+			}
+		}
+
+		private void SaveUiConfig()
+		{
+			if (Global.UiConfig is { } uiConfig)
+			{
+				uiConfig.WindowState = WindowState;
+
+				IDocumentTabViewModel? selectedDocument = IoC.Get<IShell>().SelectedDocument;
+				uiConfig.LastActiveTab = selectedDocument is null
+					? nameof(HistoryTabViewModel)
+					: selectedDocument.GetType().Name;
+
+				uiConfig.ToFile();
+				Logger.LogInfo($"{nameof(uiConfig)} is saved.");
 			}
 		}
 	}
