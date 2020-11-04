@@ -196,8 +196,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		public bool IsReplaceable() => WasReplaceable && !Confirmed;
 
-		public bool IsLikelyCoinjoinOutput() => Transaction.Transaction.IsLikelyCoinjoin();
-
 		#endregion Methods
 
 		#region EqualityAndComparison
