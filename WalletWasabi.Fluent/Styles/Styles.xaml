@@ -77,23 +77,6 @@
     <Setter Property="Background" Value="{DynamicResource InvisibleButtonBackgroundColor}" />
   </Style>
 
-  <!--Invisible button style-->
-  <Style Selector="Button.invisible">
-    <Setter Property="VerticalAlignment" Value="Stretch" />
-    <Setter Property="HorizontalAlignment" Value="Stretch" />
-    <Setter Property="Cursor" Value="Hand" />
-    <Setter Property="Padding" Value="0" />
-  </Style>
-  <Style Selector="Button.invisible /template/ ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource InvisibleButtonBackgroundColor}" />
-  </Style>
-  <Style Selector="Button.invisible:pointerover /template/ ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource InvisibleButtonPointerOverBackgroundColor}" />
-  </Style>
-  <Style Selector="Button.invisible:pressed /template/ ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource InvisibleButtonPressedBackgroundColor}" />
-  </Style>
-
   <!--TextBox style-->
   <Style Selector="TextBox /template/ Border#PART_BorderElement">
     <Setter Property="CornerRadius" Value="0" />
@@ -230,4 +213,5 @@
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/OptionButton.xaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/ActionButton.xaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Label.xaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/InvisibleButton.xaml" />
 </Styles>
