@@ -49,7 +49,7 @@ namespace WalletWasabi.Blockchain.Keys
 			return (km, mnemonic);
 		}
 
-		private bool ValidateWalletName(string walletName)
+		public static bool ValidateWalletName(string walletName)
 		{
 			if (string.IsNullOrWhiteSpace(walletName))
 			{
