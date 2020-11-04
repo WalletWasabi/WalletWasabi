@@ -594,7 +594,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			};
 			pubKey.SetLabel(slabel);
 			pubKey.SetKeyState(KeyState.Used);
-			return new SmartCoin(new Coin(RandomUtils.GetUInt256(), (uint)randomIndex(), Money.Coins(amount), pubKey.P2wpkhScript), spentOutput, height, false, anonymitySet, slabel, pubKey: pubKey);
+			return new SmartCoin(new Coin(RandomUtils.GetUInt256(), (uint)randomIndex(), Money.Coins(amount), pubKey.P2wpkhScript), pubKey, spentOutput, height, false, anonymitySet, slabel);
 		}
 
 		private TransactionFactory CreateTransactionFactory(

@@ -269,28 +269,27 @@ namespace WalletWasabi.Blockchain.Transactions
 			}
 
 			var label = SmartLabel.Merge(payments.Requests.Select(x => x.Label).Concat(spentCoins.Select(x => x.Label)));
-			var outerWalletOutputs = new List<SmartCoin>();
+			var outerWalletOutputs = new List<Coin>();
 			var innerWalletOutputs = new List<SmartCoin>();
 			for (var i = 0U; i < tx.Outputs.Count; i++)
 			{
 				TxOut output = tx.Outputs[i];
-				var anonset = tx.GetAnonymitySet(i) + spentCoins.Min(x => x.AnonymitySet) - 1; // Minus 1, because count own only once.
+				var coin = new Coin(tx.GetHash(), i, output.Value, output.ScriptPubKey);
 				var foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
-				var c = new Coin(tx.GetHash(), i, output.Value, output.ScriptPubKey);
-				var coin = new SmartCoin(c, tx.Inputs.ToOutPoints().ToArray(), Height.Unknown, tx.RBF, anonset, pubKey: foundKey);
-				label = SmartLabel.Merge(label, coin.Label); // foundKey's label is already added to the coinlabel.
-
-				if (foundKey is null)
+				if (foundKey is { })
 				{
-					outerWalletOutputs.Add(coin);
+					var anonset = tx.GetAnonymitySet(i) + spentCoins.Min(x => x.AnonymitySet) - 1; // Minus 1, because count own only once.
+					var smartCoin = new SmartCoin(coin, foundKey, tx.Inputs.ToOutPoints().ToArray(), Height.Unknown, tx.RBF, anonset);
+					label = SmartLabel.Merge(label, smartCoin.Label); // foundKey's label is already added to the coinlabel.
+					innerWalletOutputs.Add(smartCoin);
 				}
 				else
 				{
-					innerWalletOutputs.Add(coin);
+					outerWalletOutputs.Add(coin);
 				}
 			}
 
-			foreach (var coin in outerWalletOutputs.Concat(innerWalletOutputs))
+			foreach (var coin in innerWalletOutputs)
 			{
 				var foundPaymentRequest = payments.Requests.FirstOrDefault(x => x.Destination.ScriptPubKey == coin.ScriptPubKey);
 
@@ -304,8 +303,7 @@ namespace WalletWasabi.Blockchain.Transactions
 					coin.Label = SmartLabel.Merge(coin.Label, foundPaymentRequest.Label);
 				}
 
-				var foundKey = KeyManager.GetKeyForScriptPubKey(coin.ScriptPubKey);
-				foundKey?.SetLabel(coin.Label); // The foundkeylabel has already been added previously, so no need to concatenate.
+				coin.HdPubKey.SetLabel(coin.Label); // The foundkeylabel has already been added previously, so no need to concatenate.
 			}
 
 			Logger.LogInfo($"Transaction is successfully built: {tx.GetHash()}.");

@@ -34,7 +34,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		#region Constructors
 
-		public SmartCoin(Coin coin, OutPoint[] spentOutputs, Height height, bool replaceable, int anonymitySet, SmartLabel label = null, uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false, HdPubKey pubKey = null)
+		public SmartCoin(Coin coin, HdPubKey pubKey, OutPoint[] spentOutputs, Height height, bool replaceable, int anonymitySet, SmartLabel label = null, uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false)
 		{
 			Coin = coin;
 			HashCode = (TransactionId, Index).GetHashCode();
@@ -51,7 +51,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 			HdPubKey = pubKey;
 
-			Label = SmartLabel.Merge(HdPubKey?.Label, label);
+			Label = SmartLabel.Merge(HdPubKey.Label, label);
 
 			Cluster = new Cluster(this);
 

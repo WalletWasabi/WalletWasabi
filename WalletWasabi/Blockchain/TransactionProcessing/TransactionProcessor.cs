@@ -202,7 +202,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 						}
 
 						var c = new Coin(txId, i, output.Value, output.ScriptPubKey);
-						SmartCoin newCoin = new SmartCoin(c, tx.Transaction.Inputs.ToOutPoints().ToArray(), tx.Height, tx.IsRBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
+						SmartCoin newCoin = new SmartCoin(c, foundKey, tx.Transaction.Inputs.ToOutPoints().ToArray(), tx.Height, tx.IsRBF, anonset, foundKey.Label, spenderTransactionId: null, false); // Do not inherit locked status from key, that's different.
 
 						result.ReceivedCoins.Add(newCoin);
 						// If we did not have it.
