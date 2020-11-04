@@ -48,7 +48,6 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 			Assert.Equal(Generators.G, deserializedGroupElement);
 		}
 
-
 		[Fact]
 		public void GroupElementCollectionSerialization()
 		{
@@ -58,7 +57,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 			};
 
 			// Serialization collection test
-			var serializedGroupElements = JsonConvert.SerializeObject(new[]{ Generators.Gx0, Generators.Gx1 }, converters);
+			var serializedGroupElements = JsonConvert.SerializeObject(new[] { Generators.Gx0, Generators.Gx1 }, converters);
 			Assert.Equal("[\"02E33C9F3CBE6388A2D3C3ECB12153DB73499928541905D86AAA4FFC01F2763B54\",\"0246253CC926AAB789BAA278AB9A54EDEF455CA2014038E9F84DE312C05A8121CC\"]", serializedGroupElements);
 
 			var deserializedGroupElements = JsonConvert.DeserializeObject<GroupElement[]>("[\"02E33C9F3CBE6388A2D3C3ECB12153DB73499928541905D86AAA4FFC01F2763B54\",\"0246253CC926AAB789BAA278AB9A54EDEF455CA2014038E9F84DE312C05A8121CC\"]", converters);
@@ -68,7 +67,6 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 			var deserializedGroupElementVector = JsonConvert.DeserializeObject<GroupElementVector>("[\"02E33C9F3CBE6388A2D3C3ECB12153DB73499928541905D86AAA4FFC01F2763B54\",\"0246253CC926AAB789BAA278AB9A54EDEF455CA2014038E9F84DE312C05A8121CC\"]", converters);
 			Assert.Equal(deserializedGroupElements, deserializedGroupElementVector);
 		}
-
 
 		[Fact]
 		public void IssuanceRequestSerialization()
@@ -86,7 +84,6 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 			Assert.Equal(issuanceRequest.Ma, deserializedIssuanceRequest.Ma);
 			Assert.Equal(issuanceRequest.BitCommitments, deserializedIssuanceRequest.BitCommitments);
 		}
-
 
 		[Fact]
 		public void ScalarSerialization()
@@ -119,7 +116,6 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 			Assert.Equal(scalar, deserializedScalar);
 		}
 
-
 		[Fact]
 		public void ScalarCollectionSerialization()
 		{
@@ -134,7 +130,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 			var three = two + one; 
 			var other = two.Sqr(8) + three;
 
-			var serializedScalars = JsonConvert.SerializeObject(new[]{ one, two }, converters);
+			var serializedScalars = JsonConvert.SerializeObject(new[] { one, two }, converters);
 			Assert.Equal("[\"0000000000000000000000000000000000000000000000000000000000000001\",\"0000000000000000000000000000000000000000000000000000000000000002\"]", serializedScalars);
 
 			var deserializedScalars = JsonConvert.DeserializeObject<Scalar[]>("[\"000000000000000000000000000000014551231950B75FC4402DA1732FC9BEC2\",\"0000000000000000000000000000000000000000000000000000000000000003\"]", converters);
