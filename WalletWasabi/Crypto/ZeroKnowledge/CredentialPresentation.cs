@@ -4,6 +4,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 {
 	/// <summary>
 	/// Represents a randomized credential that can be presented to the coordinator.
+	/// A randomized credential is a tuple that consists of four group elements (Ca, Cx0, Cx1, CV).
 	/// </summary>
 	public class CredentialPresentation
 	{
