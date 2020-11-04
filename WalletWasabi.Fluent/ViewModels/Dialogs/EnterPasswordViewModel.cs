@@ -15,6 +15,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		public EnterPasswordViewModel(string subtitle = "Type your super-secret password in the blanks below and click Continue")
 		{
 			Subtitle = subtitle;
+			
 			// This means pressing continue will make the password empty string.
 			// pressing cancel will return null.
 			_password = "";
@@ -27,6 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 				x => x.ConfirmPassword,
 				(password, confirmPassword) =>
 				{
+					
 					// This will fire validations before return canExecute value.
 					this.RaisePropertyChanged(nameof(Password));
 					this.RaisePropertyChanged(nameof(ConfirmPassword));

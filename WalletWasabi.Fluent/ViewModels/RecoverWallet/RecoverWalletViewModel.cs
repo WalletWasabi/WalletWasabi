@@ -43,11 +43,6 @@ namespace WalletWasabi.Fluent.ViewModels.RecoverWallet
 
             this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);
 
-            AdvancedOptionsInteraction = new Interaction<object, (KeyPath?, int?)>();
-            AdvancedOptionsInteraction.RegisterHandler(
-                async interaction =>
-                    interaction.SetOutput(await new AdvancedRecoveryOptionsViewModel().ShowDialogAsync()));
-
             AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
                 async () =>
                 {
@@ -101,6 +96,13 @@ namespace WalletWasabi.Fluent.ViewModels.RecoverWallet
                 AccountKeyPath = default;
                 MinGapLimit = default;
             });
+            
+            
+            AdvancedOptionsInteraction = new Interaction<object, (KeyPath?, int?)>();
+            AdvancedOptionsInteraction.RegisterHandler(
+                async interaction =>
+                    interaction.SetOutput(await new AdvancedRecoveryOptionsViewModel().ShowDialogAsync()));
+
         }
 
         public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
