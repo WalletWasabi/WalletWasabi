@@ -1,6 +1,6 @@
 <Styles xmlns="https://github.com/avaloniaui">
   <Style Selector="Label">
-    <Setter Property="(TextBlock.FontSize)" Value="14" />
+    <Setter Property="(TextBlock.FontSize)" Value="{StaticResource FontSizeH7}" />
     <Setter Property="(TextBlock.FontWeight)" Value="Bold" />
     <Setter Property="Margin" Value="0 0 0 10" />
   </Style>
