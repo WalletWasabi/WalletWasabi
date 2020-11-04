@@ -98,22 +98,6 @@
     <Setter Property="Background" Value="{DynamicResource InvisibleButtonPressedBackgroundColor}" />
   </Style>
 
-  <!--Action button style-->
-  <Style Selector="Button.action /template/ ContentPresenter">
-    <Setter Property="Background" Value="{StaticResource ActionButtonBackgroundColor}" />
-    <Setter Property="Padding" Value="{StaticResource ActionButtonPadding}" />
-    <Setter Property="TextBlock.Foreground" Value="{StaticResource ActionButtonForegroundColor}" />
-  </Style>
-  <Style Selector="Button.action:pointerover /template/ ContentPresenter">
-    <Setter Property="Background" Value="{StaticResource ActionButtonPointerOverBackgroundColor}" />
-  </Style>
-  <Style Selector="Button.action:pressed /template/ ContentPresenter">
-    <Setter Property="Background" Value="{StaticResource ActionButtonPressedBackgroundColor}" />
-  </Style>
-  <Style Selector="Button.action:disabled /template/ ContentPresenter">
-    <Setter Property="Background" Value="{StaticResource ActionButtonDisabledBackgroundColor}" />
-  </Style>
-
   <!--TextBox style-->
   <Style Selector="TextBox /template/ Border#PART_BorderElement">
     <Setter Property="CornerRadius" Value="0" />
@@ -248,4 +232,5 @@
   </Style>
 
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/OptionButton.xaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/ActionButton.xaml" />
 </Styles>
