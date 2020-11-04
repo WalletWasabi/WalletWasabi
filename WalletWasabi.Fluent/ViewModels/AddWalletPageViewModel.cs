@@ -1,23 +1,23 @@
-using ReactiveUI;
 using System;
-using System.Windows.Input;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
-using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Wallets;
-using WalletWasabi.Stores;
-using NBitcoin;
-using WalletWasabi.Fluent.ViewModels.Dialogs;
-using WalletWasabi.Fluent.ViewModels.AddWallet;
-using WalletWasabi.Fluent.ViewModels.RecoverWallet;
 using System.Threading.Tasks;
+using System.Windows.Input;
+using NBitcoin;
+using ReactiveUI;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.ViewModels.AddWallet;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
+using WalletWasabi.Fluent.ViewModels.RecoverWallet;
+using WalletWasabi.Stores;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
 	public class AddWalletPageViewModel : NavBarItemViewModel
 	{
-		private string _walletName = "";
 		private bool _optionsEnabled;
+		private string _walletName = "";
 
 		public AddWalletPageViewModel(IScreen screen, WalletManager walletManager, BitcoinStore store, Network network)
 			: base(screen)
@@ -31,7 +31,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			RecoverWalletCommand = ReactiveCommand.Create(
 				async () =>
 				{
-					var result = await RecoveryPagePasswordInteraction.Handle("").ToTask();
+					var result = await PasswordInteraction.Handle("Type the password of the wallet you intend to recover and click Continue.").ToTask();
 
 					if (result is { } password)
 					{
@@ -43,7 +43,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{
-					var result = await CreateWalletPagePasswordInteraction.Handle("").ToTask();
+					var result = await PasswordInteraction.Handle("Type your new wallet's password below and click Continue.").ToTask();
 
 					if (result is { } password)
 					{
@@ -63,18 +63,10 @@ namespace WalletWasabi.Fluent.ViewModels
 					}
 				});
 
-			CreateWalletPagePasswordInteraction = new Interaction<string, string?>();
-			RecoveryPagePasswordInteraction = new Interaction<string, string?>();
+			PasswordInteraction = new Interaction<string, string?>();
 
-			CreateWalletPagePasswordInteraction.RegisterHandler(
-				async interaction => interaction.SetOutput(await new EnterPasswordViewModel().ShowDialogAsync()));
-
-			RecoveryPagePasswordInteraction.RegisterHandler(
-				async interaction =>
-					interaction.SetOutput(
-						await new EnterPasswordViewModel(
-								"Type the password of the wallet you intend to recover and click Continue.")
-							.ShowDialogAsync()));
+			PasswordInteraction.RegisterHandler(
+				async interaction => interaction.SetOutput(await new EnterPasswordViewModel(interaction.Input).ShowDialogAsync()));
 		}
 
 		public override string IconName => "add_circle_regular";
@@ -91,10 +83,10 @@ namespace WalletWasabi.Fluent.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _optionsEnabled, value);
 		}
 
-		private Interaction<string, string?> CreateWalletPagePasswordInteraction { get; }
-		public Interaction<string, string?> RecoveryPagePasswordInteraction { get; }
+		private Interaction<string, string?> PasswordInteraction { get; }
 
 		public ICommand CreateWalletCommand { get; }
+
 		public ICommand RecoverWalletCommand { get; }
 	}
 }

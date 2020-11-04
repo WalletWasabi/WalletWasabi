@@ -1,6 +1,6 @@
-using ReactiveUI;
 using System.Reactive.Linq;
 using System.Windows.Input;
+using ReactiveUI;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
@@ -9,13 +9,14 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
 	public class EnterPasswordViewModel : DialogViewModelBase<string?>
 	{
-		private string? _password;
 		private string? _confirmPassword;
+		private string? _password;
 
-		public EnterPasswordViewModel(string subtitle = "Type your super-secret password in the blanks below and click Continue")
+		public EnterPasswordViewModel(
+			string subtitle)
 		{
 			Subtitle = subtitle;
-			
+
 			// This means pressing continue will make the password empty string.
 			// pressing cancel will return null.
 			_password = "";
@@ -24,16 +25,18 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			this.ValidateProperty(x => x.ConfirmPassword, ValidateConfirmPassword);
 
 			var continueCommandCanExecute = this.WhenAnyValue(
-				x => x.Password,
-				x => x.ConfirmPassword,
-				(password, confirmPassword) =>
-				{
-					// This will fire validations before return canExecute value.
-					this.RaisePropertyChanged(nameof(Password));
-					this.RaisePropertyChanged(nameof(ConfirmPassword));
+					x => x.Password,
+					x => x.ConfirmPassword,
+					(password, confirmPassword) =>
+					{
+						// This will fire validations before return canExecute value.
+						this.RaisePropertyChanged(nameof(Password));
+						this.RaisePropertyChanged(nameof(ConfirmPassword));
 
-					return (string.IsNullOrEmpty(password) && string.IsNullOrEmpty(confirmPassword)) || (!string.IsNullOrEmpty(password) && !string.IsNullOrEmpty(confirmPassword) && !Validations.Any);
-				})
+						return string.IsNullOrEmpty(password) && string.IsNullOrEmpty(confirmPassword) ||
+						       !string.IsNullOrEmpty(password) && !string.IsNullOrEmpty(confirmPassword) &&
+						       !Validations.Any;
+					})
 				.ObserveOn(RxApp.MainThreadScheduler);
 
 			ContinueCommand = ReactiveCommand.Create(() => Close(Password), continueCommandCanExecute);
@@ -55,7 +58,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		public ICommand ContinueCommand { get; }
 
 		public ICommand CancelCommand { get; }
-		
+
 		public string Subtitle { get; }
 
 		protected override void OnDialogClosed()

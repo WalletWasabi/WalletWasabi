@@ -10,7 +10,6 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
-using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -51,13 +50,17 @@ namespace WalletWasabi.Fluent.ViewModels.RecoverWallet
 				async () =>
 				{
 					var (accountKeyPathIn, minGapLimitIn) = await AdvancedOptionsInteraction
-						.Handle((AccountKeyPath!, (int)MinGapLimit!)).ToTask();
+						.Handle((AccountKeyPath!, (int) MinGapLimit!)).ToTask();
 
 					if (accountKeyPathIn is { })
+					{
 						AccountKeyPath = accountKeyPathIn;
+					}
 
 					if (minGapLimitIn is { })
+					{
 						MinGapLimit = minGapLimitIn;
+					}
 				});
 
 			var finishCommandCanExecute = this.WhenAnyValue(
@@ -72,7 +75,7 @@ namespace WalletWasabi.Fluent.ViewModels.RecoverWallet
 						this.RaisePropertyChanged(nameof(MinGapLimit));
 
 						return CurrentMnemonics is { } && (CurrentMnemonics?.IsValidChecksum ?? false) &&
-							   !Validations.Any;
+						       !Validations.Any;
 					})
 				.ObserveOn(RxApp.MainThreadScheduler);
 
@@ -81,7 +84,11 @@ namespace WalletWasabi.Fluent.ViewModels.RecoverWallet
 				{
 					try
 					{
-						if (CurrentMnemonics is null || AccountKeyPath is null || MinGapLimit is null) return;
+						if (CurrentMnemonics is null || AccountKeyPath is null || MinGapLimit is null)
+						{
+							return;
+						}
+
 						var walletFilePath = walletManager.WalletDirectories.GetWalletFilePaths(walletName)
 							.walletFilePath;
 						var keyManager = KeyManager.Recover(
@@ -89,7 +96,7 @@ namespace WalletWasabi.Fluent.ViewModels.RecoverWallet
 							password,
 							walletFilePath,
 							AccountKeyPath,
-							(int)MinGapLimit);
+							(int) MinGapLimit);
 						keyManager.SetNetwork(network);
 						walletManager.AddWallet(keyManager);
 						screen.Router.NavigationStack.Clear();
@@ -147,12 +154,17 @@ namespace WalletWasabi.Fluent.ViewModels.RecoverWallet
 		private void ValidateMnemonics(IValidationErrors errors)
 		{
 			if (CurrentMnemonics is { } && !CurrentMnemonics.IsValidChecksum)
+			{
 				errors.Add(ErrorSeverity.Error, "Recovery words are not valid.");
+			}
 		}
 
 		private void AddMnemonic(string? tagString)
 		{
-			if (!string.IsNullOrWhiteSpace(tagString)) Mnemonics.Add(tagString);
+			if (!string.IsNullOrWhiteSpace(tagString))
+			{
+				Mnemonics.Add(tagString);
+			}
 
 			SelectedTag = string.Empty;
 		}
