@@ -14,7 +14,7 @@
       <ControlTemplate>
         <Panel>
           <Panel Background="{DynamicResource DialogOverlayColor}" Name="PART_Overlay" />
-          <Panel Name="PART_DialogHost" VerticalAlignment="Center" HorizontalAlignment="Center">
+          <Panel Name="PART_DialogHost" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="40">
             <Border CornerRadius="4" BoxShadow="{DynamicResource DialogBoxShadow}" Background="{DynamicResource DialogBackground}">
               <DockPanel Margin="20 0">
                 <Button DockPanel.Dock="Left" Margin="0 35 0 0" Classes="invisible" Command="{Binding Close}" HorizontalAlignment="Left" VerticalAlignment="Top">
