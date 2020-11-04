@@ -30,11 +30,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			var allCoins = ((CoinsRegistry)wallet.Coins).AsAllCoinsView();
 			foreach (SmartCoin coin in allCoins)
 			{
-				var txId = coin.TransactionId;
-				if (txId is null || !wallet.BitcoinStore.TransactionStore.TryGetTransaction(txId, out SmartTransaction foundTransaction))
-				{
-					continue;
-				}
+				var foundTransaction = coin.Transaction;
 
 				var dateTime = foundTransaction.FirstSeen;
 				var found = txRecordList.FirstOrDefault(x => x.TransactionId == coin.TransactionId);
