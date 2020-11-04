@@ -1462,6 +1462,11 @@ namespace WalletWasabi.Tests.RegressionTests
 				Task timeout = Task.Delay(TimeSpan.FromSeconds(2 * (1 + 11 + 7 + 3 * (3 + 7))));
 				while (wallet.Coins.Count() != 4)
 				{
+					// Make sure CJ confirms.
+					if ((await rpc.GetRawMempoolAsync()).Any())
+					{
+						await rpc.GenerateAsync(1);
+					}
 					if (timeout.IsCompletedSuccessfully)
 					{
 						throw new TimeoutException("CoinJoin was not propagated or did not arrive.");
