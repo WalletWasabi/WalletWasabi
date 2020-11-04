@@ -8,106 +8,125 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
-    public class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<(KeyPath? accountKeyPath, int? minGapLimit)>
-    {
-        private string? _accountKeyPath;
-        private string? _minGapLimit;
+	public class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<(KeyPath? accountKeyPath, int? minGapLimit)>
+	{
+		private string? _accountKeyPath;
+		private string? _minGapLimit;
 
-        public AdvancedRecoveryOptionsViewModel((KeyPath keyPath, int minGapLimit) interactionInput)
-        {
-            this.ValidateProperty(x => x.AccountKeyPath, ValidateAccountKeyPath);
-            this.ValidateProperty(x => x.MinGapLimit, ValidateMinGapLimit);
+		public AdvancedRecoveryOptionsViewModel((KeyPath keyPath, int minGapLimit) interactionInput)
+		{
+			this.ValidateProperty(x => x.AccountKeyPath, ValidateAccountKeyPath);
+			this.ValidateProperty(x => x.MinGapLimit, ValidateMinGapLimit);
 
-            var continueCommandCanExecute = this.WhenAnyValue(
-                    x => x.AccountKeyPath,
-                    x => x.MinGapLimit,
-                    delegate
-                    {
-                        // This will fire validations before return canExecute value.
-                        this.RaisePropertyChanged(nameof(AccountKeyPath));
-                        this.RaisePropertyChanged(nameof(MinGapLimit));
+			var continueCommandCanExecute = this.WhenAnyValue(
+					x => x.AccountKeyPath,
+					x => x.MinGapLimit,
+					delegate
+					{
+						// This will fire validations before return canExecute value.
+						this.RaisePropertyChanged(nameof(AccountKeyPath));
+						this.RaisePropertyChanged(nameof(MinGapLimit));
 
-                        return !Validations.Any;
-                    })
-                .ObserveOn(RxApp.MainThreadScheduler);
+						return !Validations.Any;
+					})
+				.ObserveOn(RxApp.MainThreadScheduler);
 
-            AccountKeyPath = interactionInput.keyPath.ToString();
-            MinGapLimit = interactionInput.minGapLimit.ToString();
-            
-            ContinueCommand = ReactiveCommand.Create(() => Close((GetAccountKeyPath(), GetMinGapLimit())),
-                continueCommandCanExecute);
-            
-            CancelCommand = ReactiveCommand.Create(() => Close());
-        }
+			AccountKeyPath = interactionInput.keyPath.ToString();
+			MinGapLimit = interactionInput.minGapLimit.ToString();
 
-        public string? AccountKeyPath
-        {
-            get => _accountKeyPath;
-            set => this.RaiseAndSetIfChanged(ref _accountKeyPath, value);
-        }
+			ContinueCommand = ReactiveCommand.Create(
+				() => Close((GetAccountKeyPath(), GetMinGapLimit())),
+				continueCommandCanExecute);
 
-        public string? MinGapLimit
-        {
-            get => _minGapLimit;
-            set => this.RaiseAndSetIfChanged(ref _minGapLimit, value);
-        }
+			CancelCommand = ReactiveCommand.Create(() => Close());
+		}
 
-        public ICommand ContinueCommand { get; }
+		public string? AccountKeyPath
+		{
+			get => _accountKeyPath;
+			set => this.RaiseAndSetIfChanged(ref _accountKeyPath, value);
+		}
 
-        public ICommand CancelCommand { get; }
+		public string? MinGapLimit
+		{
+			get => _minGapLimit;
+			set => this.RaiseAndSetIfChanged(ref _minGapLimit, value);
+		}
 
-        private int? GetMinGapLimit()
-        {
-            if (int.TryParse(MinGapLimit, out var minGapLimit) && minGapLimit > KeyManager.AbsoluteMinGapLimit &&
-                minGapLimit < KeyManager.MaxGapLimit)
-                return minGapLimit;
+		public ICommand ContinueCommand { get; }
 
-            return null;
-        }
+		public ICommand CancelCommand { get; }
 
-        private KeyPath? GetAccountKeyPath()
-        {
-            if (AccountKeyPath is null || !KeyPath.TryParse(AccountKeyPath, out var keyPath) || keyPath is null) return null;
-            
-            var accountKeyPath = keyPath.GetAccountKeyPath();
-            
-            if (keyPath.Length != accountKeyPath.Length || accountKeyPath.Length != KeyManager.DefaultAccountKeyPath.Length)
-            {
-                return null;
-            }
+		private int? GetMinGapLimit()
+		{
+			if (int.TryParse(MinGapLimit, out var minGapLimit) && minGapLimit > KeyManager.AbsoluteMinGapLimit &&
+				minGapLimit < KeyManager.MaxGapLimit)
+			{
+				return minGapLimit;
+			}
 
-            return keyPath;
-        }
- 
-        private void ValidateMinGapLimit(IValidationErrors errors)
-        {
-            if (string.IsNullOrWhiteSpace(MinGapLimit)) return;
+			return null;
+		}
 
-            if (!int.TryParse(MinGapLimit, out var minGapLimit) || minGapLimit < KeyManager.AbsoluteMinGapLimit ||
-                minGapLimit > KeyManager.MaxGapLimit)
-                errors.Add(ErrorSeverity.Error,
-                    $"Must be a number between {KeyManager.AbsoluteMinGapLimit} and {KeyManager.MaxGapLimit}.");
-        }
+		private KeyPath? GetAccountKeyPath()
+		{
+			if (AccountKeyPath is null || !KeyPath.TryParse(AccountKeyPath, out var keyPath) ||
+				keyPath is null)
+			{
+				return null;
+			}
 
-        private void ValidateAccountKeyPath(IValidationErrors errors)
-        {
-            if (string.IsNullOrWhiteSpace(AccountKeyPath)) return;
+			var accountKeyPath = keyPath.GetAccountKeyPath();
 
-            if (KeyPath.TryParse(AccountKeyPath, out var keyPath) && keyPath is { })
-            {
-                var accountKeyPath = keyPath.GetAccountKeyPath();
-                if (keyPath.Length != accountKeyPath.Length ||
-                    accountKeyPath.Length != KeyManager.DefaultAccountKeyPath.Length)
-                    errors.Add(ErrorSeverity.Error, "Path is not a compatible account derivation path.");
-            }
-            else
-            {
-                errors.Add(ErrorSeverity.Error, "Path is not a valid derivation path.");
-            }
-        }
+			if (keyPath.Length != accountKeyPath.Length ||
+				accountKeyPath.Length != KeyManager.DefaultAccountKeyPath.Length)
+			{
+				return null;
+			}
 
-        protected override void OnDialogClosed()
-        {
-        }
-    }
+			return keyPath;
+		}
+
+		private void ValidateMinGapLimit(IValidationErrors errors)
+		{
+			if (string.IsNullOrWhiteSpace(MinGapLimit))
+			{
+				return;
+			}
+
+			if (!int.TryParse(MinGapLimit, out var minGapLimit) || minGapLimit < KeyManager.AbsoluteMinGapLimit ||
+				minGapLimit > KeyManager.MaxGapLimit)
+			{
+				errors.Add(
+					ErrorSeverity.Error,
+					$"Must be a number between {KeyManager.AbsoluteMinGapLimit} and {KeyManager.MaxGapLimit}.");
+			}
+		}
+
+		private void ValidateAccountKeyPath(IValidationErrors errors)
+		{
+			if (string.IsNullOrWhiteSpace(AccountKeyPath))
+			{
+				return;
+			}
+
+			if (KeyPath.TryParse(AccountKeyPath, out var keyPath) && keyPath is { })
+			{
+				var accountKeyPath = keyPath.GetAccountKeyPath();
+				if (keyPath.Length != accountKeyPath.Length ||
+					accountKeyPath.Length != KeyManager.DefaultAccountKeyPath.Length)
+				{
+					errors.Add(ErrorSeverity.Error, "Path is not a compatible account derivation path.");
+				}
+			}
+			else
+			{
+				errors.Add(ErrorSeverity.Error, "Path is not a valid derivation path.");
+			}
+		}
+
+		protected override void OnDialogClosed()
+		{
+		}
+	}
 }

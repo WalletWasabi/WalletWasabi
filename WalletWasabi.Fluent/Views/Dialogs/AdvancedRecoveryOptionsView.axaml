@@ -11,7 +11,7 @@
              x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="500">
     <UserControl.KeyBindings>
-        <KeyBinding  Gesture="Enter" Command="{Binding ContinueCommand}" />
+        <KeyBinding Gesture="Enter" Command="{Binding ContinueCommand}" />
     </UserControl.KeyBindings>
     <DockPanel Margin="0 0 0 20">
 
