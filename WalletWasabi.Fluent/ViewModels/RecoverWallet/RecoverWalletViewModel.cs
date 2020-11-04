@@ -46,7 +46,8 @@ namespace WalletWasabi.Fluent.ViewModels.RecoverWallet
             AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
                 async () =>
                 {
-                    var (accountKeyPathIn, minGapLimitIn) = await AdvancedOptionsInteraction.Handle("").ToTask();
+                    var (accountKeyPathIn, minGapLimitIn) = await AdvancedOptionsInteraction
+                        .Handle((AccountKeyPath!, (int) MinGapLimit!)).ToTask();
 
                     if (accountKeyPathIn is { })
                         AccountKeyPath = accountKeyPathIn;
@@ -87,7 +88,6 @@ namespace WalletWasabi.Fluent.ViewModels.RecoverWallet
                 {
                     Logger.LogError(ex);
                 }
-                
             }, finishCommandCanExecute);
 
             CancelCommand = ReactiveCommand.Create(() =>
@@ -96,13 +96,13 @@ namespace WalletWasabi.Fluent.ViewModels.RecoverWallet
                 AccountKeyPath = default;
                 MinGapLimit = default;
             });
-            
-            
-            AdvancedOptionsInteraction = new Interaction<object, (KeyPath?, int?)>();
+
+
+            AdvancedOptionsInteraction = new Interaction<(KeyPath, int), (KeyPath?, int?)>();
             AdvancedOptionsInteraction.RegisterHandler(
                 async interaction =>
-                    interaction.SetOutput(await new AdvancedRecoveryOptionsViewModel().ShowDialogAsync()));
-
+                    interaction.SetOutput(
+                        await new AdvancedRecoveryOptionsViewModel(interaction.Input).ShowDialogAsync()));
         }
 
         public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
@@ -115,7 +115,7 @@ namespace WalletWasabi.Fluent.ViewModels.RecoverWallet
 
         private int? MinGapLimit { get; set; } = 63;
 
-        private Interaction<object, (KeyPath?, int?)> AdvancedOptionsInteraction { get; }
+        private Interaction<(KeyPath, int), (KeyPath?, int?)> AdvancedOptionsInteraction { get; }
 
         public ObservableCollection<string> Mnemonics { get; } = new ObservableCollection<string>();
 

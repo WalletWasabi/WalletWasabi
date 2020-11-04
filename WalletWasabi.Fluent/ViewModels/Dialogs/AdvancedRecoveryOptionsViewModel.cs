@@ -13,7 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
         private string? _accountKeyPath;
         private string? _minGapLimit;
 
-        public AdvancedRecoveryOptionsViewModel()
+        public AdvancedRecoveryOptionsViewModel((KeyPath keyPath, int minGapLimit) interactionInput)
         {
             this.ValidateProperty(x => x.AccountKeyPath, ValidateAccountKeyPath);
             this.ValidateProperty(x => x.MinGapLimit, ValidateMinGapLimit);
@@ -31,8 +31,12 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
                     })
                 .ObserveOn(RxApp.MainThreadScheduler);
 
+            AccountKeyPath = interactionInput.keyPath.ToString();
+            MinGapLimit = interactionInput.minGapLimit.ToString();
+            
             ContinueCommand = ReactiveCommand.Create(() => Close((GetAccountKeyPath(), GetMinGapLimit())),
                 continueCommandCanExecute);
+            
             CancelCommand = ReactiveCommand.Create(() => Close());
         }
 
