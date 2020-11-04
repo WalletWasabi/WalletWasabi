@@ -268,12 +268,6 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					}
 				}
 
-				foreach (var coin in result.ReceivedCoins)
-				{
-					// May be too late to set it at this point. It'd be better to set at the constructor, but couldn't find a way without ruining performance.
-					coin.IsLikelyCoinJoinOutput = result.IsLikelyOwnCoinJoin;
-				}
-
 				if (result.IsNews)
 				{
 					TransactionStore.AddOrUpdate(tx);

@@ -51,7 +51,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			SpentOutputs = Guard.NotNullOrEmpty(nameof(spentOutputs), spentOutputs);
 			WasReplaceable = replaceable;
 			AnonymitySet = Guard.InRangeAndNotNull(nameof(anonymitySet), anonymitySet, 1, int.MaxValue);
-			IsLikelyCoinJoinOutput = null;
 
 			SpenderTransactionId = spenderTransactionId;
 
@@ -149,8 +148,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		}
 
 		public HdPubKey HdPubKey { get; }
-
-		public bool? IsLikelyCoinJoinOutput { get; set; }
 
 		/// <summary>
 		/// It's a secret, so it's usually going to be null. Do not use it.
