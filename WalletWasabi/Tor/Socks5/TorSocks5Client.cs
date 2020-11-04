@@ -2,13 +2,16 @@ using Nito.AsyncEx;
 using System;
 using System.IO;
 using System.Net;
+using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Exceptions;
+using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 using WalletWasabi.Tor.Socks5.Models.Messages;
@@ -32,10 +35,13 @@ namespace WalletWasabi.Tor.Socks5
 
 		#region PropertiesAndMembers
 
+		/// <summary>TCP connection to Tor's SOCKS5 server.</summary>
 		public TcpClient TcpClient { get; private set; }
 
 		private EndPoint TorSocks5EndPoint { get; }
 
+		/// <summary>Transport stream for sending  HTTP/HTTPS requests through Tor's SOCKS5 server.</summary>
+		/// <remarks>This stream is not to be used to send commands to Tor's SOCKS5 server.</remarks>
 		public Stream Stream { get; internal set; }
 
 		private EndPoint RemoteEndPoint { get; set; }
@@ -175,6 +181,13 @@ namespace WalletWasabi.Tor.Socks5
 			}
 
 			Logger.LogDebug("<");
+		}
+
+		public async Task UpgradeToSslAsync(string host)
+		{
+			SslStream sslStream = new SslStream(TcpClient.GetStream(), leaveInnerStreamOpen: true);
+			await sslStream.AuthenticateAsClientAsync(host, new X509CertificateCollection(), IHttpClient.SupportedSslProtocols, true).ConfigureAwait(false);
+			Stream = sslStream;
 		}
 
 		private async Task ConnectToDestinationAsync(EndPoint destination, CancellationToken cancellationToken = default)
