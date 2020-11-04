@@ -185,11 +185,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			private set => RaiseAndSetIfChanged(ref _confirmed, value);
 		}
 
-		/// <summary>
-		/// Unspent AND !SpentAccordingToBackend AND !CoinJoinInProgress
-		/// </summary>
-		public bool IsAvailable() => Unspent && !SpentAccordingToBackend && !CoinJoinInProgress;
-
 		public bool Unspent
 		{
 			get => _unspent;
@@ -221,6 +216,11 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		#endregion Properties
 
 		#region Methods
+
+		/// <summary>
+		/// Unspent AND !SpentAccordingToBackend AND !CoinJoinInProgress
+		/// </summary>
+		public bool IsAvailable() => Unspent && !SpentAccordingToBackend && !CoinJoinInProgress;
 
 		public bool IsReplaceable() => WasReplaceable && !Confirmed;
 
