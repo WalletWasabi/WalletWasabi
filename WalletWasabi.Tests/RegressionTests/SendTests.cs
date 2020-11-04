@@ -374,7 +374,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				res = wallet.BuildTransaction(password, new PaymentIntent(receive2, MoneyRequest.CreateAllRemaining(), "my label"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
 
 				Assert.Single(res.InnerWalletOutputs);
-				Assert.Equal("foo, my label", res.InnerWalletOutputs.Single().Label);
+				Assert.Equal("foo, my label", res.InnerWalletOutputs.Single().HdPubKey.Label);
 
 				amountToSend = wallet.Coins.Where(x => x.IsAvailable()).Sum(x => x.Amount) / 3;
 				res = wallet.BuildTransaction(
@@ -387,14 +387,14 @@ namespace WalletWasabi.Tests.RegressionTests
 
 				Assert.Single(res.InnerWalletOutputs);
 				Assert.Equal(2, res.OuterWalletOutputs.Count());
-				IEnumerable<string> change = res.InnerWalletOutputs.Single().Label.Labels;
+				IEnumerable<string> change = res.InnerWalletOutputs.Single().HdPubKey.Label.Labels;
 				Assert.Contains("outgoing", change);
 				Assert.Contains("outgoing2", change);
 
 				await broadcaster.SendTransactionAsync(res.Transaction);
 
 				IEnumerable<SmartCoin> unconfirmedCoins = wallet.Coins.Where(x => x.Height == Height.Mempool).ToArray();
-				IEnumerable<string> unconfirmedCoinLabels = unconfirmedCoins.SelectMany(x => x.Label.Labels).ToArray();
+				IEnumerable<string> unconfirmedCoinLabels = unconfirmedCoins.SelectMany(x => x.HdPubKey.Label.Labels).ToArray();
 				Assert.Contains("outgoing", unconfirmedCoinLabels);
 				Assert.Contains("outgoing2", unconfirmedCoinLabels);
 				IEnumerable<string> allKeyLabels = keyManager.GetKeys().SelectMany(x => x.Label.Labels);
@@ -406,7 +406,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				await Common.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 
 				var bestHeight = new Height(bitcoinStore.SmartHeaderChain.TipHeight);
-				IEnumerable<string> confirmedCoinLabels = wallet.Coins.Where(x => x.Height == bestHeight).SelectMany(x => x.Label.Labels);
+				IEnumerable<string> confirmedCoinLabels = wallet.Coins.Where(x => x.Height == bestHeight).SelectMany(x => x.HdPubKey.Label.Labels);
 				Assert.Contains("outgoing", confirmedCoinLabels);
 				Assert.Contains("outgoing2", confirmedCoinLabels);
 				allKeyLabels = keyManager.GetKeys().SelectMany(x => x.Label.Labels);
@@ -492,7 +492,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				Assert.Single(res.InnerWalletOutputs);
 				SmartCoin changeRes = res.InnerWalletOutputs.Single();
 				Assert.Equal(newChangeK.P2wpkhScript, changeRes.ScriptPubKey);
-				Assert.Equal(newChangeK.Label, changeRes.Label);
+				Assert.Equal(newChangeK.Label, changeRes.HdPubKey.Label);
 				Assert.Equal(KeyState.Clean, newChangeK.KeyState); // Still clean, because the tx wasn't yet propagated.
 
 				#endregion FeePcHigh

@@ -268,7 +268,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				}
 			}
 
-			var label = SmartLabel.Merge(payments.Requests.Select(x => x.Label).Concat(spentCoins.Select(x => x.Label)));
+			var label = SmartLabel.Merge(payments.Requests.Select(x => x.Label).Concat(spentCoins.Select(x => x.HdPubKey.Label)));
 			var outerWalletOutputs = new List<Coin>();
 			var innerWalletOutputs = new List<SmartCoin>();
 			var smartTransaction = new SmartTransaction(tx, Height.Unknown, label: SmartLabel.Merge(payments.Requests.Select(x => x.Label)));
@@ -280,7 +280,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				{
 					var anonset = tx.GetAnonymitySet(i) + spentCoins.Min(x => x.AnonymitySet) - 1; // Minus 1, because count own only once.
 					var smartCoin = new SmartCoin(smartTransaction, i, foundKey, anonset);
-					label = SmartLabel.Merge(label, smartCoin.Label); // foundKey's label is already added to the coinlabel.
+					label = SmartLabel.Merge(label, smartCoin.HdPubKey.Label); // foundKey's label is already added to the coinlabel.
 					innerWalletOutputs.Add(smartCoin);
 				}
 				else
@@ -295,16 +295,15 @@ namespace WalletWasabi.Blockchain.Transactions
 				var foundPaymentRequest = payments.Requests.FirstOrDefault(x => x.Destination.ScriptPubKey == coin.ScriptPubKey);
 
 				// If change then we concatenate all the labels.
+				// The foundkeylabel has already been added previously, so no need to concatenate.
 				if (foundPaymentRequest is null) // Then it's autochange.
 				{
-					coin.Label = label;
+					coin.HdPubKey.SetLabel(label);
 				}
 				else
 				{
-					coin.Label = SmartLabel.Merge(coin.Label, foundPaymentRequest.Label);
+					coin.HdPubKey.SetLabel(SmartLabel.Merge(coin.HdPubKey.Label, foundPaymentRequest.Label));
 				}
-
-				coin.HdPubKey.SetLabel(coin.Label); // The foundkeylabel has already been added previously, so no need to concatenate.
 			}
 
 			Logger.LogInfo($"Transaction is successfully built: {tx.GetHash()}.");

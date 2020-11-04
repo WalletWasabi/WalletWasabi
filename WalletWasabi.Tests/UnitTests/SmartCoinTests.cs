@@ -26,13 +26,13 @@ namespace WalletWasabi.Tests.UnitTests
 			var stx = new SmartTransaction(tx, height);
 			var label = "foo";
 
-			var coin = new SmartCoin(stx, index, hdpk1, tx.GetAnonymitySet(index), label);
+			var coin = new SmartCoin(stx, index, hdpk1, tx.GetAnonymitySet(index));
 
 			// If the txId or the index differ, equality should think it's a different coin.
-			var differentCoin = new SmartCoin(stx, index + 1, hdpk2, tx.GetAnonymitySet(index + 1), label);
+			var differentCoin = new SmartCoin(stx, index + 1, hdpk2, tx.GetAnonymitySet(index + 1));
 
 			// If the txId and the index are the same, equality should think it's the same coin.
-			var sameCoin = new SmartCoin(stx, index, hdpk1, tx.GetAnonymitySet(index), "boo");
+			var sameCoin = new SmartCoin(stx, index, hdpk1, tx.GetAnonymitySet(index));
 
 			Assert.Equal(coin, sameCoin);
 			Assert.NotEqual(coin, differentCoin);

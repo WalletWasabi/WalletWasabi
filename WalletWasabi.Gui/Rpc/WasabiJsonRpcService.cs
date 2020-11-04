@@ -39,7 +39,7 @@ namespace WalletWasabi.Gui.Rpc
 				anonymitySet = x.AnonymitySet,
 				confirmed = x.Confirmed,
 				confirmations = x.Confirmed ? serverTipHeight - (uint)x.Height.Value + 1 : 0,
-				label = x.Label.ToString(),
+				label = x.HdPubKey.Label.ToString(),
 				keyPath = x.HdPubKey.FullKeyPath.ToString(),
 				address = x.HdPubKey.GetP2wpkhAddress(Global.Network).ToString()
 			}).ToArray();

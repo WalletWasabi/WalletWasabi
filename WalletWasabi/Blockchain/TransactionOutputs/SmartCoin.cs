@@ -18,7 +18,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		#region Fields
 
 		private Height _height;
-		private SmartLabel _label;
 		private int _anonymitySet;
 		private SmartTransaction? _spenderTransaction;
 		private bool _coinJoinInProgress;
@@ -36,7 +35,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		#region Constructors
 
-		public SmartCoin(SmartTransaction transaction, uint outputIndex, HdPubKey pubKey, int anonymitySet, SmartLabel label = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false)
+		public SmartCoin(SmartTransaction transaction, uint outputIndex, HdPubKey pubKey, int anonymitySet, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false)
 		{
 			Transaction = transaction;
 			Coin = new Coin(transaction.Transaction, outputIndex);
@@ -50,8 +49,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			SpentAccordingToBackend = spentAccordingToBackend;
 
 			HdPubKey = pubKey;
-
-			Label = SmartLabel.Merge(HdPubKey.Label, label);
 
 			Cluster = new Cluster(this);
 
@@ -87,15 +84,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 					Confirmed = _height.Type == HeightType.Chain;
 				}
 			}
-		}
-
-		/// <summary>
-		/// Always set it before the Amount!
-		/// </summary>
-		public SmartLabel Label
-		{
-			get => _label;
-			set => RaiseAndSetIfChanged(ref _label, value);
 		}
 
 		public bool WasReplaceable { get; }

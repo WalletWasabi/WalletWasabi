@@ -264,7 +264,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				ClientRoundRegistration first = null;
 				var randomKey = KeyManager.CreateNew(out _, "").GenerateNewKey(SmartLabel.Empty, KeyState.Clean, false);
 				var second = new ClientRoundRegistration(aliceClient,
-					new[] { Tests.Common.GetRandomSmartCoin(SmartLabel.Empty, randomKey, 0m, false, 2) },
+					new[] { Tests.Common.RandomSmartCoin(randomKey, 0m, false, 2) },
 					BitcoinAddress.Create("12Rty3c8j3QiZSwLVaBtch6XUMZaja3RC7", Network.Main));
 				first = second;
 				second = null;
@@ -1470,7 +1470,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				}
 
 				var times = 0;
-				while (wallet.Coins.FirstOrDefault(x => x.Label.IsEmpty) is null)
+				while (wallet.Coins.FirstOrDefault(x => x.HdPubKey.Label.IsEmpty) is null)
 				{
 					await Task.Delay(1000);
 					times++;
@@ -1504,12 +1504,12 @@ namespace WalletWasabi.Tests.RegressionTests
 				var allCoins = wallet.TransactionProcessor.Coins.AsAllCoinsView().ToArray();
 				var allCoins2 = wallet2.TransactionProcessor.Coins.AsAllCoinsView().ToArray();
 
-				Assert.Equal(4, allCoins.Count(x => x.Label.IsEmpty && x.IsAvailable()));
-				Assert.Equal(3, allCoins2.Count(x => x.Label.IsEmpty && x.IsAvailable()));
-				Assert.Equal(2, allCoins.Count(x => x.Label.IsEmpty && x.IsSpent()));
-				Assert.Equal(0, allCoins2.Count(x => x.Label.IsEmpty && x.IsSpent()));
-				Assert.Equal(3, allCoins2.Count(x => x.Label.IsEmpty));
-				Assert.Equal(4, allCoins.Count(x => x.Label.IsEmpty && !x.IsSpent()));
+				Assert.Equal(4, allCoins.Count(x => x.HdPubKey.Label.IsEmpty && x.IsAvailable()));
+				Assert.Equal(3, allCoins2.Count(x => x.HdPubKey.Label.IsEmpty && x.IsAvailable()));
+				Assert.Equal(2, allCoins.Count(x => x.HdPubKey.Label.IsEmpty && x.IsSpent()));
+				Assert.Equal(0, allCoins2.Count(x => x.HdPubKey.Label.IsEmpty && x.IsSpent()));
+				Assert.Equal(3, allCoins2.Count(x => x.HdPubKey.Label.IsEmpty));
+				Assert.Equal(4, allCoins.Count(x => x.HdPubKey.Label.IsEmpty && !x.IsSpent()));
 			}
 			finally
 			{
