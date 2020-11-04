@@ -201,7 +201,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 							anonset += spentOwnCoins.Min(x => x.AnonymitySet) - 1;
 						}
 
-						SmartCoin newCoin = new SmartCoin(tx, i, foundKey, anonset, false); // Do not inherit locked status from key, that's different.
+						SmartCoin newCoin = new SmartCoin(tx, i, foundKey, anonset);
 
 						result.ReceivedCoins.Add(newCoin);
 						// If we did not have it.

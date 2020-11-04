@@ -24,7 +24,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		private DateTimeOffset? _bannedUntilUtc;
 		private bool _spentAccordingToBackend;
 
-		private ISecret _secret;
+		private ISecret? _secret;
 
 		private Cluster _cluster;
 
@@ -35,7 +35,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		#region Constructors
 
-		public SmartCoin(SmartTransaction transaction, uint outputIndex, HdPubKey pubKey, int anonymitySet, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false)
+		public SmartCoin(SmartTransaction transaction, uint outputIndex, HdPubKey pubKey, int anonymitySet)
 		{
 			Transaction = transaction;
 			Coin = new Coin(transaction.Transaction, outputIndex);
@@ -44,15 +44,9 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			WasReplaceable = Transaction.IsRBF;
 			AnonymitySet = Guard.InRangeAndNotNull(nameof(anonymitySet), anonymitySet, 1, int.MaxValue);
 
-			CoinJoinInProgress = coinJoinInProgress;
-			BannedUntilUtc = bannedUntilUtc;
-			SpentAccordingToBackend = spentAccordingToBackend;
-
 			HdPubKey = pubKey;
 
-			Cluster = new Cluster(this);
-
-			SetIsBanned();
+			_cluster = new Cluster(this);
 		}
 
 		#endregion Constructors
@@ -134,7 +128,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		/// It's a secret, so it's usually going to be null. Do not use it.
 		/// This will not get serialized, because that's a security risk.
 		/// </summary>
-		public ISecret Secret
+		public ISecret? Secret
 		{
 			get => _secret;
 			set => RaiseAndSetIfChanged(ref _secret, value);
