@@ -13,6 +13,7 @@ using WalletWasabi.Fluent.ViewModels.AddWallet;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
+using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -27,7 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			this.WhenAnyValue(x => x.WalletName)
 				.Select(x => !string.IsNullOrWhiteSpace(x))
-				.Subscribe(x => OptionsEnabled = x);
+				.Subscribe(x => OptionsEnabled = x && !Validations.Any);
 
 			RecoverWalletCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new RecoveryPageViewModel(screen)));
 
@@ -71,20 +72,21 @@ namespace WalletWasabi.Fluent.ViewModels
 				return;
 			}
 
-			if (File.Exists(walletFilePath))
+			if (PasswordHelper.IsTrimable(walletName, out _))
 			{
-				errors.Add(ErrorSeverity.Error, $"A wallet named {WalletName} already exists. Please try a different name.");
+				errors.Add(ErrorSeverity.Error, "Leading and trailing white spaces are not allowed!");
+				return;
 			}
 
-			if (string.IsNullOrWhiteSpace(walletName))
+			if (File.Exists(walletFilePath))
 			{
-				errors.Add(ErrorSeverity.Error, "Wallet name is not valid.");
+				errors.Add(ErrorSeverity.Error, $"A wallet named {walletName} already exists. Please try a different name.");
 				return;
 			}
 
 			if (!WalletGenerator.ValidateWalletName(walletName))
 			{
-				errors.Add(ErrorSeverity.Error, $"{walletName} is not a valid Wallet name. Please try a different name.");
+				errors.Add(ErrorSeverity.Error, "Selected Wallet is not valid. Please try a different name.");
 			}
 		}
 
