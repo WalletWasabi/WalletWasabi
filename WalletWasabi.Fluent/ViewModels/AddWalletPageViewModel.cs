@@ -10,6 +10,7 @@ using NBitcoin;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using System.Threading.Tasks;
+using WalletWasabi.Fluent.ViewModels.NavBar;
 
 namespace WalletWasabi.Fluent.ViewModels
 {

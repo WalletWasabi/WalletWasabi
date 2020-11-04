@@ -6,6 +6,7 @@ using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
 

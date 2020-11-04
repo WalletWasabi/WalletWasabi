@@ -1,7 +1,7 @@
 using ReactiveUI;
 using System.Windows.Input;
 
-namespace WalletWasabi.Fluent.ViewModels
+namespace WalletWasabi.Fluent.ViewModels.NavBar
 {
 	public abstract class NavBarItemViewModel : RoutableViewModel
 	{
