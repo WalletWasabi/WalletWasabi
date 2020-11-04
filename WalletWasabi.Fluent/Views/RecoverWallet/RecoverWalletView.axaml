@@ -12,10 +12,10 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.RecoverWallet.RecoverWalletView">
     <Panel Margin="25 0 25 20">
-        <!-- <Button Classes="invisible" Margin="0 35 0 0" Command="{Binding GoBackCommand}" DockPanel.Dock="Left" -->
-        <!--         HorizontalAlignment="Left" VerticalAlignment="Top"> -->
-        <!--     <PathIcon Data="{DynamicResource arrow_left_regular}" /> -->
-        <!-- </Button> -->
+        <Button Classes="invisible" Margin="0 35 0 0" DockPanel.Dock="Left"
+                HorizontalAlignment="Left" VerticalAlignment="Top">
+            <PathIcon Data="{DynamicResource arrow_left_regular}" />
+        </Button>
         <c:ContentArea Title="Enter recovery words" Caption="Type in your 12 recovery words and click Continue."
                        Margin="44 0">
             <StackPanel>
