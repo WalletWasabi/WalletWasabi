@@ -31,9 +31,9 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		public ICoinsView CreatedBy(uint256 txid) => new CoinsView(Coins.Where(x => x.TransactionId == txid));
 
-		public ICoinsView SpentBy(uint256 txid) => new CoinsView(Coins.Where(x => x.SpenderTransactionId == txid));
+		public ICoinsView SpentBy(uint256 txid) => new CoinsView(Coins.Where(x => x.SpenderTransaction is { } && x.SpenderTransaction.GetHash() == txid));
 
-		public ICoinsView ChildrenOf(SmartCoin coin) => new CoinsView(Coins.Where(x => x.TransactionId == coin.SpenderTransactionId));
+		public ICoinsView ChildrenOf(SmartCoin coin) => new CoinsView(Coins.Where(x => coin.SpenderTransaction is { } && x.TransactionId == coin.SpenderTransaction.GetHash()));
 
 		public ICoinsView DescendantOf(SmartCoin coin)
 		{

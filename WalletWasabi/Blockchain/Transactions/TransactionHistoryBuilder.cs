@@ -53,15 +53,12 @@ namespace WalletWasabi.Blockchain.Transactions
 					});
 				}
 
-				if (coin.IsSpent())
+				var foundSpenderTransaction = coin.SpenderTransaction;
+				if (foundSpenderTransaction is { })
 				{
-					if (!wallet.BitcoinStore.TransactionStore.TryGetTransaction(coin.SpenderTransactionId, out SmartTransaction foundSpenderTransaction))
-					{
-						throw new InvalidOperationException($"Transaction {coin.SpenderTransactionId} not found.");
-					}
-
+					var spenderTxId = foundSpenderTransaction.GetHash();
 					dateTime = foundSpenderTransaction.FirstSeen;
-					var foundSpenderCoin = txRecordList.FirstOrDefault(x => x.TransactionId == coin.SpenderTransactionId);
+					var foundSpenderCoin = txRecordList.FirstOrDefault(x => x.TransactionId == spenderTxId);
 					if (foundSpenderCoin is { }) // if found
 					{
 						foundSpenderCoin.DateTime = foundSpenderCoin.DateTime < dateTime ? foundSpenderCoin.DateTime : dateTime;
@@ -75,7 +72,7 @@ namespace WalletWasabi.Blockchain.Transactions
 							Height = foundSpenderTransaction.Height,
 							Amount = Money.Zero - coin.Amount,
 							Label = foundSpenderTransaction.Label,
-							TransactionId = coin.SpenderTransactionId,
+							TransactionId = spenderTxId,
 							BlockIndex = foundSpenderTransaction.BlockIndex
 						});
 					}

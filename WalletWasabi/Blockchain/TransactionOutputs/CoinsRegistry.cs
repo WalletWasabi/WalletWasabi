@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.TransactionOutputs
@@ -162,15 +163,16 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			return coinsToRemove;
 		}
 
-		public void Spend(SmartCoin spentCoin)
+		public void Spend(SmartCoin spentCoin, SmartTransaction tx)
 		{
+			spentCoin.SpenderTransaction = tx;
 			lock (Lock)
 			{
 				if (Coins.Remove(spentCoin))
 				{
 					InvalidateSnapshot = true;
 					SpentCoins.Add(spentCoin);
-					var createdCoins = CreatedByNoLock(spentCoin.SpenderTransactionId);
+					var createdCoins = CreatedByNoLock(spentCoin.SpenderTransaction.GetHash());
 					foreach (var newCoin in createdCoins)
 					{
 						if (newCoin.AnonymitySet < PrivacyLevelThreshold)

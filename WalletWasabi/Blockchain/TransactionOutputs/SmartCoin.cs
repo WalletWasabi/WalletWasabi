@@ -20,7 +20,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		private Height _height;
 		private SmartLabel _label;
 		private int _anonymitySet;
-		private uint256 _spenderTransactionId;
+		private SmartTransaction? _spenderTransaction;
 		private bool _coinJoinInProgress;
 		private DateTimeOffset? _bannedUntilUtc;
 		private bool _spentAccordingToBackend;
@@ -36,7 +36,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		#region Constructors
 
-		public SmartCoin(SmartTransaction transaction, uint outputIndex, HdPubKey pubKey, int anonymitySet, SmartLabel label = null, uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false)
+		public SmartCoin(SmartTransaction transaction, uint outputIndex, HdPubKey pubKey, int anonymitySet, SmartLabel label = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false)
 		{
 			Transaction = transaction;
 			Coin = new Coin(transaction.Transaction, outputIndex);
@@ -45,8 +45,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			SpentOutputs = Transaction.Transaction.Inputs.ToOutPoints().ToArray();
 			WasReplaceable = Transaction.IsRBF;
 			AnonymitySet = Guard.InRangeAndNotNull(nameof(anonymitySet), anonymitySet, 1, int.MaxValue);
-
-			SpenderTransactionId = spenderTransactionId;
 
 			CoinJoinInProgress = coinJoinInProgress;
 			BannedUntilUtc = bannedUntilUtc;
@@ -111,10 +109,10 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			set => RaiseAndSetIfChanged(ref _anonymitySet, value);
 		}
 
-		public uint256 SpenderTransactionId
+		public SmartTransaction? SpenderTransaction
 		{
-			get => _spenderTransactionId;
-			set => RaiseAndSetIfChanged(ref _spenderTransactionId, value);
+			get => _spenderTransaction;
+			set => RaiseAndSetIfChanged(ref _spenderTransaction, value);
 		}
 
 		public bool CoinJoinInProgress
@@ -192,12 +190,12 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		#region Methods
 
-		public bool IsSpent() => SpenderTransactionId is { };
+		public bool IsSpent() => SpenderTransaction is { };
 
 		/// <summary>
 		/// IsUnspent() AND !SpentAccordingToBackend AND !CoinJoinInProgress
 		/// </summary>
-		public bool IsAvailable() => SpenderTransactionId is null && !SpentAccordingToBackend && !CoinJoinInProgress;
+		public bool IsAvailable() => SpenderTransaction is null && !SpentAccordingToBackend && !CoinJoinInProgress;
 
 		public bool IsReplaceable() => WasReplaceable && !Confirmed;
 

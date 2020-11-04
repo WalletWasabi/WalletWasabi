@@ -327,7 +327,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				var success = bitcoinStore.TransactionStore.TryGetTransaction(fundingTxId, out SmartTransaction invalidSmartTransaction);
 				Assert.True(success);
 				var invalidCoin = Assert.Single(((CoinsRegistry)wallet.Coins).AsAllCoinsView().CreatedBy(invalidSmartTransaction.GetHash()));
-				Assert.True(invalidCoin.SpenderTransactionId is { });
+				Assert.True(invalidCoin.SpenderTransaction is { });
 				Assert.True(invalidCoin.Confirmed);
 
 				var overwriteTx = Transaction.Create(network);

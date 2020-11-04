@@ -201,7 +201,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 							anonset += spentOwnCoins.Min(x => x.AnonymitySet) - 1;
 						}
 
-						SmartCoin newCoin = new SmartCoin(tx, i, foundKey, anonset, foundKey.Label, spenderTransactionId: null, false); // Do not inherit locked status from key, that's different.
+						SmartCoin newCoin = new SmartCoin(tx, i, foundKey, anonset, foundKey.Label, false); // Do not inherit locked status from key, that's different.
 
 						result.ReceivedCoins.Add(newCoin);
 						// If we did not have it.
@@ -246,13 +246,12 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					// If spends any of our coin
 					if (prevOutSet.TryGetValue(coin.OutPoint, out OutPoint input))
 					{
-						var alreadyKnown = coin.SpenderTransactionId == txId;
-						coin.SpenderTransactionId = txId;
+						var alreadyKnown = coin.SpenderTransaction?.GetHash() == txId;
 						result.SpentCoins.Add(coin);
 
 						if (!alreadyKnown)
 						{
-							Coins.Spend(coin);
+							Coins.Spend(coin, tx);
 							result.NewlySpentCoins.Add(coin);
 						}
 

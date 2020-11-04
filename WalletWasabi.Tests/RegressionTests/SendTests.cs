@@ -130,7 +130,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				{
 					Assert.False(coin.CoinJoinInProgress);
 					Assert.True(coin.Confirmed);
-					Assert.Null(coin.SpenderTransactionId);
+					Assert.Null(coin.SpenderTransaction);
 					Assert.True(!coin.IsSpent());
 				}
 
@@ -600,7 +600,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 				// There is a coin destroyed
 				var allCoins = wallet.TransactionProcessor.Coins.AsAllCoinsView();
-				Assert.Equal(1, allCoins.Count(x => !x.IsAvailable() && x.SpenderTransactionId == tx1Res.Transaction.GetHash()));
+				Assert.Equal(1, allCoins.Count(x => !x.IsAvailable() && x.SpenderTransaction?.GetHash() == tx1Res.Transaction.GetHash()));
 
 				// There is at least one coin created from the destruction of the first coin
 				Assert.Contains(wallet.Coins, x => x.SpentOutputs.Any(o => o.Hash == tx0Id));
@@ -629,7 +629,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 				// There is a coin destroyed
 				allCoins = wallet.TransactionProcessor.Coins.AsAllCoinsView();
-				Assert.Equal(2, allCoins.Count(x => !x.IsAvailable() && x.SpenderTransactionId == tx2Hash));
+				Assert.Equal(2, allCoins.Count(x => !x.IsAvailable() && x.SpenderTransaction?.GetHash() == tx2Hash));
 
 				// There is at least one coin created from the destruction of the first coin
 				Assert.Contains(wallet.Coins, x => x.SpentOutputs.Any(o => o.Hash == tx1Res.Transaction.GetHash()));

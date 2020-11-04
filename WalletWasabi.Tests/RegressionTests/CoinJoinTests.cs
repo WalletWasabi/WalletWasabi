@@ -1287,10 +1287,12 @@ namespace WalletWasabi.Tests.RegressionTests
 					await Task.Delay(1000);
 				}
 
-				var cj = (await rpc.GetRawMempoolAsync()).Single();
-				smartCoin1.SpenderTransactionId = cj;
-				smartCoin2.SpenderTransactionId = cj;
-				smartCoin3.SpenderTransactionId = cj;
+				var cjHash = (await rpc.GetRawMempoolAsync()).Single();
+				var cj = await rpc.GetRawTransactionAsync(cjHash);
+				var sCj = new SmartTransaction(cj, Height.Mempool);
+				smartCoin1.SpenderTransaction = sCj;
+				smartCoin2.SpenderTransaction = sCj;
+				smartCoin3.SpenderTransaction = sCj;
 
 				// Make sure if times out, it tries again.
 				connectionConfirmationTimeout = 1;
