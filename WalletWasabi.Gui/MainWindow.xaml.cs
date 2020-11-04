@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls.Notifications;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using AvalonStudio.Documents;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
@@ -14,17 +15,22 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.Dialogs;
-using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
+using WalletWasabi.Services.Terminate;
 
 namespace WalletWasabi.Gui
 {
 	public class MainWindow : MetroWindow
 	{
+		private const int ClosingStateNotClosing = 0;
+		private const int ClosingStateInProgress = 1;
+		private const int ClosingStateClosed = 2;
+
 		public MainWindow()
 		{
 			Global = Locator.Current.GetService<Global>();
+			TerminateService = Locator.Current.GetService<TerminateService>();
 
 			InitializeComponent();
 #if DEBUG
@@ -44,6 +50,7 @@ namespace WalletWasabi.Gui
 		}
 
 		private Global Global { get; }
+		public TerminateService TerminateService { get; }
 
 		private void InitializeComponent()
 		{
@@ -51,25 +58,27 @@ namespace WalletWasabi.Gui
 		}
 
 		private int _closingState;
+		private bool IsClosed => _closingState == ClosingStateClosed;
 
 		private async void MainWindow_ClosingAsync(object? sender, CancelEventArgs e)
 		{
 			try
 			{
 				e.Cancel = true;
-				switch (Interlocked.CompareExchange(ref _closingState, 1, 0))
+				switch (Interlocked.CompareExchange(ref _closingState, ClosingStateInProgress, ClosingStateNotClosing))
 				{
-					case 0:
-						await ClosingAsync();
+					case ClosingStateNotClosing:
+						// We only try to dequeue with the UI dialog if Termination was not requested, only the X button was clicked.
+						await ClosingAsync(tryToDequeue: !TerminateService.IsTerminateRequested);
 						break;
 
-					case 1:
-						// still closing cancel the progress
+					case ClosingStateInProgress:
+						// Still closing cancel the progress.
 						return;
 
-					case 2:
+					case ClosingStateClosed:
 						e.Cancel = false;
-						return; //can close the window
+						return; // Can close the window.
 				}
 			}
 			catch (Exception ex)
@@ -78,70 +87,106 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private async Task ClosingAsync()
+		/// <summary>
+		/// This will try to close the main window of the application.
+		/// </summary>
+		/// <param name="tryToDequeue">If true then the user will get a dialog where a status of the dequing process is shown and the window will be kept open until it successfully finishes. If false then the dequeing process will be handled later at the disposal of the business logic.</param>
+		/// <returns></returns>
+		public async Task ClosingAsync(bool tryToDequeue)
 		{
-			bool closeApplication = false;
+			if (IsClosed)
+			{
+				return;
+			}
+
+			if (Dispatcher.UIThread?.CheckAccess() is false)
+			{
+				// We are not on the UI thread, let's synchronize.
+				await Dispatcher.UIThread.InvokeAsync(async () =>
+				{
+					// Safety check if it was closed meanwhile synchronization.
+					if (IsClosed)
+					{
+						return;
+					}
+
+					await ClosingAsync(tryToDequeue);
+				});
+				return;
+			}
+
+			bool closeApplication = true;
 			try
 			{
 				// Indicate -> do not add any more alices to the coinjoin.
 				Global.WalletManager.SignalQuitPending(true);
-
-				if (Global.WalletManager.AnyCoinJoinInProgress())
+				if (tryToDequeue)
 				{
-					var dialog = new CannotCloseDialogViewModel();
-
-					closeApplication = await MainWindowViewModel.Instance.ShowDialogAsync(dialog); // start the deque process with a dialog
-				}
-				else
-				{
-					closeApplication = true;
-				}
-
-				if (closeApplication)
-				{
-					try
+					if (Global.WalletManager.AnyCoinJoinInProgress())
 					{
-						if (Global.UiConfig is { }) // UiConfig not yet loaded.
-						{
-							Global.UiConfig.WindowState = WindowState;
+						var dialog = new CannotCloseDialogViewModel();
 
-							IDocumentTabViewModel? selectedDocument = IoC.Get<IShell>().SelectedDocument;
-							Global.UiConfig.LastActiveTab = selectedDocument is null
-								? nameof(HistoryTabViewModel)
-								: selectedDocument.GetType().Name;
-
-							Global.UiConfig.ToFile();
-							Logger.LogInfo($"{nameof(Global.UiConfig)} is saved.");
-						}
-
-						Hide();
-						var wm = IoC.Get<IShell>().Documents?.OfType<WalletManagerViewModel>().FirstOrDefault();
-						if (wm is { })
-						{
-							wm.OnClose();
-							Logger.LogInfo($"{nameof(WalletManagerViewModel)} closed.");
-						}
+						// Start the deque process with a dialog.
+						closeApplication = await MainWindowViewModel.Instance.ShowDialogAsync(dialog);
 					}
-					catch (Exception ex)
+				}
+
+				if (!closeApplication)
+				{
+					//The user aborted the close, let's go to finally.
+					return;
+				}
+
+				try
+				{
+					if (Global.UiConfig is { } uiConfig)
 					{
-						Logger.LogWarning(ex);
+						uiConfig.WindowState = WindowState;
+
+						IDocumentTabViewModel? selectedDocument = IoC.Get<IShell>().SelectedDocument;
+						uiConfig.LastActiveTab = selectedDocument is null
+							? nameof(HistoryTabViewModel)
+							: selectedDocument.GetType().Name;
+
+						uiConfig.ToFile();
+						Logger.LogInfo($"{nameof(uiConfig)} is saved.");
 					}
 
-					Interlocked.Exchange(ref _closingState, 2); //now we can close the app
-					Close(); // start the closing process. Will call MainWindow_ClosingAsync again!
+					Hide();
+
+					if (IoC.Get<IShell>().Documents is { } docs)
+					{
+						foreach (var doc in docs.OfType<WasabiDocumentTabViewModel>().ToArray())
+						{
+							doc.OnClose();
+							Logger.LogInfo($"{doc.Title} closed.");
+						}
+					}
 				}
-				//let's go to finally
+				catch (Exception ex)
+				{
+					Logger.LogWarning(ex);
+				}
+
+				// Now we can close the app.
+				Interlocked.Exchange(ref _closingState, ClosingStateClosed);
+
+				// Don't call the MainWindow_ClosingAsync again.
+				Closing -= MainWindow_ClosingAsync;
+				Close();
 			}
 			catch (Exception ex)
 			{
-				Interlocked.Exchange(ref _closingState, 0); //something happened back to starting point
+				// Something happened back to starting point.
+				Interlocked.Exchange(ref _closingState, ClosingStateNotClosing);
 				Logger.LogWarning(ex);
 			}
 			finally
 			{
-				if (!closeApplication) //we are not closing the application for some reason
+				if (!closeApplication)
 				{
-					Interlocked.Exchange(ref _closingState, 0);
+					// We are not closing the application for some reason.
+					Interlocked.Exchange(ref _closingState, ClosingStateNotClosing);
 					// Re-enable enqueuing coins.
 					Global.WalletManager.SignalQuitPending(false);
 				}

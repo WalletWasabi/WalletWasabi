@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Dialogs;
 using Avalonia.ReactiveUI;
 using Avalonia.Threading;
@@ -46,6 +47,7 @@ namespace WalletWasabi.Gui
 				Global = CreateGlobal();
 				Locator.CurrentMutable.RegisterConstant(Global);
 				Locator.CurrentMutable.RegisterConstant(CrashReporter);
+				Locator.CurrentMutable.RegisterConstant(TerminateService);
 
 				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
@@ -151,6 +153,12 @@ namespace WalletWasabi.Gui
 			var mainViewModel = MainWindowViewModel.Instance;
 			if (mainViewModel is { })
 			{
+				var window = ((IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime)?.MainWindow as MainWindow;
+				if (window is { })
+				{
+					await window.ClosingAsync(tryToDequeue: false).ConfigureAwait(false);
+				}
+
 				mainViewModel.Dispose();
 			}
 
