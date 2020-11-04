@@ -261,7 +261,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				// Test DelayedClientRoundRegistration logic.
 				ClientRoundRegistration first = null;
 				var second = new ClientRoundRegistration(aliceClient,
-					new[] { new SmartCoin(uint256.One, 1, Script.Empty, Money.Zero, new[] { new OutPoint(uint256.One, 1) }, Height.Unknown, true, 2) },
+					new[] { new SmartCoin(new Coin(uint256.One, 1, Money.Zero, Script.Empty), new[] { new OutPoint(uint256.One, 1) }, Height.Unknown, true, 2) },
 					BitcoinAddress.Create("12Rty3c8j3QiZSwLVaBtch6XUMZaja3RC7", Network.Main));
 				first = second;
 				second = null;
@@ -1243,7 +1243,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				Assert.True(smartCoin2.CoinJoinInProgress);
 
 				// Make sure it does not throw.
-				await chaumianClient1.DequeueCoinsFromMixAsync(new SmartCoin(network.Consensus.ConsensusFactory.CreateTransaction().GetHash(), 1, new Script(), Money.Parse("3"), new[] { new OutPoint(uint256.One, 0) }, Height.Mempool, replaceable: false, anonymitySet: 1), DequeueReason.UserRequested);
+				await chaumianClient1.DequeueCoinsFromMixAsync(new SmartCoin(new Coin(network.Consensus.ConsensusFactory.CreateTransaction().GetHash(), 1, Money.Parse("3"), new Script()), new[] { new OutPoint(uint256.One, 0) }, Height.Mempool, replaceable: false, anonymitySet: 1), DequeueReason.UserRequested);
 
 				Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
 				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1, DequeueReason.UserRequested);

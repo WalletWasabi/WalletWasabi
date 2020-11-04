@@ -35,18 +35,9 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		#region Constructors
 
 		public SmartCoin(Coin coin, OutPoint[] spentOutputs, Height height, bool replaceable, int anonymitySet, SmartLabel label = null, uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false, HdPubKey pubKey = null)
-			: this(coin.Outpoint.Hash, coin.Outpoint.N, coin.ScriptPubKey, coin.Amount, spentOutputs, height, replaceable, anonymitySet, label, spenderTransactionId, coinJoinInProgress, bannedUntilUtc, spentAccordingToBackend, pubKey)
 		{
-		}
-
-		public SmartCoin(uint256 transactionId, uint index, Script scriptPubKey, Money amount, OutPoint[] spentOutputs, Height height, bool replaceable, int anonymitySet, SmartLabel label = null, uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false, HdPubKey pubKey = null)
-		{
-			Guard.NotNull(nameof(transactionId), transactionId);
-			Guard.NotNull(nameof(index), index);
-			OutPoint = new OutPoint(transactionId, index);
+			Coin = coin;
 			HashCode = (TransactionId, Index).GetHashCode();
-			ScriptPubKey = Guard.NotNull(nameof(scriptPubKey), scriptPubKey);
-			Amount = Guard.NotNull(nameof(amount), amount);
 			Height = height;
 			SpentOutputs = Guard.NotNullOrEmpty(nameof(spentOutputs), spentOutputs);
 			WasReplaceable = replaceable;
@@ -71,16 +62,18 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		#region Properties
 
+		public Coin Coin { get; }
+
+		public Script ScriptPubKey => Coin.ScriptPubKey;
+
+		public Money Amount => Coin.Amount;
+
+		public OutPoint OutPoint => Coin.Outpoint;
+
 		public uint256 TransactionId => OutPoint.Hash;
 
 		public uint Index => OutPoint.N;
 		private int HashCode { get; }
-
-		public OutPoint OutPoint { get; }
-
-		public Script ScriptPubKey { get; }
-
-		public Money Amount { get; }
 
 		public Height Height
 		{
@@ -202,8 +195,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		public bool IsAvailable() => SpenderTransactionId is null && !SpentAccordingToBackend && !CoinJoinInProgress;
 
 		public bool IsReplaceable() => WasReplaceable && !Confirmed;
-
-		public Coin GetCoin() => new Coin(TransactionId, Index, Amount, ScriptPubKey);
 
 		#endregion Methods
 

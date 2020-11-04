@@ -399,7 +399,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				ongoingRound
 					.Registration
 					.CoinsRegistered
-					.Select(x => x.GetCoin()));
+					.Select(x => x.Coin));
 
 			var myDic = new Dictionary<int, WitScript>();
 

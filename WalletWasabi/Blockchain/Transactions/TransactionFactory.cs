@@ -108,7 +108,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 			TransactionBuilder builder = Network.CreateTransactionBuilder();
 			builder.SetCoinSelector(new SmartCoinSelector(allowedSmartCoinInputs));
-			builder.AddCoins(allowedSmartCoinInputs.Select(c => c.GetCoin()));
+			builder.AddCoins(allowedSmartCoinInputs.Select(c => c.Coin));
 			builder.SetLockTime(lockTimeSelector());
 
 			foreach (var request in payments.Requests.Where(x => x.Amount.Type == MoneyRequestType.Value))
@@ -276,7 +276,8 @@ namespace WalletWasabi.Blockchain.Transactions
 				TxOut output = tx.Outputs[i];
 				var anonset = tx.GetAnonymitySet(i) + spentCoins.Min(x => x.AnonymitySet) - 1; // Minus 1, because count own only once.
 				var foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
-				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToOutPoints().ToArray(), Height.Unknown, tx.RBF, anonset, pubKey: foundKey);
+				var c = new Coin(tx.GetHash(), i, output.Value, output.ScriptPubKey);
+				var coin = new SmartCoin(c, tx.Inputs.ToOutPoints().ToArray(), Height.Unknown, tx.RBF, anonset, pubKey: foundKey);
 				label = SmartLabel.Merge(label, coin.Label); // foundKey's label is already added to the coinlabel.
 
 				if (foundKey is null)
