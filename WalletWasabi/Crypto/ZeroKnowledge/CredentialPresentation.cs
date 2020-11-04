@@ -1,4 +1,5 @@
-﻿using WalletWasabi.Crypto.Groups;
+﻿using Newtonsoft.Json;
+using WalletWasabi.Crypto.Groups;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge
 {
@@ -7,6 +8,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 	/// </summary>
 	public class CredentialPresentation
 	{
+		[JsonConstructor]
 		internal CredentialPresentation(GroupElement Ca, GroupElement Cx0, GroupElement Cx1, GroupElement CV, GroupElement S)
 		{
 			this.Ca = Ca;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NBitcoin;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.ZeroKnowledge;
+using Newtonsoft.Json;
 
 namespace WalletWasabi.Wabisabi
 {
@@ -16,13 +17,14 @@ namespace WalletWasabi.Wabisabi
 	/// </remarks>
 	public class RegistrationRequestMessage
 	{
+		[JsonConstructor]
 		internal RegistrationRequestMessage(
-			Money balance, 
+			Money deltaAmount, 
 			IEnumerable<CredentialPresentation> presented, 
 			IEnumerable<IssuanceRequest> requested, 
 			IEnumerable<Proof> proofs)
 		{
-			DeltaAmount = balance;
+			DeltaAmount = deltaAmount;
 			Presented = presented;
 			Requested = requested;
 			Proofs = proofs;
@@ -56,12 +58,12 @@ namespace WalletWasabi.Wabisabi
 		/// <summary>
 		/// Is request for zero-value credentials only.
 		/// </summary>
-		public bool IsNullRequest => DeltaAmount == Money.Zero && !Presented.Any();
+		internal bool IsNullRequest => DeltaAmount == Money.Zero && !Presented.Any();
 		
 		/// <summary>
 		/// Serial numbers used in the credential presentations.
 		/// </summary>
-		public IEnumerable<GroupElement> SerialNumbers => Presented.Select(x => x.S);
+		internal IEnumerable<GroupElement> SerialNumbers => Presented.Select(x => x.S);
 
 		/// <summary>
 		/// Indicates whether the message contains duplicated serial number or not. 

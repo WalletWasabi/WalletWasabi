@@ -1,5 +1,6 @@
 using System;
 using NBitcoin.Secp256k1;
+using Newtonsoft.Json;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Helpers;
 
@@ -7,6 +8,7 @@ namespace WalletWasabi.Crypto
 {
 	public class MAC : IEquatable<MAC>
 	{
+		[JsonConstructor]
 		private MAC(Scalar t, GroupElement v)
 		{
 			T = Guard.NotZero(nameof(t), t);
