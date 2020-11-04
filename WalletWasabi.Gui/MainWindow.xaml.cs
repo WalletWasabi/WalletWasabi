@@ -122,15 +122,12 @@ namespace WalletWasabi.Gui
 			{
 				// Indicate -> do not add any more alices to the coinjoin.
 				Global.WalletManager.SignalQuitPending(true);
-				if (tryToDequeue)
+				if (tryToDequeue && Global.WalletManager.AnyCoinJoinInProgress())
 				{
-					if (Global.WalletManager.AnyCoinJoinInProgress())
-					{
-						var dialog = new CannotCloseDialogViewModel();
+					var dialog = new CannotCloseDialogViewModel();
 
-						// Start the deque process with a dialog.
-						closeApplication = await MainWindowViewModel.Instance.ShowDialogAsync(dialog);
-					}
+					// Start the deque process with a dialog.
+					closeApplication = await MainWindowViewModel.Instance.ShowDialogAsync(dialog);
 				}
 
 				if (!closeApplication)
