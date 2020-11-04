@@ -1,5 +1,4 @@
-<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+<Styles xmlns="https://github.com/avaloniaui">
   <Style Selector="Button.action /template/ ContentPresenter">
     <Setter Property="Background" Value="{StaticResource ActionButtonBackgroundColor}" />
     <Setter Property="Padding" Value="{StaticResource ActionButtonPadding}" />

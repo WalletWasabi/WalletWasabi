@@ -56,11 +56,7 @@
     <Setter Property="(TextBlock.FontStyle)" Value="Italic" />
   </Style>
 
-  <Style Selector="Label">
-    <Setter Property="(TextBlock.FontSize)" Value="14" />
-    <Setter Property="(TextBlock.FontWeight)" Value="Bold" />
-    <Setter Property="Margin" Value="0 0 0 10" />
-  </Style>
+  
 
   <Style Selector="SplitView">
     <Setter Property="CompactPaneLength" Value="{StaticResource SplitViewCompactPaneLength}" />
@@ -233,4 +229,5 @@
 
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/OptionButton.xaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/ActionButton.xaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Label.xaml" />
 </Styles>
