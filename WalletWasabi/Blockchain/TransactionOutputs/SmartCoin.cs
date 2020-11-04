@@ -15,18 +15,13 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 	{
 		#region Fields
 
-		private Script _scriptPubKey;
-		private Money _amount;
 		private Height _height;
 		private SmartLabel _label;
-		private OutPoint[] _spentOutputs;
-		private bool _replaceable;
 		private int _anonymitySet;
 		private uint256 _spenderTransactionId;
 		private bool _coinJoinInProgress;
 		private DateTimeOffset? _bannedUntilUtc;
 		private bool _spentAccordingToBackend;
-		private HdPubKey _hdPubKey;
 
 		private ISecret _secret;
 
@@ -56,7 +51,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			Amount = Guard.NotNull(nameof(amount), amount);
 			Height = height;
 			SpentOutputs = Guard.NotNullOrEmpty(nameof(spentOutputs), spentOutputs);
-			IsReplaceable = replaceable;
+			WasReplaceable = replaceable;
 			AnonymitySet = Guard.InRangeAndNotNull(nameof(anonymitySet), anonymitySet, 1, int.MaxValue);
 			IsLikelyCoinJoinOutput = null;
 
@@ -72,7 +67,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 			Cluster = new Cluster(this);
 
-			SetConfirmed();
 			SetUnspent();
 			SetIsBanned();
 			SetUnavailable();
@@ -85,21 +79,13 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		public uint256 TransactionId => OutPoint.Hash;
 
 		public uint Index => OutPoint.N;
-		private int HashCode { get; set; }
+		private int HashCode { get; }
 
-		public OutPoint OutPoint { get; private set; }
+		public OutPoint OutPoint { get; }
 
-		public Script ScriptPubKey
-		{
-			get => _scriptPubKey;
-			private set => RaiseAndSetIfChanged(ref _scriptPubKey, value);
-		}
+		public Script ScriptPubKey { get; }
 
-		public Money Amount
-		{
-			get => _amount;
-			private set => RaiseAndSetIfChanged(ref _amount, value);
-		}
+		public Money Amount { get; }
 
 		public Height Height
 		{
@@ -108,7 +94,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			{
 				if (RaiseAndSetIfChanged(ref _height, value))
 				{
-					SetConfirmed();
+					Confirmed = _height.Type == HeightType.Chain;
 				}
 			}
 		}
@@ -122,22 +108,14 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			set => RaiseAndSetIfChanged(ref _label, value);
 		}
 
-		public OutPoint[] SpentOutputs
-		{
-			get => _spentOutputs;
-			private set => RaiseAndSetIfChanged(ref _spentOutputs, value);
-		}
+		public OutPoint[] SpentOutputs { get; }
 
-		public bool IsReplaceable
-		{
-			get => _replaceable && !Confirmed;
-			private set => RaiseAndSetIfChanged(ref _replaceable, value);
-		}
+		public bool WasReplaceable { get; }
 
 		public int AnonymitySet
 		{
 			get => _anonymitySet;
-			private set => RaiseAndSetIfChanged(ref _anonymitySet, value);
+			set => RaiseAndSetIfChanged(ref _anonymitySet, value);
 		}
 
 		public uint256 SpenderTransactionId
@@ -192,11 +170,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			}
 		}
 
-		public HdPubKey HdPubKey
-		{
-			get => _hdPubKey;
-			private set => RaiseAndSetIfChanged(ref _hdPubKey, value);
-		}
+		public HdPubKey HdPubKey { get; }
 
 		public bool? IsLikelyCoinJoinOutput { get; set; }
 
@@ -255,11 +229,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		#region PropertySetters
 
-		private void SetConfirmed()
-		{
-			Confirmed = Height != Height.Mempool && Height != Height.Unknown;
-		}
-
 		private void SetUnspent()
 		{
 			Unspent = SpenderTransactionId is null;
@@ -281,10 +250,9 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		#region Methods
 
-		public Coin GetCoin()
-		{
-			return new Coin(TransactionId, Index, Amount, ScriptPubKey);
-		}
+		public bool IsReplaceable() => WasReplaceable && !Confirmed;
+
+		public Coin GetCoin() => new Coin(TransactionId, Index, Amount, ScriptPubKey);
 
 		#endregion Methods
 

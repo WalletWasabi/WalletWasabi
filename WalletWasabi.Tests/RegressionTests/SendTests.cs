@@ -748,20 +748,20 @@ namespace WalletWasabi.Tests.RegressionTests
 				}
 
 				Assert.Single(wallet.Coins);
-				Assert.True(wallet.Coins.First().IsReplaceable);
+				Assert.True(wallet.Coins.First().IsReplaceable());
 
 				var bfr = await rpc.BumpFeeAsync(tx0Id);
 				var tx1Id = bfr.TransactionId;
 				await Task.Delay(2000); // Waits for the replacement transaction get to the mempool.
 				Assert.Single(wallet.Coins);
-				Assert.True(wallet.Coins.First().IsReplaceable);
+				Assert.True(wallet.Coins.First().IsReplaceable());
 				Assert.Equal(tx1Id, wallet.Coins.First().TransactionId);
 
 				bfr = await rpc.BumpFeeAsync(tx1Id);
 				var tx2Id = bfr.TransactionId;
 				await Task.Delay(2000); // Waits for the replacement transaction get to the mempool.
 				Assert.Single(wallet.Coins);
-				Assert.True(wallet.Coins.First().IsReplaceable);
+				Assert.True(wallet.Coins.First().IsReplaceable());
 				Assert.Equal(tx2Id, wallet.Coins.First().TransactionId);
 
 				Interlocked.Exchange(ref Common.FiltersProcessedByWalletCount, 0);
@@ -770,7 +770,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 				var coin = Assert.Single(wallet.Coins);
 				Assert.True(coin.Confirmed);
-				Assert.False(coin.IsReplaceable);
+				Assert.False(coin.IsReplaceable());
 				Assert.Equal(tx2Id, coin.TransactionId);
 			}
 			finally

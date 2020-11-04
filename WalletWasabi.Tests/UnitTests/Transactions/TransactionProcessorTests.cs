@@ -339,8 +339,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			var unconfirmedCoin1 = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Label == "B");
 			var unconfirmedCoin2 = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Label == "C");
-			Assert.True(unconfirmedCoin1.IsReplaceable);
-			Assert.True(unconfirmedCoin2.IsReplaceable);
+			Assert.True(unconfirmedCoin1.IsReplaceable());
+			Assert.True(unconfirmedCoin2.IsReplaceable());
 
 			// Spend the received coin
 			var tx2 = CreateSpendingTransaction(unconfirmedCoin1.GetCoin(), transactionProcessor.NewKey("D").P2wpkhScript);
@@ -357,7 +357,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.True(relevant3.IsNews);
 			Assert.Equal(1, replaceTransactionReceivedCalled);
 			var finalCoin = Assert.Single(transactionProcessor.Coins);
-			Assert.True(finalCoin.IsReplaceable);
+			Assert.True(finalCoin.IsReplaceable());
 			Assert.Equal("E", finalCoin.HdPubKey.Label);
 
 			Assert.DoesNotContain(unconfirmedCoin1, transactionProcessor.Coins.AsAllCoinsView());
@@ -493,7 +493,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			Assert.True(relevant2.IsNews);
 			var coin = Assert.Single(transactionProcessor.Coins);
-			Assert.True(coin.IsReplaceable);
+			Assert.True(coin.IsReplaceable());
 
 			// Transaction store assertions
 			var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
@@ -545,10 +545,10 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			relevant = transactionProcessor.Process(tx3);
 
 			Assert.True(relevant.IsNews);
-			var replaceableCoin = Assert.Single(transactionProcessor.Coins, c => c.IsReplaceable);
+			var replaceableCoin = Assert.Single(transactionProcessor.Coins, c => c.IsReplaceable());
 			Assert.Equal(tx3.Transaction.GetHash(), replaceableCoin.TransactionId);
 
-			var nonReplaceableCoin = Assert.Single(transactionProcessor.Coins, c => !c.IsReplaceable);
+			var nonReplaceableCoin = Assert.Single(transactionProcessor.Coins, c => !c.IsReplaceable());
 			Assert.Equal(tx1.Transaction.GetHash(), nonReplaceableCoin.TransactionId);
 
 			// Transaction store assertions
