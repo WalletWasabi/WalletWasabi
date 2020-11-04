@@ -1,4 +1,5 @@
 using System;
+using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Gui.ViewModels;
 
@@ -13,6 +14,10 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			_navigationState = navigationState;
 			_navigationTarget = navigationTarget;
+
+			BackCommand = ReactiveCommand.Create(() => GoBack());
+
+			CancelCommand = ReactiveCommand.Create(() => ClearNavigation());
 		}
 
 		public string UrlPathSegment { get; } = Guid.NewGuid().ToString().Substring(0, 5);
@@ -52,6 +57,10 @@ namespace WalletWasabi.Fluent.ViewModels
 					break;
 			}
 		}
+
+		public ICommand BackCommand { get; }
+
+		public ICommand CancelCommand { get; }
 
 		public void GoBack()
 		{
