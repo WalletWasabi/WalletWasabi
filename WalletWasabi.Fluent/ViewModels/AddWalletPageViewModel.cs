@@ -35,7 +35,7 @@ namespace WalletWasabi.Fluent.ViewModels
                 if (result is { } password)
                 {
                     await screen.Router.Navigate.Execute(
-                        new RecoverWalletViewModel(screen, WalletName, password, walletManager));
+                        new RecoverWalletViewModel(screen, WalletName, network, password, walletManager));
                 }
             });
 

@@ -39,9 +39,9 @@
             </StackPanel>
         </c:ContentArea>
  
-        <!-- <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="invisible" HorizontalAlignment="Left" -->
-        <!--         VerticalAlignment="Bottom" /> -->
-        <!-- <Button Content="Continue" Command="{Binding FinishCommand}" Classes="action" HorizontalAlignment="Right" -->
-        <!--         VerticalAlignment="Bottom" /> -->
+        <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="invisible" HorizontalAlignment="Left"
+                VerticalAlignment="Bottom" />
+        <Button Content="Restore" Command="{Binding FinishCommand}" Classes="action" HorizontalAlignment="Right"
+                VerticalAlignment="Bottom" />
     </Panel>
 </UserControl>
