@@ -23,12 +23,7 @@ namespace WalletWasabi.Fluent.ViewModels.RecoverWallet
 		private string? _selectedTag;
 		private IEnumerable<string>? _suggestions;
 
-		public RecoverWalletViewModel(
-			IScreen screen,
-			string walletName,
-			Network network,
-			string password,
-			WalletManager walletManager) :
+		public RecoverWalletViewModel(IScreen screen, string walletName, Network network, WalletManager walletManager) :
 			base(screen)
 		{
 			Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
@@ -79,8 +74,8 @@ namespace WalletWasabi.Fluent.ViewModels.RecoverWallet
 					})
 				.ObserveOn(RxApp.MainThreadScheduler);
 
-			FinishCommand = ReactiveCommand.Create(
-				() =>
+			FinishCommand = ReactiveCommand.CreateFromTask(
+				async () =>
 				{
 					try
 					{
@@ -89,13 +84,17 @@ namespace WalletWasabi.Fluent.ViewModels.RecoverWallet
 							return;
 						}
 
+						var password = await PasswordInteraction
+							.Handle("Type the password of the wallet to be to recover and click Continue.").ToTask();
+
+						if (string.IsNullOrEmpty(password))
+						{
+							return;
+						}
+
 						var walletFilePath = walletManager.WalletDirectories.GetWalletFilePaths(walletName)
 							.walletFilePath;
-						var keyManager = KeyManager.Recover(
-							CurrentMnemonics,
-							password,
-							walletFilePath,
-							AccountKeyPath,
+						var keyManager = KeyManager.Recover(CurrentMnemonics, password, walletFilePath, AccountKeyPath,
 							(int) MinGapLimit);
 						keyManager.SetNetwork(network);
 						walletManager.AddWallet(keyManager);
@@ -111,16 +110,22 @@ namespace WalletWasabi.Fluent.ViewModels.RecoverWallet
 			CancelCommand = ReactiveCommand.Create(
 				() =>
 				{
-					password = "";
 					AccountKeyPath = default;
 					MinGapLimit = default;
 				});
 
 			AdvancedOptionsInteraction = new Interaction<(KeyPath, int), (KeyPath?, int?)>();
+
 			AdvancedOptionsInteraction.RegisterHandler(
 				async interaction =>
 					interaction.SetOutput(
 						await new AdvancedRecoveryOptionsViewModel(interaction.Input).ShowDialogAsync()));
+
+			PasswordInteraction = new Interaction<string, string?>();
+
+			PasswordInteraction.RegisterHandler(
+				async interaction =>
+					interaction.SetOutput(await new EnterPasswordViewModel(interaction.Input).ShowDialogAsync()));
 		}
 
 		public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
@@ -134,6 +139,8 @@ namespace WalletWasabi.Fluent.ViewModels.RecoverWallet
 		private int? MinGapLimit { get; set; } = 63;
 
 		private Interaction<(KeyPath, int), (KeyPath?, int?)> AdvancedOptionsInteraction { get; }
+
+		private Interaction<string, string?> PasswordInteraction { get; }
 
 		public ObservableCollection<string> Mnemonics { get; } = new ObservableCollection<string>();
 

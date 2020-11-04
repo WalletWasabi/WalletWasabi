@@ -31,19 +31,15 @@ namespace WalletWasabi.Fluent.ViewModels
 			RecoverWalletCommand = ReactiveCommand.Create(
 				async () =>
 				{
-					var result = await PasswordInteraction.Handle("Type the password of the wallet you intend to recover and click Continue.").ToTask();
-
-					if (result is { } password)
-					{
-						await screen.Router.Navigate.Execute(
-							new RecoverWalletViewModel(screen, WalletName, network, password, walletManager));
-					}
+					await screen.Router.Navigate.Execute(
+						new RecoverWalletViewModel(screen, WalletName, network, walletManager));
 				});
 
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{
-					var result = await PasswordInteraction.Handle("Type your new wallet's password below and click Continue.").ToTask();
+					var result = await PasswordInteraction
+						.Handle("Type your new wallet's password below and click Continue.").ToTask();
 
 					if (result is { } password)
 					{
@@ -66,7 +62,8 @@ namespace WalletWasabi.Fluent.ViewModels
 			PasswordInteraction = new Interaction<string, string?>();
 
 			PasswordInteraction.RegisterHandler(
-				async interaction => interaction.SetOutput(await new EnterPasswordViewModel(interaction.Input).ShowDialogAsync()));
+				async interaction =>
+					interaction.SetOutput(await new EnterPasswordViewModel(interaction.Input).ShowDialogAsync()));
 		}
 
 		public override string IconName => "add_circle_regular";
