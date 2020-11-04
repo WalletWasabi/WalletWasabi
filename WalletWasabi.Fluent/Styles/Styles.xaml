@@ -20,9 +20,6 @@
     <sys:Double x:Key="FontSizeH6">16</sys:Double>
     <sys:Double x:Key="FontSizeH7">14</sys:Double>
     <sys:Double x:Key="FontSizeH8">12</sys:Double>
-
-    <converters:ErrorSeverityColorConverter x:Key="ErrorSeverityColorConverter" />
-    <converters:ErrorDescriptorToBorderColorConverter x:Key="ErrorDescriptorToBorderColorConverter" />
   </Styles.Resources>
 
   <Style Selector=":is(Control).h1">
@@ -75,28 +72,10 @@
     <Setter Property="Background" Value="{DynamicResource InvisibleButtonBackgroundColor}" />
   </Style>
 
-  <!--TextBox style-->
-
-
-  <!--Check mark-->
-  <Style Selector=":is(PathIcon).checkMark">
-    <Setter Property="Foreground" Value="{DynamicResource SystemControlBackgroundAccentBrush}" />
-    <Setter Property="Width" Value="15" />
-    <Setter Property="Height" Value="15" />
-    <Setter Property="Data" Value="{StaticResource checkmark_filled}" />
-    <Setter Property="Opacity" Value="0" />
-    <Setter Property="Transitions">
-      <Transitions>
-        <DoubleTransition Property="Opacity" Duration="0:0:0.3" />
-      </Transitions>
-    </Setter>
-  </Style>
-
-
-
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/OptionButton.xaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/ActionButton.xaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Label.xaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/InvisibleButton.xaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/TextBox.xaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Checkmark.xaml" />
 </Styles>

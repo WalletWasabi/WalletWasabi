@@ -1,6 +1,11 @@
 <Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui">
+  <Styles.Resources>
+    <converters:ErrorSeverityColorConverter x:Key="ErrorSeverityColorConverter" />
+    <converters:ErrorDescriptorToBorderColorConverter x:Key="ErrorDescriptorToBorderColorConverter" />
+  </Styles.Resources>
+  
   <Style Selector="DataValidationErrors">
     <Setter Property="Template">
       <ControlTemplate>
