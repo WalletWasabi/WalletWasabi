@@ -1,5 +1,6 @@
 using ReactiveUI;
 using System;
+using System.IO;
 using System.Windows.Input;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
@@ -10,6 +11,9 @@ using NBitcoin;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using System.Threading.Tasks;
+using WalletWasabi.Gui.Validation;
+using WalletWasabi.Models;
+using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -24,7 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			this.WhenAnyValue(x => x.WalletName)
 				.Select(x => !string.IsNullOrWhiteSpace(x))
-				.Subscribe(x => OptionsEnabled = x);
+				.Subscribe(x => OptionsEnabled = x && !Validations.Any);
 
 			RecoverWalletCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new RecoveryPageViewModel(screen)));
 
@@ -38,7 +42,9 @@ namespace WalletWasabi.Fluent.ViewModels
 						var (km, mnemonic) = await Task.Run(
 							() =>
 							{
-								var walletGenerator = new WalletGenerator(walletManager.WalletDirectories.WalletsDir,network)
+								var walletGenerator = new WalletGenerator(
+									walletManager.WalletDirectories.WalletsDir,
+									network)
 								{
 									TipHeight = store.SmartHeaderChain.TipHeight
 								};
@@ -53,6 +59,35 @@ namespace WalletWasabi.Fluent.ViewModels
 			PasswordInteraction = new Interaction<string, string?>();
 			PasswordInteraction.RegisterHandler(
 				async interaction => interaction.SetOutput(await new EnterPasswordViewModel().ShowDialogAsync()));
+
+			this.ValidateProperty(x => x.WalletName, errors => ValidateWalletName(errors, walletManager, WalletName));
+		}
+
+		private void ValidateWalletName(IValidationErrors errors, WalletManager walletManager, string walletName)
+		{
+			string walletFilePath = Path.Combine(walletManager.WalletDirectories.WalletsDir, $"{walletName}.json");
+
+			if (string.IsNullOrEmpty(walletName))
+			{
+				return;
+			}
+
+			if (PasswordHelper.IsTrimable(walletName, out _))
+			{
+				errors.Add(ErrorSeverity.Error, "Leading and trailing white spaces are not allowed!");
+				return;
+			}
+
+			if (File.Exists(walletFilePath))
+			{
+				errors.Add(ErrorSeverity.Error, $"A wallet named {walletName} already exists. Please try a different name.");
+				return;
+			}
+
+			if (!WalletGenerator.ValidateWalletName(walletName))
+			{
+				errors.Add(ErrorSeverity.Error, "Selected Wallet is not valid. Please try a different name.");
+			}
 		}
 
 		public override string IconName => "add_circle_regular";
