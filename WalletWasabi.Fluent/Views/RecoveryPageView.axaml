@@ -8,12 +8,13 @@
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:RecoveryPageViewModel"
+             x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.RecoveryPageView">
     <Panel Margin="25 0 25 20">
-        <Button Classes="invisible" Margin="0 35 0 0" Command="{Binding GoBackCommand}" DockPanel.Dock="Left"
-                HorizontalAlignment="Left" VerticalAlignment="Top">
-            <PathIcon Data="{DynamicResource arrow_left_regular}" />
-        </Button>
+        <!-- <Button Classes="invisible" Margin="0 35 0 0" Command="{Binding GoBackCommand}" DockPanel.Dock="Left" -->
+        <!--         HorizontalAlignment="Left" VerticalAlignment="Top"> -->
+        <!--     <PathIcon Data="{DynamicResource arrow_left_regular}" /> -->
+        <!-- </Button> -->
         <c:ContentArea Title="Enter recovery words" Caption="Type in your 12 recovery words and click continue"
                        Margin="44 0">
             <StackPanel>
@@ -30,9 +31,11 @@
                 </c:TagsBox>
             </StackPanel>
         </c:ContentArea>
-        <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="invisible" HorizontalAlignment="Left"
+        <Button Content="Cancel" Command="{Binding TestDialogCommand}" Classes="action" HorizontalAlignment="Left"
                 VerticalAlignment="Bottom" />
-        <Button Content="Continue" Command="{Binding FinishCommand}" Classes="action" HorizontalAlignment="Right"
-                VerticalAlignment="Bottom" />
+        <!-- <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="invisible" HorizontalAlignment="Left" -->
+        <!--         VerticalAlignment="Bottom" /> -->
+        <!-- <Button Content="Continue" Command="{Binding FinishCommand}" Classes="action" HorizontalAlignment="Right" -->
+        <!--         VerticalAlignment="Bottom" /> -->
     </Panel>
 </UserControl>

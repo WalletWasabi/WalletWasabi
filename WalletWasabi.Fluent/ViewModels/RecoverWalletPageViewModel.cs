@@ -2,16 +2,20 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
+using System.Windows.Input;
 using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Gui.Validation;
+using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
-    public class RecoveryPageViewModel : NavBarItemViewModel
+    public class RecoveryPageViewModel : RoutableViewModel
     {
         private readonly ObservableAsPropertyHelper<Mnemonic?> _currentMnemonic;
         private IEnumerable<string>? _suggestions;
@@ -33,7 +37,24 @@ namespace WalletWasabi.Fluent.ViewModels
                 .Subscribe(x => this.RaisePropertyChanged(nameof(Mnemonics)));
 
             this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);
+            
+            
+            AdvancedOptionsInteraction = new Interaction<object, (string?, string?)>();
+            AdvancedOptionsInteraction.RegisterHandler(
+                async interaction => interaction.SetOutput(await new AdvancedRecoveryOptionsViewModel().ShowDialogAsync()));
+            
+            
+            
+            TestDialogCommand = ReactiveCommand.CreateFromTask(
+                async () =>
+                {
+                    var result = await AdvancedOptionsInteraction.Handle("").ToTask();
+ 
+                });
         }
+
+        public ICommand TestDialogCommand { get; }
+        private Interaction<object, (string?, string?)> AdvancedOptionsInteraction { get; }
 
         public ObservableCollection<string> Mnemonics { get; } = new ObservableCollection<string>();
 
@@ -73,7 +94,6 @@ namespace WalletWasabi.Fluent.ViewModels
         }
 
         private Mnemonic? CurrentMnemonics => _currentMnemonic.Value;
-
-        public override string IconName => "settings_regular";
+ 
     }
 }

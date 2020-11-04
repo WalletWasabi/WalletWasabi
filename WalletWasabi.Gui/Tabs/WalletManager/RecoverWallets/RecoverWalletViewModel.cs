@@ -210,6 +210,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 
 		private void ValidateMinGapLimit(IValidationErrors errors)
 		{
+			if (string.IsNullOrWhiteSpace(MinGapLimit))
+			{
+				return;
+			}
+			
 			if (!int.TryParse(MinGapLimit, out int minGapLimit) || minGapLimit < KeyManager.AbsoluteMinGapLimit || minGapLimit > KeyManager.MaxGapLimit)
 			{
 				errors.Add(ErrorSeverity.Error, $"Must be a number between {KeyManager.AbsoluteMinGapLimit} and {KeyManager.MaxGapLimit}.");
@@ -220,9 +225,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 		{
 			if (string.IsNullOrWhiteSpace(AccountKeyPath))
 			{
-				errors.Add(ErrorSeverity.Error, "Path is not valid.");
+				return;
 			}
-			else if (KeyPath.TryParse(AccountKeyPath, out var keyPath))
+			
+			if (KeyPath.TryParse(AccountKeyPath, out var keyPath))
 			{
 				var accountKeyPath = keyPath.GetAccountKeyPath();
 				if (keyPath.Length != accountKeyPath.Length || accountKeyPath.Length != KeyManager.DefaultAccountKeyPath.Length)

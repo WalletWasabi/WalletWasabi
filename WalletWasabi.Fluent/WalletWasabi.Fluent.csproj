@@ -13,6 +13,10 @@
 			<SubType>Designer</SubType>
 		</AvaloniaResource>
 		<AvaloniaResource Include="Assets\**" />
+		<Compile Update="Views\Dialogs\AdvancedRecoveryOptionsView.axaml.cs">
+		  <DependentUpon>AdvancedRecoveryOptionsView.axaml</DependentUpon>
+		  <SubType>Code</SubType>
+		</Compile>
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.999-cibuild0011763-beta" />
