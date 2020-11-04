@@ -1489,8 +1489,8 @@ namespace WalletWasabi.Tests.RegressionTests
 				var allCoins = wallet.TransactionProcessor.Coins.AsAllCoinsView().ToArray();
 				var allCoins2 = wallet2.TransactionProcessor.Coins.AsAllCoinsView().ToArray();
 
-				Assert.Equal(4, allCoins.Count(x => x.Label.IsEmpty && !x.Unavailable));
-				Assert.Equal(3, allCoins2.Count(x => x.Label.IsEmpty && !x.Unavailable));
+				Assert.Equal(4, allCoins.Count(x => x.Label.IsEmpty && x.IsAvailable()));
+				Assert.Equal(3, allCoins2.Count(x => x.Label.IsEmpty && x.IsAvailable()));
 				Assert.Equal(2, allCoins.Count(x => x.Label.IsEmpty && !x.Unspent));
 				Assert.Equal(0, allCoins2.Count(x => x.Label.IsEmpty && !x.Unspent));
 				Assert.Equal(3, allCoins2.Count(x => x.Label.IsEmpty));

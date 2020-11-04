@@ -69,7 +69,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 			SetUnspent();
 			SetIsBanned();
-			SetUnavailable();
 		}
 
 		#endregion Constructors
@@ -133,13 +132,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		public bool CoinJoinInProgress
 		{
 			get => _coinJoinInProgress;
-			set
-			{
-				if (RaiseAndSetIfChanged(ref _coinJoinInProgress, value))
-				{
-					SetUnavailable();
-				}
-			}
+			set => RaiseAndSetIfChanged(ref _coinJoinInProgress, value);
 		}
 
 		public DateTimeOffset? BannedUntilUtc
@@ -161,13 +154,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		public bool SpentAccordingToBackend
 		{
 			get => _spentAccordingToBackend;
-			set
-			{
-				if (RaiseAndSetIfChanged(ref _spentAccordingToBackend, value))
-				{
-					SetUnavailable();
-				}
-			}
+			set => RaiseAndSetIfChanged(ref _spentAccordingToBackend, value);
 		}
 
 		public HdPubKey HdPubKey { get; }
@@ -199,24 +186,14 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		}
 
 		/// <summary>
-		/// Spent || SpentAccordingToBackend || CoinJoinInProgress || IsDust;
+		/// Unspent AND !SpentAccordingToBackend AND !CoinJoinInProgress
 		/// </summary>
-		public bool Unavailable
-		{
-			get => _unavailable;
-			private set => RaiseAndSetIfChanged(ref _unavailable, value);
-		}
+		public bool IsAvailable() => Unspent && !SpentAccordingToBackend && !CoinJoinInProgress;
 
 		public bool Unspent
 		{
 			get => _unspent;
-			private set
-			{
-				if (RaiseAndSetIfChanged(ref _unspent, value))
-				{
-					SetUnavailable();
-				}
-			}
+			private set => RaiseAndSetIfChanged(ref _unspent, value);
 		}
 
 		public bool IsBanned
@@ -237,11 +214,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		public void SetIsBanned()
 		{
 			IsBanned = BannedUntilUtc is { } && BannedUntilUtc > DateTimeOffset.UtcNow;
-		}
-
-		private void SetUnavailable()
-		{
-			Unavailable = !Unspent || SpentAccordingToBackend || CoinJoinInProgress;
 		}
 
 		#endregion PropertySetters

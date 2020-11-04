@@ -123,7 +123,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				#region Basic
 
 				Script receive = keyManager.GetNextReceiveKey("Basic", out _).P2wpkhScript;
-				Money amountToSend = wallet.Coins.Where(x => !x.Unavailable).Sum(x => x.Amount) / 2;
+				Money amountToSend = wallet.Coins.Where(x => x.IsAvailable()).Sum(x => x.Amount) / 2;
 				var res = wallet.BuildTransaction(password, new PaymentIntent(receive, amountToSend, label: "foo"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
 
 				foreach (SmartCoin coin in res.SpentCoins)
@@ -171,7 +171,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				#region SubtractFeeFromAmount
 
 				receive = keyManager.GetNextReceiveKey("SubtractFeeFromAmount", out _).P2wpkhScript;
-				amountToSend = wallet.Coins.Where(x => !x.Unavailable).Sum(x => x.Amount) / 3;
+				amountToSend = wallet.Coins.Where(x => x.IsAvailable()).Sum(x => x.Amount) / 3;
 				res = wallet.BuildTransaction(password, new PaymentIntent(receive, amountToSend, subtractFee: true, label: "foo"), FeeStrategy.SevenDaysConfirmationTargetStrategy, allowUnconfirmed: true);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
@@ -322,7 +322,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				Assert.Single(res.Transaction.Transaction.Outputs);
 				var maxBuiltTxOutput = res.Transaction.Transaction.Outputs.Single();
 				Assert.Equal(receive, maxBuiltTxOutput.ScriptPubKey);
-				Assert.Equal(wallet.Coins.Where(x => !x.Unavailable).Sum(x => x.Amount) - res.Fee, maxBuiltTxOutput.Value);
+				Assert.Equal(wallet.Coins.Where(x => x.IsAvailable()).Sum(x => x.Amount) - res.Fee, maxBuiltTxOutput.Value);
 
 				await broadcaster.SendTransactionAsync(res.Transaction);
 
@@ -336,7 +336,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 				res = wallet.BuildTransaction(password, new PaymentIntent(receive, MoneyRequest.CreateAllRemaining(), "foo"), FeeStrategy.SevenDaysConfirmationTargetStrategy,
 					allowUnconfirmed: true,
-					allowedInputs: wallet.Coins.Where(x => !x.Unavailable).Select(x => x.OutPoint).Take(1));
+					allowedInputs: wallet.Coins.Where(x => x.IsAvailable()).Select(x => x.OutPoint).Take(1));
 
 				Assert.Single(res.InnerWalletOutputs);
 				Assert.Empty(res.OuterWalletOutputs);
@@ -376,7 +376,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				Assert.Single(res.InnerWalletOutputs);
 				Assert.Equal("foo, my label", res.InnerWalletOutputs.Single().Label);
 
-				amountToSend = wallet.Coins.Where(x => !x.Unavailable).Sum(x => x.Amount) / 3;
+				amountToSend = wallet.Coins.Where(x => x.IsAvailable()).Sum(x => x.Amount) / 3;
 				res = wallet.BuildTransaction(
 					password,
 					new PaymentIntent(
@@ -421,7 +421,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 				receive = keyManager.GetNextReceiveKey("AllowedInputsDisallowUnconfirmed", out _).P2wpkhScript;
 
-				var allowedInputs = wallet.Coins.Where(x => !x.Unavailable).Select(x => x.OutPoint).Take(1);
+				var allowedInputs = wallet.Coins.Where(x => x.IsAvailable()).Select(x => x.OutPoint).Take(1);
 				var toSend = new PaymentIntent(receive, MoneyRequest.CreateAllRemaining(), "fizz");
 
 				// covers:
@@ -600,12 +600,12 @@ namespace WalletWasabi.Tests.RegressionTests
 
 				// There is a coin destroyed
 				var allCoins = wallet.TransactionProcessor.Coins.AsAllCoinsView();
-				Assert.Equal(1, allCoins.Count(x => x.Unavailable && x.SpenderTransactionId == tx1Res.Transaction.GetHash()));
+				Assert.Equal(1, allCoins.Count(x => !x.IsAvailable() && x.SpenderTransactionId == tx1Res.Transaction.GetHash()));
 
 				// There is at least one coin created from the destruction of the first coin
 				Assert.Contains(wallet.Coins, x => x.SpentOutputs.Any(o => o.Hash == tx0Id));
 
-				var totalWallet = wallet.Coins.Where(c => !c.Unavailable).Sum(c => c.Amount);
+				var totalWallet = wallet.Coins.Where(c => c.IsAvailable()).Sum(c => c.Amount);
 				Assert.Equal((1 * Money.COIN) - tx1Res.Fee.Satoshi, totalWallet);
 
 				// Spend the unconfirmed and unspent coin (send it to ourself)
@@ -629,12 +629,12 @@ namespace WalletWasabi.Tests.RegressionTests
 
 				// There is a coin destroyed
 				allCoins = wallet.TransactionProcessor.Coins.AsAllCoinsView();
-				Assert.Equal(2, allCoins.Count(x => x.Unavailable && x.SpenderTransactionId == tx2Hash));
+				Assert.Equal(2, allCoins.Count(x => !x.IsAvailable() && x.SpenderTransactionId == tx2Hash));
 
 				// There is at least one coin created from the destruction of the first coin
 				Assert.Contains(wallet.Coins, x => x.SpentOutputs.Any(o => o.Hash == tx1Res.Transaction.GetHash()));
 
-				totalWallet = wallet.Coins.Where(c => !c.Unavailable).Sum(c => c.Amount);
+				totalWallet = wallet.Coins.Where(c => c.IsAvailable()).Sum(c => c.Amount);
 				Assert.Equal((1 * Money.COIN) - tx1Res.Fee.Satoshi - tx2Res.Fee.Satoshi, totalWallet);
 
 				Interlocked.Exchange(ref Common.FiltersProcessedByWalletCount, 0);

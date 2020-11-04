@@ -19,7 +19,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		public ICoinsView Unspent() => new CoinsView(Coins.Where(x => x.Unspent && !x.SpentAccordingToBackend));
 
-		public ICoinsView Available() => new CoinsView(Coins.Where(x => !x.Unavailable));
+		public ICoinsView Available() => new CoinsView(Coins.Where(x => x.IsAvailable()));
 
 		public ICoinsView CoinJoinInProcess() => new CoinsView(Coins.Where(x => x.CoinJoinInProgress));
 

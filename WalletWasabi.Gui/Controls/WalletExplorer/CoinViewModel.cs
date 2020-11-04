@@ -28,7 +28,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableAsPropertyHelper<bool> _coinJoinInProgress;
 		private ObservableAsPropertyHelper<bool> _unspent;
 		private ObservableAsPropertyHelper<bool> _confirmed;
-		private ObservableAsPropertyHelper<bool> _unavailable;
 		private ObservableAsPropertyHelper<string> _cluster;
 
 		private volatile bool _disposedValue = false;
@@ -64,11 +63,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.WhenAnyValue(x => x.Cluster, x => x.Cluster.Labels)
 				.Select(x => x.Item2.ToString())
 				.ToProperty(this, x => x.Cluster, scheduler: RxApp.MainThreadScheduler)
-				.DisposeWith(Disposables);
-
-			_unavailable = Model
-				.WhenAnyValue(x => x.Unavailable)
-				.ToProperty(this, x => x.Unavailable, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.Status)
@@ -141,8 +135,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public bool Confirmed => _confirmed?.Value ?? false;
 
 		public bool CoinJoinInProgress => _coinJoinInProgress?.Value ?? false;
-
-		public bool Unavailable => _unavailable?.Value ?? false;
 
 		public bool Unspent => _unspent?.Value ?? false;
 

@@ -763,7 +763,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 						continue;
 					}
 
-					if (coin.Unavailable)
+					if (!coin.IsAvailable())
 					{
 						except.Add(coin);
 						continue;
