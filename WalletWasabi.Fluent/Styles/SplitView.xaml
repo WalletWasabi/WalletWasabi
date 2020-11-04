@@ -1,0 +1,9 @@
+<Styles xmlns="https://github.com/avaloniaui">
+  <Style Selector="SplitView">
+    <Setter Property="CompactPaneLength" Value="{StaticResource SplitViewCompactPaneLength}" />
+    <Setter Property="OpenPaneLength" Value="320" />
+    <Setter Property="DisplayMode" Value="CompactInline" />
+    <Setter Property="IsPaneOpen" Value="True" />
+    <Setter Property="PaneBackground" Value="{x:Null}" />
+  </Style>
+</Styles>
