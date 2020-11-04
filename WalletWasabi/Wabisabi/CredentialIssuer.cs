@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -30,7 +30,7 @@ namespace WalletWasabi.Wabisabi
 	/// Additionally it keeps also track of the `balance` in order to make sure it never 
 	/// issues credentials for more money than the total presented amount. All this means
 	/// that the same instance has to be used for a given round (the coordinator needs to
-	/// maintain only one instances of this class per round)
+	/// maintain only one instance of this class per round)
 	/// 
 	/// About replay requests: a replay request is a <see cref="RegistrationRequestMessage">request</see>
 	/// that has already been seen before. These kind of requests can be the result of misbehaving

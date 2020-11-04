@@ -14,7 +14,7 @@ namespace WalletWasabi.Wabisabi
 {
 	/// <summary>
 	/// Provides the methods for creating <see cref="RegistrationRequestMessage">unified WabiSabi credential registration request messages</see>
-	/// and handle the <see cref="RegistrationResponseMessage">credential registration responses</see> received from the coordinator.
+	/// and for handling the <see cref="RegistrationResponseMessage">credential registration responses</see> received from the coordinator.
 	/// </summary>
 	public class WabiSabiClient
 	{
