@@ -28,7 +28,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 				x => x.ConfirmPassword,
 				(password, confirmPassword) =>
 				{
-					
 					// This will fire validations before return canExecute value.
 					this.RaisePropertyChanged(nameof(Password));
 					this.RaisePropertyChanged(nameof(ConfirmPassword));
