@@ -62,7 +62,7 @@
           </ia:EventTriggerBehavior>
         </i:Interaction.Behaviors>
       </Panel>
-      <Border Padding="0,40,0,40" CornerRadius="4" Background="{DynamicResource DialogBackground}" VerticalAlignment="Center" HorizontalAlignment="Center" MinWidth="750" MinHeight="500">
+      <Border Padding="0,40,0,40" CornerRadius="4" Background="{DynamicResource DialogBackground}" Margin="40" MaxWidth="1024" MaxHeight="768">
         <rxui:RoutedViewHost Router="{Binding Router}">
           <rxui:RoutedViewHost.ViewLocator>
             <vl:ScreenViewLocator />
