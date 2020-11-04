@@ -1,5 +1,39 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <Style Selector="DataValidationErrors">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <DockPanel LastChildFill="True">
+          <ContentControl
+            DockPanel.Dock="Bottom"
+            ContentTemplate="{TemplateBinding ErrorTemplate}"
+            DataContext="{TemplateBinding Owner}"
+            Content="{Binding (DataValidationErrors.Errors)}"
+            IsVisible="{Binding (DataValidationErrors.HasErrors)}" />
+          <ContentPresenter
+            Name="PART_ContentPresenter"
+            Background="{TemplateBinding Background}"
+            BorderThickness="{TemplateBinding BorderThickness}"
+            ContentTemplate="{TemplateBinding ContentTemplate}"
+            Content="{TemplateBinding Content}"
+            Padding="{TemplateBinding Padding}" />
+        </DockPanel>
+      </ControlTemplate>
+    </Setter>
+    <Setter Property="ErrorTemplate">
+      <DataTemplate>
+        <ItemsControl Items="{Binding}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding Message}" Foreground="{Binding Severity, Converter={StaticResource ErrorSeverityColorConverter}}" TextWrapping="Wrap" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </DataTemplate>
+    </Setter>
+  </Style>
+
   <Style Selector="TextBox">
     <Setter Property="Template">
       <ControlTemplate>
