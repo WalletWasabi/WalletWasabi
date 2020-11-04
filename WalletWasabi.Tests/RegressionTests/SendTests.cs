@@ -603,7 +603,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				Assert.Equal(1, allCoins.Count(x => !x.IsAvailable() && x.SpenderTransaction?.GetHash() == tx1Res.Transaction.GetHash()));
 
 				// There is at least one coin created from the destruction of the first coin
-				Assert.Contains(wallet.Coins, x => x.SpentOutputs.Any(o => o.Hash == tx0Id));
+				Assert.Contains(wallet.Coins, x => x.Transaction.Transaction.Inputs.Any(o => o.PrevOut.Hash == tx0Id));
 
 				var totalWallet = wallet.Coins.Where(c => c.IsAvailable()).Sum(c => c.Amount);
 				Assert.Equal((1 * Money.COIN) - tx1Res.Fee.Satoshi, totalWallet);
@@ -632,7 +632,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				Assert.Equal(2, allCoins.Count(x => !x.IsAvailable() && x.SpenderTransaction?.GetHash() == tx2Hash));
 
 				// There is at least one coin created from the destruction of the first coin
-				Assert.Contains(wallet.Coins, x => x.SpentOutputs.Any(o => o.Hash == tx1Res.Transaction.GetHash()));
+				Assert.Contains(wallet.Coins, x => x.Transaction.Transaction.Inputs.Any(o => o.PrevOut.Hash == tx1Res.Transaction.GetHash()));
 
 				totalWallet = wallet.Coins.Where(c => c.IsAvailable()).Sum(c => c.Amount);
 				Assert.Equal((1 * Money.COIN) - tx1Res.Fee.Satoshi - tx2Res.Fee.Satoshi, totalWallet);

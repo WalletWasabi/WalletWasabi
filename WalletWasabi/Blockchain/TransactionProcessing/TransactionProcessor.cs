@@ -233,12 +233,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					}
 				}
 
-				var isLikelyCj = false;
-				if (tx.Transaction.Inputs.Count > 1 // The tx must have more than one input in order to be a coinjoin.
-					&& tx.Transaction.HasIndistinguishableOutputs()) // The tx must have more than one equal output in order to be a coinjoin.
-				{
-					isLikelyCj = true;
-				}
+				var isLikelyCj = tx.Transaction.IsLikelyCoinjoin();
 
 				var prevOutSet = tx.Transaction.Inputs.Select(x => x.PrevOut).ToHashSet();
 				foreach (var coin in Coins.AsAllCoinsView())

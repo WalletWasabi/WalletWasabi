@@ -95,9 +95,8 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 							ClustersByScriptPubKey.Add(coin.ScriptPubKey, coin.Cluster);
 						}
 
-						foreach (var spentOutPoint in coin.SpentOutputs)
+						foreach (var outPoint in coin.Transaction.Transaction.Inputs.Select(x => x.PrevOut))
 						{
-							var outPoint = spentOutPoint;
 							var newCoinSet = new HashSet<SmartCoin> { coin };
 
 							// If we don't succeed to add a new entry to the dictionary.

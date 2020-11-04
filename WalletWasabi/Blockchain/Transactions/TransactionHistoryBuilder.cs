@@ -49,7 +49,8 @@ namespace WalletWasabi.Blockchain.Transactions
 						Amount = coin.Amount,
 						Label = foundTransaction.Label,
 						TransactionId = coin.TransactionId,
-						BlockIndex = foundTransaction.BlockIndex
+						BlockIndex = foundTransaction.BlockIndex,
+						IsLikelyCoinJoinOutput = coin.IsLikelyCoinjoinOutput()
 					});
 				}
 
@@ -73,7 +74,8 @@ namespace WalletWasabi.Blockchain.Transactions
 							Amount = Money.Zero - coin.Amount,
 							Label = foundSpenderTransaction.Label,
 							TransactionId = spenderTxId,
-							BlockIndex = foundSpenderTransaction.BlockIndex
+							BlockIndex = foundSpenderTransaction.BlockIndex,
+							IsLikelyCoinJoinOutput = coin.IsLikelyCoinjoinOutput()
 						});
 					}
 				}

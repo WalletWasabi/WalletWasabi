@@ -290,8 +290,6 @@ namespace WalletWasabi.Tests.RegressionTests
 				Assert.Equal("foo label", firstCoin.Label);
 				Assert.Equal(key.P2wpkhScript, firstCoin.ScriptPubKey);
 				Assert.Null(firstCoin.SpenderTransaction);
-				Assert.NotNull(firstCoin.SpentOutputs);
-				Assert.NotEmpty(firstCoin.SpentOutputs);
 				Assert.Equal(txId, firstCoin.TransactionId);
 				Assert.Single(keyManager.GetKeys(KeyState.Used, false));
 				Assert.Equal("foo label", keyManager.GetKeys(KeyState.Used, false).Single().Label);
@@ -324,12 +322,6 @@ namespace WalletWasabi.Tests.RegressionTests
 				Assert.Equal(key2.P2wpkhScript, secondCoin.ScriptPubKey);
 				Assert.Equal(key2.P2wpkhScript, thirdCoin.ScriptPubKey);
 				Assert.Null(thirdCoin.SpenderTransaction);
-				Assert.NotNull(firstCoin.SpentOutputs);
-				Assert.NotNull(secondCoin.SpentOutputs);
-				Assert.NotNull(thirdCoin.SpentOutputs);
-				Assert.NotEmpty(firstCoin.SpentOutputs);
-				Assert.NotEmpty(secondCoin.SpentOutputs);
-				Assert.NotEmpty(thirdCoin.SpentOutputs);
 				Assert.Equal(txId, firstCoin.TransactionId);
 				Assert.Equal(txId2, secondCoin.TransactionId);
 				Assert.Equal(txId3, thirdCoin.TransactionId);
@@ -376,8 +368,6 @@ namespace WalletWasabi.Tests.RegressionTests
 				Assert.Equal("bar label", rbfCoin.Label);
 				Assert.Equal(key2.P2wpkhScript, rbfCoin.ScriptPubKey);
 				Assert.Null(rbfCoin.SpenderTransaction);
-				Assert.NotNull(rbfCoin.SpentOutputs);
-				Assert.NotEmpty(rbfCoin.SpentOutputs);
 				Assert.Equal(tx4bumpRes.TransactionId, rbfCoin.TransactionId);
 
 				Assert.Equal(2, keyManager.GetKeys(KeyState.Used, false).Count());
