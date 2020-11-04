@@ -28,8 +28,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		private Cluster _cluster;
 
 		private bool _confirmed;
-		private bool _unavailable;
-		private bool _unspent;
 		private bool _isBanned;
 
 		#endregion Fields
@@ -67,7 +65,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 			Cluster = new Cluster(this);
 
-			SetUnspent();
 			SetIsBanned();
 		}
 
@@ -120,13 +117,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		public uint256 SpenderTransactionId
 		{
 			get => _spenderTransactionId;
-			set
-			{
-				if (RaiseAndSetIfChanged(ref _spenderTransactionId, value))
-				{
-					SetUnspent();
-				}
-			}
+			set => RaiseAndSetIfChanged(ref _spenderTransactionId, value);
 		}
 
 		public bool CoinJoinInProgress
@@ -185,12 +176,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			private set => RaiseAndSetIfChanged(ref _confirmed, value);
 		}
 
-		public bool Unspent
-		{
-			get => _unspent;
-			private set => RaiseAndSetIfChanged(ref _unspent, value);
-		}
-
 		public bool IsBanned
 		{
 			get => _isBanned;
@@ -200,11 +185,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		#endregion DependentProperties
 
 		#region PropertySetters
-
-		private void SetUnspent()
-		{
-			Unspent = SpenderTransactionId is null;
-		}
 
 		public void SetIsBanned()
 		{
@@ -217,10 +197,12 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		#region Methods
 
+		public bool IsSpent() => SpenderTransactionId is { };
+
 		/// <summary>
-		/// Unspent AND !SpentAccordingToBackend AND !CoinJoinInProgress
+		/// IsUnspent() AND !SpentAccordingToBackend AND !CoinJoinInProgress
 		/// </summary>
-		public bool IsAvailable() => Unspent && !SpentAccordingToBackend && !CoinJoinInProgress;
+		public bool IsAvailable() => SpenderTransactionId is null && !SpentAccordingToBackend && !CoinJoinInProgress;
 
 		public bool IsReplaceable() => WasReplaceable && !Confirmed;
 

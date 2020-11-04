@@ -26,7 +26,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _isSelected;
 		private SmartCoinStatus _status;
 		private ObservableAsPropertyHelper<bool> _coinJoinInProgress;
-		private ObservableAsPropertyHelper<bool> _unspent;
 		private ObservableAsPropertyHelper<bool> _confirmed;
 		private ObservableAsPropertyHelper<string> _cluster;
 
@@ -47,11 +46,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			_coinJoinInProgress = Model
 				.WhenAnyValue(x => x.CoinJoinInProgress)
 				.ToProperty(this, x => x.CoinJoinInProgress, scheduler: RxApp.MainThreadScheduler)
-				.DisposeWith(Disposables);
-
-			_unspent = Model
-				.WhenAnyValue(x => x.Unspent)
-				.ToProperty(this, x => x.Unspent, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
 
 			_confirmed = Model
@@ -135,8 +129,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public bool Confirmed => _confirmed?.Value ?? false;
 
 		public bool CoinJoinInProgress => _coinJoinInProgress?.Value ?? false;
-
-		public bool Unspent => _unspent?.Value ?? false;
 
 		public string Address => Model.ScriptPubKey.GetDestinationAddress(Global.Network).ToString();
 

@@ -17,7 +17,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		private IEnumerable<SmartCoin> Coins { get; }
 
-		public ICoinsView Unspent() => new CoinsView(Coins.Where(x => x.Unspent && !x.SpentAccordingToBackend));
+		public ICoinsView Unspent() => new CoinsView(Coins.Where(x => !x.IsSpent() && !x.SpentAccordingToBackend));
 
 		public ICoinsView Available() => new CoinsView(Coins.Where(x => x.IsAvailable()));
 

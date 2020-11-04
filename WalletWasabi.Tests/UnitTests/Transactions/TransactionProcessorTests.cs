@@ -211,8 +211,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var relevant = transactionProcessor.Process(tx0, tx1, tx2).Last();
 
 			Assert.False(relevant.IsNews);
-			Assert.Single(transactionProcessor.Coins, coin => coin.Unspent);
-			Assert.Single(transactionProcessor.Coins.AsAllCoinsView(), coin => !coin.Unspent);
+			Assert.Single(transactionProcessor.Coins, coin => !coin.IsSpent());
+			Assert.Single(transactionProcessor.Coins.AsAllCoinsView(), coin => coin.IsSpent());
 
 			// Transaction store assertions
 			Assert.True(transactionProcessor.TransactionStore.ConfirmedStore.IsEmpty());
@@ -280,8 +280,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Equal(1, doubleSpendReceived);
 
 			Assert.True(relevant.IsNews);
-			Assert.Single(transactionProcessor.Coins, coin => coin.Unspent && coin.Confirmed);
-			Assert.Single(transactionProcessor.Coins.AsAllCoinsView(), coin => !coin.Unspent && coin.Confirmed);
+			Assert.Single(transactionProcessor.Coins, coin => !coin.IsSpent() && coin.Confirmed);
+			Assert.Single(transactionProcessor.Coins.AsAllCoinsView(), coin => coin.IsSpent() && coin.Confirmed);
 
 			// Transaction store assertions
 			var matureTxs = transactionProcessor.TransactionStore.ConfirmedStore.GetTransactions();
@@ -612,7 +612,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			Assert.True(relevant.IsNews);
 			var coin = Assert.Single(transactionProcessor.Coins.AsAllCoinsView());
-			Assert.False(coin.Unspent);
+			Assert.True(coin.IsSpent());
 			Assert.NotNull(spentCoin);
 			Assert.Equal(coin, spentCoin);
 

@@ -58,7 +58,7 @@ namespace WalletWasabi.Blockchain.Transactions
 					});
 				}
 
-				if (!coin.Unspent)
+				if (coin.IsSpent())
 				{
 					if (!wallet.BitcoinStore.TransactionStore.TryGetTransaction(coin.SpenderTransactionId, out SmartTransaction foundSpenderTransaction))
 					{

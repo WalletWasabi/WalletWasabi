@@ -915,7 +915,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 						}
 						catch (Exception ex)
 						{
-							if (coinToDequeue.Unspent)
+							if (!coinToDequeue.IsSpent())
 							{
 								exception = ex;
 							}
@@ -924,7 +924,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					else
 					{
 						// If coin is unspent we cannot dequeue.
-						if (coinToDequeue.Unspent)
+						if (!coinToDequeue.IsSpent())
 						{
 							exception = new NotSupportedException($"Cannot deque coin in {round.State.Phase} phase. Coin: {coinToDequeue.Index}:{coinToDequeue.TransactionId}.");
 						}

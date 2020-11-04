@@ -46,7 +46,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 		{
 			lock (StateLock)
 			{
-				return WaitingList.Keys.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Where(x => !x.Unspent).Select(x => x.OutPoint).ToArray();
+				return WaitingList.Keys.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Where(x => x.IsSpent()).Select(x => x.OutPoint).ToArray();
 			}
 		}
 

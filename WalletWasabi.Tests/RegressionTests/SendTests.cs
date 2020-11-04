@@ -131,7 +131,7 @@ namespace WalletWasabi.Tests.RegressionTests
 					Assert.False(coin.CoinJoinInProgress);
 					Assert.True(coin.Confirmed);
 					Assert.Null(coin.SpenderTransactionId);
-					Assert.True(coin.Unspent);
+					Assert.True(!coin.IsSpent());
 				}
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());

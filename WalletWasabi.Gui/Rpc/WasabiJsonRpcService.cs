@@ -31,7 +31,7 @@ namespace WalletWasabi.Gui.Rpc
 		{
 			AssertWalletIsLoaded();
 			var serverTipHeight = ActiveWallet.BitcoinStore.SmartHeaderChain.ServerTipHeight;
-			return ActiveWallet.Coins.Where(x => x.Unspent).Select(x => new
+			return ActiveWallet.Coins.Where(x => !x.IsSpent()).Select(x => new
 			{
 				txid = x.TransactionId.ToString(),
 				index = x.Index,
@@ -70,7 +70,7 @@ namespace WalletWasabi.Gui.Rpc
 				accountKeyPath = $"m/{km.AccountKeyPath}",
 				masterKeyFingerprint = km.MasterFingerprint?.ToString() ?? "",
 				balance = ActiveWallet.Coins
-							.Where(c => c.Unspent && !c.SpentAccordingToBackend)
+							.Where(c => !c.IsSpent() && !c.SpentAccordingToBackend)
 							.Sum(c => c.Amount.Satoshi)
 			};
 		}
