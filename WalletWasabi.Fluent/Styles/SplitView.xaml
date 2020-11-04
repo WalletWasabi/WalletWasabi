@@ -1,4 +1,10 @@
-<Styles xmlns="https://github.com/avaloniaui">
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:sys="clr-namespace:System;assembly=netstandard"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Styles.Resources>
+    <sys:Double x:Key="SplitViewCollapseThreshold">750</sys:Double>
+    <sys:Double x:Key="SplitViewCompactPaneLength">46</sys:Double>
+  </Styles.Resources>
   <Style Selector="SplitView">
     <Setter Property="CompactPaneLength" Value="{StaticResource SplitViewCompactPaneLength}" />
     <Setter Property="OpenPaneLength" Value="320" />
