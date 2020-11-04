@@ -8,13 +8,13 @@ namespace WalletWasabi.Crypto
 {
 	public class GroupElementVector : IEnumerable<GroupElement>
 	{
-		public GroupElementVector(IEnumerable<GroupElement> groupElements)
+		internal GroupElementVector(IEnumerable<GroupElement> groupElements)
 		{
 			Guard.NotNullOrEmpty(nameof(groupElements), groupElements);
 			GroupElements = groupElements.ToArray();
 		}
 
-		public GroupElementVector(params GroupElement[] groupElements)
+		internal GroupElementVector(params GroupElement[] groupElements)
 			: this(groupElements as IEnumerable<GroupElement>)
 		{
 		}
