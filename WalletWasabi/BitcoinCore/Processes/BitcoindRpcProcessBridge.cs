@@ -20,7 +20,7 @@ namespace WalletWasabi.BitcoinCore.Processes
 		public const string PidFileName = "bitcoin.pid";
 
 		/// <summary>Experimentally found constant.</summary>
-		private readonly TimeSpan ReasonableCoreShutdownTimeout = TimeSpan.FromSeconds(21);
+		private readonly TimeSpan _reasonableCoreShutdownTimeout = TimeSpan.FromSeconds(21);
 
 		public BitcoindRpcProcessBridge(IRPCClient rpcClient, string dataDir, bool printToConsole)
 		{
@@ -128,7 +128,7 @@ namespace WalletWasabi.BitcoinCore.Processes
 
 			ProcessAsync process = Process; // process is guaranteed to be non-null at this point.
 
-			using var cts = new CancellationTokenSource(ReasonableCoreShutdownTimeout);
+			using var cts = new CancellationTokenSource(_reasonableCoreShutdownTimeout);
 			int? pid = await PidFile.TryReadAsync().ConfigureAwait(false);
 
 			// If the cached PID is PID, then we own the process.
