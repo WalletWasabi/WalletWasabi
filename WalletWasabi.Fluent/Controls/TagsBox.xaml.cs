@@ -108,11 +108,7 @@ namespace WalletWasabi.Fluent.Controls
 
             if (_isFocused)
             {
-	            Dispatcher.UIThread.Post(
-		            () =>
-		            {
-			            _autoCompleteBox.Focus();
-		            });
+	            Dispatcher.UIThread.Post(() => _autoCompleteBox.Focus());
             }
         }
 
@@ -200,7 +196,7 @@ namespace WalletWasabi.Fluent.Controls
             BackspaceLogicClear();
             autoCompleteBox.ClearValue(AutoCompleteBox.SelectedItemProperty);
 
-            Dispatcher.UIThread.Post(() => { autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); });
+            Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
         }
 
         private void BackspaceLogicClear()
@@ -243,16 +239,14 @@ namespace WalletWasabi.Fluent.Controls
 
             BackspaceLogicClear();
 
-            Dispatcher.UIThread.Post(() => { autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); });
+            Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
         }
 
         private void OnKeyUp(object? sender, KeyEventArgs e)
         {
-            var autoCompleteBox = sender as AutoCompleteBox;
-
-            if (autoCompleteBox is null)
+            if (!(sender is AutoCompleteBox autoCompleteBox))
             {
-	            return;
+                return;
             }
 
             var currentText = autoCompleteBox.Text ?? "";
@@ -278,7 +272,7 @@ namespace WalletWasabi.Fluent.Controls
 
                     BackspaceLogicClear();
                     SelectTag(currentText);
-                    Dispatcher.UIThread.Post(() => { autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); });
+                    Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
                     break;
             }
         }
