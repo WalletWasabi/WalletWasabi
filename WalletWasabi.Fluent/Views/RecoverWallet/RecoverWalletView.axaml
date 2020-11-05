@@ -19,29 +19,44 @@
         <c:ContentArea Title="Enter recovery words" Caption="Type in your 12 recovery words and click Continue."
                        Margin="44 0">
             <StackPanel>
-                <Label Content="_Type in your recovery words here:" Target="seedTagsBox" />
-                <c:TagsBox x:Name="seedTagsBox"
-                           ItemCountLimit="12"
-                           RestrictInputToSuggestions="True"
-                           Items="{Binding Mnemonics}"
-                           Suggestions="{Binding Suggestions}"
-                           SelectedTag="{Binding SelectedTag}">
-                    <i:Interaction.Behaviors>
-                        <behaviors:FocusOnAttachedBehavior />
-                    </i:Interaction.Behaviors>
-                </c:TagsBox>
-                <Button HorizontalAlignment="Left" Classes="plain" Margin="0,20,0,0" Command="{Binding AdvancedRecoveryOptionsDialogCommand}">
-                    <StackPanel Orientation="Horizontal" Spacing="20">
-                        <PathIcon Data="{StaticResource options_regular}" />
-                        <TextBlock Text="Advanced Recovery Options..." />
-                    </StackPanel>
-                </Button>
+                <DockPanel>
+                    <PathIcon Name="IconCheckmark" Classes="checkMark" Margin="15 42 0 0" VerticalAlignment="Top"
+                              DockPanel.Dock="Right"
+                              Opacity="{Binding FinishCommandCanExecute}" />
+                    <Label Content="_Type in your recovery words here:" Target="seedTagsBox" DockPanel.Dock="Top" />
+                    <c:TagsBox x:Name="seedTagsBox"
+                               DockPanel.Dock="Top"
+                               ItemCountLimit="12"
+                               RestrictInputToSuggestions="True"
+                               Items="{Binding Mnemonics}"
+                               Suggestions="{Binding Suggestions}"
+                               SelectedTag="{Binding SelectedTag}">
+                        <i:Interaction.Behaviors>
+                            <behaviors:FocusOnAttachedBehavior />
+                            <behaviors:FocusNextTargetViaBoolean TargetControl="BtFinished"
+                                                                 FocusOnTarget="{Binding FinishCommandCanExecute}" />
+                        </i:Interaction.Behaviors>
+                    </c:TagsBox>
+                </DockPanel>
+
+                <StackPanel HorizontalAlignment="Right" Margin="0,20,0,0" Orientation="Horizontal">
+                    <Button Classes="plain obscured"
+                            Command="{Binding AdvancedRecoveryOptionsDialogCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="20">
+                            <PathIcon Data="{StaticResource options_regular}" />
+                            <TextBlock Text="Advanced Recovery Options..." />
+                        </StackPanel>
+                    </Button>
+                    <Panel Margin="15,0,0,0" Width="{Binding #IconCheckmark.Bounds.Width}" Height="1" />
+                </StackPanel>
             </StackPanel>
         </c:ContentArea>
- 
+
         <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="invisible" HorizontalAlignment="Left"
                 VerticalAlignment="Bottom" />
-        <Button Content="Restore" Command="{Binding FinishCommand}" Classes="action" HorizontalAlignment="Right"
+
+        <Button Name="BtFinished" Content="Restore" Command="{Binding FinishCommand}" Classes="action"
+                HorizontalAlignment="Right"
                 VerticalAlignment="Bottom" />
     </Panel>
 </UserControl>

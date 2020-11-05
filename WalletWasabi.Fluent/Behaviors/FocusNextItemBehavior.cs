@@ -46,5 +46,6 @@ namespace WalletWasabi.Fluent.Behaviors
 					})
 				.DisposeWith(disposables);
 		}
+
 	}
 }

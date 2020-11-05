@@ -20,6 +20,7 @@ namespace WalletWasabi.Fluent.ViewModels.RecoverWallet
 	public class RecoverWalletViewModel : RoutableViewModel
 	{
 		private readonly ObservableAsPropertyHelper<Mnemonic?> _currentMnemonic;
+		private readonly ObservableAsPropertyHelper<bool> _finishCommandCanExecute;
 		private string? _selectedTag;
 		private IEnumerable<string>? _suggestions;
 
@@ -58,13 +59,12 @@ namespace WalletWasabi.Fluent.ViewModels.RecoverWallet
 					}
 				});
 
-			var finishCommandCanExecute = this.WhenAnyValue(
+			_finishCommandCanExecute = this.WhenAnyValue(
 					x => x.CurrentMnemonics,
 					x => x.AccountKeyPath,
 					x => x.MinGapLimit,
 					delegate
 					{
-						// This will fire validations before return canExecute value.
 						this.RaisePropertyChanged(nameof(CurrentMnemonics));
 						this.RaisePropertyChanged(nameof(AccountKeyPath));
 						this.RaisePropertyChanged(nameof(MinGapLimit));
@@ -72,6 +72,10 @@ namespace WalletWasabi.Fluent.ViewModels.RecoverWallet
 						return CurrentMnemonics is { } && (CurrentMnemonics?.IsValidChecksum ?? false) &&
 						       !Validations.Any;
 					})
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.ToProperty(this, x => x.FinishCommandCanExecute);
+
+			var finishCommandCanExecute = this.WhenAnyValue(x => x.FinishCommandCanExecute)
 				.ObserveOn(RxApp.MainThreadScheduler);
 
 			FinishCommand = ReactiveCommand.CreateFromTask(
@@ -155,6 +159,8 @@ namespace WalletWasabi.Fluent.ViewModels.RecoverWallet
 			get => _selectedTag;
 			set => this.RaiseAndSetIfChanged(ref _selectedTag, value);
 		}
+
+		public bool FinishCommandCanExecute => _finishCommandCanExecute.Value;
 
 		private Mnemonic? CurrentMnemonics => _currentMnemonic.Value;
 
