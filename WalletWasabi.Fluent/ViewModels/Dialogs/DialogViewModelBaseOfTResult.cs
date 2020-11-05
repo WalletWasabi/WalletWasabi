@@ -13,14 +13,14 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 	/// <typeparam name="TResult">The type of the value to be returned when the dialog is finished.</typeparam>
 	public abstract class DialogViewModelBase<TResult> : DialogViewModelBase
 	{
-		private readonly IDisposable Disposable;
-		private readonly TaskCompletionSource<TResult> CurrentTaskCompletionSource;
+		private readonly IDisposable _disposable;
+		private readonly TaskCompletionSource<TResult> _currentTaskCompletionSource;
 
 		protected DialogViewModelBase()
 		{
-			CurrentTaskCompletionSource = new TaskCompletionSource<TResult>();
+			_currentTaskCompletionSource = new TaskCompletionSource<TResult>();
 
-			Disposable = this.WhenAnyValue(x => x.IsDialogOpen)
+			_disposable = this.WhenAnyValue(x => x.IsDialogOpen)
 							  .Skip(1) // Skip the initial value change (which is false).
 							  .DistinctUntilChanged()
 							  .Subscribe(OnIsDialogOpenChanged);
@@ -42,14 +42,14 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		/// <param name="value">The return value of the dialog</param>
 		protected void Close(TResult value = default)
 		{
-			if (CurrentTaskCompletionSource.Task.IsCompleted)
+			if (_currentTaskCompletionSource.Task.IsCompleted)
 			{
 				throw new InvalidOperationException("Dialog is already closed.");
 			}
 
-			CurrentTaskCompletionSource.SetResult(value);
+			_currentTaskCompletionSource.SetResult(value);
 
-			Disposable.Dispose();
+			_disposable.Dispose();
 
 			IsDialogOpen = false;
 
@@ -60,17 +60,21 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		/// Shows the dialog.
 		/// </summary>
 		/// <returns>The value to be returned when the dialog is finished.</returns>
-		public Task<TResult> ShowDialogAsync(IDialogHost host = null)
+		public Task<TResult> ShowDialogAsync(IDialogHost? host = null)
 		{
 			if (host is null)
 			{
 				host = MainViewModel.Instance;
 			}
 
-			host.CurrentDialog = this;
+			if (host is { })
+			{
+				host.CurrentDialog = this;
+			}
+
 			IsDialogOpen = true;
 
-			return CurrentTaskCompletionSource.Task;
+			return _currentTaskCompletionSource.Task;
 		}
 
 		/// <summary>

@@ -1,4 +1,3 @@
-using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -6,7 +5,7 @@ using Avalonia.Controls.Primitives;
 namespace WalletWasabi.Fluent.Controls
 {
 	/// <summary>
-	/// Manages and hosts dialogs when it's bound to <see cref="IContent"/> objects.
+	/// A simple overlay Dialog control.
 	/// </summary>
 	public class Dialog : ContentControl
 	{
