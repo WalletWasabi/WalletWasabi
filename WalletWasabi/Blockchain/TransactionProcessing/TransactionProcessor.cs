@@ -125,7 +125,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 							// if the received transaction is spending at least one input already
 							// spent by a previous unconfirmed transaction signaling RBF then it is not a double
 							// spending transaction but a replacement transaction.
-							var isReplacementTx = doubleSpends.Any(x => x.IsReplaceable && !x.Confirmed);
+							var isReplacementTx = doubleSpends.Any(x => x.IsReplaceable());
 							if (isReplacementTx)
 							{
 								// Undo the replaced transaction by removing the coins it created (if other coin
@@ -201,7 +201,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 							anonset += spentOwnCoins.Min(x => x.AnonymitySet) - 1;
 						}
 
-						SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToOutPoints().ToArray(), tx.Height, tx.IsRBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Do not inherit locked status from key, that's different.
+						SmartCoin newCoin = new SmartCoin(tx, i, foundKey, anonset);
 
 						result.ReceivedCoins.Add(newCoin);
 						// If we did not have it.
@@ -233,12 +233,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					}
 				}
 
-				var isLikelyCj = false;
-				if (tx.Transaction.Inputs.Count > 1 // The tx must have more than one input in order to be a coinjoin.
-					&& tx.Transaction.HasIndistinguishableOutputs()) // The tx must have more than one equal output in order to be a coinjoin.
-				{
-					isLikelyCj = true;
-				}
+				bool? isLikelyCj = null;
 
 				var prevOutSet = tx.Transaction.Inputs.Select(x => x.PrevOut).ToHashSet();
 				foreach (var coin in Coins.AsAllCoinsView())
@@ -246,13 +241,12 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					// If spends any of our coin
 					if (prevOutSet.TryGetValue(coin.OutPoint, out OutPoint input))
 					{
-						var alreadyKnown = coin.SpenderTransactionId == txId;
-						coin.SpenderTransactionId = txId;
+						var alreadyKnown = coin.SpenderTransaction == tx;
 						result.SpentCoins.Add(coin);
 
 						if (!alreadyKnown)
 						{
-							Coins.Spend(coin);
+							Coins.Spend(coin, tx);
 							result.NewlySpentCoins.Add(coin);
 						}
 
@@ -261,17 +255,9 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 							result.NewlyConfirmedSpentCoins.Add(coin);
 						}
 
-						if (isLikelyCj)
-						{
-							result.IsLikelyOwnCoinJoin = true;
-						}
+						isLikelyCj ??= tx.Transaction.IsLikelyCoinjoin();
+						result.IsLikelyOwnCoinJoin = isLikelyCj is true;
 					}
-				}
-
-				foreach (var coin in result.ReceivedCoins)
-				{
-					// May be too late to set it at this point. It'd be better to set at the constructor, but couldn't find a way without ruining performance.
-					coin.IsLikelyCoinJoinOutput = result.IsLikelyOwnCoinJoin;
 				}
 
 				if (result.IsNews)

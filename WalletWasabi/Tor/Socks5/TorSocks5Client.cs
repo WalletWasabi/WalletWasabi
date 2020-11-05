@@ -124,11 +124,7 @@ namespace WalletWasabi.Tor.Socks5
 			// username / password fields of this message to be empty. This technically
 			// violates RFC1929[4], but ensures interoperability with somewhat broken
 			// SOCKS5 client implementations.
-			string identity = isolateStream ? RandomString.CapitalAlphaNumeric(21) : "default";
-
-			MethodsField methods = string.IsNullOrWhiteSpace(identity)
-				? new MethodsField(MethodField.NoAuthenticationRequired)
-				: new MethodsField(MethodField.UsernamePassword);
+			var methods = new MethodsField(isolateStream ? MethodField.UsernamePassword : MethodField.NoAuthenticationRequired);
 
 			byte[] sendBuffer = new VersionMethodRequest(methods).ToBytes();
 			byte[] receiveBuffer = await SendAsync(sendBuffer, receiveBufferSize: 2, cancellationToken).ConfigureAwait(false);
@@ -154,6 +150,7 @@ namespace WalletWasabi.Tor.Socks5
 				// Username / Password Authentication protocol, the Username / Password
 				// sub-negotiation begins. This begins with the client producing a
 				// Username / Password request:
+				var identity = RandomString.CapitalAlphaNumeric(21);
 				var uName = new UNameField(uName: identity);
 				var passwd = new PasswdField(passwd: identity);
 				var usernamePasswordRequest = new UsernamePasswordRequest(uName, passwd);
