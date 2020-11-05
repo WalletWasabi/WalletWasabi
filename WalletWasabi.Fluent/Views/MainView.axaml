@@ -49,8 +49,8 @@
         </DockPanel>
       </Panel>
     </SplitView>
-    <c:Dialog DataContext="{Binding DialogScreen}" IsDialogOpen="{Binding IsDialogVisible, Mode=TwoWay}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-      <rxui:RoutedViewHost Router="{Binding Router}" MaxWidth="800" MaxHeight="700" Margin="40">
+    <c:Dialog MaxContentWidth="800" MaxContentHeight="700" DataContext="{Binding DialogScreen}" IsDialogOpen="{Binding IsDialogVisible, Mode=TwoWay}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+      <rxui:RoutedViewHost Router="{Binding Router}">
         <rxui:RoutedViewHost.ViewLocator>
           <vl:ScreenViewLocator />
         </rxui:RoutedViewHost.ViewLocator>
