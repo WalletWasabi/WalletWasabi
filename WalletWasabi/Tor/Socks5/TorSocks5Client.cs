@@ -126,11 +126,7 @@ namespace WalletWasabi.Tor.Socks5
 			// SOCKS5 client implementations.
 			string identity = isolateStream ? RandomString.CapitalAlphaNumeric(21) : "default";
 
-			MethodsField methods = string.IsNullOrWhiteSpace(identity)
-				? new MethodsField(MethodField.NoAuthenticationRequired)
-				: new MethodsField(MethodField.UsernamePassword);
-
-			byte[] sendBuffer = new VersionMethodRequest(methods).ToBytes();
+			byte[] sendBuffer = new VersionMethodRequest(new MethodsField(MethodField.UsernamePassword)).ToBytes();
 			byte[] receiveBuffer = await SendAsync(sendBuffer, receiveBufferSize: 2, cancellationToken).ConfigureAwait(false);
 
 			var methodSelection = new MethodSelectionResponse(receiveBuffer);
