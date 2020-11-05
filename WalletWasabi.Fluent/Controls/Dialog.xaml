@@ -13,8 +13,8 @@
     <Setter Property="Template">
       <ControlTemplate>
         <Panel>
-          <Panel Background="{DynamicResource DialogOverlayColor}" Name="PART_Overlay" />
-          <Panel Name="PART_DialogHost" VerticalAlignment="{TemplateBinding VerticalAlignment}" HorizontalAlignment="{TemplateBinding HorizontalAlignment}" Margin="40">
+          <Panel Background="{DynamicResource DialogOverlayColor}" Name="PART_Overlay" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
+          <Panel Name="PART_DialogHost" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="40">
             <Border CornerRadius="4" BoxShadow="{DynamicResource DialogBoxShadow}"
                     Background="{DynamicResource DialogBackground}"
                     MaxWidth="{TemplateBinding MaxContentWidth}" MaxHeight="{TemplateBinding MaxContentHeight}" Margin="40">
@@ -25,8 +25,8 @@
                                 ContentTemplate="{TemplateBinding ContentTemplate}"
                                 Content="{TemplateBinding Content}"
                                 Padding="{TemplateBinding Padding}"
-                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+                                VerticalContentAlignment="Stretch"
+                                HorizontalContentAlignment="Stretch"/>
             </Border>
           </Panel>
         </Panel>
