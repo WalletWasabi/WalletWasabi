@@ -41,7 +41,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			Coin = new Coin(transaction.Transaction, outputIndex);
 			HashCode = (TransactionId, Index).GetHashCode();
 			Height = transaction.Height;
-			WasReplaceable = Transaction.IsRBF;
 			AnonymitySet = Guard.InRangeAndNotNull(nameof(anonymitySet), anonymitySet, 1, int.MaxValue);
 
 			HdPubKey = pubKey;
@@ -79,8 +78,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 				}
 			}
 		}
-
-		public bool WasReplaceable { get; }
 
 		public int AnonymitySet
 		{
@@ -176,7 +173,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		/// </summary>
 		public bool IsAvailable() => SpenderTransaction is null && !SpentAccordingToBackend && !CoinJoinInProgress;
 
-		public bool IsReplaceable() => WasReplaceable && !Confirmed;
+		public bool IsReplaceable() => Transaction.IsRBF;
 
 		#endregion Methods
 
