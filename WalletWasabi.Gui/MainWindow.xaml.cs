@@ -105,12 +105,10 @@ namespace WalletWasabi.Gui
 				await Dispatcher.UIThread.InvokeAsync(async () =>
 				{
 					// Safety check if it was closed meanwhile synchronization.
-					if (IsClosed)
+					if (!IsClosed)
 					{
-						return;
+						await ClosingAsync(tryToDequeue).ConfigureAwait(false);
 					}
-
-					await ClosingAsync(tryToDequeue).ConfigureAwait(false);
 				}).ConfigureAwait(false);
 				return;
 			}
