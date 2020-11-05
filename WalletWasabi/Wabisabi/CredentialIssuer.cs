@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -30,7 +30,7 @@ namespace WalletWasabi.Wabisabi
 	/// Additionally it keeps also track of the `balance` in order to make sure it never 
 	/// issues credentials for more money than the total presented amount. All this means
 	/// that the same instance has to be used for a given round (the coordinator needs to
-	/// maintain only one instances of this class per round)
+	/// maintain only one instance of this class per round)
 	/// 
 	/// About replay requests: a replay request is a <see cref="RegistrationRequestMessage">request</see>
 	/// that has already been seen before. These kind of requests can be the result of misbehaving
@@ -136,7 +136,7 @@ namespace WalletWasabi.Wabisabi
 				var Z = presentation.ComputeZ(CoordinatorSecretKey);
 
 				// Add the credential presentation to the statements to be verified.
-				statements.Add(ProofSystem.ShowCredentialStmt(presentation, Z, CoordinatorParameters));
+				statements.Add(ProofSystem.ShowCredentialStatement(presentation, Z, CoordinatorParameters));
 
 				// Check if the serial numbers have been used before. Note that
 				// the serial numbers have not yet been verified at this point, but a
@@ -151,8 +151,8 @@ namespace WalletWasabi.Wabisabi
 			foreach (var credentialRequest in requested)
 			{
 				statements.Add(registrationRequest.IsNullRequest
-					? ProofSystem.ZeroProofStmt(credentialRequest.Ma)
-					: ProofSystem.RangeProofStmt(credentialRequest.Ma, credentialRequest.BitCommitments));
+					? ProofSystem.ZeroProofStatement(credentialRequest.Ma)
+					: ProofSystem.RangeProofStatement(credentialRequest.Ma, credentialRequest.BitCommitments));
 			}
 
 			// Balance proof
@@ -169,7 +169,7 @@ namespace WalletWasabi.Wabisabi
 				var absAmountDelta = new Scalar(registrationRequest.DeltaAmount.Abs());
 				var deltaA = registrationRequest.DeltaAmount < Money.Zero ? absAmountDelta.Negate() : absAmountDelta;
 				var balanceTweak = deltaA * Generators.Gg;
-				statements.Add(ProofSystem.BalanceProofStmt(balanceTweak + sumCa - sumMa));
+				statements.Add(ProofSystem.BalanceProofStatement(balanceTweak + sumCa - sumMa));
 			}
 
 			var transcript = BuildTransnscript(registrationRequest.IsNullRequest);
@@ -203,7 +203,7 @@ namespace WalletWasabi.Wabisabi
 		{
 			var sk = CoordinatorSecretKey;
 			var mac = MAC.ComputeMAC(sk, ma, t);
-			var knowledge = ProofSystem.IssuerParameters(mac, ma, sk);
+			var knowledge = ProofSystem.IssuerParametersKnowledge(mac, ma, sk);
 			return (mac, knowledge);
 		}
 

@@ -1,26 +1,27 @@
 using NBitcoin.Secp256k1;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 {
-	public class Statement
+	internal class Statement
 	{
 		private static GroupElement O = GroupElement.Infinity;
 
-		public Statement(GroupElement publicPoint, IEnumerable<GroupElement> generators)
+		internal Statement(GroupElement publicPoint, IEnumerable<GroupElement> generators)
 			: this(ToTable(generators.Prepend(publicPoint)))
 		{
 		}
 
-		public Statement(params GroupElement[] equation)
+		internal Statement(params GroupElement[] equation)
 			: this(ToTable(equation))
 		{
 		}
 
-		public Statement(GroupElement[,] equations)
+		internal Statement(GroupElement[,] equations)
 		{
 			var terms = equations.GetLength(1);
 			Guard.True(nameof(terms), terms >= 2, $"Invalid {nameof(terms)}. It needs to have at least one generator and one public point.");

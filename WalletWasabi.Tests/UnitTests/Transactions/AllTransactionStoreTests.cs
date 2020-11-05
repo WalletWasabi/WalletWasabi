@@ -88,7 +88,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Empty(txStore.ConfirmedStore.GetTransactions());
 			Assert.Empty(txStore.ConfirmedStore.GetTransactionHashes());
 
-			uint256 txHash = Common.GetRandomSmartTransaction().GetHash();
+			uint256 txHash = Common.RandomSmartTransaction().GetHash();
 			Assert.False(txStore.Contains(txHash));
 			Assert.True(txStore.IsEmpty());
 			Assert.False(txStore.TryGetTransaction(txHash, out _));
@@ -147,7 +147,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Equal(3, txStore.ConfirmedStore.GetTransactionHashes().Count());
 			Assert.False(txStore.IsEmpty());
 
-			uint256 doesntContainTxHash = Common.GetRandomSmartTransaction().GetHash();
+			uint256 doesntContainTxHash = Common.RandomSmartTransaction().GetHash();
 			Assert.False(txStore.Contains(doesntContainTxHash));
 			Assert.False(txStore.TryGetTransaction(doesntContainTxHash, out _));
 
@@ -350,7 +350,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var txStore = new AllTransactionStore(PrepareWorkDir(), network);
 			await txStore.InitializeAsync(ensureBackwardsCompatibility: false);
 
-			var tx = Common.GetRandomSmartTransaction();
+			var tx = Common.RandomSmartTransaction();
 			Assert.False(txStore.TryUpdate(tx));
 
 			// Assert TryUpdate didn't modify anything.
@@ -364,7 +364,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Empty(txStore.ConfirmedStore.GetTransactions());
 			Assert.Empty(txStore.ConfirmedStore.GetTransactionHashes());
 
-			uint256 txHash = Common.GetRandomSmartTransaction().GetHash();
+			uint256 txHash = Common.RandomSmartTransaction().GetHash();
 			Assert.False(txStore.Contains(txHash));
 			Assert.True(txStore.IsEmpty());
 			Assert.False(txStore.TryGetTransaction(txHash, out _));

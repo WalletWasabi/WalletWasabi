@@ -504,7 +504,7 @@ namespace WalletWasabi.Gui
 				bool isReceived = e.NewlyReceivedCoins.Any();
 				bool isConfirmedReceive = e.NewlyConfirmedReceivedCoins.Any();
 				bool isConfirmedSpent = e.NewlyConfirmedReceivedCoins.Any();
-				Money miningFee = e.Transaction.Transaction.GetFee(e.SpentCoins.Select(x => x.GetCoin()).ToArray());
+				Money miningFee = e.Transaction.Transaction.GetFee(e.SpentCoins.Select(x => x.Coin).ToArray());
 				if (isReceived || isSpent)
 				{
 					Money receivedSum = e.NewlyReceivedCoins.Sum(x => x.Amount);
