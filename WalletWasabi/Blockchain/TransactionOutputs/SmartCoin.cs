@@ -38,6 +38,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		public SmartCoin(SmartTransaction transaction, uint outputIndex, HdPubKey pubKey, int anonymitySet)
 		{
 			Transaction = transaction;
+			Transaction.WalletInputs.Add(this);
 			Index = outputIndex;
 			_transactionId = new Lazy<uint256>(() => Transaction.GetHash(), true);
 
@@ -89,7 +90,13 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		public SmartTransaction? SpenderTransaction
 		{
 			get => _spenderTransaction;
-			set => RaiseAndSetIfChanged(ref _spenderTransaction, value);
+			set
+			{
+				if (RaiseAndSetIfChanged(ref _spenderTransaction, value))
+				{
+					value?.WalletOutputs.Add(this);
+				}
+			}
 		}
 
 		public bool CoinJoinInProgress
