@@ -241,7 +241,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					// If spends any of our coin
 					if (prevOutSet.TryGetValue(coin.OutPoint, out OutPoint input))
 					{
-						var alreadyKnown = coin.SpenderTransaction?.GetHash() == txId;
+						var alreadyKnown = coin.SpenderTransaction == tx;
 						result.SpentCoins.Add(coin);
 
 						if (!alreadyKnown)
