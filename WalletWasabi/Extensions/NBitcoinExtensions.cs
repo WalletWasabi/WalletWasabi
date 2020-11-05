@@ -466,7 +466,7 @@ namespace NBitcoin
 		{
 			var mempoolMinFee = (decimal)me.MemPoolMinFee;
 
-			// Make sure to be prepare for mempool spikes.
+			// Make sure to be prepared for mempool spikes.
 			var spikeSanity = mempoolMinFee * 1.5m;
 
 			var sanityFee = FeeRate.Max(new FeeRate(Money.Coins(spikeSanity)), new FeeRate(2m));
