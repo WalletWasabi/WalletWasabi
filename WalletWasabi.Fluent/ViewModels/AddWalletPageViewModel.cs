@@ -26,10 +26,6 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			Title = "Add Wallet";
 
-			BackCommand = ReactiveCommand.Create(() => ClearNavigation());
-
-			CancelCommand = ReactiveCommand.Create(() => ClearNavigation());
-
 			this.WhenAnyValue(x => x.WalletName)
 				.Select(x => !string.IsNullOrWhiteSpace(x))
 				.Subscribe(x => OptionsEnabled = x && !Validations.Any);
@@ -95,9 +91,6 @@ namespace WalletWasabi.Fluent.ViewModels
 		}
 
 		public override string IconName => "add_circle_regular";
-
-		public ICommand BackCommand { get; }
-		public ICommand CancelCommand { get; }
 
 		public string WalletName
 		{

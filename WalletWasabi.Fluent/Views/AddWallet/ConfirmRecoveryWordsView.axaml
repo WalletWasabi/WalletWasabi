@@ -13,6 +13,7 @@
     <KeyBinding Gesture="Enter" Command="{Binding NextCommand}" />
   </UserControl.KeyBindings>
   <c:ContentArea Title="Confirm recovery words" Caption="Type the required recovery words"
+                 EnableBack="True"
                  EnableCancel="True" CancelContent="Cancel"
                  EnableNext="True" NextContent="Continue">
     <ScrollViewer>
