@@ -142,7 +142,7 @@ namespace WalletWasabi.Gui
 
 					if (IoC.Get<IShell>().Documents is { } docs)
 					{
-						foreach (var doc in docs.OfType<WasabiDocumentTabViewModel>().ToArray())
+						foreach (var doc in docs.OfType<WasabiDocumentTabViewModel>())
 						{
 							doc.OnClose();
 							Logger.LogInfo($"ViewModel {doc.Title} was closed.");
