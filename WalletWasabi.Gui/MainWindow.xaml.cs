@@ -90,8 +90,10 @@ namespace WalletWasabi.Gui
 		/// <summary>
 		/// This will try to close the main window of the application.
 		/// </summary>
-		/// <param name="tryToDequeue">If true then the user will get a dialog where a status of the dequing process is shown and the window will be kept open until it successfully finishes. If false then the dequeing process will be handled later at the disposal of the business logic.</param>
-		/// <returns></returns>
+		/// <param name="tryToDequeue">
+		/// If true then the user will get a dialog where a status of the dequeuing process is shown and the window will be kept open until it successfully finishes.
+		/// If false then the dequeuing process will be handled later at the disposal of the business logic.
+		/// </param>/// <returns></returns>
 		public async Task ClosingAsync(bool tryToDequeue)
 		{
 			if (IsClosed)
