@@ -136,7 +136,7 @@ namespace WalletWasabi.Wabisabi
 				var Z = presentation.ComputeZ(CoordinatorSecretKey);
 
 				// Add the credential presentation to the statements to be verified.
-				statements.Add(ProofSystem.ShowCredentialStmt(presentation, Z, CoordinatorParameters));
+				statements.Add(ProofSystem.ShowCredentialStatement(presentation, Z, CoordinatorParameters));
 
 				// Check if the serial numbers have been used before. Note that
 				// the serial numbers have not yet been verified at this point, but a
@@ -151,8 +151,8 @@ namespace WalletWasabi.Wabisabi
 			foreach (var credentialRequest in requested)
 			{
 				statements.Add(registrationRequest.IsNullRequest
-					? ProofSystem.ZeroProofStmt(credentialRequest.Ma)
-					: ProofSystem.RangeProofStmt(credentialRequest.Ma, credentialRequest.BitCommitments));
+					? ProofSystem.ZeroProofStatement(credentialRequest.Ma)
+					: ProofSystem.RangeProofStatement(credentialRequest.Ma, credentialRequest.BitCommitments));
 			}
 
 			// Balance proof
@@ -169,7 +169,7 @@ namespace WalletWasabi.Wabisabi
 				var absAmountDelta = new Scalar(registrationRequest.DeltaAmount.Abs());
 				var deltaA = registrationRequest.DeltaAmount < Money.Zero ? absAmountDelta.Negate() : absAmountDelta;
 				var balanceTweak = deltaA * Generators.Gg;
-				statements.Add(ProofSystem.BalanceProofStmt(balanceTweak + sumCa - sumMa));
+				statements.Add(ProofSystem.BalanceProofStatement(balanceTweak + sumCa - sumMa));
 			}
 
 			var transcript = BuildTransnscript(registrationRequest.IsNullRequest);
@@ -203,7 +203,7 @@ namespace WalletWasabi.Wabisabi
 		{
 			var sk = CoordinatorSecretKey;
 			var mac = MAC.ComputeMAC(sk, ma, t);
-			var knowledge = ProofSystem.IssuerParameters(mac, ma, sk);
+			var knowledge = ProofSystem.IssuerParametersKnowledge(mac, ma, sk);
 			return (mac, knowledge);
 		}
 

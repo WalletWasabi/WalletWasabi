@@ -1,32 +1,35 @@
+using ReactiveUI;
 using System;
+using System.IO;
+using System.Windows.Input;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
-using System.Threading.Tasks;
-using System.Windows.Input;
-using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Fluent.ViewModels.AddWallet;
-using WalletWasabi.Fluent.ViewModels.Dialogs;
-using WalletWasabi.Fluent.ViewModels.RecoverWallet;
-using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
+using WalletWasabi.Stores;
+using NBitcoin;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
+using WalletWasabi.Fluent.ViewModels.AddWallet;
+using System.Threading.Tasks;
+using WalletWasabi.Fluent.ViewModels.RecoverWallet;
+using WalletWasabi.Gui.Validation;
+using WalletWasabi.Models;
+using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
 	public class AddWalletPageViewModel : NavBarItemViewModel
 	{
-		private bool _optionsEnabled;
 		private string _walletName = "";
+		private bool _optionsEnabled;
 
-		public AddWalletPageViewModel(IScreen screen, WalletManager walletManager, BitcoinStore store, Network network)
-			: base(screen)
+		public AddWalletPageViewModel(IScreen screen, WalletManager walletManager, BitcoinStore store, Network network) : base(screen)
 		{
 			Title = "Add Wallet";
 
 			this.WhenAnyValue(x => x.WalletName)
 				.Select(x => !string.IsNullOrWhiteSpace(x))
-				.Subscribe(x => OptionsEnabled = x);
+				.Subscribe(x => OptionsEnabled = x && !Validations.Any);
 
 			RecoverWalletCommand = ReactiveCommand.Create(
 				async () =>
@@ -38,19 +41,19 @@ namespace WalletWasabi.Fluent.ViewModels
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{
-					var result = await PasswordInteraction
-						.Handle("Type your new wallet's password below and click Continue.").ToTask();
+					var result = await PasswordInteraction.Handle("Type your new wallet's password below and click Continue.").ToTask();
 
 					if (result is { } password)
 					{
 						var (km, mnemonic) = await Task.Run(
 							() =>
 							{
-								var walletGenerator =
-									new WalletGenerator(walletManager.WalletDirectories.WalletsDir, network)
-									{
-										TipHeight = store.SmartHeaderChain.TipHeight
-									};
+								var walletGenerator = new WalletGenerator(
+									walletManager.WalletDirectories.WalletsDir,
+									network)
+								{
+									TipHeight = store.SmartHeaderChain.TipHeight
+								};
 								return walletGenerator.GenerateWallet(WalletName, password);
 							});
 
@@ -60,10 +63,37 @@ namespace WalletWasabi.Fluent.ViewModels
 				});
 
 			PasswordInteraction = new Interaction<string, string?>();
-
 			PasswordInteraction.RegisterHandler(
-				async interaction =>
-					interaction.SetOutput(await new EnterPasswordViewModel(interaction.Input).ShowDialogAsync()));
+				async interaction => interaction.SetOutput(await new EnterPasswordViewModel(interaction.Input).ShowDialogAsync()));
+
+			this.ValidateProperty(x => x.WalletName, errors => ValidateWalletName(errors, walletManager, WalletName));
+		}
+
+		private void ValidateWalletName(IValidationErrors errors, WalletManager walletManager, string walletName)
+		{
+			string walletFilePath = Path.Combine(walletManager.WalletDirectories.WalletsDir, $"{walletName}.json");
+
+			if (string.IsNullOrEmpty(walletName))
+			{
+				return;
+			}
+
+			if (PasswordHelper.IsTrimable(walletName, out _))
+			{
+				errors.Add(ErrorSeverity.Error, "Leading and trailing white spaces are not allowed!");
+				return;
+			}
+
+			if (File.Exists(walletFilePath))
+			{
+				errors.Add(ErrorSeverity.Error, $"A wallet named {walletName} already exists. Please try a different name.");
+				return;
+			}
+
+			if (!WalletGenerator.ValidateWalletName(walletName))
+			{
+				errors.Add(ErrorSeverity.Error, "Selected Wallet is not valid. Please try a different name.");
+			}
 		}
 
 		public override string IconName => "add_circle_regular";
@@ -83,7 +113,6 @@ namespace WalletWasabi.Fluent.ViewModels
 		private Interaction<string, string?> PasswordInteraction { get; }
 
 		public ICommand CreateWalletCommand { get; }
-
 		public ICommand RecoverWalletCommand { get; }
 	}
 }
