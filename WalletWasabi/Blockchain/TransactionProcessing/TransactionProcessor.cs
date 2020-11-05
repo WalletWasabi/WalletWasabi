@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
+using WalletWasabi.Blockchain.Analysis.AnonymityEstimation;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -23,6 +24,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
 			Coins = new CoinsRegistry(privacyLevelThreshold);
+			AnonymityEstimator = new AnonymityEstimator(Coins, KeyManager, dustThreshold);
 		}
 
 		public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
@@ -33,6 +35,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 		public KeyManager KeyManager { get; }
 
 		public CoinsRegistry Coins { get; }
+		public AnonymityEstimator AnonymityEstimator { get; }
 		public Money DustThreshold { get; }
 
 		#region Progress
@@ -165,7 +168,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					}
 				}
 
-				List<SmartCoin> spentOwnCoins = null;
+				var ownOutputs = new Dictionary<uint, (TxOut output, HdPubKey hdPubKey)>();
 				for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 				{
 					// If transaction received to any of the wallet keys:
@@ -173,61 +176,56 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					HdPubKey foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
 					if (foundKey is { })
 					{
-						if (!foundKey.IsInternal)
+						ownOutputs.Add(i, (output, foundKey));
+					}
+				}
+				var anonsets = AnonymityEstimator.EstimateAnonymitySets(tx.Transaction, ownOutputs.Keys, updateOtherCoins: true);
+
+				foreach (var outputEntry in ownOutputs)
+				{
+					var index = outputEntry.Key;
+					var output = outputEntry.Value.output;
+					var foundKey = outputEntry.Value.hdPubKey;
+					if (!foundKey.IsInternal)
+					{
+						tx.Label = SmartLabel.Merge(tx.Label, foundKey.Label);
+					}
+
+					foundKey.SetKeyState(KeyState.Used, KeyManager);
+					if (output.Value <= DustThreshold)
+					{
+						result.ReceivedDusts.Add(output);
+						continue;
+					}
+
+					var anonset = anonsets[index];
+
+					SmartCoin newCoin = new SmartCoin(tx, index, foundKey, anonset);
+
+					result.ReceivedCoins.Add(newCoin);
+					// If we did not have it.
+					if (Coins.TryAdd(newCoin))
+					{
+						result.NewlyReceivedCoins.Add(newCoin);
+
+						// Make sure there's always 21 clean keys generated and indexed.
+						KeyManager.AssertCleanKeysIndexed(isInternal: foundKey.IsInternal);
+
+						if (foundKey.IsInternal)
 						{
-							tx.Label = SmartLabel.Merge(tx.Label, foundKey.Label);
+							// Make sure there's always 14 internal locked keys generated and indexed.
+							KeyManager.AssertLockedInternalKeysIndexed(14);
 						}
-
-						foundKey.SetKeyState(KeyState.Used, KeyManager);
-						if (output.Value <= DustThreshold)
+					}
+					else // If we had this coin already.
+					{
+						if (newCoin.Height != Height.Mempool) // Update the height of this old coin we already had.
 						{
-							result.ReceivedDusts.Add(output);
-							continue;
-						}
-
-						spentOwnCoins ??= Coins.OutPoints(tx.Transaction.Inputs).ToList();
-
-						// Get the anonymity set of i-th output in the transaction.
-						var anonset = tx.Transaction.GetAnonymitySet(i);
-						// If we provided inputs to the transaction.
-						if (spentOwnCoins.Count != 0)
-						{
-							// Take the input that we provided with the smallest anonset.
-							// And add that to the base anonset from the tx.
-							// Our smallest anonset input is the relevant here, because this way the common input ownership heuristic is considered.
-							// Take minus 1, because we do not want to count own into the anonset, so...
-							// If the anonset of our UTXO would be 1, and the smallest anonset of our inputs would be 1, too, then we don't make...
-							// The new UTXO's anonset 2, but only 1.
-							anonset += spentOwnCoins.Min(x => x.AnonymitySet) - 1;
-						}
-
-						SmartCoin newCoin = new SmartCoin(tx, i, foundKey, anonset);
-
-						result.ReceivedCoins.Add(newCoin);
-						// If we did not have it.
-						if (Coins.TryAdd(newCoin))
-						{
-							result.NewlyReceivedCoins.Add(newCoin);
-
-							// Make sure there's always 21 clean keys generated and indexed.
-							KeyManager.AssertCleanKeysIndexed(isInternal: foundKey.IsInternal);
-
-							if (foundKey.IsInternal)
+							SmartCoin oldCoin = Coins.AsAllCoinsView().GetByOutPoint(new OutPoint(txId, index));
+							if (oldCoin is { }) // Just to be sure, it is a concurrent collection.
 							{
-								// Make sure there's always 14 internal locked keys generated and indexed.
-								KeyManager.AssertLockedInternalKeysIndexed(14);
-							}
-						}
-						else // If we had this coin already.
-						{
-							if (newCoin.Height != Height.Mempool) // Update the height of this old coin we already had.
-							{
-								SmartCoin oldCoin = Coins.AsAllCoinsView().GetByOutPoint(new OutPoint(txId, i));
-								if (oldCoin is { }) // Just to be sure, it is a concurrent collection.
-								{
-									result.NewlyConfirmedReceivedCoins.Add(newCoin);
-									oldCoin.Height = newCoin.Height;
-								}
+								result.NewlyConfirmedReceivedCoins.Add(newCoin);
+								oldCoin.Height = newCoin.Height;
 							}
 						}
 					}

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.Blockchain.Analysis.AnonymityEstimation;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -86,6 +87,7 @@ namespace WalletWasabi.Wallets
 		/// </summary>
 		public ICoinsView Coins { get; private set; }
 
+		public AnonymityEstimator AnonymityEstimator { get; private set; }
 		public Network Network { get; }
 		public TransactionProcessor TransactionProcessor { get; private set; }
 
@@ -119,6 +121,7 @@ namespace WalletWasabi.Wallets
 
 				TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold, ServiceConfiguration.PrivacyLevelStrong);
 				Coins = TransactionProcessor.Coins;
+				AnonymityEstimator = TransactionProcessor.AnonymityEstimator;
 
 				TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessedAsync;
 				ChaumianClient.OnDequeue += ChaumianClient_OnDequeue;
@@ -209,7 +212,7 @@ namespace WalletWasabi.Wallets
 			IEnumerable<OutPoint> allowedInputs = null,
 			IPayjoinClient payjoinClient = null)
 		{
-			var builder = new TransactionFactory(Network, KeyManager, Coins, BitcoinStore.TransactionStore, password, allowUnconfirmed);
+			var builder = new TransactionFactory(Network, KeyManager, Coins, AnonymityEstimator, BitcoinStore.TransactionStore, password, allowUnconfirmed);
 			return builder.BuildTransaction(
 				payments,
 				feeRateFetcher: () =>

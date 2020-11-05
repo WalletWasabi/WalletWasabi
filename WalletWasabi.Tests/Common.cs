@@ -5,10 +5,12 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.CompilerServices;
+using WalletWasabi.Blockchain.Analysis.AnonymityEstimation;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -76,9 +78,15 @@ namespace WalletWasabi.Tests
 					sameLabelCoin.Cluster = coin.Cluster;
 				}
 			}
-			var coinsView = new CoinsView(scoins);
+			var coinsRegistry = new CoinsRegistry(100);
+			foreach (var c in scoins)
+			{
+				coinsRegistry.TryAdd(c);
+			}
+			var anonimityEstimator = new AnonymityEstimator(coinsRegistry, keyManager, Money.Satoshis(1));
+
 			var transactionStore = new AllTransactionStoreMock(workFolderPath: ".", Network.Main);
-			return new TransactionFactory(Network.Main, keyManager, coinsView, transactionStore, password, allowUnconfirmed);
+			return new TransactionFactory(Network.Main, keyManager, coinsRegistry, anonimityEstimator, transactionStore, password, allowUnconfirmed);
 		}
 
 		public static (string, KeyManager) RandomKeyManager()
@@ -96,6 +104,14 @@ namespace WalletWasabi.Tests
 		public static string GetWorkDir([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
 		{
 			return Path.Combine(DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName);
+		}
+
+		internal static uint256 RandomUint256()
+		{
+			var random = new InsecureRandom();
+			var randomBytes = random.GetBytes(32);
+
+			return new uint256(randomBytes);
 		}
 	}
 }

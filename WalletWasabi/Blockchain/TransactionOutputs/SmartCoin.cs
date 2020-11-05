@@ -18,7 +18,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		#region Fields
 
 		private Height _height;
-		private int _anonymitySet;
+		private double _anonymitySet;
 		private SmartTransaction? _spenderTransaction;
 		private bool _coinJoinInProgress;
 		private DateTimeOffset? _bannedUntilUtc;
@@ -35,13 +35,13 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		#region Constructors
 
-		public SmartCoin(SmartTransaction transaction, uint outputIndex, HdPubKey pubKey, int anonymitySet)
+		public SmartCoin(SmartTransaction transaction, uint outputIndex, HdPubKey pubKey, double anonymitySet)
 		{
 			Transaction = transaction;
 			Coin = new Coin(transaction.Transaction, outputIndex);
 			HashCode = (TransactionId, Index).GetHashCode();
 			Height = transaction.Height;
-			AnonymitySet = Guard.InRangeAndNotNull(nameof(anonymitySet), anonymitySet, 1, int.MaxValue);
+			AnonymitySet = anonymitySet;
 
 			HdPubKey = pubKey;
 
@@ -79,7 +79,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			}
 		}
 
-		public int AnonymitySet
+		public double AnonymitySet
 		{
 			get => _anonymitySet;
 			set => RaiseAndSetIfChanged(ref _anonymitySet, value);

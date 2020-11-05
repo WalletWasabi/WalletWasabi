@@ -681,7 +681,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var tx = Network.RegTest.CreateTransaction();
 			tx.Version = 1;
 			tx.LockTime = LockTime.Zero;
-			tx.Outputs.Add(amount, keys.First().P2wpkhScript);
+			tx.Outputs.Add(amount, keys.Skip(1).First().P2wpkhScript);
 			var txOut = new TxOut(amount, new Key().PubKey.WitHash.ScriptPubKey);
 			tx.Outputs.AddRange(Enumerable.Repeat(txOut, 5)); // 6 indistinguishable txouts
 			tx.Inputs.AddRange(Enumerable.Repeat(new TxIn(GetRandomOutPoint(), Script.Empty), 4));

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
+using WalletWasabi.Blockchain.Analysis.AnonymityEstimation;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -21,12 +22,13 @@ namespace WalletWasabi.Blockchain.Transactions
 	public class TransactionFactory
 	{
 		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
-		public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, AllTransactionStore transactionStore, string password = "", bool allowUnconfirmed = false)
+		public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, AnonymityEstimator anonymityEstimator, AllTransactionStore transactionStore, string password = "", bool allowUnconfirmed = false)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			Coins = Guard.NotNull(nameof(coins), coins);
 			TransactionStore = Guard.NotNull(nameof(transactionStore), transactionStore);
+			AnonymityEstimator = anonymityEstimator;
 			Password = password;
 			AllowUnconfirmed = allowUnconfirmed;
 		}
@@ -37,6 +39,7 @@ namespace WalletWasabi.Blockchain.Transactions
 		public string Password { get; }
 		public bool AllowUnconfirmed { get; }
 		private AllTransactionStore TransactionStore { get; }
+		public AnonymityEstimator AnonymityEstimator { get; }
 
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
@@ -269,6 +272,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			}
 
 			var label = SmartLabel.Merge(payments.Requests.Select(x => x.Label).Concat(spentCoins.Select(x => x.HdPubKey.Label)));
+			var anonsets = AnonymityEstimator.EstimateAnonymitySets(tx);
 			var outerWalletOutputs = new List<Coin>();
 			var innerWalletOutputs = new List<SmartCoin>();
 			var smartTransaction = new SmartTransaction(tx, Height.Unknown, label: SmartLabel.Merge(payments.Requests.Select(x => x.Label)));
@@ -278,8 +282,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				var foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
 				if (foundKey is { })
 				{
-					var anonset = tx.GetAnonymitySet(i) + spentCoins.Min(x => x.AnonymitySet) - 1; // Minus 1, because count own only once.
-					var smartCoin = new SmartCoin(smartTransaction, i, foundKey, anonset);
+					var smartCoin = new SmartCoin(smartTransaction, i, foundKey, anonsets[i]);
 					label = SmartLabel.Merge(label, smartCoin.HdPubKey.Label); // foundKey's label is already added to the coinlabel.
 					innerWalletOutputs.Add(smartCoin);
 				}

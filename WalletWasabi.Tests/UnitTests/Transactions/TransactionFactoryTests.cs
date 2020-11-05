@@ -2,6 +2,7 @@ using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using WalletWasabi.Blockchain.Analysis.AnonymityEstimation;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -211,9 +212,15 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				coin.Cluster = cluster2;
 			}
 
-			var coinsView = new CoinsView(scoins.ToArray());
+			var coinsRegistry = new CoinsRegistry(100);
+			foreach (var c in scoins)
+			{
+				coinsRegistry.TryAdd(c);
+			}
+			var anonimityEstimator = new AnonymityEstimator(coinsRegistry, keyManager, Money.Satoshis(1));
+
 			var transactionStore = new AllTransactionStoreMock(workFolderPath: ".", Network.Main);
-			var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, transactionStore, password);
+			var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsRegistry, anonimityEstimator, transactionStore, password);
 
 			// Two 0.9btc coins are enough
 			var payment = new PaymentIntent(new Key().ScriptPubKey, Money.Coins(1.75m), label: "Sophie");
