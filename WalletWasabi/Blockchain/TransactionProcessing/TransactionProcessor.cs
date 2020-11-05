@@ -233,7 +233,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					}
 				}
 
-				var isLikelyCj = tx.Transaction.IsLikelyCoinjoin();
+				bool? isLikelyCj = null;
 
 				var prevOutSet = tx.Transaction.Inputs.Select(x => x.PrevOut).ToHashSet();
 				foreach (var coin in Coins.AsAllCoinsView())
@@ -255,10 +255,8 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 							result.NewlyConfirmedSpentCoins.Add(coin);
 						}
 
-						if (isLikelyCj)
-						{
-							result.IsLikelyOwnCoinJoin = true;
-						}
+						isLikelyCj ??= tx.Transaction.IsLikelyCoinjoin();
+						result.IsLikelyOwnCoinJoin = isLikelyCj is true;
 					}
 				}
 
