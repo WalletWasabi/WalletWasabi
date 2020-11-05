@@ -13,15 +13,14 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
-	public class ConfirmRecoveryWordsViewModel : ViewModelBase, IRoutableViewModel
+	public class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	{
 		private readonly ReadOnlyObservableCollection<RecoveryWordViewModel> _confirmationWords;
 		private readonly SourceList<RecoveryWordViewModel> _confirmationWordsSourceList;
 
-		public ConfirmRecoveryWordsViewModel(IScreen screen, List<RecoveryWordViewModel> mnemonicWords, KeyManager keyManager, WalletManager walletManager)
+		public ConfirmRecoveryWordsViewModel(NavigationStateViewModel navigationState, List<RecoveryWordViewModel> mnemonicWords, KeyManager keyManager, WalletManager walletManager)
+			: base(navigationState, NavigationTarget.Dialog)
 		{
-			HostScreen = screen;
-
 			_confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
 
 			var finishCommandCanExecute =
@@ -31,13 +30,15 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				.WhenValueChanged(x => x.IsConfirmed)
 				.Select(x => !_confirmationWordsSourceList.Items.Any(x => !x.IsConfirmed));
 
-			FinishCommand = ReactiveCommand.Create(
+			NextCommand = ReactiveCommand.Create(
 				() =>
 				{
 					walletManager.AddWallet(keyManager);
-					screen.Router.NavigationStack.Clear();
+					navigationState.DialogScreen?.Invoke().Router.NavigationStack.Clear();
 				},
 				finishCommandCanExecute);
+
+			CancelCommand = ReactiveCommand.Create(() => navigationState.DialogScreen?.Invoke().Router.NavigationStack.Clear());
 
 			_confirmationWordsSourceList
 				.Connect()
@@ -50,12 +51,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			SelectRandomConfirmationWords(mnemonicWords);
 		}
 
-		public string UrlPathSegment { get; } = "";
-		public IScreen HostScreen { get; }
-
 		public ReadOnlyObservableCollection<RecoveryWordViewModel> ConfirmationWords => _confirmationWords;
 
-		public ICommand FinishCommand { get; }
+		public ICommand NextCommand { get; }
+
+		public ICommand CancelCommand { get; }
 
 		private void SelectRandomConfirmationWords(List<RecoveryWordViewModel> mnemonicWords)
 		{

@@ -7,11 +7,12 @@
              xmlns:local="clr-namespace:WalletWasabi.Fluent.Views"
              xmlns:rxui="clr-namespace:Avalonia.ReactiveUI;assembly=Avalonia.ReactiveUI"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors;assembly=WalletWasabi.Fluent"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.MainView">
   <Panel>
-    <SplitView IsPaneOpen="{Binding NavBar.IsOpen, Mode=TwoWay}">
+    <SplitView IsEnabled="{Binding IsMainContentEnabled}" IsPaneOpen="{Binding NavBar.IsOpen, Mode=TwoWay}">
       <i:Interaction.Behaviors>
         <behaviors:SplitViewAutoBehavior ToggleAction="{Binding NavBar.ToggleAction, Mode=OneWayToSource}"
                                         CollapseOnClickAction="{Binding NavBar.CollapseOnClickAction, Mode=OneWayToSource}"
@@ -43,16 +44,24 @@
               <rxui:RoutedViewHost.PageTransition>
                 <CrossFade Duration="0:0:0.25" />
               </rxui:RoutedViewHost.PageTransition>
-              <rxui:RoutedViewHost.DefaultContent>
-                <TextBlock Text="Default content"
-                          HorizontalAlignment="Center"
-                          VerticalAlignment="Center" />
-              </rxui:RoutedViewHost.DefaultContent>
             </rxui:RoutedViewHost>
           </Panel>
         </DockPanel>
       </Panel>
     </SplitView>
-    <c:Dialog DataContext="{Binding CurrentDialog}" Content="{Binding }" IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}" />
+    <c:Dialog IsEnabled="{Binding $parent.DataContext.IsDialogEnabled}" MaxContentWidth="800" MaxContentHeight="700" DataContext="{Binding DialogScreen}" IsDialogOpen="{Binding IsDialogVisible, Mode=TwoWay}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+      <rxui:RoutedViewHost Router="{Binding Router}">
+        <rxui:RoutedViewHost.ViewLocator>
+          <vl:ScreenViewLocator />
+        </rxui:RoutedViewHost.ViewLocator>
+        <rxui:RoutedViewHost.PageTransition>
+          <CrossFade Duration="0:0:0.25" />
+        </rxui:RoutedViewHost.PageTransition>
+      </rxui:RoutedViewHost>
+    </c:Dialog>
+    <c:Dialog HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+      DataContext="{Binding CurrentDialog}"
+              Content="{Binding }"
+              IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}" />
   </Panel>
 </UserControl>
