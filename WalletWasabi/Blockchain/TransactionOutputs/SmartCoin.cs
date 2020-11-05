@@ -15,8 +15,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 	/// </summary>
 	public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>
 	{
-		#region Fields
-
 		private Height _height;
 		private int _anonymitySet;
 		private SmartTransaction? _spenderTransaction;
@@ -31,15 +29,24 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		private bool _confirmed;
 		private bool _isBanned;
 
-		#endregion Fields
-
-		#region Constructors
+		private Lazy<uint256> _transactionId;
+		private Lazy<OutPoint> _outPoint;
+		private Lazy<TxOut> _txOut;
+		private Lazy<Coin> _coin;
+		private Lazy<int> _hashCode;
 
 		public SmartCoin(SmartTransaction transaction, uint outputIndex, HdPubKey pubKey, int anonymitySet)
 		{
 			Transaction = transaction;
-			Coin = new Coin(transaction.Transaction, outputIndex);
-			HashCode = (TransactionId, Index).GetHashCode();
+			Index = outputIndex;
+			_transactionId = new Lazy<uint256>(() => Transaction.GetHash(), true);
+
+			_outPoint = new Lazy<OutPoint>(() => new OutPoint(TransactionId, Index), true);
+			_txOut = new Lazy<TxOut>(() => Transaction.Transaction.Outputs[Index], true);
+			_coin = new Lazy<Coin>(() => new Coin(OutPoint, TxOut), true);
+
+			_hashCode = new Lazy<int>(() => OutPoint.GetHashCode(), true);
+
 			Height = transaction.Height;
 			AnonymitySet = Guard.InRangeAndNotNull(nameof(anonymitySet), anonymitySet, 1, int.MaxValue);
 
@@ -48,24 +55,18 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			_cluster = new Cluster(this);
 		}
 
-		#endregion Constructors
-
-		#region Properties
-
 		public SmartTransaction Transaction { get; }
+		public uint Index { get; }
+		public uint256 TransactionId => _transactionId.Value;
 
-		public Coin Coin { get; }
+		public OutPoint OutPoint => _outPoint.Value;
+		public TxOut TxOut => _txOut.Value;
+		public Coin Coin => _coin.Value;
 
-		public Script ScriptPubKey => Coin.ScriptPubKey;
+		public Script ScriptPubKey => TxOut.ScriptPubKey;
+		public Money Amount => TxOut.Value;
 
-		public Money Amount => Coin.Amount;
-
-		public OutPoint OutPoint => Coin.Outpoint;
-
-		public uint256 TransactionId => OutPoint.Hash;
-
-		public uint Index => OutPoint.N;
-		private int HashCode { get; }
+		private int HashCode => _hashCode.Value;
 
 		public Height Height
 		{
@@ -137,8 +138,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			set => RaiseAndSetIfChanged(ref _cluster, value);
 		}
 
-		#region DependentProperties
-
 		public bool Confirmed
 		{
 			get => _confirmed;
@@ -151,20 +150,10 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			private set => RaiseAndSetIfChanged(ref _isBanned, value);
 		}
 
-		#endregion DependentProperties
-
-		#region PropertySetters
-
 		public void SetIsBanned()
 		{
 			IsBanned = BannedUntilUtc is { } && BannedUntilUtc > DateTimeOffset.UtcNow;
 		}
-
-		#endregion PropertySetters
-
-		#endregion Properties
-
-		#region Methods
 
 		public bool IsSpent() => SpenderTransaction is { };
 
@@ -174,8 +163,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		public bool IsAvailable() => SpenderTransaction is null && !SpentAccordingToBackend && !CoinJoinInProgress;
 
 		public bool IsReplaceable() => Transaction.IsRBF;
-
-		#endregion Methods
 
 		#region EqualityAndComparison
 
