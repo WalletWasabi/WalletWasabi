@@ -15,7 +15,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 	{
 		private readonly IDisposable Disposable;
 		private readonly TaskCompletionSource<TResult> CurrentTaskCompletionSource;
-		private bool _isDialogOpen;
 
 		protected DialogViewModelBase()
 		{
@@ -25,15 +24,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 							  .Skip(1) // Skip the initial value change (which is false).
 							  .DistinctUntilChanged()
 							  .Subscribe(OnIsDialogOpenChanged);
-		}
-
-		/// <summary>
-		/// Gets or sets if the dialog is opened/closed.
-		/// </summary>
-		public bool IsDialogOpen
-		{
-			get => _isDialogOpen;
-			set => this.RaiseAndSetIfChanged(ref _isDialogOpen, value);
 		}
 
 		private void OnIsDialogOpenChanged(bool dialogState)
