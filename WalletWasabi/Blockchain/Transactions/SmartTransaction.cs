@@ -34,14 +34,16 @@ namespace WalletWasabi.Blockchain.Transactions
 			FirstSeen = firstSeen == default ? DateTimeOffset.UtcNow : firstSeen;
 
 			IsReplacement = isReplacement;
+			WalletInputs = new HashSet<SmartCoin>(Transaction.Inputs.Count);
+			WalletOutputs = new HashSet<SmartCoin>(Transaction.Outputs.Count);
 		}
 
 		#endregion Constructors
 
 		#region Members
 
-		public HashSet<SmartCoin> WalletInputs { get; } = new HashSet<SmartCoin>();
-		public HashSet<SmartCoin> WalletOutputs { get; } = new HashSet<SmartCoin>();
+		public HashSet<SmartCoin> WalletInputs { get; }
+		public HashSet<SmartCoin> WalletOutputs { get; }
 
 		[JsonProperty]
 		[JsonConverter(typeof(TransactionJsonConverter))]

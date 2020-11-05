@@ -38,7 +38,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		public SmartCoin(SmartTransaction transaction, uint outputIndex, HdPubKey pubKey, int anonymitySet)
 		{
 			Transaction = transaction;
-			Transaction.WalletInputs.Add(this);
 			Index = outputIndex;
 			_transactionId = new Lazy<uint256>(() => Transaction.GetHash(), true);
 
@@ -54,6 +53,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			HdPubKey = pubKey;
 
 			_cluster = new Cluster(this);
+			Transaction.WalletInputs.Add(this);
 		}
 
 		public SmartTransaction Transaction { get; }
@@ -66,8 +66,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		public Script ScriptPubKey => TxOut.ScriptPubKey;
 		public Money Amount => TxOut.Value;
-
-		private int HashCode => _hashCode.Value;
 
 		public Height Height
 		{
@@ -177,7 +175,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		public bool Equals(SmartCoin? other) => this == other;
 
-		public override int GetHashCode() => HashCode;
+		public override int GetHashCode() => _hashCode.Value;
 
 		public static bool operator ==(SmartCoin? x, SmartCoin? y)
 		{
@@ -191,7 +189,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			}
 			else
 			{
-				var hashEquals = x.HashCode == y.HashCode;
+				var hashEquals = x.GetHashCode() == y.GetHashCode();
 				return hashEquals && y.TransactionId == x.TransactionId && y.Index == x.Index;
 			}
 		}
