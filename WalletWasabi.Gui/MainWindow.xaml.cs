@@ -73,7 +73,7 @@ namespace WalletWasabi.Gui
 						break;
 
 					case ClosingStateInProgress:
-						// Still closing cancel the progress.
+						// Still closing, cancel the progress.
 						return;
 
 					case ClosingStateClosed:
