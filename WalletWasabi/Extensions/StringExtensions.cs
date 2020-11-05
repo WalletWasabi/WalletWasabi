@@ -60,5 +60,20 @@ namespace System
 			}
 			return me;
 		}
+
+		public static bool IsTrimable(this string? me)
+		{
+			if (me is null)
+			{
+				return false;
+			}
+
+			if (me.Length != me.Trim().Length)
+			{
+				return true;
+			}
+
+			return false;
+		}
 	}
 }
