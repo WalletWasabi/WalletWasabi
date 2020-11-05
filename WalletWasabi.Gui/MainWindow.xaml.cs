@@ -50,7 +50,7 @@ namespace WalletWasabi.Gui
 		}
 
 		private Global Global { get; }
-		public TerminateService TerminateService { get; }
+		private TerminateService TerminateService { get; }
 
 		private void InitializeComponent()
 		{
