@@ -4,9 +4,9 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 {
 	public class Proof
 	{
-		public Proof(GroupElementVector publicNonces, ScalarVector responses)
+		internal Proof(GroupElementVector publicNonces, ScalarVector responses)
 		{
-			CryptoGuard.NotNullOrInfinity(nameof(publicNonces), publicNonces);
+			Guard.NotNullOrInfinity(nameof(publicNonces), publicNonces);
 			Guard.NotNullOrEmpty(nameof(responses), responses);
 
 			PublicNonces = publicNonces;

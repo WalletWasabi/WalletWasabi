@@ -16,7 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		private CompositeDisposable _disposables;
 		private bool _disposedValue;
 
-		public WalletViewModelBase(IScreen screen, Wallet wallet) : base(screen)
+		public WalletViewModelBase(NavigationStateViewModel navigationState, Wallet wallet) : base(navigationState, NavigationTarget.Home)
 		{
 			Wallet = Guard.NotNull(nameof(wallet), wallet);
 

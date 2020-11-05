@@ -31,7 +31,7 @@ namespace WalletWasabi.Crypto
 				cw: W * Generators.Gw + Wp * Generators.Gwp,
 				i: Generators.GV - (X0 * Generators.Gx0 + X1 * Generators.Gx1 + Ya * Generators.Ga));
 
-		public ScalarVector AsScalarVector() =>
+		internal ScalarVector AsScalarVector() =>
 			new ScalarVector(W, Wp, X0, X1, Ya);
 	}
 }

@@ -16,11 +16,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 	{
 		private ObservableCollection<NavBarItemViewModel> _items;
 
-		protected ClosedWalletViewModel(IScreen screen, WalletManager walletManager, Wallet wallet) : base(screen, wallet)
+		protected ClosedWalletViewModel(NavigationStateViewModel navigationState, WalletManager walletManager, Wallet wallet) : base(navigationState, wallet)
 		{
 			_items = new ObservableCollection<NavBarItemViewModel>
 			{
-				new SettingsPageViewModel(screen) { Parent = this }
+				new SettingsPageViewModel(navigationState) { Parent = this }
 			};
 
 			OpenWalletCommand = ReactiveCommand.CreateFromTask(
@@ -58,13 +58,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		public override string IconName => "web_asset_regular";
 
-		public static WalletViewModelBase Create(IScreen screen, WalletManager walletManager, Wallet wallet)
+		public static WalletViewModelBase Create(NavigationStateViewModel navigationState, WalletManager walletManager, Wallet wallet)
 		{
 			return wallet.KeyManager.IsHardwareWallet
-				? new ClosedHardwareWalletViewModel(screen, walletManager, wallet)
+				? new ClosedHardwareWalletViewModel(navigationState, walletManager, wallet)
 				: wallet.KeyManager.IsWatchOnly
-					? new ClosedWatchOnlyWalletViewModel(screen, walletManager, wallet)
-					: new ClosedWalletViewModel(screen, walletManager, wallet);
+					? new ClosedWatchOnlyWalletViewModel(navigationState, walletManager, wallet)
+					: new ClosedWalletViewModel(navigationState, walletManager, wallet);
 		}
 	}
 }

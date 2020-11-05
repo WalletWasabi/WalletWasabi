@@ -9,30 +9,22 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:RecoveryPageViewModel"
              x:Class="WalletWasabi.Fluent.Views.RecoveryPageView">
-    <Panel Margin="25 0 25 20">
-        <Button Classes="invisible" Margin="0 35 0 0" Command="{Binding GoBackCommand}" DockPanel.Dock="Left"
-                HorizontalAlignment="Left" VerticalAlignment="Top">
-            <PathIcon Data="{DynamicResource arrow_left_regular}" />
-        </Button>
-        <c:ContentArea Title="Enter recovery words" Caption="Type in your 12 recovery words and click continue"
-                       Margin="44 0">
-            <StackPanel>
-                <Label Content="_Type in your recovery words here:" Target="seedTagsBox" />
-                <c:TagsBox x:Name="seedTagsBox"
-                           ItemCountLimit="12"
-                           RestrictInputToSuggestions="True"
-                           Items="{CompiledBinding Mnemonics}"
-                           Suggestions="{CompiledBinding Suggestions}"
-                           SelectedTag="{CompiledBinding SelectedTag}">
-                    <i:Interaction.Behaviors>
-                        <behaviors:FocusOnAttachedBehavior />
-                    </i:Interaction.Behaviors>
-                </c:TagsBox>
-            </StackPanel>
-        </c:ContentArea>
-        <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="invisible" HorizontalAlignment="Left"
-                VerticalAlignment="Bottom" />
-        <Button Content="Continue" Command="{Binding FinishCommand}" Classes="action" HorizontalAlignment="Right"
-                VerticalAlignment="Bottom" />
-    </Panel>
+  <c:ContentArea Title="Enter recovery words" Caption="Type in your 12 recovery words and click continue"
+                 EnableBack="True"
+                 EnableCancel="True" CancelContent="Cancel"
+                 EnableNext="True" NextContent="Continue">
+    <StackPanel>
+      <Label Content="_Type in your recovery words here:" Target="seedTagsBox" />
+      <c:TagsBox x:Name="seedTagsBox"
+                 ItemCountLimit="12"
+                 RestrictInputToSuggestions="True"
+                 Items="{CompiledBinding Mnemonics}"
+                 Suggestions="{CompiledBinding Suggestions}"
+                 SelectedTag="{CompiledBinding SelectedTag}">
+        <i:Interaction.Behaviors>
+          <behaviors:FocusOnAttachedBehavior />
+        </i:Interaction.Behaviors>
+      </c:TagsBox>
+    </StackPanel>
+  </c:ContentArea>
 </UserControl>
