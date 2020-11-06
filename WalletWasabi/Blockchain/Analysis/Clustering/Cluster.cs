@@ -20,7 +20,7 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 			Lock = new object();
 			Coins = coins.ToList();
 			CoinsSet = Coins.ToHashSet();
-			_labels = SmartLabel.Merge(Coins.Select(x => x.Label));
+			_labels = SmartLabel.Merge(Coins.Select(x => x.HdPubKey.Label));
 		}
 
 		public SmartLabel Labels
@@ -52,7 +52,7 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 				}
 				if (insertPosition > 0) // at least one element was inserted
 				{
-					Labels = SmartLabel.Merge(Coins.Select(x => x.Label));
+					Labels = SmartLabel.Merge(Coins.Select(x => x.HdPubKey.Label));
 				}
 			}
 		}

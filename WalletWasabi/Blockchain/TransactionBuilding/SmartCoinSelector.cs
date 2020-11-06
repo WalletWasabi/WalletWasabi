@@ -85,7 +85,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 				}
 			}
 
-			return coinsToSpend.Select(c => c.GetCoin());
+			return coinsToSpend.Select(c => c.Coin);
 		}
 	}
 }

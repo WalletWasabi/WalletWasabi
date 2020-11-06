@@ -23,7 +23,8 @@ namespace WalletWasabi.Fluent.ViewModels
 		private string _walletName = "";
 		private bool _optionsEnabled;
 
-		public AddWalletPageViewModel(IScreen screen, WalletManager walletManager, BitcoinStore store, Network network) : base(screen)
+		public AddWalletPageViewModel(NavigationStateViewModel navigationState, WalletManager walletManager,
+			BitcoinStore store, Network network) : base(navigationState, NavigationTarget.Dialog)
 		{
 			Title = "Add Wallet";
 
@@ -31,17 +32,15 @@ namespace WalletWasabi.Fluent.ViewModels
 				.Select(x => !string.IsNullOrWhiteSpace(x))
 				.Subscribe(x => OptionsEnabled = x && !Validations.Any);
 
-			RecoverWalletCommand = ReactiveCommand.Create(
-				async () =>
-				{
-					await screen.Router.Navigate.Execute(
-						new RecoverWalletViewModel(screen, WalletName, network, walletManager));
-				});
+			RecoverWalletCommand = ReactiveCommand.Create(() =>
+					navigationState.DialogScreen?.Invoke().Router.Navigate
+						.Execute(new RecoverWalletViewModel(navigationState, WalletName, network, walletManager)));
 
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{
-					var result = await PasswordInteraction.Handle("Type your new wallet's password below and click Continue.").ToTask();
+					var result = await PasswordInteraction
+						.Handle("Type your new wallet's password below and click Continue.").ToTask();
 
 					if (result is { } password)
 					{
@@ -57,14 +56,15 @@ namespace WalletWasabi.Fluent.ViewModels
 								return walletGenerator.GenerateWallet(WalletName, password);
 							});
 
-						await screen.Router.Navigate.Execute(
-							new RecoveryWordsViewModel(screen, km, mnemonic, walletManager));
+						await navigationState.DialogScreen?.Invoke().Router.Navigate.Execute(
+							new RecoveryWordsViewModel(navigationState, km, mnemonic, walletManager));
 					}
 				});
 
 			PasswordInteraction = new Interaction<string, string?>();
 			PasswordInteraction.RegisterHandler(
-				async interaction => interaction.SetOutput(await new EnterPasswordViewModel(interaction.Input).ShowDialogAsync()));
+				async interaction =>
+					interaction.SetOutput(await new EnterPasswordViewModel(interaction.Input).ShowDialogAsync()));
 
 			this.ValidateProperty(x => x.WalletName, errors => ValidateWalletName(errors, walletManager, WalletName));
 		}
@@ -86,7 +86,8 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			if (File.Exists(walletFilePath))
 			{
-				errors.Add(ErrorSeverity.Error, $"A wallet named {walletName} already exists. Please try a different name.");
+				errors.Add(ErrorSeverity.Error,
+					$"A wallet named {walletName} already exists. Please try a different name.");
 				return;
 			}
 

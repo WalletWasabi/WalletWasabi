@@ -8,38 +8,31 @@
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              d:DesignWidth="600" d:DesignHeight="500"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.RecoveryWordsView">
-  <Panel>
-
-    <c:ContentArea Title="Recovery words"
-                   Caption="Write down the following numbered security words in order. These can be used to recover your wallet in the future. It is very important you keep them in a safe place.">
-      <ItemsControl Items="{Binding MnemonicWords}" HorizontalAlignment="Stretch">
-        <ItemsControl.Styles>
-          <Style Selector="TextBlock">
-            <Setter Property="FontSize" Value="16" />
-            <Setter Property="Height" Value="42" />
-          </Style>
-        </ItemsControl.Styles>
-        <ItemsControl.ItemsPanel>
-          <ItemsPanelTemplate>
-            <WrapPanel MaxHeight="168" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center" />
-          </ItemsPanelTemplate>
-        </ItemsControl.ItemsPanel>
-        <ItemsControl.ItemTemplate>
-          <DataTemplate>
-            <StackPanel Orientation="Horizontal" Margin="20 0">
-              <TextBlock Text="{Binding Index, StringFormat={}{0}.}" />
-              <TextBlock Text="{Binding Word}" FontWeight="SemiBold" Margin="5 0 0 0" />
-            </StackPanel>
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
-    </c:ContentArea>
-
-    <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="invisible" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
-    <Button Content="Continue" Command="{Binding ContinueCommand}" Classes="action" HorizontalAlignment="Right" VerticalAlignment="Bottom">
-      <i:Interaction.Behaviors>
-        <behaviors:FocusOnAttachedBehavior />
-      </i:Interaction.Behaviors>
-    </Button>
-  </Panel>
+  <c:ContentArea Title="Recovery words"
+                 Caption="Write down the following numbered security words in order. These can be used to recover your wallet in the future. It is very important you keep them in a safe place."
+                 EnableCancel="True" CancelContent="Cancel"
+                 EnableBack="True"
+                 EnableNext="True" NextContent="Continue" FocusNext="True">
+    <ItemsControl Items="{Binding MnemonicWords}" HorizontalAlignment="Stretch">
+      <ItemsControl.Styles>
+        <Style Selector="TextBlock">
+          <Setter Property="FontSize" Value="16" />
+          <Setter Property="Height" Value="42" />
+        </Style>
+      </ItemsControl.Styles>
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <WrapPanel MaxHeight="168" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center" />
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      <ItemsControl.ItemTemplate>
+        <DataTemplate>
+          <StackPanel Orientation="Horizontal" Margin="20 0">
+            <TextBlock Text="{Binding Index, StringFormat={}{0}.}" />
+            <TextBlock Text="{Binding Word}" FontWeight="SemiBold" Margin="5 0 0 0" />
+          </StackPanel>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+  </c:ContentArea>
 </UserControl>

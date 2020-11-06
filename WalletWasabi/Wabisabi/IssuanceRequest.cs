@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using WalletWasabi.Crypto.Groups;
 
 namespace WalletWasabi.Wabisabi
 {
 	/// <summary>
-	/// Represents a request for issuance a new credential.
+	/// Represents a request for issuing a new credential.
 	/// </summary>
 	public class IssuanceRequest
 	{
