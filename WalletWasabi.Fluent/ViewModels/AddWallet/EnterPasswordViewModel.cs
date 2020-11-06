@@ -56,7 +56,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 					await navigationState.DialogScreen?.Invoke().Router.Navigate.Execute(
 						new RecoveryWordsViewModel(navigationState, km, mnemonic, walletManager));
-				}, nextCommandCanExecute);
+				},
+				nextCommandCanExecute);
 		}
 
 		public string? Password
