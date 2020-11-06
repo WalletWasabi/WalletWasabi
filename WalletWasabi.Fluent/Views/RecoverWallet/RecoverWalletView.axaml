@@ -22,13 +22,13 @@
                           Opacity="{Binding FinishCommandCanExecute}" />
                 <Label Content="_Type in your recovery words here:" Target="SeedTagsBox" DockPanel.Dock="Top" />
                 <c:TagsBox x:Name="SeedTagsBox"
-                           CompletedCommand="{Binding NextCommand}"
                            DockPanel.Dock="Top"
                            ItemCountLimit="12"
                            RestrictInputToSuggestions="True"
                            Items="{Binding Mnemonics}"
                            Suggestions="{Binding Suggestions}"
-                           SelectedTag="{Binding SelectedTag}">
+                           SelectedTag="{Binding SelectedTag}"
+                           CompletedCommand="{Binding NextCommand}">
                     <i:Interaction.Behaviors>
                         <behaviors:FocusOnAttachedBehavior />
                     </i:Interaction.Behaviors>
