@@ -241,8 +241,8 @@ namespace WalletWasabi.Tor.Http
 
 			Stream transportStream = TorSocks5Client.GetTransportStream();
 
-			await transportStream.WriteAsync(bytes, 0, bytes.Length).ConfigureAwait(false);
-			await transportStream.FlushAsync().ConfigureAwait(false);
+			await transportStream.WriteAsync(bytes, 0, bytes.Length, cancel).ConfigureAwait(false);
+			await transportStream.FlushAsync(cancel).ConfigureAwait(false);
 
 			return await HttpResponseMessageExtensions.CreateNewAsync(transportStream, request.Method).ConfigureAwait(false);
 		}
