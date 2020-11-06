@@ -16,7 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		private readonly IDisposable _disposable;
 		private readonly TaskCompletionSource<TResult> _currentTaskCompletionSource;
 
-		protected DialogViewModelBase()
+		protected DialogViewModelBase(NavigationStateViewModel navigationState, NavigationTarget navigationTarget) : base(navigationState, navigationTarget)
 		{
 			_currentTaskCompletionSource = new TaskCompletionSource<TResult>();
 

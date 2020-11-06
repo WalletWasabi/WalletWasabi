@@ -30,7 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			ConfirmSetting.RegisterHandler(
 				async interaction =>
 				{
-					var x = new TestDialogViewModel(navigationState, interaction.Input);
+					var x = new TestDialogViewModel(navigationState, NavigationTarget.Default, interaction.Input);
 					var result = await x.ShowDialogAsync(navigationState.DialogHost());
 					interaction.SetOutput(result);
 				});
@@ -52,6 +52,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				}
 			});
 		}
+
 		public ICommand NextCommand { get; }
 
 		public ICommand OpenDialogCommand { get; }

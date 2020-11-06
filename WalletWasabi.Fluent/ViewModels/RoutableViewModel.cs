@@ -60,7 +60,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public ICommand BackCommand { get; protected set; }
 
-		public ICommand CancelCommand { get; }
+		public ICommand CancelCommand { get; protected set; }
 
 		public void GoBack()
 		{

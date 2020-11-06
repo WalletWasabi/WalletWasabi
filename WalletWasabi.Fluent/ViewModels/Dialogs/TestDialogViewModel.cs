@@ -8,7 +8,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		private NavigationStateViewModel _navigationState;
 		private string _message;
 
-		public TestDialogViewModel(NavigationStateViewModel navigationState, string message)
+		public TestDialogViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget, string message) : base(navigationState, navigationTarget)
 		{
 			_navigationState = navigationState;
 			_message = message;
@@ -23,7 +23,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			set => this.RaiseAndSetIfChanged(ref _message, value);
 		}
 
-		public ICommand CancelCommand { get; }
 		public ICommand NextCommand { get; }
 
 		protected override void OnDialogClosed()

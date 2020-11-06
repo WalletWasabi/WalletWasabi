@@ -58,7 +58,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			PasswordInteraction = new Interaction<string, string?>();
 			PasswordInteraction.RegisterHandler(
-				async interaction => interaction.SetOutput(await new EnterPasswordViewModel().ShowDialogAsync()));
+				async interaction => interaction.SetOutput(await new EnterPasswordViewModel(navigationState, NavigationTarget.Default).ShowDialogAsync()));
 
 			this.ValidateProperty(x => x.WalletName, errors => ValidateWalletName(errors, walletManager, WalletName));
 		}
