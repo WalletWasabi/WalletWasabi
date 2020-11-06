@@ -1,20 +1,12 @@
-using Nito.AsyncEx;
 using System;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
-using WalletWasabi.Tor.Exceptions;
-using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.Tor.Http.Interfaces;
 using WalletWasabi.Tor.Socks5;
-using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 
 namespace WalletWasabi.Tor.Http
 {
@@ -45,8 +37,6 @@ namespace WalletWasabi.Tor.Http
 			{
 				TorSocks5EndPoint = null!;
 			}
-
-			TorSocks5Client = null;
 		}
 
 		public static DateTimeOffset? TorDoesntWorkSince
@@ -69,15 +59,12 @@ namespace WalletWasabi.Tor.Http
 
 		public Uri DestinationUri => DestinationUriAction();
 		public Func<Uri> DestinationUriAction { get; }
+
+		// TODO: Make it private.
 		public EndPoint? TorSocks5EndPoint { get; private set; }
 		public bool IsTorUsed => TorSocks5EndPoint is { };
 
 		private TorSocks5ClientPool TorSocks5ClientPool { get; }
-
-		/// <summary>TODO: Remove.</summary>
-		private TorSocks5Client? TorSocks5Client { get; set; }
-
-		private static AsyncLock AsyncLock { get; } = new AsyncLock(); // We make everything synchronous, so slow, but at least stable.
 
 		private static async Task<HttpResponseMessage> ClearnetRequestAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
 		{
@@ -85,91 +72,21 @@ namespace WalletWasabi.Tor.Http
 		}
 
 		/// <remarks>
-		/// Throws <see cref="OperationCanceledException"/> if <paramref name="cancel"/> is set.
+		/// Throws <see cref="OperationCanceledException"/> if <paramref name="token"/> is set.
 		/// </remarks>
-		public async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken cancel = default)
+		public Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken token = default)
 		{
 			Guard.NotNull(nameof(method), method);
 			relativeUri = Guard.NotNull(nameof(relativeUri), relativeUri);
 			var requestUri = new Uri(DestinationUri, relativeUri);
 			using var request = new HttpRequestMessage(method, requestUri);
-			request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
 
 			if (content is { })
 			{
 				request.Content = content;
 			}
 
-			// Use clearnet HTTP client when Tor is disabled.
-			if (TorSocks5EndPoint is null)
-			{
-				return await ClearnetRequestAsync(request, cancel).ConfigureAwait(false);
-			}
-
-			try
-			{
-				using (await AsyncLock.LockAsync(cancel).ConfigureAwait(false))
-				{
-					try
-					{
-						HttpResponseMessage ret = await SendAsync(request).ConfigureAwait(false);
-						TorDoesntWorkSince = null;
-						return ret;
-					}
-					catch (Exception ex)
-					{
-						Logger.LogTrace(ex);
-
-						TorSocks5Client?.Dispose(); // rebuild the connection and retry
-						TorSocks5Client = null;
-
-						cancel.ThrowIfCancellationRequested();
-						try
-						{
-							HttpResponseMessage ret2 = await SendAsync(request).ConfigureAwait(false);
-							TorDoesntWorkSince = null;
-							return ret2;
-						}
-						// If we get ttlexpired then wait and retry again linux often do this.
-						catch (TorSocks5FailureResponseException ex2) when (ex2.RepField == RepField.TtlExpired)
-						{
-							Logger.LogTrace(ex);
-
-							TorSocks5Client?.Dispose(); // rebuild the connection and retry
-							TorSocks5Client = null;
-
-							try
-							{
-								await Task.Delay(1000, cancel).ConfigureAwait(false);
-							}
-							catch (TaskCanceledException tce)
-							{
-								throw new OperationCanceledException(tce.Message, tce, cancel);
-							}
-						}
-						catch (SocketException ex3) when (ex3.ErrorCode == (int)SocketError.ConnectionRefused)
-						{
-							throw new ConnectionException("Connection was refused.", ex3);
-						}
-
-						cancel.ThrowIfCancellationRequested();
-
-						HttpResponseMessage ret3 = await SendAsync(request).ConfigureAwait(false);
-						TorDoesntWorkSince = null;
-						return ret3;
-					}
-				}
-			}
-			catch (TaskCanceledException ex)
-			{
-				SetTorNotWorkingState(ex);
-				throw new OperationCanceledException(ex.Message, ex, cancel);
-			}
-			catch (Exception ex)
-			{
-				SetTorNotWorkingState(ex);
-				throw;
-			}
+			return SendAsync(request, token);
 		}
 
 		private static void SetTorNotWorkingState(Exception ex)
@@ -178,97 +95,69 @@ namespace WalletWasabi.Tor.Http
 			LatestTorException = ex;
 		}
 
-		/// <exception cref="OperationCanceledException">If <paramref name="cancel"/> is set.</exception>
-		public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancel = default)
+		/// <exception cref="OperationCanceledException">If <paramref name="token"/> is set.</exception>
+		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
 		{
 			Guard.NotNull(nameof(request), request);
 
 			// Use clearnet HTTP client when Tor is disabled.
 			if (TorSocks5EndPoint is null)
 			{
-				return ClearnetRequestAsync(request, cancel);
+				return await ClearnetRequestAsync(request, token).ConfigureAwait(false);
 			}
 			else
 			{
-				return RequestOverTorSocks5Async(request, cancel);
-			}
-		}
-
-		private async Task<HttpResponseMessage> RequestOverTorSocks5Async(HttpRequestMessage request, CancellationToken cancel = default)
-		{
-			if (TorSocks5Client is { } && !TorSocks5Client.IsConnected)
-			{
-				TorSocks5Client?.Dispose();
-				TorSocks5Client = null;
-			}
-
-			if (TorSocks5Client is null || !TorSocks5Client.IsConnected)
-			{
-				TorSocks5Client = await TorSocks5ClientPool.NewClientAsync(request, cancel).ConfigureAwait(false);
-			}
-
-			cancel.ThrowIfCancellationRequested();
-
-			// https://tools.ietf.org/html/rfc7230#section-3.3.2
-			// A user agent SHOULD send a Content - Length in a request message when
-			// no Transfer-Encoding is sent and the request method defines a meaning
-			// for an enclosed payload body.For example, a Content - Length header
-			// field is normally sent in a POST request even when the value is 0
-			// (indicating an empty payload body).A user agent SHOULD NOT send a
-			// Content - Length header field when the request message does not contain
-			// a payload body and the method semantics do not anticipate such a
-			// body.
-			if (request.Method == HttpMethod.Post)
-			{
-				if (request.Headers.TransferEncoding.Count == 0)
+				try
 				{
-					if (request.Content is null)
-					{
-						request.Content = new ByteArrayContent(Array.Empty<byte>()); // dummy empty content
-						request.Content.Headers.ContentLength = 0;
-					}
-					else
-					{
-						request.Content.Headers.ContentLength ??= (await request.Content.ReadAsStringAsync().ConfigureAwait(false)).Length;
-					}
+					HttpResponseMessage httpResponseMessage = await TorSocks5ClientPool.SendAsync(request, token).ConfigureAwait(false);
+					TorDoesntWorkSince = null;
+
+					return httpResponseMessage;
+				}
+				catch (OperationCanceledException ex)
+				{
+					SetTorNotWorkingState(ex);
+					throw;
+				}
+				catch (Exception ex)
+				{
+					SetTorNotWorkingState(ex);
+					throw;
 				}
 			}
-
-			string requestString = await request.ToHttpStringAsync().ConfigureAwait(false);
-
-			var bytes = Encoding.UTF8.GetBytes(requestString);
-
-			Stream transportStream = TorSocks5Client.GetTransportStream();
-
-			await transportStream.WriteAsync(bytes, 0, bytes.Length, cancel).ConfigureAwait(false);
-			await transportStream.FlushAsync(cancel).ConfigureAwait(false);
-
-			return await HttpResponseMessageExtensions.CreateNewAsync(transportStream, request.Method).ConfigureAwait(false);
 		}
 
-		#region IDisposable Support
-
+		/// <summary>
+		/// <list type="bullet">
+		/// <item>Unmanaged resources need to be released regardless of the value of the <paramref name="disposing"/> parameter.</item>
+		/// <item>Managed resources need to be released if the value of <paramref name="disposing"/> is <c>true</c>.</item>
+		/// </list>
+		/// </summary>
+		/// <param name="disposing">
+		/// Indicates whether the method call comes from a <see cref="Dispose()"/> method
+		/// (its value is <c>true</c>) or from a finalizer (its value is <c>false</c>).
+		/// </param>
 		protected virtual void Dispose(bool disposing)
 		{
 			if (!_disposedValue)
 			{
 				if (disposing)
 				{
-					TorSocks5Client?.Dispose();
+					TorSocks5ClientPool.Dispose();
 				}
-
 				_disposedValue = true;
 			}
 		}
 
-		// This code added to correctly implement the disposable pattern.
+		/// <summary>
+		/// Do not change this code.
+		/// </summary>
 		public void Dispose()
 		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			// Dispose of unmanaged resources.
 			Dispose(true);
-			// GC.SuppressFinalize(this);
+			// Suppress finalization.
+			GC.SuppressFinalize(this);
 		}
-
-		#endregion IDisposable Support
 	}
 }
