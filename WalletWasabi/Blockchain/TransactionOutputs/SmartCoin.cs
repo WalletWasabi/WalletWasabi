@@ -53,6 +53,8 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			HdPubKey = pubKey;
 
 			_cluster = new Cluster(this);
+
+			HdPubKey.Coins.Add(this);
 			Transaction.WalletOutputs.Add(this);
 		}
 
