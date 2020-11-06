@@ -34,6 +34,23 @@ namespace WalletWasabi.Fluent.ViewModels
 			this.ValidateProperty(x => x.WalletName, errors => ValidateWalletName(errors, walletManager, WalletName));
 		}
 
+		public override string IconName => "add_circle_regular";
+
+		public string WalletName
+		{
+			get => _walletName;
+			set => this.RaiseAndSetIfChanged(ref _walletName, value);
+		}
+
+		public bool OptionsEnabled
+		{
+			get => _optionsEnabled;
+			set => this.RaiseAndSetIfChanged(ref _optionsEnabled, value);
+		}
+
+		public ICommand CreateWalletCommand { get; }
+		public ICommand RecoverWalletCommand { get; }
+
 		private void ValidateWalletName(IValidationErrors errors, WalletManager walletManager, string walletName)
 		{
 			string walletFilePath = Path.Combine(walletManager.WalletDirectories.WalletsDir, $"{walletName}.json");
@@ -60,22 +77,5 @@ namespace WalletWasabi.Fluent.ViewModels
 				errors.Add(ErrorSeverity.Error, "Selected Wallet is not valid. Please try a different name.");
 			}
 		}
-
-		public override string IconName => "add_circle_regular";
-
-		public string WalletName
-		{
-			get => _walletName;
-			set => this.RaiseAndSetIfChanged(ref _walletName, value);
-		}
-
-		public bool OptionsEnabled
-		{
-			get => _optionsEnabled;
-			set => this.RaiseAndSetIfChanged(ref _optionsEnabled, value);
-		}
-
-		public ICommand CreateWalletCommand { get; }
-		public ICommand RecoverWalletCommand { get; }
 	}
 }
