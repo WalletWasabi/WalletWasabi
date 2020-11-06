@@ -14,7 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels
 	{
 		private string _randomString;
 
-		public SettingsPageViewModel(NavigationStateViewModel navigationState) : base(navigationState, NavigationTarget.Dialog)
+		public SettingsPageViewModel(NavigationStateViewModel navigationState) : base(navigationState, NavigationTarget.Home)
 		{
 			Title = "Settings";
 
