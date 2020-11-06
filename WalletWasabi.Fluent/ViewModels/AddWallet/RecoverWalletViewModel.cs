@@ -103,7 +103,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 						keyManager.SetNetwork(network);
 						walletManager.AddWallet(keyManager);
 
-
+						navigationState.DialogScreen?.Invoke().Router.NavigationStack.Clear();
 					}
 					catch (Exception ex)
 					{
@@ -124,6 +124,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			PasswordInteraction.RegisterHandler(
 				async interaction =>
 					interaction.SetOutput(await new EnterPasswordViewModel(interaction.Input).ShowDialogAsync()));
+
 		}
 
 		public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
