@@ -1,11 +1,11 @@
-using NBitcoin;
-using ReactiveUI;
 using System.Collections.Generic;
 using System.Windows.Input;
+using NBitcoin;
+using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels.AddWallet
+namespace WalletWasabi.Fluent.ViewModels.CreateWallet
 {
 	public class RecoveryWordsViewModel : RoutableViewModel
 	{
