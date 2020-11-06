@@ -10,18 +10,18 @@ namespace WalletWasabi.Fluent.Behaviors
 {
 	public class FocusTargetViaBoolean : DisposingBehavior<Control>
 	{
-		public static readonly StyledProperty<bool> FocusOnTargetProperty =
-			AvaloniaProperty.Register<FocusNextItemBehavior, bool>(nameof(IsFocused), true);
+		public static readonly StyledProperty<bool> GotFocusedProperty =
+			AvaloniaProperty.Register<FocusTargetViaBoolean, bool>(nameof(GotFocused));
 
-		public bool IsFocused
+		public bool GotFocused
 		{
-			get => GetValue(FocusOnTargetProperty);
-			set => SetValue(FocusOnTargetProperty, value);
+			get => GetValue(GotFocusedProperty);
+			set => SetValue(GotFocusedProperty, value);
 		}
 
 		protected override void OnAttached(CompositeDisposable disposables)
 		{
-			this.WhenAnyValue(x => x.IsFocused)
+			this.WhenAnyValue(x => x.GotFocused)
 				.Where(x => x)
 				.Subscribe(_ => AssociatedObject?.Focus())
 				.DisposeWith(disposables);

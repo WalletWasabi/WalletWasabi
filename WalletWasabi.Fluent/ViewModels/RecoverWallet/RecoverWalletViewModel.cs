@@ -24,8 +24,8 @@ namespace WalletWasabi.Fluent.ViewModels.RecoverWallet
 		private string? _selectedTag;
 		private IEnumerable<string>? _suggestions;
 
-		public RecoverWalletViewModel(IScreen screen, string walletName, Network network, WalletManager walletManager) :
-			base(screen)
+		public RecoverWalletViewModel(NavigationStateViewModel navigationState, string walletName, Network network,
+			WalletManager walletManager) : base(navigationState, NavigationTarget.Dialog)
 		{
 			Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
@@ -78,7 +78,7 @@ namespace WalletWasabi.Fluent.ViewModels.RecoverWallet
 			var finishCommandCanExecute = this.WhenAnyValue(x => x.FinishCommandCanExecute)
 				.ObserveOn(RxApp.MainThreadScheduler);
 
-			FinishCommand = ReactiveCommand.CreateFromTask(
+			NextCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{
 					try
@@ -102,7 +102,8 @@ namespace WalletWasabi.Fluent.ViewModels.RecoverWallet
 							(int) MinGapLimit);
 						keyManager.SetNetwork(network);
 						walletManager.AddWallet(keyManager);
-						screen.Router.NavigationStack.Clear();
+
+
 					}
 					catch (Exception ex)
 					{
@@ -110,13 +111,6 @@ namespace WalletWasabi.Fluent.ViewModels.RecoverWallet
 					}
 				},
 				finishCommandCanExecute);
-
-			CancelCommand = ReactiveCommand.Create(
-				() =>
-				{
-					AccountKeyPath = default;
-					MinGapLimit = default;
-				});
 
 			AdvancedOptionsInteraction = new Interaction<(KeyPath, int), (KeyPath?, int?)>();
 
@@ -134,9 +128,7 @@ namespace WalletWasabi.Fluent.ViewModels.RecoverWallet
 
 		public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
 
-		public ICommand FinishCommand { get; }
-
-		public ICommand CancelCommand { get; }
+		public ICommand NextCommand { get; }
 
 		private KeyPath? AccountKeyPath { get; set; } = KeyPath.Parse("m/84'/0'/0'");
 

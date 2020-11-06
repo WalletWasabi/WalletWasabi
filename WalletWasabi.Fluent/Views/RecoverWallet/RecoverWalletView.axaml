@@ -16,15 +16,18 @@
                 HorizontalAlignment="Left" VerticalAlignment="Top">
             <PathIcon Data="{DynamicResource arrow_left_regular}" />
         </Button>
-        <c:ContentArea Title="Enter recovery words" Caption="Type in your 12 recovery words and click Continue."
-                       Margin="44 0">
+        <c:ContentArea x:Name="RecoveryPageRoot"
+                        Title="Enter recovery words" Caption="Type in your 12 recovery words and click continue"
+                       EnableBack="True" FocusNextOnCanExecute="{Binding FinishCommandCanExecute}"
+                       EnableCancel="True" CancelContent="Cancel"
+                       EnableNext="True" NextContent="Finish">
             <StackPanel>
                 <DockPanel>
                     <PathIcon Name="IconCheckmark" Classes="checkMark" Margin="15 42 0 0" VerticalAlignment="Top"
                               DockPanel.Dock="Right"
                               Opacity="{Binding FinishCommandCanExecute}" />
-                    <Label Content="_Type in your recovery words here:" Target="seedTagsBox" DockPanel.Dock="Top" />
-                    <c:TagsBox x:Name="seedTagsBox"
+                    <Label Content="_Type in your recovery words here:" Target="SeedTagsBox" DockPanel.Dock="Top" />
+                    <c:TagsBox x:Name="SeedTagsBox"
                                DockPanel.Dock="Top"
                                ItemCountLimit="12"
                                RestrictInputToSuggestions="True"
@@ -33,8 +36,6 @@
                                SelectedTag="{Binding SelectedTag}">
                         <i:Interaction.Behaviors>
                             <behaviors:FocusOnAttachedBehavior />
-                            <behaviors:FocusNextTargetViaBoolean TargetControl="BtFinished"
-                                                                 FocusOnTarget="{Binding FinishCommandCanExecute}" />
                         </i:Interaction.Behaviors>
                     </c:TagsBox>
                 </DockPanel>
@@ -51,12 +52,5 @@
                 </StackPanel>
             </StackPanel>
         </c:ContentArea>
-
-        <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="invisible" HorizontalAlignment="Left"
-                VerticalAlignment="Bottom" />
-
-        <Button Name="BtFinished" Content="Restore" Command="{Binding FinishCommand}" Classes="action"
-                HorizontalAlignment="Right"
-                VerticalAlignment="Bottom" />
     </Panel>
 </UserControl>
