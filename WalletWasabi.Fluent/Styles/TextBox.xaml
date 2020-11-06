@@ -8,13 +8,13 @@
     <converters:ErrorSeverityColorConverter x:Key="ErrorSeverityColorConverter" />
     <converters:ErrorDescriptorToBorderColorConverter x:Key="ErrorDescriptorToBorderColorConverter" />
   </Styles.Resources>
-  
+
   <Style Selector="DataValidationErrors">
     <Setter Property="Template">
       <ControlTemplate>
         <DockPanel LastChildFill="True">
           <ContentControl
-            DockPanel.Dock="Bottom"
+            DockPanel.Dock="Top"
             ContentTemplate="{TemplateBinding ErrorTemplate}"
             DataContext="{TemplateBinding Owner}"
             Content="{Binding (DataValidationErrors.Errors)}"
@@ -119,5 +119,10 @@
   <Style Selector="TextBox /template/ Border#PART_BorderElement">
     <Setter Property="CornerRadius" Value="0" />
   </Style>
-  
+
+  <!-- TODO: temporary fix to prevent layout issue when error occurs  -->
+  <Style Selector="TextBox /template/ DataValidationErrors">
+    <Setter Property="MinHeight" Value="20" />
+  </Style>
+
 </Styles>

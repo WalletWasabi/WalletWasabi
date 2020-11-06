@@ -23,10 +23,10 @@
         </i:Interaction.Behaviors>
         <ItemsControl.ItemTemplate>
           <DataTemplate>
-            <DockPanel Margin="0 0 0 20" HorizontalAlignment="Left">
+            <DockPanel HorizontalAlignment="Left">
               <PathIcon Classes="checkMark" Margin="15 42 0 0" Opacity="{Binding IsConfirmed, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}" VerticalAlignment="Top" DockPanel.Dock="Right" />
               <Label Content="{Binding Index, StringFormat=Recovery word {0}}" DockPanel.Dock="Top" />
-              <TextBox Watermark="Type the word here..." Text="{Binding Input}" IsEnabled="{Binding !IsConfirmed}" DockPanel.Dock="Top" Width="350" FontSize="12">
+              <TextBox Watermark="Type the word here..." Text="{Binding Input}" IsEnabled="{Binding !IsConfirmed}" DockPanel.Dock="Top" Width="350">
                 <i:Interaction.Behaviors>
                   <behaviors:FocusNextItemBehavior IsFocused="{Binding !IsConfirmed}" />
                 </i:Interaction.Behaviors>
