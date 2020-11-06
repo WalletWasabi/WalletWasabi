@@ -10,9 +10,6 @@
              x:DataType="recoverWallet:RecoverWalletViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.RecoverWallet.RecoverWalletView">
-    <UserControl.KeyBindings>
-        <KeyBinding Gesture="Enter" Command="{Binding NextCommand}" />
-    </UserControl.KeyBindings>
     <c:ContentArea x:Name="RecoveryPageRoot"
                    Title="Enter recovery words" Caption="Type in your 12 recovery words and click continue"
                    EnableBack="True"
@@ -25,6 +22,7 @@
                           Opacity="{Binding FinishCommandCanExecute}" />
                 <Label Content="_Type in your recovery words here:" Target="SeedTagsBox" DockPanel.Dock="Top" />
                 <c:TagsBox x:Name="SeedTagsBox"
+                           CompletedCommand="{Binding NextCommand}"
                            DockPanel.Dock="Top"
                            ItemCountLimit="12"
                            RestrictInputToSuggestions="True"
