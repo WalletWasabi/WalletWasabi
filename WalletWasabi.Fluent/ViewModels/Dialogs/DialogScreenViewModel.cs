@@ -1,10 +1,10 @@
-using ReactiveUI;
-using System.Reactive;
-using WalletWasabi.Gui.ViewModels;
 using System;
+using System.Reactive;
 using System.Reactive.Linq;
+using ReactiveUI;
+using WalletWasabi.Gui.ViewModels;
 
-namespace WalletWasabi.Fluent.ViewModels
+namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
 	public class DialogScreenViewModel : ViewModelBase, IScreen
 	{
