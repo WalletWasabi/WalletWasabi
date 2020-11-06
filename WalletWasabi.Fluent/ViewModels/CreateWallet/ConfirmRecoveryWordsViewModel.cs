@@ -47,7 +47,8 @@ namespace WalletWasabi.Fluent.ViewModels.CreateWallet
 				.Bind(out _confirmationWords)
 				.Subscribe();
 
-			SelectRandomConfirmationWords(mnemonicWords);
+			// Select 4 random words to confirm.
+			_confirmationWordsSourceList.AddRange(mnemonicWords.OrderBy(x => new Random().NextDouble()).Take(4));
 		}
 
 		public ReadOnlyObservableCollection<RecoveryWordViewModel> ConfirmationWords => _confirmationWords;
@@ -55,20 +56,5 @@ namespace WalletWasabi.Fluent.ViewModels.CreateWallet
 		public ICommand NextCommand { get; }
 
 		public ICommand CancelCommand { get; }
-
-		private void SelectRandomConfirmationWords(List<RecoveryWordViewModel> mnemonicWords)
-		{
-			var random = new Random();
-
-			while (_confirmationWordsSourceList.Count != 4)
-			{
-				var word = mnemonicWords[random.Next(0, 12)];
-
-				if (!_confirmationWordsSourceList.Items.Contains(word))
-				{
-					_confirmationWordsSourceList.Add(word);
-				}
-			}
-		}
 	}
 }
