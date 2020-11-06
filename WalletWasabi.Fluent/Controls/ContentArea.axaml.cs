@@ -33,9 +33,6 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<object> NextContentProperty =
 			AvaloniaProperty.Register<ContentArea, object>(nameof(NextContent), "Next");
 
-		public static readonly StyledProperty<bool> FocusNextOnCanExecuteProperty =
-			AvaloniaProperty.Register<ContentArea, bool>(nameof(FocusNextOnCanExecute));
-
 		private IContentPresenter? _titlePresenter;
 		private IContentPresenter? _captionPresenter;
 
@@ -91,12 +88,6 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(NextContentProperty);
 			set => SetValue(NextContentProperty, value);
-		}
-
-		public bool FocusNextOnCanExecute
-		{
-			get => GetValue(FocusNextOnCanExecuteProperty);
-			set => SetValue(FocusNextOnCanExecuteProperty, value);
 		}
 
 		protected override bool RegisterContentPresenter(IContentPresenter presenter)

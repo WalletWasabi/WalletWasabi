@@ -89,22 +89,24 @@ namespace WalletWasabi.Fluent.Controls
                 return;
             }
 
-            _autoCompleteBox.KeyUp += OnKeyUp;
             _autoCompleteBox.TextChanged += OnTextChanged;
             _autoCompleteBox.DropDownClosed += OnDropDownClosed;
 
             Disposable.Create(
 	            () =>
 	            {
-		            _autoCompleteBox.KeyUp -= OnKeyUp;
 		            _autoCompleteBox.TextChanged -= OnTextChanged;
 		            _autoCompleteBox.DropDownClosed -= OnDropDownClosed;
 	            })
 	            .DisposeWith(_compositeDisposable);
 
             _autoCompleteBox
-                .AddDisposableHandler(TextInputEvent, OnTextInput, RoutingStrategies.Tunnel)
-                .DisposeWith(_compositeDisposable);
+	            .AddDisposableHandler(TextInputEvent, OnTextInput, RoutingStrategies.Tunnel)
+	            .DisposeWith(_compositeDisposable);
+
+            _autoCompleteBox
+	            .AddDisposableHandler(KeyUpEvent, OnKeyUp, RoutingStrategies.Tunnel)
+	            .DisposeWith(_compositeDisposable);
 
             if (_isFocused)
             {

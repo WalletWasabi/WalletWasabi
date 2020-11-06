@@ -39,7 +39,6 @@
             <Button Name="PART_NextButton" Classes="action" IsVisible="{TemplateBinding EnableNext}" Content="{TemplateBinding NextContent}" Margin="10,10,0,10" HorizontalAlignment="Right" Command="{Binding NextCommand}">
               <i:Interaction.Behaviors>
                 <behaviors:FocusOnAttachedBehavior IsEnabled="{Binding FocusNext, RelativeSource={RelativeSource TemplatedParent}}" />
-                <behaviors:FocusTargetViaBoolean GotFocused="{Binding FocusNextOnCanExecute, RelativeSource={RelativeSource TemplatedParent}}" />
               </i:Interaction.Behaviors>
             </Button>
           </Panel>

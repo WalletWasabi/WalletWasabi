@@ -10,9 +10,12 @@
              x:DataType="recoverWallet:RecoverWalletViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.RecoverWallet.RecoverWalletView">
+    <UserControl.KeyBindings>
+        <KeyBinding Gesture="Enter" Command="{Binding NextCommand}" />
+    </UserControl.KeyBindings>
     <c:ContentArea x:Name="RecoveryPageRoot"
                    Title="Enter recovery words" Caption="Type in your 12 recovery words and click continue"
-                   EnableBack="True" FocusNextOnCanExecute="{Binding FinishCommandCanExecute}"
+                   EnableBack="True"
                    EnableCancel="True" CancelContent="Cancel"
                    EnableNext="True" NextContent="Finish">
         <StackPanel>
