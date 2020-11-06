@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace System
 {
 	public static class StringExtensions
@@ -63,17 +65,12 @@ namespace System
 
 		public static bool IsTrimable(this string? me)
 		{
-			if (me is null)
+			if (string.IsNullOrEmpty(me))
 			{
 				return false;
 			}
 
-			if (me.Length != me.Trim().Length)
-			{
-				return true;
-			}
-
-			return false;
+			return char.IsWhiteSpace(me.First()) || char.IsWhiteSpace(me.Last());
 		}
 	}
 }
