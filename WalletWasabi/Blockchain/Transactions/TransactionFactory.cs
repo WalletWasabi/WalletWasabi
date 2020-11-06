@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
+using WalletWasabi.Blockchain.Analysis.Anonymity;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -21,12 +22,13 @@ namespace WalletWasabi.Blockchain.Transactions
 	public class TransactionFactory
 	{
 		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
-		public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, AllTransactionStore transactionStore, string password = "", bool allowUnconfirmed = false)
+		public TransactionFactory(Network network, AnonymityCalculator anonymityCalculator, KeyManager keyManager, ICoinsView coins, AllTransactionStore transactionStore, string password = "", bool allowUnconfirmed = false)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			Coins = Guard.NotNull(nameof(coins), coins);
 			TransactionStore = Guard.NotNull(nameof(transactionStore), transactionStore);
+			AnonymityCalculator = anonymityCalculator;
 			Password = password;
 			AllowUnconfirmed = allowUnconfirmed;
 		}
@@ -34,6 +36,7 @@ namespace WalletWasabi.Blockchain.Transactions
 		public Network Network { get; }
 		public KeyManager KeyManager { get; }
 		public ICoinsView Coins { get; }
+		public AnonymityCalculator AnonymityCalculator { get; }
 		public string Password { get; }
 		public bool AllowUnconfirmed { get; }
 		private AllTransactionStore TransactionStore { get; }
@@ -107,7 +110,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			Logger.LogInfo("Calculating dynamic transaction fee...");
 
 			TransactionBuilder builder = Network.CreateTransactionBuilder();
-			builder.SetCoinSelector(new SmartCoinSelector(allowedSmartCoinInputs));
+			builder.SetCoinSelector(new SmartCoinSelector(allowedSmartCoinInputs, AnonymityCalculator));
 			builder.AddCoins(allowedSmartCoinInputs.Select(c => c.Coin));
 			builder.SetLockTime(lockTimeSelector());
 
@@ -281,8 +284,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				var foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
 				if (foundKey is { })
 				{
-					var anonset = tx.GetAnonymitySet(i) + smartTransaction.WalletInputs.Min(x => x.AnonymitySet) - 1; // Minus 1, because count own only once.
-					var smartCoin = new SmartCoin(smartTransaction, i, foundKey, anonset);
+					var smartCoin = new SmartCoin(smartTransaction, i, foundKey);
 					label = SmartLabel.Merge(label, smartCoin.HdPubKey.Label); // foundKey's label is already added to the coinlabel.
 					smartTransaction.WalletOutputs.Add(smartCoin);
 				}

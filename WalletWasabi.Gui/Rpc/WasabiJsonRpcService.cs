@@ -36,7 +36,7 @@ namespace WalletWasabi.Gui.Rpc
 				txid = x.TransactionId.ToString(),
 				index = x.Index,
 				amount = x.Amount.Satoshi,
-				anonymitySet = x.AnonymitySet,
+				anonymitySet = (int)ActiveWallet.AnonymityCalculator.Calculate(x.HdPubKey),
 				confirmed = x.Confirmed,
 				confirmations = x.Confirmed ? serverTipHeight - (uint)x.Height.Value + 1 : 0,
 				label = x.HdPubKey.Label.ToString(),

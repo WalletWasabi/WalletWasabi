@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Blockchain.Analysis.Anonymity;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -50,6 +51,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		public CoinJoinClient(
 			WasabiSynchronizer synchronizer,
 			Network network,
+			AnonymityCalculator anonymityCalculator,
 			KeyManager keyManager)
 		{
 			Network = Guard.NotNull(nameof(network), network);
@@ -64,7 +66,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			_running = StateNotStarted;
 			Cancel = new CancellationTokenSource();
 			_frequentStatusProcessingIfNotMixing = 0;
-			State = new ClientState();
+			State = new ClientState(anonymityCalculator);
 			MixLock = new AsyncLock();
 			_statusProcessing = 0;
 			DelayedRoundRegistration = null;

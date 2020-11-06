@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.Blockchain.Analysis.Anonymity;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -93,6 +94,7 @@ namespace WalletWasabi.Wallets
 		public FilterModel LastProcessedFilter { get; private set; }
 		public IBlockProvider BlockProvider { get; private set; }
 		private AsyncLock HandleFiltersLock { get; }
+		public AnonymityCalculator AnonymityCalculator { get; private set; }
 
 		public void RegisterServices(
 			BitcoinStore bitcoinStore,
@@ -113,11 +115,12 @@ namespace WalletWasabi.Wallets
 				Nodes = Guard.NotNull(nameof(nodes), nodes);
 				Synchronizer = Guard.NotNull(nameof(syncer), syncer);
 				ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
+				AnonymityCalculator = new AnonymityCalculator(ServiceConfiguration.DustThreshold);
 				FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
 
-				ChaumianClient = new CoinJoinClient(Synchronizer, Network, KeyManager);
+				ChaumianClient = new CoinJoinClient(Synchronizer, Network, AnonymityCalculator, KeyManager);
 
-				TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold, ServiceConfiguration.PrivacyLevelStrong);
+				TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, AnonymityCalculator, KeyManager, ServiceConfiguration.DustThreshold, ServiceConfiguration.PrivacyLevelStrong);
 				Coins = TransactionProcessor.Coins;
 
 				TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessedAsync;
@@ -209,7 +212,7 @@ namespace WalletWasabi.Wallets
 			IEnumerable<OutPoint> allowedInputs = null,
 			IPayjoinClient payjoinClient = null)
 		{
-			var builder = new TransactionFactory(Network, KeyManager, Coins, BitcoinStore.TransactionStore, password, allowUnconfirmed);
+			var builder = new TransactionFactory(Network, AnonymityCalculator, KeyManager, Coins, BitcoinStore.TransactionStore, password, allowUnconfirmed);
 			return builder.BuildTransaction(
 				payments,
 				feeRateFetcher: () =>
@@ -290,7 +293,7 @@ namespace WalletWasabi.Wallets
 						{
 							// If it's being mixed and anonset is not sufficient, then queue it.
 							if (!newCoin.IsSpent() && ChaumianClient.HasIngredients
-								&& newCoin.AnonymitySet < ServiceConfiguration.GetMixUntilAnonymitySetValue())
+								&& AnonymityCalculator.Calculate(newCoin.HdPubKey) < ServiceConfiguration.GetMixUntilAnonymitySetValue())
 							{
 								coinsToQueue.Add(newCoin);
 							}

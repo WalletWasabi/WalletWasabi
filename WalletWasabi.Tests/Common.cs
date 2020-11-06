@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.CompilerServices;
+using WalletWasabi.Blockchain.Analysis.Anonymity;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -40,14 +41,14 @@ namespace WalletWasabi.Tests
 			return stx;
 		}
 
-		public static SmartCoin RandomSmartCoin(HdPubKey pubKey, decimal amount, bool confirmed = true, int anonymitySet = 1)
+		public static SmartCoin RandomSmartCoin(HdPubKey pubKey, decimal amount, bool confirmed = true)
 		{
 			var height = confirmed ? new Height(new Random().Next(0, 200)) : Height.Mempool;
 			pubKey.SetKeyState(KeyState.Used);
 			var tx = Transaction.Create(Network.Main);
 			tx.Outputs.Add(new TxOut(Money.Coins(amount), pubKey.P2wpkhScript));
 			var stx = new SmartTransaction(tx, height);
-			return new SmartCoin(stx, 0, pubKey, anonymitySet);
+			return new SmartCoin(stx, 0, pubKey);
 		}
 
 		public static TransactionFactory CreateTransactionFactory(
@@ -68,7 +69,7 @@ namespace WalletWasabi.Tests
 				k.SetLabel(c.Label);
 			}
 
-			var scoins = coins.Select(x => RandomSmartCoin(keys[x.KeyIndex], x.Amount, x.Confirmed, x.AnonymitySet)).ToArray();
+			var scoins = coins.Select(x => RandomSmartCoin(keys[x.KeyIndex], x.Amount, x.Confirmed)).ToArray();
 			foreach (var coin in scoins)
 			{
 				foreach (var sameLabelCoin in scoins.Where(c => !c.HdPubKey.Label.IsEmpty && c.HdPubKey.Label == coin.HdPubKey.Label))
@@ -78,7 +79,8 @@ namespace WalletWasabi.Tests
 			}
 			var coinsView = new CoinsView(scoins);
 			var transactionStore = new AllTransactionStoreMock(workFolderPath: ".", Network.Main);
-			return new TransactionFactory(Network.Main, keyManager, coinsView, transactionStore, password, allowUnconfirmed);
+			var anonCalc = new AnonymityCalculator(Money.Zero);
+			return new TransactionFactory(Network.Main, anonCalc, keyManager, coinsView, transactionStore, password, allowUnconfirmed);
 		}
 
 		public static (string, KeyManager) RandomKeyManager()

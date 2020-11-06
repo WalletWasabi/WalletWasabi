@@ -6,16 +6,19 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Analysis.Anonymity;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding
 {
 	public class SmartCoinSelector : ICoinSelector
 	{
-		public SmartCoinSelector(IEnumerable<SmartCoin> unspentCoins)
+		public SmartCoinSelector(IEnumerable<SmartCoin> unspentCoins, AnonymityCalculator anonymityCalculator)
 		{
 			UnspentCoins = Guard.NotNull(nameof(unspentCoins), unspentCoins).Distinct();
+			AnonymityCalculator = anonymityCalculator;
 		}
 
+		public AnonymityCalculator AnonymityCalculator { get; }
 		private IEnumerable<SmartCoin> UnspentCoins { get; }
 
 		public IEnumerable<ICoin> Select(IEnumerable<ICoin> coins, IMoney target)
@@ -50,7 +53,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 				{
 					group.Coins,
 					Unconfirmed = group.Coins.Any(x => !x.Confirmed),    // If group has an unconfirmed, then the whole group is unconfirmed.
-					AnonymitySet = group.Coins.Min(x => x.AnonymitySet), // The group is as anonymous as its weakest member.
+					AnonymitySet = group.Coins.Min(x => AnonymityCalculator.Calculate(x.HdPubKey)), // The group is as anonymous as its weakest member.
 					ClusterPrivacy = group.Privacy, // The number people/entities that know the cluster.
 					Amount = group.Coins.Sum(x => x.Amount)
 				});

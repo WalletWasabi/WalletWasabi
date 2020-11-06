@@ -3,6 +3,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using WalletWasabi.Blockchain.Analysis.Anonymity;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.Helpers;
@@ -12,11 +13,12 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 {
 	public class ClientState
 	{
-		public ClientState()
+		public ClientState(AnonymityCalculator anonymityCalculator)
 		{
 			StateLock = new object();
 			WaitingList = new Dictionary<SmartCoin, DateTimeOffset>();
 			Rounds = new List<ClientRound>();
+			AnonymityCalculator = anonymityCalculator;
 		}
 
 		private object StateLock { get; }
@@ -29,6 +31,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 		private List<ClientRound> Rounds { get; }
 
 		public bool IsInErrorState { get; private set; }
+		public AnonymityCalculator AnonymityCalculator { get; }
 
 		public void AddCoinToWaitingList(SmartCoin coin)
 		{
@@ -217,7 +220,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 						coinGroups = coinGroups.OrderByDescending(x => x.Sum(y => y.Amount)).ToList();
 
 						// Try to register with the smallest anonymity set, so new unmixed coins come to the mix.
-						coinGroups = coinGroups.OrderBy(x => x.Sum(y => y.AnonymitySet)).ToList();
+						coinGroups = coinGroups.OrderBy(x => x.Sum(y => AnonymityCalculator.Calculate(y.HdPubKey))).ToList();
 					}
 					else // Else coin merging will happen.
 					{
@@ -225,7 +228,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 						coinGroups = coinGroups.OrderBy(x => x.Sum(y => y.Amount)).ToList();
 
 						// Try to register the largest anonymity set, so red and green coins input merging should be less likely.
-						coinGroups = coinGroups.OrderByDescending(x => x.Sum(y => y.AnonymitySet)).ToList();
+						coinGroups = coinGroups.OrderByDescending(x => x.Sum(y => AnonymityCalculator.Calculate(y.HdPubKey))).ToList();
 					}
 
 					coinGroups = coinGroups.OrderBy(x => x.Count(y => y.Confirmed == false)).ToList(); // Where the lowest amount of unconfirmed coins there are.
@@ -242,7 +245,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 						{
 							// Generating toxic change leads to mass merging so it's better to merge sooner in coinjoin than the user do it himself in a non-CJ.
 							// The best selection's anonset should not be lowered by this merge.
-							int bestMinAnonset = bestSet.Min(x => x.AnonymitySet);
+							var bestMinAnonset = bestSet.Min(x => AnonymityCalculator.Calculate(x.HdPubKey));
 							var bestSum = Money.Satoshis(bestSet.Sum(x => x.Amount));
 
 							if (!bestSum.Almost(amountNeeded, Money.Coins(0.0001m)) // Otherwise it wouldn't generate change so consolidation would make no sense.
@@ -251,8 +254,8 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 								IEnumerable<SmartCoin> coinsThatCanBeConsolidated = coins
 									.Except(bestSet) // Get all the registrable coins, except the already chosen ones.
 									.Where(x =>
-										x.AnonymitySet >= bestMinAnonset // The anonset must be at least equal to the bestSet's anonset so we do not ruin the change's after mix anonset.
-										&& x.AnonymitySet > 1 // Red coins should never be merged.
+										AnonymityCalculator.Calculate(x.HdPubKey) >= bestMinAnonset // The anonset must be at least equal to the bestSet's anonset so we do not ruin the change's after mix anonset.
+										&& AnonymityCalculator.Calculate(x.HdPubKey, cachedResultOk: true) > 1 // Red coins should never be merged.
 										&& x.Amount < amountNeeded // The amount needs to be smaller than the amountNeeded (so to make sure this is toxic change.)
 										&& bestSum + x.Amount > amountNeeded) // Sanity check that the amount added do not ruin the registration.
 									.OrderBy(x => x.Amount); // Choose the smallest ones.

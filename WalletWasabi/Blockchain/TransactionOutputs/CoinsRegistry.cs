@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
+using WalletWasabi.Blockchain.Analysis.Anonymity;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
@@ -11,7 +12,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 {
 	public class CoinsRegistry : ICoinsView
 	{
-		public CoinsRegistry(int privacyLevelThreshold)
+		public CoinsRegistry(int privacyLevelThreshold, AnonymityCalculator anonymityCalculator)
 		{
 			Coins = new HashSet<SmartCoin>();
 			SpentCoins = new HashSet<SmartCoin>();
@@ -21,6 +22,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			ClustersByScriptPubKey = new Dictionary<Script, Cluster>();
 			CoinsByOutPoint = new Dictionary<OutPoint, HashSet<SmartCoin>>();
 			PrivacyLevelThreshold = privacyLevelThreshold;
+			AnonymityCalculator = anonymityCalculator;
 			Lock = new object();
 		}
 
@@ -33,6 +35,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		private Dictionary<Script, Cluster> ClustersByScriptPubKey { get; }
 		private Dictionary<OutPoint, HashSet<SmartCoin>> CoinsByOutPoint { get; }
 		private int PrivacyLevelThreshold { get; }
+		public AnonymityCalculator AnonymityCalculator { get; }
 
 		public bool IsEmpty => !AsCoinsView().Any();
 
@@ -176,7 +179,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 					var createdCoins = CreatedByNoLock(spentCoin.SpenderTransaction.GetHash());
 					foreach (var newCoin in createdCoins)
 					{
-						if (newCoin.AnonymitySet < PrivacyLevelThreshold)
+						if (AnonymityCalculator.Calculate(newCoin.HdPubKey) < PrivacyLevelThreshold)
 						{
 							spentCoin.Cluster.Merge(newCoin.Cluster);
 							newCoin.Cluster = spentCoin.Cluster;

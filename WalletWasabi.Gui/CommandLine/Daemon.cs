@@ -145,13 +145,14 @@ namespace WalletWasabi.Gui.CommandLine
 		{
 			try
 			{
-				var coinsToMix = Wallet.Coins.Available().FilterBy(x => x.AnonymitySet <= maxAnonset && minAnonset <= x.AnonymitySet);
+				var anonymityCalculator = Wallet.AnonymityCalculator;
+				var coinsToMix = Wallet.Coins.Available().FilterBy(x => anonymityCalculator.Calculate(x.HdPubKey) <= maxAnonset && minAnonset <= anonymityCalculator.Calculate(x.HdPubKey, cachedResultOk: true));
 
 				var enqueuedCoins = await Wallet.ChaumianClient.QueueCoinsToMixAsync(password, coinsToMix.ToArray());
 
 				if (enqueuedCoins.Any())
 				{
-					Logger.LogInfo($"Enqueued {Money.Satoshis(enqueuedCoins.Sum(x => x.Amount)).ToString(false, true)} BTC, {enqueuedCoins.Count()} coins with smallest anonset {enqueuedCoins.Min(x => x.AnonymitySet)} and largest anonset {enqueuedCoins.Max(x => x.AnonymitySet)}.");
+					Logger.LogInfo($"Enqueued {Money.Satoshis(enqueuedCoins.Sum(x => x.Amount)).ToString(false, true)} BTC, {enqueuedCoins.Count()} coins with smallest anonset {enqueuedCoins.Min(x => anonymityCalculator.Calculate(x.HdPubKey, cachedResultOk: true))} and largest anonset {enqueuedCoins.Max(x => anonymityCalculator.Calculate(x.HdPubKey, cachedResultOk: true))}.");
 				}
 			}
 			catch (Exception ex)
