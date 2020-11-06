@@ -36,7 +36,7 @@ namespace WalletWasabi.Tor.Socks5
 		#region PropertiesAndMembers
 
 		/// <summary>TCP connection to Tor's SOCKS5 server.</summary>
-		public TcpClient TcpClient { get; private set; }
+		private TcpClient TcpClient { get; set; }
 
 		private EndPoint TorSocks5EndPoint { get; }
 
