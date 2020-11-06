@@ -1,8 +1,10 @@
 using NBitcoin;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 
@@ -43,6 +45,8 @@ namespace WalletWasabi.Blockchain.Keys
 				throw new ArgumentException(nameof(FullKeyPath));
 			}
 		}
+
+		public HashSet<SmartCoin> Coins { get; } = new HashSet<SmartCoin>();
 
 		[JsonProperty(Order = 1)]
 		[JsonConverter(typeof(PubKeyJsonConverter))]

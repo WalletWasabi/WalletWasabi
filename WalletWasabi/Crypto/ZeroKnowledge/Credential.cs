@@ -1,4 +1,4 @@
-﻿using NBitcoin.Secp256k1;
+using NBitcoin.Secp256k1;
 using WalletWasabi.Crypto.Groups;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge
@@ -13,7 +13,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		/// </summary>
 		/// <param name="amount">The amount represented by the credential.</param>
 		/// <param name="randomness">The randomness used as blinding factor in the Pedersen committed amount.</param>
-		/// <param name="mac">The algebraic MAC represented the anonymous credential issued by the coordinator.</param>
+		/// <param name="mac">The algebraic MAC representing the anonymous credential issued by the coordinator.</param>
 		public Credential(Scalar amount, Scalar randomness, MAC mac)
 		{
 			Amount = amount;
@@ -22,7 +22,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		}
 
 		/// <summary>
-		/// Amount in represented by the credential.
+		/// Amount represented by the credential.
 		/// </summary>
 		public Scalar Amount { get; }
 
@@ -32,7 +32,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		public Scalar Randomness { get; }
 
 		/// <summary>
-		/// Algebraic MAC represented the anonymous credential issued by the coordinator.
+		/// Algebraic MAC representing the anonymous credential issued by the coordinator.
 		/// </summary>
 		public MAC Mac { get; }
 

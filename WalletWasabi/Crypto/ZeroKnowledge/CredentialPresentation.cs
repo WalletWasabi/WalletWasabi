@@ -1,4 +1,4 @@
-﻿using WalletWasabi.Crypto.Groups;
+using WalletWasabi.Crypto.Groups;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge
 {
@@ -46,7 +46,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		/// Computes the Z element.
 		/// </summary>
 		/// <param name="sk">The coordinator's secret key.</param>
-		/// <returns>The Z element needed to verify that a randomized credentials proof is valid.</returns>
+		/// <returns>The Z element needed to verify that a randomized credential's proof is valid.</returns>
 		public GroupElement ComputeZ(CoordinatorSecretKey sk)
 			=> CV - (sk.W * Generators.Gw + sk.X0 * Cx0 + sk.X1 * Cx1 + sk.Ya * Ca);
 	}
