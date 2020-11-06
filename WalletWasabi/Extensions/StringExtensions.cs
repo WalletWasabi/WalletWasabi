@@ -63,14 +63,9 @@ namespace System
 			return me;
 		}
 
-		public static bool IsTrimable(this string? me)
+		public static bool IsTrimable(this string me)
 		{
-			if (string.IsNullOrEmpty(me))
-			{
-				return false;
-			}
-
-			return char.IsWhiteSpace(me.First()) || char.IsWhiteSpace(me.Last());
+			return me.Any() && (char.IsWhiteSpace(me.First()) || char.IsWhiteSpace(me.Last()));
 		}
 	}
 }
