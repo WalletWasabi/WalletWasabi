@@ -3,14 +3,11 @@ using System;
 using System.IO;
 using System.Windows.Input;
 using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Wallets;
 using WalletWasabi.Stores;
 using NBitcoin;
-using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
-using System.Threading.Tasks;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
@@ -32,33 +29,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			RecoverWalletCommand = ReactiveCommand.Create(() => navigationState.DialogScreen?.Invoke().Router.Navigate.Execute(new RecoveryPageViewModel(navigationState)));
 
-			CreateWalletCommand = ReactiveCommand.CreateFromTask(
-				async () =>
-				{
-					var result = await PasswordInteraction.Handle("").ToTask();
-
-					if (result is { } password)
-					{
-						var (km, mnemonic) = await Task.Run(
-							() =>
-							{
-								var walletGenerator = new WalletGenerator(
-									walletManager.WalletDirectories.WalletsDir,
-									network)
-								{
-									TipHeight = store.SmartHeaderChain.TipHeight
-								};
-								return walletGenerator.GenerateWallet(WalletName, password);
-							});
-
-						await navigationState.DialogScreen?.Invoke().Router.Navigate.Execute(
-							new RecoveryWordsViewModel(navigationState, km, mnemonic, walletManager));
-					}
-				});
-
-			PasswordInteraction = new Interaction<string, string?>();
-			PasswordInteraction.RegisterHandler(
-				async interaction => interaction.SetOutput(await new EnterPasswordViewModel().ShowDialogAsync()));
+			CreateWalletCommand = ReactiveCommand.Create(() => navigationState.DialogScreen?.Invoke().Router.Navigate.Execute(new EnterPasswordViewModel(navigationState, walletManager, store, network, _walletName)));
 
 			this.ValidateProperty(x => x.WalletName, errors => ValidateWalletName(errors, walletManager, WalletName));
 		}
@@ -103,8 +74,6 @@ namespace WalletWasabi.Fluent.ViewModels
 			get => _optionsEnabled;
 			set => this.RaiseAndSetIfChanged(ref _optionsEnabled, value);
 		}
-
-		private Interaction<string, string?> PasswordInteraction { get; }
 
 		public ICommand CreateWalletCommand { get; }
 		public ICommand RecoverWalletCommand { get; }
