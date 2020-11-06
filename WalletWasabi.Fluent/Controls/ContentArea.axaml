@@ -23,7 +23,7 @@
         <DockPanel Margin="40,0,40,0">
           <StackPanel DockPanel.Dock="Top" Spacing="10" Margin="0 0 0 40">
             <DockPanel>
-              <Button Margin="-40,0,0,0" Classes="plain" Command="{Binding BackCommand}" IsVisible="{TemplateBinding EnableBack}" Background="Transparent">
+              <Button Margin="-40,0,0,0" Classes="plain" Command="{Binding BackCommand}" IsVisible="{TemplateBinding EnableBack}">
                 <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
               </Button>
               <ContentPresenter Name="PART_TitlePresenter" Content="{TemplateBinding Title}" />
