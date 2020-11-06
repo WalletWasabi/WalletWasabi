@@ -291,6 +291,12 @@ namespace WalletWasabi.Fluent.Controls
 					SelectTag(currentText);
 					Dispatcher.UIThread.Post(() => { autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); });
 					break;
+				case Key.Enter:
+					if (Items is IList x && x.Count >= ItemCountLimit)
+					{
+						CompletedCommand?.Execute(null);
+					}
+					break;
 			}
 		}
 
@@ -308,11 +314,6 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			SelectedTag = tagString;
 			CheckIsInputEnabled();
-
-			if (Items is IList x && x.Count >= ItemCountLimit)
-			{
-				CompletedCommand?.Execute(null);
-			}
 		}
 	}
 }
