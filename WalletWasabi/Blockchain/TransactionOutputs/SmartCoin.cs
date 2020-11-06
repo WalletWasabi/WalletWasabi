@@ -54,7 +54,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 			_cluster = new Cluster(this);
 
-			HdPubKey.Coins.Add(this);
 			Transaction.WalletOutputs.Add(this);
 		}
 
@@ -98,6 +97,12 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 				}
 			}
 		}
+
+		public bool RegisterToHdPubKey()
+			=> HdPubKey.Coins.Add(this);
+
+		public bool UnregisterFromHdPubKey()
+			=> HdPubKey.Coins.Remove(this);
 
 		public bool CoinJoinInProgress
 		{
