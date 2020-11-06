@@ -1,4 +1,5 @@
 using System.Linq;
+using Microsoft.AspNetCore.Builder;
 
 namespace System
 {
@@ -65,7 +66,12 @@ namespace System
 
 		public static bool IsTrimable(this string me)
 		{
-			return me.Any() && (char.IsWhiteSpace(me.First()) || char.IsWhiteSpace(me.Last()));
+			if (!me.Any())
+			{
+				return false;
+			}
+
+			return char.IsWhiteSpace(me.First()) || char.IsWhiteSpace(me.Last());
 		}
 	}
 }
