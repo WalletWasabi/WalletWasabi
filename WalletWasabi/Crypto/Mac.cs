@@ -1,5 +1,6 @@
 using System;
 using NBitcoin.Secp256k1;
+using Newtonsoft.Json;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Helpers;
 
@@ -7,6 +8,7 @@ namespace WalletWasabi.Crypto
 {
 	public class MAC : IEquatable<MAC>
 	{
+		[JsonConstructor]
 		private MAC(Scalar t, GroupElement v)
 		{
 			T = Guard.NotZero(nameof(t), t);
@@ -15,7 +17,7 @@ namespace WalletWasabi.Crypto
 
 		public Scalar T { get; }
 		public GroupElement V { get; }
-		public GroupElement U => GenerateU(T);
+		internal GroupElement U => GenerateU(T);
 
 		public static bool operator ==(MAC? a, MAC? b) => (a?.T, a?.V) == (b?.T, b?.V);
 
