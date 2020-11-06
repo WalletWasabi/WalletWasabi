@@ -9,7 +9,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="recoverWallet:RecoverWalletViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.RecoverWallet.RecoverWalletView">
+             x:Class="WalletWasabi.Fluent.Views.AddWallet.RecoverWalletView">
     <c:ContentArea x:Name="RecoveryPageRoot"
                    Title="Enter recovery words" Caption="Type in your 12 recovery words and click continue"
                    EnableBack="True"
