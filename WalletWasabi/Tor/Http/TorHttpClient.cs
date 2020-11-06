@@ -1,7 +1,6 @@
 using System;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
@@ -74,10 +73,8 @@ namespace WalletWasabi.Tor.Http
 		/// <remarks>
 		/// Throws <see cref="OperationCanceledException"/> if <paramref name="token"/> is set.
 		/// </remarks>
-		public Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken token = default)
+		public async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken token = default)
 		{
-			Guard.NotNull(nameof(method), method);
-			relativeUri = Guard.NotNull(nameof(relativeUri), relativeUri);
 			var requestUri = new Uri(DestinationUri, relativeUri);
 			using var request = new HttpRequestMessage(method, requestUri);
 
@@ -86,7 +83,7 @@ namespace WalletWasabi.Tor.Http
 				request.Content = content;
 			}
 
-			return SendAsync(request, token);
+			return await SendAsync(request, token).ConfigureAwait(false);
 		}
 
 		private static void SetTorNotWorkingState(Exception ex)
@@ -98,8 +95,6 @@ namespace WalletWasabi.Tor.Http
 		/// <exception cref="OperationCanceledException">If <paramref name="token"/> is set.</exception>
 		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
 		{
-			Guard.NotNull(nameof(request), request);
-
 			// Use clearnet HTTP client when Tor is disabled.
 			if (TorSocks5EndPoint is null)
 			{

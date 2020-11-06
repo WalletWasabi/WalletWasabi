@@ -1,5 +1,8 @@
+using Nito.AsyncEx;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -13,13 +16,14 @@ using WalletWasabi.Tor.Exceptions;
 using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.Tor.Http.Models;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
+using WalletWasabi.Tor.Socks5.Pool;
 
 namespace WalletWasabi.Tor.Socks5
 {
 	/// <summary>
 	/// TODO.
 	/// </summary>
-	public class TorSocks5ClientPool: IDisposable
+	public class TorSocks5ClientPool : IDisposable
 	{
 		/// <summary>
 		/// Creates a new instance of the object.
@@ -28,6 +32,8 @@ namespace WalletWasabi.Tor.Socks5
 		{
 			Endpoint = endpoint;
 			IsolateStream = isolateStream;
+
+			Clients = new Dictionary<string, List<PoolItem>>();
 		}
 
 		/// <summary>Tor SOCKS5 endpoint.</summary>
@@ -36,8 +42,10 @@ namespace WalletWasabi.Tor.Socks5
 
 		private bool _disposedValue;
 
+		private AsyncLock ClientsAsyncLock { get; } = new AsyncLock();
+
 		/// <summary>TODO.</summary>
-		private TorSocks5Client? TorSocks5Client { get; set; }
+		private Dictionary<string, List<PoolItem>> Clients { get; }
 
 		/// <summary>
 		/// Robust sending algorithm. TODO.
@@ -52,22 +60,45 @@ namespace WalletWasabi.Tor.Socks5
 			do
 			{
 				i++;
+				PoolItem? poolItem;
+				TorSocks5Client? client = null;
 
-				TorSocks5Client client = await GetOrCreateNewClientAsync(request, token).ConfigureAwait(false);
-				TorSocks5Client? clientToDispose = client;
+				do
+				{
+					using (await ClientsAsyncLock.LockAsync(token).ConfigureAwait(false))
+					{
+						poolItem = await GetClientAsync(request, token).ConfigureAwait(false);
+
+						if (poolItem is { })
+						{
+							client = poolItem.GetClient();
+							break;
+						}
+					}
+
+					Logger.LogTrace("Wait 1s for a free pool item.");
+					await Task.Delay(1000, token).ConfigureAwait(false);
+				} while (poolItem is null);
+
+				PoolItem ? itemToDispose = poolItem;
 
 				try
 				{
-					HttpResponseMessage response = await SendCoreAsync(client, request).ConfigureAwait(false);
+					Logger.LogDebug($"Do the request using '{poolItem}'.");
+					HttpResponseMessage response = await SendCoreAsync(client!, request).ConfigureAwait(false);
+
+					// Client works OK, no need to dispose.
+					itemToDispose = null;
+
+					// Let others use the client.
+					poolItem.Unreserve();
+
 					return response;
 				}
 				catch (TorSocks5FailureResponseException ex) when (ex.RepField == RepField.TtlExpired)
 				{
 					// If we get TTL Expired error then wait and retry again linux often do this.
 					Logger.LogTrace(ex);
-
-					TorSocks5Client?.Dispose(); // rebuild the connection and retry
-					TorSocks5Client = null;
 
 					await Task.Delay(1000, token).ConfigureAwait(false);
 
@@ -83,11 +114,60 @@ namespace WalletWasabi.Tor.Socks5
 				}
 				finally
 				{
-					clientToDispose?.Dispose();
+					itemToDispose?.Dispose();
 				}
 			} while (i < attemptsNo);
 
 			throw new NotImplementedException("This should never happen.");
+		}
+
+		public async Task<PoolItem?> GetClientAsync(HttpRequestMessage request, CancellationToken token)
+		{
+			string host = GetRequestHost(request);
+
+			PoolItem? reservedItem;
+
+			// Make sure the list is present.
+			if (!Clients.ContainsKey(host))
+			{
+				Clients.Add(host, new List<PoolItem>());
+			}
+
+			// Get list of connections for given host.
+			List<PoolItem> hostItems = Clients[host];
+
+			// Find first free connection, if it exists.
+			List<PoolItem> disposeList = hostItems.FindAll(item => item.NeedRecycling()).ToList();
+
+			// Remove items for disposal from the list.
+			disposeList.ForEach(item => hostItems.Remove(item));
+
+			// Find first free connection, if it exists.
+			reservedItem = hostItems.Find(item => item.TryReserve());
+
+			if (reservedItem is null)
+			{
+				if (hostItems.Count > 3)
+				{
+					Logger.LogTrace($"[NONE] No free pool item.");
+				}
+				else
+				{
+					// TODO: Handle exceptions.
+					TorSocks5Client newClient = await NewClientAsync(request, token).ConfigureAwait(false);
+					reservedItem = new PoolItem(newClient);
+
+					Logger.LogTrace($"[NEW {reservedItem}]['{request.RequestUri}'] Created new Tor SOCKS5 connection.");
+
+					hostItems.Add(reservedItem);
+				}
+			}
+			else
+			{
+				Logger.LogTrace($"[OLD {reservedItem}]['{request.RequestUri}'] Re-use existing Tor SOCKS5 connection.");
+			}
+
+			return reservedItem;
 		}
 
 		private async Task<HttpResponseMessage> SendCoreAsync(TorSocks5Client client, HttpRequestMessage request, CancellationToken token = default)
@@ -131,27 +211,11 @@ namespace WalletWasabi.Tor.Socks5
 			return await HttpResponseMessageExtensions.CreateNewAsync(transportStream, request.Method).ConfigureAwait(false);
 		}
 
-		public async Task<TorSocks5Client> GetOrCreateNewClientAsync(HttpRequestMessage request, CancellationToken token)
-		{
-			if (TorSocks5Client is { } && !TorSocks5Client.IsConnected)
-			{
-				TorSocks5Client?.Dispose();
-				TorSocks5Client = null;
-			}
-
-			if (TorSocks5Client is null || !TorSocks5Client.IsConnected)
-			{
-				TorSocks5Client = await NewClientAsync(request, token).ConfigureAwait(false);
-			}
-
-			return TorSocks5Client;
-		}
-
-		public async Task<TorSocks5Client> NewClientAsync(HttpRequestMessage request, CancellationToken token)
+		public async Task<TorSocks5Client> NewClientAsync(HttpRequestMessage request, CancellationToken token = default)
 		{
 			// https://tools.ietf.org/html/rfc7230#section-2.7.1
 			// A sender MUST NOT generate an "http" URI with an empty host identifier.
-			string host = Guard.NotNullOrEmptyOrWhitespace(nameof(request.RequestUri.DnsSafeHost), request.RequestUri.DnsSafeHost, trim: true);
+			string host = GetRequestHost(request);
 
 			// https://tools.ietf.org/html/rfc7230#section-2.6
 			// Intermediaries that process HTTP messages (i.e., all intermediaries
@@ -172,6 +236,11 @@ namespace WalletWasabi.Tor.Socks5
 			return client;
 		}
 
+		private static string GetRequestHost(HttpRequestMessage request)
+		{
+			return Guard.NotNullOrEmptyOrWhitespace(nameof(request.RequestUri.DnsSafeHost), request.RequestUri.DnsSafeHost, trim: true);
+		}
+
 		/// <summary>
 		/// <list type="bullet">
 		/// <item>Unmanaged resources need to be released regardless of the value of the <paramref name="disposing"/> parameter.</item>
@@ -188,7 +257,14 @@ namespace WalletWasabi.Tor.Socks5
 			{
 				if (disposing)
 				{
-					TorSocks5Client?.Dispose();
+					foreach (List<PoolItem> list in Clients.Values)
+					{
+						foreach (PoolItem item in list)
+						{
+							// TODO: Disposing: identifier?
+							item.Dispose();
+						}
+					}
 				}
 				_disposedValue = true;
 			}

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
@@ -8,6 +9,7 @@ using WalletWasabi.Tor;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5;
 using Xunit;
+using Logger = WalletWasabi.Logging.Logger;
 
 namespace WalletWasabi.Tests.IntegrationTests
 {
@@ -23,6 +25,41 @@ namespace WalletWasabi.Tests.IntegrationTests
 		public Task DisposeAsync()
 		{
 			return Task.CompletedTask;
+		}
+
+		[Fact]
+		public async Task TestHttpsAndHttpThenAsync()
+		{
+			Logger.SetMinimumLevel(Logging.LogLevel.Trace);
+			using var client = new TorHttpClient(new Uri("http://api.qbit.ninja"), Common.TorSocks5Endpoint);
+
+			var tasks = new List<Task<HttpResponseMessage>>
+			{
+				client.SendAsync(HttpMethod.Get, "/"),
+				client.SendAsync(HttpMethod.Get, "/"),
+				client.SendAsync(HttpMethod.Get, "/"),
+				client.SendAsync(HttpMethod.Get, "/"),
+				client.SendAsync(HttpMethod.Get, "/"),
+				client.SendAsync(HttpMethod.Get, "/"),
+				client.SendAsync(HttpMethod.Get, "/"),
+				client.SendAsync(HttpMethod.Get, "/"),
+				client.SendAsync(HttpMethod.Get, "/")
+			};
+
+			HttpResponseMessage[] httpResponseMessages = await Task.WhenAll(tasks);
+
+			int i = 0;
+			foreach (HttpResponseMessage response in httpResponseMessages)
+			{
+				i++;
+
+				string message = await response.Content.ReadAsStringAsync();
+				string excerpt = message.Substring(0, Math.Min(100, message.Length));
+
+				Logger.LogDebug($"#{i}: {excerpt}");
+			}
+
+			Assert.True(true);
 		}
 
 		[Fact]
