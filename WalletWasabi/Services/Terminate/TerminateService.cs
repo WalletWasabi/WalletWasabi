@@ -1,6 +1,7 @@
 using Microsoft.Win32;
 using System;
 using System.Runtime.InteropServices;
+using System.Runtime.Loader;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
@@ -22,11 +23,25 @@ namespace WalletWasabi.Services.Terminate
 			TerminateApplicationAsync = terminateApplicationAsync;
 			AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
 			Console.CancelKeyPress += Console_CancelKeyPress;
+			AssemblyLoadContext.Default.Unloading += Default_Unloading;
+			AppDomain.CurrentDomain.DomainUnload += CurrentDomain_DomainUnload;
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
 				SystemEvents.SessionEnding += Windows_SystemEvents_SessionEnding;
 			}
+		}
+
+		private void CurrentDomain_DomainUnload(object? sender, EventArgs e)
+		{
+			Logger.LogInfo($"Process domain unloading requested by the OS.");
+			Terminate();
+		}
+
+		private void Default_Unloading(AssemblyLoadContext obj)
+		{
+			Logger.LogInfo($"Process context unloading requested by the OS.");
+			Terminate();
 		}
 
 		private void Windows_SystemEvents_SessionEnding(object sender, SessionEndingEventArgs e)
@@ -99,6 +114,8 @@ namespace WalletWasabi.Services.Terminate
 			AppDomain.CurrentDomain.ProcessExit -= CurrentDomain_ProcessExit;
 			Console.CancelKeyPress -= Console_CancelKeyPress;
 			SystemEvents.SessionEnding -= Windows_SystemEvents_SessionEnding;
+			AssemblyLoadContext.Default.Unloading -= Default_Unloading;
+			AppDomain.CurrentDomain.DomainUnload -= CurrentDomain_DomainUnload;
 
 			// Indicate that the termination procedure finished. So other callers can return.
 			Interlocked.Exchange(ref _terminateStatus, TerminateStatusFinished);
