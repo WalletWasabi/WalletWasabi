@@ -1,10 +1,15 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
+        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+        xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors;assembly=WalletWasabi.Fluent"
+        xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity">
   <Design.PreviewWith>
     <Panel Background="{DynamicResource RegionColor}">
-      <c:ContentArea Width="400" Height="200"
+      <c:ContentArea Width="500" Height="300"
                      Title="Add a Wallet"
+                     EnableBack="True"
+                     EnableCancel="True" CancelContent="Cancel" FocusCancel="False"
+                     EnableNext="True" NextContent="Continue" FocusNext="True"
                      Caption="Type in your Wallet's name and select an option below:">
         This is the content.
       </c:ContentArea>
@@ -15,11 +20,28 @@
   <Style Selector="c|ContentArea">
     <Setter Property="Template">
       <ControlTemplate>
-        <DockPanel>
+        <DockPanel Margin="40,0,40,0">
           <StackPanel DockPanel.Dock="Top" Spacing="10" Margin="0 0 0 40">
-            <ContentPresenter Name="PART_TitlePresenter" Content="{TemplateBinding Title}" />
+            <DockPanel>
+              <Button Margin="-40,0,0,0" Classes="invisible" Command="{Binding BackCommand}" IsVisible="{TemplateBinding EnableBack}" Background="Transparent">
+                <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
+              </Button>
+              <ContentPresenter Name="PART_TitlePresenter" Content="{TemplateBinding Title}" />
+            </DockPanel>
             <ContentPresenter Name="PART_CaptionPresenter" Content="{TemplateBinding Caption}" />
           </StackPanel>
+          <Panel DockPanel.Dock="Bottom">
+            <Button Name="PART_CancelButton" Classes="invisible" IsVisible="{TemplateBinding EnableCancel}" Content="{TemplateBinding CancelContent}" Margin="0,10,10,10" HorizontalAlignment="Left" Command="{Binding CancelCommand}">
+              <i:Interaction.Behaviors>
+                <behaviors:FocusOnAttachedBehavior IsEnabled="{Binding FocusCancel}" />
+              </i:Interaction.Behaviors>
+            </Button>
+            <Button Name="PART_NextButton" Classes="action" IsVisible="{TemplateBinding EnableNext}" Content="{TemplateBinding NextContent}" Margin="10,10,0,10" HorizontalAlignment="Right" Command="{Binding NextCommand}">
+              <i:Interaction.Behaviors>
+                <behaviors:FocusOnAttachedBehavior IsEnabled="{Binding FocusNext}" />
+              </i:Interaction.Behaviors>
+            </Button>
+          </Panel>
           <ContentPresenter Name="PART_ContentPresenter"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"

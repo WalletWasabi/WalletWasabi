@@ -18,15 +18,15 @@ namespace WalletWasabi.Fluent.ViewModels
 		private WalletViewModelBase _selectedItem;
 		private ObservableCollection<WalletViewModelBase> _items;
 		private readonly Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
-		private readonly IScreen _screen;
+		private readonly NavigationStateViewModel _navigationState;
 		private bool _anyWalletStarted;
 
-		public WalletManagerViewModel(IScreen screen, WalletManager walletManager, UiConfig uiConfig)
+		public WalletManagerViewModel(NavigationStateViewModel navigationState, WalletManager walletManager, UiConfig uiConfig)
 		{
 			Model = walletManager;
 			_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
 			_items = new ObservableCollection<WalletViewModelBase>();
-			_screen = screen;
+			_navigationState = navigationState;
 
 			Observable
 				.FromEventPattern<WalletState>(walletManager, nameof(WalletManager.WalletStateChanged))
@@ -58,8 +58,8 @@ namespace WalletWasabi.Fluent.ViewModels
 				.Subscribe(wallet =>
 				{
 					WalletViewModelBase vm = (wallet.State <= WalletState.Starting)
-						? ClosedWalletViewModel.Create(screen, walletManager, wallet)
-						: WalletViewModel.Create(screen, uiConfig, wallet);
+						? ClosedWalletViewModel.Create(_navigationState, walletManager, wallet)
+						: WalletViewModel.Create(_navigationState, uiConfig, wallet);
 
 					InsertWallet(vm);
 				});
@@ -108,7 +108,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				throw new Exception("Wallet already opened.");
 			}
 
-			var walletViewModel = WalletViewModel.Create(_screen, uiConfig, wallet);
+			var walletViewModel = WalletViewModel.Create(_navigationState, uiConfig, wallet);
 
 			InsertWallet(walletViewModel);
 
@@ -140,7 +140,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			foreach (var wallet in walletManager.GetWallets())
 			{
-				InsertWallet(ClosedWalletViewModel.Create(_screen, walletManager, wallet));
+				InsertWallet(ClosedWalletViewModel.Create(_navigationState, walletManager, wallet));
 			}
 		}
 	}

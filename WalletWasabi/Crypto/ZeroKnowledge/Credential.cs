@@ -12,7 +12,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		/// Initializes a new Credential instance.
 		/// </summary>
 		/// <param name="amount">The amount represented by the credential.</param>
-		/// <param name="randomness">The randomness used as blinding factor in the pedersen committed amount.</param>
+		/// <param name="randomness">The randomness used as blinding factor in the Pedersen committed amount.</param>
 		/// <param name="mac">The algebraic MAC represented the anonymous credential issued by the coordinator.</param>
 		public Credential(Scalar amount, Scalar randomness, MAC mac)
 		{
@@ -27,7 +27,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		public Scalar Amount { get; }
 
 		/// <summary>
-		/// Randomness used as blinding factor for the pedersen committed Amount.
+		/// Randomness used as blinding factor for the Pedersen committed Amount.
 		/// </summary>
 		public Scalar Randomness { get; }
 
