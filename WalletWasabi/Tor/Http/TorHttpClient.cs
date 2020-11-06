@@ -13,7 +13,6 @@ using WalletWasabi.Logging;
 using WalletWasabi.Tor.Exceptions;
 using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.Tor.Http.Interfaces;
-using WalletWasabi.Tor.Http.Models;
 using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 
@@ -36,9 +35,18 @@ namespace WalletWasabi.Tor.Http
 			DestinationUriAction = Guard.NotNull(nameof(baseUriAction), baseUriAction);
 
 			// Connecting to loopback's URIs cannot be done via Tor.
-			TorSocks5EndPoint = DestinationUriAction().IsLoopback ? null : torSocks5EndPoint;
+			TorSocks5EndPoint = DestinationUri.IsLoopback ? null : torSocks5EndPoint;
+
+			if (TorSocks5EndPoint is { })
+			{
+				TorSocks5ClientPool = new TorSocks5ClientPool(TorSocks5EndPoint, isolateStream);
+			}
+			else
+			{
+				TorSocks5EndPoint = null!;
+			}
+
 			TorSocks5Client = null;
-			IsolateStream = isolateStream;
 		}
 
 		public static DateTimeOffset? TorDoesntWorkSince
@@ -59,12 +67,14 @@ namespace WalletWasabi.Tor.Http
 
 		public static Exception? LatestTorException { get; private set; } = null;
 
+		public Uri DestinationUri => DestinationUriAction();
 		public Func<Uri> DestinationUriAction { get; }
 		public EndPoint? TorSocks5EndPoint { get; private set; }
 		public bool IsTorUsed => TorSocks5EndPoint is { };
 
-		private bool IsolateStream { get; }
+		private TorSocks5ClientPool TorSocks5ClientPool { get; }
 
+		/// <summary>TODO: Remove.</summary>
 		private TorSocks5Client? TorSocks5Client { get; set; }
 
 		private static AsyncLock AsyncLock { get; } = new AsyncLock(); // We make everything synchronous, so slow, but at least stable.
@@ -81,7 +91,7 @@ namespace WalletWasabi.Tor.Http
 		{
 			Guard.NotNull(nameof(method), method);
 			relativeUri = Guard.NotNull(nameof(relativeUri), relativeUri);
-			var requestUri = new Uri(DestinationUriAction(), relativeUri);
+			var requestUri = new Uri(DestinationUri, relativeUri);
 			using var request = new HttpRequestMessage(method, requestUri);
 			request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
 
@@ -186,16 +196,6 @@ namespace WalletWasabi.Tor.Http
 
 		private async Task<HttpResponseMessage> RequestOverTorSocks5Async(HttpRequestMessage request, CancellationToken cancel = default)
 		{
-			// https://tools.ietf.org/html/rfc7230#section-2.7.1
-			// A sender MUST NOT generate an "http" URI with an empty host identifier.
-			string host = Guard.NotNullOrEmptyOrWhitespace($"{nameof(request)}.{nameof(request.RequestUri)}.{nameof(request.RequestUri.DnsSafeHost)}", request.RequestUri.DnsSafeHost, trim: true);
-
-			// https://tools.ietf.org/html/rfc7230#section-2.6
-			// Intermediaries that process HTTP messages (i.e., all intermediaries
-			// other than those acting as tunnels) MUST send their own HTTP - version
-			// in forwarded messages.
-			request.Version = HttpProtocol.HTTP11.Version;
-
 			if (TorSocks5Client is { } && !TorSocks5Client.IsConnected)
 			{
 				TorSocks5Client?.Dispose();
@@ -204,15 +204,7 @@ namespace WalletWasabi.Tor.Http
 
 			if (TorSocks5Client is null || !TorSocks5Client.IsConnected)
 			{
-				TorSocks5Client = new TorSocks5Client(TorSocks5EndPoint!);
-				await TorSocks5Client.ConnectAsync().ConfigureAwait(false);
-				await TorSocks5Client.HandshakeAsync(IsolateStream, cancel).ConfigureAwait(false);
-				await TorSocks5Client.ConnectToDestinationAsync(host, request.RequestUri.Port, cancel).ConfigureAwait(false);
-
-				if (request.RequestUri.Scheme == "https")
-				{
-					await TorSocks5Client.UpgradeToSslAsync(host).ConfigureAwait(false);
-				}
+				TorSocks5Client = await TorSocks5ClientPool.NewClientAsync(request, cancel).ConfigureAwait(false);
 			}
 
 			cancel.ThrowIfCancellationRequested();
