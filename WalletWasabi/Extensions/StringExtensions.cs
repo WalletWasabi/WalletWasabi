@@ -65,7 +65,7 @@ namespace System
 
 		public static bool IsTrimable(this string me)
 		{
-			if (!me.Any())
+			if (me.Length == 0)
 			{
 				return false;
 			}
