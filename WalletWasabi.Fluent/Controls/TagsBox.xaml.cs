@@ -289,14 +289,21 @@ namespace WalletWasabi.Fluent.Controls
 
 					BackspaceLogicClear();
 					SelectTag(currentText);
+					ExecuteCompletedCommand();
+
 					Dispatcher.UIThread.Post(() => { autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); });
 					break;
 				case Key.Enter:
-					if (Items is IList x && x.Count >= ItemCountLimit)
-					{
-						CompletedCommand?.Execute(null);
-					}
+					ExecuteCompletedCommand();
 					break;
+			}
+		}
+
+		private void ExecuteCompletedCommand()
+		{
+			if (Items is IList x && x.Count >= ItemCountLimit)
+			{
+				CompletedCommand?.Execute(null);
 			}
 		}
 
