@@ -22,7 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		private string _walletName = "";
 		private bool _optionsEnabled;
 
-		public AddWalletPageViewModel(IScreen screen, WalletManager walletManager, BitcoinStore store, Network network) : base(screen)
+		public AddWalletPageViewModel(NavigationStateViewModel navigationState, WalletManager walletManager, BitcoinStore store, Network network) : base(navigationState, NavigationTarget.Dialog)
 		{
 			Title = "Add Wallet";
 
@@ -30,7 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				.Select(x => !string.IsNullOrWhiteSpace(x))
 				.Subscribe(x => OptionsEnabled = x && !Validations.Any);
 
-			RecoverWalletCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new RecoveryPageViewModel(screen)));
+			RecoverWalletCommand = ReactiveCommand.Create(() => navigationState.DialogScreen?.Invoke().Router.Navigate.Execute(new RecoveryPageViewModel(navigationState)));
 
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>
@@ -51,8 +51,8 @@ namespace WalletWasabi.Fluent.ViewModels
 								return walletGenerator.GenerateWallet(WalletName, password);
 							});
 
-						await screen.Router.Navigate.Execute(
-							new RecoveryWordsViewModel(screen, km, mnemonic, walletManager));
+						await navigationState.DialogScreen?.Invoke().Router.Navigate.Execute(
+							new RecoveryWordsViewModel(navigationState, km, mnemonic, walletManager));
 					}
 				});
 

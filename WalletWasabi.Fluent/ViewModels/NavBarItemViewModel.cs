@@ -9,9 +9,9 @@ namespace WalletWasabi.Fluent.ViewModels
 		private bool _isExpanded;
 		private string? _title;
 
-		protected NavBarItemViewModel(IScreen screen) : base(screen)
+		protected NavBarItemViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget) : base(navigationState, navigationTarget)
 		{
-			OpenCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(this));
+			OpenCommand = ReactiveCommand.Create(() => Navigate());
 		}
 
 		public NavBarItemViewModel? Parent { get; set; }

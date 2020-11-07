@@ -5,14 +5,10 @@
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" Width="450" Height="200"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.TestDialogView">
-  <c:ContentArea Title="Test Dialog" Caption="A quick example of a dialog:">
+  <c:ContentArea Title="Test Dialog" Caption="A quick example of a dialog:" EnableCancel="False" EnableNext="True" NextContent="Confirm">
     <StackPanel HorizontalAlignment="Center"
                 VerticalAlignment="Center">
       <TextBlock Text="{Binding Message}" />
-      <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-        <Button Content="Cancel" Margin="10" Command="{Binding CancelCommand}" />
-        <Button Content="Confirm" Margin="10" Command="{Binding ConfirmCommand}" />
-      </StackPanel>
     </StackPanel>
   </c:ContentArea>
 </UserControl>

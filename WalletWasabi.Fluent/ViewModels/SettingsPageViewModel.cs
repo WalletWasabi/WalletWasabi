@@ -13,21 +13,25 @@ namespace WalletWasabi.Fluent.ViewModels
 	{
 		private string _randomString;
 
-		public SettingsPageViewModel(IScreen screen) : base(screen)
+		public SettingsPageViewModel(NavigationStateViewModel navigationState) : base(navigationState, NavigationTarget.Dialog)
 		{
 			Title = "Settings";
 
-			NextCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new SettingsPageViewModel(screen)));
+			BackCommand = ReactiveCommand.Create(() => ClearNavigation());
+
+			NextCommand = ReactiveCommand.Create(() => navigationState.HomeScreen?.Invoke().Router.Navigate.Execute(new SettingsPageViewModel(navigationState)));
 
 			OpenDialogCommand = ReactiveCommand.CreateFromTask(async () => await ConfirmSetting.Handle("Please confirm the setting:").ToTask());
+
+			OpenDialogScreenCommand = ReactiveCommand.Create(() => navigationState.DialogScreen?.Invoke().Router.Navigate.Execute(new SettingsPageViewModel(navigationState)));
 
 			ConfirmSetting = new Interaction<string, bool>();
 
 			ConfirmSetting.RegisterHandler(
 				async interaction =>
 				{
-					var x = new TestDialogViewModel(screen, interaction.Input);
-					var result = await x.ShowDialogAsync();
+					var x = new TestDialogViewModel(navigationState, interaction.Input);
+					var result = await x.ShowDialogAsync(navigationState.DialogHost());
 					interaction.SetOutput(result);
 				});
 
@@ -48,10 +52,11 @@ namespace WalletWasabi.Fluent.ViewModels
 				}
 			});
 		}
-
 		public ICommand NextCommand { get; }
 
 		public ICommand OpenDialogCommand { get; }
+
+		public ICommand OpenDialogScreenCommand { get; }
 
 		public Interaction<string, bool> ConfirmSetting { get; }
 

@@ -1,3 +1,4 @@
+using ReactiveUI;
 using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
@@ -7,6 +8,15 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 	/// </summary>
 	public abstract class DialogViewModelBase : ViewModelBase
 	{
-		// Intended to be empty.
+		private bool _isDialogOpen;
+
+		/// <summary>
+		/// Gets or sets if the dialog is opened/closed.
+		/// </summary>
+		public bool IsDialogOpen
+		{
+			get => _isDialogOpen;
+			set => this.RaiseAndSetIfChanged(ref _isDialogOpen, value);
+		}
 	}
 }

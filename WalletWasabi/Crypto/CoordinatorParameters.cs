@@ -1,4 +1,5 @@
 using WalletWasabi.Crypto.Groups;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto
 {
@@ -6,8 +7,8 @@ namespace WalletWasabi.Crypto
 	{
 		public CoordinatorParameters(GroupElement cw, GroupElement i)
 		{
-			Cw = CryptoGuard.NotNullOrInfinity(nameof(cw), cw);
-			I = CryptoGuard.NotNullOrInfinity(nameof(i), i);
+			Cw = Guard.NotNullOrInfinity(nameof(cw), cw);
+			I = Guard.NotNullOrInfinity(nameof(i), i);
 		}
 
 		public GroupElement Cw { get; }
