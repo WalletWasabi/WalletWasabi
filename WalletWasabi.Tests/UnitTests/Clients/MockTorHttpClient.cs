@@ -13,10 +13,6 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 	{
 		public Uri DestinationUri => new Uri("https://payment.server.org/pj");
 
-		public Func<Uri> DestinationUriAction => () => DestinationUri;
-
-		public EndPoint TorSocks5EndPoint => IPEndPoint.Parse("127.0.0.1:9050");
-
 		public bool IsTorUsed => true;
 
 		public Func<HttpMethod, string, NameValueCollection, string, Task<HttpResponseMessage>> OnSendAsync { get; set; }
