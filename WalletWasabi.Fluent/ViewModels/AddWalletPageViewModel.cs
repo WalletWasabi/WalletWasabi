@@ -35,7 +35,11 @@ namespace WalletWasabi.Fluent.ViewModels
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{
-					var result = await PasswordInteraction.Handle("").ToTask();
+					var enterPassword = new EnterPasswordViewModel(navigationState, NavigationTarget.Dialog);
+
+					navigationState.DialogScreen?.Invoke().Router.Navigate.Execute(enterPassword);
+
+					var result = await enterPassword.GetDialogResultAsync();
 
 					if (result is { } password)
 					{
@@ -54,11 +58,11 @@ namespace WalletWasabi.Fluent.ViewModels
 						await navigationState.DialogScreen?.Invoke().Router.Navigate.Execute(
 							new RecoveryWordsViewModel(navigationState, km, mnemonic, walletManager));
 					}
+					else
+					{
+						ClearNavigation();
+					}
 				});
-
-			PasswordInteraction = new Interaction<string, string?>();
-			PasswordInteraction.RegisterHandler(
-				async interaction => interaction.SetOutput(await new EnterPasswordViewModel(navigationState, NavigationTarget.Default).ShowDialogAsync()));
 
 			this.ValidateProperty(x => x.WalletName, errors => ValidateWalletName(errors, walletManager, WalletName));
 		}
@@ -103,8 +107,6 @@ namespace WalletWasabi.Fluent.ViewModels
 			get => _optionsEnabled;
 			set => this.RaiseAndSetIfChanged(ref _optionsEnabled, value);
 		}
-
-		private Interaction<string, string?> PasswordInteraction { get; }
 
 		public ICommand CreateWalletCommand { get; }
 		public ICommand RecoverWalletCommand { get; }

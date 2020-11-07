@@ -78,6 +78,17 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		}
 
 		/// <summary>
+		/// Gets the dialog result.
+		/// </summary>
+		/// <returns>The value to be returned when the dialog is finished.</returns>
+		public Task<TResult> GetDialogResultAsync()
+		{
+			IsDialogOpen = true;
+
+			return _currentTaskCompletionSource.Task;
+		}
+
+		/// <summary>
 		/// Method that is triggered when the dialog is closed.
 		/// </summary>
 		protected abstract void OnDialogClosed();
