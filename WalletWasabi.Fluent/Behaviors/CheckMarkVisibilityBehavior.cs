@@ -11,6 +11,8 @@ namespace WalletWasabi.Fluent.Behaviors
 {
 	public class CheckMarkVisibilityBehavior : Behavior<PathIcon>
 	{
+		private CompositeDisposable? _disposables;
+
 		public static readonly StyledProperty<TextBox> OwnerTextBoxProperty =
 			AvaloniaProperty.Register<CheckMarkVisibilityBehavior, TextBox>(nameof(OwnerTextBox));
 
@@ -20,8 +22,6 @@ namespace WalletWasabi.Fluent.Behaviors
 			get => GetValue(OwnerTextBoxProperty);
 			set => SetValue(OwnerTextBoxProperty, value);
 		}
-
-		private CompositeDisposable? _disposables;
 
 		protected override void OnAttached()
 		{
