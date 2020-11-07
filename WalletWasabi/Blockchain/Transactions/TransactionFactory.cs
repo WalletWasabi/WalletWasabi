@@ -268,29 +268,27 @@ namespace WalletWasabi.Blockchain.Transactions
 				}
 			}
 
-			var label = SmartLabel.Merge(payments.Requests.Select(x => x.Label).Concat(spentCoins.Select(x => x.HdPubKey.Label)));
-			var outerWalletOutputs = new List<Coin>();
-			var innerWalletOutputs = new List<SmartCoin>();
 			var smartTransaction = new SmartTransaction(tx, Height.Unknown, label: SmartLabel.Merge(payments.Requests.Select(x => x.Label)));
+			foreach (var coin in spentCoins)
+			{
+				smartTransaction.WalletInputs.Add(coin);
+			}
+			var label = SmartLabel.Merge(payments.Requests.Select(x => x.Label).Concat(smartTransaction.WalletInputs.Select(x => x.HdPubKey.Label)));
+
 			for (var i = 0U; i < tx.Outputs.Count; i++)
 			{
 				TxOut output = tx.Outputs[i];
 				var foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
 				if (foundKey is { })
 				{
-					var anonset = tx.GetAnonymitySet(i) + spentCoins.Min(x => x.AnonymitySet) - 1; // Minus 1, because count own only once.
+					var anonset = tx.GetAnonymitySet(i) + smartTransaction.WalletInputs.Min(x => x.AnonymitySet) - 1; // Minus 1, because count own only once.
 					var smartCoin = new SmartCoin(smartTransaction, i, foundKey, anonset);
 					label = SmartLabel.Merge(label, smartCoin.HdPubKey.Label); // foundKey's label is already added to the coinlabel.
-					innerWalletOutputs.Add(smartCoin);
-				}
-				else
-				{
-					var coin = new Coin(tx.GetHash(), i, output.Value, output.ScriptPubKey);
-					outerWalletOutputs.Add(coin);
+					smartTransaction.WalletOutputs.Add(smartCoin);
 				}
 			}
 
-			foreach (var coin in innerWalletOutputs)
+			foreach (var coin in smartTransaction.WalletOutputs)
 			{
 				var foundPaymentRequest = payments.Requests.FirstOrDefault(x => x.Destination.ScriptPubKey == coin.ScriptPubKey);
 
@@ -308,8 +306,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 			Logger.LogInfo($"Transaction is successfully built: {tx.GetHash()}.");
 			var sign = !KeyManager.IsWatchOnly;
-			var spendsUnconfirmed = spentCoins.Any(c => !c.Confirmed);
-			return new BuildTransactionResult(smartTransaction, psbt, spendsUnconfirmed, sign, fee, feePc, outerWalletOutputs, innerWalletOutputs, spentCoins);
+			return new BuildTransactionResult(smartTransaction, psbt, sign, fee, feePc);
 		}
 
 		private PSBT TryNegotiatePayjoin(IPayjoinClient payjoinClient, TransactionBuilder builder, PSBT psbt, HdPubKey changeHdPubKey)

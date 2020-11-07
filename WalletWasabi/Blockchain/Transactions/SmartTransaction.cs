@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
@@ -33,11 +34,16 @@ namespace WalletWasabi.Blockchain.Transactions
 			FirstSeen = firstSeen == default ? DateTimeOffset.UtcNow : firstSeen;
 
 			IsReplacement = isReplacement;
+			WalletInputs = new HashSet<SmartCoin>(Transaction.Inputs.Count);
+			WalletOutputs = new HashSet<SmartCoin>(Transaction.Outputs.Count);
 		}
 
 		#endregion Constructors
 
 		#region Members
+
+		public HashSet<SmartCoin> WalletInputs { get; }
+		public HashSet<SmartCoin> WalletOutputs { get; }
 
 		[JsonProperty]
 		[JsonConverter(typeof(TransactionJsonConverter))]

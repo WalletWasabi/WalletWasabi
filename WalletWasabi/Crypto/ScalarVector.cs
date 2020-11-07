@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin.Secp256k1;
+using Newtonsoft.Json;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Helpers;
 
@@ -9,6 +10,7 @@ namespace WalletWasabi.Crypto
 {
 	public class ScalarVector : IEnumerable<Scalar>
 	{
+		[JsonConstructor]
 		internal ScalarVector(IEnumerable<Scalar> scalars)
 		{
 			Guard.NotNullOrEmpty(nameof(scalars), scalars);
