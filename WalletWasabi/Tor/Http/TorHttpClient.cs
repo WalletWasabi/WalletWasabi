@@ -35,7 +35,7 @@ namespace WalletWasabi.Tor.Http
 			DestinationUriAction = Guard.NotNull(nameof(baseUriAction), baseUriAction);
 
 			// Connecting to loopback's URIs cannot be done via Tor.
-			TorSocks5EndPoint = DestinationUri.IsLoopback ? null : torSocks5EndPoint;
+			TorSocks5EndPoint = DestinationUriAction().IsLoopback ? null : torSocks5EndPoint;
 			TorSocks5Client = null;
 			IsolateStream = isolateStream;
 		}
@@ -58,7 +58,6 @@ namespace WalletWasabi.Tor.Http
 
 		public static Exception? LatestTorException { get; private set; } = null;
 
-		public Uri DestinationUri => DestinationUriAction();
 		public Func<Uri> DestinationUriAction { get; }
 		public EndPoint? TorSocks5EndPoint { get; private set; }
 		public bool IsTorUsed => TorSocks5EndPoint is { };
@@ -81,7 +80,7 @@ namespace WalletWasabi.Tor.Http
 		{
 			Guard.NotNull(nameof(method), method);
 			relativeUri = Guard.NotNull(nameof(relativeUri), relativeUri);
-			var requestUri = new Uri(DestinationUri, relativeUri);
+			var requestUri = new Uri(DestinationUriAction(), relativeUri);
 			using var request = new HttpRequestMessage(method, requestUri);
 			request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
 
