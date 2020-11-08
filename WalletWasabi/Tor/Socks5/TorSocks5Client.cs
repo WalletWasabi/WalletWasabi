@@ -36,7 +36,7 @@ namespace WalletWasabi.Tor.Socks5
 		#region PropertiesAndMembers
 
 		/// <summary>TCP connection to Tor's SOCKS5 server.</summary>
-		private TcpClient TcpClient { get; set; }
+		private TcpClient TcpClient { get; }
 
 		private EndPoint TorSocks5EndPoint { get; }
 
@@ -444,10 +444,6 @@ namespace WalletWasabi.Tor.Socks5
 			catch (Exception ex)
 			{
 				Logger.LogWarning(ex);
-			}
-			finally
-			{
-				TcpClient = null; // needs to be called, .net bug
 			}
 		}
 

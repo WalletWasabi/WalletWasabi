@@ -21,7 +21,16 @@ using WalletWasabi.Tor.Socks5.Pool;
 namespace WalletWasabi.Tor.Socks5
 {
 	/// <summary>
-	/// TODO.
+	/// The pool represents a set of multiple TCP connections to Tor SOCKS5 endpoint that are stored in <see cref="PoolItem"/>s.
+	/// <para>
+	/// When a new HTTP(s) request comes, <see cref="PoolItem"/> (or rather the TCP connection wrapped inside) is selected using these rules:
+	/// <list type="number">
+	/// <item>An unused <see cref="PoolItem"/> is selected, if it exists.</item>
+	/// <item>A new <see cref="PoolItem"/> is added to the pool, if it would not exceed the maximum limit on the number of connections to Tor SOCKS5 endpoint.</item>
+	/// <item>Keep waiting 1 second until any of the previous rules cannot be used.</item>
+	/// </list>
+	/// </para>
+	/// <para><see cref="ClientsAsyncLock"/> is acquired only for <see cref="PoolItem"/> selection.</para>
 	/// </summary>
 	public class TorSocks5ClientPool : IDisposable
 	{
@@ -155,8 +164,10 @@ namespace WalletWasabi.Tor.Socks5
 				else
 				{
 					// TODO: Handle exceptions.
-					TorSocks5Client newClient = await NewClientAsync(request, token).ConfigureAwait(false);
-					reservedItem = new PoolItem(newClient);
+					bool useSsl = request.RequestUri.Scheme == "https";
+
+					TorSocks5Client newClient = await NewClientAsync(request, useSsl, token).ConfigureAwait(false);
+					reservedItem = new PoolItem(newClient, allowRecycling: !useSsl);
 
 					Logger.LogTrace($"[NEW {reservedItem}]['{request.RequestUri}'] Created new Tor SOCKS5 connection.");
 
@@ -212,7 +223,7 @@ namespace WalletWasabi.Tor.Socks5
 			return await HttpResponseMessageExtensions.CreateNewAsync(transportStream, request.Method).ConfigureAwait(false);
 		}
 
-		public async Task<TorSocks5Client> NewClientAsync(HttpRequestMessage request, CancellationToken token = default)
+		public async Task<TorSocks5Client> NewClientAsync(HttpRequestMessage request, bool useSsl, CancellationToken token = default)
 		{
 			// https://tools.ietf.org/html/rfc7230#section-2.7.1
 			// A sender MUST NOT generate an "http" URI with an empty host identifier.
@@ -229,7 +240,7 @@ namespace WalletWasabi.Tor.Socks5
 			await client.HandshakeAsync(IsolateStream, token).ConfigureAwait(false);
 			await client.ConnectToDestinationAsync(host, request.RequestUri.Port, token).ConfigureAwait(false);
 
-			if (request.RequestUri.Scheme == "https")
+			if (useSsl)
 			{
 				await client.UpgradeToSslAsync(host).ConfigureAwait(false);
 			}

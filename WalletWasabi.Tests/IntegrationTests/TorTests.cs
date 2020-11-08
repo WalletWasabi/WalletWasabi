@@ -27,8 +27,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 			return Task.CompletedTask;
 		}
 
-		// TODO: Add test with two HTTPS connections in a row.
-
 		[Fact]
 		public async Task TestMultipleHttpsAsync()
 		{

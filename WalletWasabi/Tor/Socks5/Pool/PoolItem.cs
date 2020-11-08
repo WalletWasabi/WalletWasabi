@@ -5,8 +5,12 @@ using System.Threading;
 namespace WalletWasabi.Tor.Socks5.Pool
 {
 	/// <summary>
-	/// TODO.
+	/// Pool item represents a single TCP connection to Tor SOCKS5 endpoint.
+	/// <para>Once a pool item is created, it is in <see cref="PoolItemState.InUse"/> state and the internal TCP connection is used immediately
+	/// to send an HTTP(s) request.</para>
+	/// <para>Then it is decided whether the pool item can be re-used for a next HTTP(s) request or not.</para>
 	/// </summary>
+	/// <remarks>Currently we re-use TCP connection to Tor SOCKS5 endpoint for HTTP requests but not for HTTPS requests.</remarks>
 	public class PoolItem
 	{
 		private static long Counter;
@@ -14,17 +18,21 @@ namespace WalletWasabi.Tor.Socks5.Pool
 		/// <summary>
 		/// Creates a new instance of the object.
 		/// </summary>
-		public PoolItem(TorSocks5Client client)
+		/// <param name="client">TCP client connected to Tor SOCKS5 endpoint.</param>
+		/// <param name="allowRecycling">Whether it is allowed to re-use this Tor pool item.</param>
+		public PoolItem(TorSocks5Client client, bool allowRecycling)
 		{
 			Id = Interlocked.Increment(ref Counter);
 			State = PoolItemState.InUse;
 			Client = client;
+			AllowRecycling = allowRecycling;
 		}
 
 		private object StateLock { get; } = new object();
 
 		public PoolItemState State { get; private set; }
 		private TorSocks5Client Client { get; set; }
+		private bool AllowRecycling { get; }
 		private long Id { get; }
 
 		private bool _disposedValue;
@@ -47,7 +55,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 		{
 			lock (StateLock)
 			{
-				return (State == PoolItemState.FreeToUse) && !Client.IsConnected;
+				return AllowRecycling && (State == PoolItemState.FreeToUse) && !Client.IsConnected;
 			}
 		}
 
@@ -70,7 +78,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 			lock (StateLock)
 			{
 				Debug.Assert(State == PoolItemState.InUse);
-				State = PoolItemState.FreeToUse;
+				State = AllowRecycling ? PoolItemState.FreeToUse : PoolItemState.ToDispose;
 			}
 		}
 
@@ -99,7 +107,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 					Client?.Dispose();
 					lock (StateLock)
 					{
-						State = PoolItemState.Disconnected;
+						State = PoolItemState.ToDispose;
 					}
 				}
 				_disposedValue = true;
@@ -122,6 +130,6 @@ namespace WalletWasabi.Tor.Socks5.Pool
 	{
 		InUse,
 		FreeToUse,
-		Disconnected
+		ToDispose
 	}
 }
