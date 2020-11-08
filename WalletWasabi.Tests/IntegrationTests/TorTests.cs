@@ -30,6 +30,31 @@ namespace WalletWasabi.Tests.IntegrationTests
 		// TODO: Add test with two HTTPS connections in a row.
 
 		[Fact]
+		public async Task TestMultipleHttpsAsync()
+		{
+			Logger.SetMinimumLevel(Logging.LogLevel.Trace);
+			using var client = new TorHttpClient(new Uri("https://docs.postman-echo.com/"), Common.TorSocks5Endpoint);
+
+			HttpResponseMessage[] httpResponseMessages = new HttpResponseMessage[] {
+				await client.SendAsync(HttpMethod.Get, "/"),
+				await client.SendAsync(HttpMethod.Get, "/"),
+			};
+
+			int i = 0;
+			foreach (HttpResponseMessage response in httpResponseMessages)
+			{
+				i++;
+
+				string message = await response.Content.ReadAsStringAsync();
+				string excerpt = message.Substring(0, Math.Min(100, message.Length));
+
+				Logger.LogDebug($"#{i}: {excerpt}");
+			}
+
+			Assert.True(true);
+		}
+
+		[Fact]
 		public async Task TestHttpsAndHttpThenAsync()
 		{
 			Logger.SetMinimumLevel(Logging.LogLevel.Trace);
