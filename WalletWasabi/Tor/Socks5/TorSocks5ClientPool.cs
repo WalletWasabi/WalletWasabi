@@ -121,7 +121,7 @@ namespace WalletWasabi.Tor.Socks5
 			throw new NotImplementedException("This should never happen.");
 		}
 
-		public async Task<PoolItem?> GetClientAsync(HttpRequestMessage request, CancellationToken token)
+		private async Task<PoolItem?> GetClientAsync(HttpRequestMessage request, CancellationToken token)
 		{
 			string host = GetRequestHost(request);
 
@@ -147,6 +147,7 @@ namespace WalletWasabi.Tor.Socks5
 
 			if (reservedItem is null)
 			{
+				// TODO: Use constant.
 				if (hostItems.Count > 3)
 				{
 					Logger.LogTrace($"[NONE] No free pool item.");
