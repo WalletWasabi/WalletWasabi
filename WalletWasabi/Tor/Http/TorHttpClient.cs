@@ -137,7 +137,10 @@ namespace WalletWasabi.Tor.Http
 			{
 				if (disposing)
 				{
-					TorSocks5ClientPool.Dispose();
+					if (TorSocks5EndPoint is { })
+					{
+						TorSocks5ClientPool.Dispose();
+					}
 				}
 				_disposedValue = true;
 			}
