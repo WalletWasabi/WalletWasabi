@@ -246,8 +246,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[Fact]
 		public async Task TorRunningAsync()
 		{
-			Assert.True(await new TorSocks5Client(new IPEndPoint(IPAddress.Loopback, 9050)).IsTorRunningAsync());
-			Assert.False(await new TorSocks5Client(new IPEndPoint(IPAddress.Loopback, 9054)).IsTorRunningAsync());
+			Assert.True(await new TorSocks5ClientFactory(new IPEndPoint(IPAddress.Loopback, 9050)).IsTorRunningAsync());
+			Assert.False(await new TorSocks5ClientFactory(new IPEndPoint(IPAddress.Loopback, 9054)).IsTorRunningAsync());
 		}
 
 		private static async Task<List<string>> QBitTestAsync(TorHttpClient client, int times, bool alterRequests = false)

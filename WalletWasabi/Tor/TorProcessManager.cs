@@ -27,7 +27,7 @@ namespace WalletWasabi.Tor
 			TorSocks5EndPoint = torSocks5EndPoint;
 			TorProcess = null;
 			Settings = settings;
-			TorSocks5Client = new TorSocks5Client(torSocks5EndPoint);
+			TorSocks5ClientFactory = new TorSocks5ClientFactory(torSocks5EndPoint);
 
 			IoHelpers.EnsureContainingDirectoryExists(Settings.LogFilePath);
 		}
@@ -38,7 +38,7 @@ namespace WalletWasabi.Tor
 
 		private TorSettings Settings { get; }
 
-		private TorSocks5Client TorSocks5Client { get; }
+		private TorSocks5ClientFactory TorSocks5ClientFactory { get; }
 
 		private bool _disposed = false;
 
@@ -56,7 +56,7 @@ namespace WalletWasabi.Tor
 			try
 			{
 				// Is Tor already running? Either our Tor process from previous Wasabi Wallet run or possibly user's own Tor.
-				bool isAlreadyRunning = await TorSocks5Client.IsTorRunningAsync().ConfigureAwait(false);
+				bool isAlreadyRunning = await TorSocks5ClientFactory.IsTorRunningAsync().ConfigureAwait(false);
 
 				if (isAlreadyRunning)
 				{
@@ -102,7 +102,7 @@ namespace WalletWasabi.Tor
 					{
 						i++;
 
-						bool isRunning = await TorSocks5Client.IsTorRunningAsync().ConfigureAwait(false);
+						bool isRunning = await TorSocks5ClientFactory.IsTorRunningAsync().ConfigureAwait(false);
 
 						if (isRunning)
 						{

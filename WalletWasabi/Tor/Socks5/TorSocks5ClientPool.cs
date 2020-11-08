@@ -42,12 +42,14 @@ namespace WalletWasabi.Tor.Socks5
 			Endpoint = endpoint;
 			IsolateStream = isolateStream;
 
+			TorSocks5ClientFactory = new TorSocks5ClientFactory(endpoint);
 			Clients = new Dictionary<string, List<PoolItem>>();
 		}
 
 		/// <summary>Tor SOCKS5 endpoint.</summary>
 		private EndPoint Endpoint { get; }
 		private bool IsolateStream { get; }
+		private TorSocks5ClientFactory TorSocks5ClientFactory { get; }
 
 		private bool _disposedValue;
 
@@ -228,6 +230,7 @@ namespace WalletWasabi.Tor.Socks5
 			// https://tools.ietf.org/html/rfc7230#section-2.7.1
 			// A sender MUST NOT generate an "http" URI with an empty host identifier.
 			string host = GetRequestHost(request);
+			int port = request.RequestUri.Port;
 
 			// https://tools.ietf.org/html/rfc7230#section-2.6
 			// Intermediaries that process HTTP messages (i.e., all intermediaries
@@ -235,15 +238,7 @@ namespace WalletWasabi.Tor.Socks5
 			// in forwarded messages.
 			request.Version = HttpProtocol.HTTP11.Version;
 
-			var client = new TorSocks5Client(Endpoint);
-			await client.ConnectAsync().ConfigureAwait(false);
-			await client.HandshakeAsync(IsolateStream, token).ConfigureAwait(false);
-			await client.ConnectToDestinationAsync(host, request.RequestUri.Port, token).ConfigureAwait(false);
-
-			if (useSsl)
-			{
-				await client.UpgradeToSslAsync(host).ConfigureAwait(false);
-			}
+			TorSocks5Client client = await TorSocks5ClientFactory.MakeAsync(IsolateStream, host, port, useSsl, token).ConfigureAwait(false);
 
 			return client;
 		}
