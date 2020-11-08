@@ -1,1 +1,2 @@
+# Allow \r\n (Literal carriage return)
 disable=SC1017
