@@ -54,17 +54,16 @@ namespace WalletWasabi.Tor.Socks5
 			}
 		}
 
-		public async Task<TorSocks5Client> MakeAsync(bool isolateStream, string host, int port, bool useSsl, CancellationToken token = default)
+		public async Task<TorConnection> MakeAsync(bool isolateStream, string host, int port, bool useSsl, CancellationToken token = default)
 		{
-			// TODO: Dispose logic.
-			TcpClient tcpClient = new TcpClient(TorSocks5EndPoint.AddressFamily);
-			TcpClient? clientToDispose = tcpClient;
-
-			TorSocks5Client result;
+			TcpClient? tcpClient = null;
+			Stream? transportStream = null;
 
 			try
 			{
-				Stream transportStream = await ConnectAsync(tcpClient).ConfigureAwait(false);
+				tcpClient = new TcpClient(TorSocks5EndPoint.AddressFamily);
+
+				transportStream = await ConnectAsync(tcpClient).ConfigureAwait(false);
 				await HandshakeAsync(tcpClient, isolateStream, token).ConfigureAwait(false);
 				await ConnectToDestinationAsync(tcpClient, host, port, token).ConfigureAwait(false);
 
@@ -73,9 +72,11 @@ namespace WalletWasabi.Tor.Socks5
 					transportStream = await UpgradeToSslAsync(tcpClient, host).ConfigureAwait(false);
 				}
 
-				result = new TorSocks5Client(tcpClient, transportStream);
+				TorConnection result = new TorConnection(tcpClient, transportStream);
 
-				clientToDispose = null;
+				transportStream = null;
+				tcpClient = null;
+				return result;
 			}
 			catch (Exception)
 			{
@@ -83,10 +84,9 @@ namespace WalletWasabi.Tor.Socks5
 			}
 			finally
 			{
-				clientToDispose?.Dispose();
+				transportStream?.Dispose();
+				tcpClient?.Dispose();
 			}
-
-			return result;
 		}
 
 		private async Task<SslStream> UpgradeToSslAsync(TcpClient tcpClient, string host)
@@ -368,7 +368,7 @@ namespace WalletWasabi.Tor.Socks5
 			}
 			catch (IOException ex)
 			{
-				throw new ConnectionException($"{nameof(TorSocks5Client)} is not connected.", ex);
+				throw new ConnectionException($"{nameof(TorConnection)} is not connected.", ex);
 			}
 		}
 	}

@@ -6,13 +6,13 @@ using System.Net.Sockets;
 namespace WalletWasabi.Tor.Socks5
 {
 	/// <summary>
-	/// Create an instance with the TorSocks5Manager
+	/// TCP connection to Tor SOCKS5 endpoint.
 	/// </summary>
-	public class TorSocks5Client : IDisposable
+	public class TorConnection : IDisposable
 	{
 		private volatile bool _disposedValue = false; // To detect redundant calls
 
-		public TorSocks5Client(TcpClient tcpClient, Stream transportStream)
+		public TorConnection(TcpClient tcpClient, Stream transportStream)
 		{
 			TcpClient = tcpClient;
 			TransportStream = transportStream;
@@ -25,7 +25,7 @@ namespace WalletWasabi.Tor.Socks5
 		/// <remarks>This stream is not to be used to send commands to Tor's SOCKS5 server.</remarks>
 		private Stream TransportStream { get; }
 
-		public bool IsConnected => TcpClient?.Connected is true;
+		public bool IsConnected => TcpClient.Connected is true;
 
 		/// <summary>
 		/// Stream to transport HTTP(S) request.

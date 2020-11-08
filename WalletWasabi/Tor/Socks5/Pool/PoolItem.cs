@@ -20,7 +20,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 		/// </summary>
 		/// <param name="client">TCP client connected to Tor SOCKS5 endpoint.</param>
 		/// <param name="allowRecycling">Whether it is allowed to re-use this Tor pool item.</param>
-		public PoolItem(TorSocks5Client client, bool allowRecycling)
+		public PoolItem(TorConnection client, bool allowRecycling)
 		{
 			Id = Interlocked.Increment(ref Counter);
 			State = PoolItemState.InUse;
@@ -31,13 +31,13 @@ namespace WalletWasabi.Tor.Socks5.Pool
 		private object StateLock { get; } = new object();
 
 		public PoolItemState State { get; private set; }
-		private TorSocks5Client Client { get; set; }
+		private TorConnection Client { get; set; }
 		private bool AllowRecycling { get; }
 		private long Id { get; }
 
 		private bool _disposedValue;
 
-		public TorSocks5Client GetClient()
+		public TorConnection GetClient()
 		{
 			lock (StateLock)
 			{
