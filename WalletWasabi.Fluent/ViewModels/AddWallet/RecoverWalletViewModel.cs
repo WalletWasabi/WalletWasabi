@@ -124,7 +124,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			PasswordInteraction.RegisterHandler(
 				async interaction =>
 					interaction.SetOutput(await new EnterPasswordViewModel(interaction.Input).ShowDialogAsync()));
-
 		}
 
 		public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
@@ -167,7 +166,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		private void AddMnemonic(string? tagString)
 		{
-			if (!string.IsNullOrWhiteSpace(tagString))
+			if (!string.IsNullOrWhiteSpace(tagString) && Mnemonics.Count + 1 <= 12)
 			{
 				Mnemonics.Add(tagString);
 			}
