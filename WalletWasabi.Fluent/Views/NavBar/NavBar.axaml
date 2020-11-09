@@ -94,7 +94,7 @@
     <StackPanel DockPanel.Dock="Bottom">
       <Separator />
       <c:NavBarListBox Items="{Binding BottomItems}" SelectedItem="{Binding SelectedItem}" />
-      <AutoCompleteBox x:Name="SearchAutoCompleteBox" FilterMode="ContainsOrdinalCaseSensitive" Watermark="Search (Ctrl+Q)" Items="{Binding SearchItems}">
+      <AutoCompleteBox x:Name="SearchAutoCompleteBox" FilterMode="ContainsOrdinal" Watermark="Search (Ctrl+Q)" Items="{Binding SearchItems}">
         <AutoCompleteBox.Styles>
           <Style Selector="AutoCompleteBox /template/ TextBox#PART_TextBox">
             <Setter Property="Background" Value="Transparent" />
