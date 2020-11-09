@@ -36,7 +36,9 @@ namespace WalletWasabi.Blockchain.Transactions
 
 				var fileName = Path.Combine(WorkFolderPath, "Transactions.dat");
 				var transactionsFilePath = Path.Combine(WorkFolderPath, fileName);
-				TransactionsFileManager = new DigestableIoManager(transactionsFilePath, -1);
+
+				// In Transactions.dat every line starts with the tx id, so the first character is the best for digest creation.
+				TransactionsFileManager = new DigestableIoManager(transactionsFilePath, 0);
 
 				using (await TransactionsAsyncLock.LockAsync().ConfigureAwait(false))
 				{
