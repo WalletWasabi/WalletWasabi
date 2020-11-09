@@ -6,17 +6,18 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.OctetFields
 {
 	public class PLenField : OctetSerializableBase
 	{
-		public PLenField()
+		public PLenField(byte byteValue)
 		{
+			ByteValue = byteValue;
 		}
 
-		public int Value => ByteValue;
-
-		public void FromPasswdField(PasswdField passwd)
+		public PLenField(PasswdField passwd)
 		{
 			Guard.NotNull(nameof(passwd), passwd);
 
 			ByteValue = (byte)passwd.ToBytes().Length;
 		}
+
+		public int Value => ByteValue;
 	}
 }

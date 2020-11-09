@@ -5,15 +5,16 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.OctetFields
 {
 	public class ULenField : OctetSerializableBase
 	{
-		public ULenField()
+		public ULenField(byte byteValue)
 		{
+			ByteValue = byteValue;
 		}
 
-		public int Value => ByteValue;
-
-		public void FromUNameField(UNameField uName)
+		public ULenField(UNameField uName)
 		{
 			ByteValue = (byte)uName.ToBytes().Length;
 		}
+
+		public int Value => ByteValue;
 	}
 }

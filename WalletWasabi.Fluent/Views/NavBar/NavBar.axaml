@@ -8,7 +8,7 @@
              xmlns:h="clr-namespace:WalletWasabi.Fluent.Helpers"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors;assembly=WalletWasabi.Fluent"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="WalletWasabi.Fluent.Views.NavBar" UseLayoutRounding="False">
+             x:Class="WalletWasabi.Fluent.Views.NavBar.NavBar" UseLayoutRounding="False">
   <UserControl.Styles>
     <Style Selector=":is(ListBox)">
       <Setter Property="ItemTemplate">

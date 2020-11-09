@@ -13,7 +13,7 @@ namespace WalletWasabi.Services
 		private const string MutexString = "WalletWasabiSingleInstance";
 
 		/// <summary>Name of system-wide mutex.</summary>
-		private readonly string LockName;
+		private readonly string _lockName;
 
 		private bool _disposedValue;
 
@@ -33,7 +33,7 @@ namespace WalletWasabi.Services
 		public SingleInstanceChecker(Network network, string lockName)
 		{
 			Network = network;
-			LockName = $"{MutexString}-{lockName}";
+			_lockName = $"{MutexString}-{lockName}";
 		}
 
 		private IDisposable? SingleApplicationLockHolder { get; set; }
@@ -47,7 +47,7 @@ namespace WalletWasabi.Services
 			}
 
 			// The disposal of this mutex handled by AsyncMutex.WaitForAllMutexToCloseAsync().
-			var mutex = new AsyncMutex(LockName);
+			var mutex = new AsyncMutex(_lockName);
 			try
 			{
 				using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(200));

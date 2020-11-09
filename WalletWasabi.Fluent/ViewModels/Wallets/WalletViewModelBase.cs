@@ -3,10 +3,11 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Helpers;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels
+namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
 	public abstract class WalletViewModelBase : NavBarItemViewModel, IComparable<WalletViewModelBase>, IDisposable
 	{

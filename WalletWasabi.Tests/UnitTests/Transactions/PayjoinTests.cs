@@ -16,6 +16,7 @@ using System.Net;
 using System.Text;
 using WalletWasabi.Models;
 using System.Collections.Specialized;
+using WalletWasabi.Tor.Http;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions
 {
@@ -86,7 +87,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			{
 				OnSendAsync = PayjoinServerOk(psbt => psbt)
 			};
-			var payjoinClient = new PayjoinClient(httpClient);
+			var payjoinClient = NewPayjoinClient(httpClient);
 			var transactionFactory = Common.CreateTransactionFactory(new[]
 			{
 				("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)
@@ -133,7 +134,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 					return newPsbt;
 				})
 			};
-			var payjoinClient = new PayjoinClient(httpClient);
+			var payjoinClient = NewPayjoinClient(httpClient);
 			var transactionFactory = Common.CreateTransactionFactory(new[]
 			{
 				("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)
@@ -195,7 +196,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			};
 
 			var transactionFactory = Common.CreateTransactionFactory(walletCoins);
-			var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), new PayjoinClient(httpClient));
+			var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(httpClient));
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 			///////
 
@@ -219,7 +220,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				})
 			};
 
-			tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), new PayjoinClient(httpClient));
+			tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(httpClient));
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 		}
 
@@ -242,7 +243,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			};
 
 			var transactionFactory = Common.CreateTransactionFactory(walletCoins);
-			var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), new PayjoinClient(httpClient));
+			var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(httpClient));
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 			////////
 
@@ -257,7 +258,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				})
 			};
 
-			tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), new PayjoinClient(httpClient));
+			tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(httpClient));
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 			////////
 
@@ -272,7 +273,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				})
 			};
 
-			tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), new PayjoinClient(httpClient));
+			tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(httpClient));
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 			////////
 
@@ -287,7 +288,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				})
 			};
 
-			tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), new PayjoinClient(httpClient));
+			tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(httpClient));
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 			////////
 
@@ -303,7 +304,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				})
 			};
 
-			tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), new PayjoinClient(httpClient));
+			tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(httpClient));
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 			////////
 
@@ -318,7 +319,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				})
 			};
 
-			tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), new PayjoinClient(httpClient));
+			tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(httpClient));
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 			////////
 
@@ -333,7 +334,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				})
 			};
 
-			tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), new PayjoinClient(httpClient));
+			tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(httpClient));
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 			////////
 
@@ -348,7 +349,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				})
 			};
 
-			tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), new PayjoinClient(httpClient));
+			tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(httpClient));
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 			////////
 
@@ -363,7 +364,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				})
 			};
 
-			tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), new PayjoinClient(httpClient));
+			tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(httpClient));
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 		}
 
@@ -389,7 +390,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			};
 
 			var transactionFactory = Common.CreateTransactionFactory(walletCoins);
-			var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), new PayjoinClient(httpClient));
+			var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(httpClient));
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 		}
 
@@ -409,8 +410,13 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			};
 
 			var transactionFactory = Common.CreateTransactionFactory(walletCoins);
-			var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), new PayjoinClient(httpClient));
+			var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(httpClient));
 			Assert.Single(tx.Transaction.Transaction.Inputs);
+		}
+
+		private static PayjoinClient NewPayjoinClient(MockTorHttpClient client)
+		{
+			return new PayjoinClient(client.DestinationUri, client);
 		}
 	}
 }

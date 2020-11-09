@@ -21,7 +21,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			this.ValidateProperty(x => x.Password, ValidatePassword);
 			this.ValidateProperty(x => x.ConfirmPassword, ValidateConfirmPassword);
 
-			var continueCommandCanExecute = this.WhenAnyValue(
+			var nextCommandCanExecute = this.WhenAnyValue(
 				x => x.Password,
 				x => x.ConfirmPassword,
 				(password, confirmPassword) =>
@@ -34,7 +34,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 				})
 				.ObserveOn(RxApp.MainThreadScheduler);
 
-			ContinueCommand = ReactiveCommand.Create(() => Close(Password), continueCommandCanExecute);
+			NextCommand = ReactiveCommand.Create(() => Close(Password), nextCommandCanExecute);
 			CancelCommand = ReactiveCommand.Create(() => Close());
 		}
 
@@ -50,7 +50,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			set => this.RaiseAndSetIfChanged(ref _confirmPassword, value);
 		}
 
-		public ICommand ContinueCommand { get; }
+		public ICommand NextCommand { get; }
 
 		protected override void OnDialogClosed()
 		{

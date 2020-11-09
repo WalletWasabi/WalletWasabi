@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Avalonia.Threading;
 using DynamicData;
 using ReactiveUI;
+using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Wallets;
