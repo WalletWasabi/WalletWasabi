@@ -7,12 +7,12 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Io
 {
-	public abstract class SafeMutexIoManager : AsyncLockIoManager
+	public abstract class SafeAsyncLockIoManager : AsyncLockIoManager
 	{
 		private const string OldExtension = ".old";
 		private const string NewExtension = ".new";
 
-		public SafeMutexIoManager(string filePath) : base(filePath)
+		public SafeAsyncLockIoManager(string filePath) : base(filePath)
 		{
 			OldFilePath = $"{FilePath}{OldExtension}";
 
