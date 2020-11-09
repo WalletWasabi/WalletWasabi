@@ -73,7 +73,7 @@ namespace System
 				return false;
 			}
 
-			return char.IsWhiteSpace(me.First()) || char.IsWhiteSpace(me.Last());
+			return char.IsWhiteSpace(me[0]) || char.IsWhiteSpace(me[^0]);
 		}
 	}
 }
