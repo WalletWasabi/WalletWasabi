@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using WalletWasabi.Logging;
 using WalletWasabi.Tor;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5;
@@ -23,6 +24,45 @@ namespace WalletWasabi.Tests.IntegrationTests
 		public Task DisposeAsync()
 		{
 			return Task.CompletedTask;
+		}
+
+		[Fact(Skip = "The test is only useful for measuring how long it takes to process requests with different Tor implementations.")]
+		public async Task PerformanceTestAsync()
+		{
+			// Turn ON logger.
+			Logger.SetMinimumLevel(LogLevel.Trace);
+
+			using (BenchmarkLogger.Measure(LogLevel.Trace, operationName: "Tor performance"))
+			{
+				// Any reliable URI can be used here.
+				using var client = new TorHttpClient(new Uri("http://api.qbit.ninja"), Common.TorSocks5Endpoint);
+
+				var tasks = new List<Task<HttpResponseMessage>>
+				{
+					client.SendAsync(HttpMethod.Get, "/"),
+					client.SendAsync(HttpMethod.Get, "/"),
+					client.SendAsync(HttpMethod.Get, "/"),
+					client.SendAsync(HttpMethod.Get, "/"),
+					client.SendAsync(HttpMethod.Get, "/"),
+					client.SendAsync(HttpMethod.Get, "/"),
+					client.SendAsync(HttpMethod.Get, "/"),
+					client.SendAsync(HttpMethod.Get, "/"),
+					client.SendAsync(HttpMethod.Get, "/")
+				};
+
+				HttpResponseMessage[] httpResponseMessages = await Task.WhenAll(tasks);
+
+				int i = 0;
+				foreach (HttpResponseMessage response in httpResponseMessages)
+				{
+					i++;
+
+					string message = await response.Content.ReadAsStringAsync();
+					string excerpt = message.Substring(0, Math.Min(100, message.Length));
+
+					Logger.LogDebug($"#{i}: {excerpt}");
+				}
+			}
 		}
 
 		[Fact]
