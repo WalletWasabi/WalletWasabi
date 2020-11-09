@@ -1,8 +1,8 @@
 using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
-using WalletWasabi.Fluent.ViewModels.AddWallet;
+using WalletWasabi.Fluent.ViewModels.CreateWallet;
 
-namespace WalletWasabi.Fluent.Views.AddWallet
+namespace WalletWasabi.Fluent.Views.CreateWallet
 {
 	public class RecoveryWordsView : ReactiveUserControl<RecoveryWordsViewModel>
 	{

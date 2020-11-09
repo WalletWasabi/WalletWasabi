@@ -7,7 +7,7 @@ namespace WalletWasabi.Services.Terminate
 {
 	public class TerminateService
 	{
-		private readonly Func<Task> TerminateApplicationAsync;
+		private readonly Func<Task> _terminateApplicationAsync;
 
 		private const long TerminateStatusNotStarted = 0;
 		private const long TerminateStatusInProgress = 1;
@@ -17,7 +17,7 @@ namespace WalletWasabi.Services.Terminate
 
 		public TerminateService(Func<Task> terminateApplicationAsync)
 		{
-			TerminateApplicationAsync = terminateApplicationAsync;
+			_terminateApplicationAsync = terminateApplicationAsync;
 			AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
 			Console.CancelKeyPress += Console_CancelKeyPress;
 		}
@@ -67,7 +67,7 @@ namespace WalletWasabi.Services.Terminate
 			{
 				try
 				{
-					await TerminateApplicationAsync().ConfigureAwait(false);
+					await _terminateApplicationAsync().ConfigureAwait(false);
 				}
 				catch (Exception ex)
 				{

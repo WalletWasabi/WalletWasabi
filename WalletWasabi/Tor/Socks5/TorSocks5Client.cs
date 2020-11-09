@@ -36,13 +36,13 @@ namespace WalletWasabi.Tor.Socks5
 		#region PropertiesAndMembers
 
 		/// <summary>TCP connection to Tor's SOCKS5 server.</summary>
-		public TcpClient TcpClient { get; private set; }
+		private TcpClient TcpClient { get; set; }
 
 		private EndPoint TorSocks5EndPoint { get; }
 
 		/// <summary>Transport stream for sending  HTTP/HTTPS requests through Tor's SOCKS5 server.</summary>
 		/// <remarks>This stream is not to be used to send commands to Tor's SOCKS5 server.</remarks>
-		public Stream Stream { get; internal set; }
+		private Stream Stream { get; set; }
 
 		private EndPoint RemoteEndPoint { get; set; }
 
@@ -185,6 +185,15 @@ namespace WalletWasabi.Tor.Socks5
 			SslStream sslStream = new SslStream(TcpClient.GetStream(), leaveInnerStreamOpen: true);
 			await sslStream.AuthenticateAsClientAsync(host, new X509CertificateCollection(), IHttpClient.SupportedSslProtocols, true).ConfigureAwait(false);
 			Stream = sslStream;
+		}
+
+		/// <summary>
+		/// Stream to transport HTTP(S) request.
+		/// </summary>
+		/// <remarks>Either <see cref="TcpClient.GetStream"/> or <see cref="SslStream"/> over <see cref="TcpClient.GetStream"/>.</remarks>
+		public Stream GetTransportStream()
+		{
+			return Stream;
 		}
 
 		private async Task ConnectToDestinationAsync(EndPoint destination, CancellationToken cancellationToken = default)

@@ -29,9 +29,9 @@ namespace WalletWasabi.WebClients.PayJoin
 		}
 
 		// For testing only
-		internal PayjoinClient(ITorHttpClient httpClient)
+		internal PayjoinClient(Uri paymentUrl, ITorHttpClient httpClient)
 		{
-			PaymentUrl = httpClient.DestinationUri;
+			PaymentUrl = paymentUrl;
 			TorHttpClient = Guard.NotNull(nameof(httpClient), httpClient);
 		}
 

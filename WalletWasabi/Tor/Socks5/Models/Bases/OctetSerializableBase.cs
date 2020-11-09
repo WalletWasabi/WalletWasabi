@@ -12,8 +12,6 @@ namespace WalletWasabi.Tor.Socks5.Models.Bases
 
 		public byte ToByte() => ByteValue;
 
-		public void FromByte(byte b) => ByteValue = b;
-
 		public string ToHex(bool xhhSyntax = false)
 		{
 			if (xhhSyntax)

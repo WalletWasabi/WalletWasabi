@@ -5,8 +5,7 @@
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.SettingsPageView">
-  <c:ContentArea Title="Settings" Caption="Some development settings:"
-                 EnableBack="True">
+  <c:ContentArea Title="Settings" Caption="Some development settings:">
     <StackPanel Spacing="10">
       <Button Command="{Binding NextCommand}" Content="Next" />
       <Button Command="{Binding OpenDialogCommand}" Content="Open Dialog" />
