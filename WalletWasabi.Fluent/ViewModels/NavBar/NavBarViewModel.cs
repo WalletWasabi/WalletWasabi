@@ -16,6 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 	{
 		private ObservableCollection<NavBarItemViewModel> _topItems;
 		private ObservableCollection<NavBarItemViewModel> _bottomItems;
+		private ObservableCollection<SearchItemViewModel> _searchItems;
 		private NavBarItemViewModel _selectedItem;
 		private readonly WalletManagerViewModel _walletManager;
 		private bool _isBackButtonVisible;
@@ -33,7 +34,12 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			_topItems = new ObservableCollection<NavBarItemViewModel>();
 			_bottomItems = new ObservableCollection<NavBarItemViewModel>();
 
-			
+			_searchItems = new ObservableCollection<SearchItemViewModel>()
+			{
+				new SearchItemViewModel(_navigationState, NavigationTarget.Home, "settings_regular", "Settings", () => new SettingsPageViewModel(_navigationState)),
+				new SearchItemViewModel(_navigationState, NavigationTarget.Dialog, "add_circle_regular", "Add Wallet", () => addWalletPage)
+			};
+
 			SelectedItem = new HomePageViewModel(_navigationState, walletManager, addWalletPage);
 			_topItems.Add(_selectedItem);
 			_bottomItems.Add(addWalletPage);
@@ -92,6 +98,12 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		{
 			get => _bottomItems;
 			set => this.RaiseAndSetIfChanged(ref _bottomItems, value);
+		}
+
+		public ObservableCollection<SearchItemViewModel> SearchItems
+		{
+			get => _searchItems;
+			set => this.RaiseAndSetIfChanged(ref _searchItems, value);
 		}
 
 		public NavBarItemViewModel SelectedItem
