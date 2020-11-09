@@ -90,7 +90,7 @@
         <Setter Property="Padding" Value="3,0 " />
         <Setter Property="Margin" Value="0,12,0,0" />
     </Style>
-    
+
     <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox">
         <Setter Property="Padding" Value="0" />
         <Setter Property="Margin" Value="0" />
@@ -102,5 +102,10 @@
 
     <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox">
         <Setter Property="IsReadOnly" Value="{Binding !IsInputEnabled}" />
+        <Setter Property="ContextMenu">
+          <ContextMenu>
+            <MenuItem Header="Paste" Command="{Binding $parent[TextBox].Paste}" IsEnabled="{Binding $parent[TextBox].CanPaste}" InputGesture="{x:Static TextBox.PasteGesture}"/>
+          </ContextMenu>
+        </Setter>
     </Style>
 </Styles>

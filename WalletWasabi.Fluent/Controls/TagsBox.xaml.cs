@@ -230,7 +230,9 @@ namespace WalletWasabi.Fluent.Controls
 			var endsWithSpace = currentText.EndsWith(' ');
 			currentText = currentText.Trim();
 
-			if (RestrictInputToSuggestions && Suggestions is IList<string> suggestions)
+			var splitTags = currentText.Split(' ');
+			var suggestions = Suggestions as IList<string>;
+			if (splitTags.Length == 1 && suggestions != null && RestrictInputToSuggestions)
 			{
 				var keywordIsInSuggestions =
 					suggestions.Any(
@@ -240,6 +242,29 @@ namespace WalletWasabi.Fluent.Controls
 				{
 					return;
 				}
+			}
+			else if (suggestions != null)
+			{
+				foreach (var tag in splitTags)
+				{
+					if (!RestrictInputToSuggestions)
+					{
+						SelectTag(tag);
+						continue;
+					}
+
+					var keywordIsInSuggestions =
+						suggestions.Any(
+							x => x.Equals(tag, StringComparison.InvariantCultureIgnoreCase));
+
+					if (keywordIsInSuggestions)
+					{
+						SelectTag(tag);
+					}
+				}
+
+				Dispatcher.UIThread.Post(() => { autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); });
+				return;
 			}
 
 			if (!_isInputEnabled ||
