@@ -1,3 +1,4 @@
+using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -30,7 +31,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			// Single thread file operations.
 
-			DigestableSafeAsyncLockIoManager ioman1 = new DigestableSafeAsyncLockIoManager(file1);
+			DigestableIoManager ioman1 = new DigestableIoManager(file1);
 
 			// Delete the file if Exist.
 
@@ -149,14 +150,17 @@ namespace WalletWasabi.Tests.UnitTests
 
 			// Check Mutex usage on simultaneous file writes.
 
-			DigestableSafeAsyncLockIoManager ioman2 = new DigestableSafeAsyncLockIoManager(file2);
+			DigestableIoManager ioman2 = new DigestableIoManager(file2);
+
+			AsyncLock asyncLock1 = new AsyncLock();
+			AsyncLock asyncLock2 = new AsyncLock();
 
 			await Task.Run(async () =>
 			{
-				using (await ioman1.AsyncLock.LockAsync())
+				using (await asyncLock1.LockAsync())
 				{
 					// Should not be a problem because they use different Mutexes.
-					using (await ioman2.AsyncLock.LockAsync())
+					using (await asyncLock2.LockAsync())
 					{
 						await ioman1.WriteAllLinesAsync(lines);
 						await ioman2.WriteAllLinesAsync(lines);
@@ -193,7 +197,8 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			var file = Path.Combine(Common.GetWorkDir(), $"file.dat");
 
-			DigestableSafeAsyncLockIoManager ioman = new DigestableSafeAsyncLockIoManager(file);
+			AsyncLock asyncLock = new AsyncLock();
+			DigestableIoManager ioman = new DigestableIoManager(file);
 			ioman.DeleteMe();
 			await ioman.WriteAllLinesAsync(Array.Empty<string>());
 			Assert.False(File.Exists(ioman.FilePath));
@@ -221,7 +226,8 @@ namespace WalletWasabi.Tests.UnitTests
 				{
 					list.Add(next);
 				}
-				using (await ioman.AsyncLock.LockAsync())
+
+				using (await asyncLock.LockAsync())
 				{
 					var lines = (await ioman.ReadAllLinesAsync()).ToList();
 					lines.Add(next);

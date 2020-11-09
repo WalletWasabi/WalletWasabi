@@ -38,8 +38,10 @@ namespace WalletWasabi.Stores
 
 		private string WorkFolderPath { get; set; }
 		private Network Network { get; }
-		private DigestableSafeAsyncLockIoManager MatureIndexFileManager { get; set; }
-		private DigestableSafeAsyncLockIoManager ImmatureIndexFileManager { get; set; }
+		private DigestableIoManager MatureIndexFileManager { get; set; }
+		private DigestableIoManager ImmatureIndexFileManager { get; set; }
+		private AsyncLock MatureIndexAsyncLock { get; set; } = new AsyncLock();
+		private AsyncLock ImmatureIndexAsyncLock { get; set; } = new AsyncLock();
 		public SmartHeaderChain SmartHeaderChain { get; }
 
 		private FilterModel StartingFilter { get; set; }
@@ -52,9 +54,9 @@ namespace WalletWasabi.Stores
 			using (BenchmarkLogger.Measure())
 			{
 				var indexFilePath = Path.Combine(WorkFolderPath, "MatureIndex.dat");
-				MatureIndexFileManager = new DigestableSafeAsyncLockIoManager(indexFilePath, digestRandomIndex: -1);
+				MatureIndexFileManager = new DigestableIoManager(indexFilePath, digestRandomIndex: -1);
 				var immatureIndexFilePath = Path.Combine(WorkFolderPath, "ImmatureIndex.dat");
-				ImmatureIndexFileManager = new DigestableSafeAsyncLockIoManager(immatureIndexFilePath, digestRandomIndex: -1);
+				ImmatureIndexFileManager = new DigestableIoManager(immatureIndexFilePath, digestRandomIndex: -1);
 
 				StartingFilter = StartingFilters.GetStartingFilter(Network);
 				StartingHeight = StartingFilter.Header.Height;
@@ -64,8 +66,8 @@ namespace WalletWasabi.Stores
 				IndexLock = new AsyncLock();
 
 				using (await IndexLock.LockAsync().ConfigureAwait(false))
-				using (await MatureIndexFileManager.AsyncLock.LockAsync().ConfigureAwait(false))
-				using (await ImmatureIndexFileManager.AsyncLock.LockAsync().ConfigureAwait(false))
+				using (await MatureIndexAsyncLock.LockAsync().ConfigureAwait(false))
+				using (await ImmatureIndexAsyncLock.LockAsync().ConfigureAwait(false))
 				{
 					IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 
@@ -100,7 +102,7 @@ namespace WalletWasabi.Stores
 			}
 		}
 
-		private async Task DeleteIfDeprecatedAsync(DigestableSafeAsyncLockIoManager ioManager)
+		private async Task DeleteIfDeprecatedAsync(DigestableIoManager ioManager)
 		{
 			string firstLine;
 			using (var content = ioManager.OpenText())
@@ -332,8 +334,8 @@ namespace WalletWasabi.Stores
 					{
 						Logger.LogCritical($"Deleting all filters and crashing the software...");
 
-						using (await MatureIndexFileManager.AsyncLock.LockAsync(cancel).ConfigureAwait(false))
-						using (await ImmatureIndexFileManager.AsyncLock.LockAsync(cancel).ConfigureAwait(false))
+						using (await MatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
+						using (await ImmatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
 						{
 							ImmatureIndexFileManager.DeleteMe();
 							MatureIndexFileManager.DeleteMe();
@@ -384,8 +386,8 @@ namespace WalletWasabi.Stores
 					Interlocked.Exchange(ref _throttleId, 0); // So to notify the currently throttled threads that they do not have to run.
 				}
 
-				using (await MatureIndexFileManager.AsyncLock.LockAsync(cancel).ConfigureAwait(false))
-				using (await ImmatureIndexFileManager.AsyncLock.LockAsync(cancel).ConfigureAwait(false))
+				using (await MatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
+				using (await ImmatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
 				using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
 				{
 					// Do not feed the cancellationToken here I always want this to finish running for safety.
@@ -412,7 +414,7 @@ namespace WalletWasabi.Stores
 
 		public async Task ForeachFiltersAsync(Func<FilterModel, Task> todo, Height fromHeight, CancellationToken cancel = default)
 		{
-			using (await MatureIndexFileManager.AsyncLock.LockAsync(cancel).ConfigureAwait(false))
+			using (await MatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
 			using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
 			{
 				var firstImmatureHeight = ImmatureFilters.FirstOrDefault()?.Header?.Height;

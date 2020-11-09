@@ -1,4 +1,5 @@
 using NBitcoin;
+using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,8 +19,8 @@ namespace WalletWasabi.Blockchain.Transactions
 
 		private Dictionary<uint256, SmartTransaction> Transactions { get; set; }
 		private object TransactionsLock { get; set; }
-		private DigestableSafeAsyncLockIoManager TransactionsFileManager { get; set; }
-
+		private DigestableIoManager TransactionsFileManager { get; set; }
+		private AsyncLock TransactionsAsyncLock { get; set; } = new AsyncLock();
 		private List<ITxStoreOperation> Operations { get; } = new List<ITxStoreOperation>();
 		private object OperationsLock { get; } = new object();
 
@@ -35,9 +36,9 @@ namespace WalletWasabi.Blockchain.Transactions
 
 				var fileName = Path.Combine(WorkFolderPath, "Transactions.dat");
 				var transactionsFilePath = Path.Combine(WorkFolderPath, fileName);
-				TransactionsFileManager = new DigestableSafeAsyncLockIoManager(transactionsFilePath, -1);
+				TransactionsFileManager = new DigestableIoManager(transactionsFilePath, -1);
 
-				using (await TransactionsFileManager.AsyncLock.LockAsync().ConfigureAwait(false))
+				using (await TransactionsAsyncLock.LockAsync().ConfigureAwait(false))
 				{
 					IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 
@@ -305,7 +306,7 @@ namespace WalletWasabi.Blockchain.Transactions
 					}
 				}
 
-				using (await TransactionsFileManager.AsyncLock.LockAsync().ConfigureAwait(false))
+				using (await TransactionsAsyncLock.LockAsync().ConfigureAwait(false))
 				{
 					foreach (ITxStoreOperation op in operationsToExecute)
 					{
