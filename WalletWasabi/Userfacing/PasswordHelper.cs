@@ -68,9 +68,9 @@ namespace WalletWasabi.Userfacing
 			return length > MaxPasswordLength;
 		}
 
-		public static bool IsTrimable(string? password, out string? trimmedPassword)
+		public static bool IsTrimmable(string? password, out string? trimmedPassword)
 		{
-			if (password is {} && password.IsTrimable())
+			if (password is {} && password.IsTrimmable())
 			{
 				trimmedPassword = password.Trim();
 				return true;
@@ -101,7 +101,7 @@ namespace WalletWasabi.Userfacing
 				throw new FormatException(PasswordTooLongMessage);
 			}
 
-			if (IsTrimable(password, out _)) // Password should be formatted, before entering here.
+			if (IsTrimmable(password, out _)) // Password should be formatted, before entering here.
 			{
 				throw new FormatException("Leading and trailing white spaces are not allowed!");
 			}
@@ -142,7 +142,7 @@ namespace WalletWasabi.Userfacing
 
 		public static void ValidatePassword(IValidationErrors errors, string password)
 		{
-			if (IsTrimable(password, out _))
+			if (IsTrimmable(password, out _))
 			{
 				errors.Add(ErrorSeverity.Warning, TrimWarnMessage);
 			}

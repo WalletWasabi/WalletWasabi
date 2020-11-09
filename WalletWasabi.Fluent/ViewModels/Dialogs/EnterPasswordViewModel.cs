@@ -70,7 +70,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 		private void ValidatePassword(IValidationErrors errors)
 		{
-			if (PasswordHelper.IsTrimable(Password, out _))
+			if (PasswordHelper.IsTrimmable(Password, out _))
 			{
 				errors.Add(ErrorSeverity.Error, PasswordHelper.WhitespaceMessage);
 			}
