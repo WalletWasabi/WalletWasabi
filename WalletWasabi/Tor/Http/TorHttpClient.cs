@@ -1,12 +1,9 @@
 using Nito.AsyncEx;
 using System;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Net.Security;
 using System.Net.Sockets;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,7 +35,7 @@ namespace WalletWasabi.Tor.Http
 			DestinationUriAction = Guard.NotNull(nameof(baseUriAction), baseUriAction);
 
 			// Connecting to loopback's URIs cannot be done via Tor.
-			TorSocks5EndPoint = DestinationUri.IsLoopback ? null : torSocks5EndPoint;
+			TorSocks5EndPoint = DestinationUriAction().IsLoopback ? null : torSocks5EndPoint;
 			TorSocks5Client = null;
 			IsolateStream = isolateStream;
 		}
@@ -61,7 +58,6 @@ namespace WalletWasabi.Tor.Http
 
 		public static Exception? LatestTorException { get; private set; } = null;
 
-		public Uri DestinationUri => DestinationUriAction();
 		public Func<Uri> DestinationUriAction { get; }
 		public EndPoint? TorSocks5EndPoint { get; private set; }
 		public bool IsTorUsed => TorSocks5EndPoint is { };
@@ -84,7 +80,7 @@ namespace WalletWasabi.Tor.Http
 		{
 			Guard.NotNull(nameof(method), method);
 			relativeUri = Guard.NotNull(nameof(relativeUri), relativeUri);
-			var requestUri = new Uri(DestinationUri, relativeUri);
+			var requestUri = new Uri(DestinationUriAction(), relativeUri);
 			using var request = new HttpRequestMessage(method, requestUri);
 			request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
 
@@ -207,16 +203,12 @@ namespace WalletWasabi.Tor.Http
 				await TorSocks5Client.HandshakeAsync(IsolateStream, cancel).ConfigureAwait(false);
 				await TorSocks5Client.ConnectToDestinationAsync(host, request.RequestUri.Port, cancel).ConfigureAwait(false);
 
-				Stream stream = TorSocks5Client.TcpClient.GetStream();
 				if (request.RequestUri.Scheme == "https")
 				{
-					SslStream sslStream = new SslStream(stream, leaveInnerStreamOpen: true);
-					await sslStream.AuthenticateAsClientAsync(host, new X509CertificateCollection(), IHttpClient.SupportedSslProtocols, true).ConfigureAwait(false);
-					stream = sslStream;
+					await TorSocks5Client.UpgradeToSslAsync(host).ConfigureAwait(false);
 				}
-
-				TorSocks5Client.Stream = stream;
 			}
+
 			cancel.ThrowIfCancellationRequested();
 
 			// https://tools.ietf.org/html/rfc7230#section-3.3.2
@@ -250,7 +242,7 @@ namespace WalletWasabi.Tor.Http
 
 			await TorSocks5Client.Stream.WriteAsync(bytes, 0, bytes.Length).ConfigureAwait(false);
 			await TorSocks5Client.Stream.FlushAsync().ConfigureAwait(false);
-			using var httpResponseMessage = new HttpResponseMessage();
+
 			return await HttpResponseMessageExtensions.CreateNewAsync(TorSocks5Client.Stream, request.Method).ConfigureAwait(false);
 		}
 

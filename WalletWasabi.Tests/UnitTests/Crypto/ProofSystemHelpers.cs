@@ -9,7 +9,7 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Crypto
 {
-	public class ProofSystemHelpers
+	internal class ProofSystemHelpers
 	{
 		public static bool Verify(Statement statement, Proof proof)
 		{

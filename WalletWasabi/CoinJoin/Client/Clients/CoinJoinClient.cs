@@ -399,7 +399,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				ongoingRound
 					.Registration
 					.CoinsRegistered
-					.Select(x => x.GetCoin()));
+					.Select(x => x.Coin));
 
 			var myDic = new Dictionary<int, WitScript>();
 
@@ -763,7 +763,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 						continue;
 					}
 
-					if (coin.Unavailable)
+					if (!coin.IsAvailable())
 					{
 						except.Add(coin);
 						continue;
@@ -915,7 +915,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 						}
 						catch (Exception ex)
 						{
-							if (coinToDequeue.Unspent)
+							if (!coinToDequeue.IsSpent())
 							{
 								exception = ex;
 							}
@@ -924,7 +924,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					else
 					{
 						// If coin is unspent we cannot dequeue.
-						if (coinToDequeue.Unspent)
+						if (!coinToDequeue.IsSpent())
 						{
 							exception = new NotSupportedException($"Cannot deque coin in {round.State.Phase} phase. Coin: {coinToDequeue.Index}:{coinToDequeue.TransactionId}.");
 						}

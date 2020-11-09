@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Helpers;
 
@@ -8,13 +9,14 @@ namespace WalletWasabi.Crypto
 {
 	public class GroupElementVector : IEnumerable<GroupElement>
 	{
-		public GroupElementVector(IEnumerable<GroupElement> groupElements)
+		[JsonConstructor]
+		internal GroupElementVector(IEnumerable<GroupElement> groupElements)
 		{
 			Guard.NotNullOrEmpty(nameof(groupElements), groupElements);
 			GroupElements = groupElements.ToArray();
 		}
 
-		public GroupElementVector(params GroupElement[] groupElements)
+		internal GroupElementVector(params GroupElement[] groupElements)
 			: this(groupElements as IEnumerable<GroupElement>)
 		{
 		}

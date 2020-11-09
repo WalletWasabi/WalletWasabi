@@ -1,33 +1,22 @@
 using ReactiveUI;
-using System;
-using System.Reactive;
-using WalletWasabi.Gui.ViewModels;
+using System.Windows.Input;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
-	public abstract class NavBarItemViewModel : ViewModelBase, IRoutableViewModel
+	public abstract class NavBarItemViewModel : RoutableViewModel
 	{
 		private bool _isSelected;
 		private bool _isExpanded;
-		private string _title;
+		private string? _title;
 
-		public NavBarItemViewModel(IScreen screen)
+		protected NavBarItemViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget) : base(navigationState, navigationTarget)
 		{
-			HostScreen = screen;
-
-			OpenCommand = ReactiveCommand.Create(() =>
-			{
-				screen.Router.Navigate.Execute(this);
-			});
+			OpenCommand = ReactiveCommand.Create(() => Navigate());
 		}
 
-		public NavBarItemViewModel Parent { get; set; }
+		public NavBarItemViewModel? Parent { get; set; }
 
 		public abstract string IconName { get; }
-
-		public string UrlPathSegment { get; } = Guid.NewGuid().ToString().Substring(0, 5);
-
-		public IScreen HostScreen { get; }
 
 		public bool IsExpanded
 		{
@@ -43,7 +32,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			}
 		}
 
-		public string Title
+		public string? Title
 		{
 			get => _title;
 			set => this.RaiseAndSetIfChanged(ref _title, value);
@@ -55,6 +44,6 @@ namespace WalletWasabi.Fluent.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _isSelected, value);
 		}
 
-		public ReactiveCommand<Unit, Unit> OpenCommand { get; }
+		public ICommand OpenCommand { get; }
 	}
 }

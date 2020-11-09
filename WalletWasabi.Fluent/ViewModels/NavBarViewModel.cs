@@ -20,24 +20,25 @@ namespace WalletWasabi.Fluent.ViewModels
 		private NavBarItemViewModel _selectedItem;
 		private readonly WalletManagerViewModel _walletManager;
 		private bool _isBackButtonVisible;
+		private NavigationStateViewModel _navigationState;
 		private bool _isNavigating;
 		private bool _isOpen;
 		private Action _toggleAction;
 		private Action _collapseOnClickAction;
 
-
-		public NavBarViewModel(IScreen screen, RoutingState router, WalletManagerViewModel walletManager)
+		public NavBarViewModel(NavigationStateViewModel navigationState, RoutingState router, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage)
 		{
+			_navigationState = navigationState;
 			Router = router;
 			_walletManager = walletManager;
 			_topItems = new ObservableCollection<NavBarItemViewModel>();
 			_bottomItems = new ObservableCollection<NavBarItemViewModel>();
 
-			var addWalletPage = new AddWalletPageViewModel(screen);
-			SelectedItem = new HomePageViewModel(screen, walletManager, addWalletPage);
+			
+			SelectedItem = new HomePageViewModel(_navigationState, walletManager, addWalletPage);
 			_topItems.Add(_selectedItem);
 			_bottomItems.Add(addWalletPage);
-			_bottomItems.Add(new SettingsPageViewModel(screen));
+			_bottomItems.Add(new SettingsPageViewModel(_navigationState));
 
 			Router.CurrentViewModel
 				.OfType<NavBarItemViewModel>()
@@ -55,13 +56,13 @@ namespace WalletWasabi.Fluent.ViewModels
 				});
 
 			this.WhenAnyValue(x => x.SelectedItem)
-				.OfType<IRoutableViewModel>()
+				.OfType<NavBarItemViewModel>()
 				.Subscribe(x =>
 				{
 					if (!_isNavigating)
 					{
 						_isNavigating = true;
-						Router.NavigateAndReset.Execute(x);
+						x.NavigateAndReset();
 						CollapseOnClickAction?.Invoke();
 
 						_isNavigating = false;

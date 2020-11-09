@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.TransactionOutputs
@@ -83,6 +84,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 				if (!SpentCoins.Contains(coin))
 				{
 					added = Coins.Add(coin);
+					coin.RegisterToHdPubKey();
 					if (added)
 					{
 						if (ClustersByScriptPubKey.TryGetValue(coin.ScriptPubKey, out var cluster))
@@ -94,9 +96,8 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 							ClustersByScriptPubKey.Add(coin.ScriptPubKey, coin.Cluster);
 						}
 
-						foreach (var spentOutPoint in coin.SpentOutputs)
+						foreach (var outPoint in coin.Transaction.Transaction.Inputs.Select(x => x.PrevOut))
 						{
-							var outPoint = spentOutPoint;
 							var newCoinSet = new HashSet<SmartCoin> { coin };
 
 							// If we don't succeed to add a new entry to the dictionary.
@@ -141,6 +142,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 				{
 					SpentCoins.Remove(toRemove);
 				}
+				toRemove.UnregisterFromHdPubKey();
 
 				var removedCoinOutPoint = toRemove.OutPoint;
 
@@ -162,15 +164,16 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			return coinsToRemove;
 		}
 
-		public void Spend(SmartCoin spentCoin)
+		public void Spend(SmartCoin spentCoin, SmartTransaction tx)
 		{
+			spentCoin.SpenderTransaction = tx;
 			lock (Lock)
 			{
 				if (Coins.Remove(spentCoin))
 				{
 					InvalidateSnapshot = true;
 					SpentCoins.Add(spentCoin);
-					var createdCoins = CreatedByNoLock(spentCoin.SpenderTransactionId);
+					var createdCoins = CreatedByNoLock(spentCoin.SpenderTransaction.GetHash());
 					foreach (var newCoin in createdCoins)
 					{
 						if (newCoin.AnonymitySet < PrivacyLevelThreshold)

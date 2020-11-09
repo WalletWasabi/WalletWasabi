@@ -2,13 +2,16 @@ using Nito.AsyncEx;
 using System;
 using System.IO;
 using System.Net;
+using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Exceptions;
+using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 using WalletWasabi.Tor.Socks5.Models.Messages;
@@ -32,10 +35,13 @@ namespace WalletWasabi.Tor.Socks5
 
 		#region PropertiesAndMembers
 
+		/// <summary>TCP connection to Tor's SOCKS5 server.</summary>
 		public TcpClient TcpClient { get; private set; }
 
 		private EndPoint TorSocks5EndPoint { get; }
 
+		/// <summary>Transport stream for sending  HTTP/HTTPS requests through Tor's SOCKS5 server.</summary>
+		/// <remarks>This stream is not to be used to send commands to Tor's SOCKS5 server.</remarks>
 		public Stream Stream { get; internal set; }
 
 		private EndPoint RemoteEndPoint { get; set; }
@@ -48,6 +54,9 @@ namespace WalletWasabi.Tor.Socks5
 
 		#region Initializers
 
+		/// <summary>
+		/// Establishes TCP connection with Tor's SOCKS5 server.
+		/// </summary>
 		public async Task ConnectAsync()
 		{
 			using (await AsyncLock.LockAsync().ConfigureAwait(false))
@@ -94,12 +103,17 @@ namespace WalletWasabi.Tor.Socks5
 		}
 
 		/// <summary>
-		/// IsolateSOCKSAuth must be on (on by default)
-		/// https://www.torproject.org/docs/tor-manual.html.en
-		/// https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt#n35
+		/// Do the authentication part of Tor's SOCKS5 protocol.
 		/// </summary>
+		/// <param name="isolateStream">Whether random username/password should be used for authentication and thus effectively create a new Tor circuit.</param>
+		/// <remarks>Tor process must be started with enabled <c>IsolateSOCKSAuth</c> option. It's ON by default.</remarks>
+		/// <seealso href="https://www.torproject.org/docs/tor-manual.html.en"/>
+		/// <seealso href="https://linux.die.net/man/1/tor">For <c>IsolateSOCKSAuth</c> option explanation.</seealso>
+		/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt#n35"/>
 		public async Task HandshakeAsync(bool isolateStream = false, CancellationToken cancellationToken = default)
 		{
+			Logger.LogDebug($"> {nameof(isolateStream)}={isolateStream}");
+
 			// https://github.com/torproject/torspec/blob/master/socks-extensions.txt
 			// The "NO AUTHENTICATION REQUIRED" (SOCKS5) authentication method [00] is
 			// supported; and as of Tor 0.2.3.2 - alpha, the "USERNAME/PASSWORD"(SOCKS5)
@@ -110,36 +124,18 @@ namespace WalletWasabi.Tor.Socks5
 			// username / password fields of this message to be empty. This technically
 			// violates RFC1929[4], but ensures interoperability with somewhat broken
 			// SOCKS5 client implementations.
-			string identity = isolateStream ? RandomString.CapitalAlphaNumeric(21) : "default";
-			await HandshakeAsync(identity, cancellationToken).ConfigureAwait(false);
-		}
-
-		/// <summary>
-		/// IsolateSOCKSAuth must be on (on by default)
-		/// https://www.torproject.org/docs/tor-manual.html.en
-		/// https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt#n35
-		/// </summary>
-		/// <param name="identity">Isolates streams by identity. If identity is empty string, it won't isolate stream.</param>
-		private async Task HandshakeAsync(string identity, CancellationToken cancellationToken = default)
-		{
-			Logger.LogDebug($"> {nameof(identity)}={identity}");
-
-			MethodsField methods = string.IsNullOrWhiteSpace(identity)
-				? new MethodsField(MethodField.NoAuthenticationRequired)
-				: new MethodsField(MethodField.UsernamePassword);
+			var methods = new MethodsField(isolateStream ? MethodField.UsernamePassword : MethodField.NoAuthenticationRequired);
 
 			byte[] sendBuffer = new VersionMethodRequest(methods).ToBytes();
 			byte[] receiveBuffer = await SendAsync(sendBuffer, receiveBufferSize: 2, cancellationToken).ConfigureAwait(false);
 
-			var methodSelection = new MethodSelectionResponse();
-			methodSelection.FromBytes(receiveBuffer);
+			var methodSelection = new MethodSelectionResponse(receiveBuffer);
 
 			if (methodSelection.Ver != VerField.Socks5)
 			{
 				throw new NotSupportedException($"SOCKS{methodSelection.Ver.Value} not supported. Only SOCKS5 is supported.");
 			}
-
-			if (methodSelection.Method == MethodField.NoAcceptableMethods)
+			else if (methodSelection.Method == MethodField.NoAcceptableMethods)
 			{
 				// https://www.ietf.org/rfc/rfc1928.txt
 				// If the selected METHOD is X'FF', none of the methods listed by the
@@ -147,14 +143,14 @@ namespace WalletWasabi.Tor.Socks5
 				DisposeTcpClient();
 				throw new NotSupportedException("Tor's SOCKS5 proxy does not support any of the client's authentication methods.");
 			}
-
-			if (methodSelection.Method == MethodField.UsernamePassword)
+			else if (methodSelection.Method == MethodField.UsernamePassword)
 			{
 				// https://tools.ietf.org/html/rfc1929#section-2
 				// Once the SOCKS V5 server has started, and the client has selected the
 				// Username / Password Authentication protocol, the Username / Password
 				// sub-negotiation begins. This begins with the client producing a
 				// Username / Password request:
+				var identity = RandomString.CapitalAlphaNumeric(21);
 				var uName = new UNameField(uName: identity);
 				var passwd = new PasswdField(passwd: identity);
 				var usernamePasswordRequest = new UsernamePasswordRequest(uName, passwd);
@@ -163,8 +159,8 @@ namespace WalletWasabi.Tor.Socks5
 				Array.Clear(receiveBuffer, 0, receiveBuffer.Length);
 				receiveBuffer = await SendAsync(sendBuffer, receiveBufferSize: 2, cancellationToken).ConfigureAwait(false);
 
-				var userNamePasswordResponse = new UsernamePasswordResponse();
-				userNamePasswordResponse.FromBytes(receiveBuffer);
+				var userNamePasswordResponse = new UsernamePasswordResponse(receiveBuffer);
+
 				if (userNamePasswordResponse.Ver != usernamePasswordRequest.Ver)
 				{
 					throw new NotSupportedException($"Authentication version {userNamePasswordResponse.Ver.Value} not supported. Only version {usernamePasswordRequest.Ver} is supported.");
@@ -184,6 +180,13 @@ namespace WalletWasabi.Tor.Socks5
 			Logger.LogDebug("<");
 		}
 
+		public async Task UpgradeToSslAsync(string host)
+		{
+			SslStream sslStream = new SslStream(TcpClient.GetStream(), leaveInnerStreamOpen: true);
+			await sslStream.AuthenticateAsClientAsync(host, new X509CertificateCollection(), IHttpClient.SupportedSslProtocols, true).ConfigureAwait(false);
+			Stream = sslStream;
+		}
+
 		private async Task ConnectToDestinationAsync(EndPoint destination, CancellationToken cancellationToken = default)
 		{
 			if (!destination.TryGetHostAndPort(out string? host, out int? port))
@@ -194,10 +197,16 @@ namespace WalletWasabi.Tor.Socks5
 			await ConnectToDestinationAsync(host, port.Value, cancellationToken).ConfigureAwait(false);
 		}
 
-		/// <param name="host">IPv4 or domain</param>
+		/// <summary>
+		/// Sends <see cref="CmdField.Connect"/> command to SOCKS5 server to instruct it to connect to
+		/// <paramref name="host"/>:<paramref name="port"/> on behalf of this client.
+		/// </summary>
+		/// <param name="host">IPv4 or domain of the destination.</param>
+		/// <param name="port">Port number of the destination.</param>
+		/// <seealso href="https://tools.ietf.org/html/rfc1928">Section 3. Procedure for TCP-based clients</seealso>
 		public async Task ConnectToDestinationAsync(string host, int port, CancellationToken cancellationToken = default)
 		{
-			Logger.LogDebug($"> {nameof(host)}={host}, {nameof(port)}={port}");
+			Logger.LogDebug($"> {nameof(host)}='{host}', {nameof(port)}={port}");
 
 			host = Guard.NotNullOrEmptyOrWhitespace(nameof(host), host, true);
 			Guard.MinimumAndNotNull(nameof(port), port, 0);
@@ -209,18 +218,17 @@ namespace WalletWasabi.Tor.Socks5
 
 				var receiveBuffer = await SendAsync(sendBuffer, receiveBufferSize: null, cancellationToken).ConfigureAwait(false);
 
-				var connectionResponse = new TorSocks5Response();
-				connectionResponse.FromBytes(receiveBuffer);
+				var connectionResponse = new TorSocks5Response(receiveBuffer);
 
 				if (connectionResponse.Rep != RepField.Succeeded)
 				{
 					// https://www.ietf.org/rfc/rfc1928.txt
-					// When a reply(REP value other than X'00') indicates a failure, the
+					// When a reply (REP value other than X'00') indicates a failure, the
 					// SOCKS server MUST terminate the TCP connection shortly after sending
-					// the reply.This must be no more than 10 seconds after detecting the
+					// the reply. This must be no more than 10 seconds after detecting the
 					// condition that caused a failure.
 					DisposeTcpClient();
-					Logger.LogWarning($"Connection response indicates a failure. Actual response is: '{connectionResponse.Rep}'. Request: {host}:{port}.");
+					Logger.LogWarning($"Connection response indicates a failure. Actual response is: '{connectionResponse.Rep}'. Request: '{host}:{port}'.");
 					throw new TorSocks5FailureResponseException(connectionResponse.Rep);
 				}
 
@@ -238,12 +246,12 @@ namespace WalletWasabi.Tor.Socks5
 			}
 			catch (OperationCanceledException)
 			{
-				Logger.LogTrace($"Connecting to destination {host}:{port} was canceled.");
+				Logger.LogTrace($"Connecting to destination '{host}:{port}' was canceled.");
 				throw;
 			}
 			catch (Exception e)
 			{
-				Logger.LogError($"Exception was thrown when connecting to destination ({host}:{port})", e);
+				Logger.LogError($"Exception was thrown when connecting to destination '{host}:{port}'.", e);
 				throw;
 			}
 			finally
@@ -252,22 +260,22 @@ namespace WalletWasabi.Tor.Socks5
 			}
 		}
 
-		private async Task AssertConnectedAsync()
+		private async Task AssertConnectedAsync(CancellationToken token = default)
 		{
 			if (!IsConnected)
 			{
 				// try reconnect, maybe the server came online already
 				try
 				{
-					await ConnectToDestinationAsync(RemoteEndPoint).ConfigureAwait(false);
+					await ConnectToDestinationAsync(RemoteEndPoint, token).ConfigureAwait(false);
 				}
 				catch (Exception ex) when (IsConnectionRefused(ex))
 				{
-					throw new ConnectionException($"{nameof(TorSocks5Client)} is not connected to {RemoteEndPoint}.", ex);
+					throw new ConnectionException($"{nameof(TorSocks5Client)} is not connected to '{RemoteEndPoint}'.", ex);
 				}
 				if (!IsConnected)
 				{
-					throw new ConnectionException($"{nameof(TorSocks5Client)} is not connected to {RemoteEndPoint}.");
+					throw new ConnectionException($"{nameof(TorSocks5Client)} is not connected to '{RemoteEndPoint}'.");
 				}
 			}
 		}
@@ -326,7 +334,7 @@ namespace WalletWasabi.Tor.Socks5
 
 			try
 			{
-				await AssertConnectedAsync().ConfigureAwait(false);
+				await AssertConnectedAsync(cancellationToken).ConfigureAwait(false);
 
 				using (await AsyncLock.LockAsync().ConfigureAwait(false))
 				{

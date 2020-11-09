@@ -189,7 +189,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				}
 
 				using var client = new WasabiClient(new Uri(RegTestFixture.BackendEndPoint), null);
-				var response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, request);
+				var response = await client.TorClient.SendAsync(HttpMethod.Get, request);
 				using (HttpContent content = response.Content)
 				{
 					var resp = await content.ReadAsJsonAsync<StatusResponse>();
@@ -202,7 +202,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 				await rpc.GenerateAsync(1);
 
-				response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, request);
+				response = await client.TorClient.SendAsync(HttpMethod.Get, request);
 				using (HttpContent content = response.Content)
 				{
 					var resp = await content.ReadAsJsonAsync<StatusResponse>();
@@ -217,7 +217,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				// Set back the time to trigger timeout in BlockchainController.GetStatusAsync.
 				global.IndexBuilderService.LastFilterBuildTime = DateTimeOffset.UtcNow - BlockchainController.FilterTimeout;
 
-				response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, request);
+				response = await client.TorClient.SendAsync(HttpMethod.Get, request);
 				using (HttpContent content = response.Content)
 				{
 					var resp = await content.ReadAsJsonAsync<StatusResponse>();

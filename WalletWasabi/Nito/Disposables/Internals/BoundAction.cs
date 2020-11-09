@@ -70,22 +70,22 @@ namespace Nito.Disposables.Internals
 
 		private sealed class BoundAction : IBoundAction
 		{
-			private readonly Action<T> Action;
-			private readonly T Context;
+			private readonly Action<T> _action;
+			private readonly T _context;
 
 			public BoundAction(Action<T> action, T context)
 			{
-				Action = action;
-				Context = context;
+				_action = action;
+				_context = context;
 			}
 
 			public BoundAction(BoundAction originalBoundAction, Func<T, T> contextUpdater)
 			{
-				Action = originalBoundAction.Action;
-				Context = contextUpdater(originalBoundAction.Context);
+				_action = originalBoundAction._action;
+				_context = contextUpdater(originalBoundAction._context);
 			}
 
-			public void Invoke() => Action?.Invoke(Context);
+			public void Invoke() => _action?.Invoke(_context);
 		}
 	}
 }
