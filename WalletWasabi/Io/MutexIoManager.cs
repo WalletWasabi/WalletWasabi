@@ -3,9 +3,9 @@ using WalletWasabi.Crypto;
 
 namespace WalletWasabi.Io
 {
-	public abstract class MutexIoManager : IoManager
+	public abstract class AsyncLockIoManager : IoManager
 	{
-		public MutexIoManager(string filePath) : base(filePath)
+		public AsyncLockIoManager(string filePath) : base(filePath)
 		{
 			AsyncLock = new AsyncLock();
 		}
