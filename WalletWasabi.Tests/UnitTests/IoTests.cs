@@ -153,10 +153,10 @@ namespace WalletWasabi.Tests.UnitTests
 
 			await Task.Run(async () =>
 			{
-				using (await ioman1.Mutex.LockAsync())
+				using (await ioman1.AsyncLock.LockAsync())
 				{
 					// Should not be a problem because they use different Mutexes.
-					using (await ioman2.Mutex.LockAsync())
+					using (await ioman2.AsyncLock.LockAsync())
 					{
 						await ioman1.WriteAllLinesAsync(lines);
 						await ioman2.WriteAllLinesAsync(lines);
@@ -221,7 +221,7 @@ namespace WalletWasabi.Tests.UnitTests
 				{
 					list.Add(next);
 				}
-				using (await ioman.Mutex.LockAsync())
+				using (await ioman.AsyncLock.LockAsync())
 				{
 					var lines = (await ioman.ReadAllLinesAsync()).ToList();
 					lines.Add(next);

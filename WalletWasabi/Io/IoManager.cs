@@ -8,7 +8,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Io
 {
-	public class IoManager
+	public abstract class IoManager
 	{
 		public IoManager(string filePath)
 		{

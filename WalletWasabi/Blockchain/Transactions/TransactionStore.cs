@@ -18,7 +18,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 		private Dictionary<uint256, SmartTransaction> Transactions { get; set; }
 		private object TransactionsLock { get; set; }
-		private MutexIoManager TransactionsFileManager { get; set; }
+		private DigestableSafeMutexIoManager TransactionsFileManager { get; set; }
 
 		private List<ITxStoreOperation> Operations { get; } = new List<ITxStoreOperation>();
 		private object OperationsLock { get; } = new object();
@@ -35,9 +35,9 @@ namespace WalletWasabi.Blockchain.Transactions
 
 				var fileName = Path.Combine(WorkFolderPath, "Transactions.dat");
 				var transactionsFilePath = Path.Combine(WorkFolderPath, fileName);
-				TransactionsFileManager = new MutexIoManager(transactionsFilePath);
+				TransactionsFileManager = new DigestableSafeMutexIoManager(transactionsFilePath);
 
-				using (await TransactionsFileManager.Mutex.LockAsync().ConfigureAwait(false))
+				using (await TransactionsFileManager.AsyncLock.LockAsync().ConfigureAwait(false))
 				{
 					IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 
@@ -305,7 +305,7 @@ namespace WalletWasabi.Blockchain.Transactions
 					}
 				}
 
-				using (await TransactionsFileManager.Mutex.LockAsync().ConfigureAwait(false))
+				using (await TransactionsFileManager.AsyncLock.LockAsync().ConfigureAwait(false))
 				{
 					foreach (ITxStoreOperation op in operationsToExecute)
 					{

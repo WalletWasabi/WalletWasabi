@@ -64,8 +64,8 @@ namespace WalletWasabi.Stores
 				IndexLock = new AsyncLock();
 
 				using (await IndexLock.LockAsync().ConfigureAwait(false))
-				using (await MatureIndexFileManager.Mutex.LockAsync().ConfigureAwait(false))
-				using (await ImmatureIndexFileManager.Mutex.LockAsync().ConfigureAwait(false))
+				using (await MatureIndexFileManager.AsyncLock.LockAsync().ConfigureAwait(false))
+				using (await ImmatureIndexFileManager.AsyncLock.LockAsync().ConfigureAwait(false))
 				{
 					IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 
@@ -332,8 +332,8 @@ namespace WalletWasabi.Stores
 					{
 						Logger.LogCritical($"Deleting all filters and crashing the software...");
 
-						using (await MatureIndexFileManager.Mutex.LockAsync(cancel).ConfigureAwait(false))
-						using (await ImmatureIndexFileManager.Mutex.LockAsync(cancel).ConfigureAwait(false))
+						using (await MatureIndexFileManager.AsyncLock.LockAsync(cancel).ConfigureAwait(false))
+						using (await ImmatureIndexFileManager.AsyncLock.LockAsync(cancel).ConfigureAwait(false))
 						{
 							ImmatureIndexFileManager.DeleteMe();
 							MatureIndexFileManager.DeleteMe();
@@ -384,8 +384,8 @@ namespace WalletWasabi.Stores
 					Interlocked.Exchange(ref _throttleId, 0); // So to notify the currently throttled threads that they do not have to run.
 				}
 
-				using (await MatureIndexFileManager.Mutex.LockAsync(cancel).ConfigureAwait(false))
-				using (await ImmatureIndexFileManager.Mutex.LockAsync(cancel).ConfigureAwait(false))
+				using (await MatureIndexFileManager.AsyncLock.LockAsync(cancel).ConfigureAwait(false))
+				using (await ImmatureIndexFileManager.AsyncLock.LockAsync(cancel).ConfigureAwait(false))
 				using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
 				{
 					// Do not feed the cancellationToken here I always want this to finish running for safety.
@@ -412,7 +412,7 @@ namespace WalletWasabi.Stores
 
 		public async Task ForeachFiltersAsync(Func<FilterModel, Task> todo, Height fromHeight, CancellationToken cancel = default)
 		{
-			using (await MatureIndexFileManager.Mutex.LockAsync(cancel).ConfigureAwait(false))
+			using (await MatureIndexFileManager.AsyncLock.LockAsync(cancel).ConfigureAwait(false))
 			using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
 			{
 				var firstImmatureHeight = ImmatureFilters.FirstOrDefault()?.Header?.Height;
