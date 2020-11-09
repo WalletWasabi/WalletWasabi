@@ -14,7 +14,7 @@ namespace WalletWasabi.Io
 	/// <summary>
 	/// Safely manager file operations.
 	/// </summary>
-	public class DigestableSafeAsyncLockIoManager : SafeAsyncLockIoManager
+	public class DigestableSafeMutexIoManager : SafeAsyncLockIoManager
 	{
 		private const string DigestExtension = ".dig";
 
