@@ -92,27 +92,6 @@ namespace WalletWasabi.Tests.UnitTests
 			var newContentDate = File.GetLastWriteTimeUtc(ioman1.FilePath);
 			Assert.NotEqual(currentDate, newContentDate);
 
-			/* The next test is commented out because on mac and on linux File.Open does not lock the file
-			 * it can be still written by the ioman1.WriteAllLinesAsync(). Tried with FileShare.None FileShare.Delete
-			 * FileStream.Lock none of them are working or caused not supported on this platform exception.
-			 * So there is no OP system way to guarantee that the file won't be written during another write operation.
-			 * For example git is using lock files to solve this problem. We are using system wide mutexes.
-			 * For now there is no other way to do this. Some useful links :
-			 * https://stackoverflow.com/questions/2751734/how-do-filesystems-handle-concurrent-read-write
-			 * https://github.com/dotnet/corefx/issues/5964
-			 */
-
-			//using (File.OpenWrite(ioman1.FilePath))
-			//{
-			//	// Should be OK because the same data is written.
-			//	await ioman1.WriteAllLinesAsync(lines);
-			//}
-			//using (File.OpenWrite(ioman1.FilePath))
-			//{
-			//	// Should fail because different data is written.
-			//	await Assert.ThrowsAsync<IOException>(async () => await ioman1.WriteAllLinesAsync(lines));
-			//}
-
 			await ioman1.WriteAllLinesAsync(lines);
 
 			// Simulate file write error and recovery logic.
@@ -148,7 +127,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var fileCount = Directory.EnumerateFiles(Path.GetDirectoryName(ioman1.FilePath)).Count();
 			Assert.Equal(0, fileCount);
 
-			// Check Mutex usage on simultaneous file writes.
+			// Check AsyncLock usage on simultaneous file writes.
 
 			DigestableIoManager ioman2 = new DigestableIoManager(file2);
 
@@ -159,7 +138,7 @@ namespace WalletWasabi.Tests.UnitTests
 			{
 				using (await asyncLock1.LockAsync())
 				{
-					// Should not be a problem because they use different Mutexes.
+					// Should not be a problem because they use different AsyncLock.
 					using (await asyncLock2.LockAsync())
 					{
 						await ioman1.WriteAllLinesAsync(lines);
