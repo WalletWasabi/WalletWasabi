@@ -1,5 +1,6 @@
 using Nito.AsyncEx;
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -35,7 +36,7 @@ namespace WalletWasabi.Tor.Http
 			DestinationUriAction = Guard.NotNull(nameof(baseUriAction), baseUriAction);
 
 			// Connecting to loopback's URIs cannot be done via Tor.
-			TorSocks5EndPoint = DestinationUri.IsLoopback ? null : torSocks5EndPoint;
+			TorSocks5EndPoint = DestinationUriAction().IsLoopback ? null : torSocks5EndPoint;
 			TorSocks5Client = null;
 			IsolateStream = isolateStream;
 		}
@@ -58,7 +59,6 @@ namespace WalletWasabi.Tor.Http
 
 		public static Exception? LatestTorException { get; private set; } = null;
 
-		public Uri DestinationUri => DestinationUriAction();
 		public Func<Uri> DestinationUriAction { get; }
 		public EndPoint? TorSocks5EndPoint { get; private set; }
 		public bool IsTorUsed => TorSocks5EndPoint is { };
@@ -81,7 +81,7 @@ namespace WalletWasabi.Tor.Http
 		{
 			Guard.NotNull(nameof(method), method);
 			relativeUri = Guard.NotNull(nameof(relativeUri), relativeUri);
-			var requestUri = new Uri(DestinationUri, relativeUri);
+			var requestUri = new Uri(DestinationUriAction(), relativeUri);
 			using var request = new HttpRequestMessage(method, requestUri);
 			request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
 
@@ -168,9 +168,7 @@ namespace WalletWasabi.Tor.Http
 			LatestTorException = ex;
 		}
 
-		/// <remarks>
-		/// Throws <see cref="OperationCanceledException"/> if <paramref name="cancel"/> is set.
-		/// </remarks>
+		/// <exception cref="OperationCanceledException">If <paramref name="cancel"/> is set.</exception>
 		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancel = default)
 		{
 			Guard.NotNull(nameof(request), request);
@@ -241,10 +239,12 @@ namespace WalletWasabi.Tor.Http
 
 			var bytes = Encoding.UTF8.GetBytes(requestString);
 
-			await TorSocks5Client.Stream.WriteAsync(bytes, 0, bytes.Length).ConfigureAwait(false);
-			await TorSocks5Client.Stream.FlushAsync().ConfigureAwait(false);
+			Stream transportStream = TorSocks5Client.GetTransportStream();
 
-			return await HttpResponseMessageExtensions.CreateNewAsync(TorSocks5Client.Stream, request.Method).ConfigureAwait(false);
+			await transportStream.WriteAsync(bytes, 0, bytes.Length, cancel).ConfigureAwait(false);
+			await transportStream.FlushAsync(cancel).ConfigureAwait(false);
+
+			return await HttpResponseMessageExtensions.CreateNewAsync(transportStream, request.Method).ConfigureAwait(false);
 		}
 
 		#region IDisposable Support

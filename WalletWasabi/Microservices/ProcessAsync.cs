@@ -97,6 +97,7 @@ namespace WalletWasabi.Microservices
 		{
 			if (Process.HasExited)
 			{
+				Logger.LogTrace("Process has already exited.");
 				return;
 			}
 
@@ -105,17 +106,24 @@ namespace WalletWasabi.Microservices
 				// If this token is already in the canceled state, the delegate will be run immediately and synchronously.
 				using (cancel.Register(() => ProcessExecutionTcs.TrySetCanceled()))
 				{
-					await ProcessExecutionTcs.Task;
+					Logger.LogTrace("Wait for the process to exit.");
+
+					await ProcessExecutionTcs.Task.ConfigureAwait(false);
+
+					Logger.LogTrace("Process has exited.");
 				}
 			}
 			catch (OperationCanceledException ex)
 			{
+				Logger.LogTrace("User canceled waiting for process exit.");
+
 				if (killOnCancel)
 				{
 					if (!Process.HasExited)
 					{
 						try
 						{
+							Logger.LogTrace("Kill process.");
 							Process.Kill(entireProcessTree: true);
 						}
 						catch (Exception e)

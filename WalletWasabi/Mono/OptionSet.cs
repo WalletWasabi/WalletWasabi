@@ -170,7 +170,7 @@ namespace Mono.Options
 {
 	public class OptionSet : KeyedCollection<string, Option>
 	{
-		private readonly Regex ValueOption = new Regex(@"^(?<flag>--|-|/)(?<name>[^:=]+)((?<sep>[:=])(?<value>.*))?$");
+		private readonly Regex _valueOption = new Regex(@"^(?<flag>--|-|/)(?<name>[^:=]+)((?<sep>[:=])(?<value>.*))?$");
 
 		private const int OptionWidth = 29;
 		private const int DescriptionFirstWidth = 140 - OptionWidth;
@@ -529,7 +529,7 @@ namespace Mono.Options
 			Guard.NotNull(nameof(argument), argument);
 
 			flag = name = sep = value = null;
-			Match m = ValueOption.Match(argument);
+			Match m = _valueOption.Match(argument);
 			if (!m.Success)
 			{
 				return false;

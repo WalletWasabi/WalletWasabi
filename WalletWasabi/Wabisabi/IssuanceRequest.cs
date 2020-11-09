@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Newtonsoft.Json;
 using WalletWasabi.Crypto.Groups;
 
 namespace WalletWasabi.Wabisabi
@@ -8,6 +9,7 @@ namespace WalletWasabi.Wabisabi
 	/// </summary>
 	public class IssuanceRequest
 	{
+		[JsonConstructor]
 		internal IssuanceRequest(GroupElement ma, IEnumerable<GroupElement> bitCommitments)
 		{
 			Ma = ma;

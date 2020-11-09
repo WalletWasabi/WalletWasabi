@@ -5,6 +5,7 @@ using System.Reactive;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using Global = WalletWasabi.Gui.Global;
+using WalletWasabi.Fluent.ViewModels.NavBar;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -48,12 +49,10 @@ namespace WalletWasabi.Fluent.ViewModels
 			_navBar = new NavBarViewModel(navigationState, Router, walletManager, addWalletPage);
 
 			this.WhenAnyValue(x => x.DialogScreen!.IsDialogVisible)
-				.Subscribe(
-					x => IsMainContentEnabled = !x);
+				.Subscribe(x => IsMainContentEnabled = !x);
 
 			this.WhenAnyValue(x => x.CurrentDialog!.IsDialogOpen)
-				.Subscribe(
-					x => IsDialogEnabled = !x);
+				.Subscribe(x => IsDialogEnabled = !x);
 		}
 
 		public bool IsMainContentEnabled

@@ -22,7 +22,7 @@ namespace WalletWasabi.Wabisabi
 		/// <summary>
 		/// The transcript in the correct state that must be used to validate the proofs presented by the coordinator.
 		/// </summary>
-		public Transcript Transcript { get; }
+		internal Transcript Transcript { get; }
 
 		/// <summary>
 		/// The credentials that were presented to the coordinator.

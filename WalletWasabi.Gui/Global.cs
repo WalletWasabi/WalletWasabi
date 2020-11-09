@@ -66,7 +66,6 @@ namespace WalletWasabi.Gui
 		public Node RegTestMempoolServingNode { get; private set; }
 		public EndPoint? TorSocks5EndPoint { get; private set; }
 		private TorProcessManager? TorManager { get; set; }
-		private TorMonitor? TorMonitor { get; set; }
 		public CoreNode BitcoinCoreNode { get; private set; }
 
 		public HostedServices HostedServices { get; }
@@ -167,8 +166,7 @@ namespace WalletWasabi.Gui
 
 					var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
 
-					TorMonitor = new TorMonitor(TorManager);
-					TorMonitor.StartMonitor(fallbackRequestTestUri, Config.TorSocks5EndPoint);
+					HostedServices.Register(new TorMonitor(period: TimeSpan.FromSeconds(3), fallbackRequestTestUri, Config.TorSocks5EndPoint, TorManager), nameof(TorMonitor));
 				}
 				else
 				{
@@ -613,7 +611,7 @@ namespace WalletWasabi.Gui
 					return;
 				}
 
-				Logger.LogDebug($"Step #1: Wait for initialization to complete.", nameof(Global));
+				Logger.LogDebug($"Step: Wait for initialization to complete.", nameof(Global));
 
 				try
 				{
@@ -625,7 +623,7 @@ namespace WalletWasabi.Gui
 					Logger.LogError($"Error during {nameof(WaitForInitializationCompletedAsync)}: {ex}");
 				}
 
-				Logger.LogDebug($"Step #2: {nameof(WalletManager)}.", nameof(Global));
+				Logger.LogDebug($"Step: {nameof(WalletManager)}.", nameof(Global));
 
 				try
 				{
@@ -637,7 +635,7 @@ namespace WalletWasabi.Gui
 					Logger.LogError($"Error during {nameof(WalletManager.RemoveAndStopAllAsync)}: {ex}");
 				}
 
-				Logger.LogDebug($"Step #3: Application's MainWindow.", nameof(Global));
+				Logger.LogDebug($"Step: Application's MainWindow.", nameof(Global));
 
 				Dispatcher.UIThread.PostLogException(() =>
 				{
@@ -648,7 +646,7 @@ namespace WalletWasabi.Gui
 				WalletManager.OnDequeue -= WalletManager_OnDequeue;
 				WalletManager.WalletRelevantTransactionProcessed -= WalletManager_WalletRelevantTransactionProcessed;
 
-				Logger.LogDebug($"Step #4: {nameof(RpcServer)}.", nameof(Global));
+				Logger.LogDebug($"Step: {nameof(RpcServer)}.", nameof(Global));
 
 				if (RpcServer is { } rpcServer)
 				{
@@ -657,7 +655,7 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo($"{nameof(RpcServer)} is stopped.", nameof(Global));
 				}
 
-				Logger.LogDebug($"Step #5: {nameof(FeeProviders)}.", nameof(Global));
+				Logger.LogDebug($"Step: {nameof(FeeProviders)}.", nameof(Global));
 
 				if (FeeProviders is { } feeProviders)
 				{
@@ -665,7 +663,7 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo($"Disposed {nameof(FeeProviders)}.");
 				}
 
-				Logger.LogDebug($"Step #6: {nameof(CoinJoinProcessor)}.", nameof(Global));
+				Logger.LogDebug($"Step: {nameof(CoinJoinProcessor)}.", nameof(Global));
 
 				if (CoinJoinProcessor is { } coinJoinProcessor)
 				{
@@ -673,7 +671,7 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo($"{nameof(CoinJoinProcessor)} is disposed.");
 				}
 
-				Logger.LogDebug($"Step #7: {nameof(HostedServices)}.", nameof(Global));
+				Logger.LogDebug($"Step: {nameof(HostedServices)}.", nameof(Global));
 
 				if (HostedServices is { } backgroundServices)
 				{
@@ -683,7 +681,7 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo("Stopped background services.");
 				}
 
-				Logger.LogDebug($"Step #8: {nameof(Synchronizer)}.", nameof(Global));
+				Logger.LogDebug($"Step: {nameof(Synchronizer)}.", nameof(Global));
 
 				if (Synchronizer is { } synchronizer)
 				{
@@ -691,7 +689,7 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo($"{nameof(Synchronizer)} is stopped.");
 				}
 
-				Logger.LogDebug($"Step #9: {nameof(AddressManagerFilePath)}.", nameof(Global));
+				Logger.LogDebug($"Step: {nameof(AddressManagerFilePath)}.", nameof(Global));
 
 				if (AddressManagerFilePath is { } addressManagerFilePath)
 				{
@@ -704,7 +702,7 @@ namespace WalletWasabi.Gui
 					}
 				}
 
-				Logger.LogDebug($"Step #10: {nameof(Nodes)}.", nameof(Global));
+				Logger.LogDebug($"Step: {nameof(Nodes)}.", nameof(Global));
 
 				if (Nodes is { } nodes)
 				{
@@ -717,7 +715,7 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo($"{nameof(Nodes)} are disposed.");
 				}
 
-				Logger.LogDebug($"Step #11: {nameof(RegTestMempoolServingNode)}.", nameof(Global));
+				Logger.LogDebug($"Step: {nameof(RegTestMempoolServingNode)}.", nameof(Global));
 
 				if (RegTestMempoolServingNode is { } regTestMempoolServingNode)
 				{
@@ -725,7 +723,7 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo($"{nameof(RegTestMempoolServingNode)} is disposed.");
 				}
 
-				Logger.LogDebug($"Step #12: {nameof(BitcoinCoreNode)}.", nameof(Global));
+				Logger.LogDebug($"Step: {nameof(BitcoinCoreNode)}.", nameof(Global));
 
 				if (BitcoinCoreNode is { } bitcoinCoreNode)
 				{
@@ -737,15 +735,7 @@ namespace WalletWasabi.Gui
 					}
 				}
 
-				Logger.LogDebug($"Step #13: {nameof(TorMonitor)}.", nameof(Global));
-
-				if (TorMonitor is { } torMonitor)
-				{
-					await torMonitor.StopAsync().ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(TorMonitor)} is stopped.");
-				}
-
-				Logger.LogDebug($"Step #14: {nameof(TorManager)}.", nameof(Global));
+				Logger.LogDebug($"Step: {nameof(TorManager)}.", nameof(Global));
 
 				if (TorManager is { } torManager)
 				{
@@ -753,14 +743,14 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo($"{nameof(TorManager)} is stopped.");
 				}
 
-				Logger.LogDebug($"Step #15: {nameof(Cache)}.", nameof(Global));
+				Logger.LogDebug($"Step: {nameof(Cache)}.", nameof(Global));
 
 				if (Cache is { } cache)
 				{
 					cache.Dispose();
 				}
 
-				Logger.LogDebug($"Step #16: {nameof(SingleInstanceChecker)}.", nameof(Global));
+				Logger.LogDebug($"Step: {nameof(SingleInstanceChecker)}.", nameof(Global));
 
 				try
 				{
@@ -771,7 +761,7 @@ namespace WalletWasabi.Gui
 					Logger.LogError($"Error during the disposal of {nameof(SingleInstanceChecker)}: {ex}");
 				}
 
-				Logger.LogDebug($"Step #17: {nameof(AsyncMutex)}.", nameof(Global));
+				Logger.LogDebug($"Step: {nameof(AsyncMutex)}.", nameof(Global));
 
 				if (AsyncMutex.IsAny)
 				{

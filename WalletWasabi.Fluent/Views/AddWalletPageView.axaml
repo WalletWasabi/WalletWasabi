@@ -10,11 +10,11 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:HomePageViewModel"
              x:Class="WalletWasabi.Fluent.Views.AddWalletPageView">
- 
+
   <c:ContentArea Title="Add Wallet" Caption="Type in your wallet's name and select an option:"
                     EnableBack="True">
     <DockPanel>
-      <StackPanel DockPanel.Dock="Top" Margin="0 0 0 40">
+      <StackPanel DockPanel.Dock="Top" Margin="0 0 0 20">
         <Label Content="Wallet _Name:" Target="walletNameTb" />
         <TextBox x:Name="walletNameTb" Text="{Binding WalletName}" Watermark="(e.g. My Wallet)">
           <i:Interaction.Behaviors>
