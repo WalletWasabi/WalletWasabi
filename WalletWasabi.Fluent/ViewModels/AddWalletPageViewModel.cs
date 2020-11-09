@@ -73,7 +73,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				return;
 			}
 
-			if (PasswordHelper.IsTrimable(walletName, out _))
+			if (walletName.IsTrimable())
 			{
 				errors.Add(ErrorSeverity.Error, "Leading and trailing white spaces are not allowed!");
 				return;

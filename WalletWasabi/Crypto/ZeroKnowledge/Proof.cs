@@ -1,9 +1,11 @@
+using Newtonsoft.Json;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge
 {
 	public class Proof
 	{
+		[JsonConstructor]
 		internal Proof(GroupElementVector publicNonces, ScalarVector responses)
 		{
 			Guard.NotNullOrInfinity(nameof(publicNonces), publicNonces);

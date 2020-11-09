@@ -70,21 +70,13 @@ namespace WalletWasabi.Userfacing
 
 		public static bool IsTrimable(string? password, out string? trimmedPassword)
 		{
-			trimmedPassword = password;
-			if (password is null)
+			if (password is {} && password.IsTrimable())
 			{
-				return false;
-			}
-
-			var beforeTrim = password.Length;
-
-			trimmedPassword = password.Trim();
-
-			if (beforeTrim != trimmedPassword.Length)
-			{
+				trimmedPassword = password.Trim();
 				return true;
 			}
 
+			trimmedPassword = password;
 			return false;
 		}
 
