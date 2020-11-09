@@ -11,7 +11,7 @@ namespace WalletWasabi.Backend.Controllers
 	[Route("api/[controller]")]
 	public class SoftwareController : ControllerBase
 	{
-		private readonly VersionsResponse VersionsResponse = new VersionsResponse
+		private readonly VersionsResponse _versionsResponse = new VersionsResponse
 		{
 			ClientVersion = Constants.ClientVersion.ToString(3),
 			BackendMajorVersion = Constants.BackendMajorVersion,
@@ -27,7 +27,7 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(typeof(VersionsResponse), 200)]
 		public VersionsResponse GetVersions()
 		{
-			return VersionsResponse;
+			return _versionsResponse;
 		}
 	}
 }

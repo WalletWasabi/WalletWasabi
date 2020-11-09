@@ -9,29 +9,29 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 {
 	public class SyntheticSecretNonceProvider
 	{
-		private readonly Strobe128 Strobe;
-		private readonly int SecretCount;
+		private readonly Strobe128 _strobe;
+		private readonly int _secretCount;
 
 		public SyntheticSecretNonceProvider(Strobe128 strobe, IEnumerable<Scalar> secrets, WasabiRandom random)
 		{
 			Guard.NotNullOrEmpty(nameof(secrets), secrets);
-			Strobe = strobe;
-			SecretCount = secrets.Count();
+			_strobe = strobe;
+			_secretCount = secrets.Count();
 
 			// add secret inputs as key material
 			foreach (var secret in secrets)
 			{
-				Strobe.Key(secret.ToBytes(), false);
+				_strobe.Key(secret.ToBytes(), false);
 			}
 
-			Strobe.Key(random.GetBytes(32), false);
+			_strobe.Key(random.GetBytes(32), false);
 		}
 
 		private IEnumerable<Scalar> Sequence()
 		{
 			while (true)
 			{
-				yield return new Scalar(Strobe.Prf(32, false));
+				yield return new Scalar(_strobe.Prf(32, false));
 			}
 		}
 
@@ -39,6 +39,6 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			Sequence().First();
 
 		internal ScalarVector GetScalarVector() =>
-			new ScalarVector(Sequence().Take(SecretCount));
+			new ScalarVector(Sequence().Take(_secretCount));
 	}
 }
