@@ -34,6 +34,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 				})
 				.ObserveOn(RxApp.MainThreadScheduler);
 
+			BackCommand = ReactiveCommand.Create(() => Close());
 			NextCommand = ReactiveCommand.Create(() => Close(Password), nextCommandCanExecute);
 			CancelCommand = ReactiveCommand.Create(() => Close());
 		}
