@@ -29,6 +29,8 @@ namespace WalletWasabi.Services.Terminate
 			}
 		}
 
+		public bool IsTerminateRequested => Interlocked.Read(ref _terminateStatus) > TerminateStatusNotStarted;
+
 		private void Windows_SystemEvents_SessionEnding(object sender, SessionEndingEventArgs e)
 		{
 			// This event will only be triggered if you run Wasabi from the published package. Use the packager with the --onlybinaries option.
@@ -36,6 +38,7 @@ namespace WalletWasabi.Services.Terminate
 			e.Cancel = true;
 
 			// This must be a blocking call because after this the OS will terminate the Wasabi process if it exists.
+			// The process will be killed by the OS after ~7 seconds, even with e.Cancel = true.
 			Terminate();
 		}
 
@@ -50,6 +53,7 @@ namespace WalletWasabi.Services.Terminate
 		private void Console_CancelKeyPress(object? sender, ConsoleCancelEventArgs e)
 		{
 			Logger.LogWarning($"Process termination was requested using '{e.SpecialKey}' keyboard shortcut.");
+
 			// This must be a blocking call because after this the OS will terminate Wasabi process if it exists.
 			// In some cases CurrentDomain_ProcessExit is called after this by the OS.
 			Terminate();
@@ -59,7 +63,6 @@ namespace WalletWasabi.Services.Terminate
 		/// Terminates the application.
 		/// </summary>
 		/// <remark>This is a blocking method. Note that program execution ends at the end of this method due to <see cref="Environment.Exit(int)"/> call.</remark>
-
 		public void Terminate(int exitCode = 0)
 		{
 			var prevValue = Interlocked.CompareExchange(ref _terminateStatus, TerminateStatusInProgress, TerminateStatusNotStarted);
@@ -102,7 +105,5 @@ namespace WalletWasabi.Services.Terminate
 
 			Environment.Exit(exitCode);
 		}
-
-		public bool IsTerminateRequested => Interlocked.Read(ref _terminateStatus) > TerminateStatusNotStarted;
 	}
 }
