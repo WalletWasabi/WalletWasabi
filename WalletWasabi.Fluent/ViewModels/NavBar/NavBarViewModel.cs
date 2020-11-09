@@ -6,6 +6,8 @@ using System.Reactive;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Wallets;
+using DynamicData;
+using DynamicData.Binding;
 
 namespace WalletWasabi.Fluent.ViewModels.NavBar
 {
@@ -16,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 	{
 		private ObservableCollection<NavBarItemViewModel> _topItems;
 		private ObservableCollection<NavBarItemViewModel> _bottomItems;
-		private ObservableCollection<SearchItemViewModel> _searchItems;
+		private readonly ReadOnlyObservableCollection<SearchItemViewModel> _searchItems;
 		private NavBarItemViewModel _selectedItem;
 		private readonly WalletManagerViewModel _walletManager;
 		private bool _isBackButtonVisible;
@@ -34,11 +36,19 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			_topItems = new ObservableCollection<NavBarItemViewModel>();
 			_bottomItems = new ObservableCollection<NavBarItemViewModel>();
 
-			_searchItems = new ObservableCollection<SearchItemViewModel>()
-			{
-				new SearchItemViewModel(_navigationState, NavigationTarget.Home, "settings_regular", "Settings", () => new SettingsPageViewModel(_navigationState)),
-				new SearchItemViewModel(_navigationState, NavigationTarget.Dialog, "add_circle_regular", "Add Wallet", () => addWalletPage)
-			};
+			var searchItems = new SourceList<SearchItemViewModel>();
+
+			searchItems.Add(new SearchItemViewModel(_navigationState, NavigationTarget.Home, "home_regular", "Home", () => new HomePageViewModel(_navigationState, walletManager, addWalletPage)));
+			searchItems.Add(new SearchItemViewModel(_navigationState, NavigationTarget.Home, "settings_regular", "Settings", () => new SettingsPageViewModel(_navigationState)));
+			searchItems.Add(new SearchItemViewModel(_navigationState, NavigationTarget.Dialog, "add_circle_regular", "Add Wallet", () => addWalletPage));
+
+			walletManager.Items.ToObservableChangeSet()
+				.Cast(x => new SearchItemViewModel(_navigationState, NavigationTarget.Home, "web_asset_regular", x.WalletName, () => x))
+				.Sort(SortExpressionComparer<SearchItemViewModel>.Ascending(i => i.Title))
+				.Merge(searchItems.Connect())
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Bind(out _searchItems)
+				.AsObservableList();
 
 			SelectedItem = new HomePageViewModel(_navigationState, walletManager, addWalletPage);
 			_topItems.Add(_selectedItem);
@@ -100,11 +110,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			set => this.RaiseAndSetIfChanged(ref _bottomItems, value);
 		}
 
-		public ObservableCollection<SearchItemViewModel> SearchItems
-		{
-			get => _searchItems;
-			set => this.RaiseAndSetIfChanged(ref _searchItems, value);
-		}
+		public ReadOnlyObservableCollection<SearchItemViewModel> SearchItems => _searchItems;
 
 		public NavBarItemViewModel SelectedItem
 		{
