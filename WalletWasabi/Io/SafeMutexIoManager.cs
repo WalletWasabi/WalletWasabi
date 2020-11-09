@@ -7,7 +7,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Io
 {
-	public class SafeMutexIoManager : MutexIoManager
+	public abstract class SafeMutexIoManager : MutexIoManager
 	{
 		private const string OldExtension = ".old";
 		private const string NewExtension = ".new";
