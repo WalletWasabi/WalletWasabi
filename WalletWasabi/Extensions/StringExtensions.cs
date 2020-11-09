@@ -71,7 +71,7 @@ namespace System
 				return false;
 			}
 
-			return char.IsWhiteSpace(me[0]) || char.IsWhiteSpace(me[^0]);
+			return char.IsWhiteSpace(me[0]) || char.IsWhiteSpace(me[^1]);
 		}
 	}
 }
