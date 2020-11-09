@@ -30,7 +30,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			// Single thread file operations.
 
-			DigestableSafeMutexIoManager ioman1 = new DigestableSafeMutexIoManager(file1);
+			DigestableSafeAsyncLockIoManager ioman1 = new DigestableSafeAsyncLockIoManager(file1);
 
 			// Delete the file if Exist.
 
@@ -149,7 +149,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			// Check Mutex usage on simultaneous file writes.
 
-			DigestableSafeMutexIoManager ioman2 = new DigestableSafeMutexIoManager(file2);
+			DigestableSafeAsyncLockIoManager ioman2 = new DigestableSafeAsyncLockIoManager(file2);
 
 			await Task.Run(async () =>
 			{
@@ -193,7 +193,7 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			var file = Path.Combine(Common.GetWorkDir(), $"file.dat");
 
-			DigestableSafeMutexIoManager ioman = new DigestableSafeMutexIoManager(file);
+			DigestableSafeAsyncLockIoManager ioman = new DigestableSafeAsyncLockIoManager(file);
 			ioman.DeleteMe();
 			await ioman.WriteAllLinesAsync(Array.Empty<string>());
 			Assert.False(File.Exists(ioman.FilePath));

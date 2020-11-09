@@ -14,12 +14,12 @@ namespace WalletWasabi.Io
 	/// <summary>
 	/// Safely manager file operations.
 	/// </summary>
-	public class DigestableSafeMutexIoManager : SafeAsyncLockIoManager
+	public class DigestableSafeAsyncLockIoManager : SafeAsyncLockIoManager
 	{
 		private const string DigestExtension = ".dig";
 
 		/// <param name="digestRandomIndex">Use the random index of the line to create digest faster. -1 is special value, it means the last character. If null then hash whole file.</param>
-		public DigestableSafeMutexIoManager(string filePath, int? digestRandomIndex = null) : base(filePath)
+		public DigestableSafeAsyncLockIoManager(string filePath, int? digestRandomIndex = null) : base(filePath)
 
 		{
 			DigestRandomIndex = digestRandomIndex;

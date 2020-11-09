@@ -38,8 +38,8 @@ namespace WalletWasabi.Stores
 
 		private string WorkFolderPath { get; set; }
 		private Network Network { get; }
-		private DigestableSafeMutexIoManager MatureIndexFileManager { get; set; }
-		private DigestableSafeMutexIoManager ImmatureIndexFileManager { get; set; }
+		private DigestableSafeAsyncLockIoManager MatureIndexFileManager { get; set; }
+		private DigestableSafeAsyncLockIoManager ImmatureIndexFileManager { get; set; }
 		public SmartHeaderChain SmartHeaderChain { get; }
 
 		private FilterModel StartingFilter { get; set; }
@@ -52,9 +52,9 @@ namespace WalletWasabi.Stores
 			using (BenchmarkLogger.Measure())
 			{
 				var indexFilePath = Path.Combine(WorkFolderPath, "MatureIndex.dat");
-				MatureIndexFileManager = new DigestableSafeMutexIoManager(indexFilePath, digestRandomIndex: -1);
+				MatureIndexFileManager = new DigestableSafeAsyncLockIoManager(indexFilePath, digestRandomIndex: -1);
 				var immatureIndexFilePath = Path.Combine(WorkFolderPath, "ImmatureIndex.dat");
-				ImmatureIndexFileManager = new DigestableSafeMutexIoManager(immatureIndexFilePath, digestRandomIndex: -1);
+				ImmatureIndexFileManager = new DigestableSafeAsyncLockIoManager(immatureIndexFilePath, digestRandomIndex: -1);
 
 				StartingFilter = StartingFilters.GetStartingFilter(Network);
 				StartingHeight = StartingFilter.Header.Height;
@@ -100,7 +100,7 @@ namespace WalletWasabi.Stores
 			}
 		}
 
-		private async Task DeleteIfDeprecatedAsync(DigestableSafeMutexIoManager ioManager)
+		private async Task DeleteIfDeprecatedAsync(DigestableSafeAsyncLockIoManager ioManager)
 		{
 			string firstLine;
 			using (var content = ioManager.OpenText())
