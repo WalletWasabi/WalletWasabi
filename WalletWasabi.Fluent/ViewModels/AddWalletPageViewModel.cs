@@ -9,11 +9,12 @@ using WalletWasabi.Wallets;
 using WalletWasabi.Stores;
 using NBitcoin;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
-using WalletWasabi.Fluent.ViewModels.AddWallet;
 using System.Threading.Tasks;
+using WalletWasabi.Fluent.ViewModels.CreateWallet;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
+using WalletWasabi.Fluent.ViewModels.NavBar;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -77,7 +78,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				return;
 			}
 
-			if (PasswordHelper.IsTrimable(walletName, out _))
+			if (walletName.IsTrimable())
 			{
 				errors.Add(ErrorSeverity.Error, "Leading and trailing white spaces are not allowed!");
 				return;

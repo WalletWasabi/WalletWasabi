@@ -5,10 +5,9 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.ViewModels;
-using DynamicData;
-using DynamicData.Binding;
+using WalletWasabi.Fluent.ViewModels.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels
+namespace WalletWasabi.Fluent.ViewModels.NavBar
 {
 	/// <summary>
 	/// The ViewModel that represents the structure of the sidebar.

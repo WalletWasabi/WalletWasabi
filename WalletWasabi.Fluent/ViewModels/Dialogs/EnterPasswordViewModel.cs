@@ -23,23 +23,21 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 			this.ValidateProperty(x => x.Password, ValidatePassword);
 			this.ValidateProperty(x => x.ConfirmPassword, ValidateConfirmPassword);
+ 
+			var nextCommandCanExecute = this.WhenAnyValue(
+				x => x.Password,
+				x => x.ConfirmPassword,
+				(password, confirmPassword) =>
+				{
+					// This will fire validations before return canExecute value.
+					this.RaisePropertyChanged(nameof(Password));
+					this.RaisePropertyChanged(nameof(ConfirmPassword));
 
-			var continueCommandCanExecute = this.WhenAnyValue(
-					x => x.Password,
-					x => x.ConfirmPassword,
-					(password, confirmPassword) =>
-					{
-						// This will fire validations before return canExecute value.
-						this.RaisePropertyChanged(nameof(Password));
-						this.RaisePropertyChanged(nameof(ConfirmPassword));
-
-						return string.IsNullOrEmpty(password) && string.IsNullOrEmpty(confirmPassword) ||
-						       !string.IsNullOrEmpty(password) && !string.IsNullOrEmpty(confirmPassword) &&
-						       !Validations.Any;
-					})
+					return (string.IsNullOrEmpty(password) && string.IsNullOrEmpty(confirmPassword)) || (!string.IsNullOrEmpty(password) && !string.IsNullOrEmpty(confirmPassword) && !Validations.Any);
+				})
 				.ObserveOn(RxApp.MainThreadScheduler);
 
-			ContinueCommand = ReactiveCommand.Create(() => Close(Password), continueCommandCanExecute);
+			NextCommand = ReactiveCommand.Create(() => Close(Password), nextCommandCanExecute);
 			CancelCommand = ReactiveCommand.Create(() => Close());
 		}
 
@@ -55,7 +53,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			set => this.RaiseAndSetIfChanged(ref _confirmPassword, value);
 		}
 
-		public ICommand ContinueCommand { get; }
+		public ICommand NextCommand { get; }
 
 		public ICommand CancelCommand { get; }
 

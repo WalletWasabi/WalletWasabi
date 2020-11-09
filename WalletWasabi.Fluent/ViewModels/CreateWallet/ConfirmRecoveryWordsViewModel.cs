@@ -1,17 +1,16 @@
-using DynamicData;
-using DynamicData.Binding;
-using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Input;
+using DynamicData;
+using DynamicData.Binding;
+using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels.AddWallet
+namespace WalletWasabi.Fluent.ViewModels.CreateWallet
 {
 	public class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	{
@@ -48,7 +47,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				.Bind(out _confirmationWords)
 				.Subscribe();
 
-			SelectRandomConfirmationWords(mnemonicWords);
+			// Select 4 random words to confirm.
+			_confirmationWordsSourceList.AddRange(mnemonicWords.OrderBy(x => new Random().NextDouble()).Take(4));
 		}
 
 		public ReadOnlyObservableCollection<RecoveryWordViewModel> ConfirmationWords => _confirmationWords;
@@ -56,20 +56,5 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		public ICommand NextCommand { get; }
 
 		public ICommand CancelCommand { get; }
-
-		private void SelectRandomConfirmationWords(List<RecoveryWordViewModel> mnemonicWords)
-		{
-			var random = new Random();
-
-			while (_confirmationWordsSourceList.Count != 4)
-			{
-				var word = mnemonicWords[random.Next(0, 12)];
-
-				if (!_confirmationWordsSourceList.Items.Contains(word))
-				{
-					_confirmationWordsSourceList.Add(word);
-				}
-			}
-		}
 	}
 }

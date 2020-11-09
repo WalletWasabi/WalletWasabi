@@ -84,6 +84,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 				if (!SpentCoins.Contains(coin))
 				{
 					added = Coins.Add(coin);
+					coin.RegisterToHdPubKey();
 					if (added)
 					{
 						if (ClustersByScriptPubKey.TryGetValue(coin.ScriptPubKey, out var cluster))
@@ -141,6 +142,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 				{
 					SpentCoins.Remove(toRemove);
 				}
+				toRemove.UnregisterFromHdPubKey();
 
 				var removedCoinOutPoint = toRemove.OutPoint;
 

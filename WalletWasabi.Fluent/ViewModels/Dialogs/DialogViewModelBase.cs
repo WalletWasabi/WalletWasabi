@@ -10,7 +10,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 	{
 		private bool _isDialogOpen;
 
-		// Intended to be empty.
 		/// <summary>
 		/// Gets or sets if the dialog is opened/closed.
 		/// </summary>

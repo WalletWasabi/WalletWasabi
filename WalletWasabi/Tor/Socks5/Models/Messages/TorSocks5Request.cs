@@ -14,17 +14,10 @@ namespace WalletWasabi.Tor.Socks5.Models.Messages
 			Guard.MinimumAndNotNull($"{nameof(bytes)}.{nameof(bytes.Length)}", bytes.Length, 6);
 
 			Ver = new VerField(bytes[0]);
-
-			Cmd = new CmdField();
-			Cmd.FromByte(bytes[1]);
-
-			Rsv = new RsvField();
-			Rsv.FromByte(bytes[2]);
-
+			Cmd = new CmdField(bytes[1]);
+			Rsv = new RsvField(bytes[2]);
 			Atyp = new AtypField(bytes[3]);
-
 			DstAddr = new AddrField(bytes[4..^2]);
-
 			DstPort = new PortField(bytes[^2..]);
 		}
 

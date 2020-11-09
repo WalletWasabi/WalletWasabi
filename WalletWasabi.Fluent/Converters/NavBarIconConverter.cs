@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Data.Converters;
 using System;
 using System.Globalization;
-using WalletWasabi.Fluent.ViewModels;
+using WalletWasabi.Fluent.ViewModels.NavBar;
 
 namespace WalletWasabi.Fluent.Converters
 {
