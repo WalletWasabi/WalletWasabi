@@ -78,8 +78,7 @@ namespace WalletWasabi.Services.Terminate
 			Logger.LogDebug("Start shutting down the application.");
 
 			// Async termination has to be started on another thread otherwise there is a possibility of deadlock.
-			// We still need to block the caller so ManualResetEvent applied.
-			using ManualResetEvent resetEvent = new ManualResetEvent(false);
+			// We still need to block the caller so Wait applied.
 			Task.Run(async () =>
 			{
 				try
@@ -90,11 +89,7 @@ namespace WalletWasabi.Services.Terminate
 				{
 					Logger.LogWarning(ex.ToTypeMessageString());
 				}
-
-				resetEvent.Set();
-			});
-
-			resetEvent.WaitOne();
+			}).Wait();
 
 			AppDomain.CurrentDomain.ProcessExit -= CurrentDomain_ProcessExit;
 			Console.CancelKeyPress -= Console_CancelKeyPress;
