@@ -43,15 +43,15 @@ namespace WalletWasabi.Blockchain.Transactions
 
 					if (!TransactionsFileManager.Exists())
 					{
-						await SerializeAllTransactionsNoMutexAsync().ConfigureAwait(false);
+						await SerializeAllTransactionsNoLockAsync().ConfigureAwait(false);
 					}
 
-					await InitializeTransactionsNoMutexAsync().ConfigureAwait(false);
+					await InitializeTransactionsNoLockAsync().ConfigureAwait(false);
 				}
 			}
 		}
 
-		private async Task InitializeTransactionsNoMutexAsync()
+		private async Task InitializeTransactionsNoLockAsync()
 		{
 			try
 			{
@@ -84,7 +84,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				{
 					// Another process worked into the file and appended the same transaction into it.
 					// In this case we correct the file by serializing the unique set.
-					await SerializeAllTransactionsNoMutexAsync().ConfigureAwait(false);
+					await SerializeAllTransactionsNoLockAsync().ConfigureAwait(false);
 				}
 			}
 			catch
@@ -236,7 +236,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 		#region Serialization
 
-		private async Task SerializeAllTransactionsNoMutexAsync()
+		private async Task SerializeAllTransactionsNoLockAsync()
 		{
 			List<SmartTransaction> transactionsClone;
 			lock (TransactionsLock)
@@ -319,7 +319,7 @@ namespace WalletWasabi.Blockchain.Transactions
 							}
 							catch
 							{
-								await SerializeAllTransactionsNoMutexAsync().ConfigureAwait(false);
+								await SerializeAllTransactionsNoLockAsync().ConfigureAwait(false);
 							}
 						}
 						else if (op is Remove removeOperation)
@@ -348,7 +348,7 @@ namespace WalletWasabi.Blockchain.Transactions
 							}
 							catch
 							{
-								await SerializeAllTransactionsNoMutexAsync().ConfigureAwait(false);
+								await SerializeAllTransactionsNoLockAsync().ConfigureAwait(false);
 							}
 						}
 						else if (op is Update updateOperation)
@@ -375,7 +375,7 @@ namespace WalletWasabi.Blockchain.Transactions
 							}
 							catch
 							{
-								await SerializeAllTransactionsNoMutexAsync().ConfigureAwait(false);
+								await SerializeAllTransactionsNoLockAsync().ConfigureAwait(false);
 							}
 						}
 						else
