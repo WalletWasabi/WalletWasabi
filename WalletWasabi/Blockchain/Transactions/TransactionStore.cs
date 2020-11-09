@@ -35,7 +35,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 				var fileName = Path.Combine(WorkFolderPath, "Transactions.dat");
 				var transactionsFilePath = Path.Combine(WorkFolderPath, fileName);
-				TransactionsFileManager = new DigestableSafeAsyncLockIoManager(transactionsFilePath);
+				TransactionsFileManager = new DigestableSafeAsyncLockIoManager(transactionsFilePath, -1);
 
 				using (await TransactionsFileManager.AsyncLock.LockAsync().ConfigureAwait(false))
 				{

@@ -20,7 +20,6 @@ namespace WalletWasabi.Io
 
 		/// <param name="digestRandomIndex">Use the random index of the line to create digest faster. -1 is special value, it means the last character. If null then hash whole file.</param>
 		public DigestableSafeAsyncLockIoManager(string filePath, int? digestRandomIndex = null) : base(filePath)
-
 		{
 			DigestRandomIndex = digestRandomIndex;
 
