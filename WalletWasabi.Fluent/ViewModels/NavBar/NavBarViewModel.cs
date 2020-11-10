@@ -19,18 +19,16 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		private ObservableCollection<NavBarItemViewModel> _topItems;
 		private ObservableCollection<NavBarItemViewModel> _bottomItems;
 		private readonly ReadOnlyObservableCollection<SearchItemViewModel> _searchItems;
-		private NavBarItemViewModel _selectedItem;
+		private NavBarItemViewModel? _selectedItem;
 		private readonly WalletManagerViewModel _walletManager;
 		private bool _isBackButtonVisible;
-		private NavigationStateViewModel _navigationState;
 		private bool _isNavigating;
 		private bool _isOpen;
-		private Action _toggleAction;
-		private Action _collapseOnClickAction;
+		private Action? _toggleAction;
+		private Action? _collapseOnClickAction;
 
 		public NavBarViewModel(NavigationStateViewModel navigationState, RoutingState router, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage)
 		{
-			_navigationState = navigationState;
 			Router = router;
 			_walletManager = walletManager;
 			_topItems = new ObservableCollection<NavBarItemViewModel>();
@@ -50,14 +48,15 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				.Bind(out _searchItems)
 				.AsObservableList();
 
-			SelectedItem = new HomePageViewModel(_navigationState, walletManager, addWalletPage);
-			_topItems.Add(_selectedItem);
+			SelectedItem = new HomePageViewModel(navigationState, walletManager, addWalletPage);
+			_topItems.Add(SelectedItem);
 			_bottomItems.Add(addWalletPage);
-			_bottomItems.Add(new SettingsPageViewModel(_navigationState));
+			_bottomItems.Add(new SettingsPageViewModel(navigationState));
 
 			Router.CurrentViewModel
 				.OfType<NavBarItemViewModel>()
-				.Subscribe(x =>
+				.Subscribe(
+					x =>
 				{
 					if (walletManager.Items.Contains(x) || _topItems.Contains(x) || _bottomItems.Contains(x))
 					{
@@ -72,7 +71,8 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 			this.WhenAnyValue(x => x.SelectedItem)
 				.OfType<NavBarItemViewModel>()
-				.Subscribe(x =>
+				.Subscribe(
+					x =>
 				{
 					if (!_isNavigating)
 					{
@@ -92,8 +92,6 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				.Subscribe(x => SelectedItem.IsExpanded = x);
 		}
 
-		public ReactiveCommand<Unit, IRoutableViewModel> GoNext { get; }
-
 		public ReactiveCommand<Unit, Unit> GoBack => Router.NavigateBack;
 
 		public ObservableCollection<NavBarItemViewModel> TopItems
@@ -112,7 +110,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 		public ReadOnlyObservableCollection<SearchItemViewModel> SearchItems => _searchItems;
 
-		public NavBarItemViewModel SelectedItem
+		public NavBarItemViewModel? SelectedItem
 		{
 			get => _selectedItem;
 			set
@@ -154,13 +152,13 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			}
 		}
 
-		public Action ToggleAction
+		public Action? ToggleAction
 		{
 			get => _toggleAction;
 			set => this.RaiseAndSetIfChanged(ref _toggleAction, value);
 		}
 
-		public Action CollapseOnClickAction
+		public Action? CollapseOnClickAction
 		{
 			get => _collapseOnClickAction;
 			set => this.RaiseAndSetIfChanged(ref _collapseOnClickAction, value);

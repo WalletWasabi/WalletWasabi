@@ -33,12 +33,12 @@
           <Panel DockPanel.Dock="Bottom">
             <Button Name="PART_CancelButton" Classes="invisible" IsVisible="{TemplateBinding EnableCancel}" Content="{TemplateBinding CancelContent}" Margin="0,10,10,10" HorizontalAlignment="Left" Command="{Binding CancelCommand}">
               <i:Interaction.Behaviors>
-                <behaviors:FocusOnAttachedBehavior IsEnabled="{Binding FocusCancel}" />
+                <behaviors:FocusOnAttachedBehavior IsEnabled="{Binding FocusCancel, RelativeSource={RelativeSource TemplatedParent}}" />
               </i:Interaction.Behaviors>
             </Button>
             <Button Name="PART_NextButton" Classes="action" IsVisible="{TemplateBinding EnableNext}" Content="{TemplateBinding NextContent}" Margin="10,10,0,10" HorizontalAlignment="Right" Command="{Binding NextCommand}">
               <i:Interaction.Behaviors>
-                <behaviors:FocusOnAttachedBehavior IsEnabled="{Binding FocusNext}" />
+                <behaviors:FocusOnAttachedBehavior IsEnabled="{Binding FocusNext, RelativeSource={RelativeSource TemplatedParent}}" />
               </i:Interaction.Behaviors>
             </Button>
           </Panel>

@@ -3,7 +3,7 @@ using WalletWasabi.Gui.Validation;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Fluent.ViewModels.CreateWallet
+namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
 	public class RecoveryWordViewModel : ViewModelBase
 	{
