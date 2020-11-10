@@ -107,6 +107,10 @@
           <Style Selector="AutoCompleteBox /template/ ListBox#PART_SelectingItemsControl">
             <Setter Property="Margin" Value="0" />
           </Style>
+          <Style Selector="AutoCompleteBox /template/ ListBox#PART_SelectingItemsControl ListBoxItem">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Padding" Value="0,0,0,0" />
+          </Style>
           <Style Selector="AutoCompleteBox /template/ Popup#PART_Popup">
             <Setter Property="MaxWidth" Value="{Binding $parent[UserControl].Bounds.Width}" />
             <Setter Property="PlacementGravity" Value="Top" />
