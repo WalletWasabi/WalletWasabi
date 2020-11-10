@@ -107,6 +107,9 @@
           <Style Selector="AutoCompleteBox /template/ ListBox#PART_SelectingItemsControl">
             <Setter Property="Margin" Value="0" />
           </Style>
+          <Style Selector="AutoCompleteBox /template/ TextBox DataValidationErrors">
+            <Setter Property="IsVisible" Value="False" />
+          </Style>
         </AutoCompleteBox.Styles>
         <AutoCompleteBox.ItemTemplate>
           <DataTemplate>
