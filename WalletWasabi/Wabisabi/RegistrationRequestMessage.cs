@@ -19,9 +19,9 @@ namespace WalletWasabi.Wabisabi
 	{
 		[JsonConstructor]
 		internal RegistrationRequestMessage(
-			Money deltaAmount, 
-			IEnumerable<CredentialPresentation> presented, 
-			IEnumerable<IssuanceRequest> requested, 
+			Money deltaAmount,
+			IEnumerable<CredentialPresentation> presented,
+			IEnumerable<IssuanceRequest> requested,
 			IEnumerable<Proof> proofs)
 		{
 			DeltaAmount = deltaAmount;
@@ -44,12 +44,12 @@ namespace WalletWasabi.Wabisabi
 		/// Randomized credentials presented for output registration or reissuance.
 		/// </summary>
 		public IEnumerable<CredentialPresentation> Presented { get; }
-		
+
 		/// <summary>
 		/// Credential isssuance requests.
 		/// </summary>
 		public IEnumerable<IssuanceRequest> Requested { get; }
-		
+
 		/// <summary>
 		/// Accompanying range and sum proofs to the coordinator.
 		/// </summary>
@@ -59,7 +59,7 @@ namespace WalletWasabi.Wabisabi
 		/// Is request for zero-value credentials only.
 		/// </summary>
 		internal bool IsNullRequest => DeltaAmount == Money.Zero && !Presented.Any();
-		
+
 		/// <summary>
 		/// Serial numbers used in the credential presentations.
 		/// </summary>

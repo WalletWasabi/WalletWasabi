@@ -15,15 +15,15 @@ namespace WalletWasabi.Fluent.Helpers
 			Default = defaultValue;
 		}
 
-		public object Default { get; set; }
+		public object? Default { get; set; }
 
-		public object Osx { get; set; }
+		public object? Osx { get; set; }
 
-		public object Linux { get; set; }
+		public object? Linux { get; set; }
 
-		public object Windows { get; set; }
+		public object? Windows { get; set; }
 
-		public override object ProvideValue(IServiceProvider serviceProvider)
+		public override object? ProvideValue(IServiceProvider serviceProvider)
 		{
 			var result = Default;
 

@@ -1,6 +1,6 @@
-using ReactiveUI;
 using System.Reactive.Linq;
 using System.Windows.Input;
+using ReactiveUI;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
@@ -9,18 +9,20 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
 	public class EnterPasswordViewModel : DialogViewModelBase<string?>
 	{
-		private string? _password;
 		private string? _confirmPassword;
+		private string? _password;
 
-		public EnterPasswordViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget) : base(navigationState, navigationTarget)
+		public EnterPasswordViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget, string subtitle) : base(navigationState, navigationTarget)
 		{
+			Subtitle = subtitle;
+
 			// This means pressing continue will make the password empty string.
 			// pressing cancel will return null.
 			_password = "";
 
 			this.ValidateProperty(x => x.Password, ValidatePassword);
 			this.ValidateProperty(x => x.ConfirmPassword, ValidateConfirmPassword);
-
+ 
 			var nextCommandCanExecute = this.WhenAnyValue(
 				x => x.Password,
 				x => x.ConfirmPassword,
@@ -52,6 +54,8 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		}
 
 		public ICommand NextCommand { get; }
+
+		public string Subtitle { get; }
 
 		protected override void OnDialogClosed()
 		{

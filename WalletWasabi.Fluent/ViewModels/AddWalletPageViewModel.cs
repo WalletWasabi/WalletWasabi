@@ -10,7 +10,7 @@ using WalletWasabi.Stores;
 using NBitcoin;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using System.Threading.Tasks;
-using WalletWasabi.Fluent.ViewModels.CreateWallet;
+using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
@@ -23,7 +23,8 @@ namespace WalletWasabi.Fluent.ViewModels
 		private string _walletName = "";
 		private bool _optionsEnabled;
 
-		public AddWalletPageViewModel(NavigationStateViewModel navigationState, WalletManager walletManager, BitcoinStore store, Network network) : base(navigationState, NavigationTarget.Dialog)
+		public AddWalletPageViewModel(NavigationStateViewModel navigationState, WalletManager walletManager,
+			BitcoinStore store, Network network) : base(navigationState, NavigationTarget.Dialog)
 		{
 			Title = "Add Wallet";
 
@@ -31,7 +32,11 @@ namespace WalletWasabi.Fluent.ViewModels
 				.Select(x => !string.IsNullOrWhiteSpace(x))
 				.Subscribe(x => OptionsEnabled = x && !Validations.Any);
 
-			RecoverWalletCommand = ReactiveCommand.Create(() => navigationState.DialogScreen?.Invoke().Router.Navigate.Execute(new RecoveryPageViewModel(navigationState)));
+			RecoverWalletCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				await navigationState.DialogScreen?.Invoke().Router.Navigate.Execute(
+					new RecoverWalletViewModel(navigationState, WalletName, network, walletManager));
+			});
 
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>
@@ -85,7 +90,8 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			if (File.Exists(walletFilePath))
 			{
-				errors.Add(ErrorSeverity.Error, $"A wallet named {walletName} already exists. Please try a different name.");
+				errors.Add(ErrorSeverity.Error,
+					$"A wallet named {walletName} already exists. Please try a different name.");
 				return;
 			}
 
