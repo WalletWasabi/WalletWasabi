@@ -21,7 +21,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 	{
 		private string? _selectedTag;
 		private IEnumerable<string>? _suggestions;
-
 		private Mnemonic? _currentMnemonics;
 
 		public RecoverWalletViewModel(NavigationStateViewModel navigationState, string walletName, Network network,
