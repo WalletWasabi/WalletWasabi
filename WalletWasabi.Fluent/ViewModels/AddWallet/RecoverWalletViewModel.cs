@@ -80,13 +80,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 						var password = await PasswordInteraction
 							.Handle("Type the password of the wallet to be to recover and click Continue.").ToTask();
 
-						if (string.IsNullOrEmpty(password))
-						{
-							return;
-						}
-
 						var walletFilePath = walletManager.WalletDirectories.GetWalletFilePaths(walletName)
 							.walletFilePath;
+
 						var keyManager = KeyManager.Recover(
 							CurrentMnemonics!,
 							password,
