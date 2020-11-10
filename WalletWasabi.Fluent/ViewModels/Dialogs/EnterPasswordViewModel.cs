@@ -41,9 +41,9 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 			var cancelCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
 
-			BackCommand = ReactiveCommand.Create(() => Close());
+			BackCommand = ReactiveCommand.Create(() => Close(), backCommandCanExecute);
 			NextCommand = ReactiveCommand.Create(() => Close(Password), nextCommandCanExecute);
-			CancelCommand = ReactiveCommand.Create(() => Close());
+			CancelCommand = ReactiveCommand.Create(() => Close(), cancelCommandCanExecute);
 		}
 
 		public string? Password
