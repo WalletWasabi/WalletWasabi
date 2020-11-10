@@ -328,7 +328,10 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			if (Items is IList x && x.Count >= ItemCountLimit)
 			{
-				CompletedCommand?.Execute(null);
+				if (CompletedCommand is {} && CompletedCommand.CanExecute(null))
+				{
+					CompletedCommand.Execute(null);
+				}
 			}
 		}
 
