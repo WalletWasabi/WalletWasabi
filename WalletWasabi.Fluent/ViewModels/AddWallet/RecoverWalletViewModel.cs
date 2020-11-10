@@ -27,7 +27,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			NavigationStateViewModel navigationState,
 			string walletName,
 			Network network,
-			WalletManager walletManager) : base(navigationState, NavigationTarget.Dialog)
+			WalletManager walletManager) : base(navigationState, NavigationTarget.DialogScreen)
 		{
 			Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
@@ -79,7 +79,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					{
 						var enterPassword = new EnterPasswordViewModel(
 							navigationState,
-							NavigationTarget.Dialog,
+							NavigationTarget.DialogScreen,
 							"Type the password of the wallet to be able to recover and click Continue.");
 
 						navigationState.DialogScreen?.Invoke().Router.Navigate.Execute(enterPassword);
@@ -112,7 +112,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			AdvancedOptionsInteraction.RegisterHandler(
 				async interaction =>
 					interaction.SetOutput(
-						await new AdvancedRecoveryOptionsViewModel(navigationState, NavigationTarget.Dialog, interaction.Input).ShowDialogAsync()));
+						await new AdvancedRecoveryOptionsViewModel(navigationState, NavigationTarget.DialogHost, interaction.Input).ShowDialogAsync()));
 		}
 
 		public IObservable<bool> FinishCommandCanExecute { get; }

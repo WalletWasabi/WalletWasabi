@@ -18,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		private readonly SourceList<RecoveryWordViewModel> _confirmationWordsSourceList;
 
 		public ConfirmRecoveryWordsViewModel(NavigationStateViewModel navigationState, List<RecoveryWordViewModel> mnemonicWords, KeyManager keyManager, WalletManager walletManager)
-			: base(navigationState, NavigationTarget.Dialog)
+			: base(navigationState, NavigationTarget.DialogScreen)
 		{
 			_confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
 

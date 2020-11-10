@@ -24,7 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		private bool _optionsEnabled;
 
 		public AddWalletPageViewModel(NavigationStateViewModel navigationState, WalletManager walletManager,
-			BitcoinStore store, Network network) : base(navigationState, NavigationTarget.Dialog)
+			BitcoinStore store, Network network) : base(navigationState, NavigationTarget.DialogScreen)
 		{
 			Title = "Add Wallet";
 
@@ -43,7 +43,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				{
 					var enterPassword = new EnterPasswordViewModel(
 						navigationState,
-						NavigationTarget.Dialog,
+						NavigationTarget.DialogScreen,
 						"Type the password of the wallet and click Continue.");
 
 					navigationState.DialogScreen?.Invoke().Router.Navigate.Execute(enterPassword);
