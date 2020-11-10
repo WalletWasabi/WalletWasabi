@@ -23,7 +23,7 @@
         </TextBox>
       </StackPanel>
       <ScrollViewer>
-        <StackPanel Spacing="10" Margin="0 0 0 40">
+        <StackPanel Spacing="10" Margin="0 0 0 20">
           <StackPanel.Styles>
             <Style Selector="Button">
               <Setter Property="HorizontalAlignment" Value="Stretch" />
