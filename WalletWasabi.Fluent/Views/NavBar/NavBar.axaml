@@ -113,7 +113,7 @@
         </AutoCompleteBox.Styles>
         <AutoCompleteBox.ItemTemplate>
           <DataTemplate>
-            <Panel Background="Transparent" Width="{Binding #SearchAutoCompleteBox.Bounds.Width}">
+            <Panel Background="Transparent">
               <i:Interaction.Behaviors>
                 <ia:EventTriggerBehavior EventName="PointerPressed">
                   <ia:ChangePropertyAction TargetObject="{Binding #SearchAutoCompleteBox}" PropertyName="Text" Value="" />
