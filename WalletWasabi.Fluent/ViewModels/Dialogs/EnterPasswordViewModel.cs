@@ -1,6 +1,6 @@
-using ReactiveUI;
 using System.Reactive.Linq;
 using System.Windows.Input;
+using ReactiveUI;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
@@ -9,19 +9,22 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
 	public class EnterPasswordViewModel : DialogViewModelBase<string?>
 	{
-		private string? _password;
 		private string? _confirmPassword;
+		private string? _password;
 
-		public EnterPasswordViewModel()
+		public EnterPasswordViewModel(
+			string subtitle)
 		{
+			Subtitle = subtitle;
+
 			// This means pressing continue will make the password empty string.
 			// pressing cancel will return null.
 			_password = "";
 
 			this.ValidateProperty(x => x.Password, ValidatePassword);
 			this.ValidateProperty(x => x.ConfirmPassword, ValidateConfirmPassword);
-
-			var continueCommandCanExecute = this.WhenAnyValue(
+ 
+			var nextCommandCanExecute = this.WhenAnyValue(
 				x => x.Password,
 				x => x.ConfirmPassword,
 				(password, confirmPassword) =>
@@ -34,7 +37,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 				})
 				.ObserveOn(RxApp.MainThreadScheduler);
 
-			ContinueCommand = ReactiveCommand.Create(() => Close(Password), continueCommandCanExecute);
+			NextCommand = ReactiveCommand.Create(() => Close(Password), nextCommandCanExecute);
 			CancelCommand = ReactiveCommand.Create(() => Close());
 		}
 
@@ -50,9 +53,11 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			set => this.RaiseAndSetIfChanged(ref _confirmPassword, value);
 		}
 
-		public ICommand ContinueCommand { get; }
+		public ICommand NextCommand { get; }
 
 		public ICommand CancelCommand { get; }
+
+		public string Subtitle { get; }
 
 		protected override void OnDialogClosed()
 		{

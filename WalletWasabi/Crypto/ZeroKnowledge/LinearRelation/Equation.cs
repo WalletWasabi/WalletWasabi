@@ -23,9 +23,8 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 	// representation of a specific point.
 	internal class Equation
 	{
-		public Equation(GroupElement publicPoint, GroupElementVector generators)
+		internal Equation(GroupElement publicPoint, GroupElementVector generators)
 		{
-			Guard.NotNullOrEmpty(nameof(generators), generators);
 			PublicPoint = Guard.NotNull(nameof(publicPoint), publicPoint);
 			Generators = generators;
 		}
@@ -63,7 +62,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 			// challenge is 0), so only respond if that is the case
 			foreach (var secretNonce in secretNonces)
 			{
-				CryptoGuard.NotZero(nameof(secretNonce), secretNonce);
+				Guard.NotZero(nameof(secretNonce), secretNonce);
 			}
 
 			// Taking the discrete logarithms of both sides of the verification

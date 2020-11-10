@@ -5,16 +5,16 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
 	public class TestDialogViewModel : DialogViewModelBase<bool>
 	{
-		private IScreen _screen;
+		private NavigationStateViewModel _navigationState;
 		private string _message;
 
-		public TestDialogViewModel(IScreen screen, string message)
+		public TestDialogViewModel(NavigationStateViewModel navigationState, string message)
 		{
-			_screen = screen;
+			_navigationState = navigationState;
 			_message = message;
 
 			CancelCommand = ReactiveCommand.Create(() => Close(false));
-			ConfirmCommand = ReactiveCommand.Create(() => Close(true));
+			NextCommand = ReactiveCommand.Create(() => Close(true));
 		}
 
 		public string Message
@@ -24,11 +24,12 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		}
 
 		public ICommand CancelCommand { get; }
-		public ICommand ConfirmCommand { get; }
+		public ICommand NextCommand { get; }
 
 		protected override void OnDialogClosed()
 		{
-			_screen.Router.NavigateAndReset.Execute(new SettingsPageViewModel(_screen));
+			// TODO: Disable when using Dialog inside DialogScreenViewModel / Settings
+			// _navigationState.HomeScreen?.Invoke().Router.NavigateAndReset.Execute(new SettingsPageViewModel(_navigationState));
 		}
 
 		public void Close()

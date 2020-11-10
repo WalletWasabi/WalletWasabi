@@ -10,7 +10,7 @@ namespace WalletWasabi.Wabisabi
 	public class RegistrationValidationData
 	{
 		internal RegistrationValidationData(
-			Transcript transcript, 
+			Transcript transcript,
 			IEnumerable<Credential> presented,
 			IEnumerable<IssuanceValidationData> requested)
 		{
@@ -22,13 +22,13 @@ namespace WalletWasabi.Wabisabi
 		/// <summary>
 		/// The transcript in the correct state that must be used to validate the proofs presented by the coordinator.
 		/// </summary>
-		public Transcript Transcript { get; }
+		internal Transcript Transcript { get; }
 
 		/// <summary>
 		/// The credentials that were presented to the coordinator.
 		/// </summary>
 		public IEnumerable<Credential> Presented { get; }
-		
+
 		/// <summary>
 		/// The data state that has to be used to validate the issued credentials.
 		/// </summary>

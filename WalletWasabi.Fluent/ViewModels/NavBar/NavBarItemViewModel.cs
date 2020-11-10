@@ -1,17 +1,18 @@
 using ReactiveUI;
 using System.Windows.Input;
 
-namespace WalletWasabi.Fluent.ViewModels
+namespace WalletWasabi.Fluent.ViewModels.NavBar
 {
 	public abstract class NavBarItemViewModel : RoutableViewModel
 	{
 		private bool _isSelected;
 		private bool _isExpanded;
-		private string? _title;
+		private string _title;
 
-		protected NavBarItemViewModel(IScreen screen) : base(screen)
+		protected NavBarItemViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget) : base(navigationState, navigationTarget)
 		{
-			OpenCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(this));
+			_title = "";
+			OpenCommand = ReactiveCommand.Create(() => Navigate());
 		}
 
 		public NavBarItemViewModel? Parent { get; set; }
@@ -32,7 +33,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			}
 		}
 
-		public string? Title
+		public string Title
 		{
 			get => _title;
 			set => this.RaiseAndSetIfChanged(ref _title, value);

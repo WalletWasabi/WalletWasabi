@@ -7,7 +7,7 @@ namespace NSubsys
 {
 	internal class PeUtility : IDisposable
 	{
-		private readonly IDisposable InternalBinReader;
+		private readonly IDisposable _internalBinReader;
 
 		public PeUtility(string filePath)
 		{
@@ -24,7 +24,7 @@ namespace NSubsys
 
 			OptionalHeader = FromBinaryReader<ImageOptionalHeader>(reader);
 
-			InternalBinReader = reader;
+			_internalBinReader = reader;
 		}
 
 		public enum SubSystemType : ushort
@@ -65,7 +65,7 @@ namespace NSubsys
 		public void Dispose()
 		{
 			Stream?.Dispose();
-			InternalBinReader?.Dispose();
+			_internalBinReader?.Dispose();
 		}
 
 		[StructLayout(LayoutKind.Explicit)]

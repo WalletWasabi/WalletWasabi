@@ -13,6 +13,10 @@
 			<SubType>Designer</SubType>
 		</AvaloniaResource>
 		<AvaloniaResource Include="Assets\**" />
+		<Compile Update="Views\AddWallet\RecoverWalletView.axaml.cs">
+		  <DependentUpon>RecoverWalletView.axaml</DependentUpon>
+		  <SubType>Code</SubType>
+		</Compile> 
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.999-cibuild0011763-beta" />

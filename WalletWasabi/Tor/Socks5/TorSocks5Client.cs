@@ -36,13 +36,13 @@ namespace WalletWasabi.Tor.Socks5
 		#region PropertiesAndMembers
 
 		/// <summary>TCP connection to Tor's SOCKS5 server.</summary>
-		public TcpClient TcpClient { get; private set; }
+		private TcpClient TcpClient { get; set; }
 
 		private EndPoint TorSocks5EndPoint { get; }
 
 		/// <summary>Transport stream for sending  HTTP/HTTPS requests through Tor's SOCKS5 server.</summary>
 		/// <remarks>This stream is not to be used to send commands to Tor's SOCKS5 server.</remarks>
-		public Stream Stream { get; internal set; }
+		private Stream Stream { get; set; }
 
 		private EndPoint RemoteEndPoint { get; set; }
 
@@ -124,11 +124,7 @@ namespace WalletWasabi.Tor.Socks5
 			// username / password fields of this message to be empty. This technically
 			// violates RFC1929[4], but ensures interoperability with somewhat broken
 			// SOCKS5 client implementations.
-			string identity = isolateStream ? RandomString.CapitalAlphaNumeric(21) : "default";
-
-			MethodsField methods = string.IsNullOrWhiteSpace(identity)
-				? new MethodsField(MethodField.NoAuthenticationRequired)
-				: new MethodsField(MethodField.UsernamePassword);
+			var methods = new MethodsField(isolateStream ? MethodField.UsernamePassword : MethodField.NoAuthenticationRequired);
 
 			byte[] sendBuffer = new VersionMethodRequest(methods).ToBytes();
 			byte[] receiveBuffer = await SendAsync(sendBuffer, receiveBufferSize: 2, cancellationToken).ConfigureAwait(false);
@@ -154,6 +150,7 @@ namespace WalletWasabi.Tor.Socks5
 				// Username / Password Authentication protocol, the Username / Password
 				// sub-negotiation begins. This begins with the client producing a
 				// Username / Password request:
+				var identity = RandomString.CapitalAlphaNumeric(21);
 				var uName = new UNameField(uName: identity);
 				var passwd = new PasswdField(passwd: identity);
 				var usernamePasswordRequest = new UsernamePasswordRequest(uName, passwd);
@@ -188,6 +185,15 @@ namespace WalletWasabi.Tor.Socks5
 			SslStream sslStream = new SslStream(TcpClient.GetStream(), leaveInnerStreamOpen: true);
 			await sslStream.AuthenticateAsClientAsync(host, new X509CertificateCollection(), IHttpClient.SupportedSslProtocols, true).ConfigureAwait(false);
 			Stream = sslStream;
+		}
+
+		/// <summary>
+		/// Stream to transport HTTP(S) request.
+		/// </summary>
+		/// <remarks>Either <see cref="TcpClient.GetStream"/> or <see cref="SslStream"/> over <see cref="TcpClient.GetStream"/>.</remarks>
+		public Stream GetTransportStream()
+		{
+			return Stream;
 		}
 
 		private async Task ConnectToDestinationAsync(EndPoint destination, CancellationToken cancellationToken = default)

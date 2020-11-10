@@ -9,6 +9,7 @@
     <StackPanel Spacing="10">
       <Button Command="{Binding NextCommand}" Content="Next" />
       <Button Command="{Binding OpenDialogCommand}" Content="Open Dialog" />
+      <Button Command="{Binding OpenDialogScreenCommand}" Content="Open Dialog Screen" />
       <Button Command="{Binding ChangeThemeCommand}" Content="Change Theme" />
     </StackPanel>
   </c:ContentArea>

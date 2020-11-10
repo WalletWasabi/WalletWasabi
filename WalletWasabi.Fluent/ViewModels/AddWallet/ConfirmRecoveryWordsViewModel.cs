@@ -1,27 +1,25 @@
-using DynamicData;
-using DynamicData.Binding;
-using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Input;
+using DynamicData;
+using DynamicData.Binding;
+using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
-	public class ConfirmRecoveryWordsViewModel : ViewModelBase, IRoutableViewModel
+	public class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	{
 		private readonly ReadOnlyObservableCollection<RecoveryWordViewModel> _confirmationWords;
 		private readonly SourceList<RecoveryWordViewModel> _confirmationWordsSourceList;
 
-		public ConfirmRecoveryWordsViewModel(IScreen screen, List<RecoveryWordViewModel> mnemonicWords, KeyManager keyManager, WalletManager walletManager)
+		public ConfirmRecoveryWordsViewModel(NavigationStateViewModel navigationState, List<RecoveryWordViewModel> mnemonicWords, KeyManager keyManager, WalletManager walletManager)
+			: base(navigationState, NavigationTarget.Dialog)
 		{
-			HostScreen = screen;
-
 			_confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
 
 			var finishCommandCanExecute =
@@ -31,13 +29,15 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				.WhenValueChanged(x => x.IsConfirmed)
 				.Select(x => !_confirmationWordsSourceList.Items.Any(x => !x.IsConfirmed));
 
-			FinishCommand = ReactiveCommand.Create(
+			NextCommand = ReactiveCommand.Create(
 				() =>
 				{
 					walletManager.AddWallet(keyManager);
-					screen.Router.NavigationStack.Clear();
+					navigationState.DialogScreen?.Invoke().Router.NavigationStack.Clear();
 				},
 				finishCommandCanExecute);
+
+			CancelCommand = ReactiveCommand.Create(() => navigationState.DialogScreen?.Invoke().Router.NavigationStack.Clear());
 
 			_confirmationWordsSourceList
 				.Connect()
@@ -47,29 +47,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				.Bind(out _confirmationWords)
 				.Subscribe();
 
-			SelectRandomConfirmationWords(mnemonicWords);
+			// Select 4 random words to confirm.
+			_confirmationWordsSourceList.AddRange(mnemonicWords.OrderBy(x => new Random().NextDouble()).Take(4));
 		}
-
-		public string UrlPathSegment { get; } = "";
-		public IScreen HostScreen { get; }
 
 		public ReadOnlyObservableCollection<RecoveryWordViewModel> ConfirmationWords => _confirmationWords;
 
-		public ICommand FinishCommand { get; }
-
-		private void SelectRandomConfirmationWords(List<RecoveryWordViewModel> mnemonicWords)
-		{
-			var random = new Random();
-
-			while (_confirmationWordsSourceList.Count != 4)
-			{
-				var word = mnemonicWords[random.Next(0, 12)];
-
-				if (!_confirmationWordsSourceList.Items.Contains(word))
-				{
-					_confirmationWordsSourceList.Add(word);
-				}
-			}
-		}
+		public ICommand NextCommand { get; }
 	}
 }

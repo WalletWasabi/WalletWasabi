@@ -5,10 +5,9 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.ViewModels;
-using DynamicData;
-using DynamicData.Binding;
+using WalletWasabi.Fluent.ViewModels.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels
+namespace WalletWasabi.Fluent.ViewModels.NavBar
 {
 	/// <summary>
 	/// The ViewModel that represents the structure of the sidebar.
@@ -17,29 +16,31 @@ namespace WalletWasabi.Fluent.ViewModels
 	{
 		private ObservableCollection<NavBarItemViewModel> _topItems;
 		private ObservableCollection<NavBarItemViewModel> _bottomItems;
-		private NavBarItemViewModel _selectedItem;
+		private NavBarItemViewModel? _selectedItem;
 		private readonly WalletManagerViewModel _walletManager;
 		private bool _isBackButtonVisible;
 		private bool _isNavigating;
 		private bool _isOpen;
-		private Action _toggleAction;
-		private Action _collapseOnClickAction;
+		private Action? _toggleAction;
+		private Action? _collapseOnClickAction;
 
-		public NavBarViewModel(IScreen screen, RoutingState router, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage)
+		public NavBarViewModel(NavigationStateViewModel navigationState, RoutingState router, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage)
 		{
 			Router = router;
 			_walletManager = walletManager;
 			_topItems = new ObservableCollection<NavBarItemViewModel>();
 			_bottomItems = new ObservableCollection<NavBarItemViewModel>();
-			
-			SelectedItem = new HomePageViewModel(screen, walletManager, addWalletPage);
-			_topItems.Add(_selectedItem);
+
+
+			SelectedItem = new HomePageViewModel(navigationState, walletManager, addWalletPage);
+			_topItems.Add(SelectedItem);
 			_bottomItems.Add(addWalletPage);
-			_bottomItems.Add(new SettingsPageViewModel(screen));
+			_bottomItems.Add(new SettingsPageViewModel(navigationState));
 
 			Router.CurrentViewModel
 				.OfType<NavBarItemViewModel>()
-				.Subscribe(x =>
+				.Subscribe(
+					x =>
 				{
 					if (walletManager.Items.Contains(x) || _topItems.Contains(x) || _bottomItems.Contains(x))
 					{
@@ -53,13 +54,14 @@ namespace WalletWasabi.Fluent.ViewModels
 				});
 
 			this.WhenAnyValue(x => x.SelectedItem)
-				.OfType<IRoutableViewModel>()
-				.Subscribe(x =>
+				.OfType<NavBarItemViewModel>()
+				.Subscribe(
+					x =>
 				{
 					if (!_isNavigating)
 					{
 						_isNavigating = true;
-						Router.NavigateAndReset.Execute(x);
+						x.NavigateAndReset();
 						CollapseOnClickAction?.Invoke();
 
 						_isNavigating = false;
@@ -73,8 +75,6 @@ namespace WalletWasabi.Fluent.ViewModels
 			this.WhenAnyValue(x => x.IsOpen)
 				.Subscribe(x => SelectedItem.IsExpanded = x);
 		}
-
-		public ReactiveCommand<Unit, IRoutableViewModel> GoNext { get; }
 
 		public ReactiveCommand<Unit, Unit> GoBack => Router.NavigateBack;
 
@@ -92,7 +92,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _bottomItems, value);
 		}
 
-		public NavBarItemViewModel SelectedItem
+		public NavBarItemViewModel? SelectedItem
 		{
 			get => _selectedItem;
 			set
@@ -134,13 +134,13 @@ namespace WalletWasabi.Fluent.ViewModels
 			}
 		}
 
-		public Action ToggleAction
+		public Action? ToggleAction
 		{
 			get => _toggleAction;
 			set => this.RaiseAndSetIfChanged(ref _toggleAction, value);
 		}
 
-		public Action CollapseOnClickAction
+		public Action? CollapseOnClickAction
 		{
 			get => _collapseOnClickAction;
 			set => this.RaiseAndSetIfChanged(ref _collapseOnClickAction, value);

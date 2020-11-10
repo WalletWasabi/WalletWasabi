@@ -40,8 +40,10 @@ namespace WalletWasabi.Tor
 
 		private TorSocks5Client TorSocks5Client { get; }
 
+		private bool _disposed = false;
+
 		/// <summary>
-		/// Installs Tor if it is not installed, then it starts Tor.
+		/// Starts Tor process if it is not running already.
 		/// </summary>
 		/// <param name="ensureRunning">
 		/// If <c>false</c>, Tor is started but no attempt to verify that it actually runs is made.
@@ -49,6 +51,8 @@ namespace WalletWasabi.Tor
 		/// </param>
 		public async Task<bool> StartAsync(bool ensureRunning)
 		{
+			ThrowIfDisposed();
+
 			try
 			{
 				// Is Tor already running? Either our Tor process from previous Wasabi Wallet run or possibly user's own Tor.
@@ -151,6 +155,16 @@ namespace WalletWasabi.Tor
 
 			// Dispose Tor process resources (does not stop/kill Tor process).
 			TorProcess?.Dispose();
+
+			_disposed = true;
+		}
+
+		private void ThrowIfDisposed()
+		{
+			if (_disposed)
+			{
+				throw new ObjectDisposedException(GetType().FullName);
+			}
 		}
 	}
 }
