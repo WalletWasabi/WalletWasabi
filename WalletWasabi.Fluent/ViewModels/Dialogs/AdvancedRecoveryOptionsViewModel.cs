@@ -13,7 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		private string? _accountKeyPath;
 		private string? _minGapLimit;
 
-		public AdvancedRecoveryOptionsViewModel((KeyPath keyPath, int minGapLimit) interactionInput)
+		public AdvancedRecoveryOptionsViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget, (KeyPath keyPath, int minGapLimit) interactionInput) : base(navigationState, navigationTarget)
 		{
 			this.ValidateProperty(x => x.AccountKeyPath, ValidateAccountKeyPath);
 			this.ValidateProperty(x => x.MinGapLimit, ValidateMinGapLimit);
@@ -55,12 +55,10 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 		public ICommand ContinueCommand { get; }
 
-		public ICommand CancelCommand { get; }
-
 		private int? GetMinGapLimit()
 		{
 			if (int.TryParse(MinGapLimit, out var minGapLimit) && minGapLimit > KeyManager.AbsoluteMinGapLimit &&
-			    minGapLimit < KeyManager.MaxGapLimit)
+				minGapLimit < KeyManager.MaxGapLimit)
 			{
 				return minGapLimit;
 			}
@@ -71,7 +69,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		private KeyPath? GetAccountKeyPath()
 		{
 			if (AccountKeyPath is null || !KeyPath.TryParse(AccountKeyPath, out var keyPath) ||
-			    keyPath is null)
+				keyPath is null)
 			{
 				return null;
 			}
@@ -79,7 +77,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			var accountKeyPath = keyPath.GetAccountKeyPath();
 
 			if (keyPath.Length != accountKeyPath.Length ||
-			    accountKeyPath.Length != KeyManager.DefaultAccountKeyPath.Length)
+				accountKeyPath.Length != KeyManager.DefaultAccountKeyPath.Length)
 			{
 				return null;
 			}
@@ -95,7 +93,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			}
 
 			if (!int.TryParse(MinGapLimit, out var minGapLimit) || minGapLimit < KeyManager.AbsoluteMinGapLimit ||
-			    minGapLimit > KeyManager.MaxGapLimit)
+				minGapLimit > KeyManager.MaxGapLimit)
 			{
 				errors.Add(
 					ErrorSeverity.Error,
@@ -114,7 +112,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			{
 				var accountKeyPath = keyPath.GetAccountKeyPath();
 				if (keyPath.Length != accountKeyPath.Length ||
-				    accountKeyPath.Length != KeyManager.DefaultAccountKeyPath.Length)
+					accountKeyPath.Length != KeyManager.DefaultAccountKeyPath.Length)
 				{
 					errors.Add(ErrorSeverity.Error, "Path is not a compatible account derivation path.");
 				}

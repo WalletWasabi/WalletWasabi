@@ -48,7 +48,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				async () =>
 				{
 					var (accountKeyPathIn, minGapLimitIn) = await AdvancedOptionsInteraction
-						.Handle((AccountKeyPath!, (int) MinGapLimit!)).ToTask();
+						.Handle((AccountKeyPath!, (int)MinGapLimit!)).ToTask();
 
 					if (accountKeyPathIn is { })
 					{
@@ -88,7 +88,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 							password,
 							walletFilePath,
 							AccountKeyPath!,
-							(int) MinGapLimit!);
+							(int)MinGapLimit!);
 						keyManager.SetNetwork(network);
 						walletManager.AddWallet(keyManager);
 
@@ -106,13 +106,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			AdvancedOptionsInteraction.RegisterHandler(
 				async interaction =>
 					interaction.SetOutput(
-						await new AdvancedRecoveryOptionsViewModel(interaction.Input).ShowDialogAsync()));
+						await new AdvancedRecoveryOptionsViewModel(navigationState, NavigationTarget.Dialog, interaction.Input).ShowDialogAsync()));
 
 			PasswordInteraction = new Interaction<string, string?>();
 
 			PasswordInteraction.RegisterHandler(
 				async interaction =>
-					interaction.SetOutput(await new EnterPasswordViewModel(interaction.Input).ShowDialogAsync()));
+					interaction.SetOutput(await new EnterPasswordViewModel(navigationState, NavigationTarget.Dialog, interaction.Input).ShowDialogAsync()));
 		}
 
 		public IObservable<bool> FinishCommandCanExecute { get; }
