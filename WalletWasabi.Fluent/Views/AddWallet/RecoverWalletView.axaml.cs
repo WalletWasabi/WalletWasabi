@@ -1,6 +1,5 @@
 using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
-using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 
 namespace WalletWasabi.Fluent.Views.AddWallet

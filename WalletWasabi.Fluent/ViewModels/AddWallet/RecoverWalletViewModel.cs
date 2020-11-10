@@ -21,10 +21,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 	{
 		private string? _selectedTag;
 		private IEnumerable<string>? _suggestions;
-
 		private Mnemonic? _currentMnemonics;
 
-		public RecoverWalletViewModel(NavigationStateViewModel navigationState, string walletName, Network network,
+		public RecoverWalletViewModel(
+			NavigationStateViewModel navigationState,
+			string walletName,
+			Network network,
 			WalletManager walletManager) : base(navigationState, NavigationTarget.Dialog)
 		{
 			Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
@@ -63,7 +65,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				x => x.CurrentMnemonics,
 				x => x.AccountKeyPath,
 				x => x.MinGapLimit,
-				(a, b, c) =>
+				(_, __, ___) =>
 					AccountKeyPath is { } &&
 					MinGapLimit is { } &&
 					CurrentMnemonics is { } &&
@@ -86,11 +88,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 						var walletFilePath = walletManager.WalletDirectories.GetWalletFilePaths(walletName)
 							.walletFilePath;
 						var keyManager = KeyManager.Recover(
-							CurrentMnemonics,
+							CurrentMnemonics!,
 							password,
 							walletFilePath,
-							AccountKeyPath,
-							(int) MinGapLimit);
+							AccountKeyPath!,
+							(int) MinGapLimit!);
 						keyManager.SetNetwork(network);
 						walletManager.AddWallet(keyManager);
 
