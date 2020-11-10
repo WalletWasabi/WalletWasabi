@@ -121,21 +121,21 @@
         </AutoCompleteBox.Styles>
         <AutoCompleteBox.ItemTemplate>
           <DataTemplate>
-            <Panel Background="Transparent">
+            <Panel Background="Transparent" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
               <i:Interaction.Behaviors>
                 <ia:EventTriggerBehavior EventName="PointerPressed">
                   <ia:ChangePropertyAction TargetObject="{Binding #SearchAutoCompleteBox}" PropertyName="Text" Value="" />
                   <ia:InvokeCommandAction Command="{Binding OpenCommand}" CommandParameter="{x:Static rx:Unit.Default}" />
                 </ia:EventTriggerBehavior>
               </i:Interaction.Behaviors>
-              <Panel Width="45" HorizontalAlignment="Left" IsHitTestVisible="False">
+              <Panel Width="45" Margin="12,0,0,0" HorizontalAlignment="Left" IsHitTestVisible="False">
                 <PathIcon HorizontalAlignment="Left">
                   <PathIcon.Data>
                     <Binding Path="." Converter="{x:Static conv:SearchIconConverter.Instance}" />
                   </PathIcon.Data>
                 </PathIcon>
               </Panel>
-              <TextBlock Text="{Binding Title}" Margin="35 0 0 0" IsHitTestVisible="False" />
+              <TextBlock Text="{Binding Title}" Margin="35 0 0 0" Padding="12" HorizontalAlignment="Left" VerticalAlignment="Center" IsHitTestVisible="False" />
             </Panel>
           </DataTemplate>
         </AutoCompleteBox.ItemTemplate>
