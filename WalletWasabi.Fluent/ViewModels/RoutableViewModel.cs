@@ -24,7 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public IScreen HostScreen => _navigationTarget switch
 		{
-			NavigationTarget.Dialog => _navigationState.DialogScreen.Invoke(),
+			NavigationTarget.DialogScreen => _navigationState.DialogScreen.Invoke(),
 			_ => _navigationState.HomeScreen.Invoke(),
 		};
 
@@ -33,11 +33,11 @@ namespace WalletWasabi.Fluent.ViewModels
 			switch (_navigationTarget)
 			{
 				case NavigationTarget.Default:
-				case NavigationTarget.Home:
+				case NavigationTarget.HomeScreen:
 					_navigationState.HomeScreen.Invoke().Router.Navigate.Execute(this);
 					break;
 
-				case NavigationTarget.Dialog:
+				case NavigationTarget.DialogScreen:
 					_navigationState.DialogScreen.Invoke().Router.Navigate.Execute(this);
 					break;
 			}
@@ -48,11 +48,11 @@ namespace WalletWasabi.Fluent.ViewModels
 			switch (_navigationTarget)
 			{
 				case NavigationTarget.Default:
-				case NavigationTarget.Home:
+				case NavigationTarget.HomeScreen:
 					_navigationState.HomeScreen.Invoke().Router.NavigateAndReset.Execute(this);
 					break;
 
-				case NavigationTarget.Dialog:
+				case NavigationTarget.DialogScreen:
 					_navigationState.DialogScreen.Invoke().Router.NavigateAndReset.Execute(this);
 					break;
 			}
@@ -67,11 +67,11 @@ namespace WalletWasabi.Fluent.ViewModels
 			switch (_navigationTarget)
 			{
 				case NavigationTarget.Default:
-				case NavigationTarget.Home:
+				case NavigationTarget.HomeScreen:
 					_navigationState.HomeScreen.Invoke().Router.NavigateBack.Execute();
 					break;
 
-				case NavigationTarget.Dialog:
+				case NavigationTarget.DialogScreen:
 					_navigationState.DialogScreen.Invoke().Router.NavigateBack.Execute();
 					break;
 			}
@@ -82,11 +82,11 @@ namespace WalletWasabi.Fluent.ViewModels
 			switch (_navigationTarget)
 			{
 				case NavigationTarget.Default:
-				case NavigationTarget.Home:
+				case NavigationTarget.HomeScreen:
 					_navigationState.HomeScreen.Invoke().Router.NavigationStack.Clear();
 					break;
 
-				case NavigationTarget.Dialog:
+				case NavigationTarget.DialogScreen:
 					_navigationState.DialogScreen.Invoke().Router.NavigationStack.Clear();
 					break;
 			}
