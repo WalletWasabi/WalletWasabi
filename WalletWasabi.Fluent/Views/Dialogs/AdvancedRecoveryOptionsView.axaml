@@ -11,7 +11,7 @@
              x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="500">
   <UserControl.KeyBindings>
-    <KeyBinding Gesture="Enter" Command="{Binding ContinueCommand}" />
+    <KeyBinding Gesture="Enter" Command="{Binding NextCommand}" />
   </UserControl.KeyBindings>
   <c:ContentArea Title="Advanced Recovery Options"
                  Caption="Type your wallet-specific recovery options and click Continue."

@@ -20,7 +20,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 			var backCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
 
-			var continueCommandCanExecute = this.WhenAnyValue(
+			var nextCommandCanExecute = this.WhenAnyValue(
 					x => x.IsDialogOpen,
 					x => x.AccountKeyPath,
 					x => x.MinGapLimit,
@@ -41,9 +41,9 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 			BackCommand = ReactiveCommand.Create(() => GoBack(), backCommandCanExecute);
 
-			ContinueCommand = ReactiveCommand.Create(
+			NextCommand = ReactiveCommand.Create(
 				() => Close((GetAccountKeyPath(), GetMinGapLimit())),
-				continueCommandCanExecute);
+				nextCommandCanExecute);
 
 			CancelCommand = ReactiveCommand.Create(() => Close(), cancelCommandCanExecute);
 		}
@@ -60,7 +60,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			set => this.RaiseAndSetIfChanged(ref _minGapLimit, value);
 		}
 
-		public ICommand ContinueCommand { get; }
+		public ICommand NextCommand { get; }
 
 		private int? GetMinGapLimit()
 		{
