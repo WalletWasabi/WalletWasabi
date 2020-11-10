@@ -22,19 +22,24 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 			this.ValidateProperty(x => x.Password, ValidatePassword);
 			this.ValidateProperty(x => x.ConfirmPassword, ValidateConfirmPassword);
- 
+
+			var backCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
+
 			var nextCommandCanExecute = this.WhenAnyValue(
+				x => x.IsDialogOpen,
 				x => x.Password,
 				x => x.ConfirmPassword,
-				(password, confirmPassword) =>
+				(isDialogOpen, password, confirmPassword) =>
 				{
 					// This will fire validations before return canExecute value.
 					this.RaisePropertyChanged(nameof(Password));
 					this.RaisePropertyChanged(nameof(ConfirmPassword));
 
-					return (string.IsNullOrEmpty(password) && string.IsNullOrEmpty(confirmPassword)) || (!string.IsNullOrEmpty(password) && !string.IsNullOrEmpty(confirmPassword) && !Validations.Any);
+					return isDialogOpen && ((string.IsNullOrEmpty(password) && string.IsNullOrEmpty(confirmPassword)) || (!string.IsNullOrEmpty(password) && !string.IsNullOrEmpty(confirmPassword) && !Validations.Any));
 				})
 				.ObserveOn(RxApp.MainThreadScheduler);
+
+			var cancelCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
 
 			BackCommand = ReactiveCommand.Create(() => Close());
 			NextCommand = ReactiveCommand.Create(() => Close(Password), nextCommandCanExecute);
