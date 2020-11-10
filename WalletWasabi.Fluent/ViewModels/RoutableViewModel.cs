@@ -24,8 +24,8 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public IScreen HostScreen => _navigationTarget switch
 		{
-			NavigationTarget.Dialog => _navigationState.DialogScreen?.Invoke(),
-			_ => _navigationState.HomeScreen?.Invoke(),
+			NavigationTarget.Dialog => _navigationState.DialogScreen.Invoke(),
+			_ => _navigationState.HomeScreen.Invoke(),
 		};
 
 		public void Navigate()
@@ -34,11 +34,11 @@ namespace WalletWasabi.Fluent.ViewModels
 			{
 				case NavigationTarget.Default:
 				case NavigationTarget.Home:
-					_navigationState.HomeScreen?.Invoke().Router.Navigate.Execute(this);
+					_navigationState.HomeScreen.Invoke().Router.Navigate.Execute(this);
 					break;
 
 				case NavigationTarget.Dialog:
-					_navigationState.DialogScreen?.Invoke().Router.Navigate.Execute(this);
+					_navigationState.DialogScreen.Invoke().Router.Navigate.Execute(this);
 					break;
 			}
 		}
@@ -49,18 +49,18 @@ namespace WalletWasabi.Fluent.ViewModels
 			{
 				case NavigationTarget.Default:
 				case NavigationTarget.Home:
-					_navigationState.HomeScreen?.Invoke().Router.NavigateAndReset.Execute(this);
+					_navigationState.HomeScreen.Invoke().Router.NavigateAndReset.Execute(this);
 					break;
 
 				case NavigationTarget.Dialog:
-					_navigationState.DialogScreen?.Invoke().Router.NavigateAndReset.Execute(this);
+					_navigationState.DialogScreen.Invoke().Router.NavigateAndReset.Execute(this);
 					break;
 			}
 		}
 
 		public ICommand BackCommand { get; protected set; }
 
-		public ICommand CancelCommand { get; }
+		public ICommand CancelCommand { get; protected set; }
 
 		public void GoBack()
 		{
@@ -68,11 +68,11 @@ namespace WalletWasabi.Fluent.ViewModels
 			{
 				case NavigationTarget.Default:
 				case NavigationTarget.Home:
-					_navigationState.HomeScreen?.Invoke().Router.NavigateBack.Execute();
+					_navigationState.HomeScreen.Invoke().Router.NavigateBack.Execute();
 					break;
 
 				case NavigationTarget.Dialog:
-					_navigationState.DialogScreen?.Invoke().Router.NavigateBack.Execute();
+					_navigationState.DialogScreen.Invoke().Router.NavigateBack.Execute();
 					break;
 			}
 		}
@@ -83,11 +83,11 @@ namespace WalletWasabi.Fluent.ViewModels
 			{
 				case NavigationTarget.Default:
 				case NavigationTarget.Home:
-					_navigationState.HomeScreen?.Invoke().Router.NavigationStack.Clear();
+					_navigationState.HomeScreen.Invoke().Router.NavigationStack.Clear();
 					break;
 
 				case NavigationTarget.Dialog:
-					_navigationState.DialogScreen?.Invoke().Router.NavigationStack.Clear();
+					_navigationState.DialogScreen.Invoke().Router.NavigationStack.Clear();
 					break;
 			}
 		}

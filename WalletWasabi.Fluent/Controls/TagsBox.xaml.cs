@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -40,6 +41,13 @@ namespace WalletWasabi.Fluent.Controls
 		private bool _isFocused;
 		private bool _isInputEnabled = true;
 		private IEnumerable? _suggestions;
+		private ICommand? _completedCommand;
+
+		public static readonly DirectProperty<TagsBox, ICommand?> CompletedCommandProperty =
+			AvaloniaProperty.RegisterDirect<TagsBox, ICommand?>(
+				nameof(CompletedCommand),
+				o => o.CompletedCommand,
+				(o, v) => o.CompletedCommand = v);
 
 		static TagsBox()
 		{
@@ -71,6 +79,12 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetAndRaise(SuggestionsProperty, ref _suggestions, value);
 		}
 
+		public ICommand? CompletedCommand
+		{
+			get => _completedCommand;
+			set => SetAndRaise(CompletedCommandProperty, ref _completedCommand, value);
+		}
+
 		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
 		{
 			base.OnApplyTemplate(e);
@@ -89,37 +103,36 @@ namespace WalletWasabi.Fluent.Controls
 				return;
 			}
 
-			_autoCompleteBox.KeyUp += OnKeyUp;
 			_autoCompleteBox.TextChanged += OnTextChanged;
 			_autoCompleteBox.DropDownClosed += OnDropDownClosed;
 
 			Disposable.Create(
-				() =>
-				{
-					_autoCompleteBox.KeyUp -= OnKeyUp;
-					_autoCompleteBox.TextChanged -= OnTextChanged;
-					_autoCompleteBox.DropDownClosed -= OnDropDownClosed;
-				})
+					() =>
+					{
+						_autoCompleteBox.TextChanged -= OnTextChanged;
+						_autoCompleteBox.DropDownClosed -= OnDropDownClosed;
+					})
 				.DisposeWith(_compositeDisposable);
 
 			_autoCompleteBox
 				.AddDisposableHandler(TextInputEvent, OnTextInput, RoutingStrategies.Tunnel)
 				.DisposeWith(_compositeDisposable);
 
+			_autoCompleteBox
+				.AddDisposableHandler(KeyUpEvent, OnKeyUp, RoutingStrategies.Tunnel)
+				.DisposeWith(_compositeDisposable);
+
 			if (_isFocused)
 			{
 				Dispatcher.UIThread.Post(
-					() =>
-					{
-						_autoCompleteBox.Focus();
-					});
+					() => { _autoCompleteBox.Focus(); });
 			}
 		}
 
 		private void CheckIsInputEnabled()
 		{
 			if (Items is IList x &&
-				ItemCountLimit > 0)
+			    ItemCountLimit > 0)
 			{
 				_isInputEnabled = x.Count < ItemCountLimit;
 			}
@@ -139,8 +152,8 @@ namespace WalletWasabi.Fluent.Controls
 			}
 
 			if (RestrictInputToSuggestions &&
-				Suggestions is IList<string> suggestions &&
-				!suggestions.Any(x => x.StartsWith(autoCompleteBox.SearchText ?? "", true, CultureInfo.CurrentCulture)))
+			    Suggestions is IList<string> suggestions &&
+			    !suggestions.Any(x => x.StartsWith(autoCompleteBox.SearchText ?? "", true, CultureInfo.CurrentCulture)))
 			{
 				e.Handled = true;
 			}
@@ -189,9 +202,9 @@ namespace WalletWasabi.Fluent.Controls
 			var currentText = (autoCompleteBox.Text ?? "").Trim();
 
 			if (currentText.Length == 0 ||
-				!(autoCompleteBox.SelectedItem is string selItem) ||
-				selItem.Length == 0 ||
-				currentText != selItem)
+			    !(autoCompleteBox.SelectedItem is string selItem) ||
+			    selItem.Length == 0 ||
+			    currentText != selItem)
 			{
 				return;
 			}
@@ -219,7 +232,9 @@ namespace WalletWasabi.Fluent.Controls
 			var endsWithSpace = currentText.EndsWith(' ');
 			currentText = currentText.Trim();
 
-			if (RestrictInputToSuggestions && Suggestions is IList<string> suggestions)
+			var splitTags = currentText.Split(' ');
+			var suggestions = Suggestions as IList<string>;
+			if (splitTags.Length == 1 && suggestions != null && RestrictInputToSuggestions)
 			{
 				var keywordIsInSuggestions =
 					suggestions.Any(
@@ -230,11 +245,34 @@ namespace WalletWasabi.Fluent.Controls
 					return;
 				}
 			}
+			else if (suggestions != null)
+			{
+				foreach (var tag in splitTags)
+				{
+					if (!RestrictInputToSuggestions)
+					{
+						SelectTag(tag);
+						continue;
+					}
+
+					var keywordIsInSuggestions =
+						suggestions.Any(
+							x => x.Equals(tag, StringComparison.InvariantCultureIgnoreCase));
+
+					if (keywordIsInSuggestions)
+					{
+						SelectTag(tag);
+					}
+				}
+
+				Dispatcher.UIThread.Post(() => { autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); });
+				return;
+			}
 
 			if (!_isInputEnabled ||
-				currentText.Length < 1 ||
-				string.IsNullOrEmpty(currentText) ||
-				!endsWithSpace)
+			    currentText.Length < 1 ||
+			    string.IsNullOrEmpty(currentText) ||
+			    !endsWithSpace)
 			{
 				return;
 			}
@@ -269,17 +307,33 @@ namespace WalletWasabi.Fluent.Controls
 					break;
 				case Key.Enter when _isInputEnabled && !string.IsNullOrEmpty(currentText):
 					if (RestrictInputToSuggestions &&
-						Suggestions is { } &&
-						!Suggestions.Cast<string>().Any(
-							x => x.Equals(currentText, StringComparison.InvariantCultureIgnoreCase)))
+					    Suggestions is { } &&
+					    !Suggestions.Cast<string>().Any(
+						    x => x.Equals(currentText, StringComparison.InvariantCultureIgnoreCase)))
 					{
 						break;
 					}
 
 					BackspaceLogicClear();
 					SelectTag(currentText);
+					ExecuteCompletedCommand();
+
 					Dispatcher.UIThread.Post(() => { autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); });
 					break;
+				case Key.Enter:
+					ExecuteCompletedCommand();
+					break;
+			}
+		}
+
+		private void ExecuteCompletedCommand()
+		{
+			if (Items is IList x && x.Count >= ItemCountLimit)
+			{
+				if (CompletedCommand is { } && CompletedCommand.CanExecute(null))
+				{
+					CompletedCommand.Execute(null);
+				}
 			}
 		}
 

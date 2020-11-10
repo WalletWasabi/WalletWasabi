@@ -14,11 +14,11 @@ namespace WalletWasabi.Fluent.Converters
 		{
 		}
 
-		object IValueConverter.Convert(object value, Type targetType, object parameter, CultureInfo culture)
+		object? IValueConverter.Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			if (value is NavBarItemViewModel nvivm)
 			{
-				if (Application.Current.Styles.TryGetResource(nvivm.IconName, out object resource))
+				if (Application.Current.Styles.TryGetResource(nvivm.IconName, out object? resource))
 				{
 					return resource;
 				}

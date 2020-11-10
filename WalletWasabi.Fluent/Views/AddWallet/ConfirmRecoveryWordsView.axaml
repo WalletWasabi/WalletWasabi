@@ -8,7 +8,7 @@
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d"
              d:DesignWidth="600" d:DesignHeight="500"
-             x:Class="WalletWasabi.Fluent.Views.CreateWallet.ConfirmRecoveryWordsView">
+             x:Class="WalletWasabi.Fluent.Views.AddWallet.ConfirmRecoveryWordsView">
   <UserControl.KeyBindings>
     <KeyBinding Gesture="Enter" Command="{Binding NextCommand}" />
   </UserControl.KeyBindings>

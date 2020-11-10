@@ -10,7 +10,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels.CreateWallet
+namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
 	public class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	{
@@ -54,7 +54,5 @@ namespace WalletWasabi.Fluent.ViewModels.CreateWallet
 		public ReadOnlyObservableCollection<RecoveryWordViewModel> ConfirmationWords => _confirmationWords;
 
 		public ICommand NextCommand { get; }
-
-		public ICommand CancelCommand { get; }
 	}
 }
