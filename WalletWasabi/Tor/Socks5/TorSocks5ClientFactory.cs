@@ -113,7 +113,7 @@ namespace WalletWasabi.Tor.Socks5
 			}
 			catch (Exception ex) when (IsConnectionRefused(ex))
 			{
-				throw new ConnectionException($"Could not connect to Tor SOCKSPort at {host}:{port}. Is Tor running?", ex);
+				throw new ConnectionException($"Could not connect to Tor SOCKSPort at '{host}:{port}'. Is Tor running?", ex);
 			}
 
 			return tcpClient.GetStream();
@@ -216,8 +216,8 @@ namespace WalletWasabi.Tor.Socks5
 		{
 			Logger.LogDebug($"> {nameof(host)}='{host}', {nameof(port)}={port}");
 
-			host = Guard.NotNullOrEmptyOrWhitespace(nameof(host), host, true);
-			Guard.MinimumAndNotNull(nameof(port), port, 0);
+			host = Guard.NotNullOrEmptyOrWhitespace(nameof(host), host, trim: true);
+			Guard.MinimumAndNotNull(nameof(port), port, smallest: 0);
 
 			try
 			{
@@ -305,10 +305,10 @@ namespace WalletWasabi.Tor.Socks5
 		}
 
 		/// <summary>
-		/// Sends bytes to the Tor Socks5 connection
+		/// Sends bytes to the Tor Socks5 connection.
 		/// </summary>
 		/// <param name="sendBuffer">Sent data</param>
-		/// <param name="receiveBufferSize">Maximum number of bytes expected to be received in the reply</param>
+		/// <param name="receiveBufferSize">Maximum number of bytes expected to be received in the reply.</param>
 		/// <param name="cancellationToken">Cancellation token to cancel sending.</param>
 		/// <returns>Reply</returns>
 		private async Task<byte[]> SendAsync(TcpClient tcpClient, byte[] sendBuffer, int? receiveBufferSize = null, CancellationToken cancellationToken = default)
