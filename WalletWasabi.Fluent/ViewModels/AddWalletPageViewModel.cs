@@ -64,7 +64,7 @@ namespace WalletWasabi.Fluent.ViewModels
 								return walletGenerator.GenerateWallet(WalletName, password);
 							});
 
-						await navigationState.DialogScreen?.Invoke().Router.Navigate.Execute(
+						await navigationState.DialogScreen?.Invoke().Router.NavigateAndReset.Execute(
 							new RecoveryWordsViewModel(navigationState, km, mnemonic, walletManager));
 					}
 					else
