@@ -23,7 +23,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		private IEnumerable<string>? _suggestions;
 		private Mnemonic? _currentMnemonics;
 
-		public RecoverWalletViewModel(NavigationStateViewModel navigationState, string walletName, Network network,
+		public RecoverWalletViewModel(
+			NavigationStateViewModel navigationState,
+			string walletName,
+			Network network,
 			WalletManager walletManager) : base(navigationState, NavigationTarget.Dialog)
 		{
 			Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
