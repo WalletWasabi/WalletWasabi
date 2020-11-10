@@ -1,8 +1,8 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Data.Converters;
 using System;
 using System.Globalization;
-using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.ViewModels.Search;
 
 namespace WalletWasabi.Fluent.Converters
 {
