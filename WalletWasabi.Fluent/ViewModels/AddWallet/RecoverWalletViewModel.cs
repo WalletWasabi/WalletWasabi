@@ -19,18 +19,19 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
 	public class RecoverWalletViewModel : RoutableViewModel
 	{
-		private readonly ObservableAsPropertyHelper<Mnemonic?> _currentMnemonic;
 		private string? _selectedTag;
 		private IEnumerable<string>? _suggestions;
+
+		private Mnemonic? _currentMnemonics;
 
 		public RecoverWalletViewModel(NavigationStateViewModel navigationState, string walletName, Network network,
 			WalletManager walletManager) : base(navigationState, NavigationTarget.Dialog)
 		{
 			Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
-			_currentMnemonic = Mnemonics.ToObservableChangeSet().ToCollection()
+			Mnemonics.ToObservableChangeSet().ToCollection()
 				.Select(x => x.Count == 12 ? new Mnemonic(GetTagsAsConcatString()) : default)
-				.ToProperty(this, x => x.CurrentMnemonics);
+				.Subscribe(x => CurrentMnemonics = x);
 
 			this.WhenAnyValue(x => x.SelectedTag)
 				.Where(x => !string.IsNullOrEmpty(x))
@@ -67,7 +68,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					MinGapLimit is { } &&
 					CurrentMnemonics is { } &&
 					(CurrentMnemonics?.IsValidChecksum ?? false) &&
-				     !Validations.Any);
+					!Validations.Any);
 
 			NextCommand = ReactiveCommand.CreateFromTask(
 				async () =>
@@ -144,7 +145,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			set => this.RaiseAndSetIfChanged(ref _selectedTag, value);
 		}
 
-		private Mnemonic? CurrentMnemonics => _currentMnemonic.Value;
+		private Mnemonic? CurrentMnemonics
+		{
+			get => _currentMnemonics;
+			set => this.RaiseAndSetIfChanged(ref _currentMnemonics, value);
+		}
 
 		private void ValidateMnemonics(IValidationErrors errors)
 		{
