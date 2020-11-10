@@ -32,14 +32,14 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 
 			ex = Assert.Throws<ArgumentException>(() => JsonConvert.DeserializeObject<GroupElement>("\"0000000000000000000000000000000000000000000000000000000000000000\"", converters));
 			Assert.StartsWith("Parameter must be 33. Actual: 32.", ex.Message);
-			
+
 			// Serialization Infinity test
 			var serializedInfinityGroupElement = JsonConvert.SerializeObject(GroupElement.Infinity, converters);
 			Assert.Equal("\"000000000000000000000000000000000000000000000000000000000000000000\"", serializedInfinityGroupElement);
 
 			var deserializedInfinityGroupElement = JsonConvert.DeserializeObject<GroupElement>("\"000000000000000000000000000000000000000000000000000000000000000000\"", converters);
 			Assert.Equal(GroupElement.Infinity, deserializedInfinityGroupElement);
-			
+
 			// Serialization round test
 			var serializedGroupElement = JsonConvert.SerializeObject(Generators.G, converters);
 			Assert.Equal("\"0279BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798\"", serializedGroupElement);
@@ -105,10 +105,10 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 
 			var deserializedZero = JsonConvert.DeserializeObject<Scalar>("\"0000000000000000000000000000000000000000000000000000000000000000\"", converters);
 			Assert.Equal(Scalar.Zero, deserializedZero);
-			
+
 			// Serialization round test
 			var scalar = new Scalar(ByteHelpers.FromHex("D9C17A80D299A51E1ED9CF94FCE5FD883ADACE4ECC167E1D1FB8E5C4A0ADC4D2"));
-			
+
 			var serializedScalar = JsonConvert.SerializeObject(scalar, converters);
 			Assert.Equal("\"D9C17A80D299A51E1ED9CF94FCE5FD883ADACE4ECC167E1D1FB8E5C4A0ADC4D2\"", serializedScalar);
 
@@ -127,7 +127,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 			// Serialization collection test
 			var one = Scalar.One;
 			var two = one + one;
-			var three = two + one; 
+			var three = two + one;
 			var other = two.Sqr(8) + three;
 
 			var serializedScalars = JsonConvert.SerializeObject(new[] { one, two }, converters);
