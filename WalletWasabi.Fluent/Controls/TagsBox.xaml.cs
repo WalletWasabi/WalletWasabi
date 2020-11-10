@@ -41,10 +41,12 @@ namespace WalletWasabi.Fluent.Controls
 		private bool _isFocused;
 		private bool _isInputEnabled = true;
 		private IEnumerable? _suggestions;
-		private ICommand _CompletedCommand;
+		private ICommand? _completedCommand;
 
-		public static readonly DirectProperty<TagsBox, ICommand> CompletedCommandProperty =
-			AvaloniaProperty.RegisterDirect<TagsBox, ICommand>(nameof(CompletedCommand), o => o.CompletedCommand,
+		public static readonly DirectProperty<TagsBox, ICommand?> CompletedCommandProperty =
+			AvaloniaProperty.RegisterDirect<TagsBox, ICommand?>(
+				nameof(CompletedCommand),
+				o => o.CompletedCommand,
 				(o, v) => o.CompletedCommand = v);
 
 		static TagsBox()
@@ -77,10 +79,10 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetAndRaise(SuggestionsProperty, ref _suggestions, value);
 		}
 
-		public ICommand CompletedCommand
+		public ICommand? CompletedCommand
 		{
-			get { return _CompletedCommand; }
-			set { SetAndRaise(CompletedCommandProperty, ref _CompletedCommand, value); }
+			get => _completedCommand;
+			set => SetAndRaise(CompletedCommandProperty, ref _completedCommand, value);
 		}
 
 		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
@@ -328,7 +330,7 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			if (Items is IList x && x.Count >= ItemCountLimit)
 			{
-				if (CompletedCommand is {} && CompletedCommand.CanExecute(null))
+				if (CompletedCommand is { } && CompletedCommand.CanExecute(null))
 				{
 					CompletedCommand.Execute(null);
 				}
