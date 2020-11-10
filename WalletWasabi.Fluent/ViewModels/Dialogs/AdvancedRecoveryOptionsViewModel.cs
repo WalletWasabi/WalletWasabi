@@ -18,7 +18,10 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			this.ValidateProperty(x => x.AccountKeyPath, ValidateAccountKeyPath);
 			this.ValidateProperty(x => x.MinGapLimit, ValidateMinGapLimit);
 
+			var backCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
+
 			var continueCommandCanExecute = this.WhenAnyValue(
+					x => x.IsDialogOpen,
 					x => x.AccountKeyPath,
 					x => x.MinGapLimit,
 					delegate
@@ -27,18 +30,22 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 						this.RaisePropertyChanged(nameof(AccountKeyPath));
 						this.RaisePropertyChanged(nameof(MinGapLimit));
 
-						return !Validations.Any;
+						return IsDialogOpen && !Validations.Any;
 					})
 				.ObserveOn(RxApp.MainThreadScheduler);
 
+			var cancelCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
+
 			AccountKeyPath = interactionInput.keyPath.ToString();
 			MinGapLimit = interactionInput.minGapLimit.ToString();
+
+			BackCommand = ReactiveCommand.Create(() => GoBack(), backCommandCanExecute);
 
 			ContinueCommand = ReactiveCommand.Create(
 				() => Close((GetAccountKeyPath(), GetMinGapLimit())),
 				continueCommandCanExecute);
 
-			CancelCommand = ReactiveCommand.Create(() => Close());
+			CancelCommand = ReactiveCommand.Create(() => Close(), cancelCommandCanExecute);
 		}
 
 		public string? AccountKeyPath
