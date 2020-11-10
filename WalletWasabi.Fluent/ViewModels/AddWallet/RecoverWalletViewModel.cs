@@ -77,8 +77,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				{
 					try
 					{
-						var password = await PasswordInteraction
-							.Handle("Type the password of the wallet to be to recover and click Continue.").ToTask() ?? "";
+						var enterPassword = new EnterPasswordViewModel(
+							navigationState,
+							NavigationTarget.Dialog,
+							"Type the password of the wallet to be to recover and click continue.");
+
+						navigationState.DialogScreen?.Invoke().Router.Navigate.Execute(enterPassword);
+
+						var password = await enterPassword.GetDialogResultAsync();
 
 						var walletFilePath = walletManager.WalletDirectories.GetWalletFilePaths(walletName)
 							.walletFilePath;
@@ -107,12 +113,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				async interaction =>
 					interaction.SetOutput(
 						await new AdvancedRecoveryOptionsViewModel(navigationState, NavigationTarget.Dialog, interaction.Input).ShowDialogAsync()));
-
-			PasswordInteraction = new Interaction<string, string?>();
-
-			PasswordInteraction.RegisterHandler(
-				async interaction =>
-					interaction.SetOutput(await new EnterPasswordViewModel(navigationState, NavigationTarget.Dialog, interaction.Input).ShowDialogAsync()));
 		}
 
 		public IObservable<bool> FinishCommandCanExecute { get; }
@@ -126,8 +126,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		private int? MinGapLimit { get; set; } = 63;
 
 		private Interaction<(KeyPath, int), (KeyPath?, int?)> AdvancedOptionsInteraction { get; }
-
-		private Interaction<string, string?> PasswordInteraction { get; }
 
 		public ObservableCollection<string> Mnemonics { get; } = new ObservableCollection<string>();
 
