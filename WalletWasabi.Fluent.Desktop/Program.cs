@@ -5,6 +5,7 @@ using Avalonia.ReactiveUI;
 using Avalonia.Threading;
 using Splat;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -22,7 +23,7 @@ namespace WalletWasabi.Fluent.Desktop
 {
 	public class Program
 	{
-		private static Global Global;
+		private static Global? Global;
 
 		// This is only needed to pass CrashReporter to AppMainAsync otherwise it could be a local variable in Main().
 		private static CrashReporter CrashReporter = new CrashReporter();
@@ -34,7 +35,7 @@ namespace WalletWasabi.Fluent.Desktop
 		// yet and stuff might break.
 		public static void Main(string[] args)
 		{
-			bool runGui = false;
+			bool runGui;
 			Exception? appException = null;
 
 			try
@@ -91,12 +92,12 @@ namespace WalletWasabi.Fluent.Desktop
 
 		private static bool ProcessCliCommands(string[] args)
 		{
-			var daemon = new Daemon(Global, TerminateService);
+			var daemon = new Daemon(Global!, TerminateService);
 			var interpreter = new CommandInterpreter(Console.Out, Console.Error);
 			var executionTask = interpreter.ExecuteCommandsAsync(
 				args,
 				new MixerCommand(daemon),
-				new PasswordFinderCommand(Global.WalletManager),
+				new PasswordFinderCommand(Global!.WalletManager),
 				new CrashReportCommand(CrashReporter));
 			return executionTask.GetAwaiter().GetResult();
 		}
@@ -105,9 +106,9 @@ namespace WalletWasabi.Fluent.Desktop
 		{
 			try
 			{
-				await Global.InitializeNoWalletAsync(TerminateService);
+				await Global!.InitializeNoWalletAsync(TerminateService);
 
-				MainViewModel.Instance.Initialize();
+				MainViewModel.Instance!.Initialize();
 
 				Dispatcher.UIThread.Post(GC.Collect);
 			}
@@ -172,14 +173,20 @@ namespace WalletWasabi.Fluent.Desktop
 			Logger.LogSoftwareStopped("Wasabi");
 		}
 
-		private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+		private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs? e)
 		{
-			Logger.LogWarning(e?.Exception);
+			if (e?.Exception != null)
+			{
+				Logger.LogWarning(e.Exception);
+			}
 		}
 
-		private static void CurrentDomain_UnhandledException(object? sender, UnhandledExceptionEventArgs e)
+		private static void CurrentDomain_UnhandledException(object? sender, UnhandledExceptionEventArgs? e)
 		{
-			Logger.LogWarning(e?.ExceptionObject as Exception);
+			if (e?.ExceptionObject is Exception ex)
+			{
+				Logger.LogWarning(ex);
+			}
 		}
 
 		private static void StartCrashReporter(string[] args)
@@ -211,7 +218,7 @@ namespace WalletWasabi.Fluent.Desktop
 		{
 			bool useGpuLinux = true;
 
-			var result = AppBuilder.Configure(() => new App(Global))
+			var result = AppBuilder.Configure(() => new App(Global!))
 				.UseReactiveUI();
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

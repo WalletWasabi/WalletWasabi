@@ -32,8 +32,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		public ICommand NextCommand { get; }
 
-		public ICommand CancelCommand { get; }
-
 		public List<RecoveryWordViewModel> MnemonicWords { get; set; }
 	}
 }
