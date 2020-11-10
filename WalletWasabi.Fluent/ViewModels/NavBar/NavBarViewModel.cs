@@ -8,6 +8,7 @@ using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using DynamicData;
 using DynamicData.Binding;
+using WalletWasabi.Fluent.ViewModels.Search;
 
 namespace WalletWasabi.Fluent.ViewModels.NavBar
 {
@@ -36,12 +37,12 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 			var searchItems = new SourceList<SearchItemViewModel>();
 
-			searchItems.Add(new SearchItemViewModel(_navigationState, NavigationTarget.Home, "home_regular", "Home", () => new HomePageViewModel(_navigationState, walletManager, addWalletPage)));
-			searchItems.Add(new SearchItemViewModel(_navigationState, NavigationTarget.Home, "settings_regular", "Settings", () => new SettingsPageViewModel(_navigationState)));
-			searchItems.Add(new SearchItemViewModel(_navigationState, NavigationTarget.Dialog, "add_circle_regular", "Add Wallet", () => addWalletPage));
+			searchItems.Add(new SearchItemViewModel(navigationState, NavigationTarget.Home, "home_regular", "Home", () => new HomePageViewModel(navigationState, walletManager, addWalletPage)));
+			searchItems.Add(new SearchItemViewModel(navigationState, NavigationTarget.Home, "settings_regular", "Settings", () => new SettingsPageViewModel(navigationState)));
+			searchItems.Add(new SearchItemViewModel(navigationState, NavigationTarget.Dialog, "add_circle_regular", "Add Wallet", () => addWalletPage));
 
 			walletManager.Items.ToObservableChangeSet()
-				.Cast(x => new SearchItemViewModel(_navigationState, NavigationTarget.Home, "web_asset_regular", x.WalletName, () => x))
+				.Cast(x => new SearchItemViewModel(navigationState, NavigationTarget.Home, "web_asset_regular", x.WalletName, () => x))
 				.Sort(SortExpressionComparer<SearchItemViewModel>.Ascending(i => i.Title))
 				.Merge(searchItems.Connect())
 				.ObserveOn(RxApp.MainThreadScheduler)

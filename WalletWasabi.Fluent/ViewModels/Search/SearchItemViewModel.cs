@@ -2,7 +2,7 @@ using System;
 using System.Windows.Input;
 using ReactiveUI;
 
-namespace WalletWasabi.Fluent.ViewModels.NavBar
+namespace WalletWasabi.Fluent.ViewModels.Search
 {
 	public class SearchItemViewModel : RoutableViewModel
 	{
