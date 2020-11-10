@@ -20,7 +20,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 	public class RecoverWalletViewModel : RoutableViewModel
 	{
 		private readonly ObservableAsPropertyHelper<Mnemonic?> _currentMnemonic;
-		private readonly ObservableAsPropertyHelper<bool> _finishCommandCanExecute;
 		private string? _selectedTag;
 		private IEnumerable<string>? _suggestions;
 
@@ -59,35 +58,22 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					}
 				});
 
-			_finishCommandCanExecute = this.WhenAnyValue(
-					x => x.CurrentMnemonics,
-					x => x.AccountKeyPath,
-					x => x.MinGapLimit,
-					delegate
-					{
-						this.RaisePropertyChanged(nameof(CurrentMnemonics));
-						this.RaisePropertyChanged(nameof(AccountKeyPath));
-						this.RaisePropertyChanged(nameof(MinGapLimit));
-
-						return CurrentMnemonics is { } && (CurrentMnemonics?.IsValidChecksum ?? false) &&
-						       !Validations.Any;
-					})
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.ToProperty(this, x => x.FinishCommandCanExecute);
-
-			var finishCommandCanExecute = this.WhenAnyValue(x => x.FinishCommandCanExecute)
-				.ObserveOn(RxApp.MainThreadScheduler);
+			FinishCommandCanExecute = this.WhenAnyValue(
+				x => x.CurrentMnemonics,
+				x => x.AccountKeyPath,
+				x => x.MinGapLimit,
+				(a,b,c) =>
+					AccountKeyPath is {} &&
+					MinGapLimit is {} &&
+					CurrentMnemonics is { } &&
+					(CurrentMnemonics?.IsValidChecksum ?? false) &&
+				     !Validations.Any);
 
 			NextCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{
 					try
 					{
-						if (CurrentMnemonics is null || AccountKeyPath is null || MinGapLimit is null)
-						{
-							return;
-						}
-
 						var password = await PasswordInteraction
 							.Handle("Type the password of the wallet to be to recover and click Continue.").ToTask();
 
@@ -98,7 +84,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 						var walletFilePath = walletManager.WalletDirectories.GetWalletFilePaths(walletName)
 							.walletFilePath;
-						var keyManager = KeyManager.Recover(CurrentMnemonics, password, walletFilePath, AccountKeyPath,
+						var keyManager = KeyManager.Recover(
+							CurrentMnemonics,
+							password,
+							walletFilePath,
+							AccountKeyPath,
 							(int) MinGapLimit);
 						keyManager.SetNetwork(network);
 						walletManager.AddWallet(keyManager);
@@ -110,7 +100,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 						Logger.LogError(ex);
 					}
 				},
-				finishCommandCanExecute);
+				FinishCommandCanExecute);
 
 			AdvancedOptionsInteraction = new Interaction<(KeyPath, int), (KeyPath?, int?)>();
 
@@ -125,6 +115,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				async interaction =>
 					interaction.SetOutput(await new EnterPasswordViewModel(interaction.Input).ShowDialogAsync()));
 		}
+
+		public IObservable<bool> FinishCommandCanExecute { get; }
 
 		public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
 
@@ -151,8 +143,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			get => _selectedTag;
 			set => this.RaiseAndSetIfChanged(ref _selectedTag, value);
 		}
-
-		public bool FinishCommandCanExecute => _finishCommandCanExecute.Value;
 
 		private Mnemonic? CurrentMnemonics => _currentMnemonic.Value;
 
