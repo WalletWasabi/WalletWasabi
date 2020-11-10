@@ -1,3 +1,4 @@
+using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;
 
@@ -13,8 +14,12 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			_navigationState = navigationState;
 			_message = message;
 
-			CancelCommand = ReactiveCommand.Create(() => Close(false));
-			NextCommand = ReactiveCommand.Create(() => Close(true));
+			var cancelCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
+
+			var nextCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
+
+			CancelCommand = ReactiveCommand.Create(() => Close(false), cancelCommandCanExecute);
+			NextCommand = ReactiveCommand.Create(() => Close(true), nextCommandCanExecute);
 		}
 
 		public string Message
