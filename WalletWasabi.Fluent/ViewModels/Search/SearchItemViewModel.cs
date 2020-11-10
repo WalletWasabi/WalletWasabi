@@ -6,21 +6,34 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 {
 	public class SearchItemViewModel : RoutableViewModel
 	{
-		public SearchItemViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget, string iconName, string title, Func<RoutableViewModel> createTargetView) : base(navigationState, navigationTarget)
+		public SearchItemViewModel(
+			NavigationStateViewModel navigationState,
+			NavigationTarget navigationTarget,
+			string iconName,
+			string title,
+			string category,
+			string keywords,
+			Func<RoutableViewModel> createTargetView) : base(navigationState, navigationTarget)
 		{
 			IconName = iconName;
 
+			Category = category;
+
+			Keywords = keywords;
+
 			Title = title;
 
-			OpenCommand = ReactiveCommand.Create(() =>
-			{
-				NavigateToTargetView(navigationState, navigationTarget, createTargetView);
-			});
+			OpenCommand = ReactiveCommand.Create(
+				() => NavigateToTargetView(navigationState, navigationTarget, createTargetView));
 		}
 
 		public string IconName { get; }
 
 		public string Title { get; }
+
+		public string Category { get; }
+
+		public string Keywords { get; }
 
 		public ICommand OpenCommand { get; }
 
@@ -41,7 +54,7 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 
 		public override string ToString()
 		{
-			return Title;
+			return Keywords;
 		}
 	}
 }
