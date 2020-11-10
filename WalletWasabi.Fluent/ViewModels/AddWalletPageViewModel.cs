@@ -10,6 +10,7 @@ using WalletWasabi.Stores;
 using NBitcoin;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using System.Threading.Tasks;
+using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.CreateWallet;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
@@ -32,9 +33,11 @@ namespace WalletWasabi.Fluent.ViewModels
 				.Select(x => !string.IsNullOrWhiteSpace(x))
 				.Subscribe(x => OptionsEnabled = x && !Validations.Any);
 
-			RecoverWalletCommand = ReactiveCommand.Create(() =>
-					navigationState.DialogScreen?.Invoke().Router.Navigate
-						.Execute(new RecoverWalletViewModel(navigationState, WalletName, network, walletManager)));
+			RecoverWalletCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				await navigationState.DialogScreen?.Invoke().Router.Navigate.Execute(
+					new RecoverWalletViewModel(navigationState, WalletName, network, walletManager));
+			});
 
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>
