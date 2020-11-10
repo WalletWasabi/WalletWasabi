@@ -62,9 +62,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				x => x.CurrentMnemonics,
 				x => x.AccountKeyPath,
 				x => x.MinGapLimit,
-				(a,b,c) =>
-					AccountKeyPath is {} &&
-					MinGapLimit is {} &&
+				(_, __, ___) =>
+					AccountKeyPath is { } &&
+					MinGapLimit is { } &&
 					CurrentMnemonics is { } &&
 					(CurrentMnemonics?.IsValidChecksum ?? false) &&
 				     !Validations.Any);
@@ -85,11 +85,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 						var walletFilePath = walletManager.WalletDirectories.GetWalletFilePaths(walletName)
 							.walletFilePath;
 						var keyManager = KeyManager.Recover(
-							CurrentMnemonics,
+							CurrentMnemonics!,
 							password,
 							walletFilePath,
-							AccountKeyPath,
-							(int) MinGapLimit);
+							AccountKeyPath!,
+							(int) MinGapLimit!);
 						keyManager.SetNetwork(network);
 						walletManager.AddWallet(keyManager);
 
