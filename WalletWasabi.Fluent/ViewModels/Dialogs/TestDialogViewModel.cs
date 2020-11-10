@@ -6,12 +6,10 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
 	public class TestDialogViewModel : DialogViewModelBase<bool>
 	{
-		private NavigationStateViewModel _navigationState;
 		private string _message;
 
 		public TestDialogViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget, string message) : base(navigationState, navigationTarget)
 		{
-			_navigationState = navigationState;
 			_message = message;
 
 			var backCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
