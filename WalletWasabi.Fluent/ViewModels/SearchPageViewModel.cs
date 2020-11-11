@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reactive.Linq;
 using DynamicData;
 using DynamicData.Binding;
@@ -13,6 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels
 	{
 		private string? _searchQuery;
 		private readonly ReadOnlyObservableCollection<SearchItemViewModel> _searchItems;
+		private readonly ReadOnlyObservableCollection<SearchItemGroup> _searchItemsByCategory;
 
 		public SearchPageViewModel(NavigationStateViewModel navigationState, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage) : base(navigationState, NavigationTarget.HomeScreen)
 		{
@@ -43,7 +45,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				NavigationTarget.DialogScreen,
 				iconName: "add_circle_regular",
 				title: "Add Wallet",
-				category: "Wallet",
+				category: "General",
 				keywords: "Wallet, Add Wallet, Create Wallet, Recover Wallet, Import Wallet, Connect Hardware Wallet",
 				() => addWalletPage));
 
@@ -52,8 +54,8 @@ namespace WalletWasabi.Fluent.ViewModels
 				.Select(SearchQueryFilter)
 				.DistinctUntilChanged();
 
-			walletManager.Items.ToObservableChangeSet()
-				.Cast(x => new SearchItemViewModel(
+			var observable = walletManager.Items.ToObservableChangeSet()
+				.Transform(x => new SearchItemViewModel(
 					navigationState,
 					NavigationTarget.HomeScreen,
 					iconName: "web_asset_regular",
@@ -64,8 +66,14 @@ namespace WalletWasabi.Fluent.ViewModels
 				.Sort(SortExpressionComparer<SearchItemViewModel>.Ascending(i => i.Title))
 				.Merge(searchItems.Connect())
 				.Filter(filter)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Bind(out _searchItems)
+				.ObserveOn(RxApp.MainThreadScheduler);
+
+			observable.Bind(out _searchItems)
+				.AsObservableList();
+
+			observable.GroupWithImmutableState(x => x.Category)
+				.Transform(grouping => new SearchItemGroup(grouping.Key, grouping.Items))
+				.Bind(out _searchItemsByCategory)
 				.AsObservableList();
 		}
 
@@ -94,5 +102,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		}
 
 		public ReadOnlyObservableCollection<SearchItemViewModel> SearchItems => _searchItems;
+
+		public ReadOnlyObservableCollection<SearchItemGroup> SearchItemsByCategory => _searchItemsByCategory;
 	}
 }
