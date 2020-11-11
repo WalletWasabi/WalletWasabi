@@ -48,29 +48,18 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				async () =>
 				{
 					var (accountKeyPathIn, minGapLimitIn) = await AdvancedOptionsInteraction
-						.Handle((AccountKeyPath!, (int) MinGapLimit!)).ToTask();
+						.Handle((AccountKeyPath, MinGapLimit)).ToTask();
 
-					if (accountKeyPathIn is { })
+					if (accountKeyPathIn is { } && minGapLimitIn is { })
 					{
 						AccountKeyPath = accountKeyPathIn;
-					}
-
-					if (minGapLimitIn is { })
-					{
-						MinGapLimit = minGapLimitIn;
+						MinGapLimit = (int)minGapLimitIn;
 					}
 				});
 
-			FinishCommandCanExecute = this.WhenAnyValue(
-				x => x.CurrentMnemonics,
-				x => x.AccountKeyPath,
-				x => x.MinGapLimit,
-				(_, __, ___) =>
-					AccountKeyPath is { } &&
-					MinGapLimit is { } &&
-					CurrentMnemonics is { } &&
-					(CurrentMnemonics?.IsValidChecksum ?? false) &&
-					!Validations.Any);
+			FinishCommandCanExecute =
+				this.WhenAnyValue(x => x.CurrentMnemonics)
+					.Select(currentMnemonics => currentMnemonics is { } && !Validations.Any);
 
 			NextCommand = ReactiveCommand.CreateFromTask(
 				async () =>
@@ -85,16 +74,16 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 							var walletFilePath = walletManager.WalletDirectories.GetWalletFilePaths(walletName)
 								.walletFilePath;
 
-							var keyManager = KeyManager.Recover(
-								CurrentMnemonics!,
-								password,
-								walletFilePath,
-								AccountKeyPath!,
-								(int) MinGapLimit!);
+						  var keyManager = KeyManager.Recover(
+							  CurrentMnemonics!,
+							  password,
+							  walletFilePath,
+							  AccountKeyPath,
+							  MinGapLimit);
 
-							keyManager.SetNetwork(network);
+						  keyManager.SetNetwork(network);
 
-							walletManager.AddWallet(keyManager);
+              walletManager.AddWallet(keyManager);
 
 							navigationState.DialogScreen.Invoke().Router.NavigationStack.Clear();
 						}
@@ -126,9 +115,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		public ICommand NextCommand { get; }
 
-		private KeyPath? AccountKeyPath { get; set; } = KeyPath.Parse("m/84'/0'/0'");
+		private KeyPath AccountKeyPath { get; set; } = KeyPath.Parse("m/84'/0'/0'");
 
-		private int? MinGapLimit { get; set; } = 63;
+		private int MinGapLimit { get; set; } = 63;
 
 		private Interaction<(KeyPath, int), (KeyPath?, int?)> AdvancedOptionsInteraction { get; }
 
