@@ -50,13 +50,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					var (accountKeyPathIn, minGapLimitIn) = await AdvancedOptionsInteraction
 						.Handle((AccountKeyPath!, MinGapLimit)).ToTask();
 
-					if (accountKeyPathIn is { })
+					if (accountKeyPathIn is { } && minGapLimitIn is { })
 					{
 						AccountKeyPath = accountKeyPathIn;
-					}
-
-					if (minGapLimitIn is { })
-					{
 						MinGapLimit = (int)minGapLimitIn;
 					}
 				});
