@@ -10,7 +10,6 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:HomePageViewModel"
              x:Class="WalletWasabi.Fluent.Views.SearchPageView">
-
   <c:ContentArea Title="Search" Caption="">
     <DockPanel>
       <StackPanel DockPanel.Dock="Top" Margin="0 0 0 20">
