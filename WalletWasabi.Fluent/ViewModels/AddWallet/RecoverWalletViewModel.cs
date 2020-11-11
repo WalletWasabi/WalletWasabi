@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
 using DynamicData.Binding;
@@ -62,38 +63,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					.Select(currentMnemonics => currentMnemonics is { } && !Validations.Any);
 
 			NextCommand = ReactiveCommand.CreateFromTask(
-				async () =>
-				{
-					try
-					{
-						var enterPassword = new EnterPasswordViewModel(
-							navigationState,
-							NavigationTarget.DialogScreen,
-							"Type the password of the wallet to be able to recover and click Continue.");
-
-						navigationState.DialogScreen?.Invoke().Router.Navigate.Execute(enterPassword);
-
-						var password = await enterPassword.GetDialogResultAsync();
-
-						var walletFilePath = walletManager.WalletDirectories.GetWalletFilePaths(walletName)
-							.walletFilePath;
-
-						var keyManager = KeyManager.Recover(
-							CurrentMnemonics!,
-							password,
-							walletFilePath,
-							AccountKeyPath,
-							MinGapLimit);
-						keyManager.SetNetwork(network);
-						walletManager.AddWallet(keyManager);
-
-						navigationState.DialogScreen.Invoke().Router.NavigationStack.Clear();
-					}
-					catch (Exception ex)
-					{
-						Logger.LogError(ex);
-					}
-				},
+				async () => await OnNext(navigationState, walletManager, network, walletName),
 				FinishCommandCanExecute);
 
 			AdvancedOptionsInteraction = new Interaction<(KeyPath, int), (KeyPath?, int?)>();
@@ -102,6 +72,39 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				async interaction =>
 					interaction.SetOutput(
 						await new AdvancedRecoveryOptionsViewModel(navigationState, NavigationTarget.DialogHost, interaction.Input).ShowDialogAsync()));
+		}
+
+		private async Task OnNext(NavigationStateViewModel navigationState, WalletManager walletManager, Network network, string? walletName)
+		{
+			try
+			{
+				var enterPassword = new EnterPasswordViewModel(
+					navigationState,
+					NavigationTarget.DialogScreen,
+					"Type the password of the wallet to be able to recover and click Continue.");
+
+				navigationState.DialogScreen().Router.Navigate.Execute(enterPassword);
+
+				var password = await enterPassword.GetDialogResultAsync();
+
+				var walletFilePath = walletManager.WalletDirectories.GetWalletFilePaths(walletName!)
+					.walletFilePath;
+
+				var keyManager = KeyManager.Recover(
+					CurrentMnemonics!,
+					password!,
+					walletFilePath,
+					AccountKeyPath,
+					MinGapLimit);
+				keyManager.SetNetwork(network);
+				walletManager.AddWallet(keyManager);
+
+				navigationState.DialogScreen.Invoke().Router.NavigationStack.Clear();
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+			}
 		}
 
 		public IObservable<bool> FinishCommandCanExecute { get; }
