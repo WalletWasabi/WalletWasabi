@@ -125,7 +125,7 @@ namespace WalletWasabi.Fluent.Controls
 			}
 			else
 			{
-				return null;
+				return null!;
 			}
 		}
 

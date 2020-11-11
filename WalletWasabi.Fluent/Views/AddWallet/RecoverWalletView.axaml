@@ -1,0 +1,50 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             xmlns:recoverWallet="clr-namespace:WalletWasabi.Fluent.ViewModels.AddWallet"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="recoverWallet:RecoverWalletViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.AddWallet.RecoverWalletView">
+    <c:ContentArea x:Name="RecoveryPageRoot"
+                   Title="Enter recovery words" Caption="Type in your 12 recovery words and click Continue."
+                   EnableBack="True"
+                   EnableCancel="True" CancelContent="Cancel"
+                   EnableNext="True" NextContent="Finish">
+        <StackPanel>
+            <DockPanel>
+                <PathIcon Name="IconCheckmark" Classes="checkMark" Margin="15 42 0 0" VerticalAlignment="Top"
+                          DockPanel.Dock="Right"
+                          Opacity="{Binding FinishCommandCanExecute^}" />
+                <Label Content="_Type in your recovery words here:" Target="SeedTagsBox" DockPanel.Dock="Top" />
+                <c:TagsBox x:Name="SeedTagsBox"
+                           DockPanel.Dock="Top"
+                           ItemCountLimit="12"
+                           RestrictInputToSuggestions="True"
+                           Items="{Binding Mnemonics}"
+                           Suggestions="{Binding Suggestions}"
+                           SelectedTag="{Binding SelectedTag}"
+                           CompletedCommand="{Binding NextCommand}">
+                    <i:Interaction.Behaviors>
+                        <behaviors:FocusOnAttachedBehavior />
+                    </i:Interaction.Behaviors>
+                </c:TagsBox>
+            </DockPanel>
+
+            <StackPanel HorizontalAlignment="Right" Margin="0,20,0,0" Orientation="Horizontal">
+                <Button Classes="plain obscured"
+                        Command="{Binding AdvancedRecoveryOptionsDialogCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="20">
+                        <PathIcon Data="{StaticResource options_regular}" />
+                        <TextBlock Text="Advanced Recovery Options..." />
+                    </StackPanel>
+                </Button>
+                <Panel Margin="15,0,0,0" Width="{Binding #IconCheckmark.Bounds.Width}" Height="1" />
+            </StackPanel>
+        </StackPanel>
+    </c:ContentArea>
+</UserControl>

@@ -20,7 +20,7 @@ namespace WalletWasabi.Wabisabi
 		/// Pedersen commitment to the credential amount.
 		/// </summary>
 		public GroupElement Ma { get; }
-		
+
 		/// <summary>
 		/// Pedersen commitments to the credential amount's binary decomposition.
 		/// </summary>
