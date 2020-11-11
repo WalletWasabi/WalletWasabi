@@ -20,7 +20,42 @@
         </TextBox>
       </StackPanel>
       <ScrollViewer HorizontalScrollBarVisibility="Disabled">
-        <ItemsControl HorizontalAlignment="Center" Items="{Binding SearchItems}">
+        <ItemsControl HorizontalAlignment="Center" Items="{Binding SearchItemsByCategory}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel Orientation="Horizontal" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <DockPanel>
+                <Label Content="{Binding Category}" DockPanel.Dock="Top" />
+                <ItemsControl HorizontalAlignment="Center" Items="{Binding SearchItems}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <WrapPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Button Classes="option" Command="{Binding OpenCommand}" Height="150" Width="150" Margin="8">
+                        <Panel>
+                          <TextBlock Text="{Binding Title}" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0 0 0 15" />
+                          <PathIcon Width="28" Height="28" Opacity="0.8">
+                            <PathIcon.Data>
+                              <Binding Converter="{x:Static conv:SearchIconConverter.Instance}" />
+                            </PathIcon.Data>
+                          </PathIcon>
+                        </Panel>
+                      </Button>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </DockPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <!--<ItemsControl HorizontalAlignment="Center" Items="{Binding SearchItems}">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
               <WrapPanel Orientation="Horizontal" />
@@ -40,7 +75,7 @@
               </Button>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
-        </ItemsControl>
+        </ItemsControl>-->
       </ScrollViewer>
     </DockPanel>
   </c:ContentArea>
