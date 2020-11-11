@@ -13,12 +13,15 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		private string _accountKeyPath;
 		private string _minGapLimit;
 
-		public AdvancedRecoveryOptionsViewModel((KeyPath keyPath, int minGapLimit) interactionInput)
+		public AdvancedRecoveryOptionsViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget, (KeyPath keyPath, int minGapLimit) interactionInput) : base(navigationState, navigationTarget)
 		{
 			this.ValidateProperty(x => x.AccountKeyPath, ValidateAccountKeyPath);
 			this.ValidateProperty(x => x.MinGapLimit, ValidateMinGapLimit);
 
-			var continueCommandCanExecute = this.WhenAnyValue(
+			var backCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
+
+			var nextCommandCanExecute = this.WhenAnyValue(
+					x => x.IsDialogOpen,
 					x => x.AccountKeyPath,
 					x => x.MinGapLimit,
 					delegate
@@ -27,18 +30,22 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 						this.RaisePropertyChanged(nameof(AccountKeyPath));
 						this.RaisePropertyChanged(nameof(MinGapLimit));
 
-						return !Validations.Any;
+						return IsDialogOpen && !Validations.Any;
 					})
 				.ObserveOn(RxApp.MainThreadScheduler);
+
+			var cancelCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
 
 			_accountKeyPath = interactionInput.keyPath.ToString();
 			_minGapLimit = interactionInput.minGapLimit.ToString();
 
-			ContinueCommand = ReactiveCommand.Create(
-				() => Close((KeyPath.Parse(AccountKeyPath), int.Parse(MinGapLimit))),
-				continueCommandCanExecute);
+			BackCommand = ReactiveCommand.Create(() => GoBack(), backCommandCanExecute);
 
-			CancelCommand = ReactiveCommand.Create(() => Close());
+			NextCommand = ReactiveCommand.Create(
+				() => Close((KeyPath.Parse(AccountKeyPath), int.Parse(MinGapLimit))),
+				nextCommandCanExecute);
+
+			CancelCommand = ReactiveCommand.Create(() => Close(), cancelCommandCanExecute);
 		}
 
 		public string AccountKeyPath
@@ -53,14 +60,12 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			set => this.RaiseAndSetIfChanged(ref _minGapLimit, value);
 		}
 
-		public ICommand ContinueCommand { get; }
-
-		public ICommand CancelCommand { get; }
+		public ICommand NextCommand { get; }
 
 		private void ValidateMinGapLimit(IValidationErrors errors)
 		{
 			if (!int.TryParse(MinGapLimit, out var minGapLimit) || minGapLimit < KeyManager.AbsoluteMinGapLimit ||
-			    minGapLimit > KeyManager.MaxGapLimit)
+				minGapLimit > KeyManager.MaxGapLimit)
 			{
 				errors.Add(
 					ErrorSeverity.Error,
@@ -74,7 +79,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			{
 				var accountKeyPath = keyPath.GetAccountKeyPath();
 				if (keyPath.Length != accountKeyPath.Length ||
-				    accountKeyPath.Length != KeyManager.DefaultAccountKeyPath.Length)
+					accountKeyPath.Length != KeyManager.DefaultAccountKeyPath.Length)
 				{
 					errors.Add(ErrorSeverity.Error, "Path is not a compatible account derivation path.");
 				}
