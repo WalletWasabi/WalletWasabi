@@ -23,12 +23,12 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 			try
 			{
 				Logger.LogInfo("Trying to reconnect to P2P...");
-				P2pNode.Disconnect();
+				await P2pNode.DisconnectAsync(cancel).ConfigureAwait(false);
 				await P2pNode.ConnectAsync(cancel).ConfigureAwait(false);
 			}
 			catch
 			{
-				P2pNode.Disconnect();
+				await P2pNode.DisconnectAsync(cancel);
 				throw;
 			}
 

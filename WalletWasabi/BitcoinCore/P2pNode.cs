@@ -2,6 +2,7 @@ using NBitcoin;
 using NBitcoin.Protocol;
 using Nito.AsyncEx;
 using System;
+using System.Diagnostics;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -130,7 +131,7 @@ namespace WalletWasabi.BitcoinCore
 		{
 			Stop?.Cancel();
 			await ReconnectorTask.ConfigureAwait(false);
-			Disconnect();
+			await DisconnectAsync(CancellationToken.None);
 			Stop?.Dispose();
 			Stop = null;
 		}
@@ -138,7 +139,7 @@ namespace WalletWasabi.BitcoinCore
 		/// <summary>
 		/// It is not equivalent to Dispose, but it is being called from Dispose.
 		/// </summary>
-		public void Disconnect()
+		public async Task DisconnectAsync(CancellationToken cancel)
 		{
 			Node node = Node;
 			if (node is { })
@@ -162,28 +163,26 @@ namespace WalletWasabi.BitcoinCore
 
 				try
 				{
-					node.Disconnect();
+					// Disconnection not waited here.
+					node.DisconnectAsync();
+
+					var sw = Stopwatch.StartNew();
+					while (node.IsConnected)
+					{
+						await Task.Delay(50, cancel).ConfigureAwait(false);
+						if (sw.Elapsed > TimeSpan.FromSeconds(20))
+						{
+							throw new TimeoutException("Could not disconnect P2p Bitcoin node");
+						}
+					}
 				}
 				catch (Exception ex)
 				{
 					Logger.LogDebug(ex);
 				}
-				finally
-				{
-					try
-					{
-						node.Dispose();
-					}
-					catch (Exception ex)
-					{
-						Logger.LogDebug(ex);
-					}
-					finally
-					{
-						Node = null;
-						Logger.LogInfo("P2p Bitcoin node is disconnected.");
-					}
-				}
+
+				Node = null;
+				Logger.LogInfo("P2p Bitcoin node is disconnected.");
 			}
 		}
 	}
