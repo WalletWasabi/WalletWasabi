@@ -13,7 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels
 	{
 		private readonly ReadOnlyObservableCollection<NavBarItemViewModel> _items;
 
-		public HomePageViewModel(NavigationStateViewModel navigationState, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage) : base(navigationState, NavigationTarget.Home)
+		public HomePageViewModel(NavigationStateViewModel navigationState, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage) : base(navigationState, NavigationTarget.HomeScreen)
 		{
 			Title = "Home";
 

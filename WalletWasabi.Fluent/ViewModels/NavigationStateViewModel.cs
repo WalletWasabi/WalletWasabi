@@ -7,8 +7,9 @@ namespace WalletWasabi.Fluent.ViewModels
 	public enum NavigationTarget
 	{
 		Default = 0,
-		Home = 1,
-		Dialog = 2
+		HomeScreen = 1,
+		DialogScreen = 2,
+		DialogHost = 3
 	}
 
 	public class NavigationStateViewModel
@@ -19,6 +20,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			DialogScreen = dialogScreen;
 			DialogHost = dialogHost;
 		}
+
 		public Func<IScreen> HomeScreen { get; }
 		public Func<IScreen> DialogScreen { get; }
 		public Func<IDialogHost> DialogHost { get; }

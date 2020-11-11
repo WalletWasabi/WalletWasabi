@@ -71,7 +71,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 		{
 			string password = Password;
 
-			if (PasswordHelper.IsTrimable(password, out _))
+			if (PasswordHelper.IsTrimmable(password, out _))
 			{
 				errors.Add(ErrorSeverity.Error, "Leading and trailing white spaces are not allowed!");
 			}
