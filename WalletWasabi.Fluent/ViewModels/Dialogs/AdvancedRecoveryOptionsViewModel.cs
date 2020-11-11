@@ -72,8 +72,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 			return null;
 		}
-
-		public ICommand CancelCommand { get; }
+		
 		private KeyPath? GetAccountKeyPath()
 		{
 			if (AccountKeyPath is null || !KeyPath.TryParse(AccountKeyPath, out var keyPath) ||

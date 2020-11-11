@@ -3,7 +3,6 @@ using System;
 using System.IO;
 using System.Windows.Input;
 using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Wallets;
 using WalletWasabi.Stores;
@@ -13,7 +12,6 @@ using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
-using WalletWasabi.Userfacing;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 
 namespace WalletWasabi.Fluent.ViewModels
@@ -34,7 +32,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			RecoverWalletCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				await navigationState.DialogScreen?.Invoke().Router.Navigate.Execute(
+				await navigationState.DialogScreen.Invoke().Router.Navigate.Execute(
 					new RecoverWalletViewModel(navigationState, WalletName, network, walletManager));
 			});
 
@@ -46,7 +44,7 @@ namespace WalletWasabi.Fluent.ViewModels
 						NavigationTarget.DialogScreen,
 						"Type the password of the wallet and click Continue.");
 
-					navigationState.DialogScreen?.Invoke().Router.Navigate.Execute(enterPassword);
+					navigationState.DialogScreen.Invoke().Router.Navigate.Execute(enterPassword);
 
 					var result = await enterPassword.GetDialogResultAsync();
 
