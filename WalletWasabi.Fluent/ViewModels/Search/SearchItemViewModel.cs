@@ -42,11 +42,11 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 			switch (navigationTarget)
 			{
 				case NavigationTarget.Default:
-				case NavigationTarget.Home:
+				case NavigationTarget.HomeScreen:
 					navigationState.HomeScreen?.Invoke().Router.Navigate.Execute(createTargetView());
 					break;
 
-				case NavigationTarget.Dialog:
+				case NavigationTarget.DialogScreen:
 					navigationState.DialogScreen?.Invoke().Router.Navigate.Execute(createTargetView());
 					break;
 			}

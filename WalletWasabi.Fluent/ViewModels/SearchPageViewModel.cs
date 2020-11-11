@@ -21,7 +21,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			searchItems.Add(new SearchItemViewModel(
 				navigationState,
-				NavigationTarget.Home,
+				NavigationTarget.HomeScreen,
 				iconName: "home_regular",
 				title: "Home",
 				category: "General",
@@ -30,7 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			searchItems.Add(new SearchItemViewModel(
 				navigationState,
-				NavigationTarget.Home,
+				NavigationTarget.HomeScreen,
 				iconName: "settings_regular",
 				title: "Settings",
 				category: "General",
@@ -39,7 +39,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			searchItems.Add(new SearchItemViewModel(
 				navigationState,
-				NavigationTarget.Dialog,
+				NavigationTarget.DialogScreen,
 				iconName: "add_circle_regular",
 				title: "Add Wallet",
 				category: "Wallet",
@@ -49,7 +49,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			walletManager.Items.ToObservableChangeSet()
 				.Cast(x => new SearchItemViewModel(
 					navigationState,
-					NavigationTarget.Home,
+					NavigationTarget.HomeScreen,
 					iconName: "web_asset_regular",
 					title: x.WalletName,
 					category: "Wallet",
