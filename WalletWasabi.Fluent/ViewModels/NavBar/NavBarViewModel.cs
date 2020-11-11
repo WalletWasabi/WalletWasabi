@@ -6,9 +6,6 @@ using System.Reactive;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Wallets;
-using DynamicData;
-using DynamicData.Binding;
-using WalletWasabi.Fluent.ViewModels.Search;
 
 namespace WalletWasabi.Fluent.ViewModels.NavBar
 {
@@ -19,8 +16,8 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 	{
 		private ObservableCollection<NavBarItemViewModel> _topItems;
 		private ObservableCollection<NavBarItemViewModel> _bottomItems;
-		private readonly ReadOnlyObservableCollection<SearchItemViewModel> _searchItems;
 		private NavBarItemViewModel? _selectedItem;
+		private NavBarItemViewModel? _searchPage;
 		private readonly WalletManagerViewModel _walletManager;
 		private bool _isBackButtonVisible;
 		private bool _isNavigating;
@@ -35,54 +32,12 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			_topItems = new ObservableCollection<NavBarItemViewModel>();
 			_bottomItems = new ObservableCollection<NavBarItemViewModel>();
 
-			var searchItems = new SourceList<SearchItemViewModel>();
-
-			searchItems.Add(new SearchItemViewModel(
-				navigationState,
-				NavigationTarget.Home,
-				iconName: "home_regular",
-				title: "Home",
-				category: "General",
-				keywords: "Home",
-				() => new HomePageViewModel(navigationState, walletManager, addWalletPage)));
-
-			searchItems.Add(new SearchItemViewModel(
-				navigationState,
-				NavigationTarget.Home,
-				iconName: "settings_regular",
-				title: "Settings",
-				category: "General",
-				keywords: "Settings, General, User Interface, Privacy, Advanced",
-				() => new SettingsPageViewModel(navigationState)));
-
-			searchItems.Add(new SearchItemViewModel(
-				navigationState,
-				NavigationTarget.Dialog,
-				iconName: "add_circle_regular",
-				title: "Add Wallet",
-				category: "Wallet",
-				keywords: "Wallet, Add Wallet, Create Wallet, Recover Wallet, Import Wallet, Connect Hardware Wallet",
-				() => addWalletPage));
-
-			walletManager.Items.ToObservableChangeSet()
-				.Cast(x => new SearchItemViewModel(
-					navigationState,
-					NavigationTarget.Home,
-					iconName: "web_asset_regular",
-					title: x.WalletName,
-					category: "Wallet",
-					keywords: $"Wallet, {x.WalletName}",
-					() => x))
-				.Sort(SortExpressionComparer<SearchItemViewModel>.Ascending(i => i.Title))
-				.Merge(searchItems.Connect())
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Bind(out _searchItems)
-				.AsObservableList();
-
 			SelectedItem = new HomePageViewModel(navigationState, walletManager, addWalletPage);
 			_topItems.Add(SelectedItem);
 			_bottomItems.Add(addWalletPage);
 			_bottomItems.Add(new SettingsPageViewModel(navigationState));
+
+			SearchPage = new SearchPageViewModel(navigationState, walletManager, addWalletPage);
 
 			Router.CurrentViewModel
 				.OfType<NavBarItemViewModel>()
@@ -139,8 +94,6 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			set => this.RaiseAndSetIfChanged(ref _bottomItems, value);
 		}
 
-		public ReadOnlyObservableCollection<SearchItemViewModel> SearchItems => _searchItems;
-
 		public NavBarItemViewModel? SelectedItem
 		{
 			get => _selectedItem;
@@ -181,6 +134,12 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 					}
 				}
 			}
+		}
+
+		public NavBarItemViewModel? SearchPage
+		{
+			get => _searchPage;
+			set => this.RaiseAndSetIfChanged(ref _searchPage, value);
 		}
 
 		public Action? ToggleAction
