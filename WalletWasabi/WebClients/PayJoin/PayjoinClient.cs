@@ -29,7 +29,7 @@ namespace WalletWasabi.WebClients.PayJoin
 		}
 
 		// For testing only
-		internal PayjoinClient(Uri paymentUrl, ITorHttpClient httpClient)
+		internal PayjoinClient(Uri paymentUrl, IRelativeHttpClient httpClient)
 		{
 			PaymentUrl = paymentUrl;
 			TorHttpClient = Guard.NotNull(nameof(httpClient), httpClient);
@@ -37,7 +37,7 @@ namespace WalletWasabi.WebClients.PayJoin
 
 		public Uri PaymentUrl { get; }
 		private EndPoint TorSocks5EndPoint { get; }
-		private ITorHttpClient TorHttpClient { get; }
+		private IRelativeHttpClient TorHttpClient { get; }
 
 		public async Task<PSBT> RequestPayjoin(PSBT originalTx, IHDKey accountKey, RootedKeyPath rootedKeyPath, HdPubKey changeHdPubKey, CancellationToken cancellationToken)
 		{

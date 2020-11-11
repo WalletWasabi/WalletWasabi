@@ -14,20 +14,18 @@ namespace WalletWasabi.Tor.Http
 		/// Creates a new instance of the object.
 		/// </summary>
 		/// <param name="httpClient">Use <see cref="ClearnetHttpClient"/> or <see cref="TorHttpClient"/> to initialize.</param>
-		public BackendHttpClient(IHttpClient httpClient, Uri backendApiUri)
+		public BackendHttpClient(IRelativeHttpClient httpClient)
 		{
 			HttpClient = httpClient;
-			BackendApiUri = backendApiUri;
 		}
 
-		private IHttpClient HttpClient { get; }
-		private Uri BackendApiUri { get; }
+		private IRelativeHttpClient HttpClient { get; }
 
 		/// <summary>
 		/// Sends an HTTP request to Wasabi Backend.
 		/// </summary>
 		/// <param name="method">HTTP method</param>
-		/// <param name="apiQuery">API query part to append to <see cref="BackendApiUri"/>.</param>
+		/// <param name="apiQuery">API query part to append to <see cref="IRelativeHttpClient.DestinationUriAction"/>.</param>
 		/// <param name="content">HTTP request content. Only for <see cref="HttpMethod.Post"/> method.</param>
 		/// <param name="token">Cancellation token to cancel the asynchronous operation.</param>
 		public Task<HttpResponseMessage> SendAsync(HttpMethod method, string apiQuery, HttpContent? content = null, CancellationToken token = default)
@@ -37,7 +35,7 @@ namespace WalletWasabi.Tor.Http
 				throw new ArgumentException("Forward slash would lead to http://backend:port/<relativeUri> URI instead of http://backend:port/api/v<version>/<relativeUri>.", nameof(apiQuery));
 			}
 
-			return HttpClient.SendAsync(method, new Uri(BackendApiUri, apiQuery), content, token);
+			return HttpClient.SendAsync(method, apiQuery, content, token);
 		}
 	}
 }

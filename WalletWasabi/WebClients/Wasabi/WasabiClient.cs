@@ -31,12 +31,12 @@ namespace WalletWasabi.WebClients.Wasabi
 		{
 		}
 
-		public WasabiClient(ITorHttpClient torHttpClient)
+		public WasabiClient(IRelativeHttpClient torHttpClient)
 		{
 			TorClient = torHttpClient;
 		}
 
-		private ITorHttpClient TorClient { get; }
+		private IRelativeHttpClient TorClient { get; }
 
 		public static Dictionary<uint256, Transaction> TransactionCache { get; } = new Dictionary<uint256, Transaction>();
 		private static Queue<uint256> TransactionIdQueue { get; } = new Queue<uint256>();
