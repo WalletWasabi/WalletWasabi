@@ -36,13 +36,13 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 			var cancelCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
 
-			AccountKeyPath = interactionInput.keyPath.ToString();
-			MinGapLimit = interactionInput.minGapLimit.ToString();
+			_accountKeyPath = interactionInput.keyPath.ToString();
+			_minGapLimit = interactionInput.minGapLimit.ToString();
 
 			BackCommand = ReactiveCommand.Create(() => GoBack(), backCommandCanExecute);
 
 			NextCommand = ReactiveCommand.Create(
-				() => Close((GetAccountKeyPath(), GetMinGapLimit())),
+				() => Close((KeyPath.Parse(AccountKeyPath), int.Parse(MinGapLimit))),
 				nextCommandCanExecute);
 
 			CancelCommand = ReactiveCommand.Create(() => Close(), cancelCommandCanExecute);
@@ -61,36 +61,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		}
 
 		public ICommand NextCommand { get; }
-
-		private int? GetMinGapLimit()
-		{
-			if (int.TryParse(MinGapLimit, out var minGapLimit) && minGapLimit > KeyManager.AbsoluteMinGapLimit &&
-				minGapLimit < KeyManager.MaxGapLimit)
-			{
-				return minGapLimit;
-			}
-
-			return null;
-		}
-		
-		private KeyPath? GetAccountKeyPath()
-		{
-			if (AccountKeyPath is null || !KeyPath.TryParse(AccountKeyPath, out var keyPath) ||
-				keyPath is null)
-			{
-				return null;
-			}
-
-			var accountKeyPath = keyPath.GetAccountKeyPath();
-
-			if (keyPath.Length != accountKeyPath.Length ||
-				accountKeyPath.Length != KeyManager.DefaultAccountKeyPath.Length)
-			{
-				return null;
-			}
-
-			return keyPath;
-		}
 
 		private void ValidateMinGapLimit(IValidationErrors errors)
 		{
