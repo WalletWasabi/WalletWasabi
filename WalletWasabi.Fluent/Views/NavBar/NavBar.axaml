@@ -127,7 +127,6 @@
             <Panel Background="Transparent" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
               <i:Interaction.Behaviors>
                 <ia:EventTriggerBehavior EventName="PointerPressed">
-                  <ia:ChangePropertyAction TargetObject="{Binding #SearchAutoCompleteBox}" PropertyName="Text" Value="" />
                   <ia:InvokeCommandAction Command="{Binding OpenCommand}" CommandParameter="{x:Static rx:Unit.Default}" />
                 </ia:EventTriggerBehavior>
               </i:Interaction.Behaviors>
