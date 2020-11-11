@@ -10,6 +10,7 @@ namespace WalletWasabi.Fluent.ViewModels
 {
 	public class SearchPageViewModel : NavBarItemViewModel
 	{
+		private string? _searchQuery;
 		private readonly ReadOnlyObservableCollection<SearchItemViewModel> _searchItems;
 
 		public SearchPageViewModel(NavigationStateViewModel navigationState, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage) : base(navigationState, NavigationTarget.Home)
@@ -62,6 +63,12 @@ namespace WalletWasabi.Fluent.ViewModels
 		}
 
 		public override string IconName => "search_regular";
+
+		public string? SearchQuery
+		{
+			get => _searchQuery;
+			set => this.RaiseAndSetIfChanged(ref _searchQuery, value);
+		}
 
 		public ReadOnlyObservableCollection<SearchItemViewModel> SearchItems => _searchItems;
 	}
