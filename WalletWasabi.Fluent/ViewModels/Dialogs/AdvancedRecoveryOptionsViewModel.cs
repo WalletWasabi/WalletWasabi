@@ -10,8 +10,8 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
 	public class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<(KeyPath? accountKeyPath, int? minGapLimit)>
 	{
-		private string? _accountKeyPath;
-		private string? _minGapLimit;
+		private string _accountKeyPath;
+		private string _minGapLimit;
 
 		public AdvancedRecoveryOptionsViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget, (KeyPath keyPath, int minGapLimit) interactionInput) : base(navigationState, navigationTarget)
 		{
@@ -48,13 +48,13 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			CancelCommand = ReactiveCommand.Create(() => Close(), cancelCommandCanExecute);
 		}
 
-		public string? AccountKeyPath
+		public string AccountKeyPath
 		{
 			get => _accountKeyPath;
 			set => this.RaiseAndSetIfChanged(ref _accountKeyPath, value);
 		}
 
-		public string? MinGapLimit
+		public string MinGapLimit
 		{
 			get => _minGapLimit;
 			set => this.RaiseAndSetIfChanged(ref _minGapLimit, value);
@@ -73,6 +73,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			return null;
 		}
 
+		public ICommand CancelCommand { get; }
 		private KeyPath? GetAccountKeyPath()
 		{
 			if (AccountKeyPath is null || !KeyPath.TryParse(AccountKeyPath, out var keyPath) ||
@@ -94,11 +95,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 		private void ValidateMinGapLimit(IValidationErrors errors)
 		{
-			if (string.IsNullOrWhiteSpace(MinGapLimit))
-			{
-				return;
-			}
-
 			if (!int.TryParse(MinGapLimit, out var minGapLimit) || minGapLimit < KeyManager.AbsoluteMinGapLimit ||
 				minGapLimit > KeyManager.MaxGapLimit)
 			{
@@ -110,11 +106,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 		private void ValidateAccountKeyPath(IValidationErrors errors)
 		{
-			if (string.IsNullOrWhiteSpace(AccountKeyPath))
-			{
-				return;
-			}
-
 			if (KeyPath.TryParse(AccountKeyPath, out var keyPath) && keyPath is { })
 			{
 				var accountKeyPath = keyPath.GetAccountKeyPath();
