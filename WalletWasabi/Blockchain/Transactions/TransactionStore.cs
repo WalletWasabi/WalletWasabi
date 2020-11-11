@@ -19,7 +19,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 		private Dictionary<uint256, SmartTransaction> Transactions { get; set; }
 		private object TransactionsLock { get; set; }
-		private DigestableIoManager TransactionsFileManager { get; set; }
+		private IoManager TransactionsFileManager { get; set; }
 		private AsyncLock TransactionsAsyncLock { get; set; } = new AsyncLock();
 		private List<ITxStoreOperation> Operations { get; } = new List<ITxStoreOperation>();
 		private object OperationsLock { get; } = new object();
@@ -38,7 +38,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				var transactionsFilePath = Path.Combine(WorkFolderPath, fileName);
 
 				// In Transactions.dat every line starts with the tx id, so the first character is the best for digest creation.
-				TransactionsFileManager = new DigestableIoManager(transactionsFilePath, 0);
+				TransactionsFileManager = new IoManager(transactionsFilePath);
 
 				using (await TransactionsAsyncLock.LockAsync().ConfigureAwait(false))
 				{
