@@ -39,7 +39,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			Uri uri = request.RequestUri;
 			NameValueCollection parameters = HttpUtility.ParseQueryString(uri.Query);
 
-			return await OnSendAsync(request.Method, uri.AbsolutePath, parameters, body);
+			return await OnSendAsync(request.Method, uri.AbsolutePath, parameters, body).ConfigureAwait(false);
 		}
 	}
 }

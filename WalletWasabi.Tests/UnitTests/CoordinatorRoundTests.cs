@@ -64,8 +64,8 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task XxAsync()
 		{
-			const double DefaultMinMemPoolFee = 0.00001000; // 1 s/b (default value)
-			const double HighestMinMemPoolFee = 0.00200000; // 200 s/b
+			const double DefaultMinMempoolFee = 0.00001000; // 1 s/b (default value)
+			const double HighestMinMempoolFee = 0.00200000; // 200 s/b
 			const int InputSizeInBytes = 67;
 			const int OutputSizeInBytes = 33;
 
@@ -73,27 +73,27 @@ namespace WalletWasabi.Tests.UnitTests
 			{
 				rpc.OnGetMempoolInfoAsync = () => Task.FromResult(new MemPoolInfo
 				{
-					MemPoolMinFee = DefaultMinMemPoolFee
+					MemPoolMinFee = DefaultMinMempoolFee
 				});
 
 				var (feePerInputs, feePerOutputs) = await CoordinatorRound.CalculateFeesAsync(rpc, 12);
 
-				var defaultMinMemPoolFeeRate = new FeeRate(Money.Coins((decimal)DefaultMinMemPoolFee));
-				Assert.True(feePerInputs > defaultMinMemPoolFeeRate.GetFee(InputSizeInBytes));
-				Assert.True(feePerOutputs > defaultMinMemPoolFeeRate.GetFee(OutputSizeInBytes));
+				var defaultMinMempoolFeeRate = new FeeRate(Money.Coins((decimal)DefaultMinMempoolFee));
+				Assert.True(feePerInputs > defaultMinMempoolFeeRate.GetFee(InputSizeInBytes));
+				Assert.True(feePerOutputs > defaultMinMempoolFeeRate.GetFee(OutputSizeInBytes));
 			}
 
 			{
 				rpc.OnGetMempoolInfoAsync = () => Task.FromResult(new MemPoolInfo
 				{
-					MemPoolMinFee = HighestMinMemPoolFee
+					MemPoolMinFee = HighestMinMempoolFee
 				});
 
 				var (feePerInputs, feePerOutputs) = await CoordinatorRound.CalculateFeesAsync(rpc, 12);
 
-				var highestMinMemPoolFeeRate = new FeeRate(Money.Coins((decimal)HighestMinMemPoolFee * 1.5m));
-				Assert.Equal(highestMinMemPoolFeeRate.GetFee(InputSizeInBytes), feePerInputs);
-				Assert.Equal(highestMinMemPoolFeeRate.GetFee(OutputSizeInBytes), feePerOutputs);
+				var highestMinMempoolFeeRate = new FeeRate(Money.Coins((decimal)HighestMinMempoolFee * 1.5m));
+				Assert.Equal(highestMinMempoolFeeRate.GetFee(InputSizeInBytes), feePerInputs);
+				Assert.Equal(highestMinMempoolFeeRate.GetFee(OutputSizeInBytes), feePerOutputs);
 			}
 		}
 	}

@@ -5,7 +5,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels.CreateWallet
+namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
 	public class RecoveryWordsViewModel : RoutableViewModel
 	{
@@ -31,8 +31,6 @@ namespace WalletWasabi.Fluent.ViewModels.CreateWallet
 		}
 
 		public ICommand NextCommand { get; }
-
-		public ICommand CancelCommand { get; }
 
 		public List<RecoveryWordViewModel> MnemonicWords { get; set; }
 	}

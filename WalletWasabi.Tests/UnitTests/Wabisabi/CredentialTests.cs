@@ -163,7 +163,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 
 				// Test incorrect number of credential requests
 				invalidCredentialRequest = new RegistrationRequestMessage(
-					validCredentialRequest.DeltaAmount, 
+					validCredentialRequest.DeltaAmount,
 					validCredentialRequest.Presented,
 					validCredentialRequest.Requested.Take(1),
 					validCredentialRequest.Proofs);
@@ -174,7 +174,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 
 				// Test incorrect number of credential requests
 				invalidCredentialRequest = new RegistrationRequestMessage(
-					Money.Coins(2), 
+					Money.Coins(2),
 					new CredentialPresentation[0],
 					validCredentialRequest.Requested.Take(1),
 					validCredentialRequest.Proofs);

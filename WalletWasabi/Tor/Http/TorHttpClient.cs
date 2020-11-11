@@ -64,9 +64,9 @@ namespace WalletWasabi.Tor.Http
 
 		private TorSocks5ClientPool TorSocks5ClientPool { get; }
 
-		private static async Task<HttpResponseMessage> ClearnetRequestAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
+		private Task<HttpResponseMessage> ClearnetRequestAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
 		{
-			return await ClearnetHttpClient.Instance.SendAsync(request, cancellationToken).ConfigureAwait(false);
+			return new ClearnetHttpClient(DestinationUriAction).SendAsync(request, cancellationToken);
 		}
 
 		/// <remarks>
