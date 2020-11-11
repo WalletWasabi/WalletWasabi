@@ -74,16 +74,16 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 							var walletFilePath = walletManager.WalletDirectories.GetWalletFilePaths(walletName)
 								.walletFilePath;
 
-						  var keyManager = KeyManager.Recover(
-							  CurrentMnemonics!,
-							  password,
-							  walletFilePath,
-							  AccountKeyPath,
-							  MinGapLimit);
+							var keyManager = KeyManager.Recover(
+								CurrentMnemonics!,
+								password,
+								walletFilePath,
+								AccountKeyPath,
+								MinGapLimit);
 
-						  keyManager.SetNetwork(network);
+							keyManager.SetNetwork(network);
 
-              walletManager.AddWallet(keyManager);
+							walletManager.AddWallet(keyManager);
 
 							navigationState.DialogScreen.Invoke().Router.NavigationStack.Clear();
 						}
