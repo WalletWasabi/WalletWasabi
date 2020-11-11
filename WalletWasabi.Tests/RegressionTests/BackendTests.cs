@@ -192,15 +192,12 @@ namespace WalletWasabi.Tests.RegressionTests
 				}
 
 				// First request.
+				using (HttpResponseMessage response = await BackendHttpClient.SendAsync(HttpMethod.Get, requestUri))
 				{
-					using HttpResponseMessage? response = await BackendHttpClient.SendAsync(HttpMethod.Get, requestUri);
 					Assert.NotNull(response);
 
-					using (HttpContent content = response!.Content)
-					{
-						var resp = await content.ReadAsJsonAsync<StatusResponse>();
-						Assert.True(resp.FilterCreationActive);
-					}
+					var resp = await response.Content.ReadAsJsonAsync<StatusResponse>();
+					Assert.True(resp.FilterCreationActive);
 
 					// Simulate an unintended stop
 					await indexBuilderService.StopAsync();
@@ -210,15 +207,12 @@ namespace WalletWasabi.Tests.RegressionTests
 				}
 
 				// Second request.
+				using (HttpResponseMessage response = await BackendHttpClient.SendAsync(HttpMethod.Get, requestUri))
 				{
-					using HttpResponseMessage? response = await BackendHttpClient.SendAsync(HttpMethod.Get, requestUri);
 					Assert.NotNull(response);
 
-					using (HttpContent content = response!.Content)
-					{
-						var resp = await content.ReadAsJsonAsync<StatusResponse>();
-						Assert.True(resp.FilterCreationActive);
-					}
+					var resp = await response.Content.ReadAsJsonAsync<StatusResponse>();
+					Assert.True(resp.FilterCreationActive);
 
 					await rpc.GenerateAsync(1);
 
@@ -230,12 +224,11 @@ namespace WalletWasabi.Tests.RegressionTests
 				}
 
 				// Third request.
+				using (HttpResponseMessage response = await BackendHttpClient.SendAsync(HttpMethod.Get, requestUri))
 				{
-					using HttpResponseMessage? response = await BackendHttpClient.SendAsync(HttpMethod.Get, requestUri);
 					Assert.NotNull(response);
 
-					using HttpContent content = response!.Content;
-					var resp = await content.ReadAsJsonAsync<StatusResponse>();
+					var resp = await response.Content.ReadAsJsonAsync<StatusResponse>();
 					Assert.False(resp.FilterCreationActive);
 				}
 			}
