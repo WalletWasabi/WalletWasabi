@@ -67,7 +67,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					try
 					{
 						var result = await PasswordInteraction
-							.Handle("Type the password of the wallet to be to recover and click Continue.").ToTask();
+							.Handle("Type the password of the wallet to be able to recover and click Continue.").ToTask();
 
 						if (result is { } password)
 						{
