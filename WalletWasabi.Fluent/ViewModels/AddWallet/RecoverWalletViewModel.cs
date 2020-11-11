@@ -59,8 +59,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			FinishCommandCanExecute =
 				this.WhenAnyValue(x => x.CurrentMnemonics)
-					.Select(currentMnemonics =>
-						currentMnemonics is { } && currentMnemonics.IsValidChecksum && !Validations.Any);
+					.Select(currentMnemonics => currentMnemonics is { } && !Validations.Any);
 
 			NextCommand = ReactiveCommand.CreateFromTask(
 				async () =>
