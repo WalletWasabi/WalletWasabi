@@ -90,7 +90,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			Logger.TurnOff();
 
-			var response = await BackendHttpClient.SendAsync(HttpMethod.Post, "btc/blockchain/broadcast", content);
+			using var response = await BackendHttpClient.SendAsync(HttpMethod.Post, "btc/blockchain/broadcast", content);
 
 			Assert.NotEqual(HttpStatusCode.OK, response.StatusCode);
 			Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -191,43 +191,50 @@ namespace WalletWasabi.Tests.RegressionTests
 					times++;
 				}
 
-				HttpResponseMessage? response = await BackendHttpClient.SendAsync(HttpMethod.Get, requestUri);
-				Assert.NotNull(response);
-
-				using (HttpContent content = response!.Content)
+				// First request.
 				{
-					var resp = await content.ReadAsJsonAsync<StatusResponse>();
-					Assert.True(resp.FilterCreationActive);
+					using HttpResponseMessage? response = await BackendHttpClient.SendAsync(HttpMethod.Get, requestUri);
+					Assert.NotNull(response);
+
+					using (HttpContent content = response!.Content)
+					{
+						var resp = await content.ReadAsJsonAsync<StatusResponse>();
+						Assert.True(resp.FilterCreationActive);
+					}
+
+					// Simulate an unintended stop
+					await indexBuilderService.StopAsync();
+					indexBuilderService = null;
+
+					await rpc.GenerateAsync(1);
 				}
 
-				// Simulate an unintended stop
-				await indexBuilderService.StopAsync();
-				indexBuilderService = null;
-
-				await rpc.GenerateAsync(1);
-
-				response = await BackendHttpClient.SendAsync(HttpMethod.Get, requestUri);
-				Assert.NotNull(response);
-
-				using (HttpContent content = response!.Content)
+				// Second request.
 				{
-					var resp = await content.ReadAsJsonAsync<StatusResponse>();
-					Assert.True(resp.FilterCreationActive);
+					using HttpResponseMessage? response = await BackendHttpClient.SendAsync(HttpMethod.Get, requestUri);
+					Assert.NotNull(response);
+
+					using (HttpContent content = response!.Content)
+					{
+						var resp = await content.ReadAsJsonAsync<StatusResponse>();
+						Assert.True(resp.FilterCreationActive);
+					}
+
+					await rpc.GenerateAsync(1);
+
+					var blockchainController = (BlockchainController)RegTestFixture.BackendHost.Services.GetService(typeof(BlockchainController));
+					blockchainController.Cache.Remove($"{nameof(BlockchainController.GetStatusAsync)}");
+
+					// Set back the time to trigger timeout in BlockchainController.GetStatusAsync.
+					global.IndexBuilderService.LastFilterBuildTime = DateTimeOffset.UtcNow - BlockchainController.FilterTimeout;
 				}
 
-				await rpc.GenerateAsync(1);
-
-				var blockchainController = (BlockchainController)RegTestFixture.BackendHost.Services.GetService(typeof(BlockchainController));
-				blockchainController.Cache.Remove($"{nameof(BlockchainController.GetStatusAsync)}");
-
-				// Set back the time to trigger timeout in BlockchainController.GetStatusAsync.
-				global.IndexBuilderService.LastFilterBuildTime = DateTimeOffset.UtcNow - BlockchainController.FilterTimeout;
-
-				response = await BackendHttpClient.SendAsync(HttpMethod.Get, requestUri);
-				Assert.NotNull(response);
-
-				using (HttpContent content = response!.Content)
+				// Third request.
 				{
+					using HttpResponseMessage? response = await BackendHttpClient.SendAsync(HttpMethod.Get, requestUri);
+					Assert.NotNull(response);
+
+					using HttpContent content = response!.Content;
 					var resp = await content.ReadAsJsonAsync<StatusResponse>();
 					Assert.False(resp.FilterCreationActive);
 				}
