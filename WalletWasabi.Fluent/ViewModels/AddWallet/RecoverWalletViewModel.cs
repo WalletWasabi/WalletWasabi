@@ -15,7 +15,6 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
-
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
 	public class RecoverWalletViewModel : RoutableViewModel
