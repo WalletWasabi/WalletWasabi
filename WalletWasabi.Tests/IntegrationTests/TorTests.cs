@@ -53,7 +53,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		}
 
 		[Fact]
-		public async Task TestHttpsAndHttpThenAsync()
+		public async Task PerfTestAsync()
 		{
 			Logger.SetMinimumLevel(Logging.LogLevel.Trace);
 			using var client = new TorHttpClient(new Uri("http://api.qbit.ninja"), Common.TorSocks5Endpoint);
