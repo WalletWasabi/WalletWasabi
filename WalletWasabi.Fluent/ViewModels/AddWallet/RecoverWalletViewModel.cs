@@ -15,6 +15,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
+
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
 	public class RecoverWalletViewModel : RoutableViewModel
@@ -77,22 +78,27 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				{
 					try
 					{
-						var password = await PasswordInteraction
-							.Handle("Type the password of the wallet to be to recover and click Continue.").ToTask() ?? "";
+						var result = await PasswordInteraction
+							.Handle("Type the password of the wallet to be to recover and click Continue.").ToTask();
 
-						var walletFilePath = walletManager.WalletDirectories.GetWalletFilePaths(walletName)
-							.walletFilePath;
+						if (result is { } password)
+						{
+							var walletFilePath = walletManager.WalletDirectories.GetWalletFilePaths(walletName)
+								.walletFilePath;
 
-						var keyManager = KeyManager.Recover(
-							CurrentMnemonics!,
-							password,
-							walletFilePath,
-							AccountKeyPath!,
-							(int) MinGapLimit!);
-						keyManager.SetNetwork(network);
-						walletManager.AddWallet(keyManager);
+							var keyManager = KeyManager.Recover(
+								CurrentMnemonics!,
+								password,
+								walletFilePath,
+								AccountKeyPath!,
+								(int) MinGapLimit!);
 
-						navigationState.DialogScreen?.Invoke().Router.NavigationStack.Clear();
+							keyManager.SetNetwork(network);
+
+							walletManager.AddWallet(keyManager);
+
+							navigationState.DialogScreen.Invoke().Router.NavigationStack.Clear();
+						}
 					}
 					catch (Exception ex)
 					{
