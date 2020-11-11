@@ -13,7 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		private string? _searchQuery;
 		private readonly ReadOnlyObservableCollection<SearchItemViewModel> _searchItems;
 
-		public SearchPageViewModel(NavigationStateViewModel navigationState, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage) : base(navigationState, NavigationTarget.Home)
+		public SearchPageViewModel(NavigationStateViewModel navigationState, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage) : base(navigationState, NavigationTarget.HomeScreen)
 		{
 			Title = "Search";
 
