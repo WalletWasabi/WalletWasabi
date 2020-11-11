@@ -96,8 +96,9 @@
       <c:NavBarListBox Items="{Binding BottomItems}" SelectedItem="{Binding SelectedItem}" />
       <AutoCompleteBox x:Name="SearchAutoCompleteBox" FilterMode="ContainsOrdinal" Watermark="Search (Ctrl+Q)" Items="{Binding SearchItems}">
         <AutoCompleteBox.Styles>
-          <Style Selector="AutoCompleteBox /template/ TextBox#PART_TextBox">
-            <Setter Property="Background" Value="Transparent" />
+          <Style Selector="AutoCompleteBox">
+            <Setter Property="Margin" Value="12,6,12,6" />
+            <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
           </Style>
           <Style Selector="AutoCompleteBox /template/ Border#PART_SuggestionsContainer">
             <Setter Property="Padding" Value="0" />
