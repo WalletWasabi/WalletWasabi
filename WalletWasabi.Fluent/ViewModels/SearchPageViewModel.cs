@@ -1,3 +1,4 @@
+using System;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using DynamicData;
@@ -46,6 +47,11 @@ namespace WalletWasabi.Fluent.ViewModels
 				keywords: "Wallet, Add Wallet, Create Wallet, Recover Wallet, Import Wallet, Connect Hardware Wallet",
 				() => addWalletPage));
 
+			var filter = this.WhenValueChanged(t => t.SearchQuery)
+				.Throttle(TimeSpan.FromMilliseconds(250))
+				.Select(SearchQueryFilter)
+				.DistinctUntilChanged();
+
 			walletManager.Items.ToObservableChangeSet()
 				.Cast(x => new SearchItemViewModel(
 					navigationState,
@@ -57,9 +63,26 @@ namespace WalletWasabi.Fluent.ViewModels
 					() => x))
 				.Sort(SortExpressionComparer<SearchItemViewModel>.Ascending(i => i.Title))
 				.Merge(searchItems.Connect())
+				.Filter(filter)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Bind(out _searchItems)
 				.AsObservableList();
+		}
+
+		private static Func<SearchItemViewModel, bool> SearchQueryFilter(string? searchQuery)
+		{
+			return item =>
+			{
+				if (!string.IsNullOrWhiteSpace(searchQuery))
+				{
+					if (item.Keywords?.IndexOf(searchQuery, StringComparison.OrdinalIgnoreCase) >= 0)
+					{
+						return true;
+					}
+					return false;
+				}
+				return true;
+			};
 		}
 
 		public override string IconName => "search_regular";
