@@ -48,7 +48,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				async () =>
 				{
 					var (accountKeyPathIn, minGapLimitIn) = await AdvancedOptionsInteraction
-						.Handle((AccountKeyPath!, MinGapLimit)).ToTask();
+						.Handle((AccountKeyPath, MinGapLimit)).ToTask();
 
 					if (accountKeyPathIn is { } && minGapLimitIn is { })
 					{
@@ -76,7 +76,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 							CurrentMnemonics!,
 							password,
 							walletFilePath,
-							AccountKeyPath!,
+							AccountKeyPath,
 							MinGapLimit);
 						keyManager.SetNetwork(network);
 						walletManager.AddWallet(keyManager);
