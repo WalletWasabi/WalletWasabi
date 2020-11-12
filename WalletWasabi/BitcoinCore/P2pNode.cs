@@ -131,7 +131,7 @@ namespace WalletWasabi.BitcoinCore
 		{
 			Stop?.Cancel();
 			await ReconnectorTask.ConfigureAwait(false);
-			await DisconnectAsync(CancellationToken.None);
+			await DisconnectAsync(CancellationToken.None).ConfigureAwait(false);
 			Stop?.Dispose();
 			Stop = null;
 		}

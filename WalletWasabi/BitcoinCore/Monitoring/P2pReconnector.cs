@@ -28,7 +28,7 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 			}
 			catch
 			{
-				await P2pNode.DisconnectAsync(cancel);
+				await P2pNode.DisconnectAsync(cancel).ConfigureAwait(false);
 				throw;
 			}
 
