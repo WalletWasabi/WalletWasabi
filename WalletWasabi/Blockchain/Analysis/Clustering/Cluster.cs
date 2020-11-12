@@ -52,12 +52,20 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 				}
 				if (insertPosition > 0) // at least one element was inserted
 				{
-					UpdateLabels();
+					UpdateLabelsNoLock();
 				}
 			}
 		}
 
 		public void UpdateLabels()
+		{
+			lock (Lock)
+			{
+				UpdateLabelsNoLock();
+			}
+		}
+
+		private void UpdateLabelsNoLock()
 		{
 			Labels = SmartLabel.Merge(Keys.Select(x => x.Label));
 		}
