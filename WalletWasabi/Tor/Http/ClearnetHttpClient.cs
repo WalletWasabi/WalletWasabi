@@ -1,4 +1,3 @@
-using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -10,10 +9,12 @@ namespace WalletWasabi.Tor.Http
 	/// HTTP client implementation based on .NET's <see cref="HttpClient"/> which provides least privacy for Wasabi users,
 	/// as HTTP requests are being sent over clearnet.
 	/// </summary>
-	/// <remarks>Inner <see cref="HttpClient"/> instance is thread-safe.</remarks>
-	public class ClearnetHttpClient : IRelativeHttpClient
+	public class ClearnetHttpClient : IHttpClient
 	{
-		static ClearnetHttpClient()
+		/// <summary>This field is temporary and should be ultimately removed.</summary>
+		public static ClearnetHttpClient Instance = new ClearnetHttpClient();
+
+		private ClearnetHttpClient()
 		{
 			HttpClient = new HttpClient(new HttpClientHandler()
 			{
@@ -22,20 +23,13 @@ namespace WalletWasabi.Tor.Http
 			});
 		}
 
-		public ClearnetHttpClient(Func<Uri> destinationUriAction)
-		{
-			DestinationUriAction = destinationUriAction;
-		}
-
-		public Func<Uri> DestinationUriAction { get; }
-
 		/// <summary>Predefined HTTP client that handles HTTP requests when Tor is disabled.</summary>
-		private static HttpClient HttpClient { get; }
+		private HttpClient HttpClient { get; }
 
 		/// <inheritdoc cref="HttpClient.SendAsync(HttpRequestMessage, CancellationToken)"/>
-		public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
+		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
 		{
-			return HttpClient.SendAsync(request, token);
+			return await HttpClient.SendAsync(request, token).ConfigureAwait(false);
 		}
 	}
 }
