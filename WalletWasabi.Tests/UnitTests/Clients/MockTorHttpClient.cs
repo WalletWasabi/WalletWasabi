@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Specialized;
-using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +10,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 {
 	public class MockTorHttpClient : ITorHttpClient
 	{
-		public Uri DestinationUri => new Uri("https://payment.server.org/pj");
+		public Func<Uri> DestinationUriAction => () => new Uri("https://payment.server.org/pj");
 
 		public bool IsTorUsed => true;
 

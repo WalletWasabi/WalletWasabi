@@ -23,8 +23,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		private ISecret? _secret;
 
-		private Cluster _cluster;
-
 		private bool _confirmed;
 		private bool _isBanned;
 
@@ -49,8 +47,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			Height = transaction.Height;
 
 			HdPubKey = pubKey;
-
-			_cluster = new Cluster(this);
 
 			Transaction.WalletOutputs.Add(this);
 		}
@@ -134,12 +130,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		{
 			get => _secret;
 			set => RaiseAndSetIfChanged(ref _secret, value);
-		}
-
-		public Cluster Cluster
-		{
-			get => _cluster;
-			set => RaiseAndSetIfChanged(ref _cluster, value);
 		}
 
 		public bool Confirmed
