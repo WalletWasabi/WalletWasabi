@@ -24,7 +24,6 @@
 The main privacy features on the network level:
 - Tor-only by default.
 - BIP 158 block filters for private light client.
-- Opt-in connection to user full node.
 
 and on the blockchain level:
 - Intuitive ZeroLink CoinJoin integration.
