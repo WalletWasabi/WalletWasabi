@@ -19,7 +19,7 @@ namespace WalletWasabi.Stores
 	/// <summary>
 	/// Manages to store the filters safely.
 	/// </summary>
-	public class IndexStore
+	public class IndexStore : IAsyncDisposable
 	{
 		private int _throttleId;
 
@@ -277,6 +277,8 @@ namespace WalletWasabi.Stores
 			foreach (var filter in filters)
 			{
 				var success = false;
+
+				ThrowIfDisposed();
 				using (await IndexLock.LockAsync().ConfigureAwait(false))
 				{
 					success = TryProcessFilter(filter, enqueue: true);
@@ -299,6 +301,7 @@ namespace WalletWasabi.Stores
 		{
 			FilterModel filter = null;
 
+			ThrowIfDisposed();
 			using (await IndexLock.LockAsync().ConfigureAwait(false))
 			{
 				filter = ImmatureFilters.Last();
@@ -362,6 +365,7 @@ namespace WalletWasabi.Stores
 		{
 			try
 			{
+				ThrowIfDisposed();
 				// If throttle is requested, then throttle.
 				if (throttle != TimeSpan.Zero)
 				{
@@ -385,6 +389,8 @@ namespace WalletWasabi.Stores
 				{
 					Interlocked.Exchange(ref _throttleId, 0); // So to notify the currently throttled threads that they do not have to run.
 				}
+
+				ThrowIfDisposed();
 
 				using (await MatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
 				using (await ImmatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
@@ -414,6 +420,8 @@ namespace WalletWasabi.Stores
 
 		public async Task ForeachFiltersAsync(Func<FilterModel, Task> todo, Height fromHeight, CancellationToken cancel = default)
 		{
+			ThrowIfDisposed();
+
 			using (await MatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
 			using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
 			{
@@ -486,6 +494,34 @@ namespace WalletWasabi.Stores
 				{
 					await todo(filter).ConfigureAwait(false);
 				}
+			}
+		}
+
+		private void ThrowIfDisposed()
+		{
+			if (_disposed)
+			{
+				throw new ObjectDisposedException(nameof(IndexStore));
+			}
+		}
+
+		private bool _disposed;
+
+		public async ValueTask DisposeAsync()
+		{
+			if (_disposed)
+			{
+				return;
+			}
+
+			// Indicate that the object is disposed.
+			_disposed = true;
+
+			// Wait for the ongoing operations to finish, like TryCommitToFileAsync.
+			using (await MatureIndexAsyncLock.LockAsync().ConfigureAwait(false))
+			using (await ImmatureIndexAsyncLock.LockAsync().ConfigureAwait(false))
+			using (await IndexLock.LockAsync().ConfigureAwait(false))
+			{
 			}
 		}
 	}

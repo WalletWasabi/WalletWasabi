@@ -761,6 +761,17 @@ namespace WalletWasabi.Gui
 					Logger.LogError($"Error during the disposal of {nameof(SingleInstanceChecker)}: {ex}");
 				}
 
+				Logger.LogDebug($"Step: {nameof(SingleInstanceChecker)}.", nameof(Global));
+
+				try
+				{
+					await BitcoinStore.DisposeAsync().ConfigureAwait(false);
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError($"Error during the disposal of {nameof(BitcoinStore)}: {ex}");
+				}
+
 				Logger.LogDebug($"Step: {nameof(AsyncMutex)}.", nameof(Global));
 
 				if (AsyncMutex.IsAny)
