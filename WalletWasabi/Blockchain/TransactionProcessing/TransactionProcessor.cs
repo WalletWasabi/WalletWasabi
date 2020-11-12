@@ -17,12 +17,13 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 			AllTransactionStore transactionStore,
 			KeyManager keyManager,
 			Money dustThreshold,
-			int privacyLevelThreshold = 100)
+			int privacyLevelThreshold)
 		{
 			TransactionStore = Guard.NotNull(nameof(transactionStore), transactionStore);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
-			Coins = new CoinsRegistry(privacyLevelThreshold);
+			Coins = new CoinsRegistry();
+			PrivacyLevelThreshold = privacyLevelThreshold;
 		}
 
 		public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
@@ -39,6 +40,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 
 		public int QueuedTxCount { get; private set; }
 		public int QueuedProcessedTxCount { get; private set; }
+		public int PrivacyLevelThreshold { get; }
 
 		#endregion Progress
 
@@ -248,10 +250,10 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 				}
 
 				// Calculate anonymity sets.
-				foreach (var coin in result.NewlyReceivedCoins)
+				foreach (var newCoin in result.NewlyReceivedCoins)
 				{
 					// Get the anonymity set of i-th output in the transaction.
-					var anonset = tx.Transaction.GetAnonymitySet(coin.Index);
+					var anonset = tx.Transaction.GetAnonymitySet(newCoin.Index);
 					// If we provided inputs to the transaction.
 					if (tx.WalletInputs.Any())
 					{
@@ -264,7 +266,16 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 						anonset += tx.WalletInputs.Select(x => x.HdPubKey).Min(x => x.AnonymitySet) - 1;
 					}
 
-					coin.HdPubKey.AnonymitySet = Math.Min(anonset, coin.HdPubKey.AnonymitySet);
+					newCoin.HdPubKey.AnonymitySet = Math.Min(anonset, newCoin.HdPubKey.AnonymitySet);
+
+					// Set clusters.
+					if (newCoin.HdPubKey.AnonymitySet < PrivacyLevelThreshold)
+					{
+						foreach (var spentCoin in result.NewlySpentCoins)
+						{
+							newCoin.HdPubKey.Cluster.Merge(spentCoin.HdPubKey.Cluster);
+						}
+					}
 				}
 			}
 

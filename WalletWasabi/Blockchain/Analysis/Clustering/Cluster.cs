@@ -29,8 +29,6 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 			private set => RaiseAndSetIfChanged(ref _labels, value);
 		}
 
-		public int Size => Keys.Count;
-
 		private object Lock { get; }
 		private List<HdPubKey> Keys { get; set; }
 		private HashSet<HdPubKey> KeysSet { get; set; }
@@ -69,6 +67,8 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 		{
 			Labels = SmartLabel.Merge(Keys.Select(x => x.Label));
 		}
+
+		public override string ToString() => Labels;
 
 		#region EqualityAndComparison
 

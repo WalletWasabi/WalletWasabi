@@ -1100,7 +1100,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			return new OutPoint(RandomUtils.GetUInt256(), 0);
 		}
 
-		private async Task<TransactionProcessor> CreateTransactionProcessorAsync([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
+		private async Task<TransactionProcessor> CreateTransactionProcessorAsync(int privacyLevelThreshold = 100, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
 		{
 			var keyManager = KeyManager.CreateNew(out _, "password");
 			keyManager.AssertCleanKeysIndexed();
@@ -1113,7 +1113,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			return new TransactionProcessor(
 				txStore,
 				keyManager,
-				Money.Coins(0.0001m));
+				Money.Coins(0.0001m),
+				privacyLevelThreshold);
 		}
 	}
 }

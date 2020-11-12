@@ -16,6 +16,7 @@ namespace WalletWasabi.Blockchain.Keys
 	{
 		private Cluster _cluster;
 		private int _anonymitySet = int.MaxValue;
+
 		public HdPubKey(PubKey pubKey, KeyPath fullKeyPath, SmartLabel label, KeyState keyState)
 		{
 			PubKey = Guard.NotNull(nameof(pubKey), pubKey);
@@ -56,11 +57,12 @@ namespace WalletWasabi.Blockchain.Keys
 			set => RaiseAndSetIfChanged(ref _cluster, value);
 		}
 
-				public int AnonymitySet
+		public int AnonymitySet
 		{
 			get => _anonymitySet;
 			set => RaiseAndSetIfChanged(ref _anonymitySet, value);
 		}
+
 		public HashSet<SmartCoin> Coins { get; } = new HashSet<SmartCoin>();
 
 		[JsonProperty(Order = 1)]
