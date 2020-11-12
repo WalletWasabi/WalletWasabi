@@ -22,6 +22,7 @@ namespace WalletWasabi.Stores
 	public class IndexStore : IAsyncDisposable
 	{
 		private int _throttleId;
+		private bool _disposed;
 
 		public IndexStore(string workFolderPath, Network network, SmartHeaderChain hashChain)
 		{
@@ -502,8 +503,6 @@ namespace WalletWasabi.Stores
 				throw new ObjectDisposedException(nameof(IndexStore));
 			}
 		}
-
-		private bool _disposed;
 
 		public async ValueTask DisposeAsync()
 		{
