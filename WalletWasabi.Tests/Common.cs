@@ -63,8 +63,8 @@ namespace WalletWasabi.Tests
 			var keys = keyManager.GetKeys().Take(coinArray.Length).ToArray();
 			for (int i = 0; i < coinArray.Length; i++)
 			{
-				var k = keys[i];
 				var c = coinArray[i];
+				var k = keys[c.KeyIndex];
 				k.SetLabel(c.Label);
 			}
 
@@ -73,7 +73,7 @@ namespace WalletWasabi.Tests
 			{
 				foreach (var sameLabelCoin in scoins.Where(c => !c.HdPubKey.Label.IsEmpty && c.HdPubKey.Label == coin.HdPubKey.Label))
 				{
-					sameLabelCoin.Cluster = coin.Cluster;
+					sameLabelCoin.HdPubKey.Cluster = coin.HdPubKey.Cluster;
 				}
 			}
 			var coinsView = new CoinsView(scoins);
