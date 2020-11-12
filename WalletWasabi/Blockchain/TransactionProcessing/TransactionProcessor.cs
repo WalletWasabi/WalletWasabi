@@ -219,29 +219,25 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 				}
 
 				bool? isLikelyCj = null;
-				var prevOutSet = tx.Transaction.Inputs.Select(x => x.PrevOut).ToHashSet();
-				foreach (var coin in Coins.AsAllCoinsView())
+				// If spends any of our coin
+				foreach (var coin in Coins.AsAllCoinsView().OutPoints(tx.Transaction.Inputs.Select(x => x.PrevOut).ToHashSet()))
 				{
-					// If spends any of our coin
-					if (prevOutSet.TryGetValue(coin.OutPoint, out OutPoint input))
+					var alreadyKnown = coin.SpenderTransaction == tx;
+					result.SpentCoins.Add(coin);
+
+					if (!alreadyKnown)
 					{
-						var alreadyKnown = coin.SpenderTransaction == tx;
-						result.SpentCoins.Add(coin);
-
-						if (!alreadyKnown)
-						{
-							Coins.Spend(coin, tx);
-							result.NewlySpentCoins.Add(coin);
-						}
-
-						if (tx.Confirmed)
-						{
-							result.NewlyConfirmedSpentCoins.Add(coin);
-						}
-
-						isLikelyCj ??= tx.Transaction.IsLikelyCoinjoin();
-						result.IsLikelyOwnCoinJoin = isLikelyCj is true;
+						Coins.Spend(coin, tx);
+						result.NewlySpentCoins.Add(coin);
 					}
+
+					if (tx.Confirmed)
+					{
+						result.NewlyConfirmedSpentCoins.Add(coin);
+					}
+
+					isLikelyCj ??= tx.Transaction.IsLikelyCoinjoin();
+					result.IsLikelyOwnCoinJoin = isLikelyCj is true;
 				}
 
 				if (result.IsNews)
@@ -249,37 +245,42 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					TransactionStore.AddOrUpdate(tx);
 				}
 
-				// Calculate anonymity sets.
-				foreach (var newCoin in result.NewlyReceivedCoins)
-				{
-					// Get the anonymity set of i-th output in the transaction.
-					var anonset = tx.Transaction.GetAnonymitySet(newCoin.Index);
-					// If we provided inputs to the transaction.
-					if (tx.WalletInputs.Any())
-					{
-						// Take the input that we provided with the smallest anonset.
-						// And add that to the base anonset from the tx.
-						// Our smallest anonset input is the relevant here, because this way the common input ownership heuristic is considered.
-						// Take minus 1, because we do not want to count own into the anonset, so...
-						// If the anonset of our UTXO would be 1, and the smallest anonset of our inputs would be 1, too, then we don't make...
-						// The new UTXO's anonset 2, but only 1.
-						anonset += tx.WalletInputs.Select(x => x.HdPubKey).Min(x => x.AnonymitySet) - 1;
-					}
-
-					newCoin.HdPubKey.AnonymitySet = Math.Min(anonset, newCoin.HdPubKey.AnonymitySet);
-
-					// Set clusters.
-					if (newCoin.HdPubKey.AnonymitySet < PrivacyLevelThreshold)
-					{
-						foreach (var spentCoin in result.NewlySpentCoins)
-						{
-							newCoin.HdPubKey.Cluster.Merge(spentCoin.HdPubKey.Cluster);
-						}
-					}
-				}
+				BlockchainAnalyze(result.Transaction);
 			}
 
 			return result;
+		}
+
+		private void BlockchainAnalyze(SmartTransaction tx)
+		{
+			foreach (var newCoin in tx.WalletOutputs)
+			{
+				// Calculate anonymity sets.
+				// Get the anonymity set of i-th output in the transaction.
+				var anonset = tx.Transaction.GetAnonymitySet(newCoin.Index);
+				// If we provided inputs to the transaction.
+				if (tx.WalletInputs.Any())
+				{
+					// Take the input that we provided with the smallest anonset.
+					// And add that to the base anonset from the tx.
+					// Our smallest anonset input is the relevant here, because this way the common input ownership heuristic is considered.
+					// Take minus 1, because we do not want to count own into the anonset, so...
+					// If the anonset of our UTXO would be 1, and the smallest anonset of our inputs would be 1, too, then we don't make...
+					// The new UTXO's anonset 2, but only 1.
+					anonset += tx.WalletInputs.Select(x => x.HdPubKey).Min(x => x.AnonymitySet) - 1;
+				}
+
+				newCoin.HdPubKey.AnonymitySet = Math.Min(anonset, newCoin.HdPubKey.AnonymitySet);
+
+				// Set clusters.
+				if (newCoin.HdPubKey.AnonymitySet < PrivacyLevelThreshold)
+				{
+					foreach (var spentCoin in tx.WalletInputs)
+					{
+						newCoin.HdPubKey.Cluster.Merge(spentCoin.HdPubKey.Cluster);
+					}
+				}
+			}
 		}
 
 		public void UndoBlock(Height blockHeight)
