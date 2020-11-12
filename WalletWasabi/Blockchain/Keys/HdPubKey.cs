@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Helpers;
@@ -11,8 +12,10 @@ using WalletWasabi.JsonConverters;
 namespace WalletWasabi.Blockchain.Keys
 {
 	[JsonObject(MemberSerialization.OptIn)]
-	public class HdPubKey : IEquatable<HdPubKey>
+	public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 	{
+		private int _anonymitySet = int.MaxValue;
+
 		public HdPubKey(PubKey pubKey, KeyPath fullKeyPath, SmartLabel label, KeyState keyState)
 		{
 			PubKey = Guard.NotNull(nameof(pubKey), pubKey);
@@ -44,6 +47,12 @@ namespace WalletWasabi.Blockchain.Keys
 			{
 				throw new ArgumentException(nameof(FullKeyPath));
 			}
+		}
+
+		public int AnonymitySet
+		{
+			get => _anonymitySet;
+			set => RaiseAndSetIfChanged(ref _anonymitySet, value);
 		}
 
 		public HashSet<SmartCoin> Coins { get; } = new HashSet<SmartCoin>();

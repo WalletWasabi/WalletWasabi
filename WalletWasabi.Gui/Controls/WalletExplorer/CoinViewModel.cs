@@ -167,7 +167,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public uint OutputIndex => Model.Index;
 
-		public int AnonymitySet => Model.AnonymitySet;
+		public int AnonymitySet => Model.HdPubKey.AnonymitySet;
 
 		public string InCoinJoin => Model.CoinJoinInProgress ? "Yes" : "No";
 

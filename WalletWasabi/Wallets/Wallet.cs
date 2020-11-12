@@ -290,7 +290,7 @@ namespace WalletWasabi.Wallets
 						{
 							// If it's being mixed and anonset is not sufficient, then queue it.
 							if (!newCoin.IsSpent() && ChaumianClient.HasIngredients
-								&& newCoin.AnonymitySet < ServiceConfiguration.GetMixUntilAnonymitySetValue())
+								&& newCoin.HdPubKey.AnonymitySet < ServiceConfiguration.GetMixUntilAnonymitySetValue())
 							{
 								coinsToQueue.Add(newCoin);
 							}

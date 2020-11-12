@@ -176,7 +176,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 					var createdCoins = CreatedByNoLock(spentCoin.SpenderTransaction.GetHash());
 					foreach (var newCoin in createdCoins)
 					{
-						if (newCoin.AnonymitySet < PrivacyLevelThreshold)
+						if (newCoin.HdPubKey.AnonymitySet < PrivacyLevelThreshold)
 						{
 							spentCoin.Cluster.Merge(newCoin.Cluster);
 							newCoin.Cluster = spentCoin.Cluster;

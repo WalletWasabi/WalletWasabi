@@ -165,7 +165,6 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					}
 				}
 
-				List<SmartCoin> spentOwnCoins = null;
 				for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 				{
 					// If transaction received to any of the wallet keys:
@@ -185,23 +184,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 							continue;
 						}
 
-						spentOwnCoins ??= Coins.OutPoints(tx.Transaction.Inputs).ToList();
-
-						// Get the anonymity set of i-th output in the transaction.
-						var anonset = tx.Transaction.GetAnonymitySet(i);
-						// If we provided inputs to the transaction.
-						if (spentOwnCoins.Count != 0)
-						{
-							// Take the input that we provided with the smallest anonset.
-							// And add that to the base anonset from the tx.
-							// Our smallest anonset input is the relevant here, because this way the common input ownership heuristic is considered.
-							// Take minus 1, because we do not want to count own into the anonset, so...
-							// If the anonset of our UTXO would be 1, and the smallest anonset of our inputs would be 1, too, then we don't make...
-							// The new UTXO's anonset 2, but only 1.
-							anonset += spentOwnCoins.Min(x => x.AnonymitySet) - 1;
-						}
-
-						SmartCoin newCoin = new SmartCoin(tx, i, foundKey, anonset);
+						SmartCoin newCoin = new SmartCoin(tx, i, foundKey);
 
 						result.ReceivedCoins.Add(newCoin);
 						// If we did not have it.
@@ -234,7 +217,6 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 				}
 
 				bool? isLikelyCj = null;
-
 				var prevOutSet = tx.Transaction.Inputs.Select(x => x.PrevOut).ToHashSet();
 				foreach (var coin in Coins.AsAllCoinsView())
 				{
@@ -263,6 +245,26 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 				if (result.IsNews)
 				{
 					TransactionStore.AddOrUpdate(tx);
+				}
+
+				// Calculate anonymity sets.
+				foreach (var coin in result.NewlyReceivedCoins)
+				{
+					// Get the anonymity set of i-th output in the transaction.
+					var anonset = tx.Transaction.GetAnonymitySet(coin.Index);
+					// If we provided inputs to the transaction.
+					if (tx.WalletInputs.Any())
+					{
+						// Take the input that we provided with the smallest anonset.
+						// And add that to the base anonset from the tx.
+						// Our smallest anonset input is the relevant here, because this way the common input ownership heuristic is considered.
+						// Take minus 1, because we do not want to count own into the anonset, so...
+						// If the anonset of our UTXO would be 1, and the smallest anonset of our inputs would be 1, too, then we don't make...
+						// The new UTXO's anonset 2, but only 1.
+						anonset += tx.WalletInputs.Select(x => x.HdPubKey).Min(x => x.AnonymitySet) - 1;
+					}
+
+					coin.HdPubKey.AnonymitySet = Math.Min(anonset, coin.HdPubKey.AnonymitySet);
 				}
 			}
 

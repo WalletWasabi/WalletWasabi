@@ -281,8 +281,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				var foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
 				if (foundKey is { })
 				{
-					var anonset = tx.GetAnonymitySet(i) + smartTransaction.WalletInputs.Min(x => x.AnonymitySet) - 1; // Minus 1, because count own only once.
-					var smartCoin = new SmartCoin(smartTransaction, i, foundKey, anonset);
+					var smartCoin = new SmartCoin(smartTransaction, i, foundKey);
 					label = SmartLabel.Merge(label, smartCoin.HdPubKey.Label); // foundKey's label is already added to the coinlabel.
 					smartTransaction.WalletOutputs.Add(smartCoin);
 				}
