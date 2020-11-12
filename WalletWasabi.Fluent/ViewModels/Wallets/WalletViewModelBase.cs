@@ -13,10 +13,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 	{
 		private string _titleTip;
 		private WalletState _walletState;
-		private CompositeDisposable _disposables;
+		private CompositeDisposable? _disposables;
 		private bool _disposedValue;
 
-		public WalletViewModelBase(NavigationStateViewModel navigationState, Wallet wallet) : base(navigationState, NavigationTarget.Home)
+		protected WalletViewModelBase(NavigationStateViewModel navigationState, Wallet wallet) : base(navigationState, NavigationTarget.Home)
 		{
 			Wallet = Guard.NotNull(nameof(wallet), wallet);
 
@@ -25,7 +25,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			Title = WalletName;
 			var isHardware = Wallet.KeyManager.IsHardwareWallet;
 			var isWatch = Wallet.KeyManager.IsWatchOnly;
-			TitleTip = isHardware ? "Hardware Wallet" : isWatch ? "Watch Only Wallet" : "Hot Wallet";
+			_titleTip = isHardware ? "Hardware Wallet" : isWatch ? "Watch Only Wallet" : "Hot Wallet";
 
 			WalletState = wallet.State;
 
@@ -53,7 +53,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		public int CompareTo([AllowNull] WalletViewModelBase other)
 		{
-			if (WalletState != other.WalletState)
+			if (WalletState != other!.WalletState)
 			{
 				if (WalletState == WalletState.Started || other.WalletState == WalletState.Started)
 				{
@@ -61,7 +61,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				}
 			}
 
-			return Title.CompareTo(other.Title);
+			return Title.CompareTo(other!.Title);
 		}
 
 		public override string ToString() => WalletName;

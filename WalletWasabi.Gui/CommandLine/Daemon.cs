@@ -55,7 +55,7 @@ namespace WalletWasabi.Gui.CommandLine
 					{
 						Console.WriteLine(PasswordHelper.PasswordTooLongMessage);
 					}
-					if (PasswordHelper.IsTrimable(password, out password))
+					if (PasswordHelper.IsTrimmable(password, out password))
 					{
 						Console.WriteLine(PasswordHelper.TrimWarnMessage);
 					}

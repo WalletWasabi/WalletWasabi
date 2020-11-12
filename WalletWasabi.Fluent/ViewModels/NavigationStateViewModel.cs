@@ -13,8 +13,14 @@ namespace WalletWasabi.Fluent.ViewModels
 
 	public class NavigationStateViewModel
 	{
-		public Func<IScreen>? HomeScreen { get; set; }
-		public Func<IScreen>? DialogScreen { get; set; }
-		public Func<IDialogHost>? DialogHost { get; set; }
+		public NavigationStateViewModel(Func<IScreen> homeScreen, Func<IScreen> dialogScreen, Func<IDialogHost> dialogHost)
+		{
+			HomeScreen = homeScreen;
+			DialogScreen = dialogScreen;
+			DialogHost = dialogHost;
+		}
+		public Func<IScreen> HomeScreen { get; }
+		public Func<IScreen> DialogScreen { get; }
+		public Func<IDialogHost> DialogHost { get; }
 	}
 }
