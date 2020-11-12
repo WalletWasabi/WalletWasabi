@@ -18,7 +18,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			LatestCoinsSnapshot = new HashSet<SmartCoin>();
 			LatestSpentCoinsSnapshot = new HashSet<SmartCoin>();
 			InvalidateSnapshot = false;
-			ClustersByScriptPubKey = new Dictionary<Script, Cluster>();
 			CoinsByOutPoint = new Dictionary<OutPoint, HashSet<SmartCoin>>();
 			PrivacyLevelThreshold = privacyLevelThreshold;
 			Lock = new object();
@@ -30,7 +29,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		private object Lock { get; set; }
 		private HashSet<SmartCoin> SpentCoins { get; }
 		private HashSet<SmartCoin> LatestSpentCoinsSnapshot { get; set; }
-		private Dictionary<Script, Cluster> ClustersByScriptPubKey { get; }
 		private Dictionary<OutPoint, HashSet<SmartCoin>> CoinsByOutPoint { get; }
 		private int PrivacyLevelThreshold { get; }
 
@@ -87,15 +85,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 					coin.RegisterToHdPubKey();
 					if (added)
 					{
-						if (ClustersByScriptPubKey.TryGetValue(coin.ScriptPubKey, out var cluster))
-						{
-							coin.Cluster = cluster;
-						}
-						else
-						{
-							ClustersByScriptPubKey.Add(coin.ScriptPubKey, coin.Cluster);
-						}
-
 						foreach (var outPoint in coin.Transaction.Transaction.Inputs.Select(x => x.PrevOut))
 						{
 							var newCoinSet = new HashSet<SmartCoin> { coin };
@@ -178,9 +167,8 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 					{
 						if (newCoin.AnonymitySet < PrivacyLevelThreshold)
 						{
-							spentCoin.Cluster.Merge(newCoin.Cluster);
-							newCoin.Cluster = spentCoin.Cluster;
-							ClustersByScriptPubKey.AddOrReplace(newCoin.ScriptPubKey, newCoin.Cluster);
+							spentCoin.HdPubKey.Cluster.Merge(newCoin.HdPubKey.Cluster);
+							newCoin.HdPubKey.Cluster = spentCoin.HdPubKey.Cluster;
 						}
 					}
 				}

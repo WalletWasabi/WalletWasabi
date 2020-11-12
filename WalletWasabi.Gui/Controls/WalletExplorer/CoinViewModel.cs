@@ -54,7 +54,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.DisposeWith(Disposables);
 
 			_cluster = Model
-				.WhenAnyValue(x => x.Cluster, x => x.Cluster.Labels)
+				.WhenAnyValue(x => x.HdPubKey.Cluster, x => x.HdPubKey.Cluster.Labels)
 				.Select(x => x.Item2.ToString())
 				.ToProperty(this, x => x.Cluster, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Bases;
-using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Keys;
 
 namespace WalletWasabi.Blockchain.Analysis.Clustering
 {
@@ -10,17 +10,17 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 	{
 		private SmartLabel _labels;
 
-		public Cluster(params SmartCoin[] coins)
-			: this(coins as IEnumerable<SmartCoin>)
+		public Cluster(params HdPubKey[] keys)
+			: this(keys as IEnumerable<HdPubKey>)
 		{
 		}
 
-		public Cluster(IEnumerable<SmartCoin> coins)
+		public Cluster(IEnumerable<HdPubKey> keys)
 		{
 			Lock = new object();
-			Coins = coins.ToList();
-			CoinsSet = Coins.ToHashSet();
-			_labels = SmartLabel.Merge(Coins.Select(x => x.HdPubKey.Label));
+			Keys = keys.ToList();
+			CoinsSet = Keys.ToHashSet();
+			_labels = SmartLabel.Merge(Keys.Select(x => x.Label));
 		}
 
 		public SmartLabel Labels
@@ -29,39 +29,31 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 			private set => RaiseAndSetIfChanged(ref _labels, value);
 		}
 
-		public int Size => Coins.Count;
+		public int Size => Keys.Count;
 
 		private object Lock { get; }
-		private List<SmartCoin> Coins { get; set; }
-		private HashSet<SmartCoin> CoinsSet { get; set; }
+		private List<HdPubKey> Keys { get; set; }
+		private HashSet<HdPubKey> CoinsSet { get; set; }
 
-		public void Merge(Cluster cluster) => Merge(cluster.Coins);
+		public void Merge(Cluster cluster) => Merge(cluster.Keys);
 
-		public void Merge(IEnumerable<SmartCoin> coins)
+		public void Merge(IEnumerable<HdPubKey> keys)
 		{
 			lock (Lock)
 			{
 				var insertPosition = 0;
-				foreach (var coin in coins.ToList())
+				foreach (var key in keys.ToList())
 				{
-					if (CoinsSet.Add(coin))
+					if (CoinsSet.Add(key))
 					{
-						Coins.Insert(insertPosition++, coin);
+						Keys.Insert(insertPosition++, key);
 					}
-					coin.Cluster = this;
+					key.Cluster = this;
 				}
 				if (insertPosition > 0) // at least one element was inserted
 				{
-					Labels = SmartLabel.Merge(Coins.Select(x => x.HdPubKey.Label));
+					Labels = SmartLabel.Merge(Keys.Select(x => x.Label));
 				}
-			}
-		}
-
-		public IEnumerable<SmartCoin> GetCoins()
-		{
-			lock (Lock)
-			{
-				return Coins.ToList();
 			}
 		}
 
@@ -76,11 +68,11 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 			lock (Lock)
 			{
 				int hash = 0;
-				if (Coins is { })
+				if (Keys is { })
 				{
-					foreach (var coin in Coins)
+					foreach (var key in Keys)
 					{
-						hash ^= coin.GetHashCode();
+						hash ^= key.GetHashCode();
 					}
 				}
 				return hash;
