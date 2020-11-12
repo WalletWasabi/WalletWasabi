@@ -127,12 +127,21 @@ namespace WalletWasabi.BitcoinCore
 			}
 		}
 
+		private bool _disposed = false;
+
 		public async Task DisposeAsync()
 		{
-			Stop?.Cancel();
+			if (_disposed)
+			{
+				return;
+			}
+
+			Stop.Cancel();
 			await ReconnectorTask.ConfigureAwait(false);
 			await DisconnectAsync(CancellationToken.None).ConfigureAwait(false);
-			Stop?.Dispose();
+			Stop.Dispose();
+
+			_disposed = true;
 		}
 
 		/// <summary>
