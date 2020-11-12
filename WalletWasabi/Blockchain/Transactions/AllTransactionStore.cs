@@ -12,7 +12,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Blockchain.Transactions
 {
-	public class AllTransactionStore
+	public class AllTransactionStore : IAsyncDisposable
 	{
 		public AllTransactionStore(string workFolderPath, Network network)
 		{
@@ -260,6 +260,19 @@ namespace WalletWasabi.Blockchain.Transactions
 		}
 
 		public IEnumerable<SmartLabel> GetLabels() => GetTransactions().Select(x => x.Label);
+
+		public async ValueTask DisposeAsync()
+		{
+			if (MempoolStore is { } mempoolStore)
+			{
+				await mempoolStore.DisposeAsync().ConfigureAwait(false);
+			}
+
+			if (ConfirmedStore is { } confirmedStore)
+			{
+				await confirmedStore.DisposeAsync().ConfigureAwait(false);
+			}
+		}
 
 		#endregion Accessors
 	}

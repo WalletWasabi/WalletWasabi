@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.JsonPatch;
 using NBitcoin;
 using Nito.AsyncEx;
 using System;
@@ -12,7 +13,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Blockchain.Transactions
 {
-	public class TransactionStore
+	public class TransactionStore : IAsyncDisposable
 	{
 		public string WorkFolderPath { get; private set; }
 		public Network Network { get; private set; }
@@ -308,6 +309,7 @@ namespace WalletWasabi.Blockchain.Transactions
 					}
 				}
 
+				ThrowIfDisposed();
 				using (await TransactionsAsyncLock.LockAsync().ConfigureAwait(false))
 				{
 					foreach (ITxStoreOperation op in operationsToExecute)
@@ -395,5 +397,30 @@ namespace WalletWasabi.Blockchain.Transactions
 		}
 
 		#endregion Serialization
+
+		private void ThrowIfDisposed()
+		{
+			if (_disposed)
+			{
+				throw new ObjectDisposedException(nameof(TransactionStore));
+			}
+		}
+
+		private bool _disposed;
+
+		public async ValueTask DisposeAsync()
+		{
+			if (_disposed)
+			{
+				return;
+			}
+
+			// Indicate that the object is disposed.
+			_disposed = true;
+
+			using (await TransactionsAsyncLock.LockAsync().ConfigureAwait(false))
+			{
+			}
+		}
 	}
 }
