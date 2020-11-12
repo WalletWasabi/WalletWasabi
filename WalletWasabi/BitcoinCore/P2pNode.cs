@@ -162,6 +162,14 @@ namespace WalletWasabi.BitcoinCore
 				}
 			}
 
+			await TryDisconnectNodeAsync(node, cancel).ConfigureAwait(false);
+
+			Node = null;
+			Logger.LogInfo("P2p Bitcoin node is disconnected.");
+		}
+
+		private async Task<bool> TryDisconnectNodeAsync(Node node, CancellationToken cancel)
+		{
 			try
 			{
 				// Disconnection not waited here.
@@ -180,10 +188,10 @@ namespace WalletWasabi.BitcoinCore
 			catch (Exception ex)
 			{
 				Logger.LogDebug(ex);
+				return false;
 			}
 
-			Node = null;
-			Logger.LogInfo("P2p Bitcoin node is disconnected.");
+			return true;
 		}
 	}
 }
