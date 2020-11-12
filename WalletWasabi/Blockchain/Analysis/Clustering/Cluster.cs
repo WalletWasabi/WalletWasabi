@@ -52,9 +52,14 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 				}
 				if (insertPosition > 0) // at least one element was inserted
 				{
-					Labels = SmartLabel.Merge(Keys.Select(x => x.Label));
+					UpdateLabels();
 				}
 			}
+		}
+
+		public void UpdateLabels()
+		{
+			Labels = SmartLabel.Merge(Keys.Select(x => x.Label));
 		}
 
 		#region EqualityAndComparison

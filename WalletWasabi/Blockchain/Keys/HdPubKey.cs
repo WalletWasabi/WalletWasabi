@@ -20,8 +20,8 @@ namespace WalletWasabi.Blockchain.Keys
 		{
 			PubKey = Guard.NotNull(nameof(pubKey), pubKey);
 			FullKeyPath = Guard.NotNull(nameof(fullKeyPath), fullKeyPath);
-			SetLabel(label, null);
 			_cluster = new Cluster(this);
+			SetLabel(label, null);
 			KeyState = keyState;
 
 			P2pkScript = PubKey.ScriptPubKey;
@@ -96,6 +96,7 @@ namespace WalletWasabi.Blockchain.Keys
 			}
 
 			Label = label;
+			Cluster.UpdateLabels();
 
 			kmToFile?.ToFile();
 		}
