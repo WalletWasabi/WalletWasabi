@@ -12,7 +12,7 @@ namespace WalletWasabi.Fluent.ViewModels
 {
 	public class SettingsPageViewModel : NavBarItemViewModel
 	{
-		public SettingsPageViewModel(NavigationStateViewModel navigationState) : base(navigationState, NavigationTarget.Home)
+		public SettingsPageViewModel(NavigationStateViewModel navigationState) : base(navigationState, NavigationTarget.HomeScreen)
 		{
 			Title = "Settings";
 
@@ -29,7 +29,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			ConfirmSetting.RegisterHandler(
 				async interaction =>
 				{
-					var x = new TestDialogViewModel(navigationState, interaction.Input);
+					var x = new TestDialogViewModel(navigationState, NavigationTarget.DialogHost, interaction.Input);
 					var result = await x.ShowDialogAsync(navigationState.DialogHost());
 					interaction.SetOutput(result);
 				});
@@ -51,6 +51,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				}
 			});
 		}
+
 		public ICommand NextCommand { get; }
 
 		public ICommand OpenDialogCommand { get; }

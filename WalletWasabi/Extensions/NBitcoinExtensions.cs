@@ -122,7 +122,7 @@ namespace NBitcoin
 				.Where(x => includeSingle || x.Value > 1);
 		}
 
-		public static int GetAnonymitySet(this Transaction me, int outputIndex)
+		public static int GetAnonymitySet(this Transaction me, uint outputIndex)
 		{
 			// 1. Get the output corresponting to the output index.
 			var output = me.Outputs[outputIndex];
@@ -133,8 +133,6 @@ namespace NBitcoin
 			var anonSet = Math.Min(equalOutputs, inputCount);
 			return anonSet;
 		}
-
-		public static int GetAnonymitySet(this Transaction me, uint outputIndex) => GetAnonymitySet(me, (int)outputIndex);
 
 		public static bool IsLikelyCoinjoin(this Transaction me)
 		=> me.Inputs.Count > 1 // The tx must have more than one input in order to be a coinjoin.
