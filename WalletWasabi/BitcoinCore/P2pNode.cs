@@ -141,16 +141,14 @@ namespace WalletWasabi.BitcoinCore
 		/// </summary>
 		public async Task DisconnectAsync(CancellationToken cancel)
 		{
-			Node node = Node;
-			if (node is { })
+			if (Node is { } node)
 			{
 				lock (SubscriptionLock)
 				{
 					MempoolService.TrustedNodeMode = false;
 					if (NodeEventsSubscribed)
 					{
-						var trustedP2pBehavior = TrustedP2pBehavior;
-						if (trustedP2pBehavior is { })
+						if (TrustedP2pBehavior is { } trustedP2pBehavior)
 						{
 							trustedP2pBehavior.BlockInv -= TrustedP2pBehavior_BlockInv;
 						}
