@@ -11,6 +11,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 	public class MockTorHttpClient : IRelativeHttpClient
 	{
 		public Func<Uri> DestinationUriAction => () => new Uri("https://payment.server.org/pj");
+
 		public bool IsTorUsed => true;
 
 		public Func<HttpMethod, string, NameValueCollection, string, Task<HttpResponseMessage>> OnSendAsync { get; set; }

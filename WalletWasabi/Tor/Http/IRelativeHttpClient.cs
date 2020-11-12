@@ -8,7 +8,7 @@ namespace WalletWasabi.Tor.Http
 {
 	/// <summary>
 	/// Interface defining HTTP client capable of sending HTTP requests that are relative to some base URI.
-	/// <para>This is useful to send requests to Wasabi Backend server, for example.</para>
+	/// <para>This is useful, for example, to send requests to Wasabi Backend server.</para>
 	/// </summary>
 	public interface IRelativeHttpClient : IHttpClient
 	{
