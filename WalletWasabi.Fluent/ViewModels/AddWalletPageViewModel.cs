@@ -3,7 +3,6 @@ using System;
 using System.IO;
 using System.Windows.Input;
 using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Wallets;
 using WalletWasabi.Stores;
@@ -13,7 +12,6 @@ using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
-using WalletWasabi.Userfacing;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 
 namespace WalletWasabi.Fluent.ViewModels
@@ -24,7 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		private bool _optionsEnabled;
 
 		public AddWalletPageViewModel(NavigationStateViewModel navigationState, WalletManager walletManager,
-			BitcoinStore store, Network network) : base(navigationState, NavigationTarget.Dialog)
+			BitcoinStore store, Network network) : base(navigationState, NavigationTarget.DialogScreen)
 		{
 			Title = "Add Wallet";
 
@@ -34,15 +32,21 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			RecoverWalletCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				await navigationState.DialogScreen?.Invoke().Router.Navigate.Execute(
+				await navigationState.DialogScreen.Invoke().Router.Navigate.Execute(
 					new RecoverWalletViewModel(navigationState, WalletName, network, walletManager));
 			});
 
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{
-					var result = await PasswordInteraction
-						.Handle("Type your new wallet's password below and click Continue.").ToTask();
+					var enterPassword = new EnterPasswordViewModel(
+						navigationState,
+						NavigationTarget.DialogScreen,
+						"Type the password of the wallet and click Continue.");
+
+					navigationState.DialogScreen.Invoke().Router.Navigate.Execute(enterPassword);
+
+					var result = await enterPassword.GetDialogResultAsync();
 
 					if (result is { } password)
 					{
@@ -58,15 +62,14 @@ namespace WalletWasabi.Fluent.ViewModels
 								return walletGenerator.GenerateWallet(WalletName, password);
 							});
 
-						await navigationState.DialogScreen?.Invoke().Router.Navigate.Execute(
+						await navigationState.DialogScreen?.Invoke().Router.NavigateAndReset.Execute(
 							new RecoveryWordsViewModel(navigationState, km, mnemonic, walletManager));
 					}
+					else
+					{
+						ClearNavigation();
+					}
 				});
-
-			PasswordInteraction = new Interaction<string, string?>();
-			PasswordInteraction.RegisterHandler(
-				async interaction =>
-					interaction.SetOutput(await new EnterPasswordViewModel(interaction.Input).ShowDialogAsync()));
 
 			this.ValidateProperty(x => x.WalletName, errors => ValidateWalletName(errors, walletManager, WalletName));
 		}
@@ -112,8 +115,6 @@ namespace WalletWasabi.Fluent.ViewModels
 			get => _optionsEnabled;
 			set => this.RaiseAndSetIfChanged(ref _optionsEnabled, value);
 		}
-
-		private Interaction<string, string?> PasswordInteraction { get; }
 
 		public ICommand CreateWalletCommand { get; }
 		public ICommand RecoverWalletCommand { get; }
