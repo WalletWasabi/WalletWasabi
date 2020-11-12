@@ -19,7 +19,7 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 		{
 			Lock = new object();
 			Keys = keys.ToList();
-			CoinsSet = Keys.ToHashSet();
+			KeysSet = Keys.ToHashSet();
 			_labels = SmartLabel.Merge(Keys.Select(x => x.Label));
 		}
 
@@ -33,7 +33,7 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 
 		private object Lock { get; }
 		private List<HdPubKey> Keys { get; set; }
-		private HashSet<HdPubKey> CoinsSet { get; set; }
+		private HashSet<HdPubKey> KeysSet { get; set; }
 
 		public void Merge(Cluster cluster) => Merge(cluster.Keys);
 
@@ -44,7 +44,7 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 				var insertPosition = 0;
 				foreach (var key in keys.ToList())
 				{
-					if (CoinsSet.Add(key))
+					if (KeysSet.Add(key))
 					{
 						Keys.Insert(insertPosition++, key);
 					}
@@ -97,7 +97,7 @@ namespace WalletWasabi.Blockchain.Analysis.Clustering
 					{
 						// We lose the order here, which isn't great and may cause problems,
 						// but this is also a significant perfomance gain.
-						return x.CoinsSet.SetEquals(y.CoinsSet);
+						return x.KeysSet.SetEquals(y.KeysSet);
 					}
 				}
 			}
