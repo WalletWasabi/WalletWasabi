@@ -62,6 +62,7 @@ namespace WalletWasabi.Stores
 		public async ValueTask DisposeAsync()
 		{
 			await IndexStore.DisposeAsync().ConfigureAwait(false);
+			await TransactionStore.DisposeAsync().ConfigureAwait(false);
 		}
 	}
 }
