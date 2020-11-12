@@ -221,7 +221,6 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 				}
 			}
 
-			bool? isLikelyCj = null;
 			// If spends any of our coin
 			foreach (var coin in Coins.AsAllCoinsView().OutPoints(tx.Transaction.Inputs.Select(x => x.PrevOut).ToHashSet()))
 			{
@@ -238,9 +237,6 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 				{
 					result.NewlyConfirmedSpentCoins.Add(coin);
 				}
-
-				isLikelyCj ??= tx.Transaction.IsLikelyCoinjoin();
-				result.IsLikelyOwnCoinJoin = isLikelyCj is true;
 			}
 
 			if (result.IsNews)
