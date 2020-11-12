@@ -27,7 +27,6 @@ namespace WalletWasabi.Tests.UnitTests.Filters
 			}
 			await using var indexStore = new IndexStore(dir, network, new SmartHeaderChain());
 			await indexStore.InitializeAsync();
-			await indexStore.DisposeAsync();
 		}
 
 		[Fact]
