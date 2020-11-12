@@ -47,7 +47,7 @@ namespace WalletWasabi.Stores
 		private FilterModel StartingFilter { get; set; }
 		private uint StartingHeight { get; set; }
 		private List<FilterModel> ImmatureFilters { get; set; }
-		private AsyncLock IndexLock { get; set; }
+		private AsyncLock IndexLock { get; set; } = new AsyncLock();
 
 		public async Task InitializeAsync()
 		{
@@ -62,8 +62,6 @@ namespace WalletWasabi.Stores
 				StartingHeight = StartingFilter.Header.Height;
 
 				ImmatureFilters = new List<FilterModel>(150);
-
-				IndexLock = new AsyncLock();
 
 				using (await IndexLock.LockAsync().ConfigureAwait(false))
 				using (await MatureIndexAsyncLock.LockAsync().ConfigureAwait(false))
