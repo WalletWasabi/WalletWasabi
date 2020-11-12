@@ -29,7 +29,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		public BackendTests(RegTestFixture regTestFixture)
 		{
 			RegTestFixture = regTestFixture;
-			BackendHttpClient = new BackendHttpClient(ClearnetHttpClient.Instance, RegTestFixture.BackendEndPointApiUri);
+			BackendHttpClient = new BackendHttpClient(new ClearnetHttpClient(() => RegTestFixture.BackendEndPointApiUri));
 		}
 
 		private RegTestFixture RegTestFixture { get; }
