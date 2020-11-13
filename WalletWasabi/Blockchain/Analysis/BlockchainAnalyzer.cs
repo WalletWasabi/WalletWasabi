@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
 
 namespace WalletWasabi.Blockchain.Analysis
@@ -23,40 +24,105 @@ namespace WalletWasabi.Blockchain.Analysis
 		/// </summary>
 		public void Analyze(SmartTransaction tx)
 		{
-			// Dust attack could ruin the analysis, so it's better not to incorporate this.
-			// For example if someone would dust a mixed coin of ours, its anon score would end up being 1,
-			// even though the duster does not know who it sent the money.
-			// FTR at the time of writing this comment the transaction processor doesn't even let dust to come this far,
-			// but it's better to be prepared for future changes if it's not too computationally expensive.
-			foreach (var newCoin in tx.WalletOutputs.Where(x => x.Amount > DustThreshold))
+			var inputCount = tx.Transaction.Inputs.Count;
+			var outputCount = tx.Transaction.Outputs.Count;
+
+			var ownInputCount = tx.WalletInputs.Count;
+			var ownOutputCount = tx.WalletOutputs.Count;
+
+			var othersInputCount = inputCount - ownInputCount;
+			var othersOutputCount = outputCount - ownOutputCount;
+
+			// If self spend then retain anonset:
+			if (inputCount == ownInputCount && outputCount == ownOutputCount)
 			{
-				// Calculate anonymity sets.
-				// Get the anonymity set of i-th output in the transaction.
-				var anonset = tx.Transaction.GetAnonymitySet(newCoin.Index);
-
-				// If we provided inputs to the transaction.
-				if (tx.WalletInputs.Any())
+				var anonset = Intersect(tx.WalletInputs.Select(x => x.HdPubKey.AnonymitySet), 1);
+				foreach (var key in tx.WalletInputs.Concat(tx.WalletOutputs).Select(x => x.HdPubKey))
 				{
-					// Take the input that we provided with the smallest anonset.
-					// And add that to the base anonset from the tx.
-					// Our smallest anonset input is the relevant here, because this way the common input ownership heuristic is considered.
-					// Take minus 1, because we do not want to count own into the anonset, so...
-					// If the anonset of our UTXO would be 1, and the smallest anonset of our inputs would be 1, too, then we don't make...
-					// The new UTXO's anonset 2, but only 1.
-					anonset += tx.WalletInputs.Select(x => x.HdPubKey).Min(x => x.AnonymitySet) - 1;
+					key.AnonymitySet = anonset;
 				}
+			}
+			// If all our inputs are ours and there's more than one output that isn't,
+			// then we can assume that the persons the money was sent to learnt our inputs.
+			// AND if there're outputs that go to someone else,
+			// then we can assume that the people learnt our change outputs,
+			// or at the very least assume that all the changes in the tx is ours.
+			// For example even if the assumed change output is a payment to someone, a blockchain analyzer
+			// probably would just assume it's ours and go on with its life.
+			else if (inputCount == ownInputCount && othersOutputCount > 0)
+			{
+				foreach (var key in tx.WalletInputs.Concat(tx.WalletOutputs).Select(x => x.HdPubKey))
+				{
+					key.AnonymitySet = 1;
+				}
+			}
+			else
+			{
+				foreach (var newCoin in tx.WalletOutputs)
+				{
+					// Get the anonymity set of i-th output in the transaction.
+					var anonset = tx.Transaction.GetAnonymitySet(newCoin.Index);
 
-				newCoin.HdPubKey.AnonymitySet = Math.Min(anonset, newCoin.HdPubKey.AnonymitySet);
+					// Let's assume the blockchain analyser also participates in the transaction.
+					anonset = Math.Max(1, anonset - 1);
 
-				// Set clusters.
+					// If we provided inputs to the transaction.
+					if (ownInputCount > 0)
+					{
+						var privacyBonus = Intersect(tx.WalletInputs.Select(x => x.HdPubKey.AnonymitySet), (double)ownInputCount / inputCount);
+
+						// If the privacy bonus is <=1 then we are not inheriting any privacy from the inputs.
+						var normalizedBonus = privacyBonus - 1;
+
+						// And add that to the base anonset from the tx.
+						anonset += normalizedBonus;
+					}
+
+					HdPubKey hdPubKey = newCoin.HdPubKey;
+
+					hdPubKey.AnonymitySet = hdPubKey.AnonymitySet == HdPubKey.DefaultHighAnonymitySet
+						? anonset
+						: Intersect(new[] { anonset, hdPubKey.AnonymitySet }, 1);
+				}
+			}
+
+			AnalyzeClusters(tx);
+		}
+
+		private void AnalyzeClusters(SmartTransaction tx)
+		{
+			foreach (var newCoin in tx.WalletOutputs)
+			{
 				if (newCoin.HdPubKey.AnonymitySet < PrivacyLevelThreshold)
 				{
+					// Set clusters.
 					foreach (var spentCoin in tx.WalletInputs)
 					{
 						newCoin.HdPubKey.Cluster.Merge(spentCoin.HdPubKey.Cluster);
 					}
 				}
 			}
+		}
+
+		/// <param name="coefficient">If larger than 1, then penalty is larger, if smaller than 1 then penalty is smaller.</param>
+		private int Intersect(IEnumerable<int> anonsets, double coefficient)
+		{
+			// Sanity check.
+			if (!anonsets.Any())
+			{
+				return 1;
+			}
+
+			// Our smallest anonset is the relevant here, because anonsets cannot grow by intersection punishments.
+			var smallestAnon = anonsets.Min();
+			// Punish intersection exponentially.
+			// If there is only a single anonset then the exponent should be zero to divide by 1 thus retain the input coin anonset.
+			var intersectPenalty = Math.Pow(2, anonsets.Count() - 1);
+			var intersectionAnonset = smallestAnon / Math.Max(1, intersectPenalty * coefficient);
+
+			// Sanity check.
+			var normalizedIntersectionAnonset = Math.Max(1d, intersectionAnonset);
+			return (int)normalizedIntersectionAnonset;
 		}
 	}
 }
