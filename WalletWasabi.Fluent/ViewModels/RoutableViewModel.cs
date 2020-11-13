@@ -43,32 +43,25 @@ namespace WalletWasabi.Fluent.ViewModels
 				case NavigationTarget.Default:
 				case NavigationTarget.HomeScreen:
 					{
-						if (resetNavigation)
-						{
-							NavigationState.HomeScreen.Invoke().Router.NavigateAndReset.Execute(this);
-						}
-						else
-						{
-							NavigationState.HomeScreen.Invoke().Router.Navigate.Execute(this);
-						}
+						var command = resetNavigation ?
+							NavigationState.HomeScreen?.Invoke().Router.NavigateAndReset :
+							NavigationState.HomeScreen?.Invoke().Router.Navigate;
+						command?.Execute(viewModel);
 					}
 					break;
 
 				case NavigationTarget.DialogScreen:
 					{
-						if (resetNavigation)
-						{
-							NavigationState.DialogScreen.Invoke().Router.NavigateAndReset.Execute(this);
-						}
-						else
-						{
-							NavigationState.DialogScreen.Invoke().Router.Navigate.Execute(this);
-						}
+						var command = resetNavigation ?
+							NavigationState.DialogScreen?.Invoke().Router.NavigateAndReset :
+							NavigationState.DialogScreen?.Invoke().Router.Navigate;
+						command?.Execute(viewModel);
 					}
 					break;
 
 				case NavigationTarget.DialogHost:
-					if (viewModel is DialogViewModelBase dialog && NavigationState.DialogHost?.Invoke() is IDialogHost dialogHost)
+					if (viewModel is DialogViewModelBase dialog
+						&& NavigationState.DialogHost?.Invoke() is IDialogHost dialogHost)
 					{
 						dialogHost.CurrentDialog = dialog;
 					}
