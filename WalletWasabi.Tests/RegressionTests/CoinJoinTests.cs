@@ -107,7 +107,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			coordinator.AbortAllRoundsInInputRegistration("");
 
 			using var torClient = new TorHttpClient(BaseUri, Tests.Common.TorSocks5Endpoint);
-			using var satoshiClient = new SatoshiClient(BaseUri, null);
+			var satoshiClient = new SatoshiClient(torClient);
 
 			#region PostInputsGetStates
 
@@ -708,7 +708,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			Uri baseUri = new Uri(RegTestFixture.BackendEndPoint);
 			using var torClient = new TorHttpClient(baseUri, Tests.Common.TorSocks5Endpoint);
-			using var satoshiClient = new SatoshiClient(baseUri, null);
+			var satoshiClient = new SatoshiClient(torClient);
 			var round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 			var roundId = round.RoundId;
 
@@ -1113,7 +1113,8 @@ namespace WalletWasabi.Tests.RegressionTests
 				var stx = new SmartTransaction(tx, height + 1);
 				var bechCoin = tx.Outputs.GetCoins(bech.ScriptPubKey).Single();
 
-				var smartCoin = new SmartCoin(stx, bechCoin.Outpoint.N, key, anonymitySet: tx.GetAnonymitySet(bechCoin.Outpoint.N));
+				var smartCoin = new SmartCoin(stx, bechCoin.Outpoint.N, key);
+				key.AnonymitySet = tx.GetAnonymitySet(bechCoin.Outpoint.N);
 
 				var chaumianClient = new CoinJoinClient(synchronizer, rpc.Network, keyManager);
 
@@ -1226,10 +1227,14 @@ namespace WalletWasabi.Tests.RegressionTests
 			var bech3Coin = tx3.Outputs.GetCoins(bech3.ScriptPubKey).Single();
 			var bech4Coin = tx4.Outputs.GetCoins(bech4.ScriptPubKey).Single();
 
-			var smartCoin1 = new SmartCoin(stx1, bech1Coin.Outpoint.N, key1, anonymitySet: tx1.GetAnonymitySet(bech1Coin.Outpoint.N));
-			var smartCoin2 = new SmartCoin(stx2, bech2Coin.Outpoint.N, key2, anonymitySet: tx2.GetAnonymitySet(bech2Coin.Outpoint.N));
-			var smartCoin3 = new SmartCoin(stx3, bech3Coin.Outpoint.N, key3, anonymitySet: tx3.GetAnonymitySet(bech3Coin.Outpoint.N));
-			var smartCoin4 = new SmartCoin(stx4, bech4Coin.Outpoint.N, key4, anonymitySet: tx4.GetAnonymitySet(bech4Coin.Outpoint.N));
+			var smartCoin1 = new SmartCoin(stx1, bech1Coin.Outpoint.N, key1);
+			var smartCoin2 = new SmartCoin(stx2, bech2Coin.Outpoint.N, key2);
+			var smartCoin3 = new SmartCoin(stx3, bech3Coin.Outpoint.N, key3);
+			var smartCoin4 = new SmartCoin(stx4, bech4Coin.Outpoint.N, key4);
+			key1.AnonymitySet = tx1.GetAnonymitySet(bech1Coin.Outpoint.N);
+			key2.AnonymitySet = tx2.GetAnonymitySet(bech2Coin.Outpoint.N);
+			key3.AnonymitySet = tx3.GetAnonymitySet(bech3Coin.Outpoint.N);
+			key4.AnonymitySet = tx4.GetAnonymitySet(bech4Coin.Outpoint.N);
 
 			var chaumianClient1 = new CoinJoinClient(synchronizer, rpc.Network, keyManager);
 			var chaumianClient2 = new CoinJoinClient(synchronizer, rpc.Network, keyManager);
@@ -1256,7 +1261,8 @@ namespace WalletWasabi.Tests.RegressionTests
 				var randomTx = network.Consensus.ConsensusFactory.CreateTransaction();
 				randomTx.Outputs.Add(new TxOut(Money.Coins(3m), randomKey.P2wpkhScript));
 				var randomStx = new SmartTransaction(randomTx, Height.Mempool);
-				await chaumianClient1.DequeueCoinsFromMixAsync(new SmartCoin(randomStx, 0, randomKey, anonymitySet: 1), DequeueReason.UserRequested);
+				await chaumianClient1.DequeueCoinsFromMixAsync(new SmartCoin(randomStx, 0, randomKey), DequeueReason.UserRequested);
+				randomKey.AnonymitySet = 1;
 
 				Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
 				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1, DequeueReason.UserRequested);

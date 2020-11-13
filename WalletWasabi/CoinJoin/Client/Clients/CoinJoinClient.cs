@@ -23,7 +23,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
-using WalletWasabi.WebClients.Wasabi;
+using WalletWasabi.Tor.Http;
 using static WalletWasabi.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.CoinJoin.Client.Clients
@@ -1073,10 +1073,10 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		private async Task<AliceClientBase> CreateAliceClientAsync(long roundId, List<OutPoint> registrableCoins, (HdPubKey change, IEnumerable<HdPubKey> actives) outputAddresses)
 		{
 			RoundStateResponse4 state;
-			WasabiClientFactory factory = Synchronizer.WasabiClientFactory;
 
-			using (var satoshiClient = new SatoshiClient(factory.BackendUriGetter, factory.TorEndpoint))
+			using (TorHttpClient torHttpClient = Synchronizer.WasabiClientFactory.NewBackendTorHttpClient(isolateStream: true))
 			{
+				var satoshiClient = new SatoshiClient(torHttpClient);
 				state = (RoundStateResponse4)await satoshiClient.GetRoundStateAsync(roundId).ConfigureAwait(false);
 			}
 
