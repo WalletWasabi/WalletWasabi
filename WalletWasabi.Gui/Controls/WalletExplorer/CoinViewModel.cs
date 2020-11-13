@@ -28,6 +28,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableAsPropertyHelper<bool> _coinJoinInProgress;
 		private ObservableAsPropertyHelper<bool> _confirmed;
 		private ObservableAsPropertyHelper<string> _cluster;
+		private ObservableAsPropertyHelper<int> _anonymitySet;
 
 		private volatile bool _disposedValue = false;
 
@@ -51,6 +52,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			_confirmed = Model
 				.WhenAnyValue(x => x.Confirmed)
 				.ToProperty(this, x => x.Confirmed, scheduler: RxApp.MainThreadScheduler)
+				.DisposeWith(Disposables);
+
+			_anonymitySet = Model
+				.WhenAnyValue(x => x.HdPubKey.AnonymitySet)
+				.ToProperty(this, x => x.AnonymitySet, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
 
 			_cluster = Model
@@ -167,7 +173,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public uint OutputIndex => Model.Index;
 
-		public int AnonymitySet => Model.HdPubKey.AnonymitySet;
+		public int AnonymitySet => _anonymitySet?.Value ?? 1;
 
 		public string InCoinJoin => Model.CoinJoinInProgress ? "Yes" : "No";
 
