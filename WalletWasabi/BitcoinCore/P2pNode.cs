@@ -162,18 +162,7 @@ namespace WalletWasabi.BitcoinCore
 					}
 				}
 
-				// Disconnection not waited here.
-				node.DisconnectAsync();
-
-				var sw = Stopwatch.StartNew();
-				while (node.IsConnected)
-				{
-					await Task.Delay(50, cancel).ConfigureAwait(false);
-					if (sw.Elapsed > TimeSpan.FromSeconds(20))
-					{
-						throw new TimeoutException("Could not disconnect P2p Bitcoin node");
-					}
-				}
+				await DisconnectAsync(node, cancel).ConfigureAwait(false);
 
 				Logger.LogInfo("P2p Bitcoin node is disconnected.");
 				return true;
@@ -186,6 +175,33 @@ namespace WalletWasabi.BitcoinCore
 			finally
 			{
 				Node = null;
+			}
+		}
+
+		private static async Task DisconnectAsync(Node node, CancellationToken cancel)
+		{
+			TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
+			node.Disconnected += Node_Disconnected;
+			try
+			{
+				using var _ = cancel.Register(() => tcs.TrySetResult(false));
+				if (!node.IsConnected)
+				{
+					return;
+				}
+
+				// Disconnection not waited here.
+				node.DisconnectAsync();
+				await tcs.Task.ConfigureAwait(false);
+			}
+			finally
+			{
+				node.Disconnected -= Node_Disconnected;
+			}
+
+			void Node_Disconnected(Node node)
+			{
+				tcs.TrySetResult(true);
 			}
 		}
 	}
