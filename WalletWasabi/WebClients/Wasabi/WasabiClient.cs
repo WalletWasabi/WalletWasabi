@@ -14,7 +14,6 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
-using WalletWasabi.Tor.Http.Interfaces;
 
 namespace WalletWasabi.WebClients.Wasabi
 {
@@ -31,12 +30,12 @@ namespace WalletWasabi.WebClients.Wasabi
 		{
 		}
 
-		public WasabiClient(ITorHttpClient torHttpClient)
+		public WasabiClient(IRelativeHttpClient torHttpClient)
 		{
 			TorClient = torHttpClient;
 		}
 
-		private ITorHttpClient TorClient { get; }
+		private IRelativeHttpClient TorClient { get; }
 
 		public static Dictionary<uint256, Transaction> TransactionCache { get; } = new Dictionary<uint256, Transaction>();
 		private static Queue<uint256> TransactionIdQueue { get; } = new Queue<uint256>();
