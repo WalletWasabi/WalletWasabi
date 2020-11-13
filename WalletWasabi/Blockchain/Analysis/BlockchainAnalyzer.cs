@@ -126,8 +126,8 @@ namespace WalletWasabi.Blockchain.Analysis
 			var intersectionAnonset = smallestAnon / Math.Max(1, intersectPenalty * coefficient);
 
 			// Sanity check.
-			var normalizedIntersectionAnonset = Math.Max(1d, intersectionAnonset);
-			return (int)normalizedIntersectionAnonset;
+			var normalizedIntersectionAnonset = Math.Max(1, (int)intersectionAnonset);
+			return normalizedIntersectionAnonset;
 		}
 	}
 }
