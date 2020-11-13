@@ -11,7 +11,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 {
 	public class CoinsRegistry : ICoinsView
 	{
-		public CoinsRegistry(int privacyLevelThreshold)
+		public CoinsRegistry()
 		{
 			Coins = new HashSet<SmartCoin>();
 			SpentCoins = new HashSet<SmartCoin>();
@@ -19,7 +19,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			LatestSpentCoinsSnapshot = new HashSet<SmartCoin>();
 			InvalidateSnapshot = false;
 			CoinsByOutPoint = new Dictionary<OutPoint, HashSet<SmartCoin>>();
-			PrivacyLevelThreshold = privacyLevelThreshold;
 			Lock = new object();
 		}
 
@@ -30,7 +29,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		private HashSet<SmartCoin> SpentCoins { get; }
 		private HashSet<SmartCoin> LatestSpentCoinsSnapshot { get; set; }
 		private Dictionary<OutPoint, HashSet<SmartCoin>> CoinsByOutPoint { get; }
-		private int PrivacyLevelThreshold { get; }
 
 		public bool IsEmpty => !AsCoinsView().Any();
 
@@ -162,15 +160,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 				{
 					InvalidateSnapshot = true;
 					SpentCoins.Add(spentCoin);
-					var createdCoins = CreatedByNoLock(spentCoin.SpenderTransaction.GetHash());
-					foreach (var newCoin in createdCoins)
-					{
-						if (newCoin.AnonymitySet < PrivacyLevelThreshold)
-						{
-							spentCoin.HdPubKey.Cluster.Merge(newCoin.HdPubKey.Cluster);
-							newCoin.HdPubKey.Cluster = spentCoin.HdPubKey.Cluster;
-						}
-					}
 				}
 			}
 		}
@@ -261,7 +250,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		public IEnumerator<SmartCoin> GetEnumerator() => AsCoinsView().GetEnumerator();
 
-		public ICoinsView OutPoints(IEnumerable<OutPoint> outPoints) => AsCoinsView().OutPoints(outPoints);
+		public ICoinsView OutPoints(ISet<OutPoint> outPoints) => AsCoinsView().OutPoints(outPoints);
 
 		public ICoinsView OutPoints(TxInList txIns) => AsCoinsView().OutPoints(txIns);
 

@@ -681,7 +681,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var tx = Network.RegTest.CreateTransaction();
 			tx.Version = 1;
 			tx.LockTime = LockTime.Zero;
-			tx.Outputs.Add(amount, keys.First().P2wpkhScript);
+			tx.Outputs.Add(amount, keys.Skip(1).First().P2wpkhScript);
 			var txOut = new TxOut(amount, new Key().PubKey.WitHash.ScriptPubKey);
 			tx.Outputs.AddRange(Enumerable.Repeat(txOut, 5)); // 6 indistinguishable txouts
 			tx.Inputs.AddRange(Enumerable.Repeat(new TxIn(GetRandomOutPoint(), Script.Empty), 4));
@@ -691,7 +691,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// It is relevant even when all the coins can be dust.
 			Assert.True(relevant.IsNews);
 			var coin = Assert.Single(transactionProcessor.Coins);
-			Assert.Equal(4, coin.AnonymitySet);
+			Assert.Equal(4, coin.HdPubKey.AnonymitySet);
 			Assert.Equal(amount, coin.Amount);
 		}
 
@@ -710,7 +710,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var tx = Network.RegTest.CreateTransaction();
 			tx.Version = 1;
 			tx.LockTime = LockTime.Zero;
-			tx.Outputs.Add(amount, keys.First().P2wpkhScript);
+			tx.Outputs.Add(amount, keys.Skip(1).First().P2wpkhScript);
 			var txOut = new TxOut(Money.Coins(0.1m), new Key().PubKey.WitHash.ScriptPubKey);
 			tx.Outputs.AddRange(Enumerable.Repeat(txOut, 5)); // 6 indistinguishable txouts
 			tx.Inputs.Add(createdCoin.Outpoint, Script.Empty, WitScript.Empty);
@@ -720,8 +720,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// It is relevant even when all the coins can be dust.
 			Assert.True(relevant.IsNews);
-			var coin = Assert.Single(transactionProcessor.Coins, c => c.AnonymitySet > 1);
-			Assert.Equal(5, coin.AnonymitySet);
+			var coin = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.AnonymitySet > 1);
+			Assert.Equal(5, coin.HdPubKey.AnonymitySet);
 			Assert.Equal(amount, coin.Amount);
 		}
 
@@ -1100,7 +1100,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			return new OutPoint(RandomUtils.GetUInt256(), 0);
 		}
 
-		private async Task<TransactionProcessor> CreateTransactionProcessorAsync([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
+		private async Task<TransactionProcessor> CreateTransactionProcessorAsync(int privacyLevelThreshold = 100, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
 		{
 			var keyManager = KeyManager.CreateNew(out _, "password");
 			keyManager.AssertCleanKeysIndexed();
@@ -1113,7 +1113,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			return new TransactionProcessor(
 				txStore,
 				keyManager,
-				Money.Coins(0.0001m));
+				Money.Coins(0.0001m),
+				privacyLevelThreshold);
 		}
 	}
 }
