@@ -184,7 +184,6 @@ namespace WalletWasabi.BitcoinCore
 			node.Disconnected += Node_Disconnected;
 			try
 			{
-				using var _ = cancel.Register(() => tcs.TrySetResult(false));
 				if (!node.IsConnected)
 				{
 					return;
@@ -192,7 +191,7 @@ namespace WalletWasabi.BitcoinCore
 
 				// Disconnection not waited here.
 				node.DisconnectAsync();
-				await tcs.Task.ConfigureAwait(false);
+				await tcs.Task.WithAwaitCancellationAsync(cancel).ConfigureAwait(false);
 			}
 			finally
 			{
