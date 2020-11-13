@@ -33,6 +33,7 @@ namespace WalletWasabi.Blockchain.Analysis
 				// Calculate anonymity sets.
 				// Get the anonymity set of i-th output in the transaction.
 				var anonset = tx.Transaction.GetAnonymitySet(newCoin.Index);
+
 				// If we provided inputs to the transaction.
 				if (tx.WalletInputs.Any())
 				{
