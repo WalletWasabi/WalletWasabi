@@ -102,6 +102,7 @@ namespace WalletWasabi.Tests.RegressionTests
 					inputProofModels.Add(inputProof);
 
 					GetTxOutResponse getTxOutResponse = await rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true);
+
 					// Check if inputs are unspent.
 					Assert.NotNull(getTxOutResponse);
 
@@ -143,6 +144,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				{
 					Assert.Equal(roundId, aliceClient.RoundId);
 				}
+
 				// Because it's valuetuple.
 				users.Add((user.requester, user.blinded, user.activeOutputAddress, user.changeOutputAddress, user.inputProofModels, user.userInputData, aliceClient, null));
 			}
@@ -213,6 +215,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				{
 					Assert.Equal(roundId, aliceClient.RoundId);
 				}
+
 				// Because it's valuetuple.
 				users.Add((user.requester, user.blinded, user.activeOutputAddress, user.changeOutputAddress, user.inputProofModels, user.userInputData, aliceClient, null));
 			}
