@@ -14,7 +14,6 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
-using WalletWasabi.Tor.Http.Interfaces;
 
 namespace WalletWasabi.WebClients.Wasabi
 {
