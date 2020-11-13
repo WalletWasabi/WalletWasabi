@@ -1,39 +1,42 @@
+using System.IO;
 using System.Reactive;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
+using WalletWasabi.Legal;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
-	public class LegalDocumentsViewModel : DialogViewModelBase<Unit>
+	public class LegalDocumentsViewModel : RoutableViewModel
 	{
 		public LegalDocumentsViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget, string content) :
 			base(navigationState, navigationTarget)
 		{
+			Content = content;
 		}
 
-		protected override void OnDialogClosed()
-		{
-		}
+		public ICommand NextCommand => BackCommand;
+
+		public string Content { get; }
 	}
 
 	public class TermsAndConditionsViewModel : DialogViewModelBase<bool>
 	{
 		private bool _isAgreed;
 
-		public TermsAndConditionsViewModel(NavigationStateViewModel navigationState) : base(navigationState, NavigationTarget.DialogScreen)
+		public TermsAndConditionsViewModel(NavigationStateViewModel navigationState, LegalDocuments legalDocuments) : base(navigationState, NavigationTarget.DialogScreen)
 		{
 			ViewTermsCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{
+					var content = await File.ReadAllTextAsync(legalDocuments.FilePath);
+
 					var legalDocs = new LegalDocumentsViewModel(
 						navigationState,
 						NavigationTarget.DialogScreen,
-						"Lorem ipsum dolar ipsamet");
+						content);
 
-					navigationState.DialogScreen.Invoke().Router.Navigate.Execute(legalDocs);
-
-					var result = await legalDocs.GetDialogResultAsync();
+					legalDocs.Navigate();
 				});
 
 			NextCommand = ReactiveCommand.Create(
