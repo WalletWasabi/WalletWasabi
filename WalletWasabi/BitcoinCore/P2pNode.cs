@@ -135,13 +135,12 @@ namespace WalletWasabi.BitcoinCore
 			{
 				return;
 			}
+			_disposed = true;
 
 			Stop.Cancel();
 			await ReconnectorTask.ConfigureAwait(false);
 			await DisconnectAsync(CancellationToken.None).ConfigureAwait(false);
 			Stop.Dispose();
-
-			_disposed = true;
 		}
 
 		/// <summary>
