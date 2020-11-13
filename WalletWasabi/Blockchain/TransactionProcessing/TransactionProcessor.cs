@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
+using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -23,7 +24,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
 			Coins = new CoinsRegistry();
-			PrivacyLevelThreshold = privacyLevelThreshold;
+			BlockchainAnalyzer = new BlockchainAnalyzer(privacyLevelThreshold, DustThreshold);
 		}
 
 		public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
@@ -34,13 +35,13 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 		public KeyManager KeyManager { get; }
 
 		public CoinsRegistry Coins { get; }
+		public BlockchainAnalyzer BlockchainAnalyzer { get; }
 		public Money DustThreshold { get; }
 
 		#region Progress
 
 		public int QueuedTxCount { get; private set; }
 		public int QueuedProcessedTxCount { get; private set; }
-		public int PrivacyLevelThreshold { get; }
 
 		#endregion Progress
 
@@ -244,41 +245,9 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 				TransactionStore.AddOrUpdate(tx);
 			}
 
-			BlockchainAnalyze(result.Transaction);
+			BlockchainAnalyzer.Analyze(result.Transaction);
 
 			return result;
-		}
-
-		private void BlockchainAnalyze(SmartTransaction tx)
-		{
-			foreach (var newCoin in tx.WalletOutputs)
-			{
-				// Calculate anonymity sets.
-				// Get the anonymity set of i-th output in the transaction.
-				var anonset = tx.Transaction.GetAnonymitySet(newCoin.Index);
-				// If we provided inputs to the transaction.
-				if (tx.WalletInputs.Any())
-				{
-					// Take the input that we provided with the smallest anonset.
-					// And add that to the base anonset from the tx.
-					// Our smallest anonset input is the relevant here, because this way the common input ownership heuristic is considered.
-					// Take minus 1, because we do not want to count own into the anonset, so...
-					// If the anonset of our UTXO would be 1, and the smallest anonset of our inputs would be 1, too, then we don't make...
-					// The new UTXO's anonset 2, but only 1.
-					anonset += tx.WalletInputs.Select(x => x.HdPubKey).Min(x => x.AnonymitySet) - 1;
-				}
-
-				newCoin.HdPubKey.AnonymitySet = Math.Min(anonset, newCoin.HdPubKey.AnonymitySet);
-
-				// Set clusters.
-				if (newCoin.HdPubKey.AnonymitySet < PrivacyLevelThreshold)
-				{
-					foreach (var spentCoin in tx.WalletInputs)
-					{
-						newCoin.HdPubKey.Cluster.Merge(spentCoin.HdPubKey.Cluster);
-					}
-				}
-			}
 		}
 
 		public void UndoBlock(Height blockHeight)
