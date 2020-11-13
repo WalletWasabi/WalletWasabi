@@ -14,7 +14,6 @@ using Newtonsoft.Json.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tor.Http;
-using WalletWasabi.Tor.Http.Interfaces;
 
 namespace WalletWasabi.WebClients.PayJoin
 {
