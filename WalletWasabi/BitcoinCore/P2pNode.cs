@@ -26,7 +26,7 @@ namespace WalletWasabi.BitcoinCore
 			Stop = new CancellationTokenSource();
 			NodeEventsSubscribed = false;
 			SubscriptionLock = new object();
-			ReconnectorLock = new AsyncLock();
+			P2pReconnector = new P2pReconnector(TimeSpan.FromSeconds(7), this);
 		}
 
 		public event EventHandler<uint256>? BlockInv;
@@ -40,9 +40,8 @@ namespace WalletWasabi.BitcoinCore
 
 		private bool NodeEventsSubscribed { get; set; }
 		private object SubscriptionLock { get; }
-		public AsyncLock ReconnectorLock { get; }
 		private CancellationTokenSource Stop { get; set; }
-		private Task ReconnectorTask { get; set; } = Task.CompletedTask;
+		private P2pReconnector P2pReconnector { get; set; }
 
 		public async Task ConnectAsync(CancellationToken cancel)
 		{
@@ -94,16 +93,7 @@ namespace WalletWasabi.BitcoinCore
 		{
 			try
 			{
-				using (await ReconnectorLock.LockAsync(Stop.Token).ConfigureAwait(false))
-				{
-					if (node.IsConnected)
-					{
-						return;
-					}
-					var reconnector = new P2pReconnector(TimeSpan.FromSeconds(7), this);
-					ReconnectorTask = reconnector.StartAndAwaitReconnectionAsync(Stop.Token);
-					await ReconnectorTask.ConfigureAwait(false);
-				}
+				await P2pReconnector.StartAndAwaitReconnectionAsync(Stop.Token).ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
@@ -138,15 +128,15 @@ namespace WalletWasabi.BitcoinCore
 			_disposed = true;
 
 			Stop.Cancel();
-			await ReconnectorTask.ConfigureAwait(false);
-			await DisconnectAsync(CancellationToken.None).ConfigureAwait(false);
+			P2pReconnector.Dispose();
+			await TryDisconnectAsync(CancellationToken.None).ConfigureAwait(false);
 			Stop.Dispose();
 		}
 
 		/// <summary>
 		/// It is not equivalent to Dispose, but it is being called from Dispose.
 		/// </summary>
-		public async Task<bool> DisconnectAsync(CancellationToken cancel)
+		public async Task<bool> TryDisconnectAsync(CancellationToken cancel)
 		{
 			var node = Node;
 			if (node is null)
