@@ -42,6 +42,7 @@ namespace WalletWasabi.Blockchain.Analysis
 					key.AnonymitySet = anonset;
 				}
 			}
+
 			// If all our inputs are ours and there's more than one output that isn't,
 			// then we can assume that the persons the money was sent to learnt our inputs.
 			// AND if there're outputs that go to someone else,
@@ -115,6 +116,7 @@ namespace WalletWasabi.Blockchain.Analysis
 
 			// Our smallest anonset is the relevant here, because anonsets cannot grow by intersection punishments.
 			var smallestAnon = anonsets.Min();
+
 			// Punish intersection exponentially.
 			// If there is only a single anonset then the exponent should be zero to divide by 1 thus retain the input coin anonset.
 			var intersectPenalty = Math.Pow(2, anonsets.Count() - 1);
