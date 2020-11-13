@@ -26,6 +26,9 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			Title = "Add Wallet";
 
+			OpenCommand = ReactiveCommand.CreateFromTask(
+				async () => await ShowTermsAndConditionsAsync());
+
 			this.WhenAnyValue(x => x.WalletName)
 				.Select(x => !string.IsNullOrWhiteSpace(x))
 				.Subscribe(x => OptionsEnabled = x && !Validations.Any);
@@ -70,6 +73,22 @@ namespace WalletWasabi.Fluent.ViewModels
 				});
 
 			this.ValidateProperty(x => x.WalletName, errors => ValidateWalletName(errors, walletManager, WalletName));
+		}
+
+		private async Task ShowTermsAndConditionsAsync()
+		{
+			var termsAndConditions = new TermsAndConditionsViewModel(NavigationState);
+
+			termsAndConditions.Navigate();
+
+			if (await termsAndConditions.GetDialogResultAsync())
+			{
+				Navigate();
+			}
+			else
+			{
+				GoBack();
+			}
 		}
 
 		private void ValidateWalletName(IValidationErrors errors, WalletManager walletManager, string walletName)

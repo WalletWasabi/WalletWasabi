@@ -24,6 +24,8 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 							  .Skip(1) // Skip the initial value change (which is false).
 							  .DistinctUntilChanged()
 							  .Subscribe(OnIsDialogOpenChanged);
+
+			CancelCommand = ReactiveCommand.Create(() => Close());
 		}
 
 		private void OnIsDialogOpenChanged(bool dialogState)
