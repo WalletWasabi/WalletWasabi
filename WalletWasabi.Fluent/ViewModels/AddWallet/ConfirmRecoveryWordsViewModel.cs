@@ -33,11 +33,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				() =>
 				{
 					walletManager.AddWallet(keyManager);
-					navigationState.DialogScreen?.Invoke().Router.NavigationStack.Clear();
+					ClearNavigation(NavigationTarget.DialogScreen);
 				},
 				finishCommandCanExecute);
 
-			CancelCommand = ReactiveCommand.Create(() => navigationState.DialogScreen?.Invoke().Router.NavigationStack.Clear());
+			CancelCommand = ReactiveCommand.Create(() => ClearNavigation(NavigationTarget.DialogScreen));
 
 			_confirmationWordsSourceList
 				.Connect()

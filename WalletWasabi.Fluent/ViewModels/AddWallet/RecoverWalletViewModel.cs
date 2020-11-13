@@ -83,7 +83,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					NavigationTarget.DialogScreen,
 					"Type the password of the wallet to be able to recover and click Continue.");
 
-				navigationState.DialogScreen().Router.Navigate.Execute(enterPassword);
+				NavigateTo(enterPassword, NavigationTarget.DialogScreen);
 
 				var password = await enterPassword.GetDialogResultAsync();
 
@@ -99,7 +99,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				keyManager.SetNetwork(network);
 				walletManager.AddWallet(keyManager);
 
-				navigationState.DialogScreen.Invoke().Router.NavigationStack.Clear();
+				ClearNavigation(NavigationTarget.DialogScreen);
 			}
 			catch (Exception ex)
 			{
