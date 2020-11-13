@@ -146,40 +146,32 @@ namespace WalletWasabi.BitcoinCore
 		/// <summary>
 		/// It is not equivalent to Dispose, but it is being called from Dispose.
 		/// </summary>
-		public async Task DisconnectAsync(CancellationToken cancel)
+		public async Task<bool> DisconnectAsync(CancellationToken cancel)
 		{
 			var node = Node;
 			if (node is null)
 			{
-				return;
+				return true;
 			}
 
-			lock (SubscriptionLock)
-			{
-				MempoolService.TrustedNodeMode = false;
-				if (NodeEventsSubscribed)
-				{
-					if (TrustedP2pBehavior is { } trustedP2pBehavior)
-					{
-						trustedP2pBehavior.BlockInv -= TrustedP2pBehavior_BlockInv;
-					}
-					node.Disconnected -= Node_DisconnectedAsync;
-					node.StateChanged -= P2pNode_StateChanged;
-					node.UncaughtException -= Node_UncaughtException;
-					NodeEventsSubscribed = false;
-				}
-			}
-
-			await TryDisconnectNodeAsync(node, cancel).ConfigureAwait(false);
-
-			Node = null;
-			Logger.LogInfo("P2p Bitcoin node is disconnected.");
-		}
-
-		private async Task<bool> TryDisconnectNodeAsync(Node node, CancellationToken cancel)
-		{
 			try
 			{
+				lock (SubscriptionLock)
+				{
+					MempoolService.TrustedNodeMode = false;
+					if (NodeEventsSubscribed)
+					{
+						if (TrustedP2pBehavior is { } trustedP2pBehavior)
+						{
+							trustedP2pBehavior.BlockInv -= TrustedP2pBehavior_BlockInv;
+						}
+						node.Disconnected -= Node_DisconnectedAsync;
+						node.StateChanged -= P2pNode_StateChanged;
+						node.UncaughtException -= Node_UncaughtException;
+						NodeEventsSubscribed = false;
+					}
+				}
+
 				// Disconnection not waited here.
 				node.DisconnectAsync();
 
@@ -192,14 +184,19 @@ namespace WalletWasabi.BitcoinCore
 						throw new TimeoutException("Could not disconnect P2p Bitcoin node");
 					}
 				}
+
+				Logger.LogInfo("P2p Bitcoin node is disconnected.");
+				return true;
 			}
 			catch (Exception ex)
 			{
-				Logger.LogDebug(ex);
+				Logger.LogError($"P2p Bitcoin node failed to disconnect. '{ex.ToUserFriendlyString()}'");
 				return false;
 			}
-
-			return true;
+			finally
+			{
+				Node = null;
+			}
 		}
 	}
 }
