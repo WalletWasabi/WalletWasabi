@@ -30,28 +30,28 @@ namespace WalletWasabi.Blockchain.Analysis
 			var ownInputCount = tx.WalletInputs.Count;
 			var ownOutputCount = tx.WalletOutputs.Count;
 
-			var othersInputCount = inputCount - ownInputCount;
 			var othersOutputCount = outputCount - ownOutputCount;
 
-			// If self spend then retain anonset:
 			if (inputCount == ownInputCount && outputCount == ownOutputCount)
 			{
-				var anonset = Intersect(tx.WalletInputs.Select(x => x.HdPubKey.AnonymitySet), 1);
+				// If self spend then retain anonset:
+				// Reusing pubkey on the input side is good, the punishment happened already.
+				var distinctWalletInputPubKeys = tx.WalletInputs.Select(x => x.HdPubKey).ToHashSet();
+				var anonset = Intersect(distinctWalletInputPubKeys.Select(x => x.AnonymitySet), 1);
 				foreach (var key in tx.WalletInputs.Concat(tx.WalletOutputs).Select(x => x.HdPubKey))
 				{
 					key.AnonymitySet = anonset;
 				}
 			}
-
-			// If all our inputs are ours and there's more than one output that isn't,
-			// then we can assume that the persons the money was sent to learnt our inputs.
-			// AND if there're outputs that go to someone else,
-			// then we can assume that the people learnt our change outputs,
-			// or at the very least assume that all the changes in the tx is ours.
-			// For example even if the assumed change output is a payment to someone, a blockchain analyzer
-			// probably would just assume it's ours and go on with its life.
 			else if (inputCount == ownInputCount && othersOutputCount > 0)
 			{
+				// If all our inputs are ours and there's more than one output that isn't,
+				// then we can assume that the persons the money was sent to learnt our inputs.
+				// AND if there're outputs that go to someone else,
+				// then we can assume that the people learnt our change outputs,
+				// or at the very least assume that all the changes in the tx is ours.
+				// For example even if the assumed change output is a payment to someone, a blockchain analyzer
+				// probably would just assume it's ours and go on with its life.
 				foreach (var key in tx.WalletInputs.Concat(tx.WalletOutputs).Select(x => x.HdPubKey))
 				{
 					key.AnonymitySet = 1;
@@ -59,34 +59,55 @@ namespace WalletWasabi.Blockchain.Analysis
 			}
 			else
 			{
+				var inheritedAnonset = 0;
+				// If we provided inputs to the transaction.
+				var distinctWalletInputPubKeys = tx.WalletInputs.Select(x => x.HdPubKey).ToHashSet();
+				if (ownInputCount > 0)
+				{
+					// Reusing pubkey on the input side is good, the punishment happened already.
+					var distinctWalletInputPubKeyCount = distinctWalletInputPubKeys.Count;
+					var pubKeyReuseCount = ownInputCount - distinctWalletInputPubKeyCount;
+					var privacyBonus = Intersect(distinctWalletInputPubKeys.Select(x => x.AnonymitySet), (double)distinctWalletInputPubKeyCount / (inputCount - pubKeyReuseCount));
+
+					// If the privacy bonus is <=1 then we are not inheriting any privacy from the inputs.
+					var normalizedBonus = privacyBonus - 1;
+
+					// And add that to the base anonset from the tx.
+					inheritedAnonset = normalizedBonus;
+
+					foreach (var key in tx.WalletInputs.Select(x => x.HdPubKey))
+					{
+						key.AnonymitySet = inheritedAnonset;
+					}
+				}
+
 				foreach (var newCoin in tx.WalletOutputs)
 				{
 					// Get the anonymity set of i-th output in the transaction.
-					var anonset = tx.Transaction.GetAnonymitySet(newCoin.Index);
+					var anonset = inheritedAnonset;
+					anonset += tx.Transaction.GetAnonymitySet(newCoin.Index);
 
 					// Let's assume the blockchain analyser also participates in the transaction.
 					anonset = Math.Max(1, anonset - 1);
 
-					// If we provided inputs to the transaction.
-					if (ownInputCount > 0)
-					{
-						var privacyBonus = Intersect(tx.WalletInputs.Select(x => x.HdPubKey.AnonymitySet), (double)ownInputCount / inputCount);
-
-						// If the privacy bonus is <=1 then we are not inheriting any privacy from the inputs.
-						var normalizedBonus = privacyBonus - 1;
-
-						// And add that to the base anonset from the tx.
-						anonset += normalizedBonus;
-					}
-
-					// If the new coin's HD pubkey haven't been used yet
-					// then its anonset haven't been set yet.
-					// In that case the acquired anonset does not have to be intersected with the default anonset,
-					// so this coin gets the aquired anonset.
 					HdPubKey hdPubKey = newCoin.HdPubKey;
-					hdPubKey.AnonymitySet = hdPubKey.AnonymitySet == HdPubKey.DefaultHighAnonymitySet
-						? anonset
-						: Intersect(new[] { anonset, hdPubKey.AnonymitySet }, 1);
+					if (hdPubKey.AnonymitySet == HdPubKey.DefaultHighAnonymitySet)
+					{
+						// If the new coin's HD pubkey haven't been used yet
+						// then its anonset haven't been set yet.
+						// In that case the acquired anonset does not have to be intersected with the default anonset,
+						// so this coin gets the aquired anonset.
+						hdPubKey.AnonymitySet = anonset;
+					}
+					else if (distinctWalletInputPubKeys.Contains(hdPubKey))
+					{
+						// If it's a reuse of an input's pubkey, then intersection punishment is senseless.
+						hdPubKey.AnonymitySet = inheritedAnonset;
+					}
+					else
+					{
+						hdPubKey.AnonymitySet = Intersect(new[] { anonset, hdPubKey.AnonymitySet }, 1);
+					}
 				}
 			}
 
