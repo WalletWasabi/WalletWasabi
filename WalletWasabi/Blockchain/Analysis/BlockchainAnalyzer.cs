@@ -10,14 +10,12 @@ namespace WalletWasabi.Blockchain.Analysis
 {
 	public class BlockchainAnalyzer
 	{
-		public BlockchainAnalyzer(int privacyLevelThreshold, Money dustThreshold)
+		public BlockchainAnalyzer(int privacyLevelThreshold)
 		{
 			PrivacyLevelThreshold = privacyLevelThreshold;
-			DustThreshold = dustThreshold;
 		}
 
 		public int PrivacyLevelThreshold { get; }
-		public Money DustThreshold { get; }
 
 		/// <summary>
 		/// Sets clusters and anonymity sets for related HD public keys.
@@ -71,7 +69,7 @@ namespace WalletWasabi.Blockchain.Analysis
 
 				foreach (var key in tx.WalletInputs.Select(x => x.HdPubKey))
 				{
-					key.AnonymitySet = inheritedAnonset;
+					key.AnonymitySet = inheritedAnonset + 1;
 				}
 			}
 
@@ -80,9 +78,6 @@ namespace WalletWasabi.Blockchain.Analysis
 				// Get the anonymity set of i-th output in the transaction.
 				var anonset = inheritedAnonset;
 				anonset += tx.Transaction.GetAnonymitySet(newCoin.Index);
-
-				// Let's assume the blockchain analyser also participates in the transaction.
-				anonset = Math.Max(1, anonset - 1);
 
 				HdPubKey hdPubKey = newCoin.HdPubKey;
 				if (hdPubKey.AnonymitySet == HdPubKey.DefaultHighAnonymitySet)
@@ -96,7 +91,7 @@ namespace WalletWasabi.Blockchain.Analysis
 				else if (distinctWalletInputPubKeys.Contains(hdPubKey))
 				{
 					// If it's a reuse of an input's pubkey, then intersection punishment is senseless.
-					hdPubKey.AnonymitySet = inheritedAnonset;
+					hdPubKey.AnonymitySet = inheritedAnonset + 1;
 				}
 				else
 				{

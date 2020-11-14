@@ -14,16 +14,17 @@ namespace WalletWasabi.Tests.Helpers
 {
 	public static class BitcoinMock
 	{
-		public static BlockchainAnalyzer RandomBlockchainAnalyzer(int privacyLevelThreshold = 100, Money? dustThreshold = null)
+		public static BlockchainAnalyzer RandomBlockchainAnalyzer(int privacyLevelThreshold = 100)
 		{
-			dustThreshold ??= Money.Satoshis(1);
-			return new BlockchainAnalyzer(privacyLevelThreshold, dustThreshold);
+			return new BlockchainAnalyzer(privacyLevelThreshold);
 		}
 
-		public static SmartTransaction RandomSmartTransaction(int othersInputCount = 1, int othersOutputCount = 1, int ownInputCount = 0, int ownOutputCount = 0)
+		public static SmartTransaction RandomSmartTransaction(int othersInputCount, IEnumerable<Money> othersOutputs, IEnumerable<(Money value, int anonset)> ownInputs, IEnumerable<(Money value, int anonset)> ownOutputs)
 		{
 			var km = RandomKeyManager().Item2;
 			var tx = Transaction.Create(Network.Main);
+			var ownInputCount = ownInputs.Count();
+			var ownOutputCount = ownOutputs.Count();
 			var walletInputs = new HashSet<SmartCoin>(ownInputCount);
 			var walletOutputs = new HashSet<SmartCoin>(ownOutputCount);
 
@@ -32,22 +33,27 @@ namespace WalletWasabi.Tests.Helpers
 				var sc = RandomSmartCoin(RandomHdPubKey(km), 1m);
 				tx.Inputs.Add(sc.OutPoint);
 			}
-			for (int i = 0; i < ownInputCount; i++)
+			var idx = (uint)othersInputCount - 1;
+			foreach (var txo in ownInputs)
 			{
-				var sc = RandomSmartCoin(RandomHdPubKey(km), 1m);
+				idx++;
+				var sc = RandomSmartCoin(RandomHdPubKey(km), txo.value, idx, anonymitySet: txo.anonset);
 				tx.Inputs.Add(sc.OutPoint);
 				walletInputs.Add(sc);
 			}
 
-			for (int i = 0; i < othersOutputCount; i++)
+			foreach (var val in othersOutputs)
 			{
-				var sc = RandomSmartCoin(RandomHdPubKey(km), 1.00001m);
+				var sc = RandomSmartCoin(RandomHdPubKey(km), val);
 				tx.Outputs.Add(sc.TxOut);
 			}
-			for (int i = 0; i < ownOutputCount; i++)
+			idx = (uint)othersOutputs.Count() - 1;
+			foreach (var txo in ownOutputs)
 			{
-				var sc = RandomSmartCoin(RandomHdPubKey(km), 1.00001m);
-				tx.Outputs.Add(sc.TxOut);
+				idx++;
+				var hdpk = RandomHdPubKey(km);
+				tx.Outputs.Add(new TxOut(txo.value, hdpk.P2wpkhScript));
+				var sc = new SmartCoin(new SmartTransaction(tx, Height.Mempool), idx, hdpk);
 				walletOutputs.Add(sc);
 			}
 
@@ -66,18 +72,21 @@ namespace WalletWasabi.Tests.Helpers
 			return stx;
 		}
 
+		public static SmartTransaction RandomSmartTransaction(int othersInputCount = 1, int othersOutputCount = 1, int ownInputCount = 0, int ownOutputCount = 0)
+			=> RandomSmartTransaction(othersInputCount, Enumerable.Repeat(Money.Coins(1m), othersOutputCount), Enumerable.Repeat((Money.Coins(1.1m), 1), ownInputCount), Enumerable.Repeat((Money.Coins(1m), 1), ownOutputCount));
+
 		public static HdPubKey RandomHdPubKey(KeyManager km)
 		{
 			return km.GenerateNewKey(SmartLabel.Empty, KeyState.Clean, isInternal: false);
 		}
 
-		public static SmartCoin RandomSmartCoin(HdPubKey pubKey, decimal amountBtc, bool confirmed = true, int anonymitySet = 1)
-			=> RandomSmartCoin(pubKey, Money.Coins(amountBtc), confirmed, anonymitySet);
+		public static SmartCoin RandomSmartCoin(HdPubKey pubKey, decimal amountBtc, uint index = 0, bool confirmed = true, int anonymitySet = 1)
+			=> RandomSmartCoin(pubKey, Money.Coins(amountBtc), index, confirmed, anonymitySet);
 
 		public static int RandomInt(int minInclusive, int maxInclusive)
 			=> new Random().Next(minInclusive, maxInclusive + 1);
 
-		public static SmartCoin RandomSmartCoin(HdPubKey pubKey, Money amount, bool confirmed = true, int anonymitySet = 1)
+		public static SmartCoin RandomSmartCoin(HdPubKey pubKey, Money amount, uint index = 0, bool confirmed = true, int anonymitySet = 1)
 		{
 			var height = confirmed ? new Height(RandomInt(0, 200)) : Height.Mempool;
 			pubKey.SetKeyState(KeyState.Used);
@@ -85,7 +94,7 @@ namespace WalletWasabi.Tests.Helpers
 			tx.Outputs.Add(new TxOut(amount, pubKey.P2wpkhScript));
 			var stx = new SmartTransaction(tx, height);
 			pubKey.AnonymitySet = anonymitySet;
-			return new SmartCoin(stx, 0, pubKey);
+			return new SmartCoin(stx, index, pubKey);
 		}
 
 		public static TransactionFactory CreateTransactionFactory(
@@ -106,7 +115,7 @@ namespace WalletWasabi.Tests.Helpers
 				k.SetLabel(c.Label);
 			}
 
-			var scoins = coins.Select(x => RandomSmartCoin(keys[x.KeyIndex], x.Amount, x.Confirmed, x.AnonymitySet)).ToArray();
+			var scoins = coins.Select(x => RandomSmartCoin(keys[x.KeyIndex], x.Amount, 0, x.Confirmed, x.AnonymitySet)).ToArray();
 			foreach (var coin in scoins)
 			{
 				foreach (var sameLabelCoin in scoins.Where(c => !c.HdPubKey.Label.IsEmpty && c.HdPubKey.Label == coin.HdPubKey.Label))
