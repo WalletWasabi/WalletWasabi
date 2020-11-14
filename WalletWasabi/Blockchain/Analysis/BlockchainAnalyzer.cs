@@ -59,11 +59,11 @@ namespace WalletWasabi.Blockchain.Analysis
 			}
 			else
 			{
-				var inheritedAnonset = 0;
-				// If we provided inputs to the transaction.
 				var distinctWalletInputPubKeys = tx.WalletInputs.Select(x => x.HdPubKey).ToHashSet();
+				var inheritedAnonset = 0;
 				if (ownInputCount > 0)
 				{
+					// If we provided inputs to the transaction.
 					// Reusing pubkey on the input side is good, the punishment happened already.
 					var distinctWalletInputPubKeyCount = distinctWalletInputPubKeys.Count;
 					var pubKeyReuseCount = ownInputCount - distinctWalletInputPubKeyCount;
