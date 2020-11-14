@@ -9,6 +9,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Models;
+using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Wallets;
 using Xunit;
 
@@ -19,7 +20,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void InsufficientBalance()
 		{
-			var transactionFactory = Common.CreateTransactionFactory(new[]
+			var transactionFactory = BitcoinMock.CreateTransactionFactory(new[]
 			{
 				("Martin", 0, 0.01m, confirmed: true, anonymitySet: 1),
 				("Jean",   1, 0.02m, confirmed: true, anonymitySet: 1)
@@ -38,7 +39,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void TooMuchFeePaid()
 		{
-			var transactionFactory = Common.CreateTransactionFactory(new[]
+			var transactionFactory = BitcoinMock.CreateTransactionFactory(new[]
 			{
 				("Pablo", 0, 0.0001m, confirmed: true, anonymitySet: 1)
 			});
@@ -57,7 +58,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void SelectMostPrivateIndependentlyOfCluster()
 		{
-			var transactionFactory = Common.CreateTransactionFactory(new[]
+			var transactionFactory = BitcoinMock.CreateTransactionFactory(new[]
 			{
 				("", 0, 0.08m, confirmed: true, anonymitySet: 50),
 				("", 1, 0.16m, confirmed: true, anonymitySet: 200)
@@ -85,7 +86,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void SelectMostPrivateCoin()
 		{
-			var transactionFactory = Common.CreateTransactionFactory(new[]
+			var transactionFactory = BitcoinMock.CreateTransactionFactory(new[]
 			{
 				("Maria",  0, 0.08m, confirmed: true, anonymitySet: 50),
 				("Joseph", 1, 0.16m, confirmed: true, anonymitySet: 200)
@@ -113,7 +114,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void SelectMostPrivateCoins()
 		{
-			var transactionFactory = Common.CreateTransactionFactory(new[]
+			var transactionFactory = BitcoinMock.CreateTransactionFactory(new[]
 			{
 				("Pablo",  0, 0.01m, confirmed: true, anonymitySet: 1),
 				("Jean",   1, 0.02m, confirmed: true, anonymitySet: 1),
@@ -144,7 +145,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void SelectSameScriptPubKeyCoins()
 		{
-			var transactionFactory = Common.CreateTransactionFactory(new[]
+			var transactionFactory = BitcoinMock.CreateTransactionFactory(new[]
 			{
 				("Pablo",  0, 0.01m, confirmed: false, anonymitySet: 10),
 				("Daniel", 1, 0.02m, confirmed: false, anonymitySet: 1),
@@ -175,23 +176,23 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void SelectSameClusterCoins()
 		{
-			var (password, keyManager) = Common.RandomKeyManager();
+			var (password, keyManager) = BitcoinMock.RandomKeyManager();
 
 			keyManager.AssertCleanKeysIndexed();
 
 			HdPubKey NewKey(string label) => keyManager.GenerateNewKey(label, KeyState.Used, true, false);
 			var scoins = new[]
 			{
-				Common.RandomSmartCoin(NewKey("Pablo"), 0.9m),
-				Common.RandomSmartCoin(NewKey("Daniel"), 0.9m),
-				Common.RandomSmartCoin(NewKey("Adolf"), 0.9m),
-				Common.RandomSmartCoin(NewKey("Maria"), 0.9m),
-				Common.RandomSmartCoin(NewKey("Ding"), 0.9m),
-				Common.RandomSmartCoin(NewKey("Joseph"), 0.9m),
-				Common.RandomSmartCoin(NewKey("Eve"), 0.9m),
-				Common.RandomSmartCoin(NewKey("Julio"), 0.9m),
-				Common.RandomSmartCoin(NewKey("Donald, Jean, Lee, Onur"), 0.9m),
-				Common.RandomSmartCoin(NewKey("Satoshi"), 0.9m)
+				BitcoinMock.RandomSmartCoin(NewKey("Pablo"), 0.9m),
+				BitcoinMock.RandomSmartCoin(NewKey("Daniel"), 0.9m),
+				BitcoinMock.RandomSmartCoin(NewKey("Adolf"), 0.9m),
+				BitcoinMock.RandomSmartCoin(NewKey("Maria"), 0.9m),
+				BitcoinMock.RandomSmartCoin(NewKey("Ding"), 0.9m),
+				BitcoinMock.RandomSmartCoin(NewKey("Joseph"), 0.9m),
+				BitcoinMock.RandomSmartCoin(NewKey("Eve"), 0.9m),
+				BitcoinMock.RandomSmartCoin(NewKey("Julio"), 0.9m),
+				BitcoinMock.RandomSmartCoin(NewKey("Donald, Jean, Lee, Onur"), 0.9m),
+				BitcoinMock.RandomSmartCoin(NewKey("Satoshi"), 0.9m)
 			};
 			var coinsByLabel = scoins.ToDictionary(x => x.HdPubKey.Label);
 
@@ -261,7 +262,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void CustomChangeScript()
 		{
-			var transactionFactory = Common.CreateTransactionFactory(new[]
+			var transactionFactory = BitcoinMock.CreateTransactionFactory(new[]
 			{
 				("Maria", 0, 1m, confirmed: true, anonymitySet: 100)
 			});
@@ -291,7 +292,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void SubtractFeeFromSpecificOutput()
 		{
-			var transactionFactory = Common.CreateTransactionFactory(new[]
+			var transactionFactory = BitcoinMock.CreateTransactionFactory(new[]
 			{
 				("Maria", 0, 1m, confirmed: true, anonymitySet: 100)
 			});
@@ -325,7 +326,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void SubtractFeeFromTooSmallOutput()
 		{
-			var transactionFactory = Common.CreateTransactionFactory(new[]
+			var transactionFactory = BitcoinMock.CreateTransactionFactory(new[]
 			{
 				("Maria", 0, 1m, confirmed: true, anonymitySet: 100)
 			});
@@ -348,7 +349,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void MultiplePaymentsToSameAddress()
 		{
-			var transactionFactory = Common.CreateTransactionFactory(new[]
+			var transactionFactory = BitcoinMock.CreateTransactionFactory(new[]
 			{
 				("Maria", 0, 1m, confirmed: true, anonymitySet: 100)
 			});
@@ -381,7 +382,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void SendAbsolutelyAllCoins()
 		{
-			var transactionFactory = Common.CreateTransactionFactory(new[]
+			var transactionFactory = BitcoinMock.CreateTransactionFactory(new[]
 			{
 				("Maria",  0, 0.5m, confirmed: false, anonymitySet: 1),
 				("Joseph", 1, 0.4m, confirmed: true, anonymitySet: 10),
@@ -407,7 +408,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void SpendOnlyAllowedCoins()
 		{
-			var transactionFactory = Common.CreateTransactionFactory(new[]
+			var transactionFactory = BitcoinMock.CreateTransactionFactory(new[]
 			{
 				("Pablo",  0, 0.01m, confirmed: false, anonymitySet: 50),
 				("Daniel", 1, 0.02m, confirmed: false, anonymitySet: 1),
@@ -436,7 +437,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void SpendWholeAllowedCoins()
 		{
-			var transactionFactory = Common.CreateTransactionFactory(new[]
+			var transactionFactory = BitcoinMock.CreateTransactionFactory(new[]
 			{
 				("Pablo",  0, 0.01m, confirmed: false, anonymitySet: 50),
 				("Daniel", 1, 0.02m, confirmed: false, anonymitySet: 1),
@@ -472,7 +473,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void InsufficientAllowedCoins()
 		{
-			var transactionFactory = Common.CreateTransactionFactory(new[]
+			var transactionFactory = BitcoinMock.CreateTransactionFactory(new[]
 			{
 				("Pablo", 0, 0.01m, confirmed: true, anonymitySet: 1),
 				("Jean",  1, 0.08m, confirmed: true, anonymitySet: 1)
@@ -496,7 +497,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void SpendWholeCoinsEvenWhenNotAllowed()
 		{
-			var transactionFactory = Common.CreateTransactionFactory(new[]
+			var transactionFactory = BitcoinMock.CreateTransactionFactory(new[]
 			{
 				("Pablo",  0, 0.01m, confirmed: false, anonymitySet: 50),
 				("Daniel", 1, 0.02m, confirmed: false, anonymitySet: 1),
@@ -530,7 +531,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void DoNotSignWatchOnly()
 		{
-			var transactionFactory = Common.CreateTransactionFactory(
+			var transactionFactory = BitcoinMock.CreateTransactionFactory(
 				new[]
 				{
 					("Pablo", 0, 1m, confirmed: true, anonymitySet: 1)

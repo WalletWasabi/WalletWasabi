@@ -2,6 +2,7 @@ using NBitcoin;
 using System.IO;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Tests.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions
@@ -34,7 +35,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			Assert.True(txStore.IsEmpty());
 
-			var stx = Common.RandomSmartTransaction();
+			var stx = BitcoinMock.RandomSmartTransaction();
 			var operation = txStore.TryAddOrUpdate(stx);
 			Assert.True(operation.isAdded);
 			Assert.False(operation.isUpdated);

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using WalletWasabi.Tests.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
@@ -13,8 +14,8 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void OneInOneOut()
 		{
-			var analyser = Common.RandomBlockchainAnalyzer();
-			var tx = Common.RandomSmartTransaction(1, 1, 0, 0);
+			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
+			var tx = BitcoinMock.RandomSmartTransaction(1, 1, 0, 0);
 
 			analyser.Analyze(tx);
 
@@ -25,8 +26,8 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void ManyInManyOut()
 		{
-			var analyser = Common.RandomBlockchainAnalyzer();
-			var tx = Common.RandomSmartTransaction(3, 3, 0, 0);
+			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
+			var tx = BitcoinMock.RandomSmartTransaction(3, 3, 0, 0);
 
 			analyser.Analyze(tx);
 

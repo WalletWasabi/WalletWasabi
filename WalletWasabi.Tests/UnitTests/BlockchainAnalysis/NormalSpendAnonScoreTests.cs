@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using WalletWasabi.Blockchain.Analysis;
+using WalletWasabi.Tests.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
@@ -15,8 +16,8 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void OneOwnInOneOut()
 		{
-			var analyser = Common.RandomBlockchainAnalyzer();
-			var tx = Common.RandomSmartTransaction(0, 1, 1, 0);
+			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
+			var tx = BitcoinMock.RandomSmartTransaction(0, 1, 1, 0);
 			var coin = Assert.Single(tx.WalletInputs);
 			var key = coin.HdPubKey;
 			key.AnonymitySet = 3;
@@ -32,8 +33,8 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void ManyOwnInOneOut()
 		{
-			var analyser = Common.RandomBlockchainAnalyzer();
-			var tx = Common.RandomSmartTransaction(0, 1, 3, 0);
+			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
+			var tx = BitcoinMock.RandomSmartTransaction(0, 1, 3, 0);
 
 			foreach (var coin in tx.WalletInputs)
 			{
@@ -51,8 +52,8 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void OneOwnInManyOut()
 		{
-			var analyser = Common.RandomBlockchainAnalyzer();
-			var tx = Common.RandomSmartTransaction(0, 3, 1, 0);
+			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
+			var tx = BitcoinMock.RandomSmartTransaction(0, 3, 1, 0);
 			var coin = Assert.Single(tx.WalletInputs);
 			var key = coin.HdPubKey;
 			key.AnonymitySet = 3;
@@ -68,8 +69,8 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void OneOwnInOneOutOneOwnOut()
 		{
-			var analyser = Common.RandomBlockchainAnalyzer();
-			var tx = Common.RandomSmartTransaction(0, 1, 1, 1);
+			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
+			var tx = BitcoinMock.RandomSmartTransaction(0, 1, 1, 1);
 
 			foreach (var coin in tx.WalletInputs)
 			{
@@ -88,8 +89,8 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void OneOwnInManyOutManyOwnOut()
 		{
-			var analyser = Common.RandomBlockchainAnalyzer();
-			var tx = Common.RandomSmartTransaction(0, 3, 1, 3);
+			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
+			var tx = BitcoinMock.RandomSmartTransaction(0, 3, 1, 3);
 
 			foreach (var coin in tx.WalletInputs)
 			{
@@ -107,8 +108,8 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void ManyOwnInOneOutOneOwnOut()
 		{
-			var analyser = Common.RandomBlockchainAnalyzer();
-			var tx = Common.RandomSmartTransaction(0, 1, 3, 1);
+			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
+			var tx = BitcoinMock.RandomSmartTransaction(0, 1, 3, 1);
 
 			foreach (var coin in tx.WalletInputs)
 			{
@@ -126,8 +127,8 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void ManyOwnInManyOutManyOwnOut()
 		{
-			var analyser = Common.RandomBlockchainAnalyzer();
-			var tx = Common.RandomSmartTransaction(0, 3, 3, 3);
+			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
+			var tx = BitcoinMock.RandomSmartTransaction(0, 3, 3, 3);
 
 			foreach (var coin in tx.WalletInputs)
 			{

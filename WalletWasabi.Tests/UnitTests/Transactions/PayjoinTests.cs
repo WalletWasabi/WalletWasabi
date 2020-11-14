@@ -17,6 +17,7 @@ using System.Text;
 using WalletWasabi.Models;
 using System.Collections.Specialized;
 using WalletWasabi.Tor.Http;
+using WalletWasabi.Tests.Helpers;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions
 {
@@ -88,7 +89,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				OnSendAsync = PayjoinServerOk(psbt => psbt)
 			};
 			var payjoinClient = NewPayjoinClient(httpClient);
-			var transactionFactory = Common.CreateTransactionFactory(new[]
+			var transactionFactory = BitcoinMock.CreateTransactionFactory(new[]
 			{
 				("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)
 			});
@@ -135,7 +136,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				})
 			};
 			var payjoinClient = NewPayjoinClient(httpClient);
-			var transactionFactory = Common.CreateTransactionFactory(new[]
+			var transactionFactory = BitcoinMock.CreateTransactionFactory(new[]
 			{
 				("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)
 			});
@@ -155,7 +156,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Equal(0.346m, outerOutput.Amount.ToUnit(MoneyUnit.BTC));
 			Assert.Equal(0.09899718m, innerOutput.Amount.ToUnit(MoneyUnit.BTC));
 
-			transactionFactory = Common.CreateTransactionFactory(
+			transactionFactory = BitcoinMock.CreateTransactionFactory(
 				new[]
 				{
 					("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)
@@ -195,7 +196,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				})
 			};
 
-			var transactionFactory = Common.CreateTransactionFactory(walletCoins);
+			var transactionFactory = BitcoinMock.CreateTransactionFactory(walletCoins);
 			var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(httpClient));
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 			///////
@@ -242,7 +243,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				})
 			};
 
-			var transactionFactory = Common.CreateTransactionFactory(walletCoins);
+			var transactionFactory = BitcoinMock.CreateTransactionFactory(walletCoins);
 			var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(httpClient));
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 			////////
@@ -389,7 +390,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				})
 			};
 
-			var transactionFactory = Common.CreateTransactionFactory(walletCoins);
+			var transactionFactory = BitcoinMock.CreateTransactionFactory(walletCoins);
 			var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(httpClient));
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 		}
@@ -409,7 +410,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				OnSendAsync = PayjoinServerError(statusCode: HttpStatusCode.InternalServerError, "Internal Server Error")
 			};
 
-			var transactionFactory = Common.CreateTransactionFactory(walletCoins);
+			var transactionFactory = BitcoinMock.CreateTransactionFactory(walletCoins);
 			var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(httpClient));
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 		}

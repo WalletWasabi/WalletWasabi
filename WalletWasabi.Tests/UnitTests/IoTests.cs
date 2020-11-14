@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Io;
+using WalletWasabi.Tests.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests

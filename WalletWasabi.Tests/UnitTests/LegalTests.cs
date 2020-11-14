@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using WalletWasabi.Legal;
+using WalletWasabi.Tests.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests

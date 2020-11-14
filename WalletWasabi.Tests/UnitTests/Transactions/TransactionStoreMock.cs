@@ -3,6 +3,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Tests.Helpers;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions
 {

@@ -10,6 +10,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
+using WalletWasabi.Tests.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions
