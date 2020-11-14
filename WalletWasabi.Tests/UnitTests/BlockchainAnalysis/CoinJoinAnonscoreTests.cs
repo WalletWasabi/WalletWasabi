@@ -55,5 +55,22 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 			Assert.Equal(10, active.HdPubKey.AnonymitySet);
 			Assert.Equal(1, change.HdPubKey.AnonymitySet);
 		}
+
+		[Fact]
+		public void ChangeOutputInheritence()
+		{
+			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
+			// Also test with inheritence.
+			var tx = BitcoinMock.RandomSmartTransaction(9, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(6.2m), 100) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Coins(5m), HdPubKey.DefaultHighAnonymitySet) });
+
+			analyser.Analyze(tx);
+
+			var active = tx.WalletOutputs.First(x => x.Amount == Money.Coins(1m));
+			var change = tx.WalletOutputs.First(x => x.Amount == Money.Coins(5m));
+
+			Assert.Equal(100, tx.WalletInputs.First().HdPubKey.AnonymitySet);
+			Assert.Equal(109, active.HdPubKey.AnonymitySet);
+			Assert.Equal(100, change.HdPubKey.AnonymitySet);
+		}
 	}
 }
