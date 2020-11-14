@@ -692,7 +692,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// It is relevant even when all the coins can be dust.
 			Assert.True(relevant.IsNews);
 			var coin = Assert.Single(transactionProcessor.Coins);
-			Assert.Equal(3, coin.HdPubKey.AnonymitySet);
+			Assert.Equal(4, coin.HdPubKey.AnonymitySet);
 			Assert.Equal(amount, coin.Amount);
 		}
 
@@ -722,7 +722,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// It is relevant even when all the coins can be dust.
 			Assert.True(relevant.IsNews);
 			var coin = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.AnonymitySet > 1);
-			Assert.Equal(4, coin.HdPubKey.AnonymitySet);
+			Assert.Equal(5, coin.HdPubKey.AnonymitySet);
 			Assert.Equal(amount, coin.Amount);
 		}
 
