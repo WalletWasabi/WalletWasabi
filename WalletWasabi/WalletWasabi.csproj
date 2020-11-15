@@ -25,7 +25,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.1" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.0" />
 		<PackageReference Include="Microsoft.Win32.SystemEvents" Version="4.7.0" />
 		<PackageReference Include="NBitcoin" Version="5.0.60" />
 		<PackageReference Include="NBitcoin.Secp256k1" Version="1.0.8" />
