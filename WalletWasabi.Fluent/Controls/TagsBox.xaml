@@ -1,6 +1,6 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
+        xmlns:c="using:WalletWasabi.Fluent.Controls">
     <Style Selector="c|TagsBox">
         <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
         <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
