@@ -65,7 +65,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 				0,
 				Enumerable.Empty<Money>(),
 				new[] { (Money.Coins(1.1m), 100, key), (Money.Coins(1.2m), 100, key), (Money.Coins(1.3m), 100, key), (Money.Coins(1.4m), 100, key) },
-				new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet, BitcoinMock.RandomHdPubKey(km)) }); ;
+				new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet, BitcoinMock.RandomHdPubKey(km)) });
 
 			analyser.Analyze(tx);
 
