@@ -22,7 +22,8 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 			analyser.Analyze(tx);
 
 			Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
-			// 10 participant, 1 is you, your anonset is 10.
+			
+			// 10 participants, 1 is you, your anonset is 10.
 			Assert.Equal(10, tx.WalletOutputs.First().HdPubKey.AnonymitySet);
 		}
 
@@ -35,6 +36,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 			analyser.Analyze(tx);
 
 			Assert.Equal(100, tx.WalletInputs.First().HdPubKey.AnonymitySet);
+			
 			// 10 participants, 1 is you, your anonset is 10 and you inherit 99 anonset,
 			// because you don't want to count yourself twice.
 			Assert.Equal(109, tx.WalletOutputs.First().HdPubKey.AnonymitySet);
