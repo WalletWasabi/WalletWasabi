@@ -73,6 +73,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			observable.GroupWithImmutableState(x => x.Category)
 				.Transform(grouping => new SearchItemGroup(grouping.Key, grouping.Items))
+				.Sort(SortExpressionComparer<SearchItemGroup>.Ascending(i => i.Category))
 				.Bind(out _searchItemsByCategory)
 				.AsObservableList();
 		}
