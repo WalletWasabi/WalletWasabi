@@ -43,32 +43,49 @@ namespace WalletWasabi.Fluent.ViewModels
 				case NavigationTarget.Default:
 				case NavigationTarget.HomeScreen:
 					{
-						var command = resetNavigation ?
-							NavigationState.HomeScreen?.Invoke().Router.NavigateAndReset :
-							NavigationState.HomeScreen?.Invoke().Router.Navigate;
-						command?.Execute(viewModel);
+						NavigateToHomeScreen(viewModel, resetNavigation);
 					}
 					break;
 
 				case NavigationTarget.DialogScreen:
 					{
-						var command = resetNavigation ?
-							NavigationState.DialogScreen?.Invoke().Router.NavigateAndReset :
-							NavigationState.DialogScreen?.Invoke().Router.Navigate;
-						command?.Execute(viewModel);
+						NavigateToDialogScreen(viewModel, resetNavigation);
 					}
 					break;
 
 				case NavigationTarget.DialogHost:
-					if (viewModel is DialogViewModelBase dialog
-						&& NavigationState.DialogHost?.Invoke() is IDialogHost dialogHost)
+					if (viewModel is DialogViewModelBase dialog)
 					{
-						dialogHost.CurrentDialog = dialog;
+						NavigateToDialogHost(dialog);
 					}
 					break;
 
 				default:
 					break;
+			}
+		}
+
+		private void NavigateToHomeScreen(RoutableViewModel viewModel, bool resetNavigation)
+		{
+			var command = resetNavigation ?
+				NavigationState.HomeScreen?.Invoke().Router.NavigateAndReset :
+				NavigationState.HomeScreen?.Invoke().Router.Navigate;
+			command?.Execute(viewModel);
+		}
+
+		private void NavigateToDialogScreen(RoutableViewModel viewModel, bool resetNavigation)
+		{
+			var command = resetNavigation ?
+				NavigationState.DialogScreen?.Invoke().Router.NavigateAndReset :
+				NavigationState.DialogScreen?.Invoke().Router.Navigate;
+			command?.Execute(viewModel);
+		}
+
+		private void NavigateToDialogHost(DialogViewModelBase dialog)
+		{
+			if (NavigationState.DialogHost?.Invoke() is IDialogHost dialogHost)
+			{
+				dialogHost.CurrentDialog = dialog;
 			}
 		}
 
