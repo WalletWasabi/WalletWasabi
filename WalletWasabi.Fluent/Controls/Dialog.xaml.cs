@@ -52,16 +52,7 @@ namespace WalletWasabi.Fluent.Controls
 			base.OnApplyTemplate(e);
 
 			var overlayButton = e.NameScope.Find<Panel>("PART_Overlay");
-			overlayButton.PointerPressed += (_, __) =>
-			{
-				if (DataContext is IScreen screen)
-				{
-					// Reset navigation when Dialog is using IScreen for navigation instead of the default IDialogHost.
-					screen.Router.NavigationStack.Clear();
-				}
-
-				IsDialogOpen = false;
-			};
+			overlayButton.PointerPressed += (_, __) => IsDialogOpen = false;
 		}
 	}
 }
