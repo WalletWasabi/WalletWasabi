@@ -30,7 +30,7 @@
           <ItemsControl.ItemTemplate>
             <DataTemplate>
               <DockPanel>
-                <Label Content="{Binding Category}" DockPanel.Dock="Top" />
+                <Label DataContext="{Binding Category}" Content="{Binding Title}" DockPanel.Dock="Top" />
                 <ItemsControl HorizontalAlignment="Center" Items="{Binding SearchItems}">
                   <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>

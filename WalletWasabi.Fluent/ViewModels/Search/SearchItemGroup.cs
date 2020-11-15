@@ -4,13 +4,13 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 {
 	public class SearchItemGroup
 	{
-		public SearchItemGroup(string category, IEnumerable<SearchItemViewModel> searchItems)
+		public SearchItemGroup(SearchCategory category, IEnumerable<SearchItemViewModel> searchItems)
 		{
 			Category = category;
 			SearchItems = searchItems;
 		}
 
-		public string Category { get; }
+		public SearchCategory Category { get; }
 
 		public IEnumerable<SearchItemViewModel> SearchItems { get; }
 	}

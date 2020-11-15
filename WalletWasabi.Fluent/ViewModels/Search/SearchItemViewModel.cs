@@ -11,7 +11,7 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 			NavigationTarget navigationTarget,
 			string iconName,
 			string title,
-			string category,
+			SearchCategory category,
 			string keywords,
 			Func<RoutableViewModel> createTargetView) : base(navigationState, navigationTarget)
 		{
@@ -31,7 +31,7 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 
 		public string Title { get; }
 
-		public string Category { get; }
+		public SearchCategory Category { get; }
 
 		public string Keywords { get; }
 

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Reactive.Linq;
 using DynamicData;
 using DynamicData.Binding;
@@ -22,12 +21,15 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			var searchItems = new SourceList<SearchItemViewModel>();
 
+			var generalCategory = new SearchCategory("General", 0);
+			var walletCategory = new SearchCategory("Wallet", 1);
+
 			searchItems.Add(new SearchItemViewModel(
 				navigationState,
 				NavigationTarget.HomeScreen,
 				iconName: "home_regular",
 				title: "Home",
-				category: "General",
+				category: generalCategory,
 				keywords: "Home",
 				() => new HomePageViewModel(navigationState, walletManager, addWalletPage)));
 
@@ -36,7 +38,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				NavigationTarget.HomeScreen,
 				iconName: "settings_regular",
 				title: "Settings",
-				category: "General",
+				category: generalCategory,
 				keywords: "Settings, General, User Interface, Privacy, Advanced",
 				() => new SettingsPageViewModel(navigationState)));
 
@@ -45,7 +47,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				NavigationTarget.DialogScreen,
 				iconName: "add_circle_regular",
 				title: "Add Wallet",
-				category: "General",
+				category: generalCategory,
 				keywords: "Wallet, Add Wallet, Create Wallet, Recover Wallet, Import Wallet, Connect Hardware Wallet",
 				() => addWalletPage));
 
@@ -60,7 +62,7 @@ namespace WalletWasabi.Fluent.ViewModels
 					NavigationTarget.HomeScreen,
 					iconName: "web_asset_regular",
 					title: x.WalletName,
-					category: "Wallet",
+					category: walletCategory,
 					keywords: $"Wallet, {x.WalletName}",
 					() => x))
 				.Sort(SortExpressionComparer<SearchItemViewModel>.Ascending(i => i.Title))
@@ -73,7 +75,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			observable.GroupWithImmutableState(x => x.Category)
 				.Transform(grouping => new SearchItemGroup(grouping.Key, grouping.Items))
-				.Sort(SortExpressionComparer<SearchItemGroup>.Ascending(i => i.Category))
+				.Sort(SortExpressionComparer<SearchItemGroup>.Ascending(i => i.Category.Order).ThenByAscending(i => i.Category.Title))
 				.Bind(out _searchItemsByCategory)
 				.AsObservableList();
 		}
