@@ -175,19 +175,103 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void InputMergePunishment()
 		{
-			// Input merging results in worse anonset.
+			// Input merging results in worse inherited anonset.
+			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
+			var tx = BitcoinMock.RandomSmartTransaction(
+				9,
+				Enumerable.Repeat(Money.Coins(1m), 9),
+				new[] { (Money.Coins(1.1m), 100), (Money.Coins(1.2m), 200), (Money.Coins(1.3m), 300), (Money.Coins(1.4m), 400) },
+				new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
+
+			analyser.Analyze(tx);
+
+			Assert.True(tx.WalletInputs.First().HdPubKey.AnonymitySet < 100);
+
+			// 10 participants, 1 is you, your added anonset would be 10.
+			// Smallest input anonset is 100 so your anonset would be 109 normally, but 4 inputs are merged so it should be worse.
+			Assert.True(tx.WalletOutputs.First().HdPubKey.AnonymitySet < 109);
+		}
+
+		[Fact]
+		public void InputMergePunishmentNoInheritence()
+		{
+			// Input merging results in worse inherited anonset, but not in worse anonset if there's nothing to inherit.
+			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
+			var tx = BitcoinMock.RandomSmartTransaction(
+				9,
+				Enumerable.Repeat(Money.Coins(1m), 9),
+				new[] { (Money.Coins(1.1m), 1), (Money.Coins(1.2m), 1), (Money.Coins(1.3m), 1), (Money.Coins(1.4m), 1) },
+				new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
+
+			analyser.Analyze(tx);
+
+			Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
+
+			// 10 participants, 1 is you, your anonset would be 10 normally and now too:
+			Assert.Equal(10, tx.WalletOutputs.First().HdPubKey.AnonymitySet);
 		}
 
 		[Fact]
 		public void InputMergeProportionalPunishment()
 		{
 			// Input merging more coins results in worse anonset.
+			// In this test tx1 consolidates less inputs than tx2.
+			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
+
+			var othersInputCount = 9;
+			var othersOutputs = Enumerable.Repeat(Money.Coins(1m), 9);
+			var ownInputs1 = new[] { (Money.Coins(1.1m), 100), (Money.Coins(1.2m), 200), (Money.Coins(1.3m), 300), (Money.Coins(1.4m), 400) };
+			var ownInputs2 = ownInputs1.Concat(new[] { (Money.Coins(1.5m), 100) });
+			var ownOutputs = new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) };
+
+			var tx1 = BitcoinMock.RandomSmartTransaction(
+				othersInputCount,
+				othersOutputs,
+				ownInputs1,
+				ownOutputs);
+
+			var tx2 = BitcoinMock.RandomSmartTransaction(
+				othersInputCount,
+				othersOutputs,
+				ownInputs2,
+				ownOutputs);
+
+			analyser.Analyze(tx1);
+			analyser.Analyze(tx2);
+
+			Assert.True(tx1.WalletInputs.First().HdPubKey.AnonymitySet > tx2.WalletInputs.First().HdPubKey.AnonymitySet);
+			Assert.True(tx1.WalletOutputs.First().HdPubKey.AnonymitySet > tx2.WalletOutputs.First().HdPubKey.AnonymitySet);
 		}
 
 		[Fact]
 		public void InputMergePunishmentDependsOnCjSize()
 		{
-			// Input merging in larger coinjoin results in elss punishmnent.
+			// Input merging in larger coinjoin results in less punishmnent.
+			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
+
+			var othersInputCount1 = 10;
+			var othersInputCount2 = 9;
+			var othersOutputs = Enumerable.Repeat(Money.Coins(1m), 9);
+			var ownInputs = new[] { (Money.Coins(1.1m), 100), (Money.Coins(1.2m), 200), (Money.Coins(1.3m), 300), (Money.Coins(1.4m), 400) };
+			var ownOutputs = new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) };
+
+			var tx1 = BitcoinMock.RandomSmartTransaction(
+				othersInputCount1,
+				othersOutputs,
+				ownInputs,
+				ownOutputs);
+
+			var tx2 = BitcoinMock.RandomSmartTransaction(
+				othersInputCount2,
+				othersOutputs,
+				ownInputs,
+				ownOutputs);
+
+			analyser.Analyze(tx1);
+			analyser.Analyze(tx2);
+
+			Assert.True(tx1.WalletInputs.First().HdPubKey.AnonymitySet > tx2.WalletInputs.First().HdPubKey.AnonymitySet);
+			Assert.True(tx1.WalletOutputs.First().HdPubKey.AnonymitySet > tx2.WalletOutputs.First().HdPubKey.AnonymitySet);
 		}
 	}
 }
