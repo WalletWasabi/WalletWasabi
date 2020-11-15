@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Controls
 {
