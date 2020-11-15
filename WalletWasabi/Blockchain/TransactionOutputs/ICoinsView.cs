@@ -23,7 +23,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		ICoinsView FilterBy(Func<SmartCoin, bool> expression);
 
-		ICoinsView OutPoints(IEnumerable<OutPoint> outPoints);
+		ICoinsView OutPoints(ISet<OutPoint> outPoints);
 
 		ICoinsView CreatedBy(uint256 txid);
 
