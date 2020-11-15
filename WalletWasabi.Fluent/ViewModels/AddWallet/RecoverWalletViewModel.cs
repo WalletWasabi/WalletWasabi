@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
 using DynamicData.Binding;
@@ -27,7 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			NavigationStateViewModel navigationState,
 			string walletName,
 			Network network,
-			WalletManager walletManager) : base(navigationState, NavigationTarget.Dialog)
+			WalletManager walletManager) : base(navigationState, NavigationTarget.DialogScreen)
 		{
 			Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
@@ -62,37 +63,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					.Select(currentMnemonics => currentMnemonics is { } && !Validations.Any);
 
 			NextCommand = ReactiveCommand.CreateFromTask(
-				async () =>
-				{
-					try
-					{
-						var result = await PasswordInteraction
-							.Handle("Type the password of the wallet to be able to recover and click Continue.").ToTask();
-
-						if (result is { } password)
-						{
-							var walletFilePath = walletManager.WalletDirectories.GetWalletFilePaths(walletName)
-								.walletFilePath;
-
-							var keyManager = KeyManager.Recover(
-								CurrentMnemonics!,
-								password,
-								walletFilePath,
-								AccountKeyPath,
-								MinGapLimit);
-
-							keyManager.SetNetwork(network);
-
-							walletManager.AddWallet(keyManager);
-
-							navigationState.DialogScreen.Invoke().Router.NavigationStack.Clear();
-						}
-					}
-					catch (Exception ex)
-					{
-						Logger.LogError(ex);
-					}
-				},
+				async () => await OnNext(navigationState, walletManager, network, walletName),
 				FinishCommandCanExecute);
 
 			AdvancedOptionsInteraction = new Interaction<(KeyPath, int), (KeyPath?, int?)>();
@@ -100,13 +71,45 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			AdvancedOptionsInteraction.RegisterHandler(
 				async interaction =>
 					interaction.SetOutput(
-						await new AdvancedRecoveryOptionsViewModel(interaction.Input).ShowDialogAsync()));
+						await new AdvancedRecoveryOptionsViewModel(navigationState, NavigationTarget.DialogHost, interaction.Input).ShowDialogAsync()));
+		}
 
-			PasswordInteraction = new Interaction<string, string?>();
+		private async Task OnNext(NavigationStateViewModel navigationState, WalletManager walletManager, Network network, string? walletName)
+		{
+			try
+			{
+				var enterPassword = new EnterPasswordViewModel(
+					navigationState,
+					NavigationTarget.DialogScreen,
+					"Type the password of the wallet to be able to recover and click Continue.");
 
-			PasswordInteraction.RegisterHandler(
-				async interaction =>
-					interaction.SetOutput(await new EnterPasswordViewModel(interaction.Input).ShowDialogAsync()));
+				navigationState.DialogScreen().Router.Navigate.Execute(enterPassword);
+
+				var result = await enterPassword.GetDialogResultAsync();
+
+				if (result is { } password)
+				{
+					var walletFilePath = walletManager.WalletDirectories.GetWalletFilePaths(walletName!)
+						.walletFilePath;
+
+					var keyManager = KeyManager.Recover(
+						CurrentMnemonics!,
+						password!,
+						walletFilePath,
+						AccountKeyPath,
+						MinGapLimit);
+
+					keyManager.SetNetwork(network);
+
+					walletManager.AddWallet(keyManager);
+
+					navigationState.DialogScreen.Invoke().Router.NavigationStack.Clear();
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+			}
 		}
 
 		public IObservable<bool> FinishCommandCanExecute { get; }
@@ -120,8 +123,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		private int MinGapLimit { get; set; } = 63;
 
 		private Interaction<(KeyPath, int), (KeyPath?, int?)> AdvancedOptionsInteraction { get; }
-
-		private Interaction<string, string?> PasswordInteraction { get; }
 
 		public ObservableCollection<string> Mnemonics { get; } = new ObservableCollection<string>();
 

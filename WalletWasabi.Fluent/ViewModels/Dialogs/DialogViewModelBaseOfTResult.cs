@@ -16,7 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		private readonly IDisposable _disposable;
 		private readonly TaskCompletionSource<TResult> _currentTaskCompletionSource;
 
-		protected DialogViewModelBase()
+		protected DialogViewModelBase(NavigationStateViewModel navigationState, NavigationTarget navigationTarget) : base(navigationState, navigationTarget)
 		{
 			_currentTaskCompletionSource = new TaskCompletionSource<TResult>();
 
@@ -72,6 +72,17 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 				host.CurrentDialog = this;
 			}
 
+			IsDialogOpen = true;
+
+			return _currentTaskCompletionSource.Task;
+		}
+
+		/// <summary>
+		/// Gets the dialog result.
+		/// </summary>
+		/// <returns>The value to be returned when the dialog is finished.</returns>
+		public Task<TResult> GetDialogResultAsync()
+		{
 			IsDialogOpen = true;
 
 			return _currentTaskCompletionSource.Task;

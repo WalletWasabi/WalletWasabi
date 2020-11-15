@@ -172,8 +172,6 @@ namespace WalletWasabi.Gui
 			{
 				Logger.LogSoftwareStopped("Wasabi GUI");
 			}
-
-			Logger.LogSoftwareStopped("Wasabi");
 		}
 
 		private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
