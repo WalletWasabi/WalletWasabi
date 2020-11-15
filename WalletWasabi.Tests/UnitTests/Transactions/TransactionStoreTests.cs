@@ -35,7 +35,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			Assert.True(txStore.IsEmpty());
 
-			var stx = BitcoinMock.RandomSmartTransaction();
+			var stx = BitcoinFactory.SmartTransaction();
 			var operation = txStore.TryAddOrUpdate(stx);
 			Assert.True(operation.isAdded);
 			Assert.False(operation.isUpdated);

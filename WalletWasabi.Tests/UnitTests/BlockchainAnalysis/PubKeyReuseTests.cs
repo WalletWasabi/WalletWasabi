@@ -15,13 +15,13 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		public void AddressReusePunishment()
 		{
 			// If there's reuse in input and output side, then output side didn't gain, nor lose anonymity.
-			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
-			var km = BitcoinMock.RandomKeyManager();
-			var reuse = BitcoinMock.RandomHdPubKey(km);
-			var tx = BitcoinMock.RandomSmartTransaction(
+			var analyser = ServiceFactory.BlockchainAnalyzer();
+			var km = ServiceFactory.KeyManager();
+			var reuse = BitcoinFactory.HdPubKey(km);
+			var tx = BitcoinFactory.SmartTransaction(
 				9,
 				Enumerable.Repeat(Money.Coins(1m), 9),
-				new[] { (Money.Coins(1.1m), 100, BitcoinMock.RandomHdPubKey(km)) },
+				new[] { (Money.Coins(1.1m), 100, BitcoinFactory.HdPubKey(km)) },
 				new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet, reuse) });
 
 			// Make the reused key anonymity set something smaller than 109 (which should be the final anonymity set)
@@ -40,14 +40,14 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		{
 			// In normal transactions we expose to someone that we own the inputs and the changes
 			// So we cannot test address reuse here, because anonsets would be 1 regardless of anything.
-			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
-			var km = BitcoinMock.RandomKeyManager();
-			var key = BitcoinMock.RandomHdPubKey(km);
-			var tx = BitcoinMock.RandomSmartTransaction(
+			var analyser = ServiceFactory.BlockchainAnalyzer();
+			var km = ServiceFactory.KeyManager();
+			var key = BitcoinFactory.HdPubKey(km);
+			var tx = BitcoinFactory.SmartTransaction(
 				0,
 				Enumerable.Repeat(Money.Coins(1m), 9),
 				new[] { (Money.Coins(1.1m), 100, key), (Money.Coins(1.2m), 100, key), (Money.Coins(1.3m), 100, key), (Money.Coins(1.4m), 100, key) },
-				new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet, BitcoinMock.RandomHdPubKey(km)) });
+				new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet, BitcoinFactory.HdPubKey(km)) });
 
 			analyser.Analyze(tx);
 
@@ -58,14 +58,14 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void InputSideAddressReuseHaveNoConsolidationPunishmentInSelfSpend()
 		{
-			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
-			var km = BitcoinMock.RandomKeyManager();
-			var key = BitcoinMock.RandomHdPubKey(km);
-			var tx = BitcoinMock.RandomSmartTransaction(
+			var analyser = ServiceFactory.BlockchainAnalyzer();
+			var km = ServiceFactory.KeyManager();
+			var key = BitcoinFactory.HdPubKey(km);
+			var tx = BitcoinFactory.SmartTransaction(
 				0,
 				Enumerable.Empty<Money>(),
 				new[] { (Money.Coins(1.1m), 100, key), (Money.Coins(1.2m), 100, key), (Money.Coins(1.3m), 100, key), (Money.Coins(1.4m), 100, key) },
-				new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet, BitcoinMock.RandomHdPubKey(km)) });
+				new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet, BitcoinFactory.HdPubKey(km)) });
 
 			analyser.Analyze(tx);
 
@@ -76,14 +76,14 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void InputSideAddressReuseHaveNoConsolidationPunishmentInCoinJoin()
 		{
-			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
-			var km = BitcoinMock.RandomKeyManager();
-			var key = BitcoinMock.RandomHdPubKey(km);
-			var tx = BitcoinMock.RandomSmartTransaction(
+			var analyser = ServiceFactory.BlockchainAnalyzer();
+			var km = ServiceFactory.KeyManager();
+			var key = BitcoinFactory.HdPubKey(km);
+			var tx = BitcoinFactory.SmartTransaction(
 				9,
 				Enumerable.Repeat(Money.Coins(1m), 9),
 				new[] { (Money.Coins(1.1m), 100, key), (Money.Coins(1.2m), 100, key), (Money.Coins(1.3m), 100, key), (Money.Coins(1.4m), 100, key) },
-				new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet, BitcoinMock.RandomHdPubKey(km)) });
+				new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet, BitcoinFactory.HdPubKey(km)) });
 
 			analyser.Analyze(tx);
 
@@ -95,9 +95,9 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		public void InputOutputSideAddress()
 		{
 			// If there's reuse in input and output side, then output side didn't gain, nor lose anonymity.
-			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
-			var key = BitcoinMock.RandomHdPubKey(BitcoinMock.RandomKeyManager());
-			var tx = BitcoinMock.RandomSmartTransaction(
+			var analyser = ServiceFactory.BlockchainAnalyzer();
+			var key = BitcoinFactory.HdPubKey(ServiceFactory.KeyManager());
+			var tx = BitcoinFactory.SmartTransaction(
 				9,
 				Enumerable.Repeat(Money.Coins(1m), 9),
 				new[] { (Money.Coins(1.1m), 100, key) },
@@ -113,13 +113,13 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		public void OutputSideAddressReusePunished()
 		{
 			// If there's reuse in input and output side, then output side didn't gain, nor lose anonymity.
-			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
-			var km = BitcoinMock.RandomKeyManager();
-			var key = BitcoinMock.RandomHdPubKey(km);
-			var tx = BitcoinMock.RandomSmartTransaction(
+			var analyser = ServiceFactory.BlockchainAnalyzer();
+			var km = ServiceFactory.KeyManager();
+			var key = BitcoinFactory.HdPubKey(km);
+			var tx = BitcoinFactory.SmartTransaction(
 				9,
 				Enumerable.Repeat(Money.Coins(1m), 9).Concat(Enumerable.Repeat(Money.Coins(2m), 7)),
-				new[] { (Money.Coins(1.1m), 100, BitcoinMock.RandomHdPubKey(km)) },
+				new[] { (Money.Coins(1.1m), 100, BitcoinFactory.HdPubKey(km)) },
 				new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet, key), (Money.Coins(2m), HdPubKey.DefaultHighAnonymitySet, key) });
 
 			analyser.Analyze(tx);
@@ -134,13 +134,13 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		public void OutputSideAddressReuseDoesntPunishedMoreThanInheritence()
 		{
 			// If there's reuse in input and output side, then output side didn't gain, nor lose anonymity.
-			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
-			var km = BitcoinMock.RandomKeyManager();
-			var key = BitcoinMock.RandomHdPubKey(km);
-			var tx = BitcoinMock.RandomSmartTransaction(
+			var analyser = ServiceFactory.BlockchainAnalyzer();
+			var km = ServiceFactory.KeyManager();
+			var key = BitcoinFactory.HdPubKey(km);
+			var tx = BitcoinFactory.SmartTransaction(
 				9,
 				Enumerable.Repeat(Money.Coins(1m), 9).Concat(Enumerable.Repeat(Money.Coins(2m), 8)).Concat(Enumerable.Repeat(Money.Coins(3m), 7)).Concat(Enumerable.Repeat(Money.Coins(4m), 6)).Concat(Enumerable.Repeat(Money.Coins(5m), 5)).Concat(Enumerable.Repeat(Money.Coins(6m), 4)),
-				new[] { (Money.Coins(1.1m), 100, BitcoinMock.RandomHdPubKey(km)) },
+				new[] { (Money.Coins(1.1m), 100, BitcoinFactory.HdPubKey(km)) },
 				new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet, key), (Money.Coins(2m), HdPubKey.DefaultHighAnonymitySet, key), (Money.Coins(3m), HdPubKey.DefaultHighAnonymitySet, key), (Money.Coins(4m), HdPubKey.DefaultHighAnonymitySet, key), (Money.Coins(5m), HdPubKey.DefaultHighAnonymitySet, key), (Money.Coins(6m), HdPubKey.DefaultHighAnonymitySet, key) });
 
 			analyser.Analyze(tx);

@@ -89,7 +89,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Empty(txStore.ConfirmedStore.GetTransactions());
 			Assert.Empty(txStore.ConfirmedStore.GetTransactionHashes());
 
-			uint256 txHash = BitcoinMock.RandomSmartTransaction().GetHash();
+			uint256 txHash = BitcoinFactory.SmartTransaction().GetHash();
 			Assert.False(txStore.Contains(txHash));
 			Assert.True(txStore.IsEmpty());
 			Assert.False(txStore.TryGetTransaction(txHash, out _));
@@ -148,7 +148,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Equal(3, txStore.ConfirmedStore.GetTransactionHashes().Count());
 			Assert.False(txStore.IsEmpty());
 
-			uint256 doesntContainTxHash = BitcoinMock.RandomSmartTransaction().GetHash();
+			uint256 doesntContainTxHash = BitcoinFactory.SmartTransaction().GetHash();
 			Assert.False(txStore.Contains(doesntContainTxHash));
 			Assert.False(txStore.TryGetTransaction(doesntContainTxHash, out _));
 
@@ -351,7 +351,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var txStore = new AllTransactionStore(PrepareWorkDir(), network);
 			await txStore.InitializeAsync(ensureBackwardsCompatibility: false);
 
-			var tx = BitcoinMock.RandomSmartTransaction();
+			var tx = BitcoinFactory.SmartTransaction();
 			Assert.False(txStore.TryUpdate(tx));
 
 			// Assert TryUpdate didn't modify anything.
@@ -365,7 +365,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Empty(txStore.ConfirmedStore.GetTransactions());
 			Assert.Empty(txStore.ConfirmedStore.GetTransactionHashes());
 
-			uint256 txHash = BitcoinMock.RandomSmartTransaction().GetHash();
+			uint256 txHash = BitcoinFactory.SmartTransaction().GetHash();
 			Assert.False(txStore.Contains(txHash));
 			Assert.True(txStore.IsEmpty());
 			Assert.False(txStore.TryGetTransaction(txHash, out _));

@@ -16,8 +16,8 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void BasicCalculation()
 		{
-			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
-			var tx = BitcoinMock.RandomSmartTransaction(9, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(1.1m), 1) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
+			var analyser = ServiceFactory.BlockchainAnalyzer();
+			var tx = BitcoinFactory.SmartTransaction(9, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(1.1m), 1) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
 
 			analyser.Analyze(tx);
 
@@ -30,8 +30,8 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void Inheritence()
 		{
-			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
-			var tx = BitcoinMock.RandomSmartTransaction(9, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(1.1m), 100) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
+			var analyser = ServiceFactory.BlockchainAnalyzer();
+			var tx = BitcoinFactory.SmartTransaction(9, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(1.1m), 100) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
 
 			analyser.Analyze(tx);
 
@@ -45,8 +45,8 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void ChangeOutput()
 		{
-			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
-			var tx = BitcoinMock.RandomSmartTransaction(9, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(6.2m), 1) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Coins(5m), HdPubKey.DefaultHighAnonymitySet) });
+			var analyser = ServiceFactory.BlockchainAnalyzer();
+			var tx = BitcoinFactory.SmartTransaction(9, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(6.2m), 1) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Coins(5m), HdPubKey.DefaultHighAnonymitySet) });
 
 			analyser.Analyze(tx);
 
@@ -61,8 +61,8 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void ChangeOutputInheritence()
 		{
-			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
-			var tx = BitcoinMock.RandomSmartTransaction(9, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(6.2m), 100) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Coins(5m), HdPubKey.DefaultHighAnonymitySet) });
+			var analyser = ServiceFactory.BlockchainAnalyzer();
+			var tx = BitcoinFactory.SmartTransaction(9, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(6.2m), 100) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Coins(5m), HdPubKey.DefaultHighAnonymitySet) });
 
 			analyser.Analyze(tx);
 
@@ -78,9 +78,9 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		public void MultiDenomination()
 		{
 			// Multiple standard denomination outputs results in correct calculation.
-			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
+			var analyser = ServiceFactory.BlockchainAnalyzer();
 			var othersOutputs = new[] { 1, 1, 1, 2, 2 };
-			var tx = BitcoinMock.RandomSmartTransaction(
+			var tx = BitcoinFactory.SmartTransaction(
 				9,
 				othersOutputs.Select(x => Money.Coins(x)),
 				new[] { (Money.Coins(3.2m), 1) },
@@ -100,9 +100,9 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		public void MultiDenominationInheritence()
 		{
 			// Multiple denominations inherit properly.
-			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
+			var analyser = ServiceFactory.BlockchainAnalyzer();
 			var othersOutputs = new[] { 1, 1, 1, 2, 2 };
-			var tx = BitcoinMock.RandomSmartTransaction(
+			var tx = BitcoinFactory.SmartTransaction(
 				9,
 				othersOutputs.Select(x => Money.Coins(x)),
 				new[] { (Money.Coins(3.2m), 100) },
@@ -122,10 +122,10 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		public void SelfAnonsetSanityCheck()
 		{
 			// If we have multiple same denomination in the same coinjoin, then don't gain anonset on ourselves.
-			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
+			var analyser = ServiceFactory.BlockchainAnalyzer();
 			var othersOutputs = new[] { 1, 1, 1 };
 			var ownOutputs = new[] { 1, 1 };
-			var tx = BitcoinMock.RandomSmartTransaction(
+			var tx = BitcoinFactory.SmartTransaction(
 				9,
 				othersOutputs.Select(x => Money.Coins(x)),
 				new[] { (Money.Coins(3.2m), 1) },
@@ -141,8 +141,8 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		public void InputSanityCheck()
 		{
 			// Anonset can never be larger than the number of inputs.
-			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
-			var tx = BitcoinMock.RandomSmartTransaction(2, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(1.1m), 1) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
+			var analyser = ServiceFactory.BlockchainAnalyzer();
+			var tx = BitcoinFactory.SmartTransaction(2, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(1.1m), 1) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
 
 			analyser.Analyze(tx);
 
@@ -154,10 +154,10 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		public void InputSanityBeforeSelfAnonsetSanityCheck()
 		{
 			// Input sanity check is executed before self anonset sanity check.
-			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
+			var analyser = ServiceFactory.BlockchainAnalyzer();
 			var othersOutputs = new[] { 1, 1, 1 };
 			var ownOutputs = new[] { 1, 1 };
-			var tx = BitcoinMock.RandomSmartTransaction(
+			var tx = BitcoinFactory.SmartTransaction(
 				2,
 				othersOutputs.Select(x => Money.Coins(x)),
 				new[] { (Money.Coins(3.2m), 1) },
@@ -176,8 +176,8 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		public void InputMergePunishment()
 		{
 			// Input merging results in worse inherited anonset.
-			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
-			var tx = BitcoinMock.RandomSmartTransaction(
+			var analyser = ServiceFactory.BlockchainAnalyzer();
+			var tx = BitcoinFactory.SmartTransaction(
 				9,
 				Enumerable.Repeat(Money.Coins(1m), 9),
 				new[] { (Money.Coins(1.1m), 100), (Money.Coins(1.2m), 200), (Money.Coins(1.3m), 300), (Money.Coins(1.4m), 400) },
@@ -196,8 +196,8 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		public void InputMergePunishmentNoInheritence()
 		{
 			// Input merging results in worse inherited anonset, but not in worse anonset if there's nothing to inherit.
-			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
-			var tx = BitcoinMock.RandomSmartTransaction(
+			var analyser = ServiceFactory.BlockchainAnalyzer();
+			var tx = BitcoinFactory.SmartTransaction(
 				9,
 				Enumerable.Repeat(Money.Coins(1m), 9),
 				new[] { (Money.Coins(1.1m), 1), (Money.Coins(1.2m), 1), (Money.Coins(1.3m), 1), (Money.Coins(1.4m), 1) },
@@ -216,7 +216,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		{
 			// Input merging more coins results in worse anonset.
 			// In this test tx1 consolidates less inputs than tx2.
-			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
+			var analyser = ServiceFactory.BlockchainAnalyzer();
 
 			var othersInputCount = 9;
 			var othersOutputs = Enumerable.Repeat(Money.Coins(1m), 9);
@@ -224,13 +224,13 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 			var ownInputs2 = ownInputs1.Concat(new[] { (Money.Coins(1.5m), 100) });
 			var ownOutputs = new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) };
 
-			var tx1 = BitcoinMock.RandomSmartTransaction(
+			var tx1 = BitcoinFactory.SmartTransaction(
 				othersInputCount,
 				othersOutputs,
 				ownInputs1,
 				ownOutputs);
 
-			var tx2 = BitcoinMock.RandomSmartTransaction(
+			var tx2 = BitcoinFactory.SmartTransaction(
 				othersInputCount,
 				othersOutputs,
 				ownInputs2,
@@ -247,7 +247,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		public void InputMergePunishmentDependsOnCjSize()
 		{
 			// Input merging in larger coinjoin results in less punishmnent.
-			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
+			var analyser = ServiceFactory.BlockchainAnalyzer();
 
 			var othersInputCount1 = 10;
 			var othersInputCount2 = 9;
@@ -255,13 +255,13 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 			var ownInputs = new[] { (Money.Coins(1.1m), 100), (Money.Coins(1.2m), 200), (Money.Coins(1.3m), 300), (Money.Coins(1.4m), 400) };
 			var ownOutputs = new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) };
 
-			var tx1 = BitcoinMock.RandomSmartTransaction(
+			var tx1 = BitcoinFactory.SmartTransaction(
 				othersInputCount1,
 				othersOutputs,
 				ownInputs,
 				ownOutputs);
 
-			var tx2 = BitcoinMock.RandomSmartTransaction(
+			var tx2 = BitcoinFactory.SmartTransaction(
 				othersInputCount2,
 				othersOutputs,
 				ownInputs,

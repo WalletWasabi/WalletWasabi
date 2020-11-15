@@ -10,7 +10,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void CanMergeSingleOperations()
 		{
-			var tx = BitcoinMock.RandomSmartTransaction();
+			var tx = BitcoinFactory.SmartTransaction();
 
 			var append = new Append(tx);
 			var unmergedAppendOperations = new[] { append };
@@ -40,14 +40,14 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void CanMergeComplexOperations()
 		{
-			var tx1 = BitcoinMock.RandomSmartTransaction();
-			var tx2 = BitcoinMock.RandomSmartTransaction();
-			var tx3 = BitcoinMock.RandomSmartTransaction();
-			var tx4 = BitcoinMock.RandomSmartTransaction();
-			var tx5 = BitcoinMock.RandomSmartTransaction();
-			var tx6 = BitcoinMock.RandomSmartTransaction();
-			var tx7 = BitcoinMock.RandomSmartTransaction();
-			var tx8 = BitcoinMock.RandomSmartTransaction();
+			var tx1 = BitcoinFactory.SmartTransaction();
+			var tx2 = BitcoinFactory.SmartTransaction();
+			var tx3 = BitcoinFactory.SmartTransaction();
+			var tx4 = BitcoinFactory.SmartTransaction();
+			var tx5 = BitcoinFactory.SmartTransaction();
+			var tx6 = BitcoinFactory.SmartTransaction();
+			var tx7 = BitcoinFactory.SmartTransaction();
+			var tx8 = BitcoinFactory.SmartTransaction();
 
 			var a1 = new Append(tx1, tx2);
 			var a2 = new Append(tx3, tx4, tx5);
