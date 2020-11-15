@@ -16,6 +16,8 @@ namespace WalletWasabi.BitcoinCore
 {
 	public class P2pNode
 	{
+		private bool _disposed = false;
+
 		public P2pNode(Network network, EndPoint endPoint, MempoolService mempoolService, string userAgent)
 		{
 			Network = Guard.NotNull(nameof(network), network);
@@ -116,8 +118,6 @@ namespace WalletWasabi.BitcoinCore
 				Logger.LogInfo($"CoreNode connection state changed. Triggered {nameof(MempoolService)}.{nameof(MempoolService.TrustedNodeMode)} to be {MempoolService.TrustedNodeMode}");
 			}
 		}
-
-		private bool _disposed = false;
 
 		public async Task DisposeAsync()
 		{
