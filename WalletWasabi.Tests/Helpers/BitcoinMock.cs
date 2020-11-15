@@ -27,15 +27,12 @@ namespace WalletWasabi.Tests.Helpers
 		{
 			var km = RandomKeyManager();
 			var tx = Transaction.Create(Network.Main);
-			var ownInputCount = ownInputs.Count();
-			var ownOutputCount = ownOutputs.Count();
-			var walletInputs = new HashSet<SmartCoin>(ownInputCount);
-			var walletOutputs = new HashSet<SmartCoin>(ownOutputCount);
+			var walletInputs = new HashSet<SmartCoin>();
+			var walletOutputs = new HashSet<SmartCoin>();
 
 			for (int i = 0; i < othersInputCount; i++)
 			{
-				var sc = RandomSmartCoin(RandomHdPubKey(km), 1m);
-				tx.Inputs.Add(sc.OutPoint);
+				tx.Inputs.Add(RandomOutPoint());
 			}
 			var idx = (uint)othersInputCount - 1;
 			foreach (var txo in ownInputs)
@@ -91,6 +88,17 @@ namespace WalletWasabi.Tests.Helpers
 			var stx = new SmartTransaction(tx, height);
 			pubKey.AnonymitySet = anonymitySet;
 			return new SmartCoin(stx, index, pubKey);
+		}
+
+		public static OutPoint RandomOutPoint()
+			=> new OutPoint(RandomUint256(), (uint)CryptoHelpers.RandomInt(0, 100));
+
+		public static uint256 RandomUint256()
+		{
+			var rand = new UnsecureRandom();
+			var bytes = new byte[32];
+			rand.GetBytes(bytes);
+			return new uint256(bytes);
 		}
 
 		public static TransactionFactory CreateTransactionFactory(
