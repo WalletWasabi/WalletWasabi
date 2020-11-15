@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reactive.Linq;
 using DynamicData;
 using DynamicData.Binding;
@@ -74,7 +75,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				.AsObservableList();
 
 			observable.GroupWithImmutableState(x => x.Category)
-				.Transform(grouping => new SearchItemGroup(grouping.Key, grouping.Items))
+				.Transform(grouping => new SearchItemGroup(grouping.Key, grouping.Items.OrderBy(x => x.Title)))
 				.Sort(SortExpressionComparer<SearchItemGroup>.Ascending(i => i.Category.Order).ThenByAscending(i => i.Category.Title))
 				.Bind(out _searchItemsByCategory)
 				.AsObservableList();
