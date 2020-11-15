@@ -10,6 +10,7 @@ using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.CoinJoin.Coordinator;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
+using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.XunitConfiguration;
 using Xunit;
 using static WalletWasabi.Crypto.SchnorrBlinding;
@@ -74,12 +75,12 @@ namespace WalletWasabi.Tests.RegressionTests
 				uint256 blindedOutputScriptsHash = new uint256(Hashes.SHA256(blinded.BlindedOutput.ToBytes()));
 
 				var inputProofModels = new List<InputProofModel>();
-				int numberOfInputs = new Random().Next(1, 7);
+				int numberOfInputs = CryptoHelpers.RandomInt(1, 6);
 				var receiveSatoshiSum = 0;
 				for (int j = 0; j < numberOfInputs; j++)
 				{
 					var key = new Key();
-					var receiveSatoshi = new Random().Next(1000, 100000000);
+					var receiveSatoshi = CryptoHelpers.RandomInt(1000, 100000000);
 					receiveSatoshiSum += receiveSatoshi;
 					if (j == numberOfInputs - 1)
 					{

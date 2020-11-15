@@ -176,7 +176,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void SelectSameClusterCoins()
 		{
-			var (password, keyManager) = BitcoinMock.RandomKeyManager();
+			var password = "foo";
+			var keyManager = BitcoinMock.RandomKeyManager(password);
 
 			keyManager.AssertCleanKeysIndexed();
 

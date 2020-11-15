@@ -14,14 +14,9 @@ namespace WalletWasabi.Tests.Helpers
 {
 	public static class BitcoinMock
 	{
-		public static BlockchainAnalyzer RandomBlockchainAnalyzer(int privacyLevelThreshold = 100)
-		{
-			return new BlockchainAnalyzer(privacyLevelThreshold);
-		}
-
 		public static SmartTransaction RandomSmartTransaction(int othersInputCount, IEnumerable<Money> othersOutputs, IEnumerable<(Money value, int anonset)> ownInputs, IEnumerable<(Money value, int anonset)> ownOutputs)
 		{
-			var km = RandomKeyManager().Item2;
+			var km = RandomKeyManager();
 			var tx = Transaction.Create(Network.Main);
 			var ownInputCount = ownInputs.Count();
 			var ownOutputCount = ownOutputs.Count();
@@ -83,12 +78,9 @@ namespace WalletWasabi.Tests.Helpers
 		public static SmartCoin RandomSmartCoin(HdPubKey pubKey, decimal amountBtc, uint index = 0, bool confirmed = true, int anonymitySet = 1)
 			=> RandomSmartCoin(pubKey, Money.Coins(amountBtc), index, confirmed, anonymitySet);
 
-		public static int RandomInt(int minInclusive, int maxInclusive)
-			=> new Random().Next(minInclusive, maxInclusive + 1);
-
 		public static SmartCoin RandomSmartCoin(HdPubKey pubKey, Money amount, uint index = 0, bool confirmed = true, int anonymitySet = 1)
 		{
-			var height = confirmed ? new Height(RandomInt(0, 200)) : Height.Mempool;
+			var height = confirmed ? new Height(CryptoHelpers.RandomInt(0, 200)) : Height.Mempool;
 			pubKey.SetKeyState(KeyState.Used);
 			var tx = Transaction.Create(Network.Main);
 			tx.Outputs.Add(new TxOut(amount, pubKey.P2wpkhScript));
@@ -102,7 +94,8 @@ namespace WalletWasabi.Tests.Helpers
 		   bool allowUnconfirmed = true,
 		   bool watchOnly = false)
 		{
-			var (password, keyManager) = watchOnly ? RandomWatchOnlyKeyManager() : RandomKeyManager();
+			var password = "foo";
+			var keyManager = watchOnly ? RandomWatchOnlyKeyManager() : RandomKeyManager(password);
 
 			keyManager.AssertCleanKeysIndexed();
 
@@ -128,16 +121,13 @@ namespace WalletWasabi.Tests.Helpers
 			return new TransactionFactory(Network.Main, keyManager, coinsView, transactionStore, password, allowUnconfirmed);
 		}
 
-		public static (string, KeyManager) RandomKeyManager()
-		{
-			var password = "blahblahblah";
-			return (password, KeyManager.CreateNew(out var _, password));
-		}
+		public static KeyManager RandomKeyManager(string password = "blahblahblah")
+			=> KeyManager.CreateNew(out var _, password);
 
-		public static (string, KeyManager) RandomWatchOnlyKeyManager()
-		{
-			var (password, keyManager) = RandomKeyManager();
-			return (password, KeyManager.CreateNewWatchOnly(keyManager.ExtPubKey));
-		}
+		public static KeyManager RandomWatchOnlyKeyManager()
+			=> KeyManager.CreateNewWatchOnly(new Mnemonic(Wordlist.English, WordCount.Twelve).DeriveExtKey().Neuter());
+
+		public static BlockchainAnalyzer RandomBlockchainAnalyzer(int privacyLevelThreshold = 100)
+			=> new BlockchainAnalyzer(privacyLevelThreshold);
 	}
 }
