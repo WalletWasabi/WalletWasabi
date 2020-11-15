@@ -25,7 +25,6 @@ namespace WalletWasabi.Tests.Helpers
 
 		public static SmartTransaction RandomSmartTransaction(int othersInputCount, IEnumerable<Money> othersOutputs, IEnumerable<(Money value, int anonset, HdPubKey hdpk)> ownInputs, IEnumerable<(Money value, int anonset, HdPubKey hdpk)> ownOutputs)
 		{
-			var km = RandomKeyManager();
 			var tx = Transaction.Create(Network.Main);
 			var walletInputs = new HashSet<SmartCoin>();
 			var walletOutputs = new HashSet<SmartCoin>();
@@ -45,8 +44,7 @@ namespace WalletWasabi.Tests.Helpers
 
 			foreach (var val in othersOutputs)
 			{
-				var sc = RandomSmartCoin(RandomHdPubKey(km), val);
-				tx.Outputs.Add(sc.TxOut);
+				tx.Outputs.Add(new TxOut(val, new Key()));
 			}
 			idx = (uint)othersOutputs.Count() - 1;
 			foreach (var txo in ownOutputs)
