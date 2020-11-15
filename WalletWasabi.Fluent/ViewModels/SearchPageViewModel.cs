@@ -88,11 +88,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				if (!string.IsNullOrWhiteSpace(searchQuery)
 				    && searchQuery.IndexOf(',', StringComparison.OrdinalIgnoreCase) < 0)
 				{
-					if (item.Keywords.IndexOf(searchQuery, StringComparison.OrdinalIgnoreCase) >= 0)
-					{
-						return true;
-					}
-					return false;
+					return item.Keywords.IndexOf(searchQuery, StringComparison.OrdinalIgnoreCase) >= 0;
 				}
 				return true;
 			};
