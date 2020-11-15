@@ -22,7 +22,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 			analyser.Analyze(tx);
 
 			Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
-			
+
 			// 10 participants, 1 is you, your anonset is 10.
 			Assert.Equal(10, tx.WalletOutputs.First().HdPubKey.AnonymitySet);
 		}
@@ -36,7 +36,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 			analyser.Analyze(tx);
 
 			Assert.Equal(100, tx.WalletInputs.First().HdPubKey.AnonymitySet);
-			
+
 			// 10 participants, 1 is you, your anonset is 10 and you inherit 99 anonset,
 			// because you don't want to count yourself twice.
 			Assert.Equal(109, tx.WalletOutputs.First().HdPubKey.AnonymitySet);
@@ -154,7 +154,6 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		public void InputSanityBeforeSelfAnonsetSanityCheck()
 		{
 			// Input sanity check is executed before self anonset sanity check.
-
 			var analyser = BitcoinMock.RandomBlockchainAnalyzer();
 			var othersOutputs = new[] { 1, 1, 1 };
 			var ownOutputs = new[] { 1, 1 };
@@ -167,6 +166,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 			analyser.Analyze(tx);
 
 			Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
+
 			// The anonset calculation should be 5, but there's 4 inputs so - 1 = 3.
 			// After than - 1 because 2 out of it is ours.
 			Assert.All(tx.WalletOutputs, x => Assert.Equal(2, x.HdPubKey.AnonymitySet));
