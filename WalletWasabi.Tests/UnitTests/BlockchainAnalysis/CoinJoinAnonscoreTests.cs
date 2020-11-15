@@ -185,7 +185,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 
 			analyser.Analyze(tx);
 
-			Assert.True(tx.WalletInputs.First().HdPubKey.AnonymitySet < 100);
+			Assert.All(tx.WalletInputs, x => Assert.True(x.HdPubKey.AnonymitySet < 100));
 
 			// 10 participants, 1 is you, your added anonset would be 10.
 			// Smallest input anonset is 100 so your anonset would be 109 normally, but 4 inputs are merged so it should be worse.
@@ -205,7 +205,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 
 			analyser.Analyze(tx);
 
-			Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
+			Assert.All(tx.WalletInputs, x => Assert.Equal(1, x.HdPubKey.AnonymitySet));
 
 			// 10 participants, 1 is you, your anonset would be 10 normally and now too:
 			Assert.Equal(10, tx.WalletOutputs.First().HdPubKey.AnonymitySet);
@@ -239,7 +239,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 			analyser.Analyze(tx1);
 			analyser.Analyze(tx2);
 
-			Assert.True(tx1.WalletInputs.First().HdPubKey.AnonymitySet > tx2.WalletInputs.First().HdPubKey.AnonymitySet);
+			Assert.All(tx1.WalletInputs, x => Assert.All(tx2.WalletInputs, y => Assert.True(x.HdPubKey.AnonymitySet > y.HdPubKey.AnonymitySet)));
 			Assert.True(tx1.WalletOutputs.First().HdPubKey.AnonymitySet > tx2.WalletOutputs.First().HdPubKey.AnonymitySet);
 		}
 
@@ -270,7 +270,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 			analyser.Analyze(tx1);
 			analyser.Analyze(tx2);
 
-			Assert.True(tx1.WalletInputs.First().HdPubKey.AnonymitySet > tx2.WalletInputs.First().HdPubKey.AnonymitySet);
+			Assert.All(tx1.WalletInputs, x => Assert.All(tx2.WalletInputs, y => Assert.True(x.HdPubKey.AnonymitySet > y.HdPubKey.AnonymitySet)));
 			Assert.True(tx1.WalletOutputs.First().HdPubKey.AnonymitySet > tx2.WalletOutputs.First().HdPubKey.AnonymitySet);
 		}
 	}

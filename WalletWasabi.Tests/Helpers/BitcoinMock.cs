@@ -17,6 +17,12 @@ namespace WalletWasabi.Tests.Helpers
 		public static SmartTransaction RandomSmartTransaction(int othersInputCount, IEnumerable<Money> othersOutputs, IEnumerable<(Money value, int anonset)> ownInputs, IEnumerable<(Money value, int anonset)> ownOutputs)
 		{
 			var km = RandomKeyManager();
+			return RandomSmartTransaction(othersInputCount, othersOutputs, ownInputs.Select(x => (x.value, x.anonset, RandomHdPubKey(km))), ownOutputs.Select(x => (x.value, x.anonset, RandomHdPubKey(km))));
+		}
+
+		public static SmartTransaction RandomSmartTransaction(int othersInputCount, IEnumerable<Money> othersOutputs, IEnumerable<(Money value, int anonset, HdPubKey hdpk)> ownInputs, IEnumerable<(Money value, int anonset, HdPubKey hdpk)> ownOutputs)
+		{
+			var km = RandomKeyManager();
 			var tx = Transaction.Create(Network.Main);
 			var ownInputCount = ownInputs.Count();
 			var ownOutputCount = ownOutputs.Count();
@@ -32,7 +38,7 @@ namespace WalletWasabi.Tests.Helpers
 			foreach (var txo in ownInputs)
 			{
 				idx++;
-				var sc = RandomSmartCoin(RandomHdPubKey(km), txo.value, idx, anonymitySet: txo.anonset);
+				var sc = RandomSmartCoin(txo.hdpk, txo.value, idx, anonymitySet: txo.anonset);
 				tx.Inputs.Add(sc.OutPoint);
 				walletInputs.Add(sc);
 			}
@@ -46,7 +52,7 @@ namespace WalletWasabi.Tests.Helpers
 			foreach (var txo in ownOutputs)
 			{
 				idx++;
-				var hdpk = RandomHdPubKey(km);
+				var hdpk = txo.hdpk;
 				tx.Outputs.Add(new TxOut(txo.value, hdpk.P2wpkhScript));
 				var sc = new SmartCoin(new SmartTransaction(tx, Height.Mempool), idx, hdpk);
 				walletOutputs.Add(sc);
