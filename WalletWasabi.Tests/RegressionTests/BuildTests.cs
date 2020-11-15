@@ -282,6 +282,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				Interlocked.Exchange(ref Common.FiltersProcessedByWalletCount, 0);
 				await rpc.GenerateAsync(3);
 				await Common.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 3);
+				await Task.Delay(100); // Wait for tx processing.
 
 				var coin4 = Assert.Single(wallet.Coins);
 				Assert.Equal(coin3, coin4);
