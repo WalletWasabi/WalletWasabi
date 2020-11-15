@@ -14,6 +14,9 @@ namespace WalletWasabi.Tests.Helpers
 {
 	public static class BitcoinMock
 	{
+		public static SmartTransaction RandomSmartTransaction(int othersInputCount = 1, int othersOutputCount = 1, int ownInputCount = 0, int ownOutputCount = 0)
+			=> RandomSmartTransaction(othersInputCount, Enumerable.Repeat(Money.Coins(1m), othersOutputCount), Enumerable.Repeat((Money.Coins(1.1m), 1), ownInputCount), Enumerable.Repeat((Money.Coins(1m), 1), ownOutputCount));
+
 		public static SmartTransaction RandomSmartTransaction(int othersInputCount, IEnumerable<Money> othersOutputs, IEnumerable<(Money value, int anonset)> ownInputs, IEnumerable<(Money value, int anonset)> ownOutputs)
 		{
 			var km = RandomKeyManager();
@@ -73,13 +76,8 @@ namespace WalletWasabi.Tests.Helpers
 			return stx;
 		}
 
-		public static SmartTransaction RandomSmartTransaction(int othersInputCount = 1, int othersOutputCount = 1, int ownInputCount = 0, int ownOutputCount = 0)
-			=> RandomSmartTransaction(othersInputCount, Enumerable.Repeat(Money.Coins(1m), othersOutputCount), Enumerable.Repeat((Money.Coins(1.1m), 1), ownInputCount), Enumerable.Repeat((Money.Coins(1m), 1), ownOutputCount));
-
 		public static HdPubKey RandomHdPubKey(KeyManager km)
-		{
-			return km.GenerateNewKey(SmartLabel.Empty, KeyState.Clean, isInternal: false);
-		}
+			=> km.GenerateNewKey(SmartLabel.Empty, KeyState.Clean, isInternal: false);
 
 		public static SmartCoin RandomSmartCoin(HdPubKey pubKey, decimal amountBtc, uint index = 0, bool confirmed = true, int anonymitySet = 1)
 			=> RandomSmartCoin(pubKey, Money.Coins(amountBtc), index, confirmed, anonymitySet);
