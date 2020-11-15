@@ -9,6 +9,7 @@
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:SearchPageViewModel"
+             x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.SearchPageView">
   <c:ContentArea Title="Search" Caption="">
     <DockPanel>
