@@ -50,13 +50,13 @@ namespace WalletWasabi.Blockchain.Analysis
 		private void AnalyzeCoinjoin(SmartTransaction tx)
 		{
 			var ownInputCount = tx.WalletInputs.Count;
+			var inputCount = tx.Transaction.Inputs.Count;
 			var distinctWalletInputPubKeys = tx.WalletInputs.Select(x => x.HdPubKey).ToHashSet();
 			var inheritedAnonset = 0;
 			if (ownInputCount > 0)
 			{
 				// If we provided inputs to the transaction.
 				// Reusing pubkey on the input side is good, the punishment happened already.
-				var inputCount = tx.Transaction.Inputs.Count;
 				var distinctWalletInputPubKeyCount = distinctWalletInputPubKeys.Count;
 				var pubKeyReuseCount = ownInputCount - distinctWalletInputPubKeyCount;
 				var privacyBonus = Intersect(distinctWalletInputPubKeys.Select(x => x.AnonymitySet), (double)distinctWalletInputPubKeyCount / (inputCount - pubKeyReuseCount));
@@ -73,11 +73,17 @@ namespace WalletWasabi.Blockchain.Analysis
 				}
 			}
 
-			foreach (var newCoin in tx.WalletOutputs)
+			foreach (var newCoin in tx.WalletOutputs.ToArray())
 			{
 				// Get the anonymity set of i-th output in the transaction.
 				var anonset = inheritedAnonset;
-				anonset += tx.Transaction.GetAnonymitySet(newCoin.Index);
+				// Calculating gained anonimity shall be limited by the number of inputs.
+				// Although one person may create many equal outputs and it would seem like we successfully get lost
+				// within this elephant, it's not the case as the elephant is more likely to ruin its own privacy, so let's not inflate anonsets for this.
+				anonset += Math.Min(inputCount, tx.Transaction.GetAnonymitySet(newCoin.Index));
+
+				// Don't create many anonset if we've provided a lot of equal outputs.
+				anonset -= tx.WalletOutputs.Count(x => x.Amount == newCoin.Amount) - 1;
 
 				HdPubKey hdPubKey = newCoin.HdPubKey;
 				if (hdPubKey.AnonymitySet == HdPubKey.DefaultHighAnonymitySet)
