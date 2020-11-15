@@ -52,12 +52,12 @@ namespace WalletWasabi.Fluent.ViewModels
 				keywords: "Wallet, Add Wallet, Create Wallet, Recover Wallet, Import Wallet, Connect Hardware Wallet",
 				() => addWalletPage));
 
-			var filter = this.WhenValueChanged(t => t.SearchQuery)
+			var queryFilter = this.WhenValueChanged(t => t.SearchQuery)
 				.Throttle(TimeSpan.FromMilliseconds(250))
 				.Select(SearchQueryFilter)
 				.DistinctUntilChanged();
 
-			var observable = walletManager.Items.ToObservableChangeSet()
+			var searchItemsObservable = walletManager.Items.ToObservableChangeSet()
 				.Transform(x => new SearchItemViewModel(
 					navigationState,
 					NavigationTarget.HomeScreen,
@@ -68,13 +68,13 @@ namespace WalletWasabi.Fluent.ViewModels
 					() => x))
 				.Sort(SortExpressionComparer<SearchItemViewModel>.Ascending(i => i.Title))
 				.Merge(searchItems.Connect())
-				.Filter(filter)
+				.Filter(queryFilter)
 				.ObserveOn(RxApp.MainThreadScheduler);
 
-			observable.Bind(out _searchItems)
+			searchItemsObservable.Bind(out _searchItems)
 				.AsObservableList();
 
-			observable.GroupWithImmutableState(x => x.Category)
+			searchItemsObservable.GroupWithImmutableState(x => x.Category)
 				.Transform(grouping => new SearchItemGroup(grouping.Key, grouping.Items.OrderBy(x => x.Title)))
 				.Sort(SortExpressionComparer<SearchItemGroup>.Ascending(i => i.Category.Order).ThenByAscending(i => i.Category.Title))
 				.Bind(out _searchItemsByCategory)
