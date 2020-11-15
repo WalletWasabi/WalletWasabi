@@ -73,7 +73,11 @@ namespace WalletWasabi.Blockchain.Analysis
 				}
 			}
 
-			foreach (var newCoin in tx.WalletOutputs.ToArray())
+			var indistinguishableWalletOutputs = tx
+				.WalletOutputs.GroupBy(x => x.Amount)
+				.ToDictionary(x => x.Key, y => y.Count());
+
+			foreach (var newCoin in tx.WalletOutputs)
 			{
 				// Get the anonymity set of i-th output in the transaction.
 				var anonset = inheritedAnonset;
@@ -84,7 +88,7 @@ namespace WalletWasabi.Blockchain.Analysis
 				anonset += Math.Min(inputCount, tx.Transaction.GetAnonymitySet(newCoin.Index));
 
 				// Don't create many anonset if we've provided a lot of equal outputs.
-				anonset -= tx.WalletOutputs.Count(x => x.Amount == newCoin.Amount) - 1;
+				anonset -= indistinguishableWalletOutputs[newCoin.Amount] - 1;
 
 				HdPubKey hdPubKey = newCoin.HdPubKey;
 				if (hdPubKey.AnonymitySet == HdPubKey.DefaultHighAnonymitySet)
