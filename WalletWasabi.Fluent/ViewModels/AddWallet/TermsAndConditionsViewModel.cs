@@ -36,7 +36,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 						NavigationTarget.DialogScreen,
 						content);
 
-					legalDocs.Navigate();
+					legalDocs.NavigateToSelf();
 				});
 
 			NextCommand = ReactiveCommand.Create(

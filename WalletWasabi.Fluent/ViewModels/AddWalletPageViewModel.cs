@@ -80,11 +80,11 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			var termsAndConditions = new TermsAndConditionsViewModel(NavigationState, legalDocuments);
 
-			termsAndConditions.Navigate();
+			termsAndConditions.NavigateToSelf();
 
 			if (await termsAndConditions.GetDialogResultAsync())
 			{
-				Navigate();
+				NavigateToSelf();
 			}
 			else
 			{
