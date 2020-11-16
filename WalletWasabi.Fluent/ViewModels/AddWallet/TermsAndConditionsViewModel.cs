@@ -51,9 +51,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		}
 
 		public ICommand ViewTermsCommand { get; }
+
 		protected override void OnDialogClosed()
 		{
-
 		}
 	}
 }

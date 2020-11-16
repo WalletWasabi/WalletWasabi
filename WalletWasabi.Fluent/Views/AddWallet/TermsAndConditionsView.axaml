@@ -2,20 +2,28 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
              mc:Ignorable="d"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors;assembly=WalletWasabi.Fluent"
-             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              d:DesignWidth="600" d:DesignHeight="500"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.TermsAndConditionsView">
-  <c:ContentArea Title="Welcome to Wasabi Wallet"
-                 EnableCancel="False"
-                 EnableNext="True" NextContent="Continue" FocusNext="True">
+    <UserControl.KeyBindings>
+        <KeyBinding Gesture="Enter" Command="{Binding NextCommand}" />
+    </UserControl.KeyBindings>
+    <c:ContentArea Title="Welcome to Wasabi Wallet"
+                   EnableCancel="False"
+                   EnableNext="True" NextContent="Continue" FocusNext="True">
       <DockPanel>
-          <CheckBox IsChecked="{Binding IsAgreed}" DockPanel.Dock="Bottom">
+          <CheckBox IsChecked="{Binding IsAgreed}" DockPanel.Dock="Bottom" Name="CheckBox_Agree">
+              <i:Interaction.Behaviors>
+                  <behaviors:FocusOnAttachedBehavior />
+              </i:Interaction.Behaviors>
               <StackPanel Orientation="Horizontal">
-                  <TextBlock Text="I agree to the " />
-                  <Button Classes="plain" Content="Terms and Conditions" Command="{Binding ViewTermsCommand}" />
+                  <Label Content="I _agree to the " Target="CheckBox_Agree" FontWeight="Normal" Margin="0" Padding="0" />
+                  <Button Classes="plain" Command="{Binding ViewTermsCommand}">
+                      <TextBlock Text="Terms and conditions" TextDecorations="Underline" Foreground="{DynamicResource SystemAccentColor}" />
+                  </Button>
               </StackPanel>
           </CheckBox>
           <Border BorderThickness="1" BorderBrush="White" Opacity="0.2" CornerRadius="5" Margin="20 0 20 40">
