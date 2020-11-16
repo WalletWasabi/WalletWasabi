@@ -172,7 +172,7 @@ namespace WalletWasabi.BitcoinCore
 			}
 			catch (Exception ex)
 			{
-				Logger.LogError($"P2p Bitcoin node failed to disconnect. '{ex.ToUserFriendlyString()}'");
+				Logger.LogError($"P2p Bitcoin node failed to disconnect. '{ex}'");
 				return false;
 			}
 			finally
