@@ -95,16 +95,18 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public void GoBack(NavigationTarget navigationTarget)
 		{
+			IScreen screen = NavigationState.HomeScreen();
+
 			switch (navigationTarget)
 			{
-				case NavigationTarget.Default:
-				case NavigationTarget.HomeScreen:
-					NavigationState.HomeScreen.Invoke().Router.NavigateBack.Execute();
-					break;
-
 				case NavigationTarget.DialogScreen:
-					NavigationState.DialogScreen.Invoke().Router.NavigateBack.Execute();
+					screen = NavigationState.DialogScreen();
 					break;
+			}
+
+			if (screen.Router.NavigationStack.Count > 0)
+			{
+				screen.Router.NavigateBack.Execute();
 			}
 		}
 
