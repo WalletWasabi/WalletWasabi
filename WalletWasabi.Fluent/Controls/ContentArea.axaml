@@ -57,11 +57,11 @@
   </Style>
   <Style Selector="c|ContentArea /template/ ContentPresenter#PART_TitlePresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextControlForeground}" />
-    <Setter Property="TextBlock.FontSize" Value="24" />
+    <Setter Property="TextBlock.FontSize" Value="{DynamicResource FontSizeH3}" />
   </Style>
   <Style Selector="c|ContentArea :is(Control).caption TextBlock, c|ContentArea :is(TextBlock).caption">
     <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
-    <Setter Property="FontSize" Value="14" />
+    <Setter Property="FontSize" Value="{DynamicResource FontSizeH7}" />
     <Setter Property="TextWrapping" Value="Wrap" />
     <Setter Property="Opacity" Value="0.6" />
   </Style>
