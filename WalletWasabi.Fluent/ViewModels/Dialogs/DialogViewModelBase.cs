@@ -13,8 +13,9 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 		public DialogViewModelBase(NavigationStateViewModel navigationState, NavigationTarget navigationTarget) : base(navigationState, navigationTarget)
 		{
-
 		}
+
+		public abstract void Close();
 
 		public ICommand NextCommand { get; protected set; }
 
