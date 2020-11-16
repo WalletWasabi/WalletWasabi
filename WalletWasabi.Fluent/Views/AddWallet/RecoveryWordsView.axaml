@@ -6,7 +6,10 @@
              mc:Ignorable="d"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors;assembly=WalletWasabi.Fluent"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:addWallet="clr-namespace:WalletWasabi.Fluent.ViewModels.AddWallet"
              d:DesignWidth="600" d:DesignHeight="500"
+             x:CompileBindings="True"
+             x:DataType="addWallet:RecoveryWordsViewModel"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.RecoveryWordsView">
   <c:ContentArea Title="Recovery words"
                  Caption="Write down the following numbered recovery words in order. These can be used to recover your wallet in the future. It is very important you keep them in a safe place."
