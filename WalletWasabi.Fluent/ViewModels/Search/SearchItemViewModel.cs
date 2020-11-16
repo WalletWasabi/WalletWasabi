@@ -23,8 +23,7 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 
 			Title = title;
 
-			OpenCommand = ReactiveCommand.Create(
-				() => NavigateToTargetView(navigationState, navigationTarget, createTargetView));
+			OpenCommand = ReactiveCommand.Create(() => NavigateTo(createTargetView(), navigationTarget));
 		}
 
 		public string IconName { get; }
@@ -36,21 +35,6 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 		public string Keywords { get; }
 
 		public ICommand OpenCommand { get; }
-
-		private void NavigateToTargetView(NavigationStateViewModel navigationState, NavigationTarget navigationTarget, Func<RoutableViewModel> createTargetView)
-		{
-			switch (navigationTarget)
-			{
-				case NavigationTarget.Default:
-				case NavigationTarget.HomeScreen:
-					navigationState.HomeScreen?.Invoke().Router.Navigate.Execute(createTargetView());
-					break;
-
-				case NavigationTarget.DialogScreen:
-					navigationState.DialogScreen?.Invoke().Router.Navigate.Execute(createTargetView());
-					break;
-			}
-		}
 
 		public override string ToString()
 		{
