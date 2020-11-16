@@ -83,6 +83,7 @@
       <Button Classes="NavButton" Command="{Binding DoToggleAction}" IsVisible="{h:Platform {x:Static h:Const.False}, Osx={x:Static h:Const.False}}">
         <PathIcon Data="{StaticResource navigation_regular}" Width="16" />
       </Button>
+      <navbar:NavBarSearch DataContext="{Binding SearchPage}" />
       <c:NavBarListBox Items="{Binding TopItems}" SelectedItem="{Binding SelectedItem}" />
       <Separator />
     </StackPanel>
@@ -90,7 +91,6 @@
     <StackPanel DockPanel.Dock="Bottom">
       <Separator />
       <c:NavBarListBox Items="{Binding BottomItems}" SelectedItem="{Binding SelectedItem}" />
-      <navbar:NavBarSearch DataContext="{Binding SearchPage}" />
     </StackPanel>
 
     <c:NavBarTreeView Items="{Binding Items}" SelectedItem="{Binding SelectedItem}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">

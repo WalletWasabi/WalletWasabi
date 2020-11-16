@@ -32,8 +32,8 @@
     <Style Selector="AutoCompleteBox /template/ Popup#PART_Popup">
       <Setter Property="MaxWidth" Value="{Binding $parent[UserControl].Bounds.Width}" x:CompileBindings="False" />
       <Setter Property="PlacementMode" Value="AnchorAndGravity" />
-      <Setter Property="PlacementAnchor" Value="Top" />
-      <Setter Property="PlacementGravity" Value="Top" />
+      <Setter Property="PlacementAnchor" Value="Bottom" />
+      <Setter Property="PlacementGravity" Value="Bottom" />
     </Style>
     <Style Selector="AutoCompleteBox /template/ TextBox DataValidationErrors">
       <Setter Property="IsVisible" Value="False" />
