@@ -10,7 +10,7 @@ jobs:
     vmImage: 'macOS-10.14'
   steps:
   - task: UseDotNet@2
-    displayName: 'Install .NET Core 3'
+    displayName: 'Install .NET 5'
     inputs:
       version: 5.0.x
   - task: DotNetCoreCLI@2
