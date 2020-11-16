@@ -15,7 +15,7 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 			Success = new TaskCompletionSource<bool>();
 		}
 
-		public P2pNode P2pNode { get; set; }
+		public P2pNode P2pNode { get; }
 		private TaskCompletionSource<bool> Success { get; }
 
 		protected override async Task ActionAsync(CancellationToken cancel)
