@@ -85,21 +85,26 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 				NavigateTo(enterPassword, NavigationTarget.DialogScreen);
 
-				var password = await enterPassword.GetDialogResultAsync();
+				var result = await enterPassword.GetDialogResultAsync();
 
-				var walletFilePath = walletManager.WalletDirectories.GetWalletFilePaths(walletName!)
-					.walletFilePath;
+				if (result is { } password)
+				{
+					var walletFilePath = walletManager.WalletDirectories.GetWalletFilePaths(walletName!)
+						.walletFilePath;
 
-				var keyManager = KeyManager.Recover(
-					CurrentMnemonics!,
-					password!,
-					walletFilePath,
-					AccountKeyPath,
-					MinGapLimit);
-				keyManager.SetNetwork(network);
-				walletManager.AddWallet(keyManager);
+					var keyManager = KeyManager.Recover(
+						CurrentMnemonics!,
+						password!,
+						walletFilePath,
+						AccountKeyPath,
+						MinGapLimit);
 
-				ClearNavigation(NavigationTarget.DialogScreen);
+					keyManager.SetNetwork(network);
+
+					walletManager.AddWallet(keyManager);
+
+					ClearNavigation(NavigationTarget.DialogScreen);
+				}
 			}
 			catch (Exception ex)
 			{
