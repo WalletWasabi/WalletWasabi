@@ -37,26 +37,20 @@
           <local:StatusBar DockPanel.Dock="Bottom" Classes="h8" DataContext="{Binding StatusBar}" VerticalAlignment="Bottom" Height="32" />
           <Panel>
             <Border Background="{DynamicResource RegionColor}" BoxShadow="{DynamicResource BoxShadow}" IsHitTestVisible="False" />
-            <rxui:RoutedViewHost Router="{Binding Router}" Margin="20 36 20 20">
+            <rxui:RoutedViewHost Router="{Binding Router}" PageTransition="{x:Null}" Margin="20 36 20 20">
               <rxui:RoutedViewHost.ViewLocator>
                 <vl:ScreenViewLocator />
               </rxui:RoutedViewHost.ViewLocator>
-              <rxui:RoutedViewHost.PageTransition>
-                <CrossFade Duration="0:0:0.25" />
-              </rxui:RoutedViewHost.PageTransition>
             </rxui:RoutedViewHost>
           </Panel>
         </DockPanel>
       </Panel>
     </SplitView>
     <c:Dialog IsEnabled="{Binding $parent.DataContext.IsDialogEnabled}" MaxContentWidth="800" MaxContentHeight="700" DataContext="{Binding DialogScreen}" IsDialogOpen="{Binding IsDialogVisible, Mode=TwoWay}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-      <rxui:RoutedViewHost Router="{Binding Router}">
+      <rxui:RoutedViewHost Router="{Binding Router}" PageTransition="{x:Null}">
         <rxui:RoutedViewHost.ViewLocator>
           <vl:ScreenViewLocator />
         </rxui:RoutedViewHost.ViewLocator>
-        <rxui:RoutedViewHost.PageTransition>
-          <CrossFade Duration="0:0:0.25" />
-        </rxui:RoutedViewHost.PageTransition>
       </rxui:RoutedViewHost>
     </c:Dialog>
     <c:Dialog HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
