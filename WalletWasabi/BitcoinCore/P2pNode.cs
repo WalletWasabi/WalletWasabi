@@ -42,7 +42,7 @@ namespace WalletWasabi.BitcoinCore
 
 		private bool NodeEventsSubscribed { get; set; }
 		private object SubscriptionLock { get; }
-		private CancellationTokenSource Stop { get; set; }
+		private CancellationTokenSource Stop { get; }
 		private P2pReconnector P2pReconnector { get; set; }
 
 		public async Task ConnectAsync(CancellationToken cancel)
