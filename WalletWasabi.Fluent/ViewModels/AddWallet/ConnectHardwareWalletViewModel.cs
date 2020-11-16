@@ -33,7 +33,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		private HardwareWalletViewModel _selectedHardwareWallet;
 
 		public ConnectHardwareWalletViewModel(NavigationStateViewModel navigationState, string walletName, Network network,
-			WalletManager walletManager) : base(navigationState, NavigationTarget.DialogScreen)
+			WalletManager walletManager, NavigationTarget navigationTarget) : base(navigationState, navigationTarget)
 		{
 			_walletName = walletName;
 			_network = network;
@@ -43,8 +43,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			Task.Run(StartHardwareWalletDetection);
 
-			CancelCommand = ReactiveCommand.Create(() => navigationState.DialogScreen?.Invoke().Router.NavigationStack.Clear());
-			CancelCommand = ReactiveCommand.Create(() => _searchHardwareWalletCts.Cancel());
+			CancelCommand = ReactiveCommand.Create(ClearNavigation);
 
 			var connectCommandIsExecute = this.WhenAnyValue(x => x.SelectedHardwareWallet).Select(selectedHardwareWallet => selectedHardwareWallet?.HardwareWalletInfo?.Fingerprint is { });
 			NextCommand = ReactiveCommand.Create(() => { },connectCommandIsExecute);
