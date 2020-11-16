@@ -8,12 +8,28 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
 	public class DialogScreenViewModel : ViewModelBase, IScreen
 	{
+		private bool _isClosing;
 		private bool _isDialogVisible;
 
 		public DialogScreenViewModel()
 		{
 			Observable.FromEventPattern(Router.NavigationStack, nameof(Router.NavigationStack.CollectionChanged))
-				.Subscribe(_ => IsDialogVisible = Router.NavigationStack.Count >= 1);
+				.Subscribe(_ =>
+				{
+					if (!_isClosing)
+					{
+						IsDialogVisible = Router.NavigationStack.Count >= 1;
+					}
+				});
+
+			this.WhenAnyValue(x => x.IsDialogVisible).Subscribe(x =>
+			{
+				if (!x)
+				{
+					// Reset navigation when Dialog is using IScreen for navigation instead of the default IDialogHost.
+					Close();
+				}
+			});
 		}
 
 		public RoutingState Router { get; } = new RoutingState();
@@ -28,7 +44,15 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 		public void Close()
 		{
-			Router.NavigationStack.Clear();
+			if (!_isClosing)
+			{
+				_isClosing = true;
+				if (Router.NavigationStack.Count >= 1)
+				{
+					Router.NavigationStack.Clear();
+				}
+				_isClosing = false;
+			}
 		}
 	}
 }
