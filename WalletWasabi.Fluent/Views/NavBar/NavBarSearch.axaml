@@ -6,7 +6,11 @@
              xmlns:rx="clr-namespace:System.Reactive;assembly=System.Reactive"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
+             xmlns:search="using:WalletWasabi.Fluent.ViewModels.Search"
+             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="80"
+             x:DataType="vm:SearchPageViewModel"
+             x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.NavBar.NavBarSearch" UseLayoutRounding="False">
   <UserControl.Styles>
     <Style Selector="AutoCompleteBox">
@@ -26,7 +30,7 @@
       <Setter Property="Padding" Value="0,0,0,0" />
     </Style>
     <Style Selector="AutoCompleteBox /template/ Popup#PART_Popup">
-      <Setter Property="MaxWidth" Value="{Binding $parent[UserControl].Bounds.Width}" />
+      <Setter Property="MaxWidth" Value="{Binding $parent[UserControl].Bounds.Width}" x:CompileBindings="False" />
       <Setter Property="PlacementMode" Value="AnchorAndGravity" />
       <Setter Property="PlacementAnchor" Value="Top" />
       <Setter Property="PlacementGravity" Value="Top" />
@@ -37,7 +41,7 @@
   </UserControl.Styles>
   <AutoCompleteBox Items="{Binding SearchItems}" FilterMode="ContainsOrdinal" Watermark="Search (Ctrl+Q)">
     <AutoCompleteBox.ItemTemplate>
-      <DataTemplate>
+      <DataTemplate x:DataType="search:SearchItemViewModel">
         <Panel Background="Transparent" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
           <i:Interaction.Behaviors>
             <ia:EventTriggerBehavior EventName="PointerPressed">
@@ -47,7 +51,7 @@
           <Panel Width="45" Margin="12,0,0,0" HorizontalAlignment="Left" IsHitTestVisible="False">
             <PathIcon HorizontalAlignment="Left">
               <PathIcon.Data>
-                <Binding Path="." Converter="{x:Static conv:SearchIconConverter.Instance}" />
+                <Binding Converter="{x:Static conv:SearchIconConverter.Instance}" />
               </PathIcon.Data>
             </PathIcon>
           </Panel>

@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels"
+             xmlns:search="using:WalletWasabi.Fluent.ViewModels.Search"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
@@ -28,7 +29,7 @@
             </ItemsPanelTemplate>
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
-            <DataTemplate>
+            <DataTemplate x:DataType="search:SearchItemGroup">
               <DockPanel>
                 <Label DataContext="{Binding Category}" Content="{Binding Title}" DockPanel.Dock="Top" />
                 <ItemsControl HorizontalAlignment="Center" Items="{Binding SearchItems}">
@@ -63,7 +64,7 @@
             </ItemsPanelTemplate>
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
-            <DataTemplate>
+            <DataTemplate x:DataType="search:SearchItemViewModel">
               <Button Classes="option" Command="{Binding OpenCommand}" Height="150" Width="150" Margin="8">
                 <Panel>
                   <TextBlock Text="{Binding Title}" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0 0 0 15" />
