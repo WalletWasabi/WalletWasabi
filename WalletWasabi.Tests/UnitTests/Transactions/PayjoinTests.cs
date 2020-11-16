@@ -46,7 +46,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			return new OutPoint(RandomUtils.GetUInt256(), 0);
 		}
 
-		private static Func<HttpMethod, string, NameValueCollection, string, Task<HttpResponseMessage>> PayjoinServerOk(Func<PSBT, PSBT> transformPsbt = null, HttpStatusCode statusCode = HttpStatusCode.OK)
+		private static Func<HttpMethod, string, NameValueCollection, string, Task<HttpResponseMessage>> PayjoinServerOk(Func<PSBT, PSBT> transformPsbt, HttpStatusCode statusCode = HttpStatusCode.OK)
 			=> new Func<HttpMethod, string, NameValueCollection, string, Task<HttpResponseMessage>>((method, path, parameters, requestBody) =>
 			{
 				var psbt = PSBT.Parse(requestBody, Network.Main);
@@ -190,8 +190,11 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				OnSendAsync = PayjoinServerOk(psbt =>
 				{
 					var newCoin = psbt.Inputs[0].GetCoin();
-					newCoin.Outpoint.N = newCoin.Outpoint.N + 1;
-					psbt.AddCoins(newCoin);
+					if (newCoin is { })
+					{
+						newCoin.Outpoint.N = newCoin.Outpoint.N + 1;
+						psbt.AddCoins(newCoin);
+					}
 					return psbt;
 				})
 			};
