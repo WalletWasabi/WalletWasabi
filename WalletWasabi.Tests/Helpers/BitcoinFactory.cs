@@ -14,16 +14,16 @@ namespace WalletWasabi.Tests.Helpers
 {
 	public static class BitcoinFactory
 	{
-		public static SmartTransaction SmartTransaction(int othersInputCount = 1, int othersOutputCount = 1, int ownInputCount = 0, int ownOutputCount = 0)
-			=> SmartTransaction(othersInputCount, Enumerable.Repeat(Money.Coins(1m), othersOutputCount), Enumerable.Repeat((Money.Coins(1.1m), 1), ownInputCount), Enumerable.Repeat((Money.Coins(1m), 1), ownOutputCount));
+		public static SmartTransaction CreateSmartTransaction(int othersInputCount = 1, int othersOutputCount = 1, int ownInputCount = 0, int ownOutputCount = 0)
+			=> CreateSmartTransaction(othersInputCount, Enumerable.Repeat(Money.Coins(1m), othersOutputCount), Enumerable.Repeat((Money.Coins(1.1m), 1), ownInputCount), Enumerable.Repeat((Money.Coins(1m), 1), ownOutputCount));
 
-		public static SmartTransaction SmartTransaction(int othersInputCount, IEnumerable<Money> othersOutputs, IEnumerable<(Money value, int anonset)> ownInputs, IEnumerable<(Money value, int anonset)> ownOutputs)
+		public static SmartTransaction CreateSmartTransaction(int othersInputCount, IEnumerable<Money> othersOutputs, IEnumerable<(Money value, int anonset)> ownInputs, IEnumerable<(Money value, int anonset)> ownOutputs)
 		{
-			var km = ServiceFactory.KeyManager();
-			return SmartTransaction(othersInputCount, othersOutputs, ownInputs.Select(x => (x.value, x.anonset, HdPubKey(km))), ownOutputs.Select(x => (x.value, x.anonset, HdPubKey(km))));
+			var km = ServiceFactory.CreateKeyManager();
+			return CreateSmartTransaction(othersInputCount, othersOutputs, ownInputs.Select(x => (x.value, x.anonset, CreateHdPubKey(km))), ownOutputs.Select(x => (x.value, x.anonset, CreateHdPubKey(km))));
 		}
 
-		public static SmartTransaction SmartTransaction(int othersInputCount, IEnumerable<Money> othersOutputs, IEnumerable<(Money value, int anonset, HdPubKey hdpk)> ownInputs, IEnumerable<(Money value, int anonset, HdPubKey hdpk)> ownOutputs)
+		public static SmartTransaction CreateSmartTransaction(int othersInputCount, IEnumerable<Money> othersOutputs, IEnumerable<(Money value, int anonset, HdPubKey hdpk)> ownInputs, IEnumerable<(Money value, int anonset, HdPubKey hdpk)> ownOutputs)
 		{
 			var tx = Transaction.Create(Network.Main);
 			var walletInputs = new HashSet<SmartCoin>();
@@ -31,13 +31,13 @@ namespace WalletWasabi.Tests.Helpers
 
 			for (int i = 0; i < othersInputCount; i++)
 			{
-				tx.Inputs.Add(OutPoint());
+				tx.Inputs.Add(CreateOutPoint());
 			}
 			var idx = (uint)othersInputCount - 1;
 			foreach (var txo in ownInputs)
 			{
 				idx++;
-				var sc = SmartCoin(txo.hdpk, txo.value, idx, anonymitySet: txo.anonset);
+				var sc = CreateSmartCoin(txo.hdpk, txo.value, idx, anonymitySet: txo.anonset);
 				tx.Inputs.Add(sc.OutPoint);
 				walletInputs.Add(sc);
 			}
@@ -71,13 +71,13 @@ namespace WalletWasabi.Tests.Helpers
 			return stx;
 		}
 
-		public static HdPubKey HdPubKey(KeyManager km)
+		public static HdPubKey CreateHdPubKey(KeyManager km)
 			=> km.GenerateNewKey(SmartLabel.Empty, KeyState.Clean, isInternal: false);
 
-		public static SmartCoin SmartCoin(HdPubKey pubKey, decimal amountBtc, uint index = 0, bool confirmed = true, int anonymitySet = 1)
-			=> SmartCoin(pubKey, Money.Coins(amountBtc), index, confirmed, anonymitySet);
+		public static SmartCoin CreateSmartCoin(HdPubKey pubKey, decimal amountBtc, uint index = 0, bool confirmed = true, int anonymitySet = 1)
+			=> CreateSmartCoin(pubKey, Money.Coins(amountBtc), index, confirmed, anonymitySet);
 
-		public static SmartCoin SmartCoin(HdPubKey pubKey, Money amount, uint index = 0, bool confirmed = true, int anonymitySet = 1)
+		public static SmartCoin CreateSmartCoin(HdPubKey pubKey, Money amount, uint index = 0, bool confirmed = true, int anonymitySet = 1)
 		{
 			var height = confirmed ? new Height(CryptoHelpers.RandomInt(0, 200)) : Height.Mempool;
 			pubKey.SetKeyState(KeyState.Used);
@@ -88,10 +88,10 @@ namespace WalletWasabi.Tests.Helpers
 			return new SmartCoin(stx, index, pubKey);
 		}
 
-		public static OutPoint OutPoint()
-			=> new OutPoint(Uint256(), (uint)CryptoHelpers.RandomInt(0, 100));
+		public static OutPoint CreateOutPoint()
+			=> new OutPoint(CreateUint256(), (uint)CryptoHelpers.RandomInt(0, 100));
 
-		public static uint256 Uint256()
+		public static uint256 CreateUint256()
 		{
 			var rand = new UnsecureRandom();
 			var bytes = new byte[32];

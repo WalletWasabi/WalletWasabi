@@ -15,8 +15,8 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void OneOwnInOneOwnOut()
 		{
-			var analyser = ServiceFactory.BlockchainAnalyzer();
-			var tx = BitcoinFactory.SmartTransaction(0, 0, 1, 1);
+			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+			var tx = BitcoinFactory.CreateSmartTransaction(0, 0, 1, 1);
 			var coin = Assert.Single(tx.WalletInputs);
 			var key = coin.HdPubKey;
 			key.AnonymitySet = 3;
@@ -33,8 +33,8 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void OneOwnInManyOwnOut()
 		{
-			var analyser = ServiceFactory.BlockchainAnalyzer();
-			var tx = BitcoinFactory.SmartTransaction(0, 0, 1, 3);
+			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+			var tx = BitcoinFactory.CreateSmartTransaction(0, 0, 1, 3);
 			var coin = Assert.Single(tx.WalletInputs);
 			var key = coin.HdPubKey;
 			key.AnonymitySet = 3;
@@ -52,8 +52,8 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void ManyOwnInOneOwnOut()
 		{
-			var analyser = ServiceFactory.BlockchainAnalyzer();
-			var tx = BitcoinFactory.SmartTransaction(0, 0, 3, 1);
+			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+			var tx = BitcoinFactory.CreateSmartTransaction(0, 0, 3, 1);
 			var smallestAnonset = 3;
 
 			tx.WalletInputs.First().HdPubKey.AnonymitySet = smallestAnonset;
@@ -72,8 +72,8 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void ManyOwnInManyOwnOut()
 		{
-			var analyser = ServiceFactory.BlockchainAnalyzer();
-			var tx = BitcoinFactory.SmartTransaction(0, 0, 3, 3);
+			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+			var tx = BitcoinFactory.CreateSmartTransaction(0, 0, 3, 3);
 			var smallestAnonset = 3;
 
 			tx.WalletInputs.First().HdPubKey.AnonymitySet = smallestAnonset;

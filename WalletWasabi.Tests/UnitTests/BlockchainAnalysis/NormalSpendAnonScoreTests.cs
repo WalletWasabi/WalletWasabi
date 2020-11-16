@@ -16,8 +16,8 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void OneOwnInOneOut()
 		{
-			var analyser = ServiceFactory.BlockchainAnalyzer();
-			var tx = BitcoinFactory.SmartTransaction(0, 1, 1, 0);
+			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+			var tx = BitcoinFactory.CreateSmartTransaction(0, 1, 1, 0);
 			var coin = Assert.Single(tx.WalletInputs);
 			var key = coin.HdPubKey;
 			key.AnonymitySet = 3;
@@ -33,8 +33,8 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void ManyOwnInOneOut()
 		{
-			var analyser = ServiceFactory.BlockchainAnalyzer();
-			var tx = BitcoinFactory.SmartTransaction(0, 1, 3, 0);
+			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+			var tx = BitcoinFactory.CreateSmartTransaction(0, 1, 3, 0);
 
 			foreach (var coin in tx.WalletInputs)
 			{
@@ -52,8 +52,8 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void OneOwnInManyOut()
 		{
-			var analyser = ServiceFactory.BlockchainAnalyzer();
-			var tx = BitcoinFactory.SmartTransaction(0, 3, 1, 0);
+			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+			var tx = BitcoinFactory.CreateSmartTransaction(0, 3, 1, 0);
 			var coin = Assert.Single(tx.WalletInputs);
 			var key = coin.HdPubKey;
 			key.AnonymitySet = 3;
@@ -69,8 +69,8 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void OneOwnInOneOutOneOwnOut()
 		{
-			var analyser = ServiceFactory.BlockchainAnalyzer();
-			var tx = BitcoinFactory.SmartTransaction(0, 1, 1, 1);
+			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+			var tx = BitcoinFactory.CreateSmartTransaction(0, 1, 1, 1);
 
 			foreach (var coin in tx.WalletInputs)
 			{
@@ -89,8 +89,8 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void OneOwnInManyOutManyOwnOut()
 		{
-			var analyser = ServiceFactory.BlockchainAnalyzer();
-			var tx = BitcoinFactory.SmartTransaction(0, 3, 1, 3);
+			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+			var tx = BitcoinFactory.CreateSmartTransaction(0, 3, 1, 3);
 
 			foreach (var coin in tx.WalletInputs)
 			{
@@ -108,8 +108,8 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void ManyOwnInOneOutOneOwnOut()
 		{
-			var analyser = ServiceFactory.BlockchainAnalyzer();
-			var tx = BitcoinFactory.SmartTransaction(0, 1, 3, 1);
+			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+			var tx = BitcoinFactory.CreateSmartTransaction(0, 1, 3, 1);
 
 			foreach (var coin in tx.WalletInputs)
 			{
@@ -127,8 +127,8 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void ManyOwnInManyOutManyOwnOut()
 		{
-			var analyser = ServiceFactory.BlockchainAnalyzer();
-			var tx = BitcoinFactory.SmartTransaction(0, 3, 3, 3);
+			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+			var tx = BitcoinFactory.CreateSmartTransaction(0, 3, 3, 3);
 
 			foreach (var coin in tx.WalletInputs)
 			{

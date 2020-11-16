@@ -265,7 +265,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				ClientRoundRegistration first = null;
 				var randomKey = KeyManager.CreateNew(out _, "").GenerateNewKey(SmartLabel.Empty, KeyState.Clean, false);
 				var second = new ClientRoundRegistration(aliceClient,
-					new[] { Helpers.BitcoinFactory.SmartCoin(randomKey, 0m, anonymitySet: 2) },
+					new[] { BitcoinFactory.CreateSmartCoin(randomKey, 0m, anonymitySet: 2) },
 					BitcoinAddress.Create("12Rty3c8j3QiZSwLVaBtch6XUMZaja3RC7", Network.Main));
 				first = second;
 				second = null;

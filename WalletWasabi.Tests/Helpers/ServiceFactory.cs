@@ -12,13 +12,13 @@ namespace WalletWasabi.Tests.Helpers
 {
 	public static class ServiceFactory
 	{
-		public static TransactionFactory TransactionFactory(
+		public static TransactionFactory CreateTransactionFactory(
 		   IEnumerable<(string Label, int KeyIndex, decimal Amount, bool Confirmed, int AnonymitySet)> coins,
 		   bool allowUnconfirmed = true,
 		   bool watchOnly = false)
 		{
 			var password = "foo";
-			var keyManager = watchOnly ? WatchOnlyKeyManager() : KeyManager(password);
+			var keyManager = watchOnly ? CreateWatchOnlyKeyManager() : CreateKeyManager(password);
 
 			keyManager.AssertCleanKeysIndexed();
 
@@ -31,7 +31,7 @@ namespace WalletWasabi.Tests.Helpers
 				k.SetLabel(c.Label);
 			}
 
-			var scoins = coins.Select(x => BitcoinFactory.SmartCoin(keys[x.KeyIndex], x.Amount, 0, x.Confirmed, x.AnonymitySet)).ToArray();
+			var scoins = coins.Select(x => BitcoinFactory.CreateSmartCoin(keys[x.KeyIndex], x.Amount, 0, x.Confirmed, x.AnonymitySet)).ToArray();
 			foreach (var coin in scoins)
 			{
 				foreach (var sameLabelCoin in scoins.Where(c => !c.HdPubKey.Label.IsEmpty && c.HdPubKey.Label == coin.HdPubKey.Label))
@@ -44,13 +44,13 @@ namespace WalletWasabi.Tests.Helpers
 			return new TransactionFactory(Network.Main, keyManager, coinsView, transactionStore, password, allowUnconfirmed);
 		}
 
-		public static KeyManager KeyManager(string password = "blahblahblah")
-			=> Blockchain.Keys.KeyManager.CreateNew(out var _, password);
+		public static KeyManager CreateKeyManager(string password = "blahblahblah")
+			=> KeyManager.CreateNew(out var _, password);
 
-		public static KeyManager WatchOnlyKeyManager()
-			=> Blockchain.Keys.KeyManager.CreateNewWatchOnly(new Mnemonic(Wordlist.English, WordCount.Twelve).DeriveExtKey().Neuter());
+		public static KeyManager CreateWatchOnlyKeyManager()
+			=> KeyManager.CreateNewWatchOnly(new Mnemonic(Wordlist.English, WordCount.Twelve).DeriveExtKey().Neuter());
 
-		public static BlockchainAnalyzer BlockchainAnalyzer(int privacyLevelThreshold = 100)
+		public static BlockchainAnalyzer CreateBlockchainAnalyzer(int privacyLevelThreshold = 100)
 			=> new BlockchainAnalyzer(privacyLevelThreshold);
 	}
 }

@@ -14,8 +14,8 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void OneInOneOut()
 		{
-			var analyser = ServiceFactory.BlockchainAnalyzer();
-			var tx = BitcoinFactory.SmartTransaction(1, 1, 0, 0);
+			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+			var tx = BitcoinFactory.CreateSmartTransaction(1, 1, 0, 0);
 
 			analyser.Analyze(tx);
 
@@ -26,8 +26,8 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void ManyInManyOut()
 		{
-			var analyser = ServiceFactory.BlockchainAnalyzer();
-			var tx = BitcoinFactory.SmartTransaction(3, 3, 0, 0);
+			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+			var tx = BitcoinFactory.CreateSmartTransaction(3, 3, 0, 0);
 
 			analyser.Analyze(tx);
 
