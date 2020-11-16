@@ -28,7 +28,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		}
 
 		[Fact]
-		public void Inheritence()
+		public void Inheritance()
 		{
 			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
 			var tx = BitcoinFactory.CreateSmartTransaction(9, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(1.1m), 100) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
@@ -59,7 +59,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		}
 
 		[Fact]
-		public void ChangeOutputInheritence()
+		public void ChangeOutputInheritance()
 		{
 			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
 			var tx = BitcoinFactory.CreateSmartTransaction(9, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(6.2m), 100) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Coins(5m), HdPubKey.DefaultHighAnonymitySet) });
@@ -97,7 +97,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		}
 
 		[Fact]
-		public void MultiDenominationInheritence()
+		public void MultiDenominationInheritance()
 		{
 			// Multiple denominations inherit properly.
 			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
@@ -193,7 +193,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		}
 
 		[Fact]
-		public void InputMergePunishmentNoInheritence()
+		public void InputMergePunishmentNoInheritance()
 		{
 			// Input merging results in worse inherited anonset, but not in worse anonset if there's nothing to inherit.
 			var analyser = ServiceFactory.CreateBlockchainAnalyzer();

@@ -131,7 +131,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		}
 
 		[Fact]
-		public void OutputSideAddressReuseDoesntPunishedMoreThanInheritence()
+		public void OutputSideAddressReuseDoesntPunishedMoreThanInheritance()
 		{
 			// If there's reuse in input and output side, then output side didn't gain, nor lose anonymity.
 			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
