@@ -34,7 +34,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		protected override void OnDialogClosed()
 		{
 			// TODO: Disable when using Dialog inside DialogScreenViewModel / Settings
-			// _navigationState.HomeScreen?.Invoke().Router.NavigateAndReset.Execute(new SettingsPageViewModel(_navigationState));
+			// NavigateTo(new SettingsPageViewModel(NavigationState), NavigationTarget.HomeScreen, true);
 		}
 
 		public void Close()

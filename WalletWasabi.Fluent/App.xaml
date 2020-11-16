@@ -1,6 +1,6 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:WalletWasabi.Fluent"
+             xmlns:local="using:WalletWasabi.Fluent"
              x:Class="WalletWasabi.Fluent.App">
   <Application.DataTemplates>
     <local:ViewLocator/>
