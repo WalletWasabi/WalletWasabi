@@ -12,9 +12,9 @@ namespace WalletWasabi.Fluent.ViewModels
 {
 	public class SearchPageViewModel : NavBarItemViewModel
 	{
-		private string? _searchQuery;
 		private readonly ReadOnlyObservableCollection<SearchItemViewModel> _searchItems;
 		private readonly ReadOnlyObservableCollection<SearchItemGroup> _searchItemsByCategory;
+		private string? _searchQuery;
 
 		public SearchPageViewModel(NavigationStateViewModel navigationState, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage) : base(navigationState, NavigationTarget.HomeScreen)
 		{
