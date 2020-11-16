@@ -49,7 +49,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		{
 			if (_currentTaskCompletionSource.Task.IsCompleted)
 			{
-				throw new InvalidOperationException("Dialog is already closed.");
+				return;
 			}
 
 			_currentTaskCompletionSource.SetResult(value);
