@@ -28,15 +28,31 @@ namespace WalletWasabi.Tor.Http
 			// Connecting to loopback's URIs cannot be done via Tor.
 			TorSocks5EndPoint = DestinationUriAction().IsLoopback ? null : torSocks5EndPoint;
 
-			if (TorSocks5EndPoint is { })
+			// Pool can be only one.
+			lock (PoolLock)
 			{
-				TorSocks5ClientPool = new TorSocks5ClientPool(TorSocks5EndPoint, isolateStream);
-			}
-			else
-			{
-				TorSocks5EndPoint = null!;
+				InstanceCounter++;
+
+				if (TorSocks5EndPoint is { } && TorSocks5ClientPool is null)
+				{
+					TorSocks5ClientPool = new TorSocks5ClientPool(TorSocks5EndPoint, isolateStream);
+				}
 			}
 		}
+
+		public static Exception? LatestTorException { get; private set; } = null;
+		public Func<Uri> DestinationUriAction { get; }
+		private EndPoint? TorSocks5EndPoint { get; }
+		public bool IsTorUsed => TorSocks5EndPoint is { };
+
+		/// <summary>Lock object to protect access to <see cref="TorSocks5ClientPool"/>.</summary>
+		private static object PoolLock { get; } = new object();
+
+		/// <remarks>All access to this object must be guarded by <see cref="PoolLock"/>.</remarks>
+		private static TorSocks5ClientPool? TorSocks5ClientPool { get; set; }
+
+		/// <remarks>All access to this object must be guarded by <see cref="PoolLock"/>.</remarks>
+		private static int InstanceCounter { get; set; }
 
 		public static DateTimeOffset? TorDoesntWorkSince
 		{
@@ -53,16 +69,6 @@ namespace WalletWasabi.Tor.Http
 				}
 			}
 		}
-
-		public static Exception? LatestTorException { get; private set; } = null;
-
-		public Func<Uri> DestinationUriAction { get; }
-
-		// TODO: Make it private.
-		public EndPoint? TorSocks5EndPoint { get; private set; }
-		public bool IsTorUsed => TorSocks5EndPoint is { };
-
-		private TorSocks5ClientPool TorSocks5ClientPool { get; }
 
 		private Task<HttpResponseMessage> ClearnetRequestAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
 		{
@@ -103,7 +109,7 @@ namespace WalletWasabi.Tor.Http
 			{
 				try
 				{
-					HttpResponseMessage httpResponseMessage = await TorSocks5ClientPool.SendAsync(request, token).ConfigureAwait(false);
+					HttpResponseMessage httpResponseMessage = await TorSocks5ClientPool!.SendAsync(request, token).ConfigureAwait(false);
 					TorDoesntWorkSince = null;
 
 					return httpResponseMessage;
@@ -139,7 +145,16 @@ namespace WalletWasabi.Tor.Http
 				{
 					if (TorSocks5EndPoint is { })
 					{
-						TorSocks5ClientPool.Dispose();
+						lock (PoolLock)
+						{
+							InstanceCounter--;
+
+							if (InstanceCounter <= 0)
+							{
+								TorSocks5ClientPool?.Dispose();
+								TorSocks5ClientPool = null;
+							}
+						}
 					}
 				}
 				_disposedValue = true;
