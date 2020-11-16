@@ -7,6 +7,7 @@
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:HomePageViewModel"
+             x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.HomePageView">
   <c:ContentArea Title="Home">
     <c:ContentArea.Caption>

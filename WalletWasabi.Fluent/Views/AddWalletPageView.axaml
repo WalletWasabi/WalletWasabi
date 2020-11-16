@@ -8,7 +8,8 @@
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="vm:HomePageViewModel"
+             x:DataType="vm:AddWalletPageViewModel"
+             x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWalletPageView">
 
   <c:ContentArea Title="Add Wallet" Caption="Type in your wallet's name and select an option:"
@@ -31,7 +32,7 @@
               <Setter Property="Padding" Value="0" />
               <Setter Property="IsEnabled" Value="{Binding OptionsEnabled}" />
               <Setter Property="Opacity" Value="{Binding OptionsEnabled, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}" />
-              <Setter Property="IsVisible" Value="{Binding $self.Opacity, Converter={x:Static conv:BoolOpacityConverters.OpacityToBool}}" />
+              <Setter Property="IsVisible" x:CompileBindings="False" Value="{Binding $self.Opacity, Converter={x:Static conv:BoolOpacityConverters.OpacityToBool}}" />
             </Style>
             <Style Selector="Button.option:disabled /template/ ContentPresenter#PART_ContentPresenter">
               <Setter Property="Background" Value="{DynamicResource OptionButtonBackground}" />
