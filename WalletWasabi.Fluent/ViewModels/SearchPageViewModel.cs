@@ -81,19 +81,6 @@ namespace WalletWasabi.Fluent.ViewModels
 				.AsObservableList();
 		}
 
-		private static Func<SearchItemViewModel, bool> SearchQueryFilter(string? searchQuery)
-		{
-			return item =>
-			{
-				if (!string.IsNullOrWhiteSpace(searchQuery)
-				    && searchQuery.IndexOf(',', StringComparison.OrdinalIgnoreCase) < 0)
-				{
-					return item.Keywords.IndexOf(searchQuery, StringComparison.OrdinalIgnoreCase) >= 0;
-				}
-				return true;
-			};
-		}
-
 		public override string IconName => "search_regular";
 
 		public string? SearchQuery
@@ -105,5 +92,18 @@ namespace WalletWasabi.Fluent.ViewModels
 		public ReadOnlyObservableCollection<SearchItemViewModel> SearchItems => _searchItems;
 
 		public ReadOnlyObservableCollection<SearchItemGroup> SearchItemsByCategory => _searchItemsByCategory;
+
+		private Func<SearchItemViewModel, bool> SearchQueryFilter(string? searchQuery)
+		{
+			return item =>
+			{
+				if (!string.IsNullOrWhiteSpace(searchQuery)
+				    && searchQuery.IndexOf(',', StringComparison.OrdinalIgnoreCase) < 0)
+				{
+					return item.Keywords.IndexOf(searchQuery, StringComparison.OrdinalIgnoreCase) >= 0;
+				}
+				return true;
+			};
+		}
 	}
 }
