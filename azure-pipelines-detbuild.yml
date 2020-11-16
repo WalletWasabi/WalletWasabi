@@ -12,7 +12,7 @@ steps:
   path: WalletWasabi
 
 - task: UseDotNet@2
-  displayName: 'Install .NET 5'
+  displayName: 'Install .NET'
   inputs:
     version: 5.0.x
 
