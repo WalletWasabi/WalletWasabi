@@ -39,7 +39,7 @@
       <Setter Property="IsVisible" Value="False" />
     </Style>
   </UserControl.Styles>
-  <AutoCompleteBox Items="{Binding SearchItems}" FilterMode="ContainsOrdinal" Watermark="Search (Ctrl+Q)">
+  <AutoCompleteBox Items="{Binding SearchItems}" FilterMode="ContainsOrdinal" Watermark="Search">
     <AutoCompleteBox.ItemTemplate>
       <DataTemplate x:DataType="search:SearchItemViewModel">
         <Panel Background="Transparent" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
