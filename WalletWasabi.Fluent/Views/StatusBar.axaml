@@ -2,12 +2,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
-             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
-             xmlns:viewModels="clr-namespace:WalletWasabi.Gui.ViewModels;assembly=WalletWasabi.Gui"
+             xmlns:converters="using:WalletWasabi.Gui.Converters"
+             xmlns:vm="using:WalletWasabi.Gui.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="viewModels:StatusBarViewModel"
+             x:DataType="vm:StatusBarViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.StatusBar">
   <UserControl.Resources>
