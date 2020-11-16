@@ -60,10 +60,7 @@ namespace WalletWasabi.Blockchain.Analysis
 				// Get the anonymity set of i-th output in the transaction.
 				var anonset = inheritedAnonset;
 
-				// Calculating gained anonimity shall be limited by the number of inputs.
-				// Although one person may create many equal outputs and it would seem like we successfully get lost
-				// within this elephant, it's not the case as the elephant is more likely to ruin its own privacy, so let's not inflate anonsets for this.
-				anonset += Math.Min(tx.Transaction.Inputs.Count, tx.Transaction.GetAnonymitySet(newCoin.Index));
+				anonset += tx.Transaction.GetAnonymitySet(newCoin.Index);
 
 				// Don't create many anonset if we've provided a lot of equal outputs.
 				anonset -= indistinguishableWalletOutputs[newCoin.Amount] - 1;
