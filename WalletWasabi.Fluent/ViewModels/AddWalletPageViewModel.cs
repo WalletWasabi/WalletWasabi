@@ -32,8 +32,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			RecoverWalletCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				await navigationState.DialogScreen.Invoke().Router.Navigate.Execute(
-					new RecoverWalletViewModel(navigationState, WalletName, network, walletManager));
+				NavigateTo(new RecoverWalletViewModel(navigationState, WalletName, network, walletManager), NavigationTarget.DialogScreen);
 			});
 
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(
@@ -44,7 +43,7 @@ namespace WalletWasabi.Fluent.ViewModels
 						NavigationTarget.DialogScreen,
 						"Type the password of the wallet and click Continue.");
 
-					navigationState.DialogScreen.Invoke().Router.Navigate.Execute(enterPassword);
+					NavigateTo(enterPassword, NavigationTarget.DialogScreen);
 
 					var result = await enterPassword.GetDialogResultAsync();
 
@@ -62,8 +61,7 @@ namespace WalletWasabi.Fluent.ViewModels
 								return walletGenerator.GenerateWallet(WalletName, password);
 							});
 
-						await navigationState.DialogScreen?.Invoke().Router.NavigateAndReset.Execute(
-							new RecoveryWordsViewModel(navigationState, km, mnemonic, walletManager));
+						NavigateTo(new RecoveryWordsViewModel(navigationState, km, mnemonic, walletManager), NavigationTarget.DialogScreen, true);
 					}
 					else
 					{
