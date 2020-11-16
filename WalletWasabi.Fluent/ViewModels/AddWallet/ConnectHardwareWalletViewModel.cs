@@ -33,10 +33,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			Task.Run(StartHardwareWalletDetection);
 
-			// CancelCommand = ReactiveCommand.Create(() => navigationState.DialogScreen?.Invoke().Router.NavigationStack.Clear());
-			CancelCommand = ReactiveCommand.Create(() => _searchHardwareWalletCts.Cancel());
+			CancelCommand = ReactiveCommand.Create(() => navigationState.DialogScreen?.Invoke().Router.NavigationStack.Clear());
 
-			var connectCommandIsExecute = this.WhenAnyValue(x => x.SelectedHardwareWallet).Select(selectedHardwareWallet => selectedHardwareWallet is { });
+			// TODO: wallet detected but in error case
+			var connectCommandIsExecute = this.WhenAnyValue(x => x.SelectedHardwareWallet).Select(selectedHardwareWallet => selectedHardwareWallet?.HardwareWalletInfo?.Fingerprint is { });
 			NextCommand = ReactiveCommand.Create(() => { },connectCommandIsExecute);
 		}
 
