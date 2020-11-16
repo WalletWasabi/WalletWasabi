@@ -49,7 +49,7 @@ namespace WalletWasabi.Blockchain.Analysis
 
 		private void AnalyzeCoinjoin(SmartTransaction tx)
 		{
-			AnalyzeWalletInputs(tx, out HashSet<HdPubKey> distinctWalletInputPubKeys, out int inheritedAnonset);
+			AnalyzeWalletInputs(tx, out HashSet<HdPubKey> distinctWalletInputPubKeys, out int newInputAnonset);
 
 			var indistinguishableWalletOutputs = tx
 				.WalletOutputs.GroupBy(x => x.Amount)
@@ -58,12 +58,13 @@ namespace WalletWasabi.Blockchain.Analysis
 			foreach (var newCoin in tx.WalletOutputs.ToArray())
 			{
 				// Get the anonymity set of i-th output in the transaction.
-				var anonset = inheritedAnonset;
-
-				anonset += tx.Transaction.GetAnonymitySet(newCoin.Index);
+				var anonset = tx.Transaction.GetAnonymitySet(newCoin.Index);
 
 				// Don't create many anonset if we've provided a lot of equal outputs.
 				anonset -= indistinguishableWalletOutputs[newCoin.Amount] - 1;
+
+				// We should only consider ourselves once in the anonset.
+				anonset += newInputAnonset - 1;
 
 				HdPubKey hdPubKey = newCoin.HdPubKey;
 				if (hdPubKey.AnonymitySet == HdPubKey.DefaultHighAnonymitySet)
@@ -77,12 +78,12 @@ namespace WalletWasabi.Blockchain.Analysis
 				else if (distinctWalletInputPubKeys.Contains(hdPubKey))
 				{
 					// If it's a reuse of an input's pubkey, then intersection punishment is senseless.
-					hdPubKey.AnonymitySet = inheritedAnonset + 1;
+					hdPubKey.AnonymitySet = newInputAnonset;
 				}
 				else if (tx.WalletOutputs.Where(x => x != newCoin).Select(x => x.HdPubKey).Contains(hdPubKey))
 				{
 					// If it's a reuse of another output' pubkey, then intersection punishment can only go as low as the inherited anonset.
-					hdPubKey.AnonymitySet = Math.Max(inheritedAnonset + 1, Intersect(new[] { anonset, hdPubKey.AnonymitySet }, 1));
+					hdPubKey.AnonymitySet = Math.Max(newInputAnonset, Intersect(new[] { anonset, hdPubKey.AnonymitySet }, 1));
 				}
 				else
 				{
@@ -91,11 +92,12 @@ namespace WalletWasabi.Blockchain.Analysis
 			}
 		}
 
-		private void AnalyzeWalletInputs(SmartTransaction tx, out HashSet<HdPubKey> distinctWalletInputPubKeys, out int inheritedAnonset)
+		/// <param name="newInputAnonset">The new anonymity set of the inputs.</param>
+		private void AnalyzeWalletInputs(SmartTransaction tx, out HashSet<HdPubKey> distinctWalletInputPubKeys, out int newInputAnonset)
 		{
 			var ownInputCount = tx.WalletInputs.Count;
 			distinctWalletInputPubKeys = tx.WalletInputs.Select(x => x.HdPubKey).ToHashSet();
-			inheritedAnonset = 0;
+			newInputAnonset = 1;
 			if (ownInputCount > 0)
 			{
 				// We want to weaken the punishment if the input merge happens in coinjoins.
@@ -106,17 +108,12 @@ namespace WalletWasabi.Blockchain.Analysis
 				var distinctWalletInputPubKeyCount = distinctWalletInputPubKeys.Count;
 				var pubKeyReuseCount = ownInputCount - distinctWalletInputPubKeyCount;
 				double coefficient = (double)distinctWalletInputPubKeyCount / (tx.Transaction.Inputs.Count - pubKeyReuseCount);
-				var privacyBonus = Intersect(distinctWalletInputPubKeys.Select(x => x.AnonymitySet), coefficient);
 
-				// If the privacy bonus is <=1 then we are not inheriting any privacy from the inputs.
-				var normalizedBonus = privacyBonus - 1;
-
-				// And add that to the base anonset from the tx.
-				inheritedAnonset = normalizedBonus;
+				newInputAnonset = Intersect(distinctWalletInputPubKeys.Select(x => x.AnonymitySet), coefficient);
 
 				foreach (var key in tx.WalletInputs.Select(x => x.HdPubKey))
 				{
-					key.AnonymitySet = inheritedAnonset + 1;
+					key.AnonymitySet = newInputAnonset;
 				}
 			}
 		}
@@ -141,7 +138,7 @@ namespace WalletWasabi.Blockchain.Analysis
 			AnalyzeWalletInputs(tx, out _, out int inheritedAnonset);
 			foreach (var key in tx.WalletOutputs.Select(x => x.HdPubKey))
 			{
-				key.AnonymitySet = inheritedAnonset + 1;
+				key.AnonymitySet = inheritedAnonset;
 			}
 		}
 
