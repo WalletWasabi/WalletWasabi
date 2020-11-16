@@ -31,9 +31,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			_searchHardwareWalletCts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 			HardwareWallets = new ObservableCollection<HardwareWalletViewModel>();
 
-			EnumerateIfHardwareWalletsAsync();
+			Task.Run(StartHardwareWalletDetection);
 
-			CancelCommand = ReactiveCommand.Create(() => navigationState.DialogScreen?.Invoke().Router.NavigationStack.Clear());
+			// CancelCommand = ReactiveCommand.Create(() => navigationState.DialogScreen?.Invoke().Router.NavigationStack.Clear());
+			CancelCommand = ReactiveCommand.Create(() => _searchHardwareWalletCts.Cancel());
 
 			var connectCommandIsExecute = this.WhenAnyValue(x => x.SelectedHardwareWallet).Select(selectedHardwareWallet => selectedHardwareWallet is { });
 			NextCommand = ReactiveCommand.Create(() => { },connectCommandIsExecute);
@@ -49,46 +50,34 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		public ICommand NextCommand { get; }
 
-		protected async Task EnumerateIfHardwareWalletsAsync()
+		protected async Task StartHardwareWalletDetection()
 		{
 			while (!_searchHardwareWalletCts.IsCancellationRequested)
 			{
 				try
 				{
+					// Reset token
 					_searchHardwareWalletCts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 
 					var client = new HwiClient(_network);
 					var detectedHardwareWallets = (await client.EnumerateAsync(_searchHardwareWalletCts.Token)).Select(x => new HardwareWalletViewModel(x)).ToList();
 
 					// Remove wallets that are already added to software
-					foreach (var wallet in detectedHardwareWallets.ToList().Where(wallet => _currentWallets.Any(x => x.KeyManager.MasterFingerprint == wallet.HardwareWalletInfo.Fingerprint)))
-					{
-						detectedHardwareWallets.Remove(wallet);
-					}
+					var walletsToRemove = detectedHardwareWallets.Where(wallet => _currentWallets.Any(x => x.KeyManager.MasterFingerprint == wallet.HardwareWalletInfo.Fingerprint));
+					detectedHardwareWallets.RemoveMany(walletsToRemove);
 
-					// Remove disconnected hardware wallets
-					foreach (var wallet in HardwareWallets.ToList().Where(wallet => !detectedHardwareWallets.Any(x => x.Equals(wallet))))
-					{
-						HardwareWallets.Remove(wallet);
-					}
+					// Remove disconnected hardware wallets from the list TODO: not working without ToList()
+					HardwareWallets.RemoveMany(HardwareWallets.ToList().Except(detectedHardwareWallets));
 
-					// Remove wallets that are already detected
-					foreach (var wallet in HardwareWallets)
-					{
-						var walletToDelete = detectedHardwareWallets.FirstOrDefault(x => x.Equals(wallet));
+					// Remove detected wallets that are already in the list.
+					detectedHardwareWallets.RemoveMany(HardwareWallets);
 
-						if (walletToDelete is { })
-						{
-							detectedHardwareWallets.Remove(walletToDelete);
-						}
-					}
-
-					// Add newly detected hardware wallets
+					// All remained detected hardware wallet is new so add.
 					HardwareWallets.AddRange(detectedHardwareWallets);
 				}
 				catch (Exception ex)
 				{
-
+					// TODO: log
 				}
 			}
 		}
