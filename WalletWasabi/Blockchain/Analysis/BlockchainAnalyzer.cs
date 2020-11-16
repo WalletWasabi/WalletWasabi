@@ -101,15 +101,13 @@ namespace WalletWasabi.Blockchain.Analysis
 			inheritedAnonset = 0;
 			if (ownInputCount > 0)
 			{
-				// If we provided inputs to the transaction.
-				// Reusing pubkey on the input side is good, the punishment happened already.
-				var distinctWalletInputPubKeyCount = distinctWalletInputPubKeys.Count;
-				var pubKeyReuseCount = ownInputCount - distinctWalletInputPubKeyCount;
-
 				// We want to weaken the punishment if the input merge happens in coinjoins.
 				// Our strategy would be is to set the coefficient in proportion to our own inputs compared to the total inputs of the transaction.
 				// However the accuracy can be increased if we consider every input with the same pubkey as a single input entity.
 				// This we can only do for our own inputs as we don't know the pubkeys - nor the scripts - of other inputs.
+				// Another way to think about this is: reusing pubkey on the input side is good, the punishment happened already.
+				var distinctWalletInputPubKeyCount = distinctWalletInputPubKeys.Count;
+				var pubKeyReuseCount = ownInputCount - distinctWalletInputPubKeyCount;
 				double coefficient = (double)distinctWalletInputPubKeyCount / (tx.Transaction.Inputs.Count - pubKeyReuseCount);
 				var privacyBonus = Intersect(distinctWalletInputPubKeys.Select(x => x.AnonymitySet), coefficient);
 
