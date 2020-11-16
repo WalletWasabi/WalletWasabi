@@ -3,7 +3,10 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:converters="using:WalletWasabi.Gui.Converters"
+             xmlns:vm="using:WalletWasabi.Gui.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="vm:StatusBarViewModel"
+             x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.StatusBar">
   <UserControl.Resources>
     <converters:FilterLeftStatusConverter x:Key="FilterLeftStatusConverter" />
@@ -31,9 +34,9 @@
 
     <DockPanel LastChildFill="True" Margin="20 0" VerticalAlignment="Center">
       <StackPanel Orientation="Horizontal" Spacing="20" DockPanel.Dock="Right" IsVisible="{Binding !CriticalUpdateAvailable}">
-        <StackPanel Orientation="Horizontal" Spacing="4">
-          <TextBlock Text="{Binding ShowNetwork}" />
-        </StackPanel>
+        <!-- <StackPanel Orientation="Horizontal" Spacing="4"> -->
+        <!--   <TextBlock Text="{Binding ShowNetwork}" /> -->
+        <!-- </StackPanel> -->
         <Panel IsVisible="{Binding DownloadingBlock}">
           <StackPanel Orientation="Horizontal" Spacing="4">
             <Panel Height="10" Width="10">
