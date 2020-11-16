@@ -100,6 +100,6 @@ namespace WalletWasabi.Tests.Helpers
 		}
 
 		public static Script CreateScript()
-			=> BitcoinFactory.CreateScript();
+			=> new Key().PubKey.WitHash.ScriptPubKey;
 	}
 }
