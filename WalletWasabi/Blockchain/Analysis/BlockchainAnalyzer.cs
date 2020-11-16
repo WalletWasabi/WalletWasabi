@@ -107,7 +107,7 @@ namespace WalletWasabi.Blockchain.Analysis
 
 			newInputAnonset = Intersect(distinctWalletInputPubKeys.Select(x => x.AnonymitySet), coefficient);
 
-			foreach (var key in tx.WalletInputs.Select(x => x.HdPubKey))
+			foreach (var key in distinctWalletInputPubKeys)
 			{
 				key.AnonymitySet = newInputAnonset;
 			}
