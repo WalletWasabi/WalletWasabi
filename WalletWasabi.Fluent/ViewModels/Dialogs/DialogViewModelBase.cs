@@ -1,6 +1,7 @@
+using System.Reactive;
 using System.Windows.Input;
 using ReactiveUI;
-using WalletWasabi.Gui.ViewModels;
+using System;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
@@ -14,8 +15,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		public DialogViewModelBase(NavigationStateViewModel navigationState, NavigationTarget navigationTarget) : base(navigationState, navigationTarget)
 		{
 		}
-
-		public abstract void Close();
 
 		public ICommand NextCommand { get; protected set; }
 

@@ -1,5 +1,6 @@
 using ReactiveUI;
 using System;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 
@@ -26,6 +27,8 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 							  .Subscribe(OnIsDialogOpenChanged);
 
 			CancelCommand = ReactiveCommand.Create(() => Close());
+
+			this.WhenNavigatedTo(() => Disposable.Create(() => Close()));
 		}
 
 		private void OnIsDialogOpenChanged(bool dialogState)
@@ -56,11 +59,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			IsDialogOpen = false;
 
 			OnDialogClosed();
-		}
-
-		public override void Close()
-		{
-			Close(default(TResult));
 		}
 
 		/// <summary>

@@ -49,11 +49,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 				_isClosing = true;
 				if (Router.NavigationStack.Count >= 1)
 				{
-					if (Router.GetCurrentViewModel() is DialogViewModelBase vmb)
-					{
-						vmb.Close();
-					}
-					
 					Router.NavigationStack.Clear();
 				}
 				_isClosing = false;
