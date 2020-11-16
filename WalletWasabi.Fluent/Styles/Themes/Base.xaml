@@ -1,7 +1,5 @@
 <Styles xmlns="https://github.com/avaloniaui"
-  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-  xmlns:sys="clr-namespace:System;assembly=netstandard"
-  xmlns:local="clr-namespace:AvalonStudio.Controls.Standard.CodeEditor;assembly=AvalonStudio.Controls.Standard">
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Styles.Resources>
     <Color x:Key="SystemAccentColorLight1">#FF82C690</Color>
     <Color x:Key="SystemAccentColorLight2">#FF92CF9E</Color>
