@@ -103,7 +103,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 					walletManager.AddWallet(keyManager);
 
-				  ClearNavigation(NavigationTarget.DialogScreen);
+					ClearNavigation(NavigationTarget.DialogScreen);
+				}
 			}
 			catch (Exception ex)
 			{
