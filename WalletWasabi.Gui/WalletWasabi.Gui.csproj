@@ -69,6 +69,7 @@
 		<PackageReference Include="AvalonStudio.Shell" Version="0.9.9" />
 		<PackageReference Include="Dock.Avalonia.Themes.Default" Version="0.9.9" />
 		<PackageReference Include="Dock.Avalonia.Themes.Metro" Version="0.9.9" />
+		<PackageReference Include="System.Reactive" Version="5.0.0" />
 		<PackageReference Include="System.Runtime" Version="4.3.1" />
 	</ItemGroup>
 
