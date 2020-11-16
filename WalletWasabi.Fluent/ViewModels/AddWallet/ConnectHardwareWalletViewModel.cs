@@ -9,23 +9,33 @@ using System.Windows.Input;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Extensions;
 using WalletWasabi.Gui;
-using WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets;
+using WalletWasabi.Gui.Controls.WalletExplorer;
+using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Gui.Models.StatusBarStatuses;
+using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Hwi;
+using WalletWasabi.Hwi.Models;
+using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
+using HardwareWalletViewModel = WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets.HardwareWalletViewModel;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
 	public class ConnectHardwareWalletViewModel : RoutableViewModel
 	{
+		private readonly string _walletName;
 		private readonly Network _network;
 		private readonly List<Wallet> _currentWallets;
 		private CancellationTokenSource _searchHardwareWalletCts;
 		private HardwareWalletViewModel _selectedHardwareWallet;
 
-		public ConnectHardwareWalletViewModel(NavigationStateViewModel navigationState, Network network,
+		public ConnectHardwareWalletViewModel(NavigationStateViewModel navigationState, string walletName, Network network,
 			WalletManager walletManager) : base(navigationState, NavigationTarget.DialogScreen)
 		{
+			_walletName = walletName;
 			_network = network;
 			_currentWallets = walletManager.GetWallets().ToList();
 			_searchHardwareWalletCts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
@@ -34,8 +44,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			Task.Run(StartHardwareWalletDetection);
 
 			CancelCommand = ReactiveCommand.Create(() => navigationState.DialogScreen?.Invoke().Router.NavigationStack.Clear());
+			CancelCommand = ReactiveCommand.Create(() => _searchHardwareWalletCts.Cancel());
 
-			// TODO: wallet detected but in error case
 			var connectCommandIsExecute = this.WhenAnyValue(x => x.SelectedHardwareWallet).Select(selectedHardwareWallet => selectedHardwareWallet?.HardwareWalletInfo?.Fingerprint is { });
 			NextCommand = ReactiveCommand.Create(() => { },connectCommandIsExecute);
 		}
@@ -66,8 +76,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					var walletsToRemove = detectedHardwareWallets.Where(wallet => _currentWallets.Any(x => x.KeyManager.MasterFingerprint == wallet.HardwareWalletInfo.Fingerprint));
 					detectedHardwareWallets.RemoveMany(walletsToRemove);
 
-					// Remove disconnected hardware wallets from the list TODO: not working without ToList()
-					HardwareWallets.RemoveMany(HardwareWallets.ToList().Except(detectedHardwareWallets));
+					// Remove disconnected hardware wallets from the list
+					HardwareWallets.RemoveMany(HardwareWallets.Except(detectedHardwareWallets));
 
 					// Remove detected wallets that are already in the list.
 					detectedHardwareWallets.RemoveMany(HardwareWallets);

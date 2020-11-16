@@ -49,5 +49,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 			       otherWallet.HardwareWalletInfo.Fingerprint == HardwareWalletInfo.Fingerprint &&
 			       otherWallet.HardwareWalletInfo.Model == HardwareWalletInfo.Model;
 		}
+
+		public override int GetHashCode()
+		{
+			return $"{HardwareWalletInfo.Fingerprint} {HardwareWalletInfo.Model}".GetHashCode();
+		}
 	}
 }
