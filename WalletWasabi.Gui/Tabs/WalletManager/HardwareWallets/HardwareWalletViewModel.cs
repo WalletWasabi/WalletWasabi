@@ -42,5 +42,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 		{
 			return WalletName;
 		}
+
+		public override bool Equals(object? obj)
+		{
+			return obj is HardwareWalletViewModel otherWallet &&
+			       otherWallet.HardwareWalletInfo.Fingerprint == HardwareWalletInfo.Fingerprint &&
+			       otherWallet.HardwareWalletInfo.Model == HardwareWalletInfo.Model;
+		}
 	}
 }

@@ -1,0 +1,35 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             mc:Ignorable="d"
+             d:DesignWidth="600" d:DesignHeight="500"
+             x:Class="WalletWasabi.Fluent.Views.AddWallet.ConnectHardwareWalletView">
+  <c:ContentArea Title="Hardware wallet"
+                 Caption="The hardware wallet will automatically appear when connected to the computer."
+                 EnableCancel="True" CancelContent="Cancel"
+                 EnableBack="True"
+                 EnableNext="True" NextContent="Connect" >
+      <DockPanel>
+
+          <StackPanel Spacing="8" DockPanel.Dock="Bottom" Margin="0 40 0 40">
+              <StackPanel>
+                  <TextBlock Text="Limitations?" FontWeight="Bold" />
+                  <TextBlock Text="- Currently all hardware wallets are incompatible with coinjoins." />
+                  <TextBlock Text="- Only bech32 keypaths are supported, your legacy hardware wallet transactions won't show up." />
+              </StackPanel>
+              <StackPanel>
+                  <TextBlock Text="Which hardware wallets are supported?" FontWeight="Bold" />
+                  <TextBlock Text="- Coldcard and Ledger Nano S." TextWrapping="Wrap" />
+                  <TextBlock Text="- While other hardware wallets may work, they were not tested by Wasabi developers." TextWrapping="Wrap" />
+              </StackPanel>
+          </StackPanel>
+
+          <ListBox Items="{Binding HardwareWallets}" SelectedItem="{Binding SelectedHardwareWallet}">
+
+          </ListBox>
+
+      </DockPanel>
+  </c:ContentArea>
+</UserControl>
