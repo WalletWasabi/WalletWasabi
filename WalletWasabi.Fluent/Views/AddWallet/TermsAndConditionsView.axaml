@@ -8,15 +8,19 @@
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              d:DesignWidth="600" d:DesignHeight="500"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.TermsAndConditionsView">
-  <c:ContentArea Title="Terms and Conditions"
-                 Caption="Please read the small print."
-                 EnableCancel="True" CancelContent="Cancel"
+  <c:ContentArea Title="Welcome to Wasabi Wallet"
+                 EnableCancel="False"
                  EnableNext="True" NextContent="Continue" FocusNext="True">
-    <CheckBox IsChecked="{Binding IsAgreed}">
-        <StackPanel Orientation="Horizontal">
-            <TextBlock Text="I agree to the " />
-            <Button Classes="plain" Content="Terms and Conditions" Command="{Binding ViewTermsCommand}" />
-        </StackPanel>
-    </CheckBox>
+      <DockPanel>
+          <CheckBox IsChecked="{Binding IsAgreed}" DockPanel.Dock="Bottom">
+              <StackPanel Orientation="Horizontal">
+                  <TextBlock Text="I agree to the " />
+                  <Button Classes="plain" Content="Terms and Conditions" Command="{Binding ViewTermsCommand}" />
+              </StackPanel>
+          </CheckBox>
+          <Border BorderThickness="1" BorderBrush="White" Opacity="0.2" CornerRadius="5" Margin="20 0 20 40">
+            <TextBlock Text="Insert Welcome Graphic here..." Margin="20" />
+          </Border>
+      </DockPanel>
   </c:ContentArea>
 </UserControl>
