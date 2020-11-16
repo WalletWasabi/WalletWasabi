@@ -9,16 +9,7 @@ using System.Windows.Input;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Extensions;
-using WalletWasabi.Gui;
-using WalletWasabi.Gui.Controls.WalletExplorer;
-using WalletWasabi.Gui.Helpers;
-using WalletWasabi.Gui.Models.StatusBarStatuses;
-using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Hwi;
-using WalletWasabi.Hwi.Models;
-using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 using HardwareWalletViewModel = WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets.HardwareWalletViewModel;
 
@@ -30,7 +21,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		private readonly Network _network;
 		private readonly List<Wallet> _currentWallets;
 		private CancellationTokenSource _searchHardwareWalletCts;
-		private HardwareWalletViewModel _selectedHardwareWallet;
+		private HardwareWalletViewModel? _selectedHardwareWallet;
 
 		public ConnectHardwareWalletViewModel(NavigationStateViewModel navigationState, string walletName, Network network,
 			WalletManager walletManager, NavigationTarget navigationTarget) : base(navigationState, navigationTarget)
@@ -45,11 +36,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			CancelCommand = ReactiveCommand.Create(ClearNavigation);
 
-			var connectCommandIsExecute = this.WhenAnyValue(x => x.SelectedHardwareWallet).Select(selectedHardwareWallet => selectedHardwareWallet?.HardwareWalletInfo?.Fingerprint is { });
+			var connectCommandIsExecute = this.WhenAnyValue(x => x.SelectedHardwareWallet).Select(selectedHardwareWallet => selectedHardwareWallet?.HardwareWalletInfo.Fingerprint is { });
 			NextCommand = ReactiveCommand.Create(() => { },connectCommandIsExecute);
 		}
 
-		public HardwareWalletViewModel SelectedHardwareWallet
+		public HardwareWalletViewModel? SelectedHardwareWallet
 		{
 			get => _selectedHardwareWallet;
 			set => this.RaiseAndSetIfChanged(ref _selectedHardwareWallet, value);
