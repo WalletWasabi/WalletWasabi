@@ -5,8 +5,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.Logging;
-using WalletWasabi.Tor.Exceptions;
 using WalletWasabi.Tor.Http;
+using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 
 namespace WalletWasabi.Tor
@@ -42,7 +42,7 @@ namespace WalletWasabi.Tor
 
 				if (torMisbehavedFor > CheckIfRunningAfterTorMisbehavedFor)
 				{
-					if (TorHttpClient.LatestTorException is TorSocks5FailureResponseException torEx)
+					if (TorHttpClient.LatestTorException is TorHttpResponseException torEx)
 					{
 						if (torEx.RepField == RepField.HostUnreachable)
 						{
@@ -54,7 +54,7 @@ namespace WalletWasabi.Tor
 							}
 
 							// Check if it changed in the meantime...
-							if (TorHttpClient.LatestTorException is TorSocks5FailureResponseException torEx2 && torEx2.RepField == RepField.HostUnreachable)
+							if (TorHttpClient.LatestTorException is TorHttpResponseException torEx2 && torEx2.RepField == RepField.HostUnreachable)
 							{
 								// Fallback here...
 								RequestFallbackAddressUsage = true;

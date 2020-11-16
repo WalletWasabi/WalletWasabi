@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Tor.Exceptions;
 using WalletWasabi.Tor.Http;
+using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 using WalletWasabi.Tor.Socks5.Models.Messages;
@@ -18,7 +18,7 @@ using WalletWasabi.Tor.Socks5.Models.Messages;
 namespace WalletWasabi.Tor.Socks5
 {
 	/// <summary>
-	/// TODO.
+	/// Factory class to create new <see cref="TorConnection"/> instances.
 	/// </summary>
 	public class TorSocks5ClientFactory
 	{
@@ -44,17 +44,33 @@ namespace WalletWasabi.Tor.Socks5
 				// Internal TCP client may close, so we need a new instance here.
 				using var tcpClient = new TcpClient(TorSocks5EndPoint.AddressFamily);
 				await ConnectAsync(tcpClient).ConfigureAwait(false);
-				await HandshakeAsync(tcpClient).ConfigureAwait(false);
+				await HandshakeAsync(tcpClient, isolateStream: false).ConfigureAwait(false);
 
 				return true;
 			}
-			catch (ConnectionException)
+			catch (TorConnectionException)
+			{
+				return false;
+			}
+			catch (TorAuthenticationException)
 			{
 				return false;
 			}
 		}
 
-		public async Task<TorConnection> MakeAsync(bool isolateStream, string host, int port, bool useSsl, CancellationToken token = default)
+		/// <summary>
+		/// Creates a new connected TCP client connected to Tor SOCKS5 endpoint.
+		/// </summary>
+		/// <param name="isolateStream"></param>
+		/// <param name="host">Tor SOCKS5 host.</param>
+		/// <param name="port">Tor SOCKS5 port.</param>
+		/// <param name="useSsl">Whether to use SSL to send the HTTP request over Tor.</param>
+		/// <param name="cancellationToken">Cancellation token to cancel the asynchronous operation.</param>
+		/// <returns>New <see cref="TorConnection"/> instance.</returns>
+		/// <exception cref="TorConnection"/>
+		/// <exception cref="TorAuthenticationException"/>
+		/// <exception cref="TorHttpException"/>
+		public async Task<TorConnection> MakeAsync(bool isolateStream, string host, int port, bool useSsl, CancellationToken cancellationToken = default)
 		{
 			TcpClient? tcpClient = null;
 			Stream? transportStream = null;
@@ -64,15 +80,15 @@ namespace WalletWasabi.Tor.Socks5
 				tcpClient = new TcpClient(TorSocks5EndPoint.AddressFamily);
 
 				transportStream = await ConnectAsync(tcpClient).ConfigureAwait(false);
-				await HandshakeAsync(tcpClient, isolateStream, token).ConfigureAwait(false);
-				await ConnectToDestinationAsync(tcpClient, host, port, token).ConfigureAwait(false);
+				await HandshakeAsync(tcpClient, isolateStream, cancellationToken).ConfigureAwait(false);
+				await ConnectToDestinationAsync(tcpClient, host, port, cancellationToken).ConfigureAwait(false);
 
 				if (useSsl)
 				{
 					transportStream = await UpgradeToSslAsync(tcpClient, host).ConfigureAwait(false);
 				}
 
-				TorConnection result = new TorConnection(tcpClient, transportStream);
+				var result = new TorConnection(tcpClient, transportStream);
 
 				transportStream = null;
 				tcpClient = null;
@@ -97,8 +113,10 @@ namespace WalletWasabi.Tor.Socks5
 		}
 
 		/// <summary>
-		/// Establishes TCP connection with Tor's SOCKS5 server.
+		/// Establishes TCP connection with Tor SOCKS5 endpoint.
 		/// </summary>
+		/// <exception cref="ArgumentException">This should never happen.</exception>
+		/// <exception cref="TorAuthenticationException">When connection to Tor SOCKS5 endpoint fails.</exception>
 		private async Task<NetworkStream> ConnectAsync(TcpClient tcpClient)
 		{
 			if (!TorSocks5EndPoint.TryGetHostAndPort(out string? host, out int? port))
@@ -110,23 +128,12 @@ namespace WalletWasabi.Tor.Socks5
 			{
 				// Cancellation token for ConnectAsync will be available in .NET 5.
 				await tcpClient.ConnectAsync(host, port.Value).ConfigureAwait(false);
+				return tcpClient.GetStream();
 			}
 			catch (Exception ex) when (IsConnectionRefused(ex))
 			{
-				throw new ConnectionException($"Could not connect to Tor SOCKSPort at '{host}:{port}'. Is Tor running?", ex);
+				throw new TorConnectionException($"Could not connect to Tor SOCKSPort at '{host}:{port}'. Is Tor running?", ex);
 			}
-
-			return tcpClient.GetStream();
-		}
-
-		private async Task ConnectToDestinationAsync(TcpClient tcpClient, EndPoint destination, CancellationToken cancellationToken = default)
-		{
-			if (!destination.TryGetHostAndPort(out string? host, out int? port))
-			{
-				throw new ArgumentException("Endpoint type is not supported.", nameof(destination));
-			}
-
-			await ConnectToDestinationAsync(tcpClient, host, port.Value, cancellationToken).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -139,8 +146,6 @@ namespace WalletWasabi.Tor.Socks5
 		/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt#n35"/>
 		private async Task HandshakeAsync(TcpClient tcpClient, bool isolateStream = false, CancellationToken cancellationToken = default)
 		{
-			Logger.LogDebug($"> {nameof(isolateStream)}={isolateStream}");
-
 			// https://github.com/torproject/torspec/blob/master/socks-extensions.txt
 			// The "NO AUTHENTICATION REQUIRED" (SOCKS5) authentication method [00] is
 			// supported; and as of Tor 0.2.3.2 - alpha, the "USERNAME/PASSWORD"(SOCKS5)
@@ -201,8 +206,6 @@ namespace WalletWasabi.Tor.Socks5
 					throw new InvalidOperationException("Wrong username and/or password.");
 				}
 			}
-
-			Logger.LogDebug("<");
 		}
 
 		/// <summary>
@@ -211,6 +214,9 @@ namespace WalletWasabi.Tor.Socks5
 		/// </summary>
 		/// <param name="host">IPv4 or domain of the destination.</param>
 		/// <param name="port">Port number of the destination.</param>
+		/// <exception cref="OperationCanceledException">When operation is canceled.</exception>
+		/// <exception cref="TorHttpResponseException">When response to <see cref="CmdField.Connect"/> request is NOT <see cref="RepField.Succeeded"/>.</exception>
+		/// <exception cref="TorHttpException">When sending of the HTTP(s) request fails for any reason.</exception>
 		/// <seealso href="https://tools.ietf.org/html/rfc1928">Section 3. Procedure for TCP-based clients</seealso>
 		private async Task ConnectToDestinationAsync(TcpClient tcpClient, string host, int port, CancellationToken cancellationToken = default)
 		{
@@ -236,7 +242,7 @@ namespace WalletWasabi.Tor.Socks5
 					// the reply. This must be no more than 10 seconds after detecting the
 					// condition that caused a failure.
 					Logger.LogWarning($"Connection response indicates a failure. Actual response is: '{connectionResponse.Rep}'. Request: '{host}:{port}'.");
-					throw new TorSocks5FailureResponseException(connectionResponse.Rep);
+					throw new TorHttpResponseException(connectionResponse.Rep);
 				}
 
 				// Do not check the Bnd. Address and Bnd. Port. because Tor does not seem to return any, ever. It returns zeros instead.
@@ -256,10 +262,15 @@ namespace WalletWasabi.Tor.Socks5
 				Logger.LogTrace($"Connecting to destination '{host}:{port}' was canceled.");
 				throw;
 			}
+			catch (TorHttpResponseException e)
+			{
+				Logger.LogError($"{nameof(TorHttpResponseException)} was thrown when connecting to destination '{host}:{port}'.", e);
+				throw;
+			}
 			catch (Exception e)
 			{
 				Logger.LogError($"Exception was thrown when connecting to destination '{host}:{port}'.", e);
-				throw;
+				throw new TorHttpException($"Failed to connect to '{host}:{port}'", e);
 			}
 			finally
 			{
@@ -337,7 +348,7 @@ namespace WalletWasabi.Tor.Socks5
 
 				if (receiveCount <= 0)
 				{
-					throw new ConnectionException($"Not connected to Tor SOCKS5 proxy: {TorSocks5EndPoint}.");
+					throw new TorConnectionException($"Not connected to Tor SOCKS5 proxy: {TorSocks5EndPoint}.");
 				}
 				// if we could fit everything into our buffer, then return it
 				if (!stream.DataAvailable)
@@ -354,7 +365,7 @@ namespace WalletWasabi.Tor.Socks5
 					receiveCount = await stream.ReadAsync(receiveBuffer, 0, actualReceiveBufferSize, cancellationToken).ConfigureAwait(false);
 					if (receiveCount <= 0)
 					{
-						throw new ConnectionException($"Not connected to Tor SOCKS5 proxy: {TorSocks5EndPoint}.");
+						throw new TorConnectionException($"Not connected to Tor SOCKS5 proxy: {TorSocks5EndPoint}.");
 					}
 					builder.Append(receiveBuffer[..receiveCount]);
 				}
@@ -368,7 +379,7 @@ namespace WalletWasabi.Tor.Socks5
 			}
 			catch (IOException ex)
 			{
-				throw new ConnectionException($"{nameof(TorConnection)} is not connected.", ex);
+				throw new TorConnectionException($"{nameof(TorConnection)} is not connected.", ex);
 			}
 		}
 	}

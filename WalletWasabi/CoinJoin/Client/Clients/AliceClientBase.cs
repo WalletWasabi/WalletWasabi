@@ -10,9 +10,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.Logging;
-using WalletWasabi.Tor.Exceptions;
 using WalletWasabi.Tor.Http.Bases;
 using WalletWasabi.Tor.Http.Extensions;
+using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.WebClients.Wasabi;
 using static WalletWasabi.Crypto.SchnorrBlinding;
 using UnblindedSignature = WalletWasabi.Crypto.UnblindedSignature;
@@ -169,11 +169,11 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				{
 					return;
 				}
-				catch (ConnectionException) // If some internet connection issue then it'll likely time out and take it as unconfirmed.
+				catch (TorConnectionException) // If some internet connection issue then it'll likely time out and take it as unconfirmed.
 				{
 					return;
 				}
-				catch (TorSocks5FailureResponseException) // If some Tor connection issue then it'll likely time out and take it as unconfirmed.
+				catch (TorHttpResponseException) // If some Tor connection issue then it'll likely time out and take it as unconfirmed.
 				{
 					return;
 				}

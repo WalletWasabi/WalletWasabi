@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
@@ -27,6 +26,9 @@ namespace WalletWasabi.Tests.IntegrationTests
 			return Task.CompletedTask;
 		}
 
+		/// <summary>
+		/// TODO: Kill me with fire before merge. Thank you.
+		/// </summary>
 		[Fact]
 		public async Task TestMultipleHttpsAsync()
 		{
@@ -52,6 +54,9 @@ namespace WalletWasabi.Tests.IntegrationTests
 			Assert.True(true);
 		}
 
+		/// <summary>
+		/// TODO: Kill me with fire before merge. Thank you.
+		/// </summary>
 		[Fact]
 		public async Task PerfTestAsync()
 		{
@@ -90,6 +95,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[Fact]
 		public async Task CanDoRequestManyDifferentAsync()
 		{
+			Logger.SetMinimumLevel(Logging.LogLevel.Trace);
 			using var client = new TorHttpClient(new Uri("http://api.qbit.ninja"), Common.TorSocks5Endpoint);
 			await QBitTestAsync(client, 10, alterRequests: true);
 		}

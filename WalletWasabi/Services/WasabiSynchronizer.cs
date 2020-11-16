@@ -13,7 +13,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
-using WalletWasabi.Tor.Exceptions;
+using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
@@ -185,14 +185,14 @@ namespace WalletWasabi.Services
 								TorStatus = TorStatus.Running;
 								DoNotGenSocksServFail();
 							}
-							catch (ConnectionException ex)
+							catch (TorAuthenticationException ex)
 							{
 								TorStatus = TorStatus.NotRunning;
 								BackendStatus = BackendStatus.NotConnected;
 								HandleIfGenSocksServFail(ex);
 								throw;
 							}
-							catch (TorSocks5FailureResponseException ex)
+							catch (TorHttpResponseException ex)
 							{
 								TorStatus = TorStatus.Running;
 								BackendStatus = BackendStatus.NotConnected;
@@ -317,7 +317,7 @@ namespace WalletWasabi.Services
 						{
 							Logger.LogInfo("Wasabi Synchronizer execution was canceled.");
 						}
-						catch (ConnectionException ex)
+						catch (TorConnectionException ex)
 						{
 							Logger.LogError(ex);
 							try

@@ -12,9 +12,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Tor.Exceptions;
 using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.Tor.Http.Models;
+using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 using WalletWasabi.Tor.Socks5.Pool;
 
@@ -34,7 +34,8 @@ namespace WalletWasabi.Tor.Socks5
 	/// </summary>
 	public class TorSocks5ClientPool : IDisposable
 	{
-		public const int V = 3;
+		/// <summary>Maximum number of <see cref="PoolItem"/>s per URI host.</summary>
+		public const int MaxPoolItemsPerHost = 3;
 
 		/// <summary>
 		/// Creates a new instance of the object.
@@ -51,9 +52,11 @@ namespace WalletWasabi.Tor.Socks5
 		private TorSocks5ClientFactory TorSocks5ClientFactory { get; }
 		private bool _disposedValue;
 
+		/// <remarks>Lock object to guard all access to <see cref="Clients"/>.</remarks>
 		private AsyncLock ClientsAsyncLock { get; } = new AsyncLock();
 
-		/// <summary>TODO.</summary>
+		/// <summary>Key is always a URI host. Value is a list of pool items that can connect to the URI host.</summary>
+		/// <remarks>All access to this object must be guarded by <see cref="ClientsAsyncLock"/>.</remarks>
 		private Dictionary<string, List<PoolItem>> Clients { get; }
 
 		/// <summary>
@@ -76,7 +79,7 @@ namespace WalletWasabi.Tor.Socks5
 				{
 					using (await ClientsAsyncLock.LockAsync(token).ConfigureAwait(false))
 					{
-						poolItem = await GetClientAsync(request, token).ConfigureAwait(false);
+						poolItem = await GetClientLockedAsync(request, token).ConfigureAwait(false);
 
 						if (poolItem is { })
 						{
@@ -93,18 +96,19 @@ namespace WalletWasabi.Tor.Socks5
 
 				try
 				{
-					Logger.LogDebug($"Do the request using '{poolItem}'.");
+					Logger.LogTrace($"['{poolItem}'] About to send request.");
 					HttpResponseMessage response = await SendCoreAsync(client!, request).ConfigureAwait(false);
 
 					// Client works OK, no need to dispose.
 					itemToDispose = null;
 
 					// Let others use the client.
-					poolItem.Unreserve();
+					var state = poolItem.Unreserve();
+					Logger.LogTrace($"['{poolItem}'] Un-reserve. State is: '{state}'.");
 
 					return response;
 				}
-				catch (TorSocks5FailureResponseException ex) when (ex.RepField == RepField.TtlExpired)
+				catch (TorHttpResponseException ex) when (ex.RepField == RepField.TtlExpired)
 				{
 					// If we get TTL Expired error then wait and retry again linux often do this.
 					Logger.LogTrace(ex);
@@ -117,9 +121,10 @@ namespace WalletWasabi.Tor.Socks5
 						throw;
 					}
 				}
-				catch (SocketException ex3) when (ex3.ErrorCode == (int)SocketError.ConnectionRefused)
+				catch (SocketException ex) when (ex.ErrorCode == (int)SocketError.ConnectionRefused)
 				{
-					throw new ConnectionException("Connection was refused.", ex3);
+					Logger.LogTrace(ex);
+					throw new TorConnectionException("Connection was refused.", ex);
 				}
 				finally
 				{
@@ -130,7 +135,8 @@ namespace WalletWasabi.Tor.Socks5
 			throw new NotImplementedException("This should never happen.");
 		}
 
-		private async Task<PoolItem?> GetClientAsync(HttpRequestMessage request, CancellationToken token)
+		/// <remarks>Caller is responsible for acquiring <see cref="ClientsAsyncLock"/>.</remarks>
+		private async Task<PoolItem?> GetClientLockedAsync(HttpRequestMessage request, CancellationToken token)
 		{
 			string host = GetRequestHost(request);
 
@@ -154,24 +160,32 @@ namespace WalletWasabi.Tor.Socks5
 			// Find first free connection, if it exists.
 			reservedItem = hostItems.Find(item => item.TryReserve());
 
+			Logger.LogTrace($"Get PoolItem for '{host}' host; Context: hostItems = {string.Join(',', hostItems.Select(x => x.ToString()).ToArray())}.");
+
 			if (reservedItem is null)
 			{
-				// TODO: Use constant.
-				if (hostItems.Count > V)
+				if (hostItems.Count > MaxPoolItemsPerHost)
 				{
-					Logger.LogTrace($"[NONE] No free pool item.");
+					Logger.LogTrace($"['{host}'][NONE] No free pool item.");
 				}
 				else
 				{
-					// TODO: Handle exceptions.
-					bool useSsl = request.RequestUri.Scheme == "https";
+					try
+					{
+						bool useSsl = request.RequestUri.Scheme == "https";
 
-					TorConnection newClient = await NewSocks5ClientAsync(request, useSsl, token).ConfigureAwait(false);
-					reservedItem = new PoolItem(newClient, allowRecycling: !useSsl);
+						TorConnection newClient = await NewSocks5ClientAsync(request, useSsl, token).ConfigureAwait(false);
+						reservedItem = new PoolItem(newClient, allowRecycling: !useSsl);
 
-					Logger.LogTrace($"[NEW {reservedItem}]['{request.RequestUri}'] Created new Tor SOCKS5 connection.");
+						Logger.LogTrace($"[NEW {reservedItem}]['{request.RequestUri}'] Created new Tor SOCKS5 connection.");
 
-					hostItems.Add(reservedItem);
+						hostItems.Add(reservedItem);
+					}
+					catch (TorException e)
+					{
+						Logger.LogDebug($"['{host}'][ERROR] Failed to create a new pool item.");
+						Logger.LogError(e);
+					}
 				}
 			}
 			else
@@ -223,7 +237,8 @@ namespace WalletWasabi.Tor.Socks5
 			return await HttpResponseMessageExtensions.CreateNewAsync(transportStream, request.Method).ConfigureAwait(false);
 		}
 
-		public async Task<TorConnection> NewSocks5ClientAsync(HttpRequestMessage request, bool useSsl, CancellationToken token = default)
+		/// <inheritdoc cref="TorSocks5ClientFactory.MakeAsync(bool, string, int, bool, CancellationToken)"/>
+		public Task<TorConnection> NewSocks5ClientAsync(HttpRequestMessage request, bool useSsl, CancellationToken token = default)
 		{
 			// https://tools.ietf.org/html/rfc7230#section-2.7.1
 			// A sender MUST NOT generate an "http" URI with an empty host identifier.
@@ -236,9 +251,7 @@ namespace WalletWasabi.Tor.Socks5
 			// in forwarded messages.
 			request.Version = HttpProtocol.HTTP11.Version;
 
-			TorConnection client = await TorSocks5ClientFactory.MakeAsync(IsolateStream, host, port, useSsl, token).ConfigureAwait(false);
-
-			return client;
+			return TorSocks5ClientFactory.MakeAsync(IsolateStream, host, port, useSsl, token);
 		}
 
 		private static string GetRequestHost(HttpRequestMessage request)
