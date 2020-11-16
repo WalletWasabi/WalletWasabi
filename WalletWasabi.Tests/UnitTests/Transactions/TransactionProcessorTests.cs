@@ -23,7 +23,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var transactionProcessor = await CreateTransactionProcessorAsync();
 
 			// This transaction doesn't have any coin for the wallet. It is not relevant.
-			var tx = CreateCreditingTransaction(new Key().PubKey.WitHash.ScriptPubKey, Money.Coins(1.0m));
+			var tx = CreateCreditingTransaction(BitcoinFactory.CreateScript(), Money.Coins(1.0m));
 
 			var relevant = transactionProcessor.Process(tx);
 
@@ -92,7 +92,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var tx1 = CreateCreditingTransaction(key.PubKey.WitHash.ScriptPubKey, Money.Coins(1.0m));
 			var blockHeight = new Height(77551);
 			var tx2 = new SmartTransaction(tx1.Transaction, blockHeight);
-			var tx3 = CreateSpendingTransaction(tx2.Transaction.Outputs.AsCoins().First(), new Key().PubKey.WitHash.ScriptPubKey);
+			var tx3 = CreateSpendingTransaction(tx2.Transaction.Outputs.AsCoins().First(), BitcoinFactory.CreateScript());
 			var blockHeight2 = new Height(77552);
 			var tx4 = new SmartTransaction(tx3.Transaction, blockHeight2);
 			var results = transactionProcessor.Process(tx1, tx2, tx3, tx4).ToArray();
@@ -488,7 +488,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var coinsToSpend = createdCoins.Concat(new[] { latestCreatedCoin.Coin }).ToArray();
 
 			// Spend them again with a different amount
-			var destinationScript2 = new Key().PubKey.WitHash.ScriptPubKey; // spend to someone else
+			var destinationScript2 = BitcoinFactory.CreateScript(); // spend to someone else
 			var tx4 = CreateSpendingTransaction(coinsToSpend, destinationScript2, changeScript);
 			var relevant2 = transactionProcessor.Process(tx4);
 
@@ -541,7 +541,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.True(relevant.IsNews);
 
 			// replace previous tx with another one spending only one coin
-			destinationScript = new Key().PubKey.WitHash.ScriptPubKey; // spend to someone else
+			destinationScript = BitcoinFactory.CreateScript(); // spend to someone else
 			var tx3 = CreateSpendingTransaction(createdCoins.Take(1), destinationScript, changeScript); // spends 0.6btc
 			relevant = transactionProcessor.Process(tx3);
 
@@ -683,7 +683,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			tx.Version = 1;
 			tx.LockTime = LockTime.Zero;
 			tx.Outputs.Add(amount, keys.Skip(1).First().P2wpkhScript);
-			var txOut = new TxOut(amount, new Key().PubKey.WitHash.ScriptPubKey);
+			var txOut = new TxOut(amount, BitcoinFactory.CreateScript());
 			tx.Outputs.AddRange(Enumerable.Repeat(txOut, 5)); // 6 indistinguishable txouts
 			tx.Inputs.AddRange(Enumerable.Repeat(new TxIn(GetRandomOutPoint(), Script.Empty), 4));
 
@@ -712,7 +712,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			tx.Version = 1;
 			tx.LockTime = LockTime.Zero;
 			tx.Outputs.Add(amount, keys.Skip(1).First().P2wpkhScript);
-			var txOut = new TxOut(Money.Coins(0.1m), new Key().PubKey.WitHash.ScriptPubKey);
+			var txOut = new TxOut(Money.Coins(0.1m), BitcoinFactory.CreateScript());
 			tx.Outputs.AddRange(Enumerable.Repeat(txOut, 5)); // 6 indistinguishable txouts
 			tx.Inputs.Add(createdCoin.Outpoint, Script.Empty, WitScript.Empty);
 			tx.Inputs.AddRange(Enumerable.Repeat(new TxIn(GetRandomOutPoint(), Script.Empty), 4));

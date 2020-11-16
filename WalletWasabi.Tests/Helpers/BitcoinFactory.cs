@@ -98,5 +98,8 @@ namespace WalletWasabi.Tests.Helpers
 			rand.GetBytes(bytes);
 			return new uint256(bytes);
 		}
+
+		public static Script CreateScript()
+			=> BitcoinFactory.CreateScript();
 	}
 }

@@ -30,7 +30,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				Network.Main.CreateTransactionBuilder()
 				.AddCoins(Coin(0.5m, key.PubKey.WitHash.ScriptPubKey))
 				.AddKeys(key)
-				.Send(new Key().PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m))
+				.Send(BitcoinFactory.CreateScript(), Money.Coins(0.5m))
 				.BuildPSBT(true);
 			tx.Finalize();
 			return tx;
@@ -143,7 +143,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			var allowedCoins = transactionFactory.Coins.ToArray();
 
-			var payment = new PaymentIntent(new Key().PubKey.WitHash.ScriptPubKey, amountToPay);
+			var payment = new PaymentIntent(BitcoinFactory.CreateScript(), amountToPay);
 
 			var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), allowedCoins.Select(x => x.OutPoint), payjoinClient);
 
@@ -182,7 +182,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// The server knows one of our utxos and tries to fool the wallet to make it sign the utxo
 			var walletCoins = new[] { ("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1) };
 			var amountToPay = Money.Coins(0.001m);
-			var payment = new PaymentIntent(new Key().PubKey.WitHash.ScriptPubKey, amountToPay);
+			var payment = new PaymentIntent(BitcoinFactory.CreateScript(), amountToPay);
 
 			// This tests the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
 			var httpClient = new MockTorHttpClient
@@ -205,7 +205,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			///////
 
 			// The server tries to pay more to itself by taking from the change output
-			var destination = new Key().PubKey.WitHash.ScriptPubKey;
+			var destination = BitcoinFactory.CreateScript();
 			payment = new PaymentIntent(destination, amountToPay);
 
 			// This tests the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
@@ -233,7 +233,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		{
 			var walletCoins = new[] { ("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1) };
 			var amountToPay = Money.Coins(0.001m);
-			var payment = new PaymentIntent(new Key().PubKey.WitHash.ScriptPubKey, amountToPay);
+			var payment = new PaymentIntent(BitcoinFactory.CreateScript(), amountToPay);
 
 			// This tests the scenario where the payjoin server does not clean GloablXPubs.
 			var httpClient = new MockTorHttpClient
@@ -378,7 +378,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// The server wants to make us sign a transaction that pays too much fee
 			var walletCoins = new[] { ("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1) };
 			var amountToPay = Money.Coins(0.001m);
-			var destination = new Key().PubKey.WitHash.ScriptPubKey;
+			var destination = BitcoinFactory.CreateScript();
 			var payment = new PaymentIntent(destination, amountToPay);
 
 			// This tests the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
@@ -404,8 +404,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// The server wants to make us sign a transaction that pays too much fee.
 			var walletCoins = new[] { ("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1) };
 			var amountToPay = Money.Coins(0.001m);
-			var destination = new Key().PubKey.WitHash.ScriptPubKey;
-			var payment = new PaymentIntent(destination, amountToPay);
+			var payment = new PaymentIntent(BitcoinFactory.CreateScript(), amountToPay);
 
 			// This tests the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
 			var httpClient = new MockTorHttpClient
@@ -419,8 +418,6 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		}
 
 		private static PayjoinClient NewPayjoinClient(MockTorHttpClient client)
-		{
-			return new PayjoinClient(client.DestinationUriAction.Invoke(), client);
-		}
+			=> new PayjoinClient(client.DestinationUriAction.Invoke(), client);
 	}
 }
