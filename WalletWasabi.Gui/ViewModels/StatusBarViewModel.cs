@@ -362,7 +362,7 @@ namespace WalletWasabi.Gui.ViewModels
 						{
 							if (LegalDocuments is null || LegalDocuments.Version < x.LegalDocumentsVersion)
 							{
-								using WasabiClient client = Synchronizer.WasabiClientFactory.NewBackendClient();
+								WasabiClient client = Synchronizer.WasabiClientFactory.SharedWasabiClient;
 								var versions = await client.GetVersionsAsync(CancellationToken.None);
 								var version = versions.LegalDocumentsVersion;
 								var legalFolderPath = Path.Combine(DataDir, LegalDocuments.LegalFolderName);

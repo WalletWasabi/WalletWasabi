@@ -45,10 +45,12 @@ namespace WalletWasabi.Tests.RegressionTests
 		{
 			RegTestFixture = regTestFixture;
 			BaseUri = new Uri(RegTestFixture.BackendEndPoint);
+			BackendClearnetHttpClient = new ClearnetHttpClient(() => RegTestFixture.BackendEndPointUri);
 		}
 
 		private RegTestFixture RegTestFixture { get; }
 		public Uri BaseUri { get; }
+		public ClearnetHttpClient BackendClearnetHttpClient { get; }
 
 		[Fact]
 		public async Task CoordinatorCtorTestsAsync()
@@ -683,7 +685,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				uint256[] mempooltxs = await rpc.GetRawMempoolAsync();
 				Assert.Contains(unsignedCoinJoin.GetHash(), mempooltxs);
 
-				var wasabiClient = new WasabiClient(BaseUri, null);
+				var wasabiClient = new WasabiClient(BackendClearnetHttpClient);
 				var syncInfo = await wasabiClient.GetSynchronizeAsync(blockHashed[0], 1);
 				Assert.Contains(unsignedCoinJoin.GetHash(), syncInfo.UnconfirmedCoinJoins);
 				var txs = await wasabiClient.GetTransactionsAsync(network, new[] { unsignedCoinJoin.GetHash() }, CancellationToken.None);

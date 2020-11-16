@@ -50,7 +50,7 @@ namespace WalletWasabi.Services
 			_running = StateNotStarted;
 			BitcoinStore = bitcoinStore;
 			WasabiClientFactory = wasabiClientFactory;
-			WasabiClient = wasabiClientFactory.NewBackendClient();
+			WasabiClient = wasabiClientFactory.SharedWasabiClient;
 
 			StopCts = new CancellationTokenSource();
 		}
@@ -412,7 +412,6 @@ namespace WalletWasabi.Services
 				await Task.Delay(50).ConfigureAwait(false);
 			}
 
-			WasabiClient.Dispose();
 			StopCts.Dispose();
 
 			EnableRequests(); // Enable requests (it's possible something is being blocked outside the class by AreRequestsBlocked.

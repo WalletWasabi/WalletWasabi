@@ -17,19 +17,8 @@ using WalletWasabi.Tor.Http.Extensions;
 
 namespace WalletWasabi.WebClients.Wasabi
 {
-	public class WasabiClient : IDisposable
+	public class WasabiClient
 	{
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		private WasabiClient(Func<Uri> baseUriAction, EndPoint? torSocks5EndPoint)
-		{
-			HttpClient = new TorHttpClient(baseUriAction, torSocks5EndPoint, isolateStream: true);
-		}
-
-		public WasabiClient(Uri baseUri, EndPoint? torSocks5EndPoint) : this(() => baseUri, torSocks5EndPoint)
-		{
-		}
-
 		public WasabiClient(IRelativeHttpClient httpClient)
 		{
 			HttpClient = httpClient;
@@ -288,25 +277,5 @@ namespace WalletWasabi.WebClients.Wasabi
 		}
 
 		#endregion wasabi
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					(HttpClient as IDisposable)?.Dispose();
-				}
-
-				_disposedValue = true;
-			}
-		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-		}
 	}
 }

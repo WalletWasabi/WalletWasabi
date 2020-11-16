@@ -48,7 +48,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			Network network = (networkType == NetworkType.Mainnet) ? Network.Main : Network.TestNet;
 
 			using var torHttpClient = MakeTorHttpClient(networkType);
-			using var client = new WasabiClient(torHttpClient);
+			var client = new WasabiClient(torHttpClient);
 
 			var filterModel = StartingFilters.GetStartingFilter(network);
 
@@ -75,7 +75,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		public async Task GetTransactionsAsync(NetworkType networkType)
 		{
 			using var torHttpClient = MakeTorHttpClient(networkType);
-			using var client = new WasabiClient(torHttpClient);
+			var client = new WasabiClient(torHttpClient);
 
 			var randomTxIds = Enumerable.Range(0, 20).Select(_ => RandomUtils.GetUInt256());
 			var network = networkType == NetworkType.Mainnet ? Network.Main : Network.TestNet;
@@ -101,7 +101,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		public async Task GetExchangeRateAsync(NetworkType networkType) // xunit wtf: If this function is called GetExchangeRatesAsync, it'll stuck on 1 CPU VMs (Manjuro, Fedora)
 		{
 			using var torHttpClient = MakeTorHttpClient(networkType);
-			using var client = new WasabiClient(torHttpClient);
+			var client = new WasabiClient(torHttpClient);
 
 			var exchangeRates = await client.GetExchangeRatesAsync();
 
@@ -118,7 +118,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		public async Task GetVersionsTestsAsync(NetworkType networkType)
 		{
 			using var torHttpClient = MakeTorHttpClient(networkType);
-			using var client = new WasabiClient(torHttpClient);
+			var client = new WasabiClient(torHttpClient);
 
 			var versions = await client.GetVersionsAsync(CancellationToken.None);
 			Assert.InRange(versions.ClientVersion, new Version(1, 1, 10), new Version(1, 2));
@@ -133,7 +133,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		public async Task CheckUpdatesTestsAsync(NetworkType networkType)
 		{
 			using var torHttpClient = MakeTorHttpClient(networkType);
-			using var client = new WasabiClient(torHttpClient);
+			var client = new WasabiClient(torHttpClient);
 
 			var updateStatus = await client.CheckUpdatesAsync(CancellationToken.None);
 
@@ -159,7 +159,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		public async Task GetLegalDocumentsTestsAsync(NetworkType networkType)
 		{
 			using var torHttpClient = MakeTorHttpClient(networkType);
-			using var client = new WasabiClient(torHttpClient);
+			var client = new WasabiClient(torHttpClient);
 
 			var content = await client.GetLegalDocumentsAsync(CancellationToken.None);
 
