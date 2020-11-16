@@ -95,26 +95,21 @@ namespace WalletWasabi.Blockchain.Analysis
 		/// <param name="newInputAnonset">The new anonymity set of the inputs.</param>
 		private void AnalyzeWalletInputs(SmartTransaction tx, out HashSet<HdPubKey> distinctWalletInputPubKeys, out int newInputAnonset)
 		{
-			var ownInputCount = tx.WalletInputs.Count;
+			// We want to weaken the punishment if the input merge happens in coinjoins.
+			// Our strategy would be is to set the coefficient in proportion to our own inputs compared to the total inputs of the transaction.
+			// However the accuracy can be increased if we consider every input with the same pubkey as a single input entity.
+			// This we can only do for our own inputs as we don't know the pubkeys - nor the scripts - of other inputs.
+			// Another way to think about this is: reusing pubkey on the input side is good, the punishment happened already.
 			distinctWalletInputPubKeys = tx.WalletInputs.Select(x => x.HdPubKey).ToHashSet();
-			newInputAnonset = 1;
-			if (ownInputCount > 0)
+			var distinctWalletInputPubKeyCount = distinctWalletInputPubKeys.Count;
+			var pubKeyReuseCount = tx.WalletInputs.Count - distinctWalletInputPubKeyCount;
+			double coefficient = (double)distinctWalletInputPubKeyCount / (tx.Transaction.Inputs.Count - pubKeyReuseCount);
+
+			newInputAnonset = Intersect(distinctWalletInputPubKeys.Select(x => x.AnonymitySet), coefficient);
+
+			foreach (var key in tx.WalletInputs.Select(x => x.HdPubKey))
 			{
-				// We want to weaken the punishment if the input merge happens in coinjoins.
-				// Our strategy would be is to set the coefficient in proportion to our own inputs compared to the total inputs of the transaction.
-				// However the accuracy can be increased if we consider every input with the same pubkey as a single input entity.
-				// This we can only do for our own inputs as we don't know the pubkeys - nor the scripts - of other inputs.
-				// Another way to think about this is: reusing pubkey on the input side is good, the punishment happened already.
-				var distinctWalletInputPubKeyCount = distinctWalletInputPubKeys.Count;
-				var pubKeyReuseCount = ownInputCount - distinctWalletInputPubKeyCount;
-				double coefficient = (double)distinctWalletInputPubKeyCount / (tx.Transaction.Inputs.Count - pubKeyReuseCount);
-
-				newInputAnonset = Intersect(distinctWalletInputPubKeys.Select(x => x.AnonymitySet), coefficient);
-
-				foreach (var key in tx.WalletInputs.Select(x => x.HdPubKey))
-				{
-					key.AnonymitySet = newInputAnonset;
-				}
+				key.AnonymitySet = newInputAnonset;
 			}
 		}
 
