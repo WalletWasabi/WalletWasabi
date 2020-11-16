@@ -9,7 +9,10 @@
              xmlns:rxui="using:Avalonia.ReactiveUI"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="vm:MainViewModel"
+             x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.MainView">
   <Panel>
     <SplitView IsEnabled="{Binding IsMainContentEnabled}" IsPaneOpen="{Binding NavBar.IsOpen, Mode=TwoWay}">
@@ -46,7 +49,7 @@
         </DockPanel>
       </Panel>
     </SplitView>
-    <c:Dialog IsEnabled="{Binding $parent.DataContext.IsDialogEnabled}" MaxContentWidth="800" MaxContentHeight="700" DataContext="{Binding DialogScreen}" IsDialogOpen="{Binding IsDialogVisible, Mode=TwoWay}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+    <c:Dialog x:CompileBindings="False" IsEnabled="{Binding $parent.DataContext.IsDialogEnabled}" MaxContentWidth="800" MaxContentHeight="700" DataContext="{Binding DialogScreen}" IsDialogOpen="{Binding IsDialogVisible, Mode=TwoWay}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
       <rxui:RoutedViewHost Router="{Binding Router}" PageTransition="{x:Null}">
         <rxui:RoutedViewHost.ViewLocator>
           <vl:ScreenViewLocator />
