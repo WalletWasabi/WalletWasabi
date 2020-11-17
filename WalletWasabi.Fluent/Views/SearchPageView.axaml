@@ -12,7 +12,7 @@
              x:DataType="vm:SearchPageViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.SearchPageView">
-  <c:ContentArea Title="Search" Caption="">
+  <c:ContentArea Title="Search" Caption="You can search for settings or other options present in Wasabi Wallet">
     <DockPanel>
       <StackPanel DockPanel.Dock="Top" Margin="0 0 0 20">
         <TextBox Text="{Binding SearchQuery}" MaxWidth="400" Watermark="type to search">
