@@ -25,7 +25,7 @@
         <ItemsControl HorizontalAlignment="Left" Items="{Binding SearchItemsByCategory}">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
-              <WrapPanel Orientation="Horizontal" />
+              <WrapPanel Orientation="Horizontal" Margin="-8 0" />
             </ItemsPanelTemplate>
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
