@@ -42,13 +42,13 @@
                     <DataTemplate>
                       <Button Classes="option" Command="{Binding OpenCommand}" Height="100" Width="250" Margin="8">
                         <Panel>
-                          <PathIcon Width="16" Height="16" Opacity="0.8" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="12,12,0,0">
+                          <PathIcon Width="20" Height="20" Opacity="0.8" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="12,12,0,0">
                             <PathIcon.Data>
                               <Binding Converter="{x:Static conv:SearchIconConverter.Instance}" />
                             </PathIcon.Data>
                           </PathIcon>
-                          <TextBlock Text="{Binding Title}" Classes="h7" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="40 12 0 12" />
-                          <Panel Margin="40 36 12 12">
+                          <TextBlock Text="{Binding Title}" Classes="h7 bold" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="48 12 0 12" />
+                          <Panel Margin="48 36 12 12">
                             <TextBlock Text="{Binding Caption}" Classes="h8" TextWrapping="Wrap" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Opacity="0.6" />
                           </Panel>
                         </Panel>
