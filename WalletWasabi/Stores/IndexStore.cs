@@ -535,7 +535,7 @@ namespace WalletWasabi.Stores
 			}
 			catch (Exception ex)
 			{
-				Logger.LogTrace(ex);
+				Logger.LogDebug(ex);
 			}
 
 			// Wait for the ongoing operations related to locks.

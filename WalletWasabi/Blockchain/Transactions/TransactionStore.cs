@@ -19,12 +19,13 @@ namespace WalletWasabi.Blockchain.Transactions
 		public string WorkFolderPath { get; private set; }
 		public Network Network { get; private set; }
 
-		private Dictionary<uint256, SmartTransaction> Transactions { get; set; }
-		private object TransactionsLock { get; set; }
+		private Dictionary<uint256, SmartTransaction> Transactions { get; } = new Dictionary<uint256, SmartTransaction>();
+		private object TransactionsLock { get; } = new object();
 		private IoManager TransactionsFileManager { get; set; }
 		private AsyncLock TransactionsAsyncLock { get; } = new AsyncLock();
 		private List<ITxStoreOperation> Operations { get; } = new List<ITxStoreOperation>();
 		private object OperationsLock { get; } = new object();
+		public Task? CommitToFileTask { get; private set; }
 
 		public async Task InitializeAsync(string workFolderPath, Network network, string operationName)
 		{
@@ -33,11 +34,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 				Network = Guard.NotNull(nameof(network), network);
 
-				Transactions = new Dictionary<uint256, SmartTransaction>();
-				TransactionsLock = new object();
-
-				var fileName = Path.Combine(WorkFolderPath, "Transactions.dat");
-				var transactionsFilePath = Path.Combine(WorkFolderPath, fileName);
+				var transactionsFilePath = Path.Combine(WorkFolderPath, "Transactions.dat");
 
 				// In Transactions.dat every line starts with the tx id, so the first character is the best for digest creation.
 				TransactionsFileManager = new IoManager(transactionsFilePath);
@@ -116,12 +113,12 @@ namespace WalletWasabi.Blockchain.Transactions
 
 			if (ret.isAdded)
 			{
-				_ = TryAppendToFileAsync(tx);
+				CommitToFileTask = TryAppendToFileAsync(tx);
 			}
 
 			if (ret.isUpdated)
 			{
-				_ = TryUpdateFileAsync(tx);
+				CommitToFileTask = TryUpdateFileAsync(tx);
 			}
 
 			return ret;
@@ -187,7 +184,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 			if (isRemoved)
 			{
-				_ = TryRemoveFromFileAsync(hash);
+				CommitToFileTask = TryRemoveFromFileAsync(hash);
 			}
 
 			return isRemoved;
@@ -416,6 +413,18 @@ namespace WalletWasabi.Blockchain.Transactions
 
 			// Indicate that the object is disposed.
 			_disposed = true;
+
+			try
+			{
+				if (CommitToFileTask is { } task)
+				{
+					await task.ConfigureAwait(false);
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogDebug(ex);
+			}
 
 			using (await TransactionsAsyncLock.LockAsync().ConfigureAwait(false))
 			{

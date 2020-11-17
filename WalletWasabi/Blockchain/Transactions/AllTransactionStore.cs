@@ -20,6 +20,9 @@ namespace WalletWasabi.Blockchain.Transactions
 			IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 
 			Network = Guard.NotNull(nameof(network), network);
+
+			MempoolStore = new TransactionStore();
+			ConfirmedStore = new TransactionStore();
 		}
 
 		#region Initializers
@@ -27,17 +30,14 @@ namespace WalletWasabi.Blockchain.Transactions
 		private string WorkFolderPath { get; }
 		private Network Network { get; }
 
-		public TransactionStore MempoolStore { get; private set; }
-		public TransactionStore ConfirmedStore { get; private set; }
+		public TransactionStore MempoolStore { get; }
+		public TransactionStore ConfirmedStore { get; }
 		private object Lock { get; } = new object();
 
 		public async Task InitializeAsync(bool ensureBackwardsCompatibility = true)
 		{
 			using (BenchmarkLogger.Measure())
 			{
-				MempoolStore = new TransactionStore();
-				ConfirmedStore = new TransactionStore();
-
 				var mempoolWorkFolder = Path.Combine(WorkFolderPath, "Mempool");
 				var confirmedWorkFolder = Path.Combine(WorkFolderPath, "ConfirmedTransactions", Constants.ConfirmedTransactionsVersion);
 
