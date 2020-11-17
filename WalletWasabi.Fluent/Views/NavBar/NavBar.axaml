@@ -31,7 +31,7 @@
       <Setter Property="ItemsPanel">
         <Setter.Value>
           <ItemsPanelTemplate>
-            <StackPanel HorizontalAlignment="Right" Margin="8,6,8,6" Orientation="Horizontal" />
+            <StackPanel HorizontalAlignment="Left" Margin="8,6,8,6" Orientation="Horizontal" />
           </ItemsPanelTemplate>
         </Setter.Value>
       </Setter>
