@@ -26,7 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		private HardwareWalletViewModel? _selectedHardwareWallet;
 
 		public ConnectHardwareWalletViewModel(NavigationStateViewModel navigationState, string walletName, Network network,
-			WalletManager walletManager, NavigationTarget navigationTarget) : base(navigationState, navigationTarget)
+			WalletManager walletManager) : base(navigationState, NavigationTarget.DialogScreen)
 		{
 			_walletName = walletName;
 			_network = network;
