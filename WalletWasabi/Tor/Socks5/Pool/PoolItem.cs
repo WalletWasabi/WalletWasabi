@@ -4,6 +4,13 @@ using System.Threading;
 
 namespace WalletWasabi.Tor.Socks5.Pool
 {
+	public enum PoolItemState
+	{
+		InUse,
+		FreeToUse,
+		ToDispose
+	}
+
 	/// <summary>
 	/// Pool item represents a single TCP connection to Tor SOCKS5 endpoint.
 	/// <para>Once a pool item is created, it is in <see cref="PoolItemState.InUse"/> state and the internal TCP connection is used immediately
@@ -14,6 +21,8 @@ namespace WalletWasabi.Tor.Socks5.Pool
 	public class PoolItem
 	{
 		private static long Counter;
+
+		private bool _disposedValue;
 
 		/// <summary>
 		/// Creates a new instance of the object.
@@ -34,8 +43,6 @@ namespace WalletWasabi.Tor.Socks5.Pool
 		private TorConnection Client { get; set; }
 		private bool AllowRecycling { get; }
 		private long Id { get; }
-
-		private bool _disposedValue;
 
 		public TorConnection GetClient()
 		{
@@ -88,7 +95,6 @@ namespace WalletWasabi.Tor.Socks5.Pool
 			}
 		}
 
-		/// <inheritdoc/>
 		public override string? ToString()
 		{
 			return $"PoolItem#{Id}";
@@ -127,15 +133,9 @@ namespace WalletWasabi.Tor.Socks5.Pool
 		{
 			// Dispose of unmanaged resources.
 			Dispose(true);
+
 			// Suppress finalization.
 			GC.SuppressFinalize(this);
 		}
-	}
-
-	public enum PoolItemState
-	{
-		InUse,
-		FreeToUse,
-		ToDispose
 	}
 }

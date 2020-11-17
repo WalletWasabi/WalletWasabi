@@ -168,6 +168,7 @@ namespace WalletWasabi.Tor.Http
 		{
 			// Dispose of unmanaged resources.
 			Dispose(true);
+
 			// Suppress finalization.
 			GC.SuppressFinalize(this);
 		}

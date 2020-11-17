@@ -295,6 +295,7 @@ namespace WalletWasabi.Tor.Socks5
 		{
 			// Dispose of unmanaged resources.
 			Dispose(true);
+
 			// Suppress finalization.
 			GC.SuppressFinalize(this);
 		}
