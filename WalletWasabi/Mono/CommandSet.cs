@@ -398,7 +398,7 @@ namespace Mono.Options
 				{
 					if (char.IsWhiteSpace(input[j]))
 					{
-						rest = input.Substring(j).Trim();
+						rest = input[j..].Trim();
 						input = input.Substring(i, j).Trim();
 						return;
 					}
@@ -406,7 +406,7 @@ namespace Mono.Options
 				rest = "";
 				if (i != 0)
 				{
-					input = input.Substring(i).Trim();
+					input = input[i..].Trim();
 				}
 
 				return;

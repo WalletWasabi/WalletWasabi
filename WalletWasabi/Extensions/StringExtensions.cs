@@ -44,7 +44,7 @@ namespace System
 		{
 			if (me.StartsWith(trimString, comparisonType))
 			{
-				return me.Substring(trimString.Length);
+				return me[trimString.Length..];
 			}
 			return me;
 		}

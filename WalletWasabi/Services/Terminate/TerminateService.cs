@@ -21,12 +21,13 @@ namespace WalletWasabi.Services.Terminate
 			AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
 			Console.CancelKeyPress += Console_CancelKeyPress;
 
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			if (IsSubscribeToSessionEnding)
 			{
 				SystemEvents.SessionEnding += Windows_SystemEvents_SessionEnding;
 			}
 		}
 
+		private static bool IsSubscribeToSessionEnding => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 		public bool IsTerminateRequested => Interlocked.Read(ref _terminateStatus) > TerminateStatusNotStarted;
 
 		private void Windows_SystemEvents_SessionEnding(object sender, SessionEndingEventArgs e)
@@ -94,7 +95,11 @@ namespace WalletWasabi.Services.Terminate
 
 			AppDomain.CurrentDomain.ProcessExit -= CurrentDomain_ProcessExit;
 			Console.CancelKeyPress -= Console_CancelKeyPress;
-			SystemEvents.SessionEnding -= Windows_SystemEvents_SessionEnding;
+
+			if (IsSubscribeToSessionEnding)
+			{
+				SystemEvents.SessionEnding -= Windows_SystemEvents_SessionEnding;
+			}
 
 			// Indicate that the termination procedure finished. So other callers can return.
 			Interlocked.Exchange(ref _terminateStatus, TerminateStatusFinished);
