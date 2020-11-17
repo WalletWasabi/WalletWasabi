@@ -12,26 +12,24 @@ namespace WalletWasabi.Fluent.ViewModels
 {
 	public class SettingsPageViewModel : NavBarItemViewModel
 	{
-		private string _randomString;
-
-		public SettingsPageViewModel(NavigationStateViewModel navigationState) : base(navigationState, NavigationTarget.Home)
+		public SettingsPageViewModel(NavigationStateViewModel navigationState) : base(navigationState, NavigationTarget.HomeScreen)
 		{
 			Title = "Settings";
 
 			BackCommand = ReactiveCommand.Create(() => ClearNavigation());
 
-			NextCommand = ReactiveCommand.Create(() => navigationState.HomeScreen?.Invoke().Router.Navigate.Execute(new SettingsPageViewModel(navigationState)));
+			NextCommand = ReactiveCommand.Create(() => NavigateTo(new SettingsPageViewModel(navigationState), NavigationTarget.HomeScreen));
 
 			OpenDialogCommand = ReactiveCommand.CreateFromTask(async () => await ConfirmSetting.Handle("Please confirm the setting:").ToTask());
 
-			OpenDialogScreenCommand = ReactiveCommand.Create(() => navigationState.DialogScreen?.Invoke().Router.Navigate.Execute(new SettingsPageViewModel(navigationState)));
+			OpenDialogScreenCommand = ReactiveCommand.Create(() => NavigateTo(new SettingsPageViewModel(navigationState), NavigationTarget.DialogScreen));
 
 			ConfirmSetting = new Interaction<string, bool>();
 
 			ConfirmSetting.RegisterHandler(
 				async interaction =>
 				{
-					var x = new TestDialogViewModel(navigationState, interaction.Input);
+					var x = new TestDialogViewModel(navigationState, NavigationTarget.DialogHost, interaction.Input);
 					var result = await x.ShowDialogAsync(navigationState.DialogHost());
 					interaction.SetOutput(result);
 				});
@@ -53,6 +51,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				}
 			});
 		}
+
 		public ICommand NextCommand { get; }
 
 		public ICommand OpenDialogCommand { get; }

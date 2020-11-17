@@ -416,7 +416,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 		private static PayjoinClient NewPayjoinClient(MockTorHttpClient client)
 		{
-			return new PayjoinClient(client.DestinationUri, client);
+			return new PayjoinClient(client.DestinationUriAction.Invoke(), client);
 		}
 	}
 }

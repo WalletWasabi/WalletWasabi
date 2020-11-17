@@ -69,7 +69,7 @@ namespace WalletWasabi.Tests.UnitTests
 			// Password should be formatted, before entering here.
 			Assert.Throws<FormatException>(() => PasswordHelper.GetMasterExtKey(keyManager, badPassword, out _));
 
-			Assert.True(PasswordHelper.IsTrimable(badPassword, out badPassword));
+			Assert.True(PasswordHelper.IsTrimmable(badPassword, out badPassword));
 
 			// Still too long.
 			Assert.Throws<FormatException>(() => PasswordHelper.GetMasterExtKey(keyManager, badPassword, out _));
@@ -90,12 +90,12 @@ namespace WalletWasabi.Tests.UnitTests
 
 			Assert.Throws<FormatException>(() => PasswordHelper.Guard(buggy));
 
-			Assert.True(PasswordHelper.IsTrimable(buggy, out buggy));
+			Assert.True(PasswordHelper.IsTrimmable(buggy, out buggy));
 
 			// Creating a wallet with buggy password.
 			var keyManager = KeyManager.CreateNew(out _, buggy);
 
-			Assert.True(PasswordHelper.IsTrimable(original, out original));
+			Assert.True(PasswordHelper.IsTrimmable(original, out original));
 
 			Logger.TurnOff();
 			Assert.False(PasswordHelper.TryPassword(keyManager, "falsepassword", out _));

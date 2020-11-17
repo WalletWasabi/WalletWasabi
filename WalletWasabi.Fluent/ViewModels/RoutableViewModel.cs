@@ -1,19 +1,19 @@
 using System;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
 	public abstract class RoutableViewModel : ViewModelBase, IRoutableViewModel
 	{
-		private NavigationStateViewModel _navigationState;
-		private NavigationTarget _navigationTarget;
-
 		protected RoutableViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget)
 		{
-			_navigationState = navigationState;
-			_navigationTarget = navigationTarget;
+			NavigationState = navigationState;
+
+			NavigationTarget = navigationTarget;
 
 			BackCommand = ReactiveCommand.Create(() => GoBack());
 
@@ -22,74 +22,109 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public string UrlPathSegment { get; } = Guid.NewGuid().ToString().Substring(0, 5);
 
-		public IScreen HostScreen => _navigationTarget switch
+		public IScreen HostScreen => NavigationTarget switch
 		{
-			NavigationTarget.Dialog => _navigationState.DialogScreen?.Invoke(),
-			_ => _navigationState.HomeScreen?.Invoke(),
+			NavigationTarget.DialogScreen => NavigationState.DialogScreen.Invoke(),
+			_ => NavigationState.HomeScreen.Invoke(),
 		};
 
-		public void Navigate()
-		{
-			switch (_navigationTarget)
-			{
-				case NavigationTarget.Default:
-				case NavigationTarget.Home:
-					_navigationState.HomeScreen?.Invoke().Router.Navigate.Execute(this);
-					break;
+		public NavigationStateViewModel NavigationState { get; }
 
-				case NavigationTarget.Dialog:
-					_navigationState.DialogScreen?.Invoke().Router.Navigate.Execute(this);
-					break;
-			}
-		}
-
-		public void NavigateAndReset()
-		{
-			switch (_navigationTarget)
-			{
-				case NavigationTarget.Default:
-				case NavigationTarget.Home:
-					_navigationState.HomeScreen?.Invoke().Router.NavigateAndReset.Execute(this);
-					break;
-
-				case NavigationTarget.Dialog:
-					_navigationState.DialogScreen?.Invoke().Router.NavigateAndReset.Execute(this);
-					break;
-			}
-		}
+		public NavigationTarget NavigationTarget { get; }
 
 		public ICommand BackCommand { get; protected set; }
 
-		public ICommand CancelCommand { get; }
+		public ICommand CancelCommand { get; protected set; }
 
-		public void GoBack()
+		public void NavigateTo(RoutableViewModel viewModel, NavigationTarget navigationTarget, bool resetNavigation = false)
 		{
-			switch (_navigationTarget)
+			switch (navigationTarget)
 			{
 				case NavigationTarget.Default:
-				case NavigationTarget.Home:
-					_navigationState.HomeScreen?.Invoke().Router.NavigateBack.Execute();
+				case NavigationTarget.HomeScreen:
+					{
+						NavigateToHomeScreen(viewModel, resetNavigation);
+					}
 					break;
 
-				case NavigationTarget.Dialog:
-					_navigationState.DialogScreen?.Invoke().Router.NavigateBack.Execute();
+				case NavigationTarget.DialogScreen:
+					{
+						NavigateToDialogScreen(viewModel, resetNavigation);
+					}
+					break;
+
+				case NavigationTarget.DialogHost:
+					if (viewModel is DialogViewModelBase dialog)
+					{
+						NavigateToDialogHost(dialog);
+					}
+					break;
+
+				default:
 					break;
 			}
 		}
 
-		public void ClearNavigation()
+		private void NavigateToHomeScreen(RoutableViewModel viewModel, bool resetNavigation)
 		{
-			switch (_navigationTarget)
+			var command = resetNavigation ?
+				NavigationState.HomeScreen?.Invoke().Router.NavigateAndReset :
+				NavigationState.HomeScreen?.Invoke().Router.Navigate;
+			command?.Execute(viewModel);
+		}
+
+		private void NavigateToDialogScreen(RoutableViewModel viewModel, bool resetNavigation)
+		{
+			var command = resetNavigation ?
+				NavigationState.DialogScreen?.Invoke().Router.NavigateAndReset :
+				NavigationState.DialogScreen?.Invoke().Router.Navigate;
+			command?.Execute(viewModel);
+		}
+
+		private void NavigateToDialogHost(DialogViewModelBase dialog)
+		{
+			if (NavigationState.DialogHost?.Invoke() is IDialogHost dialogHost)
+			{
+				dialogHost.CurrentDialog = dialog;
+			}
+		}
+
+		public void NavigateToSelf() => NavigateTo(this, NavigationTarget, false);
+
+		public void NavigateToSelfAndReset() => NavigateTo(this, NavigationTarget, true);
+
+		public void GoBack(NavigationTarget navigationTarget)
+		{
+			switch (navigationTarget)
 			{
 				case NavigationTarget.Default:
-				case NavigationTarget.Home:
-					_navigationState.HomeScreen?.Invoke().Router.NavigationStack.Clear();
+				case NavigationTarget.HomeScreen:
+					NavigationState.HomeScreen.Invoke().Router.NavigateBack.Execute();
 					break;
 
-				case NavigationTarget.Dialog:
-					_navigationState.DialogScreen?.Invoke().Router.NavigationStack.Clear();
+				case NavigationTarget.DialogScreen:
+					NavigationState.DialogScreen.Invoke().Router.NavigateBack.Execute();
 					break;
 			}
 		}
+
+		public void GoBack() => GoBack(NavigationTarget);
+
+		public void ClearNavigation(NavigationTarget navigationTarget)
+		{
+			switch (navigationTarget)
+			{
+				case NavigationTarget.Default:
+				case NavigationTarget.HomeScreen:
+					NavigationState.HomeScreen.Invoke().Router.NavigationStack.Clear();
+					break;
+
+				case NavigationTarget.DialogScreen:
+					NavigationState.DialogScreen.Invoke().Router.NavigationStack.Clear();
+					break;
+			}
+		}
+
+		public void ClearNavigation() => ClearNavigation(NavigationTarget);
 	}
 }

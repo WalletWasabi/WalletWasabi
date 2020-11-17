@@ -1,6 +1,6 @@
-using ReactiveUI;
 using System.Reactive.Linq;
 using System.Windows.Input;
+using ReactiveUI;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
@@ -9,11 +9,13 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
 	public class EnterPasswordViewModel : DialogViewModelBase<string?>
 	{
-		private string? _password;
 		private string? _confirmPassword;
+		private string? _password;
 
-		public EnterPasswordViewModel()
+		public EnterPasswordViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget, string subtitle) : base(navigationState, navigationTarget)
 		{
+			Subtitle = subtitle;
+
 			// This means pressing continue will make the password empty string.
 			// pressing cancel will return null.
 			_password = "";
@@ -21,21 +23,27 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			this.ValidateProperty(x => x.Password, ValidatePassword);
 			this.ValidateProperty(x => x.ConfirmPassword, ValidateConfirmPassword);
 
+			var backCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
+
 			var nextCommandCanExecute = this.WhenAnyValue(
+				x => x.IsDialogOpen,
 				x => x.Password,
 				x => x.ConfirmPassword,
-				(password, confirmPassword) =>
+				(isDialogOpen, password, confirmPassword) =>
 				{
 					// This will fire validations before return canExecute value.
 					this.RaisePropertyChanged(nameof(Password));
 					this.RaisePropertyChanged(nameof(ConfirmPassword));
 
-					return (string.IsNullOrEmpty(password) && string.IsNullOrEmpty(confirmPassword)) || (!string.IsNullOrEmpty(password) && !string.IsNullOrEmpty(confirmPassword) && !Validations.Any);
+					return isDialogOpen && ((string.IsNullOrEmpty(password) && string.IsNullOrEmpty(confirmPassword)) || (!string.IsNullOrEmpty(password) && !string.IsNullOrEmpty(confirmPassword) && !Validations.Any));
 				})
 				.ObserveOn(RxApp.MainThreadScheduler);
 
+			var cancelCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
+
+			BackCommand = ReactiveCommand.Create(() => Close(), backCommandCanExecute);
 			NextCommand = ReactiveCommand.Create(() => Close(Password), nextCommandCanExecute);
-			CancelCommand = ReactiveCommand.Create(() => Close());
+			CancelCommand = ReactiveCommand.Create(() => Close(), cancelCommandCanExecute);
 		}
 
 		public string? Password
@@ -52,7 +60,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 		public ICommand NextCommand { get; }
 
-		public ICommand CancelCommand { get; }
+		public string Subtitle { get; }
 
 		protected override void OnDialogClosed()
 		{
@@ -70,7 +78,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 		private void ValidatePassword(IValidationErrors errors)
 		{
-			if (PasswordHelper.IsTrimable(Password, out _))
+			if (PasswordHelper.IsTrimmable(Password, out _))
 			{
 				errors.Add(ErrorSeverity.Error, PasswordHelper.WhitespaceMessage);
 			}

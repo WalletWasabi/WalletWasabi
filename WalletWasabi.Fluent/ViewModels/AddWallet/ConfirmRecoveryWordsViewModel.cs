@@ -10,7 +10,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels.CreateWallet
+namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
 	public class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	{
@@ -18,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels.CreateWallet
 		private readonly SourceList<RecoveryWordViewModel> _confirmationWordsSourceList;
 
 		public ConfirmRecoveryWordsViewModel(NavigationStateViewModel navigationState, List<RecoveryWordViewModel> mnemonicWords, KeyManager keyManager, WalletManager walletManager)
-			: base(navigationState, NavigationTarget.Dialog)
+			: base(navigationState, NavigationTarget.DialogScreen)
 		{
 			_confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
 
@@ -33,11 +33,11 @@ namespace WalletWasabi.Fluent.ViewModels.CreateWallet
 				() =>
 				{
 					walletManager.AddWallet(keyManager);
-					navigationState.DialogScreen?.Invoke().Router.NavigationStack.Clear();
+					ClearNavigation(NavigationTarget.DialogScreen);
 				},
 				finishCommandCanExecute);
 
-			CancelCommand = ReactiveCommand.Create(() => navigationState.DialogScreen?.Invoke().Router.NavigationStack.Clear());
+			CancelCommand = ReactiveCommand.Create(() => ClearNavigation(NavigationTarget.DialogScreen));
 
 			_confirmationWordsSourceList
 				.Connect()
@@ -54,7 +54,5 @@ namespace WalletWasabi.Fluent.ViewModels.CreateWallet
 		public ReadOnlyObservableCollection<RecoveryWordViewModel> ConfirmationWords => _confirmationWords;
 
 		public ICommand NextCommand { get; }
-
-		public ICommand CancelCommand { get; }
 	}
 }

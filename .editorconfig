@@ -15,6 +15,7 @@ trim_trailing_whitespace = true
 
 # use hard tabs for indentation
 indent_style = tab
+indent_size = 4
 
 # Formatting - set preferred newline characters
 end_of_line = lf

@@ -39,7 +39,7 @@ namespace WalletWasabi.Wabisabi
 		/// The credentials pool containing the available credentials.
 		/// </summary>
 		public CredentialPool Credentials { get; }
-		
+
 		/// <summary>
 		/// Creates a <see cref="RegistrationRequestMessage">credential registration request messages</see> 
 		/// for requesting `k` zero-value credentials.

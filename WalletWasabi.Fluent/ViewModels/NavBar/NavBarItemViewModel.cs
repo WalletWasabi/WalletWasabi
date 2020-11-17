@@ -7,11 +7,12 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 	{
 		private bool _isSelected;
 		private bool _isExpanded;
-		private string? _title;
+		private string _title;
 
 		protected NavBarItemViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget) : base(navigationState, navigationTarget)
 		{
-			OpenCommand = ReactiveCommand.Create(() => Navigate());
+			_title = "";
+			OpenCommand = ReactiveCommand.Create(() => NavigateToSelf());
 		}
 
 		public NavBarItemViewModel? Parent { get; set; }
@@ -32,7 +33,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			}
 		}
 
-		public string? Title
+		public string Title
 		{
 			get => _title;
 			set => this.RaiseAndSetIfChanged(ref _title, value);

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Specialized;
-using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,11 +10,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 {
 	public class MockTorHttpClient : ITorHttpClient
 	{
-		public Uri DestinationUri => new Uri("https://payment.server.org/pj");
-
-		public Func<Uri> DestinationUriAction => () => DestinationUri;
-
-		public EndPoint TorSocks5EndPoint => IPEndPoint.Parse("127.0.0.1:9050");
+		public Func<Uri> DestinationUriAction => () => new Uri("https://payment.server.org/pj");
 
 		public bool IsTorUsed => true;
 
@@ -44,7 +39,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			Uri uri = request.RequestUri;
 			NameValueCollection parameters = HttpUtility.ParseQueryString(uri.Query);
 
-			return await OnSendAsync(request.Method, uri.AbsolutePath, parameters, body);
+			return await OnSendAsync(request.Method, uri.AbsolutePath, parameters, body).ConfigureAwait(false);
 		}
 	}
 }
