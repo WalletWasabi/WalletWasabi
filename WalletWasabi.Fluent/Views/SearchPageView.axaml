@@ -30,8 +30,10 @@
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="search:SearchItemGroup">
-              <DockPanel Margin="0,0,0,10">
-                <Label Classes="h6 bold" DataContext="{Binding Category}" Content="{Binding Title}" DockPanel.Dock="Top" />
+              <DockPanel Margin="0,0,0,8">
+                <Panel Margin="8,0,8,0"  DockPanel.Dock="Top">
+                  <Label Classes="h6 bold" DataContext="{Binding Category}" Content="{Binding Title}" />
+                </Panel>
                 <ItemsControl HorizontalAlignment="Center" Items="{Binding SearchItems}">
                   <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
