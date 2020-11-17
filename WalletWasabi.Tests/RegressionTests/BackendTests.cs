@@ -29,20 +29,24 @@ namespace WalletWasabi.Tests.RegressionTests
 		public BackendTests(RegTestFixture regTestFixture)
 		{
 			RegTestFixture = regTestFixture;
-			BackendHttpClient = new BackendHttpClient(new ClearnetHttpClient(() => RegTestFixture.BackendEndPointApiUri));
+			BackendHttpClient = new ClearnetHttpClient(() => RegTestFixture.BackendEndPointUri);
+			BackendApiHttpClient = new BackendHttpClient(new ClearnetHttpClient(() => RegTestFixture.BackendEndPointApiUri));
 		}
 
 		private RegTestFixture RegTestFixture { get; }
 
-		/// <summary>Clearnet HTTP client.</summary>
-		private BackendHttpClient BackendHttpClient { get; }
+		/// <summary>Clearnet HTTP client with predefined base URI for Wasabi Backend (note: <c>/api</c> is not part of base URI).</summary>
+		public ClearnetHttpClient BackendHttpClient { get; }
+
+		/// <summary>Clearnet HTTP client with predefined base URI for Wasabi Backend API queries.</summary>
+		private BackendHttpClient BackendApiHttpClient { get; }
 
 		#region BackendTests
 
 		[Fact]
 		public async Task GetExchangeRatesAsync()
 		{
-			using var response = await BackendHttpClient.SendAsync(HttpMethod.Get, "btc/offchain/exchange-rates");
+			using var response = await BackendApiHttpClient.SendAsync(HttpMethod.Get, "btc/offchain/exchange-rates");
 			Assert.True(response.StatusCode == HttpStatusCode.OK);
 
 			var exchangeRates = await response.Content.ReadAsJsonAsync<List<ExchangeRate>>();
@@ -56,7 +60,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		[Fact]
 		public async Task GetClientVersionAsync()
 		{
-			using var client = new WasabiClient(new Uri(RegTestFixture.BackendEndPoint), null);
+			using var client = new WasabiClient(BackendHttpClient);
 			var uptodate = await client.CheckUpdatesAsync(CancellationToken.None);
 			Assert.True(uptodate.BackendCompatible);
 			Assert.True(uptodate.ClientUpToDate);
@@ -74,7 +78,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			Logger.TurnOff();
 
-			using var response = await BackendHttpClient.SendAsync(HttpMethod.Post, "btc/blockchain/broadcast", content);
+			using var response = await BackendApiHttpClient.SendAsync(HttpMethod.Post, "btc/blockchain/broadcast", content);
 			Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 			Assert.Equal("Transaction is already in the blockchain.", await response.Content.ReadAsJsonAsync<string>());
 
@@ -90,7 +94,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			Logger.TurnOff();
 
-			using var response = await BackendHttpClient.SendAsync(HttpMethod.Post, "btc/blockchain/broadcast", content);
+			using var response = await BackendApiHttpClient.SendAsync(HttpMethod.Post, "btc/blockchain/broadcast", content);
 
 			Assert.NotEqual(HttpStatusCode.OK, response.StatusCode);
 			Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -192,7 +196,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				}
 
 				// First request.
-				using (HttpResponseMessage response = await BackendHttpClient.SendAsync(HttpMethod.Get, requestUri))
+				using (HttpResponseMessage response = await BackendApiHttpClient.SendAsync(HttpMethod.Get, requestUri))
 				{
 					Assert.NotNull(response);
 
@@ -207,7 +211,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				}
 
 				// Second request.
-				using (HttpResponseMessage response = await BackendHttpClient.SendAsync(HttpMethod.Get, requestUri))
+				using (HttpResponseMessage response = await BackendApiHttpClient.SendAsync(HttpMethod.Get, requestUri))
 				{
 					Assert.NotNull(response);
 
@@ -224,7 +228,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				}
 
 				// Third request.
-				using (HttpResponseMessage response = await BackendHttpClient.SendAsync(HttpMethod.Get, requestUri))
+				using (HttpResponseMessage response = await BackendApiHttpClient.SendAsync(HttpMethod.Get, requestUri))
 				{
 					Assert.NotNull(response);
 

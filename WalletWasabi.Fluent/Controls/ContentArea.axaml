@@ -1,8 +1,8 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
-        xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors;assembly=WalletWasabi.Fluent"
-        xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity">
+        xmlns:c="using:WalletWasabi.Fluent.Controls"
+        xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
+        xmlns:i="using:Avalonia.Xaml.Interactivity">
   <Design.PreviewWith>
     <Panel Background="{DynamicResource RegionColor}">
       <c:ContentArea Width="500" Height="300"
@@ -57,11 +57,11 @@
   </Style>
   <Style Selector="c|ContentArea /template/ ContentPresenter#PART_TitlePresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextControlForeground}" />
-    <Setter Property="TextBlock.FontSize" Value="24" />
+    <Setter Property="TextBlock.FontSize" Value="{DynamicResource FontSizeH3}" />
   </Style>
   <Style Selector="c|ContentArea :is(Control).caption TextBlock, c|ContentArea :is(TextBlock).caption">
     <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
-    <Setter Property="FontSize" Value="14" />
+    <Setter Property="FontSize" Value="{DynamicResource FontSizeH7}" />
     <Setter Property="TextWrapping" Value="Wrap" />
     <Setter Property="Opacity" Value="0.6" />
   </Style>
