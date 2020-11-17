@@ -28,8 +28,16 @@ namespace WalletWasabi.Stores
 		{
 			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 			IoHelpers.EnsureDirectoryExists(WorkFolderPath);
+			var indexFilePath = Path.Combine(WorkFolderPath, "MatureIndex.dat");
+			MatureIndexFileManager = new DigestableIoManager(indexFilePath, digestRandomIndex: -1);
+			var immatureIndexFilePath = Path.Combine(WorkFolderPath, "ImmatureIndex.dat");
+			ImmatureIndexFileManager = new DigestableIoManager(immatureIndexFilePath, digestRandomIndex: -1);
 
 			Network = Guard.NotNull(nameof(network), network);
+
+			StartingFilter = StartingFilters.GetStartingFilter(Network);
+			StartingHeight = StartingFilter.Header.Height;
+
 			SmartHeaderChain = Guard.NotNull(nameof(hashChain), hashChain);
 		}
 
@@ -39,8 +47,8 @@ namespace WalletWasabi.Stores
 
 		private string WorkFolderPath { get; }
 		private Network Network { get; }
-		private DigestableIoManager MatureIndexFileManager { get; set; }
-		private DigestableIoManager ImmatureIndexFileManager { get; set; }
+		private DigestableIoManager MatureIndexFileManager { get; }
+		private DigestableIoManager ImmatureIndexFileManager { get; }
 
 		/// <summary>
 		/// Lock for accessing MatureIndex file. This should be locked #2.
@@ -54,29 +62,21 @@ namespace WalletWasabi.Stores
 
 		public SmartHeaderChain SmartHeaderChain { get; }
 
-		private FilterModel StartingFilter { get; set; }
-		private uint StartingHeight { get; set; }
-		private List<FilterModel> ImmatureFilters { get; set; }
+		private FilterModel StartingFilter { get; }
+		private uint StartingHeight { get; }
+		private List<FilterModel> ImmatureFilters { get; } = new List<FilterModel>(150);
 
 		/// <summary>
 		/// Lock for modifying SmartHeaderChain or ImmatureFilters. This should be locked #1.
 		/// </summary>
 		private AsyncLock IndexLock { get; } = new AsyncLock();
 
+		private Task? CommitToFileTask { get; set; }
+
 		public async Task InitializeAsync()
 		{
 			using (BenchmarkLogger.Measure())
 			{
-				var indexFilePath = Path.Combine(WorkFolderPath, "MatureIndex.dat");
-				MatureIndexFileManager = new DigestableIoManager(indexFilePath, digestRandomIndex: -1);
-				var immatureIndexFilePath = Path.Combine(WorkFolderPath, "ImmatureIndex.dat");
-				ImmatureIndexFileManager = new DigestableIoManager(immatureIndexFilePath, digestRandomIndex: -1);
-
-				StartingFilter = StartingFilters.GetStartingFilter(Network);
-				StartingHeight = StartingFilter.Header.Height;
-
-				ImmatureFilters = new List<FilterModel>(150);
-
 				using (await IndexLock.LockAsync().ConfigureAwait(false))
 				using (await MatureIndexAsyncLock.LockAsync().ConfigureAwait(false))
 				using (await ImmatureIndexAsyncLock.LockAsync().ConfigureAwait(false))
@@ -116,7 +116,7 @@ namespace WalletWasabi.Stores
 
 		private async Task DeleteIfDeprecatedAsync(DigestableIoManager ioManager)
 		{
-			string firstLine;
+			string? firstLine;
 			using (var content = ioManager.OpenText())
 			{
 				firstLine = await content.ReadLineAsync().ConfigureAwait(false);
@@ -145,7 +145,7 @@ namespace WalletWasabi.Stores
 					if (!sr.EndOfStream)
 					{
 						var lineTask = sr.ReadLineAsync();
-						string line = null;
+						string? line = null;
 						while (lineTask is { })
 						{
 							line ??= await lineTask.ConfigureAwait(false);
@@ -291,7 +291,7 @@ namespace WalletWasabi.Stores
 				var success = false;
 
 				ThrowIfDisposed();
-				using (await IndexLock.LockAsync().ConfigureAwait(false))
+				using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
 				{
 					success = TryProcessFilter(filter, enqueue: true);
 				}
@@ -305,7 +305,7 @@ namespace WalletWasabi.Stores
 
 			if (successAny)
 			{
-				_ = TryCommitToFileAsync(TimeSpan.FromSeconds(3), cancel);
+				CommitToFileTask = TryCommitToFileAsync(TimeSpan.FromSeconds(3), cancel);
 			}
 		}
 
@@ -327,7 +327,7 @@ namespace WalletWasabi.Stores
 
 			Reorged?.Invoke(this, filter);
 
-			_ = TryCommitToFileAsync(TimeSpan.FromSeconds(3), cancel);
+			CommitToFileTask = TryCommitToFileAsync(TimeSpan.FromSeconds(3), cancel);
 
 			return filter;
 		}
@@ -448,7 +448,7 @@ namespace WalletWasabi.Stores
 						{
 							var lineTask = sr.ReadLineAsync();
 							Task tTask = Task.CompletedTask;
-							string line = null;
+							string? line = null;
 							while (lineTask is { })
 							{
 								if (firstImmatureHeight == height)
@@ -526,8 +526,19 @@ namespace WalletWasabi.Stores
 
 			// Indicate that the object is disposed.
 			_disposed = true;
+			try
+			{
+				if (CommitToFileTask is { } task)
+				{
+					await task.ConfigureAwait(false);
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogTrace(ex);
+			}
 
-			// Wait for the ongoing operations to finish, like TryCommitToFileAsync.
+			// Wait for the ongoing operations related to locks.
 			using (await IndexLock.LockAsync().ConfigureAwait(false))
 			using (await MatureIndexAsyncLock.LockAsync().ConfigureAwait(false))
 			using (await ImmatureIndexAsyncLock.LockAsync().ConfigureAwait(false))
