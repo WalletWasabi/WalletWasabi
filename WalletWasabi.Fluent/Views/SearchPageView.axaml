@@ -40,7 +40,7 @@
                   </ItemsControl.ItemsPanel>
                   <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                      <Button Classes="option" Command="{Binding OpenCommand}" Height="150" Width="150" Margin="8">
+                      <Button Classes="option" Command="{Binding OpenCommand}" Height="80" Width="210" Margin="8">
                         <Panel>
                           <TextBlock Text="{Binding Title}" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0 0 0 15" />
                           <PathIcon Width="28" Height="28" Opacity="0.8">
