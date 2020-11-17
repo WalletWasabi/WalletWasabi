@@ -28,7 +28,7 @@ namespace WalletWasabi.Tor.Socks5
 		public bool IsConnected => TcpClient.Connected is true;
 
 		/// <summary>
-		/// Stream to transport HTTP(S) request.
+		/// Stream to transport HTTP(s) request.
 		/// </summary>
 		/// <remarks>Either <see cref="TcpClient.GetStream"/> or <see cref="SslStream"/> over <see cref="TcpClient.GetStream"/>.</remarks>
 		public Stream GetTransportStream()

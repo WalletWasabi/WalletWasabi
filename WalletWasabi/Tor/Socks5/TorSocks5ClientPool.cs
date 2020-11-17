@@ -110,7 +110,7 @@ namespace WalletWasabi.Tor.Socks5
 				}
 				catch (TorHttpResponseException ex) when (ex.RepField == RepField.TtlExpired)
 				{
-					// If we get TTL Expired error then wait and retry again linux often do this.
+					// If we get TTL Expired error then wait and retry again linux often does this.
 					Logger.LogTrace(ex);
 
 					await Task.Delay(1000, token).ConfigureAwait(false);
@@ -203,9 +203,9 @@ namespace WalletWasabi.Tor.Socks5
 			// https://tools.ietf.org/html/rfc7230#section-3.3.2
 			// A user agent SHOULD send a Content - Length in a request message when
 			// no Transfer-Encoding is sent and the request method defines a meaning
-			// for an enclosed payload body.For example, a Content - Length header
+			// for an enclosed payload body. For example, a Content - Length header
 			// field is normally sent in a POST request even when the value is 0
-			// (indicating an empty payload body).A user agent SHOULD NOT send a
+			// (indicating an empty payload body). A user agent SHOULD NOT send a
 			// Content - Length header field when the request message does not contain
 			// a payload body and the method semantics do not anticipate such a
 			// body.

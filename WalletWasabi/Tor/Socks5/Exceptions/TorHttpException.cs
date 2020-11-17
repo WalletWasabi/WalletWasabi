@@ -4,7 +4,7 @@ using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 namespace WalletWasabi.Tor.Socks5.Exceptions
 {
 	/// <summary>
-	/// SOCKS5 <see cref="CmdField.Connect"/> command failed to be send.
+	/// SOCKS5 <see cref="CmdField.Connect"/> command failed to be sent.
 	/// </summary>
 	public class TorHttpException : TorException
 	{
