@@ -30,6 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				NavigationTarget.HomeScreen,
 				iconName: "home_regular",
 				title: "Home",
+				caption: "Manage existing wallets",
 				category: generalCategory,
 				keywords: "Home",
 				() => new HomePageViewModel(navigationState, walletManager, addWalletPage)));
@@ -39,6 +40,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				NavigationTarget.HomeScreen,
 				iconName: "settings_regular",
 				title: "Settings",
+				caption: "Manage appearance, privacy and other settings",
 				category: generalCategory,
 				keywords: "Settings, General, User Interface, Privacy, Advanced",
 				() => new SettingsPageViewModel(navigationState)));
@@ -48,6 +50,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				NavigationTarget.DialogScreen,
 				iconName: "add_circle_regular",
 				title: "Add Wallet",
+				caption: "Create, recover or import wallet",
 				category: generalCategory,
 				keywords: "Wallet, Add Wallet, Create Wallet, Recover Wallet, Import Wallet, Connect Hardware Wallet",
 				() => addWalletPage));
@@ -63,6 +66,7 @@ namespace WalletWasabi.Fluent.ViewModels
 					NavigationTarget.HomeScreen,
 					iconName: "web_asset_regular",
 					title: x.WalletName,
+					caption: "Wallet",
 					category: walletCategory,
 					keywords: $"Wallet, {x.WalletName}",
 					() => x))
