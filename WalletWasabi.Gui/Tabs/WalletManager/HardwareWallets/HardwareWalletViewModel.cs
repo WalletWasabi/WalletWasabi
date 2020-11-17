@@ -30,6 +30,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 			{
 				walletNameBuilder.Append(" - Could Not Acquire Fingerprint");
 			}
+			else if (!hwi.IsInitialized())
+			{
+				walletNameBuilder.Append(" - Not initialized.");
+			}
 
 			WalletName = walletNameBuilder.ToString();
 			HardwareWalletInfo = hwi;
@@ -46,13 +50,14 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 		public override bool Equals(object? obj)
 		{
 			return obj is HardwareWalletViewModel otherWallet &&
-			       otherWallet.HardwareWalletInfo.Fingerprint == HardwareWalletInfo.Fingerprint &&
-			       otherWallet.HardwareWalletInfo.Model == HardwareWalletInfo.Model;
+			       otherWallet.HardwareWalletInfo.Model == HardwareWalletInfo.Model &&
+			       otherWallet.HardwareWalletInfo.Path == HardwareWalletInfo.Path &&
+			       otherWallet.HardwareWalletInfo.Fingerprint == HardwareWalletInfo.Fingerprint;
 		}
 
 		public override int GetHashCode()
 		{
-			return $"{HardwareWalletInfo.Fingerprint} {HardwareWalletInfo.Model}".GetHashCode();
+			return $"{HardwareWalletInfo.Model} {HardwareWalletInfo.Path} {HardwareWalletInfo.Fingerprint}".GetHashCode();
 		}
 	}
 }

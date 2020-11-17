@@ -11,7 +11,9 @@ using System.Windows.Input;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Hwi;
+using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 using HardwareWalletViewModel = WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets.HardwareWalletViewModel;
@@ -21,8 +23,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 	public class ConnectHardwareWalletViewModel : RoutableViewModel
 	{
 		private readonly string _walletName;
-		private readonly Network _network;
-		private readonly List<Wallet> _currentWallets;
+		private readonly WalletManager _walletManager;
+		private readonly HwiClient _hwiClient;
 		private CancellationTokenSource _searchHardwareWalletCts;
 		private HardwareWalletViewModel? _selectedHardwareWallet;
 
@@ -30,18 +32,42 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			WalletManager walletManager) : base(navigationState, NavigationTarget.DialogScreen)
 		{
 			_walletName = walletName;
-			_network = network;
-			_currentWallets = walletManager.GetWallets().ToList();
+			_walletManager = walletManager;
+			_hwiClient = new HwiClient(network);
 			_searchHardwareWalletCts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 			HardwareWallets = new ObservableCollection<HardwareWalletViewModel>();
 
-			Task.Run(StartHardwareWalletDetection);
+			CancelCommand = ReactiveCommand.Create(() =>
+			{
+				_searchHardwareWalletCts.Cancel();
+				ClearNavigation();
+			});
+			CancelCommand = ReactiveCommand.Create(() =>
+			{
+				_searchHardwareWalletCts.Cancel();
+				GoBack();
+			});
 
-			CancelCommand = ReactiveCommand.Create(ClearNavigation);
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 
-			var connectCommandIsExecute = this.WhenAnyValue(x => x.SelectedHardwareWallet).Select(selectedHardwareWallet => selectedHardwareWallet?.HardwareWalletInfo.Fingerprint is { });
-			NextCommand = ReactiveCommand.Create(() => { },connectCommandIsExecute);
+			var connectCommandIsExecute =
+				this.WhenAnyValue(x => x.SelectedHardwareWallet)
+					.Select(x => x?.HardwareWalletInfo.Fingerprint is { } && x.HardwareWalletInfo.IsInitialized());
+			NextCommand = ReactiveCommand.Create(ConnectSelectedHardwareWallet,connectCommandIsExecute);
+
+			this.WhenAnyValue(x => x.SelectedHardwareWallet)
+				.Where(x => x is { } && x.HardwareWalletInfo.Model != HardwareWalletModels.Coldcard && !x.HardwareWalletInfo.IsInitialized())
+				.Subscribe(async x =>
+				{
+					using var ctsSetup = new CancellationTokenSource(TimeSpan.FromMinutes(21));
+
+					// Trezor T doesn't require interactive mode.
+					var interactiveMode = !(x!.HardwareWalletInfo.Model == HardwareWalletModels.Trezor_T || x.HardwareWalletInfo.Model == HardwareWalletModels.Trezor_T_Simulator);
+
+					await _hwiClient.SetupAsync(x.HardwareWalletInfo.Model, x.HardwareWalletInfo.Path, interactiveMode, ctsSetup.Token);
+				});
+
+			Task.Run(() => StartHardwareWalletDetection());
 		}
 
 		public HardwareWalletViewModel? SelectedHardwareWallet
@@ -58,20 +84,42 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		public string UDevRulesLink => "https://github.com/bitcoin-core/HWI/tree/master/hwilib/udev";
 
-		protected async Task StartHardwareWalletDetection()
+		private async void ConnectSelectedHardwareWallet()
 		{
-			while (!_searchHardwareWalletCts.IsCancellationRequested)
+			// TODO: canExecute checks for null, this is just preventing warning
+			if (SelectedHardwareWallet?.HardwareWalletInfo.Fingerprint is null)
+			{
+				return;
+			}
+
+			// Stop detecting
+			_searchHardwareWalletCts.Cancel();
+
+			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+
+			var fingerPrint = (HDFingerprint)SelectedHardwareWallet.HardwareWalletInfo.Fingerprint;
+			var extPubKey = await _hwiClient.GetXpubAsync(SelectedHardwareWallet.HardwareWalletInfo.Model, SelectedHardwareWallet.HardwareWalletInfo.Path, KeyManager.DefaultAccountKeyPath, cts.Token);
+			var path = _walletManager.WalletDirectories.GetWalletFilePaths(_walletName).walletFilePath;
+
+			_walletManager.AddWallet(KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, extPubKey, path));
+
+			// Close dialog
+			ClearNavigation();
+		}
+
+		protected async Task StartHardwareWalletDetection(bool runDetectionOnce = false)
+		{
+			while (!_searchHardwareWalletCts.IsCancellationRequested && !runDetectionOnce)
 			{
 				try
 				{
 					// Reset token
 					_searchHardwareWalletCts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 
-					var client = new HwiClient(_network);
-					var detectedHardwareWallets = (await client.EnumerateAsync(_searchHardwareWalletCts.Token)).Select(x => new HardwareWalletViewModel(x)).ToList();
+					var detectedHardwareWallets = (await _hwiClient.EnumerateAsync(_searchHardwareWalletCts.Token)).Select(x => new HardwareWalletViewModel(x)).ToList();
 
 					// Remove wallets that are already added to software
-					var walletsToRemove = detectedHardwareWallets.Where(wallet => _currentWallets.Any(x => x.KeyManager.MasterFingerprint == wallet.HardwareWalletInfo.Fingerprint));
+					var walletsToRemove = detectedHardwareWallets.Where(wallet => _walletManager.GetWallets().Any(x => x.KeyManager.MasterFingerprint == wallet.HardwareWalletInfo.Fingerprint));
 					detectedHardwareWallets.RemoveMany(walletsToRemove);
 
 					// Remove disconnected hardware wallets from the list
@@ -83,7 +131,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					// All remained detected hardware wallet is new so add.
 					HardwareWallets.AddRange(detectedHardwareWallets);
 				}
-				catch (Exception ex)
+				catch (Exception ex) when (!(ex is OperationCanceledException))
 				{
 					Logger.LogError(ex);
 				}
