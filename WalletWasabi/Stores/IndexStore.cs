@@ -41,13 +41,26 @@ namespace WalletWasabi.Stores
 		private Network Network { get; }
 		private DigestableIoManager MatureIndexFileManager { get; set; }
 		private DigestableIoManager ImmatureIndexFileManager { get; set; }
+
+		/// <summary>
+		/// Lock for accessing MatureIndex file. This should be locked #2.
+		/// </summary>
 		private AsyncLock MatureIndexAsyncLock { get; } = new AsyncLock();
+
+		/// <summary>
+		/// Lock for accessing ImmatureIndex file. This should be locked #3.
+		/// </summary>
 		private AsyncLock ImmatureIndexAsyncLock { get; } = new AsyncLock();
+
 		public SmartHeaderChain SmartHeaderChain { get; }
 
 		private FilterModel StartingFilter { get; set; }
 		private uint StartingHeight { get; set; }
 		private List<FilterModel> ImmatureFilters { get; set; }
+
+		/// <summary>
+		/// Lock for modifying SmartHeaderChain or ImmatureFilters. This should be locked #1.
+		/// </summary>
 		private AsyncLock IndexLock { get; } = new AsyncLock();
 
 		public async Task InitializeAsync()
@@ -298,7 +311,7 @@ namespace WalletWasabi.Stores
 
 		public async Task<FilterModel> RemoveLastFilterAsync(CancellationToken cancel)
 		{
-			FilterModel filter = null;
+			FilterModel? filter = null;
 
 			ThrowIfDisposed();
 			using (await IndexLock.LockAsync().ConfigureAwait(false))
@@ -391,9 +404,9 @@ namespace WalletWasabi.Stores
 
 				ThrowIfDisposed();
 
+				using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
 				using (await MatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
 				using (await ImmatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
-				using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
 				{
 					// Do not feed the cancellationToken here I always want this to finish running for safety.
 					var currentImmatureLines = ImmatureFilters.Select(x => x.ToLine()).ToArray(); // So we do not read on ImmatureFilters while removing them.
@@ -421,8 +434,8 @@ namespace WalletWasabi.Stores
 		{
 			ThrowIfDisposed();
 
-			using (await MatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
 			using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
+			using (await MatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
 			{
 				var firstImmatureHeight = ImmatureFilters.FirstOrDefault()?.Header?.Height;
 				if (!firstImmatureHeight.HasValue || firstImmatureHeight.Value > fromHeight)
@@ -515,9 +528,9 @@ namespace WalletWasabi.Stores
 			_disposed = true;
 
 			// Wait for the ongoing operations to finish, like TryCommitToFileAsync.
+			using (await IndexLock.LockAsync().ConfigureAwait(false))
 			using (await MatureIndexAsyncLock.LockAsync().ConfigureAwait(false))
 			using (await ImmatureIndexAsyncLock.LockAsync().ConfigureAwait(false))
-			using (await IndexLock.LockAsync().ConfigureAwait(false))
 			{
 			}
 		}
