@@ -16,15 +16,12 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 	public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>
 	{
 		private Height _height;
-		private int _anonymitySet;
 		private SmartTransaction? _spenderTransaction;
 		private bool _coinJoinInProgress;
 		private DateTimeOffset? _bannedUntilUtc;
 		private bool _spentAccordingToBackend;
 
 		private ISecret? _secret;
-
-		private Cluster _cluster;
 
 		private bool _confirmed;
 		private bool _isBanned;
@@ -35,7 +32,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		private Lazy<Coin> _coin;
 		private Lazy<int> _hashCode;
 
-		public SmartCoin(SmartTransaction transaction, uint outputIndex, HdPubKey pubKey, int anonymitySet)
+		public SmartCoin(SmartTransaction transaction, uint outputIndex, HdPubKey pubKey)
 		{
 			Transaction = transaction;
 			Index = outputIndex;
@@ -48,11 +45,8 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			_hashCode = new Lazy<int>(() => OutPoint.GetHashCode(), true);
 
 			Height = transaction.Height;
-			AnonymitySet = Guard.InRangeAndNotNull(nameof(anonymitySet), anonymitySet, 1, int.MaxValue);
 
 			HdPubKey = pubKey;
-
-			_cluster = new Cluster(this);
 
 			Transaction.WalletOutputs.Add(this);
 		}
@@ -78,12 +72,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 					Confirmed = _height.Type == HeightType.Chain;
 				}
 			}
-		}
-
-		public int AnonymitySet
-		{
-			get => _anonymitySet;
-			set => RaiseAndSetIfChanged(ref _anonymitySet, value);
 		}
 
 		public SmartTransaction? SpenderTransaction
@@ -142,12 +130,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		{
 			get => _secret;
 			set => RaiseAndSetIfChanged(ref _secret, value);
-		}
-
-		public Cluster Cluster
-		{
-			get => _cluster;
-			set => RaiseAndSetIfChanged(ref _cluster, value);
 		}
 
 		public bool Confirmed

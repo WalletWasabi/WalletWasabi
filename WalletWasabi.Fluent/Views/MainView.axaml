@@ -2,15 +2,17 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vl="clr-namespace:WalletWasabi.Fluent"
-             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
-             xmlns:local="clr-namespace:WalletWasabi.Fluent.Views"
-             xmlns:navbar="clr-namespace:WalletWasabi.Fluent.Views.NavBar"
-             xmlns:rxui="clr-namespace:Avalonia.ReactiveUI;assembly=Avalonia.ReactiveUI"
-             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors;assembly=WalletWasabi.Fluent"
+             xmlns:vl="using:WalletWasabi.Fluent"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:local="using:WalletWasabi.Fluent.Views"
+             xmlns:navbar="using:WalletWasabi.Fluent.Views.NavBar"
+             xmlns:rxui="using:Avalonia.ReactiveUI"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="vm:MainViewModel"
+             x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.MainView">
   <Panel>
     <SplitView IsEnabled="{Binding IsMainContentEnabled}" IsPaneOpen="{Binding NavBar.IsOpen, Mode=TwoWay}">
@@ -38,26 +40,20 @@
           <local:StatusBar DockPanel.Dock="Bottom" Classes="h8" DataContext="{Binding StatusBar}" VerticalAlignment="Bottom" Height="32" />
           <Panel>
             <Border Background="{DynamicResource RegionColor}" BoxShadow="{DynamicResource BoxShadow}" IsHitTestVisible="False" />
-            <rxui:RoutedViewHost Router="{Binding Router}" Margin="20 36 20 20">
+            <rxui:RoutedViewHost Router="{Binding Router}" PageTransition="{x:Null}" Margin="20 36 20 20">
               <rxui:RoutedViewHost.ViewLocator>
                 <vl:ScreenViewLocator />
               </rxui:RoutedViewHost.ViewLocator>
-              <rxui:RoutedViewHost.PageTransition>
-                <CrossFade Duration="0:0:0.25" />
-              </rxui:RoutedViewHost.PageTransition>
             </rxui:RoutedViewHost>
           </Panel>
         </DockPanel>
       </Panel>
     </SplitView>
-    <c:Dialog IsEnabled="{Binding $parent.DataContext.IsDialogEnabled}" MaxContentWidth="800" MaxContentHeight="700" DataContext="{Binding DialogScreen}" IsDialogOpen="{Binding IsDialogVisible, Mode=TwoWay}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-      <rxui:RoutedViewHost Router="{Binding Router}">
+    <c:Dialog x:CompileBindings="False" IsEnabled="{Binding $parent.DataContext.IsDialogEnabled}" MaxContentWidth="800" MaxContentHeight="700" DataContext="{Binding DialogScreen}" IsDialogOpen="{Binding IsDialogVisible, Mode=TwoWay}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+      <rxui:RoutedViewHost Router="{Binding Router}" PageTransition="{x:Null}">
         <rxui:RoutedViewHost.ViewLocator>
           <vl:ScreenViewLocator />
         </rxui:RoutedViewHost.ViewLocator>
-        <rxui:RoutedViewHost.PageTransition>
-          <CrossFade Duration="0:0:0.25" />
-        </rxui:RoutedViewHost.PageTransition>
       </rxui:RoutedViewHost>
     </c:Dialog>
     <c:Dialog HorizontalContentAlignment="Center" VerticalContentAlignment="Center"

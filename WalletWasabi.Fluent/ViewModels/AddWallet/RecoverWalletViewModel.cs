@@ -83,23 +83,28 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					NavigationTarget.DialogScreen,
 					"Type the password of the wallet to be able to recover and click Continue.");
 
-				navigationState.DialogScreen().Router.Navigate.Execute(enterPassword);
+				NavigateTo(enterPassword, NavigationTarget.DialogScreen);
 
-				var password = await enterPassword.GetDialogResultAsync();
+				var result = await enterPassword.GetDialogResultAsync();
 
-				var walletFilePath = walletManager.WalletDirectories.GetWalletFilePaths(walletName!)
-					.walletFilePath;
+				if (result is { } password)
+				{
+					var walletFilePath = walletManager.WalletDirectories.GetWalletFilePaths(walletName!)
+						.walletFilePath;
 
-				var keyManager = KeyManager.Recover(
-					CurrentMnemonics!,
-					password!,
-					walletFilePath,
-					AccountKeyPath,
-					MinGapLimit);
-				keyManager.SetNetwork(network);
-				walletManager.AddWallet(keyManager);
+					var keyManager = KeyManager.Recover(
+						CurrentMnemonics!,
+						password!,
+						walletFilePath,
+						AccountKeyPath,
+						MinGapLimit);
 
-				navigationState.DialogScreen.Invoke().Router.NavigationStack.Clear();
+					keyManager.SetNetwork(network);
+
+					walletManager.AddWallet(keyManager);
+
+					ClearNavigation(NavigationTarget.DialogScreen);
+				}
 			}
 			catch (Exception ex)
 			{
