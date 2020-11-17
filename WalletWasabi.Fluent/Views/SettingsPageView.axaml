@@ -11,7 +11,7 @@
         <Style Selector="TabItem">
             <Setter Property="FontSize" Value="12" />
             <Setter Property="MinHeight" Value="28" />
-            <Setter Property="Padding" Value="0 0 24 0" />
+            <Setter Property="Padding" Value="0 0 24 24" />
         </Style>
         <Style Selector="TabControl">
             <Setter Property="Padding" Value="0" />
@@ -21,21 +21,29 @@
     <TabControl>
         <TabItem Header="General">
           <StackPanel Orientation="Vertical" Spacing="5">
-            <ToggleSwitch IsChecked="{Binding DarkModeEnabled}" Margin="0 0 10 0">
-              <TextBlock Text="Dark Mode" />
-            </ToggleSwitch>
-            <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5">
-              <ToggleSwitch IsChecked="{Binding Autocopy}" Margin="0 0 10 0" />
-              <TextBlock VerticalAlignment="Center">Auto Copy/Paste bitcoin addresses, bitcoin urls, etc...</TextBlock>
-            </StackPanel>
-            <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5">
-              <ToggleSwitch IsChecked="{Binding CustomFee}" Margin="0 0 10 0" />
-              <TextBlock VerticalAlignment="Center">Manual fee entry.</TextBlock>
-            </StackPanel>
-            <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5">
-              <ToggleSwitch IsChecked="{Binding CustomChangeAddress}" Margin="0 0 10 0" />
-              <TextBlock VerticalAlignment="Center">Custom change address.</TextBlock>
-            </StackPanel>
+            <Grid ColumnDefinitions="Auto, *" RowDefinitions="*,*,*,*">
+              <Grid.Styles>
+                <Style Selector="TextBlock">
+                  <Setter Property="Margin" Value="0 0 50 0" />
+                  <Setter Property="FontSize" Value="14" />
+                </Style>
+                <Style Selector="ToggleSwitch">
+                  <Setter Property="Margin" Value="0 0 10 20" />
+                </Style>
+              </Grid.Styles>
+              <TextBlock>Dark Mode</TextBlock>
+              <ToggleSwitch Grid.Column="1"  IsChecked="{Binding DarkModeEnabled}" />
+
+              <TextBlock Grid.Row="1">Auto Copy/Paste bitcoin addresses, bitcoin urls, etc...</TextBlock>
+              <ToggleSwitch Grid.Row="1" Grid.Column="1" IsChecked="{Binding Autocopy}" />
+
+              <TextBlock Grid.Row="2">Manual fee entry.</TextBlock>
+              <ToggleSwitch Grid.Row="2" Grid.Column="1" IsChecked="{Binding CustomFee}" />
+
+              <TextBlock Grid.Row="3">Custom change address.</TextBlock>
+              <ToggleSwitch Grid.Row="3" Grid.Column="1" IsChecked="{Binding CustomChangeAddress}" />
+            </Grid>
+
             <StackPanel Margin="0 10" Orientation="Vertical" Spacing="5">
               <TextBlock>Fee Display Format</TextBlock>
               <DropDown Items="{Binding FeeDisplayFormats}" SelectedItem="{Binding SelectedFeeDisplayFormat}">
