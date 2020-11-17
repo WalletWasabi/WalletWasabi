@@ -426,9 +426,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				Logger.LogDebug(ex);
 			}
 
-			using (await TransactionsAsyncLock.LockAsync().ConfigureAwait(false))
-			{
-			}
+			using var _ = await TransactionsAsyncLock.LockAsync().ConfigureAwait(false);
 		}
 	}
 }
