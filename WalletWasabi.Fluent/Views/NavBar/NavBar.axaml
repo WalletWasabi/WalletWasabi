@@ -111,7 +111,13 @@
 
     <StackPanel DockPanel.Dock="Bottom">
       <Separator />
-      <c:NavBarListBox Classes="bottom" Items="{Binding BottomItems}" SelectedItem="{Binding SelectedItem}" />
+      <c:NavBarListBox Classes="bottom" Items="{Binding BottomItems}" SelectedItem="{Binding SelectedItem}" >
+        <c:NavBarListBox.Styles>
+          <Style Selector="c|NavBarItem">
+            <Setter Property="IndicatorOrientation" Value="Horizontal" />
+          </Style>
+        </c:NavBarListBox.Styles>
+      </c:NavBarListBox>
     </StackPanel>
 
     <c:NavBarTreeView Items="{Binding Items}" SelectedItem="{Binding SelectedItem}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
