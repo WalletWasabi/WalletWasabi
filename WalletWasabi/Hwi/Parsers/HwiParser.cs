@@ -26,7 +26,7 @@ namespace WalletWasabi.Hwi.Parsers
 				if (text.Contains(subString, StringComparison.OrdinalIgnoreCase))
 				{
 					int startIndex = text.IndexOf(subString, StringComparison.OrdinalIgnoreCase) + subString.Length;
-					var err = text.Substring(startIndex);
+					var err = text[startIndex..];
 					error = new HwiException(HwiErrorCode.UnknownError, err);
 				}
 			}

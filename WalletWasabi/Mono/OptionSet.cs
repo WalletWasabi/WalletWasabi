@@ -666,7 +666,7 @@ namespace Mono.Options
 					case OptionValueType.Optional:
 					case OptionValueType.Required:
 						{
-							string v = n.Substring(i + 1);
+							string v = n[(i + 1)..];
 							c.Option = p;
 							c.OptionName = opt;
 							ParseValue(v.Length != 0 ? v : null, c);
