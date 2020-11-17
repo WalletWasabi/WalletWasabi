@@ -37,18 +37,18 @@ namespace WalletWasabi.Stores
 
 		public event EventHandler<FilterModel>? NewFilter;
 
-		private string WorkFolderPath { get; set; }
+		private string WorkFolderPath { get; }
 		private Network Network { get; }
 		private DigestableIoManager MatureIndexFileManager { get; set; }
 		private DigestableIoManager ImmatureIndexFileManager { get; set; }
-		private AsyncLock MatureIndexAsyncLock { get; set; } = new AsyncLock();
-		private AsyncLock ImmatureIndexAsyncLock { get; set; } = new AsyncLock();
+		private AsyncLock MatureIndexAsyncLock { get; } = new AsyncLock();
+		private AsyncLock ImmatureIndexAsyncLock { get; } = new AsyncLock();
 		public SmartHeaderChain SmartHeaderChain { get; }
 
 		private FilterModel StartingFilter { get; set; }
 		private uint StartingHeight { get; set; }
 		private List<FilterModel> ImmatureFilters { get; set; }
-		private AsyncLock IndexLock { get; set; } = new AsyncLock();
+		private AsyncLock IndexLock { get; } = new AsyncLock();
 
 		public async Task InitializeAsync()
 		{
