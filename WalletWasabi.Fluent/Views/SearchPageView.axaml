@@ -22,7 +22,7 @@
         </TextBox>
       </StackPanel>
       <ScrollViewer HorizontalScrollBarVisibility="Disabled">
-        <ItemsControl HorizontalAlignment="Center" Items="{Binding SearchItemsByCategory}">
+        <ItemsControl HorizontalAlignment="Left" Items="{Binding SearchItemsByCategory}">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
               <WrapPanel Orientation="Horizontal" />
