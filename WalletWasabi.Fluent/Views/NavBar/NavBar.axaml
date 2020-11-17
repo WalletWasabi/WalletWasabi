@@ -38,7 +38,7 @@
       <Setter Property="ItemTemplate">
         <Setter.Value>
           <DataTemplate>
-              <Panel HorizontalAlignment="Center" ToolTip.Tip="{Binding Title}">
+              <Panel Width="45" HorizontalAlignment="Center" ToolTip.Tip="{Binding Title}">
                 <PathIcon HorizontalAlignment="Left">
                   <PathIcon.Data>
                     <Binding Path="." Converter="{x:Static conv:NavBarIconConverter.Instance}" />
