@@ -12,7 +12,6 @@ namespace WalletWasabi.Fluent.ViewModels
 {
 	public class SearchPageViewModel : NavBarItemViewModel
 	{
-		private readonly ReadOnlyObservableCollection<SearchItemViewModel> _searchItems;
 		private readonly ReadOnlyObservableCollection<SearchItemGroup> _searchItemsByCategory;
 		private string? _searchQuery;
 
@@ -60,7 +59,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				.Select(SearchQueryFilter)
 				.DistinctUntilChanged();
 
-			var searchItemsObservable = walletManager.Items.ToObservableChangeSet()
+			walletManager.Items.ToObservableChangeSet()
 				.Transform(x => new SearchItemViewModel(
 					navigationState,
 					NavigationTarget.HomeScreen,
@@ -73,14 +72,10 @@ namespace WalletWasabi.Fluent.ViewModels
 				.Sort(SortExpressionComparer<SearchItemViewModel>.Ascending(i => i.Title))
 				.Merge(searchItems.Connect())
 				.Filter(queryFilter)
-				.ObserveOn(RxApp.MainThreadScheduler);
-
-			searchItemsObservable.Bind(out _searchItems)
-				.AsObservableList();
-
-			searchItemsObservable.GroupWithImmutableState(x => x.Category)
+				.GroupWithImmutableState(x => x.Category)
 				.Transform(grouping => new SearchItemGroup(grouping.Key, grouping.Items.OrderBy(x => x.Title)))
 				.Sort(SortExpressionComparer<SearchItemGroup>.Ascending(i => i.Category.Order).ThenByAscending(i => i.Category.Title))
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Bind(out _searchItemsByCategory)
 				.AsObservableList();
 		}
@@ -92,8 +87,6 @@ namespace WalletWasabi.Fluent.ViewModels
 			get => _searchQuery;
 			set => this.RaiseAndSetIfChanged(ref _searchQuery, value);
 		}
-
-		public ReadOnlyObservableCollection<SearchItemViewModel> SearchItems => _searchItems;
 
 		public ReadOnlyObservableCollection<SearchItemGroup> SearchItemsByCategory => _searchItemsByCategory;
 
