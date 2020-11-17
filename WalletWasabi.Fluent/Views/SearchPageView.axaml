@@ -19,19 +19,14 @@
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
           </i:Interaction.Behaviors>
-          <TextBox.Styles>
-            <Style Selector="TextBox /template/ ScrollViewer#PART_ScrollViewer">
-              <Setter Property="Margin" Value="30,0,0,0" />
-            </Style>
-          </TextBox.Styles>
+          <TextBox.InnerLeftContent>
+            <PathIcon Data="{StaticResource search_regular}"
+                      Width="20" Height="20"
+                      Opacity="0.8"
+                      VerticalAlignment="Top" HorizontalAlignment="Left"
+                      Margin="16,8,0,0" />
+          </TextBox.InnerLeftContent>
         </TextBox>
-        <Panel MaxWidth="400" Margin="8,0,0,0">
-          <PathIcon Data="{StaticResource search_regular}"
-                    Width="20" Height="20"
-                    Opacity="0.8"
-                    VerticalAlignment="Top" HorizontalAlignment="Left"
-                    Margin="8,8,0,0" />
-        </Panel>
       </Panel>
       <ScrollViewer HorizontalScrollBarVisibility="Disabled">
         <ItemsControl HorizontalAlignment="Left" Items="{Binding SearchItemsByCategory}">
