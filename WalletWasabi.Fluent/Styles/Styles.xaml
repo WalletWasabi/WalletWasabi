@@ -15,4 +15,5 @@
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/PlainButton.xaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/SplitView.xaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/TextBox.xaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/HyperlinkButton.xaml" />
 </Styles>

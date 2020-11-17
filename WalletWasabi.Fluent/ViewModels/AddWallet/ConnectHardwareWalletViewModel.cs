@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,6 +37,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			Task.Run(StartHardwareWalletDetection);
 
 			CancelCommand = ReactiveCommand.Create(ClearNavigation);
+			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 
 			var connectCommandIsExecute = this.WhenAnyValue(x => x.SelectedHardwareWallet).Select(selectedHardwareWallet => selectedHardwareWallet?.HardwareWalletInfo.Fingerprint is { });
 			NextCommand = ReactiveCommand.Create(() => { },connectCommandIsExecute);
@@ -49,6 +52,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		public ObservableCollection<HardwareWalletViewModel> HardwareWallets { get; }
 
 		public ICommand NextCommand { get; }
+
+		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
+
+		public string UDevRulesLink => "https://github.com/bitcoin-core/HWI/tree/master/hwilib/udev";
 
 		protected async Task StartHardwareWalletDetection()
 		{

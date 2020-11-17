@@ -16,5 +16,6 @@
     <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Color="#90CB9C"/>
     <SolidColorBrush x:Key="ActionButtonDisabledBackgroundColor" Color="#80A3A3A3"/>
     <StaticResource x:Key="SystemControlErrorTextForegroundBrush" ResourceKey="SystemErrorTextColor" />
+    <SolidColorBrush x:Key="HyperLinkForeground">#00A2E8</SolidColorBrush>
   </Styles.Resources>
 </Styles>
