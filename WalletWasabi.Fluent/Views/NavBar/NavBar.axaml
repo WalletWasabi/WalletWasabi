@@ -73,10 +73,15 @@
   </UserControl.Styles>
   <DockPanel Margin="0 0 0 4">
     <StackPanel DockPanel.Dock="Top" Spacing="5">
-      <Panel Height="30" IsVisible="{h:Platform {x:Static h:Const.False}, Osx={x:Static h:Const.True}}" />
-      <Button Classes="NavButton" Command="{Binding DoToggleAction}" IsVisible="{h:Platform {x:Static h:Const.False}, Osx={x:Static h:Const.False}}">
-        <PathIcon Data="{StaticResource navigation_regular}" Width="16" />
-      </Button>
+      <Panel Height="30" />
+      <Border Padding="12" Margin="0 -10 0 0">
+        <Panel>
+          <Panel Width="45" HorizontalAlignment="Left">
+            <PathIcon Data="{StaticResource wasabi_logo}" HorizontalAlignment="Left" Height="20" Width="20" />
+          </Panel>
+          <TextBlock Text="Wasabi Wallet" Classes="h6" VerticalAlignment="Center" FontWeight="SemiBold" Margin="65 0 0 0" />
+        </Panel>
+      </Border>
       <c:NavBarListBox Items="{Binding TopItems}" SelectedItem="{Binding SelectedItem}" />
       <Separator />
     </StackPanel>

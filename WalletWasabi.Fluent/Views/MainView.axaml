@@ -11,25 +11,14 @@
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
-             xmlns:ex="using:WalletWasabi.Fluent.Helpers"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:MainViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.MainView">
   <Panel>
     <SplitView
-      IsEnabled="{Binding IsMainContentEnabled}"
+      IsEnabled="{Binding IsMainContentEnabled}" CompactPaneLength="68" OpenPaneLength="280"
       IsPaneOpen="{Binding NavBar.IsOpen, Mode=TwoWay}">
-      <SplitView.CompactPaneLength>
-        <ex:Platform>
-          <ex:Platform.Default>
-            <sys:Double>48</sys:Double>
-          </ex:Platform.Default>
-          <ex:Platform.Osx>
-            <sys:Double>68</sys:Double>
-          </ex:Platform.Osx>
-        </ex:Platform>
-      </SplitView.CompactPaneLength>
       <i:Interaction.Behaviors>
         <behaviors:SplitViewAutoBehavior ToggleAction="{Binding NavBar.ToggleAction, Mode=OneWayToSource}"
                                         CollapseOnClickAction="{Binding NavBar.CollapseOnClickAction, Mode=OneWayToSource}"
