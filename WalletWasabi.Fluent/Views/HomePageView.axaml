@@ -2,11 +2,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels"
-             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
-             xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:conv="using:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:HomePageViewModel"
+             x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.HomePageView">
   <c:ContentArea Title="Home">
     <c:ContentArea.Caption>

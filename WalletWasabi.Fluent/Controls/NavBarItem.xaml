@@ -1,6 +1,6 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
+        xmlns:c="using:WalletWasabi.Fluent.Controls">
   <Design.PreviewWith>
     <Border Padding="0">
       <c:NavBarItem />
@@ -25,7 +25,7 @@
               </Border.Transitions>
             </Border>
           </Border>
-          
+
           <ContentPresenter Name="PART_ContentPresenter"
                         Background="{TemplateBinding Background}"
                         BorderBrush="{TemplateBinding BorderBrush}"
