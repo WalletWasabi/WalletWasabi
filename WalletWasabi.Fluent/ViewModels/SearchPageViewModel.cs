@@ -55,7 +55,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				() => addWalletPage));
 
 			var queryFilter = this.WhenValueChanged(t => t.SearchQuery)
-				.Throttle(TimeSpan.FromMilliseconds(250))
+				.Throttle(TimeSpan.FromMilliseconds(100))
 				.Select(SearchQueryFilter)
 				.DistinctUntilChanged();
 
