@@ -34,7 +34,7 @@
               <TextBlock>Dark Mode</TextBlock>
               <ToggleSwitch Grid.Column="1"  IsChecked="{Binding DarkModeEnabled}" />
 
-              <TextBlock Grid.Row="1">Auto Copy/Paste bitcoin addresses, bitcoin urls, etc...</TextBlock>
+              <TextBlock Grid.Row="1">Auto Copy/Paste Bitcoin addresses</TextBlock>
               <ToggleSwitch Grid.Row="1" Grid.Column="1" IsChecked="{Binding Autocopy}" />
 
               <TextBlock Grid.Row="2">Manual fee entry.</TextBlock>
