@@ -34,10 +34,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 
 		private bool _disposedValue = false; // To detect redundant calls
 
-		public LoadWalletViewModel(WalletManagerViewModel owner, LoadWalletType loadWalletType)
+		public LoadWalletViewModel(WalletManagerViewModel owner, LoadWalletType loadWalletType, Wallets.WalletManager walletManager)
 			: base(loadWalletType == LoadWalletType.Password ? "Test Password" : "Load Wallet")
 		{
-			Global = Locator.Current.GetService<Global>();
+			WalletManager = walletManager;
 
 			Owner = owner;
 			_password = "";
@@ -57,7 +57,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 				.Subscribe()
 				.DisposeWith(Disposables);
 
-			Observable.FromEventPattern<Wallet>(Global.WalletManager, nameof(Global.WalletManager.WalletAdded))
+			Observable.FromEventPattern<Wallet>(walletManager, nameof(walletManager.WalletAdded))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Select(x => x.EventArgs)
 				.Subscribe(wallet => RootList.Add(new WalletViewModelBase(wallet)))
@@ -86,7 +86,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			TestPasswordCommand = ReactiveCommand.Create(LoadKeyManager, this.WhenAnyValue(x => x.SelectedWallet).Select(x => x is { }));
 			OpenFolderCommand = ReactiveCommand.Create(OpenWalletsFolder);
 
-			RootList.AddRange(Global.WalletManager
+			RootList.AddRange(walletManager
 				.GetWallets()
 				.Select(x => new WalletViewModelBase(x)));
 
@@ -126,7 +126,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 		public ReactiveCommand<Unit, Unit> OpenFolderCommand { get; }
 		private WalletManagerViewModel Owner { get; }
 
-		private Global Global { get; }
+		private Wallets.WalletManager WalletManager { get; }
 
 		private ReplaySubject<Unit> ResortTrigger { get; } = new ReplaySubject<Unit>();
 		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
@@ -154,7 +154,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 
 				var walletName = selectedWallet.WalletName;
 
-				KeyManager keyManager = Global.WalletManager.GetWalletByName(walletName).KeyManager;
+				KeyManager keyManager = WalletManager.GetWalletByName(walletName).KeyManager;
 
 				// Only check requirepassword here, because the above checks are applicable to loadwallet, too and we are using this function from load wallet.
 				if (IsPasswordRequired)
@@ -206,7 +206,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 
 			try
 			{
-				await Task.Run(async () => await Global.WalletManager.StartWalletAsync(keyManager));
+				await Task.Run(async () => await WalletManager.StartWalletAsync(keyManager));
 				ResortTrigger.OnNext(new Unit());
 			}
 			catch (OperationCanceledException ex)
@@ -220,7 +220,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			}
 		}
 
-		public void OpenWalletsFolder() => IoHelpers.OpenFolderInFileExplorer(Global.WalletManager.WalletDirectories.WalletsDir);
+		public void OpenWalletsFolder() => IoHelpers.OpenFolderInFileExplorer(WalletManager.WalletDirectories.WalletsDir);
 
 		public void SelectWallet(string walletName)
 		{
