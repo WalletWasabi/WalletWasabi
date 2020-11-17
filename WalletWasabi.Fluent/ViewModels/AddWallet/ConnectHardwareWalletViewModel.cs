@@ -12,6 +12,7 @@ using DynamicData;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Hwi;
+using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 using HardwareWalletViewModel = WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets.HardwareWalletViewModel;
 
@@ -84,7 +85,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				}
 				catch (Exception ex)
 				{
-					// TODO: log
+					Logger.LogError(ex);
 				}
 			}
 		}
