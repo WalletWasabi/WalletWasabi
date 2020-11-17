@@ -20,7 +20,6 @@ namespace WalletWasabi.Fluent.ViewModels
 			Title = "Search";
 
 			var searchItems = new SourceList<SearchItemViewModel>();
-
 			var generalCategory = new SearchCategory("General", 0);
 			var walletCategory = new SearchCategory("Wallet", 1);
 
