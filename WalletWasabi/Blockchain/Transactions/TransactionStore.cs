@@ -22,7 +22,7 @@ namespace WalletWasabi.Blockchain.Transactions
 		private Dictionary<uint256, SmartTransaction> Transactions { get; set; }
 		private object TransactionsLock { get; set; }
 		private IoManager TransactionsFileManager { get; set; }
-		private AsyncLock TransactionsAsyncLock { get; set; } = new AsyncLock();
+		private AsyncLock TransactionsAsyncLock { get; } = new AsyncLock();
 		private List<ITxStoreOperation> Operations { get; } = new List<ITxStoreOperation>();
 		private object OperationsLock { get; } = new object();
 
