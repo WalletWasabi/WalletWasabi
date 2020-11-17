@@ -8,12 +8,29 @@
              x:DataType="vm:SettingsPageViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.SettingsPageView">
-  <c:ContentArea Title="Settings" Caption="Some development settings:">
-    <StackPanel Spacing="10">
-      <Button Command="{Binding NextCommand}" Content="Next" />
-      <Button Command="{Binding OpenDialogCommand}" Content="Open Dialog" />
-      <Button Command="{Binding OpenDialogScreenCommand}" Content="Open Dialog Screen" />
-      <Button Command="{Binding ChangeThemeCommand}" Content="Change Theme" />
-    </StackPanel>
+    <UserControl.Styles>
+        <Style Selector="TabItem">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="MinHeight" Value="28" />
+            <Setter Property="Padding" Value="0 0 24 0" />
+        </Style>
+        <Style Selector="TabControl">
+            <Setter Property="Padding" Value="0" />
+        </Style>
+    </UserControl.Styles>
+    <c:ContentArea Title="Settings">
+    <TabControl>
+        <TabItem Header="General">
+        </TabItem>
+
+        <TabItem Header="Privacy">
+        </TabItem>
+
+        <TabItem Header="Network">
+        </TabItem>
+
+        <TabItem Header="Node">
+        </TabItem>
+    </TabControl>
   </c:ContentArea>
 </UserControl>
