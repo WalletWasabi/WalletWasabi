@@ -7,6 +7,7 @@ using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Search;
+using WalletWasabi.Fluent.ViewModels.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -23,35 +24,14 @@ namespace WalletWasabi.Fluent.ViewModels
 			var generalCategory = new SearchCategory("General", 0);
 			var walletCategory = new SearchCategory("Wallet", 1);
 
-			searchItems.Add(new SearchItemViewModel(
-				navigationState,
-				NavigationTarget.HomeScreen,
-				iconName: "home_regular",
-				title: "Home",
-				caption: "Manage existing wallets",
-				category: generalCategory,
-				keywords: "Home",
-				() => new HomePageViewModel(navigationState, walletManager, addWalletPage)));
+			searchItems.Add(
+				CreateHomeSearchItem(walletManager, addWalletPage, generalCategory, navigationState));
 
-			searchItems.Add(new SearchItemViewModel(
-				navigationState,
-				NavigationTarget.HomeScreen,
-				iconName: "settings_regular",
-				title: "Settings",
-				caption: "Manage appearance, privacy and other settings",
-				category: generalCategory,
-				keywords: "Settings, General, User Interface, Privacy, Advanced",
-				() => new SettingsPageViewModel(navigationState)));
+			searchItems.Add(
+				CreateSettingsSearchItem(navigationState, generalCategory));
 
-			searchItems.Add(new SearchItemViewModel(
-				navigationState,
-				NavigationTarget.DialogScreen,
-				iconName: "add_circle_regular",
-				title: "Add Wallet",
-				caption: "Create, recover or import wallet",
-				category: generalCategory,
-				keywords: "Wallet, Add Wallet, Create Wallet, Recover Wallet, Import Wallet, Connect Hardware Wallet",
-				() => addWalletPage));
+			searchItems.Add(
+				CreateAddWalletSearchItem(addWalletPage, generalCategory, navigationState));
 
 			var queryFilter = this.WhenValueChanged(t => t.SearchQuery)
 				.Throttle(TimeSpan.FromMilliseconds(100))
@@ -59,15 +39,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				.DistinctUntilChanged();
 
 			walletManager.Items.ToObservableChangeSet()
-				.Transform(x => new SearchItemViewModel(
-					navigationState,
-					NavigationTarget.HomeScreen,
-					iconName: "web_asset_regular",
-					title: x.WalletName,
-					caption: "Wallet",
-					category: walletCategory,
-					keywords: $"Wallet, {x.WalletName}",
-					() => x))
+				.Transform(x => CreateWalletSearchItem(x, walletCategory, navigationState))
 				.Sort(SortExpressionComparer<SearchItemViewModel>.Ascending(i => i.Title))
 				.Merge(searchItems.Connect())
 				.Filter(queryFilter)
@@ -100,6 +72,58 @@ namespace WalletWasabi.Fluent.ViewModels
 				}
 				return true;
 			};
+		}
+
+		private SearchItemViewModel CreateHomeSearchItem(WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage, SearchCategory generalCategory, NavigationStateViewModel navigationState)
+		{
+			return new SearchItemViewModel(
+				navigationState,
+				NavigationTarget.HomeScreen,
+				iconName: "home_regular",
+				title: "Home",
+				caption: "Manage existing wallets",
+				category: generalCategory,
+				keywords: "Home",
+				() => new HomePageViewModel(navigationState, walletManager, addWalletPage));
+		}
+
+		private SearchItemViewModel CreateSettingsSearchItem(NavigationStateViewModel navigationState, SearchCategory generalCategory)
+		{
+			return new SearchItemViewModel(
+				navigationState,
+				NavigationTarget.HomeScreen,
+				iconName: "settings_regular",
+				title: "Settings",
+				caption: "Manage appearance, privacy and other settings",
+				category: generalCategory,
+				keywords: "Settings, General, User Interface, Privacy, Advanced",
+				() => new SettingsPageViewModel(navigationState));
+		}
+
+		private SearchItemViewModel CreateAddWalletSearchItem(AddWalletPageViewModel addWalletPage, SearchCategory generalCategory, NavigationStateViewModel navigationState)
+		{
+			return new SearchItemViewModel(
+				navigationState,
+				NavigationTarget.DialogScreen,
+				iconName: "add_circle_regular",
+				title: "Add Wallet",
+				caption: "Create, recover or import wallet",
+				category: generalCategory,
+				keywords: "Wallet, Add Wallet, Create Wallet, Recover Wallet, Import Wallet, Connect Hardware Wallet",
+				() => addWalletPage);
+		}
+
+		private SearchItemViewModel CreateWalletSearchItem(WalletViewModelBase wallet, SearchCategory walletCategory, NavigationStateViewModel navigationState)
+		{
+			return new SearchItemViewModel(
+				navigationState,
+				NavigationTarget.HomeScreen,
+				iconName: "web_asset_regular",
+				title: wallet.WalletName,
+				caption: "Wallet",
+				category: walletCategory,
+				keywords: $"Wallet, {wallet.WalletName}",
+				() => wallet);
 		}
 	}
 }
