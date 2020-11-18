@@ -49,7 +49,7 @@ namespace WalletWasabi.Stores
 		private DigestableSafeIoManager ImmatureIndexFileManager { get; }
 
 		/// <summary>
-		/// Lock for accessing MatureIndex file. This should be locked #2.
+		/// Lock for accessing MatureIndex file. This should be lock #2.
 		/// </summary>
 		private AsyncLock MatureIndexAsyncLock { get; } = new AsyncLock();
 
