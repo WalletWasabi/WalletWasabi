@@ -36,7 +36,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			_walletManager = walletManager;
 			_hwiClient = new HwiClient(network);
 			_searchHardwareWalletCts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-
 			HardwareWallets = new ObservableCollection<HardwareWalletViewModel>();
 
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
