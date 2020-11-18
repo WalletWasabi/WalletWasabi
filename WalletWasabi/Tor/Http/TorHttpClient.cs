@@ -108,7 +108,7 @@ namespace WalletWasabi.Tor.Http
 				{
 					try
 					{
-						HttpResponseMessage ret = await SendAsync(request).ConfigureAwait(false);
+						HttpResponseMessage ret = await SendAsync(request, cancel).ConfigureAwait(false);
 						TorDoesntWorkSince = null;
 						return ret;
 					}
@@ -122,7 +122,7 @@ namespace WalletWasabi.Tor.Http
 						cancel.ThrowIfCancellationRequested();
 						try
 						{
-							HttpResponseMessage ret2 = await SendAsync(request).ConfigureAwait(false);
+							HttpResponseMessage ret2 = await SendAsync(request, cancel).ConfigureAwait(false);
 							TorDoesntWorkSince = null;
 							return ret2;
 						}
@@ -150,7 +150,7 @@ namespace WalletWasabi.Tor.Http
 
 						cancel.ThrowIfCancellationRequested();
 
-						HttpResponseMessage ret3 = await SendAsync(request).ConfigureAwait(false);
+						HttpResponseMessage ret3 = await SendAsync(request, cancel).ConfigureAwait(false);
 						TorDoesntWorkSince = null;
 						return ret3;
 					}
