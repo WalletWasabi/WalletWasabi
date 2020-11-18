@@ -15,7 +15,6 @@ namespace WalletWasabi.Blockchain.Transactions
 {
 	public class TransactionStore : IAsyncDisposable
 	{
-		private volatile bool _disposed;
 		public string WorkFolderPath { get; private set; }
 		public Network Network { get; private set; }
 
@@ -25,7 +24,6 @@ namespace WalletWasabi.Blockchain.Transactions
 		private AsyncLock TransactionsFileAsyncLock { get; } = new AsyncLock();
 		private List<ITxStoreOperation> Operations { get; } = new List<ITxStoreOperation>();
 		private object OperationsLock { get; } = new object();
-		public Task? CommitToFileTask { get; private set; }
 
 		public async Task InitializeAsync(string workFolderPath, Network network, string operationName)
 		{
@@ -113,12 +111,12 @@ namespace WalletWasabi.Blockchain.Transactions
 
 			if (ret.isAdded)
 			{
-				CommitToFileTask = TryAppendToFileAsync(tx);
+				_ = TryAppendToFileAsync(tx);
 			}
 
 			if (ret.isUpdated)
 			{
-				CommitToFileTask = TryUpdateFileAsync(tx);
+				_ = TryUpdateFileAsync(tx);
 			}
 
 			return ret;
@@ -184,7 +182,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 			if (isRemoved)
 			{
-				CommitToFileTask = TryRemoveFromFileAsync(hash);
+				_ = TryRemoveFromFileAsync(hash);
 			}
 
 			return isRemoved;
@@ -307,7 +305,6 @@ namespace WalletWasabi.Blockchain.Transactions
 					}
 				}
 
-				ThrowIfDisposed();
 				using (await TransactionsFileAsyncLock.LockAsync().ConfigureAwait(false))
 				{
 					foreach (ITxStoreOperation op in operationsToExecute)
@@ -396,36 +393,8 @@ namespace WalletWasabi.Blockchain.Transactions
 
 		#endregion Serialization
 
-		private void ThrowIfDisposed()
-		{
-			if (_disposed)
-			{
-				throw new ObjectDisposedException(nameof(TransactionStore));
-			}
-		}
-
 		public async ValueTask DisposeAsync()
 		{
-			if (_disposed)
-			{
-				return;
-			}
-
-			// Indicate that the object is disposed.
-			_disposed = true;
-
-			try
-			{
-				if (CommitToFileTask is { } task)
-				{
-					await task.ConfigureAwait(false);
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.LogDebug(ex);
-			}
-
 			using var _ = await TransactionsFileAsyncLock.LockAsync().ConfigureAwait(false);
 		}
 	}
