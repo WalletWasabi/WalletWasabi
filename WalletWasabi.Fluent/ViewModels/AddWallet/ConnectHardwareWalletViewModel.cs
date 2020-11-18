@@ -35,7 +35,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			_walletName = walletName;
 			_walletManager = walletManager;
 			_hwiClient = new HwiClient(network);
-			_detectionTask = new Task(StartHardwareWalletDetection);
+			_detectionTask = new Task(HardwareWalletDetection);
 			_searchHardwareWalletCts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 			HardwareWallets = new ObservableCollection<HardwareWalletViewModel>();
 
@@ -47,7 +47,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			NextCommand = ReactiveCommand.Create(ConnectSelectedHardwareWallet,nextCommandIsExecute);
 
 			this.WhenAnyValue(x => x.SelectedHardwareWallet)
-				.Where(x => x is { } && x.HardwareWalletInfo.Model != HardwareWalletModels.Coldcard && !x.HardwareWalletInfo.IsInitialized())
+				.Where(x => x is { } && !x.HardwareWalletInfo.IsInitialized() && x.HardwareWalletInfo.Model != HardwareWalletModels.Coldcard)
 				.Subscribe(async x =>
 				{
 					// TODO: Notify the user to check the device
@@ -103,6 +103,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			}
 			catch (Exception ex)
 			{
+				// TODO: Notify the user about the error
 				Logger.LogError(ex);
 
 				// Restart detection
@@ -120,7 +121,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			}
 		});
 
-		private async void StartHardwareWalletDetection()
+		private async void HardwareWalletDetection()
 		{
 			while (!_searchHardwareWalletCts.IsCancellationRequested)
 			{
