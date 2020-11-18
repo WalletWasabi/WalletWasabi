@@ -54,7 +54,7 @@ namespace WalletWasabi.Stores
 		private AsyncLock MatureIndexAsyncLock { get; } = new AsyncLock();
 
 		/// <summary>
-		/// Lock for accessing ImmatureIndex file. This should be locked #3.
+		/// Lock for accessing ImmatureIndex file. This should be lock #3.
 		/// </summary>
 		private AsyncLock ImmatureIndexAsyncLock { get; } = new AsyncLock();
 
