@@ -15,7 +15,7 @@ namespace WalletWasabi.Blockchain.Transactions
 {
 	public class TransactionStore : IAsyncDisposable
 	{
-		private bool _disposed;
+		private volatile bool _disposed;
 		public string WorkFolderPath { get; private set; }
 		public Network Network { get; private set; }
 

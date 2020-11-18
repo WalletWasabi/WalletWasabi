@@ -22,7 +22,7 @@ namespace WalletWasabi.Stores
 	public class IndexStore : IAsyncDisposable
 	{
 		private int _throttleId;
-		private bool _disposed;
+		private volatile bool _disposed;
 
 		public IndexStore(string workFolderPath, Network network, SmartHeaderChain hashChain)
 		{
