@@ -29,19 +29,19 @@
         </TextBox>
       </Panel>
       <ScrollViewer HorizontalScrollBarVisibility="Disabled">
-        <ItemsControl HorizontalAlignment="Left" Items="{Binding SearchItemsByCategory}">
+        <ItemsControl HorizontalAlignment="Left" Items="{Binding SearchResults}">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
               <WrapPanel Orientation="Vertical" Margin="-8 0" />
             </ItemsPanelTemplate>
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
-            <DataTemplate x:DataType="search:SearchItemGroup">
+            <DataTemplate x:DataType="search:SearchResult">
               <DockPanel Margin="0,0,0,8">
                 <Panel Margin="8,0,8,0"  DockPanel.Dock="Top">
                   <Label Classes="h6 bold" DataContext="{Binding Category}" Content="{Binding Title}" />
                 </Panel>
-                <ItemsControl HorizontalAlignment="Left" Items="{Binding SearchItems}">
+                <ItemsControl HorizontalAlignment="Left" Items="{Binding Items}">
                   <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                       <WrapPanel Orientation="Horizontal" />
