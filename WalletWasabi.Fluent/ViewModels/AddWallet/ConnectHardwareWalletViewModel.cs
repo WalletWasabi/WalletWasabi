@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reactive;
@@ -25,7 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		private readonly string _walletName;
 		private readonly WalletManager _walletManager;
 		private readonly HwiClient _hwiClient;
-		private readonly Task _detectionTask;
+		private Task? _detectionTask;
 		private CancellationTokenSource _searchHardwareWalletCts;
 		private HardwareWalletViewModel? _selectedHardwareWallet;
 
@@ -35,8 +36,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			_walletName = walletName;
 			_walletManager = walletManager;
 			_hwiClient = new HwiClient(network);
-			_detectionTask = new Task(HardwareWalletDetection);
 			_searchHardwareWalletCts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+
 			HardwareWallets = new ObservableCollection<HardwareWalletViewModel>();
 
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
@@ -61,7 +62,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			this.WhenNavigatedTo(() => Disposable.Create(_searchHardwareWalletCts.Cancel));
 
-			_detectionTask.Start();
+			StartDetection();
 		}
 
 		public HardwareWalletViewModel? SelectedHardwareWallet
@@ -90,10 +91,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			{
 				await StopDetection();
 
-				using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-
 				var fingerPrint = (HDFingerprint)SelectedHardwareWallet.HardwareWalletInfo.Fingerprint;
-				var extPubKey = await _hwiClient.GetXpubAsync(SelectedHardwareWallet.HardwareWalletInfo.Model, SelectedHardwareWallet.HardwareWalletInfo.Path, KeyManager.DefaultAccountKeyPath, cts.Token);
+				var extPubKey = await GetXpubAsync(SelectedHardwareWallet);
 				var path = _walletManager.WalletDirectories.GetWalletFilePaths(_walletName).walletFilePath;
 
 				_walletManager.AddWallet(KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, extPubKey, path));
@@ -107,7 +106,28 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				Logger.LogError(ex);
 
 				// Restart detection
-				_detectionTask.Start();
+				StartDetection();
+			}
+		}
+
+		private async Task<ExtPubKey> GetXpubAsync(HardwareWalletViewModel wallet)
+		{
+			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+			var tryCounter = 1;
+
+			while (true)
+			{
+				try
+				{
+					return await _hwiClient.GetXpubAsync(SelectedHardwareWallet!.HardwareWalletInfo.Model, SelectedHardwareWallet.HardwareWalletInfo.Path, KeyManager.DefaultAccountKeyPath, cts.Token);
+				}
+				catch (Exception)
+				{
+					if (tryCounter++ > 3)
+					{
+						throw;
+					}
+				}
 			}
 		}
 
@@ -115,13 +135,20 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		{
 			_searchHardwareWalletCts.Cancel();
 
-			while (!_detectionTask.IsCompleted)
+			while (_detectionTask is { } && !_detectionTask.IsCompleted)
 			{
 				Thread.Sleep(100);
 			}
 		});
 
-		private async void HardwareWalletDetection()
+		private void StartDetection()
+		{
+			_searchHardwareWalletCts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+			_detectionTask = new Task(HardwareWalletDetectionAsync);
+			_detectionTask.Start();
+		}
+
+		private async void HardwareWalletDetectionAsync()
 		{
 			while (!_searchHardwareWalletCts.IsCancellationRequested)
 			{
@@ -145,9 +172,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					// All remained detected hardware wallet is new so add.
 					HardwareWallets.AddRange(detectedHardwareWallets);
 				}
-				catch (Exception ex) when (!(ex is OperationCanceledException))
+				catch (Exception ex)
 				{
-					Logger.LogError(ex);
+					if (!(ex is OperationCanceledException))
+					{
+						Logger.LogError(ex);
+					}
 				}
 			}
 		}
