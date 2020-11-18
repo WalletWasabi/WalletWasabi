@@ -16,4 +16,9 @@
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/NavBarItem.xaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/NavBarTreeItem.xaml" />
   </Application.Styles>
+  <NativeMenu.Menu>
+    <NativeMenu>
+      <NativeMenuItem Header="About Wasabi Wallet" Command="{Binding AboutCommand}" />
+    </NativeMenu>
+  </NativeMenu.Menu>
 </Application>
