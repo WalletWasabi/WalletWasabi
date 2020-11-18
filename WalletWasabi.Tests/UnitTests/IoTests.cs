@@ -127,28 +127,6 @@ namespace WalletWasabi.Tests.UnitTests
 			var fileCount = Directory.EnumerateFiles(Path.GetDirectoryName(ioman1.FilePath)).Count();
 			Assert.Equal(0, fileCount);
 
-			// Check AsyncLock usage on simultaneous file writes.
-
-			DigestableIoManager ioman2 = new DigestableIoManager(file2);
-
-			AsyncLock asyncLock1 = new AsyncLock();
-			AsyncLock asyncLock2 = new AsyncLock();
-
-			await Task.Run(async () =>
-			{
-				using (await asyncLock1.LockAsync())
-				{
-					// Should not be a problem because they use different AsyncLock.
-					using (await asyncLock2.LockAsync())
-					{
-						await ioman1.WriteAllLinesAsync(lines);
-						await ioman2.WriteAllLinesAsync(lines);
-						ioman1.DeleteMe();
-						ioman2.DeleteMe();
-					}
-				}
-			});
-
 			// TryReplace test.
 			var dummyFilePath = $"{ioman1.FilePath}dummy";
 			var dummyContent = new string[]
