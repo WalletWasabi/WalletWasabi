@@ -36,7 +36,6 @@ namespace WalletWasabi.Stores
 			Network = Guard.NotNull(nameof(network), network);
 
 			StartingFilter = StartingFilters.GetStartingFilter(Network);
-			StartingHeight = StartingFilter.Header.Height;
 
 			SmartHeaderChain = Guard.NotNull(nameof(hashChain), hashChain);
 		}
@@ -63,7 +62,7 @@ namespace WalletWasabi.Stores
 		public SmartHeaderChain SmartHeaderChain { get; }
 
 		private FilterModel StartingFilter { get; }
-		private uint StartingHeight { get; }
+		private uint StartingHeight => StartingFilter.Header.Height;
 		private List<FilterModel> ImmatureFilters { get; } = new List<FilterModel>(150);
 
 		/// <summary>
