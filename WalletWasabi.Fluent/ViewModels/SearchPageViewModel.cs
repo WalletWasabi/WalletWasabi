@@ -77,7 +77,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		private SearchItemViewModel CreateHomeSearchItem(SearchCategory category, int order, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage)
 		{
-			return new SearchItemViewModel(
+			return new(
 				NavigationState,
 				NavigationTarget.HomeScreen,
 				iconName: "home_regular",
@@ -91,7 +91,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		private SearchItemViewModel CreateSettingsSearchItem(SearchCategory category, int order)
 		{
-			return new SearchItemViewModel(
+			return new(
 				NavigationState,
 				NavigationTarget.HomeScreen,
 				iconName: "settings_regular",
@@ -105,7 +105,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		private SearchItemViewModel CreateAddWalletSearchItem(SearchCategory category, int order, AddWalletPageViewModel addWalletPage)
 		{
-			return new SearchItemViewModel(
+			return new(
 				NavigationState,
 				NavigationTarget.DialogScreen,
 				iconName: "add_circle_regular",
@@ -119,7 +119,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		private SearchItemViewModel CreateWalletSearchItem(SearchCategory category, int order, WalletViewModelBase wallet)
 		{
-			return new SearchItemViewModel(
+			return new(
 				NavigationState,
 				NavigationTarget.HomeScreen,
 				iconName: "web_asset_regular",
