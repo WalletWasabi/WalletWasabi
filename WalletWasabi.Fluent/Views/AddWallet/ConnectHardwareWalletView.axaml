@@ -8,7 +8,7 @@
              d:DesignWidth="600" d:DesignHeight="500"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.ConnectHardwareWalletView">
   <c:ContentArea Title="Hardware wallet"
-                 Caption="The hardware wallet will automatically appear when connected to the computer. The detection may take longer time."
+                 Caption="The hardware wallet will automatically appear when connected to the computer. The detection may take some time."
                  EnableCancel="True" CancelContent="Cancel"
                  EnableBack="True"
                  EnableNext="True" NextContent="Connect" >
