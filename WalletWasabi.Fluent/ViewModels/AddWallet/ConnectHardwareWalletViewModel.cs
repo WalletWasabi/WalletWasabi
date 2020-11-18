@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -42,7 +41,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				_searchHardwareWalletCts.Cancel();
 				ClearNavigation();
 			});
-			CancelCommand = ReactiveCommand.Create(() =>
+			BackCommand = ReactiveCommand.Create(() =>
 			{
 				_searchHardwareWalletCts.Cancel();
 				GoBack();
@@ -67,7 +66,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					await _hwiClient.SetupAsync(x.HardwareWalletInfo.Model, x.HardwareWalletInfo.Path, interactiveMode, ctsSetup.Token);
 				});
 
-			Task.Run(() => StartHardwareWalletDetection());
+			Task.Run(StartHardwareWalletDetection);
 		}
 
 		public HardwareWalletViewModel? SelectedHardwareWallet
@@ -92,24 +91,31 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				return;
 			}
 
-			// Stop detecting
-			_searchHardwareWalletCts.Cancel();
+			try
+			{
+				// Stop detecting
+				_searchHardwareWalletCts.Cancel();
 
-			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+				using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 
-			var fingerPrint = (HDFingerprint)SelectedHardwareWallet.HardwareWalletInfo.Fingerprint;
-			var extPubKey = await _hwiClient.GetXpubAsync(SelectedHardwareWallet.HardwareWalletInfo.Model, SelectedHardwareWallet.HardwareWalletInfo.Path, KeyManager.DefaultAccountKeyPath, cts.Token);
-			var path = _walletManager.WalletDirectories.GetWalletFilePaths(_walletName).walletFilePath;
+				var fingerPrint = (HDFingerprint)SelectedHardwareWallet.HardwareWalletInfo.Fingerprint;
+				var extPubKey = await _hwiClient.GetXpubAsync(SelectedHardwareWallet.HardwareWalletInfo.Model, SelectedHardwareWallet.HardwareWalletInfo.Path, KeyManager.DefaultAccountKeyPath, cts.Token);
+				var path = _walletManager.WalletDirectories.GetWalletFilePaths(_walletName).walletFilePath;
 
-			_walletManager.AddWallet(KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, extPubKey, path));
+				_walletManager.AddWallet(KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, extPubKey, path));
 
-			// Close dialog
-			ClearNavigation();
+				// Close dialog
+				ClearNavigation();
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+			}
 		}
 
-		protected async Task StartHardwareWalletDetection(bool runDetectionOnce = false)
+		protected async Task StartHardwareWalletDetection()
 		{
-			while (!_searchHardwareWalletCts.IsCancellationRequested && !runDetectionOnce)
+			while (!_searchHardwareWalletCts.IsCancellationRequested)
 			{
 				try
 				{
