@@ -260,19 +260,12 @@ namespace WalletWasabi.Blockchain.Transactions
 
 		public IEnumerable<SmartLabel> GetLabels() => GetTransactions().Select(x => x.Label);
 
+		#endregion Accessors
+
 		public async ValueTask DisposeAsync()
 		{
-			if (MempoolStore is { } mempoolStore)
-			{
-				await mempoolStore.DisposeAsync().ConfigureAwait(false);
-			}
-
-			if (ConfirmedStore is { } confirmedStore)
-			{
-				await confirmedStore.DisposeAsync().ConfigureAwait(false);
-			}
+			await MempoolStore.DisposeAsync().ConfigureAwait(false);
+			await ConfirmedStore.DisposeAsync().ConfigureAwait(false);
 		}
-
-		#endregion Accessors
 	}
 }
