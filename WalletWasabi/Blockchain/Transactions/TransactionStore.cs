@@ -22,7 +22,7 @@ namespace WalletWasabi.Blockchain.Transactions
 		private Dictionary<uint256, SmartTransaction> Transactions { get; } = new Dictionary<uint256, SmartTransaction>();
 		private object TransactionsLock { get; } = new object();
 		private IoManager TransactionsFileManager { get; set; }
-		private AsyncLock TransactionsAsyncLock { get; } = new AsyncLock();
+		private AsyncLock TransactionsFileAsyncLock { get; } = new AsyncLock();
 		private List<ITxStoreOperation> Operations { get; } = new List<ITxStoreOperation>();
 		private object OperationsLock { get; } = new object();
 		public Task? CommitToFileTask { get; private set; }
@@ -39,7 +39,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				// In Transactions.dat every line starts with the tx id, so the first character is the best for digest creation.
 				TransactionsFileManager = new IoManager(transactionsFilePath);
 
-				using (await TransactionsAsyncLock.LockAsync().ConfigureAwait(false))
+				using (await TransactionsFileAsyncLock.LockAsync().ConfigureAwait(false))
 				{
 					IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 
@@ -308,7 +308,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				}
 
 				ThrowIfDisposed();
-				using (await TransactionsAsyncLock.LockAsync().ConfigureAwait(false))
+				using (await TransactionsFileAsyncLock.LockAsync().ConfigureAwait(false))
 				{
 					foreach (ITxStoreOperation op in operationsToExecute)
 					{
@@ -426,7 +426,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				Logger.LogDebug(ex);
 			}
 
-			using var _ = await TransactionsAsyncLock.LockAsync().ConfigureAwait(false);
+			using var _ = await TransactionsFileAsyncLock.LockAsync().ConfigureAwait(false);
 		}
 	}
 }
