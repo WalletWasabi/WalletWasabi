@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>netcoreapp3.1</TargetFramework>
+		<TargetFramework>net5.0</TargetFramework>
+		<AnalysisLevel>latest</AnalysisLevel>
 		<Nullable>enable</Nullable>
 		<LangVersion>latest</LangVersion>
 		<NoWarn>1701;1702;1705;1591;1573;CA1031</NoWarn>
@@ -19,8 +20,8 @@
 		</Compile>
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.999-cibuild0011763-beta" />
-		<PackageReference Include="Avalonia.Diagnostics" Version="0.10.999-cibuild0011763-beta" />
+		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.999-cibuild0011962-beta" />
+		<PackageReference Include="Avalonia.Diagnostics" Version="0.10.999-cibuild0011962-beta" />
 		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.0-preview6" />
 		<PackageReference Include="Avalonia.Xaml.Interactions.Custom" Version="0.10.0-preview6" />
 		<PackageReference Include="Avalonia.Xaml.Interactivity" Version="0.10.0-preview6" />
