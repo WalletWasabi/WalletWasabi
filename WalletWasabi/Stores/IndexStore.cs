@@ -65,7 +65,7 @@ namespace WalletWasabi.Stores
 		private List<FilterModel> ImmatureFilters { get; } = new List<FilterModel>(150);
 
 		/// <summary>
-		/// Lock for modifying SmartHeaderChain or ImmatureFilters. This should be locked #1.
+		/// Lock for modifying SmartHeaderChain or ImmatureFilters. This should be lock #1.
 		/// </summary>
 		private AsyncLock IndexLock { get; } = new AsyncLock();
 
