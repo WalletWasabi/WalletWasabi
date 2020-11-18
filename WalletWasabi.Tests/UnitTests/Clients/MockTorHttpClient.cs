@@ -12,8 +12,6 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 	{
 		public Func<Uri> DestinationUriAction => () => new Uri("https://payment.server.org/pj");
 
-		public bool IsTorUsed => true;
-
 		public Func<HttpMethod, string, NameValueCollection, string, Task<HttpResponseMessage>> OnSendAsync { get; set; }
 
 		public async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken cancel = default)
