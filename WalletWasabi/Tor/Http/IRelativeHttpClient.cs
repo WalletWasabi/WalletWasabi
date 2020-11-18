@@ -1,6 +1,5 @@
 using System;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,7 +17,6 @@ namespace WalletWasabi.Tor.Http
 		{
 			var requestUri = new Uri(DestinationUriAction.Invoke(), relativeUri);
 			using var httpRequestMessage = new HttpRequestMessage(method, requestUri);
-			httpRequestMessage.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
 
 			if (content is { })
 			{
