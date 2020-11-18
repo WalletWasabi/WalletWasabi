@@ -13,7 +13,10 @@ namespace WalletWasabi.Tor.Http
 	{
 		private static DateTimeOffset? TorDoesntWorkSinceBacking = null;
 
-		private volatile bool _disposedValue = false; // To detect redundant calls
+		/// <summary>
+		/// To detect redundant calls.
+		/// </summary>
+		private volatile bool _disposed = false;
 
 		public TorHttpClient(Uri baseUri, EndPoint? torSocks5EndPoint, bool isolateStream = false) :
 			this(() => baseUri, torSocks5EndPoint, isolateStream)
@@ -139,7 +142,7 @@ namespace WalletWasabi.Tor.Http
 		/// </param>
 		protected virtual void Dispose(bool disposing)
 		{
-			if (!_disposedValue)
+			if (!_disposed)
 			{
 				if (disposing)
 				{
@@ -157,7 +160,7 @@ namespace WalletWasabi.Tor.Http
 						}
 					}
 				}
-				_disposedValue = true;
+				_disposed = true;
 			}
 		}
 
