@@ -22,7 +22,6 @@ namespace WalletWasabi.Stores
 	public class IndexStore : IAsyncDisposable
 	{
 		private int _throttleId;
-		private volatile bool _disposed;
 
 		public IndexStore(string workFolderPath, Network network, SmartHeaderChain hashChain)
 		{
@@ -69,8 +68,6 @@ namespace WalletWasabi.Stores
 		/// Lock for modifying SmartHeaderChain or ImmatureFilters. This should be locked #1.
 		/// </summary>
 		private AsyncLock IndexLock { get; } = new AsyncLock();
-
-		private Task? CommitToFileTask { get; set; }
 
 		public async Task InitializeAsync()
 		{
@@ -289,7 +286,6 @@ namespace WalletWasabi.Stores
 			{
 				var success = false;
 
-				ThrowIfDisposed();
 				using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
 				{
 					success = TryProcessFilter(filter, enqueue: true);
@@ -304,7 +300,7 @@ namespace WalletWasabi.Stores
 
 			if (successAny)
 			{
-				CommitToFileTask = TryCommitToFileAsync(TimeSpan.FromSeconds(3), cancel);
+				_ = TryCommitToFileAsync(TimeSpan.FromSeconds(3), cancel);
 			}
 		}
 
@@ -312,7 +308,6 @@ namespace WalletWasabi.Stores
 		{
 			FilterModel? filter = null;
 
-			ThrowIfDisposed();
 			using (await IndexLock.LockAsync().ConfigureAwait(false))
 			{
 				filter = ImmatureFilters.Last();
@@ -326,7 +321,7 @@ namespace WalletWasabi.Stores
 
 			Reorged?.Invoke(this, filter);
 
-			CommitToFileTask = TryCommitToFileAsync(TimeSpan.FromSeconds(3), cancel);
+			_ = TryCommitToFileAsync(TimeSpan.FromSeconds(3), cancel);
 
 			return filter;
 		}
@@ -376,7 +371,6 @@ namespace WalletWasabi.Stores
 		{
 			try
 			{
-				ThrowIfDisposed();
 				// If throttle is requested, then throttle.
 				if (throttle != TimeSpan.Zero)
 				{
@@ -400,8 +394,6 @@ namespace WalletWasabi.Stores
 				{
 					Interlocked.Exchange(ref _throttleId, 0); // So to notify the currently throttled threads that they do not have to run.
 				}
-
-				ThrowIfDisposed();
 
 				using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
 				using (await MatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
@@ -431,8 +423,6 @@ namespace WalletWasabi.Stores
 
 		public async Task ForeachFiltersAsync(Func<FilterModel, Task> todo, Height fromHeight, CancellationToken cancel = default)
 		{
-			ThrowIfDisposed();
-
 			using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
 			using (await MatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
 			{
@@ -508,41 +498,12 @@ namespace WalletWasabi.Stores
 			}
 		}
 
-		private void ThrowIfDisposed()
-		{
-			if (_disposed)
-			{
-				throw new ObjectDisposedException(nameof(IndexStore));
-			}
-		}
-
 		public async ValueTask DisposeAsync()
 		{
-			if (_disposed)
-			{
-				return;
-			}
-
-			// Indicate that the object is disposed.
-			_disposed = true;
-			try
-			{
-				if (CommitToFileTask is { } task)
-				{
-					await task.ConfigureAwait(false);
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.LogDebug(ex);
-			}
-
 			// Wait for the ongoing operations related to locks.
-			using (await IndexLock.LockAsync().ConfigureAwait(false))
-			using (await MatureIndexAsyncLock.LockAsync().ConfigureAwait(false))
-			using (await ImmatureIndexAsyncLock.LockAsync().ConfigureAwait(false))
-			{
-			}
+			using var dispose1 = await IndexLock.LockAsync().ConfigureAwait(false);
+			using var dispose2 = await MatureIndexAsyncLock.LockAsync().ConfigureAwait(false);
+			using var dispose3 = await ImmatureIndexAsyncLock.LockAsync().ConfigureAwait(false);
 		}
 	}
 }
