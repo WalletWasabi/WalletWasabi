@@ -87,6 +87,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			try
 			{
+				// TODO: Progress ring
 				await StopDetection();
 
 				var fingerPrint = (HDFingerprint)SelectedHardwareWallet.HardwareWalletInfo.Fingerprint;
