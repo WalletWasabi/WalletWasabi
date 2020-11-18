@@ -7,28 +7,22 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 	public class SearchItemViewModel : RoutableViewModel
 	{
 		public SearchItemViewModel(
-			NavigationStateViewModel navigationState,
-			NavigationTarget navigationTarget,
-			string iconName,
 			string title,
 			string caption,
 			int order,
 			SearchCategory category,
 			string keywords,
+			string iconName,
+			NavigationStateViewModel navigationState,
+			NavigationTarget navigationTarget,
 			Func<RoutableViewModel> createTargetView) : base(navigationState, navigationTarget)
 		{
 			IconName = iconName;
-
 			Title = title;
-
 			Caption = caption;
-
 			Order = order;
-
 			Category = category;
-
 			Keywords = keywords;
-
 			OpenCommand = ReactiveCommand.Create(() => NavigateTo(createTargetView(), navigationTarget));
 		}
 

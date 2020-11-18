@@ -78,57 +78,57 @@ namespace WalletWasabi.Fluent.ViewModels
 		private SearchItemViewModel CreateHomeSearchItem(SearchCategory category, int order, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage)
 		{
 			return new(
-				NavigationState,
-				NavigationTarget.HomeScreen,
-				iconName: "home_regular",
 				title: "Home",
 				caption: "Manage existing wallets",
 				order: order,
 				category: category,
 				keywords: "Home",
-				() => new HomePageViewModel(NavigationState, walletManager, addWalletPage));
+				iconName: "home_regular",
+				navigationState: NavigationState,
+				navigationTarget: NavigationTarget.HomeScreen,
+				createTargetView: () => new HomePageViewModel(NavigationState, walletManager, addWalletPage));
 		}
 
 		private SearchItemViewModel CreateSettingsSearchItem(SearchCategory category, int order)
 		{
 			return new(
-				NavigationState,
-				NavigationTarget.HomeScreen,
-				iconName: "settings_regular",
 				title: "Settings",
 				caption: "Manage appearance, privacy and other settings",
 				order: order,
 				category: category,
 				keywords: "Settings, General, User Interface, Privacy, Advanced",
-				() => new SettingsPageViewModel(NavigationState));
+				iconName: "settings_regular",
+				navigationState: NavigationState,
+				navigationTarget: NavigationTarget.HomeScreen,
+				createTargetView: () => new SettingsPageViewModel(NavigationState));
 		}
 
 		private SearchItemViewModel CreateAddWalletSearchItem(SearchCategory category, int order, AddWalletPageViewModel addWalletPage)
 		{
 			return new(
-				NavigationState,
-				NavigationTarget.DialogScreen,
-				iconName: "add_circle_regular",
 				title: "Add Wallet",
 				caption: "Create, recover or import wallet",
 				order: order,
 				category: category,
 				keywords: "Wallet, Add Wallet, Create Wallet, Recover Wallet, Import Wallet, Connect Hardware Wallet",
-				() => addWalletPage);
+				iconName: "add_circle_regular",
+				navigationState: NavigationState,
+				navigationTarget: NavigationTarget.DialogScreen,
+				createTargetView: () => addWalletPage);
 		}
 
 		private SearchItemViewModel CreateWalletSearchItem(SearchCategory category, int order, WalletViewModelBase wallet)
 		{
 			return new(
-				NavigationState,
-				NavigationTarget.HomeScreen,
-				iconName: "web_asset_regular",
 				title: wallet.WalletName,
 				caption: "Wallet",
 				order: order,
 				category: category,
 				keywords: $"Wallet, {wallet.WalletName}",
-				() => wallet);
+				iconName: "web_asset_regular",
+				navigationState: NavigationState,
+				navigationTarget: NavigationTarget.HomeScreen,
+				createTargetView: () => wallet);
 		}
 	}
 }
