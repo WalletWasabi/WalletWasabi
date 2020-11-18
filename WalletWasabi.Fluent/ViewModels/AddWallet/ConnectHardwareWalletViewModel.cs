@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,17 +37,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			_searchHardwareWalletCts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 			HardwareWallets = new ObservableCollection<HardwareWalletViewModel>();
 
-			CancelCommand = ReactiveCommand.Create(() =>
-			{
-				_searchHardwareWalletCts.Cancel();
-				ClearNavigation();
-			});
-			BackCommand = ReactiveCommand.Create(() =>
-			{
-				_searchHardwareWalletCts.Cancel();
-				GoBack();
-			});
-
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 
 			var connectCommandIsExecute =
@@ -58,6 +48,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				.Where(x => x is { } && x.HardwareWalletInfo.Model != HardwareWalletModels.Coldcard && !x.HardwareWalletInfo.IsInitialized())
 				.Subscribe(async x =>
 				{
+					// TODO: Notify the user to check the device
 					using var ctsSetup = new CancellationTokenSource(TimeSpan.FromMinutes(21));
 
 					// Trezor T doesn't require interactive mode.
@@ -67,7 +58,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				});
 
 			Task.Run(StartHardwareWalletDetection);
+
+			this.WhenNavigatedTo(() => Disposable.Create(_searchHardwareWalletCts.Cancel));
 		}
+
 
 		public HardwareWalletViewModel? SelectedHardwareWallet
 		{
@@ -93,7 +87,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			try
 			{
-				// Stop detecting
+				// Stop Detection
 				_searchHardwareWalletCts.Cancel();
 
 				using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
@@ -113,7 +107,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			}
 		}
 
-		protected async Task StartHardwareWalletDetection()
+		private async Task StartHardwareWalletDetection()
 		{
 			while (!_searchHardwareWalletCts.IsCancellationRequested)
 			{
