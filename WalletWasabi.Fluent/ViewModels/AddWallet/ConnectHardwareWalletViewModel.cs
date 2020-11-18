@@ -104,6 +104,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			catch (Exception ex)
 			{
 				Logger.LogError(ex);
+
+				// Restart detection
+				_detectionTask.Start();
 			}
 		}
 
