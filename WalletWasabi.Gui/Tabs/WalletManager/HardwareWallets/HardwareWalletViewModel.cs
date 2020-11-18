@@ -1,4 +1,5 @@
 using System.Text;
+using WalletWasabi.Extensions;
 using WalletWasabi.Hwi.Models;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
@@ -7,7 +8,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 	{
 		public HardwareWalletViewModel(HwiEnumerateEntry hwi)
 		{
-			string typeString = hwi.Model.ToString();
+			string typeString = hwi.Model.FriendlyName();
 			var walletNameBuilder = new StringBuilder(typeString);
 
 			if (hwi.NeedsPinSent is true)
