@@ -29,9 +29,9 @@ namespace WalletWasabi.Stores
 			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 			IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 			var indexFilePath = Path.Combine(WorkFolderPath, "MatureIndex.dat");
-			MatureIndexFileManager = new DigestableIoManager(indexFilePath, digestRandomIndex: -1);
+			MatureIndexFileManager = new DigestableSafeIoManager(indexFilePath, digestRandomIndex: -1);
 			var immatureIndexFilePath = Path.Combine(WorkFolderPath, "ImmatureIndex.dat");
-			ImmatureIndexFileManager = new DigestableIoManager(immatureIndexFilePath, digestRandomIndex: -1);
+			ImmatureIndexFileManager = new DigestableSafeIoManager(immatureIndexFilePath, digestRandomIndex: -1);
 
 			Network = Guard.NotNull(nameof(network), network);
 
@@ -47,8 +47,8 @@ namespace WalletWasabi.Stores
 
 		private string WorkFolderPath { get; }
 		private Network Network { get; }
-		private DigestableIoManager MatureIndexFileManager { get; }
-		private DigestableIoManager ImmatureIndexFileManager { get; }
+		private DigestableSafeIoManager MatureIndexFileManager { get; }
+		private DigestableSafeIoManager ImmatureIndexFileManager { get; }
 
 		/// <summary>
 		/// Lock for accessing MatureIndex file. This should be locked #2.
@@ -114,7 +114,7 @@ namespace WalletWasabi.Stores
 			}
 		}
 
-		private async Task DeleteIfDeprecatedAsync(DigestableIoManager ioManager)
+		private async Task DeleteIfDeprecatedAsync(DigestableSafeIoManager ioManager)
 		{
 			string? firstLine;
 			using (var content = ioManager.OpenText())

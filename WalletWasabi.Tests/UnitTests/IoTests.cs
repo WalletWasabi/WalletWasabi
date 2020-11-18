@@ -31,7 +31,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			// Single thread file operations.
 
-			DigestableIoManager ioman1 = new DigestableIoManager(file1);
+			DigestableSafeIoManager ioman1 = new DigestableSafeIoManager(file1);
 
 			// Delete the file if Exist.
 
@@ -155,7 +155,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var file = Path.Combine(Common.GetWorkDir(), $"file.dat");
 
 			AsyncLock asyncLock = new AsyncLock();
-			DigestableIoManager ioman = new DigestableIoManager(file);
+			DigestableSafeIoManager ioman = new DigestableSafeIoManager(file);
 			ioman.DeleteMe();
 			await ioman.WriteAllLinesAsync(Array.Empty<string>());
 			Assert.False(File.Exists(ioman.FilePath));
