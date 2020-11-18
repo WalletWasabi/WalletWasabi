@@ -25,7 +25,7 @@ namespace WalletWasabi.Hwi.Models
 			Error = error;
 			Code = code;
 
-			// If a Coldcard is not initialized then the the fingerprint is full of zeros.
+			// If a Coldcard is not initialized then the fingerprint is full of zeros.
 			if (model == HardwareWalletModels.Coldcard && fingerprint.HasValue && fingerprint.Value.ToString() == "00000000")
 			{
 				Code = HwiErrorCode.DeviceNotInitialized;
