@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reactive;
@@ -119,9 +118,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			{
 				try
 				{
-					return await _hwiClient.GetXpubAsync(SelectedHardwareWallet!.HardwareWalletInfo.Model, SelectedHardwareWallet.HardwareWalletInfo.Path, KeyManager.DefaultAccountKeyPath, cts.Token);
+					return await _hwiClient.GetXpubAsync(wallet.HardwareWalletInfo.Model, wallet.HardwareWalletInfo.Path, KeyManager.DefaultAccountKeyPath, cts.Token);
 				}
-				catch (Exception)
+				catch (OperationCanceledException)
+				{
+					throw;
+				}
+				catch (Exception ex)
 				{
 					if (tryCounter++ > 3)
 					{
