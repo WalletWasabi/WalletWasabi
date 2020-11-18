@@ -7,7 +7,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Io
 {
-	public abstract class SafeIoManager : IoManager
+	public class SafeIoManager : IoManager
 	{
 		private const string OldExtension = ".old";
 		private const string NewExtension = ".new";
