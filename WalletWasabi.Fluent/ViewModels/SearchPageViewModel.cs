@@ -25,13 +25,13 @@ namespace WalletWasabi.Fluent.ViewModels
 			var walletCategory = new SearchCategory("Wallets", 1);
 
 			searchItems.Add(
-				CreateHomeSearchItem(generalCategory, 0, navigationState, walletManager, addWalletPage));
+				CreateHomeSearchItem(generalCategory, 0, walletManager, addWalletPage));
 
 			searchItems.Add(
-				CreateSettingsSearchItem(generalCategory, 1, navigationState));
+				CreateSettingsSearchItem(generalCategory, 1));
 
 			searchItems.Add(
-				CreateAddWalletSearchItem(generalCategory, 2, navigationState, addWalletPage));
+				CreateAddWalletSearchItem(generalCategory, 2, addWalletPage));
 
 			var queryFilter = this.WhenValueChanged(t => t.SearchQuery)
 				.Throttle(TimeSpan.FromMilliseconds(100))
@@ -39,7 +39,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				.DistinctUntilChanged();
 
 			walletManager.Items.ToObservableChangeSet()
-				.Transform(x => CreateWalletSearchItem(walletCategory, 0, navigationState, x))
+				.Transform(x => CreateWalletSearchItem(walletCategory, 0, x))
 				.Sort(SortExpressionComparer<SearchItemViewModel>.Ascending(i => i.Title))
 				.Merge(searchItems.Connect())
 				.Filter(queryFilter)
@@ -75,10 +75,10 @@ namespace WalletWasabi.Fluent.ViewModels
 			};
 		}
 
-		private SearchItemViewModel CreateHomeSearchItem(SearchCategory category, int order, NavigationStateViewModel navigationState, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage)
+		private SearchItemViewModel CreateHomeSearchItem(SearchCategory category, int order, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage)
 		{
 			return new SearchItemViewModel(
-				navigationState,
+				NavigationState,
 				NavigationTarget.HomeScreen,
 				iconName: "home_regular",
 				title: "Home",
@@ -86,13 +86,13 @@ namespace WalletWasabi.Fluent.ViewModels
 				order: order,
 				category: category,
 				keywords: "Home",
-				() => new HomePageViewModel(navigationState, walletManager, addWalletPage));
+				() => new HomePageViewModel(NavigationState, walletManager, addWalletPage));
 		}
 
-		private SearchItemViewModel CreateSettingsSearchItem(SearchCategory category, int order, NavigationStateViewModel navigationState)
+		private SearchItemViewModel CreateSettingsSearchItem(SearchCategory category, int order)
 		{
 			return new SearchItemViewModel(
-				navigationState,
+				NavigationState,
 				NavigationTarget.HomeScreen,
 				iconName: "settings_regular",
 				title: "Settings",
@@ -100,13 +100,13 @@ namespace WalletWasabi.Fluent.ViewModels
 				order: order,
 				category: category,
 				keywords: "Settings, General, User Interface, Privacy, Advanced",
-				() => new SettingsPageViewModel(navigationState));
+				() => new SettingsPageViewModel(NavigationState));
 		}
 
-		private SearchItemViewModel CreateAddWalletSearchItem(SearchCategory category, int order, NavigationStateViewModel navigationState, AddWalletPageViewModel addWalletPage)
+		private SearchItemViewModel CreateAddWalletSearchItem(SearchCategory category, int order, AddWalletPageViewModel addWalletPage)
 		{
 			return new SearchItemViewModel(
-				navigationState,
+				NavigationState,
 				NavigationTarget.DialogScreen,
 				iconName: "add_circle_regular",
 				title: "Add Wallet",
@@ -117,10 +117,10 @@ namespace WalletWasabi.Fluent.ViewModels
 				() => addWalletPage);
 		}
 
-		private SearchItemViewModel CreateWalletSearchItem(SearchCategory category, int order, NavigationStateViewModel navigationState, WalletViewModelBase wallet)
+		private SearchItemViewModel CreateWalletSearchItem(SearchCategory category, int order, WalletViewModelBase wallet)
 		{
 			return new SearchItemViewModel(
-				navigationState,
+				NavigationState,
 				NavigationTarget.HomeScreen,
 				iconName: "web_asset_regular",
 				title: wallet.WalletName,
