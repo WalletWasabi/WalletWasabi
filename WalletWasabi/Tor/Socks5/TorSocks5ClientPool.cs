@@ -83,7 +83,7 @@ namespace WalletWasabi.Tor.Socks5
 
 						if (poolItem is { })
 						{
-							client = poolItem.GetClient();
+							client = poolItem.Client;
 							break;
 						}
 					}
