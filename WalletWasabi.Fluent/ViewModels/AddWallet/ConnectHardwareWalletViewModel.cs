@@ -126,7 +126,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				}
 				catch (Exception ex)
 				{
-					if (tryCounter++ > 3)
+					if (tryCounter++ >= 3)
 					{
 						throw;
 					}
