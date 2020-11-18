@@ -15,11 +15,15 @@ namespace WalletWasabi.Tor.Http
 	{
 		static ClearnetHttpClient()
 		{
-			HttpClient = new HttpClient(new HttpClientHandler()
+			var socketHandler = new SocketsHttpHandler()
 			{
-				AutomaticDecompression = DecompressionMethods.GZip,
-				SslProtocols = IHttpClient.SupportedSslProtocols
-			});
+				AutomaticDecompression = DecompressionMethods.All,
+				PooledConnectionLifetime = TimeSpan.FromMinutes(5)
+			};
+
+			socketHandler.SslOptions.EnabledSslProtocols = IHttpClient.SupportedSslProtocols;
+
+			HttpClient = new HttpClient(socketHandler);
 		}
 
 		public ClearnetHttpClient(Func<Uri> destinationUriAction)
