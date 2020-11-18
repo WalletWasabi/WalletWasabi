@@ -10,6 +10,11 @@ namespace WalletWasabi.WebClients.Wasabi
 	public class WasabiClientFactory
 	{
 		/// <summary>
+		/// To detect redundant calls.
+		/// </summary>
+		private bool _disposed = false;
+
+		/// <summary>
 		/// Creates a new instance of the object.
 		/// </summary>
 		/// <param name="torEndPoint">If <c>null</c> then clearnet (not over Tor) is used, otherwise HTTP requests are routed through provided Tor endpoint.</param>
@@ -21,11 +26,6 @@ namespace WalletWasabi.WebClients.Wasabi
 			SharedTorHttpClient = new TorHttpClient(BackendUriGetter.Invoke(), TorEndpoint, isolateStream: false);
 			SharedWasabiClient = new WasabiClient(SharedTorHttpClient);
 		}
-
-		/// <summary>
-		/// To detect redundant calls.
-		/// </summary>
-		private bool _disposed = false;
 
 		/// <summary>Tor SOCKS5 endpoint.</summary>
 		/// <remarks>The property should be <c>>private</c> when Tor refactoring is done.</remarks>
