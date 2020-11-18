@@ -264,8 +264,11 @@ namespace WalletWasabi.Blockchain.Transactions
 
 		public async ValueTask DisposeAsync()
 		{
-			await MempoolStore.DisposeAsync().ConfigureAwait(false);
-			await ConfirmedStore.DisposeAsync().ConfigureAwait(false);
+			var tasks = new[] { MempoolStore.DisposeAsync(), ConfirmedStore.DisposeAsync() };
+			foreach (var t in tasks)
+			{
+				await t.ConfigureAwait(false);
+			}
 		}
 	}
 }
