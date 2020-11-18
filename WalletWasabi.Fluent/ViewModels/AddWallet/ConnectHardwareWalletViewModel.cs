@@ -110,7 +110,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			}
 		}
 
-		private async Task StopDetection()
+		private Task StopDetection() => Task.Run(() =>
 		{
 			_searchHardwareWalletCts.Cancel();
 
@@ -118,7 +118,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			{
 				Thread.Sleep(100);
 			}
-		}
+		});
 
 		private async void StartHardwareWalletDetection()
 		{
