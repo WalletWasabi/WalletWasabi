@@ -41,7 +41,7 @@
                 <Panel Margin="8,0,8,0"  DockPanel.Dock="Top">
                   <Label Classes="h6 bold" DataContext="{Binding Category}" Content="{Binding Title}" />
                 </Panel>
-                <ItemsControl HorizontalAlignment="Center" Items="{Binding SearchItems}">
+                <ItemsControl HorizontalAlignment="Left" Items="{Binding SearchItems}">
                   <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                       <WrapPanel Orientation="Horizontal" />
