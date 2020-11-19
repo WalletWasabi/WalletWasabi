@@ -56,7 +56,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					// Trezor T doesn't require interactive mode.
 					var interactiveMode = !(x!.HardwareWalletInfo.Model == HardwareWalletModels.Trezor_T || x.HardwareWalletInfo.Model == HardwareWalletModels.Trezor_T_Simulator);
 
-					await _hwiClient.SetupAsync(x.HardwareWalletInfo.Model, x.HardwareWalletInfo.Path, interactiveMode, ctsSetup.Token);
+					try
+					{
+						await _hwiClient.SetupAsync(x.HardwareWalletInfo.Model, x.HardwareWalletInfo.Path, interactiveMode, ctsSetup.Token);
+					}
+					catch (Exception ex)
+					{
+						Logger.LogError(ex);
+					}
 				});
 
 			this.WhenNavigatedTo(() => Disposable.Create(_searchHardwareWalletCts.Cancel));
