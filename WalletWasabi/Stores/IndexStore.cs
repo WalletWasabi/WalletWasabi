@@ -72,7 +72,7 @@ namespace WalletWasabi.Stores
 		/// </summary>
 		private AsyncLock IndexLock { get; } = new AsyncLock();
 
-		public async Task InitializeAsync(CancellationToken cancel)
+		public async Task InitializeAsync(CancellationToken cancel = default)
 		{
 			using (BenchmarkLogger.Measure())
 			{

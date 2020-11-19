@@ -35,7 +35,7 @@ namespace WalletWasabi.Blockchain.Transactions
 		public TransactionStore ConfirmedStore { get; }
 		private object Lock { get; } = new object();
 
-		public async Task InitializeAsync(CancellationToken cancel, bool ensureBackwardsCompatibility = true)
+		public async Task InitializeAsync(CancellationToken cancel = default, bool ensureBackwardsCompatibility = true)
 		{
 			using (BenchmarkLogger.Measure())
 			{
