@@ -42,7 +42,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			set => this.RaiseAndSetIfChanged(ref _isDialogOpen, value);
 		}
 
-		private void CloseDialogs(IList<IRoutableViewModel> navigationStack)
+		private void CloseDialogs(IEnumerable<IRoutableViewModel> navigationStack)
 		{
 			// Close all dialogs so the awaited tasks can complete.
 			// - DialogViewModelBase.ShowDialogAsync()
