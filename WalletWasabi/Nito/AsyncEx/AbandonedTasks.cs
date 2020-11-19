@@ -48,17 +48,23 @@ namespace WalletWasabi.Nito.AsyncEx
 					}
 				}
 
+				// Save the task to have AggregatedExceptions.
+				var whenAllTask = Task.WhenAll(tasks);
+
 				// 3. Wait for all tasks to complete.
 				try
 				{
-					await Task.WhenAll(tasks).ConfigureAwait(false);
+					await whenAllTask.ConfigureAwait(false);
 				}
-				catch (Exception exc)
+				catch (Exception)
 				{
-					// Catch every exceptions but log only non-cancellation ones.
-					if (!(exc is OperationCanceledException))
+					if (whenAllTask.Exception is { } aggregatedException)
 					{
-						Logger.LogDebug(exc);
+						// Catch every exceptions but log only non-cancellation ones.
+						foreach (var exc in aggregatedException.InnerExceptions.Where(ex => ex is not OperationCanceledException))
+						{
+							Logger.LogDebug(exc);
+						}
 					}
 				}
 			}

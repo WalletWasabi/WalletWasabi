@@ -12,7 +12,7 @@ namespace WalletWasabi.Tests.UnitTests
 	public class AbandonedTasksTests
 	{
 		[Fact]
-		public async Task AllFeeEstimateOrdersByTargetAsync()
+		public async Task AbandonedTasksTestsAsync()
 		{
 			using CancellationTokenSource cts = new();
 
