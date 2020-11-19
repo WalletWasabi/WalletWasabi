@@ -1,5 +1,6 @@
 using NBitcoin;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Services;
 using Xunit;
@@ -39,6 +40,40 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 				await using SingleInstanceChecker sicRegTest = new SingleInstanceChecker(Network.RegTest, regtestLockName);
 				await sicRegTest.CheckAsync();
 				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sicRegTest.CheckAsync());
+			}
+		}
+
+		[Fact]
+		public async Task OtherInstanceStartedTestsAsync()
+		{
+			string mainLockName = GenerateLockName(Network.Main);
+
+			// Disposal test.
+			await using var sic = new SingleInstanceChecker(Network.Main, mainLockName);
+			bool eventCalled = false;
+
+			sic.OtherInstanceStarted += SetCalled;
+
+			try
+			{
+				// I am the first instance this should be fine.
+				await sic.CheckAsync();
+
+				await using var second = new SingleInstanceChecker(Network.Main, mainLockName);
+
+				// I am the second one.
+				await Assert.ThrowsAsync<InvalidOperationException>(async () => await second.CheckAsync());
+
+				Assert.True(eventCalled);
+			}
+			finally
+			{
+				sic.OtherInstanceStarted -= SetCalled;
+			}
+
+			void SetCalled(object? sender, EventArgs args)
+			{
+				eventCalled = true;
 			}
 		}
 
