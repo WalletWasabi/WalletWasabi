@@ -91,6 +91,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				if (added || updated)
 				{
 					cancel.ThrowIfCancellationRequested();
+
 					// Another process worked into the file and appended the same transaction into it.
 					// In this case we correct the file by serializing the unique set.
 					await SerializeAllTransactionsNoLockAsync().ConfigureAwait(false);
