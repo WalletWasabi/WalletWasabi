@@ -43,14 +43,14 @@ namespace WalletWasabi.Stores
 		/// </summary>
 		public UntrustedP2pBehavior CreateUntrustedP2pBehavior() => new UntrustedP2pBehavior(MempoolService);
 
-		public async Task InitializeAsync()
+		public async Task InitializeAsync(CancellationToken cancel)
 		{
 			using (BenchmarkLogger.Measure())
 			{
 				var initTasks = new[]
 				{
-					IndexStore.InitializeAsync(),
-					TransactionStore.InitializeAsync()
+					IndexStore.InitializeAsync(cancel),
+					TransactionStore.InitializeAsync(cancel)
 				};
 
 				await Task.WhenAll(initTasks).ConfigureAwait(false);

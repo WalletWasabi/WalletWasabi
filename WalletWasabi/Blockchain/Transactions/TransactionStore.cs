@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Transactions.Operations;
 using WalletWasabi.Helpers;
@@ -28,7 +29,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 		private AbandonedTasks AbandonedTasks { get; } = new AbandonedTasks();
 
-		public async Task InitializeAsync(string workFolderPath, Network network, string operationName)
+		public async Task InitializeAsync(string workFolderPath, Network network, string operationName, CancellationToken cancel)
 		{
 			using (BenchmarkLogger.Measure(operationName: operationName))
 			{
@@ -40,27 +41,31 @@ namespace WalletWasabi.Blockchain.Transactions
 				// In Transactions.dat every line starts with the tx id, so the first character is the best for digest creation.
 				TransactionsFileManager = new IoManager(transactionsFilePath);
 
+				cancel.ThrowIfCancellationRequested();
 				using (await TransactionsFileAsyncLock.LockAsync().ConfigureAwait(false))
 				{
 					IoHelpers.EnsureDirectoryExists(WorkFolderPath);
+					cancel.ThrowIfCancellationRequested();
 
 					if (!TransactionsFileManager.Exists())
 					{
 						await SerializeAllTransactionsNoLockAsync().ConfigureAwait(false);
+						cancel.ThrowIfCancellationRequested();
 					}
 
-					await InitializeTransactionsNoLockAsync().ConfigureAwait(false);
+					await InitializeTransactionsNoLockAsync(cancel).ConfigureAwait(false);
 				}
 			}
 		}
 
-		private async Task InitializeTransactionsNoLockAsync()
+		private async Task InitializeTransactionsNoLockAsync(CancellationToken cancel)
 		{
 			try
 			{
 				IoHelpers.EnsureFileExists(TransactionsFileManager.FilePath);
+				cancel.ThrowIfCancellationRequested();
 
-				var allLines = await TransactionsFileManager.ReadAllLinesAsync().ConfigureAwait(false);
+				var allLines = await TransactionsFileManager.ReadAllLinesAsync(cancel).ConfigureAwait(false);
 				var allTransactions = allLines
 					.Select(x => SmartTransaction.FromLine(x, Network))
 					.OrderByBlockchain();
@@ -85,12 +90,13 @@ namespace WalletWasabi.Blockchain.Transactions
 
 				if (added || updated)
 				{
+					cancel.ThrowIfCancellationRequested();
 					// Another process worked into the file and appended the same transaction into it.
 					// In this case we correct the file by serializing the unique set.
 					await SerializeAllTransactionsNoLockAsync().ConfigureAwait(false);
 				}
 			}
-			catch
+			catch (Exception ex) when (ex is not OperationCanceledException)
 			{
 				// We found a corrupted entry. Stop here.
 				// Delete the currupted file.
