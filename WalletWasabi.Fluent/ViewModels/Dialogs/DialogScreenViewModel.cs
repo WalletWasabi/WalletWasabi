@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using ReactiveUI;
@@ -8,7 +10,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
 	public class DialogScreenViewModel : ViewModelBase, IScreen
 	{
-		private bool _isClosing;
 		private bool _isDialogOpen;
 
 		public DialogScreenViewModel()
@@ -16,23 +17,19 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			Observable.FromEventPattern(Router.NavigationStack, nameof(Router.NavigationStack.CollectionChanged))
 				.Subscribe(_ =>
 				{
-					if (!_isClosing)
-					{
-						IsDialogOpen = Router.NavigationStack.Count >= 1;
-					}
+					IsDialogOpen = Router.NavigationStack.Count >= 1;
 				});
 
 			this.WhenAnyValue(x => x.IsDialogOpen)
 				.Skip(1) // Skip the initial value change (which is false).
 				.DistinctUntilChanged()
 				.Subscribe(x =>
-			{
-				if (!x && !_isClosing)
 				{
-					// Reset navigation when Dialog is using IScreen for navigation instead of the default IDialogHost.
-					Close();
-				}
-			});
+					if (!x)
+					{
+						CloseScreen();
+					}
+				});
 		}
 
 		public RoutingState Router { get; } = new RoutingState();
@@ -45,28 +42,33 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			set => this.RaiseAndSetIfChanged(ref _isDialogOpen, value);
 		}
 
-		public void Close()
+		private void CloseDialogs(IList<IRoutableViewModel> navigationStack)
 		{
-			if (!_isClosing)
+			// Close all dialogs so the awaited tasks can complete.
+			// - DialogViewModelBase.ShowDialogAsync()
+			// - DialogViewModelBase.GetDialogResultAsync()
+
+			foreach (var routable in navigationStack)
 			{
-				_isClosing = true;
-				if (Router.NavigationStack.Count >= 1)
+				if (routable is DialogViewModelBase dialog)
 				{
-					foreach (var routable in Router.NavigationStack)
-					{
-						// Close all dialogs so the awaited tasks can complete.
-						// - DialogViewModelBase.ShowDialogAsync()
-						// - DialogViewModelBase.GetDialogResultAsync()
-						if (routable is DialogViewModelBase dialog)
-						{
-							dialog.IsDialogOpen = false;
-						}
-					}
-					Router.NavigationStack.Clear();
+					dialog.IsDialogOpen = false;
 				}
-				IsDialogOpen = false;
-				_isClosing = false;
 			}
+		}
+
+		private void CloseScreen()
+		{
+			// Save Router.NavigationStack as it can be modified when closing Dialog.
+			var navigationStack = Router.NavigationStack.ToList();
+
+			// Reset navigation when Dialog is using IScreen for navigation instead of the default IDialogHost.
+			if (Router.NavigationStack.Count > 0)
+			{
+				Router.NavigationStack.Clear();
+			}
+
+			CloseDialogs(navigationStack);
 		}
 	}
 }
