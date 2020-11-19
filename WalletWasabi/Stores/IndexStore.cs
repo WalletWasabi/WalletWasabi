@@ -13,6 +13,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Io;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Nito.AsyncEx;
 
 namespace WalletWasabi.Stores
 {
@@ -38,6 +39,8 @@ namespace WalletWasabi.Stores
 
 			SmartHeaderChain = Guard.NotNull(nameof(hashChain), hashChain);
 		}
+
+		private TaskRemembler TaskRemembler { get; } = new TaskRemembler();
 
 		public event EventHandler<FilterModel>? Reorged;
 
@@ -300,7 +303,7 @@ namespace WalletWasabi.Stores
 
 			if (successAny)
 			{
-				_ = TryCommitToFileAsync(TimeSpan.FromSeconds(3), cancel);
+				TaskRemembler.AddAndClearCompleted(TryCommitToFileAsync(TimeSpan.FromSeconds(3), cancel));
 			}
 		}
 
@@ -321,7 +324,7 @@ namespace WalletWasabi.Stores
 
 			Reorged?.Invoke(this, filter);
 
-			_ = TryCommitToFileAsync(TimeSpan.FromSeconds(3), cancel);
+			TaskRemembler.AddAndClearCompleted(TryCommitToFileAsync(TimeSpan.FromSeconds(3), cancel));
 
 			return filter;
 		}
@@ -500,10 +503,7 @@ namespace WalletWasabi.Stores
 
 		public async ValueTask DisposeAsync()
 		{
-			// Wait for the ongoing operations related to locks.
-			using var dispose1 = await IndexLock.LockAsync().ConfigureAwait(false);
-			using var dispose2 = await MatureIndexAsyncLock.LockAsync().ConfigureAwait(false);
-			using var dispose3 = await ImmatureIndexAsyncLock.LockAsync().ConfigureAwait(false);
+			await TaskRemembler.WhenAllAsync().ConfigureAwait(false);
 		}
 	}
 }

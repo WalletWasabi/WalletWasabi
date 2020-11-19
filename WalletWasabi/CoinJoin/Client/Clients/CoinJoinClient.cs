@@ -22,6 +22,7 @@ using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Nito.AsyncEx;
 using WalletWasabi.Services;
 using WalletWasabi.WebClients.Wasabi;
 using static WalletWasabi.Crypto.SchnorrBlinding;
@@ -46,6 +47,8 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		private long _running;
 
 		private long _statusProcessing;
+
+		private TaskRemembler TaskRemembler { get; } = new TaskRemembler();
 
 		public CoinJoinClient(
 			WasabiSynchronizer synchronizer,
@@ -74,7 +77,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			var lastResponse = Synchronizer.LastResponse;
 			if (lastResponse is { })
 			{
-				_ = TryProcessStatusAsync(Synchronizer.LastResponse.CcjRoundStates);
+				TaskRemembler.AddAndClearCompleted(TryProcessStatusAsync(Synchronizer.LastResponse.CcjRoundStates));
 			}
 		}
 
@@ -1050,6 +1053,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					}
 				}
 			}
+			await TaskRemembler.WhenAllAsync().ConfigureAwait(false);
 		}
 
 		public async Task DequeueAllCoinsFromMixGracefullyAsync(DequeueReason reason, CancellationToken cancel)
