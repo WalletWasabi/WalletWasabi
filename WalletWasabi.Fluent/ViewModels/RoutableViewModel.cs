@@ -115,7 +115,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				// Close all dialogs so the awaited tasks can complete.
 				// - DialogViewModelBase.ShowDialogAsync()
 				// - DialogViewModelBase.GetDialogResultAsync()
-				if (router.CurrentViewModel is DialogViewModelBase dialog)
+				if (router.NavigationStack.LastOrDefault() is DialogViewModelBase dialog)
 				{
 					dialog.IsDialogOpen = false;
 				}
