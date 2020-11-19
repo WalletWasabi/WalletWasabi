@@ -50,6 +50,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 				if (Router.NavigationStack.Count >= 1)
 				{
 					Router.NavigationStack.Clear();
+					IsDialogVisible = false;
 				}
 				_isClosing = false;
 			}
