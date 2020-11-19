@@ -692,7 +692,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// It is relevant even when all the coins can be dust.
 			Assert.True(relevant.IsNews);
 			var coin = Assert.Single(transactionProcessor.Coins);
-			Assert.Equal(4, coin.HdPubKey.AnonymitySet);
+			Assert.Equal(1, coin.HdPubKey.AnonymitySet);
 			Assert.Equal(amount, coin.Amount);
 		}
 
