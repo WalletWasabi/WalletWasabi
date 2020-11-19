@@ -1,24 +1,20 @@
+using Microsoft.Extensions.Hosting;
 using NBitcoin;
-using Nito.AsyncEx;
 using System;
 using System.IO;
+using System.IO.Pipes;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Services
 {
-	public class SingleInstanceChecker : IDisposable
+	public class SingleInstanceChecker : BackgroundService
 	{
-		/// <summary>Unique prefix for global mutex name.</summary>
-		private const string MutexString = "WalletWasabiSingleInstance";
-
-		/// <summary>Name of system-wide mutex.</summary>
-		private readonly string _lockName;
-
-		private bool _disposedValue;
+		private const string PipeNamePrefix = "WalletWasabiSingleInstance";
 
 		/// <summary>
-		/// Creates a new instance of the object where lock name is based on <paramref name="network"/> name. 
+		/// Creates a new instance of the object where lock name is based on <paramref name="network"/> name.
 		/// </summary>
 		/// <param name="network">Bitcoin network selected when Wasabi Wallet was started.</param>
 		public SingleInstanceChecker(Network network) : this(network, network.ToString())
@@ -29,67 +25,92 @@ namespace WalletWasabi.Services
 		/// Use this constructor only for testing.
 		/// </summary>
 		/// <param name="network">Bitcoin network selected when Wasabi Wallet was started.</param>
-		/// <param name="lockName">Name of system-wide mutex.</param>
+		/// <param name="lockName">Postfix for the lock name</param>
 		public SingleInstanceChecker(Network network, string lockName)
 		{
 			Network = network;
-			_lockName = $"{MutexString}-{lockName}";
+			PipeName = $"{PipeNamePrefix}-{lockName}";
 		}
 
-		private IDisposable? SingleApplicationLockHolder { get; set; }
 		private Network Network { get; }
+
+		private string PipeName { get; }
+
+		private CancellationTokenSource DisposeCts { get; } = new CancellationTokenSource();
+
+		private bool FirstInstance => NamedPipeServerStream is { };
+
+		private NamedPipeServerStream? NamedPipeServerStream { get; set; }
 
 		public async Task CheckAsync()
 		{
-			if (_disposedValue)
+			if (DisposeCts.IsCancellationRequested)
 			{
 				throw new ObjectDisposedException(nameof(SingleInstanceChecker));
 			}
 
-			// The disposal of this mutex handled by AsyncMutex.WaitForAllMutexToCloseAsync().
-			var mutex = new AsyncMutex(_lockName);
 			try
 			{
-				using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(200));
-				SingleApplicationLockHolder = await mutex.LockAsync(cts.Token).ConfigureAwait(false);
+				NamedPipeServerStream = new NamedPipeServerStream(PipeName, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+
+				// Start listening for ClientPipes with ExecuteAsync.
+				await StartAsync(DisposeCts.Token).ConfigureAwait(false);
+
+				// This is the first instance of Wasabi we can return.
+				return;
 			}
 			catch (IOException ex)
 			{
-				throw new InvalidOperationException($"Wasabi is already running on {Network}!", ex);
+				// There is another instance already running.
+				Logger.LogDebug($"Could not create {nameof(NamedPipeServerStream)} reason '{ex}'.");
 			}
-		}
 
-		/// <summary>
-		/// <list type="bullet">
-		/// <item>Unmanaged resources need to be released regardless of the value of the <paramref name="disposing"/> parameter.</item>
-		/// <item>Managed resources need to be released if the value of <paramref name="disposing"/> is <c>true</c>.</item>
-		/// </list>
-		/// </summary>
-		/// <param name="disposing">
-		/// Indicates whether the method call comes from a <see cref="Dispose()"/> method
-		/// (its value is <c>true</c>) or from a finalizer (its value is <c>false</c>).
-		/// </param>
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
+			// Try to signal the other instance by connecting to it.
+			// "." to specify the local computer.
+			using var client = new NamedPipeClientStream(".", PipeName, PipeDirection.Out);
+			try
 			{
-				if (disposing)
+				// Just make a connection and close the client.
+				await client.ConnectAsync(2000, DisposeCts.Token).ConfigureAwait(false);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+			}
+
+			throw new InvalidOperationException($"Wasabi is already running on {Network}!");
+		}
+
+		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+		{
+			try
+			{
+				using var server = NamedPipeServerStream;
+				if (server is null)
 				{
-					SingleApplicationLockHolder?.Dispose();
+					throw new InvalidOperationException();
 				}
-				_disposedValue = true;
+
+				while (!stoppingToken.IsCancellationRequested)
+				{
+					await server.WaitForConnectionAsync(stoppingToken).ConfigureAwait(false);
+					Logger.LogInfo("Got a connection!");
+
+					// Disconnect the client to be able to wait for another connection.
+					server.Disconnect();
+				}
+			}
+			catch (Exception ex) when (!(ex is OperationCanceledException))
+			{
+				// Something happened we are not trying to recover the NamedPipeServerStream.
+				Logger.LogError(ex);
 			}
 		}
 
-		/// <summary>
-		/// Do not change this code.
-		/// </summary>
-		public void Dispose()
+		public override void Dispose()
 		{
-			// Dispose of unmanaged resources.
-			Dispose(true);
-			// Suppress finalization.
-			GC.SuppressFinalize(this);
+			DisposeCts.Dispose();
+			base.Dispose();
 		}
 	}
 }
