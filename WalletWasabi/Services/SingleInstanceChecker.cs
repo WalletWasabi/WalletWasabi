@@ -13,7 +13,6 @@ namespace WalletWasabi.Services
 	public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 	{
 		private const string PipeNamePrefix = "WalletWasabiSingleInstance";
-		private bool _disposed;
 
 		/// <summary>
 		/// Creates a new instance of the object where lock name is based on <paramref name="network"/> name.
