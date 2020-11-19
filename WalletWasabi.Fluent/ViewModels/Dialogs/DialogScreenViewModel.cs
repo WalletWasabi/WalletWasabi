@@ -22,15 +22,15 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 					}
 				});
 
-			this.WhenAnyValue(x => x.IsDialogOpen).Subscribe(x =>
+			this.WhenAnyValue(x => x.IsDialogOpen)
+				.Skip(1) // Skip the initial value change (which is false).
+				.DistinctUntilChanged()
+				.Subscribe(x =>
 			{
-				if (!x)
+				if (!x && !_isClosing)
 				{
-					if (!_isClosing)
-					{
-						// Reset navigation when Dialog is using IScreen for navigation instead of the default IDialogHost.
-						Close();
-					}
+					// Reset navigation when Dialog is using IScreen for navigation instead of the default IDialogHost.
+					Close();
 				}
 			});
 		}
