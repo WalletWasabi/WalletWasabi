@@ -79,7 +79,7 @@ namespace NBitcoin.RPC
 
 				return RpcStatus.Responsive(bci.Headers, bci.Blocks, pi.Length);
 			}
-			catch (Exception ex) when (ex is not OperationCanceledException && ex is not TimeoutException)
+			catch (Exception ex) when (ex is not OperationCanceledException and not TimeoutException)
 			{
 				Logger.LogTrace(ex);
 				return RpcStatus.Unresponsive;
