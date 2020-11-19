@@ -134,14 +134,18 @@ namespace WalletWasabi.Gui
 			{
 				await SingleInstanceChecker.CheckAsync().ConfigureAwait(false);
 
+				cancel.ThrowIfCancellationRequested();
+
 				Cache = new MemoryCache(new MemoryCacheOptions
 				{
 					SizeLimit = 1_000,
 					ExpirationScanFrequency = TimeSpan.FromSeconds(30)
 				});
 				var bstoreInitTask = BitcoinStore.InitializeAsync();
-				var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
 
+				cancel.ThrowIfCancellationRequested();
+
+				var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
 				AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
 				var addrManTask = InitializeAddressManagerBehaviorAsync();
 
@@ -341,6 +345,8 @@ namespace WalletWasabi.Gui
 
 				#endregion JsonRpcServerInitialization
 
+				cancel.ThrowIfCancellationRequested();
+
 				#region Blocks provider
 
 				var blockProvider = new CachedBlockProvider(
@@ -350,6 +356,8 @@ namespace WalletWasabi.Gui
 					BitcoinStore.BlockRepository);
 
 				#endregion Blocks provider
+
+				cancel.ThrowIfCancellationRequested();
 
 				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Nodes, Config.ServiceConfiguration, FeeProviders, blockProvider);
 			}
@@ -748,6 +756,17 @@ namespace WalletWasabi.Gui
 				if (Cache is { } cache)
 				{
 					cache.Dispose();
+				}
+
+				Logger.LogDebug($"Step: {nameof(BitcoinStore)}.", nameof(Global));
+
+				try
+				{
+					await BitcoinStore.DisposeAsync().ConfigureAwait(false);
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError($"Error during the disposal of {nameof(BitcoinStore)}: {ex}");
 				}
 
 				Logger.LogDebug($"Step: {nameof(SingleInstanceChecker)}.", nameof(Global));

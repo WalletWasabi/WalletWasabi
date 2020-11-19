@@ -10,6 +10,11 @@ namespace WalletWasabi.WebClients.Wasabi
 	public class WasabiClientFactory
 	{
 		/// <summary>
+		/// To detect redundant calls.
+		/// </summary>
+		private bool _disposed = false;
+
+		/// <summary>
 		/// Creates a new instance of the object.
 		/// </summary>
 		/// <param name="torEndPoint">If <c>null</c> then clearnet (not over Tor) is used, otherwise HTTP requests are routed through provided Tor endpoint.</param>
@@ -17,6 +22,9 @@ namespace WalletWasabi.WebClients.Wasabi
 		{
 			TorEndpoint = torEndPoint;
 			BackendUriGetter = backendUriGetter;
+
+			SharedTorHttpClient = new TorHttpClient(BackendUriGetter.Invoke(), TorEndpoint, isolateStream: false);
+			SharedWasabiClient = new WasabiClient(SharedTorHttpClient);
 		}
 
 		/// <summary>Tor SOCKS5 endpoint.</summary>
@@ -29,17 +37,52 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// <summary>Whether Tor is enabled or disabled.</summary>
 		public bool IsTorEnabled => TorEndpoint is { };
 
+		/// <summary>Shared instance of <see cref="TorHttpClient"/>.</summary>
+		public TorHttpClient SharedTorHttpClient { get; }
+
+		/// <summary>Shared instance of <see cref="WasabiClient"/>.</summary>
+		public WasabiClient SharedWasabiClient { get; }
+
 		/// <summary>
-		/// Creates new <see cref="WasabiClient"/> instance with correctly set backend URL.
+		/// Creates new <see cref="TorHttpClient"/> instance with correctly set backend URL.
 		/// </summary>
-		/// <remarks>
-		/// For privacy reasons, it is advisable to create a new instance of <see cref="WasabiClient"/>
-		/// for each HTTP request instead of reusing one instance for multiple HTTP requests.
-		/// </remarks>
-		public WasabiClient NewBackendClient(bool isolateStream = false)
+		public TorHttpClient NewTorHttpClient(bool isolateStream = true)
 		{
-			TorHttpClient torHttpClient = new TorHttpClient(BackendUriGetter.Invoke(), TorEndpoint, isolateStream: isolateStream);
-			return new WasabiClient(torHttpClient);
+			return new TorHttpClient(BackendUriGetter.Invoke(), TorEndpoint, isolateStream: isolateStream);
+		}
+
+		// Protected implementation of Dispose pattern.
+		protected virtual void Dispose(bool disposing)
+		{
+			if (_disposed)
+			{
+				return;
+			}
+
+			if (disposing)
+			{
+				// Dispose managed state (managed objects).
+				SharedTorHttpClient.Dispose();
+			}
+
+			_disposed = true;
+		}
+
+		public void Dispose()
+		{
+			// Dispose of unmanaged resources.
+			Dispose(true);
+
+			// Suppress finalization.
+			GC.SuppressFinalize(this);
+		}
+
+		/// <summary>
+		/// Creates new <see cref="TorHttpClient"/>.
+		/// </summary>
+		public TorHttpClient NewBackendTorHttpClient(bool isolateStream)
+		{
+			return new TorHttpClient(BackendUriGetter, TorEndpoint, isolateStream);
 		}
 	}
 }

@@ -13,7 +13,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
-using WalletWasabi.Tor.Exceptions;
+using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
@@ -43,6 +43,7 @@ namespace WalletWasabi.Services
 
 		private long _blockRequests; // There are priority requests in queue.
 
+		/// <param name="wasabiClientFactory">The class takes ownership of the instance.</param>
 		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, WasabiClientFactory wasabiClientFactory)
 		{
 			Network = network;
@@ -50,7 +51,7 @@ namespace WalletWasabi.Services
 			_running = StateNotStarted;
 			BitcoinStore = bitcoinStore;
 			WasabiClientFactory = wasabiClientFactory;
-			WasabiClient = wasabiClientFactory.NewBackendClient();
+			WasabiClient = wasabiClientFactory.SharedWasabiClient;
 
 			StopCts = new CancellationTokenSource();
 		}
@@ -65,6 +66,7 @@ namespace WalletWasabi.Services
 
 		public SynchronizeResponse? LastResponse { get; private set; }
 
+		/// <summary><see cref="WasabiSynchronizer"/> is responsible for disposing of this object.</summary>
 		public WasabiClientFactory WasabiClientFactory { get; }
 
 		public WasabiClient WasabiClient { get; }
@@ -185,14 +187,14 @@ namespace WalletWasabi.Services
 								TorStatus = TorStatus.Running;
 								DoNotGenSocksServFail();
 							}
-							catch (ConnectionException ex)
+							catch (TorConnectionException ex)
 							{
 								TorStatus = TorStatus.NotRunning;
 								BackendStatus = BackendStatus.NotConnected;
 								HandleIfGenSocksServFail(ex);
 								throw;
 							}
-							catch (TorSocks5FailureResponseException ex)
+							catch (TorConnectCommandFailedException ex)
 							{
 								TorStatus = TorStatus.Running;
 								BackendStatus = BackendStatus.NotConnected;
@@ -317,7 +319,7 @@ namespace WalletWasabi.Services
 						{
 							Logger.LogInfo("Wasabi Synchronizer execution was canceled.");
 						}
-						catch (ConnectionException ex)
+						catch (TorConnectionException ex)
 						{
 							Logger.LogError(ex);
 							try
@@ -412,7 +414,7 @@ namespace WalletWasabi.Services
 				await Task.Delay(50).ConfigureAwait(false);
 			}
 
-			WasabiClient.Dispose();
+			WasabiClientFactory.Dispose();
 			StopCts.Dispose();
 
 			EnableRequests(); // Enable requests (it's possible something is being blocked outside the class by AreRequestsBlocked.
