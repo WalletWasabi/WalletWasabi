@@ -108,7 +108,7 @@ namespace WalletWasabi.Tor.Socks5
 
 					return response;
 				}
-				catch (TorHttpResponseException ex) when (ex.RepField == RepField.TtlExpired)
+				catch (TorConnectCommandFailedException ex) when (ex.RepField == RepField.TtlExpired)
 				{
 					// If we get TTL Expired error then wait and retry again linux often does this.
 					Logger.LogTrace(ex);

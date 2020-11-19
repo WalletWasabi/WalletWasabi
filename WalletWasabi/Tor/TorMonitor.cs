@@ -42,7 +42,7 @@ namespace WalletWasabi.Tor
 
 				if (torMisbehavedFor > CheckIfRunningAfterTorMisbehavedFor)
 				{
-					if (TorHttpClient.LatestTorException is TorHttpResponseException torEx)
+					if (TorHttpClient.LatestTorException is TorConnectCommandFailedException torEx)
 					{
 						if (torEx.RepField == RepField.HostUnreachable)
 						{
@@ -54,7 +54,7 @@ namespace WalletWasabi.Tor
 							}
 
 							// Check if it changed in the meantime...
-							if (TorHttpClient.LatestTorException is TorHttpResponseException torEx2 && torEx2.RepField == RepField.HostUnreachable)
+							if (TorHttpClient.LatestTorException is TorConnectCommandFailedException torEx2 && torEx2.RepField == RepField.HostUnreachable)
 							{
 								// Fallback here...
 								RequestFallbackAddressUsage = true;

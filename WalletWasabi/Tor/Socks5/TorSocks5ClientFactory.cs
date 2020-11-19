@@ -242,7 +242,7 @@ namespace WalletWasabi.Tor.Socks5
 					// the reply. This must be no more than 10 seconds after detecting the
 					// condition that caused a failure.
 					Logger.LogWarning($"Connection response indicates a failure. Actual response is: '{connectionResponse.Rep}'. Request: '{host}:{port}'.");
-					throw new TorHttpResponseException(connectionResponse.Rep);
+					throw new TorConnectCommandFailedException(connectionResponse.Rep);
 				}
 
 				// Do not check the Bnd. Address and Bnd. Port. because Tor does not seem to return any, ever. It returns zeros instead.
@@ -262,9 +262,9 @@ namespace WalletWasabi.Tor.Socks5
 				Logger.LogTrace($"Connecting to destination '{host}:{port}' was canceled.");
 				throw;
 			}
-			catch (TorHttpResponseException e)
+			catch (TorConnectCommandFailedException e)
 			{
-				Logger.LogError($"{nameof(TorHttpResponseException)} was thrown when connecting to destination '{host}:{port}'.", e);
+				Logger.LogError($"{nameof(TorConnectCommandFailedException)} was thrown when connecting to destination '{host}:{port}'.", e);
 				throw;
 			}
 			catch (Exception e)
