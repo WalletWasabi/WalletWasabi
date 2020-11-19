@@ -2,7 +2,7 @@ using System;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 
-namespace WalletWasabi.Tor.Exceptions
+namespace WalletWasabi.Tor.Socks5.Exceptions
 {
 	public class TorSocks5FailureResponseException : Exception
 	{

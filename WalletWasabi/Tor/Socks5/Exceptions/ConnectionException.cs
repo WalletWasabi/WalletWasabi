@@ -1,6 +1,6 @@
 using System;
 
-namespace WalletWasabi.Tor.Exceptions
+namespace WalletWasabi.Tor.Socks5.Exceptions
 {
 	public class ConnectionException : Exception
 	{
