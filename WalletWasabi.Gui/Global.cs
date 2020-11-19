@@ -142,10 +142,10 @@ namespace WalletWasabi.Gui
 					ExpirationScanFrequency = TimeSpan.FromSeconds(30)
 				});
 				var bstoreInitTask = BitcoinStore.InitializeAsync();
-				var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
 
 				cancel.ThrowIfCancellationRequested();
 
+				var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
 				AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
 				var addrManTask = InitializeAddressManagerBehaviorAsync();
 
