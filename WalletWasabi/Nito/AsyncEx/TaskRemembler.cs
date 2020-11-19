@@ -50,7 +50,8 @@ namespace WalletWasabi.Nito.AsyncEx
 
 				// 3. Wait for all tasks to complete.
 				await Task.WhenAll(tasks).ConfigureAwait(false);
-			} while (true);
+			}
+			while (true);
 		}
 
 		private void AddNoLock(params Task[] tasks)
