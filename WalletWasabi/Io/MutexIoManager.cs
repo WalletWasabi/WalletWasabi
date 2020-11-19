@@ -7,7 +7,7 @@ namespace WalletWasabi.Io
 	{
 		public MutexIoManager(string filePath) : base(filePath)
 		{
-			var shortHash = HashHelpers.GenerateSha256Hash(FilePath).Substring(1, 7);
+			var shortHash = HashHelpers.GenerateSha256Hash(FilePath).Substring(0, 7);
 
 			// https://docs.microsoft.com/en-us/dotnet/api/system.threading.mutex?view=netframework-4.8
 			// On a server that is running Terminal Services, a named system mutex can have two levels of visibility.

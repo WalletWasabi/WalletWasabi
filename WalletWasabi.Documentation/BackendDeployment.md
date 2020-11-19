@@ -96,7 +96,7 @@ sudo apt-get update && sudo apt-get dist-upgrade -y
 
 # 3. Install .NET SDK
 
-https://www.microsoft.com/net/learn/get-started/linux/ubuntu18-04
+https://docs.microsoft.com/en-us/dotnet/core/install/linux-ubuntu
 
 Opt out of the telemetry:
 
