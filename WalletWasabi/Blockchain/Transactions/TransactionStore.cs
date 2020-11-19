@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.JsonPatch;
 using NBitcoin;
+using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,20 +10,23 @@ using WalletWasabi.Blockchain.Transactions.Operations;
 using WalletWasabi.Helpers;
 using WalletWasabi.Io;
 using WalletWasabi.Logging;
+using WalletWasabi.Nito.AsyncEx;
 
 namespace WalletWasabi.Blockchain.Transactions
 {
-	public class TransactionStore
+	public class TransactionStore : IAsyncDisposable
 	{
 		public string WorkFolderPath { get; private set; }
 		public Network Network { get; private set; }
 
-		private Dictionary<uint256, SmartTransaction> Transactions { get; set; }
-		private object TransactionsLock { get; set; }
-		private MutexIoManager TransactionsFileManager { get; set; }
-
+		private Dictionary<uint256, SmartTransaction> Transactions { get; } = new Dictionary<uint256, SmartTransaction>();
+		private object TransactionsLock { get; } = new object();
+		private IoManager TransactionsFileManager { get; set; }
+		private AsyncLock TransactionsFileAsyncLock { get; } = new AsyncLock();
 		private List<ITxStoreOperation> Operations { get; } = new List<ITxStoreOperation>();
 		private object OperationsLock { get; } = new object();
+
+		private AbandonedTasks AbandonedTasks { get; } = new AbandonedTasks();
 
 		public async Task InitializeAsync(string workFolderPath, Network network, string operationName)
 		{
@@ -30,28 +35,26 @@ namespace WalletWasabi.Blockchain.Transactions
 				WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 				Network = Guard.NotNull(nameof(network), network);
 
-				Transactions = new Dictionary<uint256, SmartTransaction>();
-				TransactionsLock = new object();
+				var transactionsFilePath = Path.Combine(WorkFolderPath, "Transactions.dat");
 
-				var fileName = Path.Combine(WorkFolderPath, "Transactions.dat");
-				var transactionsFilePath = Path.Combine(WorkFolderPath, fileName);
-				TransactionsFileManager = new MutexIoManager(transactionsFilePath);
+				// In Transactions.dat every line starts with the tx id, so the first character is the best for digest creation.
+				TransactionsFileManager = new IoManager(transactionsFilePath);
 
-				using (await TransactionsFileManager.Mutex.LockAsync().ConfigureAwait(false))
+				using (await TransactionsFileAsyncLock.LockAsync().ConfigureAwait(false))
 				{
 					IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 
 					if (!TransactionsFileManager.Exists())
 					{
-						await SerializeAllTransactionsNoMutexAsync().ConfigureAwait(false);
+						await SerializeAllTransactionsNoLockAsync().ConfigureAwait(false);
 					}
 
-					await InitializeTransactionsNoMutexAsync().ConfigureAwait(false);
+					await InitializeTransactionsNoLockAsync().ConfigureAwait(false);
 				}
 			}
 		}
 
-		private async Task InitializeTransactionsNoMutexAsync()
+		private async Task InitializeTransactionsNoLockAsync()
 		{
 			try
 			{
@@ -84,7 +87,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				{
 					// Another process worked into the file and appended the same transaction into it.
 					// In this case we correct the file by serializing the unique set.
-					await SerializeAllTransactionsNoMutexAsync().ConfigureAwait(false);
+					await SerializeAllTransactionsNoLockAsync().ConfigureAwait(false);
 				}
 			}
 			catch
@@ -111,12 +114,12 @@ namespace WalletWasabi.Blockchain.Transactions
 
 			if (ret.isAdded)
 			{
-				_ = TryAppendToFileAsync(tx);
+				AbandonedTasks.AddAndClearCompleted(TryAppendToFileAsync(tx));
 			}
 
 			if (ret.isUpdated)
 			{
-				_ = TryUpdateFileAsync(tx);
+				AbandonedTasks.AddAndClearCompleted(TryUpdateFileAsync(tx));
 			}
 
 			return ret;
@@ -153,7 +156,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 			if (ret)
 			{
-				_ = TryUpdateFileAsync(tx);
+				AbandonedTasks.AddAndClearCompleted(TryUpdateFileAsync(tx));
 			}
 
 			return ret;
@@ -182,7 +185,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 			if (isRemoved)
 			{
-				_ = TryRemoveFromFileAsync(hash);
+				AbandonedTasks.AddAndClearCompleted(TryRemoveFromFileAsync(hash));
 			}
 
 			return isRemoved;
@@ -236,7 +239,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 		#region Serialization
 
-		private async Task SerializeAllTransactionsNoMutexAsync()
+		private async Task SerializeAllTransactionsNoLockAsync()
 		{
 			List<SmartTransaction> transactionsClone;
 			lock (TransactionsLock)
@@ -305,7 +308,7 @@ namespace WalletWasabi.Blockchain.Transactions
 					}
 				}
 
-				using (await TransactionsFileManager.Mutex.LockAsync().ConfigureAwait(false))
+				using (await TransactionsFileAsyncLock.LockAsync().ConfigureAwait(false))
 				{
 					foreach (ITxStoreOperation op in operationsToExecute)
 					{
@@ -319,7 +322,7 @@ namespace WalletWasabi.Blockchain.Transactions
 							}
 							catch
 							{
-								await SerializeAllTransactionsNoMutexAsync().ConfigureAwait(false);
+								await SerializeAllTransactionsNoLockAsync().ConfigureAwait(false);
 							}
 						}
 						else if (op is Remove removeOperation)
@@ -348,7 +351,7 @@ namespace WalletWasabi.Blockchain.Transactions
 							}
 							catch
 							{
-								await SerializeAllTransactionsNoMutexAsync().ConfigureAwait(false);
+								await SerializeAllTransactionsNoLockAsync().ConfigureAwait(false);
 							}
 						}
 						else if (op is Update updateOperation)
@@ -375,7 +378,7 @@ namespace WalletWasabi.Blockchain.Transactions
 							}
 							catch
 							{
-								await SerializeAllTransactionsNoMutexAsync().ConfigureAwait(false);
+								await SerializeAllTransactionsNoLockAsync().ConfigureAwait(false);
 							}
 						}
 						else
@@ -392,5 +395,10 @@ namespace WalletWasabi.Blockchain.Transactions
 		}
 
 		#endregion Serialization
+
+		public async ValueTask DisposeAsync()
+		{
+			await AbandonedTasks.WhenAllAsync().ConfigureAwait(false);
+		}
 	}
 }
