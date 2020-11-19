@@ -197,7 +197,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				sw.Stop();
 				if (sw.Elapsed.Milliseconds < 5000)
 				{
-					Thread.Sleep(5000 - sw.Elapsed.Milliseconds);
+					await Task.Delay(5000 - sw.Elapsed.Milliseconds);
 				}
 			}
 		}
