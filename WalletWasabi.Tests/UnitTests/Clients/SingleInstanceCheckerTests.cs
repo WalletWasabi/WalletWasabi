@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Services;
 using Xunit;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Tests.UnitTests.Clients
 {
@@ -14,6 +15,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 		[Fact]
 		public async Task SingleInstanceTestsAsync()
 		{
+			Logger.LogInfo("Started test 1");
 			string mainLockName = GenerateLockName(Network.Main);
 
 			// Disposal test.
@@ -46,6 +48,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 		[Fact]
 		public async Task OtherInstanceStartedTestsAsync()
 		{
+			Logger.LogInfo("Started test 2");
 			string mainLockName = GenerateLockName(Network.Main);
 
 			// Disposal test.
