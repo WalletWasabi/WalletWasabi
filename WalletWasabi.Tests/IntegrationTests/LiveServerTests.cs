@@ -52,10 +52,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 			var filterModel = StartingFilters.GetStartingFilter(network);
 
-			FiltersResponse filtersResponse = await client.GetFiltersAsync(filterModel.Header.BlockHash, 2);
+			FiltersResponse? filtersResponse = await client.GetFiltersAsync(filterModel.Header.BlockHash, 2);
 
 			Assert.NotNull(filtersResponse);
-			Assert.True(filtersResponse.Filters.Count() == 2);
+			Assert.True(filtersResponse!.Filters.Count() == 2);
 		}
 
 		[Theory]
@@ -63,7 +63,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[InlineData(NetworkType.Testnet)]
 		public async Task GetAllRoundStatesAsync(NetworkType networkType)
 		{
-			using var client = new SatoshiClient(LiveServerTestsFixture.UriMappings[networkType], Common.TorSocks5Endpoint);
+			using var torHttpClient = MakeTorHttpClient(networkType);
+			var client = new SatoshiClient(torHttpClient);
 			var states = await client.GetAllRoundStatesAsync();
 			Assert.True(states.NotNullAndNotEmpty());
 			Assert.True(states.Count() >= 1);

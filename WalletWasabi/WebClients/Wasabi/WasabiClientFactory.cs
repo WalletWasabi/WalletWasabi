@@ -41,5 +41,13 @@ namespace WalletWasabi.WebClients.Wasabi
 			TorHttpClient torHttpClient = new TorHttpClient(BackendUriGetter.Invoke(), TorEndpoint, isolateStream: isolateStream);
 			return new WasabiClient(torHttpClient);
 		}
+
+		/// <summary>
+		/// Creates new <see cref="TorHttpClient"/>.
+		/// </summary>
+		public TorHttpClient NewBackendTorHttpClient(bool isolateStream)
+		{
+			return new TorHttpClient(BackendUriGetter, TorEndpoint, isolateStream);
+		}
 	}
 }

@@ -4,11 +4,11 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
-using WalletWasabi.Tor.Http.Interfaces;
+using WalletWasabi.Tor.Http;
 
 namespace WalletWasabi.Tests.UnitTests.Clients
 {
-	public class MockTorHttpClient : ITorHttpClient
+	public class MockTorHttpClient : IRelativeHttpClient
 	{
 		public Func<Uri> DestinationUriAction => () => new Uri("https://payment.server.org/pj");
 
@@ -34,7 +34,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 				? await request.Content.ReadAsStringAsync().ConfigureAwait(false)
 				: "";
 
-			Uri uri = request.RequestUri;
+			Uri uri = request.RequestUri!;
 			NameValueCollection parameters = HttpUtility.ParseQueryString(uri.Query);
 
 			return await OnSendAsync(request.Method, uri.AbsolutePath, parameters, body).ConfigureAwait(false);

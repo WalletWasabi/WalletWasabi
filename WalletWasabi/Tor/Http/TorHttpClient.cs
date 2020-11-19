@@ -82,7 +82,6 @@ namespace WalletWasabi.Tor.Http
 			relativeUri = Guard.NotNull(nameof(relativeUri), relativeUri);
 			var requestUri = new Uri(DestinationUriAction(), relativeUri);
 			using var request = new HttpRequestMessage(method, requestUri);
-			request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
 
 			if (content is { })
 			{
@@ -108,7 +107,7 @@ namespace WalletWasabi.Tor.Http
 				{
 					try
 					{
-						HttpResponseMessage ret = await SendAsync(request).ConfigureAwait(false);
+						HttpResponseMessage ret = await SendAsync(request, cancel).ConfigureAwait(false);
 						TorDoesntWorkSince = null;
 						return ret;
 					}
@@ -122,7 +121,7 @@ namespace WalletWasabi.Tor.Http
 						cancel.ThrowIfCancellationRequested();
 						try
 						{
-							HttpResponseMessage ret2 = await SendAsync(request).ConfigureAwait(false);
+							HttpResponseMessage ret2 = await SendAsync(request, cancel).ConfigureAwait(false);
 							TorDoesntWorkSince = null;
 							return ret2;
 						}
@@ -150,7 +149,7 @@ namespace WalletWasabi.Tor.Http
 
 						cancel.ThrowIfCancellationRequested();
 
-						HttpResponseMessage ret3 = await SendAsync(request).ConfigureAwait(false);
+						HttpResponseMessage ret3 = await SendAsync(request, cancel).ConfigureAwait(false);
 						TorDoesntWorkSince = null;
 						return ret3;
 					}
@@ -199,6 +198,7 @@ namespace WalletWasabi.Tor.Http
 			// other than those acting as tunnels) MUST send their own HTTP - version
 			// in forwarded messages.
 			request.Version = HttpProtocol.HTTP11.Version;
+			request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
 
 			if (TorSocks5Client is { } && !TorSocks5Client.IsConnected)
 			{
