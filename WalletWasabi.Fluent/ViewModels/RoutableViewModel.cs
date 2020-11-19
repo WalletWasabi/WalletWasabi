@@ -1,5 +1,6 @@
 using System;
-using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -111,11 +112,33 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			if (router is not null)
 			{
+				// Close all dialogs so the awaited tasks can complete.
+				// - DialogViewModelBase.ShowDialogAsync()
+				// - DialogViewModelBase.GetDialogResultAsync()
+				if (router.CurrentViewModel is DialogViewModelBase dialog)
+				{
+					dialog.IsDialogOpen = false;
+				}
+
 				router.NavigateBack.Execute();
 			}
 		}
 
 		public void GoBack() => GoBack(NavigationTarget);
+
+		private void CloseDialogs(IEnumerable<IRoutableViewModel> navigationStack)
+		{
+			foreach (var routable in navigationStack)
+			{
+				// Close all dialogs so the awaited tasks can complete.
+				// - DialogViewModelBase.ShowDialogAsync()
+				// - DialogViewModelBase.GetDialogResultAsync()
+				if (routable is DialogViewModelBase dialog)
+				{
+					dialog.IsDialogOpen = false;
+				}
+			}
+		}
 
 		public void ClearNavigation(NavigationTarget navigationTarget)
 		{
@@ -135,7 +158,14 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			if (router is not null)
 			{
-				router.NavigationStack.Clear();
+				if (router.NavigationStack.Count >= 1)
+				{
+					var navigationStack = router.NavigationStack.ToList();
+
+					router.NavigationStack.Clear();
+
+					CloseDialogs(navigationStack);
+				}
 			}
 		}
 
