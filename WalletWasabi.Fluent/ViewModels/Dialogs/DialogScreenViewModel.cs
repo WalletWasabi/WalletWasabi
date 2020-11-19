@@ -59,16 +59,16 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 		private void CloseScreen()
 		{
-			// Save Router.NavigationStack as it can be modified when closing Dialog.
-			var navigationStack = Router.NavigationStack.ToList();
-
 			// Reset navigation when Dialog is using IScreen for navigation instead of the default IDialogHost.
 			if (Router.NavigationStack.Count > 0)
 			{
-				Router.NavigationStack.Clear();
-			}
+				// Save Router.NavigationStack as it can be modified when closing Dialog.
+				var navigationStack = Router.NavigationStack.ToList();
 
-			CloseDialogs(navigationStack);
+				Router.NavigationStack.Clear();
+
+				CloseDialogs(navigationStack);
+			}
 		}
 	}
 }
