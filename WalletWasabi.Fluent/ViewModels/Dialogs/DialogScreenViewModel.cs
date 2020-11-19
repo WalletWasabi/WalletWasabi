@@ -26,8 +26,11 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			{
 				if (!x)
 				{
-					// Reset navigation when Dialog is using IScreen for navigation instead of the default IDialogHost.
-					Close();
+					if (!_isClosing)
+					{
+						// Reset navigation when Dialog is using IScreen for navigation instead of the default IDialogHost.
+						Close();
+					}
 				}
 			});
 		}
