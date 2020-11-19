@@ -9,7 +9,7 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 {
-	public class PubKeyReuseTests
+	public class PubKeyReuseAnonScoreTests
 	{
 		[Fact]
 		public void AddressReusePunishment()

@@ -28,7 +28,11 @@ namespace WalletWasabi.Blockchain.Analysis
 			var ownInputCount = tx.WalletInputs.Count;
 			var ownOutputCount = tx.WalletOutputs.Count;
 
-			if (inputCount == ownInputCount)
+			if (ownInputCount == 0)
+			{
+				AnalyzeReceive(tx);
+			}
+			else if (inputCount == ownInputCount)
 			{
 				if (outputCount == ownOutputCount)
 				{
@@ -110,6 +114,15 @@ namespace WalletWasabi.Blockchain.Analysis
 			foreach (var key in distinctWalletInputPubKeys)
 			{
 				key.AnonymitySet = newInputAnonset;
+			}
+		}
+
+		private static void AnalyzeReceive(SmartTransaction tx)
+		{
+			// No matter how much anonymity a user would had gained in a tx, if the money comes from outside, then make anonset 1.
+			foreach (var key in tx.WalletOutputs.Select(x => x.HdPubKey))
+			{
+				key.AnonymitySet = 1;
 			}
 		}
 

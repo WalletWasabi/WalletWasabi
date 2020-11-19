@@ -11,7 +11,7 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 {
-	public class CoinJoinAnonscoreTests
+	public class CoinJoinAnonScoreTests
 	{
 		[Fact]
 		public void BasicCalculation()
