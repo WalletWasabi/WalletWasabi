@@ -400,7 +400,7 @@ namespace WalletWasabi.Stores
 					await Task.WhenAll(tasks).ConfigureAwait(false);
 				}
 			}
-			catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
+			catch (Exception ex) when (ex is OperationCanceledException || ex is TimeoutException)
 			{
 				Logger.LogTrace(ex);
 			}
