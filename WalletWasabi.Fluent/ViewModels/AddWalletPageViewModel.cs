@@ -65,7 +65,7 @@ namespace WalletWasabi.Fluent.ViewModels
 					}
 					else
 					{
-						GoBack(); // TODO: Consider using ClearNavigation()
+						ClearNavigation();
 					}
 				});
 
