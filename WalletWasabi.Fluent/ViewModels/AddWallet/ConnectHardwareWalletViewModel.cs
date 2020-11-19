@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reactive;
@@ -155,6 +156,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		{
 			while (!_searchHardwareWalletCts.IsCancellationRequested)
 			{
+				var sw = new Stopwatch();
+				sw.Start();
+
 				try
 				{
 					// Reset token
@@ -181,6 +185,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					{
 						Logger.LogError(ex);
 					}
+				}
+
+				// Too fast enumeration causes the detected hardware wallets cannot provide the fingerprint.
+				// Wait at least 5 seconds between two enumerations.
+				sw.Stop();
+				if (sw.Elapsed.Milliseconds < 5000)
+				{
+					Thread.Sleep(5000 - sw.Elapsed.Milliseconds);
 				}
 			}
 		}
