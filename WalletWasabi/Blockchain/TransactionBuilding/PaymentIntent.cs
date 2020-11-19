@@ -88,7 +88,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 
 		public bool TryGetCustomRequest(out DestinationRequest request)
 		{
-			request = Requests.SingleOrDefault(x => x.Amount.Type == MoneyRequestType.Change || x.Amount.Type == MoneyRequestType.AllRemaining);
+			request = Requests.SingleOrDefault(x => x.Amount.Type is MoneyRequestType.Change or MoneyRequestType.AllRemaining);
 
 			return request is { };
 		}

@@ -65,7 +65,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 				count++;
 			}
 			var rate = errorCount / (double)count;
-			Assert.True(rate < 0.000001 && rate > -0.000001);
+			Assert.True(rate is < 0.000001 and > (-0.000001));
 		}
 	}
 }

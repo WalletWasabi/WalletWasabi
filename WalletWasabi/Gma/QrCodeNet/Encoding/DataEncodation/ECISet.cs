@@ -51,15 +51,15 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		/// <returns>Number of Codewords(Byte) for ECI Assignment Value</returns>
 		private static int NumOfCodewords(int eCIValue)
 		{
-			if (eCIValue >= 0 && eCIValue <= 127)
+			if (eCIValue is >= 0 and <= 127)
 			{
 				return 1;
 			}
-			else if (eCIValue > 127 && eCIValue <= 16383)
+			else if (eCIValue is > 127 and <= 16383)
 			{
 				return 2;
 			}
-			else if (eCIValue > 16383 && eCIValue <= 999999)
+			else if (eCIValue is > 16383 and <= 999999)
 			{
 				return 3;
 			}

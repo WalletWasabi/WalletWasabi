@@ -160,7 +160,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				try
 				{
 					using HttpResponseMessage response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v{WasabiClient.ApiVersion}/btc/chaumiancoinjoin/unconfirmation?uniqueId={UniqueId}&roundId={RoundId}", cancel: cts.Token).ConfigureAwait(false);
-					if (response.StatusCode == HttpStatusCode.BadRequest || response.StatusCode == HttpStatusCode.Gone) // Otherwise maybe some internet connection issue there's. Let's consider that as timed out.
+					if (response.StatusCode is HttpStatusCode.BadRequest or HttpStatusCode.Gone) // Otherwise maybe some internet connection issue there's. Let's consider that as timed out.
 					{
 						await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
 					}
