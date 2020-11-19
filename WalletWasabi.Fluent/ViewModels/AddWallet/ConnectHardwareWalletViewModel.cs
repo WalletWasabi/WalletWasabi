@@ -146,7 +146,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			while (_detectionTask is { } && !_detectionTask.IsCompleted)
 			{
-				Thread.Sleep(100);
+				Task.Delay(100);
 			}
 		});
 
