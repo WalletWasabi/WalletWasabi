@@ -40,11 +40,11 @@ namespace WalletWasabi.Stores
 			SmartHeaderChain = Guard.NotNull(nameof(hashChain), hashChain);
 		}
 
-		private TaskRemembler TaskRemembler { get; } = new TaskRemembler();
-
 		public event EventHandler<FilterModel>? Reorged;
 
 		public event EventHandler<FilterModel>? NewFilter;
+
+		private TaskRemembler TaskRemembler { get; } = new TaskRemembler();
 
 		private string WorkFolderPath { get; }
 		private Network Network { get; }

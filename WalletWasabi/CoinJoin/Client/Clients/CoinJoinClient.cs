@@ -48,8 +48,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		private long _statusProcessing;
 
-		private TaskRemembler TaskRemembler { get; } = new TaskRemembler();
-
 		public CoinJoinClient(
 			WasabiSynchronizer synchronizer,
 			Network network,
@@ -86,6 +84,8 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		public event EventHandler<SmartCoin>? CoinQueued;
 
 		public event EventHandler<DequeueResult>? OnDequeue;
+
+		private TaskRemembler TaskRemembler { get; } = new TaskRemembler();
 
 		public Network Network { get; private set; }
 		public KeyManager KeyManager { get; }
