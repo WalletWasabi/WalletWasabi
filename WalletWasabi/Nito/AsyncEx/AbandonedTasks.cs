@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Nito.AsyncEx
 {
@@ -47,7 +49,18 @@ namespace WalletWasabi.Nito.AsyncEx
 				}
 
 				// 3. Wait for all tasks to complete.
-				await Task.WhenAll(tasks).ConfigureAwait(false);
+				try
+				{
+					await Task.WhenAll(tasks).ConfigureAwait(false);
+				}
+				catch (Exception exc)
+				{
+					// Catch every exceptions but log only non-cancellation ones.
+					if (!(exc is OperationCanceledException))
+					{
+						Logger.LogDebug(exc);
+					}
+				}
 			}
 			while (true);
 		}
@@ -66,6 +79,11 @@ namespace WalletWasabi.Nito.AsyncEx
 			{
 				if (t.IsCompleted)
 				{
+					if (t.IsFaulted && t.Exception?.InnerException is { } exc)
+					{
+						Logger.LogDebug(exc);
+					}
+
 					Tasks.Remove(t);
 				}
 			}
