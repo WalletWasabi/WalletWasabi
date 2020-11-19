@@ -9,7 +9,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 	public class DialogScreenViewModel : ViewModelBase, IScreen
 	{
 		private bool _isClosing;
-		private bool _isDialogVisible;
+		private bool _isDialogOpen;
 
 		public DialogScreenViewModel()
 		{
@@ -18,11 +18,11 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 				{
 					if (!_isClosing)
 					{
-						IsDialogVisible = Router.NavigationStack.Count >= 1;
+						IsDialogOpen = Router.NavigationStack.Count >= 1;
 					}
 				});
 
-			this.WhenAnyValue(x => x.IsDialogVisible).Subscribe(x =>
+			this.WhenAnyValue(x => x.IsDialogOpen).Subscribe(x =>
 			{
 				if (!x)
 				{
@@ -36,10 +36,10 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 		public ReactiveCommand<Unit, Unit> GoBack => Router.NavigateBack;
 
-		public bool IsDialogVisible
+		public bool IsDialogOpen
 		{
-			get => _isDialogVisible;
-			set => this.RaiseAndSetIfChanged(ref _isDialogVisible, value);
+			get => _isDialogOpen;
+			set => this.RaiseAndSetIfChanged(ref _isDialogOpen, value);
 		}
 
 		public void Close()
@@ -50,7 +50,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 				if (Router.NavigationStack.Count >= 1)
 				{
 					Router.NavigationStack.Clear();
-					IsDialogVisible = false;
+					IsDialogOpen = false;
 				}
 				_isClosing = false;
 			}
