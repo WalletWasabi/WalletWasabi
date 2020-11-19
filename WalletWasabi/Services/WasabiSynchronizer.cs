@@ -43,6 +43,7 @@ namespace WalletWasabi.Services
 
 		private long _blockRequests; // There are priority requests in queue.
 
+		/// <param name="wasabiClientFactory">The class takes ownership of the instance.</param>
 		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, WasabiClientFactory wasabiClientFactory)
 		{
 			Network = network;
@@ -50,7 +51,7 @@ namespace WalletWasabi.Services
 			_running = StateNotStarted;
 			BitcoinStore = bitcoinStore;
 			WasabiClientFactory = wasabiClientFactory;
-			WasabiClient = wasabiClientFactory.NewBackendClient();
+			WasabiClient = wasabiClientFactory.SharedWasabiClient;
 
 			StopCts = new CancellationTokenSource();
 		}
@@ -65,6 +66,7 @@ namespace WalletWasabi.Services
 
 		public SynchronizeResponse? LastResponse { get; private set; }
 
+		/// <summary><see cref="WasabiSynchronizer"/> is responsible for disposing of this object.</summary>
 		public WasabiClientFactory WasabiClientFactory { get; }
 
 		public WasabiClient WasabiClient { get; }
@@ -412,7 +414,7 @@ namespace WalletWasabi.Services
 				await Task.Delay(50).ConfigureAwait(false);
 			}
 
-			WasabiClient.Dispose();
+			WasabiClientFactory.Dispose();
 			StopCts.Dispose();
 
 			EnableRequests(); // Enable requests (it's possible something is being blocked outside the class by AreRequestsBlocked.

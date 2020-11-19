@@ -60,7 +60,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		[Fact]
 		public async Task GetClientVersionAsync()
 		{
-			using var client = new WasabiClient(BackendHttpClient);
+			var client = new WasabiClient(BackendHttpClient);
 			var uptodate = await client.CheckUpdatesAsync(CancellationToken.None);
 			Assert.True(uptodate.BackendCompatible);
 			Assert.True(uptodate.ClientUpToDate);
