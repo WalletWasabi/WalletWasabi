@@ -41,6 +41,8 @@ namespace WalletWasabi.Services
 
 		private CancellationTokenSource DisposeCts { get; } = new CancellationTokenSource();
 
+		private NamedPipeServerStream? NamedPipeServerStream { get; set; }
+
 		public async Task CheckAsync()
 		{
 			if (DisposeCts.IsCancellationRequested)
@@ -51,9 +53,7 @@ namespace WalletWasabi.Services
 			try
 			{
 				// Try to create a pipe with the specified name.
-				using (new NamedPipeServerStream(PipeName, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous))
-				{
-				}
+				NamedPipeServerStream = new NamedPipeServerStream(PipeName, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
 
 				// Start listening for ClientPipes with ExecuteAsync.
 				await StartAsync(DisposeCts.Token).ConfigureAwait(false);
@@ -87,7 +87,13 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
-				using var server = new NamedPipeServerStream(PipeName, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+				using var server = NamedPipeServerStream;
+
+				if (server is null)
+				{
+					// This should not happen.
+					throw new InvalidOperationException();
+				}
 
 				while (!stoppingToken.IsCancellationRequested)
 				{
@@ -102,21 +108,32 @@ namespace WalletWasabi.Services
 			}
 			catch (Exception ex) when (!(ex is OperationCanceledException))
 			{
-				// Something happened we are not trying to recover the NamedPipeServerStream.
+				// If something happened we are not trying to recover the NamedPipeServerStream.
 				Logger.LogError(ex);
 			}
 		}
 
 		public async ValueTask DisposeAsync()
 		{
+			// Cancel all operations.
 			DisposeCts.Cancel();
+
+			// Wait for the end of ExecuteAsync.
 			await StopAsync(CancellationToken.None).ConfigureAwait(false);
+
+			// Dispose the server.
+			if (NamedPipeServerStream is { } server)
+			{
+				await server.DisposeAsync().ConfigureAwait(false);
+			}
+
 			Dispose();
 		}
 
 		public override void Dispose()
 		{
 			DisposeCts.Dispose();
+			NamedPipeServerStream?.Dispose();
 			base.Dispose();
 		}
 	}
