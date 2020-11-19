@@ -38,10 +38,6 @@ namespace WalletWasabi.Services
 
 		private CancellationTokenSource DisposeCts { get; } = new CancellationTokenSource();
 
-		private bool FirstInstance => NamedPipeServerStream is { };
-
-		private NamedPipeServerStream? NamedPipeServerStream { get; set; }
-
 		public async Task CheckAsync()
 		{
 			if (DisposeCts.IsCancellationRequested)
@@ -51,7 +47,8 @@ namespace WalletWasabi.Services
 
 			try
 			{
-				NamedPipeServerStream = new NamedPipeServerStream(PipeName, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+				// Try to create a pipe with the specified name.
+				using var _ = new NamedPipeServerStream(PipeName, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
 
 				// Start listening for ClientPipes with ExecuteAsync.
 				await StartAsync(DisposeCts.Token).ConfigureAwait(false);
@@ -61,7 +58,7 @@ namespace WalletWasabi.Services
 			}
 			catch (IOException ex)
 			{
-				// There is another instance already running.
+				// Could not create a pipe. There is another instance already running.
 				Logger.LogDebug($"Could not create {nameof(NamedPipeServerStream)} reason '{ex}'.");
 			}
 
@@ -85,11 +82,7 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
-				using var server = NamedPipeServerStream;
-				if (server is null)
-				{
-					throw new InvalidOperationException();
-				}
+				using var server = new NamedPipeServerStream(PipeName, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
 
 				while (!stoppingToken.IsCancellationRequested)
 				{
