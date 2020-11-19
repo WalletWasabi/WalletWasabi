@@ -144,7 +144,7 @@ namespace WalletWasabi.Tor.Http
 						}
 						catch (SocketException ex3) when (ex3.ErrorCode == (int)SocketError.ConnectionRefused)
 						{
-							throw new ConnectionException("Connection was refused.", ex3);
+							throw new TorConnectionException("Connection was refused.", ex3);
 						}
 
 						cancel.ThrowIfCancellationRequested();

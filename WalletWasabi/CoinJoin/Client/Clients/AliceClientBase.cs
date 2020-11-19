@@ -169,7 +169,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				{
 					return;
 				}
-				catch (ConnectionException) // If some internet connection issue then it'll likely time out and take it as unconfirmed.
+				catch (TorConnectionException) // If some internet connection issue then it'll likely time out and take it as unconfirmed.
 				{
 					return;
 				}

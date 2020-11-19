@@ -185,7 +185,7 @@ namespace WalletWasabi.Services
 								TorStatus = TorStatus.Running;
 								DoNotGenSocksServFail();
 							}
-							catch (ConnectionException ex)
+							catch (TorConnectionException ex)
 							{
 								TorStatus = TorStatus.NotRunning;
 								BackendStatus = BackendStatus.NotConnected;
@@ -317,7 +317,7 @@ namespace WalletWasabi.Services
 						{
 							Logger.LogInfo("Wasabi Synchronizer execution was canceled.");
 						}
-						catch (ConnectionException ex)
+						catch (TorConnectionException ex)
 						{
 							Logger.LogError(ex);
 							try
