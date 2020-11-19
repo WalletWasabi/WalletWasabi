@@ -63,8 +63,8 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 						}
 					}
 					Router.NavigationStack.Clear();
-					IsDialogOpen = false;
 				}
+				IsDialogOpen = false;
 				_isClosing = false;
 			}
 		}
