@@ -95,16 +95,23 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public void GoBack(NavigationTarget navigationTarget)
 		{
+			var router = default(RoutingState);
+
 			switch (navigationTarget)
 			{
 				case NavigationTarget.Default:
 				case NavigationTarget.HomeScreen:
-					NavigationState.HomeScreen.Invoke().Router.NavigateBack.Execute();
+					router = NavigationState.HomeScreen.Invoke().Router;
 					break;
 
 				case NavigationTarget.DialogScreen:
-					NavigationState.DialogScreen.Invoke().Router.NavigateBack.Execute();
+					router = NavigationState.DialogScreen.Invoke().Router;
 					break;
+			}
+
+			if (router is not null)
+			{
+				router.NavigateBack.Execute();
 			}
 		}
 
@@ -112,16 +119,23 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public void ClearNavigation(NavigationTarget navigationTarget)
 		{
+			var router = default(RoutingState);
+
 			switch (navigationTarget)
 			{
 				case NavigationTarget.Default:
 				case NavigationTarget.HomeScreen:
-					NavigationState.HomeScreen.Invoke().Router.NavigationStack.Clear();
+					router = NavigationState.HomeScreen.Invoke().Router;
 					break;
 
 				case NavigationTarget.DialogScreen:
-					NavigationState.DialogScreen.Invoke().Router.NavigationStack.Clear();
+					router = NavigationState.DialogScreen.Invoke().Router;
 					break;
+			}
+
+			if (router is not null)
+			{
+				router.NavigationStack.Clear();
 			}
 		}
 
