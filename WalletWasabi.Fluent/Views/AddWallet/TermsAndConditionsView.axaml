@@ -12,7 +12,7 @@
         <KeyBinding Gesture="Enter" Command="{Binding NextCommand}" />
     </UserControl.KeyBindings>
     <c:ContentArea Title="Welcome to Wasabi Wallet"
-                   EnableCancel="False"
+                   EnableCancel="True"
                    EnableNext="True" NextContent="Continue" FocusNext="True">
       <DockPanel>
           <CheckBox IsChecked="{Binding IsAgreed}" DockPanel.Dock="Bottom" Name="CheckBox_Agree">

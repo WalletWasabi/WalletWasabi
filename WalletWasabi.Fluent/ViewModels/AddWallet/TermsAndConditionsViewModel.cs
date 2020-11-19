@@ -24,7 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 	{
 		private bool _isAgreed;
 
-		public TermsAndConditionsViewModel(NavigationStateViewModel navigationState, LegalDocuments legalDocuments) : base(navigationState, NavigationTarget.DialogScreen)
+		public TermsAndConditionsViewModel(NavigationStateViewModel navigationState, LegalDocuments legalDocuments, RoutableViewModel next) : base(navigationState, NavigationTarget.DialogScreen)
 		{
 			ViewTermsCommand = ReactiveCommand.CreateFromTask(
 				async () =>
@@ -40,8 +40,18 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				});
 
 			NextCommand = ReactiveCommand.Create(
-				() => Close(true),
+				() =>
+				{
+					Close(true);
+					NavigateTo(next, NavigationTarget.DialogScreen);
+				},
 				this.WhenAnyValue(x => x.IsAgreed));
+
+			CancelCommand = ReactiveCommand.Create(() =>
+			{
+				Close();
+				GoBack();
+			});
 		}
 
 		public bool IsAgreed
