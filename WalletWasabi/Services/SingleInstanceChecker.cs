@@ -106,7 +106,7 @@ namespace WalletWasabi.Services
 					server.Disconnect();
 				}
 			}
-			catch (Exception ex) when (!(ex is OperationCanceledException))
+			catch (Exception ex) when (ex is not OperationCanceledException)
 			{
 				// If something happened we are not trying to recover the NamedPipeServerStream.
 				Logger.LogError(ex);
