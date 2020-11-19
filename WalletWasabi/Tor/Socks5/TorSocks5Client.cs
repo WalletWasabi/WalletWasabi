@@ -238,7 +238,7 @@ namespace WalletWasabi.Tor.Socks5
 					// condition that caused a failure.
 					DisposeTcpClient();
 					Logger.LogWarning($"Connection response indicates a failure. Actual response is: '{connectionResponse.Rep}'. Request: '{host}:{port}'.");
-					throw new TorSocks5FailureResponseException(connectionResponse.Rep);
+					throw new TorConnectCommandFailedException(connectionResponse.Rep);
 				}
 
 				// Do not check the Bnd. Address and Bnd. Port. because Tor does not seem to return any, ever. It returns zeros instead.
