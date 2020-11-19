@@ -94,7 +94,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public void NavigateToSelfAndReset() => NavigateTo(this, NavigationTarget, true);
 
-		public void GoBack(NavigationTarget navigationTarget)
+		private RoutingState? GetRouter(NavigationTarget navigationTarget)
 		{
 			var router = default(RoutingState);
 
@@ -110,6 +110,26 @@ namespace WalletWasabi.Fluent.ViewModels
 					break;
 			}
 
+			return router;
+		}
+
+		private void CloseDialogs(IEnumerable<IRoutableViewModel> navigationStack)
+		{
+			foreach (var routable in navigationStack)
+			{
+				// Close all dialogs so the awaited tasks can complete.
+				// - DialogViewModelBase.ShowDialogAsync()
+				// - DialogViewModelBase.GetDialogResultAsync()
+				if (routable is DialogViewModelBase dialog)
+				{
+					dialog.IsDialogOpen = false;
+				}
+			}
+		}
+
+		public void GoBack(NavigationTarget navigationTarget)
+		{
+			var router = GetRouter(navigationTarget);
 			if (router is not null)
 			{
 				// Close all dialogs so the awaited tasks can complete.
@@ -126,36 +146,9 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public void GoBack() => GoBack(NavigationTarget);
 
-		private void CloseDialogs(IEnumerable<IRoutableViewModel> navigationStack)
-		{
-			foreach (var routable in navigationStack)
-			{
-				// Close all dialogs so the awaited tasks can complete.
-				// - DialogViewModelBase.ShowDialogAsync()
-				// - DialogViewModelBase.GetDialogResultAsync()
-				if (routable is DialogViewModelBase dialog)
-				{
-					dialog.IsDialogOpen = false;
-				}
-			}
-		}
-
 		public void ClearNavigation(NavigationTarget navigationTarget)
 		{
-			var router = default(RoutingState);
-
-			switch (navigationTarget)
-			{
-				case NavigationTarget.Default:
-				case NavigationTarget.HomeScreen:
-					router = NavigationState.HomeScreen.Invoke().Router;
-					break;
-
-				case NavigationTarget.DialogScreen:
-					router = NavigationState.DialogScreen.Invoke().Router;
-					break;
-			}
-
+			var router = GetRouter(navigationTarget);
 			if (router is not null)
 			{
 				if (router.NavigationStack.Count >= 1)
