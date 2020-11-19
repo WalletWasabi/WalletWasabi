@@ -33,6 +33,8 @@ namespace WalletWasabi.Services
 			PipeName = $"{PipeNamePrefix}-{lockName}";
 		}
 
+		public event EventHandler? OtherInstanceStarted;
+
 		private Network Network { get; }
 
 		private string PipeName { get; }
@@ -90,7 +92,9 @@ namespace WalletWasabi.Services
 				while (!stoppingToken.IsCancellationRequested)
 				{
 					await server.WaitForConnectionAsync(stoppingToken).ConfigureAwait(false);
-					Logger.LogInfo("Got a connection!");
+					Logger.LogDebug("Other instance connected!");
+
+					OtherInstanceStarted?.Invoke(this, EventArgs.Empty);
 
 					// Disconnect the client to be able to wait for another connection.
 					server.Disconnect();
