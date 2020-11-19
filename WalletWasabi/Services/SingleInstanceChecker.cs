@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.IO.Pipes;
 using System.Threading;
@@ -9,9 +10,10 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Services
 {
-	public class SingleInstanceChecker : BackgroundService
+	public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 	{
 		private const string PipeNamePrefix = "WalletWasabiSingleInstance";
+		private bool _disposed;
 
 		/// <summary>
 		/// Creates a new instance of the object where lock name is based on <paramref name="network"/> name.
@@ -48,7 +50,9 @@ namespace WalletWasabi.Services
 			try
 			{
 				// Try to create a pipe with the specified name.
-				using var _ = new NamedPipeServerStream(PipeName, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+				using (new NamedPipeServerStream(PipeName, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous))
+				{
+				}
 
 				// Start listening for ClientPipes with ExecuteAsync.
 				await StartAsync(DisposeCts.Token).ConfigureAwait(false);
@@ -98,6 +102,13 @@ namespace WalletWasabi.Services
 				// Something happened we are not trying to recover the NamedPipeServerStream.
 				Logger.LogError(ex);
 			}
+		}
+
+		public async ValueTask DisposeAsync()
+		{
+			DisposeCts.Cancel();
+			await StopAsync(CancellationToken.None).ConfigureAwait(false);
+			Dispose();
 		}
 
 		public override void Dispose()

@@ -754,9 +754,7 @@ namespace WalletWasabi.Gui
 
 				try
 				{
-					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
-					await SingleInstanceChecker.StopAsync(cts.Token).ConfigureAwait(false);
-					SingleInstanceChecker.Dispose();
+					await SingleInstanceChecker.DisposeAsync().ConfigureAwait(false);
 				}
 				catch (Exception ex)
 				{
